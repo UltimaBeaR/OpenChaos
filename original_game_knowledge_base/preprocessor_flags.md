@@ -1,33 +1,129 @@
-# Препроцессорные флаги
+# Флаги препроцессора — Urban Chaos (original_game)
 
-## Статус: 🔲 Требует детального анализа
+Полная классификация всех `#define` / `#ifdef` / `#if defined` в кодовой базе.
+Цель: понять что нужно для финальной PC-версии, что можно безопасно удалить при переписывании.
 
-Известная проблема: многие флаги при включении ломают компиляцию или вызывают
-глючный рендеринг. Нужно систематически пройти по всем флагам и определить:
-1. Что делает флаг
-2. Нужен ли он для финальной PC-версии игры
-3. Безопасно ли его выпилить
+---
 
-## Известные категории флагов (предварительно)
+## 1. Платформенные флаги
 
-### Платформенные (выпиливать полностью)
-- `PSX` — PlayStation 1 код
-- `TARGET_DC` — Dreamcast код
-- `VERSION_D3D` — PC DirectX (оставить этот путь как основу, но заменить на новое API)
+| Флаг | Где определяется | Назначение | Нужен для PC |
+|------|-----------------|-----------|--------------|
+| `TARGET_DC` | Настройки проекта / headers | Dreamcast (Sega) | **НЕТ** |
+| `PSX` | collide.h, Command.h, dirt.h, building.h | PlayStation 1 | **НЕТ** |
+| `_MF_WINDOWS` | MFStdLib.h, MFHeader.h | Windows — определяется при `!defined(TARGET_DC)` | **ДА** |
+| `_MF_DOSX` | MFTypes.h | DOS (legacy) | **НЕТ** |
+| `__WATCOMC__` | MFMaths.h, MFUtils.h | Watcom C++ compiler (старый) | **НЕТ** |
+| `__DOS__` | MFLbType.h | DOS platform | **НЕТ** |
+| `__WINDOWS_386__` | MFLbType.h, collide.cpp | Watcom Windows 386 | **НЕТ** |
+| `_WINDOWS` | Проектные файлы | Generic Windows build | **ДА** |
+| `_WIN32` | .rc, .dsp файлы | Windows 32-bit | **ДА** |
 
-### Рендеринг (анализировать)
-- Флаги связанные с Glide (3dfx) — выпиливать
-- Флаги software renderer — выпиливать
-- Флаги hardware features — анализировать
+**Важно:** `TARGET_DC` встречается в базовых библиотеках (MFLib1, MFStdLib, DDEngine) — при удалении нужна аккуратность. `PSX` встречается в физике и структурах данных — тоже осторожно.
 
-## TODO
-- [ ] Найти все `#define` и `#ifdef` в проекте
-- [ ] Классифицировать каждый флаг
-- [ ] Определить какие флаги были активны в финальном PC релизе
-- [ ] Записать в таблицу ниже
+---
 
-## Таблица флагов
+## 2. Графические флаги
 
-| Флаг | Где определён | Что делает | Нужен в новой версии | Статус |
-|---|---|---|---|---|
-| (заполнить после анализа) | | | | |
+| Флаг | Где определяется | Назначение | Нужен для PC |
+|------|-----------------|-----------|--------------|
+| `VERSION_D3D` | Fallen.vcxproj (Release + Debug) | DirectX 3D — основной графический API | **ДА** (сейчас) |
+| `VERSION_GLIDE` | Engine.h (условие) | 3dfx Glide | **НЕТ** |
+| `MF_DD2` | MFLib1/Source/C/Windows/Display.cpp | DirectDraw 2 (обёртка) | **ДА** (сейчас) |
+| `TEX_EMBED` | Fallen.vcxproj (Release + Debug) | Встраивание текстур; используется в D3DTexture.cpp, polypage.cpp, figure.cpp | **ДА** |
+| `DONT_IGNORE_SHADOWS` и др. | Glide Engine/glaeng.cpp | Графические эффекты Glide | **НЕТ** |
+| `WORRY_ABOUT_THIS_LATER` | glpoly.cpp | Отложенная задача в Glide | **НЕТ** |
+
+**Примечание:** Весь код Glide (`/fallen/Glide Engine/`) мёртв — `VERSION_GLIDE` не определяется ни в одной конфигурации. При переписывании `VERSION_D3D` и `MF_DD2` заменяются на OpenGL/Vulkan-аналоги.
+
+---
+
+## 3. Флаги фич
+
+| Флаг | Где встречается | Назначение | Нужен для PC |
+|------|----------------|-----------|--------------|
+| `BIKE` | ~15 файлов: bike.cpp, Controls.cpp, Person.cpp и др. | Мотоцикл (транспорт) | **НЕЯСНО — требует проверки** |
+| `FAST_EDDIE` | Controls.cpp, vehicle.cpp | Быстрый отладочный режим (`#if defined(FAST_EDDIE) && 0`) | **НЕТ** |
+| `USE_PASSWORD` | startscr.cpp (одно место) | Система паролей | **НЕЯСНО** |
+
+**BIKE:** флаг существует и используется широко (~15 файлов), но реализация может быть неполной — нужна отдельная проверка. Код содержит `BIKE_create()` и подобные вызовы.
+
+---
+
+## 4. Отладочные флаги
+
+| Флаг | Где определяется | Назначение | Нужен |
+|------|-----------------|-----------|-------|
+| `DEBUG` | Проект (Debug конфигурация) | Debug build | **ДА** (для разработки) |
+| `_DEBUG` | MSVC predefined | Debug configuration | **ДА** (для разработки) |
+| `NDEBUG` | Проект (Release конфигурация) | No debug | **ДА** |
+| `_RELEASE` | Проект (Release конфигурация) | Release build | **ДА** |
+| `FINAL` | Fallen.vcxproj (Release only) | Финальная сборка, выключает отладочный код | **ДА** (в Release) |
+| `HEAP_DEBUGGING_PLEASE_BOB` | StdMem.cpp (закомментирован) | Отладка кучи | **НЕТ** |
+| `DEBUG_POOSHIT` | Engine.cpp | Отладочный вывод | **НЕТ** |
+| `FACET_REMOVAL_TEST` | facet.cpp (закомментирован) | Визуализация удаляемых полигонов | **НЕТ** |
+| `TEST_3DFX` | Engine.cpp, LevelEd.cpp | Тестирование 3dfx | **НЕТ** |
+
+---
+
+## 5. Флаги редактора
+
+| Флаг | Где определяется | Назначение | Нужен |
+|------|-----------------|-----------|-------|
+| `EDITOR` | GEdit.dsp, psxlib.dsp | Level Editor | **НЕТ** |
+| `BUILD_PSX` | GEdit.dsp, PSXENG/psxeng.h | Сборка для PSX | **НЕТ** |
+| `DOG_POO`, `POO`, `FUNNY_FANNY`, `OLD_STUFF`, `GUY`, `I_AM_A_LOON`, `DOGPOO`, `_MF_WINDOWS_DOG_POO` | Editor/Source файлы | Внутренние флаги разработчиков | **НЕТ** |
+
+Все папки редакторов (`/fallen/Editor/`, `/fallen/GEdit/`, `/fallen/LeEdit/`, `/fallen/SeEdit/`) можно удалить полностью.
+
+---
+
+## 6. Региональные флаги
+
+| Флаг | Где определяется | Назначение | Нужен |
+|------|-----------------|-----------|-------|
+| `EIDOS` | password.h (по умолчанию) | Eidos Interactive — издатель. Определяет строки и ключи | **ДА** |
+| `USA`, `GERMANY`, `FRANCE`, `KK`, `SINGAPORE`, `LEADER`, `HALIFAX`, `SYNTHESIS`, `DLMM`, `EEM`, `EUROPE`, `JAPAN` | password.h | Альтернативные региональные издания | **НЕТ** |
+| `TDFX` | password.h | Специальная версия для 3dfx Voodoo | **НЕТ** |
+| `VERSION_ENGLISH`, `VERSION_GERMAN` и др. | psxeng.h | Языковые версии PSX | **НЕТ** |
+| `VERSION_DEMO`, `VERSION_REVIEW`, `VERSION_PAL`, `VERSION_NTSC`, `VERSION_LORES` | psxeng.h | Разновидности PSX версий | **НЕТ** |
+
+---
+
+## 7. Прочие флаги
+
+| Флаг | Назначение | Нужен |
+|------|-----------|-------|
+| `USE_A3D` | A3D audio (Aureal 3D) — определён в psxeng.h, только PSX | **НЕТ** |
+| `UNICODE` | Unicode в диалогах Windows (userdlg.cpp) | **ДА** |
+| `__cplusplus` | Защита extern "C" в wave.h | **ДА** |
+| `_CRT_SECURE_NO_WARNINGS` | Подавление предупреждений MSVC о небезопасных CRT функциях | не нужен при переписывании |
+| `WINDOWS_IGNORE_PACKING_MISMATCH` | Подавление предупреждений о выравнивании (Debug) | не нужен при переписывании |
+| `APSTUDIO_INVOKED` | Защита от редактора ресурсов VS | не нужен при переписывании |
+
+---
+
+## Итог: что удаляется, что остаётся
+
+### Безопасно удалить при переписывании:
+- Вся папка `/fallen/Glide Engine/` — код Glide мёртв
+- Все редакторы: `/fallen/Editor/`, `/fallen/GEdit/`, `/fallen/LeEdit/`, `/fallen/SeEdit/`
+- Папка `/fallen/PSXENG/` — код PSX
+- Код под флагами: `TARGET_DC`, `PSX`, `VERSION_GLIDE`, `EDITOR`, `BUILD_PSX`
+- Отладочные артефакты: `HEAP_DEBUGGING_PLEASE_BOB`, `DEBUG_POOSHIT`, `FACET_REMOVAL_TEST`, `TEST_3DFX`, `FAST_EDDIE`
+- Все региональные флаги кроме `EIDOS`
+- `USE_A3D`, `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__`
+
+### Требует отдельного изучения:
+- `BIKE` — возможно неполная реализация мотоцикла, нужна отдельная проверка
+- `USE_PASSWORD` — одно упоминание, неясно нужен ли в финальной версии
+
+### Аккуратно обработать при удалении:
+- `TARGET_DC` — проникает в базовые библиотеки MFLib1, MFStdLib
+- `PSX` — встречается в физике (collide.h) и структурах данных (building.h, dirt.h, Command.h)
+
+### Сохранить или заменить аналогом:
+- `VERSION_D3D`, `MF_DD2`, `TEX_EMBED` → заменить на OpenGL/Vulkan аналоги
+- `FINAL`, `DEBUG`, `_DEBUG`, `NDEBUG`, `_RELEASE` → концепция Debug/Release конфигураций остаётся
+- `EIDOS` → оставить или убрать если региональная логика не нужна
+- `_MF_WINDOWS`, `_WINDOWS`, `_WIN32` → при кросс-платформенном переписывании заменить на CMake-детектирование платформы
