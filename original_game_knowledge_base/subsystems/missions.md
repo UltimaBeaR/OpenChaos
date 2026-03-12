@@ -307,7 +307,7 @@ MuckyBasic — отдельная изолированная система (`Mu
 ## 10. Глобальный прогресс и сохранение
 
 **Файл:** `frontend.cpp` — `FRONTEND_save_savegame()` / `FRONTEND_load_savegame()`
-**Путь:** `saves/slot{N}.wag` (N = 0..2, три слота)
+**Путь:** `saves/slot{N}.wag` (N = **1, 2, 3** — 1-based! `save_slot = menu_state.selected + 1`)
 **Версия формата:** `version = 3`
 
 ### Структура .wag файла (бинарный, sequential write):

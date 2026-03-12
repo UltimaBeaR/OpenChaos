@@ -1,5 +1,9 @@
 // Darci.cpp
 // Guy Simmons, 4th January 1998
+// claude-ai: Darci Mason — управляемый игроком персонаж. ЕДИНСТВЕННЫЙ полностью реализованный персонаж в пре-релизной версии.
+// claude-ai: Содержит физику Darci: гравитация 4<<8 = 1024 ед/тик, терминальная скорость DY = -30000.
+// claude-ai: Смерть от падения: DY <= -30000. Урон от падения: DY < -20000 → урон = (-DY - 20000) / 100.
+// claude-ai: fn_darci_normal() отсутствует — STATE_NORMAL = NULL (Darci не имеет "нормального" AI-режима, управляется игроком).
 
 #include	"Game.h"
 #include	"Darci.h"
@@ -42,6 +46,7 @@ SLONG	calc_height_at(SLONG x,SLONG z);
 
 void	fn_darci_init(Thing *t_thing);
 
+// claude-ai: Гравитация Darci: 4<<8 = 1024 единиц/тик. Применяется к DY каждый кадр.
 #define	GRAVITY		((4<<8))
 
 //extern	SLONG	calc_height_on_face(SLONG x,SLONG z,SLONG face);
@@ -83,6 +88,8 @@ extern	void	locked_anim_change(Thing *p_person,UWORD locked_object,UWORD anim,SL
 extern	void	fn_person_moveing(Thing *p_person);
 extern	void	fn_person_idle(Thing *p_person);
 
+// claude-ai: Таблица состояний Darci. STATE_NORMAL = NULL (нет AI-режима, только player input).
+// claude-ai: Darci использует generic fn_person_* функции из Person.cpp для большинства состояний.
 StateFunction	darci_states[]	=
 {
 	{	STATE_INIT,				fn_darci_init	},

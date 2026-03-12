@@ -44,6 +44,11 @@ void  MUSIC_gain(UBYTE gain);
 // Curiously, I typed these in the order they came to mind: And there they are, sorted into
 // priority order...
 
+// claude-ai: MUSIC_MODE_* — режимы музыки. Приоритет (от высшего к низшему): TRAIN_* > CHAOS > FIGHTING > DRIVING > SPRINTING > CRAWLING > BRIEFING > FRONTEND > SILENT.
+// claude-ai: Переходы плавные — MUSIC_mode(mode) запрашивает смену, MUSIC_mode_process() обрабатывает fade-in/out каждый кадр.
+// claude-ai: Файлы: data/sfx/1622/musik01-musik08/ с подпапками по режимам.
+// claude-ai: MUSIC_MODE_FORCE(128) — принудительная немедленная смена без fade.
+// claude-ai: При портировании: заменить MSS32 вызовы на miniaudio API, логику режимов сохранить 1:1.
 #define MUSIC_MODE_SILENT			(0)
 #define MUSIC_MODE_DRIVING			(1)
 #define	MUSIC_MODE_SPRINTING		(2)

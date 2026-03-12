@@ -1,5 +1,7 @@
 //	Special.h
 //	Guy Simmons, 28th March 1998.
+// claude-ai: Определяет все типы предметов (оружие, боеприпасы, ключи, расходники) и структуру Special.
+// claude-ai: MAX_SPECIALS=260 (RMAX_SPECIALS). Таймер 16*20 тиков/сек (20 fps * 16 subticks).
 
 #ifndef	SPECIAL_H
 #define	SPECIAL_H
@@ -13,9 +15,37 @@
 
 //---------------------------------------------------------------
 
+// claude-ai: Максимум предметов одновременно на уровне = 260.
 #define	RMAX_SPECIALS	260
 #define	MAX_SPECIALS	(save_table[SAVE_TABLE_SPECIAL].Maximum)
 
+// claude-ai: Типы предметов (0-29). Всего 30 типов (SPECIAL_NUM_TYPES=30).
+// claude-ai:   0  NONE         — нет предмета
+// claude-ai:   1  KEY          — ключ (миссийный предмет)
+// claude-ai:   2  GUN          — пистолет (одноручное оружие)
+// claude-ai:   3  HEALTH       — аптечка
+// claude-ai:   4  BOMB         — бомба
+// claude-ai:   5  SHOTGUN      — дробовик (двуручное)
+// claude-ai:   6  KNIFE        — нож (одноручное)
+// claude-ai:   7  EXPLOSIVES   — взрывчатка (таймер 5 сек, шоквейв force=500, radius=0x500)
+// claude-ai:   8  GRENADE      — граната (запал 6 сек = 16*20*6 тиков, отскок: velocity >>= 1)
+// claude-ai:   9  AK47         — автомат (двуручное)
+// claude-ai:  10  MINE         — мина (в пре-релизе НЕ подбирается; SPECIAL_throw_mine() закомментирована)
+// claude-ai:  11  THERMODROID  — термодроид (не до конца задокументирован в этой версии)
+// claude-ai:  12  BASEBALLBAT  — бита (одноручное)
+// claude-ai:  13  AMMO_PISTOL  — патроны для пистолета (15 шт. за подбор)
+// claude-ai:  14  AMMO_SHOTGUN — патроны для дробовика (8 шт. за подбор)
+// claude-ai:  15  AMMO_AK47    — патроны для AK47 (30 шт. за подбор)
+// claude-ai:  16  KEYCARD      — ключ-карта (миссийный)
+// claude-ai:  17  FILE         — папка с делом (миссийный)
+// claude-ai:  18  FLOPPY_DISK  — дискета (миссийный)
+// claude-ai:  19  CROWBAR      — монтировка (одноручное)
+// claude-ai:  20  VIDEO        — видеокассета (миссийный)
+// claude-ai:  21  GLOVES       — перчатки (расходник)
+// claude-ai:  22  WEEDAWAY     — гербицид (расходник)
+// claude-ai:  23  TREASURE     — ценность
+// claude-ai:  24-28 CARKEY_*  — ключи от машин (RED/BLUE/GREEN/BLACK/WHITE)
+// claude-ai:  29  WIRE_CUTTER  — кусачки для проволоки (расходник)
 #define	SPECIAL_NONE		 0
 #define	SPECIAL_KEY			 1
 #define SPECIAL_GUN			 2
@@ -52,6 +82,13 @@
 // Info about every special
 //
 
+// claude-ai: Группы предметов — используются для классификации поведения.
+// claude-ai:   1 USEFUL          — полезные предметы (ключи, аптечки)
+// claude-ai:   2 ONEHANDED_WEAPON — одноручное оружие (пистолет, нож, бита, монтировка)
+// claude-ai:   3 TWOHANDED_WEAPON — двуручное оружие (дробовик, AK47)
+// claude-ai:   4 STRANGE          — странные предметы (бомба, мина, взрывчатка)
+// claude-ai:   5 AMMO             — боеприпасы
+// claude-ai:   6 COOKIE           — миссийные предметы (файлы, дискеты, видео и т.д.)
 #define SPECIAL_GROUP_USEFUL			1
 #define SPECIAL_GROUP_ONEHANDED_WEAPON	2
 #define SPECIAL_GROUP_TWOHANDED_WEAPON	3
@@ -69,13 +106,25 @@ typedef struct
 
 extern SPECIAL_Info SPECIAL_info[SPECIAL_NUM_TYPES];
 
+// claude-ai: Подсостояния предметов:
+// claude-ai:   0 NONE       — лежит на земле / в инвентаре
+// claude-ai:   1 ACTIVATED  — активирован (бомба тикает, мина взведена, граната с запалом)
+// claude-ai:   2 IS_DIRT    — активированная мина закопана в dirt (waypoint = индекс dirt)
+// claude-ai:   3 PROJECTILE — летит как снаряд (граната в полёте)
 #define SPECIAL_SUBSTATE_NONE       0
 #define SPECIAL_SUBSTATE_ACTIVATED  1		// For a bomb or a mine or a grenade
-#define SPECIAL_SUBSTATE_IS_DIRT    2		// For an activated mine. 'waypoint' 
+#define SPECIAL_SUBSTATE_IS_DIRT    2		// For an activated mine. 'waypoint'
 #define SPECIAL_SUBSTATE_PROJECTILE 3
 
 //---------------------------------------------------------------
 
+// claude-ai: Структура предмета (Special). Поля:
+// claude-ai:   NextSpecial — linked list инвентаря персонажа (цепочка предметов)
+// claude-ai:   OwnerThing  — владелец предмета (Thing*)
+// claude-ai:   ammo        — кол-во патронов / обратный отсчёт для активированной мины
+// claude-ai:   waypoint    — индекс waypoint, создавшего предмет (или индекс dirt для мины IS_DIRT)
+// claude-ai:   counter     — вспомогательный счётчик (термодроиды и т.д.)
+// claude-ai:   timer       — таймер гранаты (16*20 тиков/сек)
 typedef struct
 {
 	COMMON(SpecialType)

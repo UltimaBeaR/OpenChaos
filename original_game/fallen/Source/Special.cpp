@@ -1,3 +1,18 @@
+// claude-ai: Special.cpp — Weapon and item system: spawning, pickup, drop, use, and per-tick update.
+// claude-ai: "Special" = any pickupable/droppable item (weapon, ammo, health, key, explosive, etc.)
+// claude-ai: KEY SYSTEMS IN THIS FILE:
+// claude-ai:   SPECIAL_info[] — table mapping SPECIAL_* type -> display name + mesh ObjectId + group
+// claude-ai:   special_normal() — per-tick StateFn for all specials (projectile physics, timer countdowns,
+// claude-ai:                       grenade/explosive detonation, mine proximity check, pickup radius)
+// claude-ai:   person_get_item() — executes item pickup (ammo stacking, inventory add, UI message)
+// claude-ai:   should_person_get_item() — AI/player pickup eligibility (ammo caps, one-knife rule, etc.)
+// claude-ai:   alloc_special() / free_special() — create/destroy a Special Thing in the world
+// claude-ai:   special_pickup() / special_drop() — attach/detach from person's SpecialList linked list
+// claude-ai:   SPECIAL_throw_grenade() / SPECIAL_prime_grenade() — grenade arming and throwing
+// claude-ai:   SPECIAL_set_explosives() — plant a C4-style explosive (5-second fuse)
+// claude-ai: PORT: port all of this. The item system is central to gameplay and mission scripting.
+// claude-ai: NOTE: SPECIAL_MINE pickup is permanently disabled (ASSERT(0) in person_get_item).
+// claude-ai:       SPECIAL_info[] maps to old type codes — check Special.h for SPECIAL_* constants.
 //	Special.cpp
 //	Guy Simmons, 28th March 1998.
 //
@@ -47,6 +62,13 @@ extern	void	add_damage_text(SWORD x,SWORD y,SWORD z,CBYTE *text);
 
 
 
+// claude-ai: SPECIAL_info[] — master table for all item types, indexed by SPECIAL_* enum.
+// claude-ai: Columns: display name (for debug), PRIM_OBJ_* mesh ID (used to set dm->ObjectId), group flags.
+// claude-ai: SPECIAL_GROUP_*: USEFUL=mission item, COOKIE=stat boost, ONEHANDED_WEAPON, TWOHANDED_WEAPON,
+// claude-ai:                   AMMO=ammo pack, STRANGE=explosive/exotic.
+// claude-ai: Note: index ordering here does NOT match the SPECIAL_* constants in Special.h from the
+// claude-ai:       knowledge base — this appears to be a different/older enum mapping used in this pre-release.
+// claude-ai: PORT: replicate this table to map item types to their 3D mesh IDs and behavioural groups.
 SPECIAL_Info SPECIAL_info[SPECIAL_NUM_TYPES] =
 {
 	{"None",			0,							0								},
@@ -90,6 +112,10 @@ void free_special(Thing *s_thing);
 // Adds/removes the special from a person's 
 //
 
+// claude-ai: special_pickup — attaches a Special to a person's SpecialList (singly-linked list).
+// claude-ai: Sets OwnerThing and prepends to SpecialList. Clears PROJECTILE substate.
+// claude-ai: NOTE: does NOT remove the special from the map — caller must call remove_thing_from_map().
+// claude-ai: SPECIAL_MINE is explicitly forbidden here (mines cannot be picked up).
 void special_pickup(Thing *p_special, Thing *p_person)
 {
 	ASSERT(p_special->Class == CLASS_SPECIAL);
@@ -107,7 +133,12 @@ void special_pickup(Thing *p_special, Thing *p_person)
 	}
 }
 
-// claude-ai: Drop item from person - detaches special from owner, places it in world
+// claude-ai: special_drop — detaches special from person's SpecialList and places it in the world.
+// claude-ai: Walks the linked list to find the item, splices it out, then calls find_nice_place_near_person()
+// claude-ai: to choose a drop position (avoids dropping through walls).
+// claude-ai: Dropped guns (for player only) get randomized partial ammo: shotgun 2-3, AK47 6-13 rounds.
+// claude-ai: Velocity is set to 5 to prevent immediate re-pickup (5-tick cooldown).
+// claude-ai: Also clears SpecialUse and SpecialDraw references on the person.
 void special_drop(Thing *p_special, Thing *p_person)
 {
 	#ifndef NDEBUG
@@ -222,7 +253,8 @@ void special_drop(Thing *p_special, Thing *p_person)
 //
 // Returns TRUE if the person is carrying a two-handed weapon.
 //
-
+// claude-ai: person_has_twohanded_weapon — checks SpecialList for any two-handed weapon.
+// claude-ai: Two-handed weapons (shotgun, AK47, bat) prevent certain actions while held.
 SLONG person_has_twohanded_weapon(Thing *p_person)
 {
 	return (person_has_special(p_person, SPECIAL_SHOTGUN) ||
@@ -235,7 +267,19 @@ SLONG person_has_twohanded_weapon(Thing *p_person)
 // Should this person pick up the item?
 //
 
-// claude-ai: Pickup eligibility check - tests proximity, item type, and person's current loadout
+// claude-ai: should_person_get_item — pickup eligibility check for both player and AI.
+// claude-ai: Checks whether p_person WANTS/CAN pick up p_special given current inventory.
+// claude-ai: Rules:
+// claude-ai:   GUN: always if no gun; otherwise only if ammo_packs_pistol has room (<255-15).
+// claude-ai:   HEALTH: only if below max health.
+// claude-ai:   SHOTGUN/AK47: pick up if not carrying one, or if carrying but has ammo space.
+// claude-ai:   KNIFE/BASEBALLBAT: only one allowed.
+// claude-ai:   EXPLOSIVES: max 4 charges.
+// claude-ai:   GRENADE: max 8 grenades (ammo field on the grenade special).
+// claude-ai:   AMMO_*: only if there's room in ammo_packs (below 255 - pack size).
+// claude-ai:   MINE: always FALSE — can't be picked up by design.
+// claude-ai:   Default (quest items etc.): TRUE.
+// claude-ai: Also blocks pickup during RUNNING_SKID_STOP (slide deceleration) to prevent grab glitches.
 SLONG should_person_get_item(Thing *p_person, Thing *p_special)
 {
 	Thing *p_grenade;
@@ -329,13 +373,15 @@ SLONG should_person_get_item(Thing *p_person, Thing *p_special)
 		// Only pickup ammo when you have that weapon.
 		//
 
-		case SPECIAL_AMMO_SHOTGUN: 
+		// claude-ai: The second return lines below are DEAD CODE — unreachable after the first return.
+		// claude-ai: They are the old check (must own that weapon type) replaced by the ammo cap check above.
+		case SPECIAL_AMMO_SHOTGUN:
 			return(p_person->Genus.Person->ammo_packs_shotgun<255-SPECIAL_AMMO_IN_A_SHOTGUN);
 			return (SLONG) person_has_special(p_person, SPECIAL_SHOTGUN);
-		case SPECIAL_AMMO_AK47:    
+		case SPECIAL_AMMO_AK47:
 			return(p_person->Genus.Person->ammo_packs_ak47<255-SPECIAL_AMMO_IN_A_AK47);
 			return (SLONG) person_has_special(p_person, SPECIAL_AK47);
-		case SPECIAL_AMMO_PISTOL:  
+		case SPECIAL_AMMO_PISTOL:
 			return(p_person->Genus.Person->ammo_packs_pistol<255-SPECIAL_AMMO_IN_A_PISTOL);
 			return p_person->Flags & FLAGS_HAS_GUN;
 
@@ -354,7 +400,21 @@ SLONG should_person_get_item(Thing *p_person, Thing *p_special)
 // The player person has picked up the given item.
 //
 
-// claude-ai: Execute item pickup - attaches special to person, plays sound, updates inventory
+// claude-ai: person_get_item — executes the actual pickup for one specific item.
+// claude-ai: Called after should_person_get_item() returns TRUE.
+// claude-ai: Handles each SPECIAL_* type with its own logic:
+// claude-ai:   GUN: add ammo if already have gun; else grant gun + set ammo.
+// claude-ai:       Excess ammo overflows into ammo_packs_pistol in packs of 15.
+// claude-ai:   HEALTH: +100 HP, capped at character's max health.
+// claude-ai:   SHOTGUN/AK47: if already owned, merge ammo (overflow to ammo_packs); else add to inventory.
+// claude-ai:   GRENADE: merge ammo onto existing grenade, or add grenade to inventory.
+// claude-ai:   EXPLOSIVES: add charge, or add to inventory.
+// claude-ai:   AMMO_*: directly increment ammo_packs_* counters.
+// claude-ai:   TREASURE (badge): pick stat to increase based on ObjectId (71=Skill, 94=Strength, 81=Stamina, 39=Con).
+// claude-ai:   Default (knife, bat, key, video, etc.): call special_pickup() and keep in inventory.
+// claude-ai: x_message is set to show a HUD info message for the player.
+// claude-ai: If EWAY waypoint attached, notifies waypoint system of pickup.
+// claude-ai: keep=FALSE means free_special() is called at the end; keep=TRUE preserves the Thing.
 void person_get_item(Thing *p_person, Thing *p_special)
 {
 	Thing *p_gun;
@@ -623,7 +683,10 @@ void person_get_item(Thing *p_person, Thing *p_special)
 
 				break;
 			}
-			case SPECIAL_TREASURE:
+			// claude-ai: SPECIAL_TREASURE — badge/statue collectible that permanently increases a player stat.
+		// claude-ai: Stat determined by ObjectId: 81=Stamina, 94=Strength, 71=Skill(Reflex), 39=Constitution.
+		// claude-ai: These are the "bonus" collectibles scattered in levels. stat_count_bonus tracks total found.
+		case SPECIAL_TREASURE:
 
 				{
 					Thing *darci = NET_PERSON(0);
@@ -746,6 +809,10 @@ extern	SLONG	stat_count_bonus;
 }
 
 
+// claude-ai: special_activate_mine — triggers mine explosion. Creates fire/dust pyro effects and shockwave.
+// claude-ai: Shockwave radius 0x200, force 250. Clears player target if targeting this mine.
+// claude-ai: PS1 vs PC difference: PSX uses POW_create (simpler), PC uses PYRO_create (more detailed).
+// claude-ai: Calls free_special() to destroy the mine Thing after detonation.
 void special_activate_mine(Thing *p_mine)
 {
 	ASSERT(p_mine->Class == CLASS_SPECIAL);
@@ -802,7 +869,29 @@ void special_activate_mine(Thing *p_mine)
 
 DIRT_Info special_di;
 
-// claude-ai: Main item update - handles grenade physics, carried items follow owner, explosion timers
+// claude-ai: special_normal — per-tick StateFn for all CLASS_SPECIAL Things. Called every game tick.
+// claude-ai: This function handles ALL item behaviours while on the ground or carried:
+// claude-ai:
+// claude-ai: PROJECTILE substate (item thrown/dropped from height):
+// claude-ai:   Simulates bouncing physics (velocity stored in ss->timer as UWORD offset from 0x8000).
+// claude-ai:   Gravity = -256 units/tick. Bounces with 50% velocity retention. Stops when velocity < 0x100.
+// claude-ai:
+// claude-ai: Carried (OwnerThing set, not EXPLOSIVES):
+// claude-ai:   WorldPos tracks owner's WorldPos each tick.
+// claude-ai:   If GRENADE + ACTIVATED substate: countdown timer; detonate via CreateGrenadeExplosion when expired.
+// claude-ai:   Grenade with ammo>1: subtract 1 ammo and reset (multi-grenade inventory).
+// claude-ai:
+// claude-ai: On-ground (not carried):
+// claude-ai:   Items rotate (Angle += 32) unless mine or activated explosive.
+// claude-ai:   BOMB: if EWAY waypoint activates, detonates via PYRO_construct.
+// claude-ai:   EXPLOSIVES (ACTIVATED): countdown, then PYRO+shockwave (radius 0x500, force 500).
+// claude-ai:   MINE: proximity check every other tick; activates if person/vehicle/Balrog within 0x3000/0x50/0x6000.
+// claude-ai:         Checks player's bodyguard is NOT triggered by mine (bodyguards don't trigger mines).
+// claude-ai:   TREASURE: proximity auto-pickup within 0xa0 map units (Manhattan distance).
+// claude-ai:   Default (weapons, ammo, health, keys): pickup radius check (counter>16*20 = ~1.25 seconds cooldown).
+// claude-ai:     Player within 0xa0 units -> call should_person_get_item / person_get_item.
+// claude-ai:
+// claude-ai: PORT: replicate the full tick logic including all countdowns and proximity checks.
 void special_normal(Thing *s_thing)
 {
 	SLONG i;
@@ -824,6 +913,9 @@ void special_normal(Thing *s_thing)
 		s_thing->Genus.Special->counter += 16 * TICK_RATIO >> TICK_SHIFT;
 	}
 
+	// claude-ai: PROJECTILE substate — item was dropped from height (e.g. dropped gun spawned mid-air).
+	// claude-ai: timer UWORD encodes velocity: 0x8000=zero, values below=falling, above=rising.
+	// claude-ai: Ground = PAP_calc_map_height_at + 0x30 (slightly above terrain surface).
 	if (s_thing->SubState == SPECIAL_SUBSTATE_PROJECTILE)
 	{
 		SpecialPtr ss;
@@ -953,6 +1045,7 @@ void special_normal(Thing *s_thing)
 					s_thing->Draw.Mesh->Angle = (s_thing->Draw.Mesh->Angle+32)&2047;
 		}
 
+		// claude-ai: Per-type on-ground behaviours (most items just get auto-pickup below at try_pickup:)
 		switch(s_thing->Genus.Special->SpecialType)
 		{
 			case SPECIAL_BOMB:
@@ -1066,6 +1159,13 @@ void special_normal(Thing *s_thing)
 
 				break;
 
+			// claude-ai: SPECIAL_MINE proximity logic:
+			// claude-ai:   ammo > 0: countdown timer (ammo ticks down each frame, explodes at ammo==1).
+			// claude-ai:   ammo == 0: every other tick (GAME_TURN&1 == THING_NUMBER&1), scan nearby entities:
+			// claude-ai:     - CLASS_BAT (Balrog type): activates if dist < 0x6000.
+			// claude-ai:     - CLASS_PERSON: activates if foot height <= mine height + 0x2000>>8 AND dist < 0x3000.
+			// claude-ai:     - CLASS_VEHICLE: checks all 4 wheel positions, activates if wheel dist < 0x50.
+			// claude-ai:   Bodyguards of the player do NOT trigger mines.
 			case SPECIAL_MINE:
 
 				if (s_thing->Genus.Special->ammo > 0)
@@ -1390,6 +1490,11 @@ extern	SWORD health[];
 			case SPECIAL_AMMO_PISTOL:
 			default:
 
+// claude-ai: try_pickup — the generic pickup check for most items lying on the ground.
+// claude-ai: counter > 16*20 = ~1.25 second cooldown after drop before item can be grabbed.
+// claude-ai: Player (darci) must be within 0xa0 Manhattan distance units (not driving) to trigger.
+// claude-ai: Calls should_person_get_item() then person_get_item() for eligible pickups.
+// claude-ai: Note: only checks player (NET_PERSON(0)) — AI NPC pickup is handled via PCOM pathfinding.
 try_pickup:;
 				if (s_thing->Genus.Special->counter > 16 * 20)
 				{
@@ -1428,6 +1533,8 @@ try_pickup:;
 
 //---------------------------------------------------------------
 #ifndef PSX
+// claude-ai: init_specials — zero out the SPECIALS[] pool and reset count. Called at level load.
+// claude-ai: SPECIALS[] is a static pool of Special structs (not Things). MAX_SPECIALS = capacity.
 void	init_specials(void)
 {
 	//memset((UBYTE*)SPECIALS,0,sizeof(SPECIALS));
@@ -1439,13 +1546,15 @@ void	init_specials(void)
 #endif
 //---------------------------------------------------------------
 
+// claude-ai: find_empty_special — linear scan for an unused slot in SPECIALS[] pool.
+// claude-ai: Returns index (1-based; 0 = NULL/unused). Returns NULL if pool is full.
 SLONG	find_empty_special(void)
 {
 	SLONG	c0;
 	for(c0=1;c0<MAX_SPECIALS;c0++)
 	{
 		if(SPECIALS[c0].SpecialType==SPECIAL_NONE)
-		{			
+		{
 			return(c0);
 		}
 	}
@@ -1453,7 +1562,16 @@ SLONG	find_empty_special(void)
 	return NULL;
 }
 
-// claude-ai: Spawn a new item Thing in the world at a given position with given type
+// claude-ai: alloc_special — creates a new Special+Thing in the world at (world_x,world_y,world_z).
+// claude-ai: world_xyz is in 8-bits-per-mapsquare units; stored as <<8 (fixed-point 16.16).
+// claude-ai: Allocates from SPECIALS[] pool + alloc_draw_mesh() + alloc_thing(CLASS_SPECIAL).
+// claude-ai: If all three allocations fail OR pool is full, tries to HIJACK an existing unimportant
+// claude-ai:   on-map special (lowest priority: knife/bat, then ammo, then guns/grenades/health).
+// claude-ai:   Hijack preference: far from player (distance > 12 blocks), priority-scored by type.
+// claude-ai: Sets up StateFn = special_normal, assigns ammo defaults per weapon type.
+// claude-ai: If spawned above terrain (world_y > height + 0x50), auto-sets PROJECTILE substate to drop.
+// claude-ai: TREASURE type gets random ObjectId from {71,94,81,39} (Skill/Strength/Stamina/Constitution badge).
+// claude-ai: PORT: replicate pool + hijack logic carefully — it prevents crashes when item pool is full.
 Thing *alloc_special(
 		UBYTE type,
 		UBYTE substate,
@@ -1612,6 +1730,9 @@ Thing *alloc_special(
 	dm->Tilt					=	0;
 	dm->Roll					=	0;
 
+	// claude-ai: Default ammo values for newly spawned weapons.
+	// claude-ai: SPECIAL_AMMO_IN_A_PISTOL/SHOTGUN/AK47/GRENADE are defined in Special.h.
+	// claude-ai: EXPLOSIVES start with ammo=1 (one charge per placed C4).
 	switch(type)
 	{
 		case SPECIAL_GUN:        new_special->ammo = SPECIAL_AMMO_IN_A_PISTOL;  break;
@@ -1670,6 +1791,8 @@ Thing *alloc_special(
 
 //---------------------------------------------------------------
 
+// claude-ai: free_special — destroys a Special Thing: marks pool slot as NONE, frees mesh, removes from map.
+// claude-ai: Does NOT call special_drop() first — caller must handle inventory removal if item was carried.
 void	free_special(Thing *special_thing)
 {
 	// Set the special type to none & free the thing.
@@ -1684,6 +1807,8 @@ void	free_special(Thing *special_thing)
 //---------------------------------------------------------------
 
 
+// claude-ai: person_has_special — walks person's SpecialList linked list looking for given type.
+// claude-ai: Returns pointer to the Thing if found, NULL if not. Use for inventory checks.
 Thing *person_has_special(Thing *p_person, SLONG special_type)
 {
 	SLONG  special;
@@ -1703,6 +1828,10 @@ Thing *person_has_special(Thing *p_person, SLONG special_type)
 }
 
 
+// claude-ai: SPECIAL_throw_grenade — converts a carried grenade into a physical projectile.
+// claude-ai: Calls CreateGrenadeFromPerson() which handles the grenade physics Thing.
+// claude-ai: If only 1 grenade left: drop + free_special. Otherwise: decrement ammo, reset to NONE substate.
+// claude-ai: p_special->Genus.Special->timer holds the cook time (how long it was held before throwing).
 void SPECIAL_throw_grenade(Thing *p_special)
 {
 	Thing *p_person = TO_THING(p_special->Genus.Special->OwnerThing);
@@ -1736,7 +1865,9 @@ void SPECIAL_throw_grenade(Thing *p_special)
 }
 
 
-// claude-ai: Arm grenade - starts countdown timer so it will explode after delay
+// claude-ai: SPECIAL_prime_grenade — arms the grenade (sets ACTIVATED substate and 6-second timer).
+// claude-ai: Timer = 16*20*6 = 1920 ticks (at 16 ticks/frame * 20 frames/sec * 6 sec = 6 seconds).
+// claude-ai: The timer counts down in special_normal() when SubState==ACTIVATED and item is carried.
 void SPECIAL_prime_grenade(Thing *p_special)
 {
 	p_special->SubState             = SPECIAL_SUBSTATE_ACTIVATED;
@@ -1784,7 +1915,11 @@ void SPECIAL_throw_mine(Thing *p_special)
 
 */
 
-// claude-ai: Place bomb/explosive at current location, detaches from person and arms it
+// claude-ai: SPECIAL_set_explosives — plants C4 explosive at person's current position and arms it.
+// claude-ai: If person has only 1 explosive: drops it in place and arms it (5-second timer: 16*20*5=1600 ticks).
+// claude-ai: If person has >1 explosive: decrement ammo by 1, alloc_special() for a new one at person's pos.
+// claude-ai: Timer = 16*20*5 = 1600 ticks = 5 seconds. OwnerThing set so shockwave knows who placed it.
+// claude-ai: Shows "FUSE_SET" HUD message. The explosion is handled in special_normal() EXPLOSIVES path.
 void SPECIAL_set_explosives(Thing *p_person)
 {
 	Thing *p_special;

@@ -29,6 +29,11 @@ extern EventPoint *selected_ep,*hilited_ep;
 
 //---------------------------------------------------------------
 
+// claude-ai: WaypointUses[] — таблица флагов для каждого типа EventPoint (TT_* константы из Mission.h).
+// claude-ai: Флаги: WPU_DEPEND = нужна зависимость (EPRef), WPU_BOOLEAN = нужен булевый EPRef,
+// claude-ai:   WPU_RADIUS = нужен радиус, WPU_TIME = нужно время, WPU_RADTEXT = текст+радиус,
+// claude-ai:   WPU_RADBOX = кубоид, WPU_COUNTER = счётчик (особая логика).
+// claude-ai: Используется при валидации EventPoint в редакторе миссий.
 CBYTE WaypointUses[TT_NUMBER] =
 {
 	0,											// none

@@ -1,3 +1,49 @@
+// claude-ai: OVERVIEW — poly.cpp
+// claude-ai: This is the core polygon submission module for the Direct3D renderer.
+// claude-ai: It handles the full pipeline from world-space coordinates to batched D3D draw calls.
+// claude-ai:
+// claude-ai: PIPELINE FLOW:
+// claude-ai:   1. POLY_camera_set() — sets up camera matrix, projection, viewport each frame
+// claude-ai:   2. POLY_set_local_rotation() — concatenates object-world matrix with camera matrix
+// claude-ai:   3. POLY_transform_using_local_rotation() — transforms a single vertex into view space
+// claude-ai:   4. POLY_perspective() — projects view-space point to screen coords, sets clip flags
+// claude-ai:   5. POLY_add_quad() / POLY_add_triangle() — clip and batch poly into PolyPage[page]
+// claude-ai:   6. PolyPage::Render() — flushes each page's vertex buffer to D3D (sort by texture)
+// claude-ai:
+// claude-ai: KEY DATA STRUCTURES:
+// claude-ai:   POLY_Point  — one vertex: view coords (x,y,z), screen coords (X,Y,Z=1/z), u,v, colour, clip flags
+// claude-ai:   POLY_buffer[] — temporary array of transformed POLY_Points for current mesh being drawn
+// claude-ai:   PolyPage[POLY_NUM_PAGES] — one bucket per texture page; accumulates tris/quads per frame
+// claude-ai:   POLY_cam_matrix[9] — 3x3 rotation matrix from camera yaw/pitch/roll (float, row-major)
+// claude-ai:
+// claude-ai: CLIPPING:
+// claude-ai:   Near-plane clipping is done in software (NewTweenVertex3D interpolates clipped verts).
+// claude-ai:   Screen-edge clipping is done via clip flags + NewTweenVertex2D_X/Y functions.
+// claude-ai:   Each POLY_Point carries a clip bitmask: NEAR, FAR, LEFT, RIGHT, TOP, BOTTOM.
+// claude-ai:
+// claude-ai: TEXTURE PAGE SYSTEM:
+// claude-ai:   Polygons are sorted by texture page (integer index) into PolyPage buckets.
+// claude-ai:   This batches draw calls per texture — one SetTexture + DrawPrimitive per page.
+// claude-ai:   POLY_NUM_PAGES covers world textures, shared textures, special pages (shadow, colour, etc.)
+// claude-ai:   POLY_page_flag[] contains flags like POLY_PAGE_FLAG_2PASS for masked self-illuminating textures.
+// claude-ai:
+// claude-ai: VERTEX COLOUR / LIGHTING:
+// claude-ai:   No per-pixel shading. Each vertex carries a D3D colour (ARGB) baked from the NIGHT/LIGHT system.
+// claude-ai:   Colour is set by NIGHT_get_d3d_colour() before POLY_add_* calls.
+// claude-ai:   Specular is used for fog/distance fade, not real specularity.
+// claude-ai:
+// claude-ai: WIBBLE:
+// claude-ai:   Sinusoidal screen-space vertex offset applied during perspective projection.
+// claude-ai:   Used for water surfaces, heat shimmer effects.
+// claude-ai:
+// claude-ai: NEW GAME NOTES:
+// claude-ai:   Do NOT port this file directly. Replace with:
+// claude-ai:     - VAO/VBO per texture atlas (batching equivalent to PolyPage)
+// claude-ai:     - GPU-side vertex shader handles transform + projection (no software transform needed)
+// claude-ai:     - Clip is handled by OpenGL; software near-clipping not needed
+// claude-ai:     - Vertex colour lighting replaced by proper per-fragment lighting in fragment shader
+// claude-ai:     - Camera = glm::lookAt() + glm::perspective(), uploaded as UBO
+
 //
 // Drawing polygons with D3D
 //
@@ -35,6 +81,7 @@
 
 
 
+// claude-ai: Direct3D API — replace with OpenGL: use GLuint texture handles stored in equivalent array
 extern D3DTexture TEXTURE_texture[];
 
 
@@ -313,6 +360,12 @@ _inline void SetupFTRVMatrix ( int iCombo )
 
 
 
+// claude-ai: POLY_camera_set — called once per frame to set up the camera for the whole scene.
+// claude-ai: Computes POLY_cam_matrix (3x3 rotation) from yaw/pitch/roll, then calls MATRIX_skew()
+// claude-ai: to bake view_dist and aspect ratio into the matrix so Z maps to 0..1 range.
+// claude-ai: Also sets D3D viewport/projection via SetTransform(D3DTRANSFORMSTATE_PROJECTION).
+// claude-ai: NEW GAME: replace with glm::perspective() + glm::lookAt() uploaded to a UBO.
+// claude-ai: The letterbox logic (wideify) reduces screen height by 80px during cutscenes — preserve this.
 void POLY_camera_set(
 		float x,
 		float y,
@@ -490,6 +543,7 @@ void POLY_camera_set(
 	matTemp._24 = 0.0f;
 	matTemp._34 = 0.0f;
 	matTemp._44 = 1.0f;
+	// claude-ai: Direct3D API — replace with OpenGL: upload view matrix to shader UBO
 	hres = (the_display.lp_D3D_Device)->SetTransform ( D3DTRANSFORMSTATE_VIEW, &matTemp );
 
 
@@ -532,6 +586,7 @@ void POLY_camera_set(
 	g_matProjection._44 = 0.0f;
 #endif
 
+	// claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for projection matrix
 	hres = (the_display.lp_D3D_Device)->SetTransform ( D3DTRANSFORMSTATE_PROJECTION, &g_matProjection );
 
 
@@ -599,6 +654,7 @@ void POLY_camera_set(
 	*/
 #endif
 
+	// claude-ai: Direct3D API — replace with OpenGL: glViewport(x, y, width, height)
 	hres = (the_display.lp_D3D_Viewport)->SetViewport2 ( &g_viewData );
 
 #endif //#if USE_TOMS_ENGINE_PLEASE_BOB
@@ -633,6 +689,12 @@ extern inline void POLY_setclip(POLY_Point* pt)
 // project camera coords onto screen
 //
 
+// claude-ai: POLY_perspective — software perspective projection for one vertex.
+// claude-ai: Input: pt->x,y,z in view space (z > 0 = in front of camera).
+// claude-ai: Output: pt->X,Y = screen pixel coords; pt->Z = POLY_ZCLIP_PLANE/z (used as 1/z for sorting).
+// claude-ai: The formula: X = mid_x - mul_x * x * (ZCLIP/z), same for Y.
+// claude-ai: Note the negation of x: the camera looks down +Z with X increasing to the left.
+// claude-ai: NEW GAME: not needed — GPU vertex shader handles projection via the projection matrix.
 inline void POLY_perspective(POLY_Point *pt, UBYTE wibble_key)
 {
 	if (pt->z < POLY_Z_NEARPLANE)
@@ -869,6 +931,13 @@ SLONG POLY_get_screen_pos(
 D3DMATRIX g_matWorld;
 #endif
 
+// claude-ai: POLY_set_local_rotation — sets up the combined camera+object transform for the next mesh.
+// claude-ai: Call this before transforming each mesh's vertices.
+// claude-ai: Computes POLY_cam_matrix_comb = POLY_cam_matrix * object_matrix (3x3 rotation combined).
+// claude-ai: Also computes POLY_cam_off_{x,y,z} = object_origin rotated into camera space.
+// claude-ai: This means POLY_transform_using_local_rotation only does one matrix multiply per vertex.
+// claude-ai: Direct3D path (USE_TOMS_ENGINE): also uploads world matrix via SetTransform(D3DTRANSFORMSTATE_WORLD).
+// claude-ai: NEW GAME: not needed — GPU handles this with the model matrix uniform in the UBO.
 void POLY_set_local_rotation(
 		float off_x,
 		float off_y,
@@ -911,6 +980,7 @@ void POLY_set_local_rotation(
 	g_matWorld._24 = 0.0f;
 	g_matWorld._34 = 0.0f;
 	g_matWorld._44 = 1.0f;
+	// claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for model matrix
 	HRESULT hres = (the_display.lp_D3D_Device)->SetTransform ( D3DTRANSFORMSTATE_WORLD, &g_matWorld );
 #endif
 
@@ -957,6 +1027,7 @@ void POLY_set_local_rotation_none ( void )
 	g_matWorld._24 = 0.0f;
 	g_matWorld._34 = 0.0f;
 	g_matWorld._44 = 1.0f;
+	// claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for model matrix
 	HRESULT hres = (the_display.lp_D3D_Device)->SetTransform ( D3DTRANSFORMSTATE_WORLD, &g_matWorld );
 #endif
 
@@ -1059,6 +1130,11 @@ extern	UWORD	fade_black;
 
 
 
+// claude-ai: POLY_frame_init — called at the start of each frame to clear all polygon batches.
+// claude-ai: Clears all PolyPage buckets (vertex/index buffers reset to empty).
+// claude-ai: keep_shadow_page and keep_text_page allow retaining shadow/text geometry across frames (used for UI).
+// claude-ai: Also calls DefRenderState.InitScene() to set fog colour from NIGHT_sky_colour.
+// claude-ai: NEW GAME: equivalent = clear render buckets, set fog uniform in UBO from sky colour.
 void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
 {
 	SLONG i;
@@ -1207,6 +1283,10 @@ SLONG POLY_valid_line(POLY_Point *p1, POLY_Point *p2)
 //
 // returns true if triangle is backfacing
 
+// claude-ai: POLY_tri_backfacing — software backface culling in view space.
+// claude-ai: Computes cross product of two edges, then dots with the eye vector (first vertex position).
+// claude-ai: Returns true if facing away from camera (negative dot product).
+// claude-ai: NEW GAME: use GL_CULL_FACE + glFrontFace(GL_CCW) to let GPU cull backfaces.
 inline bool POLY_tri_backfacing(POLY_Point *pp1, POLY_Point *pp2, POLY_Point *pp3)
 {
 	float	x12,y12,z12;	// 1->2 vector
@@ -1288,6 +1368,10 @@ static inline ULONG TweenD3DColour(ULONG c1, ULONG c2, ULONG lambda8)
 // no backface culling is performed here, but nearplane and splitscreen clipping is
 //
 
+// claude-ai: s_PointBuffer — scratch buffer for newly generated clip vertices during near-plane clipping.
+// claude-ai: NewTweenVertex3D() interpolates a new vertex at z=POLY_Z_NEARPLANE when a polygon straddles the near plane.
+// claude-ai: This is Sutherland-Hodgman clipping, one plane at a time (near, then screen edges).
+// claude-ai: NEW GAME: GPU clips automatically; remove all this software clipping.
 static POLY_Point	s_PointBuffer[32];
 static ULONG		s_PointBufferOffset;
 

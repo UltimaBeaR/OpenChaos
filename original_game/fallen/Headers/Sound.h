@@ -1,6 +1,12 @@
 //	Sound.h
 //	Guy Simmons, 8th May 1998.
 
+// claude-ai: Звуковая система Urban Chaos. Движок: Miles Sound System (MSS32.dll).
+// claude-ai: При портировании MSS32 заменить на miniaudio (кроссплатформенный, без лицензионных отчислений).
+// claude-ai: 3D позиционный звук: MFX_play_xyz(channel, wave_id, x>>8, y>>8, z>>8) — координаты в mapsquares (world_units >> 8).
+// claude-ai: Звуки персонажей: DieSound(), PainSound(), EffortSound(), ScreamFallSound() — вызываются по событиям.
+// claude-ai: SOUND_Gender(thing) → 0=неизвестно, 1=мужской, 2=женский — для выбора нужного голоса.
+
 #ifndef	SOUND_H
 #define	SOUND_H
 
@@ -90,6 +96,10 @@ extern  UWORD SOUND_FXGroups[8][2]; // blahblah
 
 //---------------------------------------------------------------
 
+// claude-ai: Специальные зарезервированные каналы для постоянных звуков (выше диапазона Thing-индексов).
+// claude-ai: WIND_REF = MAX_THINGS+100, WEATHER_REF = +101, THUNDER_REF = +102, SIREN_REF = +103,
+// claude-ai: AMBIENT_EFFECT_REF = +104, MUSIC_REF = +105.
+// claude-ai: Флаг привязки звука к Thing: FLAGS_HAS_ATTACHED_SOUND (в Structs.h).
 #define	WIND_REF			MAX_THINGS+100
 #define	WEATHER_REF			(WIND_REF+1)
 #define	THUNDER_REF			(WIND_REF+2)

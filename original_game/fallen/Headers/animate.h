@@ -313,6 +313,7 @@
 #define	ANIM_BREATHE				(124)
 #define	ANIM_KICK3					(104)
 
+// claude-ai: НЕ ПЕРЕНОСИТЬ — гарпун (grappling hook) не реализован в финальной игре.
 #define	ANIM_GRAPPLING_HOOK_PICKUP	(140)
 #define	ANIM_GRAPPLING_HOOK_WINDUP	(137)
 #define ANIM_GRAPPLING_HOOK_RELEASE	(138)
@@ -445,6 +446,7 @@
 #define ANIM_BIKE_LEAN_RIGHT        (250)
 #define ANIM_BIKE_LEAN				(248)
 
+// claude-ai: НЕ ПЕРЕНОСИТЬ — мотоцикл не реализован в финальной игре. ANIM_BIKE_* используются только в незавершённом коде.
 #define ANIM_BIKE_MOUNT				(236)
 #define ANIM_BIKE_RIDE              (237)
 
@@ -452,6 +454,8 @@
 
 //#define	ANIM_					()
 
+// claude-ai: Зипвайр — переносить 1:1. PULLUP(246) = подтягивание на тросе, HANG(247) = вис/скольжение.
+// claude-ai: Связанные ACTION_*: DANGLING_CABLE(17), DEATH_SLIDE(35), TRAVERSE_LEFT(36), TRAVERSE_RIGHT(37).
 #define	ANIM_WIRE_SLIDE_PULLUP		(246)
 #define	ANIM_WIRE_SLIDE_HANG		(247)
 
@@ -685,29 +689,42 @@
 #define	ANIM_PUNCH2					(40)
 #define	ANIM_KICK2					(41)
 */
+// claude-ai: ACTION_* — высокоуровневые состояния персонажа (Person.Action). Управляют логикой движения и выбором анимации.
+// claude-ai: Хранятся в Thing->Genus.Person->Action, обрабатываются каждый кадр в функциях типа Person_process().
+// claude-ai: Группы: движение(0-2,8,30,42), прыжки(3-5,27-28,31), лазание(6-7,9,13), падение(10-12),
+// claude-ai:   бой(14-16,18-19,32-33,38-39,43-44), оружие(21-24), зипвайр(17,35-37), транспорт(45-46), прочее(20,25-26,40-41,47-51).
+// claude-ai: ВАЖНО: ACTION_WALK_BACK = (34), не WALKING_BACK — распространённая ошибка именования!
+// claude-ai: Зипвайр ACTION_DANGLING_CABLE(17), DEATH_SLIDE(35), TRAVERSE_LEFT(36), TRAVERSE_RIGHT(37) — переносить 1:1.
 #define	ACTION_IDLE					(0)
+// claude-ai: --- движение ---
 #define	ACTION_WALK					(1)
 #define	ACTION_RUN					(2)
+// claude-ai: --- прыжки ---
 #define	ACTION_STANDING_JUMP		(3)
 #define	ACTION_STANDING_JUMP_GRAB	(4)
 #define	ACTION_RUNNING_JUMP			(5)
+// claude-ai: --- захват уступов ---
 #define	ACTION_DANGLING				(6)
 #define	ACTION_PULL_UP				(7)
 #define	ACTION_STAND_RELAX			(8)
 #define	ACTION_GRABBING_LEDGE		(9)
 
 #define	ACTION_NONE					(10)
+// claude-ai: --- падение и приземление ---
 #define	ACTION_DROP_DOWN			(10)
 #define	ACTION_FALLING				(11)
 #define	ACTION_LANDING				(12)
 #define	ACTION_CLIMBING				(13)
+// claude-ai: --- рукопашный бой ---
 #define	ACTION_FIGHT_PUNCH			(14)
 #define	ACTION_FIGHT_KICK			(15)
 #define	ACTION_FIGHT_IDLE			(16)
+// claude-ai: --- зипвайр (переносить 1:1) ---
 #define	ACTION_DANGLING_CABLE		(17)
 #define ACTION_HOP_BACK				(18)
 #define	ACTION_SIDE_STEP			(19)
 #define	ACTION_DYING				(20)
+// claude-ai: --- оружие ---
 #define	ACTION_DRAW_SPECIAL			(21)
 #define	ACTION_AIM_GUN				(22)
 #define	ACTION_SHOOT				(23)
@@ -720,19 +737,24 @@
 #define	ACTION_RUN_JUMP				(31)
 #define	ACTION_KICK_FLAG			(32)
 #define	ACTION_JUMP_FLAG			(33)
+// claude-ai: ACTION_WALK_BACK(34) — ВАЖНО: именно WALK_BACK, не WALKING_BACK!
 #define	ACTION_WALK_BACK			(34)
+// claude-ai: --- зипвайр продолжение (переносить 1:1) ---
 #define	ACTION_DEATH_SLIDE			(35)
 #define	ACTION_TRAVERSE_LEFT		(36)
 #define	ACTION_TRAVERSE_RIGHT		(37)
 #define	ACTION_PUNCH_FLAG			(38)
 #define	ACTION_BLOCK_FLAG			(39)
+// claude-ai: --- скрытное передвижение ---
 #define	ACTION_CROUTCH				(40)
 #define	ACTION_CRAWLING				(41)
 #define	ACTION_SKID					(42)
-#define	ACTION_GRAPPLE				(43)
-#define	ACTION_GRAPPLEE				(44)
+#define	ACTION_GRAPPLE				(43)	// захватчик (grappler)
+#define	ACTION_GRAPPLEE				(44)	// захватываемый (victim)
+// claude-ai: --- транспорт ---
 #define ACTION_ENTER_VEHICLE		(45)
 #define ACTION_INSIDE_VEHICLE		(46)
+// claude-ai: --- интерактивное окружение ---
 #define ACTION_SIT_BENCH			(47)
 #define ACTION_HUG_WALL				(48)
 #define ACTION_HUG_LEFT				(49)

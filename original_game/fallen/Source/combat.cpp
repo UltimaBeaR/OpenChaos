@@ -1,3 +1,15 @@
+// claude-ai: Combat.cpp — Core combat system: melee hit detection, damage application, grapples.
+// claude-ai: KEY SYSTEMS IN THIS FILE:
+// claude-ai:   fight_tree[][] — state machine for punch/kick combo sequences (nodes 0-21)
+// claude-ai:   apply_violence() — called every tick during attack anims; dispatches hits
+// claude-ai:   apply_hit_to_person() — the master damage function; handles death, KO, recoil, sound
+// claude-ai:   find_attack_stance() — AI picks best target + facing angle for current attack direction
+// claude-ai:   people_allowed_to_hit_each_other() — faction/alignment rules (cop won't hit cop, etc.)
+// claude-ai:   set_grapple() / find_best_grapple() — grapple move selection and execution
+// claude-ai: PORT: This entire file must be ported. It is the heart of all melee combat gameplay.
+// claude-ai: NOTE: Large blocks of code wrapped in #ifdef UNUSED (ComboHistory, BlockingHistory,
+// claude-ai:       find_best_punch, find_best_kick) were disabled before release — do not port those.
+
 #include	"game.h"
 #include	"combat.h"
 #include	"animate.h"
@@ -22,7 +34,11 @@ SLONG	people_allowed_to_hit_each_other(Thing *p_victim,Thing *p_agressor);
 extern	SLONG	set_face_thing(Thing *p_person,Thing *p_target);
 extern	void	e_draw_3d_line(SLONG x1,SLONG y1,SLONG z1,SLONG x2,SLONG y2,SLONG z2);
 extern	void	e_draw_3d_line_col(SLONG x1,SLONG y1,SLONG z1,SLONG x2,SLONG y2,SLONG z2,SLONG r,SLONG g,SLONG b);
+// claude-ai: check_combat_hit_with_person — tests if a punch/kick at (x,y,z) connects with p_victim.
+// claude-ai: Uses GameFightCol dist/angle data from the animation keyframe. Returns 1 if hit, 0 if miss.
 SLONG	check_combat_hit_with_person(Thing	*p_victim,SLONG x,SLONG y,SLONG z,struct GameFightCol *fight,Thing *p_agressor,SLONG *ret_angle);
+// claude-ai: check_combat_grapple_with_person — like the above but for grapple-range checks.
+// claude-ai: Tests distance and relative angle between attacker and victim for grapple eligibility.
 SLONG	check_combat_grapple_with_person(Thing	*p_victim,MAPCO16 x,MAPCO16 y,MAPCO16 z,struct GameFightCol *fight,Thing *p_agressor,SLONG *ret_angle,SLONG grapple);
 extern	void	reset_gang_attack(Thing *p_target);
 extern	void	scare_gang_attack(Thing *p_target);
@@ -39,15 +55,20 @@ extern	SLONG	person_on_floor(Thing *p_person);
 
 extern	SLONG is_there_room_behind_person(Thing *p_person, SLONG hit_from_behind);
 
+// claude-ai: FIGHT_ANGLE_RANGE — half-width of the cone in which a punch/kick can connect.
+// claude-ai: Value 400 in a 0-2047 system = ~70 degrees total arc. Quite wide — intentional for playability.
 #define	FIGHT_ANGLE_RANGE	(400)
 
 extern	SLONG	set_person_stomp(Thing *p_person);
 
+// claude-ai: STANCE_MAX_FIND — max people to consider when finding a target (keeps it cheap)
 #define STANCE_MAX_FIND 8
+// claude-ai: STANCE_RADIUS — search radius in 8-bits-per-mapsquare units (~1.5 map squares)
 #define STANCE_RADIUS	0x200
 
 THING_INDEX found[16];
 
+// claude-ai: combo_histories and block_histories are compiled out — only gang_attacks is active.
 #ifdef	UNUSED
 struct ComboHistory combo_histories[MAX_HISTORY];
 struct BlockingHistory block_histories[MAX_HISTORY];
@@ -57,6 +78,11 @@ struct GangAttack gang_attacks[MAX_HISTORY];
 //
 // I've changed this to a 2d array, but may change back to structure if one element becomes > byte
 //
+// claude-ai: FightTree struct defines the columns of fight_tree[][10] for documentation only.
+// claude-ai: Actual data is a raw SWORD array — columns are [Anim, Finish, NextPunch1, NextPunch2,
+// claude-ai:   NextKick1, NextKick2, NextJump, NextBlock, Damage, HitType].
+// claude-ai: fight_tree is a directed graph: each node = one attack phase.
+// claude-ai: Pressing Punch/Kick navigates to the next node, chaining combos.
 struct	FightTree
 {
 	UBYTE	Anim;
@@ -71,10 +97,21 @@ struct	FightTree
 	UBYTE	HitType;
 };
 
+// claude-ai: Column index constants for fight_tree[][10]
 #define	FIGHT_TREE_DAMAGE	8
 #define	FIGHT_TREE_HIT_TYPE	9
 
 
+// claude-ai: fight_tree — the main combat state machine. Each row is a node (move).
+// claude-ai: Columns: [Anim, Finish, NextPunch1, NextPunch2, NextKick1, NextKick2, NextJump, NextBlock, Damage, HitType]
+// claude-ai: Node 0: idle/root — pressing punch goes to 1 (PUNCH_COMBO1), pressing kick goes to 6 (KICK_COMBO1)
+// claude-ai: Nodes 1-5:  punch chain (COMBO1 -> COMBO2 -> COMBO3), with cross-over to kicks at nodes 11,12
+// claude-ai: Nodes 6-10: kick chain  (COMBO1 -> COMBO2 -> COMBO3), with cross-over to punch at node 13
+// claude-ai: Nodes 11-13: cross-combo finishers (punch->kick or kick->punch endings, high damage)
+// claude-ai: Nodes 14-18: knife attack chain (used when person has SPECIAL_KNIFE equipped)
+// claude-ai: Nodes 19-21: baseball bat attack chain (used when person has SPECIAL_BASEBALLBAT)
+// claude-ai: Damage values: 10 (light), 30 (medium), 60 (heavy), 80-90 (finisher)
+// claude-ai: PORT: replicate this exact table — it defines all melee move transitions.
 //struct	FighTree fight_tree[]=
 SWORD	fight_tree[][10]=
 {
@@ -84,7 +121,7 @@ SWORD	fight_tree[][10]=
 	{ANIM_PUNCH_COMBO2		,4 ,5 ,1 ,12,12,0 ,0 ,30,COMBAT_PUNCH},  // 3
 	{ANIM_PUNCH_RETURN2		,0 ,1 ,1 ,0 ,0 ,0 ,0 ,0 ,COMBAT_NONE},  // 4
 	{ANIM_PUNCH_COMBO3		,0 ,0 ,0 ,0 ,0 ,0 ,0 ,60,COMBAT_PUNCH},  // 5
-						  	  			       
+
 	{ANIM_KICK_COMBO1		,7 ,7 ,7 ,8 ,0 ,0 ,0 ,10,COMBAT_KICK},  // 6
 	{ANIM_KICK_RETURN1		,0 ,1 ,0 ,6 ,0 ,0 ,0 ,0 ,COMBAT_NONE},  // 7
 	{ANIM_KICK_COMBO2		,9 ,13,13,10,0 ,0 ,0 ,30,COMBAT_KICK},  // 8
@@ -115,6 +152,9 @@ SWORD	fight_tree[][10]=
 // behind  middle
 // behind lower
 
+// claude-ai: take_hit — lookup table: given [height + behind*3], returns [animation, knockdown_flag].
+// claude-ai: Indexed as: 0=front-low(KD), 1=front-mid, 2=front-hi, 3=back-low(KD), 4=back-mid, 5=back-hi
+// claude-ai: knockdown_flag==1 means the hit sends the victim to the floor (low sweep or tripping move)
 UBYTE	take_hit[7][2]=
 {
 	{ANIM_KD_FRONT_LOW,1},
@@ -131,6 +171,9 @@ UBYTE	take_hit[7][2]=
 //
 // Data Hiding
 //
+// claude-ai: get_anim_and_node_for_action — traverse fight_tree one step.
+// claude-ai: action is a column index (NextPunch1=2, NextKick1=4, etc.).
+// claude-ai: Returns new node index; sets *new_anim to the anim for that node.
 SLONG	get_anim_and_node_for_action(UBYTE current_node,UBYTE action,UWORD *new_anim)
 {
 	SLONG	new_node;
@@ -141,7 +184,8 @@ SLONG	get_anim_and_node_for_action(UBYTE current_node,UBYTE action,UWORD *new_an
 
 }
 
-
+// claude-ai: get_combat_type_for_node — returns COMBAT_PUNCH/KICK/KNIFE for the given tree node
+// claude-ai: Used to decide what sound/particle effect to play when a hit lands
 SLONG	get_combat_type_for_node(UBYTE current_node)
 {
 	return(fight_tree[current_node][9]);
@@ -149,6 +193,9 @@ SLONG	get_combat_type_for_node(UBYTE current_node)
 
 
 
+// claude-ai: punches[power][anim_index] — anim candidates per "power level" (0=highest power/combo)
+// claude-ai: Used by find_best_punch() which is inside #ifdef UNUSED — not compiled in release.
+// claude-ai: PORT: skip — these tables are only used by the dead code path.
 SWORD	punches[4][5]=
 {
 	{ANIM_PUNCH_COMBO1,ANIM_PUNCH_COMBO2,ANIM_PUNCH_COMBO3,0,0},
@@ -157,6 +204,7 @@ SWORD	punches[4][5]=
 	{0,0,0,0,0}
 };
 
+// claude-ai: kicks[power][anim_index] — same idea for kick anims. Also used only in #ifdef UNUSED code.
 SWORD	kicks[4][5]=
 {
 	{ANIM_KICK_COMBO1,ANIM_KICK_COMBO2,ANIM_KICK_COMBO3,0,0},
@@ -166,6 +214,9 @@ SWORD	kicks[4][5]=
 };
 
 
+// claude-ai: Grapples struct — defines each grapple move's proximity and angle requirements.
+// claude-ai: Dist=ideal approach distance, Range=tolerance, Angle=relative angle (1024=behind victim)
+// claude-ai: Peep=who can do it: 1=Darci only, 2=Roper only (iam flag in find_best_grapple)
 struct	Grapples
 {
 	UWORD	Anim;
@@ -176,6 +227,11 @@ struct	Grapples
 	SWORD	Peep;
 };
 
+// claude-ai: grapples[] table — available grapple moves. Index 0 is ANIM_SNAP_KNECK (neck snap).
+// claude-ai: PISTOL_WHIP: approach from side (angle=1024), Darci only.
+// claude-ai: STRANGLE/HEADBUTT: from front (angle=0), Roper only.
+// claude-ai: GRAB_ARM: from front, Darci only.
+// claude-ai: The neck snap (index 0) is handled specially — it's the "step forward" grapple for players.
 struct	Grapples	grapples[]=
 {
 	{ANIM_PISTOL_WHIP,75,65,1024,0,1},
@@ -186,6 +242,7 @@ struct	Grapples	grapples[]=
 	{0,0,0,0,0},
 };
 
+// claude-ai: grapple[] — separate list for neck snap (only accessible to player with step-forward input)
 SWORD	grapple[]=
 {
 	ANIM_SNAP_KNECK,
@@ -326,6 +383,9 @@ SLONG	get_block_history(Thing *p_person)
 }
 #endif
 
+// claude-ai: find_possible_combat_target — sphere-query for people near (x,y,z), test each for a hit.
+// claude-ai: Radius 0x280 (map units). Returns sum of (Damage+5) for all people successfully hit.
+// claude-ai: Calls check_combat_hit_with_person() per candidate. Sets *p_victim to last hit.
 SLONG	find_possible_combat_target(struct GameFightCol *p_fight,SLONG x,SLONG y,SLONG z,Thing *p_thing,Thing **p_victim)
 {
 	SLONG i;
@@ -415,6 +475,9 @@ SLONG	find_possible_combat_target(struct GameFightCol *p_fight,SLONG x,SLONG y,S
 	*/
 }
 
+// claude-ai: find_possible_grapple_target — like find_possible_combat_target but for grapples.
+// claude-ai: Additional filters: victim must not already be in a grapple state, not dead, not KO'd.
+// claude-ai: Returns 1000 per valid grapple target found (large value so grapple always beats normal hit in scoring).
 SLONG	find_possible_grapple_target(struct GameFightCol *p_fight,SLONG x,SLONG y,SLONG z,Thing *p_thing,Thing **p_victim,SLONG grapple)
 {
 	SLONG i;
@@ -508,6 +571,9 @@ SLONG	find_possible_grapple_target(struct GameFightCol *p_fight,SLONG x,SLONG y,
 	*/
 }
 
+// claude-ai: find_hit_value — iterate ALL keyframes of an animation, sum up all hit scores.
+// claude-ai: Used (in UNUSED code) to evaluate whether an anim would actually connect with anyone.
+// claude-ai: The pelvis sub-object (0) position is used as the attack origin point.
 SLONG	find_hit_value(Thing *p_person,SLONG anim,Thing **p_victim)
 {
 	GameKeyFrame	*current;
@@ -555,6 +621,8 @@ SLONG	find_grapple_value(Thing *p_person,SLONG anim,Thing **p_victim,SLONG grapp
 	return(hits);
 }
 
+// claude-ai: set_grapple_pos — physically moves victim to stand at 'dist' units in front of attacker.
+// claude-ai: Also sets victim facing angle to match grapple type (e.g. away for neck snap, forward for headbutt).
 void	set_grapple_pos(Thing *p_person,Thing *p_victim,SLONG dist,SLONG anim,SLONG grapple)
 {
 	SLONG	dx,dy,dz,len;
@@ -577,6 +645,11 @@ void	set_grapple_pos(Thing *p_person,Thing *p_victim,SLONG dist,SLONG anim,SLONG
 }
 
 
+// claude-ai: set_grapple — initiates a grapple between attacker and victim.
+// claude-ai: Sets both people's SubState (GRAPPLE/GRAPPLEE or STRANGLE/STRANGLEV etc.).
+// claude-ai: Also calls scare_gang_attack to make other enemies back off during the grapple.
+// claude-ai: Plays a random taunt sound with probability taunt_prob (varies per grapple type).
+// claude-ai: Special cases: ANIM_SNAP_KNECK immediately kills victim; ANIM_GRAB_ARM holds victim.
 SLONG	set_grapple(Thing *p_person,Thing *p_victim,SLONG anim,SLONG grapple)
 {
 	UBYTE taunt_prob = 0;
@@ -683,6 +756,11 @@ SLONG	set_grapple(Thing *p_person,Thing *p_victim,SLONG anim,SLONG grapple)
 	return(0);
 }
 
+// claude-ai: find_best_grapple — scans grapples[] table, finds best grapple move that would connect.
+// claude-ai: iam=1 for Darci, iam=2 for Roper — controls which grapples each character can perform.
+// claude-ai: "only_kneck" restricts to neck snap only (for AI or non-step-forward player input).
+// claude-ai: Skips MIB characters (can't be grappled), and won't grapple near walls (strangle/headbutt).
+// claude-ai: Calls set_grapple() if a valid target is found. Returns 1 on success, 0 if no target.
 SLONG	find_best_grapple(Thing *p_person)
 {
 	SLONG	c0=0;
@@ -919,10 +997,13 @@ void func(void)
 //	printf("hello");
 }
 
+// claude-ai: find_anim_fight_height — walks keyframes of 'anim', returns Height field of first GameFightCol.
+// claude-ai: Height is 0=low, 1=mid, 2=high — determines which take_hit anim the victim plays.
+// claude-ai: Used by should_i_block() to classify the incoming attack for learning purposes.
 SLONG find_anim_fight_height(SLONG anim,SLONG person)
 {
 	struct GameKeyFrame		*f;
-	
+
 	f=global_anim_array[person][anim];
 	while(f)
 	{
@@ -937,6 +1018,10 @@ SLONG find_anim_fight_height(SLONG anim,SLONG person)
 	return(0);
 }
 
+// claude-ai: should_i_block — decides if 'p_person' will block the incoming attack 'anim' from 'p_agressor'.
+// claude-ai: For player: auto-blocks only if doing ANIM_FIGHT_STEP_S (stepping backwards).
+// claude-ai: For AI: base probability 60 + 12*Skill; halved if attacker not visible; capped at 150+5*Skill.
+// claude-ai: The old combo history-based learning is commented out — current version uses simpler random roll.
 SLONG	should_i_block(Thing *p_person,Thing *p_agressor,SLONG anim)
 {
 	SLONG	pos;
@@ -1239,9 +1324,16 @@ void	show_fight_range(Thing	*p_thing)
 #endif
 
 
-//
-// using the combat distances
-//
+// claude-ai: check_combat_hit_with_person — the core melee hit detection function.
+// claude-ai: Tests if the attack at (x,y,z) [attacker's pelvis, 8-bit units] hits p_victim.
+// claude-ai: Steps:
+// claude-ai:   1. Skip if victim is KO'd (unless attacker is stomping) or dead.
+// claude-ai:   2. Calculate 3D offset from attack origin to victim's pelvis.
+// claude-ai:   3. Reject if Y-difference > 100 (height mismatch).
+// claude-ai:   4. Special stomp path: test attacker's right foot vs victim body parts directly.
+// claude-ai:   5. Normal path: test distance within [0, Dist2+leeway], then check angle within FIGHT_ANGLE_RANGE.
+// claude-ai: FIGHT_ANGLE_RANGE = 400 (~70 degrees); "near miss" generates PCOM_attack_happened_but_missed().
+// claude-ai: PORT: replicate exactly — this drives all melee hit registration.
 SLONG	check_combat_hit_with_person(Thing	*p_victim,MAPCO16 x,MAPCO16 y,MAPCO16 z,struct GameFightCol *fight,Thing *p_agressor,SLONG *ret_angle)
 {
 	SLONG	dist,dx,dy,dz,adx,adz;
@@ -1445,6 +1537,10 @@ SLONG	check_combat_hit_with_person(Thing	*p_victim,MAPCO16 x,MAPCO16 y,MAPCO16 z
 
 }
 
+// claude-ai: check_combat_grapple_with_person — grapple-range version of check_combat_hit_with_person.
+// claude-ai: Uses grapples[grapple].Dist/Range instead of fight->Dist1/Dist2.
+// claude-ai: Angle check: victim's facing vs attacker's facing (not vs attack origin like melee).
+// claude-ai: Y tolerance is 50 (tighter than melee's 100 — grapples require same floor level).
 SLONG	check_combat_grapple_with_person(Thing	*p_victim,MAPCO16 x,MAPCO16 y,MAPCO16 z,struct GameFightCol *fight,Thing *p_agressor,SLONG *ret_angle,SLONG grapple)
 {
 	SLONG	dist,dx,dy,dz,adx,adz;
@@ -1810,6 +1906,8 @@ void set_person_dead_combat(Thing *p_thing,Thing *p_aggressor,SLONG death_type,S
 
 */
 
+// claude-ai: is_combo_anim — returns true if 'anim' is a finishing combo move (3rd in chain).
+// claude-ai: Used to detect combo finisher hits for PCOM_AI_FIGHT_TEST training dummy logic.
 SLONG is_combo_anim(SLONG anim)
 {
 	return
@@ -1824,6 +1922,22 @@ SLONG is_combo_anim(SLONG anim)
 extern	Thing	*talk_thing;
 void	check_eway_talk(SLONG stop);
 
+// claude-ai: apply_hit_to_person — master damage application function. Called after hit detection confirms contact.
+// claude-ai: Parameters: p_thing=victim, angle=attack angle (for hit direction), type=HIT_TYPE_*, damage=base dmg,
+// claude-ai:             p_aggressor=attacker (may be NULL for environment damage), fight=anim's GameFightCol.
+// claude-ai: Process:
+// claude-ai:   1. Flag shot=1 for gun hits; player_hit for player victims.
+// claude-ai:   2. LOS check: if player involved, verify line-of-sight (walls can block melee).
+// claude-ai:   3. Per-anim damage bonus: KICK_NAD+50 (gender check), STOMP+50, knife levels 30/50/70.
+// claude-ai:   4. Roper bonus: double gun damage; Darci/Roper: add Strength stat.
+// claude-ai:   5. Player victims take half damage; NPC victims get damage reduced by their Skill.
+// claude-ai:   6. Block check: SUB_STATE_BLOCK absorbs non-gun hits entirely.
+// claude-ai:   7. Aggression tracking: Agression field updated for both attacker and victim.
+// claude-ai:   8. KO: special combo finishers set ko=TRUE -> PERSON_DEATH_TYPE_STAY_ALIVE (knocked out).
+// claude-ai:   9. Death: Health <= 0 -> set_person_dead() with appropriate death type.
+// claude-ai:  10. Hit animation: take_hit[height+behind*3] -> correct recoil anim for victim.
+// claude-ai:  11. Audio: PCOM_oscillate_tympanum() alerts nearby AI to the fight.
+// claude-ai: PORT: this function is critical — replicate all damage modifiers and state transitions exactly.
 SLONG	apply_hit_to_person(Thing *p_thing,SLONG angle,SLONG type,SLONG damage,Thing *p_aggressor,struct GameFightCol *fight)
 {
 	SLONG		hit_wave;
@@ -1889,6 +2003,11 @@ SLONG	apply_hit_to_person(Thing *p_thing,SLONG angle,SLONG type,SLONG damage,Thi
 //		damage=0;
 
 		hit_anim=p_aggressor->Draw.Tweened->CurrentAnim;
+		// claude-ai: Per-animation damage bonuses (on top of fight_tree[node][DAMAGE]):
+		// claude-ai: KICK_NAD: +50 to males (gender check), +10 to females. taunt_prob jumps to 75%.
+		// claude-ai: BAT/FLYKICK/KICK_BEHIND: +20, then KICK_R/L adds +30. Falls through to combo check.
+		// claude-ai: PUNCH/KICK_COMBO3 (finishers): set ko=TRUE for knockdown (but MIB and invulnerable are immune).
+		// claude-ai: FIGHT_STOMP: +50 to already-KO'd victim. KICK_NEAR: fixed 40. KNIFE: 30/50/70 by level.
 		switch(hit_anim)
 		{
 			case	ANIM_KICK_NAD:
@@ -2656,6 +2775,18 @@ extern	SLONG	really_on_floor(Thing *p_person);
 
 extern	UBYTE	semtex;
 
+// claude-ai: people_allowed_to_hit_each_other — faction alignment check for melee/grapple attacks.
+// claude-ai: Returns 1 if attacker (p_agressor) is allowed to hit victim (p_victim), 0 if not.
+// claude-ai: Special fast-path: if attacker's Target == victim and it was a deliberate aimed blow -> always 1.
+// claude-ai: Bodyguard exception: bodyguards never hit their own client.
+// claude-ai: Same gang+colour -> always 0 (friendly fire disabled).
+// claude-ai: Per-character type rules (will_hit bitmask XOR'd against PERSON_* type bits):
+// claude-ai:   DARCI: won't hit COP or ROPER (unless DARCI_HITS_COPS define is set)
+// claude-ai:   ROPER: won't hit COP or DARCI
+// claude-ai:   COP: only hits felons/guilty; won't hit other cops, Darci, Roper
+// claude-ai:   THUG_*: won't hit other thugs or MIB
+// claude-ai:   MIB: won't hit other MIB
+// claude-ai: PORT: replicate exactly — this defines faction relations and is crucial for AI behaviour.
 SLONG	people_allowed_to_hit_each_other(Thing *p_victim,Thing *p_agressor)
 {
 	ULONG	will_hit=0xffffffff;
@@ -2892,6 +3023,10 @@ extern	 UBYTE	estate;
 	}
 
 }
+// claude-ai: find_combat_target — combines people_allowed_to_hit_each_other + check_combat_hit + apply_hit.
+// claude-ai: This is the "live" version called from apply_violence() during actual gameplay.
+// claude-ai: Unlike find_possible_combat_target (which only tests/scores), this actually APPLIES damage.
+// claude-ai: Also filters out targets in FLIPING, SLIDER_HOLD, KICK_NS, LEG_SWEEP states (invincible frames).
 SLONG	find_combat_target(struct GameFightCol *p_fight,SLONG x,SLONG y,SLONG z,Thing *p_thing)
 {
 	SLONG i;
@@ -2991,6 +3126,10 @@ SLONG	find_combat_target(struct GameFightCol *p_fight,SLONG x,SLONG y,SLONG z,Th
 }
 
 
+// claude-ai: apply_violence — top-level hit tick function; called from animation system on "hit" keyframes.
+// claude-ai: Gets current GameFightCol chain from current animation frame, applies all active hit zones.
+// claude-ai: Uses pelvis (sub-object 0) as origin. Iterates fight_info->Next chain (up to 5 zones per frame).
+// claude-ai: PORT: call this whenever a fight animation frame has a non-NULL Fight pointer.
 SLONG	apply_violence(Thing *p_thing)
 {
 
@@ -3022,6 +3161,14 @@ SLONG	apply_violence(Thing *p_thing)
 //
 // changed to return if it found someone to hit
 //
+// claude-ai: find_attack_stance — AI scoring function to pick the best nearby combat target.
+// claude-ai: Scans up to STANCE_MAX_FIND=8 people within STANCE_RADIUS=0x200 map units.
+// claude-ai: Filters: dead (skip), height difference (skip — prevents hitting people on other floors).
+// claude-ai: Scoring: score = -dist - abs(dangle)*4. Higher is better. INFINITY if angle out of range.
+// claude-ai: attack_direction controls which direction to look (FIND_DIR_*) via wangle offset.
+// claude-ai: Returns 1 if best_target found; fills stance_target, stance_position, stance_angle.
+// claude-ai: The returned stance_position is where the attacker SHOULD stand (attack_distance from target).
+// claude-ai: NOTE: actual movement to stance_position is NOT done here — caller decides whether to move.
 SLONG find_attack_stance(
 		Thing     *p_person,
 		SLONG      attack_direction,
@@ -3436,6 +3583,8 @@ SLONG turn_to_direction_and_find_target(Thing *p_person,SLONG  find_dir)
 }
 
 
+// claude-ai: turn_to_target_and_punch — find+face+punch combo. Also offers victim a block roll.
+// claude-ai: Hard-coded distance 0x80 and range 0x60 for melee punch stance.
 SLONG turn_to_target_and_punch(Thing *p_person)
 {
 	SLONG	ret;
@@ -3466,6 +3615,9 @@ SLONG turn_to_target_and_punch(Thing *p_person)
 	return(ret);
 }
 
+// claude-ai: turn_to_target_and_kick — like turn_to_target_and_punch but for kicks.
+// claude-ai: Special case: if target is KO'd on ground, uses stomp instead of normal kick.
+// claude-ai: Also uses set_person_kick_near() for very close targets (dist < 120).
 SLONG turn_to_target_and_kick(Thing *p_person)
 {
 	SLONG	ret;
@@ -3509,6 +3661,10 @@ SLONG turn_to_target_and_kick(Thing *p_person)
 }
 
 
+// claude-ai: is_person_under_attack_low_level — finds nearest person actively targeting p_person in KILLING state.
+// claude-ai: "any_state" param is legacy (must be FALSE now). radius controls search area.
+// claude-ai: Only considers people whose pcom_ai_state is KILLING or NAVTOKILL and pcom_ai_arg points to p_person.
+// claude-ai: Also counts bodyguards of p_person as "targeting" p_person for purposes of this check.
 Thing *is_person_under_attack_low_level(Thing *p_person,SLONG any_state,SLONG radius)
 {
 	SLONG  i;

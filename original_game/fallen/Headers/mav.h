@@ -1,6 +1,13 @@
 //
 // Marks navigation system.
 //
+// claude-ai: MAV = основная навигационная система NPC (A* на карте 128×128 клеток).
+// claude-ai: MAV_nav[128][128] — карта навигации (UWORD на каждую клетку, 16 бит):
+// claude-ai:   биты 0-9  (10 бит): MAV_NAV  — индекс в MAV_opt[] (опции движения пешком)
+// claude-ai:   биты 10-13 (4 бита): MAV_CAR  — навигация машин (битовое поле: по 1 биту на каждое из 4 направлений)
+// claude-ai:   биты 14-15 (2 бита): MAV_SPARE — вода и другие флаги
+// claude-ai: MAV_do() — главная функция: из текущей позиции к цели, возвращает следующее действие (MAV_Action).
+// claude-ai: MAV_LOOKAHEAD=32 — горизонт поиска пути (не вся карта, только вперёд на 32 клетки).
 
 #ifndef _MAV_
 #define _MAV_
@@ -30,6 +37,10 @@ extern SLONG    MAV_opt_upto;
 // whose pitch is given by MAV_nav_pitch;
 //
 
+// claude-ai: Карта навигации — 2D массив UWORD. Каждая клетка хранит 3 поля в одном UWORD:
+// claude-ai:   MAV_NAV(x,z)   — биты 0-9:  индекс в MAV_opt[] (пешеходные маршруты)
+// claude-ai:   MAV_CAR(x,z)   — биты 10-13: проходимость для машин (4 направления)
+// claude-ai:   MAV_SPARE(x,z) — биты 14-15: вода и другие флаги среды
 extern UWORD *MAV_nav;
 extern SLONG  MAV_nav_pitch;
 
@@ -90,6 +101,8 @@ void MAV_precalculate_warehouse_nav(UBYTE ware);	// Index into the WARE_ware arr
 // MAV_nav array.
 //
 
+// claude-ai: Предрасчёт карты навигации при загрузке уровня. Вычисляет MAV_height и MAV_nav массивы.
+// claude-ai: Вызывается один раз при инициализации уровня. Может занимать заметное время.
 void MAV_precalculate(void);
 
 
@@ -98,6 +111,15 @@ void MAV_precalculate(void);
 // Returns what someone should do next in order to get somewhere.
 //
 
+// claude-ai: Типы навигационных действий (результат MAV_do()). Значения 0-7:
+// claude-ai:   0 GOTO       — просто идти в направлении dest
+// claude-ai:   1 JUMP       — прыгнуть через блок
+// claude-ai:   2 JUMPPULL   — прыжок + подтягивание на 1 блок вверх
+// claude-ai:   3 JUMPPULL2  — прыжок + подтягивание на 2 блока вверх
+// claude-ai:   4 PULLUP     — подтянуться (без прыжка)
+// claude-ai:   5 CLIMB_OVER — перелезть через препятствие
+// claude-ai:   6 FALL_OFF   — прыгнуть вниз (намеренное падение)
+// claude-ai:   7 LADDER_UP  — лезть вверх по лестнице
 #define MAV_ACTION_GOTO			0
 #define MAV_ACTION_JUMP			1		// Jump one block.
 #define MAV_ACTION_JUMPPULL		2		// Jump one block by pulling yourself up
@@ -112,6 +134,10 @@ void MAV_precalculate(void);
 #define MAV_DIR_ZS	2
 #define MAV_DIR_ZL	3
 
+// claude-ai: Битовые флаги возможностей персонажа при навигации.
+// claude-ai: Передаются в MAV_do() как параметр caps. OR-ить нужные биты.
+// claude-ai: MAV_CAPS_DARCI = 0xff — Darci умеет всё (все 8 действий доступны).
+// claude-ai: Обычные NPC (копы, thugs) имеют ограниченный набор — не могут подтягиваться или лезть по тросам.
 #define MAV_CAPS_GOTO		(1 << MAV_ACTION_GOTO)
 #define MAV_CAPS_JUMP		(1 << MAV_ACTION_JUMP)
 #define MAV_CAPS_JUMPPULL	(1 << MAV_ACTION_JUMPPULL)
@@ -123,6 +149,10 @@ void MAV_precalculate(void);
 
 #define MAV_CAPS_DARCI (0xff)	// She can do everything.
 
+// claude-ai: Главная функция навигации. Возвращает следующее действие для перемещения из me_x/me_z к dest_x/dest_z.
+// claude-ai: Координаты в единицах карты (mapsquares, не world coords). caps = MAV_CAPS_* OR-маска.
+// claude-ai: Горизонт поиска: MAV_LOOKAHEAD=32 клетки. Результат: MAV_Action {action, dir, dest_x, dest_z}.
+// claude-ai: После вызова MAV_do_found_dest показывает нашёл ли алгоритм полный путь до цели.
 MAV_Action MAV_do(
 			SLONG me_x,		// 0-bit fixed point- these are mapsquares.
 			SLONG me_z,
@@ -192,6 +222,8 @@ SLONG MAV_height_los_slow(
 // For changing NAV info on the fly... rather dangerous.
 // 
 
+// claude-ai: Динамическое изменение MAV-карты (например, для открытия/закрытия дверей).
+// claude-ai: Включает/выключает пешеходный маршрут из клетки (mx,mz) в направлении dir.
 void MAV_turn_movement_on (UBYTE mx, UBYTE mz, UBYTE dir);
 void MAV_turn_movement_off(UBYTE mx, UBYTE mz, UBYTE dir);
 

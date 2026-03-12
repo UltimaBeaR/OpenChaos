@@ -6,6 +6,11 @@
 //
 // Defines
 //
+// claude-ai: Лимиты пулов коллизионных структур (статические массивы фиксированного размера).
+// claude-ai:   MAX_COL_VECT      — максимум линейных барьеров (CollisionVect); PC: 10000 × ~20 байт ≈ 200KB
+// claude-ai:   MAX_COL_VECT_LINK — максимум привязок барьеров к лорез-ячейкам; PC: 10000 × 4 байт ≈ 40KB
+// claude-ai:   MAX_WALK_POOL     — максимум записей о проходимых поверхностях; PC: 30000 × 4 байт ≈ 120KB
+// claude-ai: На PSX все лимиты значительно меньше из-за нехватки RAM.
 #ifdef	PSX
 #define	MAX_COL_VECT_LINK			4000
 #define	MAX_COL_VECT				1000
@@ -26,13 +31,24 @@
 // Structures
 //
 
+// claude-ai: Привязка коллизионного барьера к лорез-ячейке карты. 4 байта.
+// claude-ai: Хранится в col_vects_links[MAX_COL_VECT_LINK] — связный список для каждой PAP_Lo-ячейки.
+// claude-ai:   Next       — индекс следующего элемента в цепочке (0 = конец)
+// claude-ai:   VectIndex  — индекс в массиве col_vects[]
 struct	CollisionVectLink
 {
 	UWORD	Next; //linked list of collision vectors
 	UWORD	VectIndex;
 };	
 
-struct	CollisionVect	
+// claude-ai: Линейный коллизионный барьер в 3D (стена, забор, лестница и т.д.). ~20 байт.
+// claude-ai: Хранится в col_vects[MAX_COL_VECT=10000] — пул всех барьеров уровня.
+// claude-ai:   X[2], Z[2] — начало и конец барьера в горизонтальной плоскости (мировые координаты)
+// claude-ai:   Y[2]       — нижняя и верхняя высоты барьера (SWORD)
+// claude-ai:   PrimType   — тип storey (стена, лестница, забор, и т.п.)
+// claude-ai:   PrimExtra  — дополнительный параметр (зависит от PrimType)
+// claude-ai:   Face       — индекс facet в системе зданий (-1 если не связан с фасетом)
+struct	CollisionVect
 {
 	SLONG	X[2];
 	SWORD	Y[2];
@@ -44,6 +60,10 @@ struct	CollisionVect
 };
 
 
+// claude-ai: Запись о проходимой поверхности (walkable face). 4 байта.
+// claude-ai: Хранится в walk_links[MAX_WALK_POOL=30000] — пул для навигации персонажей.
+// claude-ai:   Next — следующий элемент связного списка для данной PAP_Lo-ячейки
+// claude-ai:   Face — индекс face (грани) в системе зданий, по которой можно ходить
 struct	WalkLink
 {
 	UWORD	Next;
@@ -76,6 +96,11 @@ extern  void    remove_collision_vect(UWORD vect);
 
 extern	SLONG	get_point_dist_from_col_vect(SLONG vect,SLONG x,SLONG z,SLONG *ret_x,SLONG *ret_z,SLONG new_dist);
 extern	SLONG	check_vect_circle(SLONG m_dx,SLONG m_dy,SLONG m_dz,Thing *p_thing,SLONG radius);
+// claude-ai: move_thing       — полное движение с коллизиями для CLASS_PERSON.
+// claude-ai:                    Вызывает slide_along + collide_against_things + plant_feet.
+// claude-ai:                    Возвращает флаги столкновений (ULONG).
+// claude-ai: move_thing_quick — телепортация без коллизий (мгновенное смещение).
+// claude-ai:                    Используется для ragdoll, катсцен, respawn.
 extern	ULONG	move_thing(SLONG m_dx,SLONG m_dy,SLONG m_dz,Thing *p_thing);
 extern	ULONG	move_thing_quick(SLONG dx,SLONG dy,SLONG dz,Thing *p_thing);
 extern	SLONG	check_vect_vect(SLONG m_dx,SLONG m_dy,SLONG m_dz,Thing *p_thing,SLONG scale);
@@ -251,6 +276,15 @@ extern SLONG last_slide_colvect;	// The last colvect you slid along, or NULL if 
 #define SLIDE_ALONG_FLAG_CARRYING		(1 << 1)
 #define	SLIDE_ALONG_FLAG_JUMPING		(1 << 2)
 
+// claude-ai: Ключевая функция скольжения персонажа вдоль стен.
+// claude-ai: Изменяет вектор движения (x1,y1,z1)→(*x2,*y2,*z2) так, чтобы он не пересекал col_vects.
+// claude-ai: ВАЖНО: НЕТ отскока — только скольжение вдоль поверхности (проекция вектора).
+// claude-ai:   extra_wall_height — делает стены выше/ниже (предотвращает падение сквозь стены)
+// claude-ai:   radius            — радиус капсулы персонажа
+// claude-ai:   flags             — SLIDE_ALONG_FLAG_CRAWL/CARRYING/JUMPING
+// claude-ai: Глобал actual_sliding — TRUE если было скольжение в этом вызове.
+// claude-ai: Глобал last_slide_colvect — индекс барьера, о который скользили (или NULL).
+// claude-ai: Глобал fence_colvect — если нашли проходимый барьер (walkable face), он здесь.
 SLONG slide_along(
 		SLONG  x1, SLONG  y1, SLONG  z1,
 		SLONG *x2, SLONG *y2, SLONG *z2,

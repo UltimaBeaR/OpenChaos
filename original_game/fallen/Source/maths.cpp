@@ -2,6 +2,21 @@
 // Maths stuff...
 //
 
+// claude-ai: maths.cpp — математические утилиты движка Urban Chaos.
+// claude-ai: Содержит (~225 строк):
+// claude-ai:   matrix_mult33()      — умножение двух 3x3 матриц (fixed-point, сдвиг >>15)
+// claude-ai:   rotate_obj()         — построение матрицы вращения из трёх углов Эйлера
+// claude-ai:                          (углы в диапазоне 0..2047 = 0..360°, sin/cos таблицы)
+// claude-ai:   MATHS_seg_intersect()— проверка пересечения двух отрезков в XZ плоскости
+// claude-ai:                          (только PC, не PSX; быстрая через bounding box + cross products)
+// claude-ai:
+// claude-ai: QDIST2/QDIST3 — быстрое приближённое расстояние — определены в maths.h как макросы:
+// claude-ai:   QDIST2(x,z) = abs(x) + abs(z) - min(abs(x),abs(z))/2  (octagonal approx, погрешность ~12%)
+// claude-ai:   QDIST3(x,y,z) — аналогично для 3D
+// claude-ai:
+// claude-ai: Тригонометрия: SIN/COS макросы используют lookup table с 2048 записями (2π / 2048).
+// claude-ai: Fixed-point: матричные элементы в формате 1.15 (>>15 для нормализации).
+
 #include "game.h"
 #include "maths.h"
 
@@ -10,6 +25,9 @@
 // Nowhere better to put these functions!
 //
 
+// claude-ai: matrix_mult33() — умножение матриц 3×3 в fixed-point формате.
+// claude-ai: Каждый элемент: sum(row_i * col_j) >> 15
+// claude-ai: Элементы матриц хранятся в диапазоне [-32768, 32767] (15-bit fraction).
 void matrix_mult33(struct Matrix33* result,struct Matrix33* mat1,struct  Matrix33* mat2)
 {
 	result->M[0][0] = ((mat1->M[0][0]*mat2->M[0][0])+(mat1->M[0][1]*mat2->M[1][0])+(mat1->M[0][2]*mat2->M[2][0]))>>15; 
@@ -23,7 +41,10 @@ void matrix_mult33(struct Matrix33* result,struct Matrix33* mat1,struct  Matrix3
 	result->M[2][2] = ((mat1->M[2][0]*mat2->M[0][2])+(mat1->M[2][1]*mat2->M[1][2])+(mat1->M[2][2]*mat2->M[2][2]))>>15;
 }
 
-void rotate_obj(SWORD xangle,SWORD yangle,SWORD zangle, Matrix33 *r3) 
+// claude-ai: rotate_obj() — строит матрицу вращения из углов Эйлера (XYZ).
+// claude-ai: Углы: 0..2047 = 0..360°. sin/cos через таблицы SIN()/COS(), результат >>1 (15-bit).
+// claude-ai: Результат: r3 содержит матрицу вращения для применения к вершинам объекта.
+void rotate_obj(SWORD xangle,SWORD yangle,SWORD zangle, Matrix33 *r3)
 {
 	SLONG	sinx, cosx, siny, cosy, sinz, cosz;
  	SLONG	cxcz,sysz,sxsycz,sxsysz,sysx,cxczsy,sxsz,cxsysz,czsx,cxsy,sycz,cxsz;
@@ -63,6 +84,11 @@ void rotate_obj(SWORD xangle,SWORD yangle,SWORD zangle, Matrix33 *r3)
 
 
 
+// claude-ai: MATHS_seg_intersect() — проверка пересечения двух отрезков в плоскости XZ.
+// claude-ai: Отрезок V: (vx1,vz1)→(vx2,vz2), отрезок W: (wx1,wz1)→(wx2,wz2).
+// claude-ai: Возвращает TRUE/FALSE без вычисления точки пересечения.
+// claude-ai: Алгоритм: bounding box → параметрическое t,q через cross products (без деления).
+// claude-ai: Только PC (не PSX) — используется в редакторе и визуальной отладке.
 #ifndef	PSX
 SLONG MATHS_seg_intersect(
 			SLONG vx1, SLONG vz1, SLONG vx2, SLONG vz2,

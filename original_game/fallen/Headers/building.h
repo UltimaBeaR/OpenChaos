@@ -1,5 +1,9 @@
 #ifndef	BUILDING_H
 #define	BUILDING_H			1
+// claude-ai: Архитектура уровней. Основные структуры: FBuilding, FStorey, FWall, DFacet (runtime).
+// claude-ai: Лимиты PC: 500 зданий, 2500 этажей (MAX_STOREYS=MAX_BUILDINGS*5), 15000 стен (MAX_WALLS=MAX_STOREYS*6).
+// claude-ai: Цепочка: FBuilding → StoreyHead → FStorey → WallHead → FWall → грани.
+// claude-ai: Особые типы этажей: CABLE(9) — тросы (смерть-слайд), OUTSIDE_DOOR(21) — вход в интерьер здания.
 
 //#include	"c:\fallen\headers\memory.h"
 
@@ -56,6 +60,9 @@
 #define	BUILD_MODE_PSX		(4)
 #define	BUILD_MODE_OTHER	(5)
 
+// claude-ai: Типы зданий (FBuilding.BuildingType). Влияет на генерацию интерьера и внешний вид.
+// claude-ai:   WAREHOUSE (1) — склад (особый тип с интерьером через систему WARE).
+// claude-ai:   CRATE_IN/OUT (4/5) — ящики снаружи/внутри (декоративные объекты).
 #define BUILDING_TYPE_HOUSE			0
 #define BUILDING_TYPE_WAREHOUSE		1
 #define BUILDING_TYPE_OFFICE		2
@@ -85,6 +92,17 @@
 #endif
 
 
+// claude-ai: Флаги граней (FacetFlags). Используются в BuildingFacet и runtime facet структурах.
+// claude-ai:   NEAR_SORT  (1<<0)  — сортировать ближе (для прозрачных граней)
+// claude-ai:   ROOF       (1<<1)  — грань является крышей
+// claude-ai:   CABLE      (1<<2)  — грань является тросом (STOREY_TYPE_CABLE)
+// claude-ai:   OPEN       (1<<12) — дверь открыта (DFacet.Open = 0-255 — степень открытия)
+// claude-ai:   90DEGREE   (1<<13) — дверь открывается на 90° (а не 180°)
+// claude-ai:   INSIDE     (1<<3)  — грань внутри здания
+// claude-ai:   ELECTRIFIED (1<<6) — электрический забор (смертельно)
+// claude-ai:   UNCLIMBABLE (1<<8) — нельзя карабкаться по этой грани
+// claude-ai:   BARB_TOP   (1<<10) — колючая проволока сверху (невозможно перелезть без перчаток)
+// claude-ai:   FENCE_CUT  (1<<15) — забор был разрезан кусачками
 #define	FACET_FLAG_NEAR_SORT	(1<<0)
 #define	FACET_FLAG_ROOF			(1<<1)
 #define	FACET_FLAG_CABLE		(1<<2)
@@ -166,6 +184,17 @@
 #define	HOTEL_SIGN1			9
 #define	HOTEL_SIGN2			10
 
+// claude-ai: Типы этажей/секций (FStorey.StoreyType). Определяют геометрию и поведение секции:
+// claude-ai:   NORMAL(1)       — обычный этаж с окнами
+// claude-ai:   ROOF(2)         — крыша
+// claude-ai:   WALL(3)         — стена без окон
+// claude-ai:   FIRE_ESCAPE(6)  — пожарная лестница (снаружи здания)
+// claude-ai:   CABLE(9)        — трос/zip-line (смерть-слайд) — ПЕРЕНОСИТЬ 1:1
+// claude-ai:   FENCE(10)       — забор (обычный)
+// claude-ai:   LADDER(12)      — лестница для лазания
+// claude-ai:   INSIDE(17)      — интерьерная секция
+// claude-ai:   DOOR(18)        — дверь внутри здания
+// claude-ai:   OUTSIDE_DOOR(21)— внешний вход в интерьер
 #define	STOREY_TYPE_NORMAL			(1)
 #define	STOREY_TYPE_ROOF			(2)
 #define	STOREY_TYPE_WALL			(3)
@@ -174,6 +203,10 @@
 #define	STOREY_TYPE_FIRE_ESCAPE		(6)
 #define	STOREY_TYPE_STAIRCASE		(7)
 #define	STOREY_TYPE_SKYLIGHT		(8)
+// claude-ai: STOREY_TYPE_CABLE(9) — система тросов (death-slide / zip-line).
+// claude-ai: Darci может висеть и скользить по тросу. ПЕРЕНОСИТЬ В НОВУЮ ИГРУ 1:1 (финальная фича).
+// claude-ai: Связанные функции: get_cable_along(), make_cable_taut_along(), make_cable_flabby().
+// claude-ai: Флаги: FACET_FLAG_CABLE(1<<2), FACET_FLAG_OPEN(1<<12) для анимации дверей.
 #define	STOREY_TYPE_CABLE			(9)
 #define	STOREY_TYPE_FENCE			(10)
 #define	STOREY_TYPE_FENCE_BRICK		(11)
@@ -186,6 +219,9 @@
 #define	STOREY_TYPE_DOOR			(18)
 #define	STOREY_TYPE_INSIDE_DOOR		(19)
 #define	STOREY_TYPE_OINSIDE			(20)
+// claude-ai: STOREY_TYPE_OUTSIDE_DOOR(21) — внешний вход в интерьер здания.
+// claude-ai: Darci проходит через эту дверь чтобы попасть внутрь (загружается интерьер).
+// claude-ai: Дверь открывается анимацией: DFacet.Open (0-255), FACET_FLAG_OPEN (1<<12).
 #define STOREY_TYPE_OUTSIDE_DOOR	(21)
 
 #define	STOREY_TYPE_NORMAL_FOUNDATION	(100)
@@ -208,6 +244,10 @@ struct	BuildingObject
 };
 
 
+// claude-ai: BuildingFacet — runtime-грань здания (одна секция стены/двери/кабеля).
+// claude-ai: Содержит индексы в глобальные массивы полигонов (Face4, Face3, Point).
+// claude-ai: FacetFlags — см. FACET_FLAG_* выше. ColVect — индекс вектора коллизии.
+// claude-ai: Максимум 4000 facets (MAX_BUILDING_FACETS=4000 для PC).
 struct	BuildingFacet
 {
 	UWORD	StartFace4;
@@ -301,6 +341,10 @@ struct	FWindow
 	UWORD	Dummy[6];
 };
 
+// claude-ai: Структура стены. Максимум 15000 (MAX_WALLS = MAX_STOREYS*6).
+// claude-ai: Поля: DX,DZ — вектор стены, DY — высота стены, TextureStyle — стиль текстуры,
+// claude-ai:        Next — следующая стена в linked list, StoreyHead — первый этаж на этой стене,
+// claude-ai:        Textures, Textures2 — указатели на массивы текстур.
 struct	FWall
 {
 	SWORD	DX,DZ;
@@ -322,6 +366,10 @@ struct	FWall
 	UWORD	Dummy[1];
 };
 
+// claude-ai: Структура этажа/секции здания. Максимум 2500 (MAX_STOREYS = MAX_BUILDINGS*5).
+// claude-ai: Поля: StoreyType — тип (NORMAL/ROOF/WALL/FIRE_ESCAPE/CABLE/FENCE/LADDER/INSIDE/DOOR/OUTSIDE_DOOR и т.д.),
+// claude-ai:        Height — высота секции, WallHead — первая стена (linked list),
+// claude-fi:        InsideIDIndex — индекс в room_ids[] для интерьеров, InsideStorey — связанный inside-storey.
 struct	FStorey
 {
 	SWORD	DX,DY,DZ;
@@ -372,6 +420,10 @@ struct	RoomID
 #define	STAIR_FLAGS_DIR		((1<<2)|(1<<3))
 #define	SET_STAIR_DIR(x,dir)	((x)=((x)&~STAIR_FLAGS_DIR)|(dir<<2))
 #define	GET_STAIR_DIR(x)	(((x)&STAIR_FLAGS_DIR)>>2)
+// claude-ai: Структура здания. Максимум 500 штук (MAX_BUILDINGS=500).
+// claude-ai: Поля: ThingIndex — Thing на карте, Foundation — высота фундамента, InsideSeed — seed для генерации интерьера,
+// claude-ai:        BuildingType — тип (HOUSE/WAREHOUSE/OFFICE/APARTMENT/CRATE), StoreyHead — первый этаж (linked list),
+// claude-ai:        Angle — угол поворота здания, str[20] — debug-имя.
 struct	FBuilding
 {
 	UWORD	ThingIndex;
@@ -471,6 +523,10 @@ void get_wall_start_and_end(
 // (1 << CABLE_ALONG_SHIFT)
 //
 
+// claude-ai: API системы тросов (death-slide). CABLE_ALONG — позиция на тросе от 0 до 4096 (1<<12).
+// claude-ai: get_cable_along() — где на тросе находится точка (x,z). Возвращает позицию 0..CABLE_ALONG_MAX.
+// claude-ai: make_cable_taut_along() — натягивает трос в точке, возвращает высоту Y для Darci.
+// claude-ai: make_cable_flabby() — возвращает трос в расслабленное состояние (когда Darci слезла).
 #define CABLE_ALONG_SHIFT 12
 #define CABLE_ALONG_MAX   (1 << CABLE_ALONG_SHIFT)
 

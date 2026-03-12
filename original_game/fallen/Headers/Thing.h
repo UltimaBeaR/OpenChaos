@@ -22,6 +22,7 @@
 								1
 */
 
+// claude-ai: Лимиты объектов — 400 primary (игровые персонажи, машины, мебель и т.д.) + 300 secondary (PC) / 50 (PSX) (switches, tracks) = 700 всего
 #define	MAX_PRIMARY_THINGS		(400)
 #ifndef BUILD_PSX
 #define	MAX_SECONDARY_THINGS	(300)
@@ -31,6 +32,7 @@
 
 #define	MAX_THINGS				(MAX_PRIMARY_THINGS+MAX_SECONDARY_THINGS+1)
 
+// claude-ai: Флаги Thing.Flags (ULONG, 32 бит) — битовое поле состояния объекта
 #define	FLAGS_ON_MAPWHO				(1 <<  0)
 #define	FLAGS_IN_VIEW				(1 <<  1)
 #define	FLAGS_TWEEN_TO_QUEUED_FRAME	(1 <<  2)
@@ -62,6 +64,9 @@
 //---------------------------------------------------------------
 
 
+// claude-ai: Базовый игровой объект — 125 байт. Полиморфизм через union Genus (тип задаётся Class) и function pointer StateFn (вызывается каждый кадр).
+// claude-ai: Классы: PLAYER(1), CAMERA(2), PROJECTILE(3), BUILDING(4), PERSON(5), ANIMAL(6), FURNITURE(7), SWITCH(8), VEHICLE(9), SPECIAL(10), ANIM_PRIM(11), CHOPPER(12), PYRO(13), TRACK(14), PLAT(15), BARREL(16), BIKE(17 — не перенесён), BAT(18)
+// claude-ai: Координаты GameCoord: SLONG X, Y, Z, 256 единиц = 1 mapsquare. NextLink — итерация объектов одного класса через thing_class_head[CLASS].
 struct Thing
 {
 	UBYTE			Class,
@@ -76,14 +81,17 @@ struct Thing
 
 	GameCoord		WorldPos;
 
+	// claude-ai: StateFn — function pointer на текущий обработчик состояния. Вызывается каждый кадр из process_things(). Меняется при смене State (например, set_person_running() пишет сюда новый handler).
 	void			(*StateFn)(Thing*);	// Things state function.
 
+	// claude-ai: Draw union — способ отрисовки: Tweened (анимированная меш с интерполяцией кадров) или Mesh (статичный меш без анимации). DrawType определяет какой вариант активен.
 	union
 	{
 		DrawTween			*Tweened;
 		DrawMesh			*Mesh;
 	}Draw;
 
+	// claude-ai: Genus union — данные конкретного типа объекта. Активный член определяется полем Class. Например, если Class==CLASS_PERSON — используется Genus.Person (PersonPtr -> struct Person из Person.h).
 	union
 	{
 		VehiclePtr		 Vehicle;
@@ -126,6 +134,7 @@ struct Thing
 
 typedef struct Thing Thing;
 
+// claude-ai: thing_class_head[CLASS] — голова однонаправленного связного списка объектов данного класса. Итерация: начать с thing_class_head[CLASS], следующий — Thing.NextLink. Конец списка = 0.
 extern	UWORD	*thing_class_head;
 
 //---------------------------------------------------------------
@@ -192,6 +201,7 @@ extern THING_INDEX THING_array[THING_ARRAY_SIZE];
 #define THING_FIND_LIVING	  ((1 << CLASS_PERSON) | (1 << CLASS_ANIMAL))
 #define THING_FIND_MOVING	  ((1 << CLASS_PERSON) | (1 << CLASS_ANIMAL) | (1 << CLASS_PROJECTILE))
 
+// claude-ai: THING_find_sphere — ищет все объекты указанных классов (bitmask) в радиусе от точки. Записывает THING_INDEX в array, возвращает кол-во найденных. Используй THING_FIND_* маски или (1 << CLASS_*).
 SLONG THING_find_sphere(
 		SLONG        centre_x,	// 50 << 8
 		SLONG        centre_y,	//  0
@@ -201,6 +211,7 @@ SLONG THING_find_sphere(
 		SLONG        array_size,
 		ULONG        classes);
 
+// claude-ai: THING_find_box — как THING_find_sphere, но ищет в прямоугольной 2D-области (X/Z плоскость). Y-координата не учитывается. Полезно для проверок на карте.
 SLONG THING_find_box(
 		SLONG x1, SLONG z1,
 		SLONG x2, SLONG z2,
@@ -212,6 +223,7 @@ SLONG THING_find_box(
 // Finds the nearest thing of the given class. Returns NULL on failure.
 //
 
+// claude-ai: THING_find_nearest — возвращает THING_INDEX ближайшего объекта нужного класса в радиусе. NULL если не найдено. Быстрее чем find_sphere + ручной поиск минимума.
 SLONG THING_find_nearest(
 		SLONG centre_x,
 		SLONG centre_y,

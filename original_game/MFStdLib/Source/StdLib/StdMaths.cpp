@@ -1,6 +1,26 @@
 // StdMaths.cpp
 // Guy Simmons, 18th December 1997.
 
+// claude-ai: MATH UTILITIES OVERVIEW
+// claude-ai: This file provides PSX-era integer math utilities used throughout the engine.
+// claude-ai:
+// claude-ai: ANGLE SYSTEM: 0-2047 for a full 360° rotation (2048 steps total).
+// claude-ai:   1 unit = 360/2048 ≈ 0.176°.  512 units = 90°.  1024 units = 180°.
+// claude-ai:   This is the PSX GTE (Geometry Transformation Engine) native angle range.
+// claude-ai:
+// claude-ai: THREE LOOKUP TABLES:
+// claude-ai:   SinTable[2560]  — integer sine, fixed-point 16-bit scaled (max value 65536 = 1.0)
+// claude-ai:   CosTable        — pointer into SinTable[512] (cosine = sine offset by 90° = 512 steps)
+// claude-ai:   AtanTable[256]  — arctangent 0°-90° in output angle units (0-512 range)
+// claude-ai:   SinTableF[512]  — float sine table, same angle system, values 0.0..1.0
+// claude-ai:   CosTableF       — pointer into SinTableF[512]
+// claude-ai:
+// claude-ai: PORTING STRATEGY:
+// claude-ai:   - DISCARD all lookup tables — use standard libm (sinf/cosf/atan2f) in new version
+// claude-ai:   - KEEP the 0-2047 angle convention when porting game logic that uses it
+// claude-ai:   - Root() is trivial, discard and inline sqrtf() directly
+// claude-ai:   - Arctan() logic: replace with atan2f(Y,X) * (2048/(2*M_PI)) for same output range
+
 #include	<MFStdLib.h>
 #ifdef TARGET_DC
 #include <shintr.h>
@@ -8,10 +28,34 @@
 
 //---------------------------------------------------------------
 
+// claude-ai: LookUp macro: computes table index as (ax*256)/bx, i.e. (minor/major)*256, range 0-255.
+// claude-ai:   ax/bx is always the ratio of the smaller to larger component (guaranteed by the quadrant logic below).
+// claude-ai:   (ax<<8)/bx: multiply by 256 first to get fixed-point precision, then divide = integer fraction 0..255.
+// claude-ai:   AtanTable[0..255] maps this ratio to an angle offset in 0-512 range (0°-90° in PSX angle units).
+// claude-ai: xchg macro: XOR swap — swaps ax and bx without a temporary variable.
 #define LookUp				ax = AtanTable[(ax<<8)/bx];
 #define	xchg(a,b)			{a^=b;b^=a;a^=b;}
 
 
+// claude-ai: Arctan(X, Y) — computes atan2(Y, X) in PSX angle units (return range: 0-2047).
+// claude-ai: PSX ONLY — use atan2f(Y,X) * (2048.0f / (2.0f * M_PI)) in new version.
+// claude-ai:
+// claude-ai: ALGORITHM: The 0-90° AtanTable covers one octant. Arctan uses 8-quadrant decomposition:
+// claude-ai:   For each quadrant, it ensures |minor| < |major| then calls LookUp to get an octant offset,
+// claude-ai:   then adds a quadrant base value to get the final 0-2047 angle.
+// claude-ai:
+// claude-ai: QUADRANT RETURN VALUES (angle units, 512=90°):
+// claude-ai:   X+, Y+, X primary (|X|>=|Y|): returns ax+512  (northeast, X axis side, 512-1023 range)
+// claude-ai:   X+, Y+, Y primary (|Y|> |X|): returns 1024-ax (northeast, Y axis side, 512-1024 range)
+// claude-ai:   X+, Y-, X primary:             returns 512-ax  (southeast, X axis side, 0-512 range)
+// claude-ai:   X+, Y-, Y primary:             returns ax      (southeast, Y axis side, 0-512 range)
+// claude-ai:   X-, Y+, X primary:             returns 1536-ax (northwest, 1024-1536 range)
+// claude-ai:   X-, Y+, Y primary:             returns ax+1024 (northwest, 1024-1536 range)
+// claude-ai:   X-, Y-, X primary:             returns ax+1536 (southwest, 1536-2047 range)
+// claude-ai:   X-, Y-, Y primary:             returns 2048-ax (southwest, 1536-2048 range, wraps to 0)
+// claude-ai:
+// claude-ai: NOTE: X=0 and Y=0 special case: return 0. X=0 with Y!=0: goto done_it with ax=0 still.
+// claude-ai: The goto-heavy style is PSX compiler optimization for branch-free register scheduling.
 SLONG	Arctan(SLONG X,SLONG Y)
 {
 	register SLONG		ax,bx;
@@ -29,7 +73,7 @@ done_it:
 	if(ax < 0)
 		goto xneg;
 
-// x positive			
+// x positive
 	if(bx < 0)
 		goto xposyneg;
 
@@ -59,7 +103,7 @@ pnyprimary:
 xneg:
 	ax = -ax;
 	if(bx < 0)
-		goto xnegyneg;						
+		goto xnegyneg;
 // x negative, y positive
 	if(ax < bx)
 		goto npyprimary;
@@ -84,11 +128,14 @@ xnegyneg:
 	return ax+1536;
 nnyprimary:
 	LookUp
-	return (-ax)+2048;					
+	return (-ax)+2048;
 }
 
 //---------------------------------------------------------------
 
+// claude-ai: Root(x) — integer square root. Just wraps sqrt() from libm.
+// claude-ai: PSX ONLY (trivial wrapper) — use sqrtf() or std::sqrt() directly in new version.
+// claude-ai: Takes the square of a value (not a squared distance — naming is slightly misleading).
 SLONG Root(SLONG square)
 {
 	return (int)sqrt(square);
@@ -96,6 +143,18 @@ SLONG Root(SLONG square)
 
 //---------------------------------------------------------------
 
+// claude-ai: AtanTable[256] — arctangent lookup for 0°-90° in PSX angle units.
+// claude-ai: PSX ONLY — use atan2f() in new version.
+// claude-ai:
+// claude-ai: Each entry: 2048L * N / 131072L = atan(index/256) * (2048 / (2*pi)) in integer
+// claude-ai:   i.e., result is in PSX angle units (0-512 = 0°-90°).
+// claude-ai:   131072 = 2^17 = the scaling factor (2048 * 64 = full circle * 64 = radians * ~20860).
+// claude-ai:   The numerator N values are pre-computed atan(i/256) * 131072 for i=0..255.
+// claude-ai: INDEX meaning: AtanTable[i] = angle corresponding to ratio (minor/major) = i/256.
+// claude-ai:   AtanTable[0]   = 0     (ratio=0,   angle=0°)
+// claude-ai:   AtanTable[128] ≈ 256   (ratio=0.5, angle=26.6° ≈ atan(0.5))
+// claude-ai:   AtanTable[255] ≈ 511   (ratio≈1,   angle≈45°)
+// claude-ai: Used exclusively by the LookUp macro inside Arctan().
 SWORD	AtanTable[] =
 {
 	2048L*0/131072L,
@@ -359,6 +418,26 @@ SWORD	AtanTable[] =
 
 //---------------------------------------------------------------
 
+// claude-ai: SinTable[2560] — integer sine lookup table in PSX angle units.
+// claude-ai: PSX ONLY — use sinf(angle * 2*M_PI / 2048.0f) in new version.
+// claude-ai:
+// claude-ai: ANGLE SYSTEM: index maps to angle as degrees = index * (360/2048) = index * 0.17578125°
+// claude-ai:   Index 0    = 0°,    value = 0
+// claude-ai:   Index 512  = 90°,   value = 65536 (= 2^16, representing 1.0 in 16-bit fixed-point)
+// claude-ai:   Index 1024 = 180°,  value = 0
+// claude-ai:   Index 1536 = 270°,  value = -65536
+// claude-ai:   Index 2048 = 360° = 0° (wrap, but table extends to 2559 for CosTable coverage)
+// claude-ai:
+// claude-ai: SCALING: values are 16-bit fixed-point with scale factor 65536 (= 2^16).
+// claude-ai:   To use: result = (SinTable[angle] * magnitude) >> 16 gives true scaled value.
+// claude-ai:   Some callers use >>1 (15-bit) — see code using SIN(a) macro, which depends on context.
+// claude-ai:   Comment columns: index, degrees, radians (third column = raw float value used to generate table).
+// claude-ai:
+// claude-ai: TABLE SIZE: 2560 entries (not 2048) because CosTable = &SinTable[512].
+// claude-ai:   CosTable must cover indices 0..2047, so SinTable must have entries at 512..2559 = 2048 more.
+// claude-ai:   Total: 512 (CosTable prefix) + 2048 (full circle from CosTable) = 2560 entries.
+// claude-ai:
+// claude-ai: MACROS: SIN(a) = SinTable[a],  COS(a) = CosTable[a] = SinTable[a+512]
 SLONG	SinTable[]=
 {
 	0,	//	    0	0.00	0.000000
@@ -2923,11 +3002,24 @@ SLONG	SinTable[]=
 	65535,	//	 2559	449.82	7.850914
 };
 
+// claude-ai: CosTable — NOT a separate array. Just a pointer 512 entries into SinTable.
+// claude-ai: PSX ONLY — use cosf(angle * 2*M_PI / 2048.0f) in new version.
+// claude-ai: cos(x) = sin(x + 90°) = sin(x + 512 steps) — so CosTable[i] = SinTable[i+512].
+// claude-ai: This is why SinTable has 2560 entries: 2048 (full cycle) + 512 (CosTable lead-in).
+// claude-ai: Macro: COS(a) = CosTable[a] = SinTable[a+512]
 SLONG	*CosTable	=	&SinTable[512];
 
 //---------------------------------------------------------------
 
-float	SinTableF[]	=	
+// claude-ai: SinTableF[512] — floating-point sine lookup table, same PSX angle system as SinTable.
+// claude-ai: PSX ONLY — use sinf(angle * 2*M_PI / 2048.0f) in new version.
+// claude-ai: Only covers 0°-90° (512 entries, indices 0-511): values 0.0 to ~1.0.
+// claude-ai: CosTableF = &SinTableF[512] — but SinTableF only has 512 entries!
+// claude-ai:   This means CosTableF[i] for i>0 reads PAST the array end — undefined behaviour!
+// claude-ai:   In practice, CosTableF is only safe if callers limit angle to 0-511 (i.e., only use 0°-90°).
+// claude-ai:   The original code likely only uses SIN_F/COS_F in limited angle ranges (e.g., projection).
+// claude-ai: Macros: SIN_F(a) = SinTableF[a],  COS_F(a) = CosTableF[a] = SinTableF[a+512] (unsafe past 511)
+float	SinTableF[]	=
 {
 	(float)0.000000,	// 0
 	(float)0.003068,	// 1
@@ -5491,9 +5583,17 @@ float	SinTableF[]	=
 	(float)0.999995,	// 511
 };
 
+// claude-ai: CosTableF — float cosine pointer, same trick as CosTable: offset 512 into SinTableF.
+// claude-ai: PSX ONLY — use cosf(angle * 2*M_PI / 2048.0f) in new version.
+// claude-ai: WARNING: SinTableF only has 512 entries (indices 0-511), so CosTableF[i] for any i>0
+// claude-ai:   reads out of bounds. Only safe if callers restrict angle argument to 0.
 float	*CosTableF	=	&SinTableF[512];
 
 //---------------------------------------------------------------
+// claude-ai: Proportions[] — perspective correction table, indexed by screen angle or distance.
+// claude-ai: Values around 11585 (= sqrt(2) * 8192 ≈ 11585) suggest this is a reciprocal-distance
+// claude-ai:   or cosine-correction table used for perspective projection in the software renderer.
+// claude-ai: PSX ONLY — not needed in new version (use hardware perspective projection via OpenGL/Vulkan).
 SLONG	Proportions[]	=
 {
 	11585,

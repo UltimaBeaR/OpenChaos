@@ -6,12 +6,14 @@
 
 //---------------------------------------------------------------
 
+// claude-ai: MAX_PLAYERS=2 — поддержка split-screen. Мультиплеер по сети в новой версии НЕ переносится.
 #ifndef PSX
 #define	MAX_PLAYERS			2
 #else
 #define MAX_PLAYERS			2
 #endif
 
+// claude-ai: Типы игрока. DARCI(1) и ROPER(2) — играбельные персонажи. COP/THUG — неиграбельные.
 #define	PLAYER_NONE			0
 #define	PLAYER_DARCI		1
 #define	PLAYER_ROPER		2
@@ -20,25 +22,31 @@
 
 //---------------------------------------------------------------
 
+// claude-ai: Структура Player — данные об игроке (ввод, здоровье, штрафы, инвентарь, ссылки на Thing)
 typedef struct
 {
 	COMMON(PlayerType)
 
+	// claude-ai: Input — bitmask текущего состояния кнопок (биты 0-17 = кнопки, биты 17-31 = аналоговые стики)
+	// claude-ai: InputDone — маска уже обработанных нажатий (чтобы не обрабатывать дважды)
 	ULONG			Input;
 	ULONG			InputDone;
 	UWORD			PlayerID;
 	UBYTE			Stamina;
 	UBYTE			Constitution;
 
+	// claude-ai: Pressed = новые нажатия (Input & ~LastInput), Released = отпущенные (LastInput & ~Input)
 	ULONG			LastInput;			// The input last gameturn
 	ULONG			ThisInput;			// The input this gameturn
 	ULONG			Pressed;			// The keys pressed  this gameturn
 	ULONG			Released;			// The keys released this gameturn
 	ULONG			DoneSomething;		// Flag so you know when you've pressed left or done a left-punch.
+	// claude-ai: LastReleased — GetTickCount() момента отпускания кнопки; DoubleClick — счётчик двойных нажатий (окно 200мс)
 	SLONG			LastReleased[16];	// The GetTickCount() of when each key was last released
 	UBYTE			DoubleClick[16];	// The double-click count for each key.
 
 	UBYTE			Strength;
+	// claude-ai: RedMarks — штрафные очки (0-10). При достижении 10 — немедленный game over!
 	UBYTE			RedMarks;
 	UBYTE			TrafficViolations;
 	UBYTE			Danger;				// How far from Danger is Darci? 0 => No danger, 1 = Max danger, 3 = min danger
@@ -48,9 +56,10 @@ typedef struct
 	UBYTE			ItemCount;			// Number of valid inventory items currently held
 	UBYTE			Skill;
 
+	// claude-ai: CameraThing — Thing, за которым следует камера; PlayerPerson — Thing самого персонажа игрока
 	struct Thing	*CameraThing,
 					*PlayerPerson;
-	
+
 }Player;
 
 typedef Player*		PlayerPtr;

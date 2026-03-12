@@ -1,5 +1,13 @@
 // Person.cpp
 // Guy Simmons, 12th January 1998.
+// claude-ai: ГЛАВНЫЙ файл персонажей (~22K строк). Содержит:
+// claude-ai:   - general_process_person() — вызывается каждый кадр для каждого персонажа (физика, анимация, AI)
+// claude-ai:   - can_a_see_b() — проверка видимости (FOV + освещение + геометрия)
+// claude-ai:   - set_person_enter_vehicle() / set_person_exit_vehicle() — посадка/высадка из авто
+// claude-ai:   - person_holding_2handed() — проверка двуручного оружия
+// claude-ai:   - Таблица people_functions[] — привязка PERSON_TYPE к таблице состояний
+// claude-ai:   - Таблица generic_people_functions[] — общие состояния для всех NPC (движение, прыжки, бой и т.д.)
+// claude-ai: Персонаж-игрок: PERSON_DARCI (Darci.cpp). NPC: Cop.cpp через cop_states.
 
 #include	"Game.h"
 #include	"Cop.h"
@@ -296,6 +304,8 @@ SLONG	person_is_on_sewer(Thing *p_person);
 #endif
 
 
+// claude-ai: Таблица диспетчеризации: PERSON_TYPE → таблица состояний (STATE_INIT, STATE_NORMAL и т.д.)
+// claude-ai: Все NPC кроме Darci и Roper используют cop_states.
 GenusFunctions	people_functions[]	=
 {
 	{	PERSON_DARCI,		darci_states	},
@@ -319,6 +329,9 @@ GenusFunctions	people_functions[]	=
 };
 
 
+// claude-ai: Общая таблица состояний для всех персонажей (движение, прыжки, лазание, бой, гибель и т.д.)
+// claude-ai: Каждая запись: {STATE_*, fn_person_*}. NULL = состояние не обрабатывается.
+// claude-ai: Конкретные персонажи могут перекрывать отдельные состояния в своих таблицах (darci_states, cop_states).
 StateFunction	generic_people_functions[]	=
 {
 	{	STATE_INIT,				NULL				},
@@ -3192,7 +3205,12 @@ SLONG is_person_crouching(Thing *p_person)
 //        <0 means forget view conditions and just use max range (useful for player)
 //        >0 clip calculated view distance to this value
 
-// claude-ai: Line-of-sight check between two persons - tests angle, distance, and geometry occlusion
+// claude-ai: Проверка видимости: может ли person_a увидеть person_b.
+// claude-ai: FOV: близко (dist < 192 units) → широкий угол 700/2048 (≈123°), далеко → узкий 420/2048 (≈74°).
+// claude-ai: Освещение: light_at_target уменьшает view_range (в темноте видят хуже).
+// claude-ai: Приседание цели: view_range >>= 1 (вдвое хуже видят сидящего).
+// claude-ai: Параметр range: 0 = дефолт (8<<8), <0 = игнорировать условия (для игрока), >0 = ограничить дальность.
+// claude-ai: Параметр no_los: 1 = не проверять геометрическую блокировку (сквозные стены).
 SLONG can_a_see_b(
 		Thing *p_person_a,
 		Thing *p_person_b,SLONG range,SLONG no_los)
@@ -8244,6 +8262,8 @@ void	position_person_for_vehicle(Thing *p_person,Thing *p_vehicle,SLONG door)
 
 }
 
+// claude-ai: Посадка персонажа в транспортное средство. Параметр door — номер двери (0-3).
+// claude-ai: Устанавливает флаги FLAG_PERSON_NON_INT_M/C/PASSENGER и привязывает персонажа к машине.
 void	set_person_enter_vehicle(Thing *p_person,Thing *p_vehicle, SLONG door)
 {
 	ASSERT(door == 0 || door == 1);
@@ -8414,6 +8434,7 @@ void set_person_passenger_in_vehicle(Thing *p_person, Thing *p_vehicle, SLONG do
 }
 
 
+// claude-ai: Высадка персонажа из транспортного средства. Снимает флаги PASSENGER, восстанавливает позицию.
 void	set_person_exit_vehicle(Thing *p_person)
 {
 	Thing *p_vehicle;
@@ -15326,6 +15347,8 @@ void set_person_unsit(Thing *p_person)
 }
 
 
+// claude-ai: Возвращает индекс двуручного оружия в инвентаре персонажа (или 0 если нет).
+// claude-ai: Двуручное оружие: AK47, Shotgun и аналоги (SPECIAL_GROUP_TWOHANDED_WEAPON).
 SLONG	person_holding_2handed(Thing *p_person)
 {
 	if (p_person->Genus.Person->SpecialUse)

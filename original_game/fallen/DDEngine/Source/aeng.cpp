@@ -2,6 +2,37 @@
 // Another engine.
 //
 
+// claude-ai: THIS IS THE DIRECT3D WRAPPER — will NOT be ported, only understand what it renders.
+// claude-ai: aeng.cpp = "Another Engine" — the main 3D scene renderer for Urban Chaos.
+// claude-ai: Wraps DirectDraw/Direct3D (DDLib) to render the entire game world each frame.
+// claude-ai: The new game will replace this whole file with OpenGL 4.6 rendering.
+// claude-ai:
+// claude-ai: HIGH-LEVEL RENDER PIPELINE (see AENG_draw and AENG_draw_city):
+// claude-ai:   1. AENG_draw()        — top-level entry point called once per frame
+// claude-ai:      - applies dynamic lighting (NIGHT_dlight_squares_up)
+// claude-ai:      - handles splitscreen (FC_cam[0] and FC_cam[1]) or single camera
+// claude-ai:      - dispatches to AENG_draw_city() (exterior) or AENG_draw_warehouse() (interior)
+// claude-ai:   2. AENG_draw_city()   — renders the outdoor city scene (~line 7255)
+// claude-ai:      - culls Things by view frustum (NGAMUT visible set)
+// claude-ai:      - draws terrain (PAP tiles), buildings (DFacet), Things (DT_TWEEN/DT_MESH), effects
+// claude-ai:   3. AENG_draw_warehouse() — renders interior warehouse scenes (~line 11495)
+// claude-ai:
+// claude-ai: CAMERA SYSTEM:
+// claude-ai:   - FC_cam[0..1]: up to 2 cameras for splitscreen co-op
+// claude-ai:   - AENG_set_camera_radians(): converts FC_Cam angles to float matrix
+// claude-ai:   - AENG_calc_gamut(): computes the view frustum cone for culling
+// claude-ai:   - AENG_lens: FOV parameter (default ~4.0, stored in fc->lens / 65536)
+// claude-ai:   - CurDrawDistance: max render distance in world units (default 22<<8 = 5632)
+// claude-ai:
+// claude-ai: DETAIL LEVELS (AENG_detail_* flags, ~line 162):
+// claude-ai:   shadows, stars, moon reflection, puddles, dirt, mist, rain, skyline,
+// claude-ai:   perspective correction, crinkles — all individually toggleable
+// claude-ai:
+// claude-ai: CLOUD SHADOWS (PC only, not DC):
+// claude-ai:   - cloud_data[32][32]: 32x32 greyscale map loaded from data\cloud.raw
+// claude-ai:   - calc_global_cloud() / use_global_cloud(): bilinear sample + vertex colour darkening
+// claude-ai:   - Only active during NIGHT_FLAG_DAYTIME
+
 #include <MFStdLib.h>
 #include <DDLib.h>
 #include <math.h>
@@ -768,6 +799,7 @@ UBYTE *movie_data_upto;
 
 */
 
+// claude-ai: AENG_init — one-time startup: inits meshes, textures, sky, polygon system, clouds
 void AENG_init(void)
 {
 	MESH_init();
@@ -1071,6 +1103,11 @@ struct
 
 } AENG_cone[5];
 
+// claude-ai: AENG_calc_gamut — computes the view frustum cone for the given camera params.
+// claude-ai: Fills AENG_cone[0..4] with the 5 corners of the view pyramid in world space.
+// claude-ai: Also fills NGAMUT_lo_gamut / NGAMUT_hi_gamut: per-row xmin/xmax ranges in map tiles.
+// claude-ai: These gamut ranges are used to cull which map squares/Things to draw (no GPU culling here).
+// claude-ai: lens parameter narrows/widens FOV: higher lens = narrower FOV (telephoto).
 void AENG_calc_gamut(
 		float x,
 		float y,
@@ -7252,6 +7289,18 @@ extern DIJOYSTATE			the_state;
 
 UBYTE	index_lookup[]={0,1,3,2};
 			   
+// claude-ai: AENG_draw_city — renders the entire outdoor city scene for one camera.
+// claude-ai: This is the MAIN render loop for exterior gameplay (not used inside warehouses).
+// claude-ai: Order of rendering (painter's algorithm, near-to-far with Z-buffer):
+// claude-ai:   1. Determine visible Things in frustum (NGAMUT_lo_gamut scan)
+// claude-ai:   2. Draw sky (SKY_draw)
+// claude-ai:   3. Draw terrain PAP tiles (ground quads with NIGHT vertex colours)
+// claude-ai:   4. Draw buildings/DFacets (AENG_draw_far_facets, building facades)
+// claude-ai:   5. Draw Things: DT_TWEEN persons, DT_MESH vehicles/furniture, DT_SPRITE billboards
+// claude-ai:   6. Draw effects: fire, sparks, rain, drips, cloth, bangs, pows, balloons, hooks
+// claude-ai:   7. Draw shadows (projected onto ground)
+// claude-ai:   8. Draw HUD elements and 2D overlays
+// claude-ai: NOTE: to port, understand WHAT is drawn and in what order — not the DirectX calls.
 void AENG_draw_city()
 {
 
@@ -11492,6 +11541,10 @@ extern	void FACET_draw_quick(SLONG facet,UBYTE alpha);
 // Draws the warehouse that they player is in.
 //
 
+// claude-ai: AENG_draw_warehouse — renders interior warehouse/building scenes.
+// claude-ai: Used when player is inside a warehouse (fc->focus->Genus.Person->Ware is set).
+// claude-ai: Interior uses a separate ambient light (no dynamic sun/sky) and different culling.
+// claude-ai: See also: subsystems/buildings_interiors.md for interior system documentation.
 void AENG_draw_warehouse()
 {
 	SLONG i;
@@ -15838,6 +15891,12 @@ void AENG_clear_viewport()
 SLONG AENG_drawing_a_warehouse;
 
 
+// claude-ai: AENG_draw — top-level frame render entry point. Called once per game tick.
+// claude-ai: Decides whether to render split-screen (FC_cam[1].focus != NULL) or single camera.
+// claude-ai: Also handles cutscene camera override (EWAY_grab_camera).
+// claude-ai: Dispatches to AENG_draw_city() (exterior) or AENG_draw_warehouse() (interior buildings).
+// claude-ai: In split-screen mode, both cameras render their respective half-screens.
+// claude-ai: draw_3d param: unused in final code (always renders 3D).
 void AENG_draw(SLONG draw_3d)
 {
 	/*

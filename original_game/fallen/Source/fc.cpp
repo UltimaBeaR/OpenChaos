@@ -2,6 +2,13 @@
 // The final camera?
 //
 
+// claude-ai: fc.cpp — ЕДИНСТВЕННАЯ активная система камеры в Urban Chaos.
+// claude-ai: cam.cpp — МЁРТВЫЙ КОД (#ifdef DOG_POO никогда не определяется, игнорировать).
+// claude-ai: FC_MAX_CAMS=2 — поддержка splitscreen, но кооп не реализован (FC_cam[1] обычно пустой).
+// claude-ai: Глобальный массив: FC_cam[FC_MAX_CAMS] — по одной камере на игрока.
+// claude-ai: Главный цикл: FC_process() вызывается каждый кадр из Game.cpp.
+// claude-ai: CAM_MORE_IN = 0.75F — PC камера на 25% ближе к персонажу, чем PSX версия.
+
 #include "game.h"
 #include "fmatrix.h"
 #include "animate.h"
@@ -34,6 +41,7 @@ extern	SLONG	analogue;
 #endif
 
 
+// claude-ai: CAM_MORE_IN = 0.75F — PC камера на 25% ближе к персонажу чем PSX. Применяется к cam_dist и смещениям в FC_init/FC_change_camera_type.
 #define CAM_MORE_IN (0.75F)
 
 
@@ -46,6 +54,10 @@ FC_Cam FC_cam[FC_MAX_CAMS];
 
 extern	SLONG person_has_gun_out(Thing *p_person);
 
+// claude-ai: FC_alter_for_pos() — корректирует высоту (dheight) и дистанцию (ddist) камеры в зависимости от положения персонажа.
+// claude-ai: Gun-out mode: если персонаж достал оружие и не едет на транспорте → dheight=0, ddist=200 (камера ближе и ниже).
+// claude-ai: Также обрабатывает: нахождение в машине (ddist=356), не-IDLE состояние (ddist=256).
+// claude-ai: Высота рассчитывается через MAV (высотная карта) с интерполяцией между соседними клетками.
 SLONG FC_alter_for_pos(FC_Cam *fc,SLONG *dheight,SLONG *ddist)
 {
 	SLONG	dx,dz;
@@ -62,6 +74,8 @@ extern	float POLY_cam_z;
 
 	#ifndef MARKS_PRIVATE_VERSION
 
+	// claude-ai: Gun-out mode — активен в финальной версии (MARKS_PRIVATE_VERSION не определён).
+	// claude-ai: dheight=0, ddist=200: камера ближе и ниже при вынутом оружии (не применяется при езде).
 	if (person_has_gun_out(fc->focus) && !(fc->focus->Genus.Person->Flags & (FLAG_PERSON_DRIVING|FLAG_PERSON_BIKING)))
 	{
 		*dheight = 0;
@@ -179,6 +193,9 @@ extern	float POLY_cam_z;
 }
 
 
+// claude-ai: FC_init() — инициализация всех камер. Вызывается из Game.cpp при старте игры.
+// claude-ai: Устанавливает начальные значения: lens=0x24000, cam_dist=0x280*CAM_MORE_IN, cam_height=0x16000 (MARKS_MACHINE).
+// claude-ai: MARKS_MACHINE — флаг для машины разработчика Mark, cam_height=0x16000; без него — 0x1a000.
 void FC_init(void)
 {
 	SLONG i;
@@ -208,6 +225,11 @@ void FC_init(void)
 // Camera type defines 1 of 4 distances and heights.
 //
 
+// claude-ai: FC_change_camera_type() — переключает режим камеры (0-3).
+// claude-ai: type 0: PC dist=0x280*0.75≈480, height=0x16000 (стандартный, PSX: dist=0x300, height=0x18000).
+// claude-ai: type 1: dist=0x280=640, height=0x20000 (дальше и выше).
+// claude-ai: type 2: dist=0x380=896, height=0x25000 (максимально далеко и высоко).
+// claude-ai: type 3: dist=0x300=768, height=0x8000 (низкий угол, кинематографичный).
 void FC_change_camera_type(SLONG cam, SLONG cam_type)
 {
 	switch(cam_type)
@@ -427,6 +449,9 @@ SLONG FC_get_person_body_part_target(Thing *p_thing)
 }
 
 
+// claude-ai: FC_calc_focus() — вычисляет мировую позицию точки взгляда камеры (focus_x/y/z).
+// claude-ai: Цель зависит от action персонажа: при дангле/лазании — смотреть на ноги, иначе — на голову/тело.
+// claude-ai: Результат сохраняется в FC_Cam.focus_x/y/z, используется в FC_process() для вычисления направления камеры.
 void FC_calc_focus(FC_Cam *fc)
 {
 	SLONG	body_part=0;
@@ -1137,6 +1162,15 @@ void FC_setup_camera_for_warehouse(SLONG cam)
 
 
 
+// claude-ai: FC_process() — главный цикл камеры, вызывается каждый кадр из Game.cpp.
+// claude-ai: Алгоритм для каждой камеры в FC_cam[0..FC_MAX_CAMS-1]:
+// claude-ai:   1. Пропустить если focus == NULL.
+// claude-ai:   2. FC_alter_for_pos() — скорректировать высоту/дистанцию по позиции персонажа.
+// claude-ai:   3. FC_calc_focus() — вычислить точку взгляда.
+// claude-ai:   4. Обработка warehouse (здание) — специальный режим внутри здания.
+// claude-ai:   5. Тряска (shake) от взрывов — применить смещение.
+// claude-ai:   6. Collision avoidance — raycast через MAV высоты, камера не уходит в стены.
+// claude-ai:   7. Сглаживание позиции — плавное следование за персонажем.
 void FC_process()
 {
 	SLONG i;

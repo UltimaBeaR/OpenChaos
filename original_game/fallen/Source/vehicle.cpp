@@ -2,6 +2,36 @@
 //
 // vehicle physics
 
+// claude-ai: ============================================================
+// claude-ai: VEHICLE PHYSICS SYSTEM — Vehicle.cpp
+// claude-ai:
+// claude-ai: Manages all ground vehicle types (CLASS_VEHICLE), including:
+// claude-ai:   - Arcade-style car physics (acceleration, steering, skidding)
+// claude-ai:   - 4-wheel independent suspension via damped springs
+// claude-ai:   - Gravity: GRAVITY = -(128*10*256)/(80^2) = -5120 units/tick^2
+// claude-ai:     (vehicles use EXPLICIT physics gravity, unlike persons who use animation-driven gravity)
+// claude-ai:   - Tilt/roll calculation from wheel height differences
+// claude-ai:   - Collision with walls, OB prims (boxes & cylinders), other vehicles
+// claude-ai:   - Damage model: 6 crumple zones per vehicle, vertex deformation
+// claude-ai:   - Runover detection for pedestrians
+// claude-ai:   - Enter/exit vehicle sequencing (SUB_STATE_ENTERING/INSIDE/EXITING_VEHICLE = 140/141/142)
+// claude-ai:   - AI (NPC) driving via PCOM system
+// claude-ai:   - Sound effects and particle effects (smoke, sparks, skidmarks)
+// claude-ai:
+// claude-ai: IMPORTANT: The BIKE system (#ifdef BIKE) is UNFINISHED — do NOT port.
+// claude-ai:
+// claude-ai: TICK_RATIO: frame-rate-independent timing multiplier (4-frame moving average).
+// claude-ai:   Applied to velocities and angle deltas via: (value * TICK_RATIO) >> TICK_SHIFT
+// claude-ai:   NORMAL_TICK_TOCK = 66.67ms target frame time.
+// claude-ai:
+// claude-ai: VEH_TYPE_* enum: VAN=0, CAR=1, TAXI=2, POLICE=3, AMBULANCE=4,
+// claude-ai:   JEEP=5, MEATWAGON=6, SEDAN=7, WILDCATVAN=8
+// claude-ai:
+// claude-ai: FLAG_FURN_DRIVING: set on Vehicle when someone is driving it.
+// claude-ai:   IMPORTANT: Despite the "FURN" name, this flag lives in the Vehicle flags,
+// claude-ai:   not in Furn.h. It gates all active-driving logic (steering, pedals, etc).
+// claude-ai: ============================================================
+
 // tops of walls - colliding with them???
 // need to properly handle coming out of skidding so bouncing off walls works better
 // tune for each vehicle
@@ -95,22 +125,39 @@ extern	SLONG	is_person_ko(Thing *p_person);
 
 // constants for physics
 
+// claude-ai: Suspension compression range in fixed-point (<<8 = 256 units each).
+// claude-ai: MIN=13*256=3328 (nearly extended), MAX=115*256=29440 (nearly fully compressed).
+// claude-ai: VEH_NULL sentinel uses Spring[0].Compression to mark a free Vehicle slot.
 #define	MIN_COMPRESSION		(13 << 8)
 #define	MAX_COMPRESSION		(115 << 8)
 
+// claude-ai: UNITS_PER_METER=128: one meter = 128 world units.
+// claude-ai: TICK_LOOP=4: suspension physics runs 4 sub-steps per game tick (inner loop in process_car).
+// claude-ai: TICKS_PER_SECOND=80 (20 * 4 sub-steps). Used only for deriving GRAVITY constant.
+// claude-ai: GRAVITY=-5120 units/tick^2 (explicit per-tick gravity for vehicle vertical physics).
+// claude-ai: Persons do NOT use this; their vertical motion comes from animation keyframes.
 #define	UNITS_PER_METER		128
 #define	TICK_LOOP			(4)
 #define	TICKS_PER_SECOND	(20*TICK_LOOP)
 #define	GRAVITY				(-(UNITS_PER_METER*10*256)/(TICKS_PER_SECOND*TICKS_PER_SECOND))
 
+// claude-ai: WHEELTIME=35: steering input steps to reach full lock (used with arctan_table LUT).
+// claude-ai: WHEELRATIO=45: ratio determining max steering angle: tan(max_angle) = WHEELRATIO/WHEELTIME.
+// claude-ai: SKID_START=3: Veh.Skid counter threshold that triggers full skid physics.
+// claude-ai: SKID_FORCE=8500: lateral force (relative) needed to initiate a skid.
+// claude-ai: NEAR_SKID_FORCE=5000: softer threshold that triggers squeal sounds without full skid.
 #define WHEELTIME			35			// time to full lock
 #define WHEELRATIO			45			// WHEELRATIO/WHEELTIME = tan(max. steering angle)
 #define SKID_START			3			// number of tics to slam the brakes on before we skid
 #define SKID_FORCE			8500		// lateral force required to start a skid
 #define NEAR_SKID_FORCE		5000		// not skidding, but enough to starsky the sound fx
 
+// claude-ai: STABLE_COUNT=16: ticks with minimal tilt/roll change before car is considered "stable".
+// claude-ai: Stable cars with zero velocity have their StateFn set to NULL (go idle, save CPU).
 #define STABLE_COUNT		16			// number of "stable" tics to actually be stable
 
+// claude-ai: CAR_VEL_SHIFT=4: VelX/VelZ are stored in fixed-point >>4 (divide by 16) relative
+// claude-ai: to normal world units. Used throughout velocity calculations.
 #define CAR_VEL_SHIFT	4
 
 #ifndef PSX
@@ -120,6 +167,8 @@ extern BOOL allow_debug_keys;
 static void siren(Vehicle* veh, UBYTE play);
 static inline void GetCarPoints(Thing* p_car, SLONG* x, SLONG* y, SLONG* z, SLONG step);
 extern	SLONG	is_person_ko_and_lay_down(Thing *p_person);
+// claude-ai: vehicle_random[]: weighted list of vehicle types for random NPC vehicle spawning.
+// claude-ai: Police/Ambulance/etc. are NOT in this list — only civilian types.
 //
 // random vehicle types
 //
@@ -131,6 +180,14 @@ UBYTE	vehicle_random[] =
 	VEH_TYPE_TAXI,	VEH_TYPE_VAN,	VEH_TYPE_CAR,	VEH_TYPE_TAXI
 };
 
+// claude-ai: VehInfo: per-type static vehicle parameters table (veh_info[VEH_TYPE_NUMBER]).
+// claude-ai:   DX[4]/DZ[4]: wheel X/Z offsets in car-local space (4 wheels: FL, FR, RL, RR order).
+// claude-ai:   FwdAccel/BkAccel/SoftBrake/HardBrake: engine acceleration/braking values.
+// claude-ai:   Terminal velocity is emergent (accel balanced by friction), NOT a hard cap.
+// claude-ai:   BodyOffset: Y adjustment for body mesh vs. physics origin.
+// claude-ai:   HLX/HLY/HLZ: headlight position; BLX/BLY/BLZ: brakelight position;
+// claude-ai:   FLX/FLY/FLZ: flashing light position (emergency vehicles; FLZ==0 = no light).
+// claude-ai:   shad_size/shad_elongate: oval shadow parameters.
 // VehInfo
 //
 // vehicle information per type
@@ -170,6 +227,11 @@ struct	VehInfo
 };
 
 
+// claude-ai: WHEELBASE_VAN / WHEELBASE_CAR: wheel X/Z positions in car-local coords.
+// claude-ai:   Van is wider (±120 X) and longer wheelbase; Car is narrower (±85 X).
+// claude-ai:   Order: [FL, FR, RL, RR] — front is positive Z, rear is negative Z.
+// claude-ai: ENGINE_* macros: FwdAccel, BkAccel, SoftBrake, HardBrake per vehicle class.
+// claude-ai:   Higher FwdAccel = faster top speed (terminal velocity = accel/friction balance).
 #define	WHEELBASE_VAN	{-120,120,-120,120},{150,150,-165,-165}
 #define WHEELBASE_CAR	{- 85, 85,- 85, 85},{160,160,-120,-120}
 
@@ -178,6 +240,11 @@ struct	VehInfo
 #define ENGINE_PIG		25, 15, 5, 10	// cop car - faster and better brakes
 #define ENGINE_AMB		25, 10, 5, 8	// ambulance - cop car speed forwards; LGV speed backwards; better than average brakes
 
+// claude-ai: veh_info[]: the master per-type data table. Row order matches VEH_TYPE_* enum:
+// claude-ai:   [0]=VAN, [1]=CAR, [2]=TAXI, [3]=POLICE, [4]=AMBULANCE,
+// claude-ai:   [5]=JEEP, [6]=MEATWAGON, [7]=SEDAN, [8]=WILDCATVAN
+// claude-ai: POLICE/AMBULANCE/MEATWAGON have FLZ != 0 → flashing emergency lights active.
+// claude-ai: AMBULANCE/MEATWAGON have FLRED=1 → both flashing lights are red (not red+blue).
 struct VehInfo veh_info[VEH_TYPE_NUMBER] =
 {
 	{WHEELBASE_VAN, ENGINE_LGV, 0,30,PRIM_OBJ_VAN_WHEEL,PRIM_OBJ_VAN_BODY,        0x6800, 0, NULL, -248, 15, 90,    0,  0,  0,   0,   0,  0, 0, 185, 100},
@@ -275,6 +342,10 @@ SLONG get_vehicle_body_offset(SLONG type)
 	return(SLONG(veh_info[type].BodyOffset));
 }
 
+// claude-ai: VEH_statefunctions[]: state machine dispatch table for vehicle Things.
+// claude-ai: Only STATE_FDRIVING maps to VEH_driving() — the main per-tick vehicle update.
+// claude-ai: Other states (NORMAL, COLLISION, etc.) have NULL handlers — vehicles only actively
+// claude-ai: update when driving. When stable & stopped, StateFn is set to NULL to save CPU.
 // state functions
 
 StateFunction VEH_statefunctions[] =
@@ -291,10 +362,15 @@ StateFunction VEH_statefunctions[] =
 
 // utilities
 
+// claude-ai: car_matrix[9]: 3x3 rotation matrix (global, rebuilt each frame via FMATRIX_calc).
+// claude-ai: Built from Vehicle->Angle (yaw), Tilt (pitch), Roll using fixed-point trig.
+// claude-ai: Used by apply_car_matrix() to transform wheel offsets from car-local to world space.
 // make car matrix from yaw,tilt,roll
 
 static SLONG	car_matrix[9];
 
+// claude-ai: make_car_matrix(): rebuilds car_matrix from Vehicle's current Angle/Tilt/Roll.
+// claude-ai: Must be called before any world-space wheel position queries.
 static void make_car_matrix(Vehicle* v)
 {
 //#ifndef PSX
@@ -304,6 +380,8 @@ static void make_car_matrix(Vehicle* v)
 //#endif
 }
 
+// claude-ai: make_car_matrix_p(): variant that takes explicit angle/tilt/roll params
+// claude-ai: (used for collision prediction — builds matrix for future position without tilt/roll).
 static void make_car_matrix_p(SLONG angle, SLONG tilt, SLONG roll)
 {
 	FMATRIX_calc(car_matrix, angle, tilt, roll);
@@ -359,6 +437,10 @@ inline bool is_driven_by_player(Thing* p_car)
 	return false;
 }
 
+// claude-ai: VEH_find_runover_things(): finds persons/vehicles in front of vehicle for runover check.
+// claude-ai: Searches two sphere regions ahead (scaled by steering angle — tighter search on turns).
+// claude-ai: Used by NPC AI (PCOM) to determine if vehicle is about to hit someone.
+// claude-ai: The #ifdef BIKE branch adds CLASS_BIKE to the search — BIKE SYSTEM — unfinished, do not port.
 // find things we might run over
 
 SLONG VEH_find_runover_things(Thing *p_vehicle, UWORD thing_index[], SLONG max_number, SLONG dangle)
@@ -392,6 +474,7 @@ SLONG VEH_find_runover_things(Thing *p_vehicle, UWORD thing_index[], SLONG max_n
 			if (!dangle)	infront -= abs(p_vehicle->Genus.Vehicle->WheelAngle * 3);
 			break;
 
+		// claude-ai: BIKE SYSTEM — unfinished, do not port
 		#ifdef BIKE
 
 		case CLASS_BIKE:
@@ -478,6 +561,10 @@ SLONG VEH_find_runover_things(Thing *p_vehicle, UWORD thing_index[], SLONG max_n
 	return num;
 }
 
+// claude-ai: VEH_find_door(): returns world X/Z position of driver (i_am_a_passenger=0) or
+// claude-ai: passenger (i_am_a_passenger=1) door. Used to position person for enter/exit animation.
+// claude-ai: The large commented block shows an earlier attempt with per-type door positioning;
+// claude-ai: the current code uses a single simplified formula for all vehicle types.
 // find door position
 
 void VEH_find_door(Thing *p_vehicle, SLONG i_am_a_passenger, SLONG *door_x, SLONG *door_z)
@@ -565,6 +652,9 @@ void VEH_find_door(Thing *p_vehicle, SLONG i_am_a_passenger, SLONG *door_x, SLON
    *door_z = iz;
 }
 
+// claude-ai: VEH_on_road(): tests whether ALL 4 corners of the car (sampled at 7 points per edge)
+// claude-ai: lie on road tiles. Used to optimize collision: cars fully on road skip wall collisions.
+// claude-ai: step parameter allows testing current position (0) or predicted future position (TICK_RATIO).
 //
 // Returns TRUE if the given car is completely on the road.
 //
@@ -608,6 +698,12 @@ SLONG VEH_on_road(Thing *p_vehicle, SLONG step)
 	return TRUE;
 }
 
+// claude-ai: VEH_add_damage(): applies damage to one of 6 crumple zones.
+// claude-ai:   area: 0=front-left, 1=front-right, 2=mid-left, 3=mid-right, 4=rear-left, 5=rear-right.
+// claude-ai:   hp: damage amount (0=small increment, 1-2=larger; capped at 2 for single hit).
+// claude-ai:   Each zone maxes at 4 damage; zone 2/3 (middle) is averaged from front/rear adjacent zones.
+// claude-ai:   Vertices are pre-assigned to zones in VEH_init_vehinfo() via VertexAssignments[].
+// claude-ai:   Visual crumple effect is applied in draw_car() via MESH_set_crumple().
 // add damage to a specified area of a vehicle
 
 void VEH_add_damage(Vehicle* vp, UBYTE area, UBYTE hp)
@@ -647,6 +743,10 @@ void VEH_add_damage(Vehicle* vp, UBYTE area, UBYTE hp)
 	if ((hp == 2) && (Random() > 25000) && (vp->damage[5-area]))	vp->damage[5-area]--;
 }
 
+// claude-ai: VEH_bounce(): applies an upward DY impulse to one or more wheels based on impact area.
+// claude-ai: Used to simulate the jolt when a vehicle is hit hard. DY[i] is per-wheel vertical velocity.
+// claude-ai: area mapping: 0=front-left corner wheel, 1=front-right, 2=both front, 3=both rear,
+// claude-ai:   4=rear-left, 5=rear-right. Amount is doubled internally.
 // bounce a vehicle
 
 void VEH_bounce(Vehicle* vp, UBYTE area, SLONG amount)
@@ -697,6 +797,11 @@ void init_vehicles(void)
 }
 #endif
 
+// claude-ai: VEH_init_vehinfo(): called once at startup after prims are loaded.
+// claude-ai: For each vehicle type, determines which mesh vertex belongs to which crumple zone
+// claude-ai: by nearest-neighbor assignment to 6 reference points (min/max corners of body prim).
+// claude-ai: Results stored in veh_info[ii].VertexAssignments[] — used by MESH_set_crumple().
+// claude-ai: Also initialises the arctan steering lookup table via init_arctans().
 // VEH_init_vehinfo
 //
 // assign each vertex to a crumple zone and initialize the
@@ -800,6 +905,9 @@ void VEH_init_vehinfo()
 #endif
 }
 
+// claude-ai: VEH_alloc(): finds a free slot in the global Vehicle pool (scans Spring[0].Compression
+// claude-ai: for the VEH_NULL sentinel). Sets Spring[0].Compression = MIN_COMPRESSION to claim slot.
+// claude-ai: MAX_VEHICLES defines the pool size. ASSERTs on overflow — no graceful failure.
 // find a free vehicle slot
 
 Vehicle *VEH_alloc(void)
@@ -855,6 +963,13 @@ static void set_vehicle_draw(Thing *p_thing)
 	draw->FrameIndex		=	0;
 	draw->Flags				=	0;
 }
+// claude-ai: VEH_create(): main vehicle spawning function.
+// claude-ai: Allocates a DrawMesh + Thing (CLASS_VEHICLE) + Vehicle struct, links them together.
+// claude-ai: Positions vehicle at (x,y,z) with given yaw/pitch/roll; calls reinit_vehicle() for physics.
+// claude-ai: NOTE: yaw is adjusted by +1024 on entry (vehicles use a different yaw convention).
+// claude-ai: If not daytime (NIGHT_FLAG_DAYTIME), creates a dynamic light (NIGHT_dlight_create).
+// claude-ai: key param: identifies which key unlocks this vehicle (gameplay).
+// claude-ai: The FAST_EDDIE road-snapping block is #if 0 disabled — ignore it.
 THING_INDEX VEH_create(
 		SLONG x,
 		SLONG y,
@@ -1026,6 +1141,11 @@ ANNOYINGSCRIBBLECHECK;
 	return ans;
 }
 
+// claude-ai: reinit_vehicle(): resets all dynamic Vehicle state to defaults (velocities=0, health=300,
+// claude-ai: damage[6]=0, springs at resting compression=4300). Also snaps Y position to map height.
+// claude-ai: Height formula: Y = (PAP_height + 107) << 8, where 107 = suspension rest extension
+// claude-ai: (128 * 0.84 ≈ 107 units = spring at 84% compression = resting position).
+// claude-ai: Called from VEH_create() and also externally when a vehicle is re-used/reset.
 void reinit_vehicle(Thing* p_thing)
 {
 	Vehicle*	vp = p_thing->Genus.Vehicle;
@@ -1122,6 +1242,19 @@ SLONG	advance_keyframe(DrawTween *draw_info);
 }
 
 
+// claude-ai: draw_car(): renders the vehicle's body mesh and 4 wheel meshes.
+// claude-ai: Steps:
+// claude-ai:   1. Build car_matrix from Angle/Tilt/Roll.
+// claude-ai:   2. Apply crumple deformation (MESH_set_crumple with VertexAssignments + damage[6]).
+// claude-ai:   3. Draw body via MESH_draw_poly, offset by BodyOffset.
+// claude-ai:   4. Draw oval shadow (PC only).
+// claude-ai:   5. If FLAG_FURN_DRIVING (someone driving): draw headlights, flashing lights.
+// claude-ai:      Headlights are shifted based on front damage (damage[0]/[1]).
+// claude-ai:   6. Draw smoke particles when Health < 128 (random chance = 0x7f - Health).
+// claude-ai:   7. Draw brake/reverse lights based on Dir state.
+// claude-ai:   8. Use Spin for wheel rotation angle (accumulated from Velocity each tick).
+// claude-ai:   9. Draw 4 wheel meshes; front wheels (c0>=2) steered by WheelAngle.
+// claude-ai:   10. If Smokin flag set: emit tyre smoke particles + skidmark tracks.
 void	draw_car(Thing *p_car)
 {
 	SLONG	x[8],y[8],z[8];
@@ -1531,6 +1664,7 @@ void AENG_set_bike_wheel_rotation(UWORD rot, UBYTE prim);
 
 }
 
+// claude-ai: WHEEL_GRAV unused in this version (value left in but not referenced in suspension code).
 #define	WHEEL_GRAV	(5<<8)
 
 /*
@@ -1569,6 +1703,19 @@ Suggested Readings:
 
 */
 
+// claude-ai: ============================================================
+// claude-ai: VEHICLE COLLISION SYSTEM
+// claude-ai:
+// claude-ai: Two-phase collision:
+// claude-ai:   Phase 1 — VEH_collide_find_things(): builds VEH_col[] candidate list by sphere query.
+// claude-ai:     Candidates: other vehicles (BBOX from prim bounds), anim-prims (BBOX),
+// claude-ai:     OB objects (BBOX or CYLINDER based on prim collision model).
+// claude-ai:     BIKE entries are added if BIKE is defined — BIKE SYSTEM — unfinished, do not port.
+// claude-ai:   Phase 2 — CollideCar(): tests car's 4 corner edges against each candidate.
+// claude-ai:     Wall collisions (there_is_a_los_car) and OB/vehicle collisions are separate.
+// claude-ai:     On collision: velocity bounced, torque applied (angular response), damage dealt.
+// claude-ai:     Scraping sound + sparks when sustained wall contact (Scrapin counter).
+// claude-ai: ============================================================
 // ========================================================
 //
 // VEHICLE COLLISION
@@ -1581,6 +1728,12 @@ extern SLONG should_i_collide_against_this_anim_prim(Thing *p_animprim);
 VEH_Col VEH_col[VEH_MAX_COL];
 SLONG   VEH_col_upto;
 
+// claude-ai: VEH_collide_find_things(): populates VEH_col[0..VEH_col_upto] with collision candidates.
+// claude-ai: radius: search sphere size (scaled by vehicle speed for fast-moving vehicles).
+// claude-ai: ignore: THING_NUMBER of the querying vehicle (to skip self-collision).
+// claude-ai: ignore_prims: if true, skip OB prim scan (used when on road for performance).
+// claude-ai: VEH_Col entries store: type (BBOX or CYLINDER), mid_x/y/z, bounds, yaw (for BBOX)
+// claude-ai:   or radius (for CYLINDER), and optional veh/ob_index pointers for damage callbacks.
 // VEH_collide_find_things
 //
 // Finds all the things that can possibly be collided with and stores
@@ -1609,6 +1762,7 @@ void VEH_collide_find_things(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG igno
 
 	ULONG collide_types;
 
+	// claude-ai: BIKE SYSTEM — unfinished, do not port
 	#if BIKE
 	if (ignore && TO_THING(ignore)->Class == CLASS_BIKE)
 	{
@@ -1719,12 +1873,13 @@ void VEH_collide_find_things(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG igno
 #endif
 				break;
 
+			// claude-ai: BIKE SYSTEM — unfinished, do not port
 			#if BIKE
 
 			case CLASS_BIKE:
 
 				vc = &VEH_col[VEH_col_upto++];
-			
+
 				vc->type     = VEH_COL_TYPE_CYLINDER;
 				vc->ob_index = NULL;
 				vc->veh		 = NULL;
@@ -1866,6 +2021,9 @@ void VEH_collide_find_things(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG igno
 	}
 }
 
+// claude-ai: VEH_shake_fences(): when a vehicle hits a fence, this animates the fence facets.
+// claude-ai: Scans dfacets linked from PAP_2LO cell, sets Shake=255 on fence-type facets
+// claude-ai: that border the given map square (mx,mz in hi-res map coords).
 // VEH_shake_fences
 //
 // Shakes all the fence facets that lie on the edge of the given mapsquare.
@@ -1985,6 +2143,12 @@ static UBYTE	find_closest_car_point(SLONG x, SLONG y, SLONG z, Thing* car)
 	return nearest;
 }
 
+// claude-ai: VEH_co_damage(): handles vehicle-vehicle collision damage.
+// claude-ai: Only deals crumple damage if at least one car is player-driven (NPC-NPC ignored).
+// claude-ai: Finds closest crumple zone on each car using find_closest_car_point().
+// claude-ai: Damage scaled by relative velocity; slower vehicle takes more crumple damage.
+// claude-ai: Also imparts velocity & angular impulse (VelR torque) to the hit vehicle,
+// claude-ai: forces hit vehicle into skid state (Skid = SKID_START), reactivates its StateFn.
 // add car-car damage
 //
 // (only if one of the cars is driven by player)
@@ -2043,6 +2207,11 @@ void VEH_co_damage(Thing* v1, Thing* v2)
 	v2->StateFn = VEH_driving;
 }
 
+// claude-ai: GetCarPoints(): generates 4 world-space corner points of the car's collision rectangle.
+// claude-ai: step=0: current position; step=TICK_RATIO: predicted next-frame position.
+// claude-ai: Ignores tilt/roll in the matrix (uses angle only) for flat collision rectangle.
+// claude-ai: Corner order: [0]=front-left, [1]=front-right, [2]=rear-right, [3]=rear-left (winding order).
+// claude-ai: Output coords are in world units (already shifted >>8 from fixed-point).
 // GetCarPoints
 //
 // generate corner points of the car
@@ -2086,6 +2255,10 @@ static inline void GetCarPoints(Thing* p_car, SLONG* x, SLONG* y, SLONG* z, SLON
 	}
 }
 
+// claude-ai: DoDamage(): applies damage and plays sound after a collision with a VEH_Col entry.
+// claude-ai: If col->veh is a CLASS_VEHICLE: damages that vehicle's Health and calls VEH_co_damage().
+// claude-ai: If col->ob_index (OB prim): calls OB_damage() if speed > 20000; plays crash sound scaled by speed.
+// claude-ai: Sound thresholds (by vehicle speed): >20000=full crash, >10000=crash, >1000=scrape, >250=bump.
 // DoDamage
 //
 // do damage to a prim after a collision
@@ -2135,6 +2308,20 @@ static void DoDamage(Thing* p_car, VEH_Col* col)
 	}
 }
 
+// claude-ai: CollideCar(): main collision resolution function called each tick from VEH_driving().
+// claude-ai: Steps:
+// claude-ai:   1. CollideWithKerb() — nudge car back toward road axis when straddling kerb.
+// claude-ai:   2. process_car() dry-run to get VelY from suspension without actually moving Y.
+// claude-ai:   3. GetCarPoints() — get projected 4 corner points (with velocity step).
+// claude-ai:   4. Test 4 edges vs walls (there_is_a_los_car); set flags bits 0-3 per edge hit.
+// claude-ai:      flags bit 4 = X-wall, bit 5 = Z-wall (for velocity component reversal).
+// claude-ai:   5. nudge_car() — resolve penetration by sliding car sideways.
+// claude-ai:   6. Test corners vs VEH_col[] (BBOX: collide_box_with_line; CYLINDER: distance_to_line).
+// claude-ai:   7. Determine collision code (COLL_FRONT/BACK/LEFT/RIGHT/FL/FR/BR/BL/ALL).
+// claude-ai:   8. Apply velocity response: reverse offending component, apply rotation torque.
+// claude-ai:   9. Damage car Health based on speed (if speed > threshold).
+// claude-ai:  10. Re-test after bounce to detect tunnel-through; halt if still colliding.
+// claude-ai: Returns 1 if collision occurred, 0 if clear.
 // CollideCar
 //
 // check car for collisions
@@ -2829,6 +3016,11 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
 	return 1;
 }
 
+// claude-ai: CollideWithKerb(): when a wheel transitions from road to off-road (or vice versa),
+// claude-ai: applies a small angular correction (VelR += KERB_TURN) to steer back toward the nearest
+// claude-ai: cardinal axis. Uses 3-bit angle quantization to find the nearest road-aligned direction.
+// claude-ai: Only active when DControl==0 (uncontrolled / NPC car letting go of steering).
+// claude-ai: Uses TICK_RATIO for frame-rate-independent turn correction.
 // CollideWithKerb
 //
 // nudge the car away from the kerb
@@ -2880,6 +3072,10 @@ static void CollideWithKerb(Thing* p_car)
 	veh->OnRoadFlags = on_road;
 }
 
+// claude-ai: GetRunoverHP(): calculates damage dealt to a pedestrian being run over.
+// claude-ai: Uses dot product of car velocity vector with direction from car to person.
+// claude-ai: Larger component = vehicle moving more directly into person = more damage.
+// claude-ai: Minimum 10 HP regardless of angle/speed.
 // GetRunoverHP
 //
 // Get dot product of vehicle velocity with vector from vehicle centre
@@ -2925,6 +3121,28 @@ void VEH_throw_out_person(Thing *p_person, Thing *p_vehicle)
 //
 //===============================================================
 
+// claude-ai: ============================================================
+// claude-ai: VEH_driving() — MAIN PER-TICK VEHICLE UPDATE
+// claude-ai:
+// claude-ai: Called every game tick for each active vehicle (via StateFn = VEH_driving).
+// claude-ai: If stable and stopped: sets StateFn=NULL to disable further ticking.
+// claude-ai:
+// claude-ai: Order of operations each tick:
+// claude-ai:   1. Health check: if Health<=0, trigger explosion (PYRO_FIREBOMB), throw out occupants,
+// claude-ai:      enter STATE_DEAD countdown (health used as negative timer; vehicle removed after ~200 ticks).
+// claude-ai:   2. FLAG_VEH_STALLED: override controls, apply decel-only.
+// claude-ai:   3. Idle check: if no velocity and not driving, stop ticking.
+// claude-ai:   4. do_car_input(): process steering, pedals, acceleration/friction, skid physics.
+// claude-ai:   5. VEH_on_road() check: optimize collision (skip walls/prims if fully on road).
+// claude-ai:      Player car always gets full collision (no optimization).
+// claude-ai:   6. VEH_collide_find_things() + CollideCar(): collision detection & response.
+// claude-ai:   7. Apply VelX/VelZ to position (TICK_RATIO scaled); apply VelR to Angle.
+// claude-ai:   8. Runover detection: THING_find_sphere for persons, bbox test, knock_person_down().
+// claude-ai:      Censored mode (VIOLENCE=0): persons flip instead of being knocked down.
+// claude-ai:   9. DIRT_gust / MIST_gust: disturb environment.
+// claude-ai:  10. BARREL_hit_with_prim: knock over barrels.
+// claude-ai:  11. PCOM_oscillate_tympanum: scare nearby NPCs if moving fast enough.
+// claude-ai: ============================================================
 // VEH_driving
 //
 // vehicle state handler
@@ -3401,6 +3619,29 @@ void VEH_driving(Thing *p_thing)
 //
 //===============================================================
 
+// claude-ai: ============================================================
+// claude-ai: INPUT / STEERING / PHYSICS SUBSYSTEM
+// claude-ai:
+// claude-ai: steering_wheel(): manages Wheel counter (range ±WHEELTIME<<TICK_SHIFT) based on
+// claude-ai:   Steering input. Analog input sets Wheel directly (inverse-speed-scaled);
+// claude-ai:   digital input increments/decrements at TICK_RATIO rate.
+// claude-ai:   Lookup in arctan_table[] converts Wheel to WheelAngle in game angle units.
+// claude-ai:   When not driving (FLAG_FURN_DRIVING clear or in air), wheel centers itself.
+// claude-ai:
+// claude-ai: pedals(): translates DControl (VEH_ACCEL/VEH_DECEL/VEH_FASTER/VEH_SIREN bits) to:
+// claude-ai:   accel (added to Velocity), friction coefficient, Skid counter, Dir state.
+// claude-ai:   Dir values: 0=coasting, +1=braking, +2=accelerating, -1=braking-in-reverse, -2=reversing.
+// claude-ai:   VEH_FASTER doubles accel up to VEH_SPEED_LIMIT (turbo/boost from script/AI).
+// claude-ai:
+// claude-ai: do_car_input(): full per-tick input processor.
+// claude-ai:   Non-skid path: friction + accel applied to Velocity scalar, then converted to
+// claude-ai:     VelX/VelZ/VelR via turning circle geometry (wheelbase, WheelAngle, arctan LUT).
+// claude-ai:   Skid path: VelX/VelZ damped directly (15/16 each tick), VelR damped, player can
+// claude-ai:     steer during skid. Exits skid when velocity direction aligns with car angle (cos²>15/16).
+// claude-ai:   Lateral force check: |v × a| vs SKID_FORCE*|v| to detect skid onset.
+// claude-ai:   Spin: wheel rotation angle, accumulated from Velocity>>2 each tick.
+// claude-ai:   Sound: engine state machine (FWD_ACCEL/FWD_DECEL/REV_ACCEL/REV_DECEL → MFX calls).
+// claude-ai: ============================================================
 // init_arctans
 //
 // init arctan table (for steering)
@@ -3526,6 +3767,9 @@ steering_done:;
 	veh->WheelAngle = arctan_table[(veh->Wheel >> TICK_SHIFT) + WHEELTIME];
 }
 
+// claude-ai: siren(): toggles the looping siren sound (MFX_LOOPED via MFX_play_ambient).
+// claude-ai: Only plays for POLICE, AMBULANCE, MEATWAGON types.
+// claude-ai: Veh->Siren tracks current state (0=off, 1=on) to avoid redundant play/stop calls.
 // siren
 //
 // play/stop the siren
@@ -3547,6 +3791,12 @@ static void siren(Vehicle* veh, UBYTE play)
 	veh->Siren = play;
 }
 
+// claude-ai: pedals(): translates DControl input bits to friction/accel/Dir/Skid each tick.
+// claude-ai: friction: passed by ref, reduced from base 7 by engine braking (1) or hard braking (4).
+// claude-ai:   Final friction applied as: new_vel = ((vel << friction) - vel) >> friction ≈ vel * (1 - 1/2^friction)
+// claude-ai: accel: added directly to p_thing->Velocity after friction.
+// claude-ai: Skid triggering on hard brake: random initial VelR then escalates with counter.
+// claude-ai: Smoke (Smokin=1) triggered on wheelspin (accelerating from near-zero or strongly).
 // pedals
 //
 // run the pedals
@@ -4229,10 +4479,37 @@ static void do_car_input(Thing *p_thing)
 //
 //===============================================================
 
+// claude-ai: ============================================================
+// claude-ai: SUSPENSION PHYSICS SUBSYSTEM
+// claude-ai:
+// claude-ai: Each vehicle has 4 independent wheel suspension springs (Spring[4], DY[4]).
+// claude-ai: Spring.Compression: current spring length (MIN_COMPRESSION=fully extended,
+// claude-ai:   MAX_COMPRESSION=fully compressed). Rest state ≈ 4300 (intermediate value).
+// claude-ai: DY[wheel]: per-wheel vertical velocity (fixed-point, applied to car Y each sub-step).
+// claude-ai:
+// claude-ai: process_car() runs TICK_LOOP (4) sub-steps per game tick for each wheel:
+// claude-ai:   - Gets wheel world position from car_matrix + DX/DZ offsets.
+// claude-ai:   - Queries PAP_calc_map_height_at() for ground height at wheel position.
+// claude-ai:   - If wheel at/below ground: apply_thrust_to_suspension() → spring pushes up.
+// claude-ai:   - If wheel in air: expand_suspension() → spring extends; DY += GRAVITY.
+// claude-ai:   - Accumulates DY for this tick into dy[4] array.
+// claude-ai: After all 4 wheels processed:
+// claude-ai:   - do_car_fall_and_tilt(): distributes aggregate vertical movement to car WorldPos.Y,
+// claude-ai:     then computes Tilt & Roll from relative wheel heights.
+// claude-ai:   - Stability check: if tilt/roll delta < 16 for STABLE_COUNT ticks → Stable flag set.
+// claude-ai:
+// claude-ai: apply_thrust_to_suspension() acceleration formula (non-linear spring):
+// claude-ai:   acc = (compression >> 5)^2 >> 9   (quadratic, not Hooke's law — intentionally)
+// claude-ai:   final_vel = damped_vel + GRAVITY + acc
+// claude-ai: ============================================================
 // apply_thrust_to_suspension
 //
 // work out effect on car of the suspension parameters given
 
+// claude-ai: apply_thrust_to_suspension(): one sub-step of spring physics for a single wheel.
+// claude-ai: penetrate_dist: how far below ground the wheel is (positive = penetrating).
+// claude-ai: Damps velocity (15/16 factor), updates compression, computes quadratic spring force.
+// claude-ai: Returns new DY velocity for this wheel.
 inline static SLONG apply_thrust_to_suspension(Suspension *p_sus, SLONG velocity, SLONG penetrate_dist)
 {
 	SLONG	acc;
@@ -4265,6 +4542,9 @@ inline static SLONG apply_thrust_to_suspension(Suspension *p_sus, SLONG velocity
 	return velocity;
 }
 
+// claude-ai: expand_suspension(): allows spring to extend toward MIN_COMPRESSION when wheel is in air.
+// claude-ai: size = distance from wheel to ground (how much room to extend). Scaled by 200/256.
+// claude-ai: Spring won't extend past MIN_COMPRESSION (fully extended).
 // expand_suspension
 //
 // allow suspension to expand (when in air)
@@ -4279,6 +4559,13 @@ inline static void expand_suspension(Suspension *p_sus, SLONG size)
 	else													p_sus->Compression -= size;
 }
 
+// claude-ai: process_car(): main suspension + orientation update, called from CollideCar() and VEH_driving().
+// claude-ai: Runs TICK_LOOP (4) sub-steps for each of 4 wheels (16 spring iterations total per tick).
+// claude-ai: Wheel world positions computed from car_matrix (current Angle/Tilt/Roll).
+// claude-ai: Ground height from PAP_calc_map_height_at() — hi-res PAP lookup.
+// claude-ai: Suspension sounds: squeaky (spring noise) if total DY activity > 1600; crunchy (smash) if < -4000.
+// claude-ai: After suspension: sets FLAG_VEH_IN_AIR if all 4 wheels are off the ground.
+// claude-ai: Updates dynamic light position (NIGHT_dlight_move) for night driving.
 // process_car
 //
 // given where it is, work out the wheel's positions, the suspension
@@ -4483,6 +4770,12 @@ extern SLONG in_right_place_for_car(Thing *p_person, Thing *p_vehicle, SLONG *do
 
 static void calc_tilt_and_roll(SLONG *tilt, SLONG *roll, SLONG *whx, SLONG *why, SLONG *whz, SLONG angle);
 
+// claude-ai: do_car_fall_and_tilt(): computes aggregate car body vertical movement from 4 wheel DY vectors,
+// claude-ai: applies it to car WorldPos.Y, then calculates Tilt and Roll from wheel height differentials.
+// claude-ai: If all 4 DY are positive: car rises by max(DY). If all negative: falls by min(DY).
+// claude-ai: Otherwise: remove common component, leftover becomes differential (tilt/roll source).
+// claude-ai: Stability check: Stable counter increments if tilt/roll delta < 16 and no whole-car movement.
+// claude-ai: Tilt/Roll are clamped to ±312 (in game angle units, ~27.5 degrees max).
 static void do_car_fall_and_tilt(Thing* car, SLONG *wx, SLONG *wy, SLONG *wz, SLONG *dy)
 {
 	SLONG	min_dy,max_dy;
@@ -4594,6 +4887,8 @@ static inline SLONG fast_root(SLONG num)
 }
 #endif
 
+// claude-ai: normalise_val256(): normalizes a 3D vector to magnitude 256 (fixed-point unit vector).
+// claude-ai: Uses fast_root (sqrt via FPU on PC, Root() on PSX). Result is integer * 256.
 // normalise_val256
 //
 // normalize a vector to magnitude 256
@@ -4645,6 +4940,11 @@ static inline void calc_tilt_n_roll_with_matrix(SLONG across_x,SLONG across_y,SL
 	FMATRIX_find_angles(matrix,angle,tilt,roll);
 }
 
+// claude-ai: calc_tilt_and_roll(): computes car body orientation (Tilt, Roll) from 4 wheel positions.
+// claude-ai: For each of 4 wheel pairs, computes normalized edge vectors and their cross-product (normal).
+// claude-ai: Feeds into calc_tilt_n_roll_with_matrix() which builds a 3x3 rotation matrix and extracts
+// claude-ai: angles via FMATRIX_find_angles(). Averages results from all 4 wheel corner combinations.
+// claude-ai: Tilt/Roll capped at ±312 game angle units (≈±27.5 degrees).
 // calc_tilt_and_roll
 //
 // calculate tilt and roll for the car
@@ -4762,6 +5062,10 @@ static void calc_tilt_and_roll(SLONG *tilt, SLONG *roll, SLONG *whx, SLONG *why,
 }
 
 
+// claude-ai: VEH_reduce_health(): external interface for applying damage to a vehicle (e.g. from gunfire).
+// claude-ai: Applies damage/2 to Vehicle->Health. If lethal and driver exists, marks shooter as murderer.
+// claude-ai: If a police/meatwagon is destroyed by a player, adds a RedMark to that player.
+// claude-ai: Reactivates vehicle StateFn = VEH_driving so the explosion can be processed this tick.
 void VEH_reduce_health(
 		Thing *p_car,
 		Thing *p_person,
@@ -4812,6 +5116,12 @@ void VEH_reduce_health(
 }
 
 
+// claude-ai: vehicle_wheel_pos_init / vehicle_wheel_pos_get(): two-function API for querying
+// claude-ai: wheel world positions externally (e.g. from person enter/exit code or sound system).
+// claude-ai: vehicle_wheel_pos_init() must be called first to set global pointers and build car_matrix.
+// claude-ai: vehicle_wheel_pos_get(which, &wx, &wy, &wz): returns world position of wheel 'which' (0-3)
+// claude-ai: including suspension compression offset (Spring[which].Compression → visual height).
+// claude-ai: Wheel Y formula: 51 - ((128<<8) - Compression) >> 8 = rest height minus spring extension.
 Thing   *vehicle_wheel_pos_vehicle;
 VehInfo *vehicle_wheel_pos_info;
 

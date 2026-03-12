@@ -1,3 +1,23 @@
+// claude-ai: Stair placement system for multi-floor buildings in Urban Chaos.
+// claude-ai: This module automatically computes WHERE to place stairs between adjacent floors.
+// claude-ai: It does NOT do runtime collision — it is a BUILD-TIME algorithm run when a building is constructed.
+// claude-ai:
+// claude-ai: Key data model:
+// claude-ai:   STAIR_Storey — one floor of a building, has a 2D bitfield (square[][]) marking inside cells.
+// claude-ai:   STAIR_Stair  — one staircase: occupies two adjacent grid cells (x1,z1)-(x2,z2),
+// claude-ai:                  has STAIR_FLAG_UP/DOWN pointing to the storey indices above/below.
+// claude-ai:   STAIR_stair_upto, STAIR_storey_upto — counts of registered stairs/storeys.
+// claude-ai:
+// claude-ai: Algorithm (STAIR_calculate):
+// claude-ai:   1. For each pair of storeys with height difference of exactly 1:
+// claude-ai:   2. Find overlapping "inside" squares on both floors.
+// claude-ai:   3. Try to reuse an existing stair; if none, score all possible 2-cell placements.
+// claude-ai:   4. Scoring favors: outside walls, corners, placement opposite the entry door.
+// claude-ai:   5. Place best-scoring stair on both floors as paired UP/DOWN entries.
+// claude-ai:
+// claude-ai: STAIR_get: Called at runtime to query stairs for a given floor handle → returns ID_Stair array.
+// claude-ai: PORT NOTE: The stair placement algorithm needs porting. The ID_Stair results feed the ID system
+// claude-ai:            which places interactive stair Things in the game world.
 //
 // Stairs.
 //
@@ -8,6 +28,9 @@
 
 
 
+// claude-ai: STAIR_x1/z1/x2/z2: Bounding box of the current building in grid coordinates (tile units).
+// claude-ai: Set via STAIR_set_bounding_box() before processing a building's storeys.
+// claude-ai: Used to validate and offset array indices (off_x = x - STAIR_x1).
 //
 // The bounding box of the building.
 //
@@ -20,10 +43,13 @@ UBYTE STAIR_z2;
 //
 // The height of the roof of the building, 1 + the height of
 // the highest storey.
-// 
+//
 
+// claude-ai: STAIR_roof_height: Maximum floor height encountered + 1. Set during STAIR_storey_new().
 UBYTE STAIR_roof_height;
 
+// claude-ai: STAIR_MAX_SIZE=32: Max building footprint in tiles (32x32 = up to 32 tiles wide/deep).
+// claude-ai: The square[][] bitfield in STAIR_Storey uses STAIR_MAX_SIZE/8 bytes per row (packed bits).
 //
 // The maximum dimensions of the bounding box.
 // This must be a multiple of 8.
@@ -31,6 +57,9 @@ UBYTE STAIR_roof_height;
 
 #define STAIR_MAX_SIZE 32
 
+// claude-ai: STAIR_FLAG_UP (bit 0): stair leads upward to storey index in ss->up.
+// claude-ai: STAIR_FLAG_DOWN (bit 1): stair leads downward to storey index in ss->down.
+// claude-ai: Both flags set simultaneously = middle stair (connects to floors both above and below).
 //
 // The array where we store the positions of the stairs.
 //
@@ -43,6 +72,9 @@ UBYTE STAIR_roof_height;
 //#define STAIR_FLAG_UP	(1 << 0)	// The staircase goes up
 //#define STAIR_FLAG_DOWN (1 << 1)	// The staircase goes down.
 
+// claude-ai: STAIR_Stair: One staircase. Spans two adjacent grid cells: (x1,z1) and (x2,z2).
+// claude-ai: The two cells are always horizontally or vertically adjacent (differ by 1 in x or z).
+// claude-ai: up/down are indices into STAIR_storey[]. 0 is NULL (unused index).
 typedef struct
 {
 	UBYTE flag;
@@ -56,6 +88,7 @@ typedef struct
 } STAIR_Stair;
 
 #define STAIR_MAX_STAIRS 32
+// claude-ai: STAIR_stair_upto starts at 1 because index 0 is the NULL stair sentinel.
 
 STAIR_Stair STAIR_stair[STAIR_MAX_STAIRS];
 SLONG       STAIR_stair_upto;
@@ -64,8 +97,15 @@ SLONG       STAIR_stair_upto;
 // The info for each storey.
 //
 
+// claude-ai: STAIR_MAX_PER_STOREY=3: Max stairs per floor (e.g. a 3-floor building needs 2 stairs).
 #define STAIR_MAX_PER_STOREY 3
 
+// claude-ai: STAIR_Storey: One floor of one building.
+// claude-ai: handle: Opaque ID used to match with the game's building/storey system.
+// claude-ai: opp_x1..opp_z2: The "opposite wall" — a preferred wall for stair placement (near entry).
+// claude-ai: height: Floor index (0=ground, 1=first floor, etc).
+// claude-ai: square[][]: Packed bit array marking which grid tiles are "inside" this storey.
+//            Indexed as square[z_offset][x_offset>>3], bit = (x_offset & 7).
 typedef struct
 {
 	SLONG handle;	// How the storey is identified.
@@ -84,6 +124,9 @@ typedef struct
 STAIR_Storey STAIR_storey[STAIR_MAX_STOREYS];
 SLONG        STAIR_storey_upto;
 
+// claude-ai: STAIR_set_bit/STAIR_get_bit: Packed bit accessors for the inside-square bitmap.
+// claude-ai: The square[z_off][byte] layout packs 8 x-columns per byte (LSB = leftmost).
+// claude-ai: These mark which tiles are "inside" the floor polygon of this storey.
 //
 // Sets the given square on the given storey.
 //
@@ -161,6 +204,14 @@ UBYTE STAIR_get_bit_from_square(UBYTE square[STAIR_MAX_SIZE][STAIR_MAX_SIZE / 8]
 
 
 
+// claude-ai: STAIR_link / STAIR_edge: Scanline fill infrastructure for computing "inside" squares.
+// claude-ai: STAIR_storey_wall() feeds each wall segment into sorted linked lists per z-row.
+// claude-ai: STAIR_LINK_T_ENTER: wall goes from +z to -z (upward in z). The square field is
+//            the leftmost x-tile that becomes enclosed by this wall crossing.
+// claude-ai: STAIR_LINK_T_LEAVE: wall goes from -z to +z (downward in z). square is the
+//            rightmost x-tile enclosed.
+// claude-ai: STAIR_storey_finish() walks these linked lists to mark inside tiles via STAIR_set_bit.
+// claude-ai: PORT NOTE: This is a scanline polygon fill algorithm in integer tile space.
 //
 // For working out the inside squares on each floor of the building.
 //
@@ -217,6 +268,9 @@ void STAIR_check_edge(SLONG z)
 }
 
 
+// claude-ai: STAIR module has its own deterministic PRNG (LCG: seed = seed*328573 + 123456789).
+// claude-ai: Seeded from a UWORD in STAIR_calculate() so stair placement is reproducible per building.
+// claude-ai: STAIR_grand() returns the raw seed (get), STAIR_rand() advances and returns upper bits.
 //
 // Random numbers for the STAIR module.
 //
@@ -276,6 +330,9 @@ void STAIR_add_to_storey(SLONG storey, SLONG stair)
 }
 
 
+// claude-ai: STAIR_init: Resets all stair state for a new building.
+// claude-ai: Bounding box initialized to "empty" (x1=255, x2=0 — inverted so first point sets it correctly).
+// claude-ai: stair index 0 is reserved as NULL sentinel, so stair_upto starts at 1.
 void STAIR_init()
 {
 	//
@@ -317,6 +374,10 @@ void STAIR_set_bounding_box(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2)
 	ASSERT(WITHIN(STAIR_z2 - STAIR_z1, 0, STAIR_MAX_SIZE));
 }
 
+// claude-ai: STAIR_storey_new: Registers a new floor for the current building.
+// claude-ai: handle: Opaque ID from the calling building system, used later by STAIR_get().
+// claude-ai: height: Floor number (0=ground). Updates STAIR_roof_height to height+1 if greater.
+// claude-ai: Resets the per-row STAIR_edge[] lists and STAIR_link_upto for a fresh scanline fill.
 void STAIR_storey_new(SLONG handle, UBYTE height)
 {
 	SLONG i;
@@ -372,6 +433,14 @@ void STAIR_storey_new(SLONG handle, UBYTE height)
 	STAIR_storey_upto += 1;
 }
 
+// claude-ai: STAIR_storey_wall: Adds one wall segment of a floor's polygon to the scanline edge lists.
+// claude-ai: If opposite=TRUE, records this wall as the "opposite" wall (preferred stair placement side).
+// claude-ai: Horizontal walls (z1==z2) are skipped (don't cross z-scanlines, contribute nothing).
+// claude-ai: For non-horizontal walls: computes the x-intercept for each z-row using fixed-point 16.16 math.
+// claude-ai: dx/dz in 16.16 format: dxdz = (x2-x1)<<16 / (z2-z1)<<16 — x increment per z step.
+// claude-ai: ENTER links (going z1>z2, i.e. top-to-bottom) mark the START of inside region.
+// claude-ai: LEAVE links (going z1<z2, i.e. bottom-to-top) mark the END of inside region.
+// claude-ai: Links are inserted in sorted order by x-position into STAIR_edge[z-STAIR_z1] linked lists.
 void STAIR_storey_wall(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2, SLONG opposite)
 {
 	SLONG x;
@@ -543,6 +612,11 @@ void STAIR_storey_wall(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2, SLONG opposite)
 	}
 }
 
+// claude-ai: STAIR_storey_finish: Completes the scanline fill for the current storey.
+// claude-ai: Reads the STAIR_edge[] linked lists (each z-row has sorted ENTER/LEAVE pairs).
+// claude-ai: For each z-row, expects exactly 2 links (one ENTER, one LEAVE).
+// claude-ai: Marks all x tiles between x1 (ENTER.square) and x2 (LEAVE.square) as inside via STAIR_set_bit.
+// claude-ai: Returns TRUE if the storey is valid (all z-rows have pairs), FALSE if malformed.
 SLONG STAIR_storey_finish()
 {
 	SLONG i;
@@ -625,10 +699,14 @@ SLONG STAIR_storey_finish()
 	return TRUE;
 }
 
+// claude-ai: STAIR_is_door: Stub — was intended to check if a given tile has an outside door.
+// claude-ai: Always returns 0 (not implemented). Used in STAIR_calculate scoring to penalize
+// claude-ai: stairs placed blocking outside doors. Since it always returns 0, that penalty never fires.
+// claude-ai: PORT NOTE: This should be properly implemented to avoid stairs blocking doorways.
 //
 // Returns whether there is an outside door opening
 // onto the given square on the given storey.
-// 
+//
 
 SLONG STAIR_is_door(SLONG storey, SLONG x, SLONG z)
 {
@@ -636,6 +714,20 @@ SLONG STAIR_is_door(SLONG storey, SLONG x, SLONG z)
 }
 
 
+// claude-ai: STAIR_calculate: Main stair placement algorithm. Call after all storeys are registered.
+// claude-ai: seed: UWORD used to initialize the PRNG so placement is deterministic per building.
+// claude-ai: Algorithm outline:
+// claude-ai:   - For each pair (i, j) of storeys with |height_i - height_j| == 1:
+// claude-ai:     1. Compute AND of their inside-tile bitmaps: squares valid for both floors.
+// claude-ai:     2. Try to reuse an existing stair already placed on floor i or j.
+// claude-ai:     3. If no reusable stair, score all adjacent tile pairs (x,z)-(x+dx,z+dz):
+// claude-ai:        - Outside walls: +score (good). On two outside walls: ++score.
+// claude-ai:        - Corner positions: +0x5000 per edge match.
+// claude-ai:        - Opposite preferred wall: +0xbabe (magic number, ~47806).
+// claude-ai:        - Random tie-breaker: STAIR_rand() & 0xffff.
+// claude-ai:        - Blocks door: score = -INFINITY.
+// claude-ai:     4. Place new STAIR_Stair entries on both floors (UP on lower, DOWN on upper).
+// claude-ai: Uses goto placed_stairs to break out of nested loops (idiomatic C of the era).
 void STAIR_calculate(UWORD seed)
 {
 	SLONG i;
@@ -1192,8 +1284,17 @@ void STAIR_calculate(UWORD seed)
 }
 
 
+// claude-ai: STAIR_id_stair: Temporary output buffer for STAIR_get(). Caller reads *stair pointer.
+
 ID_Stair STAIR_id_stair[STAIR_MAX_PER_STOREY];
 
+// claude-ai: STAIR_get: Query interface called at building load time to get stairs for a floor.
+// claude-ai: handle: Matches STAIR_Storey.handle set during STAIR_storey_new().
+// claude-ai: On success: fills *stair with pointer to STAIR_id_stair[], sets *num_stairs, returns TRUE.
+// claude-ai: ID_Stair.type: ID_STAIR_TYPE_BOTTOM (only UP), _TOP (only DOWN), _MIDDLE (both).
+// claude-ai: ID_Stair.handle_up/handle_down: handles of the connected storeys above/below.
+// claude-ai: PORT NOTE: This is the main output of the whole STAIR system. New game needs to
+// claude-ai:            convert ID_Stair results into actual stair Thing placements in the world.
 SLONG STAIR_get(SLONG handle, ID_Stair **stair, SLONG *num_stairs)
 {
 	SLONG i;

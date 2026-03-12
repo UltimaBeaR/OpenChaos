@@ -1,3 +1,25 @@
+// claude-ai: СИСТЕМА ФИЗИКИ И КОЛЛИЗИЙ (~11000 строк)
+// claude-ai: Главный файл движка физики Urban Chaos.
+// claude-ai:
+// claude-ai: Система координат:
+// claude-ai:   SLONG X, Y (вверх), Z — 32-bit int, 256 единиц = 1 mapsquare
+// claude-ai:   PAP_SHIFT_HI=8  → ячейка хайрез-карты = 256 координатных единиц
+// claude-ai:   PAP_SHIFT_LO=10 → ячейка лорез-карты = 1024 координатных единиц
+// claude-ai:   PAP_ALT_SHIFT=3 → высота в PAP_Hi хранится >>3 для экономии памяти
+// claude-ai:
+// claude-ai: Ключевые функции (объявления ниже, реализации разбросаны по файлу):
+// claude-ai:   move_thing()            — полное движение персонажа с коллизиями (~line 6517)
+// claude-ai:   move_thing_quick()      — телепортация без коллизий, ragdoll/катсцены (~line 5518)
+// claude-ai:   slide_along()           — скольжение вдоль стен, restitution=0 (~line 3935)
+// claude-ai:   plant_feet()            — привязка персонажа к полу, пороги 30/60 ед. (~line 2794)
+// claude-ai:   PAP_calc_height_at()    — билинейная интерполяция высоты — в pap.cpp
+// claude-ai:   collide_against_things()— коллизии с другими персонажами (~line 5927)
+// claude-ai:   collide_against_objects()— коллизии с мебелью (~line 5536)
+// claude-ai:   create_shockwave()      — урон от взрыва с затуханием (~line 10842)
+// claude-ai:
+// claude-ai: Гравитация:
+// claude-ai:   Персонажи: animation-driven (DY -= каждый тик при STATE_FALLING), НЕ физическая
+// claude-ai:   Транспорт: GRAVITY = -(128*10*256)/(80*80) = -5120 юн/тик² (явная физика)
 #include	"Game.h"
 //#include	"..\editor\headers\collide.hpp"
 #include	"..\editor\headers\map.h"
@@ -37,6 +59,10 @@ extern	UBYTE	cheat;
 #undef  BLOCK_SIZE
 #define BLOCK_SIZE (1 << 6)
 
+// claude-ai: Статические пулы барьеров коллизий (только для EDITOR/DOG_POO билдов).
+// claude-ai: Лимиты определены в collide.h:
+// claude-ai:   PC:  MAX_COL_VECT=10000, MAX_COL_VECT_LINK=10000, MAX_WALK_POOL=30000
+// claude-ai:   PSX: MAX_COL_VECT=1000,  MAX_COL_VECT_LINK=4000,  MAX_WALK_POOL=10000
 #ifdef	DOG_POO
 struct	CollisionVectLink	col_vects_links[MAX_COL_VECT_LINK]; //40K
 struct	CollisionVect		col_vects[MAX_COL_VECT];            //300K
@@ -95,6 +121,8 @@ UWORD	next_col_vect_link=1;
 //		 xo
 //		  xx   x
 
+// claude-ai: Пул WalkLink — связный список проходимых поверхностей (face-based навигация).
+// claude-ai: PC: 30000 записей × 4 байт = 120KB. Активен всегда (не только в редакторе).
 //#ifdef	EDITOR
 struct	WalkLink	walk_links[MAX_WALK_POOL];	//120K
 
@@ -2789,8 +2817,16 @@ SLONG	height_above_anything(Thing *p_person,SLONG body_part,SWORD *onface)
 
 
 //
-// For a person in 3d space, find either a face to stand on, or the floor to stand on, and setup height/onface ... 
+// For a person in 3d space, find either a face to stand on, or the floor to stand on, and setup height/onface ...
 //
+// claude-ai: plant_feet() — привязывает персонажа к полу/поверхности после движения.
+// claude-ai: Логика выбора поверхности:
+// claude-ai:   1. Сначала ищет DFacet (геометрия зданий) через find_face_for_this_pos()
+// claude-ai:   2. Если не найден — берёт высоту пола из PAP_calc_height_at_thing()
+// claude-ai: Пороги падения (разность высот):
+// claude-ai:   > 30 единиц (на PAP-поверхности)  → персонаж начинает падать
+// claude-ai:   > 60 единиц (на face-поверхности) → персонаж начинает падать
+// claude-ai: Возврат: 1=стоит на face, 0=падает, -1=стоит на PAP (GRAB_FLOOR)
 SLONG	plant_feet(Thing *p_person)
 {
 	SLONG	on_face;
@@ -3127,6 +3163,12 @@ UWORD already[MAX_ALREADY];
 
 UWORD	max_facet_find=0;
 
+// claude-ai: Глобальное состояние последнего вызова slide_along() / move_thing().
+// claude-ai:   last_slide_colvect — индекс последнего facet/colvect о который скользили (или fence_colvect если был забор)
+// claude-ai:   last_slide_dist    — пройденное расстояние вдоль стены
+// claude-ai:   actual_sliding     — TRUE если скольжение реально произошло (персонаж упёрся в стену)
+// claude-ai:   slide_door         — скользили вдоль двери
+// claude-ai:   slide_ladder       — скользили вдоль лестницы
 SLONG last_slide_colvect;
 SLONG last_slide_dist;
 SLONG actual_sliding;
@@ -3928,10 +3970,22 @@ SLONG slide_along_old(
 }
 */
 
+// claude-ai: Локальные-глобальные флаги для slide_along() — сбрасываются в начале каждого вызова.
+// claude-ai:   slid_along_fence — персонаж скользил вдоль забора в текущем кадре
+// claude-ai:   fence_colvect    — индекс facet забора (переопределяет last_slide_colvect)
 UBYTE   slid_along_fence=0;
 UWORD   fence_colvect=0;
 //SLONG	slide_nogo;
 
+// claude-ai: slide_along() — скольжение вектора движения вдоль поверхностей без отскока (restitution=0).
+// claude-ai: Параметры:
+// claude-ai:   (x1,y1,z1)        — начальная позиция (не меняется)
+// claude-ai:   (x2,y2,z2)        — конечная позиция (выход: скорректированная)
+// claude-ai:   extra_wall_height — дополнительная высота барьера (для прыжков через заборы)
+// claude-ai:   radius            — радиус капсулы персонажа
+// claude-ai:   flags             — SLIDE_FLAG_* (пропускать двери, лестницы и т.д.)
+// claude-ai: Алгоритм: итеративно проверяет все facets в затронутых лорез-ячейках,
+// claude-ai: при пересечении проецирует вектор движения на плоскость барьера (без отскока).
 SLONG slide_along(
 		SLONG  x1, SLONG  my_y1, SLONG  z1,
 		SLONG *x2, SLONG *y2, SLONG *z2,
@@ -5515,6 +5569,10 @@ void slide_along_redges(
 
 */
 
+// claude-ai: move_thing_quick() — телепортация объекта без коллизий.
+// claude-ai: Просто сдвигает WorldPos и обновляет позицию в MapWho-списках через move_thing_on_map().
+// claude-ai: Используется для ragdoll, катсцен, принудительного позиционирования.
+// claude-ai: НЕ проверяет столкновения и НЕ применяет гравитацию.
 ULONG move_thing_quick(SLONG dx,SLONG dy,SLONG dz,Thing *p_thing)
 {
 	GameCoord new_position;
@@ -6514,6 +6572,17 @@ extern	SLONG	people_allowed_to_hit_each_other(Thing *p_victim,Thing *p_agressor)
 SLONG x1, my_y1, z1;
 SLONG x2, y2, z2;
 
+// claude-ai: move_thing() — полное движение персонажа (CLASS_PERSON) с коллизиями.
+// claude-ai: Порядок операций:
+// claude-ai:   1. Проверка fast-nav (COLLIDE_can_i_fastnav): упрощённый путь без facets
+// claude-ai:   2. slide_along() — скольжение вдоль стен (facets зданий)
+// claude-ai:   3. collide_against_things() — коллизии с другими персонажами (капсула-капсула)
+// claude-ai:   4. collide_against_objects() — коллизии с мебелью (OB_Info box)
+// claude-ai:   5. slide_along_edges() — скольжение по кромкам этажей
+// claude-ai:   6. plant_feet() — привязка к поверхности / обнаружение падения
+// claude-ai:   7. move_thing_on_map() — обновление MapWho
+// claude-ai: Глобалы actual_sliding / last_slide_colvect заполняются в процессе.
+// claude-ai: Скорость при скольжении ограничивается до yomp_speed.
 ULONG move_thing(
 		SLONG dx,
 		SLONG dy,
@@ -10839,6 +10908,14 @@ SLONG collide_box_with_line(
 }
 
 
+// claude-ai: create_shockwave() — взрыв с радиальным уроном и нокдауном.
+// claude-ai: Формула урона: hitpoints = maxdamage * (radius - dist) / radius
+// claude-ai:   (линейное затухание от maxdamage в центре до 0 на краю)
+// claude-ai: Нокдаун: если hitpoints > 30 → knock_person_down()
+// claude-ai: Прыжок/флип в момент взрыва: урон уменьшается вдвое + 1
+// claude-ai: Дистанция считается через QDIST3 (быстрое octagonal approximation).
+// claude-ai: Ищет цели через THING_find_sphere с маской CLASS_PERSON|CLASS_SPECIAL|CLASS_VEHICLE|CLASS_BAT.
+// claude-ai: just_people=TRUE → игнорирует транспорт и специальные объекты.
 void create_shockwave(
 		SLONG  x,
 		SLONG  y,

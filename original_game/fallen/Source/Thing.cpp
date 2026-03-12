@@ -252,6 +252,10 @@ void	free_secondary_thing(THING_INDEX thing)
 }
 
 //---------------------------------------------------------------
+// claude-ai: add_thing_to_map() — добавляет объект в связный список PAP_Lo ячейки.
+// claude-ai: Ячейка вычисляется: mx = WorldPos.X >> (8 + PAP_SHIFT_LO) = >> 18
+// claude-ai: PAP_Lo.MapWho — голова односвязного списка (Thing.Child/Parent — prev/next).
+// claude-ai: Устанавливает FLAGS_ON_MAPWHO. Если уже установлен — не добавляет повторно.
 
 void	add_thing_to_map(Thing *t_thing)
 {
@@ -307,6 +311,9 @@ void	add_thing_to_map(Thing *t_thing)
 }
 
 //---------------------------------------------------------------
+// claude-ai: remove_thing_from_map() — удаляет объект из MapWho-списка PAP_Lo ячейки.
+// claude-ai: Обходит связный список через Child/Parent, зашивает дырку.
+// claude-ai: Сбрасывает FLAGS_ON_MAPWHO. Если флаг не установлен — ничего не делает.
 
 void	remove_thing_from_map(Thing *t_thing)
 {
@@ -346,6 +353,10 @@ void	remove_thing_from_map(Thing *t_thing)
 
 //---------------------------------------------------------------
 
+// claude-ai: move_thing_on_map() — перемещает объект между ячейками MapWho.
+// claude-ai: Если лорез-ячейка изменилась (>> 18): вызывает remove + add для обновления списков.
+// claude-ai: Если ячейка та же: просто обновляет WorldPos (дёшево, без перестройки списков).
+// claude-ai: Также обновляет MapElement (освещение) если изменилась ячейка MAP (>> ELE_SHIFT+8).
 void	move_thing_on_map(Thing *t_thing,GameCoord *new_position)
 {
 	SLONG cur_mx = t_thing->WorldPos.X >> (8 + PAP_SHIFT_LO);
@@ -1421,6 +1432,15 @@ UBYTE	hit_player=0;
 //
 // if classes & 1<<31  then its really find sphere
 //
+// claude-ai: THING_find_sphere() — поиск объектов в сфере вокруг точки.
+// claude-ai: Алгоритм:
+// claude-ai:   1. Вычисляет bounding rect в лорез-ячейках (>> PAP_SHIFT_LO)
+// claude-ai:   2. Для каждой ячейки обходит MapWho-список
+// claude-ai:   3. Фильтрует по маске classes (1 << Thing.Class)
+// claude-ai:   4. Проверяет дистанцию через QDIST3 (octagonal approx)
+// claude-ai: Результат: массив THING_INDEX (индексы объектов, до array_size штук).
+// claude-ai: Маски поиска: THING_FIND_PEOPLE=(1<<CLASS_PERSON), THING_FIND_LIVING, THING_FIND_MOVING.
+// claude-ai: Если classes & (1<<31) — строгая проверка сферы (иначе bounding rect достаточно).
 SLONG THING_find_sphere(SLONG pos_x, SLONG pos_y, SLONG pos_z, SLONG radius, THING_INDEX *array, SLONG array_size, ULONG classes)
 {
 	UBYTE mx;

@@ -1,5 +1,8 @@
 // Thug.cpp
 // Guy Simmons, 8th February 1998.
+// claude-ai: Thug — NPC-враги. thug_states[] используется только для PERSON_THUG_*.
+// claude-ai: fn_thug_init() содержит ASSERT(0) — намеренный crash при вызове (код сломан в пре-релизе).
+// claude-ai: В финальной игре thugs инициализируются через fn_cop_init() (cop_states), не через thug_states.
 
 #include	"Game.h"
 //#include	"Command.h"
@@ -32,6 +35,7 @@ StateFunction	thug_states[]	=
 
 //---------------------------------------------------------------
 
+// claude-ai: ASSERT(0) в начале — этот init намеренно вызывает crash. Не используется в финальной игре.
 void	fn_thug_init(Thing *t_thing)
 {
 	ASSERT(0);

@@ -54,6 +54,7 @@
 
 
 
+// claude-ai: FLAG_PERSON_* — дополнительные флаги персонажа (32 бита, хранятся в Thing.Flags или PersonStruct.Flags2). Дополняют Thing.Flags.
 #define	FLAG_PERSON_NON_INT_M			(1<<0)
 #define	FLAG_PERSON_NON_INT_C			(1<<1)
 #define	FLAG_PERSON_LOCK_ANIM_CHANGE	(1<<2)
@@ -88,6 +89,7 @@
 #define FLAG_PERSON_WAREHOUSE			(1<<30)	// This person is inside a warehouse given by their "Ware" field.
 #define FLAG_PERSON_KILL_WITH_A_PURPOSE	(1<<31)	// An enemy is killing someone with ulterior motives.
 
+// claude-ai: FLAG2_PERSON_* — второй набор флагов персонажа, хранится в Person.Flags2 (UBYTE, 8 бит).
 #define	FLAG2_PERSON_LOOK				(1<<0) // This person is looking arround
 #define FLAG2_SYNC_SOUNDFX				(1<<1) // Set once a sound has started playing for that anim
 #define	FLAG2_PERSON_GUILTY				(1<<2)
@@ -102,6 +104,8 @@
 
 #define	PTIME(p)	(p->Genus.Person->GTimer)
 
+// claude-ai: struct Person — данные персонажа, на которые указывает Thing.Genus.Person. Доступ: p_thing->Genus.Person->Health и т.д.
+// claude-ai: Макрос COMMON(PersonType) раскрывается в PersonType *Type — указатель на статичные данные типа (модель, здоровье по умолчанию и т.д.).
 typedef struct
 {
 	COMMON(PersonType)
@@ -111,12 +115,15 @@ typedef struct
 	UBYTE	Ammo;
 	UBYTE	PlayerID;		//4
 
+	// claude-ai: Health — текущее здоровье (SWORD, знаковое). 0 = мёртв. Отрицательные значения возможны при сильном уроне (не проверяется до обработки).
 	SWORD	Health;
 	UWORD	Timer1;			//8
 
+	// claude-ai: Target — THING_INDEX текущей цели AI (кого атакуем/преследуем). InWay — объект на пути, мешающий движению.
 	THING_INDEX	Target;
 	THING_INDEX	InWay;		//12
 
+	// claude-ai: InCar — THING_INDEX транспорта (машины или мотоцикла). FLAG_PERSON_DRIVING = едем в машине, FLAG_PERSON_BIKING = едем на мотоцикле.
 	THING_INDEX	InCar;				// Either a van/car or a bike depending on whether PERSON_FLAG_DRIVING or PERSON_FLAG_BIKING is set
 	UWORD	NavIndex;		//16
 
@@ -174,6 +181,10 @@ typedef struct
 	// High-level AI
 	//
 
+	// claude-ai: pcom_ai — тип высокоуровневого AI (PCOM_AI_* из pcom.h): CIV, GUARD, COP, GANG и т.д.
+	// claude-ai: pcom_ai_state — текущее состояние AI (PCOM_AI_STATE_*): NORMAL, KILLING, FLEE_PERSON и т.д.
+	// claude-ai: pcom_ai_substate — подсостояние (PCOM_AI_SUBSTATE_*): детали текущего действия (например, AIMING внутри KILLING).
+	// claude-ai: pcom_bent — битовое поле черт характера (PCOM_BENT_*): LAZY, DILIGENT, GANG, FIGHT_BACK и т.д.
 	UBYTE   pcom_bent;
 	UBYTE	pcom_ai;
 	UBYTE	pcom_ai_state;
@@ -187,6 +198,8 @@ typedef struct
 	UBYTE   pcom_ai_excar_substate; //68
 
 	UWORD	pcom_ai_excar_arg;
+	// claude-ai: pcom_move — режим передвижения (PCOM_MOVE_*): STILL, PATROL, WANDER, FOLLOW и т.д. Независим от pcom_ai_state.
+	// claude-ai: pcom_move_state — текущее состояние внутри режима движения.
 	UBYTE   pcom_move;
 	UBYTE	pcom_move_state;		//72
 
@@ -240,9 +253,10 @@ typedef struct
 	UBYTE	Flags2;
 	UBYTE	SlideOdd;				// A counter for how many consecutive gameturns this person has slid along something that isn't a wall or fence.
 
-// using BUILD_PSX means that it'll be commented out both on the PSX, *AND* when Mike builds 
+// using BUILD_PSX means that it'll be commented out both on the PSX, *AND* when Mike builds
 // PSX nads on his PC.
 #ifndef BUILD_PSX
+	// claude-ai: GunMuzzle — позиция дула оружия в мировых координатах (только PC-сборка). Обновляется при прицеливании. Используется для raycast пуль.
 	GameCoord GunMuzzle;
 #endif
 
@@ -513,6 +527,7 @@ SLONG person_is_on(Thing *p_person);
 // Obvious really. Take into account distance, FOV and LOS.
 //
 
+// claude-ai: can_a_see_b — проверяет видимость: учитывает дальность, угол поля зрения (FOV) и line-of-sight (LOS через геометрию). range=0 = используется дальность по умолчанию. no_los=1 = только проверка FOV без трассировки луча.
 SLONG can_i_see_player(Thing *p_person);
 SLONG can_a_see_b     (Thing *p_person_a, Thing *p_thing_b,SLONG range=0,SLONG no_los=0);	// 'b' needn't be a person
 SLONG can_i_see_place (Thing *p_person, SLONG x, SLONG y, SLONG z);

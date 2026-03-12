@@ -1,6 +1,39 @@
 //	Sound.cpp
 //	Guy Simmons, 8th May 1998.
 
+// claude-ai: SOUND SYSTEM OVERVIEW
+// claude-ai: All audio goes through the MFX layer (mfx.h / mfx.cpp), which wraps Miles Sound System (MSS32).
+// claude-ai: MSS32 = Miles Sound System by RAD Game Tools — proprietary, Windows-only, NOT portable.
+// claude-ai: Every MFX_* call (MFX_play_xyz, MFX_play_ambient, MFX_play_thing, MFX_set_gain, MFX_stop, etc.)
+// claude-ai: is an MSS32 API call — replace entirely with miniaudio or SDL_mixer in the new version.
+// claude-ai:
+// claude-ai: KEY AUDIO CHANNELS (channel IDs defined in Sound.h / mfx.h):
+// claude-ai:   AMBIENT_EFFECT_REF  — looping ambient background sounds (rain, tropical, etc.)
+// claude-ai:   SIREN_REF           — infrequent distant events (sirens, aircraft, wolves)
+// claude-ai:   THUNDER_REF         — thunder strikes during rain
+// claude-ai:   WEATHER_REF         — continuous weather layer (rain, wind, indoor ambience)
+// claude-ai:   WIND_REF            — wind sounds (city, snow biomes)
+// claude-ai:   music_id            — dynamic music channel (AMBIENT_EFFECT_REF+2)
+// claude-ai:
+// claude-ai: MUSIC STATE MACHINE (music_id / play_music / next_music):
+// claude-ai:   Music modes: MUSIC_MODE_NONE, MUSIC_MODE_NORMAL, MUSIC_MODE_TENSION,
+// claude-ai:                MUSIC_MODE_PURSUIT, MUSIC_MODE_VICTORY, MUSIC_MODE_DEFEAT
+// claude-ai:   Transitions driven by game state — see process_weather() and play_music().
+// claude-ai:   Tracks use MFX_PAIRED_TRK1/TRK2 flags for seamless crossfading between two stereo tracks.
+// claude-ai:
+// claude-ai: 3D POSITIONAL AUDIO:
+// claude-ai:   MFX_play_xyz(channel, wave_id, flags, x, y, z) — positions sound in world space.
+// claude-ai:   MFX_play_thing(channel, wave_id, flags, p_thing) — attaches sound to a game Thing.
+// claude-ai:   Distances in the same fixed-point units as world coordinates (>>8 = world units).
+// claude-ai:   Volume falloff and Doppler handled by MSS32 internally — must reimplement in new version.
+// claude-ai:
+// claude-ai: VOICE/DIALOGUE: Talk2/ directory, language-controlled by IsEnglish flag.
+// claude-ai:
+// claude-ai: PORTING STRATEGY:
+// claude-ai:   - KEEP: trigger logic, 3D position calculations, music state machine, ambient scheduling
+// claude-ai:   - REPLACE: all MFX_* calls → miniaudio or SDL_mixer equivalents
+// claude-ai:   - DISCARD: PSX / TARGET_DC conditional blocks entirely
+
 #include	"Game.h"
 
 #include	"cnet.h"
@@ -18,6 +51,8 @@
 
 // types of world
 
+// claude-ai: WorldType maps TEXTURE_SET numbers to biome categories, controlling ambient sound selection.
+// claude-ai: TEXTURE_SET values: 1=Jungle, 5=Snow, 10=Estate, 16=QuietCity, default=BusyCity.
 enum WorldType
 {
 	Jungle = 0,
@@ -60,6 +95,9 @@ extern SLONG	CAM_cur_x,
 */
 //---------------------------------------------------------------
 
+// claude-ai: Countdown timers (in game ticks) controlling how often random ambient events fire.
+// claude-ai: siren_time starts at 300 ticks (~5 seconds at 60fps), resets to 1500-5000 after each event.
+// claude-ai: thunder_time resets to 300+ ticks between strikes (only when GF_RAINING flag is set).
 SLONG	creature_time	=	400,
 		siren_time		=	300,
 		in_sewer_time   =	0,
@@ -73,6 +111,8 @@ void SewerSoundProcess();
 static	SLONG wind_id=0, tick_tock=0;
 
 
+// claude-ai: Volume levels for ambient layers: 0=silent, 255=full. Crossfaded each tick in process_ambient_effects().
+// claude-ai: indoors_vol/outdoors_vol crossfade based on GF_INDOORS flag. weather_vol fades to 128 indoors.
 static SLONG indoors_id=0, outdoors_id=0, rain_id=0, rain_id2=0, thunder_id=0, indoors_vol=0, outdoors_vol=255, weather_vol=255, music_vol=255, next_music=0;
 
 #ifndef PSX
@@ -93,6 +133,11 @@ void	init_ambient(void)
 //
 // play an ambient sound at a random 3D position
 
+// claude-ai: Places a sound at a random angle around the player, at a fixed distance.
+// claude-ai: angle is in PSX angle units (0-2047 = full circle). COS/SIN return 16-bit fixed-point values.
+// claude-ai: COS(angle) << 4 shifts the value 4 bits left — effectively scales the offset radius.
+// claude-ai: HeightType: PlayerHeight=same Y as player, OnGround=Y=0, InAir=player Y + 512-1535 units upward.
+// claude-ai: MFX_play_xyz — MSS32 API — replace entirely with miniaudio or SDL_mixer
 void PlayAmbient3D(SLONG channel, SLONG wave_id, SLONG flags, HeightType height = PlayerHeight)
 {
 	Thing*	p_player = NET_PERSON(PLAYER_ID);
@@ -117,6 +162,9 @@ void PlayAmbient3D(SLONG channel, SLONG wave_id, SLONG flags, HeightType height 
 //
 // begin ambient sounds
 
+// claude-ai: Called once when a level starts. Sets wtype based on TEXTURE_SET and starts the base ambient loop.
+// claude-ai: Only Jungle (TEXTURE_SET=1) starts a looping ambient here — other biomes rely on process_weather().
+// claude-ai: MFX_play_ambient — MSS32 API — replace entirely with miniaudio or SDL_mixer
 void SND_BeginAmbient()
 {
 	// map across from the texture set to the world type
@@ -150,6 +198,12 @@ void SND_BeginAmbient()
 #endif
 }
 
+// claude-ai: new_outdoors_effects — called every game tick when player is outdoors.
+// claude-ai: Manages three categories of infrequent random ambient events:
+// claude-ai:   1. SIREN_REF: biome-specific distant events (sirens/aircraft/wolves) via siren_time countdown
+// claude-ai:   2. THUNDER_REF: thunder during rain (GF_RAINING) via thunder_time countdown
+// claude-ai:   3. AMBIENT_EFFECT_REF: frequent bird/animal/city sounds triggered by random bitmask checks
+// claude-ai: All three use PlayAmbient3D to position sounds in 3D space around the player.
 void	new_outdoors_effects()
 {
 #ifndef PSX
@@ -259,6 +313,11 @@ void	new_outdoors_effects()
 }
 
 
+// claude-ai: process_ambient_effects — called every game tick. Crossfades indoor/outdoor volume layers.
+// claude-ai: Indoors: ramps indoors_vol toward 255, outdoors_vol toward 0, weather_vol toward 128 (half).
+// claude-ai: Outdoors: reverses the crossfade, then fires new_outdoors_effects() for random ambient events.
+// claude-ai: Volume ramps are 1 unit/tick = slow ~4-second crossfade at 60fps (255 ticks).
+// claude-ai: NOTE: the A3DVolume calls below are commented out — MSS32 3D volume was never wired up here.
 void	process_ambient_effects(void) {
 
 	if (GAME_FLAGS&GF_INDOORS) {
@@ -279,6 +338,14 @@ void	process_ambient_effects(void) {
 
 }
 
+// claude-ai: process_weather — called every game tick. Handles:
+// claude-ai:   - Player death sound trigger (one-shot via only_once flag)
+// claude-ai:   - Outdoor rain/wind: volume based on height above ground (rain louder near ground, wind louder up high)
+// claude-ai:   - Indoor ambience: plays building-specific looping sounds from WARE ambience table
+// claude-ai:   - was_in_or_out tracks indoor/outdoor state to stop/start loops on transition
+// claude-ai: Rain gain formula: 255 - (above_ground >> 4) — attenuates ~16 units of height per gain step.
+// claude-ai: Wind gain formula: abs_height >> 4 — increases linearly with absolute height.
+// claude-ai: All MFX_* calls here — MSS32 API — replace entirely with miniaudio or SDL_mixer
 void	process_weather(void)
 {
 #ifdef PSX
@@ -290,6 +357,7 @@ void	process_weather(void)
 		  z=NET_PERSON(PLAYER_ID)->WorldPos.Z;
 
 	// these map GEDIT settings to sound headers
+	// claude-ai: indoors_waves: index 0=police station, 1=upscale shop, 2=office, 3=nightclub (index from WARE ambience field, 1-based)
 	static SLONG indoors_waves[]={ S_AMB_POLICE1, S_AMB_POSHEETA, S_AMB_OFFICE1, S_TUNE_CLUB_START };
 
 
@@ -418,6 +486,9 @@ void	process_weather(void)
 }
 
 
+// claude-ai: SOUND_reset — stops all playing audio and resets all ambient state. Called on level load/unload.
+// claude-ai: MFX_CHANNEL_ALL + MFX_WAVE_ALL = stop everything on every channel.
+// claude-ai: MFX_stop — MSS32 API — replace entirely with miniaudio or SDL_mixer
 void	SOUND_reset(void) {
 
 	// free up any playing sources
@@ -444,6 +515,8 @@ inline SLONG SOUND_Range(SLONG start, SLONG end) {
 }
 */
 
+// claude-ai: SOUND_Gender — returns gender code for voice line selection: 1=male, 2=female, 0=unknown/NPC.
+// claude-ai: Used to pick gender-appropriate voice samples from Talk2/ directory.
 UBYTE SOUND_Gender(Thing *p_thing) {
 	switch(p_thing->Genus.Person->PersonType) {
 	case PERSON_DARCI:
@@ -471,6 +544,9 @@ UBYTE SOUND_Gender(Thing *p_thing) {
 	}
 }
 
+// claude-ai: SOUND_Curious — plays an "uncertain/alert" voice line for the given NPC type.
+// claude-ai: Only fires for English language builds (IsEnglish flag). Localised builds have no NPC curiosity VO.
+// claude-ai: MFX_play_thing — MSS32 API — replace entirely with miniaudio or SDL_mixer
 void SOUND_Curious(Thing *p_thing) {
 	SWORD snd_a, snd_b;
 
@@ -496,6 +572,10 @@ void SOUND_Curious(Thing *p_thing) {
 	MFX_play_thing(THING_NUMBER(p_thing),snd_a,0,p_thing);
 }
 
+// claude-ai: DieSound / PainSound / EffortSound / MinorEffortSound / ScreamFallSound / StopScreamFallSound:
+// claude-ai: Character-specific voice reactions triggered by game events. Each picks a random sample in a range.
+// claude-ai: MFX_QUEUED|MFX_SHORT_QUEUE: queues the sound but discards queue if it gets too long (short queue).
+// claude-ai: MFX_play_thing — MSS32 API — replace entirely with miniaudio or SDL_mixer
 void DieSound(Thing *p_thing) {
 	SWORD hit_a, hit_b;
 	switch(p_thing->Genus.Person->PersonType) {
@@ -646,6 +726,10 @@ void StopScreamFallSound(Thing *p_thing) {
 }
 
 
+// claude-ai: SOUND_InitFXGroups — parses an INI file [Groups] section to populate SOUND_FXGroups table.
+// claude-ai: Each group defines a [start, end] range of sound IDs for random selection via SOUND_Range().
+// claude-ai: Uses Windows GetPrivateProfileSection (winapi) — PC/non-PSX only. Not needed on PSX (static 8 groups).
+// claude-ai: KEEP this logic in new version (sound group ranges needed). REPLACE GetPrivateProfileSection with custom INI parser.
 void	SOUND_InitFXGroups(CBYTE *fn) {
 #ifndef PSX
 #ifndef TARGET_DC
@@ -693,6 +777,13 @@ SLONG	play_quick_wave_old(WaveParams *wave,SLONG sample,SLONG id,SLONG mode)
 }
 */
 #ifndef PSX
+// claude-ai: play_ambient_wave — plays a sound offset from the camera position.
+// claude-ai: flags&1: randomise angle ±128 units around 896 (roughly "ahead and to the side")
+// claude-ai: flags==0: angle=1024 (exactly behind camera — 1024/2048 = 180° in PSX angle units)
+// claude-ai: ang+=FC_cam[0].yaw applies camera rotation so "behind" is relative to camera direction.
+// claude-ai: dx/dz: direction vector computed from angle using SIN/COS lookup tables (PSX integer math).
+// claude-ai: range!=256: scale dx/dz by range/256 — range=256 means ~1 world unit, larger=further away.
+// claude-ai: MFX_play_xyz — MSS32 API — replace entirely with miniaudio or SDL_mixer
 SLONG	play_ambient_wave(SLONG sample,SLONG id,SLONG mode,SLONG range, UBYTE flags)
 {
 	SLONG x,y,z,dx,dy,dz,ang;
@@ -718,6 +809,11 @@ SLONG	play_ambient_wave(SLONG sample,SLONG id,SLONG mode,SLONG range, UBYTE flag
 }
 #endif
 
+// claude-ai: play_glue_wave — called from script/level data to trigger positioned sounds.
+// claude-ai: type=0: overlapping one-shot on channel 0 (multiple instances allowed via MFX_OVERLAP)
+// claude-ai: type=1: replaces current music_id channel sound at the given XYZ position (MFX_REPLACE)
+// claude-ai: Called "glue" because it bridges the scripting/level system to the audio system.
+// claude-ai: MFX_play_xyz — MSS32 API — replace entirely with miniaudio or SDL_mixer
 void	play_glue_wave(UWORD type, UWORD id, SLONG x, SLONG y, SLONG z) {
 	switch(type) {
 	case 0:
@@ -732,6 +828,14 @@ void	play_glue_wave(UWORD type, UWORD id, SLONG x, SLONG y, SLONG z) {
 
 }
 
+// claude-ai: play_music — MUSIC STATE MACHINE entry point. Plays a music track on the paired stereo system.
+// claude-ai: music_id is fixed at AMBIENT_EFFECT_REF+2. Two channels: (music_id) and (music_id-1).
+// claude-ai: track=1: plays on MFX_PAIRED_TRK1 (channel music_id-1); track=0: plays on MFX_PAIRED_TRK2 (channel music_id).
+// claude-ai: MFX_PAIRED_TRK1/TRK2: MSS32 paired-track system — two channels that crossfade between each other.
+// claude-ai: MFX_EARLY_OUT: if another sound is already queued, skip this one rather than waiting.
+// claude-ai: This function is called from the game state machine when MUSIC_MODE_* changes.
+// claude-ai: KEEP: the two-channel crossfade concept. REPLACE: MFX_play_stereo with miniaudio or SDL_mixer.
+// claude-ai: MFX_play_stereo — MSS32 API — replace entirely with miniaudio or SDL_mixer
 void	play_music(UWORD id, UBYTE track) {
 	SLONG flags;
 	music_id=AMBIENT_EFFECT_REF+2;

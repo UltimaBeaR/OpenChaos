@@ -90,6 +90,16 @@ SLONG PAP_calc_height_at_point(SLONG map_x, SLONG map_z)
 	}
 }
 
+// claude-ai: PAP_calc_height_at() — билинейная интерполяция высоты рельефа в произвольной точке.
+// claude-ai: Аргументы: x, z — мировые координаты (юниты, не ячейки).
+// claude-ai: Алгоритм:
+// claude-ai:   1. Ячейка: mx = x >> PAP_SHIFT_HI(8), mz = z >> 8
+// claude-ai:   2. Читает 4 угловых высоты h0..h3 из PAP_Hi (Alt << PAP_ALT_SHIFT=3)
+// claude-ai:   3. Если все 4 угла равны — возвращает h0 << 3 без интерполяции (быстрый путь)
+// claude-ai:   4. Иначе: xfrac = x & 0xFF, zfrac = z & 0xFF
+// claude-ai:      Треугольник 1 (xfrac+zfrac < 256): h0 + (h2-h0)*xfrac/256 + (h1-h0)*zfrac/256
+// claude-ai:      Треугольник 2 (xfrac+zfrac >= 256): h3 + (h1-h3)*(256-xfrac)/256 + (h2-h3)*(256-zfrac)/256
+// claude-ai: Возвращает -32767 если GF_NO_FLOOR, 0 если за пределами карты.
 SLONG PAP_calc_height_at(SLONG x, SLONG z)
 {
 	SLONG h0;

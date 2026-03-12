@@ -1,3 +1,33 @@
+// claude-ai: Building construction system for Urban Chaos.
+// claude-ai: This file is a BUILD-TIME geometry generator — it is NOT an in-game runtime system.
+// claude-ai: It reads FBuilding/FStorey/FWall/FWindow data and emits:
+// claude-ai:   - prim_points[], prim_faces4[], prim_faces3[]: renderable geometry primitives
+// claude-ai:   - walk_links[]: walkable surface data for each map tile
+// claude-ai:   - dwalkables[]: DWalkable structs for rooftop/ledge navigation
+// claude-ai:   - roof_bounds[]: bounding boxes for roof collision/culling
+// claude-ai:   - collision vectors via insert_collision_vect() (stub in this codebase — returns 0)
+// claude-ai:
+// claude-ai: Key data structures populated here:
+// claude-ai:   building_list[MAX_BUILDINGS]:    FBuilding array (global, defined in this file)
+// claude-ai:   storey_list[MAX_STOREYS]:        FStorey array
+// claude-ai:   wall_list[MAX_WALLS]:            FWall array (linked list per storey)
+// claude-ai:   window_list[MAX_WINDOWS]:        FWindow array
+// claude-ai:
+// claude-ai: Build modes (build_mode):
+// claude-ai:   BUILD_MODE_EDITOR: reads from edit_map[][] (in-editor, PC only)
+// claude-ai:   BUILD_MODE_DX: reads from PAP_2HI/MAP2 supermap (runtime game)
+// claude-ai:
+// claude-ai: Key geometry functions:
+// claude-ai:   build_easy_roof / build_roof_grid: scanline-fill roof polygon
+// claude-ai:   build_firescape: exterior fire escape stair geometry
+// claude-ai:   build_ladder: ladder geometry + collision vects
+// claude-ai:   build_skylight: roof skylight geometry
+// claude-ai:   create_a_quad / create_a_tri: allocate and initialize prim geometry faces
+// claude-ai:
+// claude-ai: PORT NOTE: This entire file is editor/level-compiler code. In the new game,
+// claude-ai:            buildings are pre-built into the level's .pam file. At runtime only
+// claude-ai:            DFacet[] and dfacets[] need to be processed, not this build system.
+// claude-ai:            The geometry output (prim_faces4 etc.) maps to what we'd call a mesh.
 
 #include	"game.h"
 #include	"shadow.h"
@@ -10,17 +40,29 @@
 #include	"..\editor\headers\Editor.hpp"
 #include	"..\editor\headers\outline.h"
 
+// claude-ai: edit_map: 2MB editor tile map. Only used in BUILD_MODE_EDITOR (level editor).
+// claude-ai: Contains per-tile: height (Y), texture, flags, walkability, etc.
+// claude-ai: In BUILD_MODE_DX (runtime), the equivalent data is in the PAP (Physical Address Plan) supermap.
 struct	DepthStrip	edit_map[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];  //2meg
+// claude-ai: tex_map: Editor-only texture override map. If tex_map[x][z] has a texture, it overrides edit_map's.
 UWORD	tex_map[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];
 
 SBYTE	edit_map_roof_height[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];
 struct	EditInfo	edit_info;
+// claude-ai: page_remap: PSX texture page remapping table (64 pages * 8 slots).
+// claude-ai: Used when build_psx=1 to remap DirectX texture pages to PSX VRAM layout. Not relevant for new game.
 UWORD	page_remap[64 * 8];
 
 
 extern	SLONG	build_psx;
 
 
+// claude-ai: insert_collision_vect: STUB in this codebase — returns 0, does nothing.
+// claude-ai: In the full game, this registers a collision vector (wall/ramp/ladder) into the physics system.
+// claude-ai: prim_type corresponds to STOREY_TYPE_* (WALL, RAMP, LADDER, etc.).
+// claude-ai: prim_extra: secondary type info (e.g. storey height for ladders).
+// claude-ai: face: index into prim_faces4[] for the associated render face.
+// claude-ai: PORT NOTE: Collision vectors are critical for game physics. This must be properly implemented.
 SLONG	insert_collision_vect(SLONG x1,SLONG y1,SLONG z1,SLONG x2,SLONG y2,SLONG z2,UBYTE prim_type,UBYTE prim_extra,SWORD face)
 {
 	return 0;
@@ -254,16 +296,27 @@ void	fn_building_normal(Thing *b_thing);
 UWORD	diff_page_count1=0;
 UWORD	diff_page_count2=0;
 UWORD	page_count[64*8];
+// claude-ai: Global building data arrays — the primary building representation.
+// claude-ai: FWindow: window geometry within a wall (breakable glass etc.).
+// claude-ai: FWall: one wall segment of a storey polygon. Linked list: wall_list[w].Next.
+// claude-ai: FStorey: one floor. Has WallHead (first wall), DX/DY/DZ (origin), Height, StoreyType, StoreyFlags.
+// claude-ai: FBuilding: one building. Has StoreyHead (first storey), ThingIndex (game Thing), Walkable (rooftop).
+// claude-ai: PORT NOTE: These arrays are populated by the level loader from .pam files. Must be loaded in new game.
 struct	FWindow		window_list[MAX_WINDOWS];
 struct	FWall		wall_list[MAX_WALLS];
 struct	FStorey		storey_list[MAX_STOREYS];
 struct	FBuilding	building_list[MAX_BUILDINGS];
 
+// claude-ai: building_facets / building_objects: Additional per-building render geometry data.
+// claude-ai: BuildingFacet: extended facet info (texture, flags) for building wall faces.
+// claude-ai: BuildingObject: a renderable object attached to a building (sign, door frame, etc.).
 struct	BuildingFacet	building_facets[MAX_BUILDING_FACETS];
 struct	BuildingObject	building_objects[MAX_BUILDING_OBJECTS];
 
 SLONG	build_mode=1;
 
+// claude-ai: room_ids: Maps interior storey slots to room IDs for the inside-building system.
+// claude-ai: next_inside starts at 1 (0 = NULL/invalid). Used to assign room IDs to interior storeys.
 struct	RoomID	room_ids[MAX_INSIDE_STOREYS];
 SLONG	next_inside=1;
 
@@ -563,6 +616,10 @@ void	set_build_seed(SLONG seed)
 }
 
 
+// claude-ai: add_walk_face_to_map: Registers a renderable face as walkable for a map tile.
+// claude-ai: walk_links[] is a linked list per map tile. Face is the index into prim_faces4[].
+// claude-ai: Prevents duplicates: walks the existing list first. DC (Dreamcast) asserts FALSE here.
+// claude-ai: PORT NOTE: In new game, the walkability system needs to map mesh triangles to world tiles.
 void	add_walk_face_to_map(SWORD face,SLONG x,SLONG z)
 {
 #ifdef TARGET_DC
@@ -603,6 +660,11 @@ void	add_walk_face_to_map(SWORD face,SLONG x,SLONG z)
 }
 
 
+// claude-ai: scan_walk_triangle: Rasterizes a 3D triangle into walkable map tiles.
+// claude-ai: Uses parametric s,t stepping along the two triangle edges (barycentric-style).
+// claude-ai: For each (s,t) sample, computes world (px,py,pz) and calls add_walk_face_to_map.
+// claude-ai: Step sizes derived from edge lengths (normalized to avoid over/under sampling).
+// claude-ai: PORT NOTE: This is how floors/ramps get registered as walkable surfaces in the world grid.
 void scan_walk_triangle(SLONG x0, SLONG y0, SLONG z0,SLONG x1, SLONG y1, SLONG z1,SLONG x2, SLONG y2, SLONG z2,SLONG face)
 {
 
@@ -711,6 +773,11 @@ void	add_tri_to_walkable_list(SWORD face)
 	*/
 }
 
+// claude-ai: place_building_at: Creates a game Thing (CLASS_BUILDING) for a building and places it in the world.
+// claude-ai: In BUILD_MODE_EDITOR: creates a MapThing for the editor.
+// claude-ai: In BUILD_MODE_DX: allocates a primary Thing with DrawType=DT_BUILDING, StateFn=fn_building_normal.
+// claude-ai: Links building_list[building].ThingIndex to the created Thing for runtime lookups.
+// claude-ai: PORT NOTE: In new game, building Things should be created during level load, not at build time.
 SLONG	place_building_at(UWORD building,UWORD prim,SLONG x,SLONG y,SLONG z)
 {
 	UWORD	map_thing;
@@ -791,6 +858,10 @@ SLONG	place_building_at(UWORD building,UWORD prim,SLONG x,SLONG y,SLONG z)
 }
 
 
+// claude-ai: add_point: Appends a vertex to both the integer prim_points[] and float AENG_dx_prim_points[].
+// claude-ai: next_prim_point is the global vertex counter. Returns the index of the new point (next_prim_point-1).
+// claude-ai: Dual integer/float storage: integer for PSX/software, float for DirectX rendering.
+// claude-ai: PORT NOTE: In new game, only need one float vertex buffer (AENG_dx equivalent).
 void	add_point(SLONG x,SLONG y,SLONG z)
 {
 	AENG_dx_prim_points[next_prim_point].X=(float)x;
@@ -805,6 +876,12 @@ void	add_point(SLONG x,SLONG y,SLONG z)
 
 SLONG	WindowCount;
 
+// claude-ai: build_row_wall_points_at_y: Generates evenly-spaced points along a wall at fixed height y.
+// claude-ai: If FLAG_WALL_AUTO_WINDOWS: splits wall into alternating solid/window segments.
+//   wcount = number of windows = dist / (BLOCK_SIZE*4)
+//   wwidth = window width = dist / (wcount*2+1)
+//   wallwidth = solid section width between windows
+// claude-ai: Used to create wall geometry with window openings. Returns index of first generated point.
 SLONG	build_row_wall_points_at_y(SLONG y,SLONG x1,SLONG z1,SLONG x2,SLONG z2,SLONG wall)
 {
 	SLONG	wcount,wwidth,wallwidth,dx,dz,dist;
@@ -2147,6 +2224,14 @@ void	calc_face_split(struct	PrimFace4	*p_f4)
 #define	ROT1	(3<<8)
 #define	ROT2	(2<<8)
 #define	ROT3	(1<<8)
+// claude-ai: lookup_roof[256]: Roof tile texture selection table indexed by a 3x3 neighbourhood bitmask.
+// claude-ai: Each entry is a 10-bit value: low 8 bits = texture index, high 2 bits = rotation (ROT1/2/3).
+// claude-ai: The neighbourhood bitmask encodes which of the 8 surrounding tiles are also inside the building.
+// claude-ai: Index layout (3x3 grid, X=current tile):
+//   bit 0=NW, 1=N, 2=NE, 3=W, 4=E, 5=SW, 6=S, 7=SE (or similar — top/bottom/left/right rows).
+// claude-ai: Value 0 means "no roof tile" (open/unsupported corner).
+// claude-ai: This drives the auto-tiling roof texture system seen on all buildings in the game.
+// claude-ai: PORT NOTE: Tile indices 54-65 are roof tile texture atlas indices. Rotation shifts = ROT1/2/3 = (1,2,3)<<8.
 UWORD	lookup_roof[]=
 {
 		    // ->>>0
@@ -3431,6 +3516,15 @@ UWORD	lookup_roof[]=
 		37,
 };
 
+// claude-ai: build_easy_roof: Builds roof geometry for axis-aligned (non-angled) buildings.
+// claude-ai: Uses the scanline edge list (from build_edge_list) to determine inside tiles.
+// claude-ai: For each tile inside the building footprint: creates a quad (tl/tr/bl/br points).
+// claude-ai: flag=0: uses per-tile roof height from edit_map (sloped roofs).
+// claude-ai: flag=1: flat roof (dy=0 for all tiles).
+// claude-ai: After geometry: applies lookup_roof[] to choose the correct roof tile texture based
+//   on the 3x3 neighbourhood of surrounding tiles (256 possible bit patterns → texture+rotation).
+// claude-ai: Calls create_walkable_structure() to register the roof as walkable for the player.
+// claude-ai: Returns the add_bound_box() handle (for collision bounding box).
 SLONG	build_easy_roof(SLONG min_x,SLONG edge_min_z,SLONG max_x,SLONG depth,SLONG y,SLONG face_wall,SLONG flag)
 {
 	SLONG	x,z;
@@ -3825,6 +3919,13 @@ SLONG	do_storeys_overlap(SLONG s1, SLONG s2)
 	}
 }
 
+// claude-ai: build_roof_grid: Top-level roof builder. Dispatches to build_easy_roof (axis-aligned)
+// claude-ai: or the complex angled roof path (for buildings with 45-degree walls, scan_45).
+// claude-ai: First applies optional lip/rim geometry (build_storey_lip) if FLAG_STOREY_ROOF_RIM is set.
+// claude-ai: Computes the building's full bounding box (including all storeys) for the edge list.
+// claude-ai: If storey has a "next" storey above it (SKYLIGHT or NORMAL type at height+1), that
+//   storey's outline is also fed into the edge list (build_more_edge_list) to cut holes in the roof.
+// claude-ai: angles=0 → easy roof; angles=1 → complex roof with tri fill at diagonal walls.
 SLONG	build_roof_grid(SLONG storey,SLONG y,SLONG flat_flag)
 {
 	SLONG	min_x=9999999,max_x=0,min_z=9999999,max_z=0;
@@ -4659,6 +4760,9 @@ SLONG	build_roof_grid(SLONG storey,SLONG y,SLONG flat_flag)
 
 
 
+// claude-ai: is_storey_circular: Returns TRUE if the storey's wall list forms a closed polygon.
+// claude-ai: "Circular" means the last wall's endpoint equals the storey's start point (DX,DZ).
+// claude-ai: Non-circular storeys (e.g. fire escapes, ladders) don't have outlines or roof grids.
 SLONG	is_storey_circular(SLONG storey)
 {
 	SLONG	sx,sz,wall;
@@ -4677,6 +4781,10 @@ SLONG	is_storey_circular(SLONG storey)
 	return(0);
 }
 
+// claude-ai: set_floor_hidden: Marks PAP map tiles inside a storey's footprint with the given flags.
+// claude-ai: Used to set PAP_FLAG_REFLECTIVE (floor shows reflections) and PAP_FLAG_HIDDEN.
+// claude-ai: Works by scanline-filling the storey's polygon footprint (same approach as STAIR module).
+// claude-ai: Only works for circular storeys. lower=0 disables the lower-floor logic (dead code, if(0)).
 void	set_floor_hidden(SLONG storey,UWORD	lower,UWORD flags)
 {
 	SLONG	min_x=9999999,max_x=0,min_z=9999999,max_z=0;
@@ -4878,6 +4986,12 @@ void	build_fire_escape_points(UWORD	storey,SLONG	y,SLONG	flag)
 
 #define	PsetUV4(p_f4,x0,y0,x1,y1,x2,y2,x3,y3,page) p_f4->UV[0][0]=(x0);p_f4->UV[0][1]=(y0);p_f4->UV[1][0]=(x1);p_f4->UV[1][1]=(y1);p_f4->UV[2][0]=(x2);p_f4->UV[2][1]=(y2);p_f4->UV[3][0]=(x3);p_f4->UV[3][1]=(y3);p_f4->TexturePage=page;
 
+// claude-ai: build_face_texture_info: Applies a MiniTextureBits-encoded texture to an existing quad face.
+// claude-ai: MiniTextureBits layout (16-bit): X (3 bits), Y (3 bits), Page (4 bits), Rot (2 bits), Size (2 bits).
+// claude-ai: tx = X<<5, ty = Y<<5 (texture atlas position in 32-pixel units).
+// claude-ai: Rot applies 0-3 rotations to the UV coordinates (rot+3 & 3 = counter-rotate convention).
+// claude-ai: Used for roof tile textures and other map-texture-driven surfaces.
+// claude-ai: PORT NOTE: MiniTextureBits is the packed texture reference format used throughout the map system.
 void	build_face_texture_info(struct PrimFace4 *p_f4,UWORD texture)
 {
 	UBYTE tx,ty,page;
@@ -4911,6 +5025,10 @@ void	build_face_texture_info(struct PrimFace4 *p_f4,UWORD texture)
 //   0     1
 //
 //   2     3
+// claude-ai: set_quad_planar_flag: Detects if a quad is non-planar (two triangles have different normals).
+// claude-ai: Computes normals for triangles (p0,p2,p1) and (p1,p3,p2), normalizes both to 64 units.
+// claude-ai: If normals differ: sets FACE_FLAG_NON_PLANAR on the face.
+// claude-ai: Non-planar quads are split into two triangles during rendering (see calc_face_split).
 void	set_quad_planar_flag(struct	PrimFace4	*pf4)
 {
 	SLONG	p0,p1,p2,p3;
@@ -4974,6 +5092,14 @@ void	set_quad_planar_flag(struct	PrimFace4	*pf4)
 	}
 }
 
+// claude-ai: create_a_quad: Allocates and initializes one quad face (PrimFace4) in the prim buffer.
+// claude-ai: Points layout: p0=TL, p1=TR, p2=BL, p3=BR (note: API takes p1,p0,p3,p2 — swapped).
+// claude-ai: texture_style=0: uses texture_xy2[] fallback table (simple indexed textures).
+// claude-ai: texture_style>0: looks up textures_xy[style][piece] (full building texture system).
+// claude-ai: TEXTURE_PIECE_MIDDLE has a 25% chance to use MIDDLE1 or MIDDLE2 variants (visual variety).
+// claude-ai: If build_psx: remaps texture pages via page_remap[] for PSX VRAM layout.
+// claude-ai: flip: XOR of table flip flag and flipx parameter → controls UV mirror.
+// claude-ai: Calls set_quad_planar_flag() to detect non-planar quads (FACE_FLAG_NON_PLANAR).
 struct	PrimFace4*	create_a_quad(UWORD p1,UWORD p0,UWORD p3,UWORD p2,SWORD	texture_style,SWORD texture_piece,SLONG flipx)
 {
 	struct	PrimFace4	*p4;
@@ -5418,6 +5544,14 @@ SLONG	next_connected_face(SLONG type,SLONG id,SLONG count)
 	}
 	return(0);
 }
+// claude-ai: build_firescape: Generates the geometry for an exterior fire escape staircase.
+// claude-ai: Iterates storey_list[storey].Height times (one level per iteration).
+// claude-ai: Each iteration creates: walkway platforms (FE_WALKWAY1), plinths (FE_PLINTH1/2),
+//   sloped ramp faces (FE_FIRST_SLOPE, FE_SLOPE2), and banisters (railing quads).
+// claude-ai: Faces use POLY_T|POLY_FLAG_DOUBLESIDED|POLY_FLAG_MASKED (transparent rails).
+// claude-ai: SORT_LEVEL_FIRE_ESCAPE=3: render sort priority for these faces.
+// claude-ai: Walkable faces are registered via add_quad_to_walkable_list().
+// claude-ai: PORT NOTE: Fire escape walkway geometry + walkability needs porting. Collision vects are stubs here.
 void	build_firescape(SLONG storey)
 {
 	SLONG	y=0;
@@ -5714,6 +5848,14 @@ SLONG	flat_fill_a_quad_of_points(SLONG start_point,SLONG w,SLONG h,SLONG texture
 SLONG	sx[200],sz[200];
 SLONG	numb[200];
 
+// claude-ai: build_skylight: Generates geometry for a STOREY_TYPE_SKYLIGHT — a raised rim around a roof hole.
+// claude-ai: Creates two rings of points: one at roof level (y) and one raised+inset (y+up, in by 'in' units).
+// claude-ai: Outer ring: follows wall list, strip-subdivided for matching with adjacent wall faces.
+// claude-ai: Inner ring: build_outline() generates the inset polygon vertices.
+// claude-ai: Side faces: quads between inner and outer rings.
+// claude-ai: Top: flat_fill_a_quad_of_points() fills the inner rectangle.
+// claude-ai: All faces are registered with FACE_TYPE_SKYLIGHT and added to walkable list.
+// claude-ai: Returns y+up (the new elevated top surface height).
 SLONG	build_skylight(SLONG storey)
 {
 	SLONG	count=0;
@@ -5807,6 +5949,15 @@ SLONG	build_skylight(SLONG storey)
 	return(y+up);
 }
 
+// claude-ai: build_ladder: Generates ladder geometry and collision for STOREY_TYPE_LADDER storeys.
+// claude-ai: Uses calc_ladder_pos() to find x1,z1,x2,z2 (ladder endpoints) and y (base height).
+// claude-ai: Registers three collision vectors: the ladder itself + two side vects to prevent squeezing.
+//   - STOREY_TYPE_LADDER with extra=storey height: the climbable surface
+//   - STOREY_TYPE_LADDER with extra=0: the solid walls beside the ladder
+// claude-ai: Visual geometry: vertical strips (build_ladder_points flag=1 = 6-point profile),
+//   horizontal rungs (build_ladder_points flag=0 = 2-point profile, one rung per BLOCK_SIZE).
+// claude-ai: build_ladder_old: Unused older version (BLOCK_SIZE*4 spacing instead of count-based).
+// claude-ai: PORT NOTE: Ladder collision vectors (STOREY_TYPE_LADDER) need proper implementation.
 void	build_ladder(SLONG storey)
 {
 	SLONG	y=0,c0;

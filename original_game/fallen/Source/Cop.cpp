@@ -1,5 +1,9 @@
 // Cop.cpp
 // Guy Simmons, 12th January 1998.
+// claude-ai: Код полицейских и всех NPC, использующих cop_states[].
+// claude-ai: fn_cop_normal() обёрнута в #if 0 — весь AI-код закомментирован в пре-релизе.
+// claude-ai: В финальной игре NPC управляются через pcom.cpp (PCOM_process_person), а не fn_cop_normal.
+// claude-ai: cop_states используются для: COP, CIV, THUG_*, SLAG_*, HOSTAGE, MECHANIC, TRAMP, MIB*.
 
 #include	"Game.h"
 //#include	"Command.h"
@@ -133,7 +137,8 @@ void	fn_cop_init(Thing *t_thing)
 
 //---------------------------------------------------------------
 
-//
+// claude-ai: fn_cop_normal() — весь код обёрнут в #if 0. В пре-релизе не выполняется.
+// claude-ai: В финальном релизе NPC ходят к waypoints и дерутся с целями — реализовано в pcom.cpp.
 void	fn_cop_normal(Thing *t_thing)
 {
 	#if 0

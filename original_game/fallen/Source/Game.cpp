@@ -147,6 +147,8 @@ extern BOOL allow_debug_keys;
 
 
 
+// claude-ai: VIOLENCE_ALLOWED — всегда 1 в стандартной сборке. 0 только для немецкой/французской PC версии.
+// claude-ai: В новой игре: всегда 1, немецкую/французскую цензуру не переносить.
 #define	VIOLENCE_ALLOWED	1
 
 #ifdef	VERSION_GERMAN
@@ -213,7 +215,8 @@ void global_load(void)
 
 //---------------------------------------------------------------
 //#define	DebugText
-// claude-ai: Initialize all game subsystems - loads resources, sets up world, spawns player
+// claude-ai: Инициализация всех подсистем: открытие дисплея, AENG_init, звук MFX_init, анимации, джойстик
+// claude-ai: Устанавливает GAME_STATE = GS_ATTRACT_MODE (PC) или GS_PLAY_GAME (PSX)
 void game_startup(void)
 {
 	GAME_STATE = 0;
@@ -383,7 +386,7 @@ extern UBYTE Eidos_Played;
 
 //---------------------------------------------------------------
 
-// claude-ai: Tear down all game subsystems - frees memory, unloads level, destroys Things
+// claude-ai: Завершение работы: CloseDisplay(), NET_kill(), освобождение памяти
 void game_shutdown(void)
 {
 	#ifndef	PSX
@@ -569,6 +572,9 @@ BOOL	game_init(void)
 		NO_PLAYERS = 1;
 		PLAYER_ID  = 0;
 	}
+	// claude-ai: TICK_RATIO — коэффициент масштабирования времени. Инициализируется как 1<<TICK_SHIFT (нормальная скорость).
+	// claude-ai: В process_things_tick() пересчитывается каждый кадр: TICK_RATIO = (реальный_мс << TICK_SHIFT) / NORMAL_TICK_TOCK
+	// claude-ai: NORMAL_TICK_TOCK = 1000/15 = 66.67мс (базовый тик 15 FPS). Усредняется по 4 кадрам через SmoothTicks().
 	TICK_RATIO = (1 << TICK_SHIFT);
 	DETAIL_LEVEL=0xffff;
 
@@ -1045,6 +1051,12 @@ extern void POLY_ClearAllPages ( void );
 
 //extern ULONG	get_hardware_input(UWORD type);
 
+// claude-ai: Главная функция игры. Вызывает game_startup(), затем главный while-цикл:
+// claude-ai:   GS_ATTRACT_MODE → game_attract_mode() (меню/фронтенд)
+// claude-ai:   GS_PLAY_GAME    → game_loop() (симуляция + рендеринг)
+// claude-ai:   GS_EDITOR       → editor_loop() (не нужен в новой версии)
+// claude-ai:   GS_CONFIGURE_NET → CNET_configure() (не нужен в новой версии)
+// claude-ai: После выхода из цикла — game_shutdown()
 void	game(void)
 {
 	game_startup();
@@ -1120,6 +1132,7 @@ void	game(void)
 
 
 
+	// claude-ai: Главный цикл: SHELL_ACTIVE = окно живо, GAME_STATE = текущее состояние (битовое поле)
 	while(SHELL_ACTIVE&&GAME_STATE)
 	{
 #ifndef PSX
@@ -1356,6 +1369,8 @@ SLONG  form_left_map  = 0;
 //
 // don't let the game run faster than this framerate by making you sit in a check the clock loop
 //
+// claude-ai: Ограничение FPS: spin-loop busy-wait через GetTickCount() до истечения 1000/fps мс
+// claude-ai: По умолчанию fps=30 (из config.ini "max_frame_rate"). Не вызывается на PSX/DC.
 void	lock_frame_rate(SLONG fps)
 {
 #if !defined(PSX) && !defined(TARGET_DC)
@@ -2071,7 +2086,14 @@ extern SLONG game_timeout;
 UWORD env_frame_rate;
 
 
-// claude-ai: Outer game loop - runs startup/shutdown around inner render+logic loop, returns exit code
+// claude-ai: Главный игровой цикл одной миссии. Порядок каждого кадра:
+// claude-ai:   1. process_controls() — ввод игрока
+// claude-ai:   2. process_things(1) — обновление всех Thing (StateFn каждого объекта, включает AI)
+// claude-ai:   3. FC_process() — обновление камеры
+// claude-ai:   4. draw_screen() — рендеринг сцены
+// claude-ai:   5. screen_flip() — вывод на экран
+// claude-ai:   6. lock_frame_rate() — ограничение до 30 FPS
+// claude-ai: Возвращает 0 = вернуться в attract-mode, 1 = полный выход из игры
 UBYTE	game_loop(void)
 {
 #ifndef	PSX
@@ -2435,6 +2457,8 @@ void	check_pows(void);
 				{
 //					TRACE("Process things\n");
 
+					// claude-ai: process_things(1) → вызывает StateFn каждого активного Thing (логика, физика, AI через PCOM_process_person)
+					// claude-ai: Внутри пересчитывает TICK_RATIO на основе реального времени кадра (Thing.cpp)
 					process_things(1);
 				}
 
@@ -2465,7 +2489,7 @@ void	check_pows(void);
 				MAP_process();
 #endif
 				POW_process();
-				FC_process();
+				FC_process(); // claude-ai: Обновление камеры (только fc.cpp; cam.cpp — мёртвый код, не переносить)
 
 			}
 			else
@@ -2568,7 +2592,7 @@ extern	void	do_packets(void);
 #ifndef	PSX
 #ifndef TARGET_DC
 #ifndef BREAKTIMER
-			lock_frame_rate(env_frame_rate);
+			lock_frame_rate(env_frame_rate); // claude-ai: Spin-loop busy-wait; env_frame_rate из config.ini "max_frame_rate" (по умолч. 30)
 #endif
 #endif
 #endif

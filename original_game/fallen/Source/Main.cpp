@@ -181,6 +181,7 @@ static HRESULT CALLBACK D3DEnumDevicesCallback(GUID FAR* lpGuid,
 
 extern HINSTANCE hGlobalThisInst;
 
+// claude-ai: Точка входа (PC/DC). Цепочка: SetupHost() → game() → ResetHost(). game() содержит весь игровой цикл.
 SLONG main(UWORD argc, TCHAR *argv[])
 {
 #ifdef TARGET_DC
@@ -254,6 +255,7 @@ extern void ENV_init ( void );
 #endif
 #endif
 
+	// claude-ai: SetupHost() создаёт окно и инициализирует DirectX/платформу; game() — весь игровой цикл
 	if(SetupHost(H_CREATE_LOG))
 	{
 //		mkt_test();

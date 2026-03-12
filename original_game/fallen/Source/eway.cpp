@@ -1,3 +1,30 @@
+// claude-ai: eway.cpp — EWAY (EventWay) mission scripting system (~8229 lines)
+// claude-ai: This is the ONLY mission scripting system used in Urban Chaos.
+// claude-ai: NOT MuckyBasic — MuckyBasic is a separate scripting language that is
+// claude-ai: never actually used in game missions (see subsystems/scripting.md for details).
+//
+// claude-ai: Architecture overview:
+// claude-ai:   .ucm files (in fallen/Debug/data/) are loaded as arrays of EWAY_Way structs.
+// claude-ai:   Each EWAY_Way = one "waypoint" = one event point (condition → action pair).
+// claude-ai:   Up to EWAY_MAX_WAYS waypoints per mission (see eway.h for the constant).
+// claude-ai:   Every game tick, EWAY_process() polls ALL waypoints — this is NOT event-driven.
+// claude-ai:
+// claude-ai: Key concepts:
+// claude-ai:   EWAY_Way   = one waypoint: has condition (ec), action (ed), stay rule (es)
+// claude-ai:   EWAY_Cond  = condition: type is one of EWAY_COND_* enum values (41 types)
+// claude-ai:   EWAY_Do    = action: type is one of EWAY_DO_* enum values (57 types)
+// claude-ai:   EWAY_Edef  = enemy definition: extra data for CREATE_ENEMY/CHANGE_ENEMY waypoints
+// claude-ai:   EWAY_flag  = per-waypoint state flags: EWAY_FLAG_ACTIVE, DEAD, FINISHED, etc.
+// claude-ai:
+// claude-ai: Lifecycle per waypoint per tick:
+// claude-ai:   if DEAD → skip
+// claude-ai:   if ACTIVE → check stay condition, may call EWAY_set_inactive()
+// claude-ai:   if not ACTIVE → EWAY_evaluate_condition() → if true, EWAY_set_active()
+// claude-ai:
+// claude-ai: Waypoint IDs vs indices:
+// claude-ai:   Each waypoint has an ew->id (designer-assigned name) and an array index.
+// claude-ai:   EWAY_fix_cond / EWAY_fix_do resolve id→index after all waypoints are loaded
+// claude-ai:   (called from EWAY_created_last_waypoint() at end of level load).
 //
 // Ugh... the whole game is based on waypoints.
 //
@@ -66,6 +93,12 @@ extern	ULONG	timer_bored; // I don't care I'm making the game better not the cod
 extern	SLONG save_psx;
 SLONG     EWAY_cond_upto;
 
+// claude-ai: Core EWAY data arrays — all heap-allocated (pointers to malloc'd blocks).
+// claude-ai: EWAY_way       = array of waypoints (max EWAY_MAX_WAYS). Index 0 is unused; valid range 1..EWAY_way_upto-1.
+// claude-ai: EWAY_cond      = array of extra condition structs for BOOL_AND / BOOL_OR sub-conditions.
+// claude-ai: EWAY_edef      = array of enemy definitions, one per CREATE_ENEMY or CHANGE_ENEMY waypoint.
+// claude-ai: EWAY_mess      = array of pointers into EWAY_mess_buffer (message strings for display/speech).
+// claude-ai: EWAY_mess_buffer = flat byte buffer holding all null-terminated message strings.
 EWAY_Cond	*EWAY_cond;//[EWAY_MAX_CONDS];
 EWAY_Way	*EWAY_way; //[EWAY_MAX_WAYS];
 EWAY_Edef	*EWAY_edef; //[EWAY_MAX_EDEFS];
@@ -143,6 +176,10 @@ SLONG EWAY_mess_upto;
 // The time.
 // 
 
+// claude-ai: Timer subsystem.
+// claude-ai: EWAY_time_accurate increments at 80 units/tick; EWAY_time = EWAY_time_accurate >> 4 (so 100 units/sec at 20Hz).
+// claude-ai: EWAY_tick = 5 units/tick at 20Hz — used as the countdown decrement for EWAY_COND_COUNTDOWN.
+// claude-ai: EWAY_count_up = visible mission timer in ms (used by driving/racing missions, not arrests).
 SLONG EWAY_time_accurate;	 // 1600 ticks per second
 SLONG EWAY_time;			 // 100  ticks per second
 SLONG EWAY_tick;			 // The amount of time since the last process waypoints: (100 ticks per sec.)
@@ -420,6 +457,10 @@ SLONG	playing_real_mission(void)
 #endif
 Thing	*talk_thing;
 
+// claude-ai: EWAY_talk() — plays the voiced speech file for a message waypoint.
+// claude-ai: File naming: talk2/<levelname>.ucm<waypointnumber>.wav  (e.g. talk2/Rescue1.ucm7.wav)
+// claude-ai: Called by EWAY_set_active() when a EWAY_DO_MESSAGE waypoint fires.
+// claude-ai: Stops any currently-playing music before playing the voice clip.
 //
 // Play the wav for the current mission with waypoint number waypoint
 //
@@ -552,6 +593,10 @@ CBYTE	*EWAY_get_mess(SLONG index)
 	ASSERT(index>=0);
 	return(EWAY_mess[index]);
 }
+// claude-ai: EWAY_init() — resets all waypoint system state at the start of a level.
+// claude-ai: Called before loading a .ucm file. Zeroes all arrays and resets counters.
+// claude-ai: NOTE: does NOT allocate memory — arrays are allocated elsewhere (memory.cpp / game startup).
+// claude-ai: Index 0 is intentionally skipped in all arrays (EWAY_way_upto starts at 1).
 #ifndef	PSX
 #ifndef TARGET_DC
 void EWAY_init()
@@ -620,6 +665,10 @@ ANNOYINGSCRIBBLECHECK;
 #endif
 #endif
 
+// claude-ai: EWAY_create_player() — spawns the player character (Darci, Roper, etc.) from a waypoint.
+// claude-ai: Called from EWAY_set_active() when EWAY_DO_CREATE_PLAYER waypoint fires.
+// claude-ai: Applies player stats from the_game (DarciStrength, Constitution, etc.) after creation.
+// claude-ai: NOTE: in this pre-release, Roper incorrectly uses Darci's stats (Roper stats block is commented out).
 //
 // Create a player.
 //
@@ -733,9 +782,13 @@ UWORD EWAY_create_player(
 }
 
 
+// claude-ai: EWAY_create_enemy() — spawns an NPC from a waypoint, delegating to PCOM_create_person().
+// claude-ai: 'zone' byte encodes both the spawn zone (low 4 bits) and special flags in bits 4-6:
+// claude-ai:   bit 4 = FLAG2_PERSON_INVULNERABLE, bit 5 = FLAG2_PERSON_GUILTY, bit 6 = FLAG2_PERSON_FAKE_WANDER
+// claude-ai: Coordinates in the waypoint struct are in map-square units; multiplied by 256 (<<8) for WorldPos.
 //
 // Creates an enemy.
-// 
+//
 
 UWORD EWAY_create_enemy(
 		UBYTE subtype,
@@ -857,6 +910,10 @@ UWORD EWAY_create_animal(
 	return p_index;
 }
 
+// claude-ai: EWAY_create_item() — spawns a pickup special (gun, keycard, etc.) at a waypoint position.
+// claude-ai: If EWAY_ARG_ITEM_STASHED_IN_PRIM is set, the item is hidden inside a nearby OB primitive
+// claude-ai: (removed from the map, flagged OB_FLAG_HIDDEN_ITEM) — player finds it by searching the object.
+// claude-ai: The waypoint index is stored in the special's counter field for back-reference.
 //
 // Creates an item of the given subtype.
 //
@@ -935,6 +992,11 @@ ANNOYINGSCRIBBLECHECK;
 	return THING_NUMBER(p_thing);
 }
 
+// claude-ai: EWAY_create_vehicle() — spawns a vehicle of the given EWAY_SUBTYPE_VEHICLE_* type.
+// claude-ai: All wheeled vehicles are created one mapsquare above target Y (<<8 + 0x100<<8) to fall to ground.
+// claude-ai: Non-PSX vehicles also get WMOVE_create() — vehicle traffic waypoint movement system.
+// claude-ai: Supported types: VAN, CAR, TAXI, POLICE, AMBULANCE, JEEP, MEATWAGON, SEDAN, WILDCATVAN, HELICOPTER.
+// claude-ai: BIKE is wrapped in #ifdef BIKE (unused/cut feature in this build).
 //
 // Creates a vehicle of the given subtype.
 //
@@ -1164,6 +1226,14 @@ ANNOYINGSCRIBBLECHECK;
 #ifndef PSX
 #ifndef TARGET_DC
 
+// claude-ai: EWAY_create_cond() — converts a raw condition definition (from .ucm file data) into a resolved EWAY_Cond.
+// claude-ai: For most condition types this is a straight copy of (type, negate, arg1, arg2).
+// claude-ai: Special cases that require world-space lookups at load time:
+// claude-ai:   EWAY_COND_TRIPWIRE    → finds nearby tripwire OB, calls TRIP_create(), stores trip index in arg1
+// claude-ai:   EWAY_COND_SWITCH      → finds nearest ANIM_PRIM_TYPE_SWITCH within 0x200 units
+// claude-ai:   EWAY_COND_BOOL_AND/OR → recursively creates two sub-conditions, stores them in EWAY_cond[]
+// claude-ai:   EWAY_COND_PRIM_DAMAGED → finds nearest damageable OB primitive
+// claude-ai:   EWAY_COND_RADIUS_USED → may convert to EWAY_COND_PRIM_ACTIVATED if switch/valve OB found nearby
 //
 // Converts a condition definition into a EWAY_Cond.
 //
@@ -1421,6 +1491,19 @@ EWAY_Cond EWAY_create_cond(
 #endif
 #endif
 
+// claude-ai: EWAY_create() — called once per waypoint while loading a .ucm file.
+// claude-ai: Fills in an EWAY_Way slot: copies position, ID, colour/group, condition, action, stay rule.
+// claude-ai: Special handling at creation time:
+// claude-ai:   CREATE_PLAYER / CREATE_ENEMY / CREATE_ANIMAL / CAMERA_TARGET: arg1/arg2 reset to NULL
+// claude-ai:     (arg1 will hold the Thing index once the waypoint fires at runtime)
+// claude-ai:   CREATE_ENEMY / CHANGE_ENEMY: saves EWAY_Edef into EWAY_edef[] array
+// claude-ai:   ACTIVATE_PRIM: calls find_anim_prim() to locate nearby animated primitive
+// claude-ai:   ELECTRIFY_FENCE: calls find_electric_fence_dbuilding() to attach to fence geometry
+// claude-ai:   CREATE_BOMB: creates a bomb special immediately at the waypoint position
+// claude-ai:   CONTROL_DOOR: door-handling moved to DOOR.CPP (code block commented out here)
+// claude-ai: Optimisation: COND_TRUE + unreferenced + CREATE_VEHICLE (non-helicopter) is fired immediately
+// claude-ai:   and the EWAY_way slot is reused (no reason to keep it around).
+// claude-ai: After all EWAY_create() calls, EWAY_created_last_waypoint() is called to fix cross-references.
 #ifndef PSX
 #ifndef TARGET_DC
 void EWAY_create(
@@ -1704,6 +1787,10 @@ SLONG EWAY_set_message(
 #ifndef PSX
 #ifndef TARGET_DC
 
+// claude-ai: EWAY_find_id() — linear search through EWAY_way[] to find a waypoint by its designer-assigned id.
+// claude-ai: Used during the post-load fixup pass (EWAY_fix_cond / EWAY_fix_do / EWAY_fix_edef).
+// claude-ai: Returns the array index (1..EWAY_way_upto-1), or NULL (0) if not found.
+// claude-ai: At runtime all ids have already been resolved to indices, so this is a load-time-only function.
 //
 // Returns the index of the waypoint with the given identifier.
 //
@@ -1729,6 +1816,13 @@ SLONG EWAY_find_id(SLONG id)
 #endif
 #endif
 
+// claude-ai: EWAY_fix_cond() / EWAY_fix_do() / EWAY_fix_edef() — post-load ID→index resolution.
+// claude-ai: Called by EWAY_created_last_waypoint() after all waypoints are loaded.
+// claude-ai: Any condition/action field that stored a designer waypoint ID is replaced with
+// claude-ai: the actual array index via EWAY_find_id().
+// claude-ai: EWAY_fix_cond also handles ITEM_HELD: resolves to the item's subtype (SPECIAL_*) rather
+// claude-ai: than the waypoint index, so the condition can check the player's inventory directly.
+// claude-ai: EWAY_fix_edef resolves the ai_other (bodyguard target) and follow waypoint references.
 #ifndef PSX
 #ifndef TARGET_DC
 
@@ -1896,6 +1990,11 @@ void EWAY_fix_edef(EWAY_Edef *ee)
 #endif
 #endif
 
+// claude-ai: EWAY_load_message_file() — loads a text file of mission strings into the EWAY message buffer.
+// claude-ai: File format: numbered lines like "1. This is the message text" (number, dot, space, text).
+// claude-ai: Messages are stored consecutively in EWAY_mess_buffer[] and indexed via EWAY_mess[].
+// claude-ai: Returns TRUE if the file was found, FALSE if missing (caller may try fallback path).
+// claude-ai: Used for: mission messages, fake-wander NPC dialogue (citsez.txt), guilty/annoyed text.
 #ifndef PSX
 #ifndef TARGET_DC
 SLONG EWAY_load_message_file(CBYTE *fname, UWORD *index, UWORD *number)
@@ -1954,6 +2053,11 @@ SLONG EWAY_load_message_file(CBYTE *fname, UWORD *index, UWORD *number)
 
 
 
+// claude-ai: EWAY_load_fake_wander_text() — loads dialogue lines for ambient NPC chatter.
+// claude-ai: Three pools are loaded: normal (citsez.txt), guilty (guilty.txt), annoyed (annoyed.txt).
+// claude-ai: Localisation: redirects to citsez_ita/french/german/spa.txt based on language setting.
+// claude-ai: When a citizen NPC with FLAG2_PERSON_FAKE_WANDER talks to the player, a random line
+// claude-ai: is selected from the appropriate pool via EWAY_get_fake_wander_message().
 void EWAY_load_fake_wander_text(CBYTE *fname)
 {
 #ifndef PSX
@@ -2163,6 +2267,16 @@ CBYTE *EWAY_get_fake_wander_message(SLONG type)
 }
 
 
+// claude-ai: EWAY_created_last_waypoint() — post-load fixup pass, called once after all EWAY_create() calls.
+// claude-ai: Does three important things:
+// claude-ai: 1. ID→index resolution: converts designer-assigned waypoint IDs (ew->id) to array indices
+// claude-ai:    for all dependency references via EWAY_fix_cond(), EWAY_fix_do(), EWAY_fix_edef().
+// claude-ai:    e.g. EWAY_COND_DEPENDENT stores the target waypoint's id; after fixup it stores array index.
+// claude-ai: 2. CRIME_RATE_SCORE_MUL calculation: sums objective points, counts guilty NPCs, sets multiplier.
+// claude-ai: 3. EWAY_FLAG_WHY_LOST tagging: marks messages that explain why a mission was failed,
+// claude-ai:    so they can be shown on the mission-lost screen via GAMEMENU_set_level_lost_reason().
+// claude-ai: Also resolves camera targets: CAMERA_TARGET_THING waypoints are attached to the
+// claude-ai: nearest CREATE_* waypoint within 0x300 units.
 #ifndef PSX
 #ifndef TARGET_DC
 void EWAY_created_last_waypoint()
@@ -2438,6 +2552,54 @@ SLONG	global_write12=0;
 
 
 
+// claude-ai: EWAY_evaluate_condition() — the condition evaluator; the heart of the polling loop.
+// claude-ai: Called every tick for every non-dead waypoint by EWAY_process().
+// claude-ai: Returns TRUE if the condition is satisfied (fires the action), FALSE otherwise.
+// claude-ai: ec->negate inverts the result (logical NOT).
+// claude-ai:
+// claude-ai: Condition types and their evaluation logic (key ones):
+// claude-ai:   EWAY_COND_FALSE/TRUE      — constant false/true
+// claude-ai:   EWAY_COND_PROXIMITY       — distance from Darci to waypoint position < ec->arg1 (QDIST3)
+// claude-ai:   EWAY_COND_TRIPWIRE        — TRIP_activated(ec->arg1) — tripwire primitive crossed
+// claude-ai:   EWAY_COND_SWITCH          — Thing->Flags & FLAGS_SWITCHED_ON for the switch OB
+// claude-ai:   EWAY_COND_TIME            — EWAY_time >= ec->arg1 (elapsed mission time)
+// claude-ai:   EWAY_COND_DEPENDENT       — EWAY_way[ec->arg1].flag & EWAY_FLAG_ACTIVE (another waypoint fired)
+// claude-ai:   EWAY_COND_BOOL_AND/OR     — recursive call on two sub-conditions stored in EWAY_cond[]
+// claude-ai:   EWAY_COND_COUNTDOWN       — decrements ec->arg2 by EWAY_tick each frame; fires when zero
+// claude-ai:   EWAY_COND_COUNTDOWN_SEE   — same as COUNTDOWN but also draws timer HUD and triggers music
+// claude-ai:   EWAY_COND_PERSON_DEAD     — checks Thing->State == STATE_DEAD for the referenced waypoint's NPC
+// claude-ai:   EWAY_COND_PERSON_NEAR     — distance check from specific NPC (or any NPC) to waypoint pos
+// claude-ai:   EWAY_COND_PLAYER_CUBOID   — player within rectangular XZ bounds (±ec->arg1, ±ec->arg2)
+// claude-ai:   EWAY_COND_PLAYER_CUBE     — like CUBOID but also checks Y < ew->y ceiling
+// claude-ai:   EWAY_COND_PERSON_ARRESTED — FLAG_PERSON_ARRESTED && SubState == SUB_STATE_DEAD_ARRESTED
+// claude-ai:   EWAY_COND_KILLED_NOT_ARRESTED — STATE_DEAD but NOT FLAG_PERSON_ARRESTED (shot, not cuffed)
+// claude-ai:   EWAY_COND_A_SEE_B         — line-of-sight check between two referenced NPCs
+// claude-ai:   EWAY_COND_GROUP_DEAD      — all EWAY_DO_CREATE_ENEMY waypoints with same colour are dead
+// claude-ai:   EWAY_COND_HALF_DEAD       — NPC health in range [10, 100] (damaged but alive)
+// claude-ai:   EWAY_COND_ITEM_HELD       — player carrying a specific special item type
+// claude-ai:   EWAY_COND_PERSON_USED     — player pressed USE near the NPC (flag on PCOM person)
+// claude-ai:   EWAY_COND_RADIUS_USED     — player near waypoint and pressed USE; sets EWAY_magic_radius_flag
+// claude-ai:   EWAY_COND_PRIM_DAMAGED    — OB_ob[ec->arg1].flags & OB_FLAG_DAMAGED
+// claude-ai:   EWAY_COND_CONVERSE_END    — EWAY_FLAG_FINISHED set on referenced conversation waypoint
+// claude-ai:   EWAY_COND_COUNTER_GTEQ    — EWAY_counter[ec->arg1] >= ec->arg2
+// claude-ai:   EWAY_COND_CRIME_RATE_GTEQ/LTEQ — CRIME_RATE comparison
+// claude-ai:   EWAY_COND_IS_MURDERER     — FLAG2_PERSON_IS_MURDERER on the NPC
+// claude-ai:   EWAY_COND_PERSON_IN_VEHICLE — NPC is driving (optionally a specific vehicle)
+// claude-ai:   EWAY_COND_THING_RADIUS_DIR — NPC within radius AND facing a specific direction (±128/2048)
+// claude-ai:   EWAY_COND_MOVE_RADIUS_DIR  — like THING_RADIUS_DIR but checks moving direction not facing
+// claude-ai:   EWAY_COND_SPECIFIC_ITEM_HELD — EWAY_FLAG_GOTITEM on the CREATE_ITEM waypoint
+// claude-ai:   EWAY_COND_RANDOM          — fires one random sibling COND_RANDOM, kills all others
+// claude-ai:   EWAY_COND_PLAYER_FIRED_GUN — GF_PLAYER_FIRED_GUN flag in GAME_FLAGS
+// claude-ai:   EWAY_COND_PRIM_ACTIVATED  — EWAY_FLAG_TRIGGERED set on this waypoint externally
+// claude-ai:   EWAY_COND_DARCI_GRABBED   — player in STATE_FIGHTING + SUB_STATE_GRAPPLE_HOLD
+// claude-ai:   EWAY_COND_PUNCHED_AND_KICKED — player did ≥2 punches AND ≥2 kicks (tracked via EWAY_darci_move)
+// claude-ai:   EWAY_COND_AFTER_FIRST_GAMETURN — GAME_TURN > 0 (avoids frame-0 trigger issues)
+// claude-ai:
+// claude-ai: Post-evaluation guards (applied before returning):
+// claude-ai:   MESSAGE/CONVERSATION waypoints cannot fire on GAME_TURN 0.
+// claude-ai:   MESSAGE waypoints delay if another voice is currently playing (unless it's music-only).
+// claude-ai:   CAMERA_CREATE waypoints block if camera is active or going inactive.
+// claude-ai:   CONVERSATION waypoints require Darci not falling, both NPCs alive and visible to each other.
 SLONG EWAY_evaluate_condition(EWAY_Way *ew, EWAY_Cond *ec, SLONG EWAY_sub_condition_of_a_boolean = FALSE)
 {
 	SLONG ans = FALSE;
@@ -2548,7 +2710,12 @@ ANNOYINGSCRIBBLECHECK;
 			break;
 
 		case EWAY_COND_COUNTDOWN:
+			// claude-ai: Fires after a delay. ec->arg1 = waypoint index that must be ACTIVE first (0 = always counting).
+			// claude-ai: ec->arg2 starts as the delay in EWAY_tick units (set in .ucm). Decremented each frame.
+			// claude-ai: Timers pause while EWAY_conv_active (a conversation is playing).
 		case EWAY_COND_COUNTDOWN_SEE:
+			// claude-ai: Like COUNTDOWN but also draws a visible HUD countdown timer (PANEL_draw_timer)
+			// claude-ai: and switches to MUSIC_MODE_TIMER when under 30 seconds (ec->arg2 < 3000).
 
 			{
 				SLONG depend = ec->arg1;
@@ -3071,6 +3238,10 @@ ANNOYINGSCRIBBLECHECK;
 			break;
 
 		case EWAY_COND_PERSON_ARRESTED:
+			// claude-ai: True when the NPC has been handcuffed by Darci (player presses arrest button while grappling).
+			// claude-ai: Requires FLAG_PERSON_ARRESTED AND SubState == SUB_STATE_DEAD_ARRESTED (both must be set).
+			// claude-ai: FLAG_PERSON_ARRESTED is set in pcom.cpp when TT_PERSON_ARRESTED fires (Darci cuffs someone).
+			// claude-ai: This is one of the core mission success conditions for arrest-based missions.
 
 			ans = FALSE; // By default.
 
@@ -3785,6 +3956,13 @@ ANNOYINGSCRIBBLECHECK;
 
 
 
+// claude-ai: EWAY_create_camera() — initialises the scripted cut-scene camera from a CAMERA_CREATE waypoint.
+// claude-ai: Sets EWAY_cam_active=TRUE and populates all EWAY_cam_* globals.
+// claude-ai: The camera starts at the waypoint position and looks for the first CAMERA_TARGET waypoint
+// claude-ai: with the same colour/group (via EWAY_find_waypoint). The camera then moves through
+// claude-ai: subsequent CAMERA_WAYPOINT entries each tick (processed in EWAY_process_camera()).
+// claude-ai: EWAY_SUBTYPE_CAMERA_LOCK_PLAYER → EWAY_cam_freeze=TRUE → player input disabled during cut-scene.
+// claude-ai: EWAY_cam_skip=100 → cannot skip for 1 second after camera starts.
 //
 // Sets off a new cut-scene camera starting from the given waypoint.
 //
@@ -3859,6 +4037,14 @@ ANNOYINGSCRIBBLECHECK;
 
 
 
+// claude-ai: EWAY_process_camera() — advances the scripted cut-scene camera each tick.
+// claude-ai: Reads EWAY_cam_* globals set by EWAY_create_camera() and moves the camera through
+// claude-ai: CAMERA_WAYPOINT nodes (waypoints with same colour/group as the CAMERA_CREATE waypoint).
+// claude-ai: Camera looks at a CAMERA_TARGET waypoint — can be a fixed position or track a Thing.
+// claude-ai: When EWAY_cam_goinactive counts down to 0, sets EWAY_cam_active=FALSE (end of cut-scene).
+// claude-ai: Sets EWAY_FLAG_ACTIVE on CAMERA_AT conditions when the camera reaches each node.
+// claude-ai: EWAY_cam_freeze=TRUE → player movement is locked while camera is running.
+// claude-ai: Outputs final camera position/angles to FC_cam[] for the rendering system.
 void EWAY_process_camera(void)
 {
 	SLONG dx;
@@ -4528,6 +4714,13 @@ ANNOYINGSCRIBBLECHECK;
 
 }
 
+// claude-ai: EWAY_process_conversation() — advances the active scripted two-person conversation.
+// claude-ai: Conversations are triggered by EWAY_DO_CONVERSATION or EWAY_DO_AMBIENT_CONV waypoints.
+// claude-ai: The message string in EWAY_mess is parsed: lines starting with 'A' or 'B' indicate speaker.
+// claude-ai: Each line is displayed via PANEL_new_text() and voiced via EWAY_talk_conv().
+// claude-ai: Non-ambient conversations: switches game to widescreen mode, locks camera, disables player input.
+// claude-ai: EWAY_conv_active flag suppresses countdown timers (EWAY_COND_COUNTDOWN) during conversations.
+// claude-ai: When all lines are done, sets EWAY_FLAG_FINISHED on the conversation waypoint.
 //
 // Processes a conversation.
 //
@@ -4807,6 +5000,35 @@ ANNOYINGSCRIBBLECHECK;
 // Does what has to be done when a waypoint goes active.
 //
 
+// claude-ai: EWAY_set_active() — fires a waypoint's action. Called when EWAY_evaluate_condition() returns TRUE.
+// claude-ai: Sets EWAY_FLAG_ACTIVE on the waypoint, then dispatches based on ew->ed.type (EWAY_DO_*).
+// claude-ai:
+// claude-ai: Key action types handled here (all EWAY_DO_* cases):
+// claude-ai:   CREATE_PLAYER    → EWAY_create_player(); result Thing index stored in ew->ed.arg1
+// claude-ai:   CREATE_ANIMAL    → EWAY_create_animal(); gargoyle/balrog/bane via BAT_create()
+// claude-ai:   CREATE_ENEMY     → EWAY_create_enemy() using EWAY_Edef params; Thing index → ew->ed.arg1
+// claude-ai:   CREATE_ITEM      → EWAY_create_item(); if EWAY_ARG_ITEM_FOLLOW_PERSON, item spawns near condition NPC
+// claude-ai:   CREATE_VEHICLE   → EWAY_create_vehicle(); Thing index → ew->ed.arg1
+// claude-ai:   SOUND_ALARM      → MFX_play_xyz + PCOM_oscillate_tympanum (alert all nearby NPCs)
+// claude-ai:   SOUND_EFFECT     → play_glue_wave at waypoint position
+// claude-ai:   CONTROL_DOOR     → DOOR_open(x, z) — opens door at waypoint position
+// claude-ai:   EXPLODE          → PYRO_construct() explosion effect + shockwave damage
+// claude-ai:   SPOT_FX          → PYRO_create(PYRO_IRONICWATERFALL) persistent particle effect
+// claude-ai:   MESSAGE          → plays voice wav (EWAY_talk) + PANEL_new_text() to show subtitle
+// claude-ai:   NAV_BEACON       → MAP_beacon_create() — adds a minimap marker
+// claude-ai:   ELECTRIFY_FENCE  → set_electric_fence_state(arg1, TRUE)
+// claude-ai:   CAMERA_CREATE    → EWAY_create_camera() — starts the cut-scene camera
+// claude-ai:   MISSION_FAIL     → GAME_STATE = GS_LEVEL_LOST
+// claude-ai:   MISSION_COMPLETE → GAME_STATE = GS_LEVEL_WON; makes Darci invulnerable; calls set_stats()
+// claude-ai:   CHANGE_ENEMY     → PCOM_change_person_attributes() — alters NPC AI/behaviour mid-mission
+// claude-ai:   CHANGE_ENEMY_FLG → sets pcom_bent and pcom_zone directly on the NPC struct
+// claude-ai:   CREATE_PLATFORM  → PLAT_create() — creates a moving platform
+// claude-ai:   KILL_WAYPOINT    → sets EWAY_FLAG_DEAD on another waypoint; also destroys its created entity:
+// claude-ai:                      enemies teleported to (0x80,0x80), vehicles blown up, nav beacons removed
+// claude-ai:   OBJECTIVE        → reduces CRIME_RATE by the points value × CRIME_RATE_SCORE_MUL
+// claude-ai:   GROUP_LIFE       → clears EWAY_FLAG_DEAD on all waypoints sharing colour/group
+// claude-ai:   WATER_SPOUT      — does nothing here; effect runs each tick in EWAY_process() while active
+// claude-ai:   CREATE_BOMB      — bomb was pre-created at EWAY_create() time; nothing to do here
 void EWAY_set_active(EWAY_Way *ew)
 {
 	SLONG has;
@@ -5210,7 +5432,7 @@ ANNOYINGSCRIBBLECHECK;
 													}
 													else
 													{
-														CONSOLE_text ( "D'arci arr�te de jouer !", 8000 );
+														CONSOLE_text ( "D'arci arr�te de jouer !", 8000 );
 													}
 												}
 												break;
@@ -5228,7 +5450,7 @@ ANNOYINGSCRIBBLECHECK;
 													}
 													else
 													{
-														CONSOLE_text ( "La bo�te de vitesse D'arci !", 8000 );
+														CONSOLE_text ( "La bo�te de vitesse D'arci !", 8000 );
 													}
 												}
 												TRACE ( "2: Car yaw: %i\n", yaw_car );
@@ -5253,7 +5475,7 @@ ANNOYINGSCRIBBLECHECK;
 													}
 													else
 													{
-														CONSOLE_text ( "Bien jou� D'arci. La bagnole est bonne pour la casse maintenant !", 8000 );
+														CONSOLE_text ( "Bien jou� D'arci. La bagnole est bonne pour la casse maintenant !", 8000 );
 													}
 												}
 												break;
@@ -5388,6 +5610,8 @@ ANNOYINGSCRIBBLECHECK;
 			break;
 
 		case EWAY_DO_MISSION_FAIL:
+			// claude-ai: WPT_FAIL_MISSION equivalent — sets GAME_STATE = GS_LEVEL_LOST (unless already won).
+			// claude-ai: Game loop detects GS_LEVEL_LOST and shows the failure screen.
 			if (GAME_STATE != GS_LEVEL_WON)
 			{
 				GAME_STATE = GS_LEVEL_LOST;
@@ -5395,6 +5619,8 @@ ANNOYINGSCRIBBLECHECK;
 			break;
 
 		case EWAY_DO_MISSION_COMPLETE:
+			// claude-ai: WPT_WIN_MISSION equivalent — sets GS_LEVEL_WON, makes Darci invulnerable, calls set_stats().
+			// claude-ai: set_stats() calculates mission score and updates mission_hierarchy[] completed bit.
 			if (GAME_STATE != GS_LEVEL_LOST)
 			{
 				//
@@ -6531,6 +6757,36 @@ void	count_people_types(void)
 #endif
 #endif
 
+// claude-ai: EWAY_process() — the main polling loop, called once per game tick from the game update.
+// claude-ai: This is the ENGINE of the entire mission system. It evaluates every waypoint every frame.
+// claude-ai:
+// claude-ai: Tick timing:
+// claude-ai:   EWAY_time_accurate += 80 * TICK_RATIO >> TICK_SHIFT  (80 units/tick at nominal 20Hz)
+// claude-ai:   EWAY_time = EWAY_time_accurate >> 4  (roughly 100 time units per second)
+// claude-ai:   EWAY_tick = 5 units/tick at 20Hz = effectively 100 units/sec countdown rate
+// claude-ai:
+// claude-ai: PSX optimisation: processes every other waypoint per frame (step=2, offset=GAME_TURN&1).
+// claude-ai: PC/DC: always step=1, offset=0 (all waypoints every frame).
+// claude-ai:
+// claude-ai: Per-waypoint logic (for each i in 1..EWAY_way_upto):
+// claude-ai:   EWAY_FLAG_DEAD → skip (waypoint permanently killed)
+// claude-ai:   EWAY_FLAG_ACTIVE:
+// claude-ai:     — EMIT_STEAM: run particle emission each tick
+// claude-ai:     — SHAKE_CAMERA: ramp up FC_cam[0].shake each tick
+// claude-ai:     — VISIBLE_COUNT_UP: accumulate EWAY_count_up (mission timer), draw HUD timer
+// claude-ai:     — EWAY_FLAG_COUNTDOWN: decrement EWAY_timer[] by EWAY_tick; if ≤0 → EWAY_set_inactive()
+// claude-ai:     — else check stay rule (EWAY_STAY_ALWAYS/WHILE/WHILE_TIME/TIME):
+// claude-ai:         STAY_ALWAYS → immediately mark DEAD (one-shot waypoint)
+// claude-ai:         STAY_WHILE  → re-evaluate condition; if false → EWAY_set_inactive()
+// claude-ai:         STAY_WHILE_TIME → as WHILE, but starts a countdown timer before going inactive
+// claude-ai:     — WATER_SPOUT: emit water particles at waypoint position while active
+// claude-ai:   not ACTIVE:
+// claude-ai:     — EWAY_evaluate_condition() → if TRUE → EWAY_set_active()
+// claude-ai:
+// claude-ai: After the main loop:
+// claude-ai:   EWAY_process_conversation() — advances any active scripted conversation
+// claude-ai:   EWAY_process_penalties()    — shows driving-mission cone-penalty count on HUD
+// claude-ai:   EWAY_process_camera()       — moves the scripted cut-scene camera
 void EWAY_process()
 {
 	SLONG i;
@@ -6837,10 +7093,15 @@ UWORD EWAY_get_angle(SLONG waypoint)
 	return ans;
 }
 
+// claude-ai: EWAY_get_person() — given a waypoint index, returns the Thing index of the entity it created.
+// claude-ai: Works for CREATE_ENEMY, CREATE_PLAYER, CREATE_VEHICLE, CREATE_ANIMAL.
+// claude-ai: ew->ed.arg1 holds the Thing index after the waypoint has fired; NULL if not yet created.
+// claude-ai: Returns NULL (0) if waypoint is 0 or the waypoint type doesn't create a Thing.
+// claude-ai: Used extensively in condition evaluation to dereference NPC references.
 UWORD EWAY_get_person(SLONG waypoint)
 {
 	UWORD ans;
-	
+
 	if (waypoint == NULL)
 	{
 		return NULL;
@@ -6869,6 +7130,11 @@ UWORD EWAY_get_person(SLONG waypoint)
 
 
 
+// claude-ai: EWAY_find_waypoint() — searches EWAY_way[] for a waypoint matching type/colour/group.
+// claude-ai: Starts from 'index' and wraps around (circular search). Returns array index or EWAY_NO_MATCH.
+// claude-ai: Pass EWAY_DONT_CARE for any field to match any value.
+// claude-ai: Used by EWAY_process_camera() to find the first CAMERA_TARGET waypoint in a colour/group.
+// claude-ai: Also used by NPCs (via pcom.cpp) to find patrol/wander waypoints matching their colour.
 SLONG EWAY_find_waypoint(
 		SLONG index,
 		SLONG whatdo,	// or EWAY_DONT_CARE

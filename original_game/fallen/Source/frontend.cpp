@@ -455,7 +455,7 @@ CBYTE* menu_brief_names[]= { "briefing leaves darci.tga", "briefing rain darci.t
 CBYTE* menu_config_names[]= { "config leaves.tga", "config rain.tga", 
 						     "config snow.tga", "config blood.tga" };
 
-CBYTE frontend_fonttable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?����������";
+CBYTE frontend_fonttable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?����������";
 
 ULONG FRONTEND_leaf_colours[4] =
 	{
@@ -1508,6 +1508,10 @@ void	init_best_found(void)
 	memset(&best_found[0][0],50*4,0);
 }
 
+// claude-ai: FRONTEND_save_savegame() — сохранение игры в бинарный файл saves/slot{N}.wag.
+// claude-ai: Формат: mission_name[32], complete_point(1), version=3(1), DarciStr/Con/Skl/Sta(4),
+// claude-ai:   RoperStr/Con/Skl/Sta(4), DarciDeadCivWarnings(1), mission_hierarchy[60], best_found[50][4].
+// claude-ai: version=3 — финальная версия формата. При добавлении полей обязательно увеличивать!
 bool FRONTEND_save_savegame(CBYTE *mission_name, UBYTE slot) {
 	CBYTE fn[_MAX_PATH];
 	MFFileHandle file;
@@ -1539,6 +1543,10 @@ bool FRONTEND_save_savegame(CBYTE *mission_name, UBYTE slot) {
 	return TRUE;
 }
 
+// claude-ai: FRONTEND_load_savegame() — загрузка игры из saves/slot{N}.wag.
+// claude-ai: Версионная совместимость: version=0 — только complete_point; version>0 — +stats;
+// claude-ai:   version>1 — +mission_hierarchy[60]; version>2 — +best_found[50][4].
+// claude-ai: Старые сохранения (version 0,1,2) читаются корректно — поля просто пропускаются.
 bool FRONTEND_load_savegame(UBYTE slot) {
 	CBYTE fn[_MAX_PATH];
 	MFFileHandle file;
@@ -3727,6 +3735,7 @@ UBYTE	FRONTEND_input() {
 
 		if ((menu_state.mode==FE_SAVESCREEN)&&(item->Data!=FE_BACK))
 		{
+			// claude-ai: save_slot — 1-based (1,2,3), не 0-based! menu_state.selected — 0-based индекс.
 			save_slot=menu_state.selected+1;
 //			item->LabelID=X_SAVE_GAME;
 /*			menu_mode_queued=FE_SAVE_CONFIRM;

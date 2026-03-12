@@ -6,6 +6,16 @@
 #define	VEHICLE_H
 #include "../Headers/State.h"
 
+// claude-ai: Флаги VehicleStruct.Flags (UWORD).
+// claude-ai: ВАЖНО: FLAG_FURN_DRIVING — это НЕ флаг Vehicle! Он определён в Furn.h и
+// claude-ai:         применяется к Furniture Thing, а не к VehicleStruct напрямую.
+// claude-ai:   FLAG_VEH_DRIVING    — машина сейчас едет (управляется)
+// claude-ai:   WHEEL1..4_GRIP      — каждое из 4 колёс имеет сцепление с дорогой
+// claude-ai:   FLAG_VEH_ANIMATING  — активна анимация (двери открываются и т.п.)
+// claude-ai:   FLAG_VEH_FX_STATE   — состояние звуковых/визуальных эффектов
+// claude-ai:   FLAG_VEH_SHOT_AT    — по машине стреляли (для AI-реакции)
+// claude-ai:   FLAG_VEH_STALLED    — двигатель заглох, больше нельзя ехать
+// claude-ai:   FLAG_VEH_IN_AIR     — машина в воздухе (прыжок/падение)
 #define	FLAG_VEH_DRIVING	 (1<<0)
 #define	FLAG_VEH_WHEEL1_GRIP (1<<1)
 #define	FLAG_VEH_WHEEL2_GRIP (1<<2)
@@ -19,7 +29,10 @@
 
 // Vehicle structure
 
-typedef	struct	
+// claude-ai: Пружина подвески одного колеса.
+// claude-ai:   Compression — текущее сжатие пружины (UWORD)
+// claude-ai:   Length      — текущая длина пружины (UWORD)
+typedef	struct
 {
 	UWORD	Compression;
 	UWORD	Length;
@@ -34,10 +47,31 @@ typedef	struct
 
 // speed limits
 
+// claude-ai: Ограничения скорости транспорта (в игровых единицах/тик).
+// claude-ai:   VEH_SPEED_LIMIT   = 750  (~35 mph, максимальная скорость вперёд)
+// claude-ai:   VEH_REVERSE_SPEED = 300  (максимальная скорость заднего хода)
 #define	VEH_SPEED_LIMIT		750		// the speed limit ("35 mph")
 #define VEH_REVERSE_SPEED	300		// the speed limit for reversing
 
-typedef struct 
+// claude-ai: Основная структура транспортного средства. Хранится в пуле vehicles[MAX_VEHICLES=40].
+// claude-ai: Ключевые поля:
+// claude-ai:   Draw         — данные для интерполированного рендера (DrawTween)
+// claude-ai:   Spring[4]    — подвеска 4 колёс (Compression/Length)
+// claude-ai:   DY[4]        — вертикальная скорость каждой точки подвески
+// claude-ai:   Angle(0-2047)— угол поворота машины (0-2047 = 360°)
+// claude-ai:   Tilt, Roll   — наклон вперёд/назад и крен (для визуала подвески)
+// claude-ai:   Steering(-64..+64) — положение руля; IsAnalog — флаг аналогового ввода
+// claude-ai:   DControl     — цифровые кнопки: VEH_ACCEL/DECEL/FASTER/SIREN
+// claude-ai:   Flags        — FLAG_VEH_* (см. выше)
+// claude-ai:   Driver       — THING_INDEX водителя (0=нет водителя)
+// claude-ai:   Passenger    — связный список пассажиров
+// claude-ai:   Type         — тип машины VEH_TYPE_* (0-8)
+// claude-ai:   damage[6]    — 6 зон повреждения кузова (0=целая, 4=максимум)
+// claude-ai:   Health(0-300)— здоровье машины; при 0 — взрыв
+// claude-ai:   VelX/Y/Z     — вектор скорости; VelR — угловая скорость
+// claude-ai:   Skid(>=3)    — скольжение (SKID_START=3); Stable(16 кадров) — стабилизация
+// claude-ai:   Smokin, Scrapin — визуальные эффекты дыма и скрежета
+typedef struct
 {
 	DrawTween	Draw;
 
@@ -97,6 +131,10 @@ typedef struct
 
 typedef	Vehicle* VehiclePtr;
 
+// claude-ai: Максимальное количество транспортных средств одновременно.
+// claude-ai:   RMAX_VEHICLES=40 — жёсткий лимит массива (real max).
+// claude-ai:   MAX_VEHICLES     — актуальный лимит из save_table (может быть меньше RMAX_VEHICLES).
+// claude-ai:   VEH_NULL=65000   — sentinel-значение "нет машины" (как NULL для THING_INDEX).
 #define RMAX_VEHICLES	40
 #define MAX_VEHICLES	(save_table[SAVE_TABLE_VEHICLE].Maximum)
 #define	VEH_NULL		65000
@@ -108,6 +146,10 @@ extern StateFunction VEH_statefunctions[];
 
 void init_vehicles(void);
 
+// claude-ai: Типы транспортных средств (VehicleStruct.Type). Определяют физику двигателя,
+// claude-ai: меш, зоны повреждения и поведение AI.
+// claude-ai: Физика двигателя группируется по типу (см. ENGINE_LGV/CAR/PIG/AMB в vehicle.cpp).
+// claude-ai: BIKE система (bike.cpp/bike.h) — НЕ ПЕРЕНОСИТЬ, незавершённая фича.
 #define VEH_TYPE_VAN		0
 #define VEH_TYPE_CAR		1
 #define VEH_TYPE_TAXI		2

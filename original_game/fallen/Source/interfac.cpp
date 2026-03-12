@@ -1,3 +1,28 @@
+// claude-ai: ОБЗОР ФАЙЛА — interfac.cpp
+// claude-ai: Главный файл обработки пользовательского ввода. Транслирует аппаратный ввод
+// claude-ai: (клавиатура + джойпад/геймпад) в игровые действия (ACTION_* / INPUT_MASK_*).
+// claude-ai:
+// claude-ai: ОСНОВНОЙ ПОТОК ДАННЫХ:
+// claude-ai:   get_hardware_input()         -- читает аппаратный ввод через DirectInput (DIJOYSTATE the_state)
+// claude-ai:                                   и клавиатуру (Keys[]), упаковывает в ULONG input
+// claude-ai:   update_player() / apply_button_input()  -- применяет input к игровому персонажу
+// claude-ai:   player_apply_move()          -- обрабатывает движение (поворот, бег, прыжок)
+// claude-ai:   do_an_action()               -- контекстно-зависимое действие (арест, вход в машину,
+// claude-ai:                                   подбор предмета, переключатели, разговор с NPC)
+// claude-ai:   apply_button_input_fight()   -- боевой режим (удары, уклонения)
+// claude-ai:   apply_button_input_vehicle() -- управление автомобилем
+// claude-ai:
+// claude-ai: ВАЖНО ДЛЯ ПОРТИРОВАНИЯ:
+// claude-ai:   - ReadInputDevice() и DIJOYSTATE the_state — DirectInput API (ddlib.cpp/ddlib.h)
+// claude-ai:     Заменить на SDL_GetGamepadAxis / SDL_GetGamepadButton (SDL3)
+// claude-ai:   - Keys[] — массив клавиш от DirectInput; заменить на SDL_GetKeyboardState() (SDL3)
+// claude-ai:   - Аналоговый стик упакован в старшие биты ULONG input (биты 17-31)
+// claude-ai:     GET_JOYX = биты 17-23, GET_JOYY = биты 24-30; диапазон -128..+127
+// claude-ai:   - Мёртвая зона аналога: NOISE_TOLERANCE = 8192 (PC, из 65535) или 24 (DC, из 255)
+// claude-ai:   - Double-click детекция через Player::DoubleClick[] + Player::LastReleased[]
+// claude-ai:     (временное окно 200 game-тиков), используется для выхода из боевого режима
+// claude-ai:   - MAX_PLAYERS = 2, splitscreen поддержан структурно, но кооп не реализован
+// claude-ai:   - Код для PSX, Dreamcast, BIKE, HOOK, SNIPE — не переносить (целевая платформа PC)
 #include	"game.h"
 #include	"..\headers\interfac.h"
 #include	"animate.h"
@@ -30,6 +55,7 @@
 #ifndef PSX
 #include	"panel.h"
 #include	"env.h"
+// claude-ai: DirectInput API — ddlib.h обёртка над DirectInput 8; заменить на SDL3
 #include	"ddlib.h"
 #include	"poly.h"
 #endif
@@ -56,6 +82,8 @@ UBYTE	cheat=0;
 
 #endif
 
+// claude-ai: Аналоговый стик закодирован в старших битах Player::Input.
+// claude-ai: GET_JOYX: биты 17-24 (X-ось), GET_JOYY: биты 24-31 (Y-ось). Результат: -128..+127
 #define	GET_JOYX(input)		(((input>>17)&0xfe)-128)
 #define	GET_JOYY(input)		(((input>>24)&0xfe)-128)
 
@@ -80,12 +108,17 @@ DWORD m_dwFogTableDebugFogTableMode = D3DFOG_NONE;
 #endif
 
 
+// claude-ai: ANALOGUE_MIN_VELOCITY — минимальная величина analog stick velocity, ниже которой
+// claude-ai: движение игнорируется (дополнительная мёртвая зона на уровне игровой логики).
+// claude-ai: PC: 8 (из 128), PSX: 32 (из 128). На PC основная мёртвая зона — NOISE_TOLERANCE в get_hardware_input().
 #ifndef PSX
 #define	ANALOGUE_MIN_VELOCITY	8
 #else
 #define	ANALOGUE_MIN_VELOCITY	32
 #endif
 
+// claude-ai: input_mode: 0 = клавиатура (INPUT_KEYS), 1 = джойпад (INPUT_JOYPAD).
+// claude-ai: Устанавливается в get_hardware_input() в зависимости от источника ввода.
 #define	INPUT_KEYS		0
 #define	INPUT_JOYPAD	1
 
@@ -299,6 +332,11 @@ void INTERFAC_SetUpJoyPadButtons ( int iMode )
 
 #endif
 
+// claude-ai: init_joypad_config() — читает привязку кнопок джойпада из config.ini (через ENV_get_value_number).
+// claude-ai: Заполняет joypad_button_use[] и keybrd_button_use[] — индексы физических кнопок
+// claude-ai: для каждой логической функции (JOYPAD_BUTTON_KICK, JOYPAD_BUTTON_PUNCH и т.д.).
+// claude-ai: В SDL3: хранить как SDL_GamepadButton индексы; читать из аналогичного конфига.
+// claude-ai: DI_DC_BUTTON_* константы — нумерация кнопок Dreamcast геймпада через DirectInput.
 void	init_joypad_config(void)
 {
 	SLONG  val;
@@ -381,6 +419,11 @@ void	init_joypad_config(void)
 #define	INPUT_ACTION_MASK	(~0x3f)
 
 
+// claude-ai: ActionInfo — запись в таблице переходов состояний.
+// claude-ai:   Action — ACTION_* константа, которую нужно выполнить
+// claude-ai:   Logic  — 0: достаточно любого бита из Input; 1: все биты Input должны быть выставлены
+// claude-ai:   Input  — маска INPUT_MASK_* кнопок, необходимых для срабатывания
+// claude-ai: find_best_action_from_tree() просматривает массив ActionInfo для текущего состояния персонажа.
 struct	ActionInfo
 {
 	UBYTE	Action;
@@ -580,6 +623,10 @@ struct	ActionInfo	action_sit[]=
 	{0,0,0}
 };
 
+// claude-ai: action_tree — индексируется по ACTION_* (текущее действие персонажа).
+// claude-ai: Каждый элемент — указатель на массив ActionInfo (возможные переходы из данного состояния).
+// claude-ai: NULL-записи: данное состояние не допускает ввода от игрока.
+// claude-ai: find_best_action_from_tree(p_person->Action, input, &input_used) — основной диспетчер.
 struct	ActionInfo	*action_tree[]=
 {
 	action_idle,
@@ -1208,6 +1255,21 @@ SLONG person_get_in_car(Thing *p_thing, SLONG *door)
 //#ifdef	FINAL
 //#define	PANEL_new_text(a,b,c)
 //#endif
+// claude-ai: do_an_action() — обрабатывает ACTION_ACTION_FLAG (кнопка "действие").
+// claude-ai: Контекстно-зависимый приоритет:
+// claude-ai:   1. Выйти из машины (если едет)
+// claude-ai:   2. Арест ближайшего преступника (find_arrestee)
+// claude-ai:   3. Слезть с лестницы (сверху)
+// claude-ai:   4. Сесть в ближайшую машину (person_get_in_car)
+// claude-ai:   5. Подобрать крюк-кошку (HOOK_pos_grapple)
+// claude-ai:   6. Нажать переключатель/вентиль (OB_find_type → EWAY_prim_activated)
+// claude-ai:   7. Поговорить с NPC (EWAY_used_person → PCOM_make_people_talk_to_eachother)
+// claude-ai:   8. Подобрать спецпредмет (set_person_special_pickup)
+// claude-ai:   9. Обыскать тело / контейнер
+// claude-ai:  10. Обнять стену (can_i_hug_wall)
+// claude-ai:  11. Подобрать банку колы (DIRT_get_nearest_can_or_head_dist)
+// claude-ai:  12. Присесть / встать (croutch fallback)
+// claude-ai: Возвращает INPUT_MASK_ACTION если действие выполнено (потребляет кнопку).
 ULONG do_an_action(Thing *p_thing, ULONG input)
 {
 	ULONG	     closest;
@@ -3191,6 +3253,13 @@ void	process_analogue_movement(Thing *p_thing,SLONG input)
 
 }
 
+// claude-ai: player_turn_left_right() — новая (финальная) реализация поворота персонажа.
+// claude-ai: Вычисляет угол поворота за кадр (wFrameTurn) пропорционально скорости поворота
+// claude-ai: и обратно пропорционально скорости бега (быстрее бежит — меньше поворачивает).
+// claude-ai: Клавиатура: накопительный поворот (wLastTurn += 16 за кадр, до ±128) —
+// claude-ai:   обнаруживается по нулевым старшим битам input при установленных LEFT/RIGHT битах.
+// claude-ai: Джойстик: поворот пропорционален wJoyX (из GET_JOYX(input)).
+// claude-ai: Также управляет наклоном (Roll) модели для визуального эффекта вхождения в поворот.
 #if 1
 // New, clean style!
 SLONG	player_turn_left_right(Thing *p_thing,SLONG input)
@@ -3268,6 +3337,9 @@ SLONG	player_turn_left_right(Thing *p_thing,SLONG input)
 	SWORD wTurn;
 	if ((input & INPUT_MASK_LEFT) || (input & INPUT_MASK_RIGHT))
 	{
+// claude-ai: Детектор клавиатурного ввода: если биты 18-31 (аналоговый диапазон) равны нулю,
+// claude-ai: но LEFT/RIGHT биты выставлены — значит ввод с клавиатуры (не аналоговый стик).
+// claude-ai: При клавиатурном вводе применяется накопительный поворот (wLastTurn) вместо пропорционального.
 #ifndef TARGET_DC
 		// For the PC, you may be using the keyboard, so do a cheesy cumulative thing.
 		// This is detected by noticing that the top (analogue section) of input is 0, even though we're turning.
@@ -5776,6 +5848,12 @@ SLONG     car_input_upto;
 SLONG     car_inputting;
 */
 
+// claude-ai: apply_button_input_car() — управление автомобилем из input маски.
+// claude-ai: Рулевое управление: GET_JOYX(input) для аналогового стика → veh->Steering (-127..+127).
+// claude-ai: Аналоговый руль дополнительно демпфируется (STEERING_MAX_DELTA = 30 за кадр).
+// claude-ai: Цифровой ввод (клавиатура): veh->Steering = ±1.
+// claude-ai: Газ/тормоз: INPUT_CAR_ACCELERATE → VEH_ACCEL, INPUT_CAR_DECELERATE → VEH_DECEL.
+// claude-ai: veh->IsAnalog устанавливается в 1 при аналоговом стике, 0 при клавиатуре.
 ULONG	apply_button_input_car(Thing *p_furn,ULONG input)
 {
 	ULONG	processed_input=0;
@@ -5992,6 +6070,17 @@ ULONG	get_last_input ( UWORD type )
 DWORD g_dwLastInputChangeTime = 0;
 
 
+// claude-ai: get_hardware_input() — главная функция опроса аппаратного ввода.
+// claude-ai: DirectInput API — заменить полностью на SDL3:
+// claude-ai:   ReadInputDevice() + DIJOYSTATE the_state  →  SDL_GetGamepadAxis / SDL_GetGamepadButton
+// claude-ai:   Keys[]                                    →  SDL_GetKeyboardState()
+// claude-ai:   the_state.lX / the_state.lY               →  SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTX/Y)
+// claude-ai: Параметр type — битовая маска INPUT_TYPE_*:
+// claude-ai:   INPUT_TYPE_JOY       = читать джойпад
+// claude-ai:   INPUT_TYPE_KEY       = читать клавиатуру
+// claude-ai:   INPUT_TYPE_GONEDOWN  = возвращать только свежепоявившиеся нажатия (edge detection)
+// claude-ai: Результат: ULONG input с установленными битами INPUT_MASK_*
+// claude-ai: Аналоговые значения стика упакованы в биты 17-30 результата (см. GET_JOYX/GET_JOYY выше).
 ULONG	get_hardware_input(UWORD type)
 {
 	ULONG	input=0;
@@ -6018,6 +6107,11 @@ ULONG	get_hardware_input(UWORD type)
 #endif
 
 
+// claude-ai: Мёртвая зона аналогового стика.
+// claude-ai: DC: ось 0-255, центр 128. NOISE_TOLERANCE=24 → мёртвая зона ±24/128 = ~19%.
+// claude-ai: PC: ось 0-65535 (DirectInput), центр 32768. NOISE_TOLERANCE=8192 → мёртвая зона ±12.5%.
+// claude-ai: В SDL3: SDL_GetGamepadAxis возвращает -32768..+32767; пересчитать масштаб.
+// claude-ai: NOISE_TOLERANCE_REMAP (DC) — более широкая зона для меню (64/128 = 50%).
 #ifdef TARGET_DC
 #define	AXIS_CENTRE				128
 // In-game deadzone size.
@@ -6049,6 +6143,9 @@ ULONG	get_hardware_input(UWORD type)
 #endif
 
 
+// claude-ai: DirectInput API — the_state (DIJOYSTATE) хранит последнее считанное состояние джойпада.
+// claude-ai: Определён в ddlib.cpp; заполняется ReadInputDevice() через IDirectInputDevice8::GetDeviceState().
+// claude-ai: В новой игре: заменить на SDL_GetGamepadState() или отдельные вызовы SDL_GetGamepadAxis/Button.
 #ifndef	PSX
 extern DIJOYSTATE			the_state;
 
@@ -6085,6 +6182,8 @@ extern DIJOYSTATE			the_state;
 
 
 
+// claude-ai: DirectInput API — ReadInputDevice() опрашивает джойпад через DirectInput, заполняет the_state.
+// claude-ai: Определён в ddlib.cpp. В SDL3 заменить на SDL_UpdateGamepads() + SDL_GetGamepadAxis/Button.
 	if(type&INPUT_TYPE_JOY)
 	{
 		if(ReadInputDevice())
@@ -6227,6 +6326,11 @@ extern DIJOYSTATE			the_state;
 #endif
 
 #else
+				// claude-ai: Упаковка аналоговых осей в старшие биты ULONG input (PC путь, не Dreamcast).
+				// claude-ai: DirectInput: the_state.lX/lY в диапазоне 0-65535, центр 32768.
+				// claude-ai: >>9 даёт 0-127, потом сдвиг в биты 18-24 (X) и 25-31 (Y).
+				// claude-ai: GET_JOYX/GET_JOYY (см. вверху файла) распаковывают обратно в -128..+127.
+				// claude-ai: В SDL3: SDL_GetGamepadAxis возвращает -32768..+32767; масштабировать в 0-127.
 				if(analogue)
 				{
 					//
@@ -7468,7 +7572,10 @@ ULONG	apply_button_input_first_person(Thing *p_player, Thing *p_person,ULONG inp
 	// Should we be in first person mode?
 	//
 
-#ifndef PSX	
+// claude-ai: DirectInput API — the_state.rgbButtons[] используется здесь напрямую для
+// claude-ai: проверки кнопки "вид от первого лица" (JOYPAD_BUTTON_1STPERSON).
+// claude-ai: В SDL3: SDL_GetGamepadButton(pad, buttonIndex).
+#ifndef PSX
 	extern DIJOYSTATE the_state;
 
 #ifdef REMAP_KEYBOARD
@@ -7920,6 +8027,13 @@ void	process_hardware_level_input_for_player(Thing *p_player)
 	// Work out how many clicks each key has.
 	//
 
+	// claude-ai: Double-click детекция — для каждой из 16 кнопок отслеживается:
+	// claude-ai:   pl->DoubleClick[i]   — счётчик кликов: 1 = одиночный, 2 = двойной и т.д.
+	// claude-ai:   pl->LastReleased[i]  — game-тик последнего отпускания кнопки i
+	// claude-ai: Если кнопка нажата повторно менее чем через 200 тиков — DoubleClick[i]++,
+	// claude-ai: иначе сброс до 1. Используется в apply_button_input_fight() для выхода из боя.
+	// claude-ai: При портировании: tick — это GAME_TURN (инкрементируется раз за кадр),
+	// claude-ai: 200 тиков = ~3.3 секунды при 60 fps. Масштаб должен совпадать с оригиналом.
 	for (i = 0; i < 16; i++)
 	{
 		if (pl->Pressed & (1 << i))

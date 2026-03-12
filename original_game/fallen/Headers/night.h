@@ -2,12 +2,48 @@
 // Cached lighting.
 //
 
+// claude-ai: Night.h — the NIGHT lighting system. All in-world lighting passes through here.
+// claude-ai:
+// claude-ai: SYSTEM OVERVIEW:
+// claude-ai:   Urban Chaos uses VERTEX-COLOUR lighting (no per-pixel lighting / no normal maps).
+// claude-ai:   Each rendered polygon has its corner vertices coloured by the NIGHT system.
+// claude-ai:   The lighting model has three layers:
+// claude-ai:     1. AMBIENT light  — a global directional light (sun/sky), set by NIGHT_ambient().
+// claude-ai:                         Changes with time-of-day (day = bright white, night = dark blue).
+// claude-ai:     2. STATIC lights  — placed by the level editor (streetlamps, window glows).
+// claude-ai:                         Stored in NIGHT_slight[]. Count: up to NIGHT_MAX_SLIGHTS=256.
+// claude-ai:     3. DYNAMIC lights — created at runtime by explosions, fire, muzzle flashes, etc.
+// claude-ai:                         Stored in NIGHT_dlight[]. Count: up to NIGHT_MAX_DLIGHTS=64.
+// claude-ai:
+// claude-ai: TIME-OF-DAY:
+// claude-ai:   Controlled externally (not in this header). The game sets NIGHT_ambient() each frame
+// claude-ai:   with a different colour to simulate dawn/dusk/night. No actual clock struct here —
+// claude-ai:   the progression is driven by game state code calling NIGHT_ambient().
+// claude-ai:   NIGHT_FLAG_DAYTIME (bit 2 of NIGHT_flag) determines whether cloud shadows apply.
+// claude-ai:
+// claude-ai: LIGHTING CACHE:
+// claude-ai:   Lighting is expensive to recompute every frame, so the NIGHT system CACHES results:
+// claude-ai:   - NIGHT_square[]: cached vertex colours for terrain map squares (lo-res grid)
+// claude-ai:   - NIGHT_cache[][]: 2D array mapping lo-res map coords → NIGHT_square index
+// claude-ai:   - NIGHT_dfcache[]: cached vertex colours for DFacets (building faces)
+// claude-ai:   - NIGHT_walkable[]: pre-baked colours for walkable prim points (floors/roofs)
+// claude-ai:   When a dynamic light moves/appears, affected cache squares are invalidated and rebuilt.
+// claude-ai:
+// claude-ai: PORTING NOTES:
+// claude-ai:   In the new game, NIGHT_Colour values feed into OpenGL vertex colour attributes.
+// claude-ai:   NIGHT_get_d3d_colour() converts from NIGHT_Colour (6-bit per channel, range 0-63)
+// claude-ai:   to 0xAARRGGBB 32-bit ARGB for Direct3D — the new game will do equivalent conversion
+// claude-ai:   to normalized floats for OpenGL (divide by NIGHT_MAX_BRIGHT=64).
+// claude-ai:   The specular channel in D3D is repurposed as a fog-override (alpha=0xFF = no fog).
+// claude-ai:   In the new game, replace specular with proper fog in the fragment shader.
+
 #ifndef _NIGHT_
 #define _NIGHT_
 
 
 #include "pap.h"
 
+// claude-ai: max 256 static lights per level (placed by editor, e.g. streetlamps)
 #define NIGHT_MAX_SLIGHTS 256
 
 
@@ -30,8 +66,14 @@
 
 //
 // The static lights.
-// 
+//
 
+// claude-ai: NIGHT_Slight — a static point light placed by the level editor.
+// claude-ai: x/z are UBYTE (top bit used as flags — "inside" flag etc.).
+// claude-ai: y is SWORD (world Y = height, can be negative for underground).
+// claude-ai: red/green/blue are SBYTE colour tints (signed, so can subtract from ambient).
+// claude-ai: radius is UBYTE — falloff distance in world units.
+// claude-ai: These are loaded from the .night file (via NIGHT_load_ed_file) at level load.
 typedef struct
 {
 	SWORD y;
@@ -62,6 +104,11 @@ extern	NIGHT_Smap_2d *NIGHT_smap; //[PAP_SIZE_LO][PAP_SIZE_LO];
 // The dynamic lights.
 //
 
+// claude-ai: NIGHT_Dlight — a runtime point light (explosion flash, fire glow, muzzle flash, etc.)
+// claude-ai: Created by game code via NIGHT_dlight_create(), destroyed via NIGHT_dlight_destroy().
+// claude-ai: 'next' field: linked list index (pool-based allocation, 64 max).
+// claude-ai: NIGHT_DLIGHT_FLAG_REMOVE: light is queued for removal at end of this game turn.
+// claude-ai: Dynamic lights affect cached NIGHT_square data via dlight_squares_up/down each frame.
 #define NIGHT_DLIGHT_FLAG_USED   (1 << 0)
 #define NIGHT_DLIGHT_FLAG_REMOVE (1 << 1)	// Will be removed next gameturn.
 
@@ -74,11 +121,12 @@ typedef struct
 	UBYTE green;
 	UBYTE blue;
 	UBYTE radius;
-	UBYTE next;
-	UBYTE flag;
+	UBYTE next;  // claude-ai: linked list — index of next dlight or 0 for end
+	UBYTE flag;  // claude-ai: NIGHT_DLIGHT_FLAG_* bits
 
 } NIGHT_Dlight;
 
+// claude-ai: hard limit: max 64 simultaneous dynamic lights in the scene
 #define NIGHT_MAX_DLIGHTS 64
 
 extern	NIGHT_Dlight *NIGHT_dlight; //[NIGHT_MAX_DLIGHTS];
@@ -89,6 +137,10 @@ extern	NIGHT_Dlight *NIGHT_dlight; //[NIGHT_MAX_DLIGHTS];
 // Coloured lighting.
 //
 
+// claude-ai: NIGHT_Colour — the fundamental lighting colour type used throughout the system.
+// claude-ai: On PC/DC: 3 separate UBYTE channels (red, green, blue). Range: 0..NIGHT_MAX_BRIGHT (0..63).
+// claude-ai: On PSX: packed into a UWORD with bit-field macros (get_red/get_green/get_blue below).
+// claude-ai: PORTING: in new game, normalize to float: r_f = col.red / 64.0f for OpenGL vertex colour.
 typedef struct
 {
 #ifdef	PSX_COMPRESS_LIGHT
@@ -196,6 +248,9 @@ void NIGHT_init(void);
 // Converts a colour to its D3D equivalents.
 //
 
+// claude-ai: NIGHT_MAX_BRIGHT=64 is the maximum value of a NIGHT_Colour channel.
+// claude-ai: In NIGHT_get_d3d_colour: value *= (256/64) = *4 to scale to 0..255 for D3D.
+// claude-ai: Overflow above 255 becomes specular highlight (if NIGHT_specular_enable is set).
 #define NIGHT_MAX_BRIGHT 64
 
 //
@@ -399,12 +454,19 @@ void NIGHT_destroy_all_cached_info(void);
 // Lighting flags and variables.
 //
 
+// claude-ai: NIGHT_flag bitmask — global lighting mode switches.
+// claude-ai:   NIGHT_FLAG_LIGHTS_UNDER_LAMPOSTS: streetlamps are active (night time)
+// claude-ai:   NIGHT_FLAG_DARKEN_BUILDING_POINTS: building vertices get darkened (shadow side)
+// claude-ai:   NIGHT_FLAG_DAYTIME: it is daytime — enables cloud shadows, no lampost lights
+// claude-ai: The game sets these flags based on current time-of-day to drive lighting behaviour.
 #define NIGHT_FLAG_LIGHTS_UNDER_LAMPOSTS	(1 << 0)
 #define NIGHT_FLAG_DARKEN_BUILDING_POINTS	(1 << 1)
 #define NIGHT_FLAG_DAYTIME					(1 << 2)
 
 extern ULONG        NIGHT_flag;
+// claude-ai: NIGHT_sky_colour: current ambient sky/fog colour (changes with time of day)
 extern NIGHT_Colour NIGHT_sky_colour;
+// claude-ai: NIGHT_lampost_*: colour and radius of all streetlamp static lights (shared params)
 extern UBYTE        NIGHT_lampost_radius;
 extern SBYTE        NIGHT_lampost_red;
 extern SBYTE        NIGHT_lampost_green;
@@ -424,14 +486,20 @@ extern SLONG NIGHT_load_ed_file(CBYTE *name);
 //
 // ========================================================
 
+// claude-ai: Ambient (directional) light — simulates the sun/sky illuminating the whole scene.
+// claude-ai: NIGHT_amb_red/green/blue: colour of the ambient light (0..255 range here, not 0..63).
+// claude-ai: NIGHT_amb_norm_x/y/z: direction the light comes FROM (normalised to 256 length).
+// claude-ai: NIGHT_amb_d3d_colour / NIGHT_amb_d3d_specular: precomputed D3D ARGB values for fast use.
+// claude-ai: These are recomputed by NIGHT_ambient() whenever time-of-day changes.
+// claude-ai: PORTING: in new game, pass norm_x/y/z and colour as a UBO directional light struct.
 extern ULONG NIGHT_amb_d3d_colour;
 extern ULONG NIGHT_amb_d3d_specular;
 extern SLONG NIGHT_amb_red;
 extern SLONG NIGHT_amb_green;
 extern SLONG NIGHT_amb_blue;
-extern SLONG NIGHT_amb_norm_x;
-extern SLONG NIGHT_amb_norm_y;
-extern SLONG NIGHT_amb_norm_z;
+extern SLONG NIGHT_amb_norm_x;  // claude-ai: sun direction X (normalised, scale 256)
+extern SLONG NIGHT_amb_norm_y;  // claude-ai: sun direction Y (up/down)
+extern SLONG NIGHT_amb_norm_z;  // claude-ai: sun direction Z
 
 //
 // The normal should be normalised to 256.
@@ -551,6 +619,12 @@ void  NIGHT_dfcache_destroy(UBYTE dfcache_index);
 // Walkable primpoint x is index as NIGHT_walkable[x - NIGHT_first_walkable_point]...
 //
 
+// claude-ai: NIGHT_walkable[] — pre-baked vertex colours for up to 15000 walkable prim points.
+// claude-ai: "Walkable prim points" are the polygon corners of floor/ground surfaces NPCs walk on.
+// claude-ai: These are computed once at level load by NIGHT_generate_walkable_lighting().
+// claude-ai: NIGHT_first_walkable_prim_point: offset — prim_points[0..N] are non-walkable geometry;
+// claude-ai:   walkable ones start at this index. Access via NIGHT_WALKABLE_POINT(prim_point_index).
+// claude-ai: NIGHT_roof_walkable[]: same but for roof surfaces; indexed by (facet * 4 + corner).
 #define NIGHT_MAX_WALKABLE 15000
 
 extern SLONG NIGHT_first_walkable_prim_point;

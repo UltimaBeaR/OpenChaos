@@ -1,5 +1,8 @@
 // Roper.cpp
 // Guy Simmons, 4th January 1998
+// claude-ai: Roper — NPC персонаж. В пре-релизной версии fn_roper_normal() ПУСТАЯ (только return).
+// claude-ai: В финальной игре Roper работает через общий механизм Person.cpp / pcom.cpp (cop_states-подобная логика).
+// claude-ai: Примечание: "All temp stuff, botched in for demo" — временный код для демо-версии.
 
 #include	"Game.h"
 #include	"Roper.h"
@@ -56,6 +59,8 @@ void	fn_roper_init(Thing *t_thing)
 
 //---------------------------------------------------------------
 
+// claude-ai: ПУСТАЯ ФУНКЦИЯ — fn_roper_normal() ничего не делает (только return).
+// claude-ai: В финальном релизе Roper управляется через общий AI в pcom.cpp, а не через эту функцию.
 void	fn_roper_normal(Thing *t_thing)
 {
 

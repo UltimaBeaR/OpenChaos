@@ -1,3 +1,77 @@
+// claude-ai: OVERVIEW — mesh.cpp
+// claude-ai: Renders static 3D "prim" meshes and morphed/tweened character meshes.
+// claude-ai: "Prim" = primitive object = a named 3D mesh from the prim_objects[] table.
+// claude-ai: Mesh data lives in global arrays loaded by the engine:
+// claude-ai:   prim_objects[]  — PrimObject structs: StartPoint/EndPoint, StartFace3/4/EndFace3/4, flags
+// claude-ai:   prim_points[]   — vertex positions (integer, world units)
+// claude-ai:   AENG_dx_prim_points[] — same positions converted to float for D3D rendering
+// claude-ai:   prim_faces3[]   — triangle faces: 3 vertex indices, UV coords, texture page, flags
+// claude-ai:   prim_faces4[]   — quad faces: 4 vertex indices, UV coords, texture page, flags
+// claude-ai:   prim_normal[]   — vertex normals for lighting
+// claude-ai:
+// claude-ai: KEY FUNCTIONS:
+// claude-ai:   MESH_draw_guts()  — transforms all vertices of a prim into POLY_buffer[], then submits faces
+// claude-ai:   MESH_draw_poly()  — public entry point: builds rotation matrix, calls MESH_draw_guts()
+// claude-ai:   MESH_draw_morph() — CHARACTER ANIMATION: interpolates two MORPH_Point keyframes, then submits
+// claude-ai:
+// claude-ai: ============================================================
+// claude-ai: VERTEX MORPHING / CHARACTER ANIMATION — THE MOST IMPORTANT CONCEPT
+// claude-ai: ============================================================
+// claude-ai: ALL character animation uses keyframe vertex morphing, NOT skeletal animation.
+// claude-ai: There are no bones, no skinning weights, no skeleton hierarchy.
+// claude-ai:
+// claude-ai: Each animation frame is a separate array of vertex positions (MORPH_Point array).
+// claude-ai: To render a character between two frames:
+// claude-ai:   ptween = float(tween) / 256.0f  (tween is 0..256, i.e. 0.0..1.0)
+// claude-ai:   for each vertex i:
+// claude-ai:     pos = frame1[i] + (frame2[i] - frame1[i]) * ptween
+// claude-ai: This linearly interpolated position is then transformed + projected as usual.
+// claude-ai:
+// claude-ai: MORPH_Point data comes from MORPH_get_points(morph_index) — morph data is loaded separately.
+// claude-ai: morph1 and morph2 are indices into the morph data table, tween is the blend fraction.
+// claude-ai: The FACE data (prim_faces3/4, UV, texture page) always comes from the base prim — only positions morph.
+// claude-ai:
+// claude-ai: NEW GAME: Replicate this vertex morphing in a vertex shader:
+// claude-ai:   - Upload two VBOs (keyframe A and keyframe B positions)
+// claude-ai:   - Pass blend factor as a uniform
+// claude-ai:   - Shader: gl_Position = proj * view * model * vec4(mix(posA, posB, tween), 1.0)
+// claude-ai:   - UV and normal data remain static per prim, stored in a separate VBO
+// claude-ai:
+// claude-ai: UV ENCODING:
+// claude-ai:   UV[n][0] encodes both the U coordinate and 2 bits of texture page offset:
+// claude-ai:     u    = float(UV[n][0] & 0x3f) * (1.0f / 32.0f)  — lower 6 bits = U * 32
+// claude-ai:     page_high = (UV[n][0] & 0xc0) << 2              — upper 2 bits = page high bits
+// claude-ai:     page = page_high | TexturePage                   — full page index
+// claude-ai:   v    = float(UV[n][1]) * (1.0f / 32.0f)
+// claude-ai:   UV range is 0..1 within the 32x32 or 64x64 texture tile.
+// claude-ai:   Add FACE_PAGE_OFFSET to get the final index into TEXTURE_texture[].
+// claude-ai:
+// claude-ai: CRUMPLE SYSTEM (car damage):
+// claude-ai:   MESH_crumple[level][variation] — random vertex offsets per "damage level" (0=none, 4=max)
+// claude-ai:   MESH_car_crumples — precomputed car-body-zone specific crumple vectors (6 zones, 5 levels, 8 variations)
+// claude-ai:   crumple param: 0..4 = generic crumple level, -1 = use car_crumples zone table
+// claude-ai:   This adds positional jitter to vertices to simulate collision deformation.
+// claude-ai:
+// claude-ai: ENVIRONMENT MAPPING:
+// claude-ai:   For prims with PRIM_FLAG_ENVMAPPED, UV coords are computed from the view-space vertex normal.
+// claude-ai:   u = (nx * 0.5) + 0.5, v = (ny * 0.5) + 0.5 — sphere mapping approximation.
+// claude-ai:   NEW GAME: implement as a cubemap lookup or matcap texture in the fragment shader.
+// claude-ai:
+// claude-ai: FACE FLAGS (FACE_FLAG_*):
+// claude-ai:   POLY_FLAG_TEXTURED   — face has a texture (else flat colour)
+// claude-ai:   POLY_FLAG_DOUBLESIDED — skip backface culling for this face
+// claude-ai:   FACE_FLAG_TINT       — modulate vertex colour by MESH_colour_and (tint effect)
+// claude-ai:   FACE_FLAG_ANIMATE    — UV comes from animated texture map (anim_tmaps[])
+// claude-ai:   FACE_FLAG_ENVMAP     — face is environment mapped (see above)
+// claude-ai:   FACE_FLAG_WALKABLE   — debug: highlight walkable faces (not in final build)
+// claude-ai:
+// claude-ai: NEW GAME NOTES:
+// claude-ai:   Do NOT port MESH_draw_guts() directly. Instead:
+// claude-ai:   - Preprocess mesh data offline into GPU-friendly VBOs (position, UV, normal)
+// claude-ai:   - For morphing: two position VBOs + blend factor uniform
+// claude-ai:   - Submit draw calls grouped by texture atlas, not per-prim
+// claude-ai:   - Crumple and car damage: can be GPU vertex shader with damage uniform
+
 //
 // Drawing rotating prims.
 //
@@ -191,6 +265,25 @@ void MESH_set_crumple(UBYTE* assignments, UBYTE* crumples)
 
 ULONG MESH_colour_and;
 
+// claude-ai: MESH_draw_guts — core mesh rendering function. Called by MESH_draw_poly() and MESH_draw_morph().
+// claude-ai: Parameters:
+// claude-ai:   prim    — index into prim_objects[] table (the mesh to draw)
+// claude-ai:   at_x/y/z — world position of the mesh origin (integer coords)
+// claude-ai:   matrix  — 3x3 rotation matrix (float, already transposed for column-major D3D)
+// claude-ai:   lpc     — pointer to per-vertex NIGHT_Colour lighting values (or NULL for uniform ambient)
+// claude-ai:   fade    — alpha value packed into high byte: passed as (alpha << 24)
+// claude-ai:   crumple — damage deformation level: 0=none, 1..4=damage levels, -1=car zone deformation
+// claude-ai:
+// claude-ai: FLOW:
+// claude-ai:   1. If lpc==NULL: sample ambient light at (at_x,at_y,at_z) from NIGHT system for all verts.
+// claude-ai:   2. POLY_set_local_rotation() — prepare combined camera+object matrix.
+// claude-ai:   3. Loop sp..ep: transform each vertex into POLY_buffer[] via POLY_transform_using_local_rotation().
+// claude-ai:      - If lpc: call NIGHT_get_d3d_colour(*lpc) to bake per-vertex light colour.
+// claude-ai:      - If crumple: add MESH_crumple[level][cv] jitter offsets to vertex positions.
+// claude-ai:   4. Loop StartFace4..EndFace4: process quads — set UVs, extract page, call POLY_add_quad().
+// claude-ai:   5. Loop StartFace3..EndFace3: process triangles — same.
+// claude-ai:   6. If PRIM_FLAG_ENVMAPPED: recalculate UV from normals in view space, re-submit faces.
+// claude-ai: Returns lpc advanced past all vertices consumed (for chained mesh draws).
 NIGHT_Colour *MESH_draw_guts(
 				SLONG         prim,
 				MAPCO16	      at_x,
@@ -998,6 +1091,11 @@ void POLY_add_line_tex_uv(POLY_Point *p1, POLY_Point *p2, float width1, float wi
 }
 
 
+// claude-ai: MESH_draw_poly — public API to draw a static/crumpled mesh at a world position.
+// claude-ai: Converts integer yaw/pitch/roll (0..2048 = full circle) to float radians, builds matrix,
+// claude-ai: transposes it (D3D convention), then delegates to MESH_draw_guts().
+// claude-ai: fade = alpha value 0..255, packed into high byte as (fade << 24).
+// claude-ai: crumple = damage deformation level (0=undamaged, 1..4=increasing damage).
 NIGHT_Colour *MESH_draw_poly(
 				SLONG         prim,
 				MAPCO16	      at_x,
@@ -1318,11 +1416,47 @@ NIGHT_Colour *MESH_draw_poly(
 
 
 
+// claude-ai: ============================================================
+// claude-ai: MESH_draw_morph — CHARACTER ANIMATION ENTRY POINT
+// claude-ai: ============================================================
+// claude-ai: Draws a character by linearly interpolating between two keyframe vertex sets.
+// claude-ai:
+// claude-ai: Parameters:
+// claude-ai:   prim   — the base mesh (determines face topology, UV data, texture pages)
+// claude-ai:   morph1 — index of the "from" keyframe in MORPH data
+// claude-ai:   morph2 — index of the "to" keyframe in MORPH data
+// claude-ai:   tween  — blend fraction: 0=100% morph1, 256=100% morph2 (i.e. fixed-point 0..1 in 1/256 units)
+// claude-ai:   at_x/y/z — world position of the character
+// claude-ai:   i_yaw/pitch/roll — orientation as integer angles (2048 = 2*PI radians)
+// claude-ai:   lpc — per-vertex lighting colours from LIGHT system (NULL = use ambient)
+// claude-ai:
+// claude-ai: ALGORITHM (lines 1414-1460):
+// claude-ai:   ptween = float(tween) / 256.0f
+// claude-ai:   for each vertex i in 0..num_points:
+// claude-ai:     px = mp1[i].x + (mp2[i].x - mp1[i].x) * ptween
+// claude-ai:     py = mp1[i].y + (mp2[i].y - mp1[i].y) * ptween
+// claude-ai:     pz = mp1[i].z + (mp2[i].z - mp1[i].z) * ptween
+// claude-ai:     POLY_transform_using_local_rotation(px, py, pz, pp)
+// claude-ai:
+// claude-ai: IMPORTANT: morph point counts must match between morph1 and morph2 (asserted).
+// claude-ai: The face data (quads, tris, UVs) always comes from the base prim — NOT from the morph data.
+// claude-ai:
+// claude-ai: MORPH_Point struct contains integer x,y,z (likely SBYTE or SWORD — check morph.h).
+// claude-ai: Data is loaded from animation files at level load time (see morph.h / animtmap.h).
+// claude-ai:
+// claude-ai: NEW GAME IMPLEMENTATION:
+// claude-ai:   Upload both keyframe VBOs to GPU, blend in vertex shader:
+// claude-ai:     layout(location=0) in vec3 posA;
+// claude-ai:     layout(location=1) in vec3 posB;
+// claude-ai:     uniform float uTween;
+// claude-ai:     vec3 pos = mix(posA, posB, uTween);
+// claude-ai:     gl_Position = uProj * uView * uModel * vec4(pos, 1.0);
+// claude-ai:   UV and index buffer stay constant for the whole animation.
 void MESH_draw_morph(
 		SLONG         prim,
 		UBYTE         morph1,
 		UBYTE         morph2,
-		UWORD		  tween,		// 0 - 256         
+		UWORD		  tween,		// 0 - 256
 		MAPCO16	      at_x,
 		MAPCO16       at_y,
 		MAPCO16	      at_z,
@@ -1413,6 +1547,10 @@ void MESH_draw_morph(
 	num_points = MORPH_get_num_points(morph1);
 	ptween     = float(tween) * (1.0F / 256.0F);
 
+	// claude-ai: VERTEX MORPH LOOP — this is the heart of character animation.
+	// claude-ai: ptween = tween/256 maps 0..256 to 0.0..1.0 float blend factor.
+	// claude-ai: For each vertex: interpolate between mp1 (frame A) and mp2 (frame B) positions.
+	// claude-ai: Interpolated position is then transformed by combined camera+object matrix.
 	for (i = 0; i < num_points; i++)
 	{
 		ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
@@ -1422,11 +1560,12 @@ void MESH_draw_morph(
 		px1 = float(mp1->x);
 		py1 = float(mp1->y);
 		pz1 = float(mp1->z);
-		
+
 		px2 = float(mp2->x);
 		py2 = float(mp2->y);
 		pz2 = float(mp2->z);
 
+		// claude-ai: LINEAR INTERPOLATION: pos = posA + (posB - posA) * t = lerp(posA, posB, t)
 		px  = px1 + (px2 - px1) * ptween;
 		py  = py1 + (py2 - py1) * ptween;
 		pz  = pz1 + (pz2 - pz1) * ptween;

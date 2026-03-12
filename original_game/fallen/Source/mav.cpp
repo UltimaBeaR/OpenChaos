@@ -1,3 +1,10 @@
+// claude-ai: MAV = A* pathfinding/navigation system on a 128x128 city grid (same resolution as PAP_Hi).
+// claude-ai: Each grid cell stores movement options (MAV_Opt) for 4 cardinal directions.
+// claude-ai: Each direction encodes a bitmask of allowed movement types (MAV_CAPS_* flags).
+// claude-ai: The A* search (MAV_do) respects an agent's capability mask — e.g. MAV_CAPS_DARCI=0xff allows everything.
+// claude-ai: Lookahead is capped at MAV_LOOKAHEAD=32 steps to bound search cost.
+// claude-ai: Two separate nav grids exist: the main city grid (MAV_nav) and per-warehouse grids (WARE_nav).
+// claude-ai: A separate car-navigation bitfield (MAV_CAR) tracks vehicle-passable edges independently.
 //
 // Another navigation system.
 //
@@ -25,6 +32,8 @@
 //MAV_height_workaround *MAV_height;
 
 
+// claude-ai: MAV_opt is a shared pool of movement-option records. MAV_nav stores per-cell indices into this pool.
+// claude-ai: Sharing identical option records saves memory: many cells have the same 4-directional passability.
 //
 // The navigation info. Each value in the nav array is an index
 // into this array.
@@ -34,6 +43,10 @@ MAV_Opt *MAV_opt;
 SLONG    MAV_opt_upto;
 
 
+// claude-ai: MAV_nav is a flat 128x128 UWORD array (pitch=128). Each UWORD packs:
+// claude-ai:   bits [13:0] = index into MAV_opt pool (up to MAV_MAX_OPTS=1024 unique option records)
+// claude-ai:   bits [15:14] = MAV_SPARE flags (bit0=water, bit1=unused)
+// claude-ai: For warehouses MAV_nav is temporarily redirected to WARE_nav with a different pitch.
 //
 // How you can move out of each square.
 //
@@ -44,6 +57,10 @@ SLONG  MAV_nav_pitch = 128;
 
 
 
+// claude-ai: MAV_init pre-populates the first 16 MAV_opt entries (indices 0-15) with all combinations
+// claude-ai: of 4 directions being open or blocked for plain walking (MAV_CAPS_GOTO only).
+// claude-ai: This is required by INSIDE2_mav_nav_calc() which addresses these entries by fixed index.
+// claude-ai: After init, MAV_opt_upto=16; all subsequent unique option sets are appended dynamically.
 void MAV_init()
 {
 	SLONG i;
@@ -73,6 +90,9 @@ void MAV_init()
 	MAV_opt_upto = 16;
 }
 
+// claude-ai: StoreMavOpts deduplicates MAV_Opt records: it first scans existing entries for an identical
+// claude-ai: 4-byte option set. If found it reuses it (saves memory). Otherwise appends a new entry.
+// claude-ai: MAV_MAX_OPTS=1024 is a hard cap; hitting it is a fatal error (ASSERT).
 static void StoreMavOpts(SLONG x, SLONG z, UBYTE* opt)
 {
 	for (SLONG ii = 0; ii < MAV_opt_upto; ii++)
@@ -105,6 +125,12 @@ static void StoreMavOpts(SLONG x, SLONG z, UBYTE* opt)
 	}
 }
 
+// claude-ai: MAV_calc_height_array builds a per-cell height map used by MAV_precalculate to decide
+// claude-ai: whether adjacent cells are walkable, require climbing, or allow jumping.
+// claude-ai: Height is stored as SBYTE in units of 0x40 game-units (1 unit = 64 Y-coords).
+// claude-ai: PAP_FLAG_HIDDEN marks cells inside buildings/warehouses; their height comes from roof faces.
+// claude-ai: PAP_FLAG_NOGO is set for hidden cells with no roof data (inaccessible building interiors).
+// claude-ai: NOT compiled on PSX (PC/DC editor-side precalculation only; PSX loads precomputed data).
 //
 // Calculates the MAV_height array.
 //
@@ -315,6 +341,9 @@ void MAV_calc_height_array(SLONG ignore_warehouses)
 }
 #endif
 
+// claude-ai: MAV_turn_off_square removes only the plain-walk (MAV_CAPS_GOTO) edge INTO cell (x,z)
+// claude-ai: from each of its 4 neighbours. Climbing/jumping edges from neighbours are preserved.
+// claude-ai: Used to block off obstacle squares (e.g. sloped terrain, UCPD rotating sign).
 //
 // Makes sure that nobody mavigates into the given square by walking
 // into it.
@@ -372,9 +401,12 @@ void MAV_turn_off_square(
 #endif
 #ifndef PSX
 
+// claude-ai: MAV_turn_off_whole_square removes ALL movement capabilities (all bits) into cell (x,z)
+// claude-ai: from each of its 4 neighbours — no walking, climbing, or jumping allowed into this cell.
+// claude-ai: Stronger than MAV_turn_off_square; used for slopes, NOGO cells, etc.
 //
 // Makes sure nobody can go into this square in any way.
-// 
+//
 
 void MAV_turn_off_whole_square(
 		SLONG x,
@@ -426,9 +458,12 @@ void MAV_turn_off_whole_square(
 	}
 }
 
+// claude-ai: MAV_turn_off_whole_square_car is the car-nav equivalent of MAV_turn_off_whole_square.
+// claude-ai: Clears the corresponding direction bit in the MAV_CAR bitfield for the 4 neighbours.
+// claude-ai: Applied after main nav precalculation for cells with PAP_FLAG_NOGO.
 //
 // Makes sure nobody can go into this square in any way.
-// 
+//
 
 void MAV_turn_off_whole_square_car(
 		SLONG x,
@@ -475,6 +510,9 @@ void MAV_turn_off_whole_square_car(
 	}
 }
 
+// claude-ai: MAV_remove_facet_car cuts a wall/fence facet out of the car-navigation grid.
+// claude-ai: A facet is a line segment (x1,z1)-(x2,z2) — either horizontal or vertical.
+// claude-ai: Cells on each side of the facet have the crossing direction bit cleared in MAV_CAR.
 //
 // cut off a facet from the car mav
 //
@@ -575,6 +613,21 @@ void MAV_turn_movement_on(UBYTE mx, UBYTE mz, UBYTE dir)
 
 
 
+// claude-ai: MAV_precalculate is the main city-grid nav build pass (PC/editor only, not PSX or DC).
+// claude-ai: Steps:
+// claude-ai:   1. Build MAVHEIGHT array from PAP heights + walkable roof faces.
+// claude-ai:   2. Adjust MAVHEIGHT under staircase prims (prim 41) using the prim's actual Y position.
+// claude-ai:   3. For each cell, check all 4 cardinal neighbours and determine reachability:
+// claude-ai:      - Same/close height + clear LOS => MAV_CAPS_GOTO (plain walk)
+// claude-ai:      - Climbable fence in the way      => MAV_CAPS_CLIMB_OVER
+// claude-ai:      - Height drop + clear LOS          => MAV_CAPS_FALL_OFF
+// claude-ai:      - Height rise 2-4 + no fence       => MAV_CAPS_PULLUP
+// claude-ai:      - Ladder present in direction      => MAV_CAPS_LADDER_UP
+// claude-ai:      - 2-cell jump possible             => MAV_CAPS_JUMP / MAV_CAPS_JUMPPULL
+// claude-ai:      - 3-cell jump possible             => MAV_CAPS_JUMPPULL2
+// claude-ai:   4. Apply staircase hacks (turn off lateral movement on stair cells, enable stair direction).
+// claude-ai:   5. Remove sloped/NOGO cells from nav.
+// claude-ai:   6. Mark water texture cells with MAV_SPARE_FLAG_WATER.
 #ifndef PSX
 #ifndef TARGET_DC
 void MAV_precalculate()
@@ -750,6 +803,9 @@ void MAV_precalculate()
 				// Can we walk from (x,z) to (tx,tz)?
 				//
 
+				// claude-ai: Walkability threshold: on-ground cells allow dh up to ±2 MAVHEIGHT units;
+				// claude-ai: building-top cells (PAP_FLAG_HIDDEN on either side) are stricter: max ±1 unit.
+				// claude-ai: If exceeded, the code tries MAV_CAPS_FALL_OFF / CLIMB_OVER / PULLUP / LADDER_UP / JUMP.
 				dh = MAVHEIGHT(tx,tz) - MAVHEIGHT(x,z);
 
 				if ((!both_ground && abs(dh) > 1) || (abs(dh) > 2))
@@ -821,6 +877,8 @@ void MAV_precalculate()
 					}
 					else
 					{
+						// claude-ai: Pull-up: neighbour is 2-4 MAVHEIGHT units higher and no fence along the edge => MAV_CAPS_PULLUP.
+						// claude-ai: Fence check uses a perpendicular line segment at the cell boundary.
 						if (WITHIN(dh, 2, 4))
 						{
 							//
@@ -1044,12 +1102,21 @@ void MAV_precalculate()
 			}
 		}
 
+		// claude-ai: After evaluating all 4 directions, commit the computed opt[4] bitmask array and car flags.
+		// claude-ai: MAV_SPARE initialized to 3 here; overwritten later by the water-texture scan.
 		StoreMavOpts(x, z, opt);
 		SET_MAV_CAR(x, z, caropts);
 		SET_MAV_SPARE(x, z, 3);
 	}
 
 	//
+	// claude-ai: STAIRCASE / SKYLIGHT post-processing pass (prim 41 = step, prim 226/227 = skylight).
+	// claude-ai: Staircase (prim 41): turns OFF lateral movement on the stair cell (you can't walk sideways),
+	// claude-ai:   and turns ON movement in the stair direction to/from the adjacent cell.
+	// claude-ai: Stair direction is derived from oi->yaw (angle in 2048-units) — 4 cardinal orientations.
+	// claude-ai: Skylight (prim 226): removes 2 roof-face walkable entries (so AI doesn't walk on skylights).
+	// claude-ai: Large skylight (prim 227): removes a 2x3 grid of roof-face walkable entries.
+	// claude-ai: UCPD rotating sign (prim 133): blocks the entire grid square below it.
 	// A hack for the staircase prim and the skylights.
 	//
 
@@ -1270,6 +1337,8 @@ void MAV_precalculate()
 		extern SLONG PAP_on_slope(SLONG x,SLONG z,SLONG *angle);
 
 		//
+		// claude-ai: Slope rejection pass: cells where PAP_on_slope() > 100 at two corners are too steep to walk.
+		// claude-ai: Only ground cells checked (PAP_FLAG_HIDDEN skipped — building roofs aren't sloped in this sense).
 		// Take all slippy squares out of the mav.
 		//
 
@@ -1300,6 +1369,7 @@ void MAV_precalculate()
 		}
 	}
 
+	// claude-ai: Final car-nav cleanup: cells marked PAP_FLAG_NOGO are removed from MAV_CAR as well.
 	// remove NOGO sqaures from the car map
 	{
 		SLONG	mx;
@@ -1413,6 +1483,9 @@ void MAV_precalculate()
 	*/
 
 	//
+	// claude-ai: Water detection: texture pages 454, 99456, 99457 identify water tiles.
+	// claude-ai: Cells with water get MAV_SPARE_FLAG_WATER set in the MAV_nav SPARE bits [15:14].
+	// claude-ai: Used by NPC/gameplay logic to know which ground cells are water (e.g. drowning, avoidance).
 	// Set a bit where there is a water texture on the ground.
 	//
 
@@ -1595,6 +1668,11 @@ void MAV_draw(
 #endif
 
 //
+// claude-ai: MAV_can_i_walk is the path-smoothing function: given a sequence of grid waypoints,
+// claude-ai: it checks whether the agent can walk in a straight line between two grid cells
+// claude-ai: by stepping through intermediate cells and checking MAV_CAPS_GOTO on each crossed edge.
+// claude-ai: Used by MAV_get_first_action_from_nodelist to skip intermediate waypoints (path shortcutting).
+// claude-ai: Only checks plain-walk (MAV_CAPS_GOTO), not jumps/climbs — those must be traversed cell-by-cell.
 // Returns TRUE if you can walk from a to b. If it returns FALSE, then
 // (MAV_last_x, MAV_last_z) is the last square it reached, and (MAV_dmx, MAV_dmz)
 // is the direction it tried to leave the square in.
@@ -1724,16 +1802,25 @@ UBYTE MAV_dest_x;
 UBYTE MAV_dest_z;
 
 //
+// claude-ai: MAV_LOOKAHEAD=32 — the A* search explores at most 32 steps from the agent's position.
+// claude-ai: If the destination is farther away, the best partial path found so far is used (MAV_MAX_OVERFLOWS=8).
+// claude-ai: MAV_node[] stores the recovered path (reversed: node[0]=furthest, node[node_upto-1]=first step).
 // How much look-ahead we use in the navigation.  MAV_node[0] is the end of
 // the looked-ahead route and (MAV_node_upto - 1) is the start(x,z)
 //
 
+// claude-ai: MAV_LOOKAHEAD=32: A* expands at most 32 grid cells from the agent before giving up on finding a direct path.
 #define MAV_LOOKAHEAD 32
 
 MAV_Action MAV_node[MAV_LOOKAHEAD];
 SLONG      MAV_node_upto;
 
 //
+// claude-ai: MAV_flag: packed A* open/closed set state. Each UBYTE holds 2 cells (4 bits per cell).
+// claude-ai:   bits [2:0] = action taken to reach this cell (MAV_ACTION_* 0-7)
+// claude-ai:   bit  [3]   = visited flag (1 = cell has been placed in the priority queue)
+// claude-ai: MAV_dir: stores which direction (MAV_DIR_*) we came from (2 bits per cell, 4 cells per UBYTE).
+// claude-ai: Both arrays are indexed [z][x/N] and cleared via MAV_clear_bbox before each A* run.
 // Each UBYTE is four two squares. There is three bits for action, and one bit
 // to say whether we have been here or not.
 //
@@ -1873,6 +1960,11 @@ void MAV_clear_bbox(
 
 
 //
+// claude-ai: MAV_get_first_action_from_nodelist implements PATH SMOOTHING for GOTO-only segments.
+// claude-ai: It walks the nodelist from start backwards; for each GOTO waypoint it tries MAV_can_i_walk.
+// claude-ai: The furthest waypoint reachable in a straight line becomes the immediate target.
+// claude-ai: If a non-GOTO action (jump, climb, etc.) is encountered first, that action is returned immediately.
+// claude-ai: Result: agents don't zigzag through grid cells — they walk directly toward the furthest visible point.
 // Returns the first thing that should be done according to the current nodelist.
 //
 
@@ -1929,6 +2021,10 @@ MAV_Action MAV_get_first_action_from_nodelist()
 }
 
 //
+// claude-ai: MAV_create_nodelist_from_pos: PATH RECONSTRUCTION after A* terminates.
+// claude-ai: Traces back from end_x/end_z to MAV_start_x/z using stored MAV_dir and MAV_action values.
+// claude-ai: Jump actions (JUMP, JUMPPULL) move 2 cells; JUMPPULL2 moves 3 cells — handled by extra back-steps.
+// claude-ai: Result is stored in MAV_node[] array (reversed order: [0]=far end, [node_upto-1]=first step).
 // Uses the MAV_flag and MAV_dir arrays to constuct a nodelist from
 // from the given position back to (start_x,start_z).
 //
@@ -2007,6 +2103,10 @@ void MAV_create_nodelist_from_pos(UBYTE end_x, UBYTE end_z)
 }
 
 //
+// claude-ai: A* PRIORITY QUEUE setup. PQ_Type is the heap node: (x,z) position, score (heuristic), length (depth).
+// claude-ai: PQ_HEAP_MAX_SIZE=256 — max nodes in the open set at any time.
+// claude-ai: PQ_better compares by score (lower is better — pure heuristic, no g-cost, making this greedy best-first).
+// claude-ai: Note: this is NOT classic A* (no accumulated path cost g). It's a greedy best-first / bounded BFS hybrid.
 // The priority queue needs these definitions...
 //
 
@@ -2031,6 +2131,9 @@ SLONG PQ_better(PQ_Type *a, PQ_Type *b)
 
 
 //
+// claude-ai: MAV_score_pos: heuristic function — straight-line distance (QDIST2 = integer approximation of sqrt)
+// claude-ai: from (x,z) to MAV_dest. Scaled x2 before QDIST2, capped at 255 for UBYTE storage.
+// claude-ai: This is the only cost — no accumulated path cost — confirming greedy best-first search.
 // Returns the score associated with the given position.
 //
 
@@ -2117,12 +2220,21 @@ MAV_Action MAV_do(
 	// Clear the flag by default.
 	//
 
+	// claude-ai: MAV_do is the main navigation function called by PCOM AI each tick for an NPC.
+	// claude-ai: Parameters: agent grid position (me_x,me_z), target (dest_x,dest_z), capability mask (caps).
+	// claude-ai: caps is ANDed with each cell's opt[dir] to filter moves the agent cannot perform.
+	// claude-ai: Example: MAV_CAPS_DARCI=0xff allows all moves; regular cops have fewer bits set.
+	// claude-ai: Returns a MAV_Action describing: action type, direction, and destination cell.
+	// claude-ai: Sets MAV_do_found_dest=TRUE if the exact destination was reached during search.
+	// claude-ai: PATH FAIL case: if PQ empties without reaching destination, returns best partial-path action.
 	MAV_do_found_dest = FALSE;
 
 	//
 	// Clear the flags.
 	//
 	
+	// claude-ai: Clear only the ±MAV_LOOKAHEAD box around the agent (not the whole 128x128 map).
+	// claude-ai: This avoids resetting the entire flag array each tick — performance optimization.
 	MAV_clear_bbox(
 		me_x - MAV_LOOKAHEAD,
 		me_z - MAV_LOOKAHEAD,
@@ -2150,6 +2262,9 @@ MAV_Action MAV_do(
 	// Initialise the score and answer.
 	//
 
+	// claude-ai: MAV_MAX_OVERFLOWS=8: when the frontier reaches depth MAV_LOOKAHEAD, it counts as an "overflow".
+	// claude-ai: After 8 overflows the search stops and returns the best partial answer found so far (PATH_FAIL equivalent).
+	// claude-ai: This bounds the total work to O(LOOKAHEAD * MAX_OVERFLOWS) expansions per tick.
 	#define MAV_MAX_OVERFLOWS 8
 
 	overflows  = 0;
@@ -2228,6 +2343,14 @@ MAV_Action MAV_do(
 		mo = &MAV_opt[MAV_NAV(best.x,best.z)];
 
 		//
+		// claude-ai: NEIGHBOUR EXPANSION — A* open-set growth:
+		// claude-ai:   opt = cell's movement options ANDed with agent's caps bitmask.
+		// claude-ai:   move_one:   MAV_CAPS_GOTO|PULLUP|CLIMB_OVER|FALL_OFF|LADDER_UP — move 1 cell.
+		// claude-ai:   move_two:   MAV_CAPS_JUMP|JUMPPULL — move 2 cells (skip intermediate).
+		// claude-ai:   move_three: MAV_CAPS_JUMPPULL2 — move 3 cells.
+		// claude-ai: Non-GOTO actions add a score penalty (bias = Random()&3 + 3) to prefer normal walking.
+		// claude-ai: FALL_OFF gets no extra penalty (falling is "free").
+		// claude-ai: Only unvisited cells are added (MAV_visited_get check).
 		// Add neighbouring squares to the priority queue.
 		//
 
@@ -2400,6 +2523,9 @@ MAV_Action MAV_do(
 
 
 
+// claude-ai: MAV_inside: returns TRUE if world-space point (x,y,z) is below the MAVHEIGHT surface.
+// claude-ai: Used by MAV_height_los_fast/slow to test whether a line-of-sight ray goes underground.
+// claude-ai: x/z are in game units (>>8 to get grid cell), y is in game units (>>6 to get MAVHEIGHT units).
 SLONG MAV_inside(
 		SLONG x,
 		SLONG y,
@@ -2429,6 +2555,10 @@ SLONG MAV_height_los_fail_x;
 SLONG MAV_height_los_fail_y;
 SLONG MAV_height_los_fail_z;
 
+// claude-ai: MAV_height_los_fast: fast terrain LOS using the MAVHEIGHT grid (not full geometry).
+// claude-ai: Steps along the ray in increments of ~1 cell (dist>>8 steps). Returns FALSE if any step is underground.
+// claude-ai: Records the last valid point before failure in MAV_height_los_fail_*.
+// claude-ai: Used by AI for visibility/sighting checks over the height map rather than full collision geometry.
 SLONG MAV_height_los_fast(
 		SLONG x1, SLONG y1, SLONG z1,
 		SLONG x2, SLONG y2, SLONG z2)
@@ -2467,6 +2597,9 @@ SLONG MAV_height_los_fast(
 	return TRUE;
 }
 
+// claude-ai: MAV_height_los_slow: like MAV_height_los_fast but optionally uses WARE_inside() for warehouse interiors.
+// claude-ai: When ware!=0, tests each step against the warehouse bounding volume instead of global MAVHEIGHT.
+// claude-ai: Starts from (x1+dx, y1+dy, z1+dz) (skips the source point to avoid self-occlusion).
 SLONG MAV_height_los_slow(
 		SLONG ware,
 		SLONG x1, SLONG y1, SLONG z1,
@@ -2521,6 +2654,9 @@ SLONG MAV_height_los_slow(
 
 
 //
+// claude-ai: MAV_find_building_entrance is compiled out (#ifdef UNUSED) — DO NOT PORT.
+// claude-ai: Was intended to find the nearest STOREY_TYPE_DOOR facet to guide NPCs to building entrances.
+// claude-ai: Unused likely because door navigation was handled differently in the final game.
 // Finds the nearest building entrance to the given place.  Returns
 // FALSE if the building doesn't have an entrance.
 //
@@ -2613,6 +2749,13 @@ SLONG MAV_find_building_entrance(
 
 
 #ifndef	PSX
+// claude-ai: MAV_precalculate_warehouse_nav: builds a SEPARATE nav grid for a single warehouse interior.
+// claude-ai: Warehouses are large indoor areas with PAP_FLAG_HIDDEN set on their cells.
+// claude-ai: The function temporarily redirects MAV_nav to WARE_nav[ww->nav] with the warehouse's own pitch.
+// claude-ai: Only cells inside the warehouse bounding box (ww->minx..maxx, ww->minz..maxz) are processed.
+// claude-ai: Navigation rules are slightly different: no "both_ground" check; max walk dh=1 always.
+// claude-ai: After precalculation, MAV_nav is restored to the global city grid pointer.
+// claude-ai: Port note: warehouse nav grids must be stored separately from the main city grid.
 void MAV_precalculate_warehouse_nav(UBYTE ware)
 {
 	SLONG i;
@@ -2971,6 +3114,10 @@ void MAV_precalculate_warehouse_nav(UBYTE ware)
 				}
 			}
 
+			// claude-ai: If no direct walk or fence-climb is possible, try jump moves.
+			// claude-ai: Jump checks 2 cells ahead (tx+dx) and then 3 cells ahead (tx+dx+dx).
+			// claude-ai: JUMP: 2 cells, dh<2. JUMPPULL: 2 cells, dh in [2,5]. JUMPPULL2: 3 cells, dh in (-6,4].
+			// claude-ai: Each requires LOS at jump height: MAVHEIGHT<<6 + 0xa0 (approx head+shoulder height).
 			if (!(opt[i] & MAV_CAPS_GOTO) &&
 				!(opt[i] & MAV_CAPS_CLIMB_OVER))
 			{
@@ -3233,6 +3380,9 @@ void MAV_precalculate_warehouse_nav(UBYTE ware)
 #endif
 
 
+// claude-ai: MAV_get_caps: reads the raw capability bitmask for one direction from a given cell.
+// claude-ai: Returns 0 if out of bounds. Used by external code to query what moves are possible from a cell.
+// claude-ai: Works on whatever MAV_nav is currently active (city grid or warehouse grid).
 UBYTE MAV_get_caps(
 		UBYTE x,
 		UBYTE z,
@@ -3259,6 +3409,8 @@ UBYTE MAV_get_caps(
 
 
 
+// claude-ai: MAV_turn_car_movement_on/off: runtime helpers to toggle car-nav edges (e.g. when a car blocks a road).
+// claude-ai: Operate on MAV_CAR bits in the packed MAV_nav UWORD array — separate from foot-nav MAV_opt data.
 void MAV_turn_car_movement_on(UBYTE mx, UBYTE mz, UBYTE dir)
 {
 	UBYTE mav;

@@ -1,7 +1,12 @@
-#ifndef	STATE_DEF		
+#ifndef	STATE_DEF
 #define	STATE_DEF	1
+// claude-ai: STATE_* — состояния объекта (Thing.State). Определяют активный StateFn обработчик. Значение State меняется вместе со сменой StateFn.
+// claude-ai: Базовые: INIT(0), NORMAL(1), COLLISION(2), ABOUT_TO_REMOVE(3), REMOVE_ME(4).
+// claude-ai: Движение/бой: MOVEING(5), IDLE(6), JUMPING(8), FIGHTING(9), FALLING(10), GUN(22), SHOOT(23), DRIVING(24), NAVIGATING(25).
+// claude-ai: Взаимодействие: USE_SCENERY(11), CHANGE_LOCATION(14), CLIMB_LADDER(19), CLIMBING(21), GRAPPLING(30), CANNING(32).
+// claude-ai: Смерть/вред: HIT(13), HIT_RECOIL(20), DYING(16), DEAD(17), DOWN(12), DANGLING(18).
 // #define	STATE_LOCAL					5
-// Thing states.						
+// Thing states.
 #define	STATE_INIT						0
 #define	STATE_NORMAL					1
 #define	STATE_COLLISION					2
@@ -44,7 +49,8 @@
 #define STATE_CARRY						36
 #define STATE_FLOAT						37	// A person floating in the air!
 
-// claude-ai: Movement substates - walking, running, sidestep, crawl, sneak, vault
+// claude-ai: SUB_STATE_* — подсостояния (Thing.SubState). Уточняют текущий State. Нумерация НЕ последовательная — группы по смыслу, числа уникальны в пределах одного State.
+// claude-ai: Movement substates — ходьба, бег, боковые шаги, ползание, скрытное передвижение, прыжки через препятствия
 #define	SUB_STATE_WALKING				1
 #define	SUB_STATE_RUNNING				2
 #define	SUB_STATE_SIDELING				3

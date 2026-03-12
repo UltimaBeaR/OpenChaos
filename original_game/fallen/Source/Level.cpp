@@ -1,10 +1,54 @@
 // Level.cpp
 // Guy Simmons, 29th January 1998.
+// claude-ai: ОБЗОР ФАЙЛА — Level.cpp
+// claude-ai: Загрузка и инициализация уровня из бинарного .lev файла.
+// claude-ai: ВНИМАНИЕ: это ранняя версия Level.cpp — в финальной игре загрузка уровней
+// claude-ai: значительно сложнее (включает .pam геометрию, PAP heightmap и т.д.).
+// claude-ai: Данный файл обрабатывает только "Things" слой уровня (объекты, точки появления,
+// claude-ai: маршрутные точки, условия и команды).
+// claude-ai:
+// claude-ai: ФОРМАТ ФАЙЛА .lev:
+// claude-ai:   Путь: "Levels\Level%03d.lev"  (например, Level001.lev)
+// claude-ai:   Структура (бинарная, последовательная):
+// claude-ai:     UBYTE  version (должен быть 0)
+// claude-ai:     ULONG  thing_count    → N записей ThingDef (объекты уровня)
+// claude-ai:     ULONG  waypoint_count → N записей WaypointDef (маршрутные точки AI)
+// claude-ai:     ULONG  clist_count    → N записей ConditionListDef (условия скриптов)
+// claude-ai:     ULONG  comlist_count  → N записей CommandListDef (команды скриптов)
+// claude-ai:   Каждая запись начинается с UWORD Version (сейчас всегда 0).
+// claude-ai:
+// claude-ai: ПРОЦЕСС ЗАГРУЗКИ (load_level):
+// claude-ai:   1. init_waypoints / init_clists / init_comlists — сброс пулов
+// claude-ai:   2. Загрузка Things → создание персонажей, переключателей, спецпредметов
+// claude-ai:   3. Загрузка Waypoints → создание маршрутных точек AI
+// claude-ai:   4. Ремаппинг Waypoints (EdRef → runtime индексы)
+// claude-ai:   5. Загрузка ConditionLists (условия триггеров)
+// claude-ai:   6. Ремаппинг Conditions (EdRef → runtime индексы)
+// claude-ai:   7. Загрузка CommandLists (команды AI)
+// claude-ai:   8. Ремаппинг Commands
+// claude-ai:   9. Ремаппинг всех Thing-ссылок (SwitchThing, Waypoint, ComList)
+// claude-ai:
+// claude-ai: ДРУГИЕ ЧАСТИ ЗАГРУЗКИ УРОВНЯ (НЕ в этом файле):
+// claude-ai:   - .pam файл (геометрия карты, здания) — Building.cpp / Map.cpp
+// claude-ai:   - PAP_Hi[128×128] heightmap — mav.cpp (MAV_init)
+// claude-ai:   - Текстуры — Textures/ директория
+// claude-ai:   - 3D меши — Meshes/ директория
+// claude-ai:   - Миссионный скрипт (.ucm) — eway.cpp (EWAY система)
+// claude-ai:   - Звуки — data/ директория
+// claude-ai:
+// claude-ai: РЕМАППИНГ EdRef → runtime:
+// claude-ai:   EdThingRef, EdWaypointRef, EdConListRef, EdComListRef — редакторские индексы
+// claude-ai:   thing_map[], waypoint_map[], conlist_map[], comlist_map[] — таблицы перевода
+// claude-ai:   После загрузки всех объектов выполняется patching всех перекрёстных ссылок.
+// claude-ai:
+// claude-ai: PSX-специфичный код (FileOpen/FileRead макросы) — не переносить.
 
 #include	"Game.h"
 #include	"Command.h"
 #include	"statedef.h"
 
+// claude-ai: PSX-специфичные макросы файлового ввода-вывода — не переносить.
+// claude-ai: На PC/новой версии использовать стандартный fopen/fread или платформонезависимый VFS.
 #ifdef	PSX
 //
 // PSX include
@@ -25,6 +69,9 @@
 
 #endif
 
+// claude-ai: Таблицы ремаппинга: editor-индекс → runtime-индекс.
+// claude-ai: Заполняются во время загрузки; используются для патчинга перекрёстных ссылок.
+// claude-ai: После загрузки уровня эти массивы можно считать временными (не нужны в runtime).
 UWORD			comlist_map[MAX_COMLISTS],
 				conlist_map[MAX_CLISTS],
 				waypoint_map[MAX_WAYPOINTS];
@@ -34,6 +81,17 @@ void	store_player_pos(ThingDef *the_def);
 
 //---------------------------------------------------------------
 
+// claude-ai: load_thing_def() — читает одну запись ThingDef из .lev файла.
+// claude-ai: ThingDef содержит: Version, Class (CLASS_*), Genus, X/Y/Z координаты,
+// claude-ai:   CommandRef (ссылка на команду AI), Data[N] (класс-специфичные данные),
+// claude-ai:   EdThingRef (editor-индекс, нужен для ремаппинга).
+// claude-ai: По классу вызывает соответствующую create_* функцию:
+// claude-ai:   CLASS_PERSON   → create_person()
+// claude-ai:   CLASS_SWITCH   → create_switch()
+// claude-ai:   CLASS_SPECIAL  → create_special()
+// claude-ai:   CLASS_VEHICLE  → закомментировано (в этой версии транспорт не создаётся через .lev)
+// claude-ai:   CLASS_PLAYER   → store_player_pos() (точка появления игрока)
+// claude-ai:   CLASS_BUILDING → настройка уже существующего здания (locked, switch ссылки)
 BOOL	load_thing_def(MFFileHandle the_file)
 {
 	Thing			*b_thing;
@@ -82,6 +140,9 @@ BOOL	load_thing_def(MFFileHandle the_file)
 		case	CLASS_VEHICLE:
 			//	Mark	-	Create a vehicle here.
 
+			// claude-ai: Создание транспорта из .lev файла — закомментировано в этой версии.
+			// claude-ai: В финальной игре транспорт создаётся иначе (вероятно, через .pam или EWAY).
+			// claude-ai: Этот код — незаконченная ранняя реализация; не переносить как есть.
 			{
 				SLONG prim;
 
@@ -122,6 +183,10 @@ BOOL	load_thing_def(MFFileHandle the_file)
 
 //---------------------------------------------------------------
 
+// claude-ai: load_waypoint_def() — читает маршрутную точку AI из .lev файла.
+// claude-ai: WaypointDef: Version, Next/Prev (editor-индексы связного списка), X/Y/Z, EdWaypointRef.
+// claude-ai: После загрузки всех waypoints — ремаппинг Next/Prev через waypoint_map[].
+// claude-ai: Waypoints — связный список; используются AI-патрулями (COM_PATROL_WAYPOINT).
 BOOL	load_waypoint_def(MFFileHandle the_file)
 {
 	UWORD			the_wp;
@@ -273,6 +338,14 @@ BOOL	load_comlist_def(MFFileHandle the_file)
 
 //---------------------------------------------------------------
 
+// claude-ai: load_level() — главная функция загрузки уровня.
+// claude-ai: Файл: "Levels\Level%03d.lev" (бинарный формат, см. описание выше).
+// claude-ai: Последовательность: init → вещи → маршрутные точки → ремаппинг WP →
+// claude-ai:   условия → ремаппинг условий → команды → ремаппинг команд → ремаппинг Thing-ссылок.
+// claude-ai: Выделение ресурсов: alloc_waypoint(), alloc_clist(), alloc_comlist(), alloc_condition(),
+// claude-ai:   alloc_command() — берут из статических пулов (не динамический heap).
+// claude-ai: Освобождение ресурсов при выгрузке уровня: init_waypoints() / init_clists() / init_comlists()
+// claude-ai:   сбрасывают пулы (вызываются в начале следующего load_level или при выходе).
 BOOL	load_level(ULONG level)
 {
 	CBYTE			level_name[256];
@@ -297,6 +370,10 @@ BOOL	load_level(ULONG level)
 	ZeroMemory(thing_map,sizeof(thing_map));
 
 
+	// claude-ai: Путь к файлу уровня: "Levels\Level001.lev" и т.д.
+	// claude-ai: Формат .lev — бинарный, специфичный для этого движка (не стандартный).
+	// claude-ai: version == 0 — единственная поддерживаемая версия формата в этом коде.
+	// claude-ai: При портировании: заменить FileOpen/FileRead на стандартный ввод-вывод или VFS.
 	sprintf(level_name,"Levels\\Level%3.3d.lev",level);
 	level_file	=	FileOpen(level_name);
 	if(level_file!=FILE_OPEN_ERROR)
@@ -326,6 +403,9 @@ BOOL	load_level(ULONG level)
 //
 //	Remap the Waypoints.
 //
+			// claude-ai: Патчинг Next/Prev ссылок waypoints: editor-индексы → runtime-индексы.
+			// claude-ai: Waypoints образуют двусвязный список; ссылки нужно исправить после
+			// claude-ai: загрузки всех точек, т.к. в файле хранятся EdWaypointRef (editor ID).
 			for(c0=1;c0<MAX_WAYPOINTS;c0++)
 			{
 				if(waypoints[c0].Used)
@@ -507,6 +587,10 @@ BOOL	load_level(ULONG level)
 						break;
 					case	CLASS_VEHICLE:
 
+						// claude-ai: Патчинг команды транспорта: editor-индекс ComList → runtime Command.
+						// claude-ai: Если у машины есть COM_PATROL_WAYPOINT — ремапит и Waypoint.
+						// claude-ai: Машина с командой принудительно переводится в STATE_FDRIVING
+						// claude-ai: со всеми четырьмя колёсами на земле (FLAG_FURN_WHEEL*_GRIP).
 						if (current_thing->Genus.Furniture->Command)
 						{
 							current_thing->Genus.Furniture->Command = COMMAND_NUMBER(com_lists[comlist_map[current_thing->Genus.Furniture->Command]].TheList);

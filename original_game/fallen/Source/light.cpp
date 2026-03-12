@@ -1,3 +1,77 @@
+// claude-ai: OVERVIEW — light.cpp
+// claude-ai: Dynamic point light system used for real-time per-vertex lighting on buildings and terrain.
+// claude-ai: This file is in original_game/fallen/Source/ (game logic layer), NOT in DDEngine.
+// claude-ai: It manages light objects, their effect on the height-field (terrain) and building vertices.
+// claude-ai:
+// claude-ai: ARCHITECTURE:
+// claude-ai:   Lights are NOT per-frame dynamic lights in the GPU sense.
+// claude-ai:   Instead, they modify pre-baked LIGHT_Colour values stored per-vertex in:
+// claude-ai:     LIGHT_hf (height-field light map) — one LIGHT_Colour per map cell for terrain
+// claude-ai:     LIGHT_building_point[] — one LIGHT_Colour per vertex of each building prim
+// claude-ai:   These colour arrays are then consumed by MESH_draw_guts() via the lpc pointer.
+// claude-ai:
+// claude-ai: LIGHT TYPES (ll->type):
+// claude-ai:   LIGHT_TYPE_PULSE  — flickers on/off at a rate controlled by ll->param
+// claude-ai:   LIGHT_TYPE_BROKEN — randomly flickers (broken bulb simulation), randomised by param
+// claude-ai:   (Other types exist, defined in light.h)
+// claude-ai:
+// claude-ai: KEY DATA STRUCTURES:
+// claude-ai:   LIGHT_light[LIGHT_MAX_LIGHTS=128] — pool of all active lights
+// claude-ai:     .pos     — world position (GameCoord = fixed-point, >>8 for integer units)
+// claude-ai:     .colour  — LIGHT_Colour (either RGB struct or single brightness depending on LIGHT_COLOURED)
+// claude-ai:     .range   — 0..255, mapped via: range = ll->range * LIGHT_MAX_RANGE >> 8
+// claude-ai:     .type    — light behaviour type
+// claude-ai:     .param   — type-specific parameter (e.g. pulse period)
+// claude-ai:     .counter — internal state counter for pulse/broken animations
+// claude-ai:     .next    — linked list pointer (mapwho or free list)
+// claude-ai:   LIGHT_map[LIGHT_MAP_SIZE][LIGHT_MAP_SIZE] — spatial hash: linked list of lights per map cell
+// claude-ai:     LIGHT_TO_MAP(x) = x >> 9 — converts world coord to map cell index
+// claude-ai:
+// claude-ai: AMBIENT LIGHT:
+// claude-ai:   LIGHT_amb_colour, LIGHT_amb_norm_{x,y,z} — global ambient light direction and colour.
+// claude-ai:   Set from NIGHT system (time-of-day simulation).
+// claude-ai:   Applied to terrain via LIGHT_recalc_hf() using per-cell approximate normals.
+// claude-ai:   Applied to buildings in LIGHT_recalc_hf() inner loop (per building vertex dot product).
+// claude-ai:
+// claude-ai: LIGHTING ALGORITHM (per-vertex, integer arithmetic):
+// claude-ai:   dist = QDIST3(|dx|, |dy|, |dz|)  — approximate 3D distance (not exact sqrt)
+// claude-ai:   if dist < range:
+// claude-ai:     dprod = dot(normal, delta) / dist    — normalised dot product
+// claude-ai:     attenuation = (range - dist) / range — linear falloff 0..1 (as 0..256 integer)
+// claude-ai:     brightness = dprod * attenuation
+// claude-ai:     colour += light_colour * brightness >> 8
+// claude-ai:   LIGHT_COLOURED macro: #if LIGHT_COLOURED — coloured lights (RGB); else greyscale.
+// claude-ai:   Note: code reads "LIGHT_COLOURED" but the actual #define may be 0 (greyscale only in some builds).
+// claude-ai:
+// claude-ai: LIGHT_hf (height-field):
+// claude-ai:   LIGHT_Map struct with function pointers: get_height(), get_light(), set_light().
+// claude-ai:   Represents terrain lighting — one light value per terrain cell (cell size = 256 world units).
+// claude-ai:   LIGHT_recalc_hf() rebuilds this from scratch using ambient direction + all active lights.
+// claude-ai:
+// claude-ai: LIGHT BUDGET:
+// claude-ai:   LIGHT_MAX_LIGHTS = 128 — hard pool limit (not per-frame, total active lights in world).
+// claude-ai:   LIGHT_MAX_PER_PRIM = 8 — max lights considered per individual Thing (object) for LIGHT_prim().
+// claude-ai:   PSX has much lower limits: LIGHT_MAX_SLOTS=128, LIGHT_MAX_CACHES=128 vs PC's 1280.
+// claude-ai:
+// claude-ai: LIGHT CACHE:
+// claude-ai:   LIGHT_cache[] — remembers which lights affect which Thing, keyed by THING_INDEX.
+// claude-ai:   LIGHT_slot[]  — stores per-vertex colour arrays for cached lighting.
+// claude-ai:   This avoids recomputing per-vertex lighting every frame for stationary objects.
+// claude-ai:
+// claude-ai: LIGHT_get_context() / LIGHT_prim():
+// claude-ai:   Called before drawing a Thing to find all nearby lights and compute per-vertex colours.
+// claude-ai:   Searches LIGHT_map spatial hash in the vicinity of the Thing's position.
+// claude-ai:   Results are cached in LIGHT_cache to avoid repeated calculations.
+// claude-ai:
+// claude-ai: NEW GAME NOTES:
+// claude-ai:   This system is a CPU-side per-vertex lighting approximation from PSX-era constraints.
+// claude-ai:   In the new game, use GPU per-fragment lighting with actual point light uniforms.
+// claude-ai:   The LIGHT_light[] data (position, colour, range, type) should be ported as-is.
+// claude-ai:   The pulse/broken flicker logic is game logic — port it to the new light system.
+// claude-ai:   The height-field lighting (LIGHT_hf) can be replaced by shadow maps or SSAO.
+// claude-ai:   The building per-vertex colours can be replaced by per-fragment lighting in the shader.
+// claude-ai:   LIGHT_MAX_RANGE value (from light.h) determines the maximum effective radius — preserve this.
+
 //
 // Lights...
 //
@@ -469,6 +543,11 @@ void LIGHT_set_ambient(
 // Lights up/down the given building.
 //
 
+// claude-ai: LIGHT_building_up — adds a light's contribution to all vertices of a building.
+// claude-ai: Iterates over all facets and points of the BuildingObject, computing:
+// claude-ai:   dot product of face normal with direction-to-light, attenuated by distance.
+// claude-ai: Adds the resulting colour to LIGHT_building_point[point].
+// claude-ai: Called when a light is created or turned on (LIGHT_hf_light_up).
 void LIGHT_building_up(LIGHT_Index l_index, THING_INDEX t_index)
 {
 	SLONG i;
@@ -548,6 +627,11 @@ void LIGHT_building_up(LIGHT_Index l_index, THING_INDEX t_index)
 				// The angle the light hits.
 				//
 
+				// claude-ai: LIGHTING FORMULA (integer arithmetic):
+				// claude-ai:   dprod = dot(normal, delta) / dist — incidence cosine, normals have len ~256
+				// claude-ai:   multiply by linear attenuation (256 - dist*256/range) for falloff
+				// claude-ai:   negate: normals point OUT, delta points toward light (inward) — need negation for front faces
+				// claude-ai:   Only add if dprod > 0 (front-facing and in range)
 				dprod   =  pn->X*dpx + pn->Y*dpy + pn->Z*dpz;
 				dprod  /=  dist;
 				dprod   =  dprod * (256 - ((dist * 256) / range)) >> 8;
@@ -569,6 +653,8 @@ void LIGHT_building_up(LIGHT_Index l_index, THING_INDEX t_index)
 }
 
 
+// claude-ai: LIGHT_building_down — inverse of LIGHT_building_up. Subtracts a light's contribution.
+// claude-ai: Called when a light is destroyed or turned off (LIGHT_hf_light_down).
 void LIGHT_building_down(LIGHT_Index l_index, THING_INDEX t_index)
 {
 	SLONG i;
@@ -673,6 +759,12 @@ void LIGHT_building_down(LIGHT_Index l_index, THING_INDEX t_index)
 // Removes a light from the hf
 //
 
+// claude-ai: LIGHT_hf_light_up — applies one point light to the terrain height-field and nearby buildings.
+// claude-ai: Iterates over all map cells in a square radius around the light (range/256 cells).
+// claude-ai: For each cell: computes distance, applies brightness = (1 - dist/range) to LIGHT_hf colour.
+// claude-ai: Also checks if a building wall exists at that map cell; if so, calls LIGHT_building_up() once per building.
+// claude-ai: Uses litkey (random uint) to avoid lighting the same building twice (buildings can span multiple cells).
+// claude-ai: NOT available on Dreamcast (ASSERT FALSE) — DC uses a different path.
 void LIGHT_hf_light_up(LIGHT_Index l_index)
 {
 #ifdef TARGET_DC
@@ -939,6 +1031,14 @@ void LIGHT_hf_light_down(LIGHT_Index l_index)
 	}
 }
 
+// claude-ai: LIGHT_recalc_hf — full rebuild of the height-field lighting from scratch.
+// claude-ai: Called when ambient light changes (time of day transition) or on level load.
+// claude-ai: Step 1: clear all LIGHT_hf cells to zero.
+// claude-ai: Step 2: for each interior cell, compute approximate surface normal from height differences
+// claude-ai:   (using arctan of slopes), then dot with LIGHT_amb_norm to get ambient contribution.
+// claude-ai: Step 3: apply ambient lighting to all building vertices (per-vertex dot product with amb_norm).
+// claude-ai: Step 4: re-apply all active lights via LIGHT_hf_light_up().
+// claude-ai: This is expensive — only called when needed, not every frame.
 void LIGHT_recalc_hf(void)
 {
 	SLONG i;
@@ -1221,6 +1321,15 @@ void LIGHT_init()
 
 
 
+// claude-ai: LIGHT_create — spawns a new dynamic light in the world.
+// claude-ai:   where  — world position (GameCoord = fixed-point, >> 8 for integer units)
+// claude-ai:   colour — LIGHT_Colour (RGB or greyscale depending on LIGHT_COLOURED)
+// claude-ai:   range  — 0..255 maps to 0..LIGHT_MAX_RANGE world units
+// claude-ai:   type   — LIGHT_TYPE_PULSE, LIGHT_TYPE_BROKEN, etc.
+// claude-ai:   param  — type-specific: pulse period in game ticks, or broken flicker range
+// claude-ai: Returns LIGHT_Index (1..127) or NULL if pool is full (128 lights max).
+// claude-ai: Automatically places on LIGHT_map spatial hash and calls LIGHT_hf_light_up().
+// claude-ai: NEW GAME: port LIGHT_create/destroy/process — these are the game logic API, not rendering.
 LIGHT_Index LIGHT_create(
 				GameCoord    where, //fix 8
 				LIGHT_Colour colour,
@@ -1338,6 +1447,13 @@ void LIGHT_pos_set(LIGHT_Index l_index, GameCoord newpos)
 // Processes all the lights.
 //
 
+// claude-ai: LIGHT_process — ticks all active lights each game frame.
+// claude-ai: Handles LIGHT_TYPE_PULSE: increments counter, turns off at param/2, resets at param.
+// claude-ai:   Pulse period = param game ticks; duty cycle = 50%.
+// claude-ai: Handles LIGHT_TYPE_BROKEN: randomly toggles on/off using counter & 0x80 as on/off bit.
+// claude-ai:   Countdown timer randomised each transition, range = 0..(param/2).
+// claude-ai: For each just_on/just_off transition: calls LIGHT_hf_light_up/down() to update lighting.
+// claude-ai: NEW GAME: port this logic exactly — it drives visual effects like streetlight flicker.
 void LIGHT_process()
 {
 	SLONG i;
@@ -1437,6 +1553,12 @@ SLONG       LIGHT_context_l_num;
 SLONG       LIGHT_context_gameturn;
 SLONG       LIGHT_context_context;
 
+// claude-ai: LIGHT_get_context — finds all lights near a given Thing and stores them in LIGHT_context_*.
+// claude-ai: Searches LIGHT_map spatial hash in a square region of ±LIGHT_SEARCH_RANGE world units.
+// claude-ai: Collects up to LIGHT_MAX_PER_PRIM=8 lights that are within their range of the Thing.
+// claude-ai: Result is cached: if called again for same thing on same game turn, returns cached value.
+// claude-ai: Returns a "context" value (hash of which lights affect this thing).
+// claude-ai: Used to detect when re-lighting is needed (light positions/states changed).
 SLONG LIGHT_get_context(THING_INDEX t_index)
 {
 	SLONG i;

@@ -1,3 +1,68 @@
+// claude-ai: OVERVIEW — texture.cpp
+// claude-ai: Texture loading, caching and management for the Direct3D renderer.
+// claude-ai: Textures are organised into PAGES — integer indices into TEXTURE_texture[].
+// claude-ai: The page index is the primary key used throughout the renderer to identify a texture.
+// claude-ai:
+// claude-ai: TEXTURE PAGE LAYOUT (max TEXTURE_MAX_TEXTURES = 22*64 + 160 = 1568 slots):
+// claude-ai:   Pages 0   .. 4*64-1  : world textures (tex000.tga .. tex255.tga in TEXTURE_world_dir)
+// claude-ai:   Pages 4*64.. 8*64-1  : shared textures (in TEXTURE_shared_dir)
+// claude-ai:   Pages 8*64.. 9*64-1  : inside textures (in TEXTURE_inside_dir)
+// claude-ai:   Pages 9*64..11*64-1  : people textures (in TEXTURE_people_dir)
+// claude-ai:   Pages 11*64..18*64-1 : prims textures (in TEXTURE_prims_dir)
+// claude-ai:   Pages 18*64..21*64-1 : people2 textures (in TEXTURE_people_dir2)
+// claude-ai:   Pages 22*64..+159    : special effect textures (snowflake, explode, face, fog, etc.)
+// claude-ai:   Add FACE_PAGE_OFFSET to mesh UV page values to get the actual TEXTURE_texture[] index.
+// claude-ai:
+// claude-ai: TEXTURE FILE FORMATS:
+// claude-ai:   .tga files  — TGA 24-bit RGB images. Individual tiles, not atlases.
+// claude-ai:   tex%03d.tga    — 32x32 low-res version
+// claude-ai:   tex%03dhi.tga  — 64x64 high-res version (preferred on PC)
+// claude-ai:   tex%03dto.tga  — 128x128 super-res version
+// claude-ai:   .txc files  — clump file: multiple TGA pages bundled into one file for faster loading.
+// claude-ai:                  See TEXTURE_initialise_clumping() — on PC, textures are loaded from the .txc clump.
+// claude-ai:                  Located in clumps/ subdirectory, named after the level file (e.g. level1.txc).
+// claude-ai:
+// claude-ai: TEXTURE_NORM_SIZE = 32 — the base tile size in pixels.
+// claude-ai: TEXTURE_NORM_SQUARES = 8 — not used for atlas, just a grouping constant.
+// claude-ai:
+// claude-ai: KEY FUNCTIONS:
+// claude-ai:   TEXTURE_choose_set(n)    — sets directories for world n, frees old world textures, loads flags.
+// claude-ai:   TEXTURE_load_page(page)  — loads one TGA into TEXTURE_texture[page] via D3DTexture::LoadTextureTGA().
+// claude-ai:   TEXTURE_get_page(page)   — lazy-loads a page if not yet loaded (demand loading).
+// claude-ai:   TEXTURE_initialise_clumping() — sets up the .txc bundle file system for fast texture load.
+// claude-ai:
+// claude-ai: CLUMPING (PC optimization):
+// claude-ai:   On PC, all texture pages for a level are pre-bundled into a .txc file (see clumps/ directory).
+// claude-ai:   Clump file = sequential TGA data. OpenTGAClump() opens it, then LoadTextureTGA() reads from it.
+// claude-ai:   IndividualTextures=false means "use clump", true means "load individual TGA files".
+// claude-ai:
+// claude-ai: CRINKLE DATA:
+// claude-ai:   Each world/shared texture page can have a .sex file (CRINKLE_load) with normal-map like data
+// claude-ai:   used for bump-mapped specular highlights on the Crinkle system (special lighting effect).
+// claude-ai:   TEXTURE_crinkle[page] stores the loaded crinkle handle. NOT related to bumpmapping in new game.
+// claude-ai:
+// claude-ai: 2-PASS TEXTURES (masked self-illuminating):
+// claude-ai:   If POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS: this page is drawn in two passes.
+// claude-ai:   Pass 1: page itself; Pass 2: page+1 (the illumination mask).
+// claude-ai:   Used for neon signs, lit windows. Loading page auto-loads page+1.
+// claude-ai:   NEW GAME: implement with blending or alpha channel instead of two passes.
+// claude-ai:
+// claude-ai: TEXTURE_shadow_bitmap:
+// claude-ai:   A raw 16bpp pixel buffer for the shadow texture page, directly written by the shadow renderer.
+// claude-ai:   Separate from the normal TGA pipeline.
+// claude-ai:
+// claude-ai: D3D TEXTURE OBJECT:
+// claude-ai:   D3DTexture wraps an IDirectDrawSurface7 (the D3D texture surface).
+// claude-ai:   Methods: LoadTextureTGA(), Destroy(), LockUser(), UnlockUser().
+// claude-ai:   NEW GAME: replace with GLuint texture handle + glTexImage2D from the TGA pixel data.
+// claude-ai:
+// claude-ai: NEW GAME NOTES:
+// claude-ai:   - Keep the page numbering system and TEXTURE_texture[] array concept (just change type to GLuint)
+// claude-ai:   - Keep TEXTURE_choose_set() structure (set active texture set, free old, lazy-load new)
+// claude-ai:   - Replace .txc bundle with a similar streaming system or just load individual TGAs
+// claude-ai:   - Textures can be loaded on demand: TEXTURE_get_page() pattern is fine
+// claude-ai:   - For animated textures (FACE_FLAG_ANIMATE): keep anim_tmap system, just update UV per frame
+
 //
 // Texture handling.
 //
@@ -97,6 +162,8 @@ UBYTE TEXTURE_needed[TEXTURE_MAX_TEXTURES];
 // The texture pages.
 // 
 
+// claude-ai: Direct3D API — replace with: GLuint TEXTURE_texture[TEXTURE_MAX_TEXTURES];
+// claude-ai: Each slot holds the OpenGL texture name for that page (0 = not loaded yet).
 D3DTexture TEXTURE_texture[TEXTURE_MAX_TEXTURES];
 
 //
@@ -581,6 +648,13 @@ void TEXTURE_DC_pack_load_page(SLONG page)
 
 SLONG TEXTURE_num_textures;
 
+// claude-ai: TEXTURE_choose_set — switches the active texture set (world number).
+// claude-ai: Frees all previously loaded world textures (pages 0..4*64-1) via Destroy().
+// claude-ai: Sets directory paths for world_dir, shared_dir, people_dir, prims_dir, inside_dir.
+// claude-ai: Reloads texture type flags from textype.txt files (which pages are 2-pass, alpha, etc.).
+// claude-ai: Loads texture style definitions (for animated/scrolling textures).
+// claude-ai: Direct3D API: TEXTURE_texture[i].Destroy() frees the D3D surface.
+// claude-ai: NEW GAME: equivalent = glDeleteTextures() for all world pages, then reset and lazy-reload.
 void TEXTURE_choose_set(SLONG number)
 {
 	SLONG i;
@@ -695,6 +769,14 @@ extern	void	load_texture_instyles(UBYTE editor, UBYTE world);
 
 bool	IndividualTextures = false;
 
+// claude-ai: TEXTURE_load_page — loads one texture page from disk into TEXTURE_texture[page].
+// claude-ai: Searches for the highest resolution TGA available: 128x128 > 64x64 > 32x32.
+// claude-ai: Sets TEXTURE_dontexist[page]=TRUE if no file found (suppresses future load attempts).
+// claude-ai: Also loads crinkle data from .sex file for world/shared pages (pages 0..8*64-1).
+// claude-ai: If page is POLY_PAGE_FLAG_2PASS, auto-loads page+1 (the illumination mask).
+// claude-ai: On PC with clumping: reads from the .txc bundle via the clump file system.
+// claude-ai: Direct3D API: calls TEXTURE_texture[page].LoadTextureTGA() to upload pixels to D3D surface.
+// claude-ai: NEW GAME: replace LoadTextureTGA() with: glGenTextures, glBindTexture, glTexImage2D.
 static void TEXTURE_load_page(SLONG page)
 {
 	CBYTE name_res32[64];

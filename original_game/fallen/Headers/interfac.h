@@ -5,6 +5,8 @@
 // Defines
 //
 
+// claude-ai: Номера кнопок (биты в bitmask Player::Input). Всего 18 кнопок (0-17).
+// claude-ai: Старшие биты (17-31) зарезервированы под аналоговые стики — макросы GET_JOYX/GET_JOYY в interfac.cpp.
 #define	INPUT_FORWARDS		0
 #define	INPUT_BACKWARDS		1
 #define	INPUT_LEFT			2
@@ -24,6 +26,7 @@
 #define	INPUT_STEP_LEFT		16
 #define	INPUT_STEP_RIGHT	17
 
+// claude-ai: Bitmask версии констант. INPUT_MASK_ALL_BUTTONS = 0x3ffff охватывает только биты 0-17 (цифровые кнопки).
 #define	INPUT_MASK_FORWARDS		(1 << INPUT_FORWARDS)
 #define	INPUT_MASK_BACKWARDS	(1 << INPUT_BACKWARDS)
 #define	INPUT_MASK_LEFT			(1 << INPUT_LEFT)
@@ -91,6 +94,8 @@
 // Functions
 //
 
+// claude-ai: apply_button_input — обработка нажатий: бой и действия персонажа (пешком)
+// claude-ai: process_hardware_level_input_for_player — главная функция ввода: читает клавиатуру/геймпад, заполняет Player::Input
 extern	void	apply_button_input(struct Thing *p_thing,SLONG input);
 extern	void	process_hardware_level_input_for_player(Thing *p_thing);
 extern	void	init_user_interface(void);
@@ -198,6 +203,8 @@ extern UBYTE	joypad_button_use[16];
 extern UBYTE	keybrd_button_use[16];
 #endif
 
+// claude-ai: Индексы кнопок геймпада в массиве joypad_button_use[16]. Маппинг физических кнопок на логические INPUT_*.
+// claude-ai: Пример: joypad_button_use[JOYPAD_BUTTON_KICK] = номер физической кнопки DirectInput.
 #define	JOYPAD_BUTTON_KICK       0
 #define	JOYPAD_BUTTON_PUNCH      1
 #define	JOYPAD_BUTTON_JUMP       2

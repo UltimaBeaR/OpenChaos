@@ -40,13 +40,15 @@ sy = SIN(yaw   & 2047);
 #define SIN(a)  SinTable[a]
 #define COS(a)  CosTable[a]
 
-// StdMaths.cpp строка 362:
-SLONG SinTable[];             // 2048 entries, индексы 0-2047
+// StdMaths.cpp:
+SLONG SinTable[];             // 2560 entries (НЕ 2048!) — индексы 0-2559
 SLONG *CosTable = &SinTable[512];  // COS = SIN со сдвигом 512 (π/2)
+// Почему 2560: CosTable нужны индексы 0..2047 → SinTable[512..2559] → 512+2048=2560
 ```
 
-Значения в таблице сдвинуты: `maths.cpp строка 31: sinx = SIN(xangle & (2048-1)) >> 1`
-→ точность 15 бит (значения умноженные на 32768).
+Значения масштабированы: `65536 = 1.0` (16.16 fixed-point, используется `>>16`).
+Также есть `SinTableF[512]` (float, только 0°–90°, т.е. 0..511) и `CosTableF` (указатель на SinTableF — **осторожно: обращение к индексу 0 корректно, но CosTableF как смещение не определён формально**).
+В maths.cpp: `sinx = SIN(xangle & (2048-1)) >> 1` → точность 15 бит (×32768).
 
 ### FMATRIX_calc (FMatrix.cpp)
 

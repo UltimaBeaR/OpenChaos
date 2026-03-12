@@ -10,6 +10,10 @@
 // The types of high-level AI.
 //
 
+// claude-ai: PCOM_AI_* — тип высокоуровневого AI персонажа. Задаётся при создании через PCOM_create_person(), хранится в Person.pcom_ai.
+// claude-ai: Мирные: NONE(0), CIV(1). Охрана/полиция: GUARD(2), COP(5), COP_DRIVER(14), DOORMAN(7), BODYGUARD(8).
+// claude-ai: Враги: ASSASIN(3), BOSS(4), GANG(6), BULLY(13), MIB(18), BANE(19), SHOOT_DEAD(21).
+// claude-ai: Специальные: DRIVER(9), BIKER(11 — не перенесён), BDISPOSER(10), SUICIDE(15), FLEE_PLAYER(16), KILL_COLOUR(17), HYPOCHONDRIA(20).
 #define PCOM_AI_NONE		 0	// Does nowt.
 #define PCOM_AI_CIV			 1
 #define PCOM_AI_GUARD		 2	// Protects an area- doesn't leave that area.
@@ -34,6 +38,7 @@
 #define PCOM_AI_SHOOT_DEAD   21	// An assasin who always shoots- and fast too!
 #define PCOM_AI_NUMBER		 22
 
+// claude-ai: PCOM_MOVE_* — режим базового передвижения, независимый от AI-состояния. Задаётся при создании персонажа, определяет поведение в спокойной обстановке.
 #define PCOM_MOVE_STILL			1
 #define PCOM_MOVE_PATROL		2	// Follow waypoints.
 #define PCOM_MOVE_PATROL_RAND	3	// Walk in random order.
@@ -46,6 +51,7 @@
 #define PCOM_MOVE_TIED_UP		10	// When still- tied up
 #define PCOM_MOVE_NUMBER		11
 
+// claude-ai: PCOM_BENT_* — битовое поле черт характера (Person.pcom_bent). Комбинируются через OR. Определяют особенности поведения AI.
 #define PCOM_BENT_LAZY				(1 << 0)	// Moves slow
 #define PCOM_BENT_DILIGENT			(1 << 1)	// Moves fast
 #define PCOM_BENT_GANG				(1 << 2)	// Part of a gang. Protects other gang members of the same colour.
@@ -63,8 +69,13 @@
 
 //
 // The ai states that the person can be in.
-// 
+//
 
+// claude-ai: PCOM_AI_STATE_* — текущее состояние высокоуровневого AI. Хранится в Person.pcom_ai_state. Обрабатывается в PCOM_process_person() каждый кадр.
+// claude-ai: Спокойные: NORMAL(1), SLEEPING(5), LOOKAROUND(11), HOMESICK(10), WARM_HANDS(16), AIMLESS(24).
+// claude-ai: Реакция на угрозу: INVESTIGATING(2), SEARCHING(3), KILLING(4), NAVTOKILL(9), SNIPE(15), TAUNT(19).
+// claude-ai: Побег: FLEE_PLACE(6), FLEE_PERSON(7). Взаимодействие: FOLLOWING(8), ARREST(20), TALK(21), HANDS_UP(25), SUMMON(26).
+// claude-ai: Транспорт: FINDCAR(12), LEAVECAR(14), FINDBIKE(17), HITCH(23). Прочее: KNOCKEDOUT(18), BDEACTIVATE(13), GRAPPLED(22), GETITEM(27).
 #define PCOM_AI_STATE_PLAYER		0	// This is a player
 #define PCOM_AI_STATE_NORMAL		1	// Doing nothing in particular.
 #define PCOM_AI_STATE_INVESTIGATING	2	// Investigating a strange sound- not sure if there is a problem
@@ -227,6 +238,11 @@ void PCOM_change_person_attributes(
 // Makes a sound that can alert people.
 //
 
+// claude-ai: PCOM_SOUND_* — типы звуков, которые ПРЕДУПРЕЖДАЮТ AI персонажей (через PCOM_oscillate_tympanum).
+// claude-ai: Тихие (не будят охрану): FOOTSTEP(1), UNUSUAL(2), DROP(7), VAN(10).
+// claude-ai: Громкие (поднимают тревогу): GUNSHOT(6), BANG(11) — слышны на большой дистанции.
+// claude-ai: Социальные (запускают диалог/реакцию): HEY(3), LOOKINGATME(13), WANKER(14), DRAW_GUN(15).
+// claude-ai: Диапазоны громкости в Sound.h: FOOTSTEP≈0x280, VAN≈0x180 (тихий), GUNSHOT≈0xa00 (громкий).
 #define PCOM_SOUND_FOOTSTEP		1
 #define PCOM_SOUND_UNUSUAL		2	// i.e. a coke can or kick/punch a wall.
 #define PCOM_SOUND_HEY			3	// A guard wanting to know who someone is.
@@ -245,6 +261,8 @@ void PCOM_change_person_attributes(
 #define PCOM_SOUND_GRENADE_FLY	16	// A grenade flying through the air.
 #define PCOM_SOUND_GRENADE_HIT	17	// A grenade hitting the ground.
 
+// claude-ai: PCOM_oscillate_tympanum — "колебать барабанную перепонку" = оповестить AI о звуке. Все NPC в радиусе слышимости получают уведомление.
+// claude-ai: Типы звуков по громкости: FOOTSTEP(0x280) — тихий, DRAW_GUN(0x600) — требует LOS, GUNSHOT(0xa00) — самый громкий. Громкость = радиус реакции.
 void PCOM_oscillate_tympanum(
 		SLONG  type,
 		Thing *p_person,	// The person who caused the sound.
@@ -285,6 +303,7 @@ void PCOM_youre_being_grappled(
 // Processes a person.
 //
 
+// claude-ai: PCOM_process_person — главный тик AI персонажа. Вызывается каждый кадр из StateFn. Обрабатывает pcom_ai_state, принимает решения (атаковать/убегать/патрулировать), вызывает set_person_* функции.
 void PCOM_process_person(Thing *p_person);
 
 //

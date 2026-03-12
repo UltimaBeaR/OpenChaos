@@ -1,11 +1,17 @@
 //
 // The whole game is based on waypoints!
 //
+// claude-ai: ВАЖНО: .ucm файлы — это EWAY Mission Data (бинарный формат), НЕ MuckyBasic скрипты!
+// claude-ai: Система событий миссий: до 512 EventPoint на миссию (EWAY_MAX_WAYS=512).
+// claude-ai: EWAY_process() вызывается каждый кадр (polling) — проверяет все активные EventPoint.
+// claude-ai: Каждый EP: условие (EWAY_COND_*) + действие (EWAY_DO_*) + режим активности (EWAY_STAY_*).
+// claude-ai: 41 тип условий, 52 типа действий, 6 режимов активности.
 
 #ifndef _EWAY_
 #define _EWAY_
 
 
+// claude-ai: Лимиты системы: 512 waypoints на миссию, 128 условий, 150 edef (параметры NPC), 32 таймера.
 #define EWAY_MAX_CONDS 128
 #define EWAY_MAX_WAYS  512
 #define EWAY_MAX_EDEFS 150
@@ -32,7 +38,21 @@
 // CONDITIONS TO MAKE TRIGGERS GO ACTIVE.
 //
 // ========================================================
-
+// claude-ai: Условия активации EventPoint (41 тип, 0-41). Ключевые:
+// claude-ai:   0  FALSE          — никогда (заглушка)
+// claude-ai:   1  TRUE           — всегда активно
+// claude-ai:   2  PROXIMITY      — игрок в радиусе (arg1=радиус)
+// claude-ai:   3  TRIPWIRE       — пересечение линии-триггера
+// claude-ai:   7  TIME           — таймер (arg1=время)
+// claude-ai:   8  DEPENDENT      — другой waypoint активен (arg1=ID)
+// claude-ai:  13  PERSON_DEAD    — персонаж убит (arg1=ID waypoint создавшего персонажа)
+// claude-ai:  14  PERSON_NEAR    — персонаж рядом (arg1=ID, arg2=радиус)
+// claude-ai:  18  GROUP_DEAD     — вся группа мертва
+// claude-ai:  21  ITEM_HELD      — игрок держит предмет (arg1=waypoint предмета)
+// claude-ai:  26  PERSON_ARRESTED — персонаж арестован
+// claude-ai:  29  CRIME_RATE_GTEQ — уровень преступности >= arg1
+// claude-ai:  32  PERSON_IN_VEHICLE — персонаж в машине
+// claude-ai:  38  DARCI_GRABBED  — Darci держит кого-то в захвате
 #define EWAY_COND_FALSE			  		0
 #define EWAY_COND_TRUE			  		1
 #define EWAY_COND_PROXIMITY		  		2	// arg1 is the radius for proximity triggers.
@@ -151,7 +171,13 @@ typedef struct
 // ONCE A WAYPOINT HAS GONE ACTIVE IT BEHAVE IN DIFFERENT WAYS.
 //
 // ========================================================
-
+// claude-ai: Режимы активности (OT_* аналог):
+// claude-ai:   1 ALWAYS      — остаётся активным постоянно
+// claude-ai:   2 WHILE       — активен пока условие выполняется
+// claude-ai:   3 WHILE_TIME  — как WHILE, но с задержкой деактивации
+// claude-ai:   4 TIME        — активен заданное время (arg в 1/100 сек)
+// claude-ai:   5 AFTER_TIME  — неактивен заданное время, потом срабатывает
+// claude-ai:   6 DIE         — срабатывает и самоуничтожается
 #define EWAY_STAY_ALWAYS	 1	// Always stays active
 #define EWAY_STAY_WHILE		 2	// Stay active only which the triggering event is still hapenning
 #define EWAY_STAY_WHILE_TIME 3	// Like while, but waits some time before going inactive: arg = time (100 = 1 second)
@@ -165,7 +191,21 @@ typedef struct
 // WHAT A TRIGGER DOES ONCE IT HAS GONE ACTIVE.
 //
 // ========================================================
-
+// claude-ai: Действия waypoint (52 типа, 0-52). Ключевые:
+// claude-ai:   0  NOTHING        — ничего (только условие, используется как триггер)
+// claude-ai:   1  CREATE_PLAYER  — создать игрока
+// claude-ai:   3  CREATE_ENEMY   — создать NPC-врага
+// claude-ai:   4  CREATE_ITEM    — создать предмет
+// claude-ai:   5  CREATE_VEHICLE — создать транспорт
+// claude-ai:   7  CONTROL_DOOR   — управлять дверью
+// claude-ai:   9  MESSAGE        — показать/сказать сообщение
+// claude-ai:  14  MISSION_FAIL   — провал миссии
+// claude-ai:  15  MISSION_COMPLETE — победа в миссии
+// claude-ai:  21  NAV_BEACON     — навигационный маркер на экране
+// claude-ai:  24  KILL_WAYPOINT  — деактивировать другой waypoint
+// claude-ai:  25  OBJECTIVE      — установить задачу миссии
+// claude-ai:  28  CONVERSATION   — запустить диалог между персонажами
+// claude-ai:  50  SHAKE_CAMERA   — тряска камеры
 #define EWAY_DO_NOTHING			 0	// arg1 is delay in 10ths of a second
 #define EWAY_DO_CREATE_PLAYER	 1
 #define EWAY_DO_CREATE_ANIMAL	 2
@@ -353,6 +393,8 @@ void EWAY_work_out_which_ones_are_in_warehouses(void);
 // Processes the waypoints.
 //
 
+// claude-ai: Главная функция обработки событий миссии. Вызывается каждый кадр.
+// claude-ai: Проверяет все активные EventPoint (polling до 512 штук), выполняет действия при срабатывании условий.
 void EWAY_process(void);
 
 //
