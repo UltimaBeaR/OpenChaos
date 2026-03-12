@@ -37,21 +37,24 @@
 
 ## 2. Типы данных
 
-**8 основных типов, каждое значение = ML_Data (8 байт):**
+**17 типов, каждое значение = ML_Data (8 байт):**
 
 ```c
-#define ML_TYPE_UNDEFINED  0  // Не инициализировано
-#define ML_TYPE_SLUMBER    1  // 32-bit signed int (SLONG)
-#define ML_TYPE_FLUMBER    2  // 32-bit float
-#define ML_TYPE_STRCONST   3  // String константа (индекс в data table)
-#define ML_TYPE_STRVAR     4  // String переменная (malloc'd)
-#define ML_TYPE_BOOLEAN    5  // True/False
-#define ML_TYPE_POINTER    6  // Указатель на ML_Data
-#define ML_TYPE_STRUCTURE  7  // Структура (на куче)
-#define ML_TYPE_ARRAY      8  // Массив (на куче, многомерный)
-#define ML_TYPE_TEXTURE   11  // LL_Texture* (графическая текстура)
-#define ML_TYPE_BUFFER    12  // LL_Buffer* (вершинный буфер)
-#define ML_TYPE_MATRIX    14  // Матрица 3×3 (3 вектора)
+#define ML_TYPE_UNDEFINED    0   // Не инициализировано
+#define ML_TYPE_SLUMBER      1   // 32-bit signed int (SLONG)
+#define ML_TYPE_FLUMBER      2   // 32-bit float
+#define ML_TYPE_STRCONST     3   // String константа (индекс в data table)
+#define ML_TYPE_STRVAR       4   // String переменная (malloc'd)
+#define ML_TYPE_BOOLEAN      5   // True/False
+#define ML_TYPE_POINTER      6   // Указатель на ML_Data
+#define ML_TYPE_STRUCTURE    7   // Структура (на куче)
+#define ML_TYPE_ARRAY        8   // Массив (на куче, многомерный)
+#define ML_TYPE_CODE_POINTER 9   // Адрес инструкции (для GOSUB/RETURN)
+#define ML_TYPE_STACK_BASE  10   // Сохранённый frame pointer
+#define ML_TYPE_TEXTURE     11   // LL_Texture* (графическая текстура)
+#define ML_TYPE_BUFFER      12   // LL_Buffer* (вершинный буфер)
+#define ML_TYPE_NUM_ARGS    13   // Число аргументов функции
+#define ML_TYPE_MATRIX      14   // Матрица 3×3 (3 вектора)
 #define ML_TYPE_VECTOR    15  // Вектор XYZ (3 float)
 ```
 
@@ -361,3 +364,115 @@ VM_run("output.mbe");                       // Исполнение
 Необязательно (только в MuckyBasic-VM):
 - GOTO/GOSUB (заменить на нормальные функции)
 - Низкоуровневая графика (DRAW, BUFFER) — скрипты миссий это скорее всего не используют
+
+---
+
+## 8. Бинарные форматы файлов (для декомпилятора)
+
+### Объектный файл .mbo
+
+```
+LINK_Header {
+    SLONG version;                   // ML_VERSION_NUMBER = 1
+    SLONG num_instructions;
+    SLONG data_table_length_in_bytes;
+    SLONG num_globals;
+    SLONG num_functions;
+    SLONG num_lines;
+    SLONG num_jumps;
+    SLONG num_fields;
+    SLONG num_global_refs;
+    SLONG num_undef_refs;            // ссылки на внешние функции
+    SLONG num_field_refs;
+    SLONG num_data_table_refs;
+}
+SLONG   Instructions[num_instructions]  + MAGIC(12345678)
+CBYTE   DataTable[data_table_length]    + MAGIC
+LINK_Global   Globals[num_globals]      + MAGIC
+LINK_Function Functions[num_functions]  + MAGIC
+LINK_Line     Lines[num_lines]          + MAGIC
+LINK_Jump     Jumps[num_jumps]          + MAGIC
+LINK_Field    Fields[num_fields]        + MAGIC
+LINK_Globalref   GlobalRefs[...]        + MAGIC
+LINK_Undefref    UndefRefs[...]         + MAGIC
+LINK_Fieldref    FieldRefs[...]         + MAGIC
+LINK_Datatableref DataTableRefs[...]    + MAGIC
+SLONG   debug_data_length
+CBYTE   debug_data[debug_data_length]   // содержит имена переменных/функций!
+```
+
+### Ключевые структуры:
+```c
+struct LINK_Global {
+    UWORD index;    // номер в таблице глобальных переменных
+    UBYTE export;   // TRUE = экспортируется
+    UBYTE local;    // TRUE = локально в файле
+    SLONG name;     // индекс в debug_data (имя переменной!)
+};
+
+struct LINK_Function {
+    SLONG name;         // индекс в debug_data (имя функции!)
+    SLONG export;       // TRUE = экспортируется
+    SLONG line_start;
+    SLONG line_end;
+    SLONG num_args;
+};
+
+struct LINK_Undefref {
+    SLONG name;         // имя внешней функции в debug_data
+    SLONG instruction;  // инструкция GOSUB, ссылающаяся на неё
+};
+```
+
+### Исполняемый файл .mbe (и .ucm)
+
+```
+ML_Header {
+    SLONG version;
+    SLONG instructions_memory_in_bytes;
+    SLONG data_table_length_in_bytes;
+    SLONG num_globals;
+}
+SLONG instructions[]   // весь bytecode
+CBYTE data_table[]     // строковые константы, имена
+```
+
+**Важно для декомпиляции:**
+- В `.mbo` debug_data содержит имена функций и глобальных переменных → сохраняются при декомпиляции
+- В `.mbe` (и `.ucm`) эти имена могут отсутствовать — зависит от strip при линковке
+- Имена локальных переменных нигде не сохраняются → при декомпиляции будут `var_0`, `var_1` и т.д.
+
+### Стек-кадр функции (VM):
+```
+При GOSUB → push адрес возврата (CODE_POINTER)
+При ENTERFUNC(n):
+    → push старый VM_stack_base (STACK_BASE)
+    → VM_stack_base = текущая вершина стека
+    → локальные переменные: VM_stack_base[0], [1], ...
+При ENDFUNC:
+    → восстановить VM_stack_base
+    → pop до адреса возврата
+    → jump к адресу возврата
+```
+
+### Параллельные скрипты:
+- VM **однопоточная** — нет встроенного coroutine
+- Если нужно несколько скриптов одновременно, вероятно игра вызывает VM пошагово из C++
+
+---
+
+## 9. Вывод по декомпиляции
+
+**Написать декомпилятор .ucm → .mbs реально:**
+
+1. Читаем ML_Header → instructions[] + data_table[]
+2. Каждая инструкция = SLONG (опкод в битах, аргумент в битах)
+3. Stack-based bytecode хорошо декомпилируется в выражения
+4. Если файлы `.ucm` сохранили debug_data — получим имена функций и глобалок
+5. Локальные переменные → `var_0`, `var_1` (позиция на стек-кадре)
+6. GOTO/IF_FALSE_GOTO → восстанавливаются в IF/WHILE/FOR по паттернам
+
+**Сложности:**
+- Определить границы функций (нужно найти ENTERFUNC/ENDFUNC)
+- Восстановить FOR..NEXT из GOTO паттернов
+- Если `.ucm` без debug_data — глобальные переменные тоже будут `global_0`, `global_1`

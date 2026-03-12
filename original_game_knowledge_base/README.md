@@ -21,11 +21,11 @@
 | Система миссий | ✅ Готово | [subsystems/missions.md](subsystems/missions.md) |
 | Оружие и предметы | ✅ Готово | [subsystems/weapons_items.md](subsystems/weapons_items.md) |
 | Звук | ✅ Готово | [subsystems/audio.md](subsystems/audio.md) |
-| Игровой мир и карта | 🔲 Не начато | [subsystems/world_map.md](subsystems/world_map.md) |
-| Персонажи и анимации | 🔲 Не начато | [subsystems/characters.md](subsystems/characters.md) |
-| Транспорт | 🔲 Не начато | [subsystems/vehicles.md](subsystems/vehicles.md) |
-| UI и фронтенд | 🔲 Не начато | [subsystems/ui.md](subsystems/ui.md) |
-| Математика и утилиты | 🔲 Не начато | [subsystems/math_utils.md](subsystems/math_utils.md) |
+| Игровой мир и карта | ✅ Готово | [subsystems/world_map.md](subsystems/world_map.md) |
+| Персонажи и анимации | ✅ Готово | [subsystems/characters.md](subsystems/characters.md) |
+| Транспорт | ✅ Готово | [subsystems/vehicles.md](subsystems/vehicles.md) |
+| UI и фронтенд | ✅ Готово | [subsystems/ui.md](subsystems/ui.md) |
+| Математика и утилиты | ✅ Готово | [subsystems/math_utils.md](subsystems/math_utils.md) |
 
 ## Структура папки
 
@@ -50,8 +50,8 @@ original_game_knowledge_base/
     ├── missions.md              — ✅ EventPoint граф, TT_*/WPT_* триггеры, структуры миссий
     ├── weapons_items.md         — ✅ SPECIAL_* типы, оружие, инвентарь, гранаты
     ├── audio.md                 — ✅ Miles Sound System, 3D аудио, 14 музыкальных режимов
-    ├── world_map.md             — 🔲 карта, MapWho, heightmap, здания
-    ├── characters.md            — 🔲 персонажи, анимации, tweening
-    ├── vehicles.md              — 🔲 машины, мотоциклы (BIKE)
-    ├── ui.md                    — 🔲 HUD, меню, диалоги, frontend
-    └── math_utils.md            — 🔲 MFLib1, математика, кватернионы, матрицы
+    ├── world_map.md             — ✅ карта (PAP_Hi/Lo), MapWho, здания, освещение
+    ├── characters.md            — ✅ 15 типов персонажей, vertex morphing, DrawTween
+    ├── vehicles.md              — ✅ 9 типов машин, физика, BIKE (2 мотоцикла)
+    ├── ui.md                    — ✅ HUD, меню, шрифты, диалоги, frontend
+    └── math_utils.md            — ✅ Matrix3x3, Quaternion, SLERP, arctan/sqrt tables
