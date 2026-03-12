@@ -1,7 +1,17 @@
 {
-  "defaultMode": "bypassPermissions",
   "permissions": {
-    "allow": [],
+    "allow": [
+      "WebSearch",
+      "Bash(grep -n \"HOOK_process\\\\|HOOK_reel\" /c/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/*.cpp)",
+      "WebFetch(domain:gamefaqs.gamespot.com)",
+      "WebFetch(domain:www.supercheats.com)",
+      "Bash(grep -rn \"HOOK_pos\\\\|draw.*hook\\\\|render.*hook\\\\|grappl\" /c/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/*.cpp)",
+      "Bash(grep -rn \"\\\\.sew\\\\|sew\\\\\" \"c:\\\\WORK\\\\MuckyFoot-UrbanChaos_base/original_game/fallen/Source/\" --include=\"*.cpp \")",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/WORK/MuckyFoot-UrbanChaos_base/**)",
+      "Bash(done)"
+    ],
     "deny": [
       "Bash(git commit*)",
       "Bash(git push*)",
@@ -15,5 +25,6 @@
       "Bash(git restore*)",
       "Bash(git clean*)"
     ]
-  }
+  },
+  "defaultMode": "bypassPermissions"
 }

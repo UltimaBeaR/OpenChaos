@@ -44,7 +44,7 @@
 |------|----------------|-----------|--------------|
 | `BIKE` | ~15 файлов: bike.cpp, Controls.cpp, Person.cpp и др. | Мотоцикл — незавершённая фича, в финальной игре отсутствует | **НЕТ** |
 | `FAST_EDDIE` | Controls.cpp, vehicle.cpp | Быстрый отладочный режим (`#if defined(FAST_EDDIE) && 0`) | **НЕТ** |
-| `USE_PASSWORD` | startscr.cpp (одно место) | Система паролей | **НЕЯСНО** |
+| `USE_PASSWORD` | startscr.cpp (одно место) | Система паролей/читов | **ДА** — перенести концептуально (чит-коды работают, реализация может отличаться) |
 
 **BIKE:** флаг существует и используется широко (~15 файлов), но фича незавершена и не вошла в финальную игру. **Не переносить в новую версию.**
 
@@ -82,7 +82,7 @@
 
 | Флаг | Где определяется | Назначение | Нужен |
 |------|-----------------|-----------|-------|
-| `EIDOS` | password.h (по умолчанию) | Eidos Interactive — издатель. Определяет строки и ключи | **ДА** |
+| `EIDOS` | password.h | Учётные данные издателя: EXPORT_NAME="Darren Hedges", EXPORT_CO="Eidos UK", EXPORT_PW="twogoldfish". Вероятно DRM/дистрибьюция. | **НЕТ** — полностью убрать |
 | `USA`, `GERMANY`, `FRANCE`, `KK`, `SINGAPORE`, `LEADER`, `HALIFAX`, `SYNTHESIS`, `DLMM`, `EEM`, `EUROPE`, `JAPAN` | password.h | Альтернативные региональные издания | **НЕТ** |
 | `TDFX` | password.h | Специальная версия для 3dfx Voodoo | **НЕТ** |
 | `VERSION_ENGLISH`, `VERSION_GERMAN` и др. | psxeng.h | Языковые версии PSX | **НЕТ** |
@@ -132,11 +132,11 @@ _WINDOWS;WIN32;_DEBUG;DEBUG;VERSION_D3D;TEX_EMBED;WINDOWS_IGNORE_PACKING_MISMATC
 - Папка `/fallen/PSXENG/` — код PSX
 - Код под флагами: `TARGET_DC`, `PSX`, `VERSION_GLIDE`, `EDITOR`, `BUILD_PSX`
 - Отладочные артефакты: `HEAP_DEBUGGING_PLEASE_BOB`, `DEBUG_POOSHIT`, `FACET_REMOVAL_TEST`, `TEST_3DFX`, `FAST_EDDIE`
-- Все региональные флаги кроме `EIDOS`
+- Все региональные флаги включая `EIDOS` (только учётные данные издателя, не геймплей)
 - `USE_A3D`, `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__`
 
 ### Требует отдельного изучения:
-- `USE_PASSWORD` — одно упоминание, неясно нужен ли в финальной версии
+- ~~`USE_PASSWORD`~~ — решено: чит-коды переносятся (реализация может отличаться)
 
 ### Аккуратно обработать при удалении:
 - `TARGET_DC` — проникает в базовые библиотеки MFLib1, MFStdLib
@@ -145,5 +145,5 @@ _WINDOWS;WIN32;_DEBUG;DEBUG;VERSION_D3D;TEX_EMBED;WINDOWS_IGNORE_PACKING_MISMATC
 ### Сохранить или заменить аналогом:
 - `VERSION_D3D`, `MF_DD2`, `TEX_EMBED` → заменить на OpenGL/Vulkan аналоги
 - `FINAL`, `DEBUG`, `_DEBUG`, `NDEBUG`, `_RELEASE` → концепция Debug/Release конфигураций остаётся
-- `EIDOS` → оставить или убрать если региональная логика не нужна
+- `EIDOS` → **убрать** (только учётные данные издателя, не нужен)
 - `_MF_WINDOWS`, `_WINDOWS`, `_WIN32` → при кросс-платформенном переписывании заменить на CMake-детектирование платформы
