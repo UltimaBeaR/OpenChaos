@@ -84,15 +84,15 @@ struct WalkLink {
 
 ## 3. Heightmap — структуры карты высот
 
-**PAP_Hi** (pap.h, line 86-93) — 8 байт на ячейку:
+**PAP_Hi** (pap.h, line 86-93) — **6 байт на ячейку** (UWORD+UWORD+SBYTE+SBYTE):
 ```c
 typedef struct {
     UWORD Texture;  // ID текстуры
     UWORD Flags;    // Shadow, reflective, roof флаги
     SBYTE Alt;      // Высота (хранится: actual_height >> 3)
-    SBYTE Height;   // Запас/расширение
+    SBYTE Height;   // Не используется
 } PAP_Hi;
-// PAP_Hi[128][128] = 131 KB
+// PAP_Hi[128][128] = 128*128*6 = 98 304 байт (~96 KB)
 ```
 - Реальная высота: `Alt << 3` (range: -1024 .. +1016 юнитов)
 
@@ -247,6 +247,46 @@ SLONG fence_colvect = 0;        // Коллизия с забором
 
 При нахождении в воздухе: `VelY += GRAVITY` каждый тик.
 При контакте с землёй: VelY демпируется через систему подвески.
+
+---
+
+## 6b. Тайминг и физические константы
+
+```c
+// Game.h
+#define NORMAL_TICK_TOCK  (1000/15)  // 66.67 мс — базовый тик (15 FPS логики)
+#define TICK_SHIFT        8
+// TICK_RATIO — динамический! Вычисляется каждый кадр (Thing.cpp — process_things_tick):
+// TICK_RATIO = (реальное_мс_кадра << 8) / 66.67
+// При норме ≈ 256 (1.0), при медленном кадре ≤ 512 (2.0x), при быстром ≥ 128 (0.5x)
+// Сглаживание: 4-кадровая скользящая средняя (SmoothTicks)
+
+// Slow-motion режим: TICK_RATIO = 32 (~12.5% скорости)
+```
+
+```c
+// Vehicle.cpp
+#define TICK_LOOP        4            // под-итераций подвески за кадр
+#define TICKS_PER_SECOND (20*TICK_LOOP)  // = 80 — только для формул констант физики
+// НЕ является частотой кадров. Игра работает на 30 FPS рендеринга, 15 FPS логики.
+
+// Подвеска: count = TICK_LOOP; while (--count) {...}
+// → цикл выполняется 3 раза за кадр
+
+// Константы откалиброваны под TICKS_PER_SECOND = 80:
+#define GRAVITY (-(128 * 10 * 256) / (80*80))   // = -5120 юнит/тик²
+```
+
+**Frame rate cap** (Game.cpp, `lock_frame_rate()`):
+```c
+// Spin-loop busy-wait:
+// while(GetTickCount() - tick1 < 1000/fps) {}
+// fps из config.ini: max_frame_rate=30 (default)
+```
+
+**Важно для портирования:** движение и физика умножаются на `TICK_RATIO >> TICK_SHIFT` —
+это даёт frame-rate independence. При переписывании нужно воспроизвести эту схему точно,
+включая 4-кадровое сглаживание и clamp 0.5x–2.0x.
 
 ---
 

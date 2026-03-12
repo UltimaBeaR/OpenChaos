@@ -221,90 +221,12 @@ struct VEH_Col {
 
 ---
 
-## 7. Мотоциклы (BIKE)
+## 7. Мотоциклы (BIKE) — незавершённая фича
 
-**Реализованы полностью**, но с одним ограничением:
+**Код существует** (`bike.cpp`, `bike.h`, флаг `BIKE`), но фича не вошла в финальную игру.
+**НЕ ПЕРЕНОСИТЬ в новую версию.** Флаг `BIKE` не определён ни в одной финальной конфигурации.
 
-```c
-#define BIKE_MAX_BIKES 2   // только 2 мотоцикла одновременно!
-```
-
-### Режимы мотоцикла
-```c
-BIKE_MODE_PARKED     = 0
-BIKE_MODE_MOUNTING   = 1   // садится
-BIKE_MODE_DRIVING    = 2   // едет
-BIKE_MODE_DISMOUNTING= 3   // слезает
-```
-
-### BIKE_Bike структура
-```c
-struct BIKE_Bike {
-    UWORD yaw, pitch;        // ориентация
-    UBYTE flag;              // BIKE_FLAG_USED, BIKE_FLAG_ONGROUND_FRONT/BACK
-    UBYTE mode;              // BIKE_MODE_*
-
-    SBYTE accel;             // ускорение
-    SBYTE steer;             // поворот
-
-    // Заднее колесо
-    SLONG back_x, back_y, back_z;
-    SLONG back_dx, back_dy, back_dz;
-
-    // Переднее колесо
-    SLONG front_x, front_y, front_z;
-    SLONG front_dy;
-
-    // Подвеска колёс
-    SLONG wheel_y_back, wheel_y_front;
-    SLONG wheel_dy_back, wheel_dy_front;
-
-    UWORD wheel_rot_front, wheel_rot_back;
-    UWORD tyrelast;          // последний след шины
-    UWORD ribbon, ribbon2;   // следы
-
-    UWORD driver;            // THING_INDEX водителя
-    SWORD SlideTimer;        // таймер заноса
-    UBYTE dirt;              // поднимается пыль
-};
-```
-
-### Параметры физики мотоцикла
-```c
-BIKE_WHEEL_RADIUS = 0x18   // радиус колеса
-BIKE_WHEEL_APART  = 0xa0   // расстояние между колёсами
-BIKE_WHEEL_COL    = 0x50   // радиус коллизии
-BIKE_WHEEL_SUS    = 0x10   // ход подвески
-```
-
-### Физика мотоцикла
-- Два независимых колеса (переднее и заднее) с позициями и скоростями
-- Заднее колесо — приводное
-- Подвеска через spring-damper для каждого колеса
-- Roll вычисляется из разности высот колёс
-
-### API
-```c
-void BIKE_init();
-void BIKE_create(SLONG x, SLONG z, UWORD yaw);
-BOOL BIKE_person_can_mount(Thing *p_person, BIKE_Bike *bike);
-void BIKE_set_mounting(BIKE_Bike *bike, Thing *p_person);
-void BIKE_set_parked(BIKE_Bike *bike);
-void BIKE_set_dismounting(BIKE_Bike *bike);
-SLONG BIKE_get_roll(BIKE_Bike *bike);
-SLONG BIKE_get_speed(BIKE_Bike *bike);
-void BIKE_process_suspension(BIKE_Bike *bike);
-void BIKE_process_normal(BIKE_Bike *bike);
-```
-
-### Флаги в Person для мотоцикла
-```c
-FLAG_PERSON_BIKING    = (1<<19)  // управляет мотоциклом
-void set_person_mount_bike(Thing *p_person, Thing *p_bike);
-void set_person_dismount_bike(Thing *p_person);
-ANIM_BIKE_MOUNT = 236
-ANIM_BIKE_RIDE  = 237
-```
+Код охватывает ~15 файлов, есть структура `BIKE_Bike` с двухколёсной физикой, флаг персонажа `FLAG_PERSON_BIKING (1<<19)`, анимации `ANIM_BIKE_MOUNT = 236`, `ANIM_BIKE_RIDE = 237`, лимит `BIKE_MAX_BIKES = 2`. Всё это — нерабочий задел, не раскапывать.
 
 ---
 
@@ -328,7 +250,6 @@ void VEH_find_runover_things(Thing *p_vehicle);
 | Ресурс | Лимит |
 |--------|-------|
 | Транспортных средств | 40 |
-| Мотоциклов | **2** (жёсткое ограничение) |
 | Одновременных коллизий | 8 |
 | Переезжаемых персонажей за раз | 8 |
 
@@ -345,6 +266,6 @@ void VEH_find_runover_things(Thing *p_vehicle);
 | Параметры двигателей | Перенести 1:1 |
 | 6 зон повреждения | Перенести 1:1 |
 | Посадка/высадка | Перенести 1:1 |
-| BIKE система | Перенести 1:1, включая лимит 2 мотоцикла |
+| BIKE система | **НЕ ПЕРЕНОСИТЬ** — незавершённая фича, отсутствует в финальной игре |
 | Переезд персонажей | Перенести 1:1 |
 | DirectDraw/PSX специфика в Draw | Заменить на современный рендер |

@@ -17,8 +17,8 @@
 | AI и поведение NPC | ✅ Готово | [subsystems/ai.md](subsystems/ai.md) |
 | Скриптовый язык MuckyBasic | ✅ Готово | [subsystems/muckybasic.md](subsystems/muckybasic.md) |
 | Форматы ресурсов | ✅ Готово | [resource_formats/README.md](resource_formats/README.md) |
-| Рендеринг | ✅ Готово | [subsystems/rendering.md](subsystems/rendering.md) |
-| Система миссий | ✅ Готово | [subsystems/missions.md](subsystems/missions.md) |
+| Рендеринг и освещение | ✅ Готово | [subsystems/rendering.md](subsystems/rendering.md) |
+| Система миссий и прогресс | ✅ Готово | [subsystems/missions.md](subsystems/missions.md) |
 | Оружие и предметы | ✅ Готово | [subsystems/weapons_items.md](subsystems/weapons_items.md) |
 | Звук | ✅ Готово | [subsystems/audio.md](subsystems/audio.md) |
 | Игровой мир и карта | ✅ Готово | [subsystems/world_map.md](subsystems/world_map.md) |
@@ -26,6 +26,9 @@
 | Транспорт | ✅ Готово | [subsystems/vehicles.md](subsystems/vehicles.md) |
 | UI и фронтенд | ✅ Готово | [subsystems/ui.md](subsystems/ui.md) |
 | Математика и утилиты | ✅ Готово | [subsystems/math_utils.md](subsystems/math_utils.md) |
+| Визуальные эффекты | ✅ Готово | [subsystems/effects.md](subsystems/effects.md) |
+| Камера | ✅ Готово | [subsystems/camera.md](subsystems/camera.md) |
+| Прогресс игрока и сохранения | ✅ Готово | [subsystems/player_progress.md](subsystems/player_progress.md) |
 
 ## Структура папки
 
@@ -52,6 +55,9 @@ original_game_knowledge_base/
     ├── audio.md                 — ✅ Miles Sound System, 3D аудио, 14 музыкальных режимов
     ├── world_map.md             — ✅ карта (PAP_Hi/Lo), MapWho, здания, освещение
     ├── characters.md            — ✅ 15 типов персонажей, vertex morphing, DrawTween
-    ├── vehicles.md              — ✅ 9 типов машин, физика, BIKE (2 мотоцикла)
+    ├── vehicles.md              — ✅ 9 типов машин, физика (BIKE — незавершённая фича, не переносить)
     ├── ui.md                    — ✅ HUD, меню, шрифты, диалоги, frontend
-    └── math_utils.md            — ✅ Matrix3x3, Quaternion, SLERP, arctan/sqrt tables
+    ├── math_utils.md            — ✅ Matrix3x3, Quaternion, SLERP, arctan/sqrt tables
+    ├── effects.md               — ✅ частицы, огонь, ткань, дождь, туман, вода, лужи, тени
+    ├── camera.md                — ✅ FC_Cam, gun-out режим, per-vehicle параметры
+    └── player_progress.md       — ✅ .wag сохранения, mission_hierarchy, характеристики, CRIME_RATE

@@ -24,11 +24,15 @@
    - `MESH_draw_poly()` — 3D модели (персонажи, машины, здания)
    - `SPRITE_draw()` — спрайты (тени, эффекты)
    - `SKY_draw_poly_*()` — небо (облака, луна, звёзды)
-3. `POLY_frame_draw()` — рендеринг всех накопленных полигонов по страницам
+3. `POLY_frame_draw()` — рендеринг всех накопленных полигонов по страницам:
+   - `SortBackFirst()` — Z-сортировка (bucket/merge sort)
+   - `DrawPrimitive(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, ..., D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT)`
+   - Флаги означают: трансформации и освещение уже выполнены на CPU
 
 **Ключевые константы:**
 - `POLY_NUM_PAGES = 1508` — страниц текстур (0–1407 обычные, 1408+ служебные)
 - `MAX_VERTICES = 32 000` — глобальный пул вершин
+- `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB = 0` на PC — screen-space clipping по краям включён
 
 ---
 
@@ -68,8 +72,29 @@ struct D3DTLVERTEX {
 - Отключается флагом `NO_BACKFACE_CULL_PLEASE_BOB` (для двусторонних мешей)
 
 **Сортировка полигонов:**
-- `WE_NEED_POLYBUFFERS_PLEASE_BOB = 1` на PC — нужна Z-сортировка
+- `WE_NEED_POLYBUFFERS_PLEASE_BOB = 1` на PC — нужна Z-сортировка (polypage.h)
+- `WE_NEED_POLYBUFFERS_PLEASE_BOB = 0` на DC — без сортировки
 - Bucket sort или merge sort по depth для прозрачных объектов
+
+---
+
+## 3b. Рендеринг персонажей (Tom's Engine)
+
+**`USE_TOMS_ENGINE_PLEASE_BOB = 1`** (`DDEngine/Headers/aeng.h`) — всегда включён (и PC, и DC).
+D3D-дружественный рендерер персонажей. Вся графика персонажей идёт через него.
+В figure.cpp весь путь рендеринга под `#if USE_TOMS_ENGINE_PLEASE_BOB` — единственный активный путь.
+
+```c
+// figure.cpp
+SLONG FIGURE_alpha = 255;  // альфа прозрачности персонажа
+UBYTE body_part_upper[];   // таблица upper body parts для 15 типов персонажей
+```
+
+Освещение персонажей: `BuildMMLightingTable()` — использует NIGHT систему (`NIGHT_found[]`, `NIGHT_amb_r/g/b`).
+**Anti-lights:** существуют отрицательные источники света — вычитают яркость (для тёмных зон).
+
+**`HIGH_REZ_PEOPLE_PLEASE_BOB`** — закомментирован ("Now enabled only on a cheat!").
+Высокополигональные модели в финале **не активны**.
 
 ---
 
@@ -108,8 +133,12 @@ MESH_draw_morph(prim, morph1, morph2, tween, ...):
 
 **Деформация транспорта (Crumple):**
 - `MESH_set_crumple()` — параметры деформации
-- `MESH_car_crumples[]` — таблица предвычисленных смещений (5 уровней урона)
+- `MESH_car_crumples[]` — таблица предвычисленных смещений: **5 уровней урона × 8 вариантов × 6 точек**
 - Смещения вершин применяются при трансформации
+
+**Отражения в лужах:**
+- `MESH_draw_reflection()` — специальный путь для рендеринга объектов как отражения в луже
+- Используется вместе с `PUDDLE_in()` для определения зоны отражения
 
 ---
 
@@ -149,29 +178,68 @@ POLY_PAGE_FLAG_ALPHA        // Стандартная альфа
 
 ---
 
-## 6. Освещение
+## 6. Освещение — NIGHT система
 
-**Vertex Lighting** — не per-pixel, вычисляется заранее (NIGHT система):
+**Vertex Lighting** — не per-pixel, освещение запекается в вершины (NIGHT система из `night.h`).
+
+### Ёмкость NIGHT системы
 ```c
-LIGHT_get_d3d_colour():
-    colour   → диффузный свет (RGB 0–255) → D3D diffuse
-    specular → дополнительный яркий свет (oversaturation)
+NIGHT_MAX_SLIGHTS   = 256    // статических источников света
+NIGHT_MAX_DLIGHTS   = 64     // динамических источников света
+NIGHT_MAX_SQUARES   = 256    // кэшированных lo-res квадратов освещения
+NIGHT_MAX_WALKABLE  = 15000  // вершин walkable поверхностей с цветом
+NIGHT_MAX_BRIGHT    = 64     // яркость канала (6-bit, 0-63 → ×4 → 0-255 для D3D)
+NIGHT_MAX_FOUND     = 4      // максимум источников влияния на 1 точку
 ```
 
-**Динамические источники света:**
+### Форматы данных
+```c
+struct NIGHT_Colour {
+    UBYTE r, g, b;  // 6-bit каналы (0-63), конвертируются в D3D через ×4
+};
+
+// NIGHT_get_d3d_colour() — конвертирует NIGHT_Colour → D3D ARGB (0xFF, r×4, g×4, b×4)
+```
+
+### Типы источников
+- **`NIGHT_Slight`** — статические (загружаются из `.lgt` файлов через `NIGHT_load_ed_file()`)
+- **`NIGHT_Dlight`** — динамические (создаются в рантайме, до 64 одновременно)
+
+### Флаги освещения уровня
+```c
+NIGHT_FLAG_LIGHTS_UNDER_LAMPOSTS   (1<<0)  // фонари
+NIGHT_FLAG_DARKEN_BUILDING_POINTS  (1<<1)  // затемнение стен зданий
+NIGHT_FLAG_DAYTIME                 (1<<2)  // дневное освещение
+```
+
+### Specular эффект
+```c
+NIGHT_specular_enable  // на PC: oversaturation создаёт pseudo-specular highlights
+                       // на DC: отключён
+```
+
+### Статические тени (shadow.cpp)
+Запекаются **при загрузке уровня**, не в рантайме:
+- Направление солнца: `SHADOW_DIR_X=+147, SHADOW_DIR_Y=-148, SHADOW_DIR_Z=-147`
+- Метод: ray-cast через `there_is_a_los()` в сторону солнца
+- Результат: биты `PAP_FLAG_SHADOW_1/2/3` в PAP_Hi.Flags для каждого хай-рез квадрата
+- `shadow[8] = {0, 1, 7, 5, 3, 2, 4, 5}` — lookup таблица для 3 соседних квадратов
+
+### Затухание по расстоянию (дистанс-фейд)
+```c
+POLY_FADEOUT_START = 0.60F  // z/view_dist — начало затухания
+POLY_FADEOUT_END   = 0.95F  // полностью прозрачно
+```
+
+**Динамические источники (light.cpp):**
 ```c
 LIGHT_create(x, y, z, range, type):
 // Типы: NORMAL, BROKEN (мерцание), PULSE, FADE
 // LIGHT_range = 0x600 максимум (~1536 units)
 ```
 
-**Ambient:**
-- `LIGHT_amb_colour` — глобальный ambient
-- `LIGHT_amb_norm_x/y/z` — направление ambient
-
 **ВАЖНО: Динамических теней НЕТ.**
-Вместо них — flat sprite тени под персонажами (`POLY_PAGE_SHADOW`).
-Спрайт позиционируется прямо под ногами персонажа, масштабируется по расстоянию от камеры.
+Тени под персонажами — flat sprite (`POLY_PAGE_SHADOW`), позиционируется под ногами.
 Статическое освещение уровня запекается при загрузке, обновляется только при смене дня/ночи.
 
 ---
