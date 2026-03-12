@@ -20,19 +20,23 @@
 | Физика и коллизии | [subsystems/physics.md](subsystems/physics.md) |
 | Игровые объекты (Thing) | [subsystems/game_objects.md](subsystems/game_objects.md) |
 | AI и поведение NPC | [subsystems/ai.md](subsystems/ai.md) |
+| Навигация NPC (MAV/NAV) | [subsystems/navigation.md](subsystems/navigation.md) |
 | Персонажи и анимации | [subsystems/characters.md](subsystems/characters.md) |
 | Управление и ввод | [subsystems/controls.md](subsystems/controls.md) |
 | Транспорт | [subsystems/vehicles.md](subsystems/vehicles.md) |
+| Боевая система | [subsystems/combat.md](subsystems/combat.md) |
 | Рендеринг и освещение | [subsystems/rendering.md](subsystems/rendering.md) |
 | Игровой мир и карта | [subsystems/world_map.md](subsystems/world_map.md) |
-| Система миссий | [subsystems/missions.md](subsystems/missions.md) |
+| Здания и интерьеры | [subsystems/buildings_interiors.md](subsystems/buildings_interiors.md) |
+| Загрузка уровней | [subsystems/level_loading.md](subsystems/level_loading.md) |
+| Система миссий (EWAY) | [subsystems/missions.md](subsystems/missions.md) |
 | Прогресс игрока и сохранения | [subsystems/player_progress.md](subsystems/player_progress.md) |
 | Оружие и предметы | [subsystems/weapons_items.md](subsystems/weapons_items.md) |
 | Звук | [subsystems/audio.md](subsystems/audio.md) |
 | UI и фронтенд | [subsystems/ui.md](subsystems/ui.md) |
 | Визуальные эффекты | [subsystems/effects.md](subsystems/effects.md) |
 | Камера | [subsystems/camera.md](subsystems/camera.md) |
-| Скриптовый язык MuckyBasic | [subsystems/muckybasic.md](subsystems/muckybasic.md) |
+| MuckyBasic (не используется в игре) | [subsystems/muckybasic.md](subsystems/muckybasic.md) |
 | Математика и утилиты | [subsystems/math_utils.md](subsystems/math_utils.md) |
 
 ## Форматы ресурсов

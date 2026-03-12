@@ -288,7 +288,81 @@ person_thing->Draw.Tweened->PersonID = 6 + random_number % 4;
 
 ---
 
-## 10. Что переносить в новую версию
+## 10. Специфика по типам персонажей (из анализа исходников)
+
+### Таблица здоровья
+
+| Тип | PERSON_TYPE | Health | AnimType | MeshID | Статус кода |
+|-----|-------------|--------|----------|--------|------------|
+| Darci | 0 | 200 | DARCI(0) | 0 | Полная реализация |
+| Roper | 1 | **400** | ROPER(2) | 0 | fn_roper_normal() **пустая** |
+| Cop | 2 | 200 | CIV(1) | 4 | fn_cop_normal() **#if 0** |
+| CIV | 3 | 130 | CIV(1) | 7 | через PCOM |
+| Thug (все) | 4-6 | 200 | CIV(1) | 0-2 | **ASSERT(0)** в init |
+| Slag/Hostage/etc | 7-11 | 200 | DARCI(0) | 1-3 | через PCOM |
+| MIB 1/2/3 | 12-14 | **700** | CIV(1) | 5 | через PCOM |
+
+### Darci (PERSON_DARCI = 0) — единственный полностью реализованный
+
+- **Падение:** `DY < -30000` → мгновенная смерть; `DY < -20000` → `damage = (-DY - 20000) / 100`
+- Звуки падения: PCOM_SOUND_DROP (низкое), DROP_MED, DROP_BIG; ScreamFallSound при смерти
+- Физика на крышах складов: скольжение по WARE_inside()
+- Коллизия с заборами: обнаружение + лазание
+- Гравитация: 4<<8 = 1024 ед/тик, терминальная скорость: -30000
+- Анимация при инициализации: `ANIM_STAND_READY`
+
+### Roper (PERSON_ROPER = 1) — почти пуст
+
+- Health = **400** (в 2× больше Darci)
+- `fn_roper_normal()` — **полностью пустая функция**, всё поведение через общий Person.cpp
+- Начальная скорость: 10 единиц
+- Roper: урон огнестрельным оружием ×2, ближний бой +20
+
+### Cop (PERSON_COP = 2) — отключён в пре-релизе
+
+- `fn_cop_normal()` — **обёрнута в `#if 0`** (весь код закомментирован)
+- Внутри: патрулирование по вэйпойнтам, угловая интерполяция (сдвиг >>4), случайное idle (50%)
+- Система звуковых оповещений: PCOM_SOUND_GUNSHOT(6) > FIGHT(5) > ALARM(4) > HEY(3) > UNUSUAL(2) > FOOTSTEP(1)
+- AI-типы: PCOM_AI_COP(5), PCOM_AI_COP_DRIVER(14), PCOM_AI_ARREST(20)
+
+### Thug (PERSON_THUG_* = 4-6) — сломан в пре-релизе
+
+- `fn_thug_init()` содержит **ASSERT(0)** — инициализация упадёт
+- Весь нормальный код также в `#if 0`
+
+### Canid/Dog — сломан в пре-релизе
+
+- Большинство функций содержат **ASSERT(0)**
+- Архитектура: CANID_SUBSTATE_SLEEP(1), PROWL(2), CHASE(3), FLEE(4), BARK(5)
+- Радиус обнаружения: 0xd0 (~208 ед.), угол зрения: 256 единиц дуги
+- Скорость: PROWL=6, CHASE=4
+- Анимации: idle=1, бег=2
+- **Не переносить** (не было в финальной игре — MIB Diskett подтверждает)
+
+### SubClass.cpp — НЕ система подклассов персонажей
+
+Это инструмент **редактора**:
+- `DeleteCivs()`, `DeleteCars()`, `DeleteMissions()` — утилиты очистки
+- `save_prim_map()`, `update_prims_on_map()` — работа с объектами
+- Настройки миссий: crime rate, civvy count, boredom rate
+- **Никак не влияет на gameplay**
+
+### AnimBank — загрузка анимаций
+
+```cpp
+// global_anim_array[4][450] — индекс AnimType × AnimID
+load_anim_system(&game_chunk[0], "data\\darci1.all");
+load_anim_system(&game_chunk[1], "data\\hero.all");      // Roper
+load_anim_system(&game_chunk[3], "data\\bossprtg.all");  // CIV
+append_anim_system(&game_chunk[1], "police1.all", 200, 0);  // доп. анимации копа
+append_anim_system(&game_chunk[3], "newciv.all", CIV_M_START, 1);
+```
+
+Darci заимствует некоторые анимации CIV (например, вход в такси).
+
+---
+
+## 11. Что переносить в новую версию
 
 | Аспект | Подход |
 |--------|--------|

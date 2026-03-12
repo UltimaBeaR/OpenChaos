@@ -10,7 +10,20 @@
       "Bash(for f:*)",
       "Bash(do echo:*)",
       "Read(//c/WORK/MuckyFoot-UrbanChaos_base/**)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(sed 's/.*\\\\.//')",
+      "Bash(grep \"\\\\.h$\")",
+      "Bash(grep -v \"//\")",
+      "Bash(ls -la /c/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/*.h)",
+      "Bash(grep -r \"struct DFacet\\\\|struct InsideStorey\" /c/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/*.h)",
+      "Bash(grep -r \"typedef.*MAV_Action\\\\|struct.*MAV_Action\" /c/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen --include=*.h)",
+      "Bash(grep -rn \"PCOM_AI_STATE\\\\|PCOM_BENT\" /c/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/*.cpp)",
+      "Bash(find /c/WORK/MuckyFoot-UrbanChaos_base/original_game -type f -name *.cpp -exec grep -l \"register.*function\\\\|DoFunction\\\\|CallScript\\\\|mb_\" {})",
+      "Bash(2)",
+      "Bash(find /c/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen -type f -name *.h -exec grep -l \"script\\\\|Script\\\\|SCRIPT\" {})",
+      "Bash(grep -r \"register.*function\\\\|native\\\\|builtin\" /c/WORK/MuckyFoot-UrbanChaos_base/original_game/MuckyBasic/*.cpp)",
+      "Bash(grep -n \"ANIM_FLAG\\\\|FLAG_LAST_FRAME\\\\|FLAG2_SYNC_SOUNDFX\\\\|FLAG_PERSON_LOCK_ANIM_CHANGE\" c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/*.cpp c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/*.h)",
+      "Bash(grep -n \"struct GameKeyFrame\\\\|typedef.*GameKeyFrame\\\\|TweenStep\\\\|NextFrame\\\\|FirstElement\\\\|Flags\" c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/*.h)"
     ],
     "deny": [
       "Bash(git commit*)",

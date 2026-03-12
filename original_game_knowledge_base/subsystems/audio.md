@@ -109,21 +109,70 @@ if (thing->Flags & FLAGS_HAS_ATTACHED_SOUND) {
 
 ---
 
-## 6. Ambient система
+## 6. Ambient система (Sound.cpp)
 
-Фоновые звуки окружения привязаны к `texture_set` (тип мира):
+### 3D позиционирование звуков
 
-| texture_set | Тип мира | Ambient |
-|-------------|----------|---------|
-| 0–4 | Городские улицы | Городской шум, автомобили |
-| 5–8 | Ночной город | Ветер, редкие машины |
-| 9–12 | Промышленная зона | Механические звуки |
-| 13–16 | Снег/зима | Завывание ветра |
-| 17–21 | Природа | Птицы, ветер в листьях |
+```c
+void PlayAmbient3D(channel, wave_id, flags, height) {
+    // Случайная позиция вокруг игрока (радиус ~16 ед.)
+    // Height: PlayerHeight (Y игрока), OnGround (Y=0), InAir (Y+512-1535)
+    // Использует COS/SIN из lookup tables
+    MFX_play_xyz(channel, wave_id, 0, x, y, z);
+}
+```
 
-5 типов ambient окружения, определяются при загрузке карты.
+### Биомы ambient (по типу мира)
 
-Ambient каналы: `WIND_REF` и `WEATHER_REF` всегда активны, громкость зависит от погоды и настроек.
+| Биом | Определение | Звуки |
+|------|------------|-------|
+| Jungle | texture_set = 1 | Тропический шум, туманный горн (если X > 0x400000), какаду/сверчки/птицы |
+| Snow | texture_set = 5 | Вой волков каждые 1500+ кадров |
+| Estate | texture_set = 10 | Пролёты самолётов каждые 500+ кадров |
+| BusyCity | (default) | Собаки, кошки, бьющееся стекло, полицейское радио |
+| QuietCity | texture_set = 16 | Минимальный ambient |
+
+**Тип биома** определяется при загрузке через `TEXTURE_SET` константы.
+
+### Система приоритетов каналов
+
+```c
+MFX_REPLACE   // заменить текущий звук на канале
+MFX_QUEUED    // добавить в очередь канала
+MFX_OVERLAP   // играть параллельно с текущим
+MFX_LOOPED    // зациклить
+MFX_SHORT_QUEUE  // высокоприоритетная очередь
+MFX_WAVE_ALL  // остановить все звуки на канале
+```
+
+### Indoor/Outdoor переход
+
+`process_ambient_effects()` каждый кадр:
+- Флаг `GF_INDOORS` → fade in `indoors_id`, fade out `outdoors_id`
+- На улице → наоборот
+- Скорость fade определяется расстоянием до здания
+
+Типы indoor ambient (по `WARE_ware[].ambience`): office, police, posheeta, club.
+
+### Погода
+
+`process_weather()` каждый кадр:
+- `above_ground = (y - ground_height) >> 8`
+- Дождь: `gain = 255 - (above_ground >> 4)` (громче у земли)
+- Ветер: `gain = abs_height >> 4` (громче на высоте)
+- Ночью всегда дождь (`GF_RAINING` флаг)
+
+### Голосовые функции персонажей
+
+```c
+SOUND_Gender(thing)  // 0=неизвестно, 1=мужской, 2=женский голос
+DieSound(thing)      // звук смерти по типу персонажа
+PainSound(thing)     // звук попадания
+EffortSound(thing)   // звук усилия
+ScreamFallSound(thing) // крик при падении насмерть
+```
+
+Таймер ambient-звуков: `creature_time = 400`, `siren_time = 300`.
 
 ---
 

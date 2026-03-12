@@ -51,33 +51,102 @@ void PARTICLE_Add(
 ## 2. Огонь (fire.cpp)
 
 ```c
-#define FIRE_MAX_FLAMES  256   // максимум отдельных языков пламени
-#define FIRE_MAX_FIRE    8     // максимум очагов огня одновременно
+#define FIRE_MAX_FLAMES  256   // пул языков пламени
+#define FIRE_MAX_FIRE    8     // максимум очагов одновременно
+
+struct FIRE_Flame {
+    SBYTE dx, dz;     // направление движения
+    UBYTE die;        // время жизни (32-63 кадра)
+    UBYTE counter;    // текущий возраст
+    UBYTE height;     // высота пламени (0-255)
+    UBYTE next;       // следующий в linked list
+    UBYTE points;     // количество точек отображения (2-4)
+    UBYTE shit;       // выравнивание
+    UBYTE angle[4];   // углы анимации
+    UBYTE offset[4];  // вертикальные смещения
+};
+
+struct FIRE_Fire {
+    UBYTE num;    // активных языков (0=не используется)
+    UBYTE next;   // первый язык в списке
+    UBYTE size;   // размер очага
+    UBYTE shrink; // скорость убывания (за 4 кадра)
+    UWORD x, z;   // позиция
+    SWORD y;
+};
 ```
 
-**Особенности:**
-- Огонь распространяется по материалам геометрии (`building.cpp`)
-- Каждый очаг — набор спрайтов с аддитивной альфой (`POLY_PAGE_FLAMES`, `POLY_PAGE_FLAG_ADD_ALPHA`)
-- Дым: полупрозрачные спрайты (`POLY_PAGE_SMOKE`)
-- `PYRO_FIREBOMB` — взрыв с огнём (для транспорта при уничтожении)
+**Алгоритм генерации пламени:**
+- Смещение: dx/dz в диапазоне -31..+224 (random & 0xff - 0x1f)
+- Высота: 255 - манхэттенское расстояние(dx, dz)
+- Время жизни: 32 + (random & 0x1f) кадров
+- Точки = (height >> 6) + 1, ограничено 2-4
+
+**Обновление (каждый кадр):**
+- Нечётные точки: angle += 31, offset -= 17
+- Чётные точки: angle -= 33, offset += 21
+- Каждые 4 кадра: size -= shrink; добавлять языки пока count < size >> 2
+
+Создание: `FIRE_create(x, y, z, size, life)`.
 
 ---
 
-## 3. Симуляция ткани (cloth.cpp) — PC only
+## 3. Искры / электричество (spark.cpp)
 
 ```c
-#define CLOTH_MAX_CLOTH  16     // максимум объектов ткани
-#define CLOTH_MAX_LINKS  256    // ограничений (связей между точками)
+#define SPARK_MAX_SPARKS = 32   // пул искр
+
+struct SPARK_Point {
+    UBYTE type;   // LIMB(0), CIRCULAR(1), GROUND(2), POINT(3)
+    UBYTE flag;   // FAST, SLOW, CLAMP_X/Y/Z, DART_ABOUT, STILL
+    UBYTE dist;   // макс. радиус от центра
+    SBYTE dx,dy,dz;  // скорость
+    union { struct{UWORD x,y,z;} Pos; struct{UWORD person;UWORD limb;} Peep; };
+};
+
+struct SPARK_Spark {
+    UBYTE used, die;         // активность, оставшиеся кадры
+    UBYTE num_points;        // всегда 4
+    UBYTE next;              // mapwho linked list
+    UBYTE map_z, map_x;
+    UBYTE glitter;           // ID эффекта блёсток
+    SPARK_Point point[4];    // контрольные точки
+};
 ```
 
-**Метод:** constraint-based simulation (не PSX — там нет).
-- Использует `float` (не fixed-point) — только на PC
-- Точки ткани соединены жёсткими ограничениями длины
-- Применяется для флагов, баннеров, одежды
+**Типы поведения точек:**
+- LIMB: прикреплена к кости персонажа, скорость = 0
+- CIRCULAR: поддерживает фиксированное расстояние от point[0]
+- GROUND: Y = высота PAP в данной точке
+- POINT: фиксированная позиция
+
+**Флаги:**
+- FAST: скорость <<= 2; SLOW: скорость >>= 2
+- CLAMP_X/Y/Z: обнуляет соответствующую ось скорости
+- DART_ABOUT: периодически меняет случайную скорость
+
+Звук: `S_ELEC_START + (spark_id % 5)` — 5 вариантов электрического звука.
+Создание из сферы: `SPARK_in_sphere(x,y,z, radius, max_life, max_create)` — до 16 вариантов.
 
 ---
 
-## 4. Эффект расширяющегося кольца (Effect.cpp)
+## 4. Симуляция ткани (cloth.cpp) — PC only, **ОТКЛЮЧЕНА**
+
+```c
+#define CLOTH_MAX_CLOTH  16     // пул объектов
+#define CLOTH_MAX_LINKS  256    // пружинных связей
+
+float CLOTH_elasticity = 0.0003f;  // жёсткость пружины
+float CLOTH_damping    = 0.95f;    // затухание скорости
+float CLOTH_gravity    = -0.15f;   // ускорение вниз
+```
+
+Физика (`CLOTH_process()` в `#if 0` — не выполняется): Verlet-интеграция, 3 итерации/кадр, сила ветра (-0.2, 0.0, 0.25) с синус-модуляцией, пружинные связи (смежные + диагональные), блокированные точки как якоря.
+Структуры float-based: `CLOTH_Point {float x,y,z,dx,dy,dz}`, grid WxH точек. Рендеринг через нормали. **Не переносить**.
+
+---
+
+## 5. Эффект расширяющегося кольца (Effect.cpp)
 
 Простой эффект — тип рисования `DT_EFFECT`:
 ```c
