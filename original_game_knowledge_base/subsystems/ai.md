@@ -235,21 +235,76 @@ PCOM_BENT_PLAYERKILL       (7)  // Убить может только игрок
 
 ---
 
-## 5. Восприятие — видимость и слышимость
+## 5. Восприятие — видимость
 
+`can_a_see_b(Thing *observer, Thing *target, SLONG range=0, SLONG no_los=0)`
+
+**Дальность видения (range=0 → default):**
+- NPC по умолчанию: `8 << 8` = 2048 world-units
+- Игрок: `256 << 8` = 65536 (видит всегда на max дистанцию)
+- Отрицательный range: игнорировать освещение
+
+**Освещение влияет на дальность NPC:**
 ```c
-SLONG can_i_see_player(Thing *p_person);
-SLONG can_a_see_b(Thing *a, Thing *b, SLONG range=0, SLONG no_los=0);
-SLONG can_i_see_place(Thing *p_person, SLONG x, SLONG y, SLONG z);
+light_at_target = NIGHT_get_light_at(target_pos);
+view_range = (R+G+B) + (R+G+B)<<3 + (R+G+B)>>2 + 256;
+// Хорошее освещение → дальше видят
+// Тёмные зоны → ближе
 ```
 
-**Факторы:**
-1. Дистанция до цели (~20 mapsquare = видимость)
-2. Угол зрения (~160° впереди)
-3. Line of Sight (нет препятствий между A и B)
-4. Состояние цели
+**Коррекции дальности:**
+- Цель приседает (`crouching`): view_range >>= 1 (половина)
+- Цель движется: view_range += 256 (проще заметить)
+- Высотная разница: если `dy >= 0x80` (128 units), добавляет `dy << 2` к эффективной дистанции
 
-**no_los=1** — игнорировать проверку прямой видимости (например слышимость).
+**Угол зрения (FOV), из 2048 = 360°:**
+- Близко (dist < 0xc0 = 192 units): FOV = 700 (≈123°)
+- Далеко (dist ≥ 192): FOV = 420 (≈74°)
+- "Краем глаза" (250/2048 ≈ 44°): видит на половинную дистанцию только если цель не движется
+
+**Line of Sight:**
+- Eye height standing: 0x60 (96 units)
+- Eye height crouching: 0x20 (32 units)
+- Проверяется через `there_is_a_los()` от головы наблюдателя к голове цели
+
+---
+
+## 5b. Восприятие — звуки
+
+`PCOM_oscillate_tympanum(type, originator, x, y, z, store_it)`
+
+Звуки распространяются с радиусом (в world-units):
+
+```c
+PCOM_SOUND_FOOTSTEP      = 0x280   // 640 units / 2.5 squares
+PCOM_SOUND_VAN           = 0x180   // 384 units / 1.5 squares (самый тихий)
+PCOM_SOUND_DROP          = 0x200   // 512 units / 2 squares
+PCOM_SOUND_MINE          = 0x300   // 768 units / 3 squares
+PCOM_SOUND_GRENADE_HIT   = 0x300
+PCOM_SOUND_GRENADE_FLY   = 0x300
+PCOM_SOUND_LOOKINGATME   = 0x400
+PCOM_SOUND_WANKER        = 0x400
+PCOM_SOUND_DROP_MED      = 0x400   // 1024 units / 4 squares
+PCOM_SOUND_UNUSUAL       = 0x600   // 1536 units / 6 squares
+PCOM_SOUND_HEY           = 0x600
+PCOM_SOUND_DRAW_GUN      = 0x600   // визуальная проверка (нужен LOS!)
+PCOM_SOUND_DROP_BIG      = 0x600
+PCOM_SOUND_BANG          = 0x700   // 1792 units / 7 squares
+PCOM_SOUND_ALARM         = 0x800   // 2048 units / 8 squares
+PCOM_SOUND_FIGHT         = 0x900   // 2304 units / 9 squares
+PCOM_SOUND_GUNSHOT       = 0xa00   // 2560 units / 10 squares (самый громкий)
+```
+
+**Фильтры распространения:**
+- Zone check: NPC с `pcom_zone` слышат только звуки из своей зоны
+- Warehouse boundary: звуки не проникают через стены склада
+- PCOM_SOUND_VAN пугает только гражданских
+- PCOM_SOUND_DRAW_GUN требует LOS (это визуальный триггер)
+- Гранаты: нужно видеть гранату (LOS к гранате)
+
+**Реакция:**
+- Большинство звуков → `PCOM_AI_STATE_INVESTIGATING`
+- Бой/выстрел → `PCOM_AI_STATE_SEARCHING` или сразу KILLING
 
 ---
 
@@ -405,7 +460,65 @@ PERSON_SPEED_CRAWL  (6)
 
 ---
 
-## 9. Поток AI за кадр
+## 9. Групповое поведение (банды и полиция)
+
+### Оповещение банды
+
+```c
+PCOM_alert_my_gang_to_a_fight(attacker, target)
+// → все члены банды (same pcom_colour) в состояниях
+//   NORMAL/WARM_HANDS/FOLLOWING/SEARCHING/TAUNT/INVESTIGATING
+//   переходят в KILLING с тем же target
+
+PCOM_alert_my_gang_to_flee(threat, source)
+// → не-GANG_flagged члены начинают флить вместе
+```
+
+- Группировка по `pcom_colour` (0–15), не по внешнему цвету
+- `PCOM_BENT_GANG` (бит 2): NPC защищает членов своей банды
+
+### Гражданские: воскрешение
+
+Блуждающие гражданские (PCOM_MOVE_WANDER) воскресают если мертвы:
+- Не в поле зрения игрока (флаг `FLAGS_IN_VIEW` = 0)
+- Мертвы 200+ кадров → перемещаются на home позицию с полным здоровьем
+- Только для WANDER-режима (не патруль)
+
+### Полиция: арест
+
+1. Нарушитель получает флаг `FLAG_PERSON_FELON` через `PCOM_call_cop_to_arrest_me()`
+2. Каждые 4 кадра коп проверяет: сканирует сферу радиуса 0x800 (2048 units)
+3. Если находит `FLAG_PERSON_FELON` + есть LOS → переходит в `PCOM_AI_STATE_ARREST`
+4. Водитель-коп (COP_DRIVER): паркует машину, выходит, арестовывает
+5. Другие копы слышат `PCOM_SOUND_HEY` (радиус 0x600) → сходятся на место
+
+**Приоритет цели для ареста:**
+- Расстояние + высота: ближе = выше приоритет
+- Игрок: score <<= 1 (деприоритет)
+- Wandering civvies: score <<= 2 (деприоритет)
+- С флагом GUILTY: score >>= 2 (высокий приоритет)
+
+---
+
+## 9b. Числовые константы
+
+```c
+#define PCOM_TICKS_PER_TURN    16         // Тиков за кадр
+#define PCOM_TICKS_PER_SEC     (16 * 20)  // = 320 тиков/сек
+
+#define PCOM_ARRIVE_DIST       0x40       // 64 units — считается "прибыл"
+
+#define RMAX_PEOPLE            180        // Максимум NPC в сцене
+#define PCOM_MAX_GANGS         16         // Максимум банд (цвета 0–15)
+#define PCOM_MAX_GANG_PEOPLE   64         // Суммарно членов банд
+#define PCOM_MAX_FIND          16         // Максимум результатов sphere-поиска
+```
+
+`PCOM_get_duration(tenths)` = `tenths * 32` тиков (конвертация из десятых секунды)
+
+---
+
+## 10. Поток AI за кадр
 
 ```
 PCOM_process_person(Person):

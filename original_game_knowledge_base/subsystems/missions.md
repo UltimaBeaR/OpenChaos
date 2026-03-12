@@ -11,42 +11,73 @@
 
 ## 1. Структура Mission
 
+Из `Mission.h` строки 53–71:
+
 ```c
 struct Mission {
-    char Name[32];           // Название миссии
-    char MapName[32];        // Имя карты (файл .pam/.pi)
-    UBYTE MapIndex;          // Индекс карты (0..19)
-    UBYTE Flags;             // Флаги миссии
-    UWORD EventPointHead;    // Голова linked list EventPoints
-    UWORD NumEventPoints;    // Количество EventPoints
-    // Setup данные для объектов уровня:
-    PlayerSetup  Player;
-    EnemySetup   Enemies[MAX_ENEMIES];
-    ItemSetup    Items[MAX_ITEMS];
-    VehicleSetup Vehicles[MAX_VEHICLES];
+    CBYTE Flags;                              // MISSION_FLAG_*
+    CBYTE BriefName[_MAX_PATH];               // Текст брифинга миссии
+    CBYTE LightMapName[_MAX_PATH];            // Файл карты освещения/теней
+    CBYTE MapName[_MAX_PATH];                 // Файл геометрии уровня
+    CBYTE MissionName[_MAX_PATH];             // Идентификатор миссии
+    CBYTE CitSezMapName[_MAX_PATH];           // Карта канализации/интерьеров
+    UWORD MapIndex;                           // Ссылка на игровую карту
+    UWORD FreeEPoints;                        // Количество неиспользованных EP
+    UWORD UsedEPoints;                        // Количество активных EP
+    UBYTE CrimeRate;                          // Уровень преступности (0–100)
+    UBYTE CivsRate;                           // Порог потерь среди гражданских
+    EventPoint EventPoints[MAX_EVENTPOINTS];  // Массив event points (512 max)
+    UBYTE SkillLevels[254];                   // AI скиллы по типам врагов
+    UBYTE BoredomRate;                        // Скорость поведения на покое
+    UBYTE CarsRate;                           // Плотность трафика
+    UBYTE MusicWorld;                         // Выбор музыкальной дорожки
 };
 ```
 
+**Флаги миссии (Mission.h строки 49–51):**
+```c
+#define MISSION_FLAG_USED                 (1 << 0)
+#define MISSION_FLAG_SHOW_CRIMERATE       (1 << 1)
+#define MISSION_FLAG_CARS_WITH_ROAD_PRIMS (1 << 2)
+```
+
 **Лимиты:**
-- `MAX_MISSIONS = 100`
-- `MAX_MAPS = 20`
-- `MAX_EVENT_POINTS = 512` (на миссию)
+- `MAX_EVENTPOINTS = 512` (event points на миссию)
 
 ---
 
 ## 2. Структура EventPoint
 
-Граф триггеров и waypoints, описывающий сценарий миссии.
+Из `Mission.h` строки 18–41:
 
 ```c
 struct EventPoint {
-    SLONG X, Y, Z;          // Позиция в мировых координатах
-    UWORD Radius;            // Радиус активации (в world units)
-    UBYTE Type;              // Тип (TT_* или WPT_*)
-    UBYTE Flags;             // EP_FLAG_*
-    UWORD Next;              // Следующий EP в linked list
-    UWORD Data[10];          // Параметры (зависят от типа)
+    UBYTE Colour;        // Группа (A-Z) — для группировки связанных EP
+    UBYTE Group;         // Подгруппа
+    UBYTE WaypointType;  // WPT_* — тип действия
+    UBYTE Used;          // Флаг активности (0 = неактивен)
+    UBYTE TriggeredBy;   // TT_* — тип триггера (условие срабатывания)
+    UBYTE OnTrigger;     // OT_* — поведение после срабатывания
+    UBYTE Direction;     // Угол (0–255, = 0–360°)
+    UBYTE Flags;         // WPT_FLAGS_*
+    UWORD EPRef;         // Индекс зависимого EP
+    UWORD EPRefBool;     // Второй булев вход
+    UWORD AfterTimer;    // Таймаут для OT_ACTIVE_TIME (мс)
+    SLONG Data[10];      // Данные специфичные для типа
+    SLONG Radius;        // Радиус триггера (для TT_RADIUS и др.)
+    SLONG X, Y, Z;       // Позиция в мире
+    UWORD Next, Prev;    // Linked list указатели
 };
+```
+
+### Поведение после срабатывания (OT_*)
+
+```c
+#define OT_NONE          0   // Выполнить один раз, больше не активен
+#define OT_ACTIVE        1   // Всегда активен (для непрерывных триггеров — radius)
+#define OT_ACTIVE_WHILE  2   // Активен пока условие выполняется
+#define OT_ACTIVE_TIME   3   // Активен указанное время (поле AfterTimer)
+#define OT_ACTIVE_DIE    4   // Активен пока цель не умрёт
 ```
 
 EventPoints образуют граф: одни активируют другие через `Data[]` поля.

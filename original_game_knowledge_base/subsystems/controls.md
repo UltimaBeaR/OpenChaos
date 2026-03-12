@@ -187,7 +187,7 @@ typedef struct {
 | `ACTION_IDLE` | 0 | Стоит |
 | `ACTION_WALK` | 1 | Ходьба |
 | `ACTION_RUN` | 2 | Бег |
-| `ACTION_WALKING_BACK` | 34 | Ходьба назад |
+| `ACTION_WALK_BACK` | 34 | Ходьба назад |
 | `ACTION_CRAWLING` | 41 | Ползком/пригнувшись |
 | `ACTION_STOPPING` | 30 | Торможение |
 | `ACTION_SKID` | 42 | Скользящий удар (при беге) |
@@ -286,20 +286,38 @@ typedef struct {
 Критические флаги структуры Person (`Flags` поле):
 
 ```c
+// Внутренние/AI флаги:
+FLAG_PERSON_NON_INT_M   (1<<0)   // Не прерывать анимацию движения
+FLAG_PERSON_NON_INT_C   (1<<1)   // Не прерывать анимацию боя
+FLAG_PERSON_LOCK_ANIM_CHANGE (1<<2) // Блок смены анимации
 FLAG_PERSON_GUN_OUT     (1<<3)   // Оружие наготове
 FLAG_PERSON_DRIVING     (1<<4)   // Ведёт машину
 FLAG_PERSON_SLIDING     (1<<5)   // Скользящий удар
+FLAG_PERSON_NO_RETURN_TO_NORMAL (1<<6) // Не возвращаться в STATE_NORMAL
+FLAG_PERSON_HIT_WALL    (1<<7)   // Врезался в стену
+FLAG_PERSON_USEABLE     (1<<8)   // Можно взаимодействовать
+FLAG_PERSON_REQUEST_KICK  (1<<9)  // AI: запросил удар ногой
+FLAG_PERSON_REQUEST_JUMP  (1<<10) // AI: запросил прыжок
+FLAG_PERSON_NAV_TO_KILL   (1<<11) // AI: движется чтобы убить
+// bit 12 = FLAG_PERSON_ON_CABLE (zipwire)
 FLAG_PERSON_GRAPPLING   (1<<13)  // Держит кошку (grappling hook)
 FLAG_PERSON_HELPLESS    (1<<14)  // Недееспособен
 FLAG_PERSON_CANNING     (1<<15)  // Держит банку с колой
+FLAG_PERSON_REQUEST_PUNCH (1<<16) // AI: запросил удар кулаком
+FLAG_PERSON_REQUEST_BLOCK (1<<17) // AI: запросил блок
+FLAG_PERSON_FALL_BACKWARDS (1<<18) // Падает назад
 FLAG_PERSON_BIKING      (1<<19)  // Едет на велосипеде (незавершённая фича)
 FLAG_PERSON_PASSENGER   (1<<20)  // Пассажир в машине
 FLAG_PERSON_HIT         (1<<21)  // Только что получил удар
 FLAG_PERSON_SPRINTING   (1<<22)  // Бежит спринтом
 FLAG_PERSON_FELON       (1<<23)  // Разыскивается полицией
+FLAG_PERSON_PEEING      (1<<24)  // Анимация мочеиспускания (NPC idle)
+FLAG_PERSON_SEARCHED    (1<<25)  // Уже обыскан
 FLAG_PERSON_ARRESTED    (1<<26)  // Под арестом
 FLAG_PERSON_BARRELING   (1<<27)  // Держит бочку
-FLAG_PERSON_KO          (1<<29)  // Нокаут
+FLAG_PERSON_MOVE_ANGLETO (1<<28) // AI: движется к углу
+FLAG_PERSON_WAREHOUSE   (1<<30)  // Находится в складском здании
+FLAG_PERSON_KILL_WITH_A_PURPOSE (1<<31) // AI: целенаправленное убийство
 ```
 
 ---

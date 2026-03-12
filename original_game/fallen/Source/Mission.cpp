@@ -80,6 +80,7 @@ CBYTE WaypointUses[TT_NUMBER] =
 
 //---------------------------------------------------------------
 
+// claude-ai: Zero-initialize all mission and map pools at startup
 void	MISSION_init(void)
 {
 	ZeroMemory(game_maps,sizeof(game_maps));
@@ -167,6 +168,7 @@ void	free_mission(UWORD mission)
 
 //---------------------------------------------------------------
 
+// claude-ai: Initialize mission struct and EventPoint linked list for a given mission slot
 void	init_mission(UWORD mission_ref,CBYTE *mission_name)
 {
 	UWORD		c0;
@@ -291,6 +293,7 @@ void BreakLink(EventPoint *ep_base, EventPoint *the_ep) {
 
 //---------------------------------------------------------------
 
+// claude-ai: Allocate a free EventPoint slot from mission pool - EventPoints are mission trigger nodes
 EventPoint	*alloc_eventpoint(void)
 {
 	UWORD			new_epoint;
@@ -565,6 +568,7 @@ void	read_event_extra(FILE *file_handle, EventPoint *ep, EventPoint *base, SLONG
 #define	M_VERSION		10
 #define	EP_VERSION		1
 
+// claude-ai: Serialize current mission (EventPoints + metadata) to .ucm file on disk
 BOOL	export_mission(void)
 {
 	CBYTE				curr_dir[_MAX_PATH];
@@ -1615,6 +1619,7 @@ BOOL valid_ep(EventPoint *ep) {
 }
 
 
+// claude-ai: Validate all EventPoints in current mission - marks invalid EPs with WPT_FLAGS_SUCKS
 BOOL valid_mission() {
 	SLONG c0;
 	EventPoint *ep;

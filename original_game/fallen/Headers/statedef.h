@@ -44,7 +44,8 @@
 #define STATE_CARRY						36
 #define STATE_FLOAT						37	// A person floating in the air!
 
-#define	SUB_STATE_WALKING				1				
+// claude-ai: Movement substates - walking, running, sidestep, crawl, sneak, vault
+#define	SUB_STATE_WALKING				1
 #define	SUB_STATE_RUNNING				2
 #define	SUB_STATE_SIDELING				3
 #define	SUB_STATE_STOPPING				4
@@ -77,6 +78,7 @@
 #define	SUB_STATE_RUNNING_LAND			15
 #define	SUB_STATE_DEATH_LAND			42
 										
+// claude-ai: Jump substates - standing/running jumps, grab-jumps, flying kicks, landing
 #define	SUB_STATE_STANDING_JUMP			   30
 #define	SUB_STATE_STANDING_GRAB_JUMP	   31
 #define	SUB_STATE_RUNNING_JUMP			   32
@@ -110,6 +112,7 @@
 
 #define	SUB_STATE_FALLING_NORMAL		0
 
+// claude-ai: Combat substates - punches, kicks, blocks, grapples, strangles, headbutts
 #define	SUB_STATE_PUNCH					90
 #define	SUB_STATE_KICK					91
 #define	SUB_STATE_BLOCK					92
@@ -127,6 +130,7 @@
 #define	SUB_STATE_HEADBUTTV				104
 #define	SUB_STATE_STRANGLEV				105
 
+// claude-ai: Vehicle substates - entering, riding inside, exiting; also bike mount/ride/dismount
 #define	SUB_STATE_ENTERING_VEHICLE		140
 #define SUB_STATE_INSIDE_VEHICLE		141
 #define	SUB_STATE_EXITING_VEHICLE		142
@@ -135,12 +139,14 @@
 #define SUB_STATE_RIDING_BIKE			146
 #define SUB_STATE_DISMOUNTING_BIKE		147
 
+// claude-ai: Death/arrest substates - cuffed, arrested, injured, respawn
 #define	SUB_STATE_DEAD_ARREST_TURN_OVER	170
 #define	SUB_STATE_DEAD_CUFFED			171
 #define	SUB_STATE_DEAD_ARRESTED			172
 #define SUB_STATE_DEAD_INJURED			173
 #define	SUB_STATE_DEAD_RESPAWN			174
 
+// claude-ai: Climbing/dangling substates - ledge grab, dangle, pull-up, wall traverse, ladder
 #define	SUB_STATE_GRAB_TO_DANGLE		  180
 #define	SUB_STATE_DANGLING				  181
 #define	SUB_STATE_PULL_UP				  182

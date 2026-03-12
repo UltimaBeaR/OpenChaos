@@ -107,6 +107,7 @@ void special_pickup(Thing *p_special, Thing *p_person)
 	}
 }
 
+// claude-ai: Drop item from person - detaches special from owner, places it in world
 void special_drop(Thing *p_special, Thing *p_person)
 {
 	#ifndef NDEBUG
@@ -234,6 +235,7 @@ SLONG person_has_twohanded_weapon(Thing *p_person)
 // Should this person pick up the item?
 //
 
+// claude-ai: Pickup eligibility check - tests proximity, item type, and person's current loadout
 SLONG should_person_get_item(Thing *p_person, Thing *p_special)
 {
 	Thing *p_grenade;
@@ -352,6 +354,7 @@ SLONG should_person_get_item(Thing *p_person, Thing *p_special)
 // The player person has picked up the given item.
 //
 
+// claude-ai: Execute item pickup - attaches special to person, plays sound, updates inventory
 void person_get_item(Thing *p_person, Thing *p_special)
 {
 	Thing *p_gun;
@@ -799,6 +802,7 @@ void special_activate_mine(Thing *p_mine)
 
 DIRT_Info special_di;
 
+// claude-ai: Main item update - handles grenade physics, carried items follow owner, explosion timers
 void special_normal(Thing *s_thing)
 {
 	SLONG i;
@@ -1449,6 +1453,7 @@ SLONG	find_empty_special(void)
 	return NULL;
 }
 
+// claude-ai: Spawn a new item Thing in the world at a given position with given type
 Thing *alloc_special(
 		UBYTE type,
 		UBYTE substate,
@@ -1731,6 +1736,7 @@ void SPECIAL_throw_grenade(Thing *p_special)
 }
 
 
+// claude-ai: Arm grenade - starts countdown timer so it will explode after delay
 void SPECIAL_prime_grenade(Thing *p_special)
 {
 	p_special->SubState             = SPECIAL_SUBSTATE_ACTIVATED;
@@ -1778,6 +1784,7 @@ void SPECIAL_throw_mine(Thing *p_special)
 
 */
 
+// claude-ai: Place bomb/explosive at current location, detaches from person and arms it
 void SPECIAL_set_explosives(Thing *p_person)
 {
 	Thing *p_special;

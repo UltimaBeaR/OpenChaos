@@ -36,6 +36,9 @@
 | UI и фронтенд | [subsystems/ui.md](subsystems/ui.md) |
 | Визуальные эффекты | [subsystems/effects.md](subsystems/effects.md) |
 | Камера | [subsystems/camera.md](subsystems/camera.md) |
+| Состояния игры (GS_*, пауза, смерть) | [subsystems/game_states.md](subsystems/game_states.md) |
+| Состояния игрока (STATE_*, SUB_STATE_*) | [subsystems/player_states.md](subsystems/player_states.md) |
+| WayWind (редакторный UI, не игра) | [subsystems/waywind.md](subsystems/waywind.md) |
 | MuckyBasic (не используется в игре) | [subsystems/muckybasic.md](subsystems/muckybasic.md) |
 | Математика и утилиты | [subsystems/math_utils.md](subsystems/math_utils.md) |
 

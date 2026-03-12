@@ -25,18 +25,27 @@ struct PAP_Hi {           // 6 байт
 };
 ```
 
-**Флаги PAP_Hi:**
+**Флаги PAP_Hi (pap.h):**
 ```c
-PAP_FLAG_SHADOW_1/2/3    // тени
-PAP_FLAG_REFLECTIVE      // отражающая поверхность
-PAP_FLAG_HIDDEN          // под крышей или внутри здания
-PAP_FLAG_NOGO            // запретная зона (AI не ходит)
-PAP_FLAG_ANIM_TMAP       // анимированная текстура
-PAP_FLAG_ROOF_EXISTS     // есть крыша
-PAP_FLAG_ZONE1/2/3/4     // 4 зоны для AI
-PAP_FLAG_WANDER          // зона патруля
-PAP_FLAG_FLAT_ROOF       // плоская крыша
-PAP_FLAG_WATER           // есть вода
+PAP_FLAG_SHADOW_1   (1<<0)   // тень 1
+PAP_FLAG_SHADOW_2   (1<<1)   // тень 2
+PAP_FLAG_SHADOW_3   (1<<2)   // тень 3
+PAP_FLAG_REFLECTIVE (1<<3)   // отражающая поверхность
+PAP_FLAG_HIDDEN     (1<<4)   // под крышей или внутри здания
+PAP_FLAG_SINK_SQUARE (1<<5)  // вся ячейка тонет (вода/трясина)
+PAP_FLAG_SINK_POINT  (1<<6)  // отдельная точка тонет
+PAP_FLAG_NOUPPER     (1<<7)  // нет верхней части (рендер)
+PAP_FLAG_NOGO        (1<<8)  // запретная зона (AI не ходит)
+// ВНИМАНИЕ: биты 9 и 14 РАЗДЕЛЯЮТСЯ между флагами (контекстно-зависимые):
+PAP_FLAG_ANIM_TMAP  (1<<9)  // анимированная текстура — ИЛИ —
+PAP_FLAG_ROOF_EXISTS (1<<9) // есть крыша (в контексте крышной ячейки)
+PAP_FLAG_ZONE1      (1<<10) // AI зона 1
+PAP_FLAG_ZONE2      (1<<11) // AI зона 2
+PAP_FLAG_ZONE3      (1<<12) // AI зона 3
+PAP_FLAG_ZONE4      (1<<13) // AI зона 4
+PAP_FLAG_WANDER     (1<<14) // зона патруля AI — ИЛИ —
+PAP_FLAG_FLAT_ROOF  (1<<14) // плоская крыша (в контексте крышной ячейки)
+PAP_FLAG_WATER      (1<<15) // вода
 ```
 
 **Высота:** `Alt << PAP_ALT_SHIFT` (т.е. `Alt << 3`). Диапазон Alt: 0–127, реальная высота: 0–1016.

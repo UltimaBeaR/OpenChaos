@@ -1,3 +1,9 @@
+// claude-ai: PC/DDEngine матрицы с float углами в РАДИАНАХ (libm sin/cos)
+// claude-ai: 3x3 row-major float[9]. MATRIX_calc(m, yaw, pitch, roll) в радианах.
+// claude-ai: Direction struct {float yaw, pitch, roll} — возвращает MATRIX_find_angles()
+// claude-ai: Кватернионы в Quaternion.h/.cpp (CQuaternion {w,x,y,z})
+// claude-ai: В новой игре заменить на glm::mat3 / glm::quat / glm::vec3
+// claude-ai: см. original_game_knowledge_base/subsystems/math_utils.md
 //
 // Matrix stuff...
 //

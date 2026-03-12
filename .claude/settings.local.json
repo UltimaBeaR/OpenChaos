@@ -23,7 +23,8 @@
       "Bash(find /c/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen -type f -name *.h -exec grep -l \"script\\\\|Script\\\\|SCRIPT\" {})",
       "Bash(grep -r \"register.*function\\\\|native\\\\|builtin\" /c/WORK/MuckyFoot-UrbanChaos_base/original_game/MuckyBasic/*.cpp)",
       "Bash(grep -n \"ANIM_FLAG\\\\|FLAG_LAST_FRAME\\\\|FLAG2_SYNC_SOUNDFX\\\\|FLAG_PERSON_LOCK_ANIM_CHANGE\" c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/*.cpp c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/*.h)",
-      "Bash(grep -n \"struct GameKeyFrame\\\\|typedef.*GameKeyFrame\\\\|TweenStep\\\\|NextFrame\\\\|FirstElement\\\\|Flags\" c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/*.h)"
+      "Bash(grep -n \"struct GameKeyFrame\\\\|typedef.*GameKeyFrame\\\\|TweenStep\\\\|NextFrame\\\\|FirstElement\\\\|Flags\" c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/*.h)",
+      "Bash(find c:WORKMuckyFoot-UrbanChaos_baseoriginal_gamefallen -iname *matrix*.h -o -iname *quaternion*.h)"
     ],
     "deny": [
       "Bash(git commit*)",

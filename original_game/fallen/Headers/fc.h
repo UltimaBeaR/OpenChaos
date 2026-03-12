@@ -1,3 +1,8 @@
+// claude-ai: ЕДИНСТВЕННАЯ активная система камеры. cam.cpp - МЁРТВЫЙ КОД (#ifdef DOG_POO).
+// claude-ai: FC_Cam struct: focus/position/angles/cam_dist/cam_height/shake/smooth_transition
+// claude-ai: FC_MAX_CAMS=2 (splitscreen), CAM_MORE_IN=0.75F (PC ближе на 25% от PSX)
+// claude-ai: Camera types 0-3 в FC_change_camera_type(). Gun-out: dheight=0, ddist=200.
+// claude-ai: см. original_game_knowledge_base/subsystems/camera.md
 //
 // The final camera?
 //

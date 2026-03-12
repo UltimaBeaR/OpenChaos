@@ -3192,6 +3192,7 @@ SLONG is_person_crouching(Thing *p_person)
 //        <0 means forget view conditions and just use max range (useful for player)
 //        >0 clip calculated view distance to this value
 
+// claude-ai: Line-of-sight check between two persons - tests angle, distance, and geometry occlusion
 SLONG can_a_see_b(
 		Thing *p_person_a,
 		Thing *p_person_b,SLONG range,SLONG no_los)
@@ -3988,6 +3989,7 @@ extern	UWORD	get_nearest_gang_member(Thing *p_target);
 }
 
 
+// claude-ai: Per-person frame update - handles movement physics, animation, and calls PCOM AI
 void	general_process_person(Thing *p_person)
 {
 /*

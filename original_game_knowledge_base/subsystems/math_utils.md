@@ -1,68 +1,181 @@
 # Математика и утилиты — Urban Chaos
 
 **Ключевые файлы:**
-- `fallen/DDEngine/Headers/Matrix.h` — матрицы 3x3, макросы
-- `fallen/DDEngine/Headers/Quaternion.h` — кватернионы
-- `fallen/DDEngine/Source/Matrix.cpp` — реализация матриц
+- `fallen/Headers/FMatrix.h` — матрицы 3x3 для PSX (целочисленные углы 0-2047)
+- `fallen/Source/FMatrix.cpp` — реализация PSX матриц
+- `fallen/DDEngine/Headers/Matrix.h` — матрицы 3x3 для PC (float, радианы)
+- `fallen/DDEngine/Source/Matrix.cpp` — реализация PC матриц
+- `fallen/DDEngine/Headers/Quaternion.h` — кватернионы (float)
 - `fallen/DDEngine/Source/Quaternion.cpp` — реализация кватернионов
-- `fallen/DDEngine/Source/Maths.cpp` — lookup tables (arctan, sqrt)
-- `MuckyBasic/ml.h` — Vector3 и Matrix типы для VM
+- `MFStdLib/Source/StdLib/StdMaths.cpp` — SinTable, CosTable, AtanTable, Root()
 
 ---
 
-## 1. Матрицы (Matrix.h / Matrix.cpp)
+## ВАЖНО: Два независимых математических стека
 
-**Хранение: 3×3, row-major, 9 float:**
+| Система | Файлы | Углы | Арифметика | Платформа |
+|---------|-------|------|------------|-----------|
+| PSX | FMatrix.h + StdMaths | **0–2047** за полный оборот | Целочисленная, lookup tables | PSX |
+| PC/DDEngine | Matrix.h + libm | **Радианы** (float) | IEEE 754 float | PC, Dreamcast |
+
+---
+
+## 1. PSX система (FMatrix.h / StdMaths)
+
+### Углы: 0–2047 за полный оборот
+
+```c
+// FMatrix.h строка 9: "0 to 2047 for a full rotation"
+// Пример использования (FMatrix.cpp строки 13-21):
+cy = COS(yaw   & 2047);
+cp = COS(pitch & 2047);
+cr = COS(roll  & 2047);
+sy = SIN(yaw   & 2047);
+```
+
+### Таблицы sin/cos (StdMaths.cpp)
+
+```c
+// StdMaths.h строки 9-10:
+#define SIN(a)  SinTable[a]
+#define COS(a)  CosTable[a]
+
+// StdMaths.cpp строка 362:
+SLONG SinTable[];             // 2048 entries, индексы 0-2047
+SLONG *CosTable = &SinTable[512];  // COS = SIN со сдвигом 512 (π/2)
+```
+
+Значения в таблице сдвинуты: `maths.cpp строка 31: sinx = SIN(xangle & (2048-1)) >> 1`
+→ точность 15 бит (значения умноженные на 32768).
+
+### FMATRIX_calc (FMatrix.cpp)
+
+```c
+// FMatrix.h строка 17:
+void FMATRIX_calc(SLONG matrix[9], SLONG yaw, SLONG pitch, SLONG roll);
+// matrix[9] — row-major 3x3, значения в fixed-point ×65536
+```
+
+### FMATRIX_find_angles (FMatrix.cpp строки 309-395)
+
+```c
+void FMATRIX_find_angles(SLONG *matrix, SLONG *yaw, SLONG *pitch, SLONG *roll);
+// Возвращает углы в диапазоне 0-2047
+// *yaw   = 1024 - Arctan(x, z);
+// *pitch = 1024 - Arctan(y, xz);
+// *roll  = 1024 - Arctan(sin_roll, cos_roll);
+```
+
+### Arctan (StdMaths.cpp строки 15-88)
+
+```c
+SLONG Arctan(SLONG X, SLONG Y);
+// Возвращает значение 0-2047 (не радианы!)
+// Использует AtanTable[256] — таблица arctangent 0-90° в масштабе 0-2047
+// Определяет квадрант вручную, добавляет 512/1024/1536 смещение
+```
+
+**AtanTable[]** (StdMaths.cpp строки 99-150):
+```c
+SWORD AtanTable[] = {
+    2048L*0/131072L,      // 0° = 0
+    2048L*81/131072L,     // ~0.06°
+    // ... 256 entries, покрывает 0-90° в масштабе 0-512
+};
+```
+
+---
+
+## 2. PC/DDEngine система (Matrix.h / Matrix.cpp)
+
+### Углы: радианы (float)
+
+```c
+// Matrix.cpp строки 35-41:
+sy = sin(yaw);    // libm
+sp = sin(pitch);
+sr = sin(roll);
+cy = cos(yaw);
+cp = cos(pitch);
+cr = cos(roll);
+```
+
+### Хранение матрицы: 3×3, row-major, 9 float
+
 ```
 matrix[0] matrix[1] matrix[2]
 matrix[3] matrix[4] matrix[5]
 matrix[6] matrix[7] matrix[8]
 ```
 
-**Макросы:**
+### Макросы (Matrix.h)
+
 ```c
 MATRIX_MUL(m, x, y, z)               // умножение вектора (x,y,z) на матрицу m
 MATRIX_MUL_BY_TRANSPOSE(m, x, y, z)  // умножение на транспонированную
-MATRIX_TRANSPOSE(m)                   // транспонирование in-place (swap элементов)
+MATRIX_TRANSPOSE(m)                   // транспонирование in-place (SWAP_FL)
 ```
 
-**Функции:**
+### Функции (Matrix.h / Matrix.cpp)
+
 ```c
-MATRIX_calc(matrix, yaw, pitch, roll)       // Euler → Matrix3x3
-MATRIX_vector(vector, yaw, pitch)           // Euler → направляющий вектор
-MATRIX_skew(matrix, skew, zoom, scale)      // применить aspect ratio и zoom
-MATRIX_3x3mul(a, m, n)                      // a = m * n
-MATRIX_rotate_about_its_*(matrix, angle)    // ротация вокруг собственной оси
-MATRIX_find_angles(matrix) → Direction      // Matrix → (yaw, pitch, roll)
+void MATRIX_calc(float matrix[9], float yaw, float pitch, float roll);
+void MATRIX_vector(float vector[3], float yaw, float pitch);
+void MATRIX_skew(float matrix[9], float skew, float zoom, float scale);
+void MATRIX_3x3mul(float a[9], float m[9], float n[9]);   // a = m * n
+void MATRIX_rotate_about_its_x(float matrix[9], float angle);
+void MATRIX_rotate_about_its_y(float matrix[9], float angle);
+void MATRIX_rotate_about_its_z(float matrix[9], float angle);
+Direction MATRIX_find_angles(float matrix[9]);             // Matrix → (yaw, pitch, roll)
 ```
 
-**Замечания:**
-- Все углы в радианах
-- На PC: `sin()` / `cos()` из `<math.h>`
-- На Dreamcast: быстрые intrinsics `_SinCosA()` (точность до 2e-21)
-- `MATRIX_find_angles()` обрабатывает gimbal lock (pitch > π/4)
+### Direction struct (Matrix.h строки 127-133)
+
+```c
+typedef struct {
+    float yaw;    // в радианах
+    float pitch;  // в радианах
+    float roll;   // в радианах
+} Direction;
+```
+
+`MATRIX_find_angles()` реализация (Matrix.cpp строки 367-422):
+```c
+ans.pitch = (float)asin(matrix[7]);
+ans.yaw   = (float)atan2(matrix[6], matrix[8]);
+ans.roll  = (float)atan2(sin_roll, cos_roll);
+```
+Обрабатывает gimbal lock (pitch > π/4).
 
 ---
 
-## 2. Кватернионы (Quaternion.h / Quaternion.cpp)
+## 3. Кватернионы (Quaternion.h / Quaternion.cpp) — только PC
 
-**Структура:**
 ```c
 struct CQuaternion {
     float w, x, y, z;
 };
 ```
 
-**Функции:**
+### Функции
+
 ```c
-QuatSlerp(q1, q2, t)     // SLERP интерполяция
-QuatMul(q1, q2)           // умножение кватернионов
+QuatSlerp(q1, q2, t)            // SLERP интерполяция
+QuatMul(q1, q2)                  // умножение кватернионов
 EulerToQuat(yaw, pitch, roll) → CQuaternion
-QuatToMatrix(q) → FloatMatrix   // Quaternion → Matrix3x3
-MatrixToQuat(m) → CQuaternion   // Matrix3x3 → Quaternion
+QuatToMatrix(q) → float[9]       // Quaternion → Matrix3x3
+MatrixToQuat(m) → CQuaternion    // Matrix3x3 → Quaternion
 ```
 
-**SLERP реализация:**
+### Integer версия (для PSX)
+
+```c
+MatrixToQuatInteger()    // fixed-point 15.15
+QuatToMatrixInteger()
+QuatSlerpInteger()       // SLERP с таблицей acos_table[1025]
+```
+
+**SLERP оптимизация:**
 ```c
 // Если кватернионы близки (dot > 0.95) — линейная интерполяция
 // Иначе стандартный SLERP:
@@ -70,67 +183,35 @@ scale0 = sin((1-t) * omega) / sin(omega)
 scale1 = sin(t * omega) / sin(omega)
 ```
 
-**Проверки:**
-```c
-is_unit(matrix)          // каждая строка должна быть unit-вектором
-check_isonormal(matrix)  // проверка ортогональности и handedness
-// Допуск: 0.03
-```
+### Сжатая матрица CMatrix33 (для PSX)
 
-**Integer версия (для PSX):**
-- `MatrixToQuatInteger()` / `QuatToMatrixInteger()` — fixed-point 15.15
-- `QuatSlerpInteger()` — SLERP с таблицей `acos_table[1025]`
-- `cmat_to_mat()` — распаковка сжатой матрицы CMatrix33
-
-**Сжатая матрица (CMatrix33 для PSX):**
 - 3 SLONG с битовыми полями: `CMAT0_MASK`, `CMAT1_MASK`, `CMAT2_MASK`
 - Распаковка: `((value & mask) >> shift) / 512.f`
 - Упаковка: `float * 32768.f` → SLONG (fixed-point 16.15)
+- Распаковывает `cmat_to_mat()`
 
 ---
 
-## 3. Lookup таблицы (Maths.cpp)
+## 4. Root() — целочисленный sqrt
 
-**Arctan:**
 ```c
-AtanTable[]            // таблица для быстрого arctangent
-Arctan(X, Y)           // ≈ atan2(Y, X), через таблицу + bit-shift + XOR-swap
+// StdMaths.cpp строки 92-95:
+SLONG Root(SLONG square) {
+    return (int)sqrt(square);  // обёртка над стандартным sqrt()
+}
 ```
 
-**Fast integer sqrt:**
-```c
-Root(square)           // быстрый целочисленный sqrt
-// Алгоритм: Newton-Raphson + инициализация из таблицы ini_table[32]
-// Используется в физике и quaternion операциях
-```
-
-**Таблиц sin/cos нет** — на PC используется стандартная `libm`.
+Используется в обеих системах для нормализации матриц (FMatrix.cpp строки 213, 233).
 
 ---
 
-## 4. Fixed-point математика
+## 5. Fixed-point форматы
 
 | Формат | Масштаб | Где используется |
 |--------|---------|-----------------|
-| 15.15 | `1 << 15` = 32768 | Матрицы ротации (PSX) |
+| 15.15 | `1 << 15` = 32768 | Кватернион integer версия |
 | 16.16 | `1 << 16` = 65536 | Координаты (SLONG GameCoord) |
-| Сдвиги | `>>15` или `>>16` | Делення в fixed-point арифметике |
-
----
-
-## 5. Vector3 (из MuckyBasic ml.h)
-
-```c
-struct ml_vector {
-    float x, y, z;
-};
-```
-
-Используется и в VM, и в игровом коде. Операции (через опкоды VM):
-- `DOT` — скалярное произведение
-- `CROSS` — векторное произведение
-- `NORMALISE` — нормализация
-- `TRANSPOSE` — транспонирование матрицы
+| PSX sin/cos | `>>1` от таблицы | FMatrix multiply |
 
 ---
 
@@ -138,11 +219,12 @@ struct ml_vector {
 
 | Компонент | Подход |
 |-----------|--------|
-| Matrix3x3 | Использовать **glm::mat3** (GLM библиотека) |
-| Quaternion | Использовать **glm::quat** |
-| Vector3 | Использовать **glm::vec3** |
+| Matrix3x3 float | **glm::mat3** |
+| Quaternion float | **glm::quat** |
+| Vector3 float | **glm::vec3** |
 | SLERP | Встроен в glm (`glm::slerp`) |
-| Arctan/sqrt lookup | Не нужны — современный CPU достаточно быстр |
-| Fixed-point 16.16 | Сохранить для координат физики (важно для 1:1 воспроизведения) |
-| CMatrix33 (PSX сжатая) | Не переносить — только для PSX |
-| Функции Euler↔Matrix↔Quat | Через GLM |
+| PSX FMatrix / integer quaternion | **Не переносить** (только PSX) |
+| CMatrix33 (PSX сжатая) | **Не переносить** |
+| AtanTable / SinTable lookup | **Не нужны** — libm достаточно быстр |
+| Fixed-point 16.16 (GameCoord) | Сохранить для физики (1:1 воспроизведение) |
+| Root() wrapper | Не нужен — использовать `std::sqrt()` |

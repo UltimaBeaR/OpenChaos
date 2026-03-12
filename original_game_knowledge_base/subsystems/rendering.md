@@ -15,7 +15,44 @@
 
 ---
 
-## 1. Общий пайплайн рендеринга
+## 1. Типы объектов рендеринга (DT_*)
+
+Все объекты имеют тип, определяющий путь рендеринга (drawtype.h):
+
+```c
+#define DT_NONE              0
+#define DT_BUILDING          1   // Здания (DFacet)
+#define DT_PRIM              2   // Статичный прим-объект (DrawMesh)
+#define DT_MULTI_PRIM        3   // Составной прим
+#define DT_ROT_MULTI         4   // Вращающийся составной прим
+#define DT_EFFECT            5   // Расширяющееся кольцо (Effect.cpp)
+#define DT_MESH              6   // Меш без анимации (DrawMesh)
+#define DT_TWEEN             7   // Персонаж с vertex morphing (DrawTween)
+#define DT_SPRITE            8   // 2D спрайт в 3D пространстве
+#define DT_VEHICLE           9   // Транспортное средство
+#define DT_ANIM_PRIM        10   // Анимированный прим
+#define DT_CHOPPER          11   // Вертолёт
+#define DT_PYRO             12   // Огонь/взрывы
+#define DT_ANIMAL_PRIM      13   // Животные
+#define DT_TRACK            14   // Рельсы/колея
+#define DT_BIKE             15   // Велосипед
+```
+
+**DrawMesh** — статический объект:
+```c
+typedef struct {
+    UWORD Angle;        // Yaw (0xfafa = не используется)
+    UWORD Roll;
+    UWORD Tilt;
+    UWORD ObjectId;     // Индекс в глобальном массиве примов
+    CACHE_Index Cache;  // Кэш освещения
+    UBYTE Hm;           // 255 = NULL
+} DrawMesh;
+```
+
+---
+
+## 1b. Общий пайплайн рендеринга
 
 **Порядок за кадр:**
 
@@ -38,7 +75,20 @@
 
 ## 2. Форматы вершин
 
-**Основная структура (D3DTLVERTEX из DirectX 6):**
+**Внутренняя структура POLY_Point (poly.cpp):**
+```c
+typedef struct {
+    float x, y, z;      // 3D мировые координаты (view space)
+    float X, Y, Z;      // 2D экранные координаты + depth (Z = 1/view_z)
+    UWORD clip;         // Флаги отсечения (POLY_CLIP_*)
+    UWORD user;         // Зарезервировано
+    float u, v;         // Текстурные координаты
+    ULONG colour;       // Диффузный цвет (xxRRGGBB)
+    ULONG specular;     // Зеркальный/fog цвет (alpha = fog factor в старших 8 битах)
+} POLY_Point;
+```
+
+**Финальный формат для D3D (D3DTLVERTEX из DirectX 6):**
 ```c
 struct D3DTLVERTEX {
     float X, Y, Z;      // Экранные координаты (X, Y) + глубина (Z)
@@ -49,13 +99,72 @@ struct D3DTLVERTEX {
 };
 ```
 
+**POLY_transform() — трансформация вершины:**
+```c
+// Input: world_x, world_y, world_z (мировые координаты)
+// 1. Translate к камере:
+vx = world_x - POLY_cam_x;
+vy = world_y - POLY_cam_y;
+vz = world_z - POLY_cam_z;
+
+// 2. Rotate в view space (через матрицу камеры 3×3)
+MATRIX_MUL(POLY_cam_matrix, vx, vy, vz);
+
+// 3. Near/far clip:
+if (vz < POLY_ZCLIP_PLANE) → POLY_CLIP_NEAR
+if (vz > 1.0F)             → POLY_CLIP_FAR
+
+// 4. Перспективная проекция:
+Z  = POLY_ZCLIP_PLANE / vz;   // Reciprocal depth
+pp->X = POLY_screen_mid_x - POLY_screen_mul_x * vx * Z;
+pp->Y = POLY_screen_mid_y - POLY_screen_mul_y * vy * Z;
+pp->z = vz;
+pp->Z = Z;
+```
+
 **Трансформационный конвейер:**
-1. Мировое пространство (SLONG координаты)
+1. Мировое пространство (SLONG fixed-point координаты, × 1/256)
 2. View space (через матрицу камеры — rotate_on_x/y/z)
-3. Перспективная проекция → нормализованный куб [-1, 1]
+3. Перспективная проекция + reciprocal depth
 4. Экранное пространство (0..DisplayWidth × 0..DisplayHeight)
 
-**Фиксированный пайплайн D3D** — без шейдеров. Vertex lighting через `LIGHT_get_d3d_colour()`.
+**Фиксированный пайплайн D3D** — без шейдеров. Vertex lighting через `NIGHT_get_d3d_colour()`.
+
+---
+
+## 2b. UV упаковка в PrimFace4
+
+UV координаты граней упакованы в 16-bit формат (mesh.cpp):
+
+```c
+// Из поля UV[i][0] и UV[i][1]:
+float u = float(UV[i][0] & 0x3f) * (1.0F / 32.0F);  // 6 бит = позиция U внутри тайла
+float v = float(UV[i][1]       ) * (1.0F / 32.0F);  // 8 бит = позиция V
+
+// Страница текстуры из UV[i][0] верхних 2 бит + TexturePage поля:
+SLONG page = (UV[i][0] & 0xc0) << 2;   // grid X позиция (0-3)
+page |= face->TexturePage;              // base page
+page += FACE_PAGE_OFFSET;              // FACE_PAGE_OFFSET = 8*64
+```
+
+Текстурный атлас организован как сетка 8×8 тайлов, каждый тайл 64×64 пикселей.
+
+---
+
+## 2c. Gamut — отсечение по видимости
+
+`AENG_calc_gamut()` вычисляет frustum в пространстве карты:
+
+```c
+// NGAMUT хранит для каждой строки Z видимый диапазон X:
+for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+    for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+        NIGHT_cache_create(x, z);  // Только видимые ячейки получают освещение
+    }
+}
+```
+
+Gamut — coarse culling (по lo-res клеткам карты). Затем facets дополнительно проверяются по AABB.
 
 ---
 

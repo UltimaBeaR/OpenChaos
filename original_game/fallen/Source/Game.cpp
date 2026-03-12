@@ -212,7 +212,8 @@ void global_load(void)
 #endif
 
 //---------------------------------------------------------------
-//#define	DebugText	
+//#define	DebugText
+// claude-ai: Initialize all game subsystems - loads resources, sets up world, spawns player
 void game_startup(void)
 {
 	GAME_STATE = 0;
@@ -382,7 +383,7 @@ extern UBYTE Eidos_Played;
 
 //---------------------------------------------------------------
 
-
+// claude-ai: Tear down all game subsystems - frees memory, unloads level, destroys Things
 void game_shutdown(void)
 {
 	#ifndef	PSX
@@ -2070,6 +2071,7 @@ extern SLONG game_timeout;
 UWORD env_frame_rate;
 
 
+// claude-ai: Outer game loop - runs startup/shutdown around inner render+logic loop, returns exit code
 UBYTE	game_loop(void)
 {
 #ifndef	PSX
@@ -2188,6 +2190,7 @@ extern void envmap_specials(void);
 		TRACE ( "game_loop init8\n" );
 
 
+		// claude-ai: Inner per-frame loop - runs while playing, exits on GS_LEVEL_WON or GS_LEVEL_LOST
 		while(SHELL_ACTIVE&&(GAME_STATE&(GS_PLAY_GAME|GS_LEVEL_LOST|GS_LEVEL_WON)))
 		{
 #ifdef TARGET_DC
@@ -2231,6 +2234,7 @@ extern int g_iCheatNumber;
 					case GAMEMENU_DO_NOTHING:
 						break;
 
+					// claude-ai: GS_REPLAY - restart current level from beginning (triggered by menu)
 					case GAMEMENU_DO_RESTART:
 						GAME_STATE     = GS_REPLAY;
 						break;
@@ -2251,6 +2255,7 @@ extern int g_iCheatNumber;
 				break;
 			}
 
+			// claude-ai: GS_LEVEL_WON handling - advance to next mission or credits
 			if (GAME_STATE & GS_LEVEL_WON)
 			{
 				//
@@ -2267,6 +2272,7 @@ extern int g_iCheatNumber;
 			}
 #else
 			
+			// claude-ai: GS_LEVEL_LOST/WON handling - show replay option or return to menu (PSX path)
 			if (GAME_STATE&(GS_LEVEL_LOST|GS_LEVEL_WON))
 			{
 				//

@@ -1,3 +1,9 @@
+// claude-ai: PSX матрицы с ЦЕЛОЧИСЛЕННЫМИ углами 0-2047 за полный оборот
+// claude-ai: SIN(a)/COS(a) = SinTable[a]/CosTable[a] (2048 entries, StdMaths.cpp)
+// claude-ai: FMATRIX_calc(matrix[9], yaw, pitch, roll) — Euler→Matrix, fixed-point
+// claude-ai: FMATRIX_find_angles возвращает углы 0-2047 (не радианы!)
+// claude-ai: НЕ ПЕРЕНОСИТЬ в новую игру — только PSX платформа
+// claude-ai: см. original_game_knowledge_base/subsystems/math_utils.md
 //
 // Matrix stuff...
 //

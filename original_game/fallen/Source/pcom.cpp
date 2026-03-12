@@ -1778,6 +1778,7 @@ SLONG PCOM_player_is_doing_something_naughty(Thing *darci)
 
 void PCOM_set_person_ai_kill_person(Thing *p_person, Thing *p_target, SLONG alert_gang = TRUE); // These two functions call eachother!
 
+// claude-ai: Notify nearby gang members to join fight against target - propagates combat awareness
 void PCOM_alert_my_gang_to_a_fight(Thing *p_person, Thing *p_target)
 {
 	SLONG i;
@@ -10802,6 +10803,7 @@ Thing *PCOM_find_bodyguard_victim(Thing *p_bodyguard, Thing *p_client)
 
 
 
+// claude-ai: Handle AI state transitions - decides new state when current state completes
 void PCOM_process_state_change(Thing *p_person)
 {
 	SLONG dx;
@@ -12847,6 +12849,7 @@ void PCOM_process_movement(Thing *p_person)
 
 
 
+// claude-ai: Main AI update for one person - called every frame, drives state machine and behavior
 void PCOM_process_person(Thing *p_person)
 {
 	//
@@ -13076,6 +13079,7 @@ void	process_noises(void)
 }
 
 
+// claude-ai: Sound propagation - alerts nearby persons who can "hear" a sound event at given position
 void PCOM_oscillate_tympanum(
 		SLONG  type,
 		Thing *p_person,	// The person who caused the sound.

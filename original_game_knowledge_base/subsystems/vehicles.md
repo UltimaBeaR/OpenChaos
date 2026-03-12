@@ -53,12 +53,16 @@ struct VehicleStruct {
     // Флаги состояния
     UWORD Flags;
     // FLAG_VEH_DRIVING       — кто-то управляет
-    // FLAG_VEH_WHEEL1..4_GRIP — сцепление каждого колеса
+    // FLAG_VEH_WHEEL1_GRIP   — колесо 1 на земле
+    // FLAG_VEH_WHEEL2_GRIP   — колесо 2 на земле
+    // FLAG_VEH_WHEEL3_GRIP   — колесо 3 на земле
+    // FLAG_VEH_WHEEL4_GRIP   — колесо 4 на земле
+    // FLAG_VEH_FX_STATE      (1<<6) — внутреннее состояние эффектов
     // FLAG_VEH_ANIMATING     — анимация (дверь открыта)
     // FLAG_VEH_SHOT_AT       — был обстрелян
     // FLAG_VEH_STALLED       — не может ехать
     // FLAG_VEH_IN_AIR        — в воздухе
-    // FLAG_FURN_DRIVING      — внутриигровой объект управляет
+    // Примечание: FLAG_FURN_DRIVING (1<<0) — НЕ флаг Vehicle, это флаг из Furn.h
 
     UWORD Driver;            // THING_INDEX водителя (0 = нет)
     UWORD Passenger;         // связный список пассажиров
