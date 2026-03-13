@@ -14,59 +14,73 @@
 
 ## Порядок чтения файлов KB
 
-Читать в параллельных батчах по 3-4 файла:
+### Батч 0 (общие файлы — читать ПЕРВЫМ)
+Эти файлы дают общий контекст: архитектуру, скоуп анализа, карту связей между подсистемами, препроцессорные флаги. Без них агент не поймёт как подсистемы связаны между собой.
+
+0. `KB_INDEX.md` — полный индекс всех файлов KB (понимание структуры)
+1. `overview.md` — архитектура оригинала: структура папок, entry point, карта связей, аннотированные файлы
+2. `analysis_scope.md` — что анализируется и что пропускается, PC+PS1 эталон
+3. `cut_features.md` — вырезанные/отключённые фичи
+4. `preprocessor_flags.md` — все #ifdef флаги и что они контролируют
+
+Затем читать подсистемы в параллельных батчах по 3-4 файла:
 
 ### Батч 1 (ядро)
-1. `QUICK_FACTS.md` — все ключевые числа; станет основой секции 23 (быстрые числа)
-2. `subsystems/physics.md` + `subsystems/physics_details.md`
-3. `subsystems/game_objects.md`
+1. `subsystems/physics.md` + `subsystems/physics_details.md`
+2. `subsystems/game_objects.md` + `subsystems/game_objects_details.md`
 
 ### Батч 2 (AI и навигация)
-4. `subsystems/ai.md` + `subsystems/ai_structures.md` + `subsystems/ai_behaviors.md`
-5. `subsystems/navigation.md`
+3. `subsystems/ai.md` + `subsystems/ai_structures.md` + `subsystems/ai_behaviors.md`
+4. `subsystems/navigation.md`
 
 ### Батч 3 (геймплей)
-6. `subsystems/controls.md`
-7. `subsystems/combat.md`
-8. `subsystems/vehicles.md`
+5. `subsystems/controls.md` + `subsystems/psx_controls.md`
+6. `subsystems/combat.md`
+7. `subsystems/vehicles.md`
 
 ### Батч 4 (мир и контент)
-9. `subsystems/world_map.md`
-10. `subsystems/buildings_interiors.md` + `subsystems/buildings_interiors_details.md`
-11. `subsystems/missions.md` + `subsystems/missions_implementation.md`
+8. `subsystems/world_map.md`
+9. `subsystems/buildings_interiors.md` + `subsystems/buildings_interiors_details.md`
+10. `subsystems/missions.md` + `subsystems/missions_implementation.md`
 
 ### Батч 5 (оружие и взаимодействие)
-12. `subsystems/weapons_items.md` + `subsystems/weapons_items_details.md`
-13. `subsystems/interaction_system.md`
-14. `subsystems/characters.md` + `subsystems/characters_details.md`
+11. `subsystems/weapons_items.md` + `subsystems/weapons_items_details.md`
+12. `subsystems/interaction_system.md`
+13. `subsystems/characters.md` + `subsystems/characters_details.md`
 
 ### Батч 6 (эффекты и рендеринг)
-15. `subsystems/effects.md`
-16. `subsystems/rendering.md` + `subsystems/rendering_mesh.md` + `subsystems/rendering_lighting.md`
+14. `subsystems/effects.md` + `subsystems/effects_pyro_pow_dirt.md`
+15. `subsystems/rendering.md` + `subsystems/rendering_mesh.md` + `subsystems/rendering_lighting.md`
 
 ### Батч 7 (системы и инфраструктура)
-17. `subsystems/camera.md`
-18. `subsystems/audio.md`
-19. `subsystems/game_states.md`
+16. `subsystems/camera.md`
+17. `subsystems/audio.md`
+18. `subsystems/game_states.md`
+19. `subsystems/player_states.md`
 
 ### Батч 8 (прогресс и загрузка)
 20. `subsystems/level_loading.md`
 21. `subsystems/player_progress.md`
-22. `subsystems/player_states.md`
+22. `subsystems/ui.md` + `subsystems/frontend.md`
 
-### Батч 9 (форматы и скоуп)
-23. `resource_formats/` — все файлы в папке
-24. `cut_features.md`
-25. `analysis_scope.md`
-26. `subsystems/ui.md` + `subsystems/frontend.md`
-27. `subsystems/minor_systems.md`
-28. `subsystems/psx_controls.md`
+### Батч 9 (форматы и малые системы)
+23. `resource_formats/` — все файлы в папке (включая `mission_script_format.md`)
+24. `subsystems/minor_systems.md`
+25. `subsystems/math_utils.md`
+
+Файл `subsystems/waywind.md` — описывает редактор (WayWind), вне скоупа новой игры. Читать не обязательно, но из него можно взять связи с AI системой.
 
 ---
 
 ## Что извлекать из каждого файла
 
 **Правило:** только то, что нельзя вывести логически — конкретные числа, константы, формулы, неочевидные зависимости, известные баги.
+
+### Из общих файлов (Батч 0)
+- **overview.md:** архитектура (MFC app, game loop entry), карта связей между подсистемами, какие файлы к какой подсистеме относятся
+- **analysis_scope.md:** что пропущено при анализе и почему; PC+PS1 = двойной эталон
+- **cut_features.md:** список вырезанных фич с кратким статусом (закомментировано, ASSERT, etc.)
+- **preprocessor_flags.md:** ключевые #ifdef (VERSION_D3D, PSX, TARGET_DC, FINAL) — что включено в PC сборке, что нет
 
 ### Из physics.md / physics_details.md
 - Константа GRAVITY (-51 в единицах/кадр²)
@@ -75,12 +89,13 @@
 - Специфика slide_along (нет отскока)
 - Особенности find_face_for_this_pos
 
-### Из game_objects.md
+### Из game_objects.md / game_objects_details.md
 - Размер Thing struct (125 байт)
 - Максимум объектов (MAX 700)
 - Список CLASS_* типов с кратким описанием
 - MapWho: формула хэша, размер ячейки
 - Механика state machine (fnptr полиморфизм)
+- Barrel, Platform, Chopper — ключевые параметры
 
 ### Из ai.md + ai_structures.md + ai_behaviors.md
 - Полные списки PCOM_AI (22 типа, 0-21) и PCOM_AI_STATE (28 состояний, 0-27)
@@ -101,11 +116,12 @@
 - Формула friction (bit-shift)
 - Константы скорости/ускорения
 
-### Из controls.md
+### Из controls.md / psx_controls.md
 - 18 INPUT_* кнопок
 - 52 ACTION_* действий
 - Порядок приоритетов do_an_action
 - Player struct поля
+- PSX layouts (4 конфига)
 
 ### Из combat.md
 - GameFightCol в кадрах анимации (не в logic)
@@ -113,11 +129,12 @@
 - Knockback через анимации
 - Система fight tree
 
-### Из weapons_items.md
+### Из weapons_items.md / weapons_items_details.md
 - 30 SPECIAL_* типов
 - Таблица урона: Pistol=70hp, Shotgun=300-dist, AK47=100(pl)/40(NPC)
 - Fire rates и capacity
 - C4 = 5 сек (не 10), мины заглушены
+- Гранаты, автоприцел, DIRT банки
 
 ### Из missions.md / missions_implementation.md
 - 42 условия, 52 действия EWAY
@@ -125,11 +142,12 @@
 - Как работает STAY_MODE
 - .ucm ≠ MuckyBasic
 
-### Из buildings_interiors.md
+### Из buildings_interiors.md / buildings_interiors_details.md
 - 21 STOREY_TYPE_* с кратким описанием
 - Иерархия: FBuilding→FStorey→FWall→DFacet
 - Как двери синхронизированы с MAV
 - Алгоритм размещения лестниц
+- id.cpp рендеринг, WARE склады
 
 ### Из world_map.md
 - PAP_Hi 128×128 (1024×1024 единицы), PAP_Lo 32×32
@@ -141,17 +159,19 @@
 - Cable параметры в полях DFacet
 - Лестница: ladder_step_height
 
-### Из effects.md
+### Из effects.md + effects_pyro_pow_dirt.md
 - psystem: MAX эффектов, ключевые типы
 - fire.cpp отдельная система
-- PYRO 18 типов, DIRT 16 типов
+- PYRO 18 типов (детальная таблица из effects_pyro_pow_dirt.md)
+- DIRT 16 типов (детальная таблица)
 - RIBBON, BANG, POW механика
 
-### Из rendering.md
+### Из rendering.md + rendering_mesh.md + rendering_lighting.md
 - DDEngine bucket sort (painter's algorithm)
 - Порядок рендер-пайплайна
 - DRAWXTRA_MIB_destruct — игровая логика в рендерере! (критичная зависимость)
-- NIGHT система
+- NIGHT система, Crinkle
+- Tom's Engine, морфинг мешей
 
 ### Из camera.md
 - FC only (cam.cpp мёртв)
@@ -170,6 +190,11 @@
 - Win/Lose flow
 - DarciDeadCivWarnings
 
+### Из player_states.md
+- Все STATE_* и SUB_STATE_* константы
+- Группировка подсостояний (движение, прыжки, бой, смерть, лазание, транспорт, оружие)
+- Типы персонажей (PLAYER_*, PERSON_*)
+
 ### Из level_loading.md
 - 9 шагов загрузки
 - MAV_precalculate = самый тяжёлый
@@ -180,11 +205,23 @@
 - best_found анти-фарм механика
 - mission_hierarchy bits
 
-### Из resource_formats/
+### Из ui.md + frontend.md
+- HUD, шрифты, панели
+- Frontend pipeline (STARTSCR → миссия)
+- Особые миссии (park2, Finale1, туториалы)
+
+### Из resource_formats/ (все файлы)
 - Каждый формат: расширение, назначение, ключевые структуры
+- mission_script_format.md: .sty формат, suggest_order[], районы
 
 ### Из cut_features.md
 - Список вырезанных фич с кратким статусом (закомментировано, ASSERT, etc.)
+
+### Из minor_systems.md
+- Вода, растяжки (trip), SM, шары, следы, искры, command system, drawxtra
+
+### Из math_utils.md
+- FMatrix vs Matrix (два набора), Root(), fixed-point форматы
 
 ---
 
@@ -215,7 +252,7 @@
 20. Межсистемные зависимости ← критично не забыть
 21. Пре-релизные баги и особенности
 22. Форматы файлов
-23. Быстрые числа ← полная числовая таблица из QUICK_FACTS
+23. Быстрые числа ← собрать из всех секций KB
 ```
 
 Каждая секция:
@@ -231,8 +268,8 @@
 Это самая важная секция для архитектурных решений. Обязательно включить:
 
 1. **Рендерер мутирует игровое состояние** — DRAWXTRA_MIB_destruct() в drawxtra.cpp изменяет ammo_packs_pistol, запускает PYRO/SPARK. Это нарушение слоистости.
-2. **Камера зависит от MAV** — FC_process использует MAV_find_path для raycast коллизии камеры с геометрией
-3. **Двери синхронизированы с MAV** — открытие/закрытие двери должно обновлять MAV граф (MAV_door_open/close), иначе NPC застрянут
+2. **Камера зависит от MAV** — FC_process использует MAV_inside для коллизии камеры с геометрией
+3. **Двери синхронизированы с MAV** — открытие/закрытие двери должно обновлять MAV граф (MAV_turn_movement_on/off), иначе NPC застрянут
 4. **EWAY контролирует спавн** — игрок создаётся через EWAY_process, не напрямую
 5. **AI таймер независим от frame rate** — PCOM_TICKS_PER_SEC=320, но не привязан к рендер-FPS
 6. **Анимации управляют физикой** — GameFightCol в кадрах анимации, gravity_anim_driven у персонажей
@@ -245,7 +282,7 @@
 После создания DENSE_SUMMARY:
 
 1. **Размер:** `wc -l` — должно быть 2000-3500 строк
-2. **Числа:** выбрать 10 случайных чисел и проверить по QUICK_FACTS.md — должны совпадать
-3. **Покрытие:** каждая строка таблицы из SESSION_START.md должна иметь соответствующую секцию в DENSE_SUMMARY
+2. **Числа:** выбрать 10 случайных чисел из разных секций и проверить по соответствующим subsystems/*.md — должны совпадать
+3. **Покрытие:** каждая подсистема из таблицы в `KB_INDEX.md` должна иметь соответствующую секцию или упоминание в DENSE_SUMMARY
 4. **Межсистемные зависимости:** секция 20 содержит минимум 7 пунктов из списка выше
 5. **Баги:** секция 21 содержит минимум 15 записей (в оригинале было 20+)

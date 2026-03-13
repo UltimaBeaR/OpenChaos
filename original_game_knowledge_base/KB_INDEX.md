@@ -58,6 +58,7 @@
 | UI и фронтенд (HUD, шрифты, диалоги) | [subsystems/ui.md](subsystems/ui.md) |
 | Frontend (меню, pipeline запуска миссии) | [subsystems/frontend.md](subsystems/frontend.md) |
 | Визуальные эффекты | [subsystems/effects.md](subsystems/effects.md) |
+| Эффекты: взрывы (POW), пиротехника (PYRO), мусор (DIRT) | [subsystems/effects_pyro_pow_dirt.md](subsystems/effects_pyro_pow_dirt.md) |
 | Малые подсистемы (вода, растяжки, SM, шары, следы, искры) | [subsystems/minor_systems.md](subsystems/minor_systems.md) |
 | Математика и утилиты | [subsystems/math_utils.md](subsystems/math_utils.md) |
 | WayWind (редактор, вне скоупа) | [subsystems/waywind.md](subsystems/waywind.md) |
@@ -75,3 +76,4 @@
 | Текстуры (.TGA/.TXC) | [resource_formats/texture_format.md](resource_formats/texture_format.md) |
 | Освещение (.lgt) | [resource_formats/lighting_format.md](resource_formats/lighting_format.md) |
 | Звук (.WAV) | [resource_formats/audio_format.md](resource_formats/audio_format.md) |
+| Mission Script (.sty — список миссий и районов) | [resource_formats/mission_script_format.md](resource_formats/mission_script_format.md) |
