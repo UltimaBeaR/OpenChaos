@@ -446,11 +446,6 @@ void GetCMatrix(GameKeyFrameElement *e, CMatrix33 *cm) {
 
 **InterruptFrame = МЁРТВЫЙ КОД**: поле объявлено в DrawTween, но в этом пре-релизе везде `InterruptFrame = 0`. Нигде не присваивается ненулевое значение. Была идея "прерывающего кадра при перебитии анимации", но так и не реализована.
 
-### Для новой игры:
-- Загружаем `GameKeyFrameElement[]` из .all файла → декомпрессируем GetCMatrix → конвертируем в `glm::mat4` (умножаем на 1.0f/128.0f)
-- Tweening: `CQuaternion::BuildTween` = quaternion slerp → в новой игре `glm::mix()` на quaternions
-- InterruptFrame не реализовывать (мёртвый код)
-
 ---
 
 ## 12. Физика Darci (Darci.cpp — 1431 строк)
@@ -486,17 +481,3 @@ void GetCMatrix(GameKeyFrameElement *e, CMatrix33 *cm) {
 
 **Return values projectile_move_thing:** 0=no collision, 1=landed, 2=fence/wall, 100=death
 
----
-
-## 13. Что переносить в новую версию
-
-| Аспект | Подход |
-|--------|--------|
-| Vertex morphing | Заменить на **skeletal animation** (glTF/озз-animation) — меньше памяти, лучше качество |
-| DrawTween | Реализовать аналогичный animation controller (state, blend, queue) |
-| Типы персонажей | Перенести 1:1 (15 типов, те же PERSON_TYPE константы) |
-| Флаги состояний | Перенести 1:1 |
-| API анимаций | Перенести: `set_anim`, `tween_to_anim`, `queue_anim` |
-| Смерть/KO | Перенести 1:1, ragdoll НЕ добавлять (изменит геймплей) |
-| Гарпун/лазание | Перенести 1:1 (критично для геймплея) |
-| Плавание | Не реализовывать (в оригинале нет) |

@@ -215,18 +215,3 @@ SLONG Root(SLONG square) {
 | 16.16 | `1 << 16` = 65536 | Координаты (SLONG GameCoord) |
 | PSX sin/cos | `>>1` от таблицы | FMatrix multiply |
 
----
-
-## 6. Что переносить в новую версию
-
-| Компонент | Подход |
-|-----------|--------|
-| Matrix3x3 float | **glm::mat3** |
-| Quaternion float | **glm::quat** |
-| Vector3 float | **glm::vec3** |
-| SLERP | Встроен в glm (`glm::slerp`) |
-| PSX FMatrix / integer quaternion | **Не переносить** (только PSX) |
-| CMatrix33 (PSX сжатая) | **Не переносить** |
-| AtanTable / SinTable lookup | **Не нужны** — libm достаточно быстр |
-| Fixed-point 16.16 (GameCoord) | Сохранить для физики (1:1 воспроизведение) |
-| Root() wrapper | Не нужен — использовать `std::sqrt()` |

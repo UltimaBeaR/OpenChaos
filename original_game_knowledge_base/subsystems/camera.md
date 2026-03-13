@@ -267,18 +267,3 @@ FC_Cam FC_cam[FC_MAX_CAMS];   // глобальный массив
 
 Проверяет, можно ли вращать камеру в данном направлении. Используется перед FC_rotate_left/right().
 
----
-
-## 12. Что переносить
-
-- Всю FC логику (единственная активная система)
-- FC_Cam с теми же полями (или эквивалент)
-- Режимы 0-3 с теми же cam_dist / cam_height значениями
-- CAM_MORE_IN = 0.75F для PC
-- Gun-out: +ddist=200 (меньше дистанция), lower=0xa000 (ниже)
-- Collision avoidance: 8 raycasting шагов от want_pos к focus; MAV + LOS для заборов
-- Get-behind: разные скорости для езды/пешком/около стены/gun-out
-- Toonear state с first-person (0x90000) специальным случаем
-- Shake: exponential decay
-- FC_focus_above: разные высоты для gun-out, машин, зданий
-- cam.cpp / cam.h — **не переносить**, мёртвый код (`#ifdef DOG_POO`)

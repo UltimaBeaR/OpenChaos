@@ -622,23 +622,3 @@ sprintf(fname_map, "%s%s", DATA_DIR, ucm.MapName);
 NIGHT_load_ed_file(fname_lighting);
 ```
 
----
-
-## 12. Что переносить в новую версию
-
-**Переносить 1:1:**
-- Структуру EventPoint с полем Data[10]
-- Все TT_* и WPT_* типы (должны быть совместимы с оригинальными .ucm скриптами)
-- Загрузку/сохранение бинарного формата миссий
-- Граф активации EventPoints (linked list с Radius-based trigger)
-- Формат .wag сохранений (версия 3) — для совместимости с оригинальными save файлами
-- mission_hierarchy[60], complete_point (0-24+), best_found[50][4]
-- CRIME_RATE (0-100, default 50) с EventPoint триггерами TT_CRIME_RATE_ABOVE/BELOW
-- RPG характеристики Darci и Roper (8 UBYTE значений)
-
-**Можно улучшить:**
-- Вместо raw Data[10] использовать union или typed parameters
-- Добавить отладочную визуализацию EventPoint графа
-- Сохранить лимиты (512 EP) или увеличить если нужно
-
-**Критично:** Порядок активации EventPoints и логика триггеров должны воспроизводиться точно — это основа всего сценария миссий.

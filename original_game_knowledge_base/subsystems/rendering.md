@@ -330,62 +330,8 @@ SPRITE_draw(world_x, world_y, world_z, size, colour, page, ...):
 **Crinkle система:** — детали в [rendering_lighting.md](rendering_lighting.md)
 
 Micro-geometry bump mapping (mesh → проекция на квад + выдавливание вдоль нормали).
-**⚠️ Отключена в пре-релизе**, но **работает в финальном PC релизе** (bump на деревянных ящиках). Переносить через normal/parallax mapping.
+**⚠️ Отключена в пре-релизе**, но **работает в финальном PC релизе** (bump на деревянных ящиках).
 
----
-
-## 10. Портирование на OpenGL/Vulkan
-
-**Легко маппится:**
-
-| Оригинал (DirectX 6) | OpenGL 4.6 / Vulkan |
-|----------------------|---------------------|
-| D3DTLVERTEX | Custom vertex struct + VBO |
-| LPDIRECT3DTEXTURE2 | GLuint texture / VkImage |
-| SetTransform() | Uniform buffers (MVP матрицы) |
-| SetRenderState() | glEnable/Disable или Pipeline state |
-| DrawIndexedPrimitive() | glDrawElements / vkCmdDrawIndexed |
-| D3DRENDERSTATETYPE (ZEnable, AlphaBlend, CullMode) | glDepthMask, glBlendFunc, glCullFace |
-
-**Требует переработки:**
-
-- **Фиксированный пайплайн** → вершинный + фрагментный шейдеры
-  - Vertex lighting — реализовать в vertex shader
-  - Fog — реализовать в fragment shader
-- **Crinkle система** — не переносить (полностью отключена в оригинале)
-- **Vertex buffer pool** — переработать под staging buffers / persistent mapping
-- **Multi-matrix DrawIndPrimMM** — кастомный механизм
-
-**Сохранить идеи из оригинала:**
-- PolyPage система — хорошая абстракция, адаптировать
-- RenderState инкапсуляция — хорошая практика, оставить
-- Bucket sort для прозрачных полигонов — стандарт, оставить
-
----
-
-## 11. Итоговые данные для нового рендерера
-
-**Структура вершины для нового рендерера:**
-```cpp
-struct Vertex {
-    float x, y, z;      // Позиция
-    uint32_t colour;     // ARGB диффузный
-    uint32_t specular;   // ARGB зеркальный/fog
-    float u, v;          // UV координаты
-};
-```
-
-**Ключевые render state transitions:**
-- Прозрачность: SRC_ALPHA + ONE_MINUS_SRC_ALPHA (standard) или ONE + ONE (additive для огня)
-- Z-buffer: включён везде, запись выключена для прозрачных
-- Culling: back-face по умолчанию, front-face или off для двусторонних
-
-**Освещение в новой версии:**
-- Можно улучшить до per-pixel (fragment shader) — визуально лучше
-- Динамические тени — можно добавить (shadow maps) — не было в оригинале
-- Оригинальная vertex lighting легко воспроизводится в vertex shader
-
----
 
 ## ⚠️ Game Logic в рендерере (drawxtra.cpp)
 
@@ -394,5 +340,5 @@ struct Vertex {
 1. **`DRAWXTRA_MIB_destruct()`** — модифицирует `ammo_packs_pistol`, создаёт `PYRO_TWANGER` и `SPARK`
 2. **`PYRO_draw_armageddon()`** — создаёт `PYRO_NEWDOME`, `PARTICLE_Add()`, `MFX_play_xyz()`
 
-При портировании эту логику **ВЫНЕСТИ из рендерера в game update loop**.
+Эта логика вызывается из рендерера, но мутирует game state.
 `engineMap.cpp` — безопасен (read-only для рендеринга).

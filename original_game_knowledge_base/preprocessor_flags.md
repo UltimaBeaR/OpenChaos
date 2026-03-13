@@ -34,7 +34,7 @@
 | `DONT_IGNORE_SHADOWS` и др. | Glide Engine/glaeng.cpp | Графические эффекты Glide | **НЕТ** |
 | `WORRY_ABOUT_THIS_LATER` | glpoly.cpp | Отложенная задача в Glide | **НЕТ** |
 
-**Примечание:** Весь код Glide (`/fallen/Glide Engine/`) мёртв — `VERSION_GLIDE` не определяется ни в одной конфигурации. При переписывании `VERSION_D3D` и `MF_DD2` заменяются на OpenGL/Vulkan-аналоги.
+**Примечание:** Весь код Glide (`/fallen/Glide Engine/`) мёртв — `VERSION_GLIDE` не определяется ни в одной конфигурации.
 
 ---
 
@@ -142,8 +142,7 @@ _WINDOWS;WIN32;_DEBUG;DEBUG;VERSION_D3D;TEX_EMBED;WINDOWS_IGNORE_PACKING_MISMATC
 - `TARGET_DC` — проникает в базовые библиотеки MFLib1, MFStdLib
 - `PSX` — встречается в физике (collide.h) и структурах данных (building.h, dirt.h, Command.h)
 
-### Сохранить или заменить аналогом:
-- `VERSION_D3D`, `MF_DD2`, `TEX_EMBED` → заменить на OpenGL/Vulkan аналоги
-- `FINAL`, `DEBUG`, `_DEBUG`, `NDEBUG`, `_RELEASE` → концепция Debug/Release конфигураций остаётся
-- `EIDOS` → **убрать** (только учётные данные издателя, не нужен)
-- `_MF_WINDOWS`, `_WINDOWS`, `_WIN32` → при кросс-платформенном переписывании заменить на CMake-детектирование платформы
+### Активные в финальном билде:
+- `VERSION_D3D`, `MF_DD2`, `TEX_EMBED` — графический стек
+- `FINAL`, `DEBUG`, `_DEBUG`, `NDEBUG`, `_RELEASE` — конфигурации сборки
+- `_MF_WINDOWS`, `_WINDOWS`, `_WIN32` — платформенные детекты

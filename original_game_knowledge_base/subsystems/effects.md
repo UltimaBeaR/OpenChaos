@@ -324,9 +324,7 @@ FadePoint(1) | SlideSpeed(1) | TextureU(1) | TextureV(1) | Points[32] (GameCoord
 | pyro.cpp (FLICKER) | FLAMES3 | CONVECT+FADE+SLIDE | Мерцающее пламя |
 | drawxtra.cpp (FLAMER) | FLAMES3 | — | Огонь на бочке |
 | drawxtra.cpp (CHOPPER/FIREWORK) | — | — | Взрывы вертолёта/фейерверк |
-| bike.cpp (BIKE) | SMOKER | FADE+SLIDE+IALPHA | Дымовой след колёс (НЕ переносить — bike мёртв) |
-
-**Для новой игры:** Перенести 1:1 (circular buffer + triangle strip). Рендеринг заменить на modern API, но логика буфера и конвекции — сохранить.
+| bike.cpp (BIKE) | SMOKER | FADE+SLIDE+IALPHA | Дымовой след колёс (bike мёртв) |
 
 ---
 
@@ -354,8 +352,6 @@ FadePoint(1) | SlideSpeed(1) | TextureU(1) | TextureV(1) | Points[32] (GameCoord
 
 **Пространственная оптимизация:** MapWho linked list для culling при рендеринге
 
-**Для новой игры:** Перенести каскадную логику и тайминги; рендеринг заменить на GPU particles.
-
 ---
 
 ## 12. Взрывы (POW), Пиротехника (PYRO), Мусор (DIRT)
@@ -367,23 +363,3 @@ FadePoint(1) | SlideSpeed(1) | TextureU(1) | TextureV(1) | Points[32] (GameCoord
 - **PYRO** (pyro.cpp): 18 типов пиротехники (Thing+state machine), IMMOLATE=-10HP/frame, GAMEOVER=8 dlights, MAX_PYROS=64
 - **DIRT** (dirt.cpp): 16 типов ambient debris (листья/банки/головы/кровь/снег), DIRT_MAX_DIRT=1024, pigeon ОТКЛЮЧЁН
 
----
-
-## 12. Что переносить в новую версию (обновлено)
-
-| Система | Подход |
-|---------|--------|
-| Частицы (PSYSTEM 2048) | Переработать на GPU particles, сохранить API |
-| Огонь (FIRE 8×256) | Перенести лимиты, переработать рендеринг |
-| Ткань (CLOTH 16) | **НЕ переносить** — отключена в оригинале (`#if 0`) |
-| DT_EFFECT кольцо | Перенести 1:1 |
-| Капли дождя (1024) | Перенести 1:1 |
-| Туман/mist (4096 точек, 8 зон) | Перенести UV-анимацию, переработать рендеринг |
-| Лужи | Сохранить precalculate, переработать reflective rendering |
-| Статические тени | Перенести алгоритм 1:1 |
-| **POW взрывы (32×256)** | Перенести логику спавна/каскадов, заменить спрайты на GPU particles |
-| **PYRO пиротехника (64)** | Перенести все 18 типов (state machine); рендеринг через новый particle system |
-| **DIRT мусор (1024)** | Перенести: листья, банки, гильзы, кровь, головы, снег. Голубей **НЕ** переносить (отключены). Физику bounce/waft перенести 1:1 |
-| Искры/электричество (SPARK 32) | Перенести 1:1, адаптировать рендеринг |
-| **RIBBON ленты (64×32)** | Перенести circular buffer + конвекцию 1:1, рендеринг на modern API |
-| **BANG взрывы (64×4096)** | Перенести каскадную логику, рендеринг на GPU particles |

@@ -227,19 +227,3 @@ LPDIRECTDRAWSURFACE4 screenfull_brief = NULL;  // брифинг
 ### FRONTEND_display() (главный render функция)
 Порядок: background → xition → kibble → menu items → title wibble → districts map
 
----
-
-## 7. Что переносить в новую версию
-
-| Компонент | Подход |
-|-----------|--------|
-| STARTSCR_mission механизм | Перенести: простая глобальная строка → можно std::string |
-| FE_* режимы | Перенести логику, переработать визуально |
-| Стек меню (stackpos/stack[10]) | Перенести 1:1 |
-| whattoload[] / DONT_load | Упростить: просто грузить всё (DONT_load=0 уже так) |
-| VIOLENCE флаг | Перенести (для туториалов) |
-| MUSIC_bodge_code | Перенести (задаёт музыкальную тему уровня) |
-| DirectDraw Surfaces фонов | Заменить на OpenGL текстуры |
-| Kibble частицы | Опционально перенести |
-| Seasonal themes (4 варианта) | Перенести (те же TGA ресурсы) |
-| Мотоцикл/гарпун в whattoload | Не переносить (эти миссии не портируются) |

@@ -28,8 +28,8 @@
 
 ── Глобальное освещение уровня ──
 [4 байта] ULONG flag             — NIGHT_FLAG_* битовые флаги (день/ночь и др.)
-[4 байта] ULONG amb_d3d_colour   — D3D-формат ambient цвета (ARGB packed, игнорируется в новой игре)
-[4 байта] ULONG amb_d3d_specular — D3D-формат specular (игнорируется в новой игре)
+[4 байта] ULONG amb_d3d_colour   — D3D-формат ambient цвета (ARGB packed)
+[4 байта] ULONG amb_d3d_specular — D3D-формат specular
 [4 байта] ULONG amb_red          — ambient красный (0-100, масштабируется ×820>>8 = ×3.2)
 [4 байта] ULONG amb_green        — ambient зелёный
 [4 байта] ULONG amb_blue         — ambient синий
@@ -80,7 +80,7 @@ typedef struct {
 } NIGHT_Colour;   // sizeof = 3 байта на PC
 ```
 
-Диапазон 0–63 (не 0–255). При конвертации в OpenGL: `r_f = col.red / 64.0f`.
+Диапазон 0–63 (не 0–255).
 
 ---
 
@@ -96,16 +96,3 @@ typedef struct {
 **Жёстко заданная директория освещения:**
 `ambient_dir = (110, -148, -177)` — используется везде в коде как константа.
 
----
-
-## Что переносить
-
-| Компонент | Перенос | Примечание |
-|-----------|---------|------------|
-| Парсер .lgt | 1:1 | Формат прост, не менять |
-| ED_Light → point light | 1:1 | range/color → OpenGL point light |
-| NIGHT_Colour (0-63) | Нормализовать | Делить на 64.0f для OpenGL |
-| amb_d3d_colour | **НЕТ** | D3D-специфичный packed формат, пересчитать из amb_red/green/blue |
-| LIGHT_FLAGS_INSIDE | 1:1 | Для indoor/outdoor раздельного освещения |
-| sky_colour | 1:1 | → clear color или skybox tint |
-| lampost_* | 1:1 | Отдельный класс ambient для ночных фонарей |

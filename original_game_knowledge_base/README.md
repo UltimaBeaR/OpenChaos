@@ -9,9 +9,10 @@
 ## С чего начать (порядок чтения)
 
 1. [overview.md](overview.md) — архитектура, entry point, системы, файловая структура
-2. [cut_features.md](cut_features.md) — что вырезано, что переносить, решения
-3. [preprocessor_flags.md](preprocessor_flags.md) — флаги компилятора, что нужно для PC
-4. Нужная подсистема из таблицы ниже
+2. [analysis_scope.md](analysis_scope.md) — что анализируем / не анализируем и почему
+3. [cut_features.md](cut_features.md) — вырезанные и отключённые фичи в оригинальном коде
+4. [preprocessor_flags.md](preprocessor_flags.md) — флаги компилятора, что нужно для PC
+5. Нужная подсистема из таблицы ниже
 
 ## Подсистемы
 
@@ -43,7 +44,6 @@
 | Состояния игры (GS_*, пауза, смерть) | [subsystems/game_states.md](subsystems/game_states.md) |
 | Состояния игрока (STATE_*, SUB_STATE_*) | [subsystems/player_states.md](subsystems/player_states.md) |
 | WayWind (редакторный UI, не игра) | [subsystems/waywind.md](subsystems/waywind.md) |
-| MuckyBasic (не используется в игре) | [subsystems/muckybasic.md](subsystems/muckybasic.md) |
 | Математика и утилиты | [subsystems/math_utils.md](subsystems/math_utils.md) |
 | Взаимодействие (grab/ladder/cable) | [subsystems/interaction_system.md](subsystems/interaction_system.md) |
 | Малые подсистемы (вода, растяжки, SM, шары, следы, искры, Command) | [subsystems/minor_systems.md](subsystems/minor_systems.md) |
@@ -57,4 +57,5 @@
 | 3D модели (.IMP/.MOJ) | [resource_formats/model_format.md](resource_formats/model_format.md) |
 | Анимации (в .IMP/.MOJ) | [resource_formats/animation_format.md](resource_formats/animation_format.md) |
 | Текстуры (.TGA/.TXC) | [resource_formats/texture_format.md](resource_formats/texture_format.md) |
+| Освещение (.lgt) | [resource_formats/lighting_format.md](resource_formats/lighting_format.md) |
 | Звук (.WAV) | [resource_formats/audio_format.md](resource_formats/audio_format.md) |

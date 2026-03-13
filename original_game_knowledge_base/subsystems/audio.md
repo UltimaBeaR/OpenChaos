@@ -12,7 +12,7 @@
 
 ## 1. Движок: Miles Sound System (MSS32)
 
-**Библиотека:** `mss32.lib` / `mss32.dll` — проприетарная. **Заменить при портировании.**
+**Библиотека:** `mss32.lib` / `mss32.dll` — проприетарная.
 
 MFX — тонкая обёртка над MSS32:
 ```c
@@ -210,40 +210,5 @@ MFX_play(DIALOG_CHANNEL, wave_id, MFX_FLAG_DIALOG);
 ambient_volume=127    // 0..127
 music_volume=127      // 0..127
 fx_volume=127         // 0..127
-3D_sound_driver=Microsoft DirectSound3D  // ЗАМЕНИТЬ при портировании
+3D_sound_driver=Microsoft DirectSound3D
 ```
-
----
-
-## 10. Портирование
-
-**MSS32 → miniaudio:**
-
-| MSS32 / MFX | miniaudio |
-|-------------|-----------|
-| `MFX_play_xyz()` | `ma_sound_set_position()` + `ma_sound_start()` |
-| `MFX_update_xyz()` | `ma_sound_set_position()` |
-| `MFX_set_volume()` | `ma_sound_set_volume()` |
-| `MFX_stop()` | `ma_sound_stop()` |
-| 3D positional | `ma_engine` с `MA_SOUND_FLAG_SPATIALIZATION` |
-| Fade transitions | `ma_sound_set_volume()` с timer |
-
-**Альтернативы:** SDL_mixer (проще, менее гибкий 3D), OpenAL (мощнее, тяжелее).
-
-**Рекомендация:** miniaudio — single-header, кросс-платформенный, поддерживает 3D spatial audio, легко интегрируется.
-
----
-
-## 11. Что переносить в новую версию
-
-**Переносить 1:1:**
-- 14 MUSIC_MODE_* с той же логикой переключения и приоритетами
-- 3D позиционный звук (обновление позиции каждый кадр для движущихся объектов)
-- FLAGS_HAS_ATTACHED_SOUND механизм
-- Ambient систему (5 типов по texture_set)
-- Систему диалогов (WAV + субтитры из text/)
-- Параметры громкости из config.ini
-
-**Заменить:**
-- MSS32 → miniaudio (или SDL_mixer как fallback)
-- DirectSound3D driver → кросс-платформенная 3D аудио-система

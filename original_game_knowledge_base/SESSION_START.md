@@ -5,13 +5,11 @@
 
 ---
 
-## ⚠️ ВАЖНОЕ ИЗМЕНЕНИЕ ПРАВИЛ (2026-03-13)
+## ⚠️ Скоуп анализа: PC + PS1
 
-**Переносим фичи из ОБЕИХ релизных версий: PC + PS1.** Не только PS1.
-- Если фича есть в PC но нет в PS1 — переносим (пример: лужи, bump mapping)
-- Если конфликт реализаций — берём PC версию
-- **TODO:** пересмотреть ВСЕ решения "не переносить" — некоторые могли быть приняты ошибочно (фичи нет в PS1, но есть в PC)
-- Подтверждённые PC-only фичи для переноса: **лужи** (puddle.cpp), **bump mapping/Crinkle** (на ящиках)
+**Эталон — ОБЕ релизные версии: PC (Steam) и PS1.**
+- Фичи, присутствующие в любой из версий, считаются частью финальной игры
+- PC-only фичи (отсутствуют на PS1): **лужи** (puddle.cpp), **bump mapping/Crinkle** (на ящиках)
 
 ---
 
@@ -19,7 +17,7 @@
 
 **План:** 8 итераций глубокого аудита и верификации KB перед переходом к фазе 2.
 **Детали:** см. `ANALYSIS_ITERATIONS_PLAN.md`
-**Текущий статус:** план согласован, ожидается команда на старт итерации 1 (очистка KB)
+**Текущий статус:** итерация 1 (очистка KB) ✅ выполнена, следующая — итерация 2 (аудит аннотаций)
 
 **Перекрёстная верификация ВЫПОЛНЕНА — результаты:**
 
@@ -398,30 +396,30 @@
 | **Навигация** | navigation.md | ✅ Хорошо | MAV = greedy best-first (НЕ A*), горизонт 32, NAV = wallhug |
 | **Персонажи/анимации** | characters.md | ✅ Хорошо | Vertex morphing (НЕ skeletal), DrawTween, Thug/Cop в #if 0 |
 | **Управление/ввод** | controls.md | ✅ Хорошо | 18 кнопок INPUT_*, 52 ACTION_*, zipwire есть в финале |
-| **Транспорт** | vehicles.md | ✅ Хорошо | 4 пружины подвески, 6 зон урона, мотоцикл НЕ переносить |
+| **Транспорт** | vehicles.md | ✅ Хорошо | 4 пружины подвески, 6 зон урона, мотоцикл не в финале |
 | **Бой** | combat.md | ✅ Хорошо | Урон из анимации (GameFightCol), knockback через анимации |
 | **Оружие/предметы** | weapons_items.md | ✅ Хорошо | 30 типов SPECIAL_*, мины заглушены, C4 = 5 сек (не 10) |
 | **Мир/карта** | world_map.md | ✅ Хорошо | PAP_Hi 128×128 + PAP_Lo 32×32, MapWho, здания |
 | **Здания/интерьеры** | buildings_interiors.md | ✅ Хорошо | 21 тип STOREY_TYPE_*, DFacet, двери через MAV |
 | **Миссии (EWAY)** | missions.md | ✅ Хорошо | 41 условие, 57 действий, .ucm ≠ MuckyBasic, polling каждый кадр |
 | **Загрузка уровня** | level_loading.md | ✅ Хорошо | 9 шагов, MAV_precalculate самый тяжёлый, игрок создаётся через EWAY |
-| **Рендеринг** | rendering.md | ✅ Достаточно | Полностью заменяем, DirectX6 → OpenGL; 386 строк |
+| **Рендеринг** | rendering.md | ✅ Достаточно | DirectX6 fixed-function pipeline; 386 строк |
 | **Рендеринг/Меши** | rendering_mesh.md | ✅ Достаточно | Tom's Engine, vertex morphing, crumple, UV packing |
 | **Рендеринг/Освещение** | rendering_lighting.md | ✅ Достаточно | NIGHT система детали, Crinkle (отключён в пре-релизе) |
 | **Состояния игрока** | player_states.md | ✅ Хорошо | Полные списки STATE_* и SUB_STATE_* |
 | **Эффекты** | effects.md | ✅ Хорошо | Частицы, огонь, POW(взрывы), PYRO(18 типов пиротехники), DIRT(16 типов debris), ткань отключена |
 | **Форматы ресурсов** | resource_formats/ | ✅ Хорошо | .iam/.prm/.all/.lgt/.ucm задокументированы; .txc/.tma остались |
 | **Камера** | camera.md | ✅ Хорошо | FC only (cam.cpp=мёртв), 8-шаг raycast collision, get-behind алгоритм |
-| **Звук** | audio.md | ✅ Хорошо | Miles Sound System → miniaudio, 14 MUSIC_MODE_*, 5 биомов ambient |
+| **Звук** | audio.md | ✅ Хорошо | Miles Sound System (MSS32), 14 MUSIC_MODE_*, 5 биомов ambient |
 | **UI** | ui.md | ✅ Хорошо | HUD, инвентарь, fonts, gamemenu (frontend вынесен в frontend.md) |
 | **Frontend** | frontend.md | ✅ Хорошо | game→mission pipeline, FE_* режимы, STARTSCR_mission, Attract.cpp |
 | **Прогресс/сохранения** | player_progress.md | ✅ Хорошо | .wag: var-str+CRLF, v0-3, hierarchy bits, best_found=анти-фарм |
-| **Матем/утилиты** | math_utils.md | ✅ Хорошо | 2 стека (PSX int/PC float), glm для новой игры |
+| **Матем/утилиты** | math_utils.md | ✅ Хорошо | 2 стека (PSX int/PC float), Matrix3x3/Quaternion/Vector3 |
 | **Игровые состояния** | game_states.md | ✅ Хорошо | per-frame порядок, DarciDeadCivWarnings, GS_REPLAY=goto, bench cooldown |
 | **Взаимодействие** | interaction_system.md | ✅ Хорошо | find_grab_face 2-pass, cable params в DFacet, ladder, zipwire |
 | **Малые подсистемы** | minor_systems.md | ✅ Хорошо | Water, Trip, SM, Balloon, Tracks, Spark, Command(legacy), drawxtra warning |
-| **WayWind** | waywind.md | ❌ Не нужен | Редактор, не переносить |
-| **MuckyBasic** | muckybasic.md | ❌ Не нужен | Не интегрирован с игрой |
+| **WayWind** | waywind.md | ❌ Вне скоупа | Редактор, см. [analysis_scope.md](analysis_scope.md) |
+| ~~MuckyBasic~~ | ~~удалён~~ | ❌ Вне скоупа | Не интегрирован с игрой, см. [analysis_scope.md](analysis_scope.md) |
 
 ---
 
@@ -638,10 +636,10 @@ chopper.cpp      → game_objects.md + ai.md
 - Ночью всегда дождь (hardcoded: `if (!(NIGHT_FLAG_DAYTIME)) GAME_FLAGS |= GF_RAINING`)
 - fn_cop_normal() = #if 0 в пре-релизе
 - fn_thug_init() = ASSERT(0) в пре-релизе
-- Мотоцикл (BIKE) = НЕ переносить (не вошёл в финал)
-- Zipwire (тросы) = ПЕРЕНОСИТЬ (есть в финале, первый уровень)
-- Гарпун = НЕ переносить (never shipped)
-- Канализация = НЕ переносить (never shipped)
+- Мотоцикл (BIKE) = не вошёл в финальную игру (подтверждено Mike Diskett)
+- Zipwire (тросы) = есть в финальной игре (первый уровень, тренировочная полоса)
+- Гарпун = не вошёл в финальную игру (подтверждено Mike Diskett)
+- Канализация = не вошла в финальную игру (подтверждено Mike Diskett)
 - process_controls() = НЕ обработка ввода игрока (это диспетчер подсистем!)
 - InputDone: накапливает обработанные биты input, сбрасывает при отпускании — кнопка срабатывает один раз
 - player_apply_move() → только поворот (STATE machine); бег/прыжок/action — в apply_button_input()
@@ -651,20 +649,20 @@ chopper.cpp      → game_objects.md + ai.md
 - should_i_jump(): dx/dz захардкожены (не от угла персонажа!) — проверяет WARE_which_contains по 4 точкам
 - Горячие клавиши PC: KB_1=убрать, KB_2=пистолет, KB_3=шотган, KB_4=AK47, KB_5=граната, KB_6=C4, KB_7=нож, KB_8=бита
 - NOISE_TOLERANCE: PC=8192 (из 65535), DC=24 (из 128); ANALOGUE_MIN_VELOCITY: PC=8, PSX=32 (из 128)
-- audio.md: 14 MUSIC_MODE_*, приоритет: CINEMATIC>FIGHT>DRIVING>SPRINT>CRAWL>AMBIENT; замена MSS32→miniaudio
-- math_utils.md: PSX углы 0-2047, SinTable[2560] (не 2048!), CosTable = &SinTable[512]; PC float radians+glm
+- audio.md: 14 MUSIC_MODE_*, приоритет: CINEMATIC>FIGHT>DRIVING>SPRINT>CRAWL>AMBIENT; MSS32 (Miles Sound System)
+- math_utils.md: PSX углы 0-2047, SinTable[2560] (не 2048!), CosTable = &SinTable[512]; PC float radians
 - Карты уровней: расширение `.iam` (не .pam!), лежат в `data/`, скрипты миссий `.ucm` — в `levels/`
 - EventPoint binary = 74 байта (14 заголовок + 60 данных); MAX_EVENTPOINTS=512 → 37888 байт на миссию
 - PRIM_START_SAVE_TYPE=5793: если save_type==base+1 → PrimPoint как SWORD (6б), иначе SLONG (12б)
 - PrimFace4 FACE_FLAG_WALKABLE=(1<<6) — только эти квады образуют ходимые поверхности
-- NIGHT_Colour диапазон 0-63 (не 0-255!); для OpenGL делить на 64.0f
+- NIGHT_Colour диапазон 0-63 (не 0-255!)
 - sizeof(ED_Light) = **20 байт** (не 16!) — 8 однобайт.полей + 3 SLONG; lighting_format.md исправлен
 - sizeof(PrimFace3) = **28 байт** (не 22!) — 1+1+6+6+6+2+2+2+1+1
 - sizeof(PrimFace4) = **34 байта** (не 26!) — 1+1+8+8+8(union)+2+2+2+1+1
 - ED_Light::range,red,green,blue — radius/color для статического точечного источника света
 - ambient direction в night.cpp везде = (110, -148, -177) — захардкожена во всём коде
 - .all файл: save_type 2-5; save_type>2 → 4-byte count + count×moj blocks; затем keyframe chunk
-- DoubleClick детекция: tick = GetTickCount() (WIN32 **мс**, НЕ GAME_TURN!); окно 200мс; LastReleased[i]=tick при отпускании; DoubleClick[i]++ если re-press в окне, иначе =1. Порт: SDL_GetTicks()
+- DoubleClick детекция: tick = GetTickCount() (WIN32 **мс**, НЕ GAME_TURN!); окно 200мс; LastReleased[i]=tick при отпускании; DoubleClick[i]++ если re-press в окне, иначе =1
 - .ucm header: 4(version)+4(flags)+260×5(names)+2+2+2(MapIndex/Used/Free UWORDs)+2(CrimeRate+FakeCivs)=1316б; потом 512×74б EventPoints; потом: skip 254б SkillLevels(if ver>5), read 1б BOREDOM_RATE, read 1+1б CarsRate+MusicWorld(if ver>8), messages section
 - .all pointer fixup: сохранённые NextFrame/PrevFrame = runtime адреса; при загрузке пересчитываются через addr1/addr2/addr3
 - TIMEOUT_DEMO=0 → demo_timeout() = мёртвый код

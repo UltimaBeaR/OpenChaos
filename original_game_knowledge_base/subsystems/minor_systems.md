@@ -42,7 +42,6 @@
 
 **API:** `TRIP_init()`, `TRIP_create()`, `TRIP_collide()`, `TRIP_process()` (per-frame), `TRIP_activated()`, `TRIP_deactivate()`
 
-**Перенос:** Активная геймплей-механика, переносить 1:1.
 
 ---
 
@@ -65,7 +64,6 @@
 
 **API:** `SM_init()`, `SM_create_cube()`, `SM_process()` (per-frame), `SM_get_start()`/`SM_get_next()` (rendering)
 
-**Перенос:** Визуальная физика, low priority. Можно заменить на современный soft-body.
 
 ---
 
@@ -150,7 +148,6 @@
 
 **Интеграция:** Level.cpp загружает из .lev файлов → `init_person_command_list()` → `advance_person_command()`. Но PCOM полностью заменяет эту систему в финальной игре.
 
-**Перенос:** НЕ переносить. Оставить только если COM_PATROL_WAYPOINT используется в каких-то миссиях.
 
 ---
 
@@ -167,4 +164,3 @@
 
 **`engineMap.cpp`** — БЕЗОПАСЕН (только читает game state для рендеринга, не мутирует).
 
-**Вывод:** При портировании логику из `DRAWXTRA_MIB_destruct()` и `PYRO_draw_armageddon()` нужно **вынести из рендерера в game update loop**.

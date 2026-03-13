@@ -294,21 +294,6 @@ process_things(frameindex):
 
 ---
 
-## 9. Что переносить в новую версию
-
-**Переносить 1:1:**
-- Структуру классов объектов (CLASS_* иерархия)
-- State Machine паттерн (State + StateFn)
-- SubState систему
-- Флаги (FLAGS_*, FLAG_PERSON_*)
-- MapWho пространственный хэш (можно заменить реализацию, но сохранить семантику)
-
-**Можно модернизировать:**
-- Связные списки → modern C++ containers (но сохранить O(1) alloc/free)
-- Union → std::variant или polymorphism (аккуратно — влияет на производительность)
-- Управление памятью → custom allocator или object pool
-
-**Лимиты объектов (700) — пересмотреть:** в современной версии можно увеличить.
 
 ---
 
@@ -403,8 +388,6 @@ Oriented box test: prim→bounding box + yaw rotation → transform barrel spher
 
 **Флаги:** PLAT_FLAG_LOCK_X / LOCK_Y / LOCK_Z — блокировка осей
 
-**Переносить:** ДА — активная игровая механика (лифты, движущиеся платформы)
-
 ---
 
 ## 12. Helicopter (chopper.cpp)
@@ -417,8 +400,6 @@ Oriented box test: prim→bounding box + yaw rotation → transform barrel spher
 - HARDWIRED_RADIUS = 8192, DETECTION_RADIUS = 1024, IGNORAMUS_RADIUS = 6144
 - PRIM_OBJ_CHOPPER = 74, PRIM_OBJ_CHOPPER_BLADES = 75
 - Dispatch: CHOPPER_functions[type] — CHOPPER_CIVILIAN
-
-**Переносить:** Проверить в финальной игре — есть ли вертолёт? Если да → переносить.
 
 ---
 
