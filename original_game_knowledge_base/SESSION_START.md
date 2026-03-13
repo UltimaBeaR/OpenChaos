@@ -8,9 +8,24 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **Физика TODO**: WATER вне дренажа (водная высота) — единственный незакрытый TODO в физике
-2. **Аннотировать frontend.cpp** — save/load логика хорошо понята, быстро аннотировать
-3. **Форматы**: lighting_format.md и model_format.md — проверить точность
+1. **Форматы**: lighting_format.md и model_format.md — проверить точность
+2. **MISSION_SCRIPT формат** — документировать текстовый формат mission list script (FRONTEND_ParseMissionData v2/3/4)
+3. **frontend.cpp**: FRONTEND_display input handling — как menu_state обрабатывает кнопки (FRONTEND_process?)
+4. **suggest_order[]** — выяснить где задан (захардкожен или из файла?)
+
+**ВЫПОЛНЕНО в этой итерации (water height + frontend аннотации):**
+- physics.md: секция 5c воды полностью переписана:
+  - PAP_LO_NO_WATER = -127; water_level = -0x80 (хардкод в EL_load_map)
+  - PAP_2LO.water = water_level >> 3 = -16 при загрузке для водяных ячеек
+  - OB объекты в воде: oi->y = water_level - miny = -128 - miny (на старте)
+  - stop_movement_between(): water→non-water → invisible DFacet (активный код)
+  - OB_height_fiddle_de_dee() в ob.cpp = МЁРТВЫЙ КОД (/* */ обёрнута)
+  - PAP_FLAG_SINK_POINT: вода + 3 соседних, для системы луж и az.cpp рендеринга
+- frontend.cpp аннотирован: FRONTEND_ParseMissionData + FRONTEND_MissionHierarchy + FRONTEND_mode + FRONTEND_display
+  - ParseMissionData версии v2/3/4: поля ObjID/GroupID/ParentID/Type/Flags/District/fn/title/brief
+  - MissionHierarchy: menu_theme по complete_point, ANNOYING_HACK_FOR_SIMON активен (policeID требует fight1+assault1+testdrive1a), suggest_order автовыбор
+  - FRONTEND_mode stack/pop, mode≥100=mission brief, FE_MAINMENU=reset stack
+  - FRONTEND_display порядок: background→xition→kibble→menu items→title wibble→districts
 
 **ВЫПОЛНЕНО в этой итерации (player_progress + rendering split):**
 - player_progress.md полностью переписан с точными данными из frontend.cpp:
@@ -299,12 +314,13 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | **collide.cpp (ladder)** | +3 блока | ✅ (mount_ladder, ok_to_mount_ladder, пре-релиз баг) |
 | **Map.cpp** | +4 блока | ✅ (MapElement.Colour = мёртвый код в DDEngine; MAP_light_map не вызывается) |
 | **night.cpp** | +2 блока | ✅ (полный pipeline header; BUG dz*nx→dz*nz аннотирован) |
+| **frontend.cpp** | +4 блока | ✅ (ParseMissionData, MissionHierarchy, FRONTEND_mode, FRONTEND_display) |
 
 ---
 
 ## TODO по подсистемам — что ещё проверить
 
-### ФИЗИКА (physics.md) — TODO
+### ФИЗИКА (physics.md) — TODO ✅ ВСЕ ЗАКРЫТЫ
 - [x] `find_face_for_this_pos()` — ГОТОВО (в walkable.cpp! Порог 160ед, GRAB_FLOOR=0x50, FIND_ANYFACE/FIND_FACE_NEAR_BELOW)
 - [x] `slide_along()` детали — ГОТОВО (NOGO push=0x5800, DFacet axis-aligned, SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT=-0x50)
 - [x] `height_above_anything()` — ГОТОВО (if(1||...) делает FIND_ANYFACE мёртвым кодом, всегда FIND_FACE_NEAR_BELOW)
@@ -312,7 +328,7 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] `move_thing()` реальный порядок операций — ГОТОВО (things → objects → slide_along → edges → find_face → move)
 - [x] `mount_ladder()` — ГОТОВО: ok_to_mount_ladder QDIST2<75; set_person_climb_ladder анимы по PersonType; в пре-релизе interfac.cpp вызов закомментирован (игрок не может снизу!)
 - [x] Коллизии транспорта с персонажами: `VEH_find_runover_things()` — ГОТОВО: 2 сферы, WheelAngle scaling, infront=[256,512]
-- [x] Воды: `PAP_FLAG_WATER` — ГОТОВО: только invisible walls по краям, нет замедления/утопания
+- [x] Воды: `PAP_Lo.water` высота воды — ГОТОВО: water_level=-128 хардкод; PAP_Lo.water=-16 при загрузке; OB_height_fiddle_de_dee=МЁРТВЫЙ КОД; stop_movement_between активен
 - [x] RWMOVE система — ГОТОВО: это WMOVE (moving walkable faces) в wmove.cpp; max=192; PSX ограничение
 - [x] `collide_against_objects()` детали — ГОТОВО: PRIM_COLLIDE_BOX через OB_find; sit_down trigger на prim IDs
 - [x] `plant_feet()` — ГОТОВО: вызывается из STATE FUNCTIONS, НЕ из move_thing. Активно: fn_person_dangling (SUB_STATE_DROP_DOWN_LAND end==1). В fn_person_jumping — везде закомментирована.
@@ -489,6 +505,12 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - WMOVE = moving walkable faces (wmove.cpp); персонажи стоят на крышах машин; PSX: только VAN/WILDCATVAN/AMBULANCE
 - mount_ladder() пре-релиз баг: вызов из interfac.cpp закомментирован → игрок НЕ может залезть снизу; AI может (pcom.cpp:12549)
 - water: PAP_FLAG_WATER = invisible collision walls по краям; нет плавания, нет утопания; огонь гасится
+- PAP_Lo.water = -16 при загрузке (water_level=-128 >> 3); OB_height_fiddle_de_dee() = /* */ МЁРТВЫЙ КОД; объекты в воде ставятся y=water_level-miny только при загрузке
+- stop_movement_between(): water→non-water → invisible DFacet стена (активный код); PAP_FLAG_SINK_POINT на водяной+3 соседних → для лужи/az
+- FRONTEND FE_BACK=-2(pop stack), FE_MAINMENU=reset stackpos=0, mode≥100=mission brief (mode-100)
+- FRONTEND_MissionHierarchy: menu_theme по complete_point, ANNOYING_HACK_FOR_SIMON активен, suggest_order[]→auto-select следующая миссия
+- mission script формат v4: ObjID:GroupID:ParentID:ParentIsGroup:Type:Flags:District:fn:title:brief; @=\r в brief
+- mission_hierarchy[ObjID] биты: 1=exists, 2=complete, 4=available; complete_point≥40 → принудительно flag|=2
 - collide_against_objects(): prim IDs 89,95,101,102,105,110,126 = скамейки → sit_down при SUB_STATE_WALKING_BACKWARDS
 - VEH_find_runover_things(): 2 сферы вперёд; infront = 512-WheelAngle*3 clamped [256,512]
 - Per-frame game_loop: GAMEMENU→tutorial→controls→process_things→EWAY→FC→draw→OVERLAY→flip→lock_fps→sfx→GAME_TURN++

@@ -706,6 +706,14 @@ void FRONTEND_restore_screenfull_surfaces(void)
 		menu_config_names[menu_theme]);
 }
 
+// claude-ai: FRONTEND_ParseMissionData() — парсит одну строку из mission script file.
+// claude-ai: Формат зависит от version (2/3/4/default):
+// claude-ai:   v4: ObjID:GroupID:ParentID:ParentIsGroup:Type:Flags:District:fn:title:brief
+// claude-ai:   v3: ObjID:GroupID:ParentID:ParentIsGroup:Type:District:fn:title:brief
+// claude-ai:   v2: ObjID:GroupID:ParentID:ParentIsGroup:Type:fn:*n:*n:title:brief
+// claude-ai:   default: ObjID:GroupID:ParentID:ParentIsGroup:Type:fn:title:brief
+// claude-ai: ObjID = index в mission_hierarchy[]; ParentID = родительская миссия (должна быть complete для разблокировки)
+// claude-ai: fn = имя .ucm файла; title = имя миссии; brief = текст задания (@=\r для переносов строк)
 void	FRONTEND_ParseMissionData(CBYTE *text, CBYTE version, MissionData *mdata) {
 	UWORD a,n;
 	switch(version) {
@@ -1694,6 +1702,23 @@ CBYTE*	FRONTEND_MissionFilename(CBYTE *script, UBYTE i) {
 	return str;
 }
 
+// claude-ai: FRONTEND_MissionHierarchy() — пересчитывает доступность миссий и обновляет UI.
+// claude-ai: Вызывается при изменении complete_point (завершение миссии).
+// claude-ai: Шаг 1: обновляет menu_theme (0-3) по complete_point: <8→0, <16→1, <24→2, ≥24→3
+// claude-ai:   Смена темы = смена фоновых изображений меню и kibble_init().
+// claude-ai: Шаг 2 (ANNOYING_HACK_FOR_SIMON, активен!): первый проход ищет ID специальных миссий
+// claude-ai:   (ftutor1, assault1, testdrive1a → required для разблокировки police1).
+// claude-ai: Шаг 3: главный проход по всем миссиям скрипта, для каждой:
+// claude-ai:   flag = mission_hierarchy[ObjID]|1 (exists);
+// claude-ai:   if parent complete AND тема ≥ требуемой → flag|=4 (available);
+// claude-ai:   complete_point≥40 → принудительно flag|=2 (bodge для финальных миссий!);
+// claude-ai:   итог → mission_hierarchy[ObjID]=flag.
+// claude-ai: Шаг 4: для available (flag&4) и !complete (flag&2) — проверяет suggest_order[]:
+// claude-ai:   suggest_order = массив имён .ucm в рекомендуемом порядке прохождения;
+// claude-ai:   выбирает миссию с наименьшим suggest_order-индексом → district_flash/selected.
+// claude-ai: district_valid[j]: |=1 если в дистрикте есть миссии; |=2 если есть незавершённые (для подсветки).
+// claude-ai: secretIDbreakout (Breakout DLC) = всегда скрыт на PC (#if 1 блок).
+// claude-ai: bonus_state/bonus_this_turn: gangorder1/2, bankbomb1 триггерят "бонус" нотификации.
 void	FRONTEND_MissionHierarchy(CBYTE *script) {
 	MFFileHandle file;
 	SLONG best_score;
@@ -2783,6 +2808,18 @@ void	FRONTEND_do_gamma() {
 
 }
 
+// claude-ai: FRONTEND_mode() — переключает экран/режим меню фронтенда.
+// claude-ai: FE режимы: 1=MAINMENU, 2=MAPSCREEN, 3=MISSIONSELECT, 4=MISSIONBRIEFING,
+// claude-ai:   5=LOADSCREEN, 6=SAVESCREEN, 7=CONFIG, 8=CONFIG_VIDEO, 9=CONFIG_AUDIO,
+// claude-ai:   10=CONFIG_INPUT_KB, 11=CONFIG_INPUT_JP, 12=QUIT, 13=CONFIG_OPTIONS, 14=SAVE_CONFIRM
+// claude-ai: Специальные: -1=NO_REALLY_QUIT, -2=BACK(pop stack), -3=START(начать игру),
+// claude-ai:   -4=EDITOR, -5=CREDITS, -6=CHANGE_JOYPAD
+// claude-ai: mode≥100: МISSIONBRIEFING для миссии (mode-100) → FRONTEND_MissionBrief(mode-100)
+// claude-ai: История: menu_state.stack[stackpos] (LIFO); FE_BACK=-2 → pop; FE_MAINMENU → stackpos=0
+// claude-ai: menu_thrash: принудительный push без нормального сохранения текущего mode (edge case)
+// claude-ai: Каждый вызов: ZeroMemory(menu_data), menu_state.items=0, fade_mode=1
+// claude-ai: FE_MAINMENU: MUSIC_mode(MUSIC_MODE_FRONTEND); if AllowSave → menu_data[2].Choices=NULL (скрыть Save)
+// claude-ai: FE_CONFIG_AUDIO: читает MFX_get_volumes() → menu_data[0/1/2].Data (FX/AMB/MUS)
 void	FRONTEND_mode(SBYTE mode, bool bDoTransition=TRUE) {
 	// Reset this now.
 	dwAutoPlayFMVTimeout = timeGetTime() + AUTOPLAY_FMV_DELAY;
@@ -3257,6 +3294,21 @@ void FRONTEND_shadowed_text ( char *pcString, int iX, int iY, DWORD dwColour )
 }
 
 
+// claude-ai: FRONTEND_display() — главный рендер фронтенда (меню, карта, бриф). Вызывается каждый кадр.
+// claude-ai: Порядок отрисовки:
+// claude-ai:   1. Clear viewport (D3D)
+// claude-ai:   2. ShowBackImage() — фоновое изображение темы
+// claude-ai:   3. Transition animation: (fade_mode&3)==1 → FRONTEND_show_xition()
+// claude-ai:   4. FRONTEND_kibble_draw() — частицы/украшения
+// claude-ai:   5. Главный цикл menu_data[0..items-1]: рисует каждый пункт меню
+// claude-ai:      y = md->Y + base - scroll; видимая зона: y∈[100,400]
+// claude-ai:      selected item → выделение; Choices==1 → greyed out (половинная яркость)
+// claude-ai:      OT_SLIDER/MULTI/KEYPRESS/PADPRESS → спец. рендер виджетов
+// claude-ai:      selected вне зоны → auto-scroll ±10 (DC: ±20); arrow|1/2 → стрелки вверх/вниз
+// claude-ai:   6. Title string: анимируется с SIN(fade_state*8) wibble; FE_MAPSCREEN→правый угол, иначе→левый
+// claude-ai:   7. FE_MAPSCREEN + fade_done → FRONTEND_draw_districts() (карта районов)
+// claude-ai:   8. mode≥100 + *menu_buffer → бриф-текст миссии (multiline, @=\r)
+// claude-ai: fade_rgb = текущий цвет с учётом fade-in/out; fade_state = [0..63] = шаг перехода
 void	FRONTEND_display()
 {
 	UBYTE i;
