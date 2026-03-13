@@ -8,11 +8,19 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **Навигация TODO**: WARE_mav_*, INSIDE2_mav_*, MAV при изменении уровня — читать navigation.md, mav.cpp
-2. **Физика TODO**: mount_ladder(), VEH_find_runover_things(), RWMOVE — читать collide.cpp, Vehicle.cpp
-3. **AI TODO остатки**: agression threshold (KILLING→FLEE), pcom_zone детали, resurrect условия
+1. **Физика TODO**: mount_ladder(), VEH_find_runover_things(), RWMOVE — читать collide.cpp, Vehicle.cpp
+2. **AI TODO остатки**: agression threshold (KILLING→FLEE), pcom_zone детали, PCOM_process_snipe
+3. **Форматы TODO**: .txc binary layout, style.tma UV таблица
 
-**ВЫПОЛНЕНО в этой итерации (AI детали):**
+**ВЫПОЛНЕНО в этой итерации (навигация):**
+- navigation.md: WARE_mav_enter/inside/exit — паттерн MAV_nav swap, логика дверей с height check
+- navigation.md: INSIDE2_mav_* — enter работает, inside=ASSERT(0), stair/exit=баг `>` вместо `>>`
+- navigation.md: INSIDE2_mav_nav_calc баг (z-цикл по MinX/MaxX вместо MinZ/MaxZ)
+- navigation.md: MAV при изменении уровня — только двери через turn_on/off; взрывы НЕ обновляют MAV
+- navigation.md: MAV_turn_movement_on заменяет ВСЕ caps на GOTO (остальные теряются)
+- Аннотированы: ware.cpp (WARE_mav_enter/inside/exit), inside2.cpp (INSIDE2_mav_nav_calc + все mav_* функции)
+
+**ВЫПОЛНЕНО в предыдущей итерации (AI детали):**
 - ai.md разделы 10..10e — PCOM_process_default dispatch таблица, PCOM_process_normal детали
 - ai.md: MIB = каждый кадр can_a_see_b, group aggro radius 1280, PCOM_alert_nearby_mib_to_attack (MIB+GUARD+GANG+FIGHT_TEST)
 - ai.md: BANE = SUMMON_START→SUMMON_FLOAT, электродуги к 4 телам, proximity electrocute Darci (25hp каждые ~2 сек)
@@ -202,6 +210,8 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | Mission.cpp | N/A | ✅ (это EDITOR файл, не рантайм; WPT→EWAY_DO в elev.cpp аннотировано) |
 | elev.cpp | ~30+ ann. | ✅ (WPT→EWAY_DO mapping, WPT_BONUS_POINTS dead code, WPT_GOTHERE_DOTHIS ASSERT) |
 | **interfac.cpp** | ~50+ блоков | ✅ (process_hardware_input, player_apply_move, InputDone, weapon hotkeys, mode dispatcher) |
+| **ware.cpp** | ~4 блока | ✅ (WARE_mav_enter/inside/exit) |
+| **inside2.cpp** | ~6 блоков | ✅ (INSIDE2_mav_nav_calc + все mav_* функции, включая баги пре-релиза) |
 
 ---
 
@@ -239,9 +249,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [ ] Thug инициализация — ASSERT(0) в пре-релизе, финальная версия?
 
 ### НАВИГАЦИЯ (navigation.md) — TODO
-- [ ] `WARE_mav_*()` детали — навигация внутри складов (отдельный граф?)
-- [ ] `INSIDE2_mav_*()` детали — навигация в зданиях типа полицейский участок
-- [ ] Как MAV обновляется при изменении уровня (взрыв стены, открытая дверь)?
+- [x] `WARE_mav_*()` детали — ГОТОВО: паттерн MAV_nav swap; enter→ближайшая дверь MAV_do; inside→warehouse local coords; exit→height check на дверь
+- [x] `INSIDE2_mav_*()` детали — ГОТОВО: enter работает; inside=ASSERT(0) заглушка; stair/exit=баги `>`вместо`>>`; nav_calc баг z-цикла
+- [x] Как MAV обновляется при изменении уровня — ГОТОВО: только двери (turn_on/off); взрывы НЕ обновляют MAV во время игры
 - [ ] Детали MAV_can_i_walk — LOS для навигации
 - [ ] Что происходит с навигацией когда NPC на крыше?
 
@@ -376,6 +386,12 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - DRIVER/COP_DRIVER NORMAL: if !FLAG_PERSON_DRIVING → FINDCAR; COP_DRIVER arrest-from-car = закомментирован
 - Resurrect bug пре-релиз: newpos(HomeX,HomeZ) вычисляется но НЕ присваивается → гражданские воскресают на месте смерти
 - PCOM_process_normal LAZY: каждые 0x3f тиков ищет bench/sofa в radius 512; GUARD на домашней позиции рисует пистолет
+- WARE_mav_enter: НЕ меняет MAV_nav; глобальный MAV_do() к door[best].out_x/z; dist==0 → GOTO к in_x/z
+- WARE_mav_inside/exit: swap MAV_nav→WARE_nav[ww->nav]; coords в warehouse-local; exit добавляет height check (|h_in-h_out|<0x80)
+- INSIDE2_mav_inside=ASSERT(0) (заглушка); INSIDE2_mav_stair/exit=баг `>` вместо `>>` → GOTO (0/1, 0/1)
+- INSIDE2_mav_nav_calc: баг z-цикла (MinX/MaxX вместо MinZ/MaxZ) → nav-сетка некорректна
+- MAV_turn_movement_on: устанавливает ТОЛЬКО MAV_CAPS_GOTO (остальные caps теряются!); взрывы стен НЕ обновляют MAV
+- MAV_opt[0..15]: первые 16 записей = 4-bit bitmask (GOTO в каждом направлении) — для INSIDE2 nav
 - Per-frame game_loop: GAMEMENU→tutorial→controls→process_things→EWAY→FC→draw→OVERLAY→flip→lock_fps→sfx→GAME_TURN++
 - Bench cooldown: GAME_TURN & 0x3ff == 314 → сброс GF_DISABLE_BENCH_HEALTH (~34с при 30fps)
 - SMOOTH_TICK_RATIO = скользящее среднее TICK_RATIO по 4 кадрам (для машин)

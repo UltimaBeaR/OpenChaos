@@ -933,6 +933,13 @@ SLONG INSIDE2_mav_nav_inside;	// The inside the mav_nav array is currently stori
 // Calculates the mav nav array for the given storey
 //
 
+// claude-ai: INSIDE2_mav_nav_calc — строит nav-сетку для одного этажа здания.
+// claude-ai: Хранит 4-bit bitmask (0-15): для каждой ячейки — в какие из 4 направлений можно идти.
+// claude-ai: Переход между комнатами — только если есть FLAG_DOOR_LEFT/UP.
+// claude-ai: BUG (пре-релиз): цикл "for (z = is->MinX; z < is->MaxX)" → должно быть MinZ/MaxZ!
+// claude-ai:   Из-за этого nav-grid заполнена некорректно.
+// claude-ai: MAV_opt[0..15] гарантированно соответствуют bitmask — работает через стандартный MAV_do().
+// claude-ai: Кэширует результат: повторный вызов с тем же inside — возвращает сразу.
 void INSIDE2_mav_nav_calc(SLONG inside)
 {
 	UBYTE i;
@@ -1168,6 +1175,10 @@ void INSIDE2_find_doors(SLONG building)
 
 
 
+// claude-ai: INSIDE2_mav_enter — NPC идёт к зданию снаружи.
+// claude-ai: НЕ меняет MAV_nav. Использует глобальный MAV_do() к ближайшей двери.
+// claude-ai: Оценка двери: score = (dx + dz) + (dY >> 5). Y-разница более важна чем X/Z (у дверей разных этажей).
+// claude-ai: Максимум INSIDE2_MAX_DOORS=2 двери на здание.
 MAV_Action INSIDE2_mav_enter(Thing *p_person, SLONG inside, UBYTE caps)
 {
 	SLONG i;
@@ -1234,6 +1245,9 @@ MAV_Action INSIDE2_mav_enter(Thing *p_person, SLONG inside, UBYTE caps)
 	return ma;
 }
 
+// claude-ai: INSIDE2_mav_inside — НЕ РЕАЛИЗОВАНА (пре-релиз)!
+// claude-ai: ASSERT(0) внутри → сразу краш в дебаг-сборке; ma не инициализирована → мусор в релизе.
+// claude-ai: В финальной игре эта функция должна была использовать INSIDE2_setup_mav() + MAV_do().
 MAV_Action INSIDE2_mav_inside(Thing *p_person, SLONG inside, UBYTE x, UBYTE z)
 {
 	SLONG start_x;
@@ -1267,6 +1281,9 @@ MAV_Action INSIDE2_mav_inside(Thing *p_person, SLONG inside, UBYTE x, UBYTE z)
 	return ma;
 }
 
+// claude-ai: INSIDE2_mav_stair — заглушка с багом (пре-релиз).
+// claude-ai: BUG: ">" вместо ">>": dest_x = WorldPos.X > 16 (boolean!), а не WorldPos.X >> 16.
+// claude-ai: Результат: всегда GOTO к (0 или 1, 0 или 1) — NPC стоит на месте.
 MAV_Action INSIDE2_mav_stair(Thing *p_person, SLONG inside, SLONG new_inside)
 {
 	MAV_Action ma;
@@ -1279,6 +1296,9 @@ MAV_Action INSIDE2_mav_stair(Thing *p_person, SLONG inside, SLONG new_inside)
 	return ma;
 }
 
+// claude-ai: INSIDE2_mav_exit — заглушка с тем же багом что mav_stair (пре-релиз).
+// claude-ai: BUG: ">" вместо ">>": результат всегда GOTO к (0/1, 0/1).
+// claude-ai: В финале должна была: найти ближайшую дверь через INSIDE2_find_doors() → MAV_do() к ней.
 MAV_Action INSIDE2_mav_exit(Thing *p_person, SLONG inside)
 {
 	MAV_Action ma;

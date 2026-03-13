@@ -779,6 +779,10 @@ void WARE_exit()
 
 */
 
+// claude-ai: WARE_mav_enter — NPC идёт к складу снаружи.
+// claude-ai: НЕ меняет MAV_nav. Использует глобальный MAV_do() к ближайшей двери (Manhattan дистанция).
+// claude-ai: Целевая точка = door[best].out_x/z (ячейка СНАРУЖИ склада).
+// claude-ai: Если уже у двери (dist==0) → сразу GOTO внутрь (door.in_x/z).
 MAV_Action WARE_mav_enter(Thing *p_person, UBYTE ware, UBYTE caps)
 {
 	UBYTE i;
@@ -861,6 +865,10 @@ MAV_Action WARE_mav_enter(Thing *p_person, UBYTE ware, UBYTE caps)
 	return ans;
 }
 
+// claude-ai: WARE_mav_inside — NPC внутри склада идёт к цели.
+// claude-ai: Swap MAV_nav → WARE_nav[ww->nav] (private warehouse grid).
+// claude-ai: Координаты переводятся в warehouse-local (вычитаем ww->minx/minz) перед MAV_do(), обратно после.
+// claude-ai: Restore MAV_nav перед возвратом.
 MAV_Action WARE_mav_inside(Thing *p_person, UBYTE dest_x, UBYTE dest_z, UBYTE caps)
 {
 	UBYTE start_x;
@@ -941,6 +949,11 @@ MAV_Action WARE_mav_inside(Thing *p_person, UBYTE dest_x, UBYTE dest_z, UBYTE ca
 	return ma;
 }
 
+// claude-ai: WARE_mav_exit — NPC внутри склада идёт к выходу.
+// claude-ai: Swap MAV_nav → warehouse grid. Ищет ближайшую дверь С ПРОВЕРКОЙ ВЫСОТЫ:
+// claude-ai:   |WARE_calc_height_at(in_x) - PAP_calc_map_height_at(out_x)| < 0x80
+// claude-ai: → не выходить через дверь другого этажа!
+// claude-ai: MAV_do() в warehouse-local coords к door[best].in_x/z, затем restore.
 MAV_Action WARE_mav_exit(Thing *p_person, UBYTE caps)
 {
 	UBYTE i;
