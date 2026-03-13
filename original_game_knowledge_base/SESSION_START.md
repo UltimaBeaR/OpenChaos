@@ -5,6 +5,16 @@
 
 ---
 
+## ⚠️ ВАЖНОЕ ИЗМЕНЕНИЕ ПРАВИЛ (2026-03-13)
+
+**Переносим фичи из ОБЕИХ релизных версий: PC + PS1.** Не только PS1.
+- Если фича есть в PC но нет в PS1 — переносим (пример: лужи, bump mapping)
+- Если конфликт реализаций — берём PC версию
+- **TODO:** пересмотреть ВСЕ решения "не переносить" — некоторые могли быть приняты ошибочно (фичи нет в PS1, но есть в PC)
+- Подтверждённые PC-only фичи для переноса: **лужи** (puddle.cpp), **bump mapping/Crinkle** (на ящиках)
+
+---
+
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Рекомендация:** Начать фазу 2 — планирование new_game/ (KB ~99%, верификация проведена)
@@ -585,7 +595,7 @@ chopper.cpp      → game_objects.md + ai.md
 - [x] `WARE_init()` — ГОТОВО: WARE_Ware полная структура, пулы nav/height/rooftex, door out/in coords
 
 ### РЕНДЕРИНГ (rendering.md) — TODO (низкий приоритет — заменяем)
-- [x] Crinkle система — ГОТОВО: микро-геометрический bump mapping, mesh→квад проекция, ПОЛНОСТЬЮ ОТКЛЮЧЁН (`return NULL` + `if(0)`), не переносить
+- [x] Crinkle система — ГОТОВО: микро-геометрический bump mapping, mesh→квад проекция; отключён в пре-релизе, но **РАБОТАЕТ в PC релизе** (bump на ящиках); переносить через normal/parallax mapping
 - [x] `POLY_frame_draw()` порядок сортировки — ГОТОВО: bucket sort [2048], sort_z=ZCLIP/vz, render FAR→NEAR; merge sort fallback в #else (отключён)
 - [x] Как `NIGHT_generate_walkable_lighting()` работает — ГОТОВО: МЁРТВЫЙ КОД (`return;`), только NIGHT_generate_roof_walkable() реально вызывается
 - [x] rendering.md разбит (446→386 строк): Tom's Engine + Mesh + UV пакинг → rendering_mesh.md
@@ -772,7 +782,7 @@ chopper.cpp      → game_objects.md + ai.md
 - InterruptFrame в DrawTween = МЁРТВЫЙ КОД: всегда NULL, нигде не присваивается ненулевое значение в пре-релизе
 - people_functions[]: ALL THUG (Rasta/Grey/Red) → cop_states → fn_cop_init (НЕ fn_thug_init!); fn_thug_init с ASSERT(0) никогда не вызывается
 - fn_roper_normal() = пустая функция (только return); fn_cop_normal() = #if 0 мёртвый код; весь NPC AI через PCOM
-- Crinkle = микро-геометрический bump mapping; ПОЛНОСТЬЮ ОТКЛЮЧЁН в пре-релизе (CRINKLE_load→NULL, aeng.cpp if(0)); не переносить
+- Crinkle = микро-геометрический bump mapping; отключён в пре-релизе (CRINKLE_load→NULL, aeng.cpp if(0)), но **РАБОТАЕТ в финальном PC релизе** (bump на деревянных ящиках); переносить через normal/parallax mapping
 - NIGHT_generate_walkable_lighting() = МЁРТВЫЙ КОД (`return;` после roof_walkable); только NIGHT_generate_roof_walkable() реально работает
 - MAV_can_i_walk: шаг ~0x40 субпикс, проверяет CAPS_GOTO на каждом ребре; диагональ → +2 угловые ячейки; только GOTO (не jump/climb)
 - Крыши в MAV: PAP_FLAG_HIDDEN + roof_face → MAVHEIGHT=roof_face.Y/0x40; без roof_face → PAP_FLAG_NOGO; скайлайты (prim 226/227) убраны из nav
@@ -786,6 +796,6 @@ chopper.cpp      → game_objects.md + ai.md
 - **ВЕРИФИКАЦИЯ:** ⚠️ drawxtra.cpp DRAWXTRA_MIB_destruct() мутирует ammo из рендерера → вынести
 - **ВЕРИФИКАЦИЯ:** Water.cpp = полная динамическая вода (1024 points, gushing), НЕ "просто стены"
 - **ВЕРИФИКАЦИЯ:** trip.cpp = растяжки (32 wires, 3D line collision, debounce 4f) — активная механика
-- **ВЕРИФИКАЦИЯ:** Balloon.cpp = шары (32 max, chain physics, buoyancy +0x40/f) — PC only
-- ❓ **СПРОСИТЬ ПОЛЬЗОВАТЕЛЯ:** Воздушные шары (Balloon.cpp) есть в финальной PC/PS1 версии? Если нет → не переносить
+- **РЕШЕНО:** Balloon.cpp — фича ВЫРЕЗАНА. load_prim_object(PRIM_OBJ_BALLOON) закомментировано (ob.cpp:757), меш не грузится. NO_MORE_HAPPY_BALOONS guard + нет шариков в PC лонгплее. Не переносить.
+- **ВЕРИФИКАЦИЯ:** puddle.cpp = лужи на земле, **PC only** (пользователь подтвердил: есть в PC, нет в PS1). Переносить.
 - **ВЕРИФИКАЦИЯ:** memory.cpp save_table = 67 entries; MAX_THINGS=256, RMAX_PEOPLE=1024, EWAY_MAX=512

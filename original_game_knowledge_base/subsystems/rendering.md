@@ -330,7 +330,7 @@ SPRITE_draw(world_x, world_y, world_z, size, colour, page, ...):
 **Crinkle система:** — детали в [rendering_lighting.md](rendering_lighting.md)
 
 Micro-geometry bump mapping (mesh → проекция на квад + выдавливание вдоль нормали).
-**⚠️ ПОЛНОСТЬЮ ОТКЛЮЧЕНА** (`CRINKLE_load` = return NULL; `if(0)` в aeng.cpp). Не переносить.
+**⚠️ Отключена в пре-релизе**, но **работает в финальном PC релизе** (bump на деревянных ящиках). Переносить через normal/parallax mapping.
 
 ---
 
