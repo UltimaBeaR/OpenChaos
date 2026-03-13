@@ -1,6 +1,13 @@
 //
 // Cached lighting.
 //
+// claude-ai: night.cpp — система запечённого vertex lighting для terrain (DDEngine PC).
+// claude-ai: Pipeline:
+// claude-ai:   NIGHT_light_mapsquare(lo_x, lo_z, colour[16]) — ambient+Slight+lamposts → NIGHT_Colour per hi-vertex
+// claude-ai:   NIGHT_cache[32][32] → индекс NIGHT_Square; создаётся lazy через NIGHT_cache_create(lo_x,lo_z)
+// claude-ai:   Per-frame AENG: colour[dx+dz*4] → NIGHT_get_d3d_colour() → pp->colour/specular
+// claude-ai: NIGHT_Colour диапазон 0-63 (6-bit); NIGHT_get_d3d_colour умножает ×4 → 0-252; overflow→pseudo-specular
+// claude-ai: Ambient direction hardcoded: norm_x=110, norm_y=-148, norm_z=-177 (задаётся через NIGHT_ambient())
 
 #include "game.h"
 #include "heap.h"
@@ -413,6 +420,14 @@ typedef struct
 
 typedef NIGHT_Precalc NIGHT_Preblock[PAP_BLOCKS];
 
+// claude-ai: NIGHT_light_mapsquare — главная функция вычисления освещения для lo-map ячейки.
+// claude-ai: Входные данные: lo-map coords (1/32 карты), output: colour[16] для 4×4 hi-map вершин.
+// claude-ai: Алгоритм:
+// claude-ai:   1) Для каждой из 16 вершин: вычисляет нормаль из высот (nx,ny,nz); ambient = -dot(amb_norm,normal)→RGB
+// claude-ai:   2) Перебирает статические источники (NIGHT_Slight) из 3×3 соседних lo-cells
+// claude-ai:      → QDIST3 range check → dprod → bright → накапливает RGB; SATURATE 0-255
+// claude-ai:   3) Аналогично для лампостов (NIGHT_llight[])
+// claude-ai: ⚠️ БАГ (строка ~746): dprod = dx*nx + dy*ny + dz*nx  — последний компонент dz*nx вместо dz*nz!
 void NIGHT_light_mapsquare(SLONG lo_map_x, SLONG lo_map_z, NIGHT_Colour *colour,SLONG floor_y,SLONG inside)
 {
 	SLONG i;
@@ -743,6 +758,7 @@ void NIGHT_light_mapsquare(SLONG lo_map_x, SLONG lo_map_z, NIGHT_Colour *colour,
 							ny = precalc[x][z].ny;
 							nz = precalc[x][z].nz;
 
+							// claude-ai: BUG: last term dz*nx should be dz*nz (copy-paste error, z-axis lighting wrong)
 							dprod = dx*nx + dy*ny + dz*nx;
 
 							if (dprod <= 0)

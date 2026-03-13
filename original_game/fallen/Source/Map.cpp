@@ -12,6 +12,10 @@
 // claude-ai: Поиск объектов в сфере/прямоугольнике: в Thing.cpp (THING_find_sphere, THING_find_box).
 // claude-ai:
 // claude-ai: MAP_light_map — интерфейс системы освещения (callbacks get/set light по ячейкам).
+// claude-ai: ⚠️ МЁРТВЫЙ КОД в DDEngine (PC): MAP_light_set_light/get_light нигде не вызываются!
+// claude-ai:   MAP_light_map struct определён но нигде не используется в рантайме.
+// claude-ai:   В DDEngine vertex colour terrain = NIGHT_light_mapsquare → NIGHT_cache → NIGHT_get_d3d_colour.
+// claude-ai:   MapElement.Colour применялся только в Glide Engine (glaeng.cpp) — legacy путь.
 #include	"Game.h"
 
 

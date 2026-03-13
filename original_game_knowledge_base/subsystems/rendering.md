@@ -180,10 +180,42 @@ Gamut — coarse culling (по lo-res клеткам карты). Затем fac
 - Если результат < 0 → треугольник не виден
 - Отключается флагом `NO_BACKFACE_CULL_PLEASE_BOB` (для двусторонних мешей)
 
-**Сортировка полигонов:**
+**Сортировка полигонов (POLY_frame_draw):**
 - `WE_NEED_POLYBUFFERS_PLEASE_BOB = 1` на PC — нужна Z-сортировка (polypage.h)
-- `WE_NEED_POLYBUFFERS_PLEASE_BOB = 0` на DC — без сортировки
-- Bucket sort или merge sort по depth для прозрачных объектов
+- `WE_NEED_POLYBUFFERS_PLEASE_BOB = 0` на DC — без сортировки (нет полибуферов)
+
+**Детали POLY_frame_draw сортировки (poly.cpp:3283):**
+
+Два типа страниц:
+- **Непрозрачные** (`!RS.NeedsSorting()`): рендерятся в порядке индекса, с `POLY_PAGE_COLOUR` ПЕРВЫМ
+- **Прозрачные** (`RS.NeedsSorting()`): bucket sort (global), затем render back-to-front
+
+Bucket sort (основной путь, `#if 1` в коде):
+```
+buckets[2048] — глобальный массив, индекс = глубинный bucket
+sort_z = max(pp->Z всех вершин полигона) = ZCLIP_PLANE/vz (reciprocal depth)
+  → Z больше = ближе к камере (reciprocal!)
+bucket = int(sort_z * 2048), clamp [0, 2047]
+  → bucket[0]   = далёкие полигоны (sort_z мал)
+  → bucket[2047] = близкие полигоны (sort_z велик)
+Render loop: for i=0..2047 → порядок FAR TO NEAR = BACK-TO-FRONT ✓
+```
+
+Исключения из bucket sort:
+- `POLY_PAGE_SHADOW`: скипается если `!draw_shadow_page`
+- `POLY_PAGE_PUDDLE`: скипается из bucket sort, рендерится отдельно (`POLY_frame_draw_puddles()`)
+
+Альтернативный путь (`#else`, ОТКЛЮЧЁН): `SortBackFirst()` — merge sort per page (ascending sort_z = far first). Заменён bucket sort как более быстрый.
+
+После bucket render: `pa->RS.ResetTempTransparent()` для каждой alpha-страницы.
+
+Финальная очистка: 3 страницы VB/IB освобождаются per frame (rolling cleanup, `iPageNumberToClear`).
+
+**Fog colour:**
+- Outdoor: `fog_colour = NIGHT_sky_colour.{red,green,blue}` → ARGB; night sky colour
+- GF_SEWERS / GF_INDOORS: `fog_colour = 0` (чёрный)
+- draw_3d mode: fog = average RGB (grayscale sky)
+- Fog передаётся в `DefRenderState.InitScene(fog_colour)`
 
 ---
 

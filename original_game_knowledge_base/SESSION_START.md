@@ -9,8 +9,25 @@
 
 **Варианты:**
 1. **Физика TODO**: WATER вне дренажа (водная высота)
-2. **Рендеринг TODO**: POLY_frame_draw bucket sort детали (как именно сортируются)
-3. **Освещение TODO**: MapElement.Colour → как применяется к вершинам при рендеринге
+2. **Разбить rendering.md** (445 строк > 400): вынести раздел 7+8 (Tom's Engine + Mesh) в rendering_mesh.md
+3. **player_progress.md** — заполнить (сейчас ⚠️ Частично), полная документация .wag формата
+
+**ВЫПОЛНЕНО в этой итерации (MapElement.Colour + POLY_frame_draw):**
+- MapElement.Colour = МЁРТВЫЙ КОД в DDEngine (PC) — нигде не вызывается из-за движка рендеринга
+- Glide Engine (legacy): LIGHT_get_glide_colour(me->Colour) → pp->colour (напрямую)
+- Полный DDEngine vertex colour pipeline задокументирован (rendering_lighting.md):
+  NIGHT_light_mapsquare → ambient(dprod-нормаль) + Slight(range check+QDIST3) + llapost → NIGHT_Colour[16]
+  ⚠️ БАГ в dprod: `dz*nx` вместо `dz*nz` (строка 746 night.cpp)
+  NIGHT_get_d3d_colour: ×4 scale (0..63→0..252), overflow→pseudo-specular, 0xFF_alpha
+  Per-frame: NIGHT_cache[lo_x][lo_z]→square→colour[dx+dz*4]→NIGHT_get_d3d_colour→pp→apply_cloud→fadeout
+  Indoor path: фиксированный 0x80808080 (NIGHT indoor код в /* */, не активен)
+- POLY_frame_draw bucket sort полностью задокументирован (rendering.md Section 3):
+  sort_z = max(Z) вершин = ZCLIP_PLANE/vz (reciprocal → larger=nearer)
+  buckets[2048]: bucket=int(sort_z*2048); bucket[0]=far, bucket[2047]=near
+  Render i=0..2047 → FAR TO NEAR = BACK-TO-FRONT (painter's algorithm) ✓
+  POLY_PAGE_PUDDLE: скипается из bucket sort (отдельный проход)
+  Альтернативный #else (отключён): merge sort per page SortBackFirst()
+  Fog colour: NIGHT_sky_colour (outdoor) / 0 (sewers/indoors) / grayscale (draw_3d)
 
 **ВЫПОЛНЕНО в этой итерации (Controls + Missions):**
 - controls double-click: tick = GetTickCount() (WIN32 мс, НЕ GAME_TURN!); окно 200мс; исправлена ошибочная аннотация в interfac.cpp
@@ -267,6 +284,8 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | **id.cpp** | +1 блок | ✅ (ID_generate_floorplan header: 32-seed pipeline, scoring, assign_room_types) |
 | **wmove.cpp** | ~5 блоков | ✅ (WMOVE система, create/process/relative_pos) |
 | **collide.cpp (ladder)** | +3 блока | ✅ (mount_ladder, ok_to_mount_ladder, пре-релиз баг) |
+| **Map.cpp** | +4 блока | ✅ (MapElement.Colour = мёртвый код в DDEngine; MAP_light_map не вызывается) |
+| **night.cpp** | +2 блока | ✅ (полный pipeline header; BUG dz*nx→dz*nz аннотирован) |
 
 ---
 
@@ -345,7 +364,7 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] `build_quick_city()` — ГОТОВО: DFacet→ColVectHead, roof_faces4→Walkable; mark_naughty_facets; только -face работает
 - [x] `ROAD_wander_calc()` — ГОТОВО: ROAD_Node граф, ROAD_is_middle(5×5), ROAD_add с intersect/split, ROAD_edge[], хардкод gpost3.iam
 - [x] `WAND_init()` — ГОТОВО: ≤2кл. от дороги + зебры + исключение collision prims; WAND_get_next_place() dot-product scoring
-- [ ] Как освещение `MapElement.Colour` применяется к вершинам при рендеринге
+- [x] Как освещение `MapElement.Colour` применяется к вершинам при рендеринге — ГОТОВО: МЁРТВЫЙ КОД в DDEngine; Glide=прямо; DDEngine=NIGHT_light_mapsquare→NIGHT_cache→NIGHT_get_d3d_colour (rendering_lighting.md)
 
 ### ЗДАНИЯ/ИНТЕРЬЕРЫ (buildings_interiors.md) — TODO
 - [x] `ID_generate_floorplan()` — ГОТОВО: 32 seeds, find_good_layout, ID_generate_inside_walls (num_walls=area/16+1 или /8+2 для апартаментов)
@@ -355,8 +374,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 
 ### РЕНДЕРИНГ (rendering.md) — TODO (низкий приоритет — заменяем)
 - [x] Crinkle система — ГОТОВО: микро-геометрический bump mapping, mesh→квад проекция, ПОЛНОСТЬЮ ОТКЛЮЧЁН (`return NULL` + `if(0)`), не переносить
-- [ ] `POLY_frame_draw()` порядок сортировки — bucket sort детали
+- [x] `POLY_frame_draw()` порядок сортировки — ГОТОВО: bucket sort [2048], sort_z=ZCLIP/vz, render FAR→NEAR; merge sort fallback в #else (отключён)
 - [x] Как `NIGHT_generate_walkable_lighting()` работает — ГОТОВО: МЁРТВЫЙ КОД (`return;`), только NIGHT_generate_roof_walkable() реально вызывается
+- [ ] rendering.md нужно разбить (445 строк > 400): вынести Tom's Engine + Mesh → rendering_mesh.md
 
 ### НЕ ЧИТАНЫ (нужно прочесть KB файлы)
 - [x] **camera.md** — ГОТОВО: FC only, 8-шаг raycast, get-behind, focus_yaw, toonear
@@ -464,6 +484,10 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - DarciDeadCivWarnings: 0/1/2=предупреждения (экран deadcivs.tga); >=3=GS_LEVEL_LOST; персистирует!
 - apply_button_input(): ACTION→do_an_action(); нет ACTION→SPRINT→RUN; find_best_action_from_tree()→REQUEST flags + jump/shoot/flip/hug/skid; без движения: IDLE→turn, MOVEING→stop
 - .txc = FileClump archive: [ULONG MaxID][Offsets[MaxID]][Lengths[MaxID]][data]; ⚠️ size_t=4/8б зависит от платформы; для новой игры читать TGA напрямую
+- MapElement.Colour = МЁРТВЫЙ КОД в DDEngine (PC); MAP_light_set/get нигде не вызываются; Glide-only legacy
+- DDEngine terrain vertex colour: NIGHT_light_mapsquare → colour[16] per lo-cell → NIGHT_cache → NIGHT_get_d3d_colour (×4 scale) → apply_cloud → fadeout
+- ⚠️ БАГ в NIGHT_light_mapsquare:746: dprod=`dx*nx+dy*ny+dz*nx` — последний `dz*nx` должен быть `dz*nz`
+- POLY_frame_draw: opaque страницы в порядке с COLOUR_PAGE первым; alpha → bucket sort [2048] sort_z=ZCLIP/vz → FAR→NEAR; PUDDLE и SHADOW — отдельно
 - style.tma: 200 стилей × 5 слотов; TXTY{Page,Tx,Ty,Flip}=4б; textures_flags[200][5]=тип полигона; instyle.tma=count_x*count_y UBYTE индексов
 - build_quick_city(): DFacet→PAP_Lo.ColVectHead (collision), roof_faces4→PAP_Lo.Walkable (negative index = roof face); положительные face indexes (prim_faces4) закомментированы
 - ID_generate_floorplan(): 32 seeds (ID_MAX_FITS) если find_good_layout; num_walls=floor_area/16+1; apartments /8+2 с фикс. стартами у лестниц

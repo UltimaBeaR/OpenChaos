@@ -4,6 +4,23 @@
 
 ---
 
+## MapElement.Colour — где используется
+
+`MAP[128][128]` — массив `MapElement`, каждый содержит поле `Colour` типа `LIGHT_Colour {r,g,b}`.
+
+**В DDEngine (PC DirectX6):** `MapElement.Colour` = **МЁРТВЫЙ КОД**.
+- `MAP_light_set_light()` / `MAP_light_get_light()` определены в Map.cpp, но **нигде не вызываются** кроме самого Map.cpp
+- `MAP_light_map` (LIGHT_Map struct с указателями на эти функции) — тоже нигде не используется
+- Vertex colours для terrain в DDEngine вычисляются **только через NIGHT систему** (см. ниже)
+
+**В Glide Engine** (старый путь, не PC/DC): `me->Colour` применялся напрямую:
+```c
+// glaeng.cpp
+pp->colour = LIGHT_get_glide_colour(me->Colour);  // terrain vertex colour
+```
+
+---
+
 ## Освещение — NIGHT система
 
 **Vertex Lighting** — не per-pixel, освещение запекается в вершины (NIGHT система из `night.h`).
@@ -25,6 +42,76 @@ struct NIGHT_Colour {
 };
 
 // NIGHT_get_d3d_colour() — конвертирует NIGHT_Colour → D3D ARGB (0xFF, r×4, g×4, b×4)
+```
+
+### Полный pipeline — vertex colour для terrain (DDEngine)
+
+**Шаг 1: Предвычисление при загрузке — `NIGHT_cache_create(lo_x, lo_z)` (night.cpp:2009)**
+
+Lo-map cell (1/32 карты) → аллоцирует `NIGHT_Square`:
+```c
+struct NIGHT_Square {
+    NIGHT_Colour colour[PAP_BLOCKS * PAP_BLOCKS];  // 4×4 = 16 вершин
+    UBYTE lo_map_x, lo_map_z;
+    UBYTE next, flag;
+};
+NIGHT_cache[32][32] → индекс в NIGHT_square[]  // per lo-cell кэш
+```
+
+Вызывает `NIGHT_light_mapsquare(lo_x, lo_z, colour[16], floor_y=0, inside=0)`:
+
+**Шаг 1а: Ambient освещение (для каждой из 16 вершин в 4×4 блоке):**
+```c
+// Нормаль из высот соседей
+nx = (h[mx-1,mz] - h[mx+1,mz]) * 4, ny = 256 - QDIST2(|nx|,|nz|), nz аналогично
+clamp: if |nx|>120 → clamp(±100); аналогично nz
+// Ambient dot product
+dprod = -dot(NIGHT_amb_norm, normal)    // отрицательный = facing away negated
+dprod = clamp(dprod, 0..65536) >> 9 + 128  // → диапазон 128..255
+dprod *= NIGHT_LIGHT_MULTIPLIER
+colour[x+z*4].r = NIGHT_amb_red   * dprod >> 8  // NIGHT_Colour range 0..63
+colour[x+z*4].g = NIGHT_amb_green * dprod >> 8
+colour[x+z*4].b = NIGHT_amb_blue  * dprod >> 8
+```
+
+**Шаг 1б: Статические источники (`NIGHT_Slight`) из 3×3 соседних lo-cells:**
+```c
+// Для каждого источника внутри 3×3 neighbourhood:
+lradius = nsl->radius << 2  // субпиксельные координаты
+dist = QDIST3(|lx-px|, |ly-py|, |lz-pz|) + 1
+if dist < lradius:
+    dprod = (dx*nx + dy*ny + dz*nx) / dist  // ⚠️ БАГ: dz*nx вместо dz*nz!
+    bright = (256 - dist*256/lradius) * dprod/256 * NIGHT_LIGHT_MULTIPLIER
+    colour[i].r = SATURATE(colour[i].r + nsl->red   * bright >> 8, 0..255)
+    // аналогично g, b
+```
+
+**Шаг 1в: Лампосты (`NIGHT_llight[]`)** — аналогично Slight, radius = NIGHT_lampost_radius << 2.
+
+**Шаг 2: Per-frame рендеринг (aeng.cpp:7530)**
+
+Для каждой видимой Hi-map вершины (x, z) в gamut:
+```c
+square = NIGHT_cache[x>>2][z>>2]   // lo-cell index
+nq = &NIGHT_square[square]
+dx = x & 3; dz = z & 3            // позиция внутри 4×4
+NIGHT_get_d3d_colour(nq->colour[dx + dz*PAP_BLOCKS], &pp->colour, &pp->specular)
+// затем:
+apply_cloud(world_x, world_y, world_z, &pp->colour)  // облачные тени
+POLY_fadeout_point(pp)                               // distance fade
+```
+
+**Indoor путь:** фиксированный `colour = 0x80808080` (закомментированный код с NIGHT_get_d3d_colour_dim существует, но не активен — `/* */`).
+
+**`NIGHT_get_d3d_colour(NIGHT_Colour col, ULONG *colour, ULONG *specular)` (night.h:266):**
+```c
+r = col.red * 4; g = col.green * 4; b = col.blue * 4  // 0..63 → 0..252
+if NIGHT_specular_enable:
+    if r > 255: wred = (r-255)>>1; r = 255           // overflow → pseudo-specular
+    *specular = 0xFF000000 | (wr<<16)|(wg<<8)|wb
+else:
+    clamp r,g,b to 0..255; *specular = 0xFF000000
+*colour = 0xFF000000 | (r<<16) | (g<<8) | b
 ```
 
 ### Типы источников

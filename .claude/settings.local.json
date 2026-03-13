@@ -34,7 +34,10 @@
       "Bash(head -5 grep -rn \"struct ED_Light\\\\|struct NIGHT_Colour\" \"c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/\" --include=\"*.h\")",
       "Bash(find c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Debug/ -name *.pam -o -name *.iam -o -name *.pi -o -name *.pp)",
       "Bash(find c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Debug/ -name *.prm)",
-      "Bash(find c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Debug/ -name *.all)"
+      "Bash(find c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Debug/ -name *.all)",
+      "Bash(sed -i '761s|// claude-ai: 26a0Fe0f.*dz\\\\*nx;|dprod = dx*nx + dy*ny + dz*nx;|' \"c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/night.cpp\")",
+      "Bash(sed -n '759,766p' \"c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/night.cpp\")",
+      "Bash(node -e \":*)"
     ],
     "deny": [
       "Bash(git commit*)",
