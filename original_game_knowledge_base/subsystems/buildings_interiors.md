@@ -209,16 +209,21 @@ struct STAIR_Stair {
 // До 32 лестниц, до 3 на этаж (STAIR_MAX_PER_STOREY)
 ```
 
-**Алгоритм размещения (STAIR_calculate):**
-1. Задать bounding box через `STAIR_set_bounding_box()`
-2. Для каждой пары соседних этажей найти перекрывающиеся ячейки
-3. Оценить каждую возможную позицию (scoring):
-   - +0x10000: у внешней стены с 2 сторон
-   - +0x5000: в углу
-   - +0xbabe: напротив подсказки "opposite wall"
-   - -∞: блокирует дверь
-   - +random(0xffff): случайность
-4. Выбрать лучшую, связать двунаправленно между этажами
+**Алгоритм размещения (STAIR_calculate) — детали:**
+1. Перемешать порядок этажей (Fisher-Yates на STAIR_MAX_STOREYS)
+2. Для каждой пары этажей с `abs(height_i - height_j) == 1` (смежные):
+   - AND bitset ячеек двух этажей → общие допустимые позиции
+   - Попытаться переиспользовать существующую лестницу на каком-либо этаже
+   - Если не нашли — перебрать все пары (x1,z1)→(x2,z2) в 4 направлениях
+3. **Scoring** новой позиции:
+   - Base: `STAIR_rand() & 0xffff` (случайность всегда)
+   - `outside==2` (оба квадрата у внешней стены): `+0x10000`
+   - `outside==1` (один квадрат у стены): `-0x10000`
+   - `outside==0` (внутри): `+0` (нейтрально)
+   - Координата совпадает с краем bounding box: `+0x5000` (до ×4)
+   - Напротив "opposite wall" hint: `+0xbabe` за каждый квадрат
+   - Блокирует внешнюю дверь: `-INFINITY`
+4. `best_score >= 0` → создать пару лестниц на обоих этажах (STAIR_FLAG_UP + STAIR_FLAG_DOWN)
 
 **Геометрия лестниц:** тип STOREY_TYPE_STAIRCASE, физика интерполирует Y между значениями `DFacet.Y[2]`.
 
@@ -325,6 +330,90 @@ struct ID_Square {
 - Геометрия регенерируется при изменении этажа (ID_change_floor)
 - `ID_get_face_texture()` — маппинг тип-грани → D3D texture page (нужна замена на UV в OpenGL)
 - Весь рендеринг в `ID_draw()` использует устаревший D3D5 API — полная замена при переносе
+
+## ID_generate_floorplan() — полный флоу
+
+```
+сигнатура: SLONG ID_generate_floorplan(storey_type, stair[], num_stairs, seed, find_good_layout, furnished)
+возвращает: seed_used (UWORD) или -1 при ошибке
+```
+
+1. Валидация: нет нулевых стен → иначе return -1
+2. `ID_calculate_in_squares()` — flood-fill inside/outside ячеек по периметру стен
+3. `ID_calculate_in_points()` — определить внутренние точки; fail → return -1
+4. Разметить лестницы: `ID_FLOOR(stair[i].x,z)->flag |= ID_FLOOR_FLAG_STAIR`
+5. Подсчёт `ID_floor_area` (кол-во inside-ячеек)
+6. Поиск лучшей планировки:
+   - `find_good_layout==TRUE`: пробует **32 сида** (ID_MAX_FITS), каждый раз:
+     - `ID_generate_inside_walls(storey_type)` → расставляет внутренние стены
+     - `ID_score_layout(storey_type)` → оценивает; `ID_clear_inside_walls()` → сброс
+     - Выбирает seed с `best_score >= 0`; если нет таких → return -1
+   - `find_good_layout==FALSE`: использует данный seed напрямую
+7. Генерация граней: `ID_add_room_faces(i)` для каждой комнаты (или `ID_add_wall_faces` если `YOU_WANT_THIN_WALLS`)
+8. Если `furnished`: `ID_place_furniture()`
+
+**ID_generate_inside_walls()** — расстановка внутренних стен:
+- `num_walls = ID_floor_area >> 4 + 1` (≈1 стена на 16 ячеек)
+- Apartement: `num_walls = ID_floor_area >> 3 + 2` (более плотно)
+- Apartement: фиксированные стартовые точки у лестничных углов → коридор
+
+**ID_find_rooms()** — BFS flood-fill по комнатам:
+- Queue размером 64 элемента (QUEUE_SIZE)
+- Распространение в 4 стороны, остановка если флаг `ID_FLOOR_FLAG_WALL_XL/XS/ZL/ZS`
+- Каждая связная компонента → отдельный room ID (1-based)
+
+**ID_score_layout_house_ground()** scoring:
+- Per room: ratio = max(dx,dz)/min(dx,dz) × 256; цель = 414 (золотое сечение)
+- Score += `(150 + (414 - ratio)) * 10` (отрицательный для сильно вытянутых!)
+- `ID_ROOM_FLAG_RECTANGULAR` → +1000
+- Комната доступна только из одной другой → `score = score * 3 / 4`
+- Лестница в туалете → `score -= score/2`
+
+**ID_score_layout_warehouse()** scoring (другая логика):
+- biggest_room_area << 8 (приоритет большому помещению)
+- + room_count << 10 (много комнат тоже хорошо)
+- Слишком вытянутые комнаты → штраф
+
+**ID_assign_room_types()** — bubble sort по размеру, затем:
+- HOUSE/OFFICE: biggest→LOUNGE; lobby→LOBBY; по размеру: LOO(1-й), KITCHEN(2-й), DINING(3-й), LOUNGE(4-й+)
+- WAREHOUSE: biggest→WAREHOUSE; lobby(с дверью)→LOBBY; LOO(1-й), OFFICE(середина), MEETING(biggest среди остатков, если ≥3)
+
+## WARE_init() — структура складской системы
+
+**WARE_Ware** (max 32 складов, `WARE_MAX_WARES=32`):
+```cpp
+struct WARE_Ware {
+    struct { UBYTE out_x, out_z, in_x, in_z; } door[4]; // внешняя/внутренняя сторона двери (mapsquare)
+    UBYTE door_upto;      // кол-во дверей (0-4)
+    UBYTE minx, minz, maxx, maxz;  // bounding box (UBYTE, inclusive)
+    UBYTE nav_pitch;      // = bz2-bz1 (шаг по Z для nav/height индексации)
+    UWORD nav;            // индекс в WARE_nav[] (UWORD per cell, MAV-данные)
+    UWORD building;       // DBuilding index
+    UWORD height;         // индекс в WARE_height[] (SBYTE per cell, MAVHEIGHT)
+    UWORD rooftex;        // индекс в WARE_rooftex[] (UWORD per roof_face4)
+    UBYTE ambience;       // ambient звук внутри склада
+};
+```
+
+**Пулы (allocator-style):**
+- `WARE_nav[4096]` — nav-данные всех складов подряд
+- `WARE_height[8192]` — высоты ячеек
+- `WARE_rooftex[4096]` — текстуры крыши (из roof_faces4[])
+
+**Инициализация (WARE_init()):**
+1. Загрузить `.map` файл (меняет расширение `.iam` → `.map`): rooftop textures
+2. `MAV_calc_height_array(TRUE)` — высоты без крыш складов (для определения OBs inside)
+3. Для каждого `BUILDING_TYPE_WAREHOUSE`:
+   - `WARE_bounding_box()` → minx/z/maxx/z
+   - PAP_Hi.HIDDEN squares → `PAP_LO_FLAG_WAREHOUSE` (на PAP_Lo >>2)
+   - Двери = DFacets с `STOREY_TYPE_DOOR`: out = center + perpendicular, in = center - perpendicular
+   - Аллоцировать `nav_memory = (bx2-bx1)*(bz2-bz1)` слотов в WARE_nav + WARE_height
+   - `MAV_precalculate_warehouse_nav()` — вычислить MAV внутри склада
+   - Заполнить WARE_height из `MAVHEIGHT(x,z)` для каждой ячейки
+   - Скопировать rooftop textures из `roof_faces4[]` в `WARE_rooftex[]`
+4. OBs с `y+maxy < MAVHEIGHT*64-0x20` → `OB_FLAG_WAREHOUSE` (= объект внутри)
+5. `MAV_calc_height_array(FALSE)` — восстановить высоты с крышами
+6. **Размещение door prims закомментировано** (`#if 0`)
 
 ---
 

@@ -1059,6 +1059,15 @@ void STAIR_calculate(UWORD seed)
 				// box of the building.
 				//
 
+				// claude-ai: STAIR scoring: try every pair (x1,z1)→(x2,z2) in 4 orientations.
+				// claude-ai: Score = rand(0xffff) base.
+				// claude-ai: outside==2 (both cells on outer wall) → +0x10000 (strong bonus)
+				// claude-ai: outside==1 (one cell on outer wall)   → -0x10000 (penalty)
+				// claude-ai: outside==0 (interior position)        → +0 (neutral)
+				// claude-ai: coord matches bounding-box edge       → +0x5000 each (corner bonus, up to ×4)
+				// claude-ai: opposite "opp_wall" hint              → +0xbabe per stair cell (up to ×2)
+				// claude-ai: blocks an outside door (STAIR_is_door) → -INFINITY
+				// claude-ai: best_score >= 0 → create two paired stair entries on both floors.
 				best_score = -INFINITY;
 
 				for (x = STAIR_x1; x < STAIR_x2; x++)

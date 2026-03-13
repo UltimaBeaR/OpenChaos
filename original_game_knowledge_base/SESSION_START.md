@@ -9,9 +9,18 @@
 
 **Варианты:**
 1. **Физика TODO**: WATER вне дренажа (водная высота), mount_ladder() в финале
-2. **Здания TODO**: ID_generate_floorplan(), RoomID scoring, STAIR_calculate, WARE_init()
-3. **Навигация TODO**: MAV_can_i_walk детали, NPC на крышах
-4. **Characters TODO**: Roper финальное поведение, Cop финальное поведение
+2. **Навигация TODO**: MAV_can_i_walk детали, NPC на крышах
+3. **Characters TODO**: Roper финальное поведение, Cop финальное поведение
+4. **Рендеринг TODO**: Crinkle система, POLY_frame_draw bucket sort, NIGHT_generate_walkable_lighting
+
+**ВЫПОЛНЕНО в этой итерации (Здания/Интерьеры — TODO пункты):**
+- buildings_interiors.md: ID_generate_floorplan() — полный флоу: 32 seeds, find_good_layout, ID_generate_inside_walls (num_walls=area/16+1), ID_add_room_faces
+- buildings_interiors.md: ID_find_rooms() — BFS flood-fill, queue 64, блокируется по WALL_XL/XS/ZL/ZS флагам
+- buildings_interiors.md: ID_score_layout_house_ground() — ratio 256-шкала, цель=414 (golden ratio), прямоугольность +1000, одна связь → *3/4
+- buildings_interiors.md: ID_assign_room_types() — bubble sort по площади; HOUSE: biggest=LOUNGE; WAREHOUSE: biggest=WAREHOUSE, LOO/OFFICE/MEETING
+- buildings_interiors.md: STAIR_calculate scoring — детальные значения (+0x10000/-0x10000/+0x5000/+0xbabe/-INF)
+- buildings_interiors.md: WARE_init() — полная структура WARE_Ware, пулы nav/height/rooftex, door coords, OB_FLAG_WAREHOUSE
+- Аннотированы: ware.cpp (полный header блок), stair.cpp (scoring блок), id.cpp (ID_generate_floorplan header)
 
 **ВЫПОЛНЕНО в этой итерации (World, Characters):**
 - world_map.md раздел 9: build_quick_city() — DFacet+roof_faces4 в PAP_Lo.ColVectHead/Walkable; только roof_faces4 (-face) реально регистрируются
@@ -241,6 +250,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | **interfac.cpp** | ~50+ блоков | ✅ (process_hardware_input, player_apply_move, InputDone, weapon hotkeys, mode dispatcher) |
 | **ware.cpp** | ~4 блока | ✅ (WARE_mav_enter/inside/exit) |
 | **inside2.cpp** | ~6 блоков | ✅ (INSIDE2_mav_nav_calc + все mav_* функции, включая баги пре-релиза) |
+| **ware.cpp** | ~1 header блок | ✅ (WARE_init полный флоу, WARE_Ware структура, nav/height/rooftex пулы) |
+| **stair.cpp** | +1 блок | ✅ (scoring блок STAIR_calculate добавлен к существующим аннотациям) |
+| **id.cpp** | +1 блок | ✅ (ID_generate_floorplan header: 32-seed pipeline, scoring, assign_room_types) |
 | **wmove.cpp** | ~5 блоков | ✅ (WMOVE система, create/process/relative_pos) |
 | **collide.cpp (ladder)** | +3 блока | ✅ (mount_ladder, ok_to_mount_ladder, пре-релиз баг) |
 
@@ -324,10 +336,10 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [ ] Как освещение `MapElement.Colour` применяется к вершинам при рендеринге
 
 ### ЗДАНИЯ/ИНТЕРЬЕРЫ (buildings_interiors.md) — TODO
-- [ ] `ID_generate_floorplan()` детали — как именно генерируется планировка комнат
-- [ ] `RoomID` система — как rooms scoring работает в `ID_score_layout_house_ground()`
-- [ ] Как STAIR_calculate выбирает позицию лестницы (scoring детали)
-- [ ] `WARE_init()` — структура данных складских интерьеров
+- [x] `ID_generate_floorplan()` — ГОТОВО: 32 seeds, find_good_layout, ID_generate_inside_walls (num_walls=area/16+1 или /8+2 для апартаментов)
+- [x] `RoomID scoring` → `ID_score_layout_house_ground()` — ГОТОВО: ratio 256-шкала, цель=414, +1000 прямоугольность, *3/4 если комната только из одной доступна
+- [x] STAIR_calculate scoring — ГОТОВО: rand+0x10000/-0x10000/+0x5000/+0xbabe/-INF детали
+- [x] `WARE_init()` — ГОТОВО: WARE_Ware полная структура, пулы nav/height/rooftex, door out/in coords
 
 ### РЕНДЕРИНГ (rendering.md) — TODO (низкий приоритет — заменяем)
 - [ ] Crinkle система — что это точно и как заменить на normal mapping
@@ -440,6 +452,13 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - .txc = FileClump archive: [ULONG MaxID][Offsets[MaxID]][Lengths[MaxID]][data]; ⚠️ size_t=4/8б зависит от платформы; для новой игры читать TGA напрямую
 - style.tma: 200 стилей × 5 слотов; TXTY{Page,Tx,Ty,Flip}=4б; textures_flags[200][5]=тип полигона; instyle.tma=count_x*count_y UBYTE индексов
 - build_quick_city(): DFacet→PAP_Lo.ColVectHead (collision), roof_faces4→PAP_Lo.Walkable (negative index = roof face); положительные face indexes (prim_faces4) закомментированы
+- ID_generate_floorplan(): 32 seeds (ID_MAX_FITS) если find_good_layout; num_walls=floor_area/16+1; apartments /8+2 с фикс. стартами у лестниц
+- ID_find_rooms(): BFS queue=64; блокируется WALL_XL/XS/ZL/ZS; каждая связная компонента = room ID (1-based)
+- ID_score_layout_house_ground(): ratio = max/min *256; цель=414 (золотое сечение *256); score+=(150+(414-ratio))*10; прям+1000; одна связь→*3/4; лестница в туалете → -score/2
+- ID_assign_room_types(): bubble sort по размеру; HOUSE: biggest=LOUNGE, door-adj=LOBBY, 1=LOO, 2=KITCHEN, 3=DINING; WAREHOUSE: biggest=WAREHOUSE, door-adj=LOBBY, 1=LOO, middle=OFFICE, largest-rest=MEETING
+- STAIR_calculate scoring: base=rand(0xffff); both-outside=+0x10000; one-outside=-0x10000; corner=+0x5000 per coord; opposite-hint=+0xbabe per cell; blocks-door=-INF
+- WARE_Ware: door[4]{out_x/z, in_x/z}; nav_pitch=bz2-bz1; index=(x-minx)*nav_pitch+(z-minz); OB inside if y+maxy < MAVHEIGHT*64-0x20
+- WARE_init(): loads .map (iam→map extension swap) for rooftop textures; MAV_calc_height_array(TRUE/FALSE) wraps the init; door prims #if 0 (disabled)
 - ROAD_wander_calc(): граф для авто-AI; ROAD_Node{x,z:UBYTE, c[4]:UBYTE}=8б; MAX 256 нодов; сканирует ROAD_is_middle=5×5 квадрат дороги; ROAD_LANE=0x100; хардкод (121,33) блокирован для gpost3.iam
 - ROAD_is_road: PAP_Hi.Texture 323-356 PC / 256-278 PSX / TextureSet7-8: 35,36,39
 - WAND_init(): PAP_FLAG_WANDER = ≤2 кл. от дороги (не HIDDEN); зебры (tex 333/334); -prim collision y≤terrain+64 снимает флаг

@@ -1,15 +1,46 @@
+// claude-ai: Warehouse interior system for Urban Chaos.
+// claude-ai: Warehouses are large buildings the player can enter. They have:
+// claude-ai:   - Their own private MAV navigation (WARE_nav[] pool, up to 4096 cells total)
+// claude-ai:   - Height data per cell (WARE_height[] pool, SBYTE = MAVHEIGHT for each mapsquare inside)
+// claude-ai:   - Rooftop textures (WARE_rooftex[] pool, UWORD per roof_face4)
+// claude-ai:   - Up to 4 doors per warehouse (STOREY_TYPE_DOOR facets → out_x/z + in_x/z mapsquare coords)
+// claude-ai:
+// claude-ai: WARE_Ware struct (max 32 warehouses):
+// claude-ai:   door[4]  — outside/inside mapsquare coords for each entrance
+// claude-ai:   nav      — index into WARE_nav[] (MAV grid for inside navigation)
+// claude-ai:   height   — index into WARE_height[] (terrain height array for inside)
+// claude-ai:   rooftex  — index into WARE_rooftex[] (texture for each walkable roof face)
+// claude-ai:   nav_pitch = bz2 - bz1 (stride for 2D index: (x - minx) * nav_pitch + (z - minz))
+// claude-ai:   ambience — which ambient sound plays while inside
+// claude-ai:
+// claude-ai: WARE_init() — called during level load after buildings are compiled:
+// claude-ai:   1. Load .map file (rename .iam → .map) to get per-mapsquare rooftop textures
+// claude-ai:   2. MAV_calc_height_array(TRUE)  — compute heights WITHOUT warehouse roofs
+// claude-ai:   3. For each BUILDING_TYPE_WAREHOUSE:
+// claude-ai:      - WARE_bounding_box() → minx/z .. maxx/z
+// claude-ai:      - Mark PAP_Lo squares with PAP_LO_FLAG_WAREHOUSE (for PAP_Hi.HIDDEN cells)
+// claude-ai:      - Collect doors: STOREY_TYPE_DOOR facets → out/in coords via perpendicular offset
+// claude-ai:      - Alloc nav_memory = (bx2-bx1)*(bz2-bz1) cells from WARE_nav + WARE_height pools
+// claude-ai:      - MAV_precalculate_warehouse_nav() — fill in MAV inside the warehouse
+// claude-ai:      - Fill WARE_height from MAVHEIGHT per cell
+// claude-ai:      - Copy roof textures from roof_faces4[] matching this building's DWalkable chain
+// claude-ai:   4. Tag OB_objects as OB_FLAG_WAREHOUSE if y+maxy < MAVHEIGHT*64-0x20
+// claude-ai:   5. MAV_calc_height_array(FALSE) — restore heights WITH warehouse roofs
+// claude-ai:   NOTE: Door prim placement code is in #if 0 (disabled in pre-release)
+// claude-ai:
+// claude-ai: Runtime nav flow → see navigation.md: WARE_mav_enter/inside/exit
 //
 // Warehouses
 //
-// 
+//
 // Far better it is to dare mighty things, to win glorious
 // triumphs, even though checkered by failure, than to take
 // rank with those poor spirits who neither enjoy nor suffer
 // much, because they live in the gray twilight that knows
 // neither victory nor defeat.
-// 
+//
 // THEODORE ROOSEVELT
-// 
+//
 
 #include "game.h"
 #include "mav.h"

@@ -7445,6 +7445,30 @@ SLONG ID_calculate_in_points(void)
 // claude-ai:   7. ID_place_furniture (if furnished)
 // claude-ai: 'seed' initialises ID_rand — same seed = same layout (deterministic by building ID).
 // claude-ai: 'stair' array passes in staircase positions from the map data.
+// claude-ai: ID_generate_floorplan — master orchestrator for procedural interior generation.
+// claude-ai: Called during level load for each building floor with an interior (STOREY_TYPE_INSIDE etc).
+// claude-ai: Returns the seed_used (UWORD), or -1 on failure.
+// claude-ai:
+// claude-ai: Pipeline:
+// claude-ai:   1. ID_calculate_in_squares() — flood-fill which grid cells are inside the building outline
+// claude-ai:   2. ID_calculate_in_points() — mark which grid corner-points are inside
+// claude-ai:   3. Mark stair cells with ID_FLOOR_FLAG_STAIR
+// claude-ai:   4. If find_good_layout==TRUE: try ID_MAX_FITS=32 random seeds,
+// claude-ai:      each calls ID_generate_inside_walls() + ID_score_layout() → pick best seed (score >= 0)
+// claude-ai:   5. ID_generate_inside_walls() — place internal dividing walls:
+// claude-ai:      num_walls = floor_area/16 + 1; apartments use /8 + 2 with fixed stair-corner starts
+// claude-ai:   6. ID_add_room_faces() per room (or ID_add_wall_faces if YOU_WANT_THIN_WALLS defined)
+// claude-ai:   7. If furnished: ID_place_furniture()
+// claude-ai:
+// claude-ai: ID_find_rooms() — BFS flood-fill to assign room IDs (queue size 64):
+// claude-ai:   Blocked by wall flags ID_FLOOR_FLAG_WALL_XL/XS/ZL/ZS. Each connected area = new room (1-based).
+// claude-ai:
+// claude-ai: ID_score_layout_house_ground() scoring:
+// claude-ai:   per room: ratio = max/min * 256, target=414 (golden ratio); score += (150+(414-ratio))*10
+// claude-ai:   +1000 per rectangular room; room accessible from only one other → score*3/4; stairs in loo → -score/2
+// claude-ai: ID_assign_room_types() by size (bubble sort):
+// claude-ai:   HOUSE: biggest=LOUNGE, door-adjacent=LOBBY, smallest=LOO, 2nd=KITCHEN, 3rd=DINING, rest=LOUNGE
+// claude-ai:   WAREHOUSE: biggest=WAREHOUSE, door-adjacent=LOBBY, smallest=LOO, middle=OFFICE, largest-rest=MEETING
 SLONG ID_generate_floorplan(SLONG storey_type, ID_Stair stair[], SLONG num_stairs, UWORD seed, UBYTE find_good_layout, UBYTE furnished)
 {
 	SLONG   i;
