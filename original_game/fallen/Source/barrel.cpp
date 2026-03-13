@@ -1,3 +1,20 @@
+// claude-ai: BARREL SYSTEM OVERVIEW — Destructible physics objects (barrels, cones, bins)
+// claude-ai: Architecture: each barrel = 2 connected spheres (BARREL_Sphere) at fixed distance BARREL_SPHERE_DIST=50
+// claude-ai: States: STACKED (on another barrel, dormant) → STILL (on ground, dormant) → MOVING (active physics)
+// claude-ai: Moving barrels: gravity=0x80, damping=velocity/32 per tick, ground bounce, MAV wall reflection
+// claude-ai: Collision cascade: hitting a stacked barrel converts it to moving → toppled stacked barrels above also convert
+// claude-ai: Rest detection: both spheres still>64 ticks → convert_moving_to_stationary
+// claude-ai: Position = average of 2 spheres; Angle/Tilt from sphere delta vector
+// claude-ai: Types: NORMAL(explodes), CONE(small, no stack, no explode), BURNING(starts on fire), BIN(rubbish+cans content)
+// claude-ai: DEAD CODE: BARREL_position_on_hands+BARREL_throw (lines ~1505-1690, /* */ wrapped) — pickup/throw mechanic
+// claude-ai: DEAD CODE: cone penalty system (EWAY_count_up += 500) — commented out in convert_stationary_to_moving
+// claude-ai: DEAD CODE: old explosion particles in BARREL_shoot (lines ~1863-1890, /* */ wrapped)
+// claude-ai: Key constants: BARREL_MAX_BARRELS=300, BARREL_MAX_SPHERES=80, BARREL_GRAVITY=0x80, BARREL_HEIGHT=93
+// claude-ai: BARREL_alloc: if no free Thing → steals CLOSEST existing barrel (not farthest!) — emergency recycling
+// claude-ai: BARREL_shoot (non-cone/bin): PYRO_FIREBOMB + shockwave(radius=0x200, damage=250) + PCOM_oscillate_tympanum(BANG)
+// claude-ai: BARREL_shoot (cone/bin): just knocks nearby barrels with small sphere hit (radius=0x15)
+// claude-ai: Standing-up correction: when grounded+tilt near vertical (within 224 of 512/1536) → pull spheres together in XZ
+// claude-ai: Cans: when bin falls on side (tilt>224 from vertical) and stops → DIRT_create_cans() spills cans out
 //
 // Crappy barrels with kludged physics
 //

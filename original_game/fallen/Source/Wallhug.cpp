@@ -1,3 +1,20 @@
+// claude-ai: WALLHUG SYSTEM — Jan's 2D grid-based wall-hugging pathfinding
+// claude-ai: Operates on MAV grid (128×128 UBYTE cells), finds paths around obstacles
+// claude-ai: Algorithm (wallhug_trivial / wallhug_continue_trivial):
+// claude-ai:   1. Walk straight (Bresenham line) from start to end
+// claude-ai:   2. On wall hit: spawn 2 huggers — left-hand rule (handed=-1) and right-hand rule (handed=1)
+// claude-ai:   3. wallhug_hugstep(): wall ahead→turn away from hand; no wall on hand-side→turn toward hand
+// claude-ai:   4. Release conditions: facing destination AND destination not behind hugged wall AND closer than hug-start
+// claude-ai:   5. First hugger to release wins; both fail or meet each other → WALLHUG_FAILED
+// claude-ai: Path cleanup (wallhug_cleanup, called by wallhug_tricky):
+// claude-ai:   1. line_of_sight_cleanup: lookahead up to MAX_LOOKAHEAD=4 waypoints, skip if LOS exists
+// claude-ai:   2. Post-process: re-navigate around each waypoint; if new path skips it → replace (shorter path)
+// claude-ai:   3. Iterate up to 10 times (safety limit)
+// claude-ai: Grid: UBYTE coords (0-127), 4 cardinal directions, WALLHUG_WALL_IN_WAY→NAV_wall_in_way
+// claude-ai: Max waypoints per path: WALLHUG_MAX_PTS=252; WALLHUG_MAX_COUNT = max steps before giving up
+// claude-ai: Public API: wallhug_trivial(path) → raw path; wallhug_tricky(path) → optimized path
+// claude-ai: wallhug_continue_trivial(path, current, max_count) → resume pathfinding from arbitrary point
+// claude-ai: Called from Nav.cpp: NAV wrapper delegates to wallhug_tricky()
 
 #include "game.h"
 

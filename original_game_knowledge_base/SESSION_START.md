@@ -7,12 +7,25 @@
 
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
-**Рекомендация:** Начать фазу 2 — планирование new_game/ (KB ~85%, все подсистемы ✅)
+**Рекомендация:** Начать фазу 2 — планирование new_game/ (KB ~90%, все подсистемы ✅, barrel ✅)
 
 **Варианты если продолжать анализ:**
-1. **barrel.cpp** — 0 аннотаций, деструктивные объекты (бочки/конусы/мусорки)
-2. **Аудит аннотаций** — fire.cpp(99), psystem.cpp(158), Vehicle.cpp(309), Building.cpp(141), mav.cpp(152), sound.cpp(103), door.cpp(33) аннотированы но НЕ записаны в списке ниже
-3. **wallhug.cpp** — Jan's wallhugger детали (вызывается из Nav.cpp)
+1. **Оставшиеся неаннотированные файлы** — проверить через grep "claude-ai" что ещё не покрыто
+2. **Перекрёстная верификация KB** — проверить что все факты из аннотаций попали в KB файлы
+3. **Мелкие системы:** pow.cpp (explosions), dirt.cpp (debris particles), pyro.cpp (fire effects)
+
+**ВЫПОЛНЕНО в этой итерации (barrel + wallhug):**
+- barrel.cpp полный анализ (1937 строк, 14 функций) + аннотация header блок
+- Barrel: 2-sphere rigid body, gravity=0x80, damping/32, MAV wall collision, standing-up correction
+- 4 типа: NORMAL(взрыв), CONE(малый), BURNING(огонь), BIN(мусор+банки)
+- BARREL_alloc: recycling ближайшего бареля при нехватке Thing; стакинг через THING_find_box
+- BARREL_shoot: PYRO_FIREBOMB + shockwave(0x200,250) + PCOM_oscillate_tympanum для NORMAL/BURNING
+- МЁРТВЫЙ КОД: position_on_hands+throw (подбор/бросок), cone penalty, старые particle эффекты
+- game_objects.md: новый раздел 10 (Barrel System) с полными деталями
+- Wallhug.cpp полный анализ (644 строки, 11 функций) + аннотация header блок
+- Wallhug: 2D grid pathfinding, Bresenham+left/right huggers, LOS cleanup (lookahead=4), max 10 итераций
+- navigation.md: раздел "Алгоритм Wallhug" существенно расширен (все 4 release conditions, cleanup pipeline)
+- Аудит аннотаций: fire/psystem/Vehicle/Building/mav/sound/door — подтверждено что аннотации на месте (были в списке с прошлых итераций)
 
 **ВЫПОЛНЕНО в этой итерации (overlay + guns + grenade + fc + nav):**
 - overlay.cpp полный анализ: OVERLAY_handle per-frame pipeline, PANEL_last HUD layout (circular health, 5 stamina marks, weapon+ammo, radar/beacons, timer MM:SS)
@@ -286,8 +299,8 @@
 ## Статус фазы анализа
 
 **Фаза 1 (текущая):** Детальный анализ оригинального кода → запись в `original_game_knowledge_base/`
-- KB написана примерно на 85%
-- Исходники аннотированы примерно на 65%+ (40+ файлов с аннотациями)
+- KB написана примерно на 90%
+- Исходники аннотированы примерно на 70%+ (45+ файлов с аннотациями)
 
 ---
 
@@ -390,6 +403,8 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | **guns.cpp** | 1 header блок | ✅ (auto-aim scoring, weapon stats, find_target_new, snipe) |
 | **grenade.cpp** | 1 header блок | ✅ (физика, CreateGrenadeExplosion, show_grenade_path) |
 | **Nav.cpp** | 1 header блок | ✅ (wallhug обёртка, NAV_Waypoint pool, NAV_wall_in_way) |
+| **Wallhug.cpp** | 1 header блок | ✅ (2D grid pathfinding: Bresenham+huggers, LOS cleanup, 4 release conditions) |
+| **barrel.cpp** | 1 header блок | ✅ (2-sphere rigid body: 4 типа, gravity/damping/MAV walls, stacking, shoot→explode) |
 | **fire.cpp** | ~99 ann. | ✅ (FIRE система: 8 fires, 256 flames, burn-out, bespoke renderer) |
 | **psystem.cpp** | ~158 ann. | ✅ (Particle system: pool, physics, PFLAG_*, fire_pal) |
 | **Vehicle.cpp** | ~309 ann. | ✅ (5159 строк, 52 функции, подвеска, collision, steering, crumple) |

@@ -190,19 +190,46 @@ typedef struct {
 } NAV_Waypoint;
 ```
 
-### Алгоритм Wallhug
+### Алгоритм Wallhug (Wallhug.cpp, 644 строки)
 
-`wallhug_path` содержит до 252 вэйпойнтов.
+Работает на 2D сетке 128×128 (те же размеры что MAV). Координаты UBYTE (0-127). 4 кардинальных направления, без диагоналей. `wallhug_path` содержит до 252 вэйпойнтов (`wallhug_waypoint` = {UBYTE x, UBYTE y}).
 
-1. **Тривиальный путь:** Bresenham по прямой к цели
-2. **При встрече стены:** запустить двух "huggers" (левый и правый)
-3. **Hugger:** движется вперёд, при препятствии поворачивает, чтобы держать "руку" у стены; отпускает стену когда смотрит на цель и путь свободен
-4. **Постобработка:** до 10 итераций убирают лишние вэйпойнты через LOS-оптимизацию (lookahead 4 ячейки)
+**Основной алгоритм (wallhug_continue_trivial):**
+
+1. **Прямая линия:** Bresenham от start к end
+2. **При встрече стены:** записать текущую позицию как waypoint, запустить двух huggers:
+   - hugger[0]: handed=-1 (left-hand rule), начальный поворот +1 от направления стены
+   - hugger[1]: handed=+1 (right-hand rule), начальный поворот -1 от направления стены
+3. **wallhug_hugstep():** каждый шаг hugger'а:
+   - Стена впереди → повернуть в сторону противоположную руке (`-handed`), записать waypoint
+   - Нет стены впереди → шагнуть вперёд; если нет стены со стороны руки → повернуть к руке (`+handed`)
+4. **Условия отпускания стены** (все 4 должны выполниться):
+   - Цель не за плоскостью hugged wall
+   - Hugger смотрит в сторону цели (цель не за спиной)
+   - Ближе к цели чем точка начала обхода (по обеим осям, не дальше end)
+   - Не на стартовой позиции
+5. **Победитель:** первый hugger с `dirn==WALLHUG_DONE`; его путь добавляется в основной path
+6. **Провал:** оба hugger.dirn==WALLHUG_FAILED_DIRN, или huggers встретились (face-to-face в соседних ячейках), или достигнут max_count
+
+**Обёртки:**
+- `wallhug_trivial(path)` — инициализирует path.length=0 и вызывает continue_trivial с WALLHUG_MAX_COUNT
+- `wallhug_tricky(path)` — trivial + wallhug_cleanup (оптимизация)
+
+**Постобработка (wallhug_cleanup):**
+
+1. `line_of_sight_cleanup(path, first_wp)`: для каждого waypoint проверить LOS к waypoint+1..+MAX_LOOKAHEAD(4); если есть → пропустить промежуточные. Повторять пока есть удаления.
+2. Для каждой пары соседних waypoints (c1, c1+1): навигировать между ними через `wallhug_trivial()`. Если новый путь НЕ содержит c1 → заменить c1 более коротким путём. После замены → goto line_of_sight_stuff (повторить LOS).
+3. Safety limit: max 10 итераций верхнего цикла.
+
+**line_of_sight():** Bresenham от start к end, проверяя WALLHUG_WALL_IN_WAY на каждом шаге.
 
 **Константы:**
 - WALLHUG_MAX_COUNT = 20000 (макс. шагов)
-- WALLHUG_MAX_PTS = 252 (макс. вэйпойнтов)
+- WALLHUG_MAX_PTS = 252 (макс. вэйпойнтов в пути)
+- MAX_LOOKAHEAD = 4 (для LOS-оптимизации)
 - Направления: NORTH=0, EAST=1, SOUTH=2, WEST=3
+- WALLHUG_FAILED = 0x70000000 (маркер провала)
+- WALLHUG_WALL_IN_WAY(x,y,dir) → NAV_wall_in_way() (определён в wallhug.h)
 
 ## Какую систему выбирает NPC?
 

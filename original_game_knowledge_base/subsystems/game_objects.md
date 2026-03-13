@@ -309,3 +309,80 @@ process_things(frameindex):
 - Управление памятью → custom allocator или object pool
 
 **Лимиты объектов (700) — пересмотреть:** в современной версии можно увеличить.
+
+---
+
+## 10. Barrel System (barrel.cpp) — деструктивные объекты
+
+**Ключевой файл:** `barrel.cpp` (1937 строк), `barrel.h`
+
+### Архитектура: 2-sphere rigid body
+
+Каждый барель моделируется как **2 связанных сферы** (`BARREL_Sphere`) на фиксированном расстоянии `BARREL_SPHERE_DIST=50`. Это простейший rigid body — позиция бареля = среднее двух сфер, ориентация из вектора между ними.
+
+### Состояния
+
+| Состояние | Описание |
+|-----------|---------|
+| **STACKED** | На другом бареле (`on=THING_INDEX`), не обрабатывается. Каскадное пробуждение |
+| **STILL** | На земле, не обрабатывается. Отличие от STACKED: `on=NULL` |
+| **Moving** (без флагов STACKED/STILL) | Активная физика: гравитация, коллизии, damping |
+| **HELD** | Персонаж держит — не обрабатывать физику (МЁРТВЫЙ КОД в пре-релизе!) |
+
+### Физика (BARREL_process_sphere)
+
+- Гравитация: `dy -= 0x80` каждый кадр
+- Затухание: `d* -= d*/32` (3.125% за кадр)
+- Коллизия с землёй: `PAP_calc_map_height_at` + bounce (`dy = abs(dy)/2`)
+- Коллизия со стенами: проверка MAV_opt по 4 направлениям (XS/XL/ZS/ZL), отскок от стен
+- Коллизия с другими барелями: sphere-sphere, push apart `ddist/4`
+- Покой: `abs(dx)+abs(dy)+abs(dz) < 0x200` → still++; оба still>64 → BARREL_convert_moving_to_stationary
+
+### Standing-up коррекция
+
+Когда барель на земле (GROUNDED) и tilt близок к вертикали (в пределах 224 от 512 или 1536):
+- Конусы/бины стоят только "правильной" стороной (проверка bs1.y > bs2.y)
+- Остальные: сферы стягиваются к оси в XZ → барель постепенно встаёт
+
+### 4 типа барелей
+
+| Тип | Описание | При стрельбе |
+|-----|---------|-------------|
+| NORMAL | Стандартный барель | Взрыв (PYRO_FIREBOMB) + shockwave(0x200, 250) + удаление |
+| CONE | Трафик-конус, меньший радиус сфер, НЕ стакается | Только толкает соседей (мелкий sphere hit) |
+| BURNING | Горящий барель (PYRO_IMMOLATE при создании) | Как NORMAL |
+| BIN | Мусорный бак, содержит мусор + банки | Только толкает соседей |
+
+### Cans (банки из мусорных баков)
+
+Если бак (BIN) упал на бок (tilt далеко от вертикали) и остановился → `DIRT_create_cans()` — рассыпаются банки.
+Одноразовое: после рассыпания `BARREL_FLAG_CANS` снимается.
+
+### BARREL_alloc — создание
+
+- Аллоцирует Thing + DrawMesh + Barrel структуру (пул из BARREL_MAX_BARRELS=300)
+- **Экстренный recycling:** если нет свободных Thing → ищет БЛИЖАЙШИЙ существующий барель и переиспользует!
+- Стакинг: ищет барели в радиусе `BARREL_STACK_RADIUS=45`, ставит поверх (on = THING_INDEX нижнего)
+- Небольшой рандом позиции: ±0x1ff к X/Y/Z (дрожание для visual variety)
+- Burning barrel: создаёт PYRO_IMMOLATE сразу при аллокации
+
+### BARREL_shoot — стрельба по барелю
+
+Для NORMAL/BURNING:
+1. `BARREL_dissapear()` — удаление с каскадом (стакнутые барели сверху → moving)
+2. `PYRO_create(PYRO_FIREBOMB)` — огненный эффект
+3. `create_shockwave(radius=0x200, damage=250)` — урон ближайшим
+4. `PCOM_oscillate_tympanum(PCOM_SOUND_BANG)` — алерт для AI
+5. `BARREL_hit_with_sphere(radius=0x60)` — толкает другие барели
+
+Для CONE/BIN: только толкает соседние барели маленьким sphere hit (radius=0x15).
+
+### МЁРТВЫЙ КОД
+
+- `BARREL_position_on_hands()` + `BARREL_throw()` (строки ~1505-1690) — подбор/бросок, полностью в `/* */`
+- Cone penalty (EWAY_count_up += 500) — закомментировано в convert_stationary_to_moving
+- Старые particle-эффекты взрыва (строки ~1863-1890) — в `/* */`
+
+### Коллизии с примитивами (BARREL_hit_with_prim)
+
+Oriented box test: prim→bounding box + yaw rotation → transform barrel sphere в object space → AABB test. При коллизии — push sphere к ближайшему краю бокса.
