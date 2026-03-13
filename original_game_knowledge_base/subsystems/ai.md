@@ -1,151 +1,21 @@
-# AI персонажей — Urban Chaos
+# AI персонажей — Urban Chaos (PCOM система)
 
-**Ключевые файлы:**
-- `fallen/Headers/pcom.h` — типы AI, состояния, флаги (~250 строк)
+**Связанные файлы:**
+- [ai_structures.md](ai_structures.md) — Person struct, типы персонажей, флаги
+- [ai_behaviors.md](ai_behaviors.md) — детальные реализации MIB/Bane/Driving/Snipe/Zone
+- [navigation.md](navigation.md) — MAV/NAV навигация
+- [combat.md](combat.md) — боевая система
+
+**Ключевые файлы кода:**
+- `fallen/Headers/pcom.h` — типы AI, состояния, флаги
 - `fallen/Source/Person.cpp` — AI логика (~22K строк)
-- `fallen/Headers/Person.h` — структура Person (~249 строк)
-- `fallen/Headers/Nav.h` — waypoint навигация
-- `fallen/Headers/mav.h` — пространственное планирование (MAV)
-- `fallen/Source/combat.cpp` / `fallen/Headers/combat.h` — боевая система
-
----
-
-## 1. Структура Person
-
-Расширение Thing для персонажей (NPC и игрок).
-
-```c
-typedef struct {
-    // Базовые
-    UBYTE Action;           // Текущее действие
-    UBYTE SubAction;        // Подействие
-    SWORD Health;           // Здоровье (0 = мёртв)
-
-    // Цель и навигация
-    THING_INDEX Target;     // Враг в поле зрения
-    THING_INDEX InWay;      // Препятствие на пути
-    THING_INDEX InCar;      // В какой машине
-    THING_INDEX InBike;     // На каком байке
-    UWORD NavIndex;         // Индекс текущей навигационной точки
-    SWORD NavX, NavZ;       // Целевая позиция навигации
-    SWORD TargetX, TargetZ; // Позиция цели
-
-    // Инвентарь
-    THING_INDEX SpecialList; // Список спецпредметов
-    THING_INDEX SpecialUse;  // Используемый предмет
-    THING_INDEX SpecialDraw; // Отображаемый предмет
-    SWORD Hold;              // Удерживаемый объект
-    UBYTE Ammo;              // Боеприпасы в пистолете
-
-    // Характеристики
-    UBYTE Mode;             // Режим движения (бег/ходьба/крадение)
-    UBYTE Power;            // Сила удара (0–255)
-    UBYTE Stamina;          // Выносливость
-    UBYTE GotoSpeed;        // Скорость перемещения
-    UBYTE FightRating;      // Навык боя + группировка
-    SWORD Agression;        // Агрессивность
-
-    // Позиция и ориентация
-    UWORD HomeX, HomeZ;     // Домашняя позиция
-    UWORD GotoX, GotoZ;     // Целевая позиция
-    UBYTE HomeYaw;          // Домашнее направление
-    UBYTE AttackAngle;      // Угол атаки (0–255)
-
-    // AI система (высокоуровневая)
-    UBYTE pcom_ai;          // Тип AI (PCOM_AI_*)
-    UBYTE pcom_ai_state;    // Состояние AI (PCOM_AI_STATE_*)
-    UBYTE pcom_ai_substate; // Подсостояние
-    UWORD pcom_ai_counter;  // Таймер для AI
-    UWORD pcom_ai_arg;      // Аргумент для AI
-    UWORD pcom_ai_other;    // Вспомогательная переменная
-
-    // AI система (движение)
-    UBYTE pcom_move;          // Тип движения (PCOM_MOVE_*)
-    UBYTE pcom_move_state;    // Состояние движения
-    UBYTE pcom_move_substate; // Подсостояние
-    UWORD pcom_move_counter;  // Таймер
-    UWORD pcom_move_arg;      // Аргумент
-    UWORD pcom_move_follow;   // Точка следования
-
-    // Прочее
-    UBYTE BurnIndex;        // Индекс pyro если горит
-    UWORD UnderAttack;      // 0 = нет, иначе таймер
-    UBYTE Ware;             // Индекс хранилища (если внутри)
-    UBYTE pcom_zone;        // Зона патрулирования
-    SBYTE CombatNode;       // Позиция в дереве боевых комбо
-    GameCoord GunMuzzle;    // Позиция дула пистолета (PC)
-} PersonStruct;
-```
-
----
-
-## 2. Типы персонажей (PERSON_*)
-
-```c
-PERSON_DARCI         (0)   // Главная героиня (игрок)
-PERSON_ROPER         (1)   // Второй персонаж (игрок)
-PERSON_COP           (2)   // Полицейский
-PERSON_THUG_RASTA    (4)   // Головорез (растаман)
-PERSON_THUG_GREY     (5)   // Головорез (серый)
-PERSON_THUG_RED      (6)   // Головорез (красный)
-PERSON_SLAG_TART     (7)   // Девушка
-PERSON_SLAG_FATUGLY  (8)   // Толстая женщина
-PERSON_HOSTAGE       (9)   // Заложник
-PERSON_MECHANIC      (10)  // Механик
-PERSON_TRAMP         (11)  // Бродяга
-PERSON_MIB1/2/3      (12-14) // Men In Black
-```
-
----
-
-## 3. Флаги Person (FLAG_PERSON_*)
-
-```c
-FLAG_PERSON_NON_INT_M         // Не интерактивен (мужчина)
-FLAG_PERSON_NON_INT_C         // Не интерактивен (женщина)
-FLAG_PERSON_LOCK_ANIM_CHANGE  // Анимация заблокирована
-FLAG_PERSON_GUN_OUT           // Пистолет выведен
-FLAG_PERSON_DRIVING           // Управляет машиной
-FLAG_PERSON_SLIDING           // Скользит (tackling)
-FLAG_PERSON_NO_RETURN_TO_NORMAL // Не возвращается в нормальное состояние
-FLAG_PERSON_HIT_WALL          // Столкнулся со стеной
-FLAG_PERSON_USEABLE           // Можно взаимодействовать (клавиша U)
-FLAG_PERSON_REQUEST_KICK      // AI запросила удар ногой
-FLAG_PERSON_REQUEST_JUMP      // AI запросила прыжок
-FLAG_PERSON_NAV_TO_KILL       // Навигирует к цели для убийства
-FLAG_PERSON_ON_CABLE          // На кабеле
-FLAG_PERSON_GRAPPLING         // Использует grappling hook
-FLAG_PERSON_HELPLESS          // Не может выполнять AI команды
-FLAG_PERSON_CANNING           // Держит банку
-FLAG_PERSON_REQUEST_PUNCH     // AI запросила удар кулаком
-FLAG_PERSON_REQUEST_BLOCK     // AI запросила блокировку
-FLAG_PERSON_FALL_BACKWARDS    // Падает назад
-FLAG_PERSON_BIKING            // Катается на байке
-FLAG_PERSON_PASSENGER         // Пассажир в машине
-FLAG_PERSON_HIT               // Был поражён
-FLAG_PERSON_SPRINTING         // Спринт
-FLAG_PERSON_FELON             // Разыскивается полицией
-FLAG_PERSON_PEEING            // Мочится
-FLAG_PERSON_SEARCHED          // Обыскан полицией
-FLAG_PERSON_ARRESTED          // Арестован
-FLAG_PERSON_BARRELING         // Держит бочку
-FLAG_PERSON_MOVE_ANGLETO      // Движется под углом к цели
-FLAG_PERSON_KO                // Выбит из сознания
-FLAG_PERSON_WAREHOUSE         // Внутри склада
-FLAG_PERSON_KILL_WITH_A_PURPOSE // Убивает с конкретной целью
-
-// Flags2:
-FLAG2_PERSON_INVULNERABLE     // Неуязвим
-FLAG2_PERSON_IS_MURDERER      // Убийца
-FLAG2_PERSON_CARRYING         // Несёт объект
-FLAG2_PERSON_GUILTY           // Виновен в преступлении
-```
+- `fallen/Source/pcom.cpp` — PCOM обработчики
 
 ---
 
 ## 4. PCOM — система AI (Person Commands)
 
-### Типы AI (PCOM_AI_*)
+### Типы AI (PCOM_AI_*) — 22 типа (0-21)
 
 ```c
 PCOM_AI_NONE          (0)   // Бездействует
@@ -159,40 +29,40 @@ PCOM_AI_DOORMAN       (7)   // Охранник двери
 PCOM_AI_BODYGUARD     (8)   // Телохранитель конкретного NPC
 PCOM_AI_DRIVER        (9)   // Водитель (ищет машину, ездит)
 PCOM_AI_BDISPOSER     (10)  // Сапёр (разряжает бомбы)
-PCOM_AI_BIKER         (11)  // Байкер (ищет мотоцикл)
-PCOM_AI_FIGHT_TEST    (12)  // Боевой манекен (тестирование)
+PCOM_AI_BIKER         (11)  // Байкер (#ifdef BIKE — не переносить)
+PCOM_AI_FIGHT_TEST    (12)  // Боевой манекен
 PCOM_AI_BULLY         (13)  // Задира (убивает всех не из банды)
 PCOM_AI_COP_DRIVER    (14)  // Полицейский водитель
 PCOM_AI_SUICIDE       (15)  // Самоубийца
 PCOM_AI_FLEE_PLAYER   (16)  // Убегает от игрока
 PCOM_AI_KILL_COLOUR   (17)  // Убивает всех одного цвета/группировки
-PCOM_AI_MIB           (18)  // Men in Black (спецагент)
-PCOM_AI_BANE          (19)  // Главный антагонист
+PCOM_AI_MIB           (18)  // Men in Black (спецагент) — см. ai_behaviors.md
+PCOM_AI_BANE          (19)  // Главный антагонист — см. ai_behaviors.md
 PCOM_AI_HYPOCHONDRIA  (20)  // Ипохондрик (ищет здоровье)
-PCOM_AI_SHOOT_DEAD    (21)  // Ассасин-снайпер
+PCOM_AI_SHOOT_DEAD    (21)  // Ассасин-снайпер — см. ai_behaviors.md
 ```
 
-### Состояния AI (PCOM_AI_STATE_*)
+### Состояния AI (PCOM_AI_STATE_*) — 28 состояний (0-27)
 
 ```c
 PCOM_AI_STATE_PLAYER        (0)   // Это игрок (не AI)
 PCOM_AI_STATE_NORMAL        (1)   // Нормальное поведение
 PCOM_AI_STATE_INVESTIGATING (2)   // Исследует подозрительный звук
-PCOM_AI_STATE_SEARCHING     (3)   // Активный поиск нарушителя
+PCOM_AI_STATE_SEARCHING     (3)   // Активный поиск нарушителя (STUB — пустой)
 PCOM_AI_STATE_KILLING       (4)   // Пытается убить цель
-PCOM_AI_STATE_SLEEPING      (5)   // Спит
+PCOM_AI_STATE_SLEEPING      (5)   // Спит (STUB — пустой)
 PCOM_AI_STATE_FLEE_PLACE    (6)   // Убегает из места
 PCOM_AI_STATE_FLEE_PERSON   (7)   // Убегает от персонажа
 PCOM_AI_STATE_FOLLOWING     (8)   // Следует за целью
 PCOM_AI_STATE_NAVTOKILL     (9)   // Навигирует к цели для убийства
 PCOM_AI_STATE_HOMESICK      (10)  // Возвращается домой
-PCOM_AI_STATE_LOOKAROUND    (11)  // Осматривается (поиск врагов)
+PCOM_AI_STATE_LOOKAROUND    (11)  // Осматривается (только счётчик, no code)
 PCOM_AI_STATE_FINDCAR       (12)  // Ищет машину
 PCOM_AI_STATE_BDEACTIVATE   (13)  // Разряжает бомбу
 PCOM_AI_STATE_LEAVECAR      (14)  // Выходит из машины
 PCOM_AI_STATE_SNIPE         (15)  // Снайперская позиция
 PCOM_AI_STATE_WARM_HANDS    (16)  // Греет руки у огня
-PCOM_AI_STATE_FINDBIKE      (17)  // Ищет байк
+PCOM_AI_STATE_FINDBIKE      (17)  // Ищет байк (#ifdef BIKE)
 PCOM_AI_STATE_KNOCKEDOUT    (18)  // Выбит из сознания
 PCOM_AI_STATE_TAUNT         (19)  // Дразнит врага перед боем
 PCOM_AI_STATE_ARREST        (20)  // Арестовывает нарушителя
@@ -201,7 +71,7 @@ PCOM_AI_STATE_GRAPPLED      (22)  // Удерживается в захвате
 PCOM_AI_STATE_HITCH         (23)  // Садится как пассажир
 PCOM_AI_STATE_AIMLESS       (24)  // Ищет машину, не находит
 PCOM_AI_STATE_HANDS_UP      (25)  // Руки вверх (сдача)
-PCOM_AI_STATE_SUMMON        (26)  // Вызывает подкрепление
+PCOM_AI_STATE_SUMMON        (26)  // Вызывает подкрепление (Bane)
 PCOM_AI_STATE_GETITEM       (27)  // Идёт за предметом
 ```
 
@@ -223,14 +93,14 @@ PCOM_MOVE_TIED_UP       (10) // Связан
 ### Черты персонажа (PCOM_BENT_*)
 
 ```c
-PCOM_BENT_LAZY             (0)  // Движется медленнее
+PCOM_BENT_LAZY             (0)  // Движется медленнее; ищет скамейку каждые 0x3f тиков
 PCOM_BENT_DILIGENT         (1)  // Движется быстрее
 PCOM_BENT_GANG             (2)  // Член банды (защищает товарищей)
 PCOM_BENT_FIGHT_BACK       (3)  // Может драться в ответ
 PCOM_BENT_ONLY_KILL_PLAYER (4)  // Убивает только игрока
 PCOM_BENT_ROBOT            (5)  // Игнорирует всё вокруг
 PCOM_BENT_RESTRICTED       (6)  // Не прыгает и не лазит
-PCOM_BENT_PLAYERKILL       (7)  // Убить может только игрок
+PCOM_BENT_PLAYERKILL       (7)  // Убить может только игрок (NPCшники не трогают)
 ```
 
 ---
@@ -248,8 +118,7 @@ PCOM_BENT_PLAYERKILL       (7)  // Убить может только игрок
 ```c
 light_at_target = NIGHT_get_light_at(target_pos);
 view_range = (R+G+B) + (R+G+B)<<3 + (R+G+B)>>2 + 256;
-// Хорошее освещение → дальше видят
-// Тёмные зоны → ближе
+// Хорошее освещение → дальше видят; тёмные зоны → ближе
 ```
 
 **Коррекции дальности:**
@@ -263,8 +132,7 @@ view_range = (R+G+B) + (R+G+B)<<3 + (R+G+B)>>2 + 256;
 - "Краем глаза" (250/2048 ≈ 44°): видит на половинную дистанцию только если цель не движется
 
 **Line of Sight:**
-- Eye height standing: 0x60 (96 units)
-- Eye height crouching: 0x20 (32 units)
+- Eye height standing: 0x60 (96 units); crouching: 0x20 (32 units)
 - Проверяется через `there_is_a_los()` от головы наблюдателя к голове цели
 
 ---
@@ -277,165 +145,32 @@ view_range = (R+G+B) + (R+G+B)<<3 + (R+G+B)>>2 + 256;
 
 ```c
 PCOM_SOUND_FOOTSTEP      = 0x280   // 640 units / 2.5 squares
-PCOM_SOUND_VAN           = 0x180   // 384 units / 1.5 squares (самый тихий)
-PCOM_SOUND_DROP          = 0x200   // 512 units / 2 squares
-PCOM_SOUND_MINE          = 0x300   // 768 units / 3 squares
-PCOM_SOUND_GRENADE_HIT   = 0x300
+PCOM_SOUND_VAN           = 0x180   // 384 units (пугает только гражданских)
+PCOM_SOUND_DROP          = 0x200   // 512 units
+PCOM_SOUND_MINE          = 0x300   // 768 units
+PCOM_SOUND_GRENADE_HIT   = 0x300   // 768 units (нужен LOS к гранате)
 PCOM_SOUND_GRENADE_FLY   = 0x300
 PCOM_SOUND_LOOKINGATME   = 0x400
 PCOM_SOUND_WANKER        = 0x400
-PCOM_SOUND_DROP_MED      = 0x400   // 1024 units / 4 squares
-PCOM_SOUND_UNUSUAL       = 0x600   // 1536 units / 6 squares
+PCOM_SOUND_DROP_MED      = 0x400   // 1024 units
+PCOM_SOUND_UNUSUAL       = 0x600   // 1536 units (банка колы!)
 PCOM_SOUND_HEY           = 0x600
-PCOM_SOUND_DRAW_GUN      = 0x600   // визуальная проверка (нужен LOS!)
+PCOM_SOUND_DRAW_GUN      = 0x600   // визуальный триггер (требует LOS!)
 PCOM_SOUND_DROP_BIG      = 0x600
-PCOM_SOUND_BANG          = 0x700   // 1792 units / 7 squares
-PCOM_SOUND_ALARM         = 0x800   // 2048 units / 8 squares
-PCOM_SOUND_FIGHT         = 0x900   // 2304 units / 9 squares
-PCOM_SOUND_GUNSHOT       = 0xa00   // 2560 units / 10 squares (самый громкий)
+PCOM_SOUND_BANG          = 0x700   // 1792 units
+PCOM_SOUND_ALARM         = 0x800   // 2048 units
+PCOM_SOUND_FIGHT         = 0x900   // 2304 units
+PCOM_SOUND_GUNSHOT       = 0xa00   // 2560 units (самый громкий)
 ```
 
 **Фильтры распространения:**
 - Zone check: NPC с `pcom_zone` слышат только звуки из своей зоны
 - Warehouse boundary: звуки не проникают через стены склада
-- PCOM_SOUND_VAN пугает только гражданских
-- PCOM_SOUND_DRAW_GUN требует LOS (это визуальный триггер)
-- Гранаты: нужно видеть гранату (LOS к гранате)
+- PCOM_SOUND_DRAW_GUN требует LOS (это визуальный триггер, несмотря на название)
 
-**Реакция:**
+**Реакция на звуки:**
 - Большинство звуков → `PCOM_AI_STATE_INVESTIGATING`
 - Бой/выстрел → `PCOM_AI_STATE_SEARCHING` или сразу KILLING
-
----
-
-## 6. Система навигации
-
-### NAV — waypoint-based
-
-```c
-typedef struct {
-    UWORD x;       // X позиция точки
-    UWORD z;       // Z позиция точки
-    UBYTE flag;    // NAV_WAYPOINT_FLAG_LAST, FLAG_PULLUP и т.д.
-    UBYTE length;  // Количество точек после этой
-    UWORD next;    // Индекс следующей точки
-} NAV_Waypoint;
-// Максимум 512 waypoints
-```
-
-Использование:
-```c
-UWORD first = NAV_do(x1, z1, x2, z2, flags);
-// Идти по: NAV_WAYPOINT(first) → NAV_WAYPOINT(first)->next → ...
-// Конец пути: flag & NAV_WAYPOINT_FLAG_LAST
-```
-
-### MAV — пространственное планирование (More Advanced Nav)
-
-Работает на уровне mapsquares (не waypoints). Определяет что нужно сделать чтобы перейти из одного квадрата в соседний.
-
-```c
-// Данные MAV карты
-#define MAV_NAV(x,z)    (MAV_nav[(x)*MAV_nav_pitch + (z)] & 1023)      // 10 бит
-#define MAV_CAR(x,z)    ((MAV_nav[(x)*MAV_nav_pitch + (z)] >> 10) & 15) // 4 бита
-#define MAV_SPARE(x,z)  (MAV_nav[(x)*MAV_nav_pitch + (z)] >> 14)        // 2 бита
-
-// Действия при переходе в соседний квадрат
-#define MAV_ACTION_GOTO       (0)  // Просто идти
-#define MAV_ACTION_JUMP       (1)  // Прыжок на 1 блок
-#define MAV_ACTION_JUMPPULL   (2)  // Прыжок + подтянуться на 1 блок
-#define MAV_ACTION_JUMPPULL2  (3)  // Прыжок + подтянуться на 2 блока
-#define MAV_ACTION_PULLUP     (4)  // Подтянуться
-#define MAV_ACTION_CLIMB_OVER (5)  // Залезть через препятствие
-#define MAV_ACTION_FALL_OFF   (6)  // Спрыгнуть вниз
-#define MAV_ACTION_LADDER_UP  (7)  // Лестница вверх
-
-// Направления
-MAV_DIR_XS (0), MAV_DIR_XL (1), MAV_DIR_ZS (2), MAV_DIR_ZL (3)
-```
-
-Использование:
-```c
-MAV_Action result = MAV_do(me_x, me_z, dest_x, dest_z, MAV_CAPS_DARCI);
-// result.action — что делать
-// result.dir    — куда
-// MAV_do_found_dest — найден ли полный путь
-```
-
-**Двухуровневая навигация:**
-1. **MAV** — высокоуровневое планирование через mapsquares (глобальный путь)
-2. **NAV** — детальное планирование через waypoints (локальные точки)
-
----
-
-## 7. Боевая система
-
-### Типы ударов (HIT_TYPE_*)
-
-```c
-HIT_TYPE_GUN_SHOT_H      (1)   // Выстрел в голову
-HIT_TYPE_GUN_SHOT_M      (2)   // Выстрел в туловище
-HIT_TYPE_GUN_SHOT_L      (3)   // Выстрел в ноги
-HIT_TYPE_PUNCH_H/M/L     (4-6) // Удар кулаком (голова/туловище/ноги)
-HIT_TYPE_KICK_H/M/L      (7-9) // Удар ногой
-HIT_TYPE_GUN_SHOT_PISTOL (10)
-HIT_TYPE_GUN_SHOT_SHOTGUN(11)
-HIT_TYPE_GUN_SHOT_AK47   (12)
-```
-
-### Комбо система
-
-```c
-struct ComboHistory {
-    UWORD Owner;
-    SBYTE Power[MAX_MOVES];    // Сила каждого удара
-    SBYTE Moves[MAX_MOVES];    // Тип удара (punch/kick/knife)
-    UWORD Times[MAX_MOVES];    // Время удара
-    UBYTE Result[MAX_MOVES];   // Попал/заблокировал
-    UBYTE Index, Count;
-};
-
-struct BlockingHistory {
-    UWORD Owner;
-    UBYTE Attack[MAX_MOVES];   // Тип атаки
-    UBYTE Flags[MAX_MOVES];    // Флаги (попала/заблокирована)
-    UWORD Times[MAX_MOVES];
-    UWORD Perp[MAX_MOVES];     // Кто атакует
-    UBYTE Index, Count;
-};
-
-struct GangAttack {
-    UWORD Owner;               // На кого нападают
-    UWORD Perp[8];             // 8 направлений атаки (компас)
-    UBYTE Index, Count;
-};
-```
-
-### Ключевые боевые функции
-
-```c
-// Найти цель для атаки
-SLONG find_attack_stance(
-    Thing *p_person,
-    SLONG attack_direction,   // FIND_DIR_FRONT / BACK / LEFT / RIGHT
-    SLONG attack_distance,
-    Thing **stance_target,
-    GameCoord *stance_position,
-    SLONG *stance_angle);
-
-// Применить урон
-SLONG apply_hit_to_person(
-    Thing *p_thing,
-    SLONG angle,
-    SLONG type,               // HIT_TYPE_*
-    SLONG damage,
-    Thing *p_aggressor,
-    struct GameFightCol *fight);
-
-// Повернуться к цели и атаковать
-SLONG turn_to_target_and_punch(Thing *p_person);
-SLONG turn_to_target_and_kick(Thing *p_person);
-```
 
 ---
 
@@ -468,13 +203,6 @@ PERSON_SPEED_CRAWL  (6)
 
 Главный dispatch switch в `CANID_fn_normal()` закомментирован — ни одно состояние собаки не обрабатывается. Все остальные функции (`CANID_6sense`, `CANID_can_see`, `CANID_LOS`, `CANID_Homing`) реализованы, но не вызываются.
 
-**Состояния собак (в коде, но не активны):**
-- Patrol, Chase, Attack, Flee
-- `CANID_6sense()` — дальность обнаружения
-- `CANID_init_prowl()`, `CANID_init_chase()` — переходы состояний
-
-**Вывод:** это пре-релизная сборка. В финальной игре собаки могут присутствовать в отдельных миссиях (уточнить у автора).
-
 ---
 
 ## 9. Групповое поведение (банды и полиция)
@@ -498,8 +226,8 @@ PCOM_alert_my_gang_to_flee(threat, source)
 
 Блуждающие гражданские (PCOM_MOVE_WANDER) воскресают если мертвы:
 - Не в поле зрения игрока (флаг `FLAGS_IN_VIEW` = 0)
-- Мертвы 200+ кадров → перемещаются на home позицию с полным здоровьем
-- Только для WANDER-режима (не патруль)
+- Мертвы 200+ кадров → home позиция с полным здоровьем
+- **Баг пре-релиза:** teleport не работает, воскресают на месте смерти (см. ai_behaviors.md 10e)
 
 ### Полиция: арест
 
@@ -512,7 +240,6 @@ PCOM_alert_my_gang_to_flee(threat, source)
 **Приоритет цели для ареста:**
 - Расстояние + высота: ближе = выше приоритет
 - Игрок: score <<= 1 (деприоритет)
-- Wandering civvies: score <<= 2 (деприоритет)
 - С флагом GUILTY: score >>= 2 (высокий приоритет)
 
 ---
@@ -520,18 +247,15 @@ PCOM_alert_my_gang_to_flee(threat, source)
 ## 9b. Числовые константы
 
 ```c
-#define PCOM_TICKS_PER_TURN    16         // Тиков за кадр
-#define PCOM_TICKS_PER_SEC     (16 * 20)  // = 320 тиков/сек
-
-#define PCOM_ARRIVE_DIST       0x40       // 64 units — считается "прибыл"
-
-#define RMAX_PEOPLE            180        // Максимум NPC в сцене
-#define PCOM_MAX_GANGS         16         // Максимум банд (цвета 0–15)
-#define PCOM_MAX_GANG_PEOPLE   64         // Суммарно членов банд
-#define PCOM_MAX_FIND          16         // Максимум результатов sphere-поиска
+PCOM_TICKS_PER_TURN    = 16           // Тиков за кадр
+PCOM_TICKS_PER_SEC     = 16 * 20 = 320  // Тиков/сек (NOTE: 320, не 256!)
+PCOM_ARRIVE_DIST       = 0x40 = 64   // Units — считается "прибыл"
+RMAX_PEOPLE            = 180          // Максимум NPC в сцене
+PCOM_MAX_GANGS         = 16           // Максимум банд (цвета 0–15)
+PCOM_MAX_GANG_PEOPLE   = 64           // Суммарно членов банд
+PCOM_MAX_FIND          = 16           // Максимум результатов sphere-поиска
+PCOM_get_duration(n)   = n * 32 тиков // Конвертация из десятых секунды
 ```
-
-`PCOM_get_duration(tenths)` = `tenths * 32` тиков (конвертация из десятых секунды)
 
 ---
 
@@ -540,8 +264,9 @@ PCOM_alert_my_gang_to_flee(threat, source)
 ```
 PCOM_process_person(Thing *p_person):  // pcom.cpp:13003
     StateFn(p_person)                   // анимационный state machine
+
     if PlayerID:
-        idle→pcom_move_counter++ → если >PCOM_get_duration(30) и рядом танцующий NPC:
+        idle → pcom_move_counter++ → если >PCOM_get_duration(30) и рядом танцующий NPC:
             Darci копирует его танец (dance join логика)
         return  // игрок: больше ничего не делаем
 
@@ -551,14 +276,14 @@ PCOM_process_person(Thing *p_person):  // pcom.cpp:13003
 
     if DEAD/DYING:
         if AI==CIV && MOVE==WANDER && !IN_VIEW:
-            pcom_ai_counter++ → если >200: воскресить (см. 9)
+            pcom_ai_counter++ → если >200: воскресить
     else:
         PCOM_process_state_change(p_person)  // главный AI dispatcher
 ```
 
 ### PCOM_process_default() — диспетчер состояний
 
-Вызывается большинством AI-типов. Простой switch по `pcom_ai_state`:
+Вызывается большинством AI-типов. Switch по `pcom_ai_state`:
 
 | Состояние | Обработчик |
 |-----------|-----------|
@@ -587,14 +312,11 @@ PCOM_process_person(Thing *p_person):  // pcom.cpp:13003
 | GETITEM | PCOM_process_getitem() |
 | default | ASSERT(0) |
 
-Примечание: FINDBIKE обёрнут в `#ifdef BIKE` (отключён — байк не переносится).
+FINDBIKE обёрнут в `#ifdef BIKE` (не переносится).
 
 ### PCOM_process_normal() — диспетчер NORMAL state
 
-Маршрутизирует по `pcom_move`:
-
 - **STILL / DANCE / HANDS_UP / TIED_UP:**
-  - Если уже в STATE_MOVEING с SIMPLE_ANIM → проверяет сидит/чешется, иначе scratch animation
   - Если далеко от дома (>256 units) → HOMESICK
   - GUARD на домашней позиции: рисует пистолет если не нарисован
   - LAZY-флаг: каждые 0x3f тиков ищет скамейку/диван в радиусе 0x200=512, садится если нашёл
@@ -602,215 +324,4 @@ PCOM_process_person(Thing *p_person):  // pcom.cpp:13003
 - **WANDER** → `PCOM_process_wander()`
 - **FOLLOW**: если CANTFIND substate — каждые 16 кадров пробует `can_a_see_b` к цели, иначе wander
 - **FOLLOW_ON_SEE**: если дистанция < 0x200 И `can_a_see_b` → переключается на FOLLOW
-- **WARM_HANDS**: если далеко от дома (>0x200) → HOMESICK, иначе `PCOM_set_person_ai_warm_hands()`
-
----
-
-## 10b. MIB AI детали
-
-**PCOM_AI_MIB (18)** — самый агрессивный AI, всегда убивает игрока:
-
-```
-PCOM_process_state_change → case PCOM_AI_MIB:
-    if pcom_ai_state == NORMAL:
-        if can_a_see_b(me, Darci) && !stealth_debug:
-            PCOM_alert_nearby_mib_to_attack(me)  // mass aggro
-    PCOM_process_default(me)  // обычные состояния
-```
-
-**PCOM_alert_nearby_mib_to_attack()** — массовый aggro trigger (pcom.cpp:10825):
-- `THING_find_sphere(radius=0x500=1280 units)` — все персонажи поблизости
-- Для каждого NPC с pcom_ai ∈ {MIB, GUARD, GANG, FIGHT_TEST}:
-  - Если NOT HELPLESS и в состоянии NORMAL/HOMESICK/INVESTIGATING:
-  - → `PCOM_set_person_ai_navtokill(found, Darci)` (немедленно начинает преследование)
-
-**Ключевые отличия MIB от других AI:**
-- Не ждёт звука/события — проверяет can_a_see_b каждый кадр в NORMAL state
-- Групповой aggro: один MIB увидел → все MIB/GUARD/GANG/FIGHT_TEST в радиусе 1280 атакуют
-- Нет агрессивного порога — убивает всегда (не как COP/GANG с условиями)
-- KO невозможен (Health=700, FLAG2_PERSON_INVULNERABLE)
-
----
-
-## 10c. Bane AI детали
-
-**PCOM_AI_BANE (19)** — всегда в состоянии SUMMON:
-
-```
-case PCOM_AI_BANE:
-    if pcom_ai_state != SUMMON: PCOM_set_person_ai_summon(me)
-    PCOM_process_summon(me)
-```
-
-**PCOM_process_summon()** — 2 подсостояния (pcom.cpp:5280):
-
-**SUMMON_START:** ждёт анимацию SUB_STATE_FLOAT_BOB, затем:
-- Поднимает до 4 тел (PCOM_summon[0..3]) в воздух (`set_person_float_up()`)
-- Создаёт SPARK электродуги от конечностей Bane к телам (лимбы: L_HAND, R_HAND, L_FOOT, R_FOOT → таз жертвы)
-- Переходит в SUMMON_FLOAT
-
-**SUMMON_FLOAT:** каждые `PCOM_get_duration(50)=160 тиков` пересоздаёт SPARK дуги.
-
-Близость Darci → электрошок:
-- `dx+dz < 0x60000` (Darci рядом) → `pcom_move_counter` растёт
-- Если Darci смещается → `pcom_move_counter >>= 1` (сброс при движении)
-- `pcom_move_counter >= PCOM_get_duration(20)=640 тиков (~2 сек на месте)` → electrocute:
-  - `set_person_recoil(Darci, ANIM_HIT_FRONT_MID, 0)` + `Health -= 25`
-  - SPARK дуга Bane.PELVIS → Darci.PELVIS (intensity=50)
-  - `pcom_move_counter = 0` (сброс)
-
-**Вывод:** Bane не атакует напрямую — он статичен, поднимает тела, и если игрок стоит рядом 2 секунды — бьёт током.
-
----
-
-## 10d. Driving AI детали
-
-**PCOM_AI_DRIVER (9) / PCOM_AI_COP_DRIVER (14):**
-
-COP_DRIVER → fallthrough в DRIVER логику.
-
-```
-NORMAL state:
-    if !FLAG_PERSON_DRIVING:
-        PCOM_set_person_ai_findcar(me, NULL)  // ищет любую машину
-    else:
-        dispatch по pcom_move:
-            STILL  → PCOM_process_driving_still()
-            PATROL/PATROL_RAND → PCOM_process_driving_patrol()
-            WANDER → PCOM_process_driving_wander()
-            FOLLOW → (пусто — не реализовано)
-non-NORMAL states: PCOM_process_default()
-```
-
-**Важно:** логика COP_DRIVER (выйти из машины и арестовать) закомментирована (`/* ... */`).
-
-**Driving movement states** (в PCOM_process_movement):
-- `PCOM_MOVE_STATE_DRIVETO (8)` — едет к конкретной точке
-- `PCOM_MOVE_STATE_DRIVE_DOWN (11)` — едет по дорожному графу (ROAD wander)
-- Завершение DRIVE_DOWN → переход к следующему NAV-узлу дороги
-
----
-
-## 10e. Воскрешение гражданских — детали реализации
-
-(pcom.cpp:13104)
-
-```c
-if (pcom_ai == PCOM_AI_CIV && pcom_move == PCOM_MOVE_WANDER && !IN_VIEW):
-    pcom_ai_counter++
-    if pcom_ai_counter > 200:
-        newpos = (HomeX<<16+0x8000, HomeZ<<16+0x8000, terrain_height)
-        // ⚠️ БАГИ пре-релиза: newpos вычисляется но НЕ присваивается p_person->WorldPos!
-        plant_feet(p_person)       // просто снижает к полу на ТЕКУЩЕЙ позиции
-        Health = health[PersonType] // восстанавливает здоровье
-        clear FLAGS_BURNING, BurnIndex = 0
-        PCOM_set_person_ai_normal(p_person)
-```
-
-Вывод: в пре-релизной версии гражданские воскресают **на месте смерти**, а не на домашней позиции (teleport в newpos — мёртвый код). В финале может быть исправлено.
-
----
-
-## 10f. PCOM_process_killing() — ближний бой
-
-**Состояние PCOM_AI_STATE_KILLING** — NPC уже в радиусе удара, бьёт цель.
-
-**FAKE_WANDER проверка** (каждые 4 тика):
-- Если NPC с флагом FLAG2_PERSON_FAKE_WANDER (Thug Rasta или Cop):
-  - `PCOM_should_fake_person_attack_darci()` → если false: `PCOM_set_person_ai_flee_person()` и выход
-  - Это единственный путь из KILLING → FLEE напрямую (порог агрессии для fake_wander NPC)
-
-**Если цель мертва:**
-- Если арестована и не SUB_STATE_DEAD_ARRESTED → ждём завершения анимации ареста
-- Иначе → `PCOM_set_person_ai_normal()` (домой)
-
-**Если цель в машине:**
-- Есть пистолет → `PCOM_set_person_ai_navtokill()` (стреляет по машине)
-- Нет пистолета → `PCOM_set_person_ai_taunt()` (только издевается)
-
-**Каждые 2 тика — проверка дистанции:**
-- Если цель НЕ в нокауте:
-  - Если цель убегает (FLEE_PERSON): `too_far = 0x150` (~340 units — ближе держится)
-  - Иначе: `too_far = 0x250` (~592 units)
-  - Если дистанция > too_far ИЛИ нет LOS → `PCOM_set_person_ai_navtokill()` (догоняет)
-
-**Каждые 64 тика:** если цель в NORMAL state — кричит агрессивный звук (`S_WTHUG1_ALERT_START`)
-
-**Каждые 256 тиков (PSX: 128):** ищет оружие поблизости → `PCOM_set_person_ai_getitem()`
-
-**Движение (PCOM_MOVE_STATE):**
-- STILL → `PCOM_set_person_move_circle()` + пауза 15-20 тиков
-- PAUSE / CIRCLE → вся логика уже в `fn_person_circle()`
-- ANIMATION / WAIT_CIRCLE / GRAPPLE → ждём анимации
-
-**Вывод:** KILLING сам по себе НЕ переходит в FLEE по жизням. Переход в FLEE происходит только для FAKE_WANDER NPC (не настоящие враги) через `PCOM_should_fake_person_attack_darci()`. Обычные враги из KILLING уходят обратно в NORMAL (если цель мертва) или в NAVTOKILL (если цель ушла).
-
----
-
-## 10g. PCOM_process_snipe() — снайпер AI
-
-**PCOM_AI_SHOOT_DEAD (21)** — статичный снайпер, не перемещается, только стреляет.
-
-Если нет цели (`pcom_ai_arg == NULL`) → `PCOM_set_person_ai_normal()` и выход.
-
-**3 подсостояния** (`pcom_ai_substate`):
-
-**PCOM_AI_SUBSTATE_LOOK (ожидание цели):**
-- Нет патронов → ничего не делает
-- `can_a_see_b(me, target)` → если да: переход в AIMING, counter=0
-- Если нет: counter += TICKS_PER_TURN * TICK_RATIO (накапливает время ожидания)
-- Код "убрать пистолет после 10 сек без цели" — **закомментирован** (пистолет всегда наготове)
-
-**PCOM_AI_SUBSTATE_AIMING (прицеливается/стреляет):**
-- Если пистолет не достан → `PCOM_set_person_move_draw_gun()`
-- Если дистанция < `0x600` (≈1536 units) И `can_a_see_b`:
-  - `shoot_time = get_rate_of_fire() - (SKILL × 4) / 100`
-  - Если counter > shoot_time ИЛИ AI_type == PCOM_AI_SHOOT_DEAD:
-    - Нет патронов → `set_person_shoot(click)` + убрать пистолет → NOMOREAMMO
-    - Есть патроны → `PCOM_set_person_move_shoot()`, counter=0
-  - Всегда: `set_face_thing(me, target)` — поворачивается к цели
-- Если цель вышла из дистанции/LOS → назад в LOOK
-
-**PCOM_AI_SUBSTATE_NOMOREAMMO (нет патронов):**
-- Ждёт пока `pcom_move_state == STILL` (анимация уборки завершена)
-- Затем → LOOK, counter=0
-
-**Ключевые параметры:**
-- Максимальная дистанция стрельбы: **0x600 units** (1536)
-- Скорость стрельбы: `get_rate_of_fire(p_person) - GET_SKILL(p_person)×4/100`
-- Снайпер НЕ двигается никогда (нет навигации, нет pathfinding)
-- Стреляет мгновенно если `pcom_ai == PCOM_AI_SHOOT_DEAD` и aiming (счётчик игнорируется)
-
----
-
-## 10h. pcom_zone — зональная изоляция AI
-
-Механизм ограничения зоны патрулирования и восприятия NPC.
-
-**Хранение зон в навмеше:**
-- PAP_Hi.Flags bits 10-13 = 4-bit zone ID для каждого навмеш-квадрата
-- `PCOM_get_zone_for_position(Thing*)` → читает зону из текущего/целевого навмеш-квадрата
-- `PCOM_get_zone_for_position(x, z)` → читает зону по координатам `PAP_2HI(x>>8, z>>8)`
-
-**Person.pcom_zone — бitmask зон NPC:**
-- Если `pcom_zone == 0` → NPC не ограничен зонами (реагирует на всё)
-- Если `pcom_zone != 0` → NPC реагирует только на события в своих зонах
-
-**Фильтрация видимости** (`PCOM_can_i_see_person_to_attack`):
-```c
-if (pcom_zone && !(PCOM_get_zone_for_position(target) & pcom_zone)):
-    return NULL  // цель в другой зоне — игнорировать
-```
-
-**Фильтрация звуков** (в `PCOM_oscillate_tympanum`):
-```c
-if (p_found->pcom_zone && !(PCOM_get_zone_for_position(sound_x, sound_z) & p_found->pcom_zone)):
-    continue  // звук из другой зоны — не слышать
-```
-
-**Фильтрация NAVTOKILL** (pcom.cpp:8669):
-- Если цель ушла из зоны NPC → `PCOM_set_person_ai_homesick()` (вернуться домой)
-- Если дом тоже не в зоне (level design ошибка) → `pcom_zone = 0` (сбросить ограничение)
-
-**Вывод:** pcom_zone — бitmask из 4 бит. NPC с pcom_zone≠0 не видят, не слышат и не преследуют цели за пределами своих зон. Назначается через zone byte в EWAY_create_enemy (биты 0-3). Если дом NPC не в его же зоне — зона автоматически сбрасывается.
-
+- **WARM_HANDS**: если далеко от дома (>0x200) → HOMESICK

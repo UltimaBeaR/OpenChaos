@@ -222,62 +222,7 @@ struct CommandDef {
 
 ## 6. Здания
 
-**Иерархия:** Building → Storey (этаж) → Wall (стена)
-
-### FBuilding (44 байта):
-```c
-struct FBuilding {
-    UWORD ThingIndex;
-    UWORD LastDrawn;
-    UBYTE Foundation;      // тип фундамента
-    SWORD OffsetY;
-    UWORD InsideSeed;      // seed для генерации интерьера
-    UBYTE BuildingFlags;
-    SWORD StoreyHead;      // голова списка этажей
-    SWORD Angle;           // ориентация
-    UWORD StoreyCount;
-    CBYTE str[20];         // имя здания
-    UBYTE StairSeed;
-    UBYTE BuildingType;    // HOUSE, WAREHOUSE, OFFICE, APARTMENT...
-    UWORD Walkable;
-};
-```
-
-### FStorey (48 байт) — этаж:
-```c
-struct FStorey {
-    SWORD DX, DY, DZ;
-    UBYTE StoreyType;      // NORMAL, ROOF, WALL, FIRE_ESCAPE, INSIDE...
-    UBYTE StoreyFlags;
-    UWORD Height;
-    SWORD WallHead;        // голова списка стен
-    SWORD Next, Prev;
-    SWORD Inside;
-};
-```
-
-**Типы StoreyType:**
-```c
-STOREY_TYPE_NORMAL      = 1
-STOREY_TYPE_ROOF        = 2
-STOREY_TYPE_WALL        = 3
-STOREY_TYPE_FIRE_ESCAPE = 6
-STOREY_TYPE_INSIDE      = 17
-```
-
-### FWall (38 байт) — стена:
-```c
-struct FWall {
-    SWORD DX, DZ;
-    UWORD WallFlags;       // USED, AUTO_WINDOWS...
-    UWORD TextureStyle;
-    SWORD TextureStyle2;
-    UWORD DY;              // высота стены
-    SWORD Next;
-    UBYTE *Textures;
-    UWORD Tcount;
-};
-```
+Структуры FBuilding, FStorey, FWall, STOREY_TYPE_* (21 тип), DFacet, интерьеры → [buildings_interiors.md](buildings_interiors.md)
 
 ---
 
