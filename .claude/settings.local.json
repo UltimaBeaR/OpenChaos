@@ -37,7 +37,9 @@
       "Bash(find c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Debug/ -name *.all)",
       "Bash(sed -i '761s|// claude-ai: 26a0Fe0f.*dz\\\\*nx;|dprod = dx*nx + dy*ny + dz*nx;|' \"c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/night.cpp\")",
       "Bash(sed -n '759,766p' \"c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/night.cpp\")",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(grep -rn \"GAMEMENU_WON\\\\|GAMEMENU_LOST\\\\|GS_LEVEL_WON\\\\|GS_LEVEL_LOST\\\\|ScoresDraw\\\\|SCORES_\" c:WORKMuckyFoot-UrbanChaos_baseoriginal_gamefallen --include=*.cpp --include=*.h -l)",
+      "Bash(sed *)"
     ],
     "deny": [
       "Bash(git commit*)",

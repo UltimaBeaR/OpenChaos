@@ -11,6 +11,11 @@
 // claude-ai:   STARTSCR_notify_gameover() закомментирован в Game.cpp → auto_advance никогда не устанавливается.
 // claude-ai: level_won(), level_lost() → #if 0 (dead code). Заменены GAMEMENU overlay системой.
 // claude-ai: ScoresDraw() → отрисовка статистики + mucky times (speedrun) таблица.
+// claude-ai:   Показывает: killed(stat_killed_thug), arrested(stat_arrested_thug), at-large(живые Thug/MIB),
+// claude-ai:   bonus found(stat_count_bonus), bonus missed(живые SPECIAL_TREASURE), time(h:m:s from stat_game_time).
+// claude-ai:   Mucky times: хардкод ~35 миссий с рекордами разработчиков; если игрок быстрее → hash-код для верификации.
+// claude-ai:   Активная таблица = DC версия (#else ветка). PC-времена в #if 0.
+// claude-ai:   Вызывается ТОЛЬКО из GAMEMENU_draw() при GAMEMENU_MENU_TYPE_WON; вызов из overlay.cpp закомментирован.
 
 #include "Game.h"
 #include "cam.h"

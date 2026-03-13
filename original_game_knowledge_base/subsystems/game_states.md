@@ -147,6 +147,31 @@ while (SHELL_ACTIVE && (GAME_STATE & (GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WO
 - Если `player->Health > 0`: `MUSIC_mode(MUSIC_MODE_CHAOS)` (провал без гибели)
 - Если `player->Health <= 0`: `MUSIC_mode(MUSIC_MODE_GAMELOST)` (гибель)
 
+### GAMEMENU WON/LOST меню (gamemenu.cpp)
+
+**Структуры меню:**
+```c
+PAUSE = {X_GAME_PAUSED,  X_RESUME_LEVEL, X_RESTART_LEVEL, X_ABANDON_GAME}
+WON   = {X_LEVEL_COMPLETE}          // ← только заголовок, items[1..7] = NULL!
+LOST  = {X_LEVEL_LOST, X_RESTART_LEVEL, X_ABANDON_GAME}
+SURE  = {X_ARE_YOU_SURE, X_OKAY, X_CANCEL}   // подтверждение Abandon
+```
+
+**WON-меню:** нет выбираемых пунктов. Нажатие ENTER/SPACE на NULL-пункте → `GAMEMENU_DO_NEXT_LEVEL`. ESC → тоже `DO_NEXT_LEVEL`.
+
+**LOST-меню:** RESTART_LEVEL → `DO_RESTART`; ABANDON_GAME → SURE → OKAY → `DO_CHOOSE_NEW_MISSION`.
+
+**Таймер показа:** `GAMEMENU_wait` инкрементируется на 64/кадр (пока не играет MFX_QUICK speech); порог `64*20*2 = 2560` ≈ 40 кадров = ~1.3 сек → только тогда показывается меню. DC: дополнительная блокировка ввода ещё 2.5 сек (`64*20*4 = 5120`).
+
+**Выход из inner loop (PC):**
+```
+exit_game_loop = GAMEMENU_process()   // != 0 → fadeout start
+→ PANEL_fadeout_finished():
+    DO_RESTART            → GAME_STATE = GS_REPLAY; break
+    DO_CHOOSE_NEW_MISSION → GAME_STATE = GS_LEVEL_LOST; break
+    DO_NEXT_LEVEL         → GAME_STATE = GS_LEVEL_WON; break
+```
+
 ### После inner loop (PC)
 
 ```
@@ -167,6 +192,70 @@ switch(GAME_STATE):
     GS_LEVEL_LOST → FRONTEND_level_lost()
     0             → выход
 ```
+
+### FRONTEND_level_won() — детали (frontend.cpp:4284)
+
+```
+1. mission_hierarchy[mission_launch] |= 2          // пометить как выполненную
+2. if (!cheated):                                   // g_bPunishMePleaseICheatedOnThisLevel
+       Для каждого стата (Constitution/Strength/Stamina/Skill):
+           found = Player->Stat - the_game.DarciStat  // дельта за миссию
+           if found > best_found[mission_launch][i]:   // анти-фарм!
+               the_game.DarciStat += (found - best_found[..][i])
+               best_found[mission_launch][i] = found   // новый рекорд
+3. FRONTEND_kibble_init()
+4. menu_state сброшен (mode=-1)
+5. if complete_point < mission_launch: complete_point = mission_launch
+6. FRONTEND_MissionHierarchy(MISSION_SCRIPT)       // пересчитать дерево доступности
+7. FRONTEND_mode(FE_SAVESCREEN)                    // показать экран сохранения
+8. m_bGoIntoSaveScreen = TRUE                      // флаг для FRONTEND_init()
+```
+
+**Примечание:** Roper stats обновляются в else-ветке (DC: ASSERT(FALSE)) — на DC не поддерживается.
+
+### FRONTEND_level_lost() — детали (frontend.cpp:4273)
+
+```
+1. mission_launch = previous_mission_launch    // восстановить (до запуска был сохранён)
+2. FRONTEND_kibble_init()
+3. menu_state сброшен (mode=-1)
+4. FRONTEND_mode(FE_MAINMENU)                 // сразу в главное меню
+```
+
+### FRONTEND_init() после выигрыша (frontend.cpp:4244)
+
+После вызова `FRONTEND_level_won()` → `FRONTEND_init()` инициализирует фронтенд:
+```
+if m_bGoIntoSaveScreen:
+    FRONTEND_mode(FE_SAVESCREEN)     // показать сохранение
+    m_bGoIntoSaveScreen = FALSE
+else:
+    FRONTEND_mode(FE_MAINMENU)
+
+if mission_launch != 0:
+    return                           // ранний выход — уже настроено
+```
+
+### ScoresDraw() — содержимое экрана победы (Attract.cpp:702)
+
+Вызывается из `GAMEMENU_draw()` при `GAMEMENU_MENU_TYPE_WON`.
+
+**Статистика (для Darci/Roper):**
+- Убито (X_WON_KILLED): `stat_killed_thug` — счётчик из Person.cpp (ThugRasta/Grey/Red, MIB1/2/3)
+- Арестовано (X_WON_ARRESTED): `stat_arrested_thug`
+- На свободе (X_WON_AT_LARGE): живые Thug/MIB Types (сканирует все Things)
+- Бонусов найдено (X_WON_BONUS_FOUND): `stat_count_bonus` (SPECIAL_TREASURE подобраны)
+- Бонусов пропущено (X_WON_BONUS_MISSED): живые SPECIAL_TREASURE в Things
+- Время (X_WON_TIMETAKEN): `h:mm:ss` из `stat_game_time = GetTickCount() - stat_start_time`
+
+**Mucky Times (X_WON_MUCKYTIME):**
+- Хардкодированный список ~35 миссий с рекордами разработчиков (имена: Mark Rose, Dave, Marie…)
+- Два варианта: `#if 0` (старые PC времена), активный = DC времена (значительно медленнее)
+- Если ваше время < mucky_time И нет читов → генерируется код: `hash = (i+1)*(m+1)*(s+1)*3141 % 12345 + 0x9a2f`; на DC: `hash ^= 0xffff`
+- Формат кода: `: CODE <XXXX> ` (hex)
+- Мёртвый план: отправить код TomF по email для верификации спидрана
+
+**Позиции на экране:** текст-слева (X=10), значения-справа (X=300); двойной рендер (+2px чёрный shadow)
 
 ### Чекпоинты и GS_REPLAY
 

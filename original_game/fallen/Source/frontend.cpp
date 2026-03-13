@@ -4270,7 +4270,10 @@ void MENUFONT_MergeLower(void);
 	bFirstTime = FALSE;
 }
 
-void	FRONTEND_level_lost() 
+// claude-ai: FRONTEND_level_lost() — вызывается из Game.cpp после GS_LEVEL_LOST выхода из inner loop.
+// claude-ai: Восстанавливает mission_launch=previous_mission_launch (сохранённый перед запуском миссии).
+// claude-ai: Сбрасывает menu_state и переходит в FE_MAINMENU (без показа экрана сохранения).
+void	FRONTEND_level_lost()
 {
 	mission_launch=previous_mission_launch;
 	// Start up the kibble again.
@@ -4281,7 +4284,15 @@ void	FRONTEND_level_lost()
 	FRONTEND_mode(FE_MAINMENU);
 }
 
-void	FRONTEND_level_won() 
+// claude-ai: FRONTEND_level_won() — вызывается из Game.cpp после GS_LEVEL_WON выхода из inner loop.
+// claude-ai: 1. mission_hierarchy[mission_launch] |= 2 (пометить выполненной)
+// claude-ai: 2. Обновить stat deltas через best_found анти-фарм систему (Constitution/Strength/Stamina/Skill)
+// claude-ai:    Дельта = Player->Stat - the_game.DarciStat; применяется только сверх рекорда best_found[mission][stat]
+// claude-ai:    Если g_bPunishMePleaseICheatedOnThisLevel (читы) → блок пропускается
+// claude-ai: 3. if complete_point < mission_launch: complete_point = mission_launch
+// claude-ai: 4. FRONTEND_MissionHierarchy(MISSION_SCRIPT) — пересчёт дерева доступных миссий
+// claude-ai: 5. FRONTEND_mode(FE_SAVESCREEN) + m_bGoIntoSaveScreen = TRUE (флаг для FRONTEND_init)
+void	FRONTEND_level_won()
 {
 
 	ASSERT(mission_launch<50);

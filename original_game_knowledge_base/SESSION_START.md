@@ -8,9 +8,23 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **Analyse ScoresDraw/end-of-level flow** — Game.cpp GAMEMENU_WON/LOST → как победа/поражение переходит обратно в frontend; полный round-trip
-2. **muckybasic.md** — детальный анализ MuckyBasic скриптового интерпретатора (если нужно)
-3. **Начало планирования new_game/** — если KB достаточна для фазы 2
+1. **Начало планирования new_game/** — KB достаточна для фазы 2; можно начинать архитектуру
+2. **muckybasic.md** — детальный анализ MuckyBasic (таблица says "не нужен", но можно для полноты)
+3. **overlay.cpp детали** — HUD (HealthBar, stamina, enemy tracking) для нового рендерера
+
+**ВЫПОЛНЕНО в этой итерации (ScoresDraw + end-of-level round-trip):**
+- Полный round-trip победа/поражение задокументирован в game_states.md раздел 5:
+  - GAMEMENU wait timer: 64/кадр → порог 2560 (~40 кадров = 1.3с) → показать меню
+  - WON-меню = только заголовок X_LEVEL_COMPLETE, нет пунктов → ESC/ENTER → DO_NEXT_LEVEL
+  - LOST-меню = Restart/Abandon → SURE → DO_RESTART / DO_CHOOSE_NEW_MISSION
+  - exit_game_loop → fadeout → break inner loop → post-loop блок
+  - DarciDeadCivWarnings check → cutscenes (park2/Finale1) → switch GAME_STATE
+  - GS_LEVEL_WON → FRONTEND_level_won() → FE_SAVESCREEN + m_bGoIntoSaveScreen=TRUE
+  - GS_LEVEL_LOST → FRONTEND_level_lost() → FE_MAINMENU + restore previous_mission_launch
+- FRONTEND_level_won() детально: hierarchy bit 2, stat deltas best_found анти-фарм, complete_point, FE_SAVESCREEN
+- ScoresDraw() детально: 6 полей (killed/arrested/at-large/bonus found/missed/time) + mucky times hash-код
+- Mucky times: активна DC таблица (~35 миссий + разработчики); PC таблица в #if 0
+- Аннотированы: gamemenu.cpp (header блок), Attract.cpp (ScoresDraw расширенный header), frontend.cpp (level_won/lost)
 
 **ВЫПОЛНЕНО в этой итерации (STARTSCR_mission + Attract.cpp):**
 - startscr.cpp в non-EDITOR build = одна строка: `CBYTE STARTSCR_mission[_MAX_PATH]`. Весь остальной код = `#ifdef EDITOR` (старый pre-release mission selector, мёртвый код)
@@ -348,6 +362,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | **inside2.cpp** | ~6 блоков | ✅ (INSIDE2_mav_nav_calc + все mav_* функции, включая баги пре-релиза) |
 | **ware.cpp** | ~1 header блок | ✅ (WARE_init полный флоу, WARE_Ware структура, nav/height/rooftex пулы) |
 | **stair.cpp** | +1 блок | ✅ (scoring блок STAIR_calculate добавлен к существующим аннотациям) |
+| **gamemenu.cpp** | 1 header блок | ✅ (GAMEMENU типы, wait timer, WON/LOST структуры, DO_* коды) |
+| **Attract.cpp** | +расширен | ✅ (ScoresDraw header: поля статистики, mucky times, DC/PC ветки) |
+| **frontend.cpp** | +2 блока | ✅ (FRONTEND_level_won + FRONTEND_level_lost с полными деталями) |
 | **id.cpp** | +1 блок | ✅ (ID_generate_floorplan header: 32-seed pipeline, scoring, assign_room_types) |
 | **wmove.cpp** | ~5 блоков | ✅ (WMOVE система, create/process/relative_pos) |
 | **collide.cpp (ladder)** | +3 блока | ✅ (mount_ladder, ok_to_mount_ladder, пре-релиз баг) |
@@ -459,6 +476,12 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 
 ## Быстрые критичные факты (не забыть!)
 
+- GAMEMENU wait delay: 64/кадр, порог 64*20*2=2560 (~40 кадров, ~1.3с) → тогда WON/LOST меню появляется
+- WON-меню: НЕТ выбираемых пунктов (только X_LEVEL_COMPLETE); ESC/ENTER → DO_NEXT_LEVEL → GS_LEVEL_WON → FRONTEND_level_won()
+- LOST-меню: Restart→DO_RESTART; Abandon→SURE→OKAY→DO_CHOOSE_NEW_MISSION → GS_LEVEL_LOST → FRONTEND_level_lost()
+- FRONTEND_level_won(): иерархия bit2, best_found анти-фарм дельты, complete_point обновление, FE_SAVESCREEN+m_bGoIntoSaveScreen=TRUE
+- FRONTEND_level_lost(): mission_launch=previous_mission_launch (restore), FE_MAINMENU
+- ScoresDraw() (из GAMEMENU_draw при WON): killed/arrested/at-large/bonus found/missed/time; mucky times hash (DC активна, PC в #if 0)
 - Mission.cpp = WayWind EDITOR файл (не игровой рантайм); WPT_* → EWAY_DO_* трансляция в elev.cpp:748-1654
 - WPT_BONUS_POINTS → EWAY_DO_MESSAGE (очки = мёртвый код if(0)); WPT_GOTHERE_DOTHIS = ASSERT(0) не реализован
 - set_stats() (Person.cpp:412) тривиальна: только записывает stat_game_time
