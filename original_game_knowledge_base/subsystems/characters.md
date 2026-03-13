@@ -108,7 +108,7 @@ typedef struct {
 
     struct GameKeyFrame *CurrentFrame;    // Текущий кадр
     struct GameKeyFrame *NextFrame;       // Следующий кадр
-    struct GameKeyFrame *InterruptFrame;  // Кадр-прерывание (приоритетный)
+    struct GameKeyFrame *InterruptFrame;  // Кадр-прерывание (МЁРТВЫЙ КОД — всегда 0 в пре-релизе!)
     struct GameKeyFrame *QueuedFrame;     // В очереди
 
     struct GameKeyFrameChunk *TheChunk;  // Набор анимаций персонажа
@@ -362,7 +362,73 @@ Darci заимствует некоторые анимации CIV (наприм
 
 ---
 
-## 11. Что переносить в новую версию
+## 11. CMatrix33 — сжатый формат матриц анимации
+
+### Структуры (Editor/Headers/Prim.h):
+
+```c
+struct CMatrix33 {
+    SLONG M[3];  // 3 упакованных 32-bit слова, не 3×3 float!
+};
+// Каждый M[row] = (elem0 << 22) | (elem1 << 12) | (elem2 << 2)
+// 10-bit элементы, range -512..511 (маски: CMAT0_MASK=0x3ff00000, CMAT1_MASK=0x000ffc00, CMAT2_MASK=0x000003ff)
+
+struct Matrix33 {
+    SLONG M[3][3];  // Рабочая матрица (распакованная)
+};
+```
+
+**ВНИМАНИЕ:** В DDEngine/Headers/Quaternion.h есть своя `class FloatMatrix { float M[3][3]; }` — это ДРУГАЯ структура, только для рендерера.
+
+### ULTRA_COMPRESSED_ANIMATIONS — хранилище (8 байт на элемент):
+
+```c
+struct GameKeyFrameElement {      // ULTRA_COMPRESSED_ANIMATIONS path (PSX+PC)
+    SBYTE m00, m01;  // 2 из 3 значений строки 0 (range -127..127 = -1.0..1.0, scale=128)
+    SBYTE m10, m11;  // 2 из 3 значений строки 1
+    SBYTE OffsetX, OffsetY, OffsetZ;  // Смещение кости (тоже в scale=128 units)
+    UBYTE Pad;       // Битовые поля для декомпрессии
+};
+```
+
+### Декомпрессия GetCMatrix():
+
+```c
+// UCA_Lookup[a][b] = Root(16383 - a² - b²)  -- pre-computed table (128×128 entries)
+// Scale: значения в диапазоне [-127,127] где 127 ≈ 1.0 (scale factor = 128)
+
+void GetCMatrix(GameKeyFrameElement *e, CMatrix33 *cm) {
+    // 1. Читаем m00/m01 из packed SLONG
+    a = byte0; b = byte1;
+    c = UCA_Lookup[a][b];         // c = sqrt(1 - a² - b²) в той же шкале
+    if (Pad & 1) c = -c;          // знак c для строки 0
+    // Pad bits 2-3 = позиция c в строке 0: 0→col0, 4→col2, 8→col1
+    // → определяем m00, m01, m02
+
+    // 2. Читаем m10/m11 из bytes 2/3
+    // Pad bits 4-5 = позиция c в строке 1: 0→col0, 16→col2, 32→col1
+    // → определяем m10, m11, m12
+
+    // 3. Строка 2 = cross product строк 0 и 1 (с >>7 для деления на scale)
+    m20 = (m01*m12 >> 7) - (m02*m11 >> 7)  // clamp [-127,127]
+
+    // 4. Упаковываем в CMatrix33 формат:
+    cm->M[0] = (m00 << 22) | (m01 << 12) | (m02 << 2)
+    cm->M[1] = (m10 << 22) | (m11 << 12) | (m12 << 2)
+    cm->M[2] = (m20 << 22) | (m21 << 12) | (m22 << 2)
+}
+```
+
+**InterruptFrame = МЁРТВЫЙ КОД**: поле объявлено в DrawTween, но в этом пре-релизе везде `InterruptFrame = 0`. Нигде не присваивается ненулевое значение. Была идея "прерывающего кадра при перебитии анимации", но так и не реализована.
+
+### Для новой игры:
+- Загружаем `GameKeyFrameElement[]` из .all файла → декомпрессируем GetCMatrix → конвертируем в `glm::mat4` (умножаем на 1.0f/128.0f)
+- Tweening: `CQuaternion::BuildTween` = quaternion slerp → в новой игре `glm::mix()` на quaternions
+- InterruptFrame не реализовывать (мёртвый код)
+
+---
+
+## 12. Что переносить в новую версию
 
 | Аспект | Подход |
 |--------|--------|

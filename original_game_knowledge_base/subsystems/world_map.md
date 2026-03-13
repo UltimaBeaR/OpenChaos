@@ -338,7 +338,85 @@ struct LIGHT_Map {
 
 ---
 
-## 9. Что переносить в новую версию
+## 9. Постпроцессинг уровня — build_quick_city / ROAD / WAND
+
+Вызывается при загрузке уровня из `elev.cpp` (после расстановки объектов):
+```c
+build_quick_city();    // шаг 1: строит коллизию и ходимые поверхности зданий
+ROAD_wander_calc();    // шаг 2: строит граф дорог для водительского AI
+WAND_init();           // шаг 3: размечает PAP_FLAG_WANDER для пешеходного AI
+```
+
+### build_quick_city() (build2.cpp)
+
+Регистрирует DFacet (грани зданий) и roof_faces4 в системе PAP_Lo для коллизии и навигации.
+
+**Алгоритм:**
+1. `clear_colvects()` — сбрасывает `PAP_Lo[x][z].ColVectHead` и `.Walkable` для всех 32×32 ячеек
+2. `clear_facet_links()` — обнуляет весь массив `facet_links[]`
+3. `mark_naughty_facets()` — помечает `FACET_FLAG_INVISIBLE` дубликаты и полностью перекрытые DFacet (грани зданий с одинаковыми вершинами или скрытые за другими solid гранями)
+4. `process_building(c0)` для каждого здания `1..next_dbuilding`:
+   - Итерирует DFacet[StartFacet..EndFacet]; пропускает FACET_FLAG_INVISIBLE (кроме BUILDING_TYPE_CRATE_IN)
+   - Вызывает `process_facet(c0)` → добавляет DFacet в `PAP_Lo[x][z].ColVectHead` linked list
+5. `garbage_collection()` — уплотняет facet_links[], убирая дыры
+6. Для каждого dwalkable (индексы крышных граней `1..next_dwalkable`):
+   - `attach_walkable_to_map(-face)` → регистрирует `roof_faces4[face]` в `PAP_Lo[RX>>2][RZ>>2].Walkable` linked list
+
+**Важно:** Положительные face индексы (prim_faces4, регулярные ходимые) **закомментированы** — только отрицательные (roof_faces4) реально регистрируются.
+
+### ROAD_wander_calc() (road.cpp) — граф дорог для машин
+
+**Данные:**
+```c
+struct ROAD_Node {   // 8 байт
+    UBYTE x, z;      // позиция в mapsquare (PAP_Hi координаты)
+    UBYTE c[4];      // до 4 соединений (индексы других нодов)
+};
+#define ROAD_MAX_NODES 256   // макс нодов
+#define ROAD_MAX_EDGES 8     // макс граничных нодов (въезды/выезды с карты)
+#define ROAD_LANE 0x100      // смещение от центра дороги для езды по полосе
+```
+
+**Алгоритм:**
+1. Очистка всех ROAD_node[] и ROAD_edge[]
+2. Сканирование Z-параллельных дорог: для каждого x [2..125] ищет runs ROAD_is_middle(x,z), если длина > 2 → `ROAD_add(x, p1, x, p2)`
+3. Сканирование X-параллельных дорог: то же самое по горизонтали
+4. `ROAD_add(x1,z1, x2,z2)`:
+   - Если пересекается с существующей дорогой → рекурсивный split на точке пересечения
+   - Иначе: `ROAD_connect(n1,n2)` — двунаправленная связь нодов
+5. Граничные ноды (degree=1, x или z == 2 или 125) → смещаются на край карты (x=0/127) и добавляются в ROAD_edge[]
+
+**`ROAD_is_middle(x,z)`** = TRUE если все 5×5 квадратов вокруг (x,z) являются дорогой (надёжно внутри, не на краю).
+
+**`ROAD_is_road(x,z)`** = проверяет PAP_Hi.Texture & 0x3ff:
+- PC: range 323-356 (дорожные текстуры); TextureSet 7/8: также 35, 36, 39
+- PSX: range 256..278
+
+**Специальный хардкод:** нод (121,33) на карте `gpost3.iam` (миссии Cop Killers / Arms Breaker) — пропускается.
+
+**ROAD_LANE = 0x100** — AI едет со смещением 256 единиц от центра (левая сторона).
+
+### WAND_init() (wand.cpp) — зоны блуждания пешеходов
+
+Размечает `PAP_FLAG_WANDER` в PAP_Hi для каждого mapsquare.
+
+**Алгоритм:**
+1. Сбрасывает PAP_FLAG_WANDER для всего PAP_Hi 128×128
+2. Для каждой не-скрытой, не-дорожной ячейки: проверяет 5×5 окрестность — если хоть одна ячейка является дорогой → ставит PAP_FLAG_WANDER (тротуар рядом с дорогой)
+3. Зебра-переходы (ROAD_is_zebra = текстура 333 или 334): также получают PAP_FLAG_WANDER
+4. Для каждого OB_Info (collision prim) в PAP_Lo:
+   - Если PRIM_COLLIDE_BOX / SMALLBOX / CYLINDER И y ≤ terrain+0x40 → снимает PAP_FLAG_WANDER с центральной ячейки (не давать NPC бродить внутри припаркованных машин, у скамеек)
+
+**`WAND_get_next_place()`** — выбор следующей точки для PCOM WANDER AI:
+- 4 направления × WAND_MAX_MOVE=3 клетки ± 1 рандомный сдвиг = 4 кандидата
+- Оценка = dot product с текущим направлением (движение прямо предпочтительнее)
+- Если ни одна не подходит → 16 случайных проб в радиусе ±15 клеток, выбрать ближайшую
+- CLASS_BAT (Bane) = может ходить и по дорогам (WANDER ИЛИ ROAD)
+- NPC с pcom_zone != 0: используют PCOM_get_zone_for_position вместо WANDER флага
+
+---
+
+## 10. Что переносить в новую версию
 
 | Аспект | Подход |
 |--------|--------|

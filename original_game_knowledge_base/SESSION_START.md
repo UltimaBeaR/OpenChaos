@@ -8,12 +8,21 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **Форматы TODO**: .txc binary layout, style.tma UV таблица (КРИТИЧНО для data pipeline)
-2. **Физика TODO**: WATER вне дренажа (водная высота), mount_ladder() в финале
-3. **Characters TODO**: InterruptFrame в DrawTween, CMatrix33 декомпрессия
-4. **World TODO**: build_quick_city(), ROAD_wander_calc(), WAND_init()
+1. **Физика TODO**: WATER вне дренажа (водная высота), mount_ladder() в финале
+2. **Здания TODO**: ID_generate_floorplan(), RoomID scoring, STAIR_calculate, WARE_init()
+3. **Навигация TODO**: MAV_can_i_walk детали, NPC на крышах
+4. **Characters TODO**: Roper финальное поведение, Cop финальное поведение
 
-**ВЫПОЛНЕНО в этой итерации (AI остатки + controls + форматы):**
+**ВЫПОЛНЕНО в этой итерации (World, Characters):**
+- world_map.md раздел 9: build_quick_city() — DFacet+roof_faces4 в PAP_Lo.ColVectHead/Walkable; только roof_faces4 (-face) реально регистрируются
+- world_map.md: ROAD_wander_calc() — граф нодов для авто-AI (ROAD_Node 8б, MAX 256), сканирует ROAD_is_middle(5×5), ROAD_add с пересечениями, граничные ноды в ROAD_edge[]
+- world_map.md: ROAD_is_road() = PAP_Hi.Texture 323-356 (PC), ROAD_is_middle = 5×5 все road; ROAD_LANE=0x100; хардкод (121,33) на gpost3.iam
+- world_map.md: WAND_init() — PAP_FLAG_WANDER на тротуарах ≤2 кл. от дороги + зебры (333/334) - исключает коллизионные примы y≤terrain+64
+- world_map.md: WAND_get_next_place() — 4 направления±1 рандом → dot product scoring; fallback 16 случайных проб
+- characters.md: InterruptFrame = МЁРТВЫЙ КОД — всегда 0, нигде не присваивается ненулевое значение
+- characters.md: CMatrix33 = {SLONG M[3]} (3 packed SLONG, не float!); GameKeyFrameElement ULTRA_COMPRESSED = 8б {m00/m01/m10/m11:SBYTE + OffX/Y/Z:SBYTE + Pad:UBYTE}; scale=128; GetCMatrix: UCA_Lookup[a][b]=Root(16383-a²-b²), строка 2 = cross product >>7, clamped ±127
+
+**ВЫПОЛНЕНО в предыдущей итерации (AI остатки + controls + форматы):**
 - ai.md разделы 10f/10g/10h — PCOM_process_killing детали, PCOM_process_snipe, pcom_zone
 - ai.md 10f: KILLING→FLEE ТОЛЬКО для FAKE_WANDER NPC через PCOM_should_fake_person_attack_darci(); regular→NAVTOKILL или NORMAL
 - ai.md 10g: snipe = 3 substates (LOOK→AIMING→NOMOREAMMO), range 0x600, "holster when idle" закомментирован
@@ -264,8 +273,8 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 
 ### ПЕРСОНАЖИ/АНИМАЦИИ (characters.md) — TODO
 - [x] Точные переходы состояний в Darci: JUMPING→LANDING — ГОТОВО (см. Person.cpp итог выше)
-- [ ] Как работает `InterruptFrame` в DrawTween (приоритетный кадр)
-- [ ] CMatrix33 декомпрессия — Pad encoding, UCA_Lookup детали (в Anim.cpp есть комменты)
+- [x] `InterruptFrame` — МЁРТВЫЙ КОД: всегда 0 в пре-релизе, нигде не используется
+- [x] CMatrix33 декомпрессия — ГОТОВО: {SLONG M[3]} packed; GameKeyFrameElement 8б; scale=128; UCA_Lookup=Root(16383-a²-b²); cross product для строки 2
 - [ ] Roper финальное поведение — fn_roper_normal() пуста в пре-релизе, что в финале?
 - [ ] Cop финальное поведение — fn_cop_normal() в #if 0, что в финале?
 - [ ] Thug инициализация — ASSERT(0) в пре-релизе, финальная версия?
@@ -309,9 +318,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] **`style.tma`** — ГОТОВО: 200 стилей × 5 слотов × TXTY(4б); textures_flags[200][5]; instyle.tma=count_x*count_y*UBYTE; обновлено texture_format.md
 
 ### МИР/КАРТА (world_map.md) — TODO
-- [ ] Детали `build_quick_city()` — что именно строит, структура
-- [ ] Система дорог ROAD_* — `ROAD_wander_calc()` детали построения графа
-- [ ] WAND (зоны блуждания) — `WAND_init()` детали
+- [x] `build_quick_city()` — ГОТОВО: DFacet→ColVectHead, roof_faces4→Walkable; mark_naughty_facets; только -face работает
+- [x] `ROAD_wander_calc()` — ГОТОВО: ROAD_Node граф, ROAD_is_middle(5×5), ROAD_add с intersect/split, ROAD_edge[], хардкод gpost3.iam
+- [x] `WAND_init()` — ГОТОВО: ≤2кл. от дороги + зебры + исключение collision prims; WAND_get_next_place() dot-product scoring
 - [ ] Как освещение `MapElement.Colour` применяется к вершинам при рендеринге
 
 ### ЗДАНИЯ/ИНТЕРЬЕРЫ (buildings_interiors.md) — TODO
@@ -430,3 +439,12 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - apply_button_input(): ACTION→do_an_action(); нет ACTION→SPRINT→RUN; find_best_action_from_tree()→REQUEST flags + jump/shoot/flip/hug/skid; без движения: IDLE→turn, MOVEING→stop
 - .txc = FileClump archive: [ULONG MaxID][Offsets[MaxID]][Lengths[MaxID]][data]; ⚠️ size_t=4/8б зависит от платформы; для новой игры читать TGA напрямую
 - style.tma: 200 стилей × 5 слотов; TXTY{Page,Tx,Ty,Flip}=4б; textures_flags[200][5]=тип полигона; instyle.tma=count_x*count_y UBYTE индексов
+- build_quick_city(): DFacet→PAP_Lo.ColVectHead (collision), roof_faces4→PAP_Lo.Walkable (negative index = roof face); положительные face indexes (prim_faces4) закомментированы
+- ROAD_wander_calc(): граф для авто-AI; ROAD_Node{x,z:UBYTE, c[4]:UBYTE}=8б; MAX 256 нодов; сканирует ROAD_is_middle=5×5 квадрат дороги; ROAD_LANE=0x100; хардкод (121,33) блокирован для gpost3.iam
+- ROAD_is_road: PAP_Hi.Texture 323-356 PC / 256-278 PSX / TextureSet7-8: 35,36,39
+- WAND_init(): PAP_FLAG_WANDER = ≤2 кл. от дороги (не HIDDEN); зебры (tex 333/334); -prim collision y≤terrain+64 снимает флаг
+- WAND_get_next_place(): 4 направления ±1 случайный сдвиг; scoring = dot product с текущим направлением; fallback = 16 проб ±15 кл.
+- InterruptFrame в DrawTween = МЁРТВЫЙ КОД: всегда NULL, нигде не присваивается ненулевое значение в пре-релизе
+- CMatrix33 = {SLONG M[3]}: каждый M[row] packed 3×10-bit elements; scale=128 (не 32768)
+- GameKeyFrameElement (ULTRA_COMPRESSED) = 8 байт: {m00,m01,m10,m11: SBYTE; OffX,OffY,OffZ: SBYTE; Pad: UBYTE}
+- GetCMatrix(): UCA_Lookup[a][b]=Root(16383-a²-b²); Pad bits 0-1=знак c; bits 2-3=позиция c в строке0; bits 4-5=позиция c в строке1; строка2=crossproduct>>7, clamp±127
