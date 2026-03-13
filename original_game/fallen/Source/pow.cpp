@@ -1,3 +1,15 @@
+// claude-ai: POW — sprite-based visual explosion system (NO damage/shockwave, just visuals)
+// claude-ai: POW_Sprite[256 PC] = individual animated sprites (16 frames, then die)
+// claude-ai: POW_Pow[32 PC] = explosion containers, each owns a linked list of sprites
+// claude-ai: 8 types: BASIC_SPHERE_{L/M/S} (simple), SPAWN_SPHERE_{L/M} (with children), MULTISPAWN/MULTISPAWN_SEMI (cascade)
+// claude-ai: POW_create() high-level API: LARGE_SEMI(0), MEDIUM(1), LARGE(2) — maps to MULTISPAWN_SEMI, SPAWN_MEDIUM, MULTISPAWN
+// claude-ai: POW_new(): generates sphere/semisphere of sprites via yaw/pitch iteration (FMATRIX_vector)
+// claude-ai:   density: around=5+d*3, upndown=4+d*1; speed: vector >> (speed+1); framespeed: 96+fs*32
+// claude-ai: POW_process() per-frame: animate (frame_counter), move (dx<<4), damp (dx -= dx>>damp)
+// claude-ai:   child spawning: 3 slots per POW, triggered when timer < spawn.when
+// claude-ai:   safety: count guards (50/256 iterations) — POW_init() full reset on overflow!
+// claude-ai: Timing: POW_TICKS_PER_SECOND=2000, POW_DELTA_SHIFT=4, ticks=(2000/20)*TICK_RATIO>>TICK_SHIFT
+
 //
 // Yet another explosion system.
 //

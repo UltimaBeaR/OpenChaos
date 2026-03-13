@@ -1,3 +1,18 @@
+// claude-ai: PYRO — high-level pyrotechnics system (fire, explosions, smoke, blood, game-over)
+// claude-ai: Each PYRO = Thing(CLASS_PYRO) with state machine (INIT→NORMAL), MAX_PYROS=64 (PC)
+// claude-ai: 18 types: FIREWALL(line of FLICKER), FIREPOOL, BONFIRE(dlight+sound), IMMOLATE(-10HP/frame on victim),
+// claude-ai:   EXPLODE(old Pyrex hemisphere), DUSTWAVE, EXPLODE2(new big bang, dlight COS fade),
+// claude-ai:   STREAMER(4 smoke trails), TWANGER(light beams), FLICKER(RIBBON oscillating fire),
+// claude-ai:   HITSPANG(bullet impact, blood/sparks, max 5 concurrent), FIREBOMB(TICK_RATIO driven),
+// claude-ai:   SPLATTERY(blood splats + TRACKS_AddQuad), IRONICWATERFALL(fountain/chimney/smoke),
+// claude-ai:   NEWDOME(dome+sprites, SIN radius), WHOOMPH(Balrog fireball impact), GAMEOVER(8 dlights, kills Darci)
+// claude-ai: PYRO_construct(pos, types_bitmask, scale) — composite: &1=TWANGER &2=EXPLODE2+gust &4=DUST &8=STREAMER &16=BONFIRE &32=NEWDOME+gust &64=FIREBOMB &128=FIREBOMB+WAVE
+// claude-ai: PYRO_blast_radius(x,y,z,r,str) — finds CLASS_PERSON in sphere → creates IMMOLATE on each
+// claude-ai: PYRO_hitspang() — from LEFT_HAND of shooter; person target=blood from HEAD; non-person=sparks
+// claude-ai: IMMOLATE details: tracks victim, particles on random bones(1-5/frame), -10HP/frame, RIBBON fire progression
+// claude-ai: MergeSoundFX() — reuses sound from nearby same-type PYRO (sphere 5*256) to avoid overlapping
+// claude-ai: Uses subsystems: PARTICLE_Add, RIBBON, DIRT_new_water/sparks, NIGHT_dlight, TRACKS_AddQuad, MFX
+
 //
 // Pyrotechnics
 // Burning (and maybe Exploding) Things

@@ -1,3 +1,23 @@
+// claude-ai: DIRT — ambient debris + interactive throwable objects system
+// claude-ai: DIRT_Dirt[1024 PC] pool; 16 types: LEAF/CAN/PIGEON/WATER/HELDCAN/THROWCAN/HEAD/HELDHEAD/THROWHEAD/BRASS/MINE/URINE/SPARKS/BLOOD/SNOW
+// claude-ai: Ambient system: DIRT_set_focus(camera x,z,radius) — creates/destroys leaves near trees, respawns at edge
+// claude-ai:   DIRT_tree[64] tracks tree positions (PRIM_FLAG_TREE); 200 leaves per tree (PC)
+// claude-ai:   Probabilities: leaf/can/pigeon (8-bit, sum=256); PIGEON ALWAYS 0 ("no bug ridden pigeons for us!" line 193)
+// claude-ai:   world_type: FOREST→all LEAF, SNOW→all SNOW
+// claude-ai: Physics per type:
+// claude-ai:   LEAF/SNOW: waft from pitch/roll, drag 75%x/50%y, gravity 4<<TICK_SHIFT, lift from tilt; STILL when stopped
+// claude-ai:   CAN/HEAD/BRASS: gravity+bounce, wall bounce(PAP_FLAG_HIDDEN), friction/16, S_KICK_CAN on hit
+// claude-ai:   WATER/BLOOD/URINE: gravity 15*TICK/4, random jitter, wall reflect, 2nd floor hit→die→DRIP
+// claude-ai:   HELDCAN/HELDHEAD: tracks SUB_OBJECT_PREFERRED_HAND of owner (droll=thing index)
+// claude-ai:   THROWCAN/THROWHEAD/MINE: projectile→bounce→S_KICK_CAN+PCOM_SOUND_UNUSUAL→convert to CAN/HEAD
+// claude-ai: Key functions:
+// claude-ai:   DIRT_gust(thing,x1,z1,x2,z2) — wind from movement, strength=QDIST2*8, pushes nearby debris
+// claude-ai:   DIRT_create_cans(x,z,angle) — 5 cans (from barrel collision)
+// claude-ai:   DIRT_create_brass(x,y,z,angle) — 1 ejected shell (PC only, prim 253)
+// claude-ai:   DIRT_behead_person(person,attacker) — creates HEAD from victim's head prim
+// claude-ai:   DIRT_shoot(person) — raycast hits CAN/HEAD debris
+// claude-ai:   DIRT_find_useless() — recycling: 8 tries UNUSED/DELETE_OK → 8 tries LEAF → any random
+
 //
 // Bits of dirt that get blown around. Dirt only exists
 // around one focal point (the camera). If a bit of dirt gets

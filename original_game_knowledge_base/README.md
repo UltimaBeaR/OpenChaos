@@ -38,6 +38,7 @@
 | UI и фронтенд (HUD, шрифты, диалоги) | [subsystems/ui.md](subsystems/ui.md) |
 | Frontend (меню, pipeline запуска миссии) | [subsystems/frontend.md](subsystems/frontend.md) |
 | Визуальные эффекты | [subsystems/effects.md](subsystems/effects.md) |
+| Взрывы/Пиро/Мусор (POW/PYRO/DIRT) | [subsystems/effects_pyro_pow_dirt.md](subsystems/effects_pyro_pow_dirt.md) |
 | Камера | [subsystems/camera.md](subsystems/camera.md) |
 | Состояния игры (GS_*, пауза, смерть) | [subsystems/game_states.md](subsystems/game_states.md) |
 | Состояния игрока (STATE_*, SUB_STATE_*) | [subsystems/player_states.md](subsystems/player_states.md) |

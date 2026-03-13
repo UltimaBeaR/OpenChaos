@@ -7,12 +7,28 @@
 
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
-**Рекомендация:** Начать фазу 2 — планирование new_game/ (KB ~90%, все подсистемы ✅, barrel ✅)
+**Рекомендация:** Начать фазу 2 — планирование new_game/ (KB ~95%, все подсистемы ✅, все эффекты ✅)
 
 **Варианты если продолжать анализ:**
 1. **Оставшиеся неаннотированные файлы** — проверить через grep "claude-ai" что ещё не покрыто
 2. **Перекрёстная верификация KB** — проверить что все факты из аннотаций попали в KB файлы
-3. **Мелкие системы:** pow.cpp (explosions), dirt.cpp (debris particles), pyro.cpp (fire effects)
+3. **ribbon.cpp** (RIBBON engine для огня/дыма) — используется в PYRO, не задокументирован отдельно
+
+**ВЫПОЛНЕНО в этой итерации (pow + pyro + dirt):**
+- pow.cpp полный анализ (973 строки): sprite-based visual explosions, 8 типов, cascade spawning
+- POW_Sprite[256] 16-frame animation, POW_Pow[32] containers; FMATRIX_vector sphere generation
+- POW_process: animate→move(dx<<4)→damp(dx-=dx>>damp)→remove dead(frame>=16)→spawn children
+- Safety: count guards 50/256, POW_init() full reset on overflow
+- pyro.cpp полный анализ (1349 строк): 18 типов PYRO, Thing(CLASS_PYRO) state machine
+- IMMOLATE: -10HP/frame, RIBBON fire, particles on bones; GAMEOVER: 8 dlights + GS_LEVEL_LOST
+- PYRO_construct bitmask API; PYRO_blast_radius→IMMOLATE на каждого в сфере; HITSPANG max 5
+- MergeSoundFX: reuses sound from nearby same-type PYRO (sphere 5*256)
+- dirt.cpp полный анализ (3149 строк): 16 типов debris, ambient+interactive
+- PIGEON отключён (prob=0 hardcoded); FOREST→LEAF, SNOW→SNOW; trees[64]×200 leaves
+- Can/Head bounce physics, THROWCAN→CAN conversion, S_KICK_CAN+PCOM_SOUND_UNUSUAL
+- DIRT_gust(strength=QDIST2*8), DIRT_create_cans(5), DIRT_create_brass(prim 253 PC)
+- effects.md обновлён: 3 новых раздела (POW, PYRO, DIRT) с полными деталями
+- Аннотированы: pow.cpp (header блок), pyro.cpp (header блок), dirt.cpp (header блок)
 
 **ВЫПОЛНЕНО в этой итерации (barrel + wallhug):**
 - barrel.cpp полный анализ (1937 строк, 14 функций) + аннотация header блок
@@ -299,8 +315,8 @@
 ## Статус фазы анализа
 
 **Фаза 1 (текущая):** Детальный анализ оригинального кода → запись в `original_game_knowledge_base/`
-- KB написана примерно на 90%
-- Исходники аннотированы примерно на 70%+ (45+ файлов с аннотациями)
+- KB написана примерно на 95%
+- Исходники аннотированы примерно на 75%+ (48+ файлов с аннотациями)
 
 ---
 
@@ -325,7 +341,7 @@
 | **Рендеринг/Меши** | rendering_mesh.md | ✅ Достаточно | Tom's Engine, vertex morphing, crumple, UV packing |
 | **Рендеринг/Освещение** | rendering_lighting.md | ✅ Достаточно | NIGHT система детали, Crinkle (отключён в пре-релизе) |
 | **Состояния игрока** | player_states.md | ✅ Хорошо | Полные списки STATE_* и SUB_STATE_* |
-| **Эффекты** | effects.md | ✅ Достаточно | Частицы, огонь, ткань отключена |
+| **Эффекты** | effects.md | ✅ Хорошо | Частицы, огонь, POW(взрывы), PYRO(18 типов пиротехники), DIRT(16 типов debris), ткань отключена |
 | **Форматы ресурсов** | resource_formats/ | ✅ Хорошо | .iam/.prm/.all/.lgt/.ucm задокументированы; .txc/.tma остались |
 | **Камера** | camera.md | ✅ Хорошо | FC only (cam.cpp=мёртв), 8-шаг raycast collision, get-behind алгоритм |
 | **Звук** | audio.md | ✅ Хорошо | Miles Sound System → miniaudio, 14 MUSIC_MODE_*, 5 биомов ambient |
@@ -405,6 +421,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | **Nav.cpp** | 1 header блок | ✅ (wallhug обёртка, NAV_Waypoint pool, NAV_wall_in_way) |
 | **Wallhug.cpp** | 1 header блок | ✅ (2D grid pathfinding: Bresenham+huggers, LOS cleanup, 4 release conditions) |
 | **barrel.cpp** | 1 header блок | ✅ (2-sphere rigid body: 4 типа, gravity/damping/MAV walls, stacking, shoot→explode) |
+| **pow.cpp** | 1 header блок | ✅ (POW: 8 типов взрывов, sprite sphere generation, cascade spawn, damping) |
+| **pyro.cpp** | 1 header блок | ✅ (PYRO: 18 типов пиротехники, IMMOLATE -10HP, GAMEOVER 8 dlights, MergeSoundFX) |
+| **dirt.cpp** | 1 header блок | ✅ (DIRT: 16 типов debris, ambient leaves/cans, throwable physics, pigeon DISABLED) |
 | **fire.cpp** | ~99 ann. | ✅ (FIRE система: 8 fires, 256 flames, burn-out, bespoke renderer) |
 | **psystem.cpp** | ~158 ann. | ✅ (Particle system: pool, physics, PFLAG_*, fire_pal) |
 | **Vehicle.cpp** | ~309 ann. | ✅ (5159 строк, 52 функции, подвеска, collision, steering, crumple) |
@@ -660,6 +679,18 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - ROAD_is_road: PAP_Hi.Texture 323-356 PC / 256-278 PSX / TextureSet7-8: 35,36,39
 - WAND_init(): PAP_FLAG_WANDER = ≤2 кл. от дороги (не HIDDEN); зебры (tex 333/334); -prim collision y≤terrain+64 снимает флаг
 - WAND_get_next_place(): 4 направления ±1 случайный сдвиг; scoring = dot product с текущим направлением; fallback = 16 проб ±15 кл.
+- POW = ТОЛЬКО визуальные взрывы (спрайты), НЕ урон/shockwave; урон в PYRO_blast_radius
+- POW_TICKS_PER_SECOND=2000; POW_DELTA_SHIFT=4; sprite dead at frame>=16; safety: POW_init() on overflow
+- POW_create() API: LARGE_SEMI(0)→MULTISPAWN_SEMI, MEDIUM(1)→SPAWN_MEDIUM, LARGE(2)→MULTISPAWN
+- PYRO_construct bitmask: &1=TWANGER &2=EXPLODE2+gust &4=DUST &8=STREAMER &16=BONFIRE &32=NEWDOME &64=FIREBOMB &128=FIREBOMB+WAVE
+- PYRO IMMOLATE: -10HP/frame на victim; ribbons на костях; не убивает INVULNERABLE/PLAYERKILL
+- PYRO GAMEOVER: 8 dlights по кругу; counter>242 → GS_LEVEL_LOST + knock_person_down Darci
+- PYRO HITSPANG: max global_spang_count=5; person target=blood(HEAD); non-person=sparks
+- DIRT pigeon = ВСЕГДА prob_pigeon=0 (hardcoded line 193, "no bug ridden pigeons for us!")
+- DIRT_find_useless(): 8×UNUSED/DELETE_OK → 8×LEAF → random (recycling priority)
+- DIRT THROWCAN→CAN при малом dy (<10<<TICK_SHIFT); S_KICK_CAN + PCOM_SOUND_UNUSUAL при bounce
+- DIRT_create_brass: prim 253 = ejected shell (PC only)
+- DIRT HELDCAN/HELDHEAD: droll field = owner thing index (tracks SUB_OBJECT_PREFERRED_HAND)
 - InterruptFrame в DrawTween = МЁРТВЫЙ КОД: всегда NULL, нигде не присваивается ненулевое значение в пре-релизе
 - people_functions[]: ALL THUG (Rasta/Grey/Red) → cop_states → fn_cop_init (НЕ fn_thug_init!); fn_thug_init с ASSERT(0) никогда не вызывается
 - fn_roper_normal() = пустая функция (только return); fn_cop_normal() = #if 0 мёртвый код; весь NPC AI через PCOM
