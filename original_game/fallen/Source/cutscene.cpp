@@ -1,6 +1,87 @@
 // cutscene.cpp
 // matthew rosenfeld 22 apr 1999
 
+// claude-ai: ============================================================
+// claude-ai: FILE OVERVIEW: cutscene.cpp
+// claude-ai: ============================================================
+// claude-ai: This file implements the IN-ENGINE cutscene editor and
+// claude-ai: playback system for Urban Chaos. NOT Bink video — these are
+// claude-ai: fully scripted 3D scenes using the live game engine renderer.
+// claude-ai:
+// claude-ai: IMPORTANT: This is primarily EDITOR code, not game runtime.
+// claude-ai: The file includes full Win32/DirectDraw headers and references
+// claude-ai: Windows HWND, tree-view controls, property editors, etc.
+// claude-ai: At runtime (in-game), only the data structures and playback
+// claude-ai: functions (LERPAnim, LERPCamera, CUTSCENE_read/write) matter.
+// claude-ai:
+// claude-ai: DATA MODEL — three levels:
+// claude-ai:   CSData     — top-level scene container (version, channelcount,
+// claude-ai:                array of CSChannel + parallel CSEditChannel)
+// claude-ai:   CSChannel  — one animated track: type, index, array of CSPacket
+// claude-ai:                type: CT_CHAR(1)=character, CT_CAM(2)=camera,
+// claude-ai:                      CT_WAVE(3)=sound, CT_FX(4)=effect, CT_TEXT(5)=subtitle
+// claude-ai:   CSPacket   — one keyframe event on a channel:
+// claude-ai:                type: PT_ANIM(1), PT_ACTION(2), PT_WAVE(3),
+// claude-ai:                      PT_CAM(4), PT_TEXT(5)
+// claude-ai:                Fields: start (time in frames), length, pos (GameCoord),
+// claude-ai:                        angle, pitch, index (anim/sound id), flags
+// claude-ai:
+// claude-ai: PACKET FLAGS (PF_*):
+// claude-ai:   PF_BACKWARDS        (1) — play animation in reverse
+// claude-ai:   PF_SECURICAM        (1) — same bit reused for camera "secure" mode
+// claude-ai:   PF_INTERPOLATE_MOVE (2) — lerp position between packets
+// claude-ai:   PF_SMOOTH_MOVE_IN   (4) — sine ease-in on position
+// claude-ai:   PF_SMOOTH_MOVE_OUT  (8) — sine ease-out on position
+// claude-ai:   PF_INTERPOLATE_ROT (16) — lerp rotation between packets
+// claude-ai:   PF_SMOOTH_ROT_IN   (32) — sine ease-in on rotation
+// claude-ai:   PF_SMOOTH_ROT_OUT  (64) — sine ease-out on rotation
+// claude-ai:   PF_SLOMO          (128) — slow-motion flag on packet
+// claude-ai:
+// claude-ai: FILE FORMAT (CUTSCENE_DATA_VERSION=2):
+// claude-ai:   1 byte: version
+// claude-ai:   1 byte: channelcount
+// claude-ai:   For each channel: raw CSChannel struct, then each CSPacket struct.
+// claude-ai:   PT_TEXT packets have additional: 4-byte length + string data.
+// claude-ai:   Version 1 compat: CT_CAM packets get length=0xff7f patched in.
+// claude-ai:
+// claude-ai: PLAYBACK — LERPAnim(chan, person, cell):
+// claude-ai:   Finds surrounding keyframe packets (left/right of current time cell).
+// claude-ai:   Interpolates position and rotation using selected easing mode.
+// claude-ai:   Drives animation via set_anim() + person_normal_animate() with
+// claude-ai:   TICK_RATIO = pos<<TICK_SHIFT to advance animation by exact frame count.
+// claude-ai:   Supports slow-motion via CUTSCENE_slomo / CUTSCENE_slomo_ctr counter.
+// claude-ai:
+// claude-ai: PLAYBACK — LERPCamera(chan, cell):
+// claude-ai:   Same interpolation logic as LERPAnim but writes to cam_focus_x/y/z,
+// claude-ai:   cam_yaw, cam_pitch, FC_cam[0].lens (field of view).
+// claude-ai:   Lens: stored as 8-bit in packet->length low byte, converted to
+// claude-ai:   FC_cam lens via: lens = ((raw-0x7f)*1.5)+0xff; then *0x24000>>8.
+// claude-ai:   Also interpolates CUTSCENE_fade_level from packet->length high byte.
+// claude-ai:
+// claude-ai: EDITOR GLOBALS:
+// claude-ai:   CUTSCENE_edit_wnd   — HWND of the cutscene editor window
+// claude-ai:   CUTSCENE_playback   — bool: timeline is playing
+// claude-ai:   CUTSCENE_slomo      — bool: slow-motion mode active (1/SLOMO_RATE=1/10)
+// claude-ai:   CUTSCENE_mouselook  — bool: mouse captured for camera control
+// claude-ai:   CUTSCENE_fade_level — current screen fade opacity (0=black, 255=full)
+// claude-ai:   subtitle_str[255]   — current subtitle text buffer
+// claude-ai:
+// claude-ai: EDITOR BEHAVIOUR — DoHandleShit():
+// claude-ai:   Main editor render/update loop. Advances timeline read-head every
+// claude-ai:   40ms (25fps target). WASD-style camera control via Keys[] array.
+// claude-ai:   Renders live game view into DirectDraw backbuffer via GI_render_view.
+// claude-ai:
+// claude-ai: ANIMATION FILE LOADING (editor only):
+// claude-ai:   LoadAllAnimNames() / LoadAnim() / SkipBodyPartInfo() — reads .anm
+// claude-ai:   files (darci1.anm, roper.anm) to populate editor animation list.
+// claude-ai:   Format: anim count, optional body-part info block, per-anim records
+// claude-ai:   (name, frame_count, per-frame: SWORD+SLONG+SLONG + optional fight cols).
+// claude-ai:
+// claude-ai: SnapAnimation() — editor tool: snaps character packet position so
+// claude-ai:   the left foot position at current cell matches left foot at end
+// claude-ai:   of previous packet (eliminates foot sliding between animations).
+// claude-ai: ============================================================
+
 
 #include	<MFStdLib.h>
 #include	<windows.h>
@@ -150,6 +231,9 @@ extern void	calc_camera_pos(void);
 //---------------------------------------------------------------
 // Data structure handlers -- alloc, free, etc
 
+// claude-ai: CUTSCENE_chan_free() — releases memory owned by a channel:
+// claude-ai: frees PT_TEXT packet string data (stored as char* in pkt->pos.X!),
+// claude-ai: then deletes the packets array. Does NOT free the channel struct itself.
 void CUTSCENE_chan_free(CSChannel &chan) {
 	int i;
 	CSPacket *pkt=chan.packets;
@@ -359,6 +443,11 @@ void CUTSCENE_read_channel(FILE *file_handle, CSData* cutscene) {
 	for (packnum=0;packnum<packct;packnum++) CUTSCENE_read_packet(file_handle,chan,cutscene->version);
 }
 
+// claude-ai: CUTSCENE_read() — deserialises a cutscene from file into a fresh CSData.
+// claude-ai: Reads version byte first; applies version-1 compatibility patches inside
+// claude-ai: CUTSCENE_read_packet() (CT_CAM length patch). Caller receives CSData* via
+// claude-ai: the double-pointer out-param. Memory ownership: caller must call
+// claude-ai: CUTSCENE_data_free() when done.
 void CUTSCENE_read(FILE *file_handle, CSData** cutsceneref) {
 	UBYTE channum, chanct;
 	CSData* cutscene=CUTSCENE_data_alloc();
@@ -895,6 +984,10 @@ Thing* CUTSCENE_item_from_point(CSData *cutscene, SLONG x, SLONG y, SLONG z) {
 	return 0;
 }
 
+// claude-ai: CUTSCENE_find_surrounding_packets() — linear scan to find the packet
+// claude-ai: whose start <= cell (left) and start >= cell (right).
+// claude-ai: Returns TRUE only if both a left and right boundary are found (full span).
+// claude-ai: Timeline cells range 0-2000.
 BOOL CUTSCENE_find_surrounding_packets(CSChannel *chan, int cell, int* left, int* right) {
 	int leftmax=-1, rightmin=2001, packctr=0;
 	CSPacket *pack;
@@ -923,6 +1016,12 @@ inline int  LERPAngle(int a, int b, int m) {
 	return a+(((b-a)*m)/256);
 }
 
+// claude-ai: LERPAnim() — core character animation playback. Finds the keyframe pair
+// claude-ai: bracketing 'cell' (timeline frame number). Interpolates position and
+// claude-ai: facing angle using the packet's easing flags. Sets animation index via
+// claude-ai: set_anim() and advances it by setting TICK_RATIO=pos<<TICK_SHIFT then
+// claude-ai: calling person_normal_animate() once (effectively seeking to frame 'pos'
+// claude-ai: inside the animation clip). Slow-mo adds fractional frame via slomo_ctr.
 void LERPAnim(CSChannel *chan, Thing *person, int cell) {
 	int left,right,lastpos,pos,dist, a, mult, smoothmult, smoothin, smoothout;
 	int x,y,z;
@@ -1034,6 +1133,10 @@ void LERPAnim(CSChannel *chan, Thing *person, int cell) {
 
 }
 
+// claude-ai: LERPCamera() — camera playback. Interpolates cam_focus_x/y/z, cam_yaw,
+// claude-ai: cam_pitch, FC_cam[0].lens (FOV), and CUTSCENE_fade_level between
+// claude-ai: the two surrounding CT_CAM packets. Lens value in packet is 8-bit stored
+// claude-ai: in length&0xff; the upper byte (length>>8) stores fade opacity target.
 void LERPCamera(CSChannel *chan, int cell) {
 	int x,y,z,p,a, left, right, dist, pos, mult, smoothin, smoothout, smoothmult,lens;
 	CSPacket *pktA,*pktB;

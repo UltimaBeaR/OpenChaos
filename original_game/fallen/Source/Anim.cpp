@@ -1,3 +1,42 @@
+// claude-ai: FILE OVERVIEW — Anim.cpp (fallen/Source/Anim.cpp)
+// claude-ai: Handles the character animation system: loading .all animation files,
+// claude-ai: building the global_anim_array[], and managing GameKeyFrameChunk data.
+// claude-ai:
+// claude-ai: KEY DATA STRUCTURES:
+// claude-ai:   GameKeyFrameChunk — one per character type (Darci, Roper, CIV/Thug, Roper2).
+// claude-ai:     .AnimKeyFrames[] — flat array of all keyframes for this character type.
+// claude-ai:     .AnimList[]      — array of pointers into AnimKeyFrames by animation index.
+// claude-ai:     .TheElements[]   — per-bone transform data (GameKeyFrameElement per bone per frame).
+// claude-ai:     .FightCols[]     — fight collision boxes per keyframe.
+// claude-ai:     .MultiObject[]   — prim_multi_object indices for character mesh variants.
+// claude-ai:
+// claude-ai:   global_anim_array[ANIM_TYPE][ANIM_*] — 2D table mapping character type × action
+// claude-ai:   to a specific keyframe list pointer. ANIM_TYPE_DARCI=0, ANIM_TYPE_ROPER=1,
+// claude-ai:   ANIM_TYPE_CIV=2, ANIM_TYPE_ROPER2=3. ANIM_* constants are in animate.h.
+// claude-ai:
+// claude-ai: .ALL FILE FORMAT (binary, loaded by load_anim_system()):
+// claude-ai:   SLONG anim_count (negative = has version + body_part_info header)
+// claude-ai:   Then anim_count × Anim records.
+// claude-ai:   Each Anim: name, flags, frame_count, optional speed byte (version>3),
+// claude-ai:   then frame_count × (chunk_id, frame_id, tween_step, fixed, fight_cols).
+// claude-ai:
+// claude-ai: COMPRESSED MATRIX FORMAT (GameKeyFrameElement / ULTRA_COMPRESSED_ANIMATIONS):
+// claude-ai:   Each bone orientation stored as 3x3 rotation matrix, compressed:
+// claude-ai:   Only 2 of 3 values in each row stored; 3rd reconstructed via sqrt(1 - a² - b²).
+// claude-ai:   Pad byte encodes which element is the largest (reconstructed from the others).
+// claude-ai:   OffsetX/Y/Z: bone offset from parent in 8-bit values.
+// claude-ai:
+// claude-ai: setup_people_anims():
+// claude-ai:   Loads .all files: darci1.all, roper.all (or psxroper.all), rthug.all.
+// claude-ai:   Appends: police1.all → Roper chunk at index 200+.
+// claude-ai:   Appends: newciv.all → CIV chunk at CIV_M_START; newcivf.all at CIV_F_START.
+// claude-ai:   Level-specific: banesuit.all on estate2/Album1 levels; trainer.all in tutorial.
+// claude-ai:
+// claude-ai: setup_global_anim_array():
+// claude-ai:   Fills global_anim_array[][] by mapping ANIM_* constants to specific .all indices.
+// claude-ai:   Initially all types default to Darci's animations (fallback).
+// claude-ai:   Then per-character overrides are applied (Roper pistol, shotgun, AK47, etc.)
+// claude-ai:
 // samplmanager.c.h
 // mfstdlib.h
 
@@ -97,6 +136,12 @@ extern	struct KeyFrameElement	*elements_bank1,*elements_bank2;
 SLONG	build_psx=0; //save_psx
 extern	SLONG	save_psx;
 
+// claude-ai: NROPER_ANIM_* constants — indices into game_chunk[ANIM_TYPE_ROPER].AnimList[]
+// claude-ai: for the "new Roper" animation set (roper.all, PC-only non-PSX path).
+// claude-ai: These are used in setup_global_anim_array() to map ANIM_* game actions
+// claude-ai: to specific numbered animations within the roper.all file.
+// claude-ai: The numbering (1, 2, 3...) corresponds to the animation's position in the .all file.
+// claude-ai: PSX build uses a different set (psxroper.all) with different indices.
 #define	NROPER_ANIM_YOMP					(1)
 #define	NROPER_ANIM_STAND_READY				(2)
 #define	NROPER_ANIM_BREATHE					(3)
@@ -165,6 +210,11 @@ extern	SLONG	save_psx;
 #define NROPER_AIM_WALL_PISTOL_C			(64)
 #define NROPER_FIGHT_WALL					(60)
 
+// claude-ai: NROPER_TWO_PISTOL_* — Roper's dual-pistol animation set.
+// claude-ai: These are PC-only (not present in PSX/psxroper.all builds).
+// claude-ai: The dual-pistol system uses: DRAW(76), FIRE(77), AWAY(78), RUN(72), AIM(90),
+// claude-ai:   AIM_L(79), AIM_R(80), CROUCH(87), CROUCH_HOLD(88), CROUCH_STAND_UP(89).
+// claude-ai: Mapped to ANIM_PISTOL_DRAW, ANIM_PISTOL_SHOOT, ANIM_PISTOL_JOG etc. in setup_global_anim_array.
 #define NROPER_TWO_PISTOL_DRAW				(76)
 #define NROPER_TWO_PISTOL_FIRE				(77)
 #define NROPER_TWO_PISTOL_AWAY				(78)
@@ -183,6 +233,12 @@ extern	SLONG	save_psx;
 
 #define	NROPER_ANIM_CLIMB_OVER_FENCE		(91)
 
+// claude-ai: Global counters for the prim data arrays (world geometry + prims).
+// claude-ai: next_prim_point: next free slot in prim_points[] (vertex positions).
+// claude-ai: next_prim_face4/3: next free slot in quad/triangle face arrays.
+// claude-ai: next_prim_object: next free slot in prim_objects[] (mesh objects).
+// claude-ai: next_prim_multi_object: used for multi-part character meshes (body part variants).
+// claude-ai: Starting at 1 (not 0) — slot 0 may be reserved as a NULL/invalid sentinel.
 UWORD	next_prim_point=1;
 UWORD	next_prim_face4=1;
 UWORD	next_prim_face3=1;
@@ -209,6 +265,11 @@ struct	PrimMultiAnim	prim_multi_anims[10000];
 #endif
 UWORD	next_prim_multi_anim=1;
 
+// claude-ai: ANIM_init() — zeroes all GameKeyFrameChunk pointers.
+// claude-ai: game_chunk[0..MAX_GAME_CHUNKS]: the in-game character animation chunks
+// claude-ai:   [ANIM_TYPE_DARCI]=0, [ANIM_TYPE_ROPER]=1, [ANIM_TYPE_CIV]=2, [ANIM_TYPE_ROPER2]=3
+// claude-ai: anim_chunk[0..MAX_ANIM_CHUNKS]: editor-side animation chunks (not used at runtime).
+// claude-ai: Setting pointers to 0 is critical — load_anim_system() checks for NULL before alloc.
 #ifndef PSX
 void	ANIM_init(void)
 {
@@ -231,6 +292,9 @@ void	ANIM_init(void)
 	}
 }
 
+// claude-ai: ANIM_fini() — frees memory for Darci, Roper, Roper2, CIV animation chunks.
+// claude-ai: free_game_chunk() declared inline here (forward decl pattern used elsewhere in codebase).
+// claude-ai: game_chunk[5] (van) omitted — van anims were experimental/unused.
 void	ANIM_fini(void)
 {
 void	free_game_chunk(GameKeyFrameChunk *the_chunk);
@@ -242,6 +306,16 @@ void	free_game_chunk(GameKeyFrameChunk *the_chunk);
 }
 #endif
 //************************************************************************************************
+// claude-ai: CMatrix33 COMPRESSION SYSTEM — how rotation matrices are stored in animation data:
+// claude-ai: A 3x3 rotation matrix has 9 elements, but only 6 degrees of freedom (orthonormal).
+// claude-ai: Compression: store only 2 of 3 elements per row; reconstruct 3rd via:
+// claude-ai:   c = sqrt(1 - a² - b²)  [using UCA_Lookup table for fast integer sqrt]
+// claude-ai: The Pad byte encodes WHICH element is largest (and thus reconstructed):
+// claude-ai:   Pad bits 0,1,2,3: row0 dominance  bits 4,5: row1 dominance  bit 6,7: sign
+// claude-ai: CMatrix33.M[0] stores row 0 packed: (m00<<22)|(m01<<12)|(m02<<2) — 10 bits each.
+// claude-ai: M[1] stores row 1 the same way. M[2] = cross product of rows 0 and 1.
+// claude-ai: GameKeyFrameElement: OffsetX/Y/Z (bone local translation) + compressed CMatrix.
+// claude-ai: GameKeyFrameElementComp: same but with 8-bit m00/m01/m10/m11 + Pad encoding.
 #ifndef	ULTRA_COMPRESSED_ANIMATIONS
 void	SetCMatrixComp(GameKeyFrameElementComp *e, CMatrix33 *cm)
 {
@@ -463,6 +537,12 @@ void	SetCMatrix(GameKeyFrameElement *e, CMatrix33 *cm)
 }
 #endif
 
+// claude-ai: GetCMatrix() — decompresses a stored GameKeyFrameElement back into a CMatrix33.
+// claude-ai: Reads the Pad byte to determine which element was omitted, then calls
+// claude-ai: UCA_Lookup[a][b] to reconstruct the third element c = sqrt(16383 - a² - b²).
+// claude-ai: The UCA_Lookup table is pre-computed in UCA_LookupSetup() at game start.
+// claude-ai: Row 2 (m20/m21/m22) is always reconstructed as cross product of rows 0 and 1.
+// claude-ai: NOTE: This is the ULTRA_COMPRESSED_ANIMATIONS path (PSX-targeted).
 void	GetCMatrix(GameKeyFrameElement *e, CMatrix33 *cm)
 {
 	SLONG	a, b, c;
@@ -923,11 +1003,23 @@ void	setup_extra_anims(void)
 }
 extern	UWORD	darci_normal_count;
 extern	SLONG	append_anim_system(struct GameKeyFrameChunk *p_chunk,CBYTE	*name,SLONG start_anim,SLONG load_mesh);
+// claude-ai: setup_people_anims() — the main animation loading entry point, called at game start.
+// claude-ai: Load order:
+// claude-ai:   1. darci1.all  → game_chunk[ANIM_TYPE_DARCI] (Darci character, flag=1)
+// claude-ai:   2. roper.all / psxroper.all / roper_up.all → game_chunk[ANIM_TYPE_ROPER]
+// claude-ai:   3. rthug.all   → game_chunk[ANIM_TYPE_CIV] (Thug/Civ character, flag=2)
+// claude-ai:   4. roper2.all  → game_chunk[ANIM_TYPE_ROPER2] (PC only, not PSX)
+// claude-ai:   5. police1.all → appended to ROPER chunk at index 200+
+// claude-ai:   6. newciv.all  → appended to CIV chunk at CIV_M_START (male civs)
+// claude-ai:   7. newcivf.all → appended to CIV chunk at CIV_F_START (female civs)
+// claude-ai:   8. trainer.all → appended to ROPER chunk at 240+ (tutorial level only)
+// claude-ai:   9. banesuit.all → appended to ROPER at 240+ (estate2/Album1 levels)
+// claude-ai: darci_normal_count = next_prim_point after loading, marks end of normal prim range.
 void	setup_people_anims(void)
 {
 #ifdef ULTRA_COMPRESSED_ANIMATIONS
 	UCA_LookupSetup();
-#endif	
+#endif
 
 	setup_anim_stuff();
 	load_anim_system(&game_chunk[ANIM_TYPE_DARCI],"darci1.all",1);
@@ -1007,6 +1099,16 @@ extern	SLONG	playing_level(const CBYTE *name);
 #endif
 #endif
 
+// claude-ai: setup_global_anim_array() — builds the global animation dispatch table.
+// claude-ai: global_anim_array[ANIM_TYPE][ANIM_*] → pointer to keyframe list for that action.
+// claude-ai: STEP 1: Fill all 4 character type rows with Darci's animations as baseline.
+// claude-ai:   This ensures every ANIM_* constant has a valid pointer even if not overridden.
+// claude-ai: STEP 2 (commented out): Roper-specific overrides (these are dead code in this build).
+// claude-ai: STEP 3: CIV/Thug overrides (THUG_ANIM_WALK, CIV_ANIM_IDLE_BREATHE, etc.)
+// claude-ai: STEP 4: New Roper overrides (NROPER_* constants) applied on PC (not PSX).
+// claude-ai:   PSX takes a slightly different subset of animations (build_psx path).
+// claude-ai: NOTE: The large commented-out Roper section is DEAD CODE — an older roper setup
+// claude-ai:   was replaced by the new NROPER_* system but not deleted.
 void	setup_global_anim_array(void)
 {
 	//
@@ -1178,6 +1280,10 @@ void	setup_global_anim_array(void)
 	global_anim_array[ANIM_TYPE_ROPER][ANIM_BIKE_LEAN_LEFT ] = game_chunk[ANIM_TYPE_ROPER].AnimList[ROPER_BIKE_LEAN_LEFT];
 	global_anim_array[ANIM_TYPE_ROPER][ANIM_BIKE_LEAN_RIGHT] = game_chunk[ANIM_TYPE_ROPER].AnimList[ROPER_BIKE_LEAN_RIGHT];
 */	
+	// claude-ai: CIV (Thug/Civilian) animation overrides. Only a few anims are set here;
+	// claude-ai: the rest use Darci's animations as fallback (from the fill loop above).
+	// claude-ai: Comment "The Boss" is a leftover name from an earlier design iteration.
+	// claude-ai: ANIM_TYPE_CIV (index 2) covers all non-Darci non-Roper NPCs (thugs, civs).
 	// -- The Boss --
 
 	global_anim_array[ANIM_TYPE_CIV][ANIM_WALK]    =game_chunk[ANIM_TYPE_CIV].AnimList[THUG_ANIM_WALK];
@@ -1187,6 +1293,11 @@ void	setup_global_anim_array(void)
 //	global_anim_array[ANIM_TYPE_CIV][ANIM_FIGHT]    =game_chunk[ANIM_TYPE_CIV].AnimList[THUG_ANIM_FIGHT_IDLE];
 					   
 
+	// claude-ai: "New roper" section — applies NROPER_* animation overrides for Roper character.
+	// claude-ai: build_psx=1 on PSX forces a reduced subset (fewer wall-press, no two-pistol run).
+	// claude-ai: On PC (save_psx=0): full NROPER_TWO_PISTOL_*, NROPER_SHOTGUN_*, NROPER_ANIM_AK_* set.
+	// claude-ai: The if(build_psx) branch covers PSX path; else branch covers PC path.
+	// claude-ai: Key PC-only animations: wall-press sidling (TO_WALL, ALONG_WALL, AIM_WALL variants).
 	//
 	// New roper
 	//

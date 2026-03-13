@@ -2,6 +2,98 @@
 // Objects (prims) on the map.
 //
 
+// claude-ai: ============================================================
+// claude-ai: FILE OVERVIEW: ob.cpp
+// claude-ai: ============================================================
+// claude-ai: Implements the OB (Object) system — static decorative/interactive
+// claude-ai: objects placed on the outdoor map (street level). Examples:
+// claude-ai: lamp posts, benches, bollards, fire hydrants, bins, traffic cones,
+// claude-ai: switches, valves, tripwires, helicopter pads, weapon pickups, etc.
+// claude-ai:
+// claude-ai: DISTINCTION FROM FURN (furniture):
+// claude-ai:   OB = outdoor, static, tile-grid indexed, not a Thing entity.
+// claude-ai:   FURN = indoor/moveable objects that ARE Thing entities.
+// claude-ai:   OBs are purely visual + collision data; no AI or physics.
+// claude-ai:   Exception: fire hydrant has simple particle simulation (OB_process).
+// claude-ai:
+// claude-ai: DATA STRUCTURES:
+// claude-ai:   OB_Ob [OB_MAX_OBS]          — flat array of all objects on map.
+// claude-ai:     Fields: x(8-bit subunit), z(8-bit subunit), y(height), prim(index),
+// claude-ai:             yaw(>>3 compressed), flags(OB_FLAG_*), InsideIndex(room id)
+// claude-ai:     Coordinate encoding: x = (worldX & 0x3ff) >> 2  (0-255 within square)
+// claude-ai:                          z = (worldZ & 0x3ff) >> 2
+// claude-ai:                          yaw = rawYaw >> 3  (0-255 for full circle)
+// claude-ai:   OB_workaround (OB_mapwho) [OB_SIZE][OB_SIZE] — spatial index.
+// claude-ai:     Each cell: index = start of this square's objects in OB_ob[],
+// claude-ai:                num   = count of objects on this square.
+// claude-ai:   OB_ob[] is a packed flat array; objects for one square are
+// claude-ai:   contiguous. OB_compress() defragments the array when needed.
+// claude-ai:
+// claude-ai: OB_SIZE = size of the OB_mapwho grid (in mapsquares, matching PAP_SIZE_LO).
+// claude-ai: OB_MAX_PER_SQUARE = max objects allowed per mapsquare.
+// claude-ai: OB_MAX_OBS = total object array capacity.
+// claude-ai:
+// claude-ai: COORDINATE SYSTEM:
+// claude-ai:   WorldPos coords passed to OB_create() are in >>10 units (mapsquare
+// claude-ai:   coords x 1024). Internally stored as subunit offsets within cell.
+// claude-ai:   OB_find() returns OB_Info with: x=(mx<<10)+(oo->x<<2), etc.
+// claude-ai:   So OB_Info coordinates are in the same fine units as WorldPos>>8.
+// claude-ai:
+// claude-ai: KEY FUNCTIONS:
+// claude-ai:   OB_init()         — clears OB_mapwho and hydrant arrays; sets ob_upto=1
+// claude-ai:                       (index 0 is reserved/null sentinel)
+// claude-ai:   OB_create()       — adds a new object to a mapsquare's slot.
+// claude-ai:                       If square not at end of OB_ob[], copies it there
+// claude-ai:                       first (may trigger OB_compress() if full).
+// claude-ai:                       PC/editor only (#ifndef PSX, #ifndef TARGET_DC).
+// claude-ai:   OB_compress()     — defragments OB_ob[] by rebuilding it in
+// claude-ai:                       mapsquare order; updates all OB_mapwho indices.
+// claude-ai:   OB_find(mx,mz)    — returns null-terminated OB_Info[] of all objects
+// claude-ai:                       on that mapsquare. Expands stored coords back to
+// claude-ai:                       fine units. Applies damaged state (lean/crumple).
+// claude-ai:   OB_find_inside()  — like OB_find() but filters by InsideIndex (room).
+// claude-ai:   OB_remove()       — removes object by swapping with last in square.
+// claude-ai:                       Also removes any walkable prim faces with matching
+// claude-ai:                       ThingIndex == -oi->index.
+// claude-ai:   OB_process()      — per-frame update for active fire hydrants only.
+// claude-ai:   OB_avoid()        — collision avoidance helper: given a movement
+// claude-ai:                       vector (x1,z1)->(x2,z2) and an OB prim, returns
+// claude-ai:                       -1 (go left), +1 (go right), 0 (no collision).
+// claude-ai:                       Uses MAV_inside() to check which side has room.
+// claude-ai:   OB_find_type()    — scans a radius for nearest object matching
+// claude-ai:                       given PRIM_FLAG_* or special flags (tripwire,
+// claude-ai:                       switch, valve). Used by mission scripts.
+// claude-ai:
+// claude-ai: DAMAGE SYSTEM (OB_FLAG_DAMAGED + OB_Info::crumple/roll/pitch):
+// claude-ai:   When OB_FLAG_DAMAGED set, OB_find() applies visual deformation:
+// claude-ai:   PRIM_DAMAGE_LEAN prims: roll/pitch set to ±40 + dlean[] table offset
+// claude-ai:                           (makes lamp posts lean uniquely per index).
+// claude-ai:   Other prims: crumple = (flags>>6)+1  (used by renderer to scale down).
+// claude-ai:
+// claude-ai: FIRE HYDRANT SPECIAL CASE (OB_Hydrant, OB_hydrant[4]):
+// claude-ai:   When a hydrant is damaged, it's registered in OB_hydrant[].
+// claude-ai:   OB_process() counts down life, spawns DIRT_new_water() particles
+// claude-ai:   in the direction determined by flags>>6 (4 possible spray angles).
+// claude-ai:   Multiple streams if life > 5s or > 10s thresholds.
+// claude-ai:   Sound: S_FIRE_HYDRANT via MFX_stop() when expired.
+// claude-ai:
+// claude-ai: WALKABLE FACES — OB_add_walkable_faces():
+// claude-ai:   For prims with PRIM_FLAG_CONTAINS_WALKABLE_FACES, transforms each
+// claude-ai:   FACE_FLAG_WALKABLE quad into world space (yaw-only rotation via
+// claude-ai:   FMATRIX_calc), snaps points to map grid (OB_SNAP_WIDTH=6), then
+// claude-ai:   creates new prim_faces4[] entries with FACE_FLAG_PRIM set and
+// claude-ai:   ThingIndex = -oi->index (negative = identifies source OB).
+// claude-ai:   Calls attach_walkable_to_map() for each. Only prims 12-17 (fire
+// claude-ai:   escapes), 29 (metal platform), 109, 221 get FACE_FLAG_METAL.
+// claude-ai:
+// claude-ai: GENERAL PRIM LOADING — load_general_prims():
+// claude-ai:   Hardcoded list of prim IDs always needed: vehicles (van, car, taxi,
+// claude-ai:   police, ambulance, jeep, meatwagon, sedan, wildcat), weapons (gun,
+// claude-ai:   knife, shotgun, bat, AK47 + flash prims), chopper, general pickups.
+// claude-ai:   PRIM_OBJ_BAT (weapon bat) is loaded here — distinct from bat.cpp
+// claude-ai:   creatures which are Thing entities, not OB prims.
+// claude-ai: ============================================================
+
 #include <MFStdLib.h>
 #include "game.h"
 #include "pap.h"
@@ -55,6 +147,9 @@ typedef struct
 OB_Hydrant OB_hydrant[OB_MAX_HYDRANTS];
 UBYTE      OB_hydrant_last;
 
+// claude-ai: OB_init() — clears the spatial index and hydrant tracking array.
+// claude-ai: OB_ob_upto starts at 1 (index 0 = null sentinel, never used).
+// claude-ai: PC build also logs sizeof() for debugging during development.
 #ifndef PSX
 void OB_init()
 {
@@ -225,6 +320,12 @@ void OB_create(
 #endif
 #endif
 
+// claude-ai: OB_process() — per-frame update for all active fire hydrants.
+// claude-ai: Called each game tick. Counts down life (in ticks scaled by TICK_RATIO).
+// claude-ai: When life reaches 0: clears entry, stops MFX S_FIRE_HYDRANT sound.
+// claude-ai: While active: sprays DIRT_new_water() particles; direction from flags>>6
+// claude-ai: (4 spray orientations offset by ±256 from the hydrant's stored yaw).
+// claude-ai: Extra streams at life > 20*16*5 (5 sec) and > 20*16*10 (10 sec) thresholds.
 void OB_process()
 {
 	SLONG i;
@@ -306,6 +407,11 @@ void OB_process()
 
 
 
+// claude-ai: OB_find() — returns null-terminated OB_Info[] for mapsquare (x, z).
+// claude-ai: Expands compressed OB_Ob fields back to full coordinates.
+// claude-ai: For damaged objects: lean prims get roll/pitch set for visual tilt;
+// claude-ai: other damaged prims get crumple value for scale-down by renderer.
+// claude-ai: The dlean[] table {25,-16,-28,+15} ensures each lamp post leans uniquely.
 OB_Info *OB_find(SLONG x, SLONG z)
 {
 	OB_Info *of;
@@ -449,6 +555,13 @@ OB_Info *OB_find_inside(SLONG x, SLONG z,SLONG indoors)
 	return OB_found;
 }
 #endif
+// claude-ai: OB_avoid() — steerable avoidance helper for moving entities.
+// claude-ai: Extends movement vector (x1,z1)->(x2,z2) by 8x to look ahead further.
+// claude-ai: Computes two tangent points px1/pz1, px2/pz2 on either side of the prim.
+// claude-ai: Uses MAV_inside() to check which side has walkable space.
+// claude-ai: Returns -1 = steer left, +1 = steer right, 0 = no avoidance needed.
+// claude-ai: PRIM_COLLIDE_NONE prims are skipped (return 0 immediately).
+// claude-ai: Coords passed in are >>8 WorldPos units (fine map units).
 SLONG OB_avoid(
 		SLONG ob_x,
 		SLONG ob_y,
@@ -1170,6 +1283,11 @@ void OB_add_walkable_faces()
 #endif
 
 
+// claude-ai: OB_remove() — removes an object from the map by swapping with the last
+// claude-ai: object in its mapsquare's slot (O(1) unordered removal). Also scans
+// claude-ai: prim_faces4[] for any walkable faces tagged with this OB's index
+// claude-ai: (FACE_FLAG_PRIM + ThingIndex == -oi->index) and removes them from
+// claude-ai: the walkable face map. Used e.g. when a lamp post is destroyed.
 void OB_remove(OB_Info *oi)
 {
 	SLONG lo_map_x = oi->x >> PAP_SHIFT_LO;
@@ -1258,6 +1376,13 @@ SLONG	special_object_flag(OB_Info *ob,SLONG flags)
 //
 // if prim_flags is >255 then its a special object flag found in a special way :)
 //
+// claude-ai: OB_find_type() — spatial search for the nearest OB matching criteria.
+// claude-ai: Scans mapsquares in a bounding box around (mid_x, mid_y, mid_z).
+// claude-ai: prim_flags: if <= 255 = PRIM_FLAG_* bitmask from prim_objects[].flag;
+// claude-ai:             if > 255  = special object type checked via special_object_flag()
+// claude-ai:                         (FIND_OB_TRIPWIRE, FIND_OB_SWITCH_OR_VALVE).
+// claude-ai: Returns FALSE if no matching object found within max_range.
+// claude-ai: Out-params: ob_x/y/z, ob_yaw, ob_prim, ob_index of nearest found object.
 SLONG OB_find_type(
 		SLONG  mid_x,
 		SLONG  mid_y,

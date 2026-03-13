@@ -2,6 +2,34 @@
 // Furniture.
 //
 
+// claude-ai: FILE OVERVIEW — Furn.cpp
+// claude-ai: Handles CLASS_FURNITURE = 3 Things: static decor, pushable objects, doors.
+// claude-ai: Also handles VEHICLE_create() here (vehicles sharing Furn collision infra).
+// claude-ai:
+// claude-ai: KEY FLAG — FLAG_FURN_DRIVING (defined in furn.h, NOT Vehicle.h!):
+// claude-ai:   Set on Furniture Things that act as vehicle chassis (driveable furniture).
+// claude-ai:   When this flag is set the Furniture responds to steering/throttle commands
+// claude-ai:   like a vehicle. Cleared in FURN_hypermatterise() when object crashes.
+// claude-ai:
+// claude-ai: STATE MACHINE for furniture Things:
+// claude-ai:   STATE_NORMAL     → FURN_process_normal()  : static or HyperMatter-driven
+// claude-ai:   STATE_MOVEING    → FURN_process_moveing() : being pushed/flying through air
+// claude-ai:   STATE_FDRIVING   → NULL (driver handles it externally via FLAG_FURN_DRIVING)
+// claude-ai:   STATE_FDOOR      → FURN_door()            : swinging door behaviour
+// claude-ai:
+// claude-ai: PHYSICS:
+// claude-ai:   Furniture has linear velocity (dx/dy/dz) and angular velocity (dyaw/dpitch/droll).
+// claude-ai:   FURN_push() applies impulse force + torque. FURN_process_moveing() integrates.
+// claude-ai:   HyperMatter (hm.h) physics engine used for complex rigid-body after crash.
+// claude-ai:
+// claude-ai: WALKABLE FACES:
+// claude-ai:   FURN_add_walkable() scans all furniture prims for faces with POLY_FLAG_WALKABLE
+// claude-ai:   and registers them as walkable surfaces (e.g. for NPCs to stand on a table).
+// claude-ai:
+// claude-ai: COLLISION AVOIDANCE:
+// claude-ai:   FURN_slide_along() — player/NPC movement deflection around furniture bounding box.
+// claude-ai:   FURN_avoid()       — NPC steering around lamp posts and furniture obstacles.
+
 #include "game.h"
 #include "fmatrix.h"
 #include "furn.h"
@@ -20,6 +48,9 @@
 // The state functions and the state function table.
 //
 
+// claude-ai: State function prototypes — FURN_driving is declared but never assigned
+// claude-ai: in the table below (STATE_FDRIVING maps to NULL). Driver code controls
+// claude-ai: driveable furniture directly via FLAG_FURN_DRIVING + Furniture->Command.
 void FURN_process_normal (Thing *);
 void FURN_process_moveing(Thing *);
 void FURN_driving        (Thing *);
@@ -27,6 +58,9 @@ void FURN_door           (Thing *);
 
 
 
+// claude-ai: Furniture state function dispatch table.
+// claude-ai: STATE_FDRIVING → NULL means the state is handled externally (vehicle driving code).
+// claude-ai: STATE_FDOOR    → FURN_door() runs each tick to animate a swinging door.
 StateFunction FURN_statefunctions[] =
 {
 	{STATE_INIT,            NULL},
@@ -48,6 +82,9 @@ StateFunction FURN_statefunctions[] =
 
 #define FURN_NULL_DX (INFINITY)
 
+// claude-ai: init_furniture() — marks all MAX_FURNITURE Furniture slots as free by setting
+// claude-ai: dx = FURN_NULL_DX (INFINITY). Only velocity fields (dx/dy/dz etc) live in
+// claude-ai: the Furniture struct; position/orientation is on the Thing/DrawMesh.
 void init_furniture()
 {
 	SLONG i;
@@ -67,6 +104,11 @@ void init_furniture()
 // Allocates a stationary furn structure.
 //
 
+// claude-ai: FURN_alloc_furniture() — allocates and zero-initialises a Furniture velocity struct.
+// claude-ai: Linear velocity: dx/dy/dz (stored at high precision, shifted >>8 each tick).
+// claude-ai: Angular velocity: dyaw/dpitch/droll (stored at high precision, shifted >>16 each tick).
+// claude-ai: Pool is a flat array; linear scan for free slot (dx == FURN_NULL_DX).
+// claude-ai: ASSERT(0) if pool exhausted — so MAX_FURNITURE is a hard limit.
 Furniture *FURN_alloc_furniture(void)
 {
 	SLONG i;
@@ -93,6 +135,8 @@ Furniture *FURN_alloc_furniture(void)
 	return NULL;
 }
 
+// claude-ai: FURN_dealloc() — frees a Furniture struct by marking dx = FURN_NULL_DX.
+// claude-ai: No other fields are cleared; they are stale until next FURN_alloc_furniture().
 void FURN_dealloc(Furniture *furn)
 {
 	ASSERT(WITHIN(furn, TO_FURNITURE(0), TO_FURNITURE(MAX_FURNITURE - 1)));
@@ -105,6 +149,10 @@ void FURN_dealloc(Furniture *furn)
 // Removes the furniture thing
 //
 
+// claude-ai: free_furniture() — tears down a CLASS_FURNITURE Thing in correct order:
+// claude-ai: 1. FURN_dealloc(Genus.Furniture) — may be NULL if still stationary
+// claude-ai: 2. free_draw_mesh(Draw.Mesh)     — always present
+// claude-ai: 3. free_thing(p_thing)            — returns Thing slot to pool
 void free_furniture(Thing *p_thing)
 {
 	//
@@ -123,6 +171,10 @@ void free_furniture(Thing *p_thing)
 }
 
 
+// claude-ai: FURN_create() — creates a static furniture Thing with no Furniture struct.
+// claude-ai: p_thing->Genus.Furniture starts as NULL (stationary, no physics).
+// claude-ai: FURN_push() will allocate the Furniture struct and switch to STATE_MOVEING.
+// claude-ai: Coordinates are 32.8 fixed-point (world units × 256).
 THING_INDEX FURN_create(
 		SLONG x,
 		SLONG y,
@@ -192,6 +244,10 @@ THING_INDEX FURN_create(
 	return ans;
 }
 
+// claude-ai: VEHICLE_create() — creates a CLASS_VEHICLE Thing using the same Furniture
+// claude-ai: infrastructure. Note: Class=CLASS_VEHICLE, not CLASS_FURNITURE. The Furniture
+// claude-ai: struct (Genus.Furniture) tracks velocity and FLAG_FURN_DRIVING state.
+// claude-ai: Unlike FURN_create(), Y position is snapped to terrain height via PAP_calc_height_at().
 THING_INDEX VEHICLE_create(
 		SLONG x,
 		SLONG y,
@@ -303,6 +359,11 @@ void	add_walkable_quad(THING_INDEX index,SLONG cx,SLONG cy,SLONG cz,SLONG face)
 	next_prim_face4++;
 }
 
+// claude-ai: place_walkable_faces_for_prim() — for each quad face in the prim that has
+// claude-ai: POLY_FLAG_WALKABLE set in DrawFlags, copies it into prim_faces4 and registers
+// claude-ai: two walk-triangles via scan_walk_triangle(). Also promotes the flag from
+// claude-ai: DrawFlags to FaceFlags (FACE_FLAG_WALKABLE) for in-game collision queries.
+// claude-ai: This is called once during FURN_add_walkable() at level-load time.
 void	place_walkable_faces_for_prim(THING_INDEX index,SLONG prim)
 {
 	SLONG	x,y,z;
@@ -342,11 +403,15 @@ void	place_walkable_faces_for_prim(THING_INDEX index,SLONG prim)
 // for each furniture thing, scan for walkable faces, copy them, then index them to the thing
 //
 
+// claude-ai: FURN_add_walkable() — iterates all Things in PRIMARY_USED linked list,
+// claude-ai: finds CLASS_FURNITURE ones, and registers their walkable faces.
+// claude-ai: Called once after all furniture is placed during level load.
+// claude-ai: Non-furniture Things (people, vehicles etc.) are skipped silently.
 void	FURN_add_walkable(void)
 {
 	THING_INDEX	current_thing;
 	Thing	*p_thing;
-	
+
 	current_thing	=	PRIMARY_USED;
 	while(current_thing)
 	{
@@ -362,6 +427,13 @@ void	FURN_add_walkable(void)
 }
 
 
+// claude-ai: FURN_push() — applies a physical impulse to a furniture Thing.
+// claude-ai: Arguments (x1,y1,z1) and (x2,y2,z2) are world-space points on the force line.
+// claude-ai: The delta (x2-x1, y2-y1, z2-z1) is the push direction and magnitude.
+// claude-ai: FURN_SHIFT_WEIGHT (12) converts to internal velocity units.
+// claude-ai: Torque is computed for each axis (yaw, pitch, roll) via perpendicular distance.
+// claude-ai: If the Thing had no Furniture struct (stationary), one is allocated here
+// claude-ai: and STATE_MOVEING is set — this is how static furniture becomes dynamic.
 void FURN_push(
 		THING_INDEX thing,
 		SLONG x1, SLONG y1, SLONG z1,
@@ -525,6 +597,13 @@ void FURN_push(
 }
 
 
+// claude-ai: FURN_process_normal() — per-tick update for STATE_NORMAL furniture.
+// claude-ai: If dm->Hm != 255, the object is under HyperMatter physics control:
+// claude-ai:   - HM_find_mesh_pos() retrieves the simulated position/rotation.
+// claude-ai:   - HM_colvect_clear() + HM_colvect_add() feed nearby wall vectors to the HM sim.
+// claude-ai:   - When HM_stationary() returns true, HyperMatter is destroyed (dm->Hm=255)
+// claude-ai:     and the object transitions to STATE_FDRIVING (becomes driveable chassis).
+// claude-ai: FURN_COL_RADIUS (1024) = search radius for collision vectors in map cells.
 void FURN_process_normal(Thing *p_thing)
 {
 	SLONG x1;
@@ -545,13 +624,18 @@ void FURN_process_normal(Thing *p_thing)
 		p_thing->Class == CLASS_VEHICLE);
 	ASSERT(WITHIN(dm, TO_DRAW_MESH(0), TO_DRAW_MESH(MAX_DRAW_MESHES - 1)));
 
+	// claude-ai: dm->Hm == 255 means NO HyperMatter simulation (sentinel value).
+	// claude-ai: When dm->Hm < 255, this object is under rigid-body physics control.
+	// claude-ai: HM_find_mesh_pos() reads back the position from the simulation.
+	// claude-ai: The collision vectors fed to HM each tick are ground-level wall segments
+	// claude-ai: only (Y check: p_vect->Y[0] == terrain height). Raised walls are excluded.
 	if (dm->Hm != 255)
 	{
 		SLONG dx;
 		SLONG dz;
 
 		SLONG mx;
-		SLONG mz;	    
+		SLONG mz;
 
 		SLONG mid_x;
 		SLONG mid_z;
@@ -657,6 +741,12 @@ void FURN_process_normal(Thing *p_thing)
 			}	
 		}
 
+		// claude-ai: Transition from HyperMatter (crash physics) back to driveable vehicle:
+		// claude-ai: Condition: object is nearly flat (|Tilt| < 256 ≈ 45 degree tolerance)
+		// claude-ai: AND the HyperMatter simulation reports stationary (HM_stationary).
+		// claude-ai: On transition: Furniture->RAngle = current angle (for steering math),
+		// claude-ai:   Wheel and OverSteer reset to 0, Velocity reset to 0.
+		// claude-ai: STATE_FDRIVING is set — FLAG_FURN_DRIVING must still be set externally.
 		if (abs(dm->Tilt) < 256)
 		{
 			if (HM_stationary(dm->Hm))
@@ -681,6 +771,11 @@ void FURN_process_normal(Thing *p_thing)
 	}
 }
 
+// claude-ai: FURN_process_moveing() — per-tick update for STATE_MOVEING furniture.
+// claude-ai: Integrates velocity (furn->dx/dy/dz >> 8) into world position each tick.
+// claude-ai: Integrates angular velocity (dyaw/dpitch/droll >> 16) into DrawMesh angles.
+// claude-ai: NOTE: There is no friction/damping applied here — damping must happen elsewhere
+// claude-ai: or via HyperMatter transition (FURN_hypermatterise).
 void FURN_process_moveing(Thing *p_thing)
 {
 	ASSERT(WITHIN(p_thing, TO_THING(1), TO_THING(MAX_THINGS - 1)));
@@ -702,6 +797,11 @@ void FURN_process_moveing(Thing *p_thing)
 
 	GameCoord new_pos;
 
+	// claude-ai: Position integration: velocity is stored * 256 for precision.
+	// claude-ai: Per tick: WorldPos += velocity >> 8 (so velocity units are 256 * world units/tick).
+	// claude-ai: Rotation integration: angular velocity stored * 65536.
+	// claude-ai: Per tick: Angle += dyaw >> 16 (so dyaw units are 65536 * angle-units/tick).
+	// claude-ai: Angle/Tilt/Roll are 11-bit (0-2047) corresponding to 0..2*PI.
 	new_pos.X = p_thing->WorldPos.X + (furn->dx >> 8);
 	new_pos.Y = p_thing->WorldPos.Y + (furn->dy >> 8);
 	new_pos.Z = p_thing->WorldPos.Z + (furn->dz >> 8);
@@ -719,6 +819,14 @@ void FURN_process_moveing(Thing *p_thing)
 
 
 
+// claude-ai: FURN_slide_along() — movement collision/slide against a furniture/vehicle bounding box.
+// claude-ai: Arguments: (x1,y1,z1) = current position; (*x2,*y2,*z2) = desired next position.
+// claude-ai: radius = mover's body radius (expands the furniture bbox by this amount).
+// claude-ai: dont_slide: TRUE = block completely; FALSE = deflect to nearest face edge.
+// claude-ai: IMPORTANT: Coordinates passed in 32.8 fixed-point; divided by 256 inside.
+// claude-ai: Bounding box test is done in furniture-local space (2D rotation around Y axis).
+// claude-ai: Returns TRUE if movement blocked/deflected, FALSE if no collision.
+// claude-ai: Side effect: if STATE_FDOOR, FURN_slide_along() spins the door (furn->dyaw ±3).
 SLONG FURN_slide_along(
 		THING_INDEX thing,
 		SLONG  x1, SLONG  y1, SLONG  z1,
@@ -947,6 +1055,21 @@ SLONG FURN_slide_along(
 }
 
 
+// claude-ai: FURN_hypermatterise() — transitions a Furniture/Vehicle Thing to HyperMatter
+// claude-ai: physics simulation. Called when a vehicle crashes or is otherwise launched.
+// claude-ai: HM_create() initialises a rigid-body simulation with the prim's grid shape.
+// claude-ai: CRITICAL: FLAG_FURN_DRIVING is CLEARED here (furn->Flags &= ~FLAG_FURN_DRIVING)
+// claude-ai: so the vehicle stops responding to player input during crash physics.
+// claude-ai: Object reverts to STATE_NORMAL so FURN_process_normal() can track HM position.
+// claude-ai: Physics constants: elasticity=0.010, bounciness=0.950, friction=0.850, damping=0.997
+// claude-ai: ============================================================
+// claude-ai: FLAG_FURN_DRIVING IS CLEARED HERE — CRITICAL LOCATION
+// claude-ai: When a vehicle crashes, FURN_hypermatterise() is called.
+// claude-ai: furn->Flags &= ~FLAG_FURN_DRIVING is the ONLY place this
+// claude-ai: flag is cleared in the entire codebase. After this, the
+// claude-ai: vehicle no longer responds to player steering/throttle.
+// claude-ai: The flag is re-set when the player next enters a vehicle.
+// claude-ai: ============================================================
 void FURN_hypermatterise(THING_INDEX thing)
 {
 	SLONG dx;
@@ -979,6 +1102,12 @@ void FURN_hypermatterise(THING_INDEX thing)
 		dz = 0;
 	}
 
+	// claude-ai: HM_create() parameters explain crash physics tuning:
+	// claude-ai: elasticity=0.010 (almost no springiness on impact)
+	// claude-ai: bounciness=0.950 (high vertical bounce factor — cars can flip)
+	// claude-ai: friction=0.850   (strong sliding friction against surfaces)
+	// claude-ai: damping=0.997    (very slow velocity decay — rolls a long time)
+	// claude-ai: The commented-out 4x4x4 grid was the test version; production uses hpg data.
 	SLONG pointx[5] = {0, 0x5300, 0xa600, 0x10000};
 	SLONG pointy[5] = {0, 0x5300, 0xa600, 0x10000};
 	SLONG pointz[5] = {0, 0x5300, 0xa600, 0x10000};
@@ -1034,6 +1163,8 @@ void FURN_hypermatterise(THING_INDEX thing)
 		// Stop the car obeying commands and being driven...
 		//
 
+		// claude-ai: *** FLAG_FURN_DRIVING CLEARED HERE *** — see banner comment above.
+		// claude-ai: furn->Command = 0 ensures any queued steering input is discarded.
 		if (furn)
 		{
 			furn->Flags   &= ~FLAG_FURN_DRIVING;
@@ -1049,6 +1180,18 @@ void FURN_hypermatterise(THING_INDEX thing)
 
 
 
+// claude-ai: FURN_turn_into_door() — converts an existing Furniture Thing into a door.
+// claude-ai: Called during level loading when a furniture prim is tagged as a door.
+// claude-ai: Sets STATE_FDOOR so FURN_door() runs each tick.
+// claude-ai: am_i_locked sets/clears FLAGS_LOCKED on the Thing (player cannot open locked doors).
+// claude-ai: furn->closed_angle stores the rest angle; furn->ajar stores the max-open angle.
+// claude-ai: furn->dyaw is the angular velocity — set by FURN_slide_along() when player hits door.
+// claude-ai: FURN_turn_into_door() details:
+// claude-ai: closed_angle — the angle (0..2047) at which the door is fully closed.
+// claude-ai: ajar         — maximum opening angle delta; door clamps within ±ajar of closed.
+// claude-ai: am_i_locked  — sets FLAGS_LOCKED on the Thing; checked by player interaction code.
+// claude-ai: The Furniture struct is freshly allocated here (was NULL for static furniture).
+// claude-ai: After this call the door responds to FURN_slide_along() impacts via furn->dyaw.
 void FURN_turn_into_door(
 		THING_INDEX furniture_thing,
 		UWORD       closed_angle,
@@ -1079,9 +1222,20 @@ void FURN_turn_into_door(
 	}
 
 	set_state_function(p_thing, STATE_FDOOR);
-	
+
 }
 
+// claude-ai: FURN_door() — per-tick STATE_FDOOR handler. Rotates the door by furn->dyaw
+// claude-ai: and then decays dyaw by 1 each tick (SIGN() gives ±1 or 0).
+// claude-ai: This produces a door that swings open when hit and gradually slows.
+// claude-ai: dyaw is set by FURN_slide_along() based on which side the pusher is on (rz1<0).
+// claude-ai: FURN_door() per-tick mechanics:
+// claude-ai: - dm->Angle += furn->dyaw (apply angular velocity to visual orientation)
+// claude-ai: - dm->Angle &= 2047       (wrap to 11-bit range)
+// claude-ai: - furn->dyaw -= SIGN(dyaw) (decay: subtract 1 each tick toward zero)
+// claude-ai: SIGN() returns -1/0/+1 so dyaw decrements by exactly 1 each tick.
+// claude-ai: Note: min_angle/max_angle declared but never used — dead code from earlier version.
+// claude-ai: The ajar clamping feature (using closed_angle and ajar fields) is not implemented here.
 void FURN_door(Thing *p_thing)
 {
 	DrawMesh  *dm   = p_thing->Draw.Mesh;
@@ -1096,6 +1250,11 @@ void FURN_door(Thing *p_thing)
 	furn->dyaw -= SIGN(furn->dyaw);
 }
 
+// claude-ai: FURN_avoid() — NPC steering helper. Given a movement vector (x1→x2),
+// claude-ai: returns -1 or +1 indicating which side of the furniture to go around.
+// claude-ai: Uses there_is_a_los() to test both tangent points around the prim radius.
+// claude-ai: Prefers the side with line-of-sight; falls back to whichever side is closer
+// claude-ai: to the destination. Special-cases lamp posts (prim IDs < 5 or == 55).
 SLONG FURN_avoid(
 		THING_INDEX thing,
 		SLONG x1, SLONG y1, SLONG z1,

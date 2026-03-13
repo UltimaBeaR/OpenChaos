@@ -1,6 +1,83 @@
 //
 // Draw a person.
-// 
+//
+
+// claude-ai: ============================================================
+// claude-ai: FILE OVERVIEW: figure.cpp — Character (figure) rendering system
+// claude-ai: 10206 lines. DDEngine side (Direct3D/PC). PSX version is separate.
+// claude-ai:
+// claude-ai: ANIMATION SYSTEM: HIERARCHICAL SKELETON + PER-BODY-PART RIGID TRANSFORM
+// claude-ai: ---------------------------------------------------------------------
+// claude-ai: Urban Chaos does NOT use vertex morphing (vertex-level interpolation).
+// claude-ai: Instead each character has ~15 body parts (head, torso, arms, legs…).
+// claude-ai: Each body part is a small rigid mesh (PrimObject: list of tris/quads).
+// claude-ai: A keyframe stores, per body part, a position offset (OffsetX/Y/Z) and
+// claude-ai: a compact rotation (CMatrix33 — 3×3 stored in PSX fixed-point SLONGs).
+// claude-ai:
+// claude-ai: INTERPOLATION (tweening) — done at the body-part transform level:
+// claude-ai:   offset = lerp(keyframe_A.offset, keyframe_B.offset, t)    (linear)
+// claude-ai:   rotation = slerp(keyframe_A.rotation, keyframe_B.rotation, t)  via CQuaternion::BuildTween
+// claude-ai: Then the whole rigid body-part mesh is transformed by that interpolated
+// claude-ai: matrix before submission to Direct3D. There is NO per-vertex interpolation.
+// claude-ai:
+// claude-ai: Key types:
+// claude-ai:   DrawTween        — live draw state for a character (CurrentFrame, NextFrame,
+// claude-ai:                      AnimTween 0..255, Angle/Tilt/Roll, PersonID, MeshID, …)
+// claude-ai:   GameKeyFrameElement — one body-part entry in a keyframe:
+// claude-ai:                      OffsetX/Y/Z (body-part origin in parent space),
+// claude-ai:                      and packed CMatrix33 rotation
+// claude-ai:   CMatrix33        — compact PSX-era 3×3 rotation: SLONGs scaled ×32768
+// claude-ai:   PrimObject       — one rigid mesh chunk (StartPoint/EndPoint vertex range,
+// claude-ai:                      StartFace4/EndFace4 for quads, StartFace3/EndFace3 for tris)
+// claude-ai:   TomsPrimObject   — pre-compiled D3D representation of a PrimObject:
+// claude-ai:                      pD3DVertices array, material list, index lists, LRU slot
+// claude-ai:
+// claude-ai: RENDERING PIPELINE per character:
+// claude-ai:   1. FIGURE_draw(Thing*)            — top-level entry point
+// claude-ai:   2. NIGHT_find()                   — gather nearby lights for this character
+// claude-ai:   3. BuildMMLightingTable()          — pre-compute 128-entry fade table from
+// claude-ai:                                        ambient + dynamic lights (used by D3D MultiMatrix)
+// claude-ai:   4. FIGURE_draw_hierarchical_prim_recurse()  — walk 15-part skeleton tree,
+// claude-ai:      or direct loop for simpler objects (<15 parts)
+// claude-ai:   5. FIGURE_draw_prim_tween_person_only_just_set_matrix()  — per body-part:
+// claude-ai:      slerp rotation, lerp offset, set D3D multi-matrix slot
+// claude-ai:   6. FIGURE_draw_prim_tween_person_only()  — same, but also submits geometry
+// claude-ai:   7. DrawIndPrimMM()                — D3D MultiMatrix DrawIndexedPrimitive call
+// claude-ai:      (hardware-accelerated: GPU does the per-vertex transform for each body part)
+// claude-ai:
+// claude-ai: D3D MULTI-MATRIX EXTENSION (D3DDP_MULTIMATRIX):
+// claude-ai:   Non-standard D3D5 extension that lets each vertex carry a matrix index,
+// claude-ai:   so the GPU can transform each body part in one draw call.
+// claude-ai:   In the new game: replace with a vertex shader that receives a bone-index
+// claude-ai:   uniform (one per draw call) and a UBO of matrices, or just one draw call
+// claude-ai:   per body part (15 draw calls/character) with glDrawElements + glUniformMatrix.
+// claude-ai:
+// claude-ai: LOD: No distance-based LOD for characters in this file.
+// claude-ai:   Characters are always rendered at full mesh detail regardless of distance.
+// claude-ai:   The LRU cache (PRIM_LRU_QUEUE_LENGTH=250, PRIM_LRU_QUEUE_SIZE=6000 verts)
+// claude-ai:   manages GPU memory for TomsPrimObjects.
+// claude-ai:
+// claude-ai: SHADOWS: Not a shadow map. Characters receive light from NIGHT_find() which
+// claude-ai:   queries pre-baked shadow volumes (see shadow.h / SHADOW_in).
+// claude-ai:   Characters cast no real-time shadow; there are blob-shadow sprites handled
+// claude-ai:   elsewhere (not in this file).
+// claude-ai:
+// claude-ai: CULLING: Near-Z plane check per body part (bounding sphere vs POLY_ZCLIP_PLANE).
+// claude-ai:   No frustum culling per body part; characters are assumed visible if their
+// claude-ai:   Thing passed the world-space visibility test before FIGURE_draw is called.
+// claude-ai:
+// claude-ai: REFLECTION: FIGURE_draw_reflection() — flips Y, draws character again for
+// claude-ai:   water reflection effect using FIGURE_draw_prim_tween_reflection().
+// claude-ai:
+// claude-ai: PORT NOTES for new game (OpenGL):
+// claude-ai:   - Replace D3D MultiMatrix with: per-body-part glDrawElements + glUniform mat3
+// claude-ai:   - Lighting: recreate NIGHT ambient+dynamic in a UBO or compute in vertex shader
+// claude-ai:   - Slerp already uses quaternions (CQuaternion) — port math directly
+// claude-ai:   - TomsPrimObject pre-compilation → upload body-part VBOs once (lazy, LRU evict)
+// claude-ai:   - prim_normal[] per-vertex normals already exist — upload to GPU, transform
+// claude-ai:     in vertex shader for correct lighting without CPU normal transform
+// claude-ai:   - AENG_dx_prim_points[i].X/Y/Z are float vertex positions in body-part space
+// claude-ai: ============================================================
 
 #include "game.h"
 #include "aeng.h"
@@ -173,6 +250,17 @@ bool MM_bLightTableAlreadySetUp = FALSE;
 
 
 
+// claude-ai: BuildMMLightingTable — pre-compute a 128-entry D3DCOLOR lookup table used
+// claude-ai: by the D3D MultiMatrix extension for per-body-part lighting.
+// claude-ai: Index 0..63: ramp from ambient up to full lit (dot-product > 0 direction).
+// claude-ai: Index 64..127: flat ambient colour (back-face / shadow side).
+// claude-ai: The table maps a packed normal value (0..127) → final RGB colour.
+// claude-ai: Input: NIGHT ambient (NIGHT_amb_red/green/blue, NIGHT_amb_norm_x/y/z) +
+// claude-ai:        NIGHT_found[] dynamic light array (up to NIGHT_found_upto entries).
+// claude-ai: p != NULL means the character is on fire (Pyro) — darkens it with soot.
+// claude-ai: colour_and: optional mask applied to MM_pcFadeTableTint (for tinted materials).
+// claude-ai: PORT: In new game, do this lighting in the vertex shader using a UBO with
+// claude-ai:       ambient direction+colour and an array of dynamic point lights.
 // Something to build lighting tables.
 void BuildMMLightingTable ( Pyro *p, DWORD colour_and=0xffffffff )
 {
@@ -438,6 +526,11 @@ struct EdgeList
 
 
 
+// claude-ai: MSMesh / MSOptimizeIndexedList — Microsoft Index List Optimizer (optlist.cpp, 1998-1999).
+// claude-ai: Provided by Microsoft for D3D performance. Takes an unordered triangle index list
+// claude-ai: and reorders it into triangle strips that improve GPU vertex-cache hit rate.
+// claude-ai: Used during FIGURE_TPO_finish_3d_object to optimise the pwStripIndices list.
+// claude-ai: PORT: In OpenGL, use GL_TRIANGLES with a similar strip optimizer (e.g., meshoptimizer).
 // The MS list optimiser. They gave it to me, so I'll use it! Might as well.
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -446,7 +539,7 @@ struct EdgeList
     Module Name: optlist.cpp
 
     Abstract: Source code for Index List Optimizer
--------------------------------------------------------------------*/ 
+-------------------------------------------------------------------*/
 
 typedef struct tagIndexTri
 {
@@ -872,6 +965,9 @@ void RemoveAllLightsFromScene ( void )
 
 
 
+// claude-ai: get_steam_rand — cheap LCG pseudo-random for steam/fire particle positions.
+// claude-ai: Not cryptographic. Seed (steam_seed) is reset each frame to get reproducible
+// claude-ai: particle patterns.
 SLONG	get_steam_rand(void)
 {
 	steam_seed*=31415965;
@@ -881,6 +977,10 @@ SLONG	get_steam_rand(void)
 
 extern	int AENG_detail_crinkles;
 
+// claude-ai: draw_steam — draws a column of animated steam sprites above (x,y,z).
+// claude-ai: lod controls sprite count (capped at 40). Each sprite is a POLY_PAGE_STEAM
+// claude-ai: billboard. Positions are seeded deterministically so the cloud looks stable.
+// claude-ai: PORT: Replace with a GPU particle system or billboard sprites in OpenGL.
 #define	MAX_STEAM	100
 void	draw_steam(SLONG x,SLONG y,SLONG z,SLONG lod)
 {
@@ -1005,6 +1105,13 @@ void    init_flames()
 
 extern	int AENG_detail_skyline;
 
+// claude-ai: draw_flames — draws a fire effect using multiple sprite layers:
+// claude-ai:   type 0,3: large flame sprite (POLY_PAGE_PCFLAMER, animated UV frame)
+// claude-ai:   type 1:   outer fire (POLY_PAGE_FLAMES2, half-height)
+// claude-ai:   type 2:   inner fire (POLY_PAGE_FLAMES2, tighter spread)
+// claude-ai: Colour is looked up in fire_pal (loaded from data\flames1.pal).
+// claude-ai: PORT: GPU particle system preferred. Distorted quads (wx1..wx4) simulate
+// claude-ai:       turbulence — can use a vertex shader noise function instead.
 void	draw_flames(SLONG x,SLONG y,SLONG z,SLONG lod,SLONG offset)
 {
 	SLONG	c0;
@@ -1317,8 +1424,13 @@ void	draw_flame_element(SLONG x,SLONG y,SLONG z,SLONG c0,UBYTE base,UBYTE rand)
 
 
 
+// claude-ai: FIGURE_rotate_obj2 — builds a full 3×3 rotation matrix from pitch/yaw/roll
+// claude-ai: using the game's fixed-point trig tables (SIN/COS, range 0..2047 = 0..360°).
+// claude-ai: Output matrix elements are scaled to fit in SLONGs (×32768 = 1.0).
+// claude-ai: This is the canonical rotation builder; FIGURE_rotate_obj just forwards to it.
+// claude-ai: PORT: Replace with a standard float rotation matrix (glm::mat3 or similar).
 //void FIGURE_rotate_obj2(SLONG matrix[9], SLONG yaw, SLONG pitch, SLONG roll)
-void FIGURE_rotate_obj2(SLONG pitch,SLONG yaw,SLONG roll, Matrix33 *r3) 
+void FIGURE_rotate_obj2(SLONG pitch,SLONG yaw,SLONG roll, Matrix33 *r3)
 {
 	SLONG cy, cp, cr;
 	SLONG sy, sp, sr;
@@ -1425,6 +1537,15 @@ TomsPrimObject D3DPeopleObj[MAX_NUMBER_D3D_PEOPLE];
 
 // iFaceNum: the face number
 // bTri: TRUE if it's a tri, FALSE if it's a quad.
+// claude-ai: FIGURE_find_face_D3D_texture_page — resolves which texture page to use for
+// claude-ai: a given face (tri or quad). Returns a UWORD with bit flags:
+// claude-ai:   bits [0..9]  = TEXTURE_PAGE_MASK: base page index
+// claude-ai:   TEXTURE_PAGE_FLAG_JACKET:  gang jacket — page depends on NPC skill level
+// claude-ai:   TEXTURE_PAGE_FLAG_OFFSET:  alternate clothes colour (pcom_colour & 0x3)
+// claude-ai:   TEXTURE_PAGE_FLAG_TINT:    face uses tinted lighting table
+// claude-ai:   TEXTURE_PAGE_FLAG_NOT_TEXTURED: flat colour (no texture)
+// claude-ai: UV bits [7:6] of UV[0][0] extend the 8-bit TexturePage field to 10 bits.
+// claude-ai: PORT: Translate this page index to an OpenGL texture handle at load time.
 UWORD FIGURE_find_face_D3D_texture_page ( int iFaceNum, bool bTri )
 {
 	// Find the texture page/shading info.
@@ -1540,6 +1661,9 @@ DWORD dwGameTurnLastUsed[PRIM_LRU_QUEUE_LENGTH];
 // Size of the queue in vertices.
 DWORD m_dwSizeOfQueue = 0;
 
+// claude-ai: FIGURE_clean_LRU_slot — frees the GPU/CPU memory of one cached TomsPrimObject.
+// claude-ai: Decrements m_dwSizeOfQueue by wTotalSizeOfObj (in vertices).
+// claude-ai: PORT: In OpenGL, glDeleteBuffers on the VBO/IBO for this body-part mesh.
 // "Cleans" a slot.
 void FIGURE_clean_LRU_slot ( int iSlot )
 {
@@ -1578,6 +1702,9 @@ void FIGURE_clean_LRU_slot ( int iSlot )
 }
 
 
+// claude-ai: FIGURE_clean_all_LRU_slots — flushes entire mesh cache at end of level.
+// claude-ai: Call this when unloading a level to avoid stale geometry in the next level.
+// claude-ai: PORT: glDeleteBuffers all VBOs/IBOs, clear mesh cache map.
 // This is suitable for calling at end of level.
 void FIGURE_clean_all_LRU_slots ( void )
 {
@@ -1602,6 +1729,12 @@ int g_iCacheReplacements = 0;
 bool g_bCacheReplacementThrash = FALSE;
 #endif
 
+// claude-ai: FIGURE_find_and_clean_prim_queue_item — LRU cache management for TomsPrimObjects.
+// claude-ai: Queue limits: PRIM_LRU_QUEUE_LENGTH=250 entries, PRIM_LRU_QUEUE_SIZE=6000 vertices total.
+// claude-ai: When full: evicts the entry with the largest (GAME_TURN - dwGameTurnLastUsed) gap.
+// claude-ai: thrash detection: if the oldest entry was used <3 turns ago, the cache is
+// claude-ai: undersized for the current scene (flagged in g_bCacheReplacementThrash).
+// claude-ai: PORT: In OpenGL, a similar VBO LRU cache by prim index → GLuint VBO/IBO handles.
 // Adds the primobj to the LRU queue somewhere, evicting something else if need be.
 void FIGURE_find_and_clean_prim_queue_item ( TomsPrimObject *pPrimObj, int iThrashIndex = 0 )
 {
@@ -1797,6 +1930,13 @@ static UBYTE TPO_ubPrimObjMMIndex[TPO_MAX_NUMBER_PRIMS];
 static int TPO_iPrimObjIndexOffset[TPO_MAX_NUMBER_PRIMS+1];
 
 
+// claude-ai: FIGURE_TPO_init_3d_object — begins lazy compilation of a body-part mesh into
+// claude-ai: a TomsPrimObject (D3D pre-baked representation). Allocates temp CPU buffers:
+// claude-ai:   TPO_pVert (MAX_VERTS D3DVERTEXes), TPO_pStripIndices, TPO_pListIndices
+// claude-ai:   TPO_piVertexRemap (for deduplication), TPO_piVertexLinks
+// claude-ai: FIGURE_TPO_add_prim_to_current_object() then registers prim numbers.
+// claude-ai: FIGURE_TPO_finish_3d_object() does the real work (face→vertex emit, LRU add).
+// claude-ai: PORT: Equivalent to creating a staging buffer before glBufferData().
 // Starts off a 3D object.
 // iThrashIndex - can be ignored normally.
 void FIGURE_TPO_init_3d_object ( TomsPrimObject *pPrimObj /*, int iThrashIndex = 0 */ )
@@ -1932,8 +2072,17 @@ void FIGURE_TPO_add_prim_to_current_object ( SLONG prim, UBYTE ubSubObjectNumber
 
 
 
+// claude-ai: FIGURE_TPO_finish_3d_object — the heavy-lifting compilation step. Iterates
+// claude-ai: all registered prims' faces (quads and tris), groups them by texture page
+// claude-ai: (material), deduplicates vertices by (position,normal,UV), builds an index
+// claude-ai: list (pwListIndices) and optionally a triangle strip (pwStripIndices via
+// claude-ai: MSOptimizeIndexedList). Stores final arrays in pPrimObj:
+// claude-ai:   pD3DVertices, pwListIndices, pwStripIndices, pMaterials, wNumMaterials
+// claude-ai: Then calls FIGURE_find_and_clean_prim_queue_item to register in the LRU cache.
+// claude-ai: NOT portable — pD3DVertices is D3DVERTEX format (x,y,z,nx,ny,nz,tu,tv).
+// claude-ai: PORT: Upload resulting vertex/index arrays to glBufferData(GL_ARRAY_BUFFER) etc.
 // Compile the object - this actually does all the work.
-// pPrimObj the prim obj that was passed to FIGURE_TPO_init_3d_object 
+// pPrimObj the prim obj that was passed to FIGURE_TPO_init_3d_object
 // iThrashIndex - can be ignored normally.
 void FIGURE_TPO_finish_3d_object ( TomsPrimObject *pPrimObj, int iThrashIndex = 0  )
 {
@@ -3025,6 +3174,9 @@ void FIGURE_TPO_finish_3d_object ( TomsPrimObject *pPrimObj, int iThrashIndex = 
 
 
 
+// claude-ai: FIGURE_generate_D3D_object — convenience wrapper: compiles a single prim
+// claude-ai: into its D3DObj[prim] TomsPrimObject (init + add + finish in one call).
+// claude-ai: Called lazily on first use of each body-part prim.
 // Takes a "prim" description and generates D3D-style data for a single prim.
 void FIGURE_generate_D3D_object ( SLONG prim )
 {
@@ -3053,6 +3205,19 @@ void FIGURE_generate_D3D_object ( SLONG prim )
 
 
 
+// claude-ai: FIGURE_draw_prim_tween — full software-fallback body-part renderer.
+// claude-ai: Transforms and lights every vertex on CPU, then submits polys to the
+// claude-ai: software polygon rasteriser (POLY_draw_face3/4). Used when the D3D
+// claude-ai: MultiMatrix path (USE_TOMS_ENGINE_PLEASE_BOB) is not active.
+// claude-ai: Steps per call:
+// claude-ai:   1. Lerp body-part offset: offset = A + (B - A) * tween/256
+// claude-ai:      [INTERP: linear interpolation of OffsetX/Y/Z between keyframes]
+// claude-ai:   2. Slerp rotation: CQuaternion::BuildTween(&mat2, &m1, &m2, tween)
+// claude-ai:      [INTERP: quaternion slerp between CMatrix33 from frames A and B]
+// claude-ai:   3. Combine with parent matrix (matrix_mult33 + matrix_transform)
+// claude-ai:   4. CPU dot-product lighting: dprod = nx*light_dx + ny*light_dy + nz*light_dz
+// claude-ai:   5. Submit tri/quad to software renderer
+// claude-ai: PORT: This whole function is replaced by a GPU vertex shader + DrawElements.
 void FIGURE_draw_prim_tween(
 		SLONG prim,
 		SLONG x,
@@ -5114,6 +5279,12 @@ extern DIJOYSTATE the_state;
 
 }
 
+// claude-ai: FIGURE_draw_prim_tween_warped — variant of FIGURE_draw_prim_tween used for
+// claude-ai: warped/distorted character rendering (e.g., heat shimmer, teleport effect).
+// claude-ai: Applies a sinusoidal warp to vertex positions after the normal keyframe
+// claude-ai: interpolation. Uses local_mat[9] float matrix rather than fixed-point Matrix33.
+// claude-ai: [INTERP: same lerp/slerp as FIGURE_draw_prim_tween, plus per-vertex wave offset]
+// claude-ai: PORT: Implement warp as a vertex shader time-based sine displacement.
 void FIGURE_draw_prim_tween_warped(
 		SLONG prim,
 		SLONG x,
@@ -5599,6 +5770,9 @@ UBYTE	part_type[]=
 
 ULONG	local_seed;
 
+// claude-ai: mandom — another LCG PRNG (different multiplier/addend from get_steam_rand).
+// claude-ai: Used for randomising jacket/leg colours per character in the rendering path.
+// claude-ai: local_set_seed has a BUG: assigns seed to local_seed backwards (no-op).
 SLONG	mandom(void)
 {
 	local_seed=local_seed*123456789+314159265;
@@ -5644,6 +5818,19 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull ( Thing *p_person );
 #endif
 
 
+// claude-ai: FIGURE_draw_hierarchical_prim_recurse — optimised 15-body-part character renderer.
+// claude-ai: DRAW_WHOLE_PERSON_AT_ONCE=1 path: gathers all body-part transforms first
+// claude-ai: (calling FIGURE_draw_prim_tween_person_only_just_set_matrix per part),
+// claude-ai: then submits them all in a single D3D MultiMatrix call (DrawIndPrimMM).
+// claude-ai: This is the hot path used for every character on screen each frame.
+// claude-ai: Body parts: pelvis, torso, head, upper arms (L/R), lower arms (L/R),
+// claude-ai:             hands (L/R), upper legs (L/R), lower legs (L/R), shoes (L/R).
+// claude-ai: Selects the correct mesh (civ_flag, legs, body, shoes, face, hands) based on
+// claude-ai: p_person->Genus.Person->MeshID and sex/type flags.
+// claude-ai: After body parts, also renders weapons/accessories carried by the character.
+// claude-ai: NOT portable — relies on D3D MultiMatrix extension (DrawIndPrimMM).
+// claude-ai: PORT: One glDrawElements call per body part (15 calls/character) with a
+// claude-ai:       per-call glUniformMatrix4fv for the bone transform.
 #if DRAW_WHOLE_PERSON_AT_ONCE
 void	FIGURE_draw_hierarchical_prim_recurse(Thing *p_person)
 {
@@ -7002,6 +7189,11 @@ extern int g_iCheatNumber;
 #endif
 
 
+// claude-ai: get_sort_z_bodge — computes a sort-Z hint for a character's world position (px, pz).
+// claude-ai: Checks MAV navigation caps (MAV_CAPS_GOTO) to detect if the character is next to
+// claude-ai: a wall or obstacle, and returns an adjusted sort depth to prevent Z-fighting with
+// claude-ai: adjacent geometry when drawing the character in the software renderer.
+// claude-ai: Only relevant for the software rendering path (not needed for D3D/OpenGL).
 //*************************************************************************************************
 SLONG get_sort_z_bodge(SLONG px,SLONG pz)
 {
@@ -7106,6 +7298,19 @@ UBYTE kludge_shrink;
 
 
 
+// claude-ai: FIGURE_draw — top-level entry point for rendering one character (Thing*).
+// claude-ai: Called once per visible character per frame from the main render loop.
+// claude-ai: Steps:
+// claude-ai:   1. Validate CurrentFrame / NextFrame in DrawTween (return if missing)
+// claude-ai:   2. Build whole-character rotation matrix (FIGURE_rotate_obj from dt->Angle/Tilt/Roll)
+// claude-ai:   3. Call NIGHT_find() to gather up to NIGHT_FOUND_MAX nearby dynamic lights
+// claude-ai:   4. Build 128-entry light lookup table (BuildMMLightingTable)
+// claude-ai:   5. Dispatch to FIGURE_draw_hierarchical_prim_recurse (D3D MultiMatrix path)
+// claude-ai:      or FIGURE_draw_prim_tween loop (software path)
+// claude-ai:   6. Draw special effects: steam, fire, Pyro on-fire particle overlay
+// claude-ai: DrawTween fields used: Angle (yaw), Tilt (pitch), Roll, AnimTween (0..255),
+// claude-ai:   CurrentFrame, NextFrame (pointers into keyframe data), MeshID, PersonID.
+// claude-ai: PORT: Map to: compute bones → upload UBO → glDrawElements per body part.
 #ifndef PSX
 // New faster version
 void FIGURE_draw(Thing *p_thing)
@@ -8053,6 +8258,12 @@ extern	struct	PrimPoint	*anim_mids; //[256];
 
 
 
+// claude-ai: ANIM_obj_draw — draws an animated non-person object (vehicles, props, etc.)
+// claude-ai: that use the same DrawTween / keyframe animation system as characters.
+// claude-ai: Identical pipeline to FIGURE_draw but skips person-specific parts (no NIGHT_find,
+// claude-ai: no Pyro overlay, uses FIGURE_draw_prim_tween directly instead of hierarchical).
+// claude-ai: dt is passed explicitly rather than read from p_thing->Draw.Tweened.
+// claude-ai: PORT: Same as FIGURE_draw — compute bones, upload UBO, glDrawElements.
 void ANIM_obj_draw(Thing *p_thing,DrawTween *dt)
 {
 	SLONG dx;
@@ -8214,6 +8425,10 @@ void ANIM_obj_draw(Thing *p_thing,DrawTween *dt)
 }
 
 
+// claude-ai: ANIM_obj_draw_warped — same as ANIM_obj_draw but calls FIGURE_draw_prim_tween_warped
+// claude-ai: for each body part, adding a sinusoidal vertex-position warp effect.
+// claude-ai: Used for objects under special visual effects (e.g., cloaking, teleportation).
+// claude-ai: PORT: GPU vertex shader sine-wave displacement uniform.
 void ANIM_obj_draw_warped(Thing *p_thing,DrawTween *dt)
 {
 	SLONG dx;
@@ -8362,6 +8577,12 @@ typedef struct
 FIGURE_Rpoint FIGURE_rpoint[FIGURE_MAX_RPOINTS];
 SLONG         FIGURE_rpoint_upto;
 
+// claude-ai: FIGURE_draw_prim_tween_reflection — renders one body-part mesh for the water
+// claude-ai: reflection effect. Identical transform/slerp pipeline to FIGURE_draw_prim_tween,
+// claude-ai: but vertices are projected into screen space, Y-flipped about FIGURE_reflect_height,
+// claude-ai: and stored in FIGURE_rpoint[] (up to FIGURE_MAX_RPOINTS=256 screen-space points).
+// claude-ai: The FIGURE_reflect_x1/y1/x2/y2 bounding box is updated for each point.
+// claude-ai: PORT: In OpenGL, implement as a second pass with Y=-Y clip plane or framebuffer flip.
 void FIGURE_draw_prim_tween_reflection(
 		SLONG prim,
 		SLONG x,
@@ -8774,6 +8995,13 @@ void FIGURE_draw_prim_tween_reflection(
 	}
 }
 
+// claude-ai: FIGURE_draw_reflection — top-level water reflection render for one character.
+// claude-ai: Iterates all body parts (same loop as FIGURE_draw) but calls
+// claude-ai: FIGURE_draw_prim_tween_reflection instead of the normal draw function.
+// claude-ai: height = Y coordinate of the water surface to reflect about.
+// claude-ai: After all parts are collected into FIGURE_rpoint[], caller renders the
+// claude-ai: reflected silhouette as a screen-space polygon with additive alpha blending.
+// claude-ai: PORT: In OpenGL, use a stencil-masked inverted-Y pass or a planar reflection FBO.
 void FIGURE_draw_reflection(Thing *p_thing, SLONG height)
 {
 	SLONG dx;
@@ -8970,6 +9198,14 @@ void FIGURE_draw_reflection(Thing *p_thing, SLONG height)
 
 
 
+// claude-ai: FIGURE_draw_prim_tween_person_only_just_set_matrix — "matrix-only" body-part step
+// claude-ai: for the DRAW_WHOLE_PERSON_AT_ONCE (D3D MultiMatrix) fast path.
+// claude-ai: Computes the interpolated transform for body part [recurse_level] and stores
+// claude-ai: it in MMBodyParts_pMatrix[iMatrixNum] (a D3DMATRIX in the d3dmm bone table).
+// claude-ai: Also computes the surface normal direction for that matrix slot (for lighting).
+// claude-ai: Does NOT emit any geometry — that comes in a single DrawIndPrimMM call afterwards.
+// claude-ai: [INTERP: lerp of OffsetX/Y/Z; slerp of rotation via CQuaternion::BuildTween]
+// claude-ai: Returns FALSE if the body part is entirely behind the near-Z clip plane (skip it).
 // Like FIGURE_draw_prim_tween, but optimised for the person-only case.
 // Also assumes the lighting has been set up, etc.
 // This just sets up the matrix and light vector it's asked to - it doesn't
@@ -9183,6 +9419,9 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix
 
 	LOG_ENTER ( Figure_Set_Rotation )
 
+	// claude-ai: NOT portable — POLY_set_local_rotation stores off_x/y/z and fmatrix into a
+	// claude-ai: global transform state used by the subsequent D3D MultiMatrix matrix upload.
+	// claude-ai: PORT: Pass off + mat as explicit arguments to glUniform/UBO update.
 	POLY_set_local_rotation(
 		off_x,
 		off_y,
@@ -9197,6 +9436,9 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix
 	// ...but it seems to work OK.
 	ASSERT ( ( character_scalef < 1.2f ) && ( character_scalef > 0.8f ) );
 	//ASSERT ( !pa->RS.NeedsSorting() && ( FIGURE_alpha == 255 ) );
+	// claude-ai: Near-Z bounding sphere cull per body part: if the part's closest point
+	// claude-ai: is behind POLY_ZCLIP_PLANE, skip matrix setup and return FALSE (not drawn).
+	// claude-ai: m_fObjectBoundingSphereRadius[prim] was computed during FIGURE_TPO_finish_3d_object.
 	if ( ( ( ( g_matWorld._43 * 32768.0f ) - ( (m_fObjectBoundingSphereRadius[prim]) * character_scalef ) ) < ( POLY_ZCLIP_PLANE * 32768.0f ) ) )
 	{
 		// Clipped by Z-plane. Don't set this matrix up, just return.
@@ -9395,6 +9637,14 @@ extern DWORD g_dw3DStuffY;
 
 
 
+// claude-ai: FIGURE_draw_prim_tween_person_only — full software-renderer fallback for one
+// claude-ai: body part in person-only mode (when D3D MultiMatrix is NOT used).
+// claude-ai: Unlike _just_set_matrix, this also iterates all faces (quads and tris) of the
+// claude-ai: body-part mesh, transforms each vertex in software, computes per-face lighting
+// claude-ai: via dot product with MM_vLightDir and MM_pcFadeTable lookup, and submits to
+// claude-ai: the software polygon rasteriser (POLY_draw_face3/4).
+// claude-ai: [INTERP: same lerp/slerp as the other tween functions]
+// claude-ai: PORT: This entire function is superseded by the GPU path — not needed in new game.
 // Like FIGURE_draw_prim_tween, but optimised for the person-only case.
 // Also assumes the lighting has been set up, etc.
 void FIGURE_draw_prim_tween_person_only(

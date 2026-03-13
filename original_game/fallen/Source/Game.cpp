@@ -179,6 +179,7 @@ extern SLONG go_into_game;	// This is in attract.cpp If it is TRUE when we leave
 
 
 
+// claude-ai: stop_all_fx_and_music() — останавливает всю музыку и звуковые эффекты. Вызывается при смене сцены (загрузка уровня, переход в фронтенд, смерть игрока).
 void stop_all_fx_and_music ()
 {
 	MFX_QUICK_stop ();
@@ -199,6 +200,8 @@ void stop_all_fx_and_music ()
 #ifndef TARGET_DC
 
 
+// claude-ai: global_load() — однократная загрузка глобальных данных (аним., примитивы). Только PC/не-DC.
+// claude-ai: Вызывается из game_init() и game_create_psx(). На DC не нужна из-за ограничений памяти.
 void global_load(void)
 {
 	init_memory();
@@ -471,6 +474,7 @@ extern DIJOYSTATE			the_state;
 
 #define PAUSE_MENU_SIZE 2
 
+// claude-ai: pause_menu[] — пауза-меню: 2 пункта "CONTINUE GAME" / "EXIT". Отображается на PSX; PC использует gamemenu.cpp (GAMEMENU_*).
 CBYTE *pause_menu[PAUSE_MENU_SIZE] =
 {
 	"CONTINUE GAME",
@@ -519,6 +523,9 @@ CBYTE *bullet_point[NUM_BULLETS] =
 SLONG bullet_upto;
 SLONG bullet_counter;
 
+// claude-ai: process_bullet_points() — прокрутка обучающих подсказок во время загрузки (PC/не-DC).
+// claude-ai: Меняет текст каждые 250 кадров, с мягким fade-in по alpha (bright = counter * 32, зажато до 255).
+// claude-ai: В новой игре можно переиспользовать для экрана загрузки.
 void process_bullet_points(void)
 {
 	bullet_counter -= 1;
@@ -547,6 +554,9 @@ void process_bullet_points(void)
 //---------------------------------------------------------------
 
 
+// claude-ai: game_init() — инициализация одной миссии: сброс GAME_TURN/GAME_FLAGS, загрузка уровня через ELEV_load_user().
+// claude-ai: Также инициализирует TICK_RATIO, random seed, паузу, пуль-поинты и вызывает init_stats().
+// claude-ai: Возвращает ret: 1 или 5 = уровень загружен успешно, 0 = ошибка.
 BOOL	game_init(void)
 {
 	SLONG	ret;
@@ -773,6 +783,9 @@ void	init_stats(void);
 
 #ifndef	PSX
 #ifndef TARGET_DC
+// claude-ai: game_create_psx() — инструментальная функция (только PC, только !TARGET_DC).
+// claude-ai: Загружает .ucm миссию и немедленно сохраняет её как .wad файл для PSX.
+// claude-ai: В новой игре не нужна — PSX/WAD конвертация не переносится.
 BOOL	game_create_psx(CBYTE *mission_name)
 {
 	SLONG	ret;
@@ -861,6 +874,8 @@ extern	SLONG quick_load;
 
 }
 
+// claude-ai: make_texture_clumps() — ещё одна инструментальная утилита (только PC/!DC): загружает уровень без сохранения.
+// claude-ai: Похоже, использовалась для генерации текстурных «clumps» (pre-baked texture data). Не переносить.
 BOOL	make_texture_clumps(CBYTE *mission_name)
 {
 #ifdef TARGET_DC
@@ -937,6 +952,8 @@ extern	SLONG quick_load;
 
 //---------------------------------------------------------------
 
+// claude-ai: game_fini() — очистка после завершения миссии: стоп музыки, освобождение FASTPRIM/SUPERFACET/FARFACET,
+// claude-ai: очистка LRU-кэша фигур, выгрузка звуков. На DC дополнительно чистит VB/IB и перезагружает frontend текстуры.
 void game_fini(void)
 {
 
@@ -1237,6 +1254,8 @@ void	game(void)
 
 #ifndef PSX
 #ifndef TARGET_DC
+// claude-ai: GAME_map_draw_old() — старая функция рисования карты-табло (только PC/!DC). Рисует треугольник на позиции Дарси.
+// claude-ai: Использует plan_view_shot() для top-down вида. Заменена GAME_map_draw(). Не переносить.
 void	GAME_map_draw_old(void)
 {
 	Thing *darci = NET_PERSON(0);
@@ -1302,6 +1321,9 @@ void	GAME_map_draw(void)
 
 UBYTE	screen_mem[640*3][480];
 
+// claude-ai: GAME_map_draw() — актуальная функция рисования карты (PC/!DC). Рисует top-down вид через plan_view_shot() в screen_mem,
+// claude-ai: накладывает беаконы overlay_beacons(), затем блиттирует в буфер дисплея.
+// claude-ai: В новой игре карта может быть реализована через отдельный orthographic render pass.
 void	GAME_map_draw(void)
 {
 	Thing *darci = NET_PERSON(0);
@@ -1333,6 +1355,8 @@ void	GAME_map_draw(void)
 
 #else
 
+// claude-ai: leave_map_form_proc() — callback диалогового окна "Leave map?" (только PC/!PSX).
+// claude-ai: Возвращает TRUE (закрыть диалог) при нажатии кнопки; tag=2 = да/выйти, tag=1 = нет/продолжить.
 BOOL leave_map_form_proc(Form *form, Widget *widget, SLONG message)
 {
 	if (widget && widget->methods == &BUTTON_Methods && message == WBN_PUSH)
@@ -1392,6 +1416,8 @@ void	lock_frame_rate(SLONG fps)
 #endif
 }
 
+// claude-ai: demo_timeout() — если TIMEOUT_DEMO=1 и timeout истёк (из env "timeout"), устанавливает GAME_STATE=0.
+// claude-ai: Используется только для демо-версий (TIMEOUT_DEMO=0 в коде → функция ничего не делает).
 void	demo_timeout(SLONG flag)
 {
 #if !defined(PSX) && !defined(TARGET_DC)
@@ -1529,6 +1555,8 @@ void	edge_map_warning(SLONG flag)
 //
 // Provided in two parts
 //
+// claude-ai: do_leave_map_form() — обрабатывает и рисует диалог "Leave map?" (PC-only).
+// claude-ai: При подтверждении (ret==2) устанавливает GAME_STATE=0 (выход), останавливает машину/байк игрока.
 void	do_leave_map_form(void)
 {
 #ifndef	PSX
@@ -1599,6 +1627,9 @@ void	do_leave_map_form(void)
 //
 // psx camera stuff (the PC does it in the engine?)
 //
+// claude-ai: psx_camera() — устанавливает матрицу камеры на PSX. На PC всегда возвращает 0.
+// claude-ai: Сначала проверяет EWAY_grab_camera() (камера катсцены), иначе использует FC_cam[0].
+// claude-ai: На PC камера управляется внутри AENG_draw(). Функция по сути мертва для PC. Не переносить.
 SLONG	psx_camera(void)
 {
 			//
@@ -1670,6 +1701,9 @@ SLONG	psx_camera(void)
 //
 // Get what yoiu have drawn onto the Screen
 //
+// claude-ai: screen_flip() — финальный шаг кадра: делает скриншот если нужно, затем AENG_blit() или AENG_flip().
+// claude-ai: На primary device (не 3DFX) использует blit; на 3DFX/DC — flip. На PSX сбрасывает вибрацию на экране смерти.
+// claude-ai: В новой игре: просто вызов SwapBuffers()/Present(). Логика vib-сброса вошла в платформо-специфику.
 inline	void	screen_flip(void)
 {
 	//
@@ -1747,6 +1781,8 @@ extern UBYTE	psx_motor[];
 #endif
 }
 
+// claude-ai: playback_game_keys() — в режиме GS_PLAYBACK: SPACE/ENTER/геймпад прерывают воспроизведение (GAME_STATE=0).
+// claude-ai: Используется для воспроизведения записанных игровых сессий (.pkt файлы). Не переносить.
 void	playback_game_keys(void)
 {
 	if (Keys[KB_SPACE] || Keys[KB_ENTER] || Keys[KB_PENTER])
@@ -1779,6 +1815,8 @@ void	playback_game_keys(void)
 // For those funny fanny keys the PC likes to use
 //
 
+// claude-ai: special_keys() — обрабатывает отладочные клавиши PC: Ctrl+E → редактор, Ctrl+Q → выход, ' → single_step.
+// claude-ai: В режиме single_step запятая ',' делает один шаг process_things(0). Не переносить в новую игру как есть.
 SLONG	special_keys(void)
 {
 #ifdef	EDITOR
@@ -1834,6 +1872,10 @@ SLONG	special_keys(void)
 //
 // Sound stuff, ask Matt
 //
+// claude-ai: handle_sfx() — обновление звука каждый кадр: MUSIC_mode_process(), MFX_set_listener() по позиции игрока/камеры,
+// claude-ai: process_ambient_effects() + process_weather() (PC), MFX_update().
+// claude-ai: BARREL_fx_rate уменьшается на 2 каждый кадр — ограничитель частоты звука взрыва бочек.
+// claude-ai: На PSX: heartbeat при STATE_DEAD игрока через S_HEART_FAIL. В новой игре аналог через audio-систему.
 void	handle_sfx(void)
 {
 
@@ -1898,6 +1940,12 @@ extern SLONG BARREL_fx_rate;
 
 
 
+// claude-ai: should_i_process_game() — возвращает FALSE если игра должна быть заморожена:
+// claude-ai:   - показывается EWAY_tutorial_string (обучающее сообщение)
+// claude-ai:   - GAMEMENU_is_paused() (PC: меню паузы открыто)
+// claude-ai:   - PSX_inv_open (инвентарь PSX открыт)
+// claude-ai:   - GF_PAUSED (флаг паузы в GAME_FLAGS)
+// claude-ai:   - GS_LEVEL_LOST или GS_LEVEL_WON (и PSX_eog_timer истёк)
 SLONG	should_i_process_game(void)
 {
 	if (EWAY_tutorial_string)
@@ -1956,6 +2004,8 @@ extern	SLONG PSX_inv_open;
 void draw_debug_lines(void);
 
 
+// claude-ai: draw_screen() — вызывает AENG_draw() для рендеринга сцены. Если draw_map_screen=TRUE, рисует карту вместо 3D (закомментировано).
+// claude-ai: Также обрабатывает form_leave_map если открыт диалог выхода с карты.
 inline	void	draw_screen(void)
 {
 	extern SLONG draw_3d;
@@ -2003,6 +2053,8 @@ extern void MAP_draw();
 //****************************************************************
 //					End of cleanup_zone, have a nice day
 //****************************************************************
+// claude-ai: hardware_input_replay() — проверяет нажатие кнопки "переиграть миссию" (Triangle на PSX, R на PC).
+// claude-ai: replay_waiting предотвращает двойное срабатывание сразу после смерти.
 SLONG	hardware_input_replay(void)
 {
 #ifdef	PSX
@@ -2029,6 +2081,9 @@ SLONG	hardware_input_replay(void)
 	return(0);
 }
 
+// claude-ai: hardware_input_continue() — проверяет нажатие "продолжить" (SPACE/ESC/крест на PSX, геймпад на PC).
+// claude-ai: На PC также проверяет что GAMEMENU не открыто (если открыто — GAMEMENU сам обрабатывает ввод).
+// claude-ai: Используется при GS_LEVEL_WON/LOST для перехода к следующему экрану.
 SLONG	hardware_input_continue(void)
 {
 #ifdef	PSX
@@ -2072,8 +2127,10 @@ UWORD darci_dlight;
 */
 
 #ifndef PSX
+// claude-ai: last_fudge_message/last_fudge_camera — временные переменные для отладочного "fudge" рендеринга (PC только).
 UWORD last_fudge_message;
 UWORD last_fudge_camera;
+// claude-ai: the_end — флаг "конец игры" (TRUE после прохождения финала). Используется для OS_hack() (финальный экран).
 UBYTE the_end;
 #endif
 
@@ -2083,6 +2140,7 @@ extern SLONG game_timeout;
 #endif
 #endif
 
+// claude-ai: env_frame_rate — целевой FPS из config.ini "max_frame_rate" (по умолчанию 30). Используется в lock_frame_rate().
 UWORD env_frame_rate;
 
 
@@ -2228,6 +2286,10 @@ extern int g_iCheatNumber;
 #endif
 
 #ifndef PSX
+			// claude-ai: GAMEMENU_process() — обновляет состояние меню паузы. Возвращает GAMEMENU_DO_* код действия:
+			// claude-ai:   GAMEMENU_DO_NOTHING=0, GAMEMENU_DO_RESTART, GAMEMENU_DO_CHOOSE_NEW_MISSION, GAMEMENU_DO_NEXT_LEVEL.
+			// claude-ai: exit_game_loop запоминает код: как только он != 0, запускается PANEL_fadeout_start() (затемнение).
+			// claude-ai: После PANEL_fadeout_finished() применяется действие (GS_REPLAY/LEVEL_WON/LEVEL_LOST/break).
 			if (!exit_game_loop)
 			{
 				exit_game_loop = GAMEMENU_process();
@@ -2374,6 +2436,9 @@ extern int g_iCheatNumber;
 			}
 #endif
 
+			// claude-ai: EWAY_tutorial_string — активное обучающее сообщение (задаётся из EWAY_process в eway.cpp).
+			// claude-ai: Пока != NULL: should_i_process_game() возвращает FALSE (игра заморожена), игра ждёт нажатия.
+			// claude-ai: Нажатие до конца появления текста (counter < 64*40) ускоряет его; после — закрывает сообщение.
 			if (EWAY_tutorial_string)
 			{
 				EWAY_tutorial_counter += 64 * TICK_RATIO >> TICK_SHIFT;
@@ -2438,6 +2503,8 @@ extern int g_iCheatNumber;
 			//Some processing and keyboard input for debug stuff
 			//
 
+			// claude-ai: process_controls() — читает ввод игрока (клавиатура/геймпад) и применяет к персонажу.
+		// claude-ai: Пропускается если GS_LEVEL_LOST/WON или показывается обучающее сообщение.
 			if (!(GAME_STATE & (GS_LEVEL_LOST|GS_LEVEL_WON)) && !EWAY_tutorial_string)
 			{
 //				TRACE("Process Controls");
@@ -2464,6 +2531,11 @@ void	check_pows(void);
 
 
 //				TRACE("Process Stuff1\n");
+				// claude-ai: Subsystem updates (только при should_i_process_game() == TRUE):
+				// claude-ai:   PARTICLE_Run() — частицы; OB_process() — интерактивные объекты; TRIP_process() — tripwires;
+				// claude-ai:   DOOR_process() — двери; EWAY_process() — миссионная логика;
+				// claude-ai:   SPARK_show_electric_fences(), RIBBON_process(), DIRT_process(), ProcessGrenades() — визуальные FX;
+				// claude-ai:   MAP_process() — карта мира; POW_process() — power-ups.
 				PARTICLE_Run();
 				OB_process();
 				TRIP_process();
@@ -2530,6 +2602,8 @@ extern	void	do_packets(void);
 			// Draw panel and other exciting things
 			//
 
+			// claude-ai: OVERLAY_handle() — рисует HUD: панель игрока (здоровье, оружие, радар), тексты миссии, иконки.
+			// claude-ai: Реализован в overlay.cpp. На PC включает PANEL_draw() с полной информацией.
 			OVERLAY_handle();
 
 
@@ -2539,6 +2613,7 @@ extern	void	do_packets(void);
 
 #ifdef PSX
 
+			// claude-ai: PAUSE_handler() — PSX-only: обрабатывает нажатие Start для паузы. Возвращает TRUE = выход из игры.
 			if (PAUSE_handler())
 			{
 				i_want_to_exit = TRUE;
@@ -2552,12 +2627,14 @@ extern	void	do_packets(void);
 			//On screen Text
 			//
 //#ifndef FINAL
-			if (!(GAME_FLAGS & GF_PAUSED)) 
+			// claude-ai: CONSOLE_draw() — рисует отладочные сообщения и floating texts на экране. Пропускается в режиме паузы.
+			if (!(GAME_FLAGS & GF_PAUSED))
 				CONSOLE_draw();
 //#endif
 
 			
 #ifndef PSX
+			// claude-ai: GAMEMENU_draw() — рисует меню паузы (PC): анимированное меню с опциями Continue/Restart/Exit.
 			GAMEMENU_draw();
 
 			//
@@ -2602,8 +2679,12 @@ extern	void	do_packets(void);
 			//
 			handle_sfx();
 
+			// claude-ai: GAME_TURN — глобальный счётчик кадров. Инкрементируется каждый кадр (не связан с реальным временем напрямую).
 			GAME_TURN++;
 
+			// claude-ai: Каждые 1024 кадра (0x3ff+1) на шаге 314 сбрасывается GF_DISABLE_BENCH_HEALTH.
+			// claude-ai: GF_DISABLE_BENCH_HEALTH ставится когда Дарси уже сидела на скамейке — сброс позволяет снова лечиться.
+			// claude-ai: ~34 секунды кулдаун при 30 FPS.
 			if ((GAME_TURN & 0x3ff) == 314)
 			{
 				//
@@ -2639,6 +2720,10 @@ extern	void	do_packets(void);
 
 		TRACE ( "game_loop gf done\n" );
 
+		// claude-ai: После выхода из inner loop: если GS_LEVEL_WON — проверяем какой уровень завершён для катсцен.
+		// claude-ai: park2.ucm → катсцена 1 (MIB introduction cutscene).
+		// claude-ai: Finale1.ucm → катсцена 3 (финальный ролик) + OS_hack() (финальный экран игры).
+		// claude-ai: Все остальные уровни → переход к DarciDeadCivWarnings проверке (если убиты мирные).
 		if (GAME_STATE == GS_LEVEL_WON)
 		{
 			#ifndef PSX
@@ -2705,6 +2790,10 @@ extern LPDIRECTDRAWSURFACE4 lpBackgroundCache;
 
 			#endif
 
+			// claude-ai: DarciDeadCivWarnings — экран наказания за убийство мирных жителей (RedMarks > 1).
+			// claude-ai: RedMarks — счётчик убитых мирных (Player->RedMarks). Только для PERSON_DARCI (основной персонаж).
+			// claude-ai: DarciDeadCivWarnings=0..2 → предупреждающие экраны; >=3 → немедленный GAME_STATE=GS_LEVEL_LOST.
+			// claude-ai: the_game.DarciDeadCivWarnings инкрементируется здесь после каждого показа. Персистирует между миссиями.
 			if ( (NETPERSON != NULL ) && (NET_PERSON(0)!= NULL ) && (NET_PERSON(0)->Genus.Person->PersonType == PERSON_DARCI) )
 			{
 				if (NET_PLAYER(0)->Genus.Player->RedMarks > 1)
@@ -2802,6 +2891,11 @@ extern CBYTE *Wadmenu_CivMess;
 
 		//game_fini();
 
+		// claude-ai: switch(GAME_STATE) после выхода из inner per-frame loop:
+		// claude-ai:   0           → выход (PSX сбрасывает дисплей)
+		// claude-ai:   GS_REPLAY   → переустанавливает GS_PLAY_GAME|GS_REPLAY и делает goto round_again (перезапуск миссии)
+		// claude-ai:   GS_LEVEL_WON  → PSX: Wadmenu_gameover(1); PC: FRONTEND_level_won() чуть ниже
+		// claude-ai:   GS_LEVEL_LOST → PSX: Wadmenu_gameover(0); PC: FRONTEND_level_lost() чуть ниже
 		switch(GAME_STATE)
 		{
 			case	0:
@@ -2878,11 +2972,14 @@ extern	void AENG_flip_init(void);
 // create SMOOTH_TICK_RATIO from TICK_RATIO averaged over 4 frames
 // so the car doesn't jolt so badly
 
+// claude-ai: tick_ratios[4] — кольцевой буфер из 4 последних TICK_RATIO значений для сглаживания.
+// claude-ai: sum = сумма всех 4 значений; wptr = индекс следующей записи (0..3).
 static SLONG	tick_ratios[4];
 static SLONG	wptr;
 static SLONG	number;
 static SLONG	sum;
 
+// claude-ai: ResetSmoothTicks() — сбрасывает кольцевой буфер при инициализации игры.
 void ResetSmoothTicks()
 {
 	wptr = 0;
@@ -2890,6 +2987,10 @@ void ResetSmoothTicks()
 	sum = 0;
 }
 
+// claude-ai: SmoothTicks() — усредняет raw_ticks по 4 кадрам (скользящее среднее).
+// claude-ai: Первые 3 кадра возвращает raw_ticks напрямую (буфер ещё не полон).
+// claude-ai: Начиная с 4-го: вычитает старейшее значение, добавляет новое, возвращает sum>>2 (сдвиг = деление на 4).
+// claude-ai: Используется в Thing.cpp для вычисления SMOOTH_TICK_RATIO — сглаженный TICK_RATIO для движения машин.
 SLONG SmoothTicks(SLONG raw_ticks)
 {
 	if (number < 4)

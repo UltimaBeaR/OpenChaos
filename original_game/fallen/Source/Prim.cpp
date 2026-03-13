@@ -1,4 +1,38 @@
 
+// claude-ai: ============================================================
+// claude-ai: OVERVIEW — Prim.cpp (~2500 lines)
+// claude-ai: ============================================================
+// claude-ai: "Prim" (primitive) = a static 3D mesh definition shared by world object instances.
+// claude-ai: Examples: lamppost, litter bin, bollard, tree, phone box, car, fence panel.
+// claude-ai:
+// claude-ai: KEY DATA STRUCTURES (global, defined elsewhere, used here):
+// claude-ai:   prim_points[MAX_PRIM_POINTS]       — flat pool of all vertices (SWORD X,Y,Z)
+// claude-ai:   prim_faces3[MAX_PRIM_FACES3]        — triangle face pool
+// claude-ai:   prim_faces4[MAX_PRIM_FACES4]        — quad face pool
+// claude-ai:   prim_objects[MAX_PRIM_OBJECTS]      — mesh definitions (index 1-265 = static prims)
+// claude-ai:   prim_multi_objects[MAX_PRIM_MOBJECTS] — groups of prim_objects for animated meshes
+// claude-ai:   prim_normal[MAX_PRIM_POINTS]        — per-vertex normals (for smooth lighting)
+// claude-ai:   prim_info[MAX_PRIM_OBJECTS]         — runtime bounding box / radius / cog per prim
+// claude-ai:   anim_chunk[MAX_ANIM_CHUNKS]         — per-creature animation bundle data
+// claude-ai:
+// claude-ai: KEY RESPONSIBILITIES IN THIS FILE:
+// claude-ai:   - Memory management: clear_prims(), compress_prims(), delete_* functions
+// claude-ai:   - Lighting: apply_ambient_light_to_object(), smooth_a_prim(), calc_prim_normals()
+// claude-ai:   - Collision/bounding: calc_prim_info(), slide_along_prim(), slide_around_box()
+// claude-ai:   - Normal calculation: calc_normal(), quick_normal()
+// claude-ai:   - Walkable surface edges: calc_slide_edges(), calc_slide_edges_roof()
+// claude-ai:   - Animated prim runtime: create_anim_prim(), fn_anim_prim_normal()
+// claude-ai:   - Editor helpers: copy_prim_to_end(), delete_prim_*, compress_prims()
+// claude-ai:
+// claude-ai: PRIM_MIN_BBOX = 0x58 (88 units) — minimum collision bounding box dimension.
+// claude-ai: Indices into all pool arrays start at 1 (slot 0 = invalid/sentinel).
+// claude-ai:
+// claude-ai: INDEX SCHEME FOR WALKABLE FACES (PAP_2LO.Walkable):
+// claude-ai:   positive index → prim_faces4[] (ground-level walkable quad on a prim)
+// claude-ai:   negative index → roof_faces4[] (walkable roof face, index = -value)
+// claude-ai:   zero           → end of walkable chain
+// claude-ai: ============================================================
+
 //#include	"Editor.hpp"
 
 #include	"game.h"
@@ -26,8 +60,17 @@
 // Extra info for each prim that isn't saved...
 //
 
+// claude-ai: prim_info is a heap-allocated array [MAX_PRIM_OBJECTS] of PrimInfo structs.
+// claude-ai: PrimInfo holds: minx/miny/minz, maxx/maxy/maxz (bounding box corners),
+// claude-ai:   radius (max distance from origin to any vertex), cogx/cogy/cogz (centre of gravity).
+// claude-ai: Populated by calc_prim_info() after all prims are loaded.
+// claude-ai: Used by slide_along_prim() for collision, and by rendering for frustum culling.
 PrimInfo *prim_info;//[256];//MAX_PRIM_OBJECTS];
 
+// claude-ai: global_res/global_flags/global_bright: scratch buffers for transformed point output.
+// claude-ai: 15560 slots = max vertices across all prims in a single draw call.
+// claude-ai: Used by the DDEngine rendering layer to store projected screen-space coords.
+// claude-ai: Not present on PSX/DC (those use hardware transform units instead).
 #if !defined(PSX) && !defined(TARGET_DC)
 struct	SVector			global_res[15560]; //max points per object?
 SLONG	global_flags[15560];
@@ -46,6 +89,12 @@ extern	struct KeyFrameChunk 	*test_chunk;
 CBYTE	prim_names[MAX_PRIM_OBJECTS][32];
 #endif
 
+// claude-ai: delete_prim_points_block / delete_prim_faces3_block / delete_prim_faces4_block:
+// claude-ai:   Remove a contiguous block from the respective pool array by shifting elements left.
+// claude-ai:   These are O(N) operations — expensive if called on large pools.
+// claude-ai:   Called by compress_prims() to compact unreferenced slots.
+// claude-ai:   fix_faces_for_del_points() / fix_objects_for_del_*() update all cross-references
+// claude-ai:   to keep indices consistent after the shift.
 #ifndef PSX
 void	delete_prim_points_block(SLONG start,SLONG count)
 {
@@ -148,6 +197,12 @@ void	fix_objects_for_del_faces4(SLONG start,SLONG count)
 	}
 }
 
+// claude-ai: compress_prims() — editor GC: removes unreferenced points/faces from the pools.
+// claude-ai: Algorithm: uses global_bright[] as a bitmask (reused as scratch space).
+// claude-ai:   Pass 1: mark every point/face3/face4 that is referenced by any prim_object.
+// claude-ai:   Pass 2: sweep from high to low, delete contiguous runs of unmarked slots.
+// claude-ai: The backward sweep minimises the number of shifts needed.
+// claude-ai: Not called at runtime — only used in the editor after deleting prim objects.
 void	compress_prims(void)
 {
 #if !defined(PSX) && !defined(TARGET_DC)
@@ -248,6 +303,12 @@ void	compress_prims(void)
 
 
 
+// claude-ai: clear_prims() — resets the entire prim database for level load.
+// claude-ai: Zeroes prim_objects[] and prim_multi_objects[].
+// claude-ai: Resets all pool cursors: points/face3/face4 cursors start at 1 (0 = invalid).
+// claude-ai: next_prim_object starts at 266 to reserve slots 1-265 for static world prims.
+// claude-ai: Clears anim_chunk[].MultiObject[0] to mark all anim slots as unloaded.
+// claude-ai: Note: does NOT free prim_info memory — that is managed separately.
 void	clear_prims(void)
 {
 	SLONG c0;
@@ -268,6 +329,11 @@ void	clear_prims(void)
 	next_prim_multi_object = 1;
 }
 
+// claude-ai: Smooth lighting: average per-vertex brightness across all faces that share a vertex.
+// claude-ai: sum_shared_brightness_prim() accumulates Bright[] values from every face using 'shared_point'.
+// claude-ai: set_shared_brightness_prim() then writes the averaged value back to all occurrences.
+// claude-ai: smooth_a_prim() drives this: iterates all faces, sets FACE_FLAG_SMOOTH, averages brightness.
+// claude-ai: This is a pre-process step called once after loading/editing — not per-frame.
 // Smooth lighting on a prim
 SLONG	sum_shared_brightness_prim(SWORD shared_point,struct PrimObject *p_obj)
 {
@@ -363,6 +429,12 @@ void	smooth_a_prim(SLONG prim)
 
 }
 
+// claude-ai: copy_prim_to_end() — duplicates a prim's mesh data at the high end of the pool arrays.
+// claude-ai: Used by the editor to create scratch copies of prims for editing/manipulation.
+// claude-ai: Writes points in REVERSE order from end_prim_point downward (descending allocation).
+// claude-ai: The 'end_prim_*' cursors grow downward from the top of the pool, while normal
+// claude-ai: 'next_prim_*' grow upward from slot 1. This partitions the array into two regions.
+// claude-ai: ThingIndex is set on each copied face — used to tag which editor Thing owns the face.
 /*
  ** copy prim to end
  *
@@ -586,6 +658,14 @@ UWORD	calc_lights(SLONG x,SLONG y,SLONG z,struct SVector *p_vect)
 }
 */
 
+// claude-ai: calc_normal() — computes the face normal for a tri or quad face.
+// claude-ai: Encoding convention: face < 0 → triangle (-face = index into prim_faces3[]).
+// claude-ai:                       face >= 0 → quad (face = index into prim_faces4[]).
+// claude-ai: For quads: uses points[0], points[1], points[3] (skips points[2]) to form two edges.
+// claude-ai: Cross product V×W gives unnormalised normal; normalised to length 256 (fixed-point 8.0).
+// claude-ai: Output normal stored in p_normal (SVector: SWORD X,Y,Z, range -256..256).
+// claude-ai: quick_normal() variant skips normalisation — returns raw cross product for sign tests.
+// claude-ai: Both functions negate the result: output N = -(V×W), matching the engine's winding order.
 #ifndef	PSX
 void	calc_normal(SWORD	face,struct SVector *p_normal)
 {
@@ -713,6 +793,15 @@ void	quick_normal(SWORD	face,SLONG *nx,SLONG *ny,SLONG *nz)
 #define	in_shadow(x,y,z,i,j,k)	0
 #define	in_shadowo(x,y,z,i,j,k)	0
 
+// claude-ai: apply_ambient_light_to_object() — bakes directional light into prim face brightness.
+// claude-ai: Parameters: object = prim_objects[] index, lnx/lny/lnz = light direction normal (length 256),
+// claude-ai:   intense = maximum brightness (0..255).
+// claude-ai: For each face (tri and quad): computes dot product of face normal with light direction,
+// claude-ai:   scales by intense, clamps minimum to intense>>3 (ambient floor = 12.5% of max).
+// claude-ai: Writes result into Bright[0..N] of each face (per-vertex brightness, all set equal).
+// claude-ai: Shadow tracing code is present but permanently compiled out (in_shadow() = 0).
+// claude-ai: This is a pre-process step, not per-frame. Called once after level geometry is built.
+// claude-ai: Note: the 'next' return value is always 0 (the early_out labels are unused).
 UWORD	apply_ambient_light_to_object(UWORD object,SLONG lnx,SLONG lny,SLONG lnz,UWORD intense)
 {
 //	SLONG	length,vx,vy,vz,wx,wy,wz;
@@ -873,6 +962,18 @@ UWORD	apply_ambient_light_to_object(UWORD object,SLONG lnx,SLONG lny,SLONG lnz,U
 }
 
 #endif
+// claude-ai: calc_prim_info() — post-load pass to compute runtime bounding info for each prim.
+// claude-ai: Fills prim_info[i] for all loaded prims (i in 1..255 where StartPoint != 0).
+// claude-ai: Bounding box algorithm: Y extent uses ALL points; X/Z extent uses only points at
+// claude-ai:   the BOTTOM 1/8th of the prim height ('below' threshold). This makes the footprint
+// claude-ai:   box match the base of the object for collision, not the widest part.
+// claude-ai: Special case: prim 41 (step) uses all points for X/Z (its base is unusual).
+// claude-ai: Special case: prim 181/182 (estate gate) gets enlarged bbox (+0x40 all sides).
+// claude-ai: Special case: PRIM_OBJ_WILDCATVAN_BODY gets translated if minx looks wrong.
+// claude-ai: PRIM_MIN_BBOX (0x58) enforces a minimum bbox size for reliable collision response.
+// claude-ai: Sets PRIM_FLAG_ENVMAPPED if any face has FACE_FLAG_ENVMAP.
+// claude-ai: Sets PRIM_DAMAGE_NOLOS if the prim is box-collide and tall+wide enough to hide behind.
+// claude-ai: Calls VEH_init_vehinfo() at the end to set up crumple zone data for vehicle prims.
 #ifndef	PSX
 void calc_prim_info()
 {
@@ -1110,6 +1211,14 @@ void calc_prim_info()
 #endif
 
 UBYTE each_point[MAX_POINTS_PER_PRIM];
+// claude-ai: calc_prim_normals() — computes per-vertex normals for all loaded prims.
+// claude-ai: For each prim: iterates all faces (tri and quad), calls calc_normal() to get face normal,
+// claude-ai:   then averages that normal into each face's vertices using each_point[] as a hit counter.
+// claude-ai: Result stored in prim_normal[point_index] (SVector, normalised to length 256).
+// claude-ai: Final normalisation: length <<8, then divide by -dist to flip and normalise.
+// claude-ai: "// one day" comment suggests this was added later in development.
+// claude-ai: Used for specular/environment mapped lighting — not for basic diffuse lighting.
+// claude-ai: prim_normal[] is indexed by global prim_points[] index, same as point pool.
 #ifndef	PSX
 // one day
 
@@ -1327,6 +1436,18 @@ PrimInfo *get_prim_info(SLONG prim)
 }
 
 
+// claude-ai: SLIDE_EDGE_HEIGHT = 0x90 (144 units) — if a walkable edge's drop is less than this,
+// claude-ai: the player cannot grab/hang from it (ground is too close below).
+// claude-ai: calc_slide_edges_roof() — flags which edges of roof faces are grabbable.
+// claude-ai:   Clears RFACE_FLAG_SLIDE_EDGE_* for edges blocked by fences or adjacent roof faces.
+// claude-ai:   Uses a 3×3 neighbourhood search in the lo-res map (PAP_2LO.Walkable chain).
+// claude-ai: calc_slide_edges() — flags which edges of prim walkable quad faces are grabbable.
+// claude-ai:   Algorithm: all edges start as SLIDE_EDGE; clear bits where edges are shared between
+// claude-ai:   two adjacent walkable faces (interior edges don't need grab zones).
+// claude-ai:   Second pass: for remaining marked edges, sample ground height 35 units beyond the edge.
+// claude-ai:   If the ground is within SLIDE_EDGE_HEIGHT of the edge height, clear the slide bit.
+// claude-ai:   Third pass: clears edges that lie along a fence (does_fence_lie_along_line()).
+// claude-ai: Called once after all prims and walkable surfaces are set up.
 #define	SLIDE_EDGE_HEIGHT	0x90
 #ifndef	PSX
 void calc_slide_edges_roof()
@@ -1880,6 +2001,12 @@ void calc_slide_edges()
 	}
 }
 
+// claude-ai: get_rotated_point_world_pos() — converts a prim-local vertex to world position.
+// claude-ai: Uses FMATRIX_calc() to build a YPR rotation matrix, then FMATRIX_MUL_BY_TRANSPOSE()
+// claude-ai: to rotate the vertex, then adds the prim's world position.
+// claude-ai: If point == -1, a random vertex is selected (used for particle/debris spawn).
+// claude-ai: Point index is local to the prim (0-based), translated to global pool index internally.
+// claude-ai: Output x/y/z are in world-space integer units (not the <<8 fixed-point format).
 void get_rotated_point_world_pos(
 		SLONG  point,				// -1 => A random point.
 		SLONG  prim,
@@ -1942,6 +2069,17 @@ void get_rotated_point_world_pos(
 #endif
 
 
+// claude-ai: slide_along_prim() — main prim collision response function.
+// claude-ai: Tests whether the movement vector (x1,y1,z1)→(x2,y2,z2) collides with a prim,
+// claude-ai: and if so, slides x2/z2 around the brim of the prim's bounding box.
+// claude-ai: Input positions are in <<8 fixed-point world coords (divided by 256 internally).
+// claude-ai: Uses prim_info[prim] bbox (minx/maxx/minz/maxz) for the collision rectangle.
+// claude-ai: Y range check: collision only happens if y1 is within prim's Y extent (y_bot..y_top).
+// claude-ai: shrink=TRUE: reduces radius by 0x30 and compresses Y range to bottom quarter.
+// claude-ai:   This is used for entering tight spaces (crouching under furniture etc.).
+// claude-ai: dont_slide=TRUE: returns TRUE (collision) without modifying x2/z2/y2.
+// claude-ai: Delegates to slide_around_box() for the actual 2D rectangular slide computation.
+// claude-ai: Returns TRUE if collision occurred and x2/z2 were modified; FALSE if no collision.
 SLONG slide_along_prim(
 		SLONG  prim,
 		SLONG  prim_x,
@@ -2034,6 +2172,10 @@ SLONG slide_along_prim(
 }
 
 
+// claude-ai: prim_get_collision_model() — returns coltype for a prim.
+// claude-ai: coltype values: PRIM_COLLIDE_NONE (0), PRIM_COLLIDE_BOX (1), PRIM_COLLIDE_CYLINDER (2).
+// claude-ai: Box and cylinder collision are handled differently in slide_along_prim().
+// claude-ai: prim_get_shadow_type() — returns shadowtype (0=no shadow, 1=blob shadow, etc.).
 UBYTE prim_get_collision_model(SLONG prim)
 {
 	ASSERT(WITHIN(prim, 0, 255));
@@ -2049,6 +2191,13 @@ UBYTE prim_get_shadow_type(SLONG prim)
 }
 
 
+// claude-ai: fn_anim_prim_normal() — per-frame update for an animated world prim (Thing state function).
+// claude-ai: Advances AnimTween by TweenStep*2 (scaled by TICK_RATIO for frame-rate independence).
+// claude-ai: When AnimTween exceeds 256, advances to next keyframe via advance_keyframe().
+// claude-ai: On anim completion: ANIM_PRIM_TYPE_DOOR sets FLAGS_SWITCHED_ON and clears StateFn.
+// claude-ai:                     ANIM_PRIM_TYPE_SWITCH toggles FLAGS_SWITCHED_ON and clears StateFn.
+// claude-ai:                     ANIM_PRIM_TYPE_NORMAL: loops silently.
+// claude-ai: StateFn = NULL means the prim is idle (door closed, switch resting).
 #ifndef PSX
 void	fn_anim_prim_normal(Thing *p_thing)
 {
@@ -2128,6 +2277,15 @@ void	fn_anim_prim_normal(Thing *p_thing)
 	}
 }
 
+// claude-ai: create_anim_prim() — spawns an animated world object Thing at a given world position.
+// claude-ai: Called from load_game_map() for each MAP_THING_TYPE_ANIM_PRIM entry in the .iam file.
+// claude-ai: Allocates a primary Thing (CLASS_ANIM_PRIM), sets DrawType = DT_ANIM_PRIM.
+// claude-ai: Assigns a DrawTween (DT_ROT_MULTI) — the multi-object rotation tweening draw system.
+// claude-ai: Position is stored <<8 (e.g. x<<8 in WorldPos.X) — standard world-space fixed-point.
+// claude-ai: TheChunk = &anim_chunk[prim] links the Thing to its animation data bundle.
+// claude-ai: CurrentFrame = AnimList[1] starts the prim on animation slot 1 (idle/default anim).
+// claude-ai: ANIM_PRIM_TYPE_NORMAL gets StateFn = fn_anim_prim_normal (continuous playback).
+// claude-ai: ANIM_PRIM_TYPE_DOOR and SWITCH start idle (StateFn = NULL) until triggered.
 void	create_anim_prim(SLONG x,SLONG y,SLONG z,SLONG prim, SLONG yaw)
 {
  	SLONG	new_thing;
@@ -2215,6 +2373,13 @@ void	set_anim_prim_anim(SLONG anim_prim, SLONG anim)
 
 
 
+// claude-ai: get_anim_prim_type() — maps anim_prim index to its behaviour class.
+// claude-ai: Hard-coded mapping (not data-driven):
+// claude-ai:   anim_prim 3,5,6,7,8,10,11 → ANIM_PRIM_TYPE_DOOR (open/close on trigger)
+// claude-ai:   anim_prim 4              → ANIM_PRIM_TYPE_SWITCH (toggle on/off)
+// claude-ai:   everything else          → ANIM_PRIM_TYPE_NORMAL (loops continuously)
+// claude-ai: anim_prim 3 = balrog exit door (also loaded as creature anim slot 3 — same index).
+// claude-ai: This dual-use of slot 3 is resolved by context: creature vs. world object placement.
 SLONG get_anim_prim_type(SLONG anim_prim)
 {
 	switch(anim_prim)
@@ -2237,6 +2402,12 @@ SLONG get_anim_prim_type(SLONG anim_prim)
 #endif
 
 
+// claude-ai: find_anim_prim() — spatial query: find the nearest animated prim of the given type(s).
+// claude-ai: type_bit_field: bitmask where bit N = include ANIM_PRIM_TYPE_N in search.
+// claude-ai: Uses THING_find_sphere() to collect up to 8 CLASS_ANIM_PRIM Things within 'range'.
+// claude-ai: Then filters by type and picks closest by Manhattan distance (abs(dx)+abs(dy)+abs(dz)).
+// claude-ai: Returns THING_INDEX of best match, or NULL if none found.
+// claude-ai: Used for door-opening/switch-activation triggers when a character approaches.
 #ifndef	PSX
 #define MAX_FIND_ANIM_PRIMS 8
 
@@ -2301,6 +2472,11 @@ SLONG find_anim_prim(
 	return best_thing;
 }
 
+// claude-ai: toggle_anim_prim_switch_state() — player-triggered toggle for switch-type anim prims.
+// claude-ai: If the prim is currently animating (StateFn != NULL), the call is ignored (debounce).
+// claude-ai: FLAGS_SWITCHED_ON tracks the current state; the appropriate animation (1=off→on, 2=on→off)
+// claude-ai: is started via set_anim_prim_anim(), which sets CurrentFrame and StateFn.
+// claude-ai: Called from Special.cpp when the player presses the action button near a switch.
 void toggle_anim_prim_switch_state(SLONG anim_prim_thing_index)
 {
 	Thing *t_thing = TO_THING(anim_prim_thing_index);

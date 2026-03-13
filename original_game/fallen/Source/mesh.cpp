@@ -1,3 +1,40 @@
+// claude-ai: FILE OVERVIEW — fallen/Source/mesh.cpp
+// claude-ai: ================================================================
+// claude-ai: THIS IS THE GAME-SIDE MESH RENDERER, NOT the DDEngine renderer.
+// claude-ai: DO NOT confuse with: original_game/fallen/DDEngine/Source/mesh.cpp
+// claude-ai:   that file handles terrain/static world mesh rendering.
+// claude-ai:   THIS file handles rotating/animated prim-based objects (furniture,
+// claude-ai:   vehicles, items, characters) using the DirectX POLY_* system.
+// claude-ai: ================================================================
+// claude-ai:
+// claude-ai: KEY FUNCTIONS:
+// claude-ai:   MESH_draw_guts()       — core draw loop: transforms all vertices,
+// claude-ai:     then emits textured/coloured quads and triangles via POLY_add_quad/triangle().
+// claude-ai:   MESH_draw_poly()       — public entry: given prim + yaw/pitch/roll + position,
+// claude-ai:     builds the rotation matrix and calls MESH_draw_guts().
+// claude-ai:   MESH_draw_poly_inv_matrix() — same but uses non-transposed matrix (different handedness).
+// claude-ai:   MESH_draw_morph()      — morphing between two MORPH_Point arrays (e.g. car deformation).
+// claude-ai:
+// claude-ai: TEXTURE UV ENCODING:
+// claude-ai:   UV values in PrimFace4/3 are stored as UBYTE pairs: UV[vertex][0/1].
+// claude-ai:   UV[v][0] top 2 bits (& 0xc0) encode atlas page high bits; low 6 bits = u-coord.
+// claude-ai:   UV[v][1] = v-coord. Final page = (UV[0][0] & 0xc0) << 2 | TexturePage.
+// claude-ai:   UV float = byte_value / 32.0f (texture is 32×32 tile units).
+// claude-ai:
+// claude-ai: ANIMATED TEXTURES:
+// claude-ai:   Faces with FACE_FLAG_ANIMATE use AnimTmap struct instead of static UVs.
+// claude-ai:   p_a->Current = current frame index; UV and Page are per-frame arrays.
+// claude-ai:
+// claude-ai: REFLECTION/WATER SYSTEM:
+// claude-ai:   MESH_Reflection struct — holds a dynamically-built triangle mesh for water reflections.
+// claude-ai:   MESH_reflection[256] — one slot per reflective surface.
+// claude-ai:   MESH_add_point() / MESH_add_face() / MESH_add_poly() build the mesh at runtime.
+// claude-ai:   Points merge if within 0.1f distance (MESH_add_point dedup loop).
+// claude-ai:   fade field (0-255) = submersion depth for water fade effect.
+// claude-ai:
+// claude-ai: SPECIAL CASE: prim 122 (cinema screen):
+// claude-ai:   Hardcoded: draws the cinema screen face backwards with specular 0x00888888.
+// claude-ai:   Page 86 = the cinema screen texture page.
 //
 // Drawing rotating prims.
 //
@@ -23,6 +60,19 @@
 #define	POLY_FLAG_CLIPPED		(1<<7)
 
 
+// claude-ai: MESH_draw_guts() — inner draw loop shared by MESH_draw_poly() and MESH_draw_morph().
+// claude-ai: Parameters:
+// claude-ai:   prim        — index into prim_objects[] (which face ranges and point ranges to use)
+// claude-ai:   at_x/y/z   — world position of the prim (MAPCO16 = 16-bit map coordinate)
+// claude-ai:   matrix[9]  — 3x3 rotation matrix, already transposed by caller
+// claude-ai:   lpc        — per-vertex lightmap colours (NIGHT_Colour*); NULL = use ambient light
+// claude-ai: Process:
+// claude-ai:   1. POLY_set_local_rotation() — sets up transform for this object
+// claude-ai:   2. Loop over all points [StartPoint..EndPoint): POLY_transform_using_local_rotation()
+// claude-ai:      applies colour from *lpc or NIGHT_amb_d3d_colour (ambient)
+// claude-ai:   3. Loop over quads [StartFace4..EndFace4): check visibility, apply UV/page, emit
+// claude-ai:   4. Loop over tris  [StartFace3..EndFace3): same
+// claude-ai: Returns: lpc advanced past all consumed light-colour entries (or unchanged if lpc==NULL).
 NIGHT_Colour *MESH_draw_guts(
 				SLONG         prim,
 				MAPCO16	      at_x,
@@ -230,6 +280,10 @@ NIGHT_Colour *MESH_draw_guts(
 		}
 	}
 
+	// claude-ai: Hardcoded special case: prim 122 = the cinema screen object.
+	// claude-ai: The screen face (page 86) is drawn a second time with reversed vertex order
+	// claude-ai: (0,1,2,3 → 2,3,0,1) and specular 0x00888888 to create the faded reflection effect.
+	// claude-ai: This is a one-off hack for a specific level object; no other prims get this treatment.
 	if (prim == 122)
 	{
 		//
@@ -291,6 +345,13 @@ NIGHT_Colour *MESH_draw_guts(
 }
 
 
+// claude-ai: MESH_draw_poly() — public entry for drawing a rotated prim.
+// claude-ai: Angles: i_yaw/pitch/roll are 11-bit (0..2047) = 0..2π.
+// claude-ai: Conversion: float_angle = int_angle * (2π / 2048).
+// claude-ai: MATRIX_calc() builds a 3x3 float rotation matrix from yaw/pitch/roll.
+// claude-ai: MATRIX_TRANSPOSE() transposes before passing to MESH_draw_guts().
+// claude-ai: The transpose is needed because POLY_transform_using_local_rotation() expects
+// claude-ai: row-major column-vector convention (column-major world convention).
 NIGHT_Colour *MESH_draw_poly(
 				SLONG         prim,
 				MAPCO16	      at_x,
@@ -309,7 +370,7 @@ NIGHT_Colour *MESH_draw_poly(
 	yaw   = float(i_yaw)   * (2.0F * PI / 2048.0F);
 	pitch = float(i_pitch) * (2.0F * PI / 2048.0F);
 	roll  = float(i_roll)  * (2.0F * PI / 2048.0F);
-	
+
 	MATRIX_calc(
 		matrix,
 		yaw,
@@ -327,6 +388,10 @@ NIGHT_Colour *MESH_draw_poly(
 	return MESH_draw_guts(prim, at_x, at_y, at_z, matrix, lpc);
 }
 
+// claude-ai: MESH_draw_poly_inv_matrix() — same as MESH_draw_poly but WITHOUT the transpose.
+// claude-ai: Used for objects where the matrix handedness is already inverted at the source.
+// claude-ai: The commented-out MATRIX_TRANSPOSE is intentional (not an oversight).
+// claude-ai: Likely used for mirrored objects or special coordinate-system transforms.
 NIGHT_Colour *MESH_draw_poly_inv_matrix(
 				SLONG         prim,
 				MAPCO16	      at_x,
@@ -601,11 +666,19 @@ NIGHT_Colour *MESH_draw_poly(
 
 
 
+// claude-ai: MESH_draw_morph() — draws a prim with vertex positions interpolated between two morph targets.
+// claude-ai: morph1, morph2: indices into MORPH array (vehicle deformation states, e.g. undamaged → crushed).
+// claude-ai: tween: interpolation factor 0-256 (0=fully morph1, 256=fully morph2).
+// claude-ai: MORPH_get_points() returns the MORPH_Point* arrays with float x/y/z per vertex.
+// claude-ai: Linear interpolation: px = px1 + (px2-px1) * (tween/256.0f).
+// claude-ai: Assertion: both morphs must have identical vertex counts.
+// claude-ai: After interpolation, uses POLY_transform_using_local_rotation() same as MESH_draw_guts().
+// claude-ai: Face topology (quads/tris) and UVs come from prim_objects[prim] (same as non-morph draw).
 void MESH_draw_morph(
 		SLONG         prim,
 		UBYTE         morph1,
 		UBYTE         morph2,
-		UWORD		  tween,		// 0 - 256         
+		UWORD		  tween,		// 0 - 256
 		MAPCO16	      at_x,
 		MAPCO16       at_y,
 		MAPCO16	      at_z,
@@ -874,6 +947,9 @@ void MESH_draw_morph(
 // The reflected-object data structures.
 //
 
+// claude-ai: MESH_Point — a vertex in a reflection mesh.
+// claude-ai: x/y/z: world-space position (float).
+// claude-ai: fade: 0-255 indicating depth under water surface (255 = fully submerged = fully faded).
 typedef struct
 {
 	float x;
@@ -883,6 +959,11 @@ typedef struct
 
 } MESH_Point;
 
+// claude-ai: MESH_Face — a triangle in a reflection mesh.
+// claude-ai: p[3]: indices into MESH_Reflection.mp[] vertex array.
+// claude-ai: u[3]/v[3]: texture coordinates for each vertex.
+// claude-ai: page: texture page index (same as DrawFlags page encoding elsewhere).
+// claude-ai: padding: alignment to 4-byte boundary.
 typedef struct
 {
 	UWORD p[3];
@@ -893,6 +974,10 @@ typedef struct
 
 } MESH_Face;
 
+// claude-ai: MESH_Reflection — dynamically built reflection/water geometry for one reflective surface.
+// claude-ai: calculated: TRUE if this slot has valid data (built this frame).
+// claude-ai: mp/mf: dynamically allocated point and face arrays (grown via realloc on demand).
+// claude-ai: num_points/faces: current count; max_points/faces: allocated capacity.
 typedef struct
 {
 	SLONG calculated;
@@ -908,10 +993,16 @@ typedef struct
 
 } MESH_Reflection;
 
+// claude-ai: MESH_MAX_REFLECTIONS = 256 reflection slots. One per distinct reflective prim/surface.
+// claude-ai: MESH_reflection[] is a global fixed-size array — no dynamic allocation at the slot level.
+// claude-ai: MESH_init_reflections() is called each frame to clear stale reflection geometry.
 #define MESH_MAX_REFLECTIONS 256
 
 MESH_Reflection MESH_reflection[MESH_MAX_REFLECTIONS];
 
+// claude-ai: MESH_init_reflections() — frees and resets all calculated reflection meshes.
+// claude-ai: Called once per frame before any reflections are rebuilt.
+// claude-ai: MemFree(mr->mp) and MemFree(mr->mf) release the dynamically allocated arrays.
 void MESH_init_reflections()
 {
 	SLONG i;
@@ -943,6 +1034,10 @@ void MESH_init_reflections()
 // Grows the points or faces arrays.
 //
 
+// claude-ai: MESH_grow_points() / MESH_grow_faces() — double the allocated capacity of the arrays.
+// claude-ai: Uses realloc() for in-place growth when possible. Growth factor is 2× each time.
+// claude-ai: No bounds check on max_points/max_faces after doubling — MESH_add_point/face
+// claude-ai: call these when num >= max, so growth is triggered just in time.
 void MESH_grow_points(MESH_Reflection *mr)
 {
 	mr->max_points *= 2;
@@ -959,6 +1054,11 @@ void MESH_grow_faces(MESH_Reflection *mr)
 // Returns the index of a point with the given position.
 //
 
+// claude-ai: MESH_add_point() — adds a unique vertex or returns the index of an existing one.
+// claude-ai: Deduplication: walks backwards through existing points, returns match if dist < 0.1f.
+// claude-ai: Backwards search is a heuristic: recently-added points are most likely to match.
+// claude-ai: fade: clamped to [0,255] via MIN(255, (SLONG)fade) before storing.
+// claude-ai: If no match found, appends new MESH_Point and grows array if needed.
 SLONG MESH_add_point(
 		MESH_Reflection *mr,
 		float x,
@@ -1018,6 +1118,11 @@ SLONG MESH_add_point(
 // Adds a face.
 //
 
+// claude-ai: MESH_add_face() — appends a triangle to the reflection mesh.
+// claude-ai: p1/p2/p3: indices into mr->mp[] (from MESH_add_point()).
+// claude-ai: u/v per vertex: texture coordinates (float, not 0-255 byte).
+// claude-ai: page: texture page (same encoding as prim face TexturePage).
+// claude-ai: Grows mr->mf[] via MESH_grow_faces() if capacity exceeded.
 void MESH_add_face(
 		MESH_Reflection *mr,
 		SLONG p1,
@@ -1076,6 +1181,12 @@ typedef struct
 MESH_Add MESH_add[MESH_MAX_ADD];
 SLONG    MESH_add_upto;
 
+// claude-ai: MESH_add_poly() — adds an arbitrary polygon (3+ vertices) to a reflection mesh.
+// claude-ai: Clips the polygon to the water surface height (top_height / bot_height split).
+// claude-ai: Input: MESH_Add array with x/y/z/u/v/fade per vertex, num_points count, page.
+// claude-ai: Output: one or more triangles appended to mr via MESH_add_face().
+// claude-ai: MESH_Add.index field is used internally to track MESH_add_point() indices.
+// claude-ai: MESH_MAX_ADD = 256 — maximum polygon vertex count.
 void MESH_add_poly(MESH_Reflection *mr, MESH_Add poly[], SLONG num_points, SLONG page)
 {
 	SLONG i;

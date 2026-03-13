@@ -2,6 +2,89 @@
 // Person commands and high-level AI
 //
 
+// claude-ai: ============================================================
+// claude-ai: PCOM — Person COMportment — The NPC AI Engine
+// claude-ai: ============================================================
+// claude-ai:
+// claude-ai: This file implements the entire NPC brain for Urban Chaos.
+// claude-ai: Every non-player character calls PCOM_process_person() each
+// claude-ai: game tick. That function drives two parallel state machines:
+// claude-ai:
+// claude-ai:   1. pcom_ai / pcom_ai_state  — HIGH-LEVEL "what am I doing"
+// claude-ai:      Governed by PCOM_process_state_change() (the dispatcher)
+// claude-ai:      and PCOM_process_default() (the per-state handler router).
+// claude-ai:
+// claude-ai:   2. pcom_move_state / pcom_move_substate — LOW-LEVEL movement
+// claude-ai:      Governed by PCOM_process_movement().
+// claude-ai:
+// claude-ai: TIMING MODEL
+// claude-ai:   PCOM_TICKS_PER_TURN = 16   (ticks advanced per game turn)
+// claude-ai:   PCOM_TICKS_PER_SEC  = 320  (16 * 20 turns/sec)
+// claude-ai:   PCOM_get_duration(n) converts tenths-of-second to ticks.
+// claude-ai:   pcom_move_counter is a tick accumulator, reset on state entry.
+// claude-ai:
+// claude-ai: AI TYPES  (pcom_ai field)
+// claude-ai:   PCOM_AI_NONE         - no AI (inactive)
+// claude-ai:   PCOM_AI_CIV          - civilian; wanders, flees combat
+// claude-ai:   PCOM_AI_GUARD        - stationary guard; investigates sounds, patrols home area
+// claude-ai:   PCOM_AI_ASSASIN      - scripted assassin; snipes or navtokills a waypoint target
+// claude-ai:   PCOM_AI_BOSS         - boss NPC; pure default processing
+// claude-ai:   PCOM_AI_COP          - police officer; investigates, arrests, fights
+// claude-ai:   PCOM_AI_GANG         - gang member; scans for taunt/bully targets, oscillates tympanum
+// claude-ai:   PCOM_AI_DOORMAN      - doorman; pure default
+// claude-ai:   PCOM_AI_BODYGUARD    - bodyguard; protects client from attackers; invulnerable when far
+// claude-ai:   PCOM_AI_DRIVER       - civilian driver; drives car along road network
+// claude-ai:   PCOM_AI_BDISPOSER    - bomb disposer; scans for active bombs, defuses them
+// claude-ai:   PCOM_AI_BIKER        - biker; finds and rides bike (#ifdef BIKE)
+// claude-ai:   PCOM_AI_FIGHT_TEST   - combat test AI; triggers nearby MIBs
+// claude-ai:   PCOM_AI_BULLY        - bully; scans for civ targets to bully
+// claude-ai:   PCOM_AI_COP_DRIVER   - cop in a car; patrols or wanders as driver
+// claude-ai:   PCOM_AI_SUICIDE      - immediately self-destructs
+// claude-ai:   PCOM_AI_FLEE_PLAYER  - flees if within 0x600 of Darci
+// claude-ai:   PCOM_AI_KILL_COLOUR  - scans all persons, kills nearest with matching pcom_colour
+// claude-ai:   PCOM_AI_MIB          - Man in Black; alerts all nearby MIBs when player detected
+// claude-ai:   PCOM_AI_BANE         - Bane boss; SUMMON loop, electrocutes Darci if she lingers
+// claude-ai:   PCOM_AI_HYPOCHONDRIA - endlessly plays injured animation
+// claude-ai:   PCOM_AI_SHOOT_DEAD   - variant of assassin: navigates to target then shoots
+// claude-ai:
+// claude-ai: AI STATES  (pcom_ai_state field — 26 values)
+// claude-ai:   NORMAL, INVESTIGATING, SEARCHING, KILLING, SLEEPING,
+// claude-ai:   FLEE_PLACE, FLEE_PERSON, FOLLOWING, NAVTOKILL, HOMESICK,
+// claude-ai:   LOOKAROUND, FINDCAR, BDEACTIVATE, LEAVECAR, SNIPE,
+// claude-ai:   WARM_HANDS, FINDBIKE, KNOCKEDOUT, TAUNT, ARREST,
+// claude-ai:   TALK, HITCH, AIMLESS, HANDS_UP, SUMMON, GETITEM
+// claude-ai:
+// claude-ai: MOVEMENT MODES  (pcom_move field — determines patrol/wander style)
+// claude-ai:   STILL, PATROL, PATROL_RAND, WANDER, FOLLOW,
+// claude-ai:   WARM_HANDS, FOLLOW_ON_SEE, DANCE, HANDS_UP, TIED_UP
+// claude-ai:
+// claude-ai: MOVEMENT STATES  (pcom_move_state — low-level locomotion)
+// claude-ai:   PLAYER, STILL, GOTO_XZ, GOTO_WAYPOINT, GOTO_THING, PAUSE,
+// claude-ai:   ANIMATION, CIRCLE, DRIVETO, FOLLOW, PARK_CAR, DRIVE_DOWN,
+// claude-ai:   BIKETO, PARK_BIKE, BIKE_DOWN, GRAPPLE, GOTO_THING_SLIDE,
+// claude-ai:   WAIT_CIRCLE, PARK_CAR_ON_ROAD
+// claude-ai:
+// claude-ai: PERSONALITY FLAGS  (pcom_bent bitmask)
+// claude-ai:   PCOM_BENT_LAZY         - may sit down when idle
+// claude-ai:   PCOM_BENT_DILIGENT     - drives faster; always tries to avoid obstacles
+// claude-ai:   PCOM_BENT_GANG         - member of a gang; ignores friendly-fire from same colour
+// claude-ai:   PCOM_BENT_FIGHT_BACK   - civilians with this flag retaliate instead of flee
+// claude-ai:   PCOM_BENT_ONLY_KILL_PLAYER - only targets Darci
+// claude-ai:   PCOM_BENT_ROBOT        - ignores sounds and AI interruptions
+// claude-ai:   PCOM_BENT_RESTRICTED   - restricted to zone (pcom_zone bitmask)
+// claude-ai:   PCOM_BENT_PLAYER_KILL  - extra aggressive toward player
+// claude-ai:
+// claude-ai: SOUND DETECTION (PCOM_oscillate_tympanum)
+// claude-ai:   Called when any in-game sound occurs. Scans sphere of NPCs and
+// claude-ai:   triggers state changes based on sound type and AI type:
+// claude-ai:   FOOTSTEP=0x280, GUNSHOT=0xa00, FIGHT=0x900, ALARM=0x800, BANG=0x700
+// claude-ai:   Guards/Cops → INVESTIGATING; Civs → FLEE_PLACE/FLEE_PERSON
+// claude-ai:
+// claude-ai: #ifdef BIKE  — bike system present in pre-release code; final game status unclear
+// claude-ai: #if SANITY_PREVAILED  — compiled-out racist AI block; never active
+// claude-ai: #if DARCI_HITS_COPS   — compile flag for cop-retaliation logic
+// claude-ai: ============================================================
+
 #include "game.h"
 #include "collide.h"
 #include "..\headers\pcom.h"
@@ -347,6 +430,7 @@ SLONG	person_holding_2handed(Thing *p_person);
 
 
 
+// claude-ai: Initialise gang tracking structures at level load
 void PCOM_init(void)
 {
 	//
@@ -361,6 +445,7 @@ void PCOM_init(void)
 }
 
 
+// claude-ai: PCOM_add_gang_member - registers a person into a gang slot (0..PCOM_MAX_GANGS-1); also records their home position for patrol purposes; civilians are excluded
 void PCOM_add_gang_member(THING_INDEX person, UBYTE group)
 {
 	SLONG i;
@@ -431,10 +516,9 @@ void PCOM_add_gang_member(THING_INDEX person, UBYTE group)
 	}
 }
 
-//
-// Returns TRUE if a fake wandering person should attack Darci.
-//
-
+// claude-ai: PCOM_should_fake_person_attack_darci — decides if a regen'd "fake" wanderer should
+// claude-ai: turn into a gang attacker. Checks: not in warehouse, EWAY allows movement, Darci
+// claude-ai: is visible and within range, global violence flag is set. Used by PCOM_do_regen().
 SLONG PCOM_should_fake_person_attack_darci(Thing *p_person)
 {
 	Thing *darci = NET_PERSON(0);
@@ -513,6 +597,7 @@ SLONG PCOM_should_fake_person_attack_darci(Thing *p_person)
 // not really PCOM_  becasue used by players elsewhere
 //
 
+// claude-ai: get_rate_of_fire - returns ticks between shots for this person; MIBs get rate=20 (built-in AK47), others depend on equipped weapon type
 SLONG get_rate_of_fire(Thing *p_person)
 {
 	Thing *p_special;
@@ -590,6 +675,7 @@ SLONG get_rate_of_fire(Thing *p_person)
 //		   @	@@@	@  @  @@@  @@ @	  @@  @	 @ @
 
 
+// claude-ai: person_has_gun_or_grenade_out - returns SPECIAL_GUN/SPECIAL_GRENADE if weapon drawn, 0 otherwise; used to decide if ranged attack is possible
 SLONG person_has_gun_or_grenade_out(Thing *p_person)
 {
 	if (p_person->Genus.Person->Flags&FLAG_PERSON_GUN_OUT)
@@ -627,10 +713,9 @@ SLONG person_has_gun_or_grenade_out(Thing *p_person)
 
 
 
-//
-// Returns the amount of time given in tenth's of a second.
-//
-
+// claude-ai: PCOM_get_duration(tenths) — converts tenths-of-second to pcom_move_counter ticks.
+// claude-ai: Formula: tenths * PCOM_TICKS_PER_SEC / 10. Used everywhere for timer comparisons.
+// claude-ai: E.g. PCOM_get_duration(20) = 2 seconds worth of ticks.
 inline SLONG PCOM_get_duration(SLONG tenths)
 {
 	SLONG ans;
@@ -657,6 +742,7 @@ inline SLONG PCOM_get_duration100(SLONG hun)
 // in tenths of a second.
 //
 
+// claude-ai: PCOM_get_random_duration - returns random tick-count in [min, max] converted by PCOM_get_duration(); used to randomise AI timer lengths
 SLONG PCOM_get_random_duration(SLONG min, SLONG max)
 {
 	SLONG ans;
@@ -720,10 +806,9 @@ void PCOM_get_dx_dz_for_dir(SLONG dir, SLONG *dx, SLONG *dz)
    *dz = ans_z;
 }
 
-//
-// Returns the distance between two people- includes y spacing.
-//
-
+// claude-ai: PCOM_get_dist_between — pelvis-to-pelvis 3D distance with a Y-level penalty.
+// claude-ai: If vertical separation > 0x100, the Y component is added to distance.
+// claude-ai: This prevents NPCs from "seeing" targets through floors in multi-storey buildings.
 SLONG PCOM_get_dist_between(Thing *p_person_a, Thing *p_person_b)
 {
 	SLONG ax;
@@ -814,10 +899,12 @@ SLONG PCOM_get_dist_from_home(Thing *p_person)
 }
 
 
-//
-// Returns TRUE if you can try to do a fastnav to the given person.
-//	
-
+// claude-ai: PCOM_should_i_try_to_los_mav_to_person — decides if LOS-MAV (direct line-of-sight
+// claude-ai: navigation without full pathfinding) is appropriate vs. full MAV pathfinding.
+// claude-ai: Returns FALSE if target is climbing/jumping/dangling, or if horizontal distance
+// claude-ai: exceeds threshold, or if the two are in different warehouse zones. Otherwise TRUE.
+// claude-ai: When TRUE, the NPC tracks the target directly (LOSMAV substate) instead of using
+// claude-ai: the MAV grid; this is faster but only safe when there are no obstacles between them.
 SLONG PCOM_should_i_try_to_los_mav_to_person(Thing *p_person, Thing *p_target)
 {
 	if (p_target->Class == CLASS_PERSON)
@@ -848,6 +935,7 @@ SLONG PCOM_should_i_try_to_los_mav_to_person(Thing *p_person, Thing *p_target)
 // go to the given person.
 //
 
+// claude-ai: PCOM_get_person_navsquare - returns map-square nav target for reaching a person; adjusts for knocked-out/climbing states so pathfinder aims at correct square
 void PCOM_get_person_navsquare(
 		Thing *p_person,
 		SLONG *map_dest_x,
@@ -937,6 +1025,7 @@ void PCOM_get_person_navsquare(
 // get to the door of the given vehicle.
 // 
 
+// claude-ai: PCOM_get_vehicle_navsquare - returns nav target near the car door closest to approaching person; used when NPCs want to enter a vehicle
 void PCOM_get_vehicle_navsquare(
 		Thing *p_vehicle,
 		SLONG *map_dest_x,
@@ -1017,6 +1106,7 @@ void PCOM_get_vehicle_navsquare(
 // the person isn't moved.
 //
 
+// claude-ai: PCOM_position_person_to_sit_on_prim - teleports or checks proximity to a bench/seat prim so NPC can play sitting animation; returns FALSE if too far and dont_teleport set
 SLONG PCOM_position_person_to_sit_on_prim(
 		Thing *p_person,
 		SLONG  prim,
@@ -1074,6 +1164,7 @@ SLONG PCOM_position_person_to_sit_on_prim(
 // call while fleeing.
 //
 
+// claude-ai: PCOM_get_flee_from_pos - returns world position to flee away from; if fleeing a person it returns that person's live position, else the stored flee-place coordinates
 void PCOM_get_flee_from_pos(
 		Thing *p_person,
 		SLONG *from_x,
@@ -1107,6 +1198,7 @@ void PCOM_get_flee_from_pos(
 // Returns a movement person's destination.
 //
 
+// claude-ai: PCOM_get_person_dest - resolves the current navigation destination depending on move_state: GOTO_XZ=stored coords, GOTO_WAYPOINT=waypoint node, GOTO_THING=target's current position
 void PCOM_get_person_dest(
 		Thing *p_person,
 		SLONG *dest_x,
@@ -1366,6 +1458,7 @@ SLONG PCOM_person_has_any_sort_of_gun_with_ammo(Thing *p_person)
 // near the car.
 //
 
+// claude-ai: PCOM_are_there_people_who_want_to_enter - scans nearby persons in FINDCAR state targeting this vehicle; used to avoid moving the car while NPCs approach it
 SLONG PCOM_are_there_people_who_want_to_enter(Thing *p_vehicle)
 {
 	SLONG  i;
@@ -1401,6 +1494,10 @@ SLONG PCOM_are_there_people_who_want_to_enter(Thing *p_vehicle)
 }
 
 
+// claude-ai: PCOM_person_doing_nothing_important — returns TRUE if this NPC can be interrupted
+// claude-ai: by a new AI stimulus (sounds, sight of player, etc). Returns FALSE while dying,
+// claude-ai: dead, being carried, climbing, jumping, in a vehicle action, or mid-arrest crouch.
+// claude-ai: Used as a gate before switching states: only interruptible NPCs change behaviour.
 SLONG PCOM_person_doing_nothing_important(Thing *p_person)
 {
 	if(p_person->State==STATE_DYING||p_person->State==STATE_DEAD||p_person->State==STATE_CARRY)
@@ -1835,6 +1932,7 @@ void PCOM_alert_my_gang_to_a_fight(Thing *p_person, Thing *p_target)
 }
 SLONG	am_i_a_thug(Thing *p_person);
 
+// claude-ai: PCOM_alert_my_gang_to_flee - signals all same-colour gang members to flee from p_target; called when gang leader decides to run
 void PCOM_alert_my_gang_to_flee(Thing *p_person, Thing *p_target)
 {
 	SLONG i;
@@ -1881,6 +1979,19 @@ void PCOM_alert_my_gang_to_flee(Thing *p_person, Thing *p_target)
 // SET PEOPLE MOVE STATES
 //
 // ========================================================
+// claude-ai: ── MOVEMENT STATE SETTERS ───────────────────────────────────
+// claude-ai: These functions set pcom_move_state and kick off locomotion.
+// claude-ai: They reset pcom_move_counter and configure pcom_move_arg/ma.
+// claude-ai: PCOM_set_person_move_still     — halt, set MOVE_STATE_STILL
+// claude-ai: PCOM_set_person_move_mav_to_xz — navigate to world XZ via MAV
+// claude-ai:   Uses WARE_mav_enter/inside/exit to handle warehouse routing.
+// claude-ai:   Falls back to LOSMAV if close enough and line-of-sight clear.
+// claude-ai: PCOM_set_person_move_mav_to_thing — navigate to a Thing; tries
+// claude-ai:   LOSMAV first if conditions met, else full MAV pathfinding.
+// claude-ai: PCOM_set_person_move_mav_to_waypoint — navigate to EWAY waypoint
+// claude-ai: PCOM_set_person_move_runaway   — picks flee dest away from threat;
+// claude-ai:   tries up to 3 random directions, picks farthest valid one.
+// claude-ai: PCOM_set_person_move_pause(dur) — wait for dur ticks, then continue
 
 void PCOM_set_person_move_still(Thing *p_person)
 {
@@ -3207,6 +3318,7 @@ UBYTE	gang_angle_priority[]={0,2,6,4,1,7,3,5};
 extern	SLONG	get_gangattack(Thing *p_person);
 
 
+// claude-ai: check_players_gang - verifies all 4 cardinal attack slots around p_target are still occupied by living attackers; clears dead/gone slots
 void	check_players_gang(Thing *p_target)
 {
 	SLONG	gang;
@@ -3242,6 +3354,7 @@ void	check_players_gang(Thing *p_target)
 	}
 }
 
+// claude-ai: count_gang - returns number of currently assigned attackers (0-4) around p_target's gang-attack slots
 UWORD	count_gang(Thing *p_target)
 {
 	SLONG	gang;
@@ -3268,6 +3381,7 @@ UWORD	count_gang(Thing *p_target)
 
 extern	SLONG dist_to_target(Thing *p_person_a,Thing *p_person_b);
 
+// claude-ai: get_any_gang_member - returns thing-index of a close attacker (dist<512) already assigned to target's gang-attack group, or 0 if none close enough
 UWORD	get_any_gang_member(Thing *p_target)
 {
 	SLONG	gang;
@@ -3294,6 +3408,7 @@ UWORD	get_any_gang_member(Thing *p_target)
 	return(0);
 }
 
+// claude-ai: get_nearest_gang_member - returns closest non-KO'd attacker from target's gang slots; used to pick melee target for the victim to fight back against
 UWORD	get_nearest_gang_member(Thing *p_target)
 {
 	SLONG	gang;
@@ -3320,6 +3435,7 @@ UWORD	get_nearest_gang_member(Thing *p_target)
 	return(best_targ);
 }
 
+// claude-ai: find_target_from_gang - returns the first occupied gang-attack slot perp from target's group (priority: slots 0,1,3,2); used by victim to know who is attacking them
 UWORD	find_target_from_gang(Thing *p_target)
 {
 	SLONG	gang;
@@ -3344,6 +3460,7 @@ UWORD	find_target_from_gang(Thing *p_target)
 	return(0);
 }
 
+// claude-ai: remove_from_gang_attack - clears p_person from target's gang-attack slots; call when an attacker dies, flees, or changes targets
 SLONG	remove_from_gang_attack(Thing *p_person,Thing *p_target)
 {
 	SLONG	gang;
@@ -3369,6 +3486,7 @@ SLONG	remove_from_gang_attack(Thing *p_person,Thing *p_target)
 	return(removed);
 }
 
+// claude-ai: scare_gang_attack - sets Agression=-55 on all attackers in target's gang slots; used when target does something frightening (e.g., fires a gun)
 void	scare_gang_attack(Thing *p_target)
 {
 	SLONG	gang;
@@ -3391,6 +3509,7 @@ void	scare_gang_attack(Thing *p_target)
 	}
 }
 
+// claude-ai: reset_gang_attack - re-slots all current attackers around target using push_into_attack_group_at_angle; called after major positional changes to reassign cardinal slots
 void	reset_gang_attack(Thing *p_target)
 {
 	UWORD	perps[4];
@@ -3437,6 +3556,7 @@ void	reset_gang_attack(Thing *p_target)
 
 
 }
+// claude-ai: process_gang_attack - per-frame melee coordination: rotates attackers around target in circular slots, decides who attacks now vs who backs off; prevents all 4 attackers lunging simultaneously
 void	process_gang_attack(Thing *p_person,Thing *p_target)
 {
 	SLONG	gang;
@@ -3531,6 +3651,7 @@ void	process_gang_attack(Thing *p_person,Thing *p_target)
 */
 }
 
+// claude-ai: push_into_attack_group_at_angle - claims a cardinal attack slot for p_person around target's gang ring; rotates existing occupants to adjacent slots to make room
 void	push_into_attack_group_at_angle(Thing *p_person,SLONG gang,SLONG reqd_angle)
 {
 	SLONG	c0=4;
@@ -3600,6 +3721,7 @@ void	push_into_attack_group_at_angle(Thing *p_person,SLONG gang,SLONG reqd_angle
 
 }
 
+// claude-ai: PCOM_new_gang_attack - entry point for joining gang combat against p_target; allocates a gang slot if none exists, then calls push_into_attack_group_at_angle to assign a cardinal direction slot to p_person
 void	PCOM_new_gang_attack(Thing *p_person, Thing *p_target)
 {
 	SLONG gang;
@@ -6314,6 +6436,7 @@ SLONG PCOM_get_next_patrol_waypoint(Thing *p_person)
 // Processes a person who doesn't want to move who is in a car or on a bike.
 //
 
+// claude-ai: PCOM_process_driving_still - AI for a parked driver (PCOM_MOVE_STILL); applies brakes until stopped; if someone tries to enter, waits for them
 void PCOM_process_driving_still(Thing *p_person)
 {
 	ASSERT(p_person->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_BIKING));
@@ -6374,6 +6497,7 @@ void PCOM_process_driving_still(Thing *p_person)
 // or on a bike.
 //
 
+// claude-ai: PCOM_process_driving_patrol - vehicle patrol AI: drives car/bike between waypoints, calls PCOM_find_runover_thing to react to obstacles (stop/beep/shout/runaway), handles arrive-at-waypoint logic
 void PCOM_process_driving_patrol(Thing *p_person)
 {
 	SLONG dx;
@@ -6528,6 +6652,7 @@ void PCOM_process_driving_patrol(Thing *p_person)
 // Processes a person driving or biking aimlessly around the city.
 //
 
+// claude-ai: PCOM_process_driving_wander - random road-following AI: picks next road segment at each junction; reacts to obstacles via PCOM_find_runover_thing (stop/shout/runaway)
 void PCOM_process_driving_wander(Thing *p_person)
 {
 	SLONG dx;
@@ -6818,6 +6943,7 @@ extern SLONG WAND_find_good_start_point_for_car(SLONG* posx, SLONG* posz, SLONG*
 // Processes a person moving between patrol points.
 //
 
+// claude-ai: PCOM_process_patrol - foot patrol AI: moves NPC through EWAY waypoints sequentially (PCOM_MOVE_PATROL) or randomly (PCOM_MOVE_PATROL_RAND); waits at each waypoint, then picks next
 void PCOM_process_patrol(Thing *p_person)
 {
 	SLONG waittime;
@@ -7025,6 +7151,7 @@ SLONG	should_person_regen(Thing *p_person)
 
 extern	ULONG	timer_bored;
 
+// claude-ai: PCOM_do_regen - NPC respawn/reboredom system: if wander-civ is out of player view, teleports them to a new random wander position; also increments timer_bored which can trigger enemy spawns
 SLONG	PCOM_do_regen(Thing *p_person)
 {
 	SLONG wand_x;
@@ -7163,7 +7290,7 @@ extern	SLONG	WAND_find_good_start_point(SLONG *mapx,SLONG *mapz);
 // Processes a person moving wandering around
 //
 
-
+// claude-ai: PCOM_process_wander - foot wander AI: picks random accessible street position; calls PCOM_do_regen if stuck; NPC idles briefly between wander legs
 void PCOM_process_wander(Thing *p_person)
 {
 	SLONG wand_x;
@@ -7346,6 +7473,7 @@ extern	SLONG	WAND_find_good_start_point(SLONG *mapx,SLONG *mapz);
 // The AI for combat.
 //
 
+// claude-ai: PCOM_process_killing - melee combat AI (AI_STATE_KILLING): uses gang-attack system to coordinate up to 4 attackers; calls process_gang_attack() for circling; if target dead/gone -> return to NORMAL; if target flees/too far -> transition to NAVTOKILL
 void PCOM_process_killing(Thing *p_person)
 {
 	Thing *p_target = TO_THING(p_person->Genus.Person->pcom_ai_arg);
@@ -7622,6 +7750,7 @@ void PCOM_process_killing(Thing *p_person)
 //       PCOM_AI_STATE_FLEE_PERSON
 //
 
+// claude-ai: PCOM_process_fleeing - flee AI: substates SURPRISED (pause/scream) -> RUNNING (pathfind away from threat origin); if FLEE_PERSON, tracks target's live position; returns to NORMAL when far enough away
 void PCOM_process_fleeing(Thing *p_person)
 {
 	switch(p_person->Genus.Person->pcom_ai_substate)
@@ -7766,6 +7895,7 @@ void PCOM_process_fleeing(Thing *p_person)
 // Processes a person investigating something.
 //
 
+// claude-ai: PCOM_process_investigating - investigation AI: navigates to the sound/event position; on arrival enters SEARCHING substate (looks around for a few seconds); if player spotted transitions to KILLING/NAVTOKILL
 void PCOM_process_investigating(Thing *p_person)
 {
 	SLONG dist;
@@ -8041,6 +8171,7 @@ SLONG PCOM_follow_speed(Thing *p_person, Thing *p_target)
 
 
 
+// claude-ai: PCOM_process_following - follow-target AI: maintains distance behind followed person; if target gets too far uses MAV pathfinding; if target dead/gone returns to NORMAL
 void PCOM_process_following(Thing *p_person)
 {
 	SLONG dist;
@@ -8391,12 +8522,13 @@ void	draw_view_line(Thing *p_person,Thing *p_target)
 #endif
 
 
+// claude-ai: PCOM_process_navtokill - ranged/hunt AI (AI_STATE_NAVTOKILL): three substates: HUNTING (pathfind toward target), AIMING (draw weapon, take aim), SHOOT (fire burst then back to HUNTING); handles LOS check; melee fallback to KILLING if close enough
 void PCOM_process_navtokill(Thing *p_person)
 {
 	SLONG dist;
 	SLONG hit_distance;
 	SLONG	special;
-	
+
 	Thing *p_target = TO_THING(p_person->Genus.Person->pcom_ai_arg);
 
 	if(p_target->State==STATE_DEAD && p_target->Genus.Person->PlayerID)
@@ -9132,6 +9264,7 @@ void PCOM_process_navtokill(Thing *p_person)
 }
 
 
+// claude-ai: PCOM_process_findcar - car-entry AI: navigates to nearest car door (FINDCAR substate), then gets in via get_person_in_car(); transition to DRIVER state once seated
 void PCOM_process_findcar(Thing *p_person)
 {
 	SLONG door;
@@ -9306,6 +9439,7 @@ void PCOM_process_findbike(Thing *p_person)
 // Somebody who is talking.
 //
 
+// claude-ai: PCOM_process_talk - cutscene/dialogue AI: keeps NPC facing conversation partner; ends talk state when animation finishes or timer expires; used for scripted conversations
 void PCOM_process_talk(Thing *p_person)
 {
 	if (p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_STILL)
@@ -9452,6 +9586,7 @@ void PCOM_process_hitch(Thing *p_person)
 // Somebody who is knocked out.
 //
 
+// claude-ai: PCOM_process_knockedout - KO recovery AI: waits while FLAG_PERSON_KO is set; when cleared (person stands up) transitions back to NORMAL
 void PCOM_process_knockedout(Thing *p_person)
 {
 	if (!(p_person->Genus.Person->Flags & FLAG_PERSON_KO))
@@ -9465,6 +9600,7 @@ void PCOM_process_knockedout(Thing *p_person)
 }
 
 
+// claude-ai: PCOM_process_taunt - taunt AI: NPC stands facing target and plays taunt animation; after timer expires transitions to KILLING; used by GANG members before engaging in combat
 void PCOM_process_taunt(Thing *p_person)
 {
 	Thing *p_target = TO_THING(p_person->Genus.Person->pcom_ai_arg);
@@ -9595,6 +9731,7 @@ void PCOM_process_taunt(Thing *p_person)
 // Processes a cop trying to arrest someone!
 //
 
+// claude-ai: PCOM_process_arrest - police arrest AI: navigates to suspect; on arrival: draws gun, waits for hands-up, then cuffs them (crouching animation); if resisted transitions to NAVTOKILL; suspect's HANDS_UP state is complementary
 void PCOM_process_arrest(Thing *p_person)
 {
 	Thing *p_target = TO_THING(p_person->Genus.Person->pcom_ai_arg);
@@ -9706,6 +9843,7 @@ void PCOM_process_arrest(Thing *p_person)
 // Processes someone going home.
 //
 
+// claude-ai: PCOM_process_homesick - return-to-spawn AI: navigates NPC back to their HomeX/HomeZ position; on arrival transitions to NORMAL; used after far-wander or patrol cycle reset
 void PCOM_process_homesick(Thing *p_person)
 {
 	if (PCOM_finished_nav(p_person))
@@ -9718,6 +9856,7 @@ void PCOM_process_homesick(Thing *p_person)
 	}
 }
 
+// claude-ai: PCOM_process_bdeactivate - bomb disposal AI: substates GOTOBOMB (navigate to bomb) -> DEFUSE (play defuse animation) -> done; used by BDISPOSER AI type (bomb disposal unit)
 void PCOM_process_bdeactivate(Thing *p_person)
 {
 	switch(p_person->Genus.Person->pcom_ai_substate)
@@ -9779,6 +9918,7 @@ void PCOM_process_bdeactivate(Thing *p_person)
 	}
 }
 
+// claude-ai: PCOM_process_leavecar - exit-vehicle AI: triggers get-out animation; when STILL, checks pcom_ai_excar_state to decide what to do next (e.g., start fighting, return to normal)
 void PCOM_process_leavecar(Thing *p_person)
 {
 	Thing *p_vehicle;
@@ -9840,13 +9980,14 @@ void PCOM_process_leavecar(Thing *p_person)
 }
 
 
+// claude-ai: PCOM_process_snipe - stationary sniper AI: stays at fixed position; waits until target (stored in pcom_ai_arg) is in LOS; draws weapon and fires; does NOT pathfind - purely reactive shooter from a fixed vantage point
 void PCOM_process_snipe(Thing *p_person)
 {
 	#ifndef PSX
 
 	//
 	// Some friendly debug code.
-	// 
+	//
 
 	if (p_person->Genus.Person->pcom_ai_arg == NULL)
 	{
@@ -10030,6 +10171,7 @@ void PCOM_process_snipe(Thing *p_person)
 }
 
 
+// claude-ai: PCOM_process_warm_hands - fire-warming AI: GOTOFIRE substate navigates to nearest bonfire/burning thing; ATFIRE substate plays warm-hands animation until fire goes out or timer expires
 void PCOM_process_warm_hands(Thing *p_person)
 {
 	SLONG  i_fire;
@@ -10150,6 +10292,7 @@ void	PCOM_teleport_home(Thing *p_person)
 
 }
 
+// claude-ai: PCOM_process_normal - idle/patrol dispatcher (AI_STATE_NORMAL): routes to PCOM_process_patrol, PCOM_process_wander, or PCOM_process_warm_hands based on pcom_move; also does periodic scan for enemies to attack
 void PCOM_process_normal(Thing *p_person)
 {
 	UWORD  i_target;
@@ -10566,6 +10709,8 @@ UWORD PCOM_find_bomb(Thing *p_person)
 // Does the default processing for a person.
 //
 
+// claude-ai: PCOM_process_default - CRITICAL AI state router: dispatches to the correct PCOM_process_*() handler based on pcom_ai_state; called from PCOM_process_state_change for most AI types; handles ALL states except NORMAL which goes to PCOM_process_normal()
+// claude-ai: State routing: NORMAL->process_normal, INVESTIGATING->process_investigating, KILLING->process_killing, FLEE_*->process_fleeing, FOLLOWING->process_following, NAVTOKILL->process_navtokill, HOMESICK->process_homesick, FINDCAR->process_findcar, BDEACTIVATE->process_bdeactivate, LEAVECAR->process_leavecar, SNIPE->process_snipe, WARM_HANDS->process_warm_hands, LOOKAROUND->counter only, KNOCKEDOUT->process_knockedout, TAUNT->process_taunt, ARREST->process_arrest, TALK->process_talk
 void PCOM_process_default(Thing *p_person)
 {
 	switch(p_person->Genus.Person->pcom_ai_state)
@@ -10676,6 +10821,7 @@ void PCOM_process_default(Thing *p_person)
 // Alerts all nearby MIB / Guards / Gangs to attack / fight test... including the person himself.
 //
 
+// claude-ai: PCOM_alert_nearby_mib_to_attack - AoE aggro trigger: when an MIB/FIGHT_TEST/BULLY spots player, calls this to simultaneously set NAVTOKILL on all nearby NPCs of same AI type; the "gang aggro" system
 void PCOM_alert_nearby_mib_to_attack(Thing *p_person)
 {
 	{
@@ -10724,6 +10870,7 @@ void PCOM_alert_nearby_mib_to_attack(Thing *p_person)
 // Returns who a bodyguard should be attacking...
 //
 
+// claude-ai: PCOM_find_bodyguard_victim - scans nearby persons to find the nearest hostile threatening the bodyguard's client; returns NULL if no threat visible; used by BODYGUARD AI type each tick
 Thing *PCOM_find_bodyguard_victim(Thing *p_bodyguard, Thing *p_client)
 {
 	SLONG  i;
@@ -10803,7 +10950,8 @@ Thing *PCOM_find_bodyguard_victim(Thing *p_bodyguard, Thing *p_client)
 
 
 
-// claude-ai: Handle AI state transitions - decides new state when current state completes
+// claude-ai: PCOM_process_state_change - MASTER AI dispatcher: outer switch on pcom_ai type, inner switch on pcom_ai_state; each AI type has unique state-override logic on top of PCOM_process_default(); this is the brain of all NPC behaviour
+// claude-ai: Per-AI-type overrides: CIV=PCOM_process_default; GUARD=investigate sounds+process_default; ASSASIN/BOSS=attack-on-see; COP=arrest+navtokill logic; GANG=taunt+scan+process_default; BODYGUARD=protect client; DRIVER/COP_DRIVER=find-car; BDISPOSER=scan-bombs; BIKER=bike-or-find-bike; MIB=kill-on-see; BANE=summon; SUICIDE=insta-die; KILL_COLOUR=hunt by colour; FLEE_PLAYER=flee Darci; BULLY=bully targets; FIGHT_TEST=MIB-like
 void PCOM_process_state_change(Thing *p_person)
 {
 	SLONG dx;
@@ -11819,6 +11967,7 @@ Thing *PCOM_runover_scary_person;
 
 // no messing here, -ve dangle means turning LEFT as most people would imagine it would
 
+// claude-ai: PCOM_find_runover_thing - obstacle detection for driving AI: scans things ahead of vehicle and returns PCOM_RUNOVER_* flags; handles pedestrians (stop/beep/shout), parked cars (stop/avoid), moving cars (stop), junction priority (yield), armed pedestrians (runaway)
 SLONG PCOM_find_runover_thing(Thing *p_person, SLONG dangle)
 {
 	SLONG i;
@@ -12206,6 +12355,7 @@ SLONG PCOM_find_runover_thing(Thing *p_person, SLONG dangle)
 
 
 
+// claude-ai: PCOM_process_movement - low-level movement state machine: processes pcom_move_state each frame; handles GOTO_XZ/GOTO_WAYPOINT/GOTO_THING navigation (MAV pathfinding, renav when stuck), CIRCLE (combat circling), DRIVETO/DRIVE_DOWN (car AI), ANIMATION/PAUSE timers, GRAPPLE physics
 void PCOM_process_movement(Thing *p_person)
 {
 	SLONG dx;
@@ -12849,7 +12999,7 @@ void PCOM_process_movement(Thing *p_person)
 
 
 
-// claude-ai: Main AI update for one person - called every frame, drives state machine and behavior
+// claude-ai: PCOM_process_person - TOP-LEVEL per-frame AI entry point called for every person; calls StateFn (animation), then PCOM_process_movement(), then PCOM_process_state_change(); also handles player idle dance interaction and wander-civ resurrection
 void PCOM_process_person(Thing *p_person)
 {
 	//
@@ -13079,7 +13229,7 @@ void	process_noises(void)
 }
 
 
-// claude-ai: Sound propagation - alerts nearby persons who can "hear" a sound event at given position
+// claude-ai: PCOM_oscillate_tympanum - sound propagation system: given a sound type and position, finds all persons within radius and triggers their AI reactions; radii range from 0x180 (van near-miss) to 0xa00 (gunshot); DRAW_GUN uses vision not hearing
 void PCOM_oscillate_tympanum(
 		SLONG  type,
 		Thing *p_person,	// The person who caused the sound.
@@ -13601,6 +13751,7 @@ SLONG PCOM_player_hit_cop_on_purpose(Thing *p_cop, Thing *p_darci)
 //
 extern	void	set_person_fight_idle(Thing *p_person);
 
+// claude-ai: PCOM_attack_happened - hit-response callback: called when p_victim is actually struck by p_attacker; dispatches to fight (retaliate -> NAVTOKILL) or flee (CIVs -> FLEE_PERSON) based on AI type and pcom_bent flags; cops check DARCI_HITS_COPS logic
 void PCOM_attack_happened(
 		Thing *p_victim,
 		Thing *p_attacker)
@@ -13795,6 +13946,7 @@ flee:
 	return;
 }
 
+// claude-ai: PCOM_attack_happened_but_missed - near-miss callback: same fight/flee dispatch as PCOM_attack_happened but called when attack narrowly misses; same type-based routing
 void PCOM_attack_happened_but_missed(Thing *p_victim,Thing *p_attacker)
 {
 	if (p_victim->Genus.Person->PlayerID)
@@ -13998,6 +14150,7 @@ SLONG PCOM_jumping_navigating_person_continue_moving(Thing *p_person)
 
 
 
+// claude-ai: PCOM_knockdown_happened - knockdown callback: transitions AI to KNOCKEDOUT state to wait for recovery; skips transition if already in active combat (KILLING/NAVTOKILL/CIRCLE) so fighters get back up fighting not wandering
 void PCOM_knockdown_happened(Thing *p_person)
 {
 	//
@@ -14026,6 +14179,7 @@ void PCOM_knockdown_happened(Thing *p_person)
 CBYTE  PCOM_debug_string[256];
 #endif
 
+// claude-ai: PCOM_person_state_debug - debug string builder (PC only): formats all AI fields into human-readable string for on-screen debug overlay; shows pcom_ai, pcom_ai_state, pcom_move, pcom_move_state, pcom_bent flags
 CBYTE *PCOM_person_state_debug(Thing *p_person)
 {
 #ifndef PSX
@@ -14093,6 +14247,7 @@ CBYTE *PCOM_person_state_debug(Thing *p_person)
 }
 
 
+// claude-ai: PCOM_cop_aiming_at_you - called when a cop aims gun at p_person; if guilty person -> make them fight back (NAVTOKILL); if innocent idle -> put hands up (HANDS_UP state); cops/Darci/Roper exempt from hands-up
 SLONG	PCOM_cop_aiming_at_you(Thing *p_person,Thing *p_cop)
 {
 	if (p_cop == NET_PERSON(0) && stealth_debug)
@@ -14233,6 +14388,7 @@ void PCOM_stop_people_talking_to_eachother(
 }
 
 
+// claude-ai: PCOM_person_a_hates_b - hate-relationship query: returns TRUE if a is hostile to b; considers gang colour matching (same colour = friends), player exemptions (bodyguards, followers, other players), and active KILLING/NAVTOKILL/ARREST/TAUNT target
 SLONG PCOM_person_a_hates_b(Thing *p_person_a, Thing *p_person_b)
 {
 	ASSERT(p_person_a->Class == CLASS_PERSON);
@@ -14331,6 +14487,7 @@ THING_INDEX PCOM_person_wants_to_kill(Thing *p_person)
 //
 // handler for PCOM_MOVE_STATE_PARK_CAR
 
+// claude-ai: ParkCar - decelerates vehicle to stop and steers to desired parking angle (from EWAY_get_angle(pcom_move_arg)); used when driver wants to park at a specific orientation
 void ParkCar(Thing* p_person)
 {
 	SLONG wangle;
@@ -14389,6 +14546,7 @@ void ParkCar(Thing* p_person)
 //
 // AI for driving a car - states PCOM_MOVE_STATE_DRIVE_DOWN, PCOM_MOVE_STATE_PARK_CAR_ON_ROAD and PCOM_MOVE_STATE_DRIVETO
 
+// claude-ai: DriveCar - core car driving AI: follows road network node by node; steers toward next waypoint; applies acceleration/braking; calls PCOM_find_runover_thing to react to obstacles; handles lane keeping via ROAD_signed_dist
 void DriveCar(Thing* p_person)
 {
 	SLONG dx;

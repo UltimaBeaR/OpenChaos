@@ -1,3 +1,36 @@
+// claude-ai: facet.cpp — exterior building wall/roof face renderer (PC/Dreamcast, NOT PSX).
+// claude-ai: "Facet" = one exterior wall segment of a building, stored as a DFacet struct.
+// claude-ai: Each DFacet spans from (x[0],z[0]) to (x[1],z[1]) and is 'Height' blocks tall.
+// claude-ai: Key types: DFacet (Headers/building.h), DBuilding, DStorey, DStyle.
+// claude-ai:
+// claude-ai: FACET_FLAG_* bitmask summary (defined in Headers/building.h):
+// claude-ai:   INVISIBLE  (1<<0) — duplicate facet, skip rendering
+// claude-ai:   INSIDE     (1<<3) — facet is interior-facing (rendered when inside only)
+// claude-ai:   DLIT       (1<<4) — has a dynamic light source (e.g. headlight, explosion)
+// claude-ai:   HUG_FLOOR  (1<<5) — fence/wall that follows terrain contour
+// claude-ai:   ELECTRIFIED(1<<6) — electrified fence
+// claude-ai:   2SIDED     (1<<7) — render both faces (warehouse interior walls)
+// claude-ai:   UNCLIMBABLE(1<<8) — player cannot climb this wall
+// claude-ai:   ONBUILDING (1<<9) — barb-wire sits on top of a building rather than terrain
+// claude-ai:   BARB_TOP   (1<<10)— has barbed-wire sprites along the top edge
+// claude-ai:   SEETHROUGH (1<<11)— transparent (e.g. chain-link fence)
+// claude-ai:   OPEN       (1<<12)— door is currently open (rotated by p_facet->Open angle)
+// claude-ai:   90DEGREE   (1<<13)— door opens 90° not 180°
+// claude-ai:   2TEXTURED  (1<<14)— warehouse: has separate inner + outer texture
+// claude-ai:   FENCE_CUT  (1<<15)— wire cutters have been used on this fence
+// claude-ai:
+// claude-ai: Main entry points:
+// claude-ai:   FACET_draw(facet, alpha)      — fast path for STOREY_TYPE_NORMAL plain walls
+// claude-ai:   FACET_draw_rare(facet, alpha) — all other types (doors, fences, cables, etc.)
+// claude-ai:   FACET_draw_walkable(build)    — draws walkable roof geometry for a building
+// claude-ai:
+// claude-ai: Rendering pipeline (per facet):
+// claude-ai:   1. Backface cull entire facet (2D cross-product of wall vector vs camera)
+// claude-ai:   2. AABB transform-and-test (clip_or / clip_and) — reject whole facet
+// claude-ai:   3. MakeFacetPoints — transform wall vertices into POLY_buffer[] rows
+// claude-ai:   4. FillFacetPoints — pair adjacent rows into quads, texture_quad() each quad
+// claude-ai:   5. POLY_add_quad   — submit textured quad to D3D
+
 #include	"game.h"
 
 #include	"aeng.h"
@@ -89,6 +122,9 @@ SLONG FACET_facetinfo_current;
 
 
 
+// claude-ai: FACET_direction_matrix — 3x3 rotation matrix aligned to the current facet's yaw.
+// claude-ai: Built from the facet's (x[0],z[0])→(x[1],z[1]) direction before drawing.
+// claude-ai: Used by the superfacet cache system and CRINKLE bump-map system to orient normals.
 float FACET_direction_matrix[9];
 
 
@@ -355,8 +391,18 @@ void	draw_fence_gap(POLY_Point *quad[4],SLONG page,SLONG along,float sx,float sy
 //
 // set u,v in the poly points and return the page number for this quad
 
+// claude-ai: flip — global written by texture_quad() and read back by FillFacetPoints.
+// claude-ai: Nasty global state. Encodes horizontal/vertical texture flip (0..3).
+// claude-ai: Avoids passing another argument through the call chain. Not thread-safe.
 SLONG flip;	// Nasty!
 
+// claude-ai: texture_quad — selects the texture page for one wall quad and sets u/v coords.
+// claude-ai: 'texture_style' < 0 → painted texture (per-segment overrides from paint_mem[]).
+// claude-ai: 'texture_style' > 0 → standard tiled style from dx_textures_xy[][].
+// claude-ai: 'pos' = 0 → right-end piece, pos = count-2 → left-end piece, else middle.
+// claude-ai: Sets global 'flip' side-effect for FillFacetPoints to read after call.
+// claude-ai: Returns page index into the DirectX texture atlas.
+// claude-ai: NOT portable — replace with OpenGL equivalent
 SLONG texture_quad(POLY_Point *quad[4],SLONG texture_style,SLONG pos,SLONG count,SLONG flipx=0)
 {
 	SLONG	page;
@@ -947,6 +993,13 @@ void	build_fence_poles(float sx,float sy,float sz,float fdx,float fdz,SLONG coun
 
 
 
+// claude-ai: cable_draw — renders a hanging cable/wire as a series of billboard quads.
+// claude-ai: Simulates catenary sag using COS() table (not physically exact, but visually adequate).
+// claude-ai: Generates count+1 centre-line points, then expands each segment to a quad via
+// claude-ai: POLY_create_cylinder_points() (screen-space billboard perpendicular to segment).
+// claude-ai: Uses two render passes: first POLY_PAGE_COLOUR (black shadow), then POLY_PAGE_ENVMAP
+// claude-ai: (reflective sheen). The env-map gives cables a metallic look.
+// claude-ai: NOT portable — POLY_PAGE_ENVMAP is a D3D-specific env-mapping mode.
 void cable_draw(struct DFacet *p_facet)
 {
 	static const float	width = 4.0F * 65536.0F /3.0F;	// width of cable
@@ -1457,9 +1510,21 @@ void FACET_barbedwire_top(struct DFacet *p_facet)
 
 extern UBYTE AENG_transparent_warehouses;
 
+// claude-ai: FacetRows — per-height-tier row-start indices into POLY_buffer[].
+// claude-ai: FacetRows[hf] = index of the first transformed point in tier hf.
+// claude-ai: FillFacetPoints pairs adjacent rows hf and hf+1 to form a row of quads.
 SWORD FacetRows[100];
+// claude-ai: FacetDiffY — per-column terrain height deltas for foundation=2 walls.
+// claude-ai: Used to stretch bottom-edge UV so texture does not swim when wall follows slope.
 float FacetDiffY[128];
 
+// claude-ai: MakeFacetPoints — transforms a wall segment into a 2D grid of screen-space points.
+// claude-ai: Builds POLY_buffer[] in rows x columns: FacetRows[hf] = start of tier hf in buffer.
+// claude-ai: sx,sy,sz = world start of wall; dx,dz = per-column step (one mapsquare = 256 units).
+// claude-ai: block_height = height in world units per tier (normally 256.0 = one storey).
+// claude-ai: 'foundation'=2 means bottom vertices snap to terrain and UVs are stretched.
+// claude-ai: 'hug' (HUG_FLOOR flag): base of EACH column individually snaps to terrain height.
+// claude-ai: Vertex lighting uses NIGHT_get_d3d_colour() — NOT portable, replace with shader.
 static void MakeFacetPoints(float sx, float sy, float sz, float dx, float dz, float block_height, 
 							SLONG height, SLONG max_height, NIGHT_Colour* col, SLONG foundation, SLONG count, SLONG invisible,SLONG hug)
 {	
@@ -1623,6 +1688,13 @@ static void MakeFacetPointsFence(float sx, float sy, float sz, float dx, float d
 	FacetRows[hf] = POLY_buffer_upto;
 }
 
+// claude-ai: FillFacetPoints — converts two rows of screen points into a row of textured quads.
+// claude-ai: Iterates columns: pairs POLY_buffer[row2+c] and POLY_buffer[row1+c] into a quad.
+// claude-ai: 'facet_backwards' flips quad vertex order for two-sided or interior-facing walls.
+// claude-ai: 'reverse_texture' mirrors the u-coordinate for right-to-left wall segments.
+// claude-ai: Also applies crinkle bump-mapping (CRINKLE_do) for close-up surfaces.
+// claude-ai: Calls POLY_add_quad() to submit to the D3D render queue.
+// claude-ai: NOT portable — POLY_add_quad ultimately calls IDirect3DDevice::DrawPrimitive.
 static void FillFacetPoints(SLONG count, ULONG base_row, SLONG foundation, SLONG facet_backwards, SLONG style_index, float block_height,SLONG reverse_texture)
 {
 	POLY_Point*		quad[4];
@@ -2225,6 +2297,12 @@ added_crinkle_common:;
 
 extern	UWORD	fade_black;
 
+// claude-ai: FACET_draw_quick — LOD (level-of-detail) renderer for DISTANT buildings.
+// claude-ai: Renders the facet as a single untextured flat-coloured quad (no per-column detail).
+// claude-ai: Uses pp->z = 0.99999f to push pixels to the back of the depth buffer (always behind
+// claude-ai: full-detail geometry). Acts as a fake silhouette for buildings beyond LOD threshold.
+// claude-ai: Called by AENG for buildings too far away to merit the full MakeFacetPoints path.
+// claude-ai: NOT portable — depth buffer trick is D3D-specific; OpenGL uses different z convention.
 void FACET_draw_quick(SLONG facet,UBYTE alpha)
 {
   	POLY_Point   *pp;
@@ -2331,6 +2409,16 @@ void FACET_draw_quick(SLONG facet,UBYTE alpha)
 
 
 // Handles all sorts of facets - called by FACET_draw in those cases.
+// claude-ai: FACET_draw_rare — slow-path handler for all non-plain-wall facet types.
+// claude-ai: Called from FACET_draw when the facet needs special treatment:
+// claude-ai:   - Player is INDOORS (INDOORS_INDEX != 0)
+// claude-ai:   - FACET_FLAG_BARB_TOP, FACET_FLAG_2SIDED, FACET_FLAG_INSIDE are set
+// claude-ai:   - FacetType != STOREY_TYPE_NORMAL (fence, door, cable, inside-wall, ladder)
+// claude-ai: For inside facets: only renders if INDOORS_INDEX matches the facet's building.
+// claude-ai: For outside-doors (STOREY_TYPE_OUTSIDE_DOOR): rotates geometry by p_facet->Open.
+// claude-ai: For cable facets: calls cable_draw() which generates catenary-curved quads.
+// claude-ai: For fences: draws vertical posts via build_fence_poles() between MakeFacetPointsFence.
+// claude-ai: NOT portable — all rendering calls go through POLY/D3D pipeline.
 void FACET_draw_rare(SLONG facet,UBYTE alpha)
 {
 	struct		  DFacet	*p_facet;
@@ -3638,6 +3726,18 @@ static BOOL bPleaseDoSuperFacets = TRUE;
 
 
 // Like FACET_draw_rare, but for the most common class.
+// claude-ai: FACET_draw — FAST-PATH renderer for plain STOREY_TYPE_NORMAL exterior walls.
+// claude-ai: This function only handles the most common case; anything unusual (doors, fences,
+// claude-ai: cable facets, interior rendering, BARB_TOP, 2SIDED) is dispatched to FACET_draw_rare.
+// claude-ai: Pipeline:
+// claude-ai:   1. Skip if FACET_FLAG_INVISIBLE or currently INDOORS (INDOORS_INDEX != 0)
+// claude-ai:   2. 2D backface cull: cross product of wall vector × camera vector
+// claude-ai:   3. Transform 4 AABB corners and test clip_and/clip_or flags for frustum rejection
+// claude-ai:   4. Compute facet yaw → FACET_direction_matrix (for superfacet/crinkle systems)
+// claude-ai:   5. Optionally use cached superfacet (DO_SUPERFACETS_PLEASE_BOB, currently disabled)
+// claude-ai:   6. NIGHT_dfcache_create() for cached per-vertex lighting if not already present
+// claude-ai:   7. MakeFacetPointsCommon → FillFacetPoints → POLY_add_quad per tier row
+// claude-ai: NOTE: All POLY_add_quad calls ultimately use DirectX — NOT portable.
 void FACET_draw(SLONG facet,UBYTE alpha)
 {
 	struct		  DFacet	*p_facet;
@@ -4101,6 +4201,12 @@ draw_the_facet_common:;
 
 extern SLONG AENG_drawing_a_warehouse;
 
+// claude-ai: FACET_draw_walkable — draws the roof/walkable surfaces on top of buildings.
+// claude-ai: Iterates DWalkable[] quads for the given building index.
+// claude-ai: Warehouse roofs have their own special handling (AENG_drawing_a_warehouse flag).
+// claude-ai: Each roof quad is a RoofFace4 with 4 world-space vertices; transforms via POLY_transform.
+// claude-ai: Also draws roof trim polygons (the parapet/edge geometry).
+// claude-ai: NOT portable — POLY_add_quad calls DirectX under the hood.
 void FACET_draw_walkable(SLONG build)
 {
 	SLONG i;
@@ -4927,6 +5033,10 @@ void FACET_draw_walkable_old(SLONG build)
 
 
 
+// claude-ai: DRAW_ladder_rungs — draws the horizontal rungs of a ladder facet.
+// claude-ai: Each rung is a quad pair (POLY_PAGE_LADDER) placed every Height step vertically.
+// claude-ai: Shrinks the rung width by 3/4 of dx,dz inset from the ladder edges.
+// claude-ai: NOT portable — POLY_add_quad calls DirectX under the hood.
 void	DRAW_ladder_rungs(float x1,float z1,float x2,float z2,struct DFacet	*p_facet,float dx,float dz,ULONG colour, ULONG specular)
 {
 	SLONG	count;

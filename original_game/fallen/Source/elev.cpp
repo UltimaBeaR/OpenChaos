@@ -1,6 +1,38 @@
+// claude-ai: FILE OVERVIEW — elev.cpp
+// claude-ai: Despite the filename "elev" (elevator), this is actually the LEVEL LOADER.
+// claude-ai: The name is historical (from "ECTS level stuff" comment at the top).
+// claude-ai: Actual elevator platform logic lives in separate files (plat/wmove).
+// claude-ai:
+// claude-ai: KEY RESPONSIBILITIES:
+// claude-ai:   ELEV_load_level()  — main level file (.ucm) parser. Reads EventPoints,
+// claude-ai:     translates mission-editor types to EWAY_* waypoint system types.
+// claude-ai:   CRIME_RATE         — loaded here from the .ucm binary at offset ~23 bytes.
+// claude-ai:     IMPORTANT: Default is 50 if the mission has no crime rate set.
+// claude-ai:     Range: 0-100 (percentage); 0 is re-mapped to 50 as default.
+// claude-ai:
+// claude-ai: .UCM FILE BINARY FORMAT (partial, sequential reads):
+// claude-ai:   SLONG  version          (4 bytes)
+// claude-ai:   SLONG  flag             (4 bytes) — MISSION_FLAG_* bits
+// claude-ai:   char   BriefName[MAX_PATH]
+// claude-ai:   char   LightMapName[MAX_PATH]
+// claude-ai:   char   MapName[MAX_PATH]
+// claude-ai:   char   MissionName[MAX_PATH]
+// claude-ai:   char   SewerMapName[MAX_PATH]
+// claude-ai:   UWORD  MapIndex
+// claude-ai:   UWORD  Used
+// claude-ai:   UWORD  Free
+// claude-ai:   UBYTE  crime_rate       ← CRIME_RATE loaded from here
+// claude-ai:   UBYTE  fake_civs        ← FAKE_CIVS loaded from same word
+// claude-ai:   ... then MAX_EVENTPOINTS EventPoint records ...
+// claude-ai:
+// claude-ai: WAYPOINT/EVENTPOINT SYSTEM:
+// claude-ai:   EventPoint records from the mission editor are translated into EWAY_* waypoints.
+// claude-ai:   Each waypoint has: condition (EWAY_Conddef), do action (EWAY_Do), stay (EWAY_Stay).
+// claude-ai:   TT_* trigger types → EWAY_COND_* condition types.
+// claude-ai:   WPT_* waypoint types → EWAY_DO_* action types.
 //
 // The new ECTS level stuff!
-// 
+//
 
 //
 // Richard Reed's phone number in London, Hilton. 0171 636 1000 (room 343)
@@ -180,6 +212,11 @@ void		TesterText(CBYTE *error, ...)
 // to stop psx stack overflow
 //
 
+// claude-ai: Platform-guards: ELEV_load_level() is only compiled on PC (not PSX, not DC).
+// claude-ai: PSX has its own level loader; DC has its own too.
+// claude-ai: junk[2048] is a large temp buffer on the stack for reading/discarding header fields.
+// claude-ai: event_point is a global temp used during the EventPoint parsing loop.
+// claude-ai: iamapsx: flag read from ENV (config.ini). Triggers PSX-compatible behaviour on PC.
 #ifndef PSX
 #ifndef TARGET_DC
 extern	UBYTE	vehicle_random[];
@@ -190,6 +227,10 @@ EventPoint event_point;
 extern	SLONG save_psx;
 SLONG	iamapsx=0;
 
+// claude-ai: ELEV_load_level() — master level loader. Called once per level start.
+// claude-ai: fname_level: path to the .ucm mission file (e.g. "levels/estate1.ucm").
+// claude-ai: If fname_level == NULL, the function still runs to reset game state
+// claude-ai: but skips all file reading (used for blank/test levels).
 void ELEV_load_level(CBYTE *fname_level)
 {
 	SLONG i;
@@ -316,6 +357,9 @@ void ELEV_load_level(CBYTE *fname_level)
 
 				CRIME_RATE = 50;
 			}
+// claude-ai: IMPORTANT: CRIME_RATE loaded from junk[0] just above (UWORD read).
+// claude-ai: CRIME_RATE = global UBYTE (0-100%). If 0 in file, defaults to 50.
+// claude-ai: Drives police response intensity and the HUD crime-rate meter when GF_SHOW_CRIMERATE set.
 //#ifdef	EIDOS
 			FAKE_CIVS = junk[1];// = 0;
 
@@ -377,6 +421,9 @@ SLONG	WAND_find_good_start_point_near(SLONG *mapx,SLONG *mapz);
 			// Load in all the eventpoints.
 			//
 
+			// claude-ai: EventPoint loop: MAX_EVENTPOINTS records, each = 14-byte header + 60-byte Data[].
+			// claude-ai: TT_* (TriggeredBy) maps to EWAY_COND_* conditions; WPT_* maps to EWAY_DO_* actions.
+			// claude-ai: Boolean compound conditions (TT_BOOLEANAND/OR) supported via EWAY_COND_BOOL_AND/OR.
 			for (i = 0; i < MAX_EVENTPOINTS; i++)
 			{
 				if (FileRead(handle, &event_point,         14)     == FILE_READ_ERROR) goto file_error;
@@ -428,6 +475,14 @@ SLONG	WAND_find_good_start_point_near(SLONG *mapx,SLONG *mapz);
 					ew_world_z = event_point.Z;
 					ew_yaw     = ((128+event_point.Direction) << 3) & 2047;
 
+					// claude-ai: TriggeredBy → EWAY_COND_* mapping:
+					// claude-ai:   TT_NONE           → condition stays EWAY_COND_TRUE (always fires)
+					// claude-ai:   TT_DEPENDENCY      → EWAY_COND_DEPENDENT (fires when another WP fires)
+					// claude-ai:   TT_RADIUS          → EWAY_COND_PROXIMITY (player enters radius)
+					// claude-ai:   TT_TIMER           → EWAY_COND_TIME (fires after N ticks)
+					// claude-ai:   TT_KILLED          → EWAY_COND_PERSON_DEAD (person with EPRef dies)
+					// claude-ai:   TT_BOOLEANAND      → EWAY_COND_BOOL_AND (both conditions true)
+					// claude-ai:   TT_CRIME_RATE_ABOVE/BELOW → EWAY_COND_CRIME_RATE_GTEQ/LTEQ
 					//
 					// This is how a waypoint is activated.
 					//
@@ -613,6 +668,9 @@ SLONG	WAND_find_good_start_point_near(SLONG *mapx,SLONG *mapz);
 							ecd.arg1 = event_point.EPRef;
 							break;
 
+						// claude-ai: TT_CRIME_RATE_ABOVE/BELOW — event triggers based on global CRIME_RATE.
+						// claude-ai: event_point.Radius is repurposed as threshold (not an actual radius here).
+						// claude-ai: arg1 = Radius/100 normalises to match CRIME_RATE's 0-100 range.
 						case TT_CRIME_RATE_ABOVE:
 							ecd.type = EWAY_COND_CRIME_RATE_GTEQ;
 							ecd.arg1 = event_point.Radius / 100;
@@ -674,6 +732,15 @@ SLONG	WAND_find_good_start_point_near(SLONG *mapx,SLONG *mapz);
 							break;
 					}
 
+					// claude-ai: WaypointType → EWAY_DO_* action mapping (partial):
+					// claude-ai:   WPT_CREATE_PLAYER   → EWAY_DO_CREATE_PLAYER (spawn player character)
+					// claude-ai:   WPT_CREATE_ENEMIES  → EWAY_DO_CREATE_ENEMY  (spawn NPC with AI/weapons)
+					// claude-ai:   WPT_CREATE_VEHICLE  → EWAY_DO_CREATE_VEHICLE (spawn driveable vehicle)
+					// claude-ai:   WPT_CREATE_ITEM     → EWAY_DO_CREATE_ITEM   (spawn pickup item)
+					// claude-ai:   WPT_END_GAME_WIN    → EWAY_DO_MISSION_COMPLETE
+					// claude-ai:   WPT_END_GAME_LOSE   → EWAY_DO_MISSION_FAIL
+					// claude-ai:   WPT_LINK_PLATFORM   → EWAY_DO_CREATE_PLATFORM (moving platform)
+					// claude-ai:   WPT_CONVERSATION    → EWAY_DO_CONVERSATION or EWAY_DO_AMBIENT_CONV
 					//
 					// This is what the waypoint does when its activated.
 					//
@@ -713,6 +780,10 @@ SLONG	WAND_find_good_start_point_near(SLONG *mapx,SLONG *mapz);
 
 							break;
 
+						// claude-ai: WPT_CREATE_ENEMIES — spawns NPCs with specified AI/weapons.
+						// claude-ai: Data[0] lo=enemy_type, hi=enemy_count (version>=3 packed format).
+						// claude-ai: Data[2] HIWORD = HAS_* weapon flags; Data[5] = pcom_ai / ai_skill.
+						// claude-ai: ee.drop from Data[8] bitmask — item NPC drops when killed.
 						case WPT_CREATE_ENEMIES:
 
 							ed.type = EWAY_DO_CREATE_ENEMY;
@@ -1213,6 +1284,9 @@ extern	SWORD	people_types[50];
 							ed.type = EWAY_DO_MISSION_FAIL;
 							break;
 
+						// claude-ai: WPT_END_GAME_WIN / WPT_END_GAME_LOSE — mission completion triggers.
+						// claude-ai: These cause EWAY to fire the MISSION_COMPLETE or MISSION_FAIL actions.
+						// claude-ai: The game then transitions to the debrief/fail screen.
 						case WPT_END_GAME_WIN:
 							ed.type = EWAY_DO_MISSION_COMPLETE;
 							break;
@@ -1295,6 +1369,10 @@ extern	SWORD	people_types[50];
 							ed.arg2		 = event_point.Data[4];
 							break;
 
+						// claude-ai: WPT_LINK_PLATFORM — creates a moving platform (the actual "elevator" system).
+						// claude-ai: ed.arg1 = speed (default 50 if Data[0]==0, else Data[0]).
+						// claude-ai: ed.arg2 = PLAT_FLAG_* bits: LOCK_MOVE, LOCK_ROT, BODGE_ROCKET.
+						// claude-ai: Platform movement is handled by wmove.cpp / plat.cpp at runtime.
 						case WPT_LINK_PLATFORM:
 
 							ed.type = EWAY_DO_CREATE_PLATFORM;
@@ -1656,6 +1734,8 @@ extern	SWORD	people_types[50];
 						kludge_index,
 						event_point.Data[9]);
 
+				  // claude-ai: dont_create_a_waypoint: — skip EWAY waypoint creation for this EventPoint.
+				  // claude-ai: Used for barrel/spot-effect types that place objects directly in the world.
 				  dont_create_a_waypoint:;
 
 					continue;
@@ -2000,6 +2080,8 @@ extern SLONG WAND_find_good_start_point_for_car(SLONG* posx, SLONG* posz, SLONG*
 	}
 	else
 	{
+	  // claude-ai: file_error label — any failed FileRead() during level parsing jumps here.
+	  // claude-ai: Sets load_ok=FALSE, closes file, game proceeds with partial/empty state.
 	  file_error:;
 
 		load_ok = FALSE;

@@ -2,6 +2,25 @@
 // Hypermatter!
 //
 
+// claude-ai: OVERVIEW — "Hypermatter" = Urban Chaos's soft-body / rigid-body physics for interactive world objects.
+// claude-ai: Used for barrels rolling, boxes sliding, explosive debris, toppling furniture.
+// claude-ai: SEPARATE from collide.cpp (character/wall collision) and Vehicle.cpp (car physics).
+// claude-ai: Architecture: objects are represented as a 3-D grid of mass-points connected by springs (edges).
+// claude-ai: Each point has position (x,y,z) and velocity (dx,dy,dz). Springs resist stretch/compression → emergent rigid-body rotation.
+// claude-ai: Physics is entirely float-based (unlike the integer-only character physics in collide.cpp).
+// claude-ai: Global limit: HM_MAX_OBJECTS = 8. Only 8 HM objects can exist simultaneously in the world.
+// claude-ai: Entrypoint each frame: HM_process() — integrates all points, resolves spring forces, gravity, ground collision, wall collision.
+// claude-ai: Used by: FURN_hypermatterise() in Furn.cpp — furniture/barrels/crates transition to HM when struck or destabilised.
+// claude-ai: PORT NOTE → For new game, consider replacing with Jolt Physics or Bullet rigid bodies. The spring-lattice is a simple
+// claude-ai:   Verlet/Hooke's-law system — a physics library rigid body will give more stable, higher-quality equivalent behaviour.
+// claude-ai:   If 1:1 arcade feel is needed (exact tumble trajectories), port the spring integration loop directly.
+// claude-ai: NOT compiled for Dreamcast (wrapped in #ifndef TARGET_DC ... #endif).
+// claude-ai: PORTING NOTE: HyperMatter is proprietary — new game should use Jolt Physics or Bullet.
+// claude-ai:   The spring-lattice algorithm is entirely custom and NOT from any named third-party middleware.
+// claude-ai:   Despite the file comment saying "Hypermatter!", this is MuckyFoot's own implementation,
+// claude-ai:   not Criterion's HyperMatter SDK. The name appears to be an internal nickname.
+// claude-ai:   Criterion Software made RenderWare (renderer), not this physics system.
+
 #ifndef TARGET_DC
 
 
@@ -22,6 +41,11 @@
 
 void e_draw_3d_line           (SLONG x1,SLONG y1,SLONG z1,SLONG x2,SLONG y2,SLONG z2);
 void e_draw_3d_line_col_sorted(SLONG x1,SLONG y1,SLONG z1,SLONG x2,SLONG y2,SLONG z2, SLONG r, SLONG g, SLONG b);
+
+// claude-ai: qdist() — fast 3-D vector length approximation using largest-component heuristic.
+// claude-ai: Approximation formula: max_component + 0.2941 * (sum of other two). Max error ~5%.
+// claude-ai: Used for broad-phase distance checks where exact sqrt is too expensive.
+// claude-ai: PORT NOTE → Replace with std::sqrt(x*x+y*y+z*z) or glm::length() — modern CPUs make this cheap enough.
 
 //
 // Fast approximation to vector length in 3d.
@@ -72,10 +96,18 @@ static inline float qdist(float x, float y, float z)
 }
 
 
+// claude-ai: DATA STRUCTURES — core types used by the HM simulation.
+
 //
 // Each hypermatter point.
 //
 
+// claude-ai: HM_Point — a single mass-point in the spring lattice.
+// claude-ai:   (x,y,z)   = current world-space position (float, not integer like character physics).
+// claude-ai:   (dx,dy,dz) = current velocity (doubles as "displacement since last frame" in Verlet-style integration).
+// claude-ai:   mass       = gravitational scale factor for this point. Non-uniform mass distribution creates torque/tumbling.
+// claude-ai:   Note: dx/dy/dz is the accumulated velocity INCLUDING gravity and spring forces applied each tick.
+// claude-ai:   PORT NOTE → Maps to a particle in a Verlet or Euler integration scheme. In Jolt/Bullet, use rigid body angular velocity instead.
 typedef struct
 {
 	float x;
@@ -88,6 +120,12 @@ typedef struct
 
 } HM_Point;
 
+// claude-ai: HM_Edge — a spring connecting two mass-points.
+// claude-ai:   p1, p2 = indices into HM_Object.point[].
+// claude-ai:   len    = index into ho->size[] (squared rest-length of this spring).
+// claude-ai:   The edge list is built at HM_create() time; edges connect axis-aligned and diagonal neighbour points.
+// claude-ai:   Spring force per frame: F = (current_dist² - rest_dist²) * elasticity * (1/rest_dist²). Applied equally to both endpoints.
+// claude-ai:   This is Hooke's law on the squared distance — avoids sqrt() per spring per frame.
 //
 // An edge connecting two points for fast force calculations
 // between pairs of points.
@@ -102,8 +140,15 @@ typedef struct
 
 } HM_Edge;
 
+// claude-ai: HM_Index — sparse 3-D index. 0 = no point exists at this grid cell. Non-zero = index into point[].
+// claude-ai: The grid is x_res × y_res × z_res. Not all grid nodes are active — only those near mesh geometry.
 typedef UWORD HM_Index;	// Index into the point[] array or NULL if there is no point here.
 
+// claude-ai: HM_Mesh — maps one original mesh vertex back to the spring-lattice for rendering.
+// claude-ai:   Each original prim-point is expressed as: origin + along[0]*(p[0]-origin) + along[1]*(p[1]-origin) + along[2]*(p[2]-origin).
+// claude-ai:   This barycentric-style encoding lets HM_find_mesh_point() reconstruct visual vertex positions
+// claude-ai:   from the deforming lattice every frame — giving the appearance of a tumbling 3-D mesh.
+// claude-ai:   Note: this is purely for RENDERING. The actual physics operates only on the lattice points.
 //
 // Each point of the original prim is given in terms of the
 // position of three prim points relative to an origin.
@@ -117,6 +162,13 @@ typedef struct
 
 } HM_Mesh;
 
+// claude-ai: HM_Bump — object-vs-object collision record (HM vs HM collision, NOT ground collision).
+// claude-ai:   Created when a point from object A penetrates a cube cell of object B.
+// claude-ai:   Stored in a linked list on ho->bump.
+// claude-ai:   Each tick: HM_process_bump() applies a spring force pushing the penetrating point back to the entry surface.
+// claude-ai:   The equal-and-opposite reaction force (to the 8 opposing cube points) is COMMENTED OUT with #ifdef.
+// claude-ai:   → This means HM-vs-HM collision is one-sided: point A is pushed out, but object B receives no impulse!
+// claude-ai:   In practice, HM-vs-HM collisions are uncommon; objects mainly collide with the terrain (ground/walls).
 //
 // When a point enters a cube of hypermatter belonging to a different object,
 // one of these structures is created and tagged onto the linked list for
@@ -173,6 +225,12 @@ typedef struct hm_bump
 
 
 
+// claude-ai: HM_Col — a 2-D (XZ-plane) wall segment that the HM object collides against.
+// claude-ai:   These represent building walls / level geometry edges passed in from the world's CollisionVect system.
+// claude-ai:   Added per-object each tick by calling HM_colvect_add() from furniture/barrel logic in Furn.cpp.
+// claude-ai:   Collision is 2-D only (XZ) and assumes walls are infinitely tall — no Y component.
+// claude-ai:   'consider' bitmask: bit i = 1 means point[i] should be tested against this wall (all bits set = test all).
+// claude-ai:   PORT NOTE → In new game, use proper 3-D convex-vs-convex collision via physics library.
 //
 // An edge that a hypermatter object collides with.
 //
@@ -184,10 +242,20 @@ typedef struct
 	float x1, z1;
 	float x2, z2;
 	float len;
-	
+
 } HM_Col;
 
 
+// claude-ai: HM_Object — the main per-object simulation state.
+// claude-ai:   up to HM_MAX_OBJECTS (8) exist simultaneously. Each wraps one visual prim (mesh).
+// claude-ai:   Key physics parameters stored here:
+// claude-ai:     elasticity  — spring stiffness (Hooke's k). Typical barrel: 0.010. Higher = stiffer, more rigid.
+// claude-ai:     bounciness  — restitution coefficient against the floor (0=dead stop, 1=perfect bounce). Typical: 0.95.
+// claude-ai:     friction    — XZ velocity damping on ground contact (0=frictionless, 1=no sliding). Typical: 0.85.
+// claude-ai:     damping     — per-frame velocity multiplier (applied every tick, ~0.997 = very low drag). Controls energy decay.
+// claude-ai:   x/y/z_index and o_index: 4 reference points used by HM_find_mesh_pos() to reconstruct world pos + rotation matrix.
+// claude-ai:   cog_x/y/z: centre of gravity of the original prim (from PrimInfo). Used as rotation pivot.
+// claude-ai:   size[]/oversize[]: deduped table of squared edge rest-lengths and their reciprocals (avoids recomputing).
 //
 // Each hypermatter object.
 //
@@ -242,15 +310,21 @@ typedef struct
 
 } HM_Object;
 
+// claude-ai: Global pool — static array of 8 HM_Object slots. HM_object_upto is NOT used as a count;
+// claude-ai: instead, each slot has a 'used' flag and HM_create() searches for the first free slot.
 #define HM_MAX_OBJECTS 8
 
 HM_Object HM_object[HM_MAX_OBJECTS];
 SLONG     HM_object_upto;
 
 
+// claude-ai: HM_index() — converts 3-D grid coordinates (x,y,z) to a flat index into ho->index[].
+// claude-ai: Layout: row-major with x innermost, z outermost: idx = x + y*x_res + z*(x_res*y_res).
+// claude-ai: The pre-computed x_res_times_y_res avoids one multiply per Z-step in the hot loops.
+// claude-ai: Returns an index into the HM_Index[] sparse array (value 0 = empty, non-zero = point index).
 //
 // Returns the index of the given point.
-// 
+//
 
 inline SLONG HM_index(HM_Object *ho, SLONG x, SLONG y, SLONG z)
 {
@@ -268,6 +342,7 @@ inline SLONG HM_index(HM_Object *ho, SLONG x, SLONG y, SLONG z)
 }
 
 
+// claude-ai: HM_init() — clears all 8 HM slots at game startup. Called once from game init.
 void HM_init()
 {
 	SLONG i;
@@ -279,12 +354,20 @@ void HM_init()
 }
 
 
+// claude-ai: HM_Primgrid — editor-defined lattice resolution and mass-gradient for each prim type.
+// claude-ai: Loaded from a binary .hm file by HM_load(). Defines how many spring-grid divisions a prim gets
+// claude-ai: and where the division planes fall within the bounding box (x/y/z_point as 0x0000..0x10000 fractions).
+// claude-ai: x_dgrav/y_dgrav/z_dgrav: linear mass gradient — positive y_dgrav makes top heavier (top-heavy → tips over).
+// claude-ai: If no HM_Primgrid exists for a prim, HM_default_primgrid (2×2×2, centered) is used.
+// claude-ai: PORT NOTE → This per-prim configuration data is equivalent to physics shape metadata in modern engines.
 #define HM_MAX_PRIMGRIDS 64
 
 HM_Primgrid HM_primgrid[HM_MAX_PRIMGRIDS];
 SLONG       HM_primgrid_upto;
 
 
+// claude-ai: HM_load() — reads the HM_Primgrid table from a binary file (version check = 1).
+// claude-ai: Called during level load. File format: HM_Header then array of HM_Primgrid structs.
 void HM_load(CBYTE *fname)
 {
 	SLONG i;
@@ -346,6 +429,8 @@ void HM_load(CBYTE *fname)
 	return;
 }
 
+// claude-ai: HM_default_primgrid — fallback 2×2×2 lattice used when no editor-defined grid exists for a prim.
+// claude-ai: z_dgrav = -0.25 makes the front of the object slightly lighter (mild forward-tipping tendency).
 HM_Primgrid HM_default_primgrid =
 {
 	0,
@@ -382,6 +467,10 @@ HM_Primgrid *HM_get_primgrid(SLONG prim)
 
 
 
+// claude-ai: HM_find_point_inside_cube() — converts a world-space prim vertex into a lattice-relative (barycentric) coordinate.
+// claude-ai: Used during HM_create() to build the HM_Mesh table. Determines which of the two tetrahedra inside the cube the point falls in:
+// claude-ai:   if along_x+along_y+along_z > 1.5 → use the far corner's tetrahedron (for numeric stability).
+// claude-ai: Returns an HM_Mesh struct recording the 4 reference points and the barycentric weights.
 HM_Mesh HM_find_point_inside_cube(
 			HM_Object *ho,
 			SLONG      x,
@@ -471,6 +560,36 @@ HM_Mesh HM_find_point_inside_cube(
 }
 
 
+// claude-ai: HM_create() — MAIN CONSTRUCTOR. Builds a new HM physics object for a given prim mesh.
+// claude-ai: Steps:
+// claude-ai:   1. Allocate a free HM_Object slot (max 8; returns HM_NO_MORE_OBJECTS=255 if full).
+// claude-ai:   2. Read bounding box from PrimInfo (pi->minx..maxx etc.) → build lattice grid point positions.
+// claude-ai:   3. Mark which lattice cubes are non-empty (contain mesh vertices).
+// claude-ai:   4. Allocate only the active lattice points (sparse representation) + build index lookup table.
+// claude-ai:   5. Set per-point mass using the linear gradient (x/y/z_dgrav) → non-uniform inertia.
+// claude-ai:   6. Normalise total mass so gravity force is uniform regardless of point count.
+// claude-ai:   7. Build edge list: connect each active point to its axis-aligned + face-diagonal + space-diagonal neighbours.
+// claude-ai:      Edges are the springs that maintain the object's shape.
+// claude-ai:   8. Deduplicate edge rest-lengths into the size[]/oversize[] tables (avoids redundant computation).
+// claude-ai:   9. Build HM_Mesh table (visual vertex → lattice barycentric coords) for rendering.
+// claude-ai:  10. Find the best 4 reference points (near centre of gravity) for HM_find_mesh_pos().
+// claude-ai:  11. Apply initial rotation (yaw/pitch/roll) by rotating all points around the COG.
+// claude-ai:  12. Translate all points to world position (pos_x, pos_y, pos_z — in block-level coordinates >>8 from world units).
+// claude-ai: Parameters:
+// claude-ai:   prim             = prim ID (index into prim_objects[])
+// claude-ai:   pos_x/y/z        = world position in block units (WorldPos >> 8)
+// claude-ai:   yaw/pitch/roll   = initial orientation in UC angle units (0–2047 = 0–360°)
+// claude-ai:   vel_x/y/z        = initial velocity in block units per tick
+// claude-ai:   x/y/z_res        = lattice resolution (2–HM_MAX_RES=8 points per axis)
+// claude-ai:   x/y/z_point[]    = lattice plane positions within bounding box (0x0000=bbmin, 0x10000=bbmax)
+// claude-ai:   x/y/z_dgrav      = mass gradient (0 = uniform mass; ±1 = strong top/bottom or front/back weighting)
+// claude-ai:   elasticity       = spring stiffness (0.010 for furniture)
+// claude-ai:   bounciness       = floor restitution (0.95 for barrel)
+// claude-ai:   friction         = floor XZ damping on bounce (0.85)
+// claude-ai:   damping          = per-tick velocity decay multiplier (0.997)
+// claude-ai: Returns: HM slot index (0–7), or HM_NO_MORE_OBJECTS (255) on failure.
+// claude-ai: PORT NOTE → Equivalent to creating a physics body + shape in Bullet/Jolt. The lattice setup and
+// claude-ai:   mesh mapping would be replaced by a convex hull or box collider + render mesh skinned to rigid body.
 UBYTE HM_create(
 
 		SLONG prim,
@@ -764,11 +883,16 @@ UBYTE HM_create(
 
 	ho->num_points = num_points;
 
+	// claude-ai: MASS NORMALISATION — ensures total gravitational force on the object is independent of point count.
+	// claude-ai: Computes average mass across all active points, then scales each point's mass by 1/average.
+	// claude-ai: After normalisation, average mass = 1.0, so total gravity = num_points * HM_GRAVITY (constant).
+	// claude-ai: Without this, a 2×2×2 lattice (8 points) would fall 8x faster than a 2×2×2 with 4 active points.
+	// claude-ai: The mass GRADIENT (x/y/z_dgrav) still creates top/bottom/front weighting for rotational inertia.
 	//
 	// Adjust the gravity of the points so that all objects have the
 	// same force of gravity acting on them!
 	//
-	
+
 	float grav_av = 0.0F;
 	float grav_adjust;
 
@@ -799,6 +923,15 @@ UBYTE HM_create(
 	// Count how many edges we need.
 	//
 
+	// claude-ai: EDGE ENUMERATION — connects each active lattice point to its "forward half-shell" neighbours.
+	// claude-ai: The neighbour offsets enumerate 13 of the 26 possible neighbours in a 3×3×3 neighbourhood:
+	// claude-ai:   - All 9 neighbours in the next Z slice (dz=1, dy/dx = -1..1)  — 9 directions
+	// claude-ai:   - 4 more in the same Z plane (dz=0): (-1,+1), (0,+1), (+1,+1), (+1,0)
+	// claude-ai: This "forward half-shell" avoids creating duplicate edges (A→B and B→A) since each pair
+	// claude-ai: is only enumerated once: point A connects to B only if B is in A's forward half.
+	// claude-ai: These 13 directions include: axis-aligned (6 total / 2 = 3), face-diagonal, space-diagonal edges.
+	// claude-ai: Each type gives different spring lengths → size[] deduplication table captures them.
+	// claude-ai: Result: a fully connected "stiff" spring lattice that resists both stretch and shear.
 	num_edges = 0;
 
 	for (z = 0; z < ho->z_res; z++)
@@ -1077,6 +1210,12 @@ UBYTE HM_create(
 		ho->cog_z    = float(pi->cogz);
 	}
 
+	// claude-ai: INITIAL ROTATION — rotates all lattice points around the prim's COG to match the input yaw/pitch/roll.
+	// claude-ai: Converts UC angle units (0–2047) to radians, builds 3×3 rotation matrix via MATRIX_calc().
+	// claude-ai: Each point is translated to COG-relative space, rotated, then translated back.
+	// claude-ai: Uses MATRIX_MUL_BY_TRANSPOSE (matrix transpose = inverse for orthogonal matrices).
+	// claude-ai: After rotation, all points are translated to world position (pos_x, pos_y, pos_z).
+	// claude-ai: The cog values here come from the PrimInfo (pi->cogx etc.) — prim-local COG, not yet world-space.
 	//
 	// The rotation matrix of the prim.
 	//
@@ -1133,6 +1272,11 @@ UBYTE HM_create(
 }
 
 
+// claude-ai: HM_destroy() — frees all MemAlloc'd arrays for an HM slot and marks it unused.
+// claude-ai: Note: does NOT free pending HM_Bump nodes on ho->bump linked list — potential memory leak
+// claude-ai: if any HM-vs-HM collision bumps are active at the time of destruction.
+// claude-ai: Called by Furn.cpp when a furniture item comes to rest (HM_stationary() returns TRUE)
+// claude-ai: or when the item leaves the world (falls off level edge, etc.).
 void HM_destroy(UBYTE hm_index)
 {
 	ASSERT(WITHIN(hm_index, 0, HM_MAX_OBJECTS - 1));
@@ -1161,6 +1305,11 @@ void HM_destroy(UBYTE hm_index)
 }
 
 
+// claude-ai: HM_find_cog() — computes the mass-weighted centre of gravity of the entire spring lattice.
+// claude-ai: Returns the weighted average of all active point positions, weighted by ho->point[i].mass.
+// claude-ai: Used externally (Furn.cpp) to determine the world position of the tumbling object each frame
+// claude-ai: for sound effect origin, visibility culling, and deciding when to stop physics simulation.
+// claude-ai: Note: this is O(num_points) every call — cheap for the small lattice sizes used (max 8×8×8 = 512 pts).
 void HM_find_cog(
 		UBYTE  hm_index,
 		float *x,
@@ -1204,6 +1353,10 @@ void HM_find_cog(
 
 
 
+// claude-ai: HM_colvect_clear() — resets the wall-collision list for an HM object each frame.
+// claude-ai: Called at the start of each physics tick from Furn.cpp before re-adding the nearby wall segments.
+// claude-ai: The collision list is rebuilt from scratch every frame — there is no persistent tracking
+// claude-ai: of which walls an object is near (unlike the HM_Bump list which persists frame to frame).
 void HM_colvect_clear(UBYTE hm)
 {
 	ASSERT(WITHIN(hm, 0, HM_MAX_OBJECTS - 1));
@@ -1211,6 +1364,11 @@ void HM_colvect_clear(UBYTE hm)
 	HM_object[hm].num_cols = 0;
 }
 
+// claude-ai: HM_colvect_add() — adds a wall segment (2-D XZ line) to the collision list for an HM object.
+// claude-ai: Deduplicates: if the same segment was already added this frame, returns without adding again.
+// claude-ai: Sets consider=0xffffffff meaning ALL points of the object should test against this wall.
+// claude-ai: Stores wall as (x1,z1)→(x2,z2) with precomputed length (used in MATHS_seg_intersect()).
+// claude-ai: Max 64 wall segments per object (HM_COLS_PER_OBJECT). Exceeded count would ASSERT in debug.
 void HM_colvect_add(
 		UBYTE hm,
 		SLONG x1, SLONG z1,
@@ -1281,9 +1439,17 @@ void HM_colvect_add(
 // we'd have to include everything!
 //
 
+// claude-ai: calc_height_at() — forward declaration to collide.cpp ground-height query.
+// claude-ai: The comment explains why <collide.h> is NOT included: would drag in thing.h and cascading headers.
+// claude-ai: This is a common pattern in UC code — forward-declare rather than include to avoid header bloat.
 SLONG calc_height_at(SLONG x, SLONG z);
 
-
+// claude-ai: HM_height_at() — wrapper that queries PAP (Physics/Altitude Probe) system for ground height.
+// claude-ai: Calls PAP_calc_height_at() rather than calc_height_at() directly. PAP is the terrain height cache.
+// claude-ai: Returns height as float (in block-level coordinate units, same scale as HM_Point positions).
+// claude-ai: Note: the simple ground check in HM_process() does NOT call this — it hardcodes gy=0 instead!
+// claude-ai:   This function exists but the actual simulation uses hp->y < 0 as the ground test (flat world assumed).
+// claude-ai:   This is a known simplification: HM objects do NOT follow terrain slope, they bounce on y=0 plane.
 float HM_height_at(float x, float z)
 {
 	SLONG ans = PAP_calc_height_at(
@@ -1295,6 +1461,11 @@ float HM_height_at(float x, float z)
 
 
 
+// claude-ai: HM_find_mesh_point() — reconstructs a single visual vertex position from the deforming lattice.
+// claude-ai: Implements the inverse of HM_find_point_inside_cube(): given barycentric coords stored in HM_Mesh,
+// claude-ai: computes: pos = origin + along[0]*(p[0]-origin) + along[1]*(p[1]-origin) + along[2]*(p[2]-origin).
+// claude-ai: Called every frame from HM_draw() for each vertex of the rendered mesh — expensive for large meshes.
+// claude-ai: PORT NOTE → In a modern engine this would be a single skinning pass on the GPU (vertex shader).
 //
 // Returns the position of the given mesh-point of the HM_object.
 //
@@ -1355,6 +1526,10 @@ void HM_find_mesh_point(
 	*z = ansz;
 }
 
+// claude-ai: HM_cube_exists() — checks whether all 8 corner-points of a lattice cube are active.
+// claude-ai: A cube is "solid" only if all 8 surrounding lattice nodes exist (sparse grid can have gaps).
+// claude-ai: Used by HM_collide() to determine which cube faces are boundary faces (for entry-point detection).
+// claude-ai: Returns FALSE for out-of-bounds coordinates (boundary cubes at lattice edges always return FALSE).
 //
 // Returnstrue if the cube of the hypermatter object exists. If you pass
 // an out-of-bounds cube, then it just returns FALSE.
@@ -1418,6 +1593,14 @@ SLONG HM_cube_exists(
 }
 
 
+// claude-ai: HM_is_point_in_cube() — GJK-like OBB containment test for HM-vs-HM collision detection.
+// claude-ai: Transforms world-space point 'p' into the local space of the lattice cube using the cube's
+// claude-ai: deformed axis vectors (from corner points hp_o, hp_x, hp_y, hp_z).
+// claude-ai: Normalises each axis vector by 1/len² (not 1/len!) to map cube extent to [0,1] range.
+// claude-ai: Returns TRUE if all three local coords are within [0,1] — i.e. point is inside the cube.
+// claude-ai: Note: assumes the cube is still roughly orthogonal (ASSUME THAT THE CUBE IS IN A RIGID SHAPE).
+// claude-ai: Under heavy deformation the spring lattice may become non-orthogonal, causing false positives.
+// claude-ai: PORT NOTE → Replace with proper GJK/SAT convex hull penetration test in new game.
 //
 // Returns true if 'p' is inside the given cube of the hypermatter object.
 // If it is it gives a point on an outside surface of the cube that 'p' entered by.
@@ -1557,6 +1740,12 @@ SLONG HM_is_point_in_cube(
 	return FALSE;
 }
 
+// claude-ai: HM_last_point_in_last_cube() — reconstructs where a point WAS last frame, in last-frame cube space.
+// claude-ai: Uses (pos - vel) for both the point and cube corners to get "previous frame" positions.
+// claude-ai: i.e.: hp->x - hp->dx is the position at the start of this frame (before integration).
+// claude-ai: This is used by HM_collide() to do swept/continuous collision: find where a point crossed
+// claude-ai: the cube boundary between last frame and this frame, not just where it is now.
+// claude-ai: Critical for preventing tunnelling through thin lattice cubes at high velocities.
 //
 // Find the last position of the point relative to the last position of the cube.
 //
@@ -1675,6 +1864,13 @@ void HM_last_point_in_last_cube(
 
 
 
+// claude-ai: HM_collide_all() — O(n²) broad phase: tests every used HM object pair for inter-object collision.
+// claude-ai: Calls HM_collide(i,j) AND HM_collide(j,i) — both directions. This is because HM_collide() only
+// claude-ai: checks points of object1 against cubes of object2, not the reverse. Calling both directions
+// claude-ai: ensures mutual detection (though the reaction force is still one-sided, see HM_process_bump).
+// claude-ai: Bug note: inner loop checks `if (!HM_object[i].used)` — should be [j]. Harmless in practice
+// claude-ai: because the outer loop already ensures i is used, but the j check is effectively skipped.
+// claude-ai: With max 8 objects this is at most 28 pair checks — negligible cost.
 void HM_collide_all()
 {
 	SLONG i;
@@ -1700,6 +1896,14 @@ void HM_collide_all()
 	}
 }
 
+// claude-ai: HM_rel_cube_to_world() — converts a barycentric-style point (rel_x,rel_y,rel_z in [0,1])
+// claude-ai: within a deformed lattice cube back to world-space XYZ coordinates.
+// claude-ai: Builds the cube's axis matrix from corner point positions (same as HM_is_point_in_cube()),
+// claude-ai: but then applies the TRANSPOSE of the un-normalised matrix to go from cube-local to world.
+// claude-ai: Note: the normalisation block is compiled out (#if WE_WANT_TO_NORMALISE_THE_MATRIX = false).
+// claude-ai: This means the matrix is NOT normalised → for non-unit-cube lattices the rel coords are
+// claude-ai: already in the correct scale (since they were computed using the same un-normalised basis).
+// claude-ai: Used by HM_process_bump() and HM_collide() to compute the world-space collision entry point.
 //
 // Given a point relative to a cube, this function returns the 3d
 // coordinates of that point.
@@ -1828,6 +2032,16 @@ void HM_rel_cube_to_world(
 	*world_z = wz;
 }
 
+// claude-ai: HM_process_bump() — applies spring-back force to a point that has penetrated another HM object.
+// claude-ai: The "entry point" (where the penetrating point first crossed the cube surface) is reconstructed
+// claude-ai: in world space via HM_rel_cube_to_world(), then a spring force pulls the point back to that surface.
+// claude-ai: Force = elasticity * distance² * 0.0003 (very soft, to avoid explosion from large penetrations).
+// claude-ai: Equal-and-opposite force to object B is #ifdef'd out (WE_WANT_TO_APPLY_THE_EQUAL_FORCE_TO_THE_CUBE)
+// claude-ai: → Object B receives ZERO impulse from the collision. One-sided response only.
+// claude-ai: Also draws a debug line from penetrating point to entry point (always visible, not debug-only!).
+// claude-ai: MSG_add("Bumping!") fires every frame for every active bump — very spammy in debug builds.
+// claude-ai: PORT NOTE → In Jolt/Bullet, HM-vs-HM collision would be handled by the collision callback system
+// claude-ai:   with proper impulse exchange. This whole subsystem can be dropped in favour of engine collision.
 //
 // Does the processing for the enter structure that it part of
 // the given HM_Object.
@@ -1932,6 +2146,11 @@ void HM_process_bump(HM_Object *ho, HM_Bump *hb)
 	#endif
 }
 
+// claude-ai: HM_bump_dead() — checks whether a tracked penetration is over (point has exited the other object).
+// claude-ai: Optimisation: checks the original entry cube first before scanning all cubes (usually sufficient).
+// claude-ai: If the point is still inside ANY cube of object2, returns FALSE (keep the bump record alive).
+// claude-ai: If the point is in no cube, returns TRUE (the bump record will be freed from the list).
+// claude-ai: This is called every frame from HM_process() after applying bump forces.
 //
 // Returns TRUE if the given bump structure is no longer relavent- i.e.
 // the bumping point is no longer bumping.
@@ -2008,6 +2227,17 @@ SLONG HM_bump_dead(HM_Object *ho, HM_Bump *hb)
 	return TRUE;
 }
 
+// claude-ai: HM_collide() — narrow-phase HM-vs-HM collision detection (one direction: obj1 points vs obj2 cubes).
+// claude-ai: For each point of object1 NOT already tracked in a HM_Bump record:
+// claude-ai:   - Tests against every cube of object2 using HM_is_point_in_cube()
+// claude-ai:   - If inside: determines the cube entry surface using continuous collision (HM_last_point_in_last_cube)
+// claude-ai:   - Allocates a new HM_Bump on the heap (MemAlloc) and adds to object1's bump linked list
+// claude-ai: The entry point is computed by intersecting the point's swept path with each cube face.
+// claude-ai: The 8 nearest points of object2 to the entry point are stored in opp_point[] for the
+// claude-ai: (currently disabled) equal-and-opposite force distribution in HM_process_bump().
+// claude-ai: The "already_bumped" bitmask (16 bytes = 128 bits) tracks which points of object1 already
+// claude-ai: have active HM_Bump records against object2 — prevents duplicate entries.
+// claude-ai: Complexity: O(num_points1 * num_cubes2) per call. With small lattices (max 8³) this is fast.
 void HM_collide(UBYTE hm_index1, UBYTE hm_index2)
 {
 	SLONG i;
@@ -2353,12 +2583,31 @@ void HM_collide(UBYTE hm_index1, UBYTE hm_index2)
 }
 
 
-//
-// The gravty...
-//
-
+// claude-ai: HM_GRAVITY = -0.015 (block units per tick²) — downward acceleration applied every frame.
+// claude-ai: In game-world terms: 1 block = 256 world units, frame rate = ~25fps (PAL).
+// claude-ai: Equivalent: 0.015 * 256 = 3.84 world-units/frame² ≈ 2400 wu/s² — roughly realistic gravity.
+// claude-ai: Applied scaled by hp->mass (non-uniform inertia tensor) → heavier points fall faster in lattice.
 #define HM_GRAVITY (-0.015F)
 
+// claude-ai: HM_process() — THE MAIN PHYSICS TICK. Called once per game frame for all active HM objects.
+// claude-ai: Per-object, per-frame sequence:
+// claude-ai:   STEP 1 — SPRING FORCES: iterate all edges, compute Hooke's-law force on squared distance:
+// claude-ai:     force = (current_sq_dist - rest_sq_dist) * elasticity / rest_sq_dist
+// claude-ai:     Applied as equal-and-opposite impulse to both endpoints (ignores mass difference).
+// claude-ai:   STEP 2 — BUMP FORCES: apply HM_process_bump() for each active HM-vs-HM penetration record.
+// claude-ai:   STEP 3 — INTEGRATION: for each point:
+// claude-ai:     a) Apply damping: dx *= damping (energy bleed-off per tick, ~0.997)
+// claude-ai:     b) Apply gravity: dy += HM_GRAVITY * mass
+// claude-ai:     c) Ground collision (y < 0): reflect dy with bounciness, damp dx/dz with friction, correct y
+// claude-ai:     d) Wall collision (HM_Col segments): if next position would cross wall, reflect velocity
+// claude-ai:     e) Integrate position: x += dx, y += dy, z += dz
+// claude-ai:   STEP 4 — BUMP CLEANUP: remove dead HM_Bump records (point no longer penetrating).
+// claude-ai: The physics constants embedded in the commented-out keyboard block (P3/P2/P6/P5 keys) show
+// claude-ai: that these parameters were originally tuned interactively at runtime during development.
+// claude-ai: Note: the ground check uses hardcoded gy=0. Variable terrain heights via HM_height_at() are
+// claude-ai: prepared but not called here — all HM objects bounce on the flat y=0 plane only.
+// claude-ai: PORT NOTE → Each of these steps maps cleanly to a Jolt Physics / Bullet rigid body simulation:
+// claude-ai:   Springs → constraint solver; Gravity → gravity vector; Ground → static plane collider.
 void HM_process()
 {
 	SLONG i;
@@ -2492,6 +2741,14 @@ void HM_process()
 		// Fast processing via the edge list.
 		//
 
+		// claude-ai: SPRING INTEGRATION LOOP — core of the physics simulation.
+		// claude-ai: For each spring (edge), computes: squaredist = |p2 - p1|²
+		// claude-ai:   ddist = squaredist - rest_squaredist  (extension if +ve, compression if -ve)
+		// claude-ai:   squash = ddist * elasticity / rest_squaredist  (normalised Hooke force)
+		// claude-ai:   force vector = (p2 - p1) * squash  (along the spring axis)
+		// claude-ai: Applies equal-and-opposite force to each endpoint (Newton 3rd law — but ignores mass ratio).
+		// claude-ai: Using squared distance (no sqrt) is the key optimisation — avoids expensive sqrt per spring.
+		// claude-ai: Guard: if squaredist < 0.001 (points collapsed together), skips to avoid divide-by-zero.
 		for (j = 0; j < ho->num_edges; j++)
 		{
 			he = &ho->edge[j];
@@ -2555,6 +2812,16 @@ void HM_process()
 		// Do the movement of all the points
 		//
 
+		// claude-ai: POINT INTEGRATION LOOP — applies damping, gravity, ground collision, wall collision, position update.
+		// claude-ai: Order matters: damping first → reduces velocity before gravity is added (slight under-gravity effect).
+		// claude-ai: Ground collision: if y < gy (gy=0 hardcoded), reflects dy by bounciness, damps dx/dz by friction,
+		// claude-ai:   corrects y by mirroring penetration depth (hp->y = gy - hp->y i.e. gy + (gy - hp->y_before)).
+		// claude-ai: Wall collision: uses MATHS_seg_intersect() with DOUBLED velocity (hp->dx + hp->dx) as look-ahead.
+		// claude-ai:   The doubled velocity gives a 2-frame prediction — ensures points don't tunnel at high speed.
+		// claude-ai:   Reflection is simplified: axis-aligned walls reflect only the perpendicular component.
+		// claude-ai:   Diagonal walls flip both dx and dz (imprecise but stable for small lattice cells).
+		// claude-ai:   When a wall collision fires, position is NOT updated (goto dont_move_this_point) — point freezes.
+		//
 		for (j = 1; j < ho->num_points; j++)
 		{
 			hp = &ho->point[j];
@@ -2641,6 +2908,11 @@ void HM_process()
 		// Can we get rid of any of the bumps?
 		//
 
+		// claude-ai: BUMP LIST CLEANUP — removes expired HM-vs-HM penetration records.
+		// claude-ai: Standard intrusive linked-list traversal with deletion using prev-pointer.
+		// claude-ai: Each dead HM_Bump is freed with MemFree (heap allocation per collision entry/exit).
+		// claude-ai: PORT NOTE → In a modern physics engine, collision contact manifolds are managed by
+		// claude-ai:   the engine itself and do not require manual allocation/deallocation.
 		prev = &ho->bump;
 		hb   =  ho->bump;
 
@@ -2673,6 +2945,16 @@ void HM_process()
 }
 
 
+// claude-ai: HM_draw() — DEBUG visualiser for the HM lattice. Draws the spring lattice as coloured lines.
+// claude-ai: Called each frame for all active HM objects (presumably from a debug rendering path).
+// claude-ai: Draws edges along the Z-axis (between Z slices), Y-axis, and X-axis of the lattice grid,
+// claude-ai: colour-coding by axis: R channel = x-edge face, G channel = y-edge face, B channel = z-edge face.
+// claude-ai: If Keys[KB_5] is held, also draws the actual mesh wireframe using HM_find_mesh_point()
+// claude-ai: showing how the deforming lattice distorts the visual mesh in real time.
+// claude-ai: The velocity term (hp->x - hp->dx * 0.5) shifts drawn points back half a velocity step —
+// claude-ai: this gives motion-blur-like effect and shows where the point was "between frames".
+// claude-ai: PORT NOTE → This is purely a debug tool. New game's debug overlay can use the physics engine's
+// claude-ai:   own debug drawing (Jolt/Bullet both have debug renderers).
 void HM_draw(void)
 {
 	SLONG i;
@@ -2864,6 +3146,18 @@ void HM_draw(void)
 }
 
 
+// claude-ai: HM_find_mesh_pos() — extracts a world position + Euler angles from the deformed lattice.
+// claude-ai: This is the bridge between physics and rendering: each frame Furn.cpp calls this to get
+// claude-ai: the (x,y,z) and (yaw,pitch,roll) needed to place+orient the original prim for drawing.
+// claude-ai: Algorithm:
+// claude-ai:   1. Build 3×3 rotation matrix from the 4 reference points (o_index, x_index, y_index, z_index)
+// claude-ai:      that were chosen at HM_create() time as being closest to the COG.
+// claude-ai:   2. Normalise each row to unit length (orthonormalise — assumes near-rigid deformation).
+// claude-ai:   3. Convert matrix to Euler angles via MATRIX_find_angles(), rescale to UC 0–2047 angle units.
+// claude-ai:   4. Compute the world position by unrotating the original prim origin (o_prim_x/y/z) back to
+// claude-ai:      model space and then computing the offset from the reference point's current world pos.
+// claude-ai: Result: x/y/z in block coordinates, yaw/pitch/roll in 0–2047 UC angle units (0=0°, 2048=360°).
+// claude-ai: PORT NOTE → In a modern engine this is unnecessary — the rigid body transform IS the mesh transform.
 void HM_find_mesh_pos(
 		UBYTE  hm_index,
 		SLONG *x,
@@ -2994,6 +3288,13 @@ void HM_find_mesh_pos(
 
 
 
+// claude-ai: HM_stationary() — checks if an HM object has come to rest (ready to be destroyed/converted back).
+// claude-ai: Computes the average absolute velocity across all lattice points.
+// claude-ai: Returns TRUE if average |dx|+|dy|+|dz| < 0.25 (combined, not per-axis).
+// claude-ai: Called by Furn.cpp after each physics tick. When stationary, Furn.cpp calls HM_destroy()
+// claude-ai: and places a static prim back at the position given by HM_find_mesh_pos().
+// claude-ai: The threshold 0.25 is relatively generous — object may still visibly rock at this speed.
+// claude-ai: PORT NOTE → In Jolt/Bullet use the built-in sleep/deactivation system instead.
 SLONG HM_stationary(UBYTE hm_index)
 {
 	SLONG i;
@@ -3030,6 +3331,13 @@ SLONG HM_stationary(UBYTE hm_index)
 
 
 
+// claude-ai: HM_shockwave() — applies an explosion-style radial impulse to all points of an HM object.
+// claude-ai: Used when an explosive (grenade, car explosion, etc.) goes off near a barrel/furniture item.
+// claude-ai: Force model: push = (range - dist) / range * force / dist → falls off as 1/r * linear envelope.
+// claude-ai: Y component is doubled (dy *= 2.0) — exaggerated upward blast gives more dramatic tumbling.
+// claude-ai: Only points within 'range' block-units receive an impulse.
+// claude-ai: Called from game code (explosion handlers) passing the HM slot index obtained at HM_create() time.
+// claude-ai: PORT NOTE → Maps to applyImpulse() at world position in Jolt/Bullet.
 void HM_shockwave(
 		UBYTE hm_index,
 		float x,

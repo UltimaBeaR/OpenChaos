@@ -1,3 +1,31 @@
+// claude-ai: supermap.cpp — high-level city map acceleration structure and level serialisation.
+// claude-ai: "Supermap" = the pre-built spatial index of all buildings, facets and walkables.
+// claude-ai: Loaded from the .pam level file; see load_super_map() / save_super_map().
+// claude-ai:
+// claude-ai: Key data structures (defined in Headers/building.h and Headers/supermap.h):
+// claude-ai:   DBuilding   — one logical building; contains StartFacet..EndFacet range.
+// claude-ai:   DFacet      — one exterior wall face (see facet.cpp for rendering).
+// claude-ai:   DStorey     — per-storey texture info (painted textures override).
+// claude-ai:   DWalkable   — roof walkable surface quads.
+// claude-ai:   InsideStorey— interior floor data (bounding box, room map, stair links).
+// claude-ai:   Staircase   — stair connection between InsideStoreys.
+// claude-ai:   inside_block[]— 1-byte room-id per mapsquare, packed per InsideStorey.
+// claude-ai:
+// claude-ai: Spatial index for collision/AI queries:
+// claude-ai:   PAP_2LO(mx,mz).ColVectHead → singly-linked list of facet indices touching this mapsquare.
+// claude-ai:   facet_links[] — the flat array that the ColVectHead lists index into.
+// claude-ai:   Negative facet index = last entry for this mapsquare (sentinel convention).
+// claude-ai:
+// claude-ai: Key functions:
+// claude-ai:   create_dfacets_for_building() — converts editor building data → DFacet list
+// claude-ai:   add_dfacet()                  — appends one DFacet and registers it in the spatial grid
+// claude-ai:   find_electric_fence_dbuilding()— spatial query: nearest electrified fence to a point
+// claude-ai:   set_electric_fence_state()    — set FACET_FLAG_ELECTRIFIED on all facets of a dbuilding
+// claude-ai:   SUPERMAP_counter_increase()   — wraps a per-facet counter used for spatial de-dup
+// claude-ai:   load_super_map() / save_super_map() — level binary serialisation
+// claude-ai:   create_inside_rect()          — builds InsideStorey from editor storey data
+// claude-ai:   calc_inside_for_xyz()         — spatial query: which InsideStorey contains a world point
+
 #include	"game.h"
 #include	"..\headers\supermap.h"
 #include	"..\headers\pap.h"
@@ -112,6 +140,13 @@ extern	SLONG	TEXTURE_set;
 //
 // returns inside_index && room id for position in world
 //
+// claude-ai: calc_inside_for_xyz — spatial query: which InsideStorey contains world point (x,y,z)?
+// claude-ai: Linear scan through all inside_storeys[] (up to next_inside_storey).
+// claude-ai: Checks bounding box (MinX..MaxX, MinZ..MaxZ) then Y band (StoreyY..StoreyY+256).
+// claude-ai: If in range, calls find_inside_room() to check the room map at (mx,mz).
+// claude-ai: Returns inside_storey index (or 0 = not indoors); also fills *room.
+// claude-ai: Called every tick by game logic to determine if player/NPC is inside a building.
+// claude-ai: O(N) scan — N = total number of inside storeys in the level. Adequate for ~50 storeys.
 UWORD	calc_inside_for_xyz(SLONG x,SLONG y,SLONG z,UWORD *room)
 {
 	SLONG	c0;
@@ -295,6 +330,10 @@ void	flood_fill_rooms(SLONG storey)
 
 }
 
+// claude-ai: build_inside_data — serialises the flood-fill room map into inside_block[].
+// claude-ai: Copies fill_map[x+z*128] for the bounding rect into inside_block[] (1 byte per square).
+// claude-ai: Stores bounding box, stair head, FacetStart, StoreyY into inside_storeys[].
+// claude-ai: Returns the new inside_storey index. Called during level build (Editor) and map save.
 SLONG	build_inside_data(SLONG minx,SLONG minz,SLONG maxx,SLONG maxz,SLONG y,SLONG offset_y)
 {
 	SLONG	x,z;
@@ -673,6 +712,16 @@ void	set_stair_bits(SLONG room)
 
 }
 
+// claude-ai: create_inside_rect — builds full InsideStorey from editor storey data.
+// claude-ai: Pipeline:
+// claude-ai:   1. Alloc 128×128 byte maps (rect = room ids, dir = wall/door bits)
+// claude-ai:   2. For each wall in storey chain: add_wall() → sets NO_MOVE_* bits in dir[]
+// claude-ai:   3. flood_fill_rooms() → fills rect[] with room ids
+// claude-ai:   4. set_door_bits() / set_stair_bits() → adds FLAG_DOOR_* and FLAG_INSIDE_STAIR_*
+// claude-ai:   5. build_inside_data() → packs into inside_block[]
+// claude-ai:   6. add_inside_facets() → creates DFacets for interior walls
+// claude-ai:   7. add_stairs_to_inside() → builds Staircase records
+// claude-ai: Only compiled for EDITOR builds (#ifdef EDITOR #ifndef PSX).
 SLONG	create_inside_rect(SLONG storey,SLONG offset_y)
 {
 
@@ -911,6 +960,9 @@ SLONG	add_painted_textures_reverse(UBYTE *t,SLONG tcount,SLONG style,SLONG len)
 }
 
 
+// claude-ai: clear_storey_data — clears FLAG_STOREY_FACET_LINKED and FLAG_WALL_FACET_LINKED
+// claude-ai: on all storeys and walls of a building before rebuilding its DFacets.
+// claude-ai: These flags prevent the same wall from being processed twice during create_dfacets_for_building.
 void	clear_storey_data(UWORD building)
 {
 	SLONG	wall,storey;
@@ -968,6 +1020,10 @@ SLONG	is_building_worth_saving(SLONG building)
 }
 
 
+// claude-ai: find_minmax_alt_along_vect — finds min/max terrain height along a wall segment.
+// claude-ai: Steps from (x1,z1) to (x2,z2) in small increments and samples PAP_calc_height_at.
+// claude-ai: Used by add_dfacet() to set DFacet.Y[0]/Y[1] for walls on uneven terrain.
+// claude-ai: Also used to decide if a wall needs FOUNDATION mode (foundation = terrain-following base).
 void	find_minmax_alt_along_vect(SLONG *min_y,SLONG *max_y,SLONG x1,SLONG x2,SLONG z1,SLONG z2)
 {
 	SLONG	dx,dz,len;
@@ -1007,6 +1063,12 @@ void	find_minmax_alt_along_vect(SLONG *min_y,SLONG *max_y,SLONG x1,SLONG x2,SLON
 	}
 }
 
+// claude-ai: add_dfacet — allocates and initialises one DFacet in the dfacets[] array.
+// claude-ai: Also calls find_minmax_alt_along_vect() to compute Y[0]/Y[1] from terrain.
+// claude-ai: Clamps coordinates to avoid adding facets on the map boundary (< 4 or > 124 squares).
+// claude-ai: Registers the new facet in the PAP low-res grid spatial index via add_facet_to_map().
+// claude-ai: style_index < 0 → painted texture storey index; >= 0 → global style id.
+// claude-ai: storey_type maps to FacetType in the DFacet (STOREY_TYPE_NORMAL, FENCE, DOOR, etc.)
 SLONG	add_dfacet(SLONG x1,SLONG z1,SLONG x2,SLONG z2,SLONG y,SLONG count,SLONG style_index,SLONG storey_type,SLONG facet_flags,SLONG offsety,SLONG block_height)
 {
 	struct	DFacet	*p_facet;
@@ -1190,6 +1252,12 @@ void	add_dbuilding(SLONG x,SLONG y,SLONG z,SLONG sf,SLONG ef,SLONG building)
 	p_build->Counter[1] = 0;
 }
 
+// claude-ai: find_slow_connect_wall — finds the next storey segment directly above this one.
+// claude-ai: Used to chain multiple storeys into one tall DFacet (multi-storey buildings).
+// claude-ai: Searches all storeys of the same building for an identical x1,z1→x2,z2 wall segment
+// claude-ai: at y + block_height above the current storey.
+// claude-ai: Returns the wall index of the matching storey, or 0 if none found.
+// claude-ai: connect_storey is updated to the matching storey for further chaining.
 SLONG	find_slow_connect_wall(SLONG x1,SLONG z1,SLONG x2,SLONG z2,SLONG y,SLONG *connect_storey,SLONG building,SLONG height) //,UBYTE **texture,SLONG *count)
 {
 	SLONG	found=0;
@@ -1242,6 +1310,10 @@ SLONG	find_slow_connect_wall(SLONG x1,SLONG z1,SLONG x2,SLONG z2,SLONG y,SLONG *
 
 }
 
+// claude-ai: create_cable_dfacet — builds a DFacet of type STOREY_TYPE_CABLE for hanging wires.
+// claude-ai: The cable arc parameters (sag, spin angles) are packed into StyleIndex and Building fields.
+// claude-ai: Y coordinates are offset by terrain height at each endpoint.
+// claude-ai: Rendered by cable_draw() in facet.cpp (catenary curve approximation).
 void	create_cable_dfacet(SLONG x1,SLONG y1,SLONG z1,SLONG x2,SLONG y2,SLONG z2,SLONG wall)
 {
 	struct	DFacet	*p_facet;
@@ -1344,6 +1416,14 @@ void	create_cable_dfacet(SLONG x1,SLONG y1,SLONG z1,SLONG x2,SLONG y2,SLONG z2,S
 	p_facet->FHeight=wall_list[wall].TextureStyle2;
 }
 
+// claude-ai: create_dfacets_for_building — converts all editor storeys for one building to DFacets.
+// claude-ai: Iterates storey_list[] chain for the building; handles: STOREY_TYPE_NORMAL, FENCE,
+// claude-ai: FENCE_FLAT, FENCE_BRICK, OUTSIDE_DOOR, LADDER, CABLE, INSIDE door storeys.
+// claude-ai: For normal storeys: calls find_slow_connect_wall() to chain multi-storey wall stacks
+// claude-ai:   into a single tall DFacet (connect_count * 4 height units).
+// claude-ai: For buildings with InsideStorey/InsideIDIndex: calls create_inside_rect() to build
+// claude-ai:   InsideStorey data for interior rendering.
+// claude-ai: Only runs in Editor builds (or at load time for save_super_map).
 void	create_dfacets_for_building(SLONG building)
 {
 	SLONG	x1,z1,x2,z2,y1,y2;
@@ -2252,6 +2332,14 @@ void	save_super_map(MFFileHandle	handle)
 }
 #endif
 
+// claude-ai: load_super_map — deserialises the precomputed supermap from the level file.
+// claude-ai: Reads (in order): next_dbuilding, next_dfacet, next_dstyle, next_paint_mem,
+// claude-ai:   next_dstorey, dbuildings[], dfacets[], dstyles[], paint_mem[], dstoreys[],
+// claude-ai:   next_inside_storey, next_inside_stair, next_inside_block,
+// claude-ai:   inside_storeys[], inside_stairs[], inside_block[], walkables, OB_ob[].
+// claude-ai: save_type >= 17 required for painted texture data; >= 21 for inside data.
+// claude-ai: Resets Dfcache to 0 for all loaded facets (lighting cache rebuilt on first draw).
+// claude-ai: This is called from the main level load path — NOT the editor path.
 void	load_super_map(MFFileHandle	handle,SLONG save_type)
 {
 	SLONG	c0;
@@ -2326,6 +2414,12 @@ void	load_super_map(MFFileHandle	handle,SLONG save_type)
 
 void add_facet_to_map(SLONG facet);
 
+// claude-ai: add_sewer_ladder — creates a DFacet of type STOREY_TYPE_LADDER for sewer entry.
+// claude-ai: FACET_FLAG_IN_SEWERS marks it as a sewer ladder (renders as DRAW_ladder).
+// claude-ai: FACET_FLAG_LADDER_LINK additionally means: "this is the entry point to sewers"
+// claude-ai:   (used to trigger the player transition from surface to sewer layer).
+// claude-ai: Appended directly to dfacets[] (bypasses create_dfacets_for_building).
+// claude-ai: add_facet_to_map() registers it in the PAP spatial grid for collision/AI queries.
 void add_sewer_ladder(
 		SLONG x1, SLONG z1,
 		SLONG x2, SLONG z2,
@@ -2403,6 +2497,13 @@ void create_super_dbuilding(SLONG building)
 
 
 //#endif
+// claude-ai: find_electric_fence_dbuilding — spatial query: find closest electrified fence to point.
+// claude-ai: Uses PAP_2LO mapsquare grid for a broad-phase search within 'range' world units.
+// claude-ai: Iterates facet_links[] linked lists per mapsquare (PAP_2LO.ColVectHead chains).
+// claude-ai: Negative facet index = sentinel for end of list (sign flip convention).
+// claude-ai: Fine-phase: distance_to_line() for each candidate facet.
+// claude-ai: Returns the DBuilding index of the nearest fence, or NULL if none found.
+// claude-ai: Used by game logic to detect if a player/NPC touched an electric fence.
 SLONG find_electric_fence_dbuilding(
 		SLONG world_x,
 		SLONG world_y,
@@ -2499,6 +2600,9 @@ SLONG find_electric_fence_dbuilding(
 // flags in all the facets of the dbuilding.
 //
 
+// claude-ai: set_electric_fence_state — sets or clears FACET_FLAG_ELECTRIFIED on all facets of a DBuilding.
+// claude-ai: Called by mission scripts to turn electric fences on or off at runtime.
+// claude-ai: Iterates dfacets[StartFacet..EndFacet) for the given dbuilding index.
 void set_electric_fence_state(SLONG dbuilding, SLONG onoroff)
 {
 	SLONG facet;
@@ -2516,6 +2620,12 @@ void set_electric_fence_state(SLONG dbuilding, SLONG onoroff)
 	}
 }
 
+// claude-ai: SUPERMAP_counter_increase — increments one of 2 global frame counters.
+// claude-ai: Each DFacet has DFacet.Counter[2] — when Counter[which] == SUPERMAP_counter[which]
+// claude-ai:   the facet has already been "visited" this frame (de-duplication in spatial queries).
+// claude-ai: On wrap-around (counter goes to 0), resets ALL facet counters to 0 to stay consistent.
+// claude-ai: This is a standard "generation stamp" trick to avoid clearing N entries every frame.
+// claude-ai: Used by AI pathfinding broad-phase to avoid processing the same facet twice.
 void SUPERMAP_counter_increase(UBYTE which)
 {
 	SUPERMAP_counter[which] += 1;

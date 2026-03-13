@@ -1,3 +1,15 @@
+// claude-ai: id.cpp — Indoor Display (interior building renderer and geometry builder)
+// claude-ai: "ID" = Interior Display. Builds and renders 3D interiors when player is inside a building.
+// claude-ai: This is the PC/non-PSX path only — the entire file is wrapped in #ifndef PSX.
+// claude-ai: Interiors are NOT rendered through the PAP terrain system or standard AENG_draw_warehouse;
+// claude-ai: instead they use a dedicated ID_face/ID_point flat mesh built procedurally per building.
+// claude-ai: Main data pipeline: ID_set_outline() → ID_calculate_in_points() → ID_fill_in_squares()
+// claude-ai:   → ID_make_walls() → ID_make_connecting_doors() → ID_assign_room_types()
+// claude-ai:   → ID_make_furniture() → produces ID_face[] list rendered per-frame by ID_draw().
+// claude-ai:
+// claude-ai: Coordinate system note: x = east, z = north (like the rest of the engine), y = up.
+// claude-ai: One mapsquare = 256 units (ELE_SHIFT = 8). Ceiling height = 0x100 above floor y.
+
 #include "game.h"
 #include "id.h"
 #include "maths.h"
@@ -7,6 +19,8 @@
 #ifndef		PSX
 
 
+// claude-ai: YOU_WANT_THIN_WALLS — disabled (0). Controls whether interior walls have visible
+// claude-ai: thickness. Thin-wall mode makes walls infinitely thin planes (no top quad generated).
 //
 // Do you want thin walls
 //
@@ -14,6 +28,8 @@
 #define YOU_WANT_THIN_WALLS	0
 
 
+// claude-ai: ID_CEILING_HEIGHT = 256 units above INDOORS_HEIGHT_FLOOR.
+// claude-ai: ID_WALL_WIDTH = 8 units — the half-thickness used when computing corner control points.
 //
 // The height of the ceiling
 //
@@ -25,6 +41,9 @@
 // Points.
 //
 
+// claude-ai: ID_Point — a 3D vertex in the indoor mesh, stored in 8-bit-per-mapsquare fixed point.
+// claude-ai: 'index' field is reused at runtime to cache the transformed (screen-space) point index.
+// claude-ai: Up to 1024 unique points per building interior.
 typedef struct
 {
 	UWORD x;		// 8-bits per mapsquare.
@@ -44,6 +63,11 @@ SLONG    ID_point_upto;
 // Faces.
 //
 
+// claude-ai: ID_Face — one polygon in the indoor mesh (quad or triangle).
+// claude-ai: ONFLOOR flags (bits 4-7) allow a compact floor-point encoding: when set for point N,
+// claude-ai: point[N] encodes packed (x >> 8, z >> 8) for a floor-level (y=0) point instead of
+// claude-ai: an index into ID_point[]. This saves space for the common case of flat floor quads.
+// claude-ai: Faces are stored per mapsquare in a linked list via ID_Square.next.
 #define ID_FACE_FLAG_QUAD		(1 << 0)	// Otherwise it is a triange and point 3 is unused.
 
 //
@@ -84,6 +108,11 @@ SLONG   ID_face_upto;
 // same time!
 //
 
+// claude-ai: ID_Square flags — state of one floor tile in the indoor floorplan grid.
+// claude-ai: A square can be BOTH inside and outside simultaneously (wall boundary squares).
+// claude-ai: DOORMAT = square just inside an exterior door (used for room-type "lobby" detection).
+// claude-ai: INMAT   = square adjacent to an interior connecting door.
+// claude-ai: WALL_XS/XL/ZS/ZL encode which edges of the square touch a wall segment.
 #define ID_FLOOR_FLAG_OUTSIDE   (1 << 0)
 #define ID_FLOOR_FLAG_INSIDE    (1 << 1)
 #define ID_FLOOR_FLAG_ON_WALL   (1 << 2)	// The bottom left hand corner of the square is on a wall.
@@ -557,6 +586,9 @@ inline UWORD ID_rand(void)
 
 
 
+// claude-ai: ID_get_point_index — vertex de-duplication for the indoor mesh.
+// claude-ai: Linear search from the end of the array (most-recently added is most likely to match).
+// claude-ai: Expensive O(N) per point insertion — acceptable since max points = 1024 per building.
 //
 // Returns the index of a point at (x,y,z). This function
 // will fail if the point could be used as packed (x,z).
@@ -715,6 +747,10 @@ void ID_add_face_to_square(
 }
 
 
+// claude-ai: ID_clear_floorplan — reset all indoor state before building a new interior.
+// claude-ai: Marks every ID_Square as OUTSIDE, clears point/face pools, resets bounding box.
+// claude-ai: Must be called before the ID_set_outline → ID_generate_floorplan pipeline.
+// claude-ai: NOTE: ID_face_upto starts at 1 (0 = NULL/end-of-list sentinel).
 void ID_clear_floorplan(void)
 {
 	SLONG i;
@@ -770,6 +806,11 @@ void ID_clear_floorplan(void)
 	}
 }
 
+// claude-ai: ID_set_outline — registers one exterior wall segment of the building footprint.
+// claude-ai: Parameters x1,z1,x2,z2 are in mapsquare coordinates (not world units).
+// claude-ai: 'id' is the building's editor ID (passed into the ID_get_type callback later).
+// claude-ai: 'num_blocks' = number of texture-sized blocks along this wall.
+// claude-ai: Also expands the bounding box (ID_floor_x1..x2, z1..z2) used by ID_FLOOR().
 void ID_set_outline(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG id, SLONG num_blocks)
 {
 	ASSERT(WITHIN(ID_wall_upto, 0, ID_MAX_WALLS - 1));
@@ -811,6 +852,9 @@ void ID_set_outline(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG id, SLONG num_
 	if (z2 > ID_floor_z2) {ID_floor_z2 = z2;}
 }
 
+// claude-ai: ID_set_get_type_func — installs the callback that determines per-block wall type.
+// claude-ai: Callback signature: get_type(wall_id, block_index) → ID_BLOCK_TYPE_WALL/WINDOW/DOOR.
+// claude-ai: Called once per building setup; the function pointer is used by ID_add_room_faces().
 void ID_set_get_type_func(SLONG (*get_type)(SLONG id, SLONG block))
 {
 	ID_get_type = get_type;
@@ -841,6 +885,12 @@ SLONG ID_colvect_old_next_col_vect;
 SLONG ID_colvect_old_next_col_vect_link;
 SLONG ID_colvect_stuff_valid;
 
+// claude-ai: ID_wall_colvects_insert — creates collision vectors for all active interior walls.
+// claude-ai: Called when player enters a building; these vectors provide physics wall collisions.
+// claude-ai: Records the old next_col_vect/next_col_vect_link so ID_wall_colvects_remove()
+// claude-ai: can cleanly undo them when the player exits the building.
+// claude-ai: Interior walls use prim_type = STOREY_TYPE_NOT_REALLY_A_STOREY_TYPE_... (long name!)
+// claude-ai: Inner walls insert paired bidirectional colvects with gaps at doorways.
 void ID_wall_colvects_insert()
 {
 	SLONG i;
@@ -1000,6 +1050,9 @@ void ID_wall_colvects_insert()
 	}
 }
 
+// claude-ai: ID_wall_colvects_remove — removes all interior wall colvects added by _insert.
+// claude-ai: Simply rolls back next_col_vect / next_col_vect_link to the saved values.
+// claude-ai: This is a fast O(N) clear — no individual dealloc needed since they're at the tail.
 void ID_wall_colvects_remove()
 {
 	SLONG i;
@@ -1255,6 +1308,13 @@ SLONG ID_is_wall_on_room_perim(
 // 2 are normally be on the corners of mapsquares.
 //
 
+// claude-ai: ID_create_mapsquare_faces — core face emitter for one wall block inside a building.
+// claude-ai: 'face_type' selects: NORMAL (solid wall), OUT_WINDOW (window quad), OUT_FRAME/FRAME
+// claude-ai:   (door opening with arch geometry), UPPER (warehouse upper storey wall).
+// claude-ai: Control points cpx/cpz are the 4 corners of the wall block in 8-bit fixed-point.
+// claude-ai: 'generate_top_wall_quad' adds a cap quad at ceiling height (WALLTOP texture).
+// claude-ai: Door frames are assembled from 5 quads: arch top (1), left side (2), right side (3),
+// claude-ai:   left jamb (4), right jamb (5) — matches poly_number 1..5 in ID_get_texture().
 void ID_create_mapsquare_faces(
 		UBYTE map_x,
 		UBYTE map_z,
@@ -1485,6 +1545,10 @@ typedef struct
 ID_Perim ID_perim[ID_MAX_PERIMS];
 SLONG    ID_perim_upto;
 
+// claude-ai: ID_calc_room_perim — traces the clockwise perimeter of a room from wall segments.
+// claude-ai: Result stored in ID_perim[]; returns FALSE if perimeter could not be assembled.
+// claude-ai: Used by ID_add_room_faces to emit floor/ceiling quads around each room.
+// claude-ai: Max perimeter length = ID_MAX_PERIMS = 32 segments — rooms must be convex-ish.
 SLONG ID_calc_room_perim(SLONG room)
 {
 	SLONG i;
@@ -2225,6 +2289,10 @@ void ID_add_room_faces(SLONG room)
 // Clears all the inside wall info.
 //
 
+// claude-ai: ID_clear_inside_walls — strips only interior walls (keeps exterior outline).
+// claude-ai: Called to regenerate the internal wall layout without rebuilding the whole building.
+// claude-ai: Strips all ID_WALL_T_INSIDE entries from the tail of the ID_wall[] array.
+// claude-ai: Also clears per-square flags (DOORMAT, INMAT, ON_WALL, FURNISHED, WALL_XS/ZS etc.)
 void ID_clear_inside_walls()
 {
 	SLONG i;
@@ -2748,6 +2816,11 @@ SLONG ID_intersects_badly(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
 // Calculate which squares belong in which rooms.
 //
 
+// claude-ai: ID_find_rooms — flood-fills the floor grid to assign rooms to interior squares.
+// claude-ai: Uses ray-casting from each inside square to count wall crossings (even = outside).
+// claude-ai: Each contiguous region of inside squares is a separate room; rooms are numbered 1..N.
+// claude-ai: Room 0 = NULL/no room. ID_room[] array is filled with bounding box and flags.
+// claude-ai: Also sets ID_FLOOR_FLAG_P_IN on the bottom-left corner of each inside square.
 void ID_find_rooms(void)
 {
 	SLONG i;
@@ -3089,6 +3162,10 @@ void ID_generate_room_info(void)
 // connected to each other without having to go into a ID_ROOM_TYPE_CORRIDOR.
 //
 
+// claude-ai: ID_find_flats — identifies which groups of rooms form distinct "flats" (apartments).
+// claude-ai: A flat = a set of rooms reachable from each other without leaving the building.
+// claude-ai: Assigns ID_room[i].flat index; ID_flat_upto = number of distinct flats found.
+// claude-ai: Used by ID_assign_flat_room_types to type rooms per-flat (not globally).
 void ID_find_flats(void)
 {
 	SLONG i;
@@ -3344,6 +3421,10 @@ void ID_assign_flat_room_types(SLONG flat)
 // in a house.
 //
 
+// claude-ai: ID_assign_room_types — heuristically labels each room: LOO, KITCHEN, LOUNGE, etc.
+// claude-ai: Called after ID_make_connecting_doors(). Driven by storey_type (HOUSE/WAREHOUSE/etc.)
+// claude-ai: Uses room area, shape (rectangular/corridor), adjacency to doors/stairs, flat number.
+// claude-ai: Result stored in ID_room[i].type — determines floor texture and furniture choices.
 void ID_assign_room_types(SLONG storey_type)
 {
 	SLONG i;
@@ -3661,6 +3742,11 @@ void ID_assign_room_types(SLONG storey_type)
 // on failure.
 //
 
+// claude-ai: ID_make_connecting_doors — places interior doorways between rooms.
+// claude-ai: Tries to ensure every room is reachable. Returns number of doors placed.
+// claude-ai: A door is represented by an interior wall segment (ID_WALL_T_INSIDE) with
+// claude-ai:   iw->door[0..2] encoding which blocks along the wall have doorway openings.
+// claude-ai: Doorways also set ID_FLOOR_FLAG_INMAT on adjacent floor squares.
 SLONG ID_make_connecting_doors(SLONG storey_type)
 {
 	SLONG i;
@@ -4499,6 +4585,10 @@ void ID_fit_stairs(void)
 // Fits a kitchen out. Returns FALSE on failure.
 //
 
+// claude-ai: ID_fit_kitchen — tries to place kitchen furniture in a room.
+// claude-ai: Looks for wall-aligned runs of free squares to place sink/counter units.
+// claude-ai: Returns TRUE if at least one piece of furniture was placed.
+// claude-ai: Sets ID_FLOOR_FLAG_FURNISHED on occupied squares to prevent overlap.
 SLONG ID_fit_kitchen(SLONG room)
 {
 	SLONG i;
@@ -5811,6 +5901,11 @@ SLONG ID_fit_radiators()
 // Puts down furniture. Returns FALSE on failure.
 //
 
+// claude-ai: ID_place_furniture — places furniture items in rooms based on room type.
+// claude-ai: Calls ID_fit_kitchen, ID_fit_loo, ID_fit_lounge etc. for appropriate rooms.
+// claude-ai: Furniture is stored in ID_furn[] as (x, z, prim_id, yaw) tuples.
+// claude-ai: prim_id references the mesh/primitive index in the furniture resource list.
+// claude-ai: ID_FLOOR_FLAG_FURNISHED is set on squares where furniture was placed.
 void ID_place_furniture()
 {
 	SLONG i;
@@ -5952,6 +6047,11 @@ SLONG ID_goes_through_stairs(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
 
 
 
+// claude-ai: ID_generate_inside_walls — procedural room subdivision for building interiors.
+// claude-ai: Randomly places interior walls to divide the floorplan into rooms.
+// claude-ai: Uses ID_get_wall_start() to pick start points (prefers corners).
+// claude-ai: The layout is then scored by ID_score_layout() and retried if score is low.
+// claude-ai: storey_type controls scoring heuristics: HOUSE vs WAREHOUSE vs APARTMENT.
 SLONG ID_generate_inside_walls(SLONG storey_type)
 {
 	SLONG i;
@@ -6488,6 +6588,10 @@ SLONG ID_is_there_a_room_accessible_from_only_one_other_room(void)
 	return FALSE;
 }
 
+// claude-ai: ID_score_layout_house_ground — scoring function for residential ground-floor layouts.
+// claude-ai: Prefers: lobby room (touching exterior door), lounge room, separate loo, kitchen.
+// claude-ai: Penalises: single rooms, poor connectivity, dead-end rooms with no connecting doors.
+// claude-ai: Called by ID_generate_inside_walls retry loop to select the best random layout.
 SLONG ID_score_layout_house_ground()
 {
 	SLONG i;
@@ -6827,6 +6931,11 @@ SLONG ID_score_layout(SLONG storey_type)
 // Works out which squares are inside and outside.
 //
 
+// claude-ai: ID_calculate_in_squares — determines which floor grid squares are inside/outside.
+// claude-ai: For each floor square, shoots a ray along Z and counts exterior wall crossings.
+// claude-ai: Odd crossings → inside; even → outside. Sets ID_FLOOR_FLAG_INSIDE/OUTSIDE per square.
+// claude-ai: Also computes ID_floor_area (count of inside squares) used in scoring.
+// claude-ai: Must be called after ID_set_outline() and before ID_generate_inside_walls().
 void ID_calculate_in_squares(void)
 {
 	SLONG   i;
@@ -7062,6 +7171,10 @@ void ID_calculate_in_squares(void)
 // Returns FALSE on failure.
 //
 
+// claude-ai: ID_calculate_in_points — classifies each grid vertex as inside or outside.
+// claude-ai: A vertex at (x,z) is inside if the floor square (x,z) has ID_FLOOR_FLAG_P_IN.
+// claude-ai: Sets ID_FLOOR_FLAG_ON_WALL for vertices that lie exactly on a wall line.
+// claude-ai: Used during face generation to determine which corner quads need to be generated.
 SLONG ID_calculate_in_points(void)
 {
 	SLONG   i;
@@ -7319,6 +7432,19 @@ SLONG ID_calculate_in_points(void)
 	return TRUE;
 }
 
+// claude-ai: ID_generate_floorplan — THE main entry point for building the complete interior.
+// claude-ai: Full pipeline (if find_good_layout):
+// claude-ai:   1. ID_calculate_in_squares() — ray-cast inside/outside
+// claude-ai:   2. ID_calculate_in_points()  — classify vertices
+// claude-ai:   3. Retry loop: ID_clear_inside_walls → ID_generate_inside_walls → ID_find_rooms
+// claude-ai:      → ID_generate_room_info → ID_assign_room_types → ID_score_layout
+// claude-ai:      → keep best layout
+// claude-ai:   4. ID_make_connecting_doors → ID_find_flats → ID_assign_flat_room_types
+// claude-ai:   5. ID_fit_stairs → ID_fit_doors → ID_fit_kitchen → ID_fit_loo → ID_fit_lounge
+// claude-ai:   6. ID_find_a_camera_for_each_room
+// claude-ai:   7. ID_place_furniture (if furnished)
+// claude-ai: 'seed' initialises ID_rand — same seed = same layout (deterministic by building ID).
+// claude-ai: 'stair' array passes in staircase positions from the map data.
 SLONG ID_generate_floorplan(SLONG storey_type, ID_Stair stair[], SLONG num_stairs, UWORD seed, UBYTE find_good_layout, UBYTE furnished)
 {
 	SLONG   i;
@@ -7743,6 +7869,10 @@ void ID_teleport_down_pos(ID_Stair *it, SLONG *tx, SLONG *tz)
    *tz = (it->z1 << 8) + 0x80;
 }
 
+// claude-ai: ID_change_floor — handles stair transition: moves player/thing to a new floor.
+// claude-ai: Searches inside_stairs[] for a staircase at (x,z) that connects floors.
+// claude-ai: Updates INDOORS_INDEX and INDOORS_INDEX_NEXT so renderer switches interior mesh.
+// claude-ai: Returns new inside_storey index, or 0 if no stair found.
 SLONG ID_change_floor(
 		SLONG  x,
 		SLONG  z,
@@ -8022,6 +8152,10 @@ void ID_this_is_where_i_am(SLONG x, SLONG z)
 	}
 }
 
+// claude-ai: ID_should_i_draw — per-mapsquare visibility predicate for the indoor renderer.
+// claude-ai: Returns TRUE if the PAP terrain renderer should draw this mapsquare's floor tile.
+// claude-ai: Delegates to ID_should_i_draw_mapsquare which checks if (x,z) is inside the
+// claude-ai: current storey's bounding box and has an interior room assigned.
 SLONG ID_should_i_draw(SLONG x, SLONG z)
 {
 	SLONG room;
@@ -8126,6 +8260,10 @@ void ID_get_point_mapsquare(SLONG face, SLONG point, SLONG *x, SLONG *z)
 	*z = p_index >> 8;
 }
 
+// claude-ai: ID_get_point_position — decodes a face vertex to (x,y,z) world coordinates.
+// claude-ai: If vertex is ONFLOOR (packed x,z encoding), y = INDOORS_HEIGHT_FLOOR.
+// claude-ai: Otherwise unpacks from ID_point[] array. All values in 8-bit fixed-point.
+// claude-ai: Called by the renderer (AENG/PAP) to transform indoor geometry every frame.
 void ID_get_point_position(SLONG face, SLONG point, SLONG *x, SLONG *y, SLONG *z)
 {
 	SLONG p_index;
@@ -8226,6 +8364,9 @@ void ID_get_room_camera(UBYTE room, SLONG *x, SLONG *y, SLONG *z)
 }
 
 
+// claude-ai: ID_remove_inside_things — teleports all Things that are flagged as being indoors
+// claude-ai: back to the nearest outdoor point. Called when a building is entered/exited to
+// claude-ai: clean up NPCs that got stuck inside when the interior was not active.
 void ID_remove_inside_things(void)
 {
 	SLONG i;
@@ -8262,6 +8403,11 @@ void ID_remove_inside_things(void)
 }
 
 
+// claude-ai: ID_get_face_texture — unpacks UV coordinates for an interior face.
+// claude-ai: Calls ID_get_texture_uvs() which decodes the packed UWORD texture descriptor.
+// claude-ai: Returns the D3D/texture page number for submission to the render pipeline.
+// claude-ai: NOTE: NOT portable — returns a page index into the DirectX texture atlas.
+// claude-ai: claude-ai: NOT portable — replace with OpenGL equivalent (texture unit + atlas UV)
 SLONG ID_get_face_texture(SLONG face,
 		float *u0, float *v0,
 		float *u1, float *v1,
@@ -8478,6 +8624,11 @@ SLONG ID_calc_height_at(SLONG x, SLONG z)
 
 
 
+// claude-ai: ID_collide_2d — indoor 2D collision: tests whether a movement vector hits a wall.
+// claude-ai: Iterates all ID_Wall segments (exterior + interior). For inner walls: skips doorway gaps.
+// claude-ai: Returns sliding movement vector (slide_x, slide_z) that avoids penetrating walls.
+// claude-ai: x1,z1 = current position; x2,z2 = desired position; radius = capsule radius.
+// claude-ai: This runs every physics tick when the player is indoors (INDOORS_INDEX != 0).
 SLONG ID_collide_2d(
 		SLONG  x1, SLONG z1,
 		SLONG  x2, SLONG z2,

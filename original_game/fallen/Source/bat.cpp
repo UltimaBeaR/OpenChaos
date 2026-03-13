@@ -2,6 +2,114 @@
 // Bats/gargoles that circle an area and swoop to attack the player.
 //
 
+// claude-ai: ============================================================
+// claude-ai: FILE OVERVIEW: bat.cpp
+// claude-ai: ============================================================
+// claude-ai: Despite the filename, this is NOT about a cricket bat weapon.
+// claude-ai: This file implements the CLASS_BAT entity AI system, which
+// claude-ai: covers THREE distinct enemy types sharing the same Thing class:
+// claude-ai:
+// claude-ai:   BAT_TYPE_BAT      (type 1) — small flying bats, ambient
+// claude-ai:                                 creatures, circle home area,
+// claude-ai:                                 swoop to attack player if close
+// claude-ai:   BAT_TYPE_GARGOYLE (type 2) — gargoyles, start on ground,
+// claude-ai:                                 wake up and fly when player
+// claude-ai:                                 approaches, larger + tougher
+// claude-ai:   BAT_TYPE_BALROG   (type 3) — boss enemy, large on-ground
+// claude-ai:                                 creature, permanently on fire,
+// claude-ai:                                 uses MAV pathfinding, attacks
+// claude-ai:                                 with swipe/stomp/fireball/charge
+// claude-ai:   BAT_TYPE_BANE     (type 4) — another boss, hovering,
+// claude-ai:                                 summons nearby dead civilians
+// claude-ai:                                 to rise and float (Bane boss)
+// claude-ai:
+// claude-ai: All types share: BAT_normal() per-frame update function,
+// claude-ai: BAT_apply_hit(), BAT_change_state(), BAT_set_anim(), BAT_animate().
+// claude-ai:
+// claude-ai: Coordinate scale: WorldPos is in 1/256 units (>> 8 gives map units).
+// claude-ai: Timer: BAT_TICKS_PER_SECOND = 160 (not real seconds).
+// claude-ai:
+// claude-ai: AI STATE MACHINE — states (BAT_STATE_*):
+// claude-ai:   IDLE           — hovering in place, decelerating (bat/gargoyle)
+// claude-ai:   GOTO           — flying toward a fixed world point (want_x/y/z)
+// claude-ai:   CIRCLE         — orbiting home point or target's head; transitions
+// claude-ai:                    to ATTACK when close enough and timer expires
+// claude-ai:   ATTACK         — swooping dive attack (gargoyle only)
+// claude-ai:   DYING          — falling to ground (gargoyle: staged fall anim)
+// claude-ai:   DEAD           — corpse on ground
+// claude-ai:   GROUND         — gargoyle sitting on ground, awakens when player
+// claude-ai:                    enters range; substates: WAIT → WAKE_UP → FLY_UP
+// claude-ai:   RECOIL         — knockback after taking hit
+// claude-ai:   BALROG_WANDER  — Balrog wandering city (uses WAND pathfinder +
+// claude-ai:                    MAV for nav, slide collision with buildings)
+// claude-ai:   BALROG_ROAR    — Balrog roar anim; plays S_BALROG_ROAR sound;
+// claude-ai:                    triggered on new target found or after attack
+// claude-ai:   BALROG_FOLLOW  — Balrog following target via MAV pathfinding
+// claude-ai:   BALROG_CHARGE  — high-speed dash toward target
+// claude-ai:   BALROG_SWIPE   — close-range claw swipe attack
+// claude-ai:   BALROG_STOMP   — area stomp attack
+// claude-ai:   BALROG_FIREBALL— projectile attack: turns to face target first
+// claude-ai:                    (FIREBALL_TURN substate), then fires particle
+// claude-ai:                    (POLY_PAGE_METEOR, PFLAG_EXPLODE_ON_IMPACT)
+// claude-ai:   BALROG_IDLE    — Balrog idle pose with timer
+// claude-ai:   BANE_IDLE      — Bane hovering idle
+// claude-ai:   BANE_ATTACK    — Bane attack; creates spark beams to summoned
+// claude-ai:                    floating bodies (BAT_summon[] array, up to 4)
+// claude-ai:   BANE_START     — Bane finds nearby dead/AI_NONE civilians via
+// claude-ai:                    THING_find_sphere, calls set_person_float_up()
+// claude-ai:
+// claude-ai: SUBSTATES (BAT_SUBSTATE_*) used within state processing:
+// claude-ai:   CIRCLE_HOME / CIRCLE_TARGET / CIRCLE_WANT — orbit destination
+// claude-ai:   GROUND_WAIT / GROUND_WAKE_UP / GROUND_FLY_UP — gargoyle awaken
+// claude-ai:   DEAD_INITIAL / DEAD_LOOP / DEAD_FINAL — staged death fall
+// claude-ai:   YOMP_START / YOMP_MIDDLE / YOMP_END — Balrog movement phases
+// claude-ai:   FIREBALL_TURN / FIREBALL_FIRE — Balrog fireball two-step
+// claude-ai:
+// claude-ai: BALROG TARGET SELECTION (BAT_change_state):
+// claude-ai:   Finds all CLASS_PERSON + CLASS_VEHICLE in 0xa00 radius,
+// claude-ai:   scores by distance (Y weighted 2x), halves score for current
+// claude-ai:   target (hysteresis), halves again for player (PlayerID != 0).
+// claude-ai:   Uses MAV_do reachability check before scoring.
+// claude-ai:   When hit, Balrog immediately retargets to aggressor.
+// claude-ai:
+// claude-ai: BAT_EWAY COUNTER (for Balrog kills):
+// claude-ai:   When Balrog's target dies, increments EWAY_counter[8] — this
+// claude-ai:   is how the mission scripting tracks Balrog kill count.
+// claude-ai:
+// claude-ai: BALROG COLLISION:
+// claude-ai:   BAT_balrog_slide_along() — custom building-avoidance sliding.
+// claude-ai:   Uses MAV_opt flags for edge traversability + PAP_FLAG_HIDDEN
+// claude-ai:   (building cell) checks. Width constant: BAT_BALROG_WIDTH=0x3000.
+// claude-ai:
+// claude-ai: BALROG VISUAL EFFECTS:
+// claude-ai:   Created with PYRO_IMMOLATE + PYRO_FLAGS_FLICKER = permanent fire.
+// claude-ai:   Dynamic light via NIGHT_dlight_create (warm orange glow).
+// claude-ai:
+// claude-ai: DAMAGE / DEATH:
+// claude-ai:   BAT_apply_hit() — Bane is completely immune (early return).
+// claude-ai:   Bats take half damage; Balrog takes 1/16 damage (very tanky).
+// claude-ai:   On death: gargoyle plays staged FALL anim sequence;
+// claude-ai:   Balrog plays BAT_ANIM_BALROG_DIE + S_BALROG_DEATH sound.
+// claude-ai:   Blood splash: POLY_PAGE_SMOKECLOUD2 particle, skipped if !VIOLENCE.
+// claude-ai:
+// claude-ai: BAT CREATION: BAT_create(x, z, yaw, type) — allocates Thing +
+// claude-ai:   Bat struct, sets up DrawTween (DT_ROT_MULTI / DT_ANIM_PRIM),
+// claude-ai:   calls add_thing_to_map(), sets StateFn = BAT_normal.
+// claude-ai:
+// claude-ai: ANIMATIONS (per type):
+// claude-ai:   Bat:      FLY(1), DIE(2)
+// claude-ai:   Gargoyle: WAIT(1), FLY(2), FLY_UP(3), ATTACK(4), ...
+// claude-ai:   Balrog:   YOMP(2), IDLE(3), SWIPE(4), ROAR(9), STOMP(10),
+// claude-ai:             TAKE_HIT(11), DIE(12)
+// claude-ai:   Bane:     IDLE(2), ATTACK(3)
+// claude-ai:   Generic anims: BAT_ANIM_GENERIC_FLY(-1), GENERIC_TAKE_HIT(-2)
+// claude-ai:   resolved per type via generic_bat_anim lookup table.
+// claude-ai:
+// claude-ai: COORDINATE SYSTEM NOTE:
+// claude-ai:   home_x/home_z stored as >>16 of WorldPos (mapsquare units).
+// claude-ai:   want_x/want_y/want_z stored as >>8 of WorldPos (fine map units).
+// claude-ai: ============================================================
+
 //
 // Across a triangle...
 //
@@ -120,6 +228,10 @@ CBYTE *BAT_state_name[BAT_STATE_NUMBER] =
 
 UWORD BAT_summon[BAT_SUMMON_NUM_BODIES];
 
+// claude-ai: BAT_find_summon_people() — Bane boss: scans radius 0x800 for dead or
+// claude-ai: AI_NONE civilians (pcom_ai==PCOM_AI_NONE or PCOM_AI_SUICIDE, PlayerID==0).
+// claude-ai: Populates BAT_summon[0..3] with up to 4 THING_INDEX values.
+// claude-ai: Called on BANE_START state entry to find bodies to float upward.
 void BAT_find_summon_people(Thing *p_thing)
 {
 	SLONG i;
@@ -185,6 +297,10 @@ void BAT_find_summon_people(Thing *p_thing)
 // Creates sparks from the given bat to the summoning people.
 //
 
+// claude-ai: BAT_process_bane_sparks() — visual effect for Bane boss attack.
+// claude-ai: Every 5 seconds (16*20*5 ticks), creates SPARK beams from Bane's
+// claude-ai: limb 0 to each summoned body's SUB_OBJECT_PELVIS using SPARK_create().
+// claude-ai: Static 'last' counter accumulates TICK_RATIO-scaled ticks between calls.
 void BAT_process_bane_sparks(Thing *p_thing)
 {
 	SLONG i;
@@ -274,6 +390,11 @@ void BAT_init()
 #define BAT_ANIM_GENERIC_FLY			(-1)	// An anim that changes depending on the type of bat!
 #define BAT_ANIM_GENERIC_TAKE_HIT		(-2)
 
+// claude-ai: BAT_set_anim() — sets the active animation on a bat/gargoyle/balrog/bane.
+// claude-ai: Negative anim indices are "generic" placeholders resolved via a 2D lookup
+// claude-ai: table indexed by [type-1][generic_id]: GENERIC_FLY(-1), GENERIC_TAKE_HIT(-2).
+// claude-ai: No-op if the requested anim is already playing (CurrentAnim check).
+// claude-ai: Resets AnimTween=0, FrameIndex=0 and clears SYNC_FX flags on change.
 void BAT_set_anim(Thing *p_thing, SLONG anim)
 {
 	if (anim < 0)
@@ -319,6 +440,10 @@ void BAT_set_anim(Thing *p_thing, SLONG anim)
 // Animates the bat. Returns TRUE if the current anim is over.
 //
 
+// claude-ai: BAT_animate() — advances the DrawTween animation by TICK_RATIO-scaled steps.
+// claude-ai: TweenStep from keyframe is doubled (<<1) then multiplied by TICK_RATIO/TICK_SHIFT.
+// claude-ai: Calls advance_keyframe() for each full frame crossed; returns TRUE if
+// claude-ai: the animation reached its last frame (used to trigger state transitions).
 SLONG BAT_animate(Thing *p_thing)
 {
 	SLONG ret = FALSE;
@@ -360,6 +485,10 @@ SLONG BAT_animate(Thing *p_thing)
 // Makes a bat turn towards his target. Returns the angle difference.
 //
 
+// claude-ai: BAT_turn_to_target() — steers bat toward p_thing->Genus.Bat->target_index.
+// claude-ai: Computes Arctan to target, calculates angular error dangle (clamped to
+// claude-ai: -1024..+1024), applies fractional turn based on bat speed. Returns raw
+// claude-ai: dangle value so caller can detect alignment (near-zero = facing target).
 SLONG BAT_turn_to_target(Thing *p_thing)
 {
 	SLONG dx;

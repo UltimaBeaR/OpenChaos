@@ -263,6 +263,71 @@ struct STAIR_Stair {
 | ROAD_MAX_NODES | 256 |
 | STAIR_MAX_STAIRS | 32 |
 
+## Рендеринг интерьеров (id.cpp)
+
+**Файл:** `fallen/Source/id.cpp` (~9300 строк)
+
+`id.cpp` = "interior display" — рендеринг 3D геометрии изнутри зданий.
+Работает только когда игрок находится внутри здания (STOREY_TYPE_INSIDE_*).
+
+### Pipeline id.cpp
+
+```
+ID_set_outline()                → задать периметр текущего внутреннего пространства
+ID_calculate_in_squares()       → определить что внутри/снаружи (flood-fill)
+ID_calculate_in_points()        → вычислить вершины геометрии
+ID_generate_floorplan()         → мастер-оркестратор: генерация всей интерьерной геометрии
+  ├── ID_find_rooms()           → топология комнат
+  ├── ID_find_flats()           → плоские поверхности
+  ├── ID_create_mapsquare_faces()  → генерация граней (стена/окно/дверь/верх)
+  ├── ID_generate_inside_walls() → процедурные внутренние стены
+  ├── ID_make_connecting_doors() → двери между комнатами
+  ├── ID_assign_room_types()    → назначение типов комнат
+  └── ID_score_layout_house_ground() → оценка планировки (дом/склад/офис)
+ID_draw()                       → рендеринг через D3D (замена на OpenGL при переносе)
+```
+
+### Runtime функции
+
+```c
+ID_change_floor(storey)      // переключить на другой этаж (при смене этажа)
+ID_collide_2d(x, z, r)      // 2D коллизия внутри здания (стены комнат)
+ID_calc_height_at(x, z)     // высота пола/потолка в точке
+ID_wall_colvects_insert()   // добавить коллизионные векторы для текущего интерьера
+ID_wall_colvects_remove()   // убрать коллизионные векторы при выходе
+```
+
+### Структуры id.cpp
+
+```c
+// Точка в интерьере
+struct ID_Point {
+    SLONG x, z;       // мировые координаты
+    UBYTE flags;      // corner, interior, edge
+};
+
+// Грань (полигон стены/пола/потолка)
+struct ID_Face {
+    UBYTE type;       // wall / window / door / floor / ceiling
+    UBYTE flags;      // walkable, dlit и т.д.
+};
+
+// Ячейка сетки в интерьере
+struct ID_Square {
+    UBYTE inside;     // TRUE если эта ячейка внутри
+    UBYTE room_id;    // к какой комнате относится
+};
+```
+
+### Важно для переноса
+
+- id.cpp генерирует **процедурную** геометрию интерьера — не берёт готовые полигоны из данных
+- Геометрия регенерируется при изменении этажа (ID_change_floor)
+- `ID_get_face_texture()` — маппинг тип-грани → D3D texture page (нужна замена на UV в OpenGL)
+- Весь рендеринг в `ID_draw()` использует устаревший D3D5 API — полная замена при переносе
+
+---
+
 ## Важно для переноса
 
 - Интерьеры — **не отдельная геометрия**, а те же DFacets с типами 17/19/20. Рендер переключается фильтрацией.

@@ -5,6 +5,76 @@
 //           sort of thing.
 //
 
+// claude-ai: ============================================================
+// claude-ai: FILE OVERVIEW: canid.cpp
+// claude-ai: ============================================================
+// claude-ai: Implements the dog/canine AI for Urban Chaos. These are
+// claude-ai: CLASS_ANIMAL entities of AnimalType ANIMAL_CANID. In the
+// claude-ai: final game, canids appear primarily as security/guard dogs.
+// claude-ai:
+// claude-ai: STATUS NOTE: This file is heavily unfinished in this
+// claude-ai: pre-release codebase. The main per-frame dispatch function
+// claude-ai: CANID_fn_normal() has its entire switch statement commented
+// claude-ai: out (lines ~973-985). Canids exist in the Thing list but
+// claude-ai: do nothing each frame. A large "CODE GRAVEYARD" section
+// claude-ai: (line ~992+) contains additional commented-out code for
+// claude-ai: flee/fly/perch behaviors that were partially designed but
+// claude-ai: never integrated. The final PS1/PC game likely finished
+// claude-ai: this system after this codebase snapshot.
+// claude-ai:
+// claude-ai: ARCHITECTURE:
+// claude-ai:   - Uses the ANIMAL subsystem: Animal struct holds all
+// claude-ai:     canid-specific state (substate, target, home, dest, counter)
+// claude-ai:   - ANIMAL_get_animal(thing) retrieves the Animal struct
+// claude-ai:   - DrawTween used for rendering (canid->Draw.Tweened)
+// claude-ai:   - Entirely excluded from Dreamcast build (#ifndef TARGET_DC)
+// claude-ai:
+// claude-ai: STATE MACHINE (via Animal::substate):
+// claude-ai:   CANID_SUBSTATE_NONE  (0) — uninitialised / do nothing
+// claude-ai:   CANID_SUBSTATE_SLEEP (1) — idle wait; counts down Animal::counter
+// claude-ai:                              then calls CANID_start_doing_something()
+// claude-ai:                              counter = Random()&0xff + 0x10
+// claude-ai:   CANID_SUBSTATE_PROWL (2) — walks to a random offset from home
+// claude-ai:                              (+/-4 map squares); uses MAV_do()
+// claude-ai:                              pathfinding with MAV_CAPS_GOTO only
+// claude-ai:                              (no jumping/falling). Calls 6sense+LOS
+// claude-ai:                              each frame to look for targets.
+// claude-ai:   CANID_SUBSTATE_CHASE (3) — chases target via MAV_do pathfinding;
+// claude-ai:                              transitions to BARK when close (<64 units
+// claude-ai:                              map-space, i.e. dx*dx+dz*dz < 4096).
+// claude-ai:   CANID_SUBSTATE_FLEE  (4) — (defined but never implemented in normal)
+// claude-ai:   CANID_SUBSTATE_BARK  (5) — face target and bark; transitions back
+// claude-ai:                              to CHASE if target moves away (>14000)
+// claude-ai:
+// claude-ai: SENSING / DETECTION:
+// claude-ai:   CANID_6sense() — proximity sense: THING_find_sphere radius 0xD0,
+// claude-ai:                    CLASS_PERSON only; immediately initiates chase.
+// claude-ai:   CANID_LOS()    — line-of-sight sense: larger radius (0xD0*5),
+// claude-ai:                    uses there_is_a_los() + Arctan angle check
+// claude-ai:                    (FOV cone ±256/2048 = ±45 degrees).
+// claude-ai:   CANID_can_see()— helper: checks if target is in FOV cone and
+// claude-ai:                    there_is_a_los() returns clear path.
+// claude-ai:   Prowl calls both 6sense AND LOS each frame; Sleep only calls 6sense.
+// claude-ai:
+// claude-ai: MOVEMENT — CANID_Homing(canid, dest_x, dest_z, wibble):
+// claude-ai:   Steers toward destination using Arctan + angular damping (>>3).
+// claude-ai:   Speed: 4 (run) when dist^2 > 48000, 6 (walk) when closer.
+// claude-ai:   Animation: anim 2 = run, anim 1 = walk (via ANIMAL_set_anim).
+// claude-ai:   Y position: PAP_calc_height_at() * 256 + 14000 (ground snap).
+// claude-ai:   Calls DIRT_gust() for footstep particle effects.
+// claude-ai:   dest coords passed as >>16 WorldPos (mapsquare units) shifted
+// claude-ai:   back to WorldPos by: (dest_x<<16)+(128<<8).
+// claude-ai:
+// claude-ai: INITIALISATION:
+// claude-ai:   CANID_fn_init() — called at STATE_INIT; records home_x/home_z
+// claude-ai:   from initial WorldPos>>16, then calls CANID_start_doing_something()
+// claude-ai:   which randomly selects PROWL (75%) or SLEEP (25%).
+// claude-ai:
+// claude-ai: COORDINATE NOTES:
+// claude-ai:   WorldPos is 32-bit fixed-point; >>16 = mapsquare, >>8 = fine unit.
+// claude-ai:   CANID_SENSE_RADIUS = 0xD0 in fine units (same scale as >>8 coords).
+// claude-ai: ============================================================
+
 
 #ifndef TARGET_DC
 
@@ -79,6 +149,9 @@ StateFunction CANID_state_function[] =
 //  Register canids with the animal system
 //
 
+// claude-ai: CANID_register() — stub; all ANIMAL_register calls are commented out.
+// claude-ai: Dogs were apparently going to use a multi-part .all mesh system
+// claude-ai: (doghead.all, dogfleg.all, etc.) but this was never completed.
 void CANID_register() {
 //	ANIMAL_register("data\\dog2.all",0,0,0);
 
@@ -101,6 +174,11 @@ void CANID_register() {
 //  straight-home towards a target
 //
 
+// claude-ai: CANID_Homing() — per-frame movement toward (dest_x, dest_z) in WorldPos units.
+// claude-ai: Implements smooth turning: angular error >> 3 per frame.
+// claude-ai: Speed selection: spd=4 (fast/run anim) if far, spd=6 (slow/walk) if near.
+// claude-ai: Note: higher spd value = SLOWER (SIN(angle)>>spd divides velocity).
+// claude-ai: wibble parameter is accepted but the wobble code is commented out.
 void CANID_Homing(Thing *canid, SLONG dest_x, SLONG dest_z, int wibble) {
     SLONG dx, dz;
 	Animal *animal = ANIMAL_get_animal(canid);
@@ -191,6 +269,10 @@ void CANID_Homing(Thing *canid, SLONG dest_x, SLONG dest_z, int wibble) {
 }
 
 
+// claude-ai: CANID_6sense() — proximity "smell/hearing" sense, no LOS required.
+// claude-ai: Scans THING_FIND_MOVING entities in radius 0xD0.
+// claude-ai: Only reacts to CLASS_PERSON (initiates chase) and CLASS_ANIMAL.
+// claude-ai: Returns 1 if a person was detected, 0 otherwise.
 int CANID_6sense(Thing *canid) {
 
 #define CANID_SENSE_RADIUS  (0xd0)
@@ -236,6 +318,9 @@ int CANID_6sense(Thing *canid) {
   return 0;
 }
 
+// claude-ai: CANID_can_see() — checks if target is within forward FOV cone (±45 degrees)
+// claude-ai: AND there is a clear line of sight (no buildings). Uses DrawTween->Angle
+// claude-ai: as the canid's facing direction. Angle range: 0-2047 (full circle).
 int CANID_can_see(Thing *canid, Thing *target) {
 	SLONG angle, dx, dz;
 //	DrawTween *dt = ANIMAL_get_drawtween(ANIMAL_get_animal(canid)); // returns head -- perfect
@@ -275,6 +360,9 @@ int CANID_can_see(Thing *canid, Thing *target) {
 
 }
 
+// claude-ai: CANID_LOS() — visual detection scan at radius 0xD0*5 (5x larger than 6sense).
+// claude-ai: For each CLASS_PERSON found, calls CANID_can_see() before chasing.
+// claude-ai: This represents the dog "spotting" something at longer range visually.
 int CANID_LOS(Thing *canid) {
 
 
@@ -355,6 +443,9 @@ void CANID_init_bark(Thing *canid, Thing *victim) {
 }
 
 
+// claude-ai: CANID_init_prowl() — picks a random cardinal direction offset (+/-4 squares)
+// claude-ai: from home, runs MAV_do() to get the next navigable step toward it.
+// claude-ai: Stores result in animal->dest_x/dest_z. Resets counter=0.
 void CANID_init_prowl(Thing *canid)
 {
 	int i,j;
@@ -385,6 +476,9 @@ void CANID_init_prowl(Thing *canid)
 }
 
 
+// claude-ai: CANID_init_chase() — sets target = victim, calculates MAV next step
+// claude-ai: toward victim's mapsquare. Animal::target stores a raw Thing pointer
+// claude-ai: (no refcounting — dangling pointer risk if victim dies!).
 void CANID_init_chase(Thing *canid, Thing *victim)
 {
 	int i,j;
@@ -935,6 +1029,9 @@ void CANID_process_land(Thing *canid)
 //
 // ========================================================
 
+// claude-ai: CANID_fn_init() — STATE_INIT handler. Records spawn position as home
+// claude-ai: (home_x = WorldPos.X>>16, home_z = WorldPos.Z>>16), then transitions
+// claude-ai: to STATE_NORMAL and begins the first behaviour via CANID_start_doing_something().
 void CANID_fn_init(Thing *canid)
 {
 	Animal *animal = ANIMAL_get_animal(canid);
@@ -956,6 +1053,11 @@ void CANID_fn_init(Thing *canid)
 
 }
 
+// claude-ai: CANID_fn_normal() — per-frame STATE_NORMAL handler. CRITICAL NOTE:
+// claude-ai: The entire substate dispatch switch is commented out here. This means
+// claude-ai: canids are completely inert at runtime in this codebase version.
+// claude-ai: The commented-out switch dispatches to: process_sleep, process_bark,
+// claude-ai: process_prowl, process_chase based on Animal::substate.
 void CANID_fn_normal(Thing *canid)
 {
 	SLONG i;

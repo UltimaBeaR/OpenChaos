@@ -2,6 +2,53 @@
 // File I/O for game (M.C.Diskett)
 //
 
+// claude-ai: ============================================================
+// claude-ai: OVERVIEW — io.cpp (2975 lines)
+// claude-ai: ============================================================
+// claude-ai: This file is the binary resource loader for the entire game.
+// claude-ai: It handles reading all persistent game data from disk.
+// claude-ai:
+// claude-ai: KEY RESPONSIBILITIES:
+// claude-ai:   1. load_game_map()       — reads .iam map file (PAP grid + animated prims + OB objects)
+// claude-ai:   2. load_prim_object()    — reads .prm files (static world mesh instances, prim 0-265)
+// claude-ai:   3. load_a_multi_prim()   — reads .moj files (hierarchical animated mesh containers)
+// claude-ai:   4. load_anim_system()    — reads .all files (complete anim chunk: mesh + keyframes)
+// claude-ai:   5. load_anim_prim_object() — reads animNN.all files (animated world objects)
+// claude-ai:   6. load_texture_styles() — reads style.tma (texture UV/flag tables for city tiles)
+// claude-ai:
+// claude-ai: FILE FORMATS LOADED HERE:
+// claude-ai:   .iam  — map file: PAP_Hi grid (128×128 cells, 6 bytes each) + static objects
+// claude-ai:   .prm  — prim object: PrimObject header + PrimPoint[] + PrimFace3[] + PrimFace4[]
+// claude-ai:   .moj  — multi-prim container: save_type + object count + N×read_a_prim() chunks
+// claude-ai:   .all  — anim system: save_type + N×.moj chunks + GameKeyFrameChunk (keyframe data)
+// claude-ai:   .tma  — texture style mapping: UV coords and flags per tile style
+// claude-ai:
+// claude-ai: PSX COMPATIBILITY:
+// claude-ai:   Under #ifdef PSX the file system is replaced with SpecialOpen/SpecialRead/SpecialClose
+// claude-ai:   which load the entire file into a GDisp_Bucket memory region from PSX CD or RAM FS.
+// claude-ai:   On PC, MFFileHandle / FileOpen / FileRead / FileClose are used (MFLib wrappers).
+// claude-ai:
+// claude-ai: PRIM DATABASE (global arrays from Prim.cpp):
+// claude-ai:   prim_points[]      — flat array of all PrimPoint structs (SWORD X,Y,Z — 6 bytes each)
+// claude-ai:   prim_faces3[]      — flat array of all PrimFace3 (triangles)
+// claude-ai:   prim_faces4[]      — flat array of all PrimFace4 (quads, also used for walkable faces)
+// claude-ai:   prim_objects[]     — array indexed by prim ID, holds Start/End ranges into above arrays
+// claude-ai:   prim_multi_objects[] — groups of prim_objects for one animated mesh variant
+// claude-ai:   next_prim_point / next_prim_face3 / next_prim_face4 / next_prim_object — cursors
+// claude-ai:   Indices start at 1 (index 0 is reserved/invalid sentinel).
+// claude-ai:
+// claude-ai: PRIM OBJECT LAYOUT (slots 0-265 reserved for static world prims):
+// claude-ai:   Slots  1-265  — static world prims loaded from server\prims\nprim###.prm (or prim###.prm)
+// claude-ai:   next_prim_object starts at 266 after clear_prims(), leaving room for static prims.
+// claude-ai:   Animated prims (anim_chunk[]) are above slot 265.
+// claude-ai:
+// claude-ai: INTERACTION WITH OTHER FILES:
+// claude-ai:   Prim.cpp   — provides the prim database arrays and manipulation functions
+// claude-ai:   ob.cpp     — OB_load_needed_prims() → calls load_prim_object() for each OB type
+// claude-ai:   elev.cpp   — calls load_game_map(), then load_needed_anim_prims()
+// claude-ai:   anim.cpp   — KeyFrameChunk / GameKeyFrameChunk structs filled by load_anim_system()
+// claude-ai: ============================================================
+
 #include "game.h"
 #include "pap.h"
 #include "sound.h"
@@ -30,6 +77,10 @@ void	skip_load_a_multi_prim(MFFileHandle	handle);
 //
 // PSX include
 //
+// claude-ai: PSX I/O layer — replaces MFFileHandle with SLONG (handle index into file_system[])
+// claude-ai: On PC, FileOpen/FileRead/FileClose map to MFLib file functions (real OS I/O).
+// claude-ai: On PSX, the entire file is pre-loaded into GDisp_Bucket memory from CD or RAM.
+// claude-ai: PSX I/O — replace with std::ifstream
 #include "libsn.h"
 extern	void			TEXTURE_choose_set(SLONG number);
 
@@ -44,6 +95,7 @@ extern	SLONG	SpecialOpen(CBYTE *name);
 extern	SLONG	SpecialRead(SLONG handle,UBYTE *ptr,SLONG s1);
 extern	SLONG	SpecialSeek(SLONG handle,SLONG mode,SLONG size);
 
+// claude-ai: PSX I/O macros — replace with std::ifstream in new version
 #define	FileOpen(x)		SpecialOpen(x)
 #define	FileClose(x)	SpecialClose(x)
 #define	FileCreate(x,y)	ASSERT(0)
@@ -71,6 +123,10 @@ extern	CBYTE	inside_names[64][20];
 
 #ifndef PSX
 #ifdef	NO_SERVER
+// claude-ai: Path globals for resource directories.
+// claude-ai: NO_SERVER mode: all paths relative to exe dir (e.g., "server\prims").
+// claude-ai: Server mode: paths point to network share (u:\urbanchaos\...).
+// claude-ai: In new game: replace with std::filesystem::path config from config.ini.
 CBYTE	EXTRAS_DIR[100]="data\\textures";
 CBYTE	PRIM_DIR[100]="server\\prims";
 CBYTE	DATA_DIR[100]="";
@@ -221,6 +277,8 @@ extern SLONG MFX_Seek_delay;
 #ifndef PSX
 
 
+// claude-ai: Snapshot/restore of prim database cursors — used during editor undo and
+// claude-ai: experimental prim loading to allow rolling back failed loads.
 UWORD	local_next_prim_point;
 UWORD	local_next_prim_face4;
 UWORD	local_next_prim_face3;
@@ -231,20 +289,20 @@ UWORD	local_next_prim_multi_object;
 void	record_prim_status(void)
 {
 
-	local_next_prim_point = next_prim_point;       
-	local_next_prim_face4 = next_prim_face4;       
-	local_next_prim_face3 = next_prim_face3;       
-	local_next_prim_object = next_prim_object;      
+	local_next_prim_point = next_prim_point;
+	local_next_prim_face4 = next_prim_face4;
+	local_next_prim_face3 = next_prim_face3;
+	local_next_prim_object = next_prim_object;
 	local_next_prim_multi_object=next_prim_multi_object;
 }
 
 void	revert_to_prim_status(void)
 {
 
-	next_prim_point =      local_next_prim_point;       
-	next_prim_face4 =      local_next_prim_face4;       
-	next_prim_face3 =      local_next_prim_face3;       
-	next_prim_object =     local_next_prim_object;      
+	next_prim_point =      local_next_prim_point;
+	next_prim_face4 =      local_next_prim_face4;
+	next_prim_face3 =      local_next_prim_face3;
+	next_prim_object =     local_next_prim_object;
 	next_prim_multi_object=local_next_prim_multi_object;
 }
 
@@ -314,6 +372,14 @@ void	change_extension(CBYTE	*name,CBYTE *add,CBYTE *new_name)
 }
 
 
+// claude-ai: load_texture_instyles() — loads instyle.tma (interior texture UV table)
+// claude-ai: Binary layout:
+// claude-ai:   [4 bytes] SLONG save_type
+// claude-ai:   [2 bytes] UWORD count_x, [2 bytes] UWORD count_y
+// claude-ai:   [count_x * count_y * sizeof(UBYTE)] inside_tex[][] — interior style indices
+// claude-ai:   [2 bytes] UWORD name_x, [2 bytes] UWORD name_y
+// claude-ai:   [name_x * name_y bytes] inside_names[][] — editor-only text labels (skipped in-game)
+// claude-ai: Used for interior building tiles (floors, walls of indoor areas).
 void	load_texture_instyles(UBYTE editor, UBYTE world)
 {
 	UWORD	temp,temp2;
@@ -357,6 +423,19 @@ void	load_texture_instyles(UBYTE editor, UBYTE world)
 }
 #endif
 
+// claude-ai: load_texture_styles() — loads style.tma (city tile texture UV + flag table)
+// claude-ai: Binary layout depends on save_type:
+// claude-ai:   [4 bytes] SLONG save_type
+// claude-ai:   if save_type 2..3: TextureInfo block (8*8*count entries) — skipped/seek
+// claude-ai:   [2 bytes] UWORD temp=200 (style count), [2 bytes] UWORD temp2=5..8 (UV slots per style)
+// claude-ai:   [200 * 5 * sizeof(TXTY)] textures_xy[][] — UV coordinate pairs per style slot
+// claude-ai:     TXTY: 2 bytes U + 2 bytes V (pixel coords within atlas)
+// claude-ai:   [2 bytes] UWORD 200, [2 bytes] UWORD 21
+// claude-ai:   [200 * 21 bytes] texture_style_names[][] — editor names, skipped in-game
+// claude-ai:   [2 bytes] UWORD 200, [2 bytes] UWORD 5
+// claude-ai:   [200 * 5 * sizeof(UBYTE)] textures_flags[][] — per-slot polygon type flags
+// claude-ai:     e.g. POLY_GT (Gouraud-textured) or POLY_FT (flat-textured)
+// claude-ai: PSX uses a .pma file with a different on-disc layout.
 #ifndef PSX
 void	load_texture_styles(UBYTE editor, UBYTE world)
 {
@@ -487,6 +566,13 @@ void	load_texture_styles(UBYTE editor, UBYTE world)
 
 }
 
+// claude-ai: load_anim_prim_object() — loads animNNN.all for a single animated world object.
+// claude-ai: 'prim' is an index 0-255 into anim_chunk[].
+// claude-ai: Animated world objects are placed entities like doors, fans, switches, rotating platforms.
+// claude-ai: File: "anim%03d.all" e.g. "anim003.all" for balrog (creature index 3).
+// claude-ai: Short-circuits (returns 0) if anim_chunk[prim].MultiObject[0] is already set.
+// claude-ai: anim_chunk[] array is defined in prim.cpp — indexed from 0, not 1.
+// claude-ai: next_anim_chunk tracks how many anim slots are in use.
 #ifndef TARGET_DC
 
 SLONG load_anim_prim_object(SLONG prim)
@@ -523,6 +609,10 @@ SLONG load_anim_prim_object(SLONG prim)
 
 extern	SLONG	save_psx;
 
+// claude-ai: load_needed_anim_prims() — post-map-load pass to ensure all anim prims are loaded.
+// claude-ai: Iterates all Things; for each CLASS_ANIM_PRIM, calls load_anim_prim_object(Index).
+// claude-ai: Also hard-loads balrog (3) and bane (4) if their level flags are set.
+// claude-ai: Called from load_game_map() after OB_load_needed_prims().
 void load_needed_anim_prims()
 {
 	SLONG c0;
@@ -614,6 +704,37 @@ void load_level_anim_prims(void)
 	}
 }
 
+// claude-ai: ============================================================
+// claude-ai: load_game_map() — loads the .iam map file
+// claude-ai: ============================================================
+// claude-ai: Called from elev.cpp step 3. Reads the entire city map in one pass.
+// claude-ai:
+// claude-ai: .IAM FILE BINARY LAYOUT:
+// claude-ai:   [4 bytes]  SLONG save_type             — version number (18..28 observed)
+// claude-ai:   if save_type > 23:
+// claude-ai:     [4 bytes] SLONG ob_size              — size of OB_Ob struct (version guard)
+// claude-ai:   [6*16384 bytes] PAP_Hi[128][128]       — high-res map grid, 6 bytes per cell:
+// claude-ai:                                             height, collision flags, terrain type
+// claude-ai:   if PSX and save_type >= 26:
+// claude-ai:     [4 bytes]  ULONG check               — sanity check = sizeof(UWORD)*128*128
+// claude-ai:     [32768 bytes] UWORD WARE_roof_tex[][] — PSX-specific rooftop texture remapping
+// claude-ai:     [4 bytes]  ULONG check2              — must equal 666
+// claude-ai:   [2 bytes]  UWORD anim_prim_count       — number of animated prims in level
+// claude-ai:   [N * sizeof(LoadGameThing)] LoadGameThing[] — animated prim placements
+// claude-ai:     Each: Type=MAP_THING_TYPE_ANIM_PRIM → load_anim_prim_object() + create_anim_prim()
+// claude-ai:   if save_type < 23:
+// claude-ai:     [OB_ob_upto * sizeof(OB_Ob)] OB_ob[]  — static objects (lampposts, bins, etc.)
+// claude-ai:     [OB_SIZE*OB_SIZE*sizeof(OB_Mapwho)] OB_mapwho[][] — spatial hash for OB objects
+// claude-ai:   super_map (loaded by load_super_map())
+// claude-ai:   after prims loaded:
+// claude-ai:   if save_type >= 20:
+// claude-ai:     [4 bytes] SLONG texture_set          — 0..21, selects city texture palette
+// claude-ai:   if save_type >= 25:
+// claude-ai:     [2*200*5 bytes] psx_textures_xy      — PSX texture UV remapping table
+// claude-ai:
+// claude-ai: After reading PAP_Hi, PAP_Lo mapwho data is zeroed (built at runtime).
+// claude-ai: Textures are NOT referenced here — they are loaded later via TEXTURE_load_needed().
+// claude-ai: ============================================================
 void	load_game_map(CBYTE *name)
 {
 	UWORD	i;
@@ -733,6 +854,10 @@ extern	UWORD WARE_roof_tex[PAP_SIZE_HI][PAP_SIZE_HI];
 			}
 		}
 
+		// claude-ai: OB (object) data is embedded in the .iam file only for save_type < 23.
+		// claude-ai: In newer maps (save_type >= 23) OB data is built from the super_map instead.
+		// claude-ai: OB_ob[] stores lamposts, bins, crates — static world dressing prim instances.
+		// claude-ai: OB_mapwho[OB_SIZE][OB_SIZE] is a separate spatial hash for OB lookups.
 		//
 		// All this ob nonsense are the objects on the map (like lamposts)
 		//
@@ -763,8 +888,12 @@ extern	UWORD WARE_roof_tex[PAP_SIZE_HI][PAP_SIZE_HI];
 
 		load_super_map(handle,save_type);
 
+		// claude-ai: Prim loading order: static prims first (OB_load_needed_prims), then anim prims.
+		// claude-ai: OB_load_needed_prims() iterates OB_ob[] array and calls load_prim_object()
+		// claude-ai: for each unique prim ID referenced. Only actually-used prims are loaded.
+		// claude-ai: This two-pass approach (map grid first, then prims) avoids loading unused prims.
 		//
-		// Load all the prim objects 
+		// Load all the prim objects
 		//
 
 		OB_load_needed_prims();
@@ -772,6 +901,10 @@ extern	UWORD WARE_roof_tex[PAP_SIZE_HI][PAP_SIZE_HI];
 	DebugText("Julyb npp %d npf3 %d name %s\n",next_prim_point,next_prim_face3,name);
 
 
+		// claude-ai: texture_set selects which city texture palette to use.
+		// claude-ai: texture_set == 0: default city (tarmac/brick), == 1: forest, == 5: snow/arctic.
+		// claude-ai: TEXTURE_choose_set() loads the appropriate texture atlas via DDEngine.
+		// claude-ai: world_type flag affects fog, ambient light, and sky colour.
 		if (save_type >= 20)
 		{
 			SLONG texture_set;
@@ -885,6 +1018,42 @@ extern	void	record_prim_status(void);
 //
 
 
+// claude-ai: ============================================================
+// claude-ai: load_prim_object() — loads one .prm file (static world prim)
+// claude-ai: ============================================================
+// claude-ai: A "prim" (primitive) is a static 3D mesh instance placed in the world by the
+// claude-ai: level editor — lampposts, bins, barrels, fences, trees, phone boxes, etc.
+// claude-ai: There are up to 266 prim types (IDs 1-265). Prim ID is an index into a global
+// claude-ai: lookup table; the physical mesh data lives in prim_points[]/prim_faces3[]/prim_faces4[].
+// claude-ai:
+// claude-ai: FILE LOCATIONS:
+// claude-ai:   Primary:  server\prims\nprim###.prm  (new format, file_type=1)
+// claude-ai:   Fallback: server\prims\prim###.prm   (old format, file_type=0)
+// claude-ai:
+// claude-ai: .PRM FILE BINARY LAYOUT (new format, file_type=1):
+// claude-ai:   [2 bytes]  UWORD save_type            — version tag (PRIM_START_SAVE_TYPE base)
+// claude-ai:   [32 bytes] char  name[]               — object name string (null-padded)
+// claude-ai:   [sizeof(PrimObject)] PrimObject        — StartPoint, EndPoint, StartFace3, EndFace3,
+// claude-ai:                                            StartFace4, EndFace4, coltype, damage,
+// claude-ai:                                            shadowtype, flag — all offsets are RELATIVE
+// claude-ai:                                            to the file's own prim_points start
+// claude-ai:   [num_points * sizeof(PrimPoint)] PrimPoint[] — SWORD X,Y,Z (6 bytes each)
+// claude-ai:                                            IMPORTANT: SWORD (int16), NOT SLONG (int32)!
+// claude-ai:                                            Older save_type uses OldPrimPoint (SLONG XYZ)
+// claude-ai:   [num_faces3 * sizeof(PrimFace3)] PrimFace3[]
+// claude-ai:   [num_faces4 * sizeof(PrimFace4)] PrimFace4[]
+// claude-ai:
+// claude-ai: .PRM FILE BINARY LAYOUT (old format, file_type=0):
+// claude-ai:   [sizeof(PrimObjectOld)] PrimObjectOld  — legacy struct, fields copied manually
+// claude-ai:   then same PrimPoint[], PrimFace3[], PrimFace4[] as above
+// claude-ai:
+// claude-ai: AFTER LOADING: face point indices are adjusted from file-relative to global-array
+// claude-ai:   offsets: Points[j] += next_prim_point - po->StartPoint
+// claude-ai: Then: next_prim_point, next_prim_face3, next_prim_face4 advanced.
+// claude-ai:
+// claude-ai: Already-loaded prims are detected by po->StartPoint != 0 (short-circuit return TRUE).
+// claude-ai: Textures are referenced by texture STYLE index (DrawFlags in PrimFace4), not filename.
+// claude-ai: ============================================================
 SLONG load_prim_object(SLONG prim)
 {
 	SLONG i;
@@ -1098,6 +1267,9 @@ SLONG load_prim_object(SLONG prim)
 	// Hard code the items!
 	// 
 
+	// claude-ai: Hard-coded PRIM_FLAG_ITEM for collectible item prims.
+	// claude-ai: These prims get special rendering (e.g. bobbing/spinning) and pickup collision.
+	// claude-ai: The prim ID constants (PRIM_OBJ_ITEM_HEALTH etc.) are defined in ob.h.
 	switch(prim)
 	{
 		case PRIM_OBJ_ITEM_HEALTH:
@@ -1127,6 +1299,10 @@ SLONG load_prim_object(SLONG prim)
 }
 
 
+// claude-ai: load_all_individual_prims() — editor-mode function to bulk-load every prim.
+// claude-ai: Clears the prim database first (clear_prims), then loads all 265 static prims
+// claude-ai: followed by all 255 anim prims. Used only in the editor, not at runtime.
+// claude-ai: At runtime, only required prims are loaded via OB_load_needed_prims().
 //
 // Loads in all the individual prim objects.
 //
@@ -1906,6 +2082,19 @@ LCTI obj 137 has f4 0 f3 0
 #ifndef PSX
 #ifndef TARGET_DC
 
+// claude-ai: read_a_prim() — reads one sub-object block from an open .moj or .all handle.
+// claude-ai: Used by load_a_multi_prim() and load_insert_a_multi_prim() for each body-part sub-mesh.
+// claude-ai: Binary block layout within the containing file:
+// claude-ai:   [32 bytes] char name[]          — sub-object name, stored in prim_names[next_prim_object]
+// claude-ai:   [4 bytes]  SLONG sp             — file-relative StartPoint index
+// claude-ai:   [4 bytes]  SLONG ep             — file-relative EndPoint index
+// claude-ai:   [(ep-sp) × sizeof(PrimPoint)] vertices  (SWORD XYZ) or OldPrimPoint (SLONG XYZ) if save_type<=3
+// claude-ai:   [4 bytes]  SLONG sf3 / [4 bytes] SLONG ef3
+// claude-ai:   [(ef3-sf3) × sizeof(PrimFace3)] triangle faces; point indices rebased by dp
+// claude-ai:   [4 bytes]  SLONG sf4 / [4 bytes] SLONG ef4
+// claude-ai:   [(ef4-sf4) × sizeof(PrimFace4)] quad faces; point indices rebased by dp
+// claude-ai:     dp = next_prim_point - sp  (translates file-relative indices to global-array indices)
+// claude-ai: FACE_FLAG_WALKABLE is cleared on all quad faces of animated mesh sub-objects.
 void	read_a_prim(SLONG prim,MFFileHandle	handle,SLONG	save_type)
 {
 	SLONG	c0;
@@ -1996,6 +2185,39 @@ void	read_a_prim(SLONG prim,MFFileHandle	handle,SLONG	save_type)
 
 //extern	struct	PrimMultiObject	prim_multi_objects[];
 
+// claude-ai: ============================================================
+// claude-ai: load_a_multi_prim() — loads one .moj file (multi-prim container)
+// claude-ai: ============================================================
+// claude-ai: A .MOJ file contains a group of prim sub-objects that together form one
+// claude-ai: animated character or vehicle mesh variant. Each sub-object is one body part
+// claude-ai: (e.g. torso, left arm, right arm) or one car panel.
+// claude-ai: Multiple .MOJ files can belong to one character (e.g. skin variants stored as
+// claude-ai: separate .MOJ files, loaded and registered in prim_multi_objects[]).
+// claude-ai:
+// claude-ai: .MOJ FILE BINARY LAYOUT:
+// claude-ai:   [4 bytes]  SLONG save_type            — version (3 or 4 observed)
+// claude-ai:   [4 bytes]  SLONG so                   — original StartObject index (file-relative)
+// claude-ai:   [4 bytes]  SLONG eo                   — original EndObject index (file-relative)
+// claude-ai:   for each object in [so, eo):
+// claude-ai:     read_a_prim() block:
+// claude-ai:       [32 bytes] char name[]             — sub-object name (body part label)
+// claude-ai:       [4 bytes]  SLONG sp                — StartPoint (file-relative)
+// claude-ai:       [4 bytes]  SLONG ep                — EndPoint
+// claude-ai:       [ep-sp * sizeof(PrimPoint)] vertices
+// claude-ai:       [4 bytes]  SLONG sf3               — StartFace3
+// claude-ai:       [4 bytes]  SLONG ef3               — EndFace3
+// claude-ai:       [(ef3-sf3) * sizeof(PrimFace3)] triangular faces
+// claude-ai:       [4 bytes]  SLONG sf4               — StartFace4
+// claude-ai:       [4 bytes]  SLONG ef4               — EndFace4
+// claude-ai:       [(ef4-sf4) * sizeof(PrimFace4)] quad faces
+// claude-ai:
+// claude-ai: After loading, prim_multi_objects[next_prim_multi_object] is filled with
+// claude-ai: {StartObject=next_prim_object, EndObject=next_prim_object+(eo-so)}.
+// claude-ai: Returns next_prim_multi_object index (or 0 on failure/file-not-found).
+// claude-ai:
+// claude-ai: The body part NAME strings in the sub-objects are critical — sort_multi_object()
+// claude-ai: in io.cpp uses them to match keyframe elements to mesh sub-objects by name.
+// claude-ai: ============================================================
 SLONG	load_a_multi_prim(CBYTE *name)
 {
 	SLONG			c0;
@@ -2119,6 +2341,11 @@ void	create_kline_bottle(void)
 	*/
 }
 
+// claude-ai: load_palette() — loads a 256-entry RGB palette file into ENGINE_palette[].
+// claude-ai: Binary layout: 256 × 3 bytes (R, G, B), one byte per channel, no alpha.
+// claude-ai: Used for 8-bit paletted rendering on PC (DirectX palettised surface).
+// claude-ai: On error, fills ENGINE_palette[] with random colours (visible glitch = file missing).
+// claude-ai: In new game (true-colour rendering) this entire system is irrelevant.
 void load_palette(CBYTE *palette)
 {
 #ifdef	PSX
@@ -2323,6 +2550,15 @@ SLONG	save_anim_system(struct GameKeyFrameChunk *p_chunk,CBYTE	*name)
 #endif
 #ifndef TARGET_DC
 #ifndef PSX
+// claude-ai: load_insert_game_chunk() — reads the GameKeyFrameChunk section from a .all file.
+// claude-ai: This is the animation data half of the .all bundle (the mesh half is the .moj blocks).
+// claude-ai: Memory is MemAlloc'd here for each sub-array (AnimKeyFrames, AnimList, TheElements,
+// claude-ai: FightCols, PeopleTypes). Sizes come from MaxKeyFrames/MaxElements/etc. fields.
+// claude-ai: POINTER FIXUP: addr1/addr2/addr3 are original save-time runtime addresses of each array.
+// claude-ai:   Each stored pointer value is: original_runtime_addr → rebased to new allocation.
+// claude-ai:   a_off = new_ptr - addr1 added to each stored NextFrame/PrevFrame/AnimList entry.
+// claude-ai: save_type > 4 uses convert_*_to_pointer() helpers; older files do manual fixup.
+// claude-ai: ULTRA_COMPRESSED_ANIMATIONS: compile-time flag to use compressed matrix format (PSX).
 SLONG	load_insert_game_chunk(MFFileHandle	handle,struct GameKeyFrameChunk *p_chunk)
 {
 	SLONG	save_type=0,c0;
@@ -2569,6 +2805,11 @@ extern	void	convert_fightcol_to_pointer(GameFightCol *p,GameFightCol *p_fight,SL
 
 }
 
+// claude-ai: load_insert_a_multi_prim() — reads one .moj block from an open .all file handle.
+// claude-ai: Difference from load_a_multi_prim(): takes an already-open handle (not a filename).
+// claude-ai: The .all file embeds multiple .moj blocks sequentially; this function reads one.
+// claude-ai: Same binary format as the standalone .moj file: save_type + so + eo + N×read_a_prim().
+// claude-ai: Returns new next_prim_multi_object-1 index on success, 0 on error.
 SLONG	load_insert_a_multi_prim(MFFileHandle	handle)
 {
 	SLONG			c0;
@@ -2598,6 +2839,74 @@ SLONG	load_insert_a_multi_prim(MFFileHandle	handle)
 }
 
 extern	ULONG	DONT_load;
+// claude-ai: ============================================================
+// claude-ai: load_anim_system() — loads a complete .all animation bundle
+// claude-ai: ============================================================
+// claude-ai: A .all file contains a complete animated character/creature bundle:
+// claude-ai:   - One or more .moj multi-prim mesh variants (skin types, LOD levels)
+// claude-ai:   - One GameKeyFrameChunk with all animation keyframe data
+// claude-ai:
+// claude-ai: Called for:
+// claude-ai:   - anim_chunk[0] = people (darci.all / thug.all)
+// claude-ai:   - anim_chunk[1] = bats, anim_chunk[2] = gargoyles
+// claude-ai:   - anim_chunk[3] = balrog, anim_chunk[4] = bane
+// claude-ai:   - animNNN.all   — animated world objects (doors, switches, fans, etc.)
+// claude-ai:
+// claude-ai: .ALL FILE BINARY LAYOUT:
+// claude-ai:   [4 bytes]  SLONG save_type            — file format version (2, 3, 4, or 5)
+// claude-ai:   if save_type > 2:
+// claude-ai:     [4 bytes] SLONG count               — number of .moj mesh chunks
+// claude-ai:     [count × load_insert_a_multi_prim() blocks]
+// claude-ai:   else (old format):
+// claude-ai:     [1 × load_insert_a_multi_prim() block]
+// claude-ai:   [load_insert_game_chunk() block]:
+// claude-ai:     [4 bytes] SLONG save_type           — game chunk version (must be > 1)
+// claude-ai:     [4 bytes] SLONG ElementCount        — body part count (15 for people)
+// claude-ai:     [2 bytes] SWORD MaxPeopleTypes       — number of person skin variants
+// claude-ai:     [2 bytes] SWORD MaxAnimFrames        — total named animation slots
+// claude-ai:     [4 bytes] SLONG MaxElements          — total keyframe element records
+// claude-ai:     [2 bytes] SWORD MaxKeyFrames         — total keyframe records
+// claude-ai:     [2 bytes] SWORD MaxFightCols          — fight collision volume count
+// claude-ai:     [MaxPeopleTypes * sizeof(BodyDef)] PeopleTypes[] — skin→body part mapping
+// claude-ai:     [2 bytes] UWORD check (must == 666)
+// claude-ai:     [4 bytes] ULONG addr1 (original runtime address — used to fix pointers)
+// claude-ai:     [MaxKeyFrames * sizeof(GameKeyFrame)] AnimKeyFrames[]
+// claude-ai:     [2 bytes] UWORD check (must == 666)
+// claude-ai:     [4 bytes] ULONG addr2
+// claude-ai:     [MaxElements * sizeof(GameKeyFrameElement)] TheElements[]
+// claude-ai:       GameKeyFrameElement: matrix (compressed 3×3) + OffsetX/Y/Z (body part delta)
+// claude-ai:     [2 bytes] UWORD check (must == 666)
+// claude-ai:     [MaxAnimFrames * sizeof(GameKeyFrame*)] AnimList[]  — named anim frame pointers
+// claude-ai:     [2 bytes] UWORD check (must == 666)
+// claude-ai:     [4 bytes] ULONG addr3
+// claude-ai:     [MaxFightCols * sizeof(GameFightCol)] FightCols[]
+// claude-ai:     [2 bytes] UWORD check (must == 666)
+// claude-ai:
+// claude-ai: POINTER FIXUP: stored pointers (NextFrame, PrevFrame, FirstElement, Fight, AnimList)
+// claude-ai:   are original runtime addresses. After loading, offsets are computed from addr1/addr2/addr3
+// claude-ai:   and all pointers are relocated to their new addresses (a_off, ae_off, af_off).
+// claude-ai:   save_type > 4 uses convert_keyframe_to_pointer() which does this more cleanly.
+// claude-ai:
+// claude-ai: The 'type' parameter selects selective skin loading:
+// claude-ai:   type=0 → load all variants
+// claude-ai:   type=1 → person.all — Darci always, others only if not in DONT_load bitmask
+// claude-ai:   type=2 → thug.all   — selective by character class (cop, rasta, MIB, mechanic, tramp)
+// claude-ai: ============================================================
+// claude-ai: load_anim_system() — top-level loader for a .all animation bundle file.
+// claude-ai: Entry point called from load_anim_prim_object() and from character init code.
+// claude-ai: Parameters:
+// claude-ai:   p_chunk — destination GameKeyFrameChunk (from anim_chunk[] array)
+// claude-ai:   name    — base filename, e.g. "anim003.all" or "people.all"
+// claude-ai:   type    — 0=creature/world object, 1=people (controls which skin variants to load)
+// claude-ai:
+// claude-ai: Constructs full path: DATA_DIR + "data\" + name → changes extension to .all
+// claude-ai: Calls free_game_chunk() first to release any previously loaded data.
+// claude-ai:
+// claude-ai: type==1 (people): DONT_load bitmask controls which mesh variants to skip.
+// claude-ai:   Bit positions correspond to PERSON_* enum values (PERSON_SLAG_TART etc.).
+// claude-ai:   When DONT_load has the bit set, skip loading the matching skin variant .moj block.
+// claude-ai:   This allows the game to save memory by not loading unused character skins.
+// claude-ai: p_chunk->MultiObject[] array holds indices into prim_multi_objects[]; null-terminated.
 SLONG	load_anim_system(struct GameKeyFrameChunk *p_chunk,CBYTE	*name,SLONG type)
 {
 	SLONG			c0,point;

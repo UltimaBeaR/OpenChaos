@@ -1,5 +1,25 @@
 // Game.h
 // Guy Simmons, 17th October 1997.
+// claude-ai: OVERVIEW — Game.h
+// claude-ai: THE central game header — included by almost every .cpp in the project.
+// claude-ai: Defines the `Game` struct (typedef'd, no tag) which holds ALL game-wide state:
+// claude-ai:   - simulation state (GameState, GameTurn, TickTock, RandSeed)
+// claude-ai:   - object pool pointers (People, Vehicles, etc.)
+// claude-ai:   - the world map (MAP array, PAP_SIZE_LO * PAP_SIZE_LO cells)
+// claude-ai:   - player RPG stats (Darci/Roper Strength/Constitution/Skill/Stamina)
+// claude-ai:   - indoors tracking (indoors_height_floor/ceiling, room index, building index)
+// claude-ai:   - gameplay flags (GameFlags, CrimeRate, MusicWorld, etc.)
+// claude-ai: One global instance: `the_game` (Game.cpp or elev.cpp).
+// claude-ai: Everything is accessed via macros like PEOPLE, MAP, GAME_TURN, etc.
+// claude-ai:
+// claude-ai: DRAW DISTANCE:
+// claude-ai:   DRAW_DIST = 22 on PC, 13 on PSX — controls how many map squares are rendered.
+// claude-ai:
+// claude-ai: THING_INDEX / COMMON_INDEX:
+// claude-ai:   UWORD (16-bit unsigned) on PC/D3D.
+// claude-ai:   SWORD (16-bit signed) on PSX.
+// claude-ai:   SLONG (32-bit) on Glide (commented out).
+// claude-ai:   These are indices into the object pools (Things[], People[], etc.).
 
 #ifndef	GAME_H
 #define	GAME_H
@@ -167,6 +187,13 @@ extern	struct MemTable save_table[];
 
 //---------------------------------------------------------------
 
+// claude-ai: GAME STATES (GameState bitmask):
+// claude-ai:   GS_ATTRACT_MODE — title/demo screen loop
+// claude-ai:   GS_PLAY_GAME    — normal gameplay
+// claude-ai:   GS_LEVEL_WON / GS_LEVEL_LOST — end-of-mission state
+// claude-ai:   GS_GAME_WON     — entire game completed
+// claude-ai:   GS_RECORD / GS_PLAYBACK / GS_REPLAY — demo recording/playback
+// claude-ai:   GS_EDITOR       — in-level editor mode (bit 16, separate from gameplay bits)
 // Game States.
 #define	GS_ATTRACT_MODE			(1<<0)
 #define	GS_PLAY_GAME			(1<<1)
@@ -180,6 +207,20 @@ extern	struct MemTable save_table[];
 
 #define	GS_EDITOR				(1<<16)
 
+// claude-ai: GAME FLAGS (GameFlags bitmask) — per-frame environmental state:
+// claude-ai:   GF_INDOORS      — player is currently inside a building (triggers indoor ambient)
+// claude-ai:   GF_SEWERS       — player is in the sewer network
+// claude-ai:   GF_PAUSED       — game is paused (input still runs)
+// claude-ai:   GF_RAINING      — rain is active (affects splash particles, detail level)
+// claude-ai:   GF_WINDY        — wind is active
+// claude-ai:   GF_SHOW_MAP     — minimap overlay visible
+// claude-ai:   GF_SHOW_CRIMERATE — crime rate HUD overlay visible
+// claude-ai:   GF_PLAYER_FIRED_GUN — set when player shoots; triggers attention/alert in NPCs
+// claude-ai:   GF_CONE_PENALTIES   — NPC vision cone penalties active
+// claude-ai:   GF_CARS_WITH_ROAD_PRIMS — vehicles use road primitive data
+// claude-ai:   GF_SIDE_ON_COMBAT   — side-scrolling combat mode
+// claude-ai:   GF_NO_FLOOR         — level has no floor geometry (sky level etc.)
+// claude-ai:   GF_DISABLE_BENCH_HEALTH — benches don't restore health
 // Game Flags.
 #define GF_INDOORS				(1<<0)
 #define GF_SEWERS				(1<<1)
@@ -195,11 +236,18 @@ extern	struct MemTable save_table[];
 #define GF_NO_FLOOR             (1<<11)
 #define GF_DISABLE_BENCH_HEALTH (1<<12)
 
+// claude-ai: SEASONS — stored in Game::Season (0..3). Controls sky colour and day length.
+// claude-ai:   Not fully implemented in this pre-release codebase; Season may be set but effects are minor.
 #define GAME_SEASON_SPRING		0
 #define GAME_SEASON_SUMMER		1
 #define GAME_SEASON_AUTUMN		2
 #define GAME_SEASON_WINTER		3
 
+// claude-ai: TIME OF DAY — Game::Time is a 24-hour clock in 8-bit fixed point (1.0 = 256 units).
+// claude-ai:   GAME_TIME_DAWN = 5 (5:00 AM)  — start of dawn, ambient light begins rising
+// claude-ai:   GAME_TIME_DUSK = 20 (8:00 PM) — start of dusk, ambient light starts falling
+// claude-ai:   At night: NIGHT_FLAG_NIGHTTIME set, lamppost/streetlight dlights become active.
+// claude-ai:   Time advances each game tick via NIGHT system (see night.cpp for actual progression).
 #define GAME_TIME_DAWN			5
 #define GAME_TIME_DUSK			20
 
@@ -213,6 +261,12 @@ extern	struct MemTable save_table[];
 #define	DETAIL_RAIN				(1<<7)
 
 
+// claude-ai: DETAIL FLAGS — bit flags controlling which visual detail effects are enabled.
+// claude-ai:   Stored in Game::DetailLevel (UWORD). Checked before spawning particles, reflections, etc.
+// claude-ai:   DETAIL_RAIN / DETAIL_SPLASH / DETAIL_MIST — weather effects
+// claude-ai:   DETAIL_REFLECTIONS / DETAIL_SHADOWS — visual quality toggles
+// claude-ai:   DETAIL_DIRT1/DIRT2 / DETAIL_PUDDLE — ground decal detail
+
 // Game structure.
 typedef struct
 {
@@ -221,15 +275,26 @@ typedef struct
 	UBYTE blue;
 
 } ENGINE_Col;
+// claude-ai: ENGINE_Col — 24-bit RGB colour used in the Gouraud palette (GamePal[256]).
+// claude-ai: GamePal is the global "gourad palette" — used for palette-based vertex colouring on PSX.
 
 
+// claude-ai: struct Game — THE single global game state struct. One instance: `the_game`.
+// claude-ai: Accessed everywhere via macros (GAME_STATE, PEOPLE, MAP, etc.)
+// claude-ai: In new game: split into proper subsystem objects. Do NOT port as a single monolith.
 typedef	struct
 {
+	// claude-ai: GameState  — bitmask of GS_* flags (current game mode: play/menu/record/etc.)
+	// claude-ai: GameTurn   — frame counter; increments every tick; used for cache invalidation (LIGHT_context_gameturn).
+	// claude-ai: GameFlags  — bitmask of GF_* flags (current environmental state per frame).
 	SLONG			GameState,
 					GameTurn,
 					GameFlags,
 
-					CameraCount,
+	// claude-ai: Object counts — number of active objects of each type in the pools.
+	// claude-ai: These are NOT pool sizes; actual pool sizes are defined as MAX_* in headers.
+	// claude-ai: Checked before iterating, e.g. `for (i=0; i<PERSON_COUNT; i++)`.
+				CameraCount,
 					PersonCount,
 					PlayerCount,
 					AnimalCount,
@@ -240,18 +305,35 @@ typedef	struct
 					SwitchCount,
 					BatCount,
 
-					DrawTweenCount,
+	// claude-ai: DrawTweenCount / DrawMeshCount — active animated objects (tweened vertex and mesh).
+	// claude-ai: PrimaryThingCount / SecondaryThingCount — Things linked list counts (primary = full Things, secondary = lightweight).
+				DrawTweenCount,
 					DrawMeshCount,
 					PrimaryThingCount,
 					SecondaryThingCount,
-					TickTock,
+	// claude-ai: TickTock    — milliseconds per frame (target = NORMAL_TICK_TOCK = 1000/15 ≈ 67ms = 15Hz).
+	// claude-ai: TickRatio   — (TickTock << TICK_SHIFT) / NORMAL_TICK_TOCK; scaled so 1.0 = 256 (fixed-point 8).
+	// claude-ai:               Multiply physics/motion values by TickRatio >> TICK_SHIFT to get frame-rate independent motion.
+	// claude-ai: TickInvRatio — inverse of TickRatio for division-free scaling.
+				TickTock,
 					TickRatio,
 					TickInvRatio,
-					RandSeed,
-					Time,		// In 24-hours in fixed point 8...
+	// claude-ai: RandSeed — deterministic RNG state. Updated by Random() macro: seed = seed*69069 + 1.
+	// claude-ai:            Critical for multiplayer sync — must use same seed on all clients.
+				RandSeed,
+	// claude-ai: Time   — game clock, 24-hour format, fixed-point 8 (256 units = 1 hour).
+	// claude-ai:          Range 0..6143 (24*256). Dawn at 5*256=1280, Dusk at 20*256=5120.
+	// claude-ai:          Set/read via GAME_TIME macro (note: macro references the_game.GameTime but field is `Time` — macro may be wrong/unused).
+	// claude-ai: Season — 0=Spring, 1=Summer, 2=Autumn, 3=Winter. Controls sky colour presets.
+				Time,		// In 24-hours in fixed point 8...
 					Season;
 
 	// Map members.
+	// claude-ai: Map — the main world collision/occupation grid.
+	// claude-ai:   Each MapElement holds: MapWho (linked list of Things occupying this cell), ColVectHead (collision vectors), flags.
+	// claude-ai:   Size is MAP_SIZE = MAP_WIDTH*MAP_WIDTH (typically 128x128 = 16384 cells).
+	// claude-ai:   On PSX/DC: Map[1] (dynamically allocated elsewhere to save BSS), on PC: full static array.
+	// claude-ai:   Access via MAP macro, MAP2(x,z) macro, or MAP_WHO(i) for occupation list.
 #if defined(PSX) || defined(TARGET_DC)
 	MapElement		Map[1];
 #else
@@ -259,6 +341,10 @@ typedef	struct
 #endif
 
 	// Thing members.
+	// claude-ai: Object pool pointers — all allocated at level load time (see save_table[]).
+	// claude-ai: Each pool is a flat array; objects are linked into free/used lists via Thing.Next indices.
+	// claude-ai: Pool sizes defined as MAX_VEHICLES, MAX_PEOPLE, etc. in respective headers.
+	// claude-ai: Accessed via VEHICLES, PEOPLE, THINGS macros. Cast via TO_VEHICLE(i), TO_PERSON(i) etc.
 	Vehicle			*Vehicles;//[MAX_VEHICLES];
 	Furniture       *Furnitures;//[MAX_FURNITURE];
 	Person			*People;//[MAX_PEOPLE];
@@ -275,20 +361,39 @@ typedef	struct
 	//
 	// The gourad palette
 	//
+	// claude-ai: GamePal[256] — 256-entry RGB palette used for Gouraud-shaded rendering on PSX.
+	// claude-ai: On PC/D3D this is present but vertex colours are computed differently (per NIGHT system).
+	// claude-ai: Accessed via ENGINE_palette macro.
 	ENGINE_Col		GamePal[256];
 
 	//draw types
+	// claude-ai: DrawTweens / DrawMeshes — pools for animated geometry draw descriptors.
+	// claude-ai:   DrawTween: keyframe-interpolated vertex animation (characters, doors, etc.)
+	// claude-ai:   DrawMesh:  rigid mesh with transform (Angle/Tilt/Roll orientation).
 	DrawTween		*DrawTweens;//[MAX_DRAW_TWEENS];
 	DrawMesh		*DrawMeshes;//[MAX_DRAW_MESHES];
 
+	// claude-ai: UsedPrimaryThings / UnusedPrimaryThings — head indices of linked lists for primary Thing pool.
+	// claude-ai: Same pattern for Secondary. Secondary Things are lightweight (no physics, just renderable markers).
 	THING_INDEX		UsedPrimaryThings,
 					UnusedPrimaryThings,
 					UsedSecondaryThings,
 					UnusedSecondaryThings;
 
+	// claude-ai: net_persons / net_players — pointers to Things for multiplayer remote entities.
+	// claude-ai: Up to 10 remote players. Only valid during multiplayer game (GS_PLAY_GAME with NumberPlayers > 1).
 	struct	Thing		   **net_persons;//[10];
 	struct	Thing		   **net_players;//[10];
 
+	// claude-ai: INDOORS TRACKING — set when player is inside a building storey.
+	// claude-ai:   indoors_height_floor/ceiling — vertical bounds of current storey (fixed-point world units).
+	// claude-ai:   indoors_dbuilding — index into dbuildings[] of the building the player is currently inside.
+	// claude-ai:   indoors_index — which building "inside slot" is active (maps to inside lighting set).
+	// claude-ai:   indoors_index_fade / _fade_ext / _fade_ext_dir — transition blend indices for entering/leaving buildings.
+	// claude-ai:   indoors_room / indoors_room_next — current room index for multi-room buildings.
+	// claude-ai:   indoors_index_next — next inside index (used during transitions).
+	// claude-ai: These control which NIGHT_cache square to use: exterior vs interior lighting.
+	// claude-ai: On Dreamcast: indoors_index_next, INDOORS_INDEX, INDOORS_ROOM all return 0 (hardcoded via macros).
 	SLONG			indoors_height_floor;		// The heights of the storey you are in.
 	SLONG			indoors_height_ceiling;
 	SLONG			indoors_dbuilding;			// The index of the FBuilding you are in.
@@ -299,20 +404,42 @@ typedef	struct
 	UWORD			indoors_index;
 	UWORD			indoors_room;
 	UWORD			indoors_room_next;
+	// claude-ai: NumberPlayers — actual number of connected players (1 = single player, 2+ = multiplayer).
+	// claude-ai: Packets[16] / Scores[16] — per-player network packet data and scores (up to 16 players).
+	// claude-ai: MyID — this client's player ID (0-based) in multiplayer.
 	SLONG			NumberPlayers;
 	ULONG			Packets[16];
 	SLONG			Scores[16];
 	SLONG			MyID;
+	// claude-ai: UserInterface — UI mode selector (which HUD/menu is showing). Accessed via USER_INTERFACE macro.
+	// claude-ai: DetailLevel — bitmask of DETAIL_* flags controlling visual quality toggles (rain, shadows, etc.).
+	// claude-ai: TextureSet — which texture set to load for this level (different cities/themes). Accessed via TEXTURE_SET.
 	SLONG			UserInterface;
 	UWORD			DetailLevel;
 	UWORD			TextureSet;
+	// claude-ai: CrimeRate — current crime level (0..100+). Loaded from level file via elev.cpp.
+	// claude-ai:             Affects mission score multiplier and police response intensity.
+	// claude-ai:             Accessed via CRIME_RATE macro. Modified by player actions during play.
+	// claude-ai: CrimeRateScoreMul — score multiplier derived from CrimeRate. Accessed via CRIME_RATE_SCORE_MUL.
 	SLONG			CrimeRate;
 	SLONG			CrimeRateScoreMul;
+	// claude-ai: FakeCivs — number of fake (scripted, non-AI) civilian Things active. Used by crowd system.
+	// claude-ai: SaveValid — non-zero if a valid save game exists for this slot. Checked before load.
+	// claude-ai: MusicWorld — index of the music set/world to use for this level. Accessed via MUSIC_WORLD.
+	// claude-ai: BoredomRate — how quickly NPCs become bored/wander. Accessed via BOREDOM_RATE.
 	UBYTE			FakeCivs;
 	UBYTE			SaveValid;
 	UBYTE			MusicWorld;
 	UBYTE			BoredomRate;
 
+	// claude-ai: PLAYER RPG STATS — persistent character attributes for both playable characters.
+	// claude-ai:   Darci Mason (female protagonist) and Roper (male partner).
+	// claude-ai:   Range: 0..255 each. Affect combat damage, health cap, hit chance, stamina recovery.
+	// claude-ai:   Strength:      melee/weapon damage multiplier
+	// claude-ai:   Constitution:  max health
+	// claude-ai:   Skill:         accuracy / hit probability
+	// claude-ai:   Stamina:       fatigue resistance / sprint duration
+	// claude-ai:   Saved/loaded with game save. Persist across missions.
 	UBYTE			DarciStrength;
 	UBYTE			DarciConstitution;
 	UBYTE			DarciSkill;
@@ -322,10 +449,16 @@ typedef	struct
 	UBYTE			RoperSkill;
 	UBYTE			RoperStamina;
 
+	// claude-ai: DarciDeadCivWarnings — running count of civilian kills by player.
+	// claude-ai:   Triggers warnings/mission failure when threshold exceeded.
+	// claude-ai:   Reset on new mission. Checked in person death logic.
 	UBYTE			DarciDeadCivWarnings;
 	UBYTE			padding[2];
 
 }Game;
+// claude-ai: NOTE: Game does NOT contain mission_hierarchy[] or best_found[][] or complete_point.
+// claude-ai: Those fields (mission progress, best results) are stored in a separate save-game struct,
+// claude-ai: NOT in `Game`. They are loaded/saved by elev.cpp / save.cpp into a different global.
 
 
 extern	Game			the_game;
