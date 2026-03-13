@@ -8,10 +8,18 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **Физика TODO**: WATER вне дренажа (водная высота), mount_ladder() в финале
-2. **Навигация TODO**: MAV_can_i_walk детали, NPC на крышах
-3. **Characters TODO**: Roper финальное поведение, Cop финальное поведение
-4. **Рендеринг TODO**: Crinkle система, POLY_frame_draw bucket sort, NIGHT_generate_walkable_lighting
+1. **Физика TODO**: WATER вне дренажа (водная высота)
+2. **Рендеринг TODO**: POLY_frame_draw bucket sort детали (как именно сортируются)
+3. **Освещение TODO**: MapElement.Colour → как применяется к вершинам при рендеринге
+4. **Controls TODO**: Double-click 200ms — GetTickCount() + DoubleClick[]+LastReleased[] механизм
+5. **Миссии TODO**: Точный binary layout .ucm файла (field mapping)
+
+**ВЫПОЛНЕНО в этой итерации (Навигация + Characters + Рендеринг):**
+- navigation.md: MAV_can_i_walk детальный алгоритм — нормализованный шаг ~0x40, проверка GOTO edges, диагональные corner cells, только GOTO caps
+- navigation.md: Навигация на крышах — крыши = обычные MAV ячейки с высоким MAVHEIGHT; PAP_FLAG_HIDDEN + roof_face → height установлен; без roof_face → PAP_FLAG_NOGO; скайлайты (prim 226/227) убраны из nav
+- characters.md: Подтверждено — people_functions[] маппит ВСЕ THUG → cop_states (fn_cop_init, не fn_thug_init); fn_thug_init с ASSERT(0) НИКОГДА не вызывается; fn_roper_normal() пуста — только PCOM; fn_cop_normal() #if 0 — только PCOM
+- rendering.md: Crinkle система полностью задокументирована — микро-геометрический bump mapping; 3D mesh → баринцентрически маппится на квад + нормаль-выдавливание; ПОЛНОСТЬЮ ОТКЛЮЧЁН (`return NULL` в CRINKLE_load, `if(0)` в aeng.cpp); не переносить
+- rendering.md: NIGHT_generate_walkable_lighting — МЁРТВЫЙ КОД (`return;` после roof_walkable); только NIGHT_generate_roof_walkable() реально вызывается
 
 **ВЫПОЛНЕНО в этой итерации (Здания/Интерьеры — TODO пункты):**
 - buildings_interiors.md: ID_generate_floorplan() — полный флоу: 32 seeds, find_good_layout, ID_generate_inside_walls (num_walls=area/16+1), ID_add_room_faces
@@ -189,6 +197,7 @@
 | **Миссии (EWAY)** | missions.md | ✅ Хорошо | 41 условие, 57 действий, .ucm ≠ MuckyBasic, polling каждый кадр |
 | **Загрузка уровня** | level_loading.md | ✅ Хорошо | 9 шагов, MAV_precalculate самый тяжёлый, игрок создаётся через EWAY |
 | **Рендеринг** | rendering.md | ✅ Достаточно | Полностью заменяем, DirectX6 → OpenGL |
+| **Рендеринг/Освещение** | rendering_lighting.md | ✅ Достаточно | NIGHT система детали, Crinkle (отключён в пре-релизе) |
 | **Состояния игрока** | player_states.md | ✅ Хорошо | Полные списки STATE_* и SUB_STATE_* |
 | **Эффекты** | effects.md | ✅ Достаточно | Частицы, огонь, ткань отключена |
 | **Форматы ресурсов** | resource_formats/ | ✅ Хорошо | .iam/.prm/.all/.lgt/.ucm задокументированы; .txc/.tma остались |
@@ -287,16 +296,16 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] Точные переходы состояний в Darci: JUMPING→LANDING — ГОТОВО (см. Person.cpp итог выше)
 - [x] `InterruptFrame` — МЁРТВЫЙ КОД: всегда 0 в пре-релизе, нигде не используется
 - [x] CMatrix33 декомпрессия — ГОТОВО: {SLONG M[3]} packed; GameKeyFrameElement 8б; scale=128; UCA_Lookup=Root(16383-a²-b²); cross product для строки 2
-- [ ] Roper финальное поведение — fn_roper_normal() пуста в пре-релизе, что в финале?
-- [ ] Cop финальное поведение — fn_cop_normal() в #if 0, что в финале?
-- [ ] Thug инициализация — ASSERT(0) в пре-релизе, финальная версия?
+- [x] Roper финальное поведение — ГОТОВО: fn_roper_normal() пуста, всё через PCOM; people_functions[] = roper_states только для Roper
+- [x] Cop финальное поведение — ГОТОВО: fn_cop_normal() #if 0; все NPC кроме Darci/Roper → cop_states (fn_cop_init реально работает)
+- [x] Thug инициализация — ГОТОВО: people_functions[] маппит THUG → cop_states → fn_cop_init (НЕ fn_thug_init!); fn_thug_init с ASSERT(0) НИКОГДА не вызывается
 
 ### НАВИГАЦИЯ (navigation.md) — TODO
 - [x] `WARE_mav_*()` детали — ГОТОВО: паттерн MAV_nav swap; enter→ближайшая дверь MAV_do; inside→warehouse local coords; exit→height check на дверь
 - [x] `INSIDE2_mav_*()` детали — ГОТОВО: enter работает; inside=ASSERT(0) заглушка; stair/exit=баги `>`вместо`>>`; nav_calc баг z-цикла
 - [x] Как MAV обновляется при изменении уровня — ГОТОВО: только двери (turn_on/off); взрывы НЕ обновляют MAV во время игры
-- [ ] Детали MAV_can_i_walk — LOS для навигации
-- [ ] Что происходит с навигацией когда NPC на крыше?
+- [x] Детали MAV_can_i_walk — ГОТОВО: нормализованный шаг ~0x40, cell-by-cell GOTO check, диагональ → ещё 2 угловые ячейки; только CAPS_GOTO
+- [x] Что происходит с навигацией когда NPC на крыше? — ГОТОВО: крыши = обычные MAV ячейки, MAVHEIGHT из roof_face.Y/0x40; без roof_face → NOGO; скайлайты убраны
 
 ### МИССИИ/EWAY (missions.md) — TODO
 - [x] Порядок разрешения зависимостей EventPoints — ГОТОВО (EWAY_created_last_waypoint linear pass, no cycle detection)
@@ -342,9 +351,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] `WARE_init()` — ГОТОВО: WARE_Ware полная структура, пулы nav/height/rooftex, door out/in coords
 
 ### РЕНДЕРИНГ (rendering.md) — TODO (низкий приоритет — заменяем)
-- [ ] Crinkle система — что это точно и как заменить на normal mapping
+- [x] Crinkle система — ГОТОВО: микро-геометрический bump mapping, mesh→квад проекция, ПОЛНОСТЬЮ ОТКЛЮЧЁН (`return NULL` + `if(0)`), не переносить
 - [ ] `POLY_frame_draw()` порядок сортировки — bucket sort детали
-- [ ] Как `NIGHT_generate_walkable_lighting()` работает
+- [x] Как `NIGHT_generate_walkable_lighting()` работает — ГОТОВО: МЁРТВЫЙ КОД (`return;`), только NIGHT_generate_roof_walkable() реально вызывается
 
 ### НЕ ЧИТАНЫ (нужно прочесть KB файлы)
 - [x] **camera.md** — ГОТОВО: FC only, 8-шаг raycast, get-behind, focus_yaw, toonear
@@ -464,6 +473,12 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - WAND_init(): PAP_FLAG_WANDER = ≤2 кл. от дороги (не HIDDEN); зебры (tex 333/334); -prim collision y≤terrain+64 снимает флаг
 - WAND_get_next_place(): 4 направления ±1 случайный сдвиг; scoring = dot product с текущим направлением; fallback = 16 проб ±15 кл.
 - InterruptFrame в DrawTween = МЁРТВЫЙ КОД: всегда NULL, нигде не присваивается ненулевое значение в пре-релизе
+- people_functions[]: ALL THUG (Rasta/Grey/Red) → cop_states → fn_cop_init (НЕ fn_thug_init!); fn_thug_init с ASSERT(0) никогда не вызывается
+- fn_roper_normal() = пустая функция (только return); fn_cop_normal() = #if 0 мёртвый код; весь NPC AI через PCOM
+- Crinkle = микро-геометрический bump mapping; ПОЛНОСТЬЮ ОТКЛЮЧЁН в пре-релизе (CRINKLE_load→NULL, aeng.cpp if(0)); не переносить
+- NIGHT_generate_walkable_lighting() = МЁРТВЫЙ КОД (`return;` после roof_walkable); только NIGHT_generate_roof_walkable() реально работает
+- MAV_can_i_walk: шаг ~0x40 субпикс, проверяет CAPS_GOTO на каждом ребре; диагональ → +2 угловые ячейки; только GOTO (не jump/climb)
+- Крыши в MAV: PAP_FLAG_HIDDEN + roof_face → MAVHEIGHT=roof_face.Y/0x40; без roof_face → PAP_FLAG_NOGO; скайлайты (prim 226/227) убраны из nav
 - CMatrix33 = {SLONG M[3]}: каждый M[row] packed 3×10-bit elements; scale=128 (не 32768)
 - GameKeyFrameElement (ULTRA_COMPRESSED) = 8 байт: {m00,m01,m10,m11: SBYTE; OffX,OffY,OffZ: SBYTE; Pad: UBYTE}
 - GetCMatrix(): UCA_Lookup[a][b]=Root(16383-a²-b²); Pad bits 0-1=знак c; bits 2-3=позиция c в строке0; bits 4-5=позиция c в строке1; строка2=crossproduct>>7, clamp±127

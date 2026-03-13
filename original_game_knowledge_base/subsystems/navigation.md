@@ -145,14 +145,36 @@ MAV_turn_off_whole_square(x, z)   // блокировать всю ячейку
 
 ### LOS для навигации
 
-`MAV_can_i_walk(x1,z1, x2,z2)`:
-- Трассирует путь шагами 0x40 единиц
-- Проверяет переход ячеек, диагональные углы
-- Возвращает TRUE если путь проходим, иначе устанавливает `MAV_last_mx/mz`
+`MAV_can_i_walk(ax,az, bx,bz)` — **path shortcutting**: проверяет, можно ли идти по прямой между двумя ячейками.
+
+**Алгоритм:**
+1. `dx = (bx-ax)<<4`, `dz = (bz-az)<<4` — разница в subpixel единицах
+2. `dist = QDIST2(|dx|,|dz|)` → нормализует: `dx = dx * (0x4000/dist) >> 8` → длина ~0x40
+3. Начинает с центра ячейки (a<<8 + 0x80), шагает по dx/dz каждую итерацию
+4. При пересечении границы ячейки (MAV_dmx или MAV_dmz ≠ 0):
+   - Проверяет `MAV_CAPS_GOTO` в нужном направлении из MAV_opt[]
+   - **Диагональный случай** (оба dmx и dmz ≠ 0): проверяет **ещё 2 угловые ячейки** (corner cells)
+5. Возвращает TRUE если достигли bx/bz; при FALSE → `MAV_last_mx/mz` = последняя успешная ячейка
+
+**Только GOTO**: проверяет исключительно `MAV_CAPS_GOTO`. Прыжки/climb/pull-up — только cell-by-cell.
+**Используется в**: `MAV_get_first_action_from_nodelist()` для оптимизации пути (пропуска промежуточных waypoints).
 
 Два варианта LOS по высоте:
 - `MAV_height_los_fast()` — только MAV_height карта
 - `MAV_height_los_slow()` — также `WARE_inside()` для складских интерьеров
+
+### Навигация на крышах
+
+Крыши — **обычные MAV-ячейки с высоким MAVHEIGHT**. Специального режима нет.
+
+`MAV_calc_height_array()` строит MAVHEIGHT grid:
+- Обычная ячейка: `MAVHEIGHT = PAP_calc_height_at(center) / 0x40` (terrain height)
+- Ячейка с `PAP_FLAG_HIDDEN` И roof walkable face → `MAVHEIGHT = roof_face.Y / 0x40` (высота крыши здания)
+- Ячейка с `PAP_FLAG_HIDDEN` БЕЗ roof face → `MAVHEIGHT = -127` → затем `= 127 + PAP_FLAG_NOGO` (недоступно)
+- WAREHOUSE тип → дополнительно устанавливает бит 15 в PAP_Hi.Texture для warehouse nav
+
+MAV_precalculate строит рёбра между roof-ячейками так же как между ground-ячейками (dh check, LOS, climb/jump).
+**Скайлайты** убираются из навигации: prim 226 (skylight) → удаляет 2 roof-face записи; prim 227 (large skylight) → 2×3 блок.
 
 ## NAV/Wallhug — вспомогательная система
 

@@ -329,6 +329,31 @@ person_thing->Draw.Tweened->PersonID = 6 + random_number % 4;
 
 - `fn_thug_init()` содержит **ASSERT(0)** — инициализация упадёт
 - Весь нормальный код также в `#if 0`
+- **В финальной игре**: `people_functions[]` маппит PERSON_THUG_RASTA/GREY/RED → `cop_states`, поэтому запускается `fn_cop_init()` (не fn_thug_init). fn_thug_init никогда не вызывается в рабочем коде.
+
+### Архитектурное подтверждение (people_functions[] таблица)
+
+```cpp
+// Person.cpp
+GenusFunctions people_functions[] = {
+    { PERSON_DARCI,          darci_states },
+    { PERSON_ROPER,          roper_states },
+    { PERSON_COP,            cop_states   },
+    { PERSON_CIV,            cop_states   },
+    { PERSON_THUG_RASTA,     cop_states   },  // НЕ thug_states!
+    { PERSON_THUG_GREY,      cop_states   },
+    { PERSON_THUG_RED,       cop_states   },
+    { PERSON_SLAG_TART,      cop_states   },
+    // ... все остальные → cop_states
+    { PERSON_MIB1/2/3,       cop_states   },
+};
+```
+
+**Итог:**
+- Все NPC кроме Darci/Roper → `fn_cop_init()` (реально работает), потом STATE_NORMAL = `fn_cop_normal()` (#if 0, мёртвый)
+- Весь AI через PCOM_process_person, state functions = заглушки после init
+- `fn_roper_normal()` пуста — Roper поведение только через PCOM
+- `fn_thug_init()` с ASSERT(0) — НИКОГДА не вызывается (thug_states не в people_functions!)
 
 ### Canid/Dog — сломан в пре-релизе
 
