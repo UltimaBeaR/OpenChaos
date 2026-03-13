@@ -45,6 +45,7 @@
 | WayWind (редакторный UI, не игра) | [subsystems/waywind.md](subsystems/waywind.md) |
 | MuckyBasic (не используется в игре) | [subsystems/muckybasic.md](subsystems/muckybasic.md) |
 | Математика и утилиты | [subsystems/math_utils.md](subsystems/math_utils.md) |
+| Взаимодействие (grab/ladder/cable) | [subsystems/interaction_system.md](subsystems/interaction_system.md) |
 
 ## Форматы ресурсов
 

@@ -386,3 +386,51 @@ process_things(frameindex):
 ### Коллизии с примитивами (BARREL_hit_with_prim)
 
 Oriented box test: prim→bounding box + yaw rotation → transform barrel sphere в object space → AABB test. При коллизии — push sphere к ближайшему краю бокса.
+
+---
+
+## 11. Moving Platforms (plat.cpp)
+
+**Файл:** `fallen/Source/plat.cpp` (`#ifndef PSX`)
+
+Динамически движущиеся меш-примитивы по waypoint-маршрутам. Игроки могут стоять на них.
+
+**Состояния:** PLAT_STATE_NONE / GOTO / PAUSE / STOP
+- GOTO: вектор к целевому waypoint, ускорение/замедление smooth
+- Arrival: overshoot correction; задержка 10 сек = "остановиться навсегда"
+- Коллизии: PLAT_MAX_FIND=8 ближайших персонажей, bounding box check
+- Визуал: rocket exhaust particles в GOTO состоянии (PC only)
+
+**Флаги:** PLAT_FLAG_LOCK_X / LOCK_Y / LOCK_Z — блокировка осей
+
+**Переносить:** ДА — активная игровая механика (лифты, движущиеся платформы)
+
+---
+
+## 12. Helicopter (chopper.cpp)
+
+**Файл:** `fallen/Source/chopper.cpp` (`#ifndef PSX`)
+
+Вертолёт-враг с вращающимися лопастями и AI pathfinding.
+
+**Лимиты:** MAX_CHOPPERS (пул), CLASS_CHOPPER Thing
+- HARDWIRED_RADIUS = 8192, DETECTION_RADIUS = 1024, IGNORAMUS_RADIUS = 6144
+- PRIM_OBJ_CHOPPER = 74, PRIM_OBJ_CHOPPER_BLADES = 75
+- Dispatch: CHOPPER_functions[type] — CHOPPER_CIVILIAN
+
+**Переносить:** Проверить в финальной игре — есть ли вертолёт? Если да → переносить.
+
+---
+
+## 13. Другие мелкие системы (триаж)
+
+| Файл | Назначение | Статус |
+|------|-----------|--------|
+| Pjectile.cpp | Generic projectile pool (alloc/free Thing+Projectile) | Минимальный (~50 строк); гранаты отдельно в grenade.cpp |
+| Switch.cpp | Proximity trigger (sphere check) | ПОЛУМЁРТВЫЙ: sphere detect работает, group/class = стабы |
+| lead.cpp | Верёвка/поводок (8-32 точек) | НЕДОДЕЛАН: создание работает, физика/симуляция неполная |
+| State.cpp | State function dispatch → char/vehicle/animal tables | Роутер, логика в characters.md |
+| Player.cpp | Аллокация Darci/Roper Thing | Минимальный обёртка |
+| animal.cpp | Canid entities | `#ifndef TARGET_DC`, стабы |
+| nd.cpp | Пустой файл | Только `#include "game.h"` |
+| morph.cpp | Shape keys (bird shapes) | НЕ используется в игре |

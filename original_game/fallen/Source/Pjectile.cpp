@@ -1,3 +1,6 @@
+// claude-ai: PROJECTILE POOL — minimal allocator: init/alloc/free for CLASS_PROJECTILE Things
+// claude-ai: PROJECTILES[MAX_PROJECTILES] pool; alloc_projectile(type) → alloc_thing + link
+// claude-ai: Grenades have separate system (grenade.cpp); this is generic pool wrapper
 // Pjectile.cpp
 // Guy Simmons, 4th January 1998
 

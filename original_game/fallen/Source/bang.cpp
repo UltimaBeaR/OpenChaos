@@ -1,3 +1,12 @@
+// claude-ai: BANG SYSTEM — hierarchical visual explosion spheres (purely visual, NO damage)
+// claude-ai: BANG_Bang[64] roots + BANG_Phwoar[4096] particles in linked lists + MapWho spatial hash
+// claude-ai: 4 cascade types: BIG(invisible root,spawn 6 MIDDLE)→MIDDLE(grow fast,white→black)→NEARLY→END
+// claude-ai: BANG_Type: initial_radius/grow, RGB+delta(4-bit fp), die(lifetime), child[6]{counter,type,where}
+// claude-ai: Phwoar physics: direction normalized to 64, radius+=grow>>2+1, Y drift +=counter<<1 (upward)
+// claude-ai: BANG_create(type,x,y,z) → root bang; BANG_process() per-frame: grow→spawn children→remove dead
+// claude-ai: BANG_get_start/get_next() → renderer iterator (MapWho x-range culling)
+// claude-ai: Damage/shockwave is SEPARATE → create_shockwave() in combat.md
+// claude-ai: For new_game: port cascade logic + timings; replace rendering with GPU particles
 //
 // Explosions!
 //

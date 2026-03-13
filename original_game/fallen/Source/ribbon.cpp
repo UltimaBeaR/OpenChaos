@@ -1,3 +1,15 @@
+// claude-ai: RIBBON SYSTEM — circular buffer trail renderer for fire/smoke/wheelspray
+// claude-ai: Ribbon = chain of 3D points rendered as triangle strip with texture + alpha fade
+// claude-ai: MAX_RIBBONS=64, MAX_RIBBON_SIZE=32 points per ribbon
+// claude-ai: API: alloc(flags,segments,page,life,fade,scroll,u,v,rgb) → 1-based ID (0=fail)
+// claude-ai:   extend(id,x,y,z) — add point to head (circular buffer, skips during GAMEMENU pause)
+// claude-ai:   free(id), life(id,ticks), length(id), process(), draw()
+// claude-ai: Flags: CONVECT(+22 Y/frame=fire updrift), FADE(alpha gradient), SLIDE(texture scroll), IALPHA(inverted alpha=smoke)
+// claude-ai: process(): Scroll+=SlideSpeed; CONVECT→Y+=22 all points; Life--→free at 0
+// claude-ai: alloc uses static NextRibbon circular scan for free slot; Life=-1=infinite
+// claude-ai: Renderer: RIBBON_draw_ribbon() in drawxtra.cpp:2536 — triangle strip Tail→Head
+// claude-ai: Users: PYRO(IMMOLATE/FLICKER/FLAMER=FLAMES3), drawxtra(CHOPPER/FIREWORK), bike(SMOKER=dead code)
+// claude-ai: For new_game: port circular buffer + convection logic 1:1; replace renderer with modern API
 //
 // ribbon.cpp
 // special effects: smoke, fire, wheelspray... all sorts

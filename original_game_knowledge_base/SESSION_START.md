@@ -7,12 +7,37 @@
 
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
-**Рекомендация:** Начать фазу 2 — планирование new_game/ (KB ~95%, все подсистемы ✅, все эффекты ✅)
+**Рекомендация:** Начать фазу 2 — планирование new_game/ (KB ~97%, все подсистемы ✅, все эффекты ✅, interact/bang/ribbon/plat/chopper покрыты)
 
 **Варианты если продолжать анализ:**
-1. **Оставшиеся неаннотированные файлы** — проверить через grep "claude-ai" что ещё не покрыто
-2. **Перекрёстная верификация KB** — проверить что все факты из аннотаций попали в KB файлы
-3. **ribbon.cpp** (RIBBON engine для огня/дыма) — используется в PYRO, не задокументирован отдельно
+1. **Перекрёстная верификация KB** — проверить что все факты из аннотаций попали в KB файлы
+2. **Оставшиеся ~180 неаннотированных файлов** — большинство = редактор/PSX/рендеринг (заменяем), см. триаж ниже
+
+**ВЫПОЛНЕНО в этой итерации (ribbon + bang + interact + triage):**
+- ribbon.cpp полный анализ (144 строки): circular buffer trail renderer для огня/дыма
+- Ribbon: MAX_RIBBONS=64, MAX_RIBBON_SIZE=32; CONVECT(+22 Y/frame), FADE, SLIDE, IALPHA
+- RIBBON_alloc circular scan, 1-based ID (0=fail); RIBBON_extend circular buffer Head/Tail
+- RIBBON_draw_ribbon() в drawxtra.cpp:2536 — triangle strip рендерер
+- Используется в: PYRO(IMMOLATE/FLICKER/FLAMER), drawxtra(CHOPPER/FIREWORK), bike(dead)
+- bang.cpp полный анализ: иерархическая визуальная система взрывов (НЕ урон)
+- BANG_Bang[64] + BANG_Phwoar[4096]; 4 каскадных типа: BIG→MIDDLE→NEARLY→END
+- Phwoar: direction norm=64, radius+=grow>>2+1, Y drift +=counter<<1; child[6] spawn schedule
+- interact.cpp полный анализ (~900 строк): grab/ladder/cable система — НОВАЯ ВАЖНАЯ ИНФО
+- find_grab_face(): 2-pass search (hi-res roof / lo-res walkable), 4 edges per quad, fence check
+- Cable params PACKED in DFacet: StyleIndex=angle_step1, Building=angle_step2, Height=count
+- find_cable_y_along(): cosine dip curve; check_grab_ladder_facet(): -1=above(falling), 1=valid
+- valid_grab_angle() = ALWAYS 1 (disabled); find_grab_face_in_sewers = PC-only (НЕ переносить)
+- calc_sub_objects_position(): bone world pos during animation (tween 0-255)
+- interaction_system.md создан: полное описание grab/ladder/cable механик
+- Триаж ~188 неаннотированных файлов: большинство = редактор/PSX/рендеринг
+- plat.cpp: moving platforms — АКТИВНЫЙ КОД, waypoint paths, GOTO/PAUSE/STOP, LOCK_X/Y/Z
+- chopper.cpp: вертолёт-враг — АКТИВНЫЙ КОД, CHOPPER_CIVILIAN, detection radii
+- Pjectile.cpp: generic projectile pool — минимальный wrapper (3 функции)
+- Switch.cpp: proximity triggers — ПОЛУМЁРТВЫЙ (sphere detect ок, group/class = стабы)
+- lead.cpp: верёвка/поводок — НЕДОДЕЛАН; nd.cpp = ПУСТОЙ; morph.cpp = НЕ используется
+- effects.md: добавлены разделы 11 (RIBBON) и 11a (BANG) с полными деталями + таблица переноса
+- game_objects.md: добавлены разделы 11 (Moving Platforms), 12 (Helicopter), 13 (мелкие системы триаж)
+- Аннотированы: ribbon.cpp, bang.cpp, interact.cpp, plat.cpp, chopper.cpp, Pjectile.cpp (header блоки)
 
 **ВЫПОЛНЕНО в этой итерации (pow + pyro + dirt):**
 - pow.cpp полный анализ (973 строки): sprite-based visual explosions, 8 типов, cascade spawning
@@ -315,8 +340,10 @@
 ## Статус фазы анализа
 
 **Фаза 1 (текущая):** Детальный анализ оригинального кода → запись в `original_game_knowledge_base/`
-- KB написана примерно на 95%
-- Исходники аннотированы примерно на 75%+ (48+ файлов с аннотациями)
+- KB написана примерно на 97% — все геймплейные подсистемы покрыты
+- Исходники аннотированы: 54+ файлов с `// claude-ai:` комментариями
+- Оставшиеся ~180 неаннотированных файлов = в основном редактор/PSX/рендеринг (заменяем)
+- **Готово к фазе 2** (планирование new_game)
 
 ---
 
@@ -350,6 +377,7 @@
 | **Прогресс/сохранения** | player_progress.md | ✅ Хорошо | .wag: var-str+CRLF, v0-3, hierarchy bits, best_found=анти-фарм |
 | **Матем/утилиты** | math_utils.md | ✅ Хорошо | 2 стека (PSX int/PC float), glm для новой игры |
 | **Игровые состояния** | game_states.md | ✅ Хорошо | per-frame порядок, DarciDeadCivWarnings, GS_REPLAY=goto, bench cooldown |
+| **Взаимодействие** | interaction_system.md | ✅ Хорошо | find_grab_face 2-pass, cable params в DFacet, ladder, zipwire |
 | **WayWind** | waywind.md | ❌ Не нужен | Редактор, не переносить |
 | **MuckyBasic** | muckybasic.md | ❌ Не нужен | Не интегрирован с игрой |
 
@@ -366,6 +394,9 @@ interfac.cpp     → controls.md + player_states.md + camera.md
 Vehicle.cpp      → vehicles.md + physics.md
 Special.cpp      → weapons_items.md + combat.md
 Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
+interact.cpp     → interaction_system.md + physics.md + controls.md + characters.md
+plat.cpp         → game_objects.md + missions.md (waypoints)
+chopper.cpp      → game_objects.md + ai.md
 ```
 
 ---
@@ -431,6 +462,12 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | **mav.cpp** | ~152 ann. | ✅ (MAV navigation grid, precalculate, caps) |
 | **sound.cpp** | ~103 ann. | ✅ (Miles Sound System, MFX, ambient biomes) |
 | **door.cpp** | ~33 ann. | ✅ (двери, MAV_turn_on/off, height check) |
+| **ribbon.cpp** | 1 header блок | ✅ (circular buffer trail: CONVECT/FADE/SLIDE, 64×32, triangle strip) |
+| **bang.cpp** | 1 header блок | ✅ (hierarchical visual explosions: 4 cascade types, 64×4096, MapWho) |
+| **interact.cpp** | 1 header блок | ✅ (grab/ladder/cable: 2-pass search, DFacet cable params, bone positions) |
+| **plat.cpp** | 1 header блок | ✅ (moving platforms: waypoint paths, GOTO/PAUSE/STOP, collision) |
+| **chopper.cpp** | 1 header блок | ✅ (helicopter enemy: CIVILIAN type, detection radii, rotor anim) |
+| **Pjectile.cpp** | 1 header блок | ✅ (generic projectile pool: 3 functions, minimal wrapper) |
 
 ---
 
@@ -596,6 +633,17 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - complete_point диапазон 0-24+
 - CRIME_RATE: если 0 → дефолт 50
 - startscr.cpp (game build) = только `CBYTE STARTSCR_mission[_MAX_PATH]`; весь остальной код = #ifdef EDITOR
+- RIBBON: circular buffer trail renderer; MAX_RIBBONS=64, MAX_RIBBON_SIZE=32; CONVECT=+22 Y/frame (fire updrift)
+- RIBBON_alloc → 1-based ID (0=fail); RIBBON_draw_ribbon() в drawxtra.cpp:2536 → triangle strip Tail→Head
+- BANG: иерархические визуальные взрывы (НЕ урон!); 4 каскадных типа BIG→MIDDLE→NEARLY→END; BANG_Phwoar[4096]
+- interact.cpp: find_grab_face() = 2-pass (hi-res roof, lo-res walkable); checks 4 edges per quad
+- Cable/zipwire params PACKED в DFacet: StyleIndex=angle_step1, Building=angle_step2, Height=count (переиспользование полей!)
+- valid_grab_angle() = ALWAYS 1 (валидация отключена в пре-релизе)
+- plat.cpp: moving platforms АКТИВНЫ; waypoint GOTO/PAUSE/STOP; LOCK_X/Y/Z; collision с персонажами
+- chopper.cpp: вертолёт-враг АКТИВЕН; CHOPPER_CIVILIAN; DETECTION_RADIUS=1024
+- Switch.cpp: ПОЛУМЁРТВЫЙ — sphere proximity detect работает, group/class = стабы
+- lead.cpp: верёвка/поводок НЕДОДЕЛАН; nd.cpp = ПУСТОЙ файл; morph.cpp = НЕ используется
+- Триаж 188 файлов без аннотаций: ~118 Source + ~48 DDEngine + ~22 DDLibrary; 90%+ = editor/PSX/rendering
 - STARTSCR_mission flow: FE_MAPSCREEN+ENTER→mode=100+N; ещё ENTER→FE_START→STARTSCR_mission set→STARTS_START→GS_PLAY_GAME→elev.cpp→ELEV_load_name→*STARTSCR_mission=0
 - DONT_load = 0 жёстко в frontend.cpp → per-mission dontload bitmasks игнорируются
 - this_level_has_bane = ТОЛЬКО index 27 в whattoload[] = Finale1.ucm

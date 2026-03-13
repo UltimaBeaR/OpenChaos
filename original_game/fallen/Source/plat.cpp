@@ -1,3 +1,9 @@
+// claude-ai: MOVING PLATFORMS — dynamic mesh prims following waypoint paths
+// claude-ai: States: NONE/GOTO/PAUSE/STOP; GOTO = vector to waypoint + accel/decel smooth
+// claude-ai: Arrival: overshoot correction; delay 10s = "stop forever"
+// claude-ai: PLAT_FLAG_LOCK_X/Y/Z = axis locking; collision: PLAT_MAX_FIND=8 nearby persons bbox check
+// claude-ai: Rocket exhaust particles in GOTO state (PC only, #ifndef PSX)
+// claude-ai: For new_game: ПЕРЕНОСИТЬ — active gameplay mechanic (elevators, moving platforms)
 //
 // Platforms are moving prims.  You can walk on the bounding box of the
 // walkable faces of the prim.

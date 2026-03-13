@@ -11,6 +11,9 @@
 - `fallen/Source/water.cpp`, `fallen/Headers/water.h` — динамическая вода
 - `fallen/Source/puddle.cpp`, `fallen/Headers/puddle.h` — лужи (PC-only)
 - `fallen/Source/shadow.cpp` — запечённые тени (загрузка уровня)
+- `fallen/Source/ribbon.cpp`, `fallen/Headers/ribbon.h` — ленточные следы (огонь/дым)
+- `fallen/Source/bang.cpp` — визуальные взрывы (каскадные сферы)
+- `fallen/Source/glitter.cpp` — искры/блеск (linked list частиц с гравитацией)
 
 ---
 
@@ -282,7 +285,80 @@ SLONG shadow_dist = 32;  // дальность проверки луча
 
 ---
 
-## 11. Взрывы (POW), Пиротехника (PYRO), Мусор (DIRT)
+## 11. Ленточные следы (ribbon.cpp)
+
+**Файлы:** `fallen/Source/ribbon.cpp`, `fallen/Headers/ribbon.h`, рендерер в `fallen/DDEngine/Source/drawxtra.cpp`
+
+**Что это:** Circular-buffer trail renderer для огня, дыма, колёсных следов. Лента = цепочка 3D точек, рендерится как triangle strip с текстурой и альфа-фейдом.
+
+**Структура Ribbon (40+ байт):**
+```
+Flags(4) | Page(4) | Life(4) | RGB(4) | Size(1) | Head(1) | Tail(1) | Scroll(1) |
+FadePoint(1) | SlideSpeed(1) | TextureU(1) | TextureV(1) | Points[32] (GameCoord×32)
+```
+
+**Лимиты:** MAX_RIBBONS=64, MAX_RIBBON_SIZE=32 точек на ленту
+
+**Флаги:**
+- `RIBBON_FLAG_USED` (1) — слот занят
+- `RIBBON_FLAG_FADE` (2) — alpha fade от головы к хвосту (или наоборот с IALPHA)
+- `RIBBON_FLAG_SLIDE` (4) — текстурная прокрутка (V += SlideSpeed каждый кадр)
+- `RIBBON_FLAG_DOUBLED` (8) — не используется в коде
+- `RIBBON_FLAG_CONVECT` (16) — конвекция: все точки дрейфуют вверх +22/кадр (для огня)
+- `RIBBON_FLAG_IALPHA` (32) — инвертированный alpha (для дыма: прозрачный→непрозрачный)
+
+**API:**
+- `RIBBON_alloc(flags, max_segments, page, life=-1, fade=0, scroll=0, u=1, v=0, rgb=0xFFFFFF)` → ribbon ID (1-based, 0=ошибка); circular scan для свободного слота
+- `RIBBON_extend(ribbon, x, y, z)` — добавить точку в голову; circular buffer (Head++, Tail++ при переполнении); пауза (GAMEMENU) = skip
+- `RIBBON_free(ribbon)` — освободить; `RIBBON_life(ribbon, life)` — задать оставшееся время жизни
+- `RIBBON_length(ribbon)` — кол-во точек (Head-Tail с wraparound)
+- `RIBBON_process()` — per-frame: Scroll+=SlideSpeed; CONVECT: Y+=22 для всех точек; Life-- → free при Life==0
+- `RIBBON_draw()` → вызывает `RIBBON_draw_ribbon()` в drawxtra.cpp
+
+**Рендеринг (drawxtra.cpp:2536):** triangle strip Tail→Head; U чередуется 0/TextureU; V = index × (1/TextureV) + Scroll×0.015625; alpha fade через FadePoint; POLY_add_triangle
+
+**Кто использует:**
+| Вызывающий | Текстура | Флаги | Для чего |
+|-----------|---------|-------|----------|
+| pyro.cpp (IMMOLATE) | FLAMES3 | CONVECT+FADE+SLIDE | Огонь на горящем персонаже (2+3 ленты) |
+| pyro.cpp (FLICKER) | FLAMES3 | CONVECT+FADE+SLIDE | Мерцающее пламя |
+| drawxtra.cpp (FLAMER) | FLAMES3 | — | Огонь на бочке |
+| drawxtra.cpp (CHOPPER/FIREWORK) | — | — | Взрывы вертолёта/фейерверк |
+| bike.cpp (BIKE) | SMOKER | FADE+SLIDE+IALPHA | Дымовой след колёс (НЕ переносить — bike мёртв) |
+
+**Для новой игры:** Перенести 1:1 (circular buffer + triangle strip). Рендеринг заменить на modern API, но логика буфера и конвекции — сохранить.
+
+---
+
+## 11a. Визуальные взрывы (bang.cpp)
+
+**Файл:** `fallen/Source/bang.cpp`
+
+**Что это:** Иерархическая система визуальных взрывов — расширяющиеся сферические частицы с каскадным спавном дочерних. **Чисто визуальная** — урон/shockwave в `create_shockwave()` (combat.md).
+
+**Лимиты:** BANG_Bang[64], BANG_Phwoar[4096] (частицы в linked list)
+
+**BANG_Type — тип взрыва (4 типа в каскаде):**
+- Type 0 (BIG): невидимый корень (radius=16), спавнит 6 MIDDLE дочерних по расписанию
+- Type 1 (MIDDLE): radius=0→растёт (grow=120), белый→чёрный fade, спавнит NEARLY
+- Type 2 (NEARLY): аналогично, меньше
+- Type 3 (END): финальные частицы (radius=40), без дочерних
+
+**Цвет:** начальный RGB + per-frame delta (dr,dg,db в 4-bit fixed point) → colour fade
+
+**Физика частиц:**
+- Направление: нормализованный вектор длиной 64, размещение на поверхности сферы
+- Рост: `radius += grow>>2 + 1`; grow затухает
+- Дрейф вверх: `y += counter << 1`
+- Каскад: child[6] — массив {counter, type, where} → спавн дочерних при age==counter
+
+**Пространственная оптимизация:** MapWho linked list для culling при рендеринге
+
+**Для новой игры:** Перенести каскадную логику и тайминги; рендеринг заменить на GPU particles.
+
+---
+
+## 12. Взрывы (POW), Пиротехника (PYRO), Мусор (DIRT)
 
 **Вынесено в отдельный файл:** → [effects_pyro_pow_dirt.md](effects_pyro_pow_dirt.md)
 
@@ -309,3 +385,5 @@ SLONG shadow_dist = 32;  // дальность проверки луча
 | **PYRO пиротехника (64)** | Перенести все 18 типов (state machine); рендеринг через новый particle system |
 | **DIRT мусор (1024)** | Перенести: листья, банки, гильзы, кровь, головы, снег. Голубей **НЕ** переносить (отключены). Физику bounce/waft перенести 1:1 |
 | Искры/электричество (SPARK 32) | Перенести 1:1, адаптировать рендеринг |
+| **RIBBON ленты (64×32)** | Перенести circular buffer + конвекцию 1:1, рендеринг на modern API |
+| **BANG взрывы (64×4096)** | Перенести каскадную логику, рендеринг на GPU particles |

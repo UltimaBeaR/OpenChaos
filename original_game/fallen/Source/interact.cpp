@@ -1,3 +1,14 @@
+// claude-ai: INTERACTION SYSTEM — grab/ladder/cable detection for parkour movement
+// claude-ai: find_grab_face(): main function ~700 lines — two-pass search (hi-res roof faces, lo-res walkable)
+// claude-ai:   checks 4 edges of each quad: Y-range ±256+dy, angle ±200°, dist<radius, fence check
+// claude-ai:   returns face index + grab pos + angle; type: 0=surface, 1=cable, 2=ladder
+// claude-ai: Cable/zipwire params PACKED in DFacet fields: StyleIndex=angle_step1, Building=angle_step2, Height=count
+// claude-ai: find_cable_y_along(): cosine dip curve (two segments); check_grab_cable_facet(): nearest point on cable line
+// claude-ai: check_grab_ladder_facet(): dist to centerline, Y range bottom..top+64; returns -1 if above (still falling)
+// claude-ai: find_grab_face_in_sewers(): PC-only simplified variant (4 adjacent mapsquares) → GRAB_SEWERS (НЕ ПЕРЕНОСИТЬ)
+// claude-ai: calc_sub_objects_position(): world pos of bone (hand/foot) during animation; tween 0-255 interpolation
+// claude-ai: valid_grab_angle() = ALWAYS RETURNS 1 (validation disabled)
+// claude-ai: For new_game: port grab detection + cable physics 1:1; skip sewers
 #include "game.h"
 #include "pap.h"
 #include "ns.h"

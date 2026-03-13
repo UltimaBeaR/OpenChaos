@@ -1,3 +1,8 @@
+// claude-ai: HELICOPTER ENEMY — CLASS_CHOPPER Thing with rotor animation + AI
+// claude-ai: PRIM_OBJ_CHOPPER=74, BLADES=75; CHOPPER_CIVILIAN type
+// claude-ai: Radii: HARDWIRED=8192, DETECTION=1024, IGNORAMUS=6144
+// claude-ai: Dispatch: CHOPPER_functions[type]; state machine with CHOPPER_substate_landed
+// claude-ai: For new_game: check if helicopter exists in final game before porting
 //
 // Helicopters
 // Wockawockawockawocka
