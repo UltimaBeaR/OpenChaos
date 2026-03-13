@@ -4602,6 +4602,16 @@ extern int g_iCheatNumber;
 	if (res==FE_EDITOR)			return STARTS_EDITOR;
 	if (res==FE_LOADSCREEN)		return STARTS_START;
 
+	// claude-ai: FE_START = миссия выбрана (mode≥100, ENTER нажат в FRONTEND_input).
+	// claude-ai: Этот блок: устанавливает STARTSCR_mission + метаданные миссии, возвращает STARTS_START.
+	// claude-ai: STARTSCR_mission = "levels\\" + FRONTEND_MissionFilename(urban.sty, mode-100).
+	// claude-ai: whattoload[] — хардкод список 35 миссий с {dontload бitmask, has_balrog}.
+	// claude-ai:   DONT_load = 0 (override! dontload маски НЕ используются — всё грузится всегда).
+	// claude-ai:   this_level_has_bane = (index==27) = Finale1.ucm only.
+	// claude-ai:   VIOLENCE = FALSE для indices 31,32,1 (Album1, Gangorder1, FTutor1).
+	// claude-ai:   is_semtex = (index==20) = skymiss2.ucm (подозрительно, комментарий "semtex wetback").
+	// claude-ai: FRONTEND_diddle_music(): MUSIC_bodge_code 1=fight/FTutor 2=Assault 3=testdrive 4=Finale1.
+	// claude-ai: После всего → return STARTS_START → game_attract_mode() переключает GAME_STATE.
 	if (res==FE_START)
 	{
 		//

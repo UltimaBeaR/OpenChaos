@@ -1,5 +1,16 @@
 // Attract.cpp
 // Guy Simmons, 20th November 1997.
+// claude-ai: ATTRACT MODE = главный цикл frontend'а. Вызывается из game_loop() при GS_ATTRACT_MODE.
+// claude-ai: game_attract_mode() — основная функция:
+// claude-ai:   1. Инициализация: MFX_load_wave_list(), FRONTEND_init(), D3D render states
+// claude-ai:   2. Главный цикл (60fps): FRONTEND_loop() каждый кадр (если NEW_FRONTEND определён)
+// claude-ai:   3. Результат STARTS_START → GS_ATTRACT_MODE выкл, GS_PLAY_GAME вкл, ATTRACT_loadscreen_init()
+// claude-ai: ВАЖНО: "attract mode" = неточное название. Старый attract demo (playback .pkt) закомментирован.
+// claude-ai: Реально это просто главное меню (frontend loop). Название осталось от ранней версии.
+// claude-ai: auto_advance: если set → немедленно переходит в игру без frontend (для автозапуска).
+// claude-ai:   STARTSCR_notify_gameover() закомментирован в Game.cpp → auto_advance никогда не устанавливается.
+// claude-ai: level_won(), level_lost() → #if 0 (dead code). Заменены GAMEMENU overlay системой.
+// claude-ai: ScoresDraw() → отрисовка статистики + mucky times (speedrun) таблица.
 
 #include "Game.h"
 #include "cam.h"
@@ -265,6 +276,10 @@ extern SLONG TEXTURE_page_water;
 
 
 
+	// claude-ai: Главный цикл frontend. 60fps (lock_frame_rate(60) в конце).
+	// claude-ai: Вызывает FRONTEND_loop() каждый кадр → возвращает STARTS_* код.
+	// claude-ai: При STARTS_START: GS_ATTRACT_MODE выкл, GS_PLAY_GAME вкл, ATTRACT_loadscreen_init().
+	// claude-ai: STARTS_EDITOR → GS_EDITOR; STARTS_EXIT → GAME_STATE=0 (выход из программы).
 	y	=	500;
 	while(SHELL_ACTIVE&&(GAME_STATE&GS_ATTRACT_MODE))
 	{
@@ -425,6 +440,10 @@ void	make_all_wads(void);
 #endif
 						break;
 					case	STARTS_START:
+// claude-ai: STARTS_START — миссия выбрана в FRONTEND_loop() (mode≥100 + ENTER → FE_START).
+// claude-ai: STARTSCR_mission уже установлен в FRONTEND_loop() перед возвратом STARTS_START.
+// claude-ai: #ifdef OBEY_SCRIPT / BRIEFING_select() → МЁРТВЫЙ КОД: OBEY_SCRIPT не определён.
+// claude-ai: Активный путь: сразу переключает GAME_STATE и показывает загрузочный экран.
 #ifdef OBEY_SCRIPT
 						if (BRIEFING_select()>0)
 #endif

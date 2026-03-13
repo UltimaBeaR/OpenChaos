@@ -8,9 +8,23 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **STARTSCR_mission** — как startscr.cpp устанавливает STARTSCR_mission (реальный мост frontend→game); как startscr.cpp связан с frontend.cpp
-2. **Attract.cpp** — что такое attract mode; BRIEFING_select() вызывается только оттуда
-3. **muckybasic.md** — детальный анализ MuckyBasic скриптового интерпретатора (MB_process, опкоды)
+1. **Analyse ScoresDraw/end-of-level flow** — Game.cpp GAMEMENU_WON/LOST → как победа/поражение переходит обратно в frontend; полный round-trip
+2. **muckybasic.md** — детальный анализ MuckyBasic скриптового интерпретатора (если нужно)
+3. **Начало планирования new_game/** — если KB достаточна для фазы 2
+
+**ВЫПОЛНЕНО в этой итерации (STARTSCR_mission + Attract.cpp):**
+- startscr.cpp в non-EDITOR build = одна строка: `CBYTE STARTSCR_mission[_MAX_PATH]`. Весь остальной код = `#ifdef EDITOR` (старый pre-release mission selector, мёртвый код)
+- Полный pipeline frontend→game: FE_MAPSCREEN+ENTER → mode=100+mission_id → ENTER → FE_START → STARTSCR_mission set → STARTS_START → GS_PLAY_GAME → elev.cpp loads level → `*STARTSCR_mission=0`
+- `FRONTEND_MissionFilename(urban.sty, i)` = i-я доступная миссия в выбранном районе (hierarchy&4); side effect: `mission_launch=ObjID`
+- whattoload[] = хардкод 35 миссий; `DONT_load=0` переопределяет все маски → всё грузится
+- `this_level_has_bane = (index==27)` = Finale1.ucm only; `this_level_has_the_balrog` из массива
+- `VIOLENCE = FALSE` для FTutor1 (idx 1), и двух поздних туториалов (idx 31/32)
+- `is_semtex = (index==20)` = skymiss2.ucm (подозрительное имя, скорее всего ошибка)
+- `BRIEFING_select()` в Attract.cpp → `#ifdef OBEY_SCRIPT` → МЁРТВЫЙ КОД (не компилируется)
+- `STARTSCR_notify_gameover()` закомментирован в Game.cpp → auto_advance никогда не ставится
+- Старый attract demo (playback .pkt) весь закомментирован; `level_won()/level_lost()` = `#if 0`
+- ui.md обновлён: добавлен раздел "Frontend → Game Pipeline" с полным флоу и переменными
+- Аннотированы: Attract.cpp (header + main loop + STARTS_START block), startscr.cpp (header), frontend.cpp (FE_START block)
 
 **ВЫПОЛНЕНО в этой итерации (briefing.cpp + исправления форматов):**
 - briefing.cpp = МЁРТВЫЙ КОД (декабрь 1998, прототип): BRIEFING_menu() закомментирован целиком; BRIEFING_mission_filename в elev.cpp обёрнут в `#ifdef OBEY_SCRIPT` (а OBEY_SCRIPT закомментирован в briefing.h → не определён); 8 hardcoded миссий/файлов; save = 1-байт "savegame.dat" (заменено .wag)
@@ -275,7 +289,8 @@
 | **Форматы ресурсов** | resource_formats/ | ✅ Хорошо | .iam/.prm/.all/.lgt/.ucm задокументированы; .txc/.tma остались |
 | **Камера** | camera.md | ✅ Хорошо | FC only (cam.cpp=мёртв), 8-шаг raycast collision, get-behind алгоритм |
 | **Звук** | audio.md | ✅ Хорошо | Miles Sound System → miniaudio, 14 MUSIC_MODE_*, 5 биомов ambient |
-| **UI** | ui.md | ✅ Хорошо | HUD, инвентарь, frontend, fonts, gamemenu |
+| **UI** | ui.md | ✅ Хорошо | HUD, инвентарь, fonts, gamemenu (frontend вынесен в frontend.md) |
+| **Frontend** | frontend.md | ✅ Хорошо | game→mission pipeline, FE_* режимы, STARTSCR_mission, Attract.cpp |
 | **Прогресс/сохранения** | player_progress.md | ✅ Хорошо | .wag: var-str+CRLF, v0-3, hierarchy bits, best_found=анти-фарм |
 | **Матем/утилиты** | math_utils.md | ✅ Хорошо | 2 стека (PSX int/PC float), glm для новой игры |
 | **Игровые состояния** | game_states.md | ✅ Хорошо | per-frame порядок, DarciDeadCivWarnings, GS_REPLAY=goto, bench cooldown |
@@ -338,7 +353,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | **collide.cpp (ladder)** | +3 блока | ✅ (mount_ladder, ok_to_mount_ladder, пре-релиз баг) |
 | **Map.cpp** | +4 блока | ✅ (MapElement.Colour = мёртвый код в DDEngine; MAP_light_map не вызывается) |
 | **night.cpp** | +2 блока | ✅ (полный pipeline header; BUG dz*nx→dz*nz аннотирован) |
-| **frontend.cpp** | +4 блока | ✅ (ParseMissionData, MissionHierarchy, FRONTEND_mode, FRONTEND_display) |
+| **frontend.cpp** | +5 блоков | ✅ (ParseMissionData, MissionHierarchy, FRONTEND_mode, FRONTEND_display, FE_START pipeline) |
+| **Attract.cpp** | ~3 блока | ✅ (header overview, main loop, STARTS_START handler) |
+| **startscr.cpp** | 1 блок | ✅ (header: game build = только 1 переменная; #ifdef EDITOR = dead) |
 
 ---
 
@@ -497,6 +514,13 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - save slots: 1-based! (`save_slot = menu_state.selected + 1`)
 - complete_point диапазон 0-24+
 - CRIME_RATE: если 0 → дефолт 50
+- startscr.cpp (game build) = только `CBYTE STARTSCR_mission[_MAX_PATH]`; весь остальной код = #ifdef EDITOR
+- STARTSCR_mission flow: FE_MAPSCREEN+ENTER→mode=100+N; ещё ENTER→FE_START→STARTSCR_mission set→STARTS_START→GS_PLAY_GAME→elev.cpp→ELEV_load_name→*STARTSCR_mission=0
+- DONT_load = 0 жёстко в frontend.cpp → per-mission dontload bitmasks игнорируются
+- this_level_has_bane = ТОЛЬКО index 27 в whattoload[] = Finale1.ucm
+- VIOLENCE=FALSE для туториалов: FTutor1(1), Album1(31), Gangorder1(32) по индексам в whattoload[]
+- game_attract_mode() в Attract.cpp = главный frontend loop (НЕ "attract" demo); старый demo полностью закомментирован
+- level_won()/level_lost() в Attract.cpp = #if 0 dead code; победа/поражение → только через GAMEMENU
 - Thing.cpp per-frame: StateFn → general_process_person → PCOM_process_person (для CLASS_PERSON)
 - people_functions[]: Darci→darci_states, Roper→roper_states, ВСЕ остальные (Cop,Thug,MIB...) → cop_states
 - darci_states: только 7 записей; STATE_NORMAL=NULL (игрок), прыжки/бой через generic_people_functions

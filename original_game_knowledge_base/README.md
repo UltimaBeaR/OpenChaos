@@ -35,7 +35,8 @@
 | Прогресс игрока и сохранения | [subsystems/player_progress.md](subsystems/player_progress.md) |
 | Оружие и предметы | [subsystems/weapons_items.md](subsystems/weapons_items.md) |
 | Звук | [subsystems/audio.md](subsystems/audio.md) |
-| UI и фронтенд | [subsystems/ui.md](subsystems/ui.md) |
+| UI и фронтенд (HUD, шрифты, диалоги) | [subsystems/ui.md](subsystems/ui.md) |
+| Frontend (меню, pipeline запуска миссии) | [subsystems/frontend.md](subsystems/frontend.md) |
 | Визуальные эффекты | [subsystems/effects.md](subsystems/effects.md) |
 | Камера | [subsystems/camera.md](subsystems/camera.md) |
 | Состояния игры (GS_*, пауза, смерть) | [subsystems/game_states.md](subsystems/game_states.md) |
