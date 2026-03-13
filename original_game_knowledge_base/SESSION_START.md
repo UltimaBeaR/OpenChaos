@@ -8,9 +8,21 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **Физика TODO**: WATER вне дренажа (водная высота)
-2. **Разбить rendering.md** (445 строк > 400): вынести раздел 7+8 (Tom's Engine + Mesh) в rendering_mesh.md
-3. **player_progress.md** — заполнить (сейчас ⚠️ Частично), полная документация .wag формата
+1. **Физика TODO**: WATER вне дренажа (водная высота) — единственный незакрытый TODO в физике
+2. **Аннотировать frontend.cpp** — save/load логика хорошо понята, быстро аннотировать
+3. **Форматы**: lighting_format.md и model_format.md — проверить точность
+
+**ВЫПОЛНЕНО в этой итерации (player_progress + rendering split):**
+- player_progress.md полностью переписан с точными данными из frontend.cpp:
+  - .wag: mission_name = variable-length string + CRLF (НЕ фиксированные 32б!)
+  - version field ПОСЛЕ complete_point (исторически — "Historical Reasons")
+  - Версионная загрузка: v0=только cp, v1=+stats, v2=+hierarchy, v3=+best_found
+  - best_found[50][4] = лучшие приросты Constitution/Strength/Stamina/Skill за миссию (анти-фарм механика)
+  - mission_hierarchy биты: 1=exists, 2=complete, 4=available/waiting
+  - complete_point пороги текстурных тем: <8=0, <16=1, <24=2, ≥24=3
+- rendering.md разбит (446→386 строк): секции 3b+4+2b перенесены в rendering_mesh.md
+- rendering_mesh.md создан: Tom's Engine, vertex morphing, crumple, reflections, UV packing
+- README.md обновлён: добавлены rendering_mesh.md и rendering_lighting.md
 
 **ВЫПОЛНЕНО в этой итерации (MapElement.Colour + POLY_frame_draw):**
 - MapElement.Colour = МЁРТВЫЙ КОД в DDEngine (PC) — нигде не вызывается из-за движка рендеринга
@@ -216,7 +228,8 @@
 | **Здания/интерьеры** | buildings_interiors.md | ✅ Хорошо | 21 тип STOREY_TYPE_*, DFacet, двери через MAV |
 | **Миссии (EWAY)** | missions.md | ✅ Хорошо | 41 условие, 57 действий, .ucm ≠ MuckyBasic, polling каждый кадр |
 | **Загрузка уровня** | level_loading.md | ✅ Хорошо | 9 шагов, MAV_precalculate самый тяжёлый, игрок создаётся через EWAY |
-| **Рендеринг** | rendering.md | ✅ Достаточно | Полностью заменяем, DirectX6 → OpenGL |
+| **Рендеринг** | rendering.md | ✅ Достаточно | Полностью заменяем, DirectX6 → OpenGL; 386 строк |
+| **Рендеринг/Меши** | rendering_mesh.md | ✅ Достаточно | Tom's Engine, vertex morphing, crumple, UV packing |
 | **Рендеринг/Освещение** | rendering_lighting.md | ✅ Достаточно | NIGHT система детали, Crinkle (отключён в пре-релизе) |
 | **Состояния игрока** | player_states.md | ✅ Хорошо | Полные списки STATE_* и SUB_STATE_* |
 | **Эффекты** | effects.md | ✅ Достаточно | Частицы, огонь, ткань отключена |
@@ -224,7 +237,7 @@
 | **Камера** | camera.md | ✅ Хорошо | FC only (cam.cpp=мёртв), 8-шаг raycast collision, get-behind алгоритм |
 | **Звук** | audio.md | ✅ Хорошо | Miles Sound System → miniaudio, 14 MUSIC_MODE_*, 5 биомов ambient |
 | **UI** | ui.md | ✅ Хорошо | HUD, инвентарь, frontend, fonts, gamemenu |
-| **Прогресс/сохранения** | player_progress.md | ⚠️ Частично | В missions.md: .wag формат, complete_point |
+| **Прогресс/сохранения** | player_progress.md | ✅ Хорошо | .wag: var-str+CRLF, v0-3, hierarchy bits, best_found=анти-фарм |
 | **Матем/утилиты** | math_utils.md | ✅ Хорошо | 2 стека (PSX int/PC float), glm для новой игры |
 | **Игровые состояния** | game_states.md | ✅ Хорошо | per-frame порядок, DarciDeadCivWarnings, GS_REPLAY=goto, bench cooldown |
 | **WayWind** | waywind.md | ❌ Не нужен | Редактор, не переносить |
@@ -376,7 +389,7 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] Crinkle система — ГОТОВО: микро-геометрический bump mapping, mesh→квад проекция, ПОЛНОСТЬЮ ОТКЛЮЧЁН (`return NULL` + `if(0)`), не переносить
 - [x] `POLY_frame_draw()` порядок сортировки — ГОТОВО: bucket sort [2048], sort_z=ZCLIP/vz, render FAR→NEAR; merge sort fallback в #else (отключён)
 - [x] Как `NIGHT_generate_walkable_lighting()` работает — ГОТОВО: МЁРТВЫЙ КОД (`return;`), только NIGHT_generate_roof_walkable() реально вызывается
-- [ ] rendering.md нужно разбить (445 строк > 400): вынести Tom's Engine + Mesh → rendering_mesh.md
+- [x] rendering.md разбит (446→386 строк): Tom's Engine + Mesh + UV пакинг → rendering_mesh.md
 
 ### НЕ ЧИТАНЫ (нужно прочесть KB файлы)
 - [x] **camera.md** — ГОТОВО: FC only, 8-шаг raycast, get-behind, focus_yaw, toonear
@@ -484,6 +497,11 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - DarciDeadCivWarnings: 0/1/2=предупреждения (экран deadcivs.tga); >=3=GS_LEVEL_LOST; персистирует!
 - apply_button_input(): ACTION→do_an_action(); нет ACTION→SPRINT→RUN; find_best_action_from_tree()→REQUEST flags + jump/shoot/flip/hug/skid; без движения: IDLE→turn, MOVEING→stop
 - .txc = FileClump archive: [ULONG MaxID][Offsets[MaxID]][Lengths[MaxID]][data]; ⚠️ size_t=4/8б зависит от платформы; для новой игры читать TGA напрямую
+- .wag layout: var-string+CRLF | complete_point(1) | version(1) | [v≥1: 9б stats] | [v≥2: 60б hierarchy] | [v≥3: 200б best_found]
+- FRONTEND_SaveString: strlen(txt) байт + CRLF{13,10}; НЕ фиксированные 32 байта!
+- mission_hierarchy биты: 1=exists, 2=complete, 4=available; [1]=3 (корень) при старте
+- best_found[50][4]: [0]=Constitution, [1]=Strength, [2]=Stamina, [3]=Skill; анти-фарм: повторное прохождение даёт только улучшение рекорда
+- complete_point пороги тем: <8→theme0, <16→theme1, <24→theme2, ≥24→theme3; max чит = 40
 - MapElement.Colour = МЁРТВЫЙ КОД в DDEngine (PC); MAP_light_set/get нигде не вызываются; Glide-only legacy
 - DDEngine terrain vertex colour: NIGHT_light_mapsquare → colour[16] per lo-cell → NIGHT_cache → NIGHT_get_d3d_colour (×4 scale) → apply_cloud → fadeout
 - ⚠️ БАГ в NIGHT_light_mapsquare:746: dprod=`dx*nx+dy*ny+dz*nx` — последний `dz*nx` должен быть `dz*nz`

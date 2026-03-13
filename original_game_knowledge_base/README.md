@@ -26,6 +26,8 @@
 | Транспорт | [subsystems/vehicles.md](subsystems/vehicles.md) |
 | Боевая система | [subsystems/combat.md](subsystems/combat.md) |
 | Рендеринг и освещение | [subsystems/rendering.md](subsystems/rendering.md) |
+| Рендеринг: Tom's Engine, меши, морфинг | [subsystems/rendering_mesh.md](subsystems/rendering_mesh.md) |
+| Рендеринг: NIGHT освещение, Crinkle | [subsystems/rendering_lighting.md](subsystems/rendering_lighting.md) |
 | Игровой мир и карта | [subsystems/world_map.md](subsystems/world_map.md) |
 | Здания и интерьеры | [subsystems/buildings_interiors.md](subsystems/buildings_interiors.md) |
 | Загрузка уровней | [subsystems/level_loading.md](subsystems/level_loading.md) |

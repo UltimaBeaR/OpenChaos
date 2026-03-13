@@ -134,20 +134,10 @@ pp->Z = Z;
 
 ## 2b. UV упаковка в PrimFace4
 
-UV координаты граней упакованы в 16-bit формат (mesh.cpp):
+Детали UV упаковки: **[rendering_mesh.md](rendering_mesh.md)** (раздел 6).
 
-```c
-// Из поля UV[i][0] и UV[i][1]:
-float u = float(UV[i][0] & 0x3f) * (1.0F / 32.0F);  // 6 бит = позиция U внутри тайла
-float v = float(UV[i][1]       ) * (1.0F / 32.0F);  // 8 бит = позиция V
-
-// Страница текстуры из UV[i][0] верхних 2 бит + TexturePage поля:
-SLONG page = (UV[i][0] & 0xc0) << 2;   // grid X позиция (0-3)
-page |= face->TexturePage;              // base page
-page += FACE_PAGE_OFFSET;              // FACE_PAGE_OFFSET = 8*64
-```
-
-Текстурный атлас организован как сетка 8×8 тайлов, каждый тайл 64×64 пикселей.
+Краткое: `UV[i][0]` — 6 бит U + 2 бита grid-X; `UV[i][1]` — 8 бит V. Scale 1/32.
+Atlas = 8×8 тайлов по 64×64 px. `FACE_PAGE_OFFSET = 8*64 = 512`.
 
 ---
 
@@ -219,67 +209,18 @@ Render loop: for i=0..2047 → порядок FAR TO NEAR = BACK-TO-FRONT ✓
 
 ---
 
-## 3b. Рендеринг персонажей (Tom's Engine)
+## 3b. Рендеринг персонажей и система мешей
 
-**`USE_TOMS_ENGINE_PLEASE_BOB = 1`** (`DDEngine/Headers/aeng.h`) — всегда включён (и PC, и DC).
-D3D-дружественный рендерер персонажей. Вся графика персонажей идёт через него.
-В figure.cpp весь путь рендеринга под `#if USE_TOMS_ENGINE_PLEASE_BOB` — единственный активный путь.
+Детальная документация: **[rendering_mesh.md](rendering_mesh.md)**
 
-```c
-// figure.cpp
-SLONG FIGURE_alpha = 255;  // альфа прозрачности персонажа
-UBYTE body_part_upper[];   // таблица upper body parts для 15 типов персонажей
-```
-
-Освещение персонажей: `BuildMMLightingTable()` — использует NIGHT систему (`NIGHT_found[]`, `NIGHT_amb_r/g/b`).
-**Anti-lights:** существуют отрицательные источники света — вычитают яркость (для тёмных зон).
-
-**`HIGH_REZ_PEOPLE_PLEASE_BOB`** — закомментирован ("Now enabled only on a cheat!").
-Высокополигональные модели в финале **не активны**.
-
----
-
-## 4. Система мешей (mesh.cpp)
-
-**Структура загруженного меша:**
-```c
-struct PrimObject {
-    UWORD StartPoint, EndPoint;  // Диапазон вершин в глобальном массиве
-    PrimFace3 *faces3;           // Треугольные грани
-    PrimFace4 *faces4;           // Четырёхугольные грани
-    // Каждая грань: индексы вершин + page (текстура) + флаги
-};
-```
-
-**Флаги граней:**
-- masked (маска/cutout), semi-transparent, self-illuminating и т.д.
-
-**MESH_draw_poly() — процесс рендеринга:**
-1. Трансформация вершин (локальное → мировое, матрица поворота 3×3)
-2. Для каждой грани:
-   - Back-face culling
-   - Трансформация вершин в view space (`POLY_transform`)
-   - Добавление в POLY buffer: `POLY_add_triangle()` / `POLY_add_quad()`
-3. Освещение из предвычисленного `NIGHT_Colour` массива
-
-**Морфинг (tweening):**
-```c
-MESH_draw_morph(prim, morph1, morph2, tween, ...):
-// tween ∈ [0, 256], где 256 = полностью morph2
-// Вершины линейно интерполируются между двумя ключевыми кадрами
-```
-- Нет скелетной анимации — только vertex morphing между keyframes
-- Топология (грани) одинакова для всех morphs
-- `DrawTween` = морфинг, `DrawMesh` = один конкретный кадр (быстрее)
-
-**Деформация транспорта (Crumple):**
-- `MESH_set_crumple()` — параметры деформации
-- `MESH_car_crumples[]` — таблица предвычисленных смещений: **5 уровней урона × 8 вариантов × 6 точек**
-- Смещения вершин применяются при трансформации
-
-**Отражения в лужах:**
-- `MESH_draw_reflection()` — специальный путь для рендеринга объектов как отражения в луже
-- Используется вместе с `PUDDLE_in()` для определения зоны отражения
+Краткое summary:
+- `USE_TOMS_ENGINE_PLEASE_BOB = 1` — всегда включён, единственный активный путь в figure.cpp
+- Vertex morphing (DrawTween): `tween ∈ [0,256]`, линейная интерполяция между двумя keyframes
+- Anti-lights: отрицательные источники света вычитают яркость (тёмные зоны)
+- `MESH_car_crumples[5уровней×8вариантов×6точек]` — предвычисленная деформация машин
+- `MESH_draw_reflection()` + `PUDDLE_in()` — отражения в лужах (отдельный проход)
+- `HIGH_REZ_PEOPLE_PLEASE_BOB` = закомментирован, высокополигональные модели не активны
+- `InterruptFrame` = МЁРТВЫЙ КОД (всегда NULL в пре-релизе)
 
 ---
 
