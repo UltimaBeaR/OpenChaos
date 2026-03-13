@@ -2,6 +2,7 @@
 
 **Правило старта сессии:** Читать ТОЛЬКО этот файл + CLAUDE.md. Остальные файлы KB читать точечно по мере необходимости.
 **Если задача касается подсистемы X → читать subsystems/X.md перед работой.**
+**Если задача архитектурная / затрагивает несколько подсистем → читать `DENSE_SUMMARY.md`.**
 
 ---
 
@@ -13,19 +14,19 @@
 
 ---
 
-## ⚡ СТАТУС И СЛЕДУЮЩИЕ ИТЕРАЦИИ
+## ⚡ СТАТУС
 
 **Фаза 1 (ЗАВЕРШЕНА):** Детальный анализ оригинального кода → `original_game_knowledge_base/`
 - KB написана на ~99% — все геймплейные подсистемы покрыты + верификация проведена
 - 80+ файлов аннотированы `// claude-ai:` комментариями
 - ~180 неаннотированных файлов протриажены: 90%+ = editor/PSX/rendering (подтверждено)
+- Итерации анализа 1-9 выполнены → см. `ANALYSIS_ITERATIONS_PLAN.md`
 - **ГОТОВО к Фазе 2** (планирование new_game)
 
-**Итерации анализа:** см. `ANALYSIS_ITERATIONS_PLAN.md` — итерации 1-8 выполнены, осталась 9.
-**Быстрые факты:** см. `QUICK_FACTS.md` (все ключевые числа, формулы, константы).
-
-**Оставшиеся итерации:**
-- **Итерация 9:** DENSE_SUMMARY.md — сверхкомпактная версия всей KB (~30-40K токенов)
+**Ключевые справочники:**
+- `QUICK_FACTS.md` — все ключевые числа, формулы, константы
+- `DENSE_SUMMARY.md` — компактная версия всей KB (~23 секции, для полного контекста)
+- `DENSE_SUMMARY_BUILD_GUIDE.md` — как пересобрать DENSE_SUMMARY
 
 ---
 
@@ -54,7 +55,7 @@
 | **Состояния игрока** | player_states.md | ✅ | Полные списки STATE_* и SUB_STATE_* |
 | **Эффекты** | effects.md | ✅ | POW(взрывы), PYRO(18 типов), DIRT(16 типов debris), RIBBON, BANG |
 | **Форматы ресурсов** | resource_formats/ | ✅ | .iam/.prm/.all/.lgt/.ucm/.txc/.tma задокументированы |
-| **Камера** | camera.md | ✅ | FC only (cam.cpp=мёртв), 8-шаг raycast collision, get-behind |
+| **Камера** | camera.md | ✅ | FC only (cam.cpp=мёртв), 15-шаг FC_process, toonear mode |
 | **Звук** | audio.md | ✅ | Miles Sound System (MSS32), 14 MUSIC_MODE_*, 5 биомов ambient |
 | **UI** | ui.md | ✅ | HUD, инвентарь, fonts, gamemenu, frontend pipeline |
 | **Frontend** | frontend.md | ✅ | game→mission pipeline, FE_* режимы, STARTSCR_mission, Attract.cpp |
@@ -111,7 +112,6 @@ chopper.cpp      → game_objects.md + ai.md
 | stair.cpp, gamemenu.cpp | ✅ |
 | Attract.cpp, frontend.cpp (~7+ блоков) | ✅ |
 | wmove.cpp (~5 блоков) | ✅ |
-| collide.cpp (ladder: +3 блока) | ✅ |
 | Map.cpp (+4 блока), night.cpp (+2 блока) | ✅ |
 | overlay.cpp, guns.cpp, grenade.cpp | ✅ (header блоки) |
 | Nav.cpp, Wallhug.cpp, barrel.cpp | ✅ (header блоки) |
