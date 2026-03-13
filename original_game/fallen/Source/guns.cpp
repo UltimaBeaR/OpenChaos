@@ -1,3 +1,33 @@
+// claude-ai: === GUNS.CPP — СИСТЕМА АВТОПРИЦЕЛИВАНИЯ (GUN TARGETING) ===
+// claude-ai: 791 строк, 7 функций (1 закомментирована).
+// claude-ai:
+// claude-ai: get_gun_aim_stats() — параметры оружия по типу:
+// claude-ai:   MIB: range=8<<8=2048, spread=20 ("ninja shooting machines")
+// claude-ai:   Pistol (GUN_OUT): range=7<<8=1792, spread=15
+// claude-ai:   AK47: range=8<<8=2048, spread=20
+// claude-ai:   Shotgun: range=6<<8=1536, spread=30 (ближе, но шире конус)
+// claude-ai:   Всё остальное: return 0 (не стреляющее оружие)
+// claude-ai:
+// claude-ai: calc_target_score_new() (строка 212) — АКТИВНАЯ система scoring для автоприцеливания ИГРОКА:
+// claude-ai:   MAX_NEW_TARGET_DANGLE = 2048/7 ≈ 292 (±~51° конус)
+// claude-ai:   При SUB_STATE_RUNNING: конус сужается в 4 раза (>>2 ≈ ±13°)
+// claude-ai:   Фильтры: dead/float=skip; 45° вертикальный угол max; people_allowed_to_hit_each_other
+// claude-ai:   LOS: can_a_see_b (persons), there_is_a_los (non-persons); CLASS_SPECIAL → только MINE
+// claude-ai:   Score = (8<<8 - dist) × (MAX_DANGLE - dangle) >> 3
+// claude-ai:   Модификаторы: агрессивный враг ×4, thugs/MIB ×2, cops для Darci ×0.5,
+// claude-ai:     гражданские *180/256, hostages *170/256, hands_up_lie=0, barrels *220/256,
+// claude-ai:     stacked barrels -0x80, cones/bins=skip, standing_on_vehicle=0
+// claude-ai:   First-person look: look_pitch → доп. вертикальное scoring (128-dangle)>>2
+// claude-ai:
+// claude-ai: find_target_new() (строка 595) — основной поиск цели:
+// claude-ai:   Игрок: THING_find_sphere(range, Person|Bat|Barrel|Vehicle|Special) → best score
+// claude-ai:   NPC: PCOM_person_wants_to_kill → if driving → target car instead
+// claude-ai:
+// claude-ai: calc_snipe_target_score() / find_snipe_target() — для PCOM_AI_SHOOT_DEAD (снайпер NPC):
+// claude-ai:   Range 19*256, angle ±56, linear PRIMARY_USED scan (не sphere), нет LOS
+// claude-ai:
+// claude-ai: МЁРТВЫЙ КОД: calc_target_score() + find_target() — старая версия в /* */ (заменена _new)
+// claude-ai: ===
 #include	"game.h"
 #include	"statedef.h"
 #include	"pcom.h"

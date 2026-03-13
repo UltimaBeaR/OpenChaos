@@ -1,3 +1,48 @@
+// claude-ai: === OVERLAY.CPP — HUD / IN-GAME OVERLAY SYSTEM ===
+// claude-ai: Главная функция: OVERLAY_handle() (строка ~947) — вызывается КАЖДЫЙ КАДР из game loop
+// claude-ai:
+// claude-ai: АКТИВНЫЙ КОД (PC build):
+// claude-ai:   OVERLAY_handle() — main per-frame HUD dispatcher:
+// claude-ai:     1. Сброс D3D viewport на full screen (для letterbox mode)
+// claude-ai:     2. PANEL_start() / PANEL_finish() — bracket для HUD рендеринга
+// claude-ai:     3. PANEL_draw_buffered() — таймер обратного отсчёта (MM:SS), до 8 одновременно
+// claude-ai:     4. OVERLAY_draw_gun_sights() — прицелы на целях (track_gun_sight заполняет каждый кадр)
+// claude-ai:     5. OVERLAY_draw_enemy_health() — полоска HP над целью в FIGHT/AIM_GUN режиме
+// claude-ai:     6. PANEL_last() — ОСНОВНОЙ HUD: здоровье (круговой), оружие+патроны, стамина (5 квадратов),
+// claude-ai:        радар с маяками, текстовые сообщения/диалоги, crime rate, обратный отсчёт гранаты
+// claude-ai:     7. PANEL_inventory() — список оружия при переключении
+// claude-ai:     8. Debug info (cheat==2): FPS + координаты
+// claude-ai:     9. GS_LEVEL_LOST/WON text — ЗАКОММЕНТИРОВАН на PC (обрабатывается GAMEMENU)
+// claude-ai:
+// claude-ai:   track_gun_sight() — регистрирует цель для прицела (MAX_TRACK=4, сброс каждый кадр)
+// claude-ai:   OVERLAY_draw_gun_sights() — рисует прицелы: Person→голова(bone 11), BAT_BALROG→scale 450,
+// claude-ai:     Special→128, Barrel→200, Vehicle→450; + show_grenade_path() если граната в руках
+// claude-ai:   OVERLAY_draw_enemy_health() — PANEL_draw_local_health() в 3D мире:
+// claude-ai:     MIB: hp*100/700; обычные: hp*100/health[PersonType]; Balrog: (100*hp)>>8
+// claude-ai:
+// claude-ai: МЁРТВЫЙ КОД:
+// claude-ai:   track_enemy() — #ifdef OLD_POO — старые портреты врагов + HP полоска (заменено PANEL_draw_local_health)
+// claude-ai:   help_system() — #ifdef UNUSED — proximity help text для машин/предметов
+// claude-ai:   show_help_text() — тело полностью закомментировано
+// claude-ai:   DAMAGE_TEXT система — #ifdef DAMAGE_TEXT (НЕ определён) — плавающие числа урона в 3D
+// claude-ai:   Beacons (minimap маркеры) — полностью закомментированы
+// claude-ai:   ScoresDraw в overlay — закомментирован (перенесён в GAMEMENU)
+// claude-ai:   CRIME_RATE display — закомментирован
+// claude-ai:   PC search progress text — закомментирован (PSX версия через PANEL_draw_search)
+// claude-ai:   init_punch_kick() — PSX only (NTSC кнопки punch/kick)
+// claude-ai:
+// claude-ai: PANEL_last() (в panel.cpp) детали HUD:
+// claude-ai:   - Здоровье = круговой индикатор (8 сегментов, радиус 66px, arc -43° to -227°)
+// claude-ai:     Health * (1/200) для Darci, (1/400) для Roper, (1/300) для Vehicle
+// claude-ai:   - Стамина = 5 цветных квадратов (Stamina/25): red→orange→yellow→green→bright green
+// claude-ai:   - Оружие = спрайт + счётчик патронов (m_iPanelXPos+170, m_iPanelYPos-63)
+// claude-ai:   - Радар/маяки = центр PLH_MID (m_iPanelXPos+74, m_iPanelYPos-90), радиус 50px
+// claude-ai:   - Базовая позиция панели: m_iPanelXPos=0/32, m_iPanelYPos=448/480
+// claude-ai:
+// claude-ai: Для новой игры: заменить D3D viewport на OpenGL; PANEL_* рисование → свой HUD renderer;
+// claude-ai: сохранить логику: gun sights (per-frame tracking), enemy health (FIGHT/AIM mode),
+// claude-ai: circular health, stamina marks, weapon display, radar beacons, timer system.
+// claude-ai: ===
 #include "game.h"
 #include "..\headers\cam.h"
 #include "..\headers\statedef.h"

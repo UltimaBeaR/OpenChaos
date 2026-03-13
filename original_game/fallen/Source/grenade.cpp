@@ -2,6 +2,36 @@
 //
 // grenade code
 
+// claude-ai: === GRENADE.CPP — СИСТЕМА ГРАНАТ ===
+// claude-ai: 491 строк, 8 функций. MAX_GRENADES = 6.
+// claude-ai:
+// claude-ai: struct Grenade: owner, xyz, yaw/pitch, dxyz, dyaw/dpitch, timer (~44 байт)
+// claude-ai:
+// claude-ai: CreateGrenadeFromPerson() (строка 105) — бросок гранаты:
+// claude-ai:   Вектор: FMATRIX_vector(Angle) × 181>>11, dy = 181<<6 (парабола вверх-вперёд)
+// claude-ai:   NPC с близкой целью (dist < 0x500): скорость /= 2 (ближний бросок)
+// claude-ai:   Стартовая позиция: LEFT_HAND bone (calc_sub_objects_position)
+// claude-ai:
+// claude-ai: ProcessGrenade() (строка 208) — физика каждый кадр:
+// claude-ai:   Timer: -= 16 * TICK_RATIO (при истечении → CreateGrenadeExplosion)
+// claude-ai:   Гравитация: dy -= TICK_RATIO * 2, cap -0x2000
+// claude-ai:   Движение: pos += vel * TICK_RATIO
+// claude-ai:   Отскок от пола: dy = abs(dy)>>1; если dy < 0x400 → полная остановка
+// claude-ai:   Отскок от стен: reverse + halve (dx или dz) при смене mapsquare + under > 0x4000
+// claude-ai:   Звук PCOM_oscillate_tympanum каждые 16 кадров (alert AI)
+// claude-ai:
+// claude-ai: CreateGrenadeExplosion() (строка 326) — взрыв:
+// claude-ai:   Звук S_EXPLODE_START, 2 основных PARTICLE_Add (EXPLODE1/2_ADDITIVE)
+// claude-ai:   ~20 дополнительных частиц (smoke cloud + fire bits + bouncy debris)
+// claude-ai:   DIRT_new_sparks × 3, DIRT_gust × 4 направления
+// claude-ai:   create_shockwave(radius=0x300, force=500) — повреждения в радиусе
+// claude-ai:
+// claude-ai: show_grenade_path() (строка 441) — прицел гранаты для игрока:
+// claude-ai:   Только если STATE_IDLE + нет паузы + нет slowdown
+// claude-ai:   Симулирует траекторию: CreateGrenadeFromPerson(timer=6000) → ProcessGrenade(explode=0) в цикле
+// claude-ai:   Рисует пунктирную линию (каждые 8 кадров) зелёным (0x8000af00)
+// claude-ai:   В точке приземления: PANEL_draw_gun_sight(scale=400)
+// claude-ai: ===
 #include "game.h"
 #include "sound.h"
 #include "fmatrix.h"

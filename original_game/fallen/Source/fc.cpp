@@ -1162,15 +1162,33 @@ void FC_setup_camera_for_warehouse(SLONG cam)
 
 
 
-// claude-ai: FC_process() — главный цикл камеры, вызывается каждый кадр из Game.cpp.
+// claude-ai: FC_process() — главный цикл камеры, вызывается каждый кадр из Game.cpp. ~790 строк.
 // claude-ai: Алгоритм для каждой камеры в FC_cam[0..FC_MAX_CAMS-1]:
-// claude-ai:   1. Пропустить если focus == NULL.
-// claude-ai:   2. FC_alter_for_pos() — скорректировать высоту/дистанцию по позиции персонажа.
-// claude-ai:   3. FC_calc_focus() — вычислить точку взгляда.
-// claude-ai:   4. Обработка warehouse (здание) — специальный режим внутри здания.
-// claude-ai:   5. Тряска (shake) от взрывов — применить смещение.
-// claude-ai:   6. Collision avoidance — raycast через MAV высоты, камера не уходит в стены.
-// claude-ai:   7. Сглаживание позиции — плавное следование за персонажем.
+// claude-ai:   1. Пропустить если focus == NULL
+// claude-ai:   2. FC_alter_for_pos() — скорректировать height/dist по состоянию персонажа
+// claude-ai:   3. FC_calc_focus() — вычислить точку взгляда (focus_x/y/z)
+// claude-ai:   4. Warehouse transition — при входе/выходе из здания: FC_setup_camera_for_warehouse / FC_setup_initial_camera
+// claude-ai:   5. lookabove: 0xa000 живой, плавное снижение при DEAD/DYING (-0x80*TICK_RATIO)
+// claude-ai:   6. toonear: first-person mode если камера слишком близко (порог 0x90000); отмена при angle>200
+// claude-ai:   7. Rotate: L1/R1 поворот камеры вокруг персонажа; nobehind=0x2000 подавляет get-behind
+// claude-ai:   8. **8-шаговый collision raycast** (строки ~1333-1562):
+// claude-ai:      - Outdoor: MAV_inside проверка; push от стен/заборов (MAV_CAPS_GOTO + LOS)
+// claude-ai:      - Indoor (warehouse): WARE_inside + WARE_get_caps; yforce от пола/потолка
+// claude-ai:      - Итоговый push: want_x/y/z += force << 4
+// claude-ai:   9. **Get-behind** (строки ~1564-1667): камера стремится за спину Darci
+// claude-ai:      - behind_pos = focus + SIN/COS(focus_yaw) * cam_dist
+// claude-ai:      - Сила: >>3 (нормально), >>5 (вождение), >>1 (VERSION_NTSC без analogue)
+// claude-ai:      - Не в FIGHT mode (PC); усиление при gun-out (>>4 дополнительно)
+// claude-ai:  10. **Y-позиция** (строки ~1669-1748): goto_y = focus_y + FC_focus_above + offset_height
+// claude-ai:      - Clamped: dy>>3, max +0x0d00/-0x0c00 (или +0x2000 если далеко)
+// claude-ai:      - WMOVE platform: dy<<=5 (быстрее следовать за лифтом)
+// claude-ai:  11. **Distance clamp** (строки ~1750-1824): min/max = cam_dist * offset_dist
+// claude-ai:      - Слишком близко → отталкивание; слишком далеко → притяжение
+// claude-ai:  12. **Smoothing** (строки ~1826-1856): want→actual: pos >>2, Y >>3 (медленнее)
+// claude-ai:      - При dist < 0x800 — snap (прекратить движение)
+// claude-ai:  13. FC_look_at_focus → want_yaw/pitch/roll; сглаживание углов >>2
+// claude-ai:  14. Lens = 0x28000 * CAM_MORE_IN (фиксированный FOV; fight zoom закомментирован)
+// claude-ai:  15. Shake: rand ± shake/2 << 7; decay: shake -= 1 + shake>>3
 void FC_process()
 {
 	SLONG i;

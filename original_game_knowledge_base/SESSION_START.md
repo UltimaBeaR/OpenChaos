@@ -7,10 +7,23 @@
 
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
-**Варианты:**
-1. **Начало планирования new_game/** — KB достаточна для фазы 2; можно начинать архитектуру
-2. **muckybasic.md** — детальный анализ MuckyBasic (таблица says "не нужен", но можно для полноты)
-3. **overlay.cpp детали** — HUD (HealthBar, stamina, enemy tracking) для нового рендерера
+**Рекомендация:** Начать фазу 2 — планирование new_game/ (KB ~85%, все подсистемы ✅)
+
+**Варианты если продолжать анализ:**
+1. **barrel.cpp** — 0 аннотаций, деструктивные объекты (бочки/конусы/мусорки)
+2. **Аудит аннотаций** — fire.cpp(99), psystem.cpp(158), Vehicle.cpp(309), Building.cpp(141), mav.cpp(152), sound.cpp(103), door.cpp(33) аннотированы но НЕ записаны в списке ниже
+3. **wallhug.cpp** — Jan's wallhugger детали (вызывается из Nav.cpp)
+
+**ВЫПОЛНЕНО в этой итерации (overlay + guns + grenade + fc + nav):**
+- overlay.cpp полный анализ: OVERLAY_handle per-frame pipeline, PANEL_last HUD layout (circular health, 5 stamina marks, weapon+ammo, radar/beacons, timer MM:SS)
+- ui.md раздел 1 полностью переписан: per-frame pipeline, PANEL_last layout table, gun sights per-class, enemy health modes, inventory, dead code list
+- МЁРТВЫЙ КОД в overlay.cpp: track_enemy (#ifdef OLD_POO), help_system (#ifdef UNUSED), DAMAGE_TEXT (not defined), beacons, ScoresDraw, crime rate — всё закомментировано
+- fc.cpp FC_process аннотация расширена: 15-шаговый алгоритм (collision raycast, get-behind, Y-position, distance clamp, smoothing, shake)
+- guns.cpp полный анализ + аннотация: auto-aim scoring (MAX_NEW_TARGET_DANGLE=292≈±51°, running=±13°), модификаторы целей, sphere search
+- grenade.cpp полный анализ + аннотация: физика (gravity, bounce, wall reflect), CreateGrenadeExplosion (shockwave radius=0x300), show_grenade_path симуляция
+- weapons_items.md: добавлен раздел 8a (auto-aim), раздел 8 переписан (grenade.cpp детали), 8 новых функций в таблицу
+- Nav.cpp аннотирован: обёртка над wallhug_tricky(), NAV_Waypoint pool, NAV_wall_in_way FLOOR_HIDDEN check
+- Аудит: обнаружено 6 файлов с аннотациями НЕ записанных в SESSION_START (fire, psystem, Vehicle, Building, mav, sound, door)
 
 **ВЫПОЛНЕНО в этой итерации (ScoresDraw + end-of-level round-trip):**
 - Полный round-trip победа/поражение задокументирован в game_states.md раздел 5:
@@ -273,8 +286,8 @@
 ## Статус фазы анализа
 
 **Фаза 1 (текущая):** Детальный анализ оригинального кода → запись в `original_game_knowledge_base/`
-- KB написана примерно на 80%
-- Исходники аннотированы примерно на 55% (добавлены Person.cpp, collide.cpp, walkable.cpp)
+- KB написана примерно на 85%
+- Исходники аннотированы примерно на 65%+ (40+ файлов с аннотациями)
 
 ---
 
@@ -373,6 +386,17 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | **frontend.cpp** | +5 блоков | ✅ (ParseMissionData, MissionHierarchy, FRONTEND_mode, FRONTEND_display, FE_START pipeline) |
 | **Attract.cpp** | ~3 блока | ✅ (header overview, main loop, STARTS_START handler) |
 | **startscr.cpp** | 1 блок | ✅ (header: game build = только 1 переменная; #ifdef EDITOR = dead) |
+| **overlay.cpp** | 1 header блок | ✅ (OVERLAY_handle pipeline, PANEL_last layout, active/dead code) |
+| **guns.cpp** | 1 header блок | ✅ (auto-aim scoring, weapon stats, find_target_new, snipe) |
+| **grenade.cpp** | 1 header блок | ✅ (физика, CreateGrenadeExplosion, show_grenade_path) |
+| **Nav.cpp** | 1 header блок | ✅ (wallhug обёртка, NAV_Waypoint pool, NAV_wall_in_way) |
+| **fire.cpp** | ~99 ann. | ✅ (FIRE система: 8 fires, 256 flames, burn-out, bespoke renderer) |
+| **psystem.cpp** | ~158 ann. | ✅ (Particle system: pool, physics, PFLAG_*, fire_pal) |
+| **Vehicle.cpp** | ~309 ann. | ✅ (5159 строк, 52 функции, подвеска, collision, steering, crumple) |
+| **Building.cpp** | ~141 ann. | ✅ (здания, DFacet, roof faces) |
+| **mav.cpp** | ~152 ann. | ✅ (MAV navigation grid, precalculate, caps) |
+| **sound.cpp** | ~103 ann. | ✅ (Miles Sound System, MFX, ambient biomes) |
+| **door.cpp** | ~33 ann. | ✅ (двери, MAV_turn_on/off, height check) |
 
 ---
 

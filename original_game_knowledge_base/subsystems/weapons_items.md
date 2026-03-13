@@ -172,32 +172,82 @@ HIT_TYPE_GUN_SHOT_AK47     = 12
 
 ---
 
-## 8. Физика гранат
+## 8. Физика гранат (grenade.cpp)
 
-### Полёт гранаты (Special.cpp строки 823–859)
-Граната использует параболическую физику:
+MAX_GRENADES = 6, struct Grenade (~44 байт): owner, xyz, yaw/pitch, dxyz, dyaw/dpitch, timer.
 
-```c
-// Вертикальная скорость хранится в ss->timer с оффсетом 0x8000
-velocity = ss->timer - 0x8000;
-velocity -= 256 * TICK_RATIO >> TICK_SHIFT;  // гравитация
+### Активация (Special.cpp:1734)
+`SPECIAL_prime_grenade()` → timer = 16 × 20 × 6 = 1920 тиков (**6 секунд** при 20 fps).
 
-s_thing->WorldPos.Y += velocity * TICK_RATIO >> TICK_SHIFT;
+### Бросок (grenade.cpp:105)
+`CreateGrenadeFromPerson()`:
+- Вектор из `FMATRIX_vector(Angle, 0)`: dx/dz = -vec × 181 >> 11, dy = 181 << 6
+- NPC с близкой целью (dist < 0x500): скорость /= 2
+- Стартовая позиция: LEFT_HAND bone
 
-// При касании земли — отскок с потерей энергии
-velocity = abs(velocity) >> 1;   // половина скорости при отскоке
-if (velocity < 0x100) → остановиться (SubState = NONE)
-```
+### Физика каждый кадр (grenade.cpp:208)
+`ProcessGrenade()`:
+- Timer: -= 16 × TICK_RATIO (при 0 → взрыв)
+- Гравитация: dy -= TICK_RATIO × 2, cap -0x2000
+- Движение: pos += vel × TICK_RATIO
+- Отскок от пола: dy = abs(dy) >> 1; если dy < 0x400 → полная остановка (dx=dz=0)
+- Отскок от стен: reverse + halve (при смене mapsquare + under > 0x4000)
+- Alert AI: PCOM_oscillate_tympanum(GRENADE_FLY) каждые 16 кадров
 
-### Активация гранаты (Special.cpp:1734)
-```c
-void SPECIAL_prime_grenade(Thing *p_special) {
-    p_special->SubState = SPECIAL_SUBSTATE_ACTIVATED;
-    p_special->Genus.Special->timer = 16 * 20 * 6;  // запал 6 секунд
-}
-```
+### Взрыв (grenade.cpp:326)
+`CreateGrenadeExplosion()`:
+- Звук S_EXPLODE_START
+- 2 основных частицы (EXPLODE1/2_ADDITIVE) + ~20 доп. (дым, огонь, осколки)
+- DIRT_new_sparks × 3, DIRT_gust × 4 направления
+- **create_shockwave(radius=0x300, force=500)** — повреждения по площади
 
-Фактическая траектория при броске — через `CreateGrenadeFromPerson()` из `grenade.cpp`.
+### Прицел гранаты (grenade.cpp:441)
+`show_grenade_path()` — рисует траекторию при удержании гранаты:
+- Условие: STATE_IDLE + нет паузы + нет slowdown + не в warehouse
+- Симуляция: CreateGrenadeFromPerson(timer=6000) → ProcessGrenade(explode=0) в цикле
+- Отрисовка: пунктирная зелёная линия (0x8000af00) + PANEL_draw_gun_sight(scale=400) в точке приземления
+
+---
+
+## 8a. Автоприцеливание (guns.cpp)
+
+### Параметры оружия — get_gun_aim_stats()
+
+| Оружие | Range | Spread | Примечание |
+|--------|-------|--------|-----------|
+| MIB (встроенный) | 2048 (8<<8) | 20 | "ninja shooting machines" |
+| Pistol (GUN_OUT) | 1792 (7<<8) | 15 | |
+| AK47 | 2048 (8<<8) | 20 | |
+| Shotgun | 1536 (6<<8) | 30 | Ближе, но шире конус |
+
+### Scoring целей — calc_target_score_new() (для ИГРОКА)
+
+Конус: MAX_NEW_TARGET_DANGLE = 2048/7 ≈ 292 (±~51°). При беге (SUB_STATE_RUNNING) сужается ×4 (±~13°).
+Вертикальный лимит: 45° (abs(dy) > dist → skip).
+Фильтры: dead/float=skip, people_allowed_to_hit_each_other, can_a_see_b (persons), there_is_a_los (non-persons).
+CLASS_SPECIAL → только MINE.
+
+**Score = (8<<8 - dist) × (MAX_DANGLE - dangle) >> 3**
+
+Модификаторы scoring:
+- Враг, атакующий игрока: ×4
+- Thugs / MIB: ×2
+- Копы (для Darci/Roper): ×0.5
+- Гражданские: ×180/256 (~70%)
+- Hostages: ×170/256 (~66%)
+- Slag: ×210/256 (~82%)
+- Barrels: ×220/256 (~86%), stacked: -0x80, cones/bins=skip
+- Hands-up лежащие: score=0
+- Dying: >>1
+- Standing on vehicle: score=0
+- First-person look: доп. вертикальный scoring
+
+### Поиск цели — find_target_new()
+- **Игрок:** THING_find_sphere(range, Person|Bat|Barrel|Vehicle|Special) → best score
+- **NPC:** PCOM_person_wants_to_kill → если цель в машине → таргетит машину
+
+### Снайпер NPC — calc_snipe_target_score() / find_snipe_target()
+Для PCOM_AI_SHOOT_DEAD: range 19×256=4864, angle ±56, linear scan, нет LOS.
 
 ---
 
@@ -292,7 +342,14 @@ MAX_SPECIALS     = 260   // RMAX_SPECIALS — максимум объектов-
 | `SPECIAL_set_explosives()` | Special.cpp:1781 | Заложить взрывчатку (5 сек) |
 | `special_activate_mine()` | Special.cpp:746 | Взрыв мины |
 | `person_has_twohanded_weapon()` | Special.cpp:225 | Проверить двуручное |
-| `get_gun_aim_stats()` | guns.cpp:16 | Дальность и разброс |
+| `get_gun_aim_stats()` | guns.cpp:16 | Дальность и разброс оружия |
+| `calc_target_score_new()` | guns.cpp:212 | Scoring цели (для игрока) |
+| `find_target_new()` | guns.cpp:595 | Поиск лучшей цели (sphere) |
+| `find_snipe_target()` | guns.cpp:766 | Поиск цели для NPC-снайпера |
+| `CreateGrenadeFromPerson()` | grenade.cpp:105 | Бросок гранаты |
+| `ProcessGrenade()` | grenade.cpp:208 | Физика гранаты per-frame |
+| `CreateGrenadeExplosion()` | grenade.cpp:326 | Взрыв гранаты |
+| `show_grenade_path()` | grenade.cpp:441 | Прицел траектории |
 
 ---
 

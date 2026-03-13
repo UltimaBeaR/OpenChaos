@@ -1,7 +1,8 @@
 # UI и фронтенд — Urban Chaos
 
 **Ключевые файлы:**
-- `fallen/Source/Panel.cpp`, `fallen/Headers/Panel.h` — HUD, прицел, полосы здоровья
+- `fallen/Source/overlay.cpp` — OVERLAY_handle(): главный per-frame HUD dispatcher
+- `fallen/DDEngine/Source/panel.cpp` — PANEL_last(): отрисовка всех элементов HUD
 - `fallen/Source/Frontend.cpp`, `fallen/Headers/Frontend.h` — главное меню, экраны
 - `fallen/Source/GameMenu.cpp`, `fallen/Headers/GameMenu.h` — меню паузы, победа/поражение
 - `fallen/Source/MenuFont.cpp`, `fallen/Headers/MenuFont.h` — шрифт меню
@@ -11,67 +12,85 @@
 
 ## 1. HUD (Heads-Up Display)
 
-### Health Bar
-- **Позиция PC:** (10, 10), размер 100×10 пикселей
-- **Отрисовка:** красная полоса на чёрном фоне, padding 2px
-- **Вычисление:** `health >> 1` (здоровье 0–200 → ширина 0–100)
+### Per-frame pipeline (overlay.cpp → panel.cpp)
 
-### Stamina Bar
-- **Позиция:** (10, 30)
-- **Вычисление:** `(stamina * 100) >> 8`
+`OVERLAY_handle()` вызывается каждый кадр из game loop (после draw_screen, до screen_flip):
+1. Сброс D3D viewport на полный экран (для letterbox mode)
+2. `PANEL_start()` — начало HUD-кадра
+3. `PANEL_draw_buffered()` — таймеры обратного отсчёта (MM:SS, до 8 одновременно)
+4. `OVERLAY_draw_gun_sights()` — прицелы на целях
+5. `OVERLAY_draw_enemy_health()` — HP полоска над целью
+6. `PANEL_last()` — **ОСНОВНОЙ HUD** (см. ниже)
+7. `PANEL_inventory()` — список оружия при переключении
+8. Debug info (cheat==2): FPS + мировые координаты
+9. `PANEL_finish()` — конец HUD-кадра
 
-### Прицел (Gun Sight)
-```c
-void PANEL_draw_gun_sight(x, y, z, radius, scale);
-```
-Масштаб зависит от типа цели:
-- Person: scale = 256
-- Special / Barrel: scale = 128–200
-- Vehicle: scale = 450
-- Boss (Balrog): scale = 450
+**Условия:** если `EWAY_stop_player_moving()` — прицелы и HP не рисуются; если `GS_LEVEL_WON` — `PANEL_last()` не вызывается.
 
-Позиция привязана к голове персонажа (sub-object #11), Z смещается на 30–80 px.
+### PANEL_last() — основной HUD (panel.cpp)
 
-### Полосы здоровья врагов (Enemy Health Bars)
-- Отображаются над врагом во время боя
-- Для MIB: `health * 100 / 700`
-- Радиус отрисовки: 60–300 px в зависимости от дистанции
+Базовая позиция: `m_iPanelXPos`=0 (PC) / 32 (DC), `m_iPanelYPos`=480 (PC) / 448 (DC).
 
-### Отслеживание врагов (Tracking System)
-```c
-struct TrackEnemy {
-    Thing *PThing;
-    SWORD State;    // 0 = UNUSED, 1 = TRACKING
-    SWORD Timer;
-    SWORD Face;
-};
-#define MAX_TRACK 4   // максимум 4 врага одновременно
-```
-Функции: `track_enemy()`, `track_gun_sight()`
+| Элемент | Позиция (относительно base) | Детали |
+|---------|---------------------------|--------|
+| **Здоровье** | center (+74, -90), R=66px | Круговой индикатор, 8 сегментов, arc -43°→-227°. Darci: hp*(1/200), Roper: hp*(1/400), Vehicle: hp*(1/300) |
+| **Стамина** | (+107, -36) | 5 цветных квадратов 10×10, spacing +3x/-3y. Stamina/25 → red→orange→yellow→green→bright green |
+| **Оружие** | (+170, -63) | Спрайт текущего оружия |
+| **Патроны** | (+215, -50) | Число справа от оружия |
+| **Радар/маяки** | center (+74, -90), R=50px | Стрелки/точки миссионных маяков + красные/серые точки врагов |
+| **Crime rate** | (+170, -116) | Пульсирующий красный % |
+| **Таймер** | (+171, -118) | MM:SS, мигает красным при <30s |
+| **Граната** | (+160, -73) | Обратный отсчёт при выдернутом кольце |
+| **Текст/диалоги** | зависит от позиции панели | Речь NPC с портретами |
 
-### Портреты и здоровье врагов на HUD
-```c
-// PC: до 4 врагов, координаты: x = i*150+5, y = 436
-PANEL_draw_face(c0*150+5, 450-14, face, 32);
-PANEL_draw_health_bar(40+c0*150, 450, health);
-```
+### Gun Sights (overlay.cpp → panel.cpp)
+
+`track_gun_sight()` регистрирует до MAX_TRACK=4 целей ЗА КАДР (сбрасывается в конце).
+`OVERLAY_draw_gun_sights()` рисует прицелы через `PANEL_draw_gun_sight()`:
+
+| Класс цели | Позиция | Scale |
+|------------|---------|-------|
+| CLASS_PERSON | Голова (bone 11 через calc_sub_objects_position) | 256 |
+| CLASS_SPECIAL | WorldPos + 30Y | 128 |
+| CLASS_BAT (Balrog) | WorldPos + 30Y | 450 |
+| CLASS_BAT (другие) | WorldPos + 30Y | 128 |
+| CLASS_BARREL | WorldPos + 80Y | 200 |
+| CLASS_VEHICLE | WorldPos + 80Y | 450 |
+
+Прицел: 4 линии внешних (R=164) + 4 внутренних (R=20+accuracy/4). Цвет: зелёный (accuracy=255) → красный (accuracy=0).
+При гранате в руках: `show_grenade_path()` (если не в warehouse).
+
+### Enemy Health (overlay.cpp → panel.cpp)
+
+`OVERLAY_draw_enemy_health()` — показывает HP полоску в 3D мире НАД целью:
+- Условие: FIGHT mode ИЛИ SUB_STATE_AIM_GUN, и есть Target
+- MIB: `hp*100/700`, BAT_BALROG: `(100*hp)>>8` (radius 300), Person: `hp*100/health[PersonType]` (radius 60)
+- Рендеринг: `PANEL_draw_local_health()` — PC: 54×4px бар, DC: 54×8px
+
+### Инвентарь (panel.cpp)
+
+`PANEL_inventory()` — вертикальный список оружия, появляется при переключении (PopupFade > 0):
+- Позиция X: base+170, Y: ±35px между элементами (вверх если панель внизу, вниз если вверху)
+- Текущее оружие подсвечено; остальные приглушены
+- Не рисуется при вождении / катсцене
 
 ### Другие элементы HUD
 ```c
 void PANEL_draw_number(float x, float y, UBYTE digit); // 7-сегментный дисплей (время)
 void PANEL_draw_completion_bar(SLONG completion);       // прогресс-бар (0-256)
-void PANEL_draw_search(SLONG timer);                    // экран обыска
-void PANEL_inventory(Thing *darci, Thing *player);      // инвентарь
+void PANEL_draw_search(SLONG timer);                    // экран обыска (PSX; PC закомментирован)
 void PANEL_flash_sign(SLONG which, SLONG flip);         // дорожные знаки в транспорте
 ```
 
-**Знаки для транспорта:**
-```c
-#define PANEL_SIGN_WHICH_UTURN                0
-#define PANEL_SIGN_WHICH_TURN_RIGHT           1
-#define PANEL_SIGN_WHICH_DONT_TAKE_RIGHT_TURN 2
-#define PANEL_SIGN_WHICH_STOP                 3
-```
+### МЁРТВЫЙ КОД overlay.cpp
+- `track_enemy()` — `#ifdef OLD_POO`: старые портреты врагов (заменено PANEL_draw_local_health)
+- `help_system()` — `#ifdef UNUSED`: proximity help для машин/предметов
+- `show_help_text()` — тело закомментировано
+- DAMAGE_TEXT система — `#ifdef DAMAGE_TEXT` (НЕ определён): плавающие числа урона
+- Beacons (minimap) — закомментированы
+- ScoresDraw в overlay — перенесён в GAMEMENU
+- CRIME_RATE display — закомментирован
+- init_punch_kick() — PSX NTSC only
 
 ---
 

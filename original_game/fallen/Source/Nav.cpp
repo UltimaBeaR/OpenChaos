@@ -2,6 +2,28 @@
 // Navigation.
 //
 
+// claude-ai: === NAV.CPP — WALLHUG PATHFINDING ОБЁРТКА ===
+// claude-ai: 287 строк, 8 функций. Тонкая обёртка над wallhug.cpp ("Jan's wallhugger").
+// claude-ai:
+// claude-ai: NAV_Waypoint — пул waypoints (NAV_MAX_WAYPOINTS), singly-linked free list.
+// claude-ai: NAV_waypoint_get/give — аллокация/возврат в пул.
+// claude-ai: NAV_path_give — рекурсивный возврат всей цепочки waypoints.
+// claude-ai:
+// claude-ai: NAV_do(x1,z1, x2,z2, flag) — главная функция:
+// claude-ai:   1. Конвертирует координаты в mapsquare (>> ELE_SHIFT)
+// claude-ai:   2. Вызывает wallhug_tricky(&wp) — алгоритм wallhug (обход стен)
+// claude-ai:   3. Строит linked list NAV_Waypoint из результата wp.waypoints[]
+// claude-ai:   4. Каждый waypoint: x/z в мировых координатах (центр mapsquare), length=оставшийся путь
+// claude-ai:   При нехватке waypoints — путь обрезается (NAV_WAYPOINT(prev)->next = NULL)
+// claude-ai:
+// claude-ai: NAV_wall_in_way(x,z,dirn) — проверка стены в направлении (4 стороны):
+// claude-ai:   Возвращает TRUE если: за пределами карты ИЛИ FLOOR_HIDDEN на целевом квадрате
+// claude-ai:   ⚠️ На DC: ASSERT(FALSE) — на DC не используется (заменено другой системой?)
+// claude-ai:
+// claude-ai: NAV_path_draw() — debug отрисовка пути (3D линии). Только не-DC build.
+// claude-ai:
+// claude-ai: Для новой игры: заменить wallhug_tricky на A* или навмеш; сохранить waypoint pool API.
+// claude-ai: ===
 #include "game.h"
 #include "nav.h"
 #include "wallhug.h"
