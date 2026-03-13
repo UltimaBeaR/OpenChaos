@@ -6,6 +6,8 @@
 - `fallen/Source/guns.cpp` — прицеливание и дальность стрельбы
 - `fallen/Headers/Person.h` — инвентарь (SpecialList, ammo_packs_*)
 - `fallen/Source/grenade.cpp` — физика гранат (DIRT-система)
+- `fallen/Source/dirt.cpp` — DIRT-система: листья, банки колы, гильзы, кровь, голубятники (отключены)
+- `fallen/Headers/dirt.h` — DIRT типы, лимиты, API
 
 ---
 
@@ -303,7 +305,85 @@ EWAY-действие `EWAY_DO_CREATE_ITEM` (тип 4) создаёт предм
 
 ---
 
-## 16. Что переносить в новую версию
+## 16. Банки колы (DIRT система) — отдельная от SPECIAL
+
+**Ключевое:** банки колы — это **НЕ SPECIAL предметы**, а объекты DIRT-системы.
+
+### DIRT типы (dirt.h):
+```c
+DIRT_TYPE_UNUSED    0
+DIRT_TYPE_LEAF      1   // листья — ambient мусор
+DIRT_TYPE_CAN       2   // банка на земле — подбирается
+DIRT_TYPE_PIGEON    3   // голубь — ВСЕГДА ОТКЛЮЧЁН (prob_pigeon=0 принудительно)
+DIRT_TYPE_WATER     4   // брызги воды
+DIRT_TYPE_HELDCAN   5   // банка в руке Darci
+DIRT_TYPE_THROWCAN  6   // банка в полёте (projectile)
+DIRT_TYPE_HEAD      7   // отрубленная голова (отдельная механика)
+DIRT_TYPE_HELDHEAD  8   // голова в руке
+DIRT_TYPE_THROWHEAD 9   // голова в полёте
+DIRT_TYPE_BRASS     10  // гильзы (было grenade slot)
+DIRT_TYPE_MINE      11  // мина как DIRT объект
+DIRT_TYPE_URINE     12  // ???
+DIRT_TYPE_SPARKS    13
+DIRT_TYPE_BLOOD     14
+DIRT_TYPE_SNOW      15
+// DIRT_MAX_DIRT = 256 (PC) — максимальный пул DIRT объектов
+```
+
+### Спавн банок:
+- **`DIRT_init(prob_leaf=100, prob_can=1, prob_pigeon=0, ...)` — вызывается при загрузке уровня (elev.cpp:2425)**
+- Банки спавнятся **динамически** вокруг позиции Darci через DIRT_set_focus (Controls.cpp, каждый кадр)
+- prob_can=1 vs prob_leaf=100 → примерно **1 банка на ~100 листьев** — очень редко! (~2-3 банки из 256 DIRT slots)
+- **Также:** `DIRT_create_cans(x, z, angle)` спавнит 5 банок при ударе бочки о бочку (barrel.cpp:1167)
+- **Почему банок не видно в пре-релизном запуске:** вероятнее всего, редкость (prob_can=1) или рендер-баг в этой сборке. В бинарнике pieroZ они видны — значит механика рабочая.
+
+### Подбор:
+```c
+// interfac.cpp:2138-2157 — в do_an_action()
+// Только Darci в idle (PersonID>>5 == 0) и dist < 0x80 от ближайшей банки
+set_person_can_pickup(p_thing);    // → DIRT_pick_up_can_or_head()
+// Банка переходит TYPE_CAN → TYPE_HELDCAN; dd->droll = THING_NUMBER(p_person)
+// FLAG_PERSON_CANNING |= (1<<15); Person.Hold = DIRT index
+// STATE_CANNING = 32
+```
+
+### Бросок:
+```c
+// PUNCH кнопка → set_player_punch() → player_activate_in_hand()
+// Если FLAG_PERSON_CANNING → set_person_can_release(p_person, power=128)
+// → DIRT_release_can_or_head(person, 128)
+// Банка TYPE_HELDCAN → TYPE_THROWCAN
+// Скорость: dx/dz из матрицы поворота персонажа × power >> 18; dy = power >> 2 (вверх)
+```
+
+### Физика полёта (TYPE_THROWCAN):
+- Гравитация: `dy -= TICK_RATIO` per tick, max падение -0x20
+- Отскок от стен: `dx = -dx >> 1`, `dz = -dz >> 1` (половина скорости)
+- Отскок от пола: `dy = abs(dy) >> 1` (потеря энергии)
+- Когда `dy < 10 << TICK_SHIFT` → становится TYPE_CAN (ложится на пол и катится)
+- При ударе о пол (если скорость достаточна): **`S_KICK_CAN` звук** + alert NPC через `PCOM_oscillate_tympanum(PCOM_SOUND_UNUSUAL, ...)`
+
+### Реакция NPC:
+- Брошенная банка, ударившаяся о пол → `PCOM_SOUND_UNUSUAL` = "unusual noise" = NPC идут проверять
+- NPC слышат звук банки (в отличие от тихих действий)
+- Пользу можно использовать тактически: отвлечь охрану
+
+### Флаги и состояния:
+```c
+FLAG_PERSON_CANNING = (1<<15)  // Person.Flags — держит банку/голову
+SWORD Person.Hold              // DIRT index удерживаемого объекта
+STATE_CANNING = 32             // стейт персонажа при поднятии/броске
+```
+
+### Переносить ли? ✅ ДА
+- Механика есть в финальной PS1 версии (подтверждено)
+- В пре-релизном коде полностью реализована — просто редкая из-за prob_can=1
+- PUNCH бросает банку вместо удара (приоритет: can > punch)
+- Также голову можно поднять и бросить (аналогичный механизм — DIRT_TYPE_HEAD)
+
+---
+
+## 17. Что переносить в новую версию
 
 **1:1:**
 - Все 30 типов SPECIAL_* с тем же поведением

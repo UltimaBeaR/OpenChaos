@@ -502,6 +502,10 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - mission_hierarchy биты: 1=exists, 2=complete, 4=available; [1]=3 (корень) при старте
 - best_found[50][4]: [0]=Constitution, [1]=Strength, [2]=Stamina, [3]=Skill; анти-фарм: повторное прохождение даёт только улучшение рекорда
 - complete_point пороги тем: <8→theme0, <16→theme1, <24→theme2, ≥24→theme3; max чит = 40
+- Банки колы = DIRT объекты (НЕ SPECIAL!): TYPE_CAN/HELDCAN/THROWCAN; prob_can=1 из 101 → редко (~2-3 из 256 dirt slots); есть в финале PS1; ПЕРЕНОСИТЬ
+- Банка: подбор через do_an_action() dist<0x80 idle Darci; бросок через PUNCH→player_activate_in_hand(); физика: гравитация+отскок; S_KICK_CAN звук+PCOM_SOUND_UNUSUAL (NPC alert)
+- DIRT_create_cans(): 5 банок при столкновении бочек (barrel.cpp:1167)
+- pigeon (голубь) = ВСЕГДА prob_pigeon=0 в DIRT_init (принудительно отключён)
 - MapElement.Colour = МЁРТВЫЙ КОД в DDEngine (PC); MAP_light_set/get нигде не вызываются; Glide-only legacy
 - DDEngine terrain vertex colour: NIGHT_light_mapsquare → colour[16] per lo-cell → NIGHT_cache → NIGHT_get_d3d_colour (×4 scale) → apply_cloud → fadeout
 - ⚠️ БАГ в NIGHT_light_mapsquare:746: dprod=`dx*nx+dy*ny+dz*nx` — последний `dz*nx` должен быть `dz*nz`
