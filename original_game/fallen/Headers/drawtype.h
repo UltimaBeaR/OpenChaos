@@ -88,7 +88,7 @@ typedef	struct
 // claude-ai: Cache is the texture cache slot. Hm=255 means no height-map override.
 typedef	struct
 {
-	UWORD				Angle;     // claude-ai: yaw rotation (0-65535 = 0-360 degrees)
+	UWORD				Angle;     // claude-ai: yaw rotation (0-2047 = 0-360 degrees, engine convention, masked & 2047)
 	UWORD				Roll;      // claude-ai: roll (banking) rotation
 	UWORD				Tilt;      // claude-ai: pitch (forward tilt) rotation
 	UWORD				ObjectId;  // claude-ai: mesh asset ID (index into loaded mesh table)

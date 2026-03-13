@@ -11,8 +11,8 @@
 // claude-ai:   (он в Game.cpp), а «внутренний» — per-frame диспетчер игровой логики.
 // claude-ai:
 // claude-ai: ВАЖНО: в файле ДВЕ версии process_controls():
-// claude-ai:   - PC-версия  (строка ~1785): #ifndef PSX — основная, с отладочными клавишами
-// claude-ai:   - PSX-версия (строка ~5053): #ifdef  PSX — урезанная, без debug-кода
+// claude-ai:   - PC-версия  (строка ~1934): #ifndef PSX — основная, с отладочными клавишами
+// claude-ai:   - PSX-версия (строка ~5265): #ifdef  PSX — урезанная, без debug-кода
 // claude-ai:
 // claude-ai: ЧТО ДЕЛАЕТ process_controls() (PC-версия), ПОРЯДОК ВЫЗОВОВ:
 // claude-ai:   1.  Каждые 16 кадров (GAME_TURN & 0x0f)==0:
@@ -23,15 +23,12 @@
 // claude-ai:   3.  Проверка смерти игрока  → GAME_STATE = GS_LEVEL_LOST
 // claude-ai:   4.  Блок отладочных клавиш (только allow_debug_keys, #ifndef TARGET_DC):
 // claude-ai:         [ ] / { }  — циклически смотреть на NPC-персонажей через камеру 1
-// claude-ai:   5.  Инвентарь (INPUT_MASK_SELECT → CONTROLS_new/rot/set_inventory)
-// claude-ai:   6.  DIRT_set_focus()        — обновить центр системы частиц-грязи/воды
-// claude-ai:   7.  MIST_process()          — обновить туман (частицы тумана)
-// claude-ai:   8.  SPARK_process()         — обновить электро-искры
-// claude-ai:   9.  GLITTER_process()       — обновить блёстки/отблески
-// claude-ai:  10.  HOOK_process()          — обновить крюк-кошку
-// claude-ai:  11.  SNIPE_process()         — обновить снайперский прицел (#ifndef TARGET_DC)
-// claude-ai:  12.  Консольный ввод (F9)   — parse_console() для отладочных команд
-// claude-ai:  13.  animate_texture_maps()  — анимация текстур (#ifndef PSX, в конце функции)
+// claude-ai:   5.  DIRT_set_focus()        — обновить центр системы частиц-грязи/воды
+// claude-ai:   6.  MIST/SPARK/GLITTER/HOOK/SNIPE — обновить подсистемы эффектов
+// claude-ai:   7.  Консольный ввод (F9)   — parse_console(), ранний return пока открыта
+// claude-ai:   8.  Инвентарь (INPUT_MASK_SELECT → CONTROLS_new/rot/set_inventory)
+// claude-ai:   9.  Блок debug-клавиш (если allow_debug_keys): Ctrl/Shift+hotkeys
+// claude-ai:  10.  animate_texture_maps()  — анимация текстур (#ifndef PSX, в конце функции)
 // claude-ai:
 // claude-ai: ВАЖНЫЕ ЗАМЕЧАНИЯ:
 // claude-ai:   - WATER_process(), BANG_process(), LIGHT_process() закомментированы —
@@ -40,7 +37,7 @@
 // claude-ai:     PSYSTEM (частицы), WMOVE (транспорт) — НЕ вызываются здесь,
 // claude-ai:     они вызываются напрямую из game_loop() в Game.cpp.
 // claude-ai:   - process_controls() — это «остаток» старой монолитной функции управления.
-// claude-ai:     Комментарий в коде (строка ~2268) прямо говорит:
+// claude-ai:     Комментарий в коде (строка ~2422) прямо говорит:
 // claude-ai:     "this stuff shouldn't even _be_ in process_controls."
 // claude-ai:   - DIRT_set_focus() устанавливает радиус-фокус: PSX = 0x800, PC = 0xC00
 // claude-ai:
@@ -243,7 +240,7 @@ UBYTE InkeyToAsciiShift[]=
 // claude-ai:          11=cctv(green screen), 12=win, 13=lose, 14=s(save,disabled),
 // claude-ai:          15=l(load,disabled), 16=restart, 17=ambient(RGB editor),
 // claude-ai:          18=analogue, 19=world(music world), 20=fade, 21=roper,
-// claude-ai:          22=darci, 23=crinkles, 24=(disabled), 25=boo(PYRO_GAMEOVER)
+// claude-ai:          22=darci, 23=crinkles, 24=bangunsnotgames(DUPLICATE of 10), 25=boo(PYRO_GAMEOVER)
 CBYTE *cmd_list[] = {"cam", "echo", "tels", "telr", "telw", "break", "wpt", "vtx", "alpha", "gamma", "bangunsnotgames", "cctv", "win", "lose","s","l","restart","ambient","analogue","world","fade","roper", "darci", "crinkles","bangunsnotgames", "boo", NULL};
 
 // claude-ai: eway_find() — линейный поиск waypoint по id в массиве EWAY_way[1..EWAY_way_upto].
@@ -1360,7 +1357,7 @@ SBYTE CONTROLS_get_best_item(Thing *darci, Thing *player)
 // claude-ai: При первом вызове (PopupFade==0): сбрасывает ItemFocus=-1.
 // claude-ai: Увеличивает PopupFade на INVENTORY_FADE_SPEED (до 255).
 // claude-ai: Если ItemFocus==-1: вызывает CONTROLS_get_selected_item() чтобы найти текущий.
-// claude-ai: Возвращает 1 если автоматически переключились на лучшее оружие.
+// claude-ai: Всегда возвращает 0 — блок CONTROLS_get_best_item закомментирован в этой версии.
 SLONG	CONTROLS_new_inventory(Thing *darci, Thing *player)
 {
 	UWORD temp = player->Genus.Player->PopupFade;
@@ -1503,7 +1500,7 @@ extern	UWORD	count_gang(Thing *p_target);
 // claude-ai:   MUSIC_bodge_code 1..4: спец-режимы для поезда и финала (хардкодированные уровни).
 // claude-ai:   Если ambience==4 (ночной клуб): выход без изменения музыки.
 // claude-ai:   Danger-уровень 1 (красный): воспроизводит S_TUNE_DANGER_RED как ambient sfx.
-// claude-ai:   Danger 2,3 закомментированы — в финале возможно работают иначе.
+// claude-ai:   Danger 2=S_NULL (тихий), Danger 3=S_TUNE_DANGER_GREEN (зелёный). Старый код в #if 0.
 // claude-ai: Вызывается каждый кадр из process_controls().
 // new cleaner version
 void	context_music(void)
@@ -4020,7 +4017,7 @@ extern void PYRO_fn_init(Thing *thing);
 	// claude-ai: Shift+J — MAV_precalculate() + дать Дарси танцевальную анимацию (случайная).
 	// claude-ai: Shift+O — создать вертолёт (CHOPPER_CIVILIAN) над позицией Дарси.
 	// claude-ai: Shift+Y — COLLIDE_debug_fastnav() (рисует пути навигации).
-	// claude-ai: Shift+D — создать статический источник света (NIGHT_slight_create).
+	// claude-ai: Shift+D — DEAD CODE: NIGHT_slight_create branch checks !ShiftFlag inside ShiftFlag block (unreachable). Only ASSERT(2+2==5) runs.
 	// claude-ai: Shift+D+Shift — ASSERT(2+2==5) — принудительно упасть в дебаггер.
 	// claude-ai: Shift+G — дать Дарси пистолет (FLAGS_HAS_GUN).
 	// claude-ai: Shift+H — plan_view_shot() — снять карту города сверху.

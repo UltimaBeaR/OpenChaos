@@ -251,7 +251,7 @@ typedef struct
 // claude-ai:   Key physics parameters stored here:
 // claude-ai:     elasticity  — spring stiffness (Hooke's k). Typical barrel: 0.010. Higher = stiffer, more rigid.
 // claude-ai:     bounciness  — restitution coefficient against the floor (0=dead stop, 1=perfect bounce). Typical: 0.95.
-// claude-ai:     friction    — XZ velocity damping on ground contact (0=frictionless, 1=no sliding). Typical: 0.85.
+// claude-ai:     friction    — XZ velocity retention on ground contact (0=dead stop, 1=no friction). Typical: 0.85 = 15% energy lost.
 // claude-ai:     damping     — per-frame velocity multiplier (applied every tick, ~0.997 = very low drag). Controls energy decay.
 // claude-ai:   x/y/z_index and o_index: 4 reference points used by HM_find_mesh_pos() to reconstruct world pos + rotation matrix.
 // claude-ai:   cog_x/y/z: centre of gravity of the original prim (from PrimInfo). Used as rotation pivot.
@@ -2815,7 +2815,7 @@ void HM_process()
 		// claude-ai: POINT INTEGRATION LOOP — applies damping, gravity, ground collision, wall collision, position update.
 		// claude-ai: Order matters: damping first → reduces velocity before gravity is added (slight under-gravity effect).
 		// claude-ai: Ground collision: if y < gy (gy=0 hardcoded), reflects dy by bounciness, damps dx/dz by friction,
-		// claude-ai:   corrects y by mirroring penetration depth (hp->y = gy - hp->y i.e. gy + (gy - hp->y_before)).
+		// claude-ai:   corrects y by mirroring around ground plane (hp->y = gy - hp->y; when gy=0 this is simply y = -y).
 		// claude-ai: Wall collision: uses MATHS_seg_intersect() with DOUBLED velocity (hp->dx + hp->dx) as look-ahead.
 		// claude-ai:   The doubled velocity gives a 2-frame prediction — ensures points don't tunnel at high speed.
 		// claude-ai:   Reflection is simplified: axis-aligned walls reflect only the perpendicular component.

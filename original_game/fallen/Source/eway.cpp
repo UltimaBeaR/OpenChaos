@@ -1,4 +1,4 @@
-// claude-ai: eway.cpp — EWAY (EventWay) mission scripting system (~8229 lines)
+// claude-ai: eway.cpp — EWAY (EventWay) mission scripting system (~8509 lines)
 // claude-ai: This is the ONLY mission scripting system used in Urban Chaos.
 // claude-ai: NOT MuckyBasic — MuckyBasic is a separate scripting language that is
 // claude-ai: never actually used in game missions (see subsystems/scripting.md for details).
@@ -11,8 +11,8 @@
 // claude-ai:
 // claude-ai: Key concepts:
 // claude-ai:   EWAY_Way   = one waypoint: has condition (ec), action (ed), stay rule (es)
-// claude-ai:   EWAY_Cond  = condition: type is one of EWAY_COND_* enum values (41 types)
-// claude-ai:   EWAY_Do    = action: type is one of EWAY_DO_* enum values (57 types)
+// claude-ai:   EWAY_Cond  = condition: type is one of EWAY_COND_* enum values (42 types, 0-41)
+// claude-ai:   EWAY_Do    = action: type is one of EWAY_DO_* enum values (52 types)
 // claude-ai:   EWAY_Edef  = enemy definition: extra data for CREATE_ENEMY/CHANGE_ENEMY waypoints
 // claude-ai:   EWAY_flag  = per-waypoint state flags: EWAY_FLAG_ACTIVE, DEAD, FINISHED, etc.
 // claude-ai:
@@ -913,7 +913,7 @@ UWORD EWAY_create_animal(
 // claude-ai: EWAY_create_item() — spawns a pickup special (gun, keycard, etc.) at a waypoint position.
 // claude-ai: If EWAY_ARG_ITEM_STASHED_IN_PRIM is set, the item is hidden inside a nearby OB primitive
 // claude-ai: (removed from the map, flagged OB_FLAG_HIDDEN_ITEM) — player finds it by searching the object.
-// claude-ai: The waypoint index is stored in the special's counter field for back-reference.
+// claude-ai: When stashed, the OB index (not waypoint index) is stored in the special's counter field.
 //
 // Creates an item of the given subtype.
 //
@@ -2586,7 +2586,7 @@ SLONG	global_write12=0;
 // claude-ai:   EWAY_COND_IS_MURDERER     — FLAG2_PERSON_IS_MURDERER on the NPC
 // claude-ai:   EWAY_COND_PERSON_IN_VEHICLE — NPC is driving (optionally a specific vehicle)
 // claude-ai:   EWAY_COND_THING_RADIUS_DIR — NPC within radius AND facing a specific direction (±128/2048)
-// claude-ai:   EWAY_COND_MOVE_RADIUS_DIR  — like THING_RADIUS_DIR but checks moving direction not facing
+// claude-ai:   EWAY_COND_MOVE_RADIUS_DIR  — like THING_RADIUS_DIR; intended for moving direction but uses same facing angle (bug: abs(speed<16) always 0/1)
 // claude-ai:   EWAY_COND_SPECIFIC_ITEM_HELD — EWAY_FLAG_GOTITEM on the CREATE_ITEM waypoint
 // claude-ai:   EWAY_COND_RANDOM          — fires one random sibling COND_RANDOM, kills all others
 // claude-ai:   EWAY_COND_PLAYER_FIRED_GUN — GF_PLAYER_FIRED_GUN flag in GAME_FLAGS
@@ -2650,7 +2650,7 @@ ANNOYINGSCRIBBLECHECK;
 			break;
 
 		case EWAY_COND_CAMERA:
-			ans = FALSE; // claude-ai: STUB — camera-at-position never fires in this codebase (always FALSE)
+			ans = FALSE; // claude-ai: STUB — always FALSE here; camera-at condition is satisfied externally via EWAY_FLAG_ACTIVE in EWAY_process_camera()
 			break;
 
 		case EWAY_COND_SWITCH:
@@ -4716,7 +4716,7 @@ ANNOYINGSCRIBBLECHECK;
 
 // claude-ai: EWAY_process_conversation() — advances the active scripted two-person conversation.
 // claude-ai: Conversations are triggered by EWAY_DO_CONVERSATION or EWAY_DO_AMBIENT_CONV waypoints.
-// claude-ai: The message string in EWAY_mess is parsed: lines starting with 'A' or 'B' indicate speaker.
+// claude-ai: The message string in EWAY_mess is pipe-delimited ('|'); speakers alternate via SWAP(person_a, person_b).
 // claude-ai: Each line is displayed via PANEL_new_text() and voiced via EWAY_talk_conv().
 // claude-ai: Non-ambient conversations: switches game to widescreen mode, locks camera, disables player input.
 // claude-ai: EWAY_conv_active flag suppresses countdown timers (EWAY_COND_COUNTDOWN) during conversations.

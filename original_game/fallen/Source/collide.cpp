@@ -13,13 +13,13 @@
 // claude-ai:   slide_along()           — скольжение вдоль стен, restitution=0 (~line 3935)
 // claude-ai:   plant_feet()            — привязка персонажа к полу, пороги 30/60 ед. (~line 2794)
 // claude-ai:   PAP_calc_height_at()    — билинейная интерполяция высоты — в pap.cpp
-// claude-ai:   collide_against_things()— коллизии с другими персонажами (~line 5927)
-// claude-ai:   collide_against_objects()— коллизии с мебелью (~line 5536)
+// claude-ai:   collide_against_things()— коллизии с Things (персонажи, машины, мебель, pyro, платформы) (~line 5927)
+// claude-ai:   collide_against_objects()— коллизии с OB объектами (уличные объекты: фонари, урны) (~line 5536)
 // claude-ai:   create_shockwave()      — урон от взрыва с затуханием (~line 10842)
 // claude-ai:
 // claude-ai: Гравитация:
-// claude-ai:   Персонажи: animation-driven (DY -= каждый тик при STATE_FALLING), НЕ физическая
-// claude-ai:   Транспорт: GRAVITY = -(128*10*256)/(80*80) = -5120 юн/тик² (явная физика)
+// claude-ai:   Персонажи: mostly animation-driven but has explicit GRAVITY in jumping/projectile states (Darci.cpp)
+// claude-ai:   Транспорт: GRAVITY = -(128*10*256)/(80*80) = -51 юн/тик² (явная физика, integer division)
 #include	"Game.h"
 //#include	"..\editor\headers\collide.hpp"
 #include	"..\editor\headers\map.h"
@@ -59,7 +59,7 @@ extern	UBYTE	cheat;
 #undef  BLOCK_SIZE
 #define BLOCK_SIZE (1 << 6)
 
-// claude-ai: Статические пулы барьеров коллизий (только для EDITOR/DOG_POO билдов).
+// claude-ai: Статические пулы барьеров коллизий (только для DOG_POO билдов).
 // claude-ai: Лимиты определены в collide.h:
 // claude-ai:   PC:  MAX_COL_VECT=10000, MAX_COL_VECT_LINK=10000, MAX_WALK_POOL=30000
 // claude-ai:   PSX: MAX_COL_VECT=1000,  MAX_COL_VECT_LINK=4000,  MAX_WALK_POOL=10000
@@ -2547,7 +2547,7 @@ void	correct_pos_for_ladder(struct DFacet *p_facet,SLONG *px,SLONG *pz,SLONG *an
 
 // claude-ai: ok_to_mount_ladder(): проверяет что персонаж в пределах QDIST2 < 75 от центра лестницы.
 // claude-ai: correct_pos_for_ladder() вычисляет midpoint двух точек DFacet + угол поворота.
-// claude-ai: 75 в block-level координатах ≈ 8–9 юнитов (персонаж должен быть вплотную).
+// claude-ai: 75 в block-level координатах (персонаж должен быть вплотную).
 SLONG	ok_to_mount_ladder(struct Thing *p_thing,struct DFacet *p_facet)
 {
 	SLONG	dx,dz,px,pz,angle;
@@ -6603,7 +6603,7 @@ SLONG x2, y2, z2;
 // claude-ai:   4. slide_along() — скольжение вдоль DFacets зданий
 // claude-ai:      extra_wall_height = SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT = -0x50 (-80 ед.)
 // claude-ai:      radius+20 (немного больше чем при collide_against)
-// claude-ai:      STATE_HUG_WALL: radius >>= 2 (четверть радиуса)
+// claude-ai:      STATE_HUG_WALL: radius >>= 2 (четверть радиуса) — применяется ДО всех коллизий (шаги 2-4)
 // claude-ai:   5. slide_along_edges() — скольжение по кромкам DFacet
 // claude-ai:      Только при: STATE_CIRCLING, SUB_STATE_STEP_FORWARD, walking player, FIRE_ESCAPE
 // claude-ai:   6. find_face_for_this_pos() — новый face после движения (не plant_feet!)

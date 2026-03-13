@@ -2,7 +2,7 @@
 // claude-ai: DIRT_Dirt[1024 PC] pool; 16 types: LEAF/CAN/PIGEON/WATER/HELDCAN/THROWCAN/HEAD/HELDHEAD/THROWHEAD/BRASS/MINE/URINE/SPARKS/BLOOD/SNOW
 // claude-ai: Ambient system: DIRT_set_focus(camera x,z,radius) — creates/destroys leaves near trees, respawns at edge
 // claude-ai:   DIRT_tree[64] tracks tree positions (PRIM_FLAG_TREE); 200 leaves per tree (PC)
-// claude-ai:   Probabilities: leaf/can/pigeon (8-bit, sum=256); PIGEON ALWAYS 0 ("no bug ridden pigeons for us!" line 193)
+// claude-ai:   Probabilities: leaf/can/pigeon (8-bit, sum=256); PIGEON ALWAYS 0 ("no bug ridden pigeons for us!" line ~210)
 // claude-ai:   world_type: FOREST→all LEAF, SNOW→all SNOW
 // claude-ai: Physics per type:
 // claude-ai:   LEAF/SNOW: waft from pitch/roll, drag 75%x/50%y, gravity 4<<TICK_SHIFT, lift from tilt; STILL when stopped

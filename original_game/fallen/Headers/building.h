@@ -369,7 +369,7 @@ struct	FWall
 // claude-ai: Структура этажа/секции здания. Максимум 2500 (MAX_STOREYS = MAX_BUILDINGS*5).
 // claude-ai: Поля: StoreyType — тип (NORMAL/ROOF/WALL/FIRE_ESCAPE/CABLE/FENCE/LADDER/INSIDE/DOOR/OUTSIDE_DOOR и т.д.),
 // claude-ai:        Height — высота секции, WallHead — первая стена (linked list),
-// claude-fi:        InsideIDIndex — индекс в room_ids[] для интерьеров, InsideStorey — связанный inside-storey.
+// claude-ai:        InsideIDIndex — индекс в room_ids[] для интерьеров, InsideStorey — связанный inside-storey.
 struct	FStorey
 {
 	SWORD	DX,DY,DZ;

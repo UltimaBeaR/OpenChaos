@@ -1,6 +1,6 @@
 // claude-ai: INTERACTION SYSTEM — grab/ladder/cable detection for parkour movement
 // claude-ai: find_grab_face(): main function ~700 lines — two-pass search (hi-res roof faces, lo-res walkable)
-// claude-ai:   checks 4 edges of each quad: Y-range ±256+dy, angle ±200°, dist<radius, fence check
+// claude-ai:   checks 4 edges of each quad: Y-range ±256+dy, angle ±200 engine angle units (~35 real degrees, where 2048=360°), dist<radius, fence check
 // claude-ai:   returns face index + grab pos + angle; type: 0=surface, 1=cable, 2=ladder
 // claude-ai: Cable/zipwire params PACKED in DFacet fields: StyleIndex=angle_step1, Building=angle_step2, Height=count
 // claude-ai: find_cable_y_along(): cosine dip curve (two segments); check_grab_cable_facet(): nearest point on cable line

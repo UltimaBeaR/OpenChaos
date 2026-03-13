@@ -17,7 +17,29 @@
 
 **План:** 8 итераций глубокого аудита и верификации KB перед переходом к фазе 2.
 **Детали:** см. `ANALYSIS_ITERATIONS_PLAN.md`
-**Текущий статус:** итерация 1 (очистка KB) ✅ выполнена, следующая — итерация 2 (аудит аннотаций)
+**Текущий статус:** итерация 2 (аудит аннотаций) ✅ выполнена, следующая — итерация 3 (консистентность KB)
+
+**ВЫПОЛНЕНО в этой итерации (аудит аннотаций // claude-ai:):**
+- 3905 аннотаций в 98 файлах — полный аудит проведён по 16 файлам (~2600 аннотаций, 66%)
+- **~35 фактических ошибок найдены и исправлены** (error rate ~1.3%):
+  - hm.cpp: friction семантика (0=dead stop, не frictionless), ground correction формула
+  - eway.cpp: line count (8509 не 8229), COND=42 не 41, DO=52 не 57, counter=ob_index, conversation=pipe+SWAP, MOVE_RADIUS_DIR=facing не moving
+  - figure.cpp: TEXTURE_PAGE_MASK=12 бит (не 10), ANIM_obj_draw ВЫЗЫВАЕТ NIGHT_find, warp=Z-rotation не sinusoidal
+  - Controls.cpp: порядок шагов process_controls() переписан (DIRT→Console→Inventory), line numbers, danger 3=GREEN активен, CONTROLS_new_inventory=always 0, Shift+D=dead code
+  - collide.cpp: GRAVITY=-51 (не -5120!), descriptions swap things/objects, person gravity has explicit GRAVITY, DOG_POO only
+  - Vehicle.cpp: GRAVITY=-51 (не -5120!), FLAG_FURN_DRIVING=in Furn.h, VEH_bounce area mapping, MEATWAGON FLRED=0, expand_suspension=3/4
+  - interfac.cpp: function names (apply_button_input_car, process_hardware_level_input_for_player), bit ranges 18-24/25-31, 200ms не тиков
+  - Person.cpp: door=0-1, OFF_FACE=backwards, BurnIndex=свой огонь, velocity clamp=player only, TWOHANDED=hardcoded не group
+  - pcom.cpp: AI states=28 не 26, BENT_LAZY/DILIGENT/RESTRICTED/PLAYER_KILL семантика, duration=1600 не 160
+  - Special.cpp: 5 gameturns не ticks, 320 ticks=1.0с не 1.25с
+  - Game.h: MAP=128x128, the_game в Game.cpp, MAP_SIZE формула
+  - eway.h: 42 условия не 41
+  - building.h: typo claude-fi→claude-ai
+  - drawtype.h: DrawMesh.Angle=0-2047
+  - interact.cpp: angle=engine units не degrees
+  - dirt.cpp, io.cpp: line numbers
+- **Самая критичная ошибка:** GRAVITY=-5120 вместо -51 в collide.cpp И Vehicle.cpp (множитель 100x!)
+- Непроверенные файлы (~50): мелкие аннотации (<20 строк), headers, рендерер — оставлены для итерации 3-4
 
 **Перекрёстная верификация ВЫПОЛНЕНА — результаты:**
 

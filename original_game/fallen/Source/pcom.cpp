@@ -47,7 +47,7 @@
 // claude-ai:   PCOM_AI_HYPOCHONDRIA - endlessly plays injured animation
 // claude-ai:   PCOM_AI_SHOOT_DEAD   - variant of assassin: navigates to target then shoots
 // claude-ai:
-// claude-ai: AI STATES  (pcom_ai_state field — 26 values)
+// claude-ai: AI STATES  (pcom_ai_state field — 28 values (PCOM_AI_STATE_NUMBER=28))
 // claude-ai:   NORMAL, INVESTIGATING, SEARCHING, KILLING, SLEEPING,
 // claude-ai:   FLEE_PLACE, FLEE_PERSON, FOLLOWING, NAVTOKILL, HOMESICK,
 // claude-ai:   LOOKAROUND, FINDCAR, BDEACTIVATE, LEAVECAR, SNIPE,
@@ -65,14 +65,14 @@
 // claude-ai:   WAIT_CIRCLE, PARK_CAR_ON_ROAD
 // claude-ai:
 // claude-ai: PERSONALITY FLAGS  (pcom_bent bitmask)
-// claude-ai:   PCOM_BENT_LAZY         - may sit down when idle
-// claude-ai:   PCOM_BENT_DILIGENT     - drives faster; always tries to avoid obstacles
+// claude-ai:   PCOM_BENT_LAZY         - moves slow (PERSON_SPEED_WALK instead of RUN)
+// claude-ai:   PCOM_BENT_DILIGENT     - moves fast (PERSON_SPEED_RUN)
 // claude-ai:   PCOM_BENT_GANG         - member of a gang; ignores friendly-fire from same colour
 // claude-ai:   PCOM_BENT_FIGHT_BACK   - civilians with this flag retaliate instead of flee
 // claude-ai:   PCOM_BENT_ONLY_KILL_PLAYER - only targets Darci
 // claude-ai:   PCOM_BENT_ROBOT        - ignores sounds and AI interruptions
-// claude-ai:   PCOM_BENT_RESTRICTED   - restricted to zone (pcom_zone bitmask)
-// claude-ai:   PCOM_BENT_PLAYER_KILL  - extra aggressive toward player
+// claude-ai:   PCOM_BENT_RESTRICTED   - won't climb/jump/etc (restricts movement capabilities, NOT zone)
+// claude-ai:   PCOM_BENT_PLAYER_KILL  - only the player can hurt this person (invulnerability to non-player damage)
 // claude-ai:
 // claude-ai: SOUND DETECTION (PCOM_oscillate_tympanum)
 // claude-ai:   Called when any in-game sound occurs. Scans sphere of NPCs and
@@ -5278,7 +5278,7 @@ void PCOM_process_getitem(Thing *p_person)
 
 
 // claude-ai: PCOM_process_summon - Bane boss AI: SUMMON_START waits for FLOAT_BOB anim then levitates up to 4 summon bodies (PCOM_summon[0..3]) with set_person_float_up(); creates SPARK arcs from Bane limbs (L/R hands & feet) to each body's pelvis.
-// claude-ai:   SUMMON_FLOAT: recreates SPARK arcs every PCOM_get_duration(50)=160 ticks; proximity check: if Darci within 0x60000 units and stays still for PCOM_get_duration(20)=640 ticks (~2 sec) -> electrocute: set_person_recoil(ANIM_HIT_FRONT_MID), Health-=25, SPARK pelvis-to-pelvis; pcom_move_counter halves if Darci moves (encourages player to keep moving)
+// claude-ai:   SUMMON_FLOAT: recreates SPARK arcs every PCOM_get_duration(50)=1600 ticks; proximity check: if Darci within 0x60000 units and stays still for PCOM_get_duration(20)=640 ticks (~2 sec) -> electrocute: set_person_recoil(ANIM_HIT_FRONT_MID), Health-=25, SPARK pelvis-to-pelvis; pcom_move_counter halves if Darci moves (encourages player to keep moving)
 void PCOM_process_summon(Thing *p_person)
 {
 	SLONG i;

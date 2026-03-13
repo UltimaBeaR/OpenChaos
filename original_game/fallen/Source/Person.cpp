@@ -4036,7 +4036,7 @@ extern	UWORD	get_nearest_gang_member(Thing *p_target);
 // claude-ai:   3. GF_NO_FLOOR: если Y < -0x180000 → kill
 // claude-ai:   4. Stamina recovery (+1/тик для игрока если не удерживается action, иначе +1 для NPC)
 // claude-ai:   5. Горение (FLAGS_BURNING): -30 HP/тик → если HP≤0 → смерть; PYRO_IMMOLATE создаётся
-// claude-ai:   6. BurnIndex (горит кто-то другой): -1 HP/тик
+// claude-ai:   6. BurnIndex (индекс PYRO_IMMOLATE этого персонажа): -1 HP/тик (остаточный урон от собственного огня)
 // claude-ai:   7. Мочеиспускание (FLAG_PERSON_PEEING): DIRT_new_water для эффекта (PC only)
 // claude-ai:   8. Кровь (Health < 25%): случайный TRACKS_Bleed()
 // claude-ai:   9. UnderAttack таймер: countdown, коп при UI-пороге начинает диалог
@@ -8296,7 +8296,7 @@ void	position_person_for_vehicle(Thing *p_person,Thing *p_vehicle,SLONG door)
 
 }
 
-// claude-ai: Посадка персонажа в транспортное средство. Параметр door — номер двери (0-3).
+// claude-ai: Посадка персонажа в транспортное средство. Параметр door — номер двери (0 или 1).
 // claude-ai: Устанавливает флаги FLAG_PERSON_NON_INT_M/C/PASSENGER и привязывает персонажа к машине.
 void	set_person_enter_vehicle(Thing *p_person,Thing *p_vehicle, SLONG door)
 {
@@ -10590,7 +10590,7 @@ extern	void make_cable_flabby(SLONG building);
 // claude-ai:   KEEP_VEL  — не сбрасывать горизонтальную скорость (иначе Velocity = -8)
 // claude-ai:   KEEP_DY   — не сбрасывать вертикальную скорость (иначе DY = -(4<<8) = -1024)
 // claude-ai:   QUEUED    — анимация ANIM_FALLING_QUEUED (мягкий переход), иначе ANIM_FALLING (резкий)
-// claude-ai:   OFF_FACE  — SUB_STATE_DROP_DOWN_OFF_FACE (прыжок со стены лицом вперёд)
+// claude-ai:   OFF_FACE  — SUB_STATE_DROP_DOWN_OFF_FACE (падение со стены спиной вперёд (backwards))
 // claude-ai: Всегда: OnFace = 0, FLAG_PERSON_NON_INT_M = set.
 // claude-ai: Zipwire очищается: FLAG_PERSON_ON_CABLE, MFX_stop(S_ZIPWIRE).
 void	set_person_drop_down(Thing	*p_person,SLONG flag)
@@ -13180,7 +13180,7 @@ SLONG	over_nogo(Thing *p_person)
 // claude-ai:     → По анимации → SUB_STATE_RUNNING_JUMP_FLY (с DY=10<<8)
 // claude-ai:
 // claude-ai:   SUB_STATE_RUNNING_JUMP:
-// claude-ai:     → Зажимает velocity в [37..45]; projectile_move_thing(flag=1); grab_ledge()
+// claude-ai:     → Зажимает velocity в [37..45] (только для игрока, PlayerID != 0); projectile_move_thing(flag=1); grab_ledge()
 // claude-ai:     → По anim end (end==1) → SUB_STATE_RUNNING_JUMP_FLY (DY=10<<8, ANIM_MID_AIR_TWEEN_LEFT)
 // claude-ai:
 // claude-ai:   SUB_STATE_RUNNING_JUMP_FLY:
@@ -15436,7 +15436,7 @@ void set_person_unsit(Thing *p_person)
 
 
 // claude-ai: Возвращает индекс двуручного оружия в инвентаре персонажа (или 0 если нет).
-// claude-ai: Двуручное оружие: AK47, Shotgun и аналоги (SPECIAL_GROUP_TWOHANDED_WEAPON).
+// claude-ai: Двуручное оружие: хардкод проверок на SPECIAL_SHOTGUN и SPECIAL_AK47 (не через группу).
 SLONG	person_holding_2handed(Thing *p_person)
 {
 	if (p_person->Genus.Person->SpecialUse)

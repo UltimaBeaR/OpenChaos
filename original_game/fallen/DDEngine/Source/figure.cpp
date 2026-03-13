@@ -4,7 +4,7 @@
 
 // claude-ai: ============================================================
 // claude-ai: FILE OVERVIEW: figure.cpp — Character (figure) rendering system
-// claude-ai: 10206 lines. DDEngine side (Direct3D/PC). PSX version is separate.
+// claude-ai: ~10456 lines. DDEngine side (Direct3D/PC). PSX version is separate.
 // claude-ai:
 // claude-ai: ANIMATION SYSTEM: HIERARCHICAL SKELETON + PER-BODY-PART RIGID TRANSFORM
 // claude-ai: ---------------------------------------------------------------------
@@ -1539,7 +1539,7 @@ TomsPrimObject D3DPeopleObj[MAX_NUMBER_D3D_PEOPLE];
 // bTri: TRUE if it's a tri, FALSE if it's a quad.
 // claude-ai: FIGURE_find_face_D3D_texture_page — resolves which texture page to use for
 // claude-ai: a given face (tri or quad). Returns a UWORD with bit flags:
-// claude-ai:   bits [0..9]  = TEXTURE_PAGE_MASK: base page index
+// claude-ai:   bits [0..11] = TEXTURE_PAGE_MASK (0x0fff): base page index
 // claude-ai:   TEXTURE_PAGE_FLAG_JACKET:  gang jacket — page depends on NPC skill level
 // claude-ai:   TEXTURE_PAGE_FLAG_OFFSET:  alternate clothes colour (pcom_colour & 0x3)
 // claude-ai:   TEXTURE_PAGE_FLAG_TINT:    face uses tinted lighting table
@@ -5281,7 +5281,7 @@ extern DIJOYSTATE the_state;
 
 // claude-ai: FIGURE_draw_prim_tween_warped — variant of FIGURE_draw_prim_tween used for
 // claude-ai: warped/distorted character rendering (e.g., heat shimmer, teleport effect).
-// claude-ai: Applies a sinusoidal warp to vertex positions after the normal keyframe
+// claude-ai: Applies a Z-dependent rotation warp to vertex positions after the normal keyframe
 // claude-ai: interpolation. Uses local_mat[9] float matrix rather than fixed-point Matrix33.
 // claude-ai: [INTERP: same lerp/slerp as FIGURE_draw_prim_tween, plus per-vertex wave offset]
 // claude-ai: PORT: Implement warp as a vertex shader time-based sine displacement.
@@ -8260,8 +8260,8 @@ extern	struct	PrimPoint	*anim_mids; //[256];
 
 // claude-ai: ANIM_obj_draw — draws an animated non-person object (vehicles, props, etc.)
 // claude-ai: that use the same DrawTween / keyframe animation system as characters.
-// claude-ai: Identical pipeline to FIGURE_draw but skips person-specific parts (no NIGHT_find,
-// claude-ai: no Pyro overlay, uses FIGURE_draw_prim_tween directly instead of hierarchical).
+// claude-ai: Identical pipeline to FIGURE_draw but skips person-specific parts (no Pyro overlay,
+// claude-ai: uses FIGURE_draw_prim_tween directly instead of hierarchical). DOES call NIGHT_find().
 // claude-ai: dt is passed explicitly rather than read from p_thing->Draw.Tweened.
 // claude-ai: PORT: Same as FIGURE_draw — compute bones, upload UBO, glDrawElements.
 void ANIM_obj_draw(Thing *p_thing,DrawTween *dt)

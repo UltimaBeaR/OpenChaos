@@ -8,7 +8,7 @@
 // claude-ai: Manages all ground vehicle types (CLASS_VEHICLE), including:
 // claude-ai:   - Arcade-style car physics (acceleration, steering, skidding)
 // claude-ai:   - 4-wheel independent suspension via damped springs
-// claude-ai:   - Gravity: GRAVITY = -(128*10*256)/(80^2) = -5120 units/tick^2
+// claude-ai:   - Gravity: GRAVITY = -(128*10*256)/(80*80) = -327680/6400 = -51 units/tick^2
 // claude-ai:     (vehicles use EXPLICIT physics gravity, unlike persons who use animation-driven gravity)
 // claude-ai:   - Tilt/roll calculation from wheel height differences
 // claude-ai:   - Collision with walls, OB prims (boxes & cylinders), other vehicles
@@ -28,8 +28,8 @@
 // claude-ai:   JEEP=5, MEATWAGON=6, SEDAN=7, WILDCATVAN=8
 // claude-ai:
 // claude-ai: FLAG_FURN_DRIVING: set on Vehicle when someone is driving it.
-// claude-ai:   IMPORTANT: Despite the "FURN" name, this flag lives in the Vehicle flags,
-// claude-ai:   not in Furn.h. It gates all active-driving logic (steering, pedals, etc).
+// claude-ai:   Defined in Furn.h (bit 0), same value as FLAG_VEH_DRIVING — the code works
+// claude-ai:   because both are (1<<0). It gates all active-driving logic (steering, pedals, etc).
 // claude-ai: ============================================================
 
 // tops of walls - colliding with them???
@@ -134,7 +134,7 @@ extern	SLONG	is_person_ko(Thing *p_person);
 // claude-ai: UNITS_PER_METER=128: one meter = 128 world units.
 // claude-ai: TICK_LOOP=4: suspension physics runs 4 sub-steps per game tick (inner loop in process_car).
 // claude-ai: TICKS_PER_SECOND=80 (20 * 4 sub-steps). Used only for deriving GRAVITY constant.
-// claude-ai: GRAVITY=-5120 units/tick^2 (explicit per-tick gravity for vehicle vertical physics).
+// claude-ai: GRAVITY=-51 units/tick^2 (explicit per-tick gravity for vehicle vertical physics).
 // claude-ai: Persons do NOT use this; their vertical motion comes from animation keyframes.
 #define	UNITS_PER_METER		128
 #define	TICK_LOOP			(4)
@@ -244,7 +244,7 @@ struct	VehInfo
 // claude-ai:   [0]=VAN, [1]=CAR, [2]=TAXI, [3]=POLICE, [4]=AMBULANCE,
 // claude-ai:   [5]=JEEP, [6]=MEATWAGON, [7]=SEDAN, [8]=WILDCATVAN
 // claude-ai: POLICE/AMBULANCE/MEATWAGON have FLZ != 0 → flashing emergency lights active.
-// claude-ai: AMBULANCE/MEATWAGON have FLRED=1 → both flashing lights are red (not red+blue).
+// claude-ai: AMBULANCE has FLRED=1 (both red); MEATWAGON has FLRED=0 (red+blue).
 struct VehInfo veh_info[VEH_TYPE_NUMBER] =
 {
 	{WHEELBASE_VAN, ENGINE_LGV, 0,30,PRIM_OBJ_VAN_WHEEL,PRIM_OBJ_VAN_BODY,        0x6800, 0, NULL, -248, 15, 90,    0,  0,  0,   0,   0,  0, 0, 185, 100},
@@ -745,8 +745,9 @@ void VEH_add_damage(Vehicle* vp, UBYTE area, UBYTE hp)
 
 // claude-ai: VEH_bounce(): applies an upward DY impulse to one or more wheels based on impact area.
 // claude-ai: Used to simulate the jolt when a vehicle is hit hard. DY[i] is per-wheel vertical velocity.
-// claude-ai: area mapping: 0=front-left corner wheel, 1=front-right, 2=both front, 3=both rear,
-// claude-ai:   4=rear-left, 5=rear-right. Amount is doubled internally.
+// claude-ai: area mapping: 0=front-left wheel (FL), 1=front-right wheel (FR),
+// claude-ai:   2=right side (FR+RR wheels), 3=left side (FL+RL wheels),
+// claude-ai:   4=rear-right wheel (RR), 5=rear-left wheel (RL). Amount is doubled internally.
 // bounce a vehicle
 
 void VEH_bounce(Vehicle* vp, UBYTE area, SLONG amount)
@@ -4543,7 +4544,7 @@ inline static SLONG apply_thrust_to_suspension(Suspension *p_sus, SLONG velocity
 }
 
 // claude-ai: expand_suspension(): allows spring to extend toward MIN_COMPRESSION when wheel is in air.
-// claude-ai: size = distance from wheel to ground (how much room to extend). Scaled by 200/256.
+// claude-ai: size = distance from wheel to ground (how much room to extend). Scaled by 192/256 (= 3/4, via size -= size >> 2).
 // claude-ai: Spring won't extend past MIN_COMPRESSION (fully extended).
 // expand_suspension
 //

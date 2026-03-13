@@ -5,11 +5,11 @@
 // claude-ai: Defines the `Game` struct (typedef'd, no tag) which holds ALL game-wide state:
 // claude-ai:   - simulation state (GameState, GameTurn, TickTock, RandSeed)
 // claude-ai:   - object pool pointers (People, Vehicles, etc.)
-// claude-ai:   - the world map (MAP array, PAP_SIZE_LO * PAP_SIZE_LO cells)
+// claude-ai:   - the world map (MAP array, MAP_WIDTH * MAP_HEIGHT (128x128) cells)
 // claude-ai:   - player RPG stats (Darci/Roper Strength/Constitution/Skill/Stamina)
 // claude-ai:   - indoors tracking (indoors_height_floor/ceiling, room index, building index)
 // claude-ai:   - gameplay flags (GameFlags, CrimeRate, MusicWorld, etc.)
-// claude-ai: One global instance: `the_game` (Game.cpp or elev.cpp).
+// claude-ai: One global instance: `the_game` (Game.cpp).
 // claude-ai: Everything is accessed via macros like PEOPLE, MAP, GAME_TURN, etc.
 // claude-ai:
 // claude-ai: DRAW DISTANCE:
@@ -331,7 +331,7 @@ typedef	struct
 	// Map members.
 	// claude-ai: Map — the main world collision/occupation grid.
 	// claude-ai:   Each MapElement holds: MapWho (linked list of Things occupying this cell), ColVectHead (collision vectors), flags.
-	// claude-ai:   Size is MAP_SIZE = MAP_WIDTH*MAP_WIDTH (typically 128x128 = 16384 cells).
+	// claude-ai:   Size is MAP_SIZE = MAP_HEIGHT * MAP_WIDTH (typically 128x128 = 16384 cells).
 	// claude-ai:   On PSX/DC: Map[1] (dynamically allocated elsewhere to save BSS), on PC: full static array.
 	// claude-ai:   Access via MAP macro, MAP2(x,z) macro, or MAP_WHO(i) for occupation list.
 #if defined(PSX) || defined(TARGET_DC)

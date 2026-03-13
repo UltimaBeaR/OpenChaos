@@ -137,7 +137,7 @@ void special_pickup(Thing *p_special, Thing *p_person)
 // claude-ai: Walks the linked list to find the item, splices it out, then calls find_nice_place_near_person()
 // claude-ai: to choose a drop position (avoids dropping through walls).
 // claude-ai: Dropped guns (for player only) get randomized partial ammo: shotgun 2-3, AK47 6-13 rounds.
-// claude-ai: Velocity is set to 5 to prevent immediate re-pickup (5-tick cooldown).
+// claude-ai: Velocity is set to 5 to prevent immediate re-pickup (5-gameturn cooldown).
 // claude-ai: Also clears SpecialUse and SpecialDraw references on the person.
 void special_drop(Thing *p_special, Thing *p_person)
 {
@@ -215,7 +215,7 @@ void special_drop(Thing *p_special, Thing *p_person)
 			// claude-ai: When player drops an AK47:   ammo set to (Random()&7)+6 = 6 to 13 rounds.
 			// claude-ai: Purpose: prevents player from exploiting drop/pickup cycle to keep full ammo.
 			// claude-ai: Enemy-dropped weapons retain their original ammo (no randomisation).
-			// claude-ai: Velocity=5 sets a 5-tick flag. counter=0 starts the 1.25-second pickup cooldown.
+			// claude-ai: Velocity=5 sets a 5-gameturn flag. counter=0 starts the ~1-second pickup cooldown (320 ticks).
 			// claude-ai: NOTE: the Velocity=5 cooldown is actually the old system (now commented out in
 			//            special_normal). The counter>16*20 check is the active cooldown mechanism.
 			if (p_person->Genus.Person->PlayerID == 0)
@@ -1062,7 +1062,7 @@ void special_normal(Thing *s_thing)
 	// claude-ai: When hidden, the counter field is repurposed: it holds the containing-object's ID (!)
 	// claude-ai:   This is noted by the "ob this specail is inside" comment — a dual-use of the field.
 	// claude-ai: 16 * TICK_RATIO >> TICK_SHIFT = 16 ticks per frame at normal speed.
-	// claude-ai: try_pickup only fires when counter > 16*20 = 320 = ~1.25 seconds after drop.
+	// claude-ai: try_pickup only fires when counter > 16*20 = 320 = ~1.0 second after drop (PCOM_TICKS_PER_SEC=320).
 	if (s_thing->Flags & FLAG_SPECIAL_HIDDEN)
 	{
 		//

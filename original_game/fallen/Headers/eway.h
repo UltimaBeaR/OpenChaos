@@ -5,7 +5,7 @@
 // claude-ai: Система событий миссий: до 512 EventPoint на миссию (EWAY_MAX_WAYS=512).
 // claude-ai: EWAY_process() вызывается каждый кадр (polling) — проверяет все активные EventPoint.
 // claude-ai: Каждый EP: условие (EWAY_COND_*) + действие (EWAY_DO_*) + режим активности (EWAY_STAY_*).
-// claude-ai: 41 тип условий, 52 типа действий, 6 режимов активности.
+// claude-ai: 42 типа условий, 52 типа действий, 6 режимов активности.
 
 #ifndef _EWAY_
 #define _EWAY_
@@ -38,7 +38,7 @@
 // CONDITIONS TO MAKE TRIGGERS GO ACTIVE.
 //
 // ========================================================
-// claude-ai: Условия активации EventPoint (41 тип, 0-41). Ключевые:
+// claude-ai: Условия активации EventPoint (42 типа, 0-41). Ключевые:
 // claude-ai:   0  FALSE          — никогда (заглушка)
 // claude-ai:   1  TRUE           — всегда активно
 // claude-ai:   2  PROXIMITY      — игрок в радиусе (arg1=радиус)

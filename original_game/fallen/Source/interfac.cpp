@@ -5,22 +5,22 @@
 // claude-ai: ОСНОВНОЙ ПОТОК ДАННЫХ:
 // claude-ai:   get_hardware_input()         -- читает аппаратный ввод через DirectInput (DIJOYSTATE the_state)
 // claude-ai:                                   и клавиатуру (Keys[]), упаковывает в ULONG input
-// claude-ai:   update_player() / apply_button_input()  -- применяет input к игровому персонажу
+// claude-ai:   process_hardware_level_input_for_player() / apply_button_input()  -- применяет input к игровому персонажу
 // claude-ai:   player_apply_move()          -- обрабатывает движение (поворот, бег, прыжок)
 // claude-ai:   do_an_action()               -- контекстно-зависимое действие (арест, вход в машину,
 // claude-ai:                                   подбор предмета, переключатели, разговор с NPC)
 // claude-ai:   apply_button_input_fight()   -- боевой режим (удары, уклонения)
-// claude-ai:   apply_button_input_vehicle() -- управление автомобилем
+// claude-ai:   apply_button_input_car()     -- управление автомобилем
 // claude-ai:
 // claude-ai: ВАЖНО ДЛЯ ПОРТИРОВАНИЯ:
 // claude-ai:   - ReadInputDevice() и DIJOYSTATE the_state — DirectInput API (ddlib.cpp/ddlib.h)
 // claude-ai:     Заменить на SDL_GetGamepadAxis / SDL_GetGamepadButton (SDL3)
 // claude-ai:   - Keys[] — массив клавиш от DirectInput; заменить на SDL_GetKeyboardState() (SDL3)
-// claude-ai:   - Аналоговый стик упакован в старшие биты ULONG input (биты 17-31)
-// claude-ai:     GET_JOYX = биты 17-23, GET_JOYY = биты 24-30; диапазон -128..+127
+// claude-ai:   - Аналоговый стик упакован в старшие биты ULONG input (биты 18-31)
+// claude-ai:     GET_JOYX = биты 18-24, GET_JOYY = биты 25-31; диапазон -128..+127
 // claude-ai:   - Мёртвая зона аналога: NOISE_TOLERANCE = 8192 (PC, из 65535) или 24 (DC, из 255)
 // claude-ai:   - Double-click детекция через Player::DoubleClick[] + Player::LastReleased[]
-// claude-ai:     (временное окно 200 game-тиков), используется для выхода из боевого режима
+// claude-ai:     (временное окно 200 миллисекунд (GetTickCount)), используется для выхода из боевого режима
 // claude-ai:   - MAX_PLAYERS = 2, splitscreen поддержан структурно, но кооп не реализован
 // claude-ai:   - Код для PSX, Dreamcast, BIKE, HOOK, SNIPE — не переносить (целевая платформа PC)
 #include	"game.h"
@@ -83,7 +83,7 @@ UBYTE	cheat=0;
 #endif
 
 // claude-ai: Аналоговый стик закодирован в старших битах Player::Input.
-// claude-ai: GET_JOYX: биты 17-24 (X-ось), GET_JOYY: биты 24-31 (Y-ось). Результат: -128..+127
+// claude-ai: GET_JOYX: биты 18-24 (X-ось), GET_JOYY: биты 25-31 (Y-ось). Результат: -128..+127
 #define	GET_JOYX(input)		(((input>>17)&0xfe)-128)
 #define	GET_JOYY(input)		(((input>>24)&0xfe)-128)
 
@@ -6114,7 +6114,7 @@ DWORD g_dwLastInputChangeTime = 0;
 // claude-ai:   INPUT_TYPE_KEY       = читать клавиатуру
 // claude-ai:   INPUT_TYPE_GONEDOWN  = возвращать только свежепоявившиеся нажатия (edge detection)
 // claude-ai: Результат: ULONG input с установленными битами INPUT_MASK_*
-// claude-ai: Аналоговые значения стика упакованы в биты 17-30 результата (см. GET_JOYX/GET_JOYY выше).
+// claude-ai: Аналоговые значения стика упакованы в биты 18-31 результата (см. GET_JOYX/GET_JOYY выше).
 ULONG	get_hardware_input(UWORD type)
 {
 	ULONG	input=0;

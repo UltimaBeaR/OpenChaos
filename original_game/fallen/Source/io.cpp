@@ -3,7 +3,7 @@
 //
 
 // claude-ai: ============================================================
-// claude-ai: OVERVIEW — io.cpp (2975 lines)
+// claude-ai: OVERVIEW — io.cpp (~3284 lines)
 // claude-ai: ============================================================
 // claude-ai: This file is the binary resource loader for the entire game.
 // claude-ai: It handles reading all persistent game data from disk.
