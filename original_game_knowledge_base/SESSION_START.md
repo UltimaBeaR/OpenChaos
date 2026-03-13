@@ -8,9 +8,18 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **Физика TODO**: mount_ladder(), VEH_find_runover_things(), RWMOVE — читать collide.cpp, Vehicle.cpp
-2. **AI TODO остатки**: agression threshold (KILLING→FLEE), pcom_zone детали, PCOM_process_snipe
-3. **Форматы TODO**: .txc binary layout, style.tma UV таблица
+1. **AI TODO остатки**: agression threshold (KILLING→FLEE), pcom_zone детали, PCOM_process_snipe
+2. **Форматы TODO**: .txc binary layout, style.tma UV таблица
+3. **Физика TODO**: WATER вне дренажа (водная высота), mount_ladder() в финале
+
+**ВЫПОЛНЕНО в этой итерации (физика + WMOVE):**
+- physics.md: WMOVE система — moving walkable faces (wmove.cpp), лимиты, PSX ограничение, WMOVE_process/relative_pos
+- physics.md: mount_ladder() полный флоу — ok_to_mount_ladder, set_person_climb_ladder (аним по PersonType)
+- physics.md: ПРЕ-РЕЛИЗ: mount_ladder() из interfac.cpp закомментирован! Игрок не может залезать снизу
+- physics.md: collide_against_objects() детали — PRIM_COLLIDE_BOX, sit_down trigger (prim IDs), ignore OnFace
+- physics.md: water physics — просто invisible walls по краям, нет замедления/утопания
+- vehicles.md: VEH_find_runover_things() точный алгоритм — 2 сферы, WheelAngle scaling, infront=[256,512]
+- Аннотированы: wmove.cpp (~5 блоков), collide.cpp (mount_ladder + ok_to_mount_ladder)
 
 **ВЫПОЛНЕНО в этой итерации (навигация):**
 - navigation.md: WARE_mav_enter/inside/exit — паттерн MAV_nav swap, логика дверей с height check
@@ -212,6 +221,8 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | **interfac.cpp** | ~50+ блоков | ✅ (process_hardware_input, player_apply_move, InputDone, weapon hotkeys, mode dispatcher) |
 | **ware.cpp** | ~4 блока | ✅ (WARE_mav_enter/inside/exit) |
 | **inside2.cpp** | ~6 блоков | ✅ (INSIDE2_mav_nav_calc + все mav_* функции, включая баги пре-релиза) |
+| **wmove.cpp** | ~5 блоков | ✅ (WMOVE система, create/process/relative_pos) |
+| **collide.cpp (ladder)** | +3 блока | ✅ (mount_ladder, ok_to_mount_ladder, пре-релиз баг) |
 
 ---
 
@@ -223,11 +234,11 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] `height_above_anything()` — ГОТОВО (if(1||...) делает FIND_ANYFACE мёртвым кодом, всегда FIND_FACE_NEAR_BELOW)
 - [x] `collide_against_things()` + `collide_against_objects()` — ГОТОВО (детали в physics.md)
 - [x] `move_thing()` реальный порядок операций — ГОТОВО (things → objects → slide_along → edges → find_face → move)
-- [ ] `mount_ladder()` — точное поведение (строка 2567 collide.cpp)
-- [ ] Коллизии транспорта с персонажами: `VEH_find_runover_things()` детали
-- [ ] Воды: как `PAP_FLAG_WATER` влияет на физику, есть ли замедление
-- [ ] RWMOVE система (move_thing для не-person объектов)
-- [ ] `collide_against_objects()` детали — что именно за OB объекты, их размеры
+- [x] `mount_ladder()` — ГОТОВО: ok_to_mount_ladder QDIST2<75; set_person_climb_ladder анимы по PersonType; в пре-релизе interfac.cpp вызов закомментирован (игрок не может снизу!)
+- [x] Коллизии транспорта с персонажами: `VEH_find_runover_things()` — ГОТОВО: 2 сферы, WheelAngle scaling, infront=[256,512]
+- [x] Воды: `PAP_FLAG_WATER` — ГОТОВО: только invisible walls по краям, нет замедления/утопания
+- [x] RWMOVE система — ГОТОВО: это WMOVE (moving walkable faces) в wmove.cpp; max=192; PSX ограничение
+- [x] `collide_against_objects()` детали — ГОТОВО: PRIM_COLLIDE_BOX через OB_find; sit_down trigger на prim IDs
 - [x] `plant_feet()` — ГОТОВО: вызывается из STATE FUNCTIONS, НЕ из move_thing. Активно: fn_person_dangling (SUB_STATE_DROP_DOWN_LAND end==1). В fn_person_jumping — везде закомментирована.
 
 ### AI/PCOM (ai.md) — TODO
@@ -392,6 +403,11 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - INSIDE2_mav_nav_calc: баг z-цикла (MinX/MaxX вместо MinZ/MaxZ) → nav-сетка некорректна
 - MAV_turn_movement_on: устанавливает ТОЛЬКО MAV_CAPS_GOTO (остальные caps теряются!); взрывы стен НЕ обновляют MAV
 - MAV_opt[0..15]: первые 16 записей = 4-bit bitmask (GOTO в каждом направлении) — для INSIDE2 nav
+- WMOVE = moving walkable faces (wmove.cpp); персонажи стоят на крышах машин; PSX: только VAN/WILDCATVAN/AMBULANCE
+- mount_ladder() пре-релиз баг: вызов из interfac.cpp закомментирован → игрок НЕ может залезть снизу; AI может (pcom.cpp:12549)
+- water: PAP_FLAG_WATER = invisible collision walls по краям; нет плавания, нет утопания; огонь гасится
+- collide_against_objects(): prim IDs 89,95,101,102,105,110,126 = скамейки → sit_down при SUB_STATE_WALKING_BACKWARDS
+- VEH_find_runover_things(): 2 сферы вперёд; infront = 512-WheelAngle*3 clamped [256,512]
 - Per-frame game_loop: GAMEMENU→tutorial→controls→process_things→EWAY→FC→draw→OVERLAY→flip→lock_fps→sfx→GAME_TURN++
 - Bench cooldown: GAME_TURN & 0x3ff == 314 → сброс GF_DISABLE_BENCH_HEALTH (~34с при 30fps)
 - SMOOTH_TICK_RATIO = скользящее среднее TICK_RATIO по 4 кадрам (для машин)

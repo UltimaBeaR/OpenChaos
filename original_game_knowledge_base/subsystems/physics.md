@@ -183,7 +183,11 @@ ULONG move_thing(SLONG dx, SLONG dy, SLONG dz, Thing *p_thing)
    - Мёртвые пропускаются, кроме машин (dead car всё ещё блокирует)
    - SUB_STATE_STEP_FORWARD: полная остановка (x2=x1, z2=z1)
    - Если thing умер в процессе → return 0
-3. `collide_against_objects()` — OB (уличные фонари, урны)
+3. `collide_against_objects()` — OB (уличные объекты: фонари, урны, скамейки)
+   - Поиск по PAP_Lo lo-res ячейкам в радиусе ±0x180 (lo-res единиц)
+   - Коллизия: `PRIM_COLLIDE_BOX` / `PRIM_COLLIDE_SMALLBOX` → `slide_along_prim()`
+   - Игнорирует prim, на котором стоит персонаж (OnFace с FACE_FLAG_PRIM)
+   - **Специальная логика:** игрок идёт назад (SUB_STATE_WALKING_BACKWARDS) к скамейке (prim IDs 89,95,101,102,105,110,126) под углом < 220 → `set_person_sit_down()`
 4. `slide_along()` — DFacet зданий
    - `SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT = -0x50` (-80 ед.)
    - STATE_HUG_WALL: radius >>= 2 (для плотного прилегания к стене)
@@ -260,6 +264,52 @@ slide_into_warehouse = bld   // если вошли в склад
 - `slide_around_box()` — box vs линейный отрезок (транспорт)
 - `slide_around_sausage()` — capsule vs отрезок
 - `slide_around_circle()` — circle vs circle (Person-Person)
+
+---
+
+## 5b. Лестницы (mount_ladder)
+
+**Ключевые функции** (`collide.cpp`):
+```c
+SLONG correct_pos_for_ladder(DFacet*, px, pz, angle, scale)
+// Вычисляет центр лестницы: midpoint двух точек facet.
+// angle = Arctan(-dx,dz)+1024+512 (персонаж стоит лицом к лестнице)
+// scale: +256 = у низа, -64 = у верха (Roper: +64 чтобы спускаться правильно)
+
+SLONG ok_to_mount_ladder(Thing*, DFacet*)
+// Проверяет QDIST2(dx,dz) < 75 до центра лестницы.
+// 75 ≈ 8–9 юнитов (блок-уровень), персонаж должен быть рядом.
+
+SLONG mount_ladder(Thing*, facet_index)
+// ok_to_mount_ladder → set_person_climb_ladder()
+```
+
+**set_person_climb_ladder()** (`Person.cpp`):
+- STATE → STATE_CLIMB_LADDER
+- Анимация: ROPER/COP/THUG → `COP_ROPER_ANIM_LADDER_START`; остальные → `ANIM_MOUNT_LADDER`
+- Velocity=0, Action=ACTION_CLIMBING, SubState=SUB_STATE_MOUNT_LADDER
+- OnFacet = storey (DFacet index); sets NON_INT_M|NON_INT_C флаги; plays jump sound
+- Вызывает `set_person_position_for_ladder()` — snap к центру лестницы
+
+**Важно для пре-релиза:** вызов `mount_ladder()` из interfac.cpp (игрок нажимает ACTION) закомментирован! Игрок может:
+- ✅ **Слезть на лестницу сверху** — `set_person_climb_down_onto_ladder()` (активно, строка ~1507)
+- ❌ **Запрыгнуть снизу** — закомментировано (`/* mount_ladder(p_thing, ladder_col) */`)
+AI (pcom.cpp:12549) — может запрыгивать снизу через прямой `set_person_climb_ladder()`.
+Финальный релиз, вероятно, восстанавливает закомментированный путь.
+
+---
+
+## 5c. Вода (PAP_FLAG_WATER)
+
+Вода в Urban Chaos — **просто невидимые коллизионные стены** по периметру.
+
+- `PAP_FLAG_WATER` устанавливается в `PAP_Hi.Flags` для водяных ячеек
+- `MAV_SPARE_FLAG_WATER` в MAV_nav SPARE bits [15:14] — для навигации AI
+- При загрузке уровня: `create_just_collision_facet()` строит invisible DFacets вдоль всех водных рёбер
+  → персонажи физически не могут войти в воду (стена)
+- **Нет замедления в воде**, нет состояния "плавание", нет утопания
+- Единственный эффект на физику: `PAP_FLAG_WATER` ячейки не делают коллизионных facet between two water squares (только water→non-water = стена)
+- **Огонь гасится в воде** (Person.cpp:4414): если PYRO_IMMOLATE и персонаж в water tile → dummy/radius сбрасываются
 
 ---
 
@@ -346,7 +396,7 @@ slide_into_warehouse = bld   // если вошли в склад
 | MAX_COL_VECT_LINK | 10 000 | 4 000 |
 | MAX_COL_VECT | 10 000 | 1 000 |
 | MAX_WALK_POOL | 30 000 | 10 000 |
-| RWMOVE_MAX_FACES | 192 | 192 |
+| WMOVE_MAX_FACES (=RWMOVE_MAX_FACES) | 192 | 192 |
 
 ---
 
@@ -367,7 +417,49 @@ slide_into_warehouse = bld   // если вошли в склад
 
 ---
 
-## 9b. Известные баги и хаки в коде
+## 9b. WMOVE — движущиеся ходимые поверхности
+
+**Файл:** `fallen/Source/wmove.cpp`, `fallen/Headers/wmove.h`
+
+Система позволяет персонажам стоять на крышах движущихся машин и платформ.
+
+**Принцип:** для каждого транспорта/платформы создаётся виртуальная walkable face (PrimFace4 с FACE_FLAG_WMOVE), которая движется вместе с объектом.
+
+**Лимит:** `WMOVE_MAX_FACES = 192` (PSX: то же)
+
+**Количество faces per object** (`WMOVE_get_num_faces()`):
+- CLASS_PERSON, CLASS_PLAT: 1
+- VAN/AMBULANCE/WILDCATVAN: 1
+- JEEP/MEATWAGON: 4
+- CAR/TAXI/POLICE/SEDAN: 5
+
+**PSX ограничение:** на PSX только фургоны (VAN/WILDCATVAN/AMBULANCE) создают WMOVE faces — остальные машины пропускаются (слишком медленно для PSX).
+
+**Жизненный цикл:**
+```
+WMOVE_create(thing)   // при создании vehicle/platform (eway.cpp, Controls.cpp, plat.cpp)
+WMOVE_process()       // в Thing.cpp каждый кадр: update positions + re-attach to map
+WMOVE_remove(class)   // при очистке уровня
+```
+
+**WMOVE_process()** каждый кадр:
+1. Для каждой WMOVE face: запомнить старые coords, снять с карты
+2. Пересчитать позицию по текущему положению owner-thing (через матрицу поворота)
+3. Обновить prim_points[], заново приаттачить к карте
+4. Если машина STATE_DEAD и не на карте → очистить face
+
+**WMOVE_relative_pos()** — как персонажи следуют за surface:
+- Вызывается из `general_process_person()` когда person стоит на WMOVE face
+- Вычисляет позицию (last_x, last_z) в базисе **прошлого** положения face (два вектора da, db)
+- Переводит те же координаты в **новый** базис → new_x, new_y, new_z
+- Также вычисляет `dangle` = поворот face за кадр → добавляется к углу персонажа
+- Threshold: `|dy| < 0x200` → dy=0 (не скользить вверх/вниз по surface)
+
+**Портирование:** WMOVE нужно реализовать — это важная геймплейная фича (стоять на крыше машины). Можно реализовать как динамические rigid bodies с walkable surfaces (Jolt Physics).
+
+---
+
+## 9c. Известные баги и хаки в коде
 
 1. **HM_collide_all bug** (hm.cpp): `already_bumped[i]` вместо `[j]` во внутреннем цикле — некоторые HM-HM столкновения пропускаются. Из-за редкости ситуации и быстрого "засыпания" объектов практически не заметно.
 

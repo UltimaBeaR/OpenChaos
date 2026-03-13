@@ -2545,6 +2545,9 @@ void	correct_pos_for_ladder(struct DFacet *p_facet,SLONG *px,SLONG *pz,SLONG *an
 }
 
 
+// claude-ai: ok_to_mount_ladder(): проверяет что персонаж в пределах QDIST2 < 75 от центра лестницы.
+// claude-ai: correct_pos_for_ladder() вычисляет midpoint двух точек DFacet + угол поворота.
+// claude-ai: 75 в block-level координатах ≈ 8–9 юнитов (персонаж должен быть вплотную).
 SLONG	ok_to_mount_ladder(struct Thing *p_thing,struct DFacet *p_facet)
 {
 	SLONG	dx,dz,px,pz,angle;
@@ -2564,6 +2567,11 @@ SLONG	ok_to_mount_ladder(struct Thing *p_thing,struct DFacet *p_facet)
 	}
 }
 
+// claude-ai: mount_ladder(): ok_to_mount_ladder() → set_person_climb_ladder().
+// claude-ai: ПРЕ-РЕЛИЗ БАГ: вызов mount_ladder() из interfac.cpp ЗАКОММЕНТИРОВАН!
+// claude-ai: Игрок может слезть на лестницу сверху (set_person_climb_down_onto_ladder, активно),
+// claude-ai: но НЕ может запрыгнуть снизу (путь в interfac.cpp закомментирован).
+// claude-ai: AI (pcom.cpp:12549) вызывает set_person_climb_ladder() напрямую — AI лазит нормально.
 SLONG	mount_ladder(Thing *p_thing,SLONG facet)
 {
 //	SWORD	storey,wall;

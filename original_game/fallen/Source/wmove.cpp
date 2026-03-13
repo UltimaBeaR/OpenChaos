@@ -1,3 +1,9 @@
+// claude-ai: WMOVE = "Moving Walkable Faces" — виртуальные ходимые поверхности на движущихся объектах.
+// claude-ai: Позволяет персонажам стоять на крышах машин и платформ.
+// claude-ai: Lifecycle: WMOVE_create() при спавне → WMOVE_process() каждый кадр → WMOVE_remove() при очистке.
+// claude-ai: WMOVE_relative_pos() вызывается из general_process_person(), когда персонаж стоит на WMOVE face.
+// claude-ai: PSX ограничение: только VAN/WILDCATVAN/AMBULANCE создают WMOVE faces (остальные машины слишком медленно).
+// claude-ai: Лимит WMOVE_MAX_FACES = 192 (RWMOVE_MAX_FACES = то же самое, странное имя констаны).
 //
 // Moving walkable faces.
 //
@@ -377,6 +383,10 @@ void WMOVE_get_pos(
 }
 
 
+// claude-ai: WMOVE_create(): создаёт walkable PrimFace4 поверхность поверх vehicle/platform.
+// claude-ai: Количество faces: CLASS_PERSON/PLAT=1, VAN/AMBULANCE=1, JEEP/MEATWAGON=4, CAR/TAXI/POLICE/SEDAN=5.
+// claude-ai: PSX: только VAN/WILDCATVAN/AMBULANCE получают WMOVE faces, остальные машины — return early.
+// claude-ai: Создаёт prim_points[] + PrimFace4 с FACE_FLAG_WALKABLE|FACE_FLAG_WMOVE, аттачит к карте.
 void WMOVE_create(Thing *p_thing)
 {
 	SLONG i;
@@ -580,6 +590,10 @@ void WMOVE_remove(UBYTE which_class)
 #endif
 
 
+// claude-ai: WMOVE_process(): вызывается каждый кадр из Thing.cpp (WMOVE_process()).
+// claude-ai: Для каждой WMOVE face: save old pos → remove from map → recalc from owner thing → re-add to map.
+// claude-ai: Если машина STATE_DEAD и не на карте (FLAGS_ON_MAPWHO) → очистить face (wf->thing=NULL).
+// claude-ai: Если vehicle->still >= 64 → face не обновляется (оптимизация для стоящих машин).
 void WMOVE_process()
 {
 	SLONG i;
@@ -723,6 +737,11 @@ void WMOVE_process()
 }
 
 
+// claude-ai: WMOVE_relative_pos(): пересчитывает позицию персонажа с учётом движения WMOVE face.
+// claude-ai: Принцип: вычислить (along_a, along_b) — координаты в базисе ПРОШЛОГО face; перевести в НОВЫЙ базис.
+// claude-ai: dangle = angle_new - angle_old → добавляется к углу персонажа (поворот вместе с машиной).
+// claude-ai: |dy| < 0x200 → dy=0 (не скользить если персонаж почти на уровне поверхности).
+// claude-ai: Клamp: |now_x - last_x| > 0x10000 → now_x=last_x (защита от рывков).
 void WMOVE_relative_pos(
 		UBYTE  wmove_index,	// The WMOVE face stood on.
 		SLONG  last_x,

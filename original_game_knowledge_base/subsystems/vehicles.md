@@ -236,13 +236,22 @@ struct VEH_Col {
 
 ## 8. AI в транспорте
 
+**VEH_find_runover_things()** (`Vehicle.cpp`):
 ```c
-void VEH_find_runover_things(Thing *p_vehicle);
-// Поиск через THING_find_sphere(радиус 0x200)
-// Проверка: не в воздухе, не водитель в этой же машине
-// Трансформация через матрицу угла машины
-// Проверка коллизии с PRIM_INFO
+SLONG VEH_find_runover_things(Thing *p_vehicle, UWORD thing_index[], SLONG max_number, SLONG dangle)
+// Находит персонажей/машины впереди транспорта для AI (проверка "сбить").
+// Параметр dangle: если TRUE — не корректировать по WheelAngle (угол поворота колёс).
 ```
+
+Алгоритм:
+1. Вычислить вектор вперёд: `dx=-SIN(angle), dz=-COS(angle)`
+2. `infront = 512 - abs(WheelAngle * 3)` если !dangle, clamp [256, 512]
+   (чем сильнее поворот, тем ближе проверяем — на поворотах не нужно далеко)
+3. Первая сфера: центр в `pos + forward*infront/256`, радиус = infront
+4. Вторая сфера: на шаг дальше (`+ forward*infront/256` ещё раз)
+5. Суммирует результаты, удаляет саму машину из списка
+6. Ищет: `CLASS_PERSON | CLASS_VEHICLE`
+7. BIKE ветка (`#ifdef BIKE`) — недоделана, не портировать
 
 Скрежет о стену: `Scrapin` флаг → звуковой эффект пропорционально величине.
 Сирена: `Siren` флаг, `LastSoundState` для оптимизации.
