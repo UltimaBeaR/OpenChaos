@@ -5,12 +5,35 @@
 
 ---
 
-## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — audio.md или ui.md (ПРИОРИТЕТ 1)
+## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **audio.md** — Miles Sound System: читать `music.cpp`, `fallen/Headers/Sound.h`, `handle_sfx()` в Game.cpp
-2. **ui.md** — HUD детали: читать `overlay.cpp`, `pause.cpp`, `gamemenu.cpp`
-3. **interfac.cpp** — аннотировать (ПРИОРИТЕТ 2): controls + camera input
+1. **Форматы ресурсов** (КРИТИЧНО для data pipeline): `.all`, `.iam`, `.ucm`, `.prm` binary layout — читать `io.cpp`
+2. **AI TODO** (missions.md → ai.md): PCOM_process_default(), Driving AI, MIB поведение
+3. **Навигация TODO**: WARE_mav_*, INSIDE2_mav_*, MAV при изменении уровня
+
+**ВЫПОЛНЕНО в этой итерации:**
+- interfac.cpp аннотирован (ключевые функции: process_hardware_level_input_for_player, player_apply_move,
+  player_interface_move, player_turn_left_right_analogue, apply_button_input_fight, do_an_action,
+  InputDone mechanism, weapon hotkeys KB_1..KB_8, main mode dispatcher)
+- SESSION_START.md обновлён (статусы audio.md, ui.md, math_utils.md → ✅)
+
+---
+
+## interfac.cpp аннотирование — ИТОГ (выполнено)
+
+**Ключевые открытия:**
+- process_hardware_level_input_for_player(): камера сначала → EWAY стоп → form_leave_map стоп → InputDone mask → weapon keys → mode dispatch
+- InputDone механизм: накапливает обработанные биты, сбрасывает отпущенные; кнопки срабатывают раз на нажатие (не каждый кадр)
+- Главный диспетчер: DRIVING→apply_button_input_car; FIGHT→apply_button_input_fight; нормальный→apply_button_input
+- player_apply_move(): STATE machine, только поворот; бег/прыжок/действие — в apply_button_input
+- player_turn_left_right(): wMaxTurn=94 (idle), 12 (в воздухе), 70-Velocity (бег); клавиатура → накопительный поворот; стик → пропорциональный
+- player_turn_left_right_analogue(): стик → Arctan(-dx,dz) → +camera_angle; Roll = (Velocity-9)*dx>>5 (наклон при беге)
+- apply_button_input_fight(): MOVE без FORWARDS = выход из FIGHT в RUN режим (только без analogue)
+- do_an_action() приоритеты: выйти из машины > арест > слезть с лестницы > сесть в машину > крюк > переключатель > разговор > подбор > обыск > обнять стену > кола > присесть
+- should_i_jump(): проверяет WARE_which_contains по 4 точкам; dx/dz захардкожены (не зависят от угла персонажа — баг/упрощение!)
+- Горячие клавиши: KB_1=убрать, KB_2=пистолет, KB_3..KB_8=SHOTGUN/AK47/GRENADE/C4/KNIFE/BAT
+- Аннотированы: interfac.cpp ~50+ claude-ai блоков
 
 ---
 
@@ -114,10 +137,10 @@
 | **Эффекты** | effects.md | ✅ Достаточно | Частицы, огонь, ткань отключена |
 | **Форматы ресурсов** | resource_formats/ | ⚠️ Частично | Структура папок ясна, binary форматы не задокументированы |
 | **Камера** | camera.md | ✅ Хорошо | FC only (cam.cpp=мёртв), 8-шаг raycast collision, get-behind алгоритм |
-| **Звук** | audio.md | ⚠️ Не читал | Miles Sound System → заменить |
-| **UI** | ui.md | ⚠️ Не читал | HUD, инвентарь |
+| **Звук** | audio.md | ✅ Хорошо | Miles Sound System → miniaudio, 14 MUSIC_MODE_*, 5 биомов ambient |
+| **UI** | ui.md | ✅ Хорошо | HUD, инвентарь, frontend, fonts, gamemenu |
 | **Прогресс/сохранения** | player_progress.md | ⚠️ Частично | В missions.md: .wag формат, complete_point |
-| **Матем/утилиты** | math_utils.md | ⚠️ Не читал | maths.cpp, Matrix.cpp |
+| **Матем/утилиты** | math_utils.md | ✅ Хорошо | 2 стека (PSX int/PC float), glm для новой игры |
 | **Игровые состояния** | game_states.md | ✅ Хорошо | per-frame порядок, DarciDeadCivWarnings, GS_REPLAY=goto, bench cooldown |
 | **WayWind** | waywind.md | ❌ Не нужен | Редактор, не переносить |
 | **MuckyBasic** | muckybasic.md | ❌ Не нужен | Не интегрирован с игрой |
@@ -168,7 +191,7 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | eway.cpp | ~60+ блоков | ✅ (per-frame loop, spawn funcs, cond stubs, stay logic, 54-func map) |
 | Mission.cpp | N/A | ✅ (это EDITOR файл, не рантайм; WPT→EWAY_DO в elev.cpp аннотировано) |
 | elev.cpp | ~30+ ann. | ✅ (WPT→EWAY_DO mapping, WPT_BONUS_POINTS dead code, WPT_GOTHERE_DOTHIS ASSERT) |
-| **interfac.cpp** | 0 | ❌ ПРИОРИТЕТ 2 |
+| **interfac.cpp** | ~50+ блоков | ✅ (process_hardware_input, player_apply_move, InputDone, weapon hotkeys, mode dispatcher) |
 
 ---
 
@@ -225,11 +248,14 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] **АННОТИРОВАТЬ** elev.cpp WPT→EWAY_DO mapping — ВЫПОЛНЕНО
 
 ### УПРАВЛЕНИЕ/ВВОД (controls.md) — TODO
-- [ ] Детали `process_hardware_level_input_for_player()` — точный порядок обработки
-- [ ] Как работает аналоговый стик для движения — thresholds, dead zone
-- [ ] Double-click 200ms — GetTickCount(), проверить точную реализацию
-- [ ] `player_apply_move()` — как направление конвертируется в движение с учётом камеры
-- [ ] **АННОТИРОВАТЬ** interfac.cpp — приоритет 5
+- [x] Детали `process_hardware_level_input_for_player()` — ГОТОВО (8-шаговый порядок, InputDone, камера первая)
+- [x] Как работает аналоговый стик — ГОТОВО (NOISE_TOLERANCE=8192 PC / 24 DC, ANALOGUE_MIN_VELOCITY=8 PC / 32 PSX)
+- [x] `player_apply_move()` — ГОТОВО (STATE machine: turn, jump, вызов через player_interface_move)
+- [x] `player_turn_left_right_analogue()` — ГОТОВО (стик → Arctan(-dx,dz) + camera angle + Roll visual)
+- [x] Горячие клавиши KB_1..KB_8 — ГОТОВО (1=убрать, 2=пистолет, 3-8=спецоружие)
+- [x] **АННОТИРОВАТЬ** interfac.cpp — ВЫПОЛНЕНО
+- [ ] Double-click 200ms — GetTickCount(), точная реализация DoubleClick[] + LastReleased[]
+- [ ] `apply_button_input()` полный флоу (нормальный режим бега)
 
 ### ФОРМАТЫ РЕСУРСОВ — TODO (КРИТИЧНО для data pipeline)
 - [ ] **`.all` файлы** (darci1.all, hero.all, bossprtg.all) — binary layout НЕ задокументирован. Читать `load_anim_system()` в io.cpp
@@ -259,9 +285,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 ### НЕ ЧИТАНЫ (нужно прочесть KB файлы)
 - [x] **camera.md** — ГОТОВО: FC only, 8-шаг raycast, get-behind, focus_yaw, toonear
 - [x] **game_states.md** — ГОТОВО: per-frame порядок, DarciDeadCivWarnings, GS_REPLAY
-- [ ] **audio.md** — звуковые events, Miles Sound System интеграция
-- [ ] **ui.md** — HUD layout, инвентарь popup, crime/danger UI
-- [ ] **math_utils.md** — CMatrix33, quaternion slerp, QDIST2 формулы
+- [x] **audio.md** — ГОТОВО: 14 MUSIC_MODE_*, 5 биомов, MFX→miniaudio, indoor/outdoor, footsteps
+- [x] **ui.md** — ГОТОВО: HUD, enemy tracking, frontend modes, fonts, gamemenu
+- [x] **math_utils.md** — ГОТОВО: PSX 0-2047 / PC radians, SinTable 2560 entries, glm замена
 
 ---
 
@@ -291,6 +317,15 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - Гарпун = НЕ переносить (never shipped)
 - Канализация = НЕ переносить (never shipped)
 - process_controls() = НЕ обработка ввода игрока (это диспетчер подсистем!)
+- InputDone: накапливает обработанные биты input, сбрасывает при отпускании — кнопка срабатывает один раз
+- player_apply_move() → только поворот (STATE machine); бег/прыжок/action — в apply_button_input()
+- player_turn_left_right(): wMaxTurn=94 idle / 12 в воздухе / (70-Velocity) при беге; клавиатура=накопительный, стик=пропорциональный
+- apply_button_input_fight(): MOVE без FORWARDS = выход в RUN (в аналоговом режиме отключено)
+- should_i_jump(): dx/dz захардкожены (не от угла персонажа!) — проверяет WARE_which_contains по 4 точкам
+- Горячие клавиши PC: KB_1=убрать, KB_2=пистолет, KB_3=шотган, KB_4=AK47, KB_5=граната, KB_6=C4, KB_7=нож, KB_8=бита
+- NOISE_TOLERANCE: PC=8192 (из 65535), DC=24 (из 128); ANALOGUE_MIN_VELOCITY: PC=8, PSX=32 (из 128)
+- audio.md: 14 MUSIC_MODE_*, приоритет: CINEMATIC>FIGHT>DRIVING>SPRINT>CRAWL>AMBIENT; замена MSS32→miniaudio
+- math_utils.md: PSX углы 0-2047, SinTable[2560] (не 2048!), CosTable = &SinTable[512]; PC float radians+glm
 - TIMEOUT_DEMO=0 → demo_timeout() = мёртвый код
 - SPECIAL_MINE подбор = ASSERT(0), метание = ASSERT(0)
 - save slots: 1-based! (`save_slot = menu_state.selected + 1`)

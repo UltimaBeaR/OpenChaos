@@ -817,6 +817,10 @@ void	set_player_punch(Thing *p_person)
 // FALSE if they are in the doorway to a warehouse.
 //
 
+// claude-ai: should_i_jump() — проверяет, стоит ли Darci на границе склада (WARE_which_contains).
+// claude-ai: Если все 4 контрольные точки вокруг персонажа принадлежат тому же складскому сектору
+// claude-ai: (или вообще нет склада) — прыжок разрешён. Иначе FALSE (стоит в проёме склада — нельзя прыгать).
+// claude-ai: ВНИМАНИЕ: dx/dz захардкожены как 0x10000>>11 / 0 — не зависят от угла персонажа (баг/упрощение).
 SLONG should_i_jump(Thing *darci)
 {
 	//
@@ -2597,6 +2601,10 @@ void	get_analogue_dxdz(SLONG in_dx,SLONG in_dz,SLONG *dx,SLONG *dz)
 }
 
 
+// claude-ai: player_interface_move() — диспетчер движения. Вызывается из apply_button_input().
+// claude-ai: USER_INTERFACE=0 (единственный рабочий режим) → player_apply_move().
+// claude-ai: USER_INTERFACE=1 = старый тестовый аналоговый режим (закомментирован, мёртвый код).
+// claude-ai: Фильтрует одновременное нажатие LEFT+RIGHT (убирает оба бита).
 void	player_interface_move(Thing *p_thing,ULONG input)
 {
 	//
@@ -2732,6 +2740,13 @@ extern	SLONG	EWAY_cam_jumped;
 SLONG	globdx,globdz;
 #endif
 
+// claude-ai: player_turn_left_right_analogue() — поворот персонажа по аналоговому стику (старая система, PSX/DC).
+// claude-ai: Читает GET_JOYX/GET_JOYY из input, вычисляет угол через Arctan(-dx, dz).
+// claude-ai: Конвертирует мировые координаты стика в угол относительно камеры (ca = get_camera_angle()).
+// claude-ai: Применяет наклон Roll к модели при беге (визуальный эффект): Roll = ((Velocity-9)*dx)>>5.
+// claude-ai: Подавляет поворот на 8 кадров после скачка камеры (EWAY_cam_jumped — cutscene камера).
+// claude-ai: NOTE: Аналоговый режим включается из config.ini: analogue_pad_mode=1 (DC только).
+// claude-ai: На PC эта функция НЕ используется (используется player_turn_left_right с накопительным вводом).
 SLONG	player_turn_left_right_analogue(Thing *p_thing,SLONG input)
 {
 	static	UBYTE	reduce_turn=0;
@@ -3787,6 +3802,15 @@ SLONG	player_turn_left_right(Thing *p_thing,SLONG input)
 
 #endif
 
+// claude-ai: player_apply_move() — ядро обработки движения персонажа (STATE machine dispatching).
+// claude-ai: Вызывается из player_interface_move() при USER_INTERFACE=0.
+// claude-ai: Основные состояния:
+// claude-ai:   STATE_IDLE, STATE_MOVEING, STATE_GUN, STATE_GRAPPLING, STATE_CARRY:
+// claude-ai:     → player_turn_left_right() или player_turn_left_right_analogue() (поворот)
+// claude-ai:     → далее в apply_button_input() обрабатывается бег/прыжок/действие
+// claude-ai:   STATE_CLIMBING: ограниченные действия (LEFT/RIGHT = перебраться по стене — закомментировано #ifdef UNUSED)
+// claude-ai:   STATE_JUMPING: поворот с wMaxTurn=12 (в воздухе поворот сильно ограничен)
+// claude-ai: Возвращает: ничего (void). Управление передаётся через изменение State/SubState Thing.
 void	player_apply_move(Thing *p_thing,ULONG input)
 {
 //	SLONG	da=94;
@@ -4925,6 +4949,15 @@ UBYTE	input_to_angle[]=
 extern	UWORD	count_gang(Thing *p_target);
 
 
+// claude-ai: apply_button_input_fight() — обработка ввода в БОЕВОМ режиме (PERSON_MODE_FIGHT).
+// claude-ai: Приоритеты (от высшего к низшему):
+// claude-ai:   1. PUNCH + gun → set_player_shoot() (выстрел в боевом режиме)
+// claude-ai:   2. PSX: STEP_LEFT/RIGHT → person_pick_best_target() (выбор цели)
+// claude-ai:   3. MOVE (без FORWARDS) + не KO → PERSON_MODE_RUN + set_person_running() (выход из боя)
+// claude-ai:   4. Комбо атак: PUNCH → удар, KICK → пинок, FORWARDS+PUNCH → набрасывание
+// claude-ai:   5. ACTION → do_an_action() (арест и т.п.)
+// claude-ai: Выход из FIGHT режима: нажатие MOVE без FORWARDS (бег) ИЛИ double-click FORWARDS (закомментировано).
+// claude-ai: В аналоговом режиме MOVE-для-выхода отключён (пришлось бы случайно выходить при лёгком наклоне стика).
 ULONG apply_button_input_fight(Thing *p_player, Thing *p_person, ULONG input)
 {
 	Player *pl = p_player->Genus.Player;
@@ -7836,6 +7869,20 @@ SLONG can_darci_change_weapon(Thing *p_person)
 
 int g_iPlayerCameraMode = 0;
 
+// claude-ai: process_hardware_level_input_for_player() — основной обработчик ввода игрока за кадр.
+// claude-ai: Вызывается из Game.cpp в начале game_loop для каждого игрока.
+// claude-ai: Последовательность действий:
+// claude-ai:   1. input = PACKET_DATA(PlayerID) — считать пакет ввода (сетевой или локальный)
+// claude-ai:   2. Камера: INPUT_MASK_CAMERA → FC_change_camera_type() + FC_force_camera_behind()
+// claude-ai:              INPUT_MASK_CAM_BEHIND → FC_force_camera_behind()
+// claude-ai:   3. EWAY_stop_player_moving() → обнулить input (cutscene блокировка)
+// claude-ai:   4. form_leave_map / draw_map_screen → обнулить input (карта активна)
+// claude-ai:   5. InputDone masking: Input &= ~InputDone (игнорировать кнопки, уже обработанные ранее)
+// claude-ai:   6. Смена оружия: KB_1=убрать, KB_2=достать пистолет, KB_3..KB_8=спецоружие
+// claude-ai:   7. Диспетчер: DRIVING → apply_button_input_car; FIGHT mode → apply_button_input_fight;
+// claude-ai:                  иначе → apply_button_input (нормальный режим)
+// claude-ai:   8. InputDone |= processed (пометить обработанные биты)
+// claude-ai: ВАЖНО: Камера обрабатывается ДО блокировки ввода — в катсценах игрок всё равно может менять камеру.
 void	process_hardware_level_input_for_player(Thing *p_player)
 {
 	SLONG  i;
@@ -8117,6 +8164,13 @@ void	process_hardware_level_input_for_player(Thing *p_player)
 	// clear any inputdone if the input has been released
 	//
 
+	// claude-ai: InputDone — механизм предотвращения повторной обработки нажатия.
+	// claude-ai: InputDone хранит биты кнопок, которые были обработаны в предыдущих кадрах и ещё зажаты.
+	// claude-ai: Шаг 1: очистить биты InputDone, которые уже отпущены (input & 0x3ffff — нижние 18 бит кнопок).
+	// claude-ai: Шаг 2: Player->Input = полный input (для доступа из других систем).
+	// claude-ai: Шаг 3: input &= ~InputDone — убрать уже обработанные нажатия из текущего input.
+	// claude-ai: В конце кадра: InputDone |= processed (пометить что обработали в этом кадре).
+	// claude-ai: Эффект: ACTION/PUNCH/etc. срабатывают один раз на нажатие, не каждый кадр пока зажата.
 	p_player->Genus.Player->InputDone &= (input&0x3ffff);
 	p_player->Genus.Player->Input      = input;
 
@@ -8146,6 +8200,16 @@ void	process_hardware_level_input_for_player(Thing *p_player)
 			// Should Darci be allowed to change weapon?
 			//
 
+			// claude-ai: Горячие клавиши оружия (только PC, только вне машины):
+			// claude-ai:   KB_1 = убрать оружие/предмет (gun/item away)
+			// claude-ai:   KB_2 = достать пистолет (если есть FLAGS_HAS_GUN)
+			// claude-ai:   KB_3 = дробовик (SPECIAL_SHOTGUN)
+			// claude-ai:   KB_4 = AK-47 (SPECIAL_AK47)
+			// claude-ai:   KB_5 = граната (SPECIAL_GRENADE)
+			// claude-ai:   KB_6 = взрывчатка C4 (SPECIAL_EXPLOSIVES)
+			// claude-ai:   KB_7 = нож (SPECIAL_KNIFE)
+			// claude-ai:   KB_8 = бейсбольная бита (SPECIAL_BASEBALLBAT)
+			// claude-ai: can_darci_change_weapon() — запрет смены оружия во время анимации перезарядки и т.п.
 			if (can_darci_change_weapon(p_person))
 			{
 				if (Keys[KB_1])
@@ -8281,7 +8345,12 @@ void	process_hardware_level_input_for_player(Thing *p_player)
 #endif
 #endif
 			{
-				if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT)
+				// claude-ai: Главный диспетчер режимов управления:
+			// claude-ai:   FIGHT mode → pre_process_input(FIGHT) + apply_button_input_fight()
+			// claude-ai:   RUN mode   → pre_process_input(RUN) + apply_button_input() (нормальный режим)
+			// claude-ai: pre_process_input() ремапит кнопки в зависимости от режима
+			// claude-ai: (например, PUNCH в RUN-режиме может означать другое действие чем в FIGHT).
+			if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT)
 				{
 					input=pre_process_input(PERSON_MODE_FIGHT,input); //this fucks up the processed business but what the hell
 					processed = apply_button_input_fight(p_player,p_person,input);
