@@ -129,6 +129,45 @@ struct MenuState {
 | `OT_LABEL` | заголовок (не интерактивный) |
 | `OT_RESET` | сброс настроек |
 
+### FRONTEND_input() — обработка ввода в меню
+
+Отдельная функция (frontend.cpp:3573), вызывается из `FRONTEND_display()`.
+Возвращает `FE_START` (начало миссии), `FE_EDITOR`, `-1` (выход), или `0` (продолжение).
+
+**Навигация по пунктам:**
+- `KB_UP` / `INPUT_MASK_FORWARDS` → `selected--` (с wrap); OT_LABEL и greyed OT_BUTTON пропускаются
+- `KB_DOWN` / `INPUT_MASK_BACKWARDS` → `selected++` (с wrap)
+- `KB_HOME` → прыжок на первый активный пункт
+- `KB_END` → прыжок на последний активный пункт
+- В режиме `FE_MAPSCREEN`: UP/DOWN также меняют `mission_selected`; LEFT/RIGHT — `district_selected`
+
+**Активация (ENTER / SPACE / KB_PENTER / any_button):**
+- `OT_BUTTON` → `menu_mode_queued = item->Data`; `fade_mode=2` (transition)
+- `OT_MULTI` → цикл вариантов (`Data&0xff` increment mod `Data>>8`)
+- `OT_SLIDER` → только LEFT/RIGHT (ENTER ничего не делает)
+- `OT_KEYPRESS` → `grabbing_key=1`; следующая нажатая клавиша (кроме ESC) записывается в `item->Data`
+- `OT_PADPRESS` → `grabbing_pad=1`; следующая кнопка джойпада записывается
+- `FE_MAPSCREEN` → `menu_mode_queued = 100 + mission_selected` (переход к брифингу)
+- `mode≥100` (брифинг) → возвращает `FE_START` (запуск миссии)
+
+**LEFT/RIGHT:**
+- `OT_SLIDER`: `Data ± 2` (двойной шаг, кроме крайних значений)
+- `OT_MULTI`: `Data ± 1` (в пределах max)
+- `FE_MAPSCREEN`: листание районов влево/вправо
+
+**ESC / INPUT_MASK_CANCEL:**
+- Если `fade_mode==2` → отмена transition (откат `fade_mode=1`)
+- Если `stackpos>0` → `menu_mode_queued=FE_BACK`; сохраняет настройки через `FRONTEND_storedata()`
+- Если `stackpos==0` → `menu_mode_queued=FE_MAINMENU` (или FE_QUIT если WANT_AN_EXIT_MENU_ITEM)
+- `fade_mode=6` (fade-out)
+
+**Джойпад (INPUT_TYPE_JOY):**
+- Deadzone: `NOISE_TOLERANCE=4096` (ось ±4096 от 32768)
+- Диагонали запрещены: lY > MAX → только BACKWARDS (очищает LEFT/RIGHT)
+- Edge-triggered: `input==last_input → input=0` (нет автоповтора держания)
+- `first_pad`: первое движение (без кнопок) при старте игнорируется (баг PC джойстиков)
+- `last_button`: кнопка засчитывается только при первом нажатии (edge, не hold)
+
 ### Фоны меню (TGA текстуры, 4 сезонных варианта)
 ```
 "title leaves1.tga", "title rain1.tga", "title snow1.tga", "title blood1.tga"

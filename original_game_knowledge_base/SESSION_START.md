@@ -9,9 +9,25 @@
 
 **Варианты:**
 1. **Форматы**: lighting_format.md и model_format.md — проверить точность
-2. **MISSION_SCRIPT формат** — документировать текстовый формат mission list script (FRONTEND_ParseMissionData v2/3/4)
-3. **frontend.cpp**: FRONTEND_display input handling — как menu_state обрабатывает кнопки (FRONTEND_process?)
-4. **suggest_order[]** — выяснить где задан (захардкожен или из файла?)
+2. **muckybasic.md** — детальный анализ MuckyBasic скриптового интерпретатора (MB_process, опкоды)
+3. **audio.md** — как работает музыкальная система (MUSIC_mode, MFX)
+4. **briefing.cpp** — BRIEFING_select() и как загружается/воспроизводится брифинг
+
+**ВЫПОЛНЕНО в этой итерации (.sty формат + FRONTEND_input):**
+- resource_formats/mission_script_format.md создан:
+  - .sty формат v4: `ObjID:GroupID:ParentID:ParentIsGroup:Type:Flags:District:fn:title:brief`
+  - История версий v2/v3/v4/default с различиями полей
+  - [districts] секция: `Name=X,Y` или `=0,0`; полный список 28 районов
+  - suggest_order[] = ЗАХАРДКОЖЕН в frontend.cpp (строки 224-267), заканчивается "!"; не из файла
+  - Загрузка: text mode ("rt"), кэш 20KB, LoadStringScript построчно
+- ui.md раздел 2 дополнен деталями FRONTEND_input():
+  - UP/DOWN → selected±1 (wrap), пропуск OT_LABEL и greyed OT_BUTTON
+  - HOME/END → первый/последний активный пункт
+  - ENTER → OT_BUTTON: queue transition; OT_MULTI: cycle; OT_KEYPRESS/PADPRESS: grab mode
+  - FE_MAPSCREEN: ENTER → 100+mission_selected; mode≥100: ENTER → FE_START
+  - LEFT/RIGHT: Slider ±2, Multi ±1, MapScreen → district_selected
+  - ESC: fade_mode==2 → отмена transition; stackpos→FE_BACK; иначе→FE_MAINMENU
+  - Джойпад: NOISE_TOLERANCE=4096, диагонали запрещены, edge-triggered, first_pad=suppress boot glitch
 
 **ВЫПОЛНЕНО в этой итерации (water height + frontend аннотации):**
 - physics.md: секция 5c воды полностью переписана:

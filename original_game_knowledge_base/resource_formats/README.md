@@ -33,6 +33,7 @@ Debug/
 | Звук (.WAV, музыкальные режимы) | [audio_format.md](audio_format.md) |
 | Освещение (.lgt) | [lighting_format.md](lighting_format.md) |
 | Скрипты миссий (.ucm — EventPoint формат) | [../subsystems/missions.md](../subsystems/missions.md) |
+| Mission Script (.sty — список миссий и районов) | [mission_script_format.md](mission_script_format.md) |
 | Конфиг (config.ini) | [../subsystems/player_progress.md](../subsystems/player_progress.md) |
 
 ## Приоритет загрузчиков в новой версии
