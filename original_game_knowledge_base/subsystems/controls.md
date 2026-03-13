@@ -151,9 +151,56 @@ typedef struct {
 3. **Double-click:** для каждой из 16 кнопок: если нажата в течение 200ms после отпускания (через `LastReleased[i]` / GetTickCount()) — инкремент `DoubleClick[i]`
 4. **Управление камерой:** `INPUT_MASK_CAMERA` / `CAM_BEHIND` / `CAM_LEFT` / `CAM_RIGHT`
 5. **Движение:** `player_apply_move(Thing *p_thing, ULONG input)` — обрабатывает направление с учётом `Mode`
-6. **Бой и действия:** `apply_button_input(Thing *p_player, Thing *p_person, ULONG input)`
+6. **Бой и действия:** `apply_button_input(Thing *p_player, Thing *p_person, ULONG input)` — см. ниже
 7. **В машине:** `apply_button_input_car(Thing *p_furn, ULONG input)` — если `FLAG_PERSON_DRIVING`
 8. **Вид от первого лица:** `apply_button_input_first_person(...)` — отдельная функция
+
+### apply_button_input() — полный флоу (interfac.cpp:4382)
+
+**Шаг 1 — ACTION кнопка:**
+- Если `INPUT_MASK_ACTION` нажат → `do_an_action(p_person, input)` (взаимодействие с миром)
+- Если НЕТ ACTION → SPRINT→RUN downgrade; если crouching → `set_person_idle_uncroutch()`
+
+**Шаг 2 — блокировка:**
+- Если STATE_CARRY и substate PICKUP_CARRY/DROP_CARRY → ранний return (анимация не прерывается)
+
+**Шаг 3 — action tree** (`find_best_action_from_tree()` → switch по ACTION_*):
+```
+ACTION_KICK_FLAG      → FLAG_PERSON_REQUEST_KICK
+ACTION_PUNCH_FLAG     → FLAG_PERSON_REQUEST_PUNCH
+ACTION_BLOCK_FLAG     → FLAG_PERSON_REQUEST_BLOCK
+ACTION_JUMP_FLAG      → FLAG_PERSON_REQUEST_JUMP
+ACTION_HUG_LEFT/RIGHT → set_person_hug_wall_dir(0/1)
+ACTION_UNSIT          → set_person_unsit()
+ACTION_FLIP_LEFT/RIGHT → set_person_flip(0/1) [только если FrameIndex<3 при STANDING_JUMP]
+ACTION_SHOOT          → set_player_shoot(p_person, 0)
+ACTION_GUN_AWAY       → set_person_gun_away()
+ACTION_DROP_DOWN      → set_person_drop_down(OFF_FACE) [если DEATH_SLIDE: MFX_stop zipwire сначала]
+ACTION_RESPAWN        → processed (мёртвый код — реальный respawn закомментирован)
+```
+
+Только если НЕТ флагов NON_INT_M/NON_INT_C:
+```
+ACTION_SKID            → Velocity>25 → ANIM_SLIDER_START + MFX_SLIDE_START (looped)
+ACTION_STANDING_JUMP   → should_i_jump() → вперёд/назад(backflip)/влево(flip)/вправо(flip)/нейтральный
+ACTION_RUNNING_JUMP    → should_i_jump() → set_person_running_jump()
+ACTION_TRAVERSE_LEFT/RIGHT → set_person_traverse(0/1)
+ACTION_PULL_UP         → set_person_pulling_up()
+ACTION_FIGHT_KICK      → если BACKWARDS: kick назад (dir=2, turn_to_target DONT_TURN); иначе: turn_to_target_and_kick()
+ACTION_FIGHT_PUNCH     → если пистолет: set_person_shoot(); иначе: player_activate_in_hand() || turn_to_target_and_punch()
+ACTION_DRAW_SPECIAL    → set_person_draw_special()
+```
+
+**Шаг 4 — движение** (если `INPUT_MOVEMENT_MASK` или мышь):
+- Если НЕТ NON_INT_M — `player_interface_move()` для: IDLE, MOVEING, GUN, HIT_RECOIL, CARRY, HUG_WALL, CLIMBING, CLIMB_LADDER, DANGLING, JUMPING
+- GRAPPLING → только если substate GRAPPLING_WINDUP
+- NON_INT_M и ACTION_SIT_BENCH + FORWARDS → `set_person_idle()` (встать со скамейки)
+
+**Шаг 4b — нет движения:**
+- STATE_IDLE → `player_turn_left_right(p_person, 0)` (только поворот без движения)
+- STATE_MOVEING:
+  - SUB_STATE_CRAWLING → `set_person_idle_croutch()` (остановиться сидя)
+  - иначе → `player_stop_move()` (торможение)
 
 **Аналоговые стики (геймпад):**
 ```c

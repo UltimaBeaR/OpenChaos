@@ -5839,6 +5839,7 @@ void	drop_current_gun(Thing *p_person,SLONG change_anim);
 // Returns the zone flags for the place a person is.
 //
 
+// claude-ai: pcom_zone system - NPC zone isolation. Zone = 4-bit bitmask from PAP_Hi.Flags bits 10-13 (>>10). NPC with pcom_zone!=0 only see/hear targets in matching zones (bitwise AND). Used by PCOM_can_i_see_person_to_attack, PCOM_oscillate_tympanum (sounds), and NAVTOKILL. If target leaves zone: HOMESICK; if home also outside zone: pcom_zone=0 (level design error recovery). Assigned via EWAY_create_enemy zone byte bits 0-3.
 UBYTE PCOM_get_zone_for_position(Thing *p_person)
 {
 	UBYTE zone;
@@ -7475,7 +7476,7 @@ extern	SLONG	WAND_find_good_start_point(SLONG *mapx,SLONG *mapz);
 // The AI for combat.
 //
 
-// claude-ai: PCOM_process_killing - melee combat AI (AI_STATE_KILLING): uses gang-attack system to coordinate up to 4 attackers; calls process_gang_attack() for circling; if target dead/gone -> return to NORMAL; if target flees/too far -> transition to NAVTOKILL
+// claude-ai: PCOM_process_killing - melee combat AI (AI_STATE_KILLING). Key distances: too_far=0x250 normal / 0x150 if target fleeing. FLEE transition: ONLY for FLAG2_PERSON_FAKE_WANDER NPCs (Thug Rasta/Cop) via PCOM_should_fake_person_attack_darci() checked every 4 ticks. Regular NPCs: KILLING->NORMAL (target dead) or KILLING->NAVTOKILL (target escaped). Target in car: gun->navtokill(shoot car), no gun->taunt. Every 256 ticks: check for weapon pickup (GETITEM).
 void PCOM_process_killing(Thing *p_person)
 {
 	Thing *p_target = TO_THING(p_person->Genus.Person->pcom_ai_arg);
@@ -9982,7 +9983,7 @@ void PCOM_process_leavecar(Thing *p_person)
 }
 
 
-// claude-ai: PCOM_process_snipe - stationary sniper AI: stays at fixed position; waits until target (stored in pcom_ai_arg) is in LOS; draws weapon and fires; does NOT pathfind - purely reactive shooter from a fixed vantage point
+// claude-ai: PCOM_process_snipe - stationary sniper AI (PCOM_AI_SHOOT_DEAD=21). Never moves. 3 substates: LOOK(wait for LOS)->AIMING(draw gun, fire when counter>shoot_time)->NOMOREAMMO(holster, return to LOOK). Max range 0x600 units. shoot_time=get_rate_of_fire()-SKILL*4/100. If pcom_ai==SHOOT_DEAD: fires immediately without waiting counter. "Holster when no target for 10s" code is COMMENTED OUT (gun always drawn).
 void PCOM_process_snipe(Thing *p_person)
 {
 	#ifndef PSX

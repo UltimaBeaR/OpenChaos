@@ -8,11 +8,22 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **AI TODO остатки**: agression threshold (KILLING→FLEE), pcom_zone детали, PCOM_process_snipe
-2. **Форматы TODO**: .txc binary layout, style.tma UV таблица
-3. **Физика TODO**: WATER вне дренажа (водная высота), mount_ladder() в финале
+1. **Форматы TODO**: .txc binary layout, style.tma UV таблица (КРИТИЧНО для data pipeline)
+2. **Физика TODO**: WATER вне дренажа (водная высота), mount_ladder() в финале
+3. **Characters TODO**: InterruptFrame в DrawTween, CMatrix33 декомпрессия
+4. **World TODO**: build_quick_city(), ROAD_wander_calc(), WAND_init()
 
-**ВЫПОЛНЕНО в этой итерации (физика + WMOVE):**
+**ВЫПОЛНЕНО в этой итерации (AI остатки + controls + форматы):**
+- ai.md разделы 10f/10g/10h — PCOM_process_killing детали, PCOM_process_snipe, pcom_zone
+- ai.md 10f: KILLING→FLEE ТОЛЬКО для FAKE_WANDER NPC через PCOM_should_fake_person_attack_darci(); regular→NAVTOKILL или NORMAL
+- ai.md 10g: snipe = 3 substates (LOOK→AIMING→NOMOREAMMO), range 0x600, "holster when idle" закомментирован
+- ai.md 10h: pcom_zone = 4-bit bitmask PAP_Hi.Flags>>10; NPC с zone!=0 не видят/слышат цели из других зон; level design error recovery
+- controls.md: apply_button_input() полный флоу — ACTION tree, движение dispatch, NON_INT блокировки
+- texture_format.md: .txc = FileClump архив (header+offsets+lengths+WriteSquished entries); ⚠️ size_t платформозависим
+- texture_format.md: style.tma = 200×5 TXTY + flags; instyle.tma = count_x*count_y UBYTE; TXTY={Page,Tx,Ty,Flip}
+- Аннотированы: pcom.cpp (killing+snipe обновлены, zone +1 блок), interfac.cpp (apply_button_input), io.cpp (TXTY исправлен)
+
+**ВЫПОЛНЕНО в предыдущей итерации (физика + WMOVE):**
 - physics.md: WMOVE система — moving walkable faces (wmove.cpp), лимиты, PSX ограничение, WMOVE_process/relative_pos
 - physics.md: mount_ladder() полный флоу — ok_to_mount_ladder, set_person_climb_ladder (аним по PersonType)
 - physics.md: ПРЕ-РЕЛИЗ: mount_ladder() из interfac.cpp закомментирован! Игрок не может залезать снизу
@@ -247,9 +258,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] `PCOM_AI_BANE` (19) — SUMMON loop, 4 тела в воздух, electricity arcs, electrocute Darci if idle nearby
 - [x] Driving AI детали — FINDCAR если не за рулём; PATROL/WANDER/STILL driving modes; DRIVE_DOWN=road graph wander
 - [x] Гражданские воскресают через >200 кадров — на месте смерти (баг пре-релиза: newpos не присваивается)
-- [ ] Как именно AI решает перейти из KILLING в FLEE (agression threshold?) — в PCOM_process_killing()
-- [ ] Снайперское состояние PCOM_AI_SHOOT_DEAD (21) детали — PCOM_process_snipe()
-- [ ] Как работает `pcom_zone` — NPC не слышат звуки из других зон? (pcom_zone=bitmask, PCOM_get_zone_for_position)
+- [x] KILLING→FLEE threshold — ТОЛЬКО FAKE_WANDER NPC (Rasta/Cop); через PCOM_should_fake_person_attack_darci(); обычные→NAVTOKILL/NORMAL
+- [x] PCOM_AI_SHOOT_DEAD (21) детали — 3 substates: LOOK/AIMING/NOMOREAMMO; range 0x600; holster code закомментирован
+- [x] pcom_zone — 4-bit bitmask PAP_Hi.Flags>>10; vision+sound+navtokill фильтр; level design error recovery
 
 ### ПЕРСОНАЖИ/АНИМАЦИИ (characters.md) — TODO
 - [x] Точные переходы состояний в Darci: JUMPING→LANDING — ГОТОВО (см. Person.cpp итог выше)
@@ -286,7 +297,7 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] Горячие клавиши KB_1..KB_8 — ГОТОВО (1=убрать, 2=пистолет, 3-8=спецоружие)
 - [x] **АННОТИРОВАТЬ** interfac.cpp — ВЫПОЛНЕНО
 - [ ] Double-click 200ms — GetTickCount(), точная реализация DoubleClick[] + LastReleased[]
-- [ ] `apply_button_input()` полный флоу (нормальный режим бега)
+- [x] `apply_button_input()` полный флоу — ACTION tree (ACTION_SHOOT/JUMP/KICK/PUNCH/HUG/FLIP/DROP), movement dispatch, NON_INT флаги
 
 ### ФОРМАТЫ РЕСУРСОВ — TODO (КРИТИЧНО для data pipeline)
 - [x] **`.all` файлы** — ГОТОВО: binary layout в animation_format.md (keyframe chunk, pointer fixup, moj embeds)
@@ -294,8 +305,8 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] **`.ucm` файлы** — ГОТОВО: missions.md раздел 11, EventPoint = 74 байта (14+60)
 - [x] **`.prm` файлы** — ГОТОВО: model_format.md (PrimObject, PrimFace3, PrimFace4 structs)
 - [x] **`.lgt` файлы** — ГОТОВО: lighting_format.md создан (ED_Light 16б, NIGHT_Colour 3б)
-- [ ] **`.txc` файлы** — точный binary layout архива текстур не задокументирован (заголовок неизвестен)
-- [ ] **`style.tma`** — UV таблица тайлов не задокументирована (load_texture_instyles в io.cpp)
+- [x] **`.txc` файлы** — ГОТОВО: FileClump архив; header=[ULONG MaxID, Offsets[], Lengths[]]; entry=WriteSquished(TXTY 4:4:4:4 или 5:6:5); ⚠️ size_t платформозависим; для новой игры загружать TGA напрямую
+- [x] **`style.tma`** — ГОТОВО: 200 стилей × 5 слотов × TXTY(4б); textures_flags[200][5]; instyle.tma=count_x*count_y*UBYTE; обновлено texture_format.md
 
 ### МИР/КАРТА (world_map.md) — TODO
 - [ ] Детали `build_quick_city()` — что именно строит, структура
@@ -353,6 +364,7 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - player_apply_move() → только поворот (STATE machine); бег/прыжок/action — в apply_button_input()
 - player_turn_left_right(): wMaxTurn=94 idle / 12 в воздухе / (70-Velocity) при беге; клавиатура=накопительный, стик=пропорциональный
 - apply_button_input_fight(): MOVE без FORWARDS = выход в RUN (в аналоговом режиме отключено)
+- apply_button_input(): ACTION→do_an_action(); нет ACTION→SPRINT→RUN; find_best_action_from_tree()→REQUEST flags + jump/shoot/flip/hug/skid
 - should_i_jump(): dx/dz захардкожены (не от угла персонажа!) — проверяет WARE_which_contains по 4 точкам
 - Горячие клавиши PC: KB_1=убрать, KB_2=пистолет, KB_3=шотган, KB_4=AK47, KB_5=граната, KB_6=C4, KB_7=нож, KB_8=бита
 - NOISE_TOLERANCE: PC=8192 (из 65535), DC=24 (из 128); ANALOGUE_MIN_VELOCITY: PC=8, PSX=32 (из 128)
@@ -397,6 +409,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - DRIVER/COP_DRIVER NORMAL: if !FLAG_PERSON_DRIVING → FINDCAR; COP_DRIVER arrest-from-car = закомментирован
 - Resurrect bug пре-релиз: newpos(HomeX,HomeZ) вычисляется но НЕ присваивается → гражданские воскресают на месте смерти
 - PCOM_process_normal LAZY: каждые 0x3f тиков ищет bench/sofa в radius 512; GUARD на домашней позиции рисует пистолет
+- KILLING→FLEE: ТОЛЬКО для FAKE_WANDER NPC (Rasta/Cop) через PCOM_should_fake_person_attack_darci(); обычные враги из KILLING→NAVTOKILL(ушёл) или NORMAL(мёртв)
+- PCOM_process_snipe: stationary only; LOOK→AIMING(draw gun, shoot if dist<0x600)→NOMOREAMMO; "put gun away after 10s" закомментирован
+- pcom_zone: PAP_Hi.Flags bits 10-13 = 4-bit zone bitmask; NPC с zone!=0 игнорируют видимость/звуки/NAVTOKILL из других зон
 - WARE_mav_enter: НЕ меняет MAV_nav; глобальный MAV_do() к door[best].out_x/z; dist==0 → GOTO к in_x/z
 - WARE_mav_inside/exit: swap MAV_nav→WARE_nav[ww->nav]; coords в warehouse-local; exit добавляет height check (|h_in-h_out|<0x80)
 - INSIDE2_mav_inside=ASSERT(0) (заглушка); INSIDE2_mav_stair/exit=баг `>` вместо `>>` → GOTO (0/1, 0/1)
@@ -412,3 +427,6 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - Bench cooldown: GAME_TURN & 0x3ff == 314 → сброс GF_DISABLE_BENCH_HEALTH (~34с при 30fps)
 - SMOOTH_TICK_RATIO = скользящее среднее TICK_RATIO по 4 кадрам (для машин)
 - DarciDeadCivWarnings: 0/1/2=предупреждения (экран deadcivs.tga); >=3=GS_LEVEL_LOST; персистирует!
+- apply_button_input(): ACTION→do_an_action(); нет ACTION→SPRINT→RUN; find_best_action_from_tree()→REQUEST flags + jump/shoot/flip/hug/skid; без движения: IDLE→turn, MOVEING→stop
+- .txc = FileClump archive: [ULONG MaxID][Offsets[MaxID]][Lengths[MaxID]][data]; ⚠️ size_t=4/8б зависит от платформы; для новой игры читать TGA напрямую
+- style.tma: 200 стилей × 5 слотов; TXTY{Page,Tx,Ty,Flip}=4б; textures_flags[200][5]=тип полигона; instyle.tma=count_x*count_y UBYTE индексов

@@ -711,6 +711,111 @@ if (pcom_ai == PCOM_AI_CIV && pcom_move == PCOM_MOVE_WANDER && !IN_VIEW):
 
 ---
 
+## 10f. PCOM_process_killing() — ближний бой
+
+**Состояние PCOM_AI_STATE_KILLING** — NPC уже в радиусе удара, бьёт цель.
+
+**FAKE_WANDER проверка** (каждые 4 тика):
+- Если NPC с флагом FLAG2_PERSON_FAKE_WANDER (Thug Rasta или Cop):
+  - `PCOM_should_fake_person_attack_darci()` → если false: `PCOM_set_person_ai_flee_person()` и выход
+  - Это единственный путь из KILLING → FLEE напрямую (порог агрессии для fake_wander NPC)
+
+**Если цель мертва:**
+- Если арестована и не SUB_STATE_DEAD_ARRESTED → ждём завершения анимации ареста
+- Иначе → `PCOM_set_person_ai_normal()` (домой)
+
+**Если цель в машине:**
+- Есть пистолет → `PCOM_set_person_ai_navtokill()` (стреляет по машине)
+- Нет пистолета → `PCOM_set_person_ai_taunt()` (только издевается)
+
+**Каждые 2 тика — проверка дистанции:**
+- Если цель НЕ в нокауте:
+  - Если цель убегает (FLEE_PERSON): `too_far = 0x150` (~340 units — ближе держится)
+  - Иначе: `too_far = 0x250` (~592 units)
+  - Если дистанция > too_far ИЛИ нет LOS → `PCOM_set_person_ai_navtokill()` (догоняет)
+
+**Каждые 64 тика:** если цель в NORMAL state — кричит агрессивный звук (`S_WTHUG1_ALERT_START`)
+
+**Каждые 256 тиков (PSX: 128):** ищет оружие поблизости → `PCOM_set_person_ai_getitem()`
+
+**Движение (PCOM_MOVE_STATE):**
+- STILL → `PCOM_set_person_move_circle()` + пауза 15-20 тиков
+- PAUSE / CIRCLE → вся логика уже в `fn_person_circle()`
+- ANIMATION / WAIT_CIRCLE / GRAPPLE → ждём анимации
+
+**Вывод:** KILLING сам по себе НЕ переходит в FLEE по жизням. Переход в FLEE происходит только для FAKE_WANDER NPC (не настоящие враги) через `PCOM_should_fake_person_attack_darci()`. Обычные враги из KILLING уходят обратно в NORMAL (если цель мертва) или в NAVTOKILL (если цель ушла).
+
+---
+
+## 10g. PCOM_process_snipe() — снайпер AI
+
+**PCOM_AI_SHOOT_DEAD (21)** — статичный снайпер, не перемещается, только стреляет.
+
+Если нет цели (`pcom_ai_arg == NULL`) → `PCOM_set_person_ai_normal()` и выход.
+
+**3 подсостояния** (`pcom_ai_substate`):
+
+**PCOM_AI_SUBSTATE_LOOK (ожидание цели):**
+- Нет патронов → ничего не делает
+- `can_a_see_b(me, target)` → если да: переход в AIMING, counter=0
+- Если нет: counter += TICKS_PER_TURN * TICK_RATIO (накапливает время ожидания)
+- Код "убрать пистолет после 10 сек без цели" — **закомментирован** (пистолет всегда наготове)
+
+**PCOM_AI_SUBSTATE_AIMING (прицеливается/стреляет):**
+- Если пистолет не достан → `PCOM_set_person_move_draw_gun()`
+- Если дистанция < `0x600` (≈1536 units) И `can_a_see_b`:
+  - `shoot_time = get_rate_of_fire() - (SKILL × 4) / 100`
+  - Если counter > shoot_time ИЛИ AI_type == PCOM_AI_SHOOT_DEAD:
+    - Нет патронов → `set_person_shoot(click)` + убрать пистолет → NOMOREAMMO
+    - Есть патроны → `PCOM_set_person_move_shoot()`, counter=0
+  - Всегда: `set_face_thing(me, target)` — поворачивается к цели
+- Если цель вышла из дистанции/LOS → назад в LOOK
+
+**PCOM_AI_SUBSTATE_NOMOREAMMO (нет патронов):**
+- Ждёт пока `pcom_move_state == STILL` (анимация уборки завершена)
+- Затем → LOOK, counter=0
+
+**Ключевые параметры:**
+- Максимальная дистанция стрельбы: **0x600 units** (1536)
+- Скорость стрельбы: `get_rate_of_fire(p_person) - GET_SKILL(p_person)×4/100`
+- Снайпер НЕ двигается никогда (нет навигации, нет pathfinding)
+- Стреляет мгновенно если `pcom_ai == PCOM_AI_SHOOT_DEAD` и aiming (счётчик игнорируется)
+
+---
+
+## 10h. pcom_zone — зональная изоляция AI
+
+Механизм ограничения зоны патрулирования и восприятия NPC.
+
+**Хранение зон в навмеше:**
+- PAP_Hi.Flags bits 10-13 = 4-bit zone ID для каждого навмеш-квадрата
+- `PCOM_get_zone_for_position(Thing*)` → читает зону из текущего/целевого навмеш-квадрата
+- `PCOM_get_zone_for_position(x, z)` → читает зону по координатам `PAP_2HI(x>>8, z>>8)`
+
+**Person.pcom_zone — бitmask зон NPC:**
+- Если `pcom_zone == 0` → NPC не ограничен зонами (реагирует на всё)
+- Если `pcom_zone != 0` → NPC реагирует только на события в своих зонах
+
+**Фильтрация видимости** (`PCOM_can_i_see_person_to_attack`):
+```c
+if (pcom_zone && !(PCOM_get_zone_for_position(target) & pcom_zone)):
+    return NULL  // цель в другой зоне — игнорировать
+```
+
+**Фильтрация звуков** (в `PCOM_oscillate_tympanum`):
+```c
+if (p_found->pcom_zone && !(PCOM_get_zone_for_position(sound_x, sound_z) & p_found->pcom_zone)):
+    continue  // звук из другой зоны — не слышать
+```
+
+**Фильтрация NAVTOKILL** (pcom.cpp:8669):
+- Если цель ушла из зоны NPC → `PCOM_set_person_ai_homesick()` (вернуться домой)
+- Если дом тоже не в зоне (level design ошибка) → `pcom_zone = 0` (сбросить ограничение)
+
+**Вывод:** pcom_zone — бitmask из 4 бит. NPC с pcom_zone≠0 не видят, не слышат и не преследуют цели за пределами своих зон. Назначается через zone byte в EWAY_create_enemy (биты 0-3). Если дом NPC не в его же зоне — зона автоматически сбрасывается.
+
+---
+
 ## 10. Что переносить в новую версию
 
 **Переносить 1:1 (критично для геймплея):**

@@ -428,8 +428,8 @@ void	load_texture_instyles(UBYTE editor, UBYTE world)
 // claude-ai:   [4 bytes] SLONG save_type
 // claude-ai:   if save_type 2..3: TextureInfo block (8*8*count entries) — skipped/seek
 // claude-ai:   [2 bytes] UWORD temp=200 (style count), [2 bytes] UWORD temp2=5..8 (UV slots per style)
-// claude-ai:   [200 * 5 * sizeof(TXTY)] textures_xy[][] — UV coordinate pairs per style slot
-// claude-ai:     TXTY: 2 bytes U + 2 bytes V (pixel coords within atlas)
+// claude-ai:   [200 * 5 * sizeof(TXTY)] textures_xy[][] — tile texture info per style slot
+// claude-ai:     TXTY (4 bytes): UBYTE Page (atlas page index), UBYTE Tx (tile X in page), UBYTE Ty (tile Y in page), UBYTE Flip (flip flags)
 // claude-ai:   [2 bytes] UWORD 200, [2 bytes] UWORD 21
 // claude-ai:   [200 * 21 bytes] texture_style_names[][] — editor names, skipped in-game
 // claude-ai:   [2 bytes] UWORD 200, [2 bytes] UWORD 5

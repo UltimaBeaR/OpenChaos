@@ -4379,6 +4379,7 @@ void person_enter_fight_mode(Thing *p_person)
 //
 
 //persumably this will be aplied to a darci or a roper
+// claude-ai: apply_button_input - main normal-mode input handler. Flow: 1)ACTION->do_an_action(); 2)no ACTION->SPRINT->RUN downgrade, uncroutch; 3)STATE_CARRY guard; 4)find_best_action_from_tree()->switch(ACTION_*): sets request flags, jump, flip, shoot, drop, skid, fight; 5)if INPUT_MOVEMENT_MASK: player_interface_move() for most states; 6)no movement: IDLE->player_turn_left_right(0), MOVEING->player_stop_move(). NOTE: NON_INT_M/C flags block jump/skid/fight actions.
 ULONG	apply_button_input(struct Thing *p_player,struct Thing *p_person,ULONG input)
 {
 	ULONG	input_used=0;
