@@ -25,9 +25,7 @@
 
 ---
 
-## 2. Главный цикл
-
-Из `Game.cpp`:
+## 2. Главный внешний цикл
 
 ```c
 game() {
@@ -42,62 +40,87 @@ game() {
 }
 ```
 
-**Игровой цикл (game_loop) продолжается пока:**
+**Игровой inner loop (game_loop) продолжается пока:**
 ```c
 while (SHELL_ACTIVE && (GAME_STATE & (GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WON)))
 ```
 
 ---
 
-## 3. Переходы состояний
-
-### Запуск → игра
+## 3. Порядок обновления за кадр (PC, game_loop)
 
 ```
-game_startup()
-    → Инициализация дисплея, ввода, звука
-    → PC/Editor: GAME_STATE = GS_PLAY_GAME
-    → Frontend: GAME_STATE = GS_ATTRACT_MODE (загрузка меню)
+[Начало кадра]
+1. GAMEMENU_process()
+   → Возвращает GAMEMENU_DO_NOTHING / DO_RESTART / DO_CHOOSE_NEW_MISSION / DO_NEXT_LEVEL
+   → Если != 0: PANEL_fadeout_start() (затемнение)
+   → После PANEL_fadeout_finished():
+       DO_RESTART         → GS_REPLAY
+       DO_CHOOSE_NEW_MISSION → GS_LEVEL_LOST (выход в меню)
+       DO_NEXT_LEVEL      → GS_LEVEL_WON (чит/skip)
+       Любой вариант      → break из inner loop
 
-game_init()
-    → Загрузка миссии + создание всех объектов
+2. GS_LEVEL_WON проверка
+   → Finale1.ucm → break немедленно (не ждать ввода)
+
+3. EWAY_tutorial_string обработка
+   → Пока != NULL: игра заморожена (should_i_process_game = FALSE)
+   → counter < 64*40: кнопка ускоряет показ
+   → counter >= 64*40: кнопка закрывает сообщение
+
+4. demo_timeout(0) — мёртвый код (TIMEOUT_DEMO=0)
+
+5. special_keys() — отладочные клавиши (single-step и т.д.)
+
+6. process_controls()
+   → Пропускается если GS_LEVEL_LOST | GS_LEVEL_WON | tutorial_string
+
+7. check_pows() — power-up спавн
+
+8. if (should_i_process_game()):
+   → process_things(1)          — обновление всех Things (StateFn + PCOM)
+   → PARTICLE_Run()             — частицы
+   → OB_process()               — интерактивные объекты
+   → TRIP_process()             — tripwires
+   → DOOR_process()             — двери
+   → EWAY_process()             — миссионная логика
+   → SPARK_show_electric_fences()
+   → RIBBON_process()
+   → DIRT_process()
+   → ProcessGrenades()
+   → WMOVE_draw()               — движущиеся платформы
+   → BALLOON_process()
+   → MAP_process()
+   → POW_process()
+   → FC_process()               — обновление камеры
+
+9. PUDDLE_process(), DRIP_process() — всегда (даже при паузе)
+
+10. draw_screen()               — рендеринг 3D
+
+11. OVERLAY_handle()            — HUD (здоровье, оружие, радар, тексты)
+
+12. CONSOLE_draw()              — debug тексты (только если не на паузе)
+
+13. GAMEMENU_draw()             — отрисовка меню паузы
+
+14. PANEL_fadeout_draw()        — эффект затемнения при выходе/переходе
+
+15. screen_flip()               — показ буфера
+
+16. lock_frame_rate(30)         — spin-loop ожидание до 30 FPS (из config.ini)
+
+17. handle_sfx()                — обновление звука (движущиеся SFX)
+
+18. GAME_TURN++                 — глобальный счётчик кадров
+
+19. Bench cooldown check:
+    if ((GAME_TURN & 0x3ff) == 314):
+        GAME_FLAGS &= ~GF_DISABLE_BENCH_HEALTH
+    → каждые 1024 кадра (~34с при 30fps) — разрешает лечение на скамейке
 ```
 
-### Победа / поражение
-
-**Победа:**
-- Триггер `WPT_END_GAME_WIN` в EWAY → `GAME_STATE = GS_LEVEL_WON`
-- Музыка: `MUSIC_mode(MUSIC_MODE_VICTORY)`
-- Финальная миссия (`Finale1.ucm`) → выход из игры
-
-**Поражение:**
-- Триггер `WPT_END_GAME_LOSE` или здоровье ≤ 0 → `GAME_STATE = GS_LEVEL_LOST`
-- Музыка:
-  ```c
-  if (player->Health > 0)
-      MUSIC_mode(MUSIC_MODE_CHAOS);    // Провал без гибели
-  else
-      MUSIC_mode(MUSIC_MODE_FAIL);     // Гибель игрока
-  ```
-
-### Повтор миссии (GS_REPLAY)
-
-```c
-if (hardware_input_replay()) {
-    #ifdef PSX
-        GAME_STATE = GS_LEVEL_LOST;   // На PSX → возврат в меню
-    #else
-        GAME_STATE = GS_REPLAY;        // На PC → перезапуск миссии
-    #endif
-}
-```
-
-**ВАЖНО: Чекпоинтов нет.** При `GS_REPLAY` вся миссия инициализируется с нуля:
-- Все объекты пересоздаются
-- Все event points сбрасываются в начальное состояние
-- Игрок спавнится на стартовой позиции из файла миссии
-
-Миссии могут содержать `WPT_AUTOSAVE` точки (Mission.h строка 41), но это дополнительный механизм сохранения, зависящий от конкретной миссии.
+**Примечание:** `should_i_process_game()` возвращает FALSE когда GF_PAUSED или показывается tutorial.
 
 ---
 
@@ -105,36 +128,81 @@ if (hardware_input_replay()) {
 
 Флаг `GF_PAUSED` (Game.h строка 186, бит 2) управляет паузой.
 
-Меню паузы (Game.cpp строки 463–477):
-- 2 пункта: **"CONTINUE GAME"** и **"EXIT"**
-- Клавиши:
-  ```c
-  PAUSED_KEY_START   (1 << 0)
-  PAUSED_KEY_UP      (1 << 1)
-  PAUSED_KEY_DOWN    (1 << 2)
-  PAUSED_KEY_SELECT  (1 << 3)
-  ```
+**PC:** Меню паузы через GAMEMENU (gamemenu.cpp) — 2+ пункта с анимацией, затемнением.
+
+**PSX:** `PAUSE_handler()` — простой обработчик кнопки Start. Возвращает TRUE = выход из игры.
 
 ---
 
-## 5. Условия провала миссии
+## 5. Победа/поражение — поток
 
-Из Game.cpp строки 2276–2346:
+### Во время игры (inner loop)
+
+**Победа:**
+- Триггер `WPT_END_GAME_WIN` в EWAY → `GAME_STATE = GS_LEVEL_WON`
+- `MUSIC_mode(MUSIC_MODE_GAMEWON)`
+
+**Поражение:**
+- Триггер `WPT_END_GAME_LOSE` или здоровье ≤ 0 → `GAME_STATE = GS_LEVEL_LOST`
+- Если `player->Health > 0`: `MUSIC_mode(MUSIC_MODE_CHAOS)` (провал без гибели)
+- Если `player->Health <= 0`: `MUSIC_mode(MUSIC_MODE_GAMELOST)` (гибель)
+
+### После inner loop (PC)
 
 ```
-Миссия проваливается если:
-  1. Здоровье игрока ≤ 0 → переход в STATE_DEAD
-  2. EWAY выполняет WPT_END_GAME_LOSE
-  3. Конкретный NPC-цель убит (определяется в EWAY)
-  4. CrimeRate превышает порог (если включён флаг миссии)
-  5. Истёк таймер (WPT_COUNT_UP_TIMER в EWAY)
+if (GS_LEVEL_WON):
+    if "park2.ucm"    → RunCutscene(1)   // MIB intro
+    if "Finale1.ucm"  → RunCutscene(3) + OS_hack()  // финал + credits
+
+DarciDeadCivWarnings check (если RedMarks > 1):
+    0 → предупреждение 1 (X_CIVSDEAD_WARNING_1)
+    1 → предупреждение 2 (X_CIVSDEAD_WARNING_2)
+    2 → предупреждение 3 (X_CIVSDEAD_WARNING_3)
+    3 → GAME_STATE = GS_LEVEL_LOST + сообщение 4 (X_CIVSDEAD_WARNING_4)
+    DarciDeadCivWarnings += 1 после показа (персистирует между миссиями!)
+
+switch(GAME_STATE):
+    GS_REPLAY     → GAME_STATE = GS_PLAY_GAME|GS_REPLAY; goto round_again (полный рестарт)
+    GS_LEVEL_WON  → FRONTEND_level_won()
+    GS_LEVEL_LOST → FRONTEND_level_lost()
+    0             → выход
 ```
+
+### Чекпоинты и GS_REPLAY
+
+**Чекпоинтов нет.** При `GS_REPLAY`:
+- `goto round_again` → повторный вход в `game_init()`
+- Все объекты пересоздаются с нуля
+- Все Event Points сбрасываются в начальное состояние
+- Игрок спавнится на стартовой позиции из файла миссии
 
 ---
 
-## 6. Счёт и статистика
+## 6. DarciDeadCivWarnings — детали
 
-Поля из Game.h строки 304–310:
+- `the_game.DarciDeadCivWarnings` — поле Game структуры, персистирует между миссиями
+- Проверяется только для `PERSON_DARCI` (основной персонаж)
+- `Player->RedMarks > 1` — порог: больше одного убитого мирного
+- **Экран:** `deadcivs.tga` фон + текст из XLAT
+- **Счётчик 3:** `GAME_STATE = GS_LEVEL_LOST` — уровень помечается проваленным!
+
+---
+
+## 7. Таймирование кадра (TICK_RATIO / SmoothTicks)
+
+- `TICK_RATIO` — масштаб скорости на основе реального времени кадра
+- `SMOOTH_TICK_RATIO` — 4-кадровое скользящее среднее из TICK_RATIO (SmoothTicks в Game.cpp):
+  - кольцевой буфер из 4 значений
+  - первые 3 кадра: возвращает raw_ticks напрямую
+  - с 4-го кадра: sum >> 2 (среднее)
+  - Используется для движения машин (чтобы не было рывков)
+- `lock_frame_rate(env_frame_rate)`: spin-loop busy-wait; `max_frame_rate` из config.ini, дефолт 30
+
+---
+
+## 8. Счёт и статистика
+
+Поля из Game.h:
 
 ```c
 Scores[16]               // Очки по игрокам
@@ -148,21 +216,23 @@ stat_arrested_innocent   // Ошибочных арестов
 
 ---
 
-## 7. Demo timeout (отключён в релизе)
+## 9. Demo timeout (отключён)
 
-В коде есть закомментированный таймаут демо:
 ```c
 #define TIMEOUT_DEMO 0   // При значении > 0 — принудительный выход через N секунд
 ```
-
-В финальном релизе отключён.
+`demo_timeout()` = мёртвый код в финале.
 
 ---
 
-## 8. Что переносить
+## 10. Что переносить
 
 - Все GS_* флаги с той же семантикой
-- Логику GS_REPLAY (полный рестарт, не чекпоинт)
-- Паузу с двумя пунктами меню
+- Точный порядок per-frame обновления (пункты 1-19 выше)
+- Логику GS_REPLAY (полный рестарт без чекпоинтов)
+- DarciDeadCivWarnings поведение (персистируемый счётчик, экраны предупреждений)
+- Bench health cooldown: 1024-кадровый цикл
+- SMOOTH_TICK_RATIO (4-кадровое среднее для машин)
 - Статистику: killed/arrested counts, crime rate
 - Условия победы/поражения (определяются через EWAY, не хардкодом)
+- Катсцены привязаны к конкретным файлам: park2.ucm, Finale1.ucm

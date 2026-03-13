@@ -5,12 +5,33 @@
 
 ---
 
-## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — game_states.md или camera.md (ПРИОРИТЕТ 1)
+## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — audio.md или ui.md (ПРИОРИТЕТ 1)
 
 **Варианты:**
-1. **game_states.md** — прочесть `Game.cpp` глубже: `FRONTEND_level_won/lost()`, complete_point logic, GS_* переходы
-2. **camera.md** — прочесть `fc.cpp`, `cam.cpp`: follow camera, collision avoidance
-3. **audio.md** — Miles Sound System интеграция
+1. **audio.md** — Miles Sound System: читать `music.cpp`, `fallen/Headers/Sound.h`, `handle_sfx()` в Game.cpp
+2. **ui.md** — HUD детали: читать `overlay.cpp`, `pause.cpp`, `gamemenu.cpp`
+3. **interfac.cpp** — аннотировать (ПРИОРИТЕТ 2): controls + camera input
+
+---
+
+## game_states.md + camera.md — ИТОГ (выполнено)
+
+**game_states.md ключевые открытия:**
+- Per-frame порядок: GAMEMENU → tutorial → controls → should_i_process (things+EWAY+FC) → draw_screen → OVERLAY → screen_flip → lock_frame_rate(30) → handle_sfx → GAME_TURN++
+- Bench cooldown: кадр 314 из каждых 1024 (~34с) → сброс GF_DISABLE_BENCH_HEALTH
+- Post-loop: park2.ucm→cutscene(1), Finale1.ucm→cutscene(3)+OS_hack()
+- DarciDeadCivWarnings: 0-2 = предупреждения; >=3 = GS_LEVEL_LOST; персистирует между миссиями!
+- GS_REPLAY = goto round_again (полный рестарт); нет чекпоинтов
+- SMOOTH_TICK_RATIO: 4-кадровое скользящее среднее TICK_RATIO для машин
+
+**camera.md ключевые открытия:**
+- cam.cpp = МЁРТВЫЙ КОД (`#ifdef DOG_POO`); только fc.cpp активен
+- FC_alter_for_pos: gun-out→ddist=200; InCar→ddist=356; idle height check → МЁРТВЫЙ КОД (`&& 0`)
+- FC_calc_focus: focus_yaw = персонаж.Angle; peeking (HUG_WALL_LOOK) смещает focus_x/z; dangling → камера сбоку (±550)
+- FC_focus_above: gun-out → lower 0xa000; InsideIndex → cam_height*1.5; машины разных типов по-разному
+- FC_process: 8-шаговый raycast от want_pos к focus для collision + get-behind + distance clamp + smoothing (>>2 pos, >>3 Y, >>2 angles)
+- Lens: всегда 0x28000*CAM_MORE_IN (FOV не меняется)
+- Toonear 0x90000 = first-person mode (специальный случай)
 
 ---
 
@@ -92,12 +113,12 @@
 | **Состояния игрока** | player_states.md | ✅ Хорошо | Полные списки STATE_* и SUB_STATE_* |
 | **Эффекты** | effects.md | ✅ Достаточно | Частицы, огонь, ткань отключена |
 | **Форматы ресурсов** | resource_formats/ | ⚠️ Частично | Структура папок ясна, binary форматы не задокументированы |
-| **Камера** | camera.md | ⚠️ Не читал | fc.cpp, cam.cpp — нужно прочесть |
+| **Камера** | camera.md | ✅ Хорошо | FC only (cam.cpp=мёртв), 8-шаг raycast collision, get-behind алгоритм |
 | **Звук** | audio.md | ⚠️ Не читал | Miles Sound System → заменить |
 | **UI** | ui.md | ⚠️ Не читал | HUD, инвентарь |
 | **Прогресс/сохранения** | player_progress.md | ⚠️ Частично | В missions.md: .wag формат, complete_point |
 | **Матем/утилиты** | math_utils.md | ⚠️ Не читал | maths.cpp, Matrix.cpp |
-| **Игровые состояния** | game_states.md | ⚠️ Не читал | GS_*, pause, win/lose flow |
+| **Игровые состояния** | game_states.md | ✅ Хорошо | per-frame порядок, DarciDeadCivWarnings, GS_REPLAY=goto, bench cooldown |
 | **WayWind** | waywind.md | ❌ Не нужен | Редактор, не переносить |
 | **MuckyBasic** | muckybasic.md | ❌ Не нужен | Не интегрирован с игрой |
 
@@ -236,11 +257,11 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [ ] Как `NIGHT_generate_walkable_lighting()` работает
 
 ### НЕ ЧИТАНЫ (нужно прочесть KB файлы)
-- [ ] **camera.md** — как именно работает follow camera, collision avoidance
+- [x] **camera.md** — ГОТОВО: FC only, 8-шаг raycast, get-behind, focus_yaw, toonear
+- [x] **game_states.md** — ГОТОВО: per-frame порядок, DarciDeadCivWarnings, GS_REPLAY
 - [ ] **audio.md** — звуковые events, Miles Sound System интеграция
 - [ ] **ui.md** — HUD layout, инвентарь popup, crime/danger UI
 - [ ] **math_utils.md** — CMatrix33, quaternion slerp, QDIST2 формулы
-- [ ] **game_states.md** — GS_* flow, pause, win/lose, GS_LEVEL_LOST условия
 
 ---
 
@@ -288,3 +309,13 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - zone byte in EWAY_create_enemy: bits 0-3=zone, bit4=INVULNERABLE, bit5=GUILTY, bit6=FAKE_WANDER
 - Roper stats bug (пре-релиз): EWAY_create_player(ROPER) использует Darci stats
 - EWAY вэйпойнт coords = mapsquare units (×256 для WorldPos)
+- cam.cpp = МЁРТВЫЙ КОД (`#ifdef DOG_POO` никогда не определён); FC only
+- FC_alter_for_pos idle height check (`&& 0`) = МЁРТВЫЙ КОД — always dheight=0, ddist=256
+- FC_process: 8-шаговый raycast collision (want→focus); push xforce/yforce/zforce<<4 к want_pos
+- FC get-behind speed: vehicle>>5; entering>>3; у стены>>5+>>6; нормально>>3; gun-out добавляет >>4
+- FC toonear_dist=0x90000 = first-person mode (специальный случай)
+- Lens = всегда 0x28000*CAM_MORE_IN (FOV не меняется, не зависит от action)
+- Per-frame game_loop: GAMEMENU→tutorial→controls→process_things→EWAY→FC→draw→OVERLAY→flip→lock_fps→sfx→GAME_TURN++
+- Bench cooldown: GAME_TURN & 0x3ff == 314 → сброс GF_DISABLE_BENCH_HEALTH (~34с при 30fps)
+- SMOOTH_TICK_RATIO = скользящее среднее TICK_RATIO по 4 кадрам (для машин)
+- DarciDeadCivWarnings: 0/1/2=предупреждения (экран deadcivs.tga); >=3=GS_LEVEL_LOST; персистирует!
