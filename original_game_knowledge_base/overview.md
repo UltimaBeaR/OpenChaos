@@ -87,7 +87,7 @@ MAX_THINGS = 700 (400 основных + 300 вторичных).
 ### Fixed-Point Math
 
 Координаты: **32.8 fixed-point** (позиция × 256).
-При переписывании: решить — оставить fixed-point или float+SSE2.
+Вся физика и координаты используют 32.8 fixed-point (integer-only).
 
 ### State Machine
 
@@ -113,7 +113,7 @@ MAX_THINGS = 700 (400 основных + 300 вторичных).
 | Рендеринг | DDEngine/, DDLibrary/ | [rendering.md](subsystems/rendering.md) |
 | Анимации | Anim.cpp, morph.cpp | [characters.md](subsystems/characters.md) |
 | Звук / Музыка | Sound.cpp, music.cpp | [audio.md](subsystems/audio.md) |
-| Скриптинг | MuckyBasic/ | [muckybasic.md](subsystems/muckybasic.md) |
+| Скриптинг | MuckyBasic/ | Вне скоупа, см. [analysis_scope.md](analysis_scope.md) |
 | Система миссий | Mission.cpp | [missions.md](subsystems/missions.md) |
 | Оружие / Предметы | Special.cpp | [weapons_items.md](subsystems/weapons_items.md) |
 | UI / HUD / Frontend | interfac.cpp, frontend.cpp | [ui.md](subsystems/ui.md) |

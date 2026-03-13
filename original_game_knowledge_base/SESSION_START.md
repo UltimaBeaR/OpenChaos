@@ -17,7 +17,17 @@
 
 **План:** 8 итераций глубокого аудита и верификации KB перед переходом к фазе 2.
 **Детали:** см. `ANALYSIS_ITERATIONS_PLAN.md`
-**Текущий статус:** итерация 2 (аудит аннотаций) ✅ выполнена, следующая — итерация 3 (консистентность KB)
+**Текущий статус:** итерация 3 (консистентность KB) ✅ выполнена, следующая — итерация 4 (верификация фактов по коду)
+
+**ВЫПОЛНЕНО в итерации 3 (консистентность KB):**
+- 3 битые ссылки на удалённый muckybasic.md → исправлены (overview.md, missions.md ×2)
+- Числовые ошибки в SESSION_START таблице: AI 21→22 типа, 27→28 состояний; EWAY 41→42 условия, 57→52 действия
+- missions.md: line count eway.cpp 8229→~8509; нумерация секций исправлена (были дубли ##6, ##7, ##11)
+- Porting-решения вычищены из 8 KB файлов (physics.md, rendering.md, rendering_mesh.md, waywind.md, vehicles.md, minor_systems.md, overview.md, level_loading.md) + из SESSION_START.md
+- Перенесены заметки по переносу навигации и зданий в new_game_planning/porting_notes.md
+- Дублирование устранено: missions.md 11b (Win/Lose flow→ссылка на game_states.md), missions.md 12 (.wag→ссылка на player_progress.md)
+- Перекрёстные ссылки добавлены: buildings_interiors.md→navigation.md для WARE_mav_*/INSIDE2_mav_*
+- Все числовые константы проверены: gravity, damage, fire rates, health, struct sizes, limits — консистентны
 
 **ВЫПОЛНЕНО в этой итерации (аудит аннотаций // claude-ai:):**
 - 3905 аннотаций в 98 файлах — полный аудит проведён по 16 файлам (~2600 аннотаций, 66%)
@@ -70,7 +80,7 @@
 - Pistol=70dmg, Shotgun=300-dist, AK47=100(player)/40(NPC); fire rates: 140/400/64 ticks
 - Hit chance: `230 - abs(Roll)>>1 - Velocity + modifiers`; min 20/256 (~8%)
 - Vehicle friction: bit-shift based `(1 - 1/2^friction)`, terminal velocity emergent
-- DRAWXTRA_MIB_destruct() МУТИРУЕТ game state из рендерера → вынести при портировании
+- DRAWXTRA_MIB_destruct() МУТИРУЕТ game state из рендерера (ammo_packs_pistol, PYRO, SPARK)
 
 **ВЫПОЛНЕНО в этой итерации (ribbon + bang + interact + triage):**
 - ribbon.cpp полный анализ (144 строки): circular buffer trail renderer для огня/дыма
@@ -414,7 +424,7 @@
 |-----------|---------|--------|---------------|
 | **Физика/коллизии** | physics.md | ✅ Хорошо | Integer-only, slide_along без отскока, гравитация animation-driven для персонажей, HyperMatter для мебели |
 | **Thing/Объекты** | game_objects.md | ✅ Хорошо | union+fnptr полиморфизм, MAX 700, MapWho хэш, state machine |
-| **AI (PCOM)** | ai.md | ✅ Хорошо | 21 тип AI, 27 состояний, собаки инертны в пре-релизе |
+| **AI (PCOM)** | ai.md | ✅ Хорошо | 22 типа AI (PCOM_AI 0-21), 28 состояний (PCOM_STATE 0-27), собаки инертны в пре-релизе |
 | **Навигация** | navigation.md | ✅ Хорошо | MAV = greedy best-first (НЕ A*), горизонт 32, NAV = wallhug |
 | **Персонажи/анимации** | characters.md | ✅ Хорошо | Vertex morphing (НЕ skeletal), DrawTween, Thug/Cop в #if 0 |
 | **Управление/ввод** | controls.md | ✅ Хорошо | 18 кнопок INPUT_*, 52 ACTION_*, zipwire есть в финале |
@@ -423,7 +433,7 @@
 | **Оружие/предметы** | weapons_items.md | ✅ Хорошо | 30 типов SPECIAL_*, мины заглушены, C4 = 5 сек (не 10) |
 | **Мир/карта** | world_map.md | ✅ Хорошо | PAP_Hi 128×128 + PAP_Lo 32×32, MapWho, здания |
 | **Здания/интерьеры** | buildings_interiors.md | ✅ Хорошо | 21 тип STOREY_TYPE_*, DFacet, двери через MAV |
-| **Миссии (EWAY)** | missions.md | ✅ Хорошо | 41 условие, 57 действий, .ucm ≠ MuckyBasic, polling каждый кадр |
+| **Миссии (EWAY)** | missions.md | ✅ Хорошо | 42 условия (EWAY_COND 0-41), 52 действия (EWAY_DO 0-52), .ucm ≠ MuckyBasic, polling каждый кадр |
 | **Загрузка уровня** | level_loading.md | ✅ Хорошо | 9 шагов, MAV_precalculate самый тяжёлый, игрок создаётся через EWAY |
 | **Рендеринг** | rendering.md | ✅ Достаточно | DirectX6 fixed-function pipeline; 386 строк |
 | **Рендеринг/Меши** | rendering_mesh.md | ✅ Достаточно | Tom's Engine, vertex morphing, crumple, UV packing |
@@ -601,7 +611,7 @@ chopper.cpp      → game_objects.md + ai.md
 - [x] **`.ucm` файлы** — ГОТОВО: missions.md раздел 11, EventPoint = 74 байта (14+60)
 - [x] **`.prm` файлы** — ГОТОВО: model_format.md (PrimObject, PrimFace3, PrimFace4 structs)
 - [x] **`.lgt` файлы** — ГОТОВО: lighting_format.md создан (ED_Light 16б, NIGHT_Colour 3б)
-- [x] **`.txc` файлы** — ГОТОВО: FileClump архив; header=[ULONG MaxID, Offsets[], Lengths[]]; entry=WriteSquished(TXTY 4:4:4:4 или 5:6:5); ⚠️ size_t платформозависим; для новой игры загружать TGA напрямую
+- [x] **`.txc` файлы** — ГОТОВО: FileClump архив; header=[ULONG MaxID, Offsets[], Lengths[]]; entry=WriteSquished(TXTY 4:4:4:4 или 5:6:5); ⚠️ size_t платформозависим
 - [x] **`style.tma`** — ГОТОВО: 200 стилей × 5 слотов × TXTY(4б); textures_flags[200][5]; instyle.tma=count_x*count_y*UBYTE; обновлено texture_format.md
 
 ### МИР/КАРТА (world_map.md) — TODO
@@ -625,7 +635,7 @@ chopper.cpp      → game_objects.md + ai.md
 ### НЕ ЧИТАНЫ (нужно прочесть KB файлы)
 - [x] **camera.md** — ГОТОВО: FC only, 8-шаг raycast, get-behind, focus_yaw, toonear
 - [x] **game_states.md** — ГОТОВО: per-frame порядок, DarciDeadCivWarnings, GS_REPLAY
-- [x] **audio.md** — ГОТОВО: 14 MUSIC_MODE_*, 5 биомов, MFX→miniaudio, indoor/outdoor, footsteps
+- [x] **audio.md** — ГОТОВО: 14 MUSIC_MODE_*, 5 биомов, MSS32 (Miles Sound System), indoor/outdoor, footsteps
 - [x] **ui.md** — ГОТОВО: HUD, enemy tracking, frontend modes, fonts, gamemenu
 - [x] **math_utils.md** — ГОТОВО: PSX 0-2047 / PC radians, SinTable 2560 entries, glm замена
 
@@ -762,7 +772,7 @@ chopper.cpp      → game_objects.md + ai.md
 - SMOOTH_TICK_RATIO = скользящее среднее TICK_RATIO по 4 кадрам (для машин)
 - DarciDeadCivWarnings: 0/1/2=предупреждения (экран deadcivs.tga); >=3=GS_LEVEL_LOST; персистирует!
 - apply_button_input(): ACTION→do_an_action(); нет ACTION→SPRINT→RUN; find_best_action_from_tree()→REQUEST flags + jump/shoot/flip/hug/skid; без движения: IDLE→turn, MOVEING→stop
-- .txc = FileClump archive: [ULONG MaxID][Offsets[MaxID]][Lengths[MaxID]][data]; ⚠️ size_t=4/8б зависит от платформы; для новой игры читать TGA напрямую
+- .txc = FileClump archive: [ULONG MaxID][Offsets[MaxID]][Lengths[MaxID]][data]; ⚠️ size_t=4/8б зависит от платформы
 - .wag layout: var-string+CRLF | complete_point(1) | version(1) | [v≥1: 9б stats] | [v≥2: 60б hierarchy] | [v≥3: 200б best_found]
 - FRONTEND_SaveString: strlen(txt) байт + CRLF{13,10}; НЕ фиксированные 32 байта!
 - mission_hierarchy биты: 1=exists, 2=complete, 4=available; [1]=3 (корень) при старте

@@ -129,18 +129,8 @@ page += FACE_PAGE_OFFSET;              // FACE_PAGE_OFFSET = 8*64
 
 ---
 
-## 7. Портирование на новый движок
+## 7. Ключевые данные для реализации
 
-**DrawTween → vertex morphing в vertex shader:**
-```glsl
-// lerp вершин между двумя frame буферами
-vec3 pos = mix(frame0.pos, frame1.pos, tween);
-```
-
-**Crumple → offset в vertex shader или CPU-side:**
-- Простые UBYTE смещения, легко маппируются
-
-**Советы:**
-- Vertex morphing хорошо ложится на double VBO (два frame, uniform tween)
-- MESH_car_crumples таблица переносится as-is (предвычисленные данные)
-- Отражения в лужах: в новом движке — render-to-texture + planar reflection (или просто screen-space)
+- DrawTween = vertex morphing + tweening между двумя keyframes
+- Crumple = per-vertex UBYTE offsets (предвычисленные данные в MESH_car_crumples)
+- Отражения в лужах используют инвертированный рендеринг (scale Y = -1)

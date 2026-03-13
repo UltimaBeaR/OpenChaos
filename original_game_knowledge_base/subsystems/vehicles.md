@@ -250,7 +250,7 @@ SLONG VEH_find_runover_things(Thing *p_vehicle, UWORD thing_index[], SLONG max_n
 4. Вторая сфера: на шаг дальше (`+ forward*infront/256` ещё раз)
 5. Суммирует результаты, удаляет саму машину из списка
 6. Ищет: `CLASS_PERSON | CLASS_VEHICLE`
-7. BIKE ветка (`#ifdef BIKE`) — недоделана, не портировать
+7. BIKE ветка (`#ifdef BIKE`) — недоделана (мотоцикл не в финальной игре)
 
 Скрежет о стену: `Scrapin` флаг → звуковой эффект пропорционально величине.
 Сирена: `Siren` флаг, `LastSoundState` для оптимизации.
