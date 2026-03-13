@@ -5,10 +5,27 @@
 
 ---
 
-## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — eway.cpp (ПРИОРИТЕТ 1)
+## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — Mission.cpp (ПРИОРИТЕТ 1)
 
-**Что делать:** Аннотировать `eway.cpp` — систему миссий/EventPoint. Читать перед работой: `missions.md + level_loading.md`
-**Цель:** Понять как EWAY_process() создаёт игрока и NPC, точный binary layout .ucm, порядок разрешения EventPoint условий.
+**Что делать:** Аннотировать `Mission.cpp` — логика подсчёта очков, win/lose, CRIME_RATE обновление. Читать перед работой: `missions.md`
+**Цель:** Точный порядок обновления CRIME_RATE, детали WPT_END_GAME_WIN/LOSE, scoring formulas.
+
+---
+
+## eway.cpp — ИТОГ (выполнено)
+
+**Ключевые открытия:**
+- File already had extensive annotations from prior sessions + added more this session
+- EWAY_COND_PRESSURE и EWAY_COND_CAMERA = **always FALSE** (stubs, не реализованы)
+- PSX оптимизация: step=2 (чётные/нечётные кадры), кроме GAME_TURN==0; PC всегда step=1
+- EWAY_STAY_ALWAYS → сразу EWAY_FLAG_DEAD (fire-once); в EWAY_process() и в set_inactive
+- zone byte в EWAY_create_enemy: bits 0-3=zone, bit 4=INVULNERABLE, bit 5=GUILTY, bit 6=FAKE_WANDER
+- Roper bug (пре-релиз): использует Darci stats (Roper блок закомментирован)
+- Непрерывные while-active: EMIT_STEAM, WATER_SPOUT (4x DIRT_new_water/кадр), SHAKE_CAMERA (+=3), VISIBLE_COUNT_UP
+- Координаты вэйпойнта в mapsquare-единицах → ×256 (<<8) при создании Thing
+- EWAY_created_last_waypoint: resolve IDs + count objectives/guilty + init timers + attach camera targets
+- 54 функции в файле, детальная карта в KB создана
+- missions.md обновлён: детали реализации, stay logic, stub conditions, spawn details
 
 ---
 
@@ -107,8 +124,8 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | collide.cpp | ~77 ann. | ✅ (уточнено: move_thing порядок, plant_feet, height_above_anything) |
 | walkable.cpp | ~20 ann. | ✅ (find_face_for_this_pos подробно аннотирован) |
 | Person.cpp | ~8 блоков | ✅ (per-frame порядок, jumping FSM, drop_down, dangling landing) |
-| **eway.cpp** | 0 | ❌ ПРИОРИТЕТ 1 |
-| **Mission.cpp** | 0 | ❌ ПРИОРИТЕТ 2 |
+| eway.cpp | ~60+ блоков | ✅ (per-frame loop, spawn funcs, cond stubs, stay logic, 54-func map) |
+| **Mission.cpp** | 0 | ❌ ПРИОРИТЕТ 1 |
 | **interfac.cpp** | 0 | ❌ ПРИОРИТЕТ 3 |
 
 ---
@@ -154,14 +171,15 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [ ] Что происходит с навигацией когда NPC на крыше?
 
 ### МИССИИ/EWAY (missions.md) — TODO
+- [x] Порядок разрешения зависимостей EventPoints — ГОТОВО (EWAY_created_last_waypoint linear pass, no cycle detection)
+- [x] Как EWAY_process() итерирует по EP — ГОТОВО (по порядку создания 1..upto, linear array, NOT linked list)
+- [x] EWAY_COND_PRESSURE / EWAY_COND_CAMERA — ГОТОВО (always FALSE, stubs)
 - [ ] Точный binary layout .ucm файла — 14+58 байт на EP, но exact field mapping нужен
-- [ ] Порядок разрешения зависимостей EventPoints — приоритеты, циклические зависимости
-- [ ] Как EWAY_process() итерирует по EP — по порядку создания? по linked list?
-- [ ] WPT_GOTHERE_DOTHIS (39) — как именно NPC получает задание
-- [ ] WPT_GROUP_LIFE / GROUP_DEATH (33/34) — как именно работает активация группы
-- [ ] EWAY_COND_COUNTER_GTEQ (25) — как счётчики инкрементируются (WPT_INCREMENT)
-- [ ] **АННОТИРОВАТЬ** eway.cpp — приоритет 3
-- [ ] **АННОТИРОВАТЬ** Mission.cpp — приоритет 4
+- [ ] WPT_GOTHERE_DOTHIS (39) — как именно NPC получает задание (Mission.cpp)
+- [ ] WPT_GROUP_LIFE / GROUP_DEATH (33/34) — как именно работает активация группы (Mission.cpp)
+- [ ] EWAY_COND_COUNTER_GTEQ (25) — как счётчики инкрементируются (WPT_INCREMENT в Mission.cpp)
+- [x] **АННОТИРОВАТЬ** eway.cpp — ВЫПОЛНЕНО (этой сессией + предыдущими)
+- [ ] **АННОТИРОВАТЬ** Mission.cpp — приоритет 1
 
 ### УПРАВЛЕНИЕ/ВВОД (controls.md) — TODO
 - [ ] Детали `process_hardware_level_input_for_player()` — точный порядок обработки
@@ -235,3 +253,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - В fn_person_jumping plant_feet() везде закомментирована — Y задаётся из PAP/projectile_move_thing
 - set_person_drop_down() флаги: KEEP_VEL, KEEP_DY, QUEUED, OFF_FACE; DY=-(4<<8)=-1024, Vel=-8 if not KEEP
 - JUMPING→LAND последовательность: RUNNING_JUMP → RUNNING_JUMP_FLY → (hit==1) → RUNNING_JUMP_LAND_FAST → STATE_MOVEING+RUNNING
+- EWAY_COND_PRESSURE = always FALSE (stub), EWAY_COND_CAMERA = always FALSE (stub)
+- PSX EWAY_process: step=2 (odd/even frames), PC: step=1 (all waypoints each frame)
+- EWAY_STAY_ALWAYS → immediately EWAY_FLAG_DEAD (fire-once semantics)
+- zone byte in EWAY_create_enemy: bits 0-3=zone, bit4=INVULNERABLE, bit5=GUILTY, bit6=FAKE_WANDER
+- Roper stats bug (пре-релиз): EWAY_create_player(ROPER) использует Darci stats
+- EWAY вэйпойнт coords = mapsquare units (×256 для WorldPos)

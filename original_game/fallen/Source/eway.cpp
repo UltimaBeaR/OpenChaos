@@ -2646,11 +2646,11 @@ ANNOYINGSCRIBBLECHECK;
 			break;
 
 		case EWAY_COND_PRESSURE:
-			ans = FALSE;
+			ans = FALSE; // claude-ai: STUB — pressure plates never fire in this codebase (always FALSE)
 			break;
 
 		case EWAY_COND_CAMERA:
-			ans = FALSE;
+			ans = FALSE; // claude-ai: STUB — camera-at-position never fires in this codebase (always FALSE)
 			break;
 
 		case EWAY_COND_SWITCH:
