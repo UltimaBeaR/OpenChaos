@@ -1,13 +1,31 @@
 // Person.cpp
 // Guy Simmons, 12th January 1998.
-// claude-ai: ГЛАВНЫЙ файл персонажей (~22K строк). Содержит:
-// claude-ai:   - general_process_person() — вызывается каждый кадр для каждого персонажа (физика, анимация, AI)
-// claude-ai:   - can_a_see_b() — проверка видимости (FOV + освещение + геометрия)
-// claude-ai:   - set_person_enter_vehicle() / set_person_exit_vehicle() — посадка/высадка из авто
-// claude-ai:   - person_holding_2handed() — проверка двуручного оружия
-// claude-ai:   - Таблица people_functions[] — привязка PERSON_TYPE к таблице состояний
-// claude-ai:   - Таблица generic_people_functions[] — общие состояния для всех NPC (движение, прыжки, бой и т.д.)
-// claude-ai: Персонаж-игрок: PERSON_DARCI (Darci.cpp). NPC: Cop.cpp через cop_states.
+// claude-ai: ГЛАВНЫЙ файл персонажей (~22K строк). Архитектура:
+// claude-ai:
+// claude-ai: ПЕР-КАДРОВЫЙ ПОРЯДОК ВЫЗОВОВ (из Thing.cpp, для каждого CLASS_PERSON):
+// claude-ai:   1. p_thing->StateFn(p_thing)        — текущая функция состояния (fn_person_jumping, etc.)
+// claude-ai:   2. general_process_person(p_thing)   — физика side-effects (горение, гарпун, платформы)
+// claude-ai:   3. PCOM_process_person(p_thing)      — AI
+// claude-ai:
+// claude-ai: ТАБЛИЦЫ ДИСПЕТЧЕРИЗАЦИИ:
+// claude-ai:   people_functions[]         — PERSON_TYPE → таблица состояний (darci/roper/cop_states)
+// claude-ai:   generic_people_functions[] — общие состояния (STATE_JUMPING→fn_person_jumping, etc.)
+// claude-ai:   Darci: darci_states (7 записей). Все NPC кроме Roper: cop_states.
+// claude-ai:   Незаписанные в character-table состояния → generic_people_functions (fallback через set_generic_*)
+// claude-ai:
+// claude-ai: КЛЮЧЕВЫЕ ФУНКЦИИ:
+// claude-ai:   general_process_person()  (~line 4011) — side-effects: WMOVE, горение, кровь, гарпун, general_process_player()
+// claude-ai:   general_process_player()  (~line 3697) — режимы игрока, gang, boredom timer, camera roll
+// claude-ai:   fn_person_jumping()       (~line 13130) — STATE_JUMPING state machine (SUB_STATE_RUNNING_JUMP_FLY→LAND_FAST)
+// claude-ai:   set_person_drop_down()    (~line 10554) — перевести в STATE_DANGLING + падение (DY=-(4<<8))
+// claude-ai:   fn_person_moveing()       (поиск: grep "^void fn_person_moveing")
+// claude-ai:   fn_person_dangling()      — STATE_DANGLING обрабатывает висение/падение/приземление
+// claude-ai:   can_a_see_b()             — FOV + освещение + LOS
+// claude-ai:   set_person_enter_vehicle(), set_person_exit_vehicle()
+// claude-ai:
+// claude-ai: ОСОБЕННОСТИ:
+// claude-ai:   - plant_feet() в fn_person_jumping ВЕЗДЕ закомментирована — Y задаётся явно из PAP/face
+// claude-ai:   - plant_feet() активна в: fn_person_dangling (при приземлении), moveing, climbing, laddering
 
 #include	"Game.h"
 #include	"Cop.h"
@@ -3694,6 +3712,10 @@ extern void	play_music(UWORD id, UBYTE track);
 
 
 ULONG	timer_bored=0;
+// claude-ai: general_process_player() — дополнительная обработка для ИГРОКА (не NPC).
+// claude-ai: Вызывается из general_process_person() если PlayerID != 0.
+// claude-ai: Делает: коррекция FIGHT mode (→RUN если бегом), PSX dlight, gang tracking,
+// claude-ai:         boredom timer (timer_bored), camera roll при беге (Roll/DRoll).
 void	general_process_player(Thing *p_person)
 {
 	DrawTween  *dt;
@@ -4007,7 +4029,19 @@ extern	UWORD	get_nearest_gang_member(Thing *p_target);
 }
 
 
-// claude-ai: Per-person frame update - handles movement physics, animation, and calls PCOM AI
+// claude-ai: general_process_person() — обработка физических side-effects персонажа, НЕ state machine.
+// claude-ai: Вызывается ПОСЛЕ StateFn(p_thing) из Thing.cpp. Порядок:
+// claude-ai:   1. WMOVE: если на движущейся платформе (FACE_FLAG_WMOVE) → WMOVE_relative_pos() → сдвиг
+// claude-ai:   2. Выход если STATE_DEAD/DYING
+// claude-ai:   3. GF_NO_FLOOR: если Y < -0x180000 → kill
+// claude-ai:   4. Stamina recovery (+1/тик для игрока если не удерживается action, иначе +1 для NPC)
+// claude-ai:   5. Горение (FLAGS_BURNING): -30 HP/тик → если HP≤0 → смерть; PYRO_IMMOLATE создаётся
+// claude-ai:   6. BurnIndex (горит кто-то другой): -1 HP/тик
+// claude-ai:   7. Мочеиспускание (FLAG_PERSON_PEEING): DIRT_new_water для эффекта (PC only)
+// claude-ai:   8. Кровь (Health < 25%): случайный TRACKS_Bleed()
+// claude-ai:   9. UnderAttack таймер: countdown, коп при UI-пороге начинает диалог
+// claude-ai:   10. Гарпун (FLAG_PERSON_GRAPPLING): HOOK_spin() для позиции крюка
+// claude-ai:   11. PlayerID != 0: вызов general_process_player()
 void	general_process_person(Thing *p_person)
 {
 /*
@@ -10551,6 +10585,14 @@ extern	void make_cable_flabby(SLONG building);
 // Make a person start falling as a projectile...
 //
 
+// claude-ai: set_person_drop_down() — запускает падение: STATE_DANGLING + SUB_STATE_DROP_DOWN (или OFF_FACE).
+// claude-ai: Флаги (PERSON_DROP_DOWN_*):
+// claude-ai:   KEEP_VEL  — не сбрасывать горизонтальную скорость (иначе Velocity = -8)
+// claude-ai:   KEEP_DY   — не сбрасывать вертикальную скорость (иначе DY = -(4<<8) = -1024)
+// claude-ai:   QUEUED    — анимация ANIM_FALLING_QUEUED (мягкий переход), иначе ANIM_FALLING (резкий)
+// claude-ai:   OFF_FACE  — SUB_STATE_DROP_DOWN_OFF_FACE (прыжок со стены лицом вперёд)
+// claude-ai: Всегда: OnFace = 0, FLAG_PERSON_NON_INT_M = set.
+// claude-ai: Zipwire очищается: FLAG_PERSON_ON_CABLE, MFX_stop(S_ZIPWIRE).
 void	set_person_drop_down(Thing	*p_person,SLONG flag)
 {
 	SLONG	dv=-2;
@@ -13127,6 +13169,37 @@ SLONG	over_nogo(Thing *p_person)
 }
 
 
+// claude-ai: fn_person_jumping() — STATE_JUMPING state machine. Субсостояния:
+// claude-ai:
+// claude-ai:   SUB_STATE_STANDING_JUMP:
+// claude-ai:     → person_normal_animate() → если anim закончилась и не схватился:
+// claude-ai:       set_person_drop_down(KEEP_VEL|QUEUED) — переход к STATE_DANGLING
+// claude-ai:
+// claude-ai:   SUB_STATE_STANDING_JUMP_FORWARDS / _BACKWARDS:
+// claude-ai:     → change_velocity_to(±32); projectile_move_thing(flag=1 или 3)
+// claude-ai:     → По анимации → SUB_STATE_RUNNING_JUMP_FLY (с DY=10<<8)
+// claude-ai:
+// claude-ai:   SUB_STATE_RUNNING_JUMP:
+// claude-ai:     → Зажимает velocity в [37..45]; projectile_move_thing(flag=1); grab_ledge()
+// claude-ai:     → По anim end (end==1) → SUB_STATE_RUNNING_JUMP_FLY (DY=10<<8, ANIM_MID_AIR_TWEEN_LEFT)
+// claude-ai:
+// claude-ai:   SUB_STATE_RUNNING_JUMP_FLY:
+// claude-ai:     → Движение в воздухе: projectile_move_thing(flag=3); grab_ledge()
+// claude-ai:     → end==1 (приземление):
+// claude-ai:         Если continue_moveing(): ANIM_LAND_RIGHT, SUB_STATE_RUNNING_JUMP_LAND_FAST
+// claude-ai:         Иначе: ANIM_LAND_STAND, set_person_idle()
+// claude-ai:     → end==2 (забор): MSG "hit fence so hold on"
+// claude-ai:     → end==100: мёртв
+// claude-ai:     → FLAG_PERSON_REQUEST_KICK в воздухе → SUB_STATE_FLYING_KICK
+// claude-ai:
+// claude-ai:   SUB_STATE_RUNNING_JUMP_LAND_FAST:
+// claude-ai:     → person_normal_move(); person_normal_animate()
+// claude-ai:     → По аним/остановке: set_generic_state(STATE_MOVEING) + SUB_STATE_RUNNING
+// claude-ai:
+// claude-ai:   ВАЖНО: plant_feet() ВЕЗДЕ закомментирована в этой функции!
+// claude-ai:   Y при приземлении берётся из PAP_calc_height_at_thing() или из projectile_move_thing.
+// claude-ai:
+// claude-ai:   projectile_move_thing() return values: 0=в воздухе, 1=приземлился, 2=фенс, 100=мёртв
 void	fn_person_jumping(Thing *p_person)
 {
 	SLONG		end		=	0,
@@ -14585,6 +14658,21 @@ void	do_person_on_cable(Thing *p_person)
 	}
 }
 
+// claude-ai: fn_person_dangling() — STATE_DANGLING: висение, падение, зипвайр, приземление.
+// claude-ai: Ключевые субсостояния:
+// claude-ai:   GRAB_TO_DANGLE      — переходная анимация: хватается за уступ → SUB_STATE_DANGLING
+// claude-ai:   DANGLING            — висит на уступе (статично, ждёт ACTION_PULL_UP или DROP_DOWN)
+// claude-ai:   DANGLING_CABLE/FWD/BWD — движение по зипвайру, do_person_on_cable()
+// claude-ai:   DEATH_SLIDE         — скольжение вниз по зипвайру (person_death_slide())
+// claude-ai:   DROP_DOWN / DROP_DOWN_OFF_FACE:
+// claude-ai:     → projectile_move_thing() для движения в воздухе
+// claude-ai:     → grab_ledge() в каждом кадре
+// claude-ai:     → hit==1 (приземление): DY<-15000 → ANIM_BIG_LAND, иначе ANIM_LAND_VERT
+// claude-ai:       → SubState = SUB_STATE_DROP_DOWN_LAND
+// claude-ai:   DROP_DOWN_LAND:
+// claude-ai:     → person_normal_move() + person_normal_animate()
+// claude-ai:     → end==1: set_person_idle() + ЕСЛИ не SUB_STATE_RUNNING → plant_feet()
+// claude-ai:       *** ЭТО ЕДИНСТВЕННОЕ МЕСТО где plant_feet() активно вызывается при приземлении! ***
 void	fn_person_dangling(Thing	*p_person)
 {
 	SLONG ignore_building;
@@ -15412,6 +15500,18 @@ SLONG	get_yomp_anim(Thing *p_person)
 	return(ANIM_YOMP);
 }
 
+// claude-ai: fn_person_moveing() — STATE_MOVEING: ходьба, бег, транспорт, скольжение.
+// claude-ai: Ключевые субсостояния:
+// claude-ai:   RUNNING / WALKING / SNEAKING — обычное движение через person_normal_move()
+// claude-ai:   RUNNING_THEN_JUMP           — разбег перед прыжком
+// claude-ai:   RUNNING_SKID_STOP           — торможение после бега
+// claude-ai:   RUNNING_HALF_BLOCK          — прыжок через уступ
+// claude-ai:   ENTERING_VEHICLE            — анимация посадки → set_person_in_vehicle()
+// claude-ai:   INSIDE_VEHICLE              — синхронизация позиции с машиной
+// claude-ai:   EXITING_VEHICLE             — анимация высадки → set_person_out_of_vehicle()
+// claude-ai:   SLIPPING / SLIPPING_END     — скольжение по наклонной + частицы пыли
+// claude-ai: Footstep sounds: FrameIndex==1 → правая нога, ==5 → левая (во время RUNNING/WALKING/SNEAKING)
+// claude-ai: plant_feet() вызывается из некоторых sub-state transitions (например RUNNING_VAULT).
 void	fn_person_moveing(Thing *p_person)
 {
 	UBYTE		last_frame;

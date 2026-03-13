@@ -5,10 +5,24 @@
 
 ---
 
-## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — Person.cpp (ПРИОРИТЕТ 1)
+## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — eway.cpp (ПРИОРИТЕТ 1)
 
-**Что делать:** Аннотировать `Person.cpp` (~22K строк). Читать перед работой: `ai.md + characters.md + combat.md + controls.md + player_states.md`
-**Цель:** Понять state transitions персонажа, JUMPING→LANDING, как вызывается plant_feet(), детали Darci-специфичной логики.
+**Что делать:** Аннотировать `eway.cpp` — систему миссий/EventPoint. Читать перед работой: `missions.md + level_loading.md`
+**Цель:** Понять как EWAY_process() создаёт игрока и NPC, точный binary layout .ucm, порядок разрешения EventPoint условий.
+
+---
+
+## Person.cpp — ИТОГ (выполнено)
+
+**Ключевые открытия:**
+- Per-frame порядок: `StateFn(thing)` → `general_process_person()` → `PCOM_process_person()`
+- `people_functions[]`: Darci→darci_states, Roper→roper_states, ВСЕ NPC→cop_states
+- `darci_states` — только 7 записей (INIT, NORMAL=NULL, HIT, REMOVE, MOVEING, IDLE). Прыжки/бой/лазание через generic_people_functions
+- `fn_person_jumping()` — plant_feet() везде закомментирована! Y задаётся явно из PAP или projectile_move_thing
+- `fn_person_dangling()` — единственное место активного plant_feet() при приземлении: SUB_STATE_DROP_DOWN_LAND → end==1
+- `set_person_drop_down()` — флаги: KEEP_VEL, KEEP_DY, QUEUED, OFF_FACE; DY=-(4<<8), Velocity=-8 если не KEEP
+- `general_process_person()` — ПОСЛЕ StateFn, делает: WMOVE, горение, кровь, гарпун, general_process_player()
+- JUMPING→LAND: FLY→hit==1→LAND_FAST(если движется) или idle(если стоп) → STATE_MOVEING
 
 ---
 
@@ -16,7 +30,7 @@
 
 **Фаза 1 (текущая):** Детальный анализ оригинального кода → запись в `original_game_knowledge_base/`
 - KB написана примерно на 80%
-- Исходники аннотированы примерно на 50% (добавлены collide.cpp и walkable.cpp)
+- Исходники аннотированы примерно на 55% (добавлены Person.cpp, collide.cpp, walkable.cpp)
 
 ---
 
@@ -92,10 +106,10 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | Controls.cpp | ~215 | ✅ |
 | collide.cpp | ~77 ann. | ✅ (уточнено: move_thing порядок, plant_feet, height_above_anything) |
 | walkable.cpp | ~20 ann. | ✅ (find_face_for_this_pos подробно аннотирован) |
-| **Person.cpp** | 0 | ❌ ПРИОРИТЕТ 1 (был 2) |
-| **eway.cpp** | 0 | ❌ ПРИОРИТЕТ 2 (был 3) |
-| **Mission.cpp** | 0 | ❌ ПРИОРИТЕТ 3 (был 4) |
-| **interfac.cpp** | 0 | ❌ ПРИОРИТЕТ 4 (был 5) |
+| Person.cpp | ~8 блоков | ✅ (per-frame порядок, jumping FSM, drop_down, dangling landing) |
+| **eway.cpp** | 0 | ❌ ПРИОРИТЕТ 1 |
+| **Mission.cpp** | 0 | ❌ ПРИОРИТЕТ 2 |
+| **interfac.cpp** | 0 | ❌ ПРИОРИТЕТ 3 |
 
 ---
 
@@ -112,7 +126,7 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [ ] Воды: как `PAP_FLAG_WATER` влияет на физику, есть ли замедление
 - [ ] RWMOVE система (move_thing для не-person объектов)
 - [ ] `collide_against_objects()` детали — что именно за OB объекты, их размеры
-- [ ] `plant_feet()` — когда именно вызывается (из person-тика? из move_thing? из обоих?)
+- [x] `plant_feet()` — ГОТОВО: вызывается из STATE FUNCTIONS, НЕ из move_thing. Активно: fn_person_dangling (SUB_STATE_DROP_DOWN_LAND end==1). В fn_person_jumping — везде закомментирована.
 
 ### AI/PCOM (ai.md) — TODO
 - [ ] Детали `PCOM_process_default()` — точный порядок проверок в NORMAL state
@@ -125,13 +139,12 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [ ] Как работает `pcom_zone` — NPC не слышат звуки из других зон?
 
 ### ПЕРСОНАЖИ/АНИМАЦИИ (characters.md) — TODO
-- [ ] Точные переходы состояний в Darci: JUMPING→LANDING тайминг и условия
+- [x] Точные переходы состояний в Darci: JUMPING→LANDING — ГОТОВО (см. Person.cpp итог выше)
 - [ ] Как работает `InterruptFrame` в DrawTween (приоритетный кадр)
 - [ ] CMatrix33 декомпрессия — Pad encoding, UCA_Lookup детали (в Anim.cpp есть комменты)
 - [ ] Roper финальное поведение — fn_roper_normal() пуста в пре-релизе, что в финале?
 - [ ] Cop финальное поведение — fn_cop_normal() в #if 0, что в финале?
 - [ ] Thug инициализация — ASSERT(0) в пре-релизе, финальная версия?
-- [ ] **АННОТИРОВАТЬ** Person.cpp — приоритет 2
 
 ### НАВИГАЦИЯ (navigation.md) — TODO
 - [ ] `WARE_mav_*()` детали — навигация внутри складов (отдельный граф?)
@@ -215,3 +228,10 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - save slots: 1-based! (`save_slot = menu_state.selected + 1`)
 - complete_point диапазон 0-24+
 - CRIME_RATE: если 0 → дефолт 50
+- Thing.cpp per-frame: StateFn → general_process_person → PCOM_process_person (для CLASS_PERSON)
+- people_functions[]: Darci→darci_states, Roper→roper_states, ВСЕ остальные (Cop,Thug,MIB...) → cop_states
+- darci_states: только 7 записей; STATE_NORMAL=NULL (игрок), прыжки/бой через generic_people_functions
+- plant_feet() активно ТОЛЬКО в fn_person_dangling (SUB_STATE_DROP_DOWN_LAND, финальная анимация)
+- В fn_person_jumping plant_feet() везде закомментирована — Y задаётся из PAP/projectile_move_thing
+- set_person_drop_down() флаги: KEEP_VEL, KEEP_DY, QUEUED, OFF_FACE; DY=-(4<<8)=-1024, Vel=-8 if not KEEP
+- JUMPING→LAND последовательность: RUNNING_JUMP → RUNNING_JUMP_FLY → (hit==1) → RUNNING_JUMP_LAND_FAST → STATE_MOVEING+RUNNING

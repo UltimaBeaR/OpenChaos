@@ -24,7 +24,8 @@
       "Bash(grep -r \"register.*function\\\\|native\\\\|builtin\" /c/WORK/MuckyFoot-UrbanChaos_base/original_game/MuckyBasic/*.cpp)",
       "Bash(grep -n \"ANIM_FLAG\\\\|FLAG_LAST_FRAME\\\\|FLAG2_SYNC_SOUNDFX\\\\|FLAG_PERSON_LOCK_ANIM_CHANGE\" c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/*.cpp c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/*.h)",
       "Bash(grep -n \"struct GameKeyFrame\\\\|typedef.*GameKeyFrame\\\\|TweenStep\\\\|NextFrame\\\\|FirstElement\\\\|Flags\" c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/*.h)",
-      "Bash(find c:WORKMuckyFoot-UrbanChaos_baseoriginal_gamefallen -iname *matrix*.h -o -iname *quaternion*.h)"
+      "Bash(find c:WORKMuckyFoot-UrbanChaos_baseoriginal_gamefallen -iname *matrix*.h -o -iname *quaternion*.h)",
+      "Bash(awk 'NR>=4600 && NR<=4900' \"c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/Person.cpp\")"
     ],
     "deny": [
       "Bash(git commit*)",
