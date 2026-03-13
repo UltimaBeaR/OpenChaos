@@ -21,12 +21,11 @@
 - ~180 неаннотированных файлов протриажены: 90%+ = editor/PSX/rendering (подтверждено)
 - **ГОТОВО к Фазе 2** (планирование new_game)
 
-**Итерации анализа:** см. `ANALYSIS_ITERATIONS_PLAN.md` — итерации 1-6 выполнены, 7-9 остались.
+**Итерации анализа:** см. `ANALYSIS_ITERATIONS_PLAN.md` — итерации 1-8 выполнены, осталась 9.
 **Быстрые факты:** см. `QUICK_FACTS.md` (все ключевые числа, формулы, константы).
 
 **Оставшиеся итерации:**
-- **Итерация 7:** PSX controls документация + ревизия "не переносить" решений
-- **Итерация 9:** DENSE_SUMMARY.md — сверхкомпактная версия всей KB
+- **Итерация 9:** DENSE_SUMMARY.md — сверхкомпактная версия всей KB (~30-40K токенов)
 
 ---
 
@@ -41,7 +40,7 @@
 | **AI — поведения** | ai_behaviors.md | ✅ | MIB, Bane, Driving, Killing, Snipe, Zone |
 | **Навигация** | navigation.md | ✅ | MAV = greedy best-first (НЕ A*), горизонт 32, NAV = wallhug |
 | **Персонажи/анимации** | characters.md + characters_details.md | ✅ | Vertex morphing (НЕ skeletal), DrawTween, Thug/Cop в #if 0 |
-| **Управление/ввод** | controls.md | ✅ | 18 кнопок INPUT_*, 52 ACTION_*, zipwire есть в финале |
+| **Управление/ввод** | controls.md + psx_controls.md | ✅ | 18 кнопок INPUT_*, 52 ACTION_*, zipwire есть в финале; PSX: 4 раскладки + аналог |
 | **Транспорт** | vehicles.md | ✅ | 4 пружины подвески, 6 зон урона, мотоцикл не в финале |
 | **Бой** | combat.md | ✅ | Урон из анимации (GameFightCol), knockback через анимации |
 | **Оружие/предметы** | weapons_items.md | ✅ | 30 типов SPECIAL_*, мины заглушены, C4 = 5 сек (не 10) |
@@ -124,3 +123,4 @@ chopper.cpp      → game_objects.md + ai.md
 | ribbon.cpp, bang.cpp, interact.cpp | ✅ (header блоки) |
 | plat.cpp, chopper.cpp, Pjectile.cpp | ✅ (header блоки) |
 | startscr.cpp | ✅ (header: game build = только 1 переменная) |
+| psxlib/GHost.cpp | ✅ (PSX controls: PAD_cfg0..3, аналог, вибрация) |

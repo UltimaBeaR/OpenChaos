@@ -380,3 +380,15 @@ FLAG_PERSON_KILL_WITH_A_PURPOSE (1<<31) // AI: целенаправленное 
 - `RedMarks` — счётчик нарушений закона: **10 нарушений = немедленный GS_LEVEL_LOST** (независимо от здоровья!)
 - `Danger` (0–3) — уровень обнаружения/угрозы
 
+---
+
+## 9. PSX Controller Layout
+
+Документация маппинга кнопок PSX DualShock → см. [psx_controls.md](psx_controls.md).
+
+**Кратко (config 0 — по умолчанию):**
+- D-Pad: Вперёд(бег), Назад, Влево, Вправо
+- Triangle=KICK, Square=PUNCH, Circle=ACTION, Cross=JUMP
+- L1=CAMERA, R1=STEP_RIGHT, L2=CAM_LEFT, R2=CAM_RIGHT
+- Start=PAUSE, Select=INVENTORY
+

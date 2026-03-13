@@ -1,5 +1,12 @@
 // GHost.cpp
 // Guy Simmons, 20th November 1997.
+// claude-ai: GHost.cpp — PSX platform host: инициализация железа, ввод геймпада, вибрация.
+// claude-ai: КЛЮЧЕВОЙ ФАЙЛ для PSX controls: pad_cfg0..3 — 4 конфигурации кнопок.
+// claude-ai: PAD_LU/LD/LL/LR = D-Pad; PAD_RU=Triangle, PAD_RL=Square, PAD_RR=Circle, PAD_RD=Cross.
+// claude-ai: PAD_FLT=L1, PAD_FLB=L2, PAD_FRT=R1, PAD_FRB=R2; PAD_START, PAD_SEL.
+// claude-ai: Host_VbRoutine(): per-VBlank обработка аналогового стика (порог ±96 из ±128) → D-Pad эмуляция.
+// claude-ai: ReadInputDevice(): DualShock вибрация (ID=7); psx_motor[0]=малый(÷2), psx_motor[1]=большой(×7/8).
+// claude-ai: Документация маппинга: KB/subsystems/psx_controls.md.
 
 #include	<MFStdLib.h>
 #include	"c:\fallen\psxlib\headers\gmem.h"

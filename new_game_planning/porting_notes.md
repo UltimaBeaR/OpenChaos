@@ -103,7 +103,7 @@ struct Vertex {
 
 ---
 
-## Управление (из controls.md)
+## Управление (из controls.md + psx_controls.md)
 
 | Компонент | Перенос |
 |-----------|---------|
@@ -115,6 +115,24 @@ struct Vertex {
 | Клавиатурные коды | DirectInput → SDL3 scancodes |
 | Расщепление экрана | НЕ ПЕРЕНОСИТЬ |
 | FLAG_PERSON_BIKING | НЕ ПЕРЕНОСИТЬ |
+
+**Геймпад (SDL3) — маппинг PSX кнопок:**
+
+| PSX | SDL3 |
+|-----|------|
+| D-Pad | `SDL_GAMEPAD_BUTTON_DPAD_*` |
+| Triangle | `SDL_GAMEPAD_BUTTON_NORTH` |
+| Cross | `SDL_GAMEPAD_BUTTON_SOUTH` |
+| Circle | `SDL_GAMEPAD_BUTTON_EAST` |
+| Square | `SDL_GAMEPAD_BUTTON_WEST` |
+| L1/R1 | `SDL_GAMEPAD_BUTTON_LEFT_SHOULDER/RIGHT_SHOULDER` |
+| L2/R2 | `SDL_GAMEPAD_AXIS_LEFT_TRIGGER/RIGHT_TRIGGER` |
+| Start | `SDL_GAMEPAD_BUTTON_START` |
+| Select | `SDL_GAMEPAD_BUTTON_BACK` |
+| Left Stick | `SDL_GAMEPAD_AXIS_LEFTX/LEFTY` |
+
+**Default layout (на основе PSX cfg0):** левый стик = движение; Cross=JUMP, Circle=ACTION, Square=PUNCH, Triangle=KICK; L1=camera, R1=strafe, L2/R2=cam rotate. Сохранить 4 варианта раскладки как в оригинале.
+Аналог PSX: порог 96/128 (75%) → для SDL3 использовать ~0.75f.
 
 ---
 
