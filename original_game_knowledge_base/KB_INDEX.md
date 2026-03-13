@@ -5,25 +5,18 @@
 **Эталон:** обе релизные версии — PC (Steam) и PS1. Подробнее о скоупе: [analysis_scope.md](analysis_scope.md).
 
 **НЕ читать на старте:** subsystem файлы и форматы ресурсов — только по задаче.
+**Навигация по исходникам** (карта связей, аннотированные файлы) → [overview.md](overview.md).
 
 ---
 
-## Карта связей (что читать вместе)
+## Общие файлы KB
 
-```
-collide.cpp      → physics.md + navigation.md + characters.md
-Person.cpp       → ai.md + ai_structures.md + ai_behaviors.md + combat.md + controls.md + player_states.md
-pcom.cpp         → ai.md + ai_behaviors.md
-eway.cpp         → missions.md + game_objects.md
-Mission.cpp      → missions.md + weapons_items.md
-interfac.cpp     → controls.md + player_states.md + camera.md
-Vehicle.cpp      → vehicles.md + physics.md
-Special.cpp      → weapons_items.md + combat.md
-Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
-interact.cpp     → interaction_system.md + physics.md + controls.md + characters.md
-plat.cpp         → game_objects.md + missions.md (waypoints)
-chopper.cpp      → game_objects.md + ai.md
-```
+| Файл | Содержание |
+|---|---|
+| [overview.md](overview.md) | Архитектура оригинала: структура папок, entry point, карта связей, аннотированные файлы |
+| [analysis_scope.md](analysis_scope.md) | Скоуп анализа: что пропускается и почему, PC+PS1 эталон |
+| [cut_features.md](cut_features.md) | Вырезанные и отключённые фичи в оригинальном коде |
+| [preprocessor_flags.md](preprocessor_flags.md) | Препроцессорные флаги: VERSION_D3D, PSX, TARGET_DC, FINAL и др. |
 
 ---
 
@@ -82,21 +75,3 @@ chopper.cpp      → game_objects.md + ai.md
 | Текстуры (.TGA/.TXC) | [resource_formats/texture_format.md](resource_formats/texture_format.md) |
 | Освещение (.lgt) | [resource_formats/lighting_format.md](resource_formats/lighting_format.md) |
 | Звук (.WAV) | [resource_formats/audio_format.md](resource_formats/audio_format.md) |
-
----
-
-## Прочие файлы KB
-
-| Файл | Содержание |
-|---|---|
-| [overview.md](overview.md) | Архитектура оригинала: entry point, файловая структура, системы |
-| [cut_features.md](cut_features.md) | Вырезанные и отключённые фичи в оригинальном коде |
-| [analysis_scope.md](analysis_scope.md) | Что анализировалось / не анализировалось и почему |
-
----
-
-## Аннотированные исходники (// claude-ai: комментарии)
-
-hm.cpp, Furn.cpp, cutscene.cpp, ob.cpp, elev.cpp, Anim.cpp, mesh.cpp, id.cpp, facet.cpp, supermap.cpp, io.cpp, Prim.cpp, Game.cpp, figure.cpp, walkable.cpp, stair.cpp, gamemenu.cpp, wmove.cpp, Map.cpp, night.cpp, overlay.cpp, guns.cpp, grenade.cpp, Nav.cpp, Wallhug.cpp, barrel.cpp, pow.cpp, pyro.cpp, dirt.cpp, ribbon.cpp, bang.cpp, interact.cpp, plat.cpp, chopper.cpp, Pjectile.cpp, startscr.cpp
-
-pcom.cpp (~178), Special.cpp (~477), bat.cpp (~128, Bane AI), canid.cpp (~101, собаки инертны), Controls.cpp (~215), collide.cpp (~77), Person.cpp (~8 блоков), eway.cpp (~60+ блоков), elev.cpp (~30+), interfac.cpp (~50+ блоков), ware.cpp, inside2.cpp, Attract.cpp, frontend.cpp, fire.cpp (~99), psystem.cpp (~158), Vehicle.cpp (~309), Building.cpp (~141), mav.cpp (~152), sound.cpp (~103), door.cpp (~33), psxlib/GHost.cpp

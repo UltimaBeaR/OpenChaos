@@ -13,24 +13,26 @@
 
 ## Структура исходников
 
+Указаны только значимые папки. Папки помеченные `— IGNORED` полностью пропускаются при анализе.
+
 ```
 original_game/
 ├── fallen/              — основная игра
-│   ├── Source/          — ~150 .cpp, игровая логика
+│   ├── Source/          — ~150 .cpp, игровая логика ← основной анализ здесь
 │   ├── Headers/         — заголовки
 │   ├── DDEngine/        — движок рендеринга (~60 .cpp)
 │   ├── DDLibrary/       — низкоуровневый DirectX (~22 .cpp)
-│   ├── Editor/          — редактор карт [НЕ НУЖЕН]
-│   ├── GEdit/           — геометрический редактор [НЕ НУЖЕН]
-│   ├── Ledit/           — редактор уровней [НЕ НУЖЕН]
-│   ├── SeEdit/          — редактор звука [НЕ НУЖЕН]
-│   ├── PSXENG/ psxlib/  — PSX [НЕ НУЖЕН]
-│   ├── Glide Engine/    — 3dfx Glide (мёртвый код) [НЕ НУЖЕН]
+│   ├── Editor/          — IGNORED: инструмент редактора уровней
+│   ├── GEdit/           — IGNORED: инструмент редактора уровней
+│   ├── Ledit/           — IGNORED: инструмент редактора уровней
+│   ├── SeEdit/          — IGNORED: инструмент редактора звука
+│   ├── PSXENG/ psxlib/  — IGNORED: PSX-специфичный рендеринг (psxlib/GHost.cpp — исключение: PSX controls задокументированы)
+│   ├── Glide Engine/    — IGNORED: 3dfx Glide рендерер, VERSION_GLIDE не определён, мёртвый код
 │   └── Debug/           — ресурсы игры (Steam) + артефакты сборки
-├── MFLib1/              — кросс-платформенная графическая библиотека студии
-├── MFStdLib/            — утилиты (файлы, память, математика)
-├── MuckyBasic/          — скриптовый язык (VM + компилятор)
-└── thrust/              — посторонний проект (игнорировать)
+├── MFLib1/              — IGNORED: внутренняя графическая библиотека студии, не игровой код
+├── MFStdLib/            — IGNORED: внутренние утилиты студии (файлы, память, математика), не игровой код
+├── MuckyBasic/          — IGNORED: скриптовый VM + компилятор, не интегрирован с игрой (нет механизма вызова из игрового кода)
+└── thrust/              — IGNORED: посторонний проект, не относится к игре
 ```
 
 Крупнейшие файлы: `DIManager.cpp` 62K, `GDisplay.cpp` 51K, `Game.cpp` 53K, `Mission.cpp` 43K, `Special.cpp` 41K.
@@ -153,4 +155,30 @@ Main.cpp → game() [Game.cpp]
 | `fallen/DDLibrary/DIManager.cpp` | DirectInput (~62K строк) |
 | `fallen/Headers/Thing.h` | Базовый объект |
 | `fallen/Headers/pap.h` | Формат карты |
-| `MuckyBasic/` | Скриптовый движок |
+
+---
+
+## Карта связей (что читать вместе)
+
+```
+collide.cpp      → physics.md + navigation.md + characters.md
+Person.cpp       → ai.md + ai_structures.md + ai_behaviors.md + combat.md + controls.md + player_states.md
+pcom.cpp         → ai.md + ai_behaviors.md
+eway.cpp         → missions.md + game_objects.md
+Mission.cpp      → missions.md + weapons_items.md
+interfac.cpp     → controls.md + player_states.md + camera.md
+Vehicle.cpp      → vehicles.md + physics.md
+Special.cpp      → weapons_items.md + combat.md
+Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
+interact.cpp     → interaction_system.md + physics.md + controls.md + characters.md
+plat.cpp         → game_objects.md + missions.md (waypoints)
+chopper.cpp      → game_objects.md + ai.md
+```
+
+---
+
+## Аннотированные исходники (// claude-ai: комментарии)
+
+hm.cpp, Furn.cpp, cutscene.cpp, ob.cpp, elev.cpp, Anim.cpp, mesh.cpp, id.cpp, facet.cpp, supermap.cpp, io.cpp, Prim.cpp, Game.cpp, figure.cpp, walkable.cpp, stair.cpp, gamemenu.cpp, wmove.cpp, Map.cpp, night.cpp, overlay.cpp, guns.cpp, grenade.cpp, Nav.cpp, Wallhug.cpp, barrel.cpp, pow.cpp, pyro.cpp, dirt.cpp, ribbon.cpp, bang.cpp, interact.cpp, plat.cpp, chopper.cpp, Pjectile.cpp, startscr.cpp
+
+pcom.cpp (~178), Special.cpp (~477), bat.cpp (~128, Bane AI), canid.cpp (~101, собаки инертны), Controls.cpp (~215), collide.cpp (~77), Person.cpp (~8 блоков), eway.cpp (~60+ блоков), elev.cpp (~30+), interfac.cpp (~50+ блоков), ware.cpp, inside2.cpp, Attract.cpp, frontend.cpp, fire.cpp (~99), psystem.cpp (~158), Vehicle.cpp (~309), Building.cpp (~141), mav.cpp (~152), sound.cpp (~103), door.cpp (~33), psxlib/GHost.cpp
