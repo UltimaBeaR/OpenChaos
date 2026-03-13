@@ -732,6 +732,11 @@ SLONG	WAND_find_good_start_point_near(SLONG *mapx,SLONG *mapz);
 							break;
 					}
 
+					// claude-ai: WPT_* (Mission.h editor values) -> EWAY_DO_* (eway.h runtime values) translation happens HERE.
+					// claude-ai: The .ucm file stores WPT_* values; EWAY_create() receives EWAY_DO_* values.
+					// claude-ai: WPT_BONUS_POINTS -> EWAY_DO_MESSAGE (OBJECTIVE code in if(0) = DEAD CODE, no scoring).
+					// claude-ai: WPT_GOTHERE_DOTHIS (39) = NOT IMPLEMENTED in pre-release (hits default ASSERT(0)).
+					// claude-ai: WPT_INCREMENT -> EWAY_DO_INCREASE_COUNTER (subtype = counter index from Data[1]).
 					// claude-ai: WaypointType → EWAY_DO_* action mapping (partial):
 					// claude-ai:   WPT_CREATE_PLAYER   → EWAY_DO_CREATE_PLAYER (spawn player character)
 					// claude-ai:   WPT_CREATE_ENEMIES  → EWAY_DO_CREATE_ENEMY  (spawn NPC with AI/weapons)

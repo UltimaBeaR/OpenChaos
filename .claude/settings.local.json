@@ -26,7 +26,10 @@
       "Bash(grep -n \"struct GameKeyFrame\\\\|typedef.*GameKeyFrame\\\\|TweenStep\\\\|NextFrame\\\\|FirstElement\\\\|Flags\" c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/*.h)",
       "Bash(find c:WORKMuckyFoot-UrbanChaos_baseoriginal_gamefallen -iname *matrix*.h -o -iname *quaternion*.h)",
       "Bash(awk 'NR>=4600 && NR<=4900' \"c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Source/Person.cpp\")",
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "Bash(grep -v \"//.*WPT\\\\|//.*EWAY_DO\")",
+      "Bash(python3:*)",
+      "Bash(python -c \":*)"
     ],
     "deny": [
       "Bash(git commit*)",

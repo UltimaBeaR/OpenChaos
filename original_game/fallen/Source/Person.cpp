@@ -17184,7 +17184,11 @@ void	fn_person_dying(Thing *p_person)
 
 	//			drop_all_items(p_person);
 				p_person->SubState=0;
-				if(p_person->Genus.Person->pcom_ai!=PCOM_AI_SUICIDE)
+				// claude-ai: CRIME_RATE update on kill (not suicide):
+			// claude-ai:   guilty person killed    → CRIME_RATE -= 2 (killing a criminal helps)
+			// claude-ai:   wandering civ killed    → CRIME_RATE += 5 (killing innocent bystander hurts)
+			// claude-ai:   (arresting guilty: -4, handled in SUB_STATE_DEAD_ARRESTED below)
+			if(p_person->Genus.Person->pcom_ai!=PCOM_AI_SUICIDE)
 				{
 					if (is_person_guilty(p_person))
 					{

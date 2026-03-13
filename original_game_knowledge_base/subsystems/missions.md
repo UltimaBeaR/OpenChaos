@@ -357,7 +357,125 @@ MuckyBasic — отдельная изолированная система (`Mu
 
 ---
 
-## 10. Глобальный прогресс и сохранение
+## 10. Трансляция WPT_* → EWAY_DO_* (elev.cpp)
+
+> **Важно:** WPT_* значения (Mission.h) и EWAY_DO_* значения (eway.h) — **разные нумерации!**
+
+- `.ucm` файл хранит **WPT_* значения** (редакторский формат)
+- При загрузке уровня в `elev.cpp` (строки 748–1654) происходит трансляция в **EWAY_DO_*** (рантайм формат)
+- `EWAY_create()` получает уже EWAY_DO_* значения
+
+### Ключевые маппинги:
+```
+WPT_END_GAME_WIN    → EWAY_DO_MISSION_COMPLETE
+WPT_END_GAME_LOSE   → EWAY_DO_MISSION_FAIL
+WPT_GROUP_LIFE      → EWAY_DO_GROUP_LIFE
+WPT_GROUP_DEATH     → EWAY_DO_GROUP_DEATH
+WPT_INCREMENT       → EWAY_DO_INCREASE_COUNTER  (subtype = Data[1] = counter index)
+WPT_RESET_COUNTER   → EWAY_DO_RESET_COUNTER     (subtype = Data[0], 0 = все счётчики)
+WPT_CONVERSATION    → EWAY_DO_CONVERSATION или EWAY_DO_AMBIENT_CONV (если Data[3]!=0)
+WPT_CUT_SCENE       → EWAY_DO_CUTSCENE
+WPT_ACTIVATE_PRIM   → EWAY_DO_CONTROL_DOOR или EWAY_DO_ELECTRIFY_FENCE или ... (depends on prim type)
+```
+
+### НЕ реализованные типы (пре-релиз):
+- **WPT_GOTHERE_DOTHIS (39)** — отсутствует в switch → hits `default: ASSERT(0)`. NPC scripting **не реализован**.
+- **WPT_BONUS_POINTS (32)** → маппится в EWAY_DO_MESSAGE (текст) из-за `if(0)` блока:
+  ```c
+  if (0) {  // "Bonus points are just messages nowadays."
+      ed.type = EWAY_DO_OBJECTIVE;  // ← МЁРТВЫЙ КОД, никогда не выполняется
+  } else {
+      ed.type = EWAY_DO_MESSAGE;    // ← всегда
+  }
+  ```
+  Т.е. WPT_BONUS_POINTS = просто текстовое сообщение, очки не начисляются, CRIME_RATE не меняется.
+
+### Трансляция OT_* → EWAY_STAY_*:
+```
+OT_NONE / OT_ACTIVE   → EWAY_STAY_ALWAYS
+OT_ACTIVE_WHILE       → EWAY_STAY_WHILE
+OT_ACTIVE_TIME        → EWAY_STAY_TIME  (es.arg = AfterTimer)
+OT_ACTIVE_DIE         → EWAY_STAY_DIE
+```
+
+---
+
+## 10a. CRIME_RATE — детали обновления
+
+### Загрузка:
+- Загружается из `.iam` файла: `CRIME_RATE = junk[0]`
+- Если 0 → устанавливается 50 (дефолт)
+
+### CRIME_RATE_SCORE_MUL (pre-game, в EWAY_created_last_waypoint):
+```c
+for_guilty = num_guilty_people * 4;              // 4% за каждого guilty NPC
+SATURATE(for_guilty, 0, CRIME_RATE >> 1);        // cap at 50% of CRIME_RATE
+CRIME_RATE_SCORE_MUL = (CRIME_RATE - for_guilty) << 8 / total_objective_points;
+// Если total_points == 0 → CRIME_RATE_SCORE_MUL = 0
+```
+Fixed-point (Q8) множитель: сколько % CRIME_RATE даёт один "очковый балл".
+
+### Динамическое обновление в игре (Person.cpp):
+| Событие | Изменение |
+|---------|-----------|
+| Убийство guilty NPC | -2 |
+| Убийство wandering civ (PCOM_AI_CIV + PCOM_MOVE_WANDER) | +5 |
+| Арест guilty NPC | -4 |
+| Объектив EWAY_DO_OBJECTIVE (мёртвый код, не вызывается) | -percent |
+
+Все изменения: `SATURATE(CRIME_RATE, 0, 100)`.
+
+### Спец. счётчик: EWAY_counter[7]
+- Инкрементируется (до max 255) при каждом убийстве PERSON_COP
+- Используется в EWAY_COND_COUNTER_GTEQ условиях
+
+---
+
+## 10b. Win/Lose flow (Game.cpp)
+
+### GS_LEVEL_WON (EWAY_DO_MISSION_COMPLETE):
+1. Darci получает FLAG2_PERSON_INVULNERABLE (нельзя умереть при победе)
+2. `GAME_STATE = GS_LEVEL_WON`
+3. `set_stats()` — записывает только `stat_game_time = GetTickCount() - stat_start_time` (тривиально!)
+
+Inner loop продолжает работать при GS_LEVEL_WON, EWAY_process() тоже — но loop прерывается по другим условиям.
+
+### После выхода из inner loop при GS_LEVEL_WON:
+1. `park2.ucm` → RunCutscene(1) (MIB intro)
+2. `Finale1.ucm` → RunCutscene(3) + OS_hack() (финальный экран игры)
+3. Остальные → **DarciDeadCivWarnings check**:
+   - Если `Player->RedMarks > 1` (убиты мирные)
+   - Показывает экран `deadcivs.tga` с предупреждением
+   - `the_game.DarciDeadCivWarnings 0` → warning 1; `1` → warning 2; `2` → warning 3; `>=3` → **GS_LEVEL_LOST!**
+   - `the_game.DarciDeadCivWarnings += 1` — накапливается между миссиями!
+
+### После DarciDeadCivWarnings:
+- `GAME_STATE == GS_LEVEL_WON` → PC: `FRONTEND_level_won()`, PSX: `Wadmenu_gameover(1)`
+- `GAME_STATE == GS_LEVEL_LOST` → PC: `FRONTEND_level_lost()`, PSX: `Wadmenu_gameover(0)`
+- `GAME_STATE == GS_REPLAY` → `goto round_again` (перезапуск той же миссии)
+
+### Статистика (Person.cpp, только для конечного экрана):
+```c
+stat_killed_thug       // инкр. при убийстве guilty NPC
+stat_killed_innocent   // инкр. при убийстве non-guilty NPC
+stat_arrested_thug     // инкр. при аресте guilty NPC
+stat_arrested_innocent // инкр. при аресте non-guilty NPC
+stat_count_bonus       // инкр. вручную (не из кода Person.cpp?)
+stat_game_time         // мс от start до set_stats()
+```
+Статистика инициализируется в `init_stats()` в начале каждого уровня.
+
+### GROUP_LIFE / GROUP_DEATH детали:
+- **GROUP_LIFE**: clears EWAY_FLAG_DEAD на всех WP с тем же `colour` AND `group`
+  - Иммунны: сами WP типов GROUP_LIFE и GROUP_DEATH
+  - Эффект: "воскрешает" мёртвые скрипты
+- **GROUP_DEATH**: sets EWAY_FLAG_DEAD на всех WP с тем же `colour` AND `group`
+  - Иммунны: сами WP типов GROUP_LIFE и GROUP_DEATH
+  - Эффект: отключает целую ветку скрипта
+
+---
+
+## 11. Глобальный прогресс и сохранение
 
 **Файл:** `frontend.cpp` — `FRONTEND_save_savegame()` / `FRONTEND_load_savegame()`
 **Путь:** `saves/slot{N}.wag` (N = **1, 2, 3** — 1-based! `save_slot = menu_state.selected + 1`)

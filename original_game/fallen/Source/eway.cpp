@@ -5917,6 +5917,11 @@ extern	UBYTE	hit_player;
 			break;
 
 		case EWAY_DO_OBJECTIVE:
+			// claude-ai: EWAY_DO_OBJECTIVE — reduces CRIME_RATE by (arg2 * CRIME_RATE_SCORE_MUL >> 8) percent.
+			// claude-ai: arg2 = points value/10 from editor. CRIME_RATE_SCORE_MUL set at level load (EWAY_created_last_waypoint).
+			// claude-ai: NOTE: In practice NEVER reached — WPT_BONUS_POINTS (the editor type that maps here) is
+			// claude-ai: now translated to EWAY_DO_MESSAGE via if(0) dead-code block in elev.cpp. This is legacy code.
+			// claude-ai: CRIME_RATE after: -= percent; SATURATE(0,100). Shows message string from EWAY_mess[arg1].
 
 			{
 				UWORD mess    = ew->ed.arg1;
@@ -5955,6 +5960,9 @@ extern	UBYTE	hit_player;
 			break;
 
 		case EWAY_DO_GROUP_LIFE:
+			// claude-ai: GROUP_LIFE — clears EWAY_FLAG_DEAD on all waypoints sharing same colour AND group.
+			// claude-ai: Immune: waypoints of type GROUP_LIFE or GROUP_DEATH themselves (skipped).
+			// claude-ai: Effect: "resurrects" dead waypoints so they can be evaluated again next frame.
 
 			//
 			// Make all waypoints in our colour/group active
@@ -5987,6 +5995,9 @@ extern	UBYTE	hit_player;
 			break;
 
 		case EWAY_DO_GROUP_DEATH:
+			// claude-ai: GROUP_DEATH — sets EWAY_FLAG_DEAD on all waypoints sharing same colour AND group.
+			// claude-ai: Immune: GROUP_LIFE and GROUP_DEATH types themselves (skipped).
+			// claude-ai: Effect: permanently disables entire script branch until a GROUP_LIFE revives it.
 
 			//
 			// Make all waypoints in our colour/group dead
@@ -6090,7 +6101,10 @@ extern	UBYTE	hit_player;
 			break;
 
 		case EWAY_DO_INCREASE_COUNTER:
-			
+			// claude-ai: Increments EWAY_counter[subtype] by 1. subtype = counter index (0..EWAY_MAX_COUNTERS-1).
+			// claude-ai: EWAY_COND_COUNTER_GTEQ checks if EWAY_counter[arg1] >= arg2.
+			// claude-ai: WPT_INCREMENT in editor → ed.subtype = Data[1] (counter index).
+
 			ASSERT(WITHIN(ew->ed.subtype, 0, EWAY_MAX_COUNTERS - 1));
 
 			EWAY_counter[ew->ed.subtype] += 1;

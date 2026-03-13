@@ -5,10 +5,30 @@
 
 ---
 
-## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — Mission.cpp (ПРИОРИТЕТ 1)
+## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — game_states.md или camera.md (ПРИОРИТЕТ 1)
 
-**Что делать:** Аннотировать `Mission.cpp` — логика подсчёта очков, win/lose, CRIME_RATE обновление. Читать перед работой: `missions.md`
-**Цель:** Точный порядок обновления CRIME_RATE, детали WPT_END_GAME_WIN/LOSE, scoring formulas.
+**Варианты:**
+1. **game_states.md** — прочесть `Game.cpp` глубже: `FRONTEND_level_won/lost()`, complete_point logic, GS_* переходы
+2. **camera.md** — прочесть `fc.cpp`, `cam.cpp`: follow camera, collision avoidance
+3. **audio.md** — Miles Sound System интеграция
+
+---
+
+## Mission.cpp / CRIME_RATE / Win-Lose — ИТОГ (выполнено)
+
+**Ключевые открытия:**
+- Mission.cpp = WayWind EDITOR файл, не игровой рантайм
+- Трансляция WPT_* → EWAY_DO_* происходит в elev.cpp (строки 748-1654) при загрузке .ucm
+- WPT_GOTHERE_DOTHIS (39) = НЕ РЕАЛИЗОВАН в пре-релизе (ASSERT(0) в default case)
+- WPT_BONUS_POINTS → EWAY_DO_MESSAGE (очки = мёртвый код через `if(0)`)
+- set_stats() (Person.cpp:412) = тривиальна: только `stat_game_time = GetTickCount() - stat_start_time`
+- CRIME_RATE delta: kill guilty=-2, kill civ wander=+5, arrest guilty=-4, OBJECTIVE мёртв код
+- EWAY_counter[7] = счётчик убитых копов (инкр. до 255, не декрементируется)
+- DarciDeadCivWarnings (>= 3) → GS_LEVEL_WON превращается в GS_LEVEL_LOST!
+- park2.ucm → cutscene 1 (MIB intro); Finale1.ucm → cutscene 3 + OS_hack()
+- GROUP_LIFE/DEATH иммунны к себе — только другие WP той же colour+group меняются
+- Аннотированы: elev.cpp (WPT→EWAY_DO mapping), eway.cpp (OBJECTIVE, GROUP_LIFE/DEATH, COUNTER), Person.cpp (CRIME_RATE update)
+- missions.md обновлён: разделы 10, 10a, 10b — полные детали
 
 ---
 
@@ -125,8 +145,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | walkable.cpp | ~20 ann. | ✅ (find_face_for_this_pos подробно аннотирован) |
 | Person.cpp | ~8 блоков | ✅ (per-frame порядок, jumping FSM, drop_down, dangling landing) |
 | eway.cpp | ~60+ блоков | ✅ (per-frame loop, spawn funcs, cond stubs, stay logic, 54-func map) |
-| **Mission.cpp** | 0 | ❌ ПРИОРИТЕТ 1 |
-| **interfac.cpp** | 0 | ❌ ПРИОРИТЕТ 3 |
+| Mission.cpp | N/A | ✅ (это EDITOR файл, не рантайм; WPT→EWAY_DO в elev.cpp аннотировано) |
+| elev.cpp | ~30+ ann. | ✅ (WPT→EWAY_DO mapping, WPT_BONUS_POINTS dead code, WPT_GOTHERE_DOTHIS ASSERT) |
+| **interfac.cpp** | 0 | ❌ ПРИОРИТЕТ 2 |
 
 ---
 
@@ -175,11 +196,12 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] Как EWAY_process() итерирует по EP — ГОТОВО (по порядку создания 1..upto, linear array, NOT linked list)
 - [x] EWAY_COND_PRESSURE / EWAY_COND_CAMERA — ГОТОВО (always FALSE, stubs)
 - [ ] Точный binary layout .ucm файла — 14+58 байт на EP, но exact field mapping нужен
-- [ ] WPT_GOTHERE_DOTHIS (39) — как именно NPC получает задание (Mission.cpp)
-- [ ] WPT_GROUP_LIFE / GROUP_DEATH (33/34) — как именно работает активация группы (Mission.cpp)
-- [ ] EWAY_COND_COUNTER_GTEQ (25) — как счётчики инкрементируются (WPT_INCREMENT в Mission.cpp)
-- [x] **АННОТИРОВАТЬ** eway.cpp — ВЫПОЛНЕНО (этой сессией + предыдущими)
-- [ ] **АННОТИРОВАТЬ** Mission.cpp — приоритет 1
+- [x] WPT_GOTHERE_DOTHIS (39) — НЕ РЕАЛИЗОВАН в пре-релизе (ASSERT(0) в elev.cpp default)
+- [x] WPT_GROUP_LIFE / GROUP_DEATH (33/34) — ГОТОВО (scans colour+group, иммунны сами к себе)
+- [x] EWAY_COND_COUNTER_GTEQ (25) — ГОТОВО (EWAY_counter[subtype] += 1 при DO_INCREASE_COUNTER)
+- [x] **АННОТИРОВАТЬ** eway.cpp — ВЫПОЛНЕНО (OBJECTIVE, GROUP_LIFE/DEATH, COUNTER, MISSION_COMPLETE/FAIL)
+- [x] **АННОТИРОВАТЬ** Mission.cpp — N/A (это редакторский файл, не игровой рантайм)
+- [x] **АННОТИРОВАТЬ** elev.cpp WPT→EWAY_DO mapping — ВЫПОЛНЕНО
 
 ### УПРАВЛЕНИЕ/ВВОД (controls.md) — TODO
 - [ ] Детали `process_hardware_level_input_for_player()` — точный порядок обработки
@@ -224,6 +246,13 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 
 ## Быстрые критичные факты (не забыть!)
 
+- Mission.cpp = WayWind EDITOR файл (не игровой рантайм); WPT_* → EWAY_DO_* трансляция в elev.cpp:748-1654
+- WPT_BONUS_POINTS → EWAY_DO_MESSAGE (очки = мёртвый код if(0)); WPT_GOTHERE_DOTHIS = ASSERT(0) не реализован
+- set_stats() (Person.cpp:412) тривиальна: только записывает stat_game_time
+- CRIME_RATE delta: kill guilty=-2, kill wander_civ=+5, arrest guilty=-4
+- DarciDeadCivWarnings>=3 → GS_LEVEL_WON превращается в GS_LEVEL_LOST (накапл. между миссиями!)
+- EWAY_counter[7] = счётчик убитых копов (cap 255)
+- park2.ucm→cutscene 1 (MIB intro); Finale1.ucm→cutscene 3 + OS_hack()
 - `bat.cpp` = Bane AI (главный антагонист), НЕ летучие мыши
 - Собаки (canid.cpp) = инертны в пре-релизе, dispatch switch закомментирован
 - C4 взрывчатка = 5 сек (не 10 как написано в комментарии кода)
