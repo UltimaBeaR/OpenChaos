@@ -1,3 +1,18 @@
+// claude-ai: WALKABLE SURFACES — Управление проходимыми поверхностями (984 строки)
+// claude-ai: Проходимые поверхности = DFacet (геометрия зданий, крыш, лестниц)
+// claude-ai: + terrain (PAP_Hi heightmap) — НЕ путать с коллизионными векторами из collide.cpp.
+// claude-ai:
+// claude-ai: Ключевые функции:
+// claude-ai:   find_face_for_this_pos(x,y,z,ret_y,ignore_bld,flag) — главный поиск поверхности (~line 485)
+// claude-ai:     Возвращает: face index (>0=DFacet, <0=roof), GRAB_FLOOR (= MAX_PRIM_FACES4+1), или NULL
+// claude-ai:     Режимы: 0=closest (порог 0xa0=160ед), FIND_ANYFACE=1, FIND_FACE_NEAR_BELOW=3 (порог 30ед)
+// claude-ai:     Зона поиска: ±0x200 координатных единиц = ±2 lo-res mapsquare
+// claude-ai:   point_in_quad(px,pz,x,y,z,face) — проверка входит ли точка в face (~line 25)
+// claude-ai:   is_thing_on_this_quad(x,z,face) — упрощённая 2D-проверка для поиска (~line 329)
+// claude-ai:   calc_height_on_face(x,z,face,ret_y) — высота на face в точке (x,z) (~line 315)
+// claude-ai:
+// claude-ai: Отрицательный face index = roof face (roof_faces4[]), положительный = DFacet (prim_faces4[]).
+// claude-ai: Walkable faces обрабатываются как на 10% больше реального размера (для коллизий).
 #include "game.h"
 #include "pap.h"
 #include "walkable.h"
@@ -463,6 +478,24 @@ SLONG calc_height_on_rface(SLONG x, SLONG z,SWORD	face,SLONG *ret_y)
 // Finds a face to be stood on (checks height is not out of range)
 //
 
+// claude-ai: find_face_for_this_pos() — поиск проходимой поверхности под позицией (x,y,z).
+// claude-ai: ВХОДИТ x,y,z в координатных единицах (>> 8 от WorldPos).
+// claude-ai: АЛГОРИТМ:
+// claude-ai:   1. Быстрый путь для крыш: если PAP_FLAG_ROOF_EXISTS → проверить roof face сначала
+// claude-ai:   2. Перебрать lo-res ячейки в диапазоне ±0x200 (±2 ячейки), идти по linked list Walkable
+// claude-ai:   3. Для каждого face: is_thing_on_this_quad(x,z,face) → если попадает → calc_height_on_face()
+// claude-ai:   4. dy = facey - y (+ = face выше игрока, - = face ниже игрока)
+// claude-ai:   5. Критерий кандидата: dy <= 0xa0 (160 единиц). Выбирается face с минимальным |dy|.
+// claude-ai:   6. Если face не найден: fallback на PAP_calc_height_at(). Порог GRAB_FLOOR: |dy| < 0x50 (80 ед.)
+// claude-ai: ВОЗВРАТ:
+// claude-ai:   > 0      — DFacet index (prim_faces4[])
+// claude-ai:   < 0      — Roof face index (-index в roof_faces4[])
+// claude-ai:   GRAB_FLOOR (MAX_PRIM_FACES4+1) — стоит на terrain (PAP heightmap)
+// claude-ai:   NULL (0) — ничего нет, падение (или PAP_FLAG_HIDDEN = запрещённая зона)
+// claude-ai: РЕЖИМЫ (ignore_height_flag):
+// claude-ai:   0                  — стандартный (порог кандидата 160ед, выбор ближайшего)
+// claude-ai:   FIND_ANYFACE=1     — вернуть первый найденный face немедленно
+// claude-ai:   FIND_FACE_NEAR_BELOW=3 — вернуть если face в пределах 30 единиц выше позиции
 SLONG find_face_for_this_pos(
 			SLONG  x,
 			SLONG  y,

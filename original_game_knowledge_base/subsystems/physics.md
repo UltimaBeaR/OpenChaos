@@ -134,13 +134,37 @@ struct MapElement {
 
 5. **`PAP_calc_height_noroads(x, z)`** — высота без учёта бордюров. Ищет максимальную высоту в окрестности. Используется для игнорирования curbs.
 
-**Логика plant_feet() — как определяется на чём стоит персонаж:**
-1. Вычислить позицию ступней в мировых координатах
-2. `find_face_for_this_pos()` — найти walkable-поверхность
-3. Если face не найден → `PAP_calc_height_at_thing()`
-4. Сравнить высоту поверхности с Y-позицией персонажа
-5. Если разница > 30 юнитов → падение начинается
-6. Если разница > 60 юнитов на face → большое падение (переход в STATE_FALLING)
+**`find_face_for_this_pos()` — в `walkable.cpp` (не в collide.cpp!)**
+```c
+SLONG find_face_for_this_pos(x, y, z, *ret_y, ignore_building, ignore_height_flag)
+// Возврат: face index, GRAB_FLOOR (=MAX_PRIM_FACES4+1), или NULL (0=падение)
+// FIND_ANYFACE=1: вернуть первый найденный face
+// FIND_FACE_NEAR_BELOW=3: вернуть face если dy < 30 единиц выше
+// 0 (default): вернуть ближайший (|dy| минимальный), порог кандидата = 0xa0 = 160 единиц
+```
+
+Алгоритм:
+1. Быстрый путь: если PAP_FLAG_ROOF_EXISTS → проверить roof face сначала
+2. Поиск по lo-res ячейкам в диапазоне ±0x200 (±2 ячейки)
+3. Для каждого face: `is_thing_on_this_quad()` → `calc_height_on_face()`
+4. Если dy <= 0xa0 (160 ед.) → кандидат. Выбирается с минимальным `|dy|`
+5. Fallback: `PAP_calc_height_at()`, GRAB_FLOOR если `|dy| < 0x50` (80 ед.)
+6. NULL если PAP_FLAG_HIDDEN или слишком далеко от terrain
+
+Отрицательный face index = roof face (`roof_faces4[]`)
+
+**Логика plant_feet() — детальная:**
+- `fx=0; fz=0;` ПЕРЕД сложением с WorldPos — X/Z смещение анимированной ноги игнорируется!
+- Это для согласованности с `predict_collision_with_face()` (одинаковый X/Z)
+- Тестируемая точка: `(WorldPos.X>>8, foot_anim_Y + WorldPos.Y>>8, WorldPos.Z>>8)`
+- Вызывает `find_face_for_this_pos()` с flag=0 (стандартный, порог 160 единиц)
+
+Возвращаемые значения plant_feet():
+- GRAB_FLOOR → snap к terrain, `OnFace=0`, return **-1**
+- Face найден, `new_y < fy-60` → **падение** (set_person_drop_down), return **0**
+- Face найден → snap к face, `OnFace=face`, return **1**
+- NULL → PAP terrain, `new_y < fy-30` → **падение**, return **0**
+- NULL → PAP terrain, близко → snap к terrain, return **-1**
 
 ---
 
@@ -150,22 +174,28 @@ struct MapElement {
 ```c
 ULONG move_thing(SLONG dx, SLONG dy, SLONG dz, Thing *p_thing)
 ```
-Полноценное движение с коллизиями для CLASS_PERSON.
+Только для CLASS_PERSON. ASSERT: |dx/dz| < 2 mapsquares.
 
-**Поток выполнения:**
-1. Извлечь начальную позицию из `p_thing->WorldPos`
-2. Вычислить целевую позицию: x2 = x1 + dx, etc.
-3. Проверить границы карты (128×128), отвергнуть выход за пределы
-4. `collide_against_things()` — коллизии с другими персонажами
-5. `collide_against_objects()` — коллизии с мебелью/объектами
-6. Если на face (walkable платформе):
-   - Вызвать `slide_along()` с `extra_wall_height = -0x50`
-   - Радиус зависит от состояния (HUG_WALL уменьшает)
-   - Флаги: CRAWL, CARRYING, JUMPING
-7. `slide_along_edges()` / `slide_along_redges()` — скольжение по рёбрам
-8. Проверка перехода с одной face на другую: `find_face_for_this_pos()`
-9. Если нет face → `FALL_OFF_FLAG_TRUE`, персонаж падает
-10. `move_thing_on_map()` — обновить позицию
+**Реальный порядок операций:**
+1. Граница карты: выход за 128×128 → немедленный return 0
+2. `collide_against_things()` — Things в сфере (radius + 0x1a0)
+   - На PRIM/METAL поверхности: только CLASS_PERSON (без машин/мебели)
+   - Мёртвые пропускаются, кроме машин (dead car всё ещё блокирует)
+   - SUB_STATE_STEP_FORWARD: полная остановка (x2=x1, z2=z1)
+   - Если thing умер в процессе → return 0
+3. `collide_against_objects()` — OB (уличные фонари, урны)
+4. `slide_along()` — DFacet зданий
+   - `SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT = -0x50` (-80 ед.)
+   - STATE_HUG_WALL: radius >>= 2 (для плотного прилегания к стене)
+5. `slide_along_edges()` / `slide_along_redges()` — кромки DFacet
+   - Только: STATE_CIRCLING, SUB_STATE_STEP_FORWARD, walking player, FIRE_ESCAPE
+6. `find_face_for_this_pos()` — новый face после движения
+   - Не plant_feet()! plant_feet() вызывается отдельно из person-тика
+   - Если y_diff > 0x50 (80 ед.) → FALL_OFF_FLAG_TRUE
+7. **Fall-through bug workaround:** `x2 += dx>>2; y2 += dy>>2; z2 += dz>>2`
+   (при падении добавляется 1/4 вектора движения)
+8. Побочные эффекты: `DIRT_gust()`, `MIST_gust()`, `BARREL_hit_with_sphere()`
+9. `move_thing_on_map()` — обновление MapWho
 
 ### move_thing_quick() — быстрое движение
 ```c
@@ -197,27 +227,39 @@ SLONG last_slide_colvect;       // Последняя задетая стена
 SLONG fence_colvect = 0;        // Коллизия с забором
 ```
 
-**Алгоритм:**
-1. Вычислить bounding box движения
-2. Перебрать все mapsquares в bounding box
-3. Для каждого mapsquare — проверить все linked CollisionVect
-4. При обнаружении коллизии — спроецировать движение вдоль нормали стены
-5. `actual_sliding = TRUE`
-6. Вернуть количество коллизий (0 = нет, >0 = есть)
+**Детальный алгоритм slide_along():**
+1. **NOGO squares:** `NOGO_COLLIDE_WIDTH = 0x5800` (~22 ед.) — буфер от NOGO-ячеек
+   - SLIDE_ALONG_FLAG_CARRYING: также блокирует движение на ячейки с другой высотой
+2. SUPERMAP_counter — каждый facet обрабатывается только раз за вызов
+3. Итерация по lo-res ячейкам в bounding box движения
+4. **Фильтрация facets по Y:**
+   - Обычные стены: `y_bot = df->Y[0] - 64; y_top = df->Y[0] + (height*blockH<<2)`
+   - `y_top += extra_wall_height` → с -0x50: стена "ниже" на 80 ед. (перешагивание!)
+   - Заборы: `get_fence_top/bottom()` с отдельной логикой
+   - STOREY_TYPE_CABLE: игнорируется (провода не блокируют)
+   - STOREY_TYPE_OUTSIDE_DOOR + FACET_FLAG_OPEN: игнорируется (открытая дверь)
+5. **Геометрия коллизии** (ВСЕ DFacets оси-aligned — либо X, либо Z):
+   - Вдоль X (fz1==fz2): пуш по Z; endpoints — circle push
+   - Вдоль Z (fx1==fx2): пуш по X; endpoints — circle push
+   - Circle formula: `*pos = endpoint + dp * (radius>>8) / (dist>>8 + 1)`
+6. Двери: проход через (return FALSE), устанавливает `slide_door` или `slide_into_warehouse`
+7. Лестницы: устанавливает `slide_ladder`
 
-**ВАЖНО:** Нет отскока (restitution = 0). Только чистое скольжение вдоль стены. Нет трения при скольжении.
-
-**Типы тестов коллизий:**
-- `check_vect_circle()` — сфера против линейного отрезка
-- `slide_around_box()` — движущийся box против отрезка (транспорт)
-- `slide_around_sausage()` — capsule против отрезка (цилиндрические объекты)
-- `mount_ladder()` — специальный кейс для лестниц
-
+**Глобальные выходы slide_along():**
 ```c
-#define DONT_INTERSECT 0
-#define DO_INTERSECT   1
-#define COLLINEAR      2
+actual_sliding     = TRUE   // было столкновение
+last_slide_colvect = facet  // последний facet (или fence_colvect для заборов)
+slide_door         = storey  // индекс двери если прошли через неё
+slide_ladder       = facet   // если лестница
+slide_into_warehouse = bld   // если вошли в склад
 ```
+
+**ВАЖНО:** Нет отскока (restitution=0). Нет трения. Все DFacets оси-aligned (нет диагональных стен).
+
+**Другие функции скольжения:**
+- `slide_around_box()` — box vs линейный отрезок (транспорт)
+- `slide_around_sausage()` — capsule vs отрезок
+- `slide_around_circle()` — circle vs circle (Person-Person)
 
 ---
 
@@ -292,47 +334,8 @@ SLONG fence_colvect = 0;        // Коллизия с забором
 
 ## 7. Физика транспорта
 
-**Скорости** (vehicle.h):
-```c
-SLONG VelX;  // продольная скорость
-SLONG VelY;  // вертикальная скорость
-SLONG VelZ;  // поперечная скорость
-SLONG VelR;  // угловая скорость (рыскание/yaw)
-```
-
-**Подвеска** (vehicle.h):
-```c
-typedef struct {
-    UWORD Compression;  // Сжатие пружины
-    UWORD Length;       // Длина подвески
-} Suspension;
-
-Suspension Spring[4];  // По одной на каждое колесо
-SLONG DY[4];           // Вертикальное смещение каждого колеса
-```
-
-**Константы подвески:**
-- `MIN_COMPRESSION = 13 << 8 = 3328`
-- `MAX_COMPRESSION = 115 << 8 = 29440`
-
-**Параметры двигателей:**
-```c
-// FwdAccel, BkAccel, SoftBrake, HardBrake
-#define ENGINE_LGV  17, 10, 4, 8   // Лёгкий грузовик
-#define ENGINE_CAR  21, 10, 4, 8   // Обычная машина
-#define ENGINE_PIG  25, 15, 5, 10  // Полицейская (быстрее)
-#define ENGINE_AMB  25, 10, 5, 8   // Скорая помощь
-```
-
-**Ограничения скорости:**
-```c
-#define VEH_SPEED_LIMIT    750  // ~35 mph
-#define VEH_REVERSE_SPEED  300  // Задний ход
-```
-
-**Расположение колёс (базы):**
-- VAN: ±120, -150±165
-- CAR: ±85, -120±160
+Подробности: **`vehicles.md`** — подвеска (4 пружины), двигатели, ограничения скорости.
+Гравитация транспорта: `GRAVITY = -5120 юн/тик²` — см. раздел 6 выше.
 
 ---
 
@@ -349,83 +352,18 @@ SLONG DY[4];           // Вертикальное смещение каждог
 
 ## 9. HyperMatter — spring-lattice физика мебели
 
-**Файл:** `fallen/Source/hm.cpp` (~2000 строк)
+**Файл:** `fallen/Source/hm.cpp` (~2000 строк, детально аннотирован)
 
-HyperMatter — **собственная разработка MuckyFoot**, spring-lattice система для деформируемых физических тел.
-**Не является** middleware от Criterion (несмотря на название, совпадающее с продуктом Criterion).
-
-### Что это и для чего
-
-Используется для физики мебели и выброшенных объектов (бочки, ящики, стулья) при их разрушении через систему HM.
-
-**Как работает:**
-- Объект разбивается на решётку из масс-точек (`HM_Point`), соединённых пружинами (`HM_Spring`)
-- Каждый тик: интеграция сил пружин + гравитация → обновление скоростей → обновление позиций
-- При столкновении со стенами: `HM_collide_all()` применяет импульс отражения
-
-### Структуры данных
-
-```c
-// Один физический объект
-struct HM_Object {
-    HM_Point  points[];   // массы-точки (решётка)
-    HM_Spring springs[];  // пружины между точками
-    HM_Bump   bumps[];    // контакты со стенами за текущий тик (динамически выделяются!)
-};
-
-// Решётка: 3D индекс → flat index
-int HM_index(x, y, z) = x + y*W + z*W*H
-// "forward half-shell" 13 соседей → 13 spring-пар на точку (нет дублирования)
-```
-
-### Физический тик `HM_process()` — 4 шага
-
-1. **Spring integration:** для каждой пружины вычислить силу = k × (current_len - rest_len), добавить к velocity точек
-2. **Bump forces:** применить импульсы от столкновений (`HM_Bump`)
-3. **Per-point integration:** velocity → position (Euler integration), плюс гравитация
-4. **Bump cleanup:** освободить HM_Bump структуры
-
-**Формула пружины:**
-```c
-// force = stiffness * (current_len - rest_len)
-force_x = stiffness * dx / len * extension;
-// Нет затухания (damping)! Объекты будут колебаться бесконечно
-// → HM_stationary() проверяет скорость, чтобы "усыпить" объект
-```
-
-**Гравитация: ВАЖНО — hardcoded flat plane!**
-```c
-// HM_process() устанавливает:
-gy = 0;  // жёсткий ноль!
-// HM_height_at() существует, но НЕ используется в HM_process()
-// Объекты HM отскакивают от плоскости Y=0, а НЕ от реального terrain
-// На наклонных поверхностях поведение некорректное — это известное ограничение
-```
-
-### Известные баги в hm.cpp
-
-```c
-// Bug в HM_collide_all() — проверяет [i] вместо [j] во внутреннем цикле:
-for (i=0; i<count; i++)
-    for (j=i+1; j<count; j++)
-        if (already_bumped[i] & bit) continue;  // BUG: должно быть [j]!
-// Результат: некоторые столкновения между HM-объектами пропускаются
-
-// Memory leak в HM_destroy():
-// HM_Bump структуры не освобождаются при уничтожении объекта
-```
-
-### Связь с Furn.cpp
-
-- `FURN_hypermatterise()` — создаёт HM-объект для разрушенной мебели, **ОЧИЩАЕТ** `FLAG_FURN_DRIVING`
-- `HM_stationary(threshold=0.25)` — возвращает TRUE если все точки почти не движутся → Furn.cpp уничтожает HM-объект
-- `HM_shockwave()` — взрыв применяет радиальный импульс ко всем точкам в радиусе
-
-### Porting note
-
-**При переписывании:** HyperMatter нужно реализовать заново (нет открытого кода).
-Альтернативы: **Jolt Physics** или **Bullet Physics** — оба умеют spring-lattice bodies.
-HM используется только для мебели — не для персонажей и не для транспорта.
+**Ключевые факты:**
+- Собственная разработка MuckyFoot (НЕ Criterion middleware)
+- Только для мебели (бочки, ящики, стулья) — не для персонажей и транспорта
+- Spring-lattice: 3D решётка масс-точек + пружины, Euler integration, 13 пружин/точку
+- `HM_process()`: spring forces → bump forces → position update → cleanup
+- **`gy = 0` hardcoded!** Объекты отскакивают от Y=0, НЕ от реального terrain
+- Баги: `already_bumped[i]` вместо `[j]` (некоторые HM-HM столкновения пропускаются)
+- `HM_stationary(threshold=0.25)` → "усыпляет" объект когда почти неподвижен
+- `FURN_hypermatterise()` очищает `FLAG_FURN_DRIVING` при активации HM
+- Porting: реализовать заново через **Jolt Physics** или **Bullet Physics**
 
 ---
 

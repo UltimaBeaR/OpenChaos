@@ -2762,6 +2762,12 @@ void	set_feet_to_y(Thing *p_person,SLONG new_y)
 extern void person_splash(Thing *p_person, SLONG limb); // limb == -1 => splash on center not at limb.
 
 
+// claude-ai: height_above_anything() — высота точки тела над ближайшей поверхностью.
+// claude-ai: body_part — индекс sub-object (конечности) для calc_sub_objects_position().
+// claude-ai: ВАЖНО: if(1||...) — ветка FIND_ANYFACE МЁРТВЫЙ КОД. Всегда используется FIND_FACE_NEAR_BELOW.
+// claude-ai: Если InsideIndex != 0 (внутри здания) → возвращает 0 немедленно.
+// claude-ai: Возврат: fy - new_y (+ = выше поверхности, - = ниже/провалился).
+// claude-ai: Используется для определения момента приземления при падении.
 SLONG	height_above_anything(Thing *p_person,SLONG body_part,SWORD *onface)
 {
 	SLONG	on_face;
@@ -2820,13 +2826,18 @@ SLONG	height_above_anything(Thing *p_person,SLONG body_part,SWORD *onface)
 // For a person in 3d space, find either a face to stand on, or the floor to stand on, and setup height/onface ...
 //
 // claude-ai: plant_feet() — привязывает персонажа к полу/поверхности после движения.
-// claude-ai: Логика выбора поверхности:
-// claude-ai:   1. Сначала ищет DFacet (геометрия зданий) через find_face_for_this_pos()
-// claude-ai:   2. Если не найден — берёт высоту пола из PAP_calc_height_at_thing()
-// claude-ai: Пороги падения (разность высот):
-// claude-ai:   > 30 единиц (на PAP-поверхности)  → персонаж начинает падать
-// claude-ai:   > 60 единиц (на face-поверхности) → персонаж начинает падать
-// claude-ai: Возврат: 1=стоит на face, 0=падает, -1=стоит на PAP (GRAB_FLOOR)
+// claude-ai: ВАЖНО: fx=0; fz=0; ПЕРЕД добавлением WorldPos — анимационный X/Z смещение ноги ИГНОРИРУЕТСЯ!
+// claude-ai: Это сделано для согласованности с predict_collision_with_face() (тот же X/Z).
+// claude-ai: Фактически тестирует точку (WorldPos.X>>8, foot_anim_Y+WorldPos.Y>>8, WorldPos.Z>>8).
+// claude-ai: Логика выбора поверхности (режим 0 = стандартный, порог кандидата 160 единиц):
+// claude-ai:   1. find_face_for_this_pos() — ищет DFacet (здания, платформы)
+// claude-ai:   2. Если GRAB_FLOOR → terrain: set_feet_to_y(new_y), OnFace=0, return -1
+// claude-ai:   3. Если face найден: если new_y < fy-60 → падение (drop); иначе set_feet_to_y, OnFace=face, return 1
+// claude-ai:   4. Если NULL → PAP_calc_height_at_thing(): если new_y < fy-30 → падение; иначе snap к terrain, return -1
+// claude-ai: Пороги падения:
+// claude-ai:   > 60 единиц ниже (на face-поверхности) → set_person_drop_down(), return 0
+// claude-ai:   > 30 единиц ниже (на PAP-поверхности)  → set_person_drop_down(), return 0
+// claude-ai: Возврат: 1=на face, 0=падает, -1=на terrain (GRAB_FLOOR или snap)
 SLONG	plant_feet(Thing *p_person)
 {
 	SLONG	on_face;
@@ -6573,16 +6584,27 @@ SLONG x1, my_y1, z1;
 SLONG x2, y2, z2;
 
 // claude-ai: move_thing() — полное движение персонажа (CLASS_PERSON) с коллизиями.
-// claude-ai: Порядок операций:
-// claude-ai:   1. Проверка fast-nav (COLLIDE_can_i_fastnav): упрощённый путь без facets
-// claude-ai:   2. slide_along() — скольжение вдоль стен (facets зданий)
-// claude-ai:   3. collide_against_things() — коллизии с другими персонажами (капсула-капсула)
-// claude-ai:   4. collide_against_objects() — коллизии с мебелью (OB_Info box)
-// claude-ai:   5. slide_along_edges() — скольжение по кромкам этажей
-// claude-ai:   6. plant_feet() — привязка к поверхности / обнаружение падения
-// claude-ai:   7. move_thing_on_map() — обновление MapWho
-// claude-ai: Глобалы actual_sliding / last_slide_colvect заполняются в процессе.
-// claude-ai: Скорость при скольжении ограничивается до yomp_speed.
+// claude-ai: ASSERT: Class==CLASS_PERSON, |dx/dz| < 2 mapsquares.
+// claude-ai: Порядок операций (РЕАЛЬНЫЙ):
+// claude-ai:   1. Граница карты: x2<0 или >=128<<16 → немедленный возврат
+// claude-ai:   2. collide_against_things() — коллизии с другими Things (персонажи, машины, мебель)
+// claude-ai:      На PRIM/METAL поверхности: только CLASS_PERSON (игнорирует машины/мебель)
+// claude-ai:      Мёртвые вещи пропускаются, кроме машин (dead car всё ещё блокирует)
+// claude-ai:      SUB_STATE_STEP_FORWARD: полная остановка (не скольжение)
+// claude-ai:   3. collide_against_objects() — коллизии с OB (уличные объекты: фонари, урны)
+// claude-ai:   4. slide_along() — скольжение вдоль DFacets зданий
+// claude-ai:      extra_wall_height = SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT = -0x50 (-80 ед.)
+// claude-ai:      radius+20 (немного больше чем при collide_against)
+// claude-ai:      STATE_HUG_WALL: radius >>= 2 (четверть радиуса)
+// claude-ai:   5. slide_along_edges() — скольжение по кромкам DFacet
+// claude-ai:      Только при: STATE_CIRCLING, SUB_STATE_STEP_FORWARD, walking player, FIRE_ESCAPE
+// claude-ai:   6. find_face_for_this_pos() — новый face после движения (не plant_feet!)
+// claude-ai:      Если y2 - new_y > 0x50: FALL_OFF_FLAG_TRUE (длинное падение)
+// claude-ai:   7. FALL_OFF bug workaround: x2+=dx>>2; y2+=dy>>2; z2+=dz>>2
+// claude-ai:   8. DIRT_gust, MIST_gust, BARREL_hit_with_sphere — побочные эффекты
+// claude-ai:   9. move_thing_on_map() — обновление MapWho
+// claude-ai: Глобалы actual_sliding / last_slide_colvect заполняются в slide_along().
+// claude-ai: Скорость при скольжении ограничивается до yomp_speed (режим RUN).
 ULONG move_thing(
 		SLONG dx,
 		SLONG dy,

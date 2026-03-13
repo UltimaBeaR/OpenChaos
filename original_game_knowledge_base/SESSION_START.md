@@ -5,11 +5,18 @@
 
 ---
 
+## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — Person.cpp (ПРИОРИТЕТ 1)
+
+**Что делать:** Аннотировать `Person.cpp` (~22K строк). Читать перед работой: `ai.md + characters.md + combat.md + controls.md + player_states.md`
+**Цель:** Понять state transitions персонажа, JUMPING→LANDING, как вызывается plant_feet(), детали Darci-специфичной логики.
+
+---
+
 ## Статус фазы анализа
 
 **Фаза 1 (текущая):** Детальный анализ оригинального кода → запись в `original_game_knowledge_base/`
-- KB написана примерно на 75%
-- Исходники аннотированы примерно на 40% (приоритетные файлы)
+- KB написана примерно на 80%
+- Исходники аннотированы примерно на 50% (добавлены collide.cpp и walkable.cpp)
 
 ---
 
@@ -83,26 +90,29 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 | Game.cpp | ~134 | ✅ |
 | figure.cpp (DDEngine) | ~249 | ✅ |
 | Controls.cpp | ~215 | ✅ |
-| **collide.cpp** | 0 | ❌ ПРИОРИТЕТ 1 |
-| **Person.cpp** | 0 | ❌ ПРИОРИТЕТ 2 |
-| **eway.cpp** | 0 | ❌ ПРИОРИТЕТ 3 |
-| **Mission.cpp** | 0 | ❌ ПРИОРИТЕТ 4 |
-| **interfac.cpp** | 0 | ❌ ПРИОРИТЕТ 5 |
+| collide.cpp | ~77 ann. | ✅ (уточнено: move_thing порядок, plant_feet, height_above_anything) |
+| walkable.cpp | ~20 ann. | ✅ (find_face_for_this_pos подробно аннотирован) |
+| **Person.cpp** | 0 | ❌ ПРИОРИТЕТ 1 (был 2) |
+| **eway.cpp** | 0 | ❌ ПРИОРИТЕТ 2 (был 3) |
+| **Mission.cpp** | 0 | ❌ ПРИОРИТЕТ 3 (был 4) |
+| **interfac.cpp** | 0 | ❌ ПРИОРИТЕТ 4 (был 5) |
 
 ---
 
 ## TODO по подсистемам — что ещё проверить
 
 ### ФИЗИКА (physics.md) — TODO
-- [ ] `find_face_for_this_pos()` — точная логика выбора face когда несколько перекрываются (критично для movement feel)
-- [ ] `slide_along()` детали — как именно проецируется движение вдоль нормали, точная формула
-- [ ] `height_above_anything()` — как определяется "приземление" при падении
-- [ ] `collide_against_things()` + `collide_against_objects()` — логика коллизий Person-Person и Person-Furniture
-- [ ] Лестницы в коллизиях: `mount_ladder()` — точное поведение
+- [x] `find_face_for_this_pos()` — ГОТОВО (в walkable.cpp! Порог 160ед, GRAB_FLOOR=0x50, FIND_ANYFACE/FIND_FACE_NEAR_BELOW)
+- [x] `slide_along()` детали — ГОТОВО (NOGO push=0x5800, DFacet axis-aligned, SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT=-0x50)
+- [x] `height_above_anything()` — ГОТОВО (if(1||...) делает FIND_ANYFACE мёртвым кодом, всегда FIND_FACE_NEAR_BELOW)
+- [x] `collide_against_things()` + `collide_against_objects()` — ГОТОВО (детали в physics.md)
+- [x] `move_thing()` реальный порядок операций — ГОТОВО (things → objects → slide_along → edges → find_face → move)
+- [ ] `mount_ladder()` — точное поведение (строка 2567 collide.cpp)
 - [ ] Коллизии транспорта с персонажами: `VEH_find_runover_things()` детали
 - [ ] Воды: как `PAP_FLAG_WATER` влияет на физику, есть ли замедление
 - [ ] RWMOVE система (move_thing для не-person объектов)
-- [ ] **АННОТИРОВАТЬ** collide.cpp — приоритет 1
+- [ ] `collide_against_objects()` детали — что именно за OB объекты, их размеры
+- [ ] `plant_feet()` — когда именно вызывается (из person-тика? из move_thing? из обоих?)
 
 ### AI/PCOM (ai.md) — TODO
 - [ ] Детали `PCOM_process_default()` — точный порядок проверок в NORMAL state
