@@ -8,10 +8,18 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **Форматы**: lighting_format.md и model_format.md — проверить точность
-2. **muckybasic.md** — детальный анализ MuckyBasic скриптового интерпретатора (MB_process, опкоды)
-3. **audio.md** — как работает музыкальная система (MUSIC_mode, MFX)
-4. **briefing.cpp** — BRIEFING_select() и как загружается/воспроизводится брифинг
+1. **STARTSCR_mission** — как startscr.cpp устанавливает STARTSCR_mission (реальный мост frontend→game); как startscr.cpp связан с frontend.cpp
+2. **Attract.cpp** — что такое attract mode; BRIEFING_select() вызывается только оттуда
+3. **muckybasic.md** — детальный анализ MuckyBasic скриптового интерпретатора (MB_process, опкоды)
+
+**ВЫПОЛНЕНО в этой итерации (briefing.cpp + исправления форматов):**
+- briefing.cpp = МЁРТВЫЙ КОД (декабрь 1998, прототип): BRIEFING_menu() закомментирован целиком; BRIEFING_mission_filename в elev.cpp обёрнут в `#ifdef OBEY_SCRIPT` (а OBEY_SCRIPT закомментирован в briefing.h → не определён); 8 hardcoded миссий/файлов; save = 1-байт "savegame.dat" (заменено .wag)
+- Реальная переменная-мост = `STARTSCR_mission[]` в startscr.cpp — её читает elev.cpp при загрузке миссии
+- `BRIEFING_select()` вызывается ТОЛЬКО из Attract.cpp (attract mode / demo) — не из основного игрового пути
+- **ИСПРАВЛЕНО** `sizeof(ED_Light)` = 20 байт (не 12/16): 8 однобайт.полей + SLONG×3 = 8+12; lighting_format.md обновлён
+- **ИСПРАВЛЕНО** `sizeof(PrimFace3)` = 28 байт (не 22): 1+1+6+6+6+2+2+2+1+1; model_format.md обновлён
+- **ИСПРАВЛЕНО** `sizeof(PrimFace4)` = 34 байта (не ~26): 1+1+8+8+8(union)+2+2+2+1+1; model_format.md обновлён
+- **ИСПРАВЛЕНО** заголовок PrimObject с "(10 байт)" на "(16 байт)"; в KB уже была корректная формула 16б в коде
 
 **ВЫПОЛНЕНО в этой итерации (.sty формат + FRONTEND_input):**
 - resource_formats/mission_script_format.md создан:
@@ -473,6 +481,9 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - PRIM_START_SAVE_TYPE=5793: если save_type==base+1 → PrimPoint как SWORD (6б), иначе SLONG (12б)
 - PrimFace4 FACE_FLAG_WALKABLE=(1<<6) — только эти квады образуют ходимые поверхности
 - NIGHT_Colour диапазон 0-63 (не 0-255!); для OpenGL делить на 64.0f
+- sizeof(ED_Light) = **20 байт** (не 16!) — 8 однобайт.полей + 3 SLONG; lighting_format.md исправлен
+- sizeof(PrimFace3) = **28 байт** (не 22!) — 1+1+6+6+6+2+2+2+1+1
+- sizeof(PrimFace4) = **34 байта** (не 26!) — 1+1+8+8+8(union)+2+2+2+1+1
 - ED_Light::range,red,green,blue — radius/color для статического точечного источника света
 - ambient direction в night.cpp везде = (110, -148, -177) — захардкожена во всём коде
 - .all файл: save_type 2-5; save_type>2 → 4-byte count + count×moj blocks; затем keyframe chunk
@@ -480,6 +491,8 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - .ucm header: 4(version)+4(flags)+260×5(names)+2+2+2(MapIndex/Used/Free UWORDs)+2(CrimeRate+FakeCivs)=1316б; потом 512×74б EventPoints; потом: skip 254б SkillLevels(if ver>5), read 1б BOREDOM_RATE, read 1+1б CarsRate+MusicWorld(if ver>8), messages section
 - .all pointer fixup: сохранённые NextFrame/PrevFrame = runtime адреса; при загрузке пересчитываются через addr1/addr2/addr3
 - TIMEOUT_DEMO=0 → demo_timeout() = мёртвый код
+- briefing.cpp = МЁРТВЫЙ КОД (Dec 1998 прототип); OBEY_SCRIPT закомментирован → BRIEFING_mission_filename не используется
+- Реальный мост frontend→миссия = STARTSCR_mission[] из startscr.cpp; BRIEFING_select() только из Attract.cpp (demo mode)
 - SPECIAL_MINE подбор = ASSERT(0), метание = ASSERT(0)
 - save slots: 1-based! (`save_slot = menu_state.selected + 1`)
 - complete_point диапазон 0-24+

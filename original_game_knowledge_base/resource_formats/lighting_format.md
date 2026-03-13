@@ -43,7 +43,7 @@
 
 ---
 
-## Структура ED_Light (12 байт)
+## Структура ED_Light (20 байт)
 
 ```c
 // fallen/Ledit/Headers/ed.h
@@ -56,15 +56,16 @@ typedef struct
     UBYTE next;     // linked list: следующий свет в слоте (редакторный)
     UBYTE used;     // 1 = активный источник, 0 = пустой слот
     UBYTE flags;    // LIGHT_FLAGS_INSIDE (1) = только внутри зданий
-    UBYTE padding;
-    SLONG x;        // позиция X в world units
+    UBYTE padding;  // (был UWORD, сменён на UBYTE)
+    SLONG x;        // позиция X в world units (offset 8, 4-byte aligned)
     SLONG y;        // позиция Y
     SLONG z;        // позиция Z
-} ED_Light;         // sizeof = 12 байт (4 UBYTE/SBYTE + 3 SLONG = 4 + 12 = 16? нет...)
+} ED_Light;
+// sizeof = 8 (8 однобайтовых полей) + 12 (SLONG×3) = 20 байт
 ```
 
-**Важно:** `sizeof(ED_Light)` = 4 (UBYTE×4 + SBYTE×3 + pad×1) + 12 (SLONG×3) = **16 байт**.
-Файл проверяет совместимость через `sizeof_ed_light` поле в заголовке.
+**Важно:** `sizeof(ED_Light)` = **20 байт** (8 однобайтовых полей + 3×SLONG).
+Файл проверяет совместимость: если `sizeof_ed_light != sizeof(ED_Light)` → загрузка прерывается.
 
 ---
 

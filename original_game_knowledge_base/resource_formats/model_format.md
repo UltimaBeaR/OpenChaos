@@ -126,7 +126,7 @@ TGA → внутренний формат при пакете.
 [num_faces4 * sizeof(PrimFace4)] PrimFace4[]    — квадратные полигоны
 ```
 
-### Структура PrimObject (10 байт)
+### Структура PrimObject (16 байт)
 
 ```c
 // fallen/Editor/Headers/Prim.h
@@ -142,7 +142,7 @@ struct PrimObject {
     UBYTE shadowtype;   // тип тени
     UBYTE flag;         // доп. флаги
 };
-// sizeof = 2+2+2+2+2+2+1+1+1+1 = 16 байт? нет: 8×UWORD/SWORD + 4×UBYTE = 16+4 = 16!
+// sizeof = UWORD×4(8б) + SWORD×2(4б) + UBYTE×4(4б) = 16 байт
 // Внимание: SWORD StartFace3/EndFace3 (знаковые — отрицательные = нет треугольников)
 ```
 
@@ -161,7 +161,7 @@ struct PrimPoint {
 **Критично:** при save_type == PRIM_START_SAVE_TYPE+1 → SWORD (6 байт),
 иначе → OldPrimPoint (SLONG, 12 байт). Все Steam ресурсы используют новый формат.
 
-### Структура PrimFace3 (PC, 22 байта)
+### Структура PrimFace3 (PC, 28 байт)
 
 ```c
 struct PrimFace3 {
@@ -176,9 +176,9 @@ struct PrimFace3 {
     UBYTE Type;         // тип поверхности
     SBYTE ID;
 };
-```
+// sizeof = 1+1+6+6+6+2+2+2+1+1 = 28 байт
 
-### Структура PrimFace4 (PC, ~26 байт)
+### Структура PrimFace4 (PC, 34 байта)
 
 ```c
 struct PrimFace4 {
@@ -196,7 +196,7 @@ struct PrimFace4 {
     UBYTE Type;
     SBYTE ID;
 };
-```
+// sizeof = 1+1+8+8+8(union: max(SWORD×4=8, struct col=3)=8)+2+2+2+1+1 = 34 байта
 
 **FACE_FLAG_WALKABLE (1<<6)** — ключевой флаг: именно эти PrimFace4 образуют поверхности для
 навигации, коллизий и `find_face_for_this_pos()`.
