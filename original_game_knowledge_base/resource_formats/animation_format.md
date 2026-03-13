@@ -150,6 +150,78 @@ while AnimTween >= 256:
 
 ---
 
+## .ALL файл — бинарный формат
+
+Полная документация из `io.cpp::load_anim_system()` + `load_insert_game_chunk()`:
+
+```
+[4 байта] SLONG save_type              — версия файла (2, 3, 4 или 5)
+
+── Mesh секция (.moj блоки) ──
+[если save_type > 2]:
+  [4 байта] SLONG count                — количество .moj блоков (вариантов скина)
+  [count × embedded .moj блок]
+[если save_type == 2]:
+  [1 × embedded .moj блок]
+
+── Keyframe chunk секция ──
+[4 байта] SLONG chunk_save_type        — версия chunk (должна быть > 1)
+[4 байта] SLONG ElementCount          — число body parts (15 для людей)
+[2 байта] SWORD MaxPeopleTypes         — число вариантов скина
+[2 байта] SWORD MaxAnimFrames          — всего именованных слотов анимаций
+[4 байта] SLONG MaxElements            — всего GameKeyFrameElement записей
+[2 байта] SWORD MaxKeyFrames           — всего GameKeyFrame записей
+[2 байта] SWORD MaxFightCols           — число хитбоксов боя
+[MaxPeopleTypes * sizeof(BodyDef)] PeopleTypes[] — skin→body mapping
+[2 байта] UWORD check                  — must == 666
+
+[4 байта] ULONG addr1                  — runtime адрес AnimKeyFrames (для pointer fixup)
+[MaxKeyFrames * sizeof(GameKeyFrame)] AnimKeyFrames[]
+[2 байта] UWORD check                  — must == 666
+
+[4 байта] ULONG addr2                  — runtime адрес Elements
+[MaxElements * sizeof(GameKeyFrameElement)] TheElements[]
+  — каждый: CMatrix33 (сжатая матрица 3×3) + SWORD OffsetX/Y/Z (6 байт)
+[2 байта] UWORD check                  — must == 666
+
+[MaxAnimFrames * sizeof(GameKeyFrame*)] AnimList[]
+  — указатели (ULONG в файле), при загрузке пересчитываются через a_off
+[2 байта] UWORD check                  — must == 666
+
+[4 байта] ULONG addr3                  — runtime адрес FightCols
+[MaxFightCols * sizeof(GameFightCol)] FightCols[]
+[2 байта] UWORD check                  — must == 666
+```
+
+### Pointer fixup механизм
+
+GameKeyFrame::NextFrame/PrevFrame/FirstElement/Fight/AnimList в файле = оригинальные runtime адреса
+на момент сохранения. При загрузке вычисляются offsets и все указатели перебазируются:
+```
+a_off  = new_AnimKeyFrames_ptr - addr1
+ae_off = new_TheElements_ptr   - addr2
+af_off = new_FightCols_ptr     - addr3
+```
+`save_type > 4`: `convert_keyframe_to_pointer()` делает это чище.
+
+### Встроенный .moj блок в .all файле
+
+Идентичен standalone .moj, но читается из уже открытого handle:
+```
+[4 байта] SLONG save_type
+[2 байта] UWORD so  (start prim_object index)
+[2 байта] UWORD eo  (end prim_object index = so + count)
+[(eo-so) × read_a_prim()] — каждый prim = PrimObject header + PrimPoints + PrimFaces
+```
+
+### Использование параметра type
+
+- `type=0` → загрузить все скин-варианты (создания, мировые объекты)
+- `type=1` → person.all: Darci всегда, остальные только если не в `DONT_load` bitmask
+- `type=2` → thug.all: выборочно по классу персонажа (cop, rasta, MIB, mechanic, tramp)
+
+---
+
 ## Загрузка анимаций
 
 ```c

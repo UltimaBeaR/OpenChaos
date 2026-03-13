@@ -106,6 +106,113 @@ TGA → внутренний формат при пакете.
 
 ---
 
+## .PRM — статические примы мира
+
+**Расположение:** `server/prims/nprim###.prm` (новый формат) или `server/prims/prim###.prm` (старый)
+**Функция загрузки:** `io.cpp::load_prim_object(prim)`
+**Количество типов:** 1–265 (индексы в prim_objects[])
+
+Прим = статический 3D объект мира: фонарь, урна, знак, бочка, забор, дерево и т.д.
+
+### .PRM бинарный формат (новый, nprim###.prm)
+
+```
+[2 байта]  UWORD save_type             — версия (PRIM_START_SAVE_TYPE=5793 + offset)
+[32 байта] char  name[]                — имя объекта (null-padded)
+[sizeof(PrimObject)] PrimObject        — заголовок: диапазоны индексов
+
+[num_points * sizeof(PrimPoint)] PrimPoint[]    — вершины
+[num_faces3 * sizeof(PrimFace3)] PrimFace3[]    — треугольные полигоны
+[num_faces4 * sizeof(PrimFace4)] PrimFace4[]    — квадратные полигоны
+```
+
+### Структура PrimObject (10 байт)
+
+```c
+// fallen/Editor/Headers/Prim.h
+struct PrimObject {
+    UWORD StartPoint;   // первый индекс в prim_points[] (file-relative)
+    UWORD EndPoint;     // последний+1 → num_points = EndPoint - StartPoint
+    UWORD StartFace4;   // диапазон quads в prim_faces4[]
+    UWORD EndFace4;
+    SWORD StartFace3;   // диапазон tris в prim_faces3[]
+    SWORD EndFace3;
+    UBYTE coltype;      // тип коллизии
+    UBYTE damage;       // как пострадает при ударе
+    UBYTE shadowtype;   // тип тени
+    UBYTE flag;         // доп. флаги
+};
+// sizeof = 2+2+2+2+2+2+1+1+1+1 = 16 байт? нет: 8×UWORD/SWORD + 4×UBYTE = 16+4 = 16!
+// Внимание: SWORD StartFace3/EndFace3 (знаковые — отрицательные = нет треугольников)
+```
+
+После загрузки: индексы Points[j] в face-структурах смещаются от file-relative
+до global-array offset: `Points[j] += next_prim_point - po->StartPoint`.
+
+### Структура PrimPoint (6 байт)
+
+```c
+struct PrimPoint {
+    SWORD X, Y, Z;   // SWORD (int16)! НЕ SLONG (int32)!
+};
+// Старый формат (OldPrimPoint): SLONG X,Y,Z = 12 байт — определяется по save_type
+```
+
+**Критично:** при save_type == PRIM_START_SAVE_TYPE+1 → SWORD (6 байт),
+иначе → OldPrimPoint (SLONG, 12 байт). Все Steam ресурсы используют новый формат.
+
+### Структура PrimFace3 (PC, 22 байта)
+
+```c
+struct PrimFace3 {
+    UBYTE TexturePage;  // индекс текстурной страницы
+    UBYTE DrawFlags;    // флаги рендеринга
+    UWORD Points[3];    // индексы вершин (global, после fixup)
+    UBYTE UV[3][2];     // UV координаты (каждый 0-255)
+    SWORD Bright[3];    // яркость вершины (используется для людей)
+    SWORD ThingIndex;   // индекс Thing для walkable faces
+    UWORD Col2;         // (WALKABLE alias) walkable face index
+    UWORD FaceFlags;    // FACE_FLAG_* (WALKABLE, ROOF, SHADOW, ENVMAP...)
+    UBYTE Type;         // тип поверхности
+    SBYTE ID;
+};
+```
+
+### Структура PrimFace4 (PC, ~26 байт)
+
+```c
+struct PrimFace4 {
+    UBYTE TexturePage;
+    UBYTE DrawFlags;
+    UWORD Points[4];    // 4 индекса вершин
+    UBYTE UV[4][2];
+    union {
+        SWORD Bright[4];          // для людей
+        struct { UBYTE red, green, blue; } col;  // для зданий
+    };
+    SWORD ThingIndex;
+    SWORD Col2;
+    UWORD FaceFlags;    // FACE_FLAG_WALKABLE (1<<6) = ходимая поверхность!
+    UBYTE Type;
+    SBYTE ID;
+};
+```
+
+**FACE_FLAG_WALKABLE (1<<6)** — ключевой флаг: именно эти PrimFace4 образуют поверхности для
+навигации, коллизий и `find_face_for_this_pos()`.
+
+### Известные PRIM_OBJ_* константы
+
+```c
+#define PRIM_OBJ_LAMPPOST        1
+#define PRIM_OBJ_TRAFFIC_LIGHT   2
+#define PRIM_OBJ_PETROL_PUMP     4
+#define PRIM_OBJ_BILLBOARD       7
+// ...всего ~265 типов
+```
+
+---
+
 ## Что переносить
 
 | Формат | Перенос | Примечание |
@@ -114,4 +221,6 @@ TGA → внутренний формат при пакете.
 | .IMP | 1:1 | Парсер нужен для загрузки мешей |
 | .MOJ | 1:1 | Главный формат объектов |
 | .TXC | 1:1 | Текстуры уровней |
+| .PRM | 1:1 | Статические объекты мира |
 | PrimPoint как SWORD | **Критично** | Ошибка парсинга если использовать SLONG |
+| FACE_FLAG_WALKABLE в PrimFace4 | **Критично** | Без него нет walkable поверхностей |

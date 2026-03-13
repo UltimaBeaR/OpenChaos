@@ -29,7 +29,12 @@
       "Bash(python3 -c \":*)",
       "Bash(grep -v \"//.*WPT\\\\|//.*EWAY_DO\")",
       "Bash(python3:*)",
-      "Bash(python -c \":*)"
+      "Bash(python -c \":*)",
+      "Bash(xargs grep:*)",
+      "Bash(head -5 grep -rn \"struct ED_Light\\\\|struct NIGHT_Colour\" \"c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Headers/\" --include=\"*.h\")",
+      "Bash(find c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Debug/ -name *.pam -o -name *.iam -o -name *.pi -o -name *.pp)",
+      "Bash(find c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Debug/ -name *.prm)",
+      "Bash(find c:/WORK/MuckyFoot-UrbanChaos_base/original_game/fallen/Debug/ -name *.all)"
     ],
     "deny": [
       "Bash(git commit*)",

@@ -8,15 +8,17 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **Форматы ресурсов** (КРИТИЧНО для data pipeline): `.all`, `.iam`, `.ucm`, `.prm` binary layout — читать `io.cpp`
-2. **AI TODO** (missions.md → ai.md): PCOM_process_default(), Driving AI, MIB поведение
-3. **Навигация TODO**: WARE_mav_*, INSIDE2_mav_*, MAV при изменении уровня
+1. **AI TODO** (ai.md): PCOM_process_default(), Driving AI, MIB поведение — прочесть pcom.cpp
+2. **Навигация TODO**: WARE_mav_*, INSIDE2_mav_*, MAV при изменении уровня
+3. **Физика TODO**: mount_ladder(), VEH_find_runover_things(), RWMOVE система
 
-**ВЫПОЛНЕНО в этой итерации:**
-- interfac.cpp аннотирован (ключевые функции: process_hardware_level_input_for_player, player_apply_move,
-  player_interface_move, player_turn_left_right_analogue, apply_button_input_fight, do_an_action,
-  InputDone mechanism, weapon hotkeys KB_1..KB_8, main mode dispatcher)
-- SESSION_START.md обновлён (статусы audio.md, ui.md, math_utils.md → ✅)
+**ВЫПОЛНЕНО в этой итерации (форматы ресурсов):**
+- Создан `resource_formats/lighting_format.md` — .lgt формат (ED_Light 16б, NIGHT_Colour 3б, ambient)
+- Обновлён `resource_formats/map_format.md` — исправлено .iam (не .pam!), SuperMap binary layout
+- Обновлён `resource_formats/model_format.md` — .prm формат: PrimObject/PrimFace3/PrimFace4 структуры
+- Обновлён `resource_formats/animation_format.md` — .all формат: keyframe chunk, pointer fixup
+- Обновлён `subsystems/missions.md` раздел 11 — .ucm формат: EventPoint = 74 байта точно
+- Обновлён `resource_formats/README.md` — исправлены расширения, добавлен .lgt
 
 ---
 
@@ -135,7 +137,7 @@
 | **Рендеринг** | rendering.md | ✅ Достаточно | Полностью заменяем, DirectX6 → OpenGL |
 | **Состояния игрока** | player_states.md | ✅ Хорошо | Полные списки STATE_* и SUB_STATE_* |
 | **Эффекты** | effects.md | ✅ Достаточно | Частицы, огонь, ткань отключена |
-| **Форматы ресурсов** | resource_formats/ | ⚠️ Частично | Структура папок ясна, binary форматы не задокументированы |
+| **Форматы ресурсов** | resource_formats/ | ✅ Хорошо | .iam/.prm/.all/.lgt/.ucm задокументированы; .txc/.tma остались |
 | **Камера** | camera.md | ✅ Хорошо | FC only (cam.cpp=мёртв), 8-шаг raycast collision, get-behind алгоритм |
 | **Звук** | audio.md | ✅ Хорошо | Miles Sound System → miniaudio, 14 MUSIC_MODE_*, 5 биомов ambient |
 | **UI** | ui.md | ✅ Хорошо | HUD, инвентарь, frontend, fonts, gamemenu |
@@ -258,12 +260,13 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [ ] `apply_button_input()` полный флоу (нормальный режим бега)
 
 ### ФОРМАТЫ РЕСУРСОВ — TODO (КРИТИЧНО для data pipeline)
-- [ ] **`.all` файлы** (darci1.all, hero.all, bossprtg.all) — binary layout НЕ задокументирован. Читать `load_anim_system()` в io.cpp
-- [ ] **`.iam` файлы** — точный binary layout карты (PAP_Hi + animated prims + OB + supermap)
-- [ ] **`.ucm` файлы** — точная binary структура EventPoint (14+58 байт, exact fields)
-- [ ] **`.prm` файлы** — формат prim объектов вообще не задокументирован. Читать `load_prim_object()` в io.cpp
-- [ ] **`.lgt` файлы** — формат освещения, читать `NIGHT_load_ed_file()`
-- [ ] Документировать в `resource_formats/` — создать отдельные файлы
+- [x] **`.all` файлы** — ГОТОВО: binary layout в animation_format.md (keyframe chunk, pointer fixup, moj embeds)
+- [x] **`.iam` файлы** — ГОТОВО: map_format.md обновлён (PAP_Hi + animated prims + SuperMap)
+- [x] **`.ucm` файлы** — ГОТОВО: missions.md раздел 11, EventPoint = 74 байта (14+60)
+- [x] **`.prm` файлы** — ГОТОВО: model_format.md (PrimObject, PrimFace3, PrimFace4 structs)
+- [x] **`.lgt` файлы** — ГОТОВО: lighting_format.md создан (ED_Light 16б, NIGHT_Colour 3б)
+- [ ] **`.txc` файлы** — точный binary layout архива текстур не задокументирован (заголовок неизвестен)
+- [ ] **`style.tma`** — UV таблица тайлов не задокументирована (load_texture_instyles в io.cpp)
 
 ### МИР/КАРТА (world_map.md) — TODO
 - [ ] Детали `build_quick_city()` — что именно строит, структура
@@ -326,6 +329,15 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - NOISE_TOLERANCE: PC=8192 (из 65535), DC=24 (из 128); ANALOGUE_MIN_VELOCITY: PC=8, PSX=32 (из 128)
 - audio.md: 14 MUSIC_MODE_*, приоритет: CINEMATIC>FIGHT>DRIVING>SPRINT>CRAWL>AMBIENT; замена MSS32→miniaudio
 - math_utils.md: PSX углы 0-2047, SinTable[2560] (не 2048!), CosTable = &SinTable[512]; PC float radians+glm
+- Карты уровней: расширение `.iam` (не .pam!), лежат в `data/`, скрипты миссий `.ucm` — в `levels/`
+- EventPoint binary = 74 байта (14 заголовок + 60 данных); MAX_EVENTPOINTS=512 → 37888 байт на миссию
+- PRIM_START_SAVE_TYPE=5793: если save_type==base+1 → PrimPoint как SWORD (6б), иначе SLONG (12б)
+- PrimFace4 FACE_FLAG_WALKABLE=(1<<6) — только эти квады образуют ходимые поверхности
+- NIGHT_Colour диапазон 0-63 (не 0-255!); для OpenGL делить на 64.0f
+- ED_Light::range,red,green,blue — radius/color для статического точечного источника света
+- ambient direction в night.cpp везде = (110, -148, -177) — захардкожена во всём коде
+- .all файл: save_type 2-5; save_type>2 → 4-byte count + count×moj blocks; затем keyframe chunk
+- .all pointer fixup: сохранённые NextFrame/PrevFrame = runtime адреса; при загрузке пересчитываются через addr1/addr2/addr3
 - TIMEOUT_DEMO=0 → demo_timeout() = мёртвый код
 - SPECIAL_MINE подбор = ASSERT(0), метание = ASSERT(0)
 - save slots: 1-based! (`save_slot = menu_state.selected + 1`)
