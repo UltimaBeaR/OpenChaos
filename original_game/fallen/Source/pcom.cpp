@@ -5277,6 +5277,8 @@ void PCOM_process_getitem(Thing *p_person)
 }
 
 
+// claude-ai: PCOM_process_summon - Bane boss AI: SUMMON_START waits for FLOAT_BOB anim then levitates up to 4 summon bodies (PCOM_summon[0..3]) with set_person_float_up(); creates SPARK arcs from Bane limbs (L/R hands & feet) to each body's pelvis.
+// claude-ai:   SUMMON_FLOAT: recreates SPARK arcs every PCOM_get_duration(50)=160 ticks; proximity check: if Darci within 0x60000 units and stays still for PCOM_get_duration(20)=640 ticks (~2 sec) -> electrocute: set_person_recoil(ANIM_HIT_FRONT_MID), Health-=25, SPARK pelvis-to-pelvis; pcom_move_counter halves if Darci moves (encourages player to keep moving)
 void PCOM_process_summon(Thing *p_person)
 {
 	SLONG i;
@@ -13104,9 +13106,10 @@ void PCOM_process_person(Thing *p_person)
 		if (p_person->Genus.Person->pcom_ai   == PCOM_AI_CIV &&
 			p_person->Genus.Person->pcom_move == PCOM_MOVE_WANDER)
 		{
+			// claude-ai: RESURRECT - wander civs come back to life if not in view after 200 frames; NOTE BUG in pre-release: newpos is computed (HomeX/Z->WorldPos) but never assigned to p_person->WorldPos before plant_feet(); civ resurrects at current death location, not home position
 			//
 			// Wandering civillians come back to life when you can't see them!
-			// 
+			//
 
 			if (!(p_person->Flags & FLAGS_IN_VIEW))
 			{

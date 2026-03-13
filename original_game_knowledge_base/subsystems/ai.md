@@ -538,33 +538,176 @@ PCOM_alert_my_gang_to_flee(threat, source)
 ## 10. Поток AI за кадр
 
 ```
-PCOM_process_person(Person):
-    if (pcom_ai == NONE) → return
+PCOM_process_person(Thing *p_person):  // pcom.cpp:13003
+    StateFn(p_person)                   // анимационный state machine
+    if PlayerID:
+        idle→pcom_move_counter++ → если >PCOM_get_duration(30) и рядом танцующий NPC:
+            Darci копирует его танец (dance join логика)
+        return  // игрок: больше ничего не делаем
 
-    switch(pcom_ai_state):
-        NORMAL:
-            → Движение по pcom_move (патруль/блуждание)
-            → can_a_see_b() для каждого врага поблизости
-            → Если видит врага → переход в SEARCHING/KILLING
+    PCOM_process_movement(p_person)     // низкоуровневое движение
 
-        INVESTIGATING:
-            → Идти к подозрительному месту
-            → MAV_do() → NAV_do() → move_thing()
+    if HELPLESS: return
 
-        KILLING:
-            → find_attack_stance() — позиционирование
-            → Если враг рядом → REQUEST_PUNCH/KICK флаг
-            → set_state_function(STATE_FIGHTING)
-            → apply_hit_to_person() при попадании
-
-        FLEE_PERSON:
-            → Найти путь от врага
-            → Переход в STATE_NAVIGATING
-
-        ARREST:
-            → Полицейский подходит к преступнику
-            → Если рядом → анимация ареста
+    if DEAD/DYING:
+        if AI==CIV && MOVE==WANDER && !IN_VIEW:
+            pcom_ai_counter++ → если >200: воскресить (см. 9)
+    else:
+        PCOM_process_state_change(p_person)  // главный AI dispatcher
 ```
+
+### PCOM_process_default() — диспетчер состояний
+
+Вызывается большинством AI-типов. Простой switch по `pcom_ai_state`:
+
+| Состояние | Обработчик |
+|-----------|-----------|
+| NORMAL | PCOM_process_normal() |
+| INVESTIGATING | PCOM_process_investigating() |
+| **SEARCHING** | **пусто (stub, break)** |
+| KILLING | PCOM_process_killing() |
+| **SLEEPING** | **пусто (stub, break)** |
+| FLEE_PLACE / FLEE_PERSON | PCOM_process_fleeing() |
+| FOLLOWING | PCOM_process_following() |
+| NAVTOKILL | PCOM_process_navtokill() |
+| HOMESICK | PCOM_process_homesick() |
+| **LOOKAROUND** | **только счётчик (no code)** |
+| FINDCAR | PCOM_process_findcar() |
+| BDEACTIVATE | PCOM_process_bdeactivate() |
+| LEAVECAR | PCOM_process_leavecar() |
+| SNIPE | PCOM_process_snipe() |
+| WARM_HANDS | PCOM_process_warm_hands() |
+| KNOCKEDOUT | PCOM_process_knockedout() |
+| TAUNT | PCOM_process_taunt() |
+| ARREST | PCOM_process_arrest() |
+| TALK | PCOM_process_talk() |
+| HITCH | PCOM_process_hitch() |
+| AIMLESS | PCOM_process_wander() |
+| HANDS_UP | PCOM_process_hands_up() |
+| GETITEM | PCOM_process_getitem() |
+| default | ASSERT(0) |
+
+Примечание: FINDBIKE обёрнут в `#ifdef BIKE` (отключён — байк не переносится).
+
+### PCOM_process_normal() — диспетчер NORMAL state
+
+Маршрутизирует по `pcom_move`:
+
+- **STILL / DANCE / HANDS_UP / TIED_UP:**
+  - Если уже в STATE_MOVEING с SIMPLE_ANIM → проверяет сидит/чешется, иначе scratch animation
+  - Если далеко от дома (>256 units) → HOMESICK
+  - GUARD на домашней позиции: рисует пистолет если не нарисован
+  - LAZY-флаг: каждые 0x3f тиков ищет скамейку/диван в радиусе 0x200=512, садится если нашёл
+- **PATROL / PATROL_RAND** → `PCOM_process_patrol()`
+- **WANDER** → `PCOM_process_wander()`
+- **FOLLOW**: если CANTFIND substate — каждые 16 кадров пробует `can_a_see_b` к цели, иначе wander
+- **FOLLOW_ON_SEE**: если дистанция < 0x200 И `can_a_see_b` → переключается на FOLLOW
+- **WARM_HANDS**: если далеко от дома (>0x200) → HOMESICK, иначе `PCOM_set_person_ai_warm_hands()`
+
+---
+
+## 10b. MIB AI детали
+
+**PCOM_AI_MIB (18)** — самый агрессивный AI, всегда убивает игрока:
+
+```
+PCOM_process_state_change → case PCOM_AI_MIB:
+    if pcom_ai_state == NORMAL:
+        if can_a_see_b(me, Darci) && !stealth_debug:
+            PCOM_alert_nearby_mib_to_attack(me)  // mass aggro
+    PCOM_process_default(me)  // обычные состояния
+```
+
+**PCOM_alert_nearby_mib_to_attack()** — массовый aggro trigger (pcom.cpp:10825):
+- `THING_find_sphere(radius=0x500=1280 units)` — все персонажи поблизости
+- Для каждого NPC с pcom_ai ∈ {MIB, GUARD, GANG, FIGHT_TEST}:
+  - Если NOT HELPLESS и в состоянии NORMAL/HOMESICK/INVESTIGATING:
+  - → `PCOM_set_person_ai_navtokill(found, Darci)` (немедленно начинает преследование)
+
+**Ключевые отличия MIB от других AI:**
+- Не ждёт звука/события — проверяет can_a_see_b каждый кадр в NORMAL state
+- Групповой aggro: один MIB увидел → все MIB/GUARD/GANG/FIGHT_TEST в радиусе 1280 атакуют
+- Нет агрессивного порога — убивает всегда (не как COP/GANG с условиями)
+- KO невозможен (Health=700, FLAG2_PERSON_INVULNERABLE)
+
+---
+
+## 10c. Bane AI детали
+
+**PCOM_AI_BANE (19)** — всегда в состоянии SUMMON:
+
+```
+case PCOM_AI_BANE:
+    if pcom_ai_state != SUMMON: PCOM_set_person_ai_summon(me)
+    PCOM_process_summon(me)
+```
+
+**PCOM_process_summon()** — 2 подсостояния (pcom.cpp:5280):
+
+**SUMMON_START:** ждёт анимацию SUB_STATE_FLOAT_BOB, затем:
+- Поднимает до 4 тел (PCOM_summon[0..3]) в воздух (`set_person_float_up()`)
+- Создаёт SPARK электродуги от конечностей Bane к телам (лимбы: L_HAND, R_HAND, L_FOOT, R_FOOT → таз жертвы)
+- Переходит в SUMMON_FLOAT
+
+**SUMMON_FLOAT:** каждые `PCOM_get_duration(50)=160 тиков` пересоздаёт SPARK дуги.
+
+Близость Darci → электрошок:
+- `dx+dz < 0x60000` (Darci рядом) → `pcom_move_counter` растёт
+- Если Darci смещается → `pcom_move_counter >>= 1` (сброс при движении)
+- `pcom_move_counter >= PCOM_get_duration(20)=640 тиков (~2 сек на месте)` → electrocute:
+  - `set_person_recoil(Darci, ANIM_HIT_FRONT_MID, 0)` + `Health -= 25`
+  - SPARK дуга Bane.PELVIS → Darci.PELVIS (intensity=50)
+  - `pcom_move_counter = 0` (сброс)
+
+**Вывод:** Bane не атакует напрямую — он статичен, поднимает тела, и если игрок стоит рядом 2 секунды — бьёт током.
+
+---
+
+## 10d. Driving AI детали
+
+**PCOM_AI_DRIVER (9) / PCOM_AI_COP_DRIVER (14):**
+
+COP_DRIVER → fallthrough в DRIVER логику.
+
+```
+NORMAL state:
+    if !FLAG_PERSON_DRIVING:
+        PCOM_set_person_ai_findcar(me, NULL)  // ищет любую машину
+    else:
+        dispatch по pcom_move:
+            STILL  → PCOM_process_driving_still()
+            PATROL/PATROL_RAND → PCOM_process_driving_patrol()
+            WANDER → PCOM_process_driving_wander()
+            FOLLOW → (пусто — не реализовано)
+non-NORMAL states: PCOM_process_default()
+```
+
+**Важно:** логика COP_DRIVER (выйти из машины и арестовать) закомментирована (`/* ... */`).
+
+**Driving movement states** (в PCOM_process_movement):
+- `PCOM_MOVE_STATE_DRIVETO (8)` — едет к конкретной точке
+- `PCOM_MOVE_STATE_DRIVE_DOWN (11)` — едет по дорожному графу (ROAD wander)
+- Завершение DRIVE_DOWN → переход к следующему NAV-узлу дороги
+
+---
+
+## 10e. Воскрешение гражданских — детали реализации
+
+(pcom.cpp:13104)
+
+```c
+if (pcom_ai == PCOM_AI_CIV && pcom_move == PCOM_MOVE_WANDER && !IN_VIEW):
+    pcom_ai_counter++
+    if pcom_ai_counter > 200:
+        newpos = (HomeX<<16+0x8000, HomeZ<<16+0x8000, terrain_height)
+        // ⚠️ БАГИ пре-релиза: newpos вычисляется но НЕ присваивается p_person->WorldPos!
+        plant_feet(p_person)       // просто снижает к полу на ТЕКУЩЕЙ позиции
+        Health = health[PersonType] // восстанавливает здоровье
+        clear FLAGS_BURNING, BurnIndex = 0
+        PCOM_set_person_ai_normal(p_person)
+```
+
+Вывод: в пре-релизной версии гражданские воскресают **на месте смерти**, а не на домашней позиции (teleport в newpos — мёртвый код). В финале может быть исправлено.
 
 ---
 

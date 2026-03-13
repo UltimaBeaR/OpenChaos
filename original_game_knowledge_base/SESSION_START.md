@@ -8,11 +8,19 @@
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
 **Варианты:**
-1. **AI TODO** (ai.md): PCOM_process_default(), Driving AI, MIB поведение — прочесть pcom.cpp
-2. **Навигация TODO**: WARE_mav_*, INSIDE2_mav_*, MAV при изменении уровня
-3. **Физика TODO**: mount_ladder(), VEH_find_runover_things(), RWMOVE система
+1. **Навигация TODO**: WARE_mav_*, INSIDE2_mav_*, MAV при изменении уровня — читать navigation.md, mav.cpp
+2. **Физика TODO**: mount_ladder(), VEH_find_runover_things(), RWMOVE — читать collide.cpp, Vehicle.cpp
+3. **AI TODO остатки**: agression threshold (KILLING→FLEE), pcom_zone детали, resurrect условия
 
-**ВЫПОЛНЕНО в этой итерации (форматы ресурсов):**
+**ВЫПОЛНЕНО в этой итерации (AI детали):**
+- ai.md разделы 10..10e — PCOM_process_default dispatch таблица, PCOM_process_normal детали
+- ai.md: MIB = каждый кадр can_a_see_b, group aggro radius 1280, PCOM_alert_nearby_mib_to_attack (MIB+GUARD+GANG+FIGHT_TEST)
+- ai.md: BANE = SUMMON_START→SUMMON_FLOAT, электродуги к 4 телам, proximity electrocute Darci (25hp каждые ~2 сек)
+- ai.md: DRIVING AI = FINDCAR если не за рулём, иначе STILL/PATROL/WANDER driving; COP_DRIVER arrest закомментирован
+- ai.md: SEARCHING/SLEEPING = стабы (пустые); LOOKAROUND = только счётчик
+- ai.md: resurrect bug — newpos вычисляется но не присваивается → гражданские воскресают на месте смерти
+
+**ВЫПОЛНЕНО ранее (форматы ресурсов):**
 - Создан `resource_formats/lighting_format.md` — .lgt формат (ED_Light 16б, NIGHT_Colour 3б, ambient)
 - Обновлён `resource_formats/map_format.md` — исправлено .iam (не .pam!), SuperMap binary layout
 - Обновлён `resource_formats/model_format.md` — .prm формат: PrimObject/PrimFace3/PrimFace4 структуры
@@ -213,14 +221,14 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] `plant_feet()` — ГОТОВО: вызывается из STATE FUNCTIONS, НЕ из move_thing. Активно: fn_person_dangling (SUB_STATE_DROP_DOWN_LAND end==1). В fn_person_jumping — везде закомментирована.
 
 ### AI/PCOM (ai.md) — TODO
-- [ ] Детали `PCOM_process_default()` — точный порядок проверок в NORMAL state
-- [ ] Как именно AI решает перейти из KILLING в FLEE (agression threshold?)
-- [ ] `PCOM_AI_MIB` (18) поведение — что отличает MIB от других AI
-- [ ] `PCOM_AI_BANE` (19) — разобран в bat.cpp, но детали в KB скудные
-- [ ] Driving AI детали — как NPC паркует машину, как выбирает путь
-- [ ] Снайперское состояние PCOM_AI_SHOOT_DEAD (21) детали
-- [ ] Гражданские воскресают через 200 кадров — проверить точные условия
-- [ ] Как работает `pcom_zone` — NPC не слышат звуки из других зон?
+- [x] Детали `PCOM_process_default()` — таблица dispatch в ai.md разделе 10; SEARCHING/SLEEPING=стабы, LOOKAROUND=пустой
+- [x] `PCOM_AI_MIB` (18) поведение — каждый кадр can_a_see_b, mass aggro radius 1280 (MIB+GUARD+GANG+FIGHT_TEST)
+- [x] `PCOM_AI_BANE` (19) — SUMMON loop, 4 тела в воздух, electricity arcs, electrocute Darci if idle nearby
+- [x] Driving AI детали — FINDCAR если не за рулём; PATROL/WANDER/STILL driving modes; DRIVE_DOWN=road graph wander
+- [x] Гражданские воскресают через >200 кадров — на месте смерти (баг пре-релиза: newpos не присваивается)
+- [ ] Как именно AI решает перейти из KILLING в FLEE (agression threshold?) — в PCOM_process_killing()
+- [ ] Снайперское состояние PCOM_AI_SHOOT_DEAD (21) детали — PCOM_process_snipe()
+- [ ] Как работает `pcom_zone` — NPC не слышат звуки из других зон? (pcom_zone=bitmask, PCOM_get_zone_for_position)
 
 ### ПЕРСОНАЖИ/АНИМАЦИИ (characters.md) — TODO
 - [x] Точные переходы состояний в Darci: JUMPING→LANDING — ГОТОВО (см. Person.cpp итог выше)
@@ -362,6 +370,12 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - FC get-behind speed: vehicle>>5; entering>>3; у стены>>5+>>6; нормально>>3; gun-out добавляет >>4
 - FC toonear_dist=0x90000 = first-person mode (специальный случай)
 - Lens = всегда 0x28000*CAM_MORE_IN (FOV не меняется, не зависит от action)
+- PCOM_process_default: SEARCHING=пусто(stub), SLEEPING=пусто(stub), LOOKAROUND=только счётчик
+- MIB: каждый кадр can_a_see_b(me,Darci) → PCOM_alert_nearby_mib_to_attack (MIB+GUARD+GANG+FIGHT_TEST в radius 1280 → NAVTOKILL)
+- Bane (PCOM_AI_BANE): всегда в SUMMON; левитирует 4 тела+электродуги; if Darci стоит рядом ~2с → -25hp + SPARK; Bane не двигается
+- DRIVER/COP_DRIVER NORMAL: if !FLAG_PERSON_DRIVING → FINDCAR; COP_DRIVER arrest-from-car = закомментирован
+- Resurrect bug пре-релиз: newpos(HomeX,HomeZ) вычисляется но НЕ присваивается → гражданские воскресают на месте смерти
+- PCOM_process_normal LAZY: каждые 0x3f тиков ищет bench/sofa в radius 512; GUARD на домашней позиции рисует пистолет
 - Per-frame game_loop: GAMEMENU→tutorial→controls→process_things→EWAY→FC→draw→OVERLAY→flip→lock_fps→sfx→GAME_TURN++
 - Bench cooldown: GAME_TURN & 0x3ff == 314 → сброс GF_DISABLE_BENCH_HEALTH (~34с при 30fps)
 - SMOOTH_TICK_RATIO = скользящее среднее TICK_RATIO по 4 кадрам (для машин)
