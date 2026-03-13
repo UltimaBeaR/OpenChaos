@@ -453,7 +453,42 @@ void GetCMatrix(GameKeyFrameElement *e, CMatrix33 *cm) {
 
 ---
 
-## 12. Что переносить в новую версию
+## 12. Физика Darci (Darci.cpp — 1431 строк)
+
+Ранее не задокументирована. `projectile_move_thing()` — основной цикл airborne-физики (576 строк).
+
+**Гравитация и падение:**
+- GRAVITY = `(4<<8)` = 1024 units/tick
+- Terminal velocity: DY = -30000 (hard clamp)
+- **Fall damage формула:** `damage = (-DY - 20000) / 100` (линейная, НЕ экспоненциальная)
+- DY ≤ -30000 → damage = 250 (instant kill)
+- DY ≥ -20000 → damage = 0
+
+**Death plunge (спецанимация падения):**
+- Player порог: DY < -12000
+- NPC порог: DY < -6000
+- Lookahead: проверяет 3 шага вперёд (`dx*i>>5`); если нет пола в 0x600 units → ANIM_PLUNGE_START
+- Velocity обнуляется при plunge
+
+**Velocity scaling:** все velocity inputs: `(vel*3)>>2` (×0.75, конвертация FPS)
+- `change_velocity_to()`: half-step per frame (asymptotic)
+- `change_velocity_to_slow()`: 1 unit/frame
+- `trickle_velocity_to()`: 1 unit/frame in either direction
+
+**Wall collision при прыжке:** `slide_along(SLIDE_ALONG_FLAG_JUMPING)`
+- Fence landing → `set_person_land_on_fence()` (если не unclimbable)
+- Wall kick-off: **#if 0** (мёртвый код)
+- Jump-grab: **#ifdef DOG_POO** (мёртвый код)
+
+**Sewer special path:** `NS_slide_along()` (нет object collisions), `NS_calc_height_at()`
+
+**Barrel collision:** `BARREL_hit_with_sphere()` radius 0x70 при каждом движении
+
+**Return values projectile_move_thing:** 0=no collision, 1=landed, 2=fence/wall, 100=death
+
+---
+
+## 13. Что переносить в новую версию
 
 | Аспект | Подход |
 |--------|--------|

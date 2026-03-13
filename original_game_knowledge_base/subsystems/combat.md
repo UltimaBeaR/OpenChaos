@@ -44,12 +44,15 @@ struct GameFightCol {
 damage = fight->Damage  // базовый урон из анимации
 ```
 
-**Модификаторы по типу атаки (примеры):**
-- Кик NAD: +50 (или +100 для мужчин)
-- Bat hit: +70–90
-- Flying kick: +50
-- Knife 1/2/3: 30/50/70
-- Stomp: +50
+**Модификаторы по типу атаки (полная таблица из кода):**
+- KICK_NAD: +50 (мужчины) / +10 (женщины) + taunt_prob=75%
+- KICK_RIGHT/LEFT: +30
+- KICK_NEAR: damage=40 (заменяет, не прибавляет)
+- BAT_HIT1/HIT2: +20 + taunt_prob+=10
+- FLYKICK варианты: +20 + taunt_prob+=10
+- KICK_BEHIND: +20
+- KNIFE_ATTACK1/2/3: damage=30/50/70 (заменяет)
+- STOMP: +50
 
 **Модификаторы атакующего:**
 - Roper стреляет: урон ×2; Roper ближний бой: +20
@@ -62,7 +65,13 @@ if жертва — игрок: damage >>= 1  (половина урона)
 else: damage -= GET_SKILL(victim), минимум 2
 ```
 
-**Блок** (SUB_STATE_BLOCK или STEP_FORWARD + ANIM_FIGHT_STEP_S): только против melee; guns игнорируют блок → damage = 0.
+**Блок** (SUB_STATE_BLOCK или STEP_FORWARD + ANIM_FIGHT_STEP_S): только против melee (type==0 или type > HIT_TYPE_GUN_SHOT_L); guns игнорируют блок → damage = 0.
+
+**AI вероятность блока:**
+- Base: `60 + GET_SKILL(person) * 12`
+- Если атакующий не виден: вероятность `/= 2`
+- Cap: `150 + GET_SKILL(person) * 5`
+- Финал: `Random() % cap < block_prob` → блок
 
 **Применение:**
 ```
@@ -93,15 +102,17 @@ UBYTE take_hit[7][2] = {
 **Height == 0** (подсечка): `sweep_feet()`.
 **Иначе:** `set_person_recoil()` с нужной анимацией.
 
-MIB-персонажи (PERSON_MIB1/2/3) не могут быть нокаутированы.
+MIB-персонажи (PERSON_MIB1/2/3) не могут быть нокаутированы. **Исключение:** PCOM_AI_FIGHT_TEST (тренировочные манекены) могут умирать от комбо даже если MIB/invulnerable.
 
 ## Fight Tree — дерево комбо
 
 Дерево переходов атак в зависимости от ввода (структура массива `fight_tree[][10]`):
 - Колонки: `[0]=Anim, [1]=Finish, [2-5]=NextState(P1/P2/K1/K2), [6]=NextJump, [7]=NextBlock, [8]=Damage, [9]=HitType`
-- Punch combo: PUNCH_COMBO1 → PUNCH_COMBO2 → PUNCH_COMBO3 (финальный, вызывает KO)
-- Kick combo: KICK_COMBO1 → KICK_COMBO2 → KICK_COMBO3 (финальный)
-- Knife и bat имеют отдельные ветки
+- Punch combo: PUNCH_COMBO1(dmg 10) → COMBO2(30) → COMBO3(60) — KO
+- Kick combo: KICK_COMBO1(10) → COMBO2(30) → COMBO3(60) — KO
+- Cross-combo финишеры: 30, 80, 80 (nodes 11-13)
+- Knife: 30 → 60 → 80 (nodes 14, 16, 18)
+- Bat: 60 → 90 (nodes 19, 21)
 
 ## Граплинг
 

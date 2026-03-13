@@ -258,7 +258,40 @@ SLONG VEH_find_runover_things(Thing *p_vehicle, UWORD thing_index[], SLONG max_n
 
 ---
 
-## 9. Лимиты
+## 9. Недокументированные физические константы (из аннотаций)
+
+**Подвеска:**
+- Rest compression ≈ 4300; rest Y = `(PAP_height + 107) << 8` (107 = 128 × 0.84)
+- Velocity damping: `vel = ((vel << 4) - vel) >> 4` = vel × 15/16
+- Tilt/Roll clamp: ±312 game units (≈27.5°)
+
+**Friction & движение:**
+- Base friction = 7 (bit shift); -1 engine braking, -4 hard braking
+- Formula: `new_vel = ((vel << friction) - vel) >> friction` ≈ vel × (1 - 1/2^friction)
+- Terminal velocity — emergent (accel balanced by friction), НЕ hard cap
+- Dir values: 0=coast, +1=brake, +2=accel, -1=brake-reverse, -2=reverse
+- Wheel spin: accumulated `Velocity>>2` each tick
+
+**Skid:**
+- Start: VelR = Velocity >> 6 (random sign)
+- Escalation: VelR = Velocity >> 5
+
+**Runover damage:**
+- `damage = |VelX*tx + VelZ*tz| / (distance * 200)`; minimum 10 HP always
+- 200 units per HP conversion
+
+**Damage zones:**
+- Middle zones (2/3) averaged from front/rear adjacent
+- Opposite corner reduction when combined damage > 6
+- Collision area→wheel: 0=FL, 1=FR, 2=both-front, 3=both-rear, 4=RL, 5=RR
+
+**Smoke:** Health < 128, chance = `0x7f - Health`
+
+**Kerb collision:** 3-bit angle quantization → nearest cardinal → KERB_TURN applied to VelR
+
+---
+
+## 10. Лимиты
 
 | Ресурс | Лимит |
 |--------|-------|

@@ -46,6 +46,7 @@
 | MuckyBasic (не используется в игре) | [subsystems/muckybasic.md](subsystems/muckybasic.md) |
 | Математика и утилиты | [subsystems/math_utils.md](subsystems/math_utils.md) |
 | Взаимодействие (grab/ladder/cable) | [subsystems/interaction_system.md](subsystems/interaction_system.md) |
+| Малые подсистемы (вода, растяжки, SM, шары, следы, искры, Command) | [subsystems/minor_systems.md](subsystems/minor_systems.md) |
 
 ## Форматы ресурсов
 

@@ -384,3 +384,15 @@ struct Vertex {
 - Можно улучшить до per-pixel (fragment shader) — визуально лучше
 - Динамические тени — можно добавить (shadow maps) — не было в оригинале
 - Оригинальная vertex lighting легко воспроизводится в vertex shader
+
+---
+
+## ⚠️ Game Logic в рендерере (drawxtra.cpp)
+
+**КРИТИЧНО для портирования.** Два места где рендер-код МУТИРУЕТ game state:
+
+1. **`DRAWXTRA_MIB_destruct()`** — модифицирует `ammo_packs_pistol`, создаёт `PYRO_TWANGER` и `SPARK`
+2. **`PYRO_draw_armageddon()`** — создаёт `PYRO_NEWDOME`, `PARTICLE_Add()`, `MFX_play_xyz()`
+
+При портировании эту логику **ВЫНЕСТИ из рендерера в game update loop**.
+`engineMap.cpp` — безопасен (read-only для рендеринга).

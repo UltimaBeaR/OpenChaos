@@ -7,11 +7,38 @@
 
 ## ⚡ СЛЕДУЮЩАЯ ИТЕРАЦИЯ — ПРИОРИТЕТ 1
 
-**Рекомендация:** Начать фазу 2 — планирование new_game/ (KB ~97%, все подсистемы ✅, все эффекты ✅, interact/bang/ribbon/plat/chopper покрыты)
+**Рекомендация:** Начать фазу 2 — планирование new_game/ (KB ~99%, верификация проведена)
 
-**Варианты если продолжать анализ:**
-1. **Перекрёстная верификация KB** — проверить что все факты из аннотаций попали в KB файлы
-2. **Оставшиеся ~180 неаннотированных файлов** — большинство = редактор/PSX/рендеринг (заменяем), см. триаж ниже
+**Перекрёстная верификация ВЫПОЛНЕНА — результаты:**
+
+**A. Протриажены ~180 неаннотированных файлов:**
+- ~18 файлов содержат АКТИВНУЮ игровую логику (ранее не документированы)
+- ~15 файлов MIXED (платформо-зависимые но с активным кодом)
+- Остальные = editor/PSX/rendering (подтверждено)
+
+**B. Новые системы обнаружены и задокументированы (minor_systems.md):**
+- Water.cpp (747 строк) — динамическая водная поверхность (НЕ "просто стены")
+- trip.cpp (361 строк) — растяжки/ловушки (АКТИВНАЯ геймплей-механика)
+- sm.cpp (502 строк) — sphere-matter soft body physics
+- Balloon.cpp (576 строк) — воздушные шары (PC only)
+- tracks.cpp (378 строк) — следы шин/крови/отпечатки ног
+- Spark.cpp (1326 строк) — электрические искры/заборы
+- Command.cpp (520 строк) — legacy NPC commands (МЁРТВЫЙ КОД, только COM_PATROL_WAYPOINT)
+- drawxtra.cpp — КРИТИЧНО: game logic в рендерере (MIB destruct мутирует ammo)
+
+**C. Перекрёстная верификация аннотаций vs KB (Combat/Special/Vehicle):**
+- combat.md: +10 фактов (AI block cap, kick NAD по полу, full damage table, FIGHT_TEST exception)
+- weapons_items.md: +13 категорий (damage values, fire rates, hit chance formula, explosion radii, treasure stats)
+- vehicles.md: +18 фактов (friction formula, damping 15/16, runover damage, tilt clamp)
+- characters.md: +Darci physics (fall damage формула, death plunge, velocity scaling)
+- rendering.md: +warning о game logic в drawxtra.cpp
+
+**D. Ключевые открытия:**
+- Darci fall damage: `(-DY - 20000) / 100`, death plunge player=-12000 / NPC=-6000
+- Pistol=70dmg, Shotgun=300-dist, AK47=100(player)/40(NPC); fire rates: 140/400/64 ticks
+- Hit chance: `230 - abs(Roll)>>1 - Velocity + modifiers`; min 20/256 (~8%)
+- Vehicle friction: bit-shift based `(1 - 1/2^friction)`, terminal velocity emergent
+- DRAWXTRA_MIB_destruct() МУТИРУЕТ game state из рендерера → вынести при портировании
 
 **ВЫПОЛНЕНО в этой итерации (ribbon + bang + interact + triage):**
 - ribbon.cpp полный анализ (144 строки): circular buffer trail renderer для огня/дыма
@@ -339,11 +366,13 @@
 
 ## Статус фазы анализа
 
-**Фаза 1 (текущая):** Детальный анализ оригинального кода → запись в `original_game_knowledge_base/`
-- KB написана примерно на 97% — все геймплейные подсистемы покрыты
-- Исходники аннотированы: 54+ файлов с `// claude-ai:` комментариями
-- Оставшиеся ~180 неаннотированных файлов = в основном редактор/PSX/рендеринг (заменяем)
-- **Готово к фазе 2** (планирование new_game)
+**Фаза 1 (ЗАВЕРШЕНА):** Детальный анализ оригинального кода → запись в `original_game_knowledge_base/`
+- KB написана на ~99% — все геймплейные подсистемы покрыты + верификация проведена
+- Исходники аннотированы: 80+ файлов с `// claude-ai:` комментариями
+- ~180 неаннотированных файлов протриажены: 90%+ = editor/PSX/rendering (подтверждено)
+- Перекрёстная верификация: combat.md, weapons_items.md, vehicles.md, characters.md обновлены
+- Новые системы задокументированы: minor_systems.md (Water, Trip, SM, Balloon, Tracks, Spark)
+- **ГОТОВО к фазе 2** (планирование new_game)
 
 ---
 
@@ -378,6 +407,7 @@
 | **Матем/утилиты** | math_utils.md | ✅ Хорошо | 2 стека (PSX int/PC float), glm для новой игры |
 | **Игровые состояния** | game_states.md | ✅ Хорошо | per-frame порядок, DarciDeadCivWarnings, GS_REPLAY=goto, bench cooldown |
 | **Взаимодействие** | interaction_system.md | ✅ Хорошо | find_grab_face 2-pass, cable params в DFacet, ladder, zipwire |
+| **Малые подсистемы** | minor_systems.md | ✅ Хорошо | Water, Trip, SM, Balloon, Tracks, Spark, Command(legacy), drawxtra warning |
 | **WayWind** | waywind.md | ❌ Не нужен | Редактор, не переносить |
 | **MuckyBasic** | muckybasic.md | ❌ Не нужен | Не интегрирован с игрой |
 
@@ -749,3 +779,13 @@ chopper.cpp      → game_objects.md + ai.md
 - CMatrix33 = {SLONG M[3]}: каждый M[row] packed 3×10-bit elements; scale=128 (не 32768)
 - GameKeyFrameElement (ULTRA_COMPRESSED) = 8 байт: {m00,m01,m10,m11: SBYTE; OffX,OffY,OffZ: SBYTE; Pad: UBYTE}
 - GetCMatrix(): UCA_Lookup[a][b]=Root(16383-a²-b²); Pad bits 0-1=знак c; bits 2-3=позиция c в строке0; bits 4-5=позиция c в строке1; строка2=crossproduct>>7, clamp±127
+- **ВЕРИФИКАЦИЯ:** Darci fall damage: `(-DY-20000)/100`, cap 250; death plunge Player=-12000 / NPC=-6000
+- **ВЕРИФИКАЦИЯ:** Pistol=70hp, Shotgun=300-dist, AK47=100(player)/40(NPC); fire rates 140/400/64 ticks
+- **ВЕРИФИКАЦИЯ:** Hit chance: `230 - abs(Roll)>>1 - Velocity + mods`; min 20/256
+- **ВЕРИФИКАЦИЯ:** Vehicle friction bit-shift: `(vel<<f - vel)>>f`; terminal velocity emergent
+- **ВЕРИФИКАЦИЯ:** ⚠️ drawxtra.cpp DRAWXTRA_MIB_destruct() мутирует ammo из рендерера → вынести
+- **ВЕРИФИКАЦИЯ:** Water.cpp = полная динамическая вода (1024 points, gushing), НЕ "просто стены"
+- **ВЕРИФИКАЦИЯ:** trip.cpp = растяжки (32 wires, 3D line collision, debounce 4f) — активная механика
+- **ВЕРИФИКАЦИЯ:** Balloon.cpp = шары (32 max, chain physics, buoyancy +0x40/f) — PC only
+- ❓ **СПРОСИТЬ ПОЛЬЗОВАТЕЛЯ:** Воздушные шары (Balloon.cpp) есть в финальной PC/PS1 версии? Если нет → не переносить
+- **ВЕРИФИКАЦИЯ:** memory.cpp save_table = 67 entries; MAX_THINGS=256, RMAX_PEOPLE=1024, EWAY_MAX=512
