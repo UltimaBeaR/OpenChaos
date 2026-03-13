@@ -11,8 +11,11 @@
 1. **Физика TODO**: WATER вне дренажа (водная высота)
 2. **Рендеринг TODO**: POLY_frame_draw bucket sort детали (как именно сортируются)
 3. **Освещение TODO**: MapElement.Colour → как применяется к вершинам при рендеринге
-4. **Controls TODO**: Double-click 200ms — GetTickCount() + DoubleClick[]+LastReleased[] механизм
-5. **Миссии TODO**: Точный binary layout .ucm файла (field mapping)
+
+**ВЫПОЛНЕНО в этой итерации (Controls + Missions):**
+- controls double-click: tick = GetTickCount() (WIN32 мс, НЕ GAME_TURN!); окно 200мс; исправлена ошибочная аннотация в interfac.cpp
+- missions.md раздел 11: добавлена "После EventPoints" версионная секция — SkillLevels skip if version>5; BOREDOM_RATE always read; CarsRate+MusicWorld if version>8; messages section
+- Уточнён полный .ucm binary layout (заголовок 1316 б + 512×74 EventPoints + версионный хвост)
 
 **ВЫПОЛНЕНО в этой итерации (Навигация + Characters + Рендеринг):**
 - navigation.md: MAV_can_i_walk детальный алгоритм — нормализованный шаг ~0x40, проверка GOTO edges, диагональные corner cells, только GOTO caps
@@ -311,7 +314,7 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] Порядок разрешения зависимостей EventPoints — ГОТОВО (EWAY_created_last_waypoint linear pass, no cycle detection)
 - [x] Как EWAY_process() итерирует по EP — ГОТОВО (по порядку создания 1..upto, linear array, NOT linked list)
 - [x] EWAY_COND_PRESSURE / EWAY_COND_CAMERA — ГОТОВО (always FALSE, stubs)
-- [ ] Точный binary layout .ucm файла — 14+58 байт на EP, но exact field mapping нужен
+- [x] Точный binary layout .ucm файла — ГОТОВО: missions.md раздел 11 (версионный заголовок+SkillLevels skip+BOREDOM_RATE+CarsRate+MusicWorld+messages)
 - [x] WPT_GOTHERE_DOTHIS (39) — НЕ РЕАЛИЗОВАН в пре-релизе (ASSERT(0) в elev.cpp default)
 - [x] WPT_GROUP_LIFE / GROUP_DEATH (33/34) — ГОТОВО (scans colour+group, иммунны сами к себе)
 - [x] EWAY_COND_COUNTER_GTEQ (25) — ГОТОВО (EWAY_counter[subtype] += 1 при DO_INCREASE_COUNTER)
@@ -326,7 +329,7 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - [x] `player_turn_left_right_analogue()` — ГОТОВО (стик → Arctan(-dx,dz) + camera angle + Roll visual)
 - [x] Горячие клавиши KB_1..KB_8 — ГОТОВО (1=убрать, 2=пистолет, 3-8=спецоружие)
 - [x] **АННОТИРОВАТЬ** interfac.cpp — ВЫПОЛНЕНО
-- [ ] Double-click 200ms — GetTickCount(), точная реализация DoubleClick[] + LastReleased[]
+- [x] Double-click 200ms — GetTickCount() (WIN32 мс!); окно 200мс; исправлена ошибочная аннотация (было "GAME_TURN") в interfac.cpp
 - [x] `apply_button_input()` полный флоу — ACTION tree (ACTION_SHOOT/JUMP/KICK/PUNCH/HUG/FLIP/DROP), movement dispatch, NON_INT флаги
 
 ### ФОРМАТЫ РЕСУРСОВ — TODO (КРИТИЧНО для data pipeline)
@@ -408,6 +411,8 @@ Building.cpp     → buildings_interiors.md + world_map.md + navigation.md
 - ED_Light::range,red,green,blue — radius/color для статического точечного источника света
 - ambient direction в night.cpp везде = (110, -148, -177) — захардкожена во всём коде
 - .all файл: save_type 2-5; save_type>2 → 4-byte count + count×moj blocks; затем keyframe chunk
+- DoubleClick детекция: tick = GetTickCount() (WIN32 **мс**, НЕ GAME_TURN!); окно 200мс; LastReleased[i]=tick при отпускании; DoubleClick[i]++ если re-press в окне, иначе =1. Порт: SDL_GetTicks()
+- .ucm header: 4(version)+4(flags)+260×5(names)+2+2+2(MapIndex/Used/Free UWORDs)+2(CrimeRate+FakeCivs)=1316б; потом 512×74б EventPoints; потом: skip 254б SkillLevels(if ver>5), read 1б BOREDOM_RATE, read 1+1б CarsRate+MusicWorld(if ver>8), messages section
 - .all pointer fixup: сохранённые NextFrame/PrevFrame = runtime адреса; при загрузке пересчитываются через addr1/addr2/addr3
 - TIMEOUT_DEMO=0 → demo_timeout() = мёртвый код
 - SPECIAL_MINE подбор = ASSERT(0), метание = ASSERT(0)

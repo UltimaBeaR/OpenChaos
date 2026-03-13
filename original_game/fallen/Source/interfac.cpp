@@ -8077,11 +8077,11 @@ void	process_hardware_level_input_for_player(Thing *p_player)
 
 	// claude-ai: Double-click детекция — для каждой из 16 кнопок отслеживается:
 	// claude-ai:   pl->DoubleClick[i]   — счётчик кликов: 1 = одиночный, 2 = двойной и т.д.
-	// claude-ai:   pl->LastReleased[i]  — game-тик последнего отпускания кнопки i
-	// claude-ai: Если кнопка нажата повторно менее чем через 200 тиков — DoubleClick[i]++,
+	// claude-ai:   pl->LastReleased[i]  — GetTickCount() (МИЛЛИСЕКУНДЫ!) последнего отпускания кнопки i
+	// claude-ai: Если кнопка нажата повторно менее чем через 200 МИЛЛИСЕКУНД — DoubleClick[i]++,
 	// claude-ai: иначе сброс до 1. Используется в apply_button_input_fight() для выхода из боя.
-	// claude-ai: При портировании: tick — это GAME_TURN (инкрементируется раз за кадр),
-	// claude-ai: 200 тиков = ~3.3 секунды при 60 fps. Масштаб должен совпадать с оригиналом.
+	// claude-ai: При портировании: tick = GetTickCount() = WIN32 системное время в мс (НЕ GAME_TURN!).
+	// claude-ai: 200ms = стандартное double-click окно. Для порта использовать SDL_GetTicks() или std::chrono.
 	for (i = 0; i < 16; i++)
 	{
 		if (pl->Pressed & (1 << i))
