@@ -1,781 +1,1063 @@
-# DENSE SUMMARY — Urban Chaos Knowledge Base
+# DENSE_SUMMARY — Urban Chaos (Полная компактная база знаний)
 
-**Назначение:** Сверхкомпактная версия всей KB для задач требующих полного контекста (архитектурные решения, поиск зависимостей, ответы на сложные вопросы).
-**Когда грузить:** многоподсистемные задачи, архитектурный анализ, аудит KB.
-**Когда НЕ грузить:** работа над одной подсистемой → достаточно SESSION_START + subsystems/X.md.
-**Детали:** все subsystems/*.md и physics_details.md, ai_behaviors.md, etc.
-
----
-
-## 1. Игровой цикл и время
-
-**Порядок за кадр (PC):**
-```
-GAMEMENU_process() → tutorial_string → process_controls() → check_pows()
-→ process_things() → PARTICLE_Run() → OB_process() → TRIP_process()
-→ DOOR_process() → EWAY_process() → SPARK_show_electric_fences()
-→ RIBBON_process() → DIRT_process() → ProcessGrenades() → WMOVE_draw()
-→ BALLOON_process() → MAP_process() → POW_process() → FC_process()
-→ [always] PUDDLE_process() → DRIP_process()
-→ draw_screen() → OVERLAY_handle() → GAMEMENU_draw()
-→ screen_flip() → lock_frame_rate(30) → handle_sfx() → GAME_TURN++
-→ bench cooldown check: (GAME_TURN & 0x3ff)==314 → сброс GF_DISABLE_BENCH_HEALTH
-```
-
-**Ключевые константы:**
-- FPS cap: `lock_frame_rate(30)` — spin-loop busy-wait
-- `PCOM_TICKS_PER_SEC = 320` (16 тиков/кадр × 20 кадров/сек)
-- `POW_TICKS_PER_SECOND = 2000`
-- `SMOOTH_TICK_RATIO` = 4-кадровое скользящее среднее TICK_RATIO (для машин)
-- `TIMEOUT_DEMO = 0` → demo_timeout() = мёртвый код
-- `GAME_TURN` сбрасывается в 0 при каждой загрузке уровня
-- Ночью всегда дождь: `if (!(NIGHT_FLAG_DAYTIME)) GAME_FLAGS |= GF_RAINING` — хардкод
-
-**Пауза:** `GF_PAUSED` → `should_i_process_game() = FALSE` → пропускает process_things..FC_process
-**PSX EWAY:** шаг = 2 (чётные/нечётные кадры); PC: шаг = 1 (каждый кадр)
+Компактная версия всей KB. Содержит числа, формулы, зависимости.
+Используй когда нужно несколько подсистем сразу.
+Актуально для: PC (Steam) + PS1 релизные версии. Кодовая база — пре-релиз.
 
 ---
 
-## 2. Система координат и карта
+## 1. Архитектура и структура кода
 
-**Базовые типы:**
-- Мировые координаты: `SLONG` (32-bit signed integer), **без float в физике**
-- 256 мировых единиц = 1 mapsquare (PAP_Hi)
-- 1024 мировых единицы = 1 PAP_Lo ячейка (4×4 mapsquares)
+**Язык:** C (C-стиль в .cpp, без наследования), ~500K+ строк, ~350+ .cpp, ~150+ .h.
+**Entry point:** `Main.cpp` → `WinMain()` → `game()` (Game.cpp, ~53K строк).
 
-**Преобразования:**
+**Main loop:**
 ```c
-world → mapsquare_hi: >> 8
-world → maplo_cell:   >> 18  (= >> (8+10))
-PAP_Hi.Alt → реальная высота: << 3  (PAP_ALT_SHIFT = 3)
-PAP_Lo.water при загрузке: = -128 >> 3 = -16; PAP_LO_NO_WATER = -127
+game_startup()
+while (SHELL_ACTIVE && GAME_STATE) {
+    if (GS_ATTRACT_MODE) game_attract_mode()   // меню
+    if (GS_PLAY_GAME)    game_loop()            // 30 FPS render, 15 FPS logic
+}
+game_shutdown()
 ```
 
-**Карта:**
-- PAP_Hi: 128×128 ячеек (16 384), 6 байт/ячейка = ~96 KB
-- PAP_Lo: 32×32 ячеек (1 024), 8 байт/ячейка
-- Полный мир: 128×256 = 32 768 мировых единиц по X и Z
-- `water_level = -128` хардкод (мировые единицы)
+**Тайминг:** 30 FPS рендеринг, 15 FPS логика, динамический TICK_RATIO.
 
-**Вращение:** UBYTE 0-255 = полные 360°: 0=восток(+X), 64=юг(+Z), 128=запад(-X), 192=север(-Z)
+**Ключевые файлы:**
 
-**Важные флаги PAP_Hi:**
-- `PAP_FLAG_HIDDEN` (1<<4) = под крышей/внутри — используется MAV для крыш
-- `PAP_FLAG_NOGO` (1<<8) = AI не ходит; `PAP_FLAG_WATER` (1<<15) = вода (невидимые стены)
-- `PAP_FLAG_ZONE1..4` (биты 10-13) = AI-зоны (4-bit bitmask = 16 зон)
-- `PAP_FLAG_ROOF_EXISTS` (1<<9) — переиспользует бит ANIM_TMAP (контекстно-зависимый!)
-- `PAP_FLAG_WANDER` (1<<14) — переиспользует бит FLAT_ROOF
+| Компонент | Файлы | Размер |
+|-----------|-------|--------|
+| Игровой цикл | Game.cpp | ~53K |
+| Миссии | Mission.cpp | ~43K |
+| Оружие/предметы | Special.cpp | ~41K |
+| DDManager (Direct3D) | DDLibrary/DDManager.cpp | ~49K |
+| DIManager (DirectInput) | DDLibrary/DIManager.cpp | ~62K |
+| Персонажи/AI | Person.cpp, ai-*.cpp | — |
+| Физика/коллизии | collide.cpp | — |
+| Рендеринг | DDEngine/ (~60 .cpp), aeng.cpp (~16K) | — |
 
-**MapWho:** `PAP_Lo[x][z].MapWho` → голова linked list объектов; `Thing->Child/Parent` — двусвязный список. `move_thing_on_map()` вызывается только при смене PAP_Lo ячейки (каждые 1024 ед.).
+**Пропускаются полностью:**
+- `/fallen/Editor/`, `/fallen/GEdit/`, `/fallen/LeEdit/`, `/fallen/SeEdit/` — редакторы
+- `/fallen/PSXENG/` — PSX рендеринг (исключение: psxlib/GHost.cpp — controls задокументированы)
+- `/fallen/Glide Engine/` — 3dfx Glide, мёртвый код
+- `MFLib1/`, `MFStdLib/`, `MuckyBasic/`, `thrust/` — не игровой код
+
+**⚠️ ВАЖНО:** DDEngine может мутировать game state. Пример: `drawxtra.cpp` мутирует ammo, создаёт эффекты.
 
 ---
 
-## 3. Thing System — игровые объекты
+## 2. Thing System
 
-**Thing (125 байт) — всё в игре:**
-```c
-struct Thing {
-    UBYTE Class, State, OldState, SubState;
-    ULONG Flags;                    // 32 флага
-    THING_INDEX Child, Parent;      // иерархия
-    THING_INDEX LinkChild, LinkParent; // управление памятью
-    GameCoord WorldPos;             // SLONG X,Y,Z
-    void (*StateFn)(Thing*);        // функция состояния (вызывается КАЖДЫЙ кадр)
-    union { DrawTween*, DrawMesh* } Draw;
-    union { Vehicle/Furniture/Person/... } Genus;
-    UBYTE DrawType; UBYTE Lead;
-    SWORD Velocity, DeltaVelocity, RequiredVelocity, DY;
-    UWORD Index, OnFace, NextLink, DogPoo1;
-    THING_INDEX DogPoo2;
-};
+**Thing struct:** ~125 байт, базовый объект для ВСЕГО в игре.
+
+**15 классов:** CLASS_PLAYER, CLASS_PERSON, CLASS_VEHICLE, CLASS_PROJECTILE, CLASS_ANIMAL, CLASS_BUILDING, CLASS_SPECIAL, CLASS_SWITCH, CLASS_TRACK, CLASS_PLAT, CLASS_CHOPPER, CLASS_PYRO, CLASS_BARREL, CLASS_BAT, CLASS_CAMERA.
+
+**Полиморфизм:** `void (*StateFn)(Thing*)` + `union Genus` (Vehicle/Furniture/Person/Animal/Chopper/Pyro/Projectile/Player/Special/Switch/Track/Plat/Barrel/Bike/Bat).
+
+**Ключевые поля:**
+- `GameCoord WorldPos` (32-bit SLONG на ось), 256 юнитов = 1 mapsquare
+- `SWORD Velocity`, `DY` (вертикальная скорость), `OnFace` (на какой поверхности)
+- `Parent/Child` (иерархия, используется редко), `LinkParent/LinkChild` (управление памятью)
+
+**Лимиты:**
+- PRIMARY_THINGS: **400** (PC)
+- SECONDARY_THINGS: **300** (PC) / 50 (PSX)
+- Итого MAX_THINGS: **700**
+
+**State Machine:**
+- 37 состояний (STATE_NORMAL, STATE_FALLING, STATE_DYING и т.д.)
+- 20+ подсостояний (SUB_STATE_WALKING, SUB_STATE_RUNNING, SUB_STATE_JUMPING и т.д.)
+- `StateFn(Thing)` вызывается каждый кадр
+
+**MapWho — пространственный хэш:**
+- `MapElement[128×128]` с head индексом linked list объектов в ячейке
+- Поиск: `THING_find_sphere()`, `THING_find_box()`, `THING_find_nearest()`
+- **Обязательно** вызывать `move_thing_on_map()` при перемещении — иначе рассинхронизируется
+
+**Специализированные подтипы:**
+
+| Подтип | Параметры | Файл |
+|--------|-----------|------|
+| **Barrel** | 2-sphere rigid body, BARREL_SPHERE_DIST=50; 4 типа (NORMAL, CONE, BURNING, BIN); макс 300 | barrel.cpp |
+| **Platform** | Waypoint-routes (PLAT_STATE_GOTO/PAUSE), smooth accel/decel, max 8 nearby persons | plat.cpp |
+| **Chopper** | Hardwired radius=8192, detection=1024, PRIM_OBJ_CHOPPER=74/75 | chopper.cpp |
+
+---
+
+## 3. Персонажи
+
+**15 типов (PERSON_TYPE_*) с ANIM_TYPE:**
+
+| ID | Name | Health | AnimType | MeshID | Статус |
+|----|------|--------|----------|--------|--------|
+| 0 | Darci | **200** | DARCI(0) | 0 | Полная |
+| 1 | Roper | **400** | ROPER(2) | 0 | `fn_roper_normal()` пуста |
+| 2 | Cop | 200 | CIV(1) | 4 | `#if 0` (закомм.) |
+| 3 | CIV | 130 | CIV(1) | 7 | через PCOM |
+| 4–6 | Thug (RASTA/GREY/RED) | 200 | CIV(1) | 0–2 | `fn_thug_init() ASSERT(0)` |
+| 7–11 | Slag/Hostage/Mechanic/Tramp | 200 | DARCI/CIV | 1–3 | через PCOM |
+| 12–14 | MIB 1/2/3 | **700** | CIV(1) | 5 | через PCOM |
+
+**DrawTween — управление анимацией:**
+```
+TweakSpeed (0–255), FrameIndex, QueuedFrameIndex
+Angle, AngleTo, Roll, Tilt + targets
+CurrentAnim, AnimTween, TweenStage(0–256)
+CurrentFrame, NextFrame, QueuedFrame
+TheChunk (GameKeyFrameChunk)
+MeshID (модель), PersonID (текстура/лицо, до 10 вариантов)
 ```
 
-**Классы:** NONE(0), PLAYER(1), CAMERA(2), PROJECTILE(3), BUILDING(4), PERSON(5), ANIMAL(6), FURNITURE(7), SWITCH(8), VEHICLE(9), SPECIAL(10), ANIM_PRIM(11), CHOPPER(12), PYRO(13), TRACK(14), PLAT(15), BARREL(16), BIKE(17), BAT(18), END(19)
+**Анимационная система (Vertex Morphing + Tweening, НЕ скелетная):**
+- **GameKeyFrame:** XYZIndex, TweenStep, FirstElement (цепь костей)
+- **GameKeyFrameElement:** CMatrix33 (сжатая 3×3), OffsetX/Y/Z, Next/Parent
+- **CMatrix33:** M[3] упакованных, 10-bit элементы, range -512..511
+- Декомпрессия: `UCA_Lookup[a][b]=sqrt(16383-a²-b²)`
 
-**Лимиты:** PRIMARY=400 + SECONDARY=300(PC)/50(PSX) = MAX_THINGS=700; RMAX_PEOPLE=180; MAX_VEHICLES=40; MAX_SPECIALS=260; MAX_PYROS=64
+**Флаги Person (32-bit bitmask):**
+- GUN_OUT(1<<3), DRIVING(1<<4), SLIDING(1<<5), GRAPPLING(1<<13)
+- HELPLESS(1<<14), CANNING(1<<15), BARRELING(1<<27), KO(1<<29)
+- WAREHOUSE(1<<30), BIKING(1<<19), PASSENGER(1<<20)
 
-**Управление памятью:** PRIMARY_USED/UNUSED двусвязные списки; O(1) alloc/free. Итерация по классу: `thing_class_head[CLASS] → NextLink`.
+**Режимы скорости:** RUN(0), WALK(1), SNEAK(2), FIGHT(3), SPRINT(4)
 
-**Поиск:**
-```c
-THING_find_sphere(cx,cy,cz, radius, array, size, class_mask)  // по сфере
-THING_find_box(x1,z1, x2,z2, array, size, class_mask)         // по прямоугольнику
-THING_find_nearest(cx,cy,cz, radius, class_mask)
-// Маски: THING_FIND_PEOPLE=(1<<5), THING_FIND_LIVING=PERSON|ANIMAL
-```
+**Darci физика (Darcy.cpp:projectile_move_thing):**
+- Гравитация: GRAVITY = 1024 units/tick
+- Терминал: DY = -30000 (hard clamp)
+- Fall damage: `dmg = (-DY - 20000) / 100` (линейная)
+  - DY ≤ -30000 → 250 (instant kill), DY ≥ -20000 → 0
+- Plunge-анимация: player DY < -12000, NPC < -6000, lookahead 3 шага
+- Velocity scaling: `(vel*3)>>2` (×0.75)
 
-**Состояния (STATE_*):** INIT(0), NORMAL(1), COLLISION(2), ABOUT_TO_REMOVE(3), REMOVE_ME(4), MOVEING(5), IDLE(6), LANDING(7), JUMPING(8), FIGHTING(9), FALLING(10), USE_SCENERY(11), DOWN(12), HIT(13), CHANGE_LOCATION(14), DYING(16), DEAD(17), DANGLING(18), CLIMB_LADDER(19), HIT_RECOIL(20), CLIMBING(21), GUN(22), SHOOT(23), DRIVING(24), NAVIGATING(25), WAIT(26), FIGHT(27), STAND_UP(28), MAVIGATING(29), GRAPPLING(30), GOTOING(31), CANNING(32), CIRCLING(33), HUG_WALL(34), SEARCH(35), CARRY(36), FLOAT(37)
+**Типы смерти:** COMBAT(1), LAND(2), OTHER(3), LEG_SWEEP(5), SHOT_PISTOL(10), SHOT_SHOTGUN(11), SHOT_AK47(12)
 
 ---
 
 ## 4. Физика и коллизии
 
-**Ключевые константы:**
-- `GRAVITY = -51` (units/frame²) — **НЕ -5120!** Ошибка была исправлена в итерации 2.
-- Fall damage: `(-DY - 20000) / 100`; порог смерти: игрок=-12000 / NPC=-6000
-- `NOGO push = 0x5800`; `SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT = -0x50` (-80 ед.)
-- `HyperMatter: gy=0` хардкод — объекты отскакивают от Y=0, не от реального terrain
+**Гравитация:**
+```c
+#define GRAVITY (-(128 * 10 * 256) / (80 * 80))  // = -51 юн/тик²
+// TICKS_PER_SECOND = 80 (20 * TICK_LOOP)
+// Персонажи: animation-driven, НЕ явная гравитация
+// Транспорт: VelY += GRAVITY каждый тик
+```
 
-**Функции высоты:**
-1. `PAP_calc_height_at_point(mx,mz)` — прямой lookup угловой точки
-2. `PAP_calc_height_at(x,z)` — билинейная интерполяция (4 угла, диагональное разбиение на треугольники)
-3. `PAP_calc_height_at_thing(thing,x,z)` — с учётом склада/здания
-4. `PAP_calc_map_height_at(x,z)` — максимум terrain и зданий
-5. `PAP_calc_height_noroads(x,z)` — без бордюров
+**Тайминг:**
+- Базовый кадр: **66.67 мс** (15 FPS логики)
+- TICK_RATIO: динамический (256 = 1.0x), range 0.5x–2.0x (скользящая средняя 4 кадра)
+- Frame rate cap: **30 FPS** (config.ini), spin-loop busy-wait
 
-**find_face_for_this_pos()** (walkable.cpp, НЕ collide.cpp!): порог кандидата 0xa0=160 ед.; режимы FIND_ANYFACE=1, FIND_FACE_NEAR_BELOW=3; отрицательный индекс = roof face.
+**move_thing — точный порядок:**
+1. Граница карты: выход → return 0
+2. `collide_against_things()` — Things в сфере (radius+0x1a0), только CLASS_PERSON на PRIM
+3. `collide_against_objects()` — уличные OB (фонари, урны), PRIM_COLLIDE_BOX → `slide_along_prim()`
+4. `slide_along()` — DFacets зданий (extra_wall_height=-0x50)
+5. `slide_along_edges()` / `slide_along_redges()` — кромки (STATE_CIRCLING, STEP_FORWARD, FIRE_ESCAPE)
+6. `find_face_for_this_pos()` — новый face; y_diff>0x50 → FALL_OFF
+7. Fall-through workaround: `x2+= dx>>2; y2+= dy>>2; z2+= dz>>2`
+8. Побочные: `DIRT_gust()`, `MIST_gust()`, `BARREL_hit_with_sphere()`
+9. `move_thing_on_map()` — MapWho sync
 
-**move_thing() — порядок (только CLASS_PERSON):**
-1. Граница 128×128 → return 0
-2. `collide_against_things()` — сфера radius+0x1a0
-3. `collide_against_objects()` — OB в радиусе ±0x180; скамейки 89/95/101/102/105/110/126 + SUB_STATE_WALKING_BACKWARDS → `set_person_sit_down()`
-4. `slide_along()` — DFacet зданий; STATE_HUG_WALL: radius >>= 2
-5. `slide_along_edges/redges()` — только STATE_CIRCLING, SUB_STATE_STEP_FORWARD, walking player, FIRE_ESCAPE
-6. `find_face_for_this_pos()` — новый face; y_diff > 0x50 → FALL_OFF_FLAG_TRUE
-7. Fall-through workaround: `x2 += dx>>2; z2 += dz>>2`
-8. `DIRT_gust(), MIST_gust(), BARREL_hit_with_sphere()`
-9. `move_thing_on_map()`
+**slide_along() — алгоритм (NO BOUNCE, NO FRICTION):**
+```c
+slide_along(x1, y1, z1, *x2, *y2, *z2, extra_wall_height, radius, flags)
+```
+- NOGO буфер: 0x5800 (~22 ед.)
+- Фильтр Y: `y_top += extra_wall_height` (стена "ниже" → перешагивание на -0x50)
+- ВСЕ DFacets оси-aligned: вдоль X (push по Z), вдоль Z (push по X)
+- Circle formula: `*pos = endpoint + dp * (radius>>8) / (dist>>8 + 1)`
+- Глобальные выходы: `actual_sliding`, `last_slide_colvect`, `slide_door`, `slide_ladder`
 
-**slide_along() особенности:**
-- Нет отскока (restitution=0). Нет трения. **Все DFacets оси-aligned** (нет диагональных стен).
-- Глобальные переменные: `actual_sliding, last_slide_colvect, fence_colvect, slide_door, slide_ladder, slide_into_warehouse`
-- STOREY_TYPE_CABLE: игнорируется (провода не блокируют)
-- STOREY_TYPE_OUTSIDE_DOOR + FACET_FLAG_OPEN: игнорируется (открытая дверь)
-- `extra_wall_height = -0x50`: стена "ниже" на 80 ед. → персонаж перешагивает порог
+**find_face_for_this_pos() (walkable.cpp):**
+- Алгоритм: быстрый путь (roof first) → поиск lo-res ±0x200 → `is_thing_on_this_quad()` → dy-check
+- Пороги: dy ≤ **0xa0** (160 ед.) = кандидат; fallback 0x50 (80 ед.) → GRAB_FLOOR
+- Отрицательный index = roof face (`roof_faces4[]`)
+- Return: face index, GRAB_FLOOR, или 0 (падение)
 
-**move_thing_quick():** без коллизий — телепортация (ragdoll, knockback, катсцены)
-
-**Лестницы:** `mount_ladder()` закомментирован из interfac.cpp (пре-релиз) → игрок не может залезть снизу. AI через pcom.cpp:12549 — может.
+**plant_feet():**
+- Игнорирует X/Z смещение анимированной ноги (`fx=0; fz=0`)
+- Returns: -1 (GRAB_FLOOR), 0 (падение), 1 (snap к face)
 
 **Коллизионные структуры:**
-- `col_vects[10000]` (PC) — линейные барьеры; `col_vects_links[10000]` — привязка к ячейке
-- `walk_links[30000]` (PC) — ходимые поверхности на ячейку
-
-**Вода:** `PAP_FLAG_WATER` = невидимые стены; нет плавания, нет утопания; огонь гасится
-**WMOVE:** максимум 192 движущихся поверхностей; PSX: только VAN/WILDCATVAN/AMBULANCE
-
----
-
-## 5. AI система (PCOM)
-
-**22 типа AI (PCOM_AI_*):** NONE(0), CIV(1), GUARD(2), ASSASIN(3), BOSS(4), COP(5), GANG(6), DOORMAN(7), BODYGUARD(8), DRIVER(9), BDISPOSER(10), BIKER(11,#ifdef BIKE не переносить), FIGHT_TEST(12), BULLY(13), COP_DRIVER(14), SUICIDE(15), FLEE_PLAYER(16), KILL_COLOUR(17), MIB(18), BANE(19), HYPOCHONDRIA(20), SHOOT_DEAD(21)
-
-**28 состояний AI (PCOM_AI_STATE_*):** PLAYER(0), NORMAL(1), INVESTIGATING(2), SEARCHING(3,STUB!), KILLING(4), SLEEPING(5,STUB!), FLEE_PLACE(6), FLEE_PERSON(7), FOLLOWING(8), NAVTOKILL(9), HOMESICK(10), LOOKAROUND(11,только счётчик!), FINDCAR(12), BDEACTIVATE(13), LEAVECAR(14), SNIPE(15), WARM_HANDS(16), FINDBIKE(17,#ifdef), KNOCKEDOUT(18), TAUNT(19), ARREST(20), TALK(21), GRAPPLED(22), HITCH(23), AIMLESS(24), HANDS_UP(25), SUMMON(26), GETITEM(27)
-
-**Черты (PCOM_BENT_*):** LAZY(0,скамейка каждые 0x3f тиков), DILIGENT(1), GANG(2), FIGHT_BACK(3), ONLY_KILL_PLAYER(4), ROBOT(5), RESTRICTED(6,нет прыжков/лазания), PLAYERKILL(7)
-
-**Поток AI за кадр:**
 ```
-PCOM_process_person():
-    StateFn(p_person)           // анимационный state machine
-    if PlayerID → [танец join логика] → return
-    PCOM_process_movement()     // низкоуровневое движение
-    if HELPLESS → return
-    if DEAD: if CIV+WANDER+!IN_VIEW: counter++→>200 → resurrect
-    else: PCOM_process_state_change()  // main AI dispatcher
+CollisionVect[10000 PC / 1000 PSX]   // Линейные отрезки-барьеры
+CollisionVectLink[10000/4000]         // Linked list → lo-res ячейки
+WalkLink[30000/10000]                 // lo-res → список walkable faces
 ```
 
-**Видимость (can_a_see_b):**
-- Дальность: NPC = 2048 ед. (по умолчанию); игрок = 65536 (всегда видит)
-- Освещение влияет: `view_range = (R+G+B) + (R+G+B)<<3 + (R+G+B)>>2 + 256`
-- FOV: < 192 ед. → 700/2048 (≈123°); ≥ 192 ед. → 420/2048 (≈74°); "краем глаза" 250/2048 ≈ 44°
-- Eye height: стоя 0x60=96 ед.; на корточках 0x20=32 ед.
-- Присевший: view_range >>= 1; движущийся: + 256
+**Высота (5 вариантов):**
+1. `PAP_calc_height_at_point()` — высота угловой точки, no interpolation
+2. `PAP_calc_height_at()` — билинейная интерполяция между 4 углами
+3. `PAP_calc_height_at_thing()` — с контекстом (WARE/NS vs PAP)
+4. `PAP_calc_map_height_at()` — max(terrain, buildings)
+5. `PAP_calc_height_noroads()` — без бордюров
 
-**Звуковые радиусы (PCOM_SOUND_*):** FOOTSTEP=640, VAN=384, DROP=512, MINE/GRENADE=768, UNUSUAL/FIGHT_source/HEY=1536-2304, GUNSHOT=2560 (max). Зоны и стены складов блокируют.
+**HyperMatter (hm.cpp) — spring-lattice физика мебели:**
+- 3D решётка масс-точек + пружины, Euler integration, 13 пружин/точка
+- **gy=0 hardcoded** — объекты отскакивают от Y=0, не от terrain!
+- Stationary threshold=**0.25** → "засыпание" объекта
 
-**Воскрешение гражданских (WANDER):** >200 кадров + !IN_VIEW → heal+teleport. **Баг пре-релиза:** `newpos` вычислен но НЕ присвоен → воскрешают на месте смерти (вместо home).
-
-**MIB-специфика:** Health=700, FLAG2_PERSON_INVULNERABLE → KO невозможен. Mass aggro radius = 1280 (can_a_see_b каждый кадр). **Исключение:** PCOM_AI_FIGHT_TEST умирает от комбо даже если invulnerable.
-
-**zone byte в EWAY_create_enemy:** bits 0-3=spawn zone, bit4=INVULNERABLE, bit5=GUILTY, bit6=FAKE_WANDER
-**KILLING→FLEE:** ТОЛЬКО для FAKE_WANDER NPC (Rasta/Cop); обычные враги → NAVTOKILL/NORMAL
-**pcom_zone:** PAP_Hi.Flags биты 10-13 = 4-bit bitmask; zone!=0 → фильтр звука/видения/NAVTOKILL
-
-**Группировка банд:** `pcom_colour` (0–15), до 64 членов суммарно. `PCOM_alert_my_gang_to_a_fight()` → все NORMAL/WARM_HANDS/FOLLOWING/SEARCHING/TAUNT/INVESTIGATING → KILLING.
-
-**Числовые константы:**
-- `PCOM_TICKS_PER_TURN = 16` тиков/кадр
-- `PCOM_ARRIVE_DIST = 0x40 = 64` ед.
-- `PCOM_get_duration(n) = n * 32` тиков (из десятых секунды)
-- `PCOM_BENT_LAZY`: скамейка каждые `0x3f` тиков в радиусе `512`
-- Коп: сканирует радиус `0x800` каждые 4 кадра на FELON
+**WMOVE — движущиеся ходимые поверхности (wmove.cpp):**
+- Виртуальный walkable face (FACE_FLAG_WMOVE) для каждого транспорта/платформы
+- Лимит: **WMOVE_MAX_FACES=192**
+- Faces per object: CLASS_PERSON/PLAT=1, VAN/AMBULANCE=1, JEEP/MEATWAGON=4, CAR/TAXI=5
+- Жизненный цикл: `WMOVE_create()` → `WMOVE_process()` → `WMOVE_remove()`
 
 ---
 
-## 6. Навигация
+## 5. AI система PCOM
 
-**Две системы:** MAV (основная, greedy best-first) + NAV/Wallhug (вспомогательная/отладочная)
+**Типы AI (PCOM_AI_*, 22 типа, 0–21):**
+`NONE` `CIV` `GUARD` `ASSASIN` `BOSS` `COP` `GANG` `DOORMAN` `BODYGUARD` `DRIVER` `BDISPOSER` `BIKER`(#ifdef) `FIGHT_TEST` `BULLY` `COP_DRIVER` `SUICIDE` `FLEE_PLAYER` `KILL_COLOUR` `MIB` `BANE` `HYPOCHONDRIA` `SHOOT_DEAD`
 
-**MAV — ключевые факты:**
-- `MAV_nav[128×128]` UWORD: 10 бит = индекс в MAV_opt[], 4 бит car-nav, 2 бит spare (вода)
-- `MAV_opt[≤1024]` — таблица вариантов движения: `opt[4] = {XS,XL,ZS,ZL}` направления
-- **НЕ A\***: нет g-cost, только эвристика расстояния → greedy best-first
-- Горизонт: `MAV_LOOKAHEAD = 32` ячейки
-- Действия: GOTO(0), JUMP(1), JUMPPULL(2), JUMPPULL2(3), PULLUP(4), CLIMB_OVER(5), FALL_OFF(6), LADDER_UP(7)
-- Случайное смещение (+0–3 для GOTO, +3 для остальных) — для естественности движения
-- `MAV_turn_movement_on()`: **заменяет** весь набор caps на GOTO (теряет прыжки/pull-up!)
-- `MAV_turn_movement_off()`: очищает **только** бит GOTO (остальные caps не трогает)
-- **Взрывы стен НЕ обновляют MAV** — только при загрузке и через Shift+J (debug)
-- MAV_precalculate() — самая тяжёлая операция при загрузке (128×128 ячеек)
+**Состояния AI (PCOM_AI_STATE_*, 28 состояний, 0–27):**
+`PLAYER` `NORMAL` `INVESTIGATING` `SEARCHING`(stub) `KILLING` `SLEEPING`(stub) `FLEE_PLACE` `FLEE_PERSON` `FOLLOWING` `NAVTOKILL` `HOMESICK` `LOOKAROUND` `FINDCAR` `BDEACTIVATE` `LEAVECAR` `SNIPE` `WARM_HANDS` `FINDBIKE`(#ifdef) `KNOCKEDOUT` `TAUNT` `ARREST` `TALK` `GRAPPLED` `HITCH` `AIMLESS` `HANDS_UP` `SUMMON` `GETITEM`
 
-**Крыши в MAV:** MAVHEIGHT = roof_face.Y/0x40; без roof_face при PAP_FLAG_HIDDEN → NOGO (-127)
+**Константы:**
+```
+PCOM_TICKS_PER_SEC = 320   // 16 тиков/фрейм × 20 фреймов/сек
+PCOM_ARRIVE_DIST = 0x40    // 64 units
+RMAX_PEOPLE = 180           // макс NPC в сцене
+PCOM_MAX_GANGS = 16
+PCOM_MAX_GANG_PEOPLE = 64
+```
 
-**Склады (WARE_mav_*):** swap указателя `MAV_nav` → стандартный MAV_do() с локальной сеткой
-- `WARE_mav_enter`: НЕ меняет MAV_nav; глобальный MAV к точке снаружи двери
-- `WARE_mav_inside/exit`: swap MAV_nav + перевод координат
-- Отличие exit: проверка `|height_out - height_in| < 0x80` (не выйти через дверь другого этажа)
+**Восприятие (видимость):**
+- Дальность: NPC default = `0x800` (2048 units), игрок = `0x10000` (65536)
+- Освещение: `view_range = (R+G+B) + (R+G+B)<<3 + (R+G+B)>>2 + 256`
+- Приседание: range ÷2 · Движение цели: range +256
+- FOV: близко (<192 units) = **700** (~123°), далеко = **420** (~74°)
+- Eye height: стоя = 0x60 (96), приседая = 0x20 (32)
 
-**INSIDE2_mav_inside = ASSERT(0)** — полная заглушка! NPC внутри INSIDE2 зданий застревают.
-**INSIDE2_mav_stair/exit:** баг `> 16` вместо `>> 16` → GOTO на месте.
-**INSIDE2_mav_nav_calc:** баг цикла Z: `MinX..MaxX` вместо `MinZ..MaxZ` → неправильная nav-сетка.
+**Звуки (world-units распространение):**
+- 0x280 (640) — шаг
+- 0x300 (768) — мина, граната
+- 0x600 (1536) — unusual (банка колы)
+- 0x700 (1792) — выстрел-bang
+- 0x800 (2048) — тревога
+- **0xa00 (2560) — выстрел (самый громкий)**
 
-**Wallhug:** двусторонний обход препятствий, max 20000 шагов, 252 waypoints, LOS-оптимизация (4 lookahead)
+**MIB специфика:**
+- Проверяет can_a_see_b(Darci) **каждый фрейм** в NORMAL state
+- PCOM_alert_nearby_mib_to_attack(): radius=1280
+- Health=700, FLAG2_PERSON_INVULNERABLE (KO невозможен)
 
-**Масштаб:** 1 MAV ячейка = 256 мировых ед.; высота 0x40 = 1 блок = 64 ед. SBYTE-шкалы
+**Bane специфика:**
+- Всегда в SUMMON state, поднимает до 4 тел в воздух
+- Электрошок: если Darci в 0x60000 (~384 units) и стоит 2 сек → -25 Health
 
----
-
-## 7. Транспорт
-
-**9 типов:** VAN(0), CAR(1), TAXI(2), POLICE(3), AMBULANCE(4), JEEP(5), MEATWAGON(6), SEDAN(7), WILDCATVAN(8)
-`FLAG_FURN_DRIVING` определён в **Furn.h** (не Vehicle.h!)
-
-**Параметры двигателей (accel_fwd, accel_back, soft_brake, hard_brake):**
-- ENGINE_LGV: 17/10/4/8; ENGINE_CAR: 21/10/4/8; ENGINE_PIG: 25/15/5/10; ENGINE_AMB: 25/10/5/8
-
-**Физика:**
-- Friction bit-shift: `((vel<<f) - vel)>>f` = vel × (1 - 1/2^f); base f=7, engine braking -1, hard braking -4
-- Terminal velocity — emergent (нет жёсткого cap, только `VEH_SPEED_LIMIT=750` / `VEH_REVERSE_SPEED=300`)
-- 4 пружины подвески; Tilt/Roll ±312 ед. (≈27.5°); velocity damping: `vel × 15/16`
-- Skid start: VelR = Velocity >> 6 (random sign); escalation: VelR = Velocity >> 5
-- Runover damage: `|VelX*tx + VelZ*tz| / (distance*200)`; минимум 10 HP
-- Smoke: Health < 128, chance = `0x7f - Health`
-
-**6 зон урона (damage[0..5]):** FL, FR, LM, RM, RL, RR; Middle zones усредняются из Front/Rear; Health ≤ 0 → PYRO_FIREBOMB + STATE_DEAD
-
-**VEH_find_runover_things():** 2 сферы вперёд; `infront = 512 - |WheelAngle*3|` clamped [256,512]
-
-**Мотоцикл (BIKE):** не в финальной игре (подтверждено Mike Diskett). Код существует в #ifdef BIKE.
-
-**WMOVE:** персонажи стоят на крышах машин (max 192 движущихся поверхностей)
+**⚠️ Пре-релизный баг (воскрешение гражданских):**
+- Условие: PCOM_AI_CIV + PCOM_MOVE_WANDER + !IN_VIEW + counter > 200
+- Teleport на HomeX/HomeZ вычисляется, но **НЕ применяется** → воскресают на месте смерти
 
 ---
 
-## 8. Управление и ввод
+## 6. Навигация (MAV + Wallhug)
 
-**18 кнопок INPUT_\*:** FORWARDS(0), BACKWARDS(1), LEFT(2), RIGHT(3), START(4), CANCEL(5), PUNCH(6), KICK(7), ACTION(8), JUMP(9), CAMERA(10), CAM_LEFT(11), CAM_RIGHT(12), CAM_BEHIND(13), MOVE(14), SELECT(15), STEP_LEFT(16), STEP_RIGHT(17)
+**MAV — основная система (mav.cpp):**
+- Greedy best-first поиск, **НЕ A\*** (нет g-cost, только эвристика расстояния)
+- Сетка: **128×128 ячеек**, горизонт поиска: **32 ячейки**
+- Выход: первое MAV_Action; до 1024 записей MAV_opt[], 4 байта/запись
 
-**52 ACTION_\*** (animate.h: 688-740): IDLE(0)..CLIMBING(13)..GRAPPLE(43)..INSIDE_VEHICLE(46)..
+**MAV_Action (действия):**
+```
+0=GOTO · 1=JUMP · 2=JUMPPULL (1 блок) · 3=JUMPPULL2 (2 блока)
+4=PULLUP · 5=CLIMB_OVER · 6=FALL_OFF · 7=LADDER_UP
+```
 
-**process_controls()** = диспетчер подсистем (НЕ обработка ввода игрока!)
-**InputDone:** накапливает обработанные биты → кнопка срабатывает один раз за нажатие
+**MAV_precalculate:**
+- Для каждого из 4 направлений вычисляет MAV_CAPS_* (8 флагов возможностей)
+- Правило: dh=0–2 → GOTO; 2–4 → PULLUP; 1–2 → JUMP; 2–5 → JUMPPULL; >5 → JUMPPULL2
 
-**apply_button_input() — приоритеты do_an_action():**
-выйти из машины > арест > слезть с лестницы > сесть в машину > крюк > переключатель > разговор > подбор > обыск > обнять стену > кола > присесть
+**MAV_can_i_walk() — path shortcutting:**
+- Bresenham от (ax,az) к (bx,bz), проверяет `MAV_CAPS_GOTO` при пересечении границ
+- Диагональный случай: проверяет +2 угловые ячейки
 
-**Ввод без ACTION:** SPRINT→RUN downgrade; crouching → `set_person_idle_uncroutch()`
+**Динамическое обновление (двери):**
+- `MAV_turn_movement_off()` — очищает только бит GOTO
+- `MAV_turn_movement_on()` — **заменяет** весь набор caps на GOTO (другие caps теряются!)
 
-**Горячие клавиши PC:** KB_1=убрать, KB_2=пистолет, KB_3=шотган, KB_4=AK47, KB_5=граната, KB_6=C4, KB_7=нож, KB_8=бита
+**Wallhug алгоритм (Wallhug.cpp, 644 строк):**
+- 2D сетка 128×128, 4 кардинальных направления
+- До 252 waypoints в пути
+- `wallhug_hugstep()`: левая/правая рука, обход стены по Bresenham
+- Отпускание стены: 4 условия (цель не за стеной, смотрит на цель, ближе, не на старте)
+- `wallhug_cleanup()`: LOS-оптимизация (макс 4 шага), реоптимизация по парам
 
-**Аналоговый ввод:** `GET_JOYX(input) = ((input>>17)&0xfe)-128`; `GET_JOYY = ((input>>24)&0xfe)-128`
-
-**player_turn_left_right():** wMaxTurn = 94 idle / 12 в воздухе / (70-Velocity) при беге
-**should_i_jump():** dx/dz захардкожены (не зависят от угла персонажа — баг/упрощение!)
-**Double-click:** `GetTickCount()` WIN32 ms; окно 200ms; не GAME_TURN!
-
-**NOISE_TOLERANCE:** PC=8192 (из 65535); **ANALOGUE_MIN_VELOCITY:** PC=8, PSX=32
-
-**PSX layouts (4 конфига):** cfg0 = Triangle/KICK, Square/PUNCH, Circle/ACTION, Cross/JUMP; L1=CAMERA, R1=STEP_RIGHT, L2=CAM_LEFT, R2=CAM_RIGHT → детали в psx_controls.md
-
-**Zipwire:** `ACTION_DEATH_SLIDE(35)`, `FLAG_PERSON_ON_CABLE(1<<12)`, `STOREY_TYPE_CABLE=9` в геометрии. Есть в финальной игре. В пре-релизе grab закомментирован.
+**⚠️ Пре-релизные баги INSIDE2:**
+- `INSIDE2_mav_inside()` → **ASSERT(0)** (заглушка, NPC не ходит внутри зданий)
+- `INSIDE2_mav_stair/exit()` → баг `> 16` вместо `>> 16` (возвращает текущую позицию)
 
 ---
 
-## 9. Бой и оружие
+## 7. Система координат и карта
 
-### Рукопашный бой
+**PAP_Hi (128×128, ячейка = 256 ед. мира, PAP_SHIFT_HI=8):**
+- `Texture` (UWORD), `Flags` (UWORD), `Alt` (SBYTE, реальная = Alt × 8)
+- Флаги: SHADOW_1/2/3, REFLECTIVE, HIDDEN, SINK_SQUARE/POINT, ANIM_TMAP, ROOF_EXISTS, ZONE1–4, WANDER, FLAT_ROOF, WATER
+- Alt диапазон: 0–127 → реальная 0–1016
 
-**GameFightCol** встроен в кадры анимации: `{Dist1,Dist2,Angle,Priority,Damage,Tween,AngleHitFrom,Height,Width,Dummy,*Next}`
+**PAP_Lo (32×32, ячейка = 1024 ед., PAP_SHIFT_LO=10):**
+- `MapWho` (THING индекс), `Walkable` (face индекс), `ColVectHead` (коллизия), `water`, `Flag` (WAREHOUSE)
 
-**Алгоритм попадания (check_combat_hit_with_person):**
-1. Жертва не мертва; KO → только ANIM_FIGHT_STOMP
-2. QDIST2 по XZ плоскости; `|dy| > 100` = промах
-3. Угол: допуск ±200/2048 (FIGHT_ANGLE_RANGE=400)
-4. LOS через `there_is_a_los_things()` (без учёта заборов и примов)
-5. dist < Dist2 + 0x30 (COMBAT_HIT_DIST_LEEWAY)
+**Интерполяция высоты:** билинейная в PAP_Hi через треугольники при xfrac+zfrac < 0x100
+
+**ROAD граф:**
+- До **256 нодов** (ROAD_MAX_NODES), до 4 граничных (ROAD_MAX_EDGES)
+- Смещение полосы: **ROAD_LANE = 0x100**
+- Текстуры дорог PC: 323–356; PSX: 256–278
+- Маркеры: `ROAD_is_road()`, `ROAD_is_middle()` (5×5 квадратов = надёжно внутри)
+- Построение: сканирование Z/X-параллелей, рекурсивный split на пересечениях
+
+**WAND_init():**
+- Алгоритм: 5×5 окрестность, тротуар рядом с дорогой ИЛИ зебра (текстура 333–334)
+- Исключение: OB_Info коллизия (PRIM_COLLIDE_BOX) y ≤ terrain+0x40 → снять WANDER
+
+---
+
+## 8. Здания и интерьеры
+
+**21 STOREY_TYPE:** NORMAL, ROOF, WALL, ROOF_QUAD, FLOOR_POINTS, FIRE_ESCAPE, STAIRCASE, SKYLIGHT, **CABLE** (тросы, есть в финале!), FENCE, FENCE_BRICK, LADDER, FENCE_FLAT, TRENCH, JUST_COLLISION, PARTITION, **INSIDE**, DOOR, INSIDE_DOOR, OINSIDE, **OUTSIDE_DOOR**
+
+**Иерархия:**
+- `FBuilding` → `FStorey` (linked list) → `FWall` (linked list) → `FWindow`
+- Runtime: `DBuilding` (до 1024) → `DFacet` (граней)
+- `InsideStorey` — интерьеры: MinX/Z, MaxX/Z, InsideBlock, TexType, FacetStart/End
+
+**DFacet (24+ байта):** FacetType, Height (UBYTE), x[2]/z[2], Y[2] (мировые), FacetFlags, StyleIndex, Building, DStorey, **Open** (дверь 0–255), Shake (забор), CutHole, Dfcache
+
+**Двери:**
+- До **4 одновременно** (DOOR_MAX_DOORS=4)
+- Синхронизация: `DOOR_find()` → `FACET_FLAG_OPEN` → `MAV_turn_movement_on/off()` соседей
+- Анимация: без FACET_FLAG_90DEGREE: Open 0→255 (180°); с флагом: 0→128 (90°), шаг +4/кадр
+
+**Лестницы:**
+- До 32 (STAIR_MAX_STAIRS), до 3 на этаж (STAIR_MAX_PER_STOREY)
+- Алгоритм: Fisher-Yates перемешивание, AND bitset соседних этажей, scoring
+- Структура: `flag` (UP|DOWN), `up`/`down` (целевой InsideStorey), x1/z1/x2/z2
+
+**id.cpp рендеринг (процедурная геометрия):**
+- Pipeline: `ID_set_outline()` → `ID_calculate_in_squares/points()` → `ID_generate_floorplan()`
+- Layout scoring: ratio = max(dx,dz)/min(dx,dz) × 256, цель = 414 (золотое сечение)
+
+**WARE (склады):**
+- До 32 (WARE_MAX_WARES=32)
+- До 4 дверей (out_x/z, in_x/z), bounding box, nav/height индексы
+- Пулы: `WARE_nav[4096]`, `WARE_height[8192]`, `WARE_rooftex[4096]`
+
+---
+
+## 9. Миссии EWAY
+
+**EventPoint struct (74 байта):** Colour, Group, WaypointType, Used (4), TriggeredBy, OnTrigger, Direction, Flags (4), EPRef, EPRefBool, AfterTimer (6), Data[10] (40), Radius, X, Y, Z, Next/Prev
+
+**42 условия EWAY_COND_* (0–41):**
+FALSE, TRUE, PROXIMITY, TRIPWIRE, **PRESSURE**(STUB), **CAMERA**(STUB), SWITCH, TIME, DEPENDENT, BOOL_AND/OR, COUNTDOWN, COUNTDOWN_SEE, PERSON_DEAD, PERSON_NEAR, CAMERA_AT, PLAYER_CUBE, A_SEE_B, GROUP_DEAD, HALF_DEAD, PERSON_USED, ITEM_HELD, RADIUS_USED, PRIM_DAMAGED, CONVERSE_END, COUNTER_GTEQ, PERSON_ARRESTED, PLAYER_CUBOID, KILLED_NOT_ARRESTED, CRIME_RATE_GTEQ/LTEQ, IS_MURDERER, PERSON_IN_VEHICLE, THING_RADIUS_DIR, SPECIFIC_ITEM_HELD, RANDOM, PLAYER_FIRED_GUN, PRIM_ACTIVATED, DARCI_GRABBED, PUNCHED_AND_KICKED, MOVE_RADIUS_DIR, AFTER_FIRST_GAMETURN
+
+**52 EWAY_DO_* действия (ключевые):**
+CREATE_PLAYER/ENEMIES/VEHICLE/ITEM/CREATURE/CAMERA/TARGET/MAP_EXIT, MESSAGE, SOUND_EFFECT, VISUAL_EFFECT, CUT_SCENE, TELEPORT, END_GAME_LOSE/WIN, SHOUT, ACTIVATE_PRIM, CREATE_TRAP, ADJUST_ENEMY, LINK_PLATFORM, CREATE_BOMB, BURN_PRIM, NAV_BEACON, SPOT_EFFECT, CREATE_BARREL, KILL_WAYPOINT, CREATE_TREASURE, GROUP_LIFE/DEATH, CONVERSATION, INCREMENT, DYNAMIC_LIGHT, **GOTHERE_DOTHIS**(ASSERT, не реализован), TRANSFER_PLAYER, AUTOSAVE, LOCK_VEHICLE, GROUP_RESET, COUNT_UP_TIMER, RESET_COUNTER, CREATE_MIST, ENEMY_FLAGS, STALL_CAR, MOVE_THING, SHAKE_CAMERA, SIGN, WAREFX, NO_FLOOR
+
+**4 режима активации EWAY_STAY_*:** ALWAYS (одноразовый), WHILE (re-poll), WHILE_TIME (условие + N тиков), TIME (фиксированное время)
+
+**Spawn детали:**
+- Координаты вэйпойнта: mapsquare × 256 → world
+- Yaw: << 3 при сохранении, >> 3 восстановление
+- Zone byte: [0–3]=spawn zone, [4]=INVULNERABLE, [5]=GUILTY, [6]=FAKE_WANDER
+- MAX 2 игрока (NO_PLAYERS ≤ 1 ASSERT)
+
+**.ucm формат (binary, 1316 байт заголовок):**
+- Header: version (4), flags (4), BriefName/LightMapName/MapName/MissionName/CitSezMapName (260×5), MapIndex (2), UsedEPoints (2), FreeEPoints (2), CrimeRate (1), FakeCivs (1)
+- EventPoint цикл: 512 записей × 74 байта
+- После: SkillLevels[254] skip (v>5), BOREDOM_RATE (1), FAKE_CARS (1, v>8), MUSIC_WORLD (1, v>8)
+- **.ucm ≠ MuckyBasic** — это EventPoint данные, не VM скрипты
+
+**EWAY_process() per-frame:** если EWAY_FLAG_ACTIVE → непрерывные эффекты (EMIT_STEAM, WATER_SPOUT, SHAKE_CAMERA, VISIBLE_COUNT_UP); COUNTDOWN decrement; иначе evaluate condition → activate; стоп при GS_LEVEL_LOST|WON
+
+---
+
+## 10. Транспорт
+
+**9 типов:** VEH_TYPE_VAN(0), CAR(1), TAXI(2), POLICE(3), AMBULANCE(4), JEEP(5), MEATWAGON(6), SEDAN(7), WILDCATVAN(8)
+
+**Подвеска (4 пружины):**
+```c
+struct Suspension { UWORD Compression; UWORD Length; };
+MIN_COMPRESSION = 0x0D00 (13<<8)
+MAX_COMPRESSION = 0x7300 (115<<8)
+// При >50% компрессии → Smokin=TRUE
+```
+
+**6 зон повреждения (0–5):** FL, FR, LM, RM, LR, RR (4 уровня каждая)
+
+**Параметры двигателя (разгон вперёд, назад, мягкий тормоз, жёсткий):**
+- VAN: **17, 10, 4, 8**
+- CAR: **21, 10, 4, 8**
+- POLICE: **25, 15, 5, 10**
+- AMBULANCE: **25, 10, 5, 8**
+
+**Скоростные лимиты:**
+- VEH_SPEED_LIMIT = **750** (макс. вперёд)
+- VEH_REVERSE_SPEED = **300** (макс. назад)
+
+**Friction формула:**
+```
+new_vel = ((vel << friction) - vel) >> friction  // = vel × (1 - 1/2^friction)
+// Base friction=7; Engine braking -1; Hard braking -4
+```
+
+**Рулевое управление:**
+- WHEELTIME = **35** кадров; WHEELRATIO = **45**
+- SKID_START = **3** кадров; SKID_FORCE = **8500**
+
+**Прочие константы:**
+- UNITS_PER_METER = 128
+- MAX_VEHICLES = **40**; MAX_RUNOVER = **8** персонажей
+
+---
+
+## 11. Управление и ввод
+
+**INPUT_ кнопки (18):**
+FORWARDS(0), BACKWARDS(1), LEFT(2), RIGHT(3), START(4), CANCEL(5), PUNCH(6), KICK(7), ACTION(8), JUMP(9), CAMERA(10), CAM_LEFT(11), CAM_RIGHT(12), CAM_BEHIND(13), MOVE(14), SELECT(15), STEP_LEFT(16), STEP_RIGHT(17)
+
+**ACTION_ действия (52):**
+- Движение: IDLE(0), WALK(1), RUN(2), WALK_BACK(34), CRAWLING(41), STOPPING(30), SKID(42), CROUTCH(40)
+- Прыжки: STANDING_JUMP(3), STANDING_JUMP_GRAB(4), RUNNING_JUMP(5), DANGLING(6), PULL_UP(7), FALLING(11), LANDING(12), CLIMBING(13), DANGLING_CABLE(17), TRAVERSE_LEFT/RIGHT(36/37)
+- Бой: FIGHT_IDLE(16), FIGHT_PUNCH(14), FIGHT_KICK(15), GRAPPLE(43), GRAPPLEE(44), HOP_BACK(18), SIDE_STEP(19), FLIP_LEFT/RIGHT(27/28), BLOCK_FLAG(39), PUNCH_FLAG(38), KICK_FLAG(32)
+- Оружие: DRAW_SPECIAL(21), AIM_GUN(22), SHOOT(23), GUN_AWAY(24)
+- Прочее: DYING(20), DEAD(26), DEATH_SLIDE(35), RESPAWN(25), ENTER_VEHICLE(45), INSIDE_VEHICLE(46), SIT_BENCH(47), HUG_WALL(48), HUG_LEFT/RIGHT(49/50), UNSIT(51), RUN_JUMP(31)
+
+**Player struct ключевые поля:**
+- `ULONG Input` — текущий ввод (bitmask); `LastInput`/`ThisInput`/`Pressed`/`Released`
+- `UBYTE Stamina`; `Constitution` (защита); `Strength` (сила удара)
+- `UBYTE RedMarks` (нарушения, 10 = game over); `TrafficViolations`; `Danger` (0–3)
+- `SBYTE ItemFocus` (-1 = ничего); `UBYTE ItemCount`, `Skill`
+- `SLONG LastReleased[16]` — для double-click; `UBYTE DoubleClick[16]`
+
+---
+
+## 12. Бой и оружие
+
+### Бой (melee)
+
+**GameFightCol — структура зон удара:**
+- `Dist1` (внутр. граница), `Dist2` (внешняя), `Angle` (1/256 круга), `Priority`, `Damage`
+- `Tween`, `AngleHitFrom`, `Height` (0=ноги, 1=торс, 2=голова), `Width`, `*Next`
+
+**Попадание (check_combat_hit_with_person):**
+1. QDIST2 таз-таз только XZ; `abs(dy) > 100` → промах
+2. Угол: ±200 ед. из 2048-градусной системы
+3. LOS-проверка
+4. dist < Dist2 + 0x30
 
 **Формула урона:**
-- Base = `fight->Damage` + модификаторы типа атаки (KICK_NAD+50, KNIFE_ATTACK3=70, STOMP+50, ...)
-- Атакующий: Roper бой+20; игрок + player.Strength; все + GET_SKILL(attacker)
-- Жертва-игрок: damage >>= 1; жертва-NPC: damage -= GET_SKILL(victim), мин. 2
-- Блок (SUB_STATE_BLOCK): damage = 0 только против melee; огнестрел блок игнорирует
+```
+damage = fight->Damage
+// Тип атаки: KICK_NAD +50M/+10F; KICK_RIGHT/LEFT +30; BAT_HIT +20+taunt;
+//            KNIFE1/2/3 =30/50/70; STOMP +50; FLYKICK +20+taunt
+// Атакующий: Roper×2 (стрельба) или +20 (melee) + player.Strength/Skill
+// Защита: vs player: damage>>=1; vs NPC: damage -= GET_SKILL(victim), min=2
+```
 
-**Knockback:** через выбор анимации из `take_hit[7][2]`, НЕ через физические векторы!
-**KO:** `set_person_dead(PERSON_DEATH_TYPE_STAY_ALIVE)`, `Agression=-60`; от COMBO3/COMBO3B
+**Fight tree (комбо):**
+- Punch: COMBO1(10)→COMBO2(30)→COMBO3(60 KO)
+- Kick: COMBO1(10)→COMBO2(30)→COMBO3(60 KO)
+- Cross-комбо: 30, 80, 80 (nodes 11–13)
+- Knife: 30→60→80 (nodes 14, 16, 18)
+- Bat: 60→90 (nodes 19, 21)
 
-**Fight tree комбо:** punch 10→30→60(KO); kick 10→30→60(KO); cross-combo 30/80/80; knife 30→60→80; bat 60→90
+**AI вероятность блока:**
+```
+base = 60 + GET_SKILL(person)*12
+if attacker not visible: prob /= 2
+cap = 150 + GET_SKILL(person)*5
+block = Random() % cap < block_prob
+```
 
-**Граплинг:** {PISTOL_WHIP(только Darci), STRANGLE, HEADBUTT, GRAB_ARM}; требует стоящую жертву, dist точный
-**SNAP_KNECK** → мгновенная смерть. Strangle/Headbutt: жертва может вырваться.
+**Grappling:**
+- PISTOL_WHIP (Darci, dist=75), STRANGLE (dist=50), HEADBUTT (dist=65), GRAB_ARM (dist=60)
+- Проверка: `|dist - pg->Dist| < pg->Range`, Y<50, жертва не в граплинге/KO
+- SNAP_NECK → ANIM_DIE_KNECK
 
 ### Оружие
 
-**Урон:**
-| Оружие | Урон | Rate (тики) |
-|--------|------|-------------|
-| Пистолет | 70 | 140 |
-| Дробовик | 300-dist, max 250 | 400 |
-| AK47 (игрок) | 100 | 64 |
-| AK47 (NPC) | 40 | 64 |
-| Все guns vs игрок | damage >>= 1 | — |
+**SPECIAL_* типы (30):**
+NONE, KEY, GUN, HEALTH, BOMB, SHOTGUN, KNIFE, EXPLOSIVES, GRENADE, AK47, MINE(заглушена), THERMODROID(не функц.), BASEBALLBAT, AMMO_PISTOL, AMMO_SHOTGUN, AMMO_AK47, KEYCARD, FILE, FLOPPY_DISK, CROWBAR, VIDEO, GLOVES, WEEDAWAY, TREASURE, CARKEY_RED/BLUE/GREEN/BLACK/WHITE, WIRE_CUTTER
 
-**Hit chance:** `230 - abs(Roll)>>1 - Velocity + 64(прицел) - 64(AI vs игрок) + 100(AI vs AI) - dist modifiers`; минимум 20/256 ≈ 8%
+**Магазины:**
+- PISTOL: 15 | SHOTGUN: 8 | AK47: 30 | GRENADE: 3
+- Стак max: гранаты 8, взрывчатка 4, резерв патронов 255 (UBYTE)
+
+**Урон:**
+- Пистолет: 70 HP
+- Дробовик: `300 - dist` (saturated 0–250, range ~0x600)
+- АК-47: игрок 100, NPC 40
+- Все оружие vs игрок: урон >>= 1
+
+**Скорострельность (тики между выстрелами):**
+- Пистолет: 140 (~4.7с/30fps)
+- Дробовик: 400 (~13.3с)
+- АК-47: 64 (~2.1с)
 
 **Взрывы:**
-| Тип | Радиус | Max урон |
-|-----|--------|----------|
-| Mine | 0x200 | 250 |
-| Grenade | 0x300 | 500 |
-| C4 (EXPLOSIVES) | 0x500 | 500 |
-| Bomb | нет shockwave | visual only |
-
-Формула: `hitpoints = maxdamage × (radius-dist) / radius`; KO если > 30; прыгающий: /2+1
-
-**C4:** timer = `16*20*5 = 1600` тиков = **5 секунд** (комментарий "10 сек" в коде — ошибка!)
-**Граната:** `SPECIAL_prime_grenade()` — 6 секунд запал; `SPECIAL_throw_grenade()` + DIRT-физика
-**SPECIAL_MINE:** подбор = ASSERT(0); метание = ASSERT(0) — нефункциональна
-**Магазины:** пистолет 15, шотган 8, AK47 30, гранаты стак 8, C4 стак 4
-
-**30 типов SPECIAL_\*:** NONE(0)..KEY(1)..GUN(2)..HEALTH(3,+100HP)..SHOTGUN(5)..KNIFE(6)..EXPLOSIVES(7)..GRENADE(8)..AK47(9)..MINE(10,нефункц.)..BAT(12)..AMMO_PISTOL/SHOTGUN/AK47(13-15)..TREASURE(23)..CAR_KEYS(24-28)..WIRE_CUTTER(29)
-
-**Выпадение:** только player-dropped оружие рандомизирует ammo (shotgun 2-3, ak47 6-13); cooldown ~1.25с
-
-**Автоприцеливание:** `find_target_new()` по сфере; `calc_target_score_new()` учитывает distance, угол, visibility, вражность
-
----
-
-## 10. Взаимодействие
-
-**find_grab_face():** двухпроходный поиск (pass0: hi-res крыши, pass1: lo-res terrain); возвращает type 0/1(cable)/2(ladder)
-**valid_grab_angle():** ВСЕГДА 1 (валидация отключена в пре-релизе)
-
-**Cable параметры в полях DFacet:** `StyleIndex` = angle_step1, `Building` = angle_step2, `Height` = count
-**find_cable_y_along():** косинусная кривая провисания + линейная интерполяция Y
-**check_grab_ladder_facet():** возвращает -1 если игрок ВЫШЕ (ещё падает)
-
-**Иерархия приоритетов взаимодействия:** выйти из машины > арест > слезть с лестницы > сесть в машину > крюк > переключатель > разговор > подбор > обыск > обнять стену > кола > присесть
-
-**calc_sub_objects_position():** мировая позиция кости; субобъекты: LEFT/RIGHT_HAND, LEFT/RIGHT_FOOT, HEAD
-
----
-
-## 11. Миссии (EWAY)
-
-**EWAY** = реальная система скриптинга миссий. `.ucm` = EventPoint массивы (НЕ MuckyBasic скрипты).
-
-**Polling:** каждый кадр; PC step=1 (все), PSX step=2 (чётные/нечётные). Стоп при GS_LEVEL_WON/LOST.
-`EWAY_time += 80 × TICK_RATIO >> TICK_SHIFT` каждый кадр (≈1000 ед/сек при 50fps)
-
-**Режимы активации (EWAY_Stay):**
-- ALWAYS → DEAD immediately (fire-once, однократный)
-- WHILE → re-poll каждый кадр, при FALSE → inactive
-- WHILE_TIME → WHILE + N тиков after release
-- TIME → фиксированный timer от активации
-- DIE → как ALWAYS через set_inactive
-
-**42 условия (EWAY_COND_\*):**
-- 0=FALSE, 1=TRUE(immediately), 2=PROXIMITY, 3=TRIPWIRE, 4=PRESSURE(**STUB always FALSE**), 5=CAMERA(**STUB always FALSE**), 6=SWITCH, 7=TIME, 8=DEPENDENT, 9=BOOL_AND, 10=BOOL_OR, 11=COUNTDOWN, 12=COUNTDOWN_SEE, 13=PERSON_DEAD, 14=PERSON_NEAR, 15=CAMERA_AT, 16=PLAYER_CUBE, 17=A_SEE_B, 18=GROUP_DEAD, 19=HALF_DEAD, 20=PERSON_USED, 21=ITEM_HELD, 22=RADIUS_USED, 23=PRIM_DAMAGED, 24=CONVERSE_END, 25=COUNTER_GTEQ, 26=PERSON_ARRESTED, 27=PLAYER_CUBOID, 28=KILLED_NOT_ARRESTED, 29=CRIME_RATE_GTEQ, 30=CRIME_RATE_LTEQ, 31=IS_MURDERER, 32=PERSON_IN_VEHICLE, 33=THING_RADIUS_DIR, 34=SPECIFIC_ITEM_HELD, 35=RANDOM, 36=PLAYER_FIRED_GUN, 37=PRIM_ACTIVATED, 38=DARCI_GRABBED, 39=PUNCHED_AND_KICKED, 40=MOVE_RADIUS_DIR, 41=AFTER_FIRST_GAMETURN
-
-**52 действия (WPT_* → EWAY_DO_\*):** CREATE_PLAYER/ENEMIES/VEHICLE/ITEM/CREATURE/CAMERA(2-7), MESSAGE(12), SOUND_EFFECT(13), VISUAL_EFFECT(14), CUT_SCENE(15), TELEPORT(16-17), END_GAME_LOSE(18), SHOUT(19), ACTIVATE_PRIM(20), ADJUST_ENEMY(22), CREATE_BOMB(24), END_GAME_WIN(26), NAV_BEACON(27), SPOT_EFFECT(28), CREATE_BARREL(29), KILL_WAYPOINT(30), CREATE_TREASURE(31), BONUS_POINTS(32→МЁРТВЫЙ КОД if(0)), GROUP_LIFE(33), GROUP_DEATH(34), CONVERSATION(35), INCREMENT(37), DYNAMIC_LIGHT(38), GOTHERE_DOTHIS(39,ASSERT(0)!), TRANSFER_PLAYER(40), AUTOSAVE(41), LOCK_VEHICLE(43), GROUP_RESET(44), COUNT_UP_TIMER(45), RESET_COUNTER(46), CREATE_MIST(47), ENEMY_FLAGS(48), STALL_CAR(49), EXTEND(50), MOVE_THING(51), MAKE_PERSON_PEE(52), CONE_PENALTIES(53), SIGN(54), WAREFX(55), NO_FLOOR(56), SHAKE_CAMERA(57)
-
-**Непрерывные эффекты (каждый кадр пока активны):** EMIT_STEAM, WATER_SPOUT(4×DIRT_new_water), SHAKE_CAMERA(FC+3/+6 PSX, max 100), VISIBLE_COUNT_UP(инкр. таймера+PANEL_draw_timer)
-
-**Ключевые факты:**
-- Координаты вэйпойнта: mapsquare-единицы; `<< 8` при создании объекта
-- Yaw: хранится `>> 3` в EWAY_Way.yaw; восстанавливается `<< 3`
-- `EWAY_counter[7]` = счётчик убитых копов (cap 255)
-- `EWAY_STAY_ALWAYS` → немедленно EWAY_FLAG_DEAD (fire-once semantics!)
-- `GROUP_LIFE/DEATH` иммунны к себе — только другие WP той же colour+group
-- `WPT_BONUS_POINTS` → if(0) (мёртвый код — очки не даются)
-- **Roper stats bug:** EWAY_create_player(PLAYER_ROPER) использует Darci-статы (блок Roper закомментирован)
-
-**EWAY_created_last_waypoint:** resolve ID→index + подсчёт objetive очков + WHY_LOST строки + CAMERA_TARGET_THING attach
-
----
-
-## 12. Здания и интерьеры
-
-**Иерархия:** FBuilding(≤500) → FStorey(≤2500) → FWall(≤15000) → [compile] → DBuilding(≤1024) → DFacet(≤16384)
-
-**21 STOREY_TYPE_\*:** NORMAL(1), ROOF(2), WALL(3), ROOF_QUAD(4), FLOOR_POINTS(5), FIRE_ESCAPE(6), STAIRCASE(7), SKYLIGHT(8), **CABLE(9,тросы! есть в финале)**, FENCE(10), FENCE_BRICK(11), **LADDER(12)**, FENCE_FLAT(13), TRENCH(14), JUST_COLLISION(15), PARTITION(16), **INSIDE(17)**, DOOR(18), INSIDE_DOOR(19), OINSIDE(20), **OUTSIDE_DOOR(21)**
-
-**DFacet:** все оси-aligned! `Y[2]` = нижний/верхний Y; `Open` (0-255) = анимация двери; поле `StyleIndex/Building/Height` переиспользуются для параметров кабелей!
-
-**Интерьеры:** не отдельная геометрия — те же DFacets типов 17/19/20. Рендер переключает фильтрацию. STOREY_TYPE_OUTSIDE_DOOR(21) = триггер входа.
-
-**Двери:** DOOR_MAX_DOORS=4 одновременно; step +4/кадр; синхронизированы с MAV через MAV_turn_movement_on/off()
-
-**Лестницы:** автогенерация через STAIR_calculate() с seed; scoring: edges +0x5000, opposite_wall +0xbabe, near_outside_door = -INFINITY
-
-**Здания неуязвимы** — нет damage mesh. `Shake` в DFacet = только для заборов.
-
-**build_quick_city():** регистрирует DFacets и roof_faces4 в PAP_Lo. Положительные face индексы (prim_faces4) **закомментированы** — только отрицательные (roof_faces4) регистрируются.
-
-**ROAD_wander_calc():** ROAD_MAX_NODES=256; ROAD_LANE=0x100 (левая сторона); `ROAD_is_road` = PAP_Hi.Texture & 0x3ff: PC 323-356, PSX 256-278
-**Хардкод:** нод (121,33) на gpost3.iam — пропускается в ROAD_wander_calc
-
-**WAND_init():** PAP_FLAG_WANDER ставится ячейкам-тротуарам (5×5 окрестность от дорог); очищается для OB с PRIM_COLLIDE_BOX/SMALLBOX/CYLINDER
-
----
-
-## 13. Эффекты
-
-**Частицы (psystem.cpp):** MAX_PARTICLES = 2048(PC) / 64(PSX); `PARTICLE_Add()` с gravity/drag; timing через GetTickCount() (delta-time!)
-
-**Огонь:** FIRE_MAX_FLAMES=256, FIRE_MAX_FIRE=8; время жизни 32+rand(31) кадров; size -= shrink каждые 4 кадра
-
-**Ribbon:** MAX_RIBBONS=64, MAX_RIBBON_SIZE=32; circular buffer trail; флаги FADE/SLIDE/CONVECT(+22Y/frame)/IALPHA; используют: PYRO_IMMOLATE/FLICKER, FLAMER, CHOPPER
-
-**BANG (взрывы визуально):** 4 типа каскада (BIG→MIDDLE→NEARLY→END); 64 BANG + 4096 Phwoar частиц; **урон НЕ отсюда** → `create_shockwave()` в collide.cpp
-
-**POW:** sprite-based взрывы, 8 типов, POW_Sprite[256], POW_Pow[32]
-
-**PYRO (18 типов Thing-based):** IMMOLATE = -10HP/frame; GAMEOVER = 8 dlights, counter>242 → GS_LEVEL_LOST; MAX_PYROS=64
-
-**DIRT:** 16 типов ambient debris; MAX_DIRT=1024; pigeon = `prob_pigeon=0` хардкод ("no bug ridden pigeons"); банки колы = TYPE_CAN через DIRT с prob_can=1/101; prim 253 = ejected shell (PC only)
-
-**Shadow (статические):** запекаются при загрузке; sun_dir = (+147,-148,-147); 3 бита → PAP_FLAG_SHADOW_1/2/3
-
-**Лужи (PC only):** `PUDDLE_precalculate()` при загрузке; `PUDDLE_in()` проверяет точку; `DRIP_create_if_in_puddle()` под `#ifndef TARGET_DC`
-
-**Вода:** `WATER_gush()` возмущение от машин/людей; `MIST_gust()/FOG_gust()` от движения
-**Cloth.cpp:** `CLOTH_process()` в `#if 0` — не выполняется. Не переносить.
-
-**Spark:** SPARK_MAX_SPARKS=32; 4 точки (LIMB/CIRCULAR/GROUND/POINT); звук S_ELEC_START+(spark_id%5)
-
-**PYRO_HITSPANG:** max `global_spang_count=5`
-
----
-
-## 14. Камера
-
-**Только FC (Final Camera):** `cam.cpp` = мёртвый код (`#ifdef DOG_POO`). FC_MAX_CAMS=2 (splitscreen).
-
-**4 режима камеры:** 0=стандарт(dist≈480,h=0x16000), 1=дальше(640,0x20000), 2=ещё дальше(896,0x25000), 3=низкий(768,0x8000)
-**PSX type0:** dist=0x300(768), h=0x18000; `CAM_MORE_IN=0.75F` → PC камера на 25% ближе
-
-**FC_process — 15 шагов:**
-1-2. alter_for_pos + calc_focus; 3. Warehouse transition; 4. lookabove (умирающий: -0x80/кадр); 5. Rotate (decay ±0x80/кадр); 6. Toonear cancel; **7. Collision detection (8 шагов от want к focus: MAV_inside + стены + заборы)**; 8. Get-behind (скорость: entering_vehicle>>3, driving>>5, стена>>6+>>5, normal>>3); 9. Adjust Y (dy>>3, cap [-0xc00,+0xd00]; WMOVE → dy<<5 мгновенно); 10. Distance clamp; 11. Position smoothing (если |delta|>0x800); 12. FC_look_at_focus; 13. Angle smoothing (если |total|>0x180 → delta>>2); **14. Lens = 0x28000×CAM_MORE_IN (ВСЕГДА, FOV не меняется!)**; 15. Shake (random×128, decay: -1-shake>>3)
-
-**Toonear:** `toonear_dist=0x90000` → first-person mode
-
-**FC_alter_for_pos:** idle height check (`&& 0`) = МЁРТВЫЙ КОД → реально всегда dheight=0,ddist=256
-
-**focus_yaw специальные случаи:** ACTION_SIDE_STEP/SIT_BENCH/HUG_WALL → +1024; SUB_STATE_ENTERING_VEHICLE: TAXI → -712, иначе +712; STATE_DANGLING: ±550; GF_SIDE_ON_COMBAT → -512; машина задним ходом → +1024
-
----
-
-## 15. Рендеринг
-
-**DDEngine — DirectX6 fixed-function pipeline. Переписываем с нуля.**
-
-**Типы (DT_\*):** NONE(0), BUILDING(1), PRIM(2), MULTI_PRIM(3), ROT_MULTI(4), EFFECT(5), MESH(6), TWEEN(7,персонажи), SPRITE(8), VEHICLE(9), ANIM_PRIM(10), CHOPPER(11), PYRO(12), ANIMAL_PRIM(13), TRACK(14), BIKE(15)
-
-**Пайплайн рендеринга:**
-1. `POLY_frame_init()` — очистка буферов
-2. `MESH_draw_poly()` + `SPRITE_draw()` + `SKY_draw_poly_*()` — накопление полигонов
-3. `POLY_frame_draw()` — Z-сортировка + рендер:
-   - Непрозрачные: в порядке индекса, POLY_PAGE_COLOUR первым
-   - Прозрачные: **bucket sort** `buckets[2048]`, `sort_z=ZCLIP/vz`, bucket=[0]=дальние→[2047]=близкие; render FAR→NEAR = back-to-front
-   - POLY_PAGE_SHADOW: `if !draw_shadow_page` — пропускается
-   - POLY_PAGE_PUDDLE: отдельный `POLY_frame_draw_puddles()`
-
-**POLY_NUM_PAGES=1508** (0-1407 обычные, 1408+ служебные); `MAX_VERTICES=32000`
-
-**Трансформация вершины:**
-```c
-vx = world_x - cam_x;  // translate к камере
-MATRIX_MUL(cam_matrix, vx,vy,vz);  // view space
-Z = ZCLIP_PLANE / vz;  // reciprocal depth
-X = mid_x - mul_x * vx * Z;  Y = mid_y - mul_y * vy * Z;
+```
+Type        Radius  Max DMG  Aggressor
+Mine        0x200   250      null
+Grenade     0x300   500      thrower
+C4/Explos.  0x500   500      placer (таймер: 1600 тиков @ 20fps)
+Formula: hitpoints = maxdmg × (radius - dist) / radius
 ```
 
-**Vertex lighting (не per-pixel):** `NIGHT_Colour {r,g,b}` 0-63 (6-bit!) → ×4 → 0-255 для D3D
-**Ambient direction:** (110,-148,-177) — **захардкожена** везде
-**Crinkle (bump mapping):** отключён в пре-релизе (`CRINKLE_load→NULL`), но **работает в финальном PC**
+**Гранаты (grenade.cpp):**
+- Активация: `timer = 1920 тиков` (**6 сек**)
+- Гравитация: `dy -= TICK_RATIO × 2`, терминал -0x2000
+- Отскок: `dy = abs(dy) >> 1`, если dy < 0x400 → остановка
 
-**NIGHT система:**
-- Статические источники: max 256, из `.lgt` файлов; LIGHT_range max=0x600; BROKEN/PULSE/FADE типы
-- Динамические: max 64 (`NIGHT_Dlight`)
-- Статические тени: запекаются в PAP_FLAG_SHADOW_1/2/3; LOS ray-cast к (147,-148,-147)
-- **Динамических теней НЕТ** — flat sprite под ногами
-- `NIGHT_Colour` диапазон 0-63 (НЕ 0-255!)
-- **БАГ night.cpp:746:** `dprod = dz*nx` вместо `dz*nz`
-- `NIGHT_generate_walkable_lighting()` = **МЁРТВЫЙ КОД** (`return;` в начале)
-- `MapElement.Colour` = МЁРТВЫЙ КОД в DDEngine (PC)
+**Автоприцеливание (guns.cpp):**
+- Дальность (блоки): MIB 8, Pistol 7, AK47 8, Shotgun 6
+- Конус: MAX_DANGLE = 2048/7 ≈ 292 (~±51°), при беге ×4 уже
+- Hit chance: `base = 230 - abs(Roll)>>1 - Velocity + модификаторы`, min=20/256 (~8%)
+- Scoring: `(8<<8 - dist) × (MAX_DANGLE - dangle) >> 3`
 
-**Fog:** outdoor = `NIGHT_sky_colour`; GF_SEWERS/GF_INDOORS = чёрный (0)
-
-**USE_TOMS_ENGINE_PLEASE_BOB=1** — единственный активный путь рендеринга
-**InterruptFrame = МЁРТВЫЙ КОД** (всегда NULL)
-
-**DrawMesh.Angle = 0-2047** (полные 360°)
-
-**⚠️ Game logic в рендерере:**
-- `DRAWXTRA_MIB_destruct()` мутирует `ammo_packs_pistol`, создаёт PYRO_TWANGER и SPARK
-- `PYRO_draw_armageddon()` создаёт PYRO_NEWDOME, PARTICLE_Add(), MFX_play_xyz()
+**Банки колы (DIRT система):**
+- DIRT типы: LEAF(1), CAN(2), THROWCAN(6), BRASS(10), BLOOD(14)
+- Подбор (только Darci): `STATE_CANNING=32`, `FLAG_PERSON_CANNING=(1<<15)`
+- Бросок: `dy = power >> 2` (вверх)
+- Звук при ударе: `S_KICK_CAN`, alert NPC = `PCOM_SOUND_UNUSUAL`
 
 ---
 
-## 16. Звук
+## 13. Взаимодействие
 
-**Miles Sound System (MSS32)** — проприетарная. При переносе: заменить на miniaudio или SDL_mixer.
+**find_grab_face() — 2-pass алгоритм (interact.cpp):**
+- Pass 0: hi-res (крыши), Pass 1: lo-res (terrain)
+- Для каждого: проверка 4 рёбер квада, Y-диапазон ±256+dy, угол ±200°, расстояние < radius, не через забор
+- Типы: 0=surface, 1=cable, 2=ladder
 
-**MFX API:** `MFX_play(ch,wave,flags)`, `MFX_play_xyz(ch,wave,flags,x>>8,y>>8,z>>8)`, `MFX_stop(ch)`, `MFX_set_volume(ch,vol)`, `MFX_update_xyz(ch,x>>8,y>>8,z>>8)`
-3D координаты со сдвигом `>>8` (world units → mapsquares)
+**Cable/Zipwire (параметры в DFacet):**
+- `StyleIndex` (SWORD) = angle_step1 (кривизна сег1)
+- `Building` (SWORD) = angle_step2 (кривизна сег2)
+- `Height` (UBYTE) = count (кол-во шагов)
+- `find_cable_y_along()`: 2 сегмента, косинусная кривая провисания
+- `check_grab_cable_facet()`: ближайшая точка на тросе + расчёт провисания
 
-**14 MUSIC_MODE_\*:** NONE, CRAWL, DRIVING1/2, DRIVING_START, FIGHT1/2, SPRINT1/2, AMBIENT, CINEMATIC, VICTORY, FAIL, MENU
-
-**Приоритеты музыки:** CINEMATIC > FIGHT1/2 > DRIVING > SPRINT > CRAWL > AMBIENT
-
-**5 биомов ambient:** Jungle(texture_set=1), Snow(=5), Estate(=10), BusyCity(default), QuietCity(=16)
-
-**Indoor/Outdoor:** `GF_INDOORS` флаг → fade ambient; типы indoor: office/police/posheeta/club
-
-**Погода:** дождь громче у земли (`gain = 255 - above_ground>>4`); ветер громче на высоте (`gain = abs_height>>4`)
-
-**Шаги:** `FLAGS_PLAYED_FOOTSTEP` (bit 12); тип звука по `PAP_Hi.Texture`
-
----
-
-## 17. UI и Frontend
-
-**Состояния игры (GS_\*):** ATTRACT_MODE(1<<0), PLAY_GAME(1<<1), CONFIGURE_NET(1<<2,не нужен), LEVEL_WON(1<<3), LEVEL_LOST(1<<4), GAME_WON(1<<5), RECORD(1<<6), PLAYBACK(1<<7), REPLAY(1<<8), EDITOR(1<<16)
-
-**Внешний loop:** ATTRACT_MODE → game_attract_mode(); PLAY_GAME → game_loop(); inner loop продолжается пока `GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WON`
-
-**GAMEMENU ожидание:** `GAMEMENU_wait` += 64/кадр; порог 2560 ≈ 40 кадров ≈ 1.3с → показ меню
-
-**WON-меню:** нет выбираемых пунктов → любое нажатие = DO_NEXT_LEVEL
-**LOST-меню:** RESTART → DO_RESTART; ABANDON → SURE → DO_CHOOSE_NEW_MISSION
-
-**GS_REPLAY:** `goto round_again` → полный рестарт с нуля (чекпоинтов нет)
-
-**DarciDeadCivWarnings:** `Player->RedMarks > 1` → предупреждения; счётчик 3 → `GS_LEVEL_LOST`! **Персистирует между миссиями!**
-
-**CRIME_RATE delta:** kill guilty=-2, kill wander_civ=+5, arrest guilty=-4; если CRIME_RATE=0 при загрузке → дефолт 50
-
-**mission_hierarchy биты:** bit0=exists, bit1=complete, bit2=available; [1]=3 (корень) при старте
-
-**complete_point пороги:** <8→theme0, <16→theme1, <24→theme2, ≥24→theme3; max чит=40
-
-**ScoresDraw():** killed/arrested/at-large/bonus found/missed/time; Mucky Times = DC времена (PC в #if 0); код-хэш для спидрана: `(i+1)*(m+1)*(s+1)*3141 % 12345 + 0x9a2f`
-
-**STARTSCR_mission flow:** FE_MAPSCREEN+ENTER → mode=100+N → FE_START → STARTSCR_mission set → STARTS_START → GS_PLAY_GAME → elev.cpp → *STARTSCR_mission=0
-
-**Особые миссии:**
-- park2.ucm → RunCutscene(1) (MIB intro) при победе
-- Finale1.ucm → RunCutscene(3) + OS_hack() (финал)
-- `this_level_has_bane` = ТОЛЬКО index 27 в whattoload[] = Finale1.ucm
-- VIOLENCE=FALSE для туториалов: FTutor1(1), Album1(31), Gangorder1(32)
-- `DONT_load = 0` жёстко → per-mission dontload bitmasks игнорируются
-- `ANNOYING_HACK_FOR_SIMON`: policeID требует fight1+assault1+testdrive1a
+**Ladder (interact.cpp:check_grab_ladder_facet):**
+- Расстояние до центральной линии
+- Y-диапазон: `bottom ≤ Y ≤ top + 64`
+- Return -1: выше лестницы; Return 1: валидная позиция
+- ⚠️ `mount_ladder()` из interfac.cpp закомментирован в пре-релизе
 
 ---
 
-## 18. Прогресс и сохранения
+## 14. Player States
 
-**3 слота, 1-based!** `save_slot = menu_state.selected + 1`
+**Главные состояния (STATE_*):**
+INIT(0), NORMAL(1), MOVEING(5), IDLE(6), LANDING(7), JUMPING(8), FIGHTING(9), FALLING(10), USE_SCENERY(11), DOWN(12), HIT(13), CHANGE_LOCATION(14), DYING(16), DEAD(17), DANGLING(18), CLIMB_LADDER(19), CLIMBING(21), GUN(22), SHOOT(23), DRIVING(24), NAVIGATING(25), WAIT(26), GRAPPLING(30), CANNING(32), CIRCLING(33), HUG_WALL(34), SEARCH(35), CARRY(36), FLOAT(37)
 
-**.wag бинарный layout (version 3):**
+**Подсостояния движения (1–27):**
+WALKING(1), RUNNING(2), SIDELING(3), WALKING_BACKWARDS(16), RUNNING_SKID_STOP(17), CRAWLING(19), SNEAKING(20), SLIPPING(22), RUNNING_VAULT(25), RUNNING_HIT_WALL(27)
+
+**Подсостояния прыжков (30–41):**
+STANDING_JUMP(30), STANDING_GRAB_JUMP(31), RUNNING_JUMP(32), RUNNING_JUMP_FLY(33), RUNNING_GRAB_JUMP(34), RUNNING_JUMP_LAND(35), STANDING_JUMP_FORWARDS(38), STANDING_JUMP_BACKWARDS(39), FLYING_KICK(40), FLYING_KICK_FALL(41)
+
+**Подсостояния боя (90–105):**
+PUNCH(90), KICK(91), BLOCK(92), GRAPPLE(93), GRAPPLEE(94), WALL_KICK(95), STEP(96), STEP_FORWARD(97), GRAPPLE_HOLD(98), GRAPPLE_HELD(99), ESCAPE(100), GRAPPLE_ATTACK(101), HEADBUTT(102), STRANGLE(103), HEADBUTTV(104), STRANGLEV(105)
+
+**Подсостояния лазания (180–218):**
+- Карниз: GRAB_TO_DANGLE(180), DANGLING(181), PULL_UP(182), DROP_DOWN(183), DROP_DOWN_LAND(184), DROP_DOWN_OFF_FACE(188)
+- Зипвайр: DANGLING_CABLE(185), DANGLING_CABLE_FORWARD(186), DANGLING_CABLE_BACKWARD(187)
+- Лестница: MOUNT(192), ON_LADDER(193), CLIMB_UP(194), CLIMB_DOWN(195), CLIMB_OFF_BOT(196), CLIMB_OFF_TOP(197)
+- Стена: CLIMB_LANDING(210), CLIMB_AROUND(211), CLIMB_UP(212), CLIMB_DOWN(213), CLIMB_OVER(214), CLIMB_OFF_BOT(215), CLIMB_LEFT(217), CLIMB_RIGHT(218)
+
+**Подсостояния транспорта (140–147) и оружия (220–225):**
+- Транспорт: ENTERING(140), INSIDE(141), EXITING(142), MOUNTING_BIKE(145), RIDING_BIKE(146), DISMOUNTING_BIKE(147)
+- Оружие: DRAW_GUN(220), AIM_GUN(221), SHOOT_GUN(222), GUN_AWAY(223), DRAW_ITEM(224), ITEM_AWAY(225)
+
+**Смерть/арест (170–236):**
+- Арест: TURN_OVER(170), CUFFED(171), ARRESTED(172), INJURED(173), RESPAWN(174)
+- Смерть: DYING_INITIAL(230), DYING_FINAL(231), DYING_ACTUALLY_DIE(232), KNOCK_DOWN(233), GET_UP(234), DYING_PRONE(235), KNOCK_DOWN_WAIT(236)
+- FLAG_PERSON_ARRESTED (бит 26); мёртвый → STATE_DEAD (необратимо)
+
+---
+
+## 15. Игровой цикл и время
+
+**GS_* флаги:**
+- `GS_ATTRACT_MODE (1<<0)` — меню
+- `GS_PLAY_GAME (1<<1)` — игра
+- `GS_LEVEL_WON (1<<3)`, `GS_LEVEL_LOST (1<<4)` — окончание
+- `GS_GAME_WON (1<<5)` — кампания завершена
+- `GS_REPLAY (1<<8)` — рестарт уровня
+
+**Inner loop порядок (game_loop):**
+1. GAMEMENU_process()
+2. GS_LEVEL_WON проверка (Finale1.ucm → break)
+3. EWAY_tutorial_string (should_i_process_game=FALSE)
+4. special_keys() — отладка
+5. process_controls()
+6. check_pows()
+7. if(should_i_process_game): process_things(1), particles, doors, EWAY, FC_process()
+8. PUDDLE/DRIP (всегда)
+9. draw_screen() 3D
+10. OVERLAY (HUD)
+11. GAMEMENU_draw()
+12. PANEL_fadeout_draw()
+13. screen_flip()
+14. lock_frame_rate(30)
+15. handle_sfx()
+16. GAME_TURN++ (глобальный счётчик)
+17. Bench cooldown: каждые 1024 кадра → разрешить лечение
+
+**Таймирование:**
+- `TICK_RATIO` — масштаб от реального времени кадра
+- `SMOOTH_TICK_RATIO` — 4-кадровое скользящее среднее (кольцевой буфер)
+- `lock_frame_rate()` — spin-loop к 30 FPS (из config.ini)
+
+**Win/Lose flow:**
+- Win → GS_LEVEL_WON, MUSIC_VICTORY
+- Lose (живой) → GS_LEVEL_LOST, MUSIC_CHAOS
+- Lose (мёртвый) → GS_LEVEL_LOST, MUSIC_GAMELOST
+- GAMEMENU WON: {X_LEVEL_COMPLETE} (ENTER → DO_NEXT_LEVEL)
+- GAMEMENU LOST: {X_LEVEL_LOST, X_RESTART, X_ABANDON}
+
+**DarciDeadCivWarnings (RedMarks):**
+- 0 → warning 1; 1 → warning 2; 2 → warning 3
+- 3 → GS_LEVEL_LOST + warning 4
+- Счётчик персистирует между миссиями
+
+---
+
+## 16. Камера
+
+- **FC только:** cam.cpp мёртв (`#ifdef DOG_POO`), активна fc.cpp
+- **FC_MAX_CAMS = 2** (поддержка splitscreen)
+
+**4 режима камеры (PC):**
+- 0: cam_dist=0x280×0.75≈480, cam_height=0x16000
+- 1: cam_dist=0x280=640, cam_height=0x20000
+- 2: cam_dist=0x380=896, cam_height=0x25000
+- 3: cam_dist=0x300=768, cam_height=0x8000
+- PSX тип 0: cam_dist=0x300, cam_height=0x18000 (дальше)
+- **CAM_MORE_IN = 0.75F** — PC камера на 25% ближе к игроку
+
+**Toonear режим:** toonear_dist=0x90000 (first-person при упоре в стену)
+
+**FC_process (15 шагов):**
+1. FC_alter_for_pos() → offset_height, offset_dist
+2. FC_calc_focus() → focus_x/y/z, focus_yaw
+3. Warehouse transition (EWAY_cam_jumped=10)
+4. lookabove update (STATE_DEAD: −0x80/кадр; иначе 0xa000)
+5. Rotate decay ±0x80/кадр; nobehind=0x2000 при rotate
+6. Toonear cancel: если dist > toonear_dist+0x4000 AND dangle>200 → snap
+7. Collision detection (8 шагов; WARE_inside для склада)
+8. Get-behind: behind = focus + SIN/COS(focus_yaw)×cam_dist×offset_dist
+9. Y adjust: dy в caps [−0x0c00, +0x0d00]; на WMOVE: dy<<5 (мгновенно)
+10. Distance clamp
+11. Position smoothing: если |delta|>0x800 → x+=dx>>2, y+=dy>>3, z+=dz>>2
+12. FC_look_at_focus() — yaw/pitch/roll
+13. Angle smoothing: если |total_delta|>0x180 → delta>>2
+14. Lens = 0x28000×CAM_MORE_IN (всегда)
+15. Shake: shake_x/y/z = random(shake)−shake/2 << 7; decay = shake−shake>>3
+
+---
+
+## 17. Звук
+
+- **MSS32 API** (Miles Sound System, mss32.lib)
+- `MFX_play(channel, wave_id, flags)` — 2D
+- `MFX_play_xyz(channel, wave_id, flags, x>>8, y>>8, z>>8)` — 3D
+- `MFX_update_xyz(channel, x>>8, y>>8, z>>8)` — обновить позицию
+
+**14 режимов музыки (MUSIC_MODE_*):**
+NONE, CRAWL, DRIVING1, DRIVING2, DRIVING_START, FIGHT1, FIGHT2, SPRINT1, SPRINT2, AMBIENT, CINEMATIC, VICTORY, FAIL, MENU
+
+**5 биомов ambient (по texture_set):**
+- Jungle (ts=1): тропический шум, какаду/сверчки
+- Snow (ts=5): вой волков каждые 1500+ кадров
+- Estate (ts=10): пролёты самолётов каждые 500+ кадров
+- BusyCity (default): собаки, кошки, бьющееся стекло, полиция
+- QuietCity (ts=16): минимальный ambient
+
+**Каналы:**
+- WIND_REF = MAX_THINGS+100, WEATHER_REF = +101, MUSIC_REF = +102
+- FLAGS_HAS_ATTACHED_SOUND — звук привязан к объекту
+
+**Голосовые функции:** SOUND_Gender(), DieSound(), PainSound(), EffortSound(), ScreamFallSound()
+
+**Шаги:** FLAGS_PLAYED_FOOTSTEP (бит 12), по типу поверхности (PAP_Hi.Texture)
+
+---
+
+## 18. Эффекты
+
+### Система частиц (psystem.cpp)
+- **MAX_PARTICLES:** PC **2048**, PSX 64
+- `PARTICLE_Add()`: позиция (32.8 fixed), скорость, page, size, ARGB colour, flags, gravity, drag
+
+### Огонь (fire.cpp)
+- **FIRE_MAX_FLAMES=256**, **FIRE_MAX_FIRE=8** очагов одновременно
+- Жизнь: 32+(rand&0x1f) кадров
+- Per-frame: нечётные angle+=31/offset-=17, чётные angle-=33/offset+=21
+
+### Искры (spark.cpp)
+- **MAX_SPARKS: 32**
+- Типы: LIMB, CIRCULAR, GROUND, POINT
+- Флаги: FAST(×4), SLOW(÷4), CLAMP_X/Y/Z, DART_ABOUT, STILL
+- Звук: S_ELEC_START+(spark_id%5) — 5 вариантов
+
+### POW система (pow.cpp) — sprite-based взрывы
+- **POW_Sprite[256 PC]**, **POW_Pow[32 PC]**
+- **8 типов:** BASIC_SPHERE/SPAWN_SPHERE/MULTISPAWN/MULTISPAWN_SEMI (3 размера)
+- density=(5+dens×3) around × (4+dens) updown; framespeed=96+fs×32+(rand&0x3f)
+
+### PYRO система (pyro.cpp) — 18 типов
+| # | Тип | Детали |
+|---|-----|--------|
+| 4 | **IMMOLATE** | сожжение (**-10 HP/frame**, частицы на костях) |
+| 7 | EXPLODE2 | большой взрыв (dlight+COS fade) |
+| 11 | HITSPANG | вспышка при пуле (**5 кадров** PC/**3 PSX**) |
+| 12 | FIREBOMB | огненный взрыв |
+| 17 | **GAMEOVER** | конец света (**8 dlights**, GS_LEVEL_LOST@counter>242) |
+
+- **MAX_PYROS:** **64** PC / **32** PSX
+- `PYRO_blast_radius()`: sphere находит CLASS_PERSON, создаёт IMMOLATE
+- `MergeSoundFX()`: переиспользует ближайший звук (sphere 5×256)
+
+### DIRT система (dirt.cpp) — 16 типов ambient debris
+| # | Тип | Примечание |
+|---|-----|------------|
+| 1 | LEAF | ambient, окружность камеры |
+| 2 | CAN | pickup, S_KICK_CAN, PCOM_SOUND_UNUSUAL |
+| 3 | PIGEON | **prob_pigeon=0** (никогда не создаётся!) |
+| 10 | BRASS | гильзы (PC only), prim 253 |
+
+- **MAX_DIRT:** **1024** PC / **256** DC / **128** PSX
+- LEAF/SNOW: gravity 4<<TICK_SHIFT, drag 75%x/50%y
+- CAN/HEAD/BRASS: rotation, gravity, friction/16
+- `DIRT_gust()`: ветер от движения, strength=QDIST2(dx,dz)×8
+
+### RIBBON система (ribbon.cpp) — ленточные следы
+- **MAX_RIBBONS: 64**, **MAX_RIBBON_SIZE: 32** точек
+- Флаги: USED, FADE, SLIDE, CONVECT(+22/frame вверх), IALPHA
+- Рендеринг: triangle strip, alpha fade через FadePoint
+- Используется: IMMOLATE, FLICKER
+
+### BANG система (bang.cpp)
+- **BANG_Bang[64]**, **BANG_Phwoar[4096]**
+- **4-типовый каскад:** BIG(невидим, 6 дочерних) → MIDDLE(radius grow=120) → NEARLY → END(radius=40)
+- Child[6]: {counter, type, where}
+
+---
+
+## 19. Рендеринг
+
+### DDEngine Bucket Sort — Painter's Algorithm
+- **POLY_NUM_PAGES:** **1508** (0–1407 стандартные, 1408+ служебные)
+- **MAX_VERTICES:** **32000** глобальный пул
+- Bucket sort для прозрачных:
+  ```
+  buckets[2048], sort_z = ZCLIP_PLANE/vz (reciprocal depth)
+  bucket = int(sort_z × 2048), clamp [0, 2047]
+  Render loop: i=0..2047 → FAR-TO-NEAR
+  ```
+- Непрозрачные: рендеряются по индексу, POLY_PAGE_COLOUR первым
+
+### Рендер-пайплайн за кадр
+1. `POLY_frame_init()` → инициализация, очистка буферов
+2. Накопление полигонов: `MESH_draw_poly()`, `SPRITE_draw()`, `SKY_draw_poly_*()`
+3. `POLY_frame_draw()` → SortBackFirst() → `DrawPrimitive(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT)`
+4. Fog colour: outdoor=NIGHT_sky_colour; SEWERS/INDOORS=0 (чёрный)
+
+### ⚠️ DRAWXTRA_MIB_destruct — игровая логика в рендерере
+1. Модифицирует `ammo_packs_pistol`
+2. Создаёт `PYRO_TWANGER` и `SPARK` эффекты
+Аналогично: `PYRO_draw_armageddon()` создаёт объекты из рендерера.
+
+### NIGHT система — Vertex Lighting
+- NIGHT_MAX_SLIGHTS=**256** (static), NIGHT_MAX_DLIGHTS=**64** (dynamic)
+- NIGHT_MAX_WALKABLE=**15000** vertices, NIGHT_MAX_BRIGHT=**64** (6-bit)
+- **NIGHT_Colour:** r,g,b в 6-bit (0–63) → D3D через ×4 (0–252)
+- **Per-frame:** `NIGHT_cache[32][32]` → `NIGHT_Square` = 16 вершин (4×4)
+- **Ambient:** `value × 820 >> 8` = ×3.2
+- **Static lights:** 3×3 lo-cell радиус; ⚠️ **БАГ: dz×nx вместо dz×nz!**
+- **Динамические (NIGHT_Dlight):** до 64, типы NORMAL/BROKEN/PULSE/FADE
+- **Тени:** статические ray-cast при загрузке, **динамических теней НЕТ** (flat sprite POLY_PAGE_SHADOW)
+
+### Tom's Engine (figure.cpp) — рендеринг персонажей
+- `USE_TOMS_ENGINE_PLEASE_BOB=1` — единственный активный путь
+- Vertex morphing: tween ∈ [0,256], линейная интерполяция между keyframes
+- **HIGH_REZ_PEOPLE_PLEASE_BOB:** закомментирован
+- Anti-lights: отрицательные источники вычитают яркость
+
+### Morph (mesh.cpp) и Crinkle
+- Нет скелетной анимации — только vertex morphing между keyframes
+- **Crinkle:** ⚠️ **ОТКЛЮЧЕНА в пре-релизе** (`return NULL`), **но работает в финальной PC**
+- Ground crinkle: XZ варьируется; wall crinkle: XY варьируется
+- Лимиты: 256 crinkles, 8192 points, 8192 faces, 700 points/crinkle
+
+### MESH_car_crumples
+- **5 уровней урона × 8 вариантов × 6 точек** predefined smash vectors
+
+### Отражения в лужах
+- `MESH_draw_reflection()` + `PUDDLE_in()` проверка зоны
+- Страница POLY_PAGE_PUDDLE, отдельный рендеринг через `POLY_frame_draw_puddles()`
+
+### Служебные страницы (1408+)
+POLY_PAGE_SHADOW, POLY_PAGE_SHADOW_OVAL, POLY_PAGE_FLAMES, POLY_PAGE_SMOKE, POLY_PAGE_EXPLODE1/2, POLY_PAGE_MOON, POLY_PAGE_SKY, POLY_PAGE_COLOUR
+
+---
+
+## 20. UI и Frontend
+
+**HUD Pipeline (OVERLAY_handle → PANEL_last):**
+1. `PANEL_start()`
+2. `PANEL_draw_buffered()` — таймеры (MM:SS, до 8)
+3. `OVERLAY_draw_gun_sights()` — прицелы на целях
+4. `OVERLAY_draw_enemy_health()` — HP полоска над врагом
+5. **`PANEL_last()`** — основной HUD:
+   - Здоровье: круговой индикатор (R=66px, 8 сегментов, arc -43°…-227°)
+     - Darci: hp/200, Roper: hp/400, Vehicle: hp/300
+   - Стамина: 5 квадратов 10×10, Stamina/25 → красный→оранж→жёлтый→зелёный→ярко-зелёный
+   - Оружие: спрайт + число патронов
+   - Радар: маяки + точки врагов (красные/серые)
+   - Crime rate: пульсирующий красный %
+   - Таймер: MM:SS, мигает красным при <30s
+6. `PANEL_inventory()` — список оружия при переключении
+7. `PANEL_finish()`
+
+**Gun Sights:** прицелы через `track_gun_sight()` (max 4 целей/кадр). Цвет: зелёный (accuracy=255) → красный (0).
+
+**Frontend Pipeline:**
 ```
-mission_name: strlen(txt) байт + CRLF(0x0D 0x0A)  ← FRONTEND_SaveString
-complete_point: UBYTE
-version: UBYTE = 3  ← "Historical Reasons" — странное место
-[v≥1] DarciStrength/Constitution/Skill/Stamina: UBYTE×4 + Roper×4 + DarciDeadCivWarnings: UBYTE = 9 байт
-[v≥2] mission_hierarchy[60]: UBYTE[60] = 60 байт
-[v≥3] best_found[50][4]: UBYTE[200] = 200 байт
+game_attract_mode() → FRONTEND_loop()
+  → FE_MAPSCREEN: ENTER → mode = 100 + mission_selected
+  → mode≥100: ENTER → return FE_START
+  → if (FE_START):
+      STARTSCR_mission = "levels\\" + FRONTEND_MissionFilename(mode-100)
+      VIOLENCE = FALSE только для туториалов (FTutor1, Album1, Gangorder1)
 ```
-Итого v3: len(name)+2+271 байт
 
-**best_found [mission][stat]:** [0]=Constitution, [1]=Strength, [2]=Stamina, [3]=Skill
-**Анти-фарм:** при повтоной миссии даётся только `found - best_found` (разница с рекордом)
-`FRONTEND_LoadString`: читает до 0x0A (LF), переменная длина — **не фиксированные 32 байта!**
+**Специальные миссии:**
+- park2 — `is_semtex=1`
+- Finale1 — `this_level_has_bane=1`
+- Balrog3 — `this_level_has_the_balrog=1`
+- Туториалы → `VIOLENCE=FALSE`
+
+**Шрифты:**
+- MenuFont: пропорциональный, флаги MENUFONT_FUTZING/HALOED/CENTRED/SHAKE/SINED/FLANGED
+- Font2D: моноширинный (FONT2D_LETTER_HEIGHT=16), для HUD
+
+**Фоны меню:** 4 сезонных темы — leaves/rain/snow/blood по `complete_point` (0–3).
 
 ---
 
-## 19. Загрузка уровня (9 шагов)
+## 21. Загрузка уровня
 
-```
-1. ELEV_load_name(.ucm) → 4 имени файлов
-2. ELEV_game_init() → FC/BIKE/BARREL/BALLOON/NIGHT/OB/TRIP/FOG/MIST/PUDDLE/DRIP/GLITTER/POW/SPARK init
-3. load_game_map(.iam) → PAP_Hi + animated prims + OB objects + texture_set
-4. Постобработка: calc_prim_info + build_quick_city + init_animals + DIRT_init + ROAD_sink
-                + ROAD_wander_calc + WAND_init + WARE_init + MAV_precalculate (тяжёлая!)
-                + BUILD_car_facets + SHADOW_do + COLLIDE_calc_fastnav_bits + ...
-5. Освещение: NIGHT_load_ed_file(.lgt) или NIGHT_ambient(дефолт); ночь→GF_RAINING
-6. ELEV_load_level(.ucm часть 2) → сброс GAME_TURN=0 + metadata + фейковые горожане + EventPoints
-7. Финализация: calc_prim_normals + TEXTURE_load_needed + EWAY_process() (← создаёт игрока/NPC!) + calc_slide_edges
-8. Настройка камеры: FC_look_at() + FC_setup_initial_camera()
-9. Спецэффекты: if GF_RAINING → PUDDLE_precalculate() + insert_collision_facets
-```
+**9 шагов загрузки:**
+1. `ELEV_load_name(fname)` — открыть `.ucm`, прочитать пути файлов
+2. `ELEV_game_init()` — инициализировать подсистемы
+3. `load_game_map(fname_map)` — загрузить `.iam`: PAP_Hi, примы, OB, текстуры
+4. Постобработка: `build_quick_city()`, `DIRT_init()`, `ROAD_wander_calc()`, `WARE_init()`
+5. **`MAV_precalculate()`** — самая тяжёлая: навигационный граф 128×128
+6. `NIGHT_load_ed_file(fname_lighting)` — освещение; ночью = GF_RAINING
+7. `ELEV_load_level(fname_level)` — загрузить эвент-вэйпойнты (до 512), создать фейковых граждан
+8. Финальная обработка: calc норм, загрузить текстуры, **`EWAY_process()`** (создание игрока + NPC!)
+9. Настройка камеры + спецэффекты
 
-**Игрок создаётся через EWAY_process()** → WPT_CREATE_PLAYER → `EWAY_create_player()` → тот же `PCOM_create_person()` что и NPC
+**Ключевой вызов:** `EWAY_process()` → `WPT_CREATE_PLAYER` → `EWAY_create_player()` → `create_player()`. НЕ прямое создание.
 
----
-
-## 20. Межсистемные зависимости (неочевидные)
-
-### Рендер мутирует game state:
-- `DRAWXTRA_MIB_destruct()` → `ammo_packs_pistol--, PYRO_TWANGER, SPARK` — из рендерера!
-- `PYRO_draw_armageddon()` → `PYRO_NEWDOME, PARTICLE_Add(), MFX_play_xyz()` — тоже из рендерера!
-
-### Камера зависит от навигации:
-- `FC_process` collision detection → `MAV_inside()` для обнаружения стен
-- `WARE_get_caps()` / `WARE_inside()` для складских интерьеров
-
-### Двери синхронизированы с MAV:
-- `DOOR_process()` → при открытии: `MAV_turn_movement_on()` (теряет все caps кроме GOTO!)
-- При закрытии: `MAV_turn_movement_off()` (очищает только GOTO бит)
-
-### Освещение инициализируется в рендерере, влияет на AI:
-- `NIGHT_get_light_at(pos)` в `can_a_see_b()` — свет влияет на дальность видения NPC
-
-### EWAY контролирует весь spawn:
-- Игрок и NPC создаются через EWAY, не через отдельную систему
-- `STARTSCR_notify_gameover()` закомментирован → auto_advance никогда не ставится
-
-### Физика прыжков завязана на анимацию:
-- Гравитация `animation-driven` для персонажей — StateFn управляет DY
-- `plant_feet()` активно ТОЛЬКО в `fn_person_dangling` (SUB_STATE_DROP_DOWN_LAND)
-- `InterruptFrame` = МЁРТВЫЙ КОД (всегда NULL) — прерывание анимаций не работает
-
-### Боевой урон из анимации, не из физики:
-- `GameFightCol` = данные удара встроены в keyframe анимации
-- Knockback = выбор анимации (`take_hit[]`), НЕ физические векторы
-
-### EWAY_STAY_ALWAYS = мгновенно DEAD (не INACTIVE):
-- Это означает что такой вэйпойнт **никогда не будет повторно активирован**
-- WHILE vs ALWAYS = ключевое различие при дизайне триггеров
-
-### SPECIAL_MINE нефункциональна:
-- pickup = ASSERT(0); throw = ASSERT(0); оба пути мертвы
-- DIRT_dirt индекс хранится в `Special.waypoint` при активации — поле переиспользовано
-
-### MapWho участвует в AI и рендеринге:
-- AI: THING_find_sphere через PAP_Lo.MapWho
-- Рендер BANG: MapWho linked list для culling
-- Sync критична: `move_thing_on_map()` при смене PAP_Lo ячейки
+**Форматы файлов:**
+| Расширение | Назначение | Загрузчик |
+|-----------|-----------|----------|
+| `.ucm` | Миссия: метаданные + пути | `ELEV_load_name()` |
+| `.iam` | Карта: PAP + объекты + примы | `load_game_map()` |
+| `.lgt` | Освещение | `NIGHT_load_ed_file()` |
+| `.txt` | Диалоги NPC | `EWAY_load_fake_wander_text()` |
+| `.prm` | Меши примов | `load_prim_object()` |
 
 ---
 
-## 21. Пре-релизные баги и особенности
+## 22. Прогресс и сохранения
 
-| Факт | Описание |
-|------|----------|
-| GRAVITY = -51 | **НЕ -5120!** (правильное значение) |
-| Resurrect bug | Гражданские воскресают на месте смерти (newpos не присваивается) |
-| Roper stats bug | EWAY_create_player(ROPER) использует Darci-статы |
-| mount_ladder | Закомментирован для игрока снизу; AI может |
-| fn_cop_normal | `#if 0` в пре-релизе |
-| fn_thug_init | `ASSERT(0)` |
-| fn_roper_normal | Пустая функция |
-| INSIDE2_mav_inside | `ASSERT(0)` — NPC застревают в INSIDE2 |
-| INSIDE2_mav_nav_calc | Баг цикла Z (`MinX/MaxX` вместо `MinZ/MaxZ`) |
-| COP_DRIVER arrest-from-car | Закомментирован |
-| STARTSCR_notify_gameover | Закомментирован в Game.cpp |
-| valid_grab_angle | ВСЕГДА 1 (валидация отключена) |
-| FC_alter_for_pos idle | `&& 0` = мёртвый код (высота не меняется в idle) |
-| cam.cpp | `#ifdef DOG_POO` = весь файл мёртвый код |
-| briefing.cpp | МЁРТВЫЙ КОД (Dec 1998 прототип) |
-| NIGHT_generate_walkable_lighting | `return;` в начале = мёртвый код |
-| Crinkle | Отключён в пре-релизе; работает в финальном PC |
-| SM_process() | Закомментирован и в Controls.cpp |
-| Balloon | `load_prim_object(PRIM_OBJ_BALLOON)` закомментирован |
-| SPECIAL_MINE | pickup=ASSERT(0), throw=ASSERT(0) |
-| is_semtex | `(index==20)` = skymiss2.ucm (вероятно ошибка) |
-| night.cpp:746 | `dprod = dz*nx` вместо `dz*nz` (баг освещения) |
-| Canid dispatch | Закомментирован — собаки инертны |
-| OB_height_fiddle_de_dee | `/* */` мёртвый код |
-| InterruptFrame | ВСЕГДА 0 = мёртвый код |
+**.wag v3 layout:**
+```
+mission_name      : variable-length + CRLF
+complete_point    : UBYTE
+version           : UBYTE = 3
 
-**Что есть в финале, нет в пре-релизе:** Zipwire (grab закомментирован), Crinkle bump mapping, Ladder mount снизу, fn_cop_normal, fn_thug_init
+[v≥1] Stats (9 байт):
+  DarciStrength, DarciConstitution, DarciSkill, DarciStamina (4)
+  RoperStrength, RoperConstitution, RoperSkill, RoperStamina (4)
+  DarciDeadCivWarnings (1)
 
-**Что нет ни в пре-релизе ни в финале:** Bike, Mine (рабочая), Grapple-weapon, Sniper rifle, SM (soft body), Balloon, канализация gameplay, multiplayer, GS_REPLAY (отправка на финал)
+[v≥2] mission_hierarchy[60] : UBYTE[60]
+[v≥3] best_found[50][4]     : UBYTE[50][4] (200 байт)
+```
+
+**Слоты:** 1, 2, 3 (1-based).
+
+**complete_point (0–255):**
+- <8 → theme 0; <16 → 1; <24 → 2; ≥24 → 3
+- Влияет на доступные миссии через `FRONTEND_MissionHierarchy`
+
+**mission_hierarchy[60] биты:**
+- bit 0 (1) = существует
+- bit 1 (2) = завершена
+- bit 2 (4) = доступна/ожидает
+- `mission_hierarchy[1] = 3` — корневая миссия (стартовая)
+
+**best_found[50][4] — анти-фарм механика:**
+```
+// Если found > best_found[mission][i]:
+//   bonus = found - best_found[mission][i]
+//   stat += bonus   (только разница засчитывается)
+//   best_found[mission][i] = found
+// Индексы: [0]=Constitution, [1]=Strength, [2]=Stamina, [3]=Skill
+```
 
 ---
 
-## 22. Форматы файлов
+## 23. Форматы файлов ресурсов
 
-| Расширение | Назначение | Ключевые факты |
-|-----------|-----------|----------------|
-| `.ucm` | Миссия: метаданные + EventPoints (NOT MuckyBasic!) | header 1316б + 512×74б EP + version tail |
-| `.iam` | Карта: PAP + объекты + anim prims | читается в load_game_map() |
-| `.lgt` | Освещение: static/dynamic lights | NIGHT_load_ed_file() |
-| `.wag` | Сохранение | v0-3, variable-string+CRLF |
-| `.txc` | FileClump архив | MaxID+Offsets+Lengths+data; size_t платформозависим! |
-| `.all` | Анимации | pointer fixup при загрузке (NextFrame/PrevFrame — runtime адреса) |
-| `.tma` | Текстурные стили | style.tma: 200×5 слотов; instyle.tma: count_x*count_y UBYTE |
-| `.prm` | Меши примов | загружаются по требованию |
-| `.txt` | Диалоги горожан | EWAY_load_fake_wander_text() |
+**Mission Script (.sty):**
+- `data/urban.sty`, версия 4
+- Формат: `ObjID : GroupID : ParentID : ParentIsGroup : Type : Flags : District : Filename : Title : Briefing`
+- **27 районов** (0–26): Baseball Ground, Botanical Gardens, West District, Southside Beach, Rio canal, Central Park, Snow Plains, Gangland, Skyline, Academy, Banes Estate, Medical Centre, El Cossa Island, Test track, Television Centre, Assault Course, Clandon Heights, Combat Centre, Oval Circuit, Advanced Circuit, West Block
+- `suggest_order[]` захардкожена в frontend.cpp: 31 основная + 3 альтернативные + 1 скрытая
 
-**sizeof(ED_Light) = 20 байт** (8 однобайт. + 3 SLONG)
-**sizeof(PrimFace3) = 28 байт**; **sizeof(PrimFace4) = 34 байта**
-**EventPoint binary = 74 байта** (14 заголовок + 60 данных)
-**EventPoints MAX = 512** → 37888 байт на миссию
+**Анимация (.ALL, .IMP, .MOJ):**
+- `.ALL` содержит: версия, mesh блоки (.moj), keyframe chunk, fight hittables
+- `global_anim_array[4][450]`: Type (0=DARCI, 1=ROPER/hero, 2=ROPER2, 3=CIV)
+- Загрузка: `darci1.all`, `hero.all`, `bossprtg.all`
 
-**PRIM_START_SAVE_TYPE=5793:** если save_type==base+1 → PrimPoint как SWORD(6б), иначе SLONG(12б)
-**PrimFace4 FACE_FLAG_WALKABLE=(1<<6)** — только эти квады образуют ходимые поверхности
-**ROAD_is_road:** PC = texture & 0x3ff: 323-356; TextureSet 7/8: также 35/36/39; PSX: 256-278
+**Аудио (WAV, Miles Sound System):**
+- SFX: 22050/44100 Hz PCM 16-bit
+- Структура: `sfx/1622/Ambience/`, `Footsteps/`, `General/`, `music01/` — `Crawl/`, `Driving1/2/`...
+- Диалоги: `talk2/{Level}.ucm{Index}.wav`, `{CharType}{Index}.wav`
+
+**Освещение (.LGT):**
+- `ED_Light` (20 байт: range, RGB signed, x/y/z SLONG)
+- `NIGHT_sky_colour`: RGB 0–63 (3 байта)
+- Ambient: `value × 820 >> 8` = ×3.2
+
+**Карта уровня (.IAM):**
+- **PAP_Hi** (128×128, 6 байт/ячейка): Texture (UWORD), Flags (UWORD), Alt (SBYTE ×8)
+- **LoadGameThing** (44 байт): Type, SubType, X/Y/Z, Flags, IndexOther, AngleX/Y/Z
+- **SuperMap**: DBuildings, DFacets, DStyle, (v17+) DStorey, (v21+) interior/staircase, (v23+) OB
+- **Наборы текстур:** 22 набора (0–21)
+
+**Модели (.MOJ, .PRM, .TXC):**
+- `.MOJ`: PrimPoint (SWORD x/y/z = 6 байт), PrimFace3 (28 байт), PrimFace4 (34 байта)
+- **FACE_FLAG_WALKABLE (1<<6)** = ходимые поверхности
+- `.TXC` (FileClump): архив `[MaxID offsets][MaxID lengths][data blob]`; может быть сжато
+
+**Текстуры (.TGA, .TXC, .TMA):**
+- `.TGA`: 32-bit RGBA/24-bit RGB, 512×512 до 32×32; мип-маппинг на CPU
+- `style.tma`: 200 стилей × 5 слотов, `TXTY` struct (Page, Tx, Ty, Flip, UBYTE each)
+- `instyle.tma`: count_x, count_y, inside_tex индексы
+- **TEXTURE_MAX_TEXTURES=1568**: world0–3(256), shared(256), interior(64), people(128), prims(448), people2(256), effects(160), crinkle(192)
 
 ---
 
-## 23. Быстрые числа (весь справочник)
+## 24. Малые системы
 
+**Вода (Water.cpp):**
+- 1024 (PC) / 102 (PSX) `WATER_Point`: x/z (1-bit fixed), y (SBYTE height)
+- Position: `x = wp->x * 128.0`, `y = wp->y << 5`, UV: `u/v = wp->x/z * 0.19`
+- Wibble: закомментирован в пре-релизе
+
+**Tripwire (trip.cpp):**
+- `TRIP_Wire` (max 32): y, x1/z1/x2/z2 (8-bit fixed), along (0–255), wait (debounce)
+- Детекция: point-to-line distance < 0x20, Y-range feet-0x10..head+0x10
+- Deactivation: `x1 = 0xffff`
+
+**Sphere-Matter (sm.cpp):**
+- `SM_Sphere` (max 1024), `SM_Link` (max 1024)
+- `SM_GRAVITY = -0x200`, jellyness 0x10000..0x00400
+- Ground bounce: `dy = -abs(dy); dy -= dy >> 9` (11.7% потеря)
+
+**Следы (tracks.cpp):**
+- TYRE_SKID (белый, ширина 10), TYRE, LEFT/RIGHT_PRINT
+- Кровь: `TRACKS_Bleed()` (размер 1–31), `TRACKS_Bloodpool()` (80–95)
+- Отключается при `!VIOLENCE`
+
+**Command система (Command.cpp — LEGACY):**
+- Заменена PCOM в финале
+- Работает ТОЛЬКО: `COM_PATROL_WAYPOINT` + 4 из 14 условий
+
+---
+
+## 25. Математика
+
+**PSX система (FMatrix.h):**
+- Углы: **0–2047 за полный оборот**
+- `SinTable[2560]`, `CosTable = &SinTable[512]` (смещение π/2)
+- Масштаб: `65536 = 1.0` (16.16 fixed)
+- `FMATRIX_calc(matrix[9], yaw, pitch, roll)` → row-major 3×3
+- `Arctan(X, Y)` использует `AtanTable[256]`, возвращает 0–2047
+
+**PC система (Matrix.h, libm):**
+- Углы: радианы (float)
+- `MATRIX_calc()`, `MATRIX_find_angles()` → `Direction` struct (yaw, pitch, roll float)
+- Гимбал-лок обработка при pitch > π/4
+
+**Кватернионы (Quaternion.h/cpp — только PC):**
+- `CQuaternion { float w, x, y, z }`
+- `QuatSlerp()`: если dot > 0.95 → линейная, иначе стандартный SLERP
+- Integer версия: fixed-point 15.15
+
+**Fixed-point форматы:**
+- 32.8: позиции объектов (1 mapsquare = 256 ед.)
+- 15.15: `1 << 15 = 32768` (quaternion integer)
+- 16.16: `1 << 16 = 65536` (coordinates)
+
+---
+
+## 26. Вырезанные фичи
+
+| Фича | Статус | Код |
+|------|--------|-----|
+| Мотоцикл (BIKE) | never shipped | bike.cpp, ~15 файлов, `#ifdef BIKE` |
+| Кошка-гарпун (hook.cpp) | never shipped | 256-точечная верёвка, rope physics |
+| Канализация (sewer.cpp, ns.cpp) | never shipped | — |
+| Процедурные интерьеры зданий | never shipped | building.cpp (вручную размещённые есть) |
+| Мультиплеер / split-screen | отключён в финале | CTF mode, MAX_PLAYERS=2 в коде |
+| GS_REPLAY (demo/replay) | не в игре | код есть, не используется |
+| **Zipwire/тросы** | **закомментирован в пре-релизе, есть в финале!** | тренировочная полоса, уровень 1 |
+| Bat, Gargoyle | есть модели, не спаунятся | — |
+| Balloon.cpp (шары) | отключены | `load_prim_object(PRIM_OBJ_BALLOON)` закомментирован |
+
+**НЕ путать:** закомментированный код ≠ вырезанная фича.
+
+---
+
+## 27. Препроцессорные флаги (PC Release)
+
+**Release конфигурация:**
 ```
-Игровой мир:
-  карта: 128×128 mapsquares = 32768×32768 world units
-  GRAVITY = -51 (НЕ -5120!)
-  fall damage: (-DY-20000)/100; death: player=-12000, npc=-6000
-  water_level = -128; PAP_Lo.water = -16 при загрузке
-  WMOVE max = 192; MAX_THINGS=700; RMAX_PEOPLE=180; MAX_VEHICLES=40
-
-Физика:
-  NOGO push = 0x5800; wall_height extra = -0x50 (-80 ед.)
-  HyperMatter: gy=0 (отскок от Y=0, не terrain)
-  set_person_drop_down: DY=-(4<<8)=-1024, Velocity=-8 if !KEEP_VEL
-
-AI:
-  22 типа AI, 28 состояний; SEARCHING/SLEEPING=stub; LOOKAROUND=только счётчик
-  PCOM_TICKS_PER_SEC=320 (16×20); ARRIVE_DIST=0x40=64; MAX_FIND=16
-  MIB mass aggro radius=1280; CIV resurrect >200 кадров
-  cop scan radius=0x800=2048 каждые 4 кадра
-
-Оружие и урон:
-  Pistol: 70hp/140t; Shotgun: 300-dist/400t; AK47: 100pl/40npc/64t
-  Grenade radius=0x300=768, max=500; C4: timer=5сек(1600тиков), radius=0x500=1280, max=500
-  Hit chance min: 20/256≈8%; base: 230-|Roll|>>1-Velocity
-
-Камера и рендеринг:
-  NIGHT_Colour: 0-63 (НЕ 0-255!); ambient dir: (110,-148,-177)
-  bucket sort: 2048 buckets; MAX_VERTICES=32000
-  camera toonear: dist=0x90000 → first-person
-  lens = 0x28000×0.75 (PC), FOV НЕ МЕНЯЕТСЯ
-
-Транспорт:
-  VEH_SPEED_LIMIT=750; VEH_REVERSE=300; WHEELTIME=35кадров
-  SKID_START=3кадра; SKID_FORCE=8500
-  runover: |VelX*tx+VelZ*tz|/(dist*200), min 10HP; smoke: Health<128
-
-Сохранения:
-  .wag: 3 слота, 1-based; v3 layout = name+CRLF+2+271 байт
-  best_found: анти-фарм; complete_point: пороги 8/16/24/40
-
-Миссии:
-  42 условия, 52 EWAY_DO; polling каждый кадр
-  EWAY_counter[7]=убитые копы(cap 255)
-  bench cooldown: (GAME_TURN&0x3ff)==314 каждые ~34с
-  GAMEMENU wait: 64/кадр, порог 2560≈1.3с
-  DarciDeadCivWarnings≥3 → LEVEL_WON→LEVEL_LOST!
+NDEBUG;_RELEASE;WIN32;_WINDOWS;VERSION_D3D;TEX_EMBED;FINAL
 ```
+
+**Активные флаги:**
+| Флаг | Назначение |
+|------|-----------|
+| `VERSION_D3D` | DirectX 3D (основной API) |
+| `TEX_EMBED` | Встраивание текстур (обе конфигурации) |
+| `FINAL` | Финальная сборка (только Release) |
+| `WE_NEED_POLYBUFFERS_PLEASE_BOB` | Z-сортировка полигонов |
+| `USE_TOMS_ENGINE_PLEASE_BOB` | D3D-friendly рендерер персонажей (=1) |
+| `NO_BACKFACE_CULL_PLEASE_BOB` | Отключить backface culling |
+| `USE_PASSWORD` | Чит-коды |
+| `UNICODE` | Unicode диалоги |
+
+**Удалить (мёртвые):**
+| Флаг | Причина |
+|------|---------|
+| `TARGET_DC` | Dreamcast |
+| `PSX` | PlayStation 1 (осторожно в физике!) |
+| `VERSION_GLIDE` | 3dfx Glide |
+| `EDITOR`, `BUILD_PSX` | Редактор, PSX сборка |
+| `BIKE` | Мотоцикл (не переносить) |
+| `EIDOS` + региональные | DRM, издатель |
+| `USE_A3D`, `__WATCOMC__`, `__DOS__` | Legacy |
