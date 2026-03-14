@@ -31,11 +31,12 @@ CLAUDE.md                           — этот файл
 
 | Задача | Что читать |
 |--------|------------|
-| Работа над конкретной подсистемой | `original_game_knowledge_base/KB_INDEX.md` (найти нужный файл + карта связей) → затем `subsystems/X.md` |
-| Архитектурное решение / несколько подсистем | `original_game_knowledge_base_dense/DENSE_SUMMARY.md` (KB_INDEX не нужен — в DENSE_SUMMARY уже всё) |
+| Любое обращение к KB про игру (вопросы, анализ, планирование) | `original_game_knowledge_base_dense/DENSE_SUMMARY.md` — первый выбор по умолчанию |
+| Вопрос явно глубокий и про одну конкретную подсистему/формат | `subsystems/X.md` или `resource_formats/X.md` напрямую, DENSE не нужен |
 | Планирование новой игры | `new_game_planning/README.md` |
 
 **НЕ читать** файлы без необходимости — только то что нужно для конкретной задачи.
+**Не читать DENSE_SUMMARY проактивно** — только когда есть конкретный вопрос или задача.
 
 **Когда пересобирать DENSE_SUMMARY** (`original_game_knowledge_base_dense/DENSE_SUMMARY.md`):
 - После значительных изменений в нескольких KB файлах
