@@ -17,8 +17,8 @@
 | 3D positional | `ma_engine` с `MA_SOUND_FLAG_SPATIALIZATION` |
 | Fade transitions | `ma_sound_set_volume()` с timer |
 
-**Альтернативы:** SDL_mixer (проще, менее гибкий 3D), OpenAL (мощнее, тяжелее).
-**Рекомендация:** miniaudio — single-header, кросс-платформенный.
+**Кандидаты:** OpenAL Soft (предпочтительнее — зрелый 3D spatializer, прямой аналог MSS32), miniaudio (проще интегрировать, но 3D базовый).
+Финальный выбор — при старте Фазы 3. Подробно → `tech_stack.md`.
 
 **Переносить 1:1:**
 - 14 MUSIC_MODE_* с логикой переключения и приоритетами
@@ -251,7 +251,7 @@ struct Vertex {
 | Glide / SW renderer | Не переносить |
 | Miles Sound System | → miniaudio или SDL_mixer |
 | DirectX 6 / DirectInput | → OpenGL + SDL3 |
-| MuckyBasic VM | → QuickJS/JavaScript (TBD) |
+| MuckyBasic VM | → не нужен (EWAY реализуется на C++) |
 | EIDOS флаг | Убрать |
 | VIOLENCE_ALLOWED | Всегда = 1 |
 | MARKS_PRIVATE_VERSION | Не переносить |
