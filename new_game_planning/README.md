@@ -43,3 +43,4 @@
 | [architecture.md](architecture.md) | Архитектура движка и игры |
 | [milestones.md](milestones.md) | Этапы разработки |
 | [decisions_log.md](decisions_log.md) | Лог принятых решений с обоснованием |
+| [testing.md](testing.md) | Стратегия тестирования, тестовый уровень, ручной чеклист |
