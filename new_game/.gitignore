@@ -1,0 +1,9 @@
+.vs
+/fallen/Debug
+/fallen/Release
+/fallen/vcpkg_installed
+/fallen/config.ini
+/fallen/DebugLog.txt
+*.VC.db
+*.VC.opendb
+*.vcxproj.user

@@ -1,0 +1,1021 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+  </PropertyGroup>
+  <PropertyGroup Label="Globals">
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <ProjectGuid>{66A37855-71A1-40B6-BA26-2F4C69C4FFA8}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>.\Release\</OutDir>
+    <IntDir>.\Release\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\MFStdLib\Headers;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)$(Configuration);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>.\Debug\</OutDir>
+    <IntDir>.\Debug\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\MFStdLib\Headers;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)$(Configuration);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <StringPooling>true</StringPooling>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <Optimization>MaxSpeed</Optimization>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>Headers;..\fallen\ledit\headers;..\fallen\sedit\headers;..\fallen\DDLibrary\Headers;..\fallen\gedit\headers;..\fallen\ddengine\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_RELEASE;WIN32;_WINDOWS;VERSION_D3D;TEX_EMBED;FINAL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AssemblerListingLocation>.\Release\</AssemblerListingLocation>
+      <BrowseInformation>true</BrowseInformation>
+      <PrecompiledHeaderOutputFile>.\Release\Fallen.pch</PrecompiledHeaderOutputFile>
+      <ObjectFileName>.\Release\</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release\</ProgramDataBaseFileName>
+      <AdditionalOptions> /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <StructMemberAlignment>1Byte</StructMemberAlignment>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Midl>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TypeLibraryName>.\Release\Fallen.tlb</TypeLibraryName>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <RedirectOutputAndErrors>NUL</RedirectOutputAndErrors>
+      <TargetEnvironment>Win32</TargetEnvironment>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Release\Fallen.bsc</OutputFile>
+    </Bscmake>
+    <Link>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>.\Release\Fallen.exe</OutputFile>
+      <AdditionalLibraryDirectories>c:\fallen\bink;c:\miles;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;comctl32.lib;amstrmid.lib;quartz.lib;strmbase.lib;ddraw.lib;dinput8.lib;dxguid.lib;SDL2.lib;imm32.lib;Version.lib;OpenAL32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <Optimization>Disabled</Optimization>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <WarningLevel>Level2</WarningLevel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PreprocessorDefinitions>_WINDOWS;WIN32;_DEBUG;DEBUG;VERSION_D3D;TEX_EMBED;WINDOWS_IGNORE_PACKING_MISMATCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AssemblerListingLocation>.\Debug\</AssemblerListingLocation>
+      <PrecompiledHeaderOutputFile>.\Debug\Fallen.pch</PrecompiledHeaderOutputFile>
+      <ObjectFileName>.\Debug\</ObjectFileName>
+      <ProgramDataBaseFileName>.\Debug\</ProgramDataBaseFileName>
+      <AdditionalOptions> /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <StructMemberAlignment>1Byte</StructMemberAlignment>
+      <AdditionalIncludeDirectories>Headers;..\fallen\ledit\headers;..\fallen\sedit\headers;..\fallen\DDLibrary\Headers;..\fallen\gedit\headers;..\fallen\ddengine\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Midl>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TypeLibraryName>.\Debug\Fallen.tlb</TypeLibraryName>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <RedirectOutputAndErrors>NUL</RedirectOutputAndErrors>
+      <TargetEnvironment>Win32</TargetEnvironment>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Debug\Fallen.bsc</OutputFile>
+    </Bscmake>
+    <Link>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>.\Debug\Fallen.exe</OutputFile>
+      <AdditionalLibraryDirectories>c:\fallen\bink;c:\miles;c:\fallen\miles;c:\mflib1\libs;C:\qsound\QM411SDK\qmdx;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;comctl32.lib;amstrmid.lib;quartz.lib;strmbase.lib;ddraw.lib;dinput8.lib;dxguid.lib;imm32.lib;Version.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\MFStdLib\Source\StdLib\StdFile.cpp" />
+    <ClCompile Include="..\MFStdLib\Source\StdLib\StdMaths.cpp" />
+    <ClCompile Include="..\MFStdLib\Source\StdLib\StdMem.cpp" />
+    <ClCompile Include="DDEngine\Source\aa.cpp" />
+    <ClCompile Include="DDEngine\Source\aeng.cpp" />
+    <ClCompile Include="DDEngine\Source\BreakTimer.cpp" />
+    <ClCompile Include="DDEngine\Source\Bucket.cpp" />
+    <ClCompile Include="DDEngine\Source\build.cpp" />
+    <ClCompile Include="DDEngine\Source\comp.cpp" />
+    <ClCompile Include="DDEngine\Source\cone.cpp" />
+    <ClCompile Include="DDEngine\Source\console.cpp" />
+    <ClCompile Include="DDEngine\Source\Crinkle.cpp" />
+    <ClCompile Include="DDEngine\Source\DCback.cpp" />
+    <ClCompile Include="DDEngine\Source\DCcredits.cpp" />
+    <ClCompile Include="DDEngine\Source\DCfont.cpp" />
+    <ClCompile Include="DDEngine\Source\DCos.cpp" />
+    <ClCompile Include="DDEngine\Source\drawxtra.cpp" />
+    <ClCompile Include="DDEngine\Source\engineMap.cpp" />
+    <ClCompile Include="DDEngine\Source\facet.cpp" />
+    <ClCompile Include="DDEngine\Source\farfacet.cpp" />
+    <ClCompile Include="DDEngine\Source\fastprim.cpp" />
+    <ClCompile Include="DDEngine\Source\figure.cpp" />
+    <ClCompile Include="DDEngine\Source\flamengine.cpp" />
+    <ClCompile Include="DDEngine\Source\Font.cpp" />
+    <ClCompile Include="DDEngine\Source\font2d.cpp" />
+    <ClCompile Include="DDEngine\Source\font3d.cpp" />
+    <ClCompile Include="DDEngine\Source\Gamut.cpp" />
+    <ClCompile Include="DDEngine\Source\ic.cpp" />
+    <ClCompile Include="DDEngine\Source\Matrix.cpp" />
+    <ClCompile Include="DDEngine\Source\menufont.cpp" />
+    <ClCompile Include="DDEngine\Source\mesh.cpp" />
+    <ClCompile Include="DDEngine\Source\Message.cpp" />
+    <ClCompile Include="DDEngine\Source\NGamut.cpp" />
+    <ClCompile Include="DDEngine\Source\oval.cpp" />
+    <ClCompile Include="DDEngine\Source\panel.cpp" />
+    <ClCompile Include="DDEngine\Source\planmap.cpp" />
+    <ClCompile Include="DDEngine\Source\poly.cpp" />
+    <ClCompile Include="DDEngine\Source\polypage.cpp" />
+    <ClCompile Include="DDEngine\Source\polypoint.cpp" />
+    <ClCompile Include="DDEngine\Source\polyrenderstate.cpp" />
+    <ClCompile Include="DDEngine\Source\qeng.cpp" />
+    <ClCompile Include="DDEngine\Source\Quaternion.cpp" />
+    <ClCompile Include="DDEngine\Source\ray.cpp" />
+    <ClCompile Include="DDEngine\Source\renderstate.cpp" />
+    <ClCompile Include="DDEngine\Source\shape.cpp" />
+    <ClCompile Include="DDEngine\Source\sky.cpp" />
+    <ClCompile Include="DDEngine\Source\smap.cpp" />
+    <ClCompile Include="DDEngine\Source\sprite.cpp" />
+    <ClCompile Include="DDEngine\Source\supercrinkle.cpp" />
+    <ClCompile Include="DDEngine\Source\superfacet.cpp" />
+    <ClCompile Include="DDEngine\Source\Text.cpp" />
+    <ClCompile Include="DDEngine\Source\texture.cpp" />
+    <ClCompile Include="DDEngine\Source\truetype.cpp" />
+    <ClCompile Include="DDEngine\Source\vertexbuffer.cpp" />
+    <ClCompile Include="DDEngine\Source\wibble.cpp" />
+    <ClCompile Include="DDLibrary\Source\AsyncFile2.cpp" />
+    <ClCompile Include="DDLibrary\Source\BinkClient.cpp" />
+    <ClCompile Include="DDLibrary\Source\D3DTexture.cpp" />
+    <ClCompile Include="DDLibrary\Source\DDManager.cpp" />
+    <ClCompile Include="DDLibrary\Source\DIManager.cpp" />
+    <ClCompile Include="DDLibrary\Source\Drive.cpp" />
+    <ClCompile Include="DDLibrary\Source\FFManager.cpp" />
+    <ClCompile Include="DDLibrary\Source\FileClump.cpp" />
+    <ClCompile Include="DDLibrary\Source\GDebug.cpp" />
+    <ClCompile Include="DDLibrary\Source\GDisplay.cpp" />
+    <ClCompile Include="DDLibrary\Source\GHost.cpp" />
+    <ClCompile Include="DDLibrary\Source\GKeyboard.cpp" />
+    <ClCompile Include="DDLibrary\Source\GMouse.cpp" />
+    <ClCompile Include="DDLibrary\Source\GWorkScreen.cpp" />
+    <ClCompile Include="DDLibrary\Source\MFX.cpp" />
+    <ClCompile Include="DDLibrary\Source\net.cpp" />
+    <ClCompile Include="DDLibrary\Source\Tga.cpp" />
+    <ClCompile Include="DDLibrary\Source\WindProcs.cpp" />
+    <ClCompile Include="Editor\Source\outline.cpp" />
+    <ClCompile Include="GEdit\Source\activatesetup.cpp" />
+    <ClCompile Include="GEdit\Source\animSetup.cpp" />
+    <ClCompile Include="GEdit\Source\barrelSetup.cpp" />
+    <ClCompile Include="GEdit\Source\bombSetup.cpp" />
+    <ClCompile Include="GEdit\Source\BonusSetup.cpp" />
+    <ClCompile Include="GEdit\Source\burnsetup.cpp" />
+    <ClCompile Include="GEdit\Source\CameraSetup.cpp" />
+    <ClCompile Include="GEdit\Source\CamTargetSetup.cpp" />
+    <ClCompile Include="GEdit\Source\converse.cpp" />
+    <ClCompile Include="GEdit\Source\countersetup.cpp" />
+    <ClCompile Include="GEdit\Source\CreatureSetup.cpp" />
+    <ClCompile Include="GEdit\Source\cutscene.cpp" />
+    <ClCompile Include="GEdit\Source\dlightSetup.cpp" />
+    <ClCompile Include="GEdit\Source\EdStrings.cpp" />
+    <ClCompile Include="GEdit\Source\enemyflagsetup.cpp" />
+    <ClCompile Include="GEdit\Source\EnemySetup.cpp" />
+    <ClCompile Include="GEdit\Source\EngWind.cpp" />
+    <ClCompile Include="GEdit\Source\ExtendSetup.cpp" />
+    <ClCompile Include="GEdit\Source\GEdit.cpp" />
+    <ClCompile Include="GEdit\Source\inputbox.cpp" />
+    <ClCompile Include="GEdit\Source\ItemSetup.cpp" />
+    <ClCompile Include="GEdit\Source\locksetup.cpp" />
+    <ClCompile Include="GEdit\Source\MapExitSetup.cpp" />
+    <ClCompile Include="GEdit\Source\MapView.cpp" />
+    <ClCompile Include="GEdit\Source\MessageSetup.cpp" />
+    <ClCompile Include="GEdit\Source\Mission.cpp" />
+    <ClCompile Include="GEdit\Source\MoveSetup.cpp" />
+    <ClCompile Include="GEdit\Source\NavSetup.cpp" />
+    <ClCompile Include="GEdit\Source\PeeSetup.cpp" />
+    <ClCompile Include="GEdit\Source\platformSetup.cpp" />
+    <ClCompile Include="GEdit\Source\PlayerSetup.cpp" />
+    <ClCompile Include="GEdit\Source\propedit.cpp" />
+    <ClCompile Include="GEdit\Source\ResetSetup.cpp" />
+    <ClCompile Include="GEdit\Source\setskills.cpp" />
+    <ClCompile Include="GEdit\Source\SfxSetup.cpp" />
+    <ClCompile Include="GEdit\Source\signsetup.cpp" />
+    <ClCompile Include="GEdit\Source\spotfxSetup.cpp" />
+    <ClCompile Include="GEdit\Source\stallsetup.cpp" />
+    <ClCompile Include="GEdit\Source\SubClass.cpp" />
+    <ClCompile Include="GEdit\Source\TabCtl.cpp" />
+    <ClCompile Include="GEdit\Source\ticklist.cpp" />
+    <ClCompile Include="GEdit\Source\TransferSetup.cpp" />
+    <ClCompile Include="GEdit\Source\TrapSetup.cpp" />
+    <ClCompile Include="GEdit\Source\treasuresetup.cpp" />
+    <ClCompile Include="GEdit\Source\TriggerSetup.cpp" />
+    <ClCompile Include="GEdit\Source\VehicleSetup.cpp" />
+    <ClCompile Include="GEdit\Source\VfxSetup.cpp" />
+    <ClCompile Include="GEdit\Source\warefxsetup.cpp" />
+    <ClCompile Include="GEdit\Source\waypointSetup.cpp" />
+    <ClCompile Include="GEdit\Source\WayWind.cpp" />
+    <ClCompile Include="GEdit\Source\wptSetup.cpp" />
+    <ClCompile Include="GEdit\Source\WSpace.cpp" />
+    <ClCompile Include="Ledit\Source\ed.cpp" />
+    <ClCompile Include="Ledit\Source\gi.cpp" />
+    <ClCompile Include="Ledit\Source\ledit.cpp" />
+    <ClCompile Include="outro\back.cpp" />
+    <ClCompile Include="outro\cam.cpp" />
+    <ClCompile Include="outro\credits.cpp" />
+    <ClCompile Include="outro\imp.cpp" />
+    <ClCompile Include="outro\mf.cpp" />
+    <ClCompile Include="outro\os.cpp" />
+    <ClCompile Include="outro\outroFont.cpp" />
+    <ClCompile Include="outro\outroMain.cpp" />
+    <ClCompile Include="outro\outroMatrix.cpp" />
+    <ClCompile Include="outro\OutroTga.cpp" />
+    <ClCompile Include="outro\wire.cpp" />
+    <ClCompile Include="Source\Anim.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\animal.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\animtmap.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Attract.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\balloon.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\barrel.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\bat.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\bike.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\build2.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\building.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\canid.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\chopper.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\cnet.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\collide.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\combat.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Controls.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Cop.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Darci.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\dike.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\dirt.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\door.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\drawtype.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\drip.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Effect.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\elev.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Enemy.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Env.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\env2.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\eway.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\fc.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\fire.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\FMatrix.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\fog.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\frontend.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Game.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\gamemenu.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\glitter.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\grenade.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\guns.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\heap.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Hierarchy.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\hm.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\hook.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\inside2.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\interact.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\interfac.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\io.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Main.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Map.cpp" />
+    <ClCompile Include="Source\maths.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\mav.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\memory.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\mist.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\morph.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\music.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\night.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\nightpsx.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\ns.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\ob.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\overlay.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\pap.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\pause.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\pcom.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Person.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Pjectile.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\plat.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\playcuts.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Player.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\pow.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Prim.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\psystem.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\puddle.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\pyro.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\qedit.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\qmap.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\ribbon.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\road.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Roper.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\save.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\shadow.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\sm.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\snipe.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Sound.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\soundenv.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\sound_id.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\spark.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Special.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\stair.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\startscr.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\State.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\supermap.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Switch.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Thing.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\Thug.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\tracks.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\trip.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\vehicle.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\walkable.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\wand.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\ware.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\widget.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\wmove.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="Source\xlat_str.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\MFStdLib\Headers\MFStdLib.h" />
+    <ClInclude Include="..\MFStdLib\Headers\StdFile.h" />
+    <ClInclude Include="..\MFStdLib\Headers\StdKeybd.h" />
+    <ClInclude Include="..\MFStdLib\Headers\StdMaths.h" />
+    <ClInclude Include="..\MFStdLib\Headers\StdMem.h" />
+    <ClInclude Include="..\MFStdLib\Headers\StdMouse.h" />
+    <ClInclude Include="DDEngine\Headers\aa.h" />
+    <ClInclude Include="DDEngine\Headers\aeng.h" />
+    <ClInclude Include="DDEngine\Headers\BreakTimer.h" />
+    <ClInclude Include="DDEngine\Headers\Bucket.h" />
+    <ClInclude Include="DDEngine\Headers\build.h" />
+    <ClInclude Include="DDEngine\Headers\comp.h" />
+    <ClInclude Include="DDEngine\Headers\cone.h" />
+    <ClInclude Include="DDEngine\Headers\console.h" />
+    <ClInclude Include="DDEngine\Headers\Crinkle.h" />
+    <ClInclude Include="DDEngine\Headers\DCback.h" />
+    <ClInclude Include="DDEngine\Headers\DCcredits.h" />
+    <ClInclude Include="DDEngine\Headers\DCfont.h" />
+    <ClInclude Include="DDEngine\Headers\DCos.h" />
+    <ClInclude Include="DDEngine\Headers\DrawXtra.h" />
+    <ClInclude Include="DDEngine\Headers\Engine.h" />
+    <ClInclude Include="DDEngine\Headers\facet.h" />
+    <ClInclude Include="DDEngine\Headers\fall.h" />
+    <ClInclude Include="DDEngine\Headers\farfacet.h" />
+    <ClInclude Include="DDEngine\Headers\fastprim.h" />
+    <ClInclude Include="DDEngine\Headers\figure.h" />
+    <ClInclude Include="DDEngine\Headers\flamengine.h" />
+    <ClInclude Include="DDEngine\Headers\Font.h" />
+    <ClInclude Include="DDEngine\Headers\font2d.h" />
+    <ClInclude Include="DDEngine\Headers\font3d.h" />
+    <ClInclude Include="DDEngine\Headers\Gamut.h" />
+    <ClInclude Include="DDEngine\Headers\ic.h" />
+    <ClInclude Include="DDEngine\Headers\map.h" />
+    <ClInclude Include="DDEngine\Headers\Matrix.h" />
+    <ClInclude Include="DDEngine\Headers\menufont.h" />
+    <ClInclude Include="DDEngine\Headers\mesh.h" />
+    <ClInclude Include="DDEngine\Headers\Message.h" />
+    <ClInclude Include="DDEngine\Headers\NGamut.h" />
+    <ClInclude Include="DDEngine\Headers\oval.h" />
+    <ClInclude Include="DDEngine\Headers\panel.h" />
+    <ClInclude Include="DDEngine\Headers\planmap.h" />
+    <ClInclude Include="DDEngine\Headers\poly.h" />
+    <ClInclude Include="DDEngine\Headers\polypage.h" />
+    <ClInclude Include="DDEngine\Headers\polypoint.h" />
+    <ClInclude Include="DDEngine\Headers\qeng.h" />
+    <ClInclude Include="DDEngine\Headers\Quaternion.h" />
+    <ClInclude Include="DDEngine\Headers\ray.h" />
+    <ClInclude Include="DDEngine\Headers\renderstate.h" />
+    <ClInclude Include="DDEngine\Headers\shape.h" />
+    <ClInclude Include="DDEngine\Headers\sky.h" />
+    <ClInclude Include="DDEngine\Headers\smap.h" />
+    <ClInclude Include="DDEngine\Headers\sprite.h" />
+    <ClInclude Include="DDEngine\Headers\supercrinkle.h" />
+    <ClInclude Include="DDEngine\Headers\superfacet.h" />
+    <ClInclude Include="DDEngine\Headers\Text.h" />
+    <ClInclude Include="DDEngine\Headers\texture.h" />
+    <ClInclude Include="DDEngine\Headers\truetype.h" />
+    <ClInclude Include="DDEngine\Headers\vertexbuffer.h" />
+    <ClInclude Include="DDEngine\Headers\wibble.h" />
+    <ClInclude Include="DDLibrary\Headers\AsyncFile.h" />
+    <ClInclude Include="DDLibrary\Headers\AsyncFile2.h" />
+    <ClInclude Include="DDLibrary\Headers\BinkClient.h" />
+    <ClInclude Include="DDLibrary\Headers\D3DTexture.h" />
+    <ClInclude Include="DDLibrary\Headers\DDlib.h" />
+    <ClInclude Include="DDLibrary\Headers\DDManager.h" />
+    <ClInclude Include="DDLibrary\Headers\Debug.h" />
+    <ClInclude Include="DDLibrary\Headers\DIManager.h" />
+    <ClInclude Include="DDLibrary\Headers\Drive.h" />
+    <ClInclude Include="DDLibrary\Headers\FFManager.h" />
+    <ClInclude Include="DDLibrary\Headers\FileClump.h" />
+    <ClInclude Include="DDLibrary\Headers\GDisplay.h" />
+    <ClInclude Include="DDLibrary\Headers\GWorkScreen.h" />
+    <ClInclude Include="DDLibrary\Headers\MFx.h" />
+    <ClInclude Include="DDLibrary\Headers\net.h" />
+    <ClInclude Include="DDLibrary\Headers\QSManager.h" />
+    <ClInclude Include="DDLibrary\Headers\resource.h" />
+    <ClInclude Include="DDLibrary\Headers\Tga.h" />
+    <ClInclude Include="DDLibrary\Headers\WindProcs.h" />
+    <ClInclude Include="Editor\Headers\Alert.hpp" />
+    <ClInclude Include="Editor\Headers\Anim.h" />
+    <ClInclude Include="Editor\Headers\building.hpp" />
+    <ClInclude Include="Editor\Headers\BuildTab.hpp" />
+    <ClInclude Include="Editor\Headers\collide.hpp" />
+    <ClInclude Include="Editor\Headers\ColTab.hpp" />
+    <ClInclude Include="Editor\Headers\ComTab.h" />
+    <ClInclude Include="Editor\Headers\CondTab.h" />
+    <ClInclude Include="Editor\Headers\Controls.hpp" />
+    <ClInclude Include="Editor\Headers\convert.h" />
+    <ClInclude Include="Editor\Headers\CtrlSet.hpp" />
+    <ClInclude Include="Editor\Headers\DarkCity.h" />
+    <ClInclude Include="Editor\Headers\EdCom.h" />
+    <ClInclude Include="Editor\Headers\Edit.h" />
+    <ClInclude Include="Editor\Headers\EditMod.hpp" />
+    <ClInclude Include="Editor\Headers\Editor.h" />
+    <ClInclude Include="Editor\Headers\Editor.hpp" />
+    <ClInclude Include="Editor\Headers\EditorLib.h" />
+    <ClInclude Include="Editor\Headers\EdUtils.h" />
+    <ClInclude Include="Editor\Headers\EdWay.h" />
+    <ClInclude Include="Editor\Headers\engine.h" />
+    <ClInclude Include="Editor\Headers\extra.h" />
+    <ClInclude Include="Editor\Headers\FileReq.hpp" />
+    <ClInclude Include="Editor\Headers\game.h" />
+    <ClInclude Include="Editor\Headers\GameEd.h" />
+    <ClInclude Include="Editor\Headers\HmTab.hpp" />
+    <ClInclude Include="Editor\Headers\Icon.hpp" />
+    <ClInclude Include="Editor\Headers\Intrface.hpp" />
+    <ClInclude Include="Editor\Headers\KFrameEd.hpp" />
+    <ClInclude Include="Editor\Headers\KFramer.hpp" />
+    <ClInclude Include="Editor\Headers\LevelEd.hpp" />
+    <ClInclude Include="Editor\Headers\LightTab.hpp" />
+    <ClInclude Include="Editor\Headers\macros.h" />
+    <ClInclude Include="Editor\Headers\map.h" />
+    <ClInclude Include="Editor\Headers\MapEdTab.hpp" />
+    <ClInclude Include="Editor\Headers\MapTab.hpp" />
+    <ClInclude Include="Editor\Headers\ModeTab.hpp" />
+    <ClInclude Include="Editor\Headers\ObjectEd.hpp" />
+    <ClInclude Include="Editor\Headers\outline.h" />
+    <ClInclude Include="Editor\Headers\PaintTab.hpp" />
+    <ClInclude Include="Editor\Headers\perstex.h" />
+    <ClInclude Include="Editor\Headers\Poly.h" />
+    <ClInclude Include="Editor\Headers\Prim.h" />
+    <ClInclude Include="Editor\Headers\Primativ.hpp" />
+    <ClInclude Include="Editor\Headers\primtex.h" />
+    <ClInclude Include="Editor\Headers\prim_draw.h" />
+    <ClInclude Include="Editor\Headers\prim_edit.h" />
+    <ClInclude Include="Editor\Headers\PrPiTab.hpp" />
+    <ClInclude Include="Editor\Headers\SaveTab.h" />
+    <ClInclude Include="Editor\Headers\scan.h" />
+    <ClInclude Include="Editor\Headers\scrflc.h" />
+    <ClInclude Include="Editor\Headers\sewertab.hpp" />
+    <ClInclude Include="Editor\Headers\spare.h" />
+    <ClInclude Include="Editor\Headers\Stealth.h" />
+    <ClInclude Include="Editor\Headers\Structs.h" />
+    <ClInclude Include="Editor\Headers\TexTab.hpp" />
+    <ClInclude Include="Editor\Headers\Thing.h" />
+    <ClInclude Include="Editor\Headers\ThingTab.h" />
+    <ClInclude Include="Editor\Headers\undo.hpp" />
+    <ClInclude Include="Editor\Headers\Window.hpp" />
+    <ClInclude Include="GEdit\Headers\activatesetup.h" />
+    <ClInclude Include="GEdit\Headers\CameraSetup.h" />
+    <ClInclude Include="GEdit\Headers\CamTargetSetup.h" />
+    <ClInclude Include="GEdit\Headers\cutscene.h" />
+    <ClInclude Include="GEdit\Headers\EdStrings.h" />
+    <ClInclude Include="GEdit\Headers\EnemySetup.h" />
+    <ClInclude Include="GEdit\Headers\EngWind.h" />
+    <ClInclude Include="GEdit\Headers\GEdit.h" />
+    <ClInclude Include="GEdit\Headers\inputbox.h" />
+    <ClInclude Include="GEdit\Headers\ItemSetup.h" />
+    <ClInclude Include="GEdit\Headers\MapExitSetup.h" />
+    <ClInclude Include="GEdit\Headers\MapView.h" />
+    <ClInclude Include="GEdit\Headers\Mission.h" />
+    <ClInclude Include="GEdit\Headers\platformSetup.h" />
+    <ClInclude Include="GEdit\Headers\PlayerSetup.h" />
+    <ClInclude Include="GEdit\Headers\propedit.h" />
+    <ClInclude Include="GEdit\Headers\SubClass.h" />
+    <ClInclude Include="GEdit\Headers\TabCtl.h" />
+    <ClInclude Include="GEdit\Headers\ticklist.h" />
+    <ClInclude Include="GEdit\Headers\trapsetup.h" />
+    <ClInclude Include="GEdit\Headers\TriggerSetup.h" />
+    <ClInclude Include="GEdit\Headers\waypointSetup.h" />
+    <ClInclude Include="GEdit\Headers\WayWind.h" />
+    <ClInclude Include="GEdit\Headers\WSpace.h" />
+    <ClInclude Include="Headers\america.h" />
+    <ClInclude Include="Headers\animal.h" />
+    <ClInclude Include="Headers\animate.h" />
+    <ClInclude Include="Headers\animtmap.h" />
+    <ClInclude Include="Headers\Attract.h" />
+    <ClInclude Include="Headers\az.h" />
+    <ClInclude Include="Headers\balloon.h" />
+    <ClInclude Include="Headers\bang.h" />
+    <ClInclude Include="Headers\barrel.h" />
+    <ClInclude Include="Headers\bat.h" />
+    <ClInclude Include="Headers\bike.h" />
+    <ClInclude Include="Headers\building.h" />
+    <ClInclude Include="Headers\cache.h" />
+    <ClInclude Include="Headers\cam.h" />
+    <ClInclude Include="Headers\canid.h" />
+    <ClInclude Include="Headers\chopper.h" />
+    <ClInclude Include="Headers\cloth.h" />
+    <ClInclude Include="Headers\cnet.h" />
+    <ClInclude Include="Headers\collide.h" />
+    <ClInclude Include="Headers\combat.h" />
+    <ClInclude Include="Headers\Command.h" />
+    <ClInclude Include="Headers\Controls.h" />
+    <ClInclude Include="Headers\Cop.h" />
+    <ClInclude Include="Headers\Darci.h" />
+    <ClInclude Include="Headers\demo.h" />
+    <ClInclude Include="Headers\dirt.h" />
+    <ClInclude Include="Headers\drawtype.h" />
+    <ClInclude Include="Headers\drip.h" />
+    <ClInclude Include="Headers\Editor.h" />
+    <ClInclude Include="Headers\elev.h" />
+    <ClInclude Include="Headers\eway.h" />
+    <ClInclude Include="Headers\fc.h" />
+    <ClInclude Include="Headers\fire.h" />
+    <ClInclude Include="Headers\FMatrix.h" />
+    <ClInclude Include="Headers\fog.h" />
+    <ClInclude Include="Headers\Furn.h" />
+    <ClInclude Include="Headers\Game.h" />
+    <ClInclude Include="Headers\glitter.h" />
+    <ClInclude Include="Headers\guns.h" />
+    <ClInclude Include="Headers\heap.h" />
+    <ClInclude Include="Headers\Hierarchy.h" />
+    <ClInclude Include="Headers\hm.h" />
+    <ClInclude Include="Headers\hook.h" />
+    <ClInclude Include="Headers\id.h" />
+    <ClInclude Include="Headers\inside2.h" />
+    <ClInclude Include="Headers\interact.h" />
+    <ClInclude Include="Headers\interfac.h" />
+    <ClInclude Include="Headers\io.h" />
+    <ClInclude Include="Headers\Level.h" />
+    <ClInclude Include="Headers\light.h" />
+    <ClInclude Include="Headers\Map.h" />
+    <ClInclude Include="Headers\maths.h" />
+    <ClInclude Include="Headers\mav.h" />
+    <ClInclude Include="Headers\memory.h" />
+    <ClInclude Include="Headers\mist.h" />
+    <ClInclude Include="Headers\morph.h" />
+    <ClInclude Include="Headers\music.h" />
+    <ClInclude Include="Headers\night.h" />
+    <ClInclude Include="Headers\noserver.h" />
+    <ClInclude Include="Headers\ns.h" />
+    <ClInclude Include="Headers\ob.h" />
+    <ClInclude Include="Headers\overlay.h" />
+    <ClInclude Include="Headers\pap.h" />
+    <ClInclude Include="Headers\pause.h" />
+    <ClInclude Include="Headers\pcom.h" />
+    <ClInclude Include="Headers\Person.h" />
+    <ClInclude Include="Headers\Pjectile.h" />
+    <ClInclude Include="Headers\plat.h" />
+    <ClInclude Include="Headers\Player.h" />
+    <ClInclude Include="Headers\pq.h" />
+    <ClInclude Include="Headers\PSystem.h" />
+    <ClInclude Include="Headers\puddle.h" />
+    <ClInclude Include="Headers\pyro.h" />
+    <ClInclude Include="Headers\qedit.h" />
+    <ClInclude Include="Headers\qmap.h" />
+    <ClInclude Include="Headers\road.h" />
+    <ClInclude Include="Headers\Roper.h" />
+    <ClInclude Include="Headers\sample.h" />
+    <ClInclude Include="Headers\save.h" />
+    <ClInclude Include="Headers\sewer.h" />
+    <ClInclude Include="Headers\shadow.h" />
+    <ClInclude Include="Headers\sm.h" />
+    <ClInclude Include="Headers\Sound.h" />
+    <ClInclude Include="Headers\sound_id.h" />
+    <ClInclude Include="Headers\spark.h" />
+    <ClInclude Include="Headers\Special.h" />
+    <ClInclude Include="Headers\stair.h" />
+    <ClInclude Include="Headers\startscr.h" />
+    <ClInclude Include="Headers\State.h" />
+    <ClInclude Include="Headers\statedef.h" />
+    <ClInclude Include="Headers\Structs.h" />
+    <ClInclude Include="Headers\supermap.h" />
+    <ClInclude Include="Headers\Switch.h" />
+    <ClInclude Include="Headers\Thing.h" />
+    <ClInclude Include="Headers\Thug.h" />
+    <ClInclude Include="Headers\tracks.h" />
+    <ClInclude Include="Headers\trip.h" />
+    <ClInclude Include="Headers\vehicle.h" />
+    <ClInclude Include="Headers\walkable.h" />
+    <ClInclude Include="Headers\ware.h" />
+    <ClInclude Include="Headers\water.h" />
+    <ClInclude Include="Headers\widget.h" />
+    <ClInclude Include="Headers\wmove.h" />
+    <ClInclude Include="Headers\xlat_str.h" />
+    <ClInclude Include="Ledit\Headers\ed.h" />
+    <ClInclude Include="Ledit\Headers\gi.h" />
+    <ClInclude Include="Ledit\Headers\ledit.h" />
+    <ClInclude Include="outro\Always.h" />
+    <ClInclude Include="outro\back.h" />
+    <ClInclude Include="outro\cam.h" />
+    <ClInclude Include="outro\checker.h" />
+    <ClInclude Include="outro\credits.h" />
+    <ClInclude Include="outro\font.h" />
+    <ClInclude Include="outro\imp.h" />
+    <ClInclude Include="outro\Key.h" />
+    <ClInclude Include="outro\lmap.h" />
+    <ClInclude Include="outro\Matrix.h" />
+    <ClInclude Include="outro\mf.h" />
+    <ClInclude Include="outro\midasdll.h" />
+    <ClInclude Include="outro\os.h" />
+    <ClInclude Include="outro\slap.h" />
+    <ClInclude Include="outro\Tga.h" />
+    <ClInclude Include="outro\wire.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="DDLibrary\arrowcop.cur" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="DDLibrary\bitmap1.bmp" />
+    <Image Include="DDLibrary\bmp00001.bmp" />
+    <Image Include="DDLibrary\ico00001.ico" />
+    <Image Include="DDLibrary\icon1.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DDLibrary\DDlib.rc">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">DDLibrary;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">DDLibrary;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="notes.txt" />
+    <Text Include="text\lang_english.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
