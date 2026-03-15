@@ -161,3 +161,46 @@ rm new_game/fallen/Source/nightpsx.cpp new_game/fallen/Source/Levelpsx.cpp new_g
 - `#if 0 / #else / #endif` блоки: сохранялось содержимое `#else` ветки, удалялись директивы и мёртвая ветка.
 - Оставшиеся `#if 0` блоки (~140 штук) — следующие пачки.
 
+---
+
+## Итерация 5 — Удаление #if 0 блоков (пачка 2 — figure.cpp)
+
+**Дата:** 2026-03-15
+
+**Удалено блоков #if 0 в коде:**
+- `DDEngine/Source/figure.cpp` — 33 блока (все оставшиеся в файле):
+  - `/* */` блок 732-830 (содержал внутри `#if 0/#else/#endif` с D3D lighting — дважды мёртвый)
+  - lod_mul calc (перенесён в callers)
+  - FIGURE_find_and_clean_prim_queue_item call
+  - Bounding sphere `#if 0/#else/#endif` → оставлен correct fix с `pfBoundingSphereRadius`
+  - 2× Strip indices (4-triangle и 5-triangle варианты) — оба заменены на List indices
+  - Normal blend `#if 0/#elif 0/#elif 0/#else/#endif` → оставлен `(4 * vNormToEdge) - vAvNorm`
+  - Старый memcpy вертексов/индексов в permanent буферы
+  - MM data setup (ALIGNED_STATIC_ARRAY) — 2 места
+  - 3× letterbox viewport `#if 0/#else/#endif` → оставлен hack с `g_dw3DStuffHeight/g_dw3DStuffY` (все 3 заменены сразу через replace_all)
+  - 2× DrawIndexedPrimitive vs DrawIndPrimMM `#if 0/#else/#endif` → оставлен DrawIndPrimMM (replace_all)
+  - "Can we have 4x polys for free?" — 3× DrawIndexedPrimitive
+  - 2× цвет грани (quad и tri) — мёртвые пути через ENGINE_palette
+  - TLVertex vs LVertex quad `#if 0/#else/#endif` → оставлен LVertex
+  - TLVertex vs LVertex tri `#if 0/#else/#endif` → оставлен LVertex
+  - 2× MM cleanup (null ptrs) → пустые if-блоки
+  - FIGURE_TPO_init_3d_object с/без slot → оставлен без slot
+  - FIGURE_TPO_finish_3d_object без/с slot 1 → оставлен с slot 1
+  - Near-plane culling (не реализован)
+  - Alpha/clipped path todo
+  - 2× muzzle flash draw_prim_tween → оставлен person_only вариант
+  - 2× weapon draw_prim_tween → оставлен person_only вариант
+  - 2× body part draw_prim_tween → оставлен person_only вариант
+  - Recurse child setup (старый стиль) → оставлен новый с pDHPR1Inc
+  - ALIGNED_STATIC_ARRAY setup (второй экземпляр)
+  - MM NULL cleanup (второй экземпляр)
+  - imatrix assignment (старый integer-matrix путь)
+
+**Итог:** ~33 блока, ~192 строки удалено, ~0 вставок (все #else контент уже был в файле как active).
+После удаления в figure.cpp: 0 блоков `^#if 0`, в проекте осталось 102.
+
+**Нюансы:**
+- Блок 3538-3573 — Python script первоначально определял неверно (3538-3557) из-за `#ifdef` внутри `#else`. Исправлено вручную.
+- replace_all использован для трёх идентичных letterbox блоков и двух DrawIndPrimMM блоков.
+- Финальные 11 блоков (с табами) обработаны Python one-liner из-за несовместимости с Edit tool.
+

@@ -729,106 +729,6 @@ BOOL MSOptimizeIndexedList(WORD* pwIndices, int nTriangles)
 
 #endif // #if USE_TOMS_ENGINE_PLEASE_BOB
 
-/*
-
-
-// D3D lighting fucntions.
-#define MAX_NUM_OF_LIGHTS 10
-LPDIRECT3DLIGHT m_pLight[MAX_NUM_OF_LIGHTS];
-bool m_bLightInScene[MAX_NUM_OF_LIGHTS];
-int m_iNumLights = 0;
-
-int FindMeAFreeLightAndPutItInTheScene ( void )
-{
-        int i = 0;
-        while ( TRUE )
-        {
-                ASSERT ( i < MAX_NUM_OF_LIGHTS );
-                if ( !m_bLightInScene[i] )
-                {
-                        // Found one.
-                        break;
-                }
-                i++;
-        }
-
-        if ( m_pLight[i] == NULL )
-        {
-                // Haven't created this one yet.
-                HRESULT hres = (the_display.lp_D3D)->CreateLight ( &(m_pLight[i]), NULL );
-                ASSERT ( SUCCEEDED ( hres ) );
-        }
-        // Add the light in.
-        HRESULT hres = (the_display.lp_D3D_Viewport)->AddLight ( m_pLight[i] );
-        ASSERT ( SUCCEEDED ( hres ) );
-        m_bLightInScene[i] = TRUE;
-        return ( i );
-}
-
-void MakeThisLightLikeThis ( int iLightNum, D3DLIGHT *pd3dLight )
-{
-        ASSERT ( m_bLightInScene[iLightNum] );
-        ASSERT ( m_pLight[iLightNum] != NULL );
-        HRESULT hres = (m_pLight[iLightNum])->SetLight ( (D3DLIGHT *)pd3dLight );
-        ASSERT ( SUCCEEDED ( hres ) );
-}
-
-void MakeThisLightLikeThis ( int iLightNum, D3DLIGHT2 *pd3dLight )
-{
-        MakeThisLightLikeThis ( iLightNum, (D3DLIGHT *)pd3dLight );
-}
-
-void RemoveThisLightFromScene ( int iLightNum )
-{
-        ASSERT ( m_bLightInScene[iLightNum] );
-        ASSERT ( m_pLight[iLightNum] != NULL );
-        HRESULT hres = (the_display.lp_D3D_Viewport)->DeleteLight ( m_pLight[iLightNum] );
-        ASSERT ( SUCCEEDED ( hres ) );
-        m_bLightInScene[iLightNum] = FALSE;
-}
-
-#if 0
-int AddThisSortOfLightToTheScene ( D3DLIGHT *pd3dLight )
-{
-        int iLightNum = FindMeAFreeLightAndPutItInTheScene();
-        MakeThisLightLikeThis ( iLightNum, pd3dLight );
-        return ( iLightNum );
-}
-
-int AddThisSortOfLightToTheScene ( D3DLIGHT2 *pd3dLight )
-{
-        return ( AddThisSortOfLightToTheScene ( (D3DLIGHT *)pd3dLight ) );
-}
-void RemoveAllLightsFromScene ( void )
-{
-        for ( int i = 0; i < MAX_NUM_OF_LIGHTS; i++ )
-        {
-                if ( m_bLightInScene[i] )
-                {
-                        RemoveThisLightFromScene ( i );
-                }
-        }
-}
-
-#else
-// HACKED!
-int AddThisSortOfLightToTheScene ( D3DLIGHT2 *pd3dLight )
-{
-        if ( m_pLight[0] == NULL )
-        {
-                FindMeAFreeLightAndPutItInTheScene();
-                MakeThisLightLikeThis ( 0, pd3dLight );
-        }
-        return ( 0 );
-}
-void RemoveAllLightsFromScene ( void )
-{
-}
-#endif
-
-
-*/
-
 // claude-ai: get_steam_rand — cheap LCG pseudo-random for steam/fire particle positions.
 // claude-ai: Not cryptographic. Seed (steam_seed) is reset each frame to get reproducible
 // claude-ai: particle patterns.
@@ -979,20 +879,6 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
     //
 
     steam_seed = 54321678 + offset;
-
-#if 0
-	// Now moved to the actual callers instead.
-	SLONG lod_mul;
-
-	if (!AENG_detail_skyline)//||ShiftFlag)
-	{
-		lod_mul = 2;
-	}
-	else
-	{
-		lod_mul = 5;
-	}
-#endif
 
     // for(c0=0;c0<lod*lod_mul;c0++)
     for (c0 = 0; c0 < lod; c0++) {
@@ -1735,12 +1621,6 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj /*, int iThrashIndex = 0
 
     TPO_pPrimObj = pPrimObj;
 
-#if 0
-// Do this after the object has been compiled, so we know how big it is.
-	// Add this to a good place in the LRU queue.
-	FIGURE_find_and_clean_prim_queue_item ( pPrimObj, iThrashIndex );
-#endif
-
     // No index offset for the first object
     TPO_iPrimObjIndexOffset[0] = 0;
 
@@ -2130,19 +2010,10 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
                                             // Grow the bounding sphere if need be.
 
-#if 0
-											// THIS IS NOT BEING DONE RIGHT!
-											float fDistSqu = ( d3dvert.dvX * d3dvert.dvX ) + ( d3dvert.dvY * d3dvert.dvY ) + ( d3dvert.dvZ * d3dvert.dvZ );
-											if ( pPrimObj->fBoundingSphereRadius < fDistSqu )
-											{
-												pPrimObj->fBoundingSphereRadius = fDistSqu;
-											}
-#else
                                             float fDistSqu = (d3dvert.dvX * d3dvert.dvX) + (d3dvert.dvY * d3dvert.dvY) + (d3dvert.dvZ * d3dvert.dvZ);
                                             if ((*pfBoundingSphereRadius * *pfBoundingSphereRadius) < fDistSqu) {
                                                 *pfBoundingSphereRadius = sqrtf(fDistSqu);
                                             }
-#endif
                                         } else {
                                             // OK, try the links.
                                             int iLastIndex = iVertIndex;
@@ -2198,19 +2069,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         ASSERT((iIndices[1] >= 0) && (iIndices[1] < pMaterial->wNumVertices));
                                         ASSERT((iIndices[2] >= 0) && (iIndices[2] < pMaterial->wNumVertices));
 
-#if 0
-										// Strip indices.
-										*TPO_pCurStripIndex++ = iIndices[0];
-										*TPO_pCurStripIndex++ = iIndices[1];
-										*TPO_pCurStripIndex++ = iIndices[2];
-										*TPO_pCurStripIndex++ = -1;
-										TPO_iNumStripIndices += 4;
-										pMaterial->wNumStripIndices += 4;
-										ASSERT ( TPO_iNumStripIndices < MAX_INDICES );
-
-										if ( TPO_iNumStripIndices >= MAX_INDICES ) { DeadAndBuried ( 0x07ff07ff ); }
-
-#endif
                                         // List indices.
                                         *TPO_pCurListIndex++ = iIndices[0];
                                         *TPO_pCurListIndex++ = iIndices[1];
@@ -2235,20 +2093,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         ASSERT((iIndices[2] >= 0) && (iIndices[2] < pMaterial->wNumVertices));
                                         ASSERT((iIndices[3] >= 0) && (iIndices[3] < pMaterial->wNumVertices));
 
-#if 0
-										// Strip indices.
-										*TPO_pCurStripIndex++ = iIndices[0];
-										*TPO_pCurStripIndex++ = iIndices[1];
-										*TPO_pCurStripIndex++ = iIndices[2];
-										*TPO_pCurStripIndex++ = iIndices[3];
-										*TPO_pCurStripIndex++ = -1;
-										TPO_iNumStripIndices += 5;
-										pMaterial->wNumStripIndices += 5;
-										ASSERT ( TPO_iNumStripIndices < MAX_INDICES );
-
-										if ( TPO_iNumStripIndices >= MAX_INDICES ) { DeadAndBuried ( 0x07ff07ff ); }
-
-#endif
                                         // List indices.
                                         *TPO_pCurListIndex++ = iIndices[0];
                                         *TPO_pCurListIndex++ = iIndices[1];
@@ -2393,20 +2237,8 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                 vPos3 = (vPos1 + vPos2) * 0.5 + ((fLambda * DotProduct((vNorm1 - vNorm2), vEdge)) * vAvNorm);
                             }
 
-#if 0
-							// And find the new mid normal.
-							// This is theoretically more "correct", but tends to give unstable behaviour.
-							D3DVECTOR vNorm3 = ( 2 * vNormToEdge ) - vAvNorm;
-#elif 0
-                            // Much more stable, but produces nasty edges.
-                            D3DVECTOR vNorm3 = vAvNorm;
-#elif 0
-                            // A compromise between the two.
-                            D3DVECTOR vNorm3 = vNormToEdge;
-#else
                             // A blend of above, but hopefully more stable.
                             D3DVECTOR vNorm3 = (4 * vNormToEdge) - vAvNorm;
-#endif
 
                             float fLenNorm3 = Magnitude(vNorm3);
                             if (fLenNorm3 < 0.00001f) {
@@ -2705,24 +2537,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
     pcBlock += TPO_iNumStripIndices * sizeof(UWORD);
 
     ASSERT((DWORD)pcBlock < (DWORD)pPrimObj->pwListIndices + dwTotalSize);
-
-#if 0
-	//void *pPermanentVerts = MemAlloc ( 32 + TPO_iNumVertices * sizeof ( D3DVERTEX ) );
-	pPermanentVerts  = (void *)( ( (DWORD)pPermanentVerts + 31 ) & ~31 );
-	ASSERT ( pPermanentVerts != NULL );
-	memcpy ( pPermanentVerts, TPO_pVert, TPO_iNumVertices * sizeof ( D3DVERTEX ) );
-	pPrimObj->pD3DVertices = pPermanentVerts;
-
-	//UWORD *pPermanentIndices = (UWORD *)MemAlloc ( TPO_iNumListIndices * sizeof ( UWORD ) );
-	ASSERT ( pPermanentIndices != NULL );
-	memcpy ( pPermanentIndices, TPO_pListIndices, TPO_iNumListIndices * sizeof ( UWORD ) );
-	pPrimObj->pwListIndices = pPermanentIndices;
-
-	//pPermanentIndices = (UWORD *)MemAlloc ( TPO_iNumStripIndices * sizeof ( UWORD ) );
-	ASSERT ( pPermanentIndices != NULL );
-	memcpy ( pPermanentIndices, TPO_pStripIndices, TPO_iNumStripIndices * sizeof ( UWORD ) );
-	pPrimObj->pwStripIndices = pPermanentIndices;
-#endif
 
     // Free the temporary spaces.
     MemFree(TPO_piVertexLinks);
@@ -3099,28 +2913,6 @@ no_muzzle_calcs:
 #if USE_TOMS_ENGINE_PLEASE_BOB
 
     if (!MM_bLightTableAlreadySetUp) {
-
-#if 0
-
-		// Set it up then.
-		ASSERT ( MM_pcFadeTable == NULL );
-		ASSERT ( MM_pcFadeTableTint == NULL );
-		ASSERT ( MM_pMatrix == NULL );
-		ASSERT ( MM_Vertex == NULL );
-		ASSERT ( MM_pNormal == NULL );
-		// Set up some data for the MM rendering thing if it's not already been done.
-
-//	#define ALIGNED_STATIC_ARRAY(name,number,mytype,align)														\
-//		static char c##name##mytype##align##StaticArray [ align + number * sizeof ( mytype ) ];					\
-//		name = (mytype *)( ( (DWORD)c##name##mytype##align##StaticArray + (align-1) ) & ~(align-1) )
-
-		ALIGNED_STATIC_ARRAY ( MM_pcFadeTable, 128, D3DCOLOR, 4 );
-		ALIGNED_STATIC_ARRAY ( MM_pcFadeTableTint, 128, D3DCOLOR, 4 );
-		ALIGNED_STATIC_ARRAY ( MM_pMatrix, 1, D3DMATRIX, 32 );
-		ALIGNED_STATIC_ARRAY ( MM_Vertex, 4, D3DVERTEX, 32 );
-		ALIGNED_STATIC_ARRAY ( MM_pNormal, 4, float, 8 );
-
-#endif
     }
 
 #endif
@@ -3284,13 +3076,6 @@ no_muzzle_calcs:
 
         // Now make up the matrices.
 
-#if 0
-		// Officially correct version.
-		DWORD dwWidth = g_viewData.dwWidth >> 1;
-		DWORD dwHeight = g_viewData.dwHeight >> 1;
-		DWORD dwX = g_viewData.dwX;
-		DWORD dwY = g_viewData.dwY;
-#else
         // Version that knows about the letterbox mode hack.
         extern DWORD g_dw3DStuffHeight;
         extern DWORD g_dw3DStuffY;
@@ -3298,7 +3083,6 @@ no_muzzle_calcs:
         DWORD dwHeight = g_dw3DStuffHeight >> 1;
         DWORD dwX = g_viewData.dwX;
         DWORD dwY = g_dw3DStuffY;
-#endif
         MM_pMatrix[0]._11 = 0.0f;
         MM_pMatrix[0]._12 = matTemp._11 * (float)dwWidth + matTemp._14 * (float)(dwX + dwWidth);
         MM_pMatrix[0]._13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);
@@ -3535,27 +3319,9 @@ no_muzzle_calcs:
             LOG_EXIT(Figure_Set_RenderState)
             LOG_ENTER(Figure_DrawIndPrimMM)
 
-#if 0
-			HRESULT hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive (
-					D3DPT_TRIANGLELIST,
-					D3DFVF_VERTEX,
-					(void *)&d3dmm,
-					pMat->wNumVertices,
-					pwStripIndices,
-					pMat->wNumStripIndices,
-					D3DDP_MULTIMATRIX );
-			//TRACE("Drew %i vertices, %i indices\n", (int)( pMat->wNumVertices ), (int)( pMat->wNumStripIndices ) );
-#else
             // Use platform-independent version.
 
             HRESULT hres;
-
-#define SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB defined
-
-#ifdef SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB
-#ifdef DEBUG
-#endif
-#endif
 
             // if (pMat->wNumVertices &&
             //	pMat->wNumStripIndices)
@@ -3570,7 +3336,6 @@ no_muzzle_calcs:
                     pMat->wNumStripIndices);
                 // TRACE ( "F4" );
             }
-#endif
 
 #else
 
@@ -3600,33 +3365,6 @@ no_muzzle_calcs:
 #endif
 
 //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
-#if 0
-			// Can we have 4x polys for free? Oh go on....
-			hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive (
-					D3DPT_TRIANGLELIST,
-					D3DFVF_VERTEX,
-					(void *)&d3dmm,
-					pMat->wNumVertices,
-					pwStripIndices,
-					pMat->wNumStripIndices,
-					D3DDP_MULTIMATRIX );
-			hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive (
-					D3DPT_TRIANGLELIST,
-					D3DFVF_VERTEX,
-					(void *)&d3dmm,
-					pMat->wNumVertices,
-					pwStripIndices,
-					pMat->wNumStripIndices,
-					D3DDP_MULTIMATRIX );
-			hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive (
-					D3DPT_TRIANGLELIST,
-					D3DFVF_VERTEX,
-					(void *)&d3dmm,
-					pMat->wNumVertices,
-					pwStripIndices,
-					pMat->wNumStripIndices,
-					D3DDP_MULTIMATRIX );
-#endif
             LOG_EXIT(Figure_DrawIndPrimMM)
 
         } else {
@@ -3978,39 +3716,6 @@ no_muzzle_calcs:
                     // and render the polygons
                     //
 
-#if 0
-					WORD wIndices[6] = {0,1,2,2,1,3};
-					D3DTLVERTEX tlVertex[4];
-					for ( int i = 0; i < 4; i++ )
-					{
-						tlVertex[i].dvSX = quad[i]->X * PolyPage::s_XScale;
-						tlVertex[i].dvSY = quad[i]->Y * PolyPage::s_YScale;
-						tlVertex[i].dvSZ = 1.0f - quad[i]->Z;
-						tlVertex[i].dvTU = quad[i]->u;
-						tlVertex[i].dvTV = quad[i]->v;
-						tlVertex[i].dcColor = quad[i]->colour;
-						tlVertex[i].dcSpecular = quad[i]->specular;
-						tlVertex[i].dvRHW = quad[i]->Z;
-					}
-
-					HRESULT hres;
-
-					if (FALSE && the_display.GetDeviceInfo()->AdamiLightingSupported())
-					{
-						// Draw lighting triangle
-						PolyPage *tpa = &(POLY_Page[POLY_PAGE_COLOUR]);
-						//tpa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-						tpa->RS.SetChanged();
-						hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive ( D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, tlVertex, 4, wIndices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT );
-					}
-
-					//pa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-					pa->RS.SetChanged();
-					pa->RS.SetRenderState ( D3DRENDERSTATE_ALPHABLENDENABLE, FALSE );
-					pa->RS.SetRenderState ( D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA );
-					hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive ( D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, tlVertex, 4, wIndices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT );
-#else
-
                     static iCount = 0;
 
                     if (FALSE) {
@@ -4047,7 +3752,6 @@ no_muzzle_calcs:
                         pa->RS.SetChanged();
                         hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_LVERTEX, lVertex, 4, wIndices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
                     }
-#endif
                 } else
 #endif // #if USE_TOMS_ENGINE_PLEASE_BOB
                 {
@@ -4071,40 +3775,6 @@ no_muzzle_calcs:
                     quad[3]->colour = qc3;
                 }
             } else {
-#if 0
-
-				//
-				// The colour of the face.
-				// 
-
-				r = ENGINE_palette[p_f4->Col2].red;
-				g = ENGINE_palette[p_f4->Col2].green;
-				b = ENGINE_palette[p_f4->Col2].blue;
-
-				r = r * red   >> 8;
-				g = g * green >> 8;
-				b = b * blue  >> 8;
-
-				face_colour = (r << 16) | (g << 8) | (b << 0);
-
-				quad[0]->colour = face_colour;
-				quad[1]->colour = face_colour;
-				quad[2]->colour = face_colour;
-				quad[3]->colour = face_colour;
-
-				if (FIGURE_alpha != 255)
-				{
-					ASSERT(0);
-				}
-
-				POLY_add_quad(quad, POLY_PAGE_COLOUR, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
-
-				quad[0]->colour = colour;
-				quad[1]->colour = colour;
-				quad[2]->colour = colour;
-				quad[3]->colour = colour;
-
-#endif
             }
         }
     }
@@ -4201,49 +3871,6 @@ no_muzzle_calcs:
                     // and render the polygons
                     //
 
-#if 0
-					// TLVERTEX stuff.
-					WORD wIndices[3] = {0,1,2};
-					D3DTLVERTEX tlVertex[3];
-					bool bBinned = FALSE;
-					for ( int i = 0; i < 3; i++ )
-					{
-						tlVertex[i].dvSX = tri[i]->X * PolyPage::s_XScale;
-						tlVertex[i].dvSY = tri[i]->Y * PolyPage::s_YScale;
-						tlVertex[i].dvSZ = 1.0f - tri[i]->Z;
-						tlVertex[i].dvTU = tri[i]->u;
-						tlVertex[i].dvTV = tri[i]->v;
-						tlVertex[i].dcColor = tri[i]->colour;
-						tlVertex[i].dcSpecular = tri[i]->specular;
-						tlVertex[i].dvRHW = tri[i]->Z;
-
-						if ( ( tri[i]->Z <= 0.0f ) || ( tri[i]->Z >= 1.0f ) )
-						{
-							bBinned = TRUE;
-						}
-					}
-
-					if ( !bBinned )
-					{
-						HRESULT hres;
-
-						if ( FALSE && the_display.GetDeviceInfo()->AdamiLightingSupported())
-						{
-							// Draw lighting triangle
-							PolyPage *tpa = &(POLY_Page[POLY_PAGE_COLOUR]);
-							//tpa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-							tpa->RS.SetChanged();
-							hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive ( D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, tlVertex, 3, wIndices, 3, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT );
-						}
-
-						//pa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-						pa->RS.SetRenderState ( D3DRENDERSTATE_ALPHABLENDENABLE, FALSE );
-						pa->RS.SetRenderState ( D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA );
-						pa->RS.SetChanged();
-						hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive ( D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, tlVertex, 3, wIndices, 3, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT );
-					}
-#else
-
                     static int iCount = 0;
                     if (FALSE) {
                         // LVertex.
@@ -4280,7 +3907,6 @@ no_muzzle_calcs:
                         pa->RS.SetChanged();
                         hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_LVERTEX, lVertex, 3, wIndices, 3, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
                     }
-#endif
                 } else
 
 #endif // #if USE_TOMS_ENGINE_PLEASE_BOB
@@ -4304,38 +3930,6 @@ no_muzzle_calcs:
                     tri[2]->colour = qc2;
                 }
             } else {
-#if 0
-
-				//
-				// The colour of the face.
-				// 
-
-				r = ENGINE_palette[p_f3->Col2].red;
-				g = ENGINE_palette[p_f3->Col2].green;
-				b = ENGINE_palette[p_f3->Col2].blue;
-
-				r = r * red   >> 8;
-				g = g * green >> 8;
-				b = b * blue  >> 8;
-
-				face_colour = (r << 16) | (g << 8) | (b << 0);
-
-				tri[0]->colour = face_colour;
-				tri[1]->colour = face_colour;
-				tri[2]->colour = face_colour;
-
-				if (FIGURE_alpha != 255)
-				{
-					ASSERT(0);
-				}
-
-				POLY_add_triangle(tri, POLY_PAGE_COLOUR, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
-
-				tri[0]->colour = colour;
-				tri[1]->colour = colour;
-				tri[2]->colour = colour;
-
-#endif
             }
         }
     }
@@ -4470,14 +4064,6 @@ no_muzzle_calcs:
 
 #if USE_TOMS_ENGINE_PLEASE_BOB
     if (!MM_bLightTableAlreadySetUp) {
-#if 0
-		// Clean up after ourselves.
-		MM_pcFadeTable = NULL;
-		MM_pcFadeTableTint = NULL;
-		MM_pMatrix = NULL;
-		MM_Vertex = NULL;
-		MM_pNormal = NULL;
-#endif
     }
 #endif // #if USE_TOMS_ENGINE_PLEASE_BOB
 
@@ -5071,13 +4657,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         // Meshes have not been created yet - do so.
 
         // Set up the object.
-#if 0
-		// Use thrash slot 1 because the gun may bump it out later if it's
-		// in slot 0!
-		FIGURE_TPO_init_3d_object ( pPrimObj, 1 );
-#else
         FIGURE_TPO_init_3d_object(pPrimObj);
-#endif
         int iTPOPartNumber = 0;
 
         recurse_level = 0;
@@ -5130,15 +4710,10 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             }
         }
 
-#if 0
-		// Compile the whole object now.
-		FIGURE_TPO_finish_3d_object ( pPrimObj );
-#else
         // Compile the whole object now.
         // Use thrash slot 1 because the gun may bump it out later if it's
         // in slot 0!
         FIGURE_TPO_finish_3d_object(pPrimObj, 1);
-#endif
 
         // Restore the saved data.
         FIGURE_dhpr_rdata1[0] = FIGURE_dhpr_rdata1_0_copy;
@@ -5225,29 +4800,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
                                 // Why does the DC hate GOTOs so much.
                                 if (bDrawMuzzleFlash) {
-#if 0
-								FIGURE_draw_prim_tween( prim, 
-														FIGURE_dhpr_data.world_pos->M[0],
-														FIGURE_dhpr_data.world_pos->M[1],
-														FIGURE_dhpr_data.world_pos->M[2],
-														FIGURE_dhpr_data.tween,
-													   &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number],
-													   &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number],
-														FIGURE_dhpr_data.world_mat,
-														FIGURE_dhpr_data.dx+dx,
-														FIGURE_dhpr_data.dy+dy,
-														FIGURE_dhpr_data.dz+dz,
-														FIGURE_dhpr_data.colour, 
-														FIGURE_dhpr_data.specular,
-														FIGURE_dhpr_rdata1[recurse_level].parent_base_mat,
-														FIGURE_dhpr_rdata1[recurse_level].parent_base_pos,
-														FIGURE_dhpr_rdata1[recurse_level].parent_current_mat,
-														FIGURE_dhpr_rdata1[recurse_level].parent_current_pos,
-													   &FIGURE_dhpr_rdata2[recurse_level].end_mat,
-													   &FIGURE_dhpr_rdata2[recurse_level].end_pos,
-														p_person,
-														FIGURE_dhpr_rdata1[recurse_level].part_number);
-#else
                                     // Muzzle flashes are always drawn "normally"
                                     FIGURE_draw_prim_tween_person_only(
                                         prim,
@@ -5257,34 +4809,9 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                                         FIGURE_dhpr_data.dz + dz,
                                         recurse_level,
                                         p_person);
-#endif
                                 }
                             }
 
-#if 0
-						FIGURE_draw_prim_tween(
-												255+(p_person->Draw.Tweened->PersonID>>5), 
-												FIGURE_dhpr_data.world_pos->M[0],
-												FIGURE_dhpr_data.world_pos->M[1],
-												FIGURE_dhpr_data.world_pos->M[2],
-												FIGURE_dhpr_data.tween,
-											   &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number],
-											   &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number],
-												FIGURE_dhpr_data.world_mat,
-												FIGURE_dhpr_data.dx+dx,
-												FIGURE_dhpr_data.dy+dy,
-												FIGURE_dhpr_data.dz+dz,
-												FIGURE_dhpr_data.colour, 
-												FIGURE_dhpr_data.specular,
-												FIGURE_dhpr_rdata1[recurse_level].parent_base_mat,
-												FIGURE_dhpr_rdata1[recurse_level].parent_base_pos,
-												FIGURE_dhpr_rdata1[recurse_level].parent_current_mat,
-												FIGURE_dhpr_rdata1[recurse_level].parent_current_pos,
-											   &FIGURE_dhpr_rdata2[recurse_level].end_mat,
-											   &FIGURE_dhpr_rdata2[recurse_level].end_pos,
-												p_person,
-												FIGURE_dhpr_rdata1[recurse_level].part_number);
-#else
                             // Weapons are always drawn "normally"
                             FIGURE_draw_prim_tween_person_only(
                                 255 + (p_person->Draw.Tweened->PersonID >> 5),
@@ -5294,7 +4821,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                                 FIGURE_dhpr_data.dz + dz,
                                 recurse_level,
                                 p_person);
-#endif
                         }
                     }
             }
@@ -5452,14 +4978,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         extern D3DMATRIX g_matWorld;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
-#if 0
-		// Near-plane culling! Must implement!
-
-		// Not sure if I'm using character_scalef correctly...
-		ASSERT ( ( character_scalef < 1.2f ) && ( character_scalef > 0.8f ) );
-		ASSERT ( !pa->RS.NeedsSorting() && ( FIGURE_alpha == 255 ) );
-		if ( ( ( ( g_matWorld._43 * 32768.0f ) - ( pPrimObj->fBoundingSphereRadius * character_scalef ) ) > ( POLY_ZCLIP_PLANE * 32768.0f ) ) )
-#endif
         {
             // Non-alpha path.
             if (wPage & TEXTURE_PAGE_FLAG_TINT) {
@@ -5491,13 +5009,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             LOG_ENTER(Figure_DrawIndPrimMM)
 
             HRESULT hres;
-
-#define SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB defined
-
-#ifdef SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB
-#ifdef DEBUG
-#endif
-#endif
 
             // if (pMat->wNumVertices &&
             //	pMat->wNumStripIndices)
@@ -5543,18 +5054,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
             LOG_EXIT(Figure_DrawIndPrimMM)
         }
-#if 0
-		else
-		{
-			// Alpha/clipped path - do with standard non-MM calls.
-			// FIXME. Needs to be done.
-
-			// Actually, the fast-accept works very well, and it's only when the camera somehow gets REALLY close
-			// that this happens. And actually a pop-reject seems a bit better than a clip. Certainly
-			// there is no visually "right" thing to do. So leave it for now until someone complains. ATF.
-			//TRACE ( "Tried to draw an alpha/clipped prim!" );
-		}
-#endif
 
         // Next material
         pVertex += pMat->wNumVertices;
@@ -5655,29 +5154,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                 body_part = FIGURE_dhpr_data.body_def->BodyPart[iPartNumber];
                 rot_mat = FIGURE_dhpr_data.world_mat;
 
-#if 0
-				FIGURE_draw_prim_tween( FIGURE_dhpr_data.start_object + body_part, //FIGURE_dhpr_data.body_def->BodyPart[FIGURE_dhpr_rdata1[recurse_level].part_number],
-										FIGURE_dhpr_data.world_pos->M[0],
-										FIGURE_dhpr_data.world_pos->M[1],
-										FIGURE_dhpr_data.world_pos->M[2],
-										FIGURE_dhpr_data.tween,
-									   &FIGURE_dhpr_data.ae1[pDHPR1->part_number],
-									   &FIGURE_dhpr_data.ae2[pDHPR1->part_number],
-										rot_mat,
-										FIGURE_dhpr_data.dx+dx,
-										FIGURE_dhpr_data.dy+dy,
-										FIGURE_dhpr_data.dz+dz,
-										FIGURE_dhpr_data.colour, //limb==PART_JACKET?jacket_col:(limb==PART_TROUSERS?leg_col:FIGURE_dhpr_data.colour), 
-										FIGURE_dhpr_data.specular,
-										FIGURE_dhpr_rdata1[recurse_level].parent_base_mat,
-										FIGURE_dhpr_rdata1[recurse_level].parent_base_pos,
-										FIGURE_dhpr_rdata1[recurse_level].parent_current_mat,
-										FIGURE_dhpr_rdata1[recurse_level].parent_current_pos,
-									   &FIGURE_dhpr_rdata2[recurse_level].end_mat,
-									   &FIGURE_dhpr_rdata2[recurse_level].end_pos,
-									    p_person,
-									    FIGURE_dhpr_rdata1[recurse_level].part_number);
-#else
                 FIGURE_draw_prim_tween_person_only(
                     FIGURE_dhpr_data.start_object + body_part, // FIGURE_dhpr_data.body_def->BodyPart[FIGURE_dhpr_rdata1[recurse_level].part_number],
                     // FIGURE_dhpr_data.world_pos->M[0],
@@ -5702,7 +5178,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                     p_person
                     // FIGURE_dhpr_rdata1[recurse_level].part_number
                 );
-#endif
 
                 //
                 // draw a weapon in hand
@@ -5743,29 +5218,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
                                 // Why does the DC hate GOTOs so much.
                                 if (bDrawMuzzleFlash) {
-#if 0
-								FIGURE_draw_prim_tween( prim, 
-														FIGURE_dhpr_data.world_pos->M[0],
-														FIGURE_dhpr_data.world_pos->M[1],
-														FIGURE_dhpr_data.world_pos->M[2],
-														FIGURE_dhpr_data.tween,
-													   &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number],
-													   &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number],
-														FIGURE_dhpr_data.world_mat,
-														FIGURE_dhpr_data.dx+dx,
-														FIGURE_dhpr_data.dy+dy,
-														FIGURE_dhpr_data.dz+dz,
-														FIGURE_dhpr_data.colour, 
-														FIGURE_dhpr_data.specular,
-														FIGURE_dhpr_rdata1[recurse_level].parent_base_mat,
-														FIGURE_dhpr_rdata1[recurse_level].parent_base_pos,
-														FIGURE_dhpr_rdata1[recurse_level].parent_current_mat,
-														FIGURE_dhpr_rdata1[recurse_level].parent_current_pos,
-													   &FIGURE_dhpr_rdata2[recurse_level].end_mat,
-													   &FIGURE_dhpr_rdata2[recurse_level].end_pos,
-														p_person,
-														FIGURE_dhpr_rdata1[recurse_level].part_number);
-#else
                                     // Muzzle flashes are always drawn "normally"
                                     FIGURE_draw_prim_tween_person_only(
                                         prim,
@@ -5791,34 +5243,9 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                                         p_person
                                         // FIGURE_dhpr_rdata1[recurse_level].part_number
                                     );
-#endif
                                 }
                             }
 
-#if 0
-						FIGURE_draw_prim_tween(
-												255+(p_person->Draw.Tweened->PersonID>>5), 
-												FIGURE_dhpr_data.world_pos->M[0],
-												FIGURE_dhpr_data.world_pos->M[1],
-												FIGURE_dhpr_data.world_pos->M[2],
-												FIGURE_dhpr_data.tween,
-											   &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number],
-											   &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number],
-												FIGURE_dhpr_data.world_mat,
-												FIGURE_dhpr_data.dx+dx,
-												FIGURE_dhpr_data.dy+dy,
-												FIGURE_dhpr_data.dz+dz,
-												FIGURE_dhpr_data.colour, 
-												FIGURE_dhpr_data.specular,
-												FIGURE_dhpr_rdata1[recurse_level].parent_base_mat,
-												FIGURE_dhpr_rdata1[recurse_level].parent_base_pos,
-												FIGURE_dhpr_rdata1[recurse_level].parent_current_mat,
-												FIGURE_dhpr_rdata1[recurse_level].parent_current_pos,
-											   &FIGURE_dhpr_rdata2[recurse_level].end_mat,
-											   &FIGURE_dhpr_rdata2[recurse_level].end_pos,
-												p_person,
-												FIGURE_dhpr_rdata1[recurse_level].part_number);
-#else
                             // Weapons are always drawn "normally"
                             FIGURE_draw_prim_tween_person_only(
                                 255 + (p_person->Draw.Tweened->PersonID >> 5),
@@ -5844,7 +5271,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                                 p_person
                                 // FIGURE_dhpr_rdata1[recurse_level].part_number
                             );
-#endif
                         }
                     }
             }
@@ -5854,26 +5280,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
         if (body_part_children[iPartNumber][pDHPR1->current_child_number] != -1) {
 
-#if 0
-			FIGURE_dhpr_rdata1[recurse_level + 1].current_child_number = 0;
-
-			// really only need to do these next 3 lines once...
-			FIGURE_dhpr_rdata1[recurse_level].pos.M[0] = FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number].OffsetX;
-			FIGURE_dhpr_rdata1[recurse_level].pos.M[1] = FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number].OffsetY;
-			FIGURE_dhpr_rdata1[recurse_level].pos.M[2] = FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number].OffsetZ;
-			ASSERT ( FIGURE_dhpr_rdata1[recurse_level].part_number >= 0 );
-			ASSERT ( FIGURE_dhpr_rdata1[recurse_level].part_number <= 14 );
-			FIGURE_dhpr_rdata1[recurse_level + 1].part_number = body_part_children[FIGURE_dhpr_rdata1[recurse_level].part_number][FIGURE_dhpr_rdata1[recurse_level].current_child_number];
-			CMatrix33 tmat;
-			GetCMatrix(&FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number], &tmat);
-			FIGURE_dhpr_rdata1[recurse_level + 1].parent_base_mat = &tmat;
-			FIGURE_dhpr_rdata1[recurse_level + 1].parent_base_pos = &FIGURE_dhpr_rdata1[recurse_level].pos;
-			FIGURE_dhpr_rdata1[recurse_level + 1].parent_current_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
-			FIGURE_dhpr_rdata1[recurse_level + 1].parent_current_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
-			FIGURE_dhpr_rdata1[recurse_level + 1].current_child_number = 0;
-
-			FIGURE_dhpr_rdata1[recurse_level].current_child_number ++ ;
-#else
             // Broken up, or the compiler gets very confused.
             // structFIGURE_dhpr_rdata1 *pDHPR1	= FIGURE_dhpr_rdata1 + recurse_level;
             structFIGURE_dhpr_rdata1* pDHPR1Inc = FIGURE_dhpr_rdata1 + recurse_level + 1;
@@ -5897,7 +5303,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             pDHPR1Inc->current_child_number = 0;
 
             pDHPR1->current_child_number++;
-#endif
             recurse_level++;
         } else {
             recurse_level--;
@@ -6374,17 +5779,6 @@ void FIGURE_draw(Thing* p_thing)
 
     // Set up some data for the MM rendering thing.
 
-#if 0
-//#define ALIGNED_STATIC_ARRAY(name,number,mytype,align)														\
-//	static char c##name##mytype##align##StaticArray [ align + number * sizeof ( mytype ) ];						\
-//	name = (mytype *)( ( (DWORD)c##name##mytype##align##StaticArray + (align-1) ) & ~(align-1) )
-
-	ALIGNED_STATIC_ARRAY ( MM_pcFadeTable, 128, D3DCOLOR, 4 );
-	ALIGNED_STATIC_ARRAY ( MM_pcFadeTableTint, 128, D3DCOLOR, 4 );
-	ALIGNED_STATIC_ARRAY ( MM_pMatrix, 1, D3DMATRIX, 32 );
-	ALIGNED_STATIC_ARRAY ( MM_Vertex, 4, D3DVERTEX, 32 );
-	ALIGNED_STATIC_ARRAY ( MM_pNormal, 4, float, 8 );
-#endif
 
     // #undef ALIGNED_STATIC_ARRAY
 
@@ -6483,13 +5877,6 @@ void FIGURE_draw(Thing* p_thing)
     // Clean up after ourselves.
     ASSERT(MM_bLightTableAlreadySetUp);
     MM_bLightTableAlreadySetUp = FALSE;
-#if 0
-	MM_pcFadeTable = NULL;
-	MM_pcFadeTableTint = NULL;
-	MM_pMatrix = NULL;
-	MM_Vertex = NULL;
-	MM_pNormal = NULL;
-#endif
 #endif // #if USE_TOMS_ENGINE_PLEASE_BOB
 
     //
@@ -7765,13 +7152,6 @@ no_muzzle_calcs:
 
         // Now make up the matrices.
 
-#if 0
-		// Officially correct version.
-		DWORD dwWidth = g_viewData.dwWidth >> 1;
-		DWORD dwHeight = g_viewData.dwHeight >> 1;
-		DWORD dwX = g_viewData.dwX;
-		DWORD dwY = g_viewData.dwY;
-#else
         // Version that knows about the letterbox mode hack.
         extern DWORD g_dw3DStuffHeight;
         extern DWORD g_dw3DStuffY;
@@ -7779,7 +7159,6 @@ no_muzzle_calcs:
         DWORD dwHeight = g_dw3DStuffHeight >> 1;
         DWORD dwX = g_viewData.dwX;
         DWORD dwY = g_dw3DStuffY;
-#endif
 
         // Set up the matrix.
         D3DMATRIX* pmat = &(MMBodyParts_pMatrix[iMatrixNum]);
@@ -8044,17 +7423,6 @@ void FIGURE_draw_prim_tween_person_only(
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
 
-#if 0
-	imatrix[0] = mat_final.M[0][0] * 2;
-	imatrix[1] = mat_final.M[0][1] * 2;
-	imatrix[2] = mat_final.M[0][2] * 2;
-	imatrix[3] = mat_final.M[1][0] * 2;
-	imatrix[4] = mat_final.M[1][1] * 2;
-	imatrix[5] = mat_final.M[1][2] * 2;
-	imatrix[6] = mat_final.M[2][0] * 2;
-	imatrix[7] = mat_final.M[2][1] * 2;
-	imatrix[8] = mat_final.M[2][2] * 2;
-#endif
 
     LOG_ENTER(Figure_Set_Rotation)
 
@@ -8262,13 +7630,6 @@ no_muzzle_calcs:
 
         // Now make up the matrices.
 
-#if 0
-		// Officially correct version.
-		DWORD dwWidth = g_viewData.dwWidth >> 1;
-		DWORD dwHeight = g_viewData.dwHeight >> 1;
-		DWORD dwX = g_viewData.dwX;
-		DWORD dwY = g_viewData.dwY;
-#else
         // Version that knows about the letterbox mode hack.
         extern DWORD g_dw3DStuffHeight;
         extern DWORD g_dw3DStuffY;
@@ -8276,7 +7637,6 @@ no_muzzle_calcs:
         DWORD dwHeight = g_dw3DStuffHeight >> 1;
         DWORD dwX = g_viewData.dwX;
         DWORD dwY = g_dw3DStuffY;
-#endif
         MM_pMatrix[0]._11 = 0.0f;
         MM_pMatrix[0]._12 = matTemp._11 * (float)dwWidth + matTemp._14 * (float)(dwX + dwWidth);
         MM_pMatrix[0]._13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);
@@ -8417,27 +7777,9 @@ no_muzzle_calcs:
             LOG_EXIT(Figure_Set_RenderState)
             LOG_ENTER(Figure_DrawIndPrimMM)
 
-#if 0
-			HRESULT hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive (
-					D3DPT_TRIANGLELIST,
-					D3DFVF_VERTEX,
-					(void *)&d3dmm,
-					pMat->wNumVertices,
-					pwStripIndices,
-					pMat->wNumStripIndices,
-					D3DDP_MULTIMATRIX );
-			//TRACE("Drew %i vertices, %i indices\n", (int)( pMat->wNumVertices ), (int)( pMat->wNumStripIndices ) );
-#else
             // Use platform-independent version.
 
             HRESULT hres;
-
-#define SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB defined
-
-#ifdef SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB
-#ifdef DEBUG
-#endif
-#endif
 
             // if (pMat->wNumVertices &&
             //	pMat->wNumStripIndices)
@@ -8452,7 +7794,6 @@ no_muzzle_calcs:
                     pMat->wNumStripIndices);
                 // TRACE ( "F4" );
             }
-#endif
 
 #else
 
