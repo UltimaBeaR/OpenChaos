@@ -92,6 +92,17 @@ The author does not claim any ownership of the Urban Chaos IP, trademark, or ori
 
 See [`legal/`](legal/) for full rights history and details.
 
+## Credits
+
+This project is based on the following fork chain:
+
+| Fork | Contribution |
+|------|-------------|
+| **Mike Diskett** ([dizzy2003/MuckyFoot-UrbanChaos](https://github.com/dizzy2003/MuckyFoot-UrbanChaos)) | Original Urban Chaos source code, MIT release (2017) |
+| **Kai Stüdemann** ([kstuedem/MuckyFoot-UrbanChaos](https://github.com/kstuedem/MuckyFoot-UrbanChaos)) | VS2017 support, SDL2/OpenAL audio, removed legacy D3D/DirectSound/DirectPlay, rendering fixes, inline assembly removal |
+| **Jordan Davidson** ([jordandavidson/MuckyFoot-UrbanChaos](https://github.com/jordandavidson/MuckyFoot-UrbanChaos)) | vcpkg integration, VS2019 support |
+| **PieroZ** ([PieroZ/MuckyFoot-UrbanChaos](https://github.com/PieroZ/MuckyFoot-UrbanChaos)) | Rendering fixes, editor work, mods, utilities. OpenChaos is technically forked from this repo; work used as reference for fixes and improvements |
+
 ## Language
 
 This README and public-facing documentation are in English.
