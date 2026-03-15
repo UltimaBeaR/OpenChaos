@@ -11,63 +11,58 @@
 #include <math.h>
 #include "cam.h"
 
-
-
-#define SKY_STAR_T_DIM		1
-#define SKY_STAR_T_MEDIUM	2
-#define SKY_STAR_T_BRIGHT	3
-#define SKY_STAR_T_PLANET	4
+#define SKY_STAR_T_DIM 1
+#define SKY_STAR_T_MEDIUM 2
+#define SKY_STAR_T_BRIGHT 3
+#define SKY_STAR_T_PLANET 4
 
 #ifndef TARGET_DC
 typedef struct
 {
-	UBYTE colour;
-	UBYTE spread;
-	UWORD shit;
-	float yaw;
-	float pitch;
-	float vector[3];
+    UBYTE colour;
+    UBYTE spread;
+    UWORD shit;
+    float yaw;
+    float pitch;
+    float vector[3];
 
 } SKY_Star;
 
 #define SKY_MAX_STARS 4096
 
 SKY_Star SKY_star[SKY_MAX_STARS];
-SLONG    SKY_star_upto;
+SLONG SKY_star_upto;
 
 //
 // Each cloud texture...
 //
 
-
 typedef struct
 {
-	float u1, v1;
-	float u2, v2;
+    float u1, v1;
+    float u2, v2;
 
 } SKY_Texture;
 
 #define SKY_NUM_TEXTURES 5
 
-SKY_Texture SKY_texture[SKY_NUM_TEXTURES] =
-{
-	{0.000F, 0.000F, 1.000F, 0.234F},
-	{0.000F, 0.234F, 0.566F, 0.375F},
-	{0.566F, 0.234F, 1.000F, 0.375F},
-	{0.000F, 0.375F, 1.000F, 0.648F},
-	{0.000F, 0.648F, 1.000F, 1.000F}
+SKY_Texture SKY_texture[SKY_NUM_TEXTURES] = {
+    { 0.000F, 0.000F, 1.000F, 0.234F },
+    { 0.000F, 0.234F, 0.566F, 0.375F },
+    { 0.566F, 0.234F, 1.000F, 0.375F },
+    { 0.000F, 0.375F, 1.000F, 0.648F },
+    { 0.000F, 0.648F, 1.000F, 1.000F }
 };
-
 
 typedef struct
 {
-	UBYTE texture;
-	UBYTE flip;		// 1 => Reflect the cloud texture in u.
-	UBYTE width;
-	UBYTE height;
-	float yaw;
-	float pitch;
-	float dyaw;
+    UBYTE texture;
+    UBYTE flip; // 1 => Reflect the cloud texture in u.
+    UBYTE width;
+    UBYTE height;
+    float yaw;
+    float pitch;
+    float dyaw;
 
 } SKY_Cloud;
 
@@ -77,8 +72,6 @@ SKY_Cloud SKY_cloud[SKY_NUM_CLOUDS];
 
 #endif
 
-
-
 #define SKY_wibble_y1 62
 #define SKY_wibble_y2 137
 #define SKY_wibble_g1 17
@@ -86,536 +79,492 @@ SKY_Cloud SKY_cloud[SKY_NUM_CLOUDS];
 #define SKY_wibble_s1 40
 #define SKY_wibble_s2 45
 
-
-
-
-
-void SKY_init(CBYTE *star_file)
+void SKY_init(CBYTE* star_file)
 {
 
 #ifndef TARGET_DC
 
-	SLONG i;
+    SLONG i;
 
-	float twidth;
-	float theight;
+    float twidth;
+    float theight;
 
-	SLONG yaw;
-	SLONG pitch;
-	SLONG bright;
-	SLONG red;
-	SLONG green;
-	SLONG blue;
-	ULONG colour;
-	ULONG spread;
-	SLONG match;
+    SLONG yaw;
+    SLONG pitch;
+    SLONG bright;
+    SLONG red;
+    SLONG green;
+    SLONG blue;
+    ULONG colour;
+    ULONG spread;
+    SLONG match;
 
-	FILE *handle;
+    FILE* handle;
 
-	CBYTE line[128];
+    CBYTE line[128];
 
-	SKY_Cloud   *sc;
-	SKY_Texture *st;
-	
-	//
-	// Create all the clouds.
-	//
+    SKY_Cloud* sc;
+    SKY_Texture* st;
 
-	for (i = 0; i < SKY_NUM_CLOUDS; i++)
-	{
-		sc = &SKY_cloud[i];
+    //
+    // Create all the clouds.
+    //
 
-		sc->texture = rand() % SKY_NUM_TEXTURES;
-		sc->flip    = rand() & 0x8;
-		sc->yaw     = (float(rand()) / float(RAND_MAX)) * (2.0F * PI);
-		sc->pitch   = (float(rand()) / float(RAND_MAX)) * (PI / 3.0F) + (PI / 64.0F);
-		sc->dyaw    = (float(rand()) / float(RAND_MAX)) * 0.0005F     + 0.0001F;
-		
-		ASSERT(WITHIN(sc->texture, 0, SKY_NUM_TEXTURES - 1));
+    for (i = 0; i < SKY_NUM_CLOUDS; i++) {
+        sc = &SKY_cloud[i];
 
-		st = &SKY_texture[sc->texture];
+        sc->texture = rand() % SKY_NUM_TEXTURES;
+        sc->flip = rand() & 0x8;
+        sc->yaw = (float(rand()) / float(RAND_MAX)) * (2.0F * PI);
+        sc->pitch = (float(rand()) / float(RAND_MAX)) * (PI / 3.0F) + (PI / 64.0F);
+        sc->dyaw = (float(rand()) / float(RAND_MAX)) * 0.0005F + 0.0001F;
 
-		twidth  = (st->u2 - st->u1) * 256.0F;
-		theight = (st->v2 - st->v1) * 256.0F;
+        ASSERT(WITHIN(sc->texture, 0, SKY_NUM_TEXTURES - 1));
 
-		//
-		// Randomise the height and width of the cloud, but always make the
-		// texels more than one pixel so we get the benefit of filtering.
-		//
+        st = &SKY_texture[sc->texture];
 
-		twidth  *= 0.3F + (float(rand()) * 0.5F / float(RAND_MAX));
-		theight *= 0.3F + (float(rand()) * 0.5F / float(RAND_MAX));
+        twidth = (st->u2 - st->u1) * 256.0F;
+        theight = (st->v2 - st->v1) * 256.0F;
 
-		sc->width  = UBYTE(twidth);
-		sc->height = UBYTE(theight);
-	}
+        //
+        // Randomise the height and width of the cloud, but always make the
+        // texels more than one pixel so we get the benefit of filtering.
+        //
 
-	//
-	// Place down the stars.
-	//
+        twidth *= 0.3F + (float(rand()) * 0.5F / float(RAND_MAX));
+        theight *= 0.3F + (float(rand()) * 0.5F / float(RAND_MAX));
 
-	if (star_file == NULL)
-	{
-		handle = NULL;
-	}
-	else
-	{
-		handle = MF_Fopen(star_file, "rb");
-	}
+        sc->width = UBYTE(twidth);
+        sc->height = UBYTE(theight);
+    }
 
-	if (handle == NULL)
-	{
-		//
-		// Randomly generate the stars...
-		//
+    //
+    // Place down the stars.
+    //
 
-		for (i = 0; i < SKY_MAX_STARS; i++)
-		{
-			yaw    = rand() % 360;
-			pitch  = rand() % 60;
-			pitch += 10;
+    if (star_file == NULL) {
+        handle = NULL;
+    } else {
+        handle = MF_Fopen(star_file, "rb");
+    }
 
-			bright  = rand() % (pitch + 0x3f);
-			bright += 0x1f;
+    if (handle == NULL) {
+        //
+        // Randomly generate the stars...
+        //
 
-			SKY_star[i].colour =  bright;
-			SKY_star[i].spread = (bright < 100) ? 0 : bright >> 2;
-			SKY_star[i].yaw    = float(yaw)   * 2.0F * PI / 360.0F;
-			SKY_star[i].pitch  = float(pitch) * 2.0F * PI / 360.0F;
-		}
+        for (i = 0; i < SKY_MAX_STARS; i++) {
+            yaw = rand() % 360;
+            pitch = rand() % 60;
+            pitch += 10;
 
-		SKY_star_upto = SKY_MAX_STARS;
-	}
-	else
-	{
-		SKY_star_upto = 0;
+            bright = rand() % (pitch + 0x3f);
+            bright += 0x1f;
 
-		while(fgets(line, 128, handle))
-		{
-			if (SKY_star_upto >= SKY_MAX_STARS)
-			{
-				//
-				// Can't read in any more stars.
-				//
+            SKY_star[i].colour = bright;
+            SKY_star[i].spread = (bright < 100) ? 0 : bright >> 2;
+            SKY_star[i].yaw = float(yaw) * 2.0F * PI / 360.0F;
+            SKY_star[i].pitch = float(pitch) * 2.0F * PI / 360.0F;
+        }
 
-				break;
-			}
+        SKY_star_upto = SKY_MAX_STARS;
+    } else {
+        SKY_star_upto = 0;
 
-			match = sscanf(line, "Star: %d, %d, %d", &yaw, &pitch, &bright);
+        while (fgets(line, 128, handle)) {
+            if (SKY_star_upto >= SKY_MAX_STARS) {
+                //
+                // Can't read in any more stars.
+                //
 
-			if (match == 3)
-			{
-				//
-				// Make sure that the brightness isn't out of range.
-				//
+                break;
+            }
 
-				SATURATE(bright, 0, 255);
+            match = sscanf(line, "Star: %d, %d, %d", &yaw, &pitch, &bright);
 
-				SKY_star[SKY_star_upto].colour =  bright;
-				SKY_star[SKY_star_upto].spread = (bright < 100) ? 0 : bright >> 2;
-				SKY_star[SKY_star_upto].yaw    = float(yaw)   * 2.0F * PI / 2048.0F;
-				SKY_star[SKY_star_upto].pitch  = float(pitch) * 2.0F * PI / 2048.0F;
+            if (match == 3) {
+                //
+                // Make sure that the brightness isn't out of range.
+                //
 
-				SKY_star_upto += 1;
-			}
-		}
+                SATURATE(bright, 0, 255);
 
-		MF_Fclose(handle);
-	}
+                SKY_star[SKY_star_upto].colour = bright;
+                SKY_star[SKY_star_upto].spread = (bright < 100) ? 0 : bright >> 2;
+                SKY_star[SKY_star_upto].yaw = float(yaw) * 2.0F * PI / 2048.0F;
+                SKY_star[SKY_star_upto].pitch = float(pitch) * 2.0F * PI / 2048.0F;
 
-	//
-	// London, England.
-	//
+                SKY_star_upto += 1;
+            }
+        }
 
-	SKY_Star *ss;
+        MF_Fclose(handle);
+    }
 
-	float dpitch = 39.0F * 2.0F * PI / 360.0F;
+    //
+    // London, England.
+    //
 
-	for (i = 0; i < SKY_star_upto; i++)
-	{
-		ss = &SKY_star[i];
-		
-		MATRIX_vector(
-			ss->vector,
-			ss->yaw,
-			ss->pitch + dpitch);
-	}
+    SKY_Star* ss;
+
+    float dpitch = 39.0F * 2.0F * PI / 360.0F;
+
+    for (i = 0; i < SKY_star_upto; i++) {
+        ss = &SKY_star[i];
+
+        MATRIX_vector(
+            ss->vector,
+            ss->yaw,
+            ss->pitch + dpitch);
+    }
 #endif
 }
 
-
 #ifndef TARGET_DC
 void SKY_draw_stars(
-		float mid_x,	// The world camera position
-		float mid_y,
-		float mid_z,
-		float max_dist)	// How far away anything is drawn.
+    float mid_x, // The world camera position
+    float mid_y,
+    float mid_z,
+    float max_dist) // How far away anything is drawn.
 {
-	SLONG i;
+    SLONG i;
 
-	float yaw;
-	float pitch;
+    float yaw;
+    float pitch;
 
-	SVector_F  temp;
-	SVector_F  pos;
-	POLY_Point pp;
+    SVector_F temp;
+    SVector_F pos;
+    POLY_Point pp;
 
-	SKY_Star *ss;
+    SKY_Star* ss;
 
-	float	xmul = float(RealDisplayWidth) / float(DisplayWidth);
-	float	ymul = float(RealDisplayHeight) / float(DisplayHeight);
+    float xmul = float(RealDisplayWidth) / float(DisplayWidth);
+    float ymul = float(RealDisplayHeight) / float(DisplayHeight);
 
-	for (i = 0; i < SKY_star_upto; i++)
-	{
-		ss = &SKY_star[i];
+    for (i = 0; i < SKY_star_upto; i++) {
+        ss = &SKY_star[i];
 
-		//
-		// Draw it.
-		// 
+        //
+        // Draw it.
+        //
 
-		#define SKY_STAR_DIST (max_dist - 256.0F)
+#define SKY_STAR_DIST (max_dist - 256.0F)
 
-		temp.X = ss->vector[0] * SKY_STAR_DIST +  mid_x;
-		temp.Y = ss->vector[1] * SKY_STAR_DIST + (mid_y * 0.5F);
-		temp.Z = ss->vector[2] * SKY_STAR_DIST +  mid_z;
+        temp.X = ss->vector[0] * SKY_STAR_DIST + mid_x;
+        temp.Y = ss->vector[1] * SKY_STAR_DIST + (mid_y * 0.5F);
+        temp.Z = ss->vector[2] * SKY_STAR_DIST + mid_z;
 
-		POLY_transform(
-			temp.X,
-			temp.Y,
-			temp.Z,
-		   &pp);
+        POLY_transform(
+            temp.X,
+            temp.Y,
+            temp.Z,
+            &pp);
 
-		if (!(pp.clip & (POLY_CLIP_LEFT | POLY_CLIP_RIGHT | POLY_CLIP_TOP | POLY_CLIP_BOTTOM | POLY_CLIP_NEAR | POLY_CLIP_FAR)))
-		{
-			SLONG px = SLONG(pp.X * xmul);
-			SLONG py = SLONG(pp.Y * ymul);
+        if (!(pp.clip & (POLY_CLIP_LEFT | POLY_CLIP_RIGHT | POLY_CLIP_TOP | POLY_CLIP_BOTTOM | POLY_CLIP_NEAR | POLY_CLIP_FAR))) {
+            SLONG px = SLONG(pp.X * xmul);
+            SLONG py = SLONG(pp.Y * ymul);
 
-			if ((rand() & 0x7f) == (i & 0x7f))
-			{
-				//
-				// Make the star twinkle!
-				//
-			}
-			else
-			{
-				the_display.PlotPixel(
-					px, py,
-					ss->colour,
-					ss->colour,
-					ss->colour);
+            if ((rand() & 0x7f) == (i & 0x7f)) {
+                //
+                // Make the star twinkle!
+                //
+            } else {
+                the_display.PlotPixel(
+                    px, py,
+                    ss->colour,
+                    ss->colour,
+                    ss->colour);
 
-				if (ss->spread)
-				{
-					ULONG col = the_display.GetFormattedPixel(ss->spread, ss->spread, ss->spread);
+                if (ss->spread) {
+                    ULONG col = the_display.GetFormattedPixel(ss->spread, ss->spread, ss->spread);
 
-					the_display.PlotFormattedPixel(px - 1, py, col);
-					the_display.PlotFormattedPixel(px + 1, py, col);
-					the_display.PlotFormattedPixel(px, py - 1, col);
-					the_display.PlotFormattedPixel(px, py + 1, col);
-				}
-			}
-		}
-	}
+                    the_display.PlotFormattedPixel(px - 1, py, col);
+                    the_display.PlotFormattedPixel(px + 1, py, col);
+                    the_display.PlotFormattedPixel(px, py - 1, col);
+                    the_display.PlotFormattedPixel(px, py + 1, col);
+                }
+            }
+        }
+    }
 }
 #endif
 
 #ifndef TARGET_DC
 void SKY_draw_poly_clouds(
-		float mid_x,
-		float mid_y,
-		float mid_z,
-		float max_dist)
+    float mid_x,
+    float mid_y,
+    float mid_z,
+    float max_dist)
 {
-	
-	SLONG i;
-	SLONG j;
 
-	float yaw;
-	float pitch;
-	float vector[3];
+    SLONG i;
+    SLONG j;
 
-	SVector_F temp;
-	SVector_F pos;
-	ULONG     flag;
+    float yaw;
+    float pitch;
+    float vector[3];
 
-	float screen_width  = float(DisplayWidth);
-	float screen_height = float(DisplayHeight);
+    SVector_F temp;
+    SVector_F pos;
+    ULONG flag;
 
-	float width;
-	float height;
+    float screen_width = float(DisplayWidth);
+    float screen_height = float(DisplayHeight);
 
-	SKY_Cloud   *sc;
-	SKY_Texture *st;
+    float width;
+    float height;
 
-	POLY_Point  mid;
-	POLY_Point  pp[4];
-	POLY_Point *quad[4];
+    SKY_Cloud* sc;
+    SKY_Texture* st;
 
-	quad[0] = &pp[0];
-	quad[1] = &pp[1];
-	quad[2] = &pp[2];
-	quad[3] = &pp[3];
+    POLY_Point mid;
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
 
-	//
-	// Draw and animate the cloud quads.
-	//
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
 
-	#define SKY_CLOUD_DIST (max_dist - 512.0F)
+    //
+    // Draw and animate the cloud quads.
+    //
 
-	for (i = 0; i < SKY_NUM_CLOUDS; i++)
-	{
-		sc = &SKY_cloud[i];
+#define SKY_CLOUD_DIST (max_dist - 512.0F)
 
-		//
-		// Animate it.
-		//
+    for (i = 0; i < SKY_NUM_CLOUDS; i++) {
+        sc = &SKY_cloud[i];
 
-		sc->yaw += sc->dyaw;
+        //
+        // Animate it.
+        //
 
-		//
-		// Draw it.
-		// 
+        sc->yaw += sc->dyaw;
 
-		yaw   = sc->yaw;
-		pitch = sc->pitch;
+        //
+        // Draw it.
+        //
 
-		MATRIX_vector(
-			vector,
-			yaw,
-			pitch);
+        yaw = sc->yaw;
+        pitch = sc->pitch;
 
-		temp.X = vector[0] * SKY_CLOUD_DIST + mid_x;
-		temp.Y = vector[1] * SKY_CLOUD_DIST + mid_y * 0.5F;
-		temp.Z = vector[2] * SKY_CLOUD_DIST + mid_z;
+        MATRIX_vector(
+            vector,
+            yaw,
+            pitch);
 
-		POLY_transform(
-			temp.X,
-			temp.Y,
-			temp.Z,
-		   &mid);
+        temp.X = vector[0] * SKY_CLOUD_DIST + mid_x;
+        temp.Y = vector[1] * SKY_CLOUD_DIST + mid_y * 0.5F;
+        temp.Z = vector[2] * SKY_CLOUD_DIST + mid_z;
 
-		if (!mid.IsValid())
-		{
-			//
-			// Abandon this cloud.
-			//
+        POLY_transform(
+            temp.X,
+            temp.Y,
+            temp.Z,
+            &mid);
 
-			continue;
-		}
+        if (!mid.IsValid()) {
+            //
+            // Abandon this cloud.
+            //
 
-		width  = float(sc->width);
-		height = float(sc->height);
+            continue;
+        }
 
-		if (mid.X + width  < 0 || mid.X - width > screen_width ||
-			mid.Y + height < 0 || mid.Y - width > screen_height)
-		{
-			//
-			// Abandon this cloud.
-			//
+        width = float(sc->width);
+        height = float(sc->height);
 
-			continue;
-		}
+        if (mid.X + width < 0 || mid.X - width > screen_width || mid.Y + height < 0 || mid.Y - width > screen_height) {
+            //
+            // Abandon this cloud.
+            //
 
-		//
-		// The very end of the zbuffer...
-		//
+            continue;
+        }
 
-		#define SKY_VERY_FAR_AWAY (1.0F / 65536.0F)
+        //
+        // The very end of the zbuffer...
+        //
 
-		mid.Z        = SKY_VERY_FAR_AWAY;
-		mid.colour   = 0xff333333 + 0x00010101 * SLONG(sc->dyaw * (128.0F / 0.0005F));;
-		mid.specular = 0x000000;
+#define SKY_VERY_FAR_AWAY (1.0F / 65536.0F)
 
-		for (j = 0; j < 4; j++)
-		{
-			pp[j] = mid;
+        mid.Z = SKY_VERY_FAR_AWAY;
+        mid.colour = 0xff333333 + 0x00010101 * SLONG(sc->dyaw * (128.0F / 0.0005F));
+        ;
+        mid.specular = 0x000000;
 
-			pp[j].X += (j  & 1) ? width  : -width;
-			pp[j].Y += (j >> 1) ? height : -height;
-		}
+        for (j = 0; j < 4; j++) {
+            pp[j] = mid;
 
-		//
-		// The sky texture.
-		//
+            pp[j].X += (j & 1) ? width : -width;
+            pp[j].Y += (j >> 1) ? height : -height;
+        }
 
-		SKY_Texture *st;
+        //
+        // The sky texture.
+        //
 
-		ASSERT(WITHIN(sc->texture, 0, SKY_NUM_TEXTURES - 1));
+        SKY_Texture* st;
 
-		st = &SKY_texture[sc->texture];
+        ASSERT(WITHIN(sc->texture, 0, SKY_NUM_TEXTURES - 1));
 
-		if (sc->flip)
-		{
-			pp[0].u = st->u1;
-			pp[0].v = st->v1;
-			pp[1].u = st->u2;
-			pp[1].v = st->v1;
-			pp[2].u = st->u1;
-			pp[2].v = st->v2;
-			pp[3].u = st->u2;
-			pp[3].v = st->v2;
-		}
-		else
-		{
-			pp[0].u = st->u2;
-			pp[0].v = st->v1;
-			pp[1].u = st->u1;
-			pp[1].v = st->v1;
-			pp[2].u = st->u2;
-			pp[2].v = st->v2;
-			pp[3].u = st->u1;
-			pp[3].v = st->v2;
-		}
+        st = &SKY_texture[sc->texture];
 
-		POLY_add_quad(quad, POLY_PAGE_CLOUDS, FALSE, TRUE);
-	}
+        if (sc->flip) {
+            pp[0].u = st->u1;
+            pp[0].v = st->v1;
+            pp[1].u = st->u2;
+            pp[1].v = st->v1;
+            pp[2].u = st->u1;
+            pp[2].v = st->v2;
+            pp[3].u = st->u2;
+            pp[3].v = st->v2;
+        } else {
+            pp[0].u = st->u2;
+            pp[0].v = st->v1;
+            pp[1].u = st->u1;
+            pp[1].v = st->v1;
+            pp[2].u = st->u2;
+            pp[2].v = st->v2;
+            pp[3].u = st->u1;
+            pp[3].v = st->v2;
+        }
 
-	return;
+        POLY_add_quad(quad, POLY_PAGE_CLOUDS, FALSE, TRUE);
+    }
+
+    return;
 }
 #endif
 
-
-
-
-
 void SKY_draw_poly_moon(
-		float mid_x,
-		float mid_y,
-		float mid_z,
-		float max_dist)
+    float mid_x,
+    float mid_y,
+    float mid_z,
+    float max_dist)
 {
-	static SLONG on_screen_for = 0;
-	static SLONG last_cam_dyaw = 0;
-	static SLONG last_cam_dpitch = 0;
-	static SLONG draw_man = 0;
-	
-	SLONG i;
-	SLONG j;
+    static SLONG on_screen_for = 0;
+    static SLONG last_cam_dyaw = 0;
+    static SLONG last_cam_dpitch = 0;
+    static SLONG draw_man = 0;
 
-	float yaw;
-	float pitch;
-	float vector[3];
+    SLONG i;
+    SLONG j;
 
-	SVector_F temp;
-	SVector_F pos;
-	ULONG     flag;
+    float yaw;
+    float pitch;
+    float vector[3];
 
-	float screen_width  = float(DisplayWidth);
-	float screen_height = float(DisplayHeight);
+    SVector_F temp;
+    SVector_F pos;
+    ULONG flag;
 
-	float width;
-	float height;
+    float screen_width = float(DisplayWidth);
+    float screen_height = float(DisplayHeight);
 
-	//SKY_Cloud   *sc;
-	//SKY_Texture *st;
+    float width;
+    float height;
 
-	POLY_Point  mid;
-	POLY_Point  pp[4];
-	POLY_Point *quad[4];
+    // SKY_Cloud   *sc;
+    // SKY_Texture *st;
 
-	quad[0] = &pp[0];
-	quad[1] = &pp[1];
-	quad[2] = &pp[2];
-	quad[3] = &pp[3];
+    POLY_Point mid;
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
 
-	//
-	// Create the moon quad.
-	//
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
 
-	#define SKY_MOON_YAW	(0)
-	#define SKY_MOON_PITCH  (PI / 8.0F)
-	#define SKY_MOON_DIST	(max_dist - 128.0F)
+    //
+    // Create the moon quad.
+    //
+
+#define SKY_MOON_YAW (0)
+#define SKY_MOON_PITCH (PI / 8.0F)
+#define SKY_MOON_DIST (max_dist - 128.0F)
 #ifdef TARGET_DC
-	// This is slightly more sensible.
-	#define SKY_MOON_RADIUS (screen_width * 0.09F)
+// This is slightly more sensible.
+#define SKY_MOON_RADIUS (screen_width * 0.09F)
 #else
-	// This is hooooooooooj.
-	#define SKY_MOON_RADIUS (screen_width * 0.15F)
+// This is hooooooooooj.
+#define SKY_MOON_RADIUS (screen_width * 0.15F)
 #endif
-	#define SKY_MOON_UV_IN  (0.02F)
+#define SKY_MOON_UV_IN (0.02F)
 
-	const struct
-	{
-		float u;
-		float v;
+    const struct
+    {
+        float u;
+        float v;
 
-	} moon_uv[4] =
-	{
-		{       SKY_MOON_UV_IN,        SKY_MOON_UV_IN},
-		{1.0F - SKY_MOON_UV_IN,        SKY_MOON_UV_IN},
-		{       SKY_MOON_UV_IN, 1.0F - SKY_MOON_UV_IN},
-		{1.0F - SKY_MOON_UV_IN, 1.0F - SKY_MOON_UV_IN}
-	};
+    } moon_uv[4] = {
+        { SKY_MOON_UV_IN, SKY_MOON_UV_IN },
+        { 1.0F - SKY_MOON_UV_IN, SKY_MOON_UV_IN },
+        { SKY_MOON_UV_IN, 1.0F - SKY_MOON_UV_IN },
+        { 1.0F - SKY_MOON_UV_IN, 1.0F - SKY_MOON_UV_IN }
+    };
 
-	yaw   = SKY_MOON_YAW;
-	pitch = SKY_MOON_PITCH;
+    yaw = SKY_MOON_YAW;
+    pitch = SKY_MOON_PITCH;
 
-	MATRIX_vector(
-		vector,
-		yaw,
-		pitch);
+    MATRIX_vector(
+        vector,
+        yaw,
+        pitch);
 
-	temp.X = vector[0] * SKY_MOON_DIST + mid_x;
-	temp.Y = vector[1] * SKY_MOON_DIST + mid_y * 0.5f;
-	temp.Z = vector[2] * SKY_MOON_DIST + mid_z;
-
+    temp.X = vector[0] * SKY_MOON_DIST + mid_x;
+    temp.Y = vector[1] * SKY_MOON_DIST + mid_y * 0.5f;
+    temp.Z = vector[2] * SKY_MOON_DIST + mid_z;
 
 #ifdef TARGET_DC
-	// Workaround.
-	POLY_flush_local_rot();
+    // Workaround.
+    POLY_flush_local_rot();
 #endif
 
-	POLY_transform(
-		temp.X,
-		temp.Y,
-		temp.Z,
-	   &mid);
+    POLY_transform(
+        temp.X,
+        temp.Y,
+        temp.Z,
+        &mid);
 
-	if (!mid.IsValid())
-	{
-		//
-		// Abandon the moon. - you can't see the whole of it <g>
-		//
+    if (!mid.IsValid()) {
+        //
+        // Abandon the moon. - you can't see the whole of it <g>
+        //
 
-		on_screen_for = 0;
-	}
-	else
-	{
-		if (mid.X + SKY_MOON_RADIUS < 0 || mid.X - SKY_MOON_RADIUS > screen_width ||
-			mid.Y + SKY_MOON_RADIUS < 0 || mid.Y - SKY_MOON_RADIUS > screen_height)
-		{
-			//
-			// Abandon the moon.
-			//
+        on_screen_for = 0;
+    } else {
+        if (mid.X + SKY_MOON_RADIUS < 0 || mid.X - SKY_MOON_RADIUS > screen_width || mid.Y + SKY_MOON_RADIUS < 0 || mid.Y - SKY_MOON_RADIUS > screen_height) {
+            //
+            // Abandon the moon.
+            //
 
-			on_screen_for = 0;
-		}
-		else
-		{
+            on_screen_for = 0;
+        } else {
 #ifdef TARGET_DC
-			// Got to get it just in front of the sky, but behind the far facets.
-			mid.Z        = 0.001f;
-			mid.z        = 0.999f;
+            // Got to get it just in front of the sky, but behind the far facets.
+            mid.Z = 0.001f;
+            mid.z = 0.999f;
 #else
-			mid.Z        = SKY_VERY_FAR_AWAY;
+            mid.Z = SKY_VERY_FAR_AWAY;
 #endif
-			mid.colour   = 0xffaaaa88;
-			mid.specular = 0x00000000;
+            mid.colour = 0xffaaaa88;
+            mid.specular = 0x00000000;
 
-			for (j = 0; j < 4; j++)
-			{
-				pp[j] = mid;
+            for (j = 0; j < 4; j++) {
+                pp[j] = mid;
 
-				pp[j].X += (j  & 1) ? SKY_MOON_RADIUS : -SKY_MOON_RADIUS;
-				pp[j].Y += (j >> 1) ? SKY_MOON_RADIUS : -SKY_MOON_RADIUS;
+                pp[j].X += (j & 1) ? SKY_MOON_RADIUS : -SKY_MOON_RADIUS;
+                pp[j].Y += (j >> 1) ? SKY_MOON_RADIUS : -SKY_MOON_RADIUS;
 
-				pp[j].u = moon_uv[j].u;
-				pp[j].v = moon_uv[j].v;
-			}
+                pp[j].u = moon_uv[j].u;
+                pp[j].v = moon_uv[j].v;
+            }
 
-			POLY_add_quad(quad, POLY_PAGE_MOON, FALSE, TRUE);
+            POLY_add_quad(quad, POLY_PAGE_MOON, FALSE, TRUE);
 
-			on_screen_for += 1;
+            on_screen_for += 1;
 
 #if 0
 // This no longer works.
@@ -660,8 +609,8 @@ void SKY_draw_poly_moon(
 				POLY_add_quad(quad, POLY_PAGE_MANONMOON, FALSE, TRUE);
 			}
 #endif
-		}
-	}
+        }
+    }
 
 #if 0
 // No longer works.
@@ -669,7 +618,7 @@ void SKY_draw_poly_moon(
 	//
 	// Is the player looking at the moon?
 	//
-#ifdef	CAM_OLD
+#ifdef CAM_OLD
 	if (CAM_get_mode() == CAM_MODE_FIRST_PERSON)
 	{
 		SLONG cam_dyaw;
@@ -705,491 +654,460 @@ void SKY_draw_poly_moon(
 	}
 #endif
 
-	return;
+    return;
 }
-
-
 
 #ifndef TARGET_DC
 SLONG SKY_draw_moon_reflection(
-		float  mid_x,
-		float  mid_y,
-		float  mid_z,
-		float  max_dist,
-		float *moon_x1,
-		float *moon_y1,
-		float *moon_x2,
-		float *moon_y2)
+    float mid_x,
+    float mid_y,
+    float mid_z,
+    float max_dist,
+    float* moon_x1,
+    float* moon_y1,
+    float* moon_x2,
+    float* moon_y2)
 {
-	
-	SLONG i;
-	SLONG j;
 
-	float x;
-	float y;
-	float v;
+    SLONG i;
+    SLONG j;
 
-	float yaw;
-	float pitch;
-	float vector[3];
+    float x;
+    float y;
+    float v;
 
-	SVector_F temp;
-	SVector_F pos;
-	ULONG     flag;
+    float yaw;
+    float pitch;
+    float vector[3];
 
-	float screen_width  = float(DisplayWidth);
-	float screen_height = float(DisplayHeight);
+    SVector_F temp;
+    SVector_F pos;
+    ULONG flag;
 
-	float width;
-	float height;
+    float screen_width = float(DisplayWidth);
+    float screen_height = float(DisplayHeight);
 
-	//SKY_Cloud   *sc;
-	//SKY_Texture *st;
+    float width;
+    float height;
 
-	POLY_Point  mid;
-	POLY_Point  pp[4];
-	POLY_Point *quad[4];
+    // SKY_Cloud   *sc;
+    // SKY_Texture *st;
 
-	SLONG angle1;
-	SLONG angle2;
-	SLONG offset1;
-	SLONG offset2;
+    POLY_Point mid;
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
 
-	quad[0] = &pp[0];
-	quad[1] = &pp[1];
-	quad[2] = &pp[2];
-	quad[3] = &pp[3];
-	
+    SLONG angle1;
+    SLONG angle2;
+    SLONG offset1;
+    SLONG offset2;
 
-	//
-	// Create the moon quad.
-	//
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
 
-	const struct
-	{
-		float u;
-		float v;
+    //
+    // Create the moon quad.
+    //
 
-	} moon_uv[4] =
-	{
-		{       SKY_MOON_UV_IN,        SKY_MOON_UV_IN},
-		{1.0F - SKY_MOON_UV_IN,        SKY_MOON_UV_IN},
-		{       SKY_MOON_UV_IN, 1.0F - SKY_MOON_UV_IN},
-		{1.0F - SKY_MOON_UV_IN, 1.0F - SKY_MOON_UV_IN}
-	};
+    const struct
+    {
+        float u;
+        float v;
 
-	yaw   = SKY_MOON_YAW;
-	pitch = SKY_MOON_PITCH;
+    } moon_uv[4] = {
+        { SKY_MOON_UV_IN, SKY_MOON_UV_IN },
+        { 1.0F - SKY_MOON_UV_IN, SKY_MOON_UV_IN },
+        { SKY_MOON_UV_IN, 1.0F - SKY_MOON_UV_IN },
+        { 1.0F - SKY_MOON_UV_IN, 1.0F - SKY_MOON_UV_IN }
+    };
 
-	MATRIX_vector(
-		vector,
-		yaw,
-		pitch);
+    yaw = SKY_MOON_YAW;
+    pitch = SKY_MOON_PITCH;
 
-	temp.X =  vector[0] * SKY_MOON_DIST + mid_x;
-	temp.Y = -vector[1] * SKY_MOON_DIST + mid_y * 0.5f;
-	temp.Z =  vector[2] * SKY_MOON_DIST + mid_z;
+    MATRIX_vector(
+        vector,
+        yaw,
+        pitch);
 
-	POLY_transform(
-		temp.X,
-		temp.Y,
-		temp.Z,
-	   &mid);
+    temp.X = vector[0] * SKY_MOON_DIST + mid_x;
+    temp.Y = -vector[1] * SKY_MOON_DIST + mid_y * 0.5f;
+    temp.Z = vector[2] * SKY_MOON_DIST + mid_z;
 
-	if (!mid.IsValid())
-	{
-		//
-		// Abandon the moon.
-		//
+    POLY_transform(
+        temp.X,
+        temp.Y,
+        temp.Z,
+        &mid);
 
-		return FALSE;
-	}
-	else
-	{
-		if (mid.X + SKY_MOON_RADIUS < 8 || mid.X - SKY_MOON_RADIUS > screen_width  + 8 ||
-			mid.Y + SKY_MOON_RADIUS < 8 || mid.Y - SKY_MOON_RADIUS > screen_height + 8)
-		{
-			//
-			// Abandon the moon.
-			//
+    if (!mid.IsValid()) {
+        //
+        // Abandon the moon.
+        //
 
-			return FALSE;
-		}
-		else
-		{
+        return FALSE;
+    } else {
+        if (mid.X + SKY_MOON_RADIUS < 8 || mid.X - SKY_MOON_RADIUS > screen_width + 8 || mid.Y + SKY_MOON_RADIUS < 8 || mid.Y - SKY_MOON_RADIUS > screen_height + 8) {
+            //
+            // Abandon the moon.
+            //
+
+            return FALSE;
+        } else {
 #ifdef TARGET_DC
-			mid.Z        = 0.9999f;
-			mid.z        = 0.0001f;
+            mid.Z = 0.9999f;
+            mid.z = 0.0001f;
 #else
-			mid.Z        = SKY_VERY_FAR_AWAY;
+            mid.Z = SKY_VERY_FAR_AWAY;
 #endif
-			mid.colour   = 0xffaaaa88;
-			mid.specular = 0x00000000;
+            mid.colour = 0xffaaaa88;
+            mid.specular = 0x00000000;
 
-			#define SKY_MOON_SEGMENTS 16
+#define SKY_MOON_SEGMENTS 16
 
-			y = mid.Y - SKY_MOON_RADIUS;
-			v = moon_uv[0].v;
+            y = mid.Y - SKY_MOON_RADIUS;
+            v = moon_uv[0].v;
 
-			//
-			// What's the first lines' wibble?
-			//
+            //
+            // What's the first lines' wibble?
+            //
 
-			angle1  = SLONG(y) * SKY_wibble_y1;
-			angle2  = SLONG(y) * SKY_wibble_y2;
-			angle1 += GAME_TURN * SKY_wibble_g1;
-			angle2 += GAME_TURN * SKY_wibble_g2;
+            angle1 = SLONG(y) * SKY_wibble_y1;
+            angle2 = SLONG(y) * SKY_wibble_y2;
+            angle1 += GAME_TURN * SKY_wibble_g1;
+            angle2 += GAME_TURN * SKY_wibble_g2;
 
-			angle1 &= 2047;
-			angle2 &= 2047;
+            angle1 &= 2047;
+            angle2 &= 2047;
 
-			offset2  = SIN(angle1) * SKY_wibble_s1 >> 19;
-			offset2 += COS(angle2) * SKY_wibble_s2 >> 19;
+            offset2 = SIN(angle1) * SKY_wibble_s1 >> 19;
+            offset2 += COS(angle2) * SKY_wibble_s2 >> 19;
 
-			//
-			// The amount of 'y' and 'v' in each segment.
-			//
+            //
+            // The amount of 'y' and 'v' in each segment.
+            //
 
-			#define SKY_MOON_SEG_DY (float(SKY_MOON_RADIUS) / float(SKY_MOON_SEGMENTS))
-			#define SKY_MOON_SEG_DV ((moon_uv[2].v - moon_uv[0].v) / float(SKY_MOON_SEGMENTS))
+#define SKY_MOON_SEG_DY (float(SKY_MOON_RADIUS) / float(SKY_MOON_SEGMENTS))
+#define SKY_MOON_SEG_DV ((moon_uv[2].v - moon_uv[0].v) / float(SKY_MOON_SEGMENTS))
 
-			for (i = 0; i < SKY_MOON_SEGMENTS; i++)
-			{
-				offset1 = offset2;
+            for (i = 0; i < SKY_MOON_SEGMENTS; i++) {
+                offset1 = offset2;
 
-				//
-				// What's the next lines' wibble?
-				//
+                //
+                // What's the next lines' wibble?
+                //
 
-				angle1  = SLONG(y + SKY_MOON_SEG_DY) * SKY_wibble_y1;
-				angle2  = SLONG(y + SKY_MOON_SEG_DY) * SKY_wibble_y2;
-				angle1 += GAME_TURN * SKY_wibble_g1;
-				angle2 += GAME_TURN * SKY_wibble_g2;
+                angle1 = SLONG(y + SKY_MOON_SEG_DY) * SKY_wibble_y1;
+                angle2 = SLONG(y + SKY_MOON_SEG_DY) * SKY_wibble_y2;
+                angle1 += GAME_TURN * SKY_wibble_g1;
+                angle2 += GAME_TURN * SKY_wibble_g2;
 
-				angle1 &= 2047;
-				angle2 &= 2047;
+                angle1 &= 2047;
+                angle2 &= 2047;
 
-				offset2  = SIN(angle1) * SKY_wibble_s1 >> 19;
-				offset2 += COS(angle2) * SKY_wibble_s2 >> 19;
+                offset2 = SIN(angle1) * SKY_wibble_s1 >> 19;
+                offset2 += COS(angle2) * SKY_wibble_s2 >> 19;
 
-				for (j = 0; j < 4; j++)
-				{
-					pp[j] = mid;
+                for (j = 0; j < 4; j++) {
+                    pp[j] = mid;
 
-					pp[j].X += (j  & 1) ? SKY_MOON_RADIUS : -SKY_MOON_RADIUS;
-					pp[j].u  = moon_uv[j].u;
+                    pp[j].X += (j & 1) ? SKY_MOON_RADIUS : -SKY_MOON_RADIUS;
+                    pp[j].u = moon_uv[j].u;
 
-					if (j & 2)
-					{
-						pp[j].Y  = y + SKY_MOON_SEG_DY;
-						pp[j].v  = v + SKY_MOON_SEG_DV;
-						pp[j].X += offset2;
-					}
-					else
-					{
-						pp[j].Y = y;
-						pp[j].v = v;
-						pp[j].X += offset1;
-					}
-				}
+                    if (j & 2) {
+                        pp[j].Y = y + SKY_MOON_SEG_DY;
+                        pp[j].v = v + SKY_MOON_SEG_DV;
+                        pp[j].X += offset2;
+                    } else {
+                        pp[j].Y = y;
+                        pp[j].v = v;
+                        pp[j].X += offset1;
+                    }
+                }
 
-				POLY_add_quad(quad, POLY_PAGE_MOON, FALSE, TRUE);
+                POLY_add_quad(quad, POLY_PAGE_MOON, FALSE, TRUE);
 
-				if (i == 0)
-				{
-				   *moon_x1 = pp[0].X;
-				   *moon_y1 = pp[2].Y;
-				}
+                if (i == 0) {
+                    *moon_x1 = pp[0].X;
+                    *moon_y1 = pp[2].Y;
+                }
 
-				if (i == SKY_MOON_SEGMENTS - 1)
-				{
-				   *moon_x2 = pp[1].X;
-				   *moon_y2 = pp[0].Y;
-				}
+                if (i == SKY_MOON_SEGMENTS - 1) {
+                    *moon_x2 = pp[1].X;
+                    *moon_y2 = pp[0].Y;
+                }
 
-				y += SKY_MOON_SEG_DY;
-				v += SKY_MOON_SEG_DV;
-			}
-		}
-	}
+                y += SKY_MOON_SEG_DY;
+                v += SKY_MOON_SEG_DV;
+            }
+        }
+    }
 
-	return TRUE;
+    return TRUE;
 }
-#endif //#ifndef TARGET_DC
-
+#endif // #ifndef TARGET_DC
 
 #ifndef TARGET_DC
 void SKY_draw_poly_sky(
-		float world_camera_x,
-		float world_camera_y,
-		float world_camera_z,
-		float world_camera_yaw,
-		float max_dist,
-		ULONG bot_colour,
-		ULONG top_colour)
+    float world_camera_x,
+    float world_camera_y,
+    float world_camera_z,
+    float world_camera_yaw,
+    float max_dist,
+    ULONG bot_colour,
+    ULONG top_colour)
 {
-	float px;
-	float py;
-	float pz;
+    float px;
+    float py;
+    float pz;
 
-	float screen_x;
-	float screen_y;
+    float screen_x;
+    float screen_y;
 
-	float vector[3];
+    float vector[3];
 
-	MATRIX_vector(
-		vector,
-		world_camera_yaw,
-		0.0F);
+    MATRIX_vector(
+        vector,
+        world_camera_yaw,
+        0.0F);
 
-	px =  world_camera_x + vector[0] * max_dist;
-	py = -256.0F;
-	pz =  world_camera_z + vector[2] * max_dist;
+    px = world_camera_x + vector[0] * max_dist;
+    py = -256.0F;
+    pz = world_camera_z + vector[2] * max_dist;
 
-	if (!POLY_get_screen_pos(
-			px, py, pz,
-		   &screen_x,
-		   &screen_y))
-	{
-		//
-		// Can't see the horizon.
-		//
+    if (!POLY_get_screen_pos(
+            px, py, pz,
+            &screen_x,
+            &screen_y)) {
+        //
+        // Can't see the horizon.
+        //
 
-		return;
-	}
-	
-	POLY_Point  pp  [4];
-	POLY_Point *quad[4];
+        return;
+    }
 
-	pp[0].X        = 0.0F;
-	pp[0].Y        = screen_y - 256.0F;
-	pp[0].Z        = 0.5F;
-	pp[0].z        = 0.5F;
-	pp[0].u        = 0.0F;
-	pp[0].v        = 0.0F;
-	pp[0].colour   = bot_colour;
-	pp[0].specular = 0xff000000;
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
 
-	pp[1].X        = 640.0F;
-	pp[1].Y        = screen_y - 256.0F;
-	pp[1].Z        = 0.5F;
-	pp[1].z        = 0.5F;
-	pp[1].u        = 0.0F;
-	pp[1].v        = 0.0F;
-	pp[1].colour   = bot_colour;
-	pp[1].specular = 0xff000000;
+    pp[0].X = 0.0F;
+    pp[0].Y = screen_y - 256.0F;
+    pp[0].Z = 0.5F;
+    pp[0].z = 0.5F;
+    pp[0].u = 0.0F;
+    pp[0].v = 0.0F;
+    pp[0].colour = bot_colour;
+    pp[0].specular = 0xff000000;
 
-	pp[2].X        = 0.0F;
-	pp[2].Y        = screen_y;
-	pp[2].Z        = 0.5F;
-	pp[2].z        = 0.5F;
-	pp[2].u        = 0.0F;
-	pp[2].v        = 0.0F;
-	pp[2].colour   = bot_colour;
-	pp[2].specular = 0xff000000;
+    pp[1].X = 640.0F;
+    pp[1].Y = screen_y - 256.0F;
+    pp[1].Z = 0.5F;
+    pp[1].z = 0.5F;
+    pp[1].u = 0.0F;
+    pp[1].v = 0.0F;
+    pp[1].colour = bot_colour;
+    pp[1].specular = 0xff000000;
 
-	pp[3].X        = 640.0F;
-	pp[3].Y        = screen_y;
-	pp[3].Z        = 0.5F;
-	pp[3].z        = 0.5F;
-	pp[3].u        = 0.0F;
-	pp[3].v        = 0.0F;
-	pp[3].colour   = bot_colour;
-	pp[3].specular = 0xff000000;
+    pp[2].X = 0.0F;
+    pp[2].Y = screen_y;
+    pp[2].Z = 0.5F;
+    pp[2].z = 0.5F;
+    pp[2].u = 0.0F;
+    pp[2].v = 0.0F;
+    pp[2].colour = bot_colour;
+    pp[2].specular = 0xff000000;
 
-	quad[0] = &pp[0];
-	quad[1] = &pp[1];
-	quad[2] = &pp[2];
-	quad[3] = &pp[3];
+    pp[3].X = 640.0F;
+    pp[3].Y = screen_y;
+    pp[3].Z = 0.5F;
+    pp[3].z = 0.5F;
+    pp[3].u = 0.0F;
+    pp[3].v = 0.0F;
+    pp[3].colour = bot_colour;
+    pp[3].specular = 0xff000000;
 
-	POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, TRUE);
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
 
-	pp[0].X        = 0.0F;
-	pp[0].Y        = screen_y - 1024.0F;
-	pp[0].Z        = 0.5F;
-	pp[0].z        = 0.5F;
-	pp[0].u        = 0.0F;
-	pp[0].v        = 0.0F;
-	pp[0].colour   = top_colour;
-	pp[0].specular = 0xff000000;
+    POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, TRUE);
 
-	pp[1].X        = 640.0F;
-	pp[1].Y        = screen_y - 1024.0F;
-	pp[1].Z        = 0.5F;
-	pp[1].z        = 0.5F;
-	pp[1].u        = 0.0F;
-	pp[1].v        = 0.0F;
-	pp[1].colour   = top_colour;
-	pp[1].specular = 0xff000000;
+    pp[0].X = 0.0F;
+    pp[0].Y = screen_y - 1024.0F;
+    pp[0].Z = 0.5F;
+    pp[0].z = 0.5F;
+    pp[0].u = 0.0F;
+    pp[0].v = 0.0F;
+    pp[0].colour = top_colour;
+    pp[0].specular = 0xff000000;
 
-	pp[2].X        = 0.0F;
-	pp[2].Y        = screen_y - 256.0F;
-	pp[2].Z        = 0.5F;
-	pp[2].z        = 0.5F;
-	pp[2].u        = 0.0F;
-	pp[2].v        = 0.0F;
-	pp[2].colour   = bot_colour;
-	pp[2].specular = 0xff000000;
+    pp[1].X = 640.0F;
+    pp[1].Y = screen_y - 1024.0F;
+    pp[1].Z = 0.5F;
+    pp[1].z = 0.5F;
+    pp[1].u = 0.0F;
+    pp[1].v = 0.0F;
+    pp[1].colour = top_colour;
+    pp[1].specular = 0xff000000;
 
-	pp[3].X        = 640.0F;
-	pp[3].Y        = screen_y - 256.0F;
-	pp[3].Z        = 0.5F;
-	pp[3].z        = 0.5F;
-	pp[3].u        = 0.0F;
-	pp[3].v        = 0.0F;
-	pp[3].colour   = bot_colour;
-	pp[3].specular = 0xff000000;
+    pp[2].X = 0.0F;
+    pp[2].Y = screen_y - 256.0F;
+    pp[2].Z = 0.5F;
+    pp[2].z = 0.5F;
+    pp[2].u = 0.0F;
+    pp[2].v = 0.0F;
+    pp[2].colour = bot_colour;
+    pp[2].specular = 0xff000000;
 
-	quad[0] = &pp[0];
-	quad[1] = &pp[1];
-	quad[2] = &pp[2];
-	quad[3] = &pp[3];
+    pp[3].X = 640.0F;
+    pp[3].Y = screen_y - 256.0F;
+    pp[3].Z = 0.5F;
+    pp[3].z = 0.5F;
+    pp[3].u = 0.0F;
+    pp[3].v = 0.0F;
+    pp[3].colour = bot_colour;
+    pp[3].specular = 0xff000000;
 
-	POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, TRUE);
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
 
+    POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, TRUE);
 }
 #endif
-
 
 //  0  1
 //
 //	2  3
 
-void SKY_draw_poly_sky_old(float world_camera_x,float world_camera_y,float world_camera_z,float world_camera_yaw,float max_dist,ULONG bot_colour,ULONG top_colour)
+void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float world_camera_z, float world_camera_yaw, float max_dist, ULONG bot_colour, ULONG top_colour)
 {
-	SLONG i;
+    SLONG i;
 
-	SLONG p1;
-	SLONG p2;
+    SLONG p1;
+    SLONG p2;
 
-	float x;
-	float y;
-	float z;
+    float x;
+    float y;
+    float z;
 
-	float angle;
+    float angle;
 
-	#define SKY_CIRCLE_STEPS 30
-	//30
+#define SKY_CIRCLE_STEPS 30
+    // 30
 
-	#define SKY_HORIZON 0.0F
-	//(world_camera_y * 0.0 -  256.0F)
-	#define SKY_MAXUP  (world_camera_y * 0.0f + 12072.0F)
+#define SKY_HORIZON 0.0F
+//(world_camera_y * 0.0 -  256.0F)
+#define SKY_MAXUP (world_camera_y * 0.0f + 12072.0F)
 
-	POLY_Point pp_bot[SKY_CIRCLE_STEPS];
-	POLY_Point pp_top[SKY_CIRCLE_STEPS];
+    POLY_Point pp_bot[SKY_CIRCLE_STEPS];
+    POLY_Point pp_top[SKY_CIRCLE_STEPS];
 
-	POLY_Point *quad[4];
+    POLY_Point* quad[4];
 
-	angle = 0.0F;
-	max_dist=66.0F*256.0F;
+    angle = 0.0F;
+    max_dist = 66.0F * 256.0F;
 
-//	max_dist-=2256;
+    //	max_dist-=2256;
 
-	for (i = 0; i < SKY_CIRCLE_STEPS; i++)
-	{
-		x = world_camera_x + (float)sin(angle) * (max_dist);// - 378.0F);
-		z = world_camera_z + (float)cos(angle) * (max_dist);// - 378.0F);
+    for (i = 0; i < SKY_CIRCLE_STEPS; i++) {
+        x = world_camera_x + (float)sin(angle) * (max_dist); // - 378.0F);
+        z = world_camera_z + (float)cos(angle) * (max_dist); // - 378.0F);
 
-		POLY_transform_c_saturate_z(x,SKY_HORIZON,z,&pp_bot[i]);
+        POLY_transform_c_saturate_z(x, SKY_HORIZON, z, &pp_bot[i]);
 
-		//
-		// Only bother transforming the higher point if the lower point
-		// wasn't behind you.
-		//
+        //
+        // Only bother transforming the higher point if the lower point
+        // wasn't behind you.
+        //
 
-		if (pp_bot[i].IsValid())
-		{
-			pp_bot[i].colour   = bot_colour;
-			pp_bot[i].specular = 0xff000000;
+        if (pp_bot[i].IsValid()) {
+            pp_bot[i].colour = bot_colour;
+            pp_bot[i].specular = 0xff000000;
 
-			x = world_camera_x + (float)sin(angle) * (max_dist);// - 1024.0F);
-			z = world_camera_z + (float)cos(angle) * (max_dist);// - 1024.0F);
+            x = world_camera_x + (float)sin(angle) * (max_dist); // - 1024.0F);
+            z = world_camera_z + (float)cos(angle) * (max_dist); // - 1024.0F);
 
-			POLY_transform_c_saturate_z(
-				 x,
-				 SKY_MAXUP,
-				 z,
-				&pp_top[i]);
+            POLY_transform_c_saturate_z(
+                x,
+                SKY_MAXUP,
+                z,
+                &pp_top[i]);
 
-			pp_top[i].colour   = top_colour;
-			pp_top[i].specular = 0xff000000;
-		}
-		else
-			pp_top[i].clip=0;
-
+            pp_top[i].colour = top_colour;
+            pp_top[i].specular = 0xff000000;
+        } else
+            pp_top[i].clip = 0;
 
 #ifdef TARGET_DC
-		// Bodge the RHW so that the moon actually shows up.
-		pp_top[i].Z *= 0.05f;
-		pp_bot[i].Z *= 0.05f;
+        // Bodge the RHW so that the moon actually shows up.
+        pp_top[i].Z *= 0.05f;
+        pp_bot[i].Z *= 0.05f;
 #endif
-		angle += 2.0F * PI / SKY_CIRCLE_STEPS;
-	}
+        angle += 2.0F * PI / SKY_CIRCLE_STEPS;
+    }
 
-	//
-	// Draw the sky quads.
-	//
+    //
+    // Draw the sky quads.
+    //
 
-	for (i = 0; i < SKY_CIRCLE_STEPS; i++)
-//	for (i = 0; i < 1; i++)
-	{
-		p1 = i + 0;
-		p2 = i + 1;
+    for (i = 0; i < SKY_CIRCLE_STEPS; i++)
+    //	for (i = 0; i < 1; i++)
+    {
+        p1 = i + 0;
+        p2 = i + 1;
 
-		if (p2 == SKY_CIRCLE_STEPS) {p2 = 0;}
+        if (p2 == SKY_CIRCLE_STEPS) {
+            p2 = 0;
+        }
 
+        quad[0] = &pp_top[p1];
+        quad[1] = &pp_top[p2];
+        quad[2] = &pp_bot[p1];
+        quad[3] = &pp_bot[p2];
+        if ((quad[0]->clip & quad[1]->clip & quad[1]->clip & quad[2]->clip) & POLY_CLIP_TRANSFORMED)
+            if (POLY_valid_quad(quad)) {
+                float pos;
 
-		quad[0] = &pp_top[p1];
-		quad[1] = &pp_top[p2];
-		quad[2] = &pp_bot[p1];
-		quad[3] = &pp_bot[p2];
-		if((quad[0]->clip & quad[1]->clip & quad[1]->clip & quad[2]->clip)&POLY_CLIP_TRANSFORMED)
-		if (POLY_valid_quad(quad))
-		{
-			float	pos;
+                switch (i % 5) {
+                case 0:
+                    pos = 0.0F;
+                    break;
+                case 1:
+                    pos = 0.2F;
+                    break;
+                case 2:
+                    pos = 0.4F;
+                    break;
+                case 3:
+                    pos = 0.6F;
+                    break;
+                case 4:
+                    pos = 0.8F;
+                    break;
+                }
 
-			switch(i%5)
-			{
-				case	0:
-					pos=0.0F;
-					break;
-				case	1:
-					pos=0.2F;
-					break;
-				case	2:
-					pos=0.4F;
-					break;
-				case	3:
-					pos=0.6F;
-					break;
-				case	4:
-					pos=0.8F;
-					break;
+                quad[0]->u = pos;
+                quad[1]->u = pos + 0.2F;
+                quad[2]->u = pos;
+                quad[3]->u = pos + 0.2F;
 
-			}
-
-			
-			
-			quad[0]->u = pos;
-			quad[1]->u = pos+0.2F;
-			quad[2]->u = pos;
-			quad[3]->u = pos+0.2F;
-
-			quad[0]->v = 0.0F;
-			quad[1]->v = 0.0F;
-			quad[2]->v = 1.0F;
-			quad[3]->v = 1.0F;
+                quad[0]->v = 0.0F;
+                quad[1]->v = 0.0F;
+                quad[2]->v = 1.0F;
+                quad[3]->v = 1.0F;
 
 #ifdef TARGET_DC
-			// These can trip in mad cases - ignore them.
-			//ASSERT ( quad[0]->Z < 0.0009f );
-			//ASSERT ( quad[1]->Z < 0.0009f );
-			//ASSERT ( quad[2]->Z < 0.0009f );
-			//ASSERT ( quad[3]->Z < 0.0009f );
+            // These can trip in mad cases - ignore them.
+            // ASSERT ( quad[0]->Z < 0.0009f );
+            // ASSERT ( quad[1]->Z < 0.0009f );
+            // ASSERT ( quad[2]->Z < 0.0009f );
+            // ASSERT ( quad[3]->Z < 0.0009f );
 #endif
 
-			POLY_add_quad(quad, POLY_PAGE_SKY, FALSE,1);
-		}
-	}
+                POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, 1);
+            }
+    }
 }
-

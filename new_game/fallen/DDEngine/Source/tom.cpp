@@ -1,103 +1,98 @@
 #ifdef THIS_IS_INCLUDED_FROM_SW
 
-
 {
-	SLONG i;
-	SLONG x;
+    SLONG i;
+    SLONG x;
 
-	ULONG *dest, addr, *tex;
-	ULONG  pixel;
-	SLONG  a;
-	SLONG  r, rd;
-	SLONG  g, gd;
-	SLONG  b, bd;
-	SLONG  R;
-	SLONG  G;
-	SLONG  B;
-	SLONG  pr;
-	SLONG  pg;
-	SLONG  pb;
-	SLONG  u, ud, tempu;
-	SLONG  v, vd, tempv;
-	SLONG  U;
-	SLONG  V;
-	ULONG	wrap, wrap1, wrap2;
-	int tempx1,tempx2;
+    ULONG *dest, addr, *tex;
+    ULONG pixel;
+    SLONG a;
+    SLONG r, rd;
+    SLONG g, gd;
+    SLONG b, bd;
+    SLONG R;
+    SLONG G;
+    SLONG B;
+    SLONG pr;
+    SLONG pg;
+    SLONG pb;
+    SLONG u, ud, tempu;
+    SLONG v, vd, tempv;
+    SLONG U;
+    SLONG V;
+    ULONG wrap, wrap1, wrap2;
+    int tempx1, tempx2;
 
-	i = line;
+    i = line;
 
+    ULONG* last_dest;
+    _int64 mmt1, mmt2, mmt3, mmt4, umask, vmask, wrapmask, uinc, vinc, notumask, notvmask, alpha_test_value, alpha_mask;
+    ULONG utemp, vtemp;
 
-	ULONG *last_dest;
-	_int64 mmt1, mmt2, mmt3, mmt4, umask, vmask, wrapmask, uinc, vinc, notumask, notvmask, alpha_test_value, alpha_mask;
-	ULONG utemp, vtemp;
-
-	umask = 0x5555ffff5555ffff;
-	vmask = 0xaaaaffffaaaaffff;
-	notumask = ~0x5555ffff5555ffff;
-	notvmask = ~0xaaaaffffaaaaffff;
-	alpha_test_value = 0xff000000ff000000;
-	alpha_mask = 0x00007fff00000000;
+    umask = 0x5555ffff5555ffff;
+    vmask = 0xaaaaffffaaaaffff;
+    notumask = ~0x5555ffff5555ffff;
+    notvmask = ~0xaaaaffffaaaaffff;
+    alpha_test_value = 0xff000000ff000000;
+    alpha_mask = 0x00007fff00000000;
 
 #define SWIZZLE 1
 
-
 #define ALPHA_BLEND_NOT_DOUBLE_LIGHTING 1
 
-	{
-		{
-			//r = ss->r;
-			//g = ss->g;
-			//b = ss->b;
-			//u = ss->u;
-			//v = ss->v;
-			//ud = ss->du;
-			//vd = ss->dv;
+    {
+        {
+            // r = ss->r;
+            // g = ss->g;
+            // b = ss->b;
+            // u = ss->u;
+            // v = ss->v;
+            // ud = ss->du;
+            // vd = ss->dv;
 
-			tempx1 = ss->x1;
-			tempx2 = ss->x2;
+            tempx1 = ss->x1;
+            tempx2 = ss->x2;
 
-			if ( tempx2 > tempx1 )
-			{
+            if (tempx2 > tempx1) {
 
-				dest = SW_buffer + i * SW_buffer_pitch;
-				last_dest = dest + tempx2;
-				dest += tempx1;
-				if ( ( tempx2 & 0x1 ) != 0 ) 
-				{
-					// Last pixel is odd - go one less so the loop ends properly.
-					// Remember that we are stepping two pixels at a time, and
-					// ending when we hit this one, then maybe drawing the last pixel.
+                dest = SW_buffer + i * SW_buffer_pitch;
+                last_dest = dest + tempx2;
+                dest += tempx1;
+                if ((tempx2 & 0x1) != 0) {
+                    // Last pixel is odd - go one less so the loop ends properly.
+                    // Remember that we are stepping two pixels at a time, and
+                    // ending when we hit this one, then maybe drawing the last pixel.
 
-					// (e.g. x2 is 7, so last pixel to draw is 6, so terminate when we get to 6 - then do one more)
-					// (e.g. x2 is 8, so last pixel to draw is 7, so terminate when we get to 8)
+                    // (e.g. x2 is 7, so last pixel to draw is 6, so terminate when we get to 6 - then do one more)
+                    // (e.g. x2 is 8, so last pixel to draw is 7, so terminate when we get to 8)
 
-					last_dest--;
-				}
+                    last_dest--;
+                }
 
-				a  = (ss->a );
-				r  = (ss->r )>>1;
-				g  = (ss->g )>>1;
-				b  = (ss->b )>>1;
-#if (ALPHA_MODE!=ALPHA_ADD) && (ALPHA_MODE!=ALPHA_BLEND)
-				rd = (ss->dr)>>1;
-				gd = (ss->dg)>>1;
-				bd = (ss->db)>>1;
+                a = (ss->a);
+                r = (ss->r) >> 1;
+                g = (ss->g) >> 1;
+                b = (ss->b) >> 1;
+#if (ALPHA_MODE != ALPHA_ADD) && (ALPHA_MODE != ALPHA_BLEND)
+                rd = (ss->dr) >> 1;
+                gd = (ss->dg) >> 1;
+                bd = (ss->db) >> 1;
 #endif
-				// Swizzle interpolators
-				u = ss->u;
-				v = ss->v;
-				ud = ss->du;
-				vd = ss->dv;
-				tex = (ULONG *)(ss->tga);
+                // Swizzle interpolators
+                u = ss->u;
+                v = ss->v;
+                ud = ss->du;
+                vd = ss->dv;
+                tex = (ULONG*)(ss->tga);
 
-				// Remember this is for DWORDS - assembler doesn't automagically scale.
+                // Remember this is for DWORDS - assembler doesn't automagically scale.
 #if SWIZZLE
-				wrap = ((ss->tga_size * ss->tga_size) - 1)<<2;
+                wrap = ((ss->tga_size * ss->tga_size) - 1) << 2;
 #else
-				wrap = ss->tga_size;
+                wrap = ss->tga_size;
 #endif
 
-				__asm {
+                __asm {
 
 				push esi
 				push edi
@@ -155,7 +150,7 @@ wrap_loop:
 				psrlq	mm1,8
 				por		mm0,mm1
 
-#if (ALPHA_MODE==ALPHA_BLEND)
+#if (ALPHA_MODE == ALPHA_BLEND)
 				mov		ecx,[a]
 //				and		ecx,0x00ff00
 #if ALPHA_BLEND_NOT_DOUBLE_LIGHTING
@@ -177,8 +172,7 @@ wrap_loop:
 				por		mm0,mm1
 				movq	[mmt1],mm0
 
-
-#if (ALPHA_MODE!=ALPHA_ADD) && (ALPHA_MODE!=ALPHA_BLEND)
+#if (ALPHA_MODE != ALPHA_ADD) && (ALPHA_MODE != ALPHA_BLEND)
 				mov		eax,[rd]
 				mov		ebx,[gd]
 				mov		ecx,[bd]
@@ -245,14 +239,13 @@ wrap_loop:
 
 
 				movq	mm0, [mmt1]
-#if (ALPHA_MODE!=ALPHA_ADD) && (ALPHA_MODE!=ALPHA_BLEND)
+#if (ALPHA_MODE != ALPHA_ADD) && (ALPHA_MODE != ALPHA_BLEND)
 				movq	mm2, [mmt2]
 #endif
 				mov		edi, [dest]
 				mov		esi, [tex]
 
-
-				// Set up the integer texel fetcher
+                    // Set up the integer texel fetcher
 				mov			eax,[u]
 				mov			ebx,[v]
 
@@ -263,17 +256,12 @@ wrap_loop:
 				test	ecx,0x1
 				jnz		first_pixel_odd
 
-
-
-#if (ALPHA_MODE!=ALPHA_ADD) && (ALPHA_MODE!=ALPHA_BLEND)
-				// Calculate r1g1b1, and double up the increments
+#if (ALPHA_MODE != ALPHA_ADD) && (ALPHA_MODE != ALPHA_BLEND)
+                                                                  // Calculate r1g1b1, and double up the increments
 				movq	mm1,mm0
 				paddsw	mm1,mm2
 				psllw	mm2,1
 #endif
-
-
-
 
 #if SWIZZLE
 				mov		ecx,eax
@@ -323,7 +311,6 @@ wrap_loop:
 
 first_pixel_odd:
 
-
 #if SWIZZLE
 				mov		ecx,eax
 				add		eax,DWORD PTR [ud]
@@ -345,97 +332,94 @@ first_pixel_odd:
 #endif
 				movd	mm7,[esi+ecx]
 
-
-
-
-#if ALPHA_MODE==ALPHA_BLEND
+#if ALPHA_MODE == ALPHA_BLEND
 		
 
 				punpcklbw mm7,mm7			;unpack
-	#if SWIZZLE
+#if SWIZZLE
 				mov		ecx,eax
 				add		eax,DWORD PTR [ud]
-	#else
+#else
 				mov		ecx,eax
 				add		eax,DWORD PTR [ud]
-	#endif
+#endif
 
 #if ALPHA_BLEND_NOT_DOUBLE_LIGHTING
 				psrlw	mm7,8-1
 #else
 				psrlw	mm7,8-2
 #endif
-	#if SWIZZLE
+#if SWIZZLE
 				or		ecx,ebx
 				add		ebx,DWORD PTR [vd]
-	#else
+#else
 				mov		edx,ebx
 				add		ebx,DWORD PTR [vd]
-	#endif
+#endif
 				pmulhw	mm7,mm0				;colour modulate
 				movq	mm6,mm7
 
-	#if SWIZZLE
+#if SWIZZLE
 				shr		ecx,16-2		;DWORD offset needed
 				and		eax,0x5555ffff
-	#else
+#else
 				and		ecx,DWORD PTR [umask]
 				and		edx,DWORD PTR [vmask]
-	#endif
+#endif
 				psrlq	mm6,8+1				;half required value (creates a sign bit)
 				pand	mm6,[alpha_mask]
-	#if SWIZZLE
+#if SWIZZLE
 				and		ecx,DWORD PTR [wrapmask]
 				and		ebx,0xaaaaffff
-	#else
+#else
 				or		ecx,edx
 				shr		ecx,16-2
-	#endif
+#endif
 				movq	mm5,mm6
-	#if SWIZZLE
+#if SWIZZLE
 				mov		edx,eax
 				add		eax,DWORD PTR [ud]
-	#else
+#else
 				push	ecx
 				mov		ecx,eax
-	#endif
+#endif
 
 				psrlq	mm5,16
-	#if SWIZZLE
+#if SWIZZLE
 				or		edx,ebx
 				add		ebx,DWORD PTR [vd]
-	#else
+#else
 				add		eax,DWORD PTR [ud]
 				mov		edx,ebx
-	#endif
+#endif
 
 				por		mm5,mm6
-	#if SWIZZLE
+#if SWIZZLE
 				shr		edx,16-2		;DWORD offset needed
 				and		eax,0x5555ffff
-	#else
+#else
 				add		ebx,DWORD PTR [vd]
 				and		ecx,DWORD PTR [umask]
-	#endif
+#endif
 				psrlq	mm5,16
-	#if SWIZZLE
+#if SWIZZLE
 				and		edx,DWORD PTR [wrapmask]
 				and		ebx,0xaaaaffff
-	#else
+#else
 				and		edx,DWORD PTR [vmask]
 				or		edx,ecx
-	#endif
+#endif
 				por		mm5,mm6				;alpha channel replicated to r,g,b
-	#if SWIZZLE
-	#else
+#if SWIZZLE
+#else
 				pop		ecx
 				shr		edx,16-2
-	#endif
-				// Now we need to do  alpha*src + (1-alpha)*dest
-				// = dest + alpha*(src-dest)
-				// which is quicker (only one multiply)
-				// Precision is not a problem here - 8.8 format
-				// Remember that mm2 is spare - no gouard shading on alpha-blenders.
+#endif
+                                                    // Now we need to do  alpha*src + (1-alpha)*dest
+                                                    // = dest + alpha*(src-dest)
+                                                    // which is quicker (only one multiply)
+                                                    // Precision is not a problem here - 8.8 format
+                                                    // Remember that mm2 is spare - no gouard shading on alpha-blenders.
 
 				movd	mm6,[edi]
 
@@ -455,63 +439,61 @@ first_pixel_odd:
 
 				add		edi,4
 
-
-
-#else //#if ALPHA_MODE==ALPHA_BLEND
+#else // #if ALPHA_MODE==ALPHA_BLEND
 
 				punpcklbw mm7,mm7			;unpack
-	#if SWIZZLE
+#if SWIZZLE
 				mov		ecx,eax
 				add		eax,DWORD PTR [ud]
 				or		ecx,ebx
-	#else
+#else
 				mov		ecx,eax
 				add		eax,DWORD PTR [ud]
 				mov		edx,ebx
-	#endif
+#endif
 				psrlw	mm7,8-2
-	#if SWIZZLE
+#if SWIZZLE
 				add		ebx,DWORD PTR [vd]
 				shr		ecx,16-2		;DWORD offset needed
 				and		eax,0x5555ffff
-	#else
+#else
 				add		ebx,DWORD PTR [vd]
 				and		ecx,DWORD PTR [umask]
 				and		edx,DWORD PTR [vmask]
-	#endif
+#endif
 				pmulhw	mm7,mm0				;colour modulate
-	#if SWIZZLE
+#if SWIZZLE
 				and		ecx,DWORD PTR [wrapmask]
 				and		ebx,0xaaaaffff
-	#else
+#else
 				or		ecx,edx
 				shr		ecx,16-2
 				push	ecx
-	#endif
-#if (ALPHA_MODE!=ALPHA_ADD) && (ALPHA_MODE!=ALPHA_BLEND)
+#endif
+#if (ALPHA_MODE != ALPHA_ADD) && (ALPHA_MODE != ALPHA_BLEND)
 				paddsw	mm0,mm2				;inc rgb
 #endif
-	#if SWIZZLE
+#if SWIZZLE
 				mov		edx,eax
 				add		eax,DWORD PTR [ud]
-	#else
+#else
 				mov		ecx,eax
 				add		eax,DWORD PTR [ud]
 				mov		edx,ebx
-	#endif
+#endif
 				packuswb mm7,mm7			;re-pack
-	#if SWIZZLE
+#if SWIZZLE
 				or		edx,ebx
 				add		ebx,DWORD PTR [vd]
-	#else
+#else
 				add		ebx,DWORD PTR [vd]
 				and		ecx,DWORD PTR [umask]
-	#endif
+#endif
 
-#if ALPHA_MODE==ALPHA_ADD
+#if ALPHA_MODE == ALPHA_ADD
 				movd	mm6,[edi]
 				paddusb	mm7,mm6
-#elif ALPHA_MODE==ALPHA_TEST
+#elif ALPHA_MODE == ALPHA_TEST
 				movq	mm5,mm7
 				movq	mm6,[edi]
 				pcmpgtb	mm7,[alpha_test_value]	;SIGNED compare!
@@ -521,47 +503,37 @@ first_pixel_odd:
 				por		mm7,mm6				;...and merge
 #endif
 
-	#if SWIZZLE
+#if SWIZZLE
 				shr		edx,16-2		;DWORD offset needed
 				and		eax,0x5555ffff
-	#else
+#else
 				and		edx,DWORD PTR [vmask]
 				or		edx,ecx
-	#endif
+#endif
 
 				movd	[edi],mm7			;store pixel
 
+                // KLUDGE!
+                //				mov		DWORD PTR [edi],0x7f7f7f7f
 
-// KLUDGE!
-//				mov		DWORD PTR [edi],0x7f7f7f7f
-
-
-	#if SWIZZLE
+#if SWIZZLE
 				and		edx,DWORD PTR [wrapmask]
 				and		ebx,0xaaaaffff
-	#else
+#else
 				pop		ecx
 				shr		edx,16-2
-	#endif
+#endif
 
 				add		edi,4
 
+#endif // #else //#if ALPHA_MODE==ALPHA_BLEND
 
-#endif //#else //#if ALPHA_MODE==ALPHA_BLEND
-
-
-
-
-#if (ALPHA_MODE!=ALPHA_ADD) && (ALPHA_MODE!=ALPHA_BLEND)
-				// Calculate r1g1b1, and double up the increments
+#if (ALPHA_MODE != ALPHA_ADD) && (ALPHA_MODE != ALPHA_BLEND)
+                    // Calculate r1g1b1, and double up the increments
 				movq	mm1,mm0
 				paddsw	mm1,mm2
 				psllw	mm2,1
 #endif
-
-
-
-
 
 #if SWIZZLE
 //				mov		ecx,eax
@@ -617,129 +589,126 @@ setup_main_loop:
 
 
 hor_loop:
-				// Map:
-				// MM0: (all 8.8): xx,r0,g0,b0
-				// MM1: (all 8.8): xx,r1,g1,b1		(not for blend+add)
-				// MM2: (all 8.8): xx,r,g,b deltas	(not for blend+add)
-				// eax: (16.16): u
-				// ebx: (16.16): v
-				// esi: texture base addr
-				// edi: dest addr
+                // Map:
+                // MM0: (all 8.8): xx,r0,g0,b0
+                // MM1: (all 8.8): xx,r1,g1,b1		(not for blend+add)
+                // MM2: (all 8.8): xx,r,g,b deltas	(not for blend+add)
+                // eax: (16.16): u
+                // ebx: (16.16): v
+                // esi: texture base addr
+                // edi: dest addr
 
-
-
-
-#if ALPHA_MODE==ALPHA_BLEND
+#if ALPHA_MODE == ALPHA_BLEND
 		
 				punpcklbw mm7,mm7			;unpack
-	#if SWIZZLE
+#if SWIZZLE
 				mov		ecx,eax
-	#else
+#else
 				mov		ecx,eax
-	#endif
+#endif
 				punpcklbw mm6,mm6			;unpack
-	#if SWIZZLE
+#if SWIZZLE
 				add		eax,DWORD PTR [ud]
-	#else
+#else
 				mov		edx,ebx
-	#endif
+#endif
 
 #if ALPHA_BLEND_NOT_DOUBLE_LIGHTING
 				psrlw	mm7,8-1
-	#if SWIZZLE
+#if SWIZZLE
 				or		ecx,ebx
-	#else
+#else
 				and		ecx,DWORD PTR [umask]
-	#endif
+#endif
 				psrlw	mm6,8-1
-	#if SWIZZLE
+#if SWIZZLE
 				add		ebx,DWORD PTR [vd]
-	#else
+#else
 				and		edx,DWORD PTR [vmask]
-	#endif
+#endif
 #else
 				psrlw	mm7,8-2
-	#if SWIZZLE
+#if SWIZZLE
 				or		ecx,ebx
-	#else
+#else
 				and		ecx,DWORD PTR [umask]
-	#endif
+#endif
 				psrlw	mm6,8-2
-	#if SWIZZLE
+#if SWIZZLE
 				add		ebx,DWORD PTR [vd]
-	#else
+#else
 				and		edx,DWORD PTR [vmask]
-	#endif
+#endif
 #endif
 				pmulhw	mm7,mm0				;colour modulate
-	#if SWIZZLE
+#if SWIZZLE
 				shr		ecx,16-2		;DWORD offset needed
 				and		eax,0x5555ffff
-	#else
-	#endif
+#else
+#endif
 				pmulhw	mm6,mm0				;colour modulate
-	#if SWIZZLE
+#if SWIZZLE
 				and		ecx,DWORD PTR [wrapmask]
 				and		ebx,0xaaaaffff
-	#else
+#else
 				or		ecx,edx
 				add		eax,DWORD PTR [ud]
-	#endif
+#endif
 
-				// Extract and replicate the alpha parts
-				// Texel 0
+                    // Extract and replicate the alpha parts
+                    // Texel 0
 				movq	mm2,mm7
-	#if SWIZZLE
+#if SWIZZLE
 				mov		edx,eax
-	#else
+#else
 				shr		ecx,16-2
 				add		ebx,DWORD PTR [vd]
-	#endif
+#endif
 				psrlq	mm2,8+1				;half required value (creates a sign bit)
-	#if SWIZZLE
+#if SWIZZLE
 				add		eax,DWORD PTR [ud]
-	#else
+#else
 				push	ecx
 				mov		edx,ebx
-	#endif
+#endif
 				pand	mm2,[alpha_mask]
-	#if SWIZZLE
+#if SWIZZLE
 				or		edx,ebx
-	#else
+#else
 				mov		ecx,eax
 				and		edx,DWORD PTR [vmask]
-	#endif
+#endif
 				movq	mm5,mm2
-	#if SWIZZLE
+#if SWIZZLE
 				add		ebx,DWORD PTR [vd]
-	#else
+#else
 				and		ecx,DWORD PTR [umask]
 				add		eax,DWORD PTR [ud]
-	#endif
+#endif
 				psrlq	mm5,16
-	#if SWIZZLE
+#if SWIZZLE
 				shr		edx,16-2		;DWORD offset needed
 				and		eax,0x5555ffff
-	#else
+#else
 				or		edx,ecx
 				add		ebx,DWORD PTR [vd]
-	#endif
+#endif
 				por		mm5,mm2
 				psrlq	mm5,16
-	#if SWIZZLE
+#if SWIZZLE
 				and		edx,DWORD PTR [wrapmask]
 				and		ebx,0xaaaaffff
-	#else
+#else
 				shr		edx,16-2
 				pop		ecx
-	#endif
+#endif
 				por		mm5,mm2				;alpha channel replicated to r,g,b
 
-				// Texel 0
-				// Now we need to do  alpha*src + (1-alpha)*dest
-				// = dest + alpha*(src-dest)
-				// which is quicker (only one multiply)
-				// Precision is not a problem here - 8.8 format
+                                                    // Texel 0
+                                                    // Now we need to do  alpha*src + (1-alpha)*dest
+                                                    // = dest + alpha*(src-dest)
+                                                    // which is quicker (only one multiply)
+                                                    // Precision is not a problem here - 8.8 format
 				
 				movq	mm2,[edi]
 				movq	mm1,mm2
@@ -756,7 +725,7 @@ hor_loop:
 				paddsw	mm7,mm7				;*2
 				paddsw	mm7,mm2				;dest0+alpha0*(src0-dest0)
 
-				// Texel 1
+                            // Texel 1
 				movq	mm2,mm6
 				psrlq	mm2,8+1				;half required value (creates a sign bit)
 				pand	mm2,[alpha_mask]
@@ -766,13 +735,13 @@ hor_loop:
 				psrlq	mm5,16
 				por		mm5,mm2				;alpha channel replicated to r,g,b
 
-				// Texel 1
-				// Now we need to do  alpha*src + (1-alpha)*dest
-				// = dest + alpha*(src-dest)
-				// which is quicker (only one multiply)
-				// Precision is not a problem here - 8.8 format
+                                                    // Texel 1
+                                                    // Now we need to do  alpha*src + (1-alpha)*dest
+                                                    // = dest + alpha*(src-dest)
+                                                    // which is quicker (only one multiply)
+                                                    // Precision is not a problem here - 8.8 format
 
-				// Already unpacked above.
+                                                    // Already unpacked above.
 				psrlw	mm1,8
 				
 				psubsw	mm6,mm1				;src-dest
@@ -782,80 +751,80 @@ hor_loop:
 				paddsw	mm6,mm6				;*2
 				paddsw	mm6,mm1				;dest1+alpha1*(src1-dest1)
 
-				// Pack.
+                            // Pack.
 				packuswb mm7,mm6			;re-pack
 
-#else //#if ALPHA_MODE==ALPHA_BLEND
+#else // #if ALPHA_MODE==ALPHA_BLEND
 
 				punpcklbw mm7,mm7			;texel0
-	#if SWIZZLE
+#if SWIZZLE
 				mov		ecx,eax
 				add		eax,DWORD PTR [ud]
-	#else
+#else
 				mov		ecx,eax
 				mov		edx,ebx
-	#endif
+#endif
 				punpcklbw mm6,mm6			;texel1
-	#if SWIZZLE
+#if SWIZZLE
 				or		ecx,ebx
 				add		ebx,DWORD PTR [vd]
-	#else
+#else
 				and		ecx,DWORD PTR [umask]
 				and		edx,DWORD PTR [vmask]
-	#endif
+#endif
 				psrlw	mm7,8-2
-	#if SWIZZLE
+#if SWIZZLE
 				shr		ecx,16-2		;DWORD offset needed
 				and		eax,0x5555ffff
-	#else
+#else
 				or		ecx,edx
 				add		eax,DWORD PTR [ud]
-	#endif
+#endif
 				psrlw	mm6,8-2
-	#if SWIZZLE
+#if SWIZZLE
 				and		ecx,DWORD PTR [wrapmask]
 				and		ebx,0xaaaaffff
-	#else
+#else
 				shr		ecx,16-2
 				add		ebx,DWORD PTR [vd]
-	#endif
+#endif
 				pmulhw	mm7,mm0
-	#if SWIZZLE
+#if SWIZZLE
 				mov		edx,eax
 				add		eax,DWORD PTR [ud]
-	#else
+#else
 				push	ecx
 				mov		edx,ebx
-	#endif
-#if (ALPHA_MODE!=ALPHA_ADD) && (ALPHA_MODE!=ALPHA_BLEND)
+#endif
+#if (ALPHA_MODE != ALPHA_ADD) && (ALPHA_MODE != ALPHA_BLEND)
 				pmulhw	mm6,mm1
 #else
 				pmulhw	mm6,mm0
 #endif
-	#if SWIZZLE
+#if SWIZZLE
 				or		edx,ebx
 				add		ebx,DWORD PTR [vd]
-	#else
+#else
 				mov		ecx,eax
 				and		edx,DWORD PTR [vmask]
-	#endif
+#endif
 
 				packuswb mm7,mm6
-	#if SWIZZLE
+#if SWIZZLE
 				shr		edx,16-2		;DWORD offset needed
 				and		eax,0x5555ffff
-	#else
+#else
 				and		ecx,DWORD PTR [umask]
 				add		eax,DWORD PTR [ud]
-	#endif
+#endif
 
-#if (ALPHA_MODE!=ALPHA_ADD) && (ALPHA_MODE!=ALPHA_BLEND)
+#if (ALPHA_MODE != ALPHA_ADD) && (ALPHA_MODE != ALPHA_BLEND)
 				paddsw	mm0,mm2
 #endif
-#if ALPHA_MODE==ALPHA_ADD
+#if ALPHA_MODE == ALPHA_ADD
 				paddusb	mm7,[edi]
-#elif ALPHA_MODE==ALPHA_BLEND
-#elif ALPHA_MODE==ALPHA_TEST
+#elif ALPHA_MODE == ALPHA_BLEND
+#elif ALPHA_MODE == ALPHA_TEST
 				movq	mm5,mm7
 				movq	mm6,[edi]
 				pcmpgtb	mm7,[alpha_test_value]	;SIGNED compare!
@@ -864,27 +833,24 @@ hor_loop:
 				pandn	mm7,mm5				;mask (mm7 = (mm5 AND ~mm7))
 				por		mm7,mm6				;...and merge
 #endif
-	#if SWIZZLE
+#if SWIZZLE
 				and		edx,DWORD PTR [wrapmask]
 				and		ebx,0xaaaaffff
-	#else
+#else
 				or		edx,ecx
 				add		ebx,DWORD PTR [vd]
-	#endif
-#if (ALPHA_MODE!=ALPHA_ADD) && (ALPHA_MODE!=ALPHA_BLEND)
+#endif
+#if (ALPHA_MODE != ALPHA_ADD) && (ALPHA_MODE != ALPHA_BLEND)
 				paddsw	mm1,mm2
 #endif
 
-
-	#if SWIZZLE
-	#else
+#if SWIZZLE
+#else
 				shr		edx,16-2
 				pop		ecx
-	#endif
+#endif
 
-
-
-#endif //#else //#if ALPHA_MODE==ALPHA_BLEND
+#endif // #else //#if ALPHA_MODE==ALPHA_BLEND
 
 				movq	[edi],mm7
 
@@ -937,16 +903,15 @@ hor_loop:
 
 main_loop_done:
 
-				// Do we need to do the last pixel?
+                    // Do we need to do the last pixel?
 				;Is the last pixel odd?
 				mov		ecx,[tempx2]
 				test	ecx,0x1
 				jz		finished
-				
 
-				// Do the last pixel
+                // Do the last pixel
 
-#if ALPHA_MODE==ALPHA_BLEND
+#if ALPHA_MODE == ALPHA_BLEND
 		
 				punpcklbw mm7,mm7			;unpack
 
@@ -966,15 +931,15 @@ main_loop_done:
 				por		mm5,mm6
 				psrlq	mm5,16
 				por		mm5,mm6				;alpha channel replicated to r,g,b
-				// Now we need to do  alpha*src + (1-alpha)*dest
-				// = dest + alpha*(src-dest)
-				// which is quicker (only one multiply)
-				// Precision is not a problem here - 8.8 format
-				// Remember that mm2 is spare - no gouard shading on alpha-blenders.
+                                                    // Now we need to do  alpha*src + (1-alpha)*dest
+                                                    // = dest + alpha*(src-dest)
+                                                    // which is quicker (only one multiply)
+                                                    // Precision is not a problem here - 8.8 format
+                                                    // Remember that mm2 is spare - no gouard shading on alpha-blenders.
 				
 				movd	mm6,[edi]
-				//mov		eax,0x10806050
-				//movd	mm6,eax
+                    // mov		eax,0x10806050
+                    // movd	mm6,eax
 
 				punpcklbw mm6,mm6			;unpack dest
 				psrlw	mm6,8
@@ -986,24 +951,22 @@ main_loop_done:
 				
 				packuswb mm7,mm7			;re-pack
 
+                // paddd	mm3,[uinc]			;inc u
+                // paddd	mm4,[vinc]			;inc v
+                // pand	mm3,[umask]			;fix swizzle
+                // pand	mm4,[vmask]			;fix swizzle
 
-				//paddd	mm3,[uinc]			;inc u
-				//paddd	mm4,[vinc]			;inc v
-				//pand	mm3,[umask]			;fix swizzle
-				//pand	mm4,[vmask]			;fix swizzle
-
-
-#else //#if ALPHA_MODE==ALPHA_BLEND
+#else // #if ALPHA_MODE==ALPHA_BLEND
 
 				punpcklbw mm7,mm7
 				psrlw	mm7,8-2
 				pmulhw	mm7,mm0
 				packuswb mm7,mm7
-#if ALPHA_MODE==ALPHA_ADD
+#if ALPHA_MODE == ALPHA_ADD
 				movd	mm6,[edi]
 				paddusb	mm7,mm6
-#elif ALPHA_MODE==ALPHA_BLEND
-#elif ALPHA_MODE==ALPHA_TEST
+#elif ALPHA_MODE == ALPHA_BLEND
+#elif ALPHA_MODE == ALPHA_TEST
 				movq	mm5,mm7
 				movq	mm6,[edi]
 				pcmpgtb	mm7,[alpha_test_value]	;SIGNED compare!
@@ -1013,7 +976,7 @@ main_loop_done:
 				por		mm7,mm6				;...and merge
 #endif
 
-#endif //#else //#if ALPHA_MODE==ALPHA_BLEND
+#endif // #else //#if ALPHA_MODE==ALPHA_BLEND
 
 				movd	[edi],mm7
 
@@ -1026,12 +989,12 @@ finished:
 				pop edi
 				pop esi
 
-				// Clean up the MMX state
+                                            // Clean up the MMX state
 				emms
 
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
 }
 #endif

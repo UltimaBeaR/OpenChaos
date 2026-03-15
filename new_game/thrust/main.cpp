@@ -15,20 +15,15 @@
 #include "ship.h"
 #include "tb.h"
 
-
-
 volatile float global_a;
 volatile float global_b;
 volatile float global_c;
 volatile float global_d;
 volatile float global_e;
 
-
-
-
 void MAIN_main()
 {
-	#if 0
+#if 0
 
 	LOG_init();
 
@@ -235,16 +230,16 @@ Ship   523 = (0.000000,-10.111063) 0.000000 = -10.1110630,-1054750998,-105475099
 
 	return;
 
-	#endif
+#endif
 
-	SLONG size = sizeof(GAMESTATE_State);
+    SLONG size = sizeof(GAMESTATE_State);
 
-	NET_init();
-	FONT_init();
-	LOG_init();
-	GAME_do();
-	LOG_fini();
-	NET_kill();
+    NET_init();
+    FONT_init();
+    LOG_init();
+    GAME_do();
+    LOG_fini();
+    NET_kill();
 }
 
 #if 0

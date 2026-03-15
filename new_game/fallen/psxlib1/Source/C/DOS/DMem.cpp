@@ -1,36 +1,34 @@
 // Mem.cpp
 // Guy Simmons, 10th February 1997.
 
-#include	<MFHeader.h>
-
+#include <MFHeader.h>
 
 //---------------------------------------------------------------
 
-BOOL	SetupMemory(void)
+BOOL SetupMemory(void)
 {
-	return	TRUE;
+    return TRUE;
 }
 
 //---------------------------------------------------------------
 
-void	ResetMemory(void)
+void ResetMemory(void)
 {
 }
 
 //---------------------------------------------------------------
 
-void	*MemAlloc(ULONG size)
+void* MemAlloc(ULONG size)
 {
-	size	=	(size+3)&0xfffffffc;
-	return (void*)malloc(size);
+    size = (size + 3) & 0xfffffffc;
+    return (void*)malloc(size);
 }
 
 //---------------------------------------------------------------
 
-void	MemFree(void *mem_ptr)
+void MemFree(void* mem_ptr)
 {
-	free(mem_ptr);
+    free(mem_ptr);
 }
 
 //---------------------------------------------------------------
-

@@ -2,154 +2,144 @@
 // Handles the allocation of prims and prim textures on n:\
 //
 
-#include	"Editor.hpp"
+#include "Editor.hpp"
 #include <windows.h>
 #include <MFStdLib.h>
 #include "primtex.h"
 
-
-
-
-
-SLONG PRIMTEX_get_number(CBYTE *fname)
+SLONG PRIMTEX_get_number(CBYTE* fname)
 {
-	SLONG page_number;
-	SLONG line_number;
-	SLONG match;
-	SLONG i;
-	SLONG a;
+    SLONG page_number;
+    SLONG line_number;
+    SLONG match;
+    SLONG i;
+    SLONG a;
 
-	FILE *handle_tga;
-	FILE *handle_txt;
-	FILE *handle_pge;
+    FILE* handle_tga;
+    FILE* handle_txt;
+    FILE* handle_pge;
 
-	CBYTE fullname_tga[MAX_PATH];
-	CBYTE fullname_txt[MAX_PATH];
-	CBYTE fullname_pge[MAX_PATH];
-	CBYTE line        [MAX_PATH];
+    CBYTE fullname_tga[MAX_PATH];
+    CBYTE fullname_txt[MAX_PATH];
+    CBYTE fullname_pge[MAX_PATH];
+    CBYTE line[MAX_PATH];
 
-	CBYTE *ch;
+    CBYTE* ch;
 
-	//
-	// Work out the full path of this file on n:\
-	//
-
-	sprintf(fullname_tga, "u:\\urbanchaos\\textures\\shared\\MaxTex\\%s", fname);
-	sprintf(fullname_txt, "u:\\urbanchaos\\textures\\shared\\MaxTex\\%s", fname);
-
-	//
-	// Change the fullname_txt file to have .txt at the end of it!
+    //
+    // Work out the full path of this file on n:\
 	//
 
-	for (ch = fullname_txt; *ch; ch++);
+    sprintf(fullname_tga, "u:\\urbanchaos\\textures\\shared\\MaxTex\\%s", fname);
+    sprintf(fullname_txt, "u:\\urbanchaos\\textures\\shared\\MaxTex\\%s", fname);
 
-	ch[-3] = 't';
-	ch[-2] = 'x';
-	ch[-1] = 't';
+    //
+    // Change the fullname_txt file to have .txt at the end of it!
+    //
 
-	//
-	// Does this texture exist?
-	//
+    for (ch = fullname_txt; *ch; ch++)
+        ;
 
-	handle_tga = fopen(fullname_tga, "rb");
+    ch[-3] = 't';
+    ch[-2] = 'x';
+    ch[-1] = 't';
 
-	if (handle_tga == NULL)
-	{
-		//
-		// Could not find this texture- just use the question mark texture.
-		//
+    //
+    // Does this texture exist?
+    //
 
-		return PRIMTEX_PAGENUMBER_QMARK;
-	}
+    handle_tga = fopen(fullname_tga, "rb");
 
-	fclose(handle_tga);
+    if (handle_tga == NULL) {
+        //
+        // Could not find this texture- just use the question mark texture.
+        //
 
-	//
-	// This tga does exist. Is it already allocated a page number?
-	//
+        return PRIMTEX_PAGENUMBER_QMARK;
+    }
 
-	handle_txt = fopen(fullname_txt, "rb");
+    fclose(handle_tga);
 
-	if (handle_txt)
-	{
-		page_number = PRIMTEX_PAGENUMBER_QMARK;
+    //
+    // This tga does exist. Is it already allocated a page number?
+    //
 
-		while(fgets(line, MAX_PATH, handle_txt))
-		{
-			match = sscanf(line, "Page number: %d", &a);
+    handle_txt = fopen(fullname_txt, "rb");
 
-			if (match == 1)
-			{
-				page_number = a;
+    if (handle_txt) {
+        page_number = PRIMTEX_PAGENUMBER_QMARK;
 
-				break;
-			}
-		}
+        while (fgets(line, MAX_PATH, handle_txt)) {
+            match = sscanf(line, "Page number: %d", &a);
 
-		fclose(handle_txt);
+            if (match == 1) {
+                page_number = a;
 
-		return page_number;
-	}
+                break;
+            }
+        }
 
-	//
-	// We have not allocated this texture file a page number yet. ARGH! Go through
-	// the pages in the n:\urbanchaos\textures\shared\prims directory to find the
-	// first unused slot.
-	//
-	
-	page_number = PRIMTEX_PAGENUMBER_QMARK;
+        fclose(handle_txt);
 
-	for (i = 1; i < 256; i++)	// Page 0 is reserved for qmark.tga
-	{
-		sprintf(fullname_pge, "u:\\urbanchaos\\textures\\shared\\prims\\tex%03d.tga", i);
+        return page_number;
+    }
 
-		handle_pge = fopen(fullname_pge, "rb");
+    //
+    // We have not allocated this texture file a page number yet. ARGH! Go through
+    // the pages in the n:\urbanchaos\textures\shared\prims directory to find the
+    // first unused slot.
+    //
 
-		if (!handle_pge)
-		{
-			page_number = i;
+    page_number = PRIMTEX_PAGENUMBER_QMARK;
 
-			break;
-		}
+    for (i = 1; i < 256; i++) // Page 0 is reserved for qmark.tga
+    {
+        sprintf(fullname_pge, "u:\\urbanchaos\\textures\\shared\\prims\\tex%03d.tga", i);
 
-		fclose(handle_pge);
-	}
+        handle_pge = fopen(fullname_pge, "rb");
 
-	if (page_number == PRIMTEX_PAGENUMBER_QMARK)
-	{
-		//
-		// No spare textures!
-		//
+        if (!handle_pge) {
+            page_number = i;
 
-		return PRIMTEX_PAGENUMBER_QMARK;
-	}
+            break;
+        }
 
-	//
-	// Make a note of where we have put this texture.
-	//
+        fclose(handle_pge);
+    }
 
-	handle_txt = fopen(fullname_txt, "wb");
+    if (page_number == PRIMTEX_PAGENUMBER_QMARK) {
+        //
+        // No spare textures!
+        //
 
-	if (!handle_txt)
-	{
-		//
-		// Oh dear. What up here?
-		//
+        return PRIMTEX_PAGENUMBER_QMARK;
+    }
 
-		return PRIMTEX_PAGENUMBER_QMARK;
-	}
+    //
+    // Make a note of where we have put this texture.
+    //
 
-	fprintf(handle_txt, "Page number: %d\n", page_number);
-	fclose (handle_txt);
+    handle_txt = fopen(fullname_txt, "wb");
 
-	//
-	// Copy this tga to the new filename.
-	//
+    if (!handle_txt) {
+        //
+        // Oh dear. What up here?
+        //
 
-	CopyFile(
-		fullname_tga,
-		fullname_pge,
-		TRUE);		// TRUE => don't overwrite an existing file- doesn't matter because fullname_pga doesn't exist.
+        return PRIMTEX_PAGENUMBER_QMARK;
+    }
 
-	return page_number;
+    fprintf(handle_txt, "Page number: %d\n", page_number);
+    fclose(handle_txt);
+
+    //
+    // Copy this tga to the new filename.
+    //
+
+    CopyFile(
+        fullname_tga,
+        fullname_pge,
+        TRUE); // TRUE => don't overwrite an existing file- doesn't matter because fullname_pga doesn't exist.
+
+    return page_number;
 }

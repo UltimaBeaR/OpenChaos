@@ -5,10 +5,9 @@
 #ifndef _FIRE_
 #define _FIRE_
 
-
 //
 // Gets rid of all the fire.
-// 
+//
 
 void FIRE_init(void);
 
@@ -17,11 +16,11 @@ void FIRE_init(void);
 //
 
 void FIRE_create(
-		UWORD x,
-		SWORD y,
-		UWORD z,
-		UBYTE size,
-		UBYTE life);	// 0 => Live for ever, 1 => Live for for ages, 255 => live a very short time.
+    UWORD x,
+    SWORD y,
+    UWORD z,
+    UBYTE size,
+    UBYTE life); // 0 => Live for ever, 1 => Live for for ages, 255 => live a very short time.
 
 //
 // Processes all the fire.
@@ -53,26 +52,24 @@ void FIRE_process(void);
 
 typedef struct
 {
-	SLONG x;
-	SLONG y;
-	SLONG z;
-	UBYTE u;
-	UBYTE v;
-	UBYTE alpha;
-	UBYTE shit;
+    SLONG x;
+    SLONG y;
+    SLONG z;
+    UBYTE u;
+    UBYTE v;
+    UBYTE alpha;
+    UBYTE shit;
 
 } FIRE_Point;
 
 typedef struct
 {
-	SLONG       num_points;
-	FIRE_Point *point;
+    SLONG num_points;
+    FIRE_Point* point;
 
 } FIRE_Info;
 
-void       FIRE_get_start(UBYTE z, UBYTE x_min, UBYTE x_max);
-FIRE_Info *FIRE_get_next (void);		// NULL => No more fire here.
-
-
+void FIRE_get_start(UBYTE z, UBYTE x_min, UBYTE x_max);
+FIRE_Info* FIRE_get_next(void); // NULL => No more fire here.
 
 #endif

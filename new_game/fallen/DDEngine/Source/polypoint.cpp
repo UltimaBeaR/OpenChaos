@@ -9,4 +9,3 @@
 #include "vertexbuffer.h"
 
 #include "polypoint.h"
-

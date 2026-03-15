@@ -6,82 +6,68 @@
 #include "trip.h"
 #include "animate.h"
 
-
-
-
-TRIP_Wire *TRIP_wire;//[TRIP_MAX_WIRES];
-SLONG     TRIP_wire_upto;
-
+TRIP_Wire* TRIP_wire; //[TRIP_MAX_WIRES];
+SLONG TRIP_wire_upto;
 
 #ifndef PSX
 void TRIP_init()
 {
-	TRIP_wire_upto = 1;
+    TRIP_wire_upto = 1;
 }
 #endif
 
 UBYTE TRIP_create(
-		SLONG y,
-		SLONG x1,
-		SLONG z1,
-		SLONG x2,
-		SLONG z2)
+    SLONG y,
+    SLONG x1,
+    SLONG z1,
+    SLONG x2,
+    SLONG z2)
 {
-	SLONG i;
+    SLONG i;
 
-	TRIP_Wire *tw;
+    TRIP_Wire* tw;
 
-	//
-	// Look for a tripwire that already exists.
-	//
+    //
+    // Look for a tripwire that already exists.
+    //
 
-	for (i = 1; i < TRIP_wire_upto; i++)
-	{
-		tw = &TRIP_wire[i];
+    for (i = 1; i < TRIP_wire_upto; i++) {
+        tw = &TRIP_wire[i];
 
-		if (tw->y  == y &&
-			tw->x1 == x1 &&
-			tw->z1 == z1 &&
-			tw->x2 == x2 &&
-			tw->z2 == z2)
-		{
-			//
-			// Found a tripwire in this position already!
-			//
+        if (tw->y == y && tw->x1 == x1 && tw->z1 == z1 && tw->x2 == x2 && tw->z2 == z2) {
+            //
+            // Found a tripwire in this position already!
+            //
 
-			return i;
-		}
-	}
+            return i;
+        }
+    }
 
-	//
-	// We have to create a new tripwire.
-	//
+    //
+    // We have to create a new tripwire.
+    //
 
-	if (TRIP_wire_upto >= TRIP_MAX_WIRES)
-	{
-		//
-		// No more trip-wires available.
-		//
+    if (TRIP_wire_upto >= TRIP_MAX_WIRES) {
+        //
+        // No more trip-wires available.
+        //
 
-		return NULL;
-	}
+        return NULL;
+    }
 
-	tw = &TRIP_wire[TRIP_wire_upto++];
+    tw = &TRIP_wire[TRIP_wire_upto++];
 
-	tw->counter = rand();
-	tw->y       = y;
-	tw->x1      = x1;
-	tw->z1      = z1;
-	tw->x2      = x2;
-	tw->z2      = z2;
-	tw->along   = 255;
-	tw->wait    = 0;
+    tw->counter = rand();
+    tw->y = y;
+    tw->x1 = x1;
+    tw->z1 = z1;
+    tw->x2 = x2;
+    tw->z2 = z2;
+    tw->along = 255;
+    tw->wait = 0;
 
-	return TRIP_wire_upto - 1;
+    return TRIP_wire_upto - 1;
 }
-
-
-
 
 //
 // If (x,z) lies along the line this funciton returns the amount
@@ -92,270 +78,253 @@ UBYTE TRIP_create(
 #define TRIP_NOT_COLLIDED (-1)
 
 SLONG TRIP_collide(
-		SLONG x1, SLONG z1,
-		SLONG x2, SLONG z2,
-		SLONG x,
-		SLONG z)
+    SLONG x1, SLONG z1,
+    SLONG x2, SLONG z2,
+    SLONG x,
+    SLONG z)
 {
-	SLONG dx;
-	SLONG dz;
+    SLONG dx;
+    SLONG dz;
 
-	SLONG da;
-	SLONG db;
+    SLONG da;
+    SLONG db;
 
-	SLONG len;
-	SLONG dist;
-	SLONG along;
+    SLONG len;
+    SLONG dist;
+    SLONG along;
 
-	SLONG dprod;
-	SLONG cprod;
+    SLONG dprod;
+    SLONG cprod;
 
-	dx = x2 - x1;
-	dz = z2 - z1;
+    dx = x2 - x1;
+    dz = z2 - z1;
 
-	da = x  - x1;
-	db = z  - z1;
+    da = x - x1;
+    db = z - z1;
 
-	cprod = da*dz - db*dx;
-	len   = QDIST2(abs(dx),abs(dz)) + 1;
-    dist  = cprod / len;
+    cprod = da * dz - db * dx;
+    len = QDIST2(abs(dx), abs(dz)) + 1;
+    dist = cprod / len;
 
-	if (abs(dist) < 0x20)
-	{
-		dprod = da*dx + db*dz;
-		along = dprod / len;
+    if (abs(dist) < 0x20) {
+        dprod = da * dx + db * dz;
+        along = dprod / len;
 
-		//
-		// 8-bit fixed point...
-		//
+        //
+        // 8-bit fixed point...
+        //
 
-		along = (along * 256) / len;
+        along = (along * 256) / len;
 
-		if (WITHIN(along, 0, 256))
-		{
-			return along;
-		}
-	}
+        if (WITHIN(along, 0, 256)) {
+            return along;
+        }
+    }
 
-	return TRIP_NOT_COLLIDED;
+    return TRIP_NOT_COLLIDED;
 }
-
 
 void TRIP_process()
 {
-	SLONG i;
-	
-	SLONG dx;
-	SLONG dy;
-	SLONG dz;
+    SLONG i;
 
-	SLONG lfx;
-	SLONG lfy;
-	SLONG lfz;
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
 
-	SLONG rfx;
-	SLONG rfy;
-	SLONG rfz;
+    SLONG lfx;
+    SLONG lfy;
+    SLONG lfz;
 
-	SLONG hx;
-	SLONG hy;
-	SLONG hz;
+    SLONG rfx;
+    SLONG rfy;
+    SLONG rfz;
 
-	SLONG tx;
-	SLONG tz;
+    SLONG hx;
+    SLONG hy;
+    SLONG hz;
 
-	SLONG dist;
-	SLONG along;
-	SLONG feet;
-	SLONG head;
+    SLONG tx;
+    SLONG tz;
 
-	TRIP_Wire *tw;
-	Thing     *darci = NET_PERSON(0);
+    SLONG dist;
+    SLONG along;
+    SLONG feet;
+    SLONG head;
 
-	for (i = 1; i < TRIP_wire_upto; i++)
-	{
-		tw = &TRIP_wire[i];
+    TRIP_Wire* tw;
+    Thing* darci = NET_PERSON(0);
 
-		if (tw->x1 == TRIP_X1_DEACTIVATED)
-		{
-			//
-			// This magic number means the trip wire is deactivated
-			//
+    for (i = 1; i < TRIP_wire_upto; i++) {
+        tw = &TRIP_wire[i];
 
-			continue;
-		}
+        if (tw->x1 == TRIP_X1_DEACTIVATED) {
+            //
+            // This magic number means the trip wire is deactivated
+            //
 
-		tw->counter += 50;
+            continue;
+        }
 
-		if (tw->wait)
-		{
-			ASSERT(tw->along != 255);
+        tw->counter += 50;
 
-			//
-			// The tripwire is triggered- don't detrigger for a while!
-			//
+        if (tw->wait) {
+            ASSERT(tw->along != 255);
 
-			tw->wait -= 1;
+            //
+            // The tripwire is triggered- don't detrigger for a while!
+            //
 
-			continue;
-		}
+            tw->wait -= 1;
 
-		tw->along = 255;
+            continue;
+        }
 
-		dx = (darci->WorldPos.X >> 8) - tw->x1;
-		dz = (darci->WorldPos.Z >> 8) - tw->z1;
+        tw->along = 255;
 
-		dist = abs(dx) + abs(dz);
+        dx = (darci->WorldPos.X >> 8) - tw->x1;
+        dz = (darci->WorldPos.Z >> 8) - tw->z1;
 
-		if (dist > 0x500)
-		{
-			//
-			// Too far away to be worth even bothering about.
-			//
+        dist = abs(dx) + abs(dz);
 
-			continue;
-		}
-		else
-		{
-			//
-			// Take Darci's height from her foot.
-			//
+        if (dist > 0x500) {
+            //
+            // Too far away to be worth even bothering about.
+            //
 
-			calc_sub_objects_position(
-				darci,
-				darci->Draw.Tweened->AnimTween,
-				SUB_OBJECT_LEFT_FOOT,
-			   &lfx,
-			   &lfy,
-			   &lfz);
+            continue;
+        } else {
+            //
+            // Take Darci's height from her foot.
+            //
 
-			calc_sub_objects_position(
-				darci,
-				darci->Draw.Tweened->AnimTween,
-				SUB_OBJECT_RIGHT_FOOT,
-			   &rfx,
-			   &rfy,
-			   &rfz);
+            calc_sub_objects_position(
+                darci,
+                darci->Draw.Tweened->AnimTween,
+                SUB_OBJECT_LEFT_FOOT,
+                &lfx,
+                &lfy,
+                &lfz);
 
-			feet  = MIN(lfy,rfy);
-			feet += darci->WorldPos.Y >> 8;
+            calc_sub_objects_position(
+                darci,
+                darci->Draw.Tweened->AnimTween,
+                SUB_OBJECT_RIGHT_FOOT,
+                &rfx,
+                &rfy,
+                &rfz);
 
-			calc_sub_objects_position(
-				darci,
-				darci->Draw.Tweened->AnimTween,
-				SUB_OBJECT_HEAD,
-			   &hx,
-			   &hy,
-			   &hz);
+            feet = MIN(lfy, rfy);
+            feet += darci->WorldPos.Y >> 8;
 
-			head  = hy;
-			head += darci->WorldPos.Y >> 8;
+            calc_sub_objects_position(
+                darci,
+                darci->Draw.Tweened->AnimTween,
+                SUB_OBJECT_HEAD,
+                &hx,
+                &hy,
+                &hz);
 
-			if (head < feet)
-			{	
-				//
-				// Darci can do a summersault
-				//
+            head = hy;
+            head += darci->WorldPos.Y >> 8;
 
-				SWAP(head,feet);
-			}
+            if (head < feet) {
+                //
+                // Darci can do a summersault
+                //
 
-			//
-			// Has darci set off the trip-wire?
-			//
+                SWAP(head, feet);
+            }
 
-			if (!WITHIN(tw->y, feet - 0x10, head + 0x10))
-			{
-				//
-				// Out of y-range.
-				//
+            //
+            // Has darci set off the trip-wire?
+            //
 
-				continue;
-			}
+            if (!WITHIN(tw->y, feet - 0x10, head + 0x10)) {
+                //
+                // Out of y-range.
+                //
 
-			along = TRIP_collide(
-						tw->x1, tw->z1,
-						tw->x2, tw->z2,
-						darci->WorldPos.X >> 8,
-						darci->WorldPos.Z >> 8);
+                continue;
+            }
 
-			if (along != TRIP_NOT_COLLIDED)
-			{
-				if (along == 255)
-				{
-					along = 254;
-				}
+            along = TRIP_collide(
+                tw->x1, tw->z1,
+                tw->x2, tw->z2,
+                darci->WorldPos.X >> 8,
+                darci->WorldPos.Z >> 8);
 
-				tw->along = along;
-				tw->wait  = 4;
-			}
-		}
-	}
+            if (along != TRIP_NOT_COLLIDED) {
+                if (along == 255) {
+                    along = 254;
+                }
+
+                tw->along = along;
+                tw->wait = 4;
+            }
+        }
+    }
 }
 
-SLONG     TRIP_get_upto;
+SLONG TRIP_get_upto;
 TRIP_Info TRIP_get_info;
 
 void TRIP_get_start()
 {
-	TRIP_get_upto = 1;
+    TRIP_get_upto = 1;
 }
 
-TRIP_Info *TRIP_get_next()
+TRIP_Info* TRIP_get_next()
 {
-	TRIP_Wire *tw;
+    TRIP_Wire* tw;
 
-  tail_recurse:;
+tail_recurse:;
 
-	if (TRIP_get_upto >= TRIP_wire_upto)
-	{
-		return NULL;
-	}
+    if (TRIP_get_upto >= TRIP_wire_upto) {
+        return NULL;
+    }
 
-	ASSERT(WITHIN(TRIP_get_upto, 0, TRIP_wire_upto - 1));
+    ASSERT(WITHIN(TRIP_get_upto, 0, TRIP_wire_upto - 1));
 
-	tw = &TRIP_wire[TRIP_get_upto++];
+    tw = &TRIP_wire[TRIP_get_upto++];
 
-	if (tw->x1 == TRIP_X1_DEACTIVATED)
-	{
-		//
-		// This magic number means the trip wire is deactivated
-		//
+    if (tw->x1 == TRIP_X1_DEACTIVATED) {
+        //
+        // This magic number means the trip wire is deactivated
+        //
 
-		goto tail_recurse;
-	}
+        goto tail_recurse;
+    }
 
-	TRIP_get_info.y       = tw->y;
-	TRIP_get_info.x1      = tw->x1;
-	TRIP_get_info.z1      = tw->z1;
-	TRIP_get_info.x2      = tw->x2;
-	TRIP_get_info.z2      = tw->z2;
-	TRIP_get_info.counter = tw->counter;
-	TRIP_get_info.along   = tw->along;
+    TRIP_get_info.y = tw->y;
+    TRIP_get_info.x1 = tw->x1;
+    TRIP_get_info.z1 = tw->z1;
+    TRIP_get_info.x2 = tw->x2;
+    TRIP_get_info.z2 = tw->z2;
+    TRIP_get_info.counter = tw->counter;
+    TRIP_get_info.along = tw->along;
 
-	return &TRIP_get_info;
+    return &TRIP_get_info;
 }
-
 
 SLONG TRIP_activated(UBYTE tripwire)
 {
-	TRIP_Wire *tw;
+    TRIP_Wire* tw;
 
-	ASSERT(WITHIN(tripwire, 0, TRIP_wire_upto - 1));
+    ASSERT(WITHIN(tripwire, 0, TRIP_wire_upto - 1));
 
-	tw = &TRIP_wire[tripwire];
+    tw = &TRIP_wire[tripwire];
 
-	return (tw->along != 255);
+    return (tw->along != 255);
 }
-
 
 void TRIP_deactivate(UBYTE tripwire)
 {
-	TRIP_Wire *tw;
+    TRIP_Wire* tw;
 
-	ASSERT(WITHIN(tripwire, 0, TRIP_wire_upto - 1));
+    ASSERT(WITHIN(tripwire, 0, TRIP_wire_upto - 1));
 
-	tw = &TRIP_wire[tripwire];
+    tw = &TRIP_wire[tripwire];
 
-	tw->x1 = TRIP_X1_DEACTIVATED;
+    tw->x1 = TRIP_X1_DEACTIVATED;
 }

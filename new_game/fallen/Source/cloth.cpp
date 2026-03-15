@@ -26,28 +26,27 @@
 // claude-ai: DO NOT PORT: the final shipped game has no cloth simulation. Characters use static capes.
 
 #include "game.h"
-#ifndef	PSX
+#ifndef PSX
 #include <MFStdLib.h>
 #include <math.h>
 #include "cloth.h"
 #include "pap.h"
 
-
 //
 // The cloth
-// 
+//
 
 // claude-ai: CLOTH_Point — one vertex in the spring-mass grid.
 // claude-ai: (x,y,z) = world position (float, not fixed-point unlike the rest of the engine).
 // claude-ai: (dx,dy,dz) = velocity accumulated from spring forces and wind; reset each sub-step.
 typedef struct
 {
-	float x;
-	float y;
-	float z;
-	float dx;
-	float dy;
-	float dz;
+    float x;
+    float y;
+    float z;
+    float dx;
+    float dy;
+    float dz;
 
 } CLOTH_Point;
 
@@ -58,21 +57,21 @@ typedef struct
 // claude-ai: offset_x/y/z: applied to all points at render time (not used in simulation — always 0).
 typedef struct
 {
-	UBYTE type;
-	UBYTE next;      // claude-ai: mapwho linked-list next index (for spatial bucketing by PAP tile)
-	UBYTE padding;
-	ULONG colour;
-	ULONG lock;	// One bit per point.
+    UBYTE type;
+    UBYTE next; // claude-ai: mapwho linked-list next index (for spatial bucketing by PAP tile)
+    UBYTE padding;
+    ULONG colour;
+    ULONG lock; // One bit per point.
 
-	float offset_x;
-	float offset_y;
-	float offset_z;
+    float offset_x;
+    float offset_y;
+    float offset_z;
 
-	float dist[2];	// [0] = The distance the points want to be from eachother SQUARED
-					// [1] = The distance * 1.41421 ... root2				   SQUARED
-					// Index by the type of link.
+    float dist[2]; // [0] = The distance the points want to be from eachother SQUARED
+                   // [1] = The distance * 1.41421 ... root2				   SQUARED
+                   // Index by the type of link.
 
-	CLOTH_Point p[CLOTH_WIDTH * CLOTH_HEIGHT];
+    CLOTH_Point p[CLOTH_WIDTH * CLOTH_HEIGHT];
 
 } CLOTH_Cloth;
 
@@ -80,24 +79,24 @@ typedef struct
 #define CLOTH_MAX_CLOTH 16
 
 CLOTH_Cloth CLOTH_cloth[CLOTH_MAX_CLOTH];
-SLONG       CLOTH_cloth_last;
+SLONG CLOTH_cloth_last;
 
 //
 // The links between the different cloth.
-// 
+//
 
 // claude-ai: CLOTH_LINK_TYPE_ONE  — axis-aligned spring (horizontal or vertical neighbour). Rest = dist[0].
 // claude-ai: CLOTH_LINK_TYPE_HYP  — diagonal spring (45°). Rest = dist[1] = dist[0] * sqrt(2)^2 = dist[0]*2.
-#define CLOTH_LINK_TYPE_ONE	0
-#define CLOTH_LINK_TYPE_HYP	1	// A diagonal connection.
+#define CLOTH_LINK_TYPE_ONE 0
+#define CLOTH_LINK_TYPE_HYP 1 // A diagonal connection.
 
 // claude-ai: CLOTH_Link — one spring connecting two cloth points. Pre-computed at CLOTH_init time.
 // claude-ai: Links are shared across all cloth instances (same topology for all).
 typedef struct
 {
-	UBYTE p1;   // claude-ai: index into CLOTH_Cloth::p[] for first endpoint
-	UBYTE p2;   // claude-ai: index into CLOTH_Cloth::p[] for second endpoint
-	UBYTE type; // claude-ai: CLOTH_LINK_TYPE_ONE or CLOTH_LINK_TYPE_HYP
+    UBYTE p1; // claude-ai: index into CLOTH_Cloth::p[] for first endpoint
+    UBYTE p2; // claude-ai: index into CLOTH_Cloth::p[] for second endpoint
+    UBYTE type; // claude-ai: CLOTH_LINK_TYPE_ONE or CLOTH_LINK_TYPE_HYP
 
 } CLOTH_Link;
 
@@ -105,7 +104,7 @@ typedef struct
 #define CLOTH_MAX_LINKS 256
 
 CLOTH_Link CLOTH_link[CLOTH_MAX_LINKS];
-SLONG      CLOTH_link_upto; // claude-ai: actual number of links built during CLOTH_init
+SLONG CLOTH_link_upto; // claude-ai: actual number of links built during CLOTH_init
 
 //
 // How we calculate the normal of each point.
@@ -118,10 +117,10 @@ SLONG      CLOTH_link_upto; // claude-ai: actual number of links built during CL
 // claude-ai: Built once in CLOTH_init; same for all cloth instances with the same grid dimensions.
 typedef struct
 {
-	ULONG num;        // claude-ai: actual number of valid neighbour pairs (1..4 depending on grid position)
-	UBYTE p1[4];      // claude-ai: first neighbour index in each cross-product pair
-	UBYTE p2[4];      // claude-ai: second neighbour index in each cross-product pair
-	float overnum;    // claude-ai: 1.0f / num — reciprocal for normal averaging
+    ULONG num; // claude-ai: actual number of valid neighbour pairs (1..4 depending on grid position)
+    UBYTE p1[4]; // claude-ai: first neighbour index in each cross-product pair
+    UBYTE p2[4]; // claude-ai: second neighbour index in each cross-product pair
+    float overnum; // claude-ai: 1.0f / num — reciprocal for normal averaging
 
 } CLOTH_Normal;
 
@@ -129,13 +128,11 @@ typedef struct
 
 CLOTH_Normal CLOTH_normal[CLOTH_MAX_NORMALS];
 
-
 //
 // The mapwho.
 //
 
 UBYTE CLOTH_mapwho[PAP_SIZE_LO][PAP_SIZE_LO];
-
 
 //
 // The global elasticity of cloth.
@@ -146,10 +143,9 @@ UBYTE CLOTH_mapwho[PAP_SIZE_LO][PAP_SIZE_LO];
 // claude-ai: CLOTH_elasticity = spring stiffness coefficient (0.0003 = very soft/stretchy cloth).
 // claude-ai: CLOTH_damping    = velocity multiplier per sub-step (0.95 = 5% energy loss per step).
 // claude-ai: CLOTH_gravity    = per-step downward acceleration (-0.15 world units/step²).
-float CLOTH_elasticity =  0.0003F;
-float CLOTH_damping    =  0.95F;
-float CLOTH_gravity    = -0.15F;
-
+float CLOTH_elasticity = 0.0003F;
+float CLOTH_damping = 0.95F;
+float CLOTH_gravity = -0.15F;
 
 //
 // Fast approximation to vector length in 3d.
@@ -162,49 +158,42 @@ float CLOTH_gravity    = -0.15F;
 // claude-ai: REQUIRES all inputs >= 0 (caller must pass fabs of components).
 static inline float qdist(float x, float y, float z)
 {
-	float ans;
+    float ans;
 
-	ASSERT(x >= 0.0F);
-	ASSERT(y >= 0.0F);
-	ASSERT(z >= 0.0F);
+    ASSERT(x >= 0.0F);
+    ASSERT(y >= 0.0F);
+    ASSERT(z >= 0.0F);
 
-	if (x > y)
-	{
-		if (x > z)
-		{
-			//
-			// x is the biggeset.
-			//
+    if (x > y) {
+        if (x > z) {
+            //
+            // x is the biggeset.
+            //
 
-			ans = x + (y + z) * 0.2941F;
+            ans = x + (y + z) * 0.2941F;
 
-			return ans;
-		}
-	}
-	else
-	{
-		if (y > z)
-		{
-			//
-			// y is the biggeset.
-			//
+            return ans;
+        }
+    } else {
+        if (y > z) {
+            //
+            // y is the biggeset.
+            //
 
-			ans = y + (x + z) * 0.2941F;
+            ans = y + (x + z) * 0.2941F;
 
-			return ans;
-		}
-	}
+            return ans;
+        }
+    }
 
-	//
-	// z is the biggeset.
-	//
+    //
+    // z is the biggeset.
+    //
 
-	ans = z + (x + y) * 0.2941F;
+    ans = z + (x + y) * 0.2941F;
 
-	return ans;
+    return ans;
 }
-
-
 
 // claude-ai: CLOTH_init — called once at startup. Builds the static link and normal arrays.
 // claude-ai: Link array: iterates all grid cells, for each of 8 neighbours, creates one CLOTH_Link.
@@ -214,294 +203,274 @@ static inline float qdist(float x, float y, float z)
 // claude-ai: Both arrays are shared by all cloth instances.
 void CLOTH_init()
 {
-	SLONG i;
-	SLONG j;
-	SLONG x;
-	SLONG y;
-	SLONG dx;
-	SLONG dy;
-	SLONG x1;
-	SLONG y1;
-	SLONG x2;
-	SLONG y2;
-	SLONG o1;
-	SLONG o2;
+    SLONG i;
+    SLONG j;
+    SLONG x;
+    SLONG y;
+    SLONG dx;
+    SLONG dy;
+    SLONG x1;
+    SLONG y1;
+    SLONG x2;
+    SLONG y2;
+    SLONG o1;
+    SLONG o2;
 
-	const struct {SBYTE dx; SBYTE dy;} order[4] =
-	{
-		{+1, 0},
-		{0, -1},
-		{-1, 0},
-		{0, +1}
-	};
+    const struct {
+        SBYTE dx;
+        SBYTE dy;
+    } order[4] = {
+        { +1, 0 },
+        { 0, -1 },
+        { -1, 0 },
+        { 0, +1 }
+    };
 
-	CLOTH_Normal *cn;
+    CLOTH_Normal* cn;
 
-	//
-	// Mark all the cloth as unused.
-	//
+    //
+    // Mark all the cloth as unused.
+    //
 
-	for (i = 0; i < CLOTH_MAX_CLOTH; i++)
-	{
-		CLOTH_cloth[i].type = CLOTH_TYPE_UNUSED;
-	}
+    for (i = 0; i < CLOTH_MAX_CLOTH; i++) {
+        CLOTH_cloth[i].type = CLOTH_TYPE_UNUSED;
+    }
 
-	CLOTH_cloth_last = 1;
+    CLOTH_cloth_last = 1;
 
-	//
-	// Clear the mapwho.
-	//
+    //
+    // Clear the mapwho.
+    //
 
-	memset(CLOTH_mapwho, 0, sizeof(CLOTH_mapwho));
+    memset(CLOTH_mapwho, 0, sizeof(CLOTH_mapwho));
 
-	//
-	// Create the link array.
-	//
+    //
+    // Create the link array.
+    //
 
-	CLOTH_link_upto = 0;
+    CLOTH_link_upto = 0;
 
-	for (x = 0; x < CLOTH_WIDTH;  x++)
-	for (y = 0; y < CLOTH_HEIGHT; y++)
-	{
-		for (dx = -1; dx <= 1; dx++)
-		for (dy = -1; dy <= 1; dy++)
-		{
-			if (dx | dy)
-			{
-				x1 = x;
-				y1 = y;
+    for (x = 0; x < CLOTH_WIDTH; x++)
+        for (y = 0; y < CLOTH_HEIGHT; y++) {
+            for (dx = -1; dx <= 1; dx++)
+                for (dy = -1; dy <= 1; dy++) {
+                    if (dx | dy) {
+                        x1 = x;
+                        y1 = y;
 
-				x2 = x + dx;
-				y2 = y + dy;
+                        x2 = x + dx;
+                        y2 = y + dy;
 
-				if (WITHIN(x2, 0, CLOTH_WIDTH  - 1) &&
-					WITHIN(y2, 0, CLOTH_HEIGHT - 1))
-				{
-					ASSERT(WITHIN(CLOTH_link_upto, 0, CLOTH_MAX_LINKS - 1));
+                        if (WITHIN(x2, 0, CLOTH_WIDTH - 1) && WITHIN(y2, 0, CLOTH_HEIGHT - 1)) {
+                            ASSERT(WITHIN(CLOTH_link_upto, 0, CLOTH_MAX_LINKS - 1));
 
-					CLOTH_link[CLOTH_link_upto].p1   = CLOTH_INDEX(x1,y1);
-					CLOTH_link[CLOTH_link_upto].p2   = CLOTH_INDEX(x2,y2);
-					CLOTH_link[CLOTH_link_upto].type = (dx == 0 || dy == 0) ? CLOTH_LINK_TYPE_ONE : CLOTH_LINK_TYPE_HYP;
+                            CLOTH_link[CLOTH_link_upto].p1 = CLOTH_INDEX(x1, y1);
+                            CLOTH_link[CLOTH_link_upto].p2 = CLOTH_INDEX(x2, y2);
+                            CLOTH_link[CLOTH_link_upto].type = (dx == 0 || dy == 0) ? CLOTH_LINK_TYPE_ONE : CLOTH_LINK_TYPE_HYP;
 
-					CLOTH_link_upto += 1;
-				}
-			}
-		}
-	}
+                            CLOTH_link_upto += 1;
+                        }
+                    }
+                }
+        }
 
-	//
-	// Create the normal array.
-	//
+    //
+    // Create the normal array.
+    //
 
-	cn = &CLOTH_normal[0];
+    cn = &CLOTH_normal[0];
 
-	for (y = 0; y < CLOTH_HEIGHT; y++)
-	for (x = 0; x < CLOTH_WIDTH;  x++)
-	{
-		cn->num = 0;
-		
-		for (i = 0; i < 4; i++)
-		{
-			o1 = (i + 0) & 3;
-			o2 = (i + 1) & 3;
+    for (y = 0; y < CLOTH_HEIGHT; y++)
+        for (x = 0; x < CLOTH_WIDTH; x++) {
+            cn->num = 0;
 
-			x1 = x + order[o1].dx;
-			y1 = y + order[o1].dy;
+            for (i = 0; i < 4; i++) {
+                o1 = (i + 0) & 3;
+                o2 = (i + 1) & 3;
 
-			x2 = x + order[o2].dx;
-			y2 = y + order[o2].dy;
+                x1 = x + order[o1].dx;
+                y1 = y + order[o1].dy;
 
-			if (WITHIN(x1, 0, CLOTH_WIDTH  - 1) &&
-				WITHIN(y1, 0, CLOTH_HEIGHT - 1) &&
-				WITHIN(x2, 0, CLOTH_WIDTH  - 1) &&
-				WITHIN(y2, 0, CLOTH_HEIGHT - 1))
-			{
-				cn->p1[cn->num] = CLOTH_INDEX(x1,y1);
-				cn->p2[cn->num] = CLOTH_INDEX(x2,y2);
+                x2 = x + order[o2].dx;
+                y2 = y + order[o2].dy;
 
-				cn->num += 1;
-			}
-		}
+                if (WITHIN(x1, 0, CLOTH_WIDTH - 1) && WITHIN(y1, 0, CLOTH_HEIGHT - 1) && WITHIN(x2, 0, CLOTH_WIDTH - 1) && WITHIN(y2, 0, CLOTH_HEIGHT - 1)) {
+                    cn->p1[cn->num] = CLOTH_INDEX(x1, y1);
+                    cn->p2[cn->num] = CLOTH_INDEX(x2, y2);
 
-		ASSERT(WITHIN(cn->num, 1, 4));
+                    cn->num += 1;
+                }
+            }
 
-		cn->overnum = 1.0F / float(cn->num);
+            ASSERT(WITHIN(cn->num, 1, 4));
 
-		cn += 1;
-	}
+            cn->overnum = 1.0F / float(cn->num);
+
+            cn += 1;
+        }
 }
-
 
 UBYTE CLOTH_create(
-		UBYTE type,
-		SLONG ox,
-		SLONG oy,
-		SLONG oz,
-		SLONG iwdx, SLONG iwdy, SLONG iwdz,
-		SLONG ihdx, SLONG ihdy, SLONG ihdz,
-		SLONG dist,
-		ULONG colour)
+    UBYTE type,
+    SLONG ox,
+    SLONG oy,
+    SLONG oz,
+    SLONG iwdx, SLONG iwdy, SLONG iwdz,
+    SLONG ihdx, SLONG ihdy, SLONG ihdz,
+    SLONG dist,
+    ULONG colour)
 {
-	SLONG i;
-	SLONG j;
+    SLONG i;
+    SLONG j;
 
-	float x;
-	float y;
-	float z;
+    float x;
+    float y;
+    float z;
 
-	float lx;
-	float ly;
-	float lz;
+    float lx;
+    float ly;
+    float lz;
 
-	float wdx;
-	float wdy;
-	float wdz;
+    float wdx;
+    float wdy;
+    float wdz;
 
-	float hdx;
-	float hdy;
-	float hdz;
+    float hdx;
+    float hdy;
+    float hdz;
 
-	UBYTE map_x;
-	UBYTE map_z;
+    UBYTE map_x;
+    UBYTE map_z;
 
-	CLOTH_Cloth *cc;
-	CLOTH_Point *cp;
+    CLOTH_Cloth* cc;
+    CLOTH_Point* cp;
 
-	//
-	// Look for an unused cloth.
-	//
+    //
+    // Look for an unused cloth.
+    //
 
-	for (i = 0; i < CLOTH_MAX_CLOTH; i++)
-	{
-		CLOTH_cloth_last += 1;
+    for (i = 0; i < CLOTH_MAX_CLOTH; i++) {
+        CLOTH_cloth_last += 1;
 
-		if (CLOTH_cloth_last >= CLOTH_MAX_CLOTH)
-		{
-			CLOTH_cloth_last = 1;
-		}
+        if (CLOTH_cloth_last >= CLOTH_MAX_CLOTH) {
+            CLOTH_cloth_last = 1;
+        }
 
-		ASSERT(WITHIN(CLOTH_cloth_last, 1, CLOTH_MAX_CLOTH - 1));
+        ASSERT(WITHIN(CLOTH_cloth_last, 1, CLOTH_MAX_CLOTH - 1));
 
-		if (CLOTH_cloth[CLOTH_cloth_last].type == CLOTH_TYPE_UNUSED)
-		{	
-			goto found_unused_cloth;
-		}
-	}
+        if (CLOTH_cloth[CLOTH_cloth_last].type == CLOTH_TYPE_UNUSED) {
+            goto found_unused_cloth;
+        }
+    }
 
-	//
-	// No unused cloth structure :o(
-	//
+    //
+    // No unused cloth structure :o(
+    //
 
-	return NULL;
+    return NULL;
 
-  found_unused_cloth:;
+found_unused_cloth:;
 
-	ASSERT(WITHIN(CLOTH_cloth_last, 1, CLOTH_MAX_CLOTH - 1));
+    ASSERT(WITHIN(CLOTH_cloth_last, 1, CLOTH_MAX_CLOTH - 1));
 
-	cc = &CLOTH_cloth[CLOTH_cloth_last];
+    cc = &CLOTH_cloth[CLOTH_cloth_last];
 
-	cc->type     = type;
-	cc->next     = 0;
-	cc->colour   = colour;
-	cc->lock     = 0;
-	cc->offset_x = 0.0F;
-	cc->offset_y = 0.0F;
-	cc->offset_z = 0.0F;
-	cc->dist[0]  = float(dist) * float(dist);
-	cc->dist[1]  = float(dist) * float(dist) * 2.0F;
+    cc->type = type;
+    cc->next = 0;
+    cc->colour = colour;
+    cc->lock = 0;
+    cc->offset_x = 0.0F;
+    cc->offset_y = 0.0F;
+    cc->offset_z = 0.0F;
+    cc->dist[0] = float(dist) * float(dist);
+    cc->dist[1] = float(dist) * float(dist) * 2.0F;
 
-	//
-	// Initialise the points.
-	//
+    //
+    // Initialise the points.
+    //
 
-	lx  = float(ox);
-	ly  = float(oy);
-	lz  = float(oz);
+    lx = float(ox);
+    ly = float(oy);
+    lz = float(oz);
 
-	wdx = float(iwdx);
-	wdy = float(iwdy);
-	wdz = float(iwdz);
-	   
-	hdx = float(ihdx);
-	hdy = float(ihdy);
-	hdz = float(ihdz);
+    wdx = float(iwdx);
+    wdy = float(iwdy);
+    wdz = float(iwdz);
 
-	cp = &cc->p[0];
+    hdx = float(ihdx);
+    hdy = float(ihdy);
+    hdz = float(ihdz);
 
-	for (i = 0; i < CLOTH_HEIGHT; i++)
-	{
-		x = lx;
-		y = ly;
-		z = lz;
+    cp = &cc->p[0];
 
-		for (j = 0; j < CLOTH_WIDTH; j++)
-		{
-			cp->x  = x;
-			cp->y  = y;
-			cp->z  = z;
-			cp->dx = 0.0F;
-			cp->dy = 0.0F;
-			cp->dz = 0.0F;
-			
-			cp += 1;
+    for (i = 0; i < CLOTH_HEIGHT; i++) {
+        x = lx;
+        y = ly;
+        z = lz;
 
-			x += wdx;
-			y += wdy;
-			z += wdz;
-		}
+        for (j = 0; j < CLOTH_WIDTH; j++) {
+            cp->x = x;
+            cp->y = y;
+            cp->z = z;
+            cp->dx = 0.0F;
+            cp->dy = 0.0F;
+            cp->dz = 0.0F;
 
-		lx += hdx;
-		ly += hdy;
-		lz += hdz;
-	}
+            cp += 1;
 
-	//
-	// Insert on the mapwho.
-	// 
+            x += wdx;
+            y += wdy;
+            z += wdz;
+        }
 
-	map_x = ox >> PAP_SHIFT_LO;
-	map_z = oz >> PAP_SHIFT_LO;
+        lx += hdx;
+        ly += hdy;
+        lz += hdz;
+    }
 
-	if (WITHIN(map_x, 0, PAP_SIZE_LO - 1) &&
-		WITHIN(map_z, 0, PAP_SIZE_LO - 1))
-	{
-		cc->next                   = CLOTH_mapwho[map_x][map_z];
-		CLOTH_mapwho[map_x][map_z] = CLOTH_cloth_last;
-	}
+    //
+    // Insert on the mapwho.
+    //
 
-	return CLOTH_cloth_last;
+    map_x = ox >> PAP_SHIFT_LO;
+    map_z = oz >> PAP_SHIFT_LO;
+
+    if (WITHIN(map_x, 0, PAP_SIZE_LO - 1) && WITHIN(map_z, 0, PAP_SIZE_LO - 1)) {
+        cc->next = CLOTH_mapwho[map_x][map_z];
+        CLOTH_mapwho[map_x][map_z] = CLOTH_cloth_last;
+    }
+
+    return CLOTH_cloth_last;
 }
-
 
 void CLOTH_point_lock(UBYTE cloth, UBYTE w, UBYTE h)
 {
-	CLOTH_Cloth *cc;
+    CLOTH_Cloth* cc;
 
-	ASSERT(WITHIN(cloth, 1, CLOTH_MAX_CLOTH - 1));
-	ASSERT(WITHIN(w,     0, CLOTH_WIDTH     - 1));
-	ASSERT(WITHIN(h,     0, CLOTH_HEIGHT    - 1));
+    ASSERT(WITHIN(cloth, 1, CLOTH_MAX_CLOTH - 1));
+    ASSERT(WITHIN(w, 0, CLOTH_WIDTH - 1));
+    ASSERT(WITHIN(h, 0, CLOTH_HEIGHT - 1));
 
-	cc = &CLOTH_cloth[cloth];
+    cc = &CLOTH_cloth[cloth];
 
-	cc->lock |= 1 << CLOTH_INDEX(w,h);
+    cc->lock |= 1 << CLOTH_INDEX(w, h);
 }
-
 
 void CLOTH_point_move(UBYTE cloth, UBYTE w, UBYTE h, SLONG x, SLONG y, SLONG z)
 {
-	CLOTH_Cloth *cc;
-	CLOTH_Point *cp;
+    CLOTH_Cloth* cc;
+    CLOTH_Point* cp;
 
-	ASSERT(WITHIN(cloth, 1, CLOTH_MAX_CLOTH - 1));
-	ASSERT(WITHIN(w,     0, CLOTH_WIDTH     - 1));
-	ASSERT(WITHIN(h,     0, CLOTH_HEIGHT    - 1));
+    ASSERT(WITHIN(cloth, 1, CLOTH_MAX_CLOTH - 1));
+    ASSERT(WITHIN(w, 0, CLOTH_WIDTH - 1));
+    ASSERT(WITHIN(h, 0, CLOTH_HEIGHT - 1));
 
-	cc = &CLOTH_cloth[cloth];
-	cp = &cc->p[CLOTH_INDEX(w,h)];
+    cc = &CLOTH_cloth[cloth];
+    cp = &cc->p[CLOTH_INDEX(w, h)];
 
-	cp->x = float(x);
-	cp->y = float(y);
-	cp->z = float(z);
+    cp->x = float(x);
+    cp->y = float(y);
+    cp->z = float(z);
 }
 
 // claude-ai: CLOTH_process — ENTIRELY DISABLED via #if 0.
@@ -705,18 +674,16 @@ void CLOTH_process()
 #endif
 }
 
-
 // claude-ai: CLOTH_get_first — renderer entry point: returns head of cloth linked list for a PAP tile.
 // claude-ai: Returns 0 if no cloth is registered in that tile.
 // claude-ai: Renderer calls CLOTH_get_info(idx) for each non-zero result and follows cc->next for the chain.
 UBYTE CLOTH_get_first(UBYTE lo_map_x, UBYTE lo_map_z)
 {
-	ASSERT(WITHIN(lo_map_x, 0, PAP_SIZE_LO - 1));
-	ASSERT(WITHIN(lo_map_z, 0, PAP_SIZE_LO - 1));
+    ASSERT(WITHIN(lo_map_x, 0, PAP_SIZE_LO - 1));
+    ASSERT(WITHIN(lo_map_z, 0, PAP_SIZE_LO - 1));
 
-	return CLOTH_mapwho[lo_map_x][lo_map_z];
+    return CLOTH_mapwho[lo_map_x][lo_map_z];
 }
-
 
 CLOTH_Info CLOTH_info;
 
@@ -727,113 +694,111 @@ CLOTH_Info CLOTH_info;
 // claude-ai:   Average the accumulated normal, then normalise using qdist() approximation.
 // claude-ai: Result stored in CLOTH_info.p[].{x,y,z,nx,ny,nz} — renderer uses this to shade the mesh.
 // claude-ai: Returns pointer to the static CLOTH_info struct (not re-entrant).
-CLOTH_Info *CLOTH_get_info(UBYTE cloth)
+CLOTH_Info* CLOTH_get_info(UBYTE cloth)
 {
-	SLONG i;
-	SLONG j;
+    SLONG i;
+    SLONG j;
 
-	float nx;
-	float ny;
-	float nz;
-	float len;
-	float overlen;
+    float nx;
+    float ny;
+    float nz;
+    float len;
+    float overlen;
 
-	float vx1;
-	float vy1;
-	float vz1;
+    float vx1;
+    float vy1;
+    float vz1;
 
-	float vx2;
-	float vy2;
-	float vz2;
+    float vx2;
+    float vy2;
+    float vz2;
 
-	float cx;
-	float cy;
-	float cz;
+    float cx;
+    float cy;
+    float cz;
 
-	CLOTH_Cloth  *cc;
-	CLOTH_Point  *cp;
-	CLOTH_Point  *cp1;
-	CLOTH_Point  *cp2;
-	CLOTH_Drawp  *cd;
-	CLOTH_Normal *cn;
+    CLOTH_Cloth* cc;
+    CLOTH_Point* cp;
+    CLOTH_Point* cp1;
+    CLOTH_Point* cp2;
+    CLOTH_Drawp* cd;
+    CLOTH_Normal* cn;
 
-	ASSERT(WITHIN(cloth, 1, CLOTH_MAX_CLOTH - 1));
+    ASSERT(WITHIN(cloth, 1, CLOTH_MAX_CLOTH - 1));
 
-	cc = &CLOTH_cloth[cloth];
+    cc = &CLOTH_cloth[cloth];
 
-	CLOTH_info.type   = cc->type;
-	CLOTH_info.next   = cc->next;
-	CLOTH_info.colour = cc->colour;
-	
-	//
-	// Fill in the point positions and normals.
-	//
+    CLOTH_info.type = cc->type;
+    CLOTH_info.next = cc->next;
+    CLOTH_info.colour = cc->colour;
 
-	cd = &CLOTH_info.p[0];
-	cp = &cc->p[0];
-	cn = &CLOTH_normal[0];
-	
-	for (i = 0; i < CLOTH_WIDTH * CLOTH_HEIGHT; i++)
-	{
-		cd->x = cp->x + cc->offset_x;
-		cd->y = cp->y + cc->offset_y;
-		cd->z = cp->z + cc->offset_z;
+    //
+    // Fill in the point positions and normals.
+    //
 
-		//
-		// Calculate the normal
-		//
+    cd = &CLOTH_info.p[0];
+    cp = &cc->p[0];
+    cn = &CLOTH_normal[0];
 
-		nx = 0.0F;
-		ny = 0.0F;
-		nz = 0.0F;
+    for (i = 0; i < CLOTH_WIDTH * CLOTH_HEIGHT; i++) {
+        cd->x = cp->x + cc->offset_x;
+        cd->y = cp->y + cc->offset_y;
+        cd->z = cp->z + cc->offset_z;
 
-		for (j = 0; j < cn->num; j++)
-		{
-			cp1 = &cc->p[cn->p1[j]];
-			cp2 = &cc->p[cn->p2[j]];
+        //
+        // Calculate the normal
+        //
 
-			vx1 = cp1->x - cp->x;
-			vy1 = cp1->y - cp->y;
-			vz1 = cp1->z - cp->z;
+        nx = 0.0F;
+        ny = 0.0F;
+        nz = 0.0F;
 
-			vx2 = cp2->x - cp->x;
-			vy2 = cp2->y - cp->y;
-			vz2 = cp2->z - cp->z;
+        for (j = 0; j < cn->num; j++) {
+            cp1 = &cc->p[cn->p1[j]];
+            cp2 = &cc->p[cn->p2[j]];
 
-			cx  = vy1 * vz2 - vz1 * vy2;
-			cy  = vz1 * vx2 - vx1 * vz2;
-			cz  = vx1 * vy2 - vy1 * vx2;
+            vx1 = cp1->x - cp->x;
+            vy1 = cp1->y - cp->y;
+            vz1 = cp1->z - cp->z;
 
-			nx += cx;
-			ny += cy;
-			nz += cz;
-		}
+            vx2 = cp2->x - cp->x;
+            vy2 = cp2->y - cp->y;
+            vz2 = cp2->z - cp->z;
 
-		nx *= cn->overnum;
-		ny *= cn->overnum;
-		nz *= cn->overnum;
+            cx = vy1 * vz2 - vz1 * vy2;
+            cy = vz1 * vx2 - vx1 * vz2;
+            cz = vx1 * vy2 - vy1 * vx2;
 
-		//
-		// Normalise it.
-		//
+            nx += cx;
+            ny += cy;
+            nz += cz;
+        }
 
-		len     = qdist(fabs(nx),fabs(ny),fabs(nz));
-		overlen = 1.0F / len;
+        nx *= cn->overnum;
+        ny *= cn->overnum;
+        nz *= cn->overnum;
 
-		nx *= overlen;
-		ny *= overlen;
-		nz *= overlen;
+        //
+        // Normalise it.
+        //
 
-		cd->nx = nx;
-		cd->ny = ny;
-		cd->nz = nz;
+        len = qdist(fabs(nx), fabs(ny), fabs(nz));
+        overlen = 1.0F / len;
 
-		cd += 1;
-		cp += 1;
-		cn += 1;
-	}
+        nx *= overlen;
+        ny *= overlen;
+        nz *= overlen;
 
-	return &CLOTH_info;
+        cd->nx = nx;
+        cd->ny = ny;
+        cd->nz = nz;
+
+        cd += 1;
+        cp += 1;
+        cn += 1;
+    }
+
+    return &CLOTH_info;
 }
 
 #endif

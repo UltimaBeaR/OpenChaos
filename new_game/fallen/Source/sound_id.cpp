@@ -6,7 +6,7 @@
 #include "MFStdLib.h"
 
 #ifndef PSX
-CBYTE *sound_list[] = {
+CBYTE* sound_list[] = {
     "NULL.wav",
     "f_WIND1.wav",
     "f_WIND3.wav",
@@ -554,9 +554,8 @@ CBYTE *sound_list[] = {
     "misc\\GTRAMP-PAIN04.wav",
     "misc\\GTRAMP-PAIN05.wav",
     "GeneralMusic\\AlbumTracks\\ADFoundation.wav",
-	"GeneralMusic\\FrontLoop.wav",
+    "GeneralMusic\\FrontLoop.wav",
     "!",
-    };
+};
 
 #endif
-

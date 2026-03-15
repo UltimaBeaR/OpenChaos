@@ -1,41 +1,40 @@
 // StdMem.h
 // Guy Simmons, 18th December 1997
 
-#ifndef	STD_MEM_H
-#define	STD_MEM_H
+#ifndef STD_MEM_H
+#define STD_MEM_H
 
 //---------------------------------------------------------------
 
-BOOL	SetupMemory(void);
-void	ResetMemory(void);
-void	*MemAlloc(ULONG size);
-void	*MemReAlloc(void *ptr, ULONG size);
-void	MemFree(void *mem_ptr);
-
-
+BOOL SetupMemory(void);
+void ResetMemory(void);
+void* MemAlloc(ULONG size);
+void* MemReAlloc(void* ptr, ULONG size);
+void MemFree(void* mem_ptr);
 
 #ifdef DEBUG
-void MFnewTrace ( void *pvAddr, size_t size );
-void MFdeleteTrace ( void *pvAddr );
+void MFnewTrace(void* pvAddr, size_t size);
+void MFdeleteTrace(void* pvAddr);
 #endif
-
 
 // Some templated new and delete stand-ins.
-template <class T> T *MFnew ( void )
+template <class T>
+T* MFnew(void)
 {
-	T *ptr = new T;
+    T* ptr = new T;
 #ifdef DEBUG
-	MFnewTrace ( ptr, sizeof ( ptr ) );
+    MFnewTrace(ptr, sizeof(ptr));
 #endif
-	return ptr;
+    return ptr;
 }
 
-template<class T> void MFdelete(T *thing)
+template <class T>
+void MFdelete(T* thing)
 {
 #ifdef DEBUG
-	MFdeleteTrace ( thing );
+    MFdeleteTrace(thing);
 #endif
-	delete thing;
+    delete thing;
 }
 
 //---------------------------------------------------------------

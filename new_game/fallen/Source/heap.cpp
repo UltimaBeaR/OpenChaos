@@ -12,10 +12,9 @@
 
 UBYTE HEAP_pad[HEAP_PAD_SIZE];
 
-
 //
 // The heap.
-// 
+//
 
 #if defined(PSX)
 #define HEAP_SIZE (1024 * 16)
@@ -31,17 +30,15 @@ UBYTE HEAP_heap[HEAP_SIZE];
 // The free list is sorted by size.
 //
 
-typedef struct heap_free
-{
-	UBYTE            *start;
-	UBYTE            *end;
-	SLONG             size;
-	struct heap_free *next;
+typedef struct heap_free {
+    UBYTE* start;
+    UBYTE* end;
+    SLONG size;
+    struct heap_free* next;
 
 } HEAP_Free;
 
-HEAP_Free *HEAP_free;
-
+HEAP_Free* HEAP_free;
 
 //
 // All memory blocks must be multiples of this. It is
@@ -50,332 +47,308 @@ HEAP_Free *HEAP_free;
 
 #define HEAP_QUANTISE 16
 
-
-
 //
 // Error checks the heap- makes sure it is all okay.
 //
 
 void HEAP_check()
 {
-	HEAP_Free *hf;
+    HEAP_Free* hf;
 
-	for (hf = HEAP_free; hf; hf = hf->next)
-	{
-		ASSERT(hf->size <= HEAP_SIZE);
-		ASSERT(hf->start + hf->size == hf->end);
-	}
+    for (hf = HEAP_free; hf; hf = hf->next) {
+        ASSERT(hf->size <= HEAP_SIZE);
+        ASSERT(hf->start + hf->size == hf->end);
+    }
 }
-
-
 
 void HEAP_init()
 {
-	//
-	// Easy...
-	//
+    //
+    // Easy...
+    //
 
-	HEAP_free = (HEAP_Free *) HEAP_heap;
+    HEAP_free = (HEAP_Free*)HEAP_heap;
 
-	HEAP_free->start = (UBYTE *) &HEAP_heap[0];
-	HEAP_free->end   = (UBYTE *) &HEAP_heap[HEAP_SIZE];
-	HEAP_free->size  = HEAP_SIZE;
-	HEAP_free->next  = NULL;
+    HEAP_free->start = (UBYTE*)&HEAP_heap[0];
+    HEAP_free->end = (UBYTE*)&HEAP_heap[HEAP_SIZE];
+    HEAP_free->size = HEAP_SIZE;
+    HEAP_free->next = NULL;
 
-	HEAP_check();
+    HEAP_check();
 }
 
-void HEAP_add_to_free(HEAP_Free *bit)
+void HEAP_add_to_free(HEAP_Free* bit)
 {
-	HEAP_Free  *next;
-	HEAP_Free **prev;
+    HEAP_Free* next;
+    HEAP_Free** prev;
 
-	#ifndef NDEBUG
-	HEAP_check();
-	#endif
+#ifndef NDEBUG
+    HEAP_check();
+#endif
 
-	//
-	// Go through the free list looking for free blocks
-	// of memory we can merge with bit.
-	//
+    //
+    // Go through the free list looking for free blocks
+    // of memory we can merge with bit.
+    //
 
-  start_again_with_a_bigger_bit:;
+start_again_with_a_bigger_bit:;
 
-	#ifndef NDEBUG
-	HEAP_check();
-	#endif
+#ifndef NDEBUG
+    HEAP_check();
+#endif
 
-	ASSERT(bit->size <= HEAP_SIZE);
-	ASSERT(bit->start + bit->size == bit->end);
+    ASSERT(bit->size <= HEAP_SIZE);
+    ASSERT(bit->start + bit->size == bit->end);
 
-	prev = &HEAP_free;
-	next =  HEAP_free;
+    prev = &HEAP_free;
+    next = HEAP_free;
 
-	while(next)
-	{
-		//
-		// Can we merge bit and next?
-		//
+    while (next) {
+        //
+        // Can we merge bit and next?
+        //
 
-		if (bit->end == next->start)
-		{
-			//
-			// Take next out of the free list.
-			//
+        if (bit->end == next->start) {
+            //
+            // Take next out of the free list.
+            //
 
-		   *prev = next->next;
-		 
-		    //
-		    // Lengthen our bit.
-		    //
-		   
-			ASSERT(next->size <= HEAP_SIZE);
+            *prev = next->next;
 
-			bit->end    = next->end;
-			bit->size  += next->size;
+            //
+            // Lengthen our bit.
+            //
 
-			goto start_again_with_a_bigger_bit;
-		}
-		else
-		if (next->end == bit->start)
-		{
-			//
-			// Take next out of the free list.
-			//
+            ASSERT(next->size <= HEAP_SIZE);
 
-		   *prev = next->next;
+            bit->end = next->end;
+            bit->size += next->size;
 
-		    //
-		    // Lengthen 'next'.
-		    //
+            goto start_again_with_a_bigger_bit;
+        } else if (next->end == bit->start) {
+            //
+            // Take next out of the free list.
+            //
 
-			ASSERT(bit->size <= HEAP_SIZE);
+            *prev = next->next;
 
-		    next->end   = bit->end;
-			next->size += bit->size; 
+            //
+            // Lengthen 'next'.
+            //
 
-			ASSERT(next->size <= HEAP_SIZE);
+            ASSERT(bit->size <= HEAP_SIZE);
 
-			//
-			// Now add 'next', not 'bit'.
-			//
+            next->end = bit->end;
+            next->size += bit->size;
 
-			bit = next;
+            ASSERT(next->size <= HEAP_SIZE);
 
-			goto start_again_with_a_bigger_bit;
-		}
+            //
+            // Now add 'next', not 'bit'.
+            //
 
-//		ASSERT((ULONG(next->next) & 0xff000000) == 0);
+            bit = next;
 
-		prev = &next->next;
-		next =  next->next;
-	}
+            goto start_again_with_a_bigger_bit;
+        }
 
-	#ifndef NDEBUG
-	HEAP_check();
-	#endif
+        //		ASSERT((ULONG(next->next) & 0xff000000) == 0);
 
-	//
-	// Now add 'bit' in its correct position ordered
-	// by size.
-	//
+        prev = &next->next;
+        next = next->next;
+    }
 
-	prev = &HEAP_free;
-	next =  HEAP_free;
+#ifndef NDEBUG
+    HEAP_check();
+#endif
 
-	while(1)
-	{
-		if (next == NULL || next->size <= bit->size)
-		{
-			//
-			// This is where we insert our 'bit'.
-			//
+    //
+    // Now add 'bit' in its correct position ordered
+    // by size.
+    //
 
-//			ASSERT((ULONG(next) & 0xff000000) == 0);
+    prev = &HEAP_free;
+    next = HEAP_free;
 
-		   *prev      = bit;
-		    bit->next = next;
+    while (1) {
+        if (next == NULL || next->size <= bit->size) {
+            //
+            // This is where we insert our 'bit'.
+            //
 
-			break;
-		}
+            //			ASSERT((ULONG(next) & 0xff000000) == 0);
 
-		prev = &next->next;
-		next =  next->next;
-	}
+            *prev = bit;
+            bit->next = next;
 
-	#ifndef NDEBUG
-	HEAP_check();
-	#endif
+            break;
+        }
 
-	return;
+        prev = &next->next;
+        next = next->next;
+    }
+
+#ifndef NDEBUG
+    HEAP_check();
+#endif
+
+    return;
 }
 
-
-
-void *HEAP_get(SLONG size)
+void* HEAP_get(SLONG size)
 {
-	void      *ans;
-	HEAP_Free  bit;
-	HEAP_Free *onheap;
+    void* ans;
+    HEAP_Free bit;
+    HEAP_Free* onheap;
 
-	#ifndef NDEBUG
-	HEAP_check();
-	#endif
+#ifndef NDEBUG
+    HEAP_check();
+#endif
 
-	if (HEAP_free == NULL)
-	{
-		//
-		// No more free memory!
-		//
+    if (HEAP_free == NULL) {
+        //
+        // No more free memory!
+        //
 
-		return NULL;
-	}
+        return NULL;
+    }
 
-	//
-	// Round up the size to the nearby 16-byte boundary.
-	//
+    //
+    // Round up the size to the nearby 16-byte boundary.
+    //
 
-	size +=  (HEAP_QUANTISE - 1);
-	size &= ~(HEAP_QUANTISE - 1);
+    size += (HEAP_QUANTISE - 1);
+    size &= ~(HEAP_QUANTISE - 1);
 
-	ASSERT(WITHIN((UBYTE *) HEAP_free, &HEAP_heap[0], &HEAP_heap[HEAP_SIZE - sizeof(HEAP_Free)]));
+    ASSERT(WITHIN((UBYTE*)HEAP_free, &HEAP_heap[0], &HEAP_heap[HEAP_SIZE - sizeof(HEAP_Free)]));
 
-	//
-	// Always take memory from the biggest block.
-	//
+    //
+    // Always take memory from the biggest block.
+    //
 
-	if (HEAP_free->size < size)
-	{
-		//
-		// No large-enough block.
-		//
+    if (HEAP_free->size < size) {
+        //
+        // No large-enough block.
+        //
 
-		return NULL;
-	}
+        return NULL;
+    }
 
-	//
-	// The first block is big enough to use.
-	// Build the left-over chunk.
-	//
+    //
+    // The first block is big enough to use.
+    // Build the left-over chunk.
+    //
 
-	bit.start = HEAP_free->start + size;
-	bit.end   = HEAP_free->end;
-	bit.size  = HEAP_free->size  - size;
-	bit.next  = NULL;
+    bit.start = HEAP_free->start + size;
+    bit.end = HEAP_free->end;
+    bit.size = HEAP_free->size - size;
+    bit.next = NULL;
 
-	ASSERT(bit.start + bit.size == bit.end);
+    ASSERT(bit.start + bit.size == bit.end);
 
-	//
-	// Remember the answer.
-	//
+    //
+    // Remember the answer.
+    //
 
-	ans = HEAP_free;
+    ans = HEAP_free;
 
-	//
-	// Take out the first block from the free list.
-	//
+    //
+    // Take out the first block from the free list.
+    //
 
-	HEAP_free = HEAP_free->next;
+    HEAP_free = HEAP_free->next;
 
-	#ifndef NDEBUG
-	HEAP_check();
-	#endif
+#ifndef NDEBUG
+    HEAP_check();
+#endif
 
-	if (bit.size == 0)
-	{
-		//
-		// This makes matters easier.
-		//
-	
-		return ans;
-	}
-	else
-	{
-		//
-		// There should always be enough room...
-		//
+    if (bit.size == 0) {
+        //
+        // This makes matters easier.
+        //
 
-		ASSERT(bit.size >= sizeof(HEAP_Free));
+        return ans;
+    } else {
+        //
+        // There should always be enough room...
+        //
 
-		#ifndef NDEBUG
-		HEAP_check();
-		#endif
+        ASSERT(bit.size >= sizeof(HEAP_Free));
 
-		//
-		// Put the new bit on the heap.
-		//
+#ifndef NDEBUG
+        HEAP_check();
+#endif
 
-		onheap = (HEAP_Free *) bit.start;
-	   *onheap = bit;
+        //
+        // Put the new bit on the heap.
+        //
 
-		//
-		// Add the bit to the free list.
-		//
-  
-		HEAP_add_to_free(onheap);
+        onheap = (HEAP_Free*)bit.start;
+        *onheap = bit;
 
-		#ifndef NDEBUG
-		HEAP_check();
-		#endif
+        //
+        // Add the bit to the free list.
+        //
 
-		return ans;
-	}
+        HEAP_add_to_free(onheap);
+
+#ifndef NDEBUG
+        HEAP_check();
+#endif
+
+        return ans;
+    }
 }
 
-
-SLONG	HEAP_max_free(void)
+SLONG HEAP_max_free(void)
 {
-	if(HEAP_free)
-	{
-		return(HEAP_free->size);
-	}
-	else
-	{
-		return(0);
-	}
-
+    if (HEAP_free) {
+        return (HEAP_free->size);
+    } else {
+        return (0);
+    }
 }
 
 //
 // Gives back an unused block of memory.
 //
 
-void HEAP_give(void *mem, SLONG num_bytes)
+void HEAP_give(void* mem, SLONG num_bytes)
 {
-	HEAP_Free *onheap = (HEAP_Free *) mem;
+    HEAP_Free* onheap = (HEAP_Free*)mem;
 
-	#ifndef NDEBUG
-	HEAP_check();
-	#endif
+#ifndef NDEBUG
+    HEAP_check();
+#endif
 
-	//
-	// Valid memory block?
-	//
+    //
+    // Valid memory block?
+    //
 
-	num_bytes +=  (HEAP_QUANTISE - 1);
-	num_bytes &= ~(HEAP_QUANTISE - 1);
+    num_bytes += (HEAP_QUANTISE - 1);
+    num_bytes &= ~(HEAP_QUANTISE - 1);
 
-	ASSERT(WITHIN((UBYTE *) onheap, &HEAP_heap[0], &HEAP_heap[HEAP_SIZE - sizeof(HEAP_Free)]));
+    ASSERT(WITHIN((UBYTE*)onheap, &HEAP_heap[0], &HEAP_heap[HEAP_SIZE - sizeof(HEAP_Free)]));
 
-	//
-	// Add the header.
-	//
+    //
+    // Add the header.
+    //
 
-//	ASSERT((((ULONG)mem) & 0xff000000) == 0);
-	ASSERT(num_bytes <= HEAP_SIZE);
+    //	ASSERT((((ULONG)mem) & 0xff000000) == 0);
+    ASSERT(num_bytes <= HEAP_SIZE);
 
-	onheap->start = (UBYTE *) mem;
-	onheap->end   = onheap->start + num_bytes;
-	onheap->size  = num_bytes;
-	onheap->next  = NULL;
+    onheap->start = (UBYTE*)mem;
+    onheap->end = onheap->start + num_bytes;
+    onheap->size = num_bytes;
+    onheap->next = NULL;
 
-	//
-	// Add it to the free list.
-	//
+    //
+    // Add it to the free list.
+    //
 
-	HEAP_add_to_free(onheap);
+    HEAP_add_to_free(onheap);
 
-	#ifndef NDEBUG
-	HEAP_check();
-	#endif
+#ifndef NDEBUG
+    HEAP_check();
+#endif
 }

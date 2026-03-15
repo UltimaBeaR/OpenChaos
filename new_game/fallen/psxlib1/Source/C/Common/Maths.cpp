@@ -1,109 +1,107 @@
 // Maths.cpp
 // Guy Simmons, 27th March 1997.
 
-#include	<MFHeader.h>
-
+#include <MFHeader.h>
 
 //---------------------------------------------------------------
 
-#define LookUp				ax = AtanTable[(ax<<8)/bx];
-#define	xchg(a,b)			{a^=b;b^=a;a^=b;}
+#define LookUp ax = AtanTable[(ax << 8) / bx];
+#define xchg(a, b) \
+    {              \
+        a ^= b;    \
+        b ^= a;    \
+        a ^= b;    \
+    }
 
-
-SLONG	Arctan(SLONG X,SLONG Y)
+SLONG Arctan(SLONG X, SLONG Y)
 {
-	register SLONG		ax,bx;
+    register SLONG ax, bx;
 
-	ax = X;
-	if(ax)
-		goto just_do_it;
-	bx = Y;
-	if(bx)
-		goto done_it;
-	return 0;
+    ax = X;
+    if (ax)
+        goto just_do_it;
+    bx = Y;
+    if (bx)
+        goto done_it;
+    return 0;
 just_do_it:
-	bx = Y;
+    bx = Y;
 done_it:
-	if(ax < 0)
-		goto xneg;
+    if (ax < 0)
+        goto xneg;
 
-// x positive			
-	if(bx < 0)
-		goto xposyneg;
+    // x positive
+    if (bx < 0)
+        goto xposyneg;
 
-// x positive, y positive
-	if(ax < bx)
-		goto ppyprimary;
+    // x positive, y positive
+    if (ax < bx)
+        goto ppyprimary;
 
-// ppxprimary
-	xchg(ax,bx)
-	LookUp
-	return ax+512;
+    // ppxprimary
+    xchg(ax, bx)
+            LookUp return ax
+        + 512;
 ppyprimary:
-	LookUp
-	return (-ax)+1024;
+    LookUp return (-ax) + 1024;
 xposyneg: //*******************************************************************
-	bx = -bx;
-	if(ax < bx)
-		goto pnyprimary;
+    bx = -bx;
+    if (ax < bx)
+        goto pnyprimary;
 
-// pnxprimary
-	xchg(ax,bx)
-	LookUp
-	return (-ax)+512;
+    // pnxprimary
+    xchg(ax, bx)
+            LookUp return (-ax)
+        + 512;
 pnyprimary:
-	LookUp
-	return ax;
+    LookUp return ax;
 xneg:
-	ax = -ax;
-	if(bx < 0)
-		goto xnegyneg;						
-// x negative, y positive
-	if(ax < bx)
-		goto npyprimary;
+    ax = -ax;
+    if (bx < 0)
+        goto xnegyneg;
+    // x negative, y positive
+    if (ax < bx)
+        goto npyprimary;
 
-// npxprimary
-	xchg(ax,bx)
-	LookUp
-	return (-ax)+1536;
+    // npxprimary
+    xchg(ax, bx)
+            LookUp return (-ax)
+        + 1536;
 npyprimary:
-	LookUp
-	return ax+1024;
+    LookUp return ax + 1024;
 
 // x negative, y negative
 xnegyneg:
-	bx = -bx;
-	if(ax < bx)
-		goto nnyprimary;
+    bx = -bx;
+    if (ax < bx)
+        goto nnyprimary;
 
-// nnxprimary
-	xchg(ax,bx)
-	LookUp
-	return ax+1536;
+    // nnxprimary
+    xchg(ax, bx)
+            LookUp return ax
+        + 1536;
 nnyprimary:
-	LookUp
-	return (-ax)+2048;					
+    LookUp return (-ax) + 2048;
 }
 
 //---------------------------------------------------------------
 
-UWORD	ini_table[]	=
-{
-	1,		2,		2,		4,
-	5,		8,		11,		16,
-	22,		32,		45,		64,
-	90,		128,	181,	256,
-	362,	512,	724,	1024,
-	1448,	2048,	2896,	4096,
-	5792,	8192,	11585,	16384,
-	23170,	32768,	46340,	65535
+UWORD ini_table[] = {
+    1, 2, 2, 4,
+    5, 8, 11, 16,
+    22, 32, 45, 64,
+    90, 128, 181, 256,
+    362, 512, 724, 1024,
+    1448, 2048, 2896, 4096,
+    5792, 8192, 11585, 16384,
+    23170, 32768, 46340, 65535
 };
 
 #ifdef _MSC_VER
-SLONG	Root(SLONG square)
+SLONG Root(SLONG square)
 {
-	__asm
-	{
+    __asm
+    {
 		xor		ebx,ebx
 		mov		ecx,square
 		bsr		eax,ecx
@@ -120,7 +118,7 @@ do_it:
 		jmp		do_it
 done_it:
 		mov		eax,ebx
-	}
+    }
 }
 #endif
 

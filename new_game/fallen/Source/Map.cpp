@@ -16,63 +16,54 @@
 // claude-ai:   MAP_light_map struct определён но нигде не используется в рантайме.
 // claude-ai:   В DDEngine vertex colour terrain = NIGHT_light_mapsquare → NIGHT_cache → NIGHT_get_d3d_colour.
 // claude-ai:   MapElement.Colour применялся только в Glide Engine (glaeng.cpp) — legacy путь.
-#include	"Game.h"
-
+#include "Game.h"
 
 //---------------------------------------------------------------
 #if !defined(PSX) && !defined(TARGET_DC)
-void	init_map(void)
+void init_map(void)
 {
-	memset((UBYTE*)MAP,0,sizeof(MAP));
+    memset((UBYTE*)MAP, 0, sizeof(MAP));
 }
 #endif
 //---------------------------------------------------------------
 
-
-
 SLONG MAP_light_get_height(SLONG x, SLONG z)
 {
-	return 0;
+    return 0;
 }
 
 LIGHT_Colour MAP_light_get_light(SLONG x, SLONG z)
 {
 #ifdef TARGET_DC
-	// Shouldn't be using this, apparently.
-	ASSERT ( FALSE );
+    // Shouldn't be using this, apparently.
+    ASSERT(FALSE);
 #endif
 
-	MapElement *me;
+    MapElement* me;
 
-	me = &MAP[MAP_INDEX(x,z)];
+    me = &MAP[MAP_INDEX(x, z)];
 
-	return me->Colour;
+    return me->Colour;
 }
 
 void MAP_light_set_light(SLONG x, SLONG z, LIGHT_Colour colour)
 {
 #ifdef TARGET_DC
-	// Shouldn't be using this, apparently.
-	ASSERT ( FALSE );
+    // Shouldn't be using this, apparently.
+    ASSERT(FALSE);
 #endif
 
-	MapElement *me;
+    MapElement* me;
 
-	me = &MAP[MAP_INDEX(x,z)];
+    me = &MAP[MAP_INDEX(x, z)];
 
-	me->Colour = colour;
+    me->Colour = colour;
 }
 
-
-LIGHT_Map MAP_light_map = 
-{
-	MAP_WIDTH,
-	MAP_HEIGHT,
-	MAP_light_get_height,
-	MAP_light_get_light,
-	MAP_light_set_light
+LIGHT_Map MAP_light_map = {
+    MAP_WIDTH,
+    MAP_HEIGHT,
+    MAP_light_get_height,
+    MAP_light_get_light,
+    MAP_light_set_light
 };
-
-
-
-

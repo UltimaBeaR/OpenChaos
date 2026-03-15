@@ -25,8 +25,8 @@
 #include <DDLib.h>
 #include "texture.h"
 #ifndef TARGET_DC
-#include <mbctype.h>	// MBCS crap
-#include <mbstring.h>	// more MBCS crap
+#include <mbctype.h> // MBCS crap
+#include <mbstring.h> // more MBCS crap
 #endif
 
 #ifdef TARGET_DC
@@ -37,31 +37,31 @@
 #include "polypoint.h"
 #include "env.h"
 
-#define ANTIALIAS_BY_HAND		1										// antialias by hand?
-#define	AA_SIZE					(ANTIALIAS_BY_HAND ? 2 : 1)				// multiplier
-#define	NUM_TT_PAGES			4										// number of 256x256 texture pages to allocate
-#define	MIN_TT_HEIGHT			8										// minimum height of a line of text
-#define	MAX_TT_HEIGHT			64										// maximum height of a line of text
-#define MAX_LINES_PER_PAGE		(256 / MIN_TT_HEIGHT)					// maximum number of cachelines per texture page
-#define MAX_CACHELINES			(MAX_LINES_PER_PAGE * NUM_TT_PAGES)		// maximum number of cachelines
-#define MAX_TEXTCOMMANDS		32										// maximum number of current & pending text commands
-#define TYPEFACE				NULL									// typeface name
+#define ANTIALIAS_BY_HAND 1 // antialias by hand?
+#define AA_SIZE (ANTIALIAS_BY_HAND ? 2 : 1) // multiplier
+#define NUM_TT_PAGES 4 // number of 256x256 texture pages to allocate
+#define MIN_TT_HEIGHT 8 // minimum height of a line of text
+#define MAX_TT_HEIGHT 64 // maximum height of a line of text
+#define MAX_LINES_PER_PAGE (256 / MIN_TT_HEIGHT) // maximum number of cachelines per texture page
+#define MAX_CACHELINES (MAX_LINES_PER_PAGE * NUM_TT_PAGES) // maximum number of cachelines
+#define MAX_TEXTCOMMANDS 32 // maximum number of current & pending text commands
+#define TYPEFACE NULL // typeface name
 
-static int					FontHeight;						// height of font
+static int FontHeight; // height of font
 
-static IDirectDrawSurface4*	pShadowSurface;					// drawing surface
-static IDirectDrawPalette*	pShadowPalette;					// palette for surface
-static HFONT				hFont;							// font for DC
-static HFONT				hMidFont;						// 3/4 font
-static HFONT				hSmallFont;						// 1/2 font
-static HFONT				hOldFont;						// old font for DC
+static IDirectDrawSurface4* pShadowSurface; // drawing surface
+static IDirectDrawPalette* pShadowPalette; // palette for surface
+static HFONT hFont; // font for DC
+static HFONT hMidFont; // 3/4 font
+static HFONT hSmallFont; // 1/2 font
+static HFONT hOldFont; // old font for DC
 
-static D3DTexture			Texture[NUM_TT_PAGES];			// texture pages
-static CacheLine			Cache[MAX_CACHELINES];			// cache lines
-static int					NumCacheLines;					// actual number of cache lines
-static UWORD				PixMapping[256];				// maps 8bpp greyscale to texture format
+static D3DTexture Texture[NUM_TT_PAGES]; // texture pages
+static CacheLine Cache[MAX_CACHELINES]; // cache lines
+static int NumCacheLines; // actual number of cache lines
+static UWORD PixMapping[256]; // maps 8bpp greyscale to texture format
 
-static TextCommand			Commands[MAX_TEXTCOMMANDS];		// text commands
+static TextCommand Commands[MAX_TEXTCOMMANDS]; // text commands
 
 // measure a TextCommand
 static void MeasureTextCommand(TextCommand* tcmd);
@@ -100,154 +100,152 @@ static void ShowDebug();
 
 void TT_Init()
 {
-	int	ii;
+    int ii;
 
-	if (pShadowSurface)	return;
+    if (pShadowSurface)
+        return;
 
-	FontHeight = ENV_get_value_number("FontHeight", 32, "TrueType");
-	if (FontHeight < MIN_TT_HEIGHT)		FontHeight = MIN_TT_HEIGHT;
-	if (FontHeight > MAX_TT_HEIGHT)		FontHeight = MAX_TT_HEIGHT;
+    FontHeight = ENV_get_value_number("FontHeight", 32, "TrueType");
+    if (FontHeight < MIN_TT_HEIGHT)
+        FontHeight = MIN_TT_HEIGHT;
+    if (FontHeight > MAX_TT_HEIGHT)
+        FontHeight = MAX_TT_HEIGHT;
 
 #ifndef TARGET_DC
-	// set MBCS support
-	_setmbcp(_MB_CP_LOCALE);	// set locale-specific codepage
+    // set MBCS support
+    _setmbcp(_MB_CP_LOCALE); // set locale-specific codepage
 #endif
 
-	// create the memory surface for drawing
-	HRESULT			hres;
-	DDSURFACEDESC2	desc;
+    // create the memory surface for drawing
+    HRESULT hres;
+    DDSURFACEDESC2 desc;
 
-	memset(&desc, 0, sizeof(desc));
-	desc.dwSize = sizeof(desc);
-	desc.dwFlags = DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_CAPS;
-	desc.dwWidth = 640 * AA_SIZE;
-	desc.dwHeight = FontHeight * AA_SIZE;
-	desc.ddpfPixelFormat.dwSize = sizeof(DDPIXELFORMAT);
-	desc.ddpfPixelFormat.dwFlags = DDPF_RGB | DDPF_PALETTEINDEXED8;
-	desc.ddpfPixelFormat.dwRGBBitCount = 8;
-	desc.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_OWNDC | DDSCAPS_SYSTEMMEMORY;
-	desc.ddsCaps.dwCaps2 = 0;
-	desc.ddsCaps.dwCaps3 = 0;
-	desc.ddsCaps.dwCaps4 = 0;
+    memset(&desc, 0, sizeof(desc));
+    desc.dwSize = sizeof(desc);
+    desc.dwFlags = DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_CAPS;
+    desc.dwWidth = 640 * AA_SIZE;
+    desc.dwHeight = FontHeight * AA_SIZE;
+    desc.ddpfPixelFormat.dwSize = sizeof(DDPIXELFORMAT);
+    desc.ddpfPixelFormat.dwFlags = DDPF_RGB | DDPF_PALETTEINDEXED8;
+    desc.ddpfPixelFormat.dwRGBBitCount = 8;
+    desc.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_OWNDC | DDSCAPS_SYSTEMMEMORY;
+    desc.ddsCaps.dwCaps2 = 0;
+    desc.ddsCaps.dwCaps3 = 0;
+    desc.ddsCaps.dwCaps4 = 0;
 
-	hres = the_display.lp_DD4->CreateSurface(&desc, &pShadowSurface, NULL);
+    hres = the_display.lp_DD4->CreateSurface(&desc, &pShadowSurface, NULL);
 
-	ASSERT(!FAILED(hres));
+    ASSERT(!FAILED(hres));
 
-	// create palette
-	PALETTEENTRY	palette[256];
+    // create palette
+    PALETTEENTRY palette[256];
 
-	for (ii = 0; ii < 256; ii++)
-	{
-		palette[ii].peRed = ii;
-		palette[ii].peGreen = ii;
-		palette[ii].peBlue = ii;
-		palette[ii].peFlags = NULL;
-	}
+    for (ii = 0; ii < 256; ii++) {
+        palette[ii].peRed = ii;
+        palette[ii].peGreen = ii;
+        palette[ii].peBlue = ii;
+        palette[ii].peFlags = NULL;
+    }
 
-	hres = the_display.lp_DD4->CreatePalette(DDPCAPS_8BIT | DDPCAPS_INITIALIZE, palette, &pShadowPalette, NULL);
-	ASSERT(!FAILED(hres));
+    hres = the_display.lp_DD4->CreatePalette(DDPCAPS_8BIT | DDPCAPS_INITIALIZE, palette, &pShadowPalette, NULL);
+    ASSERT(!FAILED(hres));
 
-	hres = pShadowSurface->SetPalette(pShadowPalette);
-	ASSERT(!FAILED(hres));
+    hres = pShadowSurface->SetPalette(pShadowPalette);
+    ASSERT(!FAILED(hres));
 
 #ifdef TARGET_DC
-	// Got to do it the long way round for DreamCast - don't know why.
-	LOGFONT logfont;
-	logfont.lfHeight			= FontHeight * AA_SIZE;
-	logfont.lfWeight			= 0;
-	logfont.lfEscapement		= 0;
-	logfont.lfOrientation		= 0;
-	logfont.lfWeight			= FW_BOLD;
-	logfont.lfItalic			= FALSE;
-	logfont.lfUnderline			= FALSE;
-	logfont.lfStrikeOut			= FALSE;
-	logfont.lfCharSet			= SHIFTJIS_CHARSET;
-	logfont.lfOutPrecision		= OUT_DEFAULT_PRECIS;
-	logfont.lfClipPrecision		= CLIP_DEFAULT_PRECIS;
-	logfont.lfQuality			= DEFAULT_QUALITY;
-	logfont.lfPitchAndFamily	= FF_DONTCARE | DEFAULT_PITCH;
-	logfont.lfFaceName[0]		= TEXT('\0');
-	hFont = CreateFontIndirect ( &logfont );
-#else //#ifdef TARGET_DC
-	// create the font - hey, a function with fourteen parameters!
-	hFont = CreateFont(FontHeight * AA_SIZE,
-						0,0,0,
-						FW_BOLD,									// weight
-						FALSE,FALSE,FALSE,
-						SHIFTJIS_CHARSET,							// charset
-						OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,
-						DEFAULT_QUALITY,							// quality
-						FF_DONTCARE | DEFAULT_PITCH,
-						TYPEFACE);									// typeface name
-#endif //#else //#ifdef TARGET_DC
+    // Got to do it the long way round for DreamCast - don't know why.
+    LOGFONT logfont;
+    logfont.lfHeight = FontHeight * AA_SIZE;
+    logfont.lfWeight = 0;
+    logfont.lfEscapement = 0;
+    logfont.lfOrientation = 0;
+    logfont.lfWeight = FW_BOLD;
+    logfont.lfItalic = FALSE;
+    logfont.lfUnderline = FALSE;
+    logfont.lfStrikeOut = FALSE;
+    logfont.lfCharSet = SHIFTJIS_CHARSET;
+    logfont.lfOutPrecision = OUT_DEFAULT_PRECIS;
+    logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+    logfont.lfQuality = DEFAULT_QUALITY;
+    logfont.lfPitchAndFamily = FF_DONTCARE | DEFAULT_PITCH;
+    logfont.lfFaceName[0] = TEXT('\0');
+    hFont = CreateFontIndirect(&logfont);
+#else // #ifdef TARGET_DC
+      //  create the font - hey, a function with fourteen parameters!
+    hFont = CreateFont(FontHeight * AA_SIZE,
+        0, 0, 0,
+        FW_BOLD, // weight
+        FALSE, FALSE, FALSE,
+        SHIFTJIS_CHARSET, // charset
+        OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+        DEFAULT_QUALITY, // quality
+        FF_DONTCARE | DEFAULT_PITCH,
+        TYPEFACE); // typeface name
+#endif // #else //#ifdef TARGET_DC
 
-	ASSERT(hFont);
+    ASSERT(hFont);
 
-	// create the texture cache
-	NumCacheLines = 0;
+    // create the texture cache
+    NumCacheLines = 0;
 
-	for (ii = 0; ii < NUM_TT_PAGES; ii++)
-	{
-		// create a page
-		Texture[ii].CreateUserPage(256, TRUE);
+    for (ii = 0; ii < NUM_TT_PAGES; ii++) {
+        // create a page
+        Texture[ii].CreateUserPage(256, TRUE);
 
-		// create cacheline mappings
-		for (int jj = 0; jj + FontHeight <= 256; jj += FontHeight)
-		{
-			Cache[NumCacheLines].owner = NULL;
-			Cache[NumCacheLines].texture = &Texture[ii];
-			Cache[NumCacheLines].y = jj;
+        // create cacheline mappings
+        for (int jj = 0; jj + FontHeight <= 256; jj += FontHeight) {
+            Cache[NumCacheLines].owner = NULL;
+            Cache[NumCacheLines].texture = &Texture[ii];
+            Cache[NumCacheLines].y = jj;
 
-			NumCacheLines++;
-		}
-	}
+            NumCacheLines++;
+        }
+    }
 
-	// set up pixmap
-	int		rr = Texture[0].mask_red;
-	int		lr = Texture[0].shift_red;
-	int		rg = Texture[0].mask_green;
-	int		lg = Texture[0].shift_green;
-	int		rb = Texture[0].mask_blue;
-	int		lb = Texture[0].shift_blue;
-	int		ra = Texture[0].mask_alpha;
-	int		la = Texture[0].shift_alpha;
+    // set up pixmap
+    int rr = Texture[0].mask_red;
+    int lr = Texture[0].shift_red;
+    int rg = Texture[0].mask_green;
+    int lg = Texture[0].shift_green;
+    int rb = Texture[0].mask_blue;
+    int lb = Texture[0].shift_blue;
+    int ra = Texture[0].mask_alpha;
+    int la = Texture[0].shift_alpha;
 
-	for (ii = 0; ii < 256; ii++)
-	{
-		PixMapping[ii] = 0;
-		PixMapping[ii] |= (255 >> rr) << lr;
-		PixMapping[ii] |= (255 >> rg) << lg;
-		PixMapping[ii] |= (255 >> rb) << lb;
-		PixMapping[ii] |= (ii >> ra) << la;
-	}
+    for (ii = 0; ii < 256; ii++) {
+        PixMapping[ii] = 0;
+        PixMapping[ii] |= (255 >> rr) << lr;
+        PixMapping[ii] |= (255 >> rg) << lg;
+        PixMapping[ii] |= (255 >> rb) << lb;
+        PixMapping[ii] |= (ii >> ra) << la;
+    }
 
-	// initialize the textcommands
-	for (ii = 0; ii < MAX_TEXTCOMMANDS; ii++)
-	{
-		Commands[ii].validity = Free;
-	}
+    // initialize the textcommands
+    for (ii = 0; ii < MAX_TEXTCOMMANDS; ii++) {
+        Commands[ii].validity = Free;
+    }
 
-	// initialize the DC (since it's owned, this is remembered)
-	HDC		hDC;
+    // initialize the DC (since it's owned, this is remembered)
+    HDC hDC;
 
-	hres = pShadowSurface->GetDC(&hDC);
-	ASSERT(!FAILED(hres));
+    hres = pShadowSurface->GetDC(&hDC);
+    ASSERT(!FAILED(hres));
 
-	// prepare the DC
-	SetBkColor(hDC, RGB(0,0,0));
-	SetBkMode(hDC, OPAQUE);
+    // prepare the DC
+    SetBkColor(hDC, RGB(0, 0, 0));
+    SetBkMode(hDC, OPAQUE);
 #ifndef TARGET_DC
-	SetTextAlign(hDC, TA_LEFT | TA_TOP | TA_NOUPDATECP);
-	SetTextCharacterExtra(hDC, ENV_get_value_number("ExtraSpaceX", 0, "TrueType"));
+    SetTextAlign(hDC, TA_LEFT | TA_TOP | TA_NOUPDATECP);
+    SetTextCharacterExtra(hDC, ENV_get_value_number("ExtraSpaceX", 0, "TrueType"));
 #endif
-	SetTextColor(hDC, RGB(255,255,255));
+    SetTextColor(hDC, RGB(255, 255, 255));
 
-	HFONT		hOldFont = (HFONT)SelectObject(hDC, hFont);
-	ASSERT(hOldFont);
+    HFONT hOldFont = (HFONT)SelectObject(hDC, hFont);
+    ASSERT(hOldFont);
 
-	hres = pShadowSurface->ReleaseDC(hDC);
-	ASSERT(!FAILED(hres));
+    hres = pShadowSurface->ReleaseDC(hDC);
+    ASSERT(!FAILED(hres));
 }
 
 // TT_Term
@@ -256,36 +254,36 @@ void TT_Init()
 
 void TT_Term()
 {
-	if (!pShadowSurface)	return;
+    if (!pShadowSurface)
+        return;
 
-	// unprepare the DC
-	HDC		hDC;
-	HRESULT	hres;
+    // unprepare the DC
+    HDC hDC;
+    HRESULT hres;
 
-	hres = pShadowSurface->GetDC(&hDC);
-	ASSERT(!FAILED(hres));
+    hres = pShadowSurface->GetDC(&hDC);
+    ASSERT(!FAILED(hres));
 
-	SelectObject(hDC, hOldFont);
+    SelectObject(hDC, hOldFont);
 
-	hres = pShadowSurface->ReleaseDC(hDC);
-	ASSERT(!FAILED(hres));
+    hres = pShadowSurface->ReleaseDC(hDC);
+    ASSERT(!FAILED(hres));
 
-	pShadowSurface->SetPalette(NULL);
+    pShadowSurface->SetPalette(NULL);
 
-	pShadowPalette->Release();
-	pShadowPalette = NULL;
+    pShadowPalette->Release();
+    pShadowPalette = NULL;
 
-	pShadowSurface->Release();
-	pShadowSurface = NULL;
+    pShadowSurface->Release();
+    pShadowSurface = NULL;
 
-	DeleteObject(hFont);
-	hFont = NULL;
+    DeleteObject(hFont);
+    hFont = NULL;
 
-	for (int ii = 0; ii < NUM_TT_PAGES; ii++)
-	{
-		Texture[ii].Destroy();
-		Texture[ii].Type = D3DTEXTURE_TYPE_UNUSED;
-	}
+    for (int ii = 0; ii < NUM_TT_PAGES; ii++) {
+        Texture[ii].Destroy();
+        Texture[ii].Type = D3DTEXTURE_TYPE_UNUSED;
+    }
 }
 
 // DrawTextTT
@@ -294,73 +292,68 @@ void TT_Term()
 
 int DrawTextTT(char* string, int x, int y, int rx, int scale, ULONG rgb, int command, long* width)
 {
-	int	nbytes;
+    int nbytes;
 
-	ASSERT(rx > x);
+    ASSERT(rx > x);
 
-	if (scale > 256)	scale = 256;	// no zooming up, it looks poo
+    if (scale > 256)
+        scale = 256; // no zooming up, it looks poo
 
-	// check string length
-	nbytes = strlen(string);
-	ASSERT(nbytes < MAX_TT_TEXT - 1);
+    // check string length
+    nbytes = strlen(string);
+    ASSERT(nbytes < MAX_TT_TEXT - 1);
 
-	// look for command
-	TextCommand*	tcmd = Commands;
-	TextCommand*	best = NULL;
-	bool			exact = false;
+    // look for command
+    TextCommand* tcmd = Commands;
+    TextCommand* best = NULL;
+    bool exact = false;
 
-	for (int ii = 0; ii < MAX_TEXTCOMMANDS; ii++)
-	{
-		if (tcmd->validity == Pending)
-		{
-			if ((tcmd->x == x) && (tcmd->y == y) && (tcmd->rx == rx) && (tcmd->command == command) && (tcmd->nbytes == nbytes))
-			{
-				if (!strcmp(string, tcmd->data))
-				{
-					// exact match
-					best = tcmd;
-					exact = true;
-					break;
-				}
-			}
-		}
-		else if (tcmd->validity == Free)
-		{
-			if (!best)
-			{
-				best = tcmd;
-			}
-		}
+    for (int ii = 0; ii < MAX_TEXTCOMMANDS; ii++) {
+        if (tcmd->validity == Pending) {
+            if ((tcmd->x == x) && (tcmd->y == y) && (tcmd->rx == rx) && (tcmd->command == command) && (tcmd->nbytes == nbytes)) {
+                if (!strcmp(string, tcmd->data)) {
+                    // exact match
+                    best = tcmd;
+                    exact = true;
+                    break;
+                }
+            }
+        } else if (tcmd->validity == Free) {
+            if (!best) {
+                best = tcmd;
+            }
+        }
 
-		tcmd++;
-	}
+        tcmd++;
+    }
 
-	if (!best)	return y;	// no space
+    if (!best)
+        return y; // no space
 
-	if (!exact)
-	{
-		best->x = x;
-		best->y = y;
-		best->rx = rx;
-		best->scale = scale;
-		best->command = command;
-		best->nbytes = nbytes;
-		strcpy(best->data, string);
+    if (!exact) {
+        best->x = x;
+        best->y = y;
+        best->rx = rx;
+        best->scale = scale;
+        best->command = command;
+        best->nbytes = nbytes;
+        strcpy(best->data, string);
 #ifdef TARGET_DC
-		best->nchars = strlen(string);
+        best->nchars = strlen(string);
 #else
-		best->nchars = _mbslen((unsigned char*)string);
+        best->nchars = _mbslen((unsigned char*)string);
 #endif
-		best->in_cache = false;
-		MeasureTextCommand(best);
-	}
+        best->in_cache = false;
+        MeasureTextCommand(best);
+    }
 
-	best->rgb = rgb;
-	best->validity = Current;
+    best->rgb = rgb;
+    best->validity = Current;
 
-	if (width)	*width = best->x + best->fwidth;
+    if (width)
+        *width = best->x + best->fwidth;
 
-	return y + best->lines * FontHeight * scale / 256;
+    return y + best->lines * FontHeight * scale / 256;
 }
 
 // GetTextHeightTT
@@ -369,7 +362,7 @@ int DrawTextTT(char* string, int x, int y, int rx, int scale, ULONG rgb, int com
 
 int GetTextHeightTT()
 {
-	return FontHeight;
+    return FontHeight;
 }
 
 // PreFlipTT
@@ -378,51 +371,51 @@ int GetTextHeightTT()
 
 void PreFlipTT()
 {
-	if (!pShadowSurface)	return;		// not initialized
+    if (!pShadowSurface)
+        return; // not initialized
 
-	int		ii;
-	bool	work = false;
+    int ii;
+    bool work = false;
 
-	// release all unused text commands
-	for (ii = 0; ii < MAX_TEXTCOMMANDS; ii++)
-	{
-		if (Commands[ii].validity == Pending)									Commands[ii].validity = Free;
-		else if ((Commands[ii].validity == Current) && !Commands[ii].in_cache)	work = true;
-	}
+    // release all unused text commands
+    for (ii = 0; ii < MAX_TEXTCOMMANDS; ii++) {
+        if (Commands[ii].validity == Pending)
+            Commands[ii].validity = Free;
+        else if ((Commands[ii].validity == Current) && !Commands[ii].in_cache)
+            work = true;
+    }
 
-	// check cachelines and release if owned by a deleted text command
-	for (ii = 0; ii < NumCacheLines; ii++)
-	{
-		if (Cache[ii].owner && (Cache[ii].owner->validity == Free))		Cache[ii].owner = NULL;
-	}
+    // check cachelines and release if owned by a deleted text command
+    for (ii = 0; ii < NumCacheLines; ii++) {
+        if (Cache[ii].owner && (Cache[ii].owner->validity == Free))
+            Cache[ii].owner = NULL;
+    }
 
-	// draw text if there is any to do
-	if (work)
-	{
-		TextCommand*	tcmd = Commands;
+    // draw text if there is any to do
+    if (work) {
+        TextCommand* tcmd = Commands;
 
-		for (ii = 0; ii < MAX_TEXTCOMMANDS; ii++)
-		{
-			if ((tcmd->validity == Current) && !tcmd->in_cache)
-			{
-				DoTextCommand(tcmd);
-				tcmd->in_cache = true;
-			}
-			tcmd++;
-		}
-	}
+        for (ii = 0; ii < MAX_TEXTCOMMANDS; ii++) {
+            if ((tcmd->validity == Current) && !tcmd->in_cache) {
+                DoTextCommand(tcmd);
+                tcmd->in_cache = true;
+            }
+            tcmd++;
+        }
+    }
 
-	// set all Current commands to Pending
-	for (ii = 0; ii < MAX_TEXTCOMMANDS; ii++)
-	{
-		if (Commands[ii].validity == Current)	Commands[ii].validity = Pending;
-	}
+    // set all Current commands to Pending
+    for (ii = 0; ii < MAX_TEXTCOMMANDS; ii++) {
+        if (Commands[ii].validity == Current)
+            Commands[ii].validity = Pending;
+    }
 
-	// copy to the screen
-	BlitText();
+    // copy to the screen
+    BlitText();
 
 #ifdef _DEBUG
-	if (ControlFlag)	ShowDebug();
+    if (ControlFlag)
+        ShowDebug();
 #endif
 }
 
@@ -432,47 +425,48 @@ void PreFlipTT()
 
 static void MeasureTextCommand(TextCommand* tcmd)
 {
-	char*	string = tcmd->data;
-	int		clen = tcmd->nchars;
+    char* string = tcmd->data;
+    int clen = tcmd->nchars;
 
-	HDC		hDC;
-	HRESULT	res;
+    HDC hDC;
+    HRESULT res;
 
-	res = pShadowSurface->GetDC(&hDC);
-	ASSERT(!FAILED(res));
+    res = pShadowSurface->GetDC(&hDC);
+    ASSERT(!FAILED(res));
 
-	tcmd->lines = 0;
-	tcmd->fwidth = tcmd->rx - tcmd->x;
+    tcmd->lines = 0;
+    tcmd->fwidth = tcmd->rx - tcmd->x;
 
-	while (clen)
-	{
-		SIZE	size;
-		int		chars;
+    while (clen) {
+        SIZE size;
+        int chars;
 
 #ifdef TARGET_DC
-		static TCHAR cTempString[64+1];
-		ASSERT ( strlen ( string ) < 64 );
-		textConvertCharToUni ( cTempString, string );
-		GetTextExtentExPoint(hDC,cTempString,clen,tcmd->fwidth*AA_SIZE,&chars,NULL,&size);
+        static TCHAR cTempString[64 + 1];
+        ASSERT(strlen(string) < 64);
+        textConvertCharToUni(cTempString, string);
+        GetTextExtentExPoint(hDC, cTempString, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
 #else
-		GetTextExtentExPoint(hDC,string,clen,tcmd->fwidth*AA_SIZE,&chars,NULL,&size);
+        GetTextExtentExPoint(hDC, string, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
 #endif
 
-		if ((chars < clen) && (clen - chars < 3))	chars = clen - 3;
-		ASSERT(chars);
-		if (!chars)	break;
+        if ((chars < clen) && (clen - chars < 3))
+            chars = clen - 3;
+        ASSERT(chars);
+        if (!chars)
+            break;
 
-		tcmd->lines++;
-		clen -= chars;
+        tcmd->lines++;
+        clen -= chars;
 #ifdef TARGET_DC
-		string += chars;
+        string += chars;
 #else
-		string = (char*)_mbsninc((unsigned char*)string, chars);
+        string = (char*)_mbsninc((unsigned char*)string, chars);
 #endif
-	}
+    }
 
-	res = pShadowSurface->ReleaseDC(hDC);
-	ASSERT(!FAILED(res));
+    res = pShadowSurface->ReleaseDC(hDC);
+    ASSERT(!FAILED(res));
 }
 
 // DoTextCommand
@@ -481,85 +475,85 @@ static void MeasureTextCommand(TextCommand* tcmd)
 
 static void DoTextCommand(TextCommand* tcmd)
 {
-	char*	string = tcmd->data;
-	int		clen = tcmd->nchars;
-	int		y = tcmd->y;
+    char* string = tcmd->data;
+    int clen = tcmd->nchars;
+    int y = tcmd->y;
 
-	while (clen)
-	{
-		// set up the DC so we can measure strings etc.
-		HDC		hDC;
-		HRESULT	res;
+    while (clen) {
+        // set up the DC so we can measure strings etc.
+        HDC hDC;
+        HRESULT res;
 
-		res = pShadowSurface->GetDC(&hDC);
-		ASSERT(!FAILED(res));
+        res = pShadowSurface->GetDC(&hDC);
+        ASSERT(!FAILED(res));
 
-		// measure string
-		SIZE	size;
-		int		chars;
+        // measure string
+        SIZE size;
+        int chars;
 
 #ifdef TARGET_DC
-		static TCHAR cTempString[64+1];
-		ASSERT ( strlen ( string ) < 64 );
-		textConvertCharToUni ( cTempString, string );
-		GetTextExtentExPoint(hDC,cTempString,clen,tcmd->fwidth*AA_SIZE,&chars,NULL,&size);
+        static TCHAR cTempString[64 + 1];
+        ASSERT(strlen(string) < 64);
+        textConvertCharToUni(cTempString, string);
+        GetTextExtentExPoint(hDC, cTempString, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
 #else
-		GetTextExtentExPoint(hDC,string,clen,tcmd->fwidth*AA_SIZE,&chars,NULL,&size);
+        GetTextExtentExPoint(hDC, string, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
 #endif
 
-		// fix up for 1 or 2 characters over
-		if ((chars < clen) && (clen - chars < 3))	chars = clen - 3;
+        // fix up for 1 or 2 characters over
+        if ((chars < clen) && (clen - chars < 3))
+            chars = clen - 3;
 
-		ASSERT(chars);
-		if (!chars)	return;
+        ASSERT(chars);
+        if (!chars)
+            return;
 
-		// get width
+        // get width
 #ifdef TARGET_DC
-		GetTextExtentExPoint(hDC,cTempString,chars,0,NULL,NULL,&size);
+        GetTextExtentExPoint(hDC, cTempString, chars, 0, NULL, NULL, &size);
 #else
-		GetTextExtentExPoint(hDC,string,chars,0,NULL,NULL,&size);
+        GetTextExtentExPoint(hDC, string, chars, 0, NULL, NULL, &size);
 #endif
-		int		width = size.cx / AA_SIZE;
+        int width = size.cx / AA_SIZE;
 
-		// release the DC
-		res = pShadowSurface->ReleaseDC(hDC);
-		ASSERT(!FAILED(res));
+        // release the DC
+        res = pShadowSurface->ReleaseDC(hDC);
+        ASSERT(!FAILED(res));
 
 #ifdef _DEBUG
-		static char buffer[256];
-		memcpy(buffer, string, chars);
-		buffer[chars] = '\0';
-		TRACE("Line: %s\n", buffer);
+        static char buffer[256];
+        memcpy(buffer, string, chars);
+        buffer[chars] = '\0';
+        TRACE("Line: %s\n", buffer);
 #endif
 
-		// draw this line
-		switch (tcmd->command)
-		{
-		case LeftJustify:
-			CreateTextLine(string, chars, width, tcmd->x, y, tcmd);
-			break;
+        // draw this line
+        switch (tcmd->command) {
+        case LeftJustify:
+            CreateTextLine(string, chars, width, tcmd->x, y, tcmd);
+            break;
 
-		case RightJustify:
-			CreateTextLine(string, chars, width, tcmd->rx - width, y, tcmd);
-			break;
+        case RightJustify:
+            CreateTextLine(string, chars, width, tcmd->rx - width, y, tcmd);
+            break;
 
-		case Centred:
-			CreateTextLine(string, chars, width, (tcmd->x + tcmd->rx - width * tcmd->scale / 256) / 2, y, tcmd);
-			break;
-			
-		default:
-			ASSERT(0);
-			break;
-		}
+        case Centred:
+            CreateTextLine(string, chars, width, (tcmd->x + tcmd->rx - width * tcmd->scale / 256) / 2, y, tcmd);
+            break;
 
-		y += FontHeight * tcmd->scale >> 8;
-		clen -= chars;
+        default:
+            ASSERT(0);
+            break;
+        }
+
+        y += FontHeight * tcmd->scale >> 8;
+        clen -= chars;
 #ifdef TARGET_DC
-		string += chars;
+        string += chars;
 #else
-		string = (char*)_mbsninc((unsigned char*)string, chars);
+        string = (char*)_mbsninc((unsigned char*)string, chars);
 #endif
-	}
+    }
 }
 
 // CreateTextLine
@@ -568,78 +562,76 @@ static void DoTextCommand(TextCommand* tcmd)
 
 static void CreateTextLine(char* string, int nchars, int width, int x, int y, TextCommand* owner)
 {
-	ASSERT(width <= 640);
+    ASSERT(width <= 640);
 
-	// set up the DC
-	HDC		hDC;
-	HRESULT	res;
+    // set up the DC
+    HDC hDC;
+    HRESULT res;
 
-	res = pShadowSurface->GetDC(&hDC);
-	ASSERT(!FAILED(res));
+    res = pShadowSurface->GetDC(&hDC);
+    ASSERT(!FAILED(res));
 
-	// set up drawing rectangle
-	RECT	rect;
+    // set up drawing rectangle
+    RECT rect;
 
-	rect.left = 0;
-	rect.right = width * AA_SIZE;
-	rect.top = 0;
-	rect.bottom = FontHeight * AA_SIZE;
+    rect.left = 0;
+    rect.right = width * AA_SIZE;
+    rect.top = 0;
+    rect.bottom = FontHeight * AA_SIZE;
 
-	// draw text
+    // draw text
 #ifdef TARGET_DC
-	static TCHAR cTempString[64+1];
-	ASSERT ( strlen ( string ) < 64 );
-	textConvertCharToUni ( cTempString, string );
-	res = ExtTextOut(hDC, 0, 0, ETO_OPAQUE, &rect, cTempString, nchars, NULL);
+    static TCHAR cTempString[64 + 1];
+    ASSERT(strlen(string) < 64);
+    textConvertCharToUni(cTempString, string);
+    res = ExtTextOut(hDC, 0, 0, ETO_OPAQUE, &rect, cTempString, nchars, NULL);
 #else
-	res = ExtTextOut(hDC, 0, 0, ETO_OPAQUE, &rect, string, nchars, NULL);
+    res = ExtTextOut(hDC, 0, 0, ETO_OPAQUE, &rect, string, nchars, NULL);
 #endif
-	ASSERT ( res != 0 );
+    ASSERT(res != 0);
 
-	res = pShadowSurface->ReleaseDC(hDC);
-	ASSERT(!FAILED(res));
+    res = pShadowSurface->ReleaseDC(hDC);
+    ASSERT(!FAILED(res));
 
-	//
-	// copy to cache
-	//
+    //
+    // copy to cache
+    //
 
-	// lock the surface
-	DDSURFACEDESC2 ddsdesc;
+    // lock the surface
+    DDSURFACEDESC2 ddsdesc;
 
-	InitStruct(ddsdesc);
+    InitStruct(ddsdesc);
 
-	res = pShadowSurface->Lock(NULL, &ddsdesc, DDLOCK_WAIT, NULL);
-	ASSERT(!FAILED(res));
+    res = pShadowSurface->Lock(NULL, &ddsdesc, DDLOCK_WAIT, NULL);
+    ASSERT(!FAILED(res));
 
-	UBYTE*	sptr = (UBYTE*)ddsdesc.lpSurface;
-	int		spitch = ddsdesc.lPitch;
+    UBYTE* sptr = (UBYTE*)ddsdesc.lpSurface;
+    int spitch = ddsdesc.lPitch;
 
-	// copy to cache
-	int	line;
-	int	seg = 0;
+    // copy to cache
+    int line;
+    int seg = 0;
 
-	while (width >= 0)
-	{
-		ASSERT(seg < 3);
+    while (width >= 0) {
+        ASSERT(seg < 3);
 
-		line = NewCacheLine();
-		if (line != -1)
-		{
-			CopyToCache(&Cache[line], sptr, spitch, width);
-			Cache[line].owner = owner;
-			Cache[line].sx = x;
-			Cache[line].sy = y;
-		}
+        line = NewCacheLine();
+        if (line != -1) {
+            CopyToCache(&Cache[line], sptr, spitch, width);
+            Cache[line].owner = owner;
+            Cache[line].sx = x;
+            Cache[line].sy = y;
+        }
 
-		width -= 256;
-		x += owner->scale;
-		seg++;
-		sptr += 256 * AA_SIZE;
-	}
+        width -= 256;
+        x += owner->scale;
+        seg++;
+        sptr += 256 * AA_SIZE;
+    }
 
-	// unlock the surface
-	res = pShadowSurface->Unlock(NULL);
-	ASSERT(!FAILED(res));
+    // unlock the surface
+    res = pShadowSurface->Unlock(NULL);
+    ASSERT(!FAILED(res));
 }
 
 // NewCacheLine
@@ -648,11 +640,11 @@ static void CreateTextLine(char* string, int nchars, int width, int x, int y, Te
 
 static int NewCacheLine()
 {
-	for (int ii = 0; ii < NumCacheLines; ii++)
-	{
-		if (!Cache[ii].owner)	return ii;
-	}
-	return -1;
+    for (int ii = 0; ii < NumCacheLines; ii++) {
+        if (!Cache[ii].owner)
+            return ii;
+    }
+    return -1;
 }
 
 // CopyToCache
@@ -661,44 +653,42 @@ static int NewCacheLine()
 
 static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width)
 {
-	if (width > 256)	width = 256;
+    if (width > 256)
+        width = 256;
 
-	HRESULT	res;
-	UWORD*	dptr;
-	SLONG	dpitch;
+    HRESULT res;
+    UWORD* dptr;
+    SLONG dpitch;
 
-	res = cptr->texture->LockUser(&dptr, &dpitch);
-	if (FAILED(res))	return;
+    res = cptr->texture->LockUser(&dptr, &dpitch);
+    if (FAILED(res))
+        return;
 
-	dpitch /= 2;
-	dptr += cptr->y * dpitch;
+    dpitch /= 2;
+    dptr += cptr->y * dpitch;
 
 #if ANTIALIAS_BY_HAND
-	for (int y = 0; y < FontHeight; y++)
-	{
-		for (int x = 0; x < width; x++)
-		{
-			int	acc = sptr[0] + sptr[1] + sptr[spitch + 0] + sptr[spitch + 1];
-			dptr[x] = PixMapping[acc / 4];
-			sptr += 2;
-		}
-		sptr += (spitch-width)*2;
-		dptr += dpitch;
-	}
+    for (int y = 0; y < FontHeight; y++) {
+        for (int x = 0; x < width; x++) {
+            int acc = sptr[0] + sptr[1] + sptr[spitch + 0] + sptr[spitch + 1];
+            dptr[x] = PixMapping[acc / 4];
+            sptr += 2;
+        }
+        sptr += (spitch - width) * 2;
+        dptr += dpitch;
+    }
 #else
-	for (int y = 0; y < FontHeight; y++)
-	{
-		for (int x = 0; x < width; x++)
-		{
-			dptr[x] = PixMapping[sptr[x]];
-		}
-		dptr += dpitch;
-		sptr += spitch;
-	}
+    for (int y = 0; y < FontHeight; y++) {
+        for (int x = 0; x < width; x++) {
+            dptr[x] = PixMapping[sptr[x]];
+        }
+        dptr += dpitch;
+        sptr += spitch;
+    }
 #endif
 
-	cptr->texture->UnlockUser();
-	cptr->width = width;
+    cptr->texture->UnlockUser();
+    cptr->width = width;
 }
 
 // BlitText
@@ -707,48 +697,43 @@ static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width)
 
 static void BlitText()
 {
-	int			ii;
-	D3DTexture*	ctex = NULL;
-	CacheLine*	cptr = Cache;
+    int ii;
+    D3DTexture* ctex = NULL;
+    CacheLine* cptr = Cache;
 
-	// go through in texture order
-	for (ii = 0; ii < NumCacheLines; ii++)
-	{
-		if (cptr->owner)
-		{
-			// set render states
-			if (!ctex)
-			{
-				BEGIN_SCENE;
+    // go through in texture order
+    for (ii = 0; ii < NumCacheLines; ii++) {
+        if (cptr->owner) {
+            // set render states
+            if (!ctex) {
+                BEGIN_SCENE;
 
-				// Fixme! I need to be updated if this ever gets called - TomF.
-				ASSERT ( FALSE );
+                // Fixme! I need to be updated if this ever gets called - TomF.
+                ASSERT(FALSE);
 
-				REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
-				REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
-				REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-				REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
-				REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
-				REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-				REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-				REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
-			}
-			if (ctex != cptr->texture)
-			{
-				ctex = cptr->texture;
-				REALLY_SET_TEXTURE(ctex->GetD3DTexture());
-			}
+                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
+                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
+                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
+                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
+                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
+                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
+                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+            }
+            if (ctex != cptr->texture) {
+                ctex = cptr->texture;
+                REALLY_SET_TEXTURE(ctex->GetD3DTexture());
+            }
 
-			// blit area
-			TexBlit(0, cptr->y, cptr->width, cptr->y + FontHeight, cptr->sx, cptr->sy, cptr->owner->rgb, cptr->owner->scale);
-		}
-		cptr++;
-	}
+            // blit area
+            TexBlit(0, cptr->y, cptr->width, cptr->y + FontHeight, cptr->sx, cptr->sy, cptr->owner->rgb, cptr->owner->scale);
+        }
+        cptr++;
+    }
 
-	if (ctex)
-	{
-		END_SCENE;
-	}
+    if (ctex) {
+        END_SCENE;
+    }
 }
 
 // ShowTextures
@@ -757,22 +742,22 @@ static void BlitText()
 
 static void ShowTextures()
 {
-	BEGIN_SCENE;
+    BEGIN_SCENE;
 
-	REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
-	REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
-	REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-	REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
-	REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
-	REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-	REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-	REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
 
-	REALLY_SET_TEXTURE(Texture[0].GetD3DTexture());
+    REALLY_SET_TEXTURE(Texture[0].GetD3DTexture());
 
-	TexBlit(0,0,256,256,0,FontHeight*AA_SIZE,0xFFFFFFFF,256);
+    TexBlit(0, 0, 256, 256, 0, FontHeight * AA_SIZE, 0xFFFFFFFF, 256);
 
-	END_SCENE;
+    END_SCENE;
 }
 
 // TexBlit
@@ -781,45 +766,45 @@ static void ShowTextures()
 
 static void TexBlit(int x1, int y1, int x2, int y2, int dx, int dy, ULONG rgb, ULONG scale)
 {
-	PolyPoint2D		vert[4], *vp = vert;
-	
-	float	u1 = float(x1) / 256;
-	float	u2 = float(x2) / 256;
-	float	v1 = float(y1) / 256;
-	float	v2 = float(y2) / 256;
+    PolyPoint2D vert[4], *vp = vert;
 
-	int		width = (x2 - x1) * scale / 256;
-	int		height = (y2 - y1) * scale / 256;
+    float u1 = float(x1) / 256;
+    float u2 = float(x2) / 256;
+    float v1 = float(y1) / 256;
+    float v2 = float(y2) / 256;
 
-	vp->SetSC(dx,dy);
-	vp->SetColour(rgb);
-	vp->SetSpecular(0xFF000000);
-	vp->SetUV(u1,v1);
-	vp++;
+    int width = (x2 - x1) * scale / 256;
+    int height = (y2 - y1) * scale / 256;
 
-	vp->SetSC(dx + width,dy);
-	vp->SetColour(rgb);
-	vp->SetSpecular(0xFF000000);
-	vp->SetUV(u2,v1);
-	vp++;
+    vp->SetSC(dx, dy);
+    vp->SetColour(rgb);
+    vp->SetSpecular(0xFF000000);
+    vp->SetUV(u1, v1);
+    vp++;
 
-	vp->SetSC(dx + width,dy + height);
-	vp->SetColour(rgb);
-	vp->SetSpecular(0xFF000000);
-	vp->SetUV(u2,v2);
-	vp++;
+    vp->SetSC(dx + width, dy);
+    vp->SetColour(rgb);
+    vp->SetSpecular(0xFF000000);
+    vp->SetUV(u2, v1);
+    vp++;
 
-	vp->SetSC(dx,dy + height);
-	vp->SetColour(rgb);
-	vp->SetSpecular(0xFF000000);
-	vp->SetUV(u1,v2);
-	vp++;
+    vp->SetSC(dx + width, dy + height);
+    vp->SetColour(rgb);
+    vp->SetSpecular(0xFF000000);
+    vp->SetUV(u2, v2);
+    vp++;
 
-	static WORD	indices[6] = { 0, 3, 1, 1, 2, 3 };
+    vp->SetSC(dx, dy + height);
+    vp->SetColour(rgb);
+    vp->SetSpecular(0xFF000000);
+    vp->SetUV(u1, v2);
+    vp++;
 
-	//HRESULT	res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, vert->GetTLVert(), 4, indices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-	HRESULT	res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, (D3DTLVERTEX*)vert, 4, indices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-	ASSERT(!FAILED(res));
+    static WORD indices[6] = { 0, 3, 1, 1, 2, 3 };
+
+    // HRESULT	res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, vert->GetTLVert(), 4, indices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
+    HRESULT res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, (D3DTLVERTEX*)vert, 4, indices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
+    ASSERT(!FAILED(res));
 }
 
 // ShowDebug
@@ -828,42 +813,40 @@ static void TexBlit(int x1, int y1, int x2, int y2, int dx, int dy, ULONG rgb, U
 
 static void ShowDebug()
 {
-	UWORD	mapping[256];
+    UWORD mapping[256];
 
-	for (int ii = 0; ii < 256; ii++)
-	{
-		UBYTE	col = ii >> 3;
-		mapping[ii] = (col << 10) | (col << 5) | col;
-	}
+    for (int ii = 0; ii < 256; ii++) {
+        UBYTE col = ii >> 3;
+        mapping[ii] = (col << 10) | (col << 5) | col;
+    }
 
-	// lock the shadow surface
-	DDSURFACEDESC2 ddsdesc;
-	HRESULT        ret;
+    // lock the shadow surface
+    DDSURFACEDESC2 ddsdesc;
+    HRESULT ret;
 
-	InitStruct(ddsdesc);
+    InitStruct(ddsdesc);
 
-	ret = pShadowSurface->Lock(NULL, &ddsdesc, DDLOCK_WAIT, NULL);
+    ret = pShadowSurface->Lock(NULL, &ddsdesc, DDLOCK_WAIT, NULL);
 
-	if (FAILED(ret))	return;
+    if (FAILED(ret))
+        return;
 
-	UBYTE*	sptr = (UBYTE*)ddsdesc.lpSurface;
-	int		spitch = ddsdesc.lPitch;
+    UBYTE* sptr = (UBYTE*)ddsdesc.lpSurface;
+    int spitch = ddsdesc.lPitch;
 
-	UWORD*	dptr = (UWORD*)the_display.screen_lock();
-	int		dpitch = the_display.screen_pitch / 2;
+    UWORD* dptr = (UWORD*)the_display.screen_lock();
+    int dpitch = the_display.screen_pitch / 2;
 
-	for (int y = 0; y < FontHeight * AA_SIZE; y++)
-	{
-		for (int x = 0; x < 640; x++)
-		{
-			dptr[x] = mapping[sptr[x]];
-		}
-		sptr += spitch;
-		dptr += dpitch;
-	}
+    for (int y = 0; y < FontHeight * AA_SIZE; y++) {
+        for (int x = 0; x < 640; x++) {
+            dptr[x] = mapping[sptr[x]];
+        }
+        sptr += spitch;
+        dptr += dpitch;
+    }
 
-	the_display.screen_unlock();
-	pShadowSurface->Unlock(NULL);
+    the_display.screen_unlock();
+    pShadowSurface->Unlock(NULL);
 
-	ShowTextures();
+    ShowTextures();
 }

@@ -9,4 +9,4 @@
 #include "Director.h"
 
 // error reporting
-inline void ReportError(const TCHAR* error)	{ MessageBox(NULL, error, "Error", MB_OK | MB_ICONINFORMATION); }
+inline void ReportError(const TCHAR* error) { MessageBox(NULL, error, "Error", MB_OK | MB_ICONINFORMATION); }

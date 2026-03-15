@@ -18,5 +18,4 @@
 
 void MAP_draw()
 {
-	
 }

@@ -4,67 +4,66 @@
 // claude-ai: В финальной игре Roper работает через общий механизм Person.cpp / pcom.cpp (cop_states-подобная логика).
 // claude-ai: Примечание: "All temp stuff, botched in for demo" — временный код для демо-версии.
 
-#include	"Game.h"
-#include	"Roper.h"
-#include	"statedef.h"
-#include	"animate.h"
+#include "Game.h"
+#include "Roper.h"
+#include "statedef.h"
+#include "animate.h"
 
 //---------------------------------------------------------------
 // All temp stuff, botched in for demo.
 
-#include	"..\Editor\Headers\Thing.h"
+#include "..\Editor\Headers\Thing.h"
 
-ULONG	move_thing(SLONG m_dx,SLONG m_dy,SLONG m_dz,struct MapThing *p_thing);
+ULONG move_thing(SLONG m_dx, SLONG m_dy, SLONG m_dz, struct MapThing* p_thing);
 
-SLONG	calc_height_at(SLONG x,SLONG z);
+SLONG calc_height_at(SLONG x, SLONG z);
 
-extern Thing			*darci_thing;
+extern Thing* darci_thing;
 
 //---------------------------------------------------------------
 
-StateFunction	roper_states[]	=
-{
-	{	STATE_INIT,				fn_roper_init	},
-	{	STATE_NORMAL,			fn_roper_normal	},
-	{	STATE_HIT,				NULL			},
-	{	STATE_ABOUT_TO_REMOVE,	NULL			},
-	{	STATE_REMOVE_ME,		NULL			}
+StateFunction roper_states[] = {
+    { STATE_INIT, fn_roper_init },
+    { STATE_NORMAL, fn_roper_normal },
+    { STATE_HIT, NULL },
+    { STATE_ABOUT_TO_REMOVE, NULL },
+    { STATE_REMOVE_ME, NULL }
 };
 
 //---------------------------------------------------------------
 
-void	fn_roper_init(Thing *t_thing)
+void fn_roper_init(Thing* t_thing)
 {
-//	t_thing->WorldPos.X	=	16896;
-//	t_thing->WorldPos.Y	=	0;
-//	t_thing->WorldPos.Z	=	16896;
+    //	t_thing->WorldPos.X	=	16896;
+    //	t_thing->WorldPos.Y	=	0;
+    //	t_thing->WorldPos.Z	=	16896;
 
-	t_thing->DrawType						=	DT_ROT_MULTI;
-//	t_thing->Draw.Tweened->Angle			=	0;
-	t_thing->Draw.Tweened->Roll				=	0;
-	t_thing->Draw.Tweened->Tilt				=	0;
-	t_thing->Draw.Tweened->AnimTween		=	0;
-	t_thing->Draw.Tweened->TweenStage		=	0;
-	t_thing->Draw.Tweened->QueuedFrame		=	NULL;
-//	t_thing->Draw.Tweened->AnimElements		=	t_thing->Draw.Tweened->CurrentFrame->FirstElement;
-//	t_thing->Draw.Tweened->NextAnimElements	=	t_thing->Draw.Tweened->AnimElements;
+    t_thing->DrawType = DT_ROT_MULTI;
+    //	t_thing->Draw.Tweened->Angle			=	0;
+    t_thing->Draw.Tweened->Roll = 0;
+    t_thing->Draw.Tweened->Tilt = 0;
+    t_thing->Draw.Tweened->AnimTween = 0;
+    t_thing->Draw.Tweened->TweenStage = 0;
+    t_thing->Draw.Tweened->QueuedFrame = NULL;
+    //	t_thing->Draw.Tweened->AnimElements		=	t_thing->Draw.Tweened->CurrentFrame->FirstElement;
+    //	t_thing->Draw.Tweened->NextAnimElements	=	t_thing->Draw.Tweened->AnimElements;
 
-//	t_thing->StateFn				=	(void(*)(Thing*))process_enemy2;
+    //	t_thing->StateFn				=	(void(*)(Thing*))process_enemy2;
 
-	t_thing->Genus.Person->Health		=	health[t_thing->Genus.Person->PersonType];
+    t_thing->Genus.Person->Health = health[t_thing->Genus.Person->PersonType];
 
-	add_thing_to_map(t_thing);
-	set_person_idle(t_thing);
+    add_thing_to_map(t_thing);
+    set_person_idle(t_thing);
 }
 
 //---------------------------------------------------------------
 
 // claude-ai: ПУСТАЯ ФУНКЦИЯ — fn_roper_normal() ничего не делает (только return).
 // claude-ai: В финальном релизе Roper управляется через общий AI в pcom.cpp, а не через эту функцию.
-void	fn_roper_normal(Thing *t_thing)
+void fn_roper_normal(Thing* t_thing)
 {
 
-	return;
+    return;
 }
 
 //---------------------------------------------------------------

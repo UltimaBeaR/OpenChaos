@@ -1,20 +1,18 @@
 #include "always.h"
 #include "matrix.h"
 
-
 void MATRIX_scale(float matrix[9], float mulby)
 {
-	matrix[0] *= mulby;
-	matrix[1] *= mulby;
-	matrix[2] *= mulby;
-	matrix[3] *= mulby;
-	matrix[4] *= mulby;
-	matrix[5] *= mulby;
-	matrix[6] *= mulby;
-	matrix[7] *= mulby;
-	matrix[8] *= mulby;
+    matrix[0] *= mulby;
+    matrix[1] *= mulby;
+    matrix[2] *= mulby;
+    matrix[3] *= mulby;
+    matrix[4] *= mulby;
+    matrix[5] *= mulby;
+    matrix[6] *= mulby;
+    matrix[7] *= mulby;
+    matrix[8] *= mulby;
 }
-
 
 #if 0
 
@@ -164,33 +162,36 @@ void MATRIX_3x3mul(float a[9], float m[9], float n[9])
 // matrix, because it will be unchanged.
 //
 
-#define	MATRIX_ROTATE_ABOUT_Z(ax, ay, az, bx, by, bz, cx, cy, cz, angle)	\
-{																			\
-	float c = cos(angle);													\
-	float s = sin(angle);													\
-																			\
-	float px;																\
-	float py;																\
-	float pz;																\
-																			\
-	float qx;																\
-	float qy;																\
-	float qz;																\
-																			\
-	if (angle)																\
-	{																		\
-		px =  c * (ax) + s * (bx);											\
-		py =  c * (ay) + s * (by);											\
-		pz =  c * (az) + s * (bz);											\
-			 																\
-		qx = -s * (ax) + c * (bx);											\
-		qy = -s * (ay) + c * (by);											\
-		qz = -s * (az) + c * (bz);											\
-																			\
-		(ax) = px; (ay) = py; (az) = pz;									\
-		(bx) = qx; (by) = qy; (bz) = qz;									\
-	}																		\
-}
+#define MATRIX_ROTATE_ABOUT_Z(ax, ay, az, bx, by, bz, cx, cy, cz, angle) \
+    {                                                                    \
+        float c = cos(angle);                                            \
+        float s = sin(angle);                                            \
+                                                                         \
+        float px;                                                        \
+        float py;                                                        \
+        float pz;                                                        \
+                                                                         \
+        float qx;                                                        \
+        float qy;                                                        \
+        float qz;                                                        \
+                                                                         \
+        if (angle) {                                                     \
+            px = c * (ax) + s * (bx);                                    \
+            py = c * (ay) + s * (by);                                    \
+            pz = c * (az) + s * (bz);                                    \
+                                                                         \
+            qx = -s * (ax) + c * (bx);                                   \
+            qy = -s * (ay) + c * (by);                                   \
+            qz = -s * (az) + c * (bz);                                   \
+                                                                         \
+            (ax) = px;                                                   \
+            (ay) = py;                                                   \
+            (az) = pz;                                                   \
+            (bx) = qx;                                                   \
+            (by) = qy;                                                   \
+            (bz) = qz;                                                   \
+        }                                                                \
+    }
 
 
 
@@ -223,9 +224,8 @@ void MATRIX_rotate_about_its_z(float *matrix, float angle)
 	   -angle);
 }
 
-
 #define MATRIX_FA_VECTOR_TOO_SMALL (0.001F)
-#define MATRIX_FA_ANGLE_TOO_SMALL  (PI * 2.0F / 180.0F)
+#define MATRIX_FA_ANGLE_TOO_SMALL (PI * 2.0F / 180.0F)
 
 Direction MATRIX_find_angles_old(float matrix[9])
 {
@@ -432,7 +432,7 @@ void MATRIX_construct(float matrix[9], float dx, float dy, float dz)
 	matrix[1] = matrix[5] * matrix[6] - matrix[3] * matrix[8];
 	matrix[2] = matrix[3] * matrix[7] - matrix[4] * matrix[6];
 
-	#ifndef NDEBUG
+#ifndef NDEBUG
 
 	//
 	// Make sure this vector is normal.
@@ -444,16 +444,8 @@ void MATRIX_construct(float matrix[9], float dx, float dy, float dz)
 		ASSERT(WITHIN(len, 0.99F, 1.01F));
 	}
 
-	#endif
+#endif
 	
 }
-
-
-
-
-
-
-
-
 
 #endif

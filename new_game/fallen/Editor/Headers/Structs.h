@@ -1,77 +1,75 @@
 // Structs.h
 // Guy Simmons, 27th March 1997.
 
+#ifndef STRUCTS_H
+#define STRUCTS_H
 
-#ifndef	STRUCTS_H
-#define	STRUCTS_H
-
-#include	"DarkCity.h"
-
+#include "DarkCity.h"
 
 //---------------------------------------------------------------
 
-typedef	struct
+typedef struct
 {
-	SLONG		X,
-				Y,
-				Z;
-}Coord;
+    SLONG X,
+        Y,
+        Z;
+} Coord;
 
 //---------------------------------------------------------------
 
 /*
 typedef	struct
 {
-	Matrix33		*TheMatrix;
+        Matrix33		*TheMatrix;
 }Object3D;
 
 typedef	struct
 {
-	
+
 }Object2D;
 
 
 typedef	struct
 {
-	UBYTE				DrawType;
-	KeyFrameElement		*AnimElements,
-						*NextAnimElements;
-	union
-	{
-		Object3D		
-		Object	
-	}DrawType;
+        UBYTE				DrawType;
+        KeyFrameElement		*AnimElements,
+                                                *NextAnimElements;
+        union
+        {
+                Object3D
+                Object
+        }DrawType;
 }Draw;
 */
 
-typedef	struct
+typedef struct
 {
-	ULONG		DrawType;
-}Draw;
+    ULONG DrawType;
+} Draw;
 
 //---------------------------------------------------------------
 
-typedef	struct
+typedef struct
 {
-	SBYTE		Class,
-				State;
-	ULONG		Flags;
-	SLONG		Child,
-				Parent;
-	SLONG		LinkChild,
-				LinkParent;
+    SBYTE Class,
+        State;
+    ULONG Flags;
+    SLONG Child,
+        Parent;
+    SLONG LinkChild,
+        LinkParent;
 
-	Draw		Draw;
-}Thing;
+    Draw Draw;
+} Thing;
 
 //---------------------------------------------------------------
 
-typedef	struct
+typedef struct
 {
-	float			Altitude;
-	void			*MapWho;
+    float Altitude;
+    void* MapWho;
 
-}MapElement;
+} MapElement;
 
 //---------------------------------------------------------------
 

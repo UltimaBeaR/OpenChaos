@@ -5,9 +5,7 @@
 #ifndef STAIR_H
 #define STAIR_H
 
-
 #include "id.h"
-
 
 //
 // Clear all the current building info.
@@ -33,8 +31,8 @@ void STAIR_set_bounding_box(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2);
 // are invalid and you can't create stairs for this building.
 //
 
-void  STAIR_storey_new   (SLONG handle, UBYTE height);				// 0 => Ground floor, 1 => First floor
-void  STAIR_storey_wall  (UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2, SLONG opposite);
+void STAIR_storey_new(SLONG handle, UBYTE height); // 0 => Ground floor, 1 => First floor
+void STAIR_storey_wall(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2, SLONG opposite);
 SLONG STAIR_storey_finish(void);
 
 //
@@ -49,8 +47,6 @@ void STAIR_calculate(UWORD seed);
 // the given handle.
 //
 
-SLONG STAIR_get(SLONG handle, ID_Stair **stair, SLONG *num_stairs);
-
-
+SLONG STAIR_get(SLONG handle, ID_Stair** stair, SLONG* num_stairs);
 
 #endif

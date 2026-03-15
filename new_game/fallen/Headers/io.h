@@ -1,59 +1,51 @@
-#ifndef		IO_H
-#define		IO_H
+#ifndef IO_H
+#define IO_H
 
 //
 // Defines
 //
 
-
-
 //
 // Structs
 //
 
-struct	LoadGameThing
-{
-	UWORD	Type;
-	UWORD	SubStype;
+struct LoadGameThing {
+    UWORD Type;
+    UWORD SubStype;
 
-	SLONG	X;
-	SLONG	Y;
-	SLONG	Z;
-	ULONG	Flags;
+    SLONG X;
+    SLONG Y;
+    SLONG Z;
+    ULONG Flags;
 
-	UWORD	IndexOther;
-	UWORD	AngleX;
+    UWORD IndexOther;
+    UWORD AngleX;
 
-	UWORD	AngleY;
-	UWORD	AngleZ;
+    UWORD AngleY;
+    UWORD AngleZ;
 
-	ULONG	Dummy[4];
-
-
-
+    ULONG Dummy[4];
 };
 
 //
 // Data
 //
 
-extern	CBYTE	DATA_DIR[];
-extern	CBYTE	LEVELS_DIR[];
-extern	CBYTE	TEXTURE_WORLD_DIR[];
+extern CBYTE DATA_DIR[];
+extern CBYTE LEVELS_DIR[];
+extern CBYTE TEXTURE_WORLD_DIR[];
 
 //
 // Functions
 //
 
-
-extern	void	change_extension(CBYTE	*name,CBYTE *add,CBYTE *new_name);
-extern	void	load_game_map(CBYTE     *name);
-extern	SLONG	load_all_prims(CBYTE	*name);
-extern	SLONG	load_a_multi_prim(CBYTE *name);
-extern  void	load_palette(CBYTE *palette);
-extern	void	load_key_frame_chunks(KeyFrameChunk *the_chunk,CBYTE *vue_name,float shrink=1.0);
-extern	SLONG	save_anim_system(struct GameKeyFrameChunk *game_chunk,CBYTE	*name);
-
+extern void change_extension(CBYTE* name, CBYTE* add, CBYTE* new_name);
+extern void load_game_map(CBYTE* name);
+extern SLONG load_all_prims(CBYTE* name);
+extern SLONG load_a_multi_prim(CBYTE* name);
+extern void load_palette(CBYTE* palette);
+extern void load_key_frame_chunks(KeyFrameChunk* the_chunk, CBYTE* vue_name, float shrink = 1.0);
+extern SLONG save_anim_system(struct GameKeyFrameChunk* game_chunk, CBYTE* name);
 
 //
 // Loads the textures styles from the given world. Only set (load_editor_names) if
@@ -74,6 +66,5 @@ SLONG load_prim_object(SLONG prim);
 //
 
 void load_all_individual_prims(void);
-
 
 #endif

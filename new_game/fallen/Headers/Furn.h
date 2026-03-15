@@ -5,12 +5,11 @@
 #ifndef FURN_H
 #define FURN_H
 
-
-#define	FLAG_FURN_DRIVING	  (1<<0)
-#define	FLAG_FURN_WHEEL1_GRIP (1<<1)
-#define	FLAG_FURN_WHEEL2_GRIP (1<<2)
-#define	FLAG_FURN_WHEEL3_GRIP (1<<3)
-#define	FLAG_FURN_WHEEL4_GRIP (1<<4)
+#define FLAG_FURN_DRIVING (1 << 0)
+#define FLAG_FURN_WHEEL1_GRIP (1 << 1)
+#define FLAG_FURN_WHEEL2_GRIP (1 << 2)
+#define FLAG_FURN_WHEEL3_GRIP (1 << 3)
+#define FLAG_FURN_WHEEL4_GRIP (1 << 4)
 
 //
 // The furniture structure. A static piece of furniture does not have
@@ -19,44 +18,44 @@
 // of these structures and decallocates it once it stops.
 //
 
-typedef struct 
+typedef struct
 {
-	SLONG dx;
-	SLONG dy;
-	SLONG dz;
-	SLONG dyaw;
-	SLONG dpitch;
-	SLONG droll;
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+    SLONG dyaw;
+    SLONG dpitch;
+    SLONG droll;
 
-	//
-	// temp stuff for cars...
+    //
+    // temp stuff for cars...
 
-	//
-	SWORD	Wheel; //steering wheel position
-	SWORD	RAngle;
-	SWORD	OverSteer;
-	SWORD	DeltaOverSteer;
-	SWORD	Compression[4]; // suspension extension *4
-	SWORD	SpringDY[4];
-	UWORD	Flags;
-	UWORD	Driver;
+    //
+    SWORD Wheel; // steering wheel position
+    SWORD RAngle;
+    SWORD OverSteer;
+    SWORD DeltaOverSteer;
+    SWORD Compression[4]; // suspension extension *4
+    SWORD SpringDY[4];
+    UWORD Flags;
+    UWORD Driver;
 
-	//
-	// Command system stuff.
-	//
+    //
+    // Command system stuff.
+    //
 
-	UWORD	Command;
-	UWORD	Waypoint;
+    UWORD Command;
+    UWORD Waypoint;
 
-	//
-	// Temp stuff for doors...
-	//
+    //
+    // Temp stuff for doors...
+    //
 
-	UWORD	closed_angle;
-	UWORD   ajar;
-}Furniture;
+    UWORD closed_angle;
+    UWORD ajar;
+} Furniture;
 
-typedef	Furniture* FurniturePtr;
+typedef Furniture* FurniturePtr;
 #define MAX_FURNITURE 10
 
 //
@@ -72,9 +71,8 @@ extern StateFunction FURN_statefunctions[];
 //
 
 void init_furniture(void);
-void free_furniture(Thing *furniture_thing);
-Furniture *FURN_alloc_furniture(void);
-
+void free_furniture(Thing* furniture_thing);
+Furniture* FURN_alloc_furniture(void);
 
 //
 // Creates the furniture thing and puts it on the mapwho in
@@ -82,32 +80,30 @@ Furniture *FURN_alloc_furniture(void);
 //
 
 THING_INDEX FURN_create(
-				SLONG x,
-				SLONG y,
-				SLONG z,
-				SLONG yaw,
-				SLONG pitch,
-				SLONG roll,
-				SLONG prim);
+    SLONG x,
+    SLONG y,
+    SLONG z,
+    SLONG yaw,
+    SLONG pitch,
+    SLONG roll,
+    SLONG prim);
 
 THING_INDEX VEHICLE_create(
-				SLONG x,
-				SLONG y,
-				SLONG z,
-				SLONG angle,
-				SLONG prim);
+    SLONG x,
+    SLONG y,
+    SLONG z,
+    SLONG angle,
+    SLONG prim);
 
 //
 // Turns a normal furniture thing into a door.
 //
 
 void FURN_turn_into_door(
-		THING_INDEX furniture_thing,
-		UWORD       closed_angle,
-		UWORD		ajar,
-		UBYTE		am_i_locked);
-
-
+    THING_INDEX furniture_thing,
+    UWORD closed_angle,
+    UWORD ajar,
+    UBYTE am_i_locked);
 
 //
 // Slides a movement vector of someone with the given radius
@@ -121,11 +117,11 @@ void FURN_turn_into_door(
 //
 
 SLONG FURN_slide_along(
-		THING_INDEX thing,
-		SLONG  x1, SLONG  y1, SLONG  z1,
-		SLONG *x2, SLONG *y2, SLONG *z2,
-		SLONG  radius,
-		SLONG  dont_slide);
+    THING_INDEX thing,
+    SLONG x1, SLONG y1, SLONG z1,
+    SLONG* x2, SLONG* y2, SLONG* z2,
+    SLONG radius,
+    SLONG dont_slide);
 
 //
 // Checks a movement vector against a piece of furniture and
@@ -134,9 +130,9 @@ SLONG FURN_slide_along(
 //
 
 SLONG FURN_avoid(
-		THING_INDEX thing,
-		SLONG x1, SLONG y1, SLONG z1,
-		SLONG x2, SLONG y2, SLONG z2);
+    THING_INDEX thing,
+    SLONG x1, SLONG y1, SLONG z1,
+    SLONG x2, SLONG y2, SLONG z2);
 
 //
 // Starts modelling the furniture with hypermatter.
@@ -144,16 +140,14 @@ SLONG FURN_avoid(
 
 void FURN_hypermatterise(THING_INDEX thing);
 
-
 //
 // Applies the force to the given piece of furniture.
 //
 
 void FURN_push(
-		THING_INDEX thing,
-		SLONG x1, SLONG y1, SLONG z1,
-		SLONG x2, SLONG y2, SLONG z2);
-
+    THING_INDEX thing,
+    SLONG x1, SLONG y1, SLONG z1,
+    SLONG x2, SLONG y2, SLONG z2);
 
 //
 // For each furniture thing, scan for walkable faces, copy them,
@@ -161,6 +155,5 @@ void FURN_push(
 //
 
 void FURN_add_walkable(void);
-
 
 #endif

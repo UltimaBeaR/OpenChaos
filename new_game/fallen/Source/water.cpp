@@ -5,7 +5,7 @@
 #include "game.h"
 #include <MFStdLib.h>
 #include "water.h"
-//#include <math.h>
+// #include <math.h>
 
 //
 // The size of the water map.
@@ -13,31 +13,29 @@
 
 #define WATER_SIZE 128
 
-
 //
 // The water points.
 //
 
 typedef struct
 {
-	UBYTE x;		// 1-bit fixed point!
-	SBYTE y;
-	UBYTE z;		// 1-bit fixed point!
-	SBYTE ddyaw;
-	SWORD dyaw;		// Over and above the normal uv rotation.
-	UWORD index;
+    UBYTE x; // 1-bit fixed point!
+    SBYTE y;
+    UBYTE z; // 1-bit fixed point!
+    SBYTE ddyaw;
+    SWORD dyaw; // Over and above the normal uv rotation.
+    UWORD index;
 
 } WATER_Point;
 
-#ifdef	PSX
+#ifdef PSX
 #define WATER_MAX_POINTS 102
 #else
 #define WATER_MAX_POINTS 1024
 #endif
 
 WATER_Point WATER_point[WATER_MAX_POINTS];
-SLONG       WATER_point_upto;
-
+SLONG WATER_point_upto;
 
 //
 // The water faces.
@@ -45,16 +43,15 @@ SLONG       WATER_point_upto;
 
 typedef struct
 {
-	UWORD p_index[4];
-	UWORD next;
+    UWORD p_index[4];
+    UWORD next;
 
 } WATER_Face;
 
 #define WATER_MAX_FACES 512
 
 WATER_Face WATER_face[WATER_MAX_FACES];
-SLONG      WATER_face_upto;
-
+SLONG WATER_face_upto;
 
 //
 // The water mapwho.
@@ -62,19 +59,17 @@ SLONG      WATER_face_upto;
 
 typedef struct
 {
-	UWORD next;
+    UWORD next;
 
 } WATER_Map;
 
 WATER_Map WATER_map[WATER_SIZE][WATER_SIZE];
-
 
 //
 // The game turn for the water module.
 //
 
 SLONG WATER_turn;
-
 
 //
 // The wibble and uv offsets for each type.
@@ -84,30 +79,27 @@ SLONG WATER_turn;
 
 typedef struct
 {
-	float dy;
-	float du;
-	float dv;
+    float dy;
+    float du;
+    float dv;
 
 } WATER_Wibble;
 
 WATER_Wibble WATER_wibble[WATER_NUM_TYPES];
 
-
-
 void WATER_init()
 {
-	SLONG x;
-	SLONG z;
+    SLONG x;
+    SLONG z;
 
-	for (x = 0; x < WATER_SIZE; x++)
-	for (z = 0; z < WATER_SIZE; z++)
-	{
-		WATER_map[x][z].next = 0;
-	}
+    for (x = 0; x < WATER_SIZE; x++)
+        for (z = 0; z < WATER_SIZE; z++) {
+            WATER_map[x][z].next = 0;
+        }
 
-	WATER_point_upto = 0;
-	WATER_face_upto  = 1;
-	WATER_turn       = rand();
+    WATER_point_upto = 0;
+    WATER_face_upto = 1;
+    WATER_turn = rand();
 }
 
 //
@@ -119,53 +111,45 @@ void WATER_init()
 
 UWORD WATER_get_point(UBYTE x, SBYTE y, UBYTE z)
 {
-	SLONG i;
-	UWORD ans;
+    SLONG i;
+    UWORD ans;
 
-	WATER_Point *wp;
+    WATER_Point* wp;
 
-	for (i = WATER_point_upto - 1; i >= 0; i--)
-	{
-		wp = &WATER_point[i];
+    for (i = WATER_point_upto - 1; i >= 0; i--) {
+        wp = &WATER_point[i];
 
-		if (wp->x == x &&
-			wp->y == y &&
-			wp->z == z)
-		{
-			return i;
-		}
-	}
+        if (wp->x == x && wp->y == y && wp->z == z) {
+            return i;
+        }
+    }
 
-	//
-	// We have to create a new point.
-	//
+    //
+    // We have to create a new point.
+    //
 
-	if (WATER_point_upto >= WATER_MAX_POINTS)
-	{
-		//
-		// No more point memory.
-		//
+    if (WATER_point_upto >= WATER_MAX_POINTS) {
+        //
+        // No more point memory.
+        //
 
-		return WATER_NO_MORE_POINTS;
-	}
-	else
-	{
-		ASSERT(WITHIN(WATER_point_upto, 0, WATER_MAX_POINTS - 1));
+        return WATER_NO_MORE_POINTS;
+    } else {
+        ASSERT(WITHIN(WATER_point_upto, 0, WATER_MAX_POINTS - 1));
 
-		ans = WATER_point_upto++;
+        ans = WATER_point_upto++;
 
-		wp = &WATER_point[ans];
+        wp = &WATER_point[ans];
 
-		wp->x     = x;
-		wp->y     = y;
-		wp->z     = z;
-		wp->dyaw  = 0;
-		wp->ddyaw = 0;
+        wp->x = x;
+        wp->y = y;
+        wp->z = z;
+        wp->dyaw = 0;
+        wp->ddyaw = 0;
 
-		return ans;
-	}
+        return ans;
+    }
 }
-
 
 //
 // Adds a face to a mapsquare- does nothing if there are no more
@@ -173,575 +157,537 @@ UWORD WATER_get_point(UBYTE x, SBYTE y, UBYTE z)
 //
 
 void WATER_add_face(
-		SLONG map_x,
-		SLONG map_z,
-		UWORD p_index[4])
+    SLONG map_x,
+    SLONG map_z,
+    UWORD p_index[4])
 {
-	WATER_Map  *wm;
-	WATER_Face *wf;
+    WATER_Map* wm;
+    WATER_Face* wf;
 
-	ASSERT(WITHIN(p_index[0], 0, WATER_point_upto - 1));
-	ASSERT(WITHIN(p_index[1], 0, WATER_point_upto - 1));
-	ASSERT(WITHIN(p_index[2], 0, WATER_point_upto - 1));
-	ASSERT(WITHIN(p_index[3], 0, WATER_point_upto - 1));
+    ASSERT(WITHIN(p_index[0], 0, WATER_point_upto - 1));
+    ASSERT(WITHIN(p_index[1], 0, WATER_point_upto - 1));
+    ASSERT(WITHIN(p_index[2], 0, WATER_point_upto - 1));
+    ASSERT(WITHIN(p_index[3], 0, WATER_point_upto - 1));
 
-	ASSERT(WITHIN(map_x, 0, WATER_SIZE - 1));
-	ASSERT(WITHIN(map_z, 0, WATER_SIZE - 1));
+    ASSERT(WITHIN(map_x, 0, WATER_SIZE - 1));
+    ASSERT(WITHIN(map_z, 0, WATER_SIZE - 1));
 
-	if (WATER_face_upto >= WATER_MAX_FACES)
-	{
-		//
-		// No more faces left!
-		//
+    if (WATER_face_upto >= WATER_MAX_FACES) {
+        //
+        // No more faces left!
+        //
 
-		return;
-	}
+        return;
+    }
 
-	//
-	// The mapsquare we are creating the face in.
-	//
+    //
+    // The mapsquare we are creating the face in.
+    //
 
-	wm = &WATER_map[map_x][map_z];
+    wm = &WATER_map[map_x][map_z];
 
-	//
-	// Create the new face.
-	//
+    //
+    // Create the new face.
+    //
 
-	wf = &WATER_face[WATER_face_upto];
+    wf = &WATER_face[WATER_face_upto];
 
-	wf->p_index[0] = p_index[0];
-	wf->p_index[1] = p_index[1];
-	wf->p_index[2] = p_index[2];
-	wf->p_index[3] = p_index[3];
+    wf->p_index[0] = p_index[0];
+    wf->p_index[1] = p_index[1];
+    wf->p_index[2] = p_index[2];
+    wf->p_index[3] = p_index[3];
 
-	//
-	// Insert it in the linked list.
-	//
+    //
+    // Insert it in the linked list.
+    //
 
-	wf->next = wm->next;
-	wm->next = WATER_face_upto;
+    wf->next = wm->next;
+    wm->next = WATER_face_upto;
 
-	WATER_face_upto += 1;
+    WATER_face_upto += 1;
 }
-
-
 
 void WATER_add(SLONG map_x, SLONG map_z, SLONG height)
 {
-	SLONG i;
-	SLONG j;
-	SLONG x;
-	SLONG z;
+    SLONG i;
+    SLONG j;
+    SLONG x;
+    SLONG z;
 
-	SLONG fx;
-	SLONG fz;
-	SLONG px;
-	SLONG pz;
-	SLONG index;
+    SLONG fx;
+    SLONG fz;
+    SLONG px;
+    SLONG pz;
+    SLONG index;
 
-	UWORD p_index[9];
-	UWORD f_point[4];
-	UBYTE wcx;
-	UBYTE wcz;
+    UWORD p_index[9];
+    UWORD f_point[4];
+    UBYTE wcx;
+    UBYTE wcz;
 
-	ASSERT(WITHIN(map_x, 0, WATER_SIZE - 1));
-	ASSERT(WITHIN(map_z, 0, WATER_SIZE - 1));
+    ASSERT(WITHIN(map_x, 0, WATER_SIZE - 1));
+    ASSERT(WITHIN(map_z, 0, WATER_SIZE - 1));
 
-	if (WATER_map[map_x][map_z].next)
-	{
-		//
-		// Do nothing because there is already water on this square.
-		//
+    if (WATER_map[map_x][map_z].next) {
+        //
+        // Do nothing because there is already water on this square.
+        //
 
-		return;
-	}
+        return;
+    }
 
-	//
-	// The 1-bit fixed point water coordinates
-	//
+    //
+    // The 1-bit fixed point water coordinates
+    //
 
-	wcx = map_x << 1;
-	wcz = map_z << 1;
+    wcx = map_x << 1;
+    wcz = map_z << 1;
 
-	//
-	// Create 9 points. One at each corner, one in the middle
-	// of each edge and on in the middle of the square...
-	//
+    //
+    // Create 9 points. One at each corner, one in the middle
+    // of each edge and on in the middle of the square...
+    //
 
-	i = 0;
+    i = 0;
 
-	for (z = 0; z < 3; z++)
-	for (x = 0; x < 3; x++)
-	{
-		p_index[i++] = WATER_get_point(wcx + x, height, wcz + z);
-	}
+    for (z = 0; z < 3; z++)
+        for (x = 0; x < 3; x++) {
+            p_index[i++] = WATER_get_point(wcx + x, height, wcz + z);
+        }
 
-	//
-	// Create four faces.
-	//
+    //
+    // Create four faces.
+    //
 
-	for (i = 0; i < 4; i++)
-	{
-		fx = i  & 1;
-		fz = i >> 1;
+    for (i = 0; i < 4; i++) {
+        fx = i & 1;
+        fz = i >> 1;
 
-		for (j = 0; j < 4; j++)
-		{
-			px = fx + (j  & 1);
-			pz = fz + (j >> 1);
+        for (j = 0; j < 4; j++) {
+            px = fx + (j & 1);
+            pz = fz + (j >> 1);
 
-			index = px + pz * 3;
+            index = px + pz * 3;
 
-			ASSERT(WITHIN(index, 0, 8));
+            ASSERT(WITHIN(index, 0, 8));
 
-			f_point[j] = p_index[index];
+            f_point[j] = p_index[index];
 
-			if (f_point[j] == WATER_NO_MORE_POINTS)
-			{
-				//
-				// Abandon the face.
-				//
+            if (f_point[j] == WATER_NO_MORE_POINTS) {
+                //
+                // Abandon the face.
+                //
 
-				goto abandon_face;
-			}
-		}
+                goto abandon_face;
+            }
+        }
 
-		//
-		// Swap the sense of some of the faces...
-		//
+        //
+        // Swap the sense of some of the faces...
+        //
 
-		if ((fx ^ fz))
-		{
-			SWAP(f_point[1], f_point[0]);
-			SWAP(f_point[3], f_point[0]);
-			SWAP(f_point[2], f_point[0]);
-		}
+        if ((fx ^ fz)) {
+            SWAP(f_point[1], f_point[0]);
+            SWAP(f_point[3], f_point[0]);
+            SWAP(f_point[2], f_point[0]);
+        }
 
-		//
-		// Add the face to the water map.
-		//
+        //
+        // Add the face to the water map.
+        //
 
-		WATER_add_face(map_x, map_z, f_point);
+        WATER_add_face(map_x, map_z, f_point);
 
-      abandon_face:;
-	}
+    abandon_face:;
+    }
 }
-
-
 
 void WATER_gush(SLONG gx1, SLONG gz1, SLONG gx2, SLONG gz2)
 {
-	SLONG i;
-	SLONG j;
+    SLONG i;
+    SLONG j;
 
-	SLONG x;
-	SLONG z;
+    SLONG x;
+    SLONG z;
 
-	SLONG dx;
-	SLONG dz;
+    SLONG dx;
+    SLONG dz;
 
-	SLONG dgx;
-	SLONG dgz;
+    SLONG dgx;
+    SLONG dgz;
 
-	SLONG strength;
-	SLONG push;
-	SLONG dist;
+    SLONG strength;
+    SLONG push;
+    SLONG dist;
 
-	SLONG dyaw;
-	SLONG ddyaw;
+    SLONG dyaw;
+    SLONG ddyaw;
 
-	SLONG wx;
-	SLONG wz;
+    SLONG wx;
+    SLONG wz;
 
-	SLONG px;
-	SLONG pz;
+    SLONG px;
+    SLONG pz;
 
-	UWORD next;
+    UWORD next;
 
-	WATER_Face  *wf;
-	WATER_Point *wp;
-	WATER_Map   *wm;
+    WATER_Face* wf;
+    WATER_Point* wp;
+    WATER_Map* wm;
 
-	#define WATER_MAX_DONE 16
+#define WATER_MAX_DONE 16
 
-	UWORD done[WATER_MAX_DONE];
-	SLONG done_upto;
+    UWORD done[WATER_MAX_DONE];
+    SLONG done_upto;
 
-	//
-	// What water square is the gush in?
-	//
+    //
+    // What water square is the gush in?
+    //
 
-	wx = gx1 >> 8;
-	wz = gz1 >> 8;
+    wx = gx1 >> 8;
+    wz = gz1 >> 8;
 
-	if (!WITHIN(wx, 0, WATER_SIZE - 1) ||
-		!WITHIN(wz, 0, WATER_SIZE - 1))
-	{
-		//
-		// No water outside the map!
-		//
+    if (!WITHIN(wx, 0, WATER_SIZE - 1) || !WITHIN(wz, 0, WATER_SIZE - 1)) {
+        //
+        // No water outside the map!
+        //
 
-		return;
-	}
+        return;
+    }
 
-	wm = &WATER_map[wx][wz];
+    wm = &WATER_map[wx][wz];
 
-	if (wm->next == NULL)
-	{
-		//
-		// No water on this square.
-		//
+    if (wm->next == NULL) {
+        //
+        // No water on this square.
+        //
 
-		return;
-	}
+        return;
+    }
 
-	//
-	// The stength (length) of the gust.
-	//
+    //
+    // The stength (length) of the gust.
+    //
 
-	dgx = gx2 - gx1;
-	dgz = gz2 - gz1;
+    dgx = gx2 - gx1;
+    dgz = gz2 - gz1;
 
-	strength   = QDIST2(abs(dgx), abs(dgz));
-	strength <<= 2;
+    strength = QDIST2(abs(dgx), abs(dgz));
+    strength <<= 2;
 
-	if (strength == 0)
-	{
-		//
-		// No gust!
-		//
+    if (strength == 0) {
+        //
+        // No gust!
+        //
 
-		return;
-	}
+        return;
+    }
 
-	//
-	// Remember the points we have done already.
-	//
+    //
+    // Remember the points we have done already.
+    //
 
-	done_upto = 0;
+    done_upto = 0;
 
-	//
-	// Go through all the faces on this mapsquare to find
-	// points we can wibble.
-	//
+    //
+    // Go through all the faces on this mapsquare to find
+    // points we can wibble.
+    //
 
-	next = wm->next;
+    next = wm->next;
 
-	while(next)
-	{
-		ASSERT(WITHIN(next, 1, WATER_face_upto - 1));
+    while (next) {
+        ASSERT(WITHIN(next, 1, WATER_face_upto - 1));
 
-		wf = &WATER_face[next];
+        wf = &WATER_face[next];
 
-		for (i = 0; i < 4; i++)
-		{
-			ASSERT(WITHIN(wf->p_index[i], 0, WATER_point_upto - 1));
+        for (i = 0; i < 4; i++) {
+            ASSERT(WITHIN(wf->p_index[i], 0, WATER_point_upto - 1));
 
-			//
-			// Have we done this point already?
-			//
+            //
+            // Have we done this point already?
+            //
 
-			for (j = done_upto - 1; j >= 0; j--)
-			{
-				if (done[j] == wf->p_index[i])
-				{
-					//
-					// Don't do this point twice.
-					//
+            for (j = done_upto - 1; j >= 0; j--) {
+                if (done[j] == wf->p_index[i]) {
+                    //
+                    // Don't do this point twice.
+                    //
 
-					goto next_point;
-				}
-			}
+                    goto next_point;
+                }
+            }
 
-			ASSERT(WITHIN(done_upto, 0, WATER_MAX_DONE - 1));
+            ASSERT(WITHIN(done_upto, 0, WATER_MAX_DONE - 1));
 
-			done[done_upto++] = wf->p_index[i];
+            done[done_upto++] = wf->p_index[i];
 
-			//
-			// This point.
-			//
+            //
+            // This point.
+            //
 
-			wp = &WATER_point[wf->p_index[i]];
+            wp = &WATER_point[wf->p_index[i]];
 
-			px = wp->x << 7;
-			pz = wp->z << 7;
+            px = wp->x << 7;
+            pz = wp->z << 7;
 
-			//
-			// How far is this point from the origin of the gust?
-			//
+            //
+            // How far is this point from the origin of the gust?
+            //
 
-			dx = px - gx1;
-			dz = pz - gz1;
+            dx = px - gx1;
+            dz = pz - gz1;
 
-			dist = QDIST2(abs(dx), abs(dz));
+            dist = QDIST2(abs(dx), abs(dz));
 
-			if (dist == 0)
-			{
-				//
-				// Ignore this point!
-				//
+            if (dist == 0) {
+                //
+                // Ignore this point!
+                //
 
-				continue;
-			}
+                continue;
+            }
 
-			//
-			// Do we effect this point?
-			//
+            //
+            // Do we effect this point?
+            //
 
-			if (strength > dist)
-			{
-				push   = strength - dist;
-				push <<= 1;
+            if (strength > dist) {
+                push = strength - dist;
+                push <<= 1;
 
-				if ((wp->x ^ wp->z) & 0x1)
-				{
-					push = -push;
-				}
+                if ((wp->x ^ wp->z) & 0x1) {
+                    push = -push;
+                }
 
-				ddyaw  = wp->ddyaw;
-				ddyaw += push;
+                ddyaw = wp->ddyaw;
+                ddyaw += push;
 
-				SATURATE(ddyaw, -127, +127);
+                SATURATE(ddyaw, -127, +127);
 
-				wp->ddyaw = ddyaw;
+                wp->ddyaw = ddyaw;
 
-				/*
+                /*
 
-				//
-				// Yes we do! Depending on whether the point is in front of
-				// the gust or behind the gust, it moves up or down.
-				//
+                //
+                // Yes we do! Depending on whether the point is in front of
+                // the gust or behind the gust, it moves up or down.
+                //
 
-				dprod  = dx * dgx + dz * dgz;
+                dprod  = dx * dgx + dz * dgz;
 
-				push   = -dprod;
-				push  /=  dist;
-				push  *=  strength - dist;
-				push  /=  strength;
+                push   = -dprod;
+                push  /=  dist;
+                push  *=  strength - dist;
+                push  /=  strength;
 
-				ddy  = wp->ddy;
-				ddy += push;
-				
-				SATURATE(ddy, -35, +35);
+                ddy  = wp->ddy;
+                ddy += push;
 
-				wp->ddy = ddy;
-				
-				TRACE("push = %d\n", push);
+                SATURATE(ddy, -35, +35);
 
-				*/
-			}
+                wp->ddy = ddy;
 
-		  next_point:;
-		}
+                TRACE("push = %d\n", push);
 
-		next = wf->next;
-	}
+                */
+            }
+
+        next_point:;
+        }
+
+        next = wf->next;
+    }
 }
-
 
 void WATER_process()
 {
-	SLONG i;
+    SLONG i;
 
-	SLONG dy;
-	SLONG ddy;
+    SLONG dy;
+    SLONG ddy;
 
-	float yaw_dy;
-	float yaw_uv;
+    float yaw_dy;
+    float yaw_uv;
 
-	WATER_Point *wp;
+    WATER_Point* wp;
 
-	for (i = 0; i < WATER_point_upto; i++)
-	{
-		wp = &WATER_point[i];
+    for (i = 0; i < WATER_point_upto; i++) {
+        wp = &WATER_point[i];
 
-		wp->dyaw  += wp->ddyaw;
-		wp->dyaw  &= 2047;
+        wp->dyaw += wp->ddyaw;
+        wp->dyaw &= 2047;
 
-		wp->ddyaw -= SIGN(wp->ddyaw);
-	}
+        wp->ddyaw -= SIGN(wp->ddyaw);
+    }
 
-	//
-	// Calculate the wibbles for this game turn.
-	//
+    //
+    // Calculate the wibbles for this game turn.
+    //
 
-	WATER_turn += 1;
-/*
-	static float wibble_period_dy[WATER_NUM_TYPES] = {0.054F, 0.063F, 0.047F, 0.059F};
-	static float wibble_period_uv[WATER_NUM_TYPES] = {0.044F, 0.033F, 0.023F, 0.037F};
+    WATER_turn += 1;
+    /*
+            static float wibble_period_dy[WATER_NUM_TYPES] = {0.054F, 0.063F, 0.047F, 0.059F};
+            static float wibble_period_uv[WATER_NUM_TYPES] = {0.044F, 0.033F, 0.023F, 0.037F};
 
-	for (i = 0; i < WATER_NUM_TYPES; i++)
-	{
-		yaw_dy = float(WATER_turn) * wibble_period_dy[i];
-		yaw_uv = float(WATER_turn) * wibble_period_uv[i];
+            for (i = 0; i < WATER_NUM_TYPES; i++)
+            {
+                    yaw_dy = float(WATER_turn) * wibble_period_dy[i];
+                    yaw_uv = float(WATER_turn) * wibble_period_uv[i];
 
-		WATER_wibble[i].dy = sin(yaw_dy) * 16.0F;
+                    WATER_wibble[i].dy = sin(yaw_dy) * 16.0F;
 
-		WATER_wibble[i].du = sin(yaw_uv) * 0.08;
-		WATER_wibble[i].dv = cos(yaw_uv) * 0.08;
-	}
-*/
+                    WATER_wibble[i].du = sin(yaw_uv) * 0.08;
+                    WATER_wibble[i].dv = cos(yaw_uv) * 0.08;
+            }
+    */
 }
-
 
 void WATER_point_index_clear_all()
 {
-	SLONG i;
+    SLONG i;
 
-	for (i = 0; i < WATER_point_upto; i++)
-	{
-		WATER_point[i].index = 0;
-	}
+    for (i = 0; i < WATER_point_upto; i++) {
+        WATER_point[i].index = 0;
+    }
 }
 
 UWORD WATER_point_index_get(UWORD p_index)
 {
-	UWORD ans;
+    UWORD ans;
 
-	ASSERT(WITHIN(p_index, 0, WATER_point_upto - 1));
+    ASSERT(WITHIN(p_index, 0, WATER_point_upto - 1));
 
-	ans = WATER_point[p_index].index;
+    ans = WATER_point[p_index].index;
 
-	return ans;
+    return ans;
 }
 
 void WATER_point_index_set(UWORD p_index, UWORD index)
 {
-	ASSERT(WITHIN(p_index, 0, WATER_point_upto - 1));
+    ASSERT(WITHIN(p_index, 0, WATER_point_upto - 1));
 
-	WATER_point[p_index].index = index;
+    WATER_point[p_index].index = index;
 }
-
 
 UWORD WATER_get_first_face(SLONG x, SLONG z)
 {
-	UWORD ans;
+    UWORD ans;
 
-	ASSERT(WITHIN(x, 0, WATER_SIZE - 1));
-	ASSERT(WITHIN(z, 0, WATER_SIZE - 1));
+    ASSERT(WITHIN(x, 0, WATER_SIZE - 1));
+    ASSERT(WITHIN(z, 0, WATER_SIZE - 1));
 
-	ans = WATER_map[x][z].next;
+    ans = WATER_map[x][z].next;
 
-	return ans;
+    return ans;
 }
 
-UWORD WATER_get_next_face (UWORD f_index)
+UWORD WATER_get_next_face(UWORD f_index)
 {
-	UWORD ans;
+    UWORD ans;
 
-	ASSERT(WITHIN(f_index, 0, WATER_face_upto - 1));
+    ASSERT(WITHIN(f_index, 0, WATER_face_upto - 1));
 
-	ans = WATER_face[f_index].next;
+    ans = WATER_face[f_index].next;
 
-	return ans;
+    return ans;
 }
 
 void WATER_get_face_points(UWORD f_index, UWORD p_index[4])
 {
-	ASSERT(WITHIN(f_index, 0, WATER_face_upto - 1));
+    ASSERT(WITHIN(f_index, 0, WATER_face_upto - 1));
 
-	p_index[0] = WATER_face[f_index].p_index[0];
-	p_index[1] = WATER_face[f_index].p_index[1];
-	p_index[2] = WATER_face[f_index].p_index[2];
-	p_index[3] = WATER_face[f_index].p_index[3];
+    p_index[0] = WATER_face[f_index].p_index[0];
+    p_index[1] = WATER_face[f_index].p_index[1];
+    p_index[2] = WATER_face[f_index].p_index[2];
+    p_index[3] = WATER_face[f_index].p_index[3];
 }
 
-void WATER_get_point_pos(UWORD p_index, float *x, float *y, float *z)
+void WATER_get_point_pos(UWORD p_index, float* x, float* y, float* z)
 {
-	SLONG height;
-	SLONG type;
+    SLONG height;
+    SLONG type;
 
-	WATER_Point *wp;
+    WATER_Point* wp;
 
-	ASSERT(WITHIN(p_index, 0, WATER_point_upto - 1));
-	
-	wp = &WATER_point[p_index];
+    ASSERT(WITHIN(p_index, 0, WATER_point_upto - 1));
 
-	//
-	// The height without wibbling.
-	//
+    wp = &WATER_point[p_index];
 
-	height = wp->y << 5;
+    //
+    // The height without wibbling.
+    //
 
-	*x = float(wp->x) * 128.0F;
-	*z = float(wp->z) * 128.0F;
+    height = wp->y << 5;
 
-	*y = float(height);
+    *x = float(wp->x) * 128.0F;
+    *z = float(wp->z) * 128.0F;
 
-	//
-	// Add the wibbling.
-	//
+    *y = float(height);
 
-	type = (wp->x ^ wp->z) & 0x3;
+    //
+    // Add the wibbling.
+    //
 
-	ASSERT(WITHIN(type, 0, WATER_NUM_TYPES - 1));
+    type = (wp->x ^ wp->z) & 0x3;
 
-	*y += WATER_wibble[type].dy;
+    ASSERT(WITHIN(type, 0, WATER_NUM_TYPES - 1));
+
+    *y += WATER_wibble[type].dy;
 }
 
-void WATER_get_point_uvs(UWORD p_index, float *u, float *v, ULONG *colour)
+void WATER_get_point_uvs(UWORD p_index, float* u, float* v, ULONG* colour)
 {
-	SLONG type;
+    SLONG type;
 
-	WATER_Point *wp;
+    WATER_Point* wp;
 
-	ASSERT(WITHIN(p_index, 0, WATER_point_upto - 1));
+    ASSERT(WITHIN(p_index, 0, WATER_point_upto - 1));
 
-	wp = &WATER_point[p_index];
+    wp = &WATER_point[p_index];
 
-	//
-	// The uv coordinates without wibbling.
-	//
+    //
+    // The uv coordinates without wibbling.
+    //
 
-	*u = float(wp->x) * 0.19F;
-	*v = float(wp->z) * 0.19F;
+    *u = float(wp->x) * 0.19F;
+    *v = float(wp->z) * 0.19F;
 
-	//
-	// Add the wibbling.
-	// 
+    //
+    // Add the wibbling.
+    //
 
-	type = (wp->x ^ wp->z) & 0x3;
+    type = (wp->x ^ wp->z) & 0x3;
 
-	ASSERT(WITHIN(type, 0, WATER_NUM_TYPES - 1));
+    ASSERT(WITHIN(type, 0, WATER_NUM_TYPES - 1));
 
-	*u += WATER_wibble[type].du;
-	*v += WATER_wibble[type].dv;
+    *u += WATER_wibble[type].du;
+    *v += WATER_wibble[type].dv;
 
-	//
-	// Add the gushing.
-	//
+    //
+    // Add the gushing.
+    //
 
-	if (wp->dyaw)
-	{
-		TRACE("wp->dyaw = %d, ddyaw = %d\n", wp->dyaw, wp->ddyaw);
-	}
+    if (wp->dyaw) {
+        TRACE("wp->dyaw = %d, ddyaw = %d\n", wp->dyaw, wp->ddyaw);
+    }
 
-	float du = float(SIN(wp->dyaw) * abs(wp->ddyaw) >> 16);
-	float dv = float(COS(wp->dyaw) * abs(wp->ddyaw) >> 16);
+    float du = float(SIN(wp->dyaw) * abs(wp->ddyaw) >> 16);
+    float dv = float(COS(wp->dyaw) * abs(wp->ddyaw) >> 16);
 
-	ASSERT(WITHIN(du, -128.0F, 128.0F));
-	ASSERT(WITHIN(dv, -128.0F, 128.0F));
+    ASSERT(WITHIN(du, -128.0F, 128.0F));
+    ASSERT(WITHIN(dv, -128.0F, 128.0F));
 
-	du *= (0.1F / 128.0F);
-	dv *= (0.1F / 128.0F);
+    du *= (0.1F / 128.0F);
+    dv *= (0.1F / 128.0F);
 
-	*u += du;
-	*v += dv;
+    *u += du;
+    *v += dv;
 
-	//
-	// Change the colour...
-	//
+    //
+    // Change the colour...
+    //
 
-	*colour  = 0xffbfbfbf;
-	*colour += 0x00010101 * abs(SLONG(WATER_wibble[type].dy * 4.0F));
+    *colour = 0xffbfbfbf;
+    *colour += 0x00010101 * abs(SLONG(WATER_wibble[type].dy * 4.0F));
 }
-
-
-
-
-
-
-
-
-
-

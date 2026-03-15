@@ -6,6 +6,4 @@
 
 #include "myheap.h"
 
-UBYTE	my_heap[40*1024];
-
-
+UBYTE my_heap[40 * 1024];

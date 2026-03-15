@@ -4,87 +4,83 @@
 
 #ifndef TARGET_DC
 
-
 #ifndef _DIKE_
 #define _DIKE_
 
-
-
 typedef struct
 {
-	//
-	// The front wheel
-	//
+    //
+    // The front wheel
+    //
 
-	SLONG fx;
-	SLONG fy;
-	SLONG fz;
-	SLONG fdx;
-	SLONG fdy;
-	SLONG fdz;
+    SLONG fx;
+    SLONG fy;
+    SLONG fz;
+    SLONG fdx;
+    SLONG fdy;
+    SLONG fdz;
 
-	//
-	// The back wheel
-	//
+    //
+    // The back wheel
+    //
 
-	SLONG bx;
-	SLONG by;
-	SLONG bz;
-	SLONG bdx;
-	SLONG bdy;
-	SLONG bdz;
+    SLONG bx;
+    SLONG by;
+    SLONG bz;
+    SLONG bdx;
+    SLONG bdy;
+    SLONG bdz;
 
-	//
-	// Front suspension.
-	//
+    //
+    // Front suspension.
+    //
 
-	SLONG fsy;
-	SLONG fsdy;
+    SLONG fsy;
+    SLONG fsdy;
 
-	//
-	// Back suspension.
-	//
+    //
+    // Back suspension.
+    //
 
-	SLONG bsy;
-	SLONG bsdy;
-	
-	//
-	// Bike control
-	//
+    SLONG bsy;
+    SLONG bsdy;
 
-	#define DIKE_CONTROL_ACCEL   (1 << 0)
-	#define DIKE_CONTROL_LEFT    (1 << 1)
-	#define DIKE_CONTROL_RIGHT   (1 << 2)
-	#define DIKE_CONTROL_BRAKE   (1 << 3)
-	#define DIKE_CONTORL_WHEELIE (1 << 4)
+    //
+    // Bike control
+    //
 
-	UBYTE control;
-	SBYTE steer;
-	SBYTE power;
+#define DIKE_CONTROL_ACCEL (1 << 0)
+#define DIKE_CONTROL_LEFT (1 << 1)
+#define DIKE_CONTROL_RIGHT (1 << 2)
+#define DIKE_CONTROL_BRAKE (1 << 3)
+#define DIKE_CONTORL_WHEELIE (1 << 4)
 
-	//
-	// Flags
-	//
+    UBYTE control;
+    SBYTE steer;
+    SBYTE power;
 
-	#define DIKE_FLAG_ON_GROUND_FRONT (1 << 0)
-	#define DIKE_FLAG_ON_GROUND_BACK  (1 << 1)
+    //
+    // Flags
+    //
 
-	UBYTE flag;
+#define DIKE_FLAG_ON_GROUND_FRONT (1 << 0)
+#define DIKE_FLAG_ON_GROUND_BACK (1 << 1)
 
-	//
-	// The angle of the bike.
-	//
+    UBYTE flag;
 
-	UWORD yaw;
-	UWORD pitch;
+    //
+    // The angle of the bike.
+    //
+
+    UWORD yaw;
+    UWORD pitch;
 
 } DIKE_Dike;
 
 #define DIKE_MAX_DIKES 8
 
 extern DIKE_Dike DIKE_dike[DIKE_MAX_DIKES];
-extern SLONG     DIKE_dike_upto;
-
+extern SLONG DIKE_dike_upto;
 
 //
 // Initialises the dikes.
@@ -92,35 +88,28 @@ extern SLONG     DIKE_dike_upto;
 
 void DIKE_init(void);
 
-
-
 //
 // Creates a new dike.
 //
 
-DIKE_Dike *DIKE_create(
-			SLONG x,
-			SLONG z,
-			SLONG yaw);
-
+DIKE_Dike* DIKE_create(
+    SLONG x,
+    SLONG z,
+    SLONG yaw);
 
 //
 // Processes a dike. Write directly into the 'control' field to
 // move the dike.
 //
 
-void DIKE_process(DIKE_Dike *dd);
-
-
+void DIKE_process(DIKE_Dike* dd);
 
 //
 // A line-drawn representation of the dike.
 //
 
-void DIKE_draw(DIKE_Dike *dd);
-
-
+void DIKE_draw(DIKE_Dike* dd);
 
 #endif
 
-#endif //#ifndef TARGET_DC
+#endif // #ifndef TARGET_DC

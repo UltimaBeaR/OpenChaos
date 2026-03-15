@@ -12,10 +12,9 @@
 // Gives back an unused block of memory.
 //
 
-void  HEAP_init(void);
-void *HEAP_get(SLONG num_bytes);
-void  HEAP_give(void *, SLONG num_bytes);
-
+void HEAP_init(void);
+void* HEAP_get(SLONG num_bytes);
+void HEAP_give(void*, SLONG num_bytes);
 
 //
 // A chunk of useful memory for you to do with as you please.
@@ -24,8 +23,5 @@ void  HEAP_give(void *, SLONG num_bytes);
 #define HEAP_PAD_SIZE (1024 * 4)
 
 extern UBYTE HEAP_pad[HEAP_PAD_SIZE];
-
-
-
 
 #endif

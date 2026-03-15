@@ -18,9 +18,9 @@
 // why does the above line toast it?
 // oh well... set up manually then...
 
-#define	TRUE				1
-#define	FALSE				0
-#define PI				(3.14159265F)
+#define TRUE 1
+#define FALSE 0
+#define PI (3.14159265F)
 typedef	unsigned char		UBYTE;
 typedef signed char			SBYTE;
 typedef char				CBYTE;

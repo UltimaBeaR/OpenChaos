@@ -1,9 +1,8 @@
 // FFManager.cpp
 // Force Feedback handler
 // 18th Sept 98
-// 
+//
 // Limitations: Currently assumes first joystick
-
 
 #ifndef TARGET_DC
 
@@ -83,8 +82,6 @@ BOOL FFManager::Test() {
 	
 }
 
-#endif	// #if 0
+#endif // #if 0
 
-#endif //#ifndef TARGET_DC
-
-
+#endif // #ifndef TARGET_DC

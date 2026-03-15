@@ -5,17 +5,16 @@
 #ifndef _TGA_
 #define _TGA_
 
-
 //
 // The format of a TGA pixel.
 //
 
 typedef struct
 {
-	UBYTE blue;
-	UBYTE green;
-	UBYTE red;
-	UBYTE alpha;
+    UBYTE blue;
+    UBYTE green;
+    UBYTE red;
+    UBYTE alpha;
 
 } TGA_Pixel;
 
@@ -23,17 +22,17 @@ typedef struct
 // Info describing the tga.
 //
 
-#define TGA_FLAG_CONTAINS_ALPHA	(1 << 0)
-#define TGA_FLAG_ONE_BIT_ALPHA  (1 << 1)		// Alpha is only 255 or 0
-#define TGA_FLAG_GRAYSCALE		(1 << 2)		// For all pixels r == g == b.
+#define TGA_FLAG_CONTAINS_ALPHA (1 << 0)
+#define TGA_FLAG_ONE_BIT_ALPHA (1 << 1) // Alpha is only 255 or 0
+#define TGA_FLAG_GRAYSCALE (1 << 2) // For all pixels r == g == b.
 
 typedef struct
 {
-	SLONG valid;
-	SLONG width;
-	SLONG height;
-	ULONG flag;
-	
+    SLONG valid;
+    SLONG width;
+    SLONG height;
+    ULONG flag;
+
 } TGA_Info;
 
 //
@@ -41,10 +40,10 @@ typedef struct
 //
 
 TGA_Info TGA_load(
-			const CBYTE *file,
-			SLONG        max_width,
-			SLONG        max_height,
-			TGA_Pixel   *data);
+    const CBYTE* file,
+    SLONG max_width,
+    SLONG max_height,
+    TGA_Pixel* data);
 
 #if 0
 
@@ -60,6 +59,5 @@ void TGA_save(
 		SLONG        contains_alpha);	// FALSE => Save without the alpha data.
 
 #endif
-
 
 #endif

@@ -10,7 +10,7 @@
 // The library reports on the times between frames and breakpoints
 // by storing peak times (min and max) and average time between points
 
-//#define	BREAKTIMER
+// #define	BREAKTIMER
 
 #ifdef BREAKTIMER
 

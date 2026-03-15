@@ -13,10 +13,10 @@
 
 typedef struct
 {
-	UBYTE blue;
-	UBYTE green;
-	UBYTE red;
-	UBYTE alpha;
+    UBYTE blue;
+    UBYTE green;
+    UBYTE red;
+    UBYTE alpha;
 
 } TGA_Pixel;
 
@@ -26,11 +26,11 @@ typedef struct
 
 typedef struct
 {
-	SLONG valid;
-	SLONG width;
-	SLONG height;
-	SLONG contains_alpha;
-	
+    SLONG valid;
+    SLONG width;
+    SLONG height;
+    SLONG contains_alpha;
+
 } TGA_Info;
 
 //
@@ -38,24 +38,23 @@ typedef struct
 //
 
 TGA_Info TGA_load(
-			const CBYTE *file,
-			SLONG        max_width,
-			SLONG        max_height,
-			TGA_Pixel   *data,
-			ULONG		id,
-			BOOL		bCanShrink = TRUE);
+    const CBYTE* file,
+    SLONG max_width,
+    SLONG max_height,
+    TGA_Pixel* data,
+    ULONG id,
+    BOOL bCanShrink = TRUE);
 
 //
 // Saves out a tga.
 //
 
 void TGA_save(
-		const CBYTE *file,
-		SLONG        width,
-		SLONG        height,
-		TGA_Pixel   *data,
-		SLONG        contains_alpha);	// FALSE => Save without the alpha data.
-
+    const CBYTE* file,
+    SLONG width,
+    SLONG height,
+    TGA_Pixel* data,
+    SLONG contains_alpha); // FALSE => Save without the alpha data.
 
 // Clump management
 

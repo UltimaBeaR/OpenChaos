@@ -453,5 +453,4 @@ void Font3D::DrawString(CBYTE *str, ULONG ctrx, ULONG y, ULONG rgb, float scale,
 	}
 }
 
-
 #endif

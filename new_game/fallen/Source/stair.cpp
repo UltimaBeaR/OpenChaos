@@ -26,8 +26,6 @@
 #include "id.h"
 #include "stair.h"
 
-
-
 // claude-ai: STAIR_x1/z1/x2/z2: Bounding box of the current building in grid coordinates (tile units).
 // claude-ai: Set via STAIR_set_bounding_box() before processing a building's storeys.
 // claude-ai: Used to validate and offset array indices (off_x = x - STAIR_x1).
@@ -69,21 +67,21 @@ UBYTE STAIR_roof_height;
 //
 
 // in building.h
-//#define STAIR_FLAG_UP	(1 << 0)	// The staircase goes up
-//#define STAIR_FLAG_DOWN (1 << 1)	// The staircase goes down.
+// #define STAIR_FLAG_UP	(1 << 0)	// The staircase goes up
+// #define STAIR_FLAG_DOWN (1 << 1)	// The staircase goes down.
 
 // claude-ai: STAIR_Stair: One staircase. Spans two adjacent grid cells: (x1,z1) and (x2,z2).
 // claude-ai: The two cells are always horizontally or vertically adjacent (differ by 1 in x or z).
 // claude-ai: up/down are indices into STAIR_storey[]. 0 is NULL (unused index).
 typedef struct
 {
-	UBYTE flag;
-	UBYTE up;	// The storey you go up to   (if (flag & STAIR_FLAG_UP))
-	UBYTE down;	// The storey you go down to (if (flag & STAIR_FLAG_DOWN))
-	UBYTE x1;
-	UBYTE z1;
-	UBYTE x2;
-	UBYTE z2;
+    UBYTE flag;
+    UBYTE up; // The storey you go up to   (if (flag & STAIR_FLAG_UP))
+    UBYTE down; // The storey you go down to (if (flag & STAIR_FLAG_DOWN))
+    UBYTE x1;
+    UBYTE z1;
+    UBYTE x2;
+    UBYTE z2;
 
 } STAIR_Stair;
 
@@ -91,7 +89,7 @@ typedef struct
 // claude-ai: STAIR_stair_upto starts at 1 because index 0 is the NULL stair sentinel.
 
 STAIR_Stair STAIR_stair[STAIR_MAX_STAIRS];
-SLONG       STAIR_stair_upto;
+SLONG STAIR_stair_upto;
 
 //
 // The info for each storey.
@@ -108,21 +106,21 @@ SLONG       STAIR_stair_upto;
 //            Indexed as square[z_offset][x_offset>>3], bit = (x_offset & 7).
 typedef struct
 {
-	SLONG handle;	// How the storey is identified.
-	UBYTE opp_x1;	// A wall is it good to have a staircase opposite on.
-	UBYTE opp_z1;
-	UBYTE opp_x2;
-	UBYTE opp_z2;
-	UBYTE height;
-	UBYTE stair[STAIR_MAX_PER_STOREY];	// Indices into the STAIR_stair array. 0 => NULL index.
-	UBYTE square[STAIR_MAX_SIZE][STAIR_MAX_SIZE / 8];
+    SLONG handle; // How the storey is identified.
+    UBYTE opp_x1; // A wall is it good to have a staircase opposite on.
+    UBYTE opp_z1;
+    UBYTE opp_x2;
+    UBYTE opp_z2;
+    UBYTE height;
+    UBYTE stair[STAIR_MAX_PER_STOREY]; // Indices into the STAIR_stair array. 0 => NULL index.
+    UBYTE square[STAIR_MAX_SIZE][STAIR_MAX_SIZE / 8];
 
 } STAIR_Storey;
 
 #define STAIR_MAX_STOREYS 32
 
 STAIR_Storey STAIR_storey[STAIR_MAX_STOREYS];
-SLONG        STAIR_storey_upto;
+SLONG STAIR_storey_upto;
 
 // claude-ai: STAIR_set_bit/STAIR_get_bit: Packed bit accessors for the inside-square bitmap.
 // claude-ai: The square[z_off][byte] layout packs 8 x-columns per byte (LSB = leftmost).
@@ -133,76 +131,74 @@ SLONG        STAIR_storey_upto;
 
 void STAIR_set_bit(SLONG storey, SLONG x, SLONG z)
 {
-	SLONG off_x;
-	SLONG off_z;
+    SLONG off_x;
+    SLONG off_z;
 
-	SLONG byte;
-	SLONG bit;
+    SLONG byte;
+    SLONG bit;
 
-	ASSERT(WITHIN(storey, 0, STAIR_storey_upto - 1));
-	ASSERT(WITHIN(x, STAIR_x1, STAIR_x2 - 1));
-	ASSERT(WITHIN(z, STAIR_z1, STAIR_z2 - 1));
+    ASSERT(WITHIN(storey, 0, STAIR_storey_upto - 1));
+    ASSERT(WITHIN(x, STAIR_x1, STAIR_x2 - 1));
+    ASSERT(WITHIN(z, STAIR_z1, STAIR_z2 - 1));
 
-	off_x = x - STAIR_x1;
-	off_z = z - STAIR_z1;
+    off_x = x - STAIR_x1;
+    off_z = z - STAIR_z1;
 
-	ASSERT(WITHIN(off_x, 0, STAIR_MAX_SIZE - 1));
-	ASSERT(WITHIN(off_z, 0, STAIR_MAX_SIZE - 1));
+    ASSERT(WITHIN(off_x, 0, STAIR_MAX_SIZE - 1));
+    ASSERT(WITHIN(off_z, 0, STAIR_MAX_SIZE - 1));
 
-	byte = off_x >> 3;
-	bit  = off_x  & 7;
+    byte = off_x >> 3;
+    bit = off_x & 7;
 
-	STAIR_storey[storey].square[off_z][byte] |= (1 << bit);
+    STAIR_storey[storey].square[off_z][byte] |= (1 << bit);
 }
 
 UBYTE STAIR_get_bit(SLONG storey, SLONG x, SLONG z)
 {
-	SLONG off_x;
-	SLONG off_z;		
+    SLONG off_x;
+    SLONG off_z;
 
-	SLONG byte;
-	SLONG bit;
+    SLONG byte;
+    SLONG bit;
 
-	ASSERT(WITHIN(storey, 0, STAIR_storey_upto - 1));
-	ASSERT(WITHIN(x, STAIR_x1, STAIR_x2 - 1));
-	ASSERT(WITHIN(z, STAIR_z1, STAIR_z2 - 1));
+    ASSERT(WITHIN(storey, 0, STAIR_storey_upto - 1));
+    ASSERT(WITHIN(x, STAIR_x1, STAIR_x2 - 1));
+    ASSERT(WITHIN(z, STAIR_z1, STAIR_z2 - 1));
 
-	off_x = x - STAIR_x1;
-	off_z = z - STAIR_z1;
+    off_x = x - STAIR_x1;
+    off_z = z - STAIR_z1;
 
-	ASSERT(WITHIN(off_x, 0, STAIR_MAX_SIZE - 1));
-	ASSERT(WITHIN(off_z, 0, STAIR_MAX_SIZE - 1));
+    ASSERT(WITHIN(off_x, 0, STAIR_MAX_SIZE - 1));
+    ASSERT(WITHIN(off_z, 0, STAIR_MAX_SIZE - 1));
 
-	byte = off_x >> 3;
-	bit  = off_x  & 7;
+    byte = off_x >> 3;
+    bit = off_x & 7;
 
-	return STAIR_storey[storey].square[off_z][byte] & (1 << bit);
+    return STAIR_storey[storey].square[off_z][byte] & (1 << bit);
 }
 
 UBYTE STAIR_get_bit_from_square(UBYTE square[STAIR_MAX_SIZE][STAIR_MAX_SIZE / 8], SLONG x, SLONG z)
 {
-	SLONG off_x;
-	SLONG off_z;
+    SLONG off_x;
+    SLONG off_z;
 
-	SLONG byte;
-	SLONG bit;
+    SLONG byte;
+    SLONG bit;
 
-	ASSERT(WITHIN(x, STAIR_x1, STAIR_x2 - 1));
-	ASSERT(WITHIN(z, STAIR_z1, STAIR_z2 - 1));
+    ASSERT(WITHIN(x, STAIR_x1, STAIR_x2 - 1));
+    ASSERT(WITHIN(z, STAIR_z1, STAIR_z2 - 1));
 
-	off_x = x - STAIR_x1;
-	off_z = z - STAIR_z1;
+    off_x = x - STAIR_x1;
+    off_z = z - STAIR_z1;
 
-	ASSERT(WITHIN(off_x, 0, STAIR_MAX_SIZE - 1));
-	ASSERT(WITHIN(off_z, 0, STAIR_MAX_SIZE - 1));
+    ASSERT(WITHIN(off_x, 0, STAIR_MAX_SIZE - 1));
+    ASSERT(WITHIN(off_z, 0, STAIR_MAX_SIZE - 1));
 
-	byte = off_x >> 3;
-	bit  = off_x  & 7;
+    byte = off_x >> 3;
+    bit = off_x & 7;
 
-	return square[off_z][byte] & (1 << bit);
+    return square[off_z][byte] & (1 << bit);
 }
-
-
 
 // claude-ai: STAIR_link / STAIR_edge: Scanline fill infrastructure for computing "inside" squares.
 // claude-ai: STAIR_storey_wall() feeds each wall segment into sorted linked lists per z-row.
@@ -227,16 +223,16 @@ UBYTE STAIR_get_bit_from_square(UBYTE square[STAIR_MAX_SIZE][STAIR_MAX_SIZE / 8]
 
 typedef struct
 {
-	UBYTE next;
-	UBYTE square;
-	UWORD pos;		// 8-bit fixed point.
+    UBYTE next;
+    UBYTE square;
+    UWORD pos; // 8-bit fixed point.
 
 } STAIR_Link;
 
 #define STAIR_MAX_LINKS 128
 
 STAIR_Link STAIR_link[STAIR_MAX_LINKS];
-SLONG      STAIR_link_upto;
+SLONG STAIR_link_upto;
 
 //
 // One linked list per z-row of floor square.
@@ -258,15 +254,14 @@ UBYTE STAIR_edge[STAIR_MAX_SIZE];
 
 void STAIR_check_edge(SLONG z)
 {
-	SLONG sz;
+    SLONG sz;
 
-	ASSERT(WITHIN(z, STAIR_z1, STAIR_z2 - 1));
+    ASSERT(WITHIN(z, STAIR_z1, STAIR_z2 - 1));
 
-	sz = z - STAIR_z1;
+    sz = z - STAIR_z1;
 
-	ASSERT(WITHIN(sz, 0, STAIR_MAX_SIZE - 1));
+    ASSERT(WITHIN(sz, 0, STAIR_MAX_SIZE - 1));
 }
-
 
 // claude-ai: STAIR module has its own deterministic PRNG (LCG: seed = seed*328573 + 123456789).
 // claude-ai: Seeded from a UWORD in STAIR_calculate() so stair placement is reproducible per building.
@@ -279,27 +274,25 @@ ULONG STAIR_rand_seed;
 
 inline void STAIR_srand(ULONG seed)
 {
-	STAIR_rand_seed = seed;
+    STAIR_rand_seed = seed;
 }
 
 inline ULONG STAIR_grand(void)
 {
-	return STAIR_rand_seed;
+    return STAIR_rand_seed;
 }
 
 inline UWORD STAIR_rand(void)
 {
-	UWORD ans;
+    UWORD ans;
 
-	STAIR_rand_seed *= 328573;
-	STAIR_rand_seed += 123456789;
+    STAIR_rand_seed *= 328573;
+    STAIR_rand_seed += 123456789;
 
-	ans = STAIR_rand_seed >> 7;
+    ans = STAIR_rand_seed >> 7;
 
-	return ans;
+    return ans;
 }
-
-
 
 //
 // Adds the stair to the given storey.
@@ -307,71 +300,68 @@ inline UWORD STAIR_rand(void)
 
 void STAIR_add_to_storey(SLONG storey, SLONG stair)
 {
-	SLONG i;
+    SLONG i;
 
-	ASSERT(WITHIN(storey, 0, STAIR_storey_upto - 1));
-	ASSERT(WITHIN(stair,  1, STAIR_stair_upto  - 1));
+    ASSERT(WITHIN(storey, 0, STAIR_storey_upto - 1));
+    ASSERT(WITHIN(stair, 1, STAIR_stair_upto - 1));
 
-	for (i = 0; i < STAIR_MAX_PER_STOREY; i++)
-	{
-		if (STAIR_storey[storey].stair[i] == NULL)
-		{
-			STAIR_storey[storey].stair[i] = stair;
+    for (i = 0; i < STAIR_MAX_PER_STOREY; i++) {
+        if (STAIR_storey[storey].stair[i] == NULL) {
+            STAIR_storey[storey].stair[i] = stair;
 
-			return;
-		}
-	}
+            return;
+        }
+    }
 
-	//
-	// No more room!
-	//
+    //
+    // No more room!
+    //
 
-	ASSERT(0);
+    ASSERT(0);
 }
-
 
 // claude-ai: STAIR_init: Resets all stair state for a new building.
 // claude-ai: Bounding box initialized to "empty" (x1=255, x2=0 — inverted so first point sets it correctly).
 // claude-ai: stair index 0 is reserved as NULL sentinel, so stair_upto starts at 1.
 void STAIR_init()
 {
-	//
-	// Clear the bounding box.
-	//
+    //
+    // Clear the bounding box.
+    //
 
-	STAIR_x1 = 255;
-	STAIR_z1 = 255;
-	STAIR_x2 = 0;
-	STAIR_z2 = 0;
+    STAIR_x1 = 255;
+    STAIR_z1 = 255;
+    STAIR_x2 = 0;
+    STAIR_z2 = 0;
 
-	//
-	// Clear the stair and storey array.
-	//
+    //
+    // Clear the stair and storey array.
+    //
 
-	STAIR_stair_upto  = 1;	// 0 is the NULL stair...
-	STAIR_storey_upto = 0;
+    STAIR_stair_upto = 1; // 0 is the NULL stair...
+    STAIR_storey_upto = 0;
 
-	//
-	// Reset the roof height.
-	//
+    //
+    // Reset the roof height.
+    //
 
-	STAIR_roof_height = 0;
+    STAIR_roof_height = 0;
 }
 
 void STAIR_set_bounding_box(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2)
 {
-	ASSERT(WITHIN(x1, 0, 255));
-	ASSERT(WITHIN(z1, 0, 255));
-	ASSERT(WITHIN(x2, 0, 255));
-	ASSERT(WITHIN(z2, 0, 255));
+    ASSERT(WITHIN(x1, 0, 255));
+    ASSERT(WITHIN(z1, 0, 255));
+    ASSERT(WITHIN(x2, 0, 255));
+    ASSERT(WITHIN(z2, 0, 255));
 
-	STAIR_x1 = x1;
-	STAIR_z1 = z1;
-	STAIR_x2 = x2;
-	STAIR_z2 = z2;
+    STAIR_x1 = x1;
+    STAIR_z1 = z1;
+    STAIR_x2 = x2;
+    STAIR_z2 = z2;
 
-	ASSERT(WITHIN(STAIR_x2 - STAIR_x1, 0, STAIR_MAX_SIZE));
-	ASSERT(WITHIN(STAIR_z2 - STAIR_z1, 0, STAIR_MAX_SIZE));
+    ASSERT(WITHIN(STAIR_x2 - STAIR_x1, 0, STAIR_MAX_SIZE));
+    ASSERT(WITHIN(STAIR_z2 - STAIR_z1, 0, STAIR_MAX_SIZE));
 }
 
 // claude-ai: STAIR_storey_new: Registers a new floor for the current building.
@@ -380,57 +370,55 @@ void STAIR_set_bounding_box(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2)
 // claude-ai: Resets the per-row STAIR_edge[] lists and STAIR_link_upto for a fresh scanline fill.
 void STAIR_storey_new(SLONG handle, UBYTE height)
 {
-	SLONG i;
+    SLONG i;
 
-	STAIR_Storey *st;
+    STAIR_Storey* st;
 
-	ASSERT(WITHIN(STAIR_storey_upto, 0, STAIR_MAX_STOREYS - 1));
+    ASSERT(WITHIN(STAIR_storey_upto, 0, STAIR_MAX_STOREYS - 1));
 
-	st = &STAIR_storey[STAIR_storey_upto];
+    st = &STAIR_storey[STAIR_storey_upto];
 
-	//
-	// Work out the new roof height.
-	//
+    //
+    // Work out the new roof height.
+    //
 
-	if (STAIR_roof_height < height + 1)
-	{
-		STAIR_roof_height = height + 1;
-	}
+    if (STAIR_roof_height < height + 1) {
+        STAIR_roof_height = height + 1;
+    }
 
-	//
-	// Initialise the new storey.
-	//
+    //
+    // Initialise the new storey.
+    //
 
-	memset ((UBYTE*)st, 0, sizeof(STAIR_Storey));
+    memset((UBYTE*)st, 0, sizeof(STAIR_Storey));
 
-	st->handle = handle;
-	st->height = height;
-	st->opp_x1 = 0;
-	st->opp_z1 = 0;
-	st->opp_x2 = 0;
-	st->opp_z2 = 0;
+    st->handle = handle;
+    st->height = height;
+    st->opp_x1 = 0;
+    st->opp_z1 = 0;
+    st->opp_x2 = 0;
+    st->opp_z2 = 0;
 
-	//
-	// Initialise the link lists with which we calculate
-	// the inside squares of each storey.
-	//
+    //
+    // Initialise the link lists with which we calculate
+    // the inside squares of each storey.
+    //
 
-	for (i = 0; i < STAIR_MAX_SIZE; i++)
-	{
-		STAIR_edge[i] = 0;
-	}
+    for (i = 0; i < STAIR_MAX_SIZE; i++) {
+        STAIR_edge[i] = 0;
+    }
 
-	//
-	// We don't use link zero because that is the NULL link index.
-	//
+    //
+    // We don't use link zero because that is the NULL link index.
+    //
 
-	STAIR_link_upto = 1;
+    STAIR_link_upto = 1;
 
-	//
-	// Next storey...
-	//
+    //
+    // Next storey...
+    //
 
-	STAIR_storey_upto += 1;
+    STAIR_storey_upto += 1;
 }
 
 // claude-ai: STAIR_storey_wall: Adds one wall segment of a floor's polygon to the scanline edge lists.
@@ -443,173 +431,164 @@ void STAIR_storey_new(SLONG handle, UBYTE height)
 // claude-ai: Links are inserted in sorted order by x-position into STAIR_edge[z-STAIR_z1] linked lists.
 void STAIR_storey_wall(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2, SLONG opposite)
 {
-	SLONG x;
-	SLONG z;
+    SLONG x;
+    SLONG z;
 
-	SLONG dx;
-	SLONG dz;
+    SLONG dx;
+    SLONG dz;
 
-	SLONG dxdz;
-	SLONG pos;
-	SLONG square;
+    SLONG dxdz;
+    SLONG pos;
+    SLONG square;
 
-	UBYTE  link_t;
-	UBYTE  next;
-	UBYTE *prev;
+    UBYTE link_t;
+    UBYTE next;
+    UBYTE* prev;
 
-	//
-	// Make sure this wall is inside the bounding rectangle of
-	// the building.
-	//
+    //
+    // Make sure this wall is inside the bounding rectangle of
+    // the building.
+    //
 
-	ASSERT(WITHIN(x1, STAIR_x1, STAIR_x2));
-	ASSERT(WITHIN(z1, STAIR_z1, STAIR_z2));
+    ASSERT(WITHIN(x1, STAIR_x1, STAIR_x2));
+    ASSERT(WITHIN(z1, STAIR_z1, STAIR_z2));
 
-	if (opposite)
-	{
-		STAIR_Storey *st;
+    if (opposite) {
+        STAIR_Storey* st;
 
-		ASSERT(WITHIN(STAIR_storey_upto - 1, 0, STAIR_MAX_STOREYS - 1));
+        ASSERT(WITHIN(STAIR_storey_upto - 1, 0, STAIR_MAX_STOREYS - 1));
 
-		st = &STAIR_storey[STAIR_storey_upto - 1];
-		
-		st->opp_x1 = x1;
-		st->opp_z1 = z1;
-		st->opp_x2 = x2;
-		st->opp_z2 = z2;
+        st = &STAIR_storey[STAIR_storey_upto - 1];
 
-		if (x1 > x2) {SWAP(st->opp_x1, st->opp_x2);}
-		if (z1 > z2) {SWAP(st->opp_z1, st->opp_z2);}
-	}
+        st->opp_x1 = x1;
+        st->opp_z1 = z1;
+        st->opp_x2 = x2;
+        st->opp_z2 = z2;
 
-	if (z1 == z2)
-	{
-		//
-		// Ignore this line because it does not cross any
-		// z-lines.
-		//
+        if (x1 > x2) {
+            SWAP(st->opp_x1, st->opp_x2);
+        }
+        if (z1 > z2) {
+            SWAP(st->opp_z1, st->opp_z2);
+        }
+    }
 
-		return;
-	}
+    if (z1 == z2) {
+        //
+        // Ignore this line because it does not cross any
+        // z-lines.
+        //
 
-	if (z1 > z2)
-	{
-		link_t = STAIR_LINK_T_ENTER;
+        return;
+    }
 
-		//
-		// Always go from top to bottom.
-		//
+    if (z1 > z2) {
+        link_t = STAIR_LINK_T_ENTER;
 
-		SWAP(x1, x2);
-		SWAP(z1, z2);
-	}
-	else
-	{
-		link_t = STAIR_LINK_T_LEAVE;
-	}
+        //
+        // Always go from top to bottom.
+        //
 
-	dx = x2 - x1 << 16;
-	dz = z2 - z1 << 16;
+        SWAP(x1, x2);
+        SWAP(z1, z2);
+    } else {
+        link_t = STAIR_LINK_T_LEAVE;
+    }
 
-	dxdz = DIV64(dx, dz);
+    dx = x2 - x1 << 16;
+    dz = z2 - z1 << 16;
 
-	x = x1 << 16;
-	z = z1;
+    dxdz = DIV64(dx, dz);
 
-	while(z < z2)
-	{
-		switch(link_t)
-		{
-			case STAIR_LINK_T_ENTER:
-				pos      = x >> 8;	// 8-bit fixed point.
-				square   = MAX(x, x + dxdz);
-				square  += 0xffff;
-				square >>= 16;
-				break;
-			case STAIR_LINK_T_LEAVE:
-				pos      = x >> 8;	// 8-bit fixed point.
-				square   = MIN(x, x + dxdz);
-				square >>= 16;
-				break;
+    x = x1 << 16;
+    z = z1;
 
-			default:
-				ASSERT(0);
-				break;
-		}
+    while (z < z2) {
+        switch (link_t) {
+        case STAIR_LINK_T_ENTER:
+            pos = x >> 8; // 8-bit fixed point.
+            square = MAX(x, x + dxdz);
+            square += 0xffff;
+            square >>= 16;
+            break;
+        case STAIR_LINK_T_LEAVE:
+            pos = x >> 8; // 8-bit fixed point.
+            square = MIN(x, x + dxdz);
+            square >>= 16;
+            break;
 
-		//
-		// Create a new link.
-		//
+        default:
+            ASSERT(0);
+            break;
+        }
 
-		ASSERT(WITHIN(STAIR_link_upto, 1, STAIR_MAX_LINKS - 1));
+        //
+        // Create a new link.
+        //
 
-		STAIR_link[STAIR_link_upto].square = square;
-		STAIR_link[STAIR_link_upto].pos    = pos;
-		STAIR_link[STAIR_link_upto].next   = 0;
+        ASSERT(WITHIN(STAIR_link_upto, 1, STAIR_MAX_LINKS - 1));
 
-		//
-		// Insert it in the correct place in the linked list.
-		//
+        STAIR_link[STAIR_link_upto].square = square;
+        STAIR_link[STAIR_link_upto].pos = pos;
+        STAIR_link[STAIR_link_upto].next = 0;
 
-		prev = &STAIR_EDGE(z);
-		next =  STAIR_EDGE(z);
+        //
+        // Insert it in the correct place in the linked list.
+        //
 
-		while(1)
-		{
-			if (next == NULL)
-			{
-				//
-				// We have reached end of the linked list.
-				//
+        prev = &STAIR_EDGE(z);
+        next = STAIR_EDGE(z);
 
-				break;
-			}
+        while (1) {
+            if (next == NULL) {
+                //
+                // We have reached end of the linked list.
+                //
 
-			ASSERT(WITHIN(next, 1, STAIR_link_upto - 1));
+                break;
+            }
 
-			if (STAIR_link[next].pos >= STAIR_link[STAIR_link_upto].pos)
-			{
-				if (STAIR_link[next].pos == STAIR_LINK_T_ENTER)
-				{
-					//
-					// Make the ENTER link appear first in the linked list.
-					//
-				}
-				else
-				{
-					//
-					// This is the right place to insert it.
-					//
+            ASSERT(WITHIN(next, 1, STAIR_link_upto - 1));
 
-					break;
-				}
-			}
+            if (STAIR_link[next].pos >= STAIR_link[STAIR_link_upto].pos) {
+                if (STAIR_link[next].pos == STAIR_LINK_T_ENTER) {
+                    //
+                    // Make the ENTER link appear first in the linked list.
+                    //
+                } else {
+                    //
+                    // This is the right place to insert it.
+                    //
 
-			//
-			// Go onto the next link.
-			//
+                    break;
+                }
+            }
 
-			prev = &STAIR_link[next].next;
-			next =  STAIR_link[next].next;
-		}
+            //
+            // Go onto the next link.
+            //
 
-		ASSERT(*prev == next);
+            prev = &STAIR_link[next].next;
+            next = STAIR_link[next].next;
+        }
 
-		//
-		// Insert it.
-		//
+        ASSERT(*prev == next);
 
-		STAIR_link[STAIR_link_upto].next = next;
-	   *prev                             = STAIR_link_upto;
-		STAIR_link_upto					+= 1;
+        //
+        // Insert it.
+        //
 
-		//
-		// Do the next line.
-		//
+        STAIR_link[STAIR_link_upto].next = next;
+        *prev = STAIR_link_upto;
+        STAIR_link_upto += 1;
 
-		x += dxdz;
-		z += 1;
-	}
+        //
+        // Do the next line.
+        //
+
+        x += dxdz;
+        z += 1;
+    }
 }
 
 // claude-ai: STAIR_storey_finish: Completes the scanline fill for the current storey.
@@ -619,84 +598,79 @@ void STAIR_storey_wall(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2, SLONG opposite)
 // claude-ai: Returns TRUE if the storey is valid (all z-rows have pairs), FALSE if malformed.
 SLONG STAIR_storey_finish()
 {
-	SLONG i;
+    SLONG i;
 
-	SLONG x;
-	SLONG z;
+    SLONG x;
+    SLONG z;
 
-	SLONG x1;
-	SLONG x2;
+    SLONG x1;
+    SLONG x2;
 
-	UBYTE next;
-	UBYTE next1;
-	UBYTE next2;
+    UBYTE next;
+    UBYTE next1;
+    UBYTE next2;
 
-	STAIR_Storey *st;
+    STAIR_Storey* st;
 
-	ASSERT(WITHIN(STAIR_storey_upto - 1, 0, STAIR_MAX_STOREYS - 1));
+    ASSERT(WITHIN(STAIR_storey_upto - 1, 0, STAIR_MAX_STOREYS - 1));
 
-	st = &STAIR_storey[STAIR_storey_upto - 1];
+    st = &STAIR_storey[STAIR_storey_upto - 1];
 
-	//
-	// Go through the linked lists and mark each square as
-	// being inside or outside.
-	//
+    //
+    // Go through the linked lists and mark each square as
+    // being inside or outside.
+    //
 
-	for (z = STAIR_z1; z < STAIR_z2; z++)
-	{
-		next = STAIR_EDGE(z);
+    for (z = STAIR_z1; z < STAIR_z2; z++) {
+        next = STAIR_EDGE(z);
 
-		if (next == NULL)
-		{
-			//
-			// This whole z-row is outside.
-			//
+        if (next == NULL) {
+            //
+            // This whole z-row is outside.
+            //
 
-			continue;
-		}
+            continue;
+        }
 
-		//
-		// These should come in pairs.
-		//
+        //
+        // These should come in pairs.
+        //
 
-		next1 = next;
-		next2 = STAIR_link[next].next;
+        next1 = next;
+        next2 = STAIR_link[next].next;
 
-		//
-		// The pairs should be start and end.
-		//
+        //
+        // The pairs should be start and end.
+        //
 
-		if (next1 == NULL ||
-			next2 == NULL)
-		{
-			//
-			// An invalid storey.
-			//
+        if (next1 == NULL || next2 == NULL) {
+            //
+            // An invalid storey.
+            //
 
-			return FALSE;
-		}
+            return FALSE;
+        }
 
-		ASSERT(WITHIN(next1, 1, STAIR_link_upto - 1));
-		ASSERT(WITHIN(next2, 1, STAIR_link_upto - 1));
+        ASSERT(WITHIN(next1, 1, STAIR_link_upto - 1));
+        ASSERT(WITHIN(next2, 1, STAIR_link_upto - 1));
 
-		x1 = STAIR_link[next1].square;
-		x2 = STAIR_link[next2].square;
+        x1 = STAIR_link[next1].square;
+        x2 = STAIR_link[next2].square;
 
-		//
-		// We only mark squares that are completely inside.
-		//
+        //
+        // We only mark squares that are completely inside.
+        //
 
-		for (x = x1; x < x2; x++)
-		{
-			//
-			// Mark these squares as inside.
-			//
+        for (x = x1; x < x2; x++) {
+            //
+            // Mark these squares as inside.
+            //
 
-			STAIR_set_bit(STAIR_storey_upto - 1, x, z);
-		}
-	}
+            STAIR_set_bit(STAIR_storey_upto - 1, x, z);
+        }
+    }
 
-	return TRUE;
+    return TRUE;
 }
 
 // claude-ai: STAIR_is_door: Stub — was intended to check if a given tile has an outside door.
@@ -710,9 +684,8 @@ SLONG STAIR_storey_finish()
 
 SLONG STAIR_is_door(SLONG storey, SLONG x, SLONG z)
 {
-	return 0;
+    return 0;
 }
-
 
 // claude-ai: STAIR_calculate: Main stair placement algorithm. Call after all storeys are registered.
 // claude-ai: seed: UWORD used to initialize the PRNG so placement is deterministic per building.
@@ -730,568 +703,575 @@ SLONG STAIR_is_door(SLONG storey, SLONG x, SLONG z)
 // claude-ai: Uses goto placed_stairs to break out of nested loops (idiomatic C of the era).
 void STAIR_calculate(UWORD seed)
 {
-	SLONG i;
-	SLONG j;
-	SLONG k;
-	SLONG l;
+    SLONG i;
+    SLONG j;
+    SLONG k;
+    SLONG l;
 
-	SLONG x;
-	SLONG z;
+    SLONG x;
+    SLONG z;
 
-	SLONG dx;
-	SLONG dz;
+    SLONG dx;
+    SLONG dz;
 
-	SLONG x1;
-	SLONG x2;
-	SLONG z1;
-	SLONG z2;
-	SLONG score;
+    SLONG x1;
+    SLONG x2;
+    SLONG z1;
+    SLONG z2;
+    SLONG score;
 
-	SLONG ox;
-	SLONG oz;
-	SLONG outside;
+    SLONG ox;
+    SLONG oz;
+    SLONG outside;
 
-	SLONG best_x1;
-	SLONG best_z1;
-	SLONG best_x2;
-	SLONG best_z2;
-	SLONG best_score;
+    SLONG best_x1;
+    SLONG best_z1;
+    SLONG best_x2;
+    SLONG best_z2;
+    SLONG best_score;
 
-	STAIR_Storey *st;
-	STAIR_Storey *st_n;
+    STAIR_Storey* st;
+    STAIR_Storey* st_n;
 
-	STAIR_Stair *ss;
-	STAIR_Stair *ss_new;
+    STAIR_Stair* ss;
+    STAIR_Stair* ss_new;
 
-	SLONG dox;
-	SLONG doz;
+    SLONG dox;
+    SLONG doz;
 
-	SLONG height;
-	SLONG height_n;
+    SLONG height;
+    SLONG height_n;
 
-	UBYTE square[STAIR_MAX_SIZE][STAIR_MAX_SIZE / 8];
-	UBYTE go_up;
-	UBYTE go_down;
+    UBYTE square[STAIR_MAX_SIZE][STAIR_MAX_SIZE / 8];
+    UBYTE go_up;
+    UBYTE go_down;
 
-	//
-	// Randomise the order we do the storeys in.
-	//
-
-	UBYTE storey_order1[STAIR_MAX_STOREYS];
-
-	STAIR_srand(seed);
-
-	for (i = 0; i < STAIR_MAX_STOREYS; i++)
-	{
-		storey_order1[i] = i;
-	}
-
-	for (i = 0; i < STAIR_MAX_STOREYS; i++)
-	{
-		j = STAIR_rand() % STAIR_MAX_STOREYS;
-		k = STAIR_rand() % STAIR_MAX_STOREYS;
-
-		SWAP(storey_order1[j], storey_order1[k]);
-	}
-
-	//
-	// Workout where the stairs should be for each storey.
-	//
-
-	for (i = 0; i < STAIR_storey_upto; i++)
-	{
-		st = &STAIR_storey[i];
-
-		//
-		// The height of this storey.
-		//
-
-		height = st->height;
-
-		for (j = 0; j < STAIR_storey_upto; j++)
-		{
-			//
-			// Look for neighbouring storeys.
-			//
-
-			st_n = &STAIR_storey[j];
-
-			//
-			// The height of this storey.
-			//
-
-			height_n = st_n->height;
-
-			if (abs(height - height_n) == 1)
-			{
-				//
-				// This is a neighbouring storey. AND in this storeys
-				// squares.
-				//
-
-				memcpy(square, st->square, sizeof(square));
-
-				for (z = 0; z < STAIR_MAX_SIZE;     z++)
-				for (x = 0; x < STAIR_MAX_SIZE / 8; x++)
-				{
-					square[z][x] &= st_n->square[z][x];
-				}
-
-				//
-				// Is this storey higher or lower?
-				//
-
-				go_up   = 0;
-				go_down = 0;
-
-				     if (height_n == height + 1) {go_up   = 1;}
-				else if (height_n == height - 1) {go_down = 1;}
-				else {ASSERT(0);}
-
-				//
-				// Is there a staircase on this storey we use?
-				//
-
-				for (k = 0; k < STAIR_MAX_PER_STOREY; k++)
-				{
-					if (st->stair[k] != NULL)
-					{
-						ASSERT(WITHIN(st->stair[k], 1, STAIR_stair_upto - 1));
-
-						ss = &STAIR_stair[st->stair[k]];
-
-						//
-						// There is already a staircase on this storey. It is
-						// in an okay place?
-						//
-
-						if (STAIR_get_bit_from_square(square, ss->x1, ss->z1) &&
-							STAIR_get_bit_from_square(square, ss->x2, ss->z2))
-						{
-							//
-							// We can just use this staircase.
-							//
-
-							if (go_up)
-							{
-								if (ss->flag & STAIR_FLAG_UP)
-								{
-									//
-									// There is already a staircase up to this floor!
-									//
-
-									goto placed_stairs;
-								}
-								else
-								{
-									//
-									// Make this staircase go upto the next floor and
-									// create a down staircase on the next floor.
-									//
-
-									ss->flag |= STAIR_FLAG_UP;
-									ss->up    = j;
-
-									//
-									// New stair...
-									//
-
-									ss_new = &STAIR_stair[STAIR_stair_upto++];
-
-									ss_new->flag = STAIR_FLAG_DOWN;
-									ss_new->down = i;
-									ss_new->x1   = ss->x1;
-									ss_new->z1   = ss->z1;
-									ss_new->x2   = ss->x2;
-									ss_new->z2   = ss->z2;
-
-									STAIR_add_to_storey(j, STAIR_stair_upto - 1);
-
-									goto placed_stairs;
-								}
-							}
-
-							if (go_down)
-							{
-								if (ss->flag & STAIR_FLAG_DOWN)
-								{
-									//
-									// There is already a staircase down to this floor!
-									//
-
-									goto placed_stairs;
-								}
-								else
-								{
-									//
-									// Make this staircase go down to the next floor and
-									// create a down staircase on the next floor.
-									//
-
-									ss->flag |= STAIR_FLAG_DOWN;
-									ss->down  = j;
-
-									//
-									// New stair...
-									//
-
-									ss_new = &STAIR_stair[STAIR_stair_upto++];
-
-									ss_new->flag = STAIR_FLAG_UP;
-									ss_new->up   = i;
-									ss_new->x1   = ss->x1;
-									ss_new->z1   = ss->z1;
-									ss_new->x2   = ss->x2;
-									ss_new->z2   = ss->z2;
-
-									STAIR_add_to_storey(j, STAIR_stair_upto - 1);
-
-									goto placed_stairs;
-								}
-							}
-						}
-					}
-				}
-
-				//
-				// Does the neighbour have a suitable staircase already?
-				//
-
-				for (k = 0; k < STAIR_MAX_PER_STOREY; k++)
-				{
-					if (st_n->stair[k] != NULL)
-					{
-						ASSERT(WITHIN(st_n->stair[k], 1, STAIR_stair_upto - 1));
-
-						ss = &STAIR_stair[st_n->stair[k]];
-
-						//
-						// There is a staircase on this storey.  Is is in an
-						// okay place?
-						//
-
-						if (STAIR_get_bit_from_square(square, ss->x1, ss->z1) &&
-							STAIR_get_bit_from_square(square, ss->x2, ss->z2))
-						{
-							//
-							// We could just use this staircase.
-							//
-
-							if (go_up)
-							{
-								if (ss->flag & STAIR_FLAG_DOWN)
-								{
-									//
-									// There is staircase going down from the floor above, but
-									// we didn't find a staircase going up!
-									// 
-
-									ASSERT(0);
-								}
-
-								//
-								// Use this staircase.
-								//
-
-								ss->flag |= STAIR_FLAG_DOWN;
-								ss->down  = i;
-
-								//
-								// Create a new staircase on this floor.
-								//
-
-								ss_new = &STAIR_stair[STAIR_stair_upto++];
-
-								ss_new->flag = STAIR_FLAG_UP;
-								ss_new->up   = j;
-								ss_new->x1   = ss->x1;
-								ss_new->z1   = ss->z1;
-								ss_new->x2   = ss->x2;
-								ss_new->z2   = ss->z2;
-
-								STAIR_add_to_storey(i, STAIR_stair_upto - 1);
-
-								goto placed_stairs;
-							}
-
-							if (go_down)
-							{
-								if (ss->flag & STAIR_FLAG_UP)
-								{
-									//
-									// There is a staircase going up to this floor, but
-									// we didn't find a staircase going down to it!
-									//
-
-									ASSERT(0);
-								}
-
-								//
-								// Use this staircase.
-								//
-
-								ss->flag |= STAIR_FLAG_UP;
-								ss->up    = i;
-
-								//
-								// Create a new staircase on this floor.
-								//
-
-								ss_new = &STAIR_stair[STAIR_stair_upto++];
-
-								ss_new->flag = STAIR_FLAG_DOWN;
-								ss_new->down = j;
-								ss_new->x1   = ss->x1;
-								ss_new->z1   = ss->z1;
-								ss_new->x2   = ss->x2;
-								ss_new->z2   = ss->z2;
-
-								STAIR_add_to_storey(i, STAIR_stair_upto - 1);
-
-								goto placed_stairs;
-							}
-						}
-					}
-				}
-
-				//
-				// Look for the best place for a new staircase in the bounding
-				// box of the building.
-				//
-
-				// claude-ai: STAIR scoring: try every pair (x1,z1)→(x2,z2) in 4 orientations.
-				// claude-ai: Score = rand(0xffff) base.
-				// claude-ai: outside==2 (both cells on outer wall) → +0x10000 (strong bonus)
-				// claude-ai: outside==1 (one cell on outer wall)   → -0x10000 (penalty)
-				// claude-ai: outside==0 (interior position)        → +0 (neutral)
-				// claude-ai: coord matches bounding-box edge       → +0x5000 each (corner bonus, up to ×4)
-				// claude-ai: opposite "opp_wall" hint              → +0xbabe per stair cell (up to ×2)
-				// claude-ai: blocks an outside door (STAIR_is_door) → -INFINITY
-				// claude-ai: best_score >= 0 → create two paired stair entries on both floors.
-				best_score = -INFINITY;
-
-				for (x = STAIR_x1; x < STAIR_x2; x++)
-				for (z = STAIR_z1; z < STAIR_z2; z++)
-				{
-					x1 = x;
-					z1 = z;
-
-					for (k = 0; k < 4; k++)
-					{
-						x2 = x1;
-						z2 = z1;
-
-						switch(k)
-						{
-							case 0: x2 += 1; break;
-							case 1: x2 -= 1; break;
-							case 2: z2 += 1; break;
-							case 3: z2 -= 1; break;
-							default:
-								ASSERT(0);
-								break;
-						}
-
-						if (!WITHIN(x2, STAIR_x1, STAIR_x2 - 1) ||
-							!WITHIN(z2, STAIR_z1, STAIR_z2 - 1))
-						{
-							//
-							// Outside the building!
-							//
-
-							continue;
-						}
-
-						//
-						// Make sure these two squares exist on both storeys.
-						//
-
-						if (STAIR_get_bit_from_square(square, x1, z1) &&
-							STAIR_get_bit_from_square(square, x2, z2))
-						{
-							//
-							// Score this choice of staircase.
-							//
-
-							score   = STAIR_rand() & 0xffff;
-							outside = 0;
-
-							dx = x2 - x1;
-							dz = z2 - z1;
-
-							//
-							// If both squares of the staircase are against an outside wall
-							// then that is good. If only one is than that is bad, but not
-							// disasterous. If the staircase is in the way of an outside door
-							// than that is disasterous.
-							//
-
-							for (l = 0; l < 2; l++)
-							{
-								switch(l)
-								{	
-									case 0: ox = x1 + (+dz); oz = z1 + (-dx); break;
-									case 1: ox = x2 + (+dz); oz = z2 + (-dx); break;
-									default:
-										ASSERT(0);
-										break;
-								}
-
-								if (!WITHIN(ox, STAIR_x1, STAIR_x2 - 1) ||
-									!WITHIN(oz, STAIR_z1, STAIR_z2 - 1) ||
-									!STAIR_get_bit(i, ox, oz))
-								{
-									//
-									// (ox,oz) is outside, so this square of the staircase lies
-									// outside of the storey.
-									//
-
-									outside += 1;
-
-									if (STAIR_is_door(i, ox, oz))
-									{
-										//
-										// Arghh! A staircase here would block a door from the
-										// outside.
-										//
-
-										score = -INFINITY;
-									}
-								}
-							}
-
-							//
-							// Favour stairs on outside walls.
-							//
-
-							switch(outside)
-							{
-								case 0: score  = 0x0;	  break;
-								case 1: score -= 0x10000; break;
-								case 2: score += 0x10000; break;
-								default:
-									ASSERT(0);
-									break;
-							}
-
-							//
-							// We like stairs in corners.
-							//
-
-							if (x1 == STAIR_x1) {score += 0x5000;}
-							if (x1 == STAIR_x2) {score += 0x5000;}
-							if (x2 == STAIR_x1) {score += 0x5000;}
-							if (x2 == STAIR_x2) {score += 0x5000;}
-
-							if (z1 == STAIR_z1) {score += 0x5000;}
-							if (z1 == STAIR_z2) {score += 0x5000;}
-							if (z2 == STAIR_z1) {score += 0x5000;}
-							if (z2 == STAIR_z2) {score += 0x5000;}
-
-							//
-							// We like stairs opposite the 'opposite' wall.
-							//
-
-							if (z1 == z2 && st->opp_z1 == st->opp_z2)
-							{
-								doz = st->opp_z1 - z1;
-
-								if (abs(doz) > 2)
-								{
-									if (WITHIN(x1, st->opp_x1, st->opp_x2)) {score += 0xbabe;}
-									if (WITHIN(x2, st->opp_x1, st->opp_x2)) {score += 0xbabe;}
-									
-								}
-							}
-
-							if (x1 == x2 && st->opp_x1 == st->opp_x2)
-							{
-								dox = st->opp_x1 - x1;
-
-								if (abs(dox) > 2)
-								{
-									if (WITHIN(z1, st->opp_z1, st->opp_z2)) {score += 0xbabe;}
-									if (WITHIN(z2, st->opp_z1, st->opp_z2)) {score += 0xbabe;}
-									
-								}
-							}
-
-							if (score > best_score)
-							{
-								best_x1    = x1;
-								best_z1    = z1;
-								best_x2    = x2;
-								best_z2    = z2;
-								best_score = score;
-							}
-						}
-					}
-				}
-
-				if (best_score >= 0)
-				{
-					ASSERT(WITHIN(STAIR_stair_upto, 1, STAIR_MAX_STAIRS - 2));
-
-					//
-					// Put a staircase here and on the other floor.
-					//
-
-					ss = &STAIR_stair[STAIR_stair_upto++];
-
-					ss->flag = 0;
-					ss->x1   = best_x1;
-					ss->z1   = best_z1;
-					ss->x2   = best_x2;
-					ss->z2   = best_z2;
-
-					if (go_up)   {ss->flag |= STAIR_FLAG_UP;   ss->up   = j;}
-					if (go_down) {ss->flag |= STAIR_FLAG_DOWN; ss->down = j;}
-
-					STAIR_add_to_storey(i, STAIR_stair_upto - 1);
-
-					//
-					// The other floor.
-					//
-
-					ss = &STAIR_stair[STAIR_stair_upto++];
-
-					ss->flag = 0;
-					ss->x1   = best_x1;
-					ss->z1   = best_z1;
-					ss->x2   = best_x2;
-					ss->z2   = best_z2;
-
-					//
-					// These are swapped around for the other floor.
-					//
-
-					if (go_up)   {ss->flag |= STAIR_FLAG_DOWN; ss->down = i;}
-					if (go_down) {ss->flag |= STAIR_FLAG_UP;   ss->up   = j;}
-
-					STAIR_add_to_storey(j, STAIR_stair_upto - 1);
-				}
-				else
-				{
-					//
-					// We need some stairs, but there is nowhere to put
-					// them!
-					//
-
-					TRACE("Oh no! Can't place stairs.\n");
-				}
-
-              placed_stairs:;
-			}
-			else
-			{
-				//
-				// Storeys i and j are more than one floor apart.
-				//
-			}
-		}
-	}
+    //
+    // Randomise the order we do the storeys in.
+    //
+
+    UBYTE storey_order1[STAIR_MAX_STOREYS];
+
+    STAIR_srand(seed);
+
+    for (i = 0; i < STAIR_MAX_STOREYS; i++) {
+        storey_order1[i] = i;
+    }
+
+    for (i = 0; i < STAIR_MAX_STOREYS; i++) {
+        j = STAIR_rand() % STAIR_MAX_STOREYS;
+        k = STAIR_rand() % STAIR_MAX_STOREYS;
+
+        SWAP(storey_order1[j], storey_order1[k]);
+    }
+
+    //
+    // Workout where the stairs should be for each storey.
+    //
+
+    for (i = 0; i < STAIR_storey_upto; i++) {
+        st = &STAIR_storey[i];
+
+        //
+        // The height of this storey.
+        //
+
+        height = st->height;
+
+        for (j = 0; j < STAIR_storey_upto; j++) {
+            //
+            // Look for neighbouring storeys.
+            //
+
+            st_n = &STAIR_storey[j];
+
+            //
+            // The height of this storey.
+            //
+
+            height_n = st_n->height;
+
+            if (abs(height - height_n) == 1) {
+                //
+                // This is a neighbouring storey. AND in this storeys
+                // squares.
+                //
+
+                memcpy(square, st->square, sizeof(square));
+
+                for (z = 0; z < STAIR_MAX_SIZE; z++)
+                    for (x = 0; x < STAIR_MAX_SIZE / 8; x++) {
+                        square[z][x] &= st_n->square[z][x];
+                    }
+
+                //
+                // Is this storey higher or lower?
+                //
+
+                go_up = 0;
+                go_down = 0;
+
+                if (height_n == height + 1) {
+                    go_up = 1;
+                } else if (height_n == height - 1) {
+                    go_down = 1;
+                } else {
+                    ASSERT(0);
+                }
+
+                //
+                // Is there a staircase on this storey we use?
+                //
+
+                for (k = 0; k < STAIR_MAX_PER_STOREY; k++) {
+                    if (st->stair[k] != NULL) {
+                        ASSERT(WITHIN(st->stair[k], 1, STAIR_stair_upto - 1));
+
+                        ss = &STAIR_stair[st->stair[k]];
+
+                        //
+                        // There is already a staircase on this storey. It is
+                        // in an okay place?
+                        //
+
+                        if (STAIR_get_bit_from_square(square, ss->x1, ss->z1) && STAIR_get_bit_from_square(square, ss->x2, ss->z2)) {
+                            //
+                            // We can just use this staircase.
+                            //
+
+                            if (go_up) {
+                                if (ss->flag & STAIR_FLAG_UP) {
+                                    //
+                                    // There is already a staircase up to this floor!
+                                    //
+
+                                    goto placed_stairs;
+                                } else {
+                                    //
+                                    // Make this staircase go upto the next floor and
+                                    // create a down staircase on the next floor.
+                                    //
+
+                                    ss->flag |= STAIR_FLAG_UP;
+                                    ss->up = j;
+
+                                    //
+                                    // New stair...
+                                    //
+
+                                    ss_new = &STAIR_stair[STAIR_stair_upto++];
+
+                                    ss_new->flag = STAIR_FLAG_DOWN;
+                                    ss_new->down = i;
+                                    ss_new->x1 = ss->x1;
+                                    ss_new->z1 = ss->z1;
+                                    ss_new->x2 = ss->x2;
+                                    ss_new->z2 = ss->z2;
+
+                                    STAIR_add_to_storey(j, STAIR_stair_upto - 1);
+
+                                    goto placed_stairs;
+                                }
+                            }
+
+                            if (go_down) {
+                                if (ss->flag & STAIR_FLAG_DOWN) {
+                                    //
+                                    // There is already a staircase down to this floor!
+                                    //
+
+                                    goto placed_stairs;
+                                } else {
+                                    //
+                                    // Make this staircase go down to the next floor and
+                                    // create a down staircase on the next floor.
+                                    //
+
+                                    ss->flag |= STAIR_FLAG_DOWN;
+                                    ss->down = j;
+
+                                    //
+                                    // New stair...
+                                    //
+
+                                    ss_new = &STAIR_stair[STAIR_stair_upto++];
+
+                                    ss_new->flag = STAIR_FLAG_UP;
+                                    ss_new->up = i;
+                                    ss_new->x1 = ss->x1;
+                                    ss_new->z1 = ss->z1;
+                                    ss_new->x2 = ss->x2;
+                                    ss_new->z2 = ss->z2;
+
+                                    STAIR_add_to_storey(j, STAIR_stair_upto - 1);
+
+                                    goto placed_stairs;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //
+                // Does the neighbour have a suitable staircase already?
+                //
+
+                for (k = 0; k < STAIR_MAX_PER_STOREY; k++) {
+                    if (st_n->stair[k] != NULL) {
+                        ASSERT(WITHIN(st_n->stair[k], 1, STAIR_stair_upto - 1));
+
+                        ss = &STAIR_stair[st_n->stair[k]];
+
+                        //
+                        // There is a staircase on this storey.  Is is in an
+                        // okay place?
+                        //
+
+                        if (STAIR_get_bit_from_square(square, ss->x1, ss->z1) && STAIR_get_bit_from_square(square, ss->x2, ss->z2)) {
+                            //
+                            // We could just use this staircase.
+                            //
+
+                            if (go_up) {
+                                if (ss->flag & STAIR_FLAG_DOWN) {
+                                    //
+                                    // There is staircase going down from the floor above, but
+                                    // we didn't find a staircase going up!
+                                    //
+
+                                    ASSERT(0);
+                                }
+
+                                //
+                                // Use this staircase.
+                                //
+
+                                ss->flag |= STAIR_FLAG_DOWN;
+                                ss->down = i;
+
+                                //
+                                // Create a new staircase on this floor.
+                                //
+
+                                ss_new = &STAIR_stair[STAIR_stair_upto++];
+
+                                ss_new->flag = STAIR_FLAG_UP;
+                                ss_new->up = j;
+                                ss_new->x1 = ss->x1;
+                                ss_new->z1 = ss->z1;
+                                ss_new->x2 = ss->x2;
+                                ss_new->z2 = ss->z2;
+
+                                STAIR_add_to_storey(i, STAIR_stair_upto - 1);
+
+                                goto placed_stairs;
+                            }
+
+                            if (go_down) {
+                                if (ss->flag & STAIR_FLAG_UP) {
+                                    //
+                                    // There is a staircase going up to this floor, but
+                                    // we didn't find a staircase going down to it!
+                                    //
+
+                                    ASSERT(0);
+                                }
+
+                                //
+                                // Use this staircase.
+                                //
+
+                                ss->flag |= STAIR_FLAG_UP;
+                                ss->up = i;
+
+                                //
+                                // Create a new staircase on this floor.
+                                //
+
+                                ss_new = &STAIR_stair[STAIR_stair_upto++];
+
+                                ss_new->flag = STAIR_FLAG_DOWN;
+                                ss_new->down = j;
+                                ss_new->x1 = ss->x1;
+                                ss_new->z1 = ss->z1;
+                                ss_new->x2 = ss->x2;
+                                ss_new->z2 = ss->z2;
+
+                                STAIR_add_to_storey(i, STAIR_stair_upto - 1);
+
+                                goto placed_stairs;
+                            }
+                        }
+                    }
+                }
+
+                //
+                // Look for the best place for a new staircase in the bounding
+                // box of the building.
+                //
+
+                // claude-ai: STAIR scoring: try every pair (x1,z1)→(x2,z2) in 4 orientations.
+                // claude-ai: Score = rand(0xffff) base.
+                // claude-ai: outside==2 (both cells on outer wall) → +0x10000 (strong bonus)
+                // claude-ai: outside==1 (one cell on outer wall)   → -0x10000 (penalty)
+                // claude-ai: outside==0 (interior position)        → +0 (neutral)
+                // claude-ai: coord matches bounding-box edge       → +0x5000 each (corner bonus, up to ×4)
+                // claude-ai: opposite "opp_wall" hint              → +0xbabe per stair cell (up to ×2)
+                // claude-ai: blocks an outside door (STAIR_is_door) → -INFINITY
+                // claude-ai: best_score >= 0 → create two paired stair entries on both floors.
+                best_score = -INFINITY;
+
+                for (x = STAIR_x1; x < STAIR_x2; x++)
+                    for (z = STAIR_z1; z < STAIR_z2; z++) {
+                        x1 = x;
+                        z1 = z;
+
+                        for (k = 0; k < 4; k++) {
+                            x2 = x1;
+                            z2 = z1;
+
+                            switch (k) {
+                            case 0:
+                                x2 += 1;
+                                break;
+                            case 1:
+                                x2 -= 1;
+                                break;
+                            case 2:
+                                z2 += 1;
+                                break;
+                            case 3:
+                                z2 -= 1;
+                                break;
+                            default:
+                                ASSERT(0);
+                                break;
+                            }
+
+                            if (!WITHIN(x2, STAIR_x1, STAIR_x2 - 1) || !WITHIN(z2, STAIR_z1, STAIR_z2 - 1)) {
+                                //
+                                // Outside the building!
+                                //
+
+                                continue;
+                            }
+
+                            //
+                            // Make sure these two squares exist on both storeys.
+                            //
+
+                            if (STAIR_get_bit_from_square(square, x1, z1) && STAIR_get_bit_from_square(square, x2, z2)) {
+                                //
+                                // Score this choice of staircase.
+                                //
+
+                                score = STAIR_rand() & 0xffff;
+                                outside = 0;
+
+                                dx = x2 - x1;
+                                dz = z2 - z1;
+
+                                //
+                                // If both squares of the staircase are against an outside wall
+                                // then that is good. If only one is than that is bad, but not
+                                // disasterous. If the staircase is in the way of an outside door
+                                // than that is disasterous.
+                                //
+
+                                for (l = 0; l < 2; l++) {
+                                    switch (l) {
+                                    case 0:
+                                        ox = x1 + (+dz);
+                                        oz = z1 + (-dx);
+                                        break;
+                                    case 1:
+                                        ox = x2 + (+dz);
+                                        oz = z2 + (-dx);
+                                        break;
+                                    default:
+                                        ASSERT(0);
+                                        break;
+                                    }
+
+                                    if (!WITHIN(ox, STAIR_x1, STAIR_x2 - 1) || !WITHIN(oz, STAIR_z1, STAIR_z2 - 1) || !STAIR_get_bit(i, ox, oz)) {
+                                        //
+                                        // (ox,oz) is outside, so this square of the staircase lies
+                                        // outside of the storey.
+                                        //
+
+                                        outside += 1;
+
+                                        if (STAIR_is_door(i, ox, oz)) {
+                                            //
+                                            // Arghh! A staircase here would block a door from the
+                                            // outside.
+                                            //
+
+                                            score = -INFINITY;
+                                        }
+                                    }
+                                }
+
+                                //
+                                // Favour stairs on outside walls.
+                                //
+
+                                switch (outside) {
+                                case 0:
+                                    score = 0x0;
+                                    break;
+                                case 1:
+                                    score -= 0x10000;
+                                    break;
+                                case 2:
+                                    score += 0x10000;
+                                    break;
+                                default:
+                                    ASSERT(0);
+                                    break;
+                                }
+
+                                //
+                                // We like stairs in corners.
+                                //
+
+                                if (x1 == STAIR_x1) {
+                                    score += 0x5000;
+                                }
+                                if (x1 == STAIR_x2) {
+                                    score += 0x5000;
+                                }
+                                if (x2 == STAIR_x1) {
+                                    score += 0x5000;
+                                }
+                                if (x2 == STAIR_x2) {
+                                    score += 0x5000;
+                                }
+
+                                if (z1 == STAIR_z1) {
+                                    score += 0x5000;
+                                }
+                                if (z1 == STAIR_z2) {
+                                    score += 0x5000;
+                                }
+                                if (z2 == STAIR_z1) {
+                                    score += 0x5000;
+                                }
+                                if (z2 == STAIR_z2) {
+                                    score += 0x5000;
+                                }
+
+                                //
+                                // We like stairs opposite the 'opposite' wall.
+                                //
+
+                                if (z1 == z2 && st->opp_z1 == st->opp_z2) {
+                                    doz = st->opp_z1 - z1;
+
+                                    if (abs(doz) > 2) {
+                                        if (WITHIN(x1, st->opp_x1, st->opp_x2)) {
+                                            score += 0xbabe;
+                                        }
+                                        if (WITHIN(x2, st->opp_x1, st->opp_x2)) {
+                                            score += 0xbabe;
+                                        }
+                                    }
+                                }
+
+                                if (x1 == x2 && st->opp_x1 == st->opp_x2) {
+                                    dox = st->opp_x1 - x1;
+
+                                    if (abs(dox) > 2) {
+                                        if (WITHIN(z1, st->opp_z1, st->opp_z2)) {
+                                            score += 0xbabe;
+                                        }
+                                        if (WITHIN(z2, st->opp_z1, st->opp_z2)) {
+                                            score += 0xbabe;
+                                        }
+                                    }
+                                }
+
+                                if (score > best_score) {
+                                    best_x1 = x1;
+                                    best_z1 = z1;
+                                    best_x2 = x2;
+                                    best_z2 = z2;
+                                    best_score = score;
+                                }
+                            }
+                        }
+                    }
+
+                if (best_score >= 0) {
+                    ASSERT(WITHIN(STAIR_stair_upto, 1, STAIR_MAX_STAIRS - 2));
+
+                    //
+                    // Put a staircase here and on the other floor.
+                    //
+
+                    ss = &STAIR_stair[STAIR_stair_upto++];
+
+                    ss->flag = 0;
+                    ss->x1 = best_x1;
+                    ss->z1 = best_z1;
+                    ss->x2 = best_x2;
+                    ss->z2 = best_z2;
+
+                    if (go_up) {
+                        ss->flag |= STAIR_FLAG_UP;
+                        ss->up = j;
+                    }
+                    if (go_down) {
+                        ss->flag |= STAIR_FLAG_DOWN;
+                        ss->down = j;
+                    }
+
+                    STAIR_add_to_storey(i, STAIR_stair_upto - 1);
+
+                    //
+                    // The other floor.
+                    //
+
+                    ss = &STAIR_stair[STAIR_stair_upto++];
+
+                    ss->flag = 0;
+                    ss->x1 = best_x1;
+                    ss->z1 = best_z1;
+                    ss->x2 = best_x2;
+                    ss->z2 = best_z2;
+
+                    //
+                    // These are swapped around for the other floor.
+                    //
+
+                    if (go_up) {
+                        ss->flag |= STAIR_FLAG_DOWN;
+                        ss->down = i;
+                    }
+                    if (go_down) {
+                        ss->flag |= STAIR_FLAG_UP;
+                        ss->up = j;
+                    }
+
+                    STAIR_add_to_storey(j, STAIR_stair_upto - 1);
+                } else {
+                    //
+                    // We need some stairs, but there is nowhere to put
+                    // them!
+                    //
+
+                    TRACE("Oh no! Can't place stairs.\n");
+                }
+
+            placed_stairs:;
+            } else {
+                //
+                // Storeys i and j are more than one floor apart.
+                //
+            }
+        }
+    }
 }
-
 
 // claude-ai: STAIR_id_stair: Temporary output buffer for STAIR_get(). Caller reads *stair pointer.
 
@@ -1304,111 +1284,91 @@ ID_Stair STAIR_id_stair[STAIR_MAX_PER_STOREY];
 // claude-ai: ID_Stair.handle_up/handle_down: handles of the connected storeys above/below.
 // claude-ai: PORT NOTE: This is the main output of the whole STAIR system. New game needs to
 // claude-ai:            convert ID_Stair results into actual stair Thing placements in the world.
-SLONG STAIR_get(SLONG handle, ID_Stair **stair, SLONG *num_stairs)
+SLONG STAIR_get(SLONG handle, ID_Stair** stair, SLONG* num_stairs)
 {
-	SLONG i;
-	SLONG storey;
+    SLONG i;
+    SLONG storey;
 
-	STAIR_Storey *st;
-	STAIR_Stair  *ss;
-	ID_Stair     *is;
+    STAIR_Storey* st;
+    STAIR_Stair* ss;
+    ID_Stair* is;
 
-	for (i = 0; i < STAIR_storey_upto; i++)
-	{
-		st = &STAIR_storey[i];
+    for (i = 0; i < STAIR_storey_upto; i++) {
+        st = &STAIR_storey[i];
 
-		if (st->handle == handle)
-		{
-			//
-			// Found the storey.
-			//
+        if (st->handle == handle) {
+            //
+            // Found the storey.
+            //
 
-			goto found_storey_handle;
-		}
-		
-	}
+            goto found_storey_handle;
+        }
+    }
 
-	//
-	// Could not find a storey with the given handle.
-	//
+    //
+    // Could not find a storey with the given handle.
+    //
 
-	return FALSE;
+    return FALSE;
 
-  found_storey_handle:
+found_storey_handle:
 
-   *num_stairs = 0;	
+    *num_stairs = 0;
 
-	for (i = 0; i < STAIR_MAX_PER_STOREY; i++)
-	{
-		if (st->stair[i] != NULL)
-		{
-			ASSERT(WITHIN(*num_stairs,  0, STAIR_MAX_PER_STOREY - 1));
-			ASSERT(WITHIN(st->stair[i], 1, STAIR_stair_upto - 1));
+    for (i = 0; i < STAIR_MAX_PER_STOREY; i++) {
+        if (st->stair[i] != NULL) {
+            ASSERT(WITHIN(*num_stairs, 0, STAIR_MAX_PER_STOREY - 1));
+            ASSERT(WITHIN(st->stair[i], 1, STAIR_stair_upto - 1));
 
-			ss = &STAIR_stair   [st->stair[i]];
-			is = &STAIR_id_stair[*num_stairs];
+            ss = &STAIR_stair[st->stair[i]];
+            is = &STAIR_id_stair[*num_stairs];
 
-			//
-			// Add this stair to the array of ID_stairs...
-			//
+            //
+            // Add this stair to the array of ID_stairs...
+            //
 
-			is->x1 = ss->x1;
-			is->z1 = ss->z1;
-			is->x2 = ss->x2;
-			is->z2 = ss->z2;
+            is->x1 = ss->x1;
+            is->z1 = ss->z1;
+            is->x2 = ss->x2;
+            is->z2 = ss->z2;
 
-			if (ss->flag == STAIR_FLAG_UP)
-			{
-				ASSERT(WITHIN(ss->up, 0, STAIR_storey_upto - 1));
+            if (ss->flag == STAIR_FLAG_UP) {
+                ASSERT(WITHIN(ss->up, 0, STAIR_storey_upto - 1));
 
-				is->type      = ID_STAIR_TYPE_BOTTOM;
-				is->handle_up = STAIR_storey[ss->up].handle;
-			}
-			else
-			if (ss->flag == STAIR_FLAG_DOWN)
-			{
-				ASSERT(WITHIN(ss->down, 0, STAIR_storey_upto - 1));
+                is->type = ID_STAIR_TYPE_BOTTOM;
+                is->handle_up = STAIR_storey[ss->up].handle;
+            } else if (ss->flag == STAIR_FLAG_DOWN) {
+                ASSERT(WITHIN(ss->down, 0, STAIR_storey_upto - 1));
 
-				is->type        = ID_STAIR_TYPE_TOP;
-				is->handle_down = STAIR_storey[ss->down].handle;
-			}
-			else
-			{
-				ASSERT(ss->flag == (STAIR_FLAG_UP | STAIR_FLAG_DOWN));
+                is->type = ID_STAIR_TYPE_TOP;
+                is->handle_down = STAIR_storey[ss->down].handle;
+            } else {
+                ASSERT(ss->flag == (STAIR_FLAG_UP | STAIR_FLAG_DOWN));
 
-				ASSERT(WITHIN(ss->up,   0, STAIR_storey_upto - 1));
-				ASSERT(WITHIN(ss->down, 0, STAIR_storey_upto - 1));
+                ASSERT(WITHIN(ss->up, 0, STAIR_storey_upto - 1));
+                ASSERT(WITHIN(ss->down, 0, STAIR_storey_upto - 1));
 
-				is->type = ID_STAIR_TYPE_MIDDLE;
+                is->type = ID_STAIR_TYPE_MIDDLE;
 
-				is->handle_up   = STAIR_storey[ss->up  ].handle;
-				is->handle_down = STAIR_storey[ss->down].handle;
-			}
+                is->handle_up = STAIR_storey[ss->up].handle;
+                is->handle_down = STAIR_storey[ss->down].handle;
+            }
 
-			//
-			// Do not define the id...
-			//
+            //
+            // Do not define the id...
+            //
 
-			is->id = 0;
+            is->id = 0;
 
-		   *num_stairs += 1;
-		}
-	}
+            *num_stairs += 1;
+        }
+    }
 
-	//
-	// Return the array...
-	//
+    //
+    // Return the array...
+    //
 
-   *stair = STAIR_id_stair;
+    *stair = STAIR_id_stair;
 
     return TRUE;
 }
-
-
-
-
-
-
-
-
-

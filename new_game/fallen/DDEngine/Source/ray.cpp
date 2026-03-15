@@ -6,7 +6,7 @@
 #include "inline.h"
 #include <math.h>
 
-#if 0	// Intel C compiler barfs
+#if 0 // Intel C compiler barfs
 
 D3DTexture RAY_screen1;
 D3DTexture RAY_screen2;
@@ -33,15 +33,12 @@ SLONG RAY_screen_shift_green;
 SLONG RAY_screen_shift_blue;
 SLONG RAY_screen_shift_alpha;
 
-
 #define RAY_LIGHT_X (+0x77B0)
 #define RAY_LIGHT_Y (+0x77B0)
 #define RAY_LIGHT_Z (-0xC000)
 
-
-
-#define LOOKUP_MAX	  65536
-#define LOOKUP_SHIFT  8	
+#define LOOKUP_MAX 65536
+#define LOOKUP_SHIFT 8	
 
 SLONG RAY_sqrt[LOOKUP_MAX];
 
@@ -186,8 +183,8 @@ SLONG       RAY_d3d_index_upto;
 // The spheres...
 //
 
-#define RAY_SPHERE_SPECULAR		(1 << 0)
-#define RAY_SPHERE_REFLECTIVE	(1 << 1)
+#define RAY_SPHERE_SPECULAR (1 << 0)
+#define RAY_SPHERE_REFLECTIVE (1 << 1)
 
 typedef struct
 {
@@ -778,8 +775,8 @@ SLONG RAY_get_colour_from_origin(
 			nx = ix - rs->x;
 			ny = iy - rs->y;
 			nz = iz - rs->z;
-			
-			#define RT 0x93cd
+
+#define RT 0x93cd
 
 			bright = MUL64(nx,RAY_LIGHT_X) + MUL64(ny,RAY_LIGHT_Y) + MUL64(nz,RAY_LIGHT_Z);
 			
@@ -915,8 +912,8 @@ void RAY_render_scene(void)
 	Span **prev;
 	Span  *next;
 
-	#define BB_SIZE_X 50
-	#define BB_SIZE_Y 60
+#define BB_SIZE_X 50
+#define BB_SIZE_Y 60
 
 	for (y = 0; y < 205; y++)
 	{
@@ -1417,6 +1414,5 @@ void RAY_do()
 		AENG_flip();
 	}
 }
-
 
 #endif

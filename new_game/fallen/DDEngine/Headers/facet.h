@@ -5,22 +5,17 @@
 #ifndef _FACET_
 #define _FACET_
 
-
-
 //
 // Draws the given facet.
 //
 
-void FACET_draw(SLONG facet,UBYTE alpha);
-
+void FACET_draw(SLONG facet, UBYTE alpha);
 
 //
 // Draws all the walkable faces for the given building.
 //
 
 void FACET_draw_walkable(SLONG building);
-
-
 
 //
 // Projects a shadow onto the crinkled facet. When it has made a
@@ -30,9 +25,6 @@ void FACET_draw_walkable(SLONG building);
 //
 
 void FACET_project_crinkled_shadow(SLONG facet);
-
-
-
 
 //
 // NOT USED ANY MORE!
@@ -44,12 +36,10 @@ void FACET_project_crinkled_shadow(SLONG facet);
 //
 
 void FACET_draw_ns_ladder(
-		SLONG x1,
-		SLONG z1,
-		SLONG x2,
-		SLONG z2,
-		SLONG height);
-
-
+    SLONG x1,
+    SLONG z1,
+    SLONG x2,
+    SLONG z2,
+    SLONG height);
 
 #endif

@@ -9,8 +9,6 @@
 #include "key.h"
 #include "os.h"
 
-
-
 //
 // Each line of text.
 //
@@ -19,34 +17,28 @@
 
 typedef struct
 {
-	CBYTE text[CONSOLE_MAX_TEXT_PER_LINE];
-	SLONG cursor;
+    CBYTE text[CONSOLE_MAX_TEXT_PER_LINE];
+    SLONG cursor;
 
 } CONSOLE_Line;
 
 #define CONSOLE_MAX_LINES 35
 
 CONSOLE_Line CONSOLE_line[CONSOLE_MAX_LINES];
-SLONG        CONSOLE_line_upto;	// Just keeps going up beyond CONSOLE_MAX_LINES...
-
-
+SLONG CONSOLE_line_upto; // Just keeps going up beyond CONSOLE_MAX_LINES...
 
 //
-// Line height... 
+// Line height...
 //
 
 #define CONSOLE_LINE_HEIGHT (1.0F / (CONSOLE_MAX_LINES + 1))
 
-
-
 void CONSOLE_init()
 {
-	memset(CONSOLE_line, 0, sizeof(CONSOLE_line));
+    memset(CONSOLE_line, 0, sizeof(CONSOLE_line));
 
-	CONSOLE_line_upto = 0;
+    CONSOLE_line_upto = 0;
 }
-
-
 
 //
 // Draws the current console.
@@ -54,247 +46,217 @@ void CONSOLE_init()
 
 void CONSOLE_draw()
 {
-	SLONG i;
-	SLONG first;
-	SLONG last;
-	SLONG num;
-	float ypos;
+    SLONG i;
+    SLONG first;
+    SLONG last;
+    SLONG num;
+    float ypos;
 
-	OS_clear_screen();
+    OS_clear_screen();
 
-	if (CONSOLE_line_upto <= CONSOLE_MAX_LINES)
-	{
-		first = 0;
-		last  = CONSOLE_line_upto - 1;
-	}
-	else
-	{
-		first = CONSOLE_line_upto - CONSOLE_MAX_LINES;
-		last  = CONSOLE_line_upto - 1;
-	}
+    if (CONSOLE_line_upto <= CONSOLE_MAX_LINES) {
+        first = 0;
+        last = CONSOLE_line_upto - 1;
+    } else {
+        first = CONSOLE_line_upto - CONSOLE_MAX_LINES;
+        last = CONSOLE_line_upto - 1;
+    }
 
-	num  = last - first + 1;
-	ypos = 0.009F + (num - 1) * CONSOLE_LINE_HEIGHT; 
+    num = last - first + 1;
+    ypos = 0.009F + (num - 1) * CONSOLE_LINE_HEIGHT;
 
-	for (i = last; i >= first; i--)
-	{
-		FONT_draw(
-			0.013F,
-			ypos,
-			0xffffff,
-			FONT_FLAG_JUSTIFY_LEFT,
-			1.0F,
-		    CONSOLE_line[i % CONSOLE_MAX_LINES].cursor,
-			CONSOLE_line[i % CONSOLE_MAX_LINES].text);
+    for (i = last; i >= first; i--) {
+        FONT_draw(
+            0.013F,
+            ypos,
+            0xffffff,
+            FONT_FLAG_JUSTIFY_LEFT,
+            1.0F,
+            CONSOLE_line[i % CONSOLE_MAX_LINES].cursor,
+            CONSOLE_line[i % CONSOLE_MAX_LINES].text);
 
-		ypos -= CONSOLE_LINE_HEIGHT;
-	}
+        ypos -= CONSOLE_LINE_HEIGHT;
+    }
 
-	OS_show();
+    OS_show();
 }
 
-
-
-
-void CONSOLE_print(CBYTE *fmt, ...)
+void CONSOLE_print(CBYTE* fmt, ...)
 {
-	//
-	// Work out the real message.
-	//
+    //
+    // Work out the real message.
+    //
 
-	CBYTE   message[2048];		// Real long... just in case!
-	va_list	ap;
+    CBYTE message[2048]; // Real long... just in case!
+    va_list ap;
 
-	va_start(ap, fmt);
-	vsprintf(message, fmt, ap);
-	va_end  (ap);
+    va_start(ap, fmt);
+    vsprintf(message, fmt, ap);
+    va_end(ap);
 
-	//
-	// Create a new line on the console.
-	//
+    //
+    // Create a new line on the console.
+    //
 
-	CONSOLE_Line *cl;
-	
-	cl = &CONSOLE_line[CONSOLE_line_upto++ % CONSOLE_MAX_LINES];
-	
-	memcpy(cl->text, message, CONSOLE_MAX_TEXT_PER_LINE - 1);
+    CONSOLE_Line* cl;
 
-	cl->cursor = -1;
+    cl = &CONSOLE_line[CONSOLE_line_upto++ % CONSOLE_MAX_LINES];
 
-	//
-	// Draw the console.
-	//
+    memcpy(cl->text, message, CONSOLE_MAX_TEXT_PER_LINE - 1);
 
-	CONSOLE_draw();
+    cl->cursor = -1;
+
+    //
+    // Draw the console.
+    //
+
+    CONSOLE_draw();
 }
 
-
-CBYTE *CONSOLE_input()
+CBYTE* CONSOLE_input()
 {
-	CBYTE        *ch;
-	CONSOLE_Line *cl;
+    CBYTE* ch;
+    CONSOLE_Line* cl;
 
-	SLONG flash  = OS_ticks();
-	SLONG draw   = TRUE;
-	SLONG cursor = 0;
+    SLONG flash = OS_ticks();
+    SLONG draw = TRUE;
+    SLONG cursor = 0;
 
-	//
-	// Create a new line on the console that we will use as our input.
-	//
+    //
+    // Create a new line on the console that we will use as our input.
+    //
 
-	cl = &CONSOLE_line[CONSOLE_line_upto++ % CONSOLE_MAX_LINES];
-	
-	memset(cl->text, 0, sizeof(cl->text));
+    cl = &CONSOLE_line[CONSOLE_line_upto++ % CONSOLE_MAX_LINES];
 
-	cl->cursor = -1;
+    memset(cl->text, 0, sizeof(cl->text));
 
-	//
-	// Process keyboard input...
-	//
+    cl->cursor = -1;
 
-	KEY_inkey = 0;
+    //
+    // Process keyboard input...
+    //
 
-	while(1)
-	{
-		if (KEY_on[KEY_BACKSPACE])
-		{
-			KEY_on[KEY_BACKSPACE] = 0;
+    KEY_inkey = 0;
 
-			if (cursor > 0)
-			{
-				cursor -= 1;
+    while (1) {
+        if (KEY_on[KEY_BACKSPACE]) {
+            KEY_on[KEY_BACKSPACE] = 0;
 
-				ch = &cl->text[cursor];
+            if (cursor > 0) {
+                cursor -= 1;
 
-				while(1)
-				{
-					ch[0] = ch[1];
+                ch = &cl->text[cursor];
 
-					if (ch[0] == '\000')
-					{
-						break;
-					}
+                while (1) {
+                    ch[0] = ch[1];
 
-					ch++;
-				}
-			}
+                    if (ch[0] == '\000') {
+                        break;
+                    }
 
-			flash = OS_ticks();
-			draw  = TRUE;
-		}
+                    ch++;
+                }
+            }
 
-		if (KEY_on[KEY_DELETE])
-		{
-			KEY_on[KEY_DELETE] = 0;
+            flash = OS_ticks();
+            draw = TRUE;
+        }
 
-		}
+        if (KEY_on[KEY_DELETE]) {
+            KEY_on[KEY_DELETE] = 0;
+        }
 
-		if (KEY_on[KEY_RETURN])
-		{
-			KEY_on[KEY_RETURN] = 0;
+        if (KEY_on[KEY_RETURN]) {
+            KEY_on[KEY_RETURN] = 0;
 
-			cl->cursor = -1;
+            cl->cursor = -1;
 
-			return cl->text;
-		}
+            return cl->text;
+        }
 
-		if (KEY_on[KEY_LEFT])
-		{
-			KEY_on[KEY_LEFT] = 0;
+        if (KEY_on[KEY_LEFT]) {
+            KEY_on[KEY_LEFT] = 0;
 
-			if (cursor > 0)
-			{
-				cursor -= 1;
-			}
+            if (cursor > 0) {
+                cursor -= 1;
+            }
 
-			flash = OS_ticks();
-			draw  = TRUE;
-		}
+            flash = OS_ticks();
+            draw = TRUE;
+        }
 
-		if (KEY_on[KEY_RIGHT])
-		{
-			KEY_on[KEY_RIGHT] = 0;
+        if (KEY_on[KEY_RIGHT]) {
+            KEY_on[KEY_RIGHT] = 0;
 
-			if (cl->text[cursor])
-			{
-				cursor += 1;
-			}
+            if (cl->text[cursor]) {
+                cursor += 1;
+            }
 
-			flash = OS_ticks();
-			draw  = TRUE;
-		}
+            flash = OS_ticks();
+            draw = TRUE;
+        }
 
-		if (KEY_on[KEY_END])
-		{
-			KEY_on[KEY_END] = 0;
+        if (KEY_on[KEY_END]) {
+            KEY_on[KEY_END] = 0;
 
-			while(cl->text[cursor])
-			{
-				cursor++;
-			}
+            while (cl->text[cursor]) {
+                cursor++;
+            }
 
-			flash = OS_ticks();
-			draw  = TRUE;
-		}
+            flash = OS_ticks();
+            draw = TRUE;
+        }
 
-		if (KEY_on[KEY_HOME])
-		{
-			KEY_on[KEY_HOME] = 0;
+        if (KEY_on[KEY_HOME]) {
+            KEY_on[KEY_HOME] = 0;
 
-			cursor = 0;
+            cursor = 0;
 
-			flash = OS_ticks();
-			draw  = TRUE;
-		}
+            flash = OS_ticks();
+            draw = TRUE;
+        }
 
-		if (KEY_inkey)
-		{
-			if (isprint(KEY_inkey))
-			{
-				if (WITHIN(cursor, 0, CONSOLE_MAX_TEXT_PER_LINE - 2))
-				{
-					//
-					// Insert a character at the cursor position.
-					//
+        if (KEY_inkey) {
+            if (isprint(KEY_inkey)) {
+                if (WITHIN(cursor, 0, CONSOLE_MAX_TEXT_PER_LINE - 2)) {
+                    //
+                    // Insert a character at the cursor position.
+                    //
 
-					for (ch = &cl->text[cursor]; *ch; ch++);
+                    for (ch = &cl->text[cursor]; *ch; ch++)
+                        ;
 
-					while(ch > &cl->text[cursor])
-					{
-						ch[0] = ch[-1];
+                    while (ch > &cl->text[cursor]) {
+                        ch[0] = ch[-1];
 
-						ch--;
-					}
+                        ch--;
+                    }
 
-					cl->text[cursor] = KEY_inkey;
+                    cl->text[cursor] = KEY_inkey;
 
-					cl->text[CONSOLE_MAX_TEXT_PER_LINE - 1] = '\000';
+                    cl->text[CONSOLE_MAX_TEXT_PER_LINE - 1] = '\000';
 
-					cursor += 1;
-				}
-			}
+                    cursor += 1;
+                }
+            }
 
-			flash = OS_ticks();
-			draw  = TRUE;
+            flash = OS_ticks();
+            draw = TRUE;
 
-			KEY_inkey = 0;
-		}
+            KEY_inkey = 0;
+        }
 
-		if (OS_ticks() > flash + 500)
-		{
-			flash = OS_ticks();
-			draw ^= TRUE;
-		}
+        if (OS_ticks() > flash + 500) {
+            flash = OS_ticks();
+            draw ^= TRUE;
+        }
 
-		if (draw)
-		{
-			cl->cursor = cursor;
-		}
-		else
-		{
-			cl->cursor = -1;
-		}
+        if (draw) {
+            cl->cursor = cursor;
+        } else {
+            cl->cursor = -1;
+        }
 
-		CONSOLE_draw();
-	}
+        CONSOLE_draw();
+    }
 }

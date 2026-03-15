@@ -4,9 +4,9 @@
 
 #include "AutoRun.h"
 
-static TCHAR*	ReadString(FILE* fd);
-static ULONG	ReadNumber(FILE* fd);
-static COLORREF	ReadRGB(FILE* fd);
+static TCHAR* ReadString(FILE* fd);
+static ULONG ReadNumber(FILE* fd);
+static COLORREF ReadRGB(FILE* fd);
 
 // Menu
 //
@@ -27,45 +27,47 @@ static COLORREF	ReadRGB(FILE* fd);
 
 Menu::Menu(FILE* fd)
 {
-	strcpy(Name, ReadString(fd));
+    strcpy(Name, ReadString(fd));
 
-	strcpy(Bitmap, ReadString(fd));
+    strcpy(Bitmap, ReadString(fd));
 
-	strcpy(FontName, ReadString(fd));
-	FontSize = ReadNumber(fd);
-	FontWeight = ReadNumber(fd);
+    strcpy(FontName, ReadString(fd));
+    FontSize = ReadNumber(fd);
+    FontWeight = ReadNumber(fd);
 
-	ColourNormal = ReadRGB(fd);
-	ColourSelected = ReadRGB(fd);
+    ColourNormal = ReadRGB(fd);
+    ColourSelected = ReadRGB(fd);
 
-	LeftBorder = ReadNumber(fd);
-	TopBorder = ReadNumber(fd);
-	LineSpacing = ReadNumber(fd);
+    LeftBorder = ReadNumber(fd);
+    TopBorder = ReadNumber(fd);
+    LineSpacing = ReadNumber(fd);
 
-	MenuItem*	last = NULL;
+    MenuItem* last = NULL;
 
-	for (;;)
-	{
-		MenuItem*	item = new MenuItem;
+    for (;;) {
+        MenuItem* item = new MenuItem;
 
-		strcpy(item->Text, ReadString(fd));
+        strcpy(item->Text, ReadString(fd));
 
-		strcpy(item->Verb, ReadString(fd));
-		strcpy(item->Document, ReadString(fd));
-		strcpy(item->Directory, ReadString(fd));
+        strcpy(item->Verb, ReadString(fd));
+        strcpy(item->Document, ReadString(fd));
+        strcpy(item->Directory, ReadString(fd));
 
-		item->Spacing = ReadNumber(fd);
-		item->Next = NULL;
+        item->Spacing = ReadNumber(fd);
+        item->Next = NULL;
 
-		if (last)	last->Next = item;
-		else		Item = item;
+        if (last)
+            last->Next = item;
+        else
+            Item = item;
 
-		last = item;
+        last = item;
 
-		if (item->Spacing & 0x80000000)	break;
-	}
+        if (item->Spacing & 0x80000000)
+            break;
+    }
 
-	Next = NULL;
+    Next = NULL;
 }
 
 // ~Menu
@@ -74,13 +76,12 @@ Menu::Menu(FILE* fd)
 
 Menu::~Menu()
 {
-	while (Item)
-	{
-		MenuItem*	item = Item;
-		Item = item->Next;
+    while (Item) {
+        MenuItem* item = Item;
+        Item = item->Next;
 
-		delete item;
-	}
+        delete item;
+    }
 }
 
 // Director(fd)
@@ -98,28 +99,29 @@ Menu::~Menu()
 
 Director::Director(FILE* fd)
 {
-	strcpy(WindowTitle, ReadString(fd));
-	strcpy(AppName, ReadString(fd));
-	strcpy(ExeName, ReadString(fd));
+    strcpy(WindowTitle, ReadString(fd));
+    strcpy(AppName, ReadString(fd));
+    strcpy(ExeName, ReadString(fd));
 
-	ULONG	menus = ReadNumber(fd);
+    ULONG menus = ReadNumber(fd);
 
-	Menu*	last = NULL;
+    Menu* last = NULL;
 
-	for (ULONG ii = 0; ii < menus; ii++)
-	{
-		Menu*	menu = new Menu(fd);
+    for (ULONG ii = 0; ii < menus; ii++) {
+        Menu* menu = new Menu(fd);
 
-		if (last)	last->Next = menu;
-		else		MenuList = menu;
+        if (last)
+            last->Next = menu;
+        else
+            MenuList = menu;
 
-		last = menu;
-	}
+        last = menu;
+    }
 
-	PreInstall = FindMenu("PREINSTALL");
-	PostInstall = FindMenu("POSTINSTALL");
+    PreInstall = FindMenu("PREINSTALL");
+    PostInstall = FindMenu("POSTINSTALL");
 
-	LoadRegistryStrings();
+    LoadRegistryStrings();
 }
 
 // ~Director
@@ -128,12 +130,11 @@ Director::Director(FILE* fd)
 
 Director::~Director()
 {
-	while (MenuList)
-	{
-		Menu*	menu = MenuList;
-		MenuList = menu->Next;
-		delete menu;
-	}
+    while (MenuList) {
+        Menu* menu = MenuList;
+        MenuList = menu->Next;
+        delete menu;
+    }
 }
 
 // LoadRegistryStrings
@@ -142,57 +143,53 @@ Director::~Director()
 
 void Director::LoadRegistryStrings()
 {
-	strcpy(UninstallString, "");
-	strcpy(AppPath, "");
+    strcpy(UninstallString, "");
+    strcpy(AppPath, "");
 
-	HKEY	hCurrentVersion;
+    HKEY hCurrentVersion;
 
-	if (!RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion", 0, KEY_READ, &hCurrentVersion))
-	{
-		HKEY	hUninstall;
+    if (!RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion", 0, KEY_READ, &hCurrentVersion)) {
+        HKEY hUninstall;
 
-		if (!RegOpenKeyEx(hCurrentVersion, "Uninstall", 0, KEY_READ, &hUninstall))
-		{
-			HKEY	hOurUninstall;
+        if (!RegOpenKeyEx(hCurrentVersion, "Uninstall", 0, KEY_READ, &hUninstall)) {
+            HKEY hOurUninstall;
 
-			if (!RegOpenKeyEx(hUninstall, AppName, 0, KEY_READ, &hOurUninstall))
-			{
-				DWORD	len = MAX_PATH;
+            if (!RegOpenKeyEx(hUninstall, AppName, 0, KEY_READ, &hOurUninstall)) {
+                DWORD len = MAX_PATH;
 
-				RegQueryValueEx(hOurUninstall, "UninstallString", NULL, NULL, (unsigned char*)UninstallString, &len);
+                RegQueryValueEx(hOurUninstall, "UninstallString", NULL, NULL, (unsigned char*)UninstallString, &len);
 
-				RegCloseKey(hOurUninstall);
-			}
+                RegCloseKey(hOurUninstall);
+            }
 
-			RegCloseKey(hUninstall);
-		}
+            RegCloseKey(hUninstall);
+        }
 
-		HKEY	hAppPaths;
+        HKEY hAppPaths;
 
-		if (!RegOpenKeyEx(hCurrentVersion, "App Paths", 0, KEY_READ, &hAppPaths))
-		{
-			HKEY	hOurAppPath;
+        if (!RegOpenKeyEx(hCurrentVersion, "App Paths", 0, KEY_READ, &hAppPaths)) {
+            HKEY hOurAppPath;
 
-			if (!RegOpenKeyEx(hAppPaths, ExeName, 0, KEY_READ, &hOurAppPath))
-			{
-				DWORD	len = MAX_PATH;
+            if (!RegOpenKeyEx(hAppPaths, ExeName, 0, KEY_READ, &hOurAppPath)) {
+                DWORD len = MAX_PATH;
 
-				RegQueryValueEx(hOurAppPath, "Path", NULL, NULL, (unsigned char*)AppPath, &len);
-				if ((len >= 2) && (AppPath[len - 2] == '\\'))	AppPath[len - 2] = '\0';
+                RegQueryValueEx(hOurAppPath, "Path", NULL, NULL, (unsigned char*)AppPath, &len);
+                if ((len >= 2) && (AppPath[len - 2] == '\\'))
+                    AppPath[len - 2] = '\0';
 
-				RegCloseKey(hOurAppPath);
-			}
+                RegCloseKey(hOurAppPath);
+            }
 
-			RegCloseKey(hAppPaths);
-		}
-		
-		RegCloseKey(hCurrentVersion);
-	}
+            RegCloseKey(hAppPaths);
+        }
 
-	
+        RegCloseKey(hCurrentVersion);
+    }
 
-	if (UninstallString[0] && AppPath[0])	Active = PostInstall;
-	else									Active = PreInstall;
+    if (UninstallString[0] && AppPath[0])
+        Active = PostInstall;
+    else
+        Active = PreInstall;
 }
 
 // FindMenu
@@ -201,15 +198,15 @@ void Director::LoadRegistryStrings()
 
 Menu* Director::FindMenu(TCHAR* name)
 {
-	Menu*	menu = MenuList;
+    Menu* menu = MenuList;
 
-	while (menu)
-	{
-		if (!stricmp(menu->Name, name))		break;
-		menu = menu->Next;
-	}
+    while (menu) {
+        if (!stricmp(menu->Name, name))
+            break;
+        menu = menu->Next;
+    }
 
-	return menu;
+    return menu;
 }
 
 //
@@ -228,42 +225,33 @@ static TCHAR szBuffer[MAX_PATH];
 
 static TCHAR* ReadString(FILE* fd)
 {
-	TCHAR*	wptr = szBuffer;
-	bool	quoted = false;
-	bool	wasquoted = false;
+    TCHAR* wptr = szBuffer;
+    bool quoted = false;
+    bool wasquoted = false;
 
-	for (;;)
-	{
-		int	ch = fgetc(fd);
+    for (;;) {
+        int ch = fgetc(fd);
 
-		if ((ch == '\n') || (ch == EOF) || ((ch == ',') && !quoted))
-		{
-			if ((wptr != szBuffer) || (ch == EOF))
-			{
-				*wptr = '\0';
-				return szBuffer;
-			}
-			if ((wptr == szBuffer) && wasquoted)
-			{
-				*wptr = '\0';
-				return szBuffer;
-			}
-			// otherwise continue
-		}
-		else if (ch == '\"')
-		{
-			quoted = !quoted;
-			wasquoted = true;
-		}
-		else if (ch == ' ')
-		{
-			if (quoted)	*wptr++ = ' ';
-		}
-		else
-		{
-			*wptr++ = ch;
-		}
-	}
+        if ((ch == '\n') || (ch == EOF) || ((ch == ',') && !quoted)) {
+            if ((wptr != szBuffer) || (ch == EOF)) {
+                *wptr = '\0';
+                return szBuffer;
+            }
+            if ((wptr == szBuffer) && wasquoted) {
+                *wptr = '\0';
+                return szBuffer;
+            }
+            // otherwise continue
+        } else if (ch == '\"') {
+            quoted = !quoted;
+            wasquoted = true;
+        } else if (ch == ' ') {
+            if (quoted)
+                *wptr++ = ' ';
+        } else {
+            *wptr++ = ch;
+        }
+    }
 }
 
 // ReadNumber
@@ -272,7 +260,7 @@ static TCHAR* ReadString(FILE* fd)
 
 static ULONG ReadNumber(FILE* fd)
 {
-	return ULONG(atoi(ReadString(fd)));
+    return ULONG(atoi(ReadString(fd)));
 }
 
 // ReadRGB
@@ -281,9 +269,9 @@ static ULONG ReadNumber(FILE* fd)
 
 static COLORREF ReadRGB(FILE* fd)
 {
-	int	r = ReadNumber(fd);
-	int	g = ReadNumber(fd);
-	int	b = ReadNumber(fd);
+    int r = ReadNumber(fd);
+    int g = ReadNumber(fd);
+    int b = ReadNumber(fd);
 
-	return RGB(r,g,b);
+    return RGB(r, g, b);
 }

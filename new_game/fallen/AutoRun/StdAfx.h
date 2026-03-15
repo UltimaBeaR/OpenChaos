@@ -2,7 +2,7 @@
 //
 // standard crap
 
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 
 // windows
 #include <windows.h>

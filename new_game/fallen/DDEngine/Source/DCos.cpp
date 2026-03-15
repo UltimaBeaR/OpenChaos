@@ -36,12 +36,8 @@ void DCOS_buffer_add_sprite(
 //
 
 #define DCOS_DRAW_NORMAL 0
-#define DCOS_DRAW_ADD    1
+#define DCOS_DRAW_ADD 1
 
 void DCOS_buffer_draw(OS_Buffer *ob, D3DTexture *texture, ULONG draw = DCOS_DRAW_NORMAL);
 
-
-
-
 #endif
-

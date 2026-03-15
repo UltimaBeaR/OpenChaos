@@ -5,18 +5,15 @@
 #ifndef NET_H
 #define NET_H
 
-
-
 // ========================================================
 //
 // Initialising and releasing all the DirectPlay stuff...
 // Call once each at the start and end of the program.
-// 
+//
 // ========================================================
 
 void NET_init(void);
 void NET_kill(void);
-
 
 //
 // The NULL player ID.
@@ -24,10 +21,9 @@ void NET_kill(void);
 // If the system sends a message, then it comes from NET_PLAYER_SYSTEM
 //
 
-#define NET_PLAYER_NONE		255
-#define NET_PLAYER_ALL		254
-#define NET_PLAYER_SYSTEM	253
-
+#define NET_PLAYER_NONE 255
+#define NET_PLAYER_ALL 254
+#define NET_PLAYER_SYSTEM 253
 
 // ========================================================
 //
@@ -40,15 +36,14 @@ void NET_kill(void);
 // Returns the name of the given connection.
 //
 
-SLONG  NET_get_connection_number(void);
-CBYTE *NET_get_connection_name  (SLONG connection);
+SLONG NET_get_connection_number(void);
+CBYTE* NET_get_connection_name(SLONG connection);
 
 //
 // Establishes a connection. Returns TRUE on success.
 //
 
 SLONG NET_connection_make(SLONG connection);
-
 
 // ========================================================
 //
@@ -59,9 +54,9 @@ SLONG NET_connection_make(SLONG connection);
 //
 // Creates a session. Makes this machine the host. Returns FALSE
 // on failure.
-//		 
+//
 
-SLONG NET_create_session(CBYTE *name, SLONG max_players, CBYTE *my_player_name);
+SLONG NET_create_session(CBYTE* name, SLONG max_players, CBYTE* my_player_name);
 
 //
 // Returns the number of sessions available.
@@ -73,18 +68,18 @@ SLONG NET_create_session(CBYTE *name, SLONG max_players, CBYTE *my_player_name);
 
 typedef struct
 {
-	CBYTE name[NET_NAME_LENGTH];
+    CBYTE name[NET_NAME_LENGTH];
 
 } NET_Sinfo;
 
-SLONG      NET_get_session_number(void);
-NET_Sinfo  NET_get_session_info  (SLONG session);
+SLONG NET_get_session_number(void);
+NET_Sinfo NET_get_session_info(SLONG session);
 
 //
 // Joins the given session. Returns FALSE on failure.
 //
 
-SLONG NET_join_session(SLONG session, CBYTE *my_player_name);
+SLONG NET_join_session(SLONG session, CBYTE* my_player_name);
 
 //
 // Leaves the session.
@@ -116,9 +111,8 @@ UBYTE NET_start_game(void);
 // is not a player_id, just the n'th player in the session.
 //
 
-SLONG  NET_get_num_players(void);
-CBYTE *NET_get_player_name(SLONG player);
-
+SLONG NET_get_num_players(void);
+CBYTE* NET_get_player_name(SLONG player);
 
 // ========================================================
 //
@@ -138,9 +132,9 @@ CBYTE *NET_get_player_name(SLONG player);
 //
 
 void NET_message_send(
-		UBYTE  player_id,
-		void  *data,
-		UWORD  num_bytes);
+    UBYTE player_id,
+    void* data,
+    UWORD num_bytes);
 
 //
 // Returns TRUE if there is a message in the queue.
@@ -152,39 +146,37 @@ SLONG NET_message_waiting(void);
 // Gets the next message in the queue.
 //
 
-#define NET_SYSMESS_NOP				0	// Do nothing!
-#define NET_SYSMESS_START_GAME      1
-#define NET_SYSMESS_LOST_CONNECTION	2
-#define NET_SYSMESS_HOST_QUIT_OUT	3
+#define NET_SYSMESS_NOP 0 // Do nothing!
+#define NET_SYSMESS_START_GAME 1
+#define NET_SYSMESS_LOST_CONNECTION 2
+#define NET_SYSMESS_HOST_QUIT_OUT 3
 
 typedef struct
 {
-	UBYTE player_id;
-	UBYTE shit1;
-	UWORD shit2;
+    UBYTE player_id;
+    UBYTE shit1;
+    UWORD shit2;
 
-	union
-	{
-		struct	// For system messages, when player == NET_PLAYER_SYSTEM
-		{
-			UBYTE sysmess;
-			UBYTE player_id;	// For the START_GAME system message.
-			UBYTE shite;
-			
-		} system;
+    union {
+        struct // For system messages, when player == NET_PLAYER_SYSTEM
+        {
+            UBYTE sysmess;
+            UBYTE player_id; // For the START_GAME system message.
+            UBYTE shite;
 
-		struct	// For all other messages.
-		{
-			UWORD num_bytes;
-			UWORD more_shit;
-			void *data;
-			
-		} player;
-	};
+        } system;
+
+        struct // For all other messages.
+        {
+            UWORD num_bytes;
+            UWORD more_shit;
+            void* data;
+
+        } player;
+    };
 
 } NET_Message;
 
-void NET_message_get(NET_Message *answer);
-
+void NET_message_get(NET_Message* answer);
 
 #endif

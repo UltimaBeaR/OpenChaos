@@ -10,19 +10,16 @@
 #include "ping.h"
 #include "server.h"
 
-
-
 //
 // The ping message we send to and get from the server.
 //
 
 typedef struct
 {
-	SLONG             gameturn;
-	SERVER_Block_ping ping;
+    SLONG gameturn;
+    SERVER_Block_ping ping;
 
 } PING_Message;
-
 
 //
 // Whenever we get a valid ping back from the server...
@@ -30,193 +27,173 @@ typedef struct
 
 typedef struct
 {
-	SLONG os_ticks_sent;		// The OS_ticks() when we sent the message
-	SLONG os_ticks_recieved;	// The OS_ticks() when we recieved the message
-	SLONG game_process;			// The game_process from the server when he sent the message.
-	SLONG delta;				// The number so that '<game_process on server> = (<local OS_ticks()> / 4) + delta'
- 
+    SLONG os_ticks_sent; // The OS_ticks() when we sent the message
+    SLONG os_ticks_recieved; // The OS_ticks() when we recieved the message
+    SLONG game_process; // The game_process from the server when he sent the message.
+    SLONG delta; // The number so that '<game_process on server> = (<local OS_ticks()> / 4) + delta'
+
 } PING_Sample;
 
 #define PING_MAX_SAMPLES 30
 
 PING_Sample PING_sample[PING_MAX_SAMPLES];
-SLONG       PING_sample_upto;
-
-
+SLONG PING_sample_upto;
 
 SLONG PING_do()
 {
-	SLONG i;
+    SLONG i;
 
-	SLONG sent = 0;
-	SLONG last = 0;
-	SLONG now  = 0;
+    SLONG sent = 0;
+    SLONG last = 0;
+    SLONG now = 0;
 
-	SLONG ping;
-	SLONG delta;
+    SLONG ping;
+    SLONG delta;
 
-	SLONG num_bytes;
-	void *data;
+    SLONG num_bytes;
+    void* data;
 
-	PING_Message ping_message;
-	PING_Sample *ps;
+    PING_Message ping_message;
+    PING_Sample* ps;
 
-	//
-	// Say what we're doing...
-	//
+    //
+    // Say what we're doing...
+    //
 
-	OS_clear_screen();
-	OS_scene_begin();
-	FONT_draw(0.5F, 0.4F, 0xffffff, 1.0F, -1, "Connecting...");
-	OS_scene_end();
-	OS_show();
+    OS_clear_screen();
+    OS_scene_begin();
+    FONT_draw(0.5F, 0.4F, 0xffffff, 1.0F, -1, "Connecting...");
+    OS_scene_end();
+    OS_show();
 
-	//
-	// Clear out any old samples.
-	//
+    //
+    // Clear out any old samples.
+    //
 
-	memset(PING_sample, 0, sizeof(PING_sample));
+    memset(PING_sample, 0, sizeof(PING_sample));
 
-	PING_sample_upto = 0;
+    PING_sample_upto = 0;
 
-	while(1)
-	{
-		//
-		// Send 10 pings to the server each second.
-		//
+    while (1) {
+        //
+        // Send 10 pings to the server each second.
+        //
 
-		now = OS_ticks();
+        now = OS_ticks();
 
-		if (now < last + (1000 / 10))
-		{
-			//
-			// Don't send another message yet.
-			//
-		}
-		else
-		{
-			last = now;
+        if (now < last + (1000 / 10)) {
+            //
+            // Don't send another message yet.
+            //
+        } else {
+            last = now;
 
-			//
-			// Build the ping message.
-			//
+            //
+            // Build the ping message.
+            //
 
-			ping_message.gameturn          = GAME_turn;
-			ping_message.ping.type         = SERVER_BLOCK_TYPE_PING;
-			ping_message.ping.id           = OS_ticks();
-			ping_message.ping.game_process = GAME_process;
+            ping_message.gameturn = GAME_turn;
+            ping_message.ping.type = SERVER_BLOCK_TYPE_PING;
+            ping_message.ping.id = OS_ticks();
+            ping_message.ping.game_process = GAME_process;
 
-			NET_player_message_send(sizeof(ping_message), &ping_message);
+            NET_player_message_send(sizeof(ping_message), &ping_message);
 
-			sent += 1;
-		}
+            sent += 1;
+        }
 
-		//
-		// Recieve messages.
-		//
+        //
+        // Recieve messages.
+        //
 
-		SLONG exit_loop = FALSE;
+        SLONG exit_loop = FALSE;
 
-		while(!exit_loop)
-		{
-			switch(NET_player_message_receive(&num_bytes, &data))
-			{
-				case NET_PLAYER_MESSAGE_NONE:
-					exit_loop = TRUE;
-					break;
+        while (!exit_loop) {
+            switch (NET_player_message_receive(&num_bytes, &data)) {
+            case NET_PLAYER_MESSAGE_NONE:
+                exit_loop = TRUE;
+                break;
 
-				case NET_PLAYER_MESSAGE_LOST_CONNECTION:
-					return FALSE;
+            case NET_PLAYER_MESSAGE_LOST_CONNECTION:
+                return FALSE;
 
-				case NET_PLAYER_MESSAGE_FROM_SERVER:
+            case NET_PLAYER_MESSAGE_FROM_SERVER:
 
-					//
-					// We've got a message back from the server.
-					//
-					
-					{
-						PING_Message *pm = (PING_Message *) data;
+                //
+                // We've got a message back from the server.
+                //
 
-						ASSERT(pm->ping.type == SERVER_BLOCK_TYPE_PING);
-						ASSERT(num_bytes == sizeof(PING_Message)); // This is the only message we should recieve.
+                {
+                    PING_Message* pm = (PING_Message*)data;
 
-						//
-						// Create a new sample.
-						//
+                    ASSERT(pm->ping.type == SERVER_BLOCK_TYPE_PING);
+                    ASSERT(num_bytes == sizeof(PING_Message)); // This is the only message we should recieve.
 
-						ASSERT(WITHIN(PING_sample_upto, 0, PING_MAX_SAMPLES - 1));
+                    //
+                    // Create a new sample.
+                    //
 
-						now = OS_ticks();
+                    ASSERT(WITHIN(PING_sample_upto, 0, PING_MAX_SAMPLES - 1));
 
-						ping  = now - pm->ping.id;
+                    now = OS_ticks();
 
-						if (ping > 500)
-						{
-							//
-							// Too great a ping! More than  a second is really bad! Ignore this sample.
-							//
-						}
-						else
-						{
-							delta = pm->ping.game_process - ((now - ping / 2) / GAME_TICKS_PER_PROCESS);
+                    ping = now - pm->ping.id;
 
-							PING_sample[PING_sample_upto].os_ticks_sent     = pm->ping.id;
-							PING_sample[PING_sample_upto].os_ticks_recieved = now;
-							PING_sample[PING_sample_upto].game_process      = pm->ping.game_process;
-							PING_sample[PING_sample_upto].delta             = delta;
+                    if (ping > 500) {
+                        //
+                        // Too great a ping! More than  a second is really bad! Ignore this sample.
+                        //
+                    } else {
+                        delta = pm->ping.game_process - ((now - ping / 2) / GAME_TICKS_PER_PROCESS);
 
-							PING_sample_upto += 1;
+                        PING_sample[PING_sample_upto].os_ticks_sent = pm->ping.id;
+                        PING_sample[PING_sample_upto].os_ticks_recieved = now;
+                        PING_sample[PING_sample_upto].game_process = pm->ping.game_process;
+                        PING_sample[PING_sample_upto].delta = delta;
 
-							if (PING_sample_upto >= PING_MAX_SAMPLES)
-							{
-								//
-								// We are now in a position work out our game turn...
-								//
+                        PING_sample_upto += 1;
 
-								delta = 0;
+                        if (PING_sample_upto >= PING_MAX_SAMPLES) {
+                            //
+                            // We are now in a position work out our game turn...
+                            //
 
-								for (i = 0; i < PING_MAX_SAMPLES; i++)
-								{
-									ps = &PING_sample[i];
+                            delta = 0;
 
-									delta += ps->delta;
-								}
+                            for (i = 0; i < PING_MAX_SAMPLES; i++) {
+                                ps = &PING_sample[i];
 
-								delta /= PING_MAX_SAMPLES;
+                                delta += ps->delta;
+                            }
 
-								now = OS_ticks();
+                            delta /= PING_MAX_SAMPLES;
 
-								GAME_process = (now / GAME_TICKS_PER_PROCESS) + delta;
-								GAME_turn    = GAME_process >> 4;
-								GAME_tick    = now;
+                            now = OS_ticks();
 
-								return TRUE;
-							}
-						}
-					}
+                            GAME_process = (now / GAME_TICKS_PER_PROCESS) + delta;
+                            GAME_turn = GAME_process >> 4;
+                            GAME_tick = now;
 
-					break;
-				
-				default:
-					ASSERT(0);
-					break;
-			}
-		}
+                            return TRUE;
+                        }
+                    }
+                }
 
-		if (sent > 150)
-		{
-			//
-			// We've sent loads of messages to the server and haven't made
-			// a connection yet... so give up.
-			//
+                break;
 
-			return FALSE;
-		}
-	}
+            default:
+                ASSERT(0);
+                break;
+            }
+        }
+
+        if (sent > 150) {
+            //
+            // We've sent loads of messages to the server and haven't made
+            // a connection yet... so give up.
+            //
+
+            return FALSE;
+        }
+    }
 }
-
-
-
-
-
-

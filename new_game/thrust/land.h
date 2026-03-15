@@ -5,16 +5,11 @@
 #ifndef _LAND_
 #define _LAND_
 
-
-
-
 //
 // Initialises the landscape to nothing.
 //
 
 void LAND_init(void);
-
-
 
 //
 // Adds a line to the landscape. It makes a different whether the lines
@@ -31,7 +26,6 @@ void LAND_add_line(SLONG num_points, Point2d p[]);
 
 void LAND_calc_normals(void);
 
-
 //
 // Checks to see if the given circle has collided with the landscape.
 // If it the circle does collide, then if gives back the normal of the
@@ -39,12 +33,11 @@ void LAND_calc_normals(void);
 //
 
 SLONG LAND_collide_sphere(
-		float  x,
-		float  y,
-		float  radius,
-		float *nx,
-		float *ny);
-
+    float x,
+    float y,
+    float radius,
+    float* nx,
+    float* ny);
 
 //
 // Draws the landscape centred at (x,y) with the given zoom factor.
@@ -52,7 +45,4 @@ SLONG LAND_collide_sphere(
 
 void LAND_draw_all(float x, float y, float zoom);
 
-
-
 #endif
-

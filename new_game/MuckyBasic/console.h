@@ -6,28 +6,22 @@
 #ifndef _CONSOLE_
 #define _CONSOLE_
 
-
-
 //
 // Iniailises the CONSOLE output.
 //
 
 void CONSOLE_init(void);
 
-
-
 //
 // Prints the text.
 //
 
-void CONSOLE_print(CBYTE *fmt, ...);
+void CONSOLE_print(CBYTE* fmt, ...);
 
 //
 // Gets a line of input from the user.
 //
 
-CBYTE *CONSOLE_input(void);
-
-
+CBYTE* CONSOLE_input(void);
 
 #endif

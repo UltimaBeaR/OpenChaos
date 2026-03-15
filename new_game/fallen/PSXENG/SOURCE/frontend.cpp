@@ -4,4 +4,4 @@
 
 #include "frontend.h"
 
-FrontEnd frontend=(FrontEnd*)0x801ff800;
+FrontEnd frontend = (FrontEnd*)0x801ff800;

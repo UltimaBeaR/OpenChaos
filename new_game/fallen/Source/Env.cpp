@@ -46,8 +46,8 @@ void ENV_load(CBYTE *fname)
 
 #ifndef PSX
 	FILE *handle;
-	
-	#define ENV_MAX_LINE_LENGTH 256
+
+#define ENV_MAX_LINE_LENGTH 256
 
 	CBYTE line[ENV_MAX_LINE_LENGTH];
 	CBYTE name[ENV_MAX_LINE_LENGTH];

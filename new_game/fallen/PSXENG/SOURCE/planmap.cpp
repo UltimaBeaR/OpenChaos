@@ -4,17 +4,15 @@
 #include "c:\fallen\headers\pap.h"
 #include "c:\fallen\headers\road.h"
 
-
-#define MAP_BACK	(0)
-#define MAP_TEXT	(1)
+#define MAP_BACK (0)
+#define MAP_TEXT (1)
 #define MAP_OVERLAY (2)
-#define MAP_MASK	(3)
+#define MAP_MASK (3)
 
-
-#define	EDGE_LEFT	(1<<0)
-#define	EDGE_TOP	(1<<1)
-#define	EDGE_RIGHT	(1<<2)
-#define	EDGE_BOTTOM	(1<<3)
+#define EDGE_LEFT (1 << 0)
+#define EDGE_TOP (1 << 1)
+#define EDGE_RIGHT (1 << 2)
+#define EDGE_BOTTOM (1 << 3)
 
 #if 0
 extern	UBYTE	player_visited[16][128];    
@@ -56,10 +54,10 @@ void	draw_edge(SLONG csx,SLONG csy,SLONG dsx,SLONG dsy)
 }
 */
 
-#define CORNER_TL (csx),(csy)
-#define CORNER_TR (csx+pixelw-1),(csy)
-#define CORNER_BL (csx),(csy+pixelw-1)
-#define CORNER_BR (csx+pixelw-1),(csy+pixelw-1)
+#define CORNER_TL (csx), (csy)
+#define CORNER_TR (csx + pixelw - 1), (csy)
+#define CORNER_BL (csx), (csy + pixelw - 1)
+#define CORNER_BR (csx + pixelw - 1), (csy + pixelw - 1)
 
 void draw_shadow_quad(SLONG csx,SLONG csy,SLONG pixelw,SLONG red,SLONG green,SLONG blue,SLONG tls,SLONG trs,SLONG bls,SLONG brs)
 {
@@ -310,7 +308,7 @@ void plan_view_shot(SLONG wx,SLONG wz,SLONG pixelw,SLONG sx,SLONG sy,SLONG w,SLO
 
 }
 #else
-void plan_view_shot(SLONG wx,SLONG wz,SLONG pixelw,SLONG sx,SLONG sy,SLONG w,SLONG h)
+void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG w, SLONG h)
 {
 }
 

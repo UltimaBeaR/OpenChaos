@@ -5,33 +5,26 @@
 #ifndef _SERVER_
 #define _SERVER_
 
-
-
 #include "gamestate.h"
-
-
-
 
 //
 // Creates a new session. Returns TRUE on success.
 //
 
-#define SERVER_CONNECT_TYPE_LAN      0
+#define SERVER_CONNECT_TYPE_LAN 0
 #define SERVER_CONNECT_TYPE_INTERNET 1
 
 SLONG SERVER_session_create(
-		CBYTE *name,
-		SLONG  max_players,
-		SLONG  connection_type,
-		CBYTE *internet_address);
+    CBYTE* name,
+    SLONG max_players,
+    SLONG connection_type,
+    CBYTE* internet_address);
 
 //
 // Ends the current session.
 //
 
 void SERVER_session_destroy(void);
-
-
 
 //
 // Process the server. Gets keypresses from all the players and
@@ -41,15 +34,12 @@ void SERVER_session_destroy(void);
 
 void SERVER_process(void);
 
-
 //
 // Draws the dedicated server screen- this only draws stuff a few
 // times every second. Most of the time it just returns.
 //
 
 void SERVER_draw(void);
-
-
 
 // ========================================================
 //
@@ -68,8 +58,6 @@ void SERVER_draw(void);
 //   on which game turn your ship can start moving.
 //
 
-
-
 // ========================================================
 //
 // SERVER MESSAGES
@@ -87,15 +75,15 @@ void SERVER_draw(void);
 // block data.
 //
 
-#define SERVER_BLOCK_TYPE_REQUEST_JOIN			1
-#define SERVER_BLOCK_TYPE_NEW_PLAYER			2
-#define SERVER_BLOCK_TYPE_ACTIVATE_NEW_PLAYER	3
-#define SERVER_BLOCK_TYPE_MY_KEYPRESS_LIST		4
-#define SERVER_BLOCK_TYPE_REMOTE_KEYPRESS_LIST	5
-#define SERVER_BLOCK_TYPE_PING					6
-#define SERVER_BLOCK_TYPE_GAMESTATE				7
-#define SERVER_BLOCK_TYPE_RECEIVED_GAMESTATE	8
-#define SERVER_BLOCK_TYPE_PLAYER_LEFT           9
+#define SERVER_BLOCK_TYPE_REQUEST_JOIN 1
+#define SERVER_BLOCK_TYPE_NEW_PLAYER 2
+#define SERVER_BLOCK_TYPE_ACTIVATE_NEW_PLAYER 3
+#define SERVER_BLOCK_TYPE_MY_KEYPRESS_LIST 4
+#define SERVER_BLOCK_TYPE_REMOTE_KEYPRESS_LIST 5
+#define SERVER_BLOCK_TYPE_PING 6
+#define SERVER_BLOCK_TYPE_GAMESTATE 7
+#define SERVER_BLOCK_TYPE_RECEIVED_GAMESTATE 8
+#define SERVER_BLOCK_TYPE_PLAYER_LEFT 9
 
 //
 // JOIN. Send this message to the server when you want to join
@@ -105,18 +93,15 @@ void SERVER_draw(void);
 
 typedef struct
 {
-	UBYTE type;			// i.e. SERVER_BLOCK_TYPE_REQUEST_JOIN
-	UBYTE red;
-	UBYTE green;
-	UBYTE blue;
-	float mass;
-	float power;
-	CBYTE name[32];
- 
+    UBYTE type; // i.e. SERVER_BLOCK_TYPE_REQUEST_JOIN
+    UBYTE red;
+    UBYTE green;
+    UBYTE blue;
+    float mass;
+    float power;
+    CBYTE name[32];
+
 } SERVER_Block_request_join;
-
-
-
 
 //
 // NEW_PLAYER.  The server is telling you that a new player has joined
@@ -125,25 +110,21 @@ typedef struct
 
 typedef struct
 {
-	UBYTE type;			// i.e. SERVER_BLOCK_TYPE_NEW_PLAYER
-	UBYTE red;
-	UBYTE green;
-	UBYTE blue;
-	CBYTE name[32];
-	UBYTE ship_index;	// Index into the SHIP_ship structure.
-	UBYTE local;		// if TRUE, then this is you!
-	UWORD padding;
-	SLONG active;		// The gameturn when this ship becomes active.
-	float x;
-	float y;
-	float mass;
-	float power;
+    UBYTE type; // i.e. SERVER_BLOCK_TYPE_NEW_PLAYER
+    UBYTE red;
+    UBYTE green;
+    UBYTE blue;
+    CBYTE name[32];
+    UBYTE ship_index; // Index into the SHIP_ship structure.
+    UBYTE local; // if TRUE, then this is you!
+    UWORD padding;
+    SLONG active; // The gameturn when this ship becomes active.
+    float x;
+    float y;
+    float mass;
+    float power;
 
 } SERVER_Block_new_player;
-
-
-
-
 
 //
 // MY KEYPRESS LIST. Tells the server about your last few keypresses.
@@ -151,16 +132,14 @@ typedef struct
 
 typedef struct
 {
-	UBYTE type;			// SERVER_BLOCK_TYPE_MY_KEYPRESS_LIST
-	UBYTE ship_index;	// Index into the SHIP_ship structure.
-	UBYTE num_keys;
-	UBYTE padding;
-	float hash;			// So we know if we're in sync.
-	UBYTE key[];		// The array of keys...
+    UBYTE type; // SERVER_BLOCK_TYPE_MY_KEYPRESS_LIST
+    UBYTE ship_index; // Index into the SHIP_ship structure.
+    UBYTE num_keys;
+    UBYTE padding;
+    float hash; // So we know if we're in sync.
+    UBYTE key[]; // The array of keys...
 
 } SERVER_Block_my_keypress_list;
-
-
 
 //
 // REMOTE KEYPRESS LIST.  This is the server telling you about a remote player's keypresses.
@@ -168,17 +147,14 @@ typedef struct
 
 typedef struct
 {
-	UBYTE type;				// SERVER_BLOCK_TYPE_REMOTE_KEYPRESS_LIST
-	UBYTE ship_index;		// Index into the SHIP_ship structure.
-	UBYTE num_keys;
-	UBYTE padding;
-	SLONG gameturn;			// The turn the first key is for.
-	UBYTE key[];			// The array of keys...
-
+    UBYTE type; // SERVER_BLOCK_TYPE_REMOTE_KEYPRESS_LIST
+    UBYTE ship_index; // Index into the SHIP_ship structure.
+    UBYTE num_keys;
+    UBYTE padding;
+    SLONG gameturn; // The turn the first key is for.
+    UBYTE key[]; // The array of keys...
 
 } SERVER_Block_remote_keypress_list;
-
-
 
 //
 // PING. Use ping as a NOP message to establish a common time with the server.
@@ -187,13 +163,12 @@ typedef struct
 
 typedef struct
 {
-	UBYTE type;				// SERVER_BLOCK_TYPE_PING
-	UBYTE padding[3];		
-	SLONG id;				// When the server returns your ping, it will use the same id.
-	SLONG game_process;		// The current high resolution game turn.
+    UBYTE type; // SERVER_BLOCK_TYPE_PING
+    UBYTE padding[3];
+    SLONG id; // When the server returns your ping, it will use the same id.
+    SLONG game_process; // The current high resolution game turn.
 
 } SERVER_Block_ping;
-
 
 //
 // GAMESTATE. The gamestate at a particular time.
@@ -201,17 +176,15 @@ typedef struct
 
 typedef struct
 {
-	UBYTE type;				// SERVER_BLOCK_TYPE_GAMESTATE
-	UBYTE padding[3];		
+    UBYTE type; // SERVER_BLOCK_TYPE_GAMESTATE
+    UBYTE padding[3];
 
-	SLONG gameturn;	// The gameturn when this gamestate is for. It may not
-					// be the same as the gameturn when the message is sent.
+    SLONG gameturn; // The gameturn when this gamestate is for. It may not
+                    // be the same as the gameturn when the message is sent.
 
-	GAMESTATE_State gs;
+    GAMESTATE_State gs;
 
 } SERVER_Block_gamestate;
-
-
 
 //
 // RECEIVED_GAMESTATE. Tell the server that you have received gamestate. Start
@@ -221,12 +194,10 @@ typedef struct
 
 typedef struct
 {
-	UBYTE type;				// SERVER_BLOCK_TYPE_RECEIVED
-	UBYTE padding[3];
+    UBYTE type; // SERVER_BLOCK_TYPE_RECEIVED
+    UBYTE padding[3];
 
 } SERVER_Block_received_gamestate;
-
-
 
 //
 // PLAYER_LEFT.  A player has left the game.
@@ -234,23 +205,11 @@ typedef struct
 
 typedef struct
 {
-	UBYTE type;			// SERVER_BLOCK_TYPE_PLAYER_LEFT
-	UBYTE player_index;	// Index into the PLAYER_player structure.
-	UBYTE padding[2];
-	SLONG game_turn_when_the_player_leaves;
+    UBYTE type; // SERVER_BLOCK_TYPE_PLAYER_LEFT
+    UBYTE player_index; // Index into the PLAYER_player structure.
+    UBYTE padding[2];
+    SLONG game_turn_when_the_player_leaves;
 
 } SERVER_Block_player_left;
 
-
-
-
-
 #endif
-
-
-
-
-
-
-
-

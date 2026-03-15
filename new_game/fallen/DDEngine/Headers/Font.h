@@ -5,14 +5,13 @@
 #ifndef _FONT_
 #define _FONT_
 
-
 //
 // The maximum dimension of a character.
 // Normally the width will be smaller.
 //
 
 #define FONT_HEIGHT 9
-#define FONT_WIDTH  8
+#define FONT_WIDTH 8
 
 //
 // The maximum number of characters allowed in each message.
@@ -20,29 +19,26 @@
 
 #define FONT_MAX_LENGTH 512
 
-
 //
 // Adds a buffered message.
 //
 
 void FONT_buffer_add(
-		SLONG  x,
-		SLONG  y,
-		UBYTE  red,
-		UBYTE  green,
-		UBYTE  blue,
-		UBYTE  shadowed_or_not,
-		CBYTE *fmt, ...);
+    SLONG x,
+    SLONG y,
+    UBYTE red,
+    UBYTE green,
+    UBYTE blue,
+    UBYTE shadowed_or_not,
+    CBYTE* fmt, ...);
 
 //
 // Draws all the buffered up sentences and clears the buffered list.
 //
 // THIS FUNCTION LOCKS AND UNLOCKS THE SCREEN FOR YOU!
-// 
+//
 
 void FONT_buffer_draw(void);
-
-
 
 //
 // THE SCREEN MUST BE LOCKED WHEN YOU CALL THESE FUNCTIONS!
@@ -54,8 +50,7 @@ void FONT_buffer_draw(void);
 // Returns the length of the string in pixels.
 //
 
-SLONG FONT_draw(SLONG x, SLONG y, CBYTE *fmt, ...);
-
+SLONG FONT_draw(SLONG x, SLONG y, CBYTE* fmt, ...);
 
 //
 // Draws the texture in the given colour.
@@ -63,12 +58,12 @@ SLONG FONT_draw(SLONG x, SLONG y, CBYTE *fmt, ...);
 //
 
 SLONG FONT_draw_coloured_text(
-		SLONG x,
-		SLONG y,
-		UBYTE red,
-		UBYTE green,
-		UBYTE blue,
-		CBYTE *fmt, ...);
+    SLONG x,
+    SLONG y,
+    UBYTE red,
+    UBYTE green,
+    UBYTE blue,
+    CBYTE* fmt, ...);
 
 //
 // Draws the char in the given colour- or does nothing if that character is not
@@ -76,12 +71,12 @@ SLONG FONT_draw_coloured_text(
 //
 
 SLONG FONT_draw_coloured_char(
-		SLONG x,
-		SLONG y,
-		UBYTE red,
-		UBYTE green,
-		UBYTE blue,
-		CBYTE ch);
+    SLONG x,
+    SLONG y,
+    UBYTE red,
+    UBYTE green,
+    UBYTE blue,
+    CBYTE ch);
 
 //
 // Draws the message so that it fits in a reasonably rectangular box shape.
@@ -89,13 +84,11 @@ SLONG FONT_draw_coloured_char(
 //
 
 void FONT_draw_speech_bubble_text(
-		SLONG x,
-		SLONG y,
-		UBYTE red,
-		UBYTE green,
-		UBYTE blue,
-		CBYTE *fmt, ...);
-
-
+    SLONG x,
+    SLONG y,
+    UBYTE red,
+    UBYTE green,
+    UBYTE blue,
+    CBYTE* fmt, ...);
 
 #endif

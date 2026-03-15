@@ -5,8 +5,6 @@
 #ifndef _PERSTEX_
 #define _PERSTEX_
 
-
-
 // ========================================================
 
 //
@@ -23,13 +21,8 @@
 
 #define PERSTEX_PAGENUMBER_QMARK 0
 
-SLONG PERSTEX_get_number(CBYTE *fname);
+SLONG PERSTEX_get_number(CBYTE* fname);
 
 // ========================================================
-
-
-
-
-
 
 #endif

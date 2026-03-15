@@ -19,4 +19,3 @@ void ProcessGrenades();
 
 // create a grenade explosion
 void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner);
-

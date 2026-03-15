@@ -6,7 +6,6 @@
 #define IN_BUILDING_H
 #include "Game.h"
 
-
 //
 // Stories are identified by the height of their floor.
 // The height is restricted to quarter-mapsquare boundaries... 0x40
@@ -20,14 +19,13 @@
 
 typedef struct
 {
-	SLONG       dbuilding;	// The dbuilding index.
-	UBYTE       map_x;
-	UBYTE       map_z;
+    SLONG dbuilding; // The dbuilding index.
+    UBYTE map_x;
+    UBYTE map_z;
 
 } ENTER_Okay;
 
 ENTER_Okay ENTER_can_i(THING_INDEX me);
-
 
 //
 // Returns TRUE if you can leave the building you are in.
@@ -35,8 +33,7 @@ ENTER_Okay ENTER_can_i(THING_INDEX me);
 // outside the building.
 //
 
-SLONG ENTER_leave(THING_INDEX me, UBYTE *map_x, UBYTE *map_z);
-
+SLONG ENTER_leave(THING_INDEX me, UBYTE* map_x, UBYTE* map_z);
 
 //
 // Returns the height of the ground floor and the top storey of
@@ -45,10 +42,9 @@ SLONG ENTER_leave(THING_INDEX me, UBYTE *map_x, UBYTE *map_z);
 //
 
 void ENTER_get_extents(
-		SLONG  dbuilding,
-		SLONG *height_ground_floor,
-		SLONG *height_of_top_storey);
-
+    SLONG dbuilding,
+    SLONG* height_ground_floor,
+    SLONG* height_of_top_storey);
 
 //
 // Sets-up the ID module to represent the insides of the given storey
@@ -61,7 +57,5 @@ void ENTER_get_extents(
 //
 
 SLONG ENTER_setup(SLONG dbuilding, SLONG height, UBYTE furnished, UBYTE find_best_layout);
-
-
 
 #endif

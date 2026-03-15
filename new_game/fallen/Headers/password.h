@@ -1,120 +1,118 @@
 
 #define EIDOS
-//#define USA
-//#define GERMANY
-//#define FRANCE
-//#define KK
-//#define SINGAPORE
-//#define LEADER
-//#define HALIFAX
-//#define SYNTHESIS
-//#define DLMM
-//#define EEM
-//#define EUROPE
-//#define JAPAN
-//#define TDFX
+// #define USA
+// #define GERMANY
+// #define FRANCE
+// #define KK
+// #define SINGAPORE
+// #define LEADER
+// #define HALIFAX
+// #define SYNTHESIS
+// #define DLMM
+// #define EEM
+// #define EUROPE
+// #define JAPAN
+// #define TDFX
 
 #if defined(EIDOS)
-#define EXPORT_NAME		"Ecqv`h'@lnli~"
-#define EXPORT_CO		"Dkgkv&RC"
-#define EXPORT_PW		"uulcjjcn`yc"
-#define MAGIC_KEY		99, 98, 97, 96
+#define EXPORT_NAME "Ecqv`h'@lnli~"
+#define EXPORT_CO "Dkgkv&RC"
+#define EXPORT_PW "uulcjjcn`yc"
+#define MAGIC_KEY 99, 98, 97, 96
 #endif
 
 #if defined(USA)
-#define EXPORT_NAME		"Ok`ljjf{)Oj~a"
-#define EXPORT_CO		"Dkgkv&R[H"
-#define EXPORT_PW		"Dcqh=16=kn"
-#define MAGIC_KEY		98, 97, 96, 95
+#define EXPORT_NAME "Ok`ljjf{)Oj~a"
+#define EXPORT_CO "Dkgkv&R[H"
+#define EXPORT_PW "Dcqh=16=kn"
+#define MAGIC_KEY 98, 97, 96, 95
 #endif
 
 #if defined(GERMANY)
-#define EXPORT_NAME		"Smob%Br`gan"
-#define EXPORT_CO		"Dkgkv&@m{gjbt"
-#define EXPORT_PW		"EWKJ4040YF"
-#define MAGIC_KEY		42, 43, 44, 45
+#define EXPORT_NAME "Smob%Br`gan"
+#define EXPORT_CO "Dkgkv&@m{gjbt"
+#define EXPORT_PW "EWKJ4040YF"
+#define MAGIC_KEY 42, 43, 44, 45
 #endif
 
 #if defined(FRANCE)
-#define EXPORT_NAME		"Qcwvlel(Dogoeg`b"
-#define EXPORT_CO		"Dkgkv&Azhdhi"
-#define EXPORT_PW		"LGOG<53?A_"
-#define MAGIC_KEY		44, 45, 47, 48
+#define EXPORT_NAME "Qcwvlel(Dogoeg`b"
+#define EXPORT_CO "Dkgkv&Azhdhi"
+#define EXPORT_PW "LGOG<53?A_"
+#define MAGIC_KEY 44, 45, 47, 48
 #endif
 
 #if defined(KK)
-#define EXPORT_NAME		"Imm`d+tig"
-#define EXPORT_CO		"Dkgkv&LC"
-#define EXPORT_PW		"IMM@700=]X"
-#define MAGIC_KEY		50, 48, 46, 44
+#define EXPORT_NAME "Imm`d+tig"
+#define EXPORT_CO "Dkgkv&LC"
+#define EXPORT_PW "IMM@700=]X"
+#define MAGIC_KEY 50, 48, 46, 44
 #endif
 
 #if defined(SINGAPORE)
-#define EXPORT_NAME		"Dpjo%@hzm"
-#define EXPORT_CO		"Dkgkv&Tagmj|b|j"
-#define EXPORT_PW		"GMQ@210?OF"
-#define MAGIC_KEY		64, 65, 66, 67
+#define EXPORT_NAME "Dpjo%@hzm"
+#define EXPORT_CO "Dkgkv&Tagmj|b|j"
+#define EXPORT_PW "GMQ@210?OF"
+#define MAGIC_KEY 64, 65, 66, 67
 #endif
 
 #if defined(LEADER)
-#define EXPORT_NAME		"Lcqgj&Jagege"
-#define EXPORT_CO		"Mgb``t'L`y\x7F~dlzjx}}q"
-#define EXPORT_PW		"LKMK3??;X]"
-#define MAGIC_KEY		65, 66, 67, 68
+#define EXPORT_NAME "Lcqgj&Jagege"
+#define EXPORT_CO "Mgb``t'L`y\x7F~dlzjx}}q"
+#define EXPORT_PW "LKMK3??;X]"
+#define MAGIC_KEY 65, 66, 67, 68
 #endif
 
 #if defined(HALIFAX)
-#define EXPORT_NAME		"@lgv`g'O`egeya"
-#define EXPORT_CO		"Icomcg\x7F"
-#define EXPORT_PW		"FKLH0119KM"
-#define MAGIC_KEY		69, 67, 64, 62
+#define EXPORT_NAME "@lgv`g'O`egeya"
+#define EXPORT_CO "Icomcg\x7F"
+#define EXPORT_PW "FKLH0119KM"
+#define MAGIC_KEY 69, 67, 64, 62
 #endif
 
 #if defined(SYNTHESIS)
-#define EXPORT_NAME		"Lc{$Wc~fh\x7Fo"
-#define EXPORT_CO		"Qpln`es(Zsexek|yb"
-#define EXPORT_PW		"SGZJ<039EA" 
-#define MAGIC_KEY		20, 30, 40, 50
+#define EXPORT_NAME "Lc{$Wc~fh\x7Fo"
+#define EXPORT_CO "Qpln`es(Zsexek|yb"
+#define EXPORT_PW "SGZJ<039EA"
+#define MAGIC_KEY 20, 30, 40, 50
 #endif
 
 #if defined(DLMM)
-#define EXPORT_NAME		"Done%Mum|p"
-#define EXPORT_CO		"EN#Ipjsadooel"
-#define EXPORT_PW		"JPFQ07>?ONC"
-#define MAGIC_KEY		12, 14, 19, 72
+#define EXPORT_NAME "Done%Mum|p"
+#define EXPORT_CO "EN#Ipjsadooel"
+#define EXPORT_PW "JPFQ07>?ONC"
+#define MAGIC_KEY 12, 14, 19, 72
 #endif
 
 #if defined(EEM)
-#define EXPORT_NAME		"@lg}%Qf|}"
-#define EXPORT_CO		"Dkgkv&Bpyeyx-Cnbzwg}{q"
-#define EXPORT_PW		"VCWP=03;\\I"
-#define MAGIC_KEY		91,49,71,21
+#define EXPORT_NAME "@lg}%Qf|}"
+#define EXPORT_CO "Dkgkv&Bpyeyx-Cnbzwg}{q"
+#define EXPORT_PW "VCWP=03;\\I"
+#define MAGIC_KEY 91, 49, 71, 21
 #endif
 
 #if defined(EUROPE)
-#define EXPORT_NAME		"Gnbrlg'\\`gbmcg"
-#define EXPORT_CO		"Dkgkv&B}{e{il`/\\~qrx|evlpuu"
-#define EXPORT_PW		"UKNM457;O^"
-#define MAGIC_KEY		76, 43, 26, 19
+#define EXPORT_NAME "Gnbrlg'\\`gbmcg"
+#define EXPORT_CO "Dkgkv&B}{e{il`/\\~qrx|evlpuu"
+#define EXPORT_PW "UKNM457;O^"
+#define MAGIC_KEY 76, 43, 26, 19
 #endif
 
-
 #if defined(JAPAN)
-#define EXPORT_NAME		"Xmwe%Qflh"
-#define EXPORT_CO		"Dkgkv&Wzfn~oh|/Zpbrzper8ihtxh}kS"
-#define EXPORT_PW		"VCGE517?YA"
-#define MAGIC_KEY		49, 59, 69, 79
+#define EXPORT_NAME "Xmwe%Qflh"
+#define EXPORT_CO "Dkgkv&Wzfn~oh|/Zpbrzper8ihtxh}kS"
+#define EXPORT_PW "VCGE517?YA"
+#define MAGIC_KEY 49, 59, 69, 79
 #endif
 
 #if defined(TDFX)
-#define EXPORT_NAME		"Lkha%Nbzh\x7Fm"
-#define EXPORT_CO		"2fe|"
-#define EXPORT_PW		"ntfvfjhkbcek"
-#define MAGIC_KEY		24, 25, 50, 51
+#define EXPORT_NAME "Lkha%Nbzh\x7Fm"
+#define EXPORT_CO "2fe|"
+#define EXPORT_PW "ntfvfjhkbcek"
+#define MAGIC_KEY 24, 25, 50, 51
 #endif
 
-#define MAGIC_ARRAY		{ 1, 2, 3, 42, MAGIC_KEY }
-
+#define MAGIC_ARRAY { 1, 2, 3, 42, MAGIC_KEY }
 
 /*
 
@@ -184,7 +182,7 @@
 #if defined(SYNTHESIS)
 #define EXPORT_NAME		"Max Reynaud"
 #define EXPORT_CO		"Project Synthesis"
-#define EXPORT_PW		"REYN9641LK" 
+#define EXPORT_PW		"REYN9641LK"
 #endif
 
 #if defined(DLMM)

@@ -5,7 +5,6 @@
 #ifndef _PRIMTEX_
 #define _PRIMTEX_
 
-
 // ========================================================
 
 //
@@ -22,10 +21,8 @@
 
 #define PRIMTEX_PAGENUMBER_QMARK 0
 
-SLONG PRIMTEX_get_number(CBYTE *fname);
+SLONG PRIMTEX_get_number(CBYTE* fname);
 
 // ========================================================
-
-
 
 #endif

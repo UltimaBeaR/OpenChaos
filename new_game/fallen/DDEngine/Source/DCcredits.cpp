@@ -655,6 +655,4 @@ void CREDITS_draw()
 	last = now;
 }
 
-
-
 #endif

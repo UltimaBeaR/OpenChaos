@@ -5,7 +5,6 @@
 #ifndef _SHADOW_
 #define _SHADOW_
 
-
 //
 // The SHADOW module creates 3bit values for a square-
 // and this is what they mean.
@@ -84,15 +83,11 @@
 //      +------+
 //
 
-
-
 //
 // Shadows the outside world.
 //
 
 void SHADOW_do(void);
-
-
 
 //
 // Returns TRUE if the given point is in shadow.
@@ -100,7 +95,4 @@ void SHADOW_do(void);
 
 SLONG SHADOW_in(SLONG x, SLONG y, SLONG z);
 
-
-
 #endif
-
