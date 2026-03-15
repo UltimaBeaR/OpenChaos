@@ -1274,12 +1274,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     }
 
 
-#if 0
-	if (loading_screen_active)
-	{
-		ATTRACT_loadscreen_draw(70 * 256 / 100);
-	}
-#endif
 
     //
     // The video page.
@@ -1392,12 +1386,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
         TRACE("Loaded floor textures\n");
 
-#if 0
-		if (loading_screen_active)
-		{
-			ATTRACT_loadscreen_draw(75 * 256 / 100);
-		}
-#endif
 
         for (i = 1; i < MAX_ANIM_TMAPS; i++) {
             struct AnimTmap* p_a;
@@ -1449,12 +1437,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
             }
         }
 
-#if 0
-		if (loading_screen_active)
-		{
-			ATTRACT_loadscreen_draw(80 * 256 / 100);
-		}
-#endif
 
         TRACE("Loaded prim 3s\n");
 
@@ -1478,12 +1460,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
         TRACE("Loaded prim 4s\n");
 
-#if 0
-		if (loading_screen_active)
-		{
-			ATTRACT_loadscreen_draw(85 * 256 / 100);
-		}
-#endif
 
         TEXTURE_load_page(156);
 
@@ -1568,12 +1544,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
         TRACE("Loaded facet pages\n");
 
-#if 0
-		if (loading_screen_active)
-		{
-			ATTRACT_loadscreen_draw(90 * 256 / 100);
-		}
-#endif
 
         /*
 
@@ -1620,56 +1590,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TT_Init();
 #endif
 
-#if 0 // Didn't work anyway...
-
-	//
-	// Draw a poly with each texture page to get all the data actually
-	// downloaded to the card.
-	//
-
-	if (loading_screen_active)
-	{
-		BEGIN_SCENE;
-
-		POLY_frame_init(FALSE, FALSE);
-
-		{
-			SLONG i;
-			SLONG x;
-			SLONG y;
-
-			for (i = 0; i < POLY_NUM_PAGES; i++)
-			{
-				extern void PANEL_draw_quad(
-								float left,
-								float top,
-								float right,
-								float bottom,
-								SLONG page,
-								ULONG colour = 0xffffffff,
-								float u1 = 0.0F,
-								float v1 = 0.0F,
-								float u2 = 1.0F,
-								float v2 = 1.0F);
-
-				x = (i & 0x7f) << 2;
-				y = (i >> 6) << 3;
-
-				PANEL_draw_quad(
-					x, y,
-					x + 2, y + 6,
-					i);
-			}
-		}
-
-		POLY_frame_draw(TRUE, TRUE);
-
-		END_SCENE;
-
-		ATTRACT_loadscreen_draw(90 * 256 / 100);
-	}
-
-#endif
 
     // this is a good point to estimate the
     // graphics card's capabilities
@@ -1810,20 +1730,6 @@ void TEXTURE_free_unneeded(void)
     POLY_reset_render_states();
 }
 
-#if 0 // not DX6
-
-D3DTEXTUREHANDLE TEXTURE_get_handle(SLONG page)
-{
-	D3DTEXTUREHANDLE ans;
-
-	ASSERT(WITHIN(page, 0, TEXTURE_num_textures - 1));
-
-	ans = TEXTURE_texture[page].GetTextureHandle();
-
-	return ans;
-}
-
-#endif
 
 LPDIRECT3DTEXTURE2 TEXTURE_get_handle(SLONG page)
 {

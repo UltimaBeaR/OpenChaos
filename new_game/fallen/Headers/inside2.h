@@ -76,12 +76,5 @@ extern SLONG find_stair_y(Thing* p_person, SLONG* y1, SLONG x, SLONG y, SLONG z,
 //
 // ========================================================
 
-#if 0
-// Never used!
-MAV_Action INSIDE2_mav_enter (Thing *p_person, SLONG inside, UBYTE caps);		// To enter the building with the given inside
-MAV_Action INSIDE2_mav_inside(Thing *p_person, SLONG inside, UBYTE x, UBYTE z);	// Navigating within a floor
-MAV_Action INSIDE2_mav_stair (Thing *p_person, SLONG inside, SLONG new_inside); // Going up the stairs to another floor
-MAV_Action INSIDE2_mav_exit  (Thing *p_person, SLONG inside);					// Exit the building
-#endif
 
 #endif

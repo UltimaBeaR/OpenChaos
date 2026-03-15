@@ -246,3 +246,38 @@ rm new_game/fallen/Source/nightpsx.cpp new_game/fallen/Source/Levelpsx.cpp new_g
 - poly.cpp 2220-2226 и 2234-2240: мёртвый код заканчивался на `else`, связанном с активным блоком после `#endif`. Удалены только строки `#if 0` до `#endif` включительно — активный `{...}` остался.
 - `#if 1/#else/#endif` внутри poly.cpp (строки 605-646) не трогали — это `#if 1`, не `#if 0`.
 
+---
+
+## Итерация 7 — Удаление #if 0 блоков (пачка 4 — остатки DDEngine + DDLibrary + Source)
+
+**Дата:** 2026-03-16
+
+**Удалено блоков #if 0 (30 блоков, Python apply_removes):**
+
+- `DDEngine/Source/superfacet.cpp` — 9 блоков:
+  - `#if0/#else/#endif` полосовые vs списковые индексы (687-714) → оставлен list-вариант
+  - `#if0/#else/#endif` max_indices strips vs lists (1227-1233) → оставлен `* 6 / 4`
+  - dead SFACET_init branch (1290-1331)
+  - 2× dead old paths (1401-1408, 1422-1431)
+  - `#if0/#else/#endif` старый D3D SetRenderState vs новый (1494-1505) → оставлен `the_display.SetRenderState`
+  - 2× dead paths (1687-1699, 1731-1747)
+  - `#if0/#else/#endif` старый MM setup vs `lpvVertices` (1955-1969) → оставлен новый
+- `DDEngine/Source/texture.cpp` — 7 блоков: все simple (1277, 1395, 1452, 1481, 1571, 1623-1672, 1813-1826)
+- `DDLibrary/Headers/FFManager.h` — 1 блок (10-31)
+- `DDLibrary/Source/FFManager.cpp` — 1 блок (8-84)
+- `DDLibrary/Source/GHost.cpp` — 1 блок (395-414)
+- `DDLibrary/Source/GKeyboard.cpp` — 1 блок `#if0/#else/#endif` (126-140) → оставлен key_turn/Keys путь
+- `Headers/inside2.h` — 1 блок (79-85)
+- `Headers/wmove.h` — 1 блок (57-59)
+- `Source/Attract.cpp` — 3 блока: мёртвый debug (531-556); `#if0/#else/#endif` PSX vs DC mimes (683-763) → оставлен DC вариант; большой мёртвый блок (828-1033)
+- `Source/Combat.cpp` — 1 блок (1565-1646)
+- `Source/Controls.cpp` — 2 блока: большой блок (1436-1650, содержал вложенный 1553-1610); маленький (1961-1976)
+- `Source/Cop.cpp` — 1 блок (140-251)
+
+**Итог:** 30 блоков, проект: 92 → 58 `#if 0` (не считая vcpkg_installed).
+
+**Нюансы:**
+- Controls.cpp 1553-1610 был вложен внутри 1436-1650 → удалился автоматически.
+- Attract.cpp содержал нестандартные символы (не UTF-8, не cp1251) → читался/записывался в binary mode чтобы сохранить байты.
+- Первая попытка записи через `encoding='latin-1'` текст-режим повредила файл (частичная запись из-за ошибки кодировки в первом скрипте) → восстановлен через `git checkout`, затем обработан в binary mode.
+

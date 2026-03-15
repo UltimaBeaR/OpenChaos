@@ -123,21 +123,10 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
     }
     // No ,down.
     else {
-#if 0
-		// only set key down bit if it's been pressed, rather than
-		// autorepeating
-		if (!(lParam & KEYMASK_PSTATE))
-		{
-			key_turn[key_code]	=	game_turn;
-			Keys[key_code]		=	1;
-			LastKey				=	key_code;
-		}
-#else // oops ... the level editor needs autorepeat keys
       // better get Mark to fix his own bugs from now on
         key_turn[key_code] = game_turn;
         Keys[key_code] = 1;
         LastKey = key_code;
-#endif
     }
 
     SetFlagsFromKeyArray();

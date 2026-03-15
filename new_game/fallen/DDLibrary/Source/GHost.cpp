@@ -392,26 +392,6 @@ int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, in
     init_best_found();
 
 
-#if 0 // Someone already done it! :)
-#ifdef NDEBUG
-
-	//
-	// So you can't have multiple release builds of fallen running at once!
-	//
-
-	CreateMutex(NULL, TRUE, "This is your friendly Urban Chaos mutex!");
-
-	if (GetLastError() == ERROR_ALREADY_EXISTS)
-	{
-		//
-		// Fallen is already running!
-		//
-
-		return 0;
-	}
-
-#endif
-#endif
 
 #ifndef FINAL
 //	extern void CONSOLE_TCP();
