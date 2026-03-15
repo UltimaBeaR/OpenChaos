@@ -72,7 +72,7 @@ FONT2D_Letter FONT2D_letter[FONT2D_NUM_LETTERS];
 //
 
 CBYTE FONT2D_punct[] = {
-    "!\"\xa3$%^&*(){}[]<>\\/:;'@#_?-=+.,"
+    "!\"" "\xa3" "$%^&*(){}[]<>\\/:;'@#_?-=+.,"
 
     //
     // German characters in decimal and octal!

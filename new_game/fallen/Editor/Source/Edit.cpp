@@ -3923,7 +3923,7 @@ void TrackRotReader(FILE* f, int ind, long p)
             printf(" error pos\n");
             return;
         }
-        printf("%*s             Angle: %f\xa7, X: %f, Y: %f, Z: %f\n", ind, "", pos[0], pos[1], pos[2], pos[3]); // \xa7 = º (degree sign) in CP850
+        printf("%*s             Angle: %f" "\xa7" ", X: %f, Y: %f, Z: %f\n", ind, "", pos[0], pos[1], pos[2], pos[3]); // \xa7 = º (degree sign) in CP850
     }
 }
 
