@@ -47,13 +47,6 @@
 #define COMMON_INDEX UWORD
 
 //---------------------------------------------------------------
-// PC - Glide specific defines.
-/*
-#define	VERSION_GLIDE
-#define	THING_INDEX			SLONG
-#define	COMMON_INDEX		SLONG
-*/
-//---------------------------------------------------------------
 // PSX specific defines.
 /*
 #define	VERSION_PsX

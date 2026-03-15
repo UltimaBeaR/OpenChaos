@@ -234,35 +234,6 @@ inline void LIGHT_get_d3d_colour(LIGHT_Colour col, ULONG* colour, ULONG* specula
     *colour = (red << 16) | (green << 8) | (blue << 0);
     *specular = (wred << 16) | (wgreen << 8) | (wblue << 0);
 }
-inline ULONG LIGHT_get_glide_colour(LIGHT_Colour col)
-{
-    SLONG red = col.red;
-    SLONG green = col.green;
-    SLONG blue = col.blue;
-    SLONG alpha = 0;
-
-    red *= (256 / LIGHT_MAX_BRIGHT);
-    green *= (256 / LIGHT_MAX_BRIGHT);
-    blue *= (256 / LIGHT_MAX_BRIGHT);
-
-    if (red > 255) {
-        alpha += red - 255;
-        red = 255;
-    }
-    if (green > 255) {
-        alpha += green - 255;
-        green = 255;
-    }
-    if (blue > 255) {
-        alpha += blue - 255;
-        blue = 255;
-    }
-    if (alpha > 255) {
-        alpha = 255;
-    }
-
-    return (alpha << 24) | (red << 16) | (green << 8) | (blue << 0);
-}
 
 #else
 inline void LIGHT_get_d3d_colour(LIGHT_Colour col, ULONG* colour, ULONG* specular)

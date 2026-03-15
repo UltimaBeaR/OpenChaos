@@ -60,3 +60,23 @@
   Но функция `CLIP_do` нигде не вызывается — включение было мёртвым.
 - В `Fallen.vcxproj` ни MuckyBasic, ни thrust не упоминаются — в сборку не входили.
 - Совпадения слова "MuckyBasic" в `eway.h` и `eway.cpp` — только комментарии `// claude-ai:`, не includes.
+
+---
+
+## Итерация 2 — Удаление Glide Engine
+
+**Дата:** 2026-03-15
+
+**Удалено:**
+- `new_game/fallen/Glide Engine/` — целиком (glaeng.cpp, glbuild.cpp, glfigure.cpp, glmesh.cpp, glpoly.cpp, gltexture.cpp)
+- `new_game/fallen/Glide Library/` — целиком (glidelib.cpp, glidelib.h)
+- `Engine.h`: блок `#elif defined(VERSION_GLIDE)` с пустым `typedef struct {} Camera;`
+- `Game.h`: закомментированный блок `/* VERSION_GLIDE ... */` с «PC - Glide specific defines»
+
+**Нюансы:**
+- Обе папки отсутствовали в `Fallen.vcxproj` — в сборку не входили.
+- Ни один файл из `Source/` не делал `#include` на glaeng.h/glidelib.h.
+- `Map.cpp` содержал только комментарий `// claude-ai:` про Glide — не трогался.
+- `VERSION_GLIDE` в `Game.h` уже был закомментирован в `/* */` блоке — был `#if 0`-аналог.
+- В `Engine.h` цепочка `#ifdef VERSION_D3D / #elif VERSION_GLIDE / #elif VERSION_PSX` — удалён только Glide-блок; PSX остаётся до своей итерации.
+- `light.h`: `LIGHT_get_glide_colour()` — inline-функция внутри `#if LIGHT_COLOURED` блока, вызывалась только из Glide Engine файлов → удалена.

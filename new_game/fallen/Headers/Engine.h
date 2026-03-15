@@ -19,12 +19,6 @@ typedef struct
         CameraRAngle;
 } Camera;
 
-#elif defined(VERSION_GLIDE)
-
-typedef struct
-{
-} Camera;
-
 #elif defined(VERSION_PSX)
 
 typedef struct
