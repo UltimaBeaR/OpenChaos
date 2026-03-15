@@ -25,7 +25,7 @@ brew install clang-format
 
 From the `new_game/` directory (Windows: use Git Bash):
 ```bash
-find . -regex '.*\.\(cpp\|h\)' -exec clang-format -style=file -i {} \;
+find . -regex '.*\.\(c\|cpp\|h\|hpp\)' -exec clang-format -style=file -i {} \;
 ```
 
 Config is in `.clang-format` (project root of `new_game/`).
