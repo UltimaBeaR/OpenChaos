@@ -8,7 +8,7 @@
 
 | Файл | Описание |
 |------|----------|
-| [build_notes.md](build_notes.md) | Заметки по сборке: Makefile, проблемы в vcxproj, варнинги |
+| [build_and_run_notes.md](build_and_run_notes.md) | Заметки по сборке и запуску: Makefile, проблемы в vcxproj, варнинги |
 | [community_links.md](community_links.md) | Ссылки на обсуждения, моды, форки, статьи сообщества |
 | [todo.md](todo.md) | Незакрытые задачи |
 

@@ -26,7 +26,18 @@
 **Проверено:** Release собирается, `music mode` надпись исчезла.
 
 **Не тронуто:** Debug конфиг (`MultiThreadedDebug` там корректен), Debug `NODEFAULTLIB` строки.
-Надпись `FARFACET squares drawn` — отдельный баг, отложен.
+
+---
+
+### Исправление debug-надписи FARFACET в panel.cpp (2026-03-15)
+
+В `DDEngine/Source/panel.cpp:5408` блок с надписями `FARFACET squares drawn` и `music mode`
+был под `#ifndef TARGET_DC` без `#ifdef _DEBUG` → показывался в любой сборке включая Release.
+
+**Правка:** `#ifndef TARGET_DC` → `#if !defined(TARGET_DC) && defined(_DEBUG)`.
+Внутренний `#ifdef _DEBUG` вокруг `music mode` удалён как ставший избыточным.
+
+**Проверено:** обе надписи исчезли в Release, билд успешен.
 
 ---
 

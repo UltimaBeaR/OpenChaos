@@ -1,4 +1,4 @@
-# Заметки по сборке
+# Заметки по сборке и запуску
 
 ---
 
@@ -67,14 +67,6 @@ static_assert(__alignof(LARGE_INTEGER) == 8,
 **Исправлено (2026-03-15):**
 - `RuntimeLibrary`: `MultiThreadedDebug` → `MultiThreaded` в Release конфиге
 - Удалены 103 `<AdditionalOptions>` с `/D /NODEFAULTLIB:libcmtd.lib"` из Release секций vcxproj
-
-**Отдельный баг — `FARFACET squares drawn` (не связан с `/MTd`):**
-
-В `DDEngine/Source/panel.cpp:5408` блок с `"FARFACET squares drawn: %d"` обёрнут только в
-`#ifndef TARGET_DC` (активен на PC), без какой-либо защиты `#ifdef _DEBUG` или `#ifndef FINAL`.
-Показывается в **любой** сборке — и Debug, и Release.
-Это оригинальный пре-релизный баг: в финальной игре этой надписи нет.
-Фикс: добавить `#ifndef FINAL` вокруг блока.
 
 ### Что найдено: варнинги в Debug-сборке (зафиксированы, не трогались)
 

@@ -5405,7 +5405,7 @@ extern DWORD m_dwFogTableDebugFogTableMode;
 #endif
     }
 
-#ifndef TARGET_DC
+#if !defined(TARGET_DC) && defined(_DEBUG)
 
     extern SLONG FARFACET_num_squares_drawn;
 
@@ -5438,7 +5438,6 @@ extern DWORD m_dwFogTableDebugFogTableMode;
     extern float music_volume;
     extern SLONG MUSIC_is_playing(void);
 
-#ifdef _DEBUG
     if (just_asked_for_mode_now) {
         just_asked_for_mode_now = FALSE;
 
@@ -5455,7 +5454,6 @@ extern DWORD m_dwFogTableDebugFogTableMode;
             POLY_PAGE_FONT2D,
             0);
     }
-#endif
 #endif
 
 #ifndef TARGET_DC
