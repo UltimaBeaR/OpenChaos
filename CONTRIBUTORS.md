@@ -18,7 +18,7 @@ Fork chain: [dizzy2003](https://github.com/dizzy2003/MuckyFoot-UrbanChaos) → [
 
 - **UltimaBeaR** ([UltimaBeaR](https://github.com/UltimaBeaR/OpenChaos)) — AI-assisted analysis, modernized engine reimplementation
 
-Forked from [jordandavidson](https://github.com/jordandavidson/MuckyFoot-UrbanChaos).
+GitHub fork created from [PieroZ](https://github.com/PieroZ/MuckyFoot-UrbanChaos), but the codebase is based on [jordandavidson](https://github.com/jordandavidson/MuckyFoot-UrbanChaos) (PieroZ's commits are not used).
 
 ## Reference
 
