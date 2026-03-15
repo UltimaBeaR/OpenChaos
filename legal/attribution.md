@@ -1,0 +1,36 @@
+# Атрибуция и позиционирование проекта
+
+## Позиционирование
+
+**OpenChaos** — **неофициальная фанатская модернизация** игры Urban Chaos (1999).
+
+- Это **не** официальный ремейк и не связан с правообладателем
+- Основан на исходном коде, **легально опубликованном** под MIT лицензией
+  автором оригинала Mike Diskett
+- Не включает игровые ассеты — требуется легальная копия игры
+- Аналогичная модель: [OpenMW](https://openmw.org/), [OpenTomb](https://github.com/opentomb/opentomb)
+
+## Название проекта
+
+**OpenChaos** — Re (remake/reborn) + Fallen (рабочее название оригинальной игры).
+Репозиторий на GitHub: `OpenChaos` (двоеточие недопустимо в именах репозиториев).
+
+## Текущее состояние атрибуции в проекте
+
+- **LICENSE.md** — MIT лицензия, сохранена из оригинального репозитория
+- **README.md** — секция Legal с указанием правообладателя, ссылкой на Steam и отказом от претензий на IP
+- **Ассеты** — не включены в репозиторий, загитигнорены
+
+## Шаблон атрибуции
+
+Для использования в окне About (когда появится), описании репозитория и т.д.:
+
+```
+Urban Chaos is a trademark of My Little Planet Ltd.
+Original game © 1999 Mucky Foot Productions Ltd.
+This project is an unofficial fan-made modernization and is not affiliated
+with or endorsed by My Little Planet Ltd.
+Source code based on the MIT-licensed release by Mike Diskett:
+https://github.com/dizzy2003/MuckyFoot-UrbanChaos
+Game assets are not included — a legally obtained copy of Urban Chaos is required.
+```
