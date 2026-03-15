@@ -665,9 +665,6 @@ NIGHT_Colour* MESH_draw_guts(
             NIGHT_get_light_at(at_x, at_y, at_z),
             &default_colour,
             &default_specular);
-#ifdef TARGET_DC
-        default_colour |= 0xff000000;
-#endif
     }
 
     extern UBYTE kludge_shrink;
@@ -783,13 +780,11 @@ NIGHT_Colour* MESH_draw_guts(
                 // check out SHAPE_draw_balloon()
                 //
 
-#ifndef TARGET_DC
                 extern ULONG SHAPE_balloon_colour;
 
                 if (prim == PRIM_OBJ_BALLOON) {
                     pp->colour &= SHAPE_balloon_colour;
                 }
-#endif
             }
 
             // POLY_fadeout_point(pp);
@@ -1322,9 +1317,6 @@ NIGHT_Colour* MESH_draw_poly(
     float pitch;
     float roll;
     ULONG alpha_bits = fade << 24;
-#ifdef TARGET_DC
-    ASSERT(alpha_bits != 0);
-#endif
 
     yaw = float(i_yaw) * (2.0F * PI / 2048.0F);
     pitch = float(i_pitch) * (2.0F * PI / 2048.0F);

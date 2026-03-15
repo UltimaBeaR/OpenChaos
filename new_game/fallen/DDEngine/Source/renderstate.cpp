@@ -62,7 +62,6 @@ RenderState::RenderState(DWORD mag_filter, DWORD min_filter)
 //
 // set to be transparent for this cycle only
 
-#ifndef TARGET_DC
 void RenderState::SetTempTransparent()
 {
     if (!TempTransparent) {
@@ -82,13 +81,11 @@ void RenderState::SetTempTransparent()
         Effect = RS_None;
     }
 }
-#endif
 
 // ResetTempTransparent
 //
 // reset transparency
 
-#ifndef TARGET_DC
 void RenderState::ResetTempTransparent()
 {
     if (TempTransparent) {
@@ -101,7 +98,6 @@ void RenderState::ResetTempTransparent()
         Effect = TempEffect;
     }
 }
-#endif
 
 // SetTexture
 //

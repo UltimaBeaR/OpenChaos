@@ -4,9 +4,6 @@
 #include "DDLib.h"
 #include "tga.h"
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 #ifndef VERIFY
 #ifdef NDEBUG
@@ -480,11 +477,7 @@ HRESULT D3DTexture::Reload_TGA(void)
         dd_sd.dwWidth = ti.width;
         dd_sd.dwHeight = ti.height;
         dd_sd.ddsCaps.dwCaps = DDSCAPS_TEXTURE;
-#ifdef TARGET_DC
-        dd_sd.ddsCaps.dwCaps2 = 0;
-#else
         dd_sd.ddsCaps.dwCaps2 = DDSCAPS2_TEXTUREMANAGE;
-#endif
         dd_sd.dwTextureStage = 0;
 
         VERIFY(SUCCEEDED(the_display.lp_DD4->CreateSurface(&dd_sd, &lp_Surface, NULL)));
@@ -774,11 +767,7 @@ HRESULT D3DTexture::Reload_user()
     dd_sd.dwWidth = size;
     dd_sd.dwHeight = size;
     dd_sd.ddsCaps.dwCaps = DDSCAPS_TEXTURE;
-#ifdef TARGET_DC
-    dd_sd.ddsCaps.dwCaps2 = 0;
-#else
     dd_sd.ddsCaps.dwCaps2 = DDSCAPS2_TEXTUREMANAGE;
-#endif
 
     VERIFY(SUCCEEDED(the_display.lp_DD4->CreateSurface(&dd_sd, &lp_Surface, NULL)));
 

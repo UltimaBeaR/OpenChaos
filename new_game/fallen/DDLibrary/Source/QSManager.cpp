@@ -1,7 +1,6 @@
 //	QSManager.cpp
 //	Guy Simmons, 6th May 1998.
 
-#ifndef TARGET_DC
 
 #include "DDLib.h"
 #include "C:\fallen\DDEngine\Headers\Matrix.h"
@@ -606,4 +605,3 @@ void Channel::Close(void)
 
 //---------------------------------------------------------------
 
-#endif // #ifndef TARGET_DC

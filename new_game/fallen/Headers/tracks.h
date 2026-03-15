@@ -15,11 +15,7 @@
 // using BUILD_PSX means that it'll be 50 both on the PSX, *AND* when Mike builds PSX
 // nads on his PC.
 
-#ifndef BUILD_PSX
 #define TRACK_BUFFER_LENGTH 300
-#else
-#define TRACK_BUFFER_LENGTH 50
-#endif
 
 #define TRACK_SURFACE_NONE 0
 #define TRACK_SURFACE_MUDDY 1

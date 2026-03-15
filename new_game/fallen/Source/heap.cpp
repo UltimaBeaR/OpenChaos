@@ -16,13 +16,7 @@ UBYTE HEAP_pad[HEAP_PAD_SIZE];
 // The heap.
 //
 
-#if defined(PSX)
-#define HEAP_SIZE (1024 * 16)
-#elif defined(TARGET_DC)
-#define HEAP_SIZE (1024 * 64)
-#else
 #define HEAP_SIZE (1024 * 128)
-#endif
 
 UBYTE HEAP_heap[HEAP_SIZE];
 

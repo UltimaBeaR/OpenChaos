@@ -528,10 +528,8 @@ void free_mission(UWORD mission);
 void init_mission(UWORD mission_ref, CBYTE* mission_name);
 EventPoint* alloc_eventpoint(void);
 void free_eventpoint(EventPoint* the_ep);
-#ifndef PSX
 void write_event_extra(FILE* file_handle, EventPoint* ep);
 void read_event_extra(FILE* file_handle, EventPoint* ep, EventPoint* base, SLONG ver = 0);
-#endif
 BOOL export_mission(void);
 void import_mission(void);
 BOOL valid_mission(void);

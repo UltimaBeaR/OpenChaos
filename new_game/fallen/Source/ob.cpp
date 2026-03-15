@@ -107,10 +107,8 @@
 #include "sound.h"
 #include "mav.h"
 
-#ifndef PSX
 #include "..\ddengine\headers\poly.h"
 #include "..\ddengine\headers\texture.h"
-#endif
 
 OB_Ob* OB_ob; //[OB_MAX_OBS];
 OB_workaround* OB_mapwho; //[OB_SIZE][OB_SIZE];
@@ -148,7 +146,6 @@ UBYTE OB_hydrant_last;
 // claude-ai: OB_init() — clears the spatial index and hydrant tracking array.
 // claude-ai: OB_ob_upto starts at 1 (index 0 = null sentinel, never used).
 // claude-ai: PC build also logs sizeof() for debugging during development.
-#ifndef PSX
 void OB_init()
 {
     TRACE("sizeof(OB_Mapwho) = %d\n", sizeof(OB_Mapwho));
@@ -159,16 +156,7 @@ void OB_init()
     memset((UBYTE*)OB_mapwho, 0, sizeof(OB_Mapwho) * OB_SIZE * OB_SIZE);
     memset((UBYTE*)OB_hydrant, 0, sizeof(OB_Hydrant) * OB_MAX_HYDRANTS);
 }
-#else
-void OB_init()
-{
-    memset((UBYTE*)OB_hydrant, 0, sizeof(OB_Hydrant) * OB_MAX_HYDRANTS);
-}
 
-#endif
-
-#ifndef PSX
-#ifndef TARGET_DC
 void OB_compress()
 {
     SLONG x;
@@ -205,10 +193,6 @@ void OB_compress()
         MemFree(comp);
     }
 }
-#endif
-#endif
-#ifndef PSX
-#ifndef TARGET_DC
 void OB_create(
     SLONG x,
     SLONG y,
@@ -305,8 +289,6 @@ void OB_create(
     om->num += 1;
     OB_ob_upto += 1;
 }
-#endif
-#endif
 
 // claude-ai: OB_process() — per-frame update for all active fire hydrants.
 // claude-ai: Called each game tick. Counts down life (in ticks scaled by TICK_RATIO).
@@ -478,7 +460,6 @@ OB_Info* OB_find(SLONG x, SLONG z)
 
     return OB_found;
 }
-#ifndef PSX
 OB_Info* OB_find_inside(SLONG x, SLONG z, SLONG indoors)
 {
     OB_Info* of;
@@ -533,7 +514,6 @@ OB_Info* OB_find_inside(SLONG x, SLONG z, SLONG indoors)
 
     return OB_found;
 }
-#endif
 // claude-ai: OB_avoid() — steerable avoidance helper for moving entities.
 // claude-ai: Extends movement vector (x1,z1)->(x2,z2) by 8x to look ahead further.
 // claude-ai: Computes two tangent points px1/pz1, px2/pz2 on either side of the prim.
@@ -674,8 +654,6 @@ SLONG OB_avoid(
     }
 }
 
-#ifndef PSX
-#ifndef TARGET_DC
 
 #ifdef EDITOR
 extern BOOL is_in_mission_editor;
@@ -913,7 +891,6 @@ void OB_load_needed_prims()
     load_prim_object(PRIM_OBJ_BIN);
 }
 
-#endif // #ifndef TARGET_DC
 
 void envmap_specials(void)
 {
@@ -1029,7 +1006,6 @@ void envmap_specials(void)
     }
 }
 
-#ifndef TARGET_DC
 
 SLONG ob_allowed_to_be_walkable(SLONG prim)
 {
@@ -1213,8 +1189,6 @@ void OB_add_walkable_faces()
         }
     }
 }
-#endif
-#endif
 
 // claude-ai: OB_remove() — removes an object from the map by swapping with the last
 // claude-ai: object in its mapsquare's slot (O(1) unordered removal). Also scans
@@ -1611,15 +1585,7 @@ void OB_damage(
                     256);
 
             */
-#ifdef PSX
-            POW_create(
-                POW_CREATE_LARGE_SEMI,
-                pos.X,
-                pos.Y,
-                pos.Z, 0, 0, 0);
-#else
             PYRO_create(pos, PYRO_FIREBOMB);
-#endif
             MFX_play_xyz(0, SOUND_Range(S_EXPLODE_MEDIUM, S_EXPLODE_BIG), 0, pos.X, pos.Y, pos.Z);
 
             //
@@ -1627,13 +1593,11 @@ void OB_damage(
             //
 
             oo->flags |= OB_FLAG_DAMAGED;
-#ifndef PSX
             create_shockwave(
                 x, oo->y, z,
                 0x300,
                 150,
                 p_aggressor);
-#endif
         }
 
         //
@@ -1644,8 +1608,6 @@ void OB_damage(
     }
 }
 
-#ifndef PSX
-#ifndef TARGET_DC
 void OB_convert_dustbins_to_barrels(void)
 {
     SLONG mx;
@@ -1679,8 +1641,6 @@ void OB_convert_dustbins_to_barrels(void)
         }
 }
 
-#endif
-#endif
 SLONG OB_inside_prim(SLONG x, SLONG y, SLONG z)
 {
     SLONG mx;
@@ -1720,8 +1680,6 @@ SLONG OB_inside_prim(SLONG x, SLONG y, SLONG z)
     return FALSE;
 }
 
-#ifndef PSX
-#ifndef TARGET_DC
 
 void OB_make_all_the_switches_be_at_the_proper_height()
 {
@@ -1821,5 +1779,3 @@ void OB_make_all_the_switches_be_at_the_proper_height()
             }
         }
 }
-#endif
-#endif

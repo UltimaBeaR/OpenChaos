@@ -68,7 +68,6 @@
 #include "BreakTimer.h"
 #include "superfacet.h"
 
-#ifndef TARGET_DC
 
 #define LOG_ENTER(x) \
     {                \
@@ -77,7 +76,6 @@
     {               \
     }
 
-#endif
 
 // claude-ai: Direct3D API — replace with OpenGL: use GLuint texture handles stored in equivalent array
 extern D3DTexture TEXTURE_texture[];
@@ -103,16 +101,9 @@ static UBYTE s_ClipMask; // the clip bits we care about
 #define STD_CLIPMASK (POLY_CLIP_NEAR)
 #endif
 
-#ifdef TARGET_DC
-// DC clips sideways and up and down anyway.
-#define NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB 1
-// Can't enable this - problems. :-(
-#define NO_BACKFACE_CULL_PLEASE_BOB 0
-#else
 // PC should clip to sides fo screen
 #define NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB 0
 #define NO_BACKFACE_CULL_PLEASE_BOB 0
-#endif
 
 #ifdef EDITOR
 // poly has ugly key stuff which makes a mess in the editors so cut it out awright?
@@ -268,63 +259,6 @@ float POLY_cam_off_x;
 float POLY_cam_off_y;
 float POLY_cam_off_z;
 
-#ifdef TARGET_DC
-
-_inline void EnsureFTRVMatrix(int iCombo)
-{
-    // If this fails, you need to put POLY_flush_local_rot() just before it somewhere.
-    ASSERT(m_iCurrentCombo == iCombo);
-}
-
-_inline void SetupFTRVMatrix(int iCombo)
-{
-    D3DMATRIX matTemp;
-    if (m_iCurrentCombo == iCombo) {
-        // Already done.
-        return;
-    } else {
-        m_iCurrentCombo = iCombo;
-        if (iCombo != COMBO_FALSE) {
-            matTemp._11 = POLY_cam_matrix_comb[0];
-            matTemp._12 = POLY_cam_matrix_comb[1];
-            matTemp._13 = POLY_cam_matrix_comb[2];
-            matTemp._14 = POLY_cam_off_x;
-            matTemp._21 = POLY_cam_matrix_comb[3];
-            matTemp._22 = POLY_cam_matrix_comb[4];
-            matTemp._23 = POLY_cam_matrix_comb[5];
-            matTemp._24 = POLY_cam_off_y;
-            matTemp._31 = POLY_cam_matrix_comb[6];
-            matTemp._32 = POLY_cam_matrix_comb[7];
-            matTemp._33 = POLY_cam_matrix_comb[8];
-            matTemp._34 = POLY_cam_off_z;
-            matTemp._41 = 0.0f;
-            matTemp._42 = 0.0f;
-            matTemp._43 = 0.0f;
-            matTemp._44 = 1.0f;
-            _LoadMatrix(&(matTemp._11));
-        } else {
-            matTemp._11 = POLY_cam_matrix[0];
-            matTemp._12 = POLY_cam_matrix[1];
-            matTemp._13 = POLY_cam_matrix[2];
-            matTemp._14 = 0.0f;
-            matTemp._21 = POLY_cam_matrix[3];
-            matTemp._22 = POLY_cam_matrix[4];
-            matTemp._23 = POLY_cam_matrix[5];
-            matTemp._24 = 0.0f;
-            matTemp._31 = POLY_cam_matrix[6];
-            matTemp._32 = POLY_cam_matrix[7];
-            matTemp._33 = POLY_cam_matrix[8];
-            matTemp._34 = 0.0f;
-            matTemp._41 = 0.0f;
-            matTemp._42 = 0.0f;
-            matTemp._43 = 0.0f;
-            matTemp._44 = 1.0f;
-            _LoadMatrix(&(matTemp._11));
-        }
-    }
-}
-
-#endif // #ifdef TARGET_DC
 
 // claude-ai: POLY_camera_set — called once per frame to set up the camera for the whole scene.
 // claude-ai: Computes POLY_cam_matrix (3x3 rotation) from yaw/pitch/roll, then calls MATRIX_skew()
@@ -344,11 +278,6 @@ void POLY_camera_set(
     SLONG splitscreen)
 {
 
-#ifdef TARGET_DC
-    // DC has plenty of Z-buffer precision, and the view_dist stuff breaks the fogging.
-    // So set it to a typical constant.
-    view_dist = 6000.0f;
-#endif
 
     POLY_splitscreen = splitscreen;
 
@@ -505,26 +434,6 @@ void POLY_camera_set(
     hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_VIEW, &matTemp);
 
     // Set up the projection matrix - should be done infrequently enough not to matter.
-#ifdef TARGET_DC
-    const float fOneOverPZP = 1.0f / POLY_ZCLIP_PLANE;
-
-    g_matProjection._11 = -fOneOverPZP;
-    g_matProjection._21 = 0.0f;
-    g_matProjection._31 = 0.0f;
-    g_matProjection._41 = 0.0f;
-    g_matProjection._12 = 0.0f;
-    g_matProjection._22 = fOneOverPZP;
-    g_matProjection._32 = 0.0f;
-    g_matProjection._42 = 0.0f;
-    g_matProjection._13 = 0.0f;
-    g_matProjection._23 = 0.0f;
-    g_matProjection._33 = fOneOverPZP;
-    g_matProjection._43 = -1.0f;
-    g_matProjection._14 = 0.0f;
-    g_matProjection._24 = 0.0f;
-    g_matProjection._34 = fOneOverPZP;
-    g_matProjection._44 = 0.0f;
-#else
     g_matProjection._11 = -1.0f;
     g_matProjection._21 = 0.0f;
     g_matProjection._31 = 0.0f;
@@ -541,7 +450,6 @@ void POLY_camera_set(
     g_matProjection._24 = 0.0f;
     g_matProjection._34 = 1.0f;
     g_matProjection._44 = 0.0f;
-#endif
 
     // claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for projection matrix
     hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_PROJECTION, &g_matProjection);
@@ -565,21 +473,6 @@ void POLY_camera_set(
     g_viewData.dvMinZ = 0.0f;
     g_viewData.dvMaxZ = 1.0f;
 #else
-#ifdef TARGET_DC
-    // A horrible hack for letterbox mode, otherwise the text doesn't get drawn.
-    g_dw3DStuffHeight = fMyMulY * PolyPage::s_YScale * 2;
-    g_dw3DStuffY = (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
-    g_viewData.dwWidth = 640;
-    g_viewData.dwHeight = 480;
-    g_viewData.dwX = 0;
-    g_viewData.dwY = 0;
-    g_viewData.dvClipX = -1.0f;
-    g_viewData.dvClipY = 1.0f;
-    g_viewData.dvClipWidth = 2.0f;
-    g_viewData.dvClipHeight = 2.0f;
-    g_viewData.dvMinZ = 0.0f;
-    g_viewData.dvMaxZ = 1.0f;
-#else
     // A horrible hack for letterbox mode.
     g_dw3DStuffHeight = fMyMulY * PolyPage::s_YScale * 2;
     g_dw3DStuffY = (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
@@ -594,31 +487,12 @@ void POLY_camera_set(
     g_viewData.dvMinZ = 0.0f;
     g_viewData.dvMaxZ = 1.0f;
 #endif
-#endif
-#ifdef TARGET_DC
-    // Viewport must be 32-pixel aligned on DC, apparently.
-    // But sod it for now - actually seems to work just fine!
-    ASSERT((g_viewData.dwWidth & 31) == 0);
-    ASSERT((g_viewData.dwHeight & 31) == 0);
-    ASSERT((g_viewData.dwX & 31) == 0);
-    /*
-    if ( ( g_viewData.dwY & 31 ) != 0 )
-    {
-            // Round to nearest.
-            g_viewData.dwY = ( g_viewData.dwY + 16 ) & ~31;
-    }
-    */
-#endif
 
     // claude-ai: Direct3D API — replace with OpenGL: glViewport(x, y, width, height)
     hres = (the_display.lp_D3D_Viewport)->SetViewport2(&g_viewData);
 
 #endif // #if USE_TOMS_ENGINE_PLEASE_BOB
 
-#ifdef TARGET_DC
-    m_iCurrentCombo = COMBO_DIRTY;
-    SetupFTRVMatrix(COMBO_FALSE);
-#endif
 
     SUPERFACET_start_frame();
 }
@@ -922,10 +796,6 @@ void POLY_set_local_rotation(
     HRESULT hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
 #endif
 
-#ifdef TARGET_DC
-    m_iCurrentCombo = COMBO_DIRTY;
-    SetupFTRVMatrix(COMBO_TRUE);
-#endif
 
     LOG_EXIT(Poly_set_local_rotation)
 }
@@ -968,10 +838,6 @@ void POLY_set_local_rotation_none(void)
     HRESULT hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
 #endif
 
-#ifdef TARGET_DC
-    m_iCurrentCombo = COMBO_DIRTY;
-    SetupFTRVMatrix(COMBO_FALSE);
-#endif
 
     LOG_EXIT(Poly_set_local_rotation)
 }
@@ -1064,18 +930,6 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
     SLONG i;
     //	TRACE("poly frame init\n");
 
-#ifdef TARGET_DC
-    ASSERT(!keep_shadow_page);
-    ASSERT(!keep_text_page);
-    for (i = 0; i < POLY_NUM_PAGES; i++) {
-        {
-            // Check that the page is empty.
-            ASSERT(POLY_Page[i].m_VBUsed == 0);
-            ASSERT(POLY_Page[i].m_iNumIndicesUsed == 0);
-        }
-    }
-
-#else
 
     // This is going to cost serious performance - it bins all the VBs and IBs that we allocate,
     // so they all need allocating again. Madness.
@@ -1093,7 +947,6 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
         }
     }
 //	TRACE("poly frame init EXIT\n");
-#endif
 
     // SPONG
 #if USE_TOMS_ENGINE_PLEASE_BOB
@@ -1442,7 +1295,6 @@ SLONG POLY_clip_against_nearplane(POLY_Point** rptr, float* dptr, SLONG count, P
     return wptr - wbuf;
 }
 
-#ifndef TARGET_DC
 
 // POLY_clip_against_side_X
 //
@@ -1544,7 +1396,6 @@ SLONG POLY_clip_against_side_Y(POLY_Point** rptr, float* dptr, SLONG count, POLY
     return wptr - wbuf;
 }
 
-#endif // #ifndef TARGET_DC
 
 static float s_DistBuffer[128];
 static POLY_Point* s_PtrBuffer[128];
@@ -1882,11 +1733,7 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
     return;
 }
 
-#ifdef TARGET_DC
-void POLY_add_triangle(POLY_Point* pt[3], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
-#else
 void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
-#endif
 {
 
     LOG_ENTER(POLY_add_tri)
@@ -1998,11 +1845,7 @@ second_page:;
     LOG_EXIT(POLY_add_tri)
 }
 
-#ifdef TARGET_DC
-void POLY_add_quad(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
-#else
 void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
-#endif
 {
 
     LOG_ENTER(POLY_add_quad)
@@ -2371,7 +2214,6 @@ void POLY_add_quad_slow(POLY_Point *pp[4], SLONG page, SLONG backface_cull, SLON
 
 #endif // #if 0
 
-#ifndef TARGET_DC
 
 void POLY_add_quad(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
@@ -2401,7 +2243,6 @@ void POLY_add_triangle(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG
     }
 }
 
-#endif // #ifndef TARGET_DC
 
 float POLY_world_length_to_screen(float world_length)
 {
@@ -2669,19 +2510,11 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
     dy2 = +dx * sw2;
 
     if (sort_to_front) {
-#ifdef TARGET_DC
-        p1->Z = 0.9999F;
-        p1->z = 0.0001F;
-
-        p2->Z = 0.9999F;
-        p2->z = 0.0001F;
-#else
         p1->Z = 1.0F;
         p1->z = 0.0F;
 
         p2->Z = 1.0F;
         p2->z = 0.0F;
-#endif
     }
 
     //
@@ -3175,17 +3008,14 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
     // Draw the sky first...
     //
 
-#ifndef TARGET_DC
     pa = &POLY_Page[POLY_PAGE_SKY];
 
     if (pa->NeedsRendering()) {
         pa->RS.SetChanged();
         pa->Render(the_display.lp_D3D_Device);
     }
-#endif
     //	BreakTime("FRAMEDRAW done sky");
 
-#ifndef TARGET_DC
     // DC sorts for us.
 
     if (PolyPage::AlphaSortEnabled()) {
@@ -3256,7 +3086,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                                                 }
                 */
 
-#ifndef TARGET_DC
 #ifndef FINAL
 #ifdef EDITOR
                 if (Keys[KB_P1] && !CUTSCENE_edit_wnd)
@@ -3270,7 +3099,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
                     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
                 }
-#endif
 #endif
 
                 //
@@ -3406,7 +3234,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 #endif
 
     } else
-#endif // #ifndef TARGET_DC
     {
         //
         // draw all the polygons at once
@@ -3486,10 +3313,6 @@ void POLY_frame_draw_odd()
 
     PolyPage* pa;
 
-#ifdef TARGET_DC
-    // I'd like to know.
-    ASSERT(FALSE);
-#endif
 
     //
     // Start the scene.
@@ -3566,10 +3389,6 @@ void POLY_frame_draw_puddles()
     PolyPage* ppDrawn = pp;
 #endif
 
-#ifdef TARGET_DC
-    // I'd like to know.
-    ASSERT(FALSE);
-#endif
 
     if (pp->NeedsRendering()) {
         BEGIN_SCENE;
@@ -3596,9 +3415,7 @@ void POLY_frame_draw_puddles()
 
 void POLY_sort_sewater_page()
 {
-#ifndef TARGET_DC
     POLY_Page[POLY_PAGE_SEWATER].SortBackFirst();
-#endif
 }
 
 void POLY_frame_draw_sewater()
@@ -3699,9 +3516,7 @@ void POLY_frame_draw_focused(float focus)
 	SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND,D3DTBLEND_MODULATE);
 	SET_RENDER_STATE(D3DRENDERSTATE_FOGCOLOR,  0x00000000);
 	SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-#ifndef TARGET_DC
 	SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE,FALSE);
-#endif
 	SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE,FALSE);
 	SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE,FALSE);
 	SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS,D3DTADDRESS_CLAMP);
@@ -3748,10 +3563,8 @@ void POLY_frame_draw_focused(float focus)
 
 		if (POLY_page_flag[i] & POLY_PAGE_FLAG_TRANSPARENT)
 		{
-#ifndef TARGET_DC
 			TEXTURE_set_colour_key(i);
 			SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE,TRUE);
-#endif
 		}
 
 		//
@@ -3769,9 +3582,7 @@ void POLY_frame_draw_focused(float focus)
 
 		if (POLY_page_flag[i] & POLY_PAGE_FLAG_TRANSPARENT)
 		{
-#ifndef TARGET_DC
 			SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE,FALSE);
-#endif
 		}
 	}
 
@@ -3807,10 +3618,8 @@ void POLY_frame_draw_focused(float focus)
 
 		if (POLY_page_flag[i] & POLY_PAGE_FLAG_TRANSPARENT)
 		{
-#ifndef TARGET_DC
 			TEXTURE_set_colour_key(i);
 			SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE,TRUE);
-#endif
 		}
 
 
@@ -3829,9 +3638,7 @@ void POLY_frame_draw_focused(float focus)
 
 		if (POLY_page_flag[i] & POLY_PAGE_FLAG_TRANSPARENT)
 		{
-#ifndef TARGET_DC
 			SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE,FALSE);
-#endif
 		}
 	}
 }

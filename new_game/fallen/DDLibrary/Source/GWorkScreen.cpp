@@ -2,7 +2,6 @@
 // Guy Simmons, 10th December 1997
 
 // The work screen is never used on the DC
-#ifndef TARGET_DC
 
 #include "DDLib.h"
 
@@ -257,4 +256,3 @@ SLONG FindColour(UBYTE* the_palette, SLONG r, SLONG g, SLONG b)
 
 //---------------------------------------------------------------
 
-#endif // #ifndef TARGET_DC

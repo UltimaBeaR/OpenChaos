@@ -22,11 +22,9 @@
 #include "poly.h"
 #include "sound.h"
 #include "grenade.h"
-#ifndef PSX
 #include "polypage.h"
 #include "drawxtra.h"
 #include "font2d.h"
-#endif
 
 //----------------------------------------------------------------------------
 // DEFINES
@@ -71,21 +69,6 @@ extern SLONG hardware_input_continue(void);
 inline void screen_flip(void)
 {
 
-#ifdef PSX
-    //
-    //	sCREENSHOT just before screen_flip
-    //
-    extern void DoFigureDraw(void);
-    DoFigureDraw();
-
-#ifndef FS_ISO9660
-    extern void AENG_screen_shot(SLONG width);
-    if (Keys[KB_S]) {
-        AENG_screen_shot(320);
-        Keys[KB_S] = 0;
-    }
-#endif
-#endif
 
     //
     // Always flip on the PSX.
@@ -113,18 +96,11 @@ UBYTE no_more_packets = 0;
 // MAJOR CONSTRUCTS
 //
 
-#ifndef PSX
 CBYTE PLAYCUTS_text_data[MAX_CUTSCENE_TEXT];
 CBYTE* PLAYCUTS_text_ptr = PLAYCUTS_text_data;
 CPData PLAYCUTS_cutscenes[MAX_CUTSCENES];
 CPPacket PLAYCUTS_packets[MAX_CUTSCENE_PACKETS];
 CPChannel PLAYCUTS_tracks[MAX_CUTSCENE_TRACKS];
-#else
-CBYTE* PLAYCUTS_text_data;
-CPData* PLAYCUTS_cutscenes;
-CPPacket* PLAYCUTS_packets;
-CPChannel* PLAYCUTS_tracks;
-#endif
 UWORD PLAYCUTS_cutscene_ctr = 0;
 UWORD PLAYCUTS_packet_ctr = 0;
 UWORD PLAYCUTS_track_ctr = 0;
@@ -148,7 +124,6 @@ inline int LERPAngle(SLONG a, SLONG b, SLONG m)
     return LERPValue(a, b, m);
 }
 
-#ifndef PSX
 
 //----------------------------------------------------------------------------
 // CUTSCENE SUPPORT CODE
@@ -235,7 +210,6 @@ void PLAYCUTS_Reset()
     PLAYCUTS_track_ctr = 0;
     PLAYCUTS_packet_ctr = 0;
 }
-#endif
 
 // finds the packet that matches a cell
 
@@ -507,9 +481,7 @@ void PLAYCUTS_Update(CPChannel* chan, Thing* thing, SLONG read_head, SLONG sub_c
         lens = ((pkt->length & 0xff) - 0x7f);
         lens = (lens * 1.5f) + 0xff;
         FC_cam[0].lens = (lens * 0x24000) >> 8;
-#ifndef PSX
         PolyPage::SetGreenScreen(pkt->flags & PF_SECURICAM);
-#endif
         PLAYCUTS_slomo = pkt->flags & PF_SLOMO;
         PLAYCUTS_fade_level = pkt->length >> 8;
         break;
@@ -575,21 +547,15 @@ void PLAYCUTS_Play(CPData* cutscene)
         // TRIP_process();
         // DOOR_process();
         // EWAY_process();
-#ifndef PSX
         RIBBON_process();
         DIRT_process();
         ProcessGrenades();
-#ifndef TARGET_DC
         WMOVE_draw();
         BALLOON_process();
-#endif
         // MAP_process();
         POW_process();
-#ifndef TARGET_DC
         PUDDLE_process();
-#endif
         DRIP_process();
-#endif
         // FC_process(); // camera is overriden by funky one
 
         // Update the cutscene's 'actors'
@@ -605,21 +571,15 @@ void PLAYCUTS_Play(CPData* cutscene)
         AENG_draw(FALSE);
 
         if (text_disp) {
-#ifndef PSX
             POLY_frame_init(FALSE, FALSE);
-#endif
             FONT2D_DrawStringCentred(text_disp, 320, 400, 0x7fffffff, 256, POLY_PAGE_FONT2D);
-#ifndef PSX
             POLY_frame_draw(FALSE, FALSE);
-#endif
         }
 
         if (PLAYCUTS_fade_level < 255) {
-#ifndef PSX
             POLY_frame_init(FALSE, FALSE);
             DRAW2D_Box(0, 0, 640, 480, (255 - PLAYCUTS_fade_level) << 24, 1, 255);
             POLY_frame_draw(FALSE, FALSE);
-#endif
         }
 
         // draw_screen();

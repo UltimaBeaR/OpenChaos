@@ -22,7 +22,6 @@ CBYTE STARTSCR_mission[_MAX_PATH] = { 0 };
 #include "Game.h"
 #include "startscr.h"
 
-#ifndef PSX
 #include "..\ddengine\headers\poly.h"
 #include "..\ddengine\headers\text.h"
 #include "..\ddengine\headers\flamengine.h"
@@ -47,7 +46,6 @@ CBYTE STARTSCR_mission[_MAX_PATH] = { 0 };
 
 #include "MFx.h"
 
-#endif
 
 #include "widget.h"
 
@@ -236,7 +234,6 @@ void draw_a_menu(SLONG menu)
         y += 20;
     }
 }
-#ifndef PSX
 
 #if 0
 void	draw_a_3d_menu(Font3D &font, SLONG	menu) 
@@ -352,9 +349,7 @@ void draw_a_new_menu(SLONG menu, SLONG localctr)
     }
 }
 
-#endif
 
-#ifndef PSX
 
 CBYTE* LoadAString(MFFileHandle& file, CBYTE* txt)
 {
@@ -383,17 +378,12 @@ void SaveAString(MFFileHandle& file, CBYTE* txt)
     FileWrite(file, crlf, 2);
 }
 
-#endif
 
 void LoadFont_CRT(void)
 {
 //	MENUFONT_Load("font2.tga",POLY_PAGE_NEWFONT,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$%&()+-\"?,.;:/#0123456789���_|}{�");
 //	MENUFONT_Load("data\\textures\\extras\\olyfont2.tga",POLY_PAGE_NEWFONT_INVERSE,"abcdefghijklmnopqrstuvwxyz0123456789.,!\":;'#$*-()[]\\/?");
-#ifdef TARGET_DC
-    MENUFONT_Load("olyfont2dc.tga", POLY_PAGE_NEWFONT_INVERSE, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?");
-#else
     MENUFONT_Load("olyfont2.tga", POLY_PAGE_NEWFONT_INVERSE, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!\":;'#$*-()[]\\/?");
-#endif
 
     void MENUFONT_MergeLower(void);
     MENUFONT_MergeLower();
@@ -410,7 +400,6 @@ extern SLONG FONT_TICK;
 // extern ULONG get_hardware_input(UWORD type);
 // #define	INPUT_TYPE_JOY	(1<<1)
 
-#ifndef TARGET_DC
 SLONG MainE3BodgeLoop()
 {
     static int input = 0;
@@ -482,15 +471,11 @@ SLONG MainE3BodgeLoop()
     }
     return 0;
 }
-#endif // #ifndef TARGET_DC
 
 SLONG do_start_menu(void)
 {
     SLONG res;
 
-#ifdef PSX
-    return (STARTS_START);
-#else
     static int menu = 1;
     static Flamengine fire("data\\testfire3.phy");
     //	static  Font3D font("data\\font3d\\");
@@ -672,7 +657,6 @@ SLONG do_start_menu(void)
 #endif
 
     return (0);
-#endif
 }
 
 void test_the_widgets(void)
@@ -986,7 +970,6 @@ void LoadQuickGame()
 
 void TemporaryMissionList(Widget* list)
 {
-#ifndef PSX
 
     CBYTE dir[_MAX_PATH];
     WIN32_FIND_DATA data;
@@ -1004,7 +987,6 @@ void TemporaryMissionList(Widget* list)
         FindClose(handle);
     }
 
-#endif
 }
 
 /*
@@ -1115,7 +1097,6 @@ void testy() {
 */
 SLONG LoadMissionList(Form* form, CBYTE* script, SLONG district, UBYTE firstonly)
 {
-#ifndef PSX
 
     MFFileHandle file;
     CBYTE* text;
@@ -1178,12 +1159,10 @@ SLONG LoadMissionList(Form* form, CBYTE* script, SLONG district, UBYTE firstonly
 
     return ct;
 
-#endif
 }
 
 void LoadDistrictList(Form* form, CBYTE* script)
 {
-#ifndef PSX
 
     MFFileHandle file;
     CBYTE* text;
@@ -1234,12 +1213,10 @@ void LoadDistrictList(Form* form, CBYTE* script)
 
     MemFree(text);
 
-#endif
 }
 
 void LoadSpecificDistrict(Form* form, CBYTE* script, UWORD district)
 {
-#ifndef PSX
 
     MFFileHandle file;
     CBYTE* text;
@@ -1296,12 +1273,10 @@ void LoadSpecificDistrict(Form* form, CBYTE* script, UWORD district)
 
     MemFree(text);
 
-#endif
 }
 
 void QuickDistrictList(Form* form, CBYTE* script)
 {
-#ifndef PSX
 
     MFFileHandle file;
     CBYTE* text;
@@ -1334,12 +1309,10 @@ void QuickDistrictList(Form* form, CBYTE* script)
     MemFree(text);
     MFdelete(mdata);
 
-#endif
 }
 
 UBYTE LoadMissionNumFromId(CBYTE* script, UBYTE id)
 {
-#ifndef PSX
 
     MFFileHandle file;
     CBYTE* text;
@@ -1371,14 +1344,10 @@ UBYTE LoadMissionNumFromId(CBYTE* script, UBYTE id)
     MFdelete(mdata);
     return index;
 
-#else
-    return 0;
-#endif
 }
 
 void LoadMissionFilename(CBYTE* script, UBYTE index, CBYTE* fn, UBYTE* id)
 {
-#ifndef PSX
 
     MFFileHandle file;
     CBYTE* text;
@@ -1421,12 +1390,10 @@ void LoadMissionFilename(CBYTE* script, UBYTE index, CBYTE* fn, UBYTE* id)
     MFdelete(mdata);
     MemFree(text);
 
-#endif
 }
 
 void LoadNextMissionFilename(UBYTE& current_index, CBYTE* fn, CBYTE* mtitle, CBYTE* script)
 {
-#ifndef PSX
 
     MFFileHandle file;
     CBYTE *text, *pt;
@@ -1476,12 +1443,10 @@ void LoadNextMissionFilename(UBYTE& current_index, CBYTE* fn, CBYTE* mtitle, CBY
     MemFree(text);
     MFdelete(mdata);
 
-#endif
 }
 
 CBYTE* LoadMissionBriefing(CBYTE* script, UBYTE index)
 {
-#ifndef PSX
 
     MFFileHandle file;
     CBYTE *text, *pt;
@@ -1539,7 +1504,6 @@ CBYTE* LoadMissionBriefing(CBYTE* script, UBYTE index)
         if (*script > 96)
             *script ^= 32;
 
-#ifndef PSX
 
     // let's see if there's a polaroid photo of this mission
     pt = strchr(mfn, '.');
@@ -1548,17 +1512,12 @@ CBYTE* LoadMissionBriefing(CBYTE* script, UBYTE index)
     sprintf(fn, "photos\\%s.tga", mfn);
     TEXTURE_set_tga(TEXTURE_page_polaroid, fn);
 
-#endif
 
     return text;
-#else
-    return 0;
-#endif
 }
 
 void ScanSavedGames(Widget* list)
 {
-#ifndef PSX
 
     CBYTE dir[_MAX_PATH], ttl[_MAX_PATH];
     WIN32_FIND_DATA data;
@@ -1592,7 +1551,6 @@ void ScanSavedGames(Widget* list)
         list->methods->Data(list, WLM_ADDSTRING, 0, (SLONG)dir);
     }
 
-#endif
 }
 
 BOOL won_the_game;
@@ -1614,7 +1572,6 @@ void STARTSCR_notify_gameover(BOOL won)
 
 BOOL TimeoutCheck()
 {
-#ifndef PSX
     SYSTEMTIME time;
     FILETIME ftime1, ftime2, ftime3;
     HANDLE handle;
@@ -1666,9 +1623,6 @@ BOOL TimeoutCheck()
     MessageBox(0, "The time limit on this game has expired.", "Error", MB_ICONEXCLAMATION | MB_OK);
 
     return 1;
-#else
-    return 0;
-#endif
 }
 
 // --- widgety core stuff ---

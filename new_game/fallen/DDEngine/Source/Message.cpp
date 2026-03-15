@@ -6,13 +6,8 @@
 #include "font.h"
 #include "message.h"
 
-#ifdef TARGET_DC
-#define MSG_MAX_LENGTH 128
-#define MSG_MAX_MESSAGES 100
-#else
 #define MSG_MAX_LENGTH 256
 #define MSG_MAX_MESSAGES 1000
-#endif
 
 extern BOOL allow_debug_keys;
 

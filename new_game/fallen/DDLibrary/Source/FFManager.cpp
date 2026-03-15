@@ -4,7 +4,6 @@
 //
 // Limitations: Currently assumes first joystick
 
-#ifndef TARGET_DC
 
 #if 0
 
@@ -84,4 +83,3 @@ BOOL FFManager::Test() {
 
 #endif // #if 0
 
-#endif // #ifndef TARGET_DC

@@ -20,20 +20,11 @@
 #define TEXTURE_PIECE_MIDDLE2 (4)
 #define TEXTURE_PIECE_NUMBER (5)
 
-#if defined(PSX) || defined(TARGET_DC)
-#define RMAX_PRIM_POINTS 15000
-#define MAX_PRIM_FACES3 10000
-#define RMAX_PRIM_FACES4 10000
-#define MAX_PRIM_OBJECTS 2000
-#define MAX_PRIM_MOBJECTS 100
-
-#else
 #define RMAX_PRIM_POINTS 65000
 #define MAX_PRIM_FACES3 32000
 #define RMAX_PRIM_FACES4 32760
 #define MAX_PRIM_OBJECTS 2000
 #define MAX_PRIM_MOBJECTS 100
-#endif
 
 #define MAX_PRIM_POINTS (save_table[SAVE_TABLE_POINTS].Maximum)
 #define MAX_PRIM_FACES4 (save_table[SAVE_TABLE_FACE4].Maximum)
@@ -62,16 +53,6 @@
 #define BUILDING_TYPE_CRATE_IN 4
 #define BUILDING_TYPE_CRATE_OUT 5
 
-#if defined(PSX) || defined(TARGET_DC)
-#define MAX_WINDOWS 1
-#define MAX_WALLS 1
-#define MAX_STOREYS 1
-#define MAX_BUILDINGS 1
-#define MAX_BUILDING_FACETS 1
-#define MAX_BUILDING_OBJECTS 1
-#define MAX_INSIDE_STOREYS (512)
-
-#else
 #define MAX_BUILDINGS (500)
 #define MAX_STOREYS (MAX_BUILDINGS * 5)
 #define MAX_WALLS (MAX_STOREYS * 6)
@@ -80,7 +61,6 @@
 
 #define MAX_BUILDING_FACETS 4000
 #define MAX_BUILDING_OBJECTS 400
-#endif
 
 // claude-ai: Флаги граней (FacetFlags). Используются в BuildingFacet и runtime facet структурах.
 // claude-ai:   NEAR_SORT  (1<<0)  — сортировать ближе (для прозрачных граней)
@@ -407,9 +387,7 @@ struct FBuilding {
 typedef SVector PrimNormal;
 
 // data
-#ifndef PSX
 extern struct DXTXTY dx_textures_xy[200][5];
-#endif
 
 extern UWORD next_roof_bound;
 

@@ -213,7 +213,6 @@ void SEWER_precalc()
 
 void SEWER_save(CBYTE* filename)
 {
-#ifndef PSX
     FILE* handle = MF_Fopen(filename, "wb");
 
     if (handle == NULL) {
@@ -229,12 +228,10 @@ void SEWER_save(CBYTE* filename)
 
         MF_Fclose(handle);
     }
-#endif
 }
 
 void SEWER_load(CBYTE* filename)
 {
-#ifndef PSX
     FILE* handle = MF_Fopen(filename, "rb");
 
     SEWER_init();
@@ -258,7 +255,6 @@ void SEWER_load(CBYTE* filename)
 
         MF_Fclose(handle);
     }
-#endif
 }
 
 SLONG SEWER_can_i_enter(UBYTE x, UBYTE z)

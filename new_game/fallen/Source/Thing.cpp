@@ -4,9 +4,7 @@
 #include "Game.h"
 #include "statedef.h"
 #include "cnet.h"
-#ifndef PSX
 #include "..\ddlibrary\headers\net.h"
-#endif
 #include "pap.h"
 #include "pcom.h"
 #include "eway.h"
@@ -22,9 +20,7 @@ UWORD* thing_class_head;
 THING_INDEX THING_array[THING_ARRAY_SIZE];
 SLONG tick_tock_unclipped = 0;
 
-#ifndef PSX
 extern BOOL allow_debug_keys;
-#endif
 
 UWORD class_priority[] = {
 
@@ -47,7 +43,6 @@ UWORD class_priority[] = {
 };
 
 //---------------------------------------------------------------
-#ifndef PSX
 void init_things(void)
 {
     SWORD c0, c1;
@@ -78,7 +73,6 @@ void init_things(void)
 
     memset((UBYTE*)thing_class_head, 0, CLASS_END * 2);
 }
-#endif
 //---------------------------------------------------------------
 
 THING_INDEX alloc_primary_thing(UWORD thing_class)
@@ -400,7 +394,6 @@ void move_thing_on_map_dxdydz(Thing* t_thing, SLONG dx, SLONG dy, SLONG dz)
 }
 
 //---------------------------------------------------------------
-#ifndef PSX
 void log_primary_used_list(void)
 {
     THING_INDEX thing;
@@ -469,7 +462,6 @@ void wait_ticks(SLONG wait)
         Time(&the_time);
     }
 }
-#endif
 //
 // If you want to try something out do it here rather than game.h
 //
@@ -483,7 +475,6 @@ struct NET_packet {
 
 extern UWORD controls;
 
-#ifndef PSX
 
 MFFileHandle playback_file;
 MFFileHandle verifier_file;
@@ -518,11 +509,7 @@ void do_packets(void)
             } else {
 
                 //	This section is a bodge to make sure the record files are compatible between network & single player games.
-#ifdef TARGET_DC
-                input = get_hardware_input(INPUT_TYPE_JOY); // controls;
-#else
                 input = get_hardware_input(INPUT_TYPE_ALL); // controls;
-#endif
                 packets[PLAYER_ID].Input = input;
 
                 if (GAME_STATE & GS_PLAYBACK) //	Playback a single player game.
@@ -670,103 +657,6 @@ void do_packets(void)
     }
 }
 
-#else
-
-struct recorder {
-    ULONG input;
-    UWORD tick_tock;
-    UWORD tick_ratio;
-    UWORD tick_tock_un;
-    UWORD pad;
-    ULONG s1;
-};
-
-#ifndef FS_ISO9660
-
-#define MAX_RECORD 5000
-
-struct recorder record_input[MAX_RECORD];
-UWORD record_index = 0;
-
-#else
-
-#endif
-
-#ifndef FS_ISO9660
-
-//
-// run off dev kit
-//
-
-void init_record(SLONG level)
-{
-    record_input[0].input = level;
-
-    record_index = 1;
-}
-
-void end_record(void)
-{
-    int handle;
-    CBYTE fname[50];
-
-    record_input[record_index].input = 0xffffffff;
-    record_input[record_index].tick_tock = TICK_TOCK;
-    record_input[record_index].tick_ratio = TICK_RATIO;
-    record_index++;
-
-    sprintf(fname, "replay%02d.gam", record_input[0].input);
-    handle = PCcreat(fname, 0);
-    PCwrite(handle, (UBYTE*)record_input, record_index * sizeof(struct recorder));
-    PCclose(handle);
-}
-
-#endif
-void init_playback(void)
-{
-#ifndef FS_ISO9660
-    record_index = 1;
-    GAME_STATE = GS_PLAY_GAME;
-    GAME_STATE |= GS_PLAYBACK;
-#endif
-}
-
-void do_packets(void)
-{
-
-    PACKET_DATA(0) = get_hardware_input(INPUT_TYPE_ALL); // controls
-#ifndef FS_ISO9660
-    if (GAME_STATE & GS_PLAYBACK) //	Playback a single player game.
-    {
-        PACKET_DATA(0) = record_input[record_index].input;
-        TICK_RATIO = record_input[record_index].tick_ratio;
-        TICK_TOCK = record_input[record_index].tick_tock;
-        tick_tock_unclipped = record_input[record_index].tick_tock_un;
-        ASSERT(record_input[record_index].s1 == RAND_SEED);
-
-        if (TICK_RATIO)
-            TICK_INV_RATIO = 0x10000 / TICK_RATIO;
-
-        record_index++;
-
-    } else // if(GAME_STATE&GS_RECORD)	//	Record a single player game.
-    {
-        record_input[record_index].input = PACKET_DATA(0);
-        record_input[record_index].tick_tock = TICK_TOCK;
-        record_input[record_index].tick_ratio = TICK_RATIO;
-        record_input[record_index].tick_tock_un = tick_tock_unclipped;
-        record_input[record_index].s1 = RAND_SEED;
-
-        record_index++;
-
-        if (record_index > MAX_RECORD)
-            record_index--;
-    }
-#endif
-    controls = 0;
-}
-
-#endif
 
 static UWORD slow_mo = 0;
 
@@ -775,7 +665,6 @@ void set_slow_motion(UWORD motion)
     slow_mo = motion;
 }
 
-#ifndef PSX
 
 UWORD class_check[] = {
     CLASS_PLAYER,
@@ -869,7 +758,6 @@ void check_thing_data()
     for_things(check_thing);
 }
 
-#endif
 
 SLONG REAL_TICK_RATIO = 256;
 
@@ -890,7 +778,6 @@ void process_things_tick(SLONG frame_rate_independant)
         first_pass = FALSE;
     }
 
-#ifndef PSX
     if (CNET_network_game) {
         tick_diff = 1000 / 20;
     }
@@ -913,7 +800,6 @@ void process_things_tick(SLONG frame_rate_independant)
 
     if (record_video)
         tick_diff = 40;
-#endif
 
     TICK_TOCK = tick_diff;
     TICK_RATIO = (TICK_TOCK << TICK_SHIFT) / (NORMAL_TICK_TOCK);
@@ -939,7 +825,6 @@ void process_things_tick(SLONG frame_rate_independant)
     // Slow down the game...
     //
     REAL_TICK_RATIO = TICK_RATIO; // some things need to keep going, need to keep F.R.I.
-#ifndef PSX
     if (!GAMEMENU_is_paused())
         if (GAMEMENU_slowdown_mul() != 0x100) {
             TICK_RATIO = TICK_RATIO * GAMEMENU_slowdown_mul() >> 8;
@@ -949,7 +834,6 @@ void process_things_tick(SLONG frame_rate_independant)
                 TICK_RATIO = 1;
             }
         }
-#endif
     TICK_INV_RATIO = 0x10000 / TICK_RATIO;
 }
 extern SWORD noise_count;
@@ -1003,9 +887,6 @@ void process_things(SLONG frame_rate_independant)
             ASSERT(p_thing->Class == class_priority[index]);
 
             if (p_thing->StateFn) {
-#ifdef PSX
-                if ((p_thing->Flags & FLAGS_IN_VIEW) || ((THING_NUMBER(p_thing) & 0x3) == (GAME_TURN & 0x3)))
-#endif
                 {
                     p_thing->StateFn(p_thing);
                     if (noise_count) {
@@ -1059,11 +940,6 @@ void process_things(SLONG frame_rate_independant)
         //		p_thing->Genus.Person->ComboHistory++; //now used left right and center for a random number // if someone only does something every 16 turns use this
         ++PTIME(p_thing);
 
-#ifdef PSX
-        //      if in view                  ||     or every 4th turn                           ||                              they are a fake person sent to attack you
-        if ((p_thing->Flags & FLAGS_IN_VIEW) || (((index & 0x3) == (GAME_TURN & 0x3))) || (p_thing->Genus.Person->PersonType == PERSON_THUG_RASTA && (p_thing->Genus.Person->Flags2 & FLAG2_PERSON_FAKE_WANDER)))
-        /*&& !(p_thing->Genus.Person->pcom_ai       == PCOM_AI_CIV &&	p_thing->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL && p_thing->Genus.Person->pcom_move == PCOM_MOVE_WANDER) )*/
-#endif
         {
 
 #ifdef PSX_STERN_REVENGE_BUG_AND_CRAP_DRIVERS
@@ -1262,9 +1138,7 @@ void THING_kill(Thing* p_thing)
         //			free_furniture(p_thing);
         break;
     case CLASS_ANIMAL:
-#if !defined(PSX) && !defined(TARGET_DC)
         free_animal(p_thing);
-#endif
         break;
     default:
         ASSERT(0);

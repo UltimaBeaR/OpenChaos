@@ -18,11 +18,7 @@ static bool SpeechCD; // speech on CD?
 
 static void Exit(void)
 {
-#ifndef TARGET_DC
     MessageBox(NULL, "Cannot locate Urban Chaos CD-ROM", NULL, MB_ICONERROR);
-#else
-    ASSERT(FALSE);
-#endif
     exit(1);
 }
 
@@ -30,22 +26,6 @@ static void Exit(void)
 //
 // locate the CD drive containing the Urban Chaos CD
 
-#ifdef TARGET_DC
-
-void LocateCDROM(void)
-{
-    // Er... I know where it is on the DreamCast :-)
-#ifdef FILE_PC
-#error SPONG!
-    // It's on the PC.
-    strcpy(Path, "\\PC\\");
-#else
-    // It's on the DC itself.
-    strcpy(Path, "\\CD-ROM\\");
-#endif
-}
-
-#else // #ifdef TARGET_DC
 
 void LocateCDROM(void)
 {
@@ -93,7 +73,6 @@ void LocateCDROM(void)
     exit(0);
 }
 
-#endif // #else //#ifdef TARGET_DC
 
 // Get*Path
 

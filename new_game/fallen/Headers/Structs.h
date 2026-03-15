@@ -23,12 +23,10 @@ struct SmallSVector {
     SWORD X, Y, Z;
 };
 
-#ifndef PSX
 struct SVECTOR {
     SLONG X, Y, Z;
 };
 
-#endif
 
 struct TinyXZ {
     SBYTE Dx, Dz;

@@ -32,9 +32,6 @@ void matrix_transformZMY(Matrix31* result, Matrix33* trans, Matrix31* mat2);
 void normalise_matrix(struct Matrix33* mat);
 void normalise_matrix_rows(struct Matrix33* mat);
 
-#ifdef PSX
-// void build_tween_matrix_psx(MATRIX *mat,struct CMatrix33 *cmat1,struct CMatrix33 *cmat2,SLONG tween);
-#endif
 
 // Multiplies points x,y,z by matrix m.
 //

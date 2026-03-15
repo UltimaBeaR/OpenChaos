@@ -2,7 +2,6 @@
 // Animals...
 //
 
-#ifndef TARGET_DC
 
 #include "game.h"
 #include "animal.h"
@@ -588,4 +587,3 @@ SetChunkCentre(GameKeyFrameChunk *chunk, GameCoord centre) {
 }
 */
 
-#endif // #ifndef TARGET_DC

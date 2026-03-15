@@ -23,14 +23,12 @@ extern SLONG save_psx;
 WMOVE_Face* WMOVE_face; //[WMOVE_MAX_FACES];
 SLONG WMOVE_face_upto;
 
-#ifndef PSX
 void WMOVE_init()
 {
     memset(WMOVE_face, 0, sizeof(WMOVE_Face) * WMOVE_MAX_FACES);
 
     WMOVE_face_upto = 1;
 }
-#endif
 
 //
 // Returns how many wmove faces a given thing needs.
@@ -387,21 +385,9 @@ void WMOVE_create(Thing* p_thing)
     PrimFace4* f4;
     WMOVE_Face* wf;
 
-#ifdef TARGET_DC
-    // This doesn't work yet - MarkZA needs to fix it so it doesn't scribble on Darci's mesh.
-    // So for now I disable it, but this ASSERT is to remind me that it doesn't work. Then I
-    // won't forget.
-    // MarkZA - when you fix this, give me a yell and I'll test it and all that.
-    // Actually, I think you may be able to reproduce it on the PC as well, since it now uses the
-    // same character system. Oh, but only if you're loading from DADs. So you'll need to do that.
-    // ASSERT ( FALSE );
-    // return;
-#endif
 
 //	#ifdef PSX
-#ifndef PSX
     if (save_psx)
-#endif
         if (p_thing->Class == CLASS_VEHICLE) {
             //
             // The PSX is too slow for our code to let you climb on cars.
@@ -894,8 +880,6 @@ void WMOVE_relative_pos(
     }
 }
 
-#ifndef PSX
-#ifndef TARGET_DC
 void WMOVE_draw()
 {
     SLONG i;
@@ -955,5 +939,3 @@ void WMOVE_draw()
     }
 }
 
-#endif
-#endif

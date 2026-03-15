@@ -18,8 +18,6 @@ SLONG BALLOON_balloon_upto;
 // The desired distance between balloon points.
 //
 
-#ifndef TARGET_DC
-#ifndef PSX
 
 #define BALLOON_POINT_DIST (0x2000)
 
@@ -555,6 +553,4 @@ void BALLOON_find_grab(UWORD thing)
         }
     }
 }
-#endif
 
-#endif // #ifndef TARGET_DC

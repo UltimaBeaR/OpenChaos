@@ -1,10 +1,6 @@
 #include <MFStdLib.h>
 #include "game.h"
-#ifndef PSX
 #include "..\ddlibrary\headers\net.h"
-#else
-#include "..\psxlib\headers\net.h"
-#endif
 
 UBYTE CNET_network_game;
 UBYTE CNET_i_am_host;
@@ -12,8 +8,6 @@ UBYTE CNET_i_am_host;
 UBYTE CNET_player_id = 0;
 UBYTE CNET_num_players = 1;
 
-#ifndef PSX
-#ifndef TARGET_DC
 
 void CNET_display_error(CBYTE* error)
 {
@@ -60,11 +54,7 @@ SLONG CNET_configure()
 
 #define NUM_WORDS 8
 #define NUM_NAMES 16
-#ifndef PSX
-#ifndef TARGET_DC
     srand(time(NULL));
-#endif
-#endif
 
     CBYTE* word[NUM_WORDS] = {
         "City",
@@ -108,7 +98,6 @@ SLONG CNET_configure()
     CNET_i_am_host = FALSE;
     CNET_num_players = 1;
     CNET_player_id = 0;
-#ifndef PSX
     if (!CNET_connected) {
         if (Keys[KB_ESC]) {
             Keys[KB_ESC] = 0;
@@ -356,8 +345,5 @@ joined_session:;
             }
         }
     }
-#endif
 }
 
-#endif
-#endif

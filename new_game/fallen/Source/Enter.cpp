@@ -10,7 +10,6 @@
 #include "supermap.h"
 #include "memory.h"
 
-#ifndef PSX
 
 //
 // Returns TRUE if the building is valid to enter.
@@ -717,72 +716,3 @@ SLONG ENTER_setup(SLONG dbuilding, SLONG height, UBYTE furnished, UBYTE find_bes
     }
 }
 
-#else
-
-//
-// psx version has a load of null functions for now
-//
-
-//
-// Returns TRUE if the building is valid to enter.
-//
-
-SLONG ENTER_valid(SLONG dbuilding)
-{
-    return FALSE;
-}
-
-void ENTER_building_box(SLONG dbuilding, SLONG* bx1, SLONG* bz1, SLONG* bx2, SLONG* bz2)
-{
-
-    *bx1 = 0;
-    *bz1 = 0;
-    *bx2 = 0;
-    *bz2 = 0;
-}
-
-ENTER_Okay ENTER_can_i(THING_INDEX me)
-{
-    ENTER_Okay ans;
-
-    ans.dbuilding = NULL;
-}
-
-SLONG ENTER_leave(THING_INDEX me, UBYTE* map_x, UBYTE* map_z)
-{
-
-    return FALSE;
-}
-
-void ENTER_get_extents(
-    SLONG dbuilding,
-    SLONG* height_ground_floor,
-    SLONG* height_of_top_storey)
-{
-
-    *height_ground_floor = 0; // min;
-    *height_of_top_storey = 0; // max;
-}
-
-SLONG ENTER_num_blocks(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
-{
-    return 0;
-}
-
-SLONG ENTER_get_type(SLONG id, SLONG block)
-{
-    return 0;
-}
-
-SLONG ENTER_setup_stairs(SLONG dbuilding)
-{
-
-    return FALSE;
-}
-
-SLONG ENTER_setup(SLONG dbuilding, SLONG height, UBYTE furnished, UBYTE find_best_layout)
-{
-    return FALSE;
-}
-
-#endif

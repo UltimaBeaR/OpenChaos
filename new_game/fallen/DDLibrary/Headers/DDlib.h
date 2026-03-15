@@ -18,9 +18,6 @@
 
 #include "resource.h"
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 //---------------------------------------------------------------
 // mikes mouse stuff
@@ -60,15 +57,6 @@ extern void RecenterMouse(void);
 
 #ifndef NDEBUG
 
-#ifdef TARGET_DC
-
-#undef FAILED
-#undef SUCCEEDED
-// #define FAILED(f)		(ASSERT((signed)(f)>=0),(signed)(f)<0)
-#define FAILED(f) ((signed)(f) < 0)
-#define SUCCEEDED(f) ((signed)(f) >= 0)
-
-#else // #ifdef TARGET_DC
 
 inline SLONG check_result(HRESULT f, SLONG line, CBYTE* file)
 {
@@ -89,7 +77,6 @@ inline SLONG check_result(HRESULT f, SLONG line, CBYTE* file)
 #define FAILED(f) (check_result(f, __LINE__, __FILE__))
 #define SUCCEEDED(f) (!FAILED(f))
 
-#endif // #else //#ifdef TARGET_DC
 
 #endif // else use Micro$oft macros
 

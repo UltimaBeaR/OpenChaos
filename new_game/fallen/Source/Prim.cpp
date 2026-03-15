@@ -47,11 +47,7 @@
 #include "walkable.h"
 #include "supermap.h"
 #include "memory.h"
-#ifndef PSX
 #include "matrix.h"
-#else
-#include "c:\fallen\psxeng\headers\matrix.h"
-#endif
 
 #define PRIM_MIN_BBOX 0x58
 
@@ -70,11 +66,9 @@ PrimInfo* prim_info; //[256];//MAX_PRIM_OBJECTS];
 // claude-ai: 15560 slots = max vertices across all prims in a single draw call.
 // claude-ai: Used by the DDEngine rendering layer to store projected screen-space coords.
 // claude-ai: Not present on PSX/DC (those use hardware transform units instead).
-#if !defined(PSX) && !defined(TARGET_DC)
 struct SVector global_res[15560]; // max points per object?
 SLONG global_flags[15560];
 UWORD global_bright[15560];
-#endif
 
 extern struct KeyFrameChunk* test_chunk;
 
@@ -82,9 +76,7 @@ extern struct KeyFrameChunk* test_chunk;
 #define USED_FACE3 (1 << 1)
 #define USED_FACE4 (1 << 2)
 
-#ifndef PSX
 CBYTE prim_names[MAX_PRIM_OBJECTS][32];
-#endif
 
 // claude-ai: delete_prim_points_block / delete_prim_faces3_block / delete_prim_faces4_block:
 // claude-ai:   Remove a contiguous block from the respective pool array by shifting elements left.
@@ -92,7 +84,6 @@ CBYTE prim_names[MAX_PRIM_OBJECTS][32];
 // claude-ai:   Called by compress_prims() to compact unreferenced slots.
 // claude-ai:   fix_faces_for_del_points() / fix_objects_for_del_*() update all cross-references
 // claude-ai:   to keep indices consistent after the shift.
-#ifndef PSX
 void delete_prim_points_block(SLONG start, SLONG count)
 {
     SLONG c0;
@@ -187,7 +178,6 @@ void fix_objects_for_del_faces4(SLONG start, SLONG count)
 // claude-ai: Not called at runtime — only used in the editor after deleting prim objects.
 void compress_prims(void)
 {
-#if !defined(PSX) && !defined(TARGET_DC)
     SLONG c0, c1;
     SLONG sp, ep, sf, ef;
     UBYTE* pf;
@@ -258,7 +248,6 @@ void compress_prims(void)
             fix_objects_for_del_faces4(c1 + 1, count);
         }
     }
-#endif
 }
 
 // claude-ai: clear_prims() — resets the entire prim database for level load.
@@ -540,7 +529,6 @@ void delete_a_prim(UWORD prim)
     delete_prim_objects(prim, prim + 1);
 }
 
-#endif
 
 // dist= max(x,y,z) + other>>2 +other>>2
 //  13% max error
@@ -587,7 +575,6 @@ UWORD	calc_lights(SLONG x,SLONG y,SLONG z,struct SVector *p_vect)
 // claude-ai: Output normal stored in p_normal (SVector: SWORD X,Y,Z, range -256..256).
 // claude-ai: quick_normal() variant skips normalisation — returns raw cross product for sign tests.
 // claude-ai: Both functions negate the result: output N = -(V×W), matching the engine's winding order.
-#ifndef PSX
 void calc_normal(SWORD face, struct SVector* p_normal)
 {
     SLONG vx, vy, vz, wx, wy, wz;
@@ -869,7 +856,6 @@ UWORD apply_ambient_light_to_object(UWORD object, SLONG lnx, SLONG lny, SLONG ln
     //	printf( " REPEAT %d , out of %d \n",repeat,no_faces);
 }
 
-#endif
 // claude-ai: calc_prim_info() — post-load pass to compute runtime bounding info for each prim.
 // claude-ai: Fills prim_info[i] for all loaded prims (i in 1..255 where StartPoint != 0).
 // claude-ai: Bounding box algorithm: Y extent uses ALL points; X/Z extent uses only points at
@@ -882,7 +868,6 @@ UWORD apply_ambient_light_to_object(UWORD object, SLONG lnx, SLONG lny, SLONG ln
 // claude-ai: Sets PRIM_FLAG_ENVMAPPED if any face has FACE_FLAG_ENVMAP.
 // claude-ai: Sets PRIM_DAMAGE_NOLOS if the prim is box-collide and tall+wide enough to hide behind.
 // claude-ai: Calls VEH_init_vehinfo() at the end to set up crumple zone data for vehicle prims.
-#ifndef PSX
 void calc_prim_info()
 {
     SLONG i;
@@ -1105,17 +1090,12 @@ void calc_prim_info()
     // calculate vehicle prim info for crumple zones
     VEH_init_vehinfo();
 }
-#endif
 
 //
 // The normals.
 //
 
-#ifndef PSX
 #define MAX_POINTS_PER_PRIM 5000
-#else
-#define MAX_POINTS_PER_PRIM 1
-#endif
 
 UBYTE each_point[MAX_POINTS_PER_PRIM];
 // claude-ai: calc_prim_normals() — computes per-vertex normals for all loaded prims.
@@ -1126,7 +1106,6 @@ UBYTE each_point[MAX_POINTS_PER_PRIM];
 // claude-ai: "// one day" comment suggests this was added later in development.
 // claude-ai: Used for specular/environment mapped lighting — not for basic diffuse lighting.
 // claude-ai: prim_normal[] is indexed by global prim_points[] index, same as point pool.
-#ifndef PSX
 // one day
 
 void calc_prim_normals(void)
@@ -1315,7 +1294,6 @@ void calc_prim_normals(void)
         }
     }
 }
-#endif
 
 PrimInfo* get_prim_info(SLONG prim)
 {
@@ -1337,7 +1315,6 @@ PrimInfo* get_prim_info(SLONG prim)
 // claude-ai:   Third pass: clears edges that lie along a fence (does_fence_lie_along_line()).
 // claude-ai: Called once after all prims and walkable surfaces are set up.
 #define SLIDE_EDGE_HEIGHT 0x90
-#ifndef PSX
 void calc_slide_edges_roof()
 {
     SLONG c0;
@@ -1887,7 +1864,6 @@ void get_rotated_point_world_pos(
     *py = y;
     *pz = z;
 }
-#endif
 
 // claude-ai: slide_along_prim() — main prim collision response function.
 // claude-ai: Tests whether the movement vector (x1,y1,z1)→(x2,y2,z2) collides with a prim,
@@ -2011,7 +1987,6 @@ UBYTE prim_get_shadow_type(SLONG prim)
 // claude-ai:                     ANIM_PRIM_TYPE_SWITCH toggles FLAGS_SWITCHED_ON and clears StateFn.
 // claude-ai:                     ANIM_PRIM_TYPE_NORMAL: loops silently.
 // claude-ai: StateFn = NULL means the prim is idle (door closed, switch resting).
-#ifndef PSX
 void fn_anim_prim_normal(Thing* p_thing)
 {
     Switch* the_switch;
@@ -2199,7 +2174,6 @@ SLONG get_anim_prim_type(SLONG anim_prim)
         return ANIM_PRIM_TYPE_NORMAL;
     }
 }
-#endif
 
 // claude-ai: find_anim_prim() — spatial query: find the nearest animated prim of the given type(s).
 // claude-ai: type_bit_field: bitmask where bit N = include ANIM_PRIM_TYPE_N in search.
@@ -2207,7 +2181,6 @@ SLONG get_anim_prim_type(SLONG anim_prim)
 // claude-ai: Then filters by type and picks closest by Manhattan distance (abs(dx)+abs(dy)+abs(dz)).
 // claude-ai: Returns THING_INDEX of best match, or NULL if none found.
 // claude-ai: Used for door-opening/switch-activation triggers when a character approaches.
-#ifndef PSX
 #define MAX_FIND_ANIM_PRIMS 8
 
 THING_INDEX found_aprim[MAX_FIND_ANIM_PRIMS];
@@ -2291,12 +2264,10 @@ void toggle_anim_prim_switch_state(SLONG anim_prim_thing_index)
         set_anim_prim_anim(anim_prim_thing_index, 1);
     }
 }
-#endif
 //
 // Expands the given bounding box using the given animated-prim position.
 //
 
-#ifndef PSX
 void expand_anim_prim_bbox(
     SLONG prim,
     GameKeyFrameElement* anim_info,
@@ -2475,7 +2446,6 @@ void find_anim_prim_bboxes()
         }
     }
 }
-#endif
 
 void mark_prim_objects_as_unloaded()
 {
@@ -2486,7 +2456,6 @@ void mark_prim_objects_as_unloaded()
     memset((UBYTE*)prim_objects, 0, sizeof(PrimObject) * 256);
 }
 
-#ifndef PSX
 void re_center_prim(SLONG prim, SLONG dx, SLONG dy, SLONG dz)
 {
     SLONG c0;
@@ -2505,7 +2474,6 @@ void re_center_prim(SLONG prim, SLONG dx, SLONG dy, SLONG dz)
         prim_points[c0].Z += dz;
     }
 }
-#endif
 
 SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
 {

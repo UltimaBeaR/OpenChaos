@@ -23,11 +23,7 @@
 
 // claude-ai: Лимиты объектов — 400 primary (игровые персонажи, машины, мебель и т.д.) + 300 secondary (PC) / 50 (PSX) (switches, tracks) = 700 всего
 #define MAX_PRIMARY_THINGS (400)
-#ifndef BUILD_PSX
 #define MAX_SECONDARY_THINGS (300)
-#else
-#define MAX_SECONDARY_THINGS (50)
-#endif
 
 #define MAX_THINGS (MAX_PRIMARY_THINGS + MAX_SECONDARY_THINGS + 1)
 

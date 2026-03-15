@@ -37,9 +37,7 @@
 #include "ns.h"
 #include "mav.h"
 #include "build2.h"
-#ifndef PSX
 #include "..\DDEngine\Headers\console.h"
-#endif
 #include "person.h"
 #include "sound.h"
 #include "interact.h"
@@ -88,25 +86,6 @@ SLONG get_fence_top(SLONG x, SLONG z, SLONG col);
 UWORD next_col_vect = 1;
 UWORD next_col_vect_link = 1;
 
-#ifdef PSX
-7SLONG MUL64(SLONG i, SLONG j)
-{
-    SLONG res;
-    SLONG work;
-    //	asm( " add %0,%1,%2 " : "=r"(k) : "r"(i) ,"r"(j) );
-    //	asm( " add %0,%1,$0 " : "=r"(k) : "r"(i) );
-
-    asm(" mult %0,%1 " : : "r"(i), "r"(j) : "hi", "lo");
-    asm(" mflo %0 " : "=r"(work));
-    asm(" srl %0,%1,%2 " : "=r"(res) : "r"(work), "r"(16));
-
-    asm(" mfhi %0 " : "=r"(work));
-    asm(" sll %0,%1,%2 " : "=r"(work) : "r"(work), "r"(16));
-    asm(" or %0,%1,%2 " : "=r"(res) : "r"(res), "r"(work));
-
-    return (res);
-}
-#endif
 
 ///////////////////////////
 //
@@ -277,8 +256,6 @@ void clear_all_col_info(void)
 #endif
 }
 
-#ifndef PSX
-#ifndef TARGET_DC
 SLONG get_height_along_vect(SLONG ax, SLONG az, struct CollisionVect* p_vect)
 {
     SLONG dx;
@@ -386,8 +363,6 @@ SLONG get_height_along_facet(SLONG ax, SLONG az, struct DFacet* p_facet)
 
     return y;
 }
-#endif
-#endif
 #ifdef DOG_POO
 ULONG add_collision_to_single_cell(UWORD index, SLONG x, SLONG z)
 {
@@ -471,9 +446,6 @@ SLONG insert_collision_vect(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2,
     step_y = y2 - my_y1;
     step_z = z2 - z1;
     length = Root(step_x * step_x + step_y * step_y + step_z * step_z);
-#ifdef PSX
-//	asm("break 0");
-#endif
 
     if (length < 3)
         return (0);
@@ -590,8 +562,6 @@ void remove_collision_vect(UWORD vect)
 #endif
 
 #define TSHIFT 8
-#ifndef PSX
-#ifndef TARGET_DC
 UBYTE check_big_point_triangle_col(SLONG x, SLONG y, SLONG ux, SLONG uy, SLONG vx, SLONG vy, SLONG wx, SLONG wy)
 {
     SLONG s, t, top, bot, res;
@@ -623,11 +593,7 @@ UBYTE check_big_point_triangle_col(SLONG x, SLONG y, SLONG ux, SLONG uy, SLONG v
     } else
         return 0; // point outside triangle
 }
-#endif
-#endif
 
-#ifndef PSX
-#ifndef TARGET_DC
 SLONG point_in_quad_old(SLONG px, SLONG pz, SLONG x, SLONG y, SLONG z, SWORD face)
 {
     SLONG x1, my_y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
@@ -657,8 +623,6 @@ SLONG point_in_quad_old(SLONG px, SLONG pz, SLONG x, SLONG y, SLONG z, SWORD fac
 
     //	SLONG x,SLONG y,SLONG ux,SLONG uy,SLONG vx,SLONG vy,SLONG wx,SLONG wy)
 }
-#endif
-#endif
 
 //
 // Given a segment of a line (x1,z1)-(x2,z2) and a point (a,b) returns
@@ -670,8 +634,6 @@ SLONG point_in_quad_old(SLONG px, SLONG pz, SLONG x, SLONG y, SLONG z, SWORD fac
 
 SLONG dprod;
 SLONG cprod;
-#ifndef PSX
-#ifndef TARGET_DC
 SLONG dist_to_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b)
 {
     SLONG dx, dz;
@@ -762,8 +724,6 @@ SLONG dist_to_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b)
 
     return (dist);
 }
-#endif
-#endif
 
 //
 // Returns which side of the colvect you are on.
@@ -956,8 +916,6 @@ void signed_dist_to_line_with_normal(
 //
 // different as in the vector from the end of the line to the test point
 //
-#ifndef PSX
-#ifndef TARGET_DC
 
 void signed_dist_to_line_with_normal_mark(
     SLONG x1, SLONG z1,
@@ -1070,8 +1028,6 @@ void signed_dist_to_line_with_normal_mark(
 
     return;
 }
-#endif
-#endif
 
 void nearest_point_on_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b, SLONG* ret_x, SLONG* ret_z)
 {
@@ -1919,8 +1875,6 @@ extern void e_draw_3d_line(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, 
 
 void highlight_face(SLONG face)
 {
-#ifndef PSX
-#ifndef TARGET_DC
     return;
     if (face > 0) {
         SLONG face_x, face_y, face_z;
@@ -1982,12 +1936,9 @@ void highlight_face(SLONG face)
             prim_points[p2].X + face_x, prim_points[p2].Y + face_y, prim_points[p2].Z + face_z,
             prim_points[p0].X + face_x, prim_points[p0].Y + face_y, prim_points[p0].Z + face_z);
     }
-#endif
-#endif
 }
 void highlight_rface(SLONG rface)
 {
-#ifndef TARGET_DC
 
     return;
     if (rface > 0) {
@@ -2003,12 +1954,10 @@ void highlight_rface(SLONG rface)
         e_draw_3d_line(x + 256, y, z + 256, x, y, z + 256);
         e_draw_3d_line(x, y, z + 256, x, y, z);
     }
-#endif
 }
 
 void highlight_quad(SLONG face, SLONG face_x, SLONG face_y, SLONG face_z)
 {
-#ifndef TARGET_DC
     return;
 
     if (face > 0) {
@@ -2033,7 +1982,6 @@ void highlight_quad(SLONG face, SLONG face_x, SLONG face_y, SLONG face_z)
             prim_points[p2].X + face_x, prim_points[p2].Y + face_y, prim_points[p2].Z + face_z,
             prim_points[p0].X + face_x, prim_points[p0].Y + face_y, prim_points[p0].Z + face_z);
     }
-#endif
 }
 
 SLONG vect_intersect_wall(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2)
@@ -2182,16 +2130,12 @@ SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_th
                             //		ASSERT(0);
                             dy = y - new_y;
 
-#ifndef PSX
-#ifndef TARGET_DC
 
                             if (ControlFlag && allow_debug_keys) {
                                 CBYTE str[100];
                                 sprintf(str, " land on walkable dy %d >%d  <%d \n", dy, neg_dy, pos_dy);
                                 CONSOLE_text(str, 10000);
                             }
-#endif
-#endif
                             if (dy > neg_dy - offset_y && dy < pos_dy) {
                                 //						MSG_add(" hit face \n");
                                 *ret_y = new_y;
@@ -2222,8 +2166,6 @@ SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_th
     *ret_y = 0;
     return (0);
 }
-#ifndef PSX
-#ifndef TARGET_DC
 SLONG find_alt_for_this_pos(SLONG x, SLONG z)
 {
     SLONG mx;
@@ -2299,8 +2241,6 @@ SLONG find_alt_for_this_pos(SLONG x, SLONG z)
 
     return groundy; // step onto floor
 }
-#endif
-#endif
 void correct_pos_for_ladder(struct DFacet* p_facet, SLONG* px, SLONG* pz, SLONG* angle, SLONG scale)
 {
     SLONG x1, z1, x2, z2, dx, dz;
@@ -2832,8 +2772,6 @@ SLONG get_fence_height(SLONG h)
 //
 //
 //
-#ifndef PSX
-#ifndef TARGET_DC
 
 // side_required     0 is the other side or 1 is this side
 void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2, SLONG vx1, SLONG vz1, SLONG vx2, SLONG vz2, SLONG side_required)
@@ -2878,8 +2816,6 @@ void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2, SLONG vx1, S
         }
     }
 }
-#endif
-#endif
 
 #define EXTRA_RADIUS 10
 //
@@ -2893,11 +2829,7 @@ void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2, SLONG vx1, S
 // Remember colvect we have already done, and dont do them twice.
 //
 
-#ifndef PSX
 #define MAX_ALREADY 50
-#else
-#define MAX_ALREADY 8
-#endif
 
 UWORD already[MAX_ALREADY];
 
@@ -4487,8 +4419,6 @@ SLONG slide_along(
     return FALSE;
 }
 
-#ifndef PSX
-#ifndef TARGET_DC
 
 SLONG cross_door(SLONG x1, SLONG my_y1, SLONG z1,
     SLONG x2, SLONG y2, SLONG z2, SLONG radius)
@@ -4747,10 +4677,6 @@ SLONG cross_door(SLONG x1, SLONG my_y1, SLONG z1,
 
     return 0;
 }
-#endif
-#endif
-#ifndef PSX
-#ifndef TARGET_DC
 SLONG bump_person(Thing* p_person, THING_INDEX index, SLONG x1, SLONG my_y1, SLONG z1, SLONG* x2, SLONG* y2, SLONG* z2)
 {
     SLONG bump_radius, my_radius;
@@ -4837,8 +4763,6 @@ SLONG bump_person(Thing* p_person, THING_INDEX index, SLONG x1, SLONG my_y1, SLO
 
     return (0);
 }
-#endif
-#endif
 
 //
 // Slides the vector along the slidey edges of the given walkable face4.
@@ -5590,7 +5514,6 @@ SLONG collide_against_things(
                         radius = 66 << 8;
                     else
                         radius = 50 << 8;
-#ifndef PSX
 /*
                                                 {
                                                         SLONG	cx,cz,cy,r,ang,x1,z1,x2,z2;
@@ -5615,7 +5538,6 @@ SLONG collide_against_things(
 
                                                 add_debug_line(x1,10,z1,col_thing->WorldPos.X>>8,10,col_thing->WorldPos.Z>>8,0xff00ff);
 */
-#endif
 
                     tx2 = *x2;
                     tz2 = *z2;
@@ -6166,7 +6088,6 @@ ULONG move_thing(
         return (0);
     }
 
-#ifndef PSX
     /*
     if(p_thing->Class==CLASS_PERSON)
     {
@@ -6178,7 +6099,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
             }
     }
     */
-#endif
     //
     // Don't move outside the map.
     //
@@ -6492,9 +6412,7 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
                 new_face = find_face_for_this_pos(x2 >> 8, y2 >> 8, z2 >> 8, &new_y, 0, 0); // ignore,0);
 
                 if (new_face && (new_face != GRAB_FLOOR)) {
-#ifndef PSX
 //					ASSERT(abs(new_y - (y2 >> 8)) < 0x100);
-#endif
 
                     //
                     // You're over a new face now.
@@ -6620,13 +6538,11 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
     //
     // Swirl the mist.
     //
-#ifndef PSX
     MIST_gust(
         p_thing->WorldPos.X >> 8,
         p_thing->WorldPos.Z >> 8,
         new_position.X >> 8,
         new_position.Z >> 8);
-#endif
     //
     // Hit some barrels.
     //
@@ -6731,10 +6647,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
         */
     }
 
-#ifndef PSX
-#ifdef TARGET_DC
-    ASSERT(!(p_thing->Genus.Person->InsideIndex));
-#else
     //
     // update persons inside room info
     //
@@ -6744,8 +6656,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
         if (p_thing->Genus.Person->PlayerID)
             INDOORS_ROOM = p_thing->Genus.Person->InsideRoom;
     }
-#endif
-#endif
 
     if (p_thing->SubState != SUB_STATE_WALKING || p_thing->Genus.Person->PlayerID == 0)
         if (p_thing->SubState != SUB_STATE_SLIPPING)
@@ -8945,8 +8855,6 @@ SLONG calc_map_height_at(SLONG x, SLONG z)
 // An collision routine for othogonal walls only.  It collides a thin vector
 // against a thick orthogonal sausage shape.
 //
-#ifndef PSX
-#ifndef TARGET_DC
 SLONG collide_against_sausage(
     SLONG sx1, SLONG sz1,
     SLONG sx2, SLONG sz2,
@@ -9092,11 +9000,7 @@ SLONG collide_against_sausage(
 
     return FALSE;
 }
-#endif
-#endif
 
-#ifndef PSX
-#ifndef TARGET_DC
 SLONG slide_around_sausage(
     SLONG sx1,
     SLONG sz1,
@@ -9164,8 +9068,6 @@ SLONG slide_around_sausage(
 
     return TRUE;
 }
-#endif
-#endif
 
 //
 // Returns TRUE if Darci can't move from from one square to the other and
@@ -9246,8 +9148,6 @@ SLONG stop_movement_between(
 // Creates a new JUST_COLLISION facet suitable for a water's edge and
 // the edge of a sewer entrance.
 //
-#ifndef PSX
-#ifndef TARGET_DC
 void create_just_collision_facet(
     SLONG x1,
     SLONG z1,
@@ -9486,8 +9386,6 @@ void insert_collision_facets()
         }
     }
 }
-#endif
-#endif
 
 //
 // should be locals but stack overflow
@@ -9540,7 +9438,6 @@ SLONG slide_around_box(
     used_this_go = 0;
     failed = 1;
 
-#ifndef PSX
     SLONG matrix[4];
     SLONG useangle;
 
@@ -9573,24 +9470,6 @@ SLONG slide_around_box(
 
     rx2 = MUL64(tx2, matrix[0]) + MUL64(tz2, matrix[1]);
     rz2 = MUL64(tx2, matrix[2]) + MUL64(tz2, matrix[3]);
-#else
-    SLONG useangle;
-
-    useangle = -box_yaw;
-    useangle &= 2047;
-
-    tx1 = x1 - box_mid_x;
-    tz1 = z1 - box_mid_z;
-
-    tx2 = *x2 - box_mid_x;
-    tz2 = *z2 - box_mid_z;
-
-    rx1 = MUL64(tx1, COS(useangle)) + MUL64(tz1, SIN(useangle));
-    rz1 = MUL64(tx1, -SIN(useangle)) + MUL64(tz1, COS(useangle));
-
-    rx2 = MUL64(tx2, COS(useangle)) + MUL64(tz2, SIN(useangle));
-    rz2 = MUL64(tx2, -SIN(useangle)) + MUL64(tz2, COS(useangle));
-#endif
     //
     // The bounding box.
     //
@@ -9623,9 +9502,7 @@ SLONG slide_around_box(
     dminz = rz2 - minz;
     dmaxz = maxz - rz2;
 
-#ifndef PSX
     SWAP(matrix[1], matrix[2]);
-#endif
 
     while (failed) {
         if (tried & 2) {
@@ -9672,14 +9549,9 @@ SLONG slide_around_box(
         // matrix is its transpose.
         //
 
-#ifndef PSX
 
         *x2 = MUL64(best_x, matrix[0]) + MUL64(best_z, matrix[1]);
         *z2 = MUL64(best_x, matrix[2]) + MUL64(best_z, matrix[3]);
-#else
-        *x2 = MUL64(best_x, COS(useangle)) + MUL64(best_z, -SIN(useangle));
-        *z2 = MUL64(best_x, SIN(useangle)) + MUL64(best_z, COS(useangle));
-#endif
 
         *x2 += box_mid_x;
         *z2 += box_mid_z;
@@ -9735,7 +9607,6 @@ inline SLONG slide_around_box_lowstack(
     SLONG best_x;
     SLONG best_z;
 
-#ifndef PSX
     SLONG matrix[4];
     SLONG useangle;
 
@@ -9768,24 +9639,6 @@ inline SLONG slide_around_box_lowstack(
 
     rx2 = MUL64(tx2, matrix[0]) + MUL64(tz2, matrix[1]);
     rz2 = MUL64(tx2, matrix[2]) + MUL64(tz2, matrix[3]);
-#else
-    SLONG useangle;
-
-    useangle = -box_yaw;
-    useangle &= 2047;
-
-    tx1 = x1 - box_mid_x;
-    tz1 = z1 - box_mid_z;
-
-    tx2 = *x2 - box_mid_x;
-    tz2 = *z2 - box_mid_z;
-
-    rx1 = MUL64(tx1, COS(useangle)) + MUL64(tz1, SIN(useangle));
-    rz1 = MUL64(tx1, -SIN(useangle)) + MUL64(tz1, COS(useangle));
-
-    rx2 = MUL64(tx2, COS(useangle)) + MUL64(tz2, SIN(useangle));
-    rz2 = MUL64(tx2, -SIN(useangle)) + MUL64(tz2, COS(useangle));
-#endif
     //
     // The bounding box.
     //
@@ -9845,15 +9698,10 @@ inline SLONG slide_around_box_lowstack(
     // matrix is its transpose.
     //
 
-#ifndef PSX
     SWAP(matrix[1], matrix[2]);
 
     *x2 = MUL64(best_x, matrix[0]) + MUL64(best_z, matrix[1]);
     *z2 = MUL64(best_x, matrix[2]) + MUL64(best_z, matrix[3]);
-#else
-    *x2 = MUL64(best_x, COS(useangle)) + MUL64(best_z, -SIN(useangle));
-    *z2 = MUL64(best_x, SIN(useangle)) + MUL64(best_z, COS(useangle));
-#endif
 
     *x2 += box_mid_x;
     *z2 += box_mid_z;
@@ -10301,8 +10149,6 @@ COLLIDE_Fastnavrow* COLLIDE_fastnav;
 //
 // Calculate the fastnav bits array.
 //
-#ifndef PSX
-#ifndef TARGET_DC
 void COLLIDE_calc_fastnav_bits()
 {
     //
@@ -10371,8 +10217,6 @@ void COLLIDE_calc_fastnav_bits()
         }
     }
 }
-#endif
-#endif
 
 #ifndef NDEBUG
 
@@ -10395,8 +10239,6 @@ SLONG COLLIDE_can_i_fastnav(SLONG x, SLONG z)
 
 #endif // NDEBUG In release build, this function is a #define
 
-#ifndef PSX
-#ifndef TARGET_DC
 
 void COLLIDE_debug_fastnav(
     SLONG world_x, // 8-bits per mapsquare.
@@ -10456,8 +10298,6 @@ void COLLIDE_debug_fastnav(
         }
 }
 
-#endif
-#endif
 
 // ========================================================
 //
@@ -10465,7 +10305,6 @@ void COLLIDE_debug_fastnav(
 //
 // ========================================================
 
-#ifndef TARGET_DC
 void box_box_early_out(
     SLONG box1_mid_x,
     SLONG box1_mid_z,
@@ -10483,7 +10322,6 @@ void box_box_early_out(
     SLONG box2_yaw)
 {
 }
-#endif
 
 void box_circle_early_out(
     SLONG box1_mid_x,

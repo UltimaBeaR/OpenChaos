@@ -45,14 +45,12 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 BIKE_Bike* BIKE_bike; //[BIKE_MAX_BIKES];
 SLONG BIKE_bike_upto;
 
-#ifndef PSX
 void BIKE_init()
 {
     memset(BIKE_bike, 0, sizeof(BIKE_bike) * BIKE_MAX_BIKES);
 
     BIKE_bike_upto = 1;
 }
-#endif
 //
 // Returns the friction at the given (x,z) 8-bits per mapsquare.
 // The answer is given in 8-bit fixed point. 256 == 100% friction.
@@ -739,7 +737,6 @@ again:;
     //
 
     DIRT_gust(p_bike, bb->back_x >> 8, bb->back_z >> 8, old_back_x >> 8, old_back_z >> 8);
-#ifndef PSX
     MIST_gust(old_back_x >> 8, old_back_z >> 8, bb->back_x >> 8, bb->back_z >> 8);
 
     // ribbon was used for rear light glow but it looked crap.
@@ -773,7 +770,6 @@ again:;
         RIBBON_extend(bb->ribbon2, vector[0] + (p_bike->WorldPos.X >> 8), vector[1] + (p_bike->WorldPos.Y >> 8), vector[2] + (p_bike->WorldPos.Z >> 8));
     }
 //	TRACE("bike d's %d / %d \n",bb->back_dx,bb->back_dz);
-#endif
     //	if (GAME_TURN&1)
     bb->tyrelast = TRACKS_Add(bb->back_x, bb->back_y, bb->back_z, bb->back_dx >> 8, bb->back_dy >> 8, bb->back_dz >> 8, TRACK_TYPE_TYRE, bb->tyrelast);
 
@@ -1385,7 +1381,6 @@ again:;
     }
 }
 
-#ifndef PSX
 
 UWORD BIKE_create(
     SLONG x,
@@ -1488,10 +1483,8 @@ UWORD BIKE_create(
                         } else {
                           bb->ribbon=RIBBON_alloc(RIBBON_FLAG_FADE|RIBBON_FLAG_SLIDE|RIBBON_FLAG_IALPHA,16,POLY_PAGE_ADDITIVEALPHA,-1,8,5+(rand()&7),0,0,0x7F0000);
                         }*/
-#ifndef PSX
             bb->ribbon = RIBBON_alloc(RIBBON_FLAG_FADE | RIBBON_FLAG_SLIDE | RIBBON_FLAG_IALPHA, 10, POLY_PAGE_SMOKER, -1, 8, 5 + (rand() & 7), 1, 0.2, 0x6f6f6f);
             bb->ribbon2 = RIBBON_alloc(RIBBON_FLAG_FADE | RIBBON_FLAG_SLIDE | RIBBON_FLAG_IALPHA, 10, POLY_PAGE_SMOKER, -1, 8, 5 + (rand() & 7), 1, 0.2, 0x6f6f6f);
-#endif
             return THING_NUMBER(p_thing);
         } else {
             free_thing(p_thing);
@@ -1501,7 +1494,6 @@ UWORD BIKE_create(
     return NULL;
 }
 
-#endif
 
 BIKE_Control BIKE_control_get(Thing* p_bike)
 {

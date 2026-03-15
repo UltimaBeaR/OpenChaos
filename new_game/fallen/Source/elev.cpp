@@ -45,13 +45,7 @@
 
 #include "game.h"
 
-#ifndef PSX
 #include "ddlib.h"
-#else
-#define ZeroMemory(a, s) memset((UBYTE*)a, 0, s)
-SLONG PSX_eog_timer;
-extern SLONG MFX_OnKey, MFX_OffKey;
-#endif
 
 #include "eway.h"
 #include "mission.h"
@@ -73,9 +67,7 @@ extern SLONG MFX_OnKey, MFX_OffKey;
 #include "io.h"
 #include "pow.h"
 #include "build2.h"
-#ifndef TARGET_DC
 #include "es.h"
-#endif
 #include "ns.h"
 #include "road.h"
 #include "mav.h"
@@ -100,9 +92,7 @@ extern SLONG MFX_OnKey, MFX_OffKey;
 #include "playcuts.h"
 #include "grenade.h"
 #include "env.h"
-#ifndef PSX
 #include "panel.h"
-#endif
 
 #include "sound.h"
 #ifdef USE_A3D
@@ -111,57 +101,7 @@ extern SLONG MFX_OnKey, MFX_OffKey;
 
 #include "DCLowLevel.h"
 
-#ifdef PSX
 
-//
-// PSX include
-//
-#include "libsn.h"
-#include "psxeng.h"
-
-#define MFFileHandle SLONG
-#define FILE_OPEN_ERROR (-1)
-#define SEEK_MODE_CURRENT (1)
-
-extern SLONG SpecialOpen(CBYTE* name);
-extern SLONG SpecialRead(SLONG handle, UBYTE* ptr, SLONG s1);
-extern SLONG SpecialSeek(SLONG handle, SLONG mode, SLONG size);
-extern SLONG SpecialClose(SLONG handle);
-
-#define FileOpen(x) SpecialOpen(x)
-#define FileClose(x) SpecialClose(x)
-#define FileCreate(x, y) ASSERT(0)
-#define FileRead(h, a, s) SpecialRead(h, (char*)a, s)
-#define FileWrite(h, a, s) ASSERT(0)
-#define FileSeek(h, m, o) SpecialSeek(h, m, o)
-
-#ifdef PSX
-CBYTE* psx_game_name;
-#endif
-
-#define FILE_CLOSE_ERROR ((MFFileHandle) - 101)
-#define FILE_CREATION_ERROR ((MFFileHandle) - 102)
-#define FILE_SIZE_ERROR ((SLONG) - 103)
-#define FILE_READ_ERROR ((SLONG) - 104)
-#define FILE_WRITE_ERROR ((SLONG) - 105)
-#define FILE_SEEK_ERROR ((SLONG) - 106)
-#define FILE_LOAD_AT_ERROR ((SLONG) - 107)
-
-//
-// psx has no sewers at the moment
-//
-SLONG ES_load(CBYTE* filename)
-{
-    return (0);
-}
-
-void ES_build_sewers(void)
-{
-}
-
-#endif
-
-#ifndef PSX
 
 //
 // This is the last map to be loaded.
@@ -194,7 +134,6 @@ void TesterText(CBYTE* error, ...)
 
 #endif
 
-#endif
 
 //
 // to stop psx stack overflow
@@ -205,8 +144,6 @@ void TesterText(CBYTE* error, ...)
 // claude-ai: junk[2048] is a large temp buffer on the stack for reading/discarding header fields.
 // claude-ai: event_point is a global temp used during the EventPoint parsing loop.
 // claude-ai: iamapsx: flag read from ENV (config.ini). Triggers PSX-compatible behaviour on PC.
-#ifndef PSX
-#ifndef TARGET_DC
 extern UBYTE vehicle_random[];
 
 CBYTE junk[2048];
@@ -1762,8 +1699,6 @@ void ELEV_load_level(CBYTE* fname_level)
                 }
 
 //			  abandon_waypoint:;
-#ifndef PSX
-#ifndef TARGET_DC
                 {
                     CBYTE title[256];
 
@@ -1779,8 +1714,6 @@ void ELEV_load_level(CBYTE* fname_level)
                         title,
                         MB_OK | MB_ICONERROR | MB_APPLMODAL);
                 }
-#endif
-#endif
             }
         }
 
@@ -2143,8 +2076,6 @@ void ELEV_load_level(CBYTE* fname_level)
     // the CRIME_RATE stuff is now done be EWAY_created_last_waypoint()
     //
 }
-#endif
-#endif
 
 void save_dreamcast_wad(CBYTE* fname);
 void load_dreamcast_wad(CBYTE* fname);
@@ -2168,57 +2099,7 @@ void ELEV_game_init_common(
     SND_BeginAmbient();
 }
 
-#ifdef TARGET_DC
-// #if 1
 
-SLONG ELEV_game_init(
-    CBYTE* fname_map,
-    CBYTE* fname_lighting,
-    CBYTE* fname_citsez,
-    CBYTE* fname_level)
-{
-    SLONG i;
-
-    // Fix the language-specific stuff by loading the correct DAD file.
-    char cTempName[50];
-    ASSERT(fname_level[0] == 'l');
-    ASSERT(fname_level[1] == 'e');
-    ASSERT(fname_level[2] == 'v');
-    ASSERT(fname_level[3] == 'e');
-    ASSERT(fname_level[4] == 'l');
-    ASSERT(fname_level[5] == 's');
-    ASSERT(fname_level[6] == '\\');
-
-    switch (ENV_get_value_number("lang_num", 0, "")) {
-    case 0:
-        // English.
-        strcpy(cTempName, "levels\\");
-        break;
-    case 1:
-        // French.
-        strcpy(cTempName, "levels_french\\");
-        break;
-    default:
-        ASSERT(FALSE);
-        break;
-    }
-
-    ASSERT(strlen(cTempName) + strlen(&(fname_level[7])) < 45);
-
-    strcat(cTempName, &(fname_level[7]));
-
-    load_dreamcast_wad(cTempName);
-
-    init_user_interface();
-
-    ELEV_game_init_common(fname_map, fname_lighting, fname_citsez, fname_level);
-
-    return TRUE;
-}
-
-#else
-
-#if !defined(PSX)
 SLONG ELEV_game_init(
     CBYTE* fname_map,
     CBYTE* fname_lighting,
@@ -2307,7 +2188,6 @@ SLONG ELEV_game_init(
     //	TRACKS_Reset();
     TRACKS_InitOnce();
     RIBBON_init();
-#ifndef PSX
     load_palette("data\\tex01.pal");
 
     //
@@ -2322,7 +2202,6 @@ SLONG ELEV_game_init(
     PANEL_wide_top_person = NULL;
     PANEL_wide_bot_person = NULL;
 
-#endif
     load_animtmaps();
 
     ATTRACT_loadscreen_draw(25 * 256 / 100);
@@ -2458,7 +2337,6 @@ SLONG ELEV_game_init(
 
     ATTRACT_loadscreen_draw(65 * 256 / 100);
 
-#ifndef PSX
     TEXTURE_fix_prim_textures();
     //	TEXTURE_fix_texture_styles();
 
@@ -2468,13 +2346,10 @@ SLONG ELEV_game_init(
 
     envmap_specials();
 
-#endif
 
     calc_prim_info();
-#ifndef PSX
     calc_prim_normals();
     find_anim_prim_bboxes();
-#endif
 
     loading_screen_active = TRUE;
 
@@ -2681,10 +2556,7 @@ extern void SND_BeginAmbient();
 
     return TRUE;
 }
-#endif
-#endif
 
-#ifndef PSX
 //
 // Fills the destination with the same filename (not the full path) of
 // the source, except it has the given extension. (The extension does
@@ -2767,11 +2639,7 @@ SLONG ELEV_load_name(CBYTE* fname_level)
 
         } else {
             stop_all_fx_and_music();
-#ifdef TARGET_DC
-            the_display.RunCutscene(2, ENV_get_value_number("lang_num", 0, ""));
-#else
             the_display.RunCutscene(2);
-#endif
 
             // Reshow the "loading" screen.
             ATTRACT_loadscreen_init();
@@ -2834,9 +2702,6 @@ SLONG ELEV_load_name(CBYTE* fname_level)
     //
     // Do the load.
     //
-#ifdef PSX
-    printf("Map Name:%s\nLighting:%s\nCitsez:  %s\nLevel:   %s\n", fname_map, fname_lighting, fname_citsez, fname_level);
-#endif
     ans = ELEV_game_init(
         fname_map,
         fname_lighting,
@@ -2856,31 +2721,25 @@ extern MFFileHandle playback_file;
 
 extern CBYTE tab_map_name[];
 
-#endif
 
 // extern SLONG EWAY_conv_active;
 extern SLONG PSX_inv_open;
 
 SLONG ELEV_load_user(SLONG mission)
 {
-#ifndef PSX
     CBYTE* fname_map;
     CBYTE* fname_lighting;
     CBYTE* fname_citsez;
     CBYTE* fname_level;
     CBYTE curr_directory[_MAX_PATH];
 
-#ifndef TARGET_DC
     OPENFILENAME ofn;
-#endif
 
     MFX_QUICK_stop();
     MUSIC_mode(0);
     MUSIC_mode_process();
 
-#ifndef TARGET_DC
 try_again:;
-#endif
 
 /*
         if(mission<0)
@@ -2913,11 +2772,7 @@ try_again:;
 // so we must save and restore it.
 //
 
-#ifdef TARGET_DC
-    curr_directory[0] = '\0';
-#else
     GetCurrentDirectory(_MAX_PATH, curr_directory);
-#endif
 
     if (GAME_STATE & GS_PLAYBACK) {
         UWORD c;
@@ -2980,11 +2835,6 @@ try_again:;
         return res;
     }
 
-#ifdef TARGET_DC
-    // Should never get here on DC.
-    ASSERT(FALSE);
-
-#else // #ifdef TARGET_DC
 
     //
     // So we can see the dialog boxes!
@@ -3259,127 +3109,10 @@ try_again:;
         return FALSE;
     }
 
-#endif // #else //#ifdef TARGET_DC
 
-#else
-
-#if 1
-
-    extern void load_whole_game(CBYTE * gamename);
-    extern char* Wadmenu_AttractMenu(void);
-    extern UBYTE Wadmenu_Video;
-    extern int Wadmenu_Levelwon;
-    extern UBYTE Eidos_Played;
-    extern void Wadmenu_Introduction();
-
-#ifndef VERSION_DEMO
-    do {
-#endif
-        // Stop all sound effects playing
-        MFX_OffKey = -1;
-        MFX_update();
-        DrawSync(0);
-        PSXOverLay(OVERLAY_NAME, OVERLAY_SIZE);
-        if (!Eidos_Played) {
-            Wadmenu_Introduction();
-        }
-
-        if ((wad_level == 33) && Wadmenu_Levelwon)
-            Wadmenu_Video = 4;
-        psx_game_name = Wadmenu_AttractMenu();
-        //		psx_game_name="levels\\level07\\level.nad";
-        if (strcmp(psx_game_name, "MDEC") == 0)
-            psx_game_name = NULL;
-#ifndef VERSION_DEMO
-    } while (!psx_game_name);
-#else
-    if (psx_game_name == NULL)
-        return 0;
-#endif
-
-    load_whole_game(psx_game_name);
-    //	load_whole_game("levels\\botanic1.wad");
-    DIRT_init(100, 1, 0, INFINITY, INFINITY, INFINITY, INFINITY);
-    InitGrenades();
-    SPARK_init();
-
-    extern void PANEL_new_text_init();
-    extern void PANEL_new_widescreen_init();
-    PANEL_new_text_init();
-    PANEL_new_widescreen_init();
-    MUSIC_init_level(wad_level);
-    MFX_Init_Speech(wad_level);
-    PSX_eog_timer = 60;
-    EWAY_conv_active = 0;
-    PSX_inv_open = 0;
-
-    extern void init_record(SLONG level);
-
-#ifndef FS_ISO9660
-    init_record(wad_level);
-#endif
-
-    return (4);
-
-//	return ELEV_load_name("levels\\psx_test.ucp");
-#else
-    CBYTE* fname_map = "data\\jumper1.iam";
-    CBYTE* fname_lighting = "data\\lighting\\jumper1.lgt";
-    CBYTE* fname_citsez = NULL; //"data\\gptest1.sew";
-    CBYTE* fname_level = NULL; //"data\\gptest1.ucm";
-    return ELEV_game_init(
-        fname_map,
-        fname_lighting,
-        fname_citsez,
-        fname_level);
-#endif
-
-#endif
 }
 
 void reload_level(void)
 {
-#ifndef PSX
     ELEV_load_name(ELEV_fname_level);
-#else
-    extern void load_whole_game(CBYTE * gamename);
-    extern void Wadmenu_LoadingScreen(TIM_IMAGE * tim);
-    extern void* mem_all;
-    extern void setup_textures(int world);
-
-    TIM_IMAGE tim;
-
-    extern void end_record(void);
-
-#ifndef FS_ISO9660
-    end_record();
-#endif
-
-    SetupMemory();
-    mem_all = 0;
-    MFX_OffKey = -1;
-    MFX_update();
-
-    ClearOTag(the_display.CurrentDisplayBuffer->ot, OTSIZE);
-    PSXOverLay(OVERLAY_NAME, OVERLAY_SIZE);
-    //	 setup_textures(0);
-    Wadmenu_LoadingScreen(&tim);
-    load_whole_game(psx_game_name);
-    DIRT_init(100, 1, 0, INFINITY, INFINITY, INFINITY, INFINITY);
-    InitGrenades();
-    SPARK_init();
-    extern void PANEL_new_text_init();
-    extern void PANEL_new_widescreen_init();
-    MUSIC_init_level(wad_level);
-    MFX_Init_Speech(wad_level);
-    PANEL_new_text_init();
-    PANEL_new_widescreen_init();
-    PSX_eog_timer = 60;
-    EWAY_conv_active = 0;
-    PSX_inv_open = 0;
-
-    extern void init_playback(void);
-
-//	 init_playback();
-#endif
 }

@@ -44,7 +44,6 @@ void ENV_load(CBYTE *fname)
 	CBYTE *heap_name;
 	CBYTE *heap_val;
 
-#ifndef PSX
 	FILE *handle;
 
 #define ENV_MAX_LINE_LENGTH 256
@@ -207,10 +206,8 @@ void ENV_load(CBYTE *fname)
 
 	MF_Fclose(handle);
 
-#endif
 }
 
-#ifndef PSX
 SLONG ENV_cmp_insensitive(CBYTE *str1, CBYTE *str2)
 {
 	while (1)
@@ -224,13 +221,11 @@ SLONG ENV_cmp_insensitive(CBYTE *str1, CBYTE *str2)
 		str2 += 1;
 	}
 }
-#endif
 
 CBYTE *ENV_get_value_string(CBYTE *name)
 {
 	SLONG i;
 
-#ifndef PSX
 	//
 	// Search backwards so that you get the last value assigned to a name.
 	//
@@ -246,7 +241,6 @@ CBYTE *ENV_get_value_string(CBYTE *name)
 	//
 	// Name not found.
 	//
-#endif
 	return NULL;
 }
 
@@ -254,7 +248,6 @@ SLONG  ENV_get_value_number(CBYTE *name, SLONG def)
 {
 	CBYTE *str;
 	SLONG  val;
-#ifndef PSX
 	//
 	// Find the string...
 	//
@@ -273,9 +266,6 @@ SLONG  ENV_get_value_number(CBYTE *name, SLONG def)
 
 		return val;
 	}
-#else
-	return 0;
-#endif
 }
 
 #endif

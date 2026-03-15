@@ -23,11 +23,7 @@
 #include "statedef.h"
 #include "..\DDEngine\Headers\Matrix.h"
 #include "..\DDEngine\Headers\Sprite.h"
-#ifndef PSX
 #include "..\DDEngine\Headers\poly.h"
-#else
-#include "c:\fallen\psxeng\headers\poly.h"
-#endif
 #include "dirt.h"
 #include "ribbon.h"
 #include "combat.h"
@@ -80,10 +76,8 @@ void init_pyros(void)
 {
     memset((UBYTE*)PYROS, 0, sizeof(Pyro) * MAX_PYROS);
 
-#ifndef PSX
     extern RadPoint PYRO_defaultpoints2[32];
     memset((UBYTE*)PYRO_defaultpoints2, 0, sizeof(RadPoint) * 32);
-#endif
 
     global_spang_count = 0;
     PYRO_COUNT = 1;
@@ -175,7 +169,6 @@ void free_pyro(Thing* p_thing)
     // Free up type-specific info
     switch (pyro->PyroType) {
     case PYRO_IMMOLATE: {
-#ifndef PSX
         UBYTE i, r;
         if (pyro->Dummy == 2)
             r = 5;
@@ -183,7 +176,6 @@ void free_pyro(Thing* p_thing)
             r = 2;
         for (i = 0; i < r; i++)
             RIBBON_free(pyro->radii[i]);
-#endif
         if (pyro->victim && (pyro->victim->Class == CLASS_PERSON))
             pyro->victim->Genus.Person->BurnIndex = 0;
     } break;
@@ -334,15 +326,9 @@ SLONG MergeSoundFX(Thing* thing, Pyro* pyro)
 
     switch (pyro->PyroType) {
     case PYRO_EXPLODE2:
-#ifndef PSX
         sample = S_EXPLODE_START + (rand() % 3);
         mode = 0;
         break;
-#else
-        sample = S_EXPLODE_START;
-        mode = 0;
-        break;
-#endif
     case PYRO_BONFIRE:
     case PYRO_FLICKER:
         //		sample=S_FIRE; mode=WAVE_LOOP; break;
@@ -473,7 +459,6 @@ void PYRO_fn_init(Thing* thing)
             100, 1, 0, 0);
         break;
     case PYRO_IMMOLATE:
-#ifndef PSX
         pyro->radii[0] = RIBBON_alloc(RIBBON_FLAG_CONVECT | RIBBON_FLAG_FADE | RIBBON_FLAG_SLIDE, 8 + (rand() & 7), POLY_PAGE_FLAMES3, -1, 8, 5 + (rand() & 7));
         if (!pyro->radii[0]) {
             free_pyro(thing);
@@ -485,7 +470,6 @@ void PYRO_fn_init(Thing* thing)
             free_pyro(thing);
             return;
         }
-#endif
         pyro->tints[0] = pyro->tints[1] = 0;
         pyro->Dummy = 0;
         break;
@@ -506,9 +490,7 @@ void PYRO_fn_init(Thing* thing)
         pyro->tints[0] = pyro->tints[1] = 0;
         break;
     case PYRO_FLICKER:
-#ifndef PSX
         pyro->Dummy = RIBBON_alloc(RIBBON_FLAG_CONVECT | RIBBON_FLAG_FADE | RIBBON_FLAG_SLIDE, 8 + (rand() & 0xf), POLY_PAGE_FLAMES3, -1, 8, 5 + (rand() & 7));
-#endif
         pyro->scale = 140 + (rand() & 0x7f);
         pyro->radii[0] = 256;
         pyro->radii[1] = 0;
@@ -743,7 +725,6 @@ void PYRO_fn_normal(Thing* thing)
             if (pyro->victim->Class == CLASS_BAT) {
                 UBYTE p, q, r;
                 SLONG px, py, pz;
-#ifndef PSX
                 r = pyro->radius >> 6;
                 r = (r < 5) ? 5 - r : 1;
                 for (p = 0; p < r; p++) {
@@ -767,13 +748,11 @@ void PYRO_fn_normal(Thing* thing)
                         PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FIRE | PFLAG_FADE | PFLAG_RESIZE,
                         300, 90, 1, 4, -1);
                 }
-#endif
             }
 
             if (pyro->victim->Class == CLASS_PERSON) {
                 UBYTE p, q, r;
                 SLONG px, py, pz;
-#ifndef PSX
                 r = pyro->radius >> 6;
                 r = (r < 5) ? 5 - r : 1;
                 for (p = 0; p < r; p++) {
@@ -800,7 +779,6 @@ void PYRO_fn_normal(Thing* thing)
                         PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FIRE | PFLAG_FADE | PFLAG_RESIZE,
                         300, 40, 1, 3, -1);
                 }
-#endif
 
                 if ((pyro->victim->State != STATE_DEAD) && (pyro->victim->State != STATE_DYING) && (pyro->radius < 290)) {
                     if ((pyro->victim->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) || (pyro->victim->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL)) {
@@ -827,7 +805,6 @@ void PYRO_fn_normal(Thing* thing)
                         }
                     }
                 } else {
-#ifndef PSX
                     if (!pyro->Dummy) {
                         RIBBON_life(pyro->radii[0], 30);
                         RIBBON_life(pyro->radii[1], 50);
@@ -853,7 +830,6 @@ void PYRO_fn_normal(Thing* thing)
                         else if (!(pyro->victim->Flags & FLAGS_ON_MAPWHO))
                             free_pyro(thing);
                     }
-#endif
                 }
             }
         }
@@ -927,27 +903,10 @@ void PYRO_fn_normal(Thing* thing)
             pz = pyro->thing->WorldPos.Z >> 8;
             switch (pyro->radius) {
             case 0: // water fountain
-#ifndef PSX
                 DIRT_new_water(px + 2, py, pz, -1, 28, 0);
                 DIRT_new_water(px, py, pz + 2, 0, 29, -1);
                 DIRT_new_water(px, py, pz - 2, 0, 28, +1);
                 DIRT_new_water(px - 2, py, pz, +1, 29, 0);
-#else
-                switch (GAME_TURN & 3) {
-                case 0:
-                    DIRT_new_water(px + 2, py, pz, -1, 28, 0);
-                    break;
-                case 1:
-                    DIRT_new_water(px, py, pz + 2, 0, 29, -1);
-                    break;
-                case 2:
-                    DIRT_new_water(px, py, pz - 2, 0, 28, +1);
-                    break;
-                case 3:
-                    DIRT_new_water(px - 2, py, pz, +1, 29, 0);
-                    break;
-                }
-#endif
                 break;
             case 1:
                 if (!(rand() & 0xff))
@@ -1013,7 +972,6 @@ void PYRO_fn_normal(Thing* thing)
             dz = nz;
         }
 
-#ifndef PSX
         pos = pyro->thing->WorldPos;
         pos.X += dx;
         pos.Z += dz;
@@ -1022,16 +980,11 @@ void PYRO_fn_normal(Thing* thing)
         pos.X -= dx;
         pos.Z -= dz;
         RIBBON_extend(pyro->Dummy, pos.X >> 8, pos.Y / 256, pos.Z >> 8);
-#endif
     } break;
 
     case PYRO_HITSPANG:
 
-#ifdef PSX
-        if (pyro->counter < 3)
-#else
         if (pyro->counter < 5)
-#endif
         {
             pyro->counter++;
         } else {
@@ -1042,13 +995,8 @@ void PYRO_fn_normal(Thing* thing)
 
     case PYRO_GAMEOVER:
         // TRACE("armageddon: %d\n",pyro->counter);
-#ifndef PSX
         if (GAMEMENU_is_paused())
             break;
-#else
-        if (GAME_FLAGS & GF_PAUSED)
-            break;
-#endif
         if (!pyro->counter) {
             SLONG x, y, z;
             for (i = 0; i < 8; i++) {
@@ -1073,7 +1021,6 @@ void PYRO_fn_normal(Thing* thing)
                 NIGHT_dlight_colour(pyro->radii[i], col, col2, 0);
             }
         }
-#ifndef PSX
         if (pyro->counter > 242) {
             GAME_STATE = GS_LEVEL_LOST;
 
@@ -1089,12 +1036,6 @@ void PYRO_fn_normal(Thing* thing)
 
         if (pyro->counter < 253)
             pyro->counter += 3;
-#else
-        if (pyro->counter > 200)
-            GAME_STATE = GS_LEVEL_LOST;
-        if (pyro->counter < 254)
-            pyro->counter += 2;
-#endif
         else {
             for (i = 0; i < 8; i++) {
                 NIGHT_dlight_destroy(pyro->radii[i]);

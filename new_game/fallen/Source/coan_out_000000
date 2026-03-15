@@ -70,3 +70,4 @@ file_error:;
 SLONG QLS_load()
 {
 }
+

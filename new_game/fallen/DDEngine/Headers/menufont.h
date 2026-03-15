@@ -30,9 +30,6 @@ void MENUFONT_Free();
 void MENUFONT_Dimensions(CBYTE* fn, SLONG& x, SLONG& y, SWORD max = -1, SWORD scale = 256);
 SLONG MENUFONT_CharFit(CBYTE* fn, SLONG x, UWORD scale = 256);
 SLONG MENUFONT_CharWidth(CBYTE fn, UWORD scale = 256);
-#ifdef TARGET_DC
-void MENUFONT_Draw_Selection_Box(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags, SWORD max = -1);
-#endif
 
 struct CharData {
     float x, y, ox, oy; // fractional texture coordinates. live with it.
@@ -42,11 +39,6 @@ struct CharData {
 
 extern CharData FontInfo[256];
 
-#ifdef TARGET_DC
-// The Yanks call them VMUs, Europeans call them VMs. Madness.
-// Set this to TRUE if you're a European.
-extern bool bWriteVMInsteadOfVMU;
-#endif
 
 // ========================================================
 //

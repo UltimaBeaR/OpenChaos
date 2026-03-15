@@ -15,11 +15,7 @@
 // a lot of cases.  we can only hope that the driver doesn't read U,V into
 // the FPU because it's not practical to check every single point where a
 // POLY_Point is initialized ...
-#ifdef TARGET_DC
-#define INT_COPY_FLOAT(DST, SRC) ((DST) = (SRC))
-#else
 #define INT_COPY_FLOAT(DST, SRC) *((int*)&(DST)) = *((int*)&(SRC))
-#endif
 
 class PolyPoint2D : private D3DTLVERTEX // don't even *think* about making this a public base-class
 {

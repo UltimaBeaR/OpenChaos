@@ -113,7 +113,6 @@ void PARTICLE_Run()
     // SLONG local_ratio, local_shift;
     // claude-ai: ULONG because the signed version caused negative ratio on fast frames (see original comment)
     ULONG local_ratio, local_shift;
-#ifndef PSX
     SLONG cur_tick, tick_diff;
 
     cur_tick = GetTickCount();
@@ -133,11 +132,6 @@ void PARTICLE_Run()
     } else
         prev_tick = cur_tick;
 
-#else
-    // claude-ai: PSX: fixed tick rate, no real-time adjustment needed
-    local_ratio = TICK_RATIO;
-    local_shift = TICK_SHIFT;
-#endif
 
     if (!particle_count)
         return;
@@ -250,7 +244,6 @@ void PARTICLE_Run()
                         p->life = 1; // killlll
                 }
             }
-#ifndef PSX
             // claude-ai: PFLAG_FIRE — palette-based colour cycling for fire particles.
             // claude-ai: Uses the alpha value (trans = top byte) as an index into fire_pal (768-byte RGB palette).
             // claude-ai: Simultaneously looks up the INVERSE index (256-trans)*3 for the RGB colour.
@@ -264,7 +257,6 @@ void PARTICLE_Run()
                 trans <<= 24;
                 p->colour = trans + (fire_pal[palndx] << 16) + (fire_pal[palndx + 1] << 8) + fire_pal[palndx + 2];
             }
-#endif
 
             // claude-ai: PFLAG_BOUNCE — particle bounces off the terrain surface.
             // claude-ai: Reflects Y velocity: dy = -(dy * 180 >> 8) ≈ -0.703 * dy (not elastic; energy lost).
@@ -498,16 +490,9 @@ void PARTICLE_Run()
         // claude-ai: PC: life -= local_ratio >> local_shift  (~1 per normal tick, more on slow frames).
         // claude-ai: PSX: fixed decrement of 2 per tick (constant frame rate assumption).
         // claude-ai: "ending too late is Real Bad" — leaked particle stays in used list indefinitely.
-#ifdef PSX
-        //			if ((local_ratio>>local_shift))
-        //				p->life-=local_ratio>>local_shift;
-        //			else
-        p->life -= 2;
-#else
         SLONG temp = local_ratio >> local_shift;
         //			TRACE("old life: %d   subtracting: %d\n",p->life,temp);
         p->life -= local_ratio >> local_shift;
-#endif
         // claude-ai: PARTICLE RECYCLING — unlink dead particle from used list, prepend to free list.
         // claude-ai: Save p->prev in temp BEFORE unlinking so the iterator can advance to previous element.
         if (p->life <= 0) {
@@ -644,7 +629,6 @@ UWORD PARTICLE_Add(SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz, UWOR
 // claude-ai: These helper functions are PC-only (#ifndef PSX) and pre-configure Particle structs for
 // claude-ai: common game effects: exhaust smoke, steam jets, smoke grenades.
 // claude-ai: Port note: keep these as convenience factories; adapt to new particle API.
-#ifndef PSX
 // claude-ai: PARTICLE_Exhaust — emits 'density' smoke particles at a fixed world position.
 // claude-ai: Used for stationary exhaust vents. PFLAG_WANDER makes smoke billow randomly.
 // claude-ai: disperse controls fade rate (higher = shorter-lived cloud).
@@ -888,4 +872,3 @@ UWORD PARTICLE_SGrenade(Thing* object, UBYTE time)
     return res;
 }
 
-#endif

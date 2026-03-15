@@ -53,22 +53,14 @@
 #include "mav.h"
 #include "vehicle.h"
 #include "eway.h"
-#ifndef PSX
 #include "ddlib.h"
 #include "..\ddengine\headers\planmap.h"
 #include "..\ddengine\headers\poly.h"
 #include "font2d.h"
-#else
-#include "c:\fallen\psxeng\headers\psxeng.h"
-#include "c:\fallen\psxeng\headers\panel.h"
-#endif
 #include "interfac.h"
 
 #include "eway.h"
 #include "xlat_str.h"
-#ifdef PSX
-#include "ctrller.h"
-#endif
 
 #ifdef MIKE
 #define VERSION_NTSC 1
@@ -151,7 +143,6 @@ struct TrackEnemy panel_enemy[MAX_TRACK];
 #define HELP_USE_CAR 2
 #define HELP_USE_BIKE 3
 
-#ifndef TARGET_DC
 CBYTE* help_text[] = {
     "Jump up to grab cables",
     "Press action to pickup items",
@@ -161,10 +152,7 @@ CBYTE* help_text[] = {
 };
 
 UWORD help_xlat[] = { X_GRAB_CABLE, X_PICK_UP, X_ENTER_VEHICLE, X_USE_BIKE };
-#endif
 
-#ifndef PSX
-#ifndef TARGET_DC
 SLONG should_i_add_message(SLONG type)
 {
     static SLONG last_message[4] = { 0, 0, 0, 0 }; // The gameturn when the last message was added.
@@ -238,8 +226,6 @@ void arrow_pos(SLONG x, SLONG y, SLONG z, SLONG dir, SLONG type)
     }
     */
 }
-#endif
-#endif
 
 void Time(struct MFTime* the_time);
 
@@ -627,8 +613,6 @@ void track_gun_sight(Thing* p_thing, SLONG accuracy)
     */
 }
 
-#ifndef PSX
-#ifndef TARGET_DC
 void OVERLAY_draw_tracked_enemies(void)
 {
     SLONG c0;
@@ -642,13 +626,8 @@ void OVERLAY_draw_tracked_enemies(void)
             if (h < 0)
                 h = 0;
             void PANEL_draw_face(SLONG x, SLONG y, SLONG face, SLONG size);
-#ifndef PSX
             PANEL_draw_face(c0 * 150 + 5, 450 - 14, panel_enemy[c0].Face, 32);
             PANEL_draw_health_bar(40 + c0 * 150, 450, h >> 1);
-#else
-            PANEL_draw_face((c0 << 7), 214, panel_enemy[c0].Face, 16);
-            PANEL_draw_health_bar(24 + (c0 << 7), 220, h >> 1);
-#endif
 
             PANEL_draw_health_bar(40 + c0 * 150, 460, (GET_SKILL(panel_enemy[c0].PThing) * 100) / 15);
 
@@ -661,8 +640,6 @@ void OVERLAY_draw_tracked_enemies(void)
         }
     }
 }
-#endif
-#endif
 
 void OVERLAY_draw_gun_sights(void)
 {
@@ -741,15 +718,12 @@ void OVERLAY_draw_gun_sights(void)
 
         if (!p_player->Genus.Person->Ware) {
 
-#ifndef PSX
             void show_grenade_path(Thing * p_person);
             show_grenade_path(p_player);
-#endif
         }
     }
 }
 
-#ifndef PSX
 void OVERLAY_draw_health(void)
 {
     SLONG ph;
@@ -767,7 +741,6 @@ void OVERLAY_draw_stamina(void)
         ph = 0;
     PANEL_draw_health_bar(10, 30, (ph * 100) >> 8);
 }
-#endif
 
 extern void PANEL_draw_local_health(SLONG mx, SLONG my, SLONG mz, SLONG percentage, SLONG radius = 60);
 
@@ -785,11 +758,7 @@ void OVERLAY_draw_enemy_health(void)
             switch (p_target->Class) {
             case CLASS_BAT:
                 if (p_target->Genus.Bat->type == BAT_TYPE_BALROG) {
-#ifndef PSX
                     PANEL_draw_local_health(p_target->WorldPos.X >> 8, p_target->WorldPos.Y >> 8, p_target->WorldPos.Z >> 8, (100 * p_target->Genus.Bat->health) >> 8, 300);
-#else
-                    PANEL_draw_local_health(p_target->WorldPos.X >> 8, p_target->WorldPos.Y >> 8, p_target->WorldPos.Z >> 8, (100 * p_target->Genus.Bat->health) >> 8, 150);
-#endif
                 }
                 break;
             case CLASS_PERSON:
@@ -815,77 +784,6 @@ void OVERLAY_draw_enemy_health(void)
         }
     }
 }
-#ifdef PSX
-CBYTE punch[3];
-CBYTE kick[3];
-
-void init_punch_kick(void)
-{
-#ifdef VERSION_NTSC
-    SLONG c0;
-    for (c0 = 0; c0 < 14; c0++) {
-        if (PAD_Current->data[c0].input_mask > 0) {
-            if (PAD_Current->data[c0].input_mask & INPUT_MASK_PUNCH) {
-                switch (PAD_Current->data[c0].pad_button) {
-                case PAD_RU:
-                    sprintf(punch, STR_TRI);
-                    break;
-                case PAD_RL:
-                    sprintf(punch, STR_SQUARE);
-                    break;
-                case PAD_RR:
-                    sprintf(punch, STR_CIRCLE);
-                    break;
-                case PAD_RD:
-                    sprintf(punch, STR_CROSS);
-                    break;
-                case PAD_FLT:
-                    sprintf(punch, "L1");
-                    break;
-                case PAD_FRT:
-                    sprintf(punch, "R1");
-                    break;
-                case PAD_FLB:
-                    sprintf(punch, "L2");
-                    break;
-                case PAD_FRB:
-                    sprintf(punch, "R2");
-                    break;
-                }
-            }
-            if (PAD_Current->data[c0].input_mask & INPUT_MASK_KICK) {
-                switch (PAD_Current->data[c0].pad_button) {
-                case PAD_RU:
-                    sprintf(kick, STR_TRI);
-                    break;
-                case PAD_RL:
-                    sprintf(kick, STR_SQUARE);
-                    break;
-                case PAD_RR:
-                    sprintf(kick, STR_CIRCLE);
-                    break;
-                case PAD_RD:
-                    sprintf(kick, STR_CROSS);
-                    break;
-                case PAD_FLT:
-                    sprintf(kick, "L1");
-                    break;
-                case PAD_FRT:
-                    sprintf(kick, "R1");
-                    break;
-                case PAD_FLB:
-                    sprintf(kick, "L2");
-                    break;
-                case PAD_FRB:
-                    sprintf(kick, "R2");
-                    break;
-                }
-            }
-        }
-    }
-#endif
-}
-#endif
 
 static SWORD timer_prev = 0;
 
@@ -945,10 +843,8 @@ void OVERLAY_handle(void)
 
     if (!EWAY_stop_player_moving()) {
         if (panel) {
-#ifndef TARGET_DC
             // This is all fucked - don't do it.
             PANEL_draw_buffered();
-#endif
             OVERLAY_draw_gun_sights();
             OVERLAY_draw_enemy_health();
         }
@@ -956,9 +852,6 @@ void OVERLAY_handle(void)
 
     //	OVERLAY_draw_damage_values();
     if (panel) {
-#ifdef PSX
-        PANEL_new_funky();
-#else
 
         /*
                         if (Keys[KB_B])
@@ -973,7 +866,6 @@ void OVERLAY_handle(void)
                 PANEL_last();
             }
         }
-#endif
     }
 
     //	if((GAME_TURN&15)==0)
@@ -1024,39 +916,6 @@ void OVERLAY_handle(void)
 	}
 #endif
 
-#ifdef PSX
-
-    extern UBYTE combo_display;
-#ifdef VERSION_NTSC
-    if (combo_display || timer_prev) {
-        static SWORD timer = 0;
-
-        timer += TICK_TOCK;
-
-        if (timer > 1500)
-            timer = 0;
-
-        if (combo_display == 1)
-            timer_prev = 10;
-        else if (combo_display == 2)
-            timer_prev = -10;
-
-        combo_display = 0;
-
-        if (timer_prev > 0) {
-            timer_prev--;
-            if (timer > 0 && timer < 100 || timer > 200 && timer < 300 || timer > 700 && timer < 900)
-
-                FONT2D_DrawString(punch, 10, 80);
-        } else if (timer_prev < 0) {
-            timer_prev++;
-            if (timer > 0 && timer < 100 || timer > 350 && timer < 500 || timer > 700 && timer < 850)
-
-                FONT2D_DrawString(kick, 10, 80);
-        }
-    }
-#endif
-#endif
 
     if (!draw_map_screen) {
         // Waste not Want no, why have we got 50 bytes.
@@ -1078,7 +937,6 @@ void OVERLAY_handle(void)
 
         if (darci) {
             if (darci->State == STATE_SEARCH) {
-#ifndef PSX
                 /*
 
                 SLONG percent = darci->Genus.Person->Timer1 >> 8;
@@ -1107,18 +965,11 @@ void OVERLAY_handle(void)
                         512);
 
                 */
-#else
-                extern void PANEL_draw_search(SLONG timer);
-
-                PANEL_draw_search(darci->Genus.Person->Timer1);
-#endif
             }
         }
     }
 
-#ifndef PSX
     PANEL_inventory(darci, player);
-#endif
 
     // #if 0
     //  I have found the offending code, Holmes!
@@ -1126,7 +977,6 @@ void OVERLAY_handle(void)
     //  I shall fetch the larger of my beating sticks.
     extern UBYTE cheat;
 
-#ifndef TARGET_DC
     if (cheat == 2) {
         CBYTE str[50];
         ULONG in;
@@ -1135,10 +985,8 @@ void OVERLAY_handle(void)
         if (tick_tock_unclipped == 0)
             tick_tock_unclipped = 1;
 
-#ifndef PSX
         extern SLONG SW_tick1;
         extern SLONG SW_tick2;
-#endif
         extern ULONG debug_input;
         in = debug_input;
 
@@ -1147,31 +995,17 @@ void OVERLAY_handle(void)
         extern SLONG look_pitch;
 
 //		sprintf(str,"(%d,%d,%d) fps %d up %d down %d left %d right %d geom %d",darci->WorldPos.X>>16,darci->WorldPos.Y>>16,darci->WorldPos.Z>>16,((1000)/tick_tock_unclipped)+1,in&INPUT_MASK_FORWARDS,in&INPUT_MASK_BACKWARDS,in&INPUT_MASK_LEFT,in&INPUT_MASK_RIGHT,geom);
-#ifndef PSX
 
         // for eidos build		sprintf(str,"(%d,%d,%d) fps %d render ticks %d",darci->WorldPos.X>>16,darci->WorldPos.Y>>16,darci->WorldPos.Z>>16,((1000)/tick_tock_unclipped)+1, SW_tick2 - SW_tick1);
         sprintf(str, "(%d,%d,%d) fps %d", darci->WorldPos.X >> 16, darci->WorldPos.Y >> 16, darci->WorldPos.Z >> 16, ((1000) / tick_tock_unclipped) + 1);
-#else
-        sprintf(str, "(%d,%d,%d) fps %d", darci->WorldPos.X >> 16, darci->WorldPos.Y >> 16, darci->WorldPos.Z >> 16, ((1000) / tick_tock_unclipped) + 1);
-#endif
 
-#ifdef PSX
-        FONT2D_DrawString(str, 20, 212, 0xffffff, 256);
-
-#else
         FONT2D_DrawString(str, 2, 2, 0xffffff, 256);
-#endif
     }
-#endif
 
     // #endif
 
     if (GAME_STATE & GS_LEVEL_LOST) {
-#ifdef PSX
-        PANEL_draw_eog(0);
-#endif
 
-#ifndef PSX
 
         /*
 
@@ -1203,9 +1037,7 @@ void OVERLAY_handle(void)
 
         */
 
-#endif
     } else if (GAME_STATE & GS_LEVEL_WON) {
-#ifndef PSX
 
         /*
 
@@ -1224,12 +1056,6 @@ void OVERLAY_handle(void)
                 512);
 
         */
-#else
-        PANEL_draw_eog(1);
-//		POLY2D_TextImage(IMAGE_LEVEL_COMPLETE,(DisplayWidth>>1)-98,(DisplayHeight>>1)-10,0x00ff00);
-//		if (GAME_TURN&24)
-//			draw_text_at(DISPLAYWIDTH-128,212,STR_CROSS" to Continue",0x00ffff);
-#endif
     }
 
     /*
@@ -1300,7 +1126,6 @@ ULONG	col_type[]=
 
 void overlay_beacons(void)
 {
-#ifndef PSX
 /*
         SLONG	c0;
         Thing			*t_thing;
@@ -1330,7 +1155,6 @@ void overlay_beacons(void)
 
         }
 */
-#endif
 }
 
 #ifdef DAMAGE_TEXT

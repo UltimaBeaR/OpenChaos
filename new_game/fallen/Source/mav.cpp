@@ -11,9 +11,7 @@
 
 #include "game.h"
 #include "mav.h"
-#ifndef PSX
 #include "..\ddengine\headers\aeng.h"
-#endif
 #include "pap.h"
 #include "supermap.h"
 #include "walkable.h"
@@ -120,7 +118,6 @@ static void StoreMavOpts(SLONG x, SLONG z, UBYTE* opt)
 //
 // Calculates the MAV_height array.
 //
-#ifndef PSX
 void MAV_calc_height_array(SLONG ignore_warehouses)
 {
     SLONG i;
@@ -308,7 +305,6 @@ void MAV_calc_height_array(SLONG ignore_warehouses)
 
     */
 }
-#endif
 
 // claude-ai: MAV_turn_off_square removes only the plain-walk (MAV_CAPS_GOTO) edge INTO cell (x,z)
 // claude-ai: from each of its 4 neighbours. Climbing/jumping edges from neighbours are preserved.
@@ -317,7 +313,6 @@ void MAV_calc_height_array(SLONG ignore_warehouses)
 // Makes sure that nobody mavigates into the given square by walking
 // into it.
 //
-#ifndef PSX
 void MAV_turn_off_square(
     SLONG x,
     SLONG z)
@@ -363,8 +358,6 @@ void MAV_turn_off_square(
         }
     }
 }
-#endif
-#ifndef PSX
 
 // claude-ai: MAV_turn_off_whole_square removes ALL movement capabilities (all bits) into cell (x,z)
 // claude-ai: from each of its 4 neighbours — no walking, climbing, or jumping allowed into this cell.
@@ -516,7 +509,6 @@ void MAV_remove_facet_car(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
     }
 }
 
-#endif
 
 //
 // Turns off movement in the given direction from the square.
@@ -575,8 +567,6 @@ void MAV_turn_movement_on(UBYTE mx, UBYTE mz, UBYTE dir)
 // claude-ai:   4. Apply staircase hacks (turn off lateral movement on stair cells, enable stair direction).
 // claude-ai:   5. Remove sloped/NOGO cells from nav.
 // claude-ai:   6. Mark water texture cells with MAV_SPARE_FLAG_WATER.
-#ifndef PSX
-#ifndef TARGET_DC
 void MAV_precalculate()
 {
     SLONG i;
@@ -1491,8 +1481,6 @@ void MAV_draw(
 
     TRACE("MAV_opts_upto = %d\n", MAV_opt_upto);
 }
-#endif
-#endif
 
 //
 // claude-ai: MAV_can_i_walk is the path-smoothing function: given a sequence of grid waypoints,
@@ -2540,7 +2528,6 @@ SLONG MAV_find_building_entrance(
 }
 #endif
 
-#ifndef PSX
 // claude-ai: MAV_precalculate_warehouse_nav: builds a SEPARATE nav grid for a single warehouse interior.
 // claude-ai: Warehouses are large indoor areas with PAP_FLAG_HIDDEN set on their cells.
 // claude-ai: The function temporarily redirects MAV_nav to WARE_nav[ww->nav] with the warehouse's own pitch.
@@ -3087,7 +3074,6 @@ void MAV_precalculate_warehouse_nav(UBYTE ware)
     MAV_nav = old_mav_nav;
     MAV_nav_pitch = old_mav_nav_pitch;
 }
-#endif
 
 // claude-ai: MAV_get_caps: reads the raw capability bitmask for one direction from a given cell.
 // claude-ai: Returns 0 if out of bounds. Used by external code to query what moves are possible from a cell.

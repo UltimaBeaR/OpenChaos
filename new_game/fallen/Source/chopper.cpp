@@ -45,7 +45,6 @@ GenusFunctions CHOPPER_functions[CHOPPER_NUMB] = {
 // Zeros out the choppers in the 'the_game' structure.
 //
 
-#ifndef PSX
 void init_choppers(void)
 {
     memset((UBYTE*)CHOPPERS, 0, sizeof(Chopper) * MAX_CHOPPERS);
@@ -56,7 +55,6 @@ void init_choppers(void)
 //
 // Creates a new chopper of the given type.
 //
-#endif
 
 Thing* alloc_chopper(UBYTE type)
 {
@@ -162,7 +160,6 @@ found_chopper:
         free_draw_mesh(dm);
     }
 }
-#ifndef PSX
 void free_chopper(Thing* p_thing)
 {
     Chopper* chopper = CHOPPER_get_chopper(p_thing);
@@ -176,7 +173,6 @@ void free_chopper(Thing* p_thing)
 
     free_thing(p_thing);
 }
-#endif
 
 Thing* CHOPPER_create(GameCoord pos, UBYTE type)
 {

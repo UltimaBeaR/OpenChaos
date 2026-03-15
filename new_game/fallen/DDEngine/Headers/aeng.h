@@ -16,11 +16,7 @@
 // 0 enables the old engine again.
 // NOTE! There are other versions of this define dotted around in other header
 // files! Make sure they all agree or you'll have grief.
-#ifdef TARGET_DC
 #define USE_TOMS_ENGINE_PLEASE_BOB 1
-#else
-#define USE_TOMS_ENGINE_PLEASE_BOB 1
-#endif
 
 //
 // Call once at the start of the whole program.
@@ -406,36 +402,6 @@ extern void PANEL_finish(void);
 // read detail levels from disc
 void AENG_read_detail_levels();
 
-#ifdef TARGET_DC
-// get the prevaling settings
-void AENG_get_detail_levels( // int* stars,
-    int* shadows,
-    // int* moon_reflection,
-    // int* people_reflection,
-    int* puddles,
-    int* dirt,
-    int* mist,
-    int* rain,
-    int* skyline,
-    // int* filter,
-    // int* perspective,
-    int* crinkles);
-
-// change the prevaling settings
-void AENG_set_detail_levels( // int stars,
-    int shadows,
-    // int moon_reflection,
-    // int people_reflection,
-    int puddles,
-    int dirt,
-    int mist,
-    int rain,
-    int skyline,
-    // int filter,
-    // int perspective,
-    int crinkles);
-
-#else
 // get the prevaling settings
 void AENG_get_detail_levels(int* stars,
     int* shadows,
@@ -464,6 +430,5 @@ void AENG_set_detail_levels(int stars,
     int perspective,
     int crinkles);
 
-#endif
 
 #endif

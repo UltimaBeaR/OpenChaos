@@ -71,16 +71,9 @@ enum HeightType {
 
 //---------------------------------------------------------------
 // Maps textures to soundfx
-#ifndef PSX
 UBYTE* SOUND_FXMapping; //[1024];
 // UWORD *SOUND_FXGroups;//[128][2]; // "128 groups should be enough for anybody"(TM)
 SOUNDFXG* SOUND_FXGroups; //[128][2]; // because its a 2d array we need to fudge the system into thingink its 2d still using typedef
-#else
-/*
-UBYTE SOUND_FXMapping[512];
-UWORD SOUND_FXGroups[8][2];	// "8 should be more than enough for the PSX"
-*/
-#endif
 
 //---------------------------------------------------------------
 /*
@@ -110,7 +103,6 @@ static SLONG wind_id = 0, tick_tock = 0;
 // claude-ai: indoors_vol/outdoors_vol crossfade based on GF_INDOORS flag. weather_vol fades to 128 indoors.
 static SLONG indoors_id = 0, outdoors_id = 0, rain_id = 0, rain_id2 = 0, thunder_id = 0, indoors_vol = 0, outdoors_vol = 255, weather_vol = 255, music_vol = 255, next_music = 0;
 
-#ifndef PSX
 void init_ambient(void)
 {
     indoors_id = 0, outdoors_id = 0, rain_id = 0, rain_id2 = 0, thunder_id = 0, indoors_vol = 0, outdoors_vol = 255, weather_vol = 255, music_vol = 255, next_music = 0;
@@ -202,7 +194,6 @@ void SND_BeginAmbient()
 // claude-ai: All three use PlayAmbient3D to position sounds in 3D space around the player.
 void new_outdoors_effects()
 {
-#ifndef PSX
     SLONG c0, dx, dy, dz, wave_id;
 
     // make "siren" effects
@@ -269,9 +260,7 @@ void new_outdoors_effects()
             else if (wtype == Snow)
                 wave_id = snow_sounds[Random() & 3];
 
-#ifndef TARGET_DC
             TRACE("playing amb sound: %d\n", wave_id);
-#endif
 
             //			PlayAmbient3D(AMBIENT_EFFECT_REF, wave_id, (wtype == Snow) ? MFX_QUEUED : 0, InAir);
             PlayAmbient3D(AMBIENT_EFFECT_REF, wave_id, MFX_QUEUED, InAir);
@@ -300,7 +289,6 @@ void new_outdoors_effects()
             MFX_set_gain(AMBIENT_EFFECT_REF, S_FOGHORN, volume);
         }
     }
-#endif
 }
 
 // claude-ai: process_ambient_effects — called every game tick. Crossfades indoor/outdoor volume layers.
@@ -343,9 +331,6 @@ void process_ambient_effects(void)
 // claude-ai: All MFX_* calls here — MSS32 API — replace entirely with miniaudio or SDL_mixer
 void process_weather(void)
 {
-#ifdef PSX
-    return;
-#else
 
     SLONG x = NET_PERSON(PLAYER_ID)->WorldPos.X,
           y = NET_PERSON(PLAYER_ID)->WorldPos.Y,
@@ -445,7 +430,6 @@ void process_weather(void)
             // This must be done by the music system for the DC!
             //
 
-#ifndef TARGET_DC
 
             amb = WARE_ware[p_player->Genus.Person->Ware].ambience;
             if (amb == 4) {
@@ -457,10 +441,8 @@ void process_weather(void)
             } else if (amb)
                 MFX_play_ambient(WEATHER_REF, indoors_waves[amb - 1], MFX_LOOPED);
 
-#endif
         }
     }
-#endif // PSX
 }
 
 // claude-ai: SOUND_reset — stops all playing audio and resets all ambient state. Called on level load/unload.
@@ -484,7 +466,6 @@ void SOUND_reset(void)
     next_music = 0;
     music_vol = 255;
 }
-#endif
 
 //---------------------------------------------------------------
 //						Version independent
@@ -722,8 +703,6 @@ void StopScreamFallSound(Thing* p_thing)
 // claude-ai: KEEP this logic in new version (sound group ranges needed). REPLACE GetPrivateProfileSection with custom INI parser.
 void SOUND_InitFXGroups(CBYTE* fn)
 {
-#ifndef PSX
-#ifndef TARGET_DC
     CBYTE* buff = new char[32768];
     CBYTE *pt, *split;
     CBYTE name[128], value[128];
@@ -757,8 +736,6 @@ void SOUND_InitFXGroups(CBYTE* fn)
     }
 
     delete[] buff;
-#endif
-#endif
 }
 
 /*
@@ -767,7 +744,6 @@ SLONG	play_quick_wave_old(WaveParams *wave,SLONG sample,SLONG id,SLONG mode)
         return play_quick_wave_xyz(wave->Mode.Cartesian.X,wave->Mode.Cartesian.Y,wave->Mode.Cartesian.Z,sample,id,mode);
 }
 */
-#ifndef PSX
 // claude-ai: play_ambient_wave — plays a sound offset from the camera position.
 // claude-ai: flags&1: randomise angle ±128 units around 896 (roughly "ahead and to the side")
 // claude-ai: flags==0: angle=1024 (exactly behind camera — 1024/2048 = 180° in PSX angle units)
@@ -805,7 +781,6 @@ SLONG play_ambient_wave(SLONG sample, SLONG id, SLONG mode, SLONG range, UBYTE f
     return id;
     //	return play_quick_wave_xyz(x+dx,y,z+dz,sample,id,mode);
 }
-#endif
 
 // claude-ai: play_glue_wave — called from script/level data to trigger positioned sounds.
 // claude-ai: type=0: overlapping one-shot on channel 0 (multiple instances allowed via MFX_OVERLAP)
@@ -886,7 +861,6 @@ void	NewLoadWaveList(CBYTE *names[]) {
 }
 */
 
-#if !defined(PSX) && !defined(TARGET_DC)
 
 // THE SEWERS ARE DEAD, LONG LIVE THE SEWERS
 
@@ -988,4 +962,3 @@ void SewerSoundProcess()
             }*/
 }
 
-#endif

@@ -2,7 +2,6 @@
 //
 // PolyPage class - main low-level rendering
 
-#ifndef TARGET_DC
 
 // PC
 
@@ -11,16 +10,6 @@
 // Do need to sort, and so need polybuffers
 #define WE_NEED_POLYBUFFERS_PLEASE_BOB 1
 
-#else
-
-// DREAMCAST
-
-// But it makes the VQ much more efficient, so do it!
-#define TEX_EMBED // must be set the same in D3DTexture.h
-// Don't need to sort, and so don't need polybuffers
-#define WE_NEED_POLYBUFFERS_PLEASE_BOB 0
-
-#endif
 
 #ifndef _POLYPAGE_
 #define _POLYPAGE_
@@ -85,12 +74,6 @@ public:
     // set scaling for different screen sizes
     static void SetScaling(float xmul, float ymul);
 
-#ifdef TARGET_DC
-    // DC does all our sorting for us.
-    static void EnableAlphaSort() { }
-    static void DisableAlphaSort() { }
-    static bool AlphaSortEnabled() { return FALSE; }
-#else
 
     // sort polygons in approx. Z order
     void SortBackFirst();
@@ -99,7 +82,6 @@ public:
     static void EnableAlphaSort() { s_AlphaSort = true; }
     static void DisableAlphaSort() { s_AlphaSort = false; }
     static bool AlphaSortEnabled() { return s_AlphaSort; }
-#endif
 
     // render polygons to card
 #if WE_NEED_POLYBUFFERS_PLEASE_BOB
@@ -122,9 +104,7 @@ public:
     RenderState RS;
 
     // static members
-#ifndef TARGET_DC
     static bool s_AlphaSort; // alpha sort enabled flag
-#endif
     static ULONG s_ColourMask; // colour mask for green-screen monitor FX
     static float s_XScale; // X scale for screen vertices
     static float s_YScale; // Y scale for screen vertices
@@ -250,12 +230,6 @@ extern D3DMATRIX g_matProjection;
 extern D3DMATRIX g_matWorld;
 extern D3DVIEWPORT2 g_viewData;
 
-#ifdef TARGET_DC
-
-// Just a straight alias.
-#define DrawIndPrimMM(dev, type, d3dmm, numvert, pwind, numind) dev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, type, (void*)d3dmm, numvert, pwind, numind, D3DDP_MULTIMATRIX)
-
-#else
 
 // This is already defined by DX in a DC build.
 struct D3DMULTIMATRIX {
@@ -277,7 +251,6 @@ extern HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
     WORD* pwIndices,
     DWORD dwNumIndices);
 
-#endif
 
 // Useful.
 #define GET_MM_INDEX(v) (((unsigned char*)&v)[12])

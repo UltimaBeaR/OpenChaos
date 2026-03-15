@@ -14,13 +14,8 @@
 // MISC CONFIG DEFINES
 //
 
-#ifndef PSX
 #define MAX_STRING_SPACE (8192)
 #define MAX_STRINGS (256)
-#else
-#define MAX_STRING_SPACE (4096)
-#define MAX_STRINGS (256)
-#endif
 
 //----------------------------------------------------------------------------
 // TOKEN DEFINES
@@ -228,35 +223,6 @@
 #define X_BONUS_MISSION_UNLOCKED (178)
 #define X_JUMP_CAM (179)
 
-#ifdef TARGET_DC
-#define X_PAD_MODE (180)
-#define X_PAD_CUSTOM (181)
-#define X_PAD_WALK (182)
-#define X_CHANGE_JOYPAD (183)
-#define X_TURN (184)
-#define X_MOVE (185)
-#define X_PANEL (186)
-#define X_LANGUAGE (187)
-#define X_ENGLISH (188)
-#define X_FRENCH (189)
-#define X_VMU_SELECT (190)
-#define X_VMU_NOT_PRESENT (191)
-#define X_VMU_FULL (192)
-#define X_VMU_CONTROLLER_SLOT (193)
-#define X_GAME_SAVE_FAILED (194)
-#define X_GAME_LOADED (195)
-#define X_GAME_LOAD_FAILED (196)
-#define X_GENERAL (197)
-#define X_OVERWRITE_SURE (198)
-#define X_NO_CONTROLLER_CONNECTED (199)
-#define X_CONTROLLER_REMOVED (200)
-#define X_VIBRATION (201)
-#define X_VIBRATION_ENG (202)
-#define X_GAME_LOADING (203)
-#define X_GAME_SAVING (204)
-#define X_VMU_X_BLOCKS_REQUIRED (205)
-#define X_GAME_NAME (206)
-#endif
 
 //----------------------------------------------------------------------------
 // FUNCS

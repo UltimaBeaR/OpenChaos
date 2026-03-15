@@ -107,15 +107,11 @@
 #include "fc.h"
 #include "ob.h"
 #include "spark.h"
-#ifndef PSX
 #include "panel.h"
-#endif
 
 #include "memory.h"
 extern UBYTE stealth_debug;
-#ifndef PSX
 extern BOOL allow_debug_keys;
-#endif
 
 //
 // local prototypes
@@ -152,7 +148,6 @@ extern SLONG there_is_a_los_mav( // From collide.cpp
     SLONG x1, SLONG y1, SLONG z1,
     SLONG x2, SLONG y2, SLONG z2);
 
-#ifndef PSX
 CBYTE* PCOM_ai_state_name[PCOM_AI_STATE_NUMBER] = {
     "Player",
     "Normal",
@@ -266,7 +261,6 @@ CBYTE* PCOM_move_name[PCOM_MOVE_NUMBER] = {
     "TIED_UP",
 };
 
-#endif
 
 //
 // The movement states a person can be in.
@@ -299,7 +293,6 @@ CBYTE* PCOM_move_name[PCOM_MOVE_NUMBER] = {
 #define PCOM_MOVE_SPEED_YOMP PERSON_SPEED_YOMP
 #define PCOM_MOVE_SPEED_SPRINT PERSON_SPEED_SPRINT
 
-#ifndef PSX
 CBYTE* PCOM_move_state_name[] = {
     "Player",
     "Still",
@@ -324,7 +317,6 @@ CBYTE* PCOM_move_state_name[] = {
     "Unused",
     "Unused"
 };
-#endif
 
 //
 // While mavigating, a person is either running/walking to a point or
@@ -987,9 +979,7 @@ void PCOM_get_vehicle_navsquare(
         *map_dest_z = iz2 >> 8;
     }
 
-#ifndef TARGET_DC
 #ifndef NDEBUG
-#ifndef PSX
     AENG_world_line(
         p_person->WorldPos.X >> 8,
         p_person->WorldPos.Y >> 8,
@@ -1002,8 +992,6 @@ void PCOM_get_vehicle_navsquare(
         0,
         0xff0000,
         TRUE);
-#endif
-#endif
 #endif
 }
 
@@ -3017,9 +3005,7 @@ void check_players_gang(Thing* p_target)
         if (gang_attacks[gang].Perp[c0]) {
 
             p_person = TO_THING(gang_attacks[gang].Perp[c0]);
-#ifndef PSX
 //			 AENG_world_line_infinite(p_target->WorldPos.X>>8,p_target->WorldPos.Y>>8,p_target->WorldPos.Z>>8,3,0xffffff,p_person->WorldPos.X>>8,p_person->WorldPos.Y>>8,p_person->WorldPos.Z>>8,0,0xffffff,1);
-#endif
             if (p_person->Genus.Person->PlayerID) {
                 //
                 // a player attacking me
@@ -3047,9 +3033,7 @@ UWORD count_gang(Thing* p_target)
         if (gang_attacks[gang].Perp[c0]) {
             Thing* p_person;
             p_person = TO_THING(gang_attacks[gang].Perp[c0]);
-#ifndef PSX
 //			 AENG_world_line_infinite(p_target->WorldPos.X>>8,p_target->WorldPos.Y>>8,p_target->WorldPos.Z>>8,7,0xffff,p_person->WorldPos.X>>8,p_person->WorldPos.Y>>8,p_person->WorldPos.Z>>8,2,0xff0000,1);
-#endif
             count++;
         }
     }
@@ -4503,11 +4487,7 @@ void PCOM_set_person_ai_taunt(Thing* p_person, Thing* p_target)
 // The people the summoner is going to use!
 //
 
-#ifdef PSX
-#define PCOM_SUMMON_NUM_BODIES 2
-#else
 #define PCOM_SUMMON_NUM_BODIES 4
-#endif
 
 UWORD PCOM_summon[PCOM_SUMMON_NUM_BODIES];
 
@@ -4982,10 +4962,8 @@ THING_INDEX PCOM_create_person(
         world_z);
 
     if (p_index == NULL) {
-#ifndef PSX
 #ifndef NDEBUG
         PANEL_new_text(NULL, 10000, "Couldn't create person, PersonType %d ai %s", type, PCOM_ai_name[ai]);
-#endif
 #endif
     } else {
         Thing* p_person = TO_THING(p_index);
@@ -5039,11 +5017,9 @@ THING_INDEX PCOM_create_person(
         }
 
 #if NO_MORE_HAPPY_BALOONS
-#if !defined(PSX) && !defined(TARGET_DC)
         if (pcom_has & PCOM_HAS_BALLOON) {
             p_person->Genus.Person->Balloon = BALLOON_create(p_index, BALLOON_TYPE_YELLOW);
         }
-#endif
 #endif
         if (pcom_has & PCOM_HAS_SHOTGUN) {
 
@@ -5159,13 +5135,9 @@ THING_INDEX PCOM_create_player(
         world_z,
         id);
 
-#ifndef PSX
     extern SLONG playing_level(const CBYTE* name);
 
     if (playing_level("skymiss2.ucm"))
-#else
-    if (wad_level == 25)
-#endif
     {
         pcom_has |= PCOM_HAS_SHOTGUN;
     }
@@ -5203,11 +5175,9 @@ THING_INDEX PCOM_create_player(
             }
         }
 
-#if !defined(PSX) && !defined(TARGET_DC)
         if (pcom_has & PCOM_HAS_BALLOON) {
             p_person->Genus.Person->Balloon = BALLOON_create(THING_NUMBER(p_person), BALLOON_TYPE_YELLOW);
         }
-#endif
 
         return THING_NUMBER(p_person);
     }
@@ -5466,11 +5436,7 @@ Thing* PCOM_can_i_see_person_to_bully(Thing* p_person)
     return best_thing;
 }
 
-#ifndef PSX
 #define MAX_ARREST_ME 100
-#else
-#define MAX_ARREST_ME 5
-#endif
 Thing* arrest_me[MAX_ARREST_ME];
 UWORD next_arrest = 0;
 
@@ -6059,11 +6025,6 @@ void PCOM_process_driving_wander(Thing* p_person)
                         Vehicle* veh = p_vehicle->Genus.Vehicle;
                         veh->Angle = yaw ^ 1024;
 
-#if PSX
-                        {
-                            p_vehicle->Genus.Vehicle->Type = vehicle_random[(Random() & 15)];
-                        }
-#endif
 
                         reinit_vehicle(p_vehicle);
 
@@ -6905,10 +6866,8 @@ void PCOM_process_killing(Thing* p_person)
 
 //			MFX_play_thing(THING_NUMBER(p_person),S_WHATRYOULOOKINAT,MFX_REPLACE,p_person);
 // wh wh wh wh wh wh
-#ifndef PSX
             if (IsEnglish)
                 MFX_play_thing(THING_NUMBER(p_person), SOUND_Range(S_WTHUG1_ALERT_START, S_WTHUG1_ALERT_START + 1), MFX_REPLACE, p_person);
-#endif
             PCOM_oscillate_tympanum(
                 PCOM_SOUND_LOOKINGATME,
                 p_person,
@@ -6928,11 +6887,7 @@ void PCOM_process_killing(Thing* p_person)
             if (((GAME_TURN + (THING_NUMBER(p_person) << 5)) & 0xff) == 0)
             #endif
     */
-#if PSX
-    if ((PTIME(p_person) & 0x7f) == 0)
-#else
     if ((PTIME(p_person) & 0xff) == 0)
-#endif
     {
         Thing* p_special = PCOM_is_there_an_item_i_should_get(p_person);
 
@@ -7036,11 +6991,9 @@ void PCOM_process_fleeing(Thing* p_person)
         // Let go of a balloon if you are carrying one.
         //
 
-#if !defined(PSX) && !defined(TARGET_DC)
         if (p_person->Genus.Person->Balloon && p_person->Genus.Person->pcom_ai_counter > PCOM_get_duration(5)) {
             BALLOON_release(p_person->Genus.Person->Balloon);
         }
-#endif
 
         //
         // If we have got to where we were legging it to, then leg-it again.
@@ -7473,13 +7426,8 @@ void PCOM_process_following(Thing* p_person)
                     //
 
                     if (p_person->Genus.Person->pcom_ai != PCOM_AI_CIV) {
-#if PSX
-                        //						if (((GAME_TURN + (THING_NUMBER(p_person) << 4)) & 0x3f) == 0)
-                        if ((PTIME(p_person) & 0x3f) == 0)
-#else
                         // if (((GAME_TURN + (THING_NUMBER(p_person) << 5)) & 0x7f) == 0)
                         if ((PTIME(p_person) & 0x7f) == 0)
-#endif
                         {
                             Thing* p_special = PCOM_is_there_an_item_i_should_get(p_person);
 
@@ -7607,12 +7555,8 @@ void PCOM_find_mib_appear_pos(
 {
 }
 
-#ifndef TARGET_DC
 void draw_view_line(Thing* p_person, Thing* p_target)
 {
-#ifdef PSX
-    return;
-#else
     SLONG x1, y1, z1, x2, y2, z2;
     SLONG dx, dy, dz;
     SLONG len, step, count;
@@ -7635,19 +7579,11 @@ void draw_view_line(Thing* p_person, Thing* p_target)
 
     len = QDIST3(abs(dx), abs(dy), abs(dz));
 
-#ifndef PSX
     dx = (dx * 20) / len;
     dy = (dy * 20) / len;
     dz = (dz * 20) / len;
 
     count = (len / 20) >> 1;
-#else
-    dx = (dx * 40) / len;
-    dy = (dy * 40) / len;
-    dz = (dz * 40) / len;
-
-    count = (len / 40) >> 1;
-#endif
 
     for (step = 0; step < count; step++) {
         // AENG_world_line(x1,y1,z1,2,0,x1+dx,y1+dy,z1+dz,2,0,TRUE);
@@ -7657,9 +7593,7 @@ void draw_view_line(Thing* p_person, Thing* p_target)
         y1 += dy << 1;
         z1 += dz << 1;
     }
-#endif
 }
-#endif
 
 // claude-ai: PCOM_process_navtokill - ranged/hunt AI (AI_STATE_NAVTOKILL): three substates: HUNTING (pathfind toward target), AIMING (draw weapon, take aim), SHOOT (fire burst then back to HUNTING); handles LOS check; melee fallback to KILLING if close enough
 void PCOM_process_navtokill(Thing* p_person)
@@ -7811,13 +7745,8 @@ void PCOM_process_navtokill(Thing* p_person)
             // Make a detour to pickup a gun...
             //
 
-#if PSX
-            //				if (((GAME_TURN + (THING_NUMBER(p_person) << 4)) & 0x7f) == 0)
-            if (((PTIME(p_person)) & 0x7f) == 0)
-#else
             if (((PTIME(p_person)) & 0xff) == 0)
             //				if (((GAME_TURN + (THING_NUMBER(p_person) << 5)) & 0xff) == 0)
-#endif
             {
                 Thing* p_special = PCOM_is_there_an_item_i_should_get(p_person);
 
@@ -8139,12 +8068,10 @@ void PCOM_process_navtokill(Thing* p_person)
                     track_gun_sight(p_target, shoot_time - p_person->Genus.Person->pcom_ai_counter);
                 //					ASSERT(dist_to_target(p_person,p_target)< (18<<8) );
 
-#ifndef TARGET_DC
                 // (a) doesn't work and (b) doesn't look any good. So it's toast.
                 if (p_target->Genus.Person->PlayerID) {
                     draw_view_line(p_person, p_target);
                 }
-#endif
 
                 if (p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_ANIMATION && p_person->Genus.Person->pcom_move_substate == PCOM_MOVE_SUBSTATE_SHOOT) {
                     //
@@ -8367,11 +8294,7 @@ void PCOM_process_findcar(Thing* p_person)
 //
 // don't use ptime we want this to happen quick
 //
-#ifdef PSX
-            if (((GAME_TURN & 0x7) == (THING_NUMBER(p_person) & 0x7)) || PCOM_are_there_people_who_want_to_enter(p_vehicle))
-#else
             if (((GAME_TURN & 0xf) == (THING_NUMBER(p_person) & 0xf)) || PCOM_are_there_people_who_want_to_enter(p_vehicle))
-#endif
             //				if ( ((PTIME(p_person) & 0xf)==0) || PCOM_are_there_people_who_want_to_enter(p_vehicle))
             {
                 // every 16 game turns is false, except what if we arent processed on that game turn due to time slice, so ignore bottom 2 bits
@@ -8952,7 +8875,6 @@ void PCOM_process_leavecar(Thing* p_person)
 // claude-ai: PCOM_process_snipe - stationary sniper AI (PCOM_AI_SHOOT_DEAD=21). Never moves. 3 substates: LOOK(wait for LOS)->AIMING(draw gun, fire when counter>shoot_time)->NOMOREAMMO(holster, return to LOOK). Max range 0x600 units. shoot_time=get_rate_of_fire()-SKILL*4/100. If pcom_ai==SHOOT_DEAD: fires immediately without waiting counter. "Holster when no target for 10s" code is COMMENTED OUT (gun always drawn).
 void PCOM_process_snipe(Thing* p_person)
 {
-#ifndef PSX
 
     //
     // Some friendly debug code.
@@ -8973,7 +8895,6 @@ void PCOM_process_snipe(Thing* p_person)
         return;
     }
 
-#endif
 
     Thing* p_target = TO_THING(p_person->Genus.Person->pcom_ai_arg);
 
@@ -9982,12 +9903,10 @@ void PCOM_process_state_change(Thing* p_person)
                     //						else //play wav anyway MikeD
                     {
 
-#ifndef PSX
 /*
                                                         if(((GAME_TURN+THING_NUMBER(p_person))&255)==0)
                                                                 MFX_play_thing(THING_NUMBER(p_person),S_HEY_YOU,MFX_REPLACE,p_person);
 */
-#endif
                     }
                     PCOM_oscillate_tympanum(
                         PCOM_SOUND_HEY,
@@ -11143,8 +11062,6 @@ void PCOM_process_movement(Thing* p_person)
                 p_person,
                 &goal_x,
                 &goal_z);
-#ifndef PSX
-#ifndef TARGET_DC
             if (ControlFlag && allow_debug_keys) {
                 AENG_world_line(
                     p_person->WorldPos.X >> 8,
@@ -11159,8 +11076,6 @@ void PCOM_process_movement(Thing* p_person)
                     0x000000ff,
                     TRUE);
             }
-#endif
-#endif
             /*
                                                     goal_x &= 0xffffff00;
                                                     goal_z &= 0xffffff00;
@@ -12639,14 +12554,11 @@ void PCOM_knockdown_happened(Thing* p_person)
     }
 }
 
-#ifndef PSX
 CBYTE PCOM_debug_string[256];
-#endif
 
 // claude-ai: PCOM_person_state_debug - debug string builder (PC only): formats all AI fields into human-readable string for on-screen debug overlay; shows pcom_ai, pcom_ai_state, pcom_move, pcom_move_state, pcom_bent flags
 CBYTE* PCOM_person_state_debug(Thing* p_person)
 {
-#ifndef PSX
     SLONG i;
     CBYTE bent[256];
 
@@ -12701,9 +12613,6 @@ CBYTE* PCOM_person_state_debug(Thing* p_person)
         p_person->Genus.Person->Agression);
 
     return PCOM_debug_string;
-#else
-    return (CBYTE*)0;
-#endif
 }
 
 // claude-ai: PCOM_cop_aiming_at_you - called when a cop aims gun at p_person; if guilty person -> make them fight back (NAVTOKILL); if innocent idle -> put hands up (HANDS_UP state); cops/Darci/Roper exempt from hands-up
@@ -12992,16 +12901,12 @@ void DriveCar(Thing* p_person)
     Thing* p_vehicle = TO_THING(p_person->Genus.Person->InCar);
     ASSERT(p_vehicle);
 
-#ifndef PSX
-#ifndef TARGET_DC
 #ifndef NDEBUG
     extern Thing* SelectedThing;
     if (LeftButton && (SelectedThing == p_vehicle)) {
         DebugBreak();
         LeftButton = 0;
     }
-#endif
-#endif
 #endif
 
     if (p_person->Genus.Person->pcom_move_state != PCOM_MOVE_STATE_PARK_CAR_ON_ROAD) {
@@ -13468,8 +13373,6 @@ void DriveBike(Thing* p_person)
                 &rx2,
                 &rz2);
 
-#ifndef PSX
-#ifndef TARGET_DC
 
             if (ControlFlag && allow_debug_keys) {
                 AENG_world_line_infinite(
@@ -13482,8 +13385,6 @@ void DriveBike(Thing* p_person)
                     FALSE);
             }
 
-#endif
-#endif // PSX
 
             nearest_point_on_line(
                 rx1, rz1,
@@ -13549,11 +13450,9 @@ void DriveBike(Thing* p_person)
     if (what & PCOM_RUNOVER_BEEP_HORN) {
         MFX_play_thing(THING_NUMBER(p_person), S_BEEP, MFX_REPLACE, p_person);
     }
-#ifndef PSX
     if (what & PCOM_RUNOVER_SHOUT_OUT) {
         MFX_play_thing(THING_NUMBER(p_person), S_GETOUTTHEWAY, MFX_REPLACE, p_person);
     }
-#endif
     if (what & PCOM_RUNOVER_SLOW_DOWN) {
         if (wspeed > 0) {
             wspeed >>= 1;
@@ -13635,8 +13534,6 @@ void DriveBike(Thing* p_person)
 
     BIKE_control_set(p_bike, bc);
 
-#ifndef PSX
-#ifndef TARGET_DC
 
     if (ControlFlag && allow_debug_keys) {
         AENG_world_line_infinite(
@@ -13653,8 +13550,6 @@ void DriveBike(Thing* p_person)
             TRUE);
     }
 
-#endif
-#endif // PSX
 
     p_person->Genus.Person->pcom_move_counter += PCOM_TICKS_PER_TURN * TICK_RATIO >> TICK_SHIFT;
 }

@@ -11,13 +11,11 @@
 #include "special.h"
 #include "tracks.h"
 
-#ifndef PSX
 
 //
 // Low level output functions.
 //
 
-#ifndef PSX
 
 FILE* SAVE_handle;
 
@@ -49,31 +47,6 @@ FILE* SAVE_open()
     return MF_Fopen("ingame.sav", "wb");
 }
 
-#else
-
-int SAVE_handle;
-
-SLONG SAVE_open()
-{
-    return 0;
-}
-
-SLONG LOAD_open()
-{
-    return 0;
-}
-
-SLONG SAVE_out_data(void* data, ULONG num_bytes)
-{
-    //	Compress_Compress(data,num_bytes);
-}
-
-SLONG LOAD_in_data(void* data, ULONG num_bytes)
-{
-    //	Compress_Decompress(data,num_bytes);
-}
-
-#endif
 
 //
 // A compressed person.
@@ -397,11 +370,7 @@ SLONG SAVE_ingame(CBYTE* fname)
 {
     SLONG ret = 1;
 
-#ifndef PSX
     SAVE_handle = MF_Fopen("ingame.sav", "wb");
-#else
-    SAVE_handle = SAVE_open();
-#endif
 
     ret &= SAVE_things();
     ret &= SAVE_eways();
@@ -775,4 +744,3 @@ SLONG LOAD_ingame(CBYTE* fname)
     return (TRUE);
 }
 
-#endif

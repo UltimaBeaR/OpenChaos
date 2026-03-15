@@ -38,23 +38,6 @@ void TEXTURE_fix_texture_styles(void);
 
 extern SLONG TEXTURE_page_num_standard;
 
-#ifdef TARGET_DC
-extern SLONG TEXTURE_page_background_use_instead;
-extern SLONG TEXTURE_page_background_use_instead2;
-
-extern SLONG TEXTURE_page_joypad_a;
-extern SLONG TEXTURE_page_joypad_b;
-extern SLONG TEXTURE_page_joypad_c;
-extern SLONG TEXTURE_page_joypad_x;
-extern SLONG TEXTURE_page_joypad_y;
-extern SLONG TEXTURE_page_joypad_z;
-extern SLONG TEXTURE_page_joypad_l;
-extern SLONG TEXTURE_page_joypad_r;
-extern SLONG TEXTURE_page_joypad_pad_l;
-extern SLONG TEXTURE_page_joypad_pad_r;
-extern SLONG TEXTURE_page_joypad_pad_d;
-extern SLONG TEXTURE_page_joypad_pad_u;
-#endif
 
 extern SLONG TEXTURE_page_snowflake;
 extern SLONG TEXTURE_page_sparkle;
@@ -217,9 +200,7 @@ SLONG TEXTURE_get_fiddled_position(
 // Makes black the colour key for the given texture.
 //
 
-#ifndef TARGET_DC
 void TEXTURE_set_colour_key(SLONG page);
-#endif
 
 //
 // Makes all the textures greyscale.

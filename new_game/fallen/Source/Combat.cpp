@@ -25,9 +25,6 @@
 #include "poly.h"
 #include "dirt.h"
 
-#ifdef TARGET_DC
-#include "DIManager.h"
-#endif
 
 SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
 
@@ -678,7 +675,6 @@ SLONG set_grapple(Thing* p_person, Thing* p_victim, SLONG anim, SLONG grapple)
     p_person->Genus.Person->Action = ACTION_GRAPPLE;
     scare_gang_attack(p_person);
 
-#ifndef PSX
     if ((Random() & 0xff) < taunt_prob) // not too often or it gets annoying
     {
         SLONG sound = 0;
@@ -700,7 +696,6 @@ SLONG set_grapple(Thing* p_person, Thing* p_victim, SLONG anim, SLONG grapple)
         if (sound)
             MFX_play_thing(THING_NUMBER(p_person), sound, MFX_QUEUED | MFX_SHORT_QUEUE, p_person);
     }
-#endif
     //
     // The sound of a breaking neck!
     //
@@ -728,12 +723,10 @@ SLONG find_best_grapple(Thing* p_person)
     Thing *p_target = 0, *best_target = 0;
     SLONG only_kneck = 0;
     SLONG iam = 1;
-#ifndef PSX
     if (p_person->Genus.Person->AnimType == ANIM_TYPE_ROPER) {
 
         iam = 2;
     }
-#endif
 
     /*
             if (p_person->Genus.Person->PersonType != PERSON_DARCI)
@@ -1035,13 +1028,11 @@ SLONG should_i_block(Thing* p_person, Thing* p_agressor, SLONG anim)
     if (block_prob > 150 + GET_SKILL(p_person) * 5)
         block_prob = 150 + GET_SKILL(p_person) * 5;
 
-#ifndef PSX
     {
         CBYTE str[100];
         sprintf(str, "block prob %d    same %d other %d \n", (block_prob * 100) >> 8, same, other);
         // CONSOLE_text(str);
     }
-#endif
 
     if ((rand() & 255) < block_prob)
         return (1);
@@ -1183,8 +1174,6 @@ SLONG find_best_kick(Thing* p_person, ULONG flag)
 }
 #endif
 
-#ifndef PSX
-#ifndef TARGET_DC
 void show_fight_range(Thing* p_thing)
 {
     SLONG temp_angle, temp_angle2;
@@ -1215,8 +1204,6 @@ void show_fight_range(Thing* p_thing)
             e_draw_3d_line(x+((SIN(temp_angle)*dist)>>16),0,z+((COS(temp_angle)*dist)>>16),x+((SIN(temp_angle2)*dist)>>16),0,z+((COS(temp_angle2)*dist)>>16) );
     */
 }
-#endif
-#endif
 
 // claude-ai: check_combat_hit_with_person — the core melee hit detection function.
 // claude-ai: Tests if the attack at (x,y,z) [attacker's pelvis, 8-bit units] hits p_victim.
@@ -2147,9 +2134,6 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
                 MFX_play_xyz(0, hit_wave, 0, p_thing->WorldPos.X, p_thing->WorldPos.Y, p_thing->WorldPos.Z);
                 // #else
 
-#ifdef PSX
-                MFX_play_thing(THING_NUMBER(p_aggressor), S_KNIFE_START + (Random() & 1), 0, p_aggressor);
-#endif
                 // #endif
 
                 // #ifndef VERSION_GERMAN
@@ -2218,37 +2202,6 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
             //
 
             p_thing->Genus.Person->Health -= damage;
-#ifdef PSX
-            // Shock the player dependant on damage
-            if (p_thing->Genus.Person->PlayerID) {
-                SLONG dam = (damage << 4) + 96;
-                if (dam > 255)
-                    dam = 255;
-                PSX_SetShock(1, dam);
-            }
-#endif
-#ifdef TARGET_DC
-            if (p_thing->Genus.Person->PlayerID) {
-                Vibrate(5.0f, (float)((damage << 4) + 94) * 0.002f, 0.0f);
-            }
-            if (p_aggressor->Genus.Person->PlayerID) {
-                switch (type) {
-                case HIT_TYPE_GUN_SHOT_H:
-                case HIT_TYPE_GUN_SHOT_M:
-                case HIT_TYPE_GUN_SHOT_L:
-                case HIT_TYPE_GUN_SHOT_PISTOL:
-                case HIT_TYPE_GUN_SHOT_SHOTGUN:
-                case HIT_TYPE_GUN_SHOT_AK47:
-                    // You don't get a vibro from hitting someone with a gun (just from shooting it, done elsewhere).
-                    break;
-                default:
-                    // Hand-to-hand combat. Feel the knuckles crunch into their nose.
-                    // Less damage-dependant jolt this time.
-                    Vibrate(5.0f, (float)((damage << 2) + 120) * 0.004f, 0.0f);
-                    break;
-                }
-            }
-#endif
         }
 
         //

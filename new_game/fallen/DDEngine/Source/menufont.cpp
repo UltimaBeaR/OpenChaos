@@ -10,14 +10,7 @@
 #include "poly.h"
 #include "..\headers\noserver.h"
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
-#ifdef TARGET_DC
-// The Yanks call them VMUs, Europeans call them VMs. Madness.
-bool bWriteVMInsteadOfVMU = FALSE;
-#endif
 
 CharData FontInfo[256];
 CBYTE FontName[_MAX_PATH];
@@ -180,7 +173,6 @@ void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist)
         FontInfo[32].width = FontInfo[65].width;
 }
 
-#ifndef TARGET_DC
 
 #define SC(a) (SIN(a & 2047) >> 15)
 #define CC(a) (COS(a & 2047) >> 15)
@@ -315,153 +307,7 @@ void MENUFONT_DrawFutzed(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG alpha,
     }
 }
 
-#endif
 
-#ifdef TARGET_DC
-
-// Actually draws the box.
-void MENUFONT_Draw_Selection_Box_Sized(SWORD x, SWORD y, SWORD x2, SWORD y2, SLONG uwLineWidth, SLONG rgb)
-{
-    SLONG width = 0, height;
-    POLY_Point pp[4];
-    POLY_Point* quad[4] = { &pp[0], &pp[1], &pp[2], &pp[3] };
-
-    width = x2 - x;
-    height = y2 - y;
-
-    rgb = 0xa0404040;
-
-    // Draw a grey box behind the text.
-    pp[0].specular = pp[1].specular = pp[2].specular = pp[3].specular = 0xff000000;
-    pp[0].colour = pp[1].colour = pp[2].colour = pp[3].colour = rgb;
-    pp[0].Z = pp[1].Z = pp[2].Z = pp[3].Z = 0.80f;
-
-    pp[0].u = pp[0].v = 0.0f;
-    pp[1].u = pp[1].v = 0.0f;
-    pp[2].u = pp[2].v = 0.0f;
-    pp[3].u = pp[3].v = 0.0f;
-
-    pp[0].X = x;
-    pp[0].Y = y;
-    pp[1].X = x + width;
-    pp[1].Y = y;
-    pp[2].X = x;
-    pp[2].Y = y + height;
-    pp[3].X = x + width;
-    pp[3].Y = y + height;
-
-    POLY_add_quad(quad, POLY_PAGE_ALPHA, FALSE, TRUE);
-
-    // Then draw a pure white frame.
-    rgb = 0xffffffff;
-    pp[0].colour = pp[1].colour = pp[2].colour = pp[3].colour = rgb;
-    pp[0].Z = pp[1].Z = pp[2].Z = pp[3].Z = 0.82f;
-
-    // Top line.
-    pp[0].X = x;
-    pp[0].Y = y;
-    pp[1].X = x + width;
-    pp[1].Y = y;
-    pp[2].X = x;
-    pp[2].Y = y + uwLineWidth;
-    pp[3].X = x + width;
-    pp[3].Y = y + uwLineWidth;
-
-    POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE, TRUE);
-
-    // Bottom line.
-    pp[0].X = x;
-    pp[0].Y = y + height - uwLineWidth;
-    pp[1].X = x + width;
-    pp[1].Y = y + height - uwLineWidth;
-    pp[2].X = x;
-    pp[2].Y = y + height;
-    pp[3].X = x + width;
-    pp[3].Y = y + height;
-
-    POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE, TRUE);
-
-    // Left line.
-    pp[0].X = x;
-    pp[0].Y = y;
-    pp[1].X = x + uwLineWidth;
-    pp[1].Y = y;
-    pp[2].X = x;
-    pp[2].Y = y + height;
-    pp[3].X = x + uwLineWidth;
-    pp[3].Y = y + height;
-
-    POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE, TRUE);
-
-    // Right line.
-    pp[0].X = x + width - uwLineWidth;
-    pp[0].Y = y;
-    pp[1].X = x + width;
-    pp[1].Y = y;
-    pp[2].X = x + width - uwLineWidth;
-    pp[2].Y = y + height;
-    pp[3].X = x + width;
-    pp[3].Y = y + height;
-
-    POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE, TRUE);
-}
-
-void MENUFONT_Draw_Selection_Box(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags, SWORD max)
-{
-    SLONG width = 0, height, c0, len = strlen(msg);
-    UBYTE hchar = (flags & MENUFONT_SUPER_YCTR) ? (UBYTE)*msg : 'M';
-    UBYTE* pt;
-    POLY_Point pp[4];
-    POLY_Point* quad[4] = { &pp[0], &pp[1], &pp[2], &pp[3] };
-
-    if (max == -1)
-        max = len;
-
-#ifdef TARGET_DC
-    // Scan for the word "VMU".
-    // Mark the "U" as not to be drawn.
-    UBYTE* pDontDrawThisLetter = NULL;
-    if (bWriteVMInsteadOfVMU) {
-        pDontDrawThisLetter = (UBYTE*)strstr(msg, "VMU");
-        if (pDontDrawThisLetter != NULL) {
-            // Point to the U
-            pDontDrawThisLetter += 2;
-        }
-    }
-#endif
-
-    height = (FontInfo[hchar].height * scale) >> 8;
-    y -= height >> 1;
-
-    pt = (UBYTE*)msg;
-    for (c0 = 0; c0 < len; c0++) {
-#ifdef TARGET_DC
-        if (pt == pDontDrawThisLetter) {
-            ASSERT(*pt == 'U');
-            pt++;
-        } else
-#endif
-        {
-            width += ((FontInfo[*(pt++)].width - 1) * scale) >> 8;
-        }
-    }
-    if (flags & (MENUFONT_CENTRED | MENUFONT_RIGHTALIGN)) {
-        x -= (flags & MENUFONT_CENTRED) ? width >> 1 : width;
-    }
-
-    // Now draw a box slightly bigger.
-    UWORD uwOffset = height >> 2;
-    x -= uwOffset;
-    y -= uwOffset;
-    height += uwOffset << 1;
-    width += uwOffset << 1;
-
-    UWORD uwLineWidth = uwOffset >> 1;
-
-    MENUFONT_Draw_Selection_Box_Sized(x, y, x + width, y + height, uwLineWidth, rgb);
-}
-
-#endif
 
 void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags, SWORD max)
 {
@@ -478,36 +324,13 @@ void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD f
     if (max == -1)
         max = len;
 
-#ifdef TARGET_DC
-    // Scan for the word "VMU".
-    // Mark the "U" as not to be drawn.
-    UBYTE* pDontDrawThisLetter = NULL;
-    if (bWriteVMInsteadOfVMU) {
-        pDontDrawThisLetter = (UBYTE*)strstr(msg, "VMU");
-        if (pDontDrawThisLetter != NULL) {
-            // Point to the U
-            pDontDrawThisLetter += 2;
-        }
-    }
-#endif
 
-#ifdef TARGET_DC
-    // Make the new font a bit bigger on screen.
-    // scale *= 1.2f;
-#endif
 
     y -= (FontInfo[hchar].height * scale) >> 9;
 
     if (flags & (MENUFONT_CENTRED | MENUFONT_RIGHTALIGN)) {
         pt = (UBYTE*)msg;
         for (c0 = 0; c0 < len; c0++) {
-#ifdef TARGET_DC
-            if (pt == pDontDrawThisLetter) {
-                // Ignore it.
-                ASSERT(*pt == 'U');
-                pt++;
-            } else
-#endif
             {
                 width += ((FontInfo[*(pt++)].width - 1) * scale) >> 8;
             }
@@ -515,9 +338,6 @@ void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD f
         x -= (flags & MENUFONT_CENTRED) ? width >> 1 : width;
     }
 
-#ifdef TARGET_DC
-    // Foolish mortal - you doubt the power of DC to use MODULATEALPHA?
-#else
     {
 
         SLONG a = (rgb >> 24) & 0xff;
@@ -531,31 +351,16 @@ void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD f
 
         rgb = (r << 16) | (g << 8) | (b << 0);
     }
-#endif
 
     ASSERT((flags & (MENUFONT_GLIMMER | MENUFONT_SHAKE | MENUFONT_FUTZING | MENUFONT_FLANGED | MENUFONT_SINED | MENUFONT_HALOED)) == 0);
 
     pp[0].specular = pp[1].specular = pp[2].specular = pp[3].specular = 0xff000000;
     pp[0].colour = pp[1].colour = pp[2].colour = pp[3].colour = rgb;
-#ifdef TARGET_DC
-    // A bit further forwards please.
-    extern float PANEL_GetNextDepthBodge(void);
-
-    pp[0].Z = pp[1].Z = pp[2].Z = pp[3].Z = PANEL_GetNextDepthBodge();
-#else
     pp[0].Z = pp[1].Z = pp[2].Z = pp[3].Z = 0.5f;
-#endif
 
     pt = (UBYTE*)msg;
     for (c0 = 0; c0 < max; c0++) {
 
-#ifdef TARGET_DC
-        if (pt == pDontDrawThisLetter) {
-            // Ignore this letter.
-            ASSERT(*pt == 'U');
-            pt++;
-        } else
-#endif
         {
             width = (FontInfo[*pt].width * scale) >> 8;
             height = (FontInfo[*pt].height * scale) >> 8;
@@ -695,18 +500,6 @@ void MENUFONT_Dimensions(CBYTE* fn, SLONG& x, SLONG& y, SWORD max, SWORD scale)
 {
     UBYTE* fn2 = (UBYTE*)fn;
 
-#ifdef TARGET_DC
-    // Scan for the word "VMU".
-    // Mark the "U" as not to be drawn.
-    UBYTE* pDontDrawThisLetter = NULL;
-    if (bWriteVMInsteadOfVMU) {
-        pDontDrawThisLetter = (UBYTE*)strstr(fn, "VMU");
-        if (pDontDrawThisLetter != NULL) {
-            // Point to the U
-            pDontDrawThisLetter += 2;
-        }
-    }
-#endif
 
     if (!fn2[1]) {
         x = FontInfo[*fn2].width;
@@ -721,13 +514,6 @@ void MENUFONT_Dimensions(CBYTE* fn, SLONG& x, SLONG& y, SWORD max, SWORD scale)
     y = FontInfo[*fn2].height;
     while (max && *fn2) {
 
-#ifdef TARGET_DC
-        if (fn2 == pDontDrawThisLetter) {
-            // Ignore this letter.
-            fn2++;
-            max--;
-        } else
-#endif
         {
             if (FontInfo[*fn2].height > y)
                 y = FontInfo[*fn2].height;

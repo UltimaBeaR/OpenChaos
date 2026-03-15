@@ -59,7 +59,6 @@ UBYTE SOUND_Gender(Thing* p_thing);
 
 // SLONG	SOUND_Range(SLONG start, SLONG end);
 
-#ifndef PSX
 
 #ifdef DODGYPSXIFY
 extern BOOL dodgy_psx_mode;
@@ -75,20 +74,12 @@ inline SLONG SOUND_Range(SLONG start, SLONG end)
     return start + (rand() % diff);
 }
 
-#else
-#define SOUND_Range(start, end) (start)
-#endif
 
-#ifndef PSX
 
 typedef UWORD SOUNDFXG[2];
 
 extern UBYTE* SOUND_FXMapping; //[1024]; // blahblah
 extern SOUNDFXG* SOUND_FXGroups; //[128][2]; // blahblah
-#else
-extern UBYTE SOUND_FXMapping[512]; // blahblah
-extern UWORD SOUND_FXGroups[8][2]; // blahblah
-#endif
 
 //---------------------------------------------------------------
 // pull in the automatically-generated sound header

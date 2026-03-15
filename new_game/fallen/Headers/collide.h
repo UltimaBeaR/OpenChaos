@@ -11,15 +11,9 @@
 // claude-ai:   MAX_COL_VECT_LINK — максимум привязок барьеров к лорез-ячейкам; PC: 10000 × 4 байт ≈ 40KB
 // claude-ai:   MAX_WALK_POOL     — максимум записей о проходимых поверхностях; PC: 30000 × 4 байт ≈ 120KB
 // claude-ai: На PSX все лимиты значительно меньше из-за нехватки RAM.
-#ifdef PSX
-#define MAX_COL_VECT_LINK 4000
-#define MAX_COL_VECT 1000
-#define MAX_WALK_POOL (10000)
-#else
 #define MAX_COL_VECT_LINK 10000
 #define MAX_COL_VECT 10000
 #define MAX_WALK_POOL (30000)
-#endif
 
 #define DONT_INTERSECT 0
 #define DO_INTERSECT 1

@@ -7,9 +7,6 @@
 #include <math.h>
 #include "console.h"
 #include "poly.h"
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 #include "vertexbuffer.h"
 
@@ -202,12 +199,7 @@ VertexBufferPool::~VertexBufferPool()
 
 void VertexBufferPool::Create(IDirect3D3* d3d, bool force_system)
 {
-#ifdef TARGET_DC
-    // A quarter of the size.
-    static int Allocations[16] = { 0, 0, 0, 0, 0, 0, 128, 64, 32, 16, 8, 4, 0, 0, 0, 0 };
-#else
     static int Allocations[16] = { 0, 0, 0, 0, 0, 0, 128, 64, 32, 16, 8, 4, 0, 0, 0, 0 }; // total 48,000 vertices
-#endif
 
     ASSERT(!m_D3D);
     ASSERT(d3d);
@@ -394,7 +386,6 @@ IDirect3DVertexBuffer* VertexBufferPool::PrepareBuffer(VertexBuffer* buffer)
 //
 // dump info to a file
 
-#ifndef TARGET_DC
 void VertexBufferPool::DumpInfo(FILE* fd)
 {
     ReclaimBuffers();
@@ -430,7 +421,6 @@ void VertexBufferPool::DumpInfo(FILE* fd)
         fprintf(fd, "\n");
     }
 }
-#endif
 
 // ReclaimBuffers
 //

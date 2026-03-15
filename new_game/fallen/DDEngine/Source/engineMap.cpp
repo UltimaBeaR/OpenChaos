@@ -16,13 +16,9 @@
 #include "fc.h"
 #include "font2d.h"
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 extern CBYTE* EWAY_get_mess(SLONG index);
 
-#ifndef TARGET_DC
 
 //
 // The size of the physical screen.
@@ -193,11 +189,7 @@ void MAP_draw_prim(
         pp->Y = Y;
         pp->Z = Z;
         pp->z = z;
-#ifdef TARGET_DC
-        pp->colour = 0xffffffff;
-#else
         pp->colour = 0x00ffffff;
-#endif
         pp->specular = 0xff000000;
 
         POLY_setclip(pp);
@@ -708,7 +700,6 @@ void MAP_draw_dot(
     POLY_add_triangle(tri, POLY_PAGE_IC2_ALPHA, FALSE, TRUE);
 }
 
-#endif // #ifndef TARGET_DC
 
 //
 // The pulses...
@@ -767,7 +758,6 @@ void MAP_pulse_create(float wx, float wz, ULONG colour)
     mp->radius = 0.05F;
 }
 
-#ifndef TARGET_DC
 
 //
 // Draws an individual pulse
@@ -893,7 +883,6 @@ void MAP_pulse_draw_all()
     }
 }
 
-#endif // #ifndef TARGET_DC
 
 //
 // Processes the pulses.
@@ -938,7 +927,6 @@ void MAP_process_pulses()
     }
 }
 
-#ifndef TARGET_DC
 
 //
 // Draws an arrow in the given direction...
@@ -1093,7 +1081,6 @@ void MAP_draw_3d_arrow(
     POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, FALSE, TRUE);
 }
 
-#endif // #ifndef TARGET_DC
 
 //
 // The map beacon colours.
@@ -1205,7 +1192,6 @@ void MAP_process_beacons()
     }
 }
 
-#ifndef TARGET_DC
 
 void MAP_beacon_draw_all()
 {
@@ -1341,7 +1327,6 @@ void MAP_beacon_draw_all()
     }
 }
 
-#endif // #ifndef TARGET_DC
 
 void MAP_beacon_remove(UBYTE beacon)
 {
@@ -1350,7 +1335,6 @@ void MAP_beacon_remove(UBYTE beacon)
     MAP_beacon[beacon].used = FALSE;
 }
 
-#ifndef TARGET_DC
 
 void MAP_draw_weapons(Thing* p_person)
 {
@@ -1451,9 +1435,7 @@ void MAP_draw()
     // Clear the buffers.
     //
 
-#ifndef TARGET_DC
     POLY_frame_init(FALSE, FALSE);
-#endif
 
     //
     // The real screen size.
@@ -1722,12 +1704,9 @@ void MAP_draw()
     // Draw the frame.
     //
 
-#ifndef TARGET_DC
     POLY_frame_draw(FALSE, FALSE);
-#endif
 }
 
-#endif // #ifndef TARGET_DC
 
 void MAP_process()
 {
@@ -1735,7 +1714,6 @@ void MAP_process()
     MAP_process_pulses();
 }
 
-#ifndef TARGET_DC
 
 void MAP_draw_onscreen_beacons(void)
 {
@@ -1776,4 +1754,3 @@ void MAP_draw_onscreen_beacons(void)
     }
 }
 
-#endif // #ifndef TARGET_DC

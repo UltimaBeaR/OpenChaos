@@ -21,7 +21,6 @@
 // On DC, the "Start" button is not allowed to be remapped.
 #define WANT_A_START_JOYSTICK_ITEM defined
 
-#ifndef PSX
 
 #include "demo.h"
 #include "DDLib.h"
@@ -72,9 +71,6 @@ void FRONTEND_display(void);
 #define BIG_FONT_SCALE (192)
 #define BIG_FONT_SCALE_FRENCH (176);
 
-#ifdef TARGET_DC
-#define BIG_FONT_SCALE_SELECTED (256)
-#endif
 #define SMALL_FONT_SCALE (256)
 // small font being larger DOES make sense because they're different bitmaps.
 
@@ -133,9 +129,6 @@ void FRONTEND_display(void);
 #define FE_START (-3)
 #define FE_EDITOR (-4)
 #define FE_CREDITS (-5)
-#ifdef TARGET_DC
-#define FE_CHANGE_JOYPAD (-6)
-#endif
 
 #define OT_BUTTON (1)
 #define OT_BUTTON_L (2)
@@ -331,7 +324,7 @@ RawMenuData raw_menu_data[] = {
     { 0, OT_BUTTON, X_SAVE_GAME, (CBYTE*)1, FE_SAVESCREEN },
 #endif
     { 0, OT_BUTTON, X_OPTIONS, 0, FE_CONFIG },
-#if !defined(NDEBUG) && !defined(TARGET_DC)
+#if !defined(NDEBUG)
     // sheer MADNESS!
     { 0, OT_BUTTON, X_LOAD_UCM, 0, FE_START },
     { 0, OT_BUTTON, X_EDITOR, 0, FE_EDITOR },
@@ -815,10 +808,6 @@ char* pcSpeechLanguageDir = "talk2\\";
 
 DWORD dwAutoPlayFMVTimeout = 0;
 
-#ifdef TARGET_DC
-int iNextSuggestedMission = 0;
-int g_iLevelNumber;
-#endif
 
 // Kludge!
 SLONG GammaIndex;
@@ -1143,24 +1132,14 @@ ULONG FRONTEND_fix_rgb(ULONG rgb, BOOL sel)
 
 void FRONTEND_draw_title(SLONG x, SLONG y, SLONG cutx, CBYTE* str, BOOL wibble, BOOL r_to_l)
 {
-#ifdef TARGET_DC
-    SLONG rgb = wibble ? 0xffffffff : 0x70ffffff;
-#else
     SLONG rgb = wibble ? (fade_rgb << 1) | 0xffffff : fade_rgb | 0xffffff;
-#endif
     SLONG seed = *str;
     SWORD xo = 0, yo = 0;
 
     for (; *str; str++) {
         if (!wibble) {
-#ifdef TARGET_DC
-            // Ugh - don't like this wibble.
-            xo = 4;
-            yo = 4;
-#else
             xo = (RandStream(seed) & 0x1f) - 0xf;
             yo = 4;
-#endif
         }
 
         if (((r_to_l) && (x > cutx)) || ((!r_to_l) && (x < cutx))) {
@@ -1460,9 +1439,7 @@ void FRONTEND_DrawMulti(MenuData* md, ULONG rgb)
     while ((*str) && c0--) {
         str += strlen(str) + 1;
     }
-#ifndef TARGET_DC
     if (IsEnglish)
-#endif
     {
         MENUFONT_Dimensions(str, x, y, -1, BIG_FONT_SCALE);
         if (320 + x > 630) {
@@ -1477,12 +1454,10 @@ void FRONTEND_DrawMulti(MenuData* md, ULONG rgb)
             MENUFONT_Draw(620 - x, dy, BIG_FONT_SCALE, str, rgb, 0);
         }
     }
-#ifndef TARGET_DC
     else {
         rgb = FRONTEND_fix_rgb(fade_rgb, 1);
         FONT2D_DrawStringRightJustify(str, 620, dy, rgb, SMALL_FONT_SCALE + 64, POLY_PAGE_FONT2D);
     }
-#endif
 }
 
 void FRONTEND_DrawKey(MenuData* md)
@@ -2231,9 +2206,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
 #endif
     district_flash = -1;
     district_selected = 0;
-#ifdef TARGET_DC
-    iNextSuggestedMission = -1;
-#endif
 
     FileOpenScript();
     while (1) {
@@ -2256,18 +2228,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
             //			instead, the entire hierarchy is preserved in savegames and
             //			completing a mission sets the appropriate flag. ie, the proper way.
 
-#ifdef TARGET_DC
-            // If Estate of Emergency has been done, and the secret environment var is set, then
-            // expose Breakout to the world....
-            // Also, you have to be playing in English. Sorry.
-            if (IsEnglish && ((mission_hierarchy[estateID] & 2) != 0) && ENV_get_value_number("cheat_driving_bronze", 0, "")) {
-                // Hurrah!
-                mission_hierarchy[secretIDbreakout] |= 4;
-            } else {
-                // Nope - not yet.
-                mission_hierarchy[secretIDbreakout] = 0;
-            }
-#endif
 
 #ifndef VERSION_DEMO
             if (mission_hierarchy[mdata->ParentID] & 2)
@@ -2375,10 +2335,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
 #endif
                         {
                             best_score = order;
-#ifdef TARGET_DC
-                            // For the savegame.
-                            iNextSuggestedMission = mdata->ObjID;
-#endif
 
                             //
                             // Find which district has this id.
@@ -2529,12 +2485,8 @@ void FRONTEND_MissionBrief(CBYTE* script, UBYTE i)
         // MFX_QUICK_wait();
         strcpy(path, GetSpeechPath());
 
-#ifdef TARGET_DC
-        strcat(path, pcSpeechLanguageDir);
-#else
         // On PC it's always talk2.
         strcat(path, "talk2\\");
-#endif
         strcat(path, brief_wav[mdata->ObjID]);
 
         MFX_QUICK_play(path);
@@ -2850,11 +2802,7 @@ void FRONTEND_restore_video_data()
 {
     int data[20]; // int for compatability :P
     UBYTE i, j;
-#ifdef TARGET_DC
-    AENG_get_detail_levels(/*data,*/ data + 1, /*data+2, data+3,*/ data + 4, data + 5, data + 6, data + 7, data + 8, /*data+9, data+10,*/ data + 11);
-#else
     AENG_get_detail_levels(data, data + 1, data + 2, data + 3, data + 4, data + 5, data + 6, data + 7, data + 8, data + 9, data + 10, data + 11);
-#endif
     for (i = 0; i < menu_state.items; i++)
         switch (menu_data[i].LabelID) {
             /*		case X_RESOLUTION:
@@ -2901,11 +2849,7 @@ void FRONTEND_store_video_data()
     int data[20], i, mode, bit_depth;
 
     // Get the current ones.
-#ifdef TARGET_DC
-    AENG_get_detail_levels(/*data,*/ data + 1, /*data+2, data+3,*/ data + 4, data + 5, data + 6, data + 7, data + 8, /*data+9, data+10,*/ data + 11);
-#else
     AENG_get_detail_levels(data, data + 1, data + 2, data + 3, data + 4, data + 5, data + 6, data + 7, data + 8, data + 9, data + 10, data + 11);
-#endif
 
     // Override with menu entries:
     for (i = 0; i < menu_state.items; i++)
@@ -2937,15 +2881,9 @@ void FRONTEND_store_video_data()
 
             break;
         }
-#ifndef TARGET_DC
     ENV_set_value_number("Mode", mode, "Video");
     ENV_set_value_number("BitDepth", bit_depth, "Video");
-#endif
-#ifdef TARGET_DC
-    AENG_set_detail_levels(/*data[0],*/ data[1], /*data[2],data[3],*/ data[4], data[5], data[6], data[7], data[8], /*data[9],data[10],*/ data[11]);
-#else
     AENG_set_detail_levels(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]);
-#endif
 
 #ifdef ALLOW_DANGEROUS_OPTIONS
 
@@ -2976,7 +2914,6 @@ void FRONTEND_store_video_data()
 #endif
 }
 
-#ifndef TARGET_DC
 
 void FRONTEND_do_drivers()
 {
@@ -3086,18 +3023,6 @@ void FRONTEND_gamma_update()
         the_display.SetGamma(menu_data[GammaIndex].Data & 0xff, 256);
 }
 
-#else // #ifndef TARGET_DC
-
-// Spoof them.
-void FRONTEND_do_drivers()
-{
-}
-
-void FRONTEND_gamma_update()
-{
-}
-
-#endif // #else //#ifndef TARGET_DC
 
 void FRONTEND_do_gamma()
 {
@@ -3285,10 +3210,8 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition = TRUE)
             FRONTEND_init_xition();
         }
         FRONTEND_easy(mode);
-#ifndef TARGET_DC
 #ifdef ALLOW_DANGEROUS_OPTIONS
         FRONTEND_do_drivers();
-#endif
 #endif
         if (the_display.IsGammaAvailable())
             FRONTEND_do_gamma();
@@ -3356,14 +3279,7 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition = TRUE)
             FRONTEND_init_xition();
         }
         FRONTEND_easy(mode);
-#ifdef TARGET_DC
-        menu_data[0].Data |= ENV_get_value_number("scanner_follows", 1, "Game");
-        menu_data[1].Data |= ENV_get_value_number("analogue_pad_mode", 0, "Game");
-        menu_data[2].Data |= ENV_get_value_number("vibration_mode", 1, "Game");
-        menu_data[3].Data |= ENV_get_value_number("vibration_engine", 1, "Game");
-#else
         menu_data[1].Data |= ENV_get_value_number("scanner_follows", 1, "Game");
-#endif
         break;
     case FE_SAVE_CONFIRM:
         if (bDoTransition) {
@@ -3395,12 +3311,6 @@ void FRONTEND_draw_districts()
         if (IsEnglish) {
             str = "Bonus mission unlocked!"; // XLAT_str(X_BONUS_MISSION_UNLOCKED)
             FONT2D_DrawStringCentred(str, 322, 10, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
-#ifdef TARGET_DC
-            // A bit darker please.
-            FONT2D_DrawStringCentred(str, 322, 6, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
-            FONT2D_DrawStringCentred(str, 318, 10, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
-            FONT2D_DrawStringCentred(str, 318, 6, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
-#endif
             FONT2D_DrawStringCentred(str, 320, 8, 0xffffff, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
         }
     }
@@ -3646,9 +3556,7 @@ void FRONTEND_display()
     ShowBackImage();
     if ((fade_mode & 3) == 1)
         FRONTEND_show_xition();
-#ifndef TARGET_DC
     POLY_frame_init(FALSE, FALSE);
-#endif
     FRONTEND_kibble_draw();
     // POLY_frame_draw(FALSE, FALSE);
 
@@ -3676,12 +3584,6 @@ void FRONTEND_display()
 
             MENUFONT_Draw(md->X, y, iBigFontScale, md->Label, rgb, 0);
 
-#ifdef TARGET_DC
-            if (i == menu_state.selected) {
-                // Draw a rectangle around the text.
-                MENUFONT_Draw_Selection_Box(md->X, y, iBigFontScale, md->Label, rgb, 0);
-            }
-#endif
             switch (md->Type) {
             case OT_SLIDER:
                 FRONTEND_DrawSlider(md);
@@ -3698,18 +3600,10 @@ void FRONTEND_display()
             }
         } else {
             if (i == menu_state.selected) { // better do some scrolling
-#ifdef TARGET_DC
-                // As the man say, it's so slow I want to knaw out my own liver rather than wait for this.
-                if (y < 100)
-                    menu_state.scroll -= 20;
-                if (y > 400)
-                    menu_state.scroll += 20;
-#else
                 if (y < 100)
                     menu_state.scroll -= 10;
                 if (y > 400)
                     menu_state.scroll += 10;
-#endif
             }
             if (y < 100)
                 arrow |= 1;
@@ -3743,26 +3637,20 @@ void FRONTEND_display()
         }
         FontPage = POLY_PAGE_NEWFONT;
         FRONTEND_draw_title(x + 2, 44, x2, menu_state.title, 0, dir);
-#ifndef TARGET_DC
         POLY_frame_draw(FALSE, FALSE);
         POLY_frame_init(FALSE, FALSE);
-#endif
         FontPage = POLY_PAGE_NEWFONT_INVERSE;
         FRONTEND_draw_title(x, 40, x2, menu_state.title, 1, dir);
-#ifndef TARGET_DC
         POLY_frame_draw(FALSE, FALSE);
         POLY_frame_init(FALSE, FALSE);
-#endif
         FRONTEND_draw_button(x2, 8, whichmap[menu_theme]);
     }
     if ((menu_state.mode == FE_MAPSCREEN) && ((fade_mode == 2) || (fade_state == 63)))
         FRONTEND_draw_districts();
     if ((menu_state.mode >= 100) && *menu_buffer) {
         // DRAW2D_Box(0,48,640,432,fade_rgb&0xff000000,1,127);
-#ifndef TARGET_DC
         POLY_frame_draw(FALSE, FALSE);
         POLY_frame_init(FALSE, FALSE);
-#endif
         x = SIN(fade_state << 3) >> 10;
         FRONTEND_draw_button(642 - (x * 10), 8, whichmap[menu_theme]);
         FONT2D_DrawStringWrapTo(menu_buffer, 20 + 2, 100 + 2, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, 255 - (fade_state << 2), 402);
@@ -3792,9 +3680,7 @@ void FRONTEND_display()
             1.0F);
     }
 
-#ifndef TARGET_DC
     POLY_frame_draw(FALSE, FALSE);
-#endif
 }
 
 void FRONTEND_storedata()
@@ -3849,14 +3735,7 @@ void FRONTEND_storedata()
         break;
 
     case FE_CONFIG_OPTIONS:
-#ifdef TARGET_DC
-        ENV_set_value_number("scanner_follows", menu_data[0].Data & 1, "Game");
-        ENV_set_value_number("analogue_pad_mode", menu_data[1].Data & 1, "Game");
-        ENV_set_value_number("vibration_mode", menu_data[2].Data & 1, "Game");
-        ENV_set_value_number("vibration_engine", menu_data[3].Data & 1, "Game");
-#else
         ENV_set_value_number("scanner_follows", menu_data[1].Data & 1, "Game");
-#endif
         break;
     }
 }
@@ -4248,21 +4127,6 @@ UBYTE FRONTEND_input()
                 break;
 #endif
             case FE_CONFIG_INPUT_JP:
-#ifdef TARGET_DC
-                menu_data[0].Data = 1 | (5 << 8);
-                // gap for label
-                menu_data[2].Data = 9;
-                menu_data[3].Data = 10;
-                menu_data[4].Data = 7;
-                menu_data[5].Data = 1;
-                menu_data[6].Data = 3;
-                menu_data[7].Data = 0;
-                // gap for label
-                menu_data[9].Data = 4;
-                menu_data[10].Data = 5;
-                menu_data[11].Data = 6;
-                menu_data[12].Data = 8;
-#else
                 menu_data[0].Data = 4;
                 menu_data[1].Data = 3;
                 menu_data[2].Data = 0;
@@ -4276,7 +4140,6 @@ UBYTE FRONTEND_input()
                 menu_data[9].Data = 9;
                 menu_data[10].Data = 10;
                 menu_data[11].Data = 5;
-#endif
                 break;
             }
             break;
@@ -4616,15 +4479,10 @@ void FRONTEND_level_won()
                             the_game.DarciSkill=NET_PLAYER(0)->Genus.Player->Skill;
             */
         } else {
-#ifdef TARGET_DC
-            // Not used.
-            ASSERT(FALSE);
-#else
             the_game.RoperConstitution = NET_PLAYER(0)->Genus.Player->Constitution;
             the_game.RoperStrength = NET_PLAYER(0)->Genus.Player->Strength;
             the_game.RoperStamina = NET_PLAYER(0)->Genus.Player->Stamina;
             the_game.RoperSkill = NET_PLAYER(0)->Genus.Player->Skill;
-#endif
         }
     }
 
@@ -4687,7 +4545,6 @@ void FRONTEND_sound()
 void FRONTEND_diddle_stats()
 {
 #ifndef FINAL
-#ifndef TARGET_DC
     SWORD stat_up = ENV_get_value_number("stat_up", 0, "Secret");
     stat_up *= (mission_launch - 1);
 
@@ -4699,7 +4556,6 @@ void FRONTEND_diddle_stats()
     the_game.RoperStrength = stat_up;
     the_game.RoperStamina = stat_up;
     the_game.RoperSkill = stat_up;
-#endif
 #endif
 }
 
@@ -4782,9 +4638,7 @@ SBYTE FRONTEND_loop()
         FRONTEND_kibble_process();
     }
 
-#ifndef TARGET_DC
     PolyPage::DisableAlphaSort();
-#endif
     FRONTEND_display();
     if ((menu_state.mode == FE_CONFIG_AUDIO) && (fade_mode == 0)) {
         FRONTEND_sound();
@@ -4792,9 +4646,7 @@ SBYTE FRONTEND_loop()
         MFX_set_listener(0, 0, 0, 0, 0, 0);
         MFX_update();
     }
-#ifndef TARGET_DC
     PolyPage::EnableAlphaSort();
-#endif
     res = FRONTEND_input();
     // MUSIC_process();
     //  This was commented out - why????
@@ -4805,7 +4657,6 @@ SBYTE FRONTEND_loop()
 
 #ifndef VERSION_DEMO
 
-#ifndef TARGET_DC
     // #ifndef NDEBUG
     if (ControlFlag && ShiftFlag) {
         if (Keys[KB_PPLUS]) {
@@ -4823,38 +4674,6 @@ SBYTE FRONTEND_loop()
     }
     // #endif
 
-#else
-
-#ifdef DEBUG
-    // Just for Tom's debugging.
-    if (
-        (the_state.rgbButtons[DI_DC_BUTTON_A]) && (the_state.rgbButtons[DI_DC_BUTTON_B]) && (the_state.rgbButtons[DI_DC_BUTTON_X]) && (the_state.rgbButtons[DI_DC_BUTTON_Y])) {
-        if (the_state.rgbButtons[DI_DC_BUTTON_RTRIGGER]) {
-            complete_point++;
-            FRONTEND_MissionHierarchy(MISSION_SCRIPT);
-            cheating = 1;
-        }
-        if (the_state.rgbButtons[DI_DC_BUTTON_LTRIGGER]) {
-            complete_point = 40;
-            FRONTEND_MissionHierarchy(MISSION_SCRIPT);
-            cheating = 1;
-        }
-    }
-#endif
-
-    // Proper harder to find cheat.
-    extern int g_iCheatNumber;
-    if (g_iCheatNumber == 0x1a1a0001) {
-        // Expose all missions.
-        g_iCheatNumber = 0;
-        if (the_state.rgbButtons[DI_DC_BUTTON_LTRIGGER]) {
-            complete_point = 40;
-            FRONTEND_MissionHierarchy(MISSION_SCRIPT);
-            cheating = 1;
-        }
-    }
-
-#endif
 
 #endif
 
@@ -4960,7 +4779,6 @@ SBYTE FRONTEND_loop()
 
         ASSERT(WITHIN(index_into_the_whattoload_array, 0, 35));
 
-#ifndef TARGET_DC
         extern ULONG DONT_load;
 
         this_level_has_the_balrog = whattoload[index_into_the_whattoload_array].has_balrog;
@@ -4980,7 +4798,6 @@ SBYTE FRONTEND_loop()
         //
         // Does this level have violence?
         //
-#endif
         if (index_into_the_whattoload_array == 20) // semtex  wetback
         {
             is_semtex = 1;
@@ -5005,9 +4822,6 @@ SBYTE FRONTEND_loop()
         if (cheating)
             FRONTEND_diddle_stats();
 
-#ifdef TARGET_DC
-        g_iLevelNumber = mission_launch;
-#endif
 
         FRONTEND_diddle_music();
         menu_state.stackpos = 0;
@@ -5027,4 +4841,3 @@ SBYTE FRONTEND_loop()
     return 0;
 }
 
-#endif

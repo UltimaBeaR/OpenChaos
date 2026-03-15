@@ -30,23 +30,6 @@ DWORD DDLibThread(LPVOID param)
 {
     MSG msg;
 
-#ifdef TARGET_DC
-    // Create a basic window - only used for message passing.
-    hDDLibWindow = CreateWindowEx(
-        0,
-        TEXT("Urban Chaos"),
-        TEXT("Urban Chaos"),
-        WS_VISIBLE,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        HWND_DESKTOP,
-        NULL,
-        hGlobalThisInst,
-        NULL);
-
-#else
     hDDLibWindow = CreateWindowEx(
         0,
         "Urban Chaos",
@@ -64,7 +47,6 @@ DWORD DDLibThread(LPVOID param)
         NULL,
         hGlobalThisInst,
         NULL);
-#endif
 
     ShowWindow(hDDLibWindow, iGlobalWinMode);
     UpdateWindow(hDDLibWindow);
@@ -99,12 +81,6 @@ BOOL SetupHost(ULONG flags)
     if (!SetupKeyboard())
         return FALSE;
 
-#ifdef TARGET_DC
-    if (the_input_manager.Init() != DI_OK) {
-        ASSERT(FALSE);
-        return FALSE;
-    }
-#endif
 
     // Create the shell window.
     // Create & register the window class.
@@ -143,10 +119,8 @@ BOOL SetupHost(ULONG flags)
         // Init the sound manager.  We're not too fussed about the result.
         MFX_init();
 
-#ifndef TARGET_DC
         // Load the keyboard accelerators.
         hDDLibAccel = LoadAccelerators(hGlobalThisInst, MAKEINTRESOURCE(IDR_MAIN_ACCELERATOR));
-#endif
 
         // Display the window.
         //		ShowWindow(hDDLibWindow,iGlobalWinMode);
@@ -295,7 +269,6 @@ BOOL LibShellActive(void)
     while (1) {
         while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
             result = (SLONG)GetMessage(&msg, NULL, 0, 0);
-#ifndef TARGET_DC
             if (result) {
                 if (!TranslateAccelerator(hDDLibWindow, hDDLibAccel, &msg)) {
                     TranslateMessage(&msg);
@@ -304,7 +277,6 @@ BOOL LibShellActive(void)
             } else {
                 ShellActive = FALSE;
             }
-#endif
         }
 
         if (app_inactive && the_display.lp_DD4 && the_display.IsFullScreen()) {
@@ -355,7 +327,6 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
 
     TRACE("LbShellMessage: %s\n", pMessage);
 
-#ifndef TARGET_DC
     wsprintf(buff1, "Uh oh, something bad's happened!");
     wsprintf(buff2, "%s\n\n%s\n\nIn   : %s\nline : %u", buff1, pMessage, pFile, dwLine);
     strcat(buff2, "\n\nAbort=Kill Application, Retry=Debug, Ignore=Continue");
@@ -376,9 +347,6 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
     }
 
     the_display.fromGDI();
-#else
-    result = TRUE;
-#endif
 
     return result;
 }
@@ -410,34 +378,19 @@ void Time(MFTime* the_time)
 static UWORD argc;
 static LPTSTR argv[MAX_PATH];
 
-#ifdef TARGET_DC
-// Include this again in just one file - this one.
-#include "dtags.h"
-#endif
 
 void init_best_found(void);
 
 int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, int iWinMode)
 {
     // Store WinMain parameters.
-#ifdef TARGET_DC
-    // This malloc has to be a malloc, not a MemAlloc - the heap has not yet been set up.
-    lpszGlobalArgs = (char*)malloc((_tcslen(lpszArgs) + 1) * sizeof(*lpszGlobalArgs));
-    ASSERT(lpszGlobalArgs != NULL);
-    textConvertUniToChar(lpszGlobalArgs, lpszArgs);
-#else
     lpszGlobalArgs = lpszArgs;
-#endif
     iGlobalWinMode = iWinMode;
     hGlobalThisInst = hThisInst;
     hGlobalPrevInst = hPrevInst;
 
     init_best_found();
 
-#ifdef TARGET_DC
-    // Init the DTrace logging.
-    LOG_INIT
-#endif
 
 #if 0 // Someone already done it! :)
 #ifdef NDEBUG

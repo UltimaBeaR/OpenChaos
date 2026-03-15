@@ -11,14 +11,10 @@
 
 #if defined(QMDX_H)
 #define QS(name) QMDX_##name
-#ifndef TARGET_DC
 #pragma comment(lib, "qmdx.lib")
-#endif
 #else
 #define QS(name) QSWaveMix##name
-#ifndef TARGET_DC
 #pragma comment(lib, "Qmixer.lib")
-#endif
 #endif
 
 //---------------------------------------------------------------

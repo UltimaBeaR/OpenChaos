@@ -11,13 +11,8 @@
 
 #include <ddlib.h>
 // #include <windows.h>
-#ifndef TARGET_DC
 #include <process.h>
-#endif
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 #include "asyncfile2.h"
 

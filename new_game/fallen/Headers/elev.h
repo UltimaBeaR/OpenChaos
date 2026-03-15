@@ -5,7 +5,6 @@
 #ifndef _ELEV_
 #define _ELEV_
 
-#ifndef PSX
 
 //
 // This are the last ones to be loaded...
@@ -18,7 +17,6 @@ extern CBYTE ELEV_fname_lighting[_MAX_PATH];
 extern CBYTE ELEV_fname_citsez[_MAX_PATH];
 extern CBYTE ELEV_fname_level[_MAX_PATH];
 
-#endif
 
 //
 // Prompts for a level and loads it. Returns FALSE on failure.

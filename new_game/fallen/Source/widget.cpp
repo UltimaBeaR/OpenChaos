@@ -1260,7 +1260,6 @@ SLONG FORM_Process(Form* form)
                 form->proc(form, 0, WFN_CHAR);
         }
     } else {
-#ifndef PSX
         POINT pt;
         SLONG res;
         GetCursorPos(&pt);
@@ -1285,7 +1284,6 @@ SLONG FORM_Process(Form* form)
             else if (scan && scan->methods->Char)
                 scan->methods->Char(scan, 13);
         }
-#endif
     }
 
     LastKey = 0;

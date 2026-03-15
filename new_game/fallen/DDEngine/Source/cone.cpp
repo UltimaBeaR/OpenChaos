@@ -10,10 +10,6 @@
 #include <math.h>
 #include "memory.h"
 
-#ifdef TARGET_DC
-// intrinsic maths
-#include <shsgintr.h>
-#endif
 
 //
 // The origin of the cone.
@@ -88,21 +84,12 @@ void CONE_create(
     // Normalise (dx,dy,dz).
     //
 
-#ifdef TARGET_DC
-    dist = dx * dx + dy * dy + dz * dz;
-    dist = _InvSqrtA(dist);
-
-    dx = dx * dist;
-    dy = dy * dist;
-    dz = dz * dist;
-#else
     dist = dx * dx + dy * dy + dz * dz;
     dist = sqrt(dist);
 
     dx = dx * (1.0F / dist);
     dy = dy * (1.0F / dist);
     dz = dz * (1.0F / dist);
-#endif
 
     //
     // Construct two vectors orthogonal to (dx,dy,dz) and to eachother.

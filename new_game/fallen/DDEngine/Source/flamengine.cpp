@@ -5,7 +5,6 @@
  *
  */
 
-#ifndef TARGET_DC
 
 #include "flamengine.h"
 #include "texture.h"
@@ -787,14 +786,10 @@ void Flamengine::Feedback()
 
     the_display.lp_D3D_Viewport->Clear(1, &the_display.ViewportRect, D3DCLEAR_TARGET);
 
-#ifndef TARGET_DC
     POLY_frame_init(FALSE, FALSE);
-#endif
     //	Blit();
     BlitOffset();
-#ifndef TARGET_DC
     POLY_frame_draw(FALSE, TRUE);
-#endif
 
     // step 2 - blit back buffer back to flames
 
@@ -811,4 +806,3 @@ void Flamengine::Feedback()
     res = TEXTURE_texture[TEXTURE_page_menuflame].GetSurface()->Blt(NULL, the_display.lp_DD_BackSurface, &rcSource, DDBLT_WAIT, NULL);
 }
 
-#endif // #ifndef TARGET_DC

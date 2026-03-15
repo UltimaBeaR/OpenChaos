@@ -34,9 +34,7 @@ typedef struct
 // Memory for a tga.
 //
 
-#ifndef TARGET_DC
 TGA_Pixel COMP_tga_data[COMP_TGA_MAX_WIDTH * COMP_TGA_MAX_HEIGHT];
-#endif
 TGA_Info COMP_tga_info;
 
 //
@@ -47,12 +45,6 @@ TGA_Info COMP_tga_info;
 TGA_Pixel COMP_tga_colour(float x, float y)
 {
     TGA_Pixel ans;
-#ifdef TARGET_DC
-    // This has been spoofed to save memory -
-    // hopefully we won't need it.
-    ASSERT(FALSE);
-    return ans;
-#else
     SLONG px;
     SLONG py;
 
@@ -66,17 +58,10 @@ TGA_Pixel COMP_tga_colour(float x, float y)
 
     return ans;
 
-#endif
 }
 
 SLONG COMP_load(CBYTE* filename, COMP_Frame* cf)
 {
-#ifdef TARGET_DC
-    // This has been spoofed to save memory -
-    // hopefully we won't need it.
-    ASSERT(FALSE);
-    return TRUE;
-#else
 
     SLONG px;
     SLONG py;
@@ -137,10 +122,8 @@ SLONG COMP_load(CBYTE* filename, COMP_Frame* cf)
         }
 
     return TRUE;
-#endif
 }
 
-#ifndef TARGET_DC
 //
 // Returns the difference between the two squares. The square coordinates
 // clamp to be inside the frame.
@@ -640,21 +623,3 @@ finished_panning:;
     }
 }
 
-#else // #ifndef TARGET_DC
-
-// Spoof em, Danno.
-void COMP_decomp(
-    COMP_Frame* base,
-    COMP_Delta* delta,
-    COMP_Frame* result)
-{
-    ASSERT(FALSE);
-}
-
-COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
-{
-    ASSERT(FALSE);
-    return (NULL);
-}
-
-#endif // #else //#ifndef TARGET_DC

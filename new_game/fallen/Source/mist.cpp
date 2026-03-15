@@ -4,9 +4,7 @@
 
 #include "game.h"
 #include <MFStdLib.h>
-#ifndef PSX
 #include <math.h>
-#endif
 #include "mist.h"
 #include "pap.h"
 
@@ -34,11 +32,7 @@ typedef struct
 
 } MIST_Point;
 
-#ifdef PSX
 #define MIST_MAX_POINTS 4096
-#else
-#define MIST_MAX_POINTS 4096
-#endif
 
 MIST_Point MIST_point[MIST_MAX_POINTS];
 SLONG MIST_point_upto;
@@ -78,9 +72,6 @@ void MIST_create(
     SLONG i;
     static SLONG type_cycle = 0;
 
-#ifdef PSX
-    return;
-#endif
     ASSERT(WITHIN(MIST_mist_upto, 0, MIST_MAX_MIST - 1));
 
     MIST_Mist* mm = &MIST_mist[MIST_mist_upto++];
@@ -128,7 +119,6 @@ void MIST_gust(
     SLONG gx1, SLONG gz1,
     SLONG gx2, SLONG gz2)
 {
-#ifndef PSX
     SLONG i;
     SLONG j;
 
@@ -318,13 +308,11 @@ void MIST_gust(
                 }
         }
     }
-#endif
 }
 
 void MIST_process()
 {
     SLONG i;
-#ifndef PSX
     MIST_Point* mp;
 
     for (i = 0; i < MIST_point_upto; i++) {
@@ -339,7 +327,6 @@ void MIST_process()
         mp->du -= mp->u * 0.005F;
         mp->dv -= mp->v * 0.005F;
     }
-#endif
 }
 
 SLONG MIST_get_upto;
@@ -363,7 +350,6 @@ void MIST_get_start()
     MIST_get_turn += 1;
 }
 
-#ifndef PSX
 SLONG MIST_get_detail()
 {
     float radius;
@@ -495,4 +481,3 @@ void MIST_get_texture(SLONG px, SLONG pz,
     *u += mp->u;
     *v += mp->v;
 }
-#endif

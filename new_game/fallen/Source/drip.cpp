@@ -56,7 +56,6 @@ void DRIP_create(
     DRIP_drip[DRIP_last].flags = flags;
 }
 
-#ifndef TARGET_DC
 void DRIP_create_if_in_puddle(
     UWORD x,
     SWORD y,
@@ -93,7 +92,6 @@ void DRIP_create_if_in_puddle(
         }
     }
 }
-#endif
 
 void DRIP_process()
 {

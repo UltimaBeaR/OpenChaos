@@ -207,15 +207,7 @@ void DIRT_create_cans(
 // and how to draw it.
 //
 
-#ifdef PSX
-#define DIRT_MAX_DIRT (128) // MAKE SURE ITS A POWER OF 2!
-#else
-#ifdef TARGET_DC
-#define DIRT_MAX_DIRT (256) // MAKE SURE ITS A POWER OF 2!
-#else
 #define DIRT_MAX_DIRT (1024) // MAKE SURE ITS A POWER OF 2!
-#endif
-#endif
 
 extern DIRT_Dirt DIRT_dirt[DIRT_MAX_DIRT];
 

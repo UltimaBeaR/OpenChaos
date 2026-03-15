@@ -25,10 +25,8 @@
 #include "drip.h"
 #include "Sound.h"
 #include "gamemenu.h"
-#ifndef PSX
 #include "..\ddengine\headers\menufont.h"
 #include "..\ddlibrary\headers\net.h"
-#endif
 #include "bang.h"
 #include "mav.h"
 #include "..\editor\headers\extra.h"
@@ -59,25 +57,20 @@
 #include "startscr.h"
 #include "save.h"
 
-#ifndef PSX
 #include "spark.h"
 #include "font2d.h"
 #include "env.h"
-#endif
 #include "wmove.h"
 #include "balloon.h"
 #include "memory.h"
-#ifndef PSX
 #include "..\DDEngine\Headers\console.h"
 #include "..\DDEngine\Headers\poly.h"
 #include "..\DDEngine\Headers\map.h"
-#endif
 #include "psystem.h"
 #include "ribbon.h"
 #include "overlay.H"
 #include "music.h"
 #include "grenade.h"
-#ifndef PSX
 #include "drawxtra.h"
 #include "..\ddlibrary\headers\ddlib.h"
 #include "..\ddengine\headers\planmap.h"
@@ -87,12 +80,6 @@
 #include "..\ddengine\headers\truetype.h"
 #include "panel.h"
 
-#else
-#include "c:\fallen\psxeng\headers\psxeng.h"
-#include <ctrller.h>
-extern ControllerPacket PAD_Input1, PAD_Input2;
-
-#endif
 
 #include "xlat_str.h"
 #include "DCLowLevel.h"
@@ -109,10 +96,6 @@ extern ControllerPacket PAD_Input1, PAD_Input2;
 SLONG CAM_cur_x, CAM_cur_y, CAM_cur_z,
     CAM_cur_yaw, CAM_cur_pitch, CAM_cur_roll; // these are set appropriate to whichever cam
 
-#ifdef PSX
-UBYTE continue_waiting, replay_waiting;
-extern SLONG PSX_eog_timer;
-#endif
 
 //
 // The editor.
@@ -123,9 +106,7 @@ SLONG save_psx = 0; // this was nicked from edit.cpp in the editor...
 // bool g_bGoToCreditsPleaseGameHasFinished = FALSE;
 
 extern UBYTE editor_loop(void);
-#ifndef PSX
 extern BOOL allow_debug_keys;
-#endif
 //
 // Nearly everything in the whole game.
 //
@@ -134,10 +115,8 @@ extern BOOL allow_debug_keys;
 // FOR PC for GERMAN/French we only need edit this file
 //
 
-#ifndef PSX
 // #define	VERSION_GERMAN	1
 // #define	VERSION_FRENCH	1
-#endif
 
 // claude-ai: VIOLENCE_ALLOWED — всегда 1 в стандартной сборке. 0 только для немецкой/французской PC версии.
 // claude-ai: В новой игре: всегда 1, немецкую/французскую цензуру не переносить.
@@ -152,12 +131,7 @@ extern BOOL allow_debug_keys;
 #ifdef VERSION_FRENCH
 // #error
 #undef VIOLENCE_ALLOWED
-#ifdef TARGET_DC
-// Hooray! We're allowed to roast live babies over open fires now!
-#define VIOLENCE_ALLOWED 1
-#else
 #define VIOLENCE_ALLOWED 0
-#endif
 #endif
 
 Game the_game;
@@ -180,8 +154,6 @@ void stop_all_fx_and_music()
 // the editor.
 //
 
-#ifndef PSX
-#ifndef TARGET_DC
 
 // claude-ai: global_load() — однократная загрузка глобальных данных (аним., примитивы). Только PC/не-DC.
 // claude-ai: Вызывается из game_init() и game_create_psx(). На DC не нужна из-за ограничений памяти.
@@ -196,8 +168,6 @@ void global_load(void)
     setup_global_anim_array();
     record_prim_status();
 }
-#endif
-#endif
 
 //---------------------------------------------------------------
 // #define	DebugText
@@ -207,15 +177,9 @@ void game_startup(void)
 {
     GAME_STATE = 0;
 
-#ifndef PSX
     init_memory();
-#else
-    extern void UCA_LookupSetup();
-    UCA_LookupSetup();
-#endif
     FC_init();
 
-#ifndef PSX
 
     //
     // Do PC setup.
@@ -241,11 +205,7 @@ void game_startup(void)
     if (OpenDisplay(640, 480, 16, FLAGS_USE_3D | FLAGS_USE_WORKSCREEN) == 0) {
         GAME_STATE = GS_ATTRACT_MODE;
     } else {
-#ifndef TARGET_DC
         MessageBox(NULL, "Unable to open display", NULL, MB_OK | MB_ICONWARNING);
-#else
-        ASSERT(FALSE);
-#endif
         exit(1);
     }
 
@@ -266,86 +226,24 @@ void game_startup(void)
     init_joypad_config();
     ANIM_init();
 
-#ifdef TARGET_DC
-    // Don't actually get a device until someone presses a button on one of them.
-    GetInputDevice(JOYSTICK, 0, FALSE);
-#else
     GetInputDevice(JOYSTICK, 0, TRUE);
-#endif
 
     MORPH_load();
 
-#ifndef TARGET_DC
     if (ENV_get_value_number("clumps", 0, "Secret")) {
         extern void make_all_clumps(void);
         make_all_clumps();
     }
-#endif
 
     TEXTURE_load_needed("levels\\frontend.ucm", 160, 256, 65);
 
-#ifdef TARGET_DC
-    // Load up the VMU screens needed.
 
-    extern VMU_Screen* pvmuscreenAmmo;
-    extern VMU_Screen* pvmuscreenMFLogo;
-    extern VMU_Screen* pvmuscreenPressStart;
-    extern VMU_Screen* pvmuscreenSaved;
-    extern VMU_Screen* pvmuscreenUCLogo;
-    extern VMU_Screen* pvmuscreenWait;
-
-#define LOAD_VMU_SCREEN(myname, filename) \
-    if (pvmuscreen##myname == NULL)       \
-        CreateVMUScreenFromTGA(filename, &(pvmuscreen##myname));
-
-    LOAD_VMU_SCREEN(Ammo, "server\\textures\\extras\\DC\\VMU_ammo_count2.tga");
-    LOAD_VMU_SCREEN(MFLogo, "server\\textures\\extras\\DC\\VMU_muckylogo.tga");
-    LOAD_VMU_SCREEN(PressStart, "server\\textures\\extras\\DC\\VMU_Press_start.tga");
-    LOAD_VMU_SCREEN(Saved, "server\\textures\\extras\\DC\\VMU_saved.tga");
-    LOAD_VMU_SCREEN(UCLogo, "server\\textures\\extras\\DC\\VMU_Urbanlogo.tga");
-    LOAD_VMU_SCREEN(Wait, "server\\textures\\extras\\DC\\VMU_Wait.tga");
-
-#undef LOAD_VMU_SCREEN
-#endif
-
-#else
-
-    //
-    // PSX setup.
-    // Take setting up the display from here since it's about 10 seconds before
-    // anything useful gets drawn on it, lets do it someplace where it might not
-    // fucking fail Sony standards.
-    //
-    /*
-            if (OpenDisplay(640,480,16,FLAGS_USE_3D|FLAGS_USE_WORKSCREEN)==0)
-            {
-    */
-    GAME_STATE = GS_PLAY_GAME;
-    /*
-            }
-    */
-
-    AENG_init();
-    extern void Wadmenu_Introduction(void);
-
-    extern UBYTE Eidos_Played;
-    //
-    // Load our sound effects.
-    //
-
-    //	LoadWaveList("Data\\SFX\\1622\\","Data\\SFX\\Samples.txt");
-
-#endif
 
     //
     // Load the console font
     //
 
-#ifdef PSX
-    CONSOLE_font("data\\font3d\\all\\", 100);
-#else
     CONSOLE_font("data\\font3d\\all\\", 0.2F);
-#endif
 
     //
     // Load stuff in.
@@ -359,7 +257,6 @@ void game_startup(void)
 // claude-ai: Завершение работы: CloseDisplay(), NET_kill(), освобождение памяти
 void game_shutdown(void)
 {
-#ifndef PSX
 
     //
     // PC shutdown.
@@ -371,28 +268,10 @@ void game_shutdown(void)
     AENG_fini();
     ANIM_fini();
 
-#else
-
-    extern void* mem_all;
-
-    //
-    // PSX shutdown.
-    //
-
-    if (mem_all) {
-        BOOL SetupMemory(void);
-        SetupMemory();
-        mem_all = 0;
-    }
-
-    CloseDisplay();
-
-#endif
 }
 
 //---------------------------------------------------------------
 
-#ifndef PSX
 
 //
 // Playback file stuff....
@@ -405,7 +284,6 @@ extern MFFileHandle playback_file;
 extern CBYTE* verifier_name = "C:\\Windows\\Desktop\\UrbanChaosRecordedGame.tst";
 extern MFFileHandle verifier_file;
 
-#endif
 
 //
 // The player position is loaded into here by load_level()
@@ -424,9 +302,7 @@ extern GameCoord player_pos;
 #define AXIS_MIN (AXIS_CENTRE - NOISE_TOLERANCE)
 #define AXIS_MAX (AXIS_CENTRE + NOISE_TOLERANCE)
 
-#ifndef PSX
 extern DIJOYSTATE the_state;
-#endif
 
 //
 // Does the game paused stuff...
@@ -450,18 +326,12 @@ SBYTE game_paused_highlight;
 
 extern BOOL text_fudge;
 extern ULONG text_colour;
-#ifndef PSX
 extern void draw_centre_text_at(float x, float y, CBYTE* message, SLONG font_id, SLONG flag);
 extern void draw_text_at(float x, float y, CBYTE* message, SLONG font_id);
-#else
-extern void draw_centre_text_at(SLONG x, SLONG y, CBYTE* message, SLONG font_id, SLONG flag);
-extern void draw_text_at(SLONG x, SLONG y, CBYTE* message, SLONG font_id);
-#endif
 
 //
 // Prints up stuff to the screen...
 //
-#if !defined(PSX) && !defined(TARGET_DC)
 #define NUM_BULLETS 15
 
 CBYTE* bullet_point[NUM_BULLETS] = {
@@ -509,7 +379,6 @@ void process_bullet_points(void)
 
     draw_centre_text_at(10, 420, bullet_point[bullet_upto], 0, 0);
 }
-#endif
 
 //---------------------------------------------------------------
 
@@ -522,17 +391,11 @@ BOOL game_init(void)
 
     // stop_all_fx_and_music();
 
-#ifdef TARGET_DC
-    // Frontend unloading to save video memory
-    the_display.FiniBackCache();
-#endif
 
     //
     // Set the seed and initialise game variables.
     //
-#if !defined(PSX) && !defined(TARGET_DC)
     global_load();
-#endif
 
     GAME_TURN = 0;
     GAME_FLAGS = 0;
@@ -548,13 +411,11 @@ BOOL game_init(void)
 
     ResetSmoothTicks();
 
-#ifndef TARGET_DC
     INDOORS_INDEX = 0;
     INDOORS_INDEX_NEXT = 0;
     INDOORS_INDEX_FADE_EXT_DIR = 0;
     INDOORS_INDEX_FADE_EXT = 0;
     INDOORS_DBUILDING = 0;
-#endif
 
     SetSeed(0);
     srand(1234567);
@@ -567,16 +428,11 @@ BOOL game_init(void)
     // m_iPanelXPos = 4 * ENV_get_value_number ( "panel_x", 32 / 4, "" );
     // m_iPanelYPos = 4 * ENV_get_value_number ( "panel_y", (480-32) / 4, "" );
 
-#ifndef PSX
 
     //
     // Open the game record/playback file.
     //
 
-#ifdef TARGET_DC
-    playback_file = NULL;
-    verifier_file = NULL;
-#else
 
     if (GAME_STATE & GS_RECORD) {
         DebugText(" PLAYBACK GAME\n");
@@ -604,8 +460,6 @@ BOOL game_init(void)
         verifier_file = NULL;
     }
 
-#endif
-#endif
 
     //
     // Initialise pause mode...
@@ -617,10 +471,8 @@ BOOL game_init(void)
     //
     // Initiliase the bullet points...
     //
-#if !defined(PSX) && !defined(TARGET_DC)
     bullet_upto = -1;
     bullet_counter = 0;
-#endif
     //
     // Load our sound effects.
     //
@@ -641,7 +493,6 @@ BOOL game_init(void)
     if (GAME_STATE & GS_REPLAY) {
         ATTRACT_loadscreen_init();
 
-#ifndef PSX
         extern CBYTE ELEV_fname_level[];
         extern SLONG quick_load;
 
@@ -655,38 +506,13 @@ BOOL game_init(void)
 
         ret = 1;
 
-#else
-        extern CBYTE* psx_game_name;
-        extern void reload_level();
-        extern void load_whole_game(CBYTE * gamename);
-
-        reload_level();
-        ret = 1;
-//		load_whole_game(psx_game_name);
-#endif
 
     } else {
         //
         // Load the game.
         //
-#ifndef PSX
         ret = ELEV_load_user(go_into_game);
-#else
-        MFX_load_wave_list(); // handled after loading the mission -- to select 'audio worlds'
-        ret = ELEV_load_user(0);
-        /*
-        static long trk_list[]={1,2,3,4,5,6,7,8,9,10,11,0};
-                        CdPlay(2,trk_list,0);
-        */
-        void NIGHT_light_the_map(void);
-#ifdef VERSION_DEMO
-        if (ret)
-#endif
-            NIGHT_light_the_map();
 
-#endif
-
-#ifndef PSX
 
         extern SLONG save_psx;
         if (save_psx)
@@ -702,7 +528,6 @@ BOOL game_init(void)
                 change_extension(ELEV_fname_level, "wad", save_wad);
                 save_whole_game(save_wad);
             }
-#endif
     }
 
     void init_stats(void);
@@ -710,18 +535,12 @@ BOOL game_init(void)
 
     EWAY_tutorial_string = NULL;
 
-#ifdef TARGET_DC
-    // Try to get the camera in a sane position at the start of the game.
-    FC_setup_initial_camera(0);
-#endif
 
     return (ret);
 
     //	return ELEV_load_name("levels\\e7.ucm");
 }
 
-#ifndef PSX
-#ifndef TARGET_DC
 // claude-ai: game_create_psx() — инструментальная функция (только PC, только !TARGET_DC).
 // claude-ai: Загружает .ucm миссию и немедленно сохраняет её как .wad файл для PSX.
 // claude-ai: В новой игре не нужна — PSX/WAD конвертация не переносится.
@@ -733,9 +552,7 @@ BOOL game_create_psx(CBYTE* mission_name)
     //
     // Set the seed and initialise game variables.
     //
-#if !defined(PSX) && !defined(TARGET_DC)
     global_load();
-#endif
 
     GAME_TURN = 0;
     GAME_FLAGS = 0;
@@ -748,13 +565,11 @@ BOOL game_create_psx(CBYTE* mission_name)
 
     ResetSmoothTicks();
 
-#ifndef TARGET_DC
     INDOORS_INDEX = 0;
     INDOORS_INDEX_NEXT = 0;
     INDOORS_INDEX_FADE_EXT_DIR = 0;
     INDOORS_INDEX_FADE_EXT = 0;
     INDOORS_DBUILDING = 0;
-#endif
 
     SetSeed(0);
     srand(1234567);
@@ -774,10 +589,8 @@ BOOL game_create_psx(CBYTE* mission_name)
     //
     // Initiliase the bullet points...
     //
-#if !defined(PSX) && !defined(TARGET_DC)
     bullet_upto = -1;
     bullet_counter = 0;
-#endif
 
     {
         //
@@ -810,9 +623,6 @@ BOOL game_create_psx(CBYTE* mission_name)
 // claude-ai: Похоже, использовалась для генерации текстурных «clumps» (pre-baked texture data). Не переносить.
 BOOL make_texture_clumps(CBYTE* mission_name)
 {
-#ifdef TARGET_DC
-    ASSERT(FALSE);
-#endif
     SLONG ret;
     DebugText("Making texture clumps %s\n", mission_name);
 
@@ -832,13 +642,11 @@ BOOL make_texture_clumps(CBYTE* mission_name)
 
     ResetSmoothTicks();
 
-#ifndef TARGET_DC
     INDOORS_INDEX = 0;
     INDOORS_INDEX_NEXT = 0;
     INDOORS_INDEX_FADE_EXT_DIR = 0;
     INDOORS_INDEX_FADE_EXT = 0;
     INDOORS_DBUILDING = 0;
-#endif
 
     SetSeed(0);
     srand(1234567);
@@ -858,10 +666,8 @@ BOOL make_texture_clumps(CBYTE* mission_name)
     //
     // Initiliase the bullet points...
     //
-#if !defined(PSX) && !defined(TARGET_DC)
     bullet_upto = -1;
     bullet_counter = 0;
-#endif
 
     {
         //
@@ -873,8 +679,6 @@ BOOL make_texture_clumps(CBYTE* mission_name)
 
     return (ret);
 }
-#endif
-#endif
 
 //---------------------------------------------------------------
 
@@ -932,7 +736,6 @@ void game_fini(void)
     }
 
     //	Close the game record/playback file.
-#if !defined(PSX) && !defined(TARGET_DC)
     if (playback_file) {
         FileClose(playback_file);
         playback_file = NULL;
@@ -942,37 +745,9 @@ void game_fini(void)
         FileClose(verifier_file);
         verifier_file = NULL;
     }
-#endif
 
     TRACE("gf8 ");
 
-#ifdef TARGET_DC
-    // Unload the non-frontend textures - unless we are replaying the mission.
-    if (GAME_STATE != GS_REPLAY) {
-        TEXTURE_free_unneeded();
-    }
-
-    TRACE("gf9 ");
-
-    // Clear out all the rendering pages' VBs and IBs.
-    extern void POLY_ClearAllPages(void);
-    POLY_ClearAllPages();
-
-    TRACE("gf10 ");
-
-    // And reload the frontend caches.
-    if (GAME_STATE != GS_REPLAY) {
-        the_display.InitBackCache();
-    }
-
-    // And load the frontend again.
-
-    TRACE("gf11 ");
-
-    if (GAME_STATE != GS_REPLAY) {
-        TEXTURE_load_needed("levels\\frontend.ucm", 0, 256, 65);
-    }
-#endif
 
     NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit();
 
@@ -993,7 +768,6 @@ void game(void)
 {
     game_startup();
 
-#ifndef PSX
 #ifdef VERSION_DEMO
     InitBackImage("demotitle.tga");
 
@@ -1006,11 +780,7 @@ void game(void)
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         } else {
-#ifdef TARGET_DC
-            ULONG input = get_hardware_input(INPUT_TYPE_JOY);
-#else
             ULONG input = get_hardware_input(INPUT_TYPE_JOY) | get_hardware_input(INPUT_TYPE_KEY);
-#endif
 
             if (input & (INPUT_MASK_JUMP | INPUT_MASK_START | INPUT_MASK_SELECT | INPUT_MASK_KICK | INPUT_MASK_PUNCH | INPUT_MASK_ACTION)) {
                 break;
@@ -1024,37 +794,10 @@ void game(void)
     ResetBackImage();
 
 #endif
-#endif
 
-#ifdef TARGET_DC
-    // Display the Eidos and MF FMVs.
-    TRACE("Playing intro FMVs\n");
-    // Softdec Codec
-    // MUST NOT BE EXITABLE WITH JOYPAD BUTTONS
-    the_display.RunCutscene(-3, 0 /*ENV_get_value_number("lang_num", 0, "" )*/, FALSE);
-    // Eidos
-    the_display.RunCutscene(-2, 0 /*ENV_get_value_number("lang_num", 0, "" )*/);
-    // Muckyfoot
-    the_display.RunCutscene(-1, 0 /*ENV_get_value_number("lang_num", 0, "" )*/);
-
-#if 0
-#ifdef DEBUG
-	// Play all the movies, to check quality, etc.
-	the_display.RunCutscene( 0, 0 );
-	the_display.RunCutscene( 1, 0 );
-	the_display.RunCutscene( 2, 0 );
-	the_display.RunCutscene( 3, 0 );
-	the_display.RunCutscene( 0, 1 );
-	the_display.RunCutscene( 1, 1 );
-	the_display.RunCutscene( 2, 1 );
-	the_display.RunCutscene( 3, 1 );
-#endif
-#endif
-#endif
 
     // claude-ai: Главный цикл: SHELL_ACTIVE = окно живо, GAME_STATE = текущее состояние (битовое поле)
     while (SHELL_ACTIVE && GAME_STATE) {
-#ifndef PSX
         game_attract_mode();
 
 #ifdef EDITOR
@@ -1069,32 +812,21 @@ void game(void)
             }
         }
 #endif
-#endif
         if (GAME_STATE & GS_PLAY_GAME) {
-#ifndef PSX
             if (game_loop())
                 GAME_STATE = 0;
             else
                 GAME_STATE = GS_ATTRACT_MODE;
-#else
-            game_loop();
-            GAME_STATE = 0;
-#endif
         }
 
-#ifndef TARGET_DC
-#ifndef PSX
         if (GAME_STATE & GS_CONFIGURE_NET) {
             if (CNET_configure())
                 GAME_STATE = 0;
             else
                 GAME_STATE = GS_ATTRACT_MODE;
         }
-#endif
-#endif
     }
 
-#ifndef PSX
 #ifdef VERSION_DEMO
     InitBackImage("demoendscreen.tga");
 
@@ -1107,11 +839,7 @@ void game(void)
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         } else {
-#ifdef TARGET_DC
-            ULONG input = get_hardware_input(INPUT_TYPE_JOY);
-#else
             ULONG input = get_hardware_input(INPUT_TYPE_JOY) | get_hardware_input(INPUT_TYPE_KEY);
-#endif
             if (input & (INPUT_MASK_JUMP | INPUT_MASK_START | INPUT_MASK_SELECT | INPUT_MASK_KICK | INPUT_MASK_PUNCH | INPUT_MASK_ACTION)) {
                 break;
             }
@@ -1122,7 +850,6 @@ void game(void)
     }
 
     ResetBackImage();
-#endif
 #endif
 
     TRACE("game before shutdown\n");
@@ -1139,8 +866,6 @@ void game(void)
 
 #define TAB_MAP_SIZE 448
 
-#ifndef PSX
-#ifndef TARGET_DC
 // claude-ai: GAME_map_draw_old() — старая функция рисования карты-табло (только PC/!DC). Рисует треугольник на позиции Дарси.
 // claude-ai: Использует plan_view_shot() для top-down вида. Заменена GAME_map_draw(). Не переносить.
 void GAME_map_draw_old(void)
@@ -1177,29 +902,10 @@ void GAME_map_draw_old(void)
 
     POLY_frame_draw(FALSE, TRUE);
 }
-#endif
-#endif
 
 extern void overlay_beacons(void);
 
-#ifdef PSX
-/*
-extern	void plan_view_shot(SLONG wx,SLONG wz,SLONG pixelw,SLONG sx,SLONG sy,SLONG w,SLONG h);
 
-void	GAME_map_draw(void)
-{
-        Thing *darci = NET_PERSON(0);
-
-        DrawSync(0);
-        ClearOTag(the_display.CurrentDisplayBuffer->ot, OTSIZE);
-
-        overlay_beacons();
-        plan_view_shot(darci->WorldPos.X>>8,darci->WorldPos.Z>>8,10,10,10,492,236);
-}
-*/
-#else
-
-#ifndef TARGET_DC
 
 UBYTE screen_mem[640 * 3][480];
 
@@ -1216,24 +922,8 @@ void GAME_map_draw(void)
     the_display.blit_background_surface();
     the_display.destroy_background_surface();
 }
-#endif
 
-#endif
 
-#ifdef PSX
-SLONG tick1;
-SLONG tick2;
-SLONG timet;
-
-SLONG cam_x;
-SLONG cam_y;
-SLONG cam_z;
-
-SLONG cam_yaw;
-SLONG cam_pitch;
-SLONG cam_roll;
-
-#else
 
 // claude-ai: leave_map_form_proc() — callback диалогового окна "Leave map?" (только PC/!PSX).
 // claude-ai: Возвращает TRUE (закрыть диалог) при нажатии кнопки; tag=2 = да/выйти, tag=1 = нет/продолжить.
@@ -1248,7 +938,6 @@ BOOL leave_map_form_proc(Form* form, Widget* widget, SLONG message)
     }
 }
 
-#endif
 
 extern void PANEL_draw_timer_do(SLONG time, SLONG x, SLONG y);
 
@@ -1273,7 +962,6 @@ SLONG form_left_map = 0;
 // claude-ai: По умолчанию fps=30 (из config.ini "max_frame_rate"). Не вызывается на PSX/DC.
 void lock_frame_rate(SLONG fps)
 {
-#if !defined(PSX) && !defined(TARGET_DC)
     static SLONG tick1 = 0;
     SLONG tick2;
     SLONG timet;
@@ -1287,14 +975,12 @@ void lock_frame_rate(SLONG fps)
         }
     }
     tick1 = tick2;
-#endif
 }
 
 // claude-ai: demo_timeout() — если TIMEOUT_DEMO=1 и timeout истёк (из env "timeout"), устанавливает GAME_STATE=0.
 // claude-ai: Используется только для демо-версий (TIMEOUT_DEMO=0 в коде → функция ничего не делает).
 void demo_timeout(SLONG flag)
 {
-#if !defined(PSX) && !defined(TARGET_DC)
 #if TIMEOUT_DEMO
 
     static SLONG time_start = 0;
@@ -1312,7 +998,6 @@ void demo_timeout(SLONG flag)
         }
     }
 #endif
-#endif
 }
 
 //
@@ -1321,7 +1006,6 @@ void demo_timeout(SLONG flag)
 #if 0
 void	edge_map_warning(SLONG flag)
 {
-#ifndef PSX
 	Widget *widget_text;
 	Widget *widget_yes;
 	Widget *widget_no;
@@ -1418,7 +1102,6 @@ void	edge_map_warning(SLONG flag)
 
 		GAME_STATE = GS_LEVEL_LOST;
 	}
-#endif
 }
 #endif
 
@@ -1429,7 +1112,6 @@ void	edge_map_warning(SLONG flag)
 // claude-ai: При подтверждении (ret==2) устанавливает GAME_STATE=0 (выход), останавливает машину/байк игрока.
 void do_leave_map_form(void)
 {
-#ifndef PSX
     SLONG ret;
 
     form_left_map = 15;
@@ -1484,7 +1166,6 @@ void do_leave_map_form(void)
 
         POLY_frame_draw(FALSE, FALSE);
     }
-#endif
 }
 
 //
@@ -1504,57 +1185,7 @@ SLONG psx_camera(void)
     // snip   ( a load of camera stuff check out sourcesafe pre 20th may to see (MikeD)
     */
 
-#ifdef PSX
-    SLONG cx;
-    SLONG cy;
-    SLONG cz;
-
-    SLONG ay;
-    SLONG ap;
-    SLONG ar;
-
-    SLONG lens;
-    SLONG warehouse;
-
-    if (EWAY_grab_camera(
-            &cx,
-            &cy,
-            &cz,
-            &ay,
-            &ap,
-            &ar,
-            &lens)) {
-        //
-        // We are using the cut-scene camera.
-        //
-        warehouse = EWAY_camera_warehouse();
-    } else {
-        //
-        // We are using the normal FC camera.
-        //
-
-        cx = FC_cam[0].x;
-        cy = FC_cam[0].y;
-        cz = FC_cam[0].z;
-
-        ay = FC_cam[0].yaw;
-        ap = FC_cam[0].pitch;
-        ar = FC_cam[0].roll;
-        warehouse = (FC_cam[0].focus->Class == CLASS_PERSON && FC_cam[0].focus->Genus.Person->Ware);
-    }
-
-    AENG_set_camera_radians(
-        cx >> 8,
-        cy >> 8,
-        cz >> 8,
-        (-(ay >> 8)) & 2047,
-        ap >> 8,
-        ar >> 8);
-
-    return warehouse;
-#else
     return (0);
-#endif
     return 0; // <-- otherwise error C4716: 'psx_camera' : must return a value
 }
 
@@ -1569,23 +1200,9 @@ inline void screen_flip(void)
     //
     //	sCREENSHOT just before screen_flip
     //
-#ifndef PSX
     extern void AENG_screen_shot(void);
     AENG_screen_shot();
-#else
-    extern void DoFigureDraw(void);
-    DoFigureDraw();
 
-#ifndef FS_ISO9660
-    extern void AENG_screen_shot(SLONG width);
-    if (Keys[KB_S]) {
-        AENG_screen_shot(320);
-        Keys[KB_S] = 0;
-    }
-#endif
-#endif
-
-#ifndef PSX
     //
     // any debug text required
     //
@@ -1605,33 +1222,14 @@ inline void screen_flip(void)
     // it doesn't have a hardware blitter from VIDEO to VIDEO.
     //
 
-#ifdef TARGET_DC
-    // DO THE DAMN FLIP!
-    AENG_flip();
-#else
     if (the_display.GetDriverInfo()->IsPrimary()) {
         PreFlipTT();
         AENG_blit();
     } else {
         AENG_flip();
     }
-#endif
 
 //	FLIP(NULL,DDFLIP_WAIT);
-#else
-    //
-    // Always flip on the PSX.
-    //
-
-    extern UBYTE psx_motor[];
-
-    if (GAME_STATE & (GS_LEVEL_WON | GS_LEVEL_LOST)) {
-        psx_motor[0] = 0;
-        psx_motor[1] = 0;
-    }
-
-    AENG_flip();
-#endif
 }
 
 // claude-ai: playback_game_keys() — в режиме GS_PLAYBACK: SPACE/ENTER/геймпад прерывают воспроизведение (GAME_STATE=0).
@@ -1646,7 +1244,6 @@ void playback_game_keys(void)
         GAME_STATE = 0;
     }
 
-#ifndef PSX
     if (ReadInputDevice()) {
         SLONG i;
 
@@ -1656,7 +1253,6 @@ void playback_game_keys(void)
             }
         }
     }
-#endif
 }
 
 //
@@ -1680,7 +1276,6 @@ SLONG special_keys(void)
     if (ControlFlag && Keys[KB_Q]) {
         return 1;
     }
-#ifndef PSX
     if (allow_debug_keys)
         if (Keys[KB_QUOTE]) {
             Keys[KB_QUOTE] = 0;
@@ -1694,7 +1289,6 @@ SLONG special_keys(void)
             process_things(0);
         }
     }
-#endif
     /*
 
     if (Keys[KB_TAB] || (NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_START))
@@ -1734,31 +1328,8 @@ void handle_sfx(void)
         MFX_set_listener(x, y, z, -(FC_cam[0].yaw >> 8), -(FC_cam[0].roll >> 8), -(FC_cam[0].pitch >> 8));
     }
 
-#ifndef PSX
     process_ambient_effects();
     process_weather();
-#else
-    {
-        // heartbeat when you die
-        static bool only_once = false;
-        if (NET_PERSON(0)->State == STATE_DEAD) {
-            if (!only_once)
-                MFX_play_thing(THING_INDEX(NET_PERSON(0)), S_HEART_FAIL, 0, NET_PERSON(0));
-            only_once = true;
-        } else {
-            only_once = false;
-        }
-    }
-
-    if (wad_level == 14) {
-        SLONG ware = NET_PERSON(PLAYER_ID)->Genus.Person->Ware;
-
-        if (ware && (WARE_ware[ware].ambience == 4)) {
-            MUSIC_bodge_code = 8;
-        } else
-            MUSIC_bodge_code = 0;
-    }
-#endif
 
     extern SLONG BARREL_fx_rate;
     if (BARREL_fx_rate > 1)
@@ -1784,7 +1355,6 @@ SLONG should_i_process_game(void)
         return FALSE;
     }
 
-#ifndef PSX
 
     if (GAMEMENU_is_paused()) {
         return FALSE;
@@ -1794,26 +1364,6 @@ SLONG should_i_process_game(void)
 
     if (!(GAME_FLAGS & (GF_PAUSED | (GF_SHOW_MAP * 0))) && !form_leave_map /* && GAME_STATE != GS_LEVEL_LOST && GAME_STATE != GS_LEVEL_WON*/)
         return (1);
-#else
-
-    extern SLONG PSX_inv_open;
-
-    if (PSX_inv_open) {
-        return (0);
-    }
-
-    if (GAME_FLAGS & GF_PAUSED)
-        return 0;
-
-    if ((GAME_STATE != GS_LEVEL_LOST) && (GAME_STATE != GS_LEVEL_WON))
-        return (1);
-
-    if (PSX_eog_timer) {
-        PSX_eog_timer--;
-        return (1);
-    }
-
-#endif
     return (0);
 }
 
@@ -1829,7 +1379,6 @@ inline void draw_screen(void)
 {
     extern SLONG draw_3d;
 
-#ifndef PSX
 
 #ifdef DEBUG
     draw_debug_lines();
@@ -1845,18 +1394,6 @@ inline void draw_screen(void)
         do_leave_map_form();
     }
 
-#else
-#ifdef TOPMAP_BACK
-    if (draw_map_screen) {
-        extern void MAP_draw();
-        MAP_draw();
-
-    } else
-#endif
-    {
-        AENG_draw(draw_3d);
-    }
-#endif
 }
 
 //****************************************************************
@@ -1866,24 +1403,11 @@ inline void draw_screen(void)
 // claude-ai: replay_waiting предотвращает двойное срабатывание сразу после смерти.
 SLONG hardware_input_replay(void)
 {
-#ifdef PSX
-
-    //
-    // input that triggers a mision to be replayed (only triggers if level_lost
-    //
-
-    if (PadKeyIsPressed(&PAD_Input1, PAD_Current->data[4].pad_button)) {
-        return (1 - replay_waiting);
-    }
-    replay_waiting = 0;
-
-#else
     if (LastKey == KB_R) {
         LastKey = 0;
         return (1);
     }
 
-#endif
     return (0);
 }
 
@@ -1892,27 +1416,12 @@ SLONG hardware_input_replay(void)
 // claude-ai: Используется при GS_LEVEL_WON/LOST для перехода к следующему экрану.
 SLONG hardware_input_continue(void)
 {
-#ifdef PSX
-    //
-    // input that triggers you to continue with default action (level_won is go to next, level_lost is replay)
-    //
-    if (PadKeyIsPressed(&PAD_Input1, PAD_RD)) {
-        return (1 - continue_waiting);
-    } else
-        continue_waiting = 0;
-
-#else
 
     extern SLONG GAMEMENU_menu_type;
     if (GAMEMENU_menu_type == 0 /*GAMEMENU_MENU_TYPE_NONE*/) {
         // No pause menu up, so wait for a keypress.
-#ifdef TARGET_DC
-        SLONG input = get_hardware_input(INPUT_TYPE_JOY | INPUT_TYPE_REMAP_DPAD | INPUT_TYPE_REMAP_BUTTONS | INPUT_TYPE_GONEDOWN);
-        if (input & (INPUT_MASK_DOMENU | INPUT_MASK_CANCEL))
-#else
         SLONG input = get_hardware_input(INPUT_TYPE_ALL);
         if (LastKey == KB_SPACE || LastKey == KB_ESC || LastKey == KB_Z || LastKey == KB_X || LastKey == KB_C || LastKey == KB_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP)))
-#endif
         {
             LastKey = 0;
 
@@ -1920,7 +1429,6 @@ SLONG hardware_input_continue(void)
         }
     }
 
-#endif
     return (0);
 }
 
@@ -1928,19 +1436,12 @@ SLONG hardware_input_continue(void)
 UWORD darci_dlight;
 */
 
-#ifndef PSX
 // claude-ai: last_fudge_message/last_fudge_camera — временные переменные для отладочного "fudge" рендеринга (PC только).
 UWORD last_fudge_message;
 UWORD last_fudge_camera;
 // claude-ai: the_end — флаг "конец игры" (TRUE после прохождения финала). Используется для OS_hack() (финальный экран).
 UBYTE the_end;
-#endif
 
-#ifdef PSX
-#ifdef VERSION_DEMO
-extern SLONG game_timeout;
-#endif
-#endif
 
 // claude-ai: env_frame_rate — целевой FPS из config.ini "max_frame_rate" (по умолчанию 30). Используется в lock_frame_rate().
 UWORD env_frame_rate;
@@ -1955,21 +1456,13 @@ UWORD env_frame_rate;
 // claude-ai: Возвращает 0 = вернуться в attract-mode, 1 = полный выход из игры
 UBYTE game_loop(void)
 {
-#ifndef PSX
-#ifndef TARGET_DC
     extern void save_all_nads(void);
     extern SLONG save_psx;
     if (save_psx == 2)
         save_all_nads();
-#endif
-#endif
 
-#ifndef PSX
-#ifndef TARGET_DC
     env_frame_rate = ENV_get_value_number("max_frame_rate", 30, "Render");
-#endif
     AENG_set_draw_distance(ENV_get_value_number("draw_distance", 22, "Render"));
-#endif
 round_again:;
 
 #ifndef NDEBUG
@@ -1978,20 +1471,11 @@ round_again:;
         // allways record a game, good for debuging
         //
 
-#ifndef TARGET_DC
         GAME_STATE |= GS_RECORD;
-#endif
     }
 #endif
 
-#ifdef PSX
-    continue_waiting = 1;
-    replay_waiting = 1;
-#else
-#ifndef TARGET_DC
     MEMORY_quick_init();
-#endif
-#endif
 
     TRACE("game_loop init1\n");
 
@@ -2003,32 +1487,22 @@ round_again:;
         draw_map_screen = FALSE;
         form_leave_map = NULL;
         form_left_map = 0;
-#ifndef PSX
         LastKey = 0;
         last_fudge_message = 0;
         last_fudge_camera = 0;
-#endif
 
         demo_timeout(1);
 
-#ifndef PSX
         PANEL_fadeout_init();
         GAMEMENU_init();
-#endif
 
         // start timing
         if (GAME_STATE & GS_PLAYBACK)
             BreakStart();
-#ifndef PSX
         SLONG exit_game_loop = FALSE;
 
         TRACE("game_loop init3\n");
 
-#ifdef TARGET_DC
-        // Sod 'em on the PC - they just cause problems when converting levels.
-        // Sod it on the DC as well - very low on memory.
-        // SUPERCRINKLE_init();
-#endif
 
         //
         // Initialise the SUPERFACET cache system. Allocates memory.
@@ -2060,24 +1534,12 @@ round_again:;
         extern void envmap_specials(void);
         envmap_specials();
 
-#endif
 
         TRACE("game_loop init8\n");
 
         // claude-ai: Inner per-frame loop - runs while playing, exits on GS_LEVEL_WON or GS_LEVEL_LOST
         while (SHELL_ACTIVE && (GAME_STATE & (GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WON))) {
-#ifdef TARGET_DC
-            extern bool g_bPunishMePleaseICheatedOnThisLevel;
-            extern int g_iCheatNumber;
-            if (g_iCheatNumber == 0xd01e7e1) {
-                // Complete this level.
-                g_bPunishMePleaseICheatedOnThisLevel = TRUE;
-                GAME_STATE = GS_LEVEL_WON;
-                g_iCheatNumber = 0;
-            }
-#endif
 
-#ifndef PSX
             // claude-ai: GAMEMENU_process() — обновляет состояние меню паузы. Возвращает GAMEMENU_DO_* код действия:
             // claude-ai:   GAMEMENU_DO_NOTHING=0, GAMEMENU_DO_RESTART, GAMEMENU_DO_CHOOSE_NEW_MISSION, GAMEMENU_DO_NEXT_LEVEL.
             // claude-ai: exit_game_loop запоминает код: как только он != 0, запускается PANEL_fadeout_start() (затемнение).
@@ -2086,15 +1548,6 @@ round_again:;
                 exit_game_loop = GAMEMENU_process();
             }
 
-#ifdef TARGET_DC
-            if (g_bDreamcastABXYStartComboPressed) {
-                // Bin this game - get back to the main menu.
-                // er... actually, get back to the title screen, according to Sega standards.
-                // g_bDreamcastABXYStartComboPressed = FALSE;
-                GAME_STATE = GS_LEVEL_LOST;
-                exit_game_loop = GAMEMENU_DO_CHOOSE_NEW_MISSION;
-            }
-#endif
 
             if (exit_game_loop) {
                 PANEL_fadeout_start();
@@ -2139,79 +1592,6 @@ round_again:;
                     break;
                 }
             }
-#else
-
-            // claude-ai: GS_LEVEL_LOST/WON handling - show replay option or return to menu (PSX path)
-            if (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) {
-                //
-                // Exiting out of a mission...
-                //
-
-                if (GAME_STATE & GS_LEVEL_LOST) {
-                    // MUSIC_play(S_DEAD,MUSIC_FLAG_LOOPED|MUSIC_FLAG_OVERRIDE);
-                    if (NET_PERSON(0)->Genus.Person->Health > 0)
-                        MUSIC_mode(MUSIC_MODE_CHAOS);
-                    else
-                        MUSIC_mode(MUSIC_MODE_GAMELOST);
-
-                    if (hardware_input_replay()) {
-                        {
-
-#ifdef PSX
-                            // Sony want's triangle to return us to the main menu
-                            // rather than 'X' as we originally planned (and which
-                            // is on the face of it the intuitive one, and consistant)
-                            // Oh well, if Sony Insists I'll arse about with the
-                            // code to make it work.
-#ifndef VERSION_DEMO
-                            GAME_STATE = GS_LEVEL_LOST;
-#else
-                            GAME_STATE = 0;
-#endif
-#else
-                            GAME_STATE = GS_REPLAY;
-#endif
-                            break;
-                        }
-                    }
-                    if (hardware_input_continue()) {
-#ifdef PSX
-                        // The reason this is all cocked up is because apparently
-                        // Sony want us to use Triange to Return to the Menu
-                        // Whereas on the PC it's SPACE like the level won
-                        // option. Where is my consistancy?
-#ifndef VERSION_DEMO
-                        GAME_STATE = GS_REPLAY;
-#else
-                        GAME_STATE = 0;
-#endif
-#else
-                        GAME_STATE = GS_LEVEL_LOST;
-#endif
-                        break;
-                    }
-                }
-                if (GAME_STATE & GS_LEVEL_WON) {
-                    // MUSIC_play(S_LEVEL_COMPLETE,MUSIC_FLAG_LOOPED|MUSIC_FLAG_OVERRIDE);
-                    MUSIC_mode(MUSIC_MODE_GAMEWON);
-                    if (hardware_input_continue()) {
-#ifndef VERSION_DEMO
-                        GAME_STATE = GS_LEVEL_WON;
-#else
-                        GAME_STATE = 0;
-#endif
-                        break;
-                    }
-                }
-#ifdef VERSION_DEMO
-                if (game_timeout == 0) {
-                    GAME_STATE = 0;
-                    break;
-                }
-                game_timeout--;
-#endif
-            }
-#endif
 
             // claude-ai: EWAY_tutorial_string — активное обучающее сообщение (задаётся из EWAY_process в eway.cpp).
             // claude-ai: Пока != NULL: should_i_process_game() возвращает FALSE (игра заморожена), игра ждёт нажатия.
@@ -2308,12 +1688,9 @@ round_again:;
                 TRIP_process();
                 DOOR_process();
 
-#ifndef TARGET_DC
                 TRACE("Eway process\n");
-#endif
 
                 EWAY_process();
-#ifndef PSX
 
                 //				TRACE("Process stuff2\n");
 
@@ -2321,36 +1698,24 @@ round_again:;
                 RIBBON_process();
                 DIRT_process();
                 ProcessGrenades();
-#ifndef TARGET_DC
                 WMOVE_draw();
                 BALLOON_process();
-#endif
                 MAP_process();
-#endif
                 POW_process();
                 FC_process(); // claude-ai: Обновление камеры (только fc.cpp; cam.cpp — мёртвый код, не переносить)
 
             } else {
-#ifdef PSX
-                extern void do_packets(void);
-
-                do_packets();
-#endif
             }
 
             //
             // Always process these...
             //
 
-#ifndef PSX
             {
-#ifndef TARGET_DC
                 PUDDLE_process();
-#endif
                 // Still need to have drips on DC (for hydrants, pissing, etc.
                 DRIP_process();
             }
-#endif
 
             //
             // Draw the game or map or whatever is going on
@@ -2373,14 +1738,6 @@ round_again:;
 
             SLONG i_want_to_exit = FALSE;
 
-#ifdef PSX
-
-            // claude-ai: PAUSE_handler() — PSX-only: обрабатывает нажатие Start для паузы. Возвращает TRUE = выход из игры.
-            if (PAUSE_handler()) {
-                i_want_to_exit = TRUE;
-            }
-
-#endif
 
             //
             // On screen Text
@@ -2391,7 +1748,6 @@ round_again:;
                 CONSOLE_draw();
             // #endif
 
-#ifndef PSX
             // claude-ai: GAMEMENU_draw() — рисует меню паузы (PC): анимированное меню с опциями Continue/Restart/Exit.
             GAMEMENU_draw();
 
@@ -2400,7 +1756,6 @@ round_again:;
             //
 
             PANEL_fadeout_draw();
-#endif
 
             //
             // Lets show this stuff on the monitor
@@ -2422,12 +1777,8 @@ round_again:;
             //
             // Lock frame-rate to 30 FPS
             //
-#ifndef PSX
-#ifndef TARGET_DC
 #ifndef BREAKTIMER
             lock_frame_rate(env_frame_rate); // claude-ai: Spin-loop busy-wait; env_frame_rate из config.ini "max_frame_rate" (по умолч. 30)
-#endif
-#endif
 #endif
 
             //
@@ -2479,7 +1830,6 @@ round_again:;
         // claude-ai: Finale1.ucm → катсцена 3 (финальный ролик) + OS_hack() (финальный экран игры).
         // claude-ai: Все остальные уровни → переход к DarciDeadCivWarnings проверке (если убиты мирные).
         if (GAME_STATE == GS_LEVEL_WON) {
-#ifndef PSX
 
             if (strstr(ELEV_fname_level, "park2.ucm")) {
                 //
@@ -2487,46 +1837,23 @@ round_again:;
                 //
 
                 stop_all_fx_and_music();
-#ifdef TARGET_DC
-                the_display.RunCutscene(1, ENV_get_value_number("lang_num", 0, ""));
-#else
                 the_display.RunCutscene(1);
-#endif
             } else if (strstr(ELEV_fname_level, "Finale1.ucm")) {
                 //
                 // Game complete!
                 //
                 stop_all_fx_and_music();
-#ifdef TARGET_DC
-                the_display.RunCutscene(3, ENV_get_value_number("lang_num", 0, ""));
-#else
                 the_display.RunCutscene(3);
-#endif
 
                 //
                 // Go into the outro.
                 //
 
-#ifndef TARGET_DC
                 extern void OS_hack(void);
 
                 the_end = TRUE;
 
                 OS_hack();
-#else
-                // Do the credits.
-                // g_bGoToCreditsPleaseGameHasFinished = TRUE;
-
-                // Get the background loaded.
-                void FRONTEND_scr_img_load_into_screenfull(CBYTE * name, CompressedBackground * screen);
-                FRONTEND_scr_img_load_into_screenfull("title_blood1.tga", &(the_display.lp_DD_Background));
-                extern LPDIRECTDRAWSURFACE4 lpBackgroundCache;
-                ASSERT(lpBackgroundCache != NULL);
-                UnpackBackground((BYTE*)(the_display.lp_DD_Background), lpBackgroundCache);
-
-                MUSIC_mode(MUSIC_MODE_FRONTEND);
-                MUSIC_mode_process();
-#endif
 
                 the_end = FALSE;
             } else
@@ -2535,7 +1862,6 @@ round_again:;
             // Connected else...
             //
 
-#endif
 
                 // claude-ai: DarciDeadCivWarnings — экран наказания за убийство мирных жителей (RedMarks > 1).
                 // claude-ai: RedMarks — счётчик убитых мирных (Player->RedMarks). Только для PERSON_DARCI (основной персонаж).
@@ -2547,19 +1873,12 @@ round_again:;
 
                         InitBackImage("deadcivs.tga");
 
-#ifdef TARGET_DC
-                        // Do a grab to make the GONEDOWN thing grab current state.
-                        // That way, if a button is held down, it won't skip past this screen.
-                        get_hardware_input(INPUT_TYPE_JOY | INPUT_TYPE_REMAP_DPAD | INPUT_TYPE_REMAP_BUTTONS | INPUT_TYPE_REMAP_START_BUTTON | INPUT_TYPE_GONEDOWN);
-#else
                     Keys[KB_ESC] = 0;
                     Keys[KB_SPACE] = 0;
                     Keys[KB_ENTER] = 0;
                     Keys[KB_PENTER] = 0;
-#endif
 
                         while (SHELL_ACTIVE) {
-#ifndef PSX
                             ShowBackImage();
                             POLY_frame_init(FALSE, FALSE);
 
@@ -2595,37 +1914,20 @@ round_again:;
 
                             // FONT2D_DrawStringWrap(mess, 10, 300, 0xffffffff);
                             POLY_frame_draw(TRUE, TRUE);
-#else
-                        extern CBYTE* Wadmenu_CivMess;
-                        Wadmenu_CivMess = mess;
-                        break;
-#endif
                             AENG_flip();
 
-#ifdef TARGET_DC
-                            int input = get_hardware_input(INPUT_TYPE_JOY | INPUT_TYPE_REMAP_DPAD | INPUT_TYPE_REMAP_BUTTONS | INPUT_TYPE_REMAP_START_BUTTON | INPUT_TYPE_GONEDOWN);
-                            if (0 != (input & (INPUT_MASK_START | INPUT_MASK_CANCEL | INPUT_MASK_DOMENU))) {
-                                break;
-                            }
-#else
                         if (Keys[KB_ESC] || Keys[KB_SPACE] || Keys[KB_ENTER] || Keys[KB_PENTER]) {
                             break;
                         }
-#endif
                         }
 
                         // Bin the memory again.
                         ResetBackImage();
 
-#ifdef TARGET_DC
-                        // Another one, again to get GONEDOWN working well.
-                        get_hardware_input(INPUT_TYPE_JOY | INPUT_TYPE_REMAP_DPAD | INPUT_TYPE_REMAP_BUTTONS | INPUT_TYPE_REMAP_START_BUTTON | INPUT_TYPE_GONEDOWN);
-#else
                     Keys[KB_ESC] = 0;
                     Keys[KB_SPACE] = 0;
                     Keys[KB_ENTER] = 0;
                     Keys[KB_PENTER] = 0;
-#endif
 
                         the_game.DarciDeadCivWarnings += 1;
                     }
@@ -2641,44 +1943,17 @@ round_again:;
         // claude-ai:   GS_LEVEL_LOST → PSX: Wadmenu_gameover(0); PC: FRONTEND_level_lost() чуть ниже
         switch (GAME_STATE) {
         case 0:
-#ifdef PSX
-            extern void AENG_flip_init(void);
-            AENG_flip_init();
-            DrawSync(0);
-#endif
             break;
 
         case GS_REPLAY:
             GAME_STATE = GS_PLAY_GAME | GS_REPLAY;
-#ifdef PSX
-            extern void AENG_flip_init(void);
-            AENG_flip_init();
-            DrawSync(0);
-#endif
 
             goto round_again;
         case GS_LEVEL_WON:
-#ifndef PSX
 //				STARTSCR_notify_gameover(1);
-#else
-            AENG_flip_init();
-            DrawSync(0);
-            Wadmenu_gameover(1);
-#endif
             break;
         case GS_LEVEL_LOST:
-#ifndef PSX
 //				STARTSCR_notify_gameover(0);
-#else
-
-            TRACE("game_loop LOST 1\n");
-            AENG_flip_init();
-            TRACE("game_loop LOST 2\n");
-            DrawSync(0);
-            TRACE("game_loop LOST 3\n");
-            Wadmenu_gameover(0);
-            TRACE("game_loop LOST 4\n");
-#endif
             break;
         }
 
@@ -2686,7 +1961,6 @@ round_again:;
 
         NET_PERSON(0) = NULL; // For the music system...
 
-#ifndef PSX
         if (GAME_STATE == GS_LEVEL_WON) {
             FRONTEND_level_won();
         } else {
@@ -2694,7 +1968,6 @@ round_again:;
             FRONTEND_level_lost();
             TRACE("game_loop LOST 6\n");
         }
-#endif
 
         return 0;
     }

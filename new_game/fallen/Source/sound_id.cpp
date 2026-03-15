@@ -5,7 +5,6 @@
 
 #include "MFStdLib.h"
 
-#ifndef PSX
 CBYTE* sound_list[] = {
     "NULL.wav",
     "f_WIND1.wav",
@@ -558,4 +557,3 @@ CBYTE* sound_list[] = {
     "!",
 };
 
-#endif

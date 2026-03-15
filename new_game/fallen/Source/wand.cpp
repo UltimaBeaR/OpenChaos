@@ -9,7 +9,6 @@
 #include "memory.h"
 #include "ob.h"
 
-#ifndef PSX
 void WAND_init(void)
 {
     SLONG x;
@@ -106,7 +105,6 @@ void WAND_init(void)
         }
 }
 
-#endif
 
 SLONG WAND_square_is_wander(SLONG mx, SLONG mz)
 {
@@ -265,8 +263,6 @@ void WAND_get_next_place(
     *wand_world_z = (best_z << 8) + 0x80;
 }
 
-#ifndef PSX
-#ifndef TARGET_DC
 void WAND_draw(SLONG map_x, SLONG map_z)
 {
     SLONG dx;
@@ -309,8 +305,6 @@ void WAND_draw(SLONG map_x, SLONG map_z)
             }
         }
 }
-#endif
-#endif
 
 #define SEARCH_SIZE 1
 

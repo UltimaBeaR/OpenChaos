@@ -3,7 +3,6 @@
 //
 
 // Never used, even in the PC version.
-#ifndef TARGET_DC
 
 #include "game.h"
 #include "pigeon.h"
@@ -78,10 +77,6 @@ void PIGEON_find_pos_along_vect(SLONG vect, SLONG along, SLONG* x, SLONG* y, SLO
 
 UWORD PIGEON_find_perch(Thing* pigeon, UWORD ignore_this_vect)
 {
-#ifdef TARGET_DC
-    // Shouldn't be using this, apparently.
-    ASSERT(FALSE);
-#endif
     SLONG x;
     SLONG z;
 
@@ -995,4 +990,3 @@ void PIGEON_fn_normal(Thing* pigeon)
     }
 }
 
-#endif // #ifndef TARGET_DC

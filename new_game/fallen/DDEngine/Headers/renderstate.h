@@ -21,10 +21,8 @@ struct RenderState {
     void SetRenderState(DWORD index, DWORD value);
     void SetEffect(DWORD effect);
 
-#ifndef TARGET_DC
     void SetTempTransparent();
     void ResetTempTransparent();
-#endif
 
     LPDIRECT3DTEXTURE2 GetTexture() { return TextureMap; }
     DWORD GetEffect() { return Effect; }
@@ -33,11 +31,7 @@ struct RenderState {
 
     void SetChanged(); // set changed members
 
-#ifdef TARGET_DC
-    bool NeedsSorting() { return FALSE; }
-#else
     bool NeedsSorting() { return !ZWriteEnable; }
-#endif
     DWORD ZLift() { return ZBias; }
 
     void WrapJustOnce() { WrapOnce = true; } // Temporarily sets the state to wrapping just for one call to SetChanged()
@@ -63,27 +57,20 @@ private:
     DWORD TextureMin;
     DWORD TextureMapBlend;
 
-#ifndef TARGET_DC
     DWORD ZEnable;
     DWORD ZWriteEnable;
-#endif
     DWORD AlphaTestEnable;
     DWORD SrcBlend;
     DWORD DestBlend;
-#ifndef TARGET_DC
     DWORD ZFunc;
-#endif
     DWORD AlphaBlendEnable;
     DWORD FogEnable;
-#ifndef TARGET_DC
     DWORD ColorKeyEnable;
-#endif
     DWORD CullMode;
     DWORD ZBias;
     DWORD Effect;
     bool WrapOnce;
 
-#ifndef TARGET_DC
     bool TempTransparent;
     DWORD TempSrcBlend;
     DWORD TempDestBlend;
@@ -91,7 +78,6 @@ private:
     DWORD TempZWriteEnable;
     DWORD TempTextureMapBlend;
     DWORD TempEffect;
-#endif
 };
 #pragma pack(pop)
 

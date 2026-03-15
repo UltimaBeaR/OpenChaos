@@ -8,28 +8,20 @@
  *
  */
 
-#ifndef TARGET_DC
 
 #include "mfstdlib.h"
 #include "game.h"
 #include "xlat_str.h"
 
-#ifndef PSX
 #include "..\ddengine\headers\poly.h"
 #include "..\DDLibrary\headers\D3DTexture.h"
 #include "..\DDLibrary\headers\GDisplay.h"
 #include "..\ddengine\headers\font3d.h"
 #include "..\ddengine\headers\font2d.h"
 #include "..\ddengine\headers\panel.h"
-#endif
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
-#ifndef PSX
 extern DIJOYSTATE the_state;
-#endif
 
 #define AXIS_CENTRE 32768
 #define NOISE_TOLERANCE 1024
@@ -68,7 +60,6 @@ SLONG PAUSE_handler()
     static SLONG lastinput = 0;
     SLONG ans = FALSE;
 
-#ifndef PSX
 
     input = 0;
     extern BOOL ReadInputDevice(void);
@@ -92,7 +83,6 @@ SLONG PAUSE_handler()
         }
     }
 
-#endif
 
     temp = input;
     input = input & (~lastinput);
@@ -158,7 +148,6 @@ SLONG PAUSE_handler()
         }
     }
 
-#ifndef PSX
 
     POLY_frame_init(FALSE, FALSE);
 
@@ -170,10 +159,8 @@ SLONG PAUSE_handler()
         POLY_PAGE_ALPHA_OVERLAY,
         0x88000000);
 
-#ifndef TARGET_DC
     POLY_frame_draw(FALSE, TRUE);
     POLY_frame_init(FALSE, FALSE);
-#endif
 
     SLONG offset;
     SLONG text_size;
@@ -203,7 +190,6 @@ SLONG PAUSE_handler()
 
     POLY_frame_draw(FALSE, TRUE);
 
-#endif
 
     return ans;
 
@@ -231,4 +217,3 @@ SLONG PAUSE_handler()
     */
 }
 
-#endif // #ifndef TARGET_DC

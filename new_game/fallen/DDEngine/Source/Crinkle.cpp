@@ -8,21 +8,12 @@
 
 #include <math.h>
 
-#ifdef TARGET_DC
-// intrinsic maths
-#include <shsgintr.h>
-#endif
 
 //
 // Temporary storage for transformed crinkle points.
 //
 
-#ifdef TARGET_DC
-// Only temporary - got no memory for them.
-#define DISABLE_CRINKLES 1
-#else
 #define DISABLE_CRINKLES 0
-#endif
 
 #if DISABLE_CRINKLES
 #define CRINKLE_MAX_POINTS_PER_CRINKLE 1
@@ -71,11 +62,7 @@ typedef struct
 
 } CRINKLE_Face;
 
-#ifdef TARGET_DC
-#define CRINKLE_MAX_FACES 1
-#else
 #define CRINKLE_MAX_FACES 8192
-#endif
 
 CRINKLE_Face CRINKLE_face[CRINKLE_MAX_FACES];
 SLONG CRINKLE_face_upto;
@@ -94,11 +81,7 @@ typedef struct
 
 } CRINKLE_Crinkle;
 
-#ifdef TARGET_DC
-#define CRINKLE_MAX_CRINKLES 1
-#else
 #define CRINKLE_MAX_CRINKLES 256
-#endif
 
 CRINKLE_Crinkle CRINKLE_crinkle[CRINKLE_MAX_CRINKLES];
 SLONG CRINKLE_crinkle_upto;
@@ -399,7 +382,6 @@ CRINKLE_Handle CRINKLE_read_bin(FileClump* tclump, int id)
     return ans;
 }
 
-#ifndef TARGET_DC
 void CRINKLE_write_bin(FileClump* tclump, CRINKLE_Handle hnd, int id)
 {
     CRINKLE_Crinkle* cc = &CRINKLE_crinkle[hnd];
@@ -432,7 +414,6 @@ void CRINKLE_write_bin(FileClump* tclump, CRINKLE_Handle hnd, int id)
 
     tclump->Write(buffer, size, id);
 }
-#endif // #ifndef TARGET_DC
 
 float CRINKLE_light_x;
 float CRINKLE_light_y;
@@ -453,14 +434,8 @@ void CRINKLE_skew(float aspect, float lens)
 
 void CRINKLE_light(float dx, float dy, float dz)
 {
-#ifdef TARGET_DC
-    // USe the intrinsic one.
-    float len = dx * dx + dy * dy + dz * dz;
-    float overlen = _InvSqrtA(len);
-#else
     float len = sqrt(dx * dx + dy * dy + dz * dz);
     float overlen = 1.0F / len;
-#endif
 
     dx *= overlen;
     dy *= overlen;
@@ -486,11 +461,9 @@ void CRINKLE_do(
 
     cc = &CRINKLE_crinkle[crinkle];
 #ifndef FINAL
-#ifndef TARGET_DC
     if (Keys[KB_RSHIFT]) {
         flip = TRUE;
     }
-#endif
 #endif
     if (flip) {
 #define PPSWAP(a, b)                \
@@ -544,13 +517,8 @@ void CRINKLE_do(
     float cy = (az * bx - ax * bz) * (1.0F / 256.0F);
     float cz = (ax * by - ay * bx) * (1.0F / 256.0F);
 
-#ifdef TARGET_DC
-    float len = (cx * cx + cy * cy + cz * cz);
-    float overlen = 0.05F * _InvSqrtA(len);
-#else
     float len = sqrt(cx * cx + cy * cy + cz * cz);
     float overlen = 0.05F / len;
-#endif
 
     if (flip) {
         overlen = -overlen;
@@ -627,13 +595,8 @@ void CRINKLE_do(
         ASSERT(WITHIN(b, 0, 255));
         ASSERT(WITHIN(a, 0, 255));
 
-#ifdef TARGET_DC
-        pt->specular = 0x00000000;
-        pt->colour = 0xff000000 | (r << 16) | (g << 8) | (b << 0);
-#else
         pt->colour = (a << 24) | (r << 16) | (g << 8) | (b << 0);
         pt->specular = 0xff000000;
-#endif
 
         // Warp viewspace...
 
@@ -685,13 +648,8 @@ void CRINKLE_do(
                 float ny = az * bx - ax * bz;
                 float nz = ax * by - ay * bx;
 
-#ifdef TARGET_DC
-                float len = (nx * nx + ny * ny + nz * nz);
-                float overlen = _InvSqrtA(len);
-#else
                 float len = sqrt(nx * nx + ny * ny + nz * nz);
                 float overlen = 1.0F / len;
-#endif
 
                 nx *= overlen;
                 ny *= overlen;
@@ -733,11 +691,7 @@ void CRINKLE_do(
                 SATURATE(b, 0, 255);
                 SATURATE(a, 0, 255);
 
-#ifdef TARGET_DC
-                tri[0]->colour = (0xff << 24) | (r << 16) | (g << 8) | (b << 0);
-#else
                 tri[0]->colour = (a << 24) | (r << 16) | (g << 8) | (b << 0);
-#endif
 
                 r = ((c1 >> 16) & 0xff) + drgb;
                 g = ((c1 >> 8) & 0xff) + drgb;
@@ -749,11 +703,7 @@ void CRINKLE_do(
                 SATURATE(b, 0, 255);
                 SATURATE(a, 0, 255);
 
-#ifdef TARGET_DC
-                tri[1]->colour = (0xff << 24) | (r << 16) | (g << 8) | (b << 0);
-#else
                 tri[1]->colour = (a << 24) | (r << 16) | (g << 8) | (b << 0);
-#endif
 
                 r = ((c2 >> 16) & 0xff) + drgb;
                 g = ((c2 >> 8) & 0xff) + drgb;
@@ -765,11 +715,7 @@ void CRINKLE_do(
                 SATURATE(b, 0, 255);
                 SATURATE(a, 0, 255);
 
-#ifdef TARGET_DC
-                tri[2]->colour = (0xff << 24) | (r << 16) | (g << 8) | (b << 0);
-#else
                 tri[2]->colour = (a << 24) | (r << 16) | (g << 8) | (b << 0);
-#endif
 
                 //
                 // Draw the triangle.
@@ -805,11 +751,9 @@ void CRINKLE_project(
 
     cc = &CRINKLE_crinkle[crinkle];
 
-#ifndef TARGET_DC
     if (Keys[KB_RSHIFT]) {
         flip = TRUE;
     }
-#endif
 
     if (flip) {
 #define SVSWAP(a, b)              \
@@ -843,13 +787,8 @@ void CRINKLE_project(
     float cy = (az * bx - ax * bz) * (1.0F / 256.0F);
     float cz = (ax * by - ay * bx) * (1.0F / 256.0F);
 
-#ifdef TARGET_DC
-    float len = (cx * cx + cy * cy + cz * cz);
-    float overlen = 0.05F * _InvSqrtA(len);
-#else
     float len = sqrt(cx * cx + cy * cy + cz * cz);
     float overlen = 0.05F / len;
-#endif
 
     if (flip) {
         overlen = -overlen;

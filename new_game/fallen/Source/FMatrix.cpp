@@ -165,7 +165,6 @@ void matrix_transformZMY(Matrix31* result, Matrix33* trans, Matrix31* mat2)
     // LogText(" draw len after %d \n",SDIST3(result->M[0],result->M[1],result->M[2]));
 }
 
-#ifndef PSX
 void matrix_transform(struct Matrix31* result, struct Matrix33* trans, struct Matrix31* mat2)
 {
     // LogText(" draw-a len before %d \n",SDIST3(mat2->M[0],mat2->M[1],mat2->M[2]));
@@ -226,7 +225,6 @@ void normalise_matrix_rows(struct Matrix33* mat)
         mat->M[c0][2] = (mat->M[c0][2] << 15) / size;
     }
 }
-#endif
 
 #define MAT_SHIFT (6)
 #define MAT_SHIFTD (8 - MAT_SHIFT)
@@ -280,8 +278,6 @@ void build_tween_matrix(struct Matrix33* mat, struct CMatrix33* cmat1, struct CM
 
     mat->M[2][2] = (v << MAT_SHIFT) + (((w - v) * tween) >> MAT_SHIFTD);
 }
-#ifdef PSX
-#endif
 
 void FMATRIX_find_angles(SLONG* matrix, SLONG* yaw, SLONG* pitch, SLONG* roll)
 {

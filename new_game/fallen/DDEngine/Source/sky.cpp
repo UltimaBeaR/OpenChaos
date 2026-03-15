@@ -16,7 +16,6 @@
 #define SKY_STAR_T_BRIGHT 3
 #define SKY_STAR_T_PLANET 4
 
-#ifndef TARGET_DC
 typedef struct
 {
     UBYTE colour;
@@ -70,7 +69,6 @@ typedef struct
 
 SKY_Cloud SKY_cloud[SKY_NUM_CLOUDS];
 
-#endif
 
 #define SKY_wibble_y1 62
 #define SKY_wibble_y2 137
@@ -82,7 +80,6 @@ SKY_Cloud SKY_cloud[SKY_NUM_CLOUDS];
 void SKY_init(CBYTE* star_file)
 {
 
-#ifndef TARGET_DC
 
     SLONG i;
 
@@ -217,10 +214,8 @@ void SKY_init(CBYTE* star_file)
             ss->yaw,
             ss->pitch + dpitch);
     }
-#endif
 }
 
-#ifndef TARGET_DC
 void SKY_draw_stars(
     float mid_x, // The world camera position
     float mid_y,
@@ -287,9 +282,7 @@ void SKY_draw_stars(
         }
     }
 }
-#endif
 
-#ifndef TARGET_DC
 void SKY_draw_poly_clouds(
     float mid_x,
     float mid_y,
@@ -435,7 +428,6 @@ void SKY_draw_poly_clouds(
 
     return;
 }
-#endif
 
 void SKY_draw_poly_moon(
     float mid_x,
@@ -484,13 +476,8 @@ void SKY_draw_poly_moon(
 #define SKY_MOON_YAW (0)
 #define SKY_MOON_PITCH (PI / 8.0F)
 #define SKY_MOON_DIST (max_dist - 128.0F)
-#ifdef TARGET_DC
-// This is slightly more sensible.
-#define SKY_MOON_RADIUS (screen_width * 0.09F)
-#else
 // This is hooooooooooj.
 #define SKY_MOON_RADIUS (screen_width * 0.15F)
-#endif
 #define SKY_MOON_UV_IN (0.02F)
 
     const struct
@@ -517,10 +504,6 @@ void SKY_draw_poly_moon(
     temp.Y = vector[1] * SKY_MOON_DIST + mid_y * 0.5f;
     temp.Z = vector[2] * SKY_MOON_DIST + mid_z;
 
-#ifdef TARGET_DC
-    // Workaround.
-    POLY_flush_local_rot();
-#endif
 
     POLY_transform(
         temp.X,
@@ -542,13 +525,7 @@ void SKY_draw_poly_moon(
 
             on_screen_for = 0;
         } else {
-#ifdef TARGET_DC
-            // Got to get it just in front of the sky, but behind the far facets.
-            mid.Z = 0.001f;
-            mid.z = 0.999f;
-#else
             mid.Z = SKY_VERY_FAR_AWAY;
-#endif
             mid.colour = 0xffaaaa88;
             mid.specular = 0x00000000;
 
@@ -657,7 +634,6 @@ void SKY_draw_poly_moon(
     return;
 }
 
-#ifndef TARGET_DC
 SLONG SKY_draw_moon_reflection(
     float mid_x,
     float mid_y,
@@ -755,12 +731,7 @@ SLONG SKY_draw_moon_reflection(
 
             return FALSE;
         } else {
-#ifdef TARGET_DC
-            mid.Z = 0.9999f;
-            mid.z = 0.0001f;
-#else
             mid.Z = SKY_VERY_FAR_AWAY;
-#endif
             mid.colour = 0xffaaaa88;
             mid.specular = 0x00000000;
 
@@ -846,9 +817,7 @@ SLONG SKY_draw_moon_reflection(
 
     return TRUE;
 }
-#endif // #ifndef TARGET_DC
 
-#ifndef TARGET_DC
 void SKY_draw_poly_sky(
     float world_camera_x,
     float world_camera_y,
@@ -976,7 +945,6 @@ void SKY_draw_poly_sky(
 
     POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, TRUE);
 }
-#endif
 
 //  0  1
 //
@@ -1041,11 +1009,6 @@ void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float wor
         } else
             pp_top[i].clip = 0;
 
-#ifdef TARGET_DC
-        // Bodge the RHW so that the moon actually shows up.
-        pp_top[i].Z *= 0.05f;
-        pp_bot[i].Z *= 0.05f;
-#endif
         angle += 2.0F * PI / SKY_CIRCLE_STEPS;
     }
 
@@ -1099,13 +1062,6 @@ void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float wor
                 quad[2]->v = 1.0F;
                 quad[3]->v = 1.0F;
 
-#ifdef TARGET_DC
-            // These can trip in mad cases - ignore them.
-            // ASSERT ( quad[0]->Z < 0.0009f );
-            // ASSERT ( quad[1]->Z < 0.0009f );
-            // ASSERT ( quad[2]->Z < 0.0009f );
-            // ASSERT ( quad[3]->Z < 0.0009f );
-#endif
 
                 POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, 1);
             }

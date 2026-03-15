@@ -249,10 +249,8 @@ typedef struct
 
 // using BUILD_PSX means that it'll be commented out both on the PSX, *AND* when Mike builds
 // PSX nads on his PC.
-#ifndef BUILD_PSX
     // claude-ai: GunMuzzle — позиция дула оружия в мировых координатах (только PC-сборка). Обновляется при прицеливании. Используется для raycast пуль.
     GameCoord GunMuzzle;
-#endif
 
 } Person;
 

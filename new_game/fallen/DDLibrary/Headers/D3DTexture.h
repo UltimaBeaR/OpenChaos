@@ -72,8 +72,6 @@ public:
         TextureFlags = 0;
         FontList = NULL;
         NextTexture = NULL;
-#ifndef TARGET_DC
-#endif
         lp_Surface = NULL;
         lp_Texture = NULL;
         Type = D3DTEXTURE_TYPE_UNUSED;

@@ -22,12 +22,7 @@
 #include "..\editor\headers\map.h"
 #include "animate.h"
 #include "FMatrix.h"
-#ifndef PSX
 #include "..\editor\headers\prim_draw.h"
-#else
-extern void rotate_obj(SWORD xangle, SWORD yangle, SWORD zangle, Matrix33* r3);
-
-#endif
 /*
 
   actions that cause you to look for a grab face
@@ -55,11 +50,9 @@ struct KeyFrame			*anim_array[300],
 struct GameKeyFrame* global_anim_array[4][450];
 
 struct KeyFrameChunk* test_chunk;
-#if !defined(PSX) && !defined(TARGET_DC)
 struct KeyFrameChunk test_chunk2;
 struct KeyFrameChunk test_chunk3;
 struct KeyFrameChunk thug_chunk;
-#endif
 struct KeyFrameElement* the_elements;
 struct GameKeyFrameChunk game_chunk[MAX_GAME_CHUNKS];
 struct GameKeyFrameChunk anim_chunk[MAX_ANIM_CHUNKS];
@@ -71,9 +64,7 @@ SLONG next_anim_chunk = 0;
 // The bounding boxes of the anim prims in the initial position of
 // their first frame. They are calculated by calling find_anim_prim_bboxes()
 //
-#ifndef PSX
 AnimPrimBbox anim_prim_bbox[MAX_ANIM_CHUNKS];
-#endif
 
 extern SLONG nearest_point_on_line_and_dist(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b, SLONG* ret_x, SLONG* ret_z);
 
@@ -965,7 +956,6 @@ round_again:;
     return (0);
 }
 
-#if !defined(PSX) && !defined(TARGET_DC)
 SLONG find_grab_face_in_sewers(
     SLONG x,
     SLONG y,
@@ -1108,7 +1098,6 @@ SLONG find_grab_face_in_sewers(
 
     return 0;
 }
-#endif
 
 struct Matrix33 r_matrix;
 struct Matrix31 offset;
@@ -1123,33 +1112,9 @@ void calc_sub_objects_position(Thing* p_mthing, SLONG tween, UWORD object, SLONG
     SLONG wx, wy, wz;
     DrawTween* dt = p_mthing->Draw.Tweened;
 
-#ifdef PSX
-    {
-        SLONG index1, index2;
-        //
-        // stuff added for more compression of anims
-        //
-        extern struct PrimPoint* anim_mids; //[256];
-
-        index1 = dt->CurrentFrame->XYZIndex;
-        index2 = dt->NextFrame->XYZIndex;
-
-        if (index1 != index2) {
-            wx = anim_mids[index1].X + (((anim_mids[index2].X - anim_mids[index1].X) * dt->AnimTween) >> 8);
-            wy = anim_mids[index1].Y + (((anim_mids[index2].Y - anim_mids[index1].Y) * dt->AnimTween) >> 8);
-            wz = anim_mids[index1].Z + (((anim_mids[index2].Z - anim_mids[index1].Z) * dt->AnimTween) >> 8);
-
-        } else {
-            wx = anim_mids[index1].X;
-            wy = anim_mids[index1].Y;
-            wz = anim_mids[index1].Z;
-        }
-    }
-#else
     wx = 0;
     wy = 0;
     wz = 0;
-#endif
 
     if (object == SUB_OBJECT_PREFERRED_HAND) {
         //	object=(p_mthing->Genus.Person->Flags&FLAG_PERSON_OTHERHAND) ? SUB_OBJECT_RIGHT_HAND : SUB_OBJECT_LEFT_HAND;
@@ -1248,33 +1213,9 @@ void calc_sub_objects_position_fix8(Thing* p_mthing, SLONG tween, UWORD object, 
 
     DrawTween* dt = p_mthing->Draw.Tweened;
 
-#ifdef PSX
-    {
-        SLONG index1, index2;
-        //
-        // stuff added for more compression of anims
-        //
-        extern struct PrimPoint* anim_mids; //[256];
-
-        index1 = dt->CurrentFrame->XYZIndex;
-        index2 = dt->NextFrame->XYZIndex;
-
-        if (index1 != index2) {
-            wx = anim_mids[index1].X + (((anim_mids[index2].X - anim_mids[index1].X) * dt->AnimTween) >> 8);
-            wy = anim_mids[index1].Y + (((anim_mids[index2].Y - anim_mids[index1].Y) * dt->AnimTween) >> 8);
-            wz = anim_mids[index1].Z + (((anim_mids[index2].Z - anim_mids[index1].Z) * dt->AnimTween) >> 8);
-
-        } else {
-            wx = anim_mids[index1].X;
-            wy = anim_mids[index1].Y;
-            wz = anim_mids[index1].Z;
-        }
-    }
-#else
     wx = 0;
     wy = 0;
     wz = 0;
-#endif
 
     if (p_mthing->Draw.Tweened->CurrentFrame && p_mthing->Draw.Tweened->NextFrame) {
         anim_info = &p_mthing->Draw.Tweened->CurrentFrame->FirstElement[object];
@@ -1305,7 +1246,6 @@ void calc_sub_objects_position_fix8(Thing* p_mthing, SLONG tween, UWORD object, 
     if (object == SUB_OBJECT_LEFT_HAND || object == SUB_OBJECT_RIGHT_HAND)
         *y += HAND_HEIGHT;
 }
-#ifndef PSX
 void calc_sub_objects_position_keys(Thing* p_mthing, SLONG tween, UWORD object, SLONG* x, SLONG* y, SLONG* z, struct GameKeyFrame* frame1, struct GameKeyFrame* frame2)
 {
     struct SVector temp; // max points per object?
@@ -1318,33 +1258,9 @@ void calc_sub_objects_position_keys(Thing* p_mthing, SLONG tween, UWORD object, 
 
     DrawTween* dt = p_mthing->Draw.Tweened;
 
-#ifdef PSX
-    {
-        SLONG index1, index2;
-        //
-        // stuff added for more compression of anims
-        //
-        extern struct PrimPoint* anim_mids; //[256];
-
-        index1 = dt->CurrentFrame->XYZIndex;
-        index2 = dt->NextFrame->XYZIndex;
-
-        if (index1 != index2) {
-            wx = anim_mids[index1].X + (((anim_mids[index2].X - anim_mids[index1].X) * dt->AnimTween) >> 8);
-            wy = anim_mids[index1].Y + (((anim_mids[index2].Y - anim_mids[index1].Y) * dt->AnimTween) >> 8);
-            wz = anim_mids[index1].Z + (((anim_mids[index2].Z - anim_mids[index1].Z) * dt->AnimTween) >> 8);
-
-        } else {
-            wx = anim_mids[index1].X;
-            wy = anim_mids[index1].Y;
-            wz = anim_mids[index1].Z;
-        }
-    }
-#else
     wx = 0;
     wy = 0;
     wz = 0;
-#endif
 
     if (p_mthing->Draw.Tweened->CurrentFrame && p_mthing->Draw.Tweened->NextFrame) {
         anim_info = &frame1->FirstElement[object];
@@ -1375,7 +1291,6 @@ void calc_sub_objects_position_keys(Thing* p_mthing, SLONG tween, UWORD object, 
     if (object == SUB_OBJECT_LEFT_HAND || object == SUB_OBJECT_RIGHT_HAND)
         *y += HAND_HEIGHT;
 }
-#endif
 void calc_sub_objects_position_global(GameKeyFrame* cur_frame, GameKeyFrame* next_frame, SLONG tween, UWORD object, SLONG* x, SLONG* y, SLONG* z)
 {
     struct Matrix31 offset;
@@ -1383,33 +1298,9 @@ void calc_sub_objects_position_global(GameKeyFrame* cur_frame, GameKeyFrame* nex
     struct GameKeyFrameElement* anim_info_next;
     SLONG wx, wy, wz;
 
-#ifdef PSX
-    {
-        SLONG index1, index2;
-        //
-        // stuff added for more compression of anims
-        //
-        extern struct PrimPoint* anim_mids; //[256];
-
-        index1 = cur_frame->XYZIndex;
-        index2 = next_frame->XYZIndex;
-
-        if (index1 != index2) {
-            wx = anim_mids[index1].X + (((anim_mids[index2].X - anim_mids[index1].X) * tween) >> 8);
-            wy = anim_mids[index1].Y + (((anim_mids[index2].Y - anim_mids[index1].Y) * tween) >> 8);
-            wz = anim_mids[index1].Z + (((anim_mids[index2].Z - anim_mids[index1].Z) * tween) >> 8);
-
-        } else {
-            wx = anim_mids[index1].X;
-            wy = anim_mids[index1].Y;
-            wz = anim_mids[index1].Z;
-        }
-    }
-#else
     wx = 0;
     wy = 0;
     wz = 0;
-#endif
 
     if (cur_frame && next_frame) {
         anim_info = &cur_frame->FirstElement[object];

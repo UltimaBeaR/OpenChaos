@@ -16,14 +16,9 @@
 #include "hook.h"
 #include "eway.h"
 
-#ifdef PSX
-#include "libgpu.h"
-#endif
 
 // remove float calcs from psx version
-#ifndef PSX
 #include <math.h>
-#endif
 #include "mav.h"
 
 //
@@ -76,11 +71,7 @@ SLONG CAM_type;
 // How high above the focus thing we look from.
 //
 
-#ifdef PSX
 #define CAM_BEHIND_UP (CAM_focus->Class == CLASS_VEHICLE ? 0x14000 : CAM_behind_up)
-#else
-#define CAM_BEHIND_UP (CAM_focus->Class == CLASS_VEHICLE ? 0x14000 : CAM_behind_up)
-#endif
 
 void CAM_set_focus(Thing* focus)
 {
@@ -438,7 +429,6 @@ void CAM_look_at_thing(SLONG swoop)
             dz >>= 8;
         }
     } else {
-#ifndef PSX
         SLONG state = HOOK_get_state();
 
         if (state == HOOK_STATE_SPINNING) {
@@ -473,7 +463,6 @@ void CAM_look_at_thing(SLONG swoop)
                 dz = hook_z - CAM_pos_z >> 8;
             }
         }
-#endif
     }
 
     SLONG dxz = QDIST2(abs(dx), abs(dz));
@@ -509,13 +498,8 @@ void CAM_look_at_thing(SLONG swoop)
     // Radians are more accurate...
     //
 
-#ifndef PSX
     want_radians_yaw = atan2(dx, dz);
     want_radians_pitch = atan2(dy, dxz) + 0.1F;
-#else
-    want_radians_yaw = ((float)CAM_yaw) * (2.0F * PI / 2048.0F);
-    want_radians_pitch = ((float)want_pitch) * (2.0F * PI / 2048.0F);
-#endif
 
     CAM_radians_roll = 0;
 
@@ -979,7 +963,6 @@ SLONG CAM_los(
     if (INDOORS_INDEX) {
         ans = 1;
     }
-#if !defined(TARGET_DC) && !defined(TARGET_DC)
     else if (GAME_FLAGS & GF_SEWERS) {
         ans = NS_there_is_a_los(
             x1, y1, z1,
@@ -989,7 +972,6 @@ SLONG CAM_los(
         CAM_los_fail_y = NS_los_fail_y;
         CAM_los_fail_z = NS_los_fail_z;
     }
-#endif
     else {
         ans = there_is_a_los(
             x1, y1, z1,
@@ -1328,7 +1310,6 @@ void CAM_process_normal()
             ax = CAM_focus_x - CAM_pos_x >> 11;
             ay = CAM_focus_y - CAM_pos_y >> 11;
             az = CAM_focus_z - CAM_pos_z >> 11;
-#ifndef PSX
             if (GAME_FLAGS & GF_SEWERS) {
                 for (SLONG i = 0; i < 8; i++) {
                     if (NS_inside(x, y, z)) {
@@ -1363,7 +1344,6 @@ void CAM_process_normal()
                     z += az;
                 }
             } else
-#endif
             {
                 for (SLONG i = 0; i < 8; i++) {
                     if (MAV_inside(x, y, z)) {

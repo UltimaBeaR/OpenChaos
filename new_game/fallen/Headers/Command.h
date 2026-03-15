@@ -6,11 +6,7 @@
 
 //---------------------------------------------------------------
 
-#ifdef PSX
-#define MAX_WAYPOINTS 100
-#else
 #define MAX_WAYPOINTS 1000
-#endif
 
 struct Waypoint {
     BOOL Used;
@@ -53,11 +49,7 @@ void free_waypoint(UWORD wp_index);
 
 //---------------------------------------------------------------
 
-#ifdef PSX
-#define MAX_CONDITIONS 100
-#else
 #define MAX_CONDITIONS 1000
-#endif
 
 #define CONDITION_TRUE (1 << 0)
 
@@ -137,11 +129,7 @@ void add_condition(ConditionList* the_list, Condition* the_condition);
 #define COM_S_WHILE_CLIST 4
 
 //---------------------------------------------------------------
-#ifdef PSX
-#define MAX_COMMANDS 200
-#else
 #define MAX_COMMANDS 2000
-#endif
 
 struct Command {
     BOOL Used;

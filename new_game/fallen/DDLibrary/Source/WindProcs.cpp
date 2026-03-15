@@ -25,12 +25,9 @@ LRESULT CALLBACK DDLibShellProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
     HMENU hMenu;
     HINSTANCE hInstance;
 
-#ifndef TARGET_DC
     BinkMessage(hWnd, message, wParam, lParam);
-#endif
 
     switch (message) {
-#ifndef TARGET_DC
     case WM_ACTIVATEAPP:
 
         if (!wParam) {
@@ -75,7 +72,6 @@ LRESULT CALLBACK DDLibShellProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
     case WM_MBUTTONDBLCLK:
         MouseProc(message, wParam, lParam);
         break;
-#endif // #ifndef TARGET_DC
 
     case WM_KEYDOWN:
     case WM_KEYUP:

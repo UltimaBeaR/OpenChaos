@@ -33,7 +33,6 @@ typedef struct
 
 MORPH_Morph MORPH_morph[MORPH_NUMBER];
 
-#ifndef PSX
 //
 // Load in the morphs.
 //
@@ -153,4 +152,3 @@ SLONG MORPH_get_num_points(SLONG morph)
     return mm->num_points;
 }
 
-#endif

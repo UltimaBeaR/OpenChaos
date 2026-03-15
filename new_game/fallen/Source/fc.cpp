@@ -21,9 +21,6 @@
 #include "memory.h"
 #include "font2d.h"
 
-#ifdef TARGET_DC
-#include "DIManager.h"
-#endif
 
 extern UBYTE GAME_cut_scene;
 extern SLONG analogue;
@@ -175,11 +172,7 @@ void FC_init(void)
 
     for (i = 0; i < FC_MAX_CAMS; i++) {
         FC_cam[i].lens = 0x24000;
-#ifndef PSX
         FC_cam[i].cam_dist = 0x280 * CAM_MORE_IN;
-#else
-        FC_cam[i].cam_dist = 0x280;
-#endif
 
 #ifdef MARKS_MACHINE
         FC_cam[i].cam_height = 0x16000;
@@ -204,13 +197,8 @@ void FC_change_camera_type(SLONG cam, SLONG cam_type)
 {
     switch (cam_type) {
     case 0:
-#ifdef PSX
-        FC_cam[cam].cam_dist = 0x300;
-        FC_cam[cam].cam_height = 0x18000;
-#else
         FC_cam[cam].cam_dist = 0x280 * CAM_MORE_IN;
         FC_cam[cam].cam_height = 0x16000;
-#endif
         break;
     case 1:
         FC_cam[cam].cam_dist = 0x280;
@@ -1471,13 +1459,11 @@ void FC_process()
                     fc->nobehind = 0;
                 }
             } else
-#ifndef PSX
                 if (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT) {
                 //
                 // Don't get behind fighting people.
                 //
             } else
-#endif
             {
                 //
                 // Get behind Darci.
@@ -1781,10 +1767,8 @@ void FC_process()
             fc->pitch += dpitch >> 2;
             fc->roll += droll >> 2;
         } else {
-#ifndef TARGET_DC
 #ifdef DEBUG
             FONT2D_DrawString("SNAP", 100, 120);
-#endif
 #endif
             fc->want_yaw = fc->yaw;
             fc->want_pitch = fc->pitch;
@@ -1853,7 +1837,6 @@ SLONG FC_can_see_point(
     return TRUE;
 }
 
-#ifndef PSX
 SLONG FC_can_see_person(SLONG cam, Thing* p_person)
 {
     ASSERT(WITHIN(cam, 0, FC_MAX_CAMS - 1));
@@ -1939,7 +1922,6 @@ SLONG FC_can_see_person(SLONG cam, Thing* p_person)
 
     return TRUE;
 }
-#endif
 
 void FC_position_for_lookaround(SLONG cam, SLONG pitch)
 {
@@ -1998,13 +1980,6 @@ void FC_explosion(SLONG x, SLONG y, SLONG z, SLONG force)
             SATURATE(shake, 0, 255);
 
             fc->shake = shake;
-#ifdef PSX
-            PSX_SetShock(0, shake);
-#endif
-#ifdef TARGET_DC
-            // Make sure this happens.
-            Vibrate(10.0f, (float)(shake) * (1.0f / 255.0f), 2.0f, TRUE);
-#endif
         }
     }
 }

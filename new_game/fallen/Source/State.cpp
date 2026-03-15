@@ -33,9 +33,7 @@ void set_state_function(Thing* t_thing, UBYTE state)
         functions = VEH_statefunctions;
         break;
     case CLASS_ANIMAL:
-#if !defined(PSX) && !defined(TARGET_DC)
         functions = ANIMAL_functions[t_thing->Genus.Animal->AnimalType].StateFunctions;
-#endif
         break;
     case CLASS_CHOPPER:
         functions = CHOPPER_functions[t_thing->Genus.Chopper->ChopperType].StateFunctions;

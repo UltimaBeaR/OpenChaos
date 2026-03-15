@@ -8,7 +8,6 @@
 // NOTE! RTTI (run-time type information) MUST BE ENABLED IN PROJECT SETTINGS!
 //
 
-#ifndef TARGET_DC
 
 #include "A3DManager.h"
 #include "snd_type.h"
@@ -764,65 +763,3 @@ BOOL A3DBase::HasEnded(UBYTE early_out)
             return (t>GetLengthSamples());*/
 };
 
-#else // #ifndef TARGET_DC
-
-// Spoof it all...
-
-#include "A3DManager.h"
-#include "snd_type.h"
-// #include "A3DPlay.h"
-
-IA3d4* a3droot;
-IA3dGeom* a3dgeom = NULL;
-A3DManager the_a3d_manager(A3D_1ST_REFLECTIONS | A3D_OCCLUSIONS | A3D_DIRECT_PATH_A3D);
-
-void Decode(SLONG hr) { }
-void ErrChk(SLONG hr) { }
-BOOL Failed(SLONG hr) { return TRUE; }
-void A3D_Check_Init(void) { }
-static void RegDBSetKeyValue(
-    char* szKey, /* in, key string */
-    char* szName, /* in, name string NULL == Default */
-    char* szValue) /* in, value string */
-{
-}
-
-HRESULT A3dRegister(void) { return 0; }
-void A3DManager::Init(SLONG features) { }
-A3DManager::A3DManager(SLONG features) { }
-void A3DCleanUp(void) { }
-void A3DManager::Fini(void) { }
-A3DManager::~A3DManager() { }
-A3DSource* A3DManager::Play(A3DData* Original, A3DSource* Channel, UBYTE flags) { return NULL; }
-BOOL A3DManager::Valid(A3DBase* item) { return TRUE; }
-A3DSource* A3DManager::ValidChannel(A3DBase* item) { return NULL; }
-A3DBase* A3DManager::ValidWave(A3DBase* item) { return NULL; }
-void A3DManager::BindMaterial(SLONG material) { }
-A3DSource::A3DSource(CBYTE* fn) { }
-A3DSource::A3DSource(A3DBase* original) { }
-void A3DSource::SetupParams() { }
-void A3DSource::DupeConstruct(A3DBase* original) { }
-A3DSource::~A3DSource() { }
-void A3DSource::SetMute(UBYTE mute) { }
-void A3DSource::Set3D(UBYTE is3d) { }
-void A3DSource::DoChange(A3DBase* original) { }
-void A3DSource::Change(A3DBase* original) { }
-void A3DSource::Queue(A3DBase* original, SLONG x, SLONG y, SLONG z, SLONG flags) { }
-UBYTE A3DSource::CBEnded() { return 0; }
-void A3DSource::Play(UBYTE looped) { }
-void A3DSource::Stop() { }
-void A3DSource::Rewind() { }
-A3DData::A3DData(CBYTE* fn, UBYTE ntype) { }
-A3DData::~A3DData() { }
-A3DList::~A3DList() { }
-void A3DList::Clear() { }
-void A3DList::Add(A3DBase* item) { }
-void A3DList::Del(A3DBase* item) { }
-A3DBase* A3DList::Index(SLONG index) { return NULL; }
-A3DBase* A3DList::Find(CBYTE* want) { return NULL; }
-void A3DBase::FreeWave() { }
-ULONG A3DBase::GetLengthSamples() { return 0; }
-float A3DBase::GetLengthSeconds() { return 0.0f; }
-BOOL A3DBase::HasEnded(UBYTE early_out) { return TRUE; }
-
-#endif // #else //#ifndef TARGET_DC

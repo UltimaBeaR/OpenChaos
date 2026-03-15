@@ -6,14 +6,10 @@
 #ifndef PYRO_H
 #define PYRO_H
 
-#ifdef PSX
-#define MAX_PYROS 32 // 64
-#else
 #ifdef MIKE
 #define MAX_PYROS 32
 #else
 #define MAX_PYROS 64
-#endif
 #endif
 
 #define PYRO_NONE 0 // zilch, nada

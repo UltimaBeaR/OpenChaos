@@ -2,15 +2,11 @@
 // Guy Simmons, 17th October 1997.
 
 #include "Game.h"
-#ifndef PSX
 #include "DDLib.h"
-#ifndef TARGET_DC
 #include "sedit.h"
 #include "ledit.h"
-#endif
 #include "renderstate.h"
 #include "Drive.h"
-#endif
 
 #ifdef GUY
 #include "GEdit.h"
@@ -53,91 +49,6 @@ void mkt_test(void)
 
 //---------------------------------------------------------------
 
-#ifdef PSX
-ULONG old_stack;
-
-#ifndef VERSION_DEMO
-void main2(void)
-{
-#ifdef FS_ISO9600
-    SetMem(2);
-#endif
-    old_stack = GetSp();
-    SetSp(0x1f8003fc);
-
-    if (SetupHost(H_CREATE_LOG)) {
-        while (1) {
-            game();
-        }
-    }
-
-    SetSp(old_stack);
-}
-#endif
-
-#ifdef VERSION_DEMO
-extern SLONG demo_mode, demo_timeout;
-SLONG hold_stack[16], *tmp_i, *tmp_s;
-SLONG game_timeout;
-#endif
-
-SLONG main(UWORD argc, CBYTE* argv[])
-{
-#ifndef VERSION_DEMO
-    main2();
-
-    return EXIT_SUCCESS;
-
-#else
-#ifdef FS_ISO9600
-//	SetMem(2);
-#endif
-
-    old_stack = GetSp();
-    tmp_i = old_stack;
-    tmp_s = hold_stack;
-    while ((SLONG)tmp_i < 0x80200000) {
-        *tmp_s++ = *tmp_i++;
-    }
-    SetSp(0x1f8003f0);
-
-#ifndef FS_ISO9660
-    demo_mode = 0;
-    demo_timeout = 60;
-    game_timeout = demo_timeout * 20;
-#else
-    demo_mode = ((int*)argv)[0];
-    demo_timeout = ((int*)argv)[1];
-    game_timeout = demo_timeout * 20;
-#endif
-
-    // printf("Mode = %d, Timeout = %d\n",demo_mode,demo_timeout);
-
-    if (SetupHost(H_CREATE_LOG)) {
-        game();
-    }
-
-    PSXOverLay(OVERLAY_NAME, OVERLAY_SIZE);
-
-    extern void Wadmenu_DemoSplash(void);
-    extern void ReleaseHardware(void);
-
-    if (demo_mode == 0)
-        Wadmenu_DemoSplash();
-    ReleaseHardware();
-
-    // printf("End of Demo.\n");
-    tmp_s = hold_stack;
-    tmp_i = old_stack;
-    while ((SLONG)tmp_i < 0x80200000) {
-        *tmp_i++ = *tmp_s++;
-    }
-    SetSp(old_stack);
-    return 0;
-#endif
-}
-
-#else
 
 // VerifyDirectX
 //
@@ -167,27 +78,10 @@ extern HINSTANCE hGlobalThisInst;
 // claude-ai: Точка входа (PC/DC). Цепочка: SetupHost() → game() → ResetHost(). game() содержит весь игровой цикл.
 SLONG main(UWORD argc, TCHAR* argv[])
 {
-#ifdef TARGET_DC
-    // DC doesn't use relative names, only full path names.
-#ifdef FILE_PC
-    // Serve files from the PC.
-    FileSetBasePath("\\PC\\Fallen\\");
-#else
-    // Serve files from the CD.
-    FileSetBasePath("\\CD-ROM\\fallen\\");
-#endif
-
-#else
     // Does nothing exciting otherwise.
     FileSetBasePath("");
-#endif
 
-#ifdef TARGET_DC
-    extern void ENV_init(void);
-    ENV_init();
-#else
     ENV_load("config.ini");
-#endif
 
     LocateCDROM();
 
@@ -246,6 +140,5 @@ SLONG main(UWORD argc, TCHAR* argv[])
 
     return EXIT_SUCCESS;
 }
-#endif
 
 //---------------------------------------------------------------

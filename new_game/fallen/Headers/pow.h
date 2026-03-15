@@ -25,18 +25,8 @@ typedef struct
 
 } POW_Sprite;
 
-#ifdef TARGET_DC
 
-#define POW_MAX_SPRITES 128
-
-#else
-
-#ifndef PSX
 #define POW_MAX_SPRITES 256
-#else
-#define POW_MAX_SPRITES 192
-#endif
-#endif
 
 extern POW_Sprite POW_sprite[POW_MAX_SPRITES];
 extern UBYTE POW_sprite_free;
@@ -64,19 +54,9 @@ typedef struct
 
 } POW_Pow;
 
-#ifdef TARGET_DC
 
-#define POW_MAX_POWS 16
-
-#else
-
-#ifndef PSX
 #define POW_MAX_POWS 32
-#else
-#define POW_MAX_POWS 24
-#endif
 
-#endif
 
 extern POW_Pow POW_pow[POW_MAX_POWS];
 extern UBYTE POW_pow_free;

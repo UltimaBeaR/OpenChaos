@@ -24,14 +24,9 @@
 
 #include <DDLib.h>
 #include "texture.h"
-#ifndef TARGET_DC
 #include <mbctype.h> // MBCS crap
 #include <mbstring.h> // more MBCS crap
-#endif
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 #include "truetype.h"
 #include "polypoint.h"
@@ -111,10 +106,8 @@ void TT_Init()
     if (FontHeight > MAX_TT_HEIGHT)
         FontHeight = MAX_TT_HEIGHT;
 
-#ifndef TARGET_DC
     // set MBCS support
     _setmbcp(_MB_CP_LOCALE); // set locale-specific codepage
-#endif
 
     // create the memory surface for drawing
     HRESULT hres;
@@ -153,25 +146,6 @@ void TT_Init()
     hres = pShadowSurface->SetPalette(pShadowPalette);
     ASSERT(!FAILED(hres));
 
-#ifdef TARGET_DC
-    // Got to do it the long way round for DreamCast - don't know why.
-    LOGFONT logfont;
-    logfont.lfHeight = FontHeight * AA_SIZE;
-    logfont.lfWeight = 0;
-    logfont.lfEscapement = 0;
-    logfont.lfOrientation = 0;
-    logfont.lfWeight = FW_BOLD;
-    logfont.lfItalic = FALSE;
-    logfont.lfUnderline = FALSE;
-    logfont.lfStrikeOut = FALSE;
-    logfont.lfCharSet = SHIFTJIS_CHARSET;
-    logfont.lfOutPrecision = OUT_DEFAULT_PRECIS;
-    logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-    logfont.lfQuality = DEFAULT_QUALITY;
-    logfont.lfPitchAndFamily = FF_DONTCARE | DEFAULT_PITCH;
-    logfont.lfFaceName[0] = TEXT('\0');
-    hFont = CreateFontIndirect(&logfont);
-#else // #ifdef TARGET_DC
       //  create the font - hey, a function with fourteen parameters!
     hFont = CreateFont(FontHeight * AA_SIZE,
         0, 0, 0,
@@ -182,7 +156,6 @@ void TT_Init()
         DEFAULT_QUALITY, // quality
         FF_DONTCARE | DEFAULT_PITCH,
         TYPEFACE); // typeface name
-#endif // #else //#ifdef TARGET_DC
 
     ASSERT(hFont);
 
@@ -235,10 +208,8 @@ void TT_Init()
     // prepare the DC
     SetBkColor(hDC, RGB(0, 0, 0));
     SetBkMode(hDC, OPAQUE);
-#ifndef TARGET_DC
     SetTextAlign(hDC, TA_LEFT | TA_TOP | TA_NOUPDATECP);
     SetTextCharacterExtra(hDC, ENV_get_value_number("ExtraSpaceX", 0, "TrueType"));
-#endif
     SetTextColor(hDC, RGB(255, 255, 255));
 
     HFONT hOldFont = (HFONT)SelectObject(hDC, hFont);
@@ -338,11 +309,7 @@ int DrawTextTT(char* string, int x, int y, int rx, int scale, ULONG rgb, int com
         best->command = command;
         best->nbytes = nbytes;
         strcpy(best->data, string);
-#ifdef TARGET_DC
-        best->nchars = strlen(string);
-#else
         best->nchars = _mbslen((unsigned char*)string);
-#endif
         best->in_cache = false;
         MeasureTextCommand(best);
     }
@@ -441,14 +408,7 @@ static void MeasureTextCommand(TextCommand* tcmd)
         SIZE size;
         int chars;
 
-#ifdef TARGET_DC
-        static TCHAR cTempString[64 + 1];
-        ASSERT(strlen(string) < 64);
-        textConvertCharToUni(cTempString, string);
-        GetTextExtentExPoint(hDC, cTempString, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
-#else
         GetTextExtentExPoint(hDC, string, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
-#endif
 
         if ((chars < clen) && (clen - chars < 3))
             chars = clen - 3;
@@ -458,11 +418,7 @@ static void MeasureTextCommand(TextCommand* tcmd)
 
         tcmd->lines++;
         clen -= chars;
-#ifdef TARGET_DC
-        string += chars;
-#else
         string = (char*)_mbsninc((unsigned char*)string, chars);
-#endif
     }
 
     res = pShadowSurface->ReleaseDC(hDC);
@@ -491,14 +447,7 @@ static void DoTextCommand(TextCommand* tcmd)
         SIZE size;
         int chars;
 
-#ifdef TARGET_DC
-        static TCHAR cTempString[64 + 1];
-        ASSERT(strlen(string) < 64);
-        textConvertCharToUni(cTempString, string);
-        GetTextExtentExPoint(hDC, cTempString, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
-#else
         GetTextExtentExPoint(hDC, string, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
-#endif
 
         // fix up for 1 or 2 characters over
         if ((chars < clen) && (clen - chars < 3))
@@ -509,11 +458,7 @@ static void DoTextCommand(TextCommand* tcmd)
             return;
 
         // get width
-#ifdef TARGET_DC
-        GetTextExtentExPoint(hDC, cTempString, chars, 0, NULL, NULL, &size);
-#else
         GetTextExtentExPoint(hDC, string, chars, 0, NULL, NULL, &size);
-#endif
         int width = size.cx / AA_SIZE;
 
         // release the DC
@@ -548,11 +493,7 @@ static void DoTextCommand(TextCommand* tcmd)
 
         y += FontHeight * tcmd->scale >> 8;
         clen -= chars;
-#ifdef TARGET_DC
-        string += chars;
-#else
         string = (char*)_mbsninc((unsigned char*)string, chars);
-#endif
     }
 }
 
@@ -580,14 +521,7 @@ static void CreateTextLine(char* string, int nchars, int width, int x, int y, Te
     rect.bottom = FontHeight * AA_SIZE;
 
     // draw text
-#ifdef TARGET_DC
-    static TCHAR cTempString[64 + 1];
-    ASSERT(strlen(string) < 64);
-    textConvertCharToUni(cTempString, string);
-    res = ExtTextOut(hDC, 0, 0, ETO_OPAQUE, &rect, cTempString, nchars, NULL);
-#else
     res = ExtTextOut(hDC, 0, 0, ETO_OPAQUE, &rect, string, nchars, NULL);
-#endif
     ASSERT(res != 0);
 
     res = pShadowSurface->ReleaseDC(hDC);

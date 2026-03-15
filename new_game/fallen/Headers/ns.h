@@ -82,20 +82,6 @@ extern SLONG NS_texture_upto;
 // things on the PSX to the PC.
 //
 
-#ifdef PSX
-
-//
-// The offset into the sewer texture page of each type.
-//
-
-typedef struct
-{
-    UBYTE du;
-    UBYTE dv;
-
-} NS_Page;
-
-#else
 
 //
 // The page number to use: the number of .TGA file.
@@ -107,7 +93,6 @@ typedef struct
 
 } NS_Page;
 
-#endif
 
 #define NS_PAGE_ROCK 0
 #define NS_PAGE_SEWER 1

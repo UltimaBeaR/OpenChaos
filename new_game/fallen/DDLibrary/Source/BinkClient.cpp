@@ -5,7 +5,6 @@
 // DO NOT PUT ANY OF YOUR USUAL CRAP INTO THIS FILE
 // If you want to change anything, do it in do_bink_intro() or bink_flipper() in GDisplay.cpp
 
-#ifndef TARGET_DC
 
 #include "DDLib.h"
 // #include "bink.h"
@@ -225,19 +224,3 @@ void BinkPlay(const char* filename, IDirectDrawSurface* lpdds, bool (*flip)())
     //	bink = NULL;
 }
 
-#else // #ifndef TARGET_DC
-
-#include "DDLib.h"
-
-// Sod it - spoof the lot of them.
-void BinkMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    ASSERT(FALSE);
-}
-
-void BinkPlay(const char* filename, IDirectDrawSurface* lpdds, bool (*flip)())
-{
-    ASSERT(FALSE);
-}
-
-#endif // #else //#ifndef TARGET_DC

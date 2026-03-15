@@ -50,11 +50,7 @@
 #include "xlat_str.h"
 #include "sound.h"
 #include "grenade.h"
-#ifndef PSX
 #include "..\ddengine\headers\panel.h"
-#else
-#include "..\psxeng\headers\panel.h"
-#endif
 
 extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
 
@@ -809,9 +805,6 @@ void person_get_item(Thing* p_person, Thing* p_special)
             }
         }
 
-#ifdef PSX
-        PANEL_icon_time = 30;
-#endif
 
         extern SLONG stat_count_bonus;
         stat_count_bonus++;
@@ -935,22 +928,10 @@ void special_activate_mine(Thing* p_mine)
             0xa0);
     */
 
-#ifdef PSX
-
-    POW_create(
-        POW_CREATE_LARGE_SEMI,
-        p_mine->WorldPos.X,
-        p_mine->WorldPos.Y,
-        p_mine->WorldPos.Z,
-        0, 0, 0);
-    PYRO_create(p_mine->WorldPos, PYRO_DUSTWAVE);
-
-#else
 
     PYRO_create(p_mine->WorldPos, PYRO_FIREBOMB);
     PYRO_create(p_mine->WorldPos, PYRO_DUSTWAVE);
 
-#endif
 
     MFX_play_xyz(THING_NUMBER(p_mine), SOUND_Range(S_EXPLODE_START, S_EXPLODE_END), 0, p_mine->WorldPos.X, p_mine->WorldPos.Y, p_mine->WorldPos.Z);
 
@@ -1096,23 +1077,7 @@ void special_normal(Thing* s_thing)
                 //
                 // The grenade has gone off!
                 //
-#ifndef PSX
                 CreateGrenadeExplosion(s_thing->WorldPos.X, s_thing->WorldPos.Y + 2256, s_thing->WorldPos.Z, p_owner);
-#else
-                POW_create(
-                    POW_CREATE_LARGE_SEMI,
-                    s_thing->WorldPos.X,
-                    s_thing->WorldPos.Y,
-                    s_thing->WorldPos.Z, 0, 0, 0);
-
-                create_shockwave(
-                    s_thing->WorldPos.X >> 8,
-                    s_thing->WorldPos.Y >> 8,
-                    s_thing->WorldPos.Z >> 8,
-                    0x300,
-                    500,
-                    p_owner);
-#endif
 
                 p_owner->Genus.Person->SpecialUse = NULL;
 
@@ -1180,18 +1145,10 @@ void special_normal(Thing* s_thing)
                         //
                         // Explode this bomb.
                         //
-#ifndef PSX
                         PYRO_construct(
                             s_thing->WorldPos,
                             -1,
                             256);
-#else
-                        POW_create(
-                            POW_CREATE_LARGE_SEMI,
-                            s_thing->WorldPos.X,
-                            s_thing->WorldPos.Y,
-                            s_thing->WorldPos.Z, 0, 0, 0);
-#endif
                         //
                         // Don't need the special any more.
                         //
@@ -1232,20 +1189,10 @@ void special_normal(Thing* s_thing)
                     // Bang!
                     //
 
-#ifndef PSX
                     PYRO_construct(
                         s_thing->WorldPos,
                         1 | 4 | 8 | 64,
                         0xa0);
-#else
-                    POW_create(
-                        POW_CREATE_LARGE_SEMI,
-                        s_thing->WorldPos.X,
-                        s_thing->WorldPos.Y,
-                        s_thing->WorldPos.Z, 0, 0, 0);
-                    PYRO_construct(
-                        s_thing->WorldPos, PYRO_DUSTWAVE, 0xa0);
-#endif
                     MFX_play_xyz(THING_NUMBER(s_thing), SOUND_Range(S_EXPLODE_MEDIUM, S_EXPLODE_BIG), 0, s_thing->WorldPos.X, s_thing->WorldPos.Y, s_thing->WorldPos.Z);
 
                     {
@@ -1569,9 +1516,6 @@ void special_normal(Thing* s_thing)
                         }
 
                         PANEL_new_info_message(XLAT_str(x_message));
-#ifdef PSX
-                        PANEL_icon_time = 30;
-#endif
 
                         //						CONSOLE_text(XLAT_str(X_FUSE_SET));
                         free_special(s_thing);
@@ -1688,7 +1632,6 @@ void special_normal(Thing* s_thing)
 }
 
 //---------------------------------------------------------------
-#ifndef PSX
 // claude-ai: init_specials — zero out the SPECIALS[] pool and reset count. Called at level load.
 // claude-ai: SPECIALS[] is a static pool of Special structs (not Things). MAX_SPECIALS = capacity.
 // claude-ai: Note: the full memset (commented out) was replaced with a targeted one for just the pool.
@@ -1703,7 +1646,6 @@ void init_specials(void)
     SPECIAL_COUNT = 0;
 }
 
-#endif
 //---------------------------------------------------------------
 
 // claude-ai: find_empty_special — linear scan for an unused slot in SPECIALS[] pool.

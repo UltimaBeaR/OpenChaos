@@ -253,13 +253,9 @@ void set_next_prim_point(SLONG v)
 
 // UWORD	matrix_index_pool[MAX_MATRIX_POOL];
 // struct	AnimItem	anim_index[MAX_CREATURE_TYPES][MAX_ANIMS_PER_CREATURE];
-#if defined(PSX) || defined(TARGET_DC)
-struct PrimMultiAnim prim_multi_anims[1];
-#else
 
 struct PrimMultiAnim prim_multi_anims[10000];
 
-#endif
 UWORD next_prim_multi_anim = 1;
 
 // claude-ai: ANIM_init() — zeroes all GameKeyFrameChunk pointers.
@@ -267,7 +263,6 @@ UWORD next_prim_multi_anim = 1;
 // claude-ai:   [ANIM_TYPE_DARCI]=0, [ANIM_TYPE_ROPER]=1, [ANIM_TYPE_CIV]=2, [ANIM_TYPE_ROPER2]=3
 // claude-ai: anim_chunk[0..MAX_ANIM_CHUNKS]: editor-side animation chunks (not used at runtime).
 // claude-ai: Setting pointers to 0 is critical — load_anim_system() checks for NULL before alloc.
-#ifndef PSX
 void ANIM_init(void)
 {
     SLONG c0;
@@ -299,7 +294,6 @@ void ANIM_fini(void)
     free_game_chunk(&game_chunk[ANIM_TYPE_CIV]);
     //	free_game_chunk(&game_chunk[5]);
 }
-#endif
 //************************************************************************************************
 // claude-ai: CMatrix33 COMPRESSION SYSTEM — how rotation matrices are stored in animation data:
 // claude-ai: A 3x3 rotation matrix has 9 elements, but only 6 degrees of freedom (orthonormal).
@@ -414,7 +408,6 @@ void UCA_LookupSetup()
         for (c1 = -128; c1 < 128; c1++)
             UCA_Lookup[(UBYTE)c0][(UBYTE)c1] = Root(16383 - ((c0 * c0) + (c1 * c1)));
 }
-#ifndef PSX
 void SetCMatrix(GameKeyFrameElement* e, CMatrix33* cm)
 {
     e->Pad = 0;
@@ -491,7 +484,6 @@ void SetCMatrix(GameKeyFrameElement* e, CMatrix33* cm)
         }
     }
 }
-#endif
 
 // claude-ai: GetCMatrix() — decompresses a stored GameKeyFrameElement back into a CMatrix33.
 // claude-ai: Reads the Pad byte to determine which element was omitted, then calls
@@ -598,7 +590,6 @@ void GetCMatrix(GameKeyFrameElement* e, CMatrix33* cm)
 
 void convert_anim(Anim* key_list, GameKeyFrameChunk* p_chunk, KeyFrameChunk* the_chunk);
 
-#ifndef PSX
 void init_anim_prims(void)
 {
     SLONG c0;
@@ -606,7 +597,6 @@ void init_anim_prims(void)
         anim_chunk[c0].MultiObject[0] = 0;
     }
 }
-#endif
 
 void reset_anim_stuff(void)
 {
@@ -787,7 +777,6 @@ void setup_anim_stuff(void)
 #endif
 
 #ifdef EDITOR
-#ifndef PSX
     if (elements_bank1)
         MemFree(elements_bank1);
     if (elements_bank2)
@@ -803,7 +792,6 @@ void setup_anim_stuff(void)
     the_elements = elements_bank1;
     test_chunk = &edit_chunk1; //(KeyFrameChunk*)MemAlloc(sizeof(KeyFrameChunk));
 #endif
-#endif
 
     //	if(test_chunk)
     //		MemFree(test_chunk);
@@ -812,45 +800,7 @@ void setup_anim_stuff(void)
 UBYTE estate = 0; // desperate bodge
 UBYTE semtex = 0;
 
-#ifdef PSX
-/*
-SLONG	load_anim_system(struct GameKeyFrameChunk *p_chunk,CBYTE	*name);
 
-void	setup_people_anims(void)
-{
-#ifdef ULTRA_COMPRESSED_ANIMATIONS
-        UCA_LookupSetup();
-#endif
-
-        load_anim_system(&game_chunk[ANIM_TYPE_DARCI],"data\\darci1.all");
-        load_anim_system(&game_chunk[1],"data\\police1.all");
-        load_anim_system(&game_chunk[ANIM_TYPE_ROPER],"data\\hero.all");
-        load_anim_system(&game_chunk[ANIM_TYPE_CIV],"data\\bossprtg.all");
-
-}
-
-void	setup_extra_anims(void)
-{
-        Anim	*key_list;
-        key_list		=	NULL;
-        SLONG	c0	=	0;
-        Anim	*curr;
-
-        load_anim_system(&game_chunk[5],"data\\van.all");
-
-        curr	=	key_list;
-        while(curr)
-        {
-                van_array[c0]	=	curr->GetFrameList();
-                curr			=	curr->GetNextAnim();
-                c0++;
-        }
-
-}
-*/
-#else
-
-#ifndef TARGET_DC
 
 // extern	SLONG	load_anim_system(struct GameKeyFrameChunk *game_chunk,CBYTE	*name);
 extern SLONG load_anim_system(struct GameKeyFrameChunk* game_chunk, CBYTE* name, SLONG peep = 0);
@@ -980,8 +930,6 @@ void setup_people_anims(void)
     darci_normal_count = next_prim_point;
 }
 
-#endif
-#endif
 
 // claude-ai: setup_global_anim_array() — builds the global animation dispatch table.
 // claude-ai: global_anim_array[ANIM_TYPE][ANIM_*] → pointer to keyframe list for that action.
@@ -1182,9 +1130,6 @@ void setup_global_anim_array(void)
     //
     // New roper
     //
-#ifdef PSX
-    build_psx = 1;
-#endif
 
     if (build_psx) {
         global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_YOMP];
@@ -1206,7 +1151,6 @@ void setup_global_anim_array(void)
     {
         global_anim_array[ANIM_TYPE_ROPER][ANIM_CLIMB_UP_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_LOOP];
         global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_ON_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_START];
-#ifndef PSX
         if (!save_psx) {
             global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_YOMP];
             global_anim_array[ANIM_TYPE_ROPER][ANIM_STAND_READY] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_STAND_READY];
@@ -1326,7 +1270,6 @@ void setup_global_anim_array(void)
             global_anim_array[ANIM_TYPE_ROPER][ANIM_CRAWL] = game_chunk[ANIM_TYPE_ROPER2].AnimList[144];
             global_anim_array[ANIM_TYPE_ROPER][ANIM_DANGLE] = game_chunk[ANIM_TYPE_ROPER2].AnimList[223];
         }
-#endif
         //	global_anim_array[ANIM_TYPE_ROPER][ANIM_MOUNT_LADDER]		=game_chunk[ANIM_TYPE_ROPER2].AnimList[13];
         //	global_anim_array[ANIM_TYPE_ROPER][ANIM_ON_LADDER]			=game_chunk[ANIM_TYPE_ROPER2].AnimList[14];
         //
@@ -1342,7 +1285,6 @@ void setup_global_anim_array(void)
     for (c0 = 0; c0 < 4; c0++) {
         //		if(!build_psx)
         {
-#ifndef PSX
             if (!save_psx) {
                 global_anim_array[c0][ANIM_STRANGLE] = game_chunk[ANIM_TYPE_ROPER2].AnimList[268]; // I don't give a fuck, la la la la
                 global_anim_array[c0][ANIM_STRANGLE_VICTIM] = game_chunk[ANIM_TYPE_ROPER2].AnimList[269];
@@ -1350,7 +1292,6 @@ void setup_global_anim_array(void)
                 global_anim_array[c0][ANIM_HEADBUTT] = game_chunk[ANIM_TYPE_ROPER2].AnimList[270];
                 global_anim_array[c0][ANIM_HEADBUTT_VICTIM] = game_chunk[ANIM_TYPE_ROPER2].AnimList[271];
             }
-#endif
         }
 
         // unused		global_anim_array[c0][ANIM_RUN_TAXI]          =game_chunk[ANIM_TYPE_CIV].AnimList[CIV_ANIM_RUN_TAXI];
@@ -1372,11 +1313,7 @@ void setup_global_anim_array(void)
         global_anim_array[c0][ANIM_HANDS_UP] = game_chunk[ANIM_TYPE_CIV].AnimList[CIV_M_ANIM_HANDS_UP];
         global_anim_array[c0][ANIM_HANDS_UP_LOOP] = game_chunk[ANIM_TYPE_CIV].AnimList[CIV_M_ANIM_HANDS_UP_LOOP];
         global_anim_array[c0][ANIM_HANDS_UP_LIE] = game_chunk[ANIM_TYPE_CIV].AnimList[CIV_M_ANIM_HANDS_UP_LIE];
-#ifdef PSX
-        if (roper_pickup)
-#else
         if (!save_psx || roper_pickup)
-#endif
         {
             global_anim_array[c0][ANIM_PICKUP_CARRY] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_PICKUP_CARRY];
             global_anim_array[c0][ANIM_START_WALK_CARRY] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_START_WALK_CARRY];
@@ -1442,7 +1379,6 @@ void	fix_anim_pos(struct KeyFrame *keyframe,struct KeyFrameChunk *chunk)
 }
 */
 
-#ifndef PSX
 void fix_multi_object_for_anim(UWORD obj, struct PrimMultiAnim* p_anim)
 {
     SLONG sp, ep;
@@ -1905,9 +1841,3 @@ void free_game_chunk(GameKeyFrameChunk* the_chunk)
     the_chunk->FightCols = 0;
     //		the_chunk->TweakSpeeds=0;
 }
-#else
-void free_game_chunk(GameKeyFrameChunk* the_chunk)
-{
-}
-
-#endif

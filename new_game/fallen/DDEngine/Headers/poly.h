@@ -22,11 +22,9 @@ static inline int ftol(float f)
 
 void POLY_init(void);
 
-#ifndef TARGET_DC
 void calc_global_cloud(SLONG x, SLONG y, SLONG z);
 void apply_cloud(SLONG x, SLONG y, SLONG z, ULONG* col);
 void use_global_cloud(ULONG* col);
-#endif
 
 //
 // Clears all the texture flags.
@@ -125,20 +123,6 @@ typedef struct
 
 } POLY_Point;
 
-#ifdef TARGET_DC
-
-void POLY_flush_local_rot(void);
-
-void POLY_transform_c(
-    float world_x,
-    float world_y,
-    float world_z,
-    POLY_Point* pt,
-    bool bResetTheFTRV = FALSE);
-
-#define POLY_transform POLY_transform_c
-
-#else // #ifdef TARGET_DC
 
 // Does nothing on PC.
 inline void POLY_flush_local_rot(void)
@@ -159,7 +143,6 @@ void POLY_transform_c(
     POLY_Point* pt,
     bool bUnused = FALSE);
 
-#endif // #else //#ifdef TARGET_DC
 
 void POLY_set_local_rotation_none(void);
 
@@ -260,17 +243,6 @@ void POLY_set_local_rotation(
     float off_z,
     float matrix[9]);
 
-#ifdef TARGET_DC
-
-void POLY_transform_using_local_rotation_c(
-    float local_x,
-    float local_y,
-    float local_z,
-    POLY_Point* pt);
-
-#define POLY_transform_using_local_rotation POLY_transform_using_local_rotation_c
-
-#else // #ifdef TARGET_DC
 
 void POLY_transform_using_local_rotation(
     float local_x,
@@ -278,7 +250,6 @@ void POLY_transform_using_local_rotation(
     float local_z,
     POLY_Point* pt);
 
-#endif // #else //#ifdef TARGET_DC
 
 void POLY_transform_using_local_rotation_and_wibble(
     float local_x,
@@ -310,14 +281,8 @@ SLONG POLY_page_is_masked_self_illuminating(SLONG page);
 // Handy buffers for rotating objects
 //
 
-#ifdef TARGET_DC
-// Gatecrasher seems to give the biggest high-water-mark, during the intro cutscene.
-#define POLY_BUFFER_SIZE 768
-#define POLY_SHADOW_SIZE 512
-#else
 #define POLY_BUFFER_SIZE 8192
 #define POLY_SHADOW_SIZE 8192
-#endif
 
 extern POLY_Point POLY_buffer[POLY_BUFFER_SIZE];
 extern SLONG POLY_buffer_upto;
@@ -371,9 +336,6 @@ static void inline POLY_fadeout_point(POLY_Point* pp)
     //	if (pp->z > POLY_FADEOUT_START)
     {
         SLONG multi = 255 - ftol((pp->z - POLY_FADEOUT_START) * (256.0F / (POLY_FADEOUT_END - POLY_FADEOUT_START)));
-#ifdef TARGET_DC
-        // multi = 255 - multi;
-#endif
 
         //		multi=fade_point_more(pp);
 
@@ -424,29 +386,8 @@ void POLY_fadeout_buffer(void);
 // texture pages or one of these defines.
 //
 
-#ifdef TARGET_DC
-#define POLY_NUM_PAGES (22 * 64 + 124)
-#else
 #define POLY_NUM_PAGES (22 * 64 + 111) // 1508
-#endif
 
-#ifdef TARGET_DC
-#define POLY_PAGE_BACKGROUND_IMAGE (POLY_NUM_PAGES - 124)
-#define POLY_PAGE_BACKGROUND_IMAGE2 (POLY_NUM_PAGES - 123)
-
-#define POLY_PAGE_JOYPAD_A (POLY_NUM_PAGES - 122)
-#define POLY_PAGE_JOYPAD_B (POLY_NUM_PAGES - 121)
-#define POLY_PAGE_JOYPAD_C (POLY_NUM_PAGES - 120)
-#define POLY_PAGE_JOYPAD_X (POLY_NUM_PAGES - 119)
-#define POLY_PAGE_JOYPAD_Y (POLY_NUM_PAGES - 118)
-#define POLY_PAGE_JOYPAD_Z (POLY_NUM_PAGES - 117)
-#define POLY_PAGE_JOYPAD_L (POLY_NUM_PAGES - 116)
-#define POLY_PAGE_JOYPAD_R (POLY_NUM_PAGES - 115)
-#define POLY_PAGE_JOYPAD_PAD_L (POLY_NUM_PAGES - 114)
-#define POLY_PAGE_JOYPAD_PAD_R (POLY_NUM_PAGES - 113)
-#define POLY_PAGE_JOYPAD_PAD_D (POLY_NUM_PAGES - 112)
-#define POLY_PAGE_JOYPAD_PAD_U (POLY_NUM_PAGES - 111)
-#endif
 
 #define POLY_PAGE_FADE_MF (POLY_NUM_PAGES - 110)
 #define POLY_PAGE_SNOWFLAKE (POLY_NUM_PAGES - 109)

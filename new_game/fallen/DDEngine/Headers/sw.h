@@ -14,7 +14,6 @@
 
 extern ULONG* SW_buffer;
 
-#ifndef TARGET_DC
 
 //
 // Reloads all textures. Looks at the D3D Texture system and
@@ -61,15 +60,5 @@ void SW_add_triangle(
 
 void SW_copy_to_bb(void);
 
-#else // #ifndef TARGET_DC
-
-// Not used - it just shuts the compiler up.
-#define SW_PAGE_IGNORE 0 // This page is not drawn.
-#define SW_PAGE_NORMAL 1
-#define SW_PAGE_MASKED 2
-#define SW_PAGE_ALPHA 3
-#define SW_PAGE_ADDITIVE 4
-
-#endif // #else //#ifndef TARGET_DC
 
 #endif

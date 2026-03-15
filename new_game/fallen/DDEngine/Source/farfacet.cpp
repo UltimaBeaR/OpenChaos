@@ -746,13 +746,11 @@ void FARFACET_draw(
     float draw_dist,
     float lens)
 {
-#ifndef TARGET_DC
 
     if (!Keys[KB_R]) {
         return;
     }
 
-#endif
 
     //
     // The five point of the view pyramid.

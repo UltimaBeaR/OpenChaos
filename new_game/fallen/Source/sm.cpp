@@ -7,11 +7,7 @@
 #include "pap.h"
 #include "sm.h"
 #include "inline.h"
-#ifndef PSX
 #include "..\ddengine\headers\aeng.h"
-#else
-#include "c:\fallen\psxeng\headers\psxeng.h"
-#endif
 
 //
 // The spheres that make up an object.

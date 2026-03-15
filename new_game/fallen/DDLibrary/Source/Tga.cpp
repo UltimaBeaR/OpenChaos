@@ -6,26 +6,6 @@
 #include "Tga.h"
 #include "FileClump.h"
 
-#ifdef TARGET_DC
-
-#ifdef DEBUG
-// For quick loading
-// #define BOGUS_TGAS_PLEASE_BOB I have been defined
-// Do a downsample of textures to minimise memory use for now.
-// This is a two-to-the-power one, so "2" means quarter the size.
-// #define DOWNSAMPLE_PLEASE_BOB_AMOUNT 2
-#else
-// For quick loading
-// #define BOGUS_TGAS_PLEASE_BOB I have been defined
-// Do a downsample of textures to minimise memory use for now.
-// This is a two-to-the-power one, so "2" means quarter the size.
-// #define DOWNSAMPLE_PLEASE_BOB_AMOUNT 2
-#endif
-
-// Don't downsample any smaller than this.
-#define DOWNSAMPLE_MINIMUM_SIZE 16
-
-#endif
 
 static FileClump* tclump = NULL;
 static bool writing;
@@ -33,13 +13,10 @@ static bool init_convert = false;
 
 TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixel* data, BOOL bCanShrink = TRUE);
 
-#ifndef TARGET_DC
 static void TGA_make_conversion_tables(void);
 static void TGA_write_compressed(const TGA_Info& ti, TGA_Pixel* data, ULONG id);
 static TGA_Info TGA_read_compressed(TGA_Pixel* data, ULONG id, SLONG max_width, SLONG max_height);
-#endif
 
-#ifndef TARGET_DC
 // OpenTGAClump
 //
 // create a texture clump
@@ -79,7 +56,6 @@ FileClump* GetTGAClump()
     return tclump;
 }
 
-#endif // #ifndef TARGET_DC
 
 // DoesTGAExist
 //
@@ -108,17 +84,12 @@ SLONG tga_height;
 
 TGA_Info TGA_load(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixel* data, ULONG id, BOOL bCanShrink)
 {
-#ifdef TARGET_DC
-    ASSERT(!tclump || (id == -1));
-#else
     if (!tclump || (id == -1))
-#endif
     {
         // read directly from file
         return TGA_load_from_file(file, max_width, max_height, data, bCanShrink);
     }
 
-#ifndef TARGET_DC
     if (writing) {
         // read from file, then write compressed
         TGA_Info ti = TGA_load_from_file(file, max_width, max_height, data);
@@ -128,7 +99,6 @@ TGA_Info TGA_load(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixe
 
     // read compressed
     return TGA_read_compressed(data, id, max_width, max_height);
-#endif
 }
 
 // TGA_load_from_file
@@ -427,7 +397,6 @@ file_error:;
     return ans;
 }
 
-#ifndef TARGET_DC
 
 // WriteSquished
 //
@@ -915,9 +884,7 @@ file_error:;
     return ans;
 }
 
-#endif // #ifndef TARGET_DC
 
-#ifndef TARGET_DC
 
 //
 // expects to load a 16 colour indexed palletised tga
@@ -926,7 +893,6 @@ extern volatile HWND hDDLibWindow;
 
 void psx_load_error(CBYTE* err, const CBYTE* fname)
 {
-#ifndef TARGET_DC
     CBYTE title[256];
 
     //
@@ -940,7 +906,6 @@ void psx_load_error(CBYTE* err, const CBYTE* fname)
         title,
         "psx texture error",
         MB_OK | MB_ICONERROR | MB_APPLMODAL);
-#endif
 }
 
 TGA_Info TGA_load_psx(const CBYTE* file, SLONG max_width, SLONG max_height, UBYTE* data, UBYTE* pal)
@@ -1204,15 +1169,9 @@ void TGA_save(
 
     FILE* handle;
 
-#ifndef TARGET_DC
 
     handle = fopen(file, "wb");
 
-#else
-
-    handle = MF_Fopen(file, "wb");
-
-#endif
 
     if (handle == NULL) {
         TRACE("Cannot open TGA file %s\n", file);
@@ -1261,4 +1220,3 @@ void TGA_save(
     MF_Fclose(handle);
 }
 
-#endif // #ifndef TARGET_DC

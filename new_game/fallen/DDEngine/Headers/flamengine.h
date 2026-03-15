@@ -19,21 +19,6 @@ union FlameXY {
     UWORD ofs;
 };
 
-#ifdef TARGET_DC
-// Properly aligned!
-struct FlameParticle {
-    FlameXY pos;
-    UBYTE jx, jy; // Jitter range
-    UBYTE ex, ey; // Emitter position
-    UBYTE life; // could be ttl but is just on/off flag
-    UBYTE prate; // speed of pulsing
-    UBYTE pmode; // kind of pulse (ramp/cycle)
-    UBYTE wmode; // walk mode
-    SWORD pulse; // particles pulsing in and out
-    ULONG pstart; // start of pulse range;
-    ULONG pend; // end of pulse range;
-};
-#else
 struct FlameParticle {
     FlameXY pos;
     UBYTE jx, jy; // Jitter range
@@ -46,7 +31,6 @@ struct FlameParticle {
     ULONG pstart; // start of pulse range;
     ULONG pend; // end of pulse range;
 };
-#endif
 
 struct FlameParams {
     UBYTE blur, dark, convec;

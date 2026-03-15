@@ -16,7 +16,6 @@
 #include "thing.h"
 #include "ob.h"
 
-#ifndef PSX
 
 // claude-ai: YOU_WANT_THIN_WALLS — disabled (0). Controls whether interior walls have visible
 // claude-ai: thickness. Thin-wall mode makes walls infinitely thin planes (no top quad generated).
@@ -91,11 +90,7 @@ typedef struct
 
 } ID_Face;
 
-#ifdef PSX
-#define ID_MAX_FACES 512
-#else
 #define ID_MAX_FACES 2048
-#endif
 
 ID_Face ID_face[ID_MAX_FACES];
 SLONG ID_face_upto;
@@ -521,7 +516,6 @@ SLONG ID_get_texture_uvs(
     SLONG base_v;
     SLONG poly_number;
     SLONG page = 0;
-#ifndef PSX
 
     ID_Texture* it;
 
@@ -546,7 +540,6 @@ SLONG ID_get_texture_uvs(
     *u3 = it->u3;
     *v3 = it->v3;
 
-#endif
     return page;
 }
 
@@ -8854,49 +8847,3 @@ ID_Finfo* ID_get_furn(SLONG number)
     return &ID_get_finfo;
 }
 
-#else
-//
-// no need to do psx version of this unused stuff, but lets get it compiling
-//
-
-SLONG ID_calc_height_at(SLONG x, SLONG z)
-{
-}
-
-SLONG ID_get_num_furn()
-{
-    return (0);
-}
-
-ID_Finfo* ID_get_furn(SLONG number)
-{
-    return (NULL);
-}
-
-SLONG ID_collide_2d(
-    SLONG x1, SLONG z1,
-    SLONG x2, SLONG z2,
-    SLONG radius,
-    SLONG* slide_x,
-    SLONG* slide_z)
-{
-    return (0);
-}
-
-void ID_this_is_where_i_am(SLONG x, SLONG z)
-{
-}
-
-void ID_get_floorplan_bounding_box(
-    SLONG* x1,
-    SLONG* z1,
-    SLONG* x2,
-    SLONG* z2)
-{
-    *x1 = 0;
-    *z1 = 0;
-    *x2 = 0;
-    *z2 = 0;
-}
-
-#endif

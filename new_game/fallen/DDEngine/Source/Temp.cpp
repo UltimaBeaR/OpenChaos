@@ -1,6 +1,3 @@
-#ifdef TARGET_DC
-#error Why is this included in a DC build? Bad person....
-#endif
 
 #include "..\Headers\Engine.h"
 #include "..\Headers\memory.h"

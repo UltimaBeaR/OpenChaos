@@ -7,11 +7,7 @@
 #include "game.h"
 #include "tracks.h"
 #include "structs.h"
-#ifndef PSX
 #include "..\DDEngine\Headers\poly.h"
-#else
-#include "c:\fallen\psxeng\headers\poly.h"
-#endif
 #include "person.h"
 #include "puddle.h"
 #include "pap.h"
@@ -286,12 +282,8 @@ SLONG TRACKS_GroundAtXZ(SLONG X, SLONG Z)
     //
     // Standing in a puddle?
     //
-#ifndef PSX
-#ifndef TARGET_DC
     if (PUDDLE_in(X >> 8, Z >> 8))
         return PERSON_ON_WATER;
-#endif
-#endif
     //
     // Check for special floor textures...
     //

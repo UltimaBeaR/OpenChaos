@@ -115,7 +115,6 @@
 
 #include "psystem.h"
 
-#ifndef TARGET_DC
 
 #define LOG_ENTER(x) \
     {                \
@@ -127,12 +126,7 @@
     {                \
     }
 
-#endif
 
-#ifdef TARGET_DC
-// intrinsic maths
-#include <shsgintr.h>
-#endif
 
 extern BOOL allow_debug_keys;
 
@@ -289,11 +283,7 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and = 0xffffffff)
     }
 
     // Unitise the vector.
-#ifdef TARGET_DC
-    float fLength = _InvSqrtA(vTotal.x * vTotal.x + vTotal.y * vTotal.y + vTotal.z * vTotal.z);
-#else
     float fLength = 1.0f / sqrtf(vTotal.x * vTotal.x + vTotal.y * vTotal.y + vTotal.z * vTotal.z);
-#endif
     vTotal.x *= fLength;
     vTotal.y *= fLength;
     vTotal.z *= fLength;
@@ -1109,35 +1099,6 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
             }
 
 //			SPRITE_draw_tex(
-#ifdef TARGET_DC
-            SPRITE_draw_tex_distorted_params Params;
-#define SET_IN_PARAMS(argname) Params.argname = argname
-            SET_IN_PARAMS(u);
-            SET_IN_PARAMS(v);
-            SET_IN_PARAMS(w);
-            SET_IN_PARAMS(h);
-            SET_IN_PARAMS(wx1);
-            SET_IN_PARAMS(wy1);
-            SET_IN_PARAMS(wx2);
-            SET_IN_PARAMS(wy2);
-            SET_IN_PARAMS(wx3);
-            SET_IN_PARAMS(wy3);
-            SET_IN_PARAMS(wx4);
-            SET_IN_PARAMS(wy4);
-#undef SET_IN_PARAMS
-
-            SPRITE_draw_tex_distorted(
-                float(dx),
-                float(dy),
-                float(dz),
-                float(scale),
-                trans,
-                0xff000000,
-                page,
-                SPRITE_SORT_NORMAL,
-                &Params);
-
-#else // #ifdef TARGET_DC
             SPRITE_draw_tex_distorted(
                 float(dx),
                 float(dy),
@@ -1149,12 +1110,10 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
                 u, v, w, h,
                 wx1, wy1, wx2, wy2, wx3, wy3, wx4, wy4,
                 SPRITE_SORT_NORMAL);
-#endif // #else //#ifdef TARGET_DC
         }
     }
 }
 
-#ifndef PSX
 void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE rand)
 {
     //	SLONG	c0;
@@ -1248,35 +1207,6 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
             break;
         }
 
-#ifdef TARGET_DC
-        SPRITE_draw_tex_distorted_params Params;
-#define SET_IN_PARAMS(argname) Params.argname = argname
-        SET_IN_PARAMS(u);
-        SET_IN_PARAMS(v);
-        SET_IN_PARAMS(w);
-        SET_IN_PARAMS(h);
-        SET_IN_PARAMS(wx1);
-        SET_IN_PARAMS(wy1);
-        SET_IN_PARAMS(wx2);
-        SET_IN_PARAMS(wy2);
-        SET_IN_PARAMS(wx3);
-        SET_IN_PARAMS(wy3);
-        SET_IN_PARAMS(wx4);
-        SET_IN_PARAMS(wy4);
-#undef SET_IN_PARAMS
-
-        SPRITE_draw_tex_distorted(
-            float(dx),
-            float(dy),
-            float(dz),
-            float(scale),
-            trans,
-            0xff000000,
-            page,
-            SPRITE_SORT_NORMAL,
-            &Params);
-
-#else // #ifdef TARGET_DC
 
         SPRITE_draw_tex_distorted(
             float(dx),
@@ -1289,10 +1219,8 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
             u, v, w, h,
             wx1, wy1, wx2, wy2, wx3, wy3, wx4, wy4,
             SPRITE_SORT_NORMAL);
-#endif // #else //#ifdef TARGET_DC
     }
 }
-#endif
 
 // claude-ai: FIGURE_rotate_obj2 — builds a full 3×3 rotation matrix from pitch/yaw/roll
 // claude-ai: using the game's fixed-point trig tables (SIN/COS, range 0..2047 = 0..360°).
@@ -3121,12 +3049,10 @@ void FIGURE_draw_prim_tween(
         count += 1;
 
 #ifndef FINAL
-#ifndef TARGET_DC
         if (ControlFlag && allow_debug_keys) {
             LOG_EXIT(Figure_Draw_Prim_Tween)
             return;
         }
-#endif
 #endif
     }
 
@@ -3152,7 +3078,6 @@ void FIGURE_draw_prim_tween(
     POLY_buffer_upto = 0;
 
     // Check for being a gun
-#ifndef BUILD_PSX
     if (prim == 256) {
         i = sp;
     } else
@@ -3187,7 +3112,6 @@ void FIGURE_draw_prim_tween(
     p_thing->Genus.Person->GunMuzzle.Z = pp->z * 256;
     //	x=pp->x*256; y=pp->y*256; z=pp->z*256;
 
-#endif
 no_muzzle_calcs:
 
 #if USE_TOMS_ENGINE_PLEASE_BOB
@@ -3648,23 +3572,6 @@ no_muzzle_calcs:
 
 #ifdef SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB
 #ifdef DEBUG
-#ifdef TARGET_DC
-#define BUTTON_IS_PRESSED(value) ((value & 0x80) != 0)
-            extern DIJOYSTATE the_state;
-            bool bShowDebug = FALSE;
-            if (BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_LTRIGGER]) && BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_RTRIGGER])) {
-                DWORD dwColour = (DWORD)pwStripIndices;
-                dwColour = (dwColour >> 2) ^ (dwColour >> 6) ^ (dwColour) ^ (dwColour << 3);
-                dwColour = (dwColour << 9) ^ (dwColour << 19) ^ (dwColour) ^ (dwColour << 29) ^ (dwColour >> 3);
-                dwColour &= 0x7f7f7f7f;
-                for (int i = 0; i < 128; i++) {
-                    d3dmm.lpLightTable[i] = dwColour;
-                }
-
-                // And NULL texture (i.e. white).
-                the_display.lp_D3D_Device->SetTexture(0, NULL);
-            }
-#endif
 #endif
 #endif
 
@@ -4158,56 +4065,6 @@ no_muzzle_calcs:
                         pa->RS.SetChanged();
                         hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_LVERTEX, lVertex, 4, wIndices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
                     }
-#ifdef TARGET_DC
-                    else {
-
-                        // Use the MM stuff.
-
-                        // Unlit untransformed vertices!
-                        WORD wIndices[5] = { 0, 1, 2, 3, -1 };
-                        for (int i = 0; i < 4; i++) {
-                            const float fNormScale = 1.0f / 256.0f;
-
-                            int pt = p_f4->Points[i];
-                            ASSERT(WITHIN(pt, sp, ep));
-
-                            MM_Vertex[i].dvX = AENG_dx_prim_points[pt].X;
-                            MM_Vertex[i].dvY = AENG_dx_prim_points[pt].Y;
-                            MM_Vertex[i].dvZ = AENG_dx_prim_points[pt].Z;
-                            MM_Vertex[i].dvNX = prim_normal[pt].X * fNormScale;
-                            MM_Vertex[i].dvNY = prim_normal[pt].Y * fNormScale;
-                            MM_Vertex[i].dvNZ = prim_normal[pt].Z * fNormScale;
-                            MM_Vertex[i].dvTU = quad[i]->u;
-                            MM_Vertex[i].dvTV = quad[i]->v;
-                            // This must be done after setting the rest up, since it blats the 12th byte of the vertex.
-                            SET_MM_INDEX((MM_Vertex[i]), 0);
-                        }
-
-#if 0
-						if ( FALSE && the_display.GetDeviceInfo()->AdamiLightingSupported() )
-						{
-							// Draw lighting triangle
-							PolyPage *tpa = &(POLY_Page[POLY_PAGE_COLOUR]);
-							//tpa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-							tpa->RS.SetChanged();
-							hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive ( D3DPT_TRIANGLELIST, D3DFVF_VERTEX, MM_Vertex, 3, wIndices, 3, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT );
-						}
-#endif
-
-                        D3DMULTIMATRIX d3dmm;
-                        d3dmm.lpd3dMatrices = MM_pMatrix;
-                        d3dmm.lpvLightDirs = MM_pNormal;
-                        d3dmm.lpLightTable = MM_pcFadeTable;
-                        d3dmm.lpvVertices = MM_Vertex;
-
-                        // pa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-                        pa->RS.SetChanged();
-                        pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-                        pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                        HRESULT hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_VERTEX, (void*)&d3dmm, 4, wIndices, 5, D3DDP_MULTIMATRIX);
-                        ASSERT(SUCCEEDED(hres));
-                    }
-#endif
 #endif
                 } else
 #endif // #if USE_TOMS_ENGINE_PLEASE_BOB
@@ -4215,11 +4072,7 @@ no_muzzle_calcs:
                     if (FIGURE_alpha != 255) {
                         POLY_Page[page].RS.SetTempTransparent();
                     }
-#ifndef TARGET_DC
                     else if (the_display.GetDeviceInfo()->AdamiLightingSupported())
-#else
-                    else if (the_display.GetDeviceInfo()->AdamiLightingSupported())
-#endif
                     {
                         // draw lighting quad
                         POLY_add_quad(quad, POLY_PAGE_COLOUR, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
@@ -4251,9 +4104,6 @@ no_muzzle_calcs:
 				b = b * blue  >> 8;
 
 				face_colour = (r << 16) | (g << 8) | (b << 0);
-#ifdef TARGET_DC
-				face_colour |= 0xff000000;
-#endif
 
 				quad[0]->colour = face_colour;
 				quad[1]->colour = face_colour;
@@ -4267,9 +4117,6 @@ no_muzzle_calcs:
 
 				POLY_add_quad(quad, POLY_PAGE_COLOUR, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
 
-#ifdef TARGET_DC
-				colour |= 0xff000000;
-#endif
 				quad[0]->colour = colour;
 				quad[1]->colour = colour;
 				quad[2]->colour = colour;
@@ -4451,56 +4298,6 @@ no_muzzle_calcs:
                         pa->RS.SetChanged();
                         hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_LVERTEX, lVertex, 3, wIndices, 3, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
                     }
-#ifdef TARGET_DC
-                    else {
-
-                        // Use the MM stuff.
-
-                        // Unlit untransformed vertices!
-                        WORD wIndices[4] = { 0, 1, 2, -1 };
-                        for (int i = 0; i < 3; i++) {
-                            const float fNormScale = 1.0f / 256.0f;
-
-                            int pt = p_f3->Points[i];
-                            ASSERT(WITHIN(pt, sp, ep));
-
-                            MM_Vertex[i].dvX = AENG_dx_prim_points[pt].X;
-                            MM_Vertex[i].dvY = AENG_dx_prim_points[pt].Y;
-                            MM_Vertex[i].dvZ = AENG_dx_prim_points[pt].Z;
-                            MM_Vertex[i].dvNX = prim_normal[pt].X * fNormScale;
-                            MM_Vertex[i].dvNY = prim_normal[pt].Y * fNormScale;
-                            MM_Vertex[i].dvNZ = prim_normal[pt].Z * fNormScale;
-                            MM_Vertex[i].dvTU = tri[i]->u;
-                            MM_Vertex[i].dvTV = tri[i]->v;
-                            // This must be done after setting the rest up, since it blats the 12th byte of the vertex.
-                            SET_MM_INDEX((MM_Vertex[i]), 0);
-                        }
-
-#if 0
-						if ( FALSE && the_display.GetDeviceInfo()->AdamiLightingSupported() )
-						{
-							// Draw lighting triangle
-							PolyPage *tpa = &(POLY_Page[POLY_PAGE_COLOUR]);
-							//tpa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-							tpa->RS.SetChanged();
-							hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive ( D3DPT_TRIANGLELIST, D3DFVF_VERTEX, MM_Vertex, 3, wIndices, 3, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT );
-						}
-#endif
-
-                        D3DMULTIMATRIX d3dmm;
-                        d3dmm.lpd3dMatrices = MM_pMatrix;
-                        d3dmm.lpvLightDirs = MM_pNormal;
-                        d3dmm.lpLightTable = MM_pcFadeTable;
-                        d3dmm.lpvVertices = MM_Vertex;
-
-                        // pa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-                        pa->RS.SetChanged();
-                        pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-                        pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                        HRESULT hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_VERTEX, (void*)&d3dmm, 3, wIndices, 4, D3DDP_MULTIMATRIX);
-                        ASSERT(SUCCEEDED(hres));
-                    }
-#endif
 #endif
                 } else
 
@@ -4510,11 +4307,7 @@ no_muzzle_calcs:
                         POLY_Page[page].RS.SetTempTransparent();
                     }
 
-#ifndef TARGET_DC
                     else if (the_display.GetDeviceInfo()->AdamiLightingSupported())
-#else
-                    else if (the_display.GetDeviceInfo()->AdamiLightingSupported())
-#endif
                     {
                         // add lighting triangle
                         POLY_add_triangle(tri, POLY_PAGE_COLOUR, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
@@ -4925,9 +4718,6 @@ void FIGURE_draw_prim_tween_warped(
 
         POLY_transform_using_local_rotation(temp2.X, temp2.Y, temp2.Z, pp);
 
-#ifdef TARGET_DC
-        colour |= 0xff000000;
-#endif
         pp->colour = colour;
         //		use_global_cloud(&pp->colour);
         pp->specular = specular;
@@ -4990,10 +4780,6 @@ void FIGURE_draw_prim_tween_warped(
 
                 face_colour = (r << 16) | (g << 8) | (b << 0);
 
-#ifdef TARGET_DC
-                face_colour |= 0xff000000;
-                colour |= 0xff000000;
-#endif
                 quad[0]->colour = face_colour;
                 quad[1]->colour = face_colour;
                 quad[2]->colour = face_colour;
@@ -5060,10 +4846,6 @@ void FIGURE_draw_prim_tween_warped(
 
                 face_colour = (r << 16) | (g << 8) | (b << 0);
 
-#ifdef TARGET_DC
-                face_colour |= 0xff000000;
-                colour |= 0xff000000;
-#endif
                 tri[0]->colour = face_colour;
                 tri[1]->colour = face_colour;
                 tri[2]->colour = face_colour;
@@ -5732,23 +5514,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
 #ifdef SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB
 #ifdef DEBUG
-#ifdef TARGET_DC
-#define BUTTON_IS_PRESSED(value) ((value & 0x80) != 0)
-            extern DIJOYSTATE the_state;
-            bool bShowDebug = FALSE;
-            if (BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_LTRIGGER]) && BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_RTRIGGER])) {
-                DWORD dwColour = (DWORD)pwStripIndices;
-                dwColour = (dwColour >> 2) ^ (dwColour >> 6) ^ (dwColour) ^ (dwColour << 3);
-                dwColour = (dwColour << 9) ^ (dwColour << 19) ^ (dwColour) ^ (dwColour << 29) ^ (dwColour >> 3);
-                dwColour &= 0x7f7f7f7f;
-                for (int i = 0; i < 128; i++) {
-                    d3dmm.lpLightTable[i] = dwColour;
-                }
-
-                // And NULL texture (i.e. white).
-                the_display.lp_D3D_Device->SetTexture(0, NULL);
-            }
-#endif
 #endif
 #endif
 
@@ -6509,7 +6274,6 @@ UBYTE kludge_shrink;
 // claude-ai: DrawTween fields used: Angle (yaw), Tilt (pitch), Roll, AnimTween (0..255),
 // claude-ai:   CurrentFrame, NextFrame (pointers into keyframe data), MeshID, PersonID.
 // claude-ai: PORT: Map to: compute bones → upload UBO → glDrawElements per body part.
-#ifndef PSX
 // New faster version
 void FIGURE_draw(Thing* p_thing)
 {
@@ -6794,606 +6558,6 @@ void FIGURE_draw(Thing* p_thing)
     LOG_EXIT(Figure_FIGURE_Draw)
 }
 
-#else
-// Old version
-
-void FIGURE_draw(Thing* p_thing)
-{
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
-    SLONG wx, wy, wz;
-
-    ULONG colour;
-    ULONG specular;
-
-    Matrix33 r_matrix;
-
-    GameKeyFrameElement* ae1;
-    GameKeyFrameElement* ae2;
-
-    DrawTween* dt = p_thing->Draw.Tweened;
-
-    /*
-            {
-                    static	SLONG	turn = 0;
-                    if(turn!=GAME_TURN)
-                    {
-                            if(Keys[KB_T])
-                            {
-                                    peep_recol[0].r+=ShiftFlag?4:-4;
-                                    SATURATE(peep_recol[0].r,0,256);
-                                    PANEL_new_text(p_thing,200," peep r %d g %d b %d ",peep_recol[0].r,peep_recol[0].g,peep_recol[0].b);
-                            }
-                            if(Keys[KB_Y])
-                            {
-                                    peep_recol[0].g+=ShiftFlag?4:-4;
-                                    SATURATE(peep_recol[0].g,0,256);
-                                    PANEL_new_text(p_thing,200," peep r %d g %d b %d ",peep_recol[0].r,peep_recol[0].g,peep_recol[0].b);
-                            }
-                            if(Keys[KB_U])
-                            {
-                                    peep_recol[0].b+=ShiftFlag?4:-4;
-                                    SATURATE(peep_recol[0].b,0,256);
-                                    PANEL_new_text(p_thing,200," peep r %d g %d b %d ",peep_recol[0].r,peep_recol[0].g,peep_recol[0].b);
-                            }
-                    }
-                    turn=GAME_TURN;
-            }
-    */
-
-    LOG_ENTER(Figure_FIGURE_Draw)
-
-    //	calc_global_cloud(p_thing->WorldPos.X>>8,p_thing->WorldPos.Y>>8,p_thing->WorldPos.Z>>8);
-
-#ifdef PSX
-    //
-    // test some code out for PSX
-    //
-    if (get_sort_z_bodge(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Z >> 8)) {
-        AENG_world_line(
-            p_thing->WorldPos.X >> 8,
-            p_thing->WorldPos.Y >> 8,
-            p_thing->WorldPos.Z >> 8,
-            32, 0xffffff,
-            p_thing->WorldPos.X >> 8,
-            p_thing->WorldPos.Y + 0xc000 >> 8,
-            p_thing->WorldPos.Z >> 8,
-            0, 0xffffff,
-            TRUE);
-    }
-#endif
-
-    if (dt->CurrentFrame == 0 || dt->NextFrame == 0) {
-        //
-        // No frames to tween between.
-        //
-
-        MSG_add("!!!!!!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure");
-        LOG_EXIT(Figure_FIGURE_Draw)
-        return;
-    }
-
-    //
-    // The offset to keep the locked limb in the same place.
-    //
-
-    //	if (dt->Locked)
-    if (0) {
-
-        SLONG x1, y1, z1;
-        SLONG x2, y2, z2;
-
-        //
-        // Taken from temp.cpp
-        //
-
-        calc_sub_objects_position_global(dt->CurrentFrame, dt->NextFrame, 0, dt->Locked, &x1, &y1, &z1);
-        calc_sub_objects_position_global(dt->CurrentFrame, dt->NextFrame, 256, dt->Locked, &x2, &y2, &z2);
-
-        dx = x1 - x2;
-        dy = y1 - y2;
-        dz = z1 - z2;
-    } else {
-        dx = 0;
-        dy = 0;
-        dz = 0;
-    }
-
-    //
-    // The rotation matrix of the whole object.
-    //
-
-    LOG_ENTER(Figure_Rotate)
-
-    FIGURE_rotate_obj(
-        dt->Tilt,
-        dt->Angle,
-        (dt->Roll + 2048) & 2047,
-        &r_matrix);
-    /*
-            FIGURE_rotate_obj(
-                    dt->Tilt,
-                    dt->AngleTo,
-                    (dt->Roll+2048)&2047,
-               &r_matrix2);
-    */
-    LOG_EXIT(Figure_Rotate)
-
-#ifdef PSX_SIMULATION
-    {
-        SLONG index1, index2;
-        //
-        // stuff added for more compression of anims
-        //
-        extern struct PrimPoint* anim_mids; //[256];
-
-        index1 = dt->CurrentFrame->XYZIndex;
-        index2 = dt->NextFrame->XYZIndex;
-
-        if (index1 != index2) {
-            /*
-            //
-            // draw some debug lines
-            //
-                                    SVector temp;
-                                    Matrix31  offset;
-
-                                    wx=anim_mids[index1].X;
-                                    wy=anim_mids[index1].Y;
-                                    wz=anim_mids[index1].Z;
-                                    offset.M[0]=wx;
-                                    offset.M[1]=wy;
-                                    offset.M[2]=wz;
-                                    matrix_transformZMY((struct Matrix31*)&temp,&r_matrix, &offset);
-                                    wx=temp.X;
-                                    wy=temp.Y;
-                                    wz=temp.Z;
-
-                                    AENG_world_line((p_thing->WorldPos.X>>8),(p_thing->WorldPos.Y>>8),(p_thing->WorldPos.Z>>8),6,0xff0000,
-                                                                    (p_thing->WorldPos.X>>8)+wx,(p_thing->WorldPos.Y>>8)+wy,(p_thing->WorldPos.Z>>8)+wz,1,0xffffff,1);
-
-                                    wx=anim_mids[index2].X;
-                                    wy=anim_mids[index2].Y;
-                                    wz=anim_mids[index2].Z;
-
-                                    offset.M[0]=wx;
-                                    offset.M[1]=wy;
-                                    offset.M[2]=wz;
-                                    matrix_transformZMY((struct Matrix31*)&temp,&r_matrix, &offset);
-                                    wx=temp.X;
-                                    wy=temp.Y;
-                                    wz=temp.Z;
-                                    AENG_world_line((p_thing->WorldPos.X>>8),(p_thing->WorldPos.Y>>8),(p_thing->WorldPos.Z>>8),6,0xff00,
-                                                                    (p_thing->WorldPos.X>>8)+wx,(p_thing->WorldPos.Y>>8)+wy,(p_thing->WorldPos.Z>>8)+wz,1,0xffffff,1);
-            */
-
-            wx = anim_mids[index1].X + (((anim_mids[index2].X - anim_mids[index1].X) * dt->AnimTween) >> 8);
-            wy = anim_mids[index1].Y + (((anim_mids[index2].Y - anim_mids[index1].Y) * dt->AnimTween) >> 8);
-            wz = anim_mids[index1].Z + (((anim_mids[index2].Z - anim_mids[index1].Z) * dt->AnimTween) >> 8);
-        } else {
-            wx = anim_mids[index1].X;
-            wy = anim_mids[index1].Y;
-            wz = anim_mids[index1].Z;
-        }
-
-        //
-        // put offset into object space
-        //
-        {
-            SVector temp;
-            Matrix31 offset;
-            offset.M[0] = wx;
-            offset.M[1] = wy;
-            offset.M[2] = wz;
-            matrix_transformZMY((struct Matrix31*)&temp, &r_matrix, &offset);
-            wx = temp.X;
-            wy = temp.Y;
-            wz = temp.Z;
-            /*
-                                    AENG_world_line((p_thing->WorldPos.X>>8),(p_thing->WorldPos.Y>>8),(p_thing->WorldPos.Z>>8),6,0x808080,
-                                                                    (p_thing->WorldPos.X>>8)+wx,(p_thing->WorldPos.Y>>8)+wy,(p_thing->WorldPos.Z>>8)+wz,1,0xffffff,1);
-            */
-        }
-    }
-#else
-    wx = 0;
-    wy = 0;
-    wz = 0;
-#endif
-
-    //
-    // The animation elements for the two frames.
-    //
-
-    ae1 = dt->CurrentFrame->FirstElement;
-    ae2 = dt->NextFrame->FirstElement;
-
-    if (!ae1 || !ae2) {
-        MSG_add("!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure has no animation elements");
-        LOG_EXIT(Figure_FIGURE_Draw)
-
-        return;
-    }
-
-    //
-    // What colour do we draw the figure?
-    //
-
-    //
-    // All this is done in FIGURE_draw_prim_tween nowadays using the array
-    // filled in by this call to NIGHT_find....
-    //
-
-    colour = 0;
-    specular = 0;
-
-    SLONG lx;
-    SLONG ly;
-    SLONG lz;
-
-    NIGHT_Colour col;
-
-    LOG_ENTER(Figure_Calc_Sub_Objs)
-
-    calc_sub_objects_position(
-        p_thing,
-        dt->AnimTween,
-        0, // 0 is Pelvis
-        &lx, &ly, &lz);
-
-    lx += p_thing->WorldPos.X >> 8;
-    ly += p_thing->WorldPos.Y >> 8;
-    lz += p_thing->WorldPos.Z >> 8;
-
-    LOG_EXIT(Figure_Calc_Sub_Objs)
-
-    LOG_ENTER(Figure_NIGHT_Find)
-
-    NIGHT_find(lx, ly, lz);
-
-    LOG_EXIT(Figure_NIGHT_Find)
-
-    /*
-
-    SLONG lx;
-    SLONG ly;
-    SLONG lz;
-
-    NIGHT_Colour col;
-
-    calc_sub_objects_position(
-            p_thing,
-            dt->AnimTween,
-            0,	// 0 is Pelvis
-            &lx, &ly, &lz);
-
-    lx += p_thing->WorldPos.X >> 8;
-    ly += p_thing->WorldPos.Y >> 8;
-    lz += p_thing->WorldPos.Z >> 8;
-
-    col = NIGHT_get_light_at(lx, ly, lz);
-
-    if (p_thing->Genus.Person->BurnIndex) {
-            Pyro *p=TO_PYRO(p_thing->Genus.Person->BurnIndex-1);
-            if (p->PyroType==PYRO_IMMOLATE) {
-                    col.red=  (col.red>p->counter)  ?col.red-p->counter:0;
-                    col.green=(col.green>p->counter)?col.green-p->counter:0;
-                    col.blue= (col.blue>p->counter) ?col.blue-p->counter:0;
-            }
-    }
-
-    if (ControlFlag)
-    {
-            //
-            // Brighten up the person if he is going to be drawn too dark.
-            //
-
-            if (col.red   < 32) {col.red   += 32 - col.red   >> 1;}
-            if (col.green < 32) {col.green += 32 - col.green >> 1;}
-            if (col.blue  < 32) {col.blue  += 32 - col.blue  >> 1;}
-    }
-
-    */
-
-    /*
-            if(p_thing->Genus.Person->PersonType==PERSON_THUG_RED)
-            {
-                    NIGHT_Colour temp;
-                    SLONG	index;
-                    index=THING_NUMBER(p_thing)&15;
-    //		index=0;
-
-                    temp.red=(col.red*peep_recol[index].r)>>8;
-                    temp.green=(col.green*peep_recol[index].g)>>8;
-                    temp.blue=(col.blue*peep_recol[index].b)>>8;
-                    NIGHT_get_d3d_colour(
-                            temp,
-                       &jacket_col,&specular);
-                            jacket_col   &= ~POLY_colour_restrict;
-
-                    index=(PERSON_NUMBER(p_thing->Genus.Person)>>2)%9;
-
-                    temp.red=(col.red*peep_recol[index].r)>>8;
-                    temp.green=(col.green*peep_recol[index].g)>>8;
-                    temp.blue=(col.blue*peep_recol[index].b)>>8;
-                    NIGHT_get_d3d_colour(
-                            temp,
-                       &leg_col,&specular);
-                            leg_col   &= ~POLY_colour_restrict;
-
-
-            }
-    */
-    /*
-
-    NIGHT_get_d3d_colour(
-            col,
-       &colour,
-       &specular);
-
-    */
-    /*
-            if(p_thing->Genus.Person->PersonType!=PERSON_THUG_RED)
-            {
-                    jacket_col=colour;
-                    leg_col=colour;
-
-            }
-    */
-
-    /*	if (p_thing->Genus.Person->BurnIndex) {
-                    Pyro *p=TO_PYRO(p_thing->Genus.Person->BurnIndex-1);
-                    if (p->PyroType==PYRO_IMMOLATE) {
-                            colour=0;
-                    }
-            }*/
-
-    /*
-
-
-    colour   &= ~POLY_colour_restrict;
-    specular &= ~POLY_colour_restrict;
-
-    */
-
-#if WE_WANT_TO_DARKEN_PEOPLE_IN_SHADOW_ABRUPTLY
-
-    if (SHADOW_in(
-            (p_thing->WorldPos.X >> 8),
-            (p_thing->WorldPos.Y >> 8),
-            (p_thing->WorldPos.Z >> 8))) {
-        colour >>= 1;
-        colour &= 0x7f7f7f7f;
-        specular = 0xff000000;
-    }
-
-#endif
-
-#if USE_TOMS_ENGINE_PLEASE_BOB
-
-    ASSERT(!MM_bLightTableAlreadySetUp);
-
-    // Set up some data for the MM rendering thing.
-
-#if 0
-//#define ALIGNED_STATIC_ARRAY(name,number,mytype,align)														\
-//	static char c##name##mytype##align##StaticArray [ align + number * sizeof ( mytype ) ];						\
-//	name = (mytype *)( ( (DWORD)c##name##mytype##align##StaticArray + (align-1) ) & ~(align-1) )
-
-	ALIGNED_STATIC_ARRAY ( MM_pcFadeTable, 128, D3DCOLOR, 4 );
-	ALIGNED_STATIC_ARRAY ( MM_pcFadeTableTint, 128, D3DCOLOR, 4 );
-	ALIGNED_STATIC_ARRAY ( MM_pMatrix, 1, D3DMATRIX, 32 );
-	ALIGNED_STATIC_ARRAY ( MM_Vertex, 4, D3DVERTEX, 32 );
-	ALIGNED_STATIC_ARRAY ( MM_pNormal, 4, float, 8 );
-#endif
-
-    // #undef ALIGNED_STATIC_ARRAY
-
-    Pyro* p = NULL;
-    if (p_thing->Class == CLASS_PERSON && p_thing->Genus.Person->BurnIndex) {
-        p = TO_PYRO(p_thing->Genus.Person->BurnIndex - 1);
-        if (p->PyroType != PYRO_IMMOLATE) {
-            p = NULL;
-        }
-    }
-
-    BuildMMLightingTable(p, 0);
-
-    MM_bLightTableAlreadySetUp = TRUE;
-
-#endif
-
-    //
-    // Draw each body part.
-    //
-
-    // SLONG i;
-    SLONG ele_count;
-    SLONG start_object;
-    SLONG object_offset;
-
-    ele_count = dt->TheChunk->ElementCount;
-    start_object = prim_multi_objects[dt->TheChunk->MultiObject[dt->MeshID]].StartObject;
-
-    if (ele_count == 15) {
-        Matrix31 pos;
-        pos.M[0] = (p_thing->WorldPos.X >> 8) + wx;
-        pos.M[1] = (p_thing->WorldPos.Y >> 8) + wy;
-        pos.M[2] = (p_thing->WorldPos.Z >> 8) + wz;
-
-        // assume we've got a person, and draw the object hierarchically
-
-        // fill out data.
-
-        FIGURE_dhpr_rdata1[0].part_number = 0;
-        FIGURE_dhpr_rdata1[0].current_child_number = 0;
-        FIGURE_dhpr_rdata1[0].parent_base_mat = NULL;
-        FIGURE_dhpr_rdata1[0].parent_base_pos = NULL;
-        FIGURE_dhpr_rdata1[0].parent_current_mat = NULL;
-        FIGURE_dhpr_rdata1[0].parent_current_pos = NULL;
-
-        FIGURE_dhpr_data.start_object = start_object;
-        if (p_thing->Genus.Person->PersonType == PERSON_ROPER)
-
-            FIGURE_dhpr_data.body_def = &dt->TheChunk->PeopleTypes[(dt->PersonID >> 5)];
-        else
-            FIGURE_dhpr_data.body_def = &dt->TheChunk->PeopleTypes[(dt->PersonID & 0x1f)];
-        FIGURE_dhpr_data.world_pos = &pos;
-        FIGURE_dhpr_data.tween = dt->AnimTween;
-        FIGURE_dhpr_data.ae1 = ae1;
-        FIGURE_dhpr_data.ae2 = ae2;
-        FIGURE_dhpr_data.world_mat = &r_matrix;
-        //		FIGURE_dhpr_data.world_mat2				= &r_matrix2;
-        FIGURE_dhpr_data.dx = dx;
-        FIGURE_dhpr_data.dy = dy;
-        FIGURE_dhpr_data.dz = dz;
-        FIGURE_dhpr_data.colour = colour;
-        FIGURE_dhpr_data.specular = specular;
-
-        // These two are used to find which unique mesh we are drawing.
-        FIGURE_dhpr_data.bPersonType = p_thing->Genus.Person->PersonType;
-        FIGURE_dhpr_data.bPersonID = dt->PersonID;
-
-        FIGURE_draw_hierarchical_prim_recurse(p_thing);
-    } else {
-        for (int i = 0; i < ele_count; i++) {
-            object_offset = dt->TheChunk->PeopleTypes[(dt->PersonID & 0x1f)].BodyPart[i];
-
-            FIGURE_draw_prim_tween(
-                start_object + object_offset,
-                p_thing->WorldPos.X >> 8,
-                (p_thing->WorldPos.Y >> 8),
-                p_thing->WorldPos.Z >> 8,
-                dt->AnimTween,
-                &ae1[i],
-                &ae2[i],
-                &r_matrix,
-                dx, dy, dz,
-                colour,
-                specular,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                p_thing);
-        }
-    }
-
-#if USE_TOMS_ENGINE_PLEASE_BOB
-    // Clean up after ourselves.
-    ASSERT(MM_bLightTableAlreadySetUp);
-    MM_bLightTableAlreadySetUp = FALSE;
-#if 0
-	MM_pcFadeTable = NULL;
-	MM_pcFadeTableTint = NULL;
-	MM_pMatrix = NULL;
-	MM_Vertex = NULL;
-	MM_pNormal = NULL;
-#endif
-#endif // #if USE_TOMS_ENGINE_PLEASE_BOB
-
-    //
-    // In case this thing ain't a person...
-    //
-
-    if (p_thing->Class == CLASS_PERSON) {
-        /*
-
-        Thing *p_person = p_thing;
-
-        //
-        // If this person is holding a coke-can...
-        //
-
-        if (p_person->Genus.Person->Flags & FLAG_PERSON_CANNING)
-        {
-                SLONG px;
-                SLONG py;
-                SLONG pz;
-                SLONG prim;
-
-                calc_sub_objects_position(
-                        p_person,
-                        p_person->Draw.Tweened->AnimTween,
-                        SUB_OBJECT_LEFT_HAND,
-                   &px,
-                   &py,
-                   &pz);
-
-                px += p_person->WorldPos.X >> 8;
-                py += p_person->WorldPos.Y >> 8;
-                pz += p_person->WorldPos.Z >> 8;
-
-                if (p_person->Genus.Person->Flags & FLAG_PERSON_HEADING)
-                {
-                        DIRT_Info ans;
-
-                        DIRT_get_info(p_person->Genus.Person->Hold, &ans);
-
-                        prim = ans.prim;
-                }
-                else
-                {
-                        prim = PRIM_OBJ_CAN;
-                }
-
-                MESH_draw_poly(
-                        prim,
-                        px,
-                        py,
-                        pz,
-                        0, 0, 0,
-                        NULL,0);
-        }
-
-        */
-
-        //
-        // Is this person carrying a grenade?
-        //
-
-        Thing* p_person = p_thing;
-
-        if (p_person->Genus.Person->SpecialUse && TO_THING(p_person->Genus.Person->SpecialUse)->Genus.Special->SpecialType == SPECIAL_GRENADE) {
-            SLONG px;
-            SLONG py;
-            SLONG pz;
-            SLONG prim;
-
-            calc_sub_objects_position(
-                p_person,
-                p_person->Draw.Tweened->AnimTween,
-                SUB_OBJECT_LEFT_HAND,
-                &px,
-                &py,
-                &pz);
-
-            px += p_person->WorldPos.X >> 8;
-            py += p_person->WorldPos.Y >> 8;
-            pz += p_person->WorldPos.Z >> 8;
-
-            kludge_shrink = TRUE;
-
-            MESH_draw_poly(
-                PRIM_OBJ_ITEM_GRENADE,
-                px,
-                py,
-                pz,
-                0, 0, 0,
-                NULL, 0xff);
-
-            kludge_shrink = FALSE;
-        }
-    }
-    p_thing->Flags &= ~FLAGS_PERSON_AIM_AND_RUN;
-
-    LOG_EXIT(Figure_FIGURE_Draw)
-}
-
-#endif
 
 // claude-ai: ANIM_obj_draw — draws an animated non-person object (vehicles, props, etc.)
 // claude-ai: that use the same DrawTween / keyframe animation system as characters.
@@ -7660,7 +6824,6 @@ void ANIM_obj_draw_warped(Thing* p_thing, DrawTween* dt)
     }
 }
 
-#ifndef TARGET_DC
 
 // ========================================================
 //
@@ -8303,7 +7466,6 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     }
 }
 
-#endif // #ifndef TARGET_DC
 
 // claude-ai: FIGURE_draw_prim_tween_person_only_just_set_matrix — "matrix-only" body-part step
 // claude-ai: for the DRAW_WHOLE_PERSON_AT_ONCE (D3D MultiMatrix) fast path.
@@ -9292,23 +8454,6 @@ no_muzzle_calcs:
 
 #ifdef SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB
 #ifdef DEBUG
-#ifdef TARGET_DC
-#define BUTTON_IS_PRESSED(value) ((value & 0x80) != 0)
-            extern DIJOYSTATE the_state;
-            bool bShowDebug = FALSE;
-            if (BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_LTRIGGER]) && BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_RTRIGGER])) {
-                DWORD dwColour = (DWORD)pwStripIndices;
-                dwColour = (dwColour >> 2) ^ (dwColour >> 6) ^ (dwColour) ^ (dwColour << 3);
-                dwColour = (dwColour << 9) ^ (dwColour << 19) ^ (dwColour) ^ (dwColour << 29) ^ (dwColour >> 3);
-                dwColour &= 0x7f7f7f7f;
-                for (int i = 0; i < 128; i++) {
-                    d3dmm.lpLightTable[i] = dwColour;
-                }
-
-                // And NULL texture (i.e. white).
-                the_display.lp_D3D_Device->SetTexture(0, NULL);
-            }
-#endif
 #endif
 #endif
 

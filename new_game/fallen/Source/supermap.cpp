@@ -31,16 +31,12 @@
 #include "..\headers\pap.h"
 #include "..\headers\inside2.h"
 #include "..\headers\ob.h"
-#ifndef PSX
 #include "..\editor\headers\Editor.hpp"
-#endif
 #include "memory.h"
 #include "mav.h"
 #include "noserver.h"
-#ifndef PSX
 #include "..\ddengine\headers\texture.h"
 #include "..\headers\env.h"
-#endif
 
 #ifdef EDITOR
 extern void copyfile_to_level(CBYTE* str);
@@ -48,9 +44,6 @@ extern TGA_Info TGA_load_psx(const CBYTE* file, SLONG max_width, SLONG max_heigh
 #endif
 extern UBYTE roper_pickup;
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 /*
 "Performance Analyser"  -PA
@@ -174,7 +167,6 @@ UWORD calc_inside_for_xyz(SLONG x, SLONG y, SLONG z, UWORD* room)
 }
 
 #ifdef EDITOR
-#ifndef PSX
 
 void add_wall(UBYTE* map, SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG door_flag)
 {
@@ -1575,7 +1567,6 @@ void create_dfacets_for_building(SLONG building)
     add_dbuilding(0, 0, 0, temp_next_dfacet, next_dfacet, building);
 }
 #endif
-#endif
 
 SLONG first_walkable_prim_point;
 SLONG number_of_walkable_prim_points;
@@ -1583,7 +1574,6 @@ SLONG number_of_walkable_prim_points;
 SLONG first_walkable_prim_face4;
 SLONG number_of_walkable_prim_faces4;
 
-#ifndef PSX
 void load_walkables(MFFileHandle handle, SLONG save_type)
 {
     SLONG next_point = 1, next_face4 = 1, next_face3 = 1;
@@ -2065,10 +2055,8 @@ void load_super_map(MFFileHandle handle, SLONG save_type)
     next_dfacet = 1;
     next_dstyle = 1;
 
-#ifndef TARGET_DC
     INDOORS_INDEX = 0;
     INDOORS_INDEX_NEXT = 0;
-#endif
 
     FileRead(handle, &next_dbuilding, 2);
     FileRead(handle, &next_dfacet, 2);
@@ -2288,7 +2276,6 @@ SLONG find_electric_fence_dbuilding(
         return dfacets[best_facet].Building;
     }
 }
-#endif
 //
 // Sets the state of the given electric fence dbuilding. It sets the
 // flags in all the facets of the dbuilding.
@@ -2335,7 +2322,6 @@ void SUPERMAP_counter_increase(UBYTE which)
     }
 }
 
-#ifndef PSX
 
 struct Levels {
     CBYTE* name;
@@ -3145,11 +3131,6 @@ SLONG build_tims_ingame(CBYTE* name)
     sprintf(str, "c:\\levels\\%d\\tex18.tim", level_no); // MD16
     save_tim_pal16(str, 15, 0, 255); //((next_texture&(~63))+next_page+3)>>2);
 
-#ifdef TARGET_DC
-    // For some unknown reason this won't compile on the DC. Shouldn't be used
-    // on DC anyway, so...
-    ASSERT(FALSE);
-#else
     {
         CBYTE str2[100];
         sprintf(str, "n:\\urbanchaos\\textures\\world%d\\sky.tga", TEXTURE_SET);
@@ -3158,7 +3139,6 @@ SLONG build_tims_ingame(CBYTE* name)
             ASSERT(0);
         }
     }
-#endif
 
     return (level_no);
 }
@@ -3311,7 +3291,6 @@ extern CBYTE ELEV_fname_level[];
 
 // SLONG    MAV_opt_upto;
 
-#ifndef TARGET_DC
 
 SWORD people_types[50];
 ULONG DONT_load = 0; // nice global used for people loading
@@ -3380,15 +3359,11 @@ void save_all_nads(void)
 #endif
 }
 
-#endif // #ifndef TARGET_DC
 
 extern int TEXTURE_create_clump;
 
 void make_all_clumps(void)
 {
-#ifdef TARGET_DC
-    // One day, I need to write a clumper.
-#else
 
     SLONG p0, p1, c0 = 0;
     SLONG highest = 0;
@@ -3415,7 +3390,5 @@ void make_all_clumps(void)
     }
 
     exit(0);
-#endif
 }
 
-#endif

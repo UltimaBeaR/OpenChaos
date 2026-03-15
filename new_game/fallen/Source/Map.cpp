@@ -19,12 +19,10 @@
 #include "Game.h"
 
 //---------------------------------------------------------------
-#if !defined(PSX) && !defined(TARGET_DC)
 void init_map(void)
 {
     memset((UBYTE*)MAP, 0, sizeof(MAP));
 }
-#endif
 //---------------------------------------------------------------
 
 SLONG MAP_light_get_height(SLONG x, SLONG z)
@@ -34,10 +32,6 @@ SLONG MAP_light_get_height(SLONG x, SLONG z)
 
 LIGHT_Colour MAP_light_get_light(SLONG x, SLONG z)
 {
-#ifdef TARGET_DC
-    // Shouldn't be using this, apparently.
-    ASSERT(FALSE);
-#endif
 
     MapElement* me;
 
@@ -48,10 +42,6 @@ LIGHT_Colour MAP_light_get_light(SLONG x, SLONG z)
 
 void MAP_light_set_light(SLONG x, SLONG z, LIGHT_Colour colour)
 {
-#ifdef TARGET_DC
-    // Shouldn't be using this, apparently.
-    ASSERT(FALSE);
-#endif
 
     MapElement* me;
 

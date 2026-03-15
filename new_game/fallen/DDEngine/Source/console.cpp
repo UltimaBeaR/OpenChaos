@@ -16,9 +16,6 @@
 #include "panel.h"
 #include <winsock.h>
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 #define CONSOLE_LINES 15
 #define CONSOLE_WIDTH 50
@@ -96,7 +93,6 @@ static SLONG this_tick;
 void CONSOLE_draw()
 {
 
-#ifndef TARGET_DC
 
     SLONG i;
 
@@ -200,7 +196,6 @@ void CONSOLE_draw()
     if (!Data[0].Age)
         CONSOLE_scroll();
 
-#endif // #ifndef TARGET_DC
 }
 
 void CONSOLE_text(CBYTE* text, SLONG delay)

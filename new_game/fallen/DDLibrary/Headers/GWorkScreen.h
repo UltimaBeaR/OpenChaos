@@ -5,7 +5,6 @@
 #define WORK_SCREEN_H
 
 // Never used on DC.
-#ifndef TARGET_DC
 
 //---------------------------------------------------------------
 
@@ -49,6 +48,5 @@ inline BOOL PointInRect(MFPoint* the_point, MFRect* the_rect)
 
 //---------------------------------------------------------------
 
-#endif // #ifndef TARGET_DC
 
 #endif

@@ -133,9 +133,6 @@ void POLY_load_texture_flags(CBYTE* fname, SLONG offset)
 //
 // initialize all the render states for each page
 
-#ifdef TARGET_DC
-int iPolyRenderStateFrameNum = 0;
-#endif
 
 #define HOW_MANY_FRAMES_TO_WAIT 0
 
@@ -431,10 +428,8 @@ void POLY_init_render_states()
 
             case POLY_PAGE_PRESS1:
                 SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-#ifndef TARGET_DC
                 TEXTURE_set_colour_key(TEXTURE_page_press1);
                 SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, TRUE);
-#endif
                 SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
                 SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
                 SET_TEXTURE((TEXTURE_page_press1));
@@ -442,10 +437,8 @@ void POLY_init_render_states()
 
             case POLY_PAGE_PRESS2:
                 SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-#ifndef TARGET_DC
                 TEXTURE_set_colour_key(TEXTURE_page_press2);
                 SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, TRUE);
-#endif
                 SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
                 SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
                 SET_TEXTURE((TEXTURE_page_press2));
@@ -453,10 +446,8 @@ void POLY_init_render_states()
 
             case POLY_PAGE_TARGET:
                 SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-#ifndef TARGET_DC
                 TEXTURE_set_colour_key(TEXTURE_page_target);
                 SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, TRUE);
-#endif
                 SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
                 SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
                 SET_TEXTURE((TEXTURE_page_target));
@@ -557,11 +548,6 @@ void POLY_init_render_states()
             case POLY_PAGE_SHADOW:
                 SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
 
-#ifdef TARGET_DC
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ZERO);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCCOLOR);
-#else
                 if (the_display.GetDeviceInfo()->DestInvSourceColourSupported()) {
                     // use a density greyscale shadowmap
                     SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
@@ -573,7 +559,6 @@ void POLY_init_render_states()
                     SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
                     SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
                 }
-#endif
 
                 SET_TEXTURE((TEXTURE_page_shadow));
                 SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
@@ -674,10 +659,8 @@ void POLY_init_render_states()
 
             case POLY_PAGE_MASKED:
                 SET_TEXTURE(-1);
-#ifndef TARGET_DC
                 TEXTURE_set_colour_key(0);
                 SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, TRUE);
-#endif
                 break;
 
             case POLY_PAGE_FACE1:
@@ -896,10 +879,8 @@ void POLY_init_render_states()
                 SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
                 SET_TEXTURE((TEXTURE_page_moon));
                 SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-#ifndef TARGET_DC
                 TEXTURE_set_colour_key(TEXTURE_page_moon);
                 SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, TRUE);
-#endif
                 break;
 
             case POLY_PAGE_BARBWIRE:
@@ -1100,16 +1081,6 @@ void POLY_init_render_states()
                 // I want to try a special effect that needs additive alpha!
                 //
 
-#ifdef TARGET_DC
-                // We use the new font on the DC that is just alpha-blended on.
-                SET_TEXTURE((TEXTURE_page_lcdfont));
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-#else
                 SET_TEXTURE((TEXTURE_page_lcdfont));
                 SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
                 SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
@@ -1117,7 +1088,6 @@ void POLY_init_render_states()
                 SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
                 SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
                 SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-#endif
 
                 break;
 
@@ -1343,49 +1313,6 @@ void POLY_init_render_states()
 
                 break;
 
-#ifdef TARGET_DC
-            case POLY_PAGE_BACKGROUND_IMAGE:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-                SET_TEXTURE((TEXTURE_page_background_use_instead));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
-                // SET_EFFECT(RS_InvAlphaPremult);
-                break;
-
-            case POLY_PAGE_BACKGROUND_IMAGE2:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-                SET_TEXTURE((TEXTURE_page_background_use_instead2));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
-                // SET_EFFECT(RS_InvAlphaPremult);
-                break;
-
-            case POLY_PAGE_JOYPAD_A:
-            case POLY_PAGE_JOYPAD_B:
-            case POLY_PAGE_JOYPAD_C:
-            case POLY_PAGE_JOYPAD_X:
-            case POLY_PAGE_JOYPAD_Y:
-            case POLY_PAGE_JOYPAD_Z:
-            case POLY_PAGE_JOYPAD_L:
-            case POLY_PAGE_JOYPAD_R:
-            case POLY_PAGE_JOYPAD_PAD_L:
-            case POLY_PAGE_JOYPAD_PAD_R:
-            case POLY_PAGE_JOYPAD_PAD_D:
-            case POLY_PAGE_JOYPAD_PAD_U: {
-                int iPage = (ii - POLY_PAGE_JOYPAD_A) + TEXTURE_page_joypad_a;
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_TEXTURE((iPage));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-            } break;
-#endif
 
             default:
 
@@ -1394,7 +1321,6 @@ void POLY_init_render_states()
 
                     if (POLY_page_flag[ii]) {
                         if (POLY_page_flag[ii] & POLY_PAGE_FLAG_TRANSPARENT) {
-#ifndef TARGET_DC
                             bool use_chroma = false;
 
                             if (POLY_page_flag[ii] & POLY_PAGE_FLAG_SELF_ILLUM) {
@@ -1409,7 +1335,6 @@ void POLY_init_render_states()
                                 TEXTURE_set_colour_key(ii);
                                 SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, TRUE);
                             } else
-#endif
                             {
                                 SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, TRUE);
                             }
@@ -1576,7 +1501,6 @@ void POLY_init_render_states()
 
 #endif
 
-#ifndef TARGET_DC
 #if 0
 	for (int ii = 0; ii < POLY_NUM_PAGES; ii++)
 	{
@@ -1585,7 +1509,6 @@ void POLY_init_render_states()
 			TRACE("Page %d : %s\n", ii, err);
 		}
 	}
-#endif
 #endif
 
     RenderStates_OK = TRUE;

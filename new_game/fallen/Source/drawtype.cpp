@@ -79,7 +79,6 @@ void free_draw_tween(DrawTween* draw_tween)
 //
 // DrawMesh functions.
 //
-#ifndef PSX
 void init_draw_meshes(void)
 {
     SLONG i;
@@ -95,7 +94,6 @@ void init_draw_meshes(void)
 
     DRAW_MESH_COUNT = 0;
 }
-#endif
 
 DrawMesh* alloc_draw_mesh(void)
 {

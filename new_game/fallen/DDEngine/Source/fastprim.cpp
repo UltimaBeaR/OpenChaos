@@ -438,13 +438,11 @@ SLONG FASTPRIM_draw(
     float matrix[9],
     NIGHT_Colour* lpc)
 {
-#ifndef TARGET_DC
 
     if (!Keys[KB_R]) {
         return FALSE;
     }
 
-#endif
 
     SLONG i;
     SLONG j;
@@ -501,11 +499,9 @@ SLONG FASTPRIM_draw(
 
     fp = &FASTPRIM_prim[prim];
 
-#ifndef TARGET_DC
     if (!Keys[KB_R]) {
         return FALSE;
     }
-#endif
 
 #ifdef FASTPRIM_PERFORMANCE
     FASTPRIM_num_drawn += 1;

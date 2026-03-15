@@ -45,21 +45,9 @@
 // claude-ai: max 256 static lights per level (placed by editor, e.g. streetlamps)
 #define NIGHT_MAX_SLIGHTS 256
 
-#ifdef TARGET_DC
-
-// My DC monitor is seriously dark, so to be able to see anything (i.e. does the texturing work?)
-// I turn the brightness of the game up. But on a sensible monitor/TV it looks awful.
-#ifdef DEBUG
-#define NIGHT_LIGHT_MULTIPLIER 2.0f
-#else
-#define NIGHT_LIGHT_MULTIPLIER 1.0f
-#endif
-
-#else // #ifdef TARGET_DC
 
 #define NIGHT_LIGHT_MULTIPLIER 1.0f
 
-#endif // #else //#ifdef TARGET_DC
 
 //
 // The static lights.
@@ -200,9 +188,6 @@ extern UBYTE NIGHT_square_free;
 
 extern UBYTE NIGHT_cache[PAP_SIZE_LO][PAP_SIZE_LO];
 
-#ifdef PSX
-extern UWORD floor_psx_col[PAP_SIZE_HI][PAP_SIZE_HI];
-#endif
 
 //
 // The cached lighting for dfacets.
@@ -250,11 +235,7 @@ void NIGHT_init(void);
 // Make bright light create specular.
 //
 
-#ifdef TARGET_DC
-static const SLONG NIGHT_specular_enable = 0;
-#else
 extern SLONG NIGHT_specular_enable;
-#endif
 
 inline void NIGHT_get_d3d_colour(NIGHT_Colour col, ULONG* colour, ULONG* specular)
 {
@@ -453,7 +434,6 @@ NIGHT_Colour NIGHT_get_light_at(
     SLONG y,
     SLONG z);
 
-#ifndef PSX
 
 //
 // Fills the array with all the lights that effect the given point.
@@ -478,7 +458,6 @@ extern SLONG NIGHT_found_upto;
 
 void NIGHT_find(SLONG x, SLONG y, SLONG z);
 
-#endif
 
 //
 // Initialises the heap and gets rid of all cached lighting.

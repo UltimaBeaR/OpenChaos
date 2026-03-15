@@ -631,10 +631,8 @@ SLONG find_stair_y(Thing* p_person, SLONG* y1, SLONG x, SLONG y, SLONG z, UWORD*
     SLONG can_move = 1;
 
     MSG_add(" INDOORS INDEX %d  INDEX NEXT %d \n", INDOORS_INDEX, INDOORS_INDEX_NEXT);
-#ifndef TARGET_DC
     INDOORS_INDEX_NEXT = 0;
     INDOORS_INDEX_FADE = 255;
-#endif
 
     *new_floor = 0;
 
@@ -695,13 +693,9 @@ SLONG find_stair_y(Thing* p_person, SLONG* y1, SLONG x, SLONG y, SLONG z, UWORD*
                         *new_floor = inside_stairs[stair].UpInside;
                         MSG_add(" upthe stairs is index %d \n", inside_stairs[stair].UpInside);
 
-#ifdef TARGET_DC
-                        ASSERT(FALSE);
-#else
                         INDOORS_INDEX_FADE = 0;
                         INDOORS_INDEX_NEXT = INDOORS_INDEX;
                         INDOORS_ROOM_NEXT = find_inside_room(INDOORS_INDEX_NEXT, x >> 8, z >> 8);
-#endif
                     }
                     *y1 = new_y;
                     return (1);
@@ -733,9 +727,6 @@ SLONG find_stair_y(Thing* p_person, SLONG* y1, SLONG x, SLONG y, SLONG z, UWORD*
                         MSG_add(" NEW FLOOR down %d prev %d\n", inside_stairs[stair].DownInside, INDOORS_INDEX);
                     } else {
 
-#ifdef TARGET_DC
-                        ASSERT(FALSE);
-#else
                         if (t < 192) {
                             INDOORS_INDEX_FADE = MIN(((t - 128) << 2), 255);
 
@@ -746,7 +737,6 @@ SLONG find_stair_y(Thing* p_person, SLONG* y1, SLONG x, SLONG y, SLONG z, UWORD*
                             INDOORS_ROOM_NEXT = 0;
                             INDOORS_INDEX_FADE = 255; // MIN(((t)<<1),255);
                         }
-#endif
                     }
                     *y1 = new_y;
                     return (1);

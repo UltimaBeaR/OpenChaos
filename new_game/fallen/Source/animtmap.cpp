@@ -3,29 +3,6 @@
 
 struct AnimTmap anim_tmaps[MAX_ANIM_TMAPS]; // 2656 bytes
 
-#ifdef PSX
-//
-// PSX include
-//
-#include "libsn.h"
-
-#define MFFileHandle SLONG
-#define FILE_OPEN_ERROR (-1)
-#define SEEK_MODE_CURRENT (1)
-
-extern SLONG SpecialOpen(CBYTE* name);
-extern SLONG SpecialRead(SLONG handle, UBYTE* ptr, SLONG s1);
-extern SLONG SpecialSeek(SLONG handle, SLONG mode, SLONG size);
-extern SLONG SpecialClose(SLONG handle);
-
-#define FileOpen(x) SpecialOpen(x)
-#define FileClose(x) SpecialClose(x)
-// #define	FileCreate(x,y)	FileOpen(x)
-#define FileRead(h, a, s) SpecialRead(h, (UBYTE*)a, s)
-// #define	FileWrite(h,a,s) FileWrite(
-#define FileSeek(h, m, o) SpecialSeek(h, m, o)
-
-#endif
 
 void sync_animtmaps(void)
 {
@@ -61,7 +38,6 @@ void animate_texture_maps(void)
         p_anim++;
     }
 }
-#ifndef PSX
 void load_animtmaps(void)
 {
     MFFileHandle handle;
@@ -96,4 +72,3 @@ void save_animtmaps(void)
         FileClose(handle);
     }
 }
-#endif

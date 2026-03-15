@@ -3,9 +3,7 @@
 // break timer for timing portions of code
 
 #include <MFStdLib.h>
-#if !defined(TARGET_DC)
 #include <cmath>
-#endif
 #include "BreakTimer.h"
 
 // Windows timer access functions

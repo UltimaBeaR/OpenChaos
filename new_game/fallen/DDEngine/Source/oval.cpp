@@ -175,10 +175,6 @@ void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
             quad[i],
             TRUE);
 
-#ifdef TARGET_DC
-        // "Z-bias" bodge to stop Z-fighting.
-        quad[i]->Z += 0.0001f;
-#endif
     }
 
     if (POLY_valid_quad(quad)) {

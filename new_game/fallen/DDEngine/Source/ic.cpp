@@ -265,7 +265,6 @@ void IC_unpack(
     }
 }
 
-#ifndef TARGET_DC
 TGA_Pixel test[256 * 256];
 
 void IC_test()
@@ -306,4 +305,3 @@ void IC_test()
     TGA_save("testcomp.tga", ti.width, ti.height, test, FALSE);
 }
 
-#endif

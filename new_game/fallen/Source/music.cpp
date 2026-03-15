@@ -9,16 +9,9 @@
 #include "mfx.h"
 #include "ware.h"
 
-#ifdef PSX
-#include "psxeng.h"
-#endif
 
 UWORD music_current_wave = 0;
-#ifndef PSX
 UWORD music_max_gain = 128 << 8;
-#else
-UBYTE music_max_gain = 127;
-#endif
 /*
 UBYTE music_current_gain=0;
 UBYTE music_fademode=0;
@@ -124,11 +117,7 @@ void  MUSIC_process() {
 
 UBYTE music_current_mode = 0;
 UBYTE music_request_mode = 0;
-#ifndef PSX
 SLONG music_current_level = 0;
-#else
-SWORD music_current_level __attribute__((section(".rdata"))) = 0;
-#endif
 UBYTE music_mode_override = 0;
 
 UBYTE MUSIC_bodge_code = 0;
@@ -203,13 +192,9 @@ void MUSIC_set_the_volume(SLONG vol)
 
     // for the PC, use MFX_set_gain
     // for the PSX, set the CDaudio playback volume
-#ifndef PSX
 
     MFX_set_gain(MUSIC_REF, music_current_wave, vol >> 8);
 
-#else
-
-#endif
 }
 
 void MUSIC_stop_the_mode()
@@ -252,7 +237,6 @@ void MUSIC_mode_process()
     // we can be stopping or changing, either way we want to fade out current piece while still looping it.
 
     // we can be starting or changing (pt2), either way we want to fade in new piece while still looping it.
-#ifndef PSX
     if (music_current_mode != music_request_mode) { // we need to do something about it.
         if (!music_current_mode) { // we're currently idle
             music_current_mode = music_request_mode;
@@ -287,37 +271,6 @@ void MUSIC_mode_process()
         if (music_current_level < music_max_gain)
             MUSIC_set_the_volume(music_current_level + (3 * REAL_TICK_RATIO));
     }
-#else
-
-    extern SLONG MFX_Conv_playing;
-
-    if (music_current_mode == 1) {
-        if (NET_PERSON(0)) {
-            if (!(NET_PERSON(0)->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_PASSENGER))) {
-                music_request_mode = 0;
-            }
-        }
-    }
-
-    if (MUSIC_bodge_code) {
-        music_request_mode = MUSIC_bodge_code;
-    }
-
-    if ((music_current_mode != music_request_mode) && (!MFX_Conv_playing)) {
-        if (music_current_level) {
-            MUSIC_set_the_volume(music_current_level - 2);
-            if (music_current_level == 0)
-                MUSIC_stop(0);
-        }
-    }
-
-    MUSIC_play_the_mode(music_request_mode);
-
-    if (music_current_mode == music_request_mode) {
-        if (music_current_level < music_max_gain)
-            MUSIC_set_the_volume(music_current_level + 4);
-    }
-#endif
 }
 
 // this is the 'max' gain, fade in/out will go from/to 0 from/to this value

@@ -5,9 +5,7 @@
  *
  */
 
-#ifndef TARGET_DC
 #include <string>
-#endif
 #include "font2d.h"
 #include "..\ddlibrary\headers\tga.h"
 #include "noserver.h"
@@ -466,9 +464,6 @@ void FONT2D_DrawString_NoTrueType(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG
     }
 }
 
-#ifdef TARGET_DC
-// Done in the sodding header, like it should have been.
-#else
 // WHAT THE FUCK ARE YOU COCKSUCKERS DOING?!?!?!?!
 // JUST CALL THE OTHER FUCKING FUNCTION
 // Idiots. I have to work with idiots.
@@ -534,7 +529,6 @@ SLONG FONT2D_DrawStringWrap(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale
 
     return y;
 }
-#endif
 
 SLONG FONT2D_DrawStringWrapTo(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLONG page, SWORD fade, SWORD span)
 {

@@ -173,7 +173,6 @@
 #define BAT_STATE_BANE_START 18
 #define BAT_STATE_NUMBER 19
 
-#ifndef PSX
 
 CBYTE* BAT_state_name[BAT_STATE_NUMBER] = {
     "Idle",
@@ -197,7 +196,6 @@ CBYTE* BAT_state_name[BAT_STATE_NUMBER] = {
     "Bane start"
 };
 
-#endif
 
 #define BAT_SUBSTATE_NONE 0
 #define BAT_SUBSTATE_CIRCLE_HOME 1
@@ -328,7 +326,6 @@ void BAT_process_bane_sparks(Thing* p_thing)
     }
 }
 
-#ifndef PSX
 //
 // Initialise the bats.
 //
@@ -339,7 +336,6 @@ void BAT_init()
 
     BAT_COUNT = 0;
 }
-#endif
 
 //
 // Sets a BAT anim...
@@ -877,7 +873,6 @@ void BAT_change_state(Thing* p_thing)
             }
         }
     }
-#ifndef PSX
     else {
         //
         // Is the player close by?
@@ -912,7 +907,6 @@ void BAT_change_state(Thing* p_thing)
             }
         }
     }
-#endif
     //
     // Initialise the new state.
     //
@@ -921,7 +915,6 @@ void BAT_change_state(Thing* p_thing)
     p_bat->flag &= ~BAT_FLAG_ATTACKED;
 
     switch (new_state) {
-#ifndef PSX
     case BAT_STATE_IDLE:
 
         p_bat->timer = BAT_TICKS_PER_SECOND * (1 + (Random() & 0x1));
@@ -974,7 +967,6 @@ void BAT_change_state(Thing* p_thing)
         BAT_set_anim(p_thing, BAT_ANIM_GARGOYLE_ATTACK);
 
         break;
-#endif
     case BAT_STATE_BALROG_WANDER:
 
     {
@@ -1718,16 +1710,13 @@ void BAT_normal(Thing* p_thing)
     ;
     ;
 
-#ifndef PSX
     // make some batty sounds. if we're not a gargoyle. or a balrog. or bane.
     if (p_bat->type == BAT_TYPE_BAT) {
         if (!(Random() & 0xff))
             MFX_play_thing(THING_NUMBER(p_thing), SOUND_Range(S_BAT_SQUEEK_START, S_BAT_SQUEEK_END), MFX_NEVER_OVERLAP, p_thing);
     }
-#endif
 
     switch (p_bat->state) {
-#ifndef PSX
     case BAT_STATE_IDLE:
 
         p_bat->dx -= p_bat->dx / 16;
@@ -1968,11 +1957,9 @@ void BAT_normal(Thing* p_thing)
         p_bat->timer = 0;
 
         break;
-#endif
     case BAT_STATE_DYING:
 
         switch (p_bat->substate) {
-#ifndef PSX
         case BAT_SUBSTATE_DEAD_INITIAL:
 
             //
@@ -2038,7 +2025,6 @@ void BAT_normal(Thing* p_thing)
             }
 
             break;
-#endif
         case BAT_SUBSTATE_DEAD_FINAL:
 
             //
@@ -2127,13 +2113,11 @@ void BAT_normal(Thing* p_thing)
         p_bat->timer = 0;
 
         break;
-#ifndef PSX
 
     case BAT_STATE_RECOIL:
         end = BAT_animate(p_thing);
         p_bat->timer = 0;
         break;
-#endif
     case BAT_STATE_BALROG_WANDER:
 
     {
@@ -2650,8 +2634,6 @@ found_unused_bat:;
         return NULL;
     }
 
-#ifndef PSX
-#ifndef TARGET_DC
     //
     // Initialise the thing.
     //
@@ -2660,10 +2642,6 @@ found_unused_bat:;
         load_anim_prim_object(type);
         //		ASSERT(0);
     }
-#else
-    ASSERT(anim_chunk[type].MultiObject[0] != 0);
-#endif
-#endif
 
     p_thing->WorldPos.X = x << 8;
     p_thing->WorldPos.Z = z << 8;
@@ -2714,7 +2692,6 @@ found_unused_bat:;
     p_bat->flag = 0;
 
     switch (type) {
-#ifndef PSX
     case BAT_TYPE_BAT:
         p_bat->state = BAT_STATE_IDLE;
         p_bat->substate = BAT_SUBSTATE_NONE;
@@ -2725,7 +2702,6 @@ found_unused_bat:;
         p_bat->state = BAT_STATE_GROUND;
         p_bat->substate = BAT_SUBSTATE_GROUND_WAIT;
         break;
-#endif
     case BAT_TYPE_BALROG:
         p_bat->state = BAT_STATE_BALROG_ROAR;
         p_bat->substate = BAT_SUBSTATE_NONE;

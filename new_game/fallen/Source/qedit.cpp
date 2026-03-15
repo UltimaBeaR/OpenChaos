@@ -2,7 +2,6 @@
 // An editor for the QMAP...
 //
 
-#ifndef TARGET_DC
 
 #include "game.h"
 #include <MFStdLib.h>
@@ -434,4 +433,3 @@ void QEDIT_loop()
     CloseDisplay();
 }
 
-#endif // #indef TARGET_DC

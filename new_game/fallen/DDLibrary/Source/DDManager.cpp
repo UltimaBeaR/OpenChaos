@@ -1,17 +1,11 @@
 //	DDManager.cpp
 //	Guy Simmons, 12th November 1997.
 
-#ifdef TARGET_DC
-#define INITGUID
-#endif
 
 #include "DDLib.h"
 #include "..\headers\env.h"
 #include "..\headers\game.h"
 #include <tchar.h>
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 DDDriverManager the_manager;
 
@@ -245,7 +239,6 @@ HRESULT WINAPI TextureFormatEnumCallback(
 
 //---------------------------------------------------------------
 
-#ifndef TARGET_DC
 HRESULT WINAPI ZFormatEnumCallback(LPDDPIXELFORMAT lpZFormat, LPVOID lpExtra)
 {
     CallbackInfo* the_info;
@@ -310,7 +303,6 @@ HRESULT WINAPI ZFormatEnumCallback(LPDDPIXELFORMAT lpZFormat, LPVOID lpExtra)
 
     return DDENUMRET_OK;
 }
-#endif
 
 //---------------------------------------------------------------
 
@@ -788,10 +780,8 @@ D3DDeviceInfo::D3DDeviceInfo()
     FormatListEnd = NULL;
     OpaqueTexFmt = NULL;
     AlphaTexFmt = NULL;
-#ifndef TARGET_DC
     CanDoModulateAlpha = false;
     CanDoDestInvSourceColour = false;
-#endif
 
     Prev = NULL;
     Next = NULL;
@@ -901,7 +891,6 @@ void D3DDeviceInfo::CheckCaps(LPDIRECT3DDEVICE3 the_device)
     if (FAILED(rc))
         return;
 
-#ifndef TARGET_DC
     if (hw.dpcTriCaps.dwTextureBlendCaps & D3DPTBLENDCAPS_MODULATEALPHA) {
         CanDoModulateAlpha = true;
         TRACE("Card can do MODULATEALPHA\n");
@@ -939,7 +928,6 @@ void D3DDeviceInfo::CheckCaps(LPDIRECT3DDEVICE3 the_device)
 
         TRACE("Overriding ADAMI LIGHTING\n");
     }
-#endif
 }
 
 // Notes:
@@ -1102,15 +1090,6 @@ void D3DDeviceInfo::FindAlphaTexFmt()
 
 HRESULT D3DDeviceInfo::LoadZFormats(LPDIRECT3D3 d3d)
 {
-#ifdef TARGET_DC
-    // The DC pretends to have a 32-bit Z-buffer, which is fine.
-    DDPIXELFORMAT ZFormat;
-    ZeroMemory(&ZFormat, sizeof(ZFormat));
-    ZFormat.dwSize = sizeof(ZFormat);
-    ZFormat.dwFlags = DDPF_ZBUFFER;
-    ZFormat.dwZBufferBitDepth = 32;
-    SetZFormat(&ZFormat);
-#else
     CallbackInfo callback_info;
     HRESULT result;
 
@@ -1128,7 +1107,6 @@ HRESULT D3DDeviceInfo::LoadZFormats(LPDIRECT3D3 d3d)
         result = DDERR_GENERIC;
         return result;
     }
-#endif
 
     // Success
     return DD_OK;

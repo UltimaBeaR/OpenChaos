@@ -18,10 +18,8 @@
 #include "animate.h"
 #include "psystem.h"
 #include "panel.h"
-#ifndef PSX
 #include "poly.h"
 #include "drawxtra.h"
-#endif
 
 Plat* PLAT_plat; //[PLAT_MAX_PLATS];
 SLONG PLAT_plat_upto;
@@ -43,14 +41,12 @@ SLONG PLAT_plat_upto;
 #define PLAT_FLAG_LOCK_Y (1 << 6)
 #define PLAT_FLAG_LOCK_Z (1 << 7)
 
-#ifndef PSX
 void PLAT_init()
 {
     memset(PLAT_plat, 0, sizeof(Plat) * PLAT_MAX_PLATS);
 
     PLAT_plat_upto = 1;
 }
-#endif
 
 void PLAT_process(Thing* p_thing)
 {
@@ -127,7 +123,6 @@ void PLAT_process(Thing* p_thing)
         //
         // Bodge rocket-exhaust in here
         //
-#ifndef PSX
         if (plat->flag & PLAT_FLAG_BODGE_ROCKET) {
             PARTICLE_Add(p_thing->WorldPos.X + (((Random() & 0xff) - 0x7f) << 7), p_thing->WorldPos.Y, p_thing->WorldPos.Z + (((Random() & 0xff) - 0x7f) << 7),
                 ((Random() & 0xff) - 0x7f) << 2, 0, ((Random() & 0xff) - 0x7f) << 2,
@@ -142,7 +137,6 @@ void PLAT_process(Thing* p_thing)
             BLOOM_draw(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Y >> 8, p_thing->WorldPos.Z >> 8,
                 0, -0xff, 0, 0x00ffffff, BLOOM_BEAM | BLOOM_LENSFLARE);
         }
-#endif
 
         //
         // What direction should we be going in?
@@ -314,12 +308,8 @@ void PLAT_process(Thing* p_thing)
                                 FALSE,
                                 FALSE)) {
 
-#ifndef PSX
                             extern SLONG playing_level(const CBYTE* name); // eway.cpp
                             if (playing_level("botanicc.ucm") &&
-#else
-                            if ((wad_level == 19) &&
-#endif
                                 (p_person->SubState == SUB_STATE_STANDING_JUMP_FORWARDS || p_person->SubState == SUB_STATE_STANDING_JUMP_BACKWARDS || p_person->SubState == SUB_STATE_STANDING_JUMP || p_person->SubState == SUB_STATE_RUNNING_JUMP)) {
                                 if (WITHIN(p_person->WorldPos.Y >> 8, y_bot, y_top)) {
                                     p_person->WorldPos.Y = p_thing->WorldPos.Y + (pi->maxy << 8);

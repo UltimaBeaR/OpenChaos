@@ -49,15 +49,7 @@ extern SLONG FONT2D_leftmost_x; // For right justify!
 
 SLONG FONT2D_DrawStringWrapTo(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLONG page, SWORD fade, SWORD span);
 
-#ifdef TARGET_DC
-// Um.... guys.
-inline SLONG FONT2D_DrawStringWrap(CBYTE* chr, SLONG x, SLONG y, ULONG rgb = 0xffffff, SLONG scale = 256, SLONG page = POLY_PAGE_FONT2D, SWORD fade = 0)
-{
-    return FONT2D_DrawStringWrapTo(chr, x, y, rgb, scale, page, fade, 600);
-}
-#else
 SLONG FONT2D_DrawStringWrap(CBYTE* chr, SLONG x, SLONG y, ULONG rgb = 0xffffff, SLONG scale = 256, SLONG page = POLY_PAGE_FONT2D, SWORD fade = 0);
-#endif
 
 //
 // The text is right-justified and it wraps. The function returns the y coordinate of the

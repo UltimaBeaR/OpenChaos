@@ -8,7 +8,6 @@
 #define FACET_REMOVAL_TEST // if defined, still put removed facets into the map
 #endif
 
-#ifndef PSX
 void calc_ladder_ends(SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2)
 {
     SLONG dx, dz;
@@ -192,8 +191,6 @@ try_again:;
     //
     return (pos);
 }
-#endif
-#ifndef PSX
 void link_facet_to_mapwho(SLONG mx, SLONG mz, SLONG facet)
 {
     SLONG index;
@@ -553,7 +550,6 @@ void clear_facet_links(void)
         facet_links[c0] = 0;
     }
 }
-#endif
 void attach_walkable_to_map(SLONG face)
 {
 
@@ -668,7 +664,6 @@ void	set_nogo_pap_flags(void)
 
 */
 
-#ifndef PSX
 static void mark_naughty_facets();
 
 void build_quick_city(void)
@@ -736,7 +731,6 @@ void build_quick_city(void)
     // set_nogo_pap_flags();
     //
 }
-#endif
 
 // mark_naughty_facets
 //
@@ -745,7 +739,6 @@ void build_quick_city(void)
 
 static bool facet_is_solid(const DFacet* pf);
 static int compare_facets(const DFacet* pf1, const DFacet* pf2);
-#ifndef PSX
 static void mark_naughty_facets()
 {
     SLONG ii;
@@ -838,7 +831,6 @@ static bool facet_is_solid(const DFacet* pf)
 
     return true;
 }
-#endif
 
 // compare_facets
 //
@@ -855,7 +847,6 @@ static bool facet_is_solid(const DFacet* pf)
 // two facets facing same way of same size (remove one at random)
 //
 // returns +1 to remove pf1, +2 to remove pf2
-#ifndef PSX
 static int compare_facets(const DFacet* pf1, const DFacet* pf2)
 {
     // are the facets parallel?
@@ -1020,4 +1011,3 @@ static int compare_facets(const DFacet* pf1, const DFacet* pf2)
     // neither contains the other
     return 0;
 }
-#endif

@@ -14,16 +14,11 @@
 #include "supercrinkle.h"
 #include "matrix.h"
 
-#ifndef TARGET_DC
 // Only do this on the PC!
 #define SUPERFACET_PERFORMANCE
 #define POLY_set_local_rotation_none() \
     {                                  \
     }
-#else
-extern void POLY_set_local_rotation_none(void);
-
-#endif
 
 #ifdef SUPERFACET_PERFORMANCE
 FILE* SUPERFACET_handle;
@@ -1395,41 +1390,6 @@ void SUPERFACET_start_frame()
 
 #ifdef SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB
 #ifdef DEBUG
-#ifdef TARGET_DC
-#define BUTTON_IS_PRESSED(value) ((value & 0x80) != 0)
-    extern DIJOYSTATE the_state;
-    bool bShowDebug = FALSE;
-    if (BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_LTRIGGER]) && BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_RTRIGGER])) {
-        bShowDebug = TRUE;
-    }
-
-    if (m_bShowDebuggingInfo != bShowDebug) {
-        m_bShowDebuggingInfo = bShowDebug;
-        // And clear all the facets, so they can be remade in the right colours.
-
-        memset(SUPERFACET_lvert_buffer, 0, sizeof(D3DLVERTEX) * SUPERFACET_MAX_LVERTS + 32);
-        memset(SUPERFACET_index, 0, sizeof(UWORD) * SUPERFACET_MAX_INDICES);
-        memset(SUPERFACET_call, 0, sizeof(SUPERFACET_call));
-        memset(SUPERFACET_facet, 0, sizeof(SUPERFACET_Facet) * SUPERFACET_MAX_FACETS);
-        memset(SUPERFACET_queue, 0, sizeof(SUPERFACET_queue));
-
-        SUPERFACET_queue_start = 0;
-        SUPERFACET_queue_end = 0;
-
-        SUPERFACET_free_range_start = 0;
-        SUPERFACET_free_range_end = SUPERFACET_MAX_LVERTS;
-
-        SUPERFACET_lvert = (D3DLVERTEX*)((SLONG(SUPERFACET_lvert_buffer) + 31) & ~0x1f);
-
-        SUPERFACET_lvert_upto = 0;
-        SUPERFACET_index_upto = 0;
-        SUPERFACET_call_upto = 0;
-        SUPERFACET_queue_start = 0;
-        SUPERFACET_queue_end = 0;
-
-        SUPERFACET_matrix = (D3DMATRIX*)((SLONG(SUPERFACET_matrix_buffer) + 31) & ~0x1f);
-    }
-#endif
 #endif
 #endif
 
@@ -1484,7 +1444,6 @@ SLONG SUPERFACET_draw(SLONG facet)
     SUPERFACET_total_drawn += 1;
 #endif
 
-#ifndef TARGET_DC
 
     //
     // Not on the PC!
@@ -1494,7 +1453,6 @@ SLONG SUPERFACET_draw(SLONG facet)
         return FALSE;
     }
 
-#endif
 
     //
     // Do we have any pre-calculated info for this facet?

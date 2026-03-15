@@ -35,11 +35,7 @@ typedef struct
 
 } FOG_Fog;
 
-#ifdef PSX
-#define FOG_MAX_FOG 204
-#else
 #define FOG_MAX_FOG 2048
-#endif
 
 FOG_Fog FOG_fog[FOG_MAX_FOG];
 

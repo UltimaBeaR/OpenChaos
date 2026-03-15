@@ -2,35 +2,6 @@
 #include "poly.h"
 #include "sprite.h"
 
-#ifdef TARGET_DC
-// The DC is having real problems with this many arguments.
-void SPRITE_draw_tex_distorted(
-    float world_x,
-    float world_y,
-    float world_z,
-    float world_size,
-    ULONG colour,
-    ULONG specular,
-    SLONG page,
-    SLONG sort,
-    SPRITE_draw_tex_distorted_params* pParams)
-{
-#define GET_FROM_PARAMS(argname) float argname = pParams->argname
-    GET_FROM_PARAMS(u);
-    GET_FROM_PARAMS(v);
-    GET_FROM_PARAMS(w);
-    GET_FROM_PARAMS(h);
-    GET_FROM_PARAMS(wx1);
-    GET_FROM_PARAMS(wy1);
-    GET_FROM_PARAMS(wx2);
-    GET_FROM_PARAMS(wy2);
-    GET_FROM_PARAMS(wx3);
-    GET_FROM_PARAMS(wy3);
-    GET_FROM_PARAMS(wx4);
-    GET_FROM_PARAMS(wy4);
-#undef GET_FROM_PARAMS
-
-#else // #ifdef TARGET_DC
 void SPRITE_draw_tex_distorted(
     float world_x,
     float world_y,
@@ -43,7 +14,6 @@ void SPRITE_draw_tex_distorted(
     float wx1, float wy1, float wx2, float wy2, float wx3, float wy3, float wx4, float wy4,
     SLONG sort)
 {
-#endif // #else //#ifdef TARGET_DC
 
     float screen_size;
 

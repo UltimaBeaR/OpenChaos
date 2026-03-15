@@ -28,11 +28,7 @@ typedef struct
 
 } WATER_Point;
 
-#ifdef PSX
-#define WATER_MAX_POINTS 102
-#else
 #define WATER_MAX_POINTS 1024
-#endif
 
 WATER_Point WATER_point[WATER_MAX_POINTS];
 SLONG WATER_point_upto;

@@ -21,7 +21,6 @@
 // claude-ai:   not Criterion's HyperMatter SDK. The name appears to be an internal nickname.
 // claude-ai:   Criterion Software made RenderWare (renderer), not this physics system.
 
-#ifndef TARGET_DC
 
 #include "game.h"
 #include <MFStdLib.h>
@@ -1968,7 +1967,6 @@ void HM_process_bump(HM_Object* ho, HM_Bump* hb)
         &out_y,
         &out_z);
 
-#ifndef TARGET_DC
     e_draw_3d_line(
         hp->x,
         hp->y,
@@ -1976,7 +1974,6 @@ void HM_process_bump(HM_Object* ho, HM_Bump* hb)
         out_x,
         out_y,
         out_z);
-#endif
 
     //
     // Work out the force on the point.
@@ -3173,4 +3170,3 @@ void HM_shockwave(
     }
 }
 
-#endif // #ifndef TARGET_DC

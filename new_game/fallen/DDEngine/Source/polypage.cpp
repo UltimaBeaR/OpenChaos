@@ -29,9 +29,7 @@ extern int AENG_total_polys_drawn;
 
 // static members
 
-#ifndef TARGET_DC
 bool PolyPage::s_AlphaSort = true;
-#endif
 ULONG PolyPage::s_ColourMask = 0xFFFFFFFF;
 float PolyPage::s_XScale = 1.0;
 float PolyPage::s_YScale = 1.0;
@@ -499,7 +497,6 @@ void PolyPage::Render(IDirect3DDevice3* dev)
 
 #else // !USE_D3D_VBUF
 
-#ifndef TARGET_DC
     if (!Keys[KB_F8]) {
         PolyPoly* src = m_PolyBuffer;
         UWORD* dst = IxBuffer;
@@ -521,7 +518,6 @@ void PolyPage::Render(IDirect3DDevice3* dev)
 
         // ASSERT(hres == D3D_OK);
     } else
-#endif
     {
         HRESULT hres;
 
@@ -631,9 +627,6 @@ void PolyPage::Clear()
 
     m_VBUsed = 0;
 #if WE_NEED_POLYBUFFERS_PLEASE_BOB
-#ifdef TARGET_DC
-#error Don't use this on a DC you fool!
-#endif
     m_PolyBufUsed = 0;
 #else
     // Free up the index buffer
@@ -917,7 +910,6 @@ extern D3DMATRIX g_matProjection;
 extern D3DMATRIX g_matWorld;
 extern D3DVIEWPORT2 g_viewData;
 
-#ifndef TARGET_DC
 
 // The DC version is just #defined in the header.
 
@@ -1024,4 +1016,3 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
     return (DD_OK);
 }
 
-#endif

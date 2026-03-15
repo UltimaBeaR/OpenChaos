@@ -243,7 +243,6 @@ void show_text(void)
 
     PolyPage* pa = &POLY_Page[POLY_PAGE_TEXT];
 
-#ifndef TARGET_DC
     DDCOLORKEY ck;
     if (font_page.GetD3DTexture()) {
         ck.dwColorSpaceLowValue = 0;
@@ -252,7 +251,6 @@ void show_text(void)
     } else {
         //		return;
     }
-#endif
 
 #define SET_RENDER_STATE(I, V) pa->RS.SetRenderState(I, V)
 
@@ -265,21 +263,17 @@ void show_text(void)
         //		SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREHANDLE,texture);
         // pa->RS.SetTexture(pa->RS.SetTexture(handle));
 
-#ifndef TARGET_DC
         SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, TRUE);
         if (text_fudge)
-#endif
         {
             SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
             SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
             SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
         }
-#ifndef TARGET_DC
         else {
             SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
         }
-#endif
 
         pa->RS.SetChanged();
         pa->Render(the_display.lp_D3D_Device);

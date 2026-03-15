@@ -2,7 +2,6 @@
 // A new sewer system.
 //
 
-#ifndef TARGET_DC
 
 #include "game.h"
 #include "ns.h"
@@ -123,17 +122,6 @@ SLONG NS_texture_upto = NS_TEXTURE_NUMBER;
 
 NS_Page NS_page[NS_PAGE_NUMBER] =
 
-#ifdef PSX
-
-    {
-        1, 2, 3, 4, 5
-    };
-
-//
-// What are the offset into the texture page of these textures?
-//
-
-#else
 
     {
         149, // Rock
@@ -143,7 +131,6 @@ NS_Page NS_page[NS_PAGE_NUMBER] =
         37 // Grating
     };
 
-#endif
 
 //
 // The maps.
@@ -3751,4 +3738,3 @@ void NS_add_prim(
     nl->st = index;
 }
 
-#endif // #ifndef TARGET_DC

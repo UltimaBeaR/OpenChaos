@@ -15,17 +15,10 @@
 // DEFINES
 //
 
-#ifdef TARGET_DC
-#define MAX_CUTSCENES (1)
-#define MAX_CUTSCENE_TRACKS (1)
-#define MAX_CUTSCENE_PACKETS (1)
-#define MAX_CUTSCENE_TEXT (1)
-#else
 #define MAX_CUTSCENES (20)
 #define MAX_CUTSCENE_TRACKS (20 * 15)
 #define MAX_CUTSCENE_PACKETS (20 * 15 * 128)
 #define MAX_CUTSCENE_TEXT (4096)
-#endif
 
 //----------------------------------------------------------------------------
 // STRUCTS
@@ -69,17 +62,10 @@ extern UWORD PLAYCUTS_cutscene_ctr;
 extern UWORD PLAYCUTS_track_ctr;
 extern UWORD PLAYCUTS_packet_ctr;
 extern UWORD PLAYCUTS_text_ctr;
-#ifndef PSX
 extern CPData PLAYCUTS_cutscenes[MAX_CUTSCENES];
 extern CPPacket PLAYCUTS_packets[MAX_CUTSCENE_PACKETS];
 extern CPChannel PLAYCUTS_tracks[MAX_CUTSCENE_TRACKS];
 extern CBYTE PLAYCUTS_text_data[MAX_CUTSCENE_TEXT];
-#else
-extern CPData* PLAYCUTS_cutscenes;
-extern CPPacket* PLAYCUTS_packets;
-extern CPChannel* PLAYCUTS_tracks;
-extern CBYTE* PLAYCUTS_text_data;
-#endif
 
 //----------------------------------------------------------------------------
 // FUNCTION PROTOYPES

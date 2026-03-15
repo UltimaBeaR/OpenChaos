@@ -2,7 +2,6 @@
 // Snipe rifle-mode stuff
 //
 
-#ifndef TARGET_DC
 
 #include <MFStdLib.h>
 #include "game.h"
@@ -132,4 +131,3 @@ void SNIPE_shoot()
     }
 }
 
-#endif // #ifndef TARGET_DC

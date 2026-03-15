@@ -49,25 +49,6 @@
 
 // claude-ai: PSX-специфичные макросы файлового ввода-вывода — не переносить.
 // claude-ai: На PC/новой версии использовать стандартный fopen/fread или платформонезависимый VFS.
-#ifdef PSX
-//
-// PSX include
-//
-#include "libsn.h"
-
-#define MFFileHandle SLONG
-#define FILE_OPEN_ERROR (-1)
-#define SEEK_MODE_CURRENT (1)
-
-#define FileOpen(x) PCopen(x, 0, 0)
-#define FileClose(x) PCclose(x)
-#define FileCreate(x, y) PCopen(x, 1, 0)
-#define FileRead(h, a, s) PCread(h, (char*)a, s)
-#define FileWrite(h, a, s) PCwrite(h, (char*)a, s)
-#define FileSeek(h, m, o) PClseek(h, o, m)
-#define ZeroMemory(a, s) memset((UBYTE*)a, 0, s);
-
-#endif
 
 // claude-ai: Таблицы ремаппинга: editor-индекс → runtime-индекс.
 // claude-ai: Заполняются во время загрузки; используются для патчинга перекрёстных ссылок.

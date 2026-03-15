@@ -2038,7 +2038,6 @@ void SHAPE_alpha_sphere(
     }
 }
 
-#ifndef TARGET_DC
 ULONG SHAPE_balloon_colour;
 
 void SHAPE_draw_balloon(SLONG balloon)
@@ -2077,4 +2076,3 @@ void SHAPE_draw_balloon(SLONG balloon)
         bb->bp[BALLOON_POINTS_PER_BALLOON - 1].z >> 8,
         bb->yaw, bb->pitch, 0, NULL, 0xff);
 }
-#endif

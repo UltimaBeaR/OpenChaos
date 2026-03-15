@@ -6,9 +6,6 @@
 #include "MFStdLib.h"
 #include "DIManager.h"
 
-#ifdef TARGET_DC
-#error Silly person! DC has no force feedback.
-#endif
 
 #if 0
 

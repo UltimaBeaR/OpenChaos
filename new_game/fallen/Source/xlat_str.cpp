@@ -8,18 +8,7 @@
 // #define JAPANESE
 
 #include "xlat_str.h"
-#ifdef PSX
-#define _MAX_PATH 256
-#define FILE_OPEN_ERROR (-1)
-#define FILE_READ_ERROR (-1)
-#include "psxeng.h"
-extern void ZeroMemory(void* mem_ptr, ULONG size);
 
-#endif
-
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 //----------------------------------------------------------------------------
 // DEFINES
@@ -73,48 +62,6 @@ inline CBYTE* mbcs_inc_char(CBYTE*& c)
     return c;
 }
 
-#ifdef TARGET_DC
-// Life is too short for reading single bytes over the SCSI bus...
-
-// Overload FileRead()
-#define MYFILEREAD_CACHE_SIZE 256
-char pcCharCache[MYFILEREAD_CACHE_SIZE];
-int iCharCacheLen = 0;
-int iCharCacheSize = 0;
-MFFileHandle cached_file_handle = (void*)0xdeadbeef;
-SLONG CachedFileRead(MFFileHandle file_handle, char* buffer)
-{
-    ASSERT(file_handle != (void*)0xdeadbeef);
-
-    if (cached_file_handle != file_handle) {
-        // New file - bin the cache.
-        cached_file_handle = file_handle;
-        iCharCacheSize = 0;
-    }
-    if (iCharCacheSize == FILE_READ_ERROR) {
-        // No good - no more characters.
-        return (FILE_READ_ERROR);
-    } else if (iCharCacheSize <= 0) {
-        // Read a chunk.
-        iCharCacheSize = FileRead(file_handle, pcCharCache, MYFILEREAD_CACHE_SIZE);
-        iCharCacheLen = iCharCacheSize;
-    }
-    if (iCharCacheSize == 0) {
-        // No good - no more characters.
-        iCharCacheSize = FILE_READ_ERROR;
-        return (FILE_READ_ERROR);
-    }
-    *buffer = pcCharCache[iCharCacheLen - iCharCacheSize];
-    iCharCacheSize--;
-    return (1);
-}
-
-// Call it when you open a new file!
-void CacheFileReadFlush(void)
-{
-    cached_file_handle = (void*)0xdeadbeef;
-}
-#endif
 
 // safely finds previous character (_not_ byte) in a MBCS strings
 
@@ -242,9 +189,6 @@ CBYTE* XLAT_str_ptr(SLONG string_id)
 {
     CBYTE* xlated = xlat_ptr[string_id];
     if ((xlat_upto == xlat_set) || (!xlat_upto) || !xlated) {
-#ifdef TARGET_DC
-        ASSERT(FALSE);
-#endif
         return "missing language file. get t:\\lang-english.txt and stick it in your fallen\\text directory";
     }
     return xlated;
@@ -296,11 +240,7 @@ CBYTE* XLAT_load_string(MFFileHandle& file, CBYTE* txt)
 
     *ptr = 0;
     while (emergency_bail_out_for_martins_machine--) {
-#ifdef TARGET_DC
-        if (CachedFileRead(file, ptr) == FILE_READ_ERROR)
-#else
         if (FileRead(file, ptr, 1) == FILE_READ_ERROR)
-#endif
         {
             *ptr = 0;
             return txt;
@@ -363,17 +303,12 @@ void XLAT_load(CBYTE* fn)
     ZeroMemory(xlat_ptr, sizeof(xlat_ptr));
     ZeroMemory(xlat_set, sizeof(xlat_set));
 
-#ifndef PSX
     if (!FileExists(fn)) {
         ASSERT(FALSE);
         return;
     }
-#endif
 
     handle = FileOpen(fn);
-#ifdef TARGET_DC
-    CacheFileReadFlush();
-#endif
 
     do {
         txt = XLAT_load_string(handle, xlat_upto);
@@ -402,7 +337,6 @@ void XLAT_poke(SLONG offset, CBYTE* str)
 void XLAT_init()
 {
     // sticks some useful default stuff in
-#ifndef PSX
     ASSERT(xlat_upto);
     XLAT_poke(REMAP_OFFSET + XCTL_JUMP, "space");
     XLAT_poke(REMAP_OFFSET + XCTL_PUNCH, "Z");
@@ -420,23 +354,4 @@ void XLAT_init()
     XLAT_poke(REMAP_OFFSET + XCTL_CAM_LOW, "shoulder");
     XLAT_poke(REMAP_OFFSET + XCTL_CAM_ESC, "esc");
     XLAT_poke(REMAP_OFFSET + XCTL_CAM_CONTINUE, "space");
-#else
-    ASSERT(xlat_upto);
-    XLAT_poke(REMAP_OFFSET + XCTL_JUMP, STR_CROSS);
-    XLAT_poke(REMAP_OFFSET + XCTL_PUNCH, STR_SQUARE);
-    XLAT_poke(REMAP_OFFSET + XCTL_KICK, STR_TRI);
-    XLAT_poke(REMAP_OFFSET + XCTL_ACTION, STR_CIRCLE);
-    XLAT_poke(REMAP_OFFSET + XCTL_LEFT, "left");
-    XLAT_poke(REMAP_OFFSET + XCTL_RIGHT, "right");
-    XLAT_poke(REMAP_OFFSET + XCTL_START, "start");
-    XLAT_poke(REMAP_OFFSET + XCTL_SELECT, "select");
-    XLAT_poke(REMAP_OFFSET + XCTL_SPACE, STR_CROSS);
-    XLAT_poke(REMAP_OFFSET + XCTL_ENTER, "start");
-    XLAT_poke(REMAP_OFFSET + XCTL_CAM_FIRST, "L1");
-    XLAT_poke(REMAP_OFFSET + XCTL_RUN, "R1");
-    XLAT_poke(REMAP_OFFSET + XCTL_CAM_HIGH, "R2");
-    XLAT_poke(REMAP_OFFSET + XCTL_CAM_LOW, "L2");
-    XLAT_poke(REMAP_OFFSET + XCTL_CAM_ESC, STR_TRI);
-    XLAT_poke(REMAP_OFFSET + XCTL_CAM_CONTINUE, STR_CROSS);
-#endif
 }

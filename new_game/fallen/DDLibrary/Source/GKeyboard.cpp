@@ -3,16 +3,11 @@
 
 #include "DDLib.h"
 
-#ifdef TARGET_DC
-volatile UBYTE Keys[256],
-    LastKey;
-#else
 volatile UBYTE AltFlag,
     ControlFlag,
     ShiftFlag;
 volatile UBYTE Keys[256],
     LastKey;
-#endif
 
 UBYTE key_turn[256];
 
@@ -29,11 +24,9 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam);
 
 BOOL SetupKeyboard(void)
 {
-#ifndef TARGET_DC
     AltFlag = 0;
     ControlFlag = 0;
     ShiftFlag = 0;
-#endif
     LastKey = 0;
     memset((char*)&Keys[0], 0, 256);
     memset((char*)&key_turn[0], 0, 256);
@@ -62,7 +55,7 @@ BOOL SetupKeyboard(void)
 
 void ResetKeyboard(void)
 {
-#if defined(_RELEASE) && !defined(TARGET_DC)
+#if defined(_RELEASE)
     if (KeyboardHook)
         UnhookWindowsHookEx(KeyboardHook);
 #endif
@@ -84,11 +77,9 @@ void ResetKeyboard(void)
 
 inline void SetFlagsFromKeyArray()
 {
-#ifndef TARGET_DC
     AltFlag = Keys[KB_LALT] || Keys[KB_RALT];
     ControlFlag = Keys[KB_LCONTROL]; // || Keys[KB_RCONTROL];
     ShiftFlag = Keys[KB_LSHIFT] || Keys[KB_RSHIFT];
-#endif
 }
 
 //
@@ -100,11 +91,9 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
     UBYTE key_code;
     ULONG virtual_keycode = wParam;
 
-#ifndef TARGET_DC
     if (code < 0) {
         return CallNextHookEx(KeyboardHook, code, wParam, lParam);
     }
-#endif
 
     // Get key scan code.
     key_code = (UBYTE)((lParam & KEYMASK_SCAN) >> 16);

@@ -7,9 +7,7 @@
 #include "pap.h"
 #include "mav.h"
 #include "elev.h"
-#ifndef PSX
 #include "texture.h"
-#endif
 
 #include "memory.h"
 
@@ -125,7 +123,6 @@ SLONG ROAD_nearest_node(SLONG rn1, SLONG rn2, SLONG wx, SLONG wz, SLONG* nnd)
     return rn2;
 }
 
-#if !defined(PSX) && !defined(TARGET_DC)
 //
 // Creates curbs and cambers.
 //
@@ -229,7 +226,6 @@ void ROAD_sink()
             }
         }
 }
-#endif
 
 SLONG ROAD_is_road(SLONG map_x, SLONG map_z)
 {
@@ -249,15 +245,6 @@ SLONG ROAD_is_road(SLONG map_x, SLONG map_z)
     num = ph->Texture & 0x3ff;
 
     extern SLONG TEXTURE_set;
-#ifdef PSX
-    if (WITHIN(num, 256, 256 + 22))
-    //	if (WITHIN(num, 256, 306))
-    {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
-#else
     if (build_psx) {
         if (WITHIN(num, 256, 256 + 22))
             return (TRUE);
@@ -269,7 +256,6 @@ SLONG ROAD_is_road(SLONG map_x, SLONG map_z)
     }
 
     return FALSE;
-#endif
 }
 
 SLONG ROAD_is_zebra(SLONG map_x, SLONG map_z)
@@ -326,7 +312,6 @@ SLONG ROAD_find_node(SLONG x, SLONG z)
 // Connects the two nodes together.
 //
 
-#if !defined(PSX) && !defined(TARGET_DC)
 
 void ROAD_connect(SLONG n1, SLONG n2)
 {
@@ -744,7 +729,6 @@ void ROAD_add(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
     }
 }
 
-#endif
 
 //
 // Returns TRUE if the given square lies along the middle of a road.
@@ -809,7 +793,6 @@ SLONG ROAD_is_end_of_the_line(SLONG n)
     return FALSE;
 }
 
-#if !defined(PSX) && !defined(TARGET_DC)
 void ROAD_wander_calc()
 {
     SLONG x;
@@ -959,7 +942,6 @@ void ROAD_wander_calc()
         }
     }
 }
-#endif
 
 void ROAD_find_me_somewhere_to_appear(
     SLONG* world_x, // Current position on calling, new position on return.
@@ -1034,9 +1016,7 @@ void ROAD_find_me_somewhere_to_appear(
         }
 
         if (*nrn1 == 0) {
-#if !defined(PSX) && !defined(TARGET_DC)
             CONSOLE_text("Road node alert!");
-#endif
             //
             // Oh dear! Use the first road edge.
             //
@@ -1085,7 +1065,6 @@ void ROAD_find_me_somewhere_to_appear(
 
 void ROAD_debug()
 {
-#if !defined(PSX) && !defined(TARGET_DC)
 
     SLONG i;
     SLONG j;
@@ -1141,7 +1120,6 @@ void ROAD_debug()
             }
         }
     }
-#endif
 }
 
 SLONG ROAD_signed_dist(
@@ -1316,7 +1294,6 @@ void ROAD_get_dest(
 
 UBYTE ROAD_mapsquare_type[512 / 4];
 
-#if !defined(PSX) && !defined(TARGET_DC)
 
 void ROAD_calc_mapsquare_type()
 {
@@ -1388,7 +1365,6 @@ void ROAD_calc_mapsquare_type()
         }
 }
 
-#endif
 
 SLONG ROAD_get_mapsquare_type(SLONG mx, SLONG mz)
 {

@@ -21,45 +21,18 @@
 #include "bat.h"
 #include "door.h"
 #include "spark.h"
-#ifndef PSX
 #include "playcuts.h"
-#endif
 #include "eway.h"
 #include "statedef.h"
-#ifndef PSX
 #include "poly.h"
 #include "sound.h"
-#endif
 
-#ifdef PSX
-#include <libsn.h>
-#include <libcd.h>
-#include <ctype.h>
-#include "c:\fallen\psxlib\headers\myheap.h"
-#endif
 
-#ifdef PSX
-#ifdef VERSION_PAL
 
-#if !defined(MIKE) && !defined(VERSION_DEMO)
-#include "libcrypt.h"
-UBYTE do_decrypt[] = { 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,
-    1, 1, 1, 0, 0, 0, 0, 1, 0, 0,
-    1, 0, 0, 1, 0, 0, 0, 0, 0, 0,
-    0, 0, 1, 1, 1, 0 };
-#endif
-#endif
-#endif
-
-#ifndef PSX
 #define NEW_LEVELS 1
-#endif
 
 // #define	NEW_LEVELS	1
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 extern ULONG level_index;
 /*
@@ -153,15 +126,7 @@ extern ULONG level_index;
 */
 extern void BAT_normal(Thing* p_thing);
 
-#ifndef PSX
 #define M_(x) x
-#else
-#ifndef FS_ISO9660
-#define M_(x) x
-#else
-#define M_(x) NULL
-#endif
-#endif
 
 /*
 
@@ -231,10 +196,6 @@ MAP_Beacon* MAP_beacon; //[MAP_MAX_BEACONS];
 
 PSX_TEX* psx_textures_xy; //[200][5];
 
-#ifdef TARGET_DC
-// Don't allocate/free each time, just allocate it statically.
-#define LAZY_LOADING_MEMORY_ON_DC_PLEASE_BOB
-#endif
 
 void* mem_all = 0;
 ULONG mem_all_size = 0;
@@ -271,11 +232,6 @@ struct Staircase* inside_stairs; //[MAX_INSIDE_STAIRS];
 UBYTE* inside_block; //[MAX_INSIDE_MEM];
 UBYTE inside_tex[64][16];
 
-#ifdef PSX
-UWORD next_inside_storey = 1;
-UWORD next_inside_stair = 1;
-SLONG next_inside_block = 1;
-#endif
 
 //
 // from building.cpp
@@ -447,12 +403,10 @@ struct MemTable save_table[] = {
     { M_("map_beacon"), (void**)&MAP_beacon, MEM_STATIC, 0, 0, MAP_MAX_BEACONS, sizeof(MAP_Beacon), 0 }, // 66
 //	{"anim_mids"	,(void**)&anim_mids				,MEM_STATIC ,0							,&next_anim_mids			,256						,sizeof(PrimPoint)				},
 // cutscene memory
-#ifndef BUILD_PSX
     { M_("cutscene_data"), (void**)&PLAYCUTS_cutscenes, MEM_DYNAMIC, 0, &PLAYCUTS_cutscene_ctr, MAX_CUTSCENES, sizeof(CPData), 0 },
     { M_("cutscene_trks"), (void**)&PLAYCUTS_tracks, MEM_DYNAMIC, 0, &PLAYCUTS_track_ctr, MAX_CUTSCENE_TRACKS, sizeof(CPChannel), 0 },
     { M_("cutscene_pkts"), (void**)&PLAYCUTS_packets, MEM_DYNAMIC, 0, &PLAYCUTS_packet_ctr, MAX_CUTSCENE_PACKETS, sizeof(CPPacket), 0 },
     { M_("cutscene_text"), (void**)&PLAYCUTS_text_data, MEM_DYNAMIC, 0, &PLAYCUTS_text_ctr, MAX_CUTSCENE_TEXT, sizeof(CBYTE), 0 },
-#endif
     { M_("darci normal"), (void**)&darci_normal, MEM_DYNAMIC, 0, &darci_normal_count, 12000, sizeof(UWORD), 0 },
     { M_("prim info"), (void**)&prim_info, MEM_STATIC, 0, 0, 256, sizeof(PrimInfo), 0 },
 
@@ -478,11 +432,7 @@ void init_memory(void)
     SLONG temp;
 
     // FIXME FUDGE!
-#ifdef TARGET_DC
-#endif
 
-#ifndef PSX
-#ifndef TARGET_DC
     save_table[SAVE_TABLE_PEOPLE].Maximum = RMAX_PEOPLE;
     save_table[SAVE_TABLE_VEHICLE].Maximum = RMAX_VEHICLES;
     save_table[SAVE_TABLE_SPECIAL].Maximum = RMAX_SPECIALS;
@@ -503,8 +453,6 @@ void init_memory(void)
         //		save_psx=1;
         build_psx = 1;
     }
-#endif
-#endif
     while (save_table[c0].Point) {
         void* ptr;
         p_tab = &save_table[c0];
@@ -552,7 +500,6 @@ void init_memory(void)
     //	{"prim normal"	,(void**)&prim_normal			,1,0							,&next_prim_point			,MAX_PRIM_POINTS		,sizeof(PrimNormal)				},
     prim_normal = (PrimNormal*)MemAlloc(sizeof(PrimNormal) * MAX_PRIM_POINTS);
 }
-#ifndef PSX
 void set_darci_normals(void)
 {
     SLONG count_vertex;
@@ -659,9 +606,7 @@ void set_darci_normals(void)
             darci_normal_count=last_point-first_point+1;
     */
 }
-#endif
 
-#ifndef PSX
 void convert_drawtype_to_index(Thing* p_thing, SLONG meshtype)
 {
     switch (meshtype) {
@@ -950,7 +895,6 @@ void convert_pointers_to_index(void)
             TO_PYRO(c0)->victim = (Thing*)THING_NUMBER(TO_PYRO(c0)->victim);
     }
 
-#ifndef BUILD_PSX
     // cutscene stuff. convert the track pointers first:
     for (c0 = 0; c0 < PLAYCUTS_cutscene_ctr; c0++) {
         PLAYCUTS_cutscenes[c0].channels = (CPChannel*)(PLAYCUTS_cutscenes[c0].channels - PLAYCUTS_tracks);
@@ -963,7 +907,6 @@ void convert_pointers_to_index(void)
         if (PLAYCUTS_packets[c0].type == 5)
             PLAYCUTS_packets[c0].pos.X -= (ULONG)PLAYCUTS_text_data;
     }
-#endif
 }
 
 #define STORE_DATA(a)                         \
@@ -996,7 +939,6 @@ void convert_fightcol_to_index(GameFightCol* p, GameFightCol* p_fight, SLONG cou
         p[c0].Next = (GameFightCol*)((SLONG)(p[c0].Next - p_fight));
     }
 }
-#endif
 
 void convert_keyframe_to_pointer(GameKeyFrame* p, GameKeyFrameElement* p_ele, GameFightCol* p_fight, SLONG count)
 {
@@ -1049,7 +991,6 @@ void convert_fightcol_to_pointer(GameFightCol* p, GameFightCol* p_fight, SLONG c
     }
 }
 
-#ifndef PSX
 
 void save_whole_anims(MFFileHandle handle)
 {
@@ -2019,20 +1960,13 @@ void WMOVE_remove(UBYTE which_class);
 
         gamename[strlen(gamename) - 3] = 'n';
         save_whole_wad(name, 1);
-#ifdef TARGET_DC
-        // Hmmmm.. this has trouble copiling on the DC.
-        // shouldn't be using it, anyway.
-        ASSERT(FALSE);
-#else
         CopyFile(name, gamename, 0);
-#endif
 
         fix_psxed_anims();
     }
 #endif
 }
 
-#endif
 
 extern SLONG person_normal_animate(Thing* p_person);
 
@@ -2284,7 +2218,6 @@ void convert_index_to_pointers(void)
         if (TO_PYRO(c0)->victim)
             TO_PYRO(c0)->victim = TO_THING((ULONG)TO_PYRO(c0)->victim);
     }
-#ifndef PSX
     // cutscene stuff. convert the track pointers back first:
     for (c0 = 0; c0 < PLAYCUTS_cutscene_ctr; c0++) {
         PLAYCUTS_cutscenes[c0].channels = PLAYCUTS_tracks + (SLONG)PLAYCUTS_cutscenes[c0].channels;
@@ -2297,7 +2230,6 @@ void convert_index_to_pointers(void)
         if (PLAYCUTS_packets[c0].type == 5)
             PLAYCUTS_packets[c0].pos.X += (ULONG)PLAYCUTS_text_data;
     }
-#endif
 }
 
 void uncache(void)
@@ -2487,11 +2419,7 @@ void load_whole_game(CBYTE* gamename)
     UBYTE *p_mem, *p_all;
     SLONG mem_size;
     struct MemTable* ptab;
-#ifndef PSX
     MFFileHandle handle = FILE_OPEN_ERROR;
-#else
-    SLONG handle;
-#endif
     SLONG count;
     SLONG texture_set_local;
     SLONG save_type;
@@ -2506,35 +2434,6 @@ void load_whole_game(CBYTE* gamename)
     memset((UBYTE*)EWAY_timer_bodge, 0, EWAY_MAX_TIMERS * 2);
 #endif
 
-#ifdef PSX
-
-    extern void SetDisplayClear(SLONG clear);
-    extern void AENG_loading_bar(SLONG percent);
-    extern void OB_init();
-    OB_init(); // ob_hydrant now cleared
-
-    SetDisplayClear(0);
-
-    extern int wad_level;
-    extern UBYTE roper_pickup;
-
-    if (wad_level == 21) {
-        roper_pickup = 2;
-    } else if (wad_level == 33) {
-        roper_pickup = 1;
-    } else {
-        roper_pickup = 0;
-    }
-
-    //
-    // Make sure when we go into the game, the draw stuff is set up
-    //
-#if 1
-    GDisp_SetupBucketMem(&my_heap[8], 16384);
-#endif
-    void AENG_flip_init(void);
-    AENG_flip_init();
-#endif
 
     extern UWORD player_dlight;
     player_dlight = 0;
@@ -2546,7 +2445,6 @@ void load_whole_game(CBYTE* gamename)
     if (mem_all)
         MemFree(mem_all);
 
-#ifndef PSX
     handle = FileOpen(gamename);
     if (handle == FILE_OPEN_ERROR) {
         ASSERT(0);
@@ -2558,59 +2456,6 @@ void load_whole_game(CBYTE* gamename)
     ASSERT(p_all);
     FileRead(handle, p_all, mem_size);
     FileClose(handle);
-#else
-
-    TEXTURE_choose_set(wad_level);
-
-    AENG_loading_bar(20);
-
-#ifndef FS_ISO9660
-    handle = PCopen(gamename, 0, 0);
-    if (handle < 0) {
-        ASSERT(0);
-        return;
-    }
-    mem_size = PClseek(handle, 0, SEEK_END);
-    PClseek(handle, 0, SEEK_SET);
-    p_all = (UBYTE*)MemAlloc(mem_size);
-    PCread(handle, p_all, mem_size);
-    PCclose(handle);
-    // Calculate how much bucket space is available
-#if 1
-    BUCKET_MEM = (total_mem_size - (mem_size + 128)) & 0xfffffffc;
-#endif
-
-    AENG_loading_bar(40);
-#else
-    extern char cd_file_buffer[];
-
-    CdlFILE cfile;
-    char* p = gamename;
-    while (*p)
-        *p++ = toupper(*p);
-    sprintf(cd_file_buffer, "\\%s;1", gamename);
-
-    if (CdSearchFile(&cfile, cd_file_buffer) == 0) {
-        //		printf("Error: Cannot find level file '%s'\n",cd_file_buffer);
-    }
-    mem_size = (cfile.size + 2047) & 0x7ffff800;
-    p_all = (UBYTE*)MemAlloc(mem_size);
-    CdReadFile(cd_file_buffer, (ULONG*)p_all, mem_size);
-    CdReadSync(0, cd_file_buffer);
-#if 1
-    BUCKET_MEM = (total_mem_size - (mem_size + 128)) & 0xfffffffc;
-#endif
-    AENG_loading_bar(40);
-
-#ifdef VERSION_PAL
-#if !defined(MIKE) && !defined(VERSION_DEMO)
-    if (do_decrypt[wad_level - 1])
-        Decrypt(p_all);
-#endif
-#endif
-
-#endif
-#endif
 
     mem_all = p_all;
     mem_all_size = mem_size;
@@ -2674,9 +2519,6 @@ void load_whole_game(CBYTE* gamename)
         if (EWAY_mess_buffer[c0] == 160)
             EWAY_mess_buffer[c0] = 32;
 
-#ifdef PSX
-    AENG_loading_bar(60);
-#endif
 
     GET_DATA(PRIMARY_USED);
     GET_DATA(PRIMARY_UNUSED);
@@ -2695,9 +2537,6 @@ void load_whole_game(CBYTE* gamename)
     GET_DATA(SECONDARY_COUNT);
     GET_DATA(GAME_STATE);
 
-#ifdef TARGET_DC
-    GAME_STATE &= ~(GS_RECORD | GS_PLAYBACK | GS_EDITOR);
-#endif
 
     GET_DATA(GAME_TURN);
     GET_DATA(GAME_FLAGS);
@@ -2826,10 +2665,6 @@ void load_whole_game(CBYTE* gamename)
     //
     load_whole_anims(p_all);
 
-#ifdef PSX
-    AENG_loading_bar(80);
-    printf("BUCKET_MEM = %d\n", BUCKET_MEM);
-#endif
 
     void setup_global_anim_array(void);
     setup_global_anim_array();
@@ -2845,11 +2680,9 @@ void load_whole_game(CBYTE* gamename)
 
     //	if(texture_set_local!=TEXTURE_set)
     {
-#ifndef PSX
         TEXTURE_choose_set(texture_set_local);
         ASSERT(0); // you need a filename for TEXTURE_load_needed()
 //		TEXTURE_load_needed();
-#endif
     }
 
     extern void PARTICLE_Reset();
@@ -2861,15 +2694,6 @@ void load_whole_game(CBYTE* gamename)
     extern void PCOM_init(void);
     PCOM_init();
 
-#ifdef PSX
-    void init_punch_kick(void);
-    init_punch_kick();
-
-#ifndef NEW_LEVELS
-    EWAY_timer = &EWAY_timer_bodge[0];
-#endif
-
-#endif
 
     //	calc_prim_info();
     VEH_init_vehinfo();
@@ -2879,64 +2703,18 @@ void load_whole_game(CBYTE* gamename)
     init_noises();
     init_arrest();
 
-#ifndef PSX
     calc_prim_normals();
-#else
-    extern void SetDisplayFade(void);
-    SetDisplayFade();
-#endif
     //	find_anim_prim_bboxes();
 
-#ifndef PSX
     //	TEXTURE_fix_prim_textures();
     //	TEXTURE_fix_texture_styles();
     AENG_create_dx_prim_points();
     NIGHT_generate_walkable_lighting();
-#else
-    AENG_loading_bar(100);
-    SetDisplayClear(1);
-    AENG_create_dx_prim_points();
-    NIGHT_ambient(NIGHT_amb_red, NIGHT_amb_green, NIGHT_amb_blue, NIGHT_amb_norm_x, NIGHT_amb_norm_y, NIGHT_amb_norm_z);
-    void init_gangattack(void);
-
-    init_gangattack(); // probably should save these
-
-    SBYTE global_spang_count;
-    global_spang_count = 0;
-
-    extern void Wadmenu_PutStats();
-    Wadmenu_PutStats();
-
-    extern void Wadmenu_PutStats();
-    Wadmenu_PutStats();
-
-#if 0
-
-extern void AENG_ambient_editor(int store);
-	AENG_ambient_editor(1);
-#endif
-
-    {
-        SLONG c0;
-        for (c0 = 0; c0 < 100; c0++) {
-            FC_process();
-        }
-    }
-
-#endif
 
     flag_v_faces();
 
-#ifdef PSX
-    if (wad_level == 25) {
-
-        TO_THING(193)->Genus.Person->Flags &= ~FLAG_PERSON_USEABLE;
-    }
-#endif
 }
 
-#ifndef PSX
-#ifndef TARGET_DC
 
 //
 // Quick load\save filename.
@@ -3189,9 +2967,6 @@ SLONG MEMORY_quick_load()
     QREAD_DATA(SECONDARY_COUNT);
     QREAD_DATA(GAME_STATE);
 
-#ifdef TARGET_DC
-    GAME_STATE &= ~(GS_RECORD | GS_PLAYBACK | GS_EDITOR);
-#endif
 
     QREAD_DATA(GAME_TURN);
     QREAD_DATA(GAME_FLAGS);
@@ -3300,10 +3075,7 @@ file_error:;
     return FALSE;
 }
 
-#endif
-#endif
 
-#ifndef TARGET_DC
 #if 1 // TEST_DC
 
 //
@@ -3554,7 +3326,6 @@ void save_dreamcast_wad(CBYTE* fname)
 }
 
 #endif // TEST_DC
-#endif // not TARGET_DC
 
 // #ifdef TARGET_DC
 #if TEST_DC
@@ -3567,11 +3338,7 @@ void load_dreamcast_wad(CBYTE* fname)
     UBYTE *p_mem, *p_all;
     ULONG mem_size;
     struct MemTable* ptab;
-#ifndef PSX
     MFFileHandle handle = FILE_OPEN_ERROR;
-#else
-    SLONG handle;
-#endif
     SLONG count;
     SLONG texture_set_local;
     SLONG save_type;
@@ -3739,9 +3506,6 @@ void load_dreamcast_wad(CBYTE* fname)
     // GET_DATA(GAME_STATE);
     p_all += sizeof(GAME_STATE);
 
-#ifdef TARGET_DC
-    GAME_STATE &= ~(GS_RECORD | GS_PLAYBACK | GS_EDITOR);
-#endif
 
     GET_DATA(GAME_TURN);
     GET_DATA(GAME_FLAGS);
@@ -3947,11 +3711,6 @@ void load_dreamcast_wad(CBYTE* fname)
     extern UBYTE EWAY_conv_active;
     EWAY_conv_active = 0; // fixes semtex restart crash during cut scene
 
-#ifdef TARGET_DC
-    // Reactivates mist.
-    extern void EWAY_reactivate_waypoints_that_arent_in_the_dad_file(void);
-    EWAY_reactivate_waypoints_that_arent_in_the_dad_file();
-#endif
 
     loading_screen_active = FALSE;
 }

@@ -805,10 +805,6 @@ void SUPERCRINKLE_relight(SLONG crinkle, ULONG colour[4], ULONG specular[4])
         // More than 384 points in a single crinkle! Yikes!
         //
 
-#ifdef TARGET_DC
-        // Don't want to know during level builds.
-        ASSERT(0);
-#endif
 
         return;
     }

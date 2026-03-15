@@ -7,11 +7,7 @@
 //---------------------------------------------------------------
 
 // claude-ai: MAX_PLAYERS=2 — поддержка split-screen. Мультиплеер по сети в новой версии НЕ переносится.
-#ifndef PSX
 #define MAX_PLAYERS 2
-#else
-#define MAX_PLAYERS 2
-#endif
 
 // claude-ai: Типы игрока. DARCI(1) и ROPER(2) — играбельные персонажи. COP/THUG — неиграбельные.
 #define PLAYER_NONE 0

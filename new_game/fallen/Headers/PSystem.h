@@ -8,11 +8,7 @@
 #ifndef _PSYSTEM_H_
 #define _PSYSTEM_H_
 
-#ifndef PSX
 #define PSYSTEM_MAX_PARTICLES 2048
-#else
-#define PSYSTEM_MAX_PARTICLES 64
-#endif
 
 #include "MFStdLib.h"
 #include "game.h"

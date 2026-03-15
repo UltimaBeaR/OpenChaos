@@ -75,7 +75,6 @@
 // claude-ai:   CANID_SENSE_RADIUS = 0xD0 in fine units (same scale as >>8 coords).
 // claude-ai: ============================================================
 
-#ifndef TARGET_DC
 
 #include "game.h"
 #include "canid.h"
@@ -1535,4 +1534,3 @@ void CANID_init_land(Thing *canid)
 }
 */
 
-#endif // #ifndef TARGET_DC

@@ -10,7 +10,6 @@
 
 #include "memory.h"
 
-#ifndef TARGET_DC
 
 //
 // The puddles.
@@ -854,4 +853,3 @@ PUDDLE_Info* PUDDLE_get_next()
     return &PUDDLE_get_info;
 }
 
-#endif // #ifndef TARGET_DC

@@ -20,9 +20,6 @@ extern void PANEL_inventory(Thing* darci, Thing* player);
 //
 // The new funky panel!
 //
-#ifdef PSX
-void PANEL_new_funky(void);
-#endif
 
 //
 // Clears all new text messages.

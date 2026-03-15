@@ -2,7 +2,6 @@
 // The new bikes are called dikes.
 //
 
-#ifndef TARGET_DC
 
 #include "game.h"
 #include "dike.h"
@@ -413,4 +412,3 @@ void DIKE_draw(DIKE_Dike* dd)
         FALSE);
 }
 
-#endif // #ifndef TARGET_DC

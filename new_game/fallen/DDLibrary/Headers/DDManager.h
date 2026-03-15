@@ -107,12 +107,10 @@ public:
     DDPIXELFORMAT ZFormat;
 
     // caps
-#ifndef TARGET_DC
     bool CanDoModulateAlpha; // can do TBLEND_MODULATEALPHA mode?
     bool CanDoDestInvSourceColour; // can do BLEND_SRCCOLOR?
     bool CanDoAdamiLighting; // can do Adami lighting?
     bool CanDoForsythLighting; // can do Forsyth lighting?
-#endif
 
     // Node Info
     D3DDeviceInfo *Next, // Next Node
@@ -155,15 +153,9 @@ public:
 
     // caps methods
     void CheckCaps(LPDIRECT3DDEVICE3 the_device);
-#ifdef TARGET_DC
-    bool ModulateAlphaSupported() { return TRUE; }
-    bool DestInvSourceColourSupported() { return TRUE; }
-    bool AdamiLightingSupported() { return FALSE; }
-#else
     bool ModulateAlphaSupported() { return CanDoModulateAlpha; }
     bool DestInvSourceColourSupported() { return CanDoDestInvSourceColour; }
     bool AdamiLightingSupported() { return CanDoAdamiLighting; }
-#endif
 
     /*
         LPDDModeInfo FindFormat (LPDDPIXELFORMAT lpddsd,

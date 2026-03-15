@@ -3,13 +3,7 @@
 
 #include <math.h>
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
-#ifdef TARGET_DC
-#include "shsgintr.h"
-#endif
 
 //
 // OPTIMISE THIS AT SOME POINT MARK! 'roll' AND 'pitch' ARE NEARLY ALWAYS 0!
@@ -21,15 +15,6 @@ void MATRIX_calc(float matrix[9], float yaw, float pitch, float roll)
     float cy, cp, cr;
     float sy, sp, sr;
 
-#ifdef TARGET_DC
-
-    // Use the fast intrinsics.
-    // Error is 2e-21 at most.
-    _SinCosA(&sy, &cy, yaw);
-    _SinCosA(&sr, &cr, roll);
-    _SinCosA(&sp, &cp, pitch);
-
-#else // #ifdef TARGET_DC
 
     sy = sin(yaw);
     sp = sin(pitch);
@@ -39,7 +24,6 @@ void MATRIX_calc(float matrix[9], float yaw, float pitch, float roll)
     cp = cos(pitch);
     cr = cos(roll);
 
-#endif // #else //#ifdef TARGET_DC
 
     //
     // Jan I trust you... but only becuase I've already seen it working!
@@ -56,7 +40,6 @@ void MATRIX_calc(float matrix[9], float yaw, float pitch, float roll)
     matrix[8] = cy * cp;
 }
 
-#ifndef TARGET_DC
 //
 // i'll do this later / miked
 //
@@ -87,27 +70,17 @@ void MATRIX_calc_int(SLONG matrix[9], SLONG yaw, SLONG pitch, SLONG roll)
     matrix[5] = -sy * sr - cy * sp * cr;
     matrix[8] = cy * cp;
 }
-#endif // #ifndef TARGET_DC
 
 void MATRIX_vector(float vector[3], float yaw, float pitch)
 {
     float cy, cp;
     float sy, sp;
 
-#ifdef TARGET_DC
-
-    // Use the fast intrinsics.
-    // Error is 2e-21 at most.
-    _SinCosA(&sy, &cy, yaw);
-    _SinCosA(&sp, &cp, pitch);
-
-#else
     sy = sin(yaw);
     sp = sin(pitch);
 
     cy = cos(yaw);
     cp = cos(pitch);
-#endif
 
     vector[0] = sy * cp;
     vector[1] = sp;
@@ -171,45 +144,6 @@ void MATRIX_3x3mul(float a[9], float m[9], float n[9])
 // matrix, because it will be unchanged.
 //
 
-#ifdef TARGET_DC
-
-// Use the fast intrinsics.
-// Error is 2e-21 at most.
-
-#define MATRIX_ROTATE_ABOUT_Z(ax, ay, az, bx, by, bz, cx, cy, cz, angle) \
-    {                                                                    \
-        float c;                                                         \
-        float s;                                                         \
-                                                                         \
-        _SinCosA(&s, &c, angle);                                         \
-                                                                         \
-        float px;                                                        \
-        float py;                                                        \
-        float pz;                                                        \
-                                                                         \
-        float qx;                                                        \
-        float qy;                                                        \
-        float qz;                                                        \
-                                                                         \
-        if (angle) {                                                     \
-            px = c * (ax) + s * (bx);                                    \
-            py = c * (ay) + s * (by);                                    \
-            pz = c * (az) + s * (bz);                                    \
-                                                                         \
-            qx = -s * (ax) + c * (bx);                                   \
-            qy = -s * (ay) + c * (by);                                   \
-            qz = -s * (az) + c * (bz);                                   \
-                                                                         \
-            (ax) = px;                                                   \
-            (ay) = py;                                                   \
-            (az) = pz;                                                   \
-            (bx) = qx;                                                   \
-            (by) = qy;                                                   \
-            (bz) = qz;                                                   \
-        }                                                                \
-    }
-
-#else
 
 #define MATRIX_ROTATE_ABOUT_Z(ax, ay, az, bx, by, bz, cx, cy, cz, angle) \
     {                                                                    \
@@ -242,7 +176,6 @@ void MATRIX_3x3mul(float a[9], float m[9], float n[9])
         }                                                                \
     }
 
-#endif
 
 void MATRIX_rotate_about_its_x(float* matrix, float angle)
 {
@@ -274,7 +207,6 @@ void MATRIX_rotate_about_its_z(float* matrix, float angle)
 #define MATRIX_FA_VECTOR_TOO_SMALL (0.001F)
 #define MATRIX_FA_ANGLE_TOO_SMALL (PI * 2.0F / 180.0F)
 
-#ifndef TARGET_DC
 Direction MATRIX_find_angles_old(float matrix[9])
 {
     float x;
@@ -349,7 +281,6 @@ Direction MATRIX_find_angles_old(float matrix[9])
 
     return ans;
 }
-#endif
 
 Direction MATRIX_find_angles(float matrix[9])
 {

@@ -6,12 +6,7 @@
 #include "pap.h"
 #include "game.h"
 #include "mav.h"
-#ifndef PSX
 #include "..\ddengine\headers\aeng.h"
-#else
-#include "c:\fallen\psxeng\headers\engine.h"
-
-#endif
 #include "inside2.h"
 #include "ns.h"
 #include "ware.h"
@@ -31,7 +26,6 @@ void PAP_clear(void)
     memset((UBYTE*)&PAP_hi[0][0], 0, sizeof(PAP_Hi) * PAP_SIZE_HI * PAP_SIZE_HI);
 }
 
-#ifndef PSX
 
 //
 // A couple of debug functions.
@@ -65,7 +59,6 @@ void PAP_assert_if_off_map_hi(SLONG x, SLONG z)
     ASSERT(PAP_on_map_hi(x, z));
 }
 
-#endif // PSX
 
 SLONG PAP_calc_height_at_point(SLONG map_x, SLONG map_z)
 {
@@ -283,7 +276,6 @@ SLONG PAP_calc_map_height_at(SLONG x, SLONG z)
     return answer;
 }
 
-#ifndef PSX
 SLONG PAP_is_flattish(
     SLONG x1, SLONG z1,
     SLONG x2, SLONG z2)
@@ -414,7 +406,6 @@ SLONG PAP_calc_map_height_near(SLONG x, SLONG z)
 
     return max;
 }
-#endif
 
 SLONG PAP_on_slope(SLONG x, SLONG z, SLONG* angle)
 {

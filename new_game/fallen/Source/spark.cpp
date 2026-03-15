@@ -511,11 +511,7 @@ found_spare_spark:;
         ss->map_z = mz;
         ss->next = SPARK_mapwho[mz];
         SPARK_mapwho[mz] = SPARK_spark_last;
-#ifndef PSX
         ss->glitter = GLITTER_create(0, mx, mz, 0x005566ff);
-#else
-        ss->glitter = 0; // GLITTER_create(0, mx, mz, 0x005566ff);
-#endif
     }
 
     //
@@ -549,9 +545,7 @@ void SPARK_process()
             //
             // Kill off the glitter object.
             //
-#ifndef PSX
             GLITTER_destroy(ss->glitter);
-#endif
 
             //
             // Take this spark out of the linked list.
@@ -643,13 +637,11 @@ void SPARK_process()
                     &px,
                     &py,
                     &pz);
-#ifndef PSX
                 GLITTER_add(
                     ss->glitter,
                     px,
                     py,
                     pz);
-#endif
             }
         }
     }
@@ -901,9 +893,7 @@ void SPARK_in_sphere(
     THING_INDEX t_index;
 
     Thing* p_thing;
-#ifndef TARGET_DC
     MapElement* me;
-#endif
 
     //
     // All the places we could put a spark.
@@ -951,9 +941,7 @@ void SPARK_in_sphere(
 
     for (mx = x1; mx <= x2; mx++)
         for (mz = z1; mz <= z2; mz++) {
-#ifndef TARGET_DC
             me = &MAP[MAP_INDEX(mx, mz)];
-#endif
 
             /*
 
@@ -1182,7 +1170,6 @@ void SPARK_in_sphere(
     }
 }
 
-#ifndef PSX
 void SPARK_show_electric_fences()
 {
     SLONG i;
@@ -1245,4 +1232,3 @@ void SPARK_show_electric_fences()
         }
     }
 }
-#endif

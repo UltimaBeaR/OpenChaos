@@ -172,7 +172,6 @@ void NIGHT_slight_init()
 
     NIGHT_slight_upto = 0;
 }
-#ifndef PSX
 SLONG NIGHT_slight_create(
     SLONG x,
     SLONG y,
@@ -350,7 +349,6 @@ void NIGHT_slight_delete_all()
 
     NIGHT_slight_upto = 0;
 }
-#endif
 
 //
 // Lampost lights
@@ -2936,7 +2934,6 @@ NIGHT_Colour NIGHT_get_light_at(
     return ans;
 }
 
-#ifndef PSX
 
 NIGHT_Found NIGHT_found[NIGHT_MAX_FOUND];
 SLONG NIGHT_found_upto;
@@ -3184,7 +3181,6 @@ void NIGHT_find(SLONG x, SLONG y, SLONG z)
     }
 }
 
-#endif
 
 void NIGHT_init()
 {
@@ -3228,7 +3224,7 @@ void NIGHT_init()
 //
 // ========================================================
 
-#if !defined(NDEBUG) || defined(TARGET_DC)
+#if !defined(NDEBUG)
 // The DC doesn't actually need this fucntion, but the compiler gets very confused
 // and exports the symbol (don't ask...) so then the linker gets all hot and bothered.
 

@@ -114,10 +114,6 @@ protected:
 
     UBYTE* background_image_mem;
 
-#ifdef TARGET_DC
-    bool bInScene;
-    LPDIRECTDRAWSURFACE4 psurfBackHandle;
-#endif
 
 public:
     ULONG BackColour;
@@ -140,17 +136,11 @@ public:
     LPDIRECTDRAW4 lp_DD4;
     LPDIRECTDRAWSURFACE4 lp_DD_FrontSurface,
         lp_DD_BackSurface,
-#ifndef TARGET_DC
         lp_DD_WorkSurface,
-#endif
         lp_DD_ZBuffer;
 
     LPDIRECTDRAWSURFACE4 lp_DD_Background,
         lp_DD_Background_use_instead;
-#ifdef TARGET_DC
-    LPDIRECT3DTEXTURE2 lp_DD_Background_use_instead_texture;
-    LPDIRECT3DTEXTURE2 lp_DD_Background_use_instead_texture2;
-#endif
     IDirectDrawGammaControl* lp_DD_GammaControl;
     RECT DisplayRect; // Current surface rectangle.
 
@@ -202,10 +192,6 @@ public:
     HRESULT InitBack(void);
     HRESULT FiniBack(void);
 
-#ifdef TARGET_DC
-    HRESULT InitBackCache(void);
-    HRESULT FiniBackCache(void);
-#endif
 
     HRESULT InitViewport(void);
     HRESULT FiniViewport(void);
@@ -236,44 +222,10 @@ public:
     void* screen_lock(void);
     void screen_unlock(void);
 
-#ifndef TARGET_DC
     HRESULT ShowWorkScreen(void);
-#endif
 
     void blit_back_buffer(void);
 
-#ifdef TARGET_DC
-    // Sod the user colour background stuff - it's junk.
-    // Something always gets blitted over it anyway.
-    void SetUserColour(UBYTE red, UBYTE green, UBYTE blue) { }
-
-    inline HRESULT SetBlackBackground(void) { return DD_OK; }
-    inline HRESULT SetWhiteBackground(void) { return DD_OK; }
-    inline HRESULT SetUserBackground(void) { return DD_OK; }
-    inline HRESULT BeginScene(void)
-    {
-        // TRACE("BeginScene ");
-        if (bInScene) {
-            return (DD_OK);
-        } else {
-            bInScene = TRUE;
-            return lp_D3D_Device->BeginScene();
-        }
-    }
-    inline HRESULT EndScene(void)
-    { /*TRACE("EndScene ");*/
-        bInScene = FALSE;
-        return lp_D3D_Device->EndScene();
-    }
-    inline HRESULT ClearViewport(void)
-    {
-        HRESULT hres = lp_D3D_Viewport->Clear(
-            1,
-            &ViewportRect,
-            D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER);
-        return hres;
-    }
-#else // #ifdef TARGET_DC
 
     void SetUserColour(UBYTE red, UBYTE green, UBYTE blue);
 
@@ -301,7 +253,6 @@ public:
             &ViewportRect,
             D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER);
     }
-#endif // #else //#ifdef TARGET_DC
 
     inline HRESULT SetRenderState(D3DRENDERSTATETYPE type, SLONG state)
     {
@@ -350,11 +301,9 @@ public:
     inline void Use3DOn(void) { AttribFlags |= DWF_USE_3D; }
     inline void Use3DOff(void) { AttribFlags &= ~DWF_USE_3D; }
 
-#ifndef TARGET_DC
     inline BOOL IsUseWork(void) { return (AttribFlags & DWF_USE_WORK); }
     inline void UseWorkOn(void) { AttribFlags |= DWF_USE_WORK; }
     inline void UseWorkOff(void) { AttribFlags &= ~DWF_USE_WORK; }
-#endif
 
     inline BOOL IsInitialised(void) { return DisplayFlags & DISPLAY_INIT; }
     inline void InitOn(void) { DisplayFlags |= DISPLAY_INIT; }

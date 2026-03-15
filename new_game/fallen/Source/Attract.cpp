@@ -19,17 +19,10 @@
 
 #include "Game.h"
 #include "cam.h"
-#ifndef PSX
 #include "..\Headers\ddlib.h"
 #include "font2d.h"
 #include "poly.h"
 #include "panel.h"
-#else
-#include "c:\fallen\psxeng\headers\psxeng.h"
-#include "c:\fallen\psxeng\headers\poly.h"
-#include "c:\ps\psx\include\ctrller.h"
-extern ControllerPacket PAD_Input1, PAD_Input2;
-#endif
 #include "startscr.h"
 #include "briefing.h"
 #define DEMO
@@ -50,7 +43,6 @@ extern ControllerPacket PAD_Input1, PAD_Input2;
 #define NEW_FRONTEND 1
 
 //---------------------------------------------------------------
-#ifndef PSX
 CBYTE demo_text[] = "Urban Chaos utilises a ground breaking graphics engine which includes 3D volumetric\n"
                     "fog, true wall hugging shadows, atomic matter simulation for real-time physical\n"
                     "modelling of dynamic object collisions and so provides the perfect environment \n"
@@ -60,7 +52,6 @@ CBYTE demo_text[] = "Urban Chaos utilises a ground breaking graphics engine whic
                     "fantasy.\n\n"
                     "Urban Chaos is being developed by Mucky Foot one of the UK's hottest new \n"
                     "development teams and will be published world-wide by Eidos Interactive.";
-#endif
 //---------------------------------------------------------------
 
 extern SLONG stat_killed_thug;
@@ -94,13 +85,10 @@ void AENG_demo_attract(SLONG x, SLONG y, CBYTE* text);
 extern BOOL text_fudge;
 extern SLONG do_start_menu(void);
 
-#ifndef PSX
 extern DIJOYSTATE the_state;
-#endif
 
 SLONG any_button_pressed(void)
 {
-#ifndef PSX
 
     if (ReadInputDevice()) {
         if (the_state.rgbButtons[0] || the_state.rgbButtons[1] || the_state.rgbButtons[2] || the_state.rgbButtons[3] || the_state.rgbButtons[4] || the_state.rgbButtons[5] || the_state.rgbButtons[6] || the_state.rgbButtons[7] || the_state.rgbButtons[8] || the_state.rgbButtons[9]) {
@@ -110,7 +98,6 @@ SLONG any_button_pressed(void)
         }
     }
     return (0);
-#endif
 }
 
 void game_attract_mode(void)
@@ -118,7 +105,6 @@ void game_attract_mode(void)
     float y;
     UBYTE *image_mem = NULL,
           *image = NULL;
-#ifndef PSX
     SLONG height,
         image_size;
     MFFileHandle image_file;
@@ -127,10 +113,8 @@ void game_attract_mode(void)
     //
     // make sure lighting is ok
     //
-#ifndef TARGET_DC
     extern void NIGHT_init();
     NIGHT_init();
-#endif
 
     if (auto_advance) {
         go_into_game = TRUE;
@@ -172,17 +156,7 @@ void game_attract_mode(void)
     bool bReinitBecauseOfLanguageChange = FALSE;
 reinit_because_of_language_change:
 
-#ifdef TARGET_DC
-    // If the softreset combo was pressed, go straight to the title screen.
-    if (g_bDreamcastABXYStartComboPressed) {
-        g_bDreamcastABXYStartComboPressed = FALSE;
-        FRONTEND_init(TRUE);
-    } else {
-        FRONTEND_init(bReinitBecauseOfLanguageChange);
-    }
-#else
     FRONTEND_init(bReinitBecauseOfLanguageChange);
-#endif
 
     bReinitBecauseOfLanguageChange = FALSE;
 
@@ -254,9 +228,6 @@ reinit_because_of_language_change:
     // claude-ai: STARTS_EDITOR → GS_EDITOR; STARTS_EXIT → GAME_STATE=0 (выход из программы).
     y = 500;
     while (SHELL_ACTIVE && (GAME_STATE & GS_ATTRACT_MODE)) {
-#ifdef TARGET_DC
-        Sleep(1);
-#endif
         if (dont_leave_for_a_while > 0) {
             dont_leave_for_a_while -= 1;
         }
@@ -338,14 +309,9 @@ reinit_because_of_language_change:
             }
         }
 
-#ifdef TARGET_DC
-        // Always clear the screen. Not a real clear, it just triggers a render.
-        AENG_clear_screen();
-#else
         if (y < 57.0F) {
             AENG_clear_screen();
         }
-#endif
 
         // LoadBackImage(image_mem);
         //		the_display.blit_background_surface();
@@ -408,10 +374,6 @@ reinit_because_of_language_change:
                         GAME_STATE |= GS_PLAY_GAME;
                         go_into_game = TRUE;
 
-#ifdef TARGET_DC
-                        // Unload all the frontend gubbins.
-                        FRONTEND_unload();
-#endif
 
                         ATTRACT_loadscreen_init();
 
@@ -454,16 +416,6 @@ reinit_because_of_language_change:
                     // A language change has been made -
                     // reload all the language stuff and go to the main menu.
 
-#ifdef TARGET_DC
-                    // The only place this can happen is at the title screen.
-                    // And after the title screen, we play the intro movie.
-
-                    // Free up as much memory as we can - the movie needs it!
-                    extern void FRONTEND_scr_unload_theme(void);
-                    FRONTEND_scr_unload_theme();
-                    stop_all_fx_and_music();
-                    the_display.RunCutscene(0, ENV_get_value_number("lang_num", 0, ""));
-#endif
 
                     // Loading screen for a second.
                     ATTRACT_loadscreen_init();
@@ -498,11 +450,9 @@ reinit_because_of_language_change:
         }
         */
 
-#ifndef TARGET_DC
         extern void lock_frame_rate(SLONG fps);
 
         lock_frame_rate(60); // because 30 is so slow i want to gnaw my own liver out rather than go through the menus
-#endif
 
         if ((GAME_STATE & GS_PLAY_GAME) == 0) {
             AENG_flip();
@@ -522,10 +472,6 @@ reinit_because_of_language_change:
     //	Fade to logo.
     if (GAME_STATE & GS_PLAY_GAME) {
         if (go_into_game) {
-#ifdef TARGET_DC
-            // Unload all the frontend gubbins.
-            FRONTEND_unload();
-#endif
 
             /*			AENG_clear_screen();
                                     AENG_fade_out(255);*/
@@ -565,21 +511,13 @@ reinit_because_of_language_change:
             }
     */
     ResetBackImage();
-#endif
 }
 
 //---------------------------------------------------------------
-#ifdef PSX
-extern FONT2D_DrawString(CBYTE* chr, ULONG x, ULONG y, ULONG rgb = 0xffffff, SLONG scale = 256, SLONG page = POLY_PAGE_FONT2D, SWORD fade = 0);
-#endif
 
 inline void printf2d(SLONG x, SLONG& y, CBYTE* fmt, ...)
 {
-#ifndef PSX
     CBYTE msg[_MAX_PATH];
-#else
-    CBYTE msg[128];
-#endif
     va_list ap;
 
     va_start(ap, fmt);
@@ -587,11 +525,7 @@ inline void printf2d(SLONG x, SLONG& y, CBYTE* fmt, ...)
     va_end(ap);
 
     FONT2D_DrawString(msg, x, y, 0x00ff00, 256, POLY_PAGE_FONT2D);
-#ifndef PSX
     y += 20;
-#else
-    y += 14;
-#endif
 }
 
 #if 0
@@ -599,7 +533,6 @@ inline void printf2d(SLONG x, SLONG& y, CBYTE* fmt, ...)
 // urgh.
 SLONG PrimaryScore, SecondaryScore, BonusScore;
 #define EWAY_FLAG_ACTIVE (1 << 0)
-#ifndef PSX
 void ScoresCalc(void) {
 	SLONG i, pts;
 	EWAY_Way *ew;
@@ -619,15 +552,10 @@ void ScoresCalc(void) {
 		}
 	}
 }
-#endif
 
 #endif
 
-#ifdef PSX
-#define SCORE_SPACER 14
-#else
 #define SCORE_SPACER 20
-#endif
 
 extern SLONG stat_killed_thug;
 extern SLONG stat_killed_innocent;
@@ -638,7 +566,6 @@ extern SLONG stat_start_time, stat_game_time;
 
 void ScoresDraw(void)
 {
-#ifndef PSX
 
     SLONG y = 35;
     SLONG count = 0, count_bonus = 0, count_bonus_left = 0, c0;
@@ -870,11 +797,6 @@ void ScoresDraw(void)
                         hash = hash % 12345;
                         hash += 0x9a2f;
 
-#ifdef TARGET_DC
-                        // Invert the code for the DC to stop cheating scum
-                        // sending in the PC times.
-                        hash ^= 0xffff;
-#endif
 
                         sprintf(code, ": CODE <%X> ", hash);
                     }
@@ -901,7 +823,6 @@ void ScoresDraw(void)
 
     //	POLY_frame_draw(FALSE, FALSE);
 
-#endif
 }
 
 #if 0
@@ -927,7 +848,6 @@ void level_won(void)
 	CONSOLE_text(XLAT_str(X_PRESS_TO_CONTINUE));
 	while(SHELL_ACTIVE&&(GAME_STATE&GS_LEVEL_WON))
 	{
-#ifndef PSX
 
 
 		ULONG input = get_hardware_input(INPUT_TYPE_JOY); // 1 << 1 => Joystick
@@ -937,13 +857,6 @@ void level_won(void)
 			GAME_STATE	=	0;
 			LastKey		=	0;
 		}
-#else
-		if (PadKeyIsPressed(&PAD_Input1,PAD_RD))
-		{
-			GAME_STATE  =   0;
-		}
-
-#endif
 //		process_things(1);
 #ifdef OLD_CAM
 		{
@@ -1005,20 +918,16 @@ void level_won(void)
 		//
 		// Lock frame-rate to 30 FPS
 		//
-#ifndef PSX		
 		do {
 			tick2 = GetTickCount();
 			timet = tick2 - tick1;
 		} while (timet < (1000 / 30));
 
 		tick1 = tick2;
-#endif
 		GAME_TURN += 1;
 
 	}
-#ifndef PSX
 	STARTSCR_notify_gameover(1);
-#endif
 //	if (BRIEFING_next_mission()) auto_advance=1;
 
 
@@ -1047,7 +956,6 @@ void	level_lost(void)
 
 	while(SHELL_ACTIVE&&(GAME_STATE&GS_LEVEL_LOST))
 	{
-#ifndef PSX
 
 		ULONG input = get_hardware_input(INPUT_TYPE_JOY); // 1 << 1 => Joystick
 
@@ -1056,14 +964,6 @@ void	level_lost(void)
 			GAME_STATE	=	0;
 			LastKey		=	0;
 		}
-#else
-		if (PadKeyIsPressed(&PAD_Input1,PAD_RD))
-		{
-			GAME_STATE  =   0;
-			wad_level   =   0;
-		}
-
-#endif
 
 //		process_things(1);
 #ifdef OLD_CAM
@@ -1113,7 +1013,6 @@ void	level_lost(void)
 		//
 		// Lock frame-rate to 30 FPS
 		//
-#ifndef PSX		
 		while(1)
 		{
 			tick2 = GetTickCount();
@@ -1126,12 +1025,9 @@ void	level_lost(void)
 		}
 
 		tick1 = tick2;
-#endif
 		GAME_TURN += 1;
 	}
-#ifndef PSX
 	STARTSCR_notify_gameover(0);
-#endif
 }
 
 #endif
@@ -1143,48 +1039,7 @@ void ATTRACT_loadscreen_init(void)
 
     PANEL_disable_screensaver(TRUE);
 
-#ifdef TARGET_DC
 
-    extern void POLY_ClearAllPages(void);
-    POLY_ClearAllPages();
-
-    // Flip once to flush the rendering (e.g. leaves will be left in).
-    the_display.lp_D3D_Viewport->Clear2(0, NULL, D3DCLEAR_TARGET, 0x0, 0.0f, 0);
-    the_display.lp_D3D_Device->EndScene();
-    the_display.lp_DD_FrontSurface->Flip(NULL, DDFLIP_WAIT);
-
-    // Clear both buffers.
-    the_display.lp_D3D_Device->BeginScene();
-    the_display.lp_D3D_Viewport->Clear2(0, NULL, D3DCLEAR_TARGET, 0x0, 0.0f, 0);
-    the_display.lp_D3D_Device->EndScene();
-    the_display.lp_DD_FrontSurface->Flip(NULL, DDFLIP_WAIT);
-
-    the_display.lp_D3D_Device->BeginScene();
-    the_display.lp_D3D_Viewport->Clear2(0, NULL, D3DCLEAR_TARGET, 0x0, 0.0f, 0);
-    the_display.lp_D3D_Device->EndScene();
-    the_display.lp_DD_FrontSurface->Flip(NULL, DDFLIP_WAIT);
-
-    // Really horrible hack.
-    void FRONTEND_scr_img_load_into_screenfull(CBYTE * name, CompressedBackground * screen);
-    FRONTEND_scr_img_load_into_screenfull("e3load.tga", &(the_display.lp_DD_Background));
-    UnpackBackground((BYTE*)(the_display.lp_DD_Background), the_display.lp_DD_BackSurface);
-    // AENG_flip();
-    the_display.lp_DD_FrontSurface->Flip(NULL, DDFLIP_WAIT);
-
-    the_display.lp_DD_BackSurface->Blt(NULL, the_display.lp_DD_FrontSurface, NULL, DDBLT_WAIT, NULL);
-
-    the_display.lp_DD_FrontSurface->Flip(NULL, DDFLIP_WAIT);
-
-    // InitBackImage("e3load.tga");
-    // ShowBackImage(FALSE);
-    // AENG_flip();
-
-    // Then free up the compressed image data again.
-    ResetBackImage();
-
-#else
-
-#ifndef PSX
     InitBackImage("e3load.tga");
     ShowBackImage(FALSE);
     AENG_flip();
@@ -1192,131 +1047,14 @@ void ATTRACT_loadscreen_init(void)
     InitBackImage("e3load.tga");
     ShowBackImage(FALSE);
     AENG_flip();
-#endif
 
-#endif
 }
 
-#ifdef TARGET_DC
-
-// None of the graphics systems are up at the moment,
-// so just draw straight to the front buffer.
-void ATTRACT_loadscreen_draw(SLONG completion) // completion is in 8-bit fixed point from 0 to 256.
-{
-#define START_R 50
-#define START_G 59
-#define START_B 80
-
-#define END_R 210
-#define END_G 216
-#define END_B 208
-
-    SLONG along;
-
-    SLONG r;
-    SLONG g;
-    SLONG b;
-
-    SLONG i;
-
-    SLONG colour;
-
-    HRESULT hres;
-
-#if 1
-
-    DDSURFACEDESC2 ddsd;
-    memset(&ddsd, 0, sizeof(ddsd));
-    ddsd.dwSize = sizeof(ddsd);
-
-    hres = the_display.lp_DD_FrontSurface->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_WRITEONLY, NULL);
-
-    for (i = 0; i < (completion >> 3); i += 1) {
-        r = START_R + (END_R - START_R) * i >> 5;
-        g = START_G + (END_G - START_G) * i >> 5;
-        b = START_B + (END_B - START_B) * i >> 5;
-
-        // Tailored to 565.
-        colour = ((r & 0xf8) << 8) | ((g & 0xfc) << 3) | (b >> 3);
-        // colour |= colour << 16;
-
-        RECT rect;
-        rect.left = 0 + i * 20;
-        rect.right = 20 + i * 20;
-        // Got to move this higher for NTSC, or it falls off the bottom of the screen.
-        if (eDisplayType == DT_NTSC) {
-            rect.top = 435;
-            rect.bottom = 455;
-        } else {
-            rect.top = 455;
-            rect.bottom = 475;
-        }
-
-        // Two black lines.
-        for (int iY = rect.top; iY < rect.top + 2; iY++) {
-            WORD* wPtr = (WORD*)((char*)ddsd.lpSurface + iY * ddsd.lPitch);
-            wPtr += rect.left;
-            for (int iX = rect.left; iX < rect.right; iX++) {
-                *wPtr++ = 0;
-            }
-        }
-
-        for (iY = rect.top + 2; iY < rect.bottom; iY++) {
-            WORD* wPtr = (WORD*)((char*)ddsd.lpSurface + iY * ddsd.lPitch);
-            wPtr += rect.left;
-            for (int iX = rect.left; iX < rect.right - 2; iX++) {
-                *wPtr++ = colour;
-            }
-            // And two black pixels.
-            *wPtr++ = 0;
-            *wPtr++ = 0;
-        }
-    }
-
-    hres = the_display.lp_DD_FrontSurface->Unlock(NULL);
-
-#else
-
-    DDBLTFX ddbltfx;
-    memset(&ddbltfx, 0, sizeof(ddbltfx));
-    ddbltfx.dwSize = sizeof(ddbltfx);
-
-    for (i = 0; i < (completion >> 3); i += 1) {
-        r = START_R + (END_R - START_R) * i >> 5;
-        g = START_G + (END_G - START_G) * i >> 5;
-        b = START_B + (END_B - START_B) * i >> 5;
-
-        // Tailored to 565.
-        colour = ((r & 0xf8) << 8) | ((g & 0xfc) << 3) | (b >> 3);
-        colour |= colour << 16;
-
-        RECT rect;
-        rect.left = 5 + i * 20;
-        rect.right = 23 + i * 20;
-        rect.top = 455;
-        rect.bottom = 475;
-
-        ddbltfx.dwFillColor = colour;
-
-        HRESULT hres = the_display.lp_DD_BackSurface->Blt(&rect, NULL, NULL, DDBLT_COLORFILL | DDBLT_DDFX, &ddbltfx);
-
-        hres++;
-    }
-
-    AENG_flip();
-
-#endif
-}
-
-#else
 
 void ATTRACT_loadscreen_draw(SLONG completion) // completion is in 8-bit fixed point from 0 to 256.
 {
-#ifndef PSX
     ShowBackImage(FALSE);
     PANEL_draw_completion_bar(completion);
     AENG_flip();
-#endif
 }
 
-#endif

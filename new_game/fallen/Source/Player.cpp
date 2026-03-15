@@ -18,13 +18,11 @@ GenusFunctions player_functions[] = {
 GameCoord player_pos;
 
 //---------------------------------------------------------------
-#ifndef PSX
 void init_players(void)
 {
     memset((UBYTE*)PLAYERS, 0, sizeof(Player) * MAX_PLAYERS);
     PLAYER_COUNT = 0;
 }
-#endif
 //---------------------------------------------------------------
 
 Thing* alloc_player(UBYTE type)
@@ -292,7 +290,6 @@ SLONG should_i_sneak(Thing* p_person)
 
 void PLAYER_redmark(SLONG playerid, SLONG dredmarks)
 {
-#ifndef PSX
     SLONG redmarks;
     Thing* p_player;
 
@@ -324,5 +321,4 @@ void PLAYER_redmark(SLONG playerid, SLONG dredmarks)
 
         GAME_STATE = GS_LEVEL_LOST;
     }
-#endif
 }

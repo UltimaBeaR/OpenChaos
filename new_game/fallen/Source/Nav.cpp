@@ -93,10 +93,6 @@ void NAV_init(void)
 
 SLONG NAV_wall_in_way(SLONG x, SLONG z, SLONG dirn)
 {
-#ifdef TARGET_DC
-    // Shouldn't be using this, apparently.
-    ASSERT(FALSE);
-#endif
 
     SLONG mx;
     SLONG mz;
@@ -245,7 +241,6 @@ UWORD NAV_do(UWORD x1, UWORD z1, UWORD x2, UWORD z2, UBYTE flag)
     return ans;
 }
 
-#ifndef TARGET_DC
 void NAV_path_draw(UWORD startx, UWORD startz, UWORD path)
 {
     UWORD x1;
@@ -268,4 +263,3 @@ void NAV_path_draw(UWORD startx, UWORD startz, UWORD path)
         path = NAV_WAYPOINT(path)->next;
     }
 }
-#endif

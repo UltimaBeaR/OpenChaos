@@ -831,7 +831,6 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
     }
 }
 
-#ifndef PSX
 void WALKABLE_remove_rface(UBYTE map_x, UBYTE map_z)
 {
     SWORD next;
@@ -889,4 +888,3 @@ void WALKABLE_remove_rface(UBYTE map_x, UBYTE map_z)
 
     PAP_2HI(map_x, map_z).Flags |= PAP_FLAG_HIDDEN;
 }
-#endif

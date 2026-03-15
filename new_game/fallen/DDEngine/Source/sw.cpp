@@ -9,7 +9,6 @@
 #include "elev.h"
 #include "game.h"
 
-#ifndef TARGET_DC
 
 #define THIS_IS_INCLUDED_FROM_SW
 
@@ -35,12 +34,7 @@ extern D3DTexture TEXTURE_texture[];
 //
 
 ULONG* SW_buffer;
-#ifdef TARGET_DC
-// Spoof that sucker!
-ULONG SW_buffer_memory[1];
-#else
 ULONG SW_buffer_memory[SW_MAX_WIDTH * SW_MAX_HEIGHT + 2]; // + 2 to ensure quadword alignment.
-#endif
 SLONG SW_buffer_width;
 SLONG SW_buffer_height;
 SLONG SW_buffer_pitch; // In ULONGs
@@ -68,11 +62,7 @@ typedef struct
 
 } SW_Texture;
 
-#ifdef TARGET_DC
-#define SW_MAX_TEXTURES 1
-#else
 #define SW_MAX_TEXTURES (22 * 64 + 110)
-#endif
 
 SW_Texture SW_texture[SW_MAX_TEXTURES];
 
@@ -104,11 +94,7 @@ typedef struct sw_masked {
 
 } SW_Masked;
 
-#ifdef TARGET_DC
-#define SW_MAX_MASKED 1
-#else
 #define SW_MAX_MASKED 4096
-#endif
 
 SW_Masked SW_masked[SW_MAX_MASKED];
 SLONG SW_masked_upto;
@@ -117,11 +103,7 @@ SLONG SW_masked_upto;
 // The masked triangle buckets...
 //
 
-#ifdef TARGET_DC
-#define SW_MAX_BUCKETS 1
-#else
 #define SW_MAX_BUCKETS 256
-#endif
 
 SW_Masked* SW_masked_bucket[SW_MAX_BUCKETS];
 
@@ -144,11 +126,7 @@ typedef struct sw_alpha {
 
 } SW_Alpha;
 
-#ifdef TARGET_DC
-#define SW_MAX_ALPHAS 1
-#else
 #define SW_MAX_ALPHAS 2048
-#endif
 
 SW_Alpha SW_alpha[SW_MAX_ALPHAS];
 SLONG SW_alpha_upto;
@@ -203,16 +181,9 @@ typedef struct sw_span {
 
 } SW_Span;
 
-#ifdef TARGET_DC
-
-// I'm not wasting 8Mb for something we'll never need!
-#define SW_MAX_SPANS 1
-
-#else
 
 #define SW_MAX_SPANS 0x20000
 
-#endif
 
 SW_Span SW_span[SW_MAX_SPANS];
 SLONG SW_span_upto;
@@ -226,7 +197,6 @@ SLONG SW_span_upto;
 
 SW_Span* SW_line[SW_MAX_HEIGHT];
 
-#ifndef TARGET_DC
 
 // ========================================================
 //
@@ -269,45 +239,6 @@ static inline SLONG MUL16(SLONG a, SLONG b)
 }
 #pragma warning(default : 4035)
 
-#else // #ifndef TARGET_DC
-
-// Dreamcast versions. Might be inlined later, just C for now.
-// Also very approximate - DC compiler doesn't like long long, so trash the accuracy.
-static inline SLONG DIV16(SLONG a, SLONG b)
-{
-    SLONG ta, tb;
-    int iShift;
-
-    // return ( ( a << 16 )  / b );
-
-    iShift = 0;
-
-    if (a < 0x10000) {
-        return ((a << 16) / b);
-    } else if (a < 0x1000000) {
-        return ((a << 8) / (b >> 8));
-    } else {
-        return (a / (b >> 16));
-    }
-}
-
-static inline SLONG MUL16(SLONG a, SLONG b)
-{
-    // return ( ( a * b ) >> 16 );
-
-    if (a < 0x10000) {
-        // a is small, b might be big.
-        return ((a * (b >> 16)));
-    } else if (a < 0x1000000) {
-        // both are about the same size.
-        return ((a >> 8) * (b >> 8));
-    } else {
-        // a is big, b should be small.
-        return ((a >> 16) * b);
-    }
-}
-
-#endif // #else //#ifndef TARGET_DC
 
 // ========================================================
 //
@@ -340,11 +271,7 @@ extern SLONG ALWAYS_recip[ALWAYS_HOW_MANY_RECIPS];
 // recippt[2] are all set to 0x10000.
 //
 
-#ifdef TARGET_DC
-#define ALWAYS_HOW_MANY_RECIPPT 1024
-#else
 #define ALWAYS_HOW_MANY_RECIPPT 65536
-#endif
 
 extern SLONG ALWAYS_recippt[ALWAYS_HOW_MANY_RECIPPT];
 
@@ -1046,7 +973,6 @@ void SW_draw_span_reference(SW_Span* ss, SLONG line, SLONG mode)
     }
 }
 
-#ifndef TARGET_DC
 
 #define SWIZZLE 1
 
@@ -1112,15 +1038,6 @@ void SW_draw_span(SW_Span* ss, SLONG line, SLONG mode)
     }
 }
 
-#else // #ifndef TARGET_DC
-
-// Cheezily wrapped for now.
-void SW_draw_span(SW_Span* ss, SLONG line, SLONG mode)
-{
-    SW_draw_span_reference(ss, line, mode);
-}
-
-#endif // #else //#ifndef TARGET_DC
 
 void SW_add_masked_triangle(
     SLONG x1, SLONG y1, SLONG z1, SLONG r1, SLONG g1, SLONG b1, SLONG u1, SLONG v1,
@@ -1827,14 +1744,6 @@ void SW_reload_textures()
                 SW_bucket[i] = 9;
                 break;
 
-#ifdef TARGET_DC
-            case POLY_PAGE_BACKGROUND_IMAGE:
-                tt_index = TEXTURE_page_background_use_instead;
-                break;
-            case POLY_PAGE_BACKGROUND_IMAGE2:
-                tt_index = TEXTURE_page_background_use_instead2;
-                break;
-#endif
 
             default:
 
@@ -2000,7 +1909,6 @@ void SW_reload_textures()
     CloseTGAClump();
 }
 
-#if !defined(TARGET_DC)
 
 //
 // Thanks, Tom.
@@ -3329,17 +3237,6 @@ void SW_render_spans()
     }
 }
 
-#else // #if !defined (TARGET_DC)
-
-// DC stuff.
-
-void SW_render_spans()
-{
-    // Stubbed - shouldn't be used anyway.
-    ASSERT(FALSE);
-}
-
-#endif // #else //#if !defined (TARGET_DC)
 
 void SW_add_triangle(
     SLONG x1, SLONG y1, SLONG z1, SLONG r1, SLONG g1, SLONG b1, SLONG u1, SLONG v1,
@@ -5329,7 +5226,6 @@ void SW_draw_alpha_sprite(
     }
 }
 
-#if !defined(TARGET_DC)
 //
 // Returns the number of processor ticks since the processor was reset / 65536
 //
@@ -5354,14 +5250,6 @@ ULONG SW_rdtsc(void)
     return ans;
 }
 
-#else // #if !defined(TARGET_DC)
-
-ULONG SW_rdtsc(void)
-{
-    return 1;
-}
-
-#endif // #else //#if !defined(TARGET_DC)
 
 SLONG SW_tick1;
 SLONG SW_tick2;
@@ -6088,4 +5976,3 @@ void SW_copy_to_bb()
     }
 }
 
-#endif // #ifndef TARGET_DC

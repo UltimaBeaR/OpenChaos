@@ -178,7 +178,6 @@ UBYTE MAV_get_caps(
     UBYTE z,
     UBYTE dir);
 
-#ifndef TARGET_DC
 //
 // Draw the MAV_info in the given squares (these are mapsquares... fixed point 0).
 //
@@ -186,7 +185,6 @@ UBYTE MAV_get_caps(
 void MAV_draw(
     SLONG x1, SLONG z1,
     SLONG x2, SLONG z2);
-#endif // #ifndef TARGET_DC
 
 //
 // A crude los function that only uses the MAV_height array. Coordinates are

@@ -93,11 +93,28 @@ include'ы из Editor/, sedit/ в Game.cpp, Building.cpp, Enemy.cpp, Structs.h 
 
 ---
 
-## Итерация 3 — Удаление PSX/DC кода (план, это еще не сделано)
+## Итерация 3 — Удаление PSX/DC кода
 
-Инструмент, команда, нюансы: [`tools/coan/usage.md`](../tools/coan/usage.md)
+**Дата:** 2026-03-15
 
-**Нюансы специфичные для этой итерации:**
-- `BUILD_PSX` определён только внутри `#ifdef PSX` в `Game.h` — после удаления все `#ifndef BUILD_PSX` блоки (`memory.cpp`, `Person.cpp`) станут безусловно активными (верно для PC)
-- После coan вручную удалить: папки `PSXENG/`, `psxlib/`, `psxlib1/` и PSX-файлы из `Fallen.vcxproj` (`nightpsx.cpp`, `Levelpsx.cpp`, `dc_credits.cpp`, `hm_psx.cpp`, `io_psx.cpp`, `pausepsx.cpp`)
+**Инструмент:** coan с флагами `-UPSX -UTARGET_DC -UBUILD_PSX`
+
+**Команда:**
+```
+tools/coan/coan.exe source -UPSX -UTARGET_DC -UBUILD_PSX --no-transients --filter cpp,c,h,hpp --recurse new_game/fallen/Source new_game/fallen/DDEngine new_game/fallen/DDLibrary new_game/fallen/Headers new_game/fallen/Loader
+```
+
+**Удалено:**
+- coan обработал 214 файлов, удалил ~22700 строк PSX/DC кода
+- Папки `PSXENG/`, `psxlib/`, `psxlib1/` — удалены целиком
+- PSX-файлы из Source/: `nightpsx.cpp`, `Levelpsx.cpp`, `dc_credits.cpp`, `hm_psx.cpp`, `io_psx.cpp`, `pausepsx.cpp`
+- `nightpsx.cpp` убран из `Fallen.vcxproj`
+
+**Попутные правки:**
+- `qls.cpp`: удалён orphan `#endif` в конце файла (баг из оригинала — там тоже есть). Файл был обёрнут в `#ifdef` который убрали, а `#endif` остался. Без этой правки coan падал с ошибкой "Orphan #endif".
+
+**Нюансы:**
+- `BUILD_PSX` определялся только внутри `#ifdef PSX` в `Game.h` → теперь безусловно не определён. `#ifndef BUILD_PSX` блоки в `memory.cpp`, `Person.cpp` стали активными (верно для PC).
+- В `aeng.cpp` остались 3 `#ifdef TARGET_DC` блока (строки 3633, 3776, 3818). Они внутри `#if 0` блока с незакрытым `/* */` комментарием внутри — coan не смог обработать из-за вложенного комментария. Это дважды мёртвый код. Разберём в итерации по `#if 0`.
+- Символы `PSX_NOT_REALLY`, `PSX_STERN_REVENGE_BUG_AND_CRAP_DRIVERS`, `PSX_COMPRESS_LIGHT` — другие символы, не `PSX`, coan их не трогал. Это норма.
 

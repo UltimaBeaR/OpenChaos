@@ -9,12 +9,10 @@
 TRIP_Wire* TRIP_wire; //[TRIP_MAX_WIRES];
 SLONG TRIP_wire_upto;
 
-#ifndef PSX
 void TRIP_init()
 {
     TRIP_wire_upto = 1;
 }
-#endif
 
 UBYTE TRIP_create(
     SLONG y,

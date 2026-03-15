@@ -1,42 +1,6 @@
 #ifndef SUPERMAP_H
 #define SUPERMAP_H 1
 
-#ifdef PSX
-//
-// PSX include
-//
-#include "libsn.h"
-/*
-#define	MFFileHandle	SLONG
-#define	FILE_OPEN_ERROR	(-1)
-#define	SEEK_MODE_CURRENT	(1)
-
-#define	FileOpen(x)		PCopen(x,0,0)
-#define	FileClose(x)	PCclose(x)
-#define	FileCreate(x,y)	PCopen(x,1,0)
-#define	FileRead(h,a,s) PCread(h,(char*)a,s)
-#define	FileWrite(h,a,s) PCwrite(h,(char*)a,s)
-#define	FileSeek(h,m,o) PClseek(h,o,m)
-
-#endif
-*/
-
-#define MFFileHandle SLONG
-#define FILE_OPEN_ERROR (-1)
-#define SEEK_MODE_CURRENT (1)
-
-extern SLONG SpecialOpen(CBYTE* name);
-extern SLONG SpecialRead(SLONG handle, UBYTE* ptr, SLONG s1);
-extern SLONG SpecialSeek(SLONG handle, SLONG mode, SLONG size);
-
-#define FileOpen(x) SpecialOpen(x)
-#define FileClose(x) SpecialClose(x)
-#define FileCreate(x, y) ASSERT(0)
-#define FileRead(h, a, s) SpecialRead(h, (char*)a, s)
-#define FileWrite(h, a, s) ASSERT(0)
-#define FileSeek(h, m, o) SpecialSeek(h, m, o)
-
-#endif
 
 #define MAX_FACET_LINK 32000
 

@@ -22,11 +22,6 @@
 #include "sound_id.h"
 #include "music.h"
 #include "memory.h"
-#ifdef TARGET_DC
-#include "interfac.h"
-#include "DIManager.h"
-#include "frontend.h"
-#endif
 
 //
 // Externs
@@ -78,9 +73,6 @@ SLONG GAMEMENU_wait;
 
 CBYTE* GAMEMENU_level_lost_reason;
 
-#ifdef TARGET_DC
-bool bDontShowThePauseScreen = FALSE;
-#endif
 
 //
 // Each of the menus.
@@ -151,7 +143,6 @@ SLONG GAMEMENU_process()
 
     SLONG millisecs;
 
-#ifndef PSX
 
     static SLONG tick_last = 0;
     static SLONG tick_now = 0;
@@ -161,11 +152,6 @@ SLONG GAMEMENU_process()
     millisecs = tick_now - tick_last;
     tick_last = tick_now;
 
-#else
-
-    millisecs = 50; // 20 fps
-
-#endif
 
     //
     // Make sure nothing is too extreme...
@@ -173,36 +159,6 @@ SLONG GAMEMENU_process()
 
     SATURATE(millisecs, 10, 200);
 
-#ifdef TARGET_DC
-    ULONG input;
-    if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE) {
-        // There is a menu up, so poll using the "menu" mappings.
-        if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_PAUSE) {
-            // Do NOT use INPUT_TYPE_REMAP_START_BUTTON, because start needs to deactivate pause, NOT select the current option.
-            // Also, don't remap X and Y - they are used for showing a static screen.
-            input = get_hardware_input(INPUT_TYPE_JOY | INPUT_TYPE_REMAP_DPAD | INPUT_TYPE_REMAP_BUTTONS | INPUT_TYPE_GONEDOWN | INPUT_TYPE_REMAP_NOT_X_Y);
-
-            // Now see if X+Y are pressed.
-            extern DIJOYSTATE the_state;
-            if (((the_state.rgbButtons[DI_DC_BUTTON_X] & 0x80) != 0) && ((the_state.rgbButtons[DI_DC_BUTTON_Y] & 0x80) != 0)) {
-                bDontShowThePauseScreen = TRUE;
-            }
-        } else {
-            input = get_hardware_input(INPUT_TYPE_JOY | INPUT_TYPE_REMAP_DPAD | INPUT_TYPE_REMAP_BUTTONS | INPUT_TYPE_REMAP_START_BUTTON | INPUT_TYPE_GONEDOWN);
-
-            // Freeze out input while the feadeing happens when the level is won or lost.
-            // Otherwise it's too easy to skip through it by accident.
-            if (((GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_WON) || (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_LOST)) && (GAMEMENU_wait < (64 * 20 * 4))) {
-                // Bin the input.
-                TRACE("I:");
-                input = 0;
-            }
-        }
-    } else {
-        // No menu, so just get the last input that was polled.
-        input = get_last_input(INPUT_TYPE_GONEDOWN);
-    }
-#endif
 
     //
     // Automatically go into these menus.
@@ -255,17 +211,10 @@ SLONG GAMEMENU_process()
         GAME_cut_scene = FALSE;
     }
 
-#ifdef TARGET_DC
-    if (Keys[KB_ESC] || (input & (INPUT_MASK_START)))
-#else
     if (Keys[KB_ESC])
-#endif
     {
         Keys[KB_ESC] = 0;
 
-#ifdef TARGET_DC
-        bDontShowThePauseScreen = FALSE;
-#endif
 
         switch (GAMEMENU_menu_type) {
         case GAMEMENU_MENU_TYPE_NONE:
@@ -299,13 +248,6 @@ SLONG GAMEMENU_process()
         }
     }
 
-#ifdef TARGET_DC
-    // If there is no primary (i.e. a controller was removed), go into the pause menu.
-    extern DIDeviceInfo* primary_device;
-    if ((primary_device == NULL) && (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_NONE)) {
-        GAMEMENU_initialise(GAMEMENU_MENU_TYPE_PAUSE);
-    }
-#endif
 
     if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE) {
         //
@@ -333,11 +275,7 @@ SLONG GAMEMENU_process()
             // Control the menu.
             //
 
-#ifdef TARGET_DC
-            if (Keys[KB_UP] || (input & INPUT_MASK_FORWARDS))
-#else
             if (Keys[KB_UP])
-#endif
             {
                 Keys[KB_UP] = 0;
 
@@ -354,11 +292,7 @@ SLONG GAMEMENU_process()
                 MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
             }
 
-#ifdef TARGET_DC
-            if (Keys[KB_DOWN] || (input & INPUT_MASK_BACKWARDS))
-#else
             if (Keys[KB_DOWN])
-#endif
             {
                 Keys[KB_DOWN] = 0;
 
@@ -381,14 +315,7 @@ SLONG GAMEMENU_process()
                 }
             }
 
-#ifdef TARGET_DC
-            // Don't allow selections when the pause screen is hidden -
-            // people don't know what they're selecting. Start will exit from
-            // pause, and they can go back in if they want to do something.
-            if ((Keys[KB_ENTER] || Keys[KB_SPACE] || Keys[KB_PENTER] || (input & INPUT_MASK_DOMENU)) && !bDontShowThePauseScreen)
-#else
             if (Keys[KB_ENTER] || Keys[KB_SPACE] || Keys[KB_PENTER])
-#endif
             {
                 Keys[KB_ENTER] = 0;
                 Keys[KB_SPACE] = 0;
@@ -418,7 +345,6 @@ SLONG GAMEMENU_process()
                     GAMEMENU_initialise(GAMEMENU_MENU_TYPE_PAUSE);
                     break;
 
-#ifndef TARGET_DC
                 case X_SAVE_GAME:
                     MEMORY_quick_save();
                     GAMEMENU_initialise(GAMEMENU_MENU_TYPE_NONE);
@@ -429,7 +355,6 @@ SLONG GAMEMENU_process()
                         return GAMEMENU_DO_RESTART;
                     }
                     break;
-#endif
 
                 default:
                     ASSERT(0);
@@ -469,31 +394,20 @@ void GAMEMENU_draw()
         return;
     }
 
-#ifdef TARGET_DC
-    if (bDontShowThePauseScreen) {
-        return;
-    }
-#endif
 
     //
     // Darken the screen.
     //
 
-#ifndef TARGET_DC
     POLY_frame_init(FALSE, FALSE);
-#endif
     PANEL_darken_screen(GAMEMENU_background);
-#ifndef TARGET_DC
     POLY_frame_draw(FALSE, FALSE);
-#endif
 
     //
     // Draw the menu.
     //
 
-#ifndef TARGET_DC
     POLY_frame_init(FALSE, FALSE);
-#endif
 
     MENUFONT_fadein_line(GAMEMENU_fadein_x);
     MENUFONT_fadein_draw(320, 100, 255, XLAT_str(GAMEMENU_menu[GAMEMENU_menu_type].word[0]));
@@ -520,68 +434,6 @@ void GAMEMENU_draw()
 
         ScoresDraw();
     }
-#ifdef TARGET_DC
-    else if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_PAUSE) {
-        static iFlash = 0;
-        extern DIDeviceInfo* primary_device;
-        extern BOOL AreAnyDevicesConnected(void);
-        if (primary_device == NULL) {
-            UBYTE bMyFade = 255;
-            if ((iFlash & 0x10) == 0) {
-                bMyFade = 128;
-            }
-
-            if (AreAnyDevicesConnected()) {
-                // No current controller, but there is one connected. Tell them to press start.
-                MENUFONT_fadein_draw(
-                    320,
-                    350,
-                    bMyFade,
-                    XLAT_str(X_CONTROLLER_REMOVED));
-            } else {
-                // No controllers at all.
-#ifdef SEGA_ARE_CONSIDERATE_KIND_AND_HELPFUL_AND_WISH_NOT_TO_MAKE_MY_GAME_FUCKING_UGLY
-                MENUFONT_fadein_draw(
-                    320,
-                    350,
-                    bMyFade,
-                    XLAT_str(X_NO_CONTROLLER_CONNECTED));
-#else
-                // But they're not, and they do.
-                char* pcString[4];
-                if (!IsEnglish) {
-                    pcString[0] = "Une manette vient";
-                    pcString[1] = "d'etre retir�e ou"; // NOTE! The E in etre should be �, but the font doesn't have it, and it's all in caps anyway.
-                    if (bWriteVMInsteadOfVMU) {
-                        pcString[2] = "une VM est en";
-                    } else {
-                        pcString[2] = "une VMU est en";
-                    }
-                    pcString[3] = "cours de d�tection";
-                } else {
-                    pcString[0] = "The controller";
-                    pcString[1] = "has been removed";
-                    if (bWriteVMInsteadOfVMU) {
-                        pcString[2] = "or a VM is";
-                    } else {
-                        pcString[2] = "or a VMU is";
-                    }
-                    pcString[3] = "being recognised";
-                }
-
-                MENUFONT_fadein_draw(320, 155 + 0, bMyFade, pcString[0]);
-                MENUFONT_fadein_draw(320, 155 + 40, bMyFade, pcString[1]);
-                MENUFONT_fadein_draw(320, 155 + 80, bMyFade, pcString[2]);
-                MENUFONT_fadein_draw(320, 155 + 120, bMyFade, pcString[3]);
-                bDrawMainPartOfMenu = FALSE;
-#endif
-            }
-
-            iFlash++;
-        }
-    }
-
-#endif
 
     if (bDrawMainPartOfMenu) {
         for (i = 1; i < 8; i++) {
@@ -595,7 +447,5 @@ void GAMEMENU_draw()
         }
     }
 
-#ifndef TARGET_DC
     POLY_frame_draw(FALSE, FALSE);
-#endif
 }

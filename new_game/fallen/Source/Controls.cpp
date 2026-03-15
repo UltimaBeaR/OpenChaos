@@ -68,9 +68,7 @@
 #include "shadow.h"
 #include "puddle.h"
 #include "pow.h"
-#ifndef PSX
 #include "panel.h"
-#endif
 #include "drip.h"
 #include "cam.h"
 #include "sewer.h"
@@ -98,9 +96,7 @@
 #include "statedef.h"
 #include "combat.h"
 #include "door.h"
-#ifndef PSX
 #include "..\DDEngine\Headers\console.h"
-#endif
 #include "psystem.h"
 #include "ribbon.h"
 #include "..\DDEngine\Headers\poly.h"
@@ -123,37 +119,21 @@
 #include "grenade.h"
 #include "demo.h"
 
-#ifndef PSX
 #include <DDLib.h>
 #include "vertexbuffer.h"
 #include "polypoint.h"
 #include "renderstate.h"
 #include "polypage.h"
 #include "font2d.h"
-#ifndef TARGET_DC
 #include "FFManager.h"
-#endif
 #include "..\ddlibrary\headers\ddlib.h"
 #include "..\ddengine\headers\texture.h"
-#else
-#include "LIBETC.h"
-
-// For Object Creation we need the pad input crap here.
-
-#include "ctrller.h"
-extern ControllerPacket PAD_Input1, PAD_Input2;
-
-// ****************************************************
-
-#endif
 
 extern SLONG am_i_a_thug(Thing* p_person);
 extern void drop_current_gun(Thing* p_person, SLONG change_anim);
 extern SLONG analogue;
 
-#ifndef TARGET_DC
 SLONG NIGHT_specular_enable = FALSE;
-#endif
 
 SLONG draw_3d;
 extern SLONG mouse_input;
@@ -226,7 +206,6 @@ UBYTE InkeyToAsciiShift[] = {
 
 //---------------------------------------------------------------
 
-#ifndef PSX
 
 // claude-ai: cmd_list — список команд отладочной консоли (F9 в игре).
 // claude-ai: Индексы: 0=cam, 1=echo, 2=tels(store), 3=telr(restore), 4=telw(wpt),
@@ -294,10 +273,6 @@ EWAY_Way* eway_find_near(GameCoord pos)
 // claude-ai:   PC Debug build (#ifndef NDEBUG): 1 по умолчанию.
 // claude-ai:   PC FAST_EDDIE build: 1 по умолчанию (QA-версия).
 // claude-ai:   PC Release build: 0 по умолчанию, можно включить через консоль "bangunsnotgames".
-#ifdef TARGET_DC
-BOOL allow_debug_keys = 0;
-
-#else
 
 #ifndef NDEBUG
 BOOL allow_debug_keys = 1;
@@ -309,7 +284,6 @@ BOOL allow_debug_keys = 0;
 #endif
 #endif
 
-#endif
 
 // claude-ai: VARIABLE: dkeys_have_been_used — TRUE если отладочные клавиши использовались
 // claude-ai: (флаг для отслеживания факта переключения allow_debug_keys через консоль).
@@ -393,9 +367,6 @@ void parse_console(CBYTE* str)
 
             case 7: // vtx - dump vertex buffer information
             {
-#ifdef TARGET_DC
-                CONSOLE_text("Shan't dump VB info - you can't make me.");
-#else
                 FILE* fd = MF_Fopen("C:\\VertexBufferInfo.txt", "w");
                 if (fd) {
                     TheVPool->DumpInfo(fd);
@@ -403,7 +374,6 @@ void parse_console(CBYTE* str)
                     CONSOLE_text("Info dumped at C:\\VertexBufferInfo.txt");
                 } else
                     CONSOLE_text("Can't open C:\\VertexBufferInfo.txt");
-#endif
             } break;
 
             case 8: // alpha - set alpha sort type
@@ -549,7 +519,6 @@ void parse_console(CBYTE* str)
     CONSOLE_text("huh?", 3000);
 }
 
-#endif
 
 //
 // Takes a screen shot of the city from above.
@@ -558,7 +527,6 @@ void parse_console(CBYTE* str)
 // claude-ai: tga_dump() — сохраняет текущий кадр с экрана в TGA-файл.
 // claude-ai: Ищет первый свободный номер c:\tmp\shot000.tga .. shot9999.tga.
 // claude-ai: Читает пиксели через the_display.GetPixel() (DirectDraw surface).
-#if !defined(PSX) && !defined(TARGET_DC)
 
 #include "tga.h"
 
@@ -1007,13 +975,6 @@ void plan_view_shot()
     }
 }
 
-#else // PSX or TARGET_DC
-
-void plan_view_shot()
-{
-}
-
-#endif
 
 //---------------------------------------------------------------
 
@@ -1108,7 +1069,6 @@ void CONTROLS_set_inventory(Thing* darci, Thing* player, SLONG count)
 // claude-ai: --- PC-specific inventory & form helpers ---
 // claude-ai: form_proc() — callback для диалоговых форм (Widget-система).
 // claude-ai: Нажатие любой BUTTON → form->returncode = TRUE → закрыть форму.
-#ifndef PSX
 
 Form* test_form;
 Widget* widget_text;
@@ -1389,7 +1349,6 @@ void	CONTROLS_set_inventory(Thing *darci, Thing *player) {
 }
 */
 
-#endif
 //
 // PC VERSION
 //
@@ -1470,11 +1429,7 @@ void context_music(void)
     //		mode=13+WARE_ware[darci->Genus.Person->Ware].ambience;
     // return; // we're inside the nightclub, so don't play context music.
 
-#ifndef PSX
     MUSIC_mode(mode);
-#else
-    MUSIC_mode(mode | MUSIC_MODE_FORCE);
-#endif
 }
 
 // old skanky version
@@ -1635,12 +1590,7 @@ void	context_music(void)
 				break;
 
 			case 1: // red
-#ifndef PSX
 				MFX_play_ambient(0, S_TUNE_DANGER_RED, 0);
-#else
-				MUSIC_stop(1);
-				MUSIC_play(S_TUNE_DANGER_RED,MUSIC_FLAG_QUEUED|MUSIC_FLAG_FADE_OUT);
-#endif
 //			CONSOLE_text("D1 MUSIC");
 				//play_music(S_TUNE_DANGER_RED,1);
 /*
@@ -1811,7 +1761,6 @@ void set_danger_level()
 // claude-ai: ввод обрабатывается в INTERFAC через INPUT_process() (вызывается отдельно).
 // claude-ai: Здесь: опасность, музыка, смерть, инвентарь, частицы, консоль, debug-клавиши.
 // claude-ai: darci = NET_PERSON(0) — Thing игрока (PLAYER_ID=0).
-#ifndef PSX
 void process_controls(void)
 {
     SLONG i;
@@ -1888,7 +1837,6 @@ void process_controls(void)
         */
     }
 
-#ifndef TARGET_DC
     if (Keys[KB_D]) {
         Keys[KB_D] = 0;
 
@@ -1901,7 +1849,6 @@ void process_controls(void)
         // set_person_recoil(darci, ANIM_HIT_FRONT_HI, 0);
         // set_person_dead(darci, NULL, PERSON_DEATH_TYPE_LEG_SWEEP, 0, 0);
     }
-#endif // #ifndef TARGET_DC
 
     //	PANEL_new_text(NULL, 2000, "abcdefghijk lmnopqr stuvwxyz ABCDEFG HIJKLMNO PQRSTUVWXYZ 0123456789 !\"�$%^ &*(){} []<>\\/:;'@ #~?-=+.,");
     //	PANEL_new_text(NULL, 2000, "a-b-c-d-e-f-g  h-i-j-k-l-m-n");
@@ -1946,7 +1893,6 @@ void process_controls(void)
 
 #endif
 
-#ifndef TARGET_DC
     if (allow_debug_keys) {
         /*
 
@@ -2011,7 +1957,6 @@ void process_controls(void)
 
         */
     }
-#endif // #ifndef TARGET_DC
 
 #if 0
 	if ((GAME_TURN & 0x7f) == 16)
@@ -2053,7 +1998,6 @@ void process_controls(void)
 // claude-ai: Keys[KB_LBRACE] = '{' — предыдущий NPC.
 // claude-ai: Keys[KB_P]      = 'P' — переключить слежение: если cam1 следит → отключить; иначе включить.
 // claude-ai: Камера 1 = вторая камера (не основная), используется для spectator-режима.
-#ifndef TARGET_DC
     if (allow_debug_keys) {
         static SLONG index_cam = 0;
         Thing* p_thing;
@@ -2115,7 +2059,6 @@ void process_controls(void)
         }
 #endif
     }
-#endif // #ifndef TARGET_DC
 
 #if WE_NEED_THE_NUMBER_KEYS
 
@@ -2267,11 +2210,7 @@ void process_controls(void)
     // claude-ai: SNIPE_process()   — обновление снайперского прицела (#ifndef TARGET_DC).
     // claude-ai: WATER/BANG/LIGHT/SM — закомментированы, вызываются в другом месте (Game.cpp).
 
-#ifdef PSX
-    DIRT_set_focus(darci->WorldPos.X >> 8, darci->WorldPos.Z >> 8, 0x800);
-#else
     DIRT_set_focus(darci->WorldPos.X >> 8, darci->WorldPos.Z >> 8, 0xc00);
-#endif
     MIST_process();
     //	WATER_process();
     //	BANG_process();
@@ -2283,9 +2222,7 @@ void process_controls(void)
 #ifdef OLD_CAM
     CAM_process();
 #endif
-#ifndef TARGET_DC
     SNIPE_process();
-#endif
 
     GameCoord position;
     Thing* t_thing;
@@ -2453,7 +2390,6 @@ void process_controls(void)
 // claude-ai: cheat=2: игрок получает расширенные возможности (детали в Special.cpp/Game.cpp).
 // claude-ai: cheat=0: выключить читы.
 // claude-ai: Доступно всегда (не требует allow_debug_keys), #ifndef TARGET_DC.
-#ifndef TARGET_DC
     if (Keys[KB_F12] && ShiftFlag) {
         Keys[KB_F12] = 0;
 
@@ -2465,13 +2401,11 @@ void process_controls(void)
             cheat = 2;
         }
     }
-#endif // #ifndef TARGET_DC
 
     // claude-ai: GUARD: если allow_debug_keys==0 — выходим здесь. Всё что ниже — только для debug-сборок.
     if (!allow_debug_keys)
         return;
 
-#ifndef TARGET_DC
 
     if (mouse_input) {
         //
@@ -2855,33 +2789,8 @@ void FC_look_at(SLONG cam, UWORD thing_index);
 
     */
 
-#ifdef PSX
-    {
-        static create_chopper = 0;
-        //			if(PadKeyIsPressed(&PAD_Input2,PAD_FRT)&&(create_chopper==0))
-        //				create_chopper=1;
-        //			else
-        create_chopper = 0;
-        if (create_chopper == 1) {
-            Thing* chopper;
-            GameCoord posn;
 
-            Keys[KB_O] = 0;
-
-            posn.X = darci->WorldPos.X;
-            posn.Z = darci->WorldPos.Z;
-            //			posn.Y=darci->WorldPos.Y+(265<<8)+(PAP_calc_map_height_at(posn.X>>8,posn.Z>>8)<<8);
-            posn.Y = darci->WorldPos.Y + (265 << 8) + (PAP_calc_map_height_at(posn.X >> 8, posn.Z >> 8));
-            chopper = CHOPPER_create(posn, CHOPPER_CIVILIAN);
-            chopper->Draw.Mesh->Angle = darci->Draw.Tweened->Angle;
-            create_chopper = 2;
-        }
-    }
-#endif
-
-#ifndef PSX
 //	CLOTH_process();
-#endif
 
     //
     // Enter and leave the sewers if Darci does.
@@ -3251,8 +3160,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
     }
 #endif
 
-#ifndef PSX
-#ifndef TARGET_DC
 
     /*
 
@@ -3513,8 +3420,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         CAM_set_zoom(zoom);
     }
 #endif
-#endif
-#endif
     /*
             if (Keys[KB_8])
             {
@@ -3655,7 +3560,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         }
     }
     static UBYTE smokin = 0;
-#ifndef PSX
 /*	if (Keys[KB_FORESLASH]) {
 
                 Keys[KB_FORESLASH]=0;
@@ -3666,7 +3570,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                         the_ff_manager->Test();
                 }
         }*/
-#endif
     if (Keys[KB_FORESLASH]) {
         Keys[KB_FORESLASH] = 0;
 
@@ -3732,8 +3635,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
 
     static SLONG ma_valid = 0;
     static MAV_Action ma = { 0, 0, 0, 0 };
-#ifndef PSX
-#ifndef TARGET_DC
     {
         // e_draw_3d_mapwho_y(nav_x, MAV_height[nav_x][nav_z] << 6, nav_z);
 
@@ -3752,10 +3653,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                 TRUE);
         }
     }
-#endif
-#endif
 
-#ifndef TARGET_DC
     if (Keys[KB_O] && !ShiftFlag) {
         Keys[KB_O] = 0;
 
@@ -4477,7 +4375,6 @@ extern	SLONG	FC_cam_height;
                         }
         */
 
-#ifndef TARGET_DC
         if (Keys[KB_M]) {
             Keys[KB_M] = 0;
 
@@ -4508,7 +4405,6 @@ extern	SLONG	FC_cam_height;
                     NULL);
             }
         }
-#endif // #ifndef TARGET_DC
 
     } else {
         //
@@ -4607,7 +4503,6 @@ extern	SLONG	FC_cam_height;
             */
         }
 
-#ifndef PSX
 #ifdef BIKE
         if (Keys[KB_K]) {
             Keys[KB_K] = 0;
@@ -4635,9 +4530,7 @@ extern	SLONG	FC_cam_height;
             }
         }
 #endif
-#endif
 
-#if !defined(PSX) && !defined(TARGET_DC)
         if (Keys[KB_G]) {
             Keys[KB_G] = 0;
 
@@ -4687,7 +4580,6 @@ extern	SLONG	FC_cam_height;
         // debug - find which car the mouse points at
         extern void LookForSelectedThing();
         LookForSelectedThing();
-#endif
 #endif
         /*
                         if (Keys[KB_N])
@@ -4813,13 +4705,9 @@ extern	SLONG	FC_cam_height;
     //
     // claude-ai: animate_texture_maps() — обновляет UV-анимации текстур (вода, огонь и т.д.).
     // claude-ai: Вызывается только в PC-версии (#ifndef PSX), в самом конце process_controls().
-#ifndef PSX
     animate_texture_maps();
-#endif
     //	Get user game input.
 
-#endif // #ifndef TARGET_DC
-#endif // #ifndef TARGET_DC
 }
 
 // claude-ai: ============================================================
@@ -4831,244 +4719,5 @@ extern	SLONG	FC_cam_height;
 // claude-ai: process_controls() на PSX намного проще: нет debug-клавиш, нет F9, нет Wind.
 // claude-ai: Ввод PSX через PACKET_DATA(0) (PAD1) и PadKeyIsPressed(&PAD_Input1, ...).
 // claude-ai: ============================================================
-#else
-SLONG PSX_inv_open;
-int PSX_inv_focus;
-int PSX_inv_count;
-int PSX_inv_select;
-int PSX_inv_timer = 0;
-
-#define INVENTORY_FADE_SPEED (16)
-
-SBYTE CONTROLS_get_selected_item(Thing* darci, Thing* player)
-{
-    SBYTE count = 1; // 0 is fist
-    Thing* p_special = NULL;
-    SBYTE current_item = 0;
-
-    if (darci->Genus.Person->SpecialList) {
-        p_special = TO_THING(darci->Genus.Person->SpecialList);
-
-        while (p_special) {
-            ASSERT(p_special->Class == CLASS_SPECIAL);
-            if (SPECIAL_info[p_special->Genus.Special->SpecialType].group == SPECIAL_GROUP_ONEHANDED_WEAPON || SPECIAL_info[p_special->Genus.Special->SpecialType].group == SPECIAL_GROUP_TWOHANDED_WEAPON || p_special->Genus.Special->SpecialType == SPECIAL_EXPLOSIVES || p_special->Genus.Special->SpecialType == SPECIAL_WIRE_CUTTER) {
-                if (THING_NUMBER(p_special) == darci->Genus.Person->SpecialUse)
-                    current_item = count;
-                count++;
-            }
-            if (p_special->Genus.Special->NextSpecial)
-                p_special = TO_THING(p_special->Genus.Special->NextSpecial);
-            else
-                p_special = NULL;
-        }
-    }
-
-    if (darci->Flags & FLAGS_HAS_GUN) {
-        if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
-            current_item = count;
-        count++;
-    }
-    PSX_inv_count = count;
-
-    return current_item;
-}
-
-void CONTROLS_new_inventory(Thing* darci, Thing* player)
-{
-    PSX_inv_open = 1;
-    PSX_inv_focus = CONTROLS_get_selected_item(darci, player);
-    /*
-            if (!PSX_inv_fade)
-            {
-                    PSX_inv_select=-1;
-                    PSX_inv_focus=-1;
-            }
-            PSX_inv_fade+=INVENTORY_FADE_SPEED;
-            if (PSX_inv_fade>255)
-                    PSX_inv_fade=255;
-
-            if (PSX_inv_focus==-1)
-                    PSX_inv_focus = CONTROLS_get_selected_item(darci, player);
-    */
-}
-
-void CONTROLS_rot_inventory(Thing* darci, Thing* player, SBYTE dir)
-{
-    PSX_inv_timer = 3;
-    PSX_inv_focus += dir;
-    if (PSX_inv_focus < 0)
-        PSX_inv_focus = PSX_inv_count - 1;
-    if (PSX_inv_focus >= PSX_inv_count)
-        PSX_inv_focus = 0;
-}
-/*
-void	CONTROLS_set_inventory(Thing *darci, Thing *player) {
-        Thing *p_special = NULL;
-        SBYTE count;
-
-
-        if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
-        {
-                // Put away your gun.
-                set_person_gun_away(darci);
-        }
-
-        count=PSX_inv_focus;
-
-        if (!count) {
-                set_person_item_away(darci);
-                return; // using fists
-        }
-
-        // Make Darci use an item.
-
-        if (darci->Genus.Person->SpecialList!=0)
-                p_special = TO_THING(darci->Genus.Person->SpecialList);
-        else
-                p_special = 0;
-
-        count--;
-
-        while (count) {
-                if (!p_special) break; // no specials -- gun maybe?
-                ASSERT(p_special->Class == CLASS_SPECIAL);
-
-                if (SPECIAL_info[p_special->Genus.Special->SpecialType].group == SPECIAL_GROUP_ONEHANDED_WEAPON ||
-                        SPECIAL_info[p_special->Genus.Special->SpecialType].group == SPECIAL_GROUP_TWOHANDED_WEAPON ||
-                        p_special->Genus.Special->SpecialType                     == SPECIAL_EXPLOSIVES||
-                        p_special->Genus.Special->SpecialType                     == SPECIAL_WIRE_CUTTER)
-                {
-                        count--;
-                }
-
-                if (p_special->Genus.Special->NextSpecial)
-                        p_special = TO_THING(p_special->Genus.Special->NextSpecial);
-                else
-                        p_special = NULL;
-        }
-
-        if (p_special)
-        {
-                set_person_draw_item(darci, p_special->Genus.Special->SpecialType);
-        }
-        else
-        {
-                darci->Genus.Person->SpecialUse = NULL;
-                darci->Draw.Tweened->PersonID   = 0;
-
-                //
-                // If Darci has a gun then get it out.
-                //
-
-                if (darci->Flags & FLAGS_HAS_GUN)
-                {
-                        set_person_draw_gun(darci);
-                }
-                else
-                {
-                        set_person_idle(darci);
-                }
-        }
-
-
-}
-*/
-//
-// PSX VERSION
-//
-
-void process_controls(void)
-{
-    SLONG i;
-    SLONG x;
-    SLONG z;
-
-    GameCoord position;
-    Thing* t_thing;
-
-    //
-    // Mark's stuff.
-    //
-
-    Thing* darci = NET_PERSON(0);
-
-    if ((GAME_TURN & 0x0f) == 0)
-        set_danger_level();
-
-    context_music();
-
-#ifndef FS_ISO9660
-#ifndef MIKE
-    if (PadKeyIsPressed(&PAD_Input2, PAD_FRT))
-        GAME_STATE = GS_LEVEL_WON;
-#endif
-#endif
-
-    if (darci->State == STATE_DEAD) {
-        if (darci->Genus.Person->Flags & FLAG_PERSON_ARRESTED) {
-            //
-            // Wait till she is actually arrested!
-            //
-
-            if (darci->SubState == SUB_STATE_DEAD_ARRESTED) {
-                GAME_STATE = GS_LEVEL_LOST;
-            }
-        } else {
-            GAME_STATE = GS_LEVEL_LOST;
-        }
-    }
-
-    DIRT_set_focus(darci->WorldPos.X >> 8, darci->WorldPos.Z >> 8, 0x800);
-    DIRT_process();
-    //	ProcessGrenades();
-    //	MIST_process();
-    //	WATER_process();
-    //	DRIP_process();
-    //	PUDDLE_process();
-    //	BANG_process();
-    SPARK_process();
-    //	GLITTER_process();
-    //	LIGHT_process();
-    //	HOOK_process();
-    //	SM_process();
-    //	FC_process();
-    //	BALLOON_process();
-    //	SNIPE_process();
-
-    if (!(GAME_FLAGS & GF_PAUSED)) {
-        Thing* the_player = NET_PLAYER(0);
-        //		if (NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_SELECT)
-        if ((PACKET_DATA(0) & INPUT_MASK_SELECT) && !EWAY_stop_player_moving()) {
-            if ((darci->SubState == SUB_STATE_WALKING) || (darci->SubState == SUB_STATE_RUNNING) || (darci->SubState == SUB_STATE_WALKING_BACKWARDS) || (darci->State == STATE_IDLE) || (darci->State == STATE_FIGHT) || (darci->State == STATE_GUN && darci->SubState != SUB_STATE_SHOOT_GUN)) {
-                if (!PSX_inv_open) {
-                    CONTROLS_new_inventory(darci, the_player);
-                } else {
-                    PSX_inv_open = 0;
-                    CONTROLS_set_inventory(darci, the_player, PSX_inv_focus);
-                }
-            }
-        }
-        if (PSX_inv_open) {
-            if (PSX_inv_timer) {
-                PSX_inv_timer--;
-
-            } else {
-                //				if (PACKET_DATA(0) & (INPUT_MASK_PUNCH|INPUT_MASK_ACTION|INPUT_MASK_KICK|INPUT_MASK_JUMP))
-                if (PadKeyIsPressed(&PAD_Input1, PAD_RU) || PadKeyIsPressed(&PAD_Input1, PAD_RD) || PadKeyIsPressed(&PAD_Input1, PAD_RL) || PadKeyIsPressed(&PAD_Input1, PAD_RR)) {
-                    NET_PLAYER(0)->Genus.Player->InputDone |= (INPUT_MASK_PUNCH | INPUT_MASK_ACTION | INPUT_MASK_KICK | INPUT_MASK_JUMP);
-                    PSX_inv_open = 0;
-                    CONTROLS_set_inventory(darci, the_player, PSX_inv_focus);
-                }
-                if ((PACKET_DATA(0) & INPUT_MASK_LEFT) || (PACKET_DATA(0) & INPUT_MASK_FORWARDS))
-                    CONTROLS_rot_inventory(darci, the_player, -1);
-                // if ((NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_RIGHT)||(NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_BACKWARDS))
-                if ((PACKET_DATA(0) & INPUT_MASK_RIGHT) || (PACKET_DATA(0) & INPUT_MASK_BACKWARDS))
-                    CONTROLS_rot_inventory(darci, the_player, 1);
-            }
-        }
-    }
-}
-
-#endif
 
 //---------------------------------------------------------------

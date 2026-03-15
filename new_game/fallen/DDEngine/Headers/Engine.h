@@ -47,9 +47,6 @@ inline ULONG ENGINE_multiply_colour(ULONG colour, SLONG r, SLONG g, SLONG b)
     cb >>= 8;
 
     ans = (cr << 0) | (cg << 8) | (cb << 16);
-#ifdef TARGET_DC
-    ans |= 0xff000000;
-#endif
 
     return ans;
 }

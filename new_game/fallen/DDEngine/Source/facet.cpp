@@ -58,16 +58,8 @@
 // temptemptempetc.
 #include "sprite.h"
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
-#ifdef TARGET_DC
-// intrinsic maths
-#include <shsgintr.h>
-#endif
 
-#ifndef TARGET_DC
 
 #define LOG_ENTER(x) \
     {                \
@@ -82,7 +74,6 @@
     {                                  \
     }
 
-#endif
 
 #define FACETINFO
 #ifdef FACETINFO
@@ -742,23 +733,12 @@ void build_fence_poles(float sx, float sy, float sz, float fdx, float fdz, SLONG
     y[0] = 0;
     z[0] = 0;
 
-#ifdef TARGET_DC
-    dist = (fdx * fdx + fdz * fdz);
-    if (dist == 0.0f)
-        return;
-
-    dist = _InvSqrtA(dist);
-
-    dx = (fdx)*dist;
-    dz = (fdz)*dist;
-#else
     dist = sqrt(fdx * fdx + fdz * fdz);
     if (dist == 0.0f)
         return;
 
     dx = (fdx) / dist;
     dz = (fdz) / dist;
-#endif
 
     *rdx = dx;
     *rdz = dz;
@@ -2254,7 +2234,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
         break;
     }
 
-#ifndef TARGET_DC
 #ifndef NDEBUG
 
     //
@@ -2267,7 +2246,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
         }
     }
 
-#endif
 #endif
 
     //
@@ -3804,10 +3782,6 @@ void FACET_draw_walkable(SLONG build)
 
     UWORD* rooftex = NULL;
 
-#ifdef TARGET_DC
-    // Internal stuff fixup
-    POLY_flush_local_rot();
-#endif
 
     //
     // Is this building a warehouse?
@@ -3934,7 +3908,6 @@ void FACET_draw_walkable(SLONG build)
                 if (POLY_valid_quad(quad)) {
                     //					#if DRAW_THIS_DEBUG_STUFF
 
-#ifndef TARGET_DC
                     if (ControlFlag && allow_debug_keys) {
                         SLONG x, z, y;
 
@@ -3958,7 +3931,6 @@ void FACET_draw_walkable(SLONG build)
                             AENG_world_line(x, y, z + 256, 4, 0xffffff, x, y, z, 4, 0xffffff, 1);
                         }
                     }
-#endif
 
                     //					#endif
 
@@ -4284,12 +4256,10 @@ void FACET_draw_walkable_old(SLONG build)
 
                 if (pp->MaybeValid()) {
 
-#ifndef TARGET_DC
                     NIGHT_get_d3d_colour(
                         NIGHT_WALKABLE_POINT(i),
                         &pp->colour,
                         &pp->specular);
-#endif
                     // apply_cloud((SLONG)AENG_dx_prim_points[i].X,(SLONG)AENG_dx_prim_points[i].Y,(SLONG)AENG_dx_prim_points[i].Z,&pp->colour);
 
                     // POLY_fadeout_point(pp);

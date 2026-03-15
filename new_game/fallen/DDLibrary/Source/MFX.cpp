@@ -7,9 +7,7 @@
 #include "..\headers\env.h"
 #include "..\headers\demo.h"
 #include "resource.h"
-#ifndef TARGET_DC
 #include <cmath>
-#endif
 
 #include "drive.h"
 

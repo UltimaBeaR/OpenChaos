@@ -347,44 +347,6 @@ void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner)
     int iNumParticles = IWouldLikeSomePyroSpritesHowManyCanIHave(20 * 4);
     iNumParticles /= 4;
 
-#ifdef TARGET_DC
-    for (int ii = 0; ii < iNumParticles; ii++) {
-        // Smoky cloud.
-        PARTICLE_Add(x + (((Random() & 0x7f) - 0x3f) << 9), y + (((Random() & 0x3f) - 0x1f) << 6), z + (((Random() & 0x7f) - 0x3f) << 9),
-            ((Random() & 0x1f) - 0xf) << 1, (1 + (Random() & 0xf)) << 7, ((Random() & 0x1f) - 0xf) << 1,
-            POLY_PAGE_SMOKECLOUD, 2, 0xFFFFFFFF, PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE | PFLAG_RESIZE,
-            150 + (Random() & 0x3f), 20 + (Random() & 0x7f), 1, 2 + (Random() & 3), 3);
-
-        // Flamey bits of the cloud.
-        PARTICLE_Add(x + (((Random() & 0x7f) - 0x3f) << 9), y + (((Random() & 0x3f) - 0x1f) << 6), z + (((Random() & 0x7f) - 0x3f) << 9),
-            ((Random() & 0x1f) - 0xf) << 1, (1 + (Random() & 0xf)) << 6, ((Random() & 0x1f) - 0xf) << 1,
-            (Random() & 1) ? POLY_PAGE_EXPLODE1_ADDITIVE : POLY_PAGE_EXPLODE2_ADDITIVE, 2,
-            0x7FFFFFFF, PFLAG_SPRITEANI | PFLAG_FADE | PFLAG_RESIZE,
-            250 + (Random() & 0x3f), 50 + (Random() & 0x7f), 1, 2 + (Random() & 3), 3);
-
-        // Little bouncy particles.
-#if 0
-		// These are all too small to see. I dunno - either they're too small or they're too big....
-		PARTICLE_Add(x, y, z, ((Random()&0x1f)-0xf)<<6, (Random()&0xf)<<6, ((Random()&0x1f)-0xf)<<6, 
-						POLY_PAGE_EXPLODE1-(Random()&1), 2+((Random()&3)<<2), 0xFFFFFF, PFLAG_GRAVITY|PFLAG_RESIZE2|PFLAG_FADE, 
-						240, 20+(Random()&0x1f), 1, 3+(Random()&3), 0);
-
-		if (Random()&3)
-		{
-			PARTICLE_Add(x, y, z, ((Random()&0x1f)-0xf)<<8, (Random()&0x1f)<<8, ((Random()&0x1f)-0xf)<<8, 
-						POLY_PAGE_EXPLODE1-(Random()&1), 2+((Random()&1)<<2), 0xFFFFFF, PFLAG_GRAVITY|PFLAG_FADE|PFLAG_BOUNCE,
-						240, 3, 1, 2+(Random()&3), 0);
-		}
-		else
-		{
-			PARTICLE_Add(x, y, z, ((Random()&0x1f)-0xf)<<12, (Random()&0x1f)<<8, ((Random()&0x1f)-0xf)<<12, 
-						POLY_PAGE_EXPLODE1-(Random()&1), 2+((Random()&3)<<2), 0xFFFFFF, PFLAG_GRAVITY|PFLAG_FADE, 
-						240, 3, 1, 3, 0);
-		}
-#endif
-    }
-
-#else
 
     for (int ii = 0; ii < iNumParticles; ii++) {
         PARTICLE_Add(x + (((Random() & 0x7f) - 0x3f) << 9), y + (((Random() & 0x3f) - 0x1f) << 6), z + (((Random() & 0x7f) - 0x3f) << 9),
@@ -394,9 +356,6 @@ void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner)
         PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 6, (Random() & 0x1f) << 6, ((Random() & 0x1f) - 0xf) << 6,
             POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 3) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA,
             240, 20 + (Random() & 0x1f), 1, 3 + (Random() & 3), 0);
-#ifdef PSX
-        if (ii & 1) {
-#endif
 
             if (Random() & 3)
                 PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 8, (Random() & 0x1f) << 8, ((Random() & 0x1f) - 0xf) << 8,
@@ -406,12 +365,8 @@ void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner)
                 PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 12, (Random() & 0x1f) << 8, ((Random() & 0x1f) - 0xf) << 12,
                     POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 3) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA,
                     240, 5, 1, 3, 0);
-#ifdef PSX
-        }
-#endif
     }
 
-#endif
 
     SLONG sx = x >> 8;
     SLONG sy = y >> 8;
@@ -431,7 +386,6 @@ void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner)
 
 void PANEL_draw_gun_sight(SLONG mx, SLONG my, SLONG mz, SLONG accuracy, SLONG scale);
 
-#ifndef PSX
 SLONG GAMEMENU_is_paused(void);
 SLONG GAMEMENU_slowdown_mul();
 
@@ -479,4 +433,3 @@ void show_grenade_path(Thing* p_person)
                 PANEL_draw_gun_sight(x, y, z, 1000, 400);
             }
 }
-#endif

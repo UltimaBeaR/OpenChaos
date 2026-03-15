@@ -72,7 +72,6 @@ extern void init_memory(void);
 extern UWORD next_roof_face4;
 extern struct RoofFace4* roof_faces4;
 
-#ifndef PSX
 
 //
 // Quick load\save
@@ -85,6 +84,5 @@ void MEMORY_quick_save(void);
 SLONG MEMORY_quick_load_available(void);
 SLONG MEMORY_quick_load(void);
 
-#endif
 
 #endif

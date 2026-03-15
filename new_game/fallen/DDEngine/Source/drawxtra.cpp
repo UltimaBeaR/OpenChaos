@@ -366,19 +366,6 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
 void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front);
 
 // Pyro detail levels.
-#ifdef TARGET_DC
-
-// Lower detail:
-#define DUSTWAVE_SECTORS 16
-#define FIREBOMB_SPRITES 16
-
-// Define this to dynamically limit the number of pyro sprites.
-// This means that you get this many sprites, no
-// matter how many explosions are on screen - very helpful
-// when four mines go off together.
-#define LIMIT_TOTAL_PYRO_SPRITES_PLEASE_BOB 500
-
-#else
 
 // Hi detail:
 #define DUSTWAVE_SECTORS 16
@@ -387,7 +374,6 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
 // Turned off for the PC. You madmen :-)
 // #define LIMIT_TOTAL_PYRO_SPRITES_PLEASE_BOB 100
 
-#endif
 
 #define DUSTWAVE_MULTIPLY (2048 / DUSTWAVE_MULTIPLY)
 
@@ -1368,67 +1354,6 @@ void PYRO_draw_pyro(Thing* p_pyro)
         // make sure it is processed
 
 //		if(pyro->counter)
-#ifdef PSX
-    {
-        POLY_Point pt1, pt2;
-        SLONG x, y, z;
-
-        //		  POLY_transform(x+pyro->target.X,y+pyro->target.Y,z+pyro->target.Z,&pt1);
-
-        // hardwired test
-        /*		  x=NET_PERSON(0)->WorldPos.X>>8;
-                          y=(NET_PERSON(0)->WorldPos.Y>>8)+256;
-                          z=NET_PERSON(0)->WorldPos.Z>>8;
-                          POLY_transform(x,y,z,&pt1);*/
-
-        x = pyro->thing->WorldPos.X >> 8;
-        y = pyro->thing->WorldPos.Y >> 8;
-        z = pyro->thing->WorldPos.Z >> 8;
-
-        if (pyro->counter)
-            POLY_transform(x + pyro->target.X, y + pyro->target.Y, z + pyro->target.Z, &pt1);
-        else
-            POLY_transform(x + (pyro->target.X << 1), y + (pyro->target.Y << 1), z + (pyro->target.Z << 1), &pt1);
-
-        POLY_transform(x, y, z, &pt2);
-
-        pt1.colour = pt2.colour = 0xFFFFFFFF;
-        pt1.specular = pt2.specular = 0xFF000000;
-
-        switch (pyro->counter) {
-        case 0:
-            pt1.u = 0;
-            pt1.v = 0;
-            pt2.u = 0.5;
-            pt2.v = 0.5;
-            break;
-        case 1:
-            pt1.u = 0;
-            pt1.v = 0.5;
-            pt2.u = 0.5;
-            pt2.v = 1.0;
-            break;
-        case 2:
-            pt1.u = 0.5;
-            pt1.v = 0;
-            pt2.u = 1.0;
-            pt2.v = 0.5;
-            break;
-        case 3:
-            pt1.u = 0.5;
-            pt1.v = 0.5;
-            pt2.u = 1.0;
-            pt2.v = 1.0;
-            break;
-        }
-        if (POLY_valid_line(&pt1, &pt2)) {
-            if (pyro->counter > 1)
-                POLY_add_line_tex_uv(&pt1, &pt2, 42, 42, POLY_PAGE_HITSPANG, 0);
-            else
-                POLY_add_line_tex_uv(&pt1, &pt2, 22, 22, POLY_PAGE_HITSPANG, 0);
-        }
-    }
-#endif
     break;
     }
 }
@@ -2412,14 +2337,8 @@ void PYRO_draw_armageddon(Pyro* pyro)
     SLONG and_2;
 
     {
-#ifdef TARGET_DC
-        // Ease off a bit.
-        and_1 = 3;
-        and_2 = 7;
-#else
         and_1 = 2;
         and_2 = 3;
-#endif
     }
 
     if (!(Random() & and_1)) {

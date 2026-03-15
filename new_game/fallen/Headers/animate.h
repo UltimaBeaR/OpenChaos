@@ -320,12 +320,7 @@
 // #define	ANIM_SKID					(125)
 // #define	ANIM_SKID_TURN				(126)
 // #define	ANIM_SKID_STOP				(127)
-#ifndef PSX
 #define ANIM_PLUNGE_BACKWARDS (128)
-#else
-#warning This has been changed for the time being
-#define ANIM_PLUNGE_BACKWARDS (129)
-#endif
 #define ANIM_PLUNGE_FORWARDS (129)
 #define ANIM_TRAVERSE_LEFT (130)
 #define ANIM_TRAVERSE_RIGHT (131)
