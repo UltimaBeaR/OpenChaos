@@ -90,3 +90,41 @@ include'ы из Editor/, sedit/ в Game.cpp, Building.cpp, Enemy.cpp, Structs.h 
 - `VERSION_GLIDE` в `Game.h` уже был закомментирован в `/* */` блоке — был `#if 0`-аналог.
 - В `Engine.h` цепочка `#ifdef VERSION_D3D / #elif VERSION_GLIDE / #elif VERSION_PSX` — удалён только Glide-блок; PSX остаётся до своей итерации.
 - `light.h`: `LIGHT_get_glide_colour()` — inline-функция внутри `#if LIGHT_COLOURED` блока, вызывалась только из Glide Engine файлов → удалена.
+
+---
+
+## Итерация 3 — Удаление PSX и TARGET_DC кода (план)
+
+**Дата:** 2026-03-15
+
+**Написан скрипт** `tools/remove_psx_dc.py` — убирает все `#ifdef PSX` / `#ifdef TARGET_DC`
+блоки по всему проекту с помощью стека фреймов. Обрабатывает вложенные блоки,
+`#elif`, `#ifndef`, `#if defined(...)`, `#if PSX` (числовые условия).
+Также отслеживает незакрытые `/*` внутри удаляемых блоков — если `/*` открыт внутри
+PSX/DC блока, а `*/` стоит снаружи (после `#endif`), скрипт продолжает подавлять
+вывод пока комментарий не закроется.
+
+**Что нужно сделать:**
+1. Запустить скрипт (сначала `--dry-run`, потом live)
+2. Скомпилировать, просмотреть диффы глазами
+3. Только после подтверждения — вручную поправить сложные случаи (mixed conditions):
+   - `DDEngine/Source/panel.cpp:5408`: `#if !defined(TARGET_DC) && defined(_DEBUG)` → `#ifdef _DEBUG`
+   - `DDLibrary/Source/GKeyboard.cpp:65`: `#if defined(_RELEASE) && !defined(TARGET_DC)` → `#ifdef _RELEASE`
+   - `Source/frontend.cpp:334`: `#if !defined(NDEBUG) && !defined(TARGET_DC)` → `#if !defined(NDEBUG)`
+   - `Source/night.cpp:3231`: `#if !defined(NDEBUG) || defined(TARGET_DC)` → `#if !defined(NDEBUG)`
+   - `Source/interfac.cpp:5752`: `#if defined(DEBUG) && defined(TARGET_DC)` — внутри `#if 0`, уйдёт в итерации `#if 0`
+4. Удалить папки: `PSXENG/`, `psxlib/`, `psxlib1/`
+5. Удалить PSX/DC файлы по названию: `nightpsx.cpp` (+ убрать из vcxproj), `Levelpsx.cpp`,
+   `dc_credits.cpp`, `hm_psx.cpp`, `io_psx.cpp`, `pausepsx.cpp`
+
+**Нюансы (выяснены при разведке):**
+- PSXENG/, psxlib/, psxlib1/ отсутствуют в Fallen.vcxproj — в сборку не входят.
+- `psxeng.h` включается в ~23 файла Source/ без `#ifdef PSX` guard, но это безвредно —
+  весь код использования внутри `#ifdef PSX` блоков которые удаляются.
+- `BUILD_PSX` определён только внутри `#ifdef PSX` в Game.h. После удаления
+  все `#ifndef BUILD_PSX` блоки (memory.cpp, Person.cpp) станут безусловно активными (верно для PC).
+- `collide.h`, `building.h`, `dirt.h`, `Command.h` — в блоках только константы размера пулов,
+  никаких изменений структур данных.
+- `Game.h` Map field: `#if defined(PSX) || defined(TARGET_DC)` → `MapElement Map[1]` vs
+  `MapElement Map[MAP_SIZE]` — после удаления остаётся полный статический массив PC-версии.
+
