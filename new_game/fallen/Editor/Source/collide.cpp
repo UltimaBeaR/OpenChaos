@@ -28,8 +28,8 @@ SBYTE SGN_CROSS64(SLONG ax8, SLONG ay8, SLONG bx8, SLONG by8)
 }
 #else
 SBYTE SGN_CROSS64(SLONG ax8, SLONG ay8, SLONG bx8, SLONG by8);
-#pragma aux SGN_CROSS64 =                                                            \
-                                                                                     \
+#pragma aux SGN_CROSS64 =                                                        \
+                                                                                 \
     "		imul	edx		" /* edx:eax = axby					*/               \
     "		xchg	eax,ebx	" /*									*/                                  \
     "		xchg	edx,ecx	" /*	ecx:ebx = axby					*/                       \
@@ -41,8 +41,8 @@ SBYTE SGN_CROSS64(SLONG ax8, SLONG ay8, SLONG bx8, SLONG by8);
     "		 setl	ah		" /*	(or jl	-1 case)				*/               \
     "		 setg	al		" /*	(or jg	+1 case)				*/               \
     "		 sub	al,ah	" /*	al = -1,+1						*/                          \
-    "skip:					" /*  al = -1,0,+1					*/                \
-                                                                                     \
+    "skip:					" /*  al = -1,0,+1					*/        \
+                                                                                 \
     parm[eax][ebx][ecx][edx] modify[eax ebx ecx edx] value[al];
 #endif
 

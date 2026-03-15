@@ -1843,7 +1843,7 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
         }
 
 #else // #if WE_NEED_POLYBUFFERS_PLEASE_BOB
-        // The version with index buffers
+      // The version with index buffers
 
         PolyPage* pp = &POLY_Page[page];
 #ifdef TEX_EMBED
@@ -3340,7 +3340,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         //		BreakTime("FRAMEDRAW end buckets");
 
 #else // do it page by page
-        //		BreakTime("FRAMEDRAW start page by page");
+      //		BreakTime("FRAMEDRAW start page by page");
 
 #ifdef TEX_EMBED
         for (i = 0; i <= iPolyNumPagesRender; i++) // <= because we skip POLY_PAGE_COLOUR...

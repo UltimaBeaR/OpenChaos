@@ -39,8 +39,8 @@ SWORD vesa_modes[] = {
 
 extern SWORD video_int(SWORD, SWORD, SWORD, SWORD);
 #pragma aux video_int = "push	bp ", \
-            "int	10h ",            \
-            "pop	bp ",             \
+            "int	10h ",        \
+            "pop	bp ",         \
             parm caller[ax][bx][cx][dx] value[ax];
 
 SLONG VesaGetGran(SWORD mode)
