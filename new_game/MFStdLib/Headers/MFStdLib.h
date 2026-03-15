@@ -184,10 +184,6 @@ void DebugText(CBYTE* error, ...);
 #define KEYBOARD DIDEVTYPE_KEYBOARD
 #define JOYSTICK DIDEVTYPE_JOYSTICK
 
-#if 0
-BOOL	GetInputDevice(UBYTE type,UBYTE sub_type);
-BOOL	ReadInputDevice(void);
-#endif
 
 //---------------------------------------------------------------
 // Standard macros.

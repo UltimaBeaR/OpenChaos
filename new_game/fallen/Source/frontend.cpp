@@ -87,15 +87,7 @@ void FRONTEND_display(void);
 // #define MISSION_SCRIPT "data\\urban.sty"
 //  see below...
 
-#if 0
-#define STARTS_START 1
-#define STARTS_EDITOR 2
-#define STARTS_LOAD 3
-#define STARTS_EXIT 4
-#define STARTS_LANGUAGE_CHANGE 10
-#else
 #include "startscr.h"
-#endif
 
 // just know someone's gonna want me to take it back out again soooo.....
 #ifndef VERSION_DEMO
@@ -2199,11 +2191,7 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
 
 #endif
 
-#if 0
-	best_score        = -INFINITY;
-#else
     best_score = 1000;
-#endif
     district_flash = -1;
     district_selected = 0;
 
@@ -2327,12 +2315,7 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
                         // Found the mission!
                         //
 
-#if 0
-						// No, this is selecting them in the wrong order.
-						if (order > best_score)
-#else
                         if (order < best_score)
-#endif
                         {
                             best_score = order;
 
@@ -2752,11 +2735,6 @@ void FRONTEND_easy(UBYTE mode)
     }
     for (md = menu_data; md->Type == OT_LABEL; md++, menu_state.selected++)
         ;
-#if 0
-	// Move to FRONTEND_recenter_menu.
-	menu_state.base=240-(menu_state.items*25);
-	if (menu_state.base<50) menu_state.base=50;
-#endif
 
     FRONTEND_recenter_menu();
 }
@@ -3769,10 +3747,6 @@ UBYTE FRONTEND_input()
         ReadInputDevice();
         if (Keys[KB_ESC] || (input & INPUT_MASK_CANCEL)) {
             Keys[KB_ESC] = 0;
-#if 0
-			// Should we not just leave this as it is, rather than setting it to "unused"?
-			item->Data=31;
-#endif
             grabbing_pad = 0;
         } else {
             for (i = 0; i < 32; i++) {

@@ -91,23 +91,7 @@ EWAY_Edef* EWAY_edef; //[EWAY_MAX_EDEFS];
 CBYTE** EWAY_mess; //[EWAY_MAX_MESSES];
 CBYTE* EWAY_mess_buffer; //[EWAY_MESS_BUFFER_SIZE];
 
-#if 0
-#define ANNOYINGSCRIBBLECHECK ScribbleCheck()
-static void ScribbleCheck ( void )
-{
-	ASSERT ( prim_faces4[1].Points[0] >= 48 );
-	ASSERT ( prim_faces4[1].Points[0] < 62 );
-	ASSERT ( prim_faces4[1].Points[1] >= 48 );
-	ASSERT ( prim_faces4[1].Points[1] < 62 );
-	ASSERT ( prim_faces4[1].Points[2] >= 48 );
-	ASSERT ( prim_faces4[1].Points[2] < 62 );
-	ASSERT ( prim_faces4[1].Points[3] >= 48 );
-	ASSERT ( prim_faces4[1].Points[3] < 62 );
-}
-
-#else
 #define ANNOYINGSCRIBBLECHECK
-#endif
 
 //
 // The waypoints.
@@ -2127,34 +2111,6 @@ void EWAY_created_last_waypoint()
         }
     }
 
-#if 0
-
-	// THIS IS CAUSING BUGS! IM GOING TO MAKE ALL MESSAGES AND CONVERSATIONS
-	// NEVER TRIGGER UNTIL AFTER THE FIRST GAMETURN NOT JUST IF THEY ARE SET
-	// TO EWAY COND TRUE
-
-	//
-	// Make all message and conversation waypoint that have a
-	// condition TRUE have a condtion AFTER_FIRST_GAMETURN instead. So
-	// they have a chance of triggering on the PSX.
-	//
-
-	for (i = 1; i < EWAY_way_upto; i++)
-	{
-		ew = &EWAY_way[i];
-
-		if (ew->ec.type == EWAY_COND_TRUE)
-		{
-			if (ew->ed.type == EWAY_DO_CONVERSATION ||
-				ew->ed.type == EWAY_DO_AMBIENT_CONV ||
-				ew->ed.type == EWAY_DO_MESSAGE)
-			{
-				ew->ec.type = EWAY_COND_AFTER_FIRST_GAMETURN;
-			}
-		}
-	}
-
-#endif
 }
 
 /*
@@ -3829,15 +3785,9 @@ void EWAY_process_camera(void)
         dy = (dy * EWAY_CAM_ACCEL_SPEED) / dist;
         dz = (dz * EWAY_CAM_ACCEL_SPEED) / dist;
 
-#if 0
-		EWAY_cam_dx += dx;
-		EWAY_cam_dy += dy;
-		EWAY_cam_dz += dz;
-#else
         EWAY_cam_dx += dx * TICK_RATIO >> TICK_SHIFT;
         EWAY_cam_dy += dy * TICK_RATIO >> TICK_SHIFT;
         EWAY_cam_dz += dz * TICK_RATIO >> TICK_SHIFT;
-#endif
 
         //
         // Keep our speed at what we want.
@@ -3861,15 +3811,9 @@ void EWAY_process_camera(void)
         // Move the camera.
         //
 
-#if 0
-		EWAY_cam_x += EWAY_cam_dx;
-		EWAY_cam_y += EWAY_cam_dy;
-		EWAY_cam_z += EWAY_cam_dz;
-#else
         EWAY_cam_x += EWAY_cam_dx * TICK_RATIO >> TICK_SHIFT;
         EWAY_cam_y += EWAY_cam_dy * TICK_RATIO >> TICK_SHIFT;
         EWAY_cam_z += EWAY_cam_dz * TICK_RATIO >> TICK_SHIFT;
-#endif
     }
 
     //
@@ -4138,23 +4082,10 @@ void EWAY_process_conversation(void)
 
         EWAY_conv_skip = 50;
 
-#if 0
-
-		PANEL_new_text(
-			TO_THING(EWAY_conv_person_a),
-			EWAY_conv_timer * 10 - 500,
-			"(%d) %s",
-			(EWAY_way[EWAY_conv_waypoint].yaw<<8)+(EWAY_way[EWAY_conv_waypoint].index),
-			str);
-
-#else
-
         PANEL_new_text(
             TO_THING(EWAY_conv_person_a),
             EWAY_conv_timer * 10 - 500,
             str);
-
-#endif
 
         //
         // Make our two people say stuff.
@@ -4563,23 +4494,10 @@ void EWAY_set_active(EWAY_Way* ew)
 
                     // HACK: JDW - Add waypoint number to start of messages
 
-#if 0
-
-						PANEL_new_text(
-							TO_THING(EWAY_used_thing),
-							time,
-							"(%d) %s",
-							(ew->yaw << 8) + ew->index,
-							EWAY_mess[ew->ed.arg1]);
-
-#else
-
                     PANEL_new_text(
                         TO_THING(EWAY_used_thing),
                         time,
                         EWAY_mess[ew->ed.arg1]);
-
-#endif
 
                     if (person_ok_for_conversation(TO_THING(EWAY_used_thing))) {
                         PCOM_make_people_talk_to_eachother(
@@ -4618,23 +4536,10 @@ void EWAY_set_active(EWAY_Way* ew)
                             talk_thing = who_says;
                             EWAY_talk((ew->yaw << 8) + ew->index);
 
-#if 0
-
-								PANEL_new_text(
-									who_says,
-									time,
-									"(%d) %s",
-									(ew->yaw << 8) + ew->index,
-									EWAY_mess[ew->ed.arg1]);
-
-#else
-
                             PANEL_new_text(
                                 who_says,
                                 time,
                                 EWAY_mess[ew->ed.arg1]);
-
-#endif
 
 
                             if (who_says && who_says != NET_PERSON(0)) {

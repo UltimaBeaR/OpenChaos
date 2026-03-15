@@ -95,34 +95,6 @@ void MAIN_main()
 
         BACK_draw();
 
-#if 0
-
-		//
-		// Draw some text...
-		//
-
-		{
-			FONT_draw(
-				FONT_FLAG_JUSTIFY_CENTRE,
-				0.5F, 0.3F,
-				0xffffff,
-				2.0F,
-			   -1,
-				0.0F,
-				"Fin");
-
-			FONT_draw(
-				FONT_FLAG_JUSTIFY_LEFT,
-				FONT_end_x,
-				FONT_end_y,
-				0xffffff,
-				2.0F,
-			   -1,
-				(KEY_on[KEY_S]) ? 0.0F : ((OS_ticks() & 0xfff) * 1.0F / 4096.0F),
-				"?");
-		}
-
-#endif
 
         WIRE_draw();
         CREDITS_draw();

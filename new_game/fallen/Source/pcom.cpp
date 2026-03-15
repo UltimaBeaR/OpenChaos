@@ -10717,16 +10717,6 @@ SLONG PCOM_find_runover_thing(Thing* p_person, SLONG dangle)
 
     nn = ROAD_nearest_node(rn1, rn2, wx, wz, &nnd);
 
-#if 0
-	SLONG	col;
-	if (nnd < AT_JUNCTION)			col = 0xFF0000;
-	else if (nnd < NEAR_JUNCTION)	col = 0xFFFF00;
-	else							col = 0x00FF00;
-
-	AENG_world_line(p_person->WorldPos.X >> 8, p_person->WorldPos.Y >> 8, p_person->WorldPos.Z >> 8, 16, col,
-					p_person->WorldPos.X >> 8, (p_person->WorldPos.Y >> 8) + 0x100, p_person->WorldPos.Z >> 8, 0, col,
-					TRUE);
-#endif
 
     // set action to none
     what = 0;
@@ -10757,12 +10747,7 @@ SLONG PCOM_find_runover_thing(Thing* p_person, SLONG dangle)
     for (i = 0; i < num; i++) {
         p_found = TO_THING(found[i]);
 
-#if 0
-#define BLOCKED(C) AENG_world_line(p_person->WorldPos.X >> 8, p_person->WorldPos.Y >> 8, p_person->WorldPos.Z >> 8, 16, C, \
-    p_found->WorldPos.X >> 8, p_found->WorldPos.Y >> 8, p_found->WorldPos.Z >> 8, 16, C, TRUE);
-#else
 #define BLOCKED(C)
-#endif
 
         if ((p_found->Class == CLASS_PERSON) && (p_found->State == STATE_DYING || p_found->State == STATE_DEAD)) {
             // Ignore dead or dying people
@@ -10922,25 +10907,6 @@ SLONG PCOM_find_runover_thing(Thing* p_person, SLONG dangle)
 
             if (avoid) {
                 if (vel < (velocity >> 2)) {
-#if 0
-							//
-							// This car is parked or going much slower than us! Try and avoid it.
-							// 
-
-							px = p_found->WorldPos.X - p_vehicle->WorldPos.X >> 8;
-							pz = p_found->WorldPos.Z - p_vehicle->WorldPos.Z >> 8;
-
-							cprod = px*dz - pz*dx;
-		
-							if (cprod < 0)
-							{
-								what |= PCOM_RUNOVER_TURN_LEFT;
-							}
-							else
-							{
-								what |= PCOM_RUNOVER_TURN_RIGHT;
-							}
-#endif
                     // no, just stop
                     BLOCKED(0x888888);
                     return PCOM_RUNOVER_STOP;

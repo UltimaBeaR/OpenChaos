@@ -644,54 +644,6 @@ SLONG should_i_jump(Thing* darci)
 
 SLONG should_person_backflip(Thing* darci)
 {
-#if 0
-
-	//
-	// Don't backflip on lifts when playing "Grim Gardens"
-	//
-
-	if (darci->OnFace>0)
-	{
-		ASSERT(WITHIN(darci->OnFace, 1, next_prim_face4 - 1));
-
-		PrimFace4 *f4 = &prim_faces4[darci->OnFace];
-
-		ASSERT(f4->FaceFlags & FACE_FLAG_WALKABLE);
-
-		if (f4->FaceFlags & FACE_FLAG_WMOVE)
-		{
-			//
-			// If you're on a lift on botanic, then you can't backflip.
-			//
-
-			SLONG wmove_index;
-
-			wmove_index = f4->ThingIndex;
-
-			ASSERT(WITHIN(wmove_index, 1, WMOVE_face_upto - 1));
-
-			if (WMOVE_face[wmove_index].thing)
-			{
-				Thing *p_plat = TO_THING(WMOVE_face[wmove_index].thing);
-
-				if (p_plat->Class == CLASS_PLAT)
-				{
-					//
-					// You can't backflip on platform on "Grim Gardens" a.k.a. botanicc.ucm
-					//
-
-					extern SLONG playing_level(const CBYTE *name);
-
-					if (playing_level("botanicc.ucm"))
-					{
-						return FALSE;
-					}
-				}
-			}
-		}
-	}
-
-#endif
 
     if (darci->Genus.Person->Ware) {
         SLONG px, py, pz, wy;
@@ -1349,32 +1301,6 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
 
     if ((p_thing->State == STATE_IDLE || (p_thing->State == STATE_GUN && p_thing->SubState == SUB_STATE_AIM_GUN)) && p_thing->SubState != SUB_STATE_IDLE_CROUTCH && p_thing->SubState != SUB_STATE_IDLE_CROUTCHING) {
-#if 0 // We don't use anim_prim_switches any more
-
-		//
-		// If we are near a switch, then action toggles it.
-		//
-
-		anim_switch = find_anim_prim(
-						(p_thing->WorldPos.X >> 8),
-						(p_thing->WorldPos.Y >> 8) + 0x40,
-						(p_thing->WorldPos.Z >> 8),
-						0x100,
-						(1 << ANIM_PRIM_TYPE_SWITCH));
-
-		if (anim_switch)
-		{
-			//
-			// We have found a switch, so try and toggle it.
-			//
-
-			//PANEL_new_text(NULL,4000,"ACTION toggle switch");
-			toggle_anim_prim_switch_state(anim_switch);
-
-			return (INPUT_MASK_ACTION);
-		}
-
-#endif
 
         /* moved up a bit
                         //
@@ -2717,10 +2643,6 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
         return 1;
     }
 
-#if 0
-	// Er.. I don't think can ever happen - handled by ACTION_SIDE_STEP above.
-	ASSERT ( p_thing->SubState != SUB_STATE_SIDLE );
-#else
     if (p_thing->SubState == SUB_STATE_SIDLE) {
         if (input & INPUT_MASK_LEFT) {
             set_person_step_right(p_thing);
@@ -2729,7 +2651,6 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
         }
         return 1;
     }
-#endif
 
     SWORD wMaxTurn = 94;
 
@@ -2738,15 +2659,10 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
         wMaxTurn = 12;
     }
 
-#if 0
-	// This doesn't actually happen here
-	ASSERT ( p_thing->State != STATE_SEARCH )
-#else
     if (p_thing->State == STATE_SEARCH) {
         // Can't turn while searching.
         wMaxTurn = 0;
     }
-#endif
 
     if ((p_thing->SubState == SUB_STATE_RUNNING) || (p_thing->SubState == SUB_STATE_RUNNING_SKID_STOP)) {
         // Speed of turn is inversely proportional to velocity.
@@ -2927,20 +2843,6 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
 
     SLONG da = 94;
 
-#if 0 // #ifdef TARGET_DC
-
-
-	// Take da straight from the analogue stick position.
-	da = ( (ULONG)( input & 0x01fc0000 ) >> 18 ) - 64;
-	if ( da < 0 )
-	{
-		da = -da;
-	}
-	// And scale up to the same as the PC.
-	da = (da * 80) / 64;
-
-#else
-
     // use a static counter (only one player) and increase delta angle linearly
     static SLONG s_da = 16;
 
@@ -2961,7 +2863,6 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
             s_da = 16;
         }
     }
-#endif
 
     if (p_thing->State == STATE_JUMPING)
         da = 12;
@@ -4970,11 +4871,6 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
                         veh->Steering = dx;
         */
 
-#if 0
-		veh->Steering = GET_JOYX(input);
-		if(abs(veh->Steering)<48)
-			veh->Steering=0;
-#else
         // Damped a bit.
         static SWORD wCurrentSteering = 0;
 #define STEERING_MAX_DELTA 30
@@ -4996,7 +4892,6 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
             }
         }
         veh->Steering = wCurrentSteering;
-#endif
 
         veh->IsAnalog = 1;
 
@@ -6356,14 +6251,6 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
             if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                 ASSERT(p_person->Genus.Person->InCar);
-#if 0
-				Thing *p_thing=TO_THING(p_person->Genus.Person->InCar);
-				SLONG vel=QDIST2(abs(p_thing->Genus.Vehicle->VelX),abs(p_thing->Genus.Vehicle->VelZ));
-				// Set a minimum for tick over shock
-				vel>>=8;
-				SATURATE(vel,40,255);
-				PSX_SetShock(0,vel);
-#endif
 
                 processed = apply_button_input_car(TO_THING(p_person->Genus.Person->InCar), input);
                 processed |= apply_button_input(p_player, p_person, 0); // input & INPUT_MASK_ACTION);

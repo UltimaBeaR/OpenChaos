@@ -45,19 +45,5 @@ TGA_Info TGA_load(
     SLONG max_height,
     TGA_Pixel* data);
 
-#if 0
-
-//
-// Saves out a tga.
-//
-
-void TGA_save(
-		const CBYTE *file,
-		SLONG        width,
-		SLONG        height,
-		TGA_Pixel   *data,
-		SLONG        contains_alpha);	// FALSE => Save without the alpha data.
-
-#endif
 
 #endif

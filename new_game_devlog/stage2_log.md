@@ -331,3 +331,29 @@ rm new_game/fallen/Source/nightpsx.cpp new_game/fallen/Source/Levelpsx.cpp new_g
 - inside2.cpp: 403 lines of indoor navigation AI - only #if0 block in the file.
 - Darci.cpp:672 - NOT police cars (I misread parallel tool results initially). Actually: "kick off wall" jump/kick special moves.
 
+
+---
+
+## Итерация 9 — Удаление #if 0 блоков (пачка 6 — финальная, Source + outro)
+
+**Дата:** 2026-03-16
+
+**Удалено 30 блоков #if 0:**
+
+- Source/eway.cpp — 7 блоков: ANNOYINGSCRIBBLECHECK#if0/#else (оставлен пустой), PSX COND_TRUE конвертация, cam accel TICK_RATIO x2 (#if0/#else), debug PANEL_new_text с вейпойнт-номером x3 (#if0/#else)
+- Source/frontend.cpp — 5 блоков: STARTS_* vs #include startscr.h (#if0/#else), best_score -INFINITY vs 1000 (#if0/#else), order > vs < best_score (#if0/#else), dead menu_state.base calc, dead item->Data=31
+- Source/interfac.cpp — 7 блоков: dead backflip-on-lifts, dead anim_prim_switches, SUB_STATE_SIDLE ASSERT vs handling (#if0/#else), STATE_SEARCH ASSERT vs handling (#if0/#else), DC analog vs PC counter (#if0/#else), simple vs damped steering (#if0/#else), dead PSX_SetShock
+- Source/pcom.cpp — 3 блока: dead AENG_world_line debug, BLOCKED macro debug vs пустой (#if0/#else), dead PCOM_RUNOVER_TURN_LEFT/RIGHT
+- outro/Tga.h — 1: объявление TGA_save
+- outro/outroTga.cpp — 1: реализация TGA_save + TGA_header массив
+- outro/outroMatrix.cpp — 1: весь файл кроме MATRIX_scale (MATRIX_calc, MATRIX_calc_arb, MATRIX_vector, MATRIX_skew, MATRIX_3x3mul, MATRIX_find_angles, MATRIX_construct и др.)
+- outro/outroMain.cpp — 1: debug FONT_draw Fin/? текст
+- outro/os.cpp — 4: тело OS_calculate_mask_and_shift, OS_message_handler callback, OS_Mode typedef + OS_mode_init + OS_mydemo_setup_mode_combo, WinMain для outro
+
+**Итог:** 30 блоков, проект: 22 → **0** #if 0.
+
+**Нюансы:**
+- os.cpp (CRLF) — Edit tool не смог сопоставить строки → удаление через Python rb по номерам строк.
+- outroMatrix.cpp и outroTga.cpp: частичная замена нарушила файлы → восстановлены через Write/двойной Edit.
+
+- MFStdLib/Headers/MFStdLib.h — 1: объявления GetInputDevice/ReadInputDevice (старый DirectInput API) — удалены. (Обнаружен после основной итерации)
