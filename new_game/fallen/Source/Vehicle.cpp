@@ -79,23 +79,7 @@
 
 #include "font2d.h"
 
-#if 0
-#define ANNOYINGSCRIBBLECHECK ScribbleCheck()
-static void ScribbleCheck ( void )
-{
-	ASSERT ( prim_faces4[1].Points[0] >= 48 );
-	ASSERT ( prim_faces4[1].Points[0] < 62 );
-	ASSERT ( prim_faces4[1].Points[1] >= 48 );
-	ASSERT ( prim_faces4[1].Points[1] < 62 );
-	ASSERT ( prim_faces4[1].Points[2] >= 48 );
-	ASSERT ( prim_faces4[1].Points[2] < 62 );
-	ASSERT ( prim_faces4[1].Points[3] >= 48 );
-	ASSERT ( prim_faces4[1].Points[3] < 62 );
-}
-
-#else
 #define ANNOYINGSCRIBBLECHECK
-#endif
 
 // Some externs
 extern SLONG is_person_ko(Thing* p_person);
@@ -3336,9 +3320,6 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
                 velocity = 1000;
 
             if (veh->IsAnalog) {
-#if 0
-				inc = (abs(veh->Steering)*inc * (256 - velocity / 8)) >> (6+7);
-#else
                 // The steering says where the steering wheel is directly.
                 // It is damped by the input routine.
                 // veh->Wheel = veh->Steering << 5;
@@ -3354,7 +3335,6 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
                     veh->Wheel = -(WHEELTIME << TICK_SHIFT);
                 }
                 goto steering_done;
-#endif
             } else {
                 inc = (inc * (256 - velocity / 8)) >> 7;
             }
@@ -3722,29 +3702,6 @@ static void do_car_input(Thing* p_thing)
             SLONG mvx = dx * dx + dz * dz;
             SLONG dp = (dx * -SIN(veh->Angle) + dz * COS(veh->Angle)) >> 16;
 
-#if 0
-			if (is_driven_by_player(p_thing))
-			{
-				TRACE("dx = %d, dz = %d\n", dx, dz);
-				TRACE("SIN = %d, COS = %d\n", -SIN(veh->Angle), COS(veh->Angle));
-				TRACE("MVX = %d, DP = %d, DP*DP = %d\n", mvx, dp, dp*dp);
-
-				float cossq = float(dp*dp) / float(mvx);
-
-				char	str[32];
-				sprintf(str, "*cos2 = %f", cossq);
-				char	*sp;
-				if ((dp > 0) && (dp * dp > (mvx - (mvx >> 2))))
-				{
-					sp = str;
-				}
-				else
-				{
-					sp = str + 1;
-				}
-				CONSOLE_text(str,1000);
-			}
-#endif
 
             if ((dp > 0) && (dp * dp > (mvx - (mvx >> 2)))) // cos^2 angle > 15/16 => cos angle > 3/4
             {
@@ -4273,32 +4230,6 @@ static void process_car(Thing* p_car)
         else
             vp->Flags &= ~FLAG_VEH_IN_AIR;
     }
-#if 0
-	else
-	{
-		//
-		// Back in from sourcesafe version 118
-		//
-		//
-		// car's that aren't drawn have ultra cheap suspension
-		//
-		SLONG	height;
-		for(c0=0;c0<4;c0++)
-		{
-			p_car->Genus.Vehicle->DY[c0]=0;
-			p_car->Genus.Vehicle->Spring[c0].Compression=4300; //16%/84% compression
-		}
-		p_car->Genus.Vehicle->Tilt=0;
-		p_car->Genus.Vehicle->Roll=0;
-		height=PAP_calc_map_height_at((p_car->WorldPos.X>>8),(p_car->WorldPos.Z>>8));
-		//
-		// 107 is length of suspension 128 *(100-%compressed)   =128*.84
-		//
-		p_car->WorldPos.Y=(height+107)<<8;
-
-
-	}
-#endif
 
     if (vp->dlight) {
         SLONG dx = -car_matrix[6] << 1;
@@ -4400,42 +4331,9 @@ static void do_car_fall_and_tilt(Thing* car, SLONG* wx, SLONG* wy, SLONG* wz, SL
 
 static inline SLONG fast_root(SLONG num)
 {
-#if 0
-	SLONG	sh;
-	SLONG	ans;
-	SLONG	ans_sq;
-
-	ASSERT(num >= 0);
-
-	// do an approximate BSR-style thingy
-	if (num & 0xFF000000)		sh = 15;
-	else if (num & 0x00FF0000)	sh = 11;
-	else if (num & 0x0000FF00)	sh = 7;
-	else						sh = 3;
-
-	// calculate using a bit iteration (much faster than
-	// using a bloody DIVIDE in Newton-Raphson!)
-	ans = 0;
-	ans_sq = 0;
-
-	do
-	{
-		// work out (ans + bit)^2 = (ans*ans + 2*ans*bit + bit*bit) where bit = (1 << sh)
-		SLONG	newans = ans_sq + (ans << (sh + 1)) + (1 << (sh + sh));
-
-		if (newans <= num)
-		{
-			ans_sq = newans;
-			ans |= (1 << sh);
-		}
-	} while (sh--);
-
-	return ans;
-#else
     // OK, I've done it now ... but to be honest, I reckon this is the
     // fastest way on current Intel chips ...
     return (SLONG)sqrt((double)num);
-#endif
 }
 
 // claude-ai: normalise_val256(): normalizes a 3D vector to magnitude 256 (fixed-point unit vector).

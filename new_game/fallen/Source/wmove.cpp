@@ -504,44 +504,6 @@ void WMOVE_create(Thing* p_thing)
     }
 };
 
-#if 0
-void WMOVE_remove(UBYTE which_class)
-{
-	SLONG i;
-
-	WMOVE_Face *wf;
-	Thing      *p_thing;
-
-	for (i = 1; i < WMOVE_face_upto; i++)
-	{
-		wf = &WMOVE_face[i];
-
-		p_thing = TO_THING(wf->thing);
-
-		if (p_thing->Class == which_class)
-		{
-			//
-			// Remove this WMOVE_Face's walkable face from the map.
-			//
-
-			remove_walkable_from_map(wf->face4);
-
-			//
-			// Copy over this face.
-			// 
-
-			memmove((UBYTE*)wf, (UBYTE *)(wf + 1), (WMOVE_face_upto - i - 1) * sizeof(WMOVE_Face));
-
-			//
-			// Do the same face number again because it will have changed.
-			//
-
-			i               -= 1;
-			WMOVE_face_upto -= 1;
-		}
-	}
-}
-#endif
 
 // claude-ai: WMOVE_process(): вызывается каждый кадр из Thing.cpp (WMOVE_process()).
 // claude-ai: Для каждой WMOVE face: save old pos → remove from map → recalc from owner thing → re-add to map.

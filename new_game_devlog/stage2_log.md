@@ -281,3 +281,53 @@ rm new_game/fallen/Source/nightpsx.cpp new_game/fallen/Source/Levelpsx.cpp new_g
 - Attract.cpp содержал нестандартные символы (не UTF-8, не cp1251) → читался/записывался в binary mode чтобы сохранить байты.
 - Первая попытка записи через `encoding='latin-1'` текст-режим повредила файл (частичная запись из-за ошибки кодировки в первом скрипте) → восстановлен через `git checkout`, затем обработан в binary mode.
 
+
+---
+
+## Iteration 8 - #if 0 blocks (batch 5 - Source files)
+
+**Date:** 2026-03-16
+
+**Removed 27 blocks manually (Edit tool + sed):**
+
+- `Source/Thing.cpp` - 1: TRACE("index %d thing %x gt %d") inside InCar check (958-960)
+- `Source/pause.cpp` - 1: `static Font3D font(...)` (34-36)
+- `Source/overlay.cpp` - 1: MFX_QUICK_still_playing() debug (912-917)
+- `Source/Main.cpp` - 1: Random() test loop (90-99)
+- `Source/memory.cpp` - 1: WMOVE_remove(CLASS_VEHICLE) call (1942-1945)
+- `Source/dirt.cpp` - 1: old PAP if-chain alt version (559-567)
+- `Source/Vehicle.cpp` - 5:
+  - #if0/#else/#endif ANNOYINGSCRIBBLECHECK+ScribbleCheck -> kept empty #define (82-98)
+  - #if0/#else/#endif old analog steering formula -> kept new version (3323-3341)
+  - debug TRACE for skid cos^2 (3705-3727)
+  - #if0 else-clause "ultra cheap suspension" (4233-4258)
+  - #if0/#else/#endif iterative fast_root -> kept sqrt((double)num) (4334-4369)
+- `Source/Person.cpp` - 2:
+  - OnFace roof assertions (3684-3696)
+  - hanging distance debug with PANEL_new_text (13355-13395)
+- `Source/Darci.cpp` - 1: "kick off wall" special moves disabled code (672-699)
+- `Source/guns.cpp` - 1: police car targeting logic for Darci/Roper (273-299)
+- `Source/elev.cpp` - 1: #if0/#else/#endif SND_BeginAmbient vs ELEV_game_init_common -> kept ELEV_game_init_common (2370-2379)
+- `Source/pap.cpp` - 1: old InsideIndex/sewers height branch (168-196)
+- `Source/supermap.cpp` - 1: PSX TGA texture copy inside #ifdef EDITOR (3303-3313)
+- `Source/startscr.cpp` - 1: draw_a_3d_menu(Font3D&) function (238-286)
+- `Source/wmove.cpp` - 1: WMOVE_remove() function (507-544)
+- `Source/Env.cpp` - 1: entire ENV_load + ENV_heap/var declarations - whole file content was in #if 0 (9-271)
+- `Source/Thug.cpp` - 1: fn_thug_normal body - old waypoint AI (68-152)
+- `Source/cloth.cpp` - 1: entire CLOTH_process function body (485-673)
+- `Source/inside2.cpp` - 1: entire INSIDE NAVIGATION block with INSIDE2_mav_nav_calc (793-1195)
+- `Source/interact.cpp` - 1: trench edge-grab code (856-954)
+- `Source/ware.cpp` - 1: warehouse door prim placement (595-697)
+- `Source/Game.cpp` - 1: edge_map_warning() function with widgets (1006-1106)
+
+**Result:** 27 blocks, project: 49 -> 22 `#if 0`.
+
+**Remaining (22):** eway.cpp (7), frontend.cpp (5), interfac.cpp (7), pcom.cpp (3).
+
+**Notes:**
+- Env.cpp: whole file (except includes) was in one #if 0 block. After deletion: 8 lines of headers only.
+- cloth.cpp CLOTH_process: function declared, body in #if 0. After deletion: empty function body remains.
+- Thug.cpp fn_thug_normal: whole body in #if 0. After deletion: empty function body remains.
+- inside2.cpp: 403 lines of indoor navigation AI - only #if0 block in the file.
+- Darci.cpp:672 - NOT police cars (I misread parallel tool results initially). Actually: "kick off wall" jump/kick special moves.
+

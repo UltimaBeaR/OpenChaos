@@ -2366,17 +2366,7 @@ SLONG ELEV_game_init(
     EWAY_process(); // pre process map, stick it here Or we get stack overflow
 //	MUSIC_WORLD=(Random()%6)+1;
 
-// MARK! THIS CODE ISN'T CALLED FOR THE DC!!!!
-#if 0
-
-extern void SND_BeginAmbient();
-
-	MFX_load_wave_list();
-	SND_BeginAmbient();
-
-#else
     ELEV_game_init_common(fname_map, fname_lighting, fname_citsez, fname_level);
-#endif
 
     ATTRACT_loadscreen_draw(95 * 256 / 100);
 

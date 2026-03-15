@@ -87,17 +87,6 @@ SLONG main(UWORD argc, TCHAR* argv[])
 
     AENG_read_detail_levels(); // get engine defaults
 
-#if 0
-	{
-		SLONG i;
-
-		for (i = 0; i < 100; i++)
-		{
-			TRACE("Random() & 0xff = %d\n", Random() & 0xff);
-		}
-	}
-#endif
-
 #ifndef USE_A3D
 //	ASSERT(the_qs_sound_manager.Init() == ERROR_QMIX_OK);
 //	the_qs_sound_manager.Init() == ERROR_QMIX_OK;

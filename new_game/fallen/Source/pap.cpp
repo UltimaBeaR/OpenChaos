@@ -165,35 +165,6 @@ SLONG PAP_calc_height_at_thing(Thing* p_thing, SLONG x, SLONG z)
                 p_thing->WorldPos.X >> 8,
                 p_thing->WorldPos.Z >> 8);
         }
-#if 0
-			else
-			if(p_thing->Genus.Person->InsideIndex)
-			{
-				if(find_inside_flags(p_thing->Genus.Person->InsideIndex,x>>8,z>>8)& FLAG_INSIDE_STAIR)
-				{
-					SLONG	res,y1;
-					UWORD	new_floor;
-
-					res=find_stair_y(p_thing,&y1,x,p_thing->WorldPos.Y>>8,z,&new_floor);
-					if(res)
-					{
-						MSG_add(" inside on stairs at y %d \n",y1);
-						return(y1);
-					}
-					else
-						MSG_add(" inside at y %d \n",y1);
-
-
-				}
-
-				return(get_inside_alt(p_thing->Genus.Person->InsideIndex));
-			}
-			else
-			if (p_thing->Flags & FLAGS_IN_SEWERS)
-			{
-				return(NS_calc_height_at(x,z)); //p_thing->WorldPos.X>>8,p_thing->WorldPos.Z>>8));
-			}
-#endif
         break;
     }
     return (PAP_calc_map_height_at(x, z));

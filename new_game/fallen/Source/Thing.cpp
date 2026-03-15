@@ -955,9 +955,6 @@ void process_things(SLONG frame_rate_independant)
 #endif
             {
                 if (p_thing->Genus.Person->InCar) {
-#if 0
-					TRACE("index %d thing %x gt %d",index,p_thing,GAME_TURN);
-#endif
                 }
                 general_process_person(p_thing);
                 PCOM_process_person(p_thing);

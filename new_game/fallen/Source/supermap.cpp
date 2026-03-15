@@ -3300,17 +3300,6 @@ void save_all_nads(void)
     SLONG p0, p1, c0 = 0;
     SLONG highest = 0;
 
-#if 0
-	{
-		UBYTE	data[32][32];
-		UBYTE	pal[256*3];
-		TGA_load_psx("c:\\fallen\\server\\textures\\world8\\psx\\tex215hi.tga",32,32,&data[0][0],pal);
-
-		make_psx_pal(0,pal);
-
-		copy_to_psx_tim(&data[0][0],32,32,pal,0,0);
-	}
-#endif
 
     while (levels[c0].level) {
         CBYTE name[100];

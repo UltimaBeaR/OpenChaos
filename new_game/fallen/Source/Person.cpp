@@ -3681,19 +3681,6 @@ void general_process_person(Thing* p_person)
         }
 #endif
 
-#if 0
-	if (p_person->OnFace && p_person->OnFace < 0 && p_person->State != STATE_DEAD)
-	{
-		if (IS_ROOF_HIDDEN_FACE(p_person->OnFace))
-		{
-			SLONG mx = ROOF_HIDDEN_X(p_person->OnFace);
-			SLONG mz = ROOF_HIDDEN_Z(p_person->OnFace);
-
-			ASSERT(abs(mx - (p_person->WorldPos.X >> 16)) <= 1);
-			ASSERT(abs(mz - (p_person->WorldPos.Z >> 16)) <= 1);
-		}
-	}
-#endif
 
 /*
         if(p_person->Genus.Person->PlayerID==0)
@@ -13365,47 +13352,6 @@ void fn_person_dangling(Thing* p_person)
 
                                             person_normal_move_dxdz(p_person,dx,dz);
             */
-#if 0
-
-				//
-				// How far is Darci from the facet she is hanging onto?
-				//
-
-				{
-					SLONG dist;
-
-					SLONG dx = -SIN(p_person->Draw.Tweened->Angle);
-					SLONG dz = -COS(p_person->Draw.Tweened->Angle);
-
-					if (abs(dx) > abs(dz))
-					{
-						if (dx > 0)
-						{
-							dist = 0x10000 - (p_person->WorldPos.X & 0xffff);
-						}
-						else
-						{
-							dist = p_person->WorldPos.X & 0xffff;
-						}
-					}
-					else
-					{
-						if (dz > 0)
-						{
-							dist = 0x10000 - (p_person->WorldPos.Z & 0xffff);
-						}
-						else
-						{
-							dist = p_person->WorldPos.Z & 0xffff;
-						}
-					}
-#ifndef FINAL
-					PANEL_new_text(NULL, 4000, "Distance from facet = 0x%x", dist);
-#endif
-
-				}
-
-#endif
         }
 
         break;

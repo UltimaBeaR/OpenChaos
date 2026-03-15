@@ -909,12 +909,6 @@ void OVERLAY_handle(void)
     }
 
 #endif
-#if 0
-	if(MFX_QUICK_still_playing())
-	{
-		FONT2D_DrawString("MFX QUICK STILL PLAYING",100,20);
-	}
-#endif
 
 
     if (!draw_map_screen) {

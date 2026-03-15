@@ -556,15 +556,6 @@ void DIRT_set_focus(
 
             if (PAP_on_map_hi(mx, mz) && ((world_type == WORLD_TYPE_SNOW) || !(PAP_2HI(mx, mz).Flags & PAP_FLAG_HIDDEN)) && !(MAV_SPARE(mx, mz) & MAV_SPARE_FLAG_WATER) && !(MAV_SPARE(mx + 1, mz) & MAV_SPARE_FLAG_WATER) && !(MAV_SPARE(mx - 1, mz) & MAV_SPARE_FLAG_WATER) && !(MAV_SPARE(mx, mz + 1) & MAV_SPARE_FLAG_WATER) && !(MAV_SPARE(mx, mz - 1) & MAV_SPARE_FLAG_WATER))
 
-#if 0
-			if (PAP_on_map_hi(mx,mz))
-			if ( (world_type==WORLD_TYPE_SNOW) || !((PAP_hi[mx][mz]).Flags & PAP_FLAG_HIDDEN) )
-			if ( !((MAV_nav[((mx) * MAV_nav_pitch) + (mz)] >> 14) & MAV_SPARE_FLAG_WATER) )
-			if ( !((MAV_nav[((mx) * MAV_nav_pitch) + (mz-1)] >> 14) & MAV_SPARE_FLAG_WATER) )
-			if ( !((MAV_nav[((mx) * MAV_nav_pitch) + (mz+1)] >> 14) & MAV_SPARE_FLAG_WATER) )
-			if ( !((MAV_nav[((mx-1) * MAV_nav_pitch) + (mz)] >> 14) & MAV_SPARE_FLAG_WATER) )
-			if ( !((MAV_nav[((mx+1) * MAV_nav_pitch) + (mz)] >> 14) & MAV_SPARE_FLAG_WATER))
-#endif
             {
                 //				DebugText(" dirt valid cx %d cz %d \n",cx,cz);
                 //

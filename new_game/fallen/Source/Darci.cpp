@@ -669,34 +669,6 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
             }
 
             if (col) {
-#if 0
-
-				//
-				// I hope we get this working one day...
-				//
-
-				//
-				// Do special moves off a wall.
-				//
-
-				if ((p_thing->Genus.Person->Flags & FLAG_PERSON_REQUEST_KICK))
-				{
-					if(set_person_kick_off_wall(p_thing,col,1))
-					{
-						return(2);
-					}
-				}
-				else
-				if((p_thing->Genus.Person->Flags&FLAG_PERSON_REQUEST_JUMP))
-				{
-					if(set_person_kick_off_wall(p_thing,col,1))
-					{
-						return(2);
-					}
-				}
-				else
-
-#endif
                 if (col_is_fence(col) || dfacets[col].FacetType == STOREY_TYPE_NORMAL) {
                     //
                     // The person has hit a fence.

@@ -235,55 +235,6 @@ void draw_a_menu(SLONG menu)
     }
 }
 
-#if 0
-void	draw_a_3d_menu(Font3D &font, SLONG	menu) 
-{
-	SLONG	c0;
-	SLONG	y;
-	SLONG	complex;
-	UBYTE   isthis;
-
-
-	text_fudge  = FALSE;
-
-	y=240-(25*start_menu[menu].Count);
-
-	complex=start_menu[menu].Type;
-
-	for(c0=0;c0<start_menu[menu].Count;c0++)
-	{
-		CBYTE	*str;
-
-		isthis=(c0==start_menu[menu].Current);
-		if(isthis)
-			text_colour = 0xffffff;
-		else
-			text_colour = 0xff9f9f;
-
-		if(!complex)
-		{
-			str=startmenu[c0+start_menu[menu].StartIndex].Str;
-			if(str) font.DrawString(str,320,y,text_colour,2.5+(isthis*0.5f),isthis);
-
-		}
-		else
-		{
-			SLONG	item;
-			CBYTE	*str;
-			item=startmenu2[c0+start_menu[menu].StartIndex].Item;
-//			draw_text_at(150, y,startmenu2[c0+start_menu[menu].StartIndex].Str,0);
-			font.DrawString(startmenu2[c0+start_menu[menu].StartIndex].Str,200,y,text_colour,2.0+(isthis*0.5f),isthis);
-			
-			str=startmenu2[c0+start_menu[menu].StartIndex].Strb[item];
-			if(str) font.DrawString(str,500,y,text_colour,2.0+(isthis*0.5f),isthis);
-
-		}
-
-		y+=50;
-	}
-}
-
-#endif
 
 // void MENUFONT_Draw_floats(float x, float y, UWORD scale, CBYTE *msg, SLONG rgb, UBYTE flags, UBYTE haloscale);
 

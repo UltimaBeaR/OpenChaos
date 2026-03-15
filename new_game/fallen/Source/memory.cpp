@@ -1939,10 +1939,6 @@ void save_whole_game(CBYTE* gamename)
 
 #ifndef ULTRA_COMPRESSED_ANIMATIONS
     if (save_psx) {
-#if 0
-void WMOVE_remove(UBYTE which_class);
-		WMOVE_remove(CLASS_VEHICLE);
-#endif
         //		save_whole_wad(gamename,0);
 
         //

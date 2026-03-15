@@ -270,33 +270,6 @@ SLONG calc_target_score_new(Thing* darci, Thing* p_target)
         return 0;
     }
 
-#if 0
-
-	//
-	// You can target police cars if you want! If you blow them up,
-	// then you get a red mark.
-	//
-
-	if (p_target->Class == CLASS_VEHICLE)
-	{
-		//
-		// Don't target police cars if you're Darci or Roper.
-		//
-
-		if (darci->Genus.Person->PersonType == PERSON_DARCI ||
-			darci->Genus.Person->PersonType == PERSON_ROPER)
-		{
-			
-		}
-	}
-
-	if ((p_target->Class==CLASS_VEHICLE) && 
-		((p_target->Genus.Vehicle->Type == VEH_TYPE_POLICE) || (p_target->Genus.Vehicle->Type == VEH_TYPE_MEATWAGON)))
-	{
-		return 0;
-	}
-
-#endif
 
     //
     // Relative angle of the target from darci.
