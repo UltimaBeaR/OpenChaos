@@ -11,9 +11,6 @@
 #include "texture.h"
 #include "message.h"
 #include "night.h"
-#ifndef TARGET_DC
-#include "../../MuckyBasic/clip.h"
-#endif
 #include "vertexbuffer.h"
 #include "polypoint.h"
 #include "renderstate.h"
