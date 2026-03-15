@@ -52,12 +52,29 @@ static_assert(__alignof(LARGE_INTEGER) == 8,
 в обеих конфигурациях и существовал до наших правок. Правильный долгосрочный фикс —
 отделить пакованные структуры ресурсов от WinAPI-кода через `#pragma pack`.
 
-#### Подозрительные флаги (зафиксированы, не трогались)
+#### Подозрительные флаги — расследование завершено (2026-03-15)
 
-- `/MTd` в Release — Debug CRT в релизной сборке. Должно быть `/MT`.
-- `/D /NODEFAULTLIB:libcmtd.lib"` в обоих конфигах — `/NODEFAULTLIB` это линкерный флаг,
-  случайно предварён `/D` (флаг дефайна). Артефакт кривой конвертации старого `.dsp` → `.vcxproj`.
-  Фактического эффекта скорее всего нет — линкер получает его отдельно.
+**`/MTd` в Release (`MultiThreadedDebug`) — подтверждённая проблема:**
+
+`MultiThreadedDebug` (строка 63 в `Fallen.vcxproj`) автоматически определяет `_DEBUG` компилятором.
+Из-за этого в Release-сборке активны все `#ifdef _DEBUG` блоки, в т.ч. отладочная надпись
+`"music mode %d vol %f %s"` в `DDEngine/Source/panel.cpp:5441`.
+
+Все `/D /NODEFAULTLIB:libcmtd.lib"` в `<AdditionalOptions>` линкера (строки 303–447 vcxproj) —
+костыли, добавленные чтобы компенсировать конфликт: Release-код линкуется с отладочным CRT
+(`libcmtd.lib`), что вызывает ошибки линковки. Артефакт кривой конвертации `.dsp` → `.vcxproj`.
+
+**Что нужно исправить в `Fallen.vcxproj`:**
+- `RuntimeLibrary`: `MultiThreadedDebug` → `MultiThreaded` в Release конфиге (строка 63)
+- Убрать все `/D /NODEFAULTLIB:libcmtd.lib"` из `<AdditionalOptions>` линкера Release конфига
+
+**Отдельный баг — `FARFACET squares drawn` (не связан с `/MTd`):**
+
+В `DDEngine/Source/panel.cpp:5408` блок с `"FARFACET squares drawn: %d"` обёрнут только в
+`#ifndef TARGET_DC` (активен на PC), без какой-либо защиты `#ifdef _DEBUG` или `#ifndef FINAL`.
+Показывается в **любой** сборке — и Debug, и Release.
+Это оригинальный пре-релизный баг: в финальной игре этой надписи нет.
+Фикс: добавить `#ifndef FINAL` вокруг блока.
 
 ### Что найдено: варнинги в Debug-сборке (зафиксированы, не трогались)
 
