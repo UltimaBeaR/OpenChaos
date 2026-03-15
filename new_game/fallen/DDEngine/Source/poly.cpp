@@ -592,9 +592,6 @@ void POLY_transform_c_saturate_z(
         pt->y,
         pt->z);
 
-#if 0
-	POLY_perspective(pt);
-#else
     if (pt->z < POLY_Z_NEARPLANE) {
         pt->clip = POLY_CLIP_NEAR;
     } else {
@@ -648,7 +645,6 @@ void POLY_transform_c_saturate_z(
         pt->clip |= (*((ULONG*)&bmy) >> 31) << 3;
 #endif
     }
-#endif
     LOG_EXIT(Poly_Transform_c_sat_z)
 }
 
@@ -1401,170 +1397,6 @@ static float s_DistBuffer[128];
 static POLY_Point* s_PtrBuffer[128];
 
 // POLY_add_poly no longer works - system's been changed.
-#if 0
-
-// POLY_add_poly
-//
-// clip poly and write to the vertex buffer
-
-void POLY_add_poly(POLY_Point** poly, SLONG poly_points, SLONG page)
-{
-
-	UBYTE	clip_or;
-	UBYTE	clip_and;
-	SLONG	ii;
-
-	// get aggregate clip flags
-	clip_or = 0;
-	clip_and = 0xFF;
-	for (ii = 0; ii < poly_points; ii++)
-	{
-		ASSERT(poly[ii]->MaybeValid());
-		clip_or |= poly[ii]->clip;
-		clip_and &= poly[ii]->clip;
-	}
-
-	if (clip_and & (POLY_CLIP_NEAR | POLY_CLIP_LEFT | POLY_CLIP_RIGHT | POLY_CLIP_TOP | POLY_CLIP_BOTTOM))
-	{
-		return;		  // is this triggering?
-	}
-
-	// initialize state for clipping
-	POLY_Point**	rptr = poly;
-	POLY_Point**	wptr = s_PtrBuffer;
-
-	s_PointBufferOffset = 0;
-
-	// remove flags that we don't care about
-	clip_or &= s_ClipMask;
-
-	// clip to nearplane
-	if (clip_or & POLY_CLIP_NEAR)
-	{
-		for (ii = 0; ii < poly_points; ii++)
-		{
-			s_DistBuffer[ii] = rptr[ii]->z - POLY_Z_NEARPLANE;
-		}
-
-		poly_points = POLY_clip_against_nearplane(rptr, s_DistBuffer, poly_points, wptr);
-		rptr = wptr;
-		wptr += poly_points;
-
-		if (!poly_points)
-		{
-			return;
-		}
-
-		// refresh clip flags
-		clip_or = 0;
-		clip_and = 0xFF;
-		for (ii = 0; ii < poly_points; ii++)
-		{
-			ASSERT(rptr[ii]->MaybeValid());
-			clip_or |= rptr[ii]->clip;
-			clip_and &= rptr[ii]->clip;
-		}
-		clip_or &= s_ClipMask;
-	}
-
-#if _DEBUG
-	// check that clip flags are correctly set
-	for (ii = 0; ii < poly_points; ii++)
-	{
-		UBYTE	tmp = rptr[ii]->clip;
-		POLY_setclip(rptr[ii]);
-		if (tmp != rptr[ii]->clip)
-		{
-			TRACE("ERROR!  Polygon vertex clip flags not set\n(Hint: add ,TRUE parameter to the add polygon call if you set screen coordinates by hand, or call POLY_setclip())\n");
- 			ASSERT(0);
-			// now trace through the call - I've just realized this won't necessarily work ;-(
-			POLY_transform(rptr[ii]->x, rptr[ii]->y, rptr[ii]->z, rptr[ii]);
-		}
-	}
-#endif
-
-#if !NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB
-	if (clip_or & (POLY_CLIP_LEFT | POLY_CLIP_RIGHT | POLY_CLIP_TOP | POLY_CLIP_BOTTOM))
-	{
-		if (clip_or & POLY_CLIP_LEFT)
-		{
-			LOG_ENTER ( POLY_side_clip )
-			for (ii = 0; ii < poly_points; ii++)
-			{
-				s_DistBuffer[ii] = rptr[ii]->X - POLY_screen_clip_left;
-			}
-
-			poly_points = POLY_clip_against_side_X(rptr, s_DistBuffer, poly_points, wptr, POLY_screen_clip_left);
-			rptr = wptr;
-			wptr += poly_points;
-
-			LOG_EXIT ( POLY_side_clip )
-			if (!poly_points)	return;
-		}
-
-		if (clip_or & POLY_CLIP_RIGHT)
-		{
-			LOG_ENTER ( POLY_side_clip )
-			for (ii = 0; ii < poly_points; ii++)
-			{
-				s_DistBuffer[ii] = POLY_screen_clip_right - rptr[ii]->X;
-			}
-
-			poly_points = POLY_clip_against_side_X(rptr, s_DistBuffer, poly_points, wptr, POLY_screen_clip_right);
-			rptr = wptr;
-			wptr += poly_points;
-
-			LOG_EXIT ( POLY_side_clip )
-			if (!poly_points)	return;
-		}
-
-		if (clip_or & POLY_CLIP_TOP)
-		{
-			LOG_ENTER ( POLY_side_clip )
-			for (ii = 0; ii < poly_points; ii++)
-			{
-				s_DistBuffer[ii] = rptr[ii]->Y - POLY_screen_clip_top;
-			}
-
-			poly_points = POLY_clip_against_side_Y(rptr, s_DistBuffer, poly_points, wptr, POLY_screen_clip_top);
-			rptr = wptr;
-			wptr += poly_points;
-
-			LOG_EXIT ( POLY_side_clip )
-			if (!poly_points)	return;
-		}
-
-		if (clip_or & POLY_CLIP_BOTTOM)
-		{
-			LOG_ENTER ( POLY_side_clip )
-			for (ii = 0; ii < poly_points; ii++)
-			{
-				s_DistBuffer[ii] = POLY_screen_clip_bottom - rptr[ii]->Y;
-			}
-
-			poly_points = POLY_clip_against_side_Y(rptr, s_DistBuffer, poly_points, wptr, POLY_screen_clip_bottom);
-			rptr = wptr;
-			wptr += poly_points;
-
-			LOG_EXIT ( POLY_side_clip )
-			if (!poly_points)	return;
-		}
-	}
-#endif // #if !NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB
-
-	//
-	// add to appropriate pages
-	//
-
-	POLY_Page[page].AddFan(rptr, poly_points);
-
-	if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS)
-	{
-		POLY_Page[page + 1].AddFan(rptr, poly_points);
-	}
-}
-
-#endif // #if 1 ????!
 
 void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface_cull)
 {
@@ -2086,144 +1918,10 @@ second_page:;
     LOG_EXIT(POLY_add_quad)
 }
 
-#if 0
-//
-// add a triangle to the poly list
-//
-
-void POLY_add_triangle_slow(POLY_Point *pp[3], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
-{
-	{
-		if (generate_clip_flags)
-		{
-			POLY_setclip(pp[0]);
-			POLY_setclip(pp[1]);
-			POLY_setclip(pp[2]);
-		}
-		else
-		{
-			ASSERT(pp[0]->MaybeValid());
-			ASSERT(pp[1]->MaybeValid());
-			ASSERT(pp[2]->MaybeValid());
-		}
-
-		if (backface_cull && POLY_tri_backfacing(pp[0], pp[1], pp[2]))
-		{
-			//
-			// This triangle is backface culled.
-			//
-		}
-		else
-		{
-			POLY_add_poly(pp, 3, page);
-		}
-	}
-}
-
-//
-// add a quad to the poly list; note that vertices clockwise go 0,1,3,2 in this call
-//
-
-extern	SLONG TEXTURE_set;
-extern	UBYTE TEXTURE_dontexist[];
-
-void POLY_add_quad_slow(POLY_Point *pp[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
-{
-
-	LOG_ENTER ( POLY_add_quad )
-
-#if 0 // or #ifdef _DEBUG or something, you lazy gits
-	if(ShiftFlag && Keys[KB_Q])
-	if(pp[0]->z<0.3)
-	if(page<64*8)
-	{
-		CBYTE	str[10];
-		if(page<256)
-			sprintf(str,"W%d %d",TEXTURE_set,page);
-		else
-			sprintf(str,"W%d S%d",TEXTURE_set,page);
-//extern	FONT2D_DrawString(CBYTE*chr, ULONG x, ULONG y, ULONG rgb=0xffffff, SLONG scale=16, SLONG page=POLY_PAGE_FONT2D, SWORD fade=0);
-		FONT2D_DrawString(str,pp[0]->X,pp[0]->Y,0xff0000);
-	}
-#endif
-	
-
-/*
-	if(ShiftFlag)
-	{
-		if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED)
-			ASSERT(0);
-		if(TEXTURE_dontexist[page])
-			ASSERT(0);
-	}
-*/
-
-//	if(page!=128)
-//		return;
-
-	{
-		if (generate_clip_flags)
-		{
-			POLY_setclip(pp[0]);
-			POLY_setclip(pp[1]);
-			POLY_setclip(pp[2]);
-			POLY_setclip(pp[3]);
-		}
-		else
-		{
-			ASSERT(pp[0]->MaybeValid());
-			ASSERT(pp[1]->MaybeValid());
-			ASSERT(pp[2]->MaybeValid());
-			ASSERT(pp[3]->MaybeValid());
-		}
-
-		if (backface_cull)
-		{
-			bool	first;
-			bool	second;
-
-			first  = POLY_tri_backfacing(pp[0], pp[1], pp[2]);
-			second = POLY_tri_backfacing(pp[1], pp[3], pp[2]);
-
-			if (first && second)
-			{
-			}
-			else
-			{
-				if (!first)		POLY_add_poly(pp, 3, page);
-				if (!second)	POLY_add_poly(pp+1, 3, page);
-			}
-		}
-		else
-		{
-#if USE_D3D_VBUF
-				// bent quads break clipping - submit as two triangles
-				POLY_add_poly(pp, 3, page);
-				POLY_add_poly(pp+1, 3, page);
-#else
-				POLY_Point*	tmp;
-
-				tmp = pp[2]; pp[2] = pp[3]; pp[3] = tmp;
-				POLY_add_poly(pp, 4, page);
-				tmp = pp[2]; pp[2] = pp[3]; pp[3] = tmp;
-#endif
-		}
-	}
-
-}
-
-#endif // #if 0
 
 
 void POLY_add_quad(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
-#if 0
-	if (!Keys[KB_F8])
-	{
-		POLY_add_quad_slow(pp, page, backface_cull, generate_clip_flags);
-	}
-	else
-#endif
     {
         POLY_add_quad_fast(pp, page, backface_cull, generate_clip_flags);
     }
@@ -2231,13 +1929,6 @@ void POLY_add_quad(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG gen
 
 void POLY_add_triangle(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
-#if 0
-	if (!Keys[KB_F8])
-	{
-		POLY_add_triangle_slow(pp, page, backface_cull, generate_clip_flags);
-	}
-	else
-#endif
     {
         POLY_add_triangle_fast(pp, page, backface_cull, generate_clip_flags);
     }
@@ -2426,12 +2117,6 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
 
-#if 0
-	POLY_setclip(ppt[0]);
-	POLY_setclip(ppt[1]);
-	POLY_setclip(ppt[2]);
-	POLY_setclip(ppt[3]);
-#endif
 
     POLY_add_quad(ppt, page, FALSE, TRUE);
 }
@@ -2546,12 +2231,6 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
 
-#if 0
-	POLY_setclip(ppt[0]);
-	POLY_setclip(ppt[1]);
-	POLY_setclip(ppt[2]);
-	POLY_setclip(ppt[3]);
-#endif
 
     POLY_add_quad(ppt, page, FALSE, TRUE);
 }
@@ -2603,11 +2282,6 @@ void POLY_add_rect(POLY_Point* p1, SLONG width, SLONG height, SLONG page, UBYTE 
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
 
-#if 0
-	POLY_setclip(ppt[0]);
-	POLY_setclip(ppt[1]);
-	POLY_setclip(ppt[3]);
-#endif
 
     POLY_add_quad(ppt, page, FALSE, TRUE);
 }
@@ -2661,11 +2335,6 @@ void POLY_add_line_2d(float sx1, float sy1, float sx2, float sy2, ULONG colour)
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
 
-#if 0
-	POLY_setclip(ppt[0]);
-	POLY_setclip(ppt[1]);
-	POLY_setclip(ppt[3]);
-#endif
 
     POLY_add_quad(ppt, POLY_PAGE_COLOUR, FALSE, TRUE);
 }
@@ -2853,92 +2522,6 @@ void POLY_clip_line_add(float sx1, float sy1, float sx2, float sy2, ULONG colour
     POLY_add_line_2d(sx1, sy1, sx2, sy2, colour);
 }
 
-#if 0
-
-SLONG POLY_shared_page;
-SLONG POLY_shared_base_index;
-
-void POLY_add_shared_start(SLONG page)
-{
-	POLY_Page *pa;
-	D3DTLVERTEX *tl;
-
-	ASSERT(WITHIN(page, 0, POLY_NUM_PAGES - 1));
-
-	pa = &POLY_page[page];
-
-	POLY_shared_page       = page;
-	POLY_shared_base_index = pa->vertex_upto;
-}
-
-void POLY_add_shared_point(POLY_Point *pp)
-{
-	POLY_Page *pa;
-	D3DTLVERTEX *tl;
-
-	ASSERT(WITHIN(POLY_shared_page, 0, POLY_NUM_PAGES - 1));
-
-	pa = &POLY_page[POLY_shared_page];
-
-	//
-	// Is there enough room in the buffers for this point?
-	//
-
-	if (pa->vertex_upto >= pa->size)
-	{
-		if (!POLY_grow_page(pa))
-		{
-			return;
-		}
-	}
-
-	tl = &pa->vertex[pa->vertex_upto];
-
-	tl->sx       = pp->X;
-	tl->sy       = pp->Y;
-	tl->sz       = 1.0F - pp->Z;	// 1 - 1/z z-buffer...
-	tl->rhw      = pp->Z;
-	tl->tu       = pp->u;
-	tl->tv       = pp->v;
-	tl->color    = pp->colour;	// Bloody Americans!
-	tl->specular = pp->specular;
-
-	pa->vertex_upto += 1;
-}
-
-void POLY_add_shared_tri(UWORD p1, UWORD p2, UWORD p3)
-{
-	POLY_Page *pa;
-	D3DTLVERTEX *tl;
-
-	ASSERT(WITHIN(POLY_shared_page, 0, POLY_NUM_PAGES - 1));
-
-	pa = &POLY_page[POLY_shared_page];
-
-	//
-	// Is there enough room in the buffers for this point?
-	//
-
-	if (pa->index_upto + 3 > pa->size)
-	{
-		if (!POLY_grow_page(pa))
-		{
-			return;
-		}
-	}
-
-	ASSERT(WITHIN(POLY_shared_base_index + p1, 0, pa->vertex_upto - 1));
-	ASSERT(WITHIN(POLY_shared_base_index + p2, 0, pa->vertex_upto - 1));
-	ASSERT(WITHIN(POLY_shared_base_index + p3, 0, pa->vertex_upto - 1));
-
-	pa->index[pa->index_upto + 0] = POLY_shared_base_index + p1;
-	pa->index[pa->index_upto + 1] = POLY_shared_base_index + p2;
-	pa->index[pa->index_upto + 2] = POLY_shared_base_index + p3;
-
-	pa->index_upto += 3;
-}
-
-#endif
 
 // POLY_frame_draw
 //
@@ -3491,159 +3074,6 @@ SLONG POLY_get_sphere_circle(
     }
 }
 
-#if 0
-
-void POLY_frame_draw_focused(float focus)
-{
-	SLONG i;
-	SLONG j;
-
-	float df;
-
-	PolyPage	*pa;
-
-	//
-	// Set-up renderstates.
-	// 
-
-	SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG,FILTER_TYPE); //l
-	SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN,FILTER_TYPE); //l
-	SET_RENDER_STATE(D3DRENDERSTATE_SPECULARENABLE,TRUE);
-	SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE,TRUE);
-	SET_RENDER_STATE(D3DRENDERSTATE_ZFUNC,D3DCMP_LESSEQUAL);
-	SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE,FALSE);
-	SET_RENDER_STATE(D3DRENDERSTATE_CULLMODE,D3DCULL_NONE);
-	SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND,D3DTBLEND_MODULATE);
-	SET_RENDER_STATE(D3DRENDERSTATE_FOGCOLOR,  0x00000000);
-	SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-	SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE,FALSE);
-	SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE,FALSE);
-	SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE,FALSE);
-	SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS,D3DTADDRESS_CLAMP);
-
-	SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND,D3DBLEND_ONE);
-	SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND,D3DBLEND_ONE);
-	SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE,TRUE);
-
-	//
-	// Draw each standard texture page unfocused one way.
-	//
-
-	for (i = 0; i < TEXTURE_page_num_standard; i++)
-	{	
-		ASSERT(WITHIN(i, 0, POLY_NUM_PAGES - 1));
-
-		pa = &POLY_Page[i];
-
-		//
-		// Darken all the vertices and move them to the left.
-		//
-
-		for (j = 0; j < pa->vertex_upto; j++)
-		{
-			tl = &pa->vertex[j];
-
-			//tl->color    &= 0x7f7f7f7f;
-			//tl->specular &= 0xff7f7f7f;
-
-			tl->sz -= 1.0F / 65536.0F;
-
-			df = fabsf(tl->sz - focus);
-
-			tl->sx -= df * 80.0F;
-			tl->sy -= df * 80.0F;
-
-		}
-
-		//
-		// The correct texture page.
-		//
-
-		REALLY_SET_TEXTURE(TEXTURE_get_handle(i));
-
-		if (POLY_page_flag[i] & POLY_PAGE_FLAG_TRANSPARENT)
-		{
-			TEXTURE_set_colour_key(i);
-			SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE,TRUE);
-		}
-
-		//
-		// Render the polys.
-		// 
-
-		the_display.lp_D3D_Device->DrawIndexedPrimitive(
-										D3DPT_TRIANGLELIST,
-										D3DFVF_TLVERTEX,
-										(LPVOID) pa->vertex,
-										pa->vertex_upto,
-										pa->index,
-										pa->index_upto,
-										D3DDP_DONOTUPDATEEXTENTS);
-
-		if (POLY_page_flag[i] & POLY_PAGE_FLAG_TRANSPARENT)
-		{
-			SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE,FALSE);
-		}
-	}
-
-	//
-	// Draw each standard texture page unfocused the other way.
-	//
-
-	for (i = 0; i < TEXTURE_page_num_standard; i++)
-	{	
-		ASSERT(WITHIN(i, 0, POLY_NUM_PAGES - 1));
-
-		pa = &POLY_page[i];
-
-		//
-		// Darken all the vertices and move them to the right
-		//
-
-		for (j = 0; j < pa->vertex_upto; j++)
-		{
-			tl = &pa->vertex[j];
-
-			df = fabsf(tl->sz - focus);
-
-			tl->sx += df * 160.0F;
-			tl->sy += df * 160.0F;
-		}
-
-		//
-		// The correct texture page.
-		//
-
-		REALLY_SET_TEXTURE(TEXTURE_get_handle(i));
-
-		if (POLY_page_flag[i] & POLY_PAGE_FLAG_TRANSPARENT)
-		{
-			TEXTURE_set_colour_key(i);
-			SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE,TRUE);
-		}
-
-
-		//
-		// Render the polys.
-		// 
-
-		the_display.lp_D3D_Device->DrawIndexedPrimitive(
-										D3DPT_TRIANGLELIST,
-										D3DFVF_TLVERTEX,
-										(LPVOID) pa->vertex,
-										pa->vertex_upto,
-										pa->index,
-										pa->index_upto,
-										D3DDP_DONOTUPDATEEXTENTS);
-
-		if (POLY_page_flag[i] & POLY_PAGE_FLAG_TRANSPARENT)
-		{
-			SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE,FALSE);
-		}
-	}
-}
-
-#endif
 
 SLONG POLY_inside_quad(
     float screen_x,

@@ -867,13 +867,6 @@ void GenerateMMMatrixFromStandardD3DOnes(D3DMATRIX* pmOutput,
         matTemp._44 = mWorldMatrix->_41 * mProjectionMatrix->_14 + mWorldMatrix->_42 * mProjectionMatrix->_24 + mWorldMatrix->_43 * mProjectionMatrix->_34 + mWorldMatrix->_44 * mProjectionMatrix->_44;
     }
 
-#if 0
-	// Officially correct version.
-	DWORD dwWidth = d3dvpt.dwWidth >> 1;
-	DWORD dwHeight = d3dvpt.dwHeight >> 1;
-	DWORD dwX = d3dvpt.dwX;
-	DWORD dwY = d3dvpt.dwY;
-#else
     // Version that knows about the letterbox mode hack.
     extern DWORD g_dw3DStuffHeight;
     extern DWORD g_dw3DStuffY;
@@ -881,7 +874,6 @@ void GenerateMMMatrixFromStandardD3DOnes(D3DMATRIX* pmOutput,
     DWORD dwHeight = g_dw3DStuffHeight >> 1;
     DWORD dwX = d3dvpt->dwX;
     DWORD dwY = g_dw3DStuffY;
-#endif
     pmOutput->_11 = 0.0f;
     pmOutput->_12 = matTemp._11 * (float)dwWidth + matTemp._14 * (float)(dwX + dwWidth);
     pmOutput->_13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);

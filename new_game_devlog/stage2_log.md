@@ -204,3 +204,45 @@ rm new_game/fallen/Source/nightpsx.cpp new_game/fallen/Source/Levelpsx.cpp new_g
 - replace_all использован для трёх идентичных letterbox блоков и двух DrawIndPrimMM блоков.
 - Финальные 11 блоков (с табами) обработаны Python one-liner из-за несовместимости с Edit tool.
 
+---
+
+## Итерация 6 — Удаление #if 0 блоков (пачка 3 — DDEngine файлы)
+
+**Дата:** 2026-03-16
+
+**Удалено блоков #if 0 в коде (27 блоков, все через Python remove_lines/keep_else):**
+
+- `DDEngine/Source/font2d.cpp` — 1 блок: dead rgb==0 coordinate adjust
+- `DDEngine/Source/mesh.cpp` — 2 блока: FASTPRIM_draw shortcut; colour-code crumple zones debug
+- `DDEngine/Source/panel.cpp` — 5 блоков:
+  - `PANEL_draw_angelic_status` + `PANEL_draw_press_button` функции (177-226)
+  - `PANEL_draw_compass_angle` + `PANEL_draw_compass` функции (692-796)
+  - `PANEL_do_heartbeat` функция (1100-1363)
+  - fog table debug extern + sprintf (4211-4242, внутри `#ifdef DEBUG`)
+  - пустой «FINAL BUILD DONE! HOORAY!» (4383-4387)
+- `DDEngine/Source/poly.cpp` — 12 блоков (11 удалений — один блок содержал вложенный):
+  - `#if 0/#else/#endif` обёртка вокруг `POLY_perspective(pt)` → оставлен полный inline transform
+  - `POLY_add_poly` функция (1404-1567)
+  - `POLY_add_triangle_slow` + `POLY_add_quad_slow` функции (2089-2215, содержал вложенный блок 2135)
+  - KB_F8 условие перед `POLY_add_quad_fast` (2220-2226)
+  - KB_F8 условие перед `POLY_add_triangle_fast` (2234-2240)
+  - 4× мёртвые `POLY_setclip` вызовы (2429, 2549, 2606, 2664)
+  - `POLY_add_shared_start/point/tri` функции (2856-2941)
+  - `POLY_frame_draw_focused` функция (3494-3646)
+- `DDEngine/Source/polypage.cpp` — 1 блок: `#if 0/#else/#endif` letterbox hack (ещё одна копия) → оставлен `g_dw3DStuffHeight`
+- `DDEngine/Source/polyrenderstate.cpp` — 3 блока:
+  - `#if 0/#else/#endif` frame-wait vs `RenderStates_OK` check → оставлен простой `if (RenderStates_OK) return;`
+  - DC kludge `else` блок перед active code (179-188)
+  - RS.Validate debug loop (1504-1512)
+- `DDEngine/Source/ray.cpp` — 1 блок: весь файл (строки 9-1418) был в `#if 0 // Intel C compiler barfs`.
+  После удаления: файл содержит только 8 `#include` строк. RAY_ функции нигде не вызываются.
+- `DDEngine/Source/sky.cpp` — 2 блока: «man on moon» draw (546-588); «is player looking at moon» check (592-632)
+
+**Итог:** 27 блоков, проект: 119 → 92 `#if 0`.
+
+**Нюансы:**
+- Все блоки обработаны одним Python скриптом (remove_lines + keep_else), файлы за один проход.
+- poly.cpp блок 2135-2148 был внутри блока 2089-2215 → исчез автоматически при удалении внешнего.
+- poly.cpp 2220-2226 и 2234-2240: мёртвый код заканчивался на `else`, связанном с активным блоком после `#endif`. Удалены только строки `#if 0` до `#endif` включительно — активный `{...}` остался.
+- `#if 1/#else/#endif` внутри poly.cpp (строки 605-646) не трогали — это `#if 1`, не `#if 0`.
+

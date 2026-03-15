@@ -138,21 +138,8 @@ void POLY_load_texture_flags(CBYTE* fname, SLONG offset)
 
 void POLY_init_render_states()
 {
-#if 0
-//#ifdef TARGET_DC
-	iPolyRenderStateFrameNum++;
-
-	if ( !RenderStates_OK )
-	{
-		iPolyRenderStateFrameNum = 0;
-	}
-
-	//if (RenderStates_OK) return;
-	if ( iPolyRenderStateFrameNum > HOW_MANY_FRAMES_TO_WAIT ) return;
-#else
     if (RenderStates_OK)
         return;
-#endif
 
     // create default
     extern int AENG_detail_filter;
@@ -176,16 +163,6 @@ void POLY_init_render_states()
     for (int ii = 0; ii < POLY_NUM_PAGES; ii++) {
         pa = &POLY_Page[ii];
 
-#if 0
-//#ifdef TARGET_DC
-		if ( iPolyRenderStateFrameNum < HOW_MANY_FRAMES_TO_WAIT )
-		{
-			// Don't do anything - leave them all as default.
-			// This is a horrible kludge, and I don't know why I need to
-			// wait but I do. Grrrr...
-		}
-		else
-#endif // #ifdef TARGET_DC
         {
             // Default is on!
             SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, TRUE);
@@ -1501,15 +1478,6 @@ void POLY_init_render_states()
 
 #endif
 
-#if 0
-	for (int ii = 0; ii < POLY_NUM_PAGES; ii++)
-	{
-		if (char* err = POLY_Page[ii].RS.Validate())
-		{
-			TRACE("Page %d : %s\n", ii, err);
-		}
-	}
-#endif
 
     RenderStates_OK = TRUE;
 }

@@ -894,13 +894,6 @@ void FONT2D_DrawStrikethrough(SLONG x1, SLONG x2, SLONG y, ULONG rgb, SLONG scal
         SLONG rx = x1 + x2;
         SLONG ry = y;
 
-#if 0
-		if (rgb == 0)
-		{
-			rx -= 2;
-			ry -= 2;
-		}
-#endif
 
         offset1 = (ry / 5);
         offset1 %= 9;

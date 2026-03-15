@@ -543,93 +543,9 @@ void SKY_draw_poly_moon(
 
             on_screen_for += 1;
 
-#if 0
-// This no longer works.
-			if (draw_man)
-			{
-				//
-				// Fade in and out.
-				//
-
-				SLONG man_alpha;
-				SLONG man_colour;
-
-				if (draw_man > 120)
-				{
-					man_alpha = 180 - draw_man;
-				}
-				else
-				if (draw_man < 60)
-				{
-					man_alpha = draw_man;
-				}
-				else
-				{
-					man_alpha = 60;
-				}
-
-				man_colour = (man_alpha << 24) | 0x00ffffff;
-
-				//
-				// Set the new colours.
-				//
-
-				for (j = 0; j < 4; j++)
-				{
-					pp[j].colour = man_colour;
-				}
-
-				//
-				// Draw the man on the moon.
-				// 
-
-				POLY_add_quad(quad, POLY_PAGE_MANONMOON, FALSE, TRUE);
-			}
-#endif
         }
     }
 
-#if 0
-// No longer works.
-
-	//
-	// Is the player looking at the moon?
-	//
-#ifdef CAM_OLD
-	if (CAM_get_mode() == CAM_MODE_FIRST_PERSON)
-	{
-		SLONG cam_dyaw;
-		SLONG cam_dpitch;	
-
-		CAM_get_dangle(&cam_dyaw, &cam_dpitch);
-
-		if (cam_dyaw   == last_cam_dyaw &&
-			cam_dpitch == last_cam_dpitch)
-		{
-			if (on_screen_for == 200)
-			{
-				draw_man = 180;
-			}
-		}
-		else
-		{
-			on_screen_for = 0;
-		}
-
-		last_cam_dyaw   = cam_dyaw;
-		last_cam_dpitch = cam_dpitch;
-	}
-	else
-#endif
-	{
-		on_screen_for = 0;
-	}
-
-	if (draw_man > 0)
-	{
-		draw_man -= 1;
-	}
-#endif
 
     return;
 }
