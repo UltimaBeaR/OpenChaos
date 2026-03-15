@@ -97,21 +97,21 @@ include'ы из Editor/, sedit/ в Game.cpp, Building.cpp, Enemy.cpp, Structs.h 
 
 **Дата:** 2026-03-15
 
-**Инструмент:** coan с флагами `-UPSX -UTARGET_DC -UBUILD_PSX`
-
-**Команда:**
+**Удалено через coan** (214 файлов, ~22700 строк):
 ```
 tools/coan/coan.exe source -UPSX -UTARGET_DC -UBUILD_PSX --no-transients --filter cpp,c,h,hpp --recurse new_game/fallen/Source new_game/fallen/DDEngine new_game/fallen/DDLibrary new_game/fallen/Headers new_game/fallen/Loader
 ```
+Exit code 19 — норма (предупреждение `--no-transients`).
 
-**Удалено:**
-- coan обработал 214 файлов, удалил ~22700 строк PSX/DC кода
-- Папки `PSXENG/`, `psxlib/`, `psxlib1/` — удалены целиком
-- PSX-файлы из Source/: `nightpsx.cpp`, `Levelpsx.cpp`, `dc_credits.cpp`, `hm_psx.cpp`, `io_psx.cpp`, `pausepsx.cpp`
-- `nightpsx.cpp` убран из `Fallen.vcxproj`
+**Удалено вручную (файлы/папки):**
+```
+rm -rf new_game/fallen/PSXENG new_game/fallen/psxlib new_game/fallen/psxlib1
+rm new_game/fallen/Source/nightpsx.cpp new_game/fallen/Source/Levelpsx.cpp new_game/fallen/Source/dc_credits.cpp new_game/fallen/Source/hm_psx.cpp new_game/fallen/Source/io_psx.cpp new_game/fallen/Source/pausepsx.cpp
+```
 
-**Попутные правки:**
-- `qls.cpp`: удалён orphan `#endif` в конце файла (баг из оригинала — там тоже есть). Файл был обёрнут в `#ifdef` который убрали, а `#endif` остался. Без этой правки coan падал с ошибкой "Orphan #endif".
+**Изменено вручную (правки кода — требуют проверки):**
+- `Source/qls.cpp`: удалён orphan `#endif` в конце файла. Файл был обёрнут в `#ifdef` который убрали, а `#endif` остался — баг из оригинала (там тоже есть). Без этой правки coan падал с ошибкой "Orphan #endif".
+- `Fallen.vcxproj`: удалена строка `<ClCompile Include="Source\nightpsx.cpp">` с одной строкой `AdditionalOptions` внутри.
 
 **Нюансы:**
 - `BUILD_PSX` определялся только внутри `#ifdef PSX` в `Game.h` → теперь безусловно не определён. `#ifndef BUILD_PSX` блоки в `memory.cpp`, `Person.cpp` стали активными (верно для PC).
