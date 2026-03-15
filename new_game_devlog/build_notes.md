@@ -64,9 +64,9 @@ static_assert(__alignof(LARGE_INTEGER) == 8,
 костыли, добавленные чтобы компенсировать конфликт: Release-код линкуется с отладочным CRT
 (`libcmtd.lib`), что вызывает ошибки линковки. Артефакт кривой конвертации `.dsp` → `.vcxproj`.
 
-**Что нужно исправить в `Fallen.vcxproj`:**
-- `RuntimeLibrary`: `MultiThreadedDebug` → `MultiThreaded` в Release конфиге (строка 63)
-- Убрать все `/D /NODEFAULTLIB:libcmtd.lib"` из `<AdditionalOptions>` линкера Release конфига
+**Исправлено (2026-03-15):**
+- `RuntimeLibrary`: `MultiThreadedDebug` → `MultiThreaded` в Release конфиге
+- Удалены 103 `<AdditionalOptions>` с `/D /NODEFAULTLIB:libcmtd.lib"` из Release секций vcxproj
 
 **Отдельный баг — `FARFACET squares drawn` (не связан с `/MTd`):**
 

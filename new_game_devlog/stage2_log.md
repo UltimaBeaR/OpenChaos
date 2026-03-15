@@ -4,6 +4,32 @@
 
 ---
 
+## Попутные исправления (не удаление мёртвого кода)
+
+---
+
+### Исправление Release конфига — `/MTd` и `/NODEFAULTLIB` костыли (2026-03-15)
+
+Обнаружено при проверке: в Release-сборке показывались отладочные надписи на экране.
+
+**Причина:** В `Fallen.vcxproj` Release конфиг использовал `MultiThreadedDebug` (`/MTd`) вместо
+`MultiThreaded` (`/MT`). Это автоматически определяет `_DEBUG`, из-за чего все `#ifdef _DEBUG`
+блоки активны в Release. В т.ч. `"music mode %d vol %f %s"` в `panel.cpp:5441`.
+
+**Сопутствующий мусор:** 103 строки `<AdditionalOptions> /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>`
+в Release — костыли, добавленные чтобы подавить конфликт линковки из-за неправильного CRT.
+
+**Правки в `Fallen.vcxproj`:**
+- `RuntimeLibrary`: `MultiThreadedDebug` → `MultiThreaded` в Release `ItemDefinitionGroup` (строка 63)
+- Удалены 103 `<AdditionalOptions>` с `NODEFAULTLIB` из Release секций (глобальная + per-file)
+
+**Проверено:** Release собирается, `music mode` надпись исчезла.
+
+**Не тронуто:** Debug конфиг (`MultiThreadedDebug` там корректен), Debug `NODEFAULTLIB` строки.
+Надпись `FARFACET squares drawn` — отдельный баг, отложен.
+
+---
+
 ## Итерации
 
 ---

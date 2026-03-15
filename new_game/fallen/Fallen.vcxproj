@@ -60,7 +60,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -75,7 +75,6 @@
       <PrecompiledHeaderOutputFile>.\Release\Fallen.pch</PrecompiledHeaderOutputFile>
       <ObjectFileName>.\Release\</ObjectFileName>
       <ProgramDataBaseFileName>.\Release\</ProgramDataBaseFileName>
-      <AdditionalOptions> /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <StructMemberAlignment>1Byte</StructMemberAlignment>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -300,412 +299,310 @@
     <ClCompile Include="outro\OutroTga.cpp" />
     <ClCompile Include="outro\wire.cpp" />
     <ClCompile Include="Source\Anim.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\animal.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\animtmap.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Attract.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\balloon.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\barrel.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\bat.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\bike.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\build2.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\building.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\canid.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\chopper.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\cnet.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\collide.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\combat.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Controls.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Cop.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Darci.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\dike.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\dirt.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\door.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\drawtype.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\drip.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Effect.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\elev.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Enemy.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Env.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\env2.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\eway.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\fc.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\fire.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\FMatrix.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\fog.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\frontend.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Game.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\gamemenu.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\glitter.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\grenade.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\guns.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\heap.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Hierarchy.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\hm.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\hook.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\inside2.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\interact.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\interfac.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\io.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Main.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Map.cpp" />
     <ClCompile Include="Source\maths.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\mav.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\memory.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\mist.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\morph.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\music.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\night.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\nightpsx.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\ns.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\ob.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\overlay.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\pap.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\pause.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\pcom.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Person.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Pjectile.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\plat.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\playcuts.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Player.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\pow.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Prim.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\psystem.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\puddle.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\pyro.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\qedit.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\qmap.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\ribbon.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\road.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Roper.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\save.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\shadow.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\sm.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\snipe.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Sound.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\soundenv.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\sound_id.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\spark.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Special.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\stair.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\startscr.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\State.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\supermap.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Switch.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Thing.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Thug.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\tracks.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\trip.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\vehicle.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\walkable.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\wand.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\ware.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\widget.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\wmove.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\xlat_str.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
   </ItemGroup>
