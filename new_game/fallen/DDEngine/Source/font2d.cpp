@@ -72,7 +72,7 @@ FONT2D_Letter FONT2D_letter[FONT2D_NUM_LETTERS];
 //
 
 CBYTE FONT2D_punct[] = {
-    "!\"£$%^&*(){}[]<>\\/:;'@#_?-=+.,"
+    "!\"\xa3$%^&*(){}[]<>\\/:;'@#_?-=+.,"
 
     //
     // German characters in decimal and octal!
@@ -81,13 +81,13 @@ CBYTE FONT2D_punct[] = {
     // (a) We can type them in directly and this can be physically matched against the bitmap
     // (b) We can type them *all* in, instead of missing a few
 
-    "ÄËÏÖØÜßïöø"
+    "\xc4\xcb\xcf\xd6\xd8\xdc\xdf\xef\xf6\xf8"
 
     //
     // French characters
     //
 
-    "ÆÇÔàâçèéêîïôøû"
+    "\xc6\xc7\xd4\xe0\xe2\xe7\xe8\xe9\xea\xee\xef\xf4\xf8\xfb"
 
     //
     // Spanish
@@ -95,7 +95,7 @@ CBYTE FONT2D_punct[] = {
     // 161,191,216,225,228,233,237,241,243,248,250
     //
 
-    "¡¿Øáäéíñóøú"
+    "\xa1\xbf\xd8\xe1\xe4\xe9\xed\xf1\xf3\xf8\xfa"
 
     //
     // Italian
@@ -104,7 +104,7 @@ CBYTE FONT2D_punct[] = {
     //
     //
 
-    "ÀÈÌÒÙàìòùü©®"
+    "\xc0\xc8\xcc\xd2\xd9\xe0\xec\xf2\xf9\xfc\xa9\xae"
 };
 
 // ARGH! Can't get this sodding type right. Do it with a typedef.
@@ -247,7 +247,7 @@ SLONG FONT2D_GetIndex(CBYTE chr)
     // Remap certain characters first
     //
 
-    if (chr == 'É')
+    if (chr == '\xc9')
         chr = 'E';
 
     //
@@ -282,8 +282,8 @@ SLONG FONT2D_GetLetterWidth(CBYTE chr)
 {
     SLONG letter;
 
-    if ((chr == ' ') || (chr == '¬')) {
-        // ¬ is a non-wrapping space.
+    if ((chr == ' ') || (chr == '\xac')) {
+        // 0xAC is a non-wrapping space in the game's font system.
         return 8;
     }
 
@@ -324,8 +324,8 @@ SLONG FONT2D_DrawLetter(CBYTE chr, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
         chr = 39;
     }
 
-    // ¬ is a non-wrapping space.
-    if (chr == ' ' || chr == '\n' || chr == '\r' || chr == '\t' || chr == '¬') {
+    // 0xAC is a non-wrapping space.
+    if (chr == ' ' || chr == '\n' || chr == '\r' || chr == '\t' || chr == '\xac') {
         return 8 * scale >> 8;
     }
 

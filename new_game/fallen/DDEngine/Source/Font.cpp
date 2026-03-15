@@ -1160,7 +1160,7 @@ SLONG FONT_draw_coloured_char(
         case '&':
             fc = &FONT_punct[FONT_PUNCT_AMPER];
             break;
-        case '£':
+        case '\xa3':
             fc = &FONT_punct[FONT_PUNCT_POUND];
             break;
         case '$':
