@@ -97,29 +97,35 @@ include'ы из Editor/, sedit/ в Game.cpp, Building.cpp, Enemy.cpp, Structs.h 
 
 **Дата:** 2026-03-15
 
-**Написан скрипт** `tools/remove_psx_dc.py` — убирает все `#ifdef PSX` / `#ifdef TARGET_DC`
-блоки по всему проекту с помощью стека фреймов. Обрабатывает вложенные блоки,
-`#elif`, `#ifndef`, `#if defined(...)`, `#if PSX` (числовые условия).
-Также отслеживает незакрытые `/*` внутри удаляемых блоков — если `/*` открыт внутри
-PSX/DC блока, а `*/` стоит снаружи (после `#endif`), скрипт продолжает подавлять
-вывод пока комментарий не закроется.
+**Подход:** ручное удаление по батчам папок.
 
-**Что нужно сделать:**
-1. Запустить скрипт (сначала `--dry-run`, потом live)
-2. Скомпилировать, просмотреть диффы глазами
-3. Только после подтверждения — вручную поправить сложные случаи (mixed conditions):
-   - `DDEngine/Source/panel.cpp:5408`: `#if !defined(TARGET_DC) && defined(_DEBUG)` → `#ifdef _DEBUG`
-   - `DDLibrary/Source/GKeyboard.cpp:65`: `#if defined(_RELEASE) && !defined(TARGET_DC)` → `#ifdef _RELEASE`
-   - `Source/frontend.cpp:334`: `#if !defined(NDEBUG) && !defined(TARGET_DC)` → `#if !defined(NDEBUG)`
-   - `Source/night.cpp:3231`: `#if !defined(NDEBUG) || defined(TARGET_DC)` → `#if !defined(NDEBUG)`
-   - `Source/interfac.cpp:5752`: `#if defined(DEBUG) && defined(TARGET_DC)` — внутри `#if 0`, уйдёт в итерации `#if 0`
-4. Удалить папки: `PSXENG/`, `psxlib/`, `psxlib1/`
-5. Удалить PSX/DC файлы по названию: `nightpsx.cpp` (+ убрать из vcxproj), `Levelpsx.cpp`,
-   `dc_credits.cpp`, `hm_psx.cpp`, `io_psx.cpp`, `pausepsx.cpp`
+**Батчи (каждый батч = одна итерация, после каждой — компиляция):**
+1. `DDEngine/Headers/` — ~15 файлов
+2. `DDEngine/Source/` — ~37 файлов
+3. `DDLibrary/Headers/` + `DDLibrary/Source/` — ~23 файла
+4. `Headers/` — ~30 файлов
+5. `Source/` A–G — ~30 файлов (Anim.cpp … guns.cpp)
+6. `Source/` H–P — ~30 файлов (heap.cpp … pyro.cpp)
+7. `Source/` Q–Z + outro/ — ~30 файлов (qedit.cpp … xlat_str.cpp)
+8. Финал: удалить папки `PSXENG/`, `psxlib/`, `psxlib1/`; удалить PSX-файлы (`nightpsx.cpp`,
+   `Levelpsx.cpp`, `dc_credits.cpp`, `hm_psx.cpp`, `io_psx.cpp`, `pausepsx.cpp`) из vcxproj
+
+**Что удаляем в каждом файле:**
+- `#ifdef PSX` / `#ifdef TARGET_DC` / `#ifdef BUILD_PSX` / `#ifdef VERSION_PSX` — весь блок вместе с `#endif`
+- `#ifndef PSX` / `#ifndef TARGET_DC` / `#ifndef BUILD_PSX` — убрать только строки директив, оставить тело
+- `#if defined(PSX) || defined(TARGET_DC)` и аналоги — убрать if-ветку, оставить else
+- `#if !defined(TARGET_DC)` и аналоги — убрать только директивы, оставить тело
+
+**Сложные случаи (mixed conditions) — фиксить вручную в том же батче:**
+- `DDEngine/Source/panel.cpp`: `#if !defined(TARGET_DC) && defined(_DEBUG)` → `#ifdef _DEBUG`
+- `DDLibrary/Source/GKeyboard.cpp`: `#if defined(_RELEASE) && !defined(TARGET_DC)` → `#ifdef _RELEASE`
+- `Source/frontend.cpp`: `#if !defined(NDEBUG) && !defined(TARGET_DC)` → `#if !defined(NDEBUG)`
+- `Source/night.cpp`: `#if !defined(NDEBUG) || defined(TARGET_DC)` → `#if !defined(NDEBUG)`
+- `Source/interfac.cpp`: `#if defined(DEBUG) && defined(TARGET_DC)` — внутри `#if 0`, уйдёт в итерации `#if 0`
 
 **Нюансы (выяснены при разведке):**
 - PSXENG/, psxlib/, psxlib1/ отсутствуют в Fallen.vcxproj — в сборку не входят.
-- `psxeng.h` включается в ~23 файла Source/ без `#ifdef PSX` guard, но это безвредно —
+- `psxeng.h` включается в ~23 файла Source/ без `#ifdef PSX` guard, но безвредно —
   весь код использования внутри `#ifdef PSX` блоков которые удаляются.
 - `BUILD_PSX` определён только внутри `#ifdef PSX` в Game.h. После удаления
   все `#ifndef BUILD_PSX` блоки (memory.cpp, Person.cpp) станут безусловно активными (верно для PC).
