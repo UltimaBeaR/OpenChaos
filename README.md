@@ -14,6 +14,7 @@ original_game_knowledge_base/ — detailed documentation on the original game
 new_game/                     — modernized game (work in progress)
 new_game_planning/            — planning and architecture docs
 new_game_devlog/              — development log and technical notes
+tools/                        — development utilities (coan, etc.)
 legal/                        — rights history, attribution, legal details
 ```
 
