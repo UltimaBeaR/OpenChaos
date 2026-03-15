@@ -1419,14 +1419,6 @@ static void MakeFacetPoints(float sx, float sy, float sz, float dx, float dz, fl
 #endif
             }
 
-#if 0
-			if (((pp->clip & POLY_CLIP_LEFT) && (pp->clip & POLY_CLIP_TRANSFORMED) && (c0 < count) && (pp[-1].clip & POLY_CLIP_TRANSFORMED) && (pp->X < pp[-1].X)) ||	// off left and going left
-				((pp->clip & POLY_CLIP_RIGHT) && (pp->clip & POLY_CLIP_TRANSFORMED) && (c0 < count) && (pp[-1].clip & POLY_CLIP_TRANSFORMED) && (pp->X > pp[-1].X)))		// off right and going right
-			{
-				col += c0;
-				break;
-			}
-#endif
 
             x += dx;
             z += dz;
@@ -3239,56 +3231,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
                         page = texture_quad(quad, dstyles[style_index], c0, count);
 
 // Flashing pink! No thanks.
-#if 0
-#ifndef NDEBUG
-
-								if (p_facet->Height == 2 && p_facet->BlockHeight == 16)
-								{
-									//
-									// This is a vaultable fence- so it doesn't matter.
-									//
-								}
-								else
-								{
-									if (page == 284)
-									{
-										//
-										// This is the mesh texture so the fence should be
-										// climable.
-										// 
-
-										if (p_facet->FacetFlags & FACET_FLAG_UNCLIMBABLE)
-										{
-											if (GAME_TURN & 0x8)
-											{
-												quad[0]->specular |= 0xff00ff;
-												quad[1]->specular |= 0xff00ff;
-												quad[2]->specular |= 0xff00ff;
-												quad[3]->specular |= 0xff00ff;
-											}
-										}
-									}
-									else
-									{
-										//
-										// A climbable non-mesh fence.
-										//
-
-										if (!(p_facet->FacetFlags & FACET_FLAG_UNCLIMBABLE))
-										{
-											if (GAME_TURN & 0x8)
-											{
-												quad[0]->specular |= 0xff00ff;
-												quad[1]->specular |= 0xff00ff;
-												quad[2]->specular |= 0xff00ff;
-												quad[3]->specular |= 0xff00ff;
-											}
-										}
-									}
-								}
-
-#endif
-#endif
 
                         POLY_add_quad(quad, page, 0); // 1 means perform a backface cull
                     } else {

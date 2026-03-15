@@ -208,14 +208,6 @@ ALIGNED_STATIC_ARRAY(static D3DMATRIX*, MM_pMatrix, 1, D3DMATRIX, 32);
 ALIGNED_STATIC_ARRAY(static D3DVERTEX*, MM_Vertex, 4, D3DVERTEX, 32);
 ALIGNED_STATIC_ARRAY(static float*, MM_pNormal, 4, float, 8);
 
-#if 0
-// The MM lighting table.
-D3DCOLOR *MM_pcFadeTable = NULL;
-D3DCOLOR *MM_pcFadeTableTint = NULL;
-D3DMATRIX *MM_pMatrix = NULL;
-D3DVERTEX *MM_Vertex = NULL;
-float *MM_pNormal = NULL;
-#endif
 
 D3DVECTOR MM_vLightDir;
 bool MM_bLightTableAlreadySetUp = FALSE;
@@ -270,16 +262,6 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and = 0xffffffff)
             vTotal.y -= fBright * nf->dy;
             vTotal.z -= fBright * nf->dz;
         }
-#if 0
-		else
-		{
-			// Negative light - make it "illuminate" from the correct direction.
-			// Directions are also negative!
-			vTotal.x += fBright * nf->dx;
-			vTotal.y += fBright * nf->dy;
-			vTotal.z += fBright * nf->dz;
-		}
-#endif
     }
 
     // Unitise the vector.

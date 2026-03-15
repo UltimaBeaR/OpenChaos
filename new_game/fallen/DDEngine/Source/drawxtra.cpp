@@ -851,9 +851,6 @@ void PYRO_draw_pyro(Thing* p_pyro)
         if (pyro->thing->Flags & FLAGS_IN_VIEW) {
 
             UBYTE i, radius;
-#if 0
-			UBYTE steps=1+(pyro->counter>>4);
-#else
             // Throttle
             int iNumFlames = IWouldLikeSomePyroSpritesHowManyCanIHave((1 + (pyro->counter >> 4)) * 2);
             UBYTE steps = iNumFlames >> 1;
@@ -861,7 +858,6 @@ void PYRO_draw_pyro(Thing* p_pyro)
                 steps = 3;
             }
 
-#endif
             UWORD angle = 0, step = 2048 / steps;
             SLONG px, py, pz;
 
@@ -1252,12 +1248,8 @@ void PYRO_draw_pyro(Thing* p_pyro)
                 for (d = 0; d < iNumSprites; d++) {
                     int iAngle = d * iMultiplier;
                     if ((pyro->Flags & PYRO_FLAGS_WAVE) && (pyro->counter < 6)) {
-#if 0
-						x=SIN((d<<7)+(Random()&127))>>3; z=COS((d<<7)+(Random()&127))>>3;
-#else
                         x = SIN(iAngle + (Random() & 127)) >> 3;
                         z = COS(iAngle + (Random() & 127)) >> 3;
-#endif
 
                         PARTICLE_Add(pyro->thing->WorldPos.X, pyro->thing->WorldPos.Y, pyro->thing->WorldPos.Z,
                             x, (Random() & 0xff), z,
@@ -1645,42 +1637,6 @@ void PYRO_draw_dustwave(Pyro* pyro)
         dys[sector] = COS((sector * iMultiplier)) >> 8;
     }
 
-#if 0
-	// What the fuck?
-	// Why not just - er - do these in order? Why the for and the switch?
-	// Bonkers, mate. ATF.
-
-
-	// precalc the ring data
-	for(pass=0;pass<4;pass++) {
-		switch(pass) {
-		case 0:
-			if (pyro->counter>1)
-				dists[0]=512+SIN(pyro->counter*4)/256;
-			else
-				dists[0]=256+SIN(pyro->counter*4)/256;
-/*			if (pyro->counter<60) {
-				dists[0]=SIN(pyro->counter*6)/128;
-			} else {
-				dists[0]=(SIN(60*6)/128)+((pyro->counter-60)*2);
-			}*/
-			heights[0]=2;
-			break;
-		case 1:
-			dists[1]=(dists[0]*SIN(pyro->counter*4))/65536;
-			heights[1]=SIN(pyro->counter*4)/1024;
-			break;
-		case 2:
-			dists[2]=(dists[1]*SIN(pyro->counter*4))/65536;
-			heights[2]=heights[1]*0.75f;
-			break;
-		case 3:
-			dists[3]=(dists[2]*SIN(pyro->counter*4))/65536;
-			heights[3]=2;
-			break;
-		}
-	}
-#else
     // precalc the ring data
     if (pyro->counter > 1)
         dists[0] = 512 + SIN(pyro->counter * 4) / 256;
@@ -1701,7 +1657,6 @@ void PYRO_draw_dustwave(Pyro* pyro)
 
     dists[3] = (dists[2] * SIN(pyro->counter * 4)) / 65536;
     heights[3] = 2;
-#endif
 
     /*	if (pyro->counter<192)
                     fade=0;
@@ -2386,41 +2341,6 @@ void PYRO_draw_armageddon(Pyro* pyro)
  *
  */
 
-#if 0
-
-extern	void ANIM_obj_draw(Thing *p_thing,DrawTween *dt);
-extern	void ANIM_obj_draw_warped(Thing *p_thing,DrawTween *dt);
-
-void ANIMAL_draw(Thing *p_thing) 
-{
-	UBYTE i;
-	Animal *animal=ANIMAL_get_animal(p_thing);
-//	DrawTween *dt=ANIMAL_get_drawtween(animal);
-
-	p_thing->WorldPos.Y=100<<8;
-	ANIM_obj_draw(p_thing,p_thing->Draw.Tweened);
-
-/*		FIGURE_draw_prim_tween(
-			start_object + object_offset,
-			(p_thing->WorldPos.X >> 8)+xd,
-			(p_thing->WorldPos.Y >> 8)+yd,
-			(p_thing->WorldPos.Z >> 8)+zd,
-			dt->AnimTween,
-		   &ae1[i],
-		   &ae2[i],
-		   &r_matrix,
-			dx,dy,dz,
-			colour,
-			specular);
-*/
-
-/*
-	for (i=0;i<ANIMAL_body_size(animal);i++)
-		ANIM_obj_draw_warped(p_thing,dt++);*/
-	
-}
-
-#endif
 
 /*************************************************************
  *

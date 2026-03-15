@@ -9,11 +9,6 @@ extern void PANEL_draw_gun_sight(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG 
 extern void PANEL_draw_timer(SLONG time_in_hundreths, SLONG x, SLONG y);
 extern void PANEL_draw_buffered(void); // Actually draws the timers....
 extern void PANEL_draw_health_bar(SLONG x, SLONG y, SLONG percentage);
-#if 0
-// Never used!
-extern	void	PANEL_draw_angelic_status(SLONG x, SLONG y, SLONG size, SLONG am_i_an_angel);
-extern	void	PANEL_draw_press_button(SLONG x, SLONG y, SLONG size, SLONG frame);	// Even/odd frame
-#endif
 extern void PANEL_finish(void);
 extern void PANEL_inventory(Thing* darci, Thing* player);
 

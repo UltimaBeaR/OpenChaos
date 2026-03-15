@@ -725,11 +725,6 @@ void FARFACET_init()
 
     FARFACET_renderstate.SetRenderState(D3DRENDERSTATE_FOGENABLE, TRUE);
 
-#if 0
-// These are all completely ignored by the DC SetChanged thing - don't bother.
-	FARFACET_renderstate.SetRenderState(D3DRENDERSTATE_ZENABLE,   FALSE);
-	FARFACET_renderstate.SetRenderState(D3DRENDERSTATE_ZWRITEENABLE,   FALSE);
-#endif
 
     FARFACET_renderstate.SetTexture(NULL);
 }
@@ -886,19 +881,6 @@ void FARFACET_draw(
     SATURATE(square_max_x, 0, FARFACET_SIZE - 1);
     SATURATE(square_max_z, 0, FARFACET_SIZE - 1);
 
-#if 0
-
-	//
-	// To draw every far-facet...
-	//
-
-	square_min_x = 0;
-	square_min_z = 0;
-
-	square_max_x = FARFACET_SIZE - 1;
-	square_max_z = FARFACET_SIZE - 1;
-
-#endif
 
     //
     // Setup renderstate.
@@ -1002,13 +984,9 @@ void FARFACET_draw(
 
                 dprod = dx * matrix[6] + dy * matrix[7] + dz * matrix[8];
 
-#if 0
-			if (dprod < 12.0F * 256.0F)
-#else
                 // React to the fog distance change.
                 extern SLONG CurDrawDistance;
                 if (dprod * 2.5f < (float)CurDrawDistance)
-#endif
                 {
                     continue;
                 }

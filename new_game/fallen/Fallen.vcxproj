@@ -170,10 +170,6 @@
     <ClCompile Include="DDEngine\Source\cone.cpp" />
     <ClCompile Include="DDEngine\Source\console.cpp" />
     <ClCompile Include="DDEngine\Source\Crinkle.cpp" />
-    <ClCompile Include="DDEngine\Source\DCback.cpp" />
-    <ClCompile Include="DDEngine\Source\DCcredits.cpp" />
-    <ClCompile Include="DDEngine\Source\DCfont.cpp" />
-    <ClCompile Include="DDEngine\Source\DCos.cpp" />
     <ClCompile Include="DDEngine\Source\drawxtra.cpp" />
     <ClCompile Include="DDEngine\Source\engineMap.cpp" />
     <ClCompile Include="DDEngine\Source\facet.cpp" />
@@ -183,7 +179,6 @@
     <ClCompile Include="DDEngine\Source\flamengine.cpp" />
     <ClCompile Include="DDEngine\Source\Font.cpp" />
     <ClCompile Include="DDEngine\Source\font2d.cpp" />
-    <ClCompile Include="DDEngine\Source\font3d.cpp" />
     <ClCompile Include="DDEngine\Source\Gamut.cpp" />
     <ClCompile Include="DDEngine\Source\ic.cpp" />
     <ClCompile Include="DDEngine\Source\Matrix.cpp" />
@@ -619,10 +614,6 @@
     <ClInclude Include="DDEngine\Headers\cone.h" />
     <ClInclude Include="DDEngine\Headers\console.h" />
     <ClInclude Include="DDEngine\Headers\Crinkle.h" />
-    <ClInclude Include="DDEngine\Headers\DCback.h" />
-    <ClInclude Include="DDEngine\Headers\DCcredits.h" />
-    <ClInclude Include="DDEngine\Headers\DCfont.h" />
-    <ClInclude Include="DDEngine\Headers\DCos.h" />
     <ClInclude Include="DDEngine\Headers\DrawXtra.h" />
     <ClInclude Include="DDEngine\Headers\Engine.h" />
     <ClInclude Include="DDEngine\Headers\facet.h" />
@@ -633,7 +624,6 @@
     <ClInclude Include="DDEngine\Headers\flamengine.h" />
     <ClInclude Include="DDEngine\Headers\Font.h" />
     <ClInclude Include="DDEngine\Headers\font2d.h" />
-    <ClInclude Include="DDEngine\Headers\font3d.h" />
     <ClInclude Include="DDEngine\Headers\Gamut.h" />
     <ClInclude Include="DDEngine\Headers\ic.h" />
     <ClInclude Include="DDEngine\Headers\map.h" />

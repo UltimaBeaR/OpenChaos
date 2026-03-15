@@ -130,24 +130,7 @@
 #define AENG_BBOX_PUSH_OUT 4
 
 // #ifdef DEBUG
-#if 0
-#define ANNOYINGSCRIBBLECHECK ScribbleCheck()
-
-static void ScribbleCheck ( void )
-{
-	ASSERT ( prim_faces4[1].Points[0] >= 48 );
-	ASSERT ( prim_faces4[1].Points[0] < 62 );
-	ASSERT ( prim_faces4[1].Points[1] >= 48 );
-	ASSERT ( prim_faces4[1].Points[1] < 62 );
-	ASSERT ( prim_faces4[1].Points[2] >= 48 );
-	ASSERT ( prim_faces4[1].Points[2] < 62 );
-	ASSERT ( prim_faces4[1].Points[3] >= 48 );
-	ASSERT ( prim_faces4[1].Points[3] < 62 );
-}
-
-#else
 #define ANNOYINGSCRIBBLECHECK
-#endif
 
 
 #define LOG_ENTER(x) \
@@ -472,10 +455,6 @@ SLONG AENG_get_draw_distance()
 
 void AENG_set_draw_distance(SLONG dist)
 {
-#if 0
-	NormalDrawDistance = dist;
-	ENV_set_value_number("draw_distance", dist, "Render");
-#endif
 }
 
 //
@@ -752,112 +731,6 @@ void AENG_init(void)
     INDOORS_INDEX_FADE = 255;
     // POLY_frame_init(FALSE, FALSE);
 
-#if 0
-
-	//
-	// Create the movie.
-	//
-
-	{
-		SLONG i;
-
-		COMP_Frame *curr = &cf1;
-		COMP_Frame *last = &cf2;
-		COMP_Frame *next = &cf3;
-
-		COMP_Delta *cd;
-
-		SLONG load_ok;
-
-		CBYTE name[256];
-
-		movie_data_upto = movie_data;
-
-		for (i = 1; i <= 200; i++)
-		{
-			sprintf(name, "movie\\frames\\cin1%03d.tga", i);
-
-			load_ok = COMP_load(name, curr);
-
-			ASSERT(load_ok);
-
-			cd = COMP_calc(last, curr, next);
-
-			ASSERT(movie_data_upto + (cd->size + 4) <= &movie_data[MAX_MOVIE_DATA]);
-
-			memcpy(movie_data_upto, cd, cd->size + 4);
-
-			movie_data_upto += cd->size + 4;
-
-			sprintf(name, "movie\\comp\\comp%03d.tga", i);
-
-			TGA_save(
-				name,
-				COMP_SIZE,
-				COMP_SIZE,
-				(TGA_Pixel *) next->p,
-				FALSE);
-
-			SWAP_FRAME(last,next);
-		}
-	}
-
-	/*
-
-	SLONG cf1_ok = COMP_load("movie\\frames\\cin1040.tga", &cf1);
-	SLONG cf2_ok = COMP_load("movie\\frames\\cin1041.tga", &cf2);
-
-	COMP_Delta *cd = COMP_calc(&cf1, &cf2, &cf3);
-
-	COMP_decomp(&cf1, cd, &cf4);
-
-	TGA_save(
-		"movie\\test1.tga",
-		COMP_SIZE,
-		COMP_SIZE,
-		(TGA_Pixel *) cf1.p,
-		FALSE);
-
-	TGA_save(
-		"movie\\test2.tga",
-		COMP_SIZE,
-		COMP_SIZE,
-		(TGA_Pixel *) cf2.p,
-		FALSE);
-
-	TGA_save(
-		"movie\\test3.tga",
-		COMP_SIZE,
-		COMP_SIZE,
-		(TGA_Pixel *) cf3.p,
-		FALSE);
-
-	TGA_save(
-		"movie\\test4.tga",
-		COMP_SIZE,
-		COMP_SIZE,
-		(TGA_Pixel *) cf4.p,
-		FALSE);
-
-	IC_test();
-
-	*/
-
-	SLONG num_bytes;
-
-	num_bytes = movie_data_upto - movie_data;
-
-	FILE *handle = MF_Fopen("movie\\bond.mmv", "wb");
-
-	if (handle)
-	{
-		fwrite(movie_data, sizeof(UBYTE), num_bytes, handle);
-		MF_Fclose(handle);
-	}
-
-	exit(0);
-
-#endif
 
     //
     // Load the fade palette for the bonfires
@@ -1431,33 +1304,6 @@ void AENG_calc_gamut_lo_only(
         }
     }
 
-#if 0
-
-	float gamut_lo_xmax = AENG_cone[0].x;
-	float gamut_lo_xmin = AENG_cone[0].x;
-	float gamut_lo_zmax = AENG_cone[0].z;
-	float gamut_lo_zmin = AENG_cone[0].z;
-	for ( int i = 1; i <= 4; i++ )
-	{
-		if ( gamut_lo_xmax < AENG_cone[i].x )
-		{
-			gamut_lo_xmax = AENG_cone[i].x;
-		}
-		else if ( gamut_lo_xmin > AENG_cone[i].x )
-		{
-			gamut_lo_xmin = AENG_cone[i].x;
-		}
-		if ( gamut_lo_zmax < AENG_cone[i].z )
-		{
-			gamut_lo_zmax = AENG_cone[i].z;
-		}
-		else if ( gamut_lo_zmin > AENG_cone[i].z )
-		{
-			gamut_lo_zmin = AENG_cone[i].z;
-		}
-	}
-
-#endif
 
 #if 1
     AENG_gamut_lo_xmin = (SLONG)(gamut_lo_xmin);
@@ -1485,47 +1331,6 @@ void AENG_calc_gamut_lo_only(
         AENG_gamut_lo_zmin = PAP_SIZE_LO - 1;
     }
 
-#if 0
-	if ( AENG_gamut_lo_xmax < 0 )
-	{
-		AENG_gamut_lo_xmax = 0;
-		AENG_gamut_lo_xmin = 0;
-	}
-	else if ( AENG_gamut_lo_xmax >= PAP_SIZE_LO )
-	{
-		AENG_gamut_lo_xmax = PAP_SIZE_LO - 1;
-	}
-
-	if ( AENG_gamut_lo_xmin >= PAP_SIZE_LO )
-	{
-		AENG_gamut_lo_xmax = PAP_SIZE_LO - 1;
-		AENG_gamut_lo_xmin = PAP_SIZE_LO - 1;
-	}
-	else if ( AENG_gamut_lo_xmin < 0 )
-	{
-		AENG_gamut_lo_xmin = 0;
-	}
-
-	if ( AENG_gamut_lo_zmax < 0 )
-	{
-		AENG_gamut_lo_zmax = 0;
-		AENG_gamut_lo_zmin = 0;
-	}
-	else if ( AENG_gamut_lo_zmax >= PAP_SIZE_LO )
-	{
-		AENG_gamut_lo_zmax = PAP_SIZE_LO - 1;
-	}
-
-	if ( AENG_gamut_lo_zmin >= PAP_SIZE_LO )
-	{
-		AENG_gamut_lo_zmax = PAP_SIZE_LO - 1;
-		AENG_gamut_lo_zmin = PAP_SIZE_LO - 1;
-	}
-	else if ( AENG_gamut_lo_zmin < 0 )
-	{
-		AENG_gamut_lo_zmin = 0;
-	}
-#endif
 }
 
 void AENG_set_camera_radians(
@@ -3426,429 +3231,6 @@ void AENG_draw_dirt()
             break;
         }
 
-#if 0
-/*
-		switch(di.type)
-		{
-			case DIRT_INFO_TYPE_WATER:
-
-				SHAPE_droplet(
-					di.x,
-					di.y,
-					di.z,
-					di.dx * 4,
-					di.dy * 4,
-					di.dz * 4,
-#ifdef TARGET
-					0xff224455,
-#else
-					0x00224455,
-#endif
-					POLY_PAGE_DROPLET);
-
-				break;
-
-			case DIRT_INFO_TYPE_URINE:
-
-				SHAPE_droplet(
-					di.x,
-					di.y,
-					di.z,
-					di.dx * 4,
-					di.dy * 4,
-					di.dz * 4,
-#ifdef TARGET
-					0xff775533,
-#else
-					0x00775533,
-#endif
-					POLY_PAGE_DROPLET);
-
-				break;
-
-			case DIRT_INFO_TYPE_SPARKS:
-
-				SHAPE_droplet(
-					di.x,
-					di.y,
-					di.z,
-					di.dx * 4,
-					di.dy * 4,
-					di.dz * 4,
-					0x7f997744,
-					POLY_PAGE_BLOOM1);
-
-				break;
-
-			case DIRT_INFO_TYPE_BLOOD:
-
-				SHAPE_droplet(
-					di.x,
-					di.y,
-					di.z,
-					di.dx * 4,
-					di.dy * 4,
-					di.dz * 4,
-					0x9fFFFFFF,
-					POLY_PAGE_BLOODSPLAT);
-
-				break;
-
-			case DIRT_INFO_TYPE_SNOW:
-				leaf_colour=di.morph1;
-				leaf_colour<<=23;
-				leaf_colour|=0xffFFff;
-				SPRITE_draw_tex(di.x,di.y,di.z,20,leaf_colour,0xFF000000,POLY_PAGE_SNOWFLAKE,0.0,0.0,1.0,1.0,SPRITE_SORT_NORMAL);
-				break;
-
-			case DIRT_INFO_TYPE_LEAF:
-
-				//
-				// Create the rotation matrix for this bit of dirt...
-				//
-
-				if ((di.pitch | di.roll) == 0)
-				{
-					
-				}
-
-				//
-				// There is a chance we are going to draw some rubbish instead of a leaf.
-				//
-
-				if ((i & 0xf) == 0 && estate==0)
-				{
-					//
-					// The rotation matrix of this bit of dirt.
-					//
-
-					fpitch = float(di.pitch) * (PI / 1024.0F);
-					froll  = float(di.roll)  * (PI / 1024.0F);
-					fyaw   = float(i);
-
-					MATRIX_calc(matrix, fyaw, fpitch, froll);
-
-					matrix[0] *= 24.0F;
-					matrix[1] *= 24.0F;
-					matrix[2] *= 24.0F;
-
-					matrix[6] *= 24.0F;
-					matrix[7] *= 24.0F;
-					matrix[8] *= 24.0F;
-					
-					temp[0].X = float(di.x) + matrix[6] + matrix[0];
-					temp[0].Y = float(di.y) + matrix[7] + matrix[1];
-					temp[0].Z = float(di.z) + matrix[8] + matrix[2];
-					
-					temp[1].X = float(di.x) + matrix[6] - matrix[0];
-					temp[1].Y = float(di.y) + matrix[7] - matrix[1];
-					temp[1].Z = float(di.z) + matrix[8] - matrix[2];
-					
-					temp[2].X = float(di.x) - matrix[6] + matrix[0];
-					temp[2].Y = float(di.y) - matrix[7] + matrix[1];
-					temp[2].Z = float(di.z) - matrix[8] + matrix[2];
-					
-					temp[3].X = float(di.x) - matrix[6] - matrix[0];
-					temp[3].Y = float(di.y) - matrix[7] - matrix[1];
-					temp[3].Z = float(di.z) - matrix[8] - matrix[2];
-
-					//
-					// Transform the points.
-					//
-
-					for (j = 0; j < 4; j++)
-					{
-						POLY_transform(
-							temp[j].X,
-							temp[j].Y + 4.0F,
-							temp[j].Z,
-						   &pp[j]);
-
-						if (!pp[j].IsValid())
-						{
-							//
-							// Tell the DIRT module that the leaf is off-screen.
-							//
-
-							DIRT_mark_as_offscreen(i);
-
-							//
-							// Don't bother transforming the other points.
-							//
-
-							goto do_next_dirt;
-						}
-					}
-
-					if (POLY_valid_quad(quad))
-					{
-						float ubase;
-						float vbase;
-
-						SLONG colour_and = 0xffffffff;
-
-						if (i & 32)
-						{
-							ubase = 0.0F;
-							vbase = 0.0F;
-						}
-						else
-						{
-							ubase = 0.5F;
-							vbase = 0.0F;
-						}
-
-						if (i == 64)
-						{
-							//
-							// Only one bit of money!
-							//
-
-							ubase = 0.0F;
-							vbase = 0.5F;
-						}
-						else
-						{
-							if (!(i & 32))
-							{
-								if (i & 64)
-								{
-									colour_and = 0xffffff00;
-								}
-							}
-						}
-
-						//
-						// Set the uvs.
-						//
-
-						for (j = 0; j < 4; j++)
-						{
-							pp[j].u = ubase;
-							pp[j].v = vbase;
-
-							if (j & 1) {pp[j].u += 0.5F;}
-							if (j & 2) {pp[j].v += 0.5F;}
-
-#ifdef TARGET_DC
-							pp[j].colour   = ( NIGHT_amb_d3d_colour & colour_and ) | 0xff000000;
-#else
-							pp[j].colour   = NIGHT_amb_d3d_colour & colour_and;
-#endif
-							pp[j].specular = 0xff000000;
-						}
-
-						//
-						// Draw the quad.
-						//
-
-						POLY_add_quad(quad, POLY_PAGE_RUBBISH, FALSE);
-					}
-					else
-					{
-						//
-						// Tell the DIRT module that the leaf is off-screen.
-						//
-
-						DIRT_mark_as_offscreen(i);
-					}
-				}
-				else
-				{
-					if ((di.yaw | di.pitch | di.roll) == 0)
-					{
-						//
-						// This happens often... so we optimise it out.
-						//
-
-						temp[0].X = float(di.x);
-						temp[0].Y = float(di.y + LEAF_UP);
-						temp[0].Z = float(di.z + LEAF_SIZE);
-
-						temp[1].X = float(di.x + LEAF_SIZE);
-						temp[1].Y = float(di.y + LEAF_UP);
-						temp[1].Z = float(di.z - LEAF_SIZE);
-
-						temp[2].X = float(di.x - LEAF_SIZE);
-						temp[2].Y = float(di.y + LEAF_UP);
-						temp[2].Z = float(di.z - LEAF_SIZE);
-					}
-					else
-					{
-						//
-						// The rotation matrix of this bit of dirt.
-						//
-
-						fyaw   = float(di.yaw)   * (PI / 1024.0F);
-						fpitch = float(di.pitch) * (PI / 1024.0F);
-						froll  = float(di.roll)  * (PI / 1024.0F);
-
-						MATRIX_calc(matrix, fyaw, fpitch, froll);
-
-						//
-						// Work out the position of the points.
-						//
-
-						for (j = 0; j < 3; j++)
-						{
-
-							temp[j].X  = float(di.x);
-							temp[j].Y  = float(di.y);
-							temp[j].Z  = float(di.z);
-
-							temp[j].Y += float(LEAF_UP);
-						}
-
-
-						temp[0].X += matrix[6] * LEAF_SIZE;
-						temp[0].Y += matrix[7] * LEAF_SIZE;
-						temp[0].Z += matrix[8] * LEAF_SIZE;
-
-						temp[1].X -= matrix[6] * LEAF_SIZE;
-						temp[1].Y -= matrix[7] * LEAF_SIZE;
-						temp[1].Z -= matrix[8] * LEAF_SIZE;
-
-						temp[2].X -= matrix[6] * LEAF_SIZE;
-						temp[2].Y -= matrix[7] * LEAF_SIZE;
-						temp[2].Z -= matrix[8] * LEAF_SIZE;
-
-						temp[1].X += matrix[0] * LEAF_SIZE;
-						temp[1].Y += matrix[1] * LEAF_SIZE;
-						temp[1].Z += matrix[2] * LEAF_SIZE;
-
-						temp[2].X -= matrix[0] * LEAF_SIZE;
-						temp[2].Y -= matrix[1] * LEAF_SIZE;
-						temp[2].Z -= matrix[2] * LEAF_SIZE;
-
-						falling = TRUE;
-					}
-
-					//
-					// Transform the points.
-					//
-
-					for (j = 0; j < 3; j++)
-					{
-						POLY_transform(
-							temp[j].X,
-							temp[j].Y,
-							temp[j].Z,
-						   &pp[j]);
-
-						if (!pp[j].IsValid())
-						{
-							//
-							// Tell the DIRT module that the leaf is off-screen.
-							//
-
-							DIRT_mark_as_offscreen(i);
-
-							//
-							// Don't bother transforming the other points.
-							//
-
-							goto do_next_dirt;
-						}
-					}
-
-					if (POLY_valid_triangle(tri))
-					{
-						//
-						// The colour and texture of the leaf.
-						//
-
-						if (POLY_force_additive_alpha)
-						{
-							leaf_colour = leaf_colour_choice_grey[i & 0x3];
-						}
-						else
-						{
-							leaf_colour = leaf_colour_choice_rgb[i & 0x3];
-							leaf_colour = AENG_colour_mult(leaf_colour, NIGHT_amb_d3d_colour);
-						}
-
-						angle = float(i);
-
-						for (j = 0; j < 3; j++)
-						{
-						    pp[j].colour =  leaf_colour * (j + 3);
-							pp[j].colour  &= ~POLY_colour_restrict;
-#ifdef TARGET_DC
-							pp[j].colour |= 0xff000000;
-#endif
-							pp[j].specular =  0xff000000;
-							pp[j].u        =  LEAF_U(angle);
-							pp[j].v        =  LEAF_V(angle);
-
-							angle += 2.0F * PI / 3.0F;
-						}
-
-						POLY_add_triangle(tri, LEAF_PAGE, FALSE);
-					}
-					else
-					{
-						//
-						// Tell the DIRT module that the leaf is off-screen.
-						//
-
-						DIRT_mark_as_offscreen(i);
-					}
-
-				}
-
-				break;
-
-			case DIRT_INFO_TYPE_PRIM:
-
-				extern UBYTE kludge_shrink;
-
-				if (di.held||(di.prim==253))
-				{
-					kludge_shrink = TRUE;
-				}
-
-				MESH_draw_poly(
-					di.prim,
-					di.x,
-					di.y,
-					di.z,
-					di.yaw,
-					di.pitch,
-					di.roll,
-#ifdef TARGET_DC
-					NULL,0xff,0);
-#else
-					NULL,0,0);
-#endif
-
-				kludge_shrink = FALSE;
-
-				break;
-
-			case DIRT_INFO_TYPE_MORPH:
-
-				MESH_draw_morph(
-					di.prim,
-					di.morph1,
-					di.morph2,
-					di.tween,
-					di.x,
-					di.y,
-					di.z,
-					di.yaw,
-					di.pitch,
-					di.roll,
-					NULL);
-
-				break;
-
-			default:
-				ASSERT(0);
-				break;
-		}
-*/
-#endif
-
     do_next_dirt:;
     }
 
@@ -4476,58 +3858,6 @@ void AENG_set_bike_wheel_rotation(UWORD rot, UBYTE prim)
     //
 
 // Oh no they're not.
-#if 0
-	// All the textures are symmetrical, so you can't tell if they rotate.
-	// Optimised!
-	const SLONG du1 = 0xf;
-	const SLONG dv1 = 0;
-
-	const SLONG du2 = 0xf;
-	const SLONG dv2 = 0;
-
-	SLONG u;
-	SLONG v;
-
-	static SLONG order[4] = {2, 1, 3, 0};
-
-	//
-	// The faces we rotate the textures on are faces 6 and 7 for PRIM_OBJ_BIKE_BWHEEL.
-	//
-
-	f4 = &prim_faces4[po->StartFace4 + 6];
-
-	for (i = 0; i < 4; i++)
-	{
-		switch(order[i])
-		{
-			case 0: u = 16 + du1; v = 16 + dv1; break;
-			case 1: u = 16 + dv1; v = 16 - du1; break;
-			case 2: u = 16 - du1; v = 16 - dv1; break;
-			case 3: u = 16 - dv1; v = 16 + du1; break;
-		}
-
-		f4[0].UV[i][0] &= ~0x3f;
-		f4[0].UV[i][1] &= ~0x3f;
-
-		f4[0].UV[i][0] |= u;
-		f4[0].UV[i][1] |= v;
-
-		switch(order[i])
-		{
-			case 0: u = 16 + du2; v = 16 + dv2; break;
-			case 1: u = 16 + dv2; v = 16 - du2; break;
-			case 2: u = 16 - du2; v = 16 - dv2; break;
-			case 3: u = 16 - dv2; v = 16 + du2; break;
-		}
-
-		f4[1].UV[i][0] &= ~0x3f;
-		f4[1].UV[i][1] &= ~0x3f;
-
-		f4[1].UV[i][0] |= u;
-		f4[1].UV[i][1] |= v;
-	}
-
-#else
 
     SLONG du1 = SIN(+rot & 2047) * 15 >> 16;
     SLONG dv1 = COS(+rot & 2047) * 15 >> 16;
@@ -4597,7 +3927,6 @@ void AENG_set_bike_wheel_rotation(UWORD rot, UBYTE prim)
         f4[1].UV[i][0] |= u;
         f4[1].UV[i][1] |= v;
     }
-#endif
 }
 
 /*
@@ -6558,8 +5887,6 @@ void AENG_draw_city()
     extern SLONG tick_tock_unclipped;
     sea_offset += (tick_tock_unclipped);
 
-#if 0
-#endif
 
     LOG_ENTER(AENG_Check_Visible);
 
@@ -8496,78 +7823,7 @@ void AENG_draw_city()
                                         break;
                                     }
                                 } else {
-#if 0
 
-								//
-								// Crinkle? Not on the ground yet... I'll have to code rotation first.
-								//
-
-								if (/*crinkles enabled*/ 0 && page < 64 * 8 && TEXTURE_crinkle[page])
-								{
-									//
-									// This quad could be crinkled!
-									//
-
-									if (quad[0]->z > 0.5F)
-									{
-										//
-										// Too far away to be crinkled.
-										//
-
-										POLY_add_quad(quad, page, FALSE);
-									}
-									else
-									if (quad[0]->z < 0.2F)
-									{
-										//
-										// Maximum crinkleyness!
-										//
-
-										CRINKLE_do(
-											TEXTURE_crinkle[page],
-											page,
-											1.0F,
-											quad,
-											FALSE);
-									}
-									else
-									{
-										float extrude;
-										float av_z;
-
-										//
-										// Intermediate crinkle extrusion.
-										//
-
-										av_z  = quad[0]->z + quad[1]->z + quad[2]->z + quad[3]->z;
-										av_z *= 0.25F;
-
-										extrude  = av_z - 0.4F;
-										extrude *= 1.0F / (0.3F - 0.4F);
-
-										if (extrude > 0.0F)
-										{
-											if (extrude > 1.0F)
-											{
-												extrude = 1.0F;
-											}
-
-											CRINKLE_do(
-												TEXTURE_crinkle[page],
-												page,
-												extrude,
-												quad,
-												FALSE);
-										}
-										else
-										{
-											POLY_add_quad(quad, page, FALSE);
-										}
-									}
-								}
-								else
-
-#endif
                                     {
                                         POLY_add_quad(quad, page, FALSE);
                                     }
@@ -9446,10 +8702,7 @@ void AENG_draw_city()
                             PYRO_draw_pyro(p_thing);
                             break;
                         case DT_ANIMAL_PRIM:
-#if 0
-extern	void	ANIMAL_draw(Thing *p_thing);
-								ANIMAL_draw(p_thing);
-#endif
+
                             break;
 
                         case DT_TRACK:
@@ -11188,9 +10441,7 @@ void AENG_draw_warehouse()
                         break;
 
                     case DT_ANIMAL_PRIM:
-#if 0
-							ANIMAL_draw(p_thing);
-#endif
+
                         break;
 
                     case DT_TRACK:
@@ -14230,10 +13481,7 @@ void AENG_draw(SLONG draw_3d)
 
     FC_Cam* fc;
 
-#if 0
-	// set CurDrawDistance
-	CurDrawDistance = FC_cam[1].focus ? 16 : NormalDrawDistance;
-#endif
+
 
 
     /*

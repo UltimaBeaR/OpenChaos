@@ -118,3 +118,46 @@ rm new_game/fallen/Source/nightpsx.cpp new_game/fallen/Source/Levelpsx.cpp new_g
 - В `aeng.cpp` остались 3 `#ifdef TARGET_DC` блока (строки 3633, 3776, 3818). Они внутри `#if 0` блока с незакрытым `/* */` комментарием внутри — coan не смог обработать из-за вложенного комментария. Это дважды мёртвый код. Разберём в итерации по `#if 0`.
 - Символы `PSX_NOT_REALLY`, `PSX_STERN_REVENGE_BUG_AND_CRAP_DRIVERS`, `PSX_COMPRESS_LIGHT` — другие символы, не `PSX`, coan их не трогал. Это норма.
 
+---
+
+## Итерация 4 — Удаление #if 0 блоков (пачка 1 из ~6)
+
+**Дата:** 2026-03-15
+
+**Удалено файлов целиком (+ из vcxproj):**
+- `DDEngine/Source/DCback.cpp`, `DCcredits.cpp`, `DCfont.cpp`, `DCos.cpp` — DC-платформенный рендер, весь файл обёрнут в `#if 0`
+- `DDEngine/Headers/DCback.h`, `DCcredits.h`, `DCfont.h`, `DCos.h` — соответствующие заголовки
+- `DDEngine/Source/font3d.cpp` — 3D шрифт, весь файл обёрнут в `#if 0`
+- `DDEngine/Headers/font3d.h` — заголовок: весь класс `Font3D` внутри `#if 0`, оставлен пустой файл с комментарием `// THIS IS PANTS!`
+  - Не удалён полностью: включается в briefing.cpp, pause.cpp, startscr.cpp. Но их использования Font3D — в `/* */` или `#if 0`, активного кода нет.
+
+**Удалено блоков #if 0 в коде:**
+- `DDEngine/Headers/panel.h` — 2 неиспользуемые функции (`PANEL_draw_angelic_status`, `PANEL_draw_press_button`)
+- `DDEngine/Source/aeng.cpp` — 10 блоков:
+  - `ANNOYINGSCRIBBLECHECK` (`#if 0 / #else`) — оставлен `#define ANNOYINGSCRIBBLECHECK` из else-ветки
+  - `AENG_set_draw_distance` — тело функции (функция осталась пустой заглушкой)
+  - Создание movie (`Create the movie`) — большой блок ~100 строк
+  - `gamut_lo` clamp блок — альтернативный алгоритм
+  - `gamut_lo` edge cases — дополнительные проверки диапазонов
+  - Doubly-dead блок `#if 0` + `/* */` с `DIRT_INFO_TYPE_*` (тот самый из итерации 3 с TARGET_DC внутри)
+  - Bike wheel texture rotation (`#if 0 / #else`) — оставлен актуальный алгоритм с `SIN/COS`
+  - Пустой `#if 0 / #endif`
+  - Crinkle rendering (не реализован, "code rotation first")
+  - `ANIMAL_draw` (x2) + `CurDrawDistance` setter
+- `DDEngine/Source/console.cpp` — TCP/IP консоль (~215 строк, под `#if 0 / #ifndef FINAL`)
+- `DDEngine/Source/drawxtra.cpp` — 4 блока:
+  - Pyro steps (`#if 0 / #else`) — оставлен Throttle вариант
+  - Wave particle angle (`#if 0 / #else`) — оставлен `iAngle` вариант
+  - Armageddon ring calc (`#if 0 / #else`) — оставлен упрощённый вариант ("What the fuck? Bonkers, mate.")
+  - `ANIMAL_draw` функция целиком
+- `DDEngine/Source/facet.cpp` — 2 блока: clip check и flashing pink debug
+- `DDEngine/Source/farfacet.cpp` — 3 блока: DC renderstate setters, draw-every-farfacet override, draw distance check (`#if 0 / #else`)
+- `DDEngine/Source/figure.cpp` — 2 блока: MM lighting table vars, negative light branch
+
+**Итог:** 3342 удалений, 3 вставки (контент из #else веток), 18 файлов.
+
+**Нюансы:**
+- coan для `#if 0` не подходит — делаем руками.
+- `#if 0 / #else / #endif` блоки: сохранялось содержимое `#else` ветки, удалялись директивы и мёртвая ветка.
+- Оставшиеся `#if 0` блоки (~140 штук) — следующие пачки.
+
