@@ -67,10 +67,22 @@
 **Порядок в конце этапа (после основных удалений):**
 1. Удаление редакторов (`Editor/`, `GEdit/`, `LeEdit/`, `SeEdit/`) — требует отдельного анализа, GEdit.h включается в 43+ файлов без guard ✅ **СДЕЛАНО**
 2. Удаление посторонних файлов и папок репозитория (см. ниже) ✅ **СДЕЛАНО**
-2.5. **Удаление кода задокументированного в KB как неиспользуемый/не в финале** — по одному флагу/фиче за итерацию, компиляция после каждой:
-   - Источники: `preprocessor_flags.md` (флаги с пометкой **НЕТ**), `cut_features.md` (фичи не вошедшие в финал)
-   - Кандидаты из `preprocessor_flags.md`: `BIKE`, `FAST_EDDIE`, `EIDOS`/региональные (`USA`, `GERMANY`, `FRANCE`, `KK`, `SINGAPORE`, `LEADER`, `HALIFAX`, `SYNTHESIS`, `DLMM`, `EEM`, `EUROPE`, `JAPAN`, `TDFX`), `USE_A3D`, `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__`, `DEBUG_POOSHIT`, `TEST_3DFX`, `FACET_REMOVAL_TEST`, `HEAP_DEBUGGING_PLEASE_BOB`, `HIGH_REZ_PEOPLE_PLEASE_BOB`, `MARKS_PRIVATE_VERSION`
-   - Кандидаты из `cut_features.md`: `BIKE` (уже выше), сопутствующий код канализаций (если под флагом `SEWERS` или аналогичным)
+2.5. **Удаление кода задокументированного в KB как неиспользуемый/не в финале** — по одному флагу/фиче за итерацию, компиляция после каждой.
+   **⚠️ Перед удалением каждого флага — спросить пользователя, удалять ли его.** Дать подробное объяснение: что за флаг, что он контролирует, сколько кода затрагивает, какие риски удаления (может ли сломать компиляцию, затронуть смежные системы, потерять полезный код). Без подтверждения — не удалять.
+   - Источники: `preprocessor_flags.md` (флаги не активные в PC билде), `cut_features.md` (фичи не вошедшие в финал)
+   - **Вырезанные фичи:** `BIKE`, `FAST_EDDIE`, `USE_PASSWORD`, `SEWERS`, `TRUETYPE`, `OLD_CAM`/`CAM_OLD`, `DOG_POO`
+   - **Региональные/DRM:** `EIDOS` и все региональные (`USA`, `GERMANY`, `FRANCE`, `KK`, `SINGAPORE`, `LEADER`, `HALIFAX`, `SYNTHESIS`, `DLMM`, `EEM`, `EUROPE`, `JAPAN`, `TDFX`)
+   - **Мёртвые компиляторы/платформы:** `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__`
+   - **Glide (мёртвый рендерер):** `DONT_IGNORE_SHADOWS`, `DONT_IGNORE_PUDDLES`, `DONT_IGNORE_REFLECTIONS`, `DONT_IGNORE_STARS`, `DONT_IGNORE_FANCY_STUFF`, `WORRY_ABOUT_THIS_LATER`
+   - **Отключённые оптимизации:** `USE_W_FOG_PLEASE_BOB`, `QUICK_FACET`, `DO_SUPERFACETS_PLEASE_BOB`, `BOGUS_TGAS_PLEASE_BOB`, `DOWNSAMPLE_PLEASE_BOB_AMOUNT`, `MIKES_UNUSED_AUTOMATIC_FLOOR_TEXTURE_GROUPER`, `SUPERCRINKLES_ENABLED`, `NO_BACKFACE_CULL_PLEASE_BOB`, `MAKE_THEM_FACE_THE_CAMERA`
+   - **Мёртвый геймплей:** `DARCI_HITS_COPS`, `NO_MORE_BALLOONS`/`NO_MORE_BALLOONS_NOW`, `WE_WANT_WIND`/`WE_WANT_MANUAL_WIND_ASWELL`/`WE_WANT_SHITTY_PANTS_WIND`, `UNUSED_WIRECUTTERS`/`UNUSED_WIRE_CUTTERS`
+   - **Старые алгоритмы (PSXENG):** `OLD_FACET_CLIP`, `OLD_FLIP`, `OLD_POO`, `OLD_SPLIT`, `CUNNING_SORT`, `GOOD_SORT`, `BACK_CULL_MAGIC`
+   - **PSX/DC debug:** `PSX_COMPRESS_LIGHT`, `DODGYPSXIFY`, `PSX_SIMULATION`, `FILE_PC`, `USE_A3D`/`A3D_SOUND`, все `VERSION_*` PSX флаги
+   - **Debug (не нужны):** `DEBUG_POOSHIT`, `TEST_3DFX`, `HEAP_DEBUGGING_PLEASE_BOB`, `HIGH_REZ_PEOPLE_PLEASE_BOB`, `MARKS_PRIVATE_VERSION`, `_DEBUG_POO`, `BREAKTIMER`
+   - **Debug визуализации:** `WE_WANT_TO_DRAW_THESE_FACET_LINES`, `WE_WANT_TO_DRAW_THE_TEXTURE_SHADOW_PAGE`, `DRAW_BLACK_FACETS`, `DRAW_FLOOR_FURTHER`, `DEBUG_POLY`, `DEBUG_SPAN`, `DRAW_THIS_DEBUG_STUFF`, `STRIP_STATS`, `SUPERFACET_PERFORMANCE`, `FASTPRIM_PERFORMANCE`, `FEEDBACK`, `WE_WANT_A_WHITE_SHADOW`, `WE_WANT_TO_DARKEN_PEOPLE_IN_SHADOW_ABRUPTLY`, `WE_WANT_TO_TEST_THE_WORLD_LINE_DRAW_BY_DRAWING_THE_COLVECTS`, `WHEN_DO_I_WANT_TO_TWO_PASS`, `DONT_WORRY_ABOUT_INSIDES_FOR_NOW`
+   - **Developer joke flags:** `GONNA_FIREBOMB_YOUR_ASS`, `WHAT_THE_FUCK_IS_THIS_DOING_HERE`, `OLDSHIT`, `ONE_DAY`, `GOTTA_DO_A_BETTA_JOB`, `DONE_ON_PC_NOW`, `WERE_GOING_TO_STUPIDLY_STICK_THE_FINAL_BANE_INSIDE`, `WEVE_REPLACED_THE_HEARTBEAT_WITH_A_SCANNER`, `POO_SHIT_GOD_DAMN`, `OLD_DOG_POO_OF_A_SYSTEM_OR_IS_IT`, `MAD_AM_I`, `ARGH`, `MIKE`, `MIKE_INFO`, `DTRACE`
+   - **Оставить для разработки:** `FACET_REMOVAL_TEST` (авто-включается в _DEBUG, полезен при разработке)
+   - Кандидаты из `cut_features.md`: `BIKE` (уже выше), сопутствующий код канализаций (флаг `SEWERS`)
    - Для каждого: coan `-UФЛАГ` или ручное удаление, затем ждать компиляции
 3. Удаление файлов, которые никто не `#include`-ит и которых нет в `Fallen.vcxproj`
 4. Удаление мёртвых сущностей (функции, переменные, типы, которые нигде не используются)

@@ -20,7 +20,7 @@
 | [overview.md](overview.md) | Архитектура оригинала: структура папок, entry point, карта связей, аннотированные файлы |
 | [analysis_scope.md](analysis_scope.md) | Скоуп анализа: что пропускается и почему, PC+PS1 эталон |
 | [cut_features.md](cut_features.md) | Вырезанные и отключённые фичи в оригинальном коде |
-| [preprocessor_flags.md](preprocessor_flags.md) | Препроцессорные флаги: VERSION_D3D, PSX, TARGET_DC, FINAL и др. |
+| [preprocessor_flags.md](preprocessor_flags.md) | Препроцессорные флаги: полная классификация с детальным анализом |
 
 ---
 

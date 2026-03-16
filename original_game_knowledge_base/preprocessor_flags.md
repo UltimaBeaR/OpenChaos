@@ -1,219 +1,10 @@
 # Флаги препроцессора — Urban Chaos (original_game)
 
-Полная классификация всех `#define` / `#ifdef` / `#if defined` в кодовой базе.
-Цель: понять что нужно для финальной PC-версии, что можно безопасно удалить при переписывании.
+Полная классификация `#define` / `#ifdef` / `#if defined` в кодовой базе оригинальной игры.
 
 ---
 
-## 1. Платформенные флаги
-
-| Флаг | Где определяется | Назначение | Нужен для PC |
-|------|-----------------|-----------|--------------|
-| `TARGET_DC` | Настройки проекта / headers | Dreamcast (Sega) | **НЕТ** |
-| `PSX` | collide.h, Command.h, dirt.h, building.h | PlayStation 1 | **НЕТ** |
-| `_MF_WINDOWS` | MFStdLib.h, MFHeader.h | Windows — определяется при `!defined(TARGET_DC)` | **ДА** |
-| `_MF_DOSX` | MFTypes.h | DOS (legacy) | **НЕТ** |
-| `__WATCOMC__` | MFMaths.h, MFUtils.h | Watcom C++ compiler (старый) | **НЕТ** |
-| `__DOS__` | MFLbType.h | DOS platform | **НЕТ** |
-| `__WINDOWS_386__` | MFLbType.h, collide.cpp | Watcom Windows 386 | **НЕТ** |
-| `_WINDOWS` | Проектные файлы | Generic Windows build | **ДА** |
-| `_WIN32` | .rc, .dsp файлы | Windows 32-bit | **ДА** |
-
-**Важно:** `TARGET_DC` встречается в базовых библиотеках (MFLib1, MFStdLib, DDEngine) — при удалении нужна аккуратность. `PSX` встречается в физике и структурах данных — тоже осторожно.
-
----
-
-## 2. Графические флаги
-
-| Флаг | Где определяется | Назначение | Нужен для PC |
-|------|-----------------|-----------|--------------|
-| `VERSION_D3D` | Fallen.vcxproj (Release + Debug) | DirectX 3D — основной графический API | **ДА** (сейчас) |
-| `VERSION_GLIDE` | Engine.h (условие) | 3dfx Glide | **НЕТ** |
-| `MF_DD2` | MFLib1/Source/C/Windows/Display.cpp | DirectDraw 2 (обёртка) | **ДА** (сейчас) |
-| `TEX_EMBED` | Fallen.vcxproj (Release + Debug) | Встраивание текстур; используется в D3DTexture.cpp, polypage.cpp, figure.cpp | **ДА** |
-| `DONT_IGNORE_SHADOWS` и др. | Glide Engine/glaeng.cpp | Графические эффекты Glide | **НЕТ** |
-| `WORRY_ABOUT_THIS_LATER` | glpoly.cpp | Отложенная задача в Glide | **НЕТ** |
-
-**Примечание:** Весь код Glide (`/fallen/Glide Engine/`) мёртв — `VERSION_GLIDE` не определяется ни в одной конфигурации.
-
----
-
-## 3. Флаги фич
-
-| Флаг | Где встречается | Назначение | Нужен для PC |
-|------|----------------|-----------|--------------|
-| `BIKE` | ~15 файлов: bike.cpp, Controls.cpp, Person.cpp и др. | Мотоцикл — незавершённая фича, в финальной игре отсутствует | **НЕТ** |
-| `FAST_EDDIE` | Controls.cpp, vehicle.cpp | Быстрый отладочный режим (`#if defined(FAST_EDDIE) && 0`) | **НЕТ** |
-| `USE_PASSWORD` | startscr.cpp (одно место) | Система паролей/читов | **ДА** — перенести концептуально (чит-коды работают, реализация может отличаться) |
-
-**BIKE:** флаг существует и используется широко (~15 файлов), но фича незавершена и не вошла в финальную игру. **Не переносить в новую версию.**
-
----
-
-## 4. Отладочные флаги
-
-| Флаг | Где определяется | Назначение | Нужен |
-|------|-----------------|-----------|-------|
-| `DEBUG` | Проект (Debug конфигурация) | Debug build | **ДА** (для разработки) |
-| `_DEBUG` | MSVC predefined | Debug configuration | **ДА** (для разработки) |
-| `NDEBUG` | Проект (Release конфигурация) | No debug | **ДА** |
-| `_RELEASE` | Проект (Release конфигурация) | Release build | **ДА** |
-| `FINAL` | Fallen.vcxproj (Release only) | Финальная сборка, выключает отладочный код | **ДА** (в Release) |
-| `HEAP_DEBUGGING_PLEASE_BOB` | StdMem.cpp (закомментирован) | Отладка кучи | **НЕТ** |
-| `DEBUG_POOSHIT` | Engine.cpp | Отладочный вывод | **НЕТ** |
-| `FACET_REMOVAL_TEST` | facet.cpp (закомментирован) | Визуализация удаляемых полигонов | **НЕТ** |
-| `TEST_3DFX` | Engine.cpp, LevelEd.cpp | Тестирование 3dfx | **НЕТ** |
-
----
-
-## 5. Флаги редактора
-
-| Флаг | Где определяется | Назначение | Нужен |
-|------|-----------------|-----------|-------|
-| `EDITOR` | GEdit.dsp, psxlib.dsp | Level Editor | **НЕТ** |
-| `BUILD_PSX` | GEdit.dsp, PSXENG/psxeng.h | Сборка для PSX | **НЕТ** |
-| `DOG_POO`, `POO`, `FUNNY_FANNY`, `OLD_STUFF`, `GUY`, `I_AM_A_LOON`, `DOGPOO`, `_MF_WINDOWS_DOG_POO` | Editor/Source файлы | Внутренние флаги разработчиков | **НЕТ** |
-
-Все папки редакторов (`/fallen/Editor/`, `/fallen/GEdit/`, `/fallen/LeEdit/`, `/fallen/SeEdit/`) можно удалить полностью.
-
----
-
-## 6. Региональные флаги
-
-| Флаг | Где определяется | Назначение | Нужен |
-|------|-----------------|-----------|-------|
-| `EIDOS` | password.h | Учётные данные издателя: EXPORT_NAME="Darren Hedges", EXPORT_CO="Eidos UK", EXPORT_PW="twogoldfish". Вероятно DRM/дистрибьюция. | **НЕТ** — полностью убрать |
-| `USA`, `GERMANY`, `FRANCE`, `KK`, `SINGAPORE`, `LEADER`, `HALIFAX`, `SYNTHESIS`, `DLMM`, `EEM`, `EUROPE`, `JAPAN` | password.h | Альтернативные региональные издания | **НЕТ** |
-| `TDFX` | password.h | Специальная версия для 3dfx Voodoo | **НЕТ** |
-| `VERSION_ENGLISH`, `VERSION_GERMAN` и др. | psxeng.h | Языковые версии PSX | **НЕТ** |
-| `VERSION_DEMO`, `VERSION_REVIEW`, `VERSION_PAL`, `VERSION_NTSC`, `VERSION_LORES` | psxeng.h | Разновидности PSX версий | **НЕТ** |
-
----
-
-## 7. Активные флаги-константы (заданы в коде, не в проектных настройках)
-
-Эти флаги определяются прямо в исходниках (`#define FLAG 1`), не в vcxproj. Менять не нужно.
-
-| Флаг | Где определён | Назначение | Нужен |
-|------|--------------|-----------|-------|
-| `USE_TOMS_ENGINE_PLEASE_BOB` | aeng.h (`= 1`) | D3D-friendly рендерер персонажей | **ДА** |
-| `WE_NEED_POLYBUFFERS_PLEASE_BOB` | polypage.h (`= 1` на PC) | Z-сортировка полигонов через буфер | **ДА** |
-| `NO_BACKFACE_CULL_PLEASE_BOB` | poly.cpp | Отключить backface culling для двусторонних мешей | **ДА** |
-| `LIGHT_COLOURED` | light.h (`= 1`) | RGB-цвет освещения вместо greyscale | **ДА** |
-| `USE_D3D_VBUF` | vertexbuffer.h (`= 1`) | D3D vertex buffers ("33% faster") | **ДА** |
-| `DRAW_WHOLE_PERSON_AT_ONCE` | figure.cpp (`= 1`) | Рисовать весь персонаж одним MultiMatrix вызовом | **ДА** |
-| `ULTRA_COMPRESSED_ANIMATIONS` | anim.h (defined) | Формат матриц анимации; выбор между PC и PSX форматом | **ДА** |
-| `ANIMATE` | animate.h (defined) | Базовый флаг включения системы анимаций | **ДА** |
-| `ANTIALIAS_BY_HAND` | truetype.cpp (`= 1`) | 2x supersampling антиалиасинг для TrueType шрифтов | **ДА** |
-| `POLY_FADEOUT_START` | Night.h / poly.h (`= 0.60F`) | Константа дистанции начала fog fade-out | **ДА** |
-| `NEW_FLOOR` | aeng.cpp | Система рендеринга полов с improved lighting | **ДА** |
-| `SUPERCRINKLES_ENABLED` | supercrinkle.h (`= 0`) | Dynamic surface deformation; явно выключен для production | **НЕТ** (`= 0`, отключён) |
-| `DISABLE_CRINKLES` | Crinkle.cpp (`= 0`) | Отключение старой crinkle системы; явно выключен | **НЕТ** (`= 0`, отключён) |
-| `CALC_CAR_CRUMPLE` | mesh.cpp (`= 0`) | Вычислять crumple-зоны машин динамически; явно выключен | **НЕТ** (`= 0`, используется pre-computed таблица) |
-
----
-
-## 8. Прочие флаги
-
-| Флаг | Назначение | Нужен |
-|------|-----------|-------|
-| `USE_A3D` | A3D audio (Aureal 3D) — определён в psxeng.h, только PSX | **НЕТ** |
-| `UNICODE` | Unicode в диалогах Windows (userdlg.cpp) | **ДА** |
-| `__cplusplus` | Защита extern "C" в wave.h | **ДА** |
-| `_CRT_SECURE_NO_WARNINGS` | Подавление предупреждений MSVC о небезопасных CRT функциях | не нужен при переписывании |
-| `WINDOWS_IGNORE_PACKING_MISMATCH` | Подавление предупреждений о выравнивании (Debug) | не нужен при переписывании |
-| `APSTUDIO_INVOKED` | Защита от редактора ресурсов VS | не нужен при переписывании |
-| `MARKS_PRIVATE_VERSION` | fc.cpp — если определён, отключает gun-out режим камеры | **НЕТ** (не определяется в финале) |
-| `HIGH_REZ_PEOPLE_PLEASE_BOB` | figure.cpp — закомментирован ("Now enabled only on a cheat!") | **НЕТ** |
-| `OLD_CAM` / `CAM_OLD` | Остатки старой камеры (cam.cpp удалён); встречается в #ifdef блоках | **НЕТ** |
-| `NO_SERVER` / `SERVER` | Отключённый multiplayer режим; нигде не defined | **НЕТ** |
-| `SEWERS` | Флаг системы канализаций (cut feature по Mike Diskett) | **НЕТ** |
-| `TRUETYPE` | Незавершённая фича TrueType шрифтов; закомментирован (// #define TRUETYPE) | **НЕТ** |
-| `USE_W_FOG_PLEASE_BOB` | W-based fog вместо Z-based; код есть но нигде не defined | **НЕТ** |
-| `QUICK_FACET` | Быстрый путь рисования простых фасетов; нигде не defined | **НЕТ** |
-| `DO_SUPERFACETS_PLEASE_BOB` | Кэш superfacet; закомментирован ("Can't do these for release") | **НЕТ** |
-| `BODGE_MY_PANELS_PLEASE_BOB` | Hack глубины панелей в D3D; нигде не defined | **НЕТ** |
-| `BOGUS_TGAS_PLEASE_BOB` | Fast загрузка TGA без сжатия; нигде не defined | **НЕТ** |
-| `NO_MORE_BALLOONS` / `NO_MORE_BALLOONS_NOW` | Отключение balloon системы; нигде не defined | **НЕТ** |
-| `WE_WANT_WIND` | Вырезанная wind система для эффектов частиц | **НЕТ** |
-| `WE_WANT_MANUAL_WIND_ASWELL` | Ручной контроль wind (внутри WE_WANT_WIND) | **НЕТ** |
-| `WE_WANT_SHITTY_PANTS_WIND` | Wind для snow уровня; нигде не defined | **НЕТ** |
-| `WE_WANT_TO_DRAW_THESE_FACET_LINES` | Debug визуализация граней фасетов | **НЕТ** |
-| `WE_WANT_TO_DRAW_THE_TEXTURE_SHADOW_PAGE` | Debug визуализация shadow texture page | **НЕТ** |
-| `PSX_COMPRESS_LIGHT` | Сжатый формат освещения для PSX (Night.h) | **НЕТ** |
-| `DODGYPSXIFY` | Хак PSX диапазона звука в SOUND_Range() | **НЕТ** |
-| `PSX_SIMULATION` | Симуляция PSX поведения на PC | **НЕТ** |
-| `VERSION_PSX` | PSX-специфичная структура Camera и логика | **НЕТ** |
-| `VERSION_DEMO` | Demo-режим: блокировка миссий, ограниченное меню | **НЕТ** |
-| `VERSION_ENGLISH` / `VERSION_GERMAN` / `VERSION_FRENCH` / `VERSION_ITALIAN` / `VERSION_JAPAN` / `VERSION_SPANISH` / `VERSION_KANJI` / `VERSION_KOREA` | Языковые версии PSX (psxeng.h) | **НЕТ** |
-| `VERSION_CD` / `VERSION_RCD` / `VERSION_DCD` / `VERSION_DPC` / `VERSION_RPC` / `VERSION_RSC` / `VERSION_RIC` / `VERSION_USA` / `VERSION_NTSC` / `VERSION_PAL` / `VERSION_LORES` / `VERSION_REVIEW` | Варианты PSX дистрибутива | **НЕТ** |
-| `MAD_AM_I` / `ARGH` / `MIKE` / `MIKE_INFO` / `DTRACE` / `werrr` | Developer debug флаги разработчиков | **НЕТ** |
-| `GONNA_FIREBOMB_YOUR_ASS` / `POO_SHIT_GOD_DAMN` / `OLD_DOG_POO_OF_A_SYSTEM_OR_IS_IT` / `WHAT_THE_FUCK_IS_THIS_DOING_HERE` / `OLDSHIT` / `ONE_DAY` / `GOTTA_DO_A_BETTA_JOB` / `DONE_ON_PC_NOW` / `WERE_GOING_TO_STUPIDLY_STICK_THE_FINAL_BANE_INSIDE` / `WEVE_REPLACED_THE_HEARTBEAT_WITH_A_SCANNER` | Dev-комментарии-флаги (joke names, placeholders) | **НЕТ** |
-| `A3D_SOUND` | A3D звук (устаревшая Aureal API, PSX-связан с USE_A3D) | **НЕТ** |
-| `DEBUG_POLY` / `DEBUG_SPAN` / `DRAW_THIS_DEBUG_STUFF` / `MESH_SHOW_MOUSE_POINT` / `SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB` / `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` | Debug-визуализации рендера; нигде не defined | **НЕТ** |
-| `FASTPRIM_PERFORMANCE` / `STRIP_STATS` / `SUPERFACET_PERFORMANCE` | Perf-профилирование рендера; нигде не defined | **НЕТ** |
-| `FEEDBACK` | Debug feedback в flamengine; закомментирован | **НЕТ** |
-| `OLD_FACET_CLIP` / `OLD_FLIP` / `OLD_POO` / `OLD_SPLIT` | Старые альтернативные алгоритмы рендера; все мёртвые | **НЕТ** |
-| `MIKES_UNUSED_AUTOMATIC_FLOOR_TEXTURE_GROUPER` | Явно неиспользуемый floor texture grouper (название говорит само) | **НЕТ** |
-| `UNUSED` / `NOT_USED` / `UNUSED_WIRECUTTERS` / `UNUSED_WIRE_CUTTERS` | Явно помеченный мёртвый код | **НЕТ** |
-| `DONT_WORRY_ABOUT_INSIDES_FOR_NOW` | Временный skip процедурных интерьеров; нигде не defined | **НЕТ** |
-| `DOWNSAMPLE_PLEASE_BOB_AMOUNT` | Даунсэмплинг текстур; нигде не defined | **НЕТ** |
-| `DRAW_BLACK_FACETS` / `DRAW_FLOOR_FURTHER` | Debug-рендер фасетов/пола; нигде не defined | **НЕТ** |
-| `BACK_CULL_MAGIC` | Магический backface cull hack; нигде не defined | **НЕТ** |
-| `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB` | Отключение бокового клиппинга; нигде не defined | **НЕТ** |
-| `NO_TRANSFORM` | Пропуск трансформаций; нигде не defined | **НЕТ** |
-| `SEARCHING` | Debug режим поиска пути; нигде не defined | **НЕТ** |
-| `SWIZZLE` | DC-специфичный swizzle формат текстур | **НЕТ** |
-| `THIS_IS_INCLUDED_FROM_SW` | Guard для sw.cpp include path | **НЕТ** |
-| `TOPMAP_BACK` | Debug topmap background; нигде не defined | **НЕТ** |
-| `VERIFY` | Debug проверка данных; нигде не defined | **НЕТ** |
-| `WE_WANT_A_WHITE_SHADOW` / `WE_WANT_TO_DARKEN_PEOPLE_IN_SHADOW_ABRUPTLY` / `WE_WANT_TO_TEST_THE_WORLD_LINE_DRAW_BY_DRAWING_THE_COLVECTS` / `WHEN_DO_I_WANT_TO_TWO_PASS` | Debug/эксперименты со светом и тенями | **НЕТ** |
-| `DARCI_HITS_COPS` | Геймплей-флаг Darci vs копы; нигде не defined | **НЕТ** |
-| `CUNNING_SORT` / `GOOD_SORT` | Альтернативные алгоритмы Z-сортировки; нигде не defined | **НЕТ** |
-| `ENABLE_REMAPPING` | Ремаппинг управления; нигде не defined | **НЕТ** |
-| `MAKE_THEM_FACE_THE_CAMERA` | Sprite billboarding; нигде не defined | **НЕТ** |
-| `LIMIT_TOTAL_PYRO_SPRITES_PLEASE_BOB` | Ограничение pyro спрайтов; нигде не defined | **НЕТ** |
-| `LOOK_FOR_START_NOT_JUST_ANY_BUTTON` | PSX: ждать START вместо любой кнопки | **НЕТ** |
-| `FS_ISO9600` / `FS_ISO9660` | PSX: CD-ROM filesystem flags | **НЕТ** |
-| `_DEBUG_POO` | Debug флаг (отдельный от DEBUG_POOSHIT) | **НЕТ** |
-| `BREAKTIMER` | Break timer debug; нигде не defined | **НЕТ** |
-| `AUTO_SELECT` | Авто-выбор устройства ввода; нигде не defined | **НЕТ** |
-
----
-
-## 9. Не feature flags (не нуждаются в отдельной документации)
-
-Эти символы найдены coan-ом в `#ifdef` выражениях, но они не являются настраиваемыми флагами сборки:
-
-| Символ | Почему не flag |
-|--------|---------------|
-| `PI`, `MAX3`, `MIN3`, `MATRIX_CALC`, `FOUR` | Math константы/макросы |
-| `_MSC_VER`, `__MSC_VER` | MSVC compiler version detection |
-| `LEVEL_LOST`, `LEVEL_WON` | Return code defines (enum-like значения) |
-| `STATE_DEF` | Guard против двойного typedef |
-| `VERSION` | Строковая/числовая константа версии |
-| `APSTUDIO_READONLY_SYMBOLS` | VS resource editor артефакт |
-| `FILTERING_ON` | Transient D3D render state (define/undef внутри файла) |
-| `ALPHA_ADD`, `ALPHA_BLEND`, `ALPHA_BLEND_NOT_DOUBLE_LIGHTING`, `ALPHA_MODE`, `ALPHA_TEST` | Transient D3D render states |
-| `NORMAL` | Math/geometry enum значение |
-| `_mfx_h_`, `_sound_id_h_`, `_SewerTab_HPP_` | Нестандартные include guards |
-
----
-
-## 11. Требуют уточнения
-
-Эти флаги найдены в оригинальной игре, но их статус неочевиден:
-
-| Флаг | Где встречается | Вопрос |
-|------|----------------|--------|
-| `INSIDES_EXIST` / `SEWERS_EXIST` | building.cpp, ns.cpp | Флаги существования процедурных интерьеров/канализаций — активны в данных уровней или нет? |
-| `FILE_PC` | io.cpp и др. | PC-специфичная загрузка файлов — активен или мёртв? |
-| `DONT_IGNORE_SHADOWS` / `DONT_IGNORE_PUDDLES` / `DONT_IGNORE_REFLECTIONS` / `DONT_IGNORE_STARS` / `DONT_IGNORE_FANCY_STUFF` | DDEngine | Флаги качества рендера — заданы где-то или всегда undefined? |
-| `COLLIDE_GAME` | collide.h/cpp | Режим коллизий — что переключает? |
-
----
-
-## Подтверждённые конфигурации (Fallen.vcxproj)
+## Конфигурации сборки (Fallen.vcxproj)
 
 ### Release build:
 ```
@@ -225,28 +16,255 @@ NDEBUG;_RELEASE;WIN32;_WINDOWS;VERSION_D3D;TEX_EMBED;FINAL
 _WINDOWS;WIN32;_DEBUG;DEBUG;VERSION_D3D;TEX_EMBED;WINDOWS_IGNORE_PACKING_MISMATCH
 ```
 
-**Важно:** `TEX_EMBED` активен в **обеих** конфигурациях. `FINAL` — только в Release.
+`TEX_EMBED` активен в **обеих** конфигурациях. `FINAL` — только в Release.
 
 ---
 
-## Итог: что удаляется, что остаётся
+## 1. Платформенные флаги
 
-### Безопасно удалить при переписывании:
-- Вся папка `/fallen/Glide Engine/` — код Glide мёртв ✅ (удалено в Этапе 2)
-- Все редакторы: `/fallen/Editor/`, `/fallen/GEdit/`, `/fallen/LeEdit/`, `/fallen/SeEdit/` ✅ (удалено в Этапе 2)
-- Папка `/fallen/PSXENG/` — код PSX ✅ (удалено в Этапе 2)
-- Флаги: `TARGET_DC`, `PSX`, `VERSION_GLIDE`, `EDITOR`, `BUILD_PSX` ✅ (удалено в Этапе 2)
-- Флаги фич (Этап 2, пункт 2.5): `BIKE`, `FAST_EDDIE`, `EIDOS`/региональные, `USE_A3D`, `__WINDOWS_386__`, `FACET_REMOVAL_TEST`, `HIGH_REZ_PEOPLE_PLEASE_BOB`, `MARKS_PRIVATE_VERSION`, `OLD_CAM`/`CAM_OLD`, `NO_SERVER`/`SERVER`, `SEWERS`, `TRUETYPE`, `USE_W_FOG_PLEASE_BOB`, `QUICK_FACET`, `DO_SUPERFACETS_PLEASE_BOB`, `BODGE_MY_PANELS_PLEASE_BOB`, `BOGUS_TGAS_PLEASE_BOB`, `NO_MORE_BALLOONS`/`NO_MORE_BALLOONS_NOW`, `WE_WANT_WIND` и родственные, `PSX_COMPRESS_LIGHT`, `DODGYPSXIFY`, `PSX_SIMULATION`, `VERSION_PSX`, `VERSION_DEMO`, все `VERSION_*` PSX, `HEAP_DEBUGGING_PLEASE_BOB`, `DEBUG_POOSHIT`, `TEST_3DFX`, `FAST_EDDIE`
-- Developer joke flags: `MAD_AM_I`, `ARGH`, `MIKE`, `MIKE_INFO`, `DTRACE`, `werrr`, `GONNA_FIREBOMB_YOUR_ASS` и аналогичные
+| Флаг | Где определяется | Назначение | Масштаб | Активен (PC) |
+|------|-----------------|-----------|---------|--------------|
+| `TARGET_DC` | Настройки проекта | Dreamcast (Sega). Полный порт: file I/O, рендеринг, ввод, ограничения памяти | ~1054 вхождений, ~165 файлов | нет |
+| `PSX` | Проект/headers | PlayStation 1. Полный порт с отдельным рендерером (GTE, fixed-point math) | ~1739 вхождений, ~178 файлов | нет |
+| `_MF_WINDOWS` | MFStdLib.h; автоматически при `!TARGET_DC` | Windows platform layer: HANDLE для файлов, DirectDraw глобалы | ~36 файлов | **да** |
+| `_MF_DOSX` | MFTypes.h (при `__DOS__`) | DOS extended mode: BOOL typedef, DOS file includes | 6 файлов | нет (мёртв) |
+| `__WATCOMC__` | Compiler predefined | Watcom C++: abs() fix, Root() asm, warning suppress | 8 файлов | нет (компилятор устарел) |
+| `__DOS__` | Compiler predefined | DOS: устанавливает `_MF_DOSX`, calling conventions для MIDAS audio | 3 файла | нет (мёртв) |
+| `__WINDOWS_386__` | Compiler predefined | Watcom Windows: устанавливает `_MF_WINDOWS`, MUL64/DIV64 asm | 5 файлов | нет (компилятор устарел) |
+| `_WINDOWS` | Проектные файлы, .rc | Generic Windows; в основном ресурсные файлы | ~38 файлов | **да** |
+| `_WIN32` | .rc, .dsp, MFStdLib.h | Windows 32-bit; автоматически форсится в MFStdLib.h | ~12 файлов | **да** |
 
-### Требует отдельного изучения:
-- ~~`USE_PASSWORD`~~ — решено: чит-коды переносятся (реализация может отличаться)
+**Цепочка:** `__WINDOWS_386__` / `WIN32` → `_MF_WINDOWS` → `_WIN32` (форсится в MFStdLib.h).
 
-### Аккуратно обработать при удалении:
-- `TARGET_DC` — проникает в базовые библиотеки MFLib1, MFStdLib
-- `PSX` — встречается в физике (collide.h) и структурах данных (building.h, dirt.h, Command.h)
+**TARGET_DC** (1054 вхождения) — полноценный порт:
+- File I/O: `_wfopen()` вместо `fopen()` с workaround утечки памяти (StdFile.cpp)
+- Командная строка: симуляция argv[1] (MFHost.cpp) — DC не поддерживает аргументы
+- Палитра: пропуск DirectDraw palette init (Palette.cpp)
+- Сеть: `dplayx.lib` вместо стандартных dplay/d3drm (MFLbType.h)
+- Клавиатура: AltFlag=0 (StdKeybd.h) — нет alt на контроллере
+- Цензура: Game.cpp — французская версия: насилие разрешено на DC, запрещено на PC
 
-### Активные в финальном билде:
-- `VERSION_D3D`, `MF_DD2`, `TEX_EMBED` — графический стек
-- `FINAL`, `DEBUG`, `_DEBUG`, `NDEBUG`, `_RELEASE` — конфигурации сборки
-- `_MF_WINDOWS`, `_WINDOWS`, `_WIN32` — платформенные детекты
+**PSX** (1739 вхождений) — параллельный рендерер, не адаптация PC:
+- Отдельная папка PSXENG/ с полным рендерером на GTE (hardware transform)
+- Fixed-point math vs float: SinTable, AtanTable с 2048-angle системой
+- Отдельные реализации фигур: bone-based skinning для GTE vs quaternion на PC
+- MAX_NUMBER_OF_CHUNKS = 5 (PSX) vs больше (PC) — ограничение памяти
+- Отдельный level loader (Levelpsx.cpp)
+
+---
+
+## 2. Графические флаги
+
+| Флаг | Определение | Назначение | Активен (PC) |
+|------|------------|-----------|--------------|
+| `VERSION_D3D` | vcxproj (оба конфига) | Основной рендерер: структура Camera, include aeng.h | **да** |
+| `VERSION_GLIDE` | Game.h (закомментирован) | 3dfx Glide рендерер. Отдельная папка `/Glide Engine/` | нет (мёртв) |
+| `MF_DD2` | Display.cpp (`#define MF_DD2`) | DirectDraw 2 интерфейс vs DirectDraw 1 | **да** |
+| `TEX_EMBED` | vcxproj (оба конфига) | Встроенные текстуры: `TEXTURE_get_D3DTexture()` — прямой указатель на D3DTexture | **да** |
+
+**DONT_IGNORE_* флаги** (SHADOWS, PUDDLES, REFLECTIONS, STARS, FANCY_STUFF): находятся **только** в `Glide Engine/glaeng.cpp`, нигде не определены. Вырезанные визуальные фичи Glide-рендерера (тени ~337 строк, звёзды, отражения, лужи, частицы). Для D3D рендерера не существуют.
+
+**ALPHA_* как система code generation:** `ALPHA_MODE`, `ALPHA_ADD`, `ALPHA_BLEND`, `ALPHA_TEST` — не feature flags, а система **множественного включения** tom.cpp:
+
+```c
+// sw.cpp — три включения tom.cpp с разными значениями ALPHA_MODE:
+SW_draw_span_masked(...)  → #define ALPHA_MODE ALPHA_TEST;  #include "tom.cpp"
+SW_draw_span_alpha(...)   → #define ALPHA_MODE ALPHA_BLEND; #include "tom.cpp"
+SW_draw_span_additive(...)→ #define ALPHA_MODE ALPHA_ADD;   #include "tom.cpp"
+```
+
+tom.cpp включается **3 раза**, генерируя 3 версии функции рисования. Compile-time полиморфизм.
+`ALPHA_BLEND_NOT_DOUBLE_LIGHTING = 1` — контроль яркости альфа: `shl ecx,23` vs `shl ecx,23-1`.
+
+---
+
+## 3. Флаги фич
+
+| Флаг | Масштаб | Назначение | Определён? | Активен (PC) |
+|------|---------|-----------|-----------|--------------|
+| `BIKE` | 453 вхождения, 38 файлов | Полная система мотоцикла: физика, рендеринг, управление, анимации | нет — не в vcxproj, нет `#define` | нет |
+| `FAST_EDDIE` | 8 вхождений, 3 файла | Dev-mode: checkerboard culling (KB_1), 2x speed (KB_T), debug keys в release | нет — не в vcxproj | нет |
+| `USE_PASSWORD` | 3 вхождения, 1 файл | Гейт стартового экрана: mode=0 (пароль) vs mode=1 (пропуск) | нет — не в vcxproj → mode=1 | нет |
+| `SEWERS` | ~111 вхождений, ~24 файла | Редактор канализаций + рендеринг в editor mode. AENG_draw_sewer_editor() | нет — не в vcxproj | нет |
+| `TRUETYPE` | 9 вхождений, 4 файла | TrueType шрифты vs bitmap. Закомментирован в truetype.h | нет | нет |
+| `NO_SERVER` | noserver.h: `= 1` (всегда) | Standalone режим. Переключает файловые пути (относительные vs серверные) | **да** — всегда 1 | **да** (структурный) |
+| `OLD_CAM` / `CAM_OLD` | ~16 вхождений, 7 файлов | Мёртвая камера из cam.cpp (заменена на fc.cpp — Final Camera) | нет | нет |
+
+**BIKE** (453 вхождения, 38 файлов): код полный и функциональный:
+- Структура BIKE_Bike: подвеска (wheel_y_front/back), руление, acceleration, brake
+- Визуал: tyre marks, body part transforms. Лимит: `BIKE_MAX_BIKES = 2`
+- Состояния: PARKED → MOUNTING → DRIVING → DISMOUNTING
+- Ключевые файлы: bike.cpp (~1000 строк физики), Person.cpp, Controls.cpp, aeng.cpp (145+ строк рендеринга), collide.cpp, fc.cpp (камера при езде)
+- **Не в vcxproj, нигде нет `#define BIKE`.** Код никогда не компилируется.
+
+**SEWERS vs SEWERS_EXIST:** важное различие:
+- `SEWERS` — флаг для **кода редактора** (AENG_draw_sewer_editor(), SeEdit). Не defined в game build.
+- `SEWERS_EXIST` — флаг в **PSXENG** для условного рисования лестниц канализации (facet.cpp). PSX-only.
+- Сама система канализаций (sewer.cpp/h) **компилируется без флага** в основном билде.
+
+**NO_SERVER:** **структурный флаг**, всегда = 1 через noserver.h. Управляет путями к ресурсам (relative vs server-based), не мультиплеером.
+
+---
+
+## 4. Отладочные флаги
+
+| Флаг | Где определяется | Назначение | Активен (PC) |
+|------|-----------------|-----------|--------------|
+| `DEBUG` | vcxproj (Debug) | Game-level debug: оверлеи, статистика, отладочный вывод | Debug only |
+| `_DEBUG` | MSVC predefined (Debug) | Compiler-level: ASSERT, memory tracking, debug symbols | Debug only |
+| `NDEBUG` | vcxproj (Release) | Отключает ASSERT и debug output | Release only |
+| `_RELEASE` | vcxproj (Release) | Явная метка release build | Release only |
+| `FINAL` | vcxproj (Release only) | Самый строгий: отключает debug keys, console, debug rendering | Release only |
+| `FACET_REMOVAL_TEST` | build2.cpp (`#ifdef _DEBUG`) | Авто-включается в _DEBUG. Рисует невидимые фасеты красным, F для переключения | Debug only |
+| `HEAP_DEBUGGING_PLEASE_BOB` | StdMem.cpp (закомментирован) | Heap profiling: обёртка аллокаций метаданными | нет |
+| `DEBUG_POOSHIT` | Editor/Engine.cpp | Debug визуализация зданий в редакторе; 1 вхождение | нет |
+| `TEST_3DFX` | Editor/Engine.cpp, LevelEd.cpp | Тест 3dfx в редакторе; внутри #ifdef DOGPOO (никогда не defined) | нет |
+
+**Иерархия debug:**
+```
+Release:  NDEBUG + _RELEASE + FINAL → всё отключено
+Debug:    _DEBUG + DEBUG → ASSERT, debug output, debug keys, FACET_REMOVAL_TEST,
+                            MESH_SHOW_MOUSE_POINT, SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB
+```
+
+**FINAL** — самый строгий уровень. Гейтит: debug key overrides (Crinkle.cpp, figure.cpp), TCP/IP console, debug rendering modes.
+
+---
+
+## 5. Флаги редактора
+
+| Флаг | Файлы | Назначение |
+|------|-------|-----------|
+| `EDITOR` | ~30 файлов | Level Editor. Глубоко интегрирован: Building.cpp, collide.cpp, Anim.cpp, poly.cpp |
+| `BUILD_PSX` | ~17 файлов | PSX build дифференциация (Game.h, psxeng.h). Отличается от `PSX` — препроцессорный этап |
+| `DOG_POO` | 7 файлов | Мёртвая камера cam.cpp (весь файл в `#ifdef DOG_POO`) + debug коллизий |
+| `POO` | 9 файлов | Debug визуализация граней зданий (линии) |
+| `FUNNY_FANNY` | 2 файла | Код зданий в редакторе |
+| `OLD_STUFF`, `GUY`, `I_AM_A_LOON`, `DOGPOO`, `_MF_WINDOWS_DOG_POO` | 1-5 файлов | Личные debug/joke флаги разработчиков |
+
+Ни один из них не определён в game build.
+
+---
+
+## 6. Региональные флаги
+
+Все определяются в `password.h`. Система DRM/дистрибуции для издателей. **Активен в исходниках:** только `EIDOS` (Eidos Interactive UK). Остальные закомментированы.
+
+Каждый флаг устанавливает `EXPORT_NAME`, `EXPORT_CO`, `EXPORT_PW` (ROT13-закодированные) + `MAGIC_KEY` (4-байтовый ключ дешифрования):
+```c
+#define EXPORT_NAME  "Ecqv`h'@lnli~"     // Darren Hedges (ROT13)
+#define EXPORT_CO    "Dkgkv&RC"           // Eidos UK
+#define EXPORT_PW    "uulcjjcn`yc"        // twogoldfish
+#define MAGIC_KEY    99, 98, 97, 96
+```
+`MAGIC_ARRAY = { 1, 2, 3, 42, MAGIC_KEY }` — 8-байтовый массив для дешифрования.
+
+Список: `EIDOS`, `USA`, `GERMANY`, `FRANCE`, `KK` (Japan), `SINGAPORE`, `LEADER` (Italy), `HALIFAX`, `SYNTHESIS`, `DLMM`, `EEM`, `EUROPE`, `JAPAN`, `TDFX` (3dfx Voodoo version).
+
+**VERSION_* PSX:** цепочка определений в psxeng.h. Каждая версия диска (VERSION_DPC, VERSION_RCD и т.д.) устанавливает язык, видеорежим (PAL/NTSC), файловую систему.
+
+---
+
+## 7. Активные флаги-константы (в исходниках, не в vcxproj)
+
+| Флаг | Определение | Значение | Назначение |
+|------|------------|---------|-----------|
+| `USE_TOMS_ENGINE_PLEASE_BOB` | aeng.h, Prim.h | `1` (PC и DC) | Core D3D рендерер: матрицы, viewport, z-buffer, render states |
+| `WE_NEED_POLYBUFFERS_PLEASE_BOB` | polypage.h | `1` (PC), `0` (DC) | Z-сортировка полигонов через буфер. DC: аппаратная |
+| `LIGHT_COLOURED` | light.h | `1` | RGB освещение (3 байта) vs greyscale (1 байт) |
+| `USE_D3D_VBUF` | vertexbuffer.h | `1` (PC), `0` (DC) | D3D vertex buffers. "33% faster" |
+| `DRAW_WHOLE_PERSON_AT_ONCE` | figure.cpp | `1` | Batch-рендеринг 15 частей тела одним D3D MultiMatrix вызовом |
+| `ANTIALIAS_BY_HAND` | truetype.cpp | `1` | 2x supersampling для TrueType шрифтов |
+| `POLY_FADEOUT_START` | poly.h, Night.h | `0.60F` (PC) | Дистанция начала fog fade-out |
+| `SUPERCRINKLES_ENABLED` | supercrinkle.h | `0` | Dynamic surface deformation. Отключён, stubbed out |
+| `CALC_CAR_CRUMPLE` | mesh.cpp | `0` | Динамический расчёт crumple-зон. Отключён, используется таблица (~190 строк) |
+| `DISABLE_CRINKLES` | Crinkle.cpp | DC=`1`, PC=`0` | DC: отключены (RAM). **PC: crinkles включены** (до 8192 точек) |
+| `NO_BACKFACE_CULL_PLEASE_BOB` | poly.cpp | `0` (всегда) | Мёртвый эксперимент: определён но **никогда не проверяется** через #if |
+| `ULTRA_COMPRESSED_ANIMATIONS` | Anim.h | PSX only | Сжатый формат матриц анимации. На PC не активен |
+| `NEW_FLOOR` | aeng.cpp | DC only | Оптимизированный рендеринг полов. На PC закомментирован |
+
+**Цепочка горячего пути рендеринга на PC:**
+1. `USE_TOMS_ENGINE_PLEASE_BOB` (=1) → матрицы проекции, viewport, z-buffer
+2. `DRAW_WHOLE_PERSON_AT_ONCE` (=1) → batch 15 body parts в один D3D MultiMatrix call
+3. `WE_NEED_POLYBUFFERS_PLEASE_BOB` (=1) → Z-сортировка для transparency
+4. `USE_D3D_VBUF` (=1) → D3D vertex buffers (+33% fps)
+
+**DRAW_WHOLE_PERSON_AT_ONCE** — использует D3D MultiMatrix extension (DrawIndPrimMM). Комментарий в коде: "NOT portable — relies on D3D MultiMatrix extension".
+
+---
+
+## 8. DC-специфичные флаги
+
+Флаги, **определённые только внутри #ifdef TARGET_DC**:
+
+| Флаг | Значение (DC) | Значение (PC) | Назначение |
+|------|-------------|--------------|-----------|
+| `BODGE_MY_PANELS_PLEASE_BOB` | `defined` | не определён | Z-depth hack для панелей (DEPTH_BODGE_START=0.95f) |
+| `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB` | `1` | `0` | DC: hardware clip; PC: software clip. Обе ветви рабочие |
+| `LIMIT_TOTAL_PYRO_SPRITES_PLEASE_BOB` | `500` | не определён | Лимит спрайтов взрывов. PC: "Turned off. You madmen :-)" |
+| `ENABLE_REMAPPING` | `1` | `0` | Remapping кнопок контроллера (DIManager.h) |
+| `LOOK_FOR_START_NOT_JUST_ANY_BUTTON` | `1` | не применим | Требование Sega: ждать START (DIManager.cpp) |
+
+---
+
+## 9. Не feature flags
+
+Символы в `#ifdef` которые не являются настраиваемыми флагами сборки:
+
+| Символ | Что это |
+|--------|---------|
+| `COLLIDE_GAME` | Include guard collide.h |
+| `ANIMATE` | Include guard animate.h |
+| `SEARCHING` | Локализованная строка "Поиск идёт..." в psxeng.h (нем/фр/исп/ит) |
+| `AUTO_SELECT` | Числовая константа (=4) в Loader.cpp |
+| `SWIZZLE` | Локальный define (=1) в sw.cpp/tom.cpp для PSX текстур |
+| `THIS_IS_INCLUDED_FROM_SW` | Include guard для tom.cpp (включается из sw.cpp) |
+| `VERIFY` | Assertion макрос: Debug → ASSERT(x), Release → x |
+| `FILTERING_ON` | Закомментирован в Editor/Poly.cpp; bilinear filtering |
+| `PI`, `MAX3`, `_MSC_VER`, `LEVEL_LOST`, `STATE_DEF`, `VERSION`, `NORMAL` | Math константы, compiler detection, enum values, guards |
+| `_mfx_h_`, `_sound_id_h_`, `_SewerTab_HPP_` | Нестандартные include guards |
+
+---
+
+## 10. Прочие флаги (мёртвый код / debug / не определены)
+
+**Отключённые оптимизации** (закомментированы, но код полностью функционален):
+- `DO_SUPERFACETS_PLEASE_BOB` (facet.cpp) — кэш фасетов. Комментарий: "Can't do these for release yet"
+- `MIKES_UNUSED_AUTOMATIC_FLOOR_TEXTURE_GROUPER` (aeng.cpp) — 100+ строк группирования текстур пола
+- `WE_WANT_WIND` (Controls.cpp:3297-3452) — авто-ветер + `DIRT_gale()`. Три уровня: auto → manual → blizzard. ~155 строк
+- `BOGUS_TGAS_PLEASE_BOB` (Tga.cpp) — генератор фейковых 16x16 текстур по хешу имени
+- `USE_W_FOG_PLEASE_BOB`, `QUICK_FACET`, `DOWNSAMPLE_PLEASE_BOB_AMOUNT`
+
+**Debug визуализации** (не определены): `WE_WANT_TO_DRAW_THESE_FACET_LINES`, `WE_WANT_TO_DRAW_THE_TEXTURE_SHADOW_PAGE`, `DRAW_BLACK_FACETS`, `DRAW_FLOOR_FURTHER`, `DEBUG_POLY`, `DEBUG_SPAN`, `DRAW_THIS_DEBUG_STUFF`, `STRIP_STATS`, `SUPERFACET_PERFORMANCE`, `FASTPRIM_PERFORMANCE`, `FEEDBACK`, `BREAKTIMER`
+
+**Debug-only** (авто-включаются в Debug): `MESH_SHOW_MOUSE_POINT` (при `!NDEBUG`), `SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB` (defined в figure.cpp, за `#ifdef DEBUG`), `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` (defined в superfacet.cpp)
+
+**Мёртвый геймплей**: `DARCI_HITS_COPS` (используется как `#if` без `#define` → всегда 0), `NO_MORE_BALLOONS`/`NO_MORE_BALLOONS_NOW`, `WE_WANT_WIND`/`WE_WANT_MANUAL_WIND_ASWELL`/`WE_WANT_SHITTY_PANTS_WIND`, `UNUSED_WIRECUTTERS`/`UNUSED_WIRE_CUTTERS`
+
+**Старые алгоритмы** (PSXENG, заменены): `OLD_FACET_CLIP`, `OLD_FLIP`, `OLD_POO`, `OLD_SPLIT`, `CUNNING_SORT`, `GOOD_SORT`, `BACK_CULL_MAGIC`
+
+**PSX/DC crossplatform debug**: `PSX_COMPRESS_LIGHT`, `DODGYPSXIFY`, `PSX_SIMULATION`, `FILE_PC` (DC: PC vs CD-ROM file serving), `_DEBUG_POO` (math debug в Quaternion.cpp)
+
+**Developer debug**: `MARKS_PRIVATE_VERSION` (отключает gun-out камеру в fc.cpp), `HIGH_REZ_PEOPLE_PLEASE_BOB` (4x вершин + cheat 0x10f1a7e "inflate"), `MAKE_THEM_FACE_THE_CAMERA` (billboard спрайтов), `MAD_AM_I`, `ARGH`, `MIKE`, `DTRACE`
+
+**Developer joke flags** (в основном в PSXENG, стиль Mike Diskett):
+- `GONNA_FIREBOMB_YOUR_ASS` — DrawXtra.cpp: рисование спрайта firebomb
+- `WHAT_THE_FUCK_IS_THIS_DOING_HERE` — poly.cpp: старая POLY_transform_old()
+- `OLDSHIT` — engine.cpp: старая check_prim_ptr_ni()
+- `WERE_GOING_TO_STUPIDLY_STICK_THE_FINAL_BANE_INSIDE` — engine.cpp: glow-эффект босса Bane
+- `WEVE_REPLACED_THE_HEARTBEAT_WITH_A_SCANNER` — panel.cpp: замена heartbeat на scanner UI
+- `GOTTA_DO_A_BETTA_JOB`, `ONE_DAY`, `DONE_ON_PC_NOW`, `POO_SHIT_GOD_DAMN`, `OLD_DOG_POO_OF_A_SYSTEM_OR_IS_IT`
+
+**Прочие**: `USE_A3D`/`A3D_SOUND` (Aureal 3D audio, в psxeng.h), `DONT_WORRY_ABOUT_INSIDES_FOR_NOW` (Glide Engine stub), `NO_TRANSFORM` (Editor), `TOPMAP_BACK` (не найден в коде), `WHEN_DO_I_WANT_TO_TWO_PASS` (PSXENG), `WE_WANT_A_WHITE_SHADOW`, `WE_WANT_TO_DARKEN_PEOPLE_IN_SHADOW_ABRUPTLY`
+
+---
+
+## 11. Уточнения по неочевидным флагам
+
+| Флаг | Что это |
+|------|---------|
+| `COLLIDE_GAME` | Include guard collide.h. Не функциональный флаг. |
+| `INSIDES_EXIST` | PSX engine (PSXENG/SOURCE/engine.cpp). Условное включение inside2.h и функций draw_insides(), set_inside_texture(). |
+| `SEWERS_EXIST` | PSX engine (PSXENG/SOURCE/facet.cpp). Условное рисование FACET_draw_ns_ladder(). |
+| `FILE_PC` | DC development flag (Main.cpp, Drive.cpp). На DC: `FILE_PC` → загрузка с PC (`\\PC\\Fallen\\`), иначе с CD-ROM. |
+| `DONT_IGNORE_*` | Только Glide Engine (glaeng.cpp). Нигде не определены. Вырезанные визуальные фичи Glide-рендерера. |
