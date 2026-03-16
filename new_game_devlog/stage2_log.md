@@ -484,3 +484,27 @@ Exit code 19 — норма.
 
 Таблица соответствий: `new_game_planning/entity_mapping.md` (заведена досрочно, план был Этап 4.3).
 Правило добавлено в `CLAUDE.md` и `stages.md`.
+
+---
+
+## Итерация 13 — Пункт 2: Удаление посторонних файлов
+
+**Дата:** 2026-03-16
+
+**Удалено из `new_game/fallen/`:**
+- `AutoRun/` — CD-autorun приложение для розничного диска (отдельный VS-проект)
+- `SoundConverter/` — standalone утилита конвертации звука
+- `UnInst/` — Windows-деинсталлятор для розничного CD
+- `dxinstall/` — инсталлятор DirectX для розничного CD
+- `server/` — содержал только `extract.bat` (скрипт для извлечения ресурсов из сети MuckyFoot)
+- `GEdit.dsp` — проектный файл MSVC6 удалённого редактора GEdit (остаток итерации 12)
+- `Fallen.dsp` — проектный файл MSVC6, заменён `Fallen.vcxproj`
+- `UpgradeLog.htm` — лог конвертации из MSVC6 в современный VS
+- 11 `.bat` файлов: `cdsrc.bat`, `clumps.bat`, `compress.bat`, `copysrc.bat`, `doneclumps.bat`, `english.bat`, `englishsrc.bat`, `french.bat`, `frenchsrc.bat`, `german.bat`, `germansrc.bat` — скрипты сборки локализованных дистрибутивов, ссылаются на несуществующие сети MuckyFoot
+
+**Оставлено:**
+- `text/` — рантайм-ресурсы (lang_*.txt загружаются через XLAT_load из frontend.cpp)
+- `config.ini` — загружается через ENV_load("config.ini") в Main.cpp
+- `vcpkg.json`, `vcpkg_installed/` — зависимости сборки
+- `Fallen.sln`, `Fallen.vcxproj`, `Fallen.vcxproj.filters` — система сборки
+- `Debug/`, `Release/` — не в git, локальные артефакты сборки (не трогались)
