@@ -16,8 +16,6 @@
 
 #include "WindProcs.h"
 
-#include "resource.h"
-
 
 //---------------------------------------------------------------
 // mikes mouse stuff

@@ -502,9 +502,59 @@ Exit code 19 — норма.
 - `UpgradeLog.htm` — лог конвертации из MSVC6 в современный VS
 - 11 `.bat` файлов: `cdsrc.bat`, `clumps.bat`, `compress.bat`, `copysrc.bat`, `doneclumps.bat`, `english.bat`, `englishsrc.bat`, `french.bat`, `frenchsrc.bat`, `german.bat`, `germansrc.bat` — скрипты сборки локализованных дистрибутивов, ссылаются на несуществующие сети MuckyFoot
 
+---
+
+## Итерация 14 — Пункт 2: Удаление MFLib1, редакторских ресурсов, мусора
+
+**Дата:** 2026-03-16
+
+**Удалено:**
+- `new_game/MFLib1/` — исходники библиотеки MuckyFoot (не компилировалась, не линковалась)
+- `new_game/fallen/Source/GEdit.cpp` — главный файл редактора GEdit, не в vcxproj
+- `new_game/fallen/Loader/` — PSX-only загрузчик языковых версий (PSX libs, не в vcxproj)
+- `new_game/fallen/outro/outro.dsp` — старый проектный файл MSVC6
+- `new_game/fallen/DDLibrary/DDlib.rc` — 2200 строк редакторских ресурсов (меню, диалоги, тулбары)
+- `new_game/fallen/DDLibrary/Headers/resource.h` — все IDD_/IDR_/IDI_ символы для редактора
+- 20 BMP/ICO/CUR из `DDLibrary/` — тулбарные иконки редактора
+
+**Правки в vcxproj:**
+- Удалены CustomBuild/Image записи на удалённые BMP/ICO/CUR файлы
+- Удалена ResourceCompile запись для DDlib.rc
+- Удалена ClInclude запись для resource.h
+- Удалена запись `<Text Include="notes.txt" />` (файл не существовал)
+- Удалён путь `c:\mflib1\libs` из AdditionalLibraryDirectories
+
+**Правки кода (для компиляции без DDlib.rc):**
+- `DDLibrary/Headers/DDLib.h`: удалён `#include "resource.h"`
+- `DDLibrary/Source/MFX.cpp`: удалён `#include "resource.h"`
+- `DDLibrary/Source/GHost.cpp`: `LoadIcon(..., IDI_ICON2)` → `NULL`; `LoadAccelerators(..., IDR_MAIN_ACCELERATOR)` → `NULL`
+
+**Результат:** 0 ошибок, 293 предупреждения (прежнее количество).
+
 **Оставлено:**
+
 - `text/` — рантайм-ресурсы (lang_*.txt загружаются через XLAT_load из frontend.cpp)
 - `config.ini` — загружается через ENV_load("config.ini") в Main.cpp
 - `vcpkg.json`, `vcpkg_installed/` — зависимости сборки
 - `Fallen.sln`, `Fallen.vcxproj`, `Fallen.vcxproj.filters` — система сборки
 - `Debug/`, `Release/` — не в git, локальные артефакты сборки (не трогались)
+
+---
+
+## Итерация 15 — Чистка Fallen.vcxproj и Fallen.sln
+
+**Дата:** 2026-03-16
+
+**Fallen.vcxproj — удалено:**
+- `AdditionalIncludeDirectories`: пути `..\fallen\ledit\headers`, `..\fallen\sedit\headers`, `..\fallen\gedit\headers` — папки удалены в итерации 12
+- `AdditionalLibraryDirectories`: все захардкоженные старые пути (`c:\fallen\bink`, `c:\miles`, `c:\fallen\miles`, `C:\qsound\QM411SDK\qmdx`) — пути на машинах MuckyFoot 1999 года
+- `<Midl>` секции в обоих конфигах — MIDL для COM/IDL, у игры нет IDL файлов, leftover от апгрейда MSVC6
+- `<Bscmake>` секции + `<BrowseInformation>true` в Release — генератор .bsc файлов для старого VS source browser
+- Пустые `<PostBuildEvent>` блоки в обоих конфигах
+- `<SccProjectName>` / `<SccLocalPath>` — пустые теги source control, артефакт MSVC6
+
+**Fallen.sln — исправлено:**
+- Убраны фантомные конфиги `Debug|x64` и `Release|x64` (добавлены автоматически при конвертации из MSVC6, маппились на Win32 и не строили ничего своего)
+- Оставлены только `Debug|Win32` и `Release|Win32` с корректными Build.0 записями
+
+**Результат:** 0 ошибок, 293 предупреждения.

@@ -88,7 +88,7 @@ BOOL SetupHost(ULONG flags)
     DDLibClass.lpszClassName = TEXT("Urban Chaos");
     DDLibClass.lpfnWndProc = DDLibShellProc;
     DDLibClass.style = 0;
-    DDLibClass.hIcon = LoadIcon(hGlobalThisInst, MAKEINTRESOURCE(IDI_ICON2));
+    DDLibClass.hIcon = NULL; // icon removed (DDlib.rc deleted)
     DDLibClass.hCursor = LoadCursor(NULL, IDC_ARROW);
     DDLibClass.lpszMenuName = NULL;
     DDLibClass.cbClsExtra = 0;
@@ -120,7 +120,7 @@ BOOL SetupHost(ULONG flags)
         MFX_init();
 
         // Load the keyboard accelerators.
-        hDDLibAccel = LoadAccelerators(hGlobalThisInst, MAKEINTRESOURCE(IDR_MAIN_ACCELERATOR));
+        hDDLibAccel = NULL; // accelerators removed (DDlib.rc deleted)
 
         // Display the window.
         //		ShowWindow(hDDLibWindow,iGlobalWinMode);
