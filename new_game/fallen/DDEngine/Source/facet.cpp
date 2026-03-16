@@ -43,7 +43,6 @@
 #include "..\headers\pap.h"
 #include "math.h"
 #include "ns.h"
-#include "..\sedit\headers\es.h"
 #include "memory.h"
 #include "texture.h"
 #include "polypage.h"

@@ -12,7 +12,6 @@
 //---------------------------------------------------------------
 // All temp stuff, botched in for demo.
 
-#include "..\Editor\Headers\Thing.h"
 
 ULONG move_thing(SLONG m_dx, SLONG m_dy, SLONG m_dz, struct MapThing* p_thing);
 

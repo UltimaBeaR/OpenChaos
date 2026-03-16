@@ -19,10 +19,9 @@
 #include "mav.h"
 
 // #include	"..\editor\headers\collide.hpp"
-#include "..\editor\headers\map.h"
 #include "animate.h"
 #include "FMatrix.h"
-#include "..\editor\headers\prim_draw.h"
+#include "..\headers\prim_draw.h"
 /*
 
   actions that cause you to look for a grab face

@@ -416,3 +416,71 @@ Exit code 19 — норма.
 - GEdit.h по-прежнему включается в runtime-файлах как extern объявления — не используется в runtime после удаления EDITOR блоков. Уберётся при удалении GEdit/ папки.
 - Setup-файлы в Source/ (дубликаты GEdit/Source/) будут удалены вместе с GEdit/ папкой.
 - Vcxproj не менялся.
+
+---
+
+## Итерация 12 — Удаление папок редакторов (Editor/, GEdit/, LeEdit/, SeEdit/)
+
+**Дата:** 2026-03-16
+
+**Удалены папки целиком:**
+- `new_game/fallen/Editor/`
+- `new_game/fallen/GEdit/`
+- `new_game/fallen/LeEdit/`
+- `new_game/fallen/SeEdit/`
+
+**Из Fallen.vcxproj удалено:**
+- 135 строк: все `ClCompile` для `Editor\Source\*.cpp`, `GEdit\Source\*.cpp`
+- Все `ClInclude` для `Editor\Headers\*`, `GEdit\Headers\*`
+- 6 строк: `ClCompile`/`ClInclude` для `Ledit\Source\*.cpp`, `Ledit\Headers\*.h`
+- `AdditionalIncludeDirectories`: удалены `..\fallen\ledit\headers;`, `..\fallen\sedit\headers;`, `..\fallen\gedit\headers;`
+
+**Хедеры перенесены в Headers/ (нужны рантайму):**
+- `Editor/Headers/Anim.h` → `Headers/anim.h` (нужен везде через Structs.h)
+- `Editor/Headers/Prim.h` → `Headers/prim.h` (нужен shape.cpp, animal.cpp, vehicle.cpp)
+- `Editor/Headers/prim_draw.h` → `Headers/prim_draw.h` (нужен interact.cpp: `rotate_obj()`)
+- `Editor/Headers/map.h` → `Headers/edmap.h` (переименован; нужен collide.cpp, building.cpp: `EDIT_MAP_WIDTH/DEPTH`, `DepthStrip`)
+- `Editor/Headers/outline.h` → `Headers/outline.h` (нужен building.cpp)
+- `Editor/Source/outline.cpp` → `Source/outline.cpp` (нужен рантайму: `do_storeys_overlap()` → `build_roof_grid()` → `process_building()`)
+- `ledit/headers/ed.h` → `Headers/ed.h` (нужен night.cpp: `ED_Light` для загрузки .lgt)
+- `Editor/Headers/Thing.h` → `Headers/mapthing.h` (частичная копия: `MapThingPSX` + `MAP_THING_TYPE_*` для io.cpp, save_type==18)
+
+Все перемещённые файлы помечены `// uc_orig_file:`, записаны в `new_game_planning/entity_mapping.md`.
+
+**Исправления includes в рантаймовых файлах:**
+- `Structs.h`: `../Editor/Headers/Anim.h` → `anim.h`
+- `DDEngine/Source/shape.cpp`: `../editor/headers/prim.h` → `../headers/prim.h`
+- `DDEngine/Source/facet.cpp`: include `../sedit/headers/es.h` удалён (ES_ символы не используются)
+- `Source/Main.cpp`: удалены includes `sedit.h`, `ledit.h`, `GEdit.h` (нулевое использование)
+- `Source/io.cpp`: `../editor/headers/thing.h` → `../headers/mapthing.h`
+- `Source/Enemy.cpp`, `Roper.cpp`: удалён `../Editor/Headers/Thing.h` (нулевое использование)
+- `Source/elev.cpp`, `Game.cpp`: удалены `es.h`, `../sedit/headers/es.h`, `../editor/headers/extra.h`
+- `Source/supermap.cpp`: удалён `Editor.hpp` include + `extern SLONG editor_texture_set;`
+- `Source/building.cpp`: удалены `Editor.hpp`, `outline.h` (→ теперь `../headers/outline.h`); добавлены `../headers/edmap.h`, `../headers/outline.h`
+- `Source/interact.cpp`: удалён `../editor/headers/map.h`; `../editor/headers/prim_draw.h` → `../headers/prim_draw.h`
+- `Source/collide.cpp`: `../editor/headers/map.h` → `../headers/edmap.h`
+- `Source/animal.cpp`, `vehicle.cpp`: `../Editor/Headers/prim.h` → `../headers/prim.h`
+- `Source/night.cpp`: `../ledit/headers/ed.h` → `../headers/ed.h`
+
+**Переменные в building.cpp:**
+- Удалено в предыдущей сессии и восстановлено: `edit_map[128][128]`, `tex_map[128][128]`, `edit_map_roof_height[128][128]` — нужны рантайму в `build_easy_roof()` → `build_roof_grid()` → `process_building()`
+- `struct EditInfo edit_info` — **удалена без восстановления**: `edit_info.HideMap` всегда 0 в рантайме (editor-only bitmask, никогда не выставляется runtime-кодом). 3 мёртвые проверки удалены из `build_easy_roof()` и `append_wall_prim()`.
+
+**Нюансы:**
+- `build_easy_roof()` / `get_storey_outline()` / `do_storeys_overlap()` — изначально считались editor-only, оказались рантаймовыми: путь `process_building()` → `build_roof()` → `build_roof_grid()` → `build_easy_roof()` / `do_storeys_overlap()`.
+- `outline.cpp` исторически жил в `Editor/Source/` но нужен рантайму → перемещён.
+- `MapThingPSX` из `Thing.h` нужен в `io.cpp` для загрузки PSX-формата сохранений (save_type == 18) — не мёртвый код.
+- `DarkCity.h` (включался в Thing.h) — пустой файл, убран при создании `mapthing.h`.
+
+**Результат:** компиляция 0 ошибок, 293 предупреждения (те же что были до итерации).
+
+---
+
+## Попутные изменения (Этап 2, 2026-03-16) — система отслеживания перемещений
+
+Введена система `uc_orig` для отслеживания связи нового кода с оригиналом:
+- `// uc_orig_file: fallen/путь` — в начало файла, когда весь файл перемещён/скопирован
+- `// uc_orig: OldName (fallen/файл.cpp)` — рядом с объявлением, когда перемещена отдельная сущность
+
+Таблица соответствий: `new_game_planning/entity_mapping.md` (заведена досрочно, план был Этап 4.3).
+Правило добавлено в `CLAUDE.md` и `stages.md`.

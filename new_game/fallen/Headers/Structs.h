@@ -4,7 +4,7 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
-#include "..\Editor\Headers\Anim.h"
+#include "anim.h"
 
 //---------------------------------------------------------------
 

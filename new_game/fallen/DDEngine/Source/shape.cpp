@@ -7,7 +7,7 @@
 #include "shape.h"
 #include "night.h"
 #include "matrix.h"
-#include "..\editor\headers\prim.h"
+#include "..\headers\prim.h"
 #include "mesh.h"
 #include "game.h"
 

@@ -50,11 +50,11 @@
 // claude-ai: ============================================================
 
 #include "game.h"
+#include "..\headers\mapthing.h"
 #include "pap.h"
 #include "sound.h"
 #include "ob.h"
 #include "supermap.h"
-#include "..\editor\headers\thing.h"
 #include "io.h"
 #include "eway.h"
 #include "..\headers\inside2.h"

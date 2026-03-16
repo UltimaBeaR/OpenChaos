@@ -8,7 +8,7 @@
 #include "canid.h"
 #include "statedef.h"
 #include "..\DDEngine\Headers\Matrix.h"
-#include "..\Editor\Headers\prim.h"
+#include "..\headers\prim.h"
 #include "..\DDEngine\Headers\figure.h"
 #include "..\DDEngine\Headers\poly.h"
 #include "night.h"

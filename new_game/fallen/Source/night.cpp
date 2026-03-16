@@ -17,7 +17,7 @@
 #include "fmatrix.h"
 #include "heap.h"
 #include "supermap.h"
-#include "..\ledit\headers\ed.h"
+#include "..\headers\ed.h"
 #include "memory.h"
 #include "ware.h"
 #include "mav.h"

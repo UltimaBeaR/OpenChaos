@@ -22,7 +22,7 @@
 // claude-ai:   Транспорт: GRAVITY = -(128*10*256)/(80*80) = -51 юн/тик² (явная физика, integer division)
 #include "Game.h"
 // #include	"..\editor\headers\collide.hpp"
-#include "..\editor\headers\map.h"
+#include "..\headers\edmap.h"
 #include "animate.h"
 #include "dirt.h"
 #include "fog.h"

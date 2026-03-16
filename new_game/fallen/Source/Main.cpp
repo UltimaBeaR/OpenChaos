@@ -3,13 +3,10 @@
 
 #include "Game.h"
 #include "DDLib.h"
-#include "sedit.h"
-#include "ledit.h"
 #include "renderstate.h"
 #include "Drive.h"
 
 #ifdef GUY
-#include "GEdit.h"
 #endif
 
 #ifndef EXIT_SUCCESS

@@ -31,7 +31,6 @@
 #include "..\headers\pap.h"
 #include "..\headers\inside2.h"
 #include "..\headers\ob.h"
-#include "..\editor\headers\Editor.hpp"
 #include "memory.h"
 #include "mav.h"
 #include "noserver.h"
@@ -87,7 +86,6 @@ SLONG add_dfacet(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG y, SLONG count, S
 SLONG add_painted_textures(UBYTE* t, SLONG tcount, SLONG style);
 
 extern SLONG save_psx;
-extern SLONG editor_texture_set;
 
 ULONG level_index = 0;
 

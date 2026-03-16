@@ -36,9 +36,9 @@
 #include "supermap.h"
 #include "io.h"
 #include "memory.h"
+#include "..\headers\edmap.h"
+#include "..\headers\outline.h"
 
-#include "..\editor\headers\Editor.hpp"
-#include "..\editor\headers\outline.h"
 
 // claude-ai: edit_map: 2MB editor tile map. Only used in BUILD_MODE_EDITOR (level editor).
 // claude-ai: Contains per-tile: height (Y), texture, flags, walkability, etc.
@@ -48,7 +48,6 @@ struct DepthStrip edit_map[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH]; // 2meg
 UWORD tex_map[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];
 
 SBYTE edit_map_roof_height[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];
-struct EditInfo edit_info;
 // claude-ai: page_remap: PSX texture page remapping table (64 pages * 8 slots).
 // claude-ai: Used when build_psx=1 to remap DirectX texture pages to PSX VRAM layout. Not relevant for new game.
 UWORD page_remap[64 * 8];
@@ -3285,8 +3284,6 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
     SLONG maxy = -9999;
 
     SLONG sp, ep, sf4, ef4;
-    if (edit_info.HideMap & 4)
-        return (0);
 
     sp = next_prim_point;
     sf4 = next_prim_face4;
@@ -6320,13 +6317,6 @@ void append_wall_prim(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG
 
     if (next_prim_point > 50000)
         no_draw = 1;
-    //		return;
-    if ((edit_info.HideMap & 1) && x < 16384)
-        no_draw = 1;
-    //		return;
-    if ((edit_info.HideMap & 2) && x > 16384)
-        no_draw = 1;
-    //		return;
 
     if (wall_list[wall].WallFlags & FLAG_WALL_RECESSED) {
         append_recessed_wall_prim(x, y, z, wall, storey, height);
