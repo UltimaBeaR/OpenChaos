@@ -521,108 +521,6 @@ SLONG SMAP_prim_points(
     return base;
 }
 
-#ifdef BIKE
-
-void SMAP_bike(
-    Thing* p_bike,
-    UBYTE* bitmap, // 0 => transparent 255 => opaque
-    UBYTE u_res,
-    UBYTE v_res,
-    SLONG light_dx, // This vector need not be normalised
-    SLONG light_dy,
-    SLONG light_dz)
-{
-    SLONG i_frame;
-    SLONG i_steer;
-    SLONG i_fwheel;
-    SLONG i_bwheel;
-
-    BIKE_Drawinfo bdi = BIKE_get_drawinfo(p_bike);
-
-    //
-    // Initialise the shadow mapper.
-    //
-
-    SMAP_init(
-        float(light_dx),
-        float(light_dy),
-        float(light_dz),
-        bitmap,
-        u_res,
-        v_res);
-
-    //
-    // Add the points for each bit of the bike.
-    //
-
-    i_frame = SMAP_prim_points(
-        PRIM_OBJ_BIKE_FRAME,
-        p_bike->WorldPos.X >> 8,
-        p_bike->WorldPos.Y >> 8,
-        p_bike->WorldPos.Z >> 8,
-        bdi.yaw,
-        bdi.pitch,
-        bdi.roll);
-
-    /*
-
-    //
-    // The front of the bike is where we physically model the wheel
-    // it is not at the correct place for the pivot point of the front wheel
-    // or the steering column.
-    //
-
-    i_steer = SMAP_prim_points(
-                            PRIM_OBJ_BIKE_STEER,
-                            bdi.steer_x,
-                            bdi.steer_y,
-                            bdi.steer_z,
-                            bdi.steer,
-                            bdi.pitch,
-                            bdi.roll);
-
-    i_fwheel = SMAP_prim_points(
-                            PRIM_OBJ_BIKE_FWHEEL,
-                            bdi.front_x,
-                            bdi.front_y,
-                            bdi.front_z,
-                            bdi.steer,
-                            bdi.pitch,
-                            bdi.roll);
-
-    i_bwheel = SMAP_prim_points(
-                            PRIM_OBJ_BIKE_BWHEEL,
-                            bdi.back_x,
-                            bdi.back_y,
-                            bdi.back_z,
-                            bdi.yaw,
-                            0,
-                            bdi.roll);
-
-    */
-
-    //
-    // Finished adding the points.
-    //
-
-    SMAP_point_finished();
-
-    //
-    // Add the triangles and quads for each bit of the bike.
-    //
-
-    SMAP_add_prim_triangles(PRIM_OBJ_BIKE_FRAME, i_frame);
-
-    /*
-
-    SMAP_add_prim_triangles(PRIM_OBJ_BIKE_STEER,  i_steer);
-    SMAP_add_prim_triangles(PRIM_OBJ_BIKE_FWHEEL, i_fwheel);
-    SMAP_add_prim_triangles(PRIM_OBJ_BIKE_BWHEEL, i_bwheel);
-
-    */
-}
-
-#endif
 
 // ========================================================
 //
@@ -905,64 +803,6 @@ void SMAP_person(
             dx, dy, dz, p_thing);
     }
 
-#ifdef BIKE
-
-    if (p_thing->Genus.Person->Flags & FLAG_PERSON_BIKING) {
-        Thing* p_bike = TO_THING(p_thing->Genus.Person->InCar);
-        BIKE_Drawinfo bdi = BIKE_get_drawinfo(p_bike);
-
-        //
-        // Draw the shadow of the bike too!
-        //
-
-        /*
-
-        i_frame = SMAP_prim_points(
-                                PRIM_OBJ_BIKE_FRAME,
-                                p_bike->WorldPos.X >> 8,
-                                p_bike->WorldPos.Y >> 8,
-                                p_bike->WorldPos.Z >> 8,
-                                bdi.yaw,
-                                bdi.pitch,
-                                bdi.roll);
-
-        //
-        // The front of the bike is where we physically model the wheel
-        // it is not at the correct place for the pivot point of the front wheel
-        // or the steering column.
-        //
-
-        i_steer = SMAP_prim_points(
-                                PRIM_OBJ_BIKE_STEER,
-                                bdi.steer_x,
-                                bdi.steer_y,
-                                bdi.steer_z,
-                                bdi.steer,
-                                bdi.pitch,
-                                bdi.roll);
-
-        */
-
-        i_fwheel = SMAP_prim_points(
-            PRIM_OBJ_BIKE_FWHEEL,
-            bdi.front_x,
-            bdi.front_y,
-            bdi.front_z,
-            bdi.steer,
-            bdi.pitch,
-            bdi.roll);
-
-        i_bwheel = SMAP_prim_points(
-            PRIM_OBJ_BIKE_BWHEEL,
-            bdi.back_x,
-            bdi.back_y,
-            bdi.back_z,
-            bdi.yaw,
-            0,
-            bdi.roll);
-    }
-
-#endif
 
     SMAP_point_finished();
 
@@ -986,22 +826,6 @@ void SMAP_person(
         index = indices[i] + 1;
     }
 
-#ifdef BIKE
-
-    if (p_thing->Genus.Person->Flags & FLAG_PERSON_BIKING) {
-        //
-        // Add the triangles and quads for each bit of the bike.
-        //
-
-        /*
-        SMAP_add_prim_triangles(PRIM_OBJ_BIKE_FRAME,  i_frame);
-        SMAP_add_prim_triangles(PRIM_OBJ_BIKE_STEER,  i_steer);
-        */
-        SMAP_add_prim_triangles(PRIM_OBJ_BIKE_BWHEEL, i_fwheel);
-        SMAP_add_prim_triangles(PRIM_OBJ_BIKE_BWHEEL, i_bwheel);
-    }
-
-#endif
 }
 
 // ========================================================

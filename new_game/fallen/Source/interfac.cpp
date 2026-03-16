@@ -1091,17 +1091,6 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
         return (INPUT_MASK_ACTION);
     }
 
-#ifdef BIKE
-    if (p_thing->Genus.Person->Flags & FLAG_PERSON_BIKING) {
-        //
-        // Get off the bike.
-        //
-
-        set_person_dismount_bike(p_thing);
-
-        return INPUT_MASK_ACTION;
-    }
-#endif
 
     if (p_thing->Genus.Person->Flags & FLAG_PERSON_GRAPPLING) {
         //
@@ -1633,22 +1622,6 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
         }
     }
 
-#ifdef BIKE
-
-    //
-    // Get onto a bike?
-    //
-
-    if (p_thing->State != STATE_MOVEING) {
-        SLONG bike = BIKE_person_can_mount(p_thing);
-
-        if (bike) {
-            set_person_mount_bike(p_thing, TO_THING(bike));
-
-            return INPUT_MASK_ACTION;
-        }
-    }
-#endif
     if (p_thing->State == STATE_IDLE || (p_thing->State == STATE_GUN && p_thing->SubState == SUB_STATE_AIM_GUN)) {
 
         SLONG angle;
@@ -4924,72 +4897,6 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
 //
 // Driving a bike.
 //
-#ifdef BIKE
-ULONG apply_button_input_bike(Thing* p_bike, ULONG input)
-{
-    ASSERT(p_bike->Class == CLASS_BIKE);
-
-    //
-    // Get the current steering.
-    //
-
-    BIKE_Control bc = BIKE_control_get(p_bike);
-
-    SLONG new_steer = 0; // bc.steer;
-    SLONG new_accel = 0; // bc.accel;
-
-    //
-    // Turn different amounts depending on the speed.
-    //
-
-    SLONG speed = BIKE_get_speed(p_bike);
-    SLONG tspeed = 15 - abs(speed);
-
-    SATURATE(tspeed, 15, 1);
-
-    //
-    // Turning left / right.
-    //
-
-    if (input & INPUT_MASK_LEFT) {
-        new_steer = +1; //+= tspeed;
-    } else if (input & INPUT_MASK_RIGHT) {
-        new_steer = -1; //-= tspeed;
-    }
-
-    //
-    // Accelerate/brake.
-    //
-
-    if (input & INPUT_MASK_FORWARDS) {
-        new_accel = 1; //+= 20;
-    }
-
-    if (input & (INPUT_MASK_BACKWARDS | INPUT_MASK_KICK)) {
-        //		new_accel =-1;//-= 20;
-
-        bc.brake = 1;
-    } else {
-        bc.brake = 0;
-    }
-
-    if (input & INPUT_MASK_JUMP) {
-        bc.wheelie = 1;
-    } else {
-        bc.wheelie = 0;
-    }
-
-    SATURATE(new_steer, -127, +127);
-    SATURATE(new_accel, -127, +127);
-
-    bc.accel = new_accel;
-    bc.steer = new_steer;
-
-    BIKE_control_set(p_bike, bc);
-
-    return 0;
-}
-#endif
 
 SLONG last_camera_dx;
 SLONG last_camera_dy;
@@ -6255,14 +6162,6 @@ void process_hardware_level_input_for_player(Thing* p_player)
                 processed = apply_button_input_car(TO_THING(p_person->Genus.Person->InCar), input);
                 processed |= apply_button_input(p_player, p_person, 0); // input & INPUT_MASK_ACTION);
             }
-#ifdef BIKE
-            else if (p_person->Genus.Person->Flags & FLAG_PERSON_BIKING) {
-                ASSERT(p_person->Genus.Person->InCar);
-
-                processed = apply_button_input_bike(TO_THING(p_person->Genus.Person->InCar), input);
-                processed |= apply_button_input(p_player, p_person, input & INPUT_MASK_ACTION);
-            } else
-#endif
             {
                 // claude-ai: Главный диспетчер режимов управления:
                 // claude-ai:   FIGHT mode → pre_process_input(FIGHT) + apply_button_input_fight()

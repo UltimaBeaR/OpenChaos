@@ -2603,51 +2603,6 @@ void PCOM_set_person_move_park_car_on_road(Thing* p_person)
     }
 }
 
-#ifdef BIKE
-
-void PCOM_set_person_move_biketo(Thing* p_person, SLONG waypoint)
-{
-    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_BIKING);
-
-    //
-    // Remember what we are doing.
-    //
-
-    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_BIKETO;
-    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
-    p_person->Genus.Person->pcom_move_arg = waypoint;
-    p_person->Genus.Person->pcom_move_counter = 0;
-}
-
-void PCOM_set_person_move_park_bike(Thing* p_person, SLONG waypoint)
-{
-    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_BIKING);
-
-    //
-    // Remember what we are doing.
-    //
-
-    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_PARK_BIKE;
-    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_NONE;
-    p_person->Genus.Person->pcom_move_arg = waypoint;
-    p_person->Genus.Person->pcom_move_counter = 0;
-}
-
-void PCOM_set_person_move_bike_down(Thing* p_person, SLONG n1, SLONG n2)
-{
-    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_BIKING);
-
-    //
-    // Remember what we are doing.
-    //
-
-    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_BIKE_DOWN;
-    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
-    p_person->Genus.Person->pcom_move_arg = (n1 << 8) | n2;
-    p_person->Genus.Person->pcom_move_counter = 0;
-}
-
-#endif
 
 void PCOM_set_person_move_goto_thing_slide(Thing* p_person, Thing* p_target)
 {
@@ -4157,77 +4112,6 @@ void PCOM_set_person_ai_findcar(Thing* p_person, UWORD car)
     }
 }
 
-#ifdef BIKE
-
-void PCOM_set_person_ai_findbike(Thing* p_person)
-{
-    SLONG bike;
-    SLONG speed;
-
-    if (p_person->Genus.Person->Target) {
-        remove_from_gang_attack(p_person, TO_THING(p_person->Genus.Person->Target));
-    }
-
-    //
-    // Look for a nearby bike.
-    //
-
-    bike = THING_find_nearest(
-        p_person->WorldPos.X >> 8,
-        p_person->WorldPos.Y >> 8,
-        p_person->WorldPos.Z >> 8,
-        0xc00,
-        1 << CLASS_BIKE);
-
-    if (bike == NULL || TO_THING(bike)->Genus.Bike->mode != BIKE_MODE_PARKED) {
-        //
-        // Couldn't find a car- start wandering around aimlessly.
-        //
-
-        PCOM_set_person_ai_aimless(p_person);
-    } else {
-        Thing* p_bike = TO_THING(bike);
-
-        //
-        // If someone is driving the bike. Kill them so you can get onto it!
-        //
-
-        if (p_bike->Genus.Bike->driver) {
-            ASSERT(TO_THING(p_bike->Genus.Bike->driver)->Class == CLASS_PERSON);
-
-            //
-            // This flag tell PCOM_process_killing() that this biker is killing
-            // someone to nick his bike- rather than just to kill him.
-            //
-
-            p_person->Genus.Person->Flags |= FLAG_PERSON_KILL_WITH_A_PURPOSE;
-
-            PCOM_set_person_ai_kill_person(p_person, TO_THING(p_bike->Genus.Bike->driver));
-        } else {
-            //
-            // Start navigating to the bike.
-            //
-
-            p_person->Genus.Person->pcom_ai_state = PCOM_AI_STATE_FINDBIKE;
-            p_person->Genus.Person->pcom_ai_substate = PCOM_AI_SUBSTATE_GOTOBIKE;
-            p_person->Genus.Person->pcom_ai_arg = bike;
-            p_person->Genus.Person->pcom_ai_counter = 0;
-
-            if (p_person->Genus.Person->pcom_bent & PCOM_BENT_LAZY) {
-                speed = PERSON_SPEED_WALK;
-            } else {
-                speed = PERSON_SPEED_RUN;
-            }
-
-            PCOM_set_person_move_mav_to_thing(
-                p_person,
-                TO_THING(bike),
-                speed);
-        }
-    }
-}
-
-#endif
 
 void PCOM_set_person_ai_bdeactivate(Thing* p_person, Thing* p_bomb)
 {
@@ -5806,11 +5690,6 @@ void PCOM_process_driving_still(Thing* p_person)
 
         if ((p_vehicle->Class == CLASS_VEHICLE && p_vehicle->Velocity == 0)
 
-#ifdef BIKE
-
-            || (p_vehicle->Class == CLASS_BIKE && BIKE_get_speed(p_vehicle) == 0)
-
-#endif
 
         ) {
             //
@@ -5867,15 +5746,9 @@ void PCOM_process_driving_patrol(Thing* p_person)
             if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                 PCOM_set_person_move_driveto(p_person, waypoint);
             }
-#ifdef BIKE
-            else {
-                PCOM_set_person_move_biketo(p_person, waypoint);
-            }
-#else
             else {
                 ASSERT(0);
             }
-#endif
         }
 
         break;
@@ -5911,15 +5784,9 @@ void PCOM_process_driving_patrol(Thing* p_person)
                 if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                     PCOM_set_person_move_park_car(p_person, p_person->Genus.Person->pcom_move_arg);
                 }
-#ifdef BIKE
-                else {
-                    PCOM_set_person_move_park_bike(p_person, p_person->Genus.Person->pcom_move_arg);
-                }
-#else
                 else {
                     ASSERT(0);
                 }
-#endif
 
                 //
                 // Dont move anymore.
@@ -5949,15 +5816,9 @@ void PCOM_process_driving_patrol(Thing* p_person)
                 if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                     PCOM_set_person_move_driveto(p_person, waypoint);
                 }
-#ifdef BIKE
-                else {
-                    PCOM_set_person_move_biketo(p_person, waypoint);
-                }
-#else
                 else {
                     ASSERT(0);
                 }
-#endif
             }
         }
 
@@ -6091,17 +5952,9 @@ void PCOM_process_driving_wander(Thing* p_person)
                 if (p_vehicle->Class == CLASS_VEHICLE) {
                     p_vehicle->Genus.Vehicle->Angle = nyaw;
                 }
-#ifdef BIKE
-                else {
-                    ASSERT(p_vehicle->Class == CLASS_BIKE);
-
-                    p_vehicle->Genus.Bike->yaw = nyaw;
-                }
-#else
                 else {
                     ASSERT(0);
                 }
-#endif
 
                 //
                 // Remember the new road we are going down.
@@ -6151,14 +6004,8 @@ void PCOM_process_driving_wander(Thing* p_person)
                     if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                         PCOM_set_person_move_drive_down(p_person, p_person->Genus.Person->pcom_move_arg & 0xff, p_person->Genus.Person->InsideRoom);
                     }
-#ifdef BIKE
-                    else {
-                        PCOM_set_person_move_bike_down(p_person, p_person->Genus.Person->pcom_move_arg & 0xff, p_person->Genus.Person->InsideRoom);
-                    }
-#else
                     else
                         ASSERT(0);
-#endif
                     p_person->Genus.Person->InsideRoom = 0;
                 }
             } else {
@@ -6203,15 +6050,9 @@ void PCOM_process_driving_wander(Thing* p_person)
             if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                 PCOM_set_person_move_drive_down(p_person, n1, n2);
             }
-#ifdef BIKE
-            else {
-                PCOM_set_person_move_bike_down(p_person, n1, n2);
-            }
-#else
             else {
                 ASSERT(0);
             }
-#endif
         }
 
         p_person->Genus.Person->InsideRoom = 0; // InsideRoom = next node to drive to
@@ -6659,13 +6500,6 @@ void PCOM_process_wander(Thing* p_person)
             return;
         }
 
-#ifdef BIKE
-        if (p_person->Genus.Person->pcom_ai == PCOM_AI_BIKER) {
-            PCOM_set_person_ai_findbike(p_person);
-
-            return;
-        }
-#endif
 
         // FALLTHROUGH! To find a new place to wander to.
 
@@ -6757,43 +6591,6 @@ void PCOM_process_killing(Thing* p_person)
         }
     }
 
-#ifdef BIKE
-
-    //
-    // Some people have ulterior motives for killing someone...
-    //
-
-    if (p_person->Genus.Person->Flags & FLAG_PERSON_KILL_WITH_A_PURPOSE) {
-        //
-        // For a biker killing someone so they can use his bike.
-        //
-
-        if (p_person->Genus.Person->pcom_ai == PCOM_AI_BIKER) {
-            if (p_target->Genus.Person->Flags & FLAG_PERSON_BIKING) {
-                //
-                // We are trying to get our person off his bike.
-                //
-            } else {
-                p_person->Genus.Person->Flags &= ~FLAG_PERSON_KILL_WITH_A_PURPOSE;
-
-                //
-                // Don't kill em any more.
-                //
-
-                remove_from_gang_attack(p_person, p_target);
-
-                //
-                // Get on our targets bike!
-                //
-
-                PCOM_set_person_ai_findbike(p_person);
-
-                return;
-            }
-        }
-    }
-
-#endif
 
     if (PTIME(p_person) & 0x1) {
         SLONG too_far;
@@ -8328,57 +8125,6 @@ void PCOM_process_findcar(Thing* p_person)
     }
 }
 
-#ifdef BIKE
-
-void PCOM_process_findbike(Thing* p_person)
-{
-    SLONG dx;
-    SLONG dz;
-    SLONG dist;
-    Thing* p_bike;
-
-    switch (p_person->Genus.Person->pcom_ai_substate) {
-    case PCOM_AI_SUBSTATE_GOTOBIKE:
-
-        p_bike = TO_THING(p_person->Genus.Person->pcom_ai_arg);
-
-        //
-        // Near enough to the bike yet?
-        //
-
-        dx = abs(p_bike->WorldPos.X - p_person->WorldPos.X >> 8);
-        dz = abs(p_bike->WorldPos.Z - p_person->WorldPos.Z >> 8);
-
-        dist = QDIST2(dx, dz);
-
-        if (dist < 0x90) {
-            //
-            // Get onto the bike.
-            //
-
-            set_person_mount_bike(p_person, p_bike);
-
-            //
-            // Do our normal thing.
-            //
-
-            p_person->Genus.Person->pcom_ai_state = PCOM_AI_STATE_NORMAL;
-            p_person->Genus.Person->pcom_ai_substate = 0;
-            p_person->Genus.Person->pcom_ai_counter = 0;
-
-            p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_STILL;
-            p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_NONE;
-        }
-
-        break;
-
-    default:
-        ASSERT(0);
-        break;
-    }
-}
-
-#endif
 
 //
 // Somebody who is talking.
@@ -9558,11 +9304,6 @@ void PCOM_process_default(Thing* p_person)
         PCOM_process_warm_hands(p_person);
         break;
 
-#ifdef BIKE
-    case PCOM_AI_STATE_FINDBIKE:
-        PCOM_process_findbike(p_person);
-        break;
-#endif
 
     case PCOM_AI_STATE_KNOCKEDOUT:
         PCOM_process_knockedout(p_person);
@@ -10270,21 +10011,6 @@ void PCOM_process_state_change(Thing* p_person)
         switch (p_person->Genus.Person->pcom_ai_state) {
         case PCOM_AI_STATE_NORMAL:
 
-#ifdef BIKE
-
-            //
-            // Are we on a bike?
-            //
-
-            if (!(p_person->Genus.Person->Flags & FLAG_PERSON_BIKING)) {
-                //
-                // Find a bike and get onto it.
-                //
-
-                PCOM_set_person_ai_findbike(p_person);
-            } else
-
-#endif
             {
                 //
                 // Start driving around.
@@ -10957,11 +10683,6 @@ void PCOM_process_movement(Thing* p_person)
     Thing* p_target;
     Thing* p_bike;
 
-#ifdef BIKE
-
-    BIKE_Control bc;
-
-#endif
 
     SLONG steer;
     SLONG accel;
@@ -11452,22 +11173,6 @@ void PCOM_process_movement(Thing* p_person)
 
         break;
 
-#ifdef BIKE
-
-    case PCOM_MOVE_STATE_PARK_BIKE:
-
-        ParkBike(p_person);
-
-        break;
-
-    case PCOM_MOVE_STATE_BIKETO:
-    case PCOM_MOVE_STATE_BIKE_DOWN:
-
-        DriveBike(p_person);
-
-        break;
-
-#endif
 
     default:
         ASSERT(0);
@@ -13179,348 +12884,6 @@ void DriveCar(Thing* p_person)
     p_person->Genus.Person->pcom_move_counter += PCOM_TICKS_PER_TURN * TICK_RATIO >> TICK_SHIFT;
 }
 
-#ifdef BIKE
-
-// ParkBike
-//
-// AI for parking a bike
-
-void ParkBike(Thing* p_person)
-{
-    SLONG wangle;
-    SLONG dangle;
-
-    BIKE_Control bc;
-
-    SLONG steer;
-    SLONG accel;
-
-    //
-    // Make sure we're on a bike.
-    //
-
-    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_BIKING);
-
-    Thing* p_bike = TO_THING(p_person->Genus.Person->InCar);
-
-    bc = BIKE_control_get(p_bike);
-
-    steer = bc.steer;
-    accel = bc.accel;
-
-    //
-    // What direction do we want the bike to face?
-    //
-
-    if (p_person->Genus.Person->pcom_move_arg) {
-        wangle = EWAY_get_angle(p_person->Genus.Person->pcom_move_arg);
-
-        dangle = wangle - p_bike->Genus.Vehicle->Angle;
-
-        if (dangle < -1024) {
-            dangle += 2048;
-        }
-        if (dangle > +1024) {
-            dangle -= 2048;
-        }
-
-        if (dangle < -8) {
-            steer += -10;
-        }
-        if (dangle > +8) {
-            steer += +10;
-        }
-    }
-
-    //
-    // Deccelerate.
-    //
-
-    if (BIKE_get_speed(p_bike) > 0) {
-        accel = -20;
-    } else {
-        accel = -0;
-    }
-
-    SATURATE(steer, -127, +127);
-    SATURATE(accel, -127, +127);
-
-    bc.accel = accel;
-    bc.steer = steer;
-
-    BIKE_control_set(p_bike, bc);
-}
-
-// DriveBike
-//
-// AI for driving a bike
-
-void DriveBike(Thing* p_person)
-{
-    SLONG dx;
-    SLONG dz;
-    SLONG dist;
-    SLONG what;
-    SLONG dest_x;
-    SLONG dest_z;
-    SLONG wangle;
-    SLONG dangle;
-    SLONG wspeed;
-    SLONG dspeed;
-    SLONG dlane;
-
-    BIKE_Control bc;
-
-    SLONG steer;
-    SLONG accel;
-
-    //
-    // Make sure we are on a bike
-    //
-
-    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_BIKING);
-
-    if (p_person->SubState != SUB_STATE_RIDING_BIKE) {
-        //
-        // We are getting onto or off the bike.
-        //
-
-        p_person->Genus.Person->pcom_move_counter += PCOM_TICKS_PER_TURN * TICK_RATIO >> TICK_SHIFT;
-        return;
-    }
-
-    Thing* p_bike = TO_THING(p_person->Genus.Person->InCar);
-
-    //
-    // Where are we going?
-    //
-
-    PCOM_get_person_dest(
-        p_person,
-        &dest_x,
-        &dest_z);
-
-    //
-    // If we are biking down a road...
-    //
-
-    if (p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_BIKE_DOWN) {
-        //
-        // How far are we from the middle of the road?
-        //
-
-        dist = ROAD_signed_dist(
-            p_person->Genus.Person->pcom_move_arg >> 8,
-            p_person->Genus.Person->pcom_move_arg & 0xff,
-            p_bike->WorldPos.X >> 8,
-            p_bike->WorldPos.Z >> 8);
-
-        dlane = 0x100 - dist;
-
-        if (abs(dlane) > (0x80 + (rand() & 0x7f))) {
-            //
-            // We are quite for from our lane. We should aim for the
-            // middle of our lane.
-            //
-
-            SLONG rx1;
-            SLONG rz1;
-
-            SLONG rx2;
-            SLONG rz2;
-
-            ROAD_node_pos(
-                p_person->Genus.Person->pcom_move_arg >> 8,
-                &rx1,
-                &rz1);
-
-            ROAD_node_pos(
-                p_person->Genus.Person->pcom_move_arg & 0xff,
-                &rx2,
-                &rz2);
-
-
-            if (ControlFlag && allow_debug_keys) {
-                AENG_world_line_infinite(
-                    rx1, 0, rz1,
-                    32,
-                    0x008800,
-                    rx2, 0, rz2,
-                    0,
-                    0x004400,
-                    FALSE);
-            }
-
-
-            nearest_point_on_line(
-                rx1, rz1,
-                rx2, rz2,
-                p_bike->WorldPos.X >> 8,
-                p_bike->WorldPos.Z >> 8,
-                &dest_x,
-                &dest_z);
-
-            SLONG drx = SIGN(rx2 - rx1) << 8;
-            SLONG drz = SIGN(rz2 - rz1) << 8;
-
-            dest_x += drz + drx;
-            dest_z -= drx - drz;
-        }
-    }
-
-    //
-    // What direction do we want the bike to face?
-    //
-
-    dx = dest_x - (p_bike->WorldPos.X >> 8);
-    dz = dest_z - (p_bike->WorldPos.Z >> 8);
-
-    wangle = calc_angle(dx, dz);
-    wangle += 1024;
-    wangle &= 2047;
-
-    dangle = wangle - p_bike->Draw.Mesh->Angle;
-
-    if (dangle < -1024) {
-        dangle += 2048;
-    }
-    if (dangle > +1024) {
-        dangle -= 2048;
-    }
-
-    //
-    // What speed do we want to be going at?
-    //
-
-    if (abs(dangle) > 300) {
-        wspeed = 600 - abs((dangle - 300) >> 1);
-
-        if (wspeed < 150) {
-            wspeed = 150;
-        }
-    } else {
-        wspeed = 600;
-    }
-
-    //
-    // Are we going to crash into anyone?
-    //
-
-    what = PCOM_find_runover_thing(p_person, -dangle);
-
-    if (what & PCOM_RUNOVER_STOP) {
-        if (wspeed > 0) {
-            wspeed = 0;
-        }
-    }
-    if (what & PCOM_RUNOVER_BEEP_HORN) {
-        MFX_play_thing(THING_NUMBER(p_person), S_BEEP, MFX_REPLACE, p_person);
-    }
-    if (what & PCOM_RUNOVER_SHOUT_OUT) {
-        MFX_play_thing(THING_NUMBER(p_person), S_GETOUTTHEWAY, MFX_REPLACE, p_person);
-    }
-    if (what & PCOM_RUNOVER_SLOW_DOWN) {
-        if (wspeed > 0) {
-            wspeed >>= 1;
-        }
-    }
-
-    if (what & PCOM_RUNOVER_TURN_LEFT) {
-        p_person->Genus.Person->pcom_move_flag |= PCOM_MOVE_FLAG_AVOID_LEFT;
-        p_person->Genus.Person->pcom_move_counter = 0;
-    }
-    if (what & PCOM_RUNOVER_TURN_RIGHT) {
-        p_person->Genus.Person->pcom_move_flag |= PCOM_MOVE_FLAG_AVOID_RIGHT;
-        p_person->Genus.Person->pcom_move_counter = 0;
-    }
-
-    if (what & PCOM_RUNOVER_RUNAWAY) {
-        //
-        // The movement bit is updating the high-level ai- sentience
-        // through complexity.
-        //
-
-        PCOM_set_person_ai_flee_person(p_person, PCOM_runover_scary_person);
-
-        return;
-    }
-
-    //
-    // Turn towards our destination.
-    //
-
-    bc = BIKE_control_get(p_bike);
-
-    steer = bc.steer;
-
-    if (dangle < -8) {
-        steer += -10;
-    }
-    if (dangle > +8) {
-        steer += +10;
-    }
-
-    //
-    // Accelerate... decellerate?
-    //
-
-    dspeed = wspeed - BIKE_get_speed(p_bike);
-
-    accel = bc.accel;
-
-    if (dspeed < -10) {
-        accel += -10;
-    }
-    if (dspeed > +10) {
-        accel += +10;
-    }
-
-    //
-    // Avoid people.
-    //
-
-    if (p_person->Genus.Person->pcom_move_flag & PCOM_MOVE_FLAG_AVOID_LEFT) {
-        steer += +18;
-    }
-    if (p_person->Genus.Person->pcom_move_flag & PCOM_MOVE_FLAG_AVOID_RIGHT) {
-        steer += -18;
-    }
-
-    if (p_person->Genus.Person->pcom_move_flag & (PCOM_MOVE_FLAG_AVOID_LEFT | PCOM_MOVE_FLAG_AVOID_RIGHT)) {
-        if (p_person->Genus.Person->pcom_move_counter > PCOM_get_duration(1)) {
-            p_person->Genus.Person->pcom_move_flag &= ~(PCOM_MOVE_FLAG_AVOID_LEFT | PCOM_MOVE_FLAG_AVOID_RIGHT);
-        }
-    }
-
-    SATURATE(steer, -127, +127);
-    SATURATE(accel, -127, +127);
-
-    bc.accel = accel;
-    bc.steer = steer;
-
-    BIKE_control_set(p_bike, bc);
-
-
-    if (ControlFlag && allow_debug_keys) {
-        AENG_world_line_infinite(
-            p_bike->WorldPos.X >> 8,
-            p_bike->WorldPos.Y >> 8,
-            p_bike->WorldPos.Z >> 8,
-            32,
-            0xffffff,
-            dest_x,
-            0,
-            dest_z,
-            0,
-            0x000000,
-            TRUE);
-    }
-
-
-    p_person->Genus.Person->pcom_move_counter += PCOM_TICKS_PER_TURN * TICK_RATIO >> TICK_SHIFT;
-}
-
-#endif
 
 SLONG PCOM_if_i_wanted_to_jump_how_fast_should_i_do_it(Thing* p_person)
 {

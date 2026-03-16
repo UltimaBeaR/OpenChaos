@@ -87,7 +87,6 @@ extern struct MemTable save_table[];
 #include "drawtype.h"
 
 #include "building.h"
-#include "bike.h"
 #include "Furn.h"
 #include "Vehicle.h"
 #include "inline.h"

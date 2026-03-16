@@ -367,9 +367,6 @@ SLONG help_system(void)
 
     SLONG nearest_car = 0, nearest_car_d = 0;
 
-#ifdef BIKE
-    SLONG nearest_bike = 0, nearest_bike_d = 0;
-#endif
 
     p_person = NET_PERSON(0);
     if (p_person->State == STATE_DEAD)
@@ -444,30 +441,6 @@ SLONG help_system(void)
 
             break;
 
-#ifdef BIKE
-        case CLASS_BIKE:
-            if (p_found->Genus.Vehicle->Driver) {
-
-                // prim = get_vehicle_body_prim(p_found->Genus.Vehicle->Type);
-                // pi   = get_prim_info(prim);
-
-                // Simple bounding circle rejection.
-
-                dx = abs((p_found->WorldPos.X >> 8) - x);
-                dz = abs((p_found->WorldPos.Z >> 8) - z);
-
-                dist = QDIST2(dx, dz);
-
-                if (dist <= 512) {
-                    SLONG cx, cz;
-                    show_help_text(HELP_USE_BIKE);
-
-                    arrow_object(p_found, 1, HELP_USE_BIKE);
-                    // draw_arrow(cx,(p_found->WorldPos.Y>>8)+150,cz,1);
-                }
-            }
-            break;
-#endif
 
         case CLASS_SPECIAL:
 

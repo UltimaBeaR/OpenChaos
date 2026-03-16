@@ -98,9 +98,6 @@ struct Thing {
         TrackPtr Track;
         PlatPtr Plat;
         BarrelPtr Barrel;
-#ifdef BIKE
-        BikePtr Bike;
-#endif
         BatPtr Bat;
 
     } Genus;

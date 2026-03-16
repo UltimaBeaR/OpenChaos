@@ -2206,9 +2206,6 @@ SLONG ELEV_game_init(
     ATTRACT_loadscreen_draw(25 * 256 / 100);
 
     FC_init();
-#ifdef BIKE
-    BIKE_init();
-#endif
     BARREL_init();
     BALLOON_init();
     NIGHT_init();

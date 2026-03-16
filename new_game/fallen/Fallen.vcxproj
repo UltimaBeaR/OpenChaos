@@ -211,9 +211,6 @@
     <ClCompile Include="Source\bat.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="Source\bike.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
-    </ClCompile>
     <ClCompile Include="Source\build2.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
@@ -583,7 +580,6 @@
     <ClInclude Include="Headers\bang.h" />
     <ClInclude Include="Headers\barrel.h" />
     <ClInclude Include="Headers\bat.h" />
-    <ClInclude Include="Headers\bike.h" />
     <ClInclude Include="Headers\building.h" />
     <ClInclude Include="Headers\cache.h" />
     <ClInclude Include="Headers\cam.h" />

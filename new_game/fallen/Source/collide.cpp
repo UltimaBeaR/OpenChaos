@@ -5797,27 +5797,6 @@ SLONG collide_against_things(
             }
             break;
 
-#if BIKE
-
-        case CLASS_BIKE:
-
-        {
-            SLONG dy = col_thing->WorldPos.Y - my_y1 >> 8;
-
-            if (abs(dy) < 0x100) {
-                slide_around_circle(
-                    col_thing->WorldPos.X,
-                    col_thing->WorldPos.Z,
-                    0x40 << 8,
-                    x1, z1, x2, z2);
-
-                ans = TRUE;
-            }
-        }
-
-        break;
-
-#endif
 
         case CLASS_BAT:
 

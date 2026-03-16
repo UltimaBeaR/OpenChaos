@@ -753,15 +753,6 @@ UWORD PARTICLE_Exhaust2(Thing* object, UBYTE density, UBYTE disperse)
     p.dy = dy / 2;
     p.dz = dz / 2;
 
-#ifdef BIKE
-    if (object->Class == CLASS_BIKE) {
-        vel = BIKE_get_speed(object);
-        if (vel > 10)
-            vel = 0x3FFF;
-        else
-            vel = 0xFFF;
-    }
-#endif
 
     for (i = density; i && res; i--) {
 

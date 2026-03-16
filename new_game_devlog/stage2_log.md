@@ -558,3 +558,50 @@ Exit code 19 — норма.
 - Оставлены только `Debug|Win32` и `Release|Win32` с корректными Build.0 записями
 
 **Результат:** 0 ошибок, 293 предупреждения.
+
+---
+
+## Итерация 16 — Удаление #ifdef BIKE (пункт 2.5)
+
+**Дата:** 2026-03-17
+
+**Команда:**
+```
+tools/coan/coan.exe source -UBIKE --no-transients --filter cpp,c,h,hpp --recurse Source DDEngine Headers DDLibrary
+```
+Exit code 2 — предупреждения (норма).
+
+**Удалено через coan (20 файлов, ~3323 строк):**
+- `DDEngine/Source/aeng.cpp` — 209 строк (рендеринг мотоцикла)
+- `DDEngine/Source/smap.cpp` — 176 строк
+- `Headers/Thing.h` — 3 строки
+- `Source/Controls.cpp` — 27 строк
+- `Source/Game.cpp` — 17 строк
+- `Source/Person.cpp` — 124 строки
+- `Source/Vehicle.cpp` — 36 строк
+- `Source/collide.cpp` — 21 строка
+- `Source/dirt.cpp` — 9 строк
+- `Source/elev.cpp` — 3 строки
+- `Source/eway.cpp` — 12 строк
+- `Source/interfac.cpp` — 101 строка
+- `Source/io.cpp` — 6 строк
+- `Source/memory.cpp` — 15 строк
+- `Source/ob.cpp` — 12 строк
+- `Source/overlay.cpp` — 27 строк
+- `Source/pcom.cpp` — 637 строк (AI BIKER тип + все bike-related AI)
+- `Source/psystem.cpp` — 9 строк
+- `Headers/bike.h` — 172 строки (оставлен только include guard — удалён вручную)
+- `Source/bike.cpp` — 1707 строк (оставлен только комментарий — удалён вручную)
+
+**Удалено вручную:**
+- `new_game/fallen/Source/bike.cpp` — целиком
+- `new_game/fallen/Headers/bike.h` — целиком
+- `Fallen.vcxproj`: `<ClCompile Include="Source\bike.cpp">` + `<ClInclude Include="Headers\bike.h" />`
+
+**Нюансы:**
+- `BIKE` нигде не был определён — код никогда не компилировался; удаление не затрагивает активную логику
+- `PCOM_AI_BIKER (11)` — тип AI мотоциклиста — удалён из pcom.cpp (637 строк); enum CLASS_BIKE (17) остался в Thing.h т.к. он не под `#ifdef BIKE`
+- `game.h:90` и `memory.cpp:9` включали `bike.h` без `#ifdef BIKE` — coan их не тронул (убирает только блоки, а не standalone `#include`). Удалены вручную.
+- `Fallen.vcxproj.filters` содержал запись на `Headers\bike.h` — удалена.
+
+**Результат:** 0 ошибок, 293 предупреждения.

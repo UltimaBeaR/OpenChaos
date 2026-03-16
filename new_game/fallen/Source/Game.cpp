@@ -1028,23 +1028,6 @@ void do_leave_map_form(void)
                 p_vehicle->Genus.Vehicle->VelR = 0;
             }
 
-#ifdef BIKE
-
-            if (darci->Genus.Person->Flags & FLAG_PERSON_BIKING) {
-                Thing* p_bike = TO_THING(darci->Genus.Person->InCar);
-
-                ASSERT(p_bike->Class == CLASS_BIKE);
-
-                p_bike->Velocity = 0;
-                p_bike->Genus.Bike->back_dx = 0;
-                p_bike->Genus.Bike->back_dy = 0;
-                p_bike->Genus.Bike->back_dz = 0;
-
-                p_bike->Genus.Bike->steer = 0;
-                p_bike->Genus.Bike->accel = 0;
-            }
-
-#endif
         }
     } else {
         FORM_Draw(form_leave_map);

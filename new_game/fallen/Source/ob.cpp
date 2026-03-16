@@ -700,18 +700,6 @@ void load_general_prims(void)
     load_prim_object(PRIM_OBJ_TRAFFIC_CONE);
     load_prim_object(145);
 
-#ifdef BIKE
-
-    //
-    // The bike.
-    //
-
-    load_prim_object(PRIM_OBJ_BIKE_FRAME);
-    load_prim_object(PRIM_OBJ_BIKE_FWHEEL);
-    load_prim_object(PRIM_OBJ_BIKE_BWHEEL);
-    load_prim_object(PRIM_OBJ_BIKE_STEER);
-
-#endif
 
     //
     // The "Fun Day" stuff 14th Jan 1999

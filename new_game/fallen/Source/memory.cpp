@@ -6,7 +6,6 @@
 #include "supermap.h"
 #include "night.h"
 #include "barrel.h"
-#include "bike.h"
 #include "eway.h"
 #include "pap.h"
 #include "ob.h"
@@ -371,9 +370,6 @@ struct MemTable save_table[] = {
     { M_("thing"), (void**)&THINGS, MEM_STATIC, 0, 0, MAX_THINGS, sizeof(Thing), 0 }, // 39
     { M_("drawtween"), (void**)&DRAW_TWEENS, MEM_STATIC, 0, 0, RMAX_DRAW_TWEENS, sizeof(DrawTween), 128 }, // 40
     { M_("drawmesh"), (void**)&DRAW_MESHES, MEM_STATIC, 0, 0, RMAX_DRAW_MESHES, sizeof(DrawMesh), 128 }, // 41
-#ifdef BIKE
-    { M_("bike"), (void**)&BIKE_bike, MEM_STATIC, 0, 0, BIKE_MAX_BIKES, sizeof(BIKE_Bike), 0 }, // 42
-#endif
     { M_("barrelsphere"), (void**)&BARREL_sphere, MEM_STATIC, 0, 0, BARREL_MAX_SPHERES, sizeof(BARREL_Sphere), 0 }, // 43
     { M_("barrels"), (void**)&BARREL_barrel, MEM_DYNAMIC, &BARREL_barrel_upto, 0, BARREL_MAX_BARRELS, sizeof(Barrel), 0 }, // 44
     { M_("plat"), (void**)&PLAT_plat, MEM_DYNAMIC, &PLAT_plat_upto, 0, RPLAT_MAX_PLATS, sizeof(Plat), 2 }, // 45
@@ -726,11 +722,6 @@ void convert_thing_to_index(Thing* p_thing)
         p_thing->Genus.Barrel = (Barrel*)BARREL_NUMBER(p_thing->Genus.Barrel);
 
         break;
-#ifdef BIKE
-    case CLASS_BIKE:
-        p_thing->Genus.Bike = (BIKE_Bike*)BIKE_NUMBER(p_thing->Genus.Bike);
-        break;
-#endif
     case CLASS_BAT:
         p_thing->Genus.Bat = (Bat*)BAT_NUMBER(p_thing->Genus.Bat);
         break;
@@ -2159,13 +2150,6 @@ void convert_thing_to_pointer(Thing* p_thing)
 
         break;
 
-#ifdef BIKE
-    case CLASS_BIKE:
-        void BIKE_process_normal(Thing * p_bike);
-        p_thing->StateFn = BIKE_process_normal;
-        p_thing->Genus.Bike = (BIKE_Bike*)TO_BIKE((SLONG)p_thing->Genus.Bike);
-        break;
-#endif
 
     case CLASS_BAT:
         p_thing->StateFn = BAT_normal;

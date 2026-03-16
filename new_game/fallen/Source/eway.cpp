@@ -903,12 +903,6 @@ UWORD EWAY_create_vehicle(
 
     case EWAY_SUBTYPE_VEHICLE_BIKE:
 
-#ifdef BIKE
-        p_index = BIKE_create(
-            world_x,
-            world_z,
-            yaw);
-#endif
         break;
 
     case EWAY_SUBTYPE_VEHICLE_CAR:
@@ -2972,12 +2966,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                         angle = p_thing->Genus.Vehicle->Angle;
                         speed = p_thing->Velocity;
                         break;
-#ifdef BIKE
-                    case CLASS_BIKE:
-                        angle = p_thing->Genus.Bike->yaw;
-                        speed = BIKE_get_speed(p_thing) >> 4;
-                        break;
-#endif
                     default:
                         ASSERT(0);
                         break;

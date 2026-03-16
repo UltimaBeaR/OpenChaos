@@ -1913,15 +1913,6 @@ void DIRT_gust(
     strength += 1;
     strength *= 8;
 
-#if BIKE
-
-    // blatant bike hack
-    if (p_thing && p_thing->Class == CLASS_BIKE) {
-        dgx *= 2;
-        dgz *= 2;
-    }
-
-#endif
 
     for (i = 0; i < DIRT_MAX_DIRT; i++) {
         dd = &DIRT_dirt[i];

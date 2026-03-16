@@ -421,12 +421,6 @@ void load_needed_anim_prims()
     }
 
     //	load_anim_prim_object(3); //balrog
-#ifdef BIKE
-    load_anim_prim_object(9);
-    DebugText(" next_prim_point %d primface3 %d primface4 %d   load ANIMprim %d \n", next_prim_point, next_prim_face3, next_prim_face4, 9);
-    load_anim_prim_object(12);
-    DebugText(" next_prim_point %d primface3 %d primface4 %d   load ANIMprim %d \n", next_prim_point, next_prim_face3, next_prim_face4, 12);
-#endif
 }
 
 void load_level_anim_prims(void)
