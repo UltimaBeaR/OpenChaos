@@ -275,11 +275,7 @@ EWAY_Way* eway_find_near(GameCoord pos)
 #ifndef NDEBUG
 BOOL allow_debug_keys = 1;
 #else
-#ifdef FAST_EDDIE
-BOOL allow_debug_keys = 1;
-#else
 BOOL allow_debug_keys = 0;
-#endif
 #endif
 
 

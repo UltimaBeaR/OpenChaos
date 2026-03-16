@@ -605,3 +605,24 @@ Exit code 2 — предупреждения (норма).
 - `Fallen.vcxproj.filters` содержал запись на `Headers\bike.h` — удалена.
 
 **Результат:** 0 ошибок, 293 предупреждения.
+
+---
+
+## Итерация 17 — Удаление #ifdef FAST_EDDIE (пункт 2.5)
+
+**Дата:** 2026-03-17
+
+**Команда:**
+```
+tools/coan/coan.exe source -UFAST_EDDIE --no-transients --filter cpp,c,h,hpp --recurse Source DDEngine Headers DDLibrary
+```
+Exit code 19 — норма.
+
+**Удалено через coan (3 файла, 14 строк):**
+- `DDEngine/Source/aeng.cpp` — KB_1 checkerboard culling (шахматная отсечка рендера)
+- `Source/Controls.cpp` — `allow_debug_keys = 1` ветка для FAST_EDDIE; схлопнулась в `#ifndef NDEBUG` / `else`
+- `Source/Vehicle.cpp` — KB_T Batman-ускорение (`accel <<= 1`); `#if !defined(FAST_EDDIE) || !defined(_DEBUG)` → безусловный блок урона (логика не изменилась)
+
+**Нюансы:**
+- `FAST_EDDIE` — QA-build флаг, нигде не определён; весь код под ним был мёртвым
+- `Vehicle.cpp:2385`: `#if !defined(FAST_EDDIE) || !defined(_DEBUG)` всегда было TRUE (FAST_EDDIE не определён), блок уже был активен. После удаления — безусловный, поведение то же самое.

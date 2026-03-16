@@ -2382,7 +2382,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
     // Damage the car depending on how fast it is going
     //
 
-#if !defined(FAST_EDDIE) || !defined(_DEBUG)
     {
         SLONG speed = p_car->Velocity >> 5;
 
@@ -2392,7 +2391,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
             veh->Health -= speed >> 1; // miked cars were blowing up too easy so I've halved the damage, Ive increased cars health to 300 so they are harder to shoot too
         }
     }
-#endif
 
     //
     // set flag
@@ -3413,10 +3411,6 @@ static inline void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& f
                     accel = 0;
             }
 
-#ifdef FAST_EDDIE
-            if (Keys[KB_T])
-                accel <<= 1; // !$$! we're fucking Batman!
-#endif
 
             if ((velocity < -200) || ((veh->DControl & VEH_FASTER) && (velocity < 400))) {
                 // do wheelspin smoke

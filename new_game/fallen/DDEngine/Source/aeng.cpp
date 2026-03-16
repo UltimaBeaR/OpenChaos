@@ -7467,10 +7467,6 @@ void AENG_draw_city()
                         continue;
                     }
 
-#ifdef FAST_EDDIE
-                    if (Keys[KB_1] && ((x ^ z) & 1))
-                        continue;
-#endif
 
                     /*
 
