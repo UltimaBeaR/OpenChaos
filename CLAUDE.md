@@ -27,6 +27,7 @@ original_game_knowledge_base_dense/ — компактная версия все
   DENSE_SUMMARY.md                  — все подсистемы компактно (числа, формулы, зависимости)
   DENSE_SUMMARY_BUILD_GUIDE.md      — инструкция по пересборке summary
 new_game_planning/                  — планирование новой игры (параллельный процесс)
+  phases.md                         — фазы разработки и текущий статус
   stages.md                         — этапы Фазы 3 с критериями
   prerelease_fixes.md               — пре-релизные баги оригинала (обязательны перед Этапом 5)
   tech_and_architecture.md          — стек, архитектура, все принятые решения
@@ -53,7 +54,8 @@ CLAUDE.md                           — этот файл
 |--------|------------|
 | Вопросы про игру, анализ, планирование | `original_game_knowledge_base_dense/DENSE_SUMMARY.md` — **читать вместо** subsystem файлов |
 | Глубокий вопрос про одну конкретную подсистему | `subsystems/X.md` или `resource_formats/X.md` напрямую |
-| Этапы разработки, что делать дальше | `new_game_planning/stages.md` |
+| Фазы разработки, текущий статус | `new_game_planning/phases.md` |
+| Этапы Фазы 3, что делать дальше | `new_game_planning/stages.md` |
 | Пре-релизные баги для фикса | `new_game_planning/prerelease_fixes.md` |
 | Технологии, архитектура, стек | `new_game_planning/tech_and_architecture.md` |
 | Тестирование | `new_game_planning/testing.md` |
@@ -97,7 +99,8 @@ CLAUDE.md                           — этот файл
   - Подсистемы → `subsystems/` (отдельный файл на каждую подсистему)
   - Компактная версия всей KB → `original_game_knowledge_base_dense/DENSE_SUMMARY.md`
   - Технологии и архитектура новой игры → `new_game_planning/tech_and_architecture.md`
-  - Этапы разработки → `ROADMAP.md`
+  - Фазы разработки → `new_game_planning/phases.md`
+  - Этапы Фазы 3 → `new_game_planning/stages.md`
   - Пре-релизные баги → `new_game_planning/prerelease_fixes.md`
   - Соответствия старых/новых имён сущностей → `new_game_planning/entity_mapping.md` (создаётся на Этапе 2)
   - Правила работы → этот файл (CLAUDE.md)
@@ -122,9 +125,11 @@ CLAUDE.md                           — этот файл
 
 ## Порядок работы (текущий статус)
 
+Подробно — `new_game_planning/phases.md`.
+
 1. **Фаза 1 (ЗАВЕРШЕНА):** Анализ оригинального кода → `original_game_knowledge_base/` + `original_game_knowledge_base_dense/`
 2. **Фаза 2 (ПАРАЛЛЕЛЬНАЯ):** Планирование и архитектура → `new_game_planning/` (идёт параллельно, началась ещё до Фазы 1)
-3. **Фаза 3 (ТЕКУЩАЯ, Этап 1 — Форматирование):** Разработка → `new_game/`, все этапы в `new_game_planning/stages.md`
+3. **Фаза 3 (ТЕКУЩАЯ, Этап 2 — Удаление мёртвого кода):** Разработка → `new_game/`, все этапы в `new_game_planning/stages.md`
 
 ## Workflow (экономия контекста)
 

@@ -12,7 +12,7 @@ original_game/                — original source code (read-only reference)
 original_game_resources/      — game resource files (not committed, see Setup below)
 original_game_knowledge_base/ — detailed documentation on the original game
 new_game/                     — modernized game (work in progress)
-new_game_planning/            — planning and architecture docs
+new_game_planning/            — planning and architecture docs (phases, stages, tech decisions)
 new_game_devlog/              — development log and technical notes
 tools/                        — development utilities (coan, etc.)
 legal/                        — rights history, attribution, legal details
@@ -76,6 +76,8 @@ and build the Debug configuration. Then copy the resources (Step 2 above) and ru
 `original_game/fallen/Debug/Fallen.exe` directly.
 
 ## Development
+
+Development is structured into phases and stages. See [`new_game_planning/phases.md`](new_game_planning/phases.md) for the current status and roadmap.
 
 See [`new_game/README.md`](new_game/README.md) for code formatting and other development notes.
 
