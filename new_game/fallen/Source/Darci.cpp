@@ -1040,46 +1040,6 @@ extern SLONG dist_to_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG
 extern void nearest_point_on_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b, SLONG* ret_x, SLONG* ret_z);
 extern void calc_things_height(struct MapThing* p_thing); // editor\collide.c
 // extern	struct	CollisionVect		col_vects[];
-#ifdef DOG_POO
-SLONG setup_person_for_jump_grab(Thing* p_thing)
-{
-    SLONG col, dist;
-    SLONG x, z;
-    struct CollisionVect* p_vect;
-    GameCoord new_position;
-    SLONG m_dx, m_dy, m_dz;
-    new_position = p_thing->WorldPos;
-
-    m_dx = -((SIN(p_thing->Draw.Tweened->Angle) * REQUIRED_DIST_JUMP_GRAB) >> 16);
-    m_dz = -((COS(p_thing->Draw.Tweened->Angle) * REQUIRED_DIST_JUMP_GRAB) >> 16);
-    m_dy = 0;
-    col = check_vect_vect(m_dx, m_dy, m_dz, p_thing, 2);
-    //	if(!col)
-    //		col=check_vect_circle(0,0,0,p_thing,80);
-    //	LogText(" set person for jump col_vect %d \n",col);
-
-    x = p_thing->WorldPos.X >> 8;
-    z = p_thing->WorldPos.Z >> 8;
-
-    if (col) {
-        SLONG new_x, new_z, angle;
-        SLONG dx, dz;
-
-        angle = get_point_dist_from_col_vect(col, x, z, &new_x, &new_z, REQUIRED_DIST_JUMP_GRAB);
-        LogText(" move person was %d %d now becomes %d %d\n", x, z, new_x, new_z);
-
-        p_thing->Draw.Tweened->Angle = angle;
-
-        new_position.X = new_x << 8;
-        new_position.Z = new_z << 8;
-
-        move_thing_on_map(p_thing, &new_position);
-
-        return (1);
-    }
-    return (0);
-}
-#endif
 
 extern void highlight_face(SLONG face);
 extern void e_draw_3d_mapwho(SLONG x1, SLONG z1);

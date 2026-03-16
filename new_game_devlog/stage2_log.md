@@ -16,7 +16,7 @@
 | `SEWERS` | ⬜ | |
 | `TRUETYPE` | ⬜ | |
 | `OLD_CAM`/`CAM_OLD` | ⬜ | |
-| `DOG_POO` | ⬜ | |
+| `DOG_POO` | ✅ | итерация 18 |
 | `EIDOS` + региональные | ⬜ | |
 | `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__` | ⬜ | |
 | Glide-флаги (`DONT_IGNORE_*`, `WORRY_ABOUT_THIS_LATER`) | ⬜ | |
@@ -653,3 +653,28 @@ Exit code 19 — норма.
 **Нюансы:**
 - `FAST_EDDIE` — QA-build флаг, нигде не определён; весь код под ним был мёртвым
 - `Vehicle.cpp:2385`: `#if !defined(FAST_EDDIE) || !defined(_DEBUG)` всегда было TRUE (FAST_EDDIE не определён), блок уже был активен. После удаления — безусловный, поведение то же самое.
+
+---
+
+## Итерация 18 — Удаление #ifdef DOG_POO (пункт 2.5)
+
+**Дата:** 2026-03-17
+
+**Команда:**
+```
+tools/coan/coan.exe source -UDOG_POO --no-transients --filter cpp,c,h,hpp --recurse Source DDEngine Headers DDLibrary
+```
+Exit code 19 — норма.
+
+**Удалено через coan (4 файла, 1360 строк):**
+- `DDEngine/Source/aeng.cpp` — 461 строка (debug-переменные и блоки визуализации коллизий)
+- `Source/collide.cpp` — 668 строк: статические пулы `col_vects[10000]` (~300 KB) + `col_vects_links[10000]` (~40 KB) + функции `add_collision_to_single_cell`, `do_move_collide`, `collide_box`
+- `Source/Darci.cpp` — 40 строк: функция `setup_person_for_jump_grab`
+- `Source/spark.cpp` — 191 строка: 2 блока поиска позиций по `col_vects`
+
+**Нюансы:**
+- `cam.cpp` (весь под `#ifdef DOG_POO`) удалён ещё в итерации 10 — там остатков не было
+- `OLD_DOG_POO_OF_A_SYSTEM_OR_IS_IT` в `building.cpp` — другой флаг (developer joke), не тронут
+- Комментарии `// claude-ai:` в `fc.h` и `fc.cpp` упоминают `DOG_POO` — это информационные комментарии, не код, не трогались
+
+**Результат:** 0 ошибок, Debug: 131 предупреждение, Release: 293 предупреждения.
