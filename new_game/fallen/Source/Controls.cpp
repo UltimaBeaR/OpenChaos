@@ -1982,9 +1982,6 @@ void process_controls(void)
     //	LIGHT_process();
     HOOK_process();
 //	SM_process();
-#ifdef OLD_CAM
-    CAM_process();
-#endif
     SNIPE_process();
 
     GameCoord position;
@@ -2644,9 +2641,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
     {
         SLONG x1, y1, z1;
         SLONG x2, y2, z2;
-#ifdef OLD_CAM
-        CAM_get_pos(&x1, &y1, &z1);
-#endif
 
         calc_sub_objects_position(
             darci,
@@ -2876,13 +2870,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                     eow,
                     eow >> 1);
             }
-#ifdef OLD_CAM
-            CAM_set_shake(eow >> 1);
-#endif
         } else {
-#ifdef OLD_CAM
-            CAM_set_shake(0);
-#endif
         }
     }
 #endif
@@ -3150,39 +3138,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
     }
 
     */
-#ifdef OLD_CAM
-    if (CAM_get_mode() == CAM_MODE_THIRD_PERSON) {
-        //
-        // Set the camera angles depending on the mouse.
-        //
-
-        SLONG yaw;
-        SLONG pitch;
-        SLONG roll;
-
-        yaw = MouseX - (DisplayWidth / 2) << 3;
-        pitch = MouseY - (DisplayHeight / 2) << 3;
-        roll = 0;
-
-        CAM_set_angle(
-            yaw,
-            pitch,
-            roll);
-
-        SLONG zoom = CAM_get_zoom();
-
-#define CAM_DZOOM 0x10
-
-        if (Keys[KB_P9]) {
-            zoom -= CAM_DZOOM;
-        }
-        if (Keys[KB_P6]) {
-            zoom += CAM_DZOOM;
-        }
-
-        CAM_set_zoom(zoom);
-    }
-#endif
     /*
             if (Keys[KB_8])
             {

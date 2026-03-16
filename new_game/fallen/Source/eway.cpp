@@ -3744,9 +3744,6 @@ void EWAY_process_camera(void)
                         //
                         // Make the camera look at Darci properly.
                         //
-#ifdef OLD_CAM
-                        CAM_look_at_thing(FALSE);
-#endif
                         ANNOYINGSCRIBBLECHECK;
                         return;
                     }

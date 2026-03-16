@@ -1893,12 +1893,6 @@ void save_whole_wad(CBYTE* gamename, UBYTE type)
         STORE_DATA(estate);
         STORE_DATA(padding_word);
 
-#ifdef OLD_CAM
-
-        CAM_focus = (Thing*)THING_NUMBER(CAM_focus);
-        STORE_DATA(CAM_focus);
-        CAM_focus = TO_THING((SLONG)CAM_focus);
-#endif
 
         switch (type) {
         case 0:
@@ -2635,10 +2629,6 @@ void load_whole_game(CBYTE* gamename)
     }
 #endif
 
-#ifdef OLD_CAM
-    GET_DATA(CAM_focus);
-    CAM_focus = TO_THING((SLONG)CAM_focus);
-#endif
 
     //
     // this needs to be before convert_index_to_pointers (because c_i_t_p needs the anims in place)
@@ -3286,12 +3276,6 @@ void save_dreamcast_wad(CBYTE* fname)
         STORE_DATA(estate);
         STORE_DATA(padding_word);
 
-#ifdef OLD_CAM
-
-        CAM_focus = (Thing*)THING_NUMBER(CAM_focus);
-        STORE_DATA(CAM_focus);
-        CAM_focus = TO_THING((SLONG)CAM_focus);
-#endif
 
         save_whole_anims(handle);
 

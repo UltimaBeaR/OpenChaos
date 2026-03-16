@@ -2392,22 +2392,6 @@ SLONG ELEV_game_init(
     //
     // Set the camera to point at the player.
     //
-#ifdef OLD_CAM
-
-    CAM_set_focus(NET_PERSON(PLAYER_ID));
-
-    // CAM_set_mode     (CAM_MODE_NORMAL);
-    // CAM_set_zoom     (0x320);
-    // CAM_set_behind_up(0x38000);
-    // CAM_lens = CAM_LENS_WIDEANGLE;
-
-    CAM_set_type(CAM_TYPE_WIDE);
-
-    CAM_set_pos(
-        NET_PERSON(PLAYER_ID)->WorldPos.X + 0x10000 >> 8,
-        NET_PERSON(PLAYER_ID)->WorldPos.Y + 0x40000 >> 8,
-        NET_PERSON(PLAYER_ID)->WorldPos.Z + 0x10000 >> 8);
-#endif
 
     /*
 
