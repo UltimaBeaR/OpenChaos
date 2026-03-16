@@ -357,3 +357,20 @@ rm new_game/fallen/Source/nightpsx.cpp new_game/fallen/Source/Levelpsx.cpp new_g
 - outroMatrix.cpp и outroTga.cpp: частичная замена нарушила файлы → восстановлены через Write/двойной Edit.
 
 - MFStdLib/Headers/MFStdLib.h — 1: объявления GetInputDevice/ReadInputDevice (старый DirectInput API) — удалены. (Обнаружен после основной итерации)
+
+---
+
+## Итерация 10 — Удаление cam.cpp и Command.cpp
+
+**Дата:** 2026-03-16
+
+**Удалено:**
+- `Source/cam.cpp` — полностью под `#ifdef DOG_POO` (никогда не компилировался). Не в vcxproj.
+- `Source/Command.cpp` — legacy AI-командная система, заменена PCOM в финале. Не в vcxproj.
+
+**Нюансы:**
+- `cam.h` включается в Attract.cpp, Controls.cpp, elev.cpp, eway.cpp, Game.cpp, interfac.cpp, Person.cpp — но все CAM_ функции в активном коде находятся внутри `#ifdef OLD_CAM` или `/* */` комментариев. Никаких линкерных проблем нет и не было.
+- `Command.h` включается только из нескомпилированных файлов (Level.cpp) или закомментировано (Cop.cpp, Furn.cpp, Person.cpp, Thug.cpp). Активный код не использует.
+- `Source/Level.cpp` — также не в vcxproj, Level.h не включается ни одним скомпилированным файлом. Помечен для удаления в конце Этапа 2 (пункт 2: файлы без включателей + не в vcxproj).
+- Vcxproj не менялся — ни один из файлов там не числился.
+
