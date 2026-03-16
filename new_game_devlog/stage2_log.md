@@ -4,6 +4,33 @@
 
 ---
 
+## Статус флагов (пункт 2.5)
+
+Легенда: ✅ удалён | ⬜ не обработан | 🚫 решено не удалять | ➖ не было в коде
+
+| Флаг | Статус | Итерация / примечание |
+|------|--------|-----------------------|
+| `BIKE` | ✅ | итерация 16 |
+| `FAST_EDDIE` | ✅ | итерация 17 |
+| `USE_PASSWORD` | ➖ | исчез при удалении редакторов (итерация 11) |
+| `SEWERS` | ⬜ | |
+| `TRUETYPE` | ⬜ | |
+| `OLD_CAM`/`CAM_OLD` | ⬜ | |
+| `DOG_POO` | ⬜ | |
+| `EIDOS` + региональные | ⬜ | |
+| `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__` | ⬜ | |
+| Glide-флаги (`DONT_IGNORE_*`, `WORRY_ABOUT_THIS_LATER`) | ⬜ | |
+| Отключённые оптимизации (`*_PLEASE_BOB` и др.) | ⬜ | |
+| Мёртвый геймплей (`DARCI_HITS_COPS`, `WE_WANT_WIND` и др.) | ⬜ | |
+| Старые алгоритмы PSXENG (`OLD_FACET_CLIP` и др.) | ⬜ | |
+| PSX/DC debug (`PSX_COMPRESS_LIGHT`, `DODGYPSXIFY` и др.) | ⬜ | |
+| Debug-флаги (`DEBUG_POOSHIT`, `HEAP_DEBUGGING_PLEASE_BOB` и др.) | ⬜ | |
+| Debug визуализации (`WE_WANT_TO_DRAW_*` и др.) | ⬜ | |
+| Developer joke flags (`GONNA_FIREBOMB_YOUR_ASS` и др.) | ⬜ | |
+| `FACET_REMOVAL_TEST` | 🚫 | оставить: полезен при разработке |
+
+---
+
 ## Порядок итераций — принятые решения
 
 **Editor/, GEdit/, Ledit/, sedit/ — удалять В КОНЦЕ Этапа 2**, после удаления всего остального.

@@ -83,6 +83,7 @@
    - **Developer joke flags:** `GONNA_FIREBOMB_YOUR_ASS`, `WHAT_THE_FUCK_IS_THIS_DOING_HERE`, `OLDSHIT`, `ONE_DAY`, `GOTTA_DO_A_BETTA_JOB`, `DONE_ON_PC_NOW`, `WERE_GOING_TO_STUPIDLY_STICK_THE_FINAL_BANE_INSIDE`, `WEVE_REPLACED_THE_HEARTBEAT_WITH_A_SCANNER`, `POO_SHIT_GOD_DAMN`, `OLD_DOG_POO_OF_A_SYSTEM_OR_IS_IT`, `MAD_AM_I`, `ARGH`, `MIKE`, `MIKE_INFO`, `DTRACE`
    - **Оставить для разработки:** `FACET_REMOVAL_TEST` (авто-включается в _DEBUG, полезен при разработке)
    - Кандидаты из `cut_features.md`: `BIKE` (уже выше), сопутствующий код канализаций (флаг `SEWERS`)
+   - **Статус каждого флага (удалён / не удалять / пропущен) — вести в `new_game_devlog/stage2_log.md`**
    - **⛔ Для каждого: coan `-UФЛАГ` или ручное удаление, затем САМОСТОЯТЕЛЬНО запустить `make build-debug` и `make build-release` — сначала debug, потом release. Убедиться что оба билда проходят без ошибок. ПОЛЬЗОВАТЕЛЯ ЭТИМ НЕ БЕСПОКОИТЬ. ⛔**
 3. Удаление файлов, которые никто не `#include`-ит и которых нет в `Fallen.vcxproj`
 4. Удаление мёртвых сущностей (функции, переменные, типы, которые нигде не используются)
