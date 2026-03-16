@@ -243,16 +243,6 @@ UBYTE two4_line_intersection(SLONG x1, SLONG my_y1, SLONG x2, SLONG y2, SLONG x3
 void clear_all_col_info(void)
 {
 #ifdef DOG_POO
-#ifdef EDITOR
-    SLONG dx, dy, dz;
-    for (dx = 0; dx < EDIT_MAP_WIDTH; dx++)
-        for (dy = 0; dy < EDIT_MAP_HEIGHT; dy++)
-            edit_map[dx][dy].ColVectHead = 0;
-    memset((UBYTE*)col_vects, 0, sizeof(struct CollisionVect) * MAX_COL_VECT);
-    memset((UBYTE*)col_vects_links, 0, sizeof(struct CollisionVectLink) * MAX_COL_VECT_LINK);
-    next_col_vect = 1;
-    next_col_vect_link = 1;
-#endif
 #endif
 }
 

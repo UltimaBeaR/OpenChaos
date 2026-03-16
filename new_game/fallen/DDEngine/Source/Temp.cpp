@@ -157,11 +157,6 @@ DXMaterial dx_materials[200] = {
 
 void setup_anim_stuff(void)
 {
-#ifdef EDITOR
-    extern SLONG key_frame_count, current_element;
-    current_element = 0;
-    key_frame_count = 0;
-#endif
     if (the_elements)
         MemFree(the_elements);
     the_elements = (KeyFrameElement*)MemAlloc(MAX_NUMBER_OF_ELEMENTS * sizeof(KeyFrameElement));

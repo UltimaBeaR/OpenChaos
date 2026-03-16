@@ -800,18 +800,6 @@ void game(void)
     while (SHELL_ACTIVE && GAME_STATE) {
         game_attract_mode();
 
-#ifdef EDITOR
-
-        if (GAME_STATE & GS_EDITOR) {
-            if (editor_loop())
-                GAME_STATE = 0;
-            else {
-                //				global_load();  //editor screws up the global load
-
-                GAME_STATE = GS_ATTRACT_MODE;
-            }
-        }
-#endif
         if (GAME_STATE & GS_PLAY_GAME) {
             if (game_loop())
                 GAME_STATE = 0;
@@ -1162,11 +1150,6 @@ void playback_game_keys(void)
 // claude-ai: В режиме single_step запятая ',' делает один шаг process_things(0). Не переносить в новую игру как есть.
 SLONG special_keys(void)
 {
-#ifdef EDITOR
-    if (ControlFlag && Keys[KB_E]) {
-        GAME_STATE = GS_EDITOR;
-    }
-#endif
 
     if (GAME_STATE & GS_PLAYBACK) {
         playback_game_keys();

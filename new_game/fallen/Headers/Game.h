@@ -114,9 +114,6 @@ extern struct MemTable save_table[];
 #endif
 
 
-#ifdef EDITOR
-// #include	"Editor.h"
-#endif
 
 //---------------------------------------------------------------
 #define MAX_RADIUS (24)

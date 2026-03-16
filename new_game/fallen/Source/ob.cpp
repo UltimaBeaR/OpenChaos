@@ -655,9 +655,6 @@ SLONG OB_avoid(
 }
 
 
-#ifdef EDITOR
-extern BOOL is_in_mission_editor;
-#endif
 
 void load_general_prims(void)
 {
@@ -770,13 +767,6 @@ void OB_load_needed_prims()
     SLONG i;
     SLONG j;
 
-#ifdef EDITOR
-    if (is_in_mission_editor) {
-        for (i = 0; i < 256; i++) {
-            load_prim_object(i);
-        }
-    } else
-#endif
     {
         for (i = 1; i < OB_ob_upto; i++) {
             load_prim_object(OB_ob[i].prim);
@@ -870,13 +860,6 @@ void OB_load_needed_prims()
             }
         }
 
-#ifdef EDITOR
-        if (GAME_STATE & GS_EDITOR) {
-            void update_modules(void);
-
-            update_modules();
-        }
-#endif
     }
 
     load_prim_object(PRIM_OBJ_ITEM_KEY);
@@ -1710,15 +1693,6 @@ void OB_make_all_the_switches_be_at_the_proper_height()
                     OB_ob[oi->index].y = gy + 0x80;
                 }
 
-#if EDITOR
-
-                extern HWND GEDIT_edit_wnd;
-
-                if (GEDIT_edit_wnd) {
-                    continue;
-                }
-
-#endif
 
                 //
                 // All these prims are locked to the map height.

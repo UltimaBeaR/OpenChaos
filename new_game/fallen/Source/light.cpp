@@ -2028,26 +2028,7 @@ void LIGHT_prim_use_normals(THING_INDEX t_index)
 // ========================================================
 // ########################################################
 
-#ifdef EDITOR
-#include "c:\fallen\editor\headers\scan.h"
-extern void scan_undo_ambient(SLONG face, SLONG x, SLONG y, SLONG z, SLONG extra);
-extern void apply_ambient_to_floor(void);
-extern void remove_ambient_from_floor(void);
-extern void scan_apply_ambient(SLONG face, SLONG x, SLONG y, SLONG z, SLONG extra);
-#endif
 
 void apply_global_amb_to_map(void)
 {
-#ifdef EDITOR
-
-    scan_function = scan_undo_ambient;
-    scan_map();
-    remove_ambient_from_floor();
-    extern void setup_ambient(SLONG dx, SLONG dy, SLONG dz, SLONG bright, SLONG flags);
-    // 	setup_ambient(100,100,-70,1024,2);
-    setup_ambient(90, -100, -90, 655, 2);
-    scan_function = scan_apply_ambient;
-    scan_map();
-    apply_ambient_to_floor();
-#endif
 }

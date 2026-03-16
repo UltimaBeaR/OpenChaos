@@ -1072,10 +1072,6 @@ void QMAP_create_cube(QMAP_Draw* qd, SLONG map_x, SLONG map_z, SLONG cube)
 
                         qf->texture = cube + 5;
                         qf->flag = 0;
-#ifdef EDITOR
-                        qf->cube = cube;
-                        qf->edge = 0;
-#endif
 
                         //
                         // Put in the linked list of the QMAP_Draw structure.

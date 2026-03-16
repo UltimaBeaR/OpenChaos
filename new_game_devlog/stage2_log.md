@@ -51,6 +51,26 @@ include'ы из Editor/, sedit/ в Game.cpp, Building.cpp, Enemy.cpp, Structs.h 
 
 ---
 
+### Конвертация исходников в UTF-8 (2026-03-16)
+
+Все исходники `new_game/` были в Windows-1252 (игровые файлы) и CP850 (редакторские файлы из `Editor/`).
+Конвертированы в UTF-8 для совместимости с современным тулингом.
+
+**Затронуто (коммит `a4076fb` + fix `3404bed`):**
+- `DDEngine/Source/Font.cpp`, `font2d.cpp`, `menufont.cpp`
+- `Source/widget.cpp`
+- `outro/credits.cpp`, `outroFont.cpp`
+- `Editor/Source/Edit.cpp`, `FileReq.cpp`
+- `Fallen.sln`
+
+**Нюанс:** строковые литералы с non-ASCII байтами потребовали замены на escape-последовательности, чтобы бинарное значение не изменилось после смены кодировки файла:
+- `font2d.cpp`: `"\xa3..."` → `"\"" "\xa3" "..."` (байт 0xA3 = знак фунта `£` в Windows-1252, используется как индекс глифа в рендерере шрифта)
+- аналогичные правки в `Edit.cpp`, `credits.cpp`, `outroFont.cpp`
+
+**Важно для портирования:** игровой рендерер шрифта использует байт строки напрямую как индекс в таблицу глифов — кодировка Windows-1252. `.txt` файлы с текстом игры (`lang_*.txt`) **не конвертировались** — они читаются как сырые байты и должны оставаться в Windows-1252. Подробнее → `new_game_planning/porting_notes.md` (раздел "Текстовая кодировка игры").
+
+---
+
 ## Итерации
 
 ---
@@ -374,3 +394,25 @@ rm new_game/fallen/Source/nightpsx.cpp new_game/fallen/Source/Levelpsx.cpp new_g
 - `Source/Level.cpp` — также не в vcxproj, Level.h не включается ни одним скомпилированным файлом. Помечен для удаления в конце Этапа 2 (пункт 2: файлы без включателей + не в vcxproj).
 - Vcxproj не менялся — ни один из файлов там не числился.
 
+
+---
+
+## Итерация 11 — Удаление #ifdef EDITOR блоков (coan)
+
+**Дата:** 2026-03-16
+
+**Команда:**
+```
+tools/coan/coan.exe source -UEDITOR --no-transients --filter cpp,c,h,hpp --recurse Source DDEngine DDLibrary Headers Loader
+```
+Exit code 19 — норма.
+
+**Изменено 22 файла, ~7086 строк удалено. Ключевые нюансы:**
+- aeng.cpp: -1089 строк. Большой #ifdef EDITOR блок (1085 стр) editor-only функции AENG_draw_ns, AENG_draw_water; малый #if/#else: оставлен UBYTE fade = 0xff.
+- startscr.cpp: -1822 стр. Файл был #ifndef EDITOR (runtime) / #else (editor 1822 стр). coan правильно оставил runtime.
+- supermap.cpp: -2332 стр (13 EDITOR блоков).
+- Building.cpp: -605 стр (18 блоков).
+- Controls.cpp: -2 стр: #ifndef EDITOR вокруг ASCII-таблиц (правильно убрать).
+- GEdit.h по-прежнему включается в runtime-файлах как extern объявления — не используется в runtime после удаления EDITOR блоков. Уберётся при удалении GEdit/ папки.
+- Setup-файлы в Source/ (дубликаты GEdit/Source/) будут удалены вместе с GEdit/ папкой.
+- Vcxproj не менялся.

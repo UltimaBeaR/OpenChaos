@@ -162,7 +162,6 @@ SWORD CONTROLS_inventory_mode = 0;
 
 BOOL dodgy_psx_mode = 0;
 
-#ifndef EDITOR
 //---------------------------------------------------------------
 
 // claude-ai: SECTION: InkeyToAscii / InkeyToAsciiShift — таблицы преобразования scan-кода в ASCII.
@@ -202,7 +201,6 @@ UBYTE InkeyToAsciiShift[] = {
     /* 120 - 127 */ 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-#endif
 
 //---------------------------------------------------------------
 

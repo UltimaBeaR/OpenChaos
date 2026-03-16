@@ -385,10 +385,6 @@ typedef struct
     UWORD flag;
     UWORD next;
 
-#ifdef EDITOR
-    UWORD cube;
-    UWORD edge;
-#endif
 
 } QMAP_Face;
 

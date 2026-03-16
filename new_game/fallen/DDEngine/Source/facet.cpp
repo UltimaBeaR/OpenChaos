@@ -2369,19 +2369,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
         // We can't do this rejection test because the fence might be
         // open or closed.
         //
-#ifdef EDITOR
-        extern BOOL is_in_mission_editor;
-
-        if (is_in_mission_editor) {
-            p_facet->Open += 1;
-
-            if (p_facet->FacetFlags & FACET_FLAG_90DEGREE) {
-                if (p_facet->Open > 120) {
-                    p_facet->Open = 0;
-                }
-            }
-        }
-#endif
     } else {
 
         SLONG i;
@@ -4883,50 +4870,6 @@ void DRAW_ladder(struct DFacet* p_facet)
     }
 }
 
-#ifdef EDITOR
-
-void FACET_draw_ns_ladder(
-    SLONG x1,
-    SLONG z1,
-    SLONG x2,
-    SLONG z2,
-    SLONG height)
-{
-    DFacet df;
-
-    SLONG y;
-
-    SLONG mx = (x1 + x2 << 7) + ((z2 - z1) << 2) >> 8;
-    SLONG mz = (z1 + z2 << 7) - ((x2 - x1) << 2) >> 8;
-
-    ASSERT(WITHIN(mx, 0, PAP_SIZE_HI - 1));
-    ASSERT(WITHIN(mz, 0, PAP_SIZE_HI - 1));
-
-    y = ES_hi[mx][mz].height << 5;
-    y += -32 * 0x100;
-
-    //
-    // Create a pretend facet for the ladder facet function to use.
-    //
-
-    df.FacetType = STOREY_TYPE_LADDER;
-    df.FacetFlags = FACET_FLAG_IN_SEWERS;
-    df.x[0] = x1;
-    df.z[0] = z1;
-    df.x[1] = x2;
-    df.z[1] = z2;
-    df.Y[0] = y;
-    df.Y[1] = y;
-    df.Height = height;
-
-    //
-    // Draw a ladder facet.
-    //
-
-    DRAW_ladder(&df);
-}
-
-#endif
 
 void FACET_project_crinkled_shadow(SLONG facet)
 {

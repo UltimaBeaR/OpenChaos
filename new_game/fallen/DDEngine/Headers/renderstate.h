@@ -44,9 +44,6 @@ struct RenderState {
 
     static RenderState s_State;
 
-#ifdef EDITOR
-    static bool AllowFadeOut;
-#endif
 
     bool IsAlphaBlendEnabled() { return (AlphaBlendEnable != FALSE); }
 

@@ -105,10 +105,6 @@ static UBYTE s_ClipMask; // the clip bits we care about
 #define NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB 0
 #define NO_BACKFACE_CULL_PLEASE_BOB 0
 
-#ifdef EDITOR
-// poly has ugly key stuff which makes a mess in the editors so cut it out awright?
-extern HWND CUTSCENE_edit_wnd;
-#endif
 
 //
 // Flags for each standard texture page.
@@ -2670,11 +2666,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 */
 
 #ifndef FINAL
-#ifdef EDITOR
-                if (Keys[KB_P1] && !CUTSCENE_edit_wnd)
-#else
                 if (Keys[KB_P1]) //&&allow_debug_keys)
-#endif
                 {
                     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
                     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
@@ -2794,15 +2786,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
                 }
 
-#ifdef EDITOR
-                if (Keys[KB_P1] && !CUTSCENE_edit_wnd) {
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
-                }
-#endif
 
                 //
                 // sort and render the polygons

@@ -92,32 +92,6 @@ SLONG main(UWORD argc, TCHAR* argv[])
 //	the_qs_sound_manager.Init() == ERROR_QMIX_OK;
 #endif
 
-#ifdef EDITOR
-#ifndef NDEBUG
-
-    int sdown = GetKeyState(VK_SHIFT);
-    int ldown = GetKeyState(VK_F12);
-
-    if (sdown & ~1) {
-        if (!SetupMemory())
-            return EXIT_FAILURE;
-        init_memory();
-        SEDIT_do();
-
-        return EXIT_SUCCESS;
-    }
-
-    if (0 || (ldown & ~1)) {
-        if (!SetupMemory())
-            return EXIT_FAILURE;
-        init_memory();
-        LEDIT_do();
-
-        return EXIT_SUCCESS;
-    }
-
-#endif
-#endif
 
     // claude-ai: SetupHost() создаёт окно и инициализирует DirectX/платформу; game() — весь игровой цикл
     if (SetupHost(H_CREATE_LOG)) {

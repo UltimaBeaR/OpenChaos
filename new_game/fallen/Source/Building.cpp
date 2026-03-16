@@ -346,9 +346,6 @@ SLONG get_map_walkable(SLONG x, SLONG z)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-//			return(edit_map[x][z].Walkable);
-#endif
         break;
     case BUILD_MODE_DX:
         return (MAP2(x, z).Walkable);
@@ -361,9 +358,6 @@ void set_map_walkable(SLONG x, SLONG z, SLONG walkable)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-//			edit_map[x][z].Walkable=walkable;
-#endif
         break;
     case BUILD_MODE_DX:
         MAP2(x, z).Walkable = walkable;
@@ -375,12 +369,6 @@ SLONG get_map_texture(SLONG x, SLONG z)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-        if (tex_map[x][z] & 0x3ff)
-            return (tex_map[x][z]);
-        else
-            return (edit_map[x][z].Texture);
-#endif
         break;
     case BUILD_MODE_DX:
 
@@ -394,9 +382,6 @@ void set_map_texture(SLONG x, SLONG z, SLONG texture)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-        edit_map[x][z].Texture = (UWORD)texture;
-#endif
         break;
     case BUILD_MODE_DX:
         PAP_2HI(x, z).Texture = texture;
@@ -408,9 +393,6 @@ SLONG get_map_height(SLONG x, SLONG z)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-        return (edit_map[x][z].Y);
-#endif
         break;
     case BUILD_MODE_DX:
         return PAP_2HI(x, z).Alt;
@@ -423,9 +405,6 @@ SLONG get_roof_height(SLONG x, SLONG z)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-        return (edit_map_roof_height[x][z]);
-#endif
         break;
     case BUILD_MODE_DX:
         return 0; // PAP_2HI(x,z).Alt;
@@ -438,9 +417,6 @@ SLONG set_map_flag(SLONG x, SLONG z, SLONG flag)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-        edit_map[x][z].Flags |= flag;
-#endif
         break;
     case BUILD_MODE_DX:
         PAP_2HI(x, z).Flags |= flag;
@@ -453,9 +429,6 @@ SLONG mask_map_flag(SLONG x, SLONG z, SLONG flag)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-        edit_map[x][z].Flags &= ~flag;
-#endif
         break;
     case BUILD_MODE_DX:
         PAP_2HI(x, z).Flags &= ~flag;
@@ -468,9 +441,6 @@ SLONG get_map_flags(SLONG x, SLONG z)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-        return (edit_map[x][z].Flags);
-#endif
         break;
     case BUILD_MODE_DX:
         return PAP_2HI(x, z).Flags;
@@ -483,10 +453,6 @@ void set_map_height(SLONG x, SLONG z, SLONG y)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-        edit_map[x][z].Y = (SBYTE)y;
-        PAP_2HI(x, z).Alt = y;
-#endif
         break;
     case BUILD_MODE_DX:
         PAP_2HI(x, z).Alt = y;
@@ -500,12 +466,6 @@ SLONG in_map_range(SLONG x, SLONG z)
         return (0);
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-        if (x > EDIT_MAP_WIDTH || z > EDIT_MAP_DEPTH)
-            return (0);
-        else
-            return (1);
-#endif
         break;
     case BUILD_MODE_DX:
         if (x > MAP_WIDTH || z > MAP_HEIGHT)
@@ -521,9 +481,6 @@ void place_thing_on_map(SLONG x, SLONG z, SLONG thing)
 {
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-        add_thing_to_edit_map(x >> ELE_SHIFT, z >> ELE_SHIFT, thing);
-#endif
         break;
     case BUILD_MODE_DX:
         add_thing_to_map(TO_THING(thing));
@@ -729,35 +686,6 @@ SLONG place_building_at(UWORD building, UWORD prim, SLONG x, SLONG y, SLONG z)
     // LogText(" place building prim %d x %d y %d z %d \n",prim,x,y,z);
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
-#ifdef EDITOR
-    {
-        struct MapThing* p_mthing;
-        map_thing = find_empty_map_thing();
-        if (!map_thing)
-            return (0);
-        // add_thing_to_edit_map(x>>ELE_SHIFT,z>>ELE_SHIFT,map_thing);
-        p_mthing = TO_MTHING(map_thing);
-        p_mthing->X = 0; // x;
-        p_mthing->Y = y;
-        p_mthing->Z = 0; // z;
-
-        p_mthing->Type = MAP_THING_TYPE_BUILDING;
-        p_mthing->IndexOther = prim;
-        p_mthing->IndexOrig = prim;
-        p_mthing->BuildingList = building;
-        p_mthing->EditorFlags = 0;
-        p_mthing->EditorData = 0;
-        place_thing_on_map(x, z, map_thing);
-
-        //
-        // Link the building to the editor MapThing.
-        //
-
-        building_list[building].ThingIndex = map_thing;
-
-        return (map_thing);
-    }
-#endif
     break;
     case BUILD_MODE_DX: {
         Thing* p_thing;
@@ -3620,9 +3548,6 @@ void clear_reflective_flag(SLONG min_x, SLONG min_z, SLONG max_x, SLONG max_z)
 
     for (x = minx; x < maxx; x++)
         for (z = minz; z < maxz; z++) {
-#ifdef EDITOR
-            edit_map[x][z].Flags &= ~PAP_FLAG_REFLECTIVE;
-#endif
         }
 }
 
@@ -9543,13 +9468,6 @@ void copy_to_game_map(void)
 {
     SLONG x, z, c0;
 
-#ifdef EDITOR
-    for (x = 0; x < EDIT_MAP_WIDTH; x++)
-        for (z = 0; z < EDIT_MAP_DEPTH; z++) {
-            // MAP2(x,z).Alt=edit_map[x][z].Y;
-            PAP_2HI(x, z).Alt = edit_map[x][z].Y;
-        }
-#endif
 }
 
 void clear_map2(void)
@@ -9565,66 +9483,6 @@ void clear_map2(void)
         for (z = 0; z < EDIT_MAP_DEPTH; z++) {
             mask_map_flag(x, z, (FLOOR_HIDDEN | FLOOR_LADDER | FLOOR_TRENCH));
         }
-#ifdef EDITOR
-    for (x = 0; x < EDIT_MAP_WIDTH; x++)
-        for (z = 0; z < EDIT_MAP_DEPTH; z++) {
-            SLONG index;
-            index = edit_map[x][z].MapThingIndex;
-            while (index) {
-                switch (map_things[index].Type) {
-                case MAP_THING_TYPE_ANIM_PRIM:
-                case MAP_THING_TYPE_PRIM:
-                case MAP_THING_TYPE_LIGHT:
-                    /*
-                                                    if(map_things[index].MapChild>0)
-                                                    {
-                                                            switch(map_things[map_things[index].MapChild].Type)
-                                                            {
-
-                                                                    case	MAP_THING_TYPE_ANIM_PRIM:
-                                                                    case	MAP_THING_TYPE_PRIM:
-                                                                    case	MAP_THING_TYPE_LIGHT:
-                                                                            break;
-                                                                    default:
-                                                                            map_things[index].MapChild=0;
-                                                                            break;
-                                                            }
-                                                    }
-                    */
-                    index = map_things[index].MapChild;
-                    break;
-                default:
-                    delete_thing_from_edit_map(x, z, index);
-                    index = edit_map[x][z].MapThingIndex;
-
-                    //				edit_map[x][z].MapThingIndex=0;
-                    break;
-                }
-            }
-
-            edit_map[x][z].ColVectHead = 0;
-            edit_map[x][z].Walkable = 0;
-            MAP2(x, z).ColVectHead = 0;
-            MAP2(x, z).Walkable = 0;
-            // edit_map[x][z].Flags&=~(FLOOR_HIDDEN|FLOOR_LADDER);
-        }
-
-    //	memset(edit_map,0,sizeof(struct DepthStrip)*EDIT_MAP_WIDTH*EDIT_MAP_DEPTH);
-    // memset((UBYTE*)&map_things[0],0,sizeof(struct MapThing)*MAX_MAP_THINGS);
-    for (c0 = 0; c0 < MAX_MAP_THINGS; c0++) {
-        switch (map_things[c0].Type) {
-        case MAP_THING_TYPE_ANIM_PRIM:
-        case MAP_THING_TYPE_PRIM:
-        case MAP_THING_TYPE_LIGHT:
-            break;
-        default:
-            memset((UBYTE*)&map_things[c0], 0, sizeof(struct MapThing));
-            break;
-        }
-    }
-
-    clear_prims();
-#endif
 
     next_building_object = 1;
     next_building_facet = 1;
@@ -9649,13 +9507,6 @@ void clear_map2(void)
 void clear_floor_ladder(void)
 {
     SLONG x, z;
-#ifdef EDITOR
-    for (x = 0; x < EDIT_MAP_WIDTH; x++)
-        for (z = 0; z < EDIT_MAP_DEPTH; z++) {
-            edit_map[x][z].Flags &= ~(FLOOR_LADDER);
-        }
-
-#endif
 }
 
 void wibble_floor(void)
@@ -10316,459 +10167,3 @@ void fn_building_normal(Thing* b_thing)
 
 //---------------------------------------------------------------
 
-#ifdef EDITOR
-// problems getting the top face under the fires escape to be a facet member
-extern SLONG calc_shadow_co_ord(struct SVector* input, struct SVector* output, SLONG l_x, SLONG l_y, SLONG l_z);
-
-SLONG draw_a_facet_at(UWORD facet, SLONG x, SLONG y, SLONG z)
-{
-    struct PrimFace4* p_f4;
-    struct PrimFace3* p_f3;
-    ULONG flag_and, flag_or;
-    SLONG c0;
-    struct BuildingFacet* p_facet;
-    SLONG sp, mp, ep;
-    SLONG az;
-    SLONG col = 0, cor = 0, cob = 0, cot = 0, total = 0;
-    SLONG best_z = 9999999;
-    SLONG min_z = 9999999, max_z = -9999999;
-    SLONG first_face = 1;
-
-    SLONG facet_flags;
-    SLONG offset_z = 0;
-
-    struct SVector res_shadow[1560], temp_shadow; // max points per object?
-    SLONG flags_shadow[1560];
-    SLONG shadow = 0;
-
-    p_facet = &building_facets[facet];
-    facet_flags = p_facet->FacetFlags;
-    p_f4 = &prim_faces4[p_facet->StartFace4];
-    p_f3 = &prim_faces3[p_facet->StartFace3];
-    if (facet_flags & FACET_FLAG_ROOF) {
-        first_face = 0;
-        offset_z = -50;
-    }
-
-    sp = p_facet->StartPoint;
-    mp = p_facet->MidPoint;
-    ep = p_facet->EndPoint;
-
-    //	LogText(" draw a facet %d at %d %d %d, sp %d ep %d sf4 %d ef4 %d \n",facet,x,y,z,sp,ep,p_facet->StartFace4,p_facet->EndFace4);
-
-    engine.X -= x << 8;
-    engine.Y -= y << 8;
-    engine.Z -= z << 8;
-
-    for (c0 = sp; c0 < mp; c0++) {
-        struct SVector pp;
-        pp.X = prim_points[c0].X;
-        pp.Y = prim_points[c0].Y;
-        pp.Z = prim_points[c0].Z;
-
-        // transform all points for this Object
-        /*
-                        if(shadow)
-                        {
-                                calc_shadow_co_ord((struct SVector*)&prim_points[c0],&temp_shadow,9000*2,4000,8000*2);//light co_ord
-                                flags_shadow[c0-sp]=rotate_point_gte((struct SVector*)&temp_shadow,&res_shadow[c0-sp]);
-                        }
-        */
-        global_flags[c0 - sp] = rotate_point_gte(&pp, &global_res[c0 - sp]);
-        global_bright[c0 - sp] = calc_lights(x, y, z, &pp);
-        if (ControlFlag) {
-            CBYTE str[100];
-            // sprintf(str,"%d",global_res[c0-sp].Z);
-            // QuickTextC(global_res[c0-sp].X+1,global_res[c0-sp].Y+1,str,0);
-            // QuickTextC(global_res[c0-sp].X,global_res[c0-sp].Y,str,1);
-        }
-        if (min_z > global_res[c0 - sp].Z)
-            min_z = global_res[c0 - sp].Z;
-        if (max_z < global_res[c0 - sp].Z)
-            max_z = global_res[c0 - sp].Z;
-
-        // if(best_z>global_res[c0-sp].Z)
-        //	best_z=global_res[c0-sp].Z;
-    }
-    for (c0 = mp; c0 < ep; c0++) {
-        struct SVector pp;
-        pp.X = prim_points[c0].X;
-        pp.Y = prim_points[c0].Y;
-        pp.Z = prim_points[c0].Z;
-
-        // transform all points for this Object
-
-        global_flags[c0 - sp] = rotate_point_gte(&pp, &global_res[c0 - sp]);
-        global_bright[c0 - sp] = calc_lights(x, y, z, &pp);
-    }
-    engine.X += x << 8;
-    engine.Y += y << 8;
-    engine.Z += z << 8;
-    best_z = min_z;
-
-    ASSERT(p_facet->StartFace4 >= 0);
-
-    if (p_facet->EndFace4)
-        for (c0 = p_facet->StartFace4; c0 < p_facet->EndFace4; c0++) {
-            SLONG p0, p1, p2, p3;
-            SLONG height_ok = 1;
-
-            if (current_bucket_pool >= end_bucket_pool)
-                goto exit;
-
-            if (p_f4->FaceFlags & FACE_FLAG_WALKABLE) {
-                if (p_f4->ThingIndex > 0) {
-                    SLONG dy;
-                    dy = ((dwalkables[p_f4->ThingIndex].Y) >> 3) + 1;
-
-                    ASSERT(p_f4->ThingIndex < next_dwalkable);
-                    //				ASSERT(dwalkables[p_f4->ThingIndex].StoreyY>0);
-                    if (dy >= edit_info.TileScale)
-                        height_ok = 0;
-                    else {
-                        // DebugText(" no height walkable y %d edity %d\n",dy,edit_info.TileScale);
-                        // SLONG	my;
-                        // my=prim_points[p_f4->Points[0]].Y;
-                        // ASSERT(my<(edit_info.TileScale<<8));
-                    }
-                    //				else
-                    //					ASSERT(0);
-                } else
-                    ASSERT(0);
-            }
-            //		else
-            //			ASSERT(facet_flags&FACET_FLAG_ROOF);
-            if (p_f4->ThingIndex < 0) {
-                SLONG wall;
-                SLONG dy;
-                wall = -p_f4->ThingIndex;
-                // dy=storey_list[wall_list[wall].StoreyHead].DY>>8;
-                dy = prim_points[p_f4->Points[0]].Y >> 8;
-
-                if (dy >= edit_info.TileScale)
-                    height_ok = 0;
-            }
-
-            if (height_ok) {
-                p0 = p_f4->Points[0] - sp;
-                p1 = p_f4->Points[1] - sp;
-                p2 = p_f4->Points[2] - sp;
-                p3 = p_f4->Points[3] - sp;
-                /*
-                                if(shadow)
-                                {
-                                        flag_and = flags_shadow[p0]&flags_shadow[p1]&flags_shadow[p2]&flags_shadow[p3];
-                                        flag_or = flags_shadow[p0]|flags_shadow[p1]|flags_shadow[p2]|flags_shadow[p3];
-
-                                        if((flag_or&EF_BEHIND_YOU)==0)
-                                        if(!(flag_and & EF_CLIPFLAGS))
-                                        {
-                                                az=(res_shadow[p0].Z+res_shadow[p1].Z+res_shadow[p2].Z+res_shadow[p3].Z)>>2;
-                                                az-=150;
-
-                                                setPolyType4(
-                                                                                current_bucket_pool,
-                                                                                POLY_F
-                                                                        );
-
-                                                setCol4	(
-                                                                        (struct BucketQuad*)current_bucket_pool,
-                                                                        0
-                                                                );
-
-                                                setXY4	(
-                                                                        (struct BucketQuad*)current_bucket_pool,
-                                                                        res_shadow[p0].X,res_shadow[p0].Y,
-                                                                        res_shadow[p1].X,res_shadow[p1].Y,
-                                                                        res_shadow[p2].X,res_shadow[p2].Y,
-                                                                        res_shadow[p3].X,res_shadow[p3].Y
-                                                                );
-
-
-                                                setZ4((struct BucketQuad*)current_bucket_pool,-res_shadow[p0].Z,-res_shadow[p1].Z,-res_shadow[p2].Z,-res_shadow[p3].Z);
-                                                ((struct BucketQuad*)current_bucket_pool)->DebugInfo=c0;
-                                                ((struct BucketQuad*)current_bucket_pool)->DebugFlags=0;
-
-                                                add_bucket((void *)current_bucket_pool,az);
-
-                                                current_bucket_pool+=sizeof(struct BucketQuad);
-
-                                        }
-                                }
-                */
-
-                {
-
-                    flag_and = global_flags[p0] & global_flags[p1] & global_flags[p2] & global_flags[p3];
-                    flag_or = global_flags[p0] | global_flags[p1] | global_flags[p2] | global_flags[p3];
-
-                    if ((p_f4->FaceFlags & FACE_FLAG_SMOOTH) && ShiftFlag) {
-
-                    } else {
-
-                        if ((!(flag_and & EF_CLIPFLAGS)) && ((flag_or & EF_BEHIND_YOU) == 0)) {
-                            SLONG wid, height;
-                            SLONG sort_level;
-                            /*
-                                                                    if(first_face)
-                                                                    {
-                                                                            first_face=0;
-
-                                                                            if(!(p_f4->DrawFlags&POLY_FLAG_DOUBLESIDED))
-                                                                            if(!is_it_clockwise(p0,p1,p2))
-                                                                            {
-                                                                                    c0=p_facet->MidFace4;
-                                                                                    p_f4     =	&prim_faces4[p_facet->MidFace4];
-                                                                                    best_z=max_z;
-                                                                                    goto	skip_wall;
-                                                                            }
-                                                                    }
-                            */
-                            total++;
-                            /*
-                                                                    if(!AltFlag)
-                                                                    {
-
-                                                                            az=global_res[p0].Z+1000;
-
-                                                                            if(az<global_res[p1].Z)
-                                                                                    az=global_res[p1].Z+1000;
-
-                                                                            if(az<global_res[p2].Z)
-                                                                                    az=global_res[p2].Z+1000;
-
-                                                                            if(az<global_res[p3].Z)
-                                                                                    az=global_res[p3].Z+1000;
-                                                                            az-=1000;
-
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                            sort_level=GET_SORT_LEVEL(p_f4->FaceFlags);
-                                                                            if(sort_level==0)
-                                                                            {
-                                                                                    az=best_z;
-                                                                            }
-                                                                            else
-                                                                            {
-                                                                                    az=best_z-(sort_level<<2);
-
-                                                                            }
-
-                                                                    }
-                            */
-                            sort_level = GET_SORT_LEVEL(p_f4->FaceFlags);
-                            if (sort_level == 0) {
-                                // if(best_z>az)
-                                //	best_z=az;
-                                az = global_res[p0].Z;
-
-                                if (az > global_res[p1].Z)
-                                    az = global_res[p1].Z;
-
-                                if (az > global_res[p2].Z)
-                                    az = global_res[p2].Z;
-
-                                if (az > global_res[p3].Z)
-                                    az = global_res[p3].Z;
-                            } else {
-                                az = best_z - (sort_level << 2);
-                                // return(best_z);
-                            }
-                            // LogText(" facet %d sort_level %d best_z %d az %d face %d \n",facet,sort_level,best_z,az,c0);
-
-                            wid = WorkWindowWidth;
-
-                            height = WorkWindowHeight;
-
-                            setPolyType4(
-                                current_bucket_pool,
-                                p_f4->DrawFlags);
-
-                            setCol4(
-                                (struct BucketQuad*)current_bucket_pool,
-                                ((UBYTE)p_f4->Col2));
-
-                            setXY4(
-                                (struct BucketQuad*)current_bucket_pool,
-                                global_res[p0].X, global_res[p0].Y,
-                                global_res[p1].X, global_res[p1].Y,
-                                global_res[p2].X, global_res[p2].Y,
-                                global_res[p3].X, global_res[p3].Y);
-
-                            if (SelectFlag)
-                                do_quad_clip_list((SWORD)c0, p0, p1, p2, p3);
-
-                            // RUD
-                            if (p_f4->DrawFlags & POLY_FLAG_TEXTURED) {
-                                if (p_f4->TexturePage < 0) {
-                                    struct AnimTmap* p_a;
-                                    SLONG cur;
-
-                                    p_a = &anim_tmaps[-p_f4->TexturePage];
-                                    cur = p_a->Current;
-                                    setUV4(
-                                        (struct BucketQuad*)current_bucket_pool,
-                                        p_a->UV[cur][0][0], p_a->UV[cur][0][1],
-                                        p_a->UV[cur][1][0], p_a->UV[cur][1][1],
-                                        p_a->UV[cur][2][0], p_a->UV[cur][2][1],
-                                        p_a->UV[cur][3][0], p_a->UV[cur][3][1],
-                                        (UBYTE)p_a->Page[cur]);
-                                    ASSERT(p_a->Page[cur] < 15);
-
-                                } else {
-                                    //								ASSERT(p_f4->TexturePage<15);
-                                    setUV4(
-                                        (struct BucketQuad*)current_bucket_pool,
-                                        p_f4->UV[0][0], p_f4->UV[0][1],
-                                        p_f4->UV[1][0], p_f4->UV[1][1],
-                                        p_f4->UV[2][0], p_f4->UV[2][1],
-                                        p_f4->UV[3][0], p_f4->UV[3][1],
-                                        (UBYTE)p_f4->TexturePage);
-                                    //								ASSERT(p_f4->TexturePage<15);
-                                }
-                            }
-
-                            setZ4((struct BucketQuad*)current_bucket_pool, global_res[p0].Z, global_res[p1].Z, global_res[p2].Z, global_res[p3].Z);
-
-                            setShade4((struct BucketQuad*)current_bucket_pool,
-                                CLIP256(p_f4->Bright[0] + global_bright[p0]),
-                                CLIP256(p_f4->Bright[1] + global_bright[p1]),
-                                CLIP256(p_f4->Bright[2] + global_bright[p2]),
-                                CLIP256(p_f4->Bright[3] + global_bright[p3]));
-                            ((struct BucketQuad*)current_bucket_pool)->DebugInfo = az; // c0;
-                            ((struct BucketQuad*)current_bucket_pool)->DebugFlags = p_f4->FaceFlags;
-
-                            add_bucket((void*)current_bucket_pool, az);
-
-                            if (check_mouse_over_prim_quad(global_res, p0, p1, p2, p3, c0)) {
-                                selected_prim_xyz.X = x;
-                                selected_prim_xyz.Y = y;
-                                selected_prim_xyz.Z = z;
-                            }
-                            if (p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED) {
-                                if (check_mouse_over_prim_quad(global_res, p1, p0, p3, p2, c0)) {
-                                    selected_prim_xyz.X = x;
-                                    selected_prim_xyz.Y = y;
-                                    selected_prim_xyz.Z = z;
-                                }
-                            }
-
-                            current_bucket_pool += sizeof(struct BucketQuad);
-                        } else {
-                            if (flag_and & EF_OFF_LEFT)
-                                col++;
-                            if (flag_and & EF_OFF_RIGHT)
-                                cor++;
-                            if (flag_and & EF_OFF_TOP)
-                                cot++;
-                            if (flag_and & EF_OFF_BOTTOM)
-                                cob++;
-                        }
-                        //				LogText(" clipped face %d \n",c0);
-                    }
-                }
-            }
-
-            p_f4++;
-        skip_wall:;
-        }
-
-    if (p_facet->EndFace3)
-        for (c0 = p_facet->StartFace3; c0 < p_facet->EndFace3; c0++) {
-            SLONG p0, p1, p2;
-
-            if (current_bucket_pool >= end_bucket_pool)
-                goto exit;
-
-            p0 = p_f3->Points[0] - sp;
-            p1 = p_f3->Points[1] - sp;
-            p2 = p_f3->Points[2] - sp;
-
-            flag_and = global_flags[p0] & global_flags[p1] & global_flags[p2];
-            flag_or = global_flags[p0] | global_flags[p1] | global_flags[p2];
-
-            if ((flag_or & EF_BEHIND_YOU) == 0)
-                if (!(flag_and & EF_CLIPFLAGS)) {
-                    //			az=(global_res[p0].Z+global_res[p1].Z+global_res[p2].Z)/3;
-                    az = global_res[p0].Z;
-
-                    if (az > global_res[p1].Z)
-                        az = global_res[p1].Z;
-
-                    if (az > global_res[p2].Z)
-                        az = global_res[p2].Z;
-
-                    setPolyType3(
-                        current_bucket_pool,
-                        p_f3->DrawFlags);
-
-                    setCol3(
-                        (struct BucketTri*)current_bucket_pool,
-                        p_f3->Col2);
-
-                    setXY3(
-                        (struct BucketTri*)current_bucket_pool,
-                        global_res[p0].X, global_res[p0].Y,
-                        global_res[p1].X, global_res[p1].Y,
-                        global_res[p2].X, global_res[p2].Y);
-
-                    if (SelectFlag)
-                        do_tri_clip_list(-c0, p0, p1, p2);
-
-                    // RUD
-                    if (p_f3->DrawFlags & POLY_FLAG_TEXTURED) {
-                        ASSERT(p_f3->TexturePage < 15);
-                        setUV3(
-                            (struct BucketTri*)current_bucket_pool,
-                            p_f3->UV[0][0], p_f3->UV[0][1],
-                            p_f3->UV[1][0], p_f3->UV[1][1],
-                            p_f3->UV[2][0], p_f3->UV[2][1],
-                            p_f3->TexturePage);
-                        //				ASSERT(p_f3->TexturePage<15);
-                    }
-
-                    setShade3((struct BucketTri*)current_bucket_pool,
-                        CLIP256(p_f3->Bright[0] + global_bright[p0]),
-                        CLIP256(p_f3->Bright[1] + global_bright[p1]),
-                        CLIP256(p_f3->Bright[2] + global_bright[p2]));
-
-                    setZ3((struct BucketQuad*)current_bucket_pool, global_res[p0].Z, global_res[p1].Z, global_res[p2].Z);
-
-                    ((struct BucketTri*)current_bucket_pool)->DebugInfo = c0;
-                    ((struct BucketTri*)current_bucket_pool)->DebugFlags = p_f3->FaceFlags;
-
-                    add_bucket((void*)current_bucket_pool, az);
-
-                    if (check_mouse_over_prim_tri(global_res, p0, p1, p2, c0)) {
-                        selected_prim_xyz.X = x;
-                        selected_prim_xyz.Y = y;
-                        selected_prim_xyz.Z = z;
-                    }
-
-                    current_bucket_pool += sizeof(struct BucketQuad);
-                }
-            p_f3++;
-        }
-exit:;
-
-    //	LogText(" draw a prim  left %d right %d top %d bot %d  ok %d \n",col,cor,cot,cob,total);
-
-    return (best_z);
-}
-
-void draw_a_building_at(UWORD building, SLONG x, SLONG y, SLONG z)
-{
-    UWORD index;
-    SLONG best_z = -999999, az;
-    // LogText(" draw a building %d at %d %d %d\n",building,x,y,z);
-    index = building_objects[building].FacetHead;
-    while (index) {
-        // LogText(" draw facet %d \n",index);
-        az = draw_a_facet_at(index, x, y, z);
-        if (best_z < az)
-            best_z = az;
-        index = building_facets[index].NextFacet;
-    }
-}
-#endif

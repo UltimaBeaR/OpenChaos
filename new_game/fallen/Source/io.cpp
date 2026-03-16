@@ -80,9 +80,6 @@ void create_kline_bottle(void);
 SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG type = 0);
 SLONG load_anim_prim_object(SLONG prim);
 
-#ifdef EDITOR
-extern CBYTE inside_names[64][20];
-#endif
 
 #ifdef NO_SERVER
 // claude-ai: Path globals for resource directories.
@@ -224,9 +221,6 @@ void load_texture_instyles(UBYTE editor, UBYTE world)
         FileRead(handle, (UBYTE*)&temp2, 2);
 
         if (editor) {
-#ifdef EDITOR
-            FileRead(handle, (UBYTE*)&inside_names[0][0], temp * temp2);
-#endif
         } else
             FileSeek(handle, SEEK_MODE_CURRENT, temp * temp2);
 
@@ -294,10 +288,6 @@ void load_texture_styles(UBYTE editor, UBYTE world)
             ASSERT(temp == 200);
             ASSERT(temp2 == 21);
             if (editor) {
-#ifdef EDITOR
-                FileRead(handle, (UBYTE*)&texture_style_names[0][0], temp * temp2);
-                fix_style_names();
-#endif
             } else
                 FileSeek(handle, SEEK_MODE_CURRENT, temp * temp2);
 
@@ -680,10 +670,6 @@ void load_game_map(CBYTE* name)
 
         FileClose(handle);
     }
-#ifdef EDITOR
-    void load_tex_remap(CBYTE * name);
-    load_tex_remap(name);
-#endif
     DebugText("Julyc npp %d npf3 %d \n", next_prim_point, next_prim_face3);
 }
 
@@ -1196,57 +1182,6 @@ void sort_multi_object(struct KeyFrameChunk* the_chunk)
           }
           */
 
-#ifdef EDITOR
-
-    for (multi = the_chunk->MultiObject; multi <= the_chunk->MultiObjectEnd; multi++) {
-        so = prim_multi_objects[multi].StartObject;
-        eo = prim_multi_objects[multi].EndObject;
-        p_obj = &prim_objects[prim_multi_objects[multi].StartObject];
-
-        if (the_chunk->ElementCount == 15) {
-            for (c0 = so; c0 < eo; c0++, p_obj++) {
-                sp = p_obj->StartPoint;
-                ep = p_obj->EndPoint;
-                //
-                // Look at object name to find relevant ele
-                //
-                for (c1 = 0; c1 < MAX_BODY_BITS; c1++) {
-                    if (body_part_names[c1] == 0)
-                        break;
-                    //					if( !memcmp( body_part_names[c1],p_obj->ObjectName,strlen( body_part_names[c1] ) ) )
-                    if (!memcmp(body_part_names[c1], prim_names[c0], strlen(body_part_names[c1]))) {
-                        the_element = &the_chunk->KeyFrames[0].FirstElement[c1];
-                        for (c2 = sp; c2 < ep; c2++) {
-                            prim_points[c2].X -= the_element->OffsetX;
-                            prim_points[c2].Y -= the_element->OffsetY;
-                            prim_points[c2].Z -= the_element->OffsetZ;
-                            invert_mult(&the_element->Matrix, &prim_points[c2]);
-                        }
-                        break;
-                    }
-                }
-            }
-        } else {
-            // old system before object names became very very important
-
-            p_obj = &prim_objects[prim_multi_objects[multi].StartObject];
-            the_element = the_chunk->KeyFrames[0].FirstElement;
-            for (c0 = 0; c0 < the_chunk->ElementCount; c0++, p_obj++, the_element++) {
-                sp = p_obj->StartPoint;
-                ep = p_obj->EndPoint;
-                //		LogText("SIZE part %d    offset %d %d %d \n",c0,the_element->OffsetX,the_element->OffsetY,the_element->OffsetZ);
-
-                for (c1 = sp; c1 < ep; c1++) {
-                    prim_points[c1].X -= the_element->OffsetX;
-                    prim_points[c1].Y -= the_element->OffsetY;
-                    prim_points[c1].Z -= the_element->OffsetZ;
-                    invert_mult(&the_element->Matrix, &prim_points[c1]);
-                }
-                //		the_element->OffsetX-=
-            }
-        }
-    }
-#endif
 }
 
 void set_default_people_types(struct KeyFrameChunk* the_chunk)
@@ -1528,12 +1463,7 @@ void load_multi_vue(struct KeyFrameChunk* the_chunk, float shrink_me)
 SLONG load_anim_mesh(CBYTE* fname, float scale)
 {
     SLONG ele_count;
-#ifdef EDITOR
-    extern SLONG read_multi_asc(CBYTE * asc_name, UBYTE flag, float scale);
-    ele_count = read_multi_asc(fname, 0, scale);
-#else
     ele_count = load_a_multi_prim(fname); // ele_count bug
-#endif
 
     return (ele_count);
 }
@@ -1617,10 +1547,6 @@ void load_key_frame_chunks(KeyFrameChunk* the_chunk, CBYTE* vue_name, float scal
         }
 
         load_multi_vue(the_chunk, scale);
-#ifdef EDITOR
-        extern void load_chunk_texture_info(KeyFrameChunk * the_chunk);
-        load_chunk_texture_info(the_chunk);
-#endif
     }
 }
 
@@ -1938,10 +1864,6 @@ void load_palette(CBYTE* palette)
 
     handle = MF_Fopen(palette, "rb");
 
-#ifdef EDITOR
-    extern UBYTE* pals[];
-    pals[0] = (UBYTE*)ENGINE_palette;
-#endif
 
     if (handle == NULL) {
         TRACE("Could not open palette file.\n");
@@ -1989,23 +1911,6 @@ SLONG save_insert_a_multi_prim(MFFileHandle handle, SLONG multi)
     SLONG save_type = 4;
     SLONG so, eo;
     CBYTE ext_name[80];
-#ifdef EDITOR
-    if (handle != FILE_OPEN_ERROR) {
-
-        FileWrite(handle, (UBYTE*)&save_type, sizeof(save_type));
-
-        so = prim_multi_objects[multi].StartObject;
-        eo = prim_multi_objects[multi].EndObject;
-
-        FileWrite(handle, (UBYTE*)&so, sizeof(so));
-        FileWrite(handle, (UBYTE*)&eo, sizeof(eo));
-
-        for (c0 = so; c0 < eo; c0++)
-            write_a_prim(c0, handle);
-
-        return (1);
-    }
-#endif
     return (0);
 }
 
@@ -2014,68 +1919,6 @@ SLONG save_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
     SLONG save_type = 5;
     SLONG temp;
     UWORD check = 666;
-#ifdef EDITOR
-
-    FileWrite(handle, (UBYTE*)&save_type, sizeof(save_type));
-
-    FileWrite(handle, (UBYTE*)&p_chunk->ElementCount, sizeof(p_chunk->ElementCount));
-
-    FileWrite(handle, (UBYTE*)&p_chunk->MaxPeopleTypes, sizeof(p_chunk->MaxPeopleTypes));
-    FileWrite(handle, (UBYTE*)&p_chunk->MaxAnimFrames, sizeof(p_chunk->MaxAnimFrames));
-    FileWrite(handle, (UBYTE*)&p_chunk->MaxElements, sizeof(p_chunk->MaxElements));
-    FileWrite(handle, (UBYTE*)&p_chunk->MaxKeyFrames, sizeof(p_chunk->MaxKeyFrames));
-    FileWrite(handle, (UBYTE*)&p_chunk->MaxFightCols, sizeof(p_chunk->MaxFightCols));
-
-    //	FileWrite(handle,(UBYTE*)&p_chunk->TweakSpeeds[0],p_chunk->MaxAnimFrames);
-    //	FileWrite(handle,(UBYTE*)&check,2);
-
-    //
-    // save the people types
-    //
-    //	temp=MAX_PEOPLE_TYPES;
-    //	FileWrite(handle,(UBYTE*)&temp,sizeof(temp));
-    FileWrite(handle, (UBYTE*)&p_chunk->PeopleTypes[0], sizeof(struct BodyDef) * p_chunk->MaxPeopleTypes);
-    FileWrite(handle, (UBYTE*)&check, 2);
-    //
-    // save the keyframe linked lists
-    //
-    temp = (SLONG)&p_chunk->AnimKeyFrames[0];
-    FileWrite(handle, (UBYTE*)&temp, sizeof(temp));
-    FileWrite(handle, (UBYTE*)&p_chunk->AnimKeyFrames[0], sizeof(struct GameKeyFrame) * p_chunk->MaxKeyFrames);
-    FileWrite(handle, (UBYTE*)&check, 2);
-
-    //
-    // save the anim elements
-    //
-    temp = (SLONG)&p_chunk->TheElements[0];
-    FileWrite(handle, (UBYTE*)&temp, sizeof(temp));
-    FileWrite(handle, (UBYTE*)&p_chunk->TheElements[0], sizeof(struct GameKeyFrameElement) * p_chunk->MaxElements);
-    check = 666;
-    FileWrite(handle, (UBYTE*)&check, 2);
-
-    //
-    // save the animlist
-    //
-    //	temp=200;
-    //	FileWrite(handle,(UBYTE*)&temp,sizeof(temp));
-    FileWrite(handle, (UBYTE*)&p_chunk->AnimList[0], sizeof(struct GameKeyFrame*) * p_chunk->MaxAnimFrames);
-    check = 666;
-    FileWrite(handle, (UBYTE*)&check, 2);
-    check = 666;
-
-    //	if(p_chunk->AnimKeyFrames[30])
-    //		if(p_chunk->AnimKeyFrames[30].Fight)
-    //			DebugText(" animkeyframes[30].fight %x  next %x \n",p_chunk->AnimKeyFrames[30].Fight,p_chunk->AnimKeyFrames[30].Fight->Next);
-
-    temp = (SLONG)&p_chunk->FightCols[0];
-    FileWrite(handle, (UBYTE*)&temp, sizeof(temp));
-
-    //	temp=p_chunk->MaxFightCols;
-    //	FileWrite(handle,(UBYTE*)&p_chunk->MaxFightCols,sizeof(p_chunk->MaxFightCols));
-    FileWrite(handle, (UBYTE*)&p_chunk->FightCols[0], sizeof(struct GameFightCol) * p_chunk->MaxFightCols);
-    FileWrite(handle, (UBYTE*)&check, 2);
-
-#endif
     return (1);
 }
 
@@ -2088,32 +1931,6 @@ SLONG save_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name)
     SLONG so, eo;
     CBYTE ext_name[80];
     SLONG count;
-#ifdef EDITOR
-
-    change_extension(name, "all", ext_name);
-    handle = FileCreate(ext_name, 1);
-    if (handle != FILE_OPEN_ERROR) {
-
-        FileWrite(handle, (UBYTE*)&save_type, sizeof(save_type));
-
-        count = 0;
-        while (p_chunk->MultiObject[count]) {
-            count++;
-        }
-
-        FileWrite(handle, (UBYTE*)&count, sizeof(count));
-
-        count = 0;
-        while (p_chunk->MultiObject[count]) {
-            save_insert_a_multi_prim(handle, p_chunk->MultiObject[count]);
-            count++;
-        }
-        save_insert_game_chunk(handle, p_chunk);
-
-        FileClose(handle);
-        return (1);
-    }
-#endif
     return (0);
 }
 // claude-ai: load_insert_game_chunk() — reads the GameKeyFrameChunk section from a .all file.

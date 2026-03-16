@@ -4798,12 +4798,7 @@ SLONG person_normal_animate_speed(Thing* p_person, SLONG speed)
             //			PlaySample(THING_NUMBER(p_person),SAMPLE_HIT_MISS1,SAMPLE_VOL_MAX,SAMPLE_PAN_CENTER,SAMPLE_FREQ_ORIG+(GAME_TURN&0xfff),0);
             if (apply_violence(p_person) == 0) {
                 extern BOOL PLAYCUTS_playing;
-#ifdef EDITOR
-                extern HWND CUTSCENE_edit_wnd;
-                if (!(CUTSCENE_edit_wnd || PLAYCUTS_playing))
-#else
                 if (!PLAYCUTS_playing)
-#endif
                     MFX_play_thing(THING_NUMBER(p_person), S_KNIFE_START + (Random() & 1), 0, p_person);
                 //
                 // we missed

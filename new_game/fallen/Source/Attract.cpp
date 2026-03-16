@@ -232,12 +232,6 @@ reinit_because_of_language_change:
             dont_leave_for_a_while -= 1;
         }
 
-#ifdef EDITOR
-/*		if(ControlFlag && Keys[KB_E])
-                {
-                        GAME_STATE	=	GS_EDITOR;
-                }*/
-#endif
 
 #ifdef DEMO
         if (ControlFlag && Keys[KB_Q]) {
@@ -356,10 +350,6 @@ reinit_because_of_language_change:
                     */
 
                 case STARTS_PSX:
-#ifdef EDITOR
-                    void make_all_wads(void);
-                    make_all_wads();
-#endif
                     break;
                 case STARTS_START:
 // claude-ai: STARTS_START — миссия выбрана в FRONTEND_loop() (mode≥100 + ENTER → FE_START).
