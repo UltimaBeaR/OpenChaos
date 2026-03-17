@@ -3035,24 +3035,6 @@ void PANEL_last()
         float strip;
         SLONG c;
 
-#ifdef STRIP_STATS
-        extern ULONG strip_stats[];
-        if (strip_stats[0])
-            strip = (float)strip_stats[1] / (float)strip_stats[0];
-
-        for (c = 2; c < 34; c++) {
-            sprintf(
-                timing,
-                "(%d)%d", c - 1,
-                strip_stats[c]);
-
-            FONT2D_DrawString(
-                timing,
-                10 + (((c - 2) & 7)) * 75,
-                120 + (((c - 2) & 0xf8) >> 3) * 20,
-                0xffffff);
-        }
-#endif
     }
 
     //

@@ -25,9 +25,6 @@
 extern UBYTE GAME_cut_scene;
 extern SLONG analogue;
 
-#ifdef MIKE
-#define VERSION_NTSC
-#endif
 
 //
 // #define this to stop the camera going lower when you run
@@ -66,8 +63,6 @@ SLONG FC_alter_for_pos(FC_Cam* fc, SLONG* dheight, SLONG* ddist)
     px = fc->focus->WorldPos.X >> 8;
     pz = fc->focus->WorldPos.Z >> 8;
 
-#ifndef MARKS_PRIVATE_VERSION
-
     // claude-ai: Gun-out mode — активен в финальной версии (MARKS_PRIVATE_VERSION не определён).
     // claude-ai: dheight=0, ddist=200: камера ближе и ниже при вынутом оружии (не применяется при езде).
     if (person_has_gun_out(fc->focus) && !(fc->focus->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_BIKING))) {
@@ -76,8 +71,6 @@ SLONG FC_alter_for_pos(FC_Cam* fc, SLONG* dheight, SLONG* ddist)
 
         return 0;
     }
-
-#endif
     if (fc->focus->Genus.Person->InCar) {
         switch (TO_THING(fc->focus->Genus.Person->InCar)->Genus.Vehicle->Type) {
         case 0:
@@ -281,8 +274,6 @@ SLONG FC_focus_above(FC_Cam* fc)
 
 #endif
 
-#ifndef MARKS_PRIVATE_VERSION
-
     if (fc->focus->Class == CLASS_PERSON && person_has_gun_out(fc->focus)) {
         //
         // Lower camera with your gun out...
@@ -290,8 +281,6 @@ SLONG FC_focus_above(FC_Cam* fc)
 
         lower = 0xa000;
     }
-
-#endif
 
     if (fc->focus->Genus.Person->InCar) {
         switch (TO_THING(fc->focus->Genus.Person->InCar)->Genus.Vehicle->Type) {

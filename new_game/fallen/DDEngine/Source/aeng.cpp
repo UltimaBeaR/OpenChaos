@@ -4171,9 +4171,6 @@ void AENG_get_detail_levels(int* stars,
 #define MAX_VERTS_FOR_STRIPS (MAX_FLOOR_TILES_FOR_STRIPS * 4) // 4 verts per map square
 #define MAX_INDICES_FOR_STRIPS (MAX_FLOOR_TILES_FOR_STRIPS * 5) // 5 indicies per map square
 
-#ifdef STRIP_STATS
-ULONG strip_stats[MAX_FLOOR_TILES_FOR_STRIPS + 10];
-#endif
 
 
 #define IPRIM_COUNT 5
@@ -4480,11 +4477,6 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
 inline void draw_i_prim(LPDIRECT3DTEXTURE2 page, D3DLVERTEX* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor)
 {
     HRESULT res;
-#ifdef STRIP_STATS
-    strip_stats[(*vert_count >> 2) + 1]++;
-    strip_stats[0]++;
-    strip_stats[1] += (*vert_count >> 2);
-#endif
 
     mm_draw_floor->lpvVertices = verts;
 
@@ -4658,9 +4650,6 @@ void draw_quick_floor(SLONG warehouse)
 
     general_steam(0, 0, 0, 0); // init it
 
-#ifdef STRIP_STATS
-    memset(strip_stats, 0, 4 * MAX_FLOOR_TILES_FOR_STRIPS + 4 * 10);
-#endif
     memset(group, 0, sizeof(struct GroupInfo) * IPRIM_COUNT);
 
 #ifdef DEBUG
@@ -7782,22 +7771,6 @@ void AENG_draw_city()
                                         PCOM_person_state_debug(p_thing));
                                 }
 
-#if DRAW_THIS_DEBUG_STUFF
-
-                                AENG_world_line(
-                                    (p_thing->WorldPos.X >> 8),
-                                    (p_thing->WorldPos.Y >> 8) + 0x60,
-                                    (p_thing->WorldPos.Z >> 8),
-                                    32,
-                                    0x00ffffff,
-                                    (x << PAP_SHIFT_LO) + (1 << (PAP_SHIFT_LO - 1)),
-                                    (p_thing->WorldPos.Y >> 8),
-                                    (z << PAP_SHIFT_LO) + (1 << (PAP_SHIFT_LO - 1)),
-                                    0,
-                                    0x0000ff00,
-                                    FALSE);
-
-#endif
                             }
 
 
@@ -9941,69 +9914,6 @@ void AENG_draw_messages()
         last_game_turn = GAME_TURN;
     }
 
-#if ARGH
-
-    static SLONG px[3] = { 4 << 16, 8 << 16, 8 << 16 };
-    static SLONG py[3] = { 4 << 16, 4 << 16, 8 << 16 };
-
-    if (LeftButton) {
-        SLONG mx;
-        SLONG my;
-
-        SLONG dx;
-        SLONG dy;
-
-        mx = MouseX - AENG_AA_LEFT;
-        my = MouseY - AENG_AA_TOP;
-
-        mx <<= 16;
-        my <<= 16;
-
-        mx /= AENG_AA_PIX_SIZE;
-        my /= AENG_AA_PIX_SIZE;
-
-        SLONG i;
-
-        SLONG dist;
-        SLONG best_dist = INFINITY;
-        SLONG* best_x;
-        SLONG* best_y;
-
-        for (i = 0; i < 3; i++) {
-            dx = abs(px[i] - mx);
-            dy = abs(py[i] - my);
-
-            dist = dx + dy;
-
-            if (dist < best_dist) {
-                best_dist = dist;
-                best_x = &px[i];
-                best_y = &py[i];
-            }
-        }
-
-        *best_x = mx;
-        *best_y = my;
-    }
-
-    {
-        //
-        // Draw a mad quad!
-        //
-
-        memset(AENG_aa_buffer, 0, sizeof(AENG_aa_buffer));
-
-        AA_draw(
-            (UBYTE*)AENG_aa_buffer,
-            AENG_AA_BUF_SIZE,
-            AENG_AA_BUF_SIZE,
-            AENG_AA_BUF_SIZE,
-            px[0], py[0],
-            px[1], py[1],
-            px[2], py[2]);
-    }
-
-#endif
 
     //
     // Draw stuff straight to the screen.

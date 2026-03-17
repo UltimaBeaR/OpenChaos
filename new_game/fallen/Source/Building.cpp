@@ -4946,54 +4946,6 @@ void set_texture_fe(struct PrimFace4* p4, SLONG xw, SLONG xh, SLONG type)
 //	   3	    8		  9		  2
 //
 
-#ifdef OLD_DOG_POO_OF_A_SYSTEM_OR_IS_IT
-/*
-UWORD	next_face_type=1;
-UWORD	next_face_link=1;
-UWORD	next_face_connection=1;
-
-struct	FaceLink
-{
-        UWORD	Index;
-        UBYTE	Count;
-};
-
-UWORD	face_type_index[50];  // for face type %1  returns index into face_links which you add your ID to , to pull out an inde and number of faces connected to
-struct	FaceLink	face_links[50*20]; //
-UWORD	face_connection_pool[2000];
-
-
-
-//each type has a variable number of ID's
-
-
-void	add_connection_for_current_id(SLONG offset)
-{
-        face_connection_pool[next_face_connection++]=offset;
-        face_links[next_face_link-1].Count++;
-}
-
-SLONG	advance_face_id_number(void)
-{
-        face_links[next_face_link].Count=0;
-        face_links[next_face_link].Index=next_face_connection;
-
-        next_face_link++;
-        return(next_face_link-1);
-
-
-}
-
-SLONG	advance_face_type_number(void)
-{
-        face_type_index[next_face_type]=next_face_link;
-        face_links[next_face_link].Count=0;
-        next_face_type++;
-
-        return(next_face_type-1);
-}
-*/
-#endif
 
 #define FE_FIRST_SLOPE 1
 #define FE_PLINTH1 2

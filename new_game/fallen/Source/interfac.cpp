@@ -2167,9 +2167,6 @@ SLONG get_joy_angle(ULONG input, UWORD flags)
 }
 
 extern SLONG EWAY_cam_jumped;
-#ifdef MIKE
-SLONG globdx, globdz;
-#endif
 
 // claude-ai: player_turn_left_right_analogue() — поворот персонажа по аналоговому стику (старая система, PSX/DC).
 // claude-ai: Читает GET_JOYX/GET_JOYY из input, вычисляет угол через Arctan(-dx, dz).
@@ -2216,10 +2213,6 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
 
         velocity = QDIST2(abs(dx), abs(dz));
 
-#ifdef MIKE
-//		globdx=dx;
-//		globdz=dz;
-#endif
 
         if (velocity > ANALOGUE_MIN_VELOCITY)
             angle = Arctan(-dx, dz);

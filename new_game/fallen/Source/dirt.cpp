@@ -1500,9 +1500,6 @@ void DIRT_process(void)
                 dd->y = newy;
                 if (dd->type != DIRT_TYPE_BRASS)
                     if (dd->dy < -8 << TICK_SHIFT) {
-#ifdef MIKE
-                        ASSERT(0);
-#endif
                         MFX_play_xyz(i, S_KICK_CAN, MFX_REPLACE, dd->x << 8, dd->y << 8, dd->z << 8);
                     }
 

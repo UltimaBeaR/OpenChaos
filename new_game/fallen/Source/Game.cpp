@@ -1629,19 +1629,11 @@ round_again:;
             BreakTime("Done flip");
 
             BreakFrame();
-#ifdef MIKE
-            if (Keys[KB_TAB]) {
-                BreakEnd("C:\\Windows\\Desktop\\BreakTimes.txt");
-                Keys[KB_TAB] = 0;
-            }
-#endif
 
             //
             // Lock frame-rate to 30 FPS
             //
-#ifndef BREAKTIMER
             lock_frame_rate(env_frame_rate); // claude-ai: Spin-loop busy-wait; env_frame_rate из config.ini "max_frame_rate" (по умолч. 30)
-#endif
 
             //
             // process moveing sfx, ambient stuff etc

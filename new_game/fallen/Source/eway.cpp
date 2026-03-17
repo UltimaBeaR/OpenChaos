@@ -4666,10 +4666,6 @@ void EWAY_set_active(EWAY_Way* ew)
             SLONG change = EWAY_get_person(ew->ed.arg1);
 
             if (change == NULL) {
-#ifdef MIKE
-                //					ASSERT(0);
-                PANEL_new_text(NULL, 5000, "Adjust enemy waypoint %d: No enemy to change", ew->id);
-#endif
 #ifndef NDEBUG
                 PANEL_new_text(NULL, 5000, "Adjust enemy waypoint %d: No enemy to change", ew->id);
 #endif
@@ -4695,10 +4691,6 @@ void EWAY_set_active(EWAY_Way* ew)
         SLONG change = EWAY_get_person(ew->ed.arg1);
 
         if (change == NULL) {
-#ifdef MIKE
-            //					ASSERT(0);
-            PANEL_new_text(NULL, 5000, "Adjust enemy flags waypoint %d: No enemy to change", ew->id);
-#endif
 #ifndef NDEBUG
             PANEL_new_text(NULL, 5000, "Adjust enemy flags waypoint %d: No enemy to change", ew->id);
 #endif

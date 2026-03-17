@@ -105,30 +105,6 @@
 
 CBYTE ELEV_last_map_loaded[MAX_PATH];
 
-#ifdef MIKE
-
-MFFileHandle llog_handle = NULL;
-extern TCHAR* witem_strings[];
-void TesterText(CBYTE* error, ...)
-{
-    CBYTE buf[512];
-    va_list argptr;
-    if (!llog_handle) {
-        llog_handle = FileCreate("tester.log", 1);
-        if (llog_handle == FILE_CREATION_ERROR)
-            llog_handle = NULL;
-    }
-
-    if (llog_handle) {
-        va_start(argptr, error);
-        vsprintf(buf, error, argptr);
-        va_end(argptr);
-
-        FileWrite(llog_handle, buf, strlen(buf));
-    }
-}
-
-#endif
 
 
 //
@@ -1022,20 +998,6 @@ void ELEV_load_level(CBYTE* fname_level)
                         ed.type = EWAY_DO_CREATE_ITEM;
                         ed.arg1 = event_point.Data[2]; // flags
 
-#ifdef MIKE
-                        if (!(ed.arg1 & EWAY_ARG_ITEM_FOLLOW_PERSON)) {
-                            switch (event_point.Data[0]) {
-                            case IT_BARREL:
-                                break;
-                            case 0:
-                                break;
-
-                            default:
-                                TesterText("(WP)%d item %s at %d,%d,%d \n", i, witem_strings[event_point.Data[0] - 1], event_point.X >> 8, event_point.Y >> 8, event_point.Z >> 8);
-                                break;
-                            }
-                        }
-#endif
 
                         switch (event_point.Data[0]) {
                         default:
@@ -1455,9 +1417,6 @@ void ELEV_load_level(CBYTE* fname_level)
                     case WPT_CREATE_TREASURE:
                         ed.type = EWAY_DO_CREATE_ITEM;
                         ed.subtype = SPECIAL_TREASURE;
-#ifdef MIKE
-                        TesterText(" POWERUP at %d,%d,%d \n", event_point.X >> 8, event_point.Y >> 8, event_point.Z >> 8);
-#endif
                         break;
 
                     case WPT_BONUS_POINTS:

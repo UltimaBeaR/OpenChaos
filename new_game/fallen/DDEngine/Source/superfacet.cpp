@@ -13,20 +13,10 @@
 #include "interfac.h"
 #include "matrix.h"
 
-// Only do this on the PC!
-#define SUPERFACET_PERFORMANCE
 #define POLY_set_local_rotation_none() \
     {                                  \
     }
 
-#ifdef SUPERFACET_PERFORMANCE
-FILE* SUPERFACET_handle;
-SLONG SUPERFACET_total_freed;
-SLONG SUPERFACET_total_converted;
-SLONG SUPERFACET_total_already_cached;
-SLONG SUPERFACET_total_drawn;
-SLONG SUPERFACET_num_gameturns;
-#endif
 
 // A hack to test the speed of theoretical crinkles.
 #undef TESSELATE_DEGREE
@@ -159,9 +149,6 @@ void SUPERFACET_free_end_of_queue(void)
     SUPERFACET_Facet* sf;
     SUPERFACET_Call* sc;
 
-#ifdef SUPERFACET_PERFORMANCE
-    SUPERFACET_total_freed += 1;
-#endif
 
     ASSERT(SUPERFACET_queue_end < SUPERFACET_queue_start);
 
@@ -214,10 +201,6 @@ void SUPERFACET_free_end_of_queue(void)
 
     SUPERFACET_queue_end += 1;
 
-#ifdef SUPERFACET_PERFORMANCE
-    fprintf(SUPERFACET_handle, "Game turn %5d  freed up facet %4d\n", GAME_TURN, facet);
-    fflush(SUPERFACET_handle);
-#endif
 
     //
     // Mark as unused.
@@ -1021,9 +1004,6 @@ void SUPERFACET_convert_facet(SLONG facet)
     SUPERFACET_Facet* sf;
     SUPERFACET_Call* sc;
 
-#ifdef SUPERFACET_PERFORMANCE
-    SUPERFACET_total_converted += 1;
-#endif
 
     ASSERT(WITHIN(facet, 1, next_dfacet - 1));
 
@@ -1157,26 +1137,10 @@ void SUPERFACET_convert_facet(SLONG facet)
 
     SUPERFACET_queue_start++;
 
-#ifdef SUPERFACET_PERFORMANCE
-    fprintf(SUPERFACET_handle, "Game turn %5d converted facet %4d\n", GAME_TURN, facet);
-    fflush(SUPERFACET_handle);
-#endif
 }
 
 void SUPERFACET_init()
 {
-#ifdef SUPERFACET_PERFORMANCE
-
-    if (SUPERFACET_handle == NULL) {
-        SUPERFACET_handle = fopen("facetcache.txt", "wb");
-    }
-
-    SUPERFACET_total_freed = 0;
-    SUPERFACET_total_converted = 0;
-    SUPERFACET_total_already_cached = 0;
-    SUPERFACET_num_gameturns = 0;
-
-#endif
 
     //
     // How big should our arrays be?
@@ -1317,9 +1281,6 @@ void SUPERFACET_start_frame()
 //	POLY_set_local_rotation_none();
 //	//POLY_flush_local_rot();
 // #endif
-#ifdef SUPERFACET_PERFORMANCE
-    SUPERFACET_num_gameturns += 1;
-#endif
 
     //
     // We are using DrawIndexedPrimitive so must call this...
@@ -1341,9 +1302,6 @@ SLONG SUPERFACET_draw(SLONG facet)
 
     D3DMULTIMATRIX d3dmm;
 
-#ifdef SUPERFACET_PERFORMANCE
-    SUPERFACET_total_drawn += 1;
-#endif
 
 
     //
@@ -1370,11 +1328,6 @@ SLONG SUPERFACET_draw(SLONG facet)
 
         SUPERFACET_convert_facet(facet);
     }
-#ifdef SUPERFACET_PERFORMANCE
-    else {
-        SUPERFACET_total_already_cached += 1;
-    }
-#endif
 
     if (dfacets[facet].FacetFlags & FACET_FLAG_DLIT) {
         //
@@ -1639,16 +1592,4 @@ void SUPERFACET_fini()
     MemFree(SUPERFACET_index);
     MemFree(SUPERFACET_facet);
 
-#ifdef SUPERFACET_PERFORMANCE
-
-    fprintf(SUPERFACET_handle, "Number of gameturns    = %5d\n", SUPERFACET_num_gameturns);
-    fprintf(SUPERFACET_handle, "Total facets freed     = %5d\n", SUPERFACET_total_freed);
-    fprintf(SUPERFACET_handle, "Total facets converted = %5d\n", SUPERFACET_total_converted);
-    fprintf(SUPERFACET_handle, "Total facets drawn     = %5d\n", SUPERFACET_total_drawn);
-    fprintf(SUPERFACET_handle, "Total facets precached = %5d\n", SUPERFACET_total_already_cached);
-    fprintf(SUPERFACET_handle, "Percentage cached      = %5f%%\n", float(SUPERFACET_total_already_cached) * 100.0F / float(SUPERFACET_total_drawn));
-
-    fflush(SUPERFACET_handle);
-
-#endif
 }

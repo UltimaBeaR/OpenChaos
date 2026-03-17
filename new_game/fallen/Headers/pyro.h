@@ -6,11 +6,7 @@
 #ifndef PYRO_H
 #define PYRO_H
 
-#ifdef MIKE
-#define MAX_PYROS 32
-#else
 #define MAX_PYROS 64
-#endif
 
 #define PYRO_NONE 0 // zilch, nada
 #define PYRO_FIREWALL 1 // a wall of fire along a ground vector

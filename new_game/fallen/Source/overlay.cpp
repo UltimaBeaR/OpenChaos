@@ -61,9 +61,6 @@
 #include "eway.h"
 #include "xlat_str.h"
 
-#ifdef MIKE
-#define VERSION_NTSC 1
-#endif
 
 extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
 
@@ -708,7 +705,6 @@ void OVERLAY_draw_enemy_health(void)
 
 static SWORD timer_prev = 0;
 
-#undef MIKE
 void OVERLAY_handle(void)
 {
     Thing* darci = NET_PERSON(0);
@@ -799,37 +795,6 @@ void OVERLAY_handle(void)
             }
     */
 
-#ifdef MIKE
-    {
-        CBYTE str[100];
-        SLONG count, cbl = 0, c0;
-
-        for (c0 = 0; c0 < MAX_THINGS; c0++) {
-            Thing* p_thing;
-
-            p_thing = TO_THING(c0);
-
-            if (p_thing->Class == CLASS_SPECIAL) {
-                if (p_thing->Genus.Special->SpecialType == SPECIAL_TREASURE) {
-                    cbl++;
-                }
-            }
-        }
-
-        extern UBYTE global_person;
-        SLONG count_draw_tween(void);
-        count = count_draw_tween();
-
-        extern SLONG globdx, globdz;
-
-        //		sprintf(str," people used %d dt left%d (%d,%d)",global_person,count,globdx,globdz);
-        sprintf(str, "specials %d", cbl);
-        FONT2D_DrawString(str, 100, 20);
-        globdx = -999;
-        globdz = -999;
-    }
-
-#endif
 
 
     if (!draw_map_screen) {

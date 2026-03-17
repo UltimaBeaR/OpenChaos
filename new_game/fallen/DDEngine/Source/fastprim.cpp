@@ -12,16 +12,6 @@
 #include "texture.h"
 #include "matrix.h"
 
-// #define FASTPRIM_PERFORMANCE
-
-#ifdef FASTPRIM_PERFORMANCE
-FILE* FASTPRIM_handle;
-SLONG FASTPRIM_num_freed;
-SLONG FASTPRIM_num_cached;
-SLONG FASTPRIM_num_already_cached;
-SLONG FASTPRIM_num_drawn;
-#endif
-
 //
 // The D3D vertices and indices passed to DrawIndexedPrimitive
 //
@@ -176,15 +166,6 @@ void FASTPRIM_init()
 
     FASTPRIM_prim[PRIM_OBJ_CAR_WHEEL].flag = FASTPRIM_PRIM_FLAG_INVALID;
 
-#ifdef FASTPRIM_PERFORMANCE
-    if (!FASTPRIM_handle) {
-        FASTPRIM_handle = fopen("c:\\fastprim.txt", "wb");
-    }
-    FASTPRIM_num_freed = 0;
-    FASTPRIM_num_cached = 0;
-    FASTPRIM_num_already_cached = 0;
-    FASTPRIM_num_drawn = 0;
-#endif
 }
 
 //
@@ -229,11 +210,6 @@ void FASTPRIM_free_cached_prim(SLONG prim)
     fp->call_count = 0;
     fp->call_index = 0;
 
-#ifdef FASTPRIM_PERFORMANCE
-    fprintf(FASTPRIM_handle, "Gameturn %5d free  prim %3d\n", GAME_TURN, prim);
-    fflush(FASTPRIM_handle);
-    FASTPRIM_num_freed += 1;
-#endif
 }
 
 //
@@ -273,10 +249,6 @@ void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
 
             copy_to_beginning = TRUE;
 
-#ifdef FASTPRIM_PERFORMANCE
-            fprintf(FASTPRIM_handle, "Wrap...\n");
-            fflush(FASTPRIM_handle);
-#endif
         }
 
         if (FASTPRIM_index_upto + 16 < FASTPRIM_index_free_end && FASTPRIM_lvert_upto + 16 < FASTPRIM_lvert_free_end) {
@@ -392,10 +364,6 @@ UWORD FASTPRIM_add_point_to_call(
         // Need more room!
         //
 
-#ifdef FASTPRIM_PERFORMANCE
-        fprintf(FASTPRIM_handle, "No lverts...\n");
-        fflush(FASTPRIM_handle);
-#endif
 
         FASTPRIM_free_queue_for_call(fc);
     }
@@ -421,10 +389,6 @@ UWORD FASTPRIM_add_point_to_call(
 void FASTPRIM_ensure_room_for_indices(FASTPRIM_Call* fc)
 {
     if (FASTPRIM_index_upto + 8 >= FASTPRIM_index_free_end) {
-#ifdef FASTPRIM_PERFORMANCE
-        fprintf(FASTPRIM_handle, "No indices...\n");
-        fflush(FASTPRIM_handle);
-#endif
 
         FASTPRIM_free_queue_for_call(fc);
     }
@@ -503,15 +467,8 @@ SLONG FASTPRIM_draw(
         return FALSE;
     }
 
-#ifdef FASTPRIM_PERFORMANCE
-    FASTPRIM_num_drawn += 1;
-#endif
 
-    if (fp->flag & FASTPRIM_PRIM_FLAG_CACHED) {
-#ifdef FASTPRIM_PERFORMANCE
-        FASTPRIM_num_already_cached += 1;
-#endif
-    } else {
+    if (!(fp->flag & FASTPRIM_PRIM_FLAG_CACHED)) {
         //
         // We've come across a new prim.
         //
@@ -971,11 +928,6 @@ SLONG FASTPRIM_draw(
 
         FASTPRIM_queue[FASTPRIM_queue_start++ & (FASTPRIM_MAX_QUEUE - 1)] = prim;
 
-#ifdef FASTPRIM_PERFORMANCE
-        fprintf(FASTPRIM_handle, "Gameturn %5d cache prim %3d\n", GAME_TURN, prim);
-        fflush(FASTPRIM_handle);
-        FASTPRIM_num_cached += 1;
-#endif
     }
 
     //
@@ -1253,19 +1205,4 @@ void FASTPRIM_fini()
     FASTPRIM_lvert_buffer = NULL;
     FASTPRIM_index = NULL;
 
-#ifdef FASTPRIM_PERFORMANCE
-
-    float av_freed_per_turn = float(FASTPRIM_num_freed) / float(GAME_TURN);
-    float av_cached_per_turn = float(FASTPRIM_num_cached) / float(GAME_TURN);
-    float av_in_cache_per_turn = float(FASTPRIM_num_already_cached) / float(GAME_TURN);
-    float av_drawn_per_turn = float(FASTPRIM_num_drawn) / float(GAME_TURN);
-
-    fprintf(FASTPRIM_handle, "Average freed    per gameturn = %f\n", av_freed_per_turn);
-    fprintf(FASTPRIM_handle, "Average cached   per gameturn = %f\n", av_cached_per_turn);
-    fprintf(FASTPRIM_handle, "Average in cache per gameturn = %f\n", av_in_cache_per_turn);
-    fprintf(FASTPRIM_handle, "Average drawn    per gameturn = %f\n", av_drawn_per_turn);
-
-    fflush(FASTPRIM_handle);
-
-#endif
 }

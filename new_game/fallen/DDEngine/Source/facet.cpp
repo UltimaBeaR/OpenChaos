@@ -2129,22 +2129,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
         //
 
         // #define WE_WANT_TO_DRAW_THESE_FACET_LINES 1
-#if WE_WANT_TO_DRAW_THESE_FACET_LINES
-
-        AENG_world_line_infinite(
-            p_facet->X[0],
-            p_facet->Y[0],
-            p_facet->Z[0],
-            128,
-            0x00ffff00,
-            p_facet->X[1],
-            p_facet->Y[1],
-            p_facet->Z[1],
-            0,
-            0x00444488,
-            TRUE);
-
-#endif
 
         return;
     } else {
@@ -4035,36 +4019,6 @@ void FACET_draw_walkable_old(SLONG build)
                 quad[3] = &POLY_buffer[p3];
 
                 if (POLY_valid_quad(quad)) {
-#if DRAW_THIS_DEBUG_STUFF
-
-                    {
-                        //
-                        // Draw the slide-edges
-                        //
-
-                        SLONG ei;
-
-                        UBYTE point_order[4] = { 0, 1, 3, 2 };
-
-                        for (ei = 0; ei < 4; ei++) {
-                            if (p_f4->FaceFlags & (FACE_FLAG_SLIDE_EDGE << ei)) {
-                                AENG_world_line(
-                                    prim_points[p_f4->Points[point_order[(ei + 0) & 0x3]]].X,
-                                    prim_points[p_f4->Points[point_order[(ei + 0) & 0x3]]].Y,
-                                    prim_points[p_f4->Points[point_order[(ei + 0) & 0x3]]].Z,
-                                    32,
-                                    0xffffff,
-                                    prim_points[p_f4->Points[point_order[(ei + 1) & 0x3]]].X,
-                                    prim_points[p_f4->Points[point_order[(ei + 1) & 0x3]]].Y,
-                                    prim_points[p_f4->Points[point_order[(ei + 1) & 0x3]]].Z,
-                                    32,
-                                    0xffffff,
-                                    TRUE);
-                            }
-                        }
-                    }
-
-#endif
 
                     if (p_f4->DrawFlags & POLY_FLAG_TEXTURED) {
                         quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);

@@ -15,8 +15,6 @@ extern D3DTexture TEXTURE_texture[];
 
 // override -- replaces convection/blur combination with feedback routine
 
-// #define FEEDBACK
-
 //
 // Part The First : Texture lock/unlock/update stuff
 // blagged from texture86 stuff
@@ -153,12 +151,6 @@ void Flamengine::ReadParts(MFFileHandle handle)
 void Flamengine::Run()
 {
 
-#ifdef FEEDBACK
-
-    AddParticles2();
-    Feedback();
-
-#else
 
     AddParticles();
     if (params.blur) {
@@ -170,7 +162,6 @@ void Flamengine::Run()
         Darkening();
     UpdateTexture();
 
-#endif
 }
 
 //

@@ -3336,32 +3336,6 @@ no_muzzle_calcs:
                     pMat->wNumStripIndices);
                 // TRACE ( "F4" );
             }
-
-#else
-
-            // Do some performance tracing.
-#ifndef DTRACE
-#error Don't use this codepath unless DTRACING, fool!
-#endif
-
-            LOG_ENTER(Figure_Set_RenderState)
-            pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-            pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-            pa->RS.SetChanged();
-
-            WORD wTempVerts[4];
-            wTempVerts[0] = 0;
-            wTempVerts[1] = 1;
-            wTempVerts[2] = 2;
-            wTempVerts[3] = -1;
-            (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_VERTEX, (void*)&d3dmm, 3, wTempVerts, 4, D3DDP_MULTIMATRIX);
-            LOG_EXIT(Figure_Set_RenderState)
-
-            LOG_ENTER(Figure_DrawIndPrimMM)
-            HRESULT hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_VERTEX, (void*)&d3dmm, pMat->wNumVertices, pwStripIndices, pMat->wNumStripIndices, D3DDP_MULTIMATRIX);
-            // TRACE("Drew %i vertices, %i indices\n", (int)( pMat->wNumVertices ), (int)( pMat->wNumStripIndices ) );
-
 #endif
 
 //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
@@ -5023,32 +4997,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                     pMat->wNumStripIndices);
                 // TRACE ( "F4" );
             }
-
-#else
-
-            // Do some performance tracing.
-#ifndef DTRACE
-#error Don't use this codepath unless DTRACING, fool!
-#endif
-
-            LOG_ENTER(Figure_Set_RenderState)
-            pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-            pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-            pa->RS.SetChanged();
-
-            WORD wTempVerts[4];
-            wTempVerts[0] = 0;
-            wTempVerts[1] = 1;
-            wTempVerts[2] = 2;
-            wTempVerts[3] = -1;
-            (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_VERTEX, (void*)&d3dmm, 3, wTempVerts, 4, D3DDP_MULTIMATRIX);
-            LOG_EXIT(Figure_Set_RenderState)
-
-            LOG_ENTER(Figure_DrawIndPrimMM)
-            HRESULT hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_VERTEX, (void*)&d3dmm, pMat->wNumVertices, pwStripIndices, pMat->wNumStripIndices, D3DDP_MULTIMATRIX);
-            // TRACE("Drew %i vertices, %i indices\n", (int)( pMat->wNumVertices ), (int)( pMat->wNumStripIndices ) );
-
 #endif
 
             //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
@@ -7794,32 +7742,6 @@ no_muzzle_calcs:
                     pMat->wNumStripIndices);
                 // TRACE ( "F4" );
             }
-
-#else
-
-            // Do some performance tracing.
-#ifndef DTRACE
-#error Don't use this codepath unless DTRACING, fool!
-#endif
-
-            LOG_ENTER(Figure_Set_RenderState)
-            pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-            pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-            pa->RS.SetChanged();
-
-            WORD wTempVerts[4];
-            wTempVerts[0] = 0;
-            wTempVerts[1] = 1;
-            wTempVerts[2] = 2;
-            wTempVerts[3] = -1;
-            (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_VERTEX, (void*)&d3dmm, 3, wTempVerts, 4, D3DDP_MULTIMATRIX);
-            LOG_EXIT(Figure_Set_RenderState)
-
-            LOG_ENTER(Figure_DrawIndPrimMM)
-            HRESULT hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_VERTEX, (void*)&d3dmm, pMat->wNumVertices, pwStripIndices, pMat->wNumStripIndices, D3DDP_MULTIMATRIX);
-            // TRACE("Drew %i vertices, %i indices\n", (int)( pMat->wNumVertices ), (int)( pMat->wNumStripIndices ) );
-
 #endif
 
             //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA

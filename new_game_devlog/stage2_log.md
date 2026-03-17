@@ -24,9 +24,9 @@
 | Мёртвый геймплей (`DARCI_HITS_COPS`, `WE_WANT_WIND` и др.) | ✅ | итерация 26 |
 | Старые алгоритмы PSXENG (`OLD_FACET_CLIP` и др.) | ✅ | итерация 27 |
 | PSX/DC debug (`PSX_COMPRESS_LIGHT`, `DODGYPSXIFY` и др.) | ✅ | итерация 28 |
-| Debug-флаги (`DEBUG_POOSHIT`, `HEAP_DEBUGGING_PLEASE_BOB` и др.) | ⬜ | |
-| Debug визуализации (`WE_WANT_TO_DRAW_*` и др.) | ⬜ | |
-| Developer joke flags (`GONNA_FIREBOMB_YOUR_ASS` и др.) | ⬜ | |
+| Debug-флаги (`DEBUG_POOSHIT`, `HEAP_DEBUGGING_PLEASE_BOB` и др.) | ✅ | итерация 29 (`HIGH_REZ_PEOPLE_PLEASE_BOB` — пропущен, разобраться позже) |
+| Debug визуализации (`WE_WANT_TO_DRAW_*` и др.) | ✅ | итерация 30 |
+| Developer joke flags (`GONNA_FIREBOMB_YOUR_ASS` и др.) | ✅ | итерация 31 |
 | `FACET_REMOVAL_TEST` | 🚫 | оставить: полезен при разработке |
 | `SUPERCRINKLES_ENABLED` | ✅ | итерация 25 |
 
@@ -916,5 +916,60 @@ Exit code 19 — норма.
 **Нюансы:**
 - `SOUNDENV_precalc()` больше не вызывается (была под `#ifdef USE_A3D` в elev.cpp). A3D технология мертва (Aureal обанкротилась в 2000), функция не нужна.
 - soundenv.h теперь не включается в elev.cpp — но soundenv.cpp остаётся в проекте (может быть нужен в будущем при портировании реверба)
+
+**Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 292 предупреждения.
+
+---
+
+## Итерация 29 — Debug-флаги (2026-03-17)
+
+**Флаги:** `DEBUG_POOSHIT`, `TEST_3DFX`, `HEAP_DEBUGGING_PLEASE_BOB`, `MARKS_PRIVATE_VERSION`, `_DEBUG_POO`, `BREAKTIMER`
+(`HIGH_REZ_PEOPLE_PLEASE_BOB` — пропущен намеренно, разобраться позже)
+
+**Результат:**
+- `DEBUG_POOSHIT`, `TEST_3DFX` — ➖ уже не было в коде (удалены вместе с редакторами)
+- `_DEBUG_POO` — ➖ уже не было в коде (удалён в итерации 28)
+- `BREAKTIMER` — ✅ удалён: BreakTimer.h упрощён (оставлены no-op макросы), из BreakTimer.cpp удалён весь блок с реализацией (~170 строк), из Game.cpp убран wrapper `#ifndef BREAKTIMER`
+- `MARKS_PRIVATE_VERSION` — ✅ удалён: fc.cpp — 2 `#ifndef MARKS_PRIVATE_VERSION` / `#endif` убраны, тело сохранено (gun-out камера всегда активна — верное поведение)
+- `HEAP_DEBUGGING_PLEASE_BOB` — ✅ удалён: StdMem.cpp очищен — убраны HeapDebugInfo структура, DumpDebug(), heap tracking в MemAlloc/MemFree/SetupMemory/ResetMemory, альтернативные MFnewTrace/MFdeleteTrace
+
+**Нюанс:** `MARKS_PRIVATE_VERSION` использовал `#ifndef` (не `#ifdef`): тело всегда активно, флаг никогда не определялся. Убраны только обёртки.
+
+**Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 292 предупреждения.
+
+---
+
+## Итерация 30 — Debug визуализации (2026-03-17)
+
+**Флаги:** `STRIP_STATS`, `DRAW_THIS_DEBUG_STUFF`, `ARGH`, `FEEDBACK`, `FASTPRIM_PERFORMANCE`, `WE_WANT_TO_DRAW_THESE_FACET_LINES`, `SUPERFACET_PERFORMANCE`, `DTRACE` (в мёртвых `#else` ветках)
+
+**Инструмент:** coan с `--no-transients` на 6 файлах + ручные правки для figure.cpp (DTRACE).
+
+**Результат:**
+- `STRIP_STATS` — ✅ удалён из aeng.cpp (3 блока), panel.cpp (1 блок)
+- `DRAW_THIS_DEBUG_STUFF` — ✅ удалён из aeng.cpp, facet.cpp
+- `ARGH` — ✅ удалён из aeng.cpp (~60 строк debug визуализации треугольников)
+- `FEEDBACK` — ✅ удалён из flamengine.cpp
+- `FASTPRIM_PERFORMANCE` — ✅ удалён из fastprim.cpp (10+ блоков счётчиков)
+- `WE_WANT_TO_DRAW_THESE_FACET_LINES` — ✅ удалён из facet.cpp
+- `SUPERFACET_PERFORMANCE` — ✅ удалён из superfacet.cpp; флаг был `#define`'ан в самом файле — использовался `--no-transients` для переопределения; убран также coan-inserted error comment
+- `DTRACE` — ✅ удалён из figure.cpp: 3 мёртвые `#else` ветки `#if 1` удалены вручную + восстановлены `#endif` для `#if 1`
+
+**Нюанс:** `SUPERFACET_PERFORMANCE` был активно `#define`'ан в superfacet.cpp (не закомментирован). Coan с `--no-transients -USUPERFACET_PERFORMANCE` корректно его удалил, оставив coan-error comment который был убран вручную.
+
+**Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 292 предупреждения.
+
+---
+
+## Итерация 31 — Developer joke flags (2026-03-17)
+
+**Флаги:** `MIKE`, `MAD_AM_I`, `OLD_DOG_POO_OF_A_SYSTEM_OR_IS_IT`
+(остальные — `GONNA_FIREBOMB_YOUR_ASS`, `WHAT_THE_FUCK_IS_THIS_DOING_HERE`, `OLDSHIT` и др. — были только в PSXENG, уже удалены)
+
+**Инструмент:** coan `-UMIKE -UMAD_AM_I -UOLD_DOG_POO_OF_A_SYSTEM_OR_IS_IT --no-transients` на 10 файлах.
+
+**Файлы:** pyro.h, building.cpp, dirt.cpp, elev.cpp, eway.cpp, fc.cpp, Game.cpp, interfac.cpp, overlay.cpp, DIManager.cpp
+
+**Нюанс:** В fc.cpp флаг `MIKE` определял `VERSION_NTSC`. После удаления `#ifdef MIKE` остался `#ifndef MARKS_MACHINE / #define MARKS_MACHINE / #endif` — это корректно: он был ВНЕ блока `#ifdef MIKE` и всегда активен. `MARKS_MACHINE` управляет высотой камеры (0x16000 vs 0x1a000), всегда определён.
 
 **Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 292 предупреждения.
