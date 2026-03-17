@@ -22,9 +22,6 @@
 // claude-ai:   - Arctan() logic: replace with atan2f(Y,X) * (2048/(2*M_PI)) for same output range
 
 #include <MFStdLib.h>
-#ifdef TARGET_DC
-#include <shintr.h>
-#endif
 
 //---------------------------------------------------------------
 

@@ -233,7 +233,6 @@ reinit_because_of_language_change:
         }
 
 
-#ifdef DEMO
         if (ControlFlag && Keys[KB_Q]) {
             GAME_STATE = 0;
             LastKey = 0;
@@ -256,19 +255,6 @@ reinit_because_of_language_change:
                                     }*/
         }
 
-#else
-        if (LastKey == KB_ESC || (ControlFlag && Keys[KB_Q])) {
-            GAME_STATE = 0;
-            LastKey = 0;
-        }
-        /*
-        else if(Keys[KB_SPACE] || Keys[KB_ENTER])
-        {
-                GAME_STATE	&=	~GS_ATTRACT_MODE;
-                GAME_STATE	|=	GS_PLAY_GAME;
-        }
-        */
-#endif
         /*		if (Keys[KB_N])
                         {
                                 Keys[KB_N] = 0;
@@ -320,11 +306,7 @@ reinit_because_of_language_change:
         {
             SLONG res;
 
-#ifdef NEW_FRONTEND
             res = FRONTEND_loop();
-#else
-            res = do_start_menu();
-#endif
 
             //			res=STARTS_PLAYBACK;
 
@@ -356,9 +338,6 @@ reinit_because_of_language_change:
 // claude-ai: STARTSCR_mission уже установлен в FRONTEND_loop() перед возвратом STARTS_START.
 // claude-ai: #ifdef OBEY_SCRIPT / BRIEFING_select() → МЁРТВЫЙ КОД: OBEY_SCRIPT не определён.
 // claude-ai: Активный путь: сразу переключает GAME_STATE и показывает загрузочный экран.
-#ifdef OBEY_SCRIPT
-                    if (BRIEFING_select() > 0)
-#endif
                     {
                         GAME_STATE &= ~GS_ATTRACT_MODE;
                         GAME_STATE |= GS_PLAY_GAME;

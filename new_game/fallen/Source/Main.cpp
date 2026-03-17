@@ -6,8 +6,6 @@
 #include "renderstate.h"
 #include "Drive.h"
 
-#ifdef GUY
-#endif
 
 #ifndef EXIT_SUCCESS
 

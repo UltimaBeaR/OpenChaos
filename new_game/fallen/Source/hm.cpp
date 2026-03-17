@@ -1999,23 +1999,6 @@ void HM_process_bump(HM_Object* ho, HM_Bump* hb)
     hp->dy += fy;
     hp->dz += fz;
 
-#ifdef WE_WANT_TO_APPLY_THE_EQUAL_FORCE_TO_THE_CUBE
-
-    //
-    // Apply an equal but opposite force to the cube.
-    //
-
-    for (i = 0; i < HM_NUM_OPP_POINTS; i++) {
-        ASSERT(WITHIN(hb->opp_point[i], 1, ho2->num_points - 1));
-
-        hp2 = &ho2->point[hb->opp_point[i]];
-
-        hp2->dx -= fx * hb->opp_prop[i];
-        hp2->dy -= fy * hb->opp_prop[i];
-        hp2->dz -= fz * hb->opp_prop[i];
-    }
-
-#endif
 }
 
 // claude-ai: HM_bump_dead() — checks whether a tracked penetration is over (point has exited the other object).

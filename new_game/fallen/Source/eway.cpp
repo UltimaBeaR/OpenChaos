@@ -262,9 +262,6 @@ void get_level_word(CBYTE* str)
 
 SLONG playing_combat_tutorial(void)
 {
-#ifdef VERSION_DEMO
-//	return 0;
-#endif
 
     SLONG c0 = 0, c1 = 0;
     //	if(save_psx)
@@ -293,9 +290,6 @@ SLONG playing_combat_tutorial(void)
 SLONG playing_level(const CBYTE* name)
 {
     SLONG c0 = 0, c1 = 0;
-#ifdef VERSION_DEMO
-//	return 0;
-#endif
 
 
     //	if(save_psx)
@@ -3667,12 +3661,6 @@ void EWAY_process_camera(void)
 
                 if (!EWAY_conv_ambient)
                     if (NET_PLAYER(0)->Genus.Player->Pressed & (INPUT_MASK_JUMP | INPUT_MASK_KICK | INPUT_MASK_ACTION | INPUT_MASK_PUNCH)) {
-#ifdef VERSION_PSX
-                        if ((EWAY_cam_skip <= 0) && PANEL_wide_cont) {
-                            strcpy(PANEL_wide_text, PANEL_wide_cont);
-                            PANEL_wide_cont = 0;
-                        } else
-#endif
                             EWAY_cam_skip = 0;
                     }
             }
@@ -4723,24 +4711,6 @@ void EWAY_set_active(EWAY_Way* ew)
         //
 
         break;
-#ifdef ANIM_PRIM
-    case EWAY_DO_ACTIVATE_PRIM:
-
-        if (ew->ed.arg1) {
-            if (ew->ed.subtype == 0) {
-#ifndef NDEBUG
-                sprintf(EWAY_message, "Waypoint %d has null anim-prim anim", ew->id);
-
-                CONSOLE_text(EWAY_message, 8000);
-#endif
-                ew->ed.subtype = 1;
-            }
-
-            set_anim_prim_anim(ew->ed.arg1, ew->ed.subtype);
-        }
-
-        break;
-#endif
 
     case EWAY_DO_WATER_SPOUT:
 
@@ -6575,156 +6545,6 @@ void EWAY_cam_converse(Thing* p_thing, Thing* p_listener)
     EWAY_cam_active = TRUE;
 }
 
-#ifdef MATTS_BUGGY_VERSION
-
-void EWAY_cam_converse(Thing* p_thing, Thing* p_listener, UBYTE cam_flags)
-{
-    SLONG thing_yaw, yaw;
-    SLONG dx, dy, dz;
-    SLONG cx, cy, cz;
-    GameCoord targ;
-    static UBYTE lineside = 0;
-    static UWORD tick = 0;
-    static Thing* p_last1 = 0;
-    static Thing* p_last2 = 0;
-    static UBYTE lastflags = 0;
-
-    // debug force:
-    // cam_flags=32|3|16;
-    cam_flags = 1;
-
-    if ((p_thing == 0) && (p_listener == 0)) {
-        p_thing = p_last1;
-        p_listener = p_last2;
-        cam_flags = lastflags;
-    } else {
-        if ((p_thing != p_last1) || (p_listener != p_last2) || (cam_flags != lastflags)) { // new scene
-
-            if (!(lastflags & 16))
-                lineside ^= 1;
-            p_last1 = p_thing;
-            p_last2 = p_listener;
-            lastflags = cam_flags;
-            tick = 0;
-        }
-    }
-
-    // get round to making some #defs soon
-    // for the moment, bits 0-2 (values 0-7) indicate which shot to use
-    // bit 3 (8) is zoom flag
-    // bit 4 (16) is cross-line flag
-    // bit 5 (32) is drift flag
-    // bit 6 (64) isn't used yet
-    // bit 7 (128) inverts the meaning of movement options
-
-    //
-    // What direction is the thing facing in?
-    //
-
-    dy = 140 << 8;
-
-    switch (p_thing->Class) {
-    case CLASS_PERSON:
-        thing_yaw = p_thing->Draw.Tweened->Angle;
-        break;
-
-    case CLASS_VEHICLE:
-        thing_yaw = p_thing->Genus.Vehicle->Angle;
-        break;
-
-    default:
-        ASSERT(0);
-        break;
-    }
-
-    EWAY_cam_thing = 0;
-    EWAY_cam_waypoint = NULL;
-    EWAY_cam_target = NULL;
-
-    switch (cam_flags & 7) {
-    case 0: // 1-shot closeup
-        dx = -SIN(thing_yaw & 2047);
-        dz = -COS(thing_yaw & 2047);
-        targ = p_thing->WorldPos;
-        EWAY_cam_targx = p_thing->WorldPos.X;
-        EWAY_cam_targy = p_thing->WorldPos.Y + (0x80 << 8);
-        EWAY_cam_targz = p_thing->WorldPos.Z;
-
-        break;
-    case 1: // 1-shot medium
-        yaw = thing_yaw;
-        if (lineside)
-            yaw += 260;
-        else
-            yaw -= 260;
-        dx = -SIN(yaw & 2047);
-        dx += (dx >> 1);
-        dz = -COS(yaw & 2047);
-        dz += (dz >> 1);
-        targ = p_thing->WorldPos;
-        EWAY_cam_targx = p_thing->WorldPos.X;
-        EWAY_cam_targy = p_thing->WorldPos.Y + (0x60 << 8);
-        EWAY_cam_targz = p_thing->WorldPos.Z;
-
-        break;
-    case 2: // 2-shot medium (actually, it's a long shot right now)
-        yaw = thing_yaw;
-        if (lineside)
-            yaw += 512;
-        else
-            yaw -= 512;
-        dx = -SIN(yaw & 2047) << 2;
-        dz = -COS(yaw & 2047) << 2;
-        EWAY_cam_targx = targ.X = (p_thing->WorldPos.X + p_listener->WorldPos.X) >> 1;
-        EWAY_cam_targy = targ.Y = ((p_thing->WorldPos.Y + p_listener->WorldPos.Y) >> 1) + (0x80 << 8);
-        EWAY_cam_targz = targ.Z = (p_thing->WorldPos.Z + p_listener->WorldPos.Z) >> 1;
-        break;
-    case 3: // 2-shot shoulder
-        /*		EWAY_cam_targx	  = (p_thing->WorldPos.X+p_listener->WorldPos.X)>>1;
-                        EWAY_cam_targy	  = ((p_thing->WorldPos.Y+p_listener->WorldPos.Y)>>1)+(0x80<<8);
-                        EWAY_cam_targz	  = (p_thing->WorldPos.Z+p_listener->WorldPos.Z)>>1;*/
-        yaw = thing_yaw; // heh.
-        dy = 160 << 8;
-        targ = p_listener->WorldPos;
-        if (lineside)
-            yaw -= 200;
-        else
-            yaw += 200;
-        dx = -SIN(yaw & 2047);
-        dz = -COS(yaw & 2047);
-        EWAY_cam_targx = p_thing->WorldPos.X + dx;
-        EWAY_cam_targy = p_thing->WorldPos.Y + dy;
-        EWAY_cam_targz = p_thing->WorldPos.Z + dz;
-        yaw = thing_yaw;
-        if (cam_flags & 16) {
-            //			yaw=(SIN(tick)>>7)-256;
-            yaw = (COS(tick << 2) >> 8);
-            if (lineside)
-                yaw = -yaw;
-            yaw += thing_yaw;
-        } else {
-            if (lineside)
-                yaw += 200;
-            else
-                yaw -= 200;
-        }
-        dx = (SIN(yaw & 2047) >> 2) - SIN(yaw & 2047);
-        dz = (COS(yaw & 2047) >> 2) - COS(yaw & 2047);
-        break;
-    }
-
-    EWAY_cam_x = targ.X + dx;
-    EWAY_cam_y = targ.Y + dy;
-    EWAY_cam_z = targ.Z + dz;
-    EWAY_cam_active = TRUE;
-    EWAY_cam_freeze = (cam_flags & 32) ? 0 : 1;
-
-    FC_move_to(0, EWAY_cam_x >> 8, EWAY_cam_y >> 8, EWAY_cam_z >> 8);
-    if (tick < 512)
-        tick += 4;
-}
-
-#endif
 void EWAY_cam_look_at(Thing* p_thing)
 {
     SLONG i;
@@ -6974,139 +6794,4 @@ void EWAY_deduct_time_penalty(SLONG time_to_deduct_in_hundreths_of_a_second)
     }
 }
 
-#ifdef UNFINISHED
-void flag_undeletable_people(void)
-{
-    EWAY_Way* ew;
-    EWAY_Cond* ec;
-    SLONG i;
-
-    for (i = 1; i < eway_max; i++) {
-        ew = &EWAY_way[i];
-
-        switch (ew->type) {
-        }
-    }
-
-    for (i = 1; i < eway_cond_upto; i++) {
-        ec = &EWAY_cond[i];
-
-        switch (ew->type) {
-        case EWAY_COND_HALF_DEAD:
-        case EWAY_COND_IS_MURDERER:
-            SLONG i_person = EWAY_get_person(ec->arg1);
-
-        case EWAY_COND_PERSON_USED:
-            if (ec->arg1) {
-                ASSERT(WITHIN(ec->arg1, 1, EWAY_way_upto - 1));
-
-                if (EWAY_way[ec->arg1].ed.type == EWAY_DO_CREATE_ENEMY) {
-                    EWAY_Way* ew2 = &EWAY_way[ec->arg1];
-
-                    if (ew2->ed.arg1) {
-                        //
-                        // Set the PERSON_FLAG_USEABLE so that when the player
-                        // presses use near this person the waypoint system
-                        // will be alerted.
-                        //
-
-                        ASSERT(TO_THING(ew2->ed.arg1)->Class == CLASS_PERSON);
-
-                        TO_THING(ew2->ed.arg1)->Genus.Person->Flags |= FLAG_PERSON_USEABLE;
-                    }
-                }
-            }
-            break;
-
-        case EWAY_COND_PERSON_ARRESTED:
-            ans = FALSE; // By default.
-
-            if (ec->arg1 == 0) {
-                //
-                // Hmm... person waypoint not set.
-                //
-#ifndef FINAL
-                // PANEL_new_text(NULL, 4000, "Waypoint %d (arrest) is invalid", ew->id);
-#endif
-
-                ew->flag |= EWAY_FLAG_DEAD;
-            } else {
-                ASSERT(WITHIN(ec->arg1, 1, EWAY_way_upto - 1));
-                ASSERT(
-                    EWAY_way[ec->arg1].ed.type == EWAY_DO_CREATE_ENEMY || EWAY_way[ec->arg1].ed.type == EWAY_DO_CREATE_PLAYER);
-
-                UWORD index = EWAY_way[ec->arg1].ed.arg1;
-
-                if (index) {
-                    Thing* p_person = TO_THING(index);
-
-                    ASSERT(p_person->Class == CLASS_PERSON);
-
-                    ans = !!(p_person->Genus.Person->Flags & FLAG_PERSON_ARRESTED) && (p_person->SubState == SUB_STATE_DEAD_ARRESTED);
-                }
-            }
-
-        case EWAY_COND_KILLED_NOT_ARRESTED: {
-            SLONG waypoint;
-            SLONG index;
-
-            Thing* p_thing;
-            EWAY_Way* ew_dead;
-
-            waypoint = ec->arg1;
-
-            if (waypoint == 0) {
-                CBYTE mess[128];
-
-                sprintf(mess, "Waypoint %d: cond person dead has NULL dependency", ew->id);
-
-                CONSOLE_text(mess, 8000);
-                ew->flag |= EWAY_FLAG_DEAD;
-            } else {
-                ew_dead = &EWAY_way[waypoint];
-
-                switch (ew_dead->ed.type) {
-                case EWAY_DO_CREATE_PLAYER:
-                case EWAY_DO_CREATE_ENEMY:
-
-                    index = ew_dead->ed.arg1;
-
-                    if (index) {
-                        p_thing = TO_THING(index);
-
-                        ASSERT(p_thing->Class == CLASS_PERSON);
-
-                        if (p_thing->State == STATE_DEAD) {
-                            //
-                            // Not if they're arrested.
-                            //
-
-                            if (!(p_thing->Genus.Person->Flags & FLAG_PERSON_ARRESTED)) {
-                                ans = TRUE;
-                            }
-                        }
-                    }
-
-                    break;
-
-                default:
-
-                {
-                    CBYTE mess[128];
-
-                    sprintf(mess, "Waypoint %d: killed not arrested dependent on odd waypoint", ew->id);
-
-                    CONSOLE_text(mess, 8000);
-
-                    ew->flag |= EWAY_FLAG_DEAD;
-                }
-
-                break;
-                }
-            }
-        }
-        }
-    }
-}
-#endif
 

@@ -741,13 +741,6 @@ static void TEXTURE_load_page(SLONG page)
         // This is a world texture.
         //
 
-#if TEXTURE_ENABLE_DC_PACKING
-
-        TEXTURE_DC_pack_load_page(page);
-
-        return;
-
-#endif
 
         sprintf(name_res32, "%stex%03d.tga", TEXTURE_world_dir, page);
         sprintf(name_res64, "%stex%03dhi.tga", TEXTURE_world_dir, page);
@@ -1761,21 +1754,12 @@ void TEXTURE_get_minitexturebits_uvs(
 
     SLONG num;
 
-#if TEXTURE_ENABLE_DC_PACKING
-
-    float base_u;
-    float base_v;
-
-    float base_size;
-
-#else
 
     static const float base_u = 0.0F;
     static const float base_v = 0.0F;
 
     static const float base_size = 1.0F;
 
-#endif
 
     num = texture & 0x3ff;
 
@@ -1789,48 +1773,6 @@ void TEXTURE_get_minitexturebits_uvs(
 
     *page = num;
 
-#if TEXTURE_ENABLE_DC_PACKING
-
-    if (num < 256) {
-        //
-        // Remap this texture?
-        //
-
-        *page = TEXTURE_DC_pack[num].page;
-
-        if (TEXTURE_DC_pack[num].pos == TEXTURE_DC_PACK_POS_WHOLE_PAGE) {
-            base_u = 0.0F;
-            base_v = 0.0F;
-            base_size = 1.0F;
-        } else {
-            static struct
-            {
-                float base_u;
-                float base_v;
-
-            } pos_base[9] = {
-                { 0.125F + 0.25F * 0, 0.125F + 0.25F * 0 },
-                { 0.125F + 0.25F * 1, 0.125F + 0.25F * 0 },
-                { 0.125F + 0.25F * 2, 0.125F + 0.25F * 0 },
-
-                { 0.125F + 0.25F * 0, 0.125F + 0.25F * 1 },
-                { 0.125F + 0.25F * 1, 0.125F + 0.25F * 1 },
-                { 0.125F + 0.25F * 2, 0.125F + 0.25F * 1 },
-
-                { 0.125F + 0.25F * 0, 0.125F + 0.25F * 2 },
-                { 0.125F + 0.25F * 1, 0.125F + 0.25F * 2 },
-                { 0.125F + 0.25F * 2, 0.125F + 0.25F * 2 },
-            };
-
-            ASSERT(WITHIN(TEXTURE_DC_pack[num].pos, 0, 8));
-
-            base_u = pos_base[TEXTURE_DC_pack[num].pos].base_u;
-            base_v = pos_base[TEXTURE_DC_pack[num].pos].base_v;
-            base_size = 64.0F / 256.0F;
-        }
-    }
-
-#endif
 
     if (*page >= TEXTURE_page_num_standard) {
         *page = 0;

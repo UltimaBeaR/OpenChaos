@@ -94,9 +94,7 @@ SLONG CAM_cur_x, CAM_cur_y, CAM_cur_z,
     CAM_cur_yaw, CAM_cur_pitch, CAM_cur_roll; // these are set appropriate to whichever cam
 
 
-//
 // The editor.
-//
 
 SLONG save_psx = 0; // this was nicked from edit.cpp in the editor...
 
@@ -104,32 +102,15 @@ SLONG save_psx = 0; // this was nicked from edit.cpp in the editor...
 
 extern UBYTE editor_loop(void);
 extern BOOL allow_debug_keys;
-//
 // Nearly everything in the whole game.
-//
 
-//
-// FOR PC for GERMAN/French we only need edit this file
-//
 
-// #define	VERSION_GERMAN	1
-// #define	VERSION_FRENCH	1
 
 // claude-ai: VIOLENCE_ALLOWED — всегда 1 в стандартной сборке. 0 только для немецкой/французской PC версии.
 // claude-ai: В новой игре: всегда 1, немецкую/французскую цензуру не переносить.
 #define VIOLENCE_ALLOWED 1
 
-#ifdef VERSION_GERMAN
-// #error
-#undef VIOLENCE_ALLOWED
-#define VIOLENCE_ALLOWED 0
-#endif
 
-#ifdef VERSION_FRENCH
-// #error
-#undef VIOLENCE_ALLOWED
-#define VIOLENCE_ALLOWED 0
-#endif
 
 Game the_game;
 UBYTE VIOLENCE = VIOLENCE_ALLOWED;
@@ -146,10 +127,8 @@ void stop_all_fx_and_music()
     MFX_stop(MFX_CHANNEL_ALL, MFX_WAVE_ALL);
 }
 
-//
 // Loads data that only needs to be loaded once, or after we exit
 // the editor.
-//
 
 
 // claude-ai: global_load() — однократная загрузка глобальных данных (аним., примитивы). Только PC/не-DC.
@@ -270,9 +249,7 @@ void game_shutdown(void)
 //---------------------------------------------------------------
 
 
-//
 // Playback file stuff....
-//
 
 // extern CBYTE       *playback_name = "Data\\Game.pkt";
 extern CBYTE* playback_name = "C:\\Windows\\Desktop\\UrbanChaosRecordedGame.pkt";
@@ -282,17 +259,13 @@ extern CBYTE* verifier_name = "C:\\Windows\\Desktop\\UrbanChaosRecordedGame.tst"
 extern MFFileHandle verifier_file;
 
 
-//
 // The player position is loaded into here by load_level()
-//
 
 extern GameCoord player_pos;
 
 //---------------------------------------------------------------
 
-//
 // These #defines are nicked from interface.cpp
-//
 
 #define AXIS_CENTRE 32768
 #define NOISE_TOLERANCE 1024
@@ -301,9 +274,7 @@ extern GameCoord player_pos;
 
 extern DIJOYSTATE the_state;
 
-//
 // Does the game paused stuff...
-//
 
 #define PAUSED_KEY_START (1 << 0)
 #define PAUSED_KEY_UP (1 << 1)
@@ -326,9 +297,7 @@ extern ULONG text_colour;
 extern void draw_centre_text_at(float x, float y, CBYTE* message, SLONG font_id, SLONG flag);
 extern void draw_text_at(float x, float y, CBYTE* message, SLONG font_id);
 
-//
 // Prints up stuff to the screen...
-//
 #define NUM_BULLETS 15
 
 CBYTE* bullet_point[NUM_BULLETS] = {
@@ -434,20 +403,12 @@ BOOL game_init(void)
     if (GAME_STATE & GS_RECORD) {
         DebugText(" PLAYBACK GAME\n");
         playback_file = FileCreate(playback_name, TRUE);
-#if VERIFY_PLAYBACK
-        verifier_file = FileCreate(verifier_name, TRUE);
-#else
         verifier_file = NULL;
-#endif
     } else if (GAME_STATE & GS_PLAYBACK) {
 
         DebugText(" RECORD GAME\n");
         playback_file = FileOpen(playback_name);
-#if VERIFY_PLAYBACK
-        verifier_file = FileOpen(verifier_name);
-#else
         verifier_file = NULL;
-#endif
     }
 
     if (playback_file == FILE_CREATION_ERROR) {
@@ -765,32 +726,6 @@ void game(void)
 {
     game_startup();
 
-#ifdef VERSION_DEMO
-    InitBackImage("demotitle.tga");
-
-    for (;;) {
-        MSG msg;
-
-        if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
-            if (msg.message == WM_QUIT)
-                break;
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        } else {
-            ULONG input = get_hardware_input(INPUT_TYPE_JOY) | get_hardware_input(INPUT_TYPE_KEY);
-
-            if (input & (INPUT_MASK_JUMP | INPUT_MASK_START | INPUT_MASK_SELECT | INPUT_MASK_KICK | INPUT_MASK_PUNCH | INPUT_MASK_ACTION)) {
-                break;
-            }
-        }
-
-        ShowBackImage(FALSE);
-        the_display.Flip(NULL, DDFLIP_WAIT);
-    }
-
-    ResetBackImage();
-
-#endif
 
 
     // claude-ai: Главный цикл: SHELL_ACTIVE = окно живо, GAME_STATE = текущее состояние (битовое поле)
@@ -812,30 +747,6 @@ void game(void)
         }
     }
 
-#ifdef VERSION_DEMO
-    InitBackImage("demoendscreen.tga");
-
-    for (;;) {
-        MSG msg;
-
-        if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
-            if (msg.message == WM_QUIT)
-                break;
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        } else {
-            ULONG input = get_hardware_input(INPUT_TYPE_JOY) | get_hardware_input(INPUT_TYPE_KEY);
-            if (input & (INPUT_MASK_JUMP | INPUT_MASK_START | INPUT_MASK_SELECT | INPUT_MASK_KICK | INPUT_MASK_PUNCH | INPUT_MASK_ACTION)) {
-                break;
-            }
-        }
-
-        ShowBackImage(FALSE);
-        the_display.Flip(NULL, DDFLIP_WAIT);
-    }
-
-    ResetBackImage();
-#endif
 
     TRACE("game before shutdown\n");
 
@@ -940,9 +851,7 @@ SLONG form_left_map = 0;
 //****************************************************************
 //****************************************************************
 
-//
 // don't let the game run faster than this framerate by making you sit in a check the clock loop
-//
 // claude-ai: Ограничение FPS: spin-loop busy-wait через GetTickCount() до истечения 1000/fps мс
 // claude-ai: По умолчанию fps=30 (из config.ini "max_frame_rate"). Не вызывается на PSX/DC.
 void lock_frame_rate(SLONG fps)
@@ -966,32 +875,11 @@ void lock_frame_rate(SLONG fps)
 // claude-ai: Используется только для демо-версий (TIMEOUT_DEMO=0 в коде → функция ничего не делает).
 void demo_timeout(SLONG flag)
 {
-#if TIMEOUT_DEMO
-
-    static SLONG time_start = 0;
-    static SLONG timeout = 0;
-    SLONG time_now;
-
-    if (flag) {
-        time_start = GetTickCount();
-        timeout = ENV_get_value_number("timeout", 300) * 1000;
-    } else {
-        time_now = GetTickCount();
-
-        if (time_now - time_start > timeout) {
-            GAME_STATE = 0;
-        }
-    }
-#endif
 }
 
-//
 // Move off the edge of map test and dodgy widget stuff
-//
 
-//
 // Provided in two parts
-//
 // claude-ai: do_leave_map_form() — обрабатывает и рисует диалог "Leave map?" (PC-only).
 // claude-ai: При подтверждении (ret==2) устанавливает GAME_STATE=0 (выход), останавливает машину/байк игрока.
 void do_leave_map_form(void)
@@ -1035,9 +923,7 @@ void do_leave_map_form(void)
     }
 }
 
-//
 // psx camera stuff (the PC does it in the engine?)
-//
 // claude-ai: psx_camera() — устанавливает матрицу камеры на PSX. На PC всегда возвращает 0.
 // claude-ai: Сначала проверяет EWAY_grab_camera() (камера катсцены), иначе использует FC_cam[0].
 // claude-ai: На PC камера управляется внутри AENG_draw(). Функция по сути мертва для PC. Не переносить.
@@ -1056,9 +942,7 @@ SLONG psx_camera(void)
     return 0; // <-- otherwise error C4716: 'psx_camera' : must return a value
 }
 
-//
 // Get what yoiu have drawn onto the Screen
-//
 // claude-ai: screen_flip() — финальный шаг кадра: делает скриншот если нужно, затем AENG_blit() или AENG_flip().
 // claude-ai: На primary device (не 3DFX) использует blit; на 3DFX/DC — flip. На PSX сбрасывает вибрацию на экране смерти.
 // claude-ai: В новой игре: просто вызов SwapBuffers()/Present(). Логика vib-сброса вошла в платформо-специфику.
@@ -1122,9 +1006,7 @@ void playback_game_keys(void)
     }
 }
 
-//
 // For those funny fanny keys the PC likes to use
-//
 
 // claude-ai: special_keys() — обрабатывает отладочные клавиши PC: Ctrl+E → редактор, Ctrl+Q → выход, ' → single_step.
 // claude-ai: В режиме single_step запятая ',' делает один шаг process_things(0). Не переносить в новую игру как есть.
@@ -1165,9 +1047,7 @@ SLONG special_keys(void)
     return (0);
 }
 
-//
 // Sound stuff, ask Matt
-//
 // claude-ai: handle_sfx() — обновление звука каждый кадр: MUSIC_mode_process(), MFX_set_listener() по позиции игрока/камеры,
 // claude-ai: process_ambient_effects() + process_weather() (PC), MFX_update().
 // claude-ai: BARREL_fx_rate уменьшается на 2 каждый кадр — ограничитель частоты звука взрыва бочек.
@@ -1229,9 +1109,7 @@ SLONG should_i_process_game(void)
     return (0);
 }
 
-//
 // engine or map, psx or pc, these are some of the questions we shall be resolving at compile time and runtime in the coming lines of code
-//
 
 void draw_debug_lines(void);
 

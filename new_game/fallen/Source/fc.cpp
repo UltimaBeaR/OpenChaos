@@ -390,9 +390,7 @@ void FC_calc_focus(FC_Cam* fc)
             SLONG yaw_car;
 
             yaw_car = p_vehicle->Genus.Vehicle->Angle;
-#ifndef VERSION_NTSC
             yaw_car -= p_vehicle->Genus.Vehicle->WheelAngle * p_vehicle->Velocity >> 10;
-#endif
 
             if (p_vehicle->Velocity < 0) {
                 yaw_car += 1024;
@@ -1496,20 +1494,10 @@ void FC_process()
                     // Bigger force when away from walls.
                     //
 
-#ifdef VERSION_NTSC
-                    if (analogue || (fc->focus->Genus.Person->Ware)) {
-                        fc->want_x += dx >> 3; // was 3
-                        fc->want_z += dz >> 3;
-                    } else {
-                        fc->want_x += dx >> 1; // was 3
-                        fc->want_z += dz >> 1;
-                    }
-#else
                     {
                         fc->want_x += dx >> 3; // was 3
                         fc->want_z += dz >> 3;
                     }
-#endif
 
                     if (person_has_gun_out(fc->focus) && !(fc->focus->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_BIKING))) {
                         //
@@ -1924,15 +1912,9 @@ void FC_position_for_lookaround(SLONG cam, SLONG pitch)
         fc->focus_yaw,
         pitch);
 
-#ifdef PSX_NOT_REALLY
-    fc->want_x = fc->focus_x + (vector[0] >> 2);
-    fc->want_y = fc->focus_y + 0xb000 + (vector[1] >> 2);
-    fc->want_z = fc->focus_z + (vector[2] >> 2);
-#else
     fc->want_x = fc->focus_x + (vector[0] * 3 >> 2);
     fc->want_y = fc->focus_y + 0xb000 + (vector[1] * 3 >> 2);
     fc->want_z = fc->focus_z + (vector[2] * 3 >> 2);
-#endif
 
     fc->toonear = TRUE;
     fc->toonear_dist = 0x90000;

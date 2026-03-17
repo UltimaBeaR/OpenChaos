@@ -238,62 +238,13 @@ void FileSetBasePath(CBYTE* path_name)
 //---------------------------------------------------------------
 
 // Do NOT mix and match MF_FOpen/MF_FClose with the above - they don't mingle.
-#ifdef TARGET_DC
-static TCHAR pchTcharVersion[100];
-// static TCHAR pchTcharMode[5];
-#endif
 FILE* MF_Fopen(const char* file_name, const char* mode)
 {
     if (!FileExists((char*)file_name)) {
         return NULL;
     }
     file_name = MakeFullPathName(file_name);
-#ifdef TARGET_DC
-
-    // Apparently fopen causes a memory leak.
-
-#if 1
-    ASSERT(mode[0] == 'r');
-    ASSERT(mode[2] == '\0');
-    TCHAR* pchTcharMode;
-    if (mode[1] == 't') {
-        pchTcharMode = TEXT("rt");
-    } else {
-        ASSERT(mode[1] == 'b');
-        pchTcharMode = TEXT("rb");
-    }
-#else
-    pc1 = mode;
-    ASSERT(strlen(mode) < 3);
-    pc2 = pchTcharMode;
-    while (*pc1 != '\0') {
-        *pc2++ = (TCHAR)(*pc1++);
-    }
-    *pc2++ = TEXT('\0');
-#endif
-
-    const char* pc1 = file_name;
-    ASSERT(strlen(file_name) < 80);
-    TCHAR* pc2 = pchTcharVersion;
-    while (*pc1 != '\0') {
-        *pc2++ = (TCHAR)(*pc1++);
-    }
-    *pc2++ = TEXT('\0');
-
-    FILE* res = _wfopen(pchTcharVersion, pchTcharMode);
-#ifdef DEBUG
-    if (res != NULL) {
-        m_iNumOpenFiles_MF_Fopen++;
-        if (m_iNumOpenFiles_MF_Fopen > 1) {
-            TRACE("MF_Fopen nested %i\n", m_iNumOpenFiles_MF_Fopen);
-        }
-        strncpy(pcPrevFilenameOpened, file_name, 256);
-    }
-#endif
-    return (res);
-#else
     return (fopen((char*)file_name, (char*)mode));
-#endif
 }
 
 //---------------------------------------------------------------

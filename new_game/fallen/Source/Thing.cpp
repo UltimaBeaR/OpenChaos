@@ -942,17 +942,6 @@ void process_things(SLONG frame_rate_independant)
 
         {
 
-#ifdef PSX_STERN_REVENGE_BUG_AND_CRAP_DRIVERS
-            poo
-
-                SLONG dx,
-                dz;
-
-            dx = abs(POLY_cam_x - (p_thing->WorldPos.X >> 8));
-            dz = abs(POLY_cam_z - (p_thing->WorldPos.Z >> 8));
-
-            if (QDIST2(dx, dz) < (40 << 8))
-#endif
             {
                 if (p_thing->Genus.Person->InCar) {
                 }

@@ -1585,37 +1585,6 @@ void VEH_collide_find_things(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG igno
             break;
 
         case CLASS_ANIM_PRIM:
-#ifdef ANIM_PRIMS
-            if (should_i_collide_against_this_anim_prim(p_found)) {
-                apb = &anim_prim_bbox[p_found->Index];
-                pi = get_prim_info(p_found->Index);
-
-                // Simple bounding circle rejection.
-
-                dx = abs((p_found->WorldPos.X >> 8) - x);
-                dz = abs((p_found->WorldPos.Z >> 8) - z);
-
-                dist = QDIST2(dx, dz);
-
-                if (dist <= radius + pi->radius + 0x10) {
-                    vc = &VEH_col[VEH_col_upto++];
-
-                    vc->type = VEH_COL_TYPE_BBOX;
-                    vc->ob_index = NULL;
-                    vc->veh = NULL;
-                    vc->mid_x = p_found->WorldPos.X >> 8;
-                    vc->mid_y = p_found->WorldPos.Y >> 8;
-                    vc->mid_z = p_found->WorldPos.Z >> 8;
-                    vc->height = apb->maxy;
-                    vc->min_x = apb->minx;
-                    vc->min_z = apb->minz;
-                    vc->max_x = apb->maxx;
-                    vc->max_z = apb->maxz;
-
-                    vc->radius_or_yaw = p_found->Draw.Tweened->Angle; // (= yaw for a BBOX)
-                }
-            }
-#endif
             break;
 
 // claude-ai: BIKE SYSTEM — unfinished, do not port
@@ -2148,28 +2117,10 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
     veh->VelY = p_car->WorldPos.Y - old_y;
     p_car->WorldPos.Y = old_y;
 
-#if DUMP_COORDS
-    GetCarPoints(p_car, x, y, z, 0);
-
-    if (is_driven_by_player(p_car)) {
-        TRACE("Before move\n");
-        for (ii = 0; ii < 4; ii++) {
-            TRACE("[%d] = %8.8X %8.8X %8.8X\n", ii, x[ii], y[ii], z[ii]);
-        }
-    }
-#endif
 
     // generate corner points of the car, pushed out slightly
     GetCarPoints(p_car, x, y, z, step);
 
-#if DUMP_COORDS
-    if (is_driven_by_player(p_car)) {
-        TRACE("After move\n");
-        for (ii = 0; ii < 4; ii++) {
-            TRACE("[%d] = %8.8X %8.8X %8.8X\n", ii, x[ii], y[ii], z[ii]);
-        }
-    }
-#endif
 
     UBYTE flags = 0, pflags = 0;
     static UBYTE flags_to_code[16] = {
@@ -2465,14 +2416,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
     // regenerate car points for new position
     GetCarPoints(p_car, x, y, z, step);
 
-#if DUMP_COORDS
-    if (is_driven_by_player(p_car)) {
-        TRACE("After bounce\n");
-        for (ii = 0; ii < 4; ii++) {
-            TRACE("[%d] = %8.8X %8.8X %8.8X\n", ii, x[ii], y[ii], z[ii]);
-        }
-    }
-#endif
 
     // check each edge against the walls
     if (!VEH_collide_line_ignore_walls) {
@@ -2489,21 +2432,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
                 p_car->Velocity = 0;
                 veh->Skid = SKID_START;
 
-#if DUMP_COORDS
-                if (is_driven_by_player(p_car)) {
-                    GetCarPoints(p_car, x, y, z, step);
-
-                    TRACE("After halt vs walls\n");
-                    for (ii = 0; ii < 4; ii++) {
-                        TRACE("[%d] = %8.8X %8.8X %8.8X\n", ii, x[ii], y[ii], z[ii]);
-                    }
-
-                    for (ii = 0; ii < 4; ii++) {
-                        int jj = (ii + 1) & 3;
-                        ASSERT(!there_is_a_los_car(x[ii], y[ii], z[ii], x[jj], y[jj], z[jj]));
-                    }
-                }
-#endif
                 return 1;
             }
         }
@@ -2546,30 +2474,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
                             veh->VelZ = 0;
                             veh->VelR = 0;
                             p_car->Velocity = 0;
-#if DUMP_COORDS
-                            if (is_driven_by_player(p_car)) {
-                                GetCarPoints(p_car, x, y, z, step);
-
-                                TRACE("After halt vs square prim\n");
-                                for (ii = 0; ii < 4; ii++) {
-                                    TRACE("[%d] = %8.8X %8.8X %8.8X\n", ii, x[ii], y[ii], z[ii]);
-                                }
-
-                                for (jj = 0; jj < 4; jj++) {
-                                    int kk = (jj + 1) & 3;
-
-                                    ASSERT(!collide_box_with_line(vc->mid_x,
-                                        vc->mid_z,
-                                        vc->min_x + 0x10,
-                                        vc->min_z + 0x10,
-                                        vc->max_x - 0x10,
-                                        vc->max_z - 0x10,
-                                        vc->radius_or_yaw,
-                                        x[jj], z[jj],
-                                        x[kk], z[kk]));
-                                }
-                            }
-#endif
                             return 1;
                         }
                     }
@@ -2580,14 +2484,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
                 if (slide) {
                     GetCarPoints(p_car, x, y, z, step);
 
-#if DUMP_COORDS
-                    if (is_driven_by_player(p_car)) {
-                        TRACE("After slide (square prim)\n");
-                        for (ii = 0; ii < 4; ii++) {
-                            TRACE("[%d] = %8.8X %8.8X %8.8X\n", ii, x[ii], y[ii], z[ii]);
-                        }
-                    }
-#endif
                 }
             } while (slide);
         } else {
@@ -2621,22 +2517,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
                             veh->VelZ = 0;
                             veh->VelR = 0;
                             p_car->Velocity = 0;
-#if DUMP_COORDS
-                            if (is_driven_by_player(p_car)) {
-                                GetCarPoints(p_car, x, y, z, step);
-
-                                TRACE("After halt vs round prim\n");
-                                for (ii = 0; ii < 4; ii++) {
-                                    TRACE("[%d] = %8.8X %8.8X %8.8X\n", ii, x[ii], y[ii], z[ii]);
-                                }
-
-                                for (jj = 0; jj < 4; jj++) {
-                                    int kk = (jj + 1) & 3;
-
-                                    ASSERT(distance_to_line(x[jj], z[jj], x[kk], z[kk], vc->mid_x, vc->mid_z) >= vc->radius_or_yaw - 0x10);
-                                }
-                            }
-#endif
                             return 1;
                         }
                     }
@@ -2647,14 +2527,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
                 if (slide) {
                     GetCarPoints(p_car, x, y, z, step);
 
-#if DUMP_COORDS
-                    if (is_driven_by_player(p_car)) {
-                        TRACE("After slide (round prim)\n");
-                        for (ii = 0; ii < 4; ii++) {
-                            TRACE("[%d] = %8.8X %8.8X %8.8X\n", ii, x[ii], y[ii], z[ii]);
-                        }
-                    }
-#endif
                 }
             } while (slide);
         }

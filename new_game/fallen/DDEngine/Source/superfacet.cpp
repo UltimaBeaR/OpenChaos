@@ -388,19 +388,6 @@ void SUPERFACET_create_points(SLONG facet)
         count = abs(dz) >> 8;
     }
 
-#ifdef TESSELATE_DEGREE
-    if (dx == 0) {
-        if (dz > 0) {
-            m_iFacetDirection = 3;
-        } else {
-            m_iFacetDirection = 2;
-        }
-    } else if (dx > 0) {
-        m_iFacetDirection = 0;
-    } else {
-        m_iFacetDirection = 1;
-    }
-#endif
 
     count++; // Count is the number of points, not the number of texture squares...
 
@@ -502,126 +489,6 @@ void SUPERFACET_fill_facet_points(
             // Add this quad to the call structure. First four points.
             //
 
-#ifdef TESSELATE_DEGREE
-            // Make some more.
-
-            float fXNorm, fZNorm;
-            switch (m_iFacetDirection) {
-            case 0:
-                fZNorm = 1.0f;
-                fXNorm = 0.0f;
-                break;
-            case 1:
-                fZNorm = -1.0f;
-                fXNorm = 0.0f;
-                break;
-            case 2:
-                fZNorm = 0.0f;
-                fXNorm = 1.0f;
-                break;
-            case 3:
-                fZNorm = 0.0f;
-                fXNorm = -1.0f;
-                break;
-            }
-            // Random scale.
-            fXNorm *= 64.0f;
-            fZNorm *= 64.0f;
-
-            j = 0;
-            int iX, iY;
-            for (iY = 0; iY <= TESSELATE_DEGREE; iY++) {
-                for (iX = 0; iX <= TESSELATE_DEGREE; iX++) {
-                    float fXLerp = (float)iX / (float)TESSELATE_DEGREE;
-                    float fYLerp = (float)iY / (float)TESSELATE_DEGREE;
-                    int iPerturb = (iX << 6) ^ (iX << 3) ^ (iY << 5) ^ (iY << 1) ^ (page << 1) ^ (page << 5);
-                    float fPerturb = (float)(iPerturb & 0xff) * (1.0f / 256.0f) - 0.5f;
-                    // Stop boring flat perturbs.
-                    if ((fPerturb > -0.2f) || (fPerturb < 0.2f)) {
-                        fPerturb *= 5.0f;
-                    }
-                    if ((iX == 0) || (iX == TESSELATE_DEGREE) || (iY == 0) || (iY == TESSELATE_DEGREE)) {
-                        // Edges smooth.
-                        fPerturb = 0.0f;
-                    }
-
-                    float fX1 = (quad[0]->x * fXLerp) + (quad[1]->x * (1.0f - fXLerp));
-                    float fX2 = (quad[2]->x * fXLerp) + (quad[3]->x * (1.0f - fXLerp));
-                    float fY1 = (quad[0]->y * fXLerp) + (quad[1]->y * (1.0f - fXLerp));
-                    float fY2 = (quad[2]->y * fXLerp) + (quad[3]->y * (1.0f - fXLerp));
-                    float fZ1 = (quad[0]->z * fXLerp) + (quad[1]->z * (1.0f - fXLerp));
-                    float fZ2 = (quad[2]->z * fXLerp) + (quad[3]->z * (1.0f - fXLerp));
-                    float fU1 = (quad[0]->u * fXLerp) + (quad[1]->u * (1.0f - fXLerp));
-                    float fU2 = (quad[2]->u * fXLerp) + (quad[3]->u * (1.0f - fXLerp));
-                    float fV1 = (quad[0]->v * fXLerp) + (quad[1]->v * (1.0f - fXLerp));
-                    float fV2 = (quad[2]->v * fXLerp) + (quad[3]->v * (1.0f - fXLerp));
-                    float fX = (fX1 * fYLerp) + (fX2 * (1.0f - fYLerp));
-                    float fY = (fY1 * fYLerp) + (fY2 * (1.0f - fYLerp));
-                    float fZ = (fZ1 * fYLerp) + (fZ2 * (1.0f - fYLerp));
-                    float fU = (fU1 * fYLerp) + (fU2 * (1.0f - fYLerp));
-                    float fV = (fV1 * fYLerp) + (fV2 * (1.0f - fYLerp));
-
-                    ASSERT(WITHIN(SUPERFACET_lvert_upto + j, 0, SUPERFACET_MAX_LVERTS - 1));
-
-                    lv = &SUPERFACET_lvert[SUPERFACET_lvert_upto + j];
-
-                    lv->x = fX + fPerturb * fXNorm;
-                    lv->y = fY;
-                    lv->z = fZ + fPerturb * fZNorm;
-#ifdef SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB
-                    if (m_bShowDebuggingInfo) {
-                        // Make a pretty colour from the call pointer,
-                        // so we can see the efficiency.
-                        DWORD dwColour = (DWORD)sc;
-                        dwColour = (dwColour >> 2) ^ (dwColour >> 6) ^ (dwColour) ^ (dwColour << 3);
-                        dwColour = (dwColour << 9) ^ (dwColour << 19) ^ (dwColour) ^ (dwColour << 29) ^ (dwColour >> 3);
-                        dwColour &= 0x7f7f7f7f;
-                        lv->color = dwColour;
-                        lv->specular = dwColour;
-                    } else
-#endif
-                    {
-                        lv->specular = quad[0]->specular;
-                        lv->color = quad[0]->colour;
-                    }
-                    lv->tu = fU;
-                    lv->tv = fV;
-
-                    j++;
-                }
-            }
-
-            //
-            // Now strip indices.
-            //
-
-            ASSERT(WITHIN(SUPERFACET_index_upto + j, 0, SUPERFACET_MAX_INDICES - 1));
-
-            int iCurStart = 0;
-            for (iY = 0; iY < TESSELATE_DEGREE; iY++) {
-                // Do the first two indices.
-                SUPERFACET_index[SUPERFACET_index_upto + 0] = SUPERFACET_lvert_upto - sc->lvert + iCurStart + 0;
-                SUPERFACET_index[SUPERFACET_index_upto + 1] = SUPERFACET_lvert_upto - sc->lvert + iCurStart + (TESSELATE_DEGREE + 1);
-                SUPERFACET_index_upto += 2;
-                for (iX = 0; iX < TESSELATE_DEGREE; iX++) {
-                    SUPERFACET_index[SUPERFACET_index_upto + 0] = SUPERFACET_lvert_upto - sc->lvert + iCurStart + iX + 1;
-                    SUPERFACET_index[SUPERFACET_index_upto + 1] = SUPERFACET_lvert_upto - sc->lvert + iCurStart + iX + 1 + (TESSELATE_DEGREE + 1);
-                    SUPERFACET_index_upto += 2;
-                }
-                // Terminate the strip.
-                SUPERFACET_index[SUPERFACET_index_upto] = -1;
-                SUPERFACET_index_upto++;
-                iCurStart += (TESSELATE_DEGREE + 1);
-            }
-
-            sc->lvertcount += (TESSELATE_DEGREE + 1) * (TESSELATE_DEGREE + 1);
-            sc->indexcount += (TESSELATE_DEGREE) * ((TESSELATE_DEGREE + 1) * 2 + 1);
-
-            SUPERFACET_lvert_upto += (TESSELATE_DEGREE + 1) * (TESSELATE_DEGREE + 1);
-
-            ASSERT(sc->lvert + sc->lvertcount == SUPERFACET_lvert_upto);
-            ASSERT(sc->index + sc->indexcount == SUPERFACET_index_upto);
-#else
 
             // ASSERT(abs(quad[0]->y - quad[2]->y) <= 257);
 
@@ -681,7 +548,6 @@ void SUPERFACET_fill_facet_points(
             ASSERT(sc->lvert + sc->lvertcount == SUPERFACET_lvert_upto);
             ASSERT(sc->index + sc->indexcount == SUPERFACET_index_upto);
 
-#endif
         }
     }
 
@@ -810,11 +676,7 @@ void SUPERFACET_build_call(SLONG facet, SLONG call)
         style_index += style_index_step;
     }
 
-#ifdef TESSELATE_DEGREE
-    ASSERT(sc->lvertcount == sc->quads * (TESSELATE_DEGREE + 1) * (TESSELATE_DEGREE + 1));
-#else
     ASSERT(sc->lvertcount == sc->quads * 4);
-#endif
 
     /*
 
@@ -1147,12 +1009,7 @@ void SUPERFACET_init()
     //
 
     SUPERFACET_max_facets = next_dfacet;
-#ifdef TESSELATE_DEGREE
-    // Mad amount of memory.
-    SUPERFACET_max_lverts = 40000;
-#else
     SUPERFACET_max_lverts = 8192;
-#endif
 
     // For lists
     SUPERFACET_max_indices = SUPERFACET_max_lverts * 6 / 4;

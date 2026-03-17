@@ -126,23 +126,11 @@
 #define KB_P0 0x52
 #define KB_PPOINT 0x53
 
-#ifdef TARGET_DC
-// On the Dreamcast, these don't exist.
-#define AltFlag 0
-#define ControlFlag 0
-#define ShiftFlag 0
-
-// These don't either, but we'll leave them for now.
-extern volatile UBYTE Keys[256],
-    LastKey;
-
-#else
 extern volatile UBYTE AltFlag,
     ControlFlag,
     ShiftFlag;
 extern volatile UBYTE Keys[256],
     LastKey;
-#endif
 
 //---------------------------------------------------------------
 

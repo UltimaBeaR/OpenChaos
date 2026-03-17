@@ -2721,9 +2721,6 @@ try_again:;
         }
     }
 
-#ifdef OBEY_SCRIPT
-    return ELEV_load_name(BRIEFING_mission_filename);
-#endif
 
     // extern CBYTE* STARTSCR_mission;
     extern CBYTE STARTSCR_mission[_MAX_PATH];

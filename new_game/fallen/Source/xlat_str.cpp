@@ -5,7 +5,6 @@
 // translates strings to furrigan languages and remap buttons for the user's settings
 //
 
-// #define JAPANESE
 
 #include "xlat_str.h"
 
@@ -37,13 +36,8 @@ CBYTE* xlat_upto = 0;
 
 UBYTE previous_byte;
 
-#ifdef JAPANESE
-#define LEADBYTE(c) ((previous_byte = c) >> 7)
-#define TAILBYTE (LEADBYTE(previous_byte))
-#else
 #define LEADBYTE(c) (0)
 #define TAILBYTE (0)
-#endif
 
 // so it knows it's a new string...
 inline void mbcs_reset()
@@ -54,11 +48,7 @@ inline void mbcs_reset()
 // inc char (_not_ byte) in a MBCS string
 inline CBYTE* mbcs_inc_char(CBYTE*& c)
 {
-#ifdef JAPANESE
-    c += ((*c) & 128) ? 2 : 1;
-#else
     c++;
-#endif
     return c;
 }
 
@@ -92,51 +82,12 @@ inline CBYTE*	mbcs_dec_char(CBYTE* &c, CBYTE* base) {
 
 inline CBYTE* mbcs_prev_char(CBYTE* c, CBYTE* base)
 {
-#ifndef JAPANESE
     return c - 1;
-#else
-    char* temp;
-    // c must point either to a single-byte character
-    // or to the beginning of a double-byte character.
-    // It cannot point to the middle of a double-byte character.
-    // Bad! Bad!
-
-    // If we are at the beginning, or the previous byte
-    // is at the beginning, simply return psz.
-    if (c <= base - 1)
-        return base;
-
-    temp = c - 1; // point to previous byte
-
-    // *(c-1) _must_ be either a trail or single byte.
-    // if it's lo-ascii, it could be either trail or
-    // single byte, so we keep going. but if it's hi-
-    // ascii, it _must_ be a trail byte (because it's
-    // immediately before a lead/single byte) so we know
-    // the byte before is the lead byte we're looking for
-    // and we can happily return.
-
-    if (LEADBYTE(*temp))
-        return (temp - 1);
-
-    // Otherwise, step back until a non-lead-byte is found.
-    while ((base <= --temp) && LEADBYTE(*temp))
-        ;
-
-    // Now temp+1 must point to the beginning of a character,
-    // so figure out whether we went back an even or an odd
-    // number of bytes and go back 1 or 2 bytes, respectively.
-    return ((c - 1) - ((c - temp) & 1));
-#endif
 }
 
 inline CBYTE* mbcs_dec_char(CBYTE*& c, CBYTE* base)
 {
-#ifndef JAPANESE
     return --c;
-#else
-    return (c = mbcs_prev_char(c, base));
-#endif
 }
 
 // some standard library funcs in mbcs-eze.
@@ -295,9 +246,6 @@ void XLAT_load(CBYTE* fn)
     UWORD id = 0;
     UWORD emergency_bail_out_for_martins_machine = 2000;
 
-#ifdef JAPANESE
-    fn = "text\\lang_japanese.txt";
-#endif
 
     xlat_upto = xlat_set;
     ZeroMemory(xlat_ptr, sizeof(xlat_ptr));

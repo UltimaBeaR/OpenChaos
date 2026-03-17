@@ -372,55 +372,10 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
 #define FIREBOMB_SPRITES 16
 
 // Turned off for the PC. You madmen :-)
-// #define LIMIT_TOTAL_PYRO_SPRITES_PLEASE_BOB 100
 
 
 #define DUSTWAVE_MULTIPLY (2048 / DUSTWAVE_MULTIPLY)
 
-#ifdef LIMIT_TOTAL_PYRO_SPRITES_PLEASE_BOB
-
-static int iWantedToGivenMultiplier = 256;
-static int iNumWantedPyrosThisFrame = 0;
-static int iNumFixedPyrosThisFrame = 0;
-// Called with how many sprites are wanted.
-// Returns the number it can have.
-int IWouldLikeSomePyroSpritesHowManyCanIHave(int iIWantThisMany)
-{
-    // Keep a tally for this frame.
-    iNumWantedPyrosThisFrame += iIWantThisMany;
-
-    return ((iWantedToGivenMultiplier * iIWantThisMany) >> 8);
-}
-
-// If the rout can't change how many it uses, at least call this to warn the pyro system that they will be used.
-void IHaveToHaveSomePyroSprites(int iINeedThisMany)
-{
-    // Keep a tally for this frame.
-    iNumFixedPyrosThisFrame += iINeedThisMany;
-}
-
-void Pyros_EndOfFrameMarker(void)
-{
-    // Figure out how much we were "oversubscribed" by.
-    if ((iNumFixedPyrosThisFrame + iNumWantedPyrosThisFrame) > LIMIT_TOTAL_PYRO_SPRITES_PLEASE_BOB) {
-        // Over the limit - ration pyro bits.
-        iWantedToGivenMultiplier = ((LIMIT_TOTAL_PYRO_SPRITES_PLEASE_BOB - iNumFixedPyrosThisFrame) * 256) / iNumWantedPyrosThisFrame;
-        if (iWantedToGivenMultiplier < 32) {
-            // Silly number - obviously far to much going on - hit the framerate,
-            // rather than making it look stupid.
-            iWantedToGivenMultiplier = 32;
-        }
-    } else {
-        // Nope - still under the limit - have all you want.
-        iWantedToGivenMultiplier = 256;
-    }
-
-    // And reset it.
-    iNumWantedPyrosThisFrame = 0;
-    iNumFixedPyrosThisFrame = 0;
-}
-
-#else
 
 // Not using the limiting stuff - these do nothing exciting.
 
@@ -441,7 +396,6 @@ void Pyros_EndOfFrameMarker(void)
     // Does nothing in this case.
 }
 
-#endif
 
 //
 //   Pyro Utility Belt

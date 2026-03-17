@@ -989,3 +989,100 @@ Exit code 19 — норма.
 - **fallen/Headers/ (4 файла):** `Camera.h`, `EngWind.h`, `nd.h`, `qls.h`
 
 **Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 293 предупреждения.
+
+---
+
+## Итерация 32 — Инвентаризация и удаление оставшихся флагов (2026-03-18)
+
+### Что удалено
+
+**Инструмент:** coan в двух батчах + ручное удаление комментированных дефайнов. ~55 файлов.
+
+**DC/PSX платформа:**
+- `TARGET_DC` — Dreamcast-ветки. Пропущен в ранних итерациях.
+- `PSX`, `psx` (lowercase) — PSX-платформа. `psx` — в psystem.cpp.
+- `LAZY_LOADING_MEMORY_ON_DC_PLEASE_BOB` — DC-специфичная загрузка памяти.
+- `TEST_DC` — DC-тест в memory.cpp (в т.ч. `#if TEST_DC`).
+- `DREAMCAST_CHEATS_PLEASE_BOB` — DC читы в interfac.cpp.
+- `VERSION_PSX` — PSX версия в eway.cpp.
+
+**Пропущенные региональные (должны были уйти в итерации 22):**
+- `VERSION_GERMAN`, `VERSION_FRENCH` — были закомментированы в Game.cpp (`// #define VERSION_GERMAN 1`), но `#ifdef` блоки остались.
+- `VERSION_USA` — в memory.cpp.
+- `VERSION_NTSC` — 2 блока в fc.cpp. `MIKE` убрали в итерации 31, но сами `#ifdef VERSION_NTSC` оставались.
+
+**Мёртвые платформенные баги:**
+- `PSX_NOT_REALLY` (fc.cpp), `PSX_STERN_REVENGE_BUG_AND_CRAP_DRIVERS` (Thing.cpp).
+- `__WC32__` (Watcom compiler) — в outro/midasdll.h.
+
+**Мёртвый звук:**
+- `USE_A3D` — A3D звук. Пропущен в итерации 28. Блоки в chopper.cpp, Game.cpp, Person.cpp.
+
+**По запросу пользователя (было в "needs discussion"):**
+- `VERSION_DEMO` — демо-версия (ограничение уровней, меню). Удалить решили т.к. в финале нет.
+- `JAPANESE` — японская локализация в xlat_str.cpp. Удалить решили.
+- `DAMAGE_TEXT` — плавающие числа урона в 3D над персонажами. Удалить решили.
+- `ALLOW_DANGEROUS_OPTIONS` — dev-опции в frontend. Удалить решили.
+
+**Мёртвые dev/joke флаги (никогда не определены):**
+`OBEY_SCRIPT`, `BEHEAD`, `FUNNY_FANNY`, `SOME_POO`, `MATTS_BUGGY_VERSION`, `UNFINISHED`,
+`ROPER_EVER_ARRESTS_AGAIN`, `NOT_USED`, `NOT_SETUP_IN_PROJECTILE`,
+`WE_WANT_TO_TURN_AND_PUT_OUR_BACK_TO_THE_WALL`, `WE_WANT_TO_APPLY_THE_EQUAL_FORCE_TO_THE_CUBE`,
+`UNUSED_WIRECUTTER`, `USE_ACTION_TO_THROW_GRENADE`, `SHOW_ANIM_NUMS`, `AMERICA`, `GUY`,
+`FORCE_STUFF_PLEASE_BOB`, `LIMIT_TOTAL_PYRO_SPRITES_PLEASE_BOB`, `ANIM_PRIM` (как флаг), `ANIM_PRIMS`
+
+**Примечание:** `ANIM_PRIM` как значение (`CLASS_ANIM_PRIM`, `DT_ANIM_PRIM`, `TT_ANIM_PRIM` и т.д.) — НЕ затронуто. Убраны только `#ifdef ANIM_PRIM` / `#ifdef ANIM_PRIMS` guard-блоки.
+
+**Ручная чистка:** убраны комментированные `// #define ...` из america.h, demo.h, briefing.h, Game.cpp, xlat_str.cpp, frontend.cpp, drawxtra.cpp.
+
+**Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 293 предупреждения.
+
+---
+
+## Справка: Флаги которые ОСТАВЛЕНЫ (решено не трогать) — 2026-03-18
+
+### Всегда активны (определены in-file, живой код)
+
+| Флаг | Где определён | Что делает |
+|------|--------------|-----------|
+| `NO_SERVER` | `Headers/noserver.h` | Всегда 1. Отключает сетевой сервер-режим. Убирает ряд условных путей в texture.cpp, font2d.cpp, supermap.cpp и др. |
+| `ULTRA_COMPRESSED_ANIMATIONS` | `Headers/anim.h` | Всегда активен. Определяет формат хранения анимационных данных (сжатые vs полные). Критичен для совместимости с ресурсами. |
+| `NEW_LEVELS` | `Source/memory.cpp` | Всегда 1. Контролирует формат загрузки уровней в memory.cpp. Нужен для работы с финальными ресурсами. |
+| `REMAP_KEYBOARD` | `Source/interfac.cpp` | Всегда 1. Включает поддержку переназначения клавиш. |
+| `MARKS_MACHINE` | `Source/fc.cpp` | Всегда определён. Высота камеры 0x16000 (vs 0x1a000). |
+| `WANT_AN_EXIT_MENU_ITEM` | `Source/frontend.cpp` | PC-специфичный пункт "Exit" в меню. |
+| `WANT_A_KEYBOARD_ITEM` | `Source/frontend.cpp` | Пункт настройки клавиатуры в меню. |
+| `WANT_A_START_JOYSTICK_ITEM` | `Source/frontend.cpp` | Пункт джойстика в меню. |
+| `ANNOYING_HACK_FOR_SIMON` | `Source/frontend.cpp` | Хак в меню (всегда включён). |
+| `ALLOW_JOYPAD_IN_FRONTEND` | `Source/frontend.cpp` | Джойпад в меню (всегда включён). |
+| `MUST_DOUBLE_CLICK_FORWARDS_TO_GET_OUT_OF_FIGHT_MODE` | `Source/interfac.cpp` | Поведение выхода из режима драки. |
+| `FACETINFO` | `DDEngine/Source/facet.cpp` | Сбор debug-инфо по фасетам (массивы FACETINFO). Всегда включён. |
+| `TOMS_TEST_FIXUP_CODE` | `DDEngine/Source/aeng.cpp` | Fixup-код для рендера пола (всегда включён). |
+| `MESH_SHOW_MOUSE_POINT` | `DDEngine/Source/mesh.cpp` | Визуализация точки курсора на mesh (всегда включена). |
+| `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` | `DDEngine/Source/superfacet.cpp` | Debug-инфо superfacet (всегда включено). |
+
+### Намеренно оставлены для разработки
+
+| Флаг | Причина |
+|------|---------|
+| `FACET_REMOVAL_TEST` | Auto-включается в `_DEBUG`. Полезен при разработке рендерера. |
+| `HIGH_REZ_PEOPLE_PLEASE_BOB` | Отложен — требует отдельного глубокого анализа (4x вершин у персонажей, cheat-код `0x10f1a7e`). |
+
+### Требуют разбирательства (пока не трогать)
+
+**`TEX_EMBED` (63 вхождения)**
+- Закомментирован в polypage.h (`// #define TEX_EMBED`). Сейчас **НЕ** определён → активна ветка без TEX_EMBED.
+- При включении: текстуры встраиваются напрямую в вершинные буферы (embedded mode). Без него — отдельные texture stage.
+- Затрагивает: poly.cpp (~30 мест), aeng.cpp (~10), fastprim.cpp, figure.cpp, polypage.cpp, texture.cpp, fastprim.cpp.
+- Нельзя просто удалить `-UTEX_EMBED` ветки: нужно понять какая ветка правильная для PC. Требует анализа KB (DDEngine/rendering subsystem).
+
+**`FINAL` (20 вхождений)**
+- Нигде не определён. `#ifndef FINAL` ветки АКТИВНЫ (debug-проверки всегда работают).
+- Встречается в: crinkle.cpp (1), poly.cpp (1), figure.cpp (1).
+- Похоже на "финальный релизный билд" флаг (без assert'ов и debug-кода). Но в финальной игре он не определён судя по коду.
+- Вопрос: нужен ли нам этот флаг в будущем (для Этапа 10)?
+
+**`NEW_FLOOR` (8 вхождений)**
+- Закомментирован в aeng.cpp (`// #define NEW_FLOOR defined`). Сейчас **НЕ** определён → активна ветка `#ifndef NEW_FLOOR`.
+- Альтернативный алгоритм рендера пола в aeng.cpp. Экспериментальный, не вошёл в финал.
+- Требует анализа: может пригодиться в будущем или является мёртвым экспериментом.

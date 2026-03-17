@@ -548,12 +548,6 @@ SLONG player_activate_in_hand(Thing* p_person)
 
             return (1);
         }
-#ifdef UNUSED_WIRECUTTER
-        if (p_special->Genus.Special->SpecialType == SPECIAL_WIRE_CUTTER) {
-            if (set_person_cut_fence(p_person))
-                return (1);
-        }
-#endif
     }
     return (0);
 }
@@ -1171,78 +1165,6 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
         //		if(near_ladder_top(p_thing))
 
-#ifdef USE_ACTION_TO_THROW_GRENADE
-#error
-        {
-            Thing* p_special = person_has_special(p_thing, SPECIAL_MINE);
-
-            if (p_special) {
-                if (p_special->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
-                    //
-                    // Argh! Darci is carrying an activated mine. We had
-                    // better let her throw it.
-                    //
-
-                    set_person_can_release(p_thing, 128);
-                    // PANEL_new_text(NULL,4000,"ACTION throw can");
-
-                    return INPUT_MASK_ACTION;
-                }
-            }
-        }
-
-        if (p_thing->Genus.Person->Flags & FLAG_PERSON_CANNING) {
-            //
-            // Release the coke can.
-            //
-
-            set_person_can_release(p_thing, 128);
-            // PANEL_new_text(NULL,4000,"ACTION throw can2");
-
-            return INPUT_MASK_ACTION;
-        }
-
-        if (p_thing->Genus.Person->SpecialUse) {
-            Thing* p_special = TO_THING(p_thing->Genus.Person->SpecialUse);
-
-            if (p_special->Genus.Special->SpecialType == SPECIAL_GRENADE) {
-                if (p_special->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
-                    //
-                    // The person should throw the grenade.
-                    //
-
-                    // PANEL_new_text(NULL,4000,"ACTION throw grenade");
-                    set_person_can_release(p_thing, 128);
-                } else {
-                    //
-                    // Prime the grenade.
-                    //
-
-                    // PANEL_new_text(NULL,4000,"ACTION prime grenade");
-                    SPECIAL_prime_grenade(p_special);
-                }
-
-                return INPUT_MASK_ACTION;
-            }
-
-            if (p_special->Genus.Special->SpecialType == SPECIAL_EXPLOSIVES) {
-                //
-                // Put down and prime the explosives.
-                //
-
-                SPECIAL_set_explosives(p_thing);
-                // PANEL_new_text(NULL,4000,"ACTION arm explosive");
-
-                return INPUT_MASK_ACTION;
-            }
-            if (p_special->Genus.Special->SpecialType == SPECIAL_WIRE_CUTTER) {
-                if (set_person_cut_fence(p_thing)) {
-                    // PANEL_new_text(NULL,4000,"ACTION cut fence");
-                    return INPUT_MASK_ACTION;
-                }
-            }
-        }
-#endif
 
         //
         // Near a barrel?
@@ -4673,25 +4595,6 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
                         //
                         // this bypasses block code
                         //
-#ifdef SOME_POO
-                        AENG_world_line(
-                            p_person->WorldPos.X >> 8,
-                            p_person->WorldPos.Y >> 8,
-                            p_person->WorldPos.Z >> 8,
-                            0x10,
-                            0xffffff,
-                            p_person->WorldPos.X >> 8,
-                            p_person->WorldPos.Y + 0x10000 >> 8,
-                            p_person->WorldPos.Z >> 8,
-                            0x0,
-                            0xffeeee,
-                            FALSE);
-                        {
-                            CBYTE str[100];
-                            sprintf(str, " back kick timer1 %d\n", p_person->Genus.Person->Timer1);
-                            CONSOLE_text(str);
-                        }
-#endif
                         p_person->Genus.Person->Timer1 = 6;
 
                         set_person_kick_dir(p_person, 2);
@@ -5002,9 +4905,6 @@ ULONG get_hardware_input(UWORD type)
                     //						input|=INPUT_MASK_MOVE;
                     //					}
                     input |= INPUT_MASK_MOVE;
-#ifdef AMERICA
-                    input |= INPUT_MASK_MOVE;
-#endif
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
@@ -5121,72 +5021,6 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-#ifdef DREAMCAST_CHEATS_PLEASE_BOB
-                if (g_bCheatsEnabled) {
-                    static bool bWeCheatedLastFrame = FALSE;
-
-                    // Cheat enable is Start+both triggers.
-                    // These ignore remapping of course.
-                    if (BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_START]) && BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_LTRIGGER]) && BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_RTRIGGER])) {
-                        // Captain Cheat to the rescue!
-                        // But disable fast time reporting.
-                        g_bPunishMePleaseICheatedOnThisLevel = TRUE;
-                        cheat = 1;
-                        // All cheats are on different directions of the D-pad.
-                        if (BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_UP])) {
-                            // Health.
-                            CONSOLE_text("My wings are as a shield of steel.");
-                            NET_PERSON(0)->Genus.Person->Health = 1000;
-                        } else if (BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_DOWN])) {
-                            // Either:
-                            //		Guns. Lots of guns.
-                            // Or:
-                            //		Bigger guns. We need bigger fucking guns.
-                            // Depending on your SF film preference.
-
-                            if (!bWeCheatedLastFrame) {
-
-                                // Stop multiple cheats every single frame, or you get guns all over the place.
-                                bWeCheatedLastFrame = TRUE;
-
-#define CHEAT_RING_SIZE 128
-                                alloc_special(SPECIAL_AK47, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_SHOTGUN, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_GUN, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE - 32, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE - 32, 0);
-                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE + 00, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE + 00, 0);
-                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE + 32, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE + 32, 0);
-#undef CHEAT_RING_SIZE
-                                CONSOLE_text("We need guns. Lots of guns.");
-                            }
-                        } else if (BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_LEFT])) {
-                            // More ammo.
-                            NET_PERSON(0)->Genus.Person->ammo_packs_pistol = 240;
-                            NET_PERSON(0)->Genus.Person->ammo_packs_shotgun = 240;
-                            NET_PERSON(0)->Genus.Person->ammo_packs_ak47 = 240;
-                            CONSOLE_text("Well, to tell you the truth, in all this excitement, I've kinda lost track myself.");
-                        } else if (BUTTON_IS_PRESSED(the_state.rgbButtons[DI_DC_BUTTON_RIGHT])) {
-                            if (!bWeCheatedLastFrame) {
-                                // Stop it toggling madly.
-                                bWeCheatedLastFrame = TRUE;
-
-                                // Toggle on-screen position.
-                                g_bShowDarcisPositionOnScreen = !g_bShowDarcisPositionOnScreen;
-                                CONSOLE_text("Where am I?");
-                                CONSOLE_text("In the village.");
-                            }
-                        } else {
-                            bWeCheatedLastFrame = FALSE;
-                        }
-
-                        // Remove any non-directional button inputs. Leave the analog and direction ones.
-                        input &= (0xfffc0000 | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS | INPUT_MASK_LEFT | INPUT_MASK_RIGHT);
-                    } else {
-                        // Cheat buttons not down - allow another.
-                        bWeCheatedLastFrame = FALSE;
-                    }
-                }
-#endif
 
             }
 
@@ -5214,189 +5048,6 @@ ULONG get_hardware_input(UWORD type)
         }
     }
 
-#ifndef REMAP_KEYBOARD
-
-    if (type & INPUT_TYPE_KEY) {
-
-        /*
-                        if (CAM_get_mode() == CAM_MODE_FIRST_PERSON)
-                        {
-                                SLONG dyaw;
-                                SLONG dpitch;
-
-                                SLONG dleft;
-                                SLONG dright;
-                                SLONG dup;
-                                SLONG ddown;
-
-                                CAM_get_dangle(
-                                        &dyaw,
-                                        &dpitch);
-
-                                #define MAX_DYAW	700
-                                #define MAX_DPITCH	400
-                                #define MAX_MOVE	12
-
-                                dleft  = ( MAX_DYAW - dyaw) / 32;
-                                dright = (-MAX_DYAW - dyaw) / 32;
-
-                                dup   = ( MAX_DPITCH - dpitch) / 32;
-                                ddown = (-MAX_DPITCH - dpitch) / 32;
-
-                                SATURATE(dleft,   0, MAX_MOVE);
-                                SATURATE(dright, -MAX_MOVE, 0);
-                                SATURATE(dup,     0, MAX_MOVE);
-                                SATURATE(ddown,  -MAX_MOVE, 0);
-
-                                if (Keys[KB_LEFT])  {dyaw += dleft;}
-                                if (Keys[KB_RIGHT])	{dyaw += dright;}
-
-                                if (Keys[KB_DOWN]) {dpitch += dup;}
-                                if (Keys[KB_UP  ]) {dpitch += ddown;}
-
-                                if(ReadInputDevice())
-                                {
-                                        if (the_state.lX > AXIS_MAX) {dyaw   += dright;}
-                                        if (the_state.lX < AXIS_MIN) {dyaw   += dleft;}
-                                        if (the_state.lY > AXIS_MAX) {dpitch += dup;}
-                                        if (the_state.lY < AXIS_MIN) {dpitch += ddown;}
-                                }
-
-                                CAM_set_dangle(
-                                        dyaw,
-                                        dpitch);
-                        }
-                        else
-        */
-        {
-            if (Keys[KB_UP]) {
-                input |= INPUT_MASK_FORWARDS;
-            }
-
-            if (Keys[KB_DOWN])
-                input |= INPUT_MASK_BACKWARDS;
-
-            if (Keys[KB_LEFT]) {
-                if (ShiftFlag)
-                    input |= INPUT_MASK_STEP_LEFT;
-                else
-                    input |= INPUT_MASK_LEFT;
-            }
-
-            if (Keys[KB_RIGHT]) {
-                if (ShiftFlag)
-                    input |= INPUT_MASK_STEP_RIGHT;
-                else
-                    input |= INPUT_MASK_RIGHT;
-            }
-        }
-    }
-
-    if (Keys[KB_ENTER])
-        input |= INPUT_MASK_SELECT;
-
-    if (type & INPUT_TYPE_KEY) {
-
-        if (Keys[KB_F5]) {
-            input |= INPUT_MASK_CAMERA;
-            input &= ~INPUT_MASKM_CAM_TYPE;
-            input |= INPUT_MASKM_CAM1;
-            Keys[KB_F5] = 0;
-        }
-        if (Keys[KB_F6]) {
-            input |= INPUT_MASK_CAMERA;
-            input &= ~INPUT_MASKM_CAM_TYPE;
-            input |= INPUT_MASKM_CAM2;
-            Keys[KB_F6] = 0;
-        }
-        if (Keys[KB_F7]) {
-            input |= INPUT_MASK_CAMERA;
-            input &= ~INPUT_MASKM_CAM_TYPE;
-            input |= INPUT_MASKM_CAM3;
-            Keys[KB_F7] = 0;
-        }
-        /*
-        if(Keys[KB_F8])
-        {
-                input|=INPUT_MASK_CAMERA;
-                input&=~INPUT_MASKM_CAM_TYPE;
-                input|=INPUT_MASKM_CAM4;
-                Keys[KB_F8]=0;
-        }
-        */
-
-        if (Keys[KB_END]) {
-            Keys[KB_END] = 0;
-            input |= INPUT_MASK_CAM_BEHIND;
-
-            //
-            // Force the camera around behind the focus thing.
-            //
-
-            // FC_force_camera_behind(p_person->Genus.Person->PlayerID-1);
-        }
-
-        if (Keys[KB_DEL]) {
-            Keys[KB_DEL] = 0;
-            input |= INPUT_MASK_CAM_LEFT;
-        }
-        if (Keys[KB_PGDN]) {
-            Keys[KB_PGDN] = 0;
-            input |= INPUT_MASK_CAM_RIGHT;
-        }
-
-        if (Keys[KB_SPACE])
-            input |= INPUT_MASK_JUMP;
-
-        if (mouse_input) {
-            if (Keys[KB_RCONTROL])
-                input |= INPUT_MASK_JUMP;
-        }
-
-        if (Keys[KB_Z]) {
-            input |= INPUT_MASK_PUNCH;
-        }
-/*
-                if(LeftButton)
-                {
-                        input|=INPUT_MASK_PUNCH;
-                }
-
-                if(RightButton)
-                {
-                        input|=INPUT_MASK_KICK;
-                }
-*/
-        if (Keys[KB_X]) {
-            MSG_add(" HARDWARE KICK");
-            input |= INPUT_MASK_KICK;
-        }
-
-        if (Keys[KB_C]) {
-            input |= INPUT_MASK_ACTION;
-        }
-        if (mouse_input) {
-            // if(Keys[KB_P0])
-            //	input|=INPUT_MASK_ACTION;
-        }
-
-        /*
-                        if(Keys[KB_V])
-                        {
-                                input|=INPUT_MASK_MOVE;
-                        }
-        */
-
-        if (Keys[KB_UP]) {
-            input |= INPUT_MASK_MOVE;
-        }
-        /* this has since been taken over by mines...
-        if(Keys[KB_M])
-        {
-                input|=INPUT_MASK_MODE_CHANGE;
-        }*/
-    }
-#else // remap_keyboard
 
     if (type & INPUT_TYPE_KEY) {
 
@@ -5499,7 +5150,6 @@ ULONG get_hardware_input(UWORD type)
         }
     }
 
-#endif // remap_keyboard
 
     //
     // Sometimes, while a cutscene is playing, Simon wants Darci to stop moving.
@@ -5604,11 +5254,7 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 // claude-ai: В SDL3: SDL_GetGamepadButton(pad, buttonIndex).
     extern DIJOYSTATE the_state;
 
-#ifdef REMAP_KEYBOARD
     if ((Keys[keybrd_button_use[JOYPAD_BUTTON_1STPERSON]]) || the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_1STPERSON]])
-#else
-    if ((Keys[KB_A] && !ShiftFlag) || the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_1STPERSON]])
-#endif
     {
         fpm = TRUE;
     }

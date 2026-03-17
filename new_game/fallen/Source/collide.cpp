@@ -4947,45 +4947,6 @@ SLONG collide_against_objects(
 // Returns TRUE if you should collide against the given anim prim
 //
 
-#ifdef ANIM_PRIM
-SLONG should_i_collide_against_this_anim_prim(Thing* p_aprim)
-{
-    SLONG collide_or_not = FALSE;
-
-    switch (get_anim_prim_type(p_aprim->Index)) {
-    default:
-    case ANIM_PRIM_TYPE_NORMAL:
-
-        //
-        // Always collide with normal anim-prims.
-        //
-
-        collide_or_not = TRUE;
-
-        break;
-
-    case ANIM_PRIM_TYPE_DOOR:
-
-        //
-        // Collide only if shut.
-        //
-
-        collide_or_not = !!(p_aprim->Flags & FLAGS_SWITCHED_ON);
-
-        break;
-
-    case ANIM_PRIM_TYPE_SWITCH:
-
-        //
-        // Ignore these: never collide.
-        //
-
-        break;
-    }
-
-    return collide_or_not;
-}
-#endif
 
 //
 // Collides the given movement vector with things. Returns TRUE if a
@@ -5246,56 +5207,6 @@ SLONG collide_against_things(
         }
 
         break;
-#ifdef ANIM_PRIMS
-        case CLASS_ANIM_PRIM:
-
-            //
-            // Do we collide with this anim-prim or not?
-            //
-
-            // collide_or_not = should_i_collide_against_this_anim_prim(col_thing);
-
-            // if (collide_or_not)
-            if (should_i_collide_against_this_anim_prim(col_thing)) {
-                SLONG old_x2 = *x2;
-                SLONG old_z2 = *z2;
-
-                *x2 >>= 8;
-                *z2 >>= 8;
-
-                //
-                // We have to collide. What is the bounding box of this anim_prim?
-                //
-
-                AnimPrimBbox* apb = &anim_prim_bbox[col_thing->Index];
-
-                if (!slide_around_box_lowstack(
-                        col_thing->WorldPos.X >> 8,
-                        col_thing->WorldPos.Z >> 8,
-                        apb->minx,
-                        apb->minz,
-                        apb->maxx,
-                        apb->maxz,
-                        col_thing->Draw.Tweened->Angle,
-                        50,
-                        x1 >> 8, z1 >> 8,
-                        x2,
-                        z2)) {
-                    *x2 = old_x2;
-                    *z2 = old_z2;
-
-                    ans = TRUE;
-                } else {
-                    ASSERT(WITHIN(*x2, 0, PAP_SIZE_HI << PAP_SHIFT_HI));
-                    ASSERT(WITHIN(*z2, 0, PAP_SIZE_HI << PAP_SHIFT_HI));
-
-                    *x2 <<= 8;
-                    *z2 <<= 8;
-                }
-            }
-
-            break;
-#endif
         case CLASS_PYRO:
             switch (col_thing->Genus.Pyro->PyroType) {
             case PYRO_BONFIRE:
@@ -9203,9 +9114,6 @@ void create_shockwave(
                 //
                 // What damage does this person recieve?
                 //
-#ifdef VERSION_DEMO
-                if (!(p_found->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL))
-#endif
                 {
                     hitpoints = maxdamage * (radius - dist) / radius;
 

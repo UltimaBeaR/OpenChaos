@@ -11318,36 +11318,6 @@ void PCOM_process_person(Thing* p_person)
 
         PCOM_process_state_change(p_person);
     }
-#ifdef NOT_USED
-    if (PCOM_person_doing_nothing_important(p_person)) {
-        if (p_person->Genus.Person->pcom_lookat_what == PCOM_LOOKAT_NOTHING) {
-            //	if (((GAME_TURN + THING_NUMBER(p_person)) & 0x1f) == 0)
-            {
-                //		if (Random() & 0x4)
-                {
-                    //
-                    // Look around for something interesting. The Player will do!
-                    //
-
-                    p_person->Genus.Person->pcom_lookat_what = PCOM_LOOKAT_THING;
-                    p_person->Genus.Person->pcom_lookat_counter = 128 + (Random() & 0x7f);
-                    p_person->Genus.Person->pcom_lookat_index = THING_NUMBER(NET_PERSON(0));
-                }
-            }
-        } else {
-            if (p_person->Genus.Person->pcom_lookat_counter == 0) {
-                p_person->Genus.Person->pcom_lookat_what = PCOM_LOOKAT_NOTHING;
-                p_person->Genus.Person->pcom_lookat_index = 0;
-            } else {
-                p_person->Genus.Person->pcom_lookat_counter -= 1;
-            }
-        }
-    } else {
-        p_person->Genus.Person->pcom_lookat_what = PCOM_LOOKAT_NOTHING;
-        p_person->Genus.Person->pcom_lookat_counter = 0;
-        p_person->Genus.Person->pcom_lookat_index = 0;
-    }
-#endif
 }
 
 struct Noise {

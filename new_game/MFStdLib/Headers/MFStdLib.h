@@ -8,9 +8,7 @@
 //---------------------------------------------------------------
 
 // Standard 'C' includes.
-#if !defined(TARGET_DC)
 #include <time.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -33,18 +31,13 @@
 #include <windowsx.h>
 #include <d3dtypes.h>
 #include <ddraw.h>
-#ifndef TARGET_DC
 // For the DX8 headers, you need to define this to get old interfaces.
 #ifndef DIRECTINPUT_VERSION
 #define DIRECTINPUT_VERSION 0x0700
 #endif
-#endif
 #include <dinput.h>
 #include <d3d.h>
 
-#ifdef TARGET_DC
-#include "target.h"
-#endif
 
 //---------------------------------------------------------------
 

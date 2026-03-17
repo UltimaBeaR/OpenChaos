@@ -7,7 +7,6 @@
 //
 
 // #define BIN_STUFF_PLEASE_BOB I have been defined
-// #define FORCE_STUFF_PLEASE_BOB I have been defined
 #ifdef DEBUG
 // #define BIN_BACKGROUNDS_PLEASE_BOB I have been defined
 #else
@@ -82,7 +81,6 @@ void FRONTEND_display(void);
 #define AUTOPLAY_FMV_DELAY (1000 * 60 * 2)
 #endif
 
-// #define ALLOW_DANGEROUS_OPTIONS
 
 // #define MISSION_SCRIPT "data\\urban.sty"
 //  see below...
@@ -90,10 +88,8 @@ void FRONTEND_display(void);
 #include "startscr.h"
 
 // just know someone's gonna want me to take it back out again soooo.....
-#ifndef VERSION_DEMO
 //    ^^^^ see, i was right
 #define ANNOYING_HACK_FOR_SIMON 1
-#endif
 
 #define FE_MAINMENU (1)
 #define FE_MAPSCREEN (2)
@@ -104,19 +100,13 @@ void FRONTEND_display(void);
 #define FE_CONFIG (7)
 #define FE_CONFIG_VIDEO (8)
 #define FE_CONFIG_AUDIO (9)
-#ifdef WANT_A_KEYBOARD_ITEM
 #define FE_CONFIG_INPUT_KB (10)
-#endif
 #define FE_CONFIG_INPUT_JP (11)
 #define FE_CONFIG_OPTIONS (13)
-#ifdef WANT_AN_EXIT_MENU_ITEM
 #define FE_QUIT (12)
-#endif
 #define FE_SAVE_CONFIRM (14)
 
-#ifdef WANT_AN_EXIT_MENU_ITEM
 #define FE_NO_REALLY_QUIT (-1)
-#endif
 #define FE_BACK (-2)
 #define FE_START (-3)
 #define FE_EDITOR (-4)
@@ -311,22 +301,16 @@ void FileCloseScript(void)
 
 RawMenuData raw_menu_data[] = {
     { FE_MAINMENU, OT_BUTTON, X_START, 0, FE_MAPSCREEN },
-#ifndef VERSION_DEMO
     { 0, OT_BUTTON, X_LOAD_GAME, 0, FE_LOADSCREEN },
     { 0, OT_BUTTON, X_SAVE_GAME, (CBYTE*)1, FE_SAVESCREEN },
-#endif
     { 0, OT_BUTTON, X_OPTIONS, 0, FE_CONFIG },
 #if !defined(NDEBUG)
     // sheer MADNESS!
     { 0, OT_BUTTON, X_LOAD_UCM, 0, FE_START },
     { 0, OT_BUTTON, X_EDITOR, 0, FE_EDITOR },
 #endif
-#ifndef VERSION_DEMO
     { 0, OT_BUTTON, X_CREDITS, 0, FE_CREDITS },
-#endif
-#ifdef WANT_AN_EXIT_MENU_ITEM
     { 0, OT_BUTTON, X_EXIT, 0, FE_QUIT },
-#endif
     { FE_LOADSCREEN, OT_BUTTON, X_CANCEL, 0, FE_BACK },
     { FE_SAVESCREEN, OT_BUTTON, X_CANCEL, 0, FE_MAPSCREEN },
     { FE_SAVE_CONFIRM, OT_LABEL, X_ARE_YOU_SURE, 0, 0 },
@@ -335,16 +319,13 @@ RawMenuData raw_menu_data[] = {
     { FE_CONFIG, OT_BUTTON, X_OPTIONS, 0, FE_CONFIG_OPTIONS },
     { 0, OT_BUTTON, X_GRAPHICS, 0, FE_CONFIG_VIDEO },
     { 0, OT_BUTTON, X_SOUND, 0, FE_CONFIG_AUDIO },
-#ifdef WANT_A_KEYBOARD_ITEM
     { 0, OT_BUTTON, X_KEYBOARD, 0, FE_CONFIG_INPUT_KB },
-#endif
     { 0, OT_BUTTON, X_JOYPAD, 0, FE_CONFIG_INPUT_JP },
     { 0, OT_BUTTON, X_OKAY, 0, FE_BACK },
     { FE_CONFIG_AUDIO, OT_SLIDER, X_VOLUME, 0, 128 },
     { 0, OT_SLIDER, X_AMBIENT, 0, 128 },
     { 0, OT_SLIDER, X_MUSIC, 0, 128 },
     { 0, OT_BUTTON, X_OKAY, 0, FE_BACK },
-#ifdef WANT_A_KEYBOARD_ITEM
     {
         FE_CONFIG_INPUT_KB,
         OT_KEYPRESS,
@@ -402,7 +383,6 @@ RawMenuData raw_menu_data[] = {
         0,
         0,
     },
-#ifdef WANT_A_START_JOYSTICK_ITEM
     {
         0,
         OT_KEYPRESS,
@@ -410,7 +390,6 @@ RawMenuData raw_menu_data[] = {
         0,
         0,
     },
-#endif
     {
         0,
         OT_KEYPRESS,
@@ -467,7 +446,6 @@ RawMenuData raw_menu_data[] = {
         0,
         FE_BACK,
     },
-#endif
 
     {
         FE_CONFIG_INPUT_JP,
@@ -504,7 +482,6 @@ RawMenuData raw_menu_data[] = {
         0,
         0,
     },
-#ifdef WANT_A_START_JOYSTICK_ITEM
     {
         0,
         OT_PADPRESS,
@@ -512,7 +489,6 @@ RawMenuData raw_menu_data[] = {
         0,
         0,
     },
-#endif
     {
         0,
         OT_PADPRESS,
@@ -572,36 +548,6 @@ RawMenuData raw_menu_data[] = {
     },
 
 //	{	FE_CONFIG_VIDEO,	OT_SLIDER,	X_DETAIL,		0,	128,				},
-#ifdef ALLOW_DANGEROUS_OPTIONS
-    {
-        FE_CONFIG_VIDEO,
-        OT_LABEL,
-        X_GRAPHICS,
-        0,
-        1,
-    },
-    {
-        0,
-        OT_MULTI,
-        X_RESOLUTION,
-        0,
-        1,
-    },
-    {
-        0,
-        OT_MULTI,
-        X_DRIVERS,
-        0,
-        1,
-    },
-    {
-        0,
-        OT_MULTI,
-        X_COLOUR_DEPTH,
-        0,
-        1,
-    },
-#endif
     //	{                 0,     OT_LABEL,  X_DETAIL,	    0,  1,                  },
     {
         FE_CONFIG_VIDEO,
@@ -712,11 +658,9 @@ RawMenuData raw_menu_data[] = {
         0,
         FE_BACK,
     },
-#ifdef WANT_AN_EXIT_MENU_ITEM
     { FE_QUIT, OT_LABEL, X_ARE_YOU_SURE, 0, 0 },
     { 0, OT_BUTTON, X_OKAY, 0, FE_NO_REALLY_QUIT },
     { 0, OT_BUTTON, X_CANCEL, 0, FE_BACK },
-#endif
 
     { -1, 0, 0, 0 },
 };
@@ -1217,18 +1161,14 @@ extern UBYTE* image_mem;
 void FRONTEND_stop_xition()
 {
     switch (menu_state.mode) {
-#ifdef WANT_AN_EXIT_MENU_ITEM
     case FE_QUIT:
-#endif
     case FE_MAINMENU:
         UseBackSurface(screenfull_back);
         break;
     case FE_CONFIG:
     case FE_CONFIG_VIDEO:
     case FE_CONFIG_AUDIO:
-#ifdef WANT_A_KEYBOARD_ITEM
     case FE_CONFIG_INPUT_KB:
-#endif
     case FE_CONFIG_INPUT_JP:
     case FE_LOADSCREEN:
     case FE_SAVESCREEN:
@@ -1556,11 +1496,9 @@ void FRONTEND_kibble_init_one(Kibble* k, UBYTE type)
 
     ASSERT(WITHIN(kibble_index, 0, 511));
 
-#ifndef FORCE_STUFF_PLEASE_BOB
     if (kibble_off[kibble_index]) {
         return;
     }
-#endif
 
     if (!(type & 128)) {
         if ((menu_state.mode == FE_MAPSCREEN) || (menu_state.mode >= 100))
@@ -1700,7 +1638,6 @@ void FRONTEND_kibble_process()
         last = now - 250;
     }
 
-#ifndef FORCE_STUFF_PLEASE_BOB
     if (now > last + 100) {
         //
         // Front-end running at less than 10 fps! Turn off a random kibble!
@@ -1728,7 +1665,6 @@ void FRONTEND_kibble_process()
         kibble_off[rand() & 0x1ff] = FALSE;
         kibble_off[rand() & 0x1ff] = FALSE;
     }
-#endif
 
     SLONG i;
     SLONG num_on;
@@ -2085,9 +2021,7 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
         case FE_CONFIG_VIDEO:
         case FE_CONFIG_AUDIO:
         case FE_CONFIG_OPTIONS:
-#ifdef WANT_A_KEYBOARD_ITEM
         case FE_CONFIG_INPUT_KB:
-#endif
         case FE_CONFIG_INPUT_JP:
         case FE_LOADSCREEN:
         case FE_SAVESCREEN:
@@ -2112,7 +2046,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
     ZeroMemory(district_valid, sizeof(district_valid));
     mission_hierarchy[1] = 3; // the root; 1 - exists, 2 - complete, 4 - waiting
 
-#ifdef ANNOYING_HACK_FOR_SIMON
 
     // this hack does an end run around the hierarchy system
     // it forces fight1, assault1, & testdrive1a (the bronze fighting, driving test and
@@ -2189,7 +2122,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
     ASSERT(WITHIN(bonusID3, 0, 39));
     ASSERT(WITHIN(estateID, 0, 39));
 
-#endif
 
     best_score = 1000;
     district_flash = -1;
@@ -2217,11 +2149,8 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
             //			completing a mission sets the appropriate flag. ie, the proper way.
 
 
-#ifndef VERSION_DEMO
             if (mission_hierarchy[mdata->ParentID] & 2)
-#endif
             {
-#ifndef VERSION_DEMO
                 if (mdata->ObjID == fight2ID && menu_theme < 1) {
                     //
                     // Ignore this mission until the first theme...
@@ -2231,7 +2160,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
                     // Ignore this mission until the last theme...
                     //
                 } else
-#endif
                 {
                     for (j = 0; j < 40; j++) {
                         if (districts[j][2] == mdata->District) {
@@ -2259,7 +2187,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
                 }
             }
 
-#ifdef ANNOYING_HACK_FOR_SIMON
             if (mdata->ObjID == policeID) {
                 if ((mission_hierarchy[fightID] & 2)
                     && (mission_hierarchy[assaultID] & 2)
@@ -2280,7 +2207,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
                 }
             }
 
-#endif
 
             if (complete_point >= 40) // bodge!
                 flag |= 2;
@@ -2293,7 +2219,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
                 // This mission is active. Where abouts is it in the suggest_order[].
                 // The later it is in the suggest order, the later the mission is.
                 //
-#ifndef VERSION_DEMO
                 if ((mdata->ObjID == bonusID1) && !(bonus_state & 1)) {
                     bonus_state |= 1;
                     bonus_this_turn = 1;
@@ -2306,7 +2231,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
                     bonus_state |= 4;
                     bonus_this_turn = 1;
                 }
-#endif
                 SLONG order = 0;
 
                 while (1) {
@@ -2863,33 +2787,6 @@ void FRONTEND_store_video_data()
     ENV_set_value_number("BitDepth", bit_depth, "Video");
     AENG_set_detail_levels(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]);
 
-#ifdef ALLOW_DANGEROUS_OPTIONS
-
-    if ((mode != CurrentVidMode) || (bit_depth != CurrentBitDepth)) {
-        CurrentVidMode = mode;
-        CurrentBitDepth = bit_depth;
-        ShellPauseOn();
-        switch (CurrentVidMode) {
-        case 0:
-            SetDisplay(640, 480, bit_depth);
-            break;
-        case 1:
-            SetDisplay(800, 600, bit_depth);
-            break;
-        case 2:
-            SetDisplay(1024, 768, bit_depth);
-            break;
-        case 3:
-            SetDisplay(320, 240, bit_depth);
-            break;
-        case 4:
-            SetDisplay(512, 384, bit_depth);
-            break;
-        }
-        ShellPauseOff();
-    }
-
-#endif
 }
 
 
@@ -3176,21 +3073,16 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition = TRUE)
         FRONTEND_init_xition();
         FRONTEND_easy(mode);
         break;
-#ifdef WANT_AN_EXIT_MENU_ITEM
     case FE_QUIT:
         FRONTEND_easy(mode);
         menu_state.title = XLAT_str_ptr(X_EXIT);
         break;
-#endif
     case FE_CONFIG_VIDEO: {
         int a, b, c, d, e, f, g, h, i, j, k; // <-- int for compatability with the prototype in aeng.h *shrug*
         if (bDoTransition) {
             FRONTEND_init_xition();
         }
         FRONTEND_easy(mode);
-#ifdef ALLOW_DANGEROUS_OPTIONS
-        FRONTEND_do_drivers();
-#endif
         if (the_display.IsGammaAvailable())
             FRONTEND_do_gamma();
         FRONTEND_restore_video_data();
@@ -3209,7 +3101,6 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition = TRUE)
         menu_data[1].Data = amb << 1;
         menu_data[2].Data = mus << 1;
     } break;
-#ifdef WANT_A_KEYBOARD_ITEM
     case FE_CONFIG_INPUT_KB:
         if (bDoTransition) {
             FRONTEND_init_xition();
@@ -3233,7 +3124,6 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition = TRUE)
         menu_data[13].Data = ENV_get_value_number("keyboard_cam_right", 209, "Keyboard");
         menu_data[14].Data = ENV_get_value_number("keyboard_1stperson", 30, "Keyboard");
         break;
-#endif
     case FE_CONFIG_INPUT_JP:
         if (bDoTransition) {
             FRONTEND_init_xition();
@@ -3672,7 +3562,6 @@ void FRONTEND_storedata()
         MFX_set_volumes(menu_data[0].Data >> 1, menu_data[1].Data >> 1, menu_data[2].Data >> 1);
         break;
 
-#ifdef WANT_A_KEYBOARD_ITEM
     case FE_CONFIG_INPUT_KB:
         ENV_set_value_number("keyboard_left", menu_data[0].Data, "Keyboard");
         ENV_set_value_number("keyboard_right", menu_data[1].Data, "Keyboard");
@@ -3691,7 +3580,6 @@ void FRONTEND_storedata()
         ENV_set_value_number("keyboard_cam_right", menu_data[13].Data, "Keyboard");
         ENV_set_value_number("keyboard_1stperson", menu_data[14].Data, "Keyboard");
         break;
-#endif
 
     case FE_CONFIG_INPUT_JP:
         ENV_set_value_number("joypad_kick", menu_data[0].Data, "Joypad");
@@ -3762,7 +3650,6 @@ UBYTE FRONTEND_input()
         return 0;
     } else {
 
-#ifdef ALLOW_JOYPAD_IN_FRONTEND
 
         // these are in interfac.cpp -- but the NOISE_TOLERANCE there, while appropriate for the game,
         // is SHITTY for the menu. so here's a new one.
@@ -3817,7 +3704,6 @@ UBYTE FRONTEND_input()
         }
         //		TRACE("proc'd input: %d\n",input);
 
-#endif
     }
 
     if (grabbing_key && LastKey) {
@@ -4051,11 +3937,9 @@ UBYTE FRONTEND_input()
         case OT_BUTTON_L:
             if (menu_state.mode == FE_START)
                 return FE_LOADSCREEN;
-#ifdef WANT_AN_EXIT_MENU_ITEM
             // if (item->Data==-1) return -1;
             if (item->Data == FE_NO_REALLY_QUIT)
                 return -1;
-#endif
             // if (item->Data==-2) FRONTEND_storedata();
             if (item->Data == FE_BACK)
                 FRONTEND_storedata();
@@ -4076,7 +3960,6 @@ UBYTE FRONTEND_input()
             break;
         case OT_RESET:
             switch (menu_state.mode) {
-#ifdef WANT_A_KEYBOARD_ITEM
             case FE_CONFIG_INPUT_KB:
                 menu_data[0].Data = 203;
                 menu_data[1].Data = 205;
@@ -4095,7 +3978,6 @@ UBYTE FRONTEND_input()
                 menu_data[13].Data = 209;
                 menu_data[14].Data = 30;
                 break;
-#endif
             case FE_CONFIG_INPUT_JP:
                 menu_data[0].Data = 4;
                 menu_data[1].Data = 3;
@@ -4211,11 +4093,7 @@ UBYTE FRONTEND_input()
 
             menu_mode_queued = FE_BACK;
         } else {
-#ifdef WANT_AN_EXIT_MENU_ITEM
             menu_mode_queued = FE_QUIT;
-#else
-            menu_mode_queued = FE_MAINMENU;
-#endif
         }
 
         if ((menu_state.mode == FE_SAVESCREEN) && !menu_state.stackpos) {
@@ -4270,14 +4148,8 @@ void FRONTEND_init(bool bGoToTitleScreen)
 
     CBYTE *str, *lang = ENV_get_value_string("language");
 
-#ifdef VERSION_FRENCH
-    // Kludge for the DC converter
-    if (!lang)
-        lang = "text\\lang_french.txt";
-#else
     if (!lang)
         lang = "text\\lang_english.txt";
-#endif
     XLAT_load(lang);
     XLAT_init();
 
@@ -4625,7 +4497,6 @@ SBYTE FRONTEND_loop()
 
     // dodgy hidden keys
 
-#ifndef VERSION_DEMO
 
     // #ifndef NDEBUG
     if (ControlFlag && ShiftFlag) {
@@ -4645,12 +4516,9 @@ SBYTE FRONTEND_loop()
     // #endif
 
 
-#endif
 
-#ifdef WANT_AN_EXIT_MENU_ITEM
     if (res == FE_NO_REALLY_QUIT)
         return STARTS_EXIT;
-#endif
     if (res == FE_EDITOR)
         return STARTS_EDITOR;
     if (res == FE_LOADSCREEN)

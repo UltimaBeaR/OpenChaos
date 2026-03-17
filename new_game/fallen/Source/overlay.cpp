@@ -80,22 +80,6 @@ void OVERLAY_draw_damage_values(void);
 
 #define INFO_NUMBER 1
 #define INFO_TEXT 2
-#ifdef DAMAGE_TEXT
-struct DamageValue {
-    UBYTE Type;
-    CBYTE* text_ptr;
-    SWORD Age;
-    SWORD Value;
-    SWORD X;
-    SWORD Y;
-    SWORD Z;
-};
-
-#define MAX_DAMAGE_VALUES 16
-
-struct DamageValue damage_values[MAX_DAMAGE_VALUES];
-SLONG damage_value_upto = 1;
-#endif
 
 struct TrackEnemy {
     Thing* PThing;
@@ -1037,146 +1021,22 @@ void overlay_beacons(void)
 */
 }
 
-#ifdef DAMAGE_TEXT
-SLONG get_damage_index(void)
-{
-    SLONG oldest = -1, oldest_age = -1;
-    SLONG c0;
-
-    if (damage_value_upto < MAX_DAMAGE_VALUES) {
-        damage_value_upto++;
-        return (damage_value_upto - 1);
-    }
-
-    for (c0 = 1; c0 < damage_value_upto; c0++) {
-        if (damage_values[c0].Age == -1)
-            return (c0);
-
-        if (damage_values[c0].Age > oldest_age) {
-            oldest_age = damage_values[c0].Age;
-            oldest = c0;
-        }
-    }
-    return (oldest);
-}
-
-void free_damage_index(SLONG index)
-{
-    if (index == damage_value_upto - 1)
-        damage_value_upto--;
-
-    damage_values[index].Age = -1;
-}
-#endif
 void add_damage_value(SWORD x, SWORD y, SWORD z, SLONG value)
 {
-#ifdef DAMAGE_TEXT
-    SLONG index;
-
-    index = get_damage_index();
-    if (index) {
-        damage_values[index].X = x;
-        damage_values[index].Y = y;
-        damage_values[index].Z = z;
-        damage_values[index].Age = 0;
-        damage_values[index].Value = value;
-        damage_values[index].Type = INFO_NUMBER;
-    } else {
-        //		ASSERT(0);
-    }
-#endif
 }
 
 void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text)
 {
-#ifdef DAMAGE_TEXT
-    SLONG index;
-
-    index = get_damage_index();
-    if (index) {
-        damage_values[index].X = x;
-        damage_values[index].Y = y;
-        damage_values[index].Z = z;
-        damage_values[index].Age = 0;
-        damage_values[index].text_ptr = text;
-        damage_values[index].Type = INFO_TEXT;
-    } else {
-        //
-        ASSERT(0);
-    }
-#endif
 }
 
 void add_damage_value_thing(Thing* p_thing, SLONG value)
 {
-#ifdef DAMAGE_TEXT
-    SLONG dx, dy, dz;
-
-    calc_sub_objects_position(p_thing, p_thing->Draw.Tweened->AnimTween, SUB_OBJECT_HEAD, &dx, &dy, &dz);
-    dx += p_thing->WorldPos.X >> 8;
-    dy += p_thing->WorldPos.Y >> 8;
-    dz += p_thing->WorldPos.Z >> 8;
-
-    add_damage_value(dx, dy, dz, value);
-#endif
 }
 
-#ifdef DAMAGE_TEXT
-void OVERLAY_draw_damage_values(void)
-{
-    SLONG c0;
-    CBYTE str[10];
-
-    for (c0 = 1; c0 < damage_value_upto; c0++) {
-        if (damage_values[c0].Age >= 0) {
-            damage_values[c0].Age++;
-
-            extern void FONT2D_DrawString_3d(CBYTE * str, ULONG world_x, ULONG world_y, ULONG world_z, ULONG rgb, SLONG text_size, SWORD fade);
-
-            {
-                UWORD fade;
-                ULONG col;
-                fade = damage_values[c0].Age;
-
-                if (damage_values[c0].Value < 10) {
-                    col = 0xff00;
-                } else if (damage_values[c0].Value < 20) {
-                    col = 0x80ff00;
-                } else if (damage_values[c0].Value < 30) {
-                    col = 0xffff00;
-                } else {
-                    col = 0xffffff;
-                }
-
-                switch (damage_values[c0].Type) {
-                case INFO_NUMBER:
-                    sprintf(str, "%d", damage_values[c0].Value);
-
-                    FONT2D_DrawString_3d(str, damage_values[c0].X, damage_values[c0].Y, damage_values[c0].Z, col, 512, fade);
-                    break;
-                case INFO_TEXT:
-                    FONT2D_DrawString_3d(damage_values[c0].text_ptr, damage_values[c0].X, damage_values[c0].Y, damage_values[c0].Z, col, 512, fade);
-                    break;
-                }
-            }
-
-            if (damage_values[c0].Age > 63) {
-                free_damage_index(c0);
-            }
-
-            damage_values[c0].Y += (damage_values[c0].Age >> 4) + 1;
-        }
-    }
-}
-#endif
 
 void init_overlay(void)
 {
 //	beacon_upto=1;
-#ifdef DAMAGE_TEXT
-    damage_value_upto = 1;
-    memset((UBYTE*)damage_values, 0, sizeof(struct DamageValue) * MAX_DAMAGE_VALUES);
-#endif
     //	memset((UBYTE*)beacons,0,sizeof(struct	Beacon)*MAX_BEACON);
     memset((UBYTE*)panel_enemy, 0, sizeof(struct TrackEnemy) * MAX_TRACK);
 }

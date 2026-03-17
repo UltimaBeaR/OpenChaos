@@ -1396,7 +1396,6 @@ void context_music(void)
     if (darci->Genus.Person->Mode == PERSON_MODE_SPRINT)
         mode = MUSIC_MODE_SPRINTING;
 
-#ifndef VERSION_DEMO
     // hi ho, hi ho, a bodging we shall go
     switch (MUSIC_bodge_code) {
     case 1:
@@ -1412,7 +1411,6 @@ void context_music(void)
         mode = MUSIC_MODE_FINAL_RECKONING;
         break;
     }
-#endif
 
     if (WARE_ware[darci->Genus.Person->Ware].ambience == 4)
         return;
@@ -2035,10 +2033,8 @@ void process_controls(void)
         }
         return;
     } else {
-#ifndef VERSION_DEMO
         if (Keys[KB_F9])
             is_inputing = 1;
-#endif
     }
 
     // normal key processing

@@ -52,11 +52,7 @@ SLONG next_free, next_used, particle_count;
 // claude-ai: fire_pal is a 256-entry RGB palette (768 bytes) used to colour PFLAG_FIRE particles.
 // claude-ai: Alpha value indexes into the palette to give a fire colour gradient (white-hot → dark red → black).
 // claude-ai: Defined elsewhere (not in psystem.cpp); PSX build doesn't use it (fire colour baked differently).
-#ifdef psx
-// UBYTE fire_pal[768];
-#else
 extern UBYTE fire_pal[768];
-#endif
 
 static SLONG prev_tick; // claude-ai: timestamp of last PARTICLE_Run call (GetTickCount units)
 static BOOL first_pass; // claude-ai: skip dt calculation on first frame to avoid huge initial delta

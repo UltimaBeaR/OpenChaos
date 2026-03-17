@@ -347,11 +347,7 @@ struct MemTable save_table[] = {
     { M_("ob_ mapwho"), (void**)&OB_mapwho, MEM_STATIC, 0, 0, OB_SIZE* OB_SIZE, sizeof(OB_Mapwho), 0 }, // 21
     { M_("EWAY_mess"), (void**)&EWAY_mess, MEM_DYNAMIC, &EWAY_mess_upto, 0, EWAY_MAX_MESSES, sizeof(CBYTE*), 0 }, // 22
     { M_("EWAY_mess buf"), (void**)&EWAY_mess_buffer, MEM_DYNAMIC, &EWAY_mess_buffer_upto, 0, EWAY_MESS_BUFFER_SIZE, sizeof(CBYTE), 0 }, // 23
-#ifdef NEW_LEVELS
     { M_("EWAY_timer"), (void**)&EWAY_timer, MEM_STATIC, 0, 0, EWAY_MAX_TIMERS, sizeof(UWORD), 0 }, // 24
-#else
-    { M_("EWAY_timer"), (void**)&EWAY_timer, MEM_DYNAMIC, 0, 0, EWAY_MAX_TIMERS, sizeof(UWORD), 0 }, // 24
-#endif
     { M_("EWAY_cond"), (void**)&EWAY_cond, MEM_DYNAMIC, &EWAY_cond_upto, 0, EWAY_MAX_CONDS, sizeof(EWAY_Cond), 0 }, // 25
     { M_("EWAY_way"), (void**)&EWAY_way, MEM_DYNAMIC, &EWAY_way_upto, 0, EWAY_MAX_WAYS, sizeof(EWAY_Way), 0 }, // 26
     { M_("EWAY_edef"), (void**)&EWAY_edef, MEM_DYNAMIC, &EWAY_edef_upto, 0, EWAY_MAX_EDEFS, sizeof(EWAY_Edef), 0 }, // 27
@@ -467,7 +463,6 @@ void init_memory(void)
         mem_all = NULL;
     }
 
-#ifndef LAZY_LOADING_MEMORY_ON_DC_PLEASE_BOB
     // Not used on DC.
 
     mem_all = MemAlloc(mem_cumlative);
@@ -488,7 +483,6 @@ void init_memory(void)
         c0++;
     }
 
-#endif
 
     anim_mids = (PrimPoint*)MemAlloc(256 * sizeof(PrimPoint));
     // because furniture isnt saved at the moment, so isnt in the table
@@ -2113,13 +2107,6 @@ void convert_thing_to_pointer(Thing* p_thing)
         p_thing->StateFn = special_normal;
 
         break;
-#ifdef ANIM_PRIM
-    case CLASS_ANIM_PRIM:
-        if (p_thing->StateFn) {
-            p_thing->StateFn = fn_anim_prim_normal;
-        }
-        break;
-#endif
     case CLASS_CHOPPER:
         void CHOPPER_fn_normal(Thing*);
         p_thing->Genus.Chopper = (Chopper*)TO_CHOPPER((SLONG)p_thing->Genus.Chopper);
@@ -2379,9 +2366,6 @@ void flag_v_faces(void)
         p3++;
     }
 }
-#ifndef NEW_LEVELS
-UWORD EWAY_timer_bodge[EWAY_MAX_TIMERS];
-#endif
 
 void load_whole_game(CBYTE* gamename)
 {
@@ -2404,9 +2388,6 @@ void load_whole_game(CBYTE* gamename)
 
     SetSeed(1234567);
     srand(1234567);
-#ifndef NEW_LEVELS
-    memset((UBYTE*)EWAY_timer_bodge, 0, EWAY_MAX_TIMERS * 2);
-#endif
 
 
     extern UWORD player_dlight;
@@ -2602,32 +2583,9 @@ void load_whole_game(CBYTE* gamename)
 //	NIGHT_amb_red*=2;
 //	NIGHT_amb_green*=2;
 //	NIGHT_amb_blue*=2;
-#ifdef VERSION_USA
-    SATURATE(NIGHT_amb_red, 25, 127);
-    SATURATE(NIGHT_amb_green, 25, 127);
-
-#endif
 
     SATURATE(NIGHT_amb_blue, 25, 127);
 
-#ifdef VERSION_USA
-    {
-        SLONG bright;
-        SATURATE(NIGHT_amb_red, 25, 127);
-        SATURATE(NIGHT_amb_green, 25, 127);
-
-        bright = Root(NIGHT_amb_red * NIGHT_amb_red + NIGHT_amb_green * NIGHT_amb_green + NIGHT_amb_blue * NIGHT_amb_blue);
-
-        if (bright == 0)
-            bright = 1;
-#define MIN_BRIGHT 75
-        if (bright < MIN_BRIGHT) {
-            NIGHT_amb_red = (NIGHT_amb_red * MIN_BRIGHT) / bright;
-            NIGHT_amb_green = (NIGHT_amb_green * MIN_BRIGHT) / bright;
-            NIGHT_amb_blue = (NIGHT_amb_blue * MIN_BRIGHT) / bright;
-        }
-    }
-#endif
 
 
     //
@@ -3292,391 +3250,3 @@ void save_dreamcast_wad(CBYTE* fname)
 #endif // TEST_DC
 
 // #ifdef TARGET_DC
-#if TEST_DC
-
-void load_dreamcast_wad(CBYTE* fname)
-{
-    SLONG c0 = 0, id;
-    SLONG* p_slong;
-    UWORD* p_uword;
-    UBYTE *p_mem, *p_all;
-    ULONG mem_size;
-    struct MemTable* ptab;
-    MFFileHandle handle = FILE_OPEN_ERROR;
-    SLONG count;
-    SLONG texture_set_local;
-    SLONG save_type;
-
-    SLONG check;
-    UBYTE padding_byte;
-    UWORD padding_word;
-
-    SetSeed(1234567);
-    srand(1234567);
-
-    // Clear out all the rendering pages' VBs and IBs.
-    extern void POLY_ClearAllPages(void);
-    POLY_ClearAllPages();
-
-    extern UWORD player_dlight;
-    player_dlight = 0;
-
-    //
-    // Load in the wad file into memory.
-    //
-
-#ifndef LAZY_LOADING_MEMORY_ON_DC_PLEASE_BOB
-    if (mem_all)
-        MemFree(mem_all);
-#endif
-
-    // Add a full pathname.
-    char cFullName[64] = "";
-    strcat(cFullName, fname);
-
-    // Change the extension to ".dad"
-    int iLastChar = strlen(cFullName);
-    ASSERT(cFullName[iLastChar - 4] == '.');
-    ASSERT(cFullName[iLastChar - 3] == 'u');
-    ASSERT(cFullName[iLastChar - 2] == 'c');
-    ASSERT(cFullName[iLastChar - 1] == 'm');
-
-    cFullName[iLastChar - 3] = 'd';
-    cFullName[iLastChar - 2] = 'a';
-    cFullName[iLastChar - 1] = 'd';
-
-    TRACE("Reading level <%s>", cFullName);
-
-    // strcpy ( cFullName, "dream.dad" );
-
-    handle = FileOpen(cFullName);
-    if (handle == FILE_OPEN_ERROR) {
-        ASSERT(0);
-        return;
-    }
-
-    mem_size = FileSize(handle);
-
-#ifdef LAZY_LOADING_MEMORY_ON_DC_PLEASE_BOB
-    if (mem_size > mem_all_size) {
-        if (mem_all != NULL) {
-            MemFree(mem_all);
-        }
-        mem_all = MemAlloc(mem_size);
-        ASSERT(mem_all != NULL);
-        mem_all_size = mem_size;
-    }
-#else
-
-    mem_all = (UBYTE*)MemAlloc(mem_size);
-    mem_all_size = mem_size;
-    ASSERT(mem_all);
-#endif
-
-    ASSERT(mem_all != NULL);
-    ASSERT(mem_size <= mem_all_size);
-    FileRead(handle, mem_all, mem_size);
-    FileClose(handle);
-    p_all = (UBYTE*)mem_all;
-
-    extern UBYTE loading_screen_active;
-    loading_screen_active = TRUE;
-
-    //
-    // Assign the data...
-    //
-
-    GET_DATA(save_type);
-
-    //	printf("Save Type: %d\n",save_type);
-    while (save_table[c0].Point) {
-        SLONG struct_size;
-        //		printf("Loading: %s\n",save_table[c0].Name);
-        id = *((SLONG*)p_all);
-        //		printf(" id %d ",id);
-        ASSERT(id == c0);
-        p_all += 4;
-
-        count = *((SLONG*)p_all);
-        //		printf(" count %d",count);
-        p_all += 4;
-
-        struct_size = *((SLONG*)p_all);
-        p_all += 4;
-        //		printf(" struct size %d shouldbe %d memsize %d\n",struct_size,save_table[c0].StructSize,*(SLONG*)p_all);
-        ASSERT(struct_size == save_table[c0].StructSize);
-
-        mem_size = *((SLONG*)p_all);
-        p_all += 4;
-
-        if (mem_size & 3)
-            p_all += 4 - (mem_size & 3);
-
-        ptab = &save_table[c0];
-
-        *ptab->Point = p_all;
-
-        switch (ptab->Type) {
-        case 2:
-            if (ptab->Extra)
-                ptab->Maximum = count;
-
-            break;
-
-        case 1:
-            if (ptab->Extra)
-                count -= ptab->Extra;
-
-            if (ptab->CountL) {
-                *ptab->CountL = count;
-            } else {
-                if (ptab->CountW)
-                    *ptab->CountW = count;
-            }
-            break;
-        }
-
-        p_all += mem_size;
-
-        c0++;
-    }
-
-    //
-    // I wonder what this does!
-    //
-
-    for (c0 = 0; c0 < EWAY_mess_buffer_upto; c0++) {
-        if (EWAY_mess_buffer[c0] == 160) {
-            EWAY_mess_buffer[c0] = 32;
-        }
-    }
-
-    GET_DATA(PRIMARY_USED);
-    GET_DATA(PRIMARY_UNUSED);
-    GET_DATA(SECONDARY_USED);
-    GET_DATA(SECONDARY_UNUSED);
-    GET_DATA(PERSON_COUNT);
-    GET_DATA(PERSON_COUNT);
-    GET_DATA(ANIMAL_COUNT);
-    GET_DATA(CHOPPER_COUNT);
-    GET_DATA(PYRO_COUNT);
-    GET_DATA(PLAYER_COUNT);
-    GET_DATA(PROJECTILE_COUNT);
-    GET_DATA(SPECIAL_COUNT);
-    GET_DATA(SWITCH_COUNT);
-    GET_DATA(PRIMARY_COUNT);
-    GET_DATA(SECONDARY_COUNT);
-    // Don't load this from the WAD!
-    // GET_DATA(GAME_STATE);
-    p_all += sizeof(GAME_STATE);
-
-
-    GET_DATA(GAME_TURN);
-    GET_DATA(GAME_FLAGS);
-    GET_DATA(texture_set_local);
-    GET_DATA(WMOVE_face_upto);
-    GET_DATA(first_walkable_prim_point);
-    GET_DATA(number_of_walkable_prim_points);
-    GET_DATA(first_walkable_prim_face4);
-    GET_DATA(number_of_walkable_prim_faces4);
-    GET_DATA(BARREL_sphere_last);
-    GET_DATA(track_head);
-    GET_DATA(track_tail);
-    GET_DATA(track_eob);
-    GET_DATA(NIGHT_dlight_free);
-    GET_DATA(NIGHT_dlight_used);
-
-    GET_DATA(EWAY_time_accurate);
-    GET_DATA(EWAY_time);
-    GET_DATA(EWAY_tick);
-
-    GET_DATA(EWAY_cam_active);
-    GET_DATA(EWAY_cam_goinactive);
-    GET_DATA(EWAY_cam_x); // Big coordinates...
-    GET_DATA(EWAY_cam_y);
-    GET_DATA(EWAY_cam_z);
-    GET_DATA(EWAY_cam_dx);
-    GET_DATA(EWAY_cam_dy);
-    GET_DATA(EWAY_cam_dz);
-    GET_DATA(EWAY_cam_yaw);
-    GET_DATA(EWAY_cam_pitch);
-    GET_DATA(EWAY_cam_want_yaw);
-    GET_DATA(EWAY_cam_want_pitch);
-    GET_DATA(EWAY_cam_waypoint);
-    GET_DATA(EWAY_cam_target);
-    GET_DATA(EWAY_cam_delay);
-    GET_DATA(EWAY_cam_speed);
-    GET_DATA(EWAY_cam_freeze); // Stop the player moving.
-    GET_DATA(EWAY_cam_cant_interrupt);
-    GET_DATA(EWAY_cam_thing);
-    GET_DATA(EWAY_cam_thing); // Twice because EWAY_cam_thing is a UWORD
-    GET_DATA(EWAY_cam_targx);
-    GET_DATA(EWAY_cam_targy);
-    GET_DATA(EWAY_cam_targz);
-    GET_DATA(EWAY_cam_lens); // 16-bit fixed point
-    GET_DATA(EWAY_cam_warehouse);
-    GET_DATA(EWAY_cam_lock);
-    GET_DATA(EWAY_cam_last_yaw);
-    GET_DATA(EWAY_cam_last_x);
-    GET_DATA(EWAY_cam_last_y);
-    GET_DATA(EWAY_cam_last_z);
-    GET_DATA(EWAY_cam_skip);
-    GET_DATA(EWAY_cam_last_dyaw);
-
-    GET_DATA(NIGHT_amb_d3d_colour);
-    GET_DATA(NIGHT_amb_d3d_specular);
-    GET_DATA(NIGHT_amb_red);
-    GET_DATA(NIGHT_amb_green);
-    GET_DATA(NIGHT_amb_blue);
-    GET_DATA(NIGHT_amb_norm_x);
-    GET_DATA(NIGHT_amb_norm_y);
-    GET_DATA(NIGHT_amb_norm_z);
-    GET_DATA(NIGHT_flag);
-    GET_DATA(NIGHT_lampost_radius);
-    GET_DATA(NIGHT_lampost_red);
-    GET_DATA(NIGHT_lampost_green);
-    GET_DATA(NIGHT_lampost_blue);
-    GET_DATA(NIGHT_sky_colour);
-    GET_DATA(padding_byte);
-    GET_DATA(check);
-    GET_DATA(CRIME_RATE);
-    GET_DATA(CRIME_RATE_SCORE_MUL);
-    GET_DATA(MUSIC_WORLD);
-    GET_DATA(BOREDOM_RATE);
-    GET_DATA(world_type);
-    GET_DATA(TEXTURE_SET);
-    GET_DATA(padding_word);
-
-    GET_DATA(EWAY_fake_wander_text_normal_index);
-    GET_DATA(EWAY_fake_wander_text_normal_number);
-    GET_DATA(EWAY_fake_wander_text_guilty_index);
-    GET_DATA(EWAY_fake_wander_text_guilty_number);
-    GET_DATA(EWAY_fake_wander_text_annoyed_index);
-    GET_DATA(EWAY_fake_wander_text_annoyed_number);
-
-    GET_DATA(GAME_FLAGS);
-
-    GET_DATA(semtex);
-    GET_DATA(estate);
-    GET_DATA(padding_word);
-
-    ASSERT(check == 666);
-
-    // NIGHT_flag&=~NIGHT_FLAG_DAYTIME;
-
-    // This needs to go here, if it doesn't then the later levels will
-    // automatically fail because the timer will be over the time limit.
-
-    EWAY_time_accurate = 0;
-    EWAY_time = 0;
-    EWAY_count_up = 0;
-
-    //
-    // The penalties on the count-up timer.
-    //
-
-    EWAY_count_up_add_penalties = 0;
-    EWAY_count_up_num_penalties = 0;
-    EWAY_count_up_penalty_timer = 0;
-
-    //	NIGHT_amb_red*=2;
-    //	NIGHT_amb_green*=2;
-    //	NIGHT_amb_blue*=2;
-    SATURATE(NIGHT_amb_red, 16, 127);
-    SATURATE(NIGHT_amb_green, 16, 127);
-    SATURATE(NIGHT_amb_blue, 25, 127);
-
-    //
-    // this needs to be before convert_index_to_pointers (because c_i_t_p needs the anims in place)
-    //
-    load_whole_anims(p_all);
-
-    void setup_global_anim_array(void);
-    setup_global_anim_array();
-    void init_dead_tween(void);
-    init_dead_tween();
-
-    convert_index_to_pointers();
-
-    // Reset camera mode.
-    extern int g_iPlayerCameraMode;
-    g_iPlayerCameraMode = 0;
-    FC_change_camera_type(0, 0);
-    FC_look_at(0, THING_NUMBER(NET_PERSON(0)));
-    FC_force_camera_behind(0);
-
-    uncache();
-
-    //
-    // Pass a NULL filename to TEXTURE_load_needed(). This is okay if
-    // we aren't using texture clumping.
-    //
-    // Er.... no it isn't - I need that name! ATF
-    //
-
-    if ((GAME_STATE & GS_REPLAY) == 0) {
-        TEXTURE_choose_set(texture_set_local);
-        // TEXTURE_load_needed(NULL);
-        TEXTURE_load_needed(fname, 0, 256, 900);
-    }
-
-    extern void PARTICLE_Reset();
-    PARTICLE_Reset();
-
-    extern void POW_init();
-    POW_init();
-
-    //	calc_prim_info();
-    VEH_init_vehinfo();
-
-    extern void DIRT_init(SLONG, SLONG, SLONG, SLONG, SLONG, SLONG, SLONG);
-    DIRT_init(100, 3, 3, INFINITY, INFINITY, INFINITY, INFINITY);
-
-    extern void init_noises(void);
-    extern void init_arrest(void);
-    init_noises();
-    init_arrest();
-    void MIST_init();
-    MIST_init();
-    extern void PANEL_new_text_init();
-    PANEL_new_text_init();
-    SPARK_init();
-
-    // Set Darci's powerups.
-    NET_PLAYER(0)->Genus.Player->Strength = the_game.DarciStrength;
-    NET_PLAYER(0)->Genus.Player->Constitution = the_game.DarciConstitution;
-    NET_PLAYER(0)->Genus.Player->Stamina = the_game.DarciStamina;
-    NET_PLAYER(0)->Genus.Player->Skill = the_game.DarciSkill;
-
-    // Clear the cheat status.
-    extern bool g_bPunishMePleaseICheatedOnThisLevel;
-    g_bPunishMePleaseICheatedOnThisLevel = FALSE;
-
-    calc_prim_normals();
-    //	find_anim_prim_bboxes();
-
-    //	TEXTURE_fix_prim_textures();
-    //	TEXTURE_fix_texture_styles();
-    AENG_create_dx_prim_points();
-    NIGHT_generate_walkable_lighting();
-
-    flag_v_faces();
-
-    //
-    // Stop it getting too dark, bloody artists!
-    //
-    void init_gangattack(void);
-
-    init_gangattack(); // probably should save these
-
-    extern SBYTE global_spang_count;
-    global_spang_count = 0;
-
-    extern UBYTE EWAY_conv_active;
-    EWAY_conv_active = 0; // fixes semtex restart crash during cut scene
-
-
-    loading_screen_active = FALSE;
-}
-
-#endif // TARGET_DC

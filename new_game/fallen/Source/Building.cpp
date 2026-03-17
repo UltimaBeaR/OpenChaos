@@ -7148,11 +7148,6 @@ SLONG build_building(SLONG sp, SLONG sf3, SLONG sf4, SLONG prev_facet)
     p_bobj->FacetHead = prev_facet;
     //	LogText(" center object %d->%d \n",p_bobj->StartPoint,p_bobj->EndPoint);
     center_object(p_bobj->StartPoint, p_bobj->EndPoint);
-#ifdef FUNNY_FANNY
-    p_bobj->X = build_x;
-    p_bobj->Y = build_y;
-    p_bobj->Z = build_z;
-#endif
 
     //	center_object(p_bobj);
     return (next_building_object - 1);

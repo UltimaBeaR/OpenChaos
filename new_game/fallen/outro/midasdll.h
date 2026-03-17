@@ -19,13 +19,8 @@
 /* This is a kluge, but necessary as Watcom C sucks: */
 #ifdef EXPORT_IN_MIDASDLL_H
 
-#ifdef __WC32__
-#define _FUNC(x) x __export __stdcall
-#define MIDAS_CALL __cdecl
-#else
 #define _FUNC(x) __declspec(dllexport) x __stdcall
 #define MIDAS_CALL __cdecl
-#endif
 
 #else
 #if defined(__linux__) || defined(__UNIX__) || defined(__DJGPP__)

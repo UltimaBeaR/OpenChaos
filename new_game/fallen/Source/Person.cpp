@@ -1469,15 +1469,6 @@ void set_persons_personid(Thing* p_person)
 inline void ShowAnimNumber(SLONG anim)
 {
 
-#ifdef SHOW_ANIM_NUMS
-
-    CBYTE str[100];
-
-    sprintf(str, "Anim %d", anim);
-
-    CONSOLE_text(str, 4000);
-
-#endif
 }
 
 void queue_anim(Thing* p_person, SLONG anim)
@@ -8073,11 +8064,6 @@ void set_person_arrest(Thing* p_person, SLONG s_index)
         case PERSON_DARCI:
             MFX_play_thing(THING_NUMBER(p_person), SOUND_Range(S_DARCI_ARREST_START, S_DARCI_ARREST_END), MFX_MOVING | MFX_OVERLAP, p_person);
             break;
-#ifdef ROPER_EVER_ARRESTS_AGAIN
-        case PERSON_ROPER:
-            MFX_play_thing(THING_NUMBER(p_person), S_ROPER_ARREST, MFX_MOVING | MFX_OVERLAP, p_person);
-            break;
-#endif
         case PERSON_COP:
             MFX_play_thing(THING_NUMBER(p_person), SOUND_Range(S_COP_ARREST_START, S_COP_ARREST_END), MFX_MOVING | MFX_OVERLAP, p_person);
             break;
@@ -11764,43 +11750,6 @@ void fn_person_jumping(Thing* p_person)
 
                 } else {
 
-#ifdef NOT_SETUP_IN_PROJECTILE
-                    some old tat
-                        SLONG new_y,
-                        face;
-                    /*
-                                                                            calc_sub_objects_position(
-                                                                                    p_thing,
-                                                                                    255, //p_thing->Draw.Tweened->AnimTween,
-                                                                                    pelvis?0:SUB_OBJECT_LEFT_FOOT,
-                                                                               &fx,
-                                                                               &fy,
-                                                                               &fz);
-                    */
-
-                    MSG_add("wp y %d \n", p_person->WorldPos.Y >> 8);
-                    face = find_face_for_this_pos(p_person->WorldPos.X >> 8, p_person->WorldPos.Y >> 8, p_person->WorldPos.Z >> 8, &new_y, 0, 0);
-
-                    if (face == 0) {
-                        ASSERT(0);
-                        face = find_face_for_this_pos(p_person->WorldPos.X >> 8, p_person->WorldPos.Y >> 8, p_person->WorldPos.Z >> 8, &new_y, 0, 0);
-                    }
-                    MSG_add(" hit face while jumping, try to find face= %d newy %d \n", face, new_y);
-                    // ASSERT(face!=GRAB_FACE);
-                    /*
-                                                                            if(new_y==1000000)
-                                                                            {
-                                                                                    ASSERT(0);
-                                                                                    p_person->OnFace=0;
-                                                                            }
-                                                                            else
-                    */
-                    {
-                        // 								ASSERT(face);//triggered
-                        p_person->OnFace = face;
-                        p_person->WorldPos.Y = new_y << 8;
-                    }
-#endif
                 }
 
                 p_person->SubState = SUB_STATE_RUNNING_JUMP_LAND_FAST;
@@ -13778,25 +13727,6 @@ void fn_person_moveing(Thing* p_person)
                 }
 
 // #define WE_WANT_TO_TURN_AND_PUT_OUR_BACK_TO_THE_WALL	77179
-#ifdef WE_WANT_TO_TURN_AND_PUT_OUR_BACK_TO_THE_WALL
-
-                if (p_person->Velocity > 35) {
-                    SLONG wall_angle;
-                    if (is_wall_good_for_bump_and_turn(p_person, last_slide_colvect))
-                        if (am_i_facing_wall(p_person, last_slide_colvect, &wall_angle)) {
-                            p_person->Velocity = 0;
-                            ASSERT((wall_angle & 0x1ff) == 0);
-                            p_person->Draw.Tweened->Angle = (wall_angle) & 2047;
-                            set_person_turn_to_hug_wall(p_person);
-
-                            //							set_person_idle(p_person);
-                            //							set_anim(p_person,ANIM_HIT_WALL);
-                            //							p_person->SubState=SUB_STATE_RUNNING_HIT_WALL;
-                            return;
-                        }
-                }
-
-#endif
                 if (0)
                     if (p_person->Velocity > 35) {
                         SLONG wall_angle;

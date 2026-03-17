@@ -76,19 +76,11 @@ extern	SLONG	next_anim_chunk;
 // Guys stuff.
 
 
-#ifdef	PSX
-
-#define	MAX_NUMBER_OF_CHUNKS	5
-#define	MAX_NUMBER_OF_FRAMES	900
-#define	MAX_NUMBER_OF_ELEMENTS	13000
-
-#else
 
 #define	MAX_NUMBER_OF_CHUNKS	5
 #define	MAX_NUMBER_OF_FRAMES	5000
 #define	MAX_NUMBER_OF_ELEMENTS	80000
 
-#endif
 
 
 //************************************
@@ -112,9 +104,6 @@ struct	KeyFrameElement
 
 //************************************************************************************************
 //************************************************************************************************
-#ifdef	PSX
-#define ULTRA_COMPRESSED_ANIMATIONS
-#endif
 
 
 //************************************************************************************************
@@ -316,11 +305,7 @@ struct	KeyFrameChunk
 	struct	BodyDef		PeopleTypes[MAX_PEOPLE_TYPES];
 	CBYTE				PeopleNames[MAX_PEOPLE_TYPES][PEOPLE_NAME_SIZE];
 //	UBYTE				BodyBits[MAX_BODY_PARTS][MAX_BODY_VARIETY]; //10 types of each body part
-#ifdef	PSX
-	KeyFrame			KeyFrames[1];
-#else
 	KeyFrame			KeyFrames[MAX_NUMBER_OF_FRAMES];
-#endif
 	KeyFrameElement		*FirstElement;
 	KeyFrameElement		*LastElement;
 	SLONG				KeyFrameCount;
@@ -384,11 +369,6 @@ class Character
 	private:
 		CBYTE				CharName[32];
 		UWORD				MultiObject;
-#ifdef TARGET_DC
-		// OI! This needs to be aligned on the DC, but it's probably a 
-		// Good Thing to align it on the PC as well.
-		UWORD				wJunk;
-#endif
 		Anim				AnimList[50];
 
 	public:

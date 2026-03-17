@@ -4514,11 +4514,6 @@ UWORD m_indicies[IPRIM_COUNT][MAX_INDICES_FOR_STRIPS + 1]; // data for verts, on
 
 struct GroupInfo {
     LPDIRECT3DTEXTURE2 page; // ptr to actual page to use for drawing
-#ifndef TOMS_TEST_FIXUP_CODE
-    float uscale;
-    float vscale;
-    float du, dv;
-#endif
 #ifdef DEBUG
     int iDebugCount;
 #endif
@@ -4901,12 +4896,6 @@ void draw_quick_floor(SLONG warehouse)
 
                             group[current_set].page = tex_handle;
 #ifdef TEX_EMBED
-#ifndef TOMS_TEST_FIXUP_CODE
-                            group[current_set].du = pp->m_UOffset;
-                            group[current_set].dv = pp->m_VOffset;
-                            group[current_set].uscale = pp->m_UScale;
-                            group[current_set].vscale = pp->m_VScale;
-#endif
 #endif
 
                             break;
@@ -4950,12 +4939,6 @@ void draw_quick_floor(SLONG warehouse)
 
                         group[current_set].page = tex_handle;
 #ifdef TEX_EMBED
-#ifndef TOMS_TEST_FIXUP_CODE
-                        group[current_set].du = pp->m_UOffset;
-                        group[current_set].dv = pp->m_VOffset;
-                        group[current_set].uscale = pp->m_UScale;
-                        group[current_set].vscale = pp->m_VScale;
-#endif
 #endif
                     }
                 }
@@ -5026,7 +5009,6 @@ void draw_quick_floor(SLONG warehouse)
 
 #ifdef TEX_EMBED
 
-#ifdef TOMS_TEST_FIXUP_CODE
                 pv[0].tu = pv[0].tu * pp->m_UScale + pp->m_UOffset;
                 pv[1].tu = pv[1].tu * pp->m_UScale + pp->m_UOffset;
                 pv[2].tu = pv[2].tu * pp->m_UScale + pp->m_UOffset;
@@ -5036,17 +5018,6 @@ void draw_quick_floor(SLONG warehouse)
                 pv[1].tv = pv[1].tv * pp->m_VScale + pp->m_VOffset;
                 pv[2].tv = pv[2].tv * pp->m_VScale + pp->m_VOffset;
                 pv[3].tv = pv[3].tv * pp->m_VScale + pp->m_VOffset;
-#else
-                pv[0].tu = pv[0].tu * group[current_set].uscale + group[current_set].du;
-                pv[1].tu = pv[1].tu * group[current_set].uscale + group[current_set].du;
-                pv[2].tu = pv[2].tu * group[current_set].uscale + group[current_set].du;
-                pv[3].tu = pv[3].tu * group[current_set].uscale + group[current_set].du;
-
-                pv[0].tv = pv[0].tv * group[current_set].vscale + group[current_set].dv;
-                pv[1].tv = pv[1].tv * group[current_set].vscale + group[current_set].dv;
-                pv[2].tv = pv[2].tv * group[current_set].vscale + group[current_set].dv;
-                pv[3].tv = pv[3].tv * group[current_set].vscale + group[current_set].dv;
-#endif
 
 #endif
 

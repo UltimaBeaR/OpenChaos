@@ -701,15 +701,9 @@ OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
     ot->ddsd.dwWidth = ti.width;
     ot->ddsd.dwHeight = ti.height;
     ot->ddsd.dwMipMapCount = 1;
-#ifdef TARGET_DC
-    ot->ddsd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
-    ot->ddsd.ddsCaps.dwCaps = DDSCAPS_TEXTURE;
-    ot->ddsd.ddsCaps.dwCaps2 = DDSCAPS2_HINTSTATIC;
-#else
     ot->ddsd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_MIPMAPCOUNT | DDSD_PIXELFORMAT;
     ot->ddsd.ddsCaps.dwCaps = DDSCAPS_TEXTURE | DDSCAPS_MIPMAP | DDSCAPS_COMPLEX;
     ot->ddsd.ddsCaps.dwCaps2 = DDSCAPS2_TEXTUREMANAGE | DDSCAPS2_HINTSTATIC;
-#endif
     ot->ddsd.ddpfPixelFormat = best_otf->ddpf;
 
     HRESULT res = OS_frame.GetDirectDraw()->CreateSurface(
@@ -992,15 +986,9 @@ OS_Texture* OS_texture_create(SLONG size, SLONG format)
     ot->ddsd.dwWidth = size;
     ot->ddsd.dwHeight = size;
     ot->ddsd.dwMipMapCount = 1;
-#ifdef TARGET_DC
-    ot->ddsd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
-    ot->ddsd.ddsCaps.dwCaps = DDSCAPS_TEXTURE;
-    ot->ddsd.ddsCaps.dwCaps2 = DDSCAPS2_HINTDYNAMIC;
-#else
     ot->ddsd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_MIPMAPCOUNT | DDSD_PIXELFORMAT;
     ot->ddsd.ddsCaps.dwCaps = DDSCAPS_TEXTURE | DDSCAPS_MIPMAP | DDSCAPS_COMPLEX;
     ot->ddsd.ddsCaps.dwCaps2 = DDSCAPS2_TEXTUREMANAGE | DDSCAPS2_HINTDYNAMIC;
-#endif
     ot->ddsd.ddpfPixelFormat = otf->ddpf;
 
     if (OS_frame.GetDirectDraw()->CreateSurface(
