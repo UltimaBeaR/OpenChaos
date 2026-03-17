@@ -973,3 +973,19 @@ Exit code 19 — норма.
 **Нюанс:** В fc.cpp флаг `MIKE` определял `VERSION_NTSC`. После удаления `#ifdef MIKE` остался `#ifndef MARKS_MACHINE / #define MARKS_MACHINE / #endif` — это корректно: он был ВНЕ блока `#ifdef MIKE` и всегда активен. `MARKS_MACHINE` управляет высотой камеры (0x16000 vs 0x1a000), всегда определён.
 
 **Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 292 предупреждения.
+
+---
+
+## Пункт 3 — Удаление orphan-файлов (2026-03-18)
+
+Удалены файлы, не упомянутые в `Fallen.vcxproj` и не включаемые ни одним `#include`.
+
+**Удалено 86 файлов:**
+
+- **fallen/Source/ (73 файла):** editor setup-файлы (`*Setup.cpp`), а также мёртвые файлы: `Camera.cpp` (старая камера, заменена fc.cpp), `sewer.cpp` (вырезанная фича SEWERS), `briefing.cpp`, `cutscene.cpp`, `converse.cpp`, `Mission.cpp`, `cloth.cpp`, `water.cpp`, `mesh.cpp`, и др.
+- **fallen/outro/ (3 файла):** `checker.cpp`, `lmap.cpp`, `slap.cpp` — не в vcxproj (остальные outro-файлы в vcxproj есть)
+- **DDEngine/Source/ (3 файла):** `Attract.cpp` (attract mode, вырезан), `sw.cpp` (software renderer), `Temp.cpp` (временный)
+- **DDLibrary/Source/ (4 файла):** `A3DManager.cpp` (экспериментальный Aureal 3D), `AsyncFile.cpp`, `GFile.cpp`, `QSManager.cpp`
+- **fallen/Headers/ (4 файла):** `Camera.h`, `EngWind.h`, `nd.h`, `qls.h`
+
+**Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 293 предупреждения.
