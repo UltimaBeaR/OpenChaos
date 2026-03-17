@@ -32,22 +32,11 @@
 #define _FUNC(x) x
 #define MIDAS_CALL
 #else
-#ifdef __DOS__
-#define _FUNC(x) x cdecl
-#define MIDAS_CALL __cdecl
-#else
 #define _FUNC(x) x __stdcall
 #define MIDAS_CALL __cdecl
 #endif
 #endif
-#endif
 
-#if defined(__WATCOMC__) && defined(__cplusplus)
-/* Disable to annoying Watcom C++ warnings - I have no idea how to get around
-   these without breaking Visual C compatibility: */
-#pragma warning 604 9
-#pragma warning 594 9
-#endif
 
 /* We'll need to define DWORD, BOOL, TRUE and FALSE if someone hasn't
    done that before. For now, we'll just assume that if no-one has defined

@@ -18,8 +18,8 @@
 | `OLD_CAM`/`CAM_OLD` | ✅ | итерация 19 |
 | `DOG_POO` | ✅ | итерация 18 |
 | `EIDOS` + региональные | ✅ | итерация 22 |
-| `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__` | ⬜ | |
-| Glide-флаги (`DONT_IGNORE_*`, `WORRY_ABOUT_THIS_LATER`) | ⬜ | |
+| `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__` | ✅ | итерация 23 |
+| Glide-флаги (`DONT_IGNORE_*`, `WORRY_ABOUT_THIS_LATER`) | ➖ | удалены вместе с Glide Engine/ (итерация 2) |
 | Отключённые оптимизации (`*_PLEASE_BOB` и др.) | ⬜ | |
 | Мёртвый геймплей (`DARCI_HITS_COPS`, `WE_WANT_WIND` и др.) | ⬜ | |
 | Старые алгоритмы PSXENG (`OLD_FACET_CLIP` и др.) | ⬜ | |
@@ -769,3 +769,29 @@ Exit code 19 — норма.
 **Риски:** DRM конкретных розничных дистрибьюторов Eidos 1999 года не нужен в open-source фан-порте. Файл нигде не включался — на компиляцию и работу игры не влиял. Функционал не нужен.
 
 **Результат:** 0 ошибок.
+
+---
+
+## Итерация 23 — Удаление мёртвых компиляторов/платформ: `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__`, `_MF_DOSX` (пункт 2.5)
+
+**Дата:** 2026-03-17
+
+**Команда:**
+```
+tools/coan/coan.exe source -U__WATCOMC__ -U__DOS__ -U__WINDOWS_386__ -U_MF_DOSX --no-transients --filter cpp,c,h,hpp --recurse Source DDEngine DDLibrary Headers outro
+```
+Exit code 0 — норма.
+
+**Удалено через coan (2 файла, 24 строки):**
+- `Headers/inline.h` — 13 строк: `__WINDOWS_386__` блок с Watcom asm-реализациями `MUL64`/`DIV64` (inline C++ версии сохранены)
+- `outro/midasdll.h` — 11 строк: `__DOS__` блок calling conventions + `__WATCOMC__` warning pragma suppressions
+
+**Риски:** Совместимость с Watcom C++ компилятором и DOS-платформой. В финальную игру не вошли (финал компилируется MSVC). Не нужны.
+
+**Нюансы:**
+- `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__` — predefined компилятором (Watcom), в исходниках нигде не определялись; coan обрабатывает как undefined
+- `_MF_DOSX` — определялся только внутри `#ifdef __DOS__` в MFTypes.h (удалён вместе с __DOS__)
+- MFStdLib/ уже отсутствует в new_game (удалена ранее), coan не нашёл — норма
+
+**Результат:** 0 ошибок. Debug: 131 предупреждение, Release: 293 предупреждения.
+
