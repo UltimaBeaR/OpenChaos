@@ -197,7 +197,6 @@ void FACET_facetinfo_trace(void)
 static int iNumFacets = 0;
 static int iNumFacetTextures = 0;
 
-// #define	QUICK_FACET	1
 // #define	FACET_REMOVAL_TEST		// show removed facets and use 'F' key to swap (must be defined in build2.cpp too)
 
 SLONG dfacets_drawn_this_gameturn;
@@ -2197,10 +2196,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
         return;
     }
 
-#ifdef QUICK_FACET
-    draw_quick_facet(p_facet);
-    return;
-#endif
 
 //	if(facet==114 || facet==115 || facet==2037 ||facet==2036)
 //		return;
@@ -3462,39 +3457,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
     // Fog works, and Mark says he's done the glowing windows. Hooray!
     // #define DO_SUPERFACETS_PLEASE_BOB defined
 
-#ifdef DO_SUPERFACETS_PLEASE_BOB
-    if (p_facet->Open) {
-        //
-        // Don't cache facets that open and close!
-        //
-    } else {
-        if (SUPERFACET_draw(facet)) {
-            p_facet->FacetFlags &= ~FACET_FLAG_DLIT;
-
-            return;
-        }
-
-        p_facet->FacetFlags &= ~FACET_FLAG_DLIT;
-
-        /*
-
-
-
-        if ( ( ( clip_or & POLY_CLIP_NEAR ) == 0)
-#ifdef DEBUG
-                && bPleaseDoSuperFacets
-#endif
-                )
-        {
-                if (SUPERFACET_draw(facet))
-                {
-                        return;
-                }
-        }
-
-        */
-    }
-#endif
 
     //
     // Draw the facet.

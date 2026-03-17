@@ -132,38 +132,6 @@ TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height
     TGA_Info ans;
     UBYTE pal[256 * 3];
 
-#ifdef BOGUS_TGAS_PLEASE_BOB
-    if (bCanShrink) {
-        // Fast dodgy textures that don't need loading.
-        ans.valid = 1;
-        ans.width = 16;
-        ans.height = 16;
-        ans.contains_alpha = 1;
-        ASSERT(max_width >= ans.width);
-        ASSERT(max_height >= ans.height);
-
-        TGA_Pixel* pdest = data;
-        DWORD junk;
-        while (*file != '\0') {
-            junk ^= *file++;
-            junk ^= (junk >> 2) ^ (junk << 1);
-        }
-        junk ^= (junk << 3) ^ (junk >> 2) ^ (junk >> 13) ^ (junk >> 21) ^ (junk >> 16);
-        for (int i = 0; i < ans.height; i++) {
-            for (int j = 0; j < ans.width; j++) {
-                int num = (i & 1) | ((j & 1) << 1);
-                pdest->alpha = (UBYTE)(junk >> (num));
-                pdest->red = (UBYTE)(junk >> (num + 1));
-                pdest->green = (UBYTE)(junk >> (num + 2));
-                pdest->blue = (UBYTE)(junk >> (num + 3));
-                pdest++;
-            }
-        }
-
-        return (ans);
-    }
-
-#endif
 
     //
     // Open the file.
@@ -346,41 +314,6 @@ TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height
         }
     }
 
-#ifdef DOWNSAMPLE_PLEASE_BOB_AMOUNT
-    // OK, now downsample the image
-    if (bCanShrink) {
-        int iPasses = DOWNSAMPLE_PLEASE_BOB_AMOUNT;
-        while (iPasses-- > 0) {
-            if ((tga_width <= DOWNSAMPLE_MINIMUM_SIZE) || (tga_height <= DOWNSAMPLE_MINIMUM_SIZE)) {
-                // Stop!
-                break;
-            }
-            tga_width >>= 1;
-            tga_height >>= 1;
-            ans.width = tga_width;
-            ans.height = tga_height;
-
-            // Just a cheesy in-place box filter.
-            TGA_Pixel* psrc1 = data;
-            TGA_Pixel* psrc2 = data + (tga_width << 1);
-            TGA_Pixel* pdest = data;
-
-            for (int j = tga_height; j > 0; j--) {
-                for (int k = tga_width; k > 0; k--) {
-                    pdest->alpha = (UBYTE)(((DWORD)psrc1[0].alpha + (DWORD)psrc1[1].alpha + (DWORD)psrc2[0].alpha + (DWORD)psrc2[1].alpha) >> 2);
-                    pdest->red = (UBYTE)(((DWORD)psrc1[0].red + (DWORD)psrc1[1].red + (DWORD)psrc2[0].red + (DWORD)psrc2[1].red) >> 2);
-                    pdest->green = (UBYTE)(((DWORD)psrc1[0].green + (DWORD)psrc1[1].green + (DWORD)psrc2[0].green + (DWORD)psrc2[1].green) >> 2);
-                    pdest->blue = (UBYTE)(((DWORD)psrc1[0].blue + (DWORD)psrc1[1].blue + (DWORD)psrc2[0].blue + (DWORD)psrc2[1].blue) >> 2);
-                    pdest++;
-                    psrc1 += 2;
-                    psrc2 += 2;
-                }
-                psrc1 += tga_width << 1;
-                psrc2 += tga_width << 1;
-            }
-        }
-    }
-#endif
 
     return ans;
 

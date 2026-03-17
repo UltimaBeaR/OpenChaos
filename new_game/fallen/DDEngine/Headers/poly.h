@@ -323,11 +323,6 @@ SLONG fade_point_more(POLY_Point* pp);
 static void inline POLY_fadeout_point(POLY_Point* pp)
 {
 
-#ifdef USE_W_FOG_PLEASE_BOB
-    // Not much to do apart from colour masking.
-    pp->colour &= ~POLY_colour_restrict;
-    pp->specular &= ~POLY_colour_restrict;
-#else // #ifdef USE_W_FOG_PLEASE_BOB
 
     // Mark, you can't just rip out the fog and replace it with nothing else ya twonk,
     // even if you are on a Quest For Speed (but gave up after a week, having not found any).
@@ -362,7 +357,6 @@ static void inline POLY_fadeout_point(POLY_Point* pp)
     pp->colour &= ~POLY_colour_restrict;
     pp->specular &= ~POLY_colour_restrict;
 
-#endif // #else //#ifdef USE_W_FOG_PLEASE_BOB
 }
 
 void POLY_fadeout_buffer(void);

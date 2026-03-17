@@ -103,7 +103,6 @@ static UBYTE s_ClipMask; // the clip bits we care about
 
 // PC should clip to sides fo screen
 #define NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB 0
-#define NO_BACKFACE_CULL_PLEASE_BOB 0
 
 
 //

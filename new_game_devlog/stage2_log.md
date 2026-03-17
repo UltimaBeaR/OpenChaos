@@ -20,7 +20,7 @@
 | `EIDOS` + региональные | ✅ | итерация 22 |
 | `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__` | ✅ | итерация 23 |
 | Glide-флаги (`DONT_IGNORE_*`, `WORRY_ABOUT_THIS_LATER`) | ➖ | удалены вместе с Glide Engine/ (итерация 2) |
-| Отключённые оптимизации (`*_PLEASE_BOB` и др.) | ⬜ | |
+| Отключённые оптимизации (`*_PLEASE_BOB` и др.) | ✅ | итерация 24 (`SUPERCRINKLES_ENABLED` — 🚫 оставлен) |
 | Мёртвый геймплей (`DARCI_HITS_COPS`, `WE_WANT_WIND` и др.) | ⬜ | |
 | Старые алгоритмы PSXENG (`OLD_FACET_CLIP` и др.) | ⬜ | |
 | PSX/DC debug (`PSX_COMPRESS_LIGHT`, `DODGYPSXIFY` и др.) | ⬜ | |
@@ -28,6 +28,7 @@
 | Debug визуализации (`WE_WANT_TO_DRAW_*` и др.) | ⬜ | |
 | Developer joke flags (`GONNA_FIREBOMB_YOUR_ASS` и др.) | ⬜ | |
 | `FACET_REMOVAL_TEST` | 🚫 | оставить: полезен при разработке |
+| `SUPERCRINKLES_ENABLED` | 🚫 | оставить: статус в финальной PC неясен — см. stages.md |
 
 ---
 
@@ -794,4 +795,32 @@ Exit code 0 — норма.
 - MFStdLib/ уже отсутствует в new_game (удалена ранее), coan не нашёл — норма
 
 **Результат:** 0 ошибок. Debug: 131 предупреждение, Release: 293 предупреждения.
+
+---
+
+## Итерация 24 — Удаление отключённых оптимизаций (пункт 2.5)
+
+**Дата:** 2026-03-17
+
+**Команда coan:**
+```
+coan source -UUSE_W_FOG_PLEASE_BOB -UQUICK_FACET -UDO_SUPERFACETS_PLEASE_BOB -UMIKES_UNUSED_AUTOMATIC_FLOOR_TEXTURE_GROUPER -UBOGUS_TGAS_PLEASE_BOB -UDOWNSAMPLE_PLEASE_BOB_AMOUNT --no-transients --replace DDEngine/Headers/poly.h DDEngine/Source/facet.cpp DDEngine/Source/aeng.cpp DDLibrary/Source/Tga.cpp
+```
+Exit code 19 — норма.
+
+**Удалено через coan (4 файла):**
+- `DDEngine/Headers/poly.h` — `#ifdef USE_W_FOG_PLEASE_BOB` ветка (~4 строки), оставлен активный `#else` код fog
+- `DDEngine/Source/facet.cpp` — `#ifdef QUICK_FACET` блок (3 строки); `#ifdef DO_SUPERFACETS_PLEASE_BOB` блок (~32 строки)
+- `DDEngine/Source/aeng.cpp` — `#ifdef MIKES_UNUSED_AUTOMATIC_FLOOR_TEXTURE_GROUPER` блок (~346 строк: группировка текстур пола)
+- `DDLibrary/Source/Tga.cpp` — `#ifdef BOGUS_TGAS_PLEASE_BOB` блок (31 строка); `#ifdef DOWNSAMPLE_PLEASE_BOB_AMOUNT` блок (34 строки)
+
+**Удалено вручную:**
+- `DDEngine/Source/poly.cpp:106` — `#define NO_BACKFACE_CULL_PLEASE_BOB 0` (определён но никогда не проверялся через #if)
+- `DDEngine/Source/facet.cpp` — `// #define QUICK_FACET 1` (закомментированный define)
+
+**Оставлено:**
+- `SUPERCRINKLES_ENABLED` — статус в финальной PC неясен; bump mapping на ящиках виден в версии PieroZ (но там скорее всего обычные crinkles). Решение отложено — см. stages.md.
+
+**Результат:** 0 ошибок. Debug: 131 предупреждение, Release: 293 предупреждения.
+
 
