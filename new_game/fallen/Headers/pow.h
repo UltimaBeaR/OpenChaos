@@ -2,8 +2,8 @@
 // Yet another explosion system.
 //
 
-#ifndef _POW_
-#define _POW_
+#ifndef FALLEN_HEADERS_POW_H
+#define FALLEN_HEADERS_POW_H
 
 //
 // A single element of an explosion.
@@ -139,4 +139,4 @@ void POW_create(
 
 void POW_process(void);
 
-#endif
+#endif // FALLEN_HEADERS_POW_H

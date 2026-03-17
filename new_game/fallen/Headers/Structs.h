@@ -1,8 +1,8 @@
 // Structs.h
 // Guy Simmons, 17th October 1997.
 
-#ifndef STRUCTS_H
-#define STRUCTS_H
+#ifndef FALLEN_HEADERS_STRUCTS_H
+#define FALLEN_HEADERS_STRUCTS_H
 
 #include "anim.h"
 
@@ -80,4 +80,4 @@ struct CommandList; //	Prototype 'CommandList' structure.
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_STRUCTS_H

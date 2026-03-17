@@ -1,8 +1,8 @@
 //	Mission.h
 //	Guy Simmons, 2nd August 1998.
 
-#ifndef MISSION_H
-#define MISSION_H
+#ifndef FALLEN_HEADERS_MISSION_H
+#define FALLEN_HEADERS_MISSION_H
 
 //---------------------------------------------------------------
 
@@ -546,4 +546,4 @@ CBYTE* GetEPText(EventPoint* ep);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_MISSION_H

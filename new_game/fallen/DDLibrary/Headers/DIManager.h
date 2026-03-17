@@ -1,8 +1,8 @@
 // DIManager.h
 // Guy Simmons, 19th February 1998.
 
-#ifndef DIMANAGER_H
-#define DIMANAGER_H
+#ifndef FALLEN_DDLIBRARY_HEADERS_DIMANAGER_H
+#define FALLEN_DDLIBRARY_HEADERS_DIMANAGER_H
 
 
 //---------------------------------------------------------------
@@ -31,4 +31,4 @@ BOOL ReadInputDevice(void);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_DIMANAGER_H

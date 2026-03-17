@@ -1,5 +1,5 @@
-#ifndef COLLIDE_GAME
-#define COLLIDE_GAME
+#ifndef FALLEN_HEADERS_COLLIDE_H
+#define FALLEN_HEADERS_COLLIDE_H
 
 #include "pap.h"
 
@@ -480,4 +480,4 @@ void COLLIDE_debug_fastnav(
     SLONG world_x, // 8-bits per mapsquare.
     SLONG world_z);
 
-#endif
+#endif // FALLEN_HEADERS_COLLIDE_H

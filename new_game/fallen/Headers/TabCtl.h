@@ -1,5 +1,5 @@
-#ifndef _TABCTL_H_
-#define _TABCTL_H_
+#ifndef FALLEN_HEADERS_TABCTL_H
+#define FALLEN_HEADERS_TABCTL_H
 
 /*******************************************************************
  *
@@ -44,4 +44,4 @@ SLONG TABCTL_getsel(HWND wnd, DWORD tabctl);
 // Query for visible tab's window handle:
 HWND TABCTL_gethwnd(HWND wnd, DWORD tabctl);
 
-#endif
+#endif // FALLEN_HEADERS_TABCTL_H

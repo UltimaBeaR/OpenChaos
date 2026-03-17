@@ -1,8 +1,8 @@
 // Level.h
 // Guy Simmons, 26th January 1998.
 
-#ifndef LEVEL_H
-#define LEVEL_H
+#ifndef FALLEN_HEADERS_LEVEL_H
+#define FALLEN_HEADERS_LEVEL_H
 
 //---------------------------------------------------------------
 
@@ -128,4 +128,4 @@ BOOL load_level(ULONG level);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_LEVEL_H

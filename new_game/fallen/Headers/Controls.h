@@ -1,8 +1,8 @@
 // Controls.h
 // Guy Simmons, 4th November 1997.
 
-#ifndef CONTROLS_H
-#define CONTROLS_H
+#ifndef FALLEN_HEADERS_CONTROLS_H
+#define FALLEN_HEADERS_CONTROLS_H
 
 //---------------------------------------------------------------
 
@@ -10,4 +10,4 @@ void process_controls(void);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_CONTROLS_H

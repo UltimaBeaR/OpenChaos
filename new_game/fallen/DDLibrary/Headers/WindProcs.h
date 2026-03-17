@@ -1,8 +1,8 @@
 // WindProcs.h
 // Guy Simmons, 14th November 1997.
 
-#ifndef WINDPROCS_H
-#define WINDPROCS_H
+#ifndef FALLEN_DDLIBRARY_HEADERS_WINDPROCS_H
+#define FALLEN_DDLIBRARY_HEADERS_WINDPROCS_H
 
 #include "DDManager.h"
 
@@ -26,4 +26,4 @@ LRESULT CALLBACK DDLibShellProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_WINDPROCS_H

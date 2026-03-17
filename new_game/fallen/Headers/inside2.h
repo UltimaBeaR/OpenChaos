@@ -1,5 +1,5 @@
-#ifndef INSIDE2_H
-#define INSIDE2_H 1
+#ifndef FALLEN_HEADERS_INSIDE2_H
+#define FALLEN_HEADERS_INSIDE2_H
 
 #include "structs.h"
 
@@ -77,4 +77,4 @@ extern SLONG find_stair_y(Thing* p_person, SLONG* y1, SLONG x, SLONG y, SLONG z,
 // ========================================================
 
 
-#endif
+#endif // FALLEN_HEADERS_INSIDE2_H

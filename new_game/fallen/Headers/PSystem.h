@@ -5,8 +5,8 @@
 // smoke, dust, mud, sparks, blood...
 //
 
-#ifndef _PSYSTEM_H_
-#define _PSYSTEM_H_
+#ifndef FALLEN_HEADERS_PSYSTEM_H
+#define FALLEN_HEADERS_PSYSTEM_H
 
 #define PSYSTEM_MAX_PARTICLES 2048
 
@@ -79,4 +79,4 @@ UWORD PARTICLE_Exhaust2(Thing* object, UBYTE density, UBYTE disperse);
 UWORD PARTICLE_Steam(SLONG x, SLONG y, SLONG z, UBYTE axis, SLONG vel, SLONG range, UBYTE time);
 UWORD PARTICLE_SGrenade(Thing* object, UBYTE time);
 
-#endif
+#endif // FALLEN_HEADERS_PSYSTEM_H

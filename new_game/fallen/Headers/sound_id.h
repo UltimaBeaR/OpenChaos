@@ -3,8 +3,8 @@
 // Generated from N:\UrbanChaos\sounds.slb on 16/11/99 14:09:12
 //
 
-#ifndef _sound_id_h_
-#define _sound_id_h_
+#ifndef FALLEN_HEADERS_SOUND_ID_H
+#define FALLEN_HEADERS_SOUND_ID_H
 
 extern CBYTE* sound_list[];
 
@@ -350,4 +350,4 @@ enum Waves {
     S_FRONT_END_LOOP_EDIT
 };
 
-#endif
+#endif // FALLEN_HEADERS_SOUND_ID_H

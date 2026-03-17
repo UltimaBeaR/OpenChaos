@@ -2,8 +2,8 @@
 // Moving walkable faces.
 //
 
-#ifndef _WMOVE_
-#define _WMOVE_
+#ifndef FALLEN_HEADERS_WMOVE_H
+#define FALLEN_HEADERS_WMOVE_H
 
 // #include	"c:\fallen\headers\memory.h"
 
@@ -83,4 +83,4 @@ void WMOVE_relative_pos(
 
 void WMOVE_draw(void);
 
-#endif
+#endif // FALLEN_HEADERS_WMOVE_H

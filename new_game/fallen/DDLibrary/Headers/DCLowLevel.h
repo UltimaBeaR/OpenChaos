@@ -2,8 +2,8 @@
 // Dreamcast low-level functions, ripped from the example docs.
 //
 
-#ifndef _DCLL_
-#define _DCLL_
+#ifndef FALLEN_DDLIBRARY_HEADERS_DCLOWLEVEL_H
+#define FALLEN_DDLIBRARY_HEADERS_DCLOWLEVEL_H
 
 //
 // A dreamcast sound buffer...
@@ -118,4 +118,4 @@ static void DumpTracies(void) { }
 
 #endif
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_DCLOWLEVEL_H

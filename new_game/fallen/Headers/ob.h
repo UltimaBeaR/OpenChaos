@@ -2,8 +2,8 @@
 // Objects (prims) on the map.
 //
 
-#ifndef _OB_
-#define _OB_
+#ifndef FALLEN_HEADERS_OB_H
+#define FALLEN_HEADERS_OB_H
 
 #include "pap.h"
 
@@ -209,4 +209,4 @@ SLONG OB_find_min_y(SLONG prim);
 OB_Info* OB_find_index(SLONG mid_x, SLONG mid_y, SLONG mid_z, SLONG max_range, SLONG must_be_searchable);
 // SLONG OB_find_index(SLONG  mid_x,SLONG  mid_y,SLONG  mid_z,SLONG  max_range);
 
-#endif
+#endif // FALLEN_HEADERS_OB_H

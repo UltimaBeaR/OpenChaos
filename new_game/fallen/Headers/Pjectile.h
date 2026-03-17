@@ -1,8 +1,8 @@
 // Pjectile.h
 // Guy Simmons, 4th January 1998.
 
-#ifndef PJECTILE_H
-#define PJECTILE_H
+#ifndef FALLEN_HEADERS_PJECTILE_H
+#define FALLEN_HEADERS_PJECTILE_H
 
 //---------------------------------------------------------------
 
@@ -29,4 +29,4 @@ void free_projectile(Thing* proj_thing);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_PJECTILE_H

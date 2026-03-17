@@ -3,8 +3,8 @@
 // claude-ai: Определяет все типы предметов (оружие, боеприпасы, ключи, расходники) и структуру Special.
 // claude-ai: MAX_SPECIALS=260 (RMAX_SPECIALS). Таймер 16*20 тиков/сек (20 fps * 16 subticks).
 
-#ifndef SPECIAL_H
-#define SPECIAL_H
+#ifndef FALLEN_HEADERS_SPECIAL_H
+#define FALLEN_HEADERS_SPECIAL_H
 
 #define SPECIAL_AMMO_IN_A_PISTOL 15
 #define SPECIAL_AMMO_IN_A_SHOTGUN 8
@@ -227,4 +227,4 @@ void SPECIAL_set_explosives(Thing* p_person);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_SPECIAL_H

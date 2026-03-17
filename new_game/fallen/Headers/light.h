@@ -1,5 +1,5 @@
-#ifndef LIGHTG_H
-#define LIGHTG_H
+#ifndef FALLEN_HEADERS_LIGHT_H
+#define FALLEN_HEADERS_LIGHT_H
 
 //
 // Do we want coloured lights?
@@ -263,4 +263,4 @@ inline void LIGHT_get_d3d_colour(LIGHT_Colour col, ULONG* colour, ULONG* specula
 }
 #endif
 
-#endif
+#endif // FALLEN_HEADERS_LIGHT_H

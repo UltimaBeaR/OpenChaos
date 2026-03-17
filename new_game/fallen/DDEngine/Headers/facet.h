@@ -2,8 +2,8 @@
 // Facet drawing functions.
 //
 
-#ifndef _FACET_
-#define _FACET_
+#ifndef FALLEN_DDENGINE_HEADERS_FACET_H
+#define FALLEN_DDENGINE_HEADERS_FACET_H
 
 //
 // Draws the given facet.
@@ -42,4 +42,4 @@ void FACET_draw_ns_ladder(
     SLONG z2,
     SLONG height);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_FACET_H

@@ -1,8 +1,8 @@
 // StdKeybd.h
 // Guy Simmons, 18th December 1997.
 
-#ifndef STD_KEYBD_H
-#define STD_KEYBD_H
+#ifndef MFSTDLIB_HEADERS_STDKEYBD_H
+#define MFSTDLIB_HEADERS_STDKEYBD_H
 
 //---------------------------------------------------------------
 
@@ -134,4 +134,4 @@ extern volatile UBYTE Keys[256],
 
 //---------------------------------------------------------------
 
-#endif
+#endif // MFSTDLIB_HEADERS_STDKEYBD_H

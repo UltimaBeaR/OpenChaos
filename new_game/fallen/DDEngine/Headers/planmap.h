@@ -2,8 +2,8 @@
 // The map draw.
 //
 
-#ifndef _PLANMAP_
-#define _PLANMAP_
+#ifndef FALLEN_DDENGINE_HEADERS_PLANMAP_H
+#define FALLEN_DDENGINE_HEADERS_PLANMAP_H
 
 //
 // Draws the plan view of the city.
@@ -25,4 +25,4 @@ void map_beacon_draw(
     ULONG flags,
     UWORD dir);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_PLANMAP_H

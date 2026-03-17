@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef _PAUSE_
-#define _PAUSE_
+#ifndef FALLEN_HEADERS_PAUSE_H
+#define FALLEN_HEADERS_PAUSE_H
 
 //
 // Returns TRUE if you should exit the game loop...
@@ -17,4 +17,4 @@
 
 SLONG PAUSE_handler();
 
-#endif
+#endif // FALLEN_HEADERS_PAUSE_H

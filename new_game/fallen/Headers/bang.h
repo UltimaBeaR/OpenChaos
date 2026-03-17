@@ -2,8 +2,8 @@
 // Explosions!
 //
 
-#ifndef _BANG_
-#define _BANG_
+#ifndef FALLEN_HEADERS_BANG_H
+#define FALLEN_HEADERS_BANG_H
 
 //
 // Initialises all the bangs.
@@ -54,4 +54,4 @@ typedef struct
 void BANG_get_start(UBYTE xmin, UBYTE xmax, UBYTE z);
 BANG_Info* BANG_get_next(void); // NULL => No more bangs.
 
-#endif
+#endif // FALLEN_HEADERS_BANG_H

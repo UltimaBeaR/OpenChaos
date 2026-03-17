@@ -2,8 +2,8 @@
 // A system for wandering people.
 //
 
-#ifndef _WAND_
-#define _WAND_
+#ifndef FALLEN_HEADERS_WAND_H
+#define FALLEN_HEADERS_WAND_H
 
 //
 // Initialises the wander system. Looks for nice places to walk and
@@ -33,4 +33,4 @@ SLONG WAND_square_is_wander(SLONG map_x, SLONG map_z);
 
 void WAND_draw(SLONG map_x, SLONG map_z);
 
-#endif
+#endif // FALLEN_HEADERS_WAND_H

@@ -11,8 +11,8 @@
 #define WE_NEED_POLYBUFFERS_PLEASE_BOB 1
 
 
-#ifndef _POLYPAGE_
-#define _POLYPAGE_
+#ifndef FALLEN_DDENGINE_HEADERS_POLYPAGE_H
+#define FALLEN_DDENGINE_HEADERS_POLYPAGE_H
 
 #include "renderstate.h"
 #include "vertexbuffer.h"
@@ -166,7 +166,7 @@ public:
 
 extern PolyPage POLY_Page[POLY_NUM_PAGES];
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_POLYPAGE_H
 
 // A routine to emulate the DC's DrawPrimtiveMM call on the PC, so
 // that people can use it when developing on the PC.

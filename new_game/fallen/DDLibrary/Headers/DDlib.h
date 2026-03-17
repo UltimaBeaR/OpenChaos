@@ -1,8 +1,8 @@
 // DDLib.h
 // Guy Simmons, 20th November 1997
 
-#ifndef DDLIB_H
-#define DDLIB_H
+#ifndef FALLEN_DDLIBRARY_HEADERS_DDLIB_H
+#define FALLEN_DDLIBRARY_HEADERS_DDLIB_H
 
 #include <MFStdLib.h>
 
@@ -78,4 +78,4 @@ inline SLONG check_result(HRESULT f, SLONG line, CBYTE* file)
 
 #endif // else use Micro$oft macros
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_DDLIB_H

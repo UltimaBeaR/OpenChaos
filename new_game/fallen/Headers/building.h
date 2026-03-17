@@ -1,5 +1,5 @@
-#ifndef BUILDING_H
-#define BUILDING_H 1
+#ifndef FALLEN_HEADERS_BUILDING_H
+#define FALLEN_HEADERS_BUILDING_H
 // claude-ai: Архитектура уровней. Основные структуры: FBuilding, FStorey, FWall, DFacet (runtime).
 // claude-ai: Лимиты PC: 500 зданий, 2500 этажей (MAX_STOREYS=MAX_BUILDINGS*5), 15000 стен (MAX_WALLS=MAX_STOREYS*6).
 // claude-ai: Цепочка: FBuilding → StoreyHead → FStorey → WallHead → FWall → грани.
@@ -490,4 +490,4 @@ void make_cable_taut_along(
 
 void make_cable_flabby(SLONG building);
 
-#endif
+#endif // FALLEN_HEADERS_BUILDING_H

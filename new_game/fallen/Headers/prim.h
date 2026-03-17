@@ -1,6 +1,6 @@
 // uc_orig_file: fallen/Editor/Headers/Prim.h
-#ifndef	PRIM_H
-#define	PRIM_H			1
+#ifndef FALLEN_HEADERS_PRIM_H
+#define FALLEN_HEADERS_PRIM_H
 
 //DEFINES
 
@@ -683,7 +683,7 @@ SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2);
 
 
 
-#endif
+#endif // FALLEN_HEADERS_PRIM_H
 
 
 

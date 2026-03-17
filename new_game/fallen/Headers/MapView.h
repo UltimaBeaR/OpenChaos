@@ -1,8 +1,8 @@
 //	MapView.h
 //	Guy Simmons, 12th August 1998.
 
-#ifndef MAPVIEW_H
-#define MAPVIEW_H
+#ifndef FALLEN_HEADERS_MAPVIEW_H
+#define FALLEN_HEADERS_MAPVIEW_H
 
 #include "Mission.h"
 
@@ -56,4 +56,4 @@ BOOL HasProperties(EventPoint* ep);
 SLONG OpenProperties(EventPoint* ep);
 void CleanProperties(EventPoint* ep);
 
-#endif
+#endif // FALLEN_HEADERS_MAPVIEW_H

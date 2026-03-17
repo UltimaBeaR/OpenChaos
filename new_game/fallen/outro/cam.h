@@ -2,8 +2,8 @@
 // The camera.
 //
 
-#ifndef _CAM_
-#define _CAM_
+#ifndef FALLEN_OUTRO_CAM_H
+#define FALLEN_OUTRO_CAM_H
 
 //
 // The position of the camera. Only read from these vars.
@@ -30,4 +30,4 @@ void CAM_init(void);
 
 void CAM_process(void);
 
-#endif
+#endif // FALLEN_OUTRO_CAM_H

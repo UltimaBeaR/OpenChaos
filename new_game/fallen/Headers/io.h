@@ -1,5 +1,5 @@
-#ifndef IO_H
-#define IO_H
+#ifndef FALLEN_HEADERS_IO_H
+#define FALLEN_HEADERS_IO_H
 
 //
 // Defines
@@ -67,4 +67,4 @@ SLONG load_prim_object(SLONG prim);
 
 void load_all_individual_prims(void);
 
-#endif
+#endif // FALLEN_HEADERS_IO_H

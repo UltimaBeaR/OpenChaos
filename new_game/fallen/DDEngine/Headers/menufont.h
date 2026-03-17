@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef _MENUFONT_H_
-#define _MENUFONT_H_
+#ifndef FALLEN_DDENGINE_HEADERS_MENUFONT_H
+#define FALLEN_DDENGINE_HEADERS_MENUFONT_H
 
 #include "MFStdlib.h"
 
@@ -65,4 +65,4 @@ void MENUFONT_fadein_line(SLONG x); // x is in 8-bit fixed point
 
 void MENUFONT_fadein_draw(SLONG x, SLONG y, UBYTE fade, CBYTE* msg);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_MENUFONT_H

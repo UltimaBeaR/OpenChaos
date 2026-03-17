@@ -1,8 +1,8 @@
 // Switch.h
 // Guy Simmons, 9th March 1998.
 
-#ifndef SWITCH_H
-#define SWITCH_H
+#ifndef FALLEN_HEADERS_SWITCH_H
+#define FALLEN_HEADERS_SWITCH_H
 
 //---------------------------------------------------------------
 
@@ -54,4 +54,4 @@ void fn_switch_class(Thing* s_thing);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_SWITCH_H

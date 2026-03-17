@@ -2,8 +2,8 @@
 // Crappy barrels with kludged physics
 //
 
-#ifndef _BARREL_
-#define _BARREL_
+#ifndef FALLEN_HEADERS_BARREL_H
+#define FALLEN_HEADERS_BARREL_H
 
 //
 // needed by memory.h
@@ -115,4 +115,4 @@ void BARREL_shoot(
 void BARREL_position_on_hands(Thing* p_barrel, Thing* p_person);
 void BARREL_throw(Thing* p_barrel);
 
-#endif
+#endif // FALLEN_HEADERS_BARREL_H

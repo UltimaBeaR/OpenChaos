@@ -1,8 +1,8 @@
 // StdMaths.h
 // Guy Simmons, 18th December 1997
 
-#ifndef STD_MATHS_H
-#define STD_MATHS_H
+#ifndef MFSTDLIB_HEADERS_STDMATHS_H
+#define MFSTDLIB_HEADERS_STDMATHS_H
 
 //---------------------------------------------------------------
 
@@ -39,4 +39,4 @@ static inline SLONG Hypotenuse(SLONG x, SLONG y)
 
 //---------------------------------------------------------------
 
-#endif
+#endif // MFSTDLIB_HEADERS_STDMATHS_H

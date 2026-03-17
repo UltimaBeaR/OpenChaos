@@ -5,7 +5,7 @@
 #include "always.h"
 #include "tga.h"
 
-TGA_Info TGA_FileLoad_Error(TGA_Info& ans, FILE*& handle, const CBYTE*& file)
+OUTRO_TGA_Info OUTRO_TGA_FileLoad_Error(OUTRO_TGA_Info& ans, FILE*& handle, const CBYTE*& file)
 {
 
     TRACE("File error loading TGA file %s\n", *file);
@@ -14,11 +14,11 @@ TGA_Info TGA_FileLoad_Error(TGA_Info& ans, FILE*& handle, const CBYTE*& file)
     return ans;
 }
 
-TGA_Info TGA_load(
+OUTRO_TGA_Info OUTRO_TGA_load(
     const CBYTE* file,
     SLONG max_width,
     SLONG max_height,
-    TGA_Pixel* data)
+    OUTRO_TGA_Pixel* data)
 {
     SLONG i;
 
@@ -38,7 +38,7 @@ TGA_Info TGA_load(
 
     FILE* handle;
 
-    TGA_Info ans {};
+    OUTRO_TGA_Info ans {};
 
     //
     // Open the file.
@@ -57,7 +57,7 @@ TGA_Info TGA_load(
     //
 
     if (fread(header, sizeof(UBYTE), 18, handle) != 18)
-        return TGA_FileLoad_Error(ans, handle, file);
+        return OUTRO_TGA_FileLoad_Error(ans, handle, file);
 
     //
     // Extract info from the header.
@@ -108,7 +108,7 @@ TGA_Info TGA_load(
 
     for (i = 0; i < tga_id_length; i++) {
         if (fread(&rubbish, sizeof(UBYTE), 1, handle) != 1)
-            return TGA_FileLoad_Error(ans, handle, file);
+            return OUTRO_TGA_FileLoad_Error(ans, handle, file);
     }
 
     //
@@ -116,8 +116,8 @@ TGA_Info TGA_load(
     //
 
     if (tga_pixel_depth == 32) {
-        if (fread(data, sizeof(TGA_Pixel), tga_width * tga_height, handle) != tga_width * tga_height)
-            return TGA_FileLoad_Error(ans, handle, file);
+        if (fread(data, sizeof(OUTRO_TGA_Pixel), tga_width * tga_height, handle) != tga_width * tga_height)
+            return OUTRO_TGA_FileLoad_Error(ans, handle, file);
 
         no_alpha = FALSE;
     } else {
@@ -127,11 +127,11 @@ TGA_Info TGA_load(
 
         for (i = 0; i < tga_width * tga_height; i++) {
             if (fread(&blue, sizeof(UBYTE), 1, handle) != 1)
-                return TGA_FileLoad_Error(ans, handle, file);
+                return OUTRO_TGA_FileLoad_Error(ans, handle, file);
             if (fread(&green, sizeof(UBYTE), 1, handle) != 1)
-                return TGA_FileLoad_Error(ans, handle, file);
+                return OUTRO_TGA_FileLoad_Error(ans, handle, file);
             if (fread(&red, sizeof(UBYTE), 1, handle) != 1)
-                return TGA_FileLoad_Error(ans, handle, file);
+                return OUTRO_TGA_FileLoad_Error(ans, handle, file);
 
             data[i].red = red;
             data[i].green = green;

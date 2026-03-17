@@ -1,8 +1,8 @@
 // State.h
 // Guy Simmons, 4th January 1998.
 
-#ifndef STATE_H
-#define STATE_H
+#ifndef FALLEN_HEADERS_STATE_H
+#define FALLEN_HEADERS_STATE_H
 
 struct Thing;
 //---------------------------------------------------------------
@@ -29,4 +29,4 @@ extern void set_generic_person_just_function(Thing* t_thing, UBYTE state);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_STATE_H

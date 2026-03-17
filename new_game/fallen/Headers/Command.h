@@ -1,8 +1,8 @@
 // Command.h
 // Guy Simmons, 8th February 1998.
 
-#ifndef COMMAND_H
-#define COMMAND_H
+#ifndef FALLEN_HEADERS_COMMAND_H
+#define FALLEN_HEADERS_COMMAND_H
 
 //---------------------------------------------------------------
 
@@ -183,4 +183,4 @@ void process_condition_lists(void);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_COMMAND_H

@@ -1,6 +1,6 @@
 // uc_orig_file: fallen/Editor/Headers/map.h (renamed to edmap.h to avoid conflict with system headers)
-#ifndef	EMAP_H
-#define	EMAP_H	1
+#ifndef FALLEN_HEADERS_EDMAP_H
+#define FALLEN_HEADERS_EDMAP_H
 
 #undef ELE_SIZE
 
@@ -40,4 +40,4 @@ extern	UWORD	tex_map[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];
 
 //code
 
-#endif
+#endif // FALLEN_HEADERS_EDMAP_H

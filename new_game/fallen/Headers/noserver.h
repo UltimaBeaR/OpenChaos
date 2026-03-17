@@ -1,6 +1,6 @@
-#ifndef SERVER
-#define SERVER
+#ifndef FALLEN_HEADERS_NOSERVER_H
+#define FALLEN_HEADERS_NOSERVER_H
 
 #define NO_SERVER 1
 
-#endif
+#endif // FALLEN_HEADERS_NOSERVER_H

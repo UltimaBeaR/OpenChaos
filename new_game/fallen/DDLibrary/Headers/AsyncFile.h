@@ -2,6 +2,9 @@
 //
 // asynchronous file loading
 
+#ifndef FALLEN_DDLIBRARY_HEADERS_ASYNCFILE_H
+#define FALLEN_DDLIBRARY_HEADERS_ASYNCFILE_H
+
 // InitAsyncFile
 //
 // initialize
@@ -45,3 +48,5 @@ struct AsyncFile {
 };
 
 #define MAX_ASYNC_FILES 16
+
+#endif // FALLEN_DDLIBRARY_HEADERS_ASYNCFILE_H

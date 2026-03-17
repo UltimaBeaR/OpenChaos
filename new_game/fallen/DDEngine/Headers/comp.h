@@ -2,8 +2,8 @@
 // Movie compression routines.
 //
 
-#ifndef _COMP_
-#define _COMP_
+#ifndef FALLEN_DDENGINE_HEADERS_COMP_H
+#define FALLEN_DDENGINE_HEADERS_COMP_H
 
 #include "tga.h"
 
@@ -60,4 +60,4 @@ void COMP_decomp(
     COMP_Delta* delta,
     COMP_Frame* result);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_COMP_H

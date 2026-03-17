@@ -1,8 +1,8 @@
 //	WayWind.h
 //	Guy Simmons, 31st July 1998.
 
-#ifndef WAYWIND_H
-#define WAYWIND_H
+#ifndef FALLEN_HEADERS_WAYWIND_H
+#define FALLEN_HEADERS_WAYWIND_H
 
 //---------------------------------------------------------------
 
@@ -13,4 +13,4 @@ void fini_wwind(void);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_WAYWIND_H

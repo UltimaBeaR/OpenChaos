@@ -2,8 +2,8 @@
 // Draws a person.
 //
 
-#ifndef _FIGURE_
-#define _FIGURE_
+#ifndef FALLEN_DDENGINE_HEADERS_FIGURE_H
+#define FALLEN_DDENGINE_HEADERS_FIGURE_H
 
 //
 // This function uses the POLY module, and assumes
@@ -40,4 +40,4 @@ void init_flames();
 
 void ANIM_obj_draw(Thing* p_thing, DrawTween* dt);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_FIGURE_H

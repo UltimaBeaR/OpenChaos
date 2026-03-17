@@ -1,8 +1,8 @@
 // Bucket.h
 // Guy Simmons, 24th October 1997.
 
-#ifndef BUCKET_H
-#define BUCKET_H
+#ifndef FALLEN_DDENGINE_HEADERS_BUCKET_H
+#define FALLEN_DDENGINE_HEADERS_BUCKET_H
 #include "Engine.h"
 
 //---------------------------------------------------------------
@@ -168,4 +168,4 @@ void init_buckets(void);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_BUCKET_H

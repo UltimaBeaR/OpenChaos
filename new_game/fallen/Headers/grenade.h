@@ -2,6 +2,9 @@
 //
 // grenade code
 
+#ifndef FALLEN_HEADERS_GRENADE_H
+#define FALLEN_HEADERS_GRENADE_H
+
 // initialize system
 void InitGrenades();
 
@@ -19,3 +22,5 @@ void ProcessGrenades();
 
 // create a grenade explosion
 void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner);
+
+#endif // FALLEN_HEADERS_GRENADE_H

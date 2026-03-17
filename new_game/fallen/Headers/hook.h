@@ -2,8 +2,8 @@
 // A grappling hook.
 //
 
-#ifndef _HOOK_
-#define _HOOK_
+#ifndef FALLEN_HEADERS_HOOK_H
+#define FALLEN_HEADERS_HOOK_H
 
 //
 // Creates the grappling hook lying neatly coiled up on the ground.
@@ -83,4 +83,4 @@ void HOOK_pos_point(SLONG point,
     SLONG* y,
     SLONG* z);
 
-#endif
+#endif // FALLEN_HEADERS_HOOK_H

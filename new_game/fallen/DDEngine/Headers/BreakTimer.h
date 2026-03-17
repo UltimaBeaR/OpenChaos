@@ -2,6 +2,9 @@
 //
 // break timer
 
+#ifndef FALLEN_DDENGINE_HEADERS_BREAKTIMER_H
+#define FALLEN_DDENGINE_HEADERS_BREAKTIMER_H
+
 // Interface:
 //
 // Simply call BreakTime(name) at each breakpoint and BreakFrame() after the screen flip call
@@ -18,3 +21,5 @@
 
 extern void StartStopwatch();
 extern float StopStopwatch();
+
+#endif // FALLEN_DDENGINE_HEADERS_BREAKTIMER_H

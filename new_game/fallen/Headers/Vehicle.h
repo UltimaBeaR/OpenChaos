@@ -2,8 +2,8 @@
 //
 // vehicle physics
 
-#ifndef VEHICLE_H
-#define VEHICLE_H
+#ifndef FALLEN_HEADERS_VEHICLE_H
+#define FALLEN_HEADERS_VEHICLE_H
 #include "../Headers/State.h"
 
 // claude-ai: Флаги VehicleStruct.Flags (UWORD).
@@ -286,4 +286,4 @@ void vehicle_wheel_pos_get(
     SLONG* wy,
     SLONG* wz);
 
-#endif
+#endif // FALLEN_HEADERS_VEHICLE_H

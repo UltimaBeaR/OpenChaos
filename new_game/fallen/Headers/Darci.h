@@ -1,8 +1,8 @@
 // Darci.h
 // Guy Simmons, 4th January 1998.
 
-#ifndef DARCI_H
-#define DARCI_H
+#ifndef FALLEN_HEADERS_DARCI_H
+#define FALLEN_HEADERS_DARCI_H
 
 //---------------------------------------------------------------
 
@@ -13,4 +13,4 @@ void fn_darci_normal(Thing* t_thing);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_DARCI_H

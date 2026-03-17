@@ -3,8 +3,8 @@
 // given largish blocks of memory out...
 //
 
-#ifndef HEAP_H
-#define HEAP_H
+#ifndef FALLEN_HEADERS_HEAP_H
+#define FALLEN_HEADERS_HEAP_H
 
 //
 // Initialises the heap.
@@ -24,4 +24,4 @@ void HEAP_give(void*, SLONG num_bytes);
 
 extern UBYTE HEAP_pad[HEAP_PAD_SIZE];
 
-#endif
+#endif // FALLEN_HEADERS_HEAP_H

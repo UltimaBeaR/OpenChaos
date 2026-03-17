@@ -1,8 +1,8 @@
 // Attract.h
 // Guy Simmons, 20th November 1997
 
-#ifndef ATTRACT_H
-#define ATTRACT_H
+#ifndef FALLEN_HEADERS_ATTRACT_H
+#define FALLEN_HEADERS_ATTRACT_H
 
 //---------------------------------------------------------------
 
@@ -19,4 +19,4 @@ void ATTRACT_loadscreen_draw(SLONG completion); // completion is in 8-bit fixed 
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_ATTRACT_H

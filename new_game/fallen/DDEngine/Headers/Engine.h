@@ -1,8 +1,8 @@
 // Engine.h
 // Guy Simmons, 18th October 1997
 
-#ifndef ENGINE_H
-#define ENGINE_H
+#ifndef FALLEN_DDENGINE_HEADERS_ENGINE_H
+#define FALLEN_DDENGINE_HEADERS_ENGINE_H
 
 #include "Game.h"
 #include "DDLib.h"
@@ -54,6 +54,7 @@ inline ULONG ENGINE_multiply_colour(ULONG colour, SLONG r, SLONG g, SLONG b)
 //---------------------------------------------------------------
 // Engine Maths stuff.
 
+// uc_also_in: fallen/Headers/Engine.h (basic copy without inline helpers; removed as stale duplicate)
 struct M31 {
     float R[3];
 };
@@ -114,6 +115,7 @@ inline void vector_normalisation(M31* v, float length)
 
 //---------------------------------------------------------------
 
+// uc_also_in: fallen/Headers/Engine.h (basic copy without rotation helpers; removed as stale duplicate)
 struct M33 {
     M31 R0,
         R1,
@@ -275,6 +277,7 @@ typedef struct
 
 //---------------------------------------------------------------
 
+// uc_also_in: fallen/Headers/Engine.h (stale copy also had CameraRAngle field — dead code in D3D build; removed)
 typedef struct
 {
     float CameraX,
@@ -287,6 +290,7 @@ typedef struct
 
 //---------------------------------------------------------------
 
+// uc_also_in: fallen/Headers/Engine.h (stale copy lacked CameraPos field; removed as stale duplicate)
 typedef struct
 {
     float HalfViewHeight,
@@ -366,4 +370,4 @@ void e_draw_3d_line_col_sorted(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2,
 void e_draw_3d_mapwho(SLONG x1, SLONG z1);
 void e_draw_3d_mapwho_y(SLONG x1, SLONG y1, SLONG z1);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_ENGINE_H

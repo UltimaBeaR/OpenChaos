@@ -9,8 +9,8 @@
 // claude-ai: MAV_do() — главная функция: из текущей позиции к цели, возвращает следующее действие (MAV_Action).
 // claude-ai: MAV_LOOKAHEAD=32 — горизонт поиска пути (не вся карта, только вперёд на 32 клетки).
 
-#ifndef _MAV_
-#define _MAV_
+#ifndef FALLEN_HEADERS_MAV_H
+#define FALLEN_HEADERS_MAV_H
 
 #include "pap.h"
 #include "structs.h"
@@ -220,4 +220,4 @@ void MAV_turn_movement_off(UBYTE mx, UBYTE mz, UBYTE dir);
 void MAV_turn_car_movement_on(UBYTE mx, UBYTE mz, UBYTE dir);
 void MAV_turn_car_movement_off(UBYTE mx, UBYTE mz, UBYTE dir);
 
-#endif
+#endif // FALLEN_HEADERS_MAV_H

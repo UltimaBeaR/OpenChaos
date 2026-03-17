@@ -4,8 +4,8 @@
 // 22 sept 98
 //
 
-#ifndef _TRACKS_H_
-#define _TRACKS_H_
+#ifndef FALLEN_HEADERS_TRACKS_H
+#define FALLEN_HEADERS_TRACKS_H
 
 #include "MFStdLib.h"
 #include "Structs.h"
@@ -77,4 +77,4 @@ SLONG TRACKS_GroundAtXZ(SLONG X, SLONG Z);
 void TRACKS_Bleed(Thing* bleeder);
 void TRACKS_Bloodpool(Thing* bleeder);
 
-#endif
+#endif // FALLEN_HEADERS_TRACKS_H

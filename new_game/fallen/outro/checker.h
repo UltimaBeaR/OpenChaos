@@ -2,8 +2,8 @@
 // The checkered way Darci and Roper appear on screen.
 //
 
-#ifndef _CHECKER_
-#define _CHECKER_
+#ifndef FALLEN_OUTRO_CHECKER_H
+#define FALLEN_OUTRO_CHECKER_H
 
 //
 // Loads textures.
@@ -17,4 +17,4 @@ void CHECKER_init(void);
 
 void CHECKER_draw(void);
 
-#endif
+#endif // FALLEN_OUTRO_CHECKER_H

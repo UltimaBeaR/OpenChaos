@@ -3,9 +3,8 @@
 // claude-ai: and the main API: apply_violence(), apply_hit_to_person(), find_attack_stance().
 // claude-ai: PORT: all of this should be ported — it drives all melee combat gameplay.
 
-#ifndef COMBAT_H
-
-#define COMBAT_H 1
+#ifndef FALLEN_HEADERS_COMBAT_H
+#define FALLEN_HEADERS_COMBAT_H
 
 //
 // Defines

@@ -2,8 +2,8 @@
 // An A-Z of the current city.
 //
 
-#ifndef _AZ_
-#define _AZ_
+#ifndef FALLEN_HEADERS_AZ_H
+#define FALLEN_HEADERS_AZ_H
 
 //
 // Initialises the AZ module.
@@ -36,4 +36,4 @@ extern SLONG AZ_line_upto;
 
 void AZ_create_lines(void);
 
-#endif
+#endif // FALLEN_HEADERS_AZ_H

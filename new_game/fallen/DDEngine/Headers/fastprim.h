@@ -2,8 +2,8 @@
 // Draws prims super-fast!
 //
 
-#ifndef _FASTPRIM_
-#define _FASTPRIM_
+#ifndef FALLEN_DDENGINE_HEADERS_FASTPRIM_H
+#define FALLEN_DDENGINE_HEADERS_FASTPRIM_H
 
 #include "night.h"
 
@@ -31,4 +31,4 @@ SLONG FASTPRIM_draw(
 
 void FASTPRIM_fini(void);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_FASTPRIM_H

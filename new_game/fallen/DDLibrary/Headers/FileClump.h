@@ -2,8 +2,8 @@
 //
 // File clump class - contains multiple files
 
-#ifndef FILECLUMP_H
-#define FILECLUMP_H
+#ifndef FALLEN_DDLIBRARY_HEADERS_FILECLUMP_H
+#define FALLEN_DDLIBRARY_HEADERS_FILECLUMP_H
 
 // FileClump
 //
@@ -28,4 +28,4 @@ private:
     bool ReadOnly; // read-only flag
 };
 
-#endif // FILECLUMP_H
+#endif // FALLEN_DDLIBRARY_HEADERS_FILECLUMP_H

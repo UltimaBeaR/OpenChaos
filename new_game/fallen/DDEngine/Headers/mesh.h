@@ -2,8 +2,8 @@
 // Drawing rotating prims.
 //
 
-#ifndef MESH_H
-#define MESH_H
+#ifndef FALLEN_DDENGINE_HEADERS_MESH_H
+#define FALLEN_DDENGINE_HEADERS_MESH_H
 
 #include "night.h"
 
@@ -111,4 +111,4 @@ void MESH_draw_morph(
     SLONG i_roll,
     NIGHT_Colour* lpc);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_MESH_H

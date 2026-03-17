@@ -2,8 +2,8 @@
 // Building related stuff
 //
 
-#ifndef IN_BUILDING_H
-#define IN_BUILDING_H
+#ifndef FALLEN_HEADERS_ENTER_H
+#define FALLEN_HEADERS_ENTER_H
 #include "Game.h"
 
 //
@@ -58,4 +58,4 @@ void ENTER_get_extents(
 
 SLONG ENTER_setup(SLONG dbuilding, SLONG height, UBYTE furnished, UBYTE find_best_layout);
 
-#endif
+#endif // FALLEN_HEADERS_ENTER_H

@@ -2,8 +2,8 @@
 //
 // render state class; encapsulates a state of the renderer
 
-#ifndef _RENDERSTATE_
-#define _RENDERSTATE_
+#ifndef FALLEN_DDENGINE_HEADERS_RENDERSTATE_H
+#define FALLEN_DDENGINE_HEADERS_RENDERSTATE_H
 
 enum SpecialEffect {
     RS_None, // no special effect
@@ -78,4 +78,4 @@ private:
 };
 #pragma pack(pop)
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_RENDERSTATE_H

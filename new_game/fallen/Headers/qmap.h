@@ -2,8 +2,8 @@
 // A whole new world...
 //
 
-#ifndef _QMAP_
-#define _QMAP_
+#ifndef FALLEN_HEADERS_QMAP_H
+#define FALLEN_HEADERS_QMAP_H
 
 //
 // Big map!
@@ -451,4 +451,4 @@ void QMAP_create(QMAP_Draw* fill_me_in, SLONG map_x, SLONG map_z);
 
 void QMAP_free(QMAP_Draw* free_me_up);
 
-#endif
+#endif // FALLEN_HEADERS_QMAP_H

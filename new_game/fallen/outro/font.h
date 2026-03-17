@@ -2,8 +2,8 @@
 // A font! That's all there is to it.
 //
 
-#ifndef _FONT_
-#define _FONT_
+#ifndef FALLEN_OUTRO_FONT_H
+#define FALLEN_OUTRO_FONT_H
 
 //
 // Loads in the font texture and calculates the uv's of the letters.
@@ -44,4 +44,4 @@ void FONT_draw(
     float shimmer, // How much to shimmer. 0.0F => no shimmering, 1.0F => maximum shimmering.
     CBYTE* fmt, ...);
 
-#endif
+#endif // FALLEN_OUTRO_FONT_H

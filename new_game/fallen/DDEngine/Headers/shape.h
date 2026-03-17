@@ -2,8 +2,8 @@
 // Primitive shapes...
 //
 
-#ifndef _SHAPE_
-#define _SHAPE_
+#ifndef FALLEN_DDENGINE_HEADERS_SHAPE_H
+#define FALLEN_DDENGINE_HEADERS_SHAPE_H
 
 #include "ob.h"
 
@@ -145,4 +145,4 @@ void SHAPE_prim_shadow(OB_Info* oi);
 
 void SHAPE_draw_balloon(SLONG balloon);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_SHAPE_H

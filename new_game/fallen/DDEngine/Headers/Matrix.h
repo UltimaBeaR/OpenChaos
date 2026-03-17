@@ -8,8 +8,8 @@
 // Matrix stuff...
 //
 
-#ifndef _MATRIX_
-#define _MATRIX_
+#ifndef FALLEN_DDENGINE_HEADERS_MATRIX_H
+#define FALLEN_DDENGINE_HEADERS_MATRIX_H
 
 //
 // ALL ANGLES ARE IN RADIANS.
@@ -151,4 +151,4 @@ typedef struct
 
 Direction MATRIX_find_angles(float matrix[9]);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_MATRIX_H

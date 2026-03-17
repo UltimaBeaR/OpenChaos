@@ -1,8 +1,8 @@
 //	EnemySetup.h
 //	Guy Simmons, 23rd August 1998.
 
-#ifndef ENEMYSETUP_H
-#define ENEMYSETUP_H
+#ifndef FALLEN_HEADERS_ENEMYSETUP_H
+#define FALLEN_HEADERS_ENEMYSETUP_H
 
 #include "Mission.h"
 
@@ -13,4 +13,4 @@ CBYTE* get_enemy_message(EventPoint* ep, CBYTE* msg);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_ENEMYSETUP_H

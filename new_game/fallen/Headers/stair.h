@@ -2,8 +2,8 @@
 // Tells you where to put staircases in a building.
 //
 
-#ifndef STAIR_H
-#define STAIR_H
+#ifndef FALLEN_HEADERS_STAIR_H
+#define FALLEN_HEADERS_STAIR_H
 
 #include "id.h"
 
@@ -49,4 +49,4 @@ void STAIR_calculate(UWORD seed);
 
 SLONG STAIR_get(SLONG handle, ID_Stair** stair, SLONG* num_stairs);
 
-#endif
+#endif // FALLEN_HEADERS_STAIR_H

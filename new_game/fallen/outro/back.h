@@ -2,8 +2,8 @@
 // The background...
 //
 
-#ifndef _BACK_
-#define _BACK_
+#ifndef FALLEN_OUTRO_BACK_H
+#define FALLEN_OUTRO_BACK_H
 
 //
 // Loads the textures.
@@ -18,4 +18,4 @@ void BACK_init(void);
 
 void BACK_draw(void);
 
-#endif
+#endif // FALLEN_OUTRO_BACK_H

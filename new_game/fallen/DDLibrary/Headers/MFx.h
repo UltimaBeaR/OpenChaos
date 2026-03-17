@@ -1,5 +1,5 @@
-#ifndef _mfx_h_
-#define _mfx_h_
+#ifndef FALLEN_DDLIBRARY_HEADERS_MFX_H
+#define FALLEN_DDLIBRARY_HEADERS_MFX_H
 
 #include "MFStdLib.h"
 #include "structs.h"
@@ -78,4 +78,4 @@ void MFX_QUICK_wait(void);
 void MFX_QUICK_stop();
 SLONG MFX_QUICK_still_playing(void);
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_MFX_H

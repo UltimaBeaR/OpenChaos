@@ -1,8 +1,8 @@
 //	EdStrings.h
 //	Guy Simmmons, 5th August 1998.
 
-#ifndef EDSTRINGS_H
-#define EDSTRINGS_H
+#ifndef FALLEN_HEADERS_EDSTRINGS_H
+#define FALLEN_HEADERS_EDSTRINGS_H
 
 //---------------------------------------------------------------
 
@@ -47,4 +47,4 @@ extern TCHAR *wtype_strings[],
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_EDSTRINGS_H

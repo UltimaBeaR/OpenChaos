@@ -3,8 +3,8 @@
 // walkable faces of the prim.
 //
 
-#ifndef _PLAT_
-#define _PLAT_
+#ifndef FALLEN_HEADERS_PLAT_H
+#define FALLEN_HEADERS_PLAT_H
 
 //
 // The platforms linked from the things.
@@ -70,4 +70,4 @@ UWORD PLAT_create(
     SLONG world_y,
     SLONG world_z);
 
-#endif
+#endif // FALLEN_HEADERS_PLAT_H

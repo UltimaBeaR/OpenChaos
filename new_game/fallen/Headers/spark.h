@@ -2,8 +2,8 @@
 // Electric sparks...
 //
 
-#ifndef _SPARK_
-#define _SPARK_
+#ifndef FALLEN_HEADERS_SPARK_H
+#define FALLEN_HEADERS_SPARK_H
 
 //
 // Removes all sparks.
@@ -95,4 +95,4 @@ typedef struct
 void SPARK_get_start(UBYTE xmin, UBYTE xmax, UBYTE z);
 SPARK_Info* SPARK_get_next(void); // NULL => No more sparks...
 
-#endif
+#endif // FALLEN_HEADERS_SPARK_H

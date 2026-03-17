@@ -2,8 +2,8 @@
 // Draws buildings.
 //
 
-#ifndef _BUILD_
-#define _BUILD_
+#ifndef FALLEN_DDENGINE_HEADERS_BUILD_H
+#define FALLEN_DDENGINE_HEADERS_BUILD_H
 
 //
 // This function uses the POLY module, and assumes
@@ -18,4 +18,4 @@ void BUILD_draw(Thing* building);
 
 void BUILD_draw_inside(void);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_BUILD_H

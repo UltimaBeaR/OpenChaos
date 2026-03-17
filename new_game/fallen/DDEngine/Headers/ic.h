@@ -2,8 +2,8 @@
 // Image compression.
 //
 
-#ifndef _IC_
-#define _IC_
+#ifndef FALLEN_DDENGINE_HEADERS_IC_H
+#define FALLEN_DDENGINE_HEADERS_IC_H
 
 #include "tga.h"
 
@@ -46,4 +46,4 @@ void IC_unpack(
 
 void IC_test(void);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_IC_H

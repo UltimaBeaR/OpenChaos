@@ -2,8 +2,8 @@
 // For doing network game stuff...
 //
 
-#ifndef CNET_H
-#define CNET_H
+#ifndef FALLEN_HEADERS_CNET_H
+#define FALLEN_HEADERS_CNET_H
 
 //
 // The configuring loop.
@@ -16,4 +16,4 @@ extern UBYTE CNET_player_id;
 
 SLONG CNET_configure(void);
 
-#endif
+#endif // FALLEN_HEADERS_CNET_H

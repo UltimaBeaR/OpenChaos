@@ -2,8 +2,8 @@
 // Splashes...
 //
 
-#ifndef _DRIP_
-#define _DRIP_
+#ifndef FALLEN_HEADERS_DRIP_H
+#define FALLEN_HEADERS_DRIP_H
 
 #define DRIP_FLAG_PUDDLES_ONLY (1)
 
@@ -57,4 +57,4 @@ typedef struct
 void DRIP_get_start(void);
 DRIP_Info* DRIP_get_next(void); // NULL => no more drips.
 
-#endif
+#endif // FALLEN_HEADERS_DRIP_H

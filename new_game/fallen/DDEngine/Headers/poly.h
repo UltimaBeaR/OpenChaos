@@ -2,8 +2,8 @@
 // Drawing polygons with D3D
 //
 
-#ifndef _POLY_
-#define _POLY_
+#ifndef FALLEN_DDENGINE_HEADERS_POLY_H
+#define FALLEN_DDENGINE_HEADERS_POLY_H
 
 static inline int ftol(float f)
 {
@@ -573,4 +573,4 @@ extern UWORD POLY_page_flag[POLY_NUM_PAGES];
 
 extern void POLY_init_render_states();
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_POLY_H

@@ -5,8 +5,8 @@
 // plays back cutscenes made with cutscene.cpp in gedit
 //
 
-#ifndef _PLAYCUTS_H_
-#define _PLAYCUTS_H_
+#ifndef FALLEN_HEADERS_PLAYCUTS_H
+#define FALLEN_HEADERS_PLAYCUTS_H
 
 #include "MFStdLib.h"
 #include "Game.h"
@@ -76,4 +76,4 @@ void PLAYCUTS_Free(CPData* cutscene);
 void PLAYCUTS_Play(CPData* cutscene);
 void PLAYCUTS_Reset();
 
-#endif
+#endif // FALLEN_HEADERS_PLAYCUTS_H

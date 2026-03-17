@@ -1,6 +1,6 @@
 // uc_orig_file: fallen/Editor/Headers/prim_draw.h
-#ifndef	PRIM_DRAW_H
-#define	PRIM_DRAW_H	1
+#ifndef FALLEN_HEADERS_PRIM_DRAW_H
+#define FALLEN_HEADERS_PRIM_DRAW_H
 
 //**********
 //*  DATA  *
@@ -22,4 +22,4 @@ extern	void 	matrix_mult33(struct Matrix33* result,struct Matrix33* mat1,struct 
 extern	void 	rotate_obj(SWORD xangle,SWORD yangle,SWORD zangle, Matrix33 *r3);
 
 
-#endif
+#endif // FALLEN_HEADERS_PRIM_DRAW_H

@@ -2,8 +2,8 @@
 // Network stuff...
 //
 
-#ifndef NET_H
-#define NET_H
+#ifndef FALLEN_DDLIBRARY_HEADERS_NET_H
+#define FALLEN_DDLIBRARY_HEADERS_NET_H
 
 // ========================================================
 //
@@ -179,4 +179,4 @@ typedef struct
 
 void NET_message_get(NET_Message* answer);
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_NET_H

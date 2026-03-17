@@ -1,5 +1,5 @@
-#ifndef START_SCR_H
-#define START_SCR_H 1
+#ifndef FALLEN_HEADERS_STARTSCR_H
+#define FALLEN_HEADERS_STARTSCR_H
 
 #define STARTS_START 1
 #define STARTS_EDITOR 2
@@ -41,4 +41,4 @@ void STARTSCR_notify_gameover(BOOL won);
 typedef void (*MISSION_callback)(CBYTE* filename);
 void MissionListCallback(CBYTE* script, MISSION_callback cb);
 
-#endif
+#endif // FALLEN_HEADERS_STARTSCR_H

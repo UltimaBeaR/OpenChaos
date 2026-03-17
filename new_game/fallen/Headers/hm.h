@@ -2,8 +2,8 @@
 // Hypermatter!
 //
 
-#ifndef HM_H
-#define HM_H
+#ifndef FALLEN_HEADERS_HM_H
+#define FALLEN_HEADERS_HM_H
 
 //
 // Initialises all the hypermatter objects.
@@ -190,4 +190,4 @@ SLONG HM_stationary(UBYTE hm_index);
 
 void HM_draw(void);
 
-#endif
+#endif // FALLEN_HEADERS_HM_H

@@ -2,8 +2,8 @@
 // Mist.
 //
 
-#ifndef MIST_H
-#define MIST_H
+#ifndef FALLEN_HEADERS_MIST_H
+#define FALLEN_HEADERS_MIST_H
 
 //
 // Initialises all the mist.
@@ -56,4 +56,4 @@ void MIST_get_texture(SLONG px, SLONG pz,
     float* u,
     float* v);
 
-#endif
+#endif // FALLEN_HEADERS_MIST_H

@@ -1,8 +1,8 @@
 // StdMouse.h
 // Guy Simmons, 18th December 1997.
 
-#ifndef STD_MOUSE_H
-#define STD_MOUSE_H
+#ifndef MFSTDLIB_HEADERS_STDMOUSE_H
+#define MFSTDLIB_HEADERS_STDMOUSE_H
 
 //---------------------------------------------------------------
 
@@ -26,4 +26,4 @@ extern volatile MFPoint MousePoint;
 
 //---------------------------------------------------------------
 
-#endif
+#endif // MFSTDLIB_HEADERS_STDMOUSE_H

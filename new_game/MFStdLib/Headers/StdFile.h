@@ -1,8 +1,8 @@
 // StdFile.h
 // Guy Simmons, 18th December 1997.
 
-#ifndef STD_FILE_H
-#define STD_FILE_H
+#ifndef MFSTDLIB_HEADERS_STDFILE_H
+#define MFSTDLIB_HEADERS_STDFILE_H
 
 //---------------------------------------------------------------
 
@@ -42,4 +42,4 @@ int MF_Fclose(FILE* stream);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // MFSTDLIB_HEADERS_STDFILE_H

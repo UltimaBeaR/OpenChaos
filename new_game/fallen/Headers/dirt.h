@@ -5,8 +5,8 @@
 // edge on the focus point.
 //
 
-#ifndef DIRT_H
-#define DIRT_H
+#ifndef FALLEN_HEADERS_DIRT_H
+#define FALLEN_HEADERS_DIRT_H
 
 #define DIRT_TYPE_UNUSED 0
 #define DIRT_TYPE_LEAF 1
@@ -263,4 +263,4 @@ void DIRT_mark_as_offscreen(SLONG which);
 
 void DIRT_new_sparks(SLONG px, SLONG py, SLONG pz, UBYTE dir);
 
-#endif
+#endif // FALLEN_HEADERS_DIRT_H

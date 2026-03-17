@@ -2,8 +2,8 @@
 // Morphing keyframes.
 //
 
-#ifndef _MORPH_
-#define _MORPH_
+#ifndef FALLEN_HEADERS_MORPH_H
+#define FALLEN_HEADERS_MORPH_H
 
 //
 // Loads all the morphs in.
@@ -33,4 +33,4 @@ typedef struct
 MORPH_Point* MORPH_get_points(SLONG morph);
 SLONG MORPH_get_num_points(SLONG morph);
 
-#endif
+#endif // FALLEN_HEADERS_MORPH_H

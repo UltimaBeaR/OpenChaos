@@ -3,8 +3,8 @@
 // restricts its movements.
 //
 
-#ifndef _LEAD_
-#define _LEAD_
+#ifndef FALLEN_HEADERS_LEAD_H
+#define FALLEN_HEADERS_LEAD_H
 
 //
 // The lead structure. The first point of the lead is (attach_x,attach_y,attach_z).
@@ -78,4 +78,4 @@ void LEAD_attach(void);
 
 void LEAD_process(void);
 
-#endif
+#endif // FALLEN_HEADERS_LEAD_H

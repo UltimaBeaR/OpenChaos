@@ -1,8 +1,8 @@
 // Person.h
 // Guy Simmons, 12th January 1998
 
-#ifndef PERSON_H
-#define PERSON_H
+#ifndef FALLEN_HEADERS_PERSON_H
+#define FALLEN_HEADERS_PERSON_H
 #include "../Headers/Structs.h"
 
 //---------------------------------------------------------------
@@ -532,4 +532,4 @@ SLONG person_get_scale(Thing* t);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_PERSON_H

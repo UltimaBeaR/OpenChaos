@@ -2,8 +2,8 @@
 // A new super duper sewer/cavern system.
 //
 
-#ifndef _NS_
-#define _NS_
+#ifndef FALLEN_HEADERS_NS_H
+#define FALLEN_HEADERS_NS_H
 
 #include "pap.h"
 
@@ -342,4 +342,4 @@ void NS_cache_destroy(UBYTE cache);
 
 void NS_cache_fini(void);
 
-#endif
+#endif // FALLEN_HEADERS_NS_H

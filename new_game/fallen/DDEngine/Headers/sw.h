@@ -2,8 +2,8 @@
 // Sofware renderer hacked in!
 //
 
-#ifndef _SW_
-#define _SW_
+#ifndef FALLEN_DDENGINE_HEADERS_SW_H
+#define FALLEN_DDENGINE_HEADERS_SW_H
 
 //
 // The maximum software screen dimensions.
@@ -61,4 +61,4 @@ void SW_add_triangle(
 void SW_copy_to_bb(void);
 
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_SW_H

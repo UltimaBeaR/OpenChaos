@@ -2,8 +2,8 @@
 // Bats/gargoles that circle an area and swoop to attack the player.
 //
 
-#ifndef _BAT_
-#define _BAT_
+#ifndef FALLEN_HEADERS_BAT_H
+#define FALLEN_HEADERS_BAT_H
 
 //
 // The bat structures.
@@ -67,4 +67,4 @@ void BAT_apply_hit(
     Thing* p_aggressor,
     SLONG damage);
 
-#endif
+#endif // FALLEN_HEADERS_BAT_H

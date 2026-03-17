@@ -2,8 +2,8 @@
 // Menus from within the game.
 //
 
-#ifndef _GAMEMENU_
-#define _GAMEMENU_
+#ifndef FALLEN_HEADERS_GAMEMENU_H
+#define FALLEN_HEADERS_GAMEMENU_H
 
 //
 // Initialises all the gamemenu stuff. Call at the start of the
@@ -50,4 +50,4 @@ void GAMEMENU_set_level_lost_reason(CBYTE* reason);
 
 void GAMEMENU_draw(void);
 
-#endif
+#endif // FALLEN_HEADERS_GAMEMENU_H

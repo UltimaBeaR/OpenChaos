@@ -21,8 +21,8 @@
 // claude-ai:   SLONG (32-bit) on Glide (commented out).
 // claude-ai:   These are indices into the object pools (Things[], People[], etc.).
 
-#ifndef GAME_H
-#define GAME_H
+#ifndef FALLEN_HEADERS_GAME_H
+#define FALLEN_HEADERS_GAME_H
 
 #define DRAW_DIST 22
 
@@ -639,4 +639,4 @@ void stop_all_fx_and_music();
 #define POLY_G (POLY_FLAG_GOURAD)
 #define POLY_F (0)
 
-#endif
+#endif // FALLEN_HEADERS_GAME_H

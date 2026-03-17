@@ -2,8 +2,8 @@
 // Doors
 //
 
-#ifndef _DOOR_
-#define _DOOR_
+#ifndef FALLEN_HEADERS_DOOR_H
+#define FALLEN_HEADERS_DOOR_H
 
 //
 // Doors in the process of opening or closing.
@@ -32,4 +32,4 @@ void DOOR_shut(SLONG world_x, SLONG world_z);
 
 void DOOR_process(void);
 
-#endif
+#endif // FALLEN_HEADERS_DOOR_H

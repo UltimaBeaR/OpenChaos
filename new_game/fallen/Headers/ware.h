@@ -2,8 +2,8 @@
 // Warehouses- and you can go into them!
 //
 
-#ifndef _WARE_
-#define _WARE_
+#ifndef FALLEN_HEADERS_WARE_H
+#define FALLEN_HEADERS_WARE_H
 
 //
 // Warehouses have their own private MAVigation system and they know
@@ -159,4 +159,4 @@ MAV_Action WARE_mav_exit(Thing* p_person, UBYTE caps);
 
 void WARE_debug(void);
 
-#endif
+#endif // FALLEN_HEADERS_WARE_H

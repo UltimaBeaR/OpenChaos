@@ -1,5 +1,5 @@
-#ifndef DRAWTYPE_H
-#define DRAWTYPE_H
+#ifndef FALLEN_HEADERS_DRAWTYPE_H
+#define FALLEN_HEADERS_DRAWTYPE_H
 //
 // Draw Types
 //
@@ -112,4 +112,4 @@ void init_draw_meshes(void);
 DrawMesh* alloc_draw_mesh(void);
 void free_draw_mesh(DrawMesh* drawmesh);
 
-#endif
+#endif // FALLEN_HEADERS_DRAWTYPE_H

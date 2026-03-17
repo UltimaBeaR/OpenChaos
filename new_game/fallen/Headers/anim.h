@@ -1,6 +1,6 @@
 // uc_orig_file: fallen/Editor/Headers/Anim.h
-#ifndef	ANIM_H
-#define	ANIM_H			1
+#ifndef FALLEN_HEADERS_ANIM_H
+#define FALLEN_HEADERS_ANIM_H
 
 #include	"Prim.h"
 
@@ -391,6 +391,6 @@ void ANIM_init(void);
 void ANIM_fini(void);
 
 
-#endif
+#endif // FALLEN_HEADERS_ANIM_H
 
 

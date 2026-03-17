@@ -1,8 +1,8 @@
 // WorkScreen.h
 // Guy Simmons, 10th December 1997
 
-#ifndef WORK_SCREEN_H
-#define WORK_SCREEN_H
+#ifndef FALLEN_DDLIBRARY_HEADERS_GWORKSCREEN_H
+#define FALLEN_DDLIBRARY_HEADERS_GWORKSCREEN_H
 
 // Never used on DC.
 
@@ -49,4 +49,4 @@ inline BOOL PointInRect(MFPoint* the_point, MFRect* the_rect)
 //---------------------------------------------------------------
 
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_GWORKSCREEN_H

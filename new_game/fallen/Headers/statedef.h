@@ -1,5 +1,5 @@
-#ifndef STATE_DEF
-#define STATE_DEF 1
+#ifndef FALLEN_HEADERS_STATEDEF_H
+#define FALLEN_HEADERS_STATEDEF_H
 // claude-ai: STATE_* — состояния объекта (Thing.State). Определяют активный StateFn обработчик. Значение State меняется вместе со сменой StateFn.
 // claude-ai: Базовые: INIT(0), NORMAL(1), COLLISION(2), ABOUT_TO_REMOVE(3), REMOVE_ME(4).
 // claude-ai: Движение/бой: MOVEING(5), IDLE(6), JUMPING(8), FIGHTING(9), FALLING(10), GUN(22), SHOOT(23), DRIVING(24), NAVIGATING(25).
@@ -240,4 +240,4 @@
 #define SUB_STATE_DROP_CARRY_V 114
 #define SUB_STATE_STAND_CARRY_V 115
 #define SUB_STATE_CARRY_MOVE_V 116
-#endif
+#endif // FALLEN_HEADERS_STATEDEF_H

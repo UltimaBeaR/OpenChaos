@@ -2,8 +2,8 @@
 // The new ECTS level stuff!
 //
 
-#ifndef _ELEV_
-#define _ELEV_
+#ifndef FALLEN_HEADERS_ELEV_H
+#define FALLEN_HEADERS_ELEV_H
 
 
 //
@@ -31,4 +31,4 @@ SLONG ELEV_game_init(
     CBYTE* fname_sewers,
     CBYTE* fname_level);
 
-#endif
+#endif // FALLEN_HEADERS_ELEV_H

@@ -1,8 +1,8 @@
 // Thing.h
 // Guy Simmons, 15th October 1997.
 
-#ifndef THING_H
-#define THING_H
+#ifndef FALLEN_HEADERS_THING_H
+#define FALLEN_HEADERS_THING_H
 #include "../Headers/Game.h"
 #include "../Headers/drawtype.h"
 #include "../Headers/vehicle.h"
@@ -221,4 +221,4 @@ SLONG THING_find_nearest(
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_THING_H

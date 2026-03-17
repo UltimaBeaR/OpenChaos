@@ -2,8 +2,8 @@
 // Balloons.
 //
 
-#ifndef _BALLOON_
-#define _BALLOON_
+#ifndef FALLEN_HEADERS_BALLOON_H
+#define FALLEN_HEADERS_BALLOON_H
 
 //
 // The points of a balloon.
@@ -77,4 +77,4 @@ void BALLOON_find_grab(UWORD thing);
 
 void BALLOON_process(void);
 
-#endif
+#endif // FALLEN_HEADERS_BALLOON_H

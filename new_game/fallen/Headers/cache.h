@@ -2,8 +2,8 @@
 // A cache designed for storing light info.
 //
 
-#ifndef CACHE_H
-#define CACHE_H
+#ifndef FALLEN_HEADERS_CACHE_H
+#define FALLEN_HEADERS_CACHE_H
 
 typedef UBYTE CACHE_Index;
 
@@ -66,4 +66,4 @@ void CACHE_flag_clear(CACHE_Index c_index);
 
 void CACHE_invalidate_unflagged(void);
 
-#endif
+#endif // FALLEN_HEADERS_CACHE_H

@@ -1,5 +1,5 @@
-#ifndef INLINE_H
-#define INLINE_H
+#ifndef FALLEN_HEADERS_INLINE_H
+#define FALLEN_HEADERS_INLINE_H
 
 
 
@@ -37,4 +37,4 @@ inline SLONG MUL64(SLONG a, SLONG b)
 }
 
 
-#endif
+#endif // FALLEN_HEADERS_INLINE_H

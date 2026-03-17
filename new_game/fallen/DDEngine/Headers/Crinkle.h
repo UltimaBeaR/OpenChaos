@@ -2,8 +2,8 @@
 // Crinkles!
 //
 
-#ifndef CRINKLE_H
-#define CRINKLE_H
+#ifndef FALLEN_DDENGINE_HEADERS_CRINKLE_H
+#define FALLEN_DDENGINE_HEADERS_CRINKLE_H
 
 #include "aeng.h"
 #include "poly.h"
@@ -61,4 +61,4 @@ void CRINKLE_project(
     SVector_F poly[4],
     SLONG flip);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_CRINKLE_H

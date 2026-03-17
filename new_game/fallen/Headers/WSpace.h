@@ -1,8 +1,8 @@
 //	WSpace.h
 //	Guy Simmons, 11th August 1998.
 
-#ifndef WSPACE_H
-#define WSPACE_H
+#ifndef FALLEN_HEADERS_WSPACE_H
+#define FALLEN_HEADERS_WSPACE_H
 
 //---------------------------------------------------------------
 
@@ -84,4 +84,4 @@ void ws_del_waypoint(EventPoint* ep);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_WSPACE_H

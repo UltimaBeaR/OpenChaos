@@ -2,8 +2,8 @@
 // Another engine.
 //
 
-#ifndef _AENG_
-#define _AENG_
+#ifndef FALLEN_DDENGINE_HEADERS_AENG_H
+#define FALLEN_DDENGINE_HEADERS_AENG_H
 
 //
 //  defines
@@ -431,4 +431,4 @@ void AENG_set_detail_levels(int stars,
     int crinkles);
 
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_AENG_H

@@ -1,5 +1,5 @@
-#ifndef _ALWAYS_
-#define _ALWAYS_
+#ifndef FALLEN_OUTRO_ALWAYS_H
+#define FALLEN_OUTRO_ALWAYS_H
 
 //
 // Turn off the warning about [] arrays at the end of structures.
@@ -282,4 +282,4 @@ static inline float frand(void)
     return ans;
 }
 
-#endif
+#endif // FALLEN_OUTRO_ALWAYS_H

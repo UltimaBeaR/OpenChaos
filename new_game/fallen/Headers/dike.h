@@ -3,8 +3,8 @@
 //
 
 
-#ifndef _DIKE_
-#define _DIKE_
+#ifndef FALLEN_HEADERS_DIKE_H
+#define FALLEN_HEADERS_DIKE_H
 
 typedef struct
 {
@@ -109,5 +109,5 @@ void DIKE_process(DIKE_Dike* dd);
 
 void DIKE_draw(DIKE_Dike* dd);
 
-#endif
+#endif // FALLEN_HEADERS_DIKE_H
 

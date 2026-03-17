@@ -1,5 +1,5 @@
-#ifndef WALLHUG_H
-#define WALLHUG_H
+#ifndef FALLEN_HEADERS_WALLHUG_H
+#define FALLEN_HEADERS_WALLHUG_H
 
 /*****************************************************************************
 
@@ -99,4 +99,4 @@ extern UBYTE wallhug_last_dirn;
 extern ULONG wallhug_last_hug_count;
 extern BOOL wallhug_looking_for_last;
 
-#endif
+#endif // FALLEN_HEADERS_WALLHUG_H

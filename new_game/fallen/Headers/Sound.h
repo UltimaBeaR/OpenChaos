@@ -7,8 +7,8 @@
 // claude-ai: Звуки персонажей: DieSound(), PainSound(), EffortSound(), ScreamFallSound() — вызываются по событиям.
 // claude-ai: SOUND_Gender(thing) → 0=неизвестно, 1=мужской, 2=женский — для выбора нужного голоса.
 
-#ifndef SOUND_H
-#define SOUND_H
+#ifndef FALLEN_HEADERS_SOUND_H
+#define FALLEN_HEADERS_SOUND_H
 
 #include "Structs.h"
 #include "MFX.h"
@@ -91,4 +91,4 @@ extern SOUNDFXG* SOUND_FXGroups; //[128][2]; // blahblah
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_SOUND_H

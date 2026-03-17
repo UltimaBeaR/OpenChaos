@@ -1,8 +1,8 @@
 //	ItemSetup.h
 //	Guy Simmons, 24th August 1998.
 
-#ifndef ITEMSETUP_H
-#define ITEMSETUP_H
+#ifndef FALLEN_HEADERS_ITEMSETUP_H
+#define FALLEN_HEADERS_ITEMSETUP_H
 
 //---------------------------------------------------------------
 
@@ -11,4 +11,4 @@ CBYTE* get_item_message(EventPoint* ep, CBYTE* msg);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_ITEMSETUP_H

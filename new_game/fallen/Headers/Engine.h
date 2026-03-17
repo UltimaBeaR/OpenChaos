@@ -1,69 +1,15 @@
 // Engine.h
 // Guy Simmons, 22nd October 1997.
 
-#ifndef ENGINE_H
-#define ENGINE_H
+#ifndef FALLEN_HEADERS_ENGINE_H
+#define FALLEN_HEADERS_ENGINE_H
 #include "../../MFStdLib/Headers/MFStdLib.h"
 //---------------------------------------------------------------
 
-#ifdef VERSION_D3D
-
-typedef struct
-{
-    float CameraX,
-        CameraY,
-        CameraZ;
-    SLONG CameraAngle,
-        CameraRoll,
-        CameraTilt,
-        CameraRAngle;
-} Camera;
-
-#elif defined(VERSION_PSX)
-
-typedef struct
-{
-} Camera;
-
-#endif
-
-//---------------------------------------------------------------
-
-struct M31 {
-    float R[3];
-};
-
-struct M33 {
-    M31 R0,
-        R1,
-        R2;
-};
-
-#define UV_XX R0.R[0]
-#define UV_YX R0.R[1]
-#define UV_ZX R0.R[2]
-
-#define UV_XY R1.R[0]
-#define UV_YY R1.R[1]
-#define UV_ZY R1.R[2]
-
-#define UV_XZ R2.R[0]
-#define UV_YZ R2.R[1]
-#define UV_ZZ R2.R[2]
-
-typedef struct
-{
-    float HalfViewHeight,
-        HalfViewWidth,
-        OriginX,
-        OriginY,
-        OriginZ,
-        ViewHeight,
-        ViewWidth,
-        Lens;
-    SLONG BucketSize;
-    M33 CameraMatrix;
-} Engine;
+// Camera, M31, M33, Engine types are defined in DDEngine/Headers/Engine.h.
+// That is the canonical definition used at link time.
+// The stale copies that used to live here have been removed (see uc_also_in comments there).
+#include "..\DDEngine\Headers\Engine.h"
 
 BOOL init_3d_engine(void);
 void fini_3d_engine(void);
@@ -131,4 +77,4 @@ void ENGINE_unlock(void);
 
 #include "..\ddengine\headers\font.h"
 
-#endif
+#endif // FALLEN_HEADERS_ENGINE_H

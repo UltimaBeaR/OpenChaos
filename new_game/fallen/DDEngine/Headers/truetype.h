@@ -2,6 +2,9 @@
 //
 // TrueType font handling
 
+#ifndef FALLEN_DDENGINE_HEADERS_TRUETYPE_H
+#define FALLEN_DDENGINE_HEADERS_TRUETYPE_H
+
 #include "texture.h"
 
 // if this is defined, we use TrueType fonts, otherwise we use normal fonts
@@ -75,3 +78,5 @@ extern int DrawTextTT(char* string, int x, int y, int rx, int scale, ULONG rgb, 
 // get height
 
 extern int GetTextHeightTT();
+
+#endif // FALLEN_DDENGINE_HEADERS_TRUETYPE_H

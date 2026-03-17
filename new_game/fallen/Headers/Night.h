@@ -37,8 +37,8 @@
 // claude-ai:   The specular channel in D3D is repurposed as a fog-override (alpha=0xFF = no fog).
 // claude-ai:   In the new game, replace specular with proper fog in the fragment shader.
 
-#ifndef _NIGHT_
-#define _NIGHT_
+#ifndef FALLEN_HEADERS_NIGHT_H
+#define FALLEN_HEADERS_NIGHT_H
 
 #include "pap.h"
 
@@ -658,4 +658,4 @@ SLONG NIGHT_check_index(SLONG walkable_prim_point_index);
 
 void NIGHT_generate_walkable_lighting(void);
 
-#endif
+#endif // FALLEN_HEADERS_NIGHT_H

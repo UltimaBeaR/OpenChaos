@@ -2,6 +2,9 @@
 //
 // asynchronous file loading for Win95
 
+#ifndef FALLEN_DDLIBRARY_HEADERS_ASYNCFILE2_H
+#define FALLEN_DDLIBRARY_HEADERS_ASYNCFILE2_H
+
 // InitAsyncFile
 //
 // initialize
@@ -46,3 +49,5 @@ struct AsyncFile {
 };
 
 #define MAX_ASYNC_FILES 16
+
+#endif // FALLEN_DDLIBRARY_HEADERS_ASYNCFILE2_H

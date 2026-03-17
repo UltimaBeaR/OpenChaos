@@ -2,8 +2,8 @@
 // Draws the credits
 //
 
-#ifndef _CREDITS_
-#define _CREDITS_
+#ifndef FALLEN_OUTRO_CREDITS_H
+#define FALLEN_OUTRO_CREDITS_H
 
 //
 // Initialises the credits.
@@ -17,4 +17,4 @@ void CREDITS_init(void);
 
 void CREDITS_draw(void);
 
-#endif
+#endif // FALLEN_OUTRO_CREDITS_H

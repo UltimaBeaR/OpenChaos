@@ -2,8 +2,8 @@
 // Loads in 32-bit RGBA uncompressed TGAs.
 //
 
-#ifndef _TGA_
-#define _TGA_
+#ifndef FALLEN_DDLIBRARY_HEADERS_TGA_H
+#define FALLEN_DDLIBRARY_HEADERS_TGA_H
 
 #include "FileClump.h"
 
@@ -11,6 +11,7 @@
 // The format of a TGA pixel.
 //
 
+// uc_also_in: fallen/outro/Tga.h (identical struct; renamed to OUTRO_TGA_Pixel there to resolve conflict)
 typedef struct
 {
     UBYTE blue;
@@ -24,6 +25,8 @@ typedef struct
 // Info describing the tga.
 //
 
+// uc_also_in: fallen/outro/Tga.h (different 4th field: ULONG flag bitmask there vs SLONG contains_alpha here;
+//   renamed to OUTRO_TGA_Info there to resolve conflict)
 typedef struct
 {
     SLONG valid;
@@ -63,4 +66,4 @@ bool DoesTGAExist(const char* filename, ULONG id);
 void CloseTGAClump();
 FileClump* GetTGAClump();
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_TGA_H

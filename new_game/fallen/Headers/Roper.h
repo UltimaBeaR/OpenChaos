@@ -1,8 +1,8 @@
 // Roper.h
 // Guy Simmons, 4th January 1998.
 
-#ifndef ROPER_H
-#define ROPER_H
+#ifndef FALLEN_HEADERS_ROPER_H
+#define FALLEN_HEADERS_ROPER_H
 
 //---------------------------------------------------------------
 
@@ -13,4 +13,4 @@ void fn_roper_normal(Thing* t_thing);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_ROPER_H

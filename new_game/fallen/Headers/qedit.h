@@ -2,8 +2,8 @@
 // An editor for the QMAP...
 //
 
-#ifndef _QEDIT_
-#define _QEDIT_
+#ifndef FALLEN_HEADERS_QEDIT_H
+#define FALLEN_HEADERS_QEDIT_H
 
 //
 // This is a game-loop funtion.
@@ -11,4 +11,4 @@
 
 void QEDIT_loop(void);
 
-#endif
+#endif // FALLEN_HEADERS_QEDIT_H

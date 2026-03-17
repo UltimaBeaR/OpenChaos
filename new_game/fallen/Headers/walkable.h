@@ -1,5 +1,5 @@
-#ifndef WALKABLE_H
-#define WALKABLE_H 1
+#ifndef FALLEN_HEADERS_WALKABLE_H
+#define FALLEN_HEADERS_WALKABLE_H
 
 //
 // defines
@@ -35,4 +35,4 @@ extern SLONG calc_height_on_rface(SLONG x, SLONG z, SWORD face, SLONG* new_y);
 
 void WALKABLE_remove_rface(UBYTE map_x, UBYTE map_z);
 
-#endif
+#endif // FALLEN_HEADERS_WALKABLE_H

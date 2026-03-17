@@ -5,8 +5,8 @@
 // translates strings to furrigan languages and remap buttons for the user's settings
 //
 
-#ifndef _XLAT_STR_H_
-#define _XLAT_STR_H_
+#ifndef FALLEN_HEADERS_XLAT_STR_H
+#define FALLEN_HEADERS_XLAT_STR_H
 
 #include "MFStdLib.h"
 
@@ -233,4 +233,4 @@ CBYTE* XLAT_str_ptr(SLONG string_id);
 void XLAT_load(CBYTE* fn);
 void XLAT_init();
 
-#endif
+#endif // FALLEN_HEADERS_XLAT_STR_H

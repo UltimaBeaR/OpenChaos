@@ -2,8 +2,8 @@
 // Simple ovals underneath people, barrels etc...
 //
 
-#ifndef _OVAL_
-#define _OVAL_
+#ifndef FALLEN_DDENGINE_HEADERS_OVAL_H
+#define FALLEN_DDENGINE_HEADERS_OVAL_H
 
 //
 // Creates an oval elongated in a given direction...
@@ -21,4 +21,4 @@ void OVAL_add(
     float angle = 0.0F,
     SLONG type = OVAL_TYPE_OVAL);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_OVAL_H

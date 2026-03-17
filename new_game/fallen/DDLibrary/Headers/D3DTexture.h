@@ -1,8 +1,8 @@
 // D3DTexture.h
 // Guy Simmons, 29th November 1997.
 
-#ifndef D3DTEXTURE_H
-#define D3DTEXTURE_H
+#ifndef FALLEN_DDLIBRARY_HEADERS_D3DTEXTURE_H
+#define FALLEN_DDLIBRARY_HEADERS_D3DTEXTURE_H
 
 // Call after doing lots of loading.
 void NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit(void);
@@ -179,4 +179,4 @@ public:
     void D3DPage::Unload(void);
 };
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_D3DTEXTURE_H

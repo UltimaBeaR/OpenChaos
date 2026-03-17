@@ -1,5 +1,5 @@
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef FALLEN_HEADERS_MEMORY_H
+#define FALLEN_HEADERS_MEMORY_H
 
 #include "supermap.h"
 #include "inside2.h"
@@ -85,4 +85,4 @@ SLONG MEMORY_quick_load_available(void);
 SLONG MEMORY_quick_load(void);
 
 
-#endif
+#endif // FALLEN_HEADERS_MEMORY_H

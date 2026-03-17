@@ -2,8 +2,8 @@
 // Sky.
 //
 
-#ifndef SKY_H
-#define SKY_H
+#ifndef FALLEN_DDENGINE_HEADERS_SKY_H
+#define FALLEN_DDENGINE_HEADERS_SKY_H
 
 //
 // Needs the screen to have been initialised.
@@ -80,4 +80,4 @@ void SKY_draw_poly_sky(
     ULONG bot_colour,
     ULONG top_colour);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_SKY_H

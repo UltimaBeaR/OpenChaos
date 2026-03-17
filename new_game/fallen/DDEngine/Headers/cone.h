@@ -2,8 +2,8 @@
 // Cones clipped by planar polygons.
 //
 
-#ifndef _CONE_
-#define _CONE_
+#ifndef FALLEN_DDENGINE_HEADERS_CONE_H
+#define FALLEN_DDENGINE_HEADERS_CONE_H
 
 //
 // Creates a new cone. (dx,dy,dz) need not be normalised.
@@ -55,4 +55,4 @@ void CONE_intersect_with_map(void);
 
 void CONE_draw(void);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_CONE_H

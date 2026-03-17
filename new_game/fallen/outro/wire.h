@@ -2,8 +2,8 @@
 // The wire-frame spinny objects
 //
 
-#ifndef _WIRE_
-#define _WIRE_
+#ifndef FALLEN_OUTRO_WIRE_H
+#define FALLEN_OUTRO_WIRE_H
 
 //
 // Loads the objects and their textures.
@@ -17,4 +17,4 @@ void WIRE_init(void);
 
 void WIRE_draw(void);
 
-#endif
+#endif // FALLEN_OUTRO_WIRE_H

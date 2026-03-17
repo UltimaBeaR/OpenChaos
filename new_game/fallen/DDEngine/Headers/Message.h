@@ -2,8 +2,8 @@
 // Message passing to the user.
 //
 
-#ifndef _MSG_
-#define _MSG_
+#ifndef FALLEN_DDENGINE_HEADERS_MESSAGE_H
+#define FALLEN_DDENGINE_HEADERS_MESSAGE_H
 
 //
 // Clears all current messages.	You don't have to call this at the
@@ -28,4 +28,4 @@ void MSG_clear(void);
 
 void MSG_draw(void);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_MESSAGE_H

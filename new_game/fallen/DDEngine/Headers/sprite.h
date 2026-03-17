@@ -2,8 +2,8 @@
 // Drawing sprites...
 //
 
-#ifndef _SPRITE_
-#define _SPRITE_
+#ifndef FALLEN_DDENGINE_HEADERS_SPRITE_H
+#define FALLEN_DDENGINE_HEADERS_SPRITE_H
 
 #define SPRITE_SORT_NORMAL 1
 #define SPRITE_SORT_FRONT 2
@@ -43,4 +43,4 @@ void SPRITE_draw_tex_distorted(
     SLONG sort);
 
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_SPRITE_H

@@ -12,6 +12,9 @@
 // i knew you did.
 //
 
+#ifndef FALLEN_HEADERS_WIDGET_H
+#define FALLEN_HEADERS_WIDGET_H
+
 #include "MFStdLib.h"
 
 //----------------------------------------------------------------------------
@@ -163,3 +166,5 @@ extern Methods SHADE_Methods;
 #define WIM_SETMODE 2
 #define WTM_ADDSTRING 1
 #define WTM_ADDBLOCK 2
+
+#endif // FALLEN_HEADERS_WIDGET_H

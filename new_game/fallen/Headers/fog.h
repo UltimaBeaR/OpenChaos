@@ -2,8 +2,8 @@
 // Fog!
 //
 
-#ifndef FOG_H
-#define FOG_H
+#ifndef FALLEN_HEADERS_FOG_H
+#define FALLEN_HEADERS_FOG_H
 
 //
 // Gets rid of all the fog info and starts afresh.
@@ -63,4 +63,4 @@ typedef struct
 void FOG_get_start(void);
 FOG_Info FOG_get_info(void);
 
-#endif
+#endif // FALLEN_HEADERS_FOG_H

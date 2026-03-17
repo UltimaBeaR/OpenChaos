@@ -1,5 +1,5 @@
-#ifndef ANIM_TMAP_H
-#define ANIM_TMAP_H
+#ifndef FALLEN_HEADERS_ANIMTMAP_H
+#define FALLEN_HEADERS_ANIMTMAP_H
 
 // defines
 
@@ -25,4 +25,4 @@ extern void sync_animtmaps(void);
 extern void animate_texture_maps(void);
 extern void load_animtmaps(void);
 
-#endif
+#endif // FALLEN_HEADERS_ANIMTMAP_H

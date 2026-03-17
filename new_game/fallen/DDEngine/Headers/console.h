@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef _CONSOLE_
-#define _CONSOLE_
+#ifndef FALLEN_DDENGINE_HEADERS_CONSOLE_H
+#define FALLEN_DDENGINE_HEADERS_CONSOLE_H
 
 #include "MFStdLib.h"
 
@@ -29,4 +29,4 @@ void CONSOLE_text_at(
     SLONG delay,
     CBYTE* fmt, ...);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_CONSOLE_H

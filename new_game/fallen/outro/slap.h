@@ -3,8 +3,8 @@
 // Credit to Eddie Edwards for the outline rendering idea.
 //
 
-#ifndef _SLAP_
-#define _SLAP_
+#ifndef FALLEN_OUTRO_SLAP_H
+#define FALLEN_OUTRO_SLAP_H
 
 //
 // Initialises the SLAPPER with a new bitmap. It does not clear the bitmap!
@@ -30,4 +30,4 @@ void SLAP_add_edge(
 
 void SLAP_render(void);
 
-#endif
+#endif // FALLEN_OUTRO_SLAP_H

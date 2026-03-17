@@ -1,8 +1,8 @@
 // StdMem.h
 // Guy Simmons, 18th December 1997
 
-#ifndef STD_MEM_H
-#define STD_MEM_H
+#ifndef MFSTDLIB_HEADERS_STDMEM_H
+#define MFSTDLIB_HEADERS_STDMEM_H
 
 //---------------------------------------------------------------
 
@@ -39,4 +39,4 @@ void MFdelete(T* thing)
 
 //---------------------------------------------------------------
 
-#endif
+#endif // MFSTDLIB_HEADERS_STDMEM_H

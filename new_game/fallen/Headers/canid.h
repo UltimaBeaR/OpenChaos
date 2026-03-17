@@ -5,8 +5,8 @@
 //           sort of thing.
 //
 
-#ifndef CANID_H
-#define CANID_H
+#ifndef FALLEN_HEADERS_CANID_H
+#define FALLEN_HEADERS_CANID_H
 
 extern StateFunction CANID_state_function[];
 
@@ -14,4 +14,4 @@ void CANID_init(Thing* canid);
 void CANID_normal(Thing* canid);
 void CANID_register();
 
-#endif
+#endif // FALLEN_HEADERS_CANID_H

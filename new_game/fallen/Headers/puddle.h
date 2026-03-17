@@ -2,8 +2,8 @@
 // Puddles!
 //
 
-#ifndef _PUDDLE_
-#define _PUDDLE_
+#ifndef FALLEN_HEADERS_PUDDLE_H
+#define FALLEN_HEADERS_PUDDLE_H
 
 
 //
@@ -84,4 +84,4 @@ void PUDDLE_get_start(UBYTE z_map, UBYTE x_map_min, UBYTE x_map_max);
 PUDDLE_Info* PUDDLE_get_next(void);
 
 
-#endif
+#endif // FALLEN_HEADERS_PUDDLE_H

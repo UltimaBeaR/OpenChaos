@@ -8,8 +8,8 @@
 //
 // the coordinates are stored as (x/z,y/z,1-1/z,1/z)
 
-#ifndef _POLYPOINT_
-#define _POLYPOINT_
+#ifndef FALLEN_DDENGINE_HEADERS_POLYPOINT_H
+#define FALLEN_DDENGINE_HEADERS_POLYPOINT_H
 
 // we copy U,V using int copies; this is because u,v are uninitialized in
 // a lot of cases.  we can only hope that the driver doesn't read U,V into
@@ -107,4 +107,4 @@ inline ULONG PolyPoint2D::ModulateD3DColours(ULONG c1, ULONG c2)
     return res;
 }
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_POLYPOINT_H

@@ -1,5 +1,5 @@
-#ifndef ANIMATE
-#define ANIMATE
+#ifndef FALLEN_HEADERS_ANIMATE_H
+#define FALLEN_HEADERS_ANIMATE_H
 
 //
 // Defines
@@ -777,4 +777,4 @@
 // Functions
 //
 
-#endif
+#endif // FALLEN_HEADERS_ANIMATE_H

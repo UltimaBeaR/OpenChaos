@@ -1,8 +1,8 @@
 //	QSManager.h
 //	Guy Simmons, 6th May 1998.
 
-#ifndef QSMANAGER_H
-#define QSMANAGER_H
+#ifndef FALLEN_DDLIBRARY_HEADERS_QSMANAGER_H
+#define FALLEN_DDLIBRARY_HEADERS_QSMANAGER_H
 
 //---------------------------------------------------------------
 
@@ -143,4 +143,4 @@ extern QSManager the_qs_sound_manager;
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_QSMANAGER_H

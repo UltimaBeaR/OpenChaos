@@ -8,8 +8,8 @@
 // Matrix stuff...
 //
 
-#ifndef _FMATRIX_
-#define _FMATRIX_
+#ifndef FALLEN_HEADERS_FMATRIX_H
+#define FALLEN_HEADERS_FMATRIX_H
 
 //
 // All angles go from 0 - 2047.
@@ -95,4 +95,4 @@ void normalise_matrix_rows(struct Matrix33* mat);
 
 void FMATRIX_vector(SLONG vector[3], SLONG yaw, SLONG pitch);
 
-#endif
+#endif // FALLEN_HEADERS_FMATRIX_H

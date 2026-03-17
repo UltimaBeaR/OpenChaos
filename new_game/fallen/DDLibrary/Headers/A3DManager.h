@@ -5,8 +5,8 @@
 //
 // requires either Aureal 3D sound card + drivers, OR normal sound card with A2D installed
 
-#ifndef _A3D_MANAGER_H_
-#define _A3D_MANAGER_H_
+#ifndef FALLEN_DDLIBRARY_HEADERS_A3DMANAGER_H
+#define FALLEN_DDLIBRARY_HEADERS_A3DMANAGER_H
 
 #ifndef MF_STD_LIB_H
 
@@ -305,4 +305,4 @@ public:
     };
 };
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_A3DMANAGER_H

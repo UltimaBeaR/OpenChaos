@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef _FLAMENGINE_
-#define _FLAMENGINE_
+#ifndef FALLEN_DDENGINE_HEADERS_FLAMENGINE_H
+#define FALLEN_DDENGINE_HEADERS_FLAMENGINE_H
 
 #include <MFStdLib.h>
 
@@ -63,4 +63,4 @@ public:
     void BlitHalf(CBYTE side); //   Same, but half only (for seperate left + right)
 };
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_FLAMENGINE_H

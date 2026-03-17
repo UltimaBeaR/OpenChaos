@@ -2,8 +2,8 @@
 // Poly-modelled animating waterfalls.
 //
 
-#ifndef _FALL_
-#define _FALL_
+#ifndef FALLEN_DDENGINE_HEADERS_FALL_H
+#define FALLEN_DDENGINE_HEADERS_FALL_H
 
 //
 // Initialises all the waterfalls.
@@ -43,4 +43,4 @@ void FALL_process(void);
 
 void FALL_draw(void);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_FALL_H

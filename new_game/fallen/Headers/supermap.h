@@ -1,5 +1,5 @@
-#ifndef SUPERMAP_H
-#define SUPERMAP_H 1
+#ifndef FALLEN_HEADERS_SUPERMAP_H
+#define FALLEN_HEADERS_SUPERMAP_H
 
 
 #define MAX_FACET_LINK 32000
@@ -177,4 +177,4 @@ void create_super_dbuilding(SLONG building);
 //
 // ========================================================
 
-#endif
+#endif // FALLEN_HEADERS_SUPERMAP_H

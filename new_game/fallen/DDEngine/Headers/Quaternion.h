@@ -1,5 +1,5 @@
-#ifndef QUATERNION_H
-#define QUATERNION_H
+#ifndef FALLEN_DDENGINE_HEADERS_QUATERNION_H
+#define FALLEN_DDENGINE_HEADERS_QUATERNION_H
 
 class FloatMatrix {
 public:
@@ -14,4 +14,4 @@ public:
     static void BuildTween(struct Matrix33* dest, struct CMatrix33* cm1, struct CMatrix33* cm2, SLONG tween);
 };
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_QUATERNION_H

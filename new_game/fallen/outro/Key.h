@@ -2,8 +2,8 @@
 // Keyboard handling.
 //
 
-#ifndef _KEY_
-#define _KEY_
+#ifndef FALLEN_OUTRO_KEY_H
+#define FALLEN_OUTRO_KEY_H
 
 //
 // Every key has a byte flag to say whether it is on or off.
@@ -128,4 +128,4 @@ extern UBYTE KEY_shift;
 #define KEY_P3 0x051
 #define KEY_P0 0x052
 
-#endif
+#endif // FALLEN_OUTRO_KEY_H

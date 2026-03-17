@@ -7,8 +7,8 @@
 // claude-ai: Каждый EP: условие (EWAY_COND_*) + действие (EWAY_DO_*) + режим активности (EWAY_STAY_*).
 // claude-ai: 42 типа условий, 52 типа действий, 6 режимов активности.
 
-#ifndef _EWAY_
-#define _EWAY_
+#ifndef FALLEN_HEADERS_EWAY_H
+#define FALLEN_HEADERS_EWAY_H
 
 // claude-ai: Лимиты системы: 512 waypoints на миссию, 128 условий, 150 edef (параметры NPC), 32 таймера.
 #define EWAY_MAX_CONDS 128
@@ -624,4 +624,4 @@ void EWAY_cam_relinquish(void);
 
 SLONG EWAY_find_or_create_waypoint_that_created_person(Thing* p_person);
 
-#endif
+#endif // FALLEN_HEADERS_EWAY_H

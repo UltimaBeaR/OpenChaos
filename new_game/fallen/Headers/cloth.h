@@ -2,8 +2,8 @@
 // Draped cloth and flags.
 //
 
-#ifndef _CLOTH_
-#define _CLOTH_
+#ifndef FALLEN_HEADERS_CLOTH_H
+#define FALLEN_HEADERS_CLOTH_H
 
 //
 // Gets rid of all the cloths.
@@ -103,4 +103,4 @@ typedef struct
 
 CLOTH_Info* CLOTH_get_info(UBYTE cloth);
 
-#endif
+#endif // FALLEN_HEADERS_CLOTH_H

@@ -1,8 +1,8 @@
 // Gamut.h
 // Guy Simmons, 4th November 1997.
 
-#ifndef GAMUT_H
-#define GAMUT_H
+#ifndef FALLEN_DDENGINE_HEADERS_GAMUT_H
+#define FALLEN_DDENGINE_HEADERS_GAMUT_H
 
 //---------------------------------------------------------------
 
@@ -27,4 +27,4 @@ void draw_gamut(SLONG x, SLONG y);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_GAMUT_H

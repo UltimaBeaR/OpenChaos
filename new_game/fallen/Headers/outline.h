@@ -3,8 +3,8 @@
 // Functions for helping with the outline of shapes on grids.
 //
 
-#ifndef _OUTLINE_
-#define _OUTLINE_
+#ifndef FALLEN_HEADERS_OUTLINE_H
+#define FALLEN_HEADERS_OUTLINE_H
 
 
 typedef struct outline_outline OUTLINE_Outline;
@@ -55,4 +55,4 @@ SLONG OUTLINE_intersects(
 
 
 
-#endif
+#endif // FALLEN_HEADERS_OUTLINE_H

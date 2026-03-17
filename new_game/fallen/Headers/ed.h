@@ -3,8 +3,8 @@
 // Light editor.
 //
 
-#ifndef _ED_
-#define _ED_
+#ifndef FALLEN_HEADERS_ED_H
+#define FALLEN_HEADERS_ED_H
 
 #define	LIGHT_FLAGS_INSIDE	(1)
 
@@ -188,7 +188,7 @@ SLONG ED_save(CBYTE *name);
 
 
 
-#endif
+#endif // FALLEN_HEADERS_ED_H
 
 
 

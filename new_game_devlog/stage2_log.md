@@ -1086,3 +1086,74 @@ Exit code 19 — норма.
 - Закомментирован в aeng.cpp (`// #define NEW_FLOOR defined`). Сейчас **НЕ** определён → активна ветка `#ifndef NEW_FLOOR`.
 - Альтернативный алгоритм рендера пола в aeng.cpp. Экспериментальный, не вошёл в финал.
 - Требует анализа: может пригодиться в будущем или является мёртвым экспериментом.
+
+---
+
+## Попутное исправление — унификация include guards (2026-03-18)
+
+Все хедеры в `new_game/` (исключая `vcpkg_installed/`) приведены к единому соглашению об include guards.
+
+**Правило именования:** полный путь относительно `new_game/`, заглавными буквами, `/` и `.` заменяются на `_`.
+Пример: `fallen/Headers/snipe.h` → `FALLEN_HEADERS_SNIPE_H`.
+Дополнительно: на закрывающий `#endif` добавлен комментарий `// GUARDNAME`.
+
+**Охват:** 236 файлов в трёх директориях:
+- `fallen/Headers/` — 145 файлов
+- `fallen/DDEngine/Headers/` + `fallen/DDLibrary/Headers/` — 75 файлов (были сделаны ранее)
+- `fallen/outro/` — 16 файлов
+- `MFStdLib/Headers/` — 6 файлов (уже были правильными)
+
+**Типичные проблемы, которые были исправлены:**
+- Устаревший формат `_NAME_` (подчёркивания вокруг) → заменён на путевой формат
+- Несовпадение имени гварда и имени файла (`interfac.h` имел `INTERFACE_H`, `light.h` имел `LIGHTG_H`, `noserver.h` имел `SERVER`)
+- `#define GUARD_NAME 1` (с trailing value) → нормализовано без значения
+- Файлы без гварда вообще (`grenade.h`, `music.h`, `pq.h`, `widget.h`, `soundenv.h`, `briefing.h` и др.) → добавлен полный `#ifndef`/`#define`/`#endif`
+- Пустые файлы (`america.h`, `demo.h`) → добавлен минимальный гвард
+
+**Проверка уникальности:** проверено через `grep -m1 "^#ifndef" | sort | uniq -d` — дубликатов не найдено.
+
+
+## Попутное исправление — конфликты типов после унификации гвардов (2026-03-18)
+
+После унификации include guards сборка упала с 7 ошибками переопределения типов.
+Причина: два файла-пары ранее случайно использовали одинаковое имя гварда (`ENGINE_H` и `_TGA_`),
+что скрывало дублирование. После уникальных гвардов оба файла стали компилироваться, и конфликт вылез.
+
+### Пара 1: `fallen/Headers/Engine.h` vs `fallen/DDEngine/Headers/Engine.h`
+
+Файлы **не одинаковые** — расходились в полях структур:
+- `Camera` в `fallen/Headers`: имел лишнее поле `CameraRAngle` (мёртвый код в D3D сборке)
+- `Engine` в `fallen/Headers`: не имел поля `CameraPos`
+- `DDEngine` версия богаче: inline-функции матриц, `SVECTOR_F`, `Coord`, `DDEnginePoint` и т.д.
+
+**Решение:** `DDEngine/Headers/Engine.h` — каноническая. Из `fallen/Headers/Engine.h` удалены
+устаревшие определения `Camera`, `M31`, `M33`, `Engine` и макросы `UV_XX`. Добавлен
+`#include "..\DDEngine\Headers\Engine.h"` чтобы типы попадали из канонического источника.
+
+На каждом типе в `DDEngine/Headers/Engine.h` добавлен `// uc_also_in: fallen/Headers/Engine.h`
+с пояснением что именно отличалось в удалённой копии.
+
+### Пара 2: `fallen/outro/Tga.h` vs `fallen/DDLibrary/Headers/Tga.h`
+
+Файлы **не одинаковые** — два разных загрузчика TGA:
+- `DDLibrary/Tga.h`: движковый, 6-параметрный `TGA_load`, `TGA_Info` с полем `contains_alpha`, + `TGA_save`, clump management
+- `outro/Tga.h`: автономный для outro-модуля, 4-параметрный `TGA_load`, `TGA_Info` с полем `ULONG flag` (бит-флаги)
+
+Конфликт возникал в `outro/os.cpp`: включал оба через цепочку
+`os.cpp` → `tga.h` (outro) + `ddlib.h` → `D3DTexture.h` → `"tga.h"` (DDLibrary).
+
+**Решение:** outro-типы переименованы с префиксом `OUTRO_`:
+- `TGA_Pixel` → `OUTRO_TGA_Pixel`
+- `TGA_Info` → `OUTRO_TGA_Info`
+- `TGA_load` → `OUTRO_TGA_load`
+
+Обновлены все 3 файла outro: `outro/Tga.h`, `outro/outroTga.cpp`, `outro/os.cpp`, `outro/outroFont.cpp`.
+На типах в `DDLibrary/Tga.h` добавлены `// uc_also_in: fallen/outro/Tga.h` с пояснениями.
+
+### Новый формат комментария: `uc_also_in`
+
+Задокументирован в `new_game_planning/entity_mapping.md`. Используется на канонической версии
+сущности, когда её дублирующее определение было удалено или переименовано в другом месте.
+Грепается скриптом как `uc_also_in`.
+
+**Результат:** Debug и Release собираются без ошибок.

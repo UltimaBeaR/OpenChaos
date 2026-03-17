@@ -1,3 +1,6 @@
+#ifndef FALLEN_HEADERS_PQ_H
+#define FALLEN_HEADERS_PQ_H
+
 //
 // The pq module is static code. You must #include "pq.cpp" into the
 // source file the needs the heap after defining
@@ -19,3 +22,5 @@ static void PQ_add(PQ_Type);
 static void PQ_remove(void);
 static PQ_Type PQ_best(void);
 static SLONG PQ_empty(void);
+
+#endif // FALLEN_HEADERS_PQ_H

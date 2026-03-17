@@ -1,8 +1,8 @@
 // DDManager.h
 // Guy Simmons, 12th November 1997.
 
-#ifndef DDMANAGER_H
-#define DDMANAGER_H
+#ifndef FALLEN_DDLIBRARY_HEADERS_DDMANAGER_H
+#define FALLEN_DDLIBRARY_HEADERS_DDMANAGER_H
 
 // #include	"Types.h"
 
@@ -292,4 +292,4 @@ extern DDDriverManager the_manager;
         (s).dwSize = sizeof(s);      \
     }
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_DDMANAGER_H

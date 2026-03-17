@@ -2,8 +2,8 @@
 // Loads an environment from a file.
 //
 
-#ifndef _ENV_
-#define _ENV_
+#ifndef FALLEN_HEADERS_ENV_H
+#define FALLEN_HEADERS_ENV_H
 
 //
 // now we use standard Windows .INI files
@@ -27,4 +27,4 @@ SLONG ENV_get_value_number(CBYTE* name, SLONG def, CBYTE* section = "Game"); // 
 void ENV_set_value_string(CBYTE* name, CBYTE* value, CBYTE* section = "Game");
 void ENV_set_value_number(CBYTE* name, SLONG value, CBYTE* section = "Game");
 
-#endif
+#endif // FALLEN_HEADERS_ENV_H

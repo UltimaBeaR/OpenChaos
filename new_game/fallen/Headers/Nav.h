@@ -2,8 +2,8 @@
 // 2d navigation around the city.
 //
 
-#ifndef NAV_H
-#define NAV_H
+#ifndef FALLEN_HEADERS_NAV_H
+#define FALLEN_HEADERS_NAV_H
 
 //
 // Initiliases the navigation system from the current map.
@@ -71,4 +71,4 @@ void NAV_path_give(UWORD index);
 
 void NAV_path_draw(UWORD startx, UWORD startz, UWORD path);
 
-#endif
+#endif // FALLEN_HEADERS_NAV_H

@@ -4,6 +4,9 @@
 // 14 june 99
 //
 
+#ifndef FALLEN_HEADERS_MUSIC_H
+#define FALLEN_HEADERS_MUSIC_H
+
 #include "mfstdlib.h"
 
 /*
@@ -99,3 +102,5 @@ Enquirey function  which sample is playing on the music channel,
 
 
 */
+
+#endif // FALLEN_HEADERS_MUSIC_H

@@ -3,8 +3,8 @@
 // Map thing structs used in save file loading (PSX save format).
 // Extracted from original Editor/Headers/Thing.h for runtime use.
 
-#ifndef MAPTHING_H
-#define MAPTHING_H
+#ifndef FALLEN_HEADERS_MAPTHING_H
+#define FALLEN_HEADERS_MAPTHING_H
 
 #include "anim.h"
 
@@ -53,4 +53,4 @@ struct MapThingPSX
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_MAPTHING_H

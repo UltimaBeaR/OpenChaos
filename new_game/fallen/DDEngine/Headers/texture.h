@@ -2,8 +2,8 @@
 // Texture handling is wierd!
 //
 
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#ifndef FALLEN_DDENGINE_HEADERS_TEXTURE_H
+#define FALLEN_DDENGINE_HEADERS_TEXTURE_H
 
 #include "crinkle.h"
 
@@ -239,4 +239,4 @@ extern SLONG TEXTURE_av_b;
 
 SLONG TEXTURE_looks_like(SLONG page);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_TEXTURE_H

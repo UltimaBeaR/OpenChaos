@@ -2,8 +2,8 @@
 // Gamut calculations of polygons.
 //
 
-#ifndef _NGAMUT_
-#define _NGAMUT_
+#ifndef FALLEN_DDENGINE_HEADERS_NGAMUT_H
+#define FALLEN_DDENGINE_HEADERS_NGAMUT_H
 
 //
 // The size of the gamut mapwho.
@@ -82,4 +82,4 @@ extern SLONG NGAMUT_lo_zmax;
 
 void NGAMUT_calculate_lo_gamut(void);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_NGAMUT_H

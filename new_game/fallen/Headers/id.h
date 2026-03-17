@@ -2,8 +2,8 @@
 // Interior design module.
 //
 
-#ifndef ID_H
-#define ID_H
+#ifndef FALLEN_HEADERS_ID_H
+#define FALLEN_HEADERS_ID_H
 
 //
 // The size of the box inside which the floorplan can be.
@@ -322,4 +322,4 @@ SLONG ID_editor_get_room(ID_Roominfo* ans);
 SLONG ID_editor_get_wall(ID_Wallinfo* ans);
 SLONG ID_editor_get_stair(ID_Stairinfo* ans);
 
-#endif
+#endif // FALLEN_HEADERS_ID_H

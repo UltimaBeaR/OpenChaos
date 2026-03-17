@@ -2,8 +2,8 @@
 // The new map screen
 //
 
-#ifndef _MAP_
-#define _MAP_
+#ifndef FALLEN_DDENGINE_HEADERS_MAP_H
+#define FALLEN_DDENGINE_HEADERS_MAP_H
 
 //
 // Initialises the map (gets rid of nav beacons... sets up view)
@@ -37,4 +37,4 @@ void MAP_process(void);
 
 void MAP_draw_onscreen_beacons(void);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_MAP_H

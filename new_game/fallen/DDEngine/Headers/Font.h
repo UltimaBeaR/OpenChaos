@@ -2,8 +2,8 @@
 // Cheapo font stuff...
 //
 
-#ifndef _FONT_
-#define _FONT_
+#ifndef FALLEN_DDENGINE_HEADERS_FONT_H
+#define FALLEN_DDENGINE_HEADERS_FONT_H
 
 //
 // The maximum dimension of a character.
@@ -91,4 +91,4 @@ void FONT_draw_speech_bubble_text(
     UBYTE blue,
     CBYTE* fmt, ...);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_FONT_H

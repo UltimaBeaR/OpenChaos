@@ -2,8 +2,8 @@
 // Sewers.. yuck!
 //
 
-#ifndef _SEWER_
-#define _SEWER_
+#ifndef FALLEN_HEADERS_SEWER_H
+#define FALLEN_HEADERS_SEWER_H
 
 //
 // The size of the sewage system.
@@ -78,4 +78,4 @@ void SEWER_get_start(SLONG x, SLONG z);
 SEWER_Face* SEWER_get_next(void); // NULL => there are no more faces.
 SEWER_Face* SEWER_get_water(void); // Returns the water faces...
 
-#endif
+#endif // FALLEN_HEADERS_SEWER_H

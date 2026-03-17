@@ -13,8 +13,8 @@
  * read the license and understand and accept it fully.
  */
 
-#ifndef __midasdll_h
-#define __midasdll_h
+#ifndef FALLEN_OUTRO_MIDASDLL_H
+#define FALLEN_OUTRO_MIDASDLL_H
 
 /* This is a kluge, but necessary as Watcom C sucks: */
 #ifdef EXPORT_IN_MIDASDLL_H
@@ -401,7 +401,7 @@ MIDASremovePostProcessor(MIDASpostProcessor* postProc);
 }
 #endif
 
-#endif
+#endif // FALLEN_OUTRO_MIDASDLL_H
 
 /*
  * $Log: midasdll.h,v $

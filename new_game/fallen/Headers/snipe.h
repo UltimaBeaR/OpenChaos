@@ -2,8 +2,8 @@
 // Snipe rifle-mode stuff
 //
 
-#ifndef _SNIPE_
-#define _SNIPE_
+#ifndef FALLEN_HEADERS_SNIPE_H
+#define FALLEN_HEADERS_SNIPE_H
 
 //
 // The snipe camera.
@@ -47,4 +47,4 @@ void SNIPE_process(void);
 
 void SNIPE_shoot(void);
 
-#endif
+#endif // FALLEN_HEADERS_SNIPE_H

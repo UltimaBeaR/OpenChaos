@@ -1,8 +1,8 @@
 //	SubClass.h
 //	Guy Simmons, 15th August 1998.
 
-#ifndef SUBCLASS_H
-#define SUBCLASS_H
+#ifndef FALLEN_HEADERS_SUBCLASS_H
+#define FALLEN_HEADERS_SUBCLASS_H
 
 //---------------------------------------------------------------
 
@@ -20,4 +20,4 @@ LRESULT CALLBACK sc_tree_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_SUBCLASS_H

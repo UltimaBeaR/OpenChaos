@@ -2,8 +2,8 @@
 // Faster far-facets...
 //
 
-#ifndef _FARFACET_
-#define _FARFACET_
+#ifndef FALLEN_DDENGINE_HEADERS_FARFACET_H
+#define FALLEN_DDENGINE_HEADERS_FARFACET_H
 
 //
 // Creates optimised data for drawing farfacets.
@@ -32,4 +32,4 @@ void FARFACET_draw(
 
 void FARFACET_fini(void);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_FARFACET_H

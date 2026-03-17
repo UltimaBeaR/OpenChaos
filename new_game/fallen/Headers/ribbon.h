@@ -4,8 +4,8 @@
 // matthew rosenfeld 10 nov 1998
 //
 
-#ifndef _RIBBON_H_
-#define _RIBBON_H_
+#ifndef FALLEN_HEADERS_RIBBON_H
+#define FALLEN_HEADERS_RIBBON_H
 
 #include "MFStdLib.h"
 #include "Structs.h"
@@ -45,4 +45,4 @@ void RIBBON_extend(SLONG ribbon, SLONG x, SLONG y, SLONG z);
 SLONG RIBBON_length(SLONG ribbon);
 void RIBBON_life(SLONG ribbon, SLONG life);
 
-#endif
+#endif // FALLEN_HEADERS_RIBBON_H

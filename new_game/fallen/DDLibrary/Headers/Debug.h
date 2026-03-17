@@ -1,8 +1,8 @@
 // Debug.h
 // Guy Simmons, 15th November 1997.
 
-#ifndef DEBUG_H
-#define DEBUG_H
+#ifndef FALLEN_DDLIBRARY_HEADERS_DEBUG_H
+#define FALLEN_DDLIBRARY_HEADERS_DEBUG_H
 
 //---------------------------------------------------------------
 
@@ -25,4 +25,4 @@ void di_error(HRESULT di_err);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_DDLIBRARY_HEADERS_DEBUG_H

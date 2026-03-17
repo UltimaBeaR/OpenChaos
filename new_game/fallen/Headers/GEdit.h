@@ -1,8 +1,8 @@
 //	GEdit.h
 //	Guy Simmons, 27th July 1998.
 
-#ifndef GEDIT_H
-#define GEDIT_H
+#ifndef FALLEN_HEADERS_GEDIT_H
+#define FALLEN_HEADERS_GEDIT_H
 
 #include "Mission.h"
 
@@ -42,4 +42,4 @@ void menu_workspace_saved(void);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_GEDIT_H

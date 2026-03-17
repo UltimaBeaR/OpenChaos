@@ -1,8 +1,8 @@
 //	Text.h
 //	Guy Simmons, 17th May 1998.
 
-#ifndef TEXT_H
-#define TEXT_H
+#ifndef FALLEN_DDENGINE_HEADERS_TEXT_H
+#define FALLEN_DDENGINE_HEADERS_TEXT_H
 
 //---------------------------------------------------------------
 extern BOOL text_fudge;
@@ -16,4 +16,4 @@ void show_text(void);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_TEXT_H

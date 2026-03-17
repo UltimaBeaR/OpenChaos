@@ -2,8 +2,8 @@
 // Collections of little sparkley projectiles.
 //
 
-#ifndef _GLITTER_
-#define _GLITTER_
+#ifndef FALLEN_HEADERS_GLITTER_H
+#define FALLEN_HEADERS_GLITTER_H
 
 //
 // Remove all glitter.
@@ -67,4 +67,4 @@ typedef struct
 void GLITTER_get_start(UBYTE xmin, UBYTE xmax, UBYTE z);
 GLITTER_Info* GLITTER_get_next(void);
 
-#endif
+#endif // FALLEN_HEADERS_GLITTER_H

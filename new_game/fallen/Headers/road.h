@@ -2,8 +2,8 @@
 // Road stuff...
 //
 
-#ifndef _ROAD_
-#define _ROAD_
+#ifndef FALLEN_HEADERS_ROAD_H
+#define FALLEN_HEADERS_ROAD_H
 
 //
 // The wander system for vehicles.
@@ -176,4 +176,4 @@ SLONG ROAD_signed_dist(
 
 void ROAD_debug(void);
 
-#endif
+#endif // FALLEN_HEADERS_ROAD_H

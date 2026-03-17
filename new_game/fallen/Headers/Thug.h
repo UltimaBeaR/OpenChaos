@@ -1,8 +1,8 @@
 // Thug.h
 // Guy Simmons, 12th January 1998.
 
-#ifndef THUG_H
-#define THUG_H
+#ifndef FALLEN_HEADERS_THUG_H
+#define FALLEN_HEADERS_THUG_H
 
 //---------------------------------------------------------------
 
@@ -13,4 +13,4 @@ void fn_thug_normal(Thing* t_thing);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_THUG_H

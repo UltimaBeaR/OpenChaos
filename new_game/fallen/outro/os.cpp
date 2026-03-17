@@ -564,8 +564,8 @@ OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
     OS_Texture* ot;
     OS_Tformat* best_otf;
 
-    TGA_Info ti;
-    TGA_Pixel* data;
+    OUTRO_TGA_Info ti;
+    OUTRO_TGA_Pixel* data;
 
     CBYTE fullpath[_MAX_PATH];
 
@@ -584,7 +584,7 @@ OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
     // Allocate data for the texture.
     //
 
-    data = (TGA_Pixel*)malloc(256 * 256 * sizeof(TGA_Pixel));
+    data = (OUTRO_TGA_Pixel*)malloc(256 * 256 * sizeof(OUTRO_TGA_Pixel));
 
     if (data == NULL) {
         //
@@ -604,7 +604,7 @@ OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
     // Try to load in the TGA.
     //
 
-    ti = TGA_load(fullpath, 256, 256, data);
+    ti = OUTRO_TGA_load(fullpath, 256, 256, data);
 
     if (!ti.valid) {
         //
@@ -784,7 +784,7 @@ OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
         SLONG i;
         SLONG j;
 
-        TGA_Pixel* tp;
+        OUTRO_TGA_Pixel* tp;
 
         //
         // Invert the texture.
@@ -823,7 +823,7 @@ OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
         SLONG i;
         SLONG j;
         UWORD pixel_our;
-        TGA_Pixel pixel_tga;
+        OUTRO_TGA_Pixel pixel_tga;
         UWORD* wscreen = (UWORD*)ddsd.lpSurface;
 
         //

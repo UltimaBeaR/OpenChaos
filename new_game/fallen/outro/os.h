@@ -2,8 +2,8 @@
 // Interface to all the OS functions.
 //
 
-#ifndef _OS_
-#define _OS_
+#ifndef FALLEN_OUTRO_OS_H
+#define FALLEN_OUTRO_OS_H
 
 // ========================================================
 //
@@ -464,4 +464,4 @@ extern ULONG OS_joy_button; // The buttons that are currently down
 extern ULONG OS_joy_button_down; // The buttons that have just been pressed
 extern ULONG OS_joy_button_up; // The buttons that have just been released
 
-#endif
+#endif // FALLEN_OUTRO_OS_H

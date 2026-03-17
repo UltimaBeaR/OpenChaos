@@ -7,8 +7,8 @@
 // drawxtra.cpp -- stuff like the van, helicopter, footprints, etc.
 //
 
-#ifndef _DRAWXTRA_H_
-#define _DRAWXTRA_H_
+#ifndef FALLEN_DDENGINE_HEADERS_DRAWXTRA_H
+#define FALLEN_DDENGINE_HEADERS_DRAWXTRA_H
 
 #include "MFStdLib.h"
 #include "game.h"
@@ -58,4 +58,4 @@ void IHaveToHaveSomePyroSprites(int iINeedThisMany);
 // Just call this once a frame, would you? Ta.
 void Pyros_EndOfFrameMarker(void);
 
-#endif
+#endif // FALLEN_DDENGINE_HEADERS_DRAWXTRA_H

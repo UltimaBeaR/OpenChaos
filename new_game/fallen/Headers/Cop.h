@@ -1,8 +1,8 @@
 // Cop.h
 //  Guy Simmons, 12th January 1998.
 
-#ifndef COP_H
-#define COP_H
+#ifndef FALLEN_HEADERS_COP_H
+#define FALLEN_HEADERS_COP_H
 
 #define COP_ANIM_WALK (1)
 #define COP_ANIM_STAND (2)
@@ -33,4 +33,4 @@ void fn_cop_normal(Thing* t_thing);
 
 //---------------------------------------------------------------
 
-#endif
+#endif // FALLEN_HEADERS_COP_H
