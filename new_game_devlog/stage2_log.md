@@ -1121,17 +1121,17 @@ Exit code 19 — норма.
 
 ### Пара 1: `fallen/Headers/Engine.h` vs `fallen/DDEngine/Headers/Engine.h`
 
-Файлы **не одинаковые** — расходились в полях структур:
-- `Camera` в `fallen/Headers`: имел лишнее поле `CameraRAngle` (мёртвый код в D3D сборке)
-- `Engine` в `fallen/Headers`: не имел поля `CameraPos`
-- `DDEngine` версия богаче: inline-функции матриц, `SVECTOR_F`, `Coord`, `DDEnginePoint` и т.д.
+**Итоговое решение: `fallen/Headers/Engine.h` удалён полностью.**
 
-**Решение:** `DDEngine/Headers/Engine.h` — каноническая. Из `fallen/Headers/Engine.h` удалены
-устаревшие определения `Camera`, `M31`, `M33`, `Engine` и макросы `UV_XX`. Добавлен
-`#include "..\DDEngine\Headers\Engine.h"` чтобы типы попадали из канонического источника.
+Первоначально казалось что файл нужен — в нём были объявления игровых функций (`init_3d_engine`,
+`game_engine` и т.д.). Но проверка показала: ни один `.cpp` этот файл не включает (в `fallen/Source/`
+он закомментирован), и реализаций этих функций в проекте нет вообще. Файл — мёртвый код.
 
-На каждом типе в `DDEngine/Headers/Engine.h` добавлен `// uc_also_in: fallen/Headers/Engine.h`
-с пояснением что именно отличалось в удалённой копии.
+В оригинале он тоже был мёртвым: весь контент был внутри гварда `ENGINE_H`, а `DDEngine/Headers/Engine.h`
+всегда включался первым и определял тот же гвард — файл целиком скипался препроцессором.
+
+На типах в `DDEngine/Headers/Engine.h` оставлены `// uc_also_in: fallen/Headers/Engine.h`
+с пояснением что именно отличалось в удалённой копии (лишний `CameraRAngle`, отсутствующий `CameraPos`).
 
 ### Пара 2: `fallen/outro/Tga.h` vs `fallen/DDLibrary/Headers/Tga.h`
 
