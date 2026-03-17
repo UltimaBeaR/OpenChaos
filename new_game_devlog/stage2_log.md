@@ -23,7 +23,7 @@
 | Отключённые оптимизации (`*_PLEASE_BOB` и др.) | ✅ | итерация 24 (`SUPERCRINKLES_ENABLED` — итерация 25) |
 | Мёртвый геймплей (`DARCI_HITS_COPS`, `WE_WANT_WIND` и др.) | ✅ | итерация 26 |
 | Старые алгоритмы PSXENG (`OLD_FACET_CLIP` и др.) | ✅ | итерация 27 |
-| PSX/DC debug (`PSX_COMPRESS_LIGHT`, `DODGYPSXIFY` и др.) | ⬜ | |
+| PSX/DC debug (`PSX_COMPRESS_LIGHT`, `DODGYPSXIFY` и др.) | ✅ | итерация 28 |
 | Debug-флаги (`DEBUG_POOSHIT`, `HEAP_DEBUGGING_PLEASE_BOB` и др.) | ⬜ | |
 | Debug визуализации (`WE_WANT_TO_DRAW_*` и др.) | ⬜ | |
 | Developer joke flags (`GONNA_FIREBOMB_YOUR_ASS` и др.) | ⬜ | |
@@ -896,5 +896,25 @@ Exit code 19 — норма.
 **Нюансы:**
 - `OVERLAY_draw_tracked_enemies()` — тоже мёртвый код (нигде не вызывается), но без флага; оставлена на следующий проход (п.3 — удаление мёртвых сущностей)
 - `track_enemy()` вызывается из Combat.cpp/pcom.cpp/Person.cpp — функция-стаб сохранена
+
+**Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 292 предупреждения.
+
+---
+
+## Итерация 28 — PSX/DC debug флаги (2026-03-17)
+
+**Флаги:** `PSX_COMPRESS_LIGHT`, `DODGYPSXIFY`, `PSX_SIMULATION`, `FILE_PC`, `_DEBUG_POO`, `USE_A3D`, `A3D_SOUND`
+
+**Результат:**
+- `PSX_SIMULATION`, `FILE_PC` — ➖ отсутствовали в new_game
+- `PSX_COMPRESS_LIGHT` (Night.h) — ✅ удалён: выбор между packed `UWORD Col` (PSX) vs `UBYTE red,green,blue` (PC). Активная PC-ветка сохранена.
+- `DODGYPSXIFY` (Sound.h) — ✅ удалён: мёртвая переменная `dodgy_psx_mode` и ветка в `SOUND_Range()`
+- `_DEBUG_POO` (Quaternion.cpp) — ✅ удалён: проверки ортогональности матриц + ASSERT
+- `A3D_SOUND` (A3DManager.cpp) — ✅ удалён: `#ifndef A3D_SOUND → return` (A3D init) и `#ifdef A3D_SOUND` (CleanUp). Init остался с безусловным return — A3D не инициализируется.
+- `USE_A3D` — ✅ удалён: `#define USE_A3D` из Sound.h убран вручную, декларация `A3D_Check_Init()` удалена. Активные блоки (elev.cpp include soundenv.h + `SOUNDENV_precalc()`) удалены через coan. Мёртвые блоки (briefing.cpp, Person.cpp, soundenv.cpp, Main.cpp — все были закомментированы) удалены. Game.cpp и Sound.cpp — были в `/* */`, coan не трогал.
+
+**Нюансы:**
+- `SOUNDENV_precalc()` больше не вызывается (была под `#ifdef USE_A3D` в elev.cpp). A3D технология мертва (Aureal обанкротилась в 2000), функция не нужна.
+- soundenv.h теперь не включается в elev.cpp — но soundenv.cpp остаётся в проекте (может быть нужен в будущем при портировании реверба)
 
 **Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 292 предупреждения.

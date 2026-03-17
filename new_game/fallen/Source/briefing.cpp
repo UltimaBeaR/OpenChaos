@@ -134,10 +134,6 @@ SBYTE BRIEFING_select(void)
     }
 
     do {
-#ifdef USE_A3D
-//	A3DCamera(0,0,0,0,0,0);
-//	A3DRender();
-#endif
         ReadInputDevice();
         AENG_clear_screen();
         POLY_frame_init(FALSE, FALSE);

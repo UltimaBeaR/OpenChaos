@@ -126,13 +126,9 @@ extern NIGHT_Dlight* NIGHT_dlight; //[NIGHT_MAX_DLIGHTS];
 // claude-ai: PORTING: in new game, normalize to float: r_f = col.red / 64.0f for OpenGL vertex colour.
 typedef struct
 {
-#ifdef PSX_COMPRESS_LIGHT
-    UWORD Col;
-#else
     UBYTE red;
     UBYTE green;
     UBYTE blue;
-#endif
 
 } NIGHT_Colour;
 

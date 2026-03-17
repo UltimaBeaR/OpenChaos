@@ -94,9 +94,6 @@
 #include "panel.h"
 
 #include "sound.h"
-#ifdef USE_A3D
-#include "soundenv.h"
-#endif
 
 #include "DCLowLevel.h"
 
@@ -2294,9 +2291,6 @@ SLONG ELEV_game_init(
     InitGrenades();
 
     // now the map's loaded we can precalc audio polys, if req'd
-#ifdef USE_A3D
-    SOUNDENV_precalc();
-#endif
     SOUND_SewerPrecalc();
 
     //

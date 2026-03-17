@@ -252,26 +252,6 @@ BOOL check_isonormal(FloatMatrix& m)
     if ((m.M[0][0] == 0) && (m.M[0][1] == 0) && (m.M[0][2] == 0))
         return TRUE; // void matrix
 
-#ifdef _DEBUG_POO
-    // check units
-    r &= is_unit(m.M[0][0], m.M[0][1], m.M[0][2]);
-    r &= is_unit(m.M[1][0], m.M[1][1], m.M[1][2]);
-    r &= is_unit(m.M[2][0], m.M[2][1], m.M[2][2]);
-    r &= is_unit(m.M[0][0], m.M[1][0], m.M[2][0]);
-    r &= is_unit(m.M[0][1], m.M[1][1], m.M[2][1]);
-    r &= is_unit(m.M[0][2], m.M[1][2], m.M[2][2]);
-
-    ASSERT(r);
-
-    // check orthogonality
-    float a = (m.M[0][0] * m.M[1][0] + m.M[0][1] * m.M[1][1] + m.M[0][2] * m.M[1][2]);
-    float b = (m.M[0][0] * m.M[2][0] + m.M[0][1] * m.M[2][1] + m.M[0][2] * m.M[2][2]);
-    float c = (m.M[2][0] * m.M[1][0] + m.M[2][1] * m.M[1][1] + m.M[2][2] * m.M[1][2]);
-
-    ASSERT(fabs(a) < 0.03);
-    ASSERT(fabs(b) < 0.03);
-    ASSERT(fabs(c) < 0.03);
-#endif
 
     // check handedness
     float x = m.M[0][1] * m.M[1][2] - m.M[0][2] * m.M[1][1];

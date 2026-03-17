@@ -15662,7 +15662,6 @@ void highlight_gun_target(Thing* p_person, Thing* p_target)
 
 #define MAKE_FPM_TRACK_ENEMY 1
 
-#ifdef MAKE_FPM_TRACK_ENEMY
         if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_LOOK) {
             //
             // player is in first person look round mode, so take global look_pitch into account
@@ -15690,7 +15689,6 @@ void highlight_gun_target(Thing* p_person, Thing* p_target)
             else if (angle > 8)
                 look_pitch += 8;
         }
-#endif
 
     } else {
         //		track_gun_sight(p_target,p_target->);

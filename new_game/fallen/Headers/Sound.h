@@ -13,8 +13,6 @@
 #include "Structs.h"
 #include "MFX.h"
 
-#define USE_A3D
-
 // because the versions in MFStdLib.h are misspelt...
 #define WAVE_PLAY_INTERRUPT 0
 #define WAVE_PLAY_NO_INTERRUPT 1
@@ -60,16 +58,9 @@ UBYTE SOUND_Gender(Thing* p_thing);
 // SLONG	SOUND_Range(SLONG start, SLONG end);
 
 
-#ifdef DODGYPSXIFY
-extern BOOL dodgy_psx_mode;
-#endif
 
 inline SLONG SOUND_Range(SLONG start, SLONG end)
 {
-#ifdef DODGYPSXIFY
-    if (dodgy_psx_mode)
-        return start;
-#endif
     SLONG diff = (end - start) + 1;
     return start + (rand() % diff);
 }
@@ -99,14 +90,5 @@ extern SOUNDFXG* SOUND_FXGroups; //[128][2]; // blahblah
 #define MUSIC_REF (WIND_REF + 5)
 
 //---------------------------------------------------------------
-
-#ifdef USE_A3D
-
-// extern void	A3DLoadWaveList(CBYTE *path,CBYTE *file);
-// extern void	A3DFreeWaveList(void);
-// extern void A3DRender(void);
-extern void A3D_Check_Init(void);
-
-#endif
 
 #endif

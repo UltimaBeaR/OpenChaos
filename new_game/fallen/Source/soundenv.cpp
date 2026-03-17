@@ -104,19 +104,4 @@ extern SLONG CAM_pos_x,
 void SOUNDENV_upload(void)
 {
 
-#ifdef USE_A3D
-    /*
-            SLONG i,cx,cz;
-
-            A3DGTag(1); // tag 1 is always going to be the ground.
-    //	A3DGMaterial(A3D_MAT_CARPET);
-            A3DGMaterial(A3D_MAT_SNDPROOF);
-
-            for (i=0;i<SOUNDENV_gndctr;i++) {
-                    A3DGQuad2D(SOUNDENV_gndquads[i].x,SOUNDENV_gndquads[i].y,SOUNDENV_gndquads[i].ox,SOUNDENV_gndquads[i].oy,-256);
-            }
-
-    */
-
-#endif
 }

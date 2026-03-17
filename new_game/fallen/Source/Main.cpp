@@ -84,10 +84,8 @@ SLONG main(UWORD argc, TCHAR* argv[])
 
     AENG_read_detail_levels(); // get engine defaults
 
-#ifndef USE_A3D
 //	ASSERT(the_qs_sound_manager.Init() == ERROR_QMIX_OK);
 //	the_qs_sound_manager.Init() == ERROR_QMIX_OK;
-#endif
 
 
     // claude-ai: SetupHost() создаёт окно и инициализирует DirectX/платформу; game() — весь игровой цикл

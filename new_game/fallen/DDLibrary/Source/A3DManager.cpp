@@ -185,9 +185,7 @@ void A3DManager::Init(SLONG features)
 {
     SLONG hr;
 
-#ifndef A3D_SOUND
     return;
-#endif
 
     if (a3droot)
         return;
@@ -288,9 +286,6 @@ A3DManager::A3DManager(SLONG features)
 
 void A3DCleanUp(void)
 {
-#ifdef A3D_SOUND
-    the_a3d_manager.Fini();
-#endif
 }
 
 void A3DManager::Fini(void)
