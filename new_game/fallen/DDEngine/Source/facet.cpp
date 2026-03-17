@@ -1318,14 +1318,6 @@ static void MakeFacetPoints(float sx, float sy, float sz, float dx, float dz, fl
 
                 // POLY_fadeout_point(pp);
 
-#if defined(FACET_REMOVAL_TEST) || defined(_DEBUG)
-
-                // colour invisible facets red
-                if (invisible) {
-                    pp->colour = 0xFF0000;
-                    pp->specular = 0xFF000000;
-                }
-#endif
             }
 
 
@@ -1382,14 +1374,6 @@ static void MakeFacetPointsFence(float sx, float sy, float sz, float dx, float d
 
                 // POLY_fadeout_point(pp);
 
-#if defined(FACET_REMOVAL_TEST) || defined(_DEBUG)
-
-                // colour invisible facets red
-                if (invisible) {
-                    pp->colour = 0xFF0000;
-                    pp->specular = 0xFF000000;
-                }
-#endif
             }
 
             x += dx;
@@ -2078,39 +2062,11 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
         break;
     }
 
-#ifndef NDEBUG
-
-    //
-    // For the editors...
-    //
-
-    if (dbuildings[p_facet->Building].Type == BUILDING_TYPE_WAREHOUSE) {
-        if (AENG_transparent_warehouses) {
-            return;
-        }
-    }
-
-#endif
 
     //
     // Should we bother drawing this facet?
     //
 
-#ifdef FACET_REMOVAL_TEST
-
-    // test
-    //
-    // normally only show invisible facets; press F to
-    // remove invisible and show visible ones
-
-    if (Keys[KB_F] && p_facet->Invisible) {
-        return;
-    }
-    if (!Keys[KB_F] && !p_facet->Invisible) {
-        return;
-    }
-
-#endif
 
     if ((p_facet->FacetType == STOREY_TYPE_FENCE || p_facet->FacetType == STOREY_TYPE_FENCE_FLAT || p_facet->FacetType == STOREY_TYPE_FENCE_BRICK || p_facet->FacetType == STOREY_TYPE_INSIDE ||
             //		 p_facet->FacetType == STOREY_TYPE_OINSIDE      ||
@@ -3073,9 +3029,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
     return;
 }
 
-#ifdef DEBUG
-static BOOL bPleaseDoSuperFacets = TRUE;
-#endif
 
 // Like FACET_draw_rare, but for the most common class.
 // claude-ai: FACET_draw — FAST-PATH renderer for plain STOREY_TYPE_NORMAL exterior walls.
@@ -3518,13 +3471,6 @@ void FACET_draw_walkable(SLONG build)
 
     warehouse = (p_dbuilding->Type == BUILDING_TYPE_WAREHOUSE);
 
-#ifndef NDEBUG
-
-    if (warehouse && AENG_transparent_warehouses) {
-        return;
-    }
-
-#endif
 
     if (warehouse) {
         ASSERT(WITHIN(p_dbuilding->Ware, 0, WARE_ware_upto - 1));

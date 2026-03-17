@@ -380,10 +380,6 @@ void PreFlipTT()
     // copy to the screen
     BlitText();
 
-#ifdef _DEBUG
-    if (ControlFlag)
-        ShowDebug();
-#endif
 }
 
 // MeasureTextCommand
@@ -465,12 +461,6 @@ static void DoTextCommand(TextCommand* tcmd)
         res = pShadowSurface->ReleaseDC(hDC);
         ASSERT(!FAILED(res));
 
-#ifdef _DEBUG
-        static char buffer[256];
-        memcpy(buffer, string, chars);
-        buffer[chars] = '\0';
-        TRACE("Line: %s\n", buffer);
-#endif
 
         // draw this line
         switch (tcmd->command) {

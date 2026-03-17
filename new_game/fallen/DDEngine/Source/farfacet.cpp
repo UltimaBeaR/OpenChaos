@@ -166,12 +166,7 @@ UWORD FARFACET_find_vertex(FARFACET_Square* fs, UBYTE map_x, SBYTE map_y, UBYTE 
     lv->z = z;
     lv->tu = 0.0F;
     lv->tv = 0.0F;
-#ifdef DEBUG
-    // lv->color      = 0x00ff0000;
-    lv->color = 0x0000ff00;
-#else
     lv->color = 0x00000000;
-#endif
     lv->specular = 0x00000000;
     lv->dwReserved = 0;
 
@@ -925,9 +920,6 @@ void FARFACET_draw(
         &g_viewData);
 #endif
 
-#ifdef DEBUG
-    the_display.SetRenderState(D3DRENDERSTATE_FOGENABLE, FALSE);
-#endif
 
     //
     // Draw all the squares.
@@ -953,20 +945,6 @@ void FARFACET_draw(
         for (square_z = square_min_z; square_z <= square_max_z; square_z++) {
             fs = &FARFACET_square[square_x][square_z];
 
-#ifdef DEBUG
-            // Colourise the different squares
-            DWORD dwColour = (DWORD)fs;
-            dwColour += 0x32928157;
-            dwColour *= 0x90781;
-            dwColour ^= (dwColour << 3) ^ (dwColour << 5) ^ (dwColour << 9) ^ (dwColour << 18) ^ (dwColour << 23) ^ (dwColour << 28);
-            dwColour *= 0x9574;
-            dwColour += 0x90846347;
-            dwColour &= 0x7f7f7f7f;
-            for (int i = 0; i < fs->lvertcount; i++) {
-                FARFACET_lvert[fs->lvert + i].color = dwColour;
-                FARFACET_lvert[fs->lvert + i].specular = dwColour;
-            }
-#endif
 
             if (fs->indexcount) {
                 //
@@ -1027,9 +1005,6 @@ void FARFACET_draw(
     // Revert to default renderstate.
     //
 
-#ifdef DEBUG
-    the_display.SetRenderState(D3DRENDERSTATE_FOGENABLE, TRUE);
-#endif
 
     FARFACET_default_renderstate.SetChanged();
 

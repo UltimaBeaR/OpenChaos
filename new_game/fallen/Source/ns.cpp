@@ -889,9 +889,6 @@ void NS_cache_create_floors(UBYTE mx, UBYTE mz)
 
     UBYTE pindex[5][5];
 
-#ifndef NDEBUG
-    memset((UBYTE*)pindex, 255, sizeof(pindex));
-#endif
 
     for (x = 0; x <= 4; x++)
         for (z = 0; z <= 4; z++) {

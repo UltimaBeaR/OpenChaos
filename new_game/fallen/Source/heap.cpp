@@ -76,9 +76,6 @@ void HEAP_add_to_free(HEAP_Free* bit)
     HEAP_Free* next;
     HEAP_Free** prev;
 
-#ifndef NDEBUG
-    HEAP_check();
-#endif
 
     //
     // Go through the free list looking for free blocks
@@ -87,9 +84,6 @@ void HEAP_add_to_free(HEAP_Free* bit)
 
 start_again_with_a_bigger_bit:;
 
-#ifndef NDEBUG
-    HEAP_check();
-#endif
 
     ASSERT(bit->size <= HEAP_SIZE);
     ASSERT(bit->start + bit->size == bit->end);
@@ -152,9 +146,6 @@ start_again_with_a_bigger_bit:;
         next = next->next;
     }
 
-#ifndef NDEBUG
-    HEAP_check();
-#endif
 
     //
     // Now add 'bit' in its correct position ordered
@@ -182,9 +173,6 @@ start_again_with_a_bigger_bit:;
         next = next->next;
     }
 
-#ifndef NDEBUG
-    HEAP_check();
-#endif
 
     return;
 }
@@ -195,9 +183,6 @@ void* HEAP_get(SLONG size)
     HEAP_Free bit;
     HEAP_Free* onheap;
 
-#ifndef NDEBUG
-    HEAP_check();
-#endif
 
     if (HEAP_free == NULL) {
         //
@@ -252,9 +237,6 @@ void* HEAP_get(SLONG size)
 
     HEAP_free = HEAP_free->next;
 
-#ifndef NDEBUG
-    HEAP_check();
-#endif
 
     if (bit.size == 0) {
         //
@@ -269,9 +251,6 @@ void* HEAP_get(SLONG size)
 
         ASSERT(bit.size >= sizeof(HEAP_Free));
 
-#ifndef NDEBUG
-        HEAP_check();
-#endif
 
         //
         // Put the new bit on the heap.
@@ -286,9 +265,6 @@ void* HEAP_get(SLONG size)
 
         HEAP_add_to_free(onheap);
 
-#ifndef NDEBUG
-        HEAP_check();
-#endif
 
         return ans;
     }
@@ -311,9 +287,6 @@ void HEAP_give(void* mem, SLONG num_bytes)
 {
     HEAP_Free* onheap = (HEAP_Free*)mem;
 
-#ifndef NDEBUG
-    HEAP_check();
-#endif
 
     //
     // Valid memory block?
@@ -342,7 +315,4 @@ void HEAP_give(void* mem, SLONG num_bytes)
 
     HEAP_add_to_free(onheap);
 
-#ifndef NDEBUG
-    HEAP_check();
-#endif
 }

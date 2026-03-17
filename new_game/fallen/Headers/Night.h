@@ -639,10 +639,6 @@ extern NIGHT_Colour NIGHT_roof_walkable[];
 
 #define NIGHT_ROOF_WALKABLE_POINT(f, p) (NIGHT_roof_walkable[f * 4 + p])
 
-#ifndef NDEBUG
-SLONG NIGHT_check_index(SLONG walkable_prim_point_index);
-#define NIGHT_WALKABLE_POINT(p) (NIGHT_check_index(p), NIGHT_walkable[p - NIGHT_first_walkable_prim_point])
-#else
 
 //
 // Returns the colour of the given walkable prim_point.
@@ -650,7 +646,6 @@ SLONG NIGHT_check_index(SLONG walkable_prim_point_index);
 
 #define NIGHT_WALKABLE_POINT(p) (NIGHT_walkable[(p) - NIGHT_first_walkable_prim_point])
 
-#endif
 
 //
 // Generates the walkable info for the current map.

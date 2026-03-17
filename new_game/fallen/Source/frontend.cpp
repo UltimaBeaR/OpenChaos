@@ -7,11 +7,7 @@
 //
 
 // #define BIN_STUFF_PLEASE_BOB I have been defined
-#ifdef DEBUG
 // #define BIN_BACKGROUNDS_PLEASE_BOB I have been defined
-#else
-// #define BIN_BACKGROUNDS_PLEASE_BOB I have been defined
-#endif
 
 // On a PC, you need an exit. On a console, you don't.
 #define WANT_AN_EXIT_MENU_ITEM defined
@@ -74,12 +70,7 @@ void FRONTEND_display(void);
 // small font being larger DOES make sense because they're different bitmaps.
 
 // In milliseconds.
-#ifdef DEBUG
-// For debugging the looper
-#define AUTOPLAY_FMV_DELAY (1000 * 10)
-#else
 #define AUTOPLAY_FMV_DELAY (1000 * 60 * 2)
-#endif
 
 
 // #define MISSION_SCRIPT "data\\urban.sty"
@@ -304,11 +295,6 @@ RawMenuData raw_menu_data[] = {
     { 0, OT_BUTTON, X_LOAD_GAME, 0, FE_LOADSCREEN },
     { 0, OT_BUTTON, X_SAVE_GAME, (CBYTE*)1, FE_SAVESCREEN },
     { 0, OT_BUTTON, X_OPTIONS, 0, FE_CONFIG },
-#if !defined(NDEBUG)
-    // sheer MADNESS!
-    { 0, OT_BUTTON, X_LOAD_UCM, 0, FE_START },
-    { 0, OT_BUTTON, X_EDITOR, 0, FE_EDITOR },
-#endif
     { 0, OT_BUTTON, X_CREDITS, 0, FE_CREDITS },
     { 0, OT_BUTTON, X_EXIT, 0, FE_QUIT },
     { FE_LOADSCREEN, OT_BUTTON, X_CANCEL, 0, FE_BACK },
@@ -713,22 +699,13 @@ SWORD mission_count = 0;
 SWORD mission_selected = 0;
 UBYTE mission_hierarchy[60];
 MissionCache mission_cache[60];
-#ifdef NDEBUG
 UBYTE complete_point = 0;
-#else
-UBYTE complete_point = 0;
-#endif
 UBYTE mission_launch = 0;
 UBYTE previous_mission_launch = 0;
 BOOL cheating = 0;
 SLONG MidX = 0, MidY;
 float ScaleX, ScaleY; // bwahahaha... and lo! the floats creep in! see the extent of my evil powers! muahahaha!  *cough*  er...
-#ifdef DEBUG
-// Allow saves from init, just so I can test the damn things.
-UBYTE AllowSave = 1;
-#else
 UBYTE AllowSave = 0;
-#endif
 SLONG CurrentVidMode = 0;
 UBYTE CurrentBitDepth = 16;
 UBYTE save_slot;
@@ -4386,19 +4363,6 @@ void FRONTEND_sound()
 
 void FRONTEND_diddle_stats()
 {
-#ifndef FINAL
-    SWORD stat_up = ENV_get_value_number("stat_up", 0, "Secret");
-    stat_up *= (mission_launch - 1);
-
-    the_game.DarciConstitution = stat_up;
-    the_game.DarciStrength = stat_up;
-    the_game.DarciStamina = stat_up;
-    the_game.DarciSkill = stat_up;
-    the_game.RoperConstitution = stat_up;
-    the_game.RoperStrength = stat_up;
-    the_game.RoperStamina = stat_up;
-    the_game.RoperSkill = stat_up;
-#endif
 }
 
 void FRONTEND_diddle_music()

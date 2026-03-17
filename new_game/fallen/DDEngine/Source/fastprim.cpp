@@ -108,10 +108,6 @@ LPDIRECT3DTEXTURE2 FASTPRIM_find_texture_from_page(SLONG page)
     return pp->RS.GetTexture();
 }
 
-#ifdef DEBUG
-void* pvJustChecking1 = NULL;
-void* pvJustChecking2 = NULL;
-#endif
 
 void FASTPRIM_init()
 {
@@ -122,16 +118,8 @@ void FASTPRIM_init()
     FASTPRIM_lvert_max = 4096;
     // FASTPRIM_lvert_max         = 256;
 
-#ifdef DEBUG
-    FASTPRIM_lvert_buffer = (D3DLVERTEX*)MemAlloc(sizeof(D3DLVERTEX) * FASTPRIM_lvert_max + 31 + 32);
-    FASTPRIM_lvert = (D3DLVERTEX*)((((SLONG)FASTPRIM_lvert_buffer) + 31) & ~0x1f);
-    // And write magic numbers just afterwards to check for scribbles.
-    char* pcTemp = (char*)((SLONG)FASTPRIM_lvert + sizeof(D3DLVERTEX) * FASTPRIM_lvert_max);
-    strcpy(pcTemp, "ThisIsAMagicString901234567890");
-#else
     FASTPRIM_lvert_buffer = (D3DLVERTEX*)MemAlloc(sizeof(D3DLVERTEX) * FASTPRIM_lvert_max + 31);
     FASTPRIM_lvert = (D3DLVERTEX*)((((SLONG)FASTPRIM_lvert_buffer) + 31) & ~0x1f);
-#endif
     FASTPRIM_lvert_upto = 0;
     FASTPRIM_lvert_free_end = FASTPRIM_lvert_max;
     FASTPRIM_lvert_free_unused = FASTPRIM_lvert_max;
@@ -142,10 +130,6 @@ void FASTPRIM_init()
     FASTPRIM_index_free_end = FASTPRIM_index_max;
     FASTPRIM_index_free_unused = FASTPRIM_index_max;
 
-#ifdef DEBUG
-    pvJustChecking1 = (void*)FASTPRIM_lvert_buffer;
-    pvJustChecking2 = (void*)FASTPRIM_index;
-#endif
 
     FASTPRIM_call_upto = 0;
 
@@ -1185,16 +1169,6 @@ SLONG FASTPRIM_draw(
 void FASTPRIM_fini()
 {
 
-#ifdef DEBUG
-    ASSERT(FASTPRIM_lvert_buffer != NULL);
-    ASSERT(FASTPRIM_index != NULL);
-    ASSERT(FASTPRIM_lvert_buffer == (void*)pvJustChecking1);
-    ASSERT(FASTPRIM_index == (void*)pvJustChecking2);
-
-    char* pcTemp = (char*)((SLONG)FASTPRIM_lvert + sizeof(D3DLVERTEX) * FASTPRIM_lvert_max);
-    ASSERT(0 == strcmp(pcTemp, "ThisIsAMagicString901234567890"));
-
-#endif
 
     TRACE("FASTPRIM_fini ");
     MemFree(FASTPRIM_lvert_buffer);

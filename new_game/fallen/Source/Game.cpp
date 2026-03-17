@@ -1120,9 +1120,6 @@ inline void draw_screen(void)
     extern SLONG draw_3d;
 
 
-#ifdef DEBUG
-    draw_debug_lines();
-#endif
 
     if (draw_map_screen) {
         //		MAP_draw();
@@ -1205,15 +1202,6 @@ UBYTE game_loop(void)
     AENG_set_draw_distance(ENV_get_value_number("draw_distance", 22, "Render"));
 round_again:;
 
-#ifndef NDEBUG
-    if (!(GAME_STATE & GS_PLAYBACK)) {
-        //
-        // allways record a game, good for debuging
-        //
-
-        GAME_STATE |= GS_RECORD;
-    }
-#endif
 
     MEMORY_quick_init();
 
@@ -1532,11 +1520,6 @@ round_again:;
 
                 GAME_FLAGS &= ~GF_DISABLE_BENCH_HEALTH;
 
-#ifndef NDEBUG
-
-                // PANEL_new_text(NET_PERSON(0), 1000, "I could do with sitting on a bench!");
-
-#endif
             }
 
             if (i_want_to_exit) {

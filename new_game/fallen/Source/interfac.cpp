@@ -76,12 +76,6 @@ UBYTE cheat = 0;
 bool g_bPunishMePleaseICheatedOnThisLevel = FALSE;
 // bool m_bDontMoveIfBothTriggersDown = FALSE;
 
-#ifdef DEBUG
-float m_fFogTableDebugStart = 0.0f;
-float m_fFogTableDebugEnd = 0.0f;
-float m_fFogTableDebugDensity = 0.0f;
-DWORD m_dwFogTableDebugFogTableMode = D3DFOG_NONE;
-#endif
 
 // claude-ai: ANALOGUE_MIN_VELOCITY — минимальная величина analog stick velocity, ниже которой
 // claude-ai: движение игнорируется (дополнительная мёртвая зона на уровне игровой логики).
@@ -770,38 +764,6 @@ void get_car_enter_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz)
     *cx = ix;
     *cz = iz;
 
-#ifndef NDEBUG
-    void SHAPE_semisphere(
-        SLONG x,
-        SLONG y,
-        SLONG z,
-        SLONG dx, // Gives the and direction of the semi-sphere.
-        SLONG dy,
-        SLONG dz,
-        SLONG radius,
-        SLONG page,
-        UBYTE red,
-        UBYTE green,
-        UBYTE blue);
-
-//	SHAPE_semisphere(*cx,0,*cz,0,256,0,0xb0,POLY_PAGE_COLOUR_ALPHA,255,0,0);
-    /*
-
-            AENG_world_line(
-                    p_vehicle->WorldPos.X >> 8,
-                    (p_vehicle->WorldPos.Y >> 8) + 0x60,
-                    p_vehicle->WorldPos.Z >> 8,
-                    32,
-                    0xff0000,
-                    ix,
-                    p_vehicle->WorldPos.X >> 8,
-                    iz,
-                    16,
-                    0x0000ff,
-                    TRUE);
-    */
-
-#endif
 }
 
 SLONG in_right_place_for_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
@@ -829,23 +791,6 @@ SLONG in_right_place_for_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
         // (ix,iz) is now the position of the door.
         //
 
-#ifndef NDEBUG
-        /*
-                        AENG_world_line(
-                                p_vehicle->WorldPos.X >> 8,
-                                p_vehicle->WorldPos.Y >> 8,
-                                p_vehicle->WorldPos.Z >> 8,
-                                32,
-                                0xffffff,
-                                ix,
-                                p_person->WorldPos.Y >> 8,
-                                iz,
-                                0,
-                                0x03f008,
-                                TRUE);
-        */
-
-#endif
 
         dx = (p_person->WorldPos.X >> 8) - ix;
         dy = (p_person->WorldPos.Y >> 8) - ((p_vehicle->WorldPos.Y >> 8) - 90);
@@ -2612,16 +2557,6 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
         wTurn = 0;
     }
 
-#ifdef DEBUG
-    // Sanity checks.
-    if (input & INPUT_MASK_LEFT) {
-        ASSERT(wTurn <= 0);
-    } else if (input & INPUT_MASK_RIGHT) {
-        ASSERT(wTurn >= 0);
-    } else {
-        ASSERT(wTurn == 0);
-    }
-#endif
 
     // Scale by frame rate.
     SWORD wFrameTurn = (wTurn * TICK_RATIO) >> TICK_SHIFT;
@@ -5823,21 +5758,6 @@ void process_hardware_level_input_for_player(Thing* p_player)
     //
     // Nice friendly bit of debug code...
     //
-#ifndef FINAL
-    if (Keys[KB_0]) {
-        Keys[KB_0] = 0;
-
-        if (ShiftFlag) {
-            if (p_person->Draw.Tweened->PersonID > 0) {
-                p_person->Draw.Tweened->PersonID--;
-            }
-        } else {
-            if (p_person->Draw.Tweened->PersonID < 8) {
-                p_person->Draw.Tweened->PersonID++;
-            }
-        }
-    }
-#endif
 }
 
 SLONG continue_action(Thing* p_person)

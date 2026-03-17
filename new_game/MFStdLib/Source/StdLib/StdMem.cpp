@@ -68,16 +68,3 @@ void	MemClear(void *mem_ptr,ULONG size)
 
 //---------------------------------------------------------------
 
-#ifdef DEBUG
-// Support for MFnew and MFdelete
-
-// Do nothing.
-void MFnewTrace(void* pvAddr, size_t size)
-{
-}
-
-void MFdeleteTrace(void* pvAddr)
-{
-}
-
-#endif

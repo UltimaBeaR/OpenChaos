@@ -403,11 +403,7 @@ void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD f
 
 // I don't want to have to code a VMU->VM skipping thing for every rout,
 // so here's a checker.
-#ifdef DEBUG
-#define CHECKTHEREARENOVMUSINHERE(string) ASSERT(strstr(string, "VMU") == NULL)
-#else
 #define CHECKTHEREARENOVMUSINHERE(string) sizeof(string)
-#endif
 
 void MENUFONT_Draw_floats(float x, float y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags)
 {

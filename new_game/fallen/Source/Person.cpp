@@ -1092,11 +1092,7 @@ SLONG person_is_lying_on_what(Thing* p_person)
         return (PERSON_ON_HIS_BACK);
 
     default:
-#ifndef NDEBUG
-        return PERSON_ON_HIS_SOMETHING;
-#else
         return (PERSON_ON_HIS_BACK);
-#endif
     }
 }
 
@@ -3564,60 +3560,6 @@ void general_process_person(Thing* p_person)
     //	if(Keys[KB_F])
     //		p_person->WorldPos.Y=0;
 
-#ifndef NDEBUG
-    //	if(p_person->Genus.Person->Flags2&FLAG2_PERSON_GUILTY)
-    /*
-            if(p_person->Genus.Person->OnFacet)
-            {
-                    AENG_world_line(
-                            p_person->WorldPos.X         >> 8,
-                            p_person->WorldPos.Y + 0 >> 8,
-                            p_person->WorldPos.Z         >> 8,
-                            16,
-                            0xff0000,
-                            p_person->WorldPos.X                  >> 8,
-                            p_person->WorldPos.Y + 0 + 0x21000 >> 8,
-                            p_person->WorldPos.Z                  >> 8,
-                            0,
-                            0x330088,
-                            FALSE);
-            }
-            if(p_person->Genus.Person->Flags&FLAG_PERSON_FELON)
-            {
-                    AENG_world_line(
-                            p_person->WorldPos.X         >> 8,
-                            p_person->WorldPos.Y + 0 >> 8,
-                            p_person->WorldPos.Z         >> 8,
-                            16,
-                            0x00ffff,
-                            p_person->WorldPos.X                  >> 8,
-                            p_person->WorldPos.Y + 0 + 0x21000 >> 8,
-                            p_person->WorldPos.Z                  >> 8,
-                            0,
-                            0x33ff88,
-                            FALSE);
-            }
-    */
-    if (ControlFlag)
-        if (p_person->Genus.Person->Target) {
-            Thing* p_target;
-
-            p_target = TO_THING(p_person->Genus.Person->Target);
-
-            AENG_world_line(
-                p_person->WorldPos.X >> 8,
-                p_person->WorldPos.Y + 0x1000 >> 8,
-                p_person->WorldPos.Z >> 8,
-                16,
-                0x00ffff,
-                p_target->WorldPos.X >> 8,
-                p_target->WorldPos.Y + 0 + 0x1000 >> 8,
-                p_target->WorldPos.Z >> 8,
-                0,
-                0x33ff88,
-                FALSE);
-        }
-#endif
 
 
 /*
@@ -3648,63 +3590,6 @@ void general_process_person(Thing* p_person)
                                                     TRUE);
             }
     */
-#ifndef NDEBUG
-    /*
-            {
-                    Thing *p_target;
-
-                    if (WITHIN(p_person->Genus.Person->Target, 1, MAX_THINGS - 1))
-                    {
-                            p_target = TO_THING(p_person->Genus.Person->Target);
-
-                            if (p_target->Class == CLASS_PERSON)
-                            {
-                                    AENG_world_line(
-                                            p_person->WorldPos.X          >> 8,
-                                            p_person->WorldPos.Y + 0x1000 >> 8,
-                                            p_person->WorldPos.Z          >> 8,
-                                            32,
-                                            0xff0000,
-                                            p_person->WorldPos.X          >> 8,
-                                            p_person->WorldPos.Y + 0x1000 >> 8,
-                                            p_person->WorldPos.Z          >> 8,
-                                            0,
-                                            0x000000,
-                                            TRUE);
-                            }
-                    }
-            }
-
-            //
-            // Draw an arrow over helpless people!
-            //
-
-            if (p_person->Genus.Person->Flags & FLAG_PERSON_HELPLESS)
-            {
-                    SLONG px;
-                    SLONG py;
-                    SLONG pz;
-
-                    calc_sub_objects_position(
-                            p_person,
-                            p_person->Draw.Tweened->AnimTween,
-                            SUB_OBJECT_HEAD,
-                       &px,
-                       &py,
-                       &pz);
-
-                    px += p_person->WorldPos.X >> 8;
-                    py += p_person->WorldPos.Y >> 8;
-                    pz += p_person->WorldPos.Z >> 8;
-
-                    AENG_world_line(
-                            px, py, pz, 0, 0xffffff,
-                            px, py + 20, pz, 32, 0xccccff,
-                            FALSE);
-            }
-    */
-
-#endif
 
     //	ASSERT(p_person->WorldPos.X>>16<128);
     //	ASSERT(p_person->WorldPos.Z>>16<128);
@@ -7350,22 +7235,6 @@ try_again:;
 
     door_y = PAP_calc_map_height_at(door_x + dx, door_z + dz);
 
-#ifndef NDEBUG
-
-    AENG_world_line(
-        p_vehicle->WorldPos.X >> 8,
-        p_vehicle->WorldPos.Y >> 8,
-        p_vehicle->WorldPos.Z >> 8,
-        32,
-        0xffffff,
-        door_x + dx,
-        door_y,
-        door_z + dz,
-        0,
-        0x03f008,
-        TRUE);
-
-#endif
 
     if (abs(door_y - (p_person->WorldPos.Y >> 8)) > 150 || (PAP_2HI(mx, mz).Flags & PAP_FLAG_NOGO) || !there_is_a_los(p_vehicle->WorldPos.X >> 8, p_vehicle->WorldPos.Y + 0x6000 >> 8, p_vehicle->WorldPos.Z >> 8, door_x + dx, door_y + 0x60, door_z + dz, LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG | LOS_FLAG_IGNORE_PRIMS | LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
         //
@@ -10185,25 +10054,6 @@ void fn_person_idle(Thing* p_person)
 {
     SLONG end;
 
-#ifndef NDEBUG
-/*
-        if(person_holding_2handed(p_person))
-        {
-                                AENG_world_line(
-                                        (p_person->WorldPos.X >> 8),
-                                        (p_person->WorldPos.Y >> 8) + 0x60,
-                                        (p_person->WorldPos.Z >> 8),
-                                        32,
-                                        0x00ffffff,
-                                        (p_person->WorldPos.X >> 8),
-                                        (p_person->WorldPos.Y >> 8) + 0x160,
-                                        (p_person->WorldPos.Z >> 8),
-                                        0,
-                                        0x00123456,
-                                        TRUE);
-        }
-*/
-#endif
 
     /*
             if(Keys[KB_7]&&ShiftFlag)

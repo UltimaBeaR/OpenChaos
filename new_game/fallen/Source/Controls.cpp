@@ -272,11 +272,7 @@ EWAY_Way* eway_find_near(GameCoord pos)
 // claude-ai:   PC FAST_EDDIE build: 1 по умолчанию (QA-версия).
 // claude-ai:   PC Release build: 0 по умолчанию, можно включить через консоль "bangunsnotgames".
 
-#ifndef NDEBUG
-BOOL allow_debug_keys = 1;
-#else
 BOOL allow_debug_keys = 0;
-#endif
 
 
 // claude-ai: VARIABLE: dkeys_have_been_used — TRUE если отладочные клавиши использовались
@@ -1806,19 +1802,6 @@ void process_controls(void)
                 }
             }
         }
-#ifndef NDEBUG
-        SLONG is_there_room_behind_person(Thing * p_person, SLONG hit_from_behind);
-
-        if (Keys[KB_U]) {
-            Keys[KB_U] = 0;
-
-            if (is_there_room_behind_person(darci, FALSE)) {
-                PANEL_new_text(darci, 1000, "Enough room behind me.");
-            } else {
-                PANEL_new_text(darci, 1000, "No room behind me.");
-            }
-        }
-#endif
     }
 
 #if WE_NEED_THE_NUMBER_KEYS
@@ -4100,11 +4083,6 @@ extern	SLONG	FC_cam_height;
             }
         }
 
-#ifndef NDEBUG
-        // debug - find which car the mouse points at
-        extern void LookForSelectedThing();
-        LookForSelectedThing();
-#endif
         /*
                         if (Keys[KB_N])
                         {

@@ -466,11 +466,7 @@ void COLLIDE_calc_fastnav_bits(void);
 // Returns TRUE if you can fastnav in the given square.
 //
 
-#ifndef NDEBUG
-SLONG COLLIDE_can_i_fastnav(SLONG x, SLONG z);
-#else
 #define COLLIDE_can_i_fastnav(x, z) (!(WITHIN((x), 0, PAP_SIZE_HI - 1) || !WITHIN((z), 0, PAP_SIZE_HI - 1) || (COLLIDE_fastnav[x][(z) >> 3] & (1 << ((z) & 0x7)))))
-#endif // NDEBUG
 
 //
 // Draws a debug cross over each fastnav square near the given place

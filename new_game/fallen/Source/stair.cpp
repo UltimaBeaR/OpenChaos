@@ -246,11 +246,7 @@ UBYTE STAIR_edge[STAIR_MAX_SIZE];
 // the bounding box, so it takes up less memory.
 //
 
-#ifndef NDEBUG
-#define STAIR_EDGE(z) (STAIR_check_edge((z)), STAIR_edge[(z) - STAIR_z1])
-#else
 #define STAIR_EDGE(z) (STAIR_edge[(z) - STAIR_z1])
-#endif
 
 void STAIR_check_edge(SLONG z)
 {

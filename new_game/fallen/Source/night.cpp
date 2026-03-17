@@ -2354,10 +2354,6 @@ UBYTE NIGHT_dfcache_create(UWORD dfacet_index)
     SLONG dly;
     SLONG dlz;
 
-#ifndef NDEBUG
-    void* min_address;
-    void* max_address;
-#endif
 
     SLONG dprod;
     SLONG length;
@@ -2462,10 +2458,6 @@ UBYTE NIGHT_dfcache_create(UWORD dfacet_index)
 
     ASSERT(nd->colour != NULL);
 
-#ifndef NDEBUG
-    min_address = nd->colour;
-    max_address = ((UBYTE*)nd->colour) + (num_bytes - 1);
-#endif
 
     //
     // The normal of the facet
@@ -3224,21 +3216,6 @@ void NIGHT_init()
 //
 // ========================================================
 
-#if !defined(NDEBUG)
-// The DC doesn't actually need this fucntion, but the compiler gets very confused
-// and exports the symbol (don't ask...) so then the linker gets all hot and bothered.
-
-SLONG NIGHT_check_index(SLONG walkable_prim_point_index)
-{
-    ASSERT(WITHIN(
-        walkable_prim_point_index,
-        first_walkable_prim_point,
-        first_walkable_prim_point + number_of_walkable_prim_points - 1));
-
-    return TRUE;
-}
-
-#endif
 
 NIGHT_Colour NIGHT_roof_walkable[MAX_ROOF_FACE4 * 4];
 UWORD hidden_roof_index[128][128];

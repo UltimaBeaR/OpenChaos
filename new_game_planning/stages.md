@@ -81,11 +81,26 @@
    - **Debug (не нужны):** `DEBUG_POOSHIT`, `TEST_3DFX`, `HEAP_DEBUGGING_PLEASE_BOB`, `HIGH_REZ_PEOPLE_PLEASE_BOB`, `MARKS_PRIVATE_VERSION`, `_DEBUG_POO`, `BREAKTIMER`
    - **Debug визуализации:** `WE_WANT_TO_DRAW_THESE_FACET_LINES`, `WE_WANT_TO_DRAW_THE_TEXTURE_SHADOW_PAGE`, `DRAW_BLACK_FACETS`, `DRAW_FLOOR_FURTHER`, `DEBUG_POLY`, `DEBUG_SPAN`, `DRAW_THIS_DEBUG_STUFF`, `STRIP_STATS`, `SUPERFACET_PERFORMANCE`, `FASTPRIM_PERFORMANCE`, `FEEDBACK`, `WE_WANT_A_WHITE_SHADOW`, `WE_WANT_TO_DARKEN_PEOPLE_IN_SHADOW_ABRUPTLY`, `WE_WANT_TO_TEST_THE_WORLD_LINE_DRAW_BY_DRAWING_THE_COLVECTS`, `WHEN_DO_I_WANT_TO_TWO_PASS`, `DONT_WORRY_ABOUT_INSIDES_FOR_NOW`
    - **Developer joke flags:** `GONNA_FIREBOMB_YOUR_ASS`, `WHAT_THE_FUCK_IS_THIS_DOING_HERE`, `OLDSHIT`, `ONE_DAY`, `GOTTA_DO_A_BETTA_JOB`, `DONE_ON_PC_NOW`, `WERE_GOING_TO_STUPIDLY_STICK_THE_FINAL_BANE_INSIDE`, `WEVE_REPLACED_THE_HEARTBEAT_WITH_A_SCANNER`, `POO_SHIT_GOD_DAMN`, `OLD_DOG_POO_OF_A_SYSTEM_OR_IS_IT`, `MAD_AM_I`, `ARGH`, `MIKE`, `MIKE_INFO`, `DTRACE`
-   - **Оставить для разработки:** `FACET_REMOVAL_TEST` (авто-включается в _DEBUG, полезен при разработке)
+   - ~~`FACET_REMOVAL_TEST`~~ — ранее отмечен как полезный при разработке, но принято решение о Release-only кодовой базе → **удалить** вместе со всем debug-кодом (итерация 33)
    - ~~`SUPERCRINKLES_ENABLED`~~ — улучшенный bump mapping, сейчас выключен. Обычный bump mapping (crinkles) работает (хотя и глючит — см. prerelease_fixes.md). Supercrinkles нам не нужны. **Удалить.**
    - Кандидаты из `cut_features.md`: `BIKE` (уже выше), сопутствующий код канализаций (флаг `SEWERS`)
    - **Статус каждого флага (удалён / не удалять / пропущен) — вести в `new_game_devlog/stage2_log.md`**
    - **⛔ Для каждого: coan `-UФЛАГ` или ручное удаление, затем САМОСТОЯТЕЛЬНО запустить `make build-debug` и `make build-release` — сначала debug, потом release. Убедиться что оба билда проходят без ошибок. ПОЛЬЗОВАТЕЛЯ ЭТИМ НЕ БЕСПОКОИТЬ. ⛔**
+2.6. **Удаление всего debug-only кода — переход на Release-only кодовую базу** ✅ **СДЕЛАНО (итерация 33)**
+
+   **Решение (2026-03-18):** Сфокусироваться исключительно на Release-сборке. Debug-код удаляется навсегда. Если что-то понадобится позже — восстанавливать из `original_game/`.
+
+   **Что удаляется:**
+   - `#ifdef _DEBUG` / `#ifdef DEBUG` блоки — Debug-only код
+   - `#ifndef NDEBUG` / `#ifndef FINAL` / `#ifndef _RELEASE` блоки — тоже Debug-only
+   - `FACET_REMOVAL_TEST` (определялся в build2.cpp под `#ifdef _DEBUG`)
+   - `SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB` (определялся в figure.cpp под `#ifdef DEBUG`)
+
+   **Что раскрывается (код остаётся, обёртки убираются):**
+   - `#ifdef NDEBUG` / `#ifdef FINAL` / `#ifdef _RELEASE` блоки — Release-only код, который теперь становится безусловным
+
+   **Флаги Release-конфигурации** (из vcxproj): `NDEBUG;_RELEASE;WIN32;_WINDOWS;VERSION_D3D;TEX_EMBED;FINAL`
+
 3. Удаление файлов, которые никто не `#include`-ит и которых нет в `Fallen.vcxproj`
 4. Удаление мёртвых сущностей (функции, переменные, типы, которые нигде не используются)
 5. Отформатировать код через clang format, т.к. после кучи правок точно появились всякие двойные пустые строки, неправильные отступы и т.д.

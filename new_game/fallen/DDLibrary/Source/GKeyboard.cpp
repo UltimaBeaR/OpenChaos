@@ -31,7 +31,6 @@ BOOL SetupKeyboard(void)
     memset((char*)&Keys[0], 0, 256);
     memset((char*)&key_turn[0], 0, 256);
 
-#ifdef _RELEASE
     KeyboardHook = NULL;
 /*
         KeyboardHook	=	SetWindowsHookEx(
@@ -47,7 +46,6 @@ BOOL SetupKeyboard(void)
                 return	FALSE;
         }
 */
-#endif
     return TRUE;
 }
 
@@ -55,10 +53,8 @@ BOOL SetupKeyboard(void)
 
 void ResetKeyboard(void)
 {
-#if defined(_RELEASE)
     if (KeyboardHook)
         UnhookWindowsHookEx(KeyboardHook);
-#endif
 }
 
 //---------------------------------------------------------------

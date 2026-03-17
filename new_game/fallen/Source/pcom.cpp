@@ -979,20 +979,6 @@ void PCOM_get_vehicle_navsquare(
         *map_dest_z = iz2 >> 8;
     }
 
-#ifndef NDEBUG
-    AENG_world_line(
-        p_person->WorldPos.X >> 8,
-        p_person->WorldPos.Y >> 8,
-        p_person->WorldPos.Z >> 8,
-        32,
-        0x000000,
-        *map_dest_x,
-        p_person->WorldPos.Y >> 8,
-        *map_dest_z,
-        0,
-        0xff0000,
-        TRUE);
-#endif
 }
 
 //
@@ -4143,23 +4129,6 @@ void PCOM_set_person_ai_snipe(Thing* p_person, Thing* p_target)
     if (p_person->Genus.Person->Target) {
         remove_from_gang_attack(p_person, TO_THING(p_person->Genus.Person->Target));
     }
-#ifndef NDEBUG
-
-    //
-    // All snipers must have a gun!
-    //
-
-    if (!PCOM_person_has_any_sort_of_gun(p_person)) {
-#ifndef NDEBUG
-
-        CONSOLE_text("Sniper doesn't have a gun. I'll give him one anyway.");
-
-#endif
-
-        p_person->Flags |= FLAGS_HAS_GUN;
-    }
-
-#endif
 
     p_person->Genus.Person->pcom_ai_state = PCOM_AI_STATE_SNIPE;
     p_person->Genus.Person->pcom_ai_substate = PCOM_AI_SUBSTATE_LOOK;
@@ -4846,9 +4815,6 @@ THING_INDEX PCOM_create_person(
         world_z);
 
     if (p_index == NULL) {
-#ifndef NDEBUG
-        PANEL_new_text(NULL, 10000, "Couldn't create person, PersonType %d ai %s", type, PCOM_ai_name[ai]);
-#endif
     } else {
         Thing* p_person = TO_THING(p_index);
 
@@ -5346,10 +5312,6 @@ SLONG PCOM_call_cop_to_arrest_me(Thing* p_person, SLONG store_it)
     Thing* p_found;
     SLONG found_cop = 0;
 
-#ifdef DEBUG
-    if (p_person->Genus.Person->PersonType == PERSON_DARCI)
-        ASSERT(0);
-#endif
 
     if (store_it) {
         if (next_arrest >= MAX_ARREST_ME) {
@@ -8630,9 +8592,6 @@ void PCOM_process_snipe(Thing* p_person)
         //
         // Nobody to kill!
         //
-#ifndef FINAL
-        // PANEL_new_text(p_person, 0, "Assassin (stand still) has no target");
-#endif
 
         p_person->Genus.Person->pcom_ai = PCOM_AI_NONE;
 
@@ -9671,18 +9630,8 @@ void PCOM_process_state_change(Thing* p_person)
     case PCOM_AI_SHOOT_DEAD:
 
         if (p_person->Genus.Person->pcom_ai_other == NULL) {
-#ifndef NDEBUG
-
-            CONSOLE_text("Assasin has no target");
-
-#endif
         } else {
             if (p_person->Genus.Person->pcom_ai_other == NULL) {
-#ifndef NDEBUG
-
-                CONSOLE_text("Assasin waypoint has no person associated with it");
-
-#endif
             } else {
 
                 i_target = EWAY_get_person(p_person->Genus.Person->pcom_ai_other);
@@ -9714,9 +9663,6 @@ void PCOM_process_state_change(Thing* p_person)
                         case PCOM_MOVE_PATROL:
                         case PCOM_MOVE_PATROL_RAND:
                         case PCOM_MOVE_WANDER:
-#ifndef NDEBUG
-                            CONSOLE_text("An assasin on patrol or wander acts like a sniper");
-#endif
                             p_person->Genus.Person->pcom_move = PCOM_MOVE_STILL;
                             break;
 
@@ -12414,13 +12360,6 @@ void DriveCar(Thing* p_person)
     Thing* p_vehicle = TO_THING(p_person->Genus.Person->InCar);
     ASSERT(p_vehicle);
 
-#ifndef NDEBUG
-    extern Thing* SelectedThing;
-    if (LeftButton && (SelectedThing == p_vehicle)) {
-        DebugBreak();
-        LeftButton = 0;
-    }
-#endif
 
     if (p_person->Genus.Person->pcom_move_state != PCOM_MOVE_STATE_PARK_CAR_ON_ROAD) {
         //

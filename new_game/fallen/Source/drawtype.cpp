@@ -30,16 +30,6 @@ DrawTween* alloc_draw_tween(SLONG type)
             new_draw->Flags &= ~DT_FLAG_UNUSED;
             //			ASSERT(c0);
 
-#ifdef DEBUG
-            // Dump some info out, so I can set up levels correctly.
-            static int iLowestCount = 100000;
-            SLONG count_draw_tween(void);
-            int iCount = count_draw_tween();
-            if (iLowestCount > iCount) {
-                iLowestCount = iCount;
-            }
-            TRACE("Now only %i tweens left out of %i, lowest was %i\n", iCount, MAX_DRAW_TWEENS, iLowestCount);
-#endif
 
             return (new_draw);
         }

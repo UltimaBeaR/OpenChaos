@@ -460,11 +460,6 @@ void CRINKLE_do(
     ASSERT(WITHIN(crinkle, 0, CRINKLE_crinkle_upto - 1));
 
     cc = &CRINKLE_crinkle[crinkle];
-#ifndef FINAL
-    if (Keys[KB_RSHIFT]) {
-        flip = TRUE;
-    }
-#endif
     if (flip) {
 #define PPSWAP(a, b)                \
     {                               \

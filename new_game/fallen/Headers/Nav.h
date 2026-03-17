@@ -38,12 +38,7 @@ extern NAV_Waypoint NAV_waypoint[NAV_MAX_WAYPOINTS];
 // Returns a pointer to the given waypoint.
 //
 
-#ifndef NDEBUG
-void NAV_waypoint_check(UWORD index);
-#define NAV_WAYPOINT(index) (NAV_waypoint_check(index), &NAV_waypoint[index])
-#else
 #define NAV_WAYPOINT(index) (&NAV_waypoint[index])
-#endif
 
 //
 // Returns a 2D navigation path.

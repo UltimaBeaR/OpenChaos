@@ -1361,10 +1361,6 @@ void FIGURE_clean_all_LRU_slots(void)
     ASSERT(m_dwSizeOfQueue == 0);
 }
 
-#ifdef DEBUG
-int g_iCacheReplacements = 0;
-bool g_bCacheReplacementThrash = FALSE;
-#endif
 
 // claude-ai: FIGURE_find_and_clean_prim_queue_item — LRU cache management for TomsPrimObjects.
 // claude-ai: Queue limits: PRIM_LRU_QUEUE_LENGTH=250 entries, PRIM_LRU_QUEUE_SIZE=6000 vertices total.
@@ -1394,9 +1390,6 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
 
         // First find enough memory.
         while (((DWORD)pPrimObj->wTotalSizeOfObj + m_dwSizeOfQueue) >= PRIM_LRU_QUEUE_SIZE) {
-#ifdef DEBUG
-            g_iCacheReplacements++;
-#endif
 
             DWORD dwMostTurns = 0;
             int iOldestSlot = -1;
@@ -1419,10 +1412,6 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
                 // Just try not to.
                 // iOldestSlot = iThrashIndex;
 
-#ifdef DEBUG
-                // And warn us.
-                g_bCacheReplacementThrash = TRUE;
-#endif
             }
 
             // Clean out this prim & slot.
@@ -1434,9 +1423,6 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
         // Now check there is a queue space free.
         if (m_iLRUQueueSize >= PRIM_LRU_QUEUE_LENGTH) {
             // Nope - bin oldest.
-#ifdef DEBUG
-            g_iCacheReplacements++;
-#endif
 
             DWORD dwMostTurns = 0;
             int iOldestSlot = -1;
@@ -1463,10 +1449,6 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
                     iOldestSlot = iThrashIndex;
                 }
 
-#ifdef DEBUG
-                // And warn us.
-                g_bCacheReplacementThrash = TRUE;
-#endif
             }
 
             // In some cases, we may have decided to clean a cache position that
@@ -1510,10 +1492,6 @@ void FIGURE_touch_LRU_of_object(TomsPrimObject* pPrimObj)
     dwGameTurnLastUsed[pPrimObj->bLRUQueueNumber] = GAME_TURN;
 }
 
-#ifdef DEBUG
-int m_iMaxNumVertsUsed = 0;
-int m_iMaxNumIndicesUsed = 0;
-#endif
 
 // Used by the FIGURE_TPO lot.
 static D3DVERTEX* TPO_pVert = NULL;
@@ -1906,11 +1884,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         wRealPage += FACE_PAGE_OFFSET;
                                     }
 
-#ifdef DEBUG
-                                    if (wTexturePage & TEXTURE_PAGE_FLAG_NOT_TEXTURED) {
-                                        ASSERT(wRealPage == POLY_PAGE_COLOUR);
-                                    }
-#endif
 
                                     PolyPage* pa = &(POLY_Page[wRealPage]);
 
@@ -2001,12 +1974,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                                 DeadAndBuried(0xffffffff);
                                             }
 
-#ifdef DEBUG
-                                            if (m_iMaxNumVertsUsed < TPO_iNumVertices) {
-                                                // ASSERT ( TPO_iNumVertices < 256 );
-                                                m_iMaxNumVertsUsed = TPO_iNumVertices;
-                                            }
-#endif
 
                                             // Grow the bounding sphere if need be.
 
@@ -2052,12 +2019,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                                     DeadAndBuried(0xffffffff);
                                                 }
 
-#ifdef DEBUG
-                                                if (m_iMaxNumVertsUsed < TPO_iNumVertices) {
-                                                    // ASSERT ( TPO_iNumVertices < 256 );
-                                                    m_iMaxNumVertsUsed = TPO_iNumVertices;
-                                                }
-#endif
                                             }
                                         }
                                     }
@@ -2081,11 +2042,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                             DeadAndBuried(0x07ff07ff);
                                         }
 
-#ifdef DEBUG
-                                        if (m_iMaxNumIndicesUsed < TPO_iNumListIndices) {
-                                            m_iMaxNumIndicesUsed = TPO_iNumListIndices;
-                                        }
-#endif
 
                                     } else {
                                         ASSERT((iIndices[0] >= 0) && (iIndices[0] < pMaterial->wNumVertices));
@@ -2108,11 +2064,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                             DeadAndBuried(0x07ff07ff);
                                         }
 
-#ifdef DEBUG
-                                        if (m_iMaxNumIndicesUsed < TPO_iNumListIndices) {
-                                            m_iMaxNumIndicesUsed = TPO_iNumListIndices;
-                                        }
-#endif
                                     }
                                 }
                             }
@@ -2274,12 +2225,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                 DeadAndBuried(0xffffffff);
                             }
 
-#ifdef DEBUG
-                            if (m_iMaxNumVertsUsed < TPO_iNumVertices) {
-                                // ASSERT ( TPO_iNumVertices < 256 );
-                                m_iMaxNumVertsUsed = TPO_iNumVertices;
-                            }
-#endif
 
                             pEdgeCur++;
                         }
@@ -2297,11 +2242,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                             DeadAndBuried(0x07ff07ff);
                         }
 
-#ifdef DEBUG
-                        if (m_iMaxNumIndicesUsed < iNewNumListIndices) {
-                            m_iMaxNumIndicesUsed = iNewNumListIndices;
-                        }
-#endif
 
                         pSrcIndex = pFirstListIndex + pMaterial->wNumListIndices;
                         WORD* pDstIndex = pFirstListIndex + iNewMatNumListIndices;
@@ -2414,11 +2354,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                 DeadAndBuried(0x07ff07ff);
                             }
 
-#ifdef DEBUG
-                            if (m_iMaxNumIndicesUsed < TPO_iNumStripIndices) {
-                                m_iMaxNumIndicesUsed = TPO_iNumStripIndices;
-                            }
-#endif
 
                             if (bOdd) {
                                 wIndex0 = wNextIndex;
@@ -2438,11 +2373,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                     DeadAndBuried(0x07ff07ff);
                                 }
 
-#ifdef DEBUG
-                                if (m_iMaxNumIndicesUsed < TPO_iNumStripIndices) {
-                                    m_iMaxNumIndicesUsed = TPO_iNumStripIndices;
-                                }
-#endif
 
                             } else {
                                 bFirst = FALSE;
@@ -2458,11 +2388,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                 DeadAndBuried(0x07ff07ff);
                             }
 
-#ifdef DEBUG
-                            if (m_iMaxNumIndicesUsed < TPO_iNumStripIndices) {
-                                m_iMaxNumIndicesUsed = TPO_iNumStripIndices;
-                            }
-#endif
                             wIndex0 = pSrcIndex[2];
                             wIndex1 = pSrcIndex[1];
                             bOdd = FALSE;
@@ -2479,11 +2404,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                         DeadAndBuried(0x07ff07ff);
                     }
 
-#ifdef DEBUG
-                    if (m_iMaxNumIndicesUsed < TPO_iNumStripIndices) {
-                        m_iMaxNumIndicesUsed = TPO_iNumStripIndices;
-                    }
-#endif
 
                     ASSERT(pMaterial->wNumStripIndices == (TPO_pCurStripIndex - pFirstStripIndex));
 
@@ -2568,9 +2488,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
     TRACE("done all.\n");
 
-#ifdef DEBUG
-    TRACE("Max so far: verts %i, indices %i\n", m_iMaxNumVertsUsed, m_iMaxNumIndicesUsed);
-#endif
 }
 
 // claude-ai: FIGURE_generate_D3D_object — convenience wrapper: compiles a single prim
@@ -2844,12 +2761,6 @@ void FIGURE_draw_prim_tween(
 
         count += 1;
 
-#ifndef FINAL
-        if (ControlFlag && allow_debug_keys) {
-            LOG_EXIT(Figure_Draw_Prim_Tween)
-            return;
-        }
-#endif
     }
 
     LOG_ENTER(Figure_Set_Rotation)
@@ -3278,11 +3189,6 @@ no_muzzle_calcs:
             }
         }
 
-#ifdef DEBUG
-        if (wPage & TEXTURE_PAGE_FLAG_NOT_TEXTURED) {
-            ASSERT(wRealPage == POLY_PAGE_COLOUR);
-        }
-#endif
 
         extern D3DMATRIX g_matWorld;
 
@@ -3302,13 +3208,6 @@ no_muzzle_calcs:
 
 #if 1
 
-#ifdef DEBUG
-            static int iCounter = 0;
-            if (iCounter != 0) {
-                iCounter--;
-                ASSERT(iCounter != 0);
-            }
-#endif
 
             // Fast as lightning.
             LOG_ENTER(Figure_Set_RenderState)
@@ -4943,11 +4842,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             }
         }
 
-#ifdef DEBUG
-        if (wPage & TEXTURE_PAGE_FLAG_NOT_TEXTURED) {
-            ASSERT(wRealPage == POLY_PAGE_COLOUR);
-        }
-#endif
 
         extern D3DMATRIX g_matWorld;
 
@@ -4965,13 +4859,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
 #if 1
 
-#ifdef DEBUG
-            static int iCounter = 0;
-            if (iCounter != 0) {
-                iCounter--;
-                ASSERT(iCounter != 0);
-            }
-#endif
 
             // Fast as lightning.
             LOG_ENTER(Figure_Set_RenderState)
@@ -5674,14 +5561,6 @@ void FIGURE_draw(Thing* p_thing)
     ae1 = dt->CurrentFrame->FirstElement;
     ae2 = dt->NextFrame->FirstElement;
 
-#ifdef DEBUG
-    if (!ae1 || !ae2) {
-        MSG_add("!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure has no animation elements");
-        LOG_EXIT(Figure_FIGURE_Draw)
-
-        return;
-    }
-#endif
 
     //
     // What colour do we draw the figure?
@@ -7683,11 +7562,6 @@ no_muzzle_calcs:
             }
         }
 
-#ifdef DEBUG
-        if (wPage & TEXTURE_PAGE_FLAG_NOT_TEXTURED) {
-            ASSERT(wRealPage == POLY_PAGE_COLOUR);
-        }
-#endif
 
         extern D3DMATRIX g_matWorld;
 
@@ -7708,13 +7582,6 @@ no_muzzle_calcs:
 
 #if 1
 
-#ifdef DEBUG
-            static int iCounter = 0;
-            if (iCounter != 0) {
-                iCounter--;
-                ASSERT(iCounter != 0);
-            }
-#endif
 
             // Fast as lightning.
             LOG_ENTER(Figure_Set_RenderState)

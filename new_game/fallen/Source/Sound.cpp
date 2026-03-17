@@ -180,10 +180,6 @@ void SND_BeginAmbient()
         break;
     }
 
-#ifdef _DEBUG
-    static char* desc[] = { "Jungle", "Snow", "Estate", "Busy City", "Quiet City" };
-    TRACE("WORLD TYPE IS \"%s\"\n", desc[wtype]);
-#endif
 }
 
 // claude-ai: new_outdoors_effects — called every game tick when player is outdoors.

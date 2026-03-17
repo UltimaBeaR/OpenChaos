@@ -1679,16 +1679,6 @@ void TEXTURE_free_unneeded(void)
 
     CRINKLE_init();
 
-#ifdef DEBUG
-    DDSCAPS2 ddsc;
-    ddsc.dwCaps = DDSCAPS_TEXTURE;
-    ddsc.dwCaps2 = 0;
-    ddsc.dwCaps3 = 0;
-    ddsc.dwCaps4 = 0;
-    DWORD dwFree, dwTotal;
-    HRESULT hres = the_display.lp_DD4->GetAvailableVidMem(&ddsc, &dwTotal, &dwFree);
-    TRACE("Memory before TEXTURE_free_unneeded: %ikb\n", dwFree / 1024);
-#endif
 
     for (i = 0; i < TEXTURE_num_textures; i++) {
         // if ( !TEXTURE_needed[i] )
@@ -1703,16 +1693,6 @@ void TEXTURE_free_unneeded(void)
     extern void FreeAllD3DPages(void);
     FreeAllD3DPages();
 
-#ifdef DEBUG
-    ddsc.dwCaps = DDSCAPS_TEXTURE;
-    ddsc.dwCaps2 = 0;
-    ddsc.dwCaps3 = 0;
-    ddsc.dwCaps4 = 0;
-    dwFree, dwTotal;
-    hres = the_display.lp_DD4->GetAvailableVidMem(&ddsc, &dwTotal, &dwFree);
-    ASSERT(SUCCEEDED(hres));
-    TRACE("After freeing: %ikb\n", dwFree / 1024);
-#endif
 
     POLY_reset_render_states();
 }

@@ -149,23 +149,10 @@ SLONG PAP_on_map_hi(SLONG x, SLONG z);
 // claude-ai: В debug-сборке содержат assert; в release — прямой доступ к массиву.
 // claude-ai: ON_PAP_LO(x,z) — проверка что (x,z) в пределах лорез-карты [0..31].
 
-#ifdef NDEBUG
 
 #define PAP_2LO(x, z) (PAP_lo[(x)][(z)])
 #define PAP_2HI(x, z) (PAP_hi[(x)][(z)])
 
-#else
-
-// #define PAP_on_map_hi(x,z) ((WITHIN((x), 0, PAP_SIZE_HI -1) && WITHIN((z), 0, PAP_SIZE_HI -1))?TRUE:FALSE)
-// #define PAP_on_map_lo(x,z) ((WITHIN((x), 0, PAP_SIZE_LO -1) && WITHIN((z), 0, PAP_SIZE_LO -1))?TRUE:FALSE)
-
-void PAP_assert_if_off_map_lo(SLONG x, SLONG z);
-void PAP_assert_if_off_map_hi(SLONG x, SLONG z);
-
-#define PAP_2LO(x, z) (PAP_assert_if_off_map_lo((x), (z)), PAP_lo[(x)][(z)])
-#define PAP_2HI(x, z) (PAP_assert_if_off_map_hi((x), (z)), PAP_hi[(x)][(z)])
-
-#endif // NDEBUG
 
 #define ON_PAP_LO(x, z) ((x) >= 0 && (z) >= 0 && (x) < PAP_SIZE_LO && (z) < PAP_SIZE_LO)
 

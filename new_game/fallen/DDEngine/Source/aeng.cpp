@@ -505,28 +505,6 @@ void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, 
     next_line++;
 }
 
-#ifdef DEBUG
-void draw_debug_lines(void)
-{
-    SLONG c0, s, e;
-    if ((!ControlFlag) || (!allow_debug_keys))
-        return;
-
-    s = next_line - MAX_LINES;
-    if (s < 0)
-        s = 0;
-    e = next_line;
-
-    for (c0 = s; c0 < e; c0++) {
-        SLONG index;
-
-        index = c0 % MAX_LINES;
-
-        AENG_world_line(Lines[index].x1, Lines[index].y1, Lines[index].z1, 6, Lines[index].col,
-            Lines[index].x2, Lines[index].y2, Lines[index].z2, 1, Lines[index].col, 1);
-    }
-}
-#endif
 //
 // The sewer pages.
 //
@@ -761,8 +739,6 @@ void AENG_world_line(
     SLONG sort_to_front)
 {
 
-#ifdef DEBUG
-#else
 
     POLY_Point p1;
     POLY_Point p2;
@@ -779,7 +755,6 @@ void AENG_world_line(
 
         POLY_add_line(&p1, &p2, float(width1), float(width2), POLY_PAGE_COLOUR, sort_to_front);
     }
-#endif
 }
 
 void AENG_world_line_nondebug(
@@ -2576,9 +2551,6 @@ void AENG_draw_dirt()
 
     DIRT_Dirt* dd;
 
-#ifdef DEBUG
-    int iDrawnDirtCount = 0;
-#endif
     for (i = 0; i < DIRT_MAX_DIRT; i++) {
         dd = &DIRT_dirt[i];
 
@@ -2616,9 +2588,6 @@ void AENG_draw_dirt()
             }
         }
 
-#ifdef DEBUG
-        iDrawnDirtCount++;
-#endif
 
         switch (dd->type) {
         case DIRT_TYPE_LEAF:
@@ -4503,9 +4472,6 @@ inline void draw_i_prim(LPDIRECT3DTEXTURE2 page, D3DLVERTEX* verts, UWORD* indic
 // Well, it's now become the final code...
 #define TOMS_TEST_FIXUP_CODE yes
 
-#ifdef DEBUG
-int m_iDrawThingCount = 0;
-#endif
 
 // Look Mike, when I say "don't put stuff on the stack", I mean
 // DONT PUT STUFF ON THE STACK. And it's "indices" - only two "i"s.
@@ -4514,9 +4480,6 @@ UWORD m_indicies[IPRIM_COUNT][MAX_INDICES_FOR_STRIPS + 1]; // data for verts, on
 
 struct GroupInfo {
     LPDIRECT3DTEXTURE2 page; // ptr to actual page to use for drawing
-#ifdef DEBUG
-    int iDebugCount;
-#endif
 };
 
 #define MAX_STEAM 20
@@ -4647,11 +4610,6 @@ void draw_quick_floor(SLONG warehouse)
 
     memset(group, 0, sizeof(struct GroupInfo) * IPRIM_COUNT);
 
-#ifdef DEBUG
-    for (int i = 0; i < IPRIM_COUNT; i++) {
-        group[i].iDebugCount = (i << 5) + 2;
-    }
-#endif
 
     if (init_stats) {
         init_stats = 0;
@@ -4931,9 +4889,6 @@ void draw_quick_floor(SLONG warehouse)
                 {
                     if (vert_count[bin_set]) {
                         draw_i_prim(group[bin_set].page, p_verts[bin_set], &m_indicies[bin_set][0], &vert_count[bin_set], &index_count[bin_set], &mm_draw_floor);
-#ifdef DEBUG
-                        group[bin_set].iDebugCount++;
-#endif
 
                         ASSERT(bin_set == current_set);
 
@@ -5021,8 +4976,6 @@ void draw_quick_floor(SLONG warehouse)
 
 #endif
 
-#ifdef DEBUG
-#endif
 
                 if ((p1->Flags & (PAP_FLAG_ROOF_EXISTS)) && warehouse == 0) {
                     y = MAVHEIGHT(x, z) << 6;
@@ -5231,9 +5184,6 @@ void draw_quick_floor(SLONG warehouse)
         if (vert_count[c0]) {
 
             draw_i_prim(group[c0].page, p_verts[c0], &m_indicies[c0][0], &vert_count[c0], &index_count[c0], &mm_draw_floor);
-#ifdef DEBUG
-            group[c0].iDebugCount++;
-#endif
         }
     }
 
@@ -6865,9 +6815,6 @@ void AENG_draw_city()
         POLY_frame_draw_odd();
         POLY_frame_draw_puddles();
 
-#ifdef DEBUG
-        POLY_frame_draw_sewater();
-#endif
 
         POLY_frame_init(TRUE, TRUE);
     }
@@ -8176,19 +8123,6 @@ void AENG_draw_city()
         }
     }
 
-#ifdef _DEBUG
-    if (Keys[KB_N]) {
-        Keys[KB_N] = 0;
-
-        if ((NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
-            NIGHT_flag &= ~NIGHT_FLAG_DAYTIME;
-            DETAIL_LEVEL |= DETAIL_RAIN;
-        } else {
-            NIGHT_flag |= NIGHT_FLAG_DAYTIME;
-            DETAIL_LEVEL &= ~DETAIL_RAIN;
-        }
-    }
-#endif
 
 
     LOG_EXIT(AENG_Draw_Rain)
@@ -8579,9 +8513,6 @@ void AENG_draw_far_facets(void)
         64.0F * 256.0F, // AENG_DRAW_DIST*3,
         AENG_LENS);
 
-#ifdef DEBUG
-    SLONG count = 0;
-#endif
 
     LOG_ENTER(Skyline_Scan_Map_Square)
 
@@ -8653,9 +8584,6 @@ void AENG_draw_far_facets(void)
                                 show_facet(facet);
                                 extern void FACET_draw_quick(SLONG facet, UBYTE alpha);
                                 FACET_draw_quick(facet, 0);
-#ifdef DEBUG
-                                count++;
-#endif
                             }
                         }
 

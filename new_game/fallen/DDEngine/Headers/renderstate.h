@@ -36,9 +36,6 @@ struct RenderState {
 
     void WrapJustOnce() { WrapOnce = true; } // Temporarily sets the state to wrapping just for one call to SetChanged()
 
-#ifdef _DEBUG
-    char* Validate(); // returns a string error if not OK
-#endif
 
     bool IsSameRenderState(RenderState* pRS);
 

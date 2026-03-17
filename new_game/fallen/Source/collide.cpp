@@ -6114,41 +6114,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
                 */
             }
 
-#ifndef NDEBUG
-
-#if MARKS_EXTRA_DEBUG
-
-    /*
-
-    if (!(p_thing->Genus.Person->Flags & FLAG_PERSON_WAREHOUSE))
-    {
-            //
-            // If you're not in a warehouse then you should never be beneath the (MAVHEIGHT)
-            //
-
-            SLONG ground = PAP_calc_map_height_at(
-                                                    p_thing->WorldPos.X >> 8,
-                                                    p_thing->WorldPos.Z >> 8) << 8;
-
-            if (p_thing->WorldPos.Y < ground - 0x4000)
-            {
-                    //
-                    // Oh dear!
-                    //
-
-                    ASSERT(0);
-
-                    p_thing->WorldPos.Y = ground + 0x1000;
-
-                    plant_feet(p_thing);
-            }
-    }
-
-    */
-
-#endif
-
-#endif
 
     return 0;
 }
@@ -6592,9 +6557,6 @@ SLONG there_is_a_los(
     SLONG xfrac;
     SLONG zfrac;
 
-#ifndef NDEBUG
-    SLONG count = 0;
-#endif
 
     save_stack.x1 = x1;
     save_stack.my_y1 = my_y1;
@@ -6676,9 +6638,6 @@ SLONG there_is_a_los(
         }
 
         while (1) {
-#ifndef NDEBUG
-            ASSERT(count++ < 64);
-#endif
 
             if (WITHIN(los_v_mx, 0, PAP_SIZE_LO - 1) && WITHIN(los_v_mz, 0, PAP_SIZE_LO - 1)) {
                 if (check_vector_against_mapsquare(
@@ -6764,9 +6723,6 @@ SLONG there_is_a_los(
         }
 
         while (1) {
-#ifndef NDEBUG
-            ASSERT(count++ < 64);
-#endif
 
             if (WITHIN(los_v_mx, 0, PAP_SIZE_LO - 1) && WITHIN(los_v_mz, 0, PAP_SIZE_LO - 1)) {
                 if (check_vector_against_mapsquare(
@@ -6874,9 +6830,6 @@ SLONG there_is_a_los_mav(
 
     MAV_Opt* mo;
 
-#ifndef NDEBUG
-    SLONG count = 0;
-#endif
 
     dx = x2 - x1;
     dz = z2 - z1;
@@ -6918,9 +6871,6 @@ SLONG there_is_a_los_mav(
         }
 
         while (1) {
-#ifndef NDEBUG
-            ASSERT(count++ < 128);
-#endif
 
             if (mx == end_mx && mz == end_mz) {
                 return 0;
@@ -7046,9 +6996,6 @@ SLONG there_is_a_los_mav(
         }
 
         while (1) {
-#ifndef NDEBUG
-            ASSERT(count++ < 128);
-#endif
 
             if (mx == end_mx && mz == end_mz) {
                 return 0;
@@ -7198,9 +7145,6 @@ SLONG there_is_a_los_car(
     SLONG xfrac;
     SLONG zfrac;
 
-#ifndef NDEBUG
-    SLONG count = 0;
-#endif
 
     dx = x2 - x1;
     dz = z2 - z1;
@@ -7242,9 +7186,6 @@ SLONG there_is_a_los_car(
         }
 
         while (1) {
-#ifndef NDEBUG
-            ASSERT(count++ < 128);
-#endif
 
             if (mx == end_mx && mz == end_mz) {
                 return 0;
@@ -7342,9 +7283,6 @@ SLONG there_is_a_los_car(
         }
 
         while (1) {
-#ifndef NDEBUG
-            ASSERT(count++ < 128);
-#endif
 
             if (mx == end_mx && mz == end_mz) {
                 return 0;
@@ -9390,26 +9328,6 @@ void COLLIDE_calc_fastnav_bits()
     }
 }
 
-#ifndef NDEBUG
-
-//
-// Returns TRUE if you can fastnav in the given square.
-//
-
-SLONG COLLIDE_can_i_fastnav(SLONG x, SLONG z)
-{
-    if (!WITHIN(x, 0, PAP_SIZE_HI - 1) || !WITHIN(z, 0, PAP_SIZE_HI - 1)) {
-        return TRUE;
-    }
-
-    SLONG byte = z >> 3;
-    SLONG bit = 1 << (z & 0x7);
-    SLONG ans = COLLIDE_fastnav[x][byte] & bit;
-
-    return ans;
-}
-
-#endif // NDEBUG In release build, this function is a #define
 
 
 void COLLIDE_debug_fastnav(

@@ -6,11 +6,6 @@
 #define MAX_LENGTH_OF_BASE_PATH 64
 CBYTE cBasePath[MAX_LENGTH_OF_BASE_PATH + 1];
 
-#ifdef DEBUG
-int m_iNumOpenFiles_FileOpen = 0;
-int m_iNumOpenFiles_MF_Fopen = 0;
-char pcPrevFilenameOpened[256];
-#endif
 
 //---------------------------------------------------------------
 
@@ -57,13 +52,6 @@ MFFileHandle FileOpen(CBYTE* file_name)
         if (result == INVALID_HANDLE_VALUE) {
             result = FILE_OPEN_ERROR;
         } else {
-#ifdef DEBUG
-            m_iNumOpenFiles_FileOpen++;
-            if (m_iNumOpenFiles_FileOpen > 1) {
-                TRACE("FileOpen nested %i\n", m_iNumOpenFiles_FileOpen);
-            }
-            strncpy(pcPrevFilenameOpened, file_name, 256);
-#endif
         }
     }
     return result;
@@ -73,12 +61,6 @@ MFFileHandle FileOpen(CBYTE* file_name)
 
 void FileClose(MFFileHandle file_handle)
 {
-#ifdef DEBUG
-    if (m_iNumOpenFiles_FileOpen > 1) {
-        TRACE("FileClose nested %i\n", m_iNumOpenFiles_FileOpen);
-    }
-    m_iNumOpenFiles_FileOpen--;
-#endif
     CloseHandle(file_handle);
 }
 
@@ -251,12 +233,6 @@ FILE* MF_Fopen(const char* file_name, const char* mode)
 
 int MF_Fclose(FILE* stream)
 {
-#ifdef DEBUG
-    if (m_iNumOpenFiles_MF_Fopen > 1) {
-        TRACE("MF_Fclose nested %i\n", m_iNumOpenFiles_MF_Fopen);
-    }
-    m_iNumOpenFiles_MF_Fopen--;
-#endif
     return (fclose(stream));
 }
 

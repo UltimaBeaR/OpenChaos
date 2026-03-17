@@ -143,17 +143,6 @@ typedef char CBYTE;
 // Error checking macros
 //
 
-#ifndef NDEBUG
-
-void OS_string(CBYTE* fmt, ...);
-
-#define ASSERT(x)  \
-    {              \
-        assert(x); \
-    }
-#define TRACE OS_string
-#define VERIFY(x) ASSERT(x)
-#else
 #define ASSERT(x)    \
     {                \
         __assume(x); \
@@ -167,7 +156,6 @@ void OS_string(CBYTE* fmt, ...);
 //
 
 #pragma warning(disable : 4553)
-#endif
 
 static inline int ftol(float f)
 {

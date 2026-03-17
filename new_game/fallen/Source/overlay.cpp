@@ -697,11 +697,7 @@ void OVERLAY_handle(void)
 
     // TRACE ( "OHi" );
 
-#ifdef FINAL
     CBYTE str[8];
-#else
-    CBYTE str[32];
-#endif
 
     /*
 

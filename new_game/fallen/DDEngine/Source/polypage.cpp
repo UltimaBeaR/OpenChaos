@@ -125,10 +125,6 @@ void PolyPage::SetScaling(float xmul, float ymul)
 PolyPoint2D* PolyPage::PointAlloc(ULONG num_points)
 {
 
-#if defined(DEBUG) && defined(TEX_EMBED)
-    // Make sure this is a "real" page.
-    ASSERT(this == pTheRealPolyPage);
-#endif
 
     if (!m_VertexBuffer) {
         ASSERT(!m_VBUsed);
@@ -164,10 +160,6 @@ PolyPoint2D* PolyPage::PointAlloc(ULONG num_points)
 PolyPoint2D* PolyPage::FanAlloc(ULONG num_points)
 {
 
-#if defined(DEBUG) && defined(TEX_EMBED)
-    // Make sure this is a "real" page.
-    ASSERT(this == pTheRealPolyPage);
-#endif
 
     // Allocate the indices.
     int iNumNewTris = num_points - 2;
@@ -215,10 +207,6 @@ PolyPoint2D* PolyPage::FanAlloc(ULONG num_points)
 PolyPoly* PolyPage::PolyBufAlloc()
 {
 
-#if defined(DEBUG) && defined(TEX_EMBED)
-    // Make sure this is a "real" page.
-    ASSERT(this == pTheRealPolyPage);
-#endif
 
     if (!m_PolyBuffer) {
         ASSERT(!m_PolyBufUsed);
@@ -435,12 +423,6 @@ void PolyPage::Render(IDirect3DDevice3* dev)
     if (!m_VertexBuffer /* || !m_PolyBufUsed*/)
         return;
 
-#if defined(DEBUG) && defined(TEX_EMBED)
-    // Should only be rendering stuff from polypages that are real ones,
-    // i.e. they are not just living on another page.
-    // So this should just map back to itself.
-    ASSERT(this == pTheRealPolyPage);
-#endif
 
     // apply vertex FX
     MassageVertices();

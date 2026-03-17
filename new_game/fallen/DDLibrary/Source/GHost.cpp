@@ -34,11 +34,7 @@ DWORD DDLibThread(LPVOID param)
         0,
         "Urban Chaos",
         "Urban Chaos",
-#ifndef NDEBUG
-        WS_OVERLAPPEDWINDOW,
-#else
         WS_POPUP,
-#endif
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
@@ -72,9 +68,6 @@ BOOL SetupHost(ULONG flags)
 
     ShellActive = FALSE;
 
-#ifndef NDEBUG
-    InitDebugLog();
-#endif
 
     if (!SetupMemory())
         return FALSE;
@@ -101,11 +94,7 @@ BOOL SetupHost(ULONG flags)
         0,
         "Urban Chaos",
         "Urban Chaos",
-#ifndef NDEBUG
-        WS_OVERLAPPEDWINDOW,
-#else
         WS_POPUP,
-#endif
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
@@ -146,9 +135,6 @@ void ResetHost(void)
     ResetKeyboard();
     ResetMemory();
 
-#ifndef NDEBUG
-    FiniDebugLog();
-#endif
 
     UnregisterClass(TEXT("Urban Chaos"), GetModuleHandle(NULL));
 }
@@ -393,20 +379,14 @@ int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, in
 
 
 
-#ifndef FINAL
-//	extern void CONSOLE_TCP();
-//	CONSOLE_TCP();
-#endif
 
     // try and create an event
     // this always succeeds
     // if event existed before (still succeeds) and ERROR_ALREADY_EXISTS is returned, so die
     // note the event is automatically deleted by the system when the app exits (even if it crashes)
 
-#ifdef FINAL
     HANDLE hEvent = CreateEventA(NULL, FALSE, FALSE, "UrbanChaosExclusionZone");
     if (GetLastError() != ERROR_ALREADY_EXISTS)
-#endif
     {
         return MF_main(argc, argv);
     }

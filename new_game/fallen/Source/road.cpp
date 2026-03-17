@@ -603,41 +603,6 @@ void ROAD_split(SLONG n1, SLONG n2, SLONG splitx, SLONG splitz)
     // middle of it.
     //
 
-#ifndef NDEBUG
-
-    if (rn1->x == rn2->x) {
-        SLONG minz;
-        SLONG maxz;
-
-        ASSERT(splitx == rn1->x);
-
-        minz = rn1->z;
-        maxz = rn2->z;
-
-        if (minz > maxz) {
-            SWAP(minz, maxz);
-        }
-
-        ASSERT(WITHIN(splitz, minz + 1, maxz - 1));
-    } else {
-        ASSERT(rn1->z == rn2->z);
-
-        SLONG minx;
-        SLONG maxx;
-
-        ASSERT(splitz == rn1->z);
-
-        minx = rn1->x;
-        maxx = rn2->x;
-
-        if (minx > maxx) {
-            SWAP(minx, maxx);
-        }
-
-        ASSERT(WITHIN(splitx, minx + 1, maxx - 1));
-    }
-
-#endif
 
     //
     // Disconnect the two road nodes.
@@ -927,17 +892,6 @@ void ROAD_wander_calc()
                     ROAD_edge[ROAD_edge_upto++] = i;
                 }
 
-#ifndef NDEBUG
-
-                {
-                    ROAD_Node* rn1 = rn;
-                    ROAD_Node* rn2 = &ROAD_node[rn->c[0]];
-
-                    ASSERT(
-                        rn1->x == rn2->x || rn1->z == rn2->z);
-                }
-
-#endif
             }
         }
     }

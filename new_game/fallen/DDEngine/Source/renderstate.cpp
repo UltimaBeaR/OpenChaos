@@ -209,34 +209,6 @@ void RenderState::SetEffect(DWORD effect)
     }
 }
 
-#ifdef _DEBUG
-// Validate
-//
-// validate the render state for the PerMedia 2 ;)
-
-char* RenderState::Validate()
-{
-    // check which alpha modes are used
-    if (AlphaBlendEnable) {
-        if ((SrcBlend == D3DBLEND_ONE) && (DestBlend == D3DBLEND_ZERO))
-            return NULL;
-        if ((SrcBlend == D3DBLEND_ZERO) && (DestBlend == D3DBLEND_ONE))
-            return NULL;
-        if ((SrcBlend == D3DBLEND_ONE) && (DestBlend == D3DBLEND_ONE))
-            return NULL;
-        if ((SrcBlend == D3DBLEND_SRCALPHA) && (DestBlend == D3DBLEND_INVSRCALPHA))
-            return NULL;
-        if ((SrcBlend == D3DBLEND_ONE) && (DestBlend == D3DBLEND_SRCALPHA))
-            return NULL;
-
-        // TRACE("SrcBlend = %d DestBlend = %d\n", SrcBlend, DestBlend);
-        // return "Renderstate has a bad alpha blend mode";
-        return "";
-    }
-
-    return NULL;
-}
-#endif
 
 // InitScene
 //

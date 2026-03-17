@@ -22,10 +22,6 @@
 #undef TESSELATE_DEGREE
 // #define TESSELATE_DEGREE 1
 
-#ifdef DEBUG
-// Some interesting colouring.
-#define SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB defined
-#endif
 
 //
 // The verts....
@@ -1129,8 +1125,6 @@ void SUPERFACET_start_frame()
     //
 
 #ifdef SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB
-#ifdef DEBUG
-#endif
 #endif
 
 // #ifdef TARGET_DC

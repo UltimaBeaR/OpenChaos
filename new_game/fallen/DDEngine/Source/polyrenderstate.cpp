@@ -1416,9 +1416,6 @@ void POLY_init_render_states()
         PageOrdered[ii] = false;
     }
 
-#ifdef DEBUG
-    int iNullTextureCount = 0;
-#endif
 
     SLONG pos = 0;
     while (pos < POLY_NUM_PAGES) {
@@ -1460,18 +1457,10 @@ void POLY_init_render_states()
                 }
             }
         }
-#ifdef DEBUG
-        else {
-            iNullTextureCount++;
-        }
-#endif
 
         // TRACE("\n");
     }
 
-#ifdef DEBUG
-    TRACE("Number of NULL pages %i\n", iNullTextureCount);
-#endif
 
     extern int iPolyNumPagesRender;
     iPolyNumPagesRender = pos;

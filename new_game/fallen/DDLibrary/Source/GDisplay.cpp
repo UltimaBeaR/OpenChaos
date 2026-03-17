@@ -37,23 +37,6 @@ enumDisplayType eDisplayType;
 //---------------------------------------------------------------
 UBYTE *image_mem = NULL, *image = NULL;
 
-#ifdef DEBUG
-HRESULT WINAPI EnumSurfacesCallbackFunc(
-    LPDIRECTDRAWSURFACE4 lpDDSurface,
-    LPDDSURFACEDESC2 lpDDSurfaceDesc,
-    LPVOID lpContext)
-{
-    TRACE("Surf: width %i height %i bpp %i", lpDDSurfaceDesc->dwWidth, lpDDSurfaceDesc->dwHeight, lpDDSurfaceDesc->ddpfPixelFormat.dwRGBBitCount);
-    if (lpDDSurfaceDesc->ddpfPixelFormat.dwFlags & DDPF_COMPRESSED) {
-        TRACE(" compressed");
-    } else {
-        TRACE(" uncompressed");
-    }
-    TRACE("\n");
-    return DDENUMRET_OK;
-}
-
-#endif
 
 // ========================================================
 //
@@ -1783,18 +1766,6 @@ HRESULT Display::Restore(void)
 
 HRESULT Display::AddLoadedTexture(D3DTexture* the_texture)
 {
-#ifdef DEBUG
-    // Check that this isn't a circular list and that this texture isn't already loaded.
-    D3DTexture* t = TextureList;
-    int iCountdown = 10000;
-    while (t != NULL) {
-        ASSERT(t != the_texture);
-        t = t->NextTexture;
-        iCountdown--;
-        ASSERT(iCountdown > 0);
-    }
-
-#endif
 
     the_texture->NextTexture = TextureList;
     TextureList = the_texture;

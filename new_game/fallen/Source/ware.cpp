@@ -744,20 +744,6 @@ MAV_Action WARE_mav_enter(Thing* p_person, UBYTE ware, UBYTE caps)
             ww->door[best_door].out_x,
             ww->door[best_door].out_z,
             caps);
-#ifdef DEBUG
-        AENG_world_line(
-            p_person->WorldPos.X >> 8,
-            p_person->WorldPos.Y >> 8,
-            p_person->WorldPos.Z >> 8,
-            16,
-            0xffffff,
-            (ww->door[best_door].out_x << 8) + 0x80,
-            0,
-            (ww->door[best_door].out_z << 8) + 0x80,
-            0,
-            0x00ff00,
-            TRUE);
-#endif
     }
 
     return ans;

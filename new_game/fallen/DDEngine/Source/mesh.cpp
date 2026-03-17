@@ -532,9 +532,6 @@ void MESH_set_crumple(UBYTE* assignments, UBYTE* crumples)
     car_crumples = crumples;
 }
 
-#ifndef NDEBUG
-#define MESH_SHOW_MOUSE_POINT
-#endif
 
 ULONG MESH_colour_and;
 

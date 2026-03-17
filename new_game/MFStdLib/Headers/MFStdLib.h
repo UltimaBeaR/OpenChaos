@@ -136,24 +136,6 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
 
 #define NoError 0
 
-#ifndef NDEBUG
-
-void DebugText(CBYTE* error, ...);
-#define TRACE TraceText
-#define LogText DebugText
-#define MFMessage LibShellMessage
-#define ERROR_MSG(e, m)                             \
-    {                                               \
-        if (!(e)) {                                 \
-            LibShellMessage(m, __FILE__, __LINE__); \
-        }                                           \
-    }
-// #define ASSERT(e)			{if (!(e)) { DebugBreak(); }else{/*TRACE("file %s line %d \n",__FILE__,__LINE__);*/}}
-#ifndef ASSERT
-#define ASSERT(e) ERROR_MSG(e, "ASSERT TRIGGERED");
-#endif
-
-#else
 
 #define DebugText
 #define TRACE
@@ -168,7 +150,6 @@ void DebugText(CBYTE* error, ...);
     }
 #endif
 
-#endif
 
 //---------------------------------------------------------------
 // Input.

@@ -10,17 +10,10 @@
 //
 
 #ifndef VERIFY
-#ifdef NDEBUG
 #define VERIFY(x) \
     {             \
         x;        \
     }
-#else
-#define VERIFY(x)  \
-    {              \
-        ASSERT(x); \
-    }
-#endif
 #endif
 
 //

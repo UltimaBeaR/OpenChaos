@@ -53,29 +53,5 @@ extern void RecenterMouse(void);
 
 //---------------------------------------------------------------
 
-#ifndef NDEBUG
-
-
-inline SLONG check_result(HRESULT f, SLONG line, CBYTE* file)
-{
-    //	if (f == DD_OK)			// this is an *INCORRECT* error test; see e.g. Petzold "Programming Windows 95"
-    if (f >= 0) {
-        return FALSE;
-    } else {
-        TRACE("%s(%d):\n\t", file, line);
-        LogText("Error in %s line %d\n\t", file, line);
-        dd_error(f);
-
-        return TRUE;
-    }
-}
-
-#undef FAILED
-#undef SUCCEEDED
-#define FAILED(f) (check_result(f, __LINE__, __FILE__))
-#define SUCCEEDED(f) (!FAILED(f))
-
-
-#endif // else use Micro$oft macros
 
 #endif // FALLEN_DDLIBRARY_HEADERS_DDLIB_H

@@ -3769,63 +3769,9 @@ void PANEL_last()
         int iYPos = bPanelIsAtBottomOfScreen ? 0 : 360;
 
 
-#ifdef DEBUG
-
-
-#endif
 
     }
 
-#if defined(_DEBUG)
-
-    extern SLONG FARFACET_num_squares_drawn;
-
-    {
-        CBYTE text[64];
-
-        sprintf(text, "FARFACET squares drawn: %d", FARFACET_num_squares_drawn);
-
-        FONT2D_DrawString(
-            text,
-            51,
-            51,
-            0x000000,
-            256,
-            POLY_PAGE_FONT2D,
-            0);
-
-        FONT2D_DrawString(
-            text,
-            50,
-            50,
-            0xffffff,
-            256,
-            POLY_PAGE_FONT2D,
-            0);
-    }
-
-    extern UBYTE just_asked_for_mode_now;
-    extern UBYTE just_asked_for_mode_number;
-    extern float music_volume;
-    extern SLONG MUSIC_is_playing(void);
-
-    if (just_asked_for_mode_now) {
-        just_asked_for_mode_now = FALSE;
-
-        CBYTE text[64];
-
-        sprintf(text, "music mode %d vol %f %s", just_asked_for_mode_number, music_volume, (MUSIC_is_playing()) ? "Playing" : "Silence");
-
-        FONT2D_DrawString(
-            text,
-            320,
-            200,
-            0xffff,
-            256,
-            POLY_PAGE_FONT2D,
-            0);
-    }
-#endif
 
     static SLONG i_know = 0;
     static SLONG the_answer = 0;

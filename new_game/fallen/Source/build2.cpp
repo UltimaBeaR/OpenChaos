@@ -4,9 +4,6 @@
 #include "ob.h"
 #include "memory.h"
 
-#ifdef _DEBUG
-#define FACET_REMOVAL_TEST // if defined, still put removed facets into the map
-#endif
 
 void calc_ladder_ends(SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2)
 {
@@ -303,9 +300,6 @@ void add_facet_to_map(SLONG facet)
         SLONG xfrac;
         SLONG zfrac;
 
-#ifndef NDEBUG
-        SLONG count = 0;
-#endif
 
         dx = x2 - x1;
         dz = z2 - z1;
@@ -333,9 +327,6 @@ void add_facet_to_map(SLONG facet)
             }
 
             while (1) {
-#ifndef NDEBUG
-                ASSERT(count++ < 64);
-#endif
 
                 if (WITHIN(mx, 0, PAP_SIZE_LO - 1) && WITHIN(mz, 0, PAP_SIZE_LO - 1)) {
                     link_facet_to_mapwho(mx, mz, facet);
@@ -395,9 +386,6 @@ void add_facet_to_map(SLONG facet)
             }
 
             while (1) {
-#ifndef NDEBUG
-                ASSERT(count++ < 64);
-#endif
 
                 if (WITHIN(mx, 0, PAP_SIZE_LO - 1) && WITHIN(mz, 0, PAP_SIZE_LO - 1)) {
                     link_facet_to_mapwho(mx, mz, facet);
@@ -517,7 +505,6 @@ void process_building(SLONG build)
 
     for (c0 = p_build->StartFacet; c0 < p_build->EndFacet; c0++) {
         // only process if not marked as invisible
-#ifndef FACET_REMOVAL_TEST
         if (dfacets[c0].FacetFlags & FACET_FLAG_INVISIBLE) {
             if (dbuildings[dfacets[c0].Building].Type == BUILDING_TYPE_CRATE_IN) {
                 //
@@ -528,7 +515,6 @@ void process_building(SLONG build)
                 continue;
             }
         }
-#endif
         process_facet(c0);
     }
 }

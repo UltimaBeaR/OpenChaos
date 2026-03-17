@@ -13,11 +13,7 @@
 #include "truetype.h"
 #include "game.h"
 
-#ifdef _DEBUG
-#define PERHAPS if (!Keys[KB_J])
-#else
 #define PERHAPS if (1)
-#endif
 
 //
 // Works out the position and width of each letter.

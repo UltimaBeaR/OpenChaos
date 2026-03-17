@@ -440,9 +440,6 @@ void EWAY_talk_conv(ULONG waypoint, SLONG conversation)
 
     ANNOYINGSCRIBBLECHECK;
 }
-#ifndef FINAL
-// #define	ASSERT(x) if(!(x)){asm("break 0");}
-#endif
 
 CBYTE* EWAY_get_mess(SLONG index)
 {
@@ -1511,20 +1508,6 @@ SLONG EWAY_set_message(
         return (0);
     }
 
-#ifndef NDEBUG
-
-    //
-    // Make sure the string has a terminating byte!
-    //
-
-    if (message[len - 1] != '\000') {
-        message[len - 1] = '\000';
-#ifndef FINAL
-        PANEL_new_text(NULL, 5000, "Message was not terminated: \"%s\"", message);
-#endif
-    }
-
-#endif
 
     if (EWAY_mess_buffer_upto + len > EWAY_MESS_BUFFER_SIZE) {
         //
@@ -2733,9 +2716,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
             //
             // Hmm... person waypoint not set.
             //
-#ifndef FINAL
-            PANEL_new_text(NULL, 4000, "Waypoint %d (arrest) is invalid", ew->id);
-#endif
 
             ew->flag |= EWAY_FLAG_DEAD;
         } else {
@@ -2928,9 +2908,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
             UWORD thing = EWAY_get_person(ec->arg1);
 
             if (thing == NULL) {
-#ifndef FINAL
-                PANEL_new_text(NULL, 10000, "Waypoint %d (in radius direction) bad", ew->id);
-#endif
             } else {
                 Thing* p_thing = TO_THING(thing);
                 SLONG radius = ec->arg2 * 64; // Radius in quarter map-squares.
@@ -3017,19 +2994,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     case EWAY_COND_RANDOM:
 
-#ifndef NDEBUG
-        if (ec->arg1 == NULL) {
-            sprintf(EWAY_message, "Waypoint %d has a NULL dependency", ew->id);
-
-            CONSOLE_text(EWAY_message, 8000);
-
-            //
-            // Don't print the message again.
-            //
-
-            ec->type = EWAY_COND_FALSE;
-        } else
-#endif
         {
             ASSERT(WITHIN(ec->arg1, 1, EWAY_way_upto - 1));
 
@@ -3102,11 +3066,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
         ans = FALSE;
 
         if (ec->arg1 == NULL) {
-#ifndef NDEBUG
-
-            PANEL_new_text(NULL, 8000, "Waypoint %d has NULL dependency", ew->id);
-
-#endif
         } else {
             ASSERT(WITHIN(ec->arg1, 1, EWAY_way_upto - 1));
 
@@ -4318,9 +4277,6 @@ void EWAY_set_active(EWAY_Way* ew)
                     ew->x = item_x;
                     ew->y = item_y;
                     ew->z = item_z;
-#ifndef FINAL
-//						PANEL_new_text(p_bloke, 4000, "Creating item from me");
-#endif
                 }
             }
         }
@@ -4456,9 +4412,6 @@ void EWAY_set_active(EWAY_Way* ew)
             }
 
             if (EWAY_mess[ew->ed.arg1] == NULL) {
-#ifndef NDEBUG
-                CONSOLE_text("Bug! No message defined");
-#endif
             } else {
                 if (EWAY_used_thing) {
 
@@ -4654,9 +4607,6 @@ void EWAY_set_active(EWAY_Way* ew)
             SLONG change = EWAY_get_person(ew->ed.arg1);
 
             if (change == NULL) {
-#ifndef NDEBUG
-                PANEL_new_text(NULL, 5000, "Adjust enemy waypoint %d: No enemy to change", ew->id);
-#endif
             } else {
                 Thing* p_change = TO_THING(change);
 
@@ -4679,9 +4629,6 @@ void EWAY_set_active(EWAY_Way* ew)
         SLONG change = EWAY_get_person(ew->ed.arg1);
 
         if (change == NULL) {
-#ifndef NDEBUG
-            PANEL_new_text(NULL, 5000, "Adjust enemy flags waypoint %d: No enemy to change", ew->id);
-#endif
         } else {
             Thing* p_change = TO_THING(change);
 
@@ -4723,9 +4670,6 @@ void EWAY_set_active(EWAY_Way* ew)
     case EWAY_DO_KILL_WAYPOINT:
 
         if (!(WITHIN(ew->ed.arg1, 1, EWAY_way_upto - 1))) {
-#ifndef NDEBUG
-            PANEL_new_text(NULL, 10000, "Waypoint %d (kill waypoint) refers to bad waypoint", ew->id);
-#endif
         } else {
             EWAY_Way* ewk = &EWAY_way[ew->ed.arg1];
 
@@ -4875,9 +4819,6 @@ void EWAY_set_active(EWAY_Way* ew)
             //
             // If its a Roper mission then the crime rate isn't reduced.
             //
-#ifndef FINAL
-            // PANEL_new_text(NULL, 4000, "%s Crime rate reduced by %d%%.", str, percent);
-#endif
         }
 
         break;
@@ -5024,9 +4965,6 @@ void EWAY_set_active(EWAY_Way* ew)
         THING_INDEX i_player = EWAY_get_person(ew->ed.arg1);
 
         if (i_player == NULL) {
-#ifndef FINAL
-            // PANEL_new_text(NULL, 8000, "Waypoint %d: Transfer player didn't have person.", ew->id);
-#endif
         } else {
             Thing* p_person = TO_THING(i_player);
 
@@ -5122,9 +5060,6 @@ extern	SLONG	SAVE_ingame(CBYTE *fname);
         Thing* p_vehicle;
 
         if (!WITHIN(ew->ed.arg1, 1, EWAY_way_upto - 1)) {
-#ifndef FINAL
-            // PANEL_new_text(NULL, 10000, "Lock vehicle waypoint %d points nowhere", ew->id);
-#endif
         } else {
             EWAY_Way* ewv = &EWAY_way[ew->ed.arg1];
 
@@ -5132,9 +5067,6 @@ extern	SLONG	SAVE_ingame(CBYTE *fname);
                 Thing* p_vehicle = TO_THING(ewv->ed.arg1);
 
                 if (p_vehicle->Class != CLASS_VEHICLE) {
-#ifndef FINAL
-                    // PANEL_new_text(NULL, 10000, "Lock vehicle waypoint %d trying to unlock non-vehicle", ew->id);
-#endif
                 } else {
                     switch (ew->ed.subtype) {
                     case EWAY_SUBTYPE_VEHICLE_LOCK:
@@ -5268,11 +5200,6 @@ extern	SLONG	SAVE_ingame(CBYTE *fname);
             if (ew_other->ec.type == EWAY_COND_COUNTDOWN_SEE || ew_other->ec.type == EWAY_COND_COUNTDOWN) {
                 ew_other->ec.arg2 += ew->ed.arg2 * 100;
             }
-#ifndef NDEBUG
-            else {
-                PANEL_new_text(NULL, 4000, "Extend time (waypoint %d) points to bad waypoint.", ew->id);
-            }
-#endif
         }
 
         break;

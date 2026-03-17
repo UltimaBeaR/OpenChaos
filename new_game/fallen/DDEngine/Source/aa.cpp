@@ -680,9 +680,6 @@ void AA_draw(
     SLONG p2x, SLONG p2y,
     SLONG p3x, SLONG p3y)
 {
-#ifndef NDEBUG
-    SLONG i;
-#endif
 
     // SLONG miny;
     // SLONG maxy;
@@ -736,14 +733,6 @@ void AA_draw(
     px[2] &= ~0xf;
     py[2] &= ~0xf;
 
-#ifndef NDEBUG
-
-    for (i = 0; i < 3; i++) {
-        ASSERT(WITHIN(px[i], 0, AA_MAX_SPAN_X << AA_FIX));
-        ASSERT(WITHIN(py[i], 0, AA_MAX_SPAN_Y << AA_FIX));
-    }
-
-#endif
 
     //
     // The maximum span

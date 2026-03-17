@@ -128,9 +128,6 @@ void special_pickup(Thing* p_special, Thing* p_person)
 // claude-ai: Also clears SpecialUse and SpecialDraw references on the person.
 void special_drop(Thing* p_special, Thing* p_person)
 {
-#ifndef NDEBUG
-    SLONG count = 0;
-#endif
 
     ASSERT(p_special->Class == CLASS_SPECIAL);
     ASSERT(p_person->Class == CLASS_PERSON);
@@ -140,9 +137,6 @@ void special_drop(Thing* p_special, Thing* p_person)
     UWORD* prev = &p_person->Genus.Person->SpecialList;
 
     while (1) {
-#ifndef NDEBUG
-        ASSERT(count++ < 100);
-#endif
 
         if (next == NULL) {
             //

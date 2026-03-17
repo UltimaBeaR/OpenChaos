@@ -1744,9 +1744,6 @@ void FC_process()
             fc->pitch += dpitch >> 2;
             fc->roll += droll >> 2;
         } else {
-#ifdef DEBUG
-            FONT2D_DrawString("SNAP", 100, 120);
-#endif
             fc->want_yaw = fc->yaw;
             fc->want_pitch = fc->pitch;
             fc->want_roll = fc->roll;

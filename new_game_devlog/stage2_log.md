@@ -27,8 +27,9 @@
 | Debug-флаги (`DEBUG_POOSHIT`, `HEAP_DEBUGGING_PLEASE_BOB` и др.) | ✅ | итерация 29 (`HIGH_REZ_PEOPLE_PLEASE_BOB` — пропущен, разобраться позже) |
 | Debug визуализации (`WE_WANT_TO_DRAW_*` и др.) | ✅ | итерация 30 |
 | Developer joke flags (`GONNA_FIREBOMB_YOUR_ASS` и др.) | ✅ | итерация 31 |
-| `FACET_REMOVAL_TEST` | 🚫 | оставить: полезен при разработке |
+| `FACET_REMOVAL_TEST` | ✅ | итерация 33 (решено: Release-only кодовая база) |
 | `SUPERCRINKLES_ENABLED` | ✅ | итерация 25 |
+| `_DEBUG`, `DEBUG`, `NDEBUG`, `FINAL`, `_RELEASE` (все debug/release блоки) | ✅ | итерация 33 |
 
 ---
 
@@ -1157,3 +1158,29 @@ Exit code 19 — норма.
 Грепается скриптом как `uc_also_in`.
 
 **Результат:** Debug и Release собираются без ошибок.
+
+---
+
+## Итерация 33 — Release-only: удаление всего debug-кода (2026-03-18)
+
+**Решение:** Сфокусировать кодовую базу исключительно на Release-сборке. Debug-код удаляется навсегда.
+Мотивация: Release-only кодовая база проще для доработки. Если что-то понадобится — восстановить из `original_game/`.
+
+**Обработанные флаги:**
+- `-U_DEBUG -UDEBUG` — Debug-only блоки удалены
+- `-DNDEBUG -DFINAL -D_RELEASE` — Release-only блоки раскрыты (обёртки убраны, код остаётся)
+- `-UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB` — вторичная очистка (флаги стали undefined после удаления _DEBUG/DEBUG)
+
+**Команды coan (в папке `fallen/`):**
+```
+coan source -U_DEBUG -UDEBUG -DNDEBUG -DFINAL -D_RELEASE --no-transients --filter cpp,c,h,hpp --recurse Source DDEngine DDLibrary Headers outro
+coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-transients --filter cpp,c,h,hpp --recurse Source DDEngine DDLibrary Headers outro
+```
+Та же команда с `-U_DEBUG -UDEBUG -DNDEBUG -DFINAL -D_RELEASE` применена к `../MFStdLib/`.
+
+**Нюансы:**
+- В `aeng.cpp:8109` и `DDManager.cpp:2041` `#ifdef _DEBUG`/`#ifdef DEBUG` блоки были внутри `/* */` — coan их не тронул (верно: это уже мёртвый код внутри комментариев)
+- В `Controls.cpp`, `frontend.cpp`, `Game.cpp` — только комментарии `// claude-ai:` и `// #ifndef ...` упоминают эти флаги; не код, не тронуты
+- Debug: 129 предупреждений (было 130), Release: 293 — ошибок нет
+
+**Результат:** 0 ошибок. Debug: 129 предупреждений, Release: 293 предупреждения.

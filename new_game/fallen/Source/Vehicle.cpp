@@ -214,44 +214,6 @@ struct VehInfo veh_info[VEH_TYPE_NUMBER] = {
 };
 
 // debug stuff
-#ifndef NDEBUG
-
-Thing* SelectedThing = NULL;
-
-void LookForSelectedThing()
-{
-    SLONG world_x;
-    SLONG world_y;
-    SLONG world_z;
-
-    SelectedThing = NULL;
-
-    RECT client;
-
-    GetClientRect(hDDLibWindow, &client);
-
-    float hitx = float(MouseX) * float(DisplayWidth) / float(client.right - client.left);
-    float hity = float(MouseY) * float(DisplayHeight) / float(client.bottom - client.top);
-
-    AENG_raytraced_position(
-        SLONG(hitx + 0.5f),
-        SLONG(hity + 0.5f),
-        &world_x,
-        &world_y,
-        &world_z);
-
-    if (WITHIN(world_x, 600, (PAP_SIZE_HI << PAP_SHIFT_HI) - 601) && WITHIN(world_z, 600, (PAP_SIZE_HI << PAP_SHIFT_HI) - 601)) {
-        UWORD found[8];
-
-        SLONG num = THING_find_sphere(world_x, world_y, world_z, 0x100, found, 8, 1 << CLASS_VEHICLE);
-
-        if (num == 1) {
-            SelectedThing = TO_THING(found[0]);
-        }
-    }
-}
-
-#endif
 
 //
 // I KNOW THIS IS NASTY!
@@ -1330,9 +1292,6 @@ void draw_car(Thing* p_car)
     // Leave it! This is needed.
     AENG_set_bike_wheel_rotation(tilt, info->WheelPrim);
 
-#ifndef NDEBUG
-    if (p_car != SelectedThing) // don't draw wheels when selected
-#endif
         for (c0 = 0; c0 < 4; c0++) {
             SLONG wx, wy, wz;
             SLONG angle;
@@ -2070,12 +2029,6 @@ void nudge_car(Thing* p_car, SLONG flags, SLONG* x, SLONG* z, SLONG neg)
 
 //	dx>>=4;
 //	dz>>=4;
-#ifndef NDEBUG
-    if (ShiftFlag) {
-        dx <<= 8;
-        dz <<= 8;
-    }
-#endif
 
     if (neg) {
         dx = -dx;
@@ -2103,10 +2056,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
 
     car_hit_flags = 0;
 
-#ifdef _DEBUG
-    if (Keys[KB_H] && is_driven_by_player(p_car))
-        return 0;
-#endif
 
     // hit the kerb?
     CollideWithKerb(p_car);
@@ -3354,17 +3303,6 @@ static void do_car_input(Thing* p_thing)
     Vehicle* veh = p_thing->Genus.Vehicle;
     VehInfo* vinfo = &veh_info[p_thing->Genus.Vehicle->Type];
 
-#ifdef _DEBUG
-    if (is_driven_by_player(p_thing)) {
-        if (Keys[KB_H] && ControlFlag) {
-            Keys[KB_H] = 0;
-            ASSERT(0);
-        }
-
-        if (Keys[KB_Y])
-            veh->Skid = SKID_START;
-    }
-#endif
 
     if (!(veh->Flags & FLAG_FURN_DRIVING) && !veh->VelX && !veh->VelZ) {
         siren(veh, 0);
@@ -3982,14 +3920,6 @@ static void process_car(Thing* p_car)
 
             if (ROAD_is_road(papx >> 8, papz >> 8))
                 on_road |= (1 << wheel);
-#ifndef FINAL
-            if (Keys[KB_Q] && is_driven_by_player(p_car)) {
-                if (wheel < 2)
-                    height += 0x4000;
-                else
-                    height += 0x8000;
-            }
-#endif
 
             //
             // iterate the suspension algorithm

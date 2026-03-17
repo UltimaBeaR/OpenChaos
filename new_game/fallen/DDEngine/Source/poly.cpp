@@ -2664,16 +2664,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                                                 }
                 */
 
-#ifndef FINAL
-                if (Keys[KB_P1]) //&&allow_debug_keys)
-                {
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
-                }
-#endif
 
                 //
                 // and render the polygons
@@ -2972,51 +2962,6 @@ void POLY_frame_draw_puddles()
 }
 
 // No sewers - just here for error-checking.
-#ifdef DEBUG
-
-//
-// Comparison function for sewer water polygons.
-//
-
-void POLY_sort_sewater_page()
-{
-    POLY_Page[POLY_PAGE_SEWATER].SortBackFirst();
-}
-
-void POLY_frame_draw_sewater()
-{
-    PolyPage* pa = &POLY_Page[POLY_PAGE_SEWATER];
-
-    if (pa->NeedsRendering()) {
-#if 1
-        // Shouldn't be any sewers.
-        ASSERT(FALSE);
-#else
-        BEGIN_SCENE;
-
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, TRUE);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZFUNC, D3DCMP_LESSEQUAL);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, TRUE);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-        REALLY_SET_TEXTURE(TEXTURE_get_handle(TEXTURE_page_water));
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, FALSE);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
-
-        //
-        // Do the actual draw primitive call.
-        //
-
-        pa->Render(the_display.lp_D3D_Device);
-
-        END_SCENE;
-#endif
-    }
-}
-
-#endif
 
 SLONG POLY_get_sphere_circle(
     float world_x,
