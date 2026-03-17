@@ -11790,63 +11790,6 @@ SLONG on_same_side(Thing* p_victim, Thing* p_attacker)
     return (0);
 }
 
-#if DARCI_HITS_COPS
-
-//
-// Returns TRUE if the player hit the cop on purpose.
-//
-
-SLONG PCOM_player_hit_cop_on_purpose(Thing* p_cop, Thing* p_darci)
-{
-    if (p_darci->Genus.Person->Flags & FLAG_PERSON_FELON) {
-        //
-        // Darci is a known villain.
-        //
-
-        return TRUE;
-    }
-
-    //
-    // Is there somebody fighting Darci nearby?
-    //
-
-    Thing* p_attacker;
-
-    p_attacker = is_person_under_attack(p_darci);
-
-    if (p_attacker) {
-        //
-        // Somebody is out to get Darci... it was probably an accident!
-        //
-
-        if (p_attacker->Genus.Person->pcom_ai == PCOM_AI_COP || p_attacker->Genus.Person->pcom_ai == PCOM_AI_COP_DRIVER) {
-            //
-            // Hold on! She is already fighting a cop! She must have hit
-            // me on purpose.
-            //
-
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    }
-
-    //
-    // Am I fighting anyone?
-    //
-
-    if (p_cop->Genus.Person->pcom_ai_state == PCOM_AI_STATE_KILLING || p_cop->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NAVTOKILL) {
-        //
-        // I am busy hitting somebody- darci is probably trying to help me!
-        //
-
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-#endif
 
 //
 // you have been attacked
@@ -11933,37 +11876,6 @@ void PCOM_attack_happened(
 
         */
 
-#if DARCI_HITS_COPS
-
-        if (p_attacker->Genus.Person->PlayerID) {
-            //
-            // A cop has been hit by the player... was this accidental?
-            //
-
-            if (PCOM_player_hit_cop_on_purpose(p_victim, p_attacker)) {
-                //
-                // Has she hit me on purpose recently?
-                //
-
-                if (p_victim->Genus.Person->UnderAttack == 0) {
-                    //
-                    // She hasn't recently hit me!
-                    //
-
-                    p_victim->Genus.Person->UnderAttack = 0xffff;
-
-                    return;
-                }
-            } else {
-                //
-                // Ignore all accidental hits.
-                //
-
-                return;
-            }
-        }
-
-#endif
 
         // FALL-THROUGH
 
@@ -12071,46 +11983,6 @@ void PCOM_attack_happened_but_missed(Thing* p_victim, Thing* p_attacker)
     case PCOM_AI_COP:
     case PCOM_AI_COP_DRIVER:
 
-#if DARCI_HITS_COPS
-
-        /*
-                                if (p_attacker->Genus.Person->pcom_ai == PCOM_AI_COP)
-                                {
-                                        //
-                                        // A cop hitting another cop? It must have been
-                                        // an accident.
-                                        //
-
-                                        return;
-                                }
-        */
-        if (p_attacker->Genus.Person->PlayerID) {
-            //
-            // A cop has been hit by the player... was this accidental?
-            //
-
-            if (PCOM_player_hit_cop_on_purpose(p_victim, p_attacker)) {
-                //
-                // Has she hit me on purpose recently?
-                //
-
-                if (p_victim->Genus.Person->UnderAttack == 0) {
-                    //
-                    // She hasn't recently hit me!
-                    //
-
-                    p_victim->Genus.Person->UnderAttack = 0xffff;
-                }
-            } else {
-                //
-                // Ignore all accidental hits.
-                //
-
-                return;
-            }
-        }
-
-#endif
 
         // FALL-THROUGH
 

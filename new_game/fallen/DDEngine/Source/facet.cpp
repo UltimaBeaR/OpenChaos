@@ -254,94 +254,6 @@ void set_facet_seed(SLONG seed)
 //	 3  a c   2
 #define GAP_HEIGHT 96.0
 #define GAP_WIDTH_PERC 0.2
-#ifdef UNUSED_WIRE_CUTTERS
-void draw_fence_gap(POLY_Point* quad[4], SLONG page, SLONG along, float sx, float sy, float sz, float dx, float dy, float dz)
-{
-    POLY_Point* pp;
-    POLY_Point ppb[3];
-    float a_f;
-    float mx, my, mz, du;
-    POLY_Point* g_quad[4];
-    POLY_Point* g_tri[3];
-
-    a_f = (float)(along & 0xff);
-
-    a_f *= 1.0 / 256.0;
-
-    if (a_f < GAP_WIDTH_PERC)
-        a_f = GAP_WIDTH_PERC;
-
-    if (a_f > 1.0 - GAP_WIDTH_PERC)
-        a_f = 1.0 - GAP_WIDTH_PERC;
-
-    du = (quad[2]->u - quad[3]->u); // 1 or -1 ?
-
-    mx = sx + dx * a_f;
-    my = sy + dy * a_f;
-    mz = sz + dz * a_f;
-
-    dx *= GAP_WIDTH_PERC;
-    dy *= GAP_WIDTH_PERC;
-    dz *= GAP_WIDTH_PERC;
-
-    pp = &ppb[0];
-
-    POLY_transform(mx - dx, my - dy, mz - dz, pp);
-    if (pp->MaybeValid()) {
-        pp->colour = quad[3]->colour;
-        pp->specular = quad[3]->specular;
-        pp->u = quad[3]->u + du * (a_f - GAP_WIDTH_PERC);
-        pp->v = quad[3]->v;
-    }
-    pp++;
-
-    POLY_transform(mx, my - dy + GAP_HEIGHT, mz, pp);
-    if (pp->MaybeValid()) {
-        pp->colour = quad[3]->colour;
-        pp->specular = quad[3]->specular;
-        pp->u = a_f;
-        pp->v = quad[3]->v - (GAP_HEIGHT / 512.0);
-        //		pp->u=mu;
-        //		pp->v=mv;
-    }
-    pp++;
-
-    POLY_transform(mx + dx, my - dy, mz + dz, pp);
-    if (pp->MaybeValid()) {
-        pp->colour = quad[3]->colour;
-        pp->specular = quad[3]->specular;
-        pp->u = quad[3]->u + du * (a_f + GAP_WIDTH_PERC);
-        //		pp->u=a_f+du;//GAP_WIDTH_PERC;
-        pp->v = quad[3]->v;
-    }
-    pp++;
-
-    //   1        0
-    //		 b
-    //	 3  a c   2
-
-    g_quad[0] = quad[0];
-    g_quad[1] = &ppb[1];
-    g_quad[2] = quad[2];
-    g_quad[3] = &ppb[2];
-
-    if (POLY_valid_quad(g_quad))
-        POLY_add_quad(g_quad, page, 0); // 1 means perform a backface cull
-
-    g_quad[0] = &ppb[1];
-    g_quad[1] = quad[1];
-    g_quad[2] = &ppb[0];
-    g_quad[3] = quad[3];
-    if (POLY_valid_quad(g_quad))
-        POLY_add_quad(g_quad, page, 0); // 1 means perform a backface cull
-
-    g_tri[0] = quad[0];
-    g_tri[1] = quad[1];
-    g_tri[2] = &ppb[1];
-    if (POLY_valid_triangle(g_tri))
-        POLY_add_triangle(g_tri, page, 0); // 1 means perform a backface cull
-}
-#endif
 
 // texture_quad
 //
@@ -2095,9 +2007,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
     SLONG reverse_textures = 0;
     SLONG style_index_offset = 1;
     SLONG style_index_step = 2;
-#ifdef UNUSED_WIRECUTTERS
-    SLONG fence_gap, fence_gap_compare; // GAME_TURN&0xff;
-#endif
     SLONG flipx = 0;
 
 #define MAX_SHAKE 32
@@ -2151,9 +2060,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
 
 //	if(facet==114 || facet==115 || facet==2037 ||facet==2036)
 //		return;
-#ifdef UNUSED_WIRECUTTERS
-    fence_gap = get_fence_hole(p_facet);
-#endif
 
     if (INDOORS_DBUILDING == p_facet->Building && INDOORS_INDEX)
         inside_clip = 1;
@@ -3050,9 +2956,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
 
         sy = 0;
 
-#ifdef UNUSED_WIRECUTTERS
-        fence_gap_compare = fence_gap * (count - 1);
-#endif
         y = sy;
 
         while (hf <= 1) {

@@ -21,7 +21,7 @@
 | `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__` | ✅ | итерация 23 |
 | Glide-флаги (`DONT_IGNORE_*`, `WORRY_ABOUT_THIS_LATER`) | ➖ | удалены вместе с Glide Engine/ (итерация 2) |
 | Отключённые оптимизации (`*_PLEASE_BOB` и др.) | ✅ | итерация 24 (`SUPERCRINKLES_ENABLED` — итерация 25) |
-| Мёртвый геймплей (`DARCI_HITS_COPS`, `WE_WANT_WIND` и др.) | ⬜ | |
+| Мёртвый геймплей (`DARCI_HITS_COPS`, `WE_WANT_WIND` и др.) | ✅ | итерация 26 |
 | Старые алгоритмы PSXENG (`OLD_FACET_CLIP` и др.) | ⬜ | |
 | PSX/DC debug (`PSX_COMPRESS_LIGHT`, `DODGYPSXIFY` и др.) | ⬜ | |
 | Debug-флаги (`DEBUG_POOSHIT`, `HEAP_DEBUGGING_PLEASE_BOB` и др.) | ⬜ | |
@@ -850,3 +850,33 @@ Exit code 19 — норма.
 
 **Результат:** 0 ошибок, Debug + Release собираются чисто.
 
+
+---
+
+## Итерация 26 — Удаление мёртвого геймплея (пункт 2.5)
+
+**Дата:** 2026-03-17
+
+**Команда coan:**
+```
+coan source -UDARCI_HITS_COPS -UNO_MORE_BALLOONS -UNO_MORE_BALLOONS_NOW -UWE_WANT_WIND -UWE_WANT_MANUAL_WIND_ASWELL -UWE_WANT_SHITTY_PANTS_WIND -UUNUSED_WIRECUTTERS -UUNUSED_WIRE_CUTTERS --no-transients --filter cpp,c,h,hpp --recurse Source DDEngine Headers DDLibrary
+```
+Exit code 19 — норма.
+
+**Удалено через coan + 1 правка вручную:**
+- `Source/Combat.cpp` — 3 блока `#if DARCI_HITS_COPS` + 1 блок внутри `/* */` (удалён вручную)
+- `Source/pcom.cpp` — 3 блока `#if DARCI_HITS_COPS`
+- `Source/Person.cpp` — 1 блок `#if DARCI_HITS_COPS` + 1 блок `#ifdef UNUSED_WIRECUTTERS`
+- `Source/Controls.cpp` — блок `#if WE_WANT_WIND` (~90 строк) с вложенными `WE_WANT_MANUAL_WIND_ASWELL` и `WE_WANT_SHITTY_PANTS_WIND`
+- `Source/collide.cpp` — 5 блоков `#ifdef UNUSED_WIRECUTTERS`
+- `DDEngine/Source/aeng.cpp` — 2 блока: `#if NO_MORE_BALLOONS` и `#if NO_MORE_BALLOONS_NOW`
+- `DDEngine/Source/facet.cpp` — 3 блока `#ifdef UNUSED_WIRECUTTERS` + 1 блок `#ifdef UNUSED_WIRE_CUTTERS`
+
+**Нюансы:**
+- `DARCI_HITS_COPS` используется как `#if` (не `#ifdef`) — coan обрабатывает корректно как нулевое значение
+- `WE_WANT_MANUAL_WIND_ASWELL` и `WE_WANT_SHITTY_PANTS_WIND` вложены внутрь `WE_WANT_WIND` — удалились автоматически
+- `DIRT_gale()` уже была в `/* */` в dirt.cpp — `WE_WANT_WIND` не линковался бы даже при включении
+- `DIRT_gust()` (разлёт листьев от движения персонажей/машин) — активный код, не тронут
+- `/* */` блок в Combat.cpp с `#if DARCI_HITS_COPS` внутри — coan не трогает комментарии, удалён вручную
+
+**Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 292 предупреждения.

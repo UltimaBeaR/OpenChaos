@@ -3722,30 +3722,6 @@ SLONG slide_along(
                     fz1 = df->z[0] << 16;
                     fx2 = df->x[1] << 16;
                     fz2 = df->z[1] << 16;
-#ifdef UNUSED_WIRECUTTERS
-                    if (fence && (flags & SLIDE_ALONG_FLAG_CRAWL)) {
-                        SLONG along;
-                        along = get_fence_hole(df);
-                        while (along) {
-                            SLONG mx, mz;
-                            mx = (((fx2 - fx1) * along) >> 8) + fx1;
-                            mz = (((fz2 - fz1) * along) >> 8) + fz1;
-
-                            dx = *x2 - mx;
-                            dz = *z2 - mz;
-
-                            dist = QDIST2(abs(dx), abs(dz));
-
-                            if (dist < radius) {
-                                //
-                                // don't collide with this fence
-                                //
-                                goto skip_collide;
-                            }
-                            along = get_fence_hole_next(df, along);
-                        }
-                    }
-#endif
 
                     if (fx1 == fx2) {
                         //
@@ -3983,9 +3959,6 @@ SLONG slide_along(
                         }
                     }
                 }
-#ifdef UNUSED_WIRECUTTERS
-            skip_collide:;
-#endif
             }
         }
 
@@ -5728,11 +5701,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
 
         {
             SLONG saflag = 0;
-#ifdef UNUSED_WIRECUTTERS
-            if (p_thing->SubState == SUB_STATE_CRAWLING) {
-                saflag |= SLIDE_ALONG_FLAG_CRAWL;
-            }
-#endif
             if (p_thing->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
                 saflag |= SLIDE_ALONG_FLAG_CARRYING;
             }
@@ -5937,11 +5905,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
             {
 
                 SLONG saflag = 0;
-#ifdef UNUSED_WIRECUTTERS
-                if (p_thing->SubState == SUB_STATE_CRAWLING) {
-                    saflag |= SLIDE_ALONG_FLAG_CRAWL;
-                }
-#endif
                 if (p_thing->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
                     saflag |= SLIDE_ALONG_FLAG_CARRYING;
                 }
@@ -9640,61 +9603,3 @@ void box_circle_early_out(
 // returns if a fence has a hole and also its along position from 1 to 255
 //
 
-#ifdef UNUSED_WIRECUTTERS
-UWORD next_cut_hole = 0;
-UBYTE hole_pos[8];
-
-SLONG get_fence_hole(struct DFacet* p_facet)
-{
-    SLONG c0;
-    UWORD flags;
-    SLONG best = 999;
-
-    if ((flags = p_facet->CutHole) == 0)
-        return (0);
-
-    for (c0 = 0; c0 < 8; c0++) {
-        if (flags & (1 << c0)) {
-            flags &= ~(1 << c0);
-            if (hole_pos[c0] < best)
-                best = hole_pos[c0];
-            if (flags == 0)
-                return (best == 999 ? 0 : best);
-        }
-    }
-    return (0);
-}
-
-SLONG get_fence_hole_next(struct DFacet* p_facet, SLONG along)
-{
-    SLONG c0;
-    UWORD flags;
-    SLONG best = 999;
-
-    if ((flags = p_facet->CutHole) == 0)
-        return (0);
-
-    for (c0 = 0; c0 < 8; c0++) {
-        if (flags & (1 << c0)) {
-            flags &= ~(1 << c0);
-
-            if (hole_pos[c0] < best && hole_pos[c0] > along)
-                best = hole_pos[c0];
-
-            if (flags == 0)
-                return (best == 999 ? 0 : best);
-        }
-    }
-    return (0);
-}
-
-void set_fence_hole(struct DFacet* p_facet, SLONG pos)
-{
-    if (next_cut_hole < 8) {
-
-        p_facet->CutHole |= 1 << (next_cut_hole);
-        hole_pos[next_cut_hole] = pos;
-        next_cut_hole++;
-    }
-}
-#endif

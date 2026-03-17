@@ -2427,11 +2427,7 @@ SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor)
             }
         }
 
-#if DARCI_HITS_COPS
-        will_hit ^= (/*(1<<PERSON_COP)|*/ (1 << PERSON_ROPER));
-#else
         will_hit ^= (1 << PERSON_COP) | (1 << PERSON_ROPER);
-#endif
 
         if (semtex)
             will_hit ^= (1 << PERSON_TRAMP);
@@ -2469,11 +2465,7 @@ SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor)
 //
 // won't hit darci or cops
 //
-#if DARCI_HITS_COPS
-        will_hit ^= (/*(1<<PERSON_COP)|*/ (1 << PERSON_DARCI));
-#else
         will_hit ^= ((1 << PERSON_COP) | (1 << PERSON_DARCI));
-#endif
         break;
 
     case PERSON_COP:
@@ -2494,13 +2486,6 @@ SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor)
         // won't hit darci, other cops,roper or civilians
         //
         will_hit ^= ((1 << PERSON_COP) | (1 << PERSON_DARCI) | (1 << PERSON_ROPER));
-        /*
-                                #if DARCI_HITS_COPS
-                                will_hit^=((1<<PERSON_COP));
-                                #else
-                                will_hit^=((1<<PERSON_COP)|(1<<PERSON_DARCI)|(1<<PERSON_ROPER)|(1<<PERSON_CIV));
-                                #endif
-        */
         break;
     case PERSON_THUG_GREY:
     case PERSON_THUG_RASTA:

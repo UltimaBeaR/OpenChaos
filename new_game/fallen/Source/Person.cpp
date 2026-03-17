@@ -1999,41 +1999,6 @@ SLONG get_along_facet(SLONG x, SLONG z, SLONG colvect)
 
     return (along);
 }
-#ifdef UNUSED_WIRECUTTERS
-extern UWORD fence_colvect;
-SLONG set_person_cut_fence(Thing* p_person)
-{
-    SLONG x1, y1, z1, x2, y2, z2, dx, dz;
-    SLONG along;
-
-    dx = -(SIN(p_person->Draw.Tweened->Angle) * 50) >> 8;
-    dz = -(COS(p_person->Draw.Tweened->Angle) * 50) >> 8;
-
-    x1 = p_person->WorldPos.X;
-    y1 = p_person->WorldPos.Y;
-    z1 = p_person->WorldPos.Z;
-
-    x2 = x1 + dx;
-    z2 = z1 + dz;
-    y2 = y1;
-
-    slide_along(x1, y1, z1, &x2, &y2, &z2, 0, 50, 0);
-
-    if (fence_colvect) {
-        // we have hit a fence colvect
-
-        along = get_along_facet(x1 >> 8, z1 >> 8, fence_colvect);
-
-        if (along > 0 && along < 255) {
-
-            set_fence_hole(&dfacets[fence_colvect], along);
-            set_person_croutch(p_person);
-            return (1);
-        }
-    }
-    return (0);
-}
-#endif
 void set_person_dead(
     Thing* p_thing,
     Thing* p_aggressor,
@@ -3979,33 +3944,6 @@ void general_process_person(Thing* p_person)
         }
     }
 
-#if DARCI_HITS_COPS
-
-    if (p_person->Genus.Person->UnderAttack) {
-        SLONG ticks = 256 * TICK_RATIO >> TICK_SHIFT;
-
-        if (p_person->Genus.Person->UnderAttack <= ticks) {
-            p_person->Genus.Person->UnderAttack = 0;
-        } else {
-            SLONG last = p_person->Genus.Person->UnderAttack;
-
-            p_person->Genus.Person->UnderAttack -= ticks;
-
-            if (last > 0xffff - (256 * 20 * 2) && last - ticks <= 0xffff - (256 * 20 * 2)) {
-                if (p_person->Genus.Person->pcom_ai == PCOM_AI_COP && p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL) {
-                    PCOM_set_person_ai_talk_to(
-                        p_person,
-                        NET_PERSON(0),
-                        PCOM_AI_SUBSTATE_TALK_ASK,
-                        FALSE);
-
-                    //					PANEL_new_text(p_person, 4000, "Hey! Why are you hitting me, Darci?");
-                }
-            }
-        }
-    }
-
-#endif
 
     //
     // Does this person have the grappling hook?

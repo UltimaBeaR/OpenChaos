@@ -7800,22 +7800,6 @@ void AENG_draw_city()
 #endif
                             }
 
-#if NO_MORE_BALLOONS
-
-                            if (p_thing->Genus.Person->Balloon) {
-                                SLONG balloon;
-                                BALLOON_Balloon* bb;
-
-                                //
-                                // Draw this person's balloon.
-                                //
-
-                                for (balloon = p_thing->Genus.Person->Balloon; balloon; balloon = BALLOON_balloon[balloon].next) {
-                                    SHAPE_draw_balloon(balloon);
-                                }
-                            }
-
-#endif
 
                             if (p_thing->State == STATE_DEAD) {
                                 if (p_thing->Genus.Person->Timer1 > 10) {
@@ -9638,19 +9622,6 @@ void AENG_draw_warehouse()
                             }
                         }
 
-#if NO_MORE_BALLOONS_NOW
-
-                        if (p_thing->Genus.Person->Balloon) {
-                            //
-                            // Draw this person's balloon.
-                            //
-
-                            for (balloon = p_thing->Genus.Person->Balloon; balloon; balloon = BALLOON_balloon[balloon].next) {
-                                SHAPE_draw_balloon(balloon);
-                            }
-                        }
-
-#endif
 
                         if (ControlFlag && allow_debug_keys) {
                             AENG_world_text(
