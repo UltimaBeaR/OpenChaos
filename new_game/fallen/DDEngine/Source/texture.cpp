@@ -1586,9 +1586,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
     CloseTGAClump();
 
-#ifdef TRUETYPE
-    TT_Init();
-#endif
 
 
     // this is a good point to estimate the
@@ -1676,9 +1673,6 @@ void TEXTURE_free()
 
     TEXTURE_DC_pack_init();
 
-#ifdef TRUETYPE
-    TT_Term();
-#endif
 }
 
 // Destroys all the non-needed (i.e. non-frontend) textures.

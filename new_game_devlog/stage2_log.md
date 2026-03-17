@@ -14,10 +14,10 @@
 | `FAST_EDDIE` | ✅ | итерация 17 |
 | `USE_PASSWORD` | ➖ | исчез при удалении редакторов (итерация 11) |
 | `SEWERS` | ✅ | итерация 20 |
-| `TRUETYPE` | ⬜ | |
+| `TRUETYPE` | ✅ | итерация 21 |
 | `OLD_CAM`/`CAM_OLD` | ✅ | итерация 19 |
 | `DOG_POO` | ✅ | итерация 18 |
-| `EIDOS` + региональные | ⬜ | |
+| `EIDOS` + региональные | ✅ | итерация 22 |
 | `_MF_DOSX`, `__WATCOMC__`, `__DOS__`, `__WINDOWS_386__` | ⬜ | |
 | Glide-флаги (`DONT_IGNORE_*`, `WORRY_ABOUT_THIS_LATER`) | ⬜ | |
 | Отключённые оптимизации (`*_PLEASE_BOB` и др.) | ⬜ | |
@@ -731,5 +731,41 @@ Exit code 19 — норма.
 **Нюансы:**
 - `SEWERS_EXIST` (PSX-only) удалён ещё в итерации 3 вместе с PSXENG
 - `sewer.cpp/h` не тронуты — компилируются без флага, рантайм-код
+
+**Результат:** 0 ошибок.
+
+---
+
+## Итерация 21 — Удаление #ifdef TRUETYPE (пункт 2.5)
+
+**Дата:** 2026-03-17
+
+**Команда:**
+```
+tools/coan/coan.exe source -UTRUETYPE --no-transients --filter cpp,c,h,hpp --recurse Source DDEngine Headers DDLibrary
+```
+Exit code 19 — норма.
+
+**Удалено через coan (3 файла, 52 строки):**
+- `DDEngine/Source/font2d.cpp` — 42 строки (5 альтернативных TrueType-путей рендеринга)
+- `DDEngine/Source/texture.cpp` — 6 строк (`TT_Init()` / `TT_Term()`)
+- `Source/frontend.cpp` — 4 строки (`GetTextHeightTT()`, активный `y += 20` сохранён из `#else`)
+
+**Риски:** TrueType шрифты в финальную игру не вошли — ни PC, ни PS1. Финальная игра работает на bitmap-шрифтами, активный код сохранён. Функционал не нужен.
+
+**Результат:** 0 ошибок.
+
+---
+
+## Итерация 22 — Удаление региональных/DRM флагов (пункт 2.5)
+
+**Дата:** 2026-03-17
+
+**Удалено вручную:**
+- `Headers/password.h` — целиком (220 строк)
+
+**Что было внутри:** `#define EIDOS` (активный) + 13 закомментированных региональных флагов (`USA`, `GERMANY`, `FRANCE`, `KK`, `SINGAPORE`, `LEADER`, `HALIFAX`, `SYNTHESIS`, `DLMM`, `EEM`, `EUROPE`, `JAPAN`, `TDFX`). Каждый задавал ROT13-закодированные `EXPORT_NAME`, `EXPORT_CO`, `EXPORT_PW` дистрибьютора и `MAGIC_KEY`. Внизу файла — большой `/* */` блок с незакодированными именами (Darren Hedges, Nicholas Earl и др.).
+
+**Риски:** DRM конкретных розничных дистрибьюторов Eidos 1999 года не нужен в open-source фан-порте. Файл нигде не включался — на компиляцию и работу игры не влиял. Функционал не нужен.
 
 **Результат:** 0 ошибок.

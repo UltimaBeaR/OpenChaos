@@ -421,14 +421,6 @@ void FONT2D_DrawString(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
         str = "Null string";
     }
 
-#ifdef TRUETYPE
-    PERHAPS
-    {
-        SATURATE(fade, 0, 255);
-        DrawTextTT(str, x, y, 640, scale, MAKE_FADE_RGB(rgb, fade), LeftJustify);
-        return;
-    }
-#endif
 
     FONT2D_rightmost_x = x;
 
@@ -475,14 +467,6 @@ SLONG FONT2D_DrawStringWrap(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale
         str = "Null string";
     }
 
-#ifdef TRUETYPE
-    PERHAPS
-    {
-        int width;
-        SATURATE(fade, 0, 255);
-        return DrawTextTT(str, x, y, 600, scale, MAKE_FADE_RGB(rgb, fade), LeftJustify, &FONT2D_rightmost_x);
-    }
-#endif
 
     SLONG i;
     SLONG xbase = x;
@@ -536,13 +520,6 @@ SLONG FONT2D_DrawStringWrapTo(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG sca
         str = "Null string";
     }
 
-#ifdef TRUETYPE
-    PERHAPS
-    {
-        SATURATE(fade, 0, 255);
-        return DrawTextTT(str, x, y, span, scale, MAKE_FADE_RGB(rgb, fade), LeftJustify);
-    }
-#endif
 
     SLONG i;
     SLONG xbase = x;
@@ -601,13 +578,6 @@ SLONG FONT2D_DrawStringRightJustify(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLO
         str = "Null string";
     }
 
-#ifdef TRUETYPE
-    PERHAPS
-    {
-        SATURATE(fade, 0, 255);
-        return DrawTextTT(str, 10, y, x, scale, MAKE_FADE_RGB(rgb, fade), RightJustify);
-    }
-#endif
 
     // str = "Jeez, Miles. I'm a damn ROOKIE an' even I gotta laugh at THAT!";
 
@@ -831,18 +801,6 @@ void FONT2D_DrawStringCentred(CBYTE* chr, SLONG x, SLONG y, ULONG rgb, SLONG sca
     SLONG length;
     CBYTE* ch;
 
-#ifdef TRUETYPE
-    PERHAPS
-    {
-        SATURATE(fade, 0, 255);
-        if (x < 320) {
-            DrawTextTT(chr, 0, y, x * 2, scale, MAKE_FADE_RGB(rgb, fade), Centred);
-        } else {
-            DrawTextTT(chr, x * 2 - 640, y, 640, scale, MAKE_FADE_RGB(rgb, fade), Centred);
-        }
-        return;
-    }
-#endif
 
     //
     // Work out the length of the string.

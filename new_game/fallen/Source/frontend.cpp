@@ -3436,11 +3436,7 @@ void FRONTEND_draw_districts()
                 }
 
                 str += strlen(str) + 1;
-#ifdef TRUETYPE
-                y += GetTextHeightTT() * 3 / 4;
-#else
                 y += 20;
-#endif
             }
         }
     }
