@@ -21,7 +21,6 @@
 // claude-ai:     MIB: hp*100/700; обычные: hp*100/health[PersonType]; Balrog: (100*hp)>>8
 // claude-ai:
 // claude-ai: МЁРТВЫЙ КОД:
-// claude-ai:   track_enemy() — #ifdef OLD_POO — старые портреты врагов + HP полоска (заменено PANEL_draw_local_health)
 // claude-ai:   help_system() — #ifdef UNUSED — proximity help text для машин/предметов
 // claude-ai:   show_help_text() — тело полностью закомментировано
 // claude-ai:   DAMAGE_TEXT система — #ifdef DAMAGE_TEXT (НЕ определён) — плавающие числа урона в 3D
@@ -487,57 +486,6 @@ SLONG help_system(void)
 
 void track_enemy(Thing* p_thing)
 {
-#ifdef OLD_POO
-
-    SLONG c0;
-    SLONG unused = -1;
-
-    for (c0 = 0; c0 < MAX_TRACK; c0++) {
-        if (panel_enemy[c0].PThing == p_thing) {
-            panel_enemy[c0].State = STATE_TRACKING;
-            panel_enemy[c0].Timer = 5000; // 5 seconds
-            return;
-        } else if (panel_enemy[c0].State == STATE_UNUSED) {
-            unused = c0;
-        }
-    }
-    if (unused >= 0) {
-        SLONG face;
-        switch (p_thing->Genus.Person->PersonType) {
-        case 0:
-            // PERSON_DARCI
-        case 1:
-        case 2:
-            face = 5;
-            break;
-        case 3:
-            face = THING_NUMBER(p_thing) & 3; // special boss man
-            if (face == 0)
-                face = 1;
-            break;
-
-        case 4:
-            face = 6; // special boss man
-            break;
-        case 5:
-            face = 4;
-            break;
-        case 6:
-        case 7: // soldier
-            face = 4; // buggered if i know
-            break;
-        default:
-            ///				ASSERT(0); // oi, guvnor. set a face value for whatever you just created
-            face = 0;
-            break;
-        }
-        panel_enemy[unused].PThing = p_thing;
-        panel_enemy[unused].State = STATE_TRACKING;
-        panel_enemy[unused].Timer = 15000; // 5 seconds
-        panel_enemy[unused].Face = face; // 5 seconds
-    }
-
-#endif
 }
 
 struct TrackEnemy panel_gun_sight[MAX_TRACK];

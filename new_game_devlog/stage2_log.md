@@ -22,7 +22,7 @@
 | Glide-флаги (`DONT_IGNORE_*`, `WORRY_ABOUT_THIS_LATER`) | ➖ | удалены вместе с Glide Engine/ (итерация 2) |
 | Отключённые оптимизации (`*_PLEASE_BOB` и др.) | ✅ | итерация 24 (`SUPERCRINKLES_ENABLED` — итерация 25) |
 | Мёртвый геймплей (`DARCI_HITS_COPS`, `WE_WANT_WIND` и др.) | ✅ | итерация 26 |
-| Старые алгоритмы PSXENG (`OLD_FACET_CLIP` и др.) | ⬜ | |
+| Старые алгоритмы PSXENG (`OLD_FACET_CLIP` и др.) | ✅ | итерация 27 |
 | PSX/DC debug (`PSX_COMPRESS_LIGHT`, `DODGYPSXIFY` и др.) | ⬜ | |
 | Debug-флаги (`DEBUG_POOSHIT`, `HEAP_DEBUGGING_PLEASE_BOB` и др.) | ⬜ | |
 | Debug визуализации (`WE_WANT_TO_DRAW_*` и др.) | ⬜ | |
@@ -878,5 +878,23 @@ Exit code 19 — норма.
 - `DIRT_gale()` уже была в `/* */` в dirt.cpp — `WE_WANT_WIND` не линковался бы даже при включении
 - `DIRT_gust()` (разлёт листьев от движения персонажей/машин) — активный код, не тронут
 - `/* */` блок в Combat.cpp с `#if DARCI_HITS_COPS` внутри — coan не трогает комментарии, удалён вручную
+
+**Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 292 предупреждения.
+
+---
+
+## Итерация 27 — Старые алгоритмы PSXENG / `OLD_POO` (2026-03-17)
+
+**Флаги:** `OLD_FACET_CLIP`, `OLD_FLIP`, `OLD_POO`, `OLD_SPLIT`, `CUNNING_SORT`, `GOOD_SORT`, `BACK_CULL_MAGIC`
+
+**Результат:**
+- `OLD_FACET_CLIP`, `OLD_FLIP`, `OLD_SPLIT`, `CUNNING_SORT`, `GOOD_SORT`, `BACK_CULL_MAGIC` — ➖ отсутствовали в new_game (были только в PSXENG, удалённом ранее)
+- `OLD_POO` — ✅ удалён: 1 вхождение в `Source/overlay.cpp`, тело функции `track_enemy()` (~50 строк)
+
+**Что удалено:** старая HUD-система отображения врагов — портреты лиц (6 спрайтов по PersonType) + HP-полоска + полоска скилла в углу экрана (y=450). Заменена `PANEL_draw_local_health()` — floating HP bar над головой врага в 3D. Финальная игра использует новую систему (подтверждено по видео).
+
+**Нюансы:**
+- `OVERLAY_draw_tracked_enemies()` — тоже мёртвый код (нигде не вызывается), но без флага; оставлена на следующий проход (п.3 — удаление мёртвых сущностей)
+- `track_enemy()` вызывается из Combat.cpp/pcom.cpp/Person.cpp — функция-стаб сохранена
 
 **Результат:** 0 ошибок, Debug: 130 предупреждений, Release: 292 предупреждения.
