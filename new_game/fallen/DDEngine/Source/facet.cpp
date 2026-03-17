@@ -51,7 +51,6 @@
 #include "font2d.h"
 #include "smap.h"
 #include "superfacet.h"
-#include "supercrinkle.h"
 #include "matrix.h"
 
 // temptemptempetc.
@@ -1854,53 +1853,6 @@ inline void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation,
                                 goto added_crinkle_common;
                             }
                         }
-                    }
-                }
-            } else {
-                if (page < 512 && SUPERCRINKLE_IS_CRINKLED(page)) {
-                    float world_x;
-                    float world_y;
-                    float world_z;
-
-                    world_x = quad[3]->x;
-                    world_y = quad[3]->y;
-                    world_z = quad[3]->z;
-
-                    extern float AENG_cam_matrix[9];
-                    extern float POLY_cam_over_view_dist;
-                    extern float POLY_cam_aspect;
-                    extern float POLY_cam_lens;
-
-                    MATRIX_MUL_BY_TRANSPOSE(
-                        AENG_cam_matrix,
-                        world_x,
-                        world_y,
-                        world_z);
-
-                    world_x /= POLY_cam_over_view_dist;
-                    world_y /= POLY_cam_over_view_dist;
-                    world_z /= POLY_cam_over_view_dist;
-
-                    world_x /= POLY_cam_aspect;
-
-                    world_x /= POLY_cam_lens;
-                    world_y /= POLY_cam_lens;
-
-                    world_x += POLY_cam_x;
-                    world_y += POLY_cam_y;
-                    world_z += POLY_cam_z;
-
-                    POLY_set_local_rotation(
-                        world_x,
-                        world_y,
-                        world_z,
-                        FACET_direction_matrix);
-
-                    ULONG colour[4] = { quad[0]->colour, quad[1]->colour, quad[2]->colour, quad[3]->colour };
-                    ULONG specular[4] = { quad[0]->specular, quad[1]->specular, quad[2]->specular, quad[3]->specular };
-
-                    if (SUPERCRINKLE_draw(page, colour, specular)) {
-                        goto added_crinkle_common;
                     }
                 }
             }

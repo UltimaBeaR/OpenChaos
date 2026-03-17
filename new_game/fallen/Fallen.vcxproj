@@ -154,7 +154,6 @@
     <ClCompile Include="DDEngine\Source\sky.cpp" />
     <ClCompile Include="DDEngine\Source\smap.cpp" />
     <ClCompile Include="DDEngine\Source\sprite.cpp" />
-    <ClCompile Include="DDEngine\Source\supercrinkle.cpp" />
     <ClCompile Include="DDEngine\Source\superfacet.cpp" />
     <ClCompile Include="DDEngine\Source\Text.cpp" />
     <ClCompile Include="DDEngine\Source\texture.cpp" />
@@ -543,7 +542,6 @@
     <ClInclude Include="DDEngine\Headers\sky.h" />
     <ClInclude Include="DDEngine\Headers\smap.h" />
     <ClInclude Include="DDEngine\Headers\sprite.h" />
-    <ClInclude Include="DDEngine\Headers\supercrinkle.h" />
     <ClInclude Include="DDEngine\Headers\superfacet.h" />
     <ClInclude Include="DDEngine\Headers\Text.h" />
     <ClInclude Include="DDEngine\Headers\texture.h" />

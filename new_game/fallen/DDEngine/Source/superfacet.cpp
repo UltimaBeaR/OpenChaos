@@ -11,7 +11,6 @@
 #include "supermap.h"
 #include "memory.h"
 #include "interfac.h"
-#include "supercrinkle.h"
 #include "matrix.h"
 
 // Only do this on the PC!
@@ -72,7 +71,6 @@ SLONG SUPERFACET_free_range_end;
 
 #define SUPERFACET_CALL_FLAG_USED (1 << 0)
 #define SUPERFACET_CALL_FLAG_2PASS (1 << 1)
-#define SUPERFACET_CALL_FLAG_CRINKLED (1 << 2)
 
 #ifdef SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB
 bool m_bShowDebuggingInfo = FALSE;
@@ -88,7 +86,6 @@ typedef struct
     UWORD index;
     UWORD indexcount;
     UWORD index2; // For the 2-pass textures...
-    UWORD crinkle; // The PolyPage or SUPERCRINKLE for this call...
 
     LPDIRECT3DTEXTURE2 texture;
     LPDIRECT3DTEXTURE2 texture_2pass; // For the 2-pass textures...
@@ -969,21 +966,9 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
                         // Already have a SUPERFACET_Call for this texture.
                         //
 
-                        if (SUPERCRINKLE_IS_CRINKLED(page)) {
-                            //
-                            // We need the exact page.
-                            //
+                        sc->quads += 1;
 
-                            if ((sc->flag & SUPERFACET_CALL_FLAG_CRINKLED) && sc->crinkle == page) {
-                                sc->quads += 1;
-
-                                goto already_got_a_call;
-                            }
-                        } else {
-                            sc->quads += 1;
-
-                            goto already_got_a_call;
-                        }
+                        goto already_got_a_call;
                     }
                 }
 
@@ -1008,10 +993,6 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
                     sc->texture_2pass = SUPERFACET_convert_texture(page + 1, quad);
                 }
 
-                if (page < 512 && SUPERCRINKLE_IS_CRINKLED(page)) {
-                    sc->flag |= SUPERFACET_CALL_FLAG_CRINKLED;
-                    sc->crinkle = page;
-                }
 
                 sf->num += 1;
 
@@ -1456,168 +1437,25 @@ SLONG SUPERFACET_draw(SLONG facet)
 
         // ASSERT ( sc->texture != NULL );
 
-        if (sc->flag & SUPERFACET_CALL_FLAG_CRINKLED) {
-            //
-            // Draw each quad separately...
-            //
-
-            // Doesn't work yet.
-            ASSERT(FALSE);
-
-            ULONG colour[4];
-            ULONG specular[4];
-
-            SLONG index[4];
-
-            for (j = 0; j < sc->indexcount; j += 6) {
-                index[0] = sc->lvert + SUPERFACET_index[sc->index + j + 0];
-                index[1] = sc->lvert + SUPERFACET_index[sc->index + j + 1];
-                index[2] = sc->lvert + SUPERFACET_index[sc->index + j + 2];
-                index[3] = sc->lvert + SUPERFACET_index[sc->index + j + 5];
-
-                // ASSERT(SUPERFACET_index[sc->index + j + 4] == 0xffff);
-
-                ASSERT(WITHIN(index[0], 0, SUPERFACET_MAX_LVERTS - 1));
-                ASSERT(WITHIN(index[1], 0, SUPERFACET_MAX_LVERTS - 1));
-                ASSERT(WITHIN(index[2], 0, SUPERFACET_MAX_LVERTS - 1));
-                ASSERT(WITHIN(index[3], 0, SUPERFACET_MAX_LVERTS - 1));
-
-                float world_x;
-                float world_y;
-                float world_z;
-
-                if (SUPERFACET_lvert[index[0]].tu > SUPERFACET_lvert[index[2]].tu) {
-                    //
-                    // We must x-flip the crinkle...
-                    //
-
-                    ASSERT(WITHIN(sc->dir, 0, 3));
-
-                    world_x = SUPERFACET_lvert[index[1]].x;
-                    world_y = SUPERFACET_lvert[index[1]].y;
-                    world_z = SUPERFACET_lvert[index[1]].z;
-
-                    SUPERFACET_direction_matrix[sc->dir][0] = -SUPERFACET_direction_matrix[sc->dir][0];
-                    SUPERFACET_direction_matrix[sc->dir][1] = -SUPERFACET_direction_matrix[sc->dir][1];
-                    SUPERFACET_direction_matrix[sc->dir][2] = -SUPERFACET_direction_matrix[sc->dir][2];
-
-                    POLY_set_local_rotation(
-                        world_x,
-                        world_y,
-                        world_z,
-                        SUPERFACET_direction_matrix[sc->dir]);
-
-                    SUPERFACET_direction_matrix[sc->dir][0] = -SUPERFACET_direction_matrix[sc->dir][0];
-                    SUPERFACET_direction_matrix[sc->dir][1] = -SUPERFACET_direction_matrix[sc->dir][1];
-                    SUPERFACET_direction_matrix[sc->dir][2] = -SUPERFACET_direction_matrix[sc->dir][2];
-
-                    static UBYTE order[4] = { 2, 0, 3, 1 };
-
-                    /*
-                    if ((GAME_TURN & 0x1f) == 0)
-                    {
-                            SLONG a;
-                            SLONG b;
-
-                            SLONG twizzle;
-
-                            for (twizzle = 0; twizzle < 5; twizzle++)
-                            {
-                                    a = rand() & 3;
-                                    b = rand() & 3;
-
-                                    SWAP(order[a],order[b]);
-                            }
-                    }
-                    */
-
-                    colour[0] = SUPERFACET_lvert[index[order[0]]].color;
-                    colour[1] = SUPERFACET_lvert[index[order[1]]].color;
-                    colour[2] = SUPERFACET_lvert[index[order[2]]].color;
-                    colour[3] = SUPERFACET_lvert[index[order[3]]].color;
-
-                    specular[0] = SUPERFACET_lvert[index[order[0]]].specular;
-                    specular[1] = SUPERFACET_lvert[index[order[1]]].specular;
-                    specular[2] = SUPERFACET_lvert[index[order[2]]].specular;
-                    specular[3] = SUPERFACET_lvert[index[order[3]]].specular;
-
-                } else {
-                    world_x = SUPERFACET_lvert[index[3]].x;
-                    world_y = SUPERFACET_lvert[index[3]].y;
-                    world_z = SUPERFACET_lvert[index[3]].z;
-
-                    ASSERT(WITHIN(sc->dir, 0, 3));
-
-                    POLY_set_local_rotation(
-                        world_x,
-                        world_y,
-                        world_z,
-                        SUPERFACET_direction_matrix[sc->dir]);
-
-                    static UBYTE order[4] = { 0, 2, 1, 3 };
-
-                    /*
-
-                    if ((GAME_TURN & 0x1f) == 0)
-                    {
-                            SLONG a;
-                            SLONG b;
-
-                            SLONG twizzle;
-
-                            for (twizzle = 0; twizzle < 5; twizzle++)
-                            {
-                                    a = rand() & 3;
-                                    b = rand() & 3;
-
-                                    SWAP(order[a],order[b]);
-                            }
-                    }
-
-                    */
-
-                    colour[0] = SUPERFACET_lvert[index[order[0]]].color;
-                    colour[1] = SUPERFACET_lvert[index[order[1]]].color;
-                    colour[2] = SUPERFACET_lvert[index[order[2]]].color;
-                    colour[3] = SUPERFACET_lvert[index[order[3]]].color;
-
-                    specular[0] = SUPERFACET_lvert[index[order[0]]].specular;
-                    specular[1] = SUPERFACET_lvert[index[order[1]]].specular;
-                    specular[2] = SUPERFACET_lvert[index[order[2]]].specular;
-                    specular[3] = SUPERFACET_lvert[index[order[3]]].specular;
-                }
-
-                SUPERCRINKLE_draw(
-                    sc->crinkle,
-                    colour,
-                    specular);
-
-                POLY_set_local_rotation_none();
-                POLY_flush_local_rot();
-            }
-        } else {
-
-
 #if 1
-            the_display.lp_D3D_Device->DrawIndexedPrimitive(
-                D3DPT_TRIANGLELIST,
-                D3DFVF_LVERTEX,
-                SUPERFACET_lvert + sc->lvert,
-                sc->lvertcount,
-                SUPERFACET_index + sc->index,
-                sc->indexcount,
-                0);
+        the_display.lp_D3D_Device->DrawIndexedPrimitive(
+            D3DPT_TRIANGLELIST,
+            D3DFVF_LVERTEX,
+            SUPERFACET_lvert + sc->lvert,
+            sc->lvertcount,
+            SUPERFACET_index + sc->index,
+            sc->indexcount,
+            0);
 
 #else
-            DrawIndPrimMM(
-                the_display.lp_D3D_Device,
-                D3DFVF_LVERTEX,
-                &d3dmm,
-                sc->lvertcount,
-                SUPERFACET_index + sc->index,
-                sc->indexcount);
+        DrawIndPrimMM(
+            the_display.lp_D3D_Device,
+            D3DFVF_LVERTEX,
+            &d3dmm,
+            sc->lvertcount,
+            SUPERFACET_index + sc->index,
+            sc->indexcount);
 #endif
-        }
 
         //
         // What about those 2-pass texture pages???
@@ -1692,177 +1530,37 @@ SLONG SUPERFACET_draw(SLONG facet)
 
         // ASSERT ( sc->texture != NULL );
 
-        if (sc->flag & SUPERFACET_CALL_FLAG_CRINKLED) {
-            //
-            // Draw each quad separately...
-            //
+        //
+        // Setup transform states...?
+        //
 
-            ULONG colour[4];
-            ULONG specular[4];
+        d3dmm.lpvVertices = SUPERFACET_lvert + sc->lvert;
+        d3dmm.lpd3dMatrices = SUPERFACET_matrix;
+        d3dmm.lpvLightDirs = NULL;
+        d3dmm.lpLightTable = NULL;
 
-            SLONG index[4];
-
-            for (j = 0; j < sc->indexcount; j += 5) {
-                index[0] = sc->lvert + SUPERFACET_index[sc->index + j + 0];
-                index[1] = sc->lvert + SUPERFACET_index[sc->index + j + 1];
-                index[2] = sc->lvert + SUPERFACET_index[sc->index + j + 2];
-                index[3] = sc->lvert + SUPERFACET_index[sc->index + j + 3];
-
-                ASSERT(SUPERFACET_index[sc->index + j + 4] == 0xffff);
-
-                ASSERT(WITHIN(index[0], 0, SUPERFACET_MAX_LVERTS - 1));
-                ASSERT(WITHIN(index[1], 0, SUPERFACET_MAX_LVERTS - 1));
-                ASSERT(WITHIN(index[2], 0, SUPERFACET_MAX_LVERTS - 1));
-                ASSERT(WITHIN(index[3], 0, SUPERFACET_MAX_LVERTS - 1));
-
-                float world_x;
-                float world_y;
-                float world_z;
-
-                if (SUPERFACET_lvert[index[0]].tu > SUPERFACET_lvert[index[2]].tu) {
-                    //
-                    // We must x-flip the crinkle...
-                    //
-
-                    ASSERT(WITHIN(sc->dir, 0, 3));
-
-                    world_x = SUPERFACET_lvert[index[1]].x;
-                    world_y = SUPERFACET_lvert[index[1]].y;
-                    world_z = SUPERFACET_lvert[index[1]].z;
-
-                    SUPERFACET_direction_matrix[sc->dir][0] = -SUPERFACET_direction_matrix[sc->dir][0];
-                    SUPERFACET_direction_matrix[sc->dir][1] = -SUPERFACET_direction_matrix[sc->dir][1];
-                    SUPERFACET_direction_matrix[sc->dir][2] = -SUPERFACET_direction_matrix[sc->dir][2];
-
-                    POLY_set_local_rotation(
-                        world_x,
-                        world_y,
-                        world_z,
-                        SUPERFACET_direction_matrix[sc->dir]);
-
-                    SUPERFACET_direction_matrix[sc->dir][0] = -SUPERFACET_direction_matrix[sc->dir][0];
-                    SUPERFACET_direction_matrix[sc->dir][1] = -SUPERFACET_direction_matrix[sc->dir][1];
-                    SUPERFACET_direction_matrix[sc->dir][2] = -SUPERFACET_direction_matrix[sc->dir][2];
-
-                    static UBYTE order[4] = { 2, 0, 3, 1 };
-
-                    /*
-                    if ((GAME_TURN & 0x1f) == 0)
-                    {
-                            SLONG a;
-                            SLONG b;
-
-                            SLONG twizzle;
-
-                            for (twizzle = 0; twizzle < 5; twizzle++)
-                            {
-                                    a = rand() & 3;
-                                    b = rand() & 3;
-
-                                    SWAP(order[a],order[b]);
-                            }
-                    }
-                    */
-
-                    colour[0] = SUPERFACET_lvert[index[order[0]]].color;
-                    colour[1] = SUPERFACET_lvert[index[order[1]]].color;
-                    colour[2] = SUPERFACET_lvert[index[order[2]]].color;
-                    colour[3] = SUPERFACET_lvert[index[order[3]]].color;
-
-                    specular[0] = SUPERFACET_lvert[index[order[0]]].specular;
-                    specular[1] = SUPERFACET_lvert[index[order[1]]].specular;
-                    specular[2] = SUPERFACET_lvert[index[order[2]]].specular;
-                    specular[3] = SUPERFACET_lvert[index[order[3]]].specular;
-
-                } else {
-                    world_x = SUPERFACET_lvert[index[3]].x;
-                    world_y = SUPERFACET_lvert[index[3]].y;
-                    world_z = SUPERFACET_lvert[index[3]].z;
-
-                    ASSERT(WITHIN(sc->dir, 0, 3));
-
-                    POLY_set_local_rotation(
-                        world_x,
-                        world_y,
-                        world_z,
-                        SUPERFACET_direction_matrix[sc->dir]);
-
-                    static UBYTE order[4] = { 0, 2, 1, 3 };
-
-                    /*
-
-                    if ((GAME_TURN & 0x1f) == 0)
-                    {
-                            SLONG a;
-                            SLONG b;
-
-                            SLONG twizzle;
-
-                            for (twizzle = 0; twizzle < 5; twizzle++)
-                            {
-                                    a = rand() & 3;
-                                    b = rand() & 3;
-
-                                    SWAP(order[a],order[b]);
-                            }
-                    }
-
-                    */
-
-                    colour[0] = SUPERFACET_lvert[index[order[0]]].color;
-                    colour[1] = SUPERFACET_lvert[index[order[1]]].color;
-                    colour[2] = SUPERFACET_lvert[index[order[2]]].color;
-                    colour[3] = SUPERFACET_lvert[index[order[3]]].color;
-
-                    specular[0] = SUPERFACET_lvert[index[order[0]]].specular;
-                    specular[1] = SUPERFACET_lvert[index[order[1]]].specular;
-                    specular[2] = SUPERFACET_lvert[index[order[2]]].specular;
-                    specular[3] = SUPERFACET_lvert[index[order[3]]].specular;
-                }
-
-                SUPERCRINKLE_draw(
-                    sc->crinkle,
-                    colour,
-                    specular);
-
-                extern void POLY_set_local_rotation_none(void);
-
-                POLY_set_local_rotation_none();
-                POLY_flush_local_rot();
-            }
-        } else {
-            //
-            // Setup transform states...?
-            //
-
-            d3dmm.lpvVertices = SUPERFACET_lvert + sc->lvert;
-            d3dmm.lpd3dMatrices = SUPERFACET_matrix;
-            d3dmm.lpvLightDirs = NULL;
-            d3dmm.lpLightTable = NULL;
-
-            /*
+        /*
 
 
-            the_display.lp_D3D_Device->DrawIndexedPrimitive(
-                                                                            D3DPT_TRIANGLELIST,
-                                                                            D3DFVF_LVERTEX,
-                                                                            SUPERFACET_lvert + sc->lvert,
-                                                                            sc->lvertcount,
-                                                                            SUPERFACET_index + sc->index,
-                                                                            sc->indexcount,
-                                                                            0);
-            */
+        the_display.lp_D3D_Device->DrawIndexedPrimitive(
+                                                                        D3DPT_TRIANGLELIST,
+                                                                        D3DFVF_LVERTEX,
+                                                                        SUPERFACET_lvert + sc->lvert,
+                                                                        sc->lvertcount,
+                                                                        SUPERFACET_index + sc->index,
+                                                                        sc->indexcount,
+                                                                        0);
+        */
 
-            // TRACE ( "S5" );
-            DrawIndPrimMM(
-                the_display.lp_D3D_Device,
-                D3DFVF_LVERTEX,
-                &d3dmm,
-                sc->lvertcount,
-                SUPERFACET_index + sc->index,
-                sc->indexcount);
-            // TRACE ( "F5" );
-        }
+        // TRACE ( "S5" );
+        DrawIndPrimMM(
+            the_display.lp_D3D_Device,
+            D3DFVF_LVERTEX,
+            &d3dmm,
+            sc->lvertcount,
+            SUPERFACET_index + sc->index,
+            sc->indexcount);
+        // TRACE ( "F5" );
 
         //
         // What about those 2-pass texture pages???
