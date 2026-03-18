@@ -3184,53 +3184,6 @@ void do_look_for_enemies(Thing* p_person)
     }
 }
 
-//
-// If the person is too far from home or Darci sets of home again.
-//
-#ifdef UNUSED
-void show_me_the_way_to_go_home(Thing* p_person)
-{
-    SLONG dx;
-    SLONG dz;
-
-    SLONG home_x = p_person->Genus.Person->HomeX << 8;
-    SLONG home_z = p_person->Genus.Person->HomeZ << 8;
-
-    SLONG home_sickness;
-    SLONG darci_distance;
-
-    //
-    // Far from home?
-    //
-
-    dx = home_x - p_person->WorldPos.X;
-    dz = home_z - p_person->WorldPos.Z;
-
-    home_sickness = abs(dx) + abs(dz); // i.e. Distance from home!
-
-    //
-    // Far from Darci?
-    //
-
-    dx = NET_PERSON(0)->WorldPos.X - p_person->WorldPos.X;
-    dz = NET_PERSON(0)->WorldPos.Z - p_person->WorldPos.Z;
-
-    darci_distance = abs(dx) + abs(dz);
-
-    //
-    // Go home?
-    //
-
-    if (home_sickness > 0x100000 || (home_sickness > 0x018000 && darci_distance > 0x80000)) {
-        p_person->Genus.Person->Target = NULL;
-
-        set_person_mav_to_xz(
-            p_person,
-            home_x >> 8,
-            home_z >> 8);
-    }
-}
-#endif
 
 extern void play_music(UWORD id, UBYTE track);
 
@@ -6627,61 +6580,6 @@ void	set_person_idle_ready(Thing *p_person)
 }
 */
 
-//
-// See if this location contains a viable platform for a fott or a hand or anything
-// has an offset from the player, that is rotated by the players angle
-//
-#ifdef UNUSED
-SLONG foot_hold_available(Thing* p_person, SLONG dx, SLONG dy, SLONG dz)
-{
-    SLONG rdx, rdz;
-    SLONG angle;
-
-    SLONG px, py, pz, ret_y, face;
-
-    angle = p_person->Draw.Tweened->Angle;
-
-    rdx = (dx * COS(angle) - dz * SIN(angle)) >> 16;
-    rdz = (dx * SIN(angle) + dz * COS(angle)) >> 16;
-
-    px = (p_person->WorldPos.X >> 8) + rdx;
-    py = (p_person->WorldPos.Y >> 8);
-    pz = (p_person->WorldPos.Z >> 8) + rdz;
-
-    face = find_face_for_this_pos(px, py, pz, &ret_y, 0, 0);
-
-    if (face)
-        return (1);
-    else
-        return (0);
-}
-
-SLONG foot_hold_available_obj(Thing* p_person, SLONG dx, SLONG dy, SLONG dz, SLONG obj)
-{
-    SLONG rdx, rdz;
-    SLONG angle;
-    SLONG wx, wy, wz;
-    SLONG px, py, pz, ret_y, face;
-
-    angle = p_person->Draw.Tweened->Angle;
-
-    rdx = (dx * COS(angle) - dz * SIN(angle)) >> 16;
-    rdz = (dx * SIN(angle) + dz * COS(angle)) >> 16;
-
-    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, obj, &wx, &wy, &wz);
-
-    px = (p_person->WorldPos.X >> 8) + rdx + wx;
-    py = (p_person->WorldPos.Y >> 8) + wy;
-    pz = (p_person->WorldPos.Z >> 8) + rdz + wz;
-
-    face = find_face_for_this_pos(px, py, pz, &ret_y, 0, 0);
-
-    if (face)
-        return (1);
-    else
-        return (0);
-}
-#endif
 void set_person_flip(Thing* p_person, SLONG dir)
 {
     MSG_add(" start flipping");
@@ -8174,35 +8072,6 @@ SLONG set_person_punch(Thing* p_person)
     return (anim);
 }
 
-#ifdef UNUSED
-SLONG set_person_punch_if_can(Thing* p_person)
-{
-    SLONG anim;
-    /*
-    if(find_best_grapple(p_person))
-    {
-            return(0);
-    }
-    */
-    anim = find_best_punch(p_person, 0);
-    if (anim) {
-        set_generic_person_state_function(p_person, STATE_FIGHTING);
-        //	p_person->Draw.Tweened->QueuedFrame	=	global_anim_array[p_person->Genus.Person->AnimType][anim];
-        //	p_person->Draw.Tweened->CurrentAnim	=	anim;
-        locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, anim);
-
-        p_person->Velocity = 0;
-        p_person->Genus.Person->Action = ACTION_FIGHT_PUNCH;
-        p_person->SubState = SUB_STATE_PUNCH;
-
-        p_person->Draw.Tweened->Locked = 0; //-SUB_OBJECT_LEFT_FOOT;
-        p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M; //|FLAG_PERSON_NON_INT_C;
-        return (1);
-    }
-    return (0);
-    //	PlaySample(6);
-}
-#endif
 SLONG set_person_kick_dir(Thing* p_person, SLONG dir)
 {
     SLONG anim;
@@ -12279,36 +12148,6 @@ void fn_person_climbing(Thing* p_person)
 
     case SUB_STATE_CLIMB_AROUND_WALL:
         break;
-#ifdef UNUSED
-    case SUB_STATE_CLIMB_LEFT_WALL:
-        if (!check_limb_pos_on_fence_sideways(p_person, SUB_OBJECT_LEFT_HAND)) {
-            locked_anim_change(p_person, 0, ANIM_CLIMB_UP_FENCE);
-            p_person->SubState = SUB_STATE_CLIMB_AROUND_WALL;
-        } else {
-            end = person_normal_animate(p_person);
-            if (end == 1) {
-                locked_anim_change(p_person, 0, ANIM_CLIMB_UP_FENCE);
-                p_person->SubState = SUB_STATE_CLIMB_AROUND_WALL;
-            }
-        }
-
-        break;
-    case SUB_STATE_CLIMB_RIGHT_WALL:
-        if (!check_limb_pos_on_fence_sideways(p_person, SUB_OBJECT_LEFT_HAND)) {
-            locked_anim_change(p_person, 0, ANIM_CLIMB_UP_FENCE);
-            p_person->SubState = SUB_STATE_CLIMB_AROUND_WALL;
-        }
-
-        if (check_limb_pos_on_fence(p_person, SUB_OBJECT_HEAD)) //&&check_limb_pos_on_fence(p_person,SUB_OBJECT_RIGHT_HAND))
-        {
-            end = person_normal_animate(p_person);
-            if (end == 1) {
-                locked_anim_change(p_person, 0, ANIM_CLIMB_UP_FENCE);
-                p_person->SubState = SUB_STATE_CLIMB_AROUND_WALL;
-            }
-        }
-        break;
-#endif
 
     case SUB_STATE_CLIMB_UP_WALL:
 
@@ -17403,22 +17242,6 @@ void fn_person_goto(Thing* p_person)
     */
 }
 
-#ifdef UNUSED
-SLONG hit_enemy(Thing* p_person, SLONG dx, SLONG dz)
-{
-
-    SLONG strike;
-    //	return(0);
-    //	if(GAME_TURN&1)
-    strike = set_person_punch_if_can(p_person);
-    if (strike) {
-        MSG_add(" apply hit \n");
-    }
-    p_person->StateFn = fn_person_mavigate;
-    //	set_generic_person_just_function(p_person,STATE_MAVIGATING);
-    return (strike);
-}
-#endif
 //
 // Returns TRUE if you've reached your destination.
 //

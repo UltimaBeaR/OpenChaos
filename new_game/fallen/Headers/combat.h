@@ -43,33 +43,6 @@
 // Structs
 //
 
-// claude-ai: ComboHistory — ring-buffer tracking the last MAX_MOVES punches/kicks a person threw.
-// claude-ai: Used by AI to pick escalating combos (higher Power = flashier move). Currently #ifdef UNUSED.
-// claude-ai: PORT: skip — combo escalation AI was cut; fight_tree handles move selection instead.
-struct ComboHistory {
-    UWORD Owner;
-    SBYTE Power[MAX_MOVES];
-    SBYTE Moves[MAX_MOVES];
-    UWORD Times[MAX_MOVES];
-    UBYTE Result[MAX_MOVES];
-    UWORD LastUsed;
-    UBYTE Index;
-    UBYTE Count;
-};
-
-// claude-ai: BlockingHistory — ring-buffer of incoming attacks seen by this person.
-// claude-ai: Intended for AI to learn to block patterns. Also currently #ifdef UNUSED.
-// claude-ai: PORT: skip — blocked by #ifdef UNUSED in the codebase.
-struct BlockingHistory {
-    UWORD Owner; // who this blocking history is for
-    UBYTE Attack[MAX_MOVES]; // attack move performed
-    UBYTE Flags[MAX_MOVES]; // did it hit, did I block it
-    UWORD Times[MAX_MOVES]; // at what time did it occur
-    UWORD Perp[MAX_MOVES]; // who perpetrated the attack
-    UWORD LastUsed; // when was this whoile structure used
-    UBYTE Index;
-    UBYTE Count;
-};
 
 //
 // Owner is the person under attack by multiple foes
@@ -90,8 +63,7 @@ struct GangAttack {
 // Data
 //
 
-// claude-ai: combo_histories/gang_attacks — global pools. Index 0 is unused (NULL sentinel).
-extern struct ComboHistory combo_histories[MAX_HISTORY];
+// claude-ai: gang_attacks — global pool. Index 0 is unused (NULL sentinel).
 extern struct GangAttack gang_attacks[MAX_HISTORY];
 
 //
@@ -167,11 +139,6 @@ SLONG turn_to_target_and_kick(Thing* p_person);
 // claude-ai: FIND_BEST_USE_DEFAULT — if set, always return a fallback anim even if no target in range
 #define FIND_BEST_USE_DEFAULT (1 << 0)
 
-// claude-ai: find_best_punch/kick — scan punch[]/kick[] anim tables, find the one that would actually hit.
-// claude-ai: NOTE: both functions are inside #ifdef UNUSED in Combat.cpp — not compiled in release.
-// claude-ai: PORT: skip — replaced by turn_to_target_and_punch/kick which use fight_tree directly.
-SLONG find_best_punch(Thing* p_person, ULONG flag);
-SLONG find_best_kick(Thing* p_person, ULONG flag);
 
 //
 // If somebody is attacking the given person, it returns a pointer to

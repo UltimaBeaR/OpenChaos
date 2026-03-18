@@ -685,15 +685,6 @@ UWORD EWAY_create_animal(
 
     switch (subtype) {
     case EWAY_SUBTYPE_ANIMAL_BAT:
-#ifdef UNUSED
-        if (!save_psx) {
-            p_index = BAT_create(
-                BAT_TYPE_BAT,
-                world_x,
-                world_z,
-                yaw << 3);
-        }
-#endif
         break;
 
     case EWAY_SUBTYPE_ANIMAL_GARGOYLE:

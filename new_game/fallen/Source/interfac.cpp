@@ -2807,7 +2807,7 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
 // claude-ai:   STATE_IDLE, STATE_MOVEING, STATE_GUN, STATE_GRAPPLING, STATE_CARRY:
 // claude-ai:     → player_turn_left_right() или player_turn_left_right_analogue() (поворот)
 // claude-ai:     → далее в apply_button_input() обрабатывается бег/прыжок/действие
-// claude-ai:   STATE_CLIMBING: ограниченные действия (LEFT/RIGHT = перебраться по стене — закомментировано #ifdef UNUSED)
+// claude-ai:   STATE_CLIMBING: ограниченные действия (LEFT/RIGHT = перебраться по стене — мёртвый код, удалён)
 // claude-ai:   STATE_JUMPING: поворот с wMaxTurn=12 (в воздухе поворот сильно ограничен)
 // claude-ai: Возвращает: ничего (void). Управление передаётся через изменение State/SubState Thing.
 void player_apply_move(Thing* p_thing, ULONG input)
@@ -2821,18 +2821,6 @@ void player_apply_move(Thing* p_thing, ULONG input)
         case SUB_STATE_STOPPING:
             //				case	SUB_STATE_CLIMB_AROUND_WALL:
             void locked_anim_change(Thing * p_person, UWORD locked_object, UWORD anim, SLONG dangle = 0);
-#ifdef UNUSED
-            if (input & INPUT_MASK_LEFT) {
-                p_thing->SubState = SUB_STATE_CLIMB_LEFT_WALL;
-                locked_anim_change(p_thing, 0, ANIM_CLIMB_LEFT_FENCE);
-                return;
-
-            } else if (input & INPUT_MASK_RIGHT) {
-                p_thing->SubState = SUB_STATE_CLIMB_RIGHT_WALL;
-                locked_anim_change(p_thing, 0, ANIM_CLIMB_RIGHT_FENCE);
-                return;
-            }
-#endif
             break;
         }
         break;

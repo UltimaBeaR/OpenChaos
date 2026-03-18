@@ -7,8 +7,6 @@
 // claude-ai:   people_allowed_to_hit_each_other() — faction/alignment rules (cop won't hit cop, etc.)
 // claude-ai:   set_grapple() / find_best_grapple() — grapple move selection and execution
 // claude-ai: PORT: This entire file must be ported. It is the heart of all melee combat gameplay.
-// claude-ai: NOTE: Large blocks of code wrapped in #ifdef UNUSED (ComboHistory, BlockingHistory,
-// claude-ai:       find_best_punch, find_best_kick) were disabled before release — do not port those.
 
 #include "game.h"
 #include "combat.h"
@@ -64,11 +62,6 @@ extern SLONG set_person_stomp(Thing* p_person);
 
 THING_INDEX found[16];
 
-// claude-ai: combo_histories and block_histories are compiled out — only gang_attacks is active.
-#ifdef UNUSED
-struct ComboHistory combo_histories[MAX_HISTORY];
-struct BlockingHistory block_histories[MAX_HISTORY];
-#endif
 struct GangAttack gang_attacks[MAX_HISTORY];
 
 //
@@ -180,8 +173,7 @@ SLONG get_combat_type_for_node(UBYTE current_node)
 }
 
 // claude-ai: punches[power][anim_index] — anim candidates per "power level" (0=highest power/combo)
-// claude-ai: Used by find_best_punch() which is inside #ifdef UNUSED — not compiled in release.
-// claude-ai: PORT: skip — these tables are only used by the dead code path.
+// claude-ai: punches/kicks tables were used only by find_best_punch/find_best_kick (removed #ifdef UNUSED code).
 SWORD punches[4][5] = {
     { ANIM_PUNCH_COMBO1, ANIM_PUNCH_COMBO2, ANIM_PUNCH_COMBO3, 0, 0 },
     { ANIM_PUNCH3, ANIM_PUNCH1, 0, 0, 0 },
@@ -189,7 +181,7 @@ SWORD punches[4][5] = {
     { 0, 0, 0, 0, 0 }
 };
 
-// claude-ai: kicks[power][anim_index] — same idea for kick anims. Also used only in #ifdef UNUSED code.
+// claude-ai: kicks[power][anim_index] — same idea for kick anims. Used only by removed dead code (find_best_kick).
 SWORD kicks[4][5] = {
     { ANIM_KICK_COMBO1, ANIM_KICK_COMBO2, ANIM_KICK_COMBO3, 0, 0 },
     { ANIM_KICK2, ANIM_KICK_ROUND1, 0, 0, 0 },
@@ -276,79 +268,6 @@ SLONG get_gangattack(Thing* p_person)
     return (best);
 }
 
-#ifdef UNUSED
-SLONG get_history(Thing* p_person)
-{
-    UWORD c0;
-    SLONG oldest = 0, best = 0;
-    for (c0 = 1; c0 < MAX_HISTORY; c0++) {
-        SLONG ticks;
-
-        ticks = ((UWORD)GAME_TURN) - combo_histories[c0].LastUsed;
-
-        if (ticks > oldest) {
-            oldest = ticks;
-            best = c0;
-        }
-        if (combo_histories[c0].Owner == 0) {
-            p_person->Genus.Person->ComboHistory = c0;
-            combo_histories[c0].Owner = THING_NUMBER(p_person);
-            combo_histories[c0].Index = 0;
-            combo_histories[c0].Count = 0;
-
-            return (c0);
-        }
-    }
-
-    if (best) {
-        Thing* p_owner;
-        p_owner = TO_THING(combo_histories[best].Owner);
-        p_owner->Genus.Person->ComboHistory = 0;
-        p_person->Genus.Person->ComboHistory = best;
-        combo_histories[best].Owner = THING_NUMBER(p_person);
-        combo_histories[best].Index = 0;
-        combo_histories[best].Count = 0;
-    }
-    return (best);
-}
-
-SLONG get_block_history(Thing* p_person)
-{
-    UWORD c0;
-    SLONG oldest = 0, best = 0;
-    for (c0 = 1; c0 < MAX_HISTORY; c0++) {
-        SLONG ticks;
-
-        ticks = ((UWORD)GAME_TURN) - block_histories[c0].LastUsed;
-
-        if (ticks > oldest) {
-            oldest = ticks;
-            best = c0;
-        }
-        if (block_histories[c0].Owner == 0) {
-            p_person->Genus.Person->BlockHistory = c0;
-            block_histories[c0].Owner = THING_NUMBER(p_person);
-            block_histories[c0].Index = 0;
-            block_histories[c0].Count = 0;
-
-            return (c0);
-        }
-    }
-
-    if (best) {
-        Thing* p_owner;
-        p_owner = TO_THING(block_histories[best].Owner);
-
-        p_owner->Genus.Person->BlockHistory = 0;
-        p_person->Genus.Person->BlockHistory = best;
-
-        block_histories[best].Owner = THING_NUMBER(p_person);
-        block_histories[best].Index = 0;
-        block_histories[best].Count = 0;
-    }
-    return (best);
-}
-#endif
 
 // claude-ai: find_possible_combat_target — sphere-query for people near (x,y,z), test each for a hit.
 // claude-ai: Radius 0x280 (map units). Returns sum of (Damage+5) for all people successfully hit.
@@ -824,51 +743,6 @@ SLONG find_best_grapple(Thing* p_person)
         return (0);
 }
 
-#ifdef UNUSED
-void set_combo_history(SLONG history, SLONG power, SLONG index)
-{
-    SLONG pos;
-    pos = combo_histories[history].Index;
-
-    combo_histories[history].Power[pos] = power;
-    combo_histories[history].Moves[pos] = index;
-    combo_histories[history].Times[pos] = (UWORD)GAME_TURN;
-    combo_histories[history].Index = (++pos) % MAX_MOVES;
-    if (combo_histories[history].Count < MAX_MOVES)
-        combo_histories[history].Count++;
-    combo_histories[history].LastUsed = (UWORD)GAME_TURN;
-}
-
-void set_combo_history_result(Thing* p_person, SLONG res)
-{
-    SLONG pos;
-    SLONG history;
-
-    history = p_person->Genus.Person->ComboHistory;
-
-    pos = combo_histories[history].Index;
-    pos--;
-    if (pos < 0)
-        pos = MAX_MOVES - 1;
-
-    combo_histories[history].Result[pos] = res;
-}
-
-void set_block_history_result(UBYTE history, SLONG perp, SLONG res, SLONG height)
-{
-    SLONG pos;
-    pos = block_histories[history].Index;
-
-    block_histories[history].Attack[pos] = height;
-    block_histories[history].Times[pos] = (UWORD)GAME_TURN;
-    block_histories[history].Perp[pos] = (UWORD)perp;
-    block_histories[history].Flags[pos] = res;
-    block_histories[history].Index = (++pos) % MAX_MOVES;
-    if (block_histories[history].Count < MAX_MOVES)
-        block_histories[history].Count++;
-    block_histories[history].LastUsed = (UWORD)GAME_TURN;
-}
-#endif
 /*
 void	set_block_history(SLONG history,SLONG attack,SLONG perp)
 {
@@ -1035,139 +909,6 @@ SLONG should_i_block(Thing* p_person, Thing* p_agressor, SLONG anim)
         return (0);
 }
 
-#ifdef UNUSED
-void calc_combo_power(Thing* p_person)
-{
-    SLONG history, pos;
-    SLONG count, moves = 0;
-    history = p_person->Genus.Person->ComboHistory;
-    pos = combo_histories[history].Index;
-    pos--;
-    count = combo_histories[history].Count;
-    while (count) {
-        if (pos < 0)
-            pos = MAX_MOVES - 1;
-
-        if ((UWORD)GAME_TURN - combo_histories[history].Times[pos] > 70)
-            break;
-        if (combo_histories[history].Result[pos] == 1) {
-            moves++;
-        } else
-            moves--;
-
-        pos--;
-        count--;
-    }
-    if (moves < 0)
-        moves = 0;
-    p_person->Genus.Person->Power = moves;
-}
-
-SLONG find_best_punch(Thing* p_person, ULONG flag)
-{
-    SLONG c0 = 0;
-    SLONG best = -1, best_hit = 0, hit;
-    Thing *p_target = 0, *best_target = 0;
-    SLONG power, best_power;
-    SLONG history;
-
-    calc_combo_power(p_person);
-
-    power = p_person->Genus.Person->Power;
-    history = p_person->Genus.Person->ComboHistory;
-    if (!history)
-        history = get_history(p_person);
-
-    power >>= 1;
-    best_power = power;
-    while (power >= 0) {
-        c0 = 0;
-        if (best_power == 0 && punches[power][0])
-            best_power = power;
-
-        while (punches[power][c0]) {
-            hit = find_hit_value(p_person, punches[power][c0], &p_target);
-            if (hit > best_hit) {
-                best = c0;
-                best_hit = hit;
-                best_target = p_target;
-            }
-            c0++;
-        }
-        if (best >= 0)
-            break;
-        power--;
-    }
-
-    if (best >= 0) {
-        extern SLONG set_face_thing(Thing * p_person, Thing * p_target);
-        if (best_target)
-            set_face_thing(p_person, best_target);
-        set_combo_history(history, power, best);
-        ASSERT(punches[power][best]);
-        return (punches[power][best]);
-    } else {
-        if (flag & FIND_BEST_USE_DEFAULT) {
-            ASSERT(punches[best_power][0]);
-            return (punches[best_power][0]);
-        } else {
-            return (0);
-        }
-    }
-}
-
-SLONG find_best_kick(Thing* p_person, ULONG flag)
-{
-    SLONG c0 = 0;
-    SLONG best = -1, best_hit = -1, hit;
-    Thing* p_target;
-    SLONG power, best_power = 0;
-    SLONG history;
-
-    calc_combo_power(p_person);
-    power = p_person->Genus.Person->Power;
-    history = p_person->Genus.Person->ComboHistory;
-    if (!history)
-        history = get_history(p_person);
-
-    power >>= 1;
-    while (power >= 0) {
-        c0 = 0;
-        if (best_power == 0 && punches[power][0])
-            best_power = power;
-
-        while (kicks[power][c0]) {
-            hit = find_hit_value(p_person, kicks[power][c0], &p_target);
-            if (hit > best_hit) {
-                best = c0;
-                best_hit = hit;
-            }
-
-            c0++;
-        }
-        if (best >= 0)
-            break;
-
-        power--;
-    }
-
-    if (best >= 0) {
-
-        set_combo_history(history, power, best);
-        return (kicks[power][best]);
-    } else {
-        //
-        // Did not find a connecting kick.
-        //
-
-        if (flag & FIND_BEST_USE_DEFAULT) {
-            return kicks[best_power][0];
-        } else {
-            return NULL;
-        }
-    }
-}
-#endif
 
 void show_fight_range(Thing* p_thing)
 {
@@ -2233,22 +1974,8 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
         anim = take_hit[height + behind * 3][0];
         flag = take_hit[height + behind * 3][1];
 
-#ifdef UNUSED
-        history = p_thing->Genus.Person->BlockHistory;
-        if (history == 0)
-            history = get_block_history(p_thing);
         if (block && height != 0) {
-            set_block_history_result(history, THING_NUMBER(p_aggressor), 1, height); // 1 is blocked
-
-        } else
-#endif
-
-            if (block && height != 0) {
         } else {
-
-#ifdef UNUSED
-            set_block_history_result(history, THING_NUMBER(p_aggressor), 0, height); // 0 is not blocked
-#endif
 
             //			if(hit_anim==ANIM_KICK_RIGHT || hit_anim==ANIM_KICK_LEFT || hit_anim==ANIM_KICK_BEHIND || hit_anim==ANIM_PUNCH_COMBO3 || hit_anim==ANIM_KICK_COMBO3|| hit_anim==ANIM_KICK_COMBO3b|| hit_anim==ANIM_PUNCH_COMBO3b)
             if (ko) {
