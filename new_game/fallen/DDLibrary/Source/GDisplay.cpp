@@ -199,7 +199,7 @@ void InitBackImage(CBYTE* name)
 
     if (image_mem) {
         image_file = FileOpen(fname);
-        if (image_file > 0) {
+        if (image_file != nullptr) {
             FileSeek(image_file, SEEK_MODE_BEGINNING, 18);
             image = image_mem + (640 * 479 * 3);
             for (height = 480; height; height--, image -= (640 * 3)) {

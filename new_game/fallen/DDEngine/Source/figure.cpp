@@ -176,7 +176,7 @@ void FIGURE_draw_prim_tween_person_only(
 // Useful.
 #define ALIGNED_STATIC_ARRAY(def, name, number, mytype, align)                        \
     static char c##name##mytype##align##StaticArray[align + number * sizeof(mytype)]; \
-    def##name = (mytype*)(((DWORD)c##name##mytype##align##StaticArray + (align - 1)) & ~(align - 1))
+    def name = (mytype*)(((DWORD)c##name##mytype##align##StaticArray + (align - 1)) & ~(align - 1))
 
 ALIGNED_STATIC_ARRAY(static D3DCOLOR*, MM_pcFadeTable, 128, D3DCOLOR, 4);
 ALIGNED_STATIC_ARRAY(static D3DCOLOR*, MM_pcFadeTableTint, 128, D3DCOLOR, 4);

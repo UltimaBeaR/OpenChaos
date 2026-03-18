@@ -632,7 +632,7 @@ RawMenuData raw_menu_data[] = {
     { 0, OT_BUTTON, X_OKAY, 0, FE_NO_REALLY_QUIT },
     { 0, OT_BUTTON, X_CANCEL, 0, FE_BACK },
 
-    { -1, 0, 0, 0 },
+    { (UBYTE)-1, 0, 0, 0 },
 };
 
 CBYTE menu_choice_yesno[20]; // = { "no\0yes" };
@@ -790,7 +790,7 @@ void FRONTEND_scr_img_load_into_screenfull(CBYTE* name, LPDIRECTDRAWSURFACE4* sc
     if (image_data) {
 
         image_file = FileOpen(fname);
-        if (image_file > 0) {
+        if (image_file != nullptr) {
             FileSeek(image_file, SEEK_MODE_BEGINNING, 18);
             image = image_data + (640 * 479 * 3);
             for (height = 480; height; height--, image -= (640 * 3)) {

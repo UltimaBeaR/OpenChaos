@@ -182,7 +182,7 @@ UBYTE InkeyToAscii[] = {
 };
 
 UBYTE InkeyToAsciiShift[] = {
-    /*   0 - 9   */ 0, 0, '!', '"', '�', '$', '%', '^', '&', '*',
+    /*   0 - 9   */ 0, 0, '!', '"', (UBYTE)0xa3, '$', '%', '^', '&', '*',
     /*  10 - 19  */ '(', ')', '_', '+', '\b', '\t', 'Q', 'W', 'E', 'R',
     /*  20 - 29  */ 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0, 0,
     /*  30 - 39  */ 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':',
@@ -367,7 +367,7 @@ void parse_console(CBYTE* str)
                     PolyPage::EnableAlphaSort();
                     CONSOLE_text("Alpha sorting ON");
                 } else {
-                    CONSOLE_text(PolyPage::AlphaSortEnabled() ? "Alpha sorting is ON" : "Alpha sorting is OFF");
+                    CONSOLE_text((CBYTE*)(PolyPage::AlphaSortEnabled() ? "Alpha sorting is ON" : "Alpha sorting is OFF"));
                 }
                 break;
 

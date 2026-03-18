@@ -64,7 +64,7 @@ void LocateCDROM(void)
 
 // Get*Path
 
-static inline char* GetPath(bool on_cd) { return on_cd ? Path : ".\\"; }
+static inline char* GetPath(bool on_cd) { return on_cd ? Path : (char*)".\\"; }
 
 char* GetCDPath(void) { return Path; }
 char* GetTexturePath(void) { return GetPath(TexturesCD); }
