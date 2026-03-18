@@ -61,12 +61,6 @@ extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
 extern void person_normal_move(Thing* p_person);
 UBYTE cheat = 0;
 
-// set this to 0 if it all fucks up (it's about 5 in the morning so quite possibly i made
-// a complete pig's arse of it). it sets whether the front-end 'keyboard config' stuff actually
-// has any effect or not
-#define REMAP_KEYBOARD 1
-
-
 // claude-ai: Аналоговый стик закодирован в старших битах Player::Input.
 // claude-ai: GET_JOYX: биты 18-24 (X-ось), GET_JOYY: биты 25-31 (Y-ось). Результат: -128..+127
 #define GET_JOYX(input) (((input >> 17) & 0xfe) - 128)
@@ -3801,12 +3795,6 @@ ULONG apply_button_input(struct Thing* p_player, struct Thing* p_person, ULONG i
     }
     return (processed | input_used);
 }
-
-//
-// Need a double click to get out of fight mode.
-//
-
-#define MUST_DOUBLE_CLICK_FORWARDS_TO_GET_OUT_OF_FIGHT_MODE
 
 //
 // User input while fighting. //_combat_

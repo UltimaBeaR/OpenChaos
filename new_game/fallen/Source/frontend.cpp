@@ -9,14 +9,6 @@
 // #define BIN_STUFF_PLEASE_BOB I have been defined
 // #define BIN_BACKGROUNDS_PLEASE_BOB I have been defined
 
-// On a PC, you need an exit. On a console, you don't.
-#define WANT_AN_EXIT_MENU_ITEM defined
-// Keyboard not currently supported on DC - might be in future.
-#define WANT_A_KEYBOARD_ITEM define
-// On DC, the "Start" button is not allowed to be remapped.
-#define WANT_A_START_JOYSTICK_ITEM defined
-
-
 #include "demo.h"
 #include "DDLib.h"
 #include "frontend.h"
@@ -60,8 +52,6 @@ void FRONTEND_display(void);
 // DEFINES
 //
 
-#define ALLOW_JOYPAD_IN_FRONTEND
-
 // font sizes, where 256 is "normal".
 #define BIG_FONT_SCALE (192)
 #define BIG_FONT_SCALE_FRENCH (176);
@@ -77,10 +67,6 @@ void FRONTEND_display(void);
 //  see below...
 
 #include "startscr.h"
-
-// just know someone's gonna want me to take it back out again soooo.....
-//    ^^^^ see, i was right
-#define ANNOYING_HACK_FOR_SIMON 1
 
 #define FE_MAINMENU (1)
 #define FE_MAPSCREEN (2)
@@ -1943,7 +1929,7 @@ CBYTE* FRONTEND_MissionFilename(CBYTE* script, UBYTE i)
 // claude-ai: Вызывается при изменении complete_point (завершение миссии).
 // claude-ai: Шаг 1: обновляет menu_theme (0-3) по complete_point: <8→0, <16→1, <24→2, ≥24→3
 // claude-ai:   Смена темы = смена фоновых изображений меню и kibble_init().
-// claude-ai: Шаг 2 (ANNOYING_HACK_FOR_SIMON, активен!): первый проход ищет ID специальных миссий
+// claude-ai: Шаг 2: первый проход ищет ID специальных миссий
 // claude-ai:   (ftutor1, assault1, testdrive1a → required для разблокировки police1).
 // claude-ai: Шаг 3: главный проход по всем миссиям скрипта, для каждой:
 // claude-ai:   flag = mission_hierarchy[ObjID]|1 (exists);

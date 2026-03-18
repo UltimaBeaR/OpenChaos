@@ -2,12 +2,6 @@
 #define FALLEN_HEADERS_LIGHT_H
 
 //
-// Do we want coloured lights?
-//
-
-#define LIGHT_COLOURED 1
-
-//
 // A structure that describes a light.
 //
 
@@ -30,8 +24,6 @@ typedef struct
 // A light colour.
 //
 
-#if LIGHT_COLOURED
-
 typedef struct
 {
     UBYTE red;
@@ -39,12 +31,6 @@ typedef struct
     UBYTE blue;
 
 } LIGHT_Colour;
-
-#else
-
-typedef UBYTE LIGHT_Colour;
-
-#endif
 
 //
 // UBYTE values of lights go from 0 to LIGHT_MAX_BRIGHT, all values above
@@ -194,7 +180,6 @@ extern SLONG LIGHT_point_colour_upto;
 // Returns a D3D colour from a LIGHT_Colour.
 //
 
-#if LIGHT_COLOURED
 inline void LIGHT_get_d3d_colour(LIGHT_Colour col, ULONG* colour, ULONG* specular)
 {
     SLONG red = col.red;
@@ -234,33 +219,5 @@ inline void LIGHT_get_d3d_colour(LIGHT_Colour col, ULONG* colour, ULONG* specula
     *colour = (red << 16) | (green << 8) | (blue << 0);
     *specular = (wred << 16) | (wgreen << 8) | (wblue << 0);
 }
-
-#else
-inline void LIGHT_get_d3d_colour(LIGHT_Colour col, ULONG* colour, ULONG* specular)
-{
-    SLONG whiteout;
-    SLONG bright;
-
-    bright = col * (256 / LIGHT_MAX_BRIGHT);
-
-    //
-    // Once we go over fully-bright, we get into saturated colour.
-    //
-
-    if (bright > 255) {
-        whiteout = bright - 255 >> 1;
-        bright = 255;
-
-        if (whiteout > 255) {
-            whiteout = 255;
-        }
-    } else {
-        whiteout = 0;
-    }
-
-    *colour = (bright << 0) | (bright << 8) | (bright << 16);
-    *specular = (whiteout << 0) | (whiteout << 8) | (whiteout << 16);
-}
-#endif
 
 #endif // FALLEN_HEADERS_LIGHT_H

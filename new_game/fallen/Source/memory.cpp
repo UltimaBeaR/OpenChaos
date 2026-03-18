@@ -28,11 +28,6 @@
 
 
 
-#define NEW_LEVELS 1
-
-// #define	NEW_LEVELS	1
-
-
 extern ULONG level_index;
 /*
 

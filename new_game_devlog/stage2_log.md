@@ -1040,53 +1040,36 @@ Exit code 19 — норма.
 
 ---
 
-## Справка: Флаги которые ОСТАВЛЕНЫ (решено не трогать) — 2026-03-18
+## Справка: Флаги 2.7 — остаток для обработки (актуально после итерации 35)
 
-### Всегда активны (определены in-file, живой код)
+*(Полная таблица статусов — в разделе "Статус пункта 2.7" в конце файла)*
 
-| Флаг | Где определён | Что делает |
-|------|--------------|-----------|
-| `NO_SERVER` | `Headers/noserver.h` | Всегда 1. Отключает сетевой сервер-режим. Убирает ряд условных путей в texture.cpp, font2d.cpp, supermap.cpp и др. |
-| `ULTRA_COMPRESSED_ANIMATIONS` | `Headers/anim.h` | Всегда активен. Определяет формат хранения анимационных данных (сжатые vs полные). Критичен для совместимости с ресурсами. |
-| `NEW_LEVELS` | `Source/memory.cpp` | Всегда 1. Контролирует формат загрузки уровней в memory.cpp. Нужен для работы с финальными ресурсами. |
-| `REMAP_KEYBOARD` | `Source/interfac.cpp` | Всегда 1. Включает поддержку переназначения клавиш. |
-| `MARKS_MACHINE` | `Source/fc.cpp` | Всегда определён. Высота камеры 0x16000 (vs 0x1a000). |
-| `WANT_AN_EXIT_MENU_ITEM` | `Source/frontend.cpp` | PC-специфичный пункт "Exit" в меню. |
-| `WANT_A_KEYBOARD_ITEM` | `Source/frontend.cpp` | Пункт настройки клавиатуры в меню. |
-| `WANT_A_START_JOYSTICK_ITEM` | `Source/frontend.cpp` | Пункт джойстика в меню. |
-| `ANNOYING_HACK_FOR_SIMON` | `Source/frontend.cpp` | Хак в меню (всегда включён). |
-| `ALLOW_JOYPAD_IN_FRONTEND` | `Source/frontend.cpp` | Джойпад в меню (всегда включён). |
-| `MUST_DOUBLE_CLICK_FORWARDS_TO_GET_OUT_OF_FIGHT_MODE` | `Source/interfac.cpp` | Поведение выхода из режима драки. |
-| `FACETINFO` | `DDEngine/Source/facet.cpp` | Сбор debug-инфо по фасетам (массивы FACETINFO). Всегда включён. |
-| `TOMS_TEST_FIXUP_CODE` | `DDEngine/Source/aeng.cpp` | Fixup-код для рендера пола (всегда включён). |
-| `MESH_SHOW_MOUSE_POINT` | `DDEngine/Source/mesh.cpp` | Визуализация точки курсора на mesh (всегда включена). |
-| `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` | `DDEngine/Source/superfacet.cpp` | Debug-инфо superfacet (всегда включено). |
+### Ещё не обработаны (всегда активны → раскрыть)
 
-### Намеренно оставлены для разработки
+| Флаг | Где определён | Масштаб |
+|------|--------------|---------|
+| `USE_TOMS_ENGINE_PLEASE_BOB` | `DDEngine/Headers/aeng.h` (= 1) | figure.cpp, poly.cpp — много блоков |
+| `WE_NEED_POLYBUFFERS_PLEASE_BOB` | `DDEngine/Headers/polypage.h` (= 1) | poly.cpp, polypage.cpp, polypage.h |
+| `USE_D3D_VBUF` | `DDEngine/Headers/vertexbuffer.h` (= 1) | vertexbuffer.h, poly.cpp, polypage.cpp |
+| `NO_SERVER` | `Headers/noserver.h` (= 1) | font2d.cpp, menufont.cpp, texture.cpp, io.cpp, supermap.cpp |
+| `ULTRA_COMPRESSED_ANIMATIONS` | `Headers/anim.h` | проверить наличие #ifdef в коде |
 
-| Флаг | Причина |
-|------|---------|
-| `FACET_REMOVAL_TEST` | Auto-включается в `_DEBUG`. Полезен при разработке рендерера. |
-| `HIGH_REZ_PEOPLE_PLEASE_BOB` | Отложен — требует отдельного глубокого анализа (4x вершин у персонажей, cheat-код `0x10f1a7e`). |
+### Требует решения перед обработкой
 
-### Требуют разбирательства (пока не трогать)
+**`TEX_EMBED`** — определён в vcxproj (оба конфига), но закомментирован в polypage.h (`// #define TEX_EMBED`).
+Сейчас: vcxproj определяет → `#ifdef TEX_EMBED` ветки активны. ~40+ вхождений в poly.cpp, aeng.cpp, fastprim.cpp, figure.cpp.
+Перед обработкой: убедиться что игра работает нормально с текущим состоянием. Затем раскрыть как `defined`.
 
-**`TEX_EMBED` (63 вхождения)**
-- Закомментирован в polypage.h (`// #define TEX_EMBED`). Сейчас **НЕ** определён → активна ветка без TEX_EMBED.
-- При включении: текстуры встраиваются напрямую в вершинные буферы (embedded mode). Без него — отдельные texture stage.
-- Затрагивает: poly.cpp (~30 мест), aeng.cpp (~10), fastprim.cpp, figure.cpp, polypage.cpp, texture.cpp, fastprim.cpp.
-- Нельзя просто удалить `-UTEX_EMBED` ветки: нужно понять какая ветка правильная для PC. Требует анализа KB (DDEngine/rendering subsystem).
+**`NEW_FLOOR`** — закомментирован в aeng.cpp (`// #define NEW_FLOOR defined`). Сейчас **НЕ** определён → активна ветка `#ifndef NEW_FLOOR`.
+Экспериментальный рендер пола, не вошёл в финал. → Удалить `#ifdef NEW_FLOOR` ветки.
 
-**`FINAL` (20 вхождений)**
-- Нигде не определён. `#ifndef FINAL` ветки АКТИВНЫ (debug-проверки всегда работают).
-- Встречается в: crinkle.cpp (1), poly.cpp (1), figure.cpp (1).
-- Похоже на "финальный релизный билд" флаг (без assert'ов и debug-кода). Но в финальной игре он не определён судя по коду.
-- Вопрос: нужен ли нам этот флаг в будущем (для Этапа 10)?
+**`HIGH_REZ_PEOPLE_PLEASE_BOB`** — требует отдельного анализа (4x вершин у персонажей, cheat-код `0x10f1a7e`).
 
-**`NEW_FLOOR` (8 вхождений)**
-- Закомментирован в aeng.cpp (`// #define NEW_FLOOR defined`). Сейчас **НЕ** определён → активна ветка `#ifndef NEW_FLOOR`.
-- Альтернативный алгоритм рендера пола в aeng.cpp. Экспериментальный, не вошёл в финал.
-- Требует анализа: может пригодиться в будущем или является мёртвым экспериментом.
+### Никогда не активны → удалить (не обработаны)
+
+`DISABLE_CRINKLES` (= 0 на PC), `CALC_CAR_CRUMPLE` (= 0), `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB` (= 0 на PC),
+`POO`, `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB`, `MESH_SHOW_MOUSE_POINT`,
+no-op макросы (`TRACE`, `LogText`, `DebugText`, `ERROR_MSG`, `ASSERT`), `VERIFY(x)` → просто `x`
 
 ---
 
@@ -1224,3 +1207,76 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 - `#define VERIFY_PLAYBACK 0` (orphaned, нигде не использовался)
 
 **Результат:** 0 ошибок. Debug: 129 предупреждений, Release: 293 предупреждения.
+
+---
+
+## Итерация 35 — Пункт 2.7: малые флаги (2026-03-18)
+
+Первая итерация пункта 2.7 — полное устранение условной компиляции.
+
+### A. Удалены мёртвые `#define` без `#ifdef` проверок
+
+- `REMAP_KEYBOARD = 1` (interfac.cpp) — нигде не использовался через `#ifdef`
+- `NEW_LEVELS = 1` + закомментированная копия (memory.cpp)
+- `WANT_AN_EXIT_MENU_ITEM`, `WANT_A_KEYBOARD_ITEM`, `WANT_A_START_JOYSTICK_ITEM` (frontend.cpp) — нигде нет `#ifdef` проверок (убраны ранее при очистке PSX/DC кода)
+- `ALLOW_JOYPAD_IN_FRONTEND` (frontend.cpp)
+- `ANNOYING_HACK_FOR_SIMON = 1` (frontend.cpp) — только комментарий ссылался; комментарий обновлён
+- `MF_DD2` — уже отсутствовал в new_game (удалён ранее)
+
+### B. Раскрытие in-source флагов (всегда активны, убраны #ifdef/#endif обёртки)
+
+- `LIGHT_COLOURED = 1` (light.h): убраны 2 блока с greyscale альтернативой; остался RGB путь
+- `MARKS_MACHINE` (fc.cpp): удалён auto-define; раскрыт cam_height=0x16000; удалён #ifndef блок с закомментированным кодом
+- `MUST_DOUBLE_CLICK_FORWARDS_TO_GET_OUT_OF_FIGHT_MODE` (interfac.cpp): `#define` удалён; сам `#ifdef` был внутри `/* */` блока
+- `DRAW_WHOLE_PERSON_AT_ONCE = 1` (figure.cpp): обработан через coan `-DDRAW_WHOLE_PERSON_AT_ONCE=1 --no-transients`; 3 блока раскрыты
+- `VERSION_D3D` (game.h): `#ifdef VERSION_D3D / #include "aeng.h" / #endif` → просто `#include "aeng.h"`
+
+**Результат:** 0 ошибок. Debug: 129 предупреждений, Release: 293 предупреждения.
+
+---
+
+## Статус пункта 2.7 — Устранение условной компиляции
+
+Легенда: ✅ раскрыт/удалён | ⬜ не обработан | ❓ требует анализа/решения | ➖ уже отсутствовал
+
+### Всегда активны → раскрыть (#ifdef убрать, код оставить)
+
+| Флаг | Статус | Итерация / примечание |
+|------|--------|-----------------------|
+| `VERSION_D3D` | ✅ | итерация 35 |
+| `LIGHT_COLOURED` | ✅ | итерация 35 |
+| `MARKS_MACHINE` | ✅ | итерация 35 |
+| `DRAW_WHOLE_PERSON_AT_ONCE` | ✅ | итерация 35 |
+| `MUST_DOUBLE_CLICK_FORWARDS_TO_GET_OUT_OF_FIGHT_MODE` | ✅ | итерация 35 (был в `/* */`) |
+| `REMAP_KEYBOARD` | ✅ | итерация 35 (dead define — нет #ifdef) |
+| `NEW_LEVELS` | ✅ | итерация 35 (dead define — нет #ifdef) |
+| `WANT_AN_EXIT_MENU_ITEM` / `WANT_A_KEYBOARD_ITEM` / `WANT_A_START_JOYSTICK_ITEM` | ✅ | итерация 35 (dead defines) |
+| `ALLOW_JOYPAD_IN_FRONTEND` / `ANNOYING_HACK_FOR_SIMON` | ✅ | итерация 35 (dead defines) |
+| `MF_DD2` | ➖ | уже отсутствовал |
+| `_MF_WINDOWS` / `WIN32` / `_WIN32` / `_WINDOWS` | ➖ | уже нет #ifdef в game-коде |
+| `USE_TOMS_ENGINE_PLEASE_BOB` | ⬜ | `= 1` в aeng.h; много блоков в figure.cpp, poly.cpp |
+| `WE_NEED_POLYBUFFERS_PLEASE_BOB` | ⬜ | `= 1` в polypage.h; poly.cpp, polypage.cpp, polypage.h |
+| `USE_D3D_VBUF` | ⬜ | `= 1` в vertexbuffer.h; vertexbuffer.h, poly.cpp, polypage.cpp |
+| `NO_SERVER` | ⬜ | `= 1` в noserver.h; font2d.cpp, menufont.cpp, texture.cpp, io.cpp, supermap.cpp |
+| `ULTRA_COMPRESSED_ANIMATIONS` | ⬜ | нужно проверить есть ли #ifdef в коде |
+
+### Никогда не активны → удалить весь блок
+
+| Флаг | Статус | Примечание |
+|------|--------|-----------|
+| `POO` | ⬜ | нигде не определён; нужно grep-проверить наличие |
+| `DISABLE_CRINKLES` | ⬜ | `= 0` на PC; в Crinkle.cpp |
+| `CALC_CAR_CRUMPLE` | ⬜ | `= 0`; в mesh.cpp |
+| `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB` | ⬜ | `= 0` на PC |
+| `HIGH_REZ_PEOPLE_PLEASE_BOB` | ⬜ | требует анализа (4x вершин, cheat 0x10f1a7e) |
+| `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` | ⬜ | был активен — проверить после iter 33/34 |
+| `MESH_SHOW_MOUSE_POINT` | ⬜ | был под `#ifndef NDEBUG` — проверить после iter 33 |
+| `NEW_FLOOR` | ❓ | закомментирован в aeng.cpp; экспериментальный рендер пола |
+| No-op макросы (`TRACE`, `LogText`, `DebugText`, `ERROR_MSG`, `ASSERT`) | ⬜ | удалить определения и все вызовы |
+| `VERIFY(x)` | ⬜ | раскрыть в просто `x` везде |
+
+### Требуют решения перед обработкой
+
+| Флаг | Проблема |
+|------|---------|
+| `TEX_EMBED` | В vcxproj (`#define TEX_EMBED`), но закомментирован в polypage.h. Нужно выяснить: какая ветка реально активна сейчас? Если vcxproj определяет — это `#ifdef TEX_EMBED` ветки. Много блоков (~40+ в poly.cpp, aeng.cpp, fastprim.cpp, figure.cpp). |

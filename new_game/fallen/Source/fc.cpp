@@ -26,14 +26,6 @@ extern UBYTE GAME_cut_scene;
 extern SLONG analogue;
 
 
-//
-// #define this to stop the camera going lower when you run
-//
-
-#ifndef MARKS_MACHINE
-#define MARKS_MACHINE
-#endif
-
 // claude-ai: CAM_MORE_IN = 0.75F — PC камера на 25% ближе к персонажу чем PSX. Применяется к cam_dist и смещениям в FC_init/FC_change_camera_type.
 #define CAM_MORE_IN (0.75F)
 
@@ -167,11 +159,7 @@ void FC_init(void)
         FC_cam[i].lens = 0x24000;
         FC_cam[i].cam_dist = 0x280 * CAM_MORE_IN;
 
-#ifdef MARKS_MACHINE
         FC_cam[i].cam_height = 0x16000;
-#else
-        FC_cam[i].cam_height = 0x1a000;
-#endif
     }
 
     GAME_cut_scene = 0;
@@ -264,15 +252,6 @@ SLONG FC_focus_above(FC_Cam* fc)
     SLONG above;
     SLONG lower = 0;
 
-#ifndef MARKS_MACHINE
-    /*
-            if (fc->focus->Class == CLASS_PERSON && (fc->focus->SubState==SUB_STATE_RUNNING ||fc->focus->SubState==SUB_STATE_RIDING_BIKE))
-            {
-                    lower=0x10000;
-            }
-    */
-
-#endif
 
     if (fc->focus->Class == CLASS_PERSON && person_has_gun_out(fc->focus)) {
         //

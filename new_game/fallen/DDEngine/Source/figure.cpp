@@ -4393,18 +4393,13 @@ ULONG leg_col;
 
 // volatile int m_iRecurseLevelDebugging;
 
-// Set to 1 for the all-in-one method of drawing things.
-#define DRAW_WHOLE_PERSON_AT_ONCE 1
-
 #define MAX_NUM_BODY_PARTS_AT_ONCE 20
 
-#if DRAW_WHOLE_PERSON_AT_ONCE
 // Static arrays of the things we need for each part of the body.
 ALIGNED_STATIC_ARRAY(static D3DMATRIX*, MMBodyParts_pMatrix, MAX_NUM_BODY_PARTS_AT_ONCE, D3DMATRIX, 32);
 ALIGNED_STATIC_ARRAY(static float*, MMBodyParts_pNormal, MAX_NUM_BODY_PARTS_AT_ONCE * 4, float, 8);
 
 void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person);
-#endif
 
 // claude-ai: FIGURE_draw_hierarchical_prim_recurse — optimised 15-body-part character renderer.
 // claude-ai: DRAW_WHOLE_PERSON_AT_ONCE=1 path: gathers all body-part transforms first
@@ -4419,7 +4414,6 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person);
 // claude-ai: NOT portable — relies on D3D MultiMatrix extension (DrawIndPrimMM).
 // claude-ai: PORT: One glDrawElements call per body part (15 calls/character) with a
 // claude-ai:       per-call glUniformMatrix4fv for the bone transform.
-#if DRAW_WHOLE_PERSON_AT_ONCE
 void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 {
     SLONG recurse_level = 0;
@@ -4875,19 +4869,13 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     ASSERT(MM_bLightTableAlreadySetUp);
 
 
-#endif
 
     // Person drawn!
 
 }
 
 // The slower version that can cull individual chunks.
-#if DRAW_WHOLE_PERSON_AT_ONCE
 void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
-#else
-// There can be only one...
-void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
-#endif
 {
     SLONG recurse_level = 0;
     SLONG dx, dy, dz;
