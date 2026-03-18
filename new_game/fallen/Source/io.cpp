@@ -366,8 +366,6 @@ SLONG load_anim_prim_object(SLONG prim)
     //	return(TRUE);
 }
 
-extern SLONG save_psx;
-
 // claude-ai: load_needed_anim_prims() — post-map-load pass to ensure all anim prims are loaded.
 // claude-ai: Iterates all Things; for each CLASS_ANIM_PRIM, calls load_anim_prim_object(Index).
 // claude-ai: Also hard-loads balrog (3) and bane (4) if their level flags are set.
@@ -392,20 +390,18 @@ void load_needed_anim_prims()
     // We always need the bat, gargoyle and balrog and bane (in the final levels anyway!)
     //
 
-    if (!save_psx) {
-        // load_anim_prim_object(1);	  //bat
-        // load_anim_prim_object(2); //gargoyle		// Never used!
+    // load_anim_prim_object(1);	  //bat
+    // load_anim_prim_object(2); //gargoyle		// Never used!
 
-        extern UBYTE this_level_has_the_balrog;
-        extern UBYTE this_level_has_bane;
+    extern UBYTE this_level_has_the_balrog;
+    extern UBYTE this_level_has_bane;
 
-        if (this_level_has_the_balrog) {
-            load_anim_prim_object(3); // balrog
-        }
+    if (this_level_has_the_balrog) {
+        load_anim_prim_object(3); // balrog
+    }
 
-        if (this_level_has_bane) {
-            load_anim_prim_object(4); // bane
-        }
+    if (this_level_has_bane) {
+        load_anim_prim_object(4); // bane
     }
 
     //	load_anim_prim_object(3); //balrog
@@ -424,8 +420,6 @@ void load_level_anim_prims(void)
             switch (ew->ed.subtype) {
 
             case EWAY_SUBTYPE_ANIMAL_BAT:
-                if (save_psx)
-                    continue;
                 anim = 1;
                 break;
             case EWAY_SUBTYPE_ANIMAL_GARGOYLE:
@@ -491,12 +485,6 @@ void load_game_map(CBYTE* name)
 
     sprintf(fname, "%s%s", DATA_DIR, name);
 
-    if (save_psx) {
-        fname[strlen(fname) - 3] = 'p';
-        if (!FileExists(fname))
-            fname[strlen(fname) - 3] = 'i';
-    }
-
     MFFileHandle handle = FILE_OPEN_ERROR;
     handle = FileOpen(fname);
     if (handle != FILE_OPEN_ERROR) {
@@ -511,22 +499,7 @@ void load_game_map(CBYTE* name)
 
         extern UWORD WARE_roof_tex[PAP_SIZE_HI][PAP_SIZE_HI];
 
-        if (save_psx && save_type >= 26) {
-            ULONG check;
-
-            //
-            // PSX has the remaped rooftop textures stuck in the pam
-            //
-
-            FileRead(handle, (UBYTE*)&check, 4);
-            ASSERT(check == sizeof(UWORD) * PAP_SIZE_HI * PAP_SIZE_HI);
-
-            FileRead(handle, WARE_roof_tex, sizeof(UWORD) * PAP_SIZE_HI * PAP_SIZE_HI);
-            FileRead(handle, (UBYTE*)&check, 4);
-            ASSERT(check == 666);
-        } else {
-            memset((UBYTE*)WARE_roof_tex, 0, sizeof(UWORD) * PAP_SIZE_HI * PAP_SIZE_HI);
-        }
+        memset((UBYTE*)WARE_roof_tex, 0, sizeof(UWORD) * PAP_SIZE_HI * PAP_SIZE_HI);
 
         //
         // Clear the mapwho data in the low-res map.

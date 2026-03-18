@@ -18,7 +18,6 @@
 // #include "prim.h"
 
 extern BOOL allow_debug_keys;
-extern SLONG save_psx;
 
 WMOVE_Face* WMOVE_face; //[WMOVE_MAX_FACES];
 SLONG WMOVE_face_upto;
@@ -386,21 +385,6 @@ void WMOVE_create(Thing* p_thing)
     WMOVE_Face* wf;
 
 
-//	#ifdef PSX
-    if (save_psx)
-        if (p_thing->Class == CLASS_VEHICLE) {
-            //
-            // The PSX is too slow for our code to let you climb on cars.
-            //
-            // Hacked to allow the creation of walkable faces on Vans so that they
-            // can be climbed upon to allow easier access to places (just like on
-            // the PC)
-            //
-            if ((p_thing->Genus.Vehicle->Type != VEH_TYPE_VAN) && (p_thing->Genus.Vehicle->Type != VEH_TYPE_WILDCATVAN) && (p_thing->Genus.Vehicle->Type != VEH_TYPE_AMBULANCE))
-                return;
-        }
-
-    //	#endif
 
     //
     // How many wmove faces does this thing have?

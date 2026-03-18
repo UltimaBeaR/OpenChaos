@@ -247,9 +247,6 @@ void WARE_init()
     //
     // Load the rooftop textures from the mapfile.
     //
-    extern SLONG save_psx;
-
-    if (!save_psx) // psx has them allready loaded in load_game_map()
     {
         CBYTE* ch;
 

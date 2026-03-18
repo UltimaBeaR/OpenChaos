@@ -129,8 +129,6 @@ SAVE INGAME
 
 // poostruct GameKeyFrameElement	gamekeyframeelements[MAX_NUMBER_OF_ELEMENTS];
 
-SLONG build_psx = 0; // save_psx
-extern SLONG save_psx;
 
 // claude-ai: NROPER_ANIM_* constants — indices into game_chunk[ANIM_TYPE_ROPER].AnimList[]
 // claude-ai: for the "new Roper" animation set (roper.all, PC-only non-PSX path).
@@ -378,15 +376,6 @@ void SetCMatrixComp(GameKeyFrameElementComp* e, CMatrix33* cm)
     }
 }
 
-void convert_to_psx_gke(GameKeyFrameElementComp* to, GameKeyFrameElement* from)
-{
-    to->OffsetX = (from->OffsetX); //&0xff;
-    to->OffsetY = (from->OffsetY); //&0xff;
-    to->OffsetZ = (from->OffsetZ); //&0xff;
-
-    SetCMatrixComp(to, &from->CMatrix);
-}
-
 //************************************************************************************************
 
 void convert_anim(Anim* key_list, GameKeyFrameChunk* p_chunk, KeyFrameChunk* the_chunk);
@@ -501,23 +490,11 @@ void setup_people_anims(void)
     //	load_anim_system(&game_chunk[1],"police1.all");
     //	if(!build_psx)
 
-    if (save_psx) {
-        if (roper_pickup) {
-            //			ASSERT(0);
-            load_anim_system(&game_chunk[ANIM_TYPE_ROPER], "roper_up.all");
-        } else
-            load_anim_system(&game_chunk[ANIM_TYPE_ROPER], "psxroper.all");
-    } else {
-        load_anim_system(&game_chunk[ANIM_TYPE_ROPER], "roper.all");
-    }
+    load_anim_system(&game_chunk[ANIM_TYPE_ROPER], "roper.all");
 
-    if (save_psx)
-        load_anim_system(&game_chunk[ANIM_TYPE_CIV], "rthug.all", 2); // rpsxthug.all
-    else
-        load_anim_system(&game_chunk[ANIM_TYPE_CIV], "rthug.all", 2);
+    load_anim_system(&game_chunk[ANIM_TYPE_CIV], "rthug.all", 2);
 
-    if (!save_psx) // || roper_pickup)
-        load_anim_system(&game_chunk[ANIM_TYPE_ROPER2], "roper2.all");
+    load_anim_system(&game_chunk[ANIM_TYPE_ROPER2], "roper2.all");
 
     append_anim_system(&game_chunk[ANIM_TYPE_ROPER], "police1.all", 200, 0);
     append_anim_system(&game_chunk[ANIM_TYPE_CIV], "newciv.all", CIV_M_START, 1);
@@ -525,8 +502,7 @@ void setup_people_anims(void)
 
     extern SLONG playing_combat_tutorial(void);
     extern SLONG playing_level(const CBYTE* name);
-    if (!save_psx)
-        if (playing_combat_tutorial()) {
+    if (playing_combat_tutorial()) {
             game_chunk[ANIM_TYPE_CIV].MultiObject[0] = next_prim_multi_object;
             game_chunk[ANIM_TYPE_CIV].MultiObject[1] = next_prim_multi_object;
             game_chunk[ANIM_TYPE_CIV].MultiObject[2] = next_prim_multi_object;
@@ -752,27 +728,8 @@ void setup_global_anim_array(void)
     // New roper
     //
 
-    if (build_psx) {
-        global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_YOMP];
-        global_anim_array[ANIM_TYPE_ROPER][ANIM_STAND_READY] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_STAND_READY];
-        global_anim_array[ANIM_TYPE_ROPER][ANIM_BREATHE] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_BREATHE];
-
-        global_anim_array[ANIM_TYPE_ROPER][ANIM_TALK_TELL] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_TELL];
-        global_anim_array[ANIM_TYPE_ROPER][ANIM_TALK_LISTEN] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_LISTEN];
-        //		global_anim_array[ANIM_TYPE_ROPER][ANIM_IDLE_SCRATCH1]	    =game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SWIG_FLASK];
-        //	global_anim_array[ANIM_TYPE_ROPER][ANIM_IDLE_SCRATCH2]	    =game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SWIG_FLASK];
-
-        //		global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP_START]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_YOMP_START];
-        global_anim_array[ANIM_TYPE_ROPER][ANIM_CLIMB_UP_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_LOOP];
-        global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_ON_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_START];
-
-    } else
-
-    //	if(!build_psx)
-    {
-        global_anim_array[ANIM_TYPE_ROPER][ANIM_CLIMB_UP_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_LOOP];
-        global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_ON_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_START];
-        if (!save_psx) {
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_CLIMB_UP_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_LOOP];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_ON_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_START];
             global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_YOMP];
             global_anim_array[ANIM_TYPE_ROPER][ANIM_STAND_READY] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_STAND_READY];
             global_anim_array[ANIM_TYPE_ROPER][ANIM_BREATHE] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_BREATHE];
@@ -889,14 +846,12 @@ void setup_global_anim_array(void)
             */
 
             global_anim_array[ANIM_TYPE_ROPER][ANIM_CRAWL] = game_chunk[ANIM_TYPE_ROPER2].AnimList[144];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_DANGLE] = game_chunk[ANIM_TYPE_ROPER2].AnimList[223];
-        }
-        //	global_anim_array[ANIM_TYPE_ROPER][ANIM_MOUNT_LADDER]		=game_chunk[ANIM_TYPE_ROPER2].AnimList[13];
-        //	global_anim_array[ANIM_TYPE_ROPER][ANIM_ON_LADDER]			=game_chunk[ANIM_TYPE_ROPER2].AnimList[14];
-        //
-        // Die from kneck snap in for everyone
-        //
-    }
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_DANGLE] = game_chunk[ANIM_TYPE_ROPER2].AnimList[223];
+    //	global_anim_array[ANIM_TYPE_ROPER][ANIM_MOUNT_LADDER]		=game_chunk[ANIM_TYPE_ROPER2].AnimList[13];
+    //	global_anim_array[ANIM_TYPE_ROPER][ANIM_ON_LADDER]			=game_chunk[ANIM_TYPE_ROPER2].AnimList[14];
+    //
+    // Die from kneck snap in for everyone
+    //
 
     for (c0 = 1; c0 < 4; c0++) {
         global_anim_array[c0][ANIM_SIT_DOWN] = game_chunk[ANIM_TYPE_CIV].AnimList[CIV_ANIM_SIT];
@@ -904,16 +859,11 @@ void setup_global_anim_array(void)
     }
 
     for (c0 = 0; c0 < 4; c0++) {
-        //		if(!build_psx)
-        {
-            if (!save_psx) {
-                global_anim_array[c0][ANIM_STRANGLE] = game_chunk[ANIM_TYPE_ROPER2].AnimList[268]; // I don't give a fuck, la la la la
-                global_anim_array[c0][ANIM_STRANGLE_VICTIM] = game_chunk[ANIM_TYPE_ROPER2].AnimList[269];
+        global_anim_array[c0][ANIM_STRANGLE] = game_chunk[ANIM_TYPE_ROPER2].AnimList[268]; // I don't give a fuck, la la la la
+        global_anim_array[c0][ANIM_STRANGLE_VICTIM] = game_chunk[ANIM_TYPE_ROPER2].AnimList[269];
 
-                global_anim_array[c0][ANIM_HEADBUTT] = game_chunk[ANIM_TYPE_ROPER2].AnimList[270];
-                global_anim_array[c0][ANIM_HEADBUTT_VICTIM] = game_chunk[ANIM_TYPE_ROPER2].AnimList[271];
-            }
-        }
+        global_anim_array[c0][ANIM_HEADBUTT] = game_chunk[ANIM_TYPE_ROPER2].AnimList[270];
+        global_anim_array[c0][ANIM_HEADBUTT_VICTIM] = game_chunk[ANIM_TYPE_ROPER2].AnimList[271];
 
         // unused		global_anim_array[c0][ANIM_RUN_TAXI]          =game_chunk[ANIM_TYPE_CIV].AnimList[CIV_ANIM_RUN_TAXI];
         global_anim_array[c0][ANIM_WANKER] = game_chunk[ANIM_TYPE_CIV].AnimList[CIV_ANIM_WANKER];
@@ -934,7 +884,6 @@ void setup_global_anim_array(void)
         global_anim_array[c0][ANIM_HANDS_UP] = game_chunk[ANIM_TYPE_CIV].AnimList[CIV_M_ANIM_HANDS_UP];
         global_anim_array[c0][ANIM_HANDS_UP_LOOP] = game_chunk[ANIM_TYPE_CIV].AnimList[CIV_M_ANIM_HANDS_UP_LOOP];
         global_anim_array[c0][ANIM_HANDS_UP_LIE] = game_chunk[ANIM_TYPE_CIV].AnimList[CIV_M_ANIM_HANDS_UP_LIE];
-        if (!save_psx || roper_pickup)
         {
             global_anim_array[c0][ANIM_PICKUP_CARRY] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_PICKUP_CARRY];
             global_anim_array[c0][ANIM_START_WALK_CARRY] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_START_WALK_CARRY];

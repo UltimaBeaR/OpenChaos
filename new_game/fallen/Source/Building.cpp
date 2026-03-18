@@ -49,10 +49,6 @@ UWORD tex_map[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];
 
 SBYTE edit_map_roof_height[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];
 // claude-ai: page_remap: PSX texture page remapping table (64 pages * 8 slots).
-// claude-ai: Used when build_psx=1 to remap DirectX texture pages to PSX VRAM layout. Not relevant for new game.
-UWORD page_remap[64 * 8];
-
-extern SLONG build_psx;
 
 // claude-ai: insert_collision_vect: STUB in this codebase — returns 0, does nothing.
 // claude-ai: In the full game, this registers a collision vector (wall/ramp/ladder) into the physics system.
@@ -4591,24 +4587,6 @@ struct PrimFace4* create_a_quad(UWORD p1, UWORD p0, UWORD p3, UWORD p2, SWORD te
 
         if (add_page)
             add_page_countxy(tx >> 5, ty >> 5, p4->TexturePage);
-        if (build_psx) {
-            page_to = (p4->TexturePage << 6) + (tx >> 5) + ((ty >> 5) << 3);
-
-            if (page_remap[page_to]) {
-                page_to = page_remap[page_to] + 25 * 64 - 1;
-
-                flip ^= page_to >> 14;
-
-                tx = (page_to & 7) << 5;
-                ty = ((page_to >> 3) & 7) << 5;
-                p4->TexturePage = (page_to >> 6) & 31;
-            } else {
-                page_to = 0;
-                tx = (page_to & 7) << 5;
-                ty = ((page_to >> 3) & 7) << 5;
-                p4->TexturePage = (page_to >> 6) & 31;
-            }
-        }
 
         //		LogText(" USE texture_style tx %d ty %d page %d \n",tx,ty,p4->TexturePage);
         p4->DrawFlags = textures_flags[texture_style][texture_piece];
@@ -4621,22 +4599,6 @@ struct PrimFace4* create_a_quad(UWORD p1, UWORD p0, UWORD p3, UWORD p2, SWORD te
         if (add_page)
             add_page_countxy(tx >> 5, ty >> 5, p4->TexturePage);
         ASSERT(p4->TexturePage < 15);
-
-        if (build_psx) {
-            page_to = (p4->TexturePage << 6) + (tx >> 5) + ((ty >> 5) << 3);
-
-            if (page_remap[page_to]) {
-                page_to = page_remap[page_to] + 25 * 64 - 1;
-                tx = (page_to & 7) << 5;
-                ty = ((page_to >> 3) & 7) << 5;
-                p4->TexturePage = (page_to >> 6) & 31;
-            } else {
-                page_to = 0;
-                tx = (page_to & 7) << 5;
-                ty = ((page_to >> 3) & 7) << 5;
-                p4->TexturePage = (page_to >> 6) & 31;
-            }
-        }
     }
 
     //	ASSERT(p4->TexturePage<15);
@@ -4730,20 +4692,6 @@ struct PrimFace4* create_a_quad_tex(UWORD p1, UWORD p0, UWORD p3, UWORD p2, UWOR
     flip = (texture & 0x80) >> 7;
     p4->TexturePage = (texture & 0x7f) >> 6;
     add_page_countxy(tx >> 5, ty >> 5, p4->TexturePage);
-
-    if (build_psx) {
-        page_to = (p4->TexturePage << 6) + (tx >> 5) + ((ty >> 5) << 3);
-
-        if (page_remap[page_to]) {
-            page_to = page_remap[page_to] + 25 * 64 - 1;
-        } else
-            page_to = 0;
-        //		page_to=page_remap[page_to]+25*64;
-        tx = (page_to & 7) << 5;
-        ty = ((page_to >> 3) & 7) << 5;
-        p4->TexturePage = (page_to >> 6) & 31;
-        flip ^= ((page_to >> 14) & 1);
-    }
 
     p4->DrawFlags = POLY_GT;
     if (flipx)

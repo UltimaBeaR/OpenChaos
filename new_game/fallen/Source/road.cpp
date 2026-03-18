@@ -11,7 +11,6 @@
 
 #include "memory.h"
 
-extern SLONG build_psx;
 //
 // The width of the roads.
 //
@@ -245,14 +244,8 @@ SLONG ROAD_is_road(SLONG map_x, SLONG map_z)
     num = ph->Texture & 0x3ff;
 
     extern SLONG TEXTURE_set;
-    if (build_psx) {
-        if (WITHIN(num, 256, 256 + 22))
-            return (TRUE);
-    } else {
-
-        if (WITHIN(num, 323, 356) || ((TEXTURE_set == 7 || TEXTURE_set == 8) && (num == 35 || num == 36 || num == 39))) {
-            return TRUE;
-        }
+    if (WITHIN(num, 323, 356) || ((TEXTURE_set == 7 || TEXTURE_set == 8) && (num == 35 || num == 36 || num == 39))) {
+        return TRUE;
     }
 
     return FALSE;

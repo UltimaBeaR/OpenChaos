@@ -78,7 +78,6 @@
 #include "panel.h"
 
 UBYTE player_visited[16][128];
-extern SLONG save_psx;
 
 
 #define MAX_COL_WITH 16

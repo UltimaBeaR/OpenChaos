@@ -1002,12 +1002,6 @@ SLONG ob_allowed_to_be_walkable(SLONG prim)
 
     */
 
-    extern SLONG save_psx;
-    if (save_psx) {
-        if (prim == 21 || prim == 22 || prim == 24)
-            return (0);
-    }
-
     if (prim == 175 || prim == 176 || prim == 171 || prim == 173 || prim == 174 || prim == 183)
         return (0);
 

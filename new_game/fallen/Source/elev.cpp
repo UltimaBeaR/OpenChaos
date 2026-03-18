@@ -121,7 +121,6 @@ extern UBYTE vehicle_random[];
 CBYTE junk[2048];
 EventPoint event_point;
 
-extern SLONG save_psx;
 SLONG iamapsx = 0;
 
 // claude-ai: ELEV_load_level() — master level loader. Called once per level start.
@@ -269,12 +268,6 @@ void ELEV_load_level(CBYTE* fname_level)
             // claude-ai: Drives police response intensity and the HUD crime-rate meter when GF_SHOW_CRIMERATE set.
             // #ifdef	EIDOS
             FAKE_CIVS = junk[1]; // = 0;
-
-            if (save_psx) {
-                FAKE_CIVS >>= 1;
-                if (FAKE_CIVS > 3)
-                    FAKE_CIVS = 3;
-            }
 
             for (i = 0; i < FAKE_CIVS; i++)
 
@@ -1613,16 +1606,6 @@ void ELEV_load_level(CBYTE* fname_level)
                     }
                     //					if(0)
 
-                    if (save_psx || ENV_get_value_number("iamapsx", FALSE)) {
-                        //
-                        // Skip waypoints marked as optional. We do it here so that
-                        // the message numbers set properly.
-                        //
-
-                        if (event_point.Flags & WPT_FLAGS_OPTIONAL) {
-                            continue;
-                        }
-                    }
 
                     //
                     // Create the waypoint.
@@ -1869,9 +1852,7 @@ void ELEV_load_level(CBYTE* fname_level)
 
         extern SLONG WAND_find_good_start_point_for_car(SLONG * posx, SLONG * posz, SLONG * yaw, SLONG anywhere);
 
-        if (FAKE_CARS && save_psx) {
-            FAKE_CARS = (FAKE_CARS + 1) >> 1;
-        } else if (FAKE_CARS)
+        if (FAKE_CARS)
             if (!the_display.CurrDevice->IsHardware()) {
                 FAKE_CARS = (FAKE_CARS + 1) >> 1;
             }

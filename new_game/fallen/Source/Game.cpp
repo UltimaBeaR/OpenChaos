@@ -95,7 +95,6 @@ SLONG CAM_cur_x, CAM_cur_y, CAM_cur_z,
 
 // The editor.
 
-SLONG save_psx = 0; // this was nicked from edit.cpp in the editor...
 
 // bool g_bGoToCreditsPleaseGameHasFinished = FALSE;
 
@@ -468,20 +467,6 @@ BOOL game_init(void)
         ret = ELEV_load_user(go_into_game);
 
 
-        extern SLONG save_psx;
-        if (save_psx)
-            if (ret == 5 || ret == 1) // loaded a level
-            {
-                CBYTE save_wad[100];
-
-                extern CBYTE ELEV_fname_level[];
-                process_things(0);
-
-                extern void save_whole_game(CBYTE * gamename);
-
-                change_extension(ELEV_fname_level, "wad", save_wad);
-                save_whole_game(save_wad);
-            }
     }
 
     void init_stats(void);
@@ -493,82 +478,6 @@ BOOL game_init(void)
     return (ret);
 
     //	return ELEV_load_name("levels\\e7.ucm");
-}
-
-// claude-ai: game_create_psx() — инструментальная функция (только PC, только !TARGET_DC).
-// claude-ai: Загружает .ucm миссию и немедленно сохраняет её как .wad файл для PSX.
-// claude-ai: В новой игре не нужна — PSX/WAD конвертация не переносится.
-BOOL game_create_psx(CBYTE* mission_name)
-{
-    SLONG ret;
-
-    //
-    // Set the seed and initialise game variables.
-    //
-    global_load();
-
-    GAME_TURN = 0;
-    GAME_FLAGS = 0;
-    if (!CNET_network_game) {
-        NO_PLAYERS = 1;
-        PLAYER_ID = 0;
-    }
-    TICK_RATIO = (1 << TICK_SHIFT);
-    DETAIL_LEVEL = 0xffff;
-
-    ResetSmoothTicks();
-
-    INDOORS_INDEX = 0;
-    INDOORS_INDEX_NEXT = 0;
-    INDOORS_INDEX_FADE_EXT_DIR = 0;
-    INDOORS_INDEX_FADE_EXT = 0;
-    INDOORS_DBUILDING = 0;
-
-    SetSeed(0);
-    srand(1234567);
-    GAME_STATE = GS_PLAY_GAME;
-
-    extern SLONG quick_load;
-    quick_load = 1;
-
-    //
-    // Initialise pause mode...
-    //
-
-    game_paused_key = -1;
-
-    GAME_FLAGS &= ~GF_PAUSED;
-
-    //
-    // Initiliase the bullet points...
-    //
-    bullet_upto = -1;
-    bullet_counter = 0;
-
-    {
-        //
-        // Load the game.
-        //
-        //		ret=ELEV_load_user(go_into_game);
-        ret = ELEV_load_name(mission_name);
-
-        if (ret == 5 || ret == 1) // loaded a level
-        {
-            CBYTE save_wad[100];
-
-            extern CBYTE ELEV_fname_level[];
-            process_things(0);
-
-            extern void save_whole_game(CBYTE * gamename);
-
-            change_extension(mission_name, "wad", save_wad);
-            save_whole_game(save_wad);
-
-        } else
-            ASSERT(0);
-    }
-
-    return (ret);
 }
 
 // claude-ai: make_texture_clumps() — ещё одна инструментальная утилита (только PC/!DC): загружает уровень без сохранения.
@@ -1158,9 +1067,6 @@ UWORD env_frame_rate;
 UBYTE game_loop(void)
 {
     extern void save_all_nads(void);
-    extern SLONG save_psx;
-    if (save_psx == 2)
-        save_all_nads();
 
     env_frame_rate = ENV_get_value_number("max_frame_rate", 30, "Render");
     AENG_set_draw_distance(ENV_get_value_number("draw_distance", 22, "Render"));

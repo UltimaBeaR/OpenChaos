@@ -76,7 +76,6 @@ extern ULONG timer_bored; // I don't care I'm making the game better not the cod
 //
 // The conditions that are part of boolean operations.
 //
-extern SLONG save_psx;
 SLONG EWAY_cond_upto;
 
 // claude-ai: Core EWAY data arrays — all heap-allocated (pointers to malloc'd blocks).
@@ -357,9 +356,6 @@ Thing* talk_thing;
 void EWAY_talk(ULONG waypoint)
 {
 
-
-    if (save_psx)
-        return;
     CBYTE str[100];
     CBYTE level[100];
 
@@ -405,9 +401,6 @@ void check_eway_talk(SLONG stop)
 void EWAY_talk_conv(ULONG waypoint, SLONG conversation)
 {
 
-
-    if (save_psx)
-        return;
     CBYTE str[100];
     CBYTE level[100];
 
@@ -894,8 +887,7 @@ UWORD EWAY_create_vehicle(
             VEH_TYPE_CAR,
             key,
             Random());
-        if (!save_psx)
-            WMOVE_create(TO_THING(p_index));
+        WMOVE_create(TO_THING(p_index));
         break;
 
     case EWAY_SUBTYPE_VEHICLE_TAXI:
@@ -908,8 +900,7 @@ UWORD EWAY_create_vehicle(
             VEH_TYPE_TAXI,
             key,
             Random());
-        if (!save_psx)
-            WMOVE_create(TO_THING(p_index));
+        WMOVE_create(TO_THING(p_index));
         break;
 
     case EWAY_SUBTYPE_VEHICLE_POLICE:
@@ -922,8 +913,7 @@ UWORD EWAY_create_vehicle(
             VEH_TYPE_POLICE,
             key,
             Random());
-        if (!save_psx)
-            WMOVE_create(TO_THING(p_index));
+        WMOVE_create(TO_THING(p_index));
         break;
 
     case EWAY_SUBTYPE_VEHICLE_AMBULANCE:
@@ -952,8 +942,7 @@ UWORD EWAY_create_vehicle(
             VEH_TYPE_JEEP,
             key,
             Random());
-        if (!save_psx)
-            WMOVE_create(TO_THING(p_index));
+        WMOVE_create(TO_THING(p_index));
         break;
 
     case EWAY_SUBTYPE_VEHICLE_MEATWAGON:
@@ -966,8 +955,7 @@ UWORD EWAY_create_vehicle(
             VEH_TYPE_MEATWAGON,
             key,
             Random());
-        if (!save_psx)
-            WMOVE_create(TO_THING(p_index));
+        WMOVE_create(TO_THING(p_index));
         break;
 
     case EWAY_SUBTYPE_VEHICLE_SEDAN:
@@ -983,9 +971,7 @@ UWORD EWAY_create_vehicle(
             Random());
 
 
-        if (!save_psx)
-            WMOVE_create(TO_THING(p_index));
-
+        WMOVE_create(TO_THING(p_index));
 
         break;
 
@@ -1728,23 +1714,6 @@ void EWAY_load_fake_wander_text(CBYTE* fname)
         fname = "text\\citsez_spa.txt"; // must change if/when we get citsez for spanish...
     }
 
-    if (save_psx) {
-        sprintf(str, "%s", ENV_get_value_string("level_dir", "Secret"));
-
-        if (!stricmp(str, "glevels")) {
-            fname = "text\\citsez_german.txt";
-        }
-        if (!stricmp(str, "flevels")) {
-            fname = "text\\citsez_french.txt";
-        }
-        if (!stricmp(str, "ilevels")) {
-            fname = "text\\citsez_ita.txt";
-        }
-        if (!stricmp(str, "slevels")) {
-            fname = "text\\citsez_spa.txt";
-        }
-    }
-
     if (fname == NULL) {
         fname = "text\\citsez.txt";
     }
@@ -1753,21 +1722,6 @@ void EWAY_load_fake_wander_text(CBYTE* fname)
             fname,
             &EWAY_fake_wander_text_normal_index,
             &EWAY_fake_wander_text_normal_number)) {
-        if (save_psx) {
-            if (!stricmp(str, "glevels")) {
-                ASSERT(0);
-            }
-            if (!stricmp(str, "flevels")) {
-                ASSERT(0);
-            }
-            if (!stricmp(str, "ilevels")) {
-                ASSERT(0);
-            }
-            if (!stricmp(str, "slevels")) {
-                ASSERT(0);
-            }
-        }
-
         EWAY_load_message_file(
             "text\\citsez.txt",
             &EWAY_fake_wander_text_normal_index,
@@ -1779,22 +1733,10 @@ void EWAY_load_fake_wander_text(CBYTE* fname)
         &EWAY_fake_wander_text_guilty_index,
         &EWAY_fake_wander_text_guilty_number);
 
-    if (save_psx) {
-
-        if (!stricmp(str, "levels")) {
-        } else {
-            EWAY_load_message_file(
-                "text\\annoyed.txt",
-                &EWAY_fake_wander_text_annoyed_index,
-                &EWAY_fake_wander_text_annoyed_number);
-        }
-
-    } else {
-        EWAY_load_message_file(
-            "text\\annoyed.txt",
-            &EWAY_fake_wander_text_annoyed_index,
-            &EWAY_fake_wander_text_annoyed_number);
-    }
+    EWAY_load_message_file(
+        "text\\annoyed.txt",
+        &EWAY_fake_wander_text_annoyed_index,
+        &EWAY_fake_wander_text_annoyed_number);
 
     //	ASSERT(index+number<EWAY_mess_upto);
     ASSERT(EWAY_fake_wander_text_annoyed_index + EWAY_fake_wander_text_annoyed_number <= EWAY_mess_upto);

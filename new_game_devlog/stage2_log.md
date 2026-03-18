@@ -1468,3 +1468,45 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 **Следующим шагом (отдельная итерация):** удаление runtime PSX-export режима — `save_psx`/`build_psx` и всех связанных функций (~65 упоминаний в 13 файлах).
 
 **Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 264 предупреждений (−5).
+
+---
+
+## Итерация 47 — Пункт 4: удаление runtime PSX-export режима (save_psx/build_psx) (2026-03-18)
+
+`save_psx` и `build_psx` — runtime-переменные режима PSX-экспорта для разработчиков: `save_psx = ENV_get_value_number("psx", 0, "Secret")`. На PC всегда равны 0 — режим недоступен.
+
+**Стратегия:**
+- `if (save_psx) { ... }` — удалить блок целиком
+- `if (!save_psx) { ... }` — убрать условие, тело сделать безусловным
+- `if (save_psx) { ... } else { ... }` — удалить PSX-ветку, тело else сделать безусловным
+- `if (!save_psx) { ... } else { ... }` — тело if безусловное, else-ветку удалить
+
+**Удалена инициализация:**
+- `memory.cpp`: `extern SLONG save_psx; extern SLONG build_psx; if((save_psx = ENV_get_value_number(...))) { build_psx = 1; }`
+
+**Удалены если-блоки (13 файлов):**
+- `wmove.cpp`: `extern SLONG save_psx` + `if (save_psx)` блок отключения WMOVE для авто
+- `road.cpp`: `extern SLONG build_psx` + `if (build_psx) {...} else {...}` → тело else (PC-путь)
+- `ob.cpp`: `extern SLONG save_psx` + `if (save_psx)` блок пропуска ob-экспорта
+- `ware.cpp`: `extern SLONG save_psx` + `if (!save_psx)` обёртка (убрана обёртка)
+- `Person.cpp`: `extern SLONG save_psx` (само использование уже в `/* */` комментарии)
+- `building.cpp`: `extern SLONG build_psx` + 3 блока + `page_remap[64*8]` (использовался только в build_psx блоках)
+- `elev.cpp`: `extern SLONG save_psx` + 3 if-блока
+- `eway.cpp`: `extern SLONG save_psx` + 9 мест (2 ранних return, 6 `if(!save_psx)` → WMOVE_create, 3 if-блока PSX-специфики в load_wander_text)
+- `io.cpp`: `extern SLONG save_psx` + `if(!save_psx)` (balrog/bane загрузка безусловная) + `if(save_psx) continue` для BAT + `if(save_psx)` смена расширения файла + `if(save_psx && save_type>=26)` → `else` ветка (memset)
+- `Anim.cpp`: `SLONG build_psx = 0` + `extern SLONG save_psx` + 8 мест: выбор roper.all, rthug.all, roper2.all, combat_tutorial_check, большой `if(build_psx)/else` блок анимаций Roper, strangle/headbutt условие, pickup_carry условие
+- `Main.cpp`: `SLONG save_psx = 0` определение + `if (save_psx)` debug-вывод
+- `Game.cpp`: `SLONG save_psx = 0` + 2 if-блока
+- `supermap.cpp`: `extern SLONG save_psx` (orphaned после удаления всего остального)
+
+**Удалены PSX export функции (стали unreferenced):**
+- `memory.cpp`: `fix_psxed_anims()`, `save_whole_anims_psx()`, `save_whole_wad()`, `fix_psx_face3()`, `fix_psx_face4()`, extern declaration `convert_to_psx_gke`, `getPSXU`/`getPSXV` макросы, `extern UWORD psx_start_page`
+- `supermap.cpp`: `copy_to_psx_tim()`, `make_psx_pal()`, `setup_psx_jackets()`, `UWORD psx_start_page`, `UBYTE psx_tim_page[256][128]`, `BOOL game_create_psx(...)` forward declaration
+- `Anim.cpp`: `convert_to_psx_gke()` (определение)
+- `Game.cpp`: `game_create_psx()` (определение)
+- `save_whole_game()` в memory.cpp — тело опустошено (функция сохраняется, вызывается из Controls.cpp и Game.cpp)
+
+**Восстановлен:** `get_level_no()` в supermap.cpp — попал в диапазон удалённого блока, но используется `save_dreamcast_wad()`.
+
+**Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 255 предупреждений (−9).
+
