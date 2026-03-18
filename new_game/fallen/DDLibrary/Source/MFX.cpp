@@ -8,7 +8,6 @@
 
 #include "drive.h"
 
-
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
@@ -118,7 +117,6 @@ void MFX_init()
     alContext = alcCreateContext(alDevice, nullptr);
     alcMakeContextCurrent(alContext);
 
-
     InitVoices();
 
     // initialize Samples[]
@@ -205,7 +203,6 @@ void MFX_term()
     alcMakeContextCurrent(NULL);
     alcDestroyContext(alContext);
     alcCloseDevice(alDevice);
-
 }
 
 static char* GetFullName(char* fname)
@@ -942,7 +939,6 @@ static void LoadTalkFile(char* filename)
         dataBuffer, bufferSize, spec.freq);
     SDL_FreeWAV(dataBuffer);
 }
-
 
 static void UnloadWaveFile(MFX_Sample* sptr)
 {

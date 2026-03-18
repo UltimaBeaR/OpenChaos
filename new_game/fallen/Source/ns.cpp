@@ -2941,7 +2941,6 @@ void NS_cache_create_grates(UBYTE mx, UBYTE mz)
         }
 }
 
-
 SLONG NS_cache_create(UBYTE mx, UBYTE mz)
 {
     SLONG dmx;

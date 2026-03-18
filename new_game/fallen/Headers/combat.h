@@ -43,7 +43,6 @@
 // Structs
 //
 
-
 //
 // Owner is the person under attack by multiple foes
 // This structure has slots for angles that enemies are attacking from
@@ -138,7 +137,6 @@ SLONG turn_to_target_and_kick(Thing* p_person);
 
 // claude-ai: FIND_BEST_USE_DEFAULT — if set, always return a fallback anim even if no target in range
 #define FIND_BEST_USE_DEFAULT (1 << 0)
-
 
 //
 // If somebody is attacking the given person, it returns a pointer to

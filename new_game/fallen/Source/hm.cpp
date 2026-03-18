@@ -1850,7 +1850,6 @@ void HM_rel_cube_to_world(
     matrix[7] = hp_z->y - hp_o->y;
     matrix[8] = hp_z->z - hp_o->z;
 
-
     //
     // Convert from cube-space to world space.
     //

@@ -1,7 +1,6 @@
 #include "game.h"
 #include "FMatrix.h"
 
-
 void FMATRIX_calc(SLONG matrix[9], SLONG yaw, SLONG pitch, SLONG roll)
 {
     SLONG cy, cp, cr;
@@ -85,7 +84,6 @@ void FMATRIX_calc(SLONG matrix[9], SLONG yaw, SLONG pitch, SLONG roll)
         matrix[2] = -sy;
         matrix[5] = 0;
         matrix[8] = cy;
-
     }
 }
 

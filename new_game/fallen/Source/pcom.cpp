@@ -10198,7 +10198,6 @@ void PCOM_process_state_change(Thing* p_person)
         ASSERT(0);
         break;
     }
-
 }
 
 //

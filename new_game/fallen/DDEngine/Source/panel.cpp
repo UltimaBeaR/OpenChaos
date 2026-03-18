@@ -30,7 +30,6 @@
 int m_iPanelXPos = 0;
 int m_iPanelYPos = 480;
 
-
 // Just use 0.9 as a goodish value.
 float PANEL_GetNextDepthBodge(void)
 {
@@ -41,7 +40,6 @@ void PANEL_ResetDepthBodge(void)
 {
     // Do nothing.
 }
-
 
 UBYTE PANEL_scanner_poo = 0;
 

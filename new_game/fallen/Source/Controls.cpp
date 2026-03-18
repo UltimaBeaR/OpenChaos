@@ -1617,7 +1617,6 @@ void process_controls(void)
     //	PANEL_new_text(NULL, 2000, "abcdefghijk lmnopqr stuvwxyz ABCDEFG HIJKLMNO PQRSTUVWXYZ 0123456789 !\"�$%^ &*(){} []<>\\/:;'@ #~?-=+.,");
     //	PANEL_new_text(NULL, 2000, "a-b-c-d-e-f-g  h-i-j-k-l-m-n");
 
-
     if (allow_debug_keys) {
         /*
 
@@ -1754,7 +1753,6 @@ void process_controls(void)
             }
         }
     }
-
 
     /*
 
@@ -2499,7 +2497,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
             }
     }
     */
-
 
     /*
 

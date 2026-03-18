@@ -607,10 +607,8 @@ SLONG OB_avoid(
 
     // #ifdef PSX
 
-
     SLONG roomy1 = !MAV_inside(px1, ob_y + 0x40, pz1);
     SLONG roomy2 = !MAV_inside(px2, ob_y + 0x40, pz2);
-
 
     if (roomy1 ^ roomy2) {
         //

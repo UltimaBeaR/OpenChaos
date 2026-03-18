@@ -2402,7 +2402,6 @@ SLONG ELEV_game_init(
 
     insert_collision_facets();
 
-
     //
     // Clear all the keys!
     //

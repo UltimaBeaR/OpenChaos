@@ -649,7 +649,6 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
             v1prev = v1;
             v2prev = v2;
         }
-
     }
 }
 

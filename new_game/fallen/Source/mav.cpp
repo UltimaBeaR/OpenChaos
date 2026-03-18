@@ -2433,7 +2433,6 @@ SLONG MAV_height_los_slow(
     return TRUE;
 }
 
-
 // claude-ai: MAV_precalculate_warehouse_nav: builds a SEPARATE nav grid for a single warehouse interior.
 // claude-ai: Warehouses are large indoor areas with PAP_FLAG_HIDDEN set on their cells.
 // claude-ai: The function temporarily redirects MAV_nav to WARE_nav[ww->nav] with the warehouse's own pitch.

@@ -1208,7 +1208,6 @@ SLONG SUPERFACET_draw(SLONG facet)
             sc->indexcount,
             0);
 
-
         //
         // What about those 2-pass texture pages???
         //
@@ -1239,7 +1238,6 @@ SLONG SUPERFACET_draw(SLONG facet)
             the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
         }
     }
-
 
     return TRUE;
 }

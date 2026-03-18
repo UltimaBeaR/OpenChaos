@@ -3620,7 +3620,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
         while (s) {
             if (do_storeys_overlap(s, storey) && (storey_list[s].DY == storey_list[storey].DY + storey_height) && (storey_list[s].StoreyType == STOREY_TYPE_SKYLIGHT || storey_list[s].StoreyType == STOREY_TYPE_NORMAL)) {
                 build_more_edge_list(min_z, max_z, s, 0);
-
             }
 
             s = storey_list[s].Next;

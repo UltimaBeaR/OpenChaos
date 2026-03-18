@@ -1784,8 +1784,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                 if (pMaterial->wTexturePage == wTexturePage) {
                                     // Exactly the same page.
                                     bSamePage = TRUE;
-                                }
-                                else if (pRenderedPage != NULL) {
+                                } else if (pRenderedPage != NULL) {
                                     // if ( ( ( pMaterial->wTexturePage & ~TEXTURE_PAGE_MASK ) == 0 ) &&
                                     //	 ( ( wTexturePage & ~TEXTURE_PAGE_MASK ) == 0 )
                                     if (((pMaterial->wTexturePage | wTexturePage) & ~TEXTURE_PAGE_MASK) == 0) {
@@ -2680,8 +2679,6 @@ no_muzzle_calcs:
         MM_pNormal[3] = vTemp.z * fNormScale;
     }
 
-
-
     // The wonderful NEW system!
 
     // The MM stuff doesn't like specular to be enabled.
@@ -2753,7 +2750,6 @@ no_muzzle_calcs:
             }
             d3dmm.lpvVertices = pVertex;
 
-
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
             pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
@@ -2800,8 +2796,6 @@ no_muzzle_calcs:
 
     // The MM stuff doesn't like specular to be enabled.
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
-
-
 
     // Not done yet.
 
@@ -3192,7 +3186,6 @@ struct structFIGURE_dhpr_data {
     BYTE bPersonID;
 } FIGURE_dhpr_data;
 
-
 // Got to split this up - the compiler is getting very confused.
 struct structFIGURE_dhpr_rdata1 {
     SLONG part_number;
@@ -3219,7 +3212,6 @@ struct structFIGURE_dhpr_rdata2 {
     Matrix33 end_mat;
 
 } FIGURE_dhpr_rdata2[MAX_RECURSION];
-
 
 #define PART_FACE 1
 #define PART_TROUSERS 2
@@ -3668,7 +3660,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             }
             d3dmm.lpvVertices = pVertex;
 
-
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
             pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
@@ -3915,7 +3906,6 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
 
     // Person drawn!
 }
-
 
 // claude-ai: get_sort_z_bodge — computes a sort-Z hint for a character's world position (px, pz).
 // claude-ai: Checks MAV navigation caps (MAV_CAPS_GOTO) to detect if the character is next to
@@ -6026,7 +6016,6 @@ no_muzzle_calcs:
                 d3dmm.lpLightTable = MM_pcFadeTable;
             }
             d3dmm.lpvVertices = pVertex;
-
 
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);

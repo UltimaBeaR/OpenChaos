@@ -118,7 +118,6 @@ extern void e_draw_3d_mapwho_y(SLONG x1, SLONG my_y1, SLONG z1);
 
 #define SAME_SIGNS(a, b) (((SLONG)((ULONG)a ^ (ULONG)b)) >= 0)
 
-
 UBYTE two4_line_intersection(SLONG x1, SLONG my_y1, SLONG x2, SLONG y2, SLONG x3, SLONG y3, SLONG x4, SLONG y4)
 {
     SLONG ax, bx, cx, ay, by, cy, d, e, f; //,offset;
@@ -3291,7 +3290,6 @@ SLONG slide_along(
     // Slide along the no-go squares.
     //
 
-
     {
         UBYTE collide = 0;
 
@@ -3435,7 +3433,6 @@ SLONG slide_along(
             }
         }
     }
-
 
     if (COLLIDE_can_i_fastnav(x1 >> 16, z1 >> 16) && COLLIDE_can_i_fastnav(*x2 >> 16, *z2 >> 16)) {
         //

@@ -9461,11 +9461,11 @@ void AENG_draw_messages()
                         FONT_draw(20,30, "DAMP: %d", damp);
                         */
 
-//
-// Draw the messages.
-//
+        //
+        // Draw the messages.
+        //
 
-// MSG_draw();
+        // MSG_draw();
 
         the_display.screen_unlock();
     }

@@ -3184,7 +3184,6 @@ void do_look_for_enemies(Thing* p_person)
     }
 }
 
-
 extern void play_music(UWORD id, UBYTE track);
 
 ULONG timer_bored = 0;
@@ -9998,7 +9997,6 @@ void fn_person_idle(Thing* p_person)
             //
             // Take out the surfing for now...
             //
-
         }
 
         if (p_person->Genus.Person->PlayerID && p_person->Genus.Person->Mode != PERSON_MODE_FIGHT && !person_has_gun_out(p_person)) {

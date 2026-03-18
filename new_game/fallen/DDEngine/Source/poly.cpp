@@ -2346,7 +2346,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         // now draw the alpha polygons
         //
 
-
         //
         // generate the buckets
         //
@@ -2394,7 +2393,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 pa->RS.ResetTempTransparent();
         }
         //		BreakTime("FRAMEDRAW end buckets");
-
 
     } else {
         //

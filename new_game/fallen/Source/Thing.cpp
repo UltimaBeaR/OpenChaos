@@ -132,7 +132,6 @@ void free_primary_thing(THING_INDEX thing)
     TO_THING(thing)->Class = CLASS_NONE;
     PRIMARY_UNUSED = thing;
     PRIMARY_COUNT--;
-
 }
 
 //---------------------------------------------------------------

@@ -268,7 +268,6 @@ SLONG get_gangattack(Thing* p_person)
     return (best);
 }
 
-
 // claude-ai: find_possible_combat_target — sphere-query for people near (x,y,z), test each for a hit.
 // claude-ai: Radius 0x280 (map units). Returns sum of (Damage+5) for all people successfully hit.
 // claude-ai: Calls check_combat_hit_with_person() per candidate. Sets *p_victim to last hit.
@@ -908,7 +907,6 @@ SLONG should_i_block(Thing* p_person, Thing* p_agressor, SLONG anim)
     else
         return (0);
 }
-
 
 void show_fight_range(Thing* p_thing)
 {

@@ -3664,7 +3664,6 @@ void EWAY_process_camera(void)
             EWAY_cam_lock = INFINITY;
         }
 
-
         dyaw = look_yaw - EWAY_cam_yaw;
         dyaw &= (2048 << 8) - 1;
 

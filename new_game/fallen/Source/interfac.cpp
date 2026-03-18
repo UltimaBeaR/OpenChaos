@@ -2545,10 +2545,10 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
     // It's simple - lean is proportional to velocity times turn.
     // Also damp the lean, or it looks silly :-)
 
-// Just coz you don't like it, doesn't mean you need to rewrite the whole thing.
-// Especially when it means Darci leans fully even if only slightly
-// turning, which means she looks like a twat.
-// #ifdef	MIKE_I_DONT_LIKE_IT_DISKETT
+    // Just coz you don't like it, doesn't mean you need to rewrite the whole thing.
+    // Especially when it means Darci leans fully even if only slightly
+    // turning, which means she looks like a twat.
+    // #ifdef	MIKE_I_DONT_LIKE_IT_DISKETT
 
     SWORD wDesiredRoll = (wTurn * p_thing->Velocity) >> 2;
 
