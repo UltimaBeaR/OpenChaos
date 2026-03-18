@@ -91,7 +91,6 @@ EWAY_Edef* EWAY_edef; //[EWAY_MAX_EDEFS];
 CBYTE** EWAY_mess; //[EWAY_MAX_MESSES];
 CBYTE* EWAY_mess_buffer; //[EWAY_MESS_BUFFER_SIZE];
 
-#define ANNOYINGSCRIBBLECHECK
 
 //
 // The waypoints.
@@ -358,7 +357,6 @@ Thing* talk_thing;
 void EWAY_talk(ULONG waypoint)
 {
 
-    ANNOYINGSCRIBBLECHECK;
 
     if (save_psx)
         return;
@@ -386,7 +384,6 @@ void EWAY_talk(ULONG waypoint)
     MFX_QUICK_play(str);
     EWAY_conv_talk = 0;
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 void check_eway_talk(SLONG stop)
@@ -408,7 +405,6 @@ void check_eway_talk(SLONG stop)
 void EWAY_talk_conv(ULONG waypoint, SLONG conversation)
 {
 
-    ANNOYINGSCRIBBLECHECK;
 
     if (save_psx)
         return;
@@ -438,7 +434,6 @@ void EWAY_talk_conv(ULONG waypoint, SLONG conversation)
     Thing* speaker = TO_THING(EWAY_conv_person_a);
     EWAY_conv_talk = MFX_QUICK_play(str, speaker->WorldPos.X >> 8, speaker->WorldPos.Y >> 8, speaker->WorldPos.Z >> 8);
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 CBYTE* EWAY_get_mess(SLONG index)
@@ -456,7 +451,6 @@ CBYTE* EWAY_get_mess(SLONG index)
 void EWAY_init()
 {
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Clear all the waypoints.
@@ -511,7 +505,6 @@ void EWAY_init()
 
     memset(EWAY_counter, 0, sizeof(UBYTE) * EWAY_MAX_COUNTERS);
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 // claude-ai: EWAY_create_player() — spawns the player character (Darci, Roper, etc.) from a waypoint.
@@ -660,7 +653,6 @@ UWORD EWAY_create_enemy(
     Thing* p_person;
     ULONG f1 = 0, f2 = 0;
 
-    ANNOYINGSCRIBBLECHECK;
 
     if (zone & (1 << 4)) {
         f2 |= FLAG2_PERSON_INVULNERABLE;
@@ -696,7 +688,6 @@ UWORD EWAY_create_enemy(
 
     p_person = TO_THING(p_index);
 
-    ANNOYINGSCRIBBLECHECK;
 
     return p_index;
 }
@@ -773,7 +764,6 @@ UWORD EWAY_create_item(
     SLONG way_index;
     Thing* p_thing;
 
-    ANNOYINGSCRIBBLECHECK;
 
     if (ew == NULL) {
         way_index = NULL;
@@ -822,7 +812,6 @@ UWORD EWAY_create_item(
             }
         }
 
-    ANNOYINGSCRIBBLECHECK;
 
     return THING_NUMBER(p_thing);
 }
@@ -849,7 +838,6 @@ UWORD EWAY_create_vehicle(
     THING_INDEX p_index = NULL;
     //	ASSERT(0);
 
-    ANNOYINGSCRIBBLECHECK;
 
     switch (subtype) {
     case EWAY_SUBTYPE_VEHICLE_VAN:
@@ -984,7 +972,6 @@ UWORD EWAY_create_vehicle(
 
     case EWAY_SUBTYPE_VEHICLE_SEDAN:
 
-        ANNOYINGSCRIBBLECHECK;
 
         p_index = VEH_create(
             world_x << 8,
@@ -995,12 +982,10 @@ UWORD EWAY_create_vehicle(
             key,
             Random());
 
-        ANNOYINGSCRIBBLECHECK;
 
         if (!save_psx)
             WMOVE_create(TO_THING(p_index));
 
-        ANNOYINGSCRIBBLECHECK;
 
         break;
 
@@ -1027,7 +1012,6 @@ UWORD EWAY_create_vehicle(
         break;
     }
 
-    ANNOYINGSCRIBBLECHECK;
 
     return p_index;
 }
@@ -1317,7 +1301,6 @@ void EWAY_create(
 {
     EWAY_Way* ew;
 
-    ANNOYINGSCRIBBLECHECK;
 
     ASSERT(WITHIN(EWAY_way_upto, 1, EWAY_MAX_WAYS - 1));
 
@@ -1479,7 +1462,6 @@ void EWAY_create(
 
                 memset(ew, 0, sizeof(EWAY_Way));
 
-                ANNOYINGSCRIBBLECHECK;
 
                 return;
             }
@@ -1488,7 +1470,6 @@ void EWAY_create(
 
     EWAY_way_upto += 1;
 
-    ANNOYINGSCRIBBLECHECK;
 
     return;
 }
@@ -2152,7 +2133,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 {
     SLONG ans = FALSE;
 
-    ANNOYINGSCRIBBLECHECK;
 
     switch (ec->type) {
     case EWAY_COND_FALSE:
@@ -3119,7 +3099,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
     //
 
     if (EWAY_sub_condition_of_a_boolean) {
-        ANNOYINGSCRIBBLECHECK;
 
         return ans;
     }
@@ -3270,7 +3249,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 //		TRACE("EVAL TRUE type %d way %d \n",ec->type,ew-EWAY_way);
     }
 
-    ANNOYINGSCRIBBLECHECK;
 
     return ans;
 }
@@ -3290,7 +3268,6 @@ void EWAY_create_camera(SLONG waypoint)
 {
     SLONG i;
 
-    ANNOYINGSCRIBBLECHECK;
 
     ASSERT(WITHIN(waypoint, 1, EWAY_way_upto - 1));
 
@@ -3347,7 +3324,6 @@ void EWAY_create_camera(SLONG waypoint)
     MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SEARCH_END);
     MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SLIDE_START);
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 // claude-ai: EWAY_process_camera() — advances the scripted cut-scene camera each tick.
@@ -3380,12 +3356,10 @@ void EWAY_process_camera(void)
     EWAY_Way* ew_look;
     EWAY_Way* ew_next;
 
-    ANNOYINGSCRIBBLECHECK;
 
     EWAY_cam_warehouse = NULL;
 
     if (!EWAY_cam_active) {
-        ANNOYINGSCRIBBLECHECK;
         return;
     }
 
@@ -3396,7 +3370,6 @@ void EWAY_process_camera(void)
             EWAY_cam_active = FALSE;
             EWAY_cam_goinactive = FALSE;
         }
-        ANNOYINGSCRIBBLECHECK;
         return;
     }
     timer_bored = 0;
@@ -3601,7 +3574,6 @@ void EWAY_process_camera(void)
                                 // if (EWAY_cam_goinactive==0)
                                 EWAY_cam_goinactive = 2; // TRUE;
 
-                                ANNOYINGSCRIBBLECHECK;
 
                                 return;
                             }
@@ -3691,7 +3663,6 @@ void EWAY_process_camera(void)
                         //
                         // Make the camera look at Darci properly.
                         //
-                        ANNOYINGSCRIBBLECHECK;
                         return;
                     }
 
@@ -3889,7 +3860,6 @@ void EWAY_process_camera(void)
         }
     }
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 //
@@ -3900,7 +3870,6 @@ void EWAY_finish_conversation(void)
 {
     EWAY_conv_active = FALSE;
 
-    ANNOYINGSCRIBBLECHECK;
 
     if (!EWAY_conv_ambient) {
         EWAY_cam_relinquish();
@@ -3920,7 +3889,6 @@ void EWAY_finish_conversation(void)
     PANEL_wide_top_person = NULL;
     PANEL_wide_bot_person = NULL;
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 // claude-ai: EWAY_process_conversation() — advances the active scripted two-person conversation.
@@ -3939,7 +3907,6 @@ void EWAY_process_conversation(void)
     CBYTE* ch;
     CBYTE* str;
 
-    ANNOYINGSCRIBBLECHECK;
 
     check_eway_talk(0);
     if (!EWAY_conv_active) {
@@ -3990,7 +3957,6 @@ void EWAY_process_conversation(void)
         if (*str == 0) {
             EWAY_finish_conversation();
 
-            ANNOYINGSCRIBBLECHECK;
 
             return;
         }
@@ -4057,13 +4023,11 @@ void EWAY_process_conversation(void)
         if ((p_person_a->SubState != SUB_STATE_SIMPLE_ANIM && p_person_a->SubState != SUB_STATE_SIMPLE_ANIM_OVER && p_person_a->State != STATE_IDLE) || (p_person_b->SubState != SUB_STATE_SIMPLE_ANIM && p_person_b->SubState != SUB_STATE_SIMPLE_ANIM_OVER && p_person_b->State != STATE_IDLE)) {
             EWAY_finish_conversation();
 
-            ANNOYINGSCRIBBLECHECK;
 
             return;
         }
     }
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 //
@@ -4079,7 +4043,6 @@ void EWAY_process_emit_steam(EWAY_Way* ew)
     SLONG range;
     SLONG choreography;
 
-    ANNOYINGSCRIBBLECHECK;
 
     ASSERT(ew->flag & EWAY_FLAG_ACTIVE);
     ASSERT(ew->ed.type == EWAY_DO_EMIT_STEAM);
@@ -4144,7 +4107,6 @@ void EWAY_process_emit_steam(EWAY_Way* ew)
             1);
     }
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 //
@@ -4184,7 +4146,6 @@ void EWAY_set_active(EWAY_Way* ew)
 {
     SLONG has;
 
-    ANNOYINGSCRIBBLECHECK;
 
     ew->flag |= EWAY_FLAG_ACTIVE;
 
@@ -4516,7 +4477,6 @@ void EWAY_set_active(EWAY_Way* ew)
                 // Person not created yet, maybe next time!
                 //
                 ew->flag &= ~EWAY_FLAG_ACTIVE;
-                ANNOYINGSCRIBBLECHECK;
 
                 return;
 
@@ -5352,7 +5312,6 @@ extern	SLONG	SAVE_ingame(CBYTE *fname);
         break;
     }
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 //
@@ -5361,7 +5320,6 @@ extern	SLONG	SAVE_ingame(CBYTE *fname);
 
 void EWAY_set_inactive(EWAY_Way* ew)
 {
-    ANNOYINGSCRIBBLECHECK;
 
     ew->flag &= ~EWAY_FLAG_ACTIVE;
 
@@ -5416,7 +5374,6 @@ void EWAY_set_inactive(EWAY_Way* ew)
         MAP_beacon_remove(ew->ed.subtype);
     }
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 SLONG EWAY_stop_player_moving(void)
@@ -5543,7 +5500,6 @@ void EWAY_process()
     SLONG on;
     SLONG timer;
 
-    ANNOYINGSCRIBBLECHECK;
 
     EWAY_Way* ew;
     SLONG offset, step; //,start,end;
@@ -5574,7 +5530,6 @@ void EWAY_process()
     EWAY_time = EWAY_time_accurate >> 4;
     EWAY_tick = 5 * TICK_RATIO >> TICK_SHIFT;
 
-    ANNOYINGSCRIBBLECHECK;
 
     if (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) {
         //
@@ -5587,7 +5542,6 @@ void EWAY_process()
 
         for (i = 1 + (offset); i < eway_max; i += step) {
 
-            ANNOYINGSCRIBBLECHECK;
 
             ew = &EWAY_way[i];
 
@@ -5724,7 +5678,6 @@ void EWAY_process()
     // Process any conversation that might be going on.
     //
 
-    ANNOYINGSCRIBBLECHECK;
 
     EWAY_process_conversation();
 
@@ -5733,7 +5686,6 @@ void EWAY_process()
     // gone inactive.
     //
 
-    ANNOYINGSCRIBBLECHECK;
 
     EWAY_process_penalties();
 
@@ -5741,11 +5693,9 @@ void EWAY_process()
     // Process the camera.
     //
 
-    ANNOYINGSCRIBBLECHECK;
 
     EWAY_process_camera();
 
-    ANNOYINGSCRIBBLECHECK;
 }
 
 void EWAY_get_position(

@@ -69,13 +69,6 @@
 #include "superfacet.h"
 
 
-#define LOG_ENTER(x) \
-    {                \
-    }
-#define LOG_EXIT(x) \
-    {               \
-    }
-
 
 // claude-ai: Direct3D API — replace with OpenGL: use GLuint texture handles stored in equivalent array
 extern D3DTexture TEXTURE_texture[];
@@ -575,7 +568,6 @@ void POLY_transform_c_saturate_z(
     float world_z,
     POLY_Point* pt)
 {
-    LOG_ENTER(Poly_Transform_c_sat_z)
 
     pt->x = world_x - POLY_cam_x;
     pt->y = world_y - POLY_cam_y;
@@ -640,12 +632,10 @@ void POLY_transform_c_saturate_z(
         pt->clip |= (*((ULONG*)&bmy) >> 31) << 3;
 #endif
     }
-    LOG_EXIT(Poly_Transform_c_sat_z)
 }
 
 void POLY_transform_from_view_space(POLY_Point* pt)
 {
-    LOG_ENTER(Poly_Transform_from_view_space)
     if (pt->z < POLY_Z_NEARPLANE) {
         pt->clip = POLY_CLIP_NEAR;
     } else {
@@ -676,7 +666,6 @@ void POLY_transform_from_view_space(POLY_Point* pt)
             pt->clip |= POLY_CLIP_BOTTOM;
         }
     }
-    LOG_EXIT(Poly_Transform_from_view_space)
 }
 
 void POLY_transform_abs(
@@ -748,7 +737,6 @@ void POLY_set_local_rotation(
     float off_z,
     float matrix[9])
 {
-    LOG_ENTER(Poly_set_local_rotation)
 
     POLY_cam_off_x = off_x - POLY_cam_x;
     POLY_cam_off_y = off_y - POLY_cam_y;
@@ -788,14 +776,12 @@ void POLY_set_local_rotation(
 #endif
 
 
-    LOG_EXIT(Poly_set_local_rotation)
 }
 
 // Sets up a null local rotation, i.e. none.
 // Only useful for setting the current camera rotation into the D3D ones.
 void POLY_set_local_rotation_none(void)
 {
-    LOG_ENTER(Poly_set_local_rotation)
 
     POLY_cam_off_x = -POLY_cam_x;
     POLY_cam_off_y = -POLY_cam_y;
@@ -830,7 +816,6 @@ void POLY_set_local_rotation_none(void)
 #endif
 
 
-    LOG_EXIT(Poly_set_local_rotation)
 }
 
 void POLY_transform_using_local_rotation_and_wibble(
@@ -1042,7 +1027,6 @@ inline bool POLY_tri_backfacing(POLY_Point* pp1, POLY_Point* pp2, POLY_Point* pp
     float cx, cy, cz; // normal vector (not normalized)
     float dp; // dot product
 
-    LOG_ENTER(Poly_tri_backfacing)
 
     ASSERT(pp1->MaybeValid());
     ASSERT(pp2->MaybeValid());
@@ -1066,7 +1050,6 @@ inline bool POLY_tri_backfacing(POLY_Point* pp1, POLY_Point* pp2, POLY_Point* pp
     // dot with eye vector
     dp = cx * pp1->x + cy * pp1->y + cz * pp1->z;
 
-    LOG_EXIT(Poly_tri_backfacing)
 
     return (dp < 0);
 }
@@ -1563,7 +1546,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
 
-    LOG_ENTER(POLY_add_tri)
 
     if (generate_clip_flags) {
         POLY_setclip(pt[0]);
@@ -1576,7 +1558,6 @@ void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, 
         // Offscreen.
         //
 
-        LOG_EXIT(POLY_add_tri)
         return;
     }
 
@@ -1587,7 +1568,6 @@ void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, 
 
         POLY_add_nearclipped_triangle(pt, page, backface_cull);
 
-        LOG_EXIT(POLY_add_tri)
         return;
     }
 
@@ -1596,7 +1576,6 @@ void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, 
         // This triangle is backface culled.
         //
 
-        LOG_EXIT(POLY_add_tri)
         return;
     }
 
@@ -1669,13 +1648,11 @@ second_page:;
 
         goto second_page;
     }
-    LOG_EXIT(POLY_add_tri)
 }
 
 void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
 
-    LOG_ENTER(POLY_add_quad)
 
     if (generate_clip_flags) {
         POLY_setclip(pt[0]);
@@ -1689,7 +1666,6 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
         // Offscreen.
         //
 
-        LOG_EXIT(POLY_add_quad)
         return;
     }
 
@@ -1703,7 +1679,6 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
         POLY_add_triangle(pt, page, backface_cull, FALSE);
         POLY_add_triangle(pt2, page, backface_cull, FALSE);
 
-        LOG_EXIT(POLY_add_quad)
         return;
     }
 
@@ -1728,14 +1703,12 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
             // Backface cull the whole quad.
             //
 
-            LOG_EXIT(POLY_add_quad)
             return;
         } else if (cull == 1) {
             //
             // Draw just the second triangle.
             //
 
-            LOG_EXIT(POLY_add_quad)
             POLY_add_triangle(pt + 1, page, FALSE, FALSE);
 
             return;
@@ -1744,7 +1717,6 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
             // Draw just the first triangle.
             //
 
-            LOG_EXIT(POLY_add_quad)
             POLY_add_triangle(pt, page, FALSE, FALSE);
 
             return;
@@ -1910,7 +1882,6 @@ second_page:;
 
         goto second_page;
     }
-    LOG_EXIT(POLY_add_quad)
 }
 
 

@@ -79,7 +79,6 @@
 
 #include "font2d.h"
 
-#define ANNOYINGSCRIBBLECHECK
 
 // Some externs
 extern SLONG is_person_ko(Thing* p_person);
@@ -837,7 +836,6 @@ THING_INDEX VEH_create(
     Thing* p_thing;
     int ii;
 
-    ANNOYINGSCRIBBLECHECK;
 
     ASSERT(WITHIN(type, 0, VEH_TYPE_NUMBER - 1));
 
@@ -852,19 +850,14 @@ THING_INDEX VEH_create(
     //
     // Get a DrawMesh for this thing.
     //
-    ANNOYINGSCRIBBLECHECK;
     dm = alloc_draw_mesh();
-    ANNOYINGSCRIBBLECHECK;
 
     if (dm) {
-        ANNOYINGSCRIBBLECHECK;
         ans = alloc_primary_thing(CLASS_VEHICLE);
-        ANNOYINGSCRIBBLECHECK;
 
         if (ans) {
             Vehicle* vp;
 
-            ANNOYINGSCRIBBLECHECK;
             p_thing = TO_THING(ans);
 
             //
@@ -881,12 +874,10 @@ THING_INDEX VEH_create(
             p_thing->WorldPos.Z = z;
 
             p_thing->Draw.Mesh = dm;
-            ANNOYINGSCRIBBLECHECK;
 
             dm->Angle = yaw;
 
             vp = p_thing->Genus.Vehicle = VEH_alloc();
-            ANNOYINGSCRIBBLECHECK;
 
             ASSERT(vp);
 
@@ -895,29 +886,21 @@ THING_INDEX VEH_create(
             vp->Tilt = pitch;
             vp->Flags = 0;
 
-            ANNOYINGSCRIBBLECHECK;
             for (ii = 0; ii < 4; ii++) {
                 vp->Spring[ii].Compression = MIN_COMPRESSION;
                 vp->DY[ii] = 0;
             }
 
-            ANNOYINGSCRIBBLECHECK;
             vp->Type = type;
 
             if (!(NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
-                ANNOYINGSCRIBBLECHECK;
                 vp->dlight = NIGHT_dlight_create(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Y >> 8, p_thing->WorldPos.Z >> 8, 200, 35, 32, 10);
-                ANNOYINGSCRIBBLECHECK;
             } else {
-                ANNOYINGSCRIBBLECHECK;
                 vp->dlight = 0;
-                ANNOYINGSCRIBBLECHECK;
             }
 
             // set extension parameters
-            ANNOYINGSCRIBBLECHECK;
             reinit_vehicle(p_thing);
-            ANNOYINGSCRIBBLECHECK;
 
             set_state_function(p_thing, STATE_FDRIVING);
             //			set_vehicle_draw(p_thing);
@@ -926,7 +909,6 @@ THING_INDEX VEH_create(
             // Initialises more stuff...
             //
 
-            ANNOYINGSCRIBBLECHECK;
             p_thing->Genus.Vehicle->Roll = 0;
             p_thing->Genus.Vehicle->Tilt = 0;
             p_thing->Genus.Vehicle->key = key;
@@ -935,9 +917,7 @@ THING_INDEX VEH_create(
             // Place on the mapwho.
             //
 
-            ANNOYINGSCRIBBLECHECK;
             add_thing_to_map(p_thing);
-            ANNOYINGSCRIBBLECHECK;
         } else {
             ASSERT(0);
         }
@@ -945,7 +925,6 @@ THING_INDEX VEH_create(
         ASSERT(0);
     }
 
-    ANNOYINGSCRIBBLECHECK;
     return ans;
 }
 

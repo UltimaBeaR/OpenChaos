@@ -14,12 +14,6 @@
 
 #include "polypage.h"
 
-#define VERIFY_SORT 0 // debug - check mergesort gives correct result
-#define WIREFRAME 0 // enable wireframe
-
-#if WIREFRAME && !USE_D3D_VBUF
-#error Can't define WIREFRAME and not USE_D3D_VBUF
-#endif
 
 extern int AENG_total_polys_drawn;
 
@@ -320,9 +314,6 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
         pp->sort_z = zmax;
     }
 
-#if WIREFRAME
-    AddWirePoly(pts, num_vertices);
-#endif
 }
 
 // AddWirePoly
@@ -331,36 +322,6 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
 
 void PolyPage::AddWirePoly(POLY_Point** pts, ULONG num_vertices)
 {
-#if WIREFRAME
-    ULONG ii;
-
-#ifdef TEX_EMBED
-    PolyPage* ppDrawn = pTheRealPolyPage;
-#endif
-
-    PolyPoly* pp = DRAWN_PP->PolyBufAlloc();
-    if (!pp)
-        return;
-
-    PolyPoint2D* pv = DRAWN_PP->PointAlloc(num_vertices);
-    if (!pv)
-        return;
-
-    pp->first_vertex = pv - DRAWN_PP->m_VertexPtr;
-    pp->num_vertices = num_vertices | 0x8000;
-
-    // apply Z bias (doesn't seem to work in D3D)
-    float zbias = float(RS.ZLift() + 8) / 65536.0F;
-
-    for (ii = 0; ii < num_vertices; ii++) {
-        pv[ii].SetSC(pts[ii]->X * s_XScale, pts[ii]->Y * s_YScale, 1.0F - pts[ii]->Z - zbias);
-        pv[ii].SetUV(pts[ii]->u, pts[ii]->v);
-        pv[ii].SetColour(0x00808080);
-        pv[ii].SetSpecular(0xFF000000);
-    }
-
-    pp->sort_z = pts[0]->Z + zbias;
-#endif
 }
 
 #endif // #if WE_NEED_POLYBUFFERS_PLEASE_BOB
@@ -440,9 +401,6 @@ void PolyPage::Render(IDirect3DDevice3* dev)
 
         ASSERT(dst - IxBuffer + 3 < 65536);
 
-#if WIREFRAME
-        if (!(src->num_vertices & 0x8000))
-#endif
         {
             for (ULONG jj = 2; jj < src->num_vertices; jj++) {
                 *dst++ = v1;
@@ -455,27 +413,6 @@ void PolyPage::Render(IDirect3DDevice3* dev)
 
     dev->DrawIndexedPrimitiveVB(D3DPT_TRIANGLELIST, vb, IxBuffer, dst - IxBuffer, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP | D3DDP_DONOTLIGHT);
 
-#if WIREFRAME
-    src = m_PolyBuffer;
-    dst = IxBuffer;
-
-    for (ii = 0; ii < m_PolyBufUsed; ii++) {
-        UWORD v1 = src->first_vertex;
-
-        if (src->num_vertices & 0x8000) {
-            for (ULONG jj = 1; jj < (src->num_vertices & 0x7FFF); jj++) {
-                *dst++ = v1 + jj - 1;
-                *dst++ = v1 + jj;
-            }
-            *dst++ = v1 + jj - 1;
-            *dst++ = v1;
-        }
-        src++;
-    }
-
-    dev->SetTexture(0, NULL);
-    dev->DrawIndexedPrimitiveVB(D3DPT_LINELIST, vb, IxBuffer, dst - IxBuffer, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP | D3DDP_DONOTLIGHT);
-#endif
 
 #else // !USE_D3D_VBUF
 
@@ -667,11 +604,6 @@ void PolyPage::SortBackFirst()
         sort_len *= 2;
     }
 
-#if VERIFY_SORT
-    for (ULONG jj = 0; jj < m_PolyBufUsed - 1; jj++) {
-        ASSERT(m_PolyBuffer[jj] <= m_PolyBuffer[jj + 1]);
-    }
-#endif
 }
 
 // DoMerge
@@ -711,15 +643,6 @@ inline static void DoMerge(const T* src, T* dst, ULONG len1, ULONG len2)
         }
     }
 
-#if VERIFY_SORT
-    ASSERT(wpos == end);
-    ASSERT(pos1 == len1);
-    ASSERT(pos2 == end);
-
-    for (ULONG jj = 0; jj < end - 1; jj++) {
-        ASSERT(dst[jj] <= dst[jj + 1]);
-    }
-#endif
 }
 
 // MergeSortIteration

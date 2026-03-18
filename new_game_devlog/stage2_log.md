@@ -1184,3 +1184,43 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 - Debug: 129 предупреждений (было 130), Release: 293 — ошибок нет
 
 **Результат:** 0 ошибок. Debug: 129 предупреждений, Release: 293 предупреждения.
+
+---
+
+## Итерация 34 — Удаление оставшегося debug-кода (2026-03-18)
+
+Удалён debug-код который оказался безусловно активным после итерации 33.
+
+**`DDEngine/Source/facet.cpp`:**
+- `#define FACETINFO` + весь `#ifdef FACETINFO` блок: `FACET_Pageinfo`, `FACET_Facetinfo` struct, `FACET_MAX_FACETINFO`, `FACET_facetinfo[]`, `FACET_facetinfo_current`, `FACET_output()`, `FACET_facetinfo_trace()` — статистика текстурных страниц + OutputDebugString вывод
+- 5 `#ifdef FACETINFO` блоков в теле файла (ветки `#else` с `facet_rand()` сохранены)
+- `LOG_ENTER`/`LOG_EXIT`/`LOG_EVENT` macro definitions + 16 call sites
+
+**`DDEngine/Source/aeng.cpp`:**
+- `#define ANNOYINGSCRIBBLECHECK` + 28 call sites (orphaned define, нигде не проверялся через #ifdef)
+- `LOG_ENTER`/`LOG_EXIT`/`LOG_EVENT` macro definitions + 63 call sites
+- `#define TOMS_TEST_FIXUP_CODE yes` (orphaned, нигде не проверялся)
+
+**`DDEngine/Source/figure.cpp`:**
+- `LOG_ENTER`/`LOG_EXIT`/`LOG_EVENT` macro definitions + 61 call site
+
+**`DDEngine/Source/poly.cpp`:**
+- `LOG_ENTER`/`LOG_EXIT` macro definitions + 22 call sites
+
+**`DDEngine/Source/polypage.cpp`:**
+- `#define VERIFY_SORT 0` + 2 `#if VERIFY_SORT` assertion блока
+- `#define WIREFRAME 0` + 3 `#if WIREFRAME` блока (draw pass, AddWirePoly call, #error guard); `AddWirePoly()` оставлена как пустая функция (объявлена в хедере)
+
+**`Source/pause.cpp`:**
+- Голый `OutputDebugString("Restart\n")` вызов
+
+**`Source/Vehicle.cpp`:**
+- `#define ANNOYINGSCRIBBLECHECK` + 20 call sites
+
+**`Source/eway.cpp`:**
+- `#define ANNOYINGSCRIBBLECHECK` + 49 call sites
+
+**`Source/Game.cpp`:**
+- `#define VERIFY_PLAYBACK 0` (orphaned, нигде не использовался)
+
+**Результат:** 0 ошибок. Debug: 129 предупреждений, Release: 293 предупреждения.

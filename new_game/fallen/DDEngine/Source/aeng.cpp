@@ -130,18 +130,7 @@
 #define AENG_BBOX_PUSH_OUT 4
 
 // #ifdef DEBUG
-#define ANNOYINGSCRIBBLECHECK
 
-
-#define LOG_ENTER(x) \
-    {                \
-    }
-#define LOG_EXIT(x) \
-    {               \
-    }
-#define LOG_EVENT(x) \
-    {                \
-    }
 
 
 void AENG_draw_far_facets(void);
@@ -4469,9 +4458,6 @@ inline void draw_i_prim(LPDIRECT3DTEXTURE2 page, D3DLVERTEX* verts, UWORD* indic
 #define KERB_VERTS (4 * KERB_TILES)
 #define KERB_INDICIES (5 * KERB_TILES)
 
-// Well, it's now become the final code...
-#define TOMS_TEST_FIXUP_CODE yes
-
 
 // Look Mike, when I say "don't put stuff on the stack", I mean
 // DONT PUT STUFF ON THE STACK. And it's "indices" - only two "i"s.
@@ -5221,7 +5207,6 @@ void AENG_draw_city()
 
     // TRACE ( "AengIn" );
 
-    ANNOYINGSCRIBBLECHECK;
 
     // DumpTracies();
 
@@ -5298,7 +5283,6 @@ void AENG_draw_city()
     sea_offset += (tick_tock_unclipped);
 
 
-    LOG_ENTER(AENG_Check_Visible);
 
     //
     // Work out which things are in view.
@@ -5352,11 +5336,8 @@ void AENG_draw_city()
 
     BreakTime("Worked out things in view");
 
-    LOG_EXIT(AENG_Check_Visible);
 
-    LOG_ENTER(AENG_Draw_Indoors_Floors);
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Points out of the ambient light.
@@ -5382,7 +5363,6 @@ void AENG_draw_city()
         //		return;
     }
 
-    LOG_EXIT(AENG_Draw_Indoors_Floors);
 
 #ifdef NEW_FLOOR
     draw_quick_floor(0);
@@ -5392,7 +5372,6 @@ void AENG_draw_city()
     // Rotate all the points.   //draw_floor
     //
 
-    LOG_ENTER(AENG_Rotate_Points);
 #ifndef NEW_FLOOR
     colour = 0x00888888;
     specular = 0xff000000;
@@ -5545,15 +5524,12 @@ void AENG_draw_city()
 #endif
     BreakTime("Rotated points");
 
-    ANNOYINGSCRIBBLECHECK;
 
-    LOG_EXIT(AENG_Rotate_Points);
 
     //
     // No reflection and shadow stuff second time round during 3d mode.
     //
 
-    LOG_ENTER(AENG_Draw_Stars);
 
     if (AENG_detail_stars && !(NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
         //
@@ -5576,9 +5552,7 @@ void AENG_draw_city()
 
     BreakTime("Done stars");
 
-    LOG_EXIT(AENG_Draw_Stars);
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Shadows.
@@ -5586,7 +5560,6 @@ void AENG_draw_city()
 
 #define AENG_NUM_SHADOWS 4
 
-    LOG_ENTER(AENG_Draw_Shadows)
 
     struct
     {
@@ -6073,17 +6046,14 @@ void AENG_draw_city()
 
     BreakTime("Done shadows");
 
-    LOG_EXIT(AENG_Draw_Shadows)
 
     // No reflections on DC.
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Where we remember the bounding boxes of reflections.
     //
 
-    LOG_ENTER(AENG_Moon)
 
     struct
     {
@@ -6134,15 +6104,12 @@ void AENG_draw_city()
         }
     }
 
-    LOG_EXIT(AENG_Moon)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Draw the reflections of people.
     //
 
-    LOG_ENTER(AENG_People_Reflection)
 
     if (AENG_detail_people_reflection)
         for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
@@ -6283,9 +6250,7 @@ void AENG_draw_city()
 
     BreakTime("Drawn reflections");
 
-    LOG_EXIT(AENG_People_Reflection)
 
-    ANNOYINGSCRIBBLECHECK;
 
     {
         //
@@ -6307,7 +6272,6 @@ void AENG_draw_city()
     // Draw the puddles.
     //
 
-    LOG_ENTER(AENG_Puddles)
 
     if (AENG_detail_puddles && !(GAME_FLAGS & GF_NO_FLOOR)) {
         SLONG i;
@@ -6515,9 +6479,7 @@ void AENG_draw_city()
 
     BreakTime("Drawn puddles");
 
-    LOG_EXIT(AENG_Puddles)
 
-    ANNOYINGSCRIBBLECHECK;
 
 #ifndef NEW_FLOOR
     if (AENG_detail_people_reflection) {
@@ -6780,7 +6742,6 @@ void AENG_draw_city()
     // The sky.
     //
 
-    LOG_ENTER(AENG_Draw_Sky)
 
     extern void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float world_camera_z, float world_camera_yaw, float max_dist, ULONG bot_colour, ULONG top_colour);
 
@@ -6803,9 +6764,7 @@ void AENG_draw_city()
                 256.0f * 22.0f);
         }
 
-    LOG_EXIT(AENG_Draw_Sky)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Draw the puddles and clear the poly lists.
@@ -6824,7 +6783,6 @@ void AENG_draw_city()
     // FAR FACETS!!!!!!!!!!!!!
     //
 
-    LOG_ENTER(AENG_Draw_Skyline)
 
     FARFACET_draw(
         AENG_cam_x,
@@ -6844,9 +6802,7 @@ void AENG_draw_city()
     //		AENG_draw_far_facets();
     // #endif
 
-    LOG_EXIT(AENG_Draw_Skyline)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Create all the squares.
@@ -6857,7 +6813,6 @@ void AENG_draw_city()
     //
 
 #ifndef NEW_FLOOR
-    LOG_ENTER(AENG_Draw_Floors)
 
     SLONG num_squares_drawn = 0;
 
@@ -7301,9 +7256,7 @@ void AENG_draw_city()
 #endif
     BreakTime("Drawn floors");
 
-    LOG_EXIT(AENG_Draw_Floors)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //	POLY_frame_draw(FALSE,FALSE);
     //	POLY_frame_init(TRUE,TRUE);
@@ -7313,12 +7266,10 @@ void AENG_draw_city()
     // Draw the objects and the things.
     //
 
-    LOG_ENTER(AENG_Draw_Things)
 
     dfacets_drawn_this_gameturn = 0;
     {
 
-        LOG_ENTER(AENG_Draw_Prims)
 
         for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
             for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
@@ -7411,16 +7362,13 @@ void AENG_draw_city()
             }
         }
 
-        LOG_EXIT(AENG_Draw_Prims)
 
-        ANNOYINGSCRIBBLECHECK;
 
         BreakTime("Drawn prims");
         //		POLY_frame_draw(FALSE,FALSE);
         //		POLY_frame_init(TRUE,TRUE);
         //		BreakTime("Flushed prims");
 
-        LOG_ENTER(AENG_Draw_Facets)
 
         POLY_set_local_rotation_none();
 
@@ -7551,11 +7499,8 @@ void AENG_draw_city()
         //		POLY_frame_init(TRUE,TRUE);
         //		BreakTime("Flushed facets");
 
-        LOG_EXIT(AENG_Draw_Facets)
 
-        ANNOYINGSCRIBBLECHECK;
 
-        LOG_ENTER(AENG_Draw_Other_Things)
 
         for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
             for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
@@ -7596,7 +7541,6 @@ void AENG_draw_city()
                             break;
 
                         case DT_ROT_MULTI:
-                            LOG_ENTER(AENG_Draw_DT_ROT_MULTI)
 
                             /*
                             if (ControlFlag)
@@ -7747,7 +7691,6 @@ void AENG_draw_city()
                                     -p_thing->Draw.Tweened->Tilt);
                             }
 
-                            LOG_EXIT(AENG_Draw_DT_ROT_MULTI)
 
                             break;
 
@@ -7871,14 +7814,11 @@ void AENG_draw_city()
                 }
             }
         }
-        LOG_EXIT(AENG_Draw_Other_Things)
     }
 
     BreakTime("Drawn things");
 
-    LOG_EXIT(AENG_Draw_Things)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //	POLY_frame_draw(FALSE,FALSE);
     //	POLY_frame_init(TRUE,TRUE);
@@ -7891,7 +7831,6 @@ void AENG_draw_city()
     //	if(!INDOORS_INDEX||outside)
     //		draw_car_tracks();
 
-    LOG_ENTER(AENG_Draw_Oval_Shadows)
 
     //
     // Do oval shadows.
@@ -7976,16 +7915,12 @@ void AENG_draw_city()
         }
     }
 
-    LOG_EXIT(AENG_Draw_Oval_Shadows)
 
-    ANNOYINGSCRIBBLECHECK;
 
     // Grenades should be drawn here.
     DrawGrenades();
 
-    ANNOYINGSCRIBBLECHECK;
 
-    LOG_ENTER(AENG_Draw_Ballons)
 
     //
     // The balloons that nobody is holding.
@@ -7994,27 +7929,21 @@ void AENG_draw_city()
     if (!INDOORS_INDEX || outside)
         AENG_draw_released_balloons();
 
-    LOG_EXIT(AENG_Draw_Ballons)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // The POWs!
     //
 
-    LOG_ENTER(AENG_Draw_POWs)
 
     AENG_draw_pows();
 
-    LOG_EXIT(AENG_Draw_POWs)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Draw the mist.
     //
 
-    LOG_ENTER(AENG_Draw_Mist)
 
     if (!INDOORS_INDEX || outside)
         if (AENG_detail_mist) {
@@ -8095,15 +8024,12 @@ void AENG_draw_city()
             }
         }
 
-    LOG_EXIT(AENG_Draw_Mist)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Rain.
     //
 
-    LOG_ENTER(AENG_Draw_Rain)
 
     /*
     #ifdef _DEBUG	// about time we removed this kind of crap
@@ -8125,9 +8051,7 @@ void AENG_draw_city()
 
 
 
-    LOG_EXIT(AENG_Draw_Rain)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Drawing the steam.
@@ -8140,7 +8064,6 @@ void AENG_draw_city()
     // Pyrotechincs.
     //
 
-    LOG_ENTER(AENG_Draw_Pyros)
 
     if (!INDOORS_INDEX || outside)
         AENG_draw_bangs();
@@ -8150,9 +8073,7 @@ void AENG_draw_city()
         AENG_draw_sparks();
     //	ANEG_draw_messages();
 
-    LOG_EXIT(AENG_Draw_Pyros)
 
-    ANNOYINGSCRIBBLECHECK;
 
     /*
 
@@ -8261,7 +8182,6 @@ void AENG_draw_city()
     // Draw the tripwires.
     //
 
-    LOG_ENTER(AENG_Draw_Tripwires)
 
     {
         SLONG map_x1;
@@ -8310,9 +8230,7 @@ void AENG_draw_city()
         }
     }
 
-    LOG_EXIT(AENG_Draw_Tripwires)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Draw the hook.
@@ -8325,7 +8243,6 @@ void AENG_draw_city()
     // Draw the sphere-matter.
     //
 
-    LOG_ENTER(AENG_Draw_Spherematter)
 
     if (!INDOORS_INDEX || outside) {
         SM_Info* si;
@@ -8342,48 +8259,37 @@ void AENG_draw_city()
         }
     }
 
-    LOG_EXIT(AENG_Draw_Spherematter)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Draw the drips... again!
     //
 
-    LOG_ENTER(AENG_Draw_Drips2)
 
     if (!INDOORS_INDEX || outside)
         AENG_draw_drips(0);
 
-    LOG_EXIT(AENG_Draw_Drips2)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Draw the particle system
     //
 
-    LOG_ENTER(AENG_Draw_Particles)
 
     if (!INDOORS_INDEX || outside)
         PARTICLE_Draw();
 
-    LOG_EXIT(AENG_Draw_Particles)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Draw the ribbon system
     //
 
-    LOG_ENTER(AENG_Draw_Ribbons)
 
     if (!INDOORS_INDEX || outside)
         RIBBON_draw();
 
-    LOG_EXIT(AENG_Draw_Ribbons)
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // Draw the tyre tracks (changed -- now turned into things)
@@ -8428,33 +8334,27 @@ void AENG_draw_city()
 
     BreakTime("Drawn other crap");
 
-    LOG_ENTER(AENG_Poly_Flush)
 
     POLY_frame_draw(TRUE, TRUE);
 
-    LOG_EXIT(AENG_Poly_Flush)
 
     BreakTime("Done final polygon flush");
 
-    ANNOYINGSCRIBBLECHECK;
 
     //
     // The dirt.
     //
 
-    LOG_ENTER(AENG_Draw_Dirt)
 
     if (!INDOORS_INDEX || outside)
         if (AENG_detail_dirt)
             AENG_draw_dirt();
 
-    LOG_EXIT(AENG_Draw_Dirt)
 
     // Cope with some wacky internals.
     POLY_set_local_rotation_none();
     POLY_flush_local_rot();
 
-    ANNOYINGSCRIBBLECHECK;
 
     // Tell the pyros we've done a frame.
     Pyros_EndOfFrameMarker();
@@ -8483,7 +8383,6 @@ void AENG_draw_city()
 
     // LOG_EXIT ( AENG_Draw_City )
 
-    LOG_EVENT(AENG_Draw_End)
 
     // TRACE ( "AengOut" );
 }
@@ -8514,7 +8413,6 @@ void AENG_draw_far_facets(void)
         AENG_LENS);
 
 
-    LOG_ENTER(Skyline_Scan_Map_Square)
 
     for (z = AENG_gamut_lo_zmin; z <= AENG_gamut_lo_zmax; z++) {
         for (x = AENG_gamut_lo_xmin; x <= AENG_gamut_lo_xmax; x++) {
@@ -8539,7 +8437,6 @@ void AENG_draw_far_facets(void)
 
                 if (f_list) {
 
-                    LOG_ENTER(Skyline_Draw_Facet)
 
                     while (!exit) {
                         struct DFacet* p_vect;
@@ -8590,7 +8487,6 @@ void AENG_draw_far_facets(void)
                         f_list++;
                     }
 
-                    LOG_EXIT(Skyline_Draw_Facet)
                 }
             }
         }
@@ -8598,7 +8494,6 @@ void AENG_draw_far_facets(void)
 
     // TRACE("Far facets = %d\n", count);
 
-    LOG_EXIT(Skyline_Scan_Map_Square)
 
     POLY_camera_set(
         AENG_cam_x,

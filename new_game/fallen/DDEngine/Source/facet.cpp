@@ -59,139 +59,17 @@
 
 
 
-#define LOG_ENTER(x) \
-    {                \
-    }
-#define LOG_EXIT(x) \
-    {               \
-    }
-#define LOG_EVENT(x) \
-    {                \
-    }
 #define POLY_set_local_rotation_none() \
     {                                  \
     }
 
 
-#define FACETINFO
-#ifdef FACETINFO
-
-//
-// This is code to count the number of texture pages used in each
-// facet and how many quads use each page...
-//
-
-typedef struct
-{
-    UWORD page;
-    UWORD quads;
-
-} FACET_Pageinfo;
-
-#define FACET_MAX_PAGEINFO_PER_FACET 32
-
-typedef struct
-{
-    UBYTE done;
-    UBYTE num_pages;
-    FACET_Pageinfo page[FACET_MAX_PAGEINFO_PER_FACET];
-
-} FACET_Facetinfo;
-
-#define FACET_MAX_FACETINFO 4096
-
-FACET_Facetinfo FACET_facetinfo[FACET_MAX_FACETINFO];
-
-//
-// The facet we are currently drawing... (this isn't passed down to FillFacetPointsCommon())!
-//
-
-SLONG FACET_facetinfo_current;
-
-#endif
 
 // claude-ai: FACET_direction_matrix — 3x3 rotation matrix aligned to the current facet's yaw.
 // claude-ai: Built from the facet's (x[0],z[0])→(x[1],z[1]) direction before drawing.
 // claude-ai: Used by the superfacet cache system and CRINKLE bump-map system to orient normals.
 float FACET_direction_matrix[9];
 
-void FACET_output(CBYTE* fmt, ...)
-{
-    //
-    // Work out the real message.
-    //
-
-    CBYTE message[512];
-    va_list ap;
-
-    va_start(ap, fmt);
-    vsprintf(message, fmt, ap);
-    va_end(ap);
-
-    OutputDebugString(message);
-}
-
-void FACET_facetinfo_trace(void)
-{
-    SLONG i;
-    SLONG j;
-
-    SLONG num_facets = 0;
-    SLONG num_pages = 0;
-    SLONG num_quads = 0;
-
-    SLONG max_pages_per_facet = 0;
-
-#define MAX_QUADS_PER_PAGE 1024
-
-    SLONG quads_per_page[MAX_QUADS_PER_PAGE];
-
-    memset(quads_per_page, 0, sizeof(quads_per_page));
-
-    float ave_pages_per_facet;
-    float ave_quads_per_page;
-
-    FACET_Facetinfo* ff;
-
-    for (i = 0; i < FACET_MAX_FACETINFO; i++) {
-        ff = &FACET_facetinfo[i];
-
-        if (ff->done) {
-            num_facets += 1;
-            num_pages += ff->num_pages;
-
-            for (j = 0; j < ff->num_pages; j++) {
-                num_quads += ff->page[j].quads;
-
-                ASSERT(WITHIN(ff->page[j].quads, 0, MAX_QUADS_PER_PAGE - 1));
-
-                quads_per_page[ff->page[j].quads] += 1;
-            }
-
-            if (ff->num_pages > max_pages_per_facet) {
-                max_pages_per_facet = ff->num_pages;
-            }
-        }
-    }
-
-    ave_pages_per_facet = float(num_pages) / float(num_facets);
-    ave_quads_per_page = float(num_quads) / float(num_pages);
-
-    FACET_output("*****************************************\n");
-    FACET_output("\n");
-    FACET_output("Num facets = %d\n", num_facets);
-    FACET_output("Average number of pages per facet = %f\n", ave_pages_per_facet);
-    FACET_output("Average number of quads per page  = %f\n", ave_quads_per_page);
-    FACET_output("Max pages per facet               = %d\n", max_pages_per_facet);
-    FACET_output("\n");
-
-    for (i = 0; i < MAX_QUADS_PER_PAGE; i++) {
-        FACET_output("%4d Quads per page : %5d\n", i, quads_per_page[i]);
-    }
-
-    FACET_output("\n");
-    FACET_output("*****************************************\n");
-}
 
 static int iNumFacets = 0;
 static int iNumFacetTextures = 0;
@@ -1541,7 +1419,6 @@ inline void MakeFacetPointsCommon(float sx, float sy, float sz, float dx, float 
 {
     SLONG hf = 0;
 
-    LOG_ENTER(Facet_MakeFacetPoints)
 
     ASSERT(POLY_buffer_upto == 0); // or else FacetDiffY is accessed wrongly
 
@@ -1597,7 +1474,6 @@ inline void MakeFacetPointsCommon(float sx, float sy, float sz, float dx, float 
     }
     FacetRows[hf] = POLY_buffer_upto;
 
-    LOG_EXIT(Facet_MakeFacetPoints)
 }
 
 // Like FillFacetPoints, but used in the most common cases.
@@ -1605,14 +1481,10 @@ inline void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation,
 {
     POLY_Point* quad[4];
 
-    LOG_ENTER(Facet_FillFacetPoints)
 
     SLONG row1 = FacetRows[base_row];
     SLONG row2 = FacetRows[base_row + 1];
 
-#ifdef FACETINFO
-    FACET_Facetinfo* ff;
-#endif
 
     SLONG c0;
     for (c0 = 0; c0 < row2 - row1 - 1; c0++) {
@@ -1627,38 +1499,6 @@ inline void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation,
             SLONG page;
             page = texture_quad(quad, dstyles[style_index], c0, count);
 
-#ifdef FACETINFO
-
-            if (FACET_facetinfo[FACET_facetinfo_current].done) {
-                //
-                // Already got facet info for this facet.
-                //
-            } else {
-                ASSERT(WITHIN(FACET_facetinfo_current, 0, FACET_MAX_FACETINFO - 1));
-
-                ff = &FACET_facetinfo[FACET_facetinfo_current];
-
-                SLONG i;
-
-                for (i = 0; i < ff->num_pages; i++) {
-                    if (ff->page[i].page == page) {
-                        ff->page[i].quads += 1;
-
-                        goto found_page1;
-                    }
-                }
-
-                ASSERT(WITHIN(ff->num_pages, 0, FACET_MAX_PAGEINFO_PER_FACET - 1));
-
-                ff->page[ff->num_pages].page = page;
-                ff->page[ff->num_pages].quads = 1;
-
-                ff->num_pages += 1;
-
-            found_page1:;
-            }
-
-#endif
 
             if (block_height != 256.0f) {
                 float fTemp = (float)block_height * (1.0f / 256.0f);
@@ -1764,90 +1604,13 @@ inline void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation,
             // push on the random number generator.
             //
 
-#ifdef FACETINFO
-
-            SLONG page;
-            page = texture_quad(quad, dstyles[style_index], c0, count);
-
-            if (FACET_facetinfo[FACET_facetinfo_current].done) {
-                //
-                // Already got facet info for this facet.
-                //
-            } else {
-                ASSERT(WITHIN(FACET_facetinfo_current, 0, FACET_MAX_FACETINFO - 1));
-
-                ff = &FACET_facetinfo[FACET_facetinfo_current];
-
-                SLONG i;
-
-                for (i = 0; i < ff->num_pages; i++) {
-                    if (ff->page[i].page == page) {
-                        ff->page[i].quads += 1;
-
-                        goto found_page2;
-                    }
-                }
-
-                ASSERT(WITHIN(ff->num_pages, 0, FACET_MAX_PAGEINFO_PER_FACET - 1));
-
-                ff->page[ff->num_pages].page = page;
-                ff->page[ff->num_pages].quads = 1;
-
-                ff->num_pages += 1;
-
-            found_page2:;
-            }
-
-#else
-
             facet_rand();
-
-#endif
         }
     }
     for (; c0 < count; c0++) {
-#ifdef FACETINFO
-
-        SLONG page;
-        page = texture_quad(quad, dstyles[style_index], c0, count);
-
-        if (FACET_facetinfo[FACET_facetinfo_current].done) {
-            //
-            // Already got facet info for this facet.
-            //
-        } else {
-            ASSERT(WITHIN(FACET_facetinfo_current, 0, FACET_MAX_FACETINFO - 1));
-
-            ff = &FACET_facetinfo[FACET_facetinfo_current];
-
-            SLONG i;
-
-            for (i = 0; i < ff->num_pages; i++) {
-                if (ff->page[i].page == page) {
-                    ff->page[i].quads += 1;
-
-                    goto found_page3;
-                }
-            }
-
-            ASSERT(WITHIN(ff->num_pages, 0, FACET_MAX_PAGEINFO_PER_FACET - 1));
-
-            ff->page[ff->num_pages].page = page;
-            ff->page[ff->num_pages].quads = 1;
-
-            ff->num_pages += 1;
-
-        found_page3:;
-        }
-
-#else
-
         facet_rand();
-
-#endif
     }
 
-    LOG_EXIT(Facet_FillFacetPoints)
 }
 
 extern UWORD fade_black;
@@ -3070,13 +2833,11 @@ void FACET_draw(SLONG facet, UBYTE alpha)
     SLONG style_index_step = 2;
     SLONG flipx = 0;
 
-    LOG_ENTER(Facet_draw_start)
 
     ASSERT(facet > 0 && facet < next_dfacet);
     p_facet = &dfacets[facet];
 
     if (p_facet->FacetFlags & FACET_FLAG_INVISIBLE) {
-        LOG_EXIT(Facet_draw_start)
         return;
     }
 
@@ -3087,7 +2848,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
     if ((p_facet->FacetType != STOREY_TYPE_NORMAL) || (INDOORS_INDEX) || ((p_facet->FacetFlags & (FACET_FLAG_BARB_TOP | FACET_FLAG_2SIDED | FACET_FLAG_INSIDE)) != 0)) {
         // Use it!
         FACET_draw_rare(facet, alpha);
-        LOG_EXIT(Facet_draw_start)
         return;
     }
 
@@ -3136,7 +2896,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
             //
             // We've got rid of a whole facet :o)
             //
-            LOG_EXIT(Facet_draw_start)
             return;
         }
     }
@@ -3199,7 +2958,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
             // Reject the whole facet.
             //
 
-            LOG_EXIT(Facet_draw_start)
             return;
         }
 
@@ -3208,7 +2966,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
             // Reject the whole facet if all points are too far or all points are too near
             //
             if (clip_and & (POLY_CLIP_NEAR | POLY_CLIP_FAR)) {
-                LOG_EXIT(Facet_draw_start)
                 return;
             }
         }
@@ -3216,10 +2973,8 @@ void FACET_draw(SLONG facet, UBYTE alpha)
     draw_the_facet_common:;
     }
 
-    LOG_EXIT(Facet_draw_start)
 
     dfacets_drawn_this_gameturn += 1;
-    LOG_ENTER(Facet_draw_mid)
 
     {
         float yaw;
@@ -3283,7 +3038,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
         p_facet->Dfcache = NIGHT_dfcache_create(facet);
 
         if (p_facet->Dfcache == NULL) {
-            LOG_EXIT(Facet_draw_mid)
             return;
         }
     }
@@ -3350,9 +3104,7 @@ void FACET_draw(SLONG facet, UBYTE alpha)
 
     count++;
 
-    LOG_EXIT(Facet_draw_mid)
 
-    LOG_ENTER(Facet_draw_main)
 
     // MSG_add(" facet %d draw count %d\n",facet,count);
 
@@ -3391,9 +3143,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
         style_index_step = 1;
     }
 
-#ifdef FACETINFO
-    FACET_facetinfo_current = facet;
-#endif
 
     ASSERT(reverse_textures == 0);
 
@@ -3415,12 +3164,7 @@ void FACET_draw(SLONG facet, UBYTE alpha)
         //					style_index++;
     }
 
-#ifdef FACETINFO
-    ASSERT(WITHIN(FACET_facetinfo_current, 0, FACET_MAX_FACETINFO - 1));
-    FACET_facetinfo[FACET_facetinfo_current].done = TRUE;
-#endif
 
-    LOG_EXIT(Facet_draw_main)
     return;
 }
 

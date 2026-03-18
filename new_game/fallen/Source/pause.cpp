@@ -134,7 +134,6 @@ SLONG PAUSE_handler()
             GAME_FLAGS &= ~GF_PAUSED;
             GAME_STATE = GS_REPLAY;
             ans = TRUE;
-            OutputDebugString("Restart\n");
             break;
 
         case PAUSE_MENU_EXIT:

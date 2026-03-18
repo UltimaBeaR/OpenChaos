@@ -116,17 +116,6 @@
 #include "psystem.h"
 
 
-#define LOG_ENTER(x) \
-    {                \
-    }
-#define LOG_EXIT(x) \
-    {               \
-    }
-#define LOG_EVENT(x) \
-    {                \
-    }
-
-
 
 extern BOOL allow_debug_keys;
 
@@ -226,7 +215,6 @@ bool MM_bLightTableAlreadySetUp = FALSE;
 // Something to build lighting tables.
 void BuildMMLightingTable(Pyro* p, DWORD colour_and = 0xffffffff)
 {
-    LOG_ENTER(Figure_Build_Table)
 
     // REMEMBER THAT ALL THE LIGHT DIRECTIONS ARE NEGATIVE,
     // EXCEPT FOR THE AMBIENT ONE, WHICH IS CORRECT.
@@ -412,7 +400,6 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and = 0xffffffff)
         cvCur.b += cvLight.b;
     }
 
-    LOG_EXIT(Figure_Build_Table)
 }
 
 #endif
@@ -2604,7 +2591,6 @@ void FIGURE_draw_prim_tween(
     POLY_Point* quad[4];
     SLONG tex_page_offset;
 
-    LOG_ENTER(Figure_Draw_Prim_Tween)
 
     tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
 
@@ -2763,7 +2749,6 @@ void FIGURE_draw_prim_tween(
 
     }
 
-    LOG_ENTER(Figure_Set_Rotation)
 
     POLY_set_local_rotation(
         off_x,
@@ -2771,7 +2756,6 @@ void FIGURE_draw_prim_tween(
         off_z,
         fmatrix);
 
-    LOG_ENTER(Figure_Set_Rotation)
 
     //
     // Rotate all the points into the POLY_buffer.
@@ -2930,7 +2914,6 @@ no_muzzle_calcs:
             }
         }
 
-        LOG_EXIT(Figure_Draw_Prim_Tween)
         return;
     } else {
 
@@ -2948,7 +2931,6 @@ no_muzzle_calcs:
             BuildMMLightingTable(p, colour_and);
         }
 
-        LOG_ENTER(Figure_Build_Matrices)
 
         extern float POLY_cam_matrix_comb[9];
         extern float POLY_cam_off_x;
@@ -3028,7 +3010,6 @@ no_muzzle_calcs:
         MM_pNormal[2] = vTemp.y * fNormScale;
         MM_pNormal[3] = vTemp.z * fNormScale;
 
-        LOG_EXIT(Figure_Build_Matrices)
 
 #else // #if USE_TOMS_ENGINE_PLEASE_BOB
 
@@ -3130,7 +3111,6 @@ no_muzzle_calcs:
 
     // The wonderful NEW system!
 
-    LOG_ENTER(Figure_Draw_Polys)
 
 #if 1
     // The MM stuff doesn't like specular to be enabled.
@@ -3142,10 +3122,8 @@ no_muzzle_calcs:
     if (pPrimObj->wNumMaterials == 0) {
         // Not initialised. Do so.
         // It's not fair to count this as part of the drawing! :-)
-        LOG_EXIT(Figure_Draw_Polys)
 
         FIGURE_generate_D3D_object(prim);
-        LOG_ENTER(Figure_Draw_Polys)
     }
 
     // Tell the LRU cache we used this one.
@@ -3210,13 +3188,10 @@ no_muzzle_calcs:
 
 
             // Fast as lightning.
-            LOG_ENTER(Figure_Set_RenderState)
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
             pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
             pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             pa->RS.SetChanged();
-            LOG_EXIT(Figure_Set_RenderState)
-            LOG_ENTER(Figure_DrawIndPrimMM)
 
             // Use platform-independent version.
 
@@ -3238,7 +3213,6 @@ no_muzzle_calcs:
 #endif
 
 //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
-            LOG_EXIT(Figure_DrawIndPrimMM)
 
         } else {
             // Alpha/clipped path - do with standard non-MM calls.
@@ -3263,7 +3237,6 @@ no_muzzle_calcs:
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
 #endif
 
-    LOG_EXIT(Figure_Draw_Polys)
 
 #endif
 
@@ -3940,7 +3913,6 @@ no_muzzle_calcs:
     }
 #endif // #if USE_TOMS_ENGINE_PLEASE_BOB
 
-    LOG_EXIT(Figure_Draw_Prim_Tween)
 }
 
 // claude-ai: FIGURE_draw_prim_tween_warped — variant of FIGURE_draw_prim_tween used for
@@ -4457,7 +4429,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     // SLONG  limb;
     struct Matrix33* rot_mat;
 
-    LOG_ENTER(Figure_Draw_Hierarchical)
 
 #ifdef HIGH_REZ_PEOPLE_PLEASE_BOB
     // Do I need to toggle inflation?
@@ -4782,7 +4753,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     POLY_Point* quad[4];
     SLONG tex_page_offset;
 
-    LOG_ENTER(Figure_Draw_Prim_Tween)
 
     tex_page_offset = p_person->Genus.Person->pcom_colour & 0x3;
 
@@ -4794,7 +4764,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     // The wonderful NEW system!
 
-    LOG_ENTER(Figure_Draw_Polys)
 
 #if 1
     // The MM stuff doesn't like specular to be enabled.
@@ -4861,13 +4830,10 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
 
             // Fast as lightning.
-            LOG_ENTER(Figure_Set_RenderState)
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
             pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
             pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             pa->RS.SetChanged();
-            LOG_EXIT(Figure_Set_RenderState)
-            LOG_ENTER(Figure_DrawIndPrimMM)
 
             HRESULT hres;
 
@@ -4887,7 +4853,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 #endif
 
             //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
-            LOG_EXIT(Figure_DrawIndPrimMM)
         }
 
         // Next material
@@ -4903,20 +4868,17 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
 #endif
 
-    LOG_EXIT(Figure_Draw_Polys)
 
     // No environment mapping.
     ASSERT(p_person && (p_person->Class != CLASS_VEHICLE));
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
-    LOG_EXIT(Figure_Draw_Prim_Tween)
 
 #endif
 
     // Person drawn!
 
-    LOG_EXIT(Figure_Draw_Hierarchical)
 }
 
 // The slower version that can cull individual chunks.
@@ -4934,7 +4896,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     // SLONG  limb;
     struct Matrix33* rot_mat;
 
-    LOG_ENTER(Figure_Draw_Hierarchical)
 
 #ifdef HIGH_REZ_PEOPLE_PLEASE_BOB
     // Do I need to toggle inflation?
@@ -5146,7 +5107,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     // Person drawn!
 
-    LOG_EXIT(Figure_Draw_Hierarchical)
 }
 
 #else
@@ -5178,7 +5138,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     }
 #endif
 
-    LOG_ENTER(Figure_Draw_Hierarchical)
 
     f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
     f2 = p_person->Draw.Tweened->NextFrame->Flags;
@@ -5399,7 +5358,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             recurse_level--;
     };
 
-    LOG_EXIT(Figure_Draw_Hierarchical)
 }
 #endif
 
@@ -5514,7 +5472,6 @@ void FIGURE_draw(Thing* p_thing)
 
     DrawTween* dt = p_thing->Draw.Tweened;
 
-    LOG_ENTER(Figure_FIGURE_Draw)
 
     //	calc_global_cloud(p_thing->WorldPos.X>>8,p_thing->WorldPos.Y>>8,p_thing->WorldPos.Z>>8);
 
@@ -5524,7 +5481,6 @@ void FIGURE_draw(Thing* p_thing)
         //
 
         MSG_add("!!!!!!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure");
-        LOG_EXIT(Figure_FIGURE_Draw)
         return;
     }
 
@@ -5540,7 +5496,6 @@ void FIGURE_draw(Thing* p_thing)
     // The rotation matrix of the whole object.
     //
 
-    LOG_ENTER(Figure_Rotate)
 
     FIGURE_rotate_obj(
         dt->Tilt,
@@ -5548,7 +5503,6 @@ void FIGURE_draw(Thing* p_thing)
         (dt->Roll + 2048) & 2047,
         &r_matrix);
 
-    LOG_EXIT(Figure_Rotate)
 
     wx = 0;
     wy = 0;
@@ -5580,7 +5534,6 @@ void FIGURE_draw(Thing* p_thing)
 
     NIGHT_Colour col;
 
-    LOG_ENTER(Figure_Calc_Sub_Objs)
 
     calc_sub_objects_position(
         p_thing,
@@ -5592,13 +5545,10 @@ void FIGURE_draw(Thing* p_thing)
     ly += p_thing->WorldPos.Y >> 8;
     lz += p_thing->WorldPos.Z >> 8;
 
-    LOG_EXIT(Figure_Calc_Sub_Objs)
 
-    LOG_ENTER(Figure_NIGHT_Find)
 
     NIGHT_find(lx, ly, lz);
 
-    LOG_EXIT(Figure_NIGHT_Find)
 
 #if USE_TOMS_ENGINE_PLEASE_BOB
 
@@ -5751,7 +5701,6 @@ void FIGURE_draw(Thing* p_thing)
     }
     p_thing->Flags &= ~FLAGS_PERSON_AIM_AND_RUN;
 
-    LOG_EXIT(Figure_FIGURE_Draw)
 }
 
 
@@ -6756,7 +6705,6 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     POLY_Point* quad[4];
     SLONG tex_page_offset;
 
-    LOG_ENTER(Figure_Draw_Prim_Tween)
 
     tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
 
@@ -6860,7 +6808,6 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
 
-    LOG_ENTER(Figure_Set_Rotation)
 
     // claude-ai: NOT portable — POLY_set_local_rotation stores off_x/y/z and fmatrix into a
     // claude-ai: global transform state used by the subsequent D3D MultiMatrix matrix upload.
@@ -6871,7 +6818,6 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
         off_z,
         fmatrix);
 
-    LOG_ENTER(Figure_Set_Rotation)
 
     // Not 100% sure if I'm using character_scalef correctly...
     // ...but it seems to work OK.
@@ -6944,7 +6890,6 @@ no_muzzle_calcs:
 
         ASSERT(MM_bLightTableAlreadySetUp);
 
-        LOG_ENTER(Figure_Build_Matrices)
 
         extern float POLY_cam_matrix_comb[9];
         extern float POLY_cam_off_x;
@@ -7025,7 +6970,6 @@ no_muzzle_calcs:
         pnorm[2] = vTemp.y * fNormScale;
         pnorm[3] = vTemp.z * fNormScale;
 
-        LOG_EXIT(Figure_Build_Matrices)
     }
 
     // No environment mapping.
@@ -7033,7 +6977,6 @@ no_muzzle_calcs:
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
-    LOG_EXIT(Figure_Draw_Prim_Tween)
 
     return TRUE;
 }
@@ -7146,7 +7089,6 @@ void FIGURE_draw_prim_tween_person_only(
     POLY_Point* quad[4];
     SLONG tex_page_offset;
 
-    LOG_ENTER(Figure_Draw_Prim_Tween)
 
     tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
 
@@ -7251,7 +7193,6 @@ void FIGURE_draw_prim_tween_person_only(
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
 
 
-    LOG_ENTER(Figure_Set_Rotation)
 
     POLY_set_local_rotation(
         off_x,
@@ -7259,7 +7200,6 @@ void FIGURE_draw_prim_tween_person_only(
         off_z,
         fmatrix);
 
-    LOG_ENTER(Figure_Set_Rotation)
 
     //
     // Rotate all the points into the POLY_buffer.
@@ -7416,13 +7356,11 @@ no_muzzle_calcs:
             }
         }
 
-        LOG_EXIT(Figure_Draw_Prim_Tween)
         return;
     } else {
 
         ASSERT(MM_bLightTableAlreadySetUp);
 
-        LOG_ENTER(Figure_Build_Matrices)
 
         extern float POLY_cam_matrix_comb[9];
         extern float POLY_cam_off_x;
@@ -7498,12 +7436,10 @@ no_muzzle_calcs:
         MM_pNormal[2] = vTemp.y * fNormScale;
         MM_pNormal[3] = vTemp.z * fNormScale;
 
-        LOG_EXIT(Figure_Build_Matrices)
     }
 
     // The wonderful NEW system!
 
-    LOG_ENTER(Figure_Draw_Polys)
 
 #if 1
     // The MM stuff doesn't like specular to be enabled.
@@ -7515,10 +7451,8 @@ no_muzzle_calcs:
     if (pPrimObj->wNumMaterials == 0) {
         // Not initialised. Do so.
         // It's not fair to count this as part of the drawing! :-)
-        LOG_EXIT(Figure_Draw_Polys)
 
         FIGURE_generate_D3D_object(prim);
-        LOG_ENTER(Figure_Draw_Polys)
     }
 
     // Tell the LRU cache we used this one.
@@ -7584,13 +7518,10 @@ no_muzzle_calcs:
 
 
             // Fast as lightning.
-            LOG_ENTER(Figure_Set_RenderState)
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
             pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
             pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             pa->RS.SetChanged();
-            LOG_EXIT(Figure_Set_RenderState)
-            LOG_ENTER(Figure_DrawIndPrimMM)
 
             // Use platform-independent version.
 
@@ -7612,7 +7543,6 @@ no_muzzle_calcs:
 #endif
 
             //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
-            LOG_EXIT(Figure_DrawIndPrimMM)
 
         } else {
             // Alpha/clipped path - do with standard non-MM calls.
@@ -7637,12 +7567,10 @@ no_muzzle_calcs:
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
 #endif
 
-    LOG_EXIT(Figure_Draw_Polys)
 
     // No environment mapping.
     ASSERT(p_thing && (p_thing->Class != CLASS_VEHICLE));
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
-    LOG_EXIT(Figure_Draw_Prim_Tween)
 }

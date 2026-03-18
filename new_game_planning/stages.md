@@ -101,6 +101,51 @@
 
    **Флаги Release-конфигурации** (из vcxproj): `NDEBUG;_RELEASE;WIN32;_WINDOWS;VERSION_D3D;TEX_EMBED;FINAL`
 
+2.7. **Полное устранение условной компиляции** — оставить только состояние Release-билда
+
+   **Решение (2026-03-18):** Убрать из исходников **все** `#ifdef`/`#ifndef`/`#if` (кроме include guards). Цель — плоский код без препроцессорных ветвлений, который однозначно соответствует тому что компилируется в Release.
+
+   **Исключения — не трогать:**
+   - Include guards (`#ifndef FOO_H / #define FOO_H / ... / #endif`) — структурные, обязательны
+   - `#ifdef _MSC_VER` и аналогичные compiler-detection проверки — оставить до Этапа 3 (переход на Clang)
+   - `ALPHA_MODE` / `ALPHA_ADD` / `ALPHA_BLEND` / `ALPHA_TEST` в `sw.cpp`/`tom.cpp` — не feature flags, это compile-time code generation (tom.cpp включается 3 раза с разными значениями). Оставить до Этапа 4.
+
+   **Методология для каждого оставшегося флага:**
+   - Флаг **всегда определён** (в vcxproj, или безусловно в хедере, или `= 1`) → раскрыть: удалить `#ifdef`/`#endif` обёртку, оставить код
+   - Флаг **никогда не определён** (нигде нет `#define`, не в vcxproj) → удалить весь блок
+   - Флаг **`#if VALUE`** с известным значением → применить значение, удалить мёртвую ветку
+
+   **Основные флаги для раскрытия (всегда активны):**
+   - `VERSION_D3D` — основной рендерер, всегда в vcxproj
+   - `TEX_EMBED` — встроенные текстуры, всегда в vcxproj (оба конфига)
+   - `NO_SERVER` (= 1) — standalone режим, всегда через noserver.h
+   - `_MF_WINDOWS` — Windows платформа, всегда на PC
+   - `WIN32` / `_WIN32` / `_WINDOWS` — всегда на Windows
+   - `LIGHT_COLOURED` (= 1) — RGB освещение
+   - `USE_TOMS_ENGINE_PLEASE_BOB` (= 1) — основной рендерер
+   - `WE_NEED_POLYBUFFERS_PLEASE_BOB` (= 1) — Z-сортировка
+   - `USE_D3D_VBUF` (= 1) — D3D vertex buffers
+   - `DRAW_WHOLE_PERSON_AT_ONCE` (= 1) — batch рендеринг персонажей
+   - `NEW_LEVELS` (= 1) — формат загрузки уровней
+   - `REMAP_KEYBOARD` (= 1) — переназначение клавиш
+   - `MARKS_MACHINE` — высота камеры, всегда определён в fc.cpp
+   - `MF_DD2` — DirectDraw 2, всегда определён в Display.cpp
+   - Frontend-флаги: `WANT_AN_EXIT_MENU_ITEM`, `WANT_A_KEYBOARD_ITEM`, `WANT_A_START_JOYSTICK_ITEM`, `ANNOYING_HACK_FOR_SIMON`, `ALLOW_JOYPAD_IN_FRONTEND`, `MUST_DOUBLE_CLICK_FORWARDS_TO_GET_OUT_OF_FIGHT_MODE`
+
+   **Основные флаги для удаления (никогда не активны):**
+   - `HIGH_REZ_PEOPLE_PLEASE_BOB` — закомментирован, блоки в figure.cpp мертвы
+   - `POO` — нигде не определён
+   - `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` — нигде не определён
+   - `MESH_SHOW_MOUSE_POINT` — нигде не определён (был за `#ifndef NDEBUG`, убран в итерации 33)
+   - `DISABLE_CRINKLES` (= 0 на PC) — DC-only флаг
+   - `CALC_CAR_CRUMPLE` (= 0) — отключённый эксперимент
+   - `NEW_FLOOR` — закомментирован, DC-only
+   - `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB` (= 0 на PC) — DC-only
+   - Пустые no-op макросы: `TRACE`, `LogText`, `DebugText`, `ERROR_MSG`, `ASSERT` — удалить определения и все вызовы
+   - `VERIFY(x)` — раскрыть в просто `x` во всех местах (уже такой смысл в Release)
+
+   **Процесс:** по одному флагу/группе флагов за итерацию, coan где возможно, ручная правка для in-source defines. Компиляция после каждой итерации. Вести в `stage2_log.md`.
+
 3. Удаление файлов, которые никто не `#include`-ит и которых нет в `Fallen.vcxproj`
 4. Удаление мёртвых сущностей (функции, переменные, типы, которые нигде не используются)
 5. Отформатировать код через clang format, т.к. после кучи правок точно появились всякие двойные пустые строки, неправильные отступы и т.д.
