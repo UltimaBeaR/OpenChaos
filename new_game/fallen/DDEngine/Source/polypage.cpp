@@ -40,18 +40,12 @@ PolyPage::PolyPage(ULONG logsize)
     m_VBLogSize = logsize;
     m_VBUsed = 0;
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     m_PolyBuffer = NULL;
     m_PolyBufSize = 1 << logsize;
     m_PolyBufUsed = 0;
 
     m_PolySortBuffer = NULL;
     m_PolySortBufSize = 0;
-#else
-    m_pwIndexBuffer = NULL;
-    m_iNumIndicesAlloc = 0;
-    m_iNumIndicesUsed = 0;
-#endif
 
     m_UScale = 1;
     m_UOffset = 0;
@@ -64,14 +58,8 @@ PolyPage::PolyPage(ULONG logsize)
 
 PolyPage::~PolyPage()
 {
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     delete[] m_PolyBuffer;
     delete[] m_PolySortBuffer;
-#else
-    if (m_pwIndexBuffer != NULL) {
-        MemFree(m_pwIndexBuffer);
-    }
-#endif
 
     if (m_VertexBuffer != NULL) {
         if (TheVPool != NULL) {
@@ -145,50 +133,7 @@ PolyPoint2D* PolyPage::PointAlloc(ULONG num_points)
     return ptr;
 }
 
-#if !WE_NEED_POLYBUFFERS_PLEASE_BOB
-// Allocates points for a fan, and adds the correct indices to the list to make a fan.
-PolyPoint2D* PolyPage::FanAlloc(ULONG num_points)
-{
 
-
-    // Allocate the indices.
-    int iNumNewTris = num_points - 2;
-    int iNumNewIndices = iNumNewTris * 3;
-    if (iNumNewIndices + m_iNumIndicesUsed > m_iNumIndicesAlloc) {
-        // Grow it.
-        ULONG ulNewSize = iNumNewIndices + m_iNumIndicesUsed;
-        // Plus a quarter to reduce thrashing.
-        ulNewSize += ulNewSize >> 2;
-        // And round up to the nearest 4k chunk.
-        ulNewSize = (ulNewSize + 4095) & ~4095;
-        WORD* pwNewBuffer = (WORD*)MemAlloc(sizeof(WORD) * ulNewSize);
-        ASSERT(pwNewBuffer != NULL);
-        if (m_pwIndexBuffer != NULL) {
-            memcpy(pwNewBuffer, m_pwIndexBuffer, sizeof(WORD) * m_iNumIndicesUsed);
-            MemFree((void*)m_pwIndexBuffer);
-        }
-        m_pwIndexBuffer = pwNewBuffer;
-        m_iNumIndicesAlloc = ulNewSize;
-    }
-    // Now add the indices.
-    WORD iIndex0 = m_VBUsed + 0;
-    WORD iIndex1 = m_VBUsed + 1;
-    WORD iIndex2 = m_VBUsed + 2;
-    for (ULONG i = 2; i < num_points; i++) {
-        m_pwIndexBuffer[m_iNumIndicesUsed + 0] = iIndex0;
-        m_pwIndexBuffer[m_iNumIndicesUsed + 1] = iIndex1;
-        m_pwIndexBuffer[m_iNumIndicesUsed + 2] = iIndex2;
-        m_iNumIndicesUsed += 3;
-        iIndex1++;
-        iIndex2++;
-    }
-
-    // And actually allocate the vertices.
-    return PointAlloc(num_points);
-}
-#endif
-
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
 // PolyBufAlloc
 //
@@ -221,7 +166,6 @@ PolyPoly* PolyPage::PolyBufAlloc()
     return m_PolyBuffer + (m_PolyBufUsed++);
 }
 
-#endif // #if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
 static inline void AlphaPremult(UBYTE* color)
 {
@@ -245,7 +189,6 @@ static PolyPage* ppLastPolyPageSetup = NULL;
 
 #define DRAWN_PP ppDrawn
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
 void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
 {
@@ -306,7 +249,6 @@ void PolyPage::AddWirePoly(POLY_Point** pts, ULONG num_vertices)
 {
 }
 
-#endif // #if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
 // MassageVertices
 //
@@ -420,30 +362,19 @@ void PolyPage::Render(IDirect3DDevice3* dev)
     {
         HRESULT hres;
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
         hres = dev->DrawPrimitive(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, m_VertexPtr, m_VBUsed, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-#else
-        hres = dev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, m_VertexPtr, m_VBUsed, m_pwIndexBuffer, m_iNumIndicesUsed, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-#endif
 
         ASSERT(hres == D3D_OK);
     }
 
 #endif
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     AENG_total_polys_drawn += m_PolyBufUsed;
     m_PolyBufUsed = 0;
-#else
-    // AENG_total_polys_drawn += m_VBUsed / 3;
-    AENG_total_polys_drawn += m_iNumIndicesUsed / 3;
-    m_iNumIndicesUsed = 0;
-#endif
 
     m_VBUsed = 0;
 }
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
 // DrawSinglePoly
 //
@@ -507,7 +438,6 @@ void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
     m_PolyBufUsed = 0;
 }
 
-#endif // #if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
 // Clear
 //
@@ -525,27 +455,13 @@ void PolyPage::Clear()
     // #endif
 
     m_VBUsed = 0;
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     m_PolyBufUsed = 0;
-#else
-    // Free up the index buffer
-    if (m_pwIndexBuffer != NULL) {
-        MemFree(m_pwIndexBuffer);
-        ASSERT(m_iNumIndicesAlloc != 0);
-    } else {
-        ASSERT(m_iNumIndicesAlloc == 0);
-    }
-    m_pwIndexBuffer = NULL;
-    m_iNumIndicesAlloc = 0;
-    m_iNumIndicesUsed = 0;
-#endif // #if WE_NEED_POLYBUFFERS_PLEASE_BOB
 }
 
 // SortBackFirst
 //
 // sort polygons (approx) by Z
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
 void PolyPage::SortBackFirst()
 {
@@ -679,7 +595,6 @@ void PolyPage::MergeSortIteration(ULONG sort_len)
     }
 }
 
-#endif // #if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
 // A routine to emulate the DC's DrawPrimtiveMM call on the PC, so
 // that people can use it when developing on the PC.

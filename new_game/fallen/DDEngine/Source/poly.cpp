@@ -1417,7 +1417,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 
     second_page:;
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
         PolyPage* pp = &POLY_Page[page];
         // Do the indirection to the real poly page.
@@ -1469,30 +1468,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
             pv++;
         }
 
-#else // #if WE_NEED_POLYBUFFERS_PLEASE_BOB
-      // The version with index buffers
-
-        PolyPage* pp = &POLY_Page[page];
-        // Do the indirection to the real poly page.
-        PolyPage* ppDrawn = pp->pTheRealPolyPage;
-
-        PolyPoint2D* pv = ppDrawn->FanAlloc(poly_points);
-
-        POLY_Point* ppt;
-        PolyPoint2D* pv_first = pv;
-
-        for (i = 0; i < poly_points; i++) {
-            ppt = rptr[i];
-
-            pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-            pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-            pv->SetColour(ppt->colour);
-            pv->SetSpecular(ppt->specular);
-
-            pv++;
-        }
-
-#endif // #else //#if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
         if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
             page += 1;
@@ -1546,20 +1521,14 @@ second_page:;
     // Do the indirection to the real poly page.
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     PolyPoint2D* pv = ppDrawn->PointAlloc(3);
-#else
-    PolyPoint2D* pv = ppDrawn->FanAlloc(3);
-#endif
 
     POLY_Point* ppt;
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     PolyPoly* ppoly = ppDrawn->PolyBufAlloc();
     if (!ppoly)
         return;
     ppoly->first_vertex = pv - ppDrawn->m_VertexPtr;
     ppoly->num_vertices = 3;
-#endif
 
     ASSERT(pv);
 
@@ -1674,11 +1643,9 @@ second_page:;
     // Do the indirection to the real poly page.
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
     PolyPoint2D* pv = ppDrawn->PointAlloc(6);
     POLY_Point* ppt;
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     PolyPoly* ppoly = ppDrawn->PolyBufAlloc();
     if (!ppoly)
         return;
@@ -1689,7 +1656,6 @@ second_page:;
         return;
     ppoly->first_vertex = pv - ppDrawn->m_VertexPtr + 3;
     ppoly->num_vertices = 3;
-#endif
 
     ASSERT(pv);
 
@@ -1730,61 +1696,6 @@ second_page:;
     pv[1] = pv[-1];
     pv[2] = pv[-2];
 
-#else // #if WE_NEED_POLYBUFFERS_PLEASE_BOB
-    // The version with index buffers.
-
-    PolyPoint2D* pv = ppDrawn->FanAlloc(4);
-    POLY_Point* ppt;
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
-    PolyPoly* ppoly = ppDrawn->PolyBufAlloc();
-    if (!ppoly)
-        return;
-    ppoly->first_vertex = pv - ppDrawn->m_VertexPtr;
-    ppoly->num_vertices = 3;
-    ppoly = ppDrawn->PolyBufAlloc();
-    if (!ppoly)
-        return;
-    ppoly->first_vertex = pv - ppDrawn->m_VertexPtr + 3;
-    ppoly->num_vertices = 3;
-#endif
-
-    ASSERT(pv);
-
-    ppt = pt[0];
-
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-    pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-    pv->SetColour(ppt->colour);
-    pv->SetSpecular(ppt->specular);
-
-    pv++;
-
-    ppt = pt[1];
-
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-    pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-    pv->SetColour(ppt->colour);
-    pv->SetSpecular(ppt->specular);
-
-    pv++;
-
-    ppt = pt[3];
-
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-    pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-    pv->SetColour(ppt->colour);
-    pv->SetSpecular(ppt->specular);
-
-    pv++;
-
-    ppt = pt[2];
-
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-    pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-    pv->SetColour(ppt->colour);
-    pv->SetSpecular(ppt->specular);
-
-#endif // #else //#if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
     if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
         page += 1;

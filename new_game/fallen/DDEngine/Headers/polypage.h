@@ -6,7 +6,6 @@
 // PC
 
 // Do need to sort, and so need polybuffers
-#define WE_NEED_POLYBUFFERS_PLEASE_BOB 1
 
 
 #ifndef FALLEN_DDENGINE_HEADERS_POLYPAGE_H
@@ -24,7 +23,6 @@ class PolyPage;
 //
 // a polygon in a PolyPage
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
 struct PolyPoly {
     float sort_z; // z-value to sort on
     UWORD first_vertex; // first vertex #
@@ -38,7 +36,6 @@ inline bool operator<=(const PolyPoly& arg1, const PolyPoly& arg2) { return arg1
 inline bool operator>(const PolyPoly& arg1, const PolyPoly& arg2) { return !(arg1 <= arg2); }
 inline bool operator>=(const PolyPoly& arg1, const PolyPoly& arg2) { return !(arg1 < arg2); }
 
-#endif // #if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
 // PolyPage
 //
@@ -58,11 +55,9 @@ public:
     void SetTexOffset(D3DTexture* src);
     void SetTexOffset(UBYTE offset); // 0 for (0,0)-(1,1) else 128 + (0-15) for the subtexture
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     // fan submission
     void AddFan(POLY_Point** pts, ULONG num_vertices);
     void AddWirePoly(POLY_Point** pts, ULONG num_vertices);
-#endif
 
     // set greenscreen
     static void SetGreenScreen(bool enabled = true);
@@ -80,18 +75,12 @@ public:
     static bool AlphaSortEnabled() { return s_AlphaSort; }
 
     // render polygons to card
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     bool NeedsRendering() { return m_PolyBufUsed > 0; }
-#else
-    bool NeedsRendering() { return m_VBUsed > 0; }
-#endif
     void Render(IDirect3DDevice3* dev);
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     // render polygons using bucket sort
     void AddToBuckets(PolyPoly* buckets[], int count);
     void DrawSinglePoly(PolyPoly* poly, IDirect3DDevice3* dev);
-#endif
 
     // clear without rendering
     void Clear();
@@ -123,35 +112,24 @@ public:
     ULONG m_VBUsed; // number of vertices used
     ULONG GetVBSize() { return 1 << m_VBLogSize; }
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     PolyPoly* m_PolyBuffer; // polygon buffer
     ULONG m_PolyBufSize; // size of polygon buffer
     ULONG m_PolyBufUsed; // number of polygons used
 
     PolyPoly* m_PolySortBuffer; // polygon sort buffer
     ULONG m_PolySortBufSize; // size of polygon sort buffer
-#else
-    // Index buffer.
-    WORD* m_pwIndexBuffer; // The list of indices.
-    ULONG m_iNumIndicesAlloc; // How many indices are allocated.
-    ULONG m_iNumIndicesUsed; // How many indices are used.
-#endif
 
 #if USE_D3D_VBUF
     IDirect3DVertexBuffer* m_VB; // vertex buffer pointer, only used in bucket sort
 #endif
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     // SortBackFirst iteration
     void MergeSortIteration(ULONG sort_len);
-#endif
 
     // submission helpers
     //	PolyPoint2D*		PointAlloc(ULONG num_points);	// allocate some points
 
-#if WE_NEED_POLYBUFFERS_PLEASE_BOB
     PolyPoly* PolyBufAlloc(); // allocate a polygon
-#endif
 
     // massage vertices according to RS.GetEffect()
     void MassageVertices();
