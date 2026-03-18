@@ -140,7 +140,7 @@ CLAUDE.md                           — этот файл
 
 1. **Фаза 1 (ЗАВЕРШЕНА):** Анализ оригинального кода → `original_game_knowledge_base/` + `original_game_knowledge_base_dense/`
 2. **Фаза 2 (ПАРАЛЛЕЛЬНАЯ):** Планирование и архитектура → `new_game_planning/` (идёт параллельно, началась ещё до Фазы 1)
-3. **Фаза 3 (ТЕКУЩАЯ, Этап 2 — Удаление мёртвого кода):** Разработка → `new_game/`, все этапы в `new_game_planning/stages.md`
+3. **Фаза 3 (ТЕКУЩАЯ, Этап 3 Шаг 2 — vcxproj → CMakeLists.txt):** Разработка → `new_game/`, все этапы в `new_game_planning/stages.md`
 
 ## Workflow (экономия контекста)
 
