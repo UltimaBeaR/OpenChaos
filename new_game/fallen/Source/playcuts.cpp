@@ -69,7 +69,6 @@ extern SLONG hardware_input_continue(void);
 inline void screen_flip(void)
 {
 
-
     //
     // Always flip on the PSX.
     //
@@ -123,7 +122,6 @@ inline int LERPAngle(SLONG a, SLONG b, SLONG m)
         a += 2048;
     return LERPValue(a, b, m);
 }
-
 
 //----------------------------------------------------------------------------
 // CUTSCENE SUPPORT CODE

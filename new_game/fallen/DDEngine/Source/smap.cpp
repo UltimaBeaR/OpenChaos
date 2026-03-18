@@ -521,7 +521,6 @@ SLONG SMAP_prim_points(
     return base;
 }
 
-
 // ========================================================
 //
 // FEEDING PERSON COORDINATES TO THE SHADOW MAPPER
@@ -803,7 +802,6 @@ void SMAP_person(
             dx, dy, dz, p_thing);
     }
 
-
     SMAP_point_finished();
 
     //
@@ -825,7 +823,6 @@ void SMAP_person(
 
         index = indices[i] + 1;
     }
-
 }
 
 // ========================================================

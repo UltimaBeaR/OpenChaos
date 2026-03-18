@@ -128,7 +128,6 @@ void PARTICLE_Run()
     } else
         prev_tick = cur_tick;
 
-
     if (!particle_count)
         return;
 
@@ -749,7 +748,6 @@ UWORD PARTICLE_Exhaust2(Thing* object, UBYTE density, UBYTE disperse)
     p.dy = dy / 2;
     p.dz = dz / 2;
 
-
     for (i = density; i && res; i--) {
 
         if (object->Class == CLASS_BIKE) {
@@ -858,4 +856,3 @@ UWORD PARTICLE_SGrenade(Thing* object, UBYTE time)
     }
     return res;
 }
-

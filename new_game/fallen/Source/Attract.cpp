@@ -232,7 +232,6 @@ reinit_because_of_language_change:
             dont_leave_for_a_while -= 1;
         }
 
-
         if (ControlFlag && Keys[KB_Q]) {
             GAME_STATE = 0;
             LastKey = 0;
@@ -334,15 +333,14 @@ reinit_because_of_language_change:
                 case STARTS_PSX:
                     break;
                 case STARTS_START:
-// claude-ai: STARTS_START — миссия выбрана в FRONTEND_loop() (mode≥100 + ENTER → FE_START).
-// claude-ai: STARTSCR_mission уже установлен в FRONTEND_loop() перед возвратом STARTS_START.
-// claude-ai: #ifdef OBEY_SCRIPT / BRIEFING_select() → МЁРТВЫЙ КОД: OBEY_SCRIPT не определён.
-// claude-ai: Активный путь: сразу переключает GAME_STATE и показывает загрузочный экран.
+                    // claude-ai: STARTS_START — миссия выбрана в FRONTEND_loop() (mode≥100 + ENTER → FE_START).
+                    // claude-ai: STARTSCR_mission уже установлен в FRONTEND_loop() перед возвратом STARTS_START.
+                    // claude-ai: #ifdef OBEY_SCRIPT / BRIEFING_select() → МЁРТВЫЙ КОД: OBEY_SCRIPT не определён.
+                    // claude-ai: Активный путь: сразу переключает GAME_STATE и показывает загрузочный экран.
                     {
                         GAME_STATE &= ~GS_ATTRACT_MODE;
                         GAME_STATE |= GS_PLAY_GAME;
                         go_into_game = TRUE;
-
 
                         ATTRACT_loadscreen_init();
 
@@ -384,7 +382,6 @@ reinit_because_of_language_change:
                 case STARTS_LANGUAGE_CHANGE:
                     // A language change has been made -
                     // reload all the language stuff and go to the main menu.
-
 
                     // Loading screen for a second.
                     ATTRACT_loadscreen_init();
@@ -496,7 +493,6 @@ inline void printf2d(SLONG x, SLONG& y, CBYTE* fmt, ...)
     FONT2D_DrawString(msg, x, y, 0x00ff00, 256, POLY_PAGE_FONT2D);
     y += 20;
 }
-
 
 #define SCORE_SPACER 20
 
@@ -698,7 +694,6 @@ void ScoresDraw(void)
                         hash = hash % 12345;
                         hash += 0x9a2f;
 
-
                         sprintf(code, ": CODE <%X> ", hash);
                     }
 
@@ -723,9 +718,7 @@ void ScoresDraw(void)
     }
 
     //	POLY_frame_draw(FALSE, FALSE);
-
 }
-
 
 //---------------------------------------------------------------
 
@@ -734,7 +727,6 @@ void ATTRACT_loadscreen_init(void)
 
     PANEL_disable_screensaver(TRUE);
 
-
     InitBackImage("e3load.tga");
     ShowBackImage(FALSE);
     AENG_flip();
@@ -742,9 +734,7 @@ void ATTRACT_loadscreen_init(void)
     InitBackImage("e3load.tga");
     ShowBackImage(FALSE);
     AENG_flip();
-
 }
-
 
 void ATTRACT_loadscreen_draw(SLONG completion) // completion is in 8-bit fixed point from 0 to 256.
 {
@@ -752,4 +742,3 @@ void ATTRACT_loadscreen_draw(SLONG completion) // completion is in 8-bit fixed p
     PANEL_draw_completion_bar(completion);
     AENG_flip();
 }
-

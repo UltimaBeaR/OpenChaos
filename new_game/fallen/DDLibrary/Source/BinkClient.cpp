@@ -5,7 +5,6 @@
 // DO NOT PUT ANY OF YOUR USUAL CRAP INTO THIS FILE
 // If you want to change anything, do it in do_bink_intro() or bink_flipper() in GDisplay.cpp
 
-
 #include "DDLib.h"
 // #include "bink.h"
 #include "drive.h"
@@ -136,4 +135,3 @@ void BinkPlay(const char* filename, IDirectDrawSurface* lpdds, bool (*flip)())
     //	BinkClose(bink);
     //	bink = NULL;
 }
-

@@ -2,7 +2,6 @@
 // Snipe rifle-mode stuff
 //
 
-
 #include <MFStdLib.h>
 #include "game.h"
 #include "guns.h"
@@ -130,4 +129,3 @@ void SNIPE_shoot()
         apply_hit_to_person(TO_THING(i_target), 0, HIT_TYPE_GUN_SHOT_M, 260, darci, 0);
     }
 }
-

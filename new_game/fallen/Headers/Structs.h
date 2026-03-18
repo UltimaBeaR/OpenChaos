@@ -27,7 +27,6 @@ struct SVECTOR {
     SLONG X, Y, Z;
 };
 
-
 struct TinyXZ {
     SBYTE Dx, Dz;
     SWORD Angle;

@@ -21,7 +21,6 @@
 // claude-ai:   not Criterion's HyperMatter SDK. The name appears to be an internal nickname.
 // claude-ai:   Criterion Software made RenderWare (renderer), not this physics system.
 
-
 #include "game.h"
 #include <MFStdLib.h>
 #include <stdlib.h>
@@ -403,7 +402,6 @@ void HM_load(CBYTE* fname)
 file_error:;
 
     MF_Fclose(handle);
-
 
     return;
 }
@@ -1996,7 +1994,6 @@ void HM_process_bump(HM_Object* ho, HM_Bump* hb)
     hp->dx += fx;
     hp->dy += fy;
     hp->dz += fz;
-
 }
 
 // claude-ai: HM_bump_dead() — checks whether a tracked penetration is over (point has exited the other object).
@@ -3150,4 +3147,3 @@ void HM_shockwave(
         }
     }
 }
-

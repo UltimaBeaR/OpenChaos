@@ -373,9 +373,7 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
 
 // Turned off for the PC. You madmen :-)
 
-
 #define DUSTWAVE_MULTIPLY (2048 / DUSTWAVE_MULTIPLY)
-
 
 // Not using the limiting stuff - these do nothing exciting.
 
@@ -395,7 +393,6 @@ void Pyros_EndOfFrameMarker(void)
 {
     // Does nothing in this case.
 }
-
 
 //
 //   Pyro Utility Belt
@@ -1298,8 +1295,8 @@ void PYRO_draw_pyro(Thing* p_pyro)
 
         // make sure it is processed
 
-//		if(pyro->counter)
-    break;
+        //		if(pyro->counter)
+        break;
     }
 }
 
@@ -2293,7 +2290,6 @@ void PYRO_draw_armageddon(Pyro* pyro)
  *   Animals
  *
  */
-
 
 /*************************************************************
  *

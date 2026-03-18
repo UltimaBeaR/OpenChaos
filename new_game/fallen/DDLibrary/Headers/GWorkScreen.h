@@ -48,5 +48,4 @@ inline BOOL PointInRect(MFPoint* the_point, MFRect* the_rect)
 
 //---------------------------------------------------------------
 
-
 #endif // FALLEN_DDLIBRARY_HEADERS_GWORKSCREEN_H

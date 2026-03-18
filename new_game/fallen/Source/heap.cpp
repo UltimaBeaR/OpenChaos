@@ -76,14 +76,12 @@ void HEAP_add_to_free(HEAP_Free* bit)
     HEAP_Free* next;
     HEAP_Free** prev;
 
-
     //
     // Go through the free list looking for free blocks
     // of memory we can merge with bit.
     //
 
 start_again_with_a_bigger_bit:;
-
 
     ASSERT(bit->size <= HEAP_SIZE);
     ASSERT(bit->start + bit->size == bit->end);
@@ -146,7 +144,6 @@ start_again_with_a_bigger_bit:;
         next = next->next;
     }
 
-
     //
     // Now add 'bit' in its correct position ordered
     // by size.
@@ -173,7 +170,6 @@ start_again_with_a_bigger_bit:;
         next = next->next;
     }
 
-
     return;
 }
 
@@ -182,7 +178,6 @@ void* HEAP_get(SLONG size)
     void* ans;
     HEAP_Free bit;
     HEAP_Free* onheap;
-
 
     if (HEAP_free == NULL) {
         //
@@ -237,7 +232,6 @@ void* HEAP_get(SLONG size)
 
     HEAP_free = HEAP_free->next;
 
-
     if (bit.size == 0) {
         //
         // This makes matters easier.
@@ -251,7 +245,6 @@ void* HEAP_get(SLONG size)
 
         ASSERT(bit.size >= sizeof(HEAP_Free));
 
-
         //
         // Put the new bit on the heap.
         //
@@ -264,7 +257,6 @@ void* HEAP_get(SLONG size)
         //
 
         HEAP_add_to_free(onheap);
-
 
         return ans;
     }
@@ -286,7 +278,6 @@ SLONG HEAP_max_free(void)
 void HEAP_give(void* mem, SLONG num_bytes)
 {
     HEAP_Free* onheap = (HEAP_Free*)mem;
-
 
     //
     // Valid memory block?
@@ -314,5 +305,4 @@ void HEAP_give(void* mem, SLONG num_bytes)
     //
 
     HEAP_add_to_free(onheap);
-
 }

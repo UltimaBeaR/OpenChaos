@@ -36,11 +36,9 @@ struct RenderState {
 
     void WrapJustOnce() { WrapOnce = true; } // Temporarily sets the state to wrapping just for one call to SetChanged()
 
-
     bool IsSameRenderState(RenderState* pRS);
 
     static RenderState s_State;
-
 
     bool IsAlphaBlendEnabled() { return (AlphaBlendEnable != FALSE); }
 

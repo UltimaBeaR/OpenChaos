@@ -16,7 +16,6 @@
 
 #include "WindProcs.h"
 
-
 //---------------------------------------------------------------
 // mikes mouse stuff
 
@@ -52,6 +51,5 @@ extern void RecenterMouse(void);
 */
 
 //---------------------------------------------------------------
-
 
 #endif // FALLEN_DDLIBRARY_HEADERS_DDLIB_H

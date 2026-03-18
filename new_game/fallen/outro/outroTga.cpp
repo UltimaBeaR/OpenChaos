@@ -183,5 +183,3 @@ OUTRO_TGA_Info OUTRO_TGA_load(
 
     return ans;
 }
-
-

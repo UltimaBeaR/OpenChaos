@@ -4,10 +4,8 @@
 #include "DDLib.h"
 #include "FFManager.h"
 
-
 // TEMP
 DIJOYSTATE the_state;
-
 
 // ========================================================
 //
@@ -174,4 +172,3 @@ BOOL ReadInputDevice()
 {
     return OS_joy_poll();
 }
-

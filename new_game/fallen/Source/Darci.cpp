@@ -23,7 +23,6 @@
 #include "sound.h"
 #include "mav.h"
 
-
 //---------------------------------------------------------------
 // This is all temporary editor reliant stuff.
 
@@ -166,8 +165,7 @@ SLONG do_floor_collide(Thing* p_thing, SWORD pelvis, SLONG* new_y, SLONG* foot_y
     z += (p_thing->WorldPos.Z) >> 8;
     if (p_thing->Flags & FLAGS_IN_SEWERS) {
         floor_y = NS_calc_height_at(x, z);
-    } else
-    {
+    } else {
         floor_y = PAP_calc_height_at_thing(p_thing, x, z);
     }
     *new_y = floor_y;
@@ -460,7 +458,6 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 
     SLONG dx, dy, dz;
 
-
     draw_info = p_thing->Draw.Tweened;
     new_position = p_thing->WorldPos;
 
@@ -535,8 +532,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 
                     col = 0; // This means we can't do any funcky kicks or anything
                              // in the sewers :o(
-                } else
-                {
+                } else {
                     if (!(flag & 8)) {
                         //
                         // Collide with things.
@@ -577,8 +573,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                             &x2,
                             &y2,
                             &z2);
-                    } else
-                    {
+                    } else {
                         SLONG extra_wall_height = 0;
 
                         extra_wall_height = 0; //-p_thing->DY << 3;
@@ -684,7 +679,6 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
     }
     */
 
-
     //	if(p_thing->Timer1>3)
     if (flag & (2 | 4)) // under feet
     {
@@ -753,8 +747,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 
             if (p_thing->Flags & FLAGS_IN_SEWERS) {
                 p_thing->WorldPos.Y = NS_calc_height_at(new_position.X >> 8, new_position.Z >> 8) << 8;
-            } else
-            {
+            } else {
                 if ((flag & 4) == 0) {
                     //
                     // foot collsion with face

@@ -151,4 +151,3 @@ SLONG MORPH_get_num_points(SLONG morph)
     mm = &MORPH_morph[morph];
     return mm->num_points;
 }
-

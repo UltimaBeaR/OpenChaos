@@ -68,7 +68,9 @@ FONT2D_Letter FONT2D_letter[FONT2D_NUM_LETTERS];
 //
 
 CBYTE FONT2D_punct[] = {
-    "!\"" "\xa3" "$%^&*(){}[]<>\\/:;'@#_?-=+.,"
+    "!\""
+    "\xa3"
+    "$%^&*(){}[]<>\\/:;'@#_?-=+.,"
 
     //
     // German characters in decimal and octal!
@@ -413,7 +415,6 @@ void FONT2D_DrawString(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
         str = "Null string";
     }
 
-
     FONT2D_rightmost_x = x;
 
     for (i = 0; i < strlen(str); i++) {
@@ -458,7 +459,6 @@ SLONG FONT2D_DrawStringWrap(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale
     if (str == NULL) {
         str = "Null string";
     }
-
 
     SLONG i;
     SLONG xbase = x;
@@ -511,7 +511,6 @@ SLONG FONT2D_DrawStringWrapTo(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG sca
     if (str == NULL) {
         str = "Null string";
     }
-
 
     SLONG i;
     SLONG xbase = x;
@@ -569,7 +568,6 @@ SLONG FONT2D_DrawStringRightJustify(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLO
     if (str == NULL) {
         str = "Null string";
     }
-
 
     // str = "Jeez, Miles. I'm a damn ROOKIE an' even I gotta laugh at THAT!";
 
@@ -793,7 +791,6 @@ void FONT2D_DrawStringCentred(CBYTE* chr, SLONG x, SLONG y, ULONG rgb, SLONG sca
     SLONG length;
     CBYTE* ch;
 
-
     //
     // Work out the length of the string.
     //
@@ -843,7 +840,6 @@ void FONT2D_DrawStrikethrough(SLONG x1, SLONG x2, SLONG y, ULONG rgb, SLONG scal
     } else {
         SLONG rx = x1 + x2;
         SLONG ry = y;
-
 
         offset1 = (ry / 5);
         offset1 %= 9;

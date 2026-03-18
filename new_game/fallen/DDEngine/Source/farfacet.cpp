@@ -720,7 +720,6 @@ void FARFACET_init()
 
     FARFACET_renderstate.SetRenderState(D3DRENDERSTATE_FOGENABLE, TRUE);
 
-
     FARFACET_renderstate.SetTexture(NULL);
 }
 
@@ -740,7 +739,6 @@ void FARFACET_draw(
     if (!Keys[KB_R]) {
         return;
     }
-
 
     //
     // The five point of the view pyramid.
@@ -876,7 +874,6 @@ void FARFACET_draw(
     SATURATE(square_max_x, 0, FARFACET_SIZE - 1);
     SATURATE(square_max_z, 0, FARFACET_SIZE - 1);
 
-
     //
     // Setup renderstate.
     //
@@ -920,7 +917,6 @@ void FARFACET_draw(
         &g_viewData);
 #endif
 
-
     //
     // Draw all the squares.
     //
@@ -945,7 +941,6 @@ void FARFACET_draw(
         for (square_z = square_min_z; square_z <= square_max_z; square_z++) {
             fs = &FARFACET_square[square_x][square_z];
 
-
             if (fs->indexcount) {
                 //
                 // Don't draw squares to close to the camera- or behind it!
@@ -964,8 +959,7 @@ void FARFACET_draw(
 
                 // React to the fog distance change.
                 extern SLONG CurDrawDistance;
-                if (dprod * 2.5f < (float)CurDrawDistance)
-                {
+                if (dprod * 2.5f < (float)CurDrawDistance) {
                     continue;
                 }
 
@@ -1004,7 +998,6 @@ void FARFACET_draw(
     //
     // Revert to default renderstate.
     //
-
 
     FARFACET_default_renderstate.SetChanged();
 

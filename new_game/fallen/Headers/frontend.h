@@ -16,7 +16,6 @@ SBYTE FRONTEND_loop();
 void FRONTEND_level_won();
 void FRONTEND_level_lost();
 
-
 extern UBYTE IsEnglish;
 
 #endif // FALLEN_HEADERS_FRONTEND_H

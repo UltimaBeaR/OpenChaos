@@ -62,7 +62,6 @@ void FRONTEND_display(void);
 // In milliseconds.
 #define AUTOPLAY_FMV_DELAY (1000 * 60 * 2)
 
-
 // #define MISSION_SCRIPT "data\\urban.sty"
 //  see below...
 
@@ -519,7 +518,7 @@ RawMenuData raw_menu_data[] = {
         FE_BACK,
     },
 
-//	{	FE_CONFIG_VIDEO,	OT_SLIDER,	X_DETAIL,		0,	128,				},
+    //	{	FE_CONFIG_VIDEO,	OT_SLIDER,	X_DETAIL,		0,	128,				},
     //	{                 0,     OT_LABEL,  X_DETAIL,	    0,  1,                  },
     {
         FE_CONFIG_VIDEO,
@@ -706,7 +705,6 @@ UBYTE IsEnglish = 0;
 char* pcSpeechLanguageDir = "talk2\\";
 
 DWORD dwAutoPlayFMVTimeout = 0;
-
 
 // Kludge!
 SLONG GammaIndex;
@@ -1331,8 +1329,7 @@ void FRONTEND_DrawMulti(MenuData* md, ULONG rgb)
     while ((*str) && c0--) {
         str += strlen(str) + 1;
     }
-    if (IsEnglish)
-    {
+    if (IsEnglish) {
         MENUFONT_Dimensions(str, x, y, -1, BIG_FONT_SCALE);
         if (320 + x > 630) {
             if (320 + (x >> 1) > 630) {
@@ -1345,8 +1342,7 @@ void FRONTEND_DrawMulti(MenuData* md, ULONG rgb)
         } else {
             MENUFONT_Draw(620 - x, dy, BIG_FONT_SCALE, str, rgb, 0);
         }
-    }
-    else {
+    } else {
         rgb = FRONTEND_fix_rgb(fade_rgb, 1);
         FONT2D_DrawStringRightJustify(str, 620, dy, rgb, SMALL_FONT_SCALE + 64, POLY_PAGE_FONT2D);
     }
@@ -2006,7 +2002,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
     ZeroMemory(district_valid, sizeof(district_valid));
     mission_hierarchy[1] = 3; // the root; 1 - exists, 2 - complete, 4 - waiting
 
-
     // this hack does an end run around the hierarchy system
     // it forces fight1, assault1, & testdrive1a (the bronze fighting, driving test and
     // assault course) to be complete before allowing police1 to open up
@@ -2082,7 +2077,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
     ASSERT(WITHIN(bonusID3, 0, 39));
     ASSERT(WITHIN(estateID, 0, 39));
 
-
     best_score = 1000;
     district_flash = -1;
     district_selected = 0;
@@ -2108,9 +2102,7 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
             //			instead, the entire hierarchy is preserved in savegames and
             //			completing a mission sets the appropriate flag. ie, the proper way.
 
-
-            if (mission_hierarchy[mdata->ParentID] & 2)
-            {
+            if (mission_hierarchy[mdata->ParentID] & 2) {
                 if (mdata->ObjID == fight2ID && menu_theme < 1) {
                     //
                     // Ignore this mission until the first theme...
@@ -2119,8 +2111,7 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
                     //
                     // Ignore this mission until the last theme...
                     //
-                } else
-                {
+                } else {
                     for (j = 0; j < 40; j++) {
                         if (districts[j][2] == mdata->District) {
                             district_valid[j] |= 1;
@@ -2167,7 +2158,6 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
                 }
             }
 
-
             if (complete_point >= 40) // bodge!
                 flag |= 2;
 
@@ -2199,8 +2189,7 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
                         // Found the mission!
                         //
 
-                        if (order < best_score)
-                        {
+                        if (order < best_score) {
                             best_score = order;
 
                             //
@@ -2746,9 +2735,7 @@ void FRONTEND_store_video_data()
     ENV_set_value_number("Mode", mode, "Video");
     ENV_set_value_number("BitDepth", bit_depth, "Video");
     AENG_set_detail_levels(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]);
-
 }
-
 
 void FRONTEND_do_drivers()
 {
@@ -2857,7 +2844,6 @@ void FRONTEND_gamma_update()
     if (menu_state.selected == GammaIndex)
         the_display.SetGamma(menu_data[GammaIndex].Data & 0xff, 256);
 }
-
 
 void FRONTEND_do_gamma()
 {
@@ -3610,7 +3596,6 @@ UBYTE FRONTEND_input()
         return 0;
     } else {
 
-
         // these are in interfac.cpp -- but the NOISE_TOLERANCE there, while appropriate for the game,
         // is SHITTY for the menu. so here's a new one.
 
@@ -3663,7 +3648,6 @@ UBYTE FRONTEND_input()
             }
         }
         //		TRACE("proc'd input: %d\n",input);
-
     }
 
     if (grabbing_key && LastKey) {
@@ -4443,7 +4427,6 @@ SBYTE FRONTEND_loop()
 
     // dodgy hidden keys
 
-
     // #ifndef NDEBUG
     if (ControlFlag && ShiftFlag) {
         if (Keys[KB_PPLUS]) {
@@ -4460,8 +4443,6 @@ SBYTE FRONTEND_loop()
         }
     }
     // #endif
-
-
 
     if (res == FE_NO_REALLY_QUIT)
         return STARTS_EXIT;
@@ -4606,7 +4587,6 @@ SBYTE FRONTEND_loop()
         if (cheating)
             FRONTEND_diddle_stats();
 
-
         FRONTEND_diddle_music();
         menu_state.stackpos = 0;
         menu_thrash = 0;
@@ -4624,4 +4604,3 @@ SBYTE FRONTEND_loop()
 
     return 0;
 }
-

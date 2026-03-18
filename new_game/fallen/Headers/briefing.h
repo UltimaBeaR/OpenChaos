@@ -15,4 +15,3 @@ SBYTE BRIEFING_select(void);
 SBYTE BRIEFING_next_mission(); // 0 = run out of missions
 
 #endif // FALLEN_HEADERS_BRIEFING_H
-

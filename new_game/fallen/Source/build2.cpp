@@ -4,7 +4,6 @@
 #include "ob.h"
 #include "memory.h"
 
-
 void calc_ladder_ends(SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2)
 {
     SLONG dx, dz;
@@ -124,7 +123,6 @@ SLONG garbage_collection(void)
     memcpy((UBYTE*)&facet_links[0], (UBYTE*)mem, next * sizeof(UWORD));
     next_facet_link = next;
 
-
     for (x = 0; x < PAP_SIZE_LO; x++)
         for (z = 0; z < PAP_SIZE_LO; z++) {
             if (PAP_2LO(x, z).ColVectHead)
@@ -199,9 +197,9 @@ void link_facet_to_mapwho(SLONG mx, SLONG mz, SLONG facet)
 
     if (mx == 13 && mz == 5)
 
-    if (mx < 0 || mx > PAP_SIZE_LO || mz < 0 || mz > PAP_SIZE_LO) {
-        return;
-    }
+        if (mx < 0 || mx > PAP_SIZE_LO || mz < 0 || mz > PAP_SIZE_LO) {
+            return;
+        }
 
     //	DebugText(" add facet %d to mx %d %d  nfl %d link count %d\n",facet,mx,mz,next_facet_link,facet_link_count);
 
@@ -259,7 +257,7 @@ void add_facet_to_map(SLONG facet)
 
     if (facet == 288 || facet == 289)
 
-    x1 = p_f->x[0] << 8;
+        x1 = p_f->x[0] << 8;
     x2 = p_f->x[1] << 8;
     z1 = p_f->z[0] << 8;
     z2 = p_f->z[1] << 8;
@@ -294,7 +292,6 @@ void add_facet_to_map(SLONG facet)
 
         SLONG xfrac;
         SLONG zfrac;
-
 
         dx = x2 - x1;
         dz = z2 - z1;
@@ -778,7 +775,6 @@ static void mark_naughty_facets()
             }
         }
     }
-
 }
 
 extern void MAV_remove_facet_car(SLONG x1, SLONG z1, SLONG x2, SLONG z2);

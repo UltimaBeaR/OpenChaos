@@ -54,7 +54,6 @@ void WMOVE_create(Thing*);
 // Removes all WMOVE_faces belonging to things of the given class.
 //
 
-
 //
 // Moves all the moving walkable faces.
 //

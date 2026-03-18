@@ -16,7 +16,6 @@
 #include "panel.h"
 #include <winsock.h>
 
-
 #define CONSOLE_LINES 15
 #define CONSOLE_WIDTH 50
 
@@ -92,7 +91,6 @@ static SLONG this_tick;
 
 void CONSOLE_draw()
 {
-
 
     SLONG i;
 
@@ -195,7 +193,6 @@ void CONSOLE_draw()
     POLY_frame_draw(FALSE, TRUE);
     if (!Data[0].Age)
         CONSOLE_scroll();
-
 }
 
 void CONSOLE_text(CBYTE* text, SLONG delay)

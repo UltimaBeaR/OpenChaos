@@ -2,7 +2,6 @@
 // The new bikes are called dikes.
 //
 
-
 #include "game.h"
 #include "dike.h"
 #include "pap.h"
@@ -411,4 +410,3 @@ void DIKE_draw(DIKE_Dike* dd)
         0xffffff,
         FALSE);
 }
-

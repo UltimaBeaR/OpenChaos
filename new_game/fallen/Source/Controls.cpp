@@ -199,9 +199,7 @@ UBYTE InkeyToAsciiShift[] = {
     /* 120 - 127 */ 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-
 //---------------------------------------------------------------
-
 
 // claude-ai: cmd_list — список команд отладочной консоли (F9 в игре).
 // claude-ai: Индексы: 0=cam, 1=echo, 2=tels(store), 3=telr(restore), 4=telw(wpt),
@@ -271,7 +269,6 @@ EWAY_Way* eway_find_near(GameCoord pos)
 // claude-ai:   PC Release build: 0 по умолчанию, можно включить через консоль "bangunsnotgames".
 
 BOOL allow_debug_keys = 0;
-
 
 // claude-ai: VARIABLE: dkeys_have_been_used — TRUE если отладочные клавиши использовались
 // claude-ai: (флаг для отслеживания факта переключения allow_debug_keys через консоль).
@@ -506,7 +503,6 @@ void parse_console(CBYTE* str)
     }
     CONSOLE_text("huh?", 3000);
 }
-
 
 //
 // Takes a screen shot of the city from above.
@@ -962,7 +958,6 @@ void plan_view_shot()
             FALSE);
     }
 }
-
 
 //---------------------------------------------------------------
 
@@ -1729,7 +1724,6 @@ void process_controls(void)
         */
     }
 
-
     if ((GAME_TURN & 0x0f) == 0)
         set_danger_level();
     context_music();
@@ -1748,11 +1742,11 @@ void process_controls(void)
                 GAME_STATE = GS_LEVEL_LOST;
             }
         }
-// claude-ai: SECTION: debug NPC camera cycling (allow_debug_keys, #ifndef TARGET_DC).
-// claude-ai: Keys[KB_RBRACE] = '}' — следующий NPC (не CIV) через камеру 1 (FC_look_at).
-// claude-ai: Keys[KB_LBRACE] = '{' — предыдущий NPC.
-// claude-ai: Keys[KB_P]      = 'P' — переключить слежение: если cam1 следит → отключить; иначе включить.
-// claude-ai: Камера 1 = вторая камера (не основная), используется для spectator-режима.
+    // claude-ai: SECTION: debug NPC camera cycling (allow_debug_keys, #ifndef TARGET_DC).
+    // claude-ai: Keys[KB_RBRACE] = '}' — следующий NPC (не CIV) через камеру 1 (FC_look_at).
+    // claude-ai: Keys[KB_LBRACE] = '{' — предыдущий NPC.
+    // claude-ai: Keys[KB_P]      = 'P' — переключить слежение: если cam1 следит → отключить; иначе включить.
+    // claude-ai: Камера 1 = вторая камера (не основная), используется для spectator-режима.
     if (allow_debug_keys) {
         static SLONG index_cam = 0;
         Thing* p_thing;
@@ -1960,7 +1954,7 @@ void process_controls(void)
     GLITTER_process();
     //	LIGHT_process();
     HOOK_process();
-//	SM_process();
+    //	SM_process();
     SNIPE_process();
 
     GameCoord position;
@@ -2123,10 +2117,10 @@ void process_controls(void)
         }
     }
 
-// claude-ai: SECTION: Shift+F12 — переключение режима читов (cheat 0↔2).
-// claude-ai: cheat=2: игрок получает расширенные возможности (детали в Special.cpp/Game.cpp).
-// claude-ai: cheat=0: выключить читы.
-// claude-ai: Доступно всегда (не требует allow_debug_keys), #ifndef TARGET_DC.
+    // claude-ai: SECTION: Shift+F12 — переключение режима читов (cheat 0↔2).
+    // claude-ai: cheat=2: игрок получает расширенные возможности (детали в Special.cpp/Game.cpp).
+    // claude-ai: cheat=0: выключить читы.
+    // claude-ai: Доступно всегда (не требует allow_debug_keys), #ifndef TARGET_DC.
     if (Keys[KB_F12] && ShiftFlag) {
         Keys[KB_F12] = 0;
 
@@ -2142,7 +2136,6 @@ void process_controls(void)
     // claude-ai: GUARD: если allow_debug_keys==0 — выходим здесь. Всё что ниже — только для debug-сборок.
     if (!allow_debug_keys)
         return;
-
 
     if (mouse_input) {
         //
@@ -2525,8 +2518,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
 
     */
 
-
-//	CLOTH_process();
+    //	CLOTH_process();
 
     //
     // Enter and leave the sewers if Darci does.
@@ -2720,9 +2712,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
     //	ID_this_is_where_i_am((darci->WorldPos.X>>8) >> ELE_SHIFT, (darci->WorldPos.Z>>8) >> ELE_SHIFT);
 
     static GameCoord enter_pos = { 0, 0, 0 }; // Where Darci entered the building.
-
-
-
 
     /*
 
@@ -3090,16 +3079,16 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         }
     }
     static UBYTE smokin = 0;
-/*	if (Keys[KB_FORESLASH]) {
+    /*	if (Keys[KB_FORESLASH]) {
 
-                Keys[KB_FORESLASH]=0;
+                    Keys[KB_FORESLASH]=0;
 
-                if (!ShiftFlag) {
-                        smokin=!smokin;
-                } else {
-                        the_ff_manager->Test();
-                }
-        }*/
+                    if (!ShiftFlag) {
+                            smokin=!smokin;
+                    } else {
+                            the_ff_manager->Test();
+                    }
+            }*/
     if (Keys[KB_FORESLASH]) {
         Keys[KB_FORESLASH] = 0;
 
@@ -4026,7 +4015,6 @@ extern	SLONG	FC_cam_height;
             */
         }
 
-
         if (Keys[KB_G]) {
             Keys[KB_G] = 0;
 
@@ -4198,7 +4186,6 @@ extern	SLONG	FC_cam_height;
     // claude-ai: Вызывается только в PC-версии (#ifndef PSX), в самом конце process_controls().
     animate_texture_maps();
     //	Get user game input.
-
 }
 
 // claude-ai: ============================================================

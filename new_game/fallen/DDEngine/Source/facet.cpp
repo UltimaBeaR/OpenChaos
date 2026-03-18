@@ -56,20 +56,14 @@
 // temptemptempetc.
 #include "sprite.h"
 
-
-
-
 #define POLY_set_local_rotation_none() \
     {                                  \
     }
-
-
 
 // claude-ai: FACET_direction_matrix — 3x3 rotation matrix aligned to the current facet's yaw.
 // claude-ai: Built from the facet's (x[0],z[0])→(x[1],z[1]) direction before drawing.
 // claude-ai: Used by the superfacet cache system and CRINKLE bump-map system to orient normals.
 float FACET_direction_matrix[9];
-
 
 static int iNumFacets = 0;
 static int iNumFacetTextures = 0;
@@ -1195,9 +1189,7 @@ static void MakeFacetPoints(float sx, float sy, float sz, float dx, float dz, fl
                 // apply_cloud(SLONG(x), SLONG(ty), SLONG(z), &pp->colour);
 
                 // POLY_fadeout_point(pp);
-
             }
-
 
             x += dx;
             z += dz;
@@ -1364,7 +1356,6 @@ inline void MakeFacetPointsCommon(float sx, float sy, float sz, float dx, float 
 {
     SLONG hf = 0;
 
-
     ASSERT(POLY_buffer_upto == 0); // or else FacetDiffY is accessed wrongly
 
     while (height >= 0) {
@@ -1418,7 +1409,6 @@ inline void MakeFacetPointsCommon(float sx, float sy, float sz, float dx, float 
         foundation--;
     }
     FacetRows[hf] = POLY_buffer_upto;
-
 }
 
 // Like FillFacetPoints, but used in the most common cases.
@@ -1426,10 +1416,8 @@ inline void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation,
 {
     POLY_Point* quad[4];
 
-
     SLONG row1 = FacetRows[base_row];
     SLONG row2 = FacetRows[base_row + 1];
-
 
     SLONG c0;
     for (c0 = 0; c0 < row2 - row1 - 1; c0++) {
@@ -1443,7 +1431,6 @@ inline void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation,
         if (POLY_valid_quad(quad)) {
             SLONG page;
             page = texture_quad(quad, dstyles[style_index], c0, count);
-
 
             if (block_height != 256.0f) {
                 float fTemp = (float)block_height * (1.0f / 256.0f);
@@ -1555,7 +1542,6 @@ inline void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation,
     for (; c0 < count; c0++) {
         facet_rand();
     }
-
 }
 
 extern UWORD fade_black;
@@ -1749,9 +1735,8 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
         return;
     }
 
-
-//	if(facet==114 || facet==115 || facet==2037 ||facet==2036)
-//		return;
+    //	if(facet==114 || facet==115 || facet==2037 ||facet==2036)
+    //		return;
 
     if (INDOORS_DBUILDING == p_facet->Building && INDOORS_INDEX)
         inside_clip = 1;
@@ -1770,11 +1755,9 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
         break;
     }
 
-
     //
     // Should we bother drawing this facet?
     //
-
 
     if ((p_facet->FacetType == STOREY_TYPE_FENCE || p_facet->FacetType == STOREY_TYPE_FENCE_FLAT || p_facet->FacetType == STOREY_TYPE_FENCE_BRICK || p_facet->FacetType == STOREY_TYPE_INSIDE ||
             //		 p_facet->FacetType == STOREY_TYPE_OINSIDE      ||
@@ -2712,7 +2695,7 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
 
                         page = texture_quad(quad, dstyles[style_index], c0, count);
 
-// Flashing pink! No thanks.
+                        // Flashing pink! No thanks.
 
                         POLY_add_quad(quad, page, 0); // 1 means perform a backface cull
                     } else {
@@ -2734,7 +2717,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
     }
     return;
 }
-
 
 // Like FACET_draw_rare, but for the most common class.
 // claude-ai: FACET_draw — FAST-PATH renderer for plain STOREY_TYPE_NORMAL exterior walls.
@@ -2775,7 +2757,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
     // SLONG		style_index_offset=1;
     SLONG style_index_step = 2;
     SLONG flipx = 0;
-
 
     ASSERT(facet > 0 && facet < next_dfacet);
     p_facet = &dfacets[facet];
@@ -2916,7 +2897,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
     draw_the_facet_common:;
     }
 
-
     dfacets_drawn_this_gameturn += 1;
 
     {
@@ -2946,7 +2926,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
     // Can't do these for release yet - no glowing windows, and the fog doesn't work.
     // Fog works, and Mark says he's done the glowing windows. Hooray!
     // #define DO_SUPERFACETS_PLEASE_BOB defined
-
 
     //
     // Draw the facet.
@@ -3047,8 +3026,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
 
     count++;
 
-
-
     // MSG_add(" facet %d draw count %d\n",facet,count);
 
     ASSERT(p_facet->FacetType == STOREY_TYPE_NORMAL);
@@ -3086,7 +3063,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
         style_index_step = 1;
     }
 
-
     ASSERT(reverse_textures == 0);
 
     hf = 0;
@@ -3106,7 +3082,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
         //				if(p_facet->FacetFlags&(FACET_FLAG_2SIDED|FACET_FLAG_2TEXTURED))
         //					style_index++;
     }
-
 
     return;
 }
@@ -3151,13 +3126,11 @@ void FACET_draw_walkable(SLONG build)
 
     UWORD* rooftex = NULL;
 
-
     //
     // Is this building a warehouse?
     //
 
     warehouse = (p_dbuilding->Type == BUILDING_TYPE_WAREHOUSE);
-
 
     if (warehouse) {
         ASSERT(WITHIN(p_dbuilding->Ware, 0, WARE_ware_upto - 1));
@@ -4272,7 +4245,6 @@ void DRAW_ladder(struct DFacet* p_facet)
         }
     }
 }
-
 
 void FACET_project_crinkled_shadow(SLONG facet)
 {

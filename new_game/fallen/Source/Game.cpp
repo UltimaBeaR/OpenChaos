@@ -78,7 +78,6 @@
 #include "..\ddengine\headers\truetype.h"
 #include "panel.h"
 
-
 #include "xlat_str.h"
 #include "DCLowLevel.h"
 
@@ -92,9 +91,7 @@
 SLONG CAM_cur_x, CAM_cur_y, CAM_cur_z,
     CAM_cur_yaw, CAM_cur_pitch, CAM_cur_roll; // these are set appropriate to whichever cam
 
-
 // The editor.
-
 
 // bool g_bGoToCreditsPleaseGameHasFinished = FALSE;
 
@@ -102,13 +99,9 @@ extern UBYTE editor_loop(void);
 extern BOOL allow_debug_keys;
 // Nearly everything in the whole game.
 
-
-
 // claude-ai: VIOLENCE_ALLOWED — всегда 1 в стандартной сборке. 0 только для немецкой/французской PC версии.
 // claude-ai: В новой игре: всегда 1, немецкую/французскую цензуру не переносить.
 #define VIOLENCE_ALLOWED 1
-
-
 
 Game the_game;
 UBYTE VIOLENCE = VIOLENCE_ALLOWED;
@@ -127,7 +120,6 @@ void stop_all_fx_and_music()
 
 // Loads data that only needs to be loaded once, or after we exit
 // the editor.
-
 
 // claude-ai: global_load() — однократная загрузка глобальных данных (аним., примитивы). Только PC/не-DC.
 // claude-ai: Вызывается из game_init() и game_create_psx(). На DC не нужна из-за ограничений памяти.
@@ -153,7 +145,6 @@ void game_startup(void)
 
     init_memory();
     FC_init();
-
 
     //
     // Do PC setup.
@@ -210,8 +201,6 @@ void game_startup(void)
 
     TEXTURE_load_needed("levels\\frontend.ucm", 160, 256, 65);
 
-
-
     //
     // Load the console font
     //
@@ -240,11 +229,9 @@ void game_shutdown(void)
     NET_kill();
     AENG_fini();
     ANIM_fini();
-
 }
 
 //---------------------------------------------------------------
-
 
 // Playback file stuff....
 
@@ -254,7 +241,6 @@ extern MFFileHandle playback_file;
 
 extern CBYTE* verifier_name = "C:\\Windows\\Desktop\\UrbanChaosRecordedGame.tst";
 extern MFFileHandle verifier_file;
-
 
 // The player position is loaded into here by load_level()
 
@@ -354,7 +340,6 @@ BOOL game_init(void)
 
     // stop_all_fx_and_music();
 
-
     //
     // Set the seed and initialise game variables.
     //
@@ -391,11 +376,9 @@ BOOL game_init(void)
     // m_iPanelXPos = 4 * ENV_get_value_number ( "panel_x", 32 / 4, "" );
     // m_iPanelYPos = 4 * ENV_get_value_number ( "panel_y", (480-32) / 4, "" );
 
-
     //
     // Open the game record/playback file.
     //
-
 
     if (GAME_STATE & GS_RECORD) {
         playback_file = FileCreate(playback_name, TRUE);
@@ -412,7 +395,6 @@ BOOL game_init(void)
     if (verifier_file == FILE_CREATION_ERROR) {
         verifier_file = NULL;
     }
-
 
     //
     // Initialise pause mode...
@@ -459,21 +441,17 @@ BOOL game_init(void)
 
         ret = 1;
 
-
     } else {
         //
         // Load the game.
         //
         ret = ELEV_load_user(go_into_game);
-
-
     }
 
     void init_stats(void);
     init_stats();
 
     EWAY_tutorial_string = NULL;
-
 
     return (ret);
 
@@ -564,16 +542,13 @@ void game_fini(void)
     // Free up the SUPERFACET memory.
     //
 
-
     SUPERFACET_fini();
 
     //
     // Free up the FARFACET memory.
     //
 
-
     FARFACET_fini();
-
 
     // Free up the figure caches.
     void FIGURE_clean_all_LRU_slots(void);
@@ -582,7 +557,6 @@ void game_fini(void)
     //
     // Unload our sound-effects.
     //
-
 
     if (GAME_STATE != GS_REPLAY) {
         // Don't free if replaying mission - no need.
@@ -600,10 +574,7 @@ void game_fini(void)
         verifier_file = NULL;
     }
 
-
-
     NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit();
-
 }
 
 //---------------------------------------------------------------
@@ -619,8 +590,6 @@ void game_fini(void)
 void game(void)
 {
     game_startup();
-
-
 
     // claude-ai: Главный цикл: SHELL_ACTIVE = окно живо, GAME_STATE = текущее состояние (битовое поле)
     while (SHELL_ACTIVE && GAME_STATE) {
@@ -641,10 +610,7 @@ void game(void)
         }
     }
 
-
-
     game_shutdown();
-
 }
 
 //---------------------------------------------------------------
@@ -693,8 +659,6 @@ void GAME_map_draw_old(void)
 
 extern void overlay_beacons(void);
 
-
-
 UBYTE screen_mem[640 * 3][480];
 
 // claude-ai: GAME_map_draw() — актуальная функция рисования карты (PC/!DC). Рисует top-down вид через plan_view_shot() в screen_mem,
@@ -711,8 +675,6 @@ void GAME_map_draw(void)
     the_display.destroy_background_surface();
 }
 
-
-
 // claude-ai: leave_map_form_proc() — callback диалогового окна "Leave map?" (только PC/!PSX).
 // claude-ai: Возвращает TRUE (закрыть диалог) при нажатии кнопки; tag=2 = да/выйти, tag=1 = нет/продолжить.
 BOOL leave_map_form_proc(Form* form, Widget* widget, SLONG message)
@@ -725,7 +687,6 @@ BOOL leave_map_form_proc(Form* form, Widget* widget, SLONG message)
         return FALSE; // Don't exit
     }
 }
-
 
 extern void PANEL_draw_timer_do(SLONG time, SLONG x, SLONG y);
 
@@ -806,7 +767,6 @@ void do_leave_map_form(void)
                 p_vehicle->Genus.Vehicle->VelZ = 0;
                 p_vehicle->Genus.Vehicle->VelR = 0;
             }
-
         }
     } else {
         FORM_Draw(form_leave_map);
@@ -853,7 +813,7 @@ inline void screen_flip(void)
         AENG_flip();
     }
 
-//	FLIP(NULL,DDFLIP_WAIT);
+    //	FLIP(NULL,DDFLIP_WAIT);
 }
 
 // claude-ai: playback_game_keys() — в режиме GS_PLAYBACK: SPACE/ENTER/геймпад прерывают воспроизведение (GAME_STATE=0).
@@ -970,7 +930,6 @@ SLONG should_i_process_game(void)
         return FALSE;
     }
 
-
     if (GAMEMENU_is_paused()) {
         return FALSE;
     }
@@ -992,8 +951,6 @@ inline void draw_screen(void)
 {
     extern SLONG draw_3d;
 
-
-
     if (draw_map_screen) {
         //		MAP_draw();
     } else {
@@ -1003,7 +960,6 @@ inline void draw_screen(void)
     if (form_leave_map) {
         do_leave_map_form();
     }
-
 }
 
 //****************************************************************
@@ -1031,8 +987,7 @@ SLONG hardware_input_continue(void)
     if (GAMEMENU_menu_type == 0 /*GAMEMENU_MENU_TYPE_NONE*/) {
         // No pause menu up, so wait for a keypress.
         SLONG input = get_hardware_input(INPUT_TYPE_ALL);
-        if (LastKey == KB_SPACE || LastKey == KB_ESC || LastKey == KB_Z || LastKey == KB_X || LastKey == KB_C || LastKey == KB_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP)))
-        {
+        if (LastKey == KB_SPACE || LastKey == KB_ESC || LastKey == KB_Z || LastKey == KB_X || LastKey == KB_C || LastKey == KB_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))) {
             LastKey = 0;
 
             return (1);
@@ -1051,7 +1006,6 @@ UWORD last_fudge_message;
 UWORD last_fudge_camera;
 // claude-ai: the_end — флаг "конец игры" (TRUE после прохождения финала). Используется для OS_hack() (финальный экран).
 UBYTE the_end;
-
 
 // claude-ai: env_frame_rate — целевой FPS из config.ini "max_frame_rate" (по умолчанию 30). Используется в lock_frame_rate().
 UWORD env_frame_rate;
@@ -1072,12 +1026,9 @@ UBYTE game_loop(void)
     AENG_set_draw_distance(ENV_get_value_number("draw_distance", 22, "Render"));
 round_again:;
 
-
     MEMORY_quick_init();
 
-
     if (game_init()) {
-
 
         already_warned_about_leaving_map = GetTickCount();
         draw_map_screen = FALSE;
@@ -1097,12 +1048,9 @@ round_again:;
             BreakStart();
         SLONG exit_game_loop = FALSE;
 
-
-
         //
         // Initialise the SUPERFACET cache system. Allocates memory.
         //
-
 
         SUPERFACET_init();
 
@@ -1110,22 +1058,17 @@ round_again:;
         // Initailises the FARFACET system. Allocates memory.
         //
 
-
         FARFACET_init();
 
         //
         // Initialises the FASTPRIM cached prim system. Allocates memory.
         //
 
-
         FASTPRIM_init();
-
 
         // MarkZA says put this in here.
         extern void envmap_specials(void);
         envmap_specials();
-
-
 
         // claude-ai: Inner per-frame loop - runs while playing, exits on GS_LEVEL_WON or GS_LEVEL_LOST
         while (SHELL_ACTIVE && (GAME_STATE & (GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WON))) {
@@ -1137,7 +1080,6 @@ round_again:;
             if (!exit_game_loop) {
                 exit_game_loop = GAMEMENU_process();
             }
-
 
             if (exit_game_loop) {
                 PANEL_fadeout_start();
@@ -1278,7 +1220,6 @@ round_again:;
                 TRIP_process();
                 DOOR_process();
 
-
                 EWAY_process();
 
                 //				TRACE("Process stuff2\n");
@@ -1326,7 +1267,6 @@ round_again:;
             // pausing and floating text stuff
 
             SLONG i_want_to_exit = FALSE;
-
 
             //
             // On screen Text
@@ -1380,7 +1320,6 @@ round_again:;
                 //
 
                 GAME_FLAGS &= ~GF_DISABLE_BENCH_HEALTH;
-
             }
 
             if (i_want_to_exit) {
@@ -1395,9 +1334,7 @@ round_again:;
         // Game has finished, what do we do now
         //
 
-
         game_fini();
-
 
         // claude-ai: После выхода из inner loop: если GS_LEVEL_WON — проверяем какой уровень завершён для катсцен.
         // claude-ai: park2.ucm → катсцена 1 (MIB introduction cutscene).
@@ -1432,10 +1369,9 @@ round_again:;
                 the_end = FALSE;
             } else
 
-            //
-            // Connected else...
-            //
-
+                //
+                // Connected else...
+                //
 
                 // claude-ai: DarciDeadCivWarnings — экран наказания за убийство мирных жителей (RedMarks > 1).
                 // claude-ai: RedMarks — счётчик убитых мирных (Player->RedMarks). Только для PERSON_DARCI (основной персонаж).
@@ -1447,10 +1383,10 @@ round_again:;
 
                         InitBackImage("deadcivs.tga");
 
-                    Keys[KB_ESC] = 0;
-                    Keys[KB_SPACE] = 0;
-                    Keys[KB_ENTER] = 0;
-                    Keys[KB_PENTER] = 0;
+                        Keys[KB_ESC] = 0;
+                        Keys[KB_SPACE] = 0;
+                        Keys[KB_ENTER] = 0;
+                        Keys[KB_PENTER] = 0;
 
                         while (SHELL_ACTIVE) {
                             ShowBackImage();
@@ -1490,18 +1426,18 @@ round_again:;
                             POLY_frame_draw(TRUE, TRUE);
                             AENG_flip();
 
-                        if (Keys[KB_ESC] || Keys[KB_SPACE] || Keys[KB_ENTER] || Keys[KB_PENTER]) {
-                            break;
-                        }
+                            if (Keys[KB_ESC] || Keys[KB_SPACE] || Keys[KB_ENTER] || Keys[KB_PENTER]) {
+                                break;
+                            }
                         }
 
                         // Bin the memory again.
                         ResetBackImage();
 
-                    Keys[KB_ESC] = 0;
-                    Keys[KB_SPACE] = 0;
-                    Keys[KB_ENTER] = 0;
-                    Keys[KB_PENTER] = 0;
+                        Keys[KB_ESC] = 0;
+                        Keys[KB_SPACE] = 0;
+                        Keys[KB_ENTER] = 0;
+                        Keys[KB_PENTER] = 0;
 
                         the_game.DarciDeadCivWarnings += 1;
                     }
@@ -1524,10 +1460,10 @@ round_again:;
 
             goto round_again;
         case GS_LEVEL_WON:
-//				STARTSCR_notify_gameover(1);
+            //				STARTSCR_notify_gameover(1);
             break;
         case GS_LEVEL_LOST:
-//				STARTSCR_notify_gameover(0);
+            //				STARTSCR_notify_gameover(0);
             break;
         }
 

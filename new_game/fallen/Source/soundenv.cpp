@@ -103,5 +103,4 @@ extern SLONG CAM_pos_x,
 
 void SOUNDENV_upload(void)
 {
-
 }

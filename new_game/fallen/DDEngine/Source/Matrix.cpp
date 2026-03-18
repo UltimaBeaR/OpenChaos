@@ -3,8 +3,6 @@
 
 #include <math.h>
 
-
-
 //
 // OPTIMISE THIS AT SOME POINT MARK! 'roll' AND 'pitch' ARE NEARLY ALWAYS 0!
 //
@@ -15,7 +13,6 @@ void MATRIX_calc(float matrix[9], float yaw, float pitch, float roll)
     float cy, cp, cr;
     float sy, sp, sr;
 
-
     sy = sin(yaw);
     sp = sin(pitch);
     sr = sin(roll);
@@ -23,7 +20,6 @@ void MATRIX_calc(float matrix[9], float yaw, float pitch, float roll)
     cy = cos(yaw);
     cp = cos(pitch);
     cr = cos(roll);
-
 
     //
     // Jan I trust you... but only becuase I've already seen it working!
@@ -144,7 +140,6 @@ void MATRIX_3x3mul(float a[9], float m[9], float n[9])
 // matrix, because it will be unchanged.
 //
 
-
 #define MATRIX_ROTATE_ABOUT_Z(ax, ay, az, bx, by, bz, cx, cy, cz, angle) \
     {                                                                    \
         float c = cos(angle);                                            \
@@ -175,7 +170,6 @@ void MATRIX_3x3mul(float a[9], float m[9], float n[9])
             (bz) = qz;                                                   \
         }                                                                \
     }
-
 
 void MATRIX_rotate_about_its_x(float* matrix, float angle)
 {

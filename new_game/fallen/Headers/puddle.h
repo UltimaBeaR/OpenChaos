@@ -5,7 +5,6 @@
 #ifndef FALLEN_HEADERS_PUDDLE_H
 #define FALLEN_HEADERS_PUDDLE_H
 
-
 //
 // Clears out all puddle info.
 //
@@ -82,6 +81,5 @@ typedef struct
 
 void PUDDLE_get_start(UBYTE z_map, UBYTE x_map_min, UBYTE x_map_max);
 PUDDLE_Info* PUDDLE_get_next(void);
-
 
 #endif // FALLEN_HEADERS_PUDDLE_H

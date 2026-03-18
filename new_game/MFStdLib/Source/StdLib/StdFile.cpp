@@ -6,7 +6,6 @@
 #define MAX_LENGTH_OF_BASE_PATH 64
 CBYTE cBasePath[MAX_LENGTH_OF_BASE_PATH + 1];
 
-
 //---------------------------------------------------------------
 
 #define MAX_LENGTH_OF_FULL_NAME (MAX_LENGTH_OF_BASE_PATH + 128)

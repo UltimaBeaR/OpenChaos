@@ -27,7 +27,6 @@
 #include <mbctype.h> // MBCS crap
 #include <mbstring.h> // more MBCS crap
 
-
 #include "truetype.h"
 #include "polypoint.h"
 #include "env.h"
@@ -146,7 +145,7 @@ void TT_Init()
     hres = pShadowSurface->SetPalette(pShadowPalette);
     ASSERT(!FAILED(hres));
 
-      //  create the font - hey, a function with fourteen parameters!
+    //  create the font - hey, a function with fourteen parameters!
     hFont = CreateFont(FontHeight * AA_SIZE,
         0, 0, 0,
         FW_BOLD, // weight
@@ -379,7 +378,6 @@ void PreFlipTT()
 
     // copy to the screen
     BlitText();
-
 }
 
 // MeasureTextCommand
@@ -460,7 +458,6 @@ static void DoTextCommand(TextCommand* tcmd)
         // release the DC
         res = pShadowSurface->ReleaseDC(hDC);
         ASSERT(!FAILED(res));
-
 
         // draw this line
         switch (tcmd->command) {
@@ -730,4 +727,3 @@ static void TexBlit(int x1, int y1, int x2, int y2, int dx, int dy, ULONG rgb, U
     HRESULT res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, (D3DTLVERTEX*)vert, 4, indices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
     ASSERT(!FAILED(res));
 }
-

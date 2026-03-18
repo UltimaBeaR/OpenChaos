@@ -2,11 +2,9 @@
 //
 // PolyPage class - main low-level rendering
 
-
 // PC
 
 // Do need to sort, and so need polybuffers
-
 
 #ifndef FALLEN_DDENGINE_HEADERS_POLYPAGE_H
 #define FALLEN_DDENGINE_HEADERS_POLYPAGE_H
@@ -36,7 +34,6 @@ inline bool operator<=(const PolyPoly& arg1, const PolyPoly& arg2) { return arg1
 inline bool operator>(const PolyPoly& arg1, const PolyPoly& arg2) { return !(arg1 <= arg2); }
 inline bool operator>=(const PolyPoly& arg1, const PolyPoly& arg2) { return !(arg1 < arg2); }
 
-
 // PolyPage
 //
 // a polygon page
@@ -64,7 +61,6 @@ public:
 
     // set scaling for different screen sizes
     static void SetScaling(float xmul, float ymul);
-
 
     // sort polygons in approx. Z order
     void SortBackFirst();
@@ -200,7 +196,6 @@ extern D3DMATRIX g_matProjection;
 extern D3DMATRIX g_matWorld;
 extern D3DVIEWPORT2 g_viewData;
 
-
 // This is already defined by DX in a DC build.
 struct D3DMULTIMATRIX {
     LPVOID lpvVertices; // Pointer to the vertex data. MUST be 32-byte aligned.
@@ -220,7 +215,6 @@ extern HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
     WORD wNumVertices,
     WORD* pwIndices,
     DWORD dwNumIndices);
-
 
 // Useful.
 #define GET_MM_INDEX(v) (((unsigned char*)&v)[12])

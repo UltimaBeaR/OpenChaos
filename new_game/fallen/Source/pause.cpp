@@ -8,7 +8,6 @@
  *
  */
 
-
 #include "mfstdlib.h"
 #include "game.h"
 #include "xlat_str.h"
@@ -19,7 +18,6 @@
 #include "..\ddengine\headers\font3d.h"
 #include "..\ddengine\headers\font2d.h"
 #include "..\ddengine\headers\panel.h"
-
 
 extern DIJOYSTATE the_state;
 
@@ -57,7 +55,6 @@ SLONG PAUSE_handler()
     static SLONG lastinput = 0;
     SLONG ans = FALSE;
 
-
     input = 0;
     extern BOOL ReadInputDevice(void);
     if (ReadInputDevice()) {
@@ -79,7 +76,6 @@ SLONG PAUSE_handler()
                 input |= PAUSED_KEY_OKAY;
         }
     }
-
 
     temp = input;
     input = input & (~lastinput);
@@ -144,7 +140,6 @@ SLONG PAUSE_handler()
         }
     }
 
-
     POLY_frame_init(FALSE, FALSE);
 
     PANEL_draw_quad(
@@ -186,7 +181,6 @@ SLONG PAUSE_handler()
 
     POLY_frame_draw(FALSE, TRUE);
 
-
     return ans;
 
     /*
@@ -212,4 +206,3 @@ SLONG PAUSE_handler()
 
     */
 }
-

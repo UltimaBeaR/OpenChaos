@@ -11,8 +11,6 @@
 // claude-ai: EDITOR блок (#ifdef EDITOR): старый mission selection UI (pre-release, дек 1998).
 // claude-ai:   Содержит LoadMissionFilename(), LoadNextMissionFilename() — для старого briefing flow.
 
-
 #include "MFStdLib.h"
 
 CBYTE STARTSCR_mission[_MAX_PATH] = { 0 };
-

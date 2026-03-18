@@ -5,7 +5,6 @@
 #ifndef FALLEN_HEADERS_ELEV_H
 #define FALLEN_HEADERS_ELEV_H
 
-
 //
 // This are the last ones to be loaded...
 //
@@ -16,7 +15,6 @@ extern CBYTE ELEV_fname_map[_MAX_PATH];
 extern CBYTE ELEV_fname_lighting[_MAX_PATH];
 extern CBYTE ELEV_fname_citsez[_MAX_PATH];
 extern CBYTE ELEV_fname_level[_MAX_PATH];
-
 
 //
 // Prompts for a level and loads it. Returns FALSE on failure.

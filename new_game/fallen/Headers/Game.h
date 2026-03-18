@@ -29,7 +29,6 @@
 //---------------------------------------------------------------
 // PC - D3D Specific defines.
 
-
 #pragma warning(disable : 4244) // truncation warning : useless
 #pragma warning(disable : 4101) // unreferenced local : no-one ever bothers deleting these
 #pragma warning(disable : 4554) // yes, well ... some people use brackets, others disable this warning
@@ -107,8 +106,6 @@ extern struct MemTable save_table[];
 #include "interact.h"
 
 #include "aeng.h"
-
-
 
 //---------------------------------------------------------------
 #define MAX_RADIUS (24)
@@ -503,7 +500,6 @@ extern UBYTE VIOLENCE;
 #define VEHICLES (the_game.Vehicles)
 #define BATS (the_game.Bats)
 
-
 #define INDOORS_HEIGHT_FLOOR (the_game.indoors_height_floor)
 #define INDOORS_HEIGHT_CEILING (the_game.indoors_height_ceiling)
 #define INDOORS_DBUILDING (the_game.indoors_dbuilding)
@@ -514,7 +510,6 @@ extern UBYTE VIOLENCE;
 #define INDOORS_INDEX_NEXT (the_game.indoors_index_next)
 #define INDOORS_INDEX (the_game.indoors_index)
 #define INDOORS_ROOM (the_game.indoors_room)
-
 
 #define TO_DRAW_TWEEN(t) (&DRAW_TWEENS[t])
 #define TO_DRAW_MESH(t) (&DRAW_MESHES[t])

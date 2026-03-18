@@ -73,7 +73,6 @@ SLONG GAMEMENU_wait;
 
 CBYTE* GAMEMENU_level_lost_reason;
 
-
 //
 // Each of the menus.
 //
@@ -143,7 +142,6 @@ SLONG GAMEMENU_process()
 
     SLONG millisecs;
 
-
     static SLONG tick_last = 0;
     static SLONG tick_now = 0;
 
@@ -152,13 +150,11 @@ SLONG GAMEMENU_process()
     millisecs = tick_now - tick_last;
     tick_last = tick_now;
 
-
     //
     // Make sure nothing is too extreme...
     //
 
     SATURATE(millisecs, 10, 200);
-
 
     //
     // Automatically go into these menus.
@@ -211,10 +207,8 @@ SLONG GAMEMENU_process()
         GAME_cut_scene = FALSE;
     }
 
-    if (Keys[KB_ESC])
-    {
+    if (Keys[KB_ESC]) {
         Keys[KB_ESC] = 0;
-
 
         switch (GAMEMENU_menu_type) {
         case GAMEMENU_MENU_TYPE_NONE:
@@ -248,7 +242,6 @@ SLONG GAMEMENU_process()
         }
     }
 
-
     if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE) {
         //
         // The fade and slowdown.
@@ -275,8 +268,7 @@ SLONG GAMEMENU_process()
             // Control the menu.
             //
 
-            if (Keys[KB_UP])
-            {
+            if (Keys[KB_UP]) {
                 Keys[KB_UP] = 0;
 
                 GAMEMENU_menu_selection -= 1;
@@ -292,8 +284,7 @@ SLONG GAMEMENU_process()
                 MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
             }
 
-            if (Keys[KB_DOWN])
-            {
+            if (Keys[KB_DOWN]) {
                 Keys[KB_DOWN] = 0;
 
                 GAMEMENU_menu_selection += 1;
@@ -315,8 +306,7 @@ SLONG GAMEMENU_process()
                 }
             }
 
-            if (Keys[KB_ENTER] || Keys[KB_SPACE] || Keys[KB_PENTER])
-            {
+            if (Keys[KB_ENTER] || Keys[KB_SPACE] || Keys[KB_PENTER]) {
                 Keys[KB_ENTER] = 0;
                 Keys[KB_SPACE] = 0;
                 Keys[KB_PENTER] = 0;
@@ -393,7 +383,6 @@ void GAMEMENU_draw()
     if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_NONE) {
         return;
     }
-
 
     //
     // Darken the screen.

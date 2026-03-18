@@ -10,8 +10,6 @@
 #include "poly.h"
 #include "..\headers\noserver.h"
 
-
-
 CharData FontInfo[256];
 CBYTE FontName[_MAX_PATH];
 SLONG FontPage;
@@ -168,7 +166,6 @@ void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist)
         FontInfo[32].width = FontInfo[65].width;
 }
 
-
 #define SC(a) (SIN(a & 2047) >> 15)
 #define CC(a) (COS(a & 2047) >> 15)
 
@@ -302,8 +299,6 @@ void MENUFONT_DrawFutzed(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG alpha,
     }
 }
 
-
-
 void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags, SWORD max)
 {
     const UBYTE haloscale = 3;
@@ -318,8 +313,6 @@ void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD f
 
     if (max == -1)
         max = len;
-
-
 
     y -= (FontInfo[hchar].height * scale) >> 9;
 
@@ -490,7 +483,6 @@ void MENUFONT_Draw_floats(float x, float y, UWORD scale, CBYTE* msg, SLONG rgb, 
 void MENUFONT_Dimensions(CBYTE* fn, SLONG& x, SLONG& y, SWORD max, SWORD scale)
 {
     UBYTE* fn2 = (UBYTE*)fn;
-
 
     if (!fn2[1]) {
         x = FontInfo[*fn2].width;

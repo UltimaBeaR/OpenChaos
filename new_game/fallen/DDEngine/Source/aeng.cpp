@@ -124,14 +124,11 @@
     {                                  \
     }
 
-
 #define AENG_MAX_BBOXES 8
 #define AENG_BBOX_PUSH_IN 16
 #define AENG_BBOX_PUSH_OUT 4
 
 // #ifdef DEBUG
-
-
 
 void AENG_draw_far_facets(void);
 void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out);
@@ -370,7 +367,6 @@ void init_clouds(void)
         memset(cloud_data, 0, 1024);
     }
 }
-
 
 // GetShadowPixelMapping
 //
@@ -689,7 +685,7 @@ UBYTE *movie_data_upto;
 void AENG_init(void)
 {
     MESH_init();
-//	FONT2D_init();
+    //	FONT2D_init();
     init_clouds();
     SKY_init("stars\\poo");
     POLY_init();
@@ -697,7 +693,6 @@ void AENG_init(void)
     TEXTURE_choose_set(1);
     INDOORS_INDEX_FADE = 255;
     // POLY_frame_init(FALSE, FALSE);
-
 
     //
     // Load the fade palette for the bonfires
@@ -727,7 +722,6 @@ void AENG_world_line(
     SLONG x2, SLONG y2, SLONG z2, SLONG width2, ULONG colour2,
     SLONG sort_to_front)
 {
-
 
     POLY_Point p1;
     POLY_Point p2;
@@ -774,7 +768,6 @@ void AENG_world_line_infinite(
     SLONG ix2, SLONG iy2, SLONG iz2, SLONG iwidth2, ULONG colour2,
     SLONG sort_to_front)
 {
-
 
     float x1 = float(ix1);
     float y1 = float(iy1);
@@ -1268,7 +1261,6 @@ void AENG_calc_gamut_lo_only(
         }
     }
 
-
 #if 1
     AENG_gamut_lo_xmin = (SLONG)(gamut_lo_xmin);
     AENG_gamut_lo_xmax = (SLONG)(gamut_lo_xmax);
@@ -1294,7 +1286,6 @@ void AENG_calc_gamut_lo_only(
     if (AENG_gamut_lo_zmin == PAP_SIZE_LO) {
         AENG_gamut_lo_zmin = PAP_SIZE_LO - 1;
     }
-
 }
 
 void AENG_set_camera_radians(
@@ -1862,7 +1853,6 @@ void AENG_add_projected_lit_shadow_poly(SMAP_Link* sl)
                 pp->colour = 0x00000000;
                 pp->specular = 0xff000000;
             }
-
 
         } else {
             //
@@ -2480,15 +2470,12 @@ void AENG_draw_dirt()
             float cangle;
             float sangle;
 
-
             sangle = sinf(angle);
             cangle = cosf(angle);
-
 
             //
             // Fix the uv's for texture paging.
             //
-
 
             if (world_type == WORLD_TYPE_SNOW) {
                 pp = &POLY_Page[POLY_PAGE_SNOWFLAKE];
@@ -2503,7 +2490,6 @@ void AENG_draw_dirt()
 
             AENG_dirt_uvlookup[i].u = AENG_dirt_uvlookup[i].u * pp->m_UScale + pp->m_UOffset;
             AENG_dirt_uvlookup[i].v = AENG_dirt_uvlookup[i].v * pp->m_VScale + pp->m_VOffset;
-
         }
 
         AENG_dirt_uvlookup_valid = TRUE;
@@ -2575,7 +2561,6 @@ void AENG_draw_dirt()
             }
         }
 
-
         switch (dd->type) {
         case DIRT_TYPE_LEAF:
         case DIRT_TYPE_SNOW:
@@ -2631,7 +2616,6 @@ void AENG_draw_dirt()
                 float cy, cp, cr;
                 float sy, sp, sr;
 
-
                 sy = 0.0F; // sin(0)
                 cy = 1.0F; // cos(0)
 
@@ -2640,7 +2624,6 @@ void AENG_draw_dirt()
 
                 cp = cos(fpitch);
                 cr = cos(froll);
-
 
                 //
                 // (matrix[3],matrix[4],matrix[5]) remains undefined...
@@ -2734,7 +2717,6 @@ void AENG_draw_dirt()
                 lv[3].color = rubbish_colour;
                 lv[3].specular = 0xff000000;
 
-
                 pp = &POLY_Page[POLY_PAGE_RUBBISH];
 
                 lv[0].tu = lv[0].tu * pp->m_UScale + pp->m_UOffset;
@@ -2748,7 +2730,6 @@ void AENG_draw_dirt()
 
                 lv[3].tu = lv[3].tu * pp->m_UScale + pp->m_UOffset;
                 lv[3].tv = lv[3].tv * pp->m_VScale + pp->m_VOffset;
-
 
                 //
                 // Build the indices.
@@ -2804,7 +2785,6 @@ void AENG_draw_dirt()
                     float cy, cp, cr;
                     float sy, sp, sr;
 
-
                     sy = 0.0F; // sin(0)
                     cy = 1.0F; // cos(0)
 
@@ -2813,7 +2793,6 @@ void AENG_draw_dirt()
 
                     cp = cos(fpitch);
                     cr = cos(froll);
-
 
                     //
                     // (matrix[3],matrix[4],matrix[5]) remains undefined...
@@ -3280,7 +3259,6 @@ UBYTE AENG_aa_buffer[AENG_AA_BUF_SIZE][AENG_AA_BUF_SIZE];
 
 #define MAP_SIZE_TWEAK 0
 
-
 POLY_Point AENG_upper[MAP_WIDTH / 2 + MAP_SIZE_TWEAK][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK];
 POLY_Point AENG_lower[MAP_WIDTH / 2 + MAP_SIZE_TWEAK * 2][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK * 2];
 
@@ -3655,7 +3633,7 @@ void AENG_set_bike_wheel_rotation(UWORD rot, UBYTE prim)
     // The texture rotation vector.
     //
 
-// Oh no they're not.
+    // Oh no they're not.
 
     SLONG du1 = SIN(+rot & 2047) * 15 >> 16;
     SLONG dv1 = COS(+rot & 2047) * 15 >> 16;
@@ -4050,7 +4028,6 @@ void AENG_guess_detail_levels()
 
         float tso = 10000 / AENG_draw_some_polys(false, false);
 
-
         if (tso < 10000) {
             generation = 0;
         } else if (tso < 40000) {
@@ -4062,7 +4039,6 @@ void AENG_guess_detail_levels()
             }
         }
     }
-
 
     // GENVAR(n) = in all generations >= n
 #define GENVAR(G) ((generation >= G) ? 1 : 0)
@@ -4082,7 +4058,6 @@ void AENG_guess_detail_levels()
 
     AENG_set_detail_levels(stars, shadows, moon_reflection, people_reflection, puddles, dirt, mist, rain, skyline, filter, perspective, crinkles);
 }
-
 
 void AENG_get_detail_levels(int* stars,
     int* shadows,
@@ -4119,8 +4094,6 @@ void AENG_get_detail_levels(int* stars,
 #define MAX_FLOOR_TILES_FOR_STRIPS (16) // I doubt we will get more than 32 very often (map is 128 wide)
 #define MAX_VERTS_FOR_STRIPS (MAX_FLOOR_TILES_FOR_STRIPS * 4) // 4 verts per map square
 #define MAX_INDICES_FOR_STRIPS (MAX_FLOOR_TILES_FOR_STRIPS * 5) // 5 indicies per map square
-
-
 
 #define IPRIM_COUNT 5
 
@@ -4277,7 +4250,6 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
     pv->tu = pv->tu * kerb_scaleu + kerb_du;
     pv->tv = pv->tv * kerb_scalev + kerb_dv;
 
-
     // set verts colour
     pv->color = c1; // 0xff808080;//202020;
     pv->specular = 0xff000000;
@@ -4293,7 +4265,6 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
 
     pv->tu = pv->tu * kerb_scaleu + kerb_du;
     pv->tv = pv->tv * kerb_scalev + kerb_dv;
-
 
     // set verts colour
     pv->color = c2; // 0xff808080;//202020;
@@ -4311,7 +4282,6 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
     pv->tu = pv->tu * kerb_scaleu + kerb_du;
     pv->tv = pv->tv * kerb_scalev + kerb_dv;
 
-
     // set verts colour
     pv->color = c2; // 0xff808080;//202020;
     pv->specular = 0xff000000;
@@ -4325,10 +4295,8 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
     pv->tu = 0.0f;
     pv->tv = 0.0f;
 
-
     pv->tu = pv->tu * kerb_scaleu + kerb_du;
     pv->tv = pv->tv * kerb_scalev + kerb_dv;
-
 
     // set verts colour
     pv->color = c1; // 0xff808080;//202020;
@@ -4440,7 +4408,6 @@ inline void draw_i_prim(LPDIRECT3DTEXTURE2 page, D3DLVERTEX* verts, UWORD* indic
 #define KERB_TILES 16
 #define KERB_VERTS (4 * KERB_TILES)
 #define KERB_INDICIES (5 * KERB_TILES)
-
 
 // Look Mike, when I say "don't put stuff on the stack", I mean
 // DONT PUT STUFF ON THE STACK. And it's "indices" - only two "i"s.
@@ -4576,7 +4543,6 @@ void draw_quick_floor(SLONG warehouse)
     general_steam(0, 0, 0, 0); // init it
 
     memset(group, 0, sizeof(struct GroupInfo) * IPRIM_COUNT);
-
 
     if (init_stats) {
         init_stats = 0;
@@ -4925,7 +4891,6 @@ void draw_quick_floor(SLONG warehouse)
                     &pv[2].tu,
                     &pv[2].tv);
 
-
                 pv[0].tu = pv[0].tu * pp->m_UScale + pp->m_UOffset;
                 pv[1].tu = pv[1].tu * pp->m_UScale + pp->m_UOffset;
                 pv[2].tu = pv[2].tu * pp->m_UScale + pp->m_UOffset;
@@ -4935,8 +4900,6 @@ void draw_quick_floor(SLONG warehouse)
                 pv[1].tv = pv[1].tv * pp->m_VScale + pp->m_VOffset;
                 pv[2].tv = pv[2].tv * pp->m_VScale + pp->m_VOffset;
                 pv[3].tv = pv[3].tv * pp->m_VScale + pp->m_VOffset;
-
-
 
                 if ((p1->Flags & (PAP_FLAG_ROOF_EXISTS)) && warehouse == 0) {
                     y = MAVHEIGHT(x, z) << 6;
@@ -5160,7 +5123,6 @@ void draw_quick_floor(SLONG warehouse)
     END_SCENE;
 }
 
-
 UBYTE index_lookup[] = { 0, 1, 3, 2 };
 
 // claude-ai: AENG_draw_city — renders the entire outdoor city scene for one camera.
@@ -5181,7 +5143,6 @@ void AENG_draw_city()
     // LOG_ENTER ( AENG_Draw_City )
 
     // TRACE ( "AengIn" );
-
 
     // DumpTracies();
 
@@ -5257,8 +5218,6 @@ void AENG_draw_city()
     extern SLONG tick_tock_unclipped;
     sea_offset += (tick_tock_unclipped);
 
-
-
     //
     // Work out which things are in view.
     //
@@ -5311,9 +5270,6 @@ void AENG_draw_city()
 
     BreakTime("Worked out things in view");
 
-
-
-
     //
     // Points out of the ambient light.
     //
@@ -5338,15 +5294,12 @@ void AENG_draw_city()
         //		return;
     }
 
-
-
     //
     // Rotate all the points.   //draw_floor
     //
 
     colour = 0x00888888;
     specular = 0xff000000;
-
 
     if (!INDOORS_INDEX || outside)
         for (z = NGAMUT_point_zmin; z <= NGAMUT_point_zmax; z++) {
@@ -5381,12 +5334,12 @@ void AENG_draw_city()
                         //
 
                         if (INDOORS_INDEX) {
-/*
-                                                NIGHT_get_d3d_colour_dim(
-                                                        nq->colour[dx + dz * PAP_BLOCKS],
-                                                   &pp->colour,
-                                                   &pp->specular);
-*/
+                            /*
+                                                                            NIGHT_get_d3d_colour_dim(
+                                                                                    nq->colour[dx + dz * PAP_BLOCKS],
+                                                                               &pp->colour,
+                                                                               &pp->specular);
+                            */
                             pp->colour = 0x80808080; // 202020;
                             pp->specular = 0x80000000;
                         } else {
@@ -5494,12 +5447,9 @@ void AENG_draw_city()
         }
     BreakTime("Rotated points");
 
-
-
     //
     // No reflection and shadow stuff second time round during 3d mode.
     //
-
 
     if (AENG_detail_stars && !(NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
         //
@@ -5522,14 +5472,11 @@ void AENG_draw_city()
 
     BreakTime("Done stars");
 
-
-
     //
     // Shadows.
     //
 
 #define AENG_NUM_SHADOWS 4
-
 
     struct
     {
@@ -6016,14 +5963,11 @@ void AENG_draw_city()
 
     BreakTime("Done shadows");
 
-
     // No reflections on DC.
-
 
     //
     // Where we remember the bounding boxes of reflections.
     //
-
 
     struct
     {
@@ -6074,12 +6018,9 @@ void AENG_draw_city()
         }
     }
 
-
-
     //
     // Draw the reflections of people.
     //
-
 
     if (AENG_detail_people_reflection)
         for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
@@ -6220,8 +6161,6 @@ void AENG_draw_city()
 
     BreakTime("Drawn reflections");
 
-
-
     {
         //
         // Drips inside puddles only...
@@ -6241,7 +6180,6 @@ void AENG_draw_city()
     //
     // Draw the puddles.
     //
-
 
     if (AENG_detail_puddles && !(GAME_FLAGS & GF_NO_FLOOR)) {
         SLONG i;
@@ -6448,8 +6386,6 @@ void AENG_draw_city()
     }
 
     BreakTime("Drawn puddles");
-
-
 
     if (AENG_detail_people_reflection) {
         SLONG oldcolour[4];
@@ -6704,12 +6640,11 @@ void AENG_draw_city()
 
     */
 
-// End of reflection stuff.
+    // End of reflection stuff.
 
     //
     // The sky.
     //
-
 
     extern void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float world_camera_z, float world_camera_yaw, float max_dist, ULONG bot_colour, ULONG top_colour);
 
@@ -6732,8 +6667,6 @@ void AENG_draw_city()
                 256.0f * 22.0f);
         }
 
-
-
     //
     // Draw the puddles and clear the poly lists.
     //
@@ -6742,7 +6675,6 @@ void AENG_draw_city()
         POLY_frame_draw_odd();
         POLY_frame_draw_puddles();
 
-
         POLY_frame_init(TRUE, TRUE);
     }
     BreakTime("Done second polygon flush");
@@ -6750,7 +6682,6 @@ void AENG_draw_city()
     //
     // FAR FACETS!!!!!!!!!!!!!
     //
-
 
     FARFACET_draw(
         AENG_cam_x,
@@ -6770,8 +6701,6 @@ void AENG_draw_city()
     //		AENG_draw_far_facets();
     // #endif
 
-
-
     //
     // Create all the squares.
     //
@@ -6779,7 +6708,6 @@ void AENG_draw_city()
     //
     // draw floor draw_floor  //things to search for
     //
-
 
     SLONG num_squares_drawn = 0;
 
@@ -6795,7 +6723,6 @@ void AENG_draw_city()
                     if ((ph->Flags & (PAP_FLAG_HIDDEN | PAP_FLAG_ROOF_EXISTS)) == PAP_FLAG_HIDDEN) {
                         continue;
                     }
-
 
                     /*
 
@@ -7222,8 +7149,6 @@ void AENG_draw_city()
     }
     BreakTime("Drawn floors");
 
-
-
     //	POLY_frame_draw(FALSE,FALSE);
     //	POLY_frame_init(TRUE,TRUE);
     //	BreakTime("Done another flush");
@@ -7232,10 +7157,8 @@ void AENG_draw_city()
     // Draw the objects and the things.
     //
 
-
     dfacets_drawn_this_gameturn = 0;
     {
-
 
         for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
             for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
@@ -7276,7 +7199,6 @@ void AENG_draw_city()
                         }
 
                         UBYTE fade = 0xff;
-
 
                         col = MESH_draw_poly(
                             oi->prim,
@@ -7328,13 +7250,10 @@ void AENG_draw_city()
             }
         }
 
-
-
         BreakTime("Drawn prims");
         //		POLY_frame_draw(FALSE,FALSE);
         //		POLY_frame_init(TRUE,TRUE);
         //		BreakTime("Flushed prims");
-
 
         POLY_set_local_rotation_none();
 
@@ -7464,9 +7383,6 @@ void AENG_draw_city()
         //		POLY_frame_draw(FALSE,FALSE);
         //		POLY_frame_init(TRUE,TRUE);
         //		BreakTime("Flushed facets");
-
-
-
 
         for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
             for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
@@ -7598,9 +7514,7 @@ void AENG_draw_city()
                                         TRUE,
                                         PCOM_person_state_debug(p_thing));
                                 }
-
                             }
-
 
                             if (p_thing->State == STATE_DEAD) {
                                 if (p_thing->Genus.Person->Timer1 > 10) {
@@ -7657,7 +7571,6 @@ void AENG_draw_city()
                                     -p_thing->Draw.Tweened->Tilt);
                             }
 
-
                             break;
 
                         case DT_EFFECT:
@@ -7682,7 +7595,6 @@ void AENG_draw_city()
                         }
 
                         break;
-
 
                         case DT_VEHICLE:
 
@@ -7784,8 +7696,6 @@ void AENG_draw_city()
 
     BreakTime("Drawn things");
 
-
-
     //	POLY_frame_draw(FALSE,FALSE);
     //	POLY_frame_init(TRUE,TRUE);
     //	BreakTime("Flushed things");
@@ -7796,7 +7706,6 @@ void AENG_draw_city()
     // void	draw_car_tracks(void);
     //	if(!INDOORS_INDEX||outside)
     //		draw_car_tracks();
-
 
     //
     // Do oval shadows.
@@ -7881,12 +7790,8 @@ void AENG_draw_city()
         }
     }
 
-
-
     // Grenades should be drawn here.
     DrawGrenades();
-
-
 
     //
     // The balloons that nobody is holding.
@@ -7895,21 +7800,15 @@ void AENG_draw_city()
     if (!INDOORS_INDEX || outside)
         AENG_draw_released_balloons();
 
-
-
     //
     // The POWs!
     //
 
-
     AENG_draw_pows();
-
-
 
     //
     // Draw the mist.
     //
-
 
     if (!INDOORS_INDEX || outside)
         if (AENG_detail_mist) {
@@ -7990,12 +7889,9 @@ void AENG_draw_city()
             }
         }
 
-
-
     //
     // Rain.
     //
-
 
     /*
     #ifdef _DEBUG	// about time we removed this kind of crap
@@ -8015,10 +7911,6 @@ void AENG_draw_city()
         }
     }
 
-
-
-
-
     //
     // Drawing the steam.
     //
@@ -8030,7 +7922,6 @@ void AENG_draw_city()
     // Pyrotechincs.
     //
 
-
     if (!INDOORS_INDEX || outside)
         AENG_draw_bangs();
     if (!INDOORS_INDEX || outside)
@@ -8038,8 +7929,6 @@ void AENG_draw_city()
     if (!INDOORS_INDEX || outside)
         AENG_draw_sparks();
     //	ANEG_draw_messages();
-
-
 
     /*
 
@@ -8148,7 +8037,6 @@ void AENG_draw_city()
     // Draw the tripwires.
     //
 
-
     {
         SLONG map_x1;
         SLONG map_z1;
@@ -8196,8 +8084,6 @@ void AENG_draw_city()
         }
     }
 
-
-
     //
     // Draw the hook.
     //
@@ -8208,7 +8094,6 @@ void AENG_draw_city()
     //
     // Draw the sphere-matter.
     //
-
 
     if (!INDOORS_INDEX || outside) {
         SM_Info* si;
@@ -8225,37 +8110,26 @@ void AENG_draw_city()
         }
     }
 
-
-
     //
     // Draw the drips... again!
     //
 
-
     if (!INDOORS_INDEX || outside)
         AENG_draw_drips(0);
-
-
 
     //
     // Draw the particle system
     //
 
-
     if (!INDOORS_INDEX || outside)
         PARTICLE_Draw();
-
-
 
     //
     // Draw the ribbon system
     //
 
-
     if (!INDOORS_INDEX || outside)
         RIBBON_draw();
-
-
 
     //
     // Draw the tyre tracks (changed -- now turned into things)
@@ -8300,27 +8174,21 @@ void AENG_draw_city()
 
     BreakTime("Drawn other crap");
 
-
     POLY_frame_draw(TRUE, TRUE);
 
-
     BreakTime("Done final polygon flush");
-
 
     //
     // The dirt.
     //
 
-
     if (!INDOORS_INDEX || outside)
         if (AENG_detail_dirt)
             AENG_draw_dirt();
 
-
     // Cope with some wacky internals.
     POLY_set_local_rotation_none();
     POLY_flush_local_rot();
-
 
     // Tell the pyros we've done a frame.
     Pyros_EndOfFrameMarker();
@@ -8348,7 +8216,6 @@ void AENG_draw_city()
     //	TRACE("Total polys = %d\n", AENG_total_polys_drawn);
 
     // LOG_EXIT ( AENG_Draw_City )
-
 
     // TRACE ( "AengOut" );
 }
@@ -8378,8 +8245,6 @@ void AENG_draw_far_facets(void)
         64.0F * 256.0F, // AENG_DRAW_DIST*3,
         AENG_LENS);
 
-
-
     for (z = AENG_gamut_lo_zmin; z <= AENG_gamut_lo_zmax; z++) {
         for (x = AENG_gamut_lo_xmin; x <= AENG_gamut_lo_xmax; x++) {
             //
@@ -8402,7 +8267,6 @@ void AENG_draw_far_facets(void)
                 f_list = PAP_2LO(x, z).ColVectHead;
 
                 if (f_list) {
-
 
                     while (!exit) {
                         struct DFacet* p_vect;
@@ -8452,14 +8316,12 @@ void AENG_draw_far_facets(void)
 
                         f_list++;
                     }
-
                 }
             }
         }
     }
 
     // TRACE("Far facets = %d\n", count);
-
 
     POLY_camera_set(
         AENG_cam_x,
@@ -9083,7 +8945,6 @@ void AENG_draw_warehouse()
         }
     }
 
-
     //
     // Create all the squares.
     //
@@ -9348,7 +9209,6 @@ void AENG_draw_warehouse()
                             }
                         }
 
-
                         if (ControlFlag && allow_debug_keys) {
                             AENG_world_text(
                                 (p_thing->WorldPos.X >> 8),
@@ -9458,7 +9318,6 @@ void AENG_draw_warehouse()
 // For drawing water.
 //
 
-
 void AENG_draw_scanner(
     SLONG screen_x1,
     SLONG screen_y1,
@@ -9559,7 +9418,6 @@ void AENG_draw_power(SLONG x, SLONG y, SLONG w, SLONG h, SLONG val, SLONG max)
 
 UBYTE record_video = 0;
 
-
 void AENG_screen_shot(void)
 {
     if (allow_debug_keys)
@@ -9639,7 +9497,6 @@ void AENG_draw_FPS()
     }
 }
 
-
 void AENG_draw_messages()
 {
     //
@@ -9666,7 +9523,6 @@ void AENG_draw_messages()
         last_time = this_time;
         last_game_turn = GAME_TURN;
     }
-
 
     //
     // Draw stuff straight to the screen.
@@ -10323,8 +10179,6 @@ ULONG AENG_light_draw(
     return ans;
 }
 
-
-
 //
 // Draws text at the given point.
 //
@@ -10571,7 +10425,6 @@ void AENG_groundsquare_draw(
         POLY_frame_draw(FALSE, FALSE);
 }
 
-
 //---------------------------------------------------------------
 
 UBYTE AENG_transparent_warehouses;
@@ -10608,7 +10461,6 @@ void AENG_clear_viewport()
 
         the_display.SetUserBackground();
         the_display.ClearViewport();
-
     }
 
     BreakTime("Cleared Viewport");
@@ -10657,9 +10509,6 @@ void AENG_draw(SLONG draw_3d)
 
     FC_Cam* fc;
 
-
-
-
     /*
             if (Keys[KB_RBRACE])
             {
@@ -10675,7 +10524,7 @@ void AENG_draw(SLONG draw_3d)
     // Update stuff.
     //
 
-// d	AENG_movie_update();
+    // d	AENG_movie_update();
     move_clouds();
     POLY_set_wibble(62, 137, 17, 178, 20, 25);
 
@@ -11023,7 +10872,6 @@ void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
 
     SLONG col_page;
     SLONG specular;
-
 
     NIGHT_get_d3d_colour(
         NIGHT_sky_colour,

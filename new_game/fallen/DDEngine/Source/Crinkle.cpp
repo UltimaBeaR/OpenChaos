@@ -8,7 +8,6 @@
 
 #include <math.h>
 
-
 //
 // Temporary storage for transformed crinkle points.
 //

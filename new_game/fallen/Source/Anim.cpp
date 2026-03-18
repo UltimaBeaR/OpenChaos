@@ -129,7 +129,6 @@ SAVE INGAME
 
 // poostruct GameKeyFrameElement	gamekeyframeelements[MAX_NUMBER_OF_ELEMENTS];
 
-
 // claude-ai: NROPER_ANIM_* constants — indices into game_chunk[ANIM_TYPE_ROPER].AnimList[]
 // claude-ai: for the "new Roper" animation set (roper.all, PC-only non-PSX path).
 // claude-ai: These are used in setup_global_anim_array() to map ANIM_* game actions
@@ -396,15 +395,12 @@ void reset_anim_stuff(void)
         //		MemFree(test_chunk);
     }
 
-
     //	if(the_elements)
     //		MemFree(the_elements);
 }
 
-
 void setup_anim_stuff(void)
 {
-
 
     //	if(test_chunk)
     //		MemFree(test_chunk);
@@ -412,8 +408,6 @@ void setup_anim_stuff(void)
 
 UBYTE estate = 0; // desperate bodge
 UBYTE semtex = 0;
-
-
 
 // extern	SLONG	load_anim_system(struct GameKeyFrameChunk *game_chunk,CBYTE	*name);
 extern SLONG load_anim_system(struct GameKeyFrameChunk* game_chunk, CBYTE* name, SLONG peep = 0);
@@ -503,11 +497,11 @@ void setup_people_anims(void)
     extern SLONG playing_combat_tutorial(void);
     extern SLONG playing_level(const CBYTE* name);
     if (playing_combat_tutorial()) {
-            game_chunk[ANIM_TYPE_CIV].MultiObject[0] = next_prim_multi_object;
-            game_chunk[ANIM_TYPE_CIV].MultiObject[1] = next_prim_multi_object;
-            game_chunk[ANIM_TYPE_CIV].MultiObject[2] = next_prim_multi_object;
-            append_anim_system(&game_chunk[ANIM_TYPE_ROPER], "trainer.all", 240, 1);
-        }
+        game_chunk[ANIM_TYPE_CIV].MultiObject[0] = next_prim_multi_object;
+        game_chunk[ANIM_TYPE_CIV].MultiObject[1] = next_prim_multi_object;
+        game_chunk[ANIM_TYPE_CIV].MultiObject[2] = next_prim_multi_object;
+        append_anim_system(&game_chunk[ANIM_TYPE_ROPER], "trainer.all", 240, 1);
+    }
     if (playing_level("semtex.ucm")) {
         semtex = 1;
     } else {
@@ -526,7 +520,6 @@ void setup_people_anims(void)
 
     darci_normal_count = next_prim_point;
 }
-
 
 // claude-ai: setup_global_anim_array() — builds the global animation dispatch table.
 // claude-ai: global_anim_array[ANIM_TYPE][ANIM_*] → pointer to keyframe list for that action.
@@ -730,122 +723,122 @@ void setup_global_anim_array(void)
 
     global_anim_array[ANIM_TYPE_ROPER][ANIM_CLIMB_UP_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_LOOP];
     global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_ON_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_START];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_YOMP];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_STAND_READY] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_STAND_READY];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_BREATHE] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_BREATHE];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_RUN_JUMP_LEFT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_MID_AIR_TWEEN_LEFT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP_FLY];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_RIGHT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP_LAND_RUN];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_STAND] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP_LAND];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_YOMP];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_STAND_READY] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_STAND_READY];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_BREATHE] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_BREATHE];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_RUN_JUMP_LEFT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_MID_AIR_TWEEN_LEFT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP_FLY];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_RIGHT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP_LAND_RUN];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_STAND] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP_LAND];
 
-            /*			global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_DRAW]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_DRAW_GUN];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_AIM_AHEAD]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_GUN_AIM];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_GUN_LEFT]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_GUN_AIM_L];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_GUN_RIGHT]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_GUN_AIM_R];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_SHOOT]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_GUN_SHOOT];*/
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_DRAW] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_DRAW];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_SHOOT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_FIRE];
-            //			global_anim_array[ANIM_TYPE_ROPER][]						=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_AWAY];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_AIM_AHEAD] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_AIM];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_GUN_LEFT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_AIM_L];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_GUN_RIGHT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_AIM_R];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_JOG] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_RUN];
+    /*			global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_DRAW]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_DRAW_GUN];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_AIM_AHEAD]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_GUN_AIM];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_GUN_LEFT]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_GUN_AIM_L];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_GUN_RIGHT]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_GUN_AIM_R];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_SHOOT]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_GUN_SHOOT];*/
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_DRAW] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_DRAW];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_SHOOT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_FIRE];
+    //			global_anim_array[ANIM_TYPE_ROPER][]						=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_AWAY];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_AIM_AHEAD] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_AIM];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_GUN_LEFT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_AIM_L];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_GUN_RIGHT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_AIM_R];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_JOG] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_RUN];
 
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_DUCK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_CROUCH];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_DUCK_HOLD] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_CROUCH_HOLD];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_STANDUP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_CROUCH_STAND_UP];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_DUCK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_CROUCH];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_DUCK_HOLD] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_CROUCH_HOLD];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_PISTOL_STANDUP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TWO_PISTOL_CROUCH_STAND_UP];
 
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_STANDING_JUMP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_JUMP_SPOT_TAKEOFF];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_VERT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_JUMP_SPOT_LAND];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_FALLING] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_JUMP_SPOT_STATIC];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_FALLING_QUEUED] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_JUMP_SPOT_STATIC];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_STANDING_JUMP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_JUMP_SPOT_TAKEOFF];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_VERT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_JUMP_SPOT_LAND];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_FALLING] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_JUMP_SPOT_STATIC];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_FALLING_QUEUED] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_JUMP_SPOT_STATIC];
 
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_TALK_TELL] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_TELL];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_TALK_LISTEN] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_LISTEN];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_TALK_TELL] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_TELL];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_TALK_LISTEN] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_LISTEN];
 
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_DRAW] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_TAKEOUT];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_AIM] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_AIM];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_FIRE] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_SHOOT];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_AHEAD] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_AIM];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_LEFT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_AIM_L];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_RIGHT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_AIM_R];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_DRAW] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_TAKEOUT];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_AIM] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_AIM];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_FIRE] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_SHOOT];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_AHEAD] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_AIM];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_LEFT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_AIM_L];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_RIGHT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_AIM_R];
 
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_DUCK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_SHOTGUN_CROUCH];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_DUCK_HOLD] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_SHOTGUN_CROUCH_HOLD];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_STANDUP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_SHOTGUN_CROUCH_STAND_UP];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_DUCK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_SHOTGUN_CROUCH];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_DUCK_HOLD] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_SHOTGUN_CROUCH_HOLD];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_SHOTGUN_STANDUP] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_SHOTGUN_CROUCH_STAND_UP];
 
-            //			global_anim_array[ANIM_TYPE_ROPER][ANIM_AK_DRAW]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_AK_TAKEOUT];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_AHEAD] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_AK_AIM];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_LEFT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_AK_AIM_L];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_RIGHT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_AK_AIM_R];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_AK_FIRE] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_AK_SHOOT];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_AK_JOG] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_RUN];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP_START_AK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_START_RUN];
+    //			global_anim_array[ANIM_TYPE_ROPER][ANIM_AK_DRAW]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_AK_TAKEOUT];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_AHEAD] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_AK_AIM];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_LEFT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_AK_AIM_L];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_POINT_SHOTGUN_RIGHT] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_AK_AIM_R];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_AK_FIRE] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_AK_SHOOT];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_AK_JOG] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_RUN];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP_START_AK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SHOTGUN_START_RUN];
 
-            // pistoljump??
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_RUN_JUMP_LEFT_AK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_MID_AIR_TWEEN_LEFT_AK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP_FLY];
+    // pistoljump??
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_RUN_JUMP_LEFT_AK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_MID_AIR_TWEEN_LEFT_AK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_RUNNING_JUMP_FLY];
 
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_IDLE_SCRATCH1] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SWIG_FLASK];
-            //	global_anim_array[ANIM_TYPE_ROPER][ANIM_IDLE_SCRATCH2]	    =game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SWIG_FLASK];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_IDLE_SCRATCH1] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SWIG_FLASK];
+    //	global_anim_array[ANIM_TYPE_ROPER][ANIM_IDLE_SCRATCH2]	    =game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_SWIG_FLASK];
 
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP_START] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_YOMP_START];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_BACK_WALK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_WALK_BACKWARDS];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_BACK_WALK_AK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_WALK_BACKWARDS_WITH_AK];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_YOMP_START] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_YOMP_START];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_BACK_WALK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_WALK_BACKWARDS];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_BACK_WALK_AK] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_WALK_BACKWARDS_WITH_AK];
 
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_CLIMB_UP_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_LOOP];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_ON_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_START];
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_CLIMB_OVER_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_CLIMB_OVER_FENCE];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_CLIMB_UP_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_LOOP];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_LAND_ON_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[COP_ROPER_ANIM_LADDER_START];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_CLIMB_OVER_FENCE] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_CLIMB_OVER_FENCE];
 
-            // #define	ANIM_CLIMB_OVER_FENCE		(58)
+    // #define	ANIM_CLIMB_OVER_FENCE		(58)
 
-            /*			global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_TURN]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TO_WALL];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_STAND]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TO_WALL_STATIC];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_L]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_R]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_TURN_AK]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TO_WALL_SHOTGUN];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_STAND_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_WALK_BACKWARDS_WITH_AK];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_L_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_R_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+    /*			global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_TURN]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TO_WALL];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_STAND]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TO_WALL_STATIC];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_L]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_R]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_TURN_AK]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_TO_WALL_SHOTGUN];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_STAND_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ANIM_WALK_BACKWARDS_WITH_AK];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_L_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_R_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
 
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_TURN_PISTOL]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_STAND_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_L_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_R_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_TURN_PISTOL]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_STAND_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_L_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_SIDLE_R_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
 
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_L_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_AIM_WALL_PISTOL_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_R_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_AIM_WALL_PISTOL_C];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_L_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_AIM_WALL_SHOTGUN];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_R_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_AIM_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_L]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_R]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_L_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_R_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_L_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_R_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_L]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-                                    global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_R]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
-            */
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_L_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_AIM_WALL_PISTOL_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_R_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_AIM_WALL_PISTOL_C];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_L_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_AIM_WALL_SHOTGUN];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_R_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_AIM_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_L]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_LOOK_R]			=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_L_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_R_PISTOL]	=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_L_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_R_AK]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_L]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+                            global_anim_array[ANIM_TYPE_ROPER][ANIM_PRESS_WALL_FREEZE_R]		=game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_ALONG_WALL_SHOTGUN_B];
+    */
 
-            /*
-            #define NROPER_TO_WALL						(49)
-            #define NROPER_TO_WALL_STATIC				(65)
-            #define NROPER_TO_WALL_SHOTGUN				(50)
-            #define NROPER_ALONG_WALL					(51)
-            #define NROPER_ALONG_WALL_B					(52)
-            #define NROPER_ALONG_WALL_SHOTGUN			(53)
-            #define NROPER_ALONG_WALL_SHOTGUN_B			(54)
-            #define NROPER_ALONG_WALL_SHOTGUN_C			(61)
-            #define NROPER_ALONG_WALL_SHOTGUN_D			(62)
-            #define NROPER_AIM_WALL_SHOTGUN				(55)
-            #define NROPER_AIM_WALL_SHOTGUN_B			(56)
-            #define NROPER_AIM_WALL_PISTOL				(57)
-            #define NROPER_AIM_WALL_PISTOL_B			(63)
-            #define NROPER_AIM_WALL_PISTOL_C			(64)
-            #define NROPER_FIGHT_WALL					(60)
-            */
+    /*
+    #define NROPER_TO_WALL						(49)
+    #define NROPER_TO_WALL_STATIC				(65)
+    #define NROPER_TO_WALL_SHOTGUN				(50)
+    #define NROPER_ALONG_WALL					(51)
+    #define NROPER_ALONG_WALL_B					(52)
+    #define NROPER_ALONG_WALL_SHOTGUN			(53)
+    #define NROPER_ALONG_WALL_SHOTGUN_B			(54)
+    #define NROPER_ALONG_WALL_SHOTGUN_C			(61)
+    #define NROPER_ALONG_WALL_SHOTGUN_D			(62)
+    #define NROPER_AIM_WALL_SHOTGUN				(55)
+    #define NROPER_AIM_WALL_SHOTGUN_B			(56)
+    #define NROPER_AIM_WALL_PISTOL				(57)
+    #define NROPER_AIM_WALL_PISTOL_B			(63)
+    #define NROPER_AIM_WALL_PISTOL_C			(64)
+    #define NROPER_FIGHT_WALL					(60)
+    */
 
-            global_anim_array[ANIM_TYPE_ROPER][ANIM_CRAWL] = game_chunk[ANIM_TYPE_ROPER2].AnimList[144];
+    global_anim_array[ANIM_TYPE_ROPER][ANIM_CRAWL] = game_chunk[ANIM_TYPE_ROPER2].AnimList[144];
     global_anim_array[ANIM_TYPE_ROPER][ANIM_DANGLE] = game_chunk[ANIM_TYPE_ROPER2].AnimList[223];
     //	global_anim_array[ANIM_TYPE_ROPER][ANIM_MOUNT_LADDER]		=game_chunk[ANIM_TYPE_ROPER2].AnimList[13];
     //	global_anim_array[ANIM_TYPE_ROPER][ANIM_ON_LADDER]			=game_chunk[ANIM_TYPE_ROPER2].AnimList[14];
@@ -1194,7 +1187,6 @@ void convert_elements(KeyFrameChunk* the_chunk, GameKeyFrameChunk* game_chunk, U
     }
     game_chunk->MaxElements = max_ele;
 }
-
 
 void free_game_chunk(GameKeyFrameChunk* the_chunk)
 {

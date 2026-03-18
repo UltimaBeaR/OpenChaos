@@ -5,4 +5,3 @@
 #include "poly.h"
 #include "inline.h"
 #include <math.h>
-

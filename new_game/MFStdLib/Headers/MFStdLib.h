@@ -38,7 +38,6 @@
 #include <dinput.h>
 #include <d3d.h>
 
-
 //---------------------------------------------------------------
 
 #define TRUE 1
@@ -136,13 +135,11 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
 
 #define NoError 0
 
-
 #ifndef ASSERT
 #define ASSERT(e) \
     {             \
     }
 #endif
-
 
 //---------------------------------------------------------------
 // Input.
@@ -150,7 +147,6 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
 #define MOUSE DIDEVTYPE_MOUSE
 #define KEYBOARD DIDEVTYPE_KEYBOARD
 #define JOYSTICK DIDEVTYPE_JOYSTICK
-
 
 //---------------------------------------------------------------
 // Standard macros.

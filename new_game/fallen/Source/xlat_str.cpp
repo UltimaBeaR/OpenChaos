@@ -5,9 +5,7 @@
 // translates strings to furrigan languages and remap buttons for the user's settings
 //
 
-
 #include "xlat_str.h"
-
 
 //----------------------------------------------------------------------------
 // DEFINES
@@ -51,7 +49,6 @@ inline CBYTE* mbcs_inc_char(CBYTE*& c)
     c++;
     return c;
 }
-
 
 // safely finds previous character (_not_ byte) in a MBCS strings
 
@@ -191,8 +188,7 @@ CBYTE* XLAT_load_string(MFFileHandle& file, CBYTE* txt)
 
     *ptr = 0;
     while (emergency_bail_out_for_martins_machine--) {
-        if (FileRead(file, ptr, 1) == FILE_READ_ERROR)
-        {
+        if (FileRead(file, ptr, 1) == FILE_READ_ERROR) {
             *ptr = 0;
             return txt;
         };
@@ -246,7 +242,6 @@ void XLAT_load(CBYTE* fn)
     UWORD id = 0;
     UWORD emergency_bail_out_for_martins_machine = 2000;
 
-
     xlat_upto = xlat_set;
     ZeroMemory(xlat_ptr, sizeof(xlat_ptr));
     ZeroMemory(xlat_set, sizeof(xlat_set));
@@ -270,7 +265,6 @@ void XLAT_load(CBYTE* fn)
     // if (!emergency_bail_out_for_martins_machine) MessageBox(0,"It timed out for some reason","erg.",MB_OK);
 
     FileClose(handle);
-
 }
 
 void XLAT_poke(SLONG offset, CBYTE* str)

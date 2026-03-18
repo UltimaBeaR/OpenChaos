@@ -108,7 +108,6 @@ LPDIRECT3DTEXTURE2 FASTPRIM_find_texture_from_page(SLONG page)
     return pp->RS.GetTexture();
 }
 
-
 void FASTPRIM_init()
 {
     //
@@ -130,7 +129,6 @@ void FASTPRIM_init()
     FASTPRIM_index_free_end = FASTPRIM_index_max;
     FASTPRIM_index_free_unused = FASTPRIM_index_max;
 
-
     FASTPRIM_call_upto = 0;
 
     FASTPRIM_queue_start = 0;
@@ -149,7 +147,6 @@ void FASTPRIM_init()
     //
 
     FASTPRIM_prim[PRIM_OBJ_CAR_WHEEL].flag = FASTPRIM_PRIM_FLAG_INVALID;
-
 }
 
 //
@@ -193,7 +190,6 @@ void FASTPRIM_free_cached_prim(SLONG prim)
     fp->flag &= ~FASTPRIM_PRIM_FLAG_CACHED;
     fp->call_count = 0;
     fp->call_index = 0;
-
 }
 
 //
@@ -232,7 +228,6 @@ void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
             FASTPRIM_index_upto = fc->indexcount;
 
             copy_to_beginning = TRUE;
-
         }
 
         if (FASTPRIM_index_upto + 16 < FASTPRIM_index_free_end && FASTPRIM_lvert_upto + 16 < FASTPRIM_lvert_free_end) {
@@ -348,7 +343,6 @@ UWORD FASTPRIM_add_point_to_call(
         // Need more room!
         //
 
-
         FASTPRIM_free_queue_for_call(fc);
     }
 
@@ -390,7 +384,6 @@ SLONG FASTPRIM_draw(
     if (!Keys[KB_R]) {
         return FALSE;
     }
-
 
     SLONG i;
     SLONG j;
@@ -450,7 +443,6 @@ SLONG FASTPRIM_draw(
     if (!Keys[KB_R]) {
         return FALSE;
     }
-
 
     if (!(fp->flag & FASTPRIM_PRIM_FLAG_CACHED)) {
         //
@@ -577,10 +569,8 @@ SLONG FASTPRIM_draw(
                         pu = (f3->UV[k][0] & 0x3f) * (1.0F / 32.0F);
                         pv = (f3->UV[k][1]) * (1.0F / 32.0F);
 
-
                         pu = pu * pp->m_UScale + pp->m_UOffset;
                         pv = pv * pp->m_VScale + pp->m_VOffset;
-
 
                         if (lpc) {
                             NIGHT_get_d3d_colour(
@@ -689,10 +679,8 @@ SLONG FASTPRIM_draw(
                         pu = (f4->UV[k][0] & 0x3f) * (1.0F / 32.0F);
                         pv = (f4->UV[k][1]) * (1.0F / 32.0F);
 
-
                         pu = pu * pp->m_UScale + pp->m_UOffset;
                         pv = pv * pp->m_VScale + pp->m_VOffset;
-
 
                         if (lpc) {
                             NIGHT_get_d3d_colour(
@@ -907,7 +895,6 @@ SLONG FASTPRIM_draw(
         fp->flag |= FASTPRIM_PRIM_FLAG_CACHED;
 
         FASTPRIM_queue[FASTPRIM_queue_start++ & (FASTPRIM_MAX_QUEUE - 1)] = prim;
-
     }
 
     //
@@ -1165,11 +1152,9 @@ SLONG FASTPRIM_draw(
 void FASTPRIM_fini()
 {
 
-
     MemFree(FASTPRIM_lvert_buffer);
     MemFree(FASTPRIM_index);
 
     FASTPRIM_lvert_buffer = NULL;
     FASTPRIM_index = NULL;
-
 }

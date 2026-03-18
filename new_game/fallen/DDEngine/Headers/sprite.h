@@ -29,7 +29,6 @@ void SPRITE_draw_tex(
     float u, float v, float w, float h,
     SLONG sort);
 
-
 void SPRITE_draw_tex_distorted(
     float world_x,
     float world_y,
@@ -41,6 +40,5 @@ void SPRITE_draw_tex_distorted(
     float u, float v, float w, float h,
     float wx1, float wy1, float wx2, float wy2, float wx3, float wy3, float wx4, float wy4,
     SLONG sort);
-
 
 #endif // FALLEN_DDENGINE_HEADERS_SPRITE_H

@@ -252,7 +252,6 @@ BOOL check_isonormal(FloatMatrix& m)
     if ((m.M[0][0] == 0) && (m.M[0][1] == 0) && (m.M[0][2] == 0))
         return TRUE; // void matrix
 
-
     // check handedness
     float x = m.M[0][1] * m.M[1][2] - m.M[0][2] * m.M[1][1];
     float y = m.M[0][2] * m.M[1][0] - m.M[0][0] * m.M[1][2];
@@ -277,7 +276,6 @@ void CQuaternion::BuildTween(struct Matrix33* dest, struct CMatrix33* cm1, struc
     //! mmm
     //	QUATERNION_BuildTweenInteger(dest, cm1, cm2, tween);
     //	return;
-
 
     FloatMatrix f1, f2, f3;
 

@@ -26,8 +26,6 @@
 #include "poly.h"
 #include "sound.h"
 
-
-
 extern ULONG level_index;
 /*
 
@@ -190,7 +188,6 @@ MAP_Beacon* MAP_beacon; //[MAP_MAX_BEACONS];
 
 PSX_TEX* psx_textures_xy; //[200][5];
 
-
 void* mem_all = 0;
 ULONG mem_all_size = 0;
 
@@ -225,7 +222,6 @@ struct InsideStorey* inside_storeys; //[MAX_INSIDE_RECT];
 struct Staircase* inside_stairs; //[MAX_INSIDE_STAIRS];
 UBYTE* inside_block; //[MAX_INSIDE_MEM];
 UBYTE inside_tex[64][16];
-
 
 //
 // from building.cpp
@@ -388,8 +384,8 @@ struct MemTable save_table[] = {
     { M_("psx_remap"), (void**)&psx_remap, MEM_STATIC, 0, 0, 128, sizeof(UWORD), 0 }, // 64
     { M_("psx_tex_xy"), (void**)&psx_textures_xy, MEM_STATIC, 0, 0, 200 * 5, sizeof(UWORD), 0 }, // 65
     { M_("map_beacon"), (void**)&MAP_beacon, MEM_STATIC, 0, 0, MAP_MAX_BEACONS, sizeof(MAP_Beacon), 0 }, // 66
-//	{"anim_mids"	,(void**)&anim_mids				,MEM_STATIC ,0							,&next_anim_mids			,256						,sizeof(PrimPoint)				},
-// cutscene memory
+    //	{"anim_mids"	,(void**)&anim_mids				,MEM_STATIC ,0							,&next_anim_mids			,256						,sizeof(PrimPoint)				},
+    // cutscene memory
     { M_("cutscene_data"), (void**)&PLAYCUTS_cutscenes, MEM_DYNAMIC, 0, &PLAYCUTS_cutscene_ctr, MAX_CUTSCENES, sizeof(CPData), 0 },
     { M_("cutscene_trks"), (void**)&PLAYCUTS_tracks, MEM_DYNAMIC, 0, &PLAYCUTS_track_ctr, MAX_CUTSCENE_TRACKS, sizeof(CPChannel), 0 },
     { M_("cutscene_pkts"), (void**)&PLAYCUTS_packets, MEM_DYNAMIC, 0, &PLAYCUTS_packet_ctr, MAX_CUTSCENE_PACKETS, sizeof(CPPacket), 0 },
@@ -469,7 +465,6 @@ void init_memory(void)
         p_all += mem_size;
         c0++;
     }
-
 
     anim_mids = (PrimPoint*)MemAlloc(256 * sizeof(PrimPoint));
     // because furniture isnt saved at the moment, so isnt in the table
@@ -874,8 +869,8 @@ void convert_pointers_to_index(void)
     }
 }
 
-#define STORE_DATA(a)                         \
-    FileWrite(handle, (UBYTE*)&a, sizeof(a)); \
+#define STORE_DATA(a) \
+    FileWrite(handle, (UBYTE*)&a, sizeof(a));
 
 void convert_keyframe_to_index(GameKeyFrame* p, GameKeyFrameElement* p_ele, GameFightCol* p_fight, SLONG count)
 {
@@ -954,7 +949,6 @@ void convert_fightcol_to_pointer(GameFightCol* p, GameFightCol* p_fight, SLONG c
             p[c0].Next = &p_fight[(SLONG)p[c0].Next];
     }
 }
-
 
 void save_whole_anims(MFFileHandle handle)
 {
@@ -1138,7 +1132,6 @@ SLONG find_best_anim_offset(SLONG mx, SLONG my, SLONG mz, SLONG anim, struct Gam
 void save_whole_game(CBYTE* gamename)
 {
 }
-
 
 extern SLONG person_normal_animate(Thing* p_person);
 
@@ -1327,7 +1320,6 @@ void convert_thing_to_pointer(Thing* p_thing)
         p_thing->StateFn = BARREL_process_normal;
 
         break;
-
 
     case CLASS_BAT:
         p_thing->StateFn = BAT_normal;
@@ -1586,10 +1578,8 @@ void load_whole_game(CBYTE* gamename)
     SetSeed(1234567);
     srand(1234567);
 
-
     extern UWORD player_dlight;
     player_dlight = 0;
-
 
     if (mem_all)
         MemFree(mem_all);
@@ -1668,7 +1658,6 @@ void load_whole_game(CBYTE* gamename)
         if (EWAY_mess_buffer[c0] == 160)
             EWAY_mess_buffer[c0] = 32;
 
-
     GET_DATA(PRIMARY_USED);
     GET_DATA(PRIMARY_UNUSED);
     GET_DATA(SECONDARY_USED);
@@ -1685,7 +1674,6 @@ void load_whole_game(CBYTE* gamename)
     GET_DATA(PRIMARY_COUNT);
     GET_DATA(SECONDARY_COUNT);
     GET_DATA(GAME_STATE);
-
 
     GET_DATA(GAME_TURN);
     GET_DATA(GAME_FLAGS);
@@ -1774,19 +1762,16 @@ void load_whole_game(CBYTE* gamename)
     EWAY_count_up_num_penalties = 0;
     EWAY_count_up_penalty_timer = 0;
 
-//	NIGHT_amb_red*=2;
-//	NIGHT_amb_green*=2;
-//	NIGHT_amb_blue*=2;
+    //	NIGHT_amb_red*=2;
+    //	NIGHT_amb_green*=2;
+    //	NIGHT_amb_blue*=2;
 
     SATURATE(NIGHT_amb_blue, 25, 127);
-
-
 
     //
     // this needs to be before convert_index_to_pointers (because c_i_t_p needs the anims in place)
     //
     load_whole_anims(p_all);
-
 
     void setup_global_anim_array(void);
     setup_global_anim_array();
@@ -1804,7 +1789,7 @@ void load_whole_game(CBYTE* gamename)
     {
         TEXTURE_choose_set(texture_set_local);
         ASSERT(0); // you need a filename for TEXTURE_load_needed()
-//		TEXTURE_load_needed();
+        //		TEXTURE_load_needed();
     }
 
     extern void PARTICLE_Reset();
@@ -1815,7 +1800,6 @@ void load_whole_game(CBYTE* gamename)
 
     extern void PCOM_init(void);
     PCOM_init();
-
 
     //	calc_prim_info();
     VEH_init_vehinfo();
@@ -1834,9 +1818,7 @@ void load_whole_game(CBYTE* gamename)
     NIGHT_generate_walkable_lighting();
 
     flag_v_faces();
-
 }
-
 
 //
 // Quick load\save filename.
@@ -2089,7 +2071,6 @@ SLONG MEMORY_quick_load()
     QREAD_DATA(SECONDARY_COUNT);
     QREAD_DATA(GAME_STATE);
 
-
     QREAD_DATA(GAME_TURN);
     QREAD_DATA(GAME_FLAGS);
     QREAD_DATA(TEXTURE_set);
@@ -2197,7 +2178,6 @@ file_error:;
     return FALSE;
 }
 
-
 #if 1 // TEST_DC
 
 //
@@ -2251,7 +2231,6 @@ void save_dreamcast_wad(CBYTE* fname)
     cFullName[iLastChar - 2] = 'a';
     cFullName[iLastChar - 1] = 'd';
 
-
     handle = FileCreate(cFullName, 1);
 
     if (handle != FILE_CREATION_ERROR) {
@@ -2259,7 +2238,6 @@ void save_dreamcast_wad(CBYTE* fname)
         // by converting to indexes
 
         convert_pointers_to_index();
-
 
         STORE_DATA(save_type);
 
@@ -2417,7 +2395,6 @@ void save_dreamcast_wad(CBYTE* fname)
         STORE_DATA(semtex);
         STORE_DATA(estate);
         STORE_DATA(padding_word);
-
 
         save_whole_anims(handle);
 

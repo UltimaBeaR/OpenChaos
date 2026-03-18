@@ -305,7 +305,6 @@ SLONG ROAD_find_node(SLONG x, SLONG z)
 // Connects the two nodes together.
 //
 
-
 void ROAD_connect(SLONG n1, SLONG n2)
 {
     SLONG i;
@@ -596,7 +595,6 @@ void ROAD_split(SLONG n1, SLONG n2, SLONG splitx, SLONG splitz)
     // middle of it.
     //
 
-
     //
     // Disconnect the two road nodes.
     //
@@ -686,7 +684,6 @@ void ROAD_add(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
         ROAD_add(x2, z2, ix, iz);
     }
 }
-
 
 //
 // Returns TRUE if the given square lies along the middle of a road.
@@ -884,7 +881,6 @@ void ROAD_wander_calc()
                 if (ROAD_edge_upto < ROAD_MAX_EDGES) {
                     ROAD_edge[ROAD_edge_upto++] = i;
                 }
-
             }
         }
     }
@@ -1241,7 +1237,6 @@ void ROAD_get_dest(
 
 UBYTE ROAD_mapsquare_type[512 / 4];
 
-
 void ROAD_calc_mapsquare_type()
 {
     SLONG mx;
@@ -1311,7 +1306,6 @@ void ROAD_calc_mapsquare_type()
             }
         }
 }
-
 
 SLONG ROAD_get_mapsquare_type(SLONG mx, SLONG mz)
 {

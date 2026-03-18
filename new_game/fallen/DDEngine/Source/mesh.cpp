@@ -100,7 +100,6 @@
 #define POLY_FLAG_DOUBLESIDED (1 << 6)
 #define POLY_FLAG_CLIPPED (1 << 7)
 
-
 //
 // A floating point number between 0 and 1.0F
 //
@@ -481,7 +480,6 @@ void MESH_init(void)
             MESH_crumple[i][j].dz = ((frand() * 2.0F) - 1.0F) * amp;
         }
     }
-
 }
 
 // set crumple parameters for ,-1) call to MESH_draw_poly
@@ -494,7 +492,6 @@ void MESH_set_crumple(UBYTE* assignments, UBYTE* crumples)
     car_assign = assignments;
     car_crumples = crumples;
 }
-
 
 ULONG MESH_colour_and;
 
@@ -527,7 +524,6 @@ NIGHT_Colour* MESH_draw_guts(
     ULONG fade,
     SLONG crumple = 0)
 {
-
 
     /*
 
@@ -572,7 +568,6 @@ NIGHT_Colour* MESH_draw_guts(
 
     ULONG default_colour;
     ULONG default_specular;
-
 
     ASSERT(WITHIN(crumple, -1, MESH_NUM_CRUMPLES - 1));
 
@@ -719,7 +714,6 @@ NIGHT_Colour* MESH_draw_guts(
             // use_global_cloud(&pp->colour);
             // pp->colour&=0xffffff;
             // pp->colour|=fade;
-
         }
     } else {
         UBYTE* assign = car_assign;
@@ -756,8 +750,6 @@ NIGHT_Colour* MESH_draw_guts(
             //			use_global_cloud(&pp->colour);
             //			pp->colour&=0xffffff;
             //			pp->colour|=fade;
-
-
 
             assign++;
         }
@@ -1169,7 +1161,6 @@ NIGHT_Colour* MESH_draw_guts(
             }
         }
     }
-
 
     return lpc;
 }

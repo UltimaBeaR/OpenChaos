@@ -243,7 +243,6 @@ void SPARK_new_point(
         }
     }
 
-
     //
     // Create the new point.
     //

@@ -114,7 +114,6 @@ protected:
 
     UBYTE* background_image_mem;
 
-
 public:
     ULONG BackColour;
     D3DDeviceInfo* CurrDevice; // Current Device
@@ -192,7 +191,6 @@ public:
     HRESULT InitBack(void);
     HRESULT FiniBack(void);
 
-
     HRESULT InitViewport(void);
     HRESULT FiniViewport(void);
     HRESULT UpdateViewport(void);
@@ -225,7 +223,6 @@ public:
     HRESULT ShowWorkScreen(void);
 
     void blit_back_buffer(void);
-
 
     void SetUserColour(UBYTE red, UBYTE green, UBYTE blue);
 

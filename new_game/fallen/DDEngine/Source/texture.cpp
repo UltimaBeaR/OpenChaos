@@ -163,7 +163,6 @@ CRINKLE_Handle TEXTURE_crinkle[22 * 64];
 
 SLONG TEXTURE_page_num_standard;
 
-
 SLONG TEXTURE_page_snowflake;
 SLONG TEXTURE_page_sparkle;
 SLONG TEXTURE_page_explode2;
@@ -728,7 +727,6 @@ static void TEXTURE_load_page(SLONG page)
         // This is a world texture.
         //
 
-
         sprintf(name_res32, "%stex%03d.tga", TEXTURE_world_dir, page);
         sprintf(name_res64, "%stex%03dhi.tga", TEXTURE_world_dir, page);
         sprintf(name_res128, "%stex%03dto.tga", TEXTURE_world_dir, page);
@@ -832,7 +830,6 @@ static void TEXTURE_load_page(SLONG page)
         }
     } else {
 
-
         if (DoesTGAExist(name_res64, page)) {
             TEXTURE_texture[page].LoadTextureTGA(name_res64, page);
         } else if (DoesTGAExist(name_res32, page)) {
@@ -869,9 +866,7 @@ static void TEXTURE_load_page(SLONG page)
 void TEXTURE_initialise_clumping(CBYTE* fname_level)
 {
 
-
     int clumping = 1;
-
 
     extern void SetLastClumpfile(char* file, size_t size); // in GDisplay.cpp, horrible bodge
 
@@ -880,7 +875,6 @@ void TEXTURE_initialise_clumping(CBYTE* fname_level)
         IndividualTextures = true;
         SetLastClumpfile("", 0);
     } else {
-
 
         // load textures from the clump
         char filename[256];
@@ -947,7 +941,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     D3DTexture::BeginLoading();
 
     TEXTURE_initialise_clumping(fname_level);
-
 
     TEXTURE_load_page(1);
 
@@ -1171,7 +1164,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
     LOADED_THIS_MANY_TEXTURES(7);
 
-
     {
 
         TEXTURE_texture[TEXTURE_page_fadecat].LoadTextureTGA(TEXTURE_EXTRA_DIR "fadecat.tga", TEXTURE_page_fadecat, FALSE);
@@ -1244,8 +1236,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         LOADED_THIS_MANY_TEXTURES(3);
     }
 
-
-
     //
     // The video page.
     //
@@ -1267,7 +1257,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     // And the muckyfootprints
     // Texture 560 is one component of the digital timer.
     //
-
 
     //
     // The warehouse textures.
@@ -1320,7 +1309,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
         */
 
-
         //
         // Load the individual pages that we need.
         //
@@ -1353,8 +1341,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         //	TEXTURE_load_page(156);
         //	TEXTURE_load_page(157);
 
-
-
         for (i = 1; i < MAX_ANIM_TMAPS; i++) {
             struct AnimTmap* p_a;
 
@@ -1366,7 +1352,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                 page |= p_a->Page[k];
             }
         }
-
 
         //
         // force jacket alternatives to be loaded thugs
@@ -1404,8 +1389,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
             }
         }
 
-
-
         for (i = 1; i < next_prim_face4; i++) {
             f4 = &prim_faces4[i];
 
@@ -1423,8 +1406,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                 LOADED_THIS_MANY_TEXTURES(1);
             }
         }
-
-
 
         TEXTURE_load_page(156);
 
@@ -1507,8 +1488,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
             }
         }
 
-
-
         /*
 
         //
@@ -1545,10 +1524,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         */
     }
 
-
     CloseTGAClump();
-
-
 
     // this is a good point to estimate the
     // graphics card's capabilities
@@ -1632,7 +1608,6 @@ void TEXTURE_free()
     POLY_reset_render_states();
 
     TEXTURE_DC_pack_init();
-
 }
 
 // Destroys all the non-needed (i.e. non-frontend) textures.
@@ -1645,7 +1620,6 @@ void TEXTURE_free_unneeded(void)
     //
 
     CRINKLE_init();
-
 
     for (i = 0; i < TEXTURE_num_textures; i++) {
         // if ( !TEXTURE_needed[i] )
@@ -1660,10 +1634,8 @@ void TEXTURE_free_unneeded(void)
     extern void FreeAllD3DPages(void);
     FreeAllD3DPages();
 
-
     POLY_reset_render_states();
 }
-
 
 LPDIRECT3DTEXTURE2 TEXTURE_get_handle(SLONG page)
 {
@@ -1699,12 +1671,10 @@ void TEXTURE_get_minitexturebits_uvs(
 
     SLONG num;
 
-
     static const float base_u = 0.0F;
     static const float base_v = 0.0F;
 
     static const float base_size = 1.0F;
-
 
     num = texture & 0x3ff;
 
@@ -1717,7 +1687,6 @@ void TEXTURE_get_minitexturebits_uvs(
     //
 
     *page = num;
-
 
     if (*page >= TEXTURE_page_num_standard) {
         *page = 0;

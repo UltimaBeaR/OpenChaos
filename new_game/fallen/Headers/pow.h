@@ -25,7 +25,6 @@ typedef struct
 
 } POW_Sprite;
 
-
 #define POW_MAX_SPRITES 256
 
 extern POW_Sprite POW_sprite[POW_MAX_SPRITES];
@@ -54,9 +53,7 @@ typedef struct
 
 } POW_Pow;
 
-
 #define POW_MAX_POWS 32
-
 
 extern POW_Pow POW_pow[POW_MAX_POWS];
 extern UBYTE POW_pow_free;

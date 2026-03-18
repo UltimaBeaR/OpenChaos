@@ -1532,7 +1532,6 @@ void OS_mouse_set(SLONG x, SLONG y)
     SetCursorPos(x, y);
 }
 
-
 SLONG OS_process_messages()
 {
     SHELL_ACTIVE;
@@ -1576,8 +1575,6 @@ SLONG OS_process_messages()
         DispatchMessage(&msg);
     }
 }
-
-
 
 // ========================================================
 //

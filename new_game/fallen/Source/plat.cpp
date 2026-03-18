@@ -309,8 +309,7 @@ void PLAT_process(Thing* p_thing)
                                 FALSE)) {
 
                             extern SLONG playing_level(const CBYTE* name); // eway.cpp
-                            if (playing_level("botanicc.ucm") &&
-                                (p_person->SubState == SUB_STATE_STANDING_JUMP_FORWARDS || p_person->SubState == SUB_STATE_STANDING_JUMP_BACKWARDS || p_person->SubState == SUB_STATE_STANDING_JUMP || p_person->SubState == SUB_STATE_RUNNING_JUMP)) {
+                            if (playing_level("botanicc.ucm") && (p_person->SubState == SUB_STATE_STANDING_JUMP_FORWARDS || p_person->SubState == SUB_STATE_STANDING_JUMP_BACKWARDS || p_person->SubState == SUB_STATE_STANDING_JUMP || p_person->SubState == SUB_STATE_RUNNING_JUMP)) {
                                 if (WITHIN(p_person->WorldPos.Y >> 8, y_bot, y_top)) {
                                     p_person->WorldPos.Y = p_thing->WorldPos.Y + (pi->maxy << 8);
                                 }

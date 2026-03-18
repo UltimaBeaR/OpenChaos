@@ -86,7 +86,6 @@ Thing* alloc_chopper(UBYTE type)
     // There are no spare chopper structures.
     //
 
-
     return NULL;
 
 found_chopper:
@@ -102,7 +101,6 @@ found_chopper:
         //
         // Could not allocate a drawmesh structure.
         //
-
 
         //
         // Free up the chopper structure we allocated.

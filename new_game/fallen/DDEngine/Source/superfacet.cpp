@@ -17,11 +17,9 @@
     {                                  \
     }
 
-
 // A hack to test the speed of theoretical crinkles.
 #undef TESSELATE_DEGREE
 // #define TESSELATE_DEGREE 1
-
 
 //
 // The verts....
@@ -57,7 +55,6 @@ SLONG SUPERFACET_free_range_end;
 
 #define SUPERFACET_CALL_FLAG_USED (1 << 0)
 #define SUPERFACET_CALL_FLAG_2PASS (1 << 1)
-
 
 typedef struct
 {
@@ -142,7 +139,6 @@ void SUPERFACET_free_end_of_queue(void)
     SUPERFACET_Facet* sf;
     SUPERFACET_Call* sc;
 
-
     ASSERT(SUPERFACET_queue_end < SUPERFACET_queue_start);
 
     facet = SUPERFACET_queue[SUPERFACET_queue_end & (SUPERFACET_QUEUE_SIZE - 1)];
@@ -194,7 +190,6 @@ void SUPERFACET_free_end_of_queue(void)
 
     SUPERFACET_queue_end += 1;
 
-
     //
     // Mark as unused.
     //
@@ -216,7 +211,6 @@ LPDIRECT3DTEXTURE2 SUPERFACET_convert_texture(SLONG page, POLY_Point* quad[4])
 
     PolyPage* pp = &POLY_Page[page];
 
-
     //
     // Convert texture coordinates.
     //
@@ -225,7 +219,6 @@ LPDIRECT3DTEXTURE2 SUPERFACET_convert_texture(SLONG page, POLY_Point* quad[4])
         quad[i]->u = quad[i]->u * pp->m_UScale + pp->m_UOffset;
         quad[i]->v = quad[i]->v * pp->m_VScale + pp->m_VOffset;
     }
-
 
     return pp->RS.GetTexture();
 }
@@ -379,7 +372,6 @@ void SUPERFACET_create_points(SLONG facet)
         count = abs(dz) >> 8;
     }
 
-
     count++; // Count is the number of points, not the number of texture squares...
 
     if (df->FHeight) {
@@ -480,7 +472,6 @@ void SUPERFACET_fill_facet_points(
             // Add this quad to the call structure. First four points.
             //
 
-
             // ASSERT(abs(quad[0]->y - quad[2]->y) <= 257);
 
             for (j = 0; j < 4; j++) {
@@ -523,7 +514,6 @@ void SUPERFACET_fill_facet_points(
 
             ASSERT(sc->lvert + sc->lvertcount == SUPERFACET_lvert_upto);
             ASSERT(sc->index + sc->indexcount == SUPERFACET_index_upto);
-
         }
     }
 
@@ -814,7 +804,6 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
                     sc->texture_2pass = SUPERFACET_convert_texture(page + 1, quad);
                 }
 
-
                 sf->num += 1;
 
             already_got_a_call:;
@@ -841,7 +830,6 @@ void SUPERFACET_convert_facet(SLONG facet)
     DFacet* df;
     SUPERFACET_Facet* sf;
     SUPERFACET_Call* sc;
-
 
     ASSERT(WITHIN(facet, 1, next_dfacet - 1));
 
@@ -974,7 +962,6 @@ void SUPERFACET_convert_facet(SLONG facet)
     SUPERFACET_queue[SUPERFACET_queue_start & (SUPERFACET_QUEUE_SIZE - 1)] = facet;
 
     SUPERFACET_queue_start++;
-
 }
 
 void SUPERFACET_init()
@@ -1044,7 +1031,6 @@ void SUPERFACET_init()
     //
     // This bit of code pre-converts all the suitable facets...
     //
-
 }
 
 void SUPERFACET_redo_lighting(SLONG facet)
@@ -1104,12 +1090,11 @@ void SUPERFACET_start_frame()
     // Initialise Tom's doberries...
     //
 
-
-// #ifdef TARGET_DC
-// extern void POLY_set_local_rotation_none ( void );
-//	POLY_set_local_rotation_none();
-//	//POLY_flush_local_rot();
-// #endif
+    // #ifdef TARGET_DC
+    // extern void POLY_set_local_rotation_none ( void );
+    //	POLY_set_local_rotation_none();
+    //	//POLY_flush_local_rot();
+    // #endif
 
     //
     // We are using DrawIndexedPrimitive so must call this...
@@ -1119,7 +1104,6 @@ void SUPERFACET_start_frame()
 
     POLY_flush_local_rot();
 }
-
 
 SLONG SUPERFACET_draw(SLONG facet)
 {
@@ -1131,8 +1115,6 @@ SLONG SUPERFACET_draw(SLONG facet)
 
     D3DMULTIMATRIX d3dmm;
 
-
-
     //
     // Not on the PC!
     //
@@ -1140,7 +1122,6 @@ SLONG SUPERFACET_draw(SLONG facet)
     if (Keys[KB_R]) {
         return FALSE;
     }
-
 
     //
     // Do we have any pre-calculated info for this facet?
@@ -1247,7 +1228,6 @@ SLONG SUPERFACET_draw(SLONG facet)
             //
             // Create a 2pass index list from this index list.
             //
-
 
             // Switch the modes for the windows.
             the_display.lp_D3D_Device->SetTexture(0, sc->texture_2pass);
@@ -1420,5 +1400,4 @@ void SUPERFACET_fini()
     MemFree(SUPERFACET_lvert_buffer);
     MemFree(SUPERFACET_index);
     MemFree(SUPERFACET_facet);
-
 }

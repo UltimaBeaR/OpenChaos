@@ -2354,7 +2354,6 @@ UBYTE NIGHT_dfcache_create(UWORD dfacet_index)
     SLONG dly;
     SLONG dlz;
 
-
     SLONG dprod;
     SLONG length;
     SLONG height;
@@ -2457,7 +2456,6 @@ UBYTE NIGHT_dfcache_create(UWORD dfacet_index)
     nd->sizeof_colour = num_bytes;
 
     ASSERT(nd->colour != NULL);
-
 
     //
     // The normal of the facet
@@ -2926,7 +2924,6 @@ NIGHT_Colour NIGHT_get_light_at(
     return ans;
 }
 
-
 NIGHT_Found NIGHT_found[NIGHT_MAX_FOUND];
 SLONG NIGHT_found_upto;
 
@@ -3173,7 +3170,6 @@ void NIGHT_find(SLONG x, SLONG y, SLONG z)
     }
 }
 
-
 void NIGHT_init()
 {
     //
@@ -3215,7 +3211,6 @@ void NIGHT_init()
 // WALKABLE POINT LIGHTING
 //
 // ========================================================
-
 
 NIGHT_Colour NIGHT_roof_walkable[MAX_ROOF_FACE4 * 4];
 UWORD hidden_roof_index[128][128];

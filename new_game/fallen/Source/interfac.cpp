@@ -54,7 +54,6 @@
 #include "ddlib.h"
 #include "poly.h"
 
-
 UBYTE player_relative;
 
 extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
@@ -66,10 +65,8 @@ UBYTE cheat = 0;
 #define GET_JOYX(input) (((input >> 17) & 0xfe) - 128)
 #define GET_JOYY(input) (((input >> 24) & 0xfe) - 128)
 
-
 bool g_bPunishMePleaseICheatedOnThisLevel = FALSE;
 // bool m_bDontMoveIfBothTriggersDown = FALSE;
-
 
 // claude-ai: ANALOGUE_MIN_VELOCITY — минимальная величина analog stick velocity, ниже которой
 // claude-ai: движение игнорируется (дополнительная мёртвая зона на уровне игровой логики).
@@ -145,7 +142,6 @@ void FC_force_camera_behind(SLONG cam);
 
 */
 
-
 extern Thing* net_players[20];
 
 void player_apply_move(Thing* p_thing, ULONG input);
@@ -157,7 +153,6 @@ UBYTE keybrd_button_use[16];
 bool m_bForceWalk = FALSE;
 
 int g_iCheatNumber = -1;
-
 
 // claude-ai: init_joypad_config() — читает привязку кнопок джойпада из config.ini (через ENV_get_value_number).
 // claude-ai: Заполняет joypad_button_use[] и keybrd_button_use[] — индексы физических кнопок
@@ -211,7 +206,6 @@ void init_joypad_config(void)
     keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT] = ENV_get_value_number("keyboard_cam_right", 209, "Keyboard");
     keybrd_button_use[JOYPAD_BUTTON_1STPERSON] = ENV_get_value_number("keyboard_1stperson", 30, "Keyboard");
 }
-
 
 // #define	INPUT_	(1<<)
 
@@ -757,7 +751,6 @@ void get_car_enter_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz)
 
     *cx = ix;
     *cz = iz;
-
 }
 
 SLONG in_right_place_for_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
@@ -784,7 +777,6 @@ SLONG in_right_place_for_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
         //
         // (ix,iz) is now the position of the door.
         //
-
 
         dx = (p_person->WorldPos.X >> 8) - ix;
         dy = (p_person->WorldPos.Y >> 8) - ((p_vehicle->WorldPos.Y >> 8) - 90);
@@ -1024,7 +1016,6 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
         return (INPUT_MASK_ACTION);
     }
 
-
     if (p_thing->Genus.Person->Flags & FLAG_PERSON_GRAPPLING) {
         //
         // Release the grappling hook.
@@ -1104,7 +1095,6 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
         //		if(near_ladder_top(p_thing))
 
-
         //
         // Near a barrel?
         //
@@ -1148,7 +1138,6 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
             }
         }
     }
-
 
     if ((p_thing->State == STATE_IDLE || (p_thing->State == STATE_GUN && p_thing->SubState == SUB_STATE_AIM_GUN)) && p_thing->SubState != SUB_STATE_IDLE_CROUTCH && p_thing->SubState != SUB_STATE_IDLE_CROUTCHING) {
 
@@ -1403,8 +1392,7 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
             if (is_semtex && (use == 193 || use == 195)) {
                 // skip the wetback line in stern revenge, (skymiss2)  PC && DREAMCAST
-            } else
-                if (use) {
+            } else if (use) {
                 Thing* p_person = TO_THING(use);
 
                 ASSERT(p_person->Class == CLASS_PERSON);
@@ -2074,7 +2062,6 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
 
         velocity = QDIST2(abs(dx), abs(dz));
 
-
         if (velocity > ANALOGUE_MIN_VELOCITY)
             angle = Arctan(-dx, dz);
         //		if(p_thing->State==STATE_JUMPING||p_thing->SubState==SUB_STATE_CRAWLING||p_thing->SubState==SUB_STATE_RUNNING_SKID_STOP)
@@ -2512,9 +2499,9 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
     SWORD wJoyX = GET_JOYX(input); // -128 -> +128
     SWORD wTurn;
     if ((input & INPUT_MASK_LEFT) || (input & INPUT_MASK_RIGHT)) {
-// claude-ai: Детектор клавиатурного ввода: если биты 18-31 (аналоговый диапазон) равны нулю,
-// claude-ai: но LEFT/RIGHT биты выставлены — значит ввод с клавиатуры (не аналоговый стик).
-// claude-ai: При клавиатурном вводе применяется накопительный поворот (wLastTurn) вместо пропорционального.
+        // claude-ai: Детектор клавиатурного ввода: если биты 18-31 (аналоговый диапазон) равны нулю,
+        // claude-ai: но LEFT/RIGHT биты выставлены — значит ввод с клавиатуры (не аналоговый стик).
+        // claude-ai: При клавиатурном вводе применяется накопительный поворот (wLastTurn) вместо пропорционального.
         // For the PC, you may be using the keyboard, so do a cheesy cumulative thing.
         // This is detected by noticing that the top (analogue section) of input is 0, even though we're turning.
         if ((input & 0xfffc0000) == 0) {
@@ -2542,15 +2529,13 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
             wTurn = wLastTurn;
 
             SATURATE(wTurn, -wMaxTurn, +wMaxTurn);
-        } else
-        {
+        } else {
             // Joystick present.
             wTurn = (wJoyX * wMaxTurn) >> 7;
         }
     } else {
         wTurn = 0;
     }
-
 
     // Scale by frame rate.
     SWORD wFrameTurn = (wTurn * TICK_RATIO) >> TICK_SHIFT;
@@ -2691,7 +2676,6 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
         return 1;
     }
 
-
     if (mouse_input) {
         da = (-MouseDX * TICK_RATIO) >> TICK_SHIFT;
         if (p_thing->SubState == SUB_STATE_CRAWLING || p_thing->SubState == SUB_STATE_RUNNING_SKID_STOP) {
@@ -2708,8 +2692,7 @@ SLONG player_turn_left_right(Thing* p_thing, SLONG input)
         }
 
         p_thing->Draw.Tweened->Angle = (p_thing->Draw.Tweened->Angle + da) & 2047;
-    } else
-    {
+    } else {
         if (input & INPUT_MASK_LEFT) {
             if (p_thing->SubState == SUB_STATE_SIDLE) {
                 set_person_step_right(p_thing);
@@ -3686,8 +3669,7 @@ ULONG apply_button_input(struct Thing* p_player, struct Thing* p_person, ULONG i
         // if it does choose the best meaning and initiate it
         // else ignore it.
     }
-    if ((input & INPUT_MOVEMENT_MASK) || (mouse_input && MouseDX))
-    {
+    if ((input & INPUT_MOVEMENT_MASK) || (mouse_input && MouseDX)) {
         //		LogText(" apply button input %d  state %d\n",input,p_person->State);
         if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)) {
             switch (p_person->State) {
@@ -4644,8 +4626,7 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     // get analogue / digital steering inputs
 
     // DC is always analogue
-    if (analogue)
-    {
+    if (analogue) {
         /*
                         SLONG	dx,vx;
 
@@ -4687,8 +4668,7 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
 
         veh->IsAnalog = 1;
 
-    }
-    else {
+    } else {
         veh->IsAnalog = 0;
         veh->Steering = 0;
 
@@ -4788,14 +4768,12 @@ ULONG get_hardware_input(UWORD type)
 #define AXIS_MIN (AXIS_CENTRE - NOISE_TOLERANCE)
 #define AXIS_MAX (AXIS_CENTRE + NOISE_TOLERANCE)
 
-// claude-ai: DirectInput API — the_state (DIJOYSTATE) хранит последнее считанное состояние джойпада.
-// claude-ai: Определён в ddlib.cpp; заполняется ReadInputDevice() через IDirectInputDevice8::GetDeviceState().
-// claude-ai: В новой игре: заменить на SDL_GetGamepadState() или отдельные вызовы SDL_GetGamepadAxis/Button.
+    // claude-ai: DirectInput API — the_state (DIJOYSTATE) хранит последнее считанное состояние джойпада.
+    // claude-ai: Определён в ddlib.cpp; заполняется ReadInputDevice() через IDirectInputDevice8::GetDeviceState().
+    // claude-ai: В новой игре: заменить на SDL_GetGamepadState() или отдельные вызовы SDL_GetGamepadAxis/Button.
     extern DIJOYSTATE the_state;
 
-
     DWORD dwCurrentTime = 0;
-
 
     // claude-ai: DirectInput API — ReadInputDevice() опрашивает джойпад через DirectInput, заполняет the_state.
     // claude-ai: Определён в ddlib.cpp. В SDL3 заменить на SDL_UpdateGamepads() + SDL_GetGamepadAxis/Button.
@@ -4868,7 +4846,6 @@ ULONG get_hardware_input(UWORD type)
                                                 }
                 */
 
-
                 /*
                                                 if (Keys[KB_I])
                                                 {
@@ -4887,7 +4864,6 @@ ULONG get_hardware_input(UWORD type)
                                                         }
                                                 }
                 */
-
 
                 /*
 
@@ -4943,8 +4919,6 @@ ULONG get_hardware_input(UWORD type)
                     input |= INPUT_MASK_ACTION;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
-
-
             }
 
             if (input) {
@@ -4971,9 +4945,7 @@ ULONG get_hardware_input(UWORD type)
         }
     }
 
-
     if (type & INPUT_TYPE_KEY) {
-
 
         if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
             input |= INPUT_MASK_FORWARDS;
@@ -5073,7 +5045,6 @@ ULONG get_hardware_input(UWORD type)
         }
     }
 
-
     //
     // Sometimes, while a cutscene is playing, Simon wants Darci to stop moving.
     //
@@ -5088,32 +5059,32 @@ ULONG get_hardware_input(UWORD type)
 
     */
 
-/*
-        if (SNIPE_on)
-        {
-                {
-                        //
-                        // Do sniper mode movement.
-                        //
+    /*
+            if (SNIPE_on)
+            {
+                    {
+                            //
+                            // Do sniper mode movement.
+                            //
 
-                        SLONG turn = 0;
+                            SLONG turn = 0;
 
-                        if (input & INPUT_MASK_LEFT)      {turn |= SNIPE_TURN_LEFT;}
-                        if (input & INPUT_MASK_RIGHT)     {turn |= SNIPE_TURN_RIGHT;}
-                        if (input & INPUT_MASK_FORWARDS)  {turn |= SNIPE_TURN_UP;}
-                        if (input & INPUT_MASK_BACKWARDS) {turn |= SNIPE_TURN_DOWN;}
+                            if (input & INPUT_MASK_LEFT)      {turn |= SNIPE_TURN_LEFT;}
+                            if (input & INPUT_MASK_RIGHT)     {turn |= SNIPE_TURN_RIGHT;}
+                            if (input & INPUT_MASK_FORWARDS)  {turn |= SNIPE_TURN_UP;}
+                            if (input & INPUT_MASK_BACKWARDS) {turn |= SNIPE_TURN_DOWN;}
 
-                        SNIPE_turn(turn);
-                }
+                            SNIPE_turn(turn);
+                    }
 
-                //
-                // Darci can't move while sniping...
-                //
+                    //
+                    // Darci can't move while sniping...
+                    //
 
-                input = 0;
+                    input = 0;
 
-        }
-*/
+            }
+    */
 
     if (input) {
         input_mode = INPUT_KEYS;
@@ -5172,13 +5143,12 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
     // Should we be in first person mode?
     //
 
-// claude-ai: DirectInput API — the_state.rgbButtons[] используется здесь напрямую для
-// claude-ai: проверки кнопки "вид от первого лица" (JOYPAD_BUTTON_1STPERSON).
-// claude-ai: В SDL3: SDL_GetGamepadButton(pad, buttonIndex).
+    // claude-ai: DirectInput API — the_state.rgbButtons[] используется здесь напрямую для
+    // claude-ai: проверки кнопки "вид от первого лица" (JOYPAD_BUTTON_1STPERSON).
+    // claude-ai: В SDL3: SDL_GetGamepadButton(pad, buttonIndex).
     extern DIJOYSTATE the_state;
 
-    if ((Keys[keybrd_button_use[JOYPAD_BUTTON_1STPERSON]]) || the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_1STPERSON]])
-    {
+    if ((Keys[keybrd_button_use[JOYPAD_BUTTON_1STPERSON]]) || the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_1STPERSON]]) {
         fpm = TRUE;
     }
 
@@ -5416,7 +5386,7 @@ void process_hardware_level_input_for_player(Thing* p_player)
     // do the camera stuff
     //
 
-//	if (p_person->Genus.Person->Mode != PERSON_MODE_FIGHT)
+    //	if (p_person->Genus.Person->Mode != PERSON_MODE_FIGHT)
 
     // Blimey! Mad system!
     if (pl->Pressed & INPUT_MASK_CAMERA) {

@@ -76,5 +76,4 @@ extern SLONG find_stair_y(Thing* p_person, SLONG* y1, SLONG x, SLONG y, SLONG z,
 //
 // ========================================================
 
-
 #endif // FALLEN_HEADERS_INSIDE2_H

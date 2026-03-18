@@ -173,7 +173,6 @@
 #define BAT_STATE_BANE_START 18
 #define BAT_STATE_NUMBER 19
 
-
 CBYTE* BAT_state_name[BAT_STATE_NUMBER] = {
     "Idle",
     "Goto",
@@ -195,7 +194,6 @@ CBYTE* BAT_state_name[BAT_STATE_NUMBER] = {
     "Bane attack",
     "Bane start"
 };
-
 
 #define BAT_SUBSTATE_NONE 0
 #define BAT_SUBSTATE_CIRCLE_HOME 1
@@ -872,8 +870,7 @@ void BAT_change_state(Thing* p_thing)
                 new_state = BAT_STATE_BANE_IDLE;
             }
         }
-    }
-    else {
+    } else {
         //
         // Is the player close by?
         //

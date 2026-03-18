@@ -21,10 +21,8 @@
 #include "memory.h"
 #include "font2d.h"
 
-
 extern UBYTE GAME_cut_scene;
 extern SLONG analogue;
-
 
 // claude-ai: CAM_MORE_IN = 0.75F — PC камера на 25% ближе к персонажу чем PSX. Применяется к cam_dist и смещениям в FC_init/FC_change_camera_type.
 #define CAM_MORE_IN (0.75F)
@@ -251,7 +249,6 @@ SLONG FC_focus_above(FC_Cam* fc)
     SLONG focus;
     SLONG above;
     SLONG lower = 0;
-
 
     if (fc->focus->Class == CLASS_PERSON && person_has_gun_out(fc->focus)) {
         //
@@ -1424,13 +1421,11 @@ void FC_process()
                 if (fc->nobehind < 0) {
                     fc->nobehind = 0;
                 }
-            } else
-                if (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT) {
+            } else if (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT) {
                 //
                 // Don't get behind fighting people.
                 //
-            } else
-            {
+            } else {
                 //
                 // Get behind Darci.
                 //

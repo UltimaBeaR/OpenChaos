@@ -37,7 +37,6 @@ enumDisplayType eDisplayType;
 //---------------------------------------------------------------
 UBYTE *image_mem = NULL, *image = NULL;
 
-
 // ========================================================
 //
 // MOVIE STUFF!
@@ -854,7 +853,6 @@ HRESULT Display::InitFullscreenMode(void)
         return result;
     }
 
-
     // Don't give up!
     // Try 640 x 480 x bpp mode instead
     if ((w != DEFAULT_WIDTH || h != DEFAULT_HEIGHT)) {
@@ -936,7 +934,6 @@ void calculate_mask_and_shift(
     SLONG num_bits = 0;
     SLONG first_bit = -1;
 
-
     for (i = 0, b = 1; i < 32; i++, b <<= 1) {
         if (bitmask & b) {
             num_bits += 1;
@@ -955,7 +952,6 @@ void calculate_mask_and_shift(
         //
         // This is bad!
         //
-
 
         *mask = 0;
         *shift = 0;
@@ -1056,7 +1052,6 @@ HRESULT Display::InitFront(void)
     calculate_mask_and_shift(dd_sd.ddpfPixelFormat.dwRBitMask, &mask_red, &shift_red);
     calculate_mask_and_shift(dd_sd.ddpfPixelFormat.dwGBitMask, &mask_green, &shift_green);
     calculate_mask_and_shift(dd_sd.ddpfPixelFormat.dwBBitMask, &mask_blue, &shift_blue);
-
 
     // Success
     return DD_OK;
@@ -1894,7 +1889,6 @@ void Display::PlotPixel(SLONG x, SLONG y, UBYTE red, UBYTE green, UBYTE blue)
         //
         // Do nothing if the screen is not locked.
         //
-
     }
 }
 
@@ -1919,7 +1913,6 @@ void Display::PlotFormattedPixel(SLONG x, SLONG y, ULONG colour)
         //
         // Do nothing if the screen is not locked.
         //
-
     }
 }
 

@@ -67,10 +67,8 @@
 
 //		STOREY_TYPE_NORMAL
 
-
 #include "math.h"
 void skip_load_a_multi_prim(MFFileHandle handle);
-
 
 // #include "math.h"
 extern CBYTE texture_style_names[200][21];
@@ -79,7 +77,6 @@ SLONG load_a_multi_prim(CBYTE* name);
 void create_kline_bottle(void);
 SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG type = 0);
 SLONG load_anim_prim_object(SLONG prim);
-
 
 // claude-ai: Path globals for resource directories.
 // claude-ai: NO_SERVER mode: all paths relative to exe dir (e.g., "server\prims").
@@ -90,8 +87,6 @@ CBYTE PRIM_DIR[100] = "server\\prims";
 CBYTE DATA_DIR[100] = "";
 CBYTE LEVELS_DIR[100] = "";
 CBYTE TEXTURE_WORLD_DIR[100] = "";
-
-
 
 // claude-ai: Snapshot/restore of prim database cursors — used during editor undo and
 // claude-ai: experimental prim loading to allow rolling back failed loads.
@@ -244,7 +239,7 @@ void load_texture_styles(UBYTE editor, UBYTE world)
     //
 
     sprintf(fname, "%sstyle.tma", TEXTURE_WORLD_DIR);
-//	sprintf(fname, "u:\\urbanchaos\\textures\\world%d\\style.tma", world);
+    //	sprintf(fname, "u:\\urbanchaos\\textures\\world%d\\style.tma", world);
 
     handle = FileOpen(fname);
 
@@ -1128,7 +1123,6 @@ void sort_multi_object(struct KeyFrameChunk* the_chunk)
                   }
           }
           */
-
 }
 
 void set_default_people_types(struct KeyFrameChunk* the_chunk)
@@ -1185,7 +1179,6 @@ void normalise_max_matrix(float fe_matrix[3][3], float* x, float* y, float* z)
 
 //************************************************************************************************
 //************************************************************************************************
-
 
 void load_multi_vue(struct KeyFrameChunk* the_chunk, float shrink_me)
 {
@@ -1464,7 +1457,6 @@ void load_key_frame_chunks(KeyFrameChunk* the_chunk, CBYTE* vue_name, float scal
                 sp, ep;
             struct PrimObject* p_obj;
 
-
             for (multi = the_chunk->MultiObjectStart; multi <= the_chunk->MultiObjectEnd; multi++)
                 for (c0 = prim_multi_objects[multi].StartObject; c0 < prim_multi_objects[multi].EndObject; c0++) {
                     p_obj = &prim_objects[c0];
@@ -1585,7 +1577,6 @@ void read_a_prim(SLONG prim, MFFileHandle handle, SLONG save_type)
 
         FileRead(handle, (UBYTE*)&sp, sizeof(sp));
         FileRead(handle, (UBYTE*)&ep, sizeof(ep));
-
 
         for (c0 = sp; c0 < ep; c0++) {
             if (save_type > 3) {
@@ -1793,7 +1784,6 @@ void load_palette(CBYTE* palette)
 
     handle = MF_Fopen(palette, "rb");
 
-
     if (handle == NULL) {
 
         goto file_error;
@@ -1977,7 +1967,6 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
         convert_animlist_to_pointer(p_chunk->AnimList, p_chunk->AnimKeyFrames, p_chunk->MaxAnimFrames);
         convert_fightcol_to_pointer(p_chunk->FightCols, p_chunk->FightCols, p_chunk->MaxFightCols);
     } else {
-
 
         // was at 100 now at 10, a_off =-90 so we take 90 off each stored address
 
@@ -2460,5 +2449,3 @@ SLONG append_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG s
     }
     return (0);
 }
-
-

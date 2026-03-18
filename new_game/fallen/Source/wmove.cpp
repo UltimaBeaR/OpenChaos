@@ -384,8 +384,6 @@ void WMOVE_create(Thing* p_thing)
     PrimFace4* f4;
     WMOVE_Face* wf;
 
-
-
     //
     // How many wmove faces does this thing have?
     //
@@ -486,7 +484,6 @@ void WMOVE_create(Thing* p_thing)
         attach_walkable_to_map(face4);
     }
 };
-
 
 // claude-ai: WMOVE_process(): вызывается каждый кадр из Thing.cpp (WMOVE_process()).
 // claude-ai: Для каждой WMOVE face: save old pos → remove from map → recalc from owner thing → re-add to map.
@@ -883,4 +880,3 @@ void WMOVE_draw()
             TRUE);
     }
 }
-

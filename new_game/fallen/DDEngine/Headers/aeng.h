@@ -424,5 +424,4 @@ void AENG_set_detail_levels(int stars,
     int perspective,
     int crinkles);
 
-
 #endif // FALLEN_DDENGINE_HEADERS_AENG_H

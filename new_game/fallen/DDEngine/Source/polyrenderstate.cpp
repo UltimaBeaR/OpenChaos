@@ -127,7 +127,6 @@ void POLY_load_texture_flags(CBYTE* fname, SLONG offset)
 //
 // initialize all the render states for each page
 
-
 #define HOW_MANY_FRAMES_TO_WAIT 0
 
 void POLY_init_render_states()
@@ -1280,7 +1279,6 @@ void POLY_init_render_states()
 
                 break;
 
-
             default:
 
                 if (ii < TEXTURE_page_num_standard && !(draw_3d && (ii == 510 || ii == 511))) {
@@ -1301,8 +1299,7 @@ void POLY_init_render_states()
                                 // use colour keying to make the windows work on the Rage Pro
                                 TEXTURE_set_colour_key(ii);
                                 SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, TRUE);
-                            } else
-                            {
+                            } else {
                                 SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, TRUE);
                             }
                         }
@@ -1392,7 +1389,6 @@ void POLY_init_render_states()
         // TRACE ( "0x%x ", POLY_Page[ii].RS.GetTexture() );
     }
 
-
     // Before we do this, we must flush all the currently queued polys,
     // because this will change the sorting order, and thus some
     // pages may not be drawn that should be and stuff.
@@ -1403,7 +1399,6 @@ void POLY_init_render_states()
     for (int ii = 0; ii < POLY_NUM_PAGES; ii++) {
         PageOrdered[ii] = false;
     }
-
 
     SLONG pos = 0;
     while (pos < POLY_NUM_PAGES) {
@@ -1449,11 +1444,8 @@ void POLY_init_render_states()
         // TRACE("\n");
     }
 
-
     extern int iPolyNumPagesRender;
     iPolyNumPagesRender = pos;
-
-
 
     RenderStates_OK = TRUE;
 }

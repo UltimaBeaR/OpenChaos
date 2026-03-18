@@ -32,7 +32,6 @@
 #endif
 #endif
 
-
 /* We'll need to define DWORD, BOOL, TRUE and FALSE if someone hasn't
    done that before. For now, we'll just assume that if no-one has defined
    TRUE we need to define everything. There definitions are compatible with

@@ -304,4 +304,3 @@ void IC_test()
 
     TGA_save("testcomp.tga", ti.width, ti.height, test, FALSE);
 }
-

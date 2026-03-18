@@ -14,7 +14,6 @@
 
 extern ULONG* SW_buffer;
 
-
 //
 // Reloads all textures. Looks at the D3D Texture system and
 // loads a copy of each texture.
@@ -59,6 +58,5 @@ void SW_add_triangle(
 //
 
 void SW_copy_to_bb(void);
-
 
 #endif // FALLEN_DDENGINE_HEADERS_SW_H

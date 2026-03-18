@@ -255,4 +255,3 @@ SLONG FindColour(UBYTE* the_palette, SLONG r, SLONG g, SLONG b)
 }
 
 //---------------------------------------------------------------
-

@@ -25,7 +25,6 @@
 #include "poly.h"
 #include "dirt.h"
 
-
 SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
 
 extern SLONG set_face_thing(Thing* p_person, Thing* p_target);
@@ -1236,11 +1235,9 @@ SLONG check_combat_hit_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MAPCO1
     my += p_victim->WorldPos.Y >> 8;
     mz += p_victim->WorldPos.Z >> 8;
 
-
     dx = mx - x;
     dy = my - y;
     dz = mz - z;
-
 
     adx = abs(dx);
     adz = abs(dz);
@@ -1308,7 +1305,6 @@ SLONG check_combat_hit_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MAPCO1
 
     dist = QDIST2(adx, adz);
 
-
 #define COMBAT_HIT_DIST_LEEWAY 0x30
 
     //	if (dist > fight->Dist1 && dist < fight->Dist2)
@@ -1328,7 +1324,6 @@ SLONG check_combat_hit_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MAPCO1
                 return (1);
         }
 
-
         angle = -Arctan(-dx, dz) - 512;
         if (angle < 0)
             angle = 2048 + angle;
@@ -1337,7 +1332,6 @@ SLONG check_combat_hit_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MAPCO1
         *ret_angle = angle;
 
         angle -= ((fight->Angle << 3) - p_agressor->Draw.Tweened->Angle);
-
 
         if (angle < 0)
             angle = 2048 + angle;
@@ -1417,7 +1411,6 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
     if (abs(dist - pg->Dist) < pg->Range) // if(dist>10 && dist<140)
     {
         SLONG angle, temp_angle;
-
 
         //
         // Angle I'm looking at relative to him
@@ -1550,7 +1543,6 @@ SLONG check_hit_from_behind(Thing* p_me, Thing* p_him)
         return FALSE;
     }
 }
-
 
 /*
 
@@ -2451,9 +2443,9 @@ SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor)
             }
         }
 
-//
-// won't hit darci or cops
-//
+        //
+        // won't hit darci or cops
+        //
         will_hit ^= ((1 << PERSON_COP) | (1 << PERSON_DARCI));
         break;
 
@@ -2653,7 +2645,6 @@ SLONG apply_violence(Thing* p_thing)
     fight_info = p_thing->Draw.Tweened->CurrentFrame->Fight;
 
     while (fight_info && count++ < 5) {
-
 
         hits += find_combat_target(fight_info, x, y, z, p_thing);
         fight_info = fight_info->Next;

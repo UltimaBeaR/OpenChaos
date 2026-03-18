@@ -9,7 +9,6 @@
 #include "mfx.h"
 #include "ware.h"
 
-
 UWORD music_current_wave = 0;
 UWORD music_max_gain = 128 << 8;
 /*
@@ -194,7 +193,6 @@ void MUSIC_set_the_volume(SLONG vol)
     // for the PSX, set the CDaudio playback volume
 
     MFX_set_gain(MUSIC_REF, music_current_wave, vol >> 8);
-
 }
 
 void MUSIC_stop_the_mode()

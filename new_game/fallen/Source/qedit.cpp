@@ -2,7 +2,6 @@
 // An editor for the QMAP...
 //
 
-
 #include "game.h"
 #include <MFStdLib.h>
 #include "qedit.h"
@@ -432,4 +431,3 @@ void QEDIT_loop()
 
     CloseDisplay();
 }
-

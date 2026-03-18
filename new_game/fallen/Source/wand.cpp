@@ -105,7 +105,6 @@ void WAND_init(void)
         }
 }
 
-
 SLONG WAND_square_is_wander(SLONG mx, SLONG mz)
 {
     if ((PAP_2HI(mx, mz).Flags & PAP_FLAG_WANDER) && (PAP_2HI(mx, mz).Flags & PAP_FLAG_HIDDEN) == 0) {

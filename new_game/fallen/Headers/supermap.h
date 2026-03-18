@@ -1,7 +1,6 @@
 #ifndef FALLEN_HEADERS_SUPERMAP_H
 #define FALLEN_HEADERS_SUPERMAP_H
 
-
 #define MAX_FACET_LINK 32000
 
 struct DStorey {

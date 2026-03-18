@@ -556,4 +556,3 @@ CBYTE* sound_list[] = {
     "GeneralMusic\\FrontLoop.wav",
     "!",
 };
-

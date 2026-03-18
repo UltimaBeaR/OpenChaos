@@ -6,7 +6,6 @@
 #include "Tga.h"
 #include "FileClump.h"
 
-
 static FileClump* tclump = NULL;
 static bool writing;
 static bool init_convert = false;
@@ -56,7 +55,6 @@ FileClump* GetTGAClump()
     return tclump;
 }
 
-
 // DoesTGAExist
 //
 // look for a TGA
@@ -84,8 +82,7 @@ SLONG tga_height;
 
 TGA_Info TGA_load(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixel* data, ULONG id, BOOL bCanShrink)
 {
-    if (!tclump || (id == -1))
-    {
+    if (!tclump || (id == -1)) {
         // read directly from file
         return TGA_load_from_file(file, max_width, max_height, data, bCanShrink);
     }
@@ -131,7 +128,6 @@ TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height
 
     TGA_Info ans;
     UBYTE pal[256 * 3];
-
 
     //
     // Open the file.
@@ -311,7 +307,6 @@ TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height
         }
     }
 
-
     return ans;
 
 file_error:;
@@ -325,7 +320,6 @@ file_error:;
 
     return ans;
 }
-
 
 // WriteSquished
 //
@@ -810,9 +804,6 @@ file_error:;
     return ans;
 }
 
-
-
-
 UBYTE TGA_header[18] = {
     0, 0, 2, 0,
     0, 0, 0, 0,
@@ -837,9 +828,7 @@ void TGA_save(
 
     FILE* handle;
 
-
     handle = fopen(file, "wb");
-
 
     if (handle == NULL) {
 
@@ -886,4 +875,3 @@ void TGA_save(
 
     MF_Fclose(handle);
 }
-

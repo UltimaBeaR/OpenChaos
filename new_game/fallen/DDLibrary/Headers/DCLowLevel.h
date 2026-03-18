@@ -108,6 +108,4 @@ void DCLL_memstream_play(void); // Loops and plays the file
 void DCLL_memstream_stop(void); // Stops playing the file
 void DCLL_memstream_unload(void); // Frees memory.
 
-
-
 #endif // FALLEN_DDLIBRARY_HEADERS_DCLOWLEVEL_H

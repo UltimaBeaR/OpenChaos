@@ -174,7 +174,6 @@ void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
             float(map_z + (i >> 1) << 8),
             quad[i],
             TRUE);
-
     }
 
     if (POLY_valid_quad(quad)) {

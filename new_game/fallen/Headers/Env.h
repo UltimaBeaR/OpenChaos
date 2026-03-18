@@ -9,9 +9,7 @@
 // now we use standard Windows .INI files
 //
 
-
 void ENV_load(CBYTE* fname);
-
 
 //
 // retrieve values

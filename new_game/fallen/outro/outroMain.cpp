@@ -94,7 +94,6 @@ void MAIN_main()
 
         BACK_draw();
 
-
         WIRE_draw();
         CREDITS_draw();
 

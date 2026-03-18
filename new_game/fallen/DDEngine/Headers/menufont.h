@@ -39,7 +39,6 @@ struct CharData {
 
 extern CharData FontInfo[256];
 
-
 // ========================================================
 //
 // Cool line-fade-in text.

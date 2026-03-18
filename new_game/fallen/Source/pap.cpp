@@ -26,7 +26,6 @@ void PAP_clear(void)
     memset((UBYTE*)&PAP_hi[0][0], 0, sizeof(PAP_Hi) * PAP_SIZE_HI * PAP_SIZE_HI);
 }
 
-
 //
 // A couple of debug functions.
 //
@@ -58,7 +57,6 @@ void PAP_assert_if_off_map_hi(SLONG x, SLONG z)
 {
     ASSERT(PAP_on_map_hi(x, z));
 }
-
 
 SLONG PAP_calc_height_at_point(SLONG map_x, SLONG map_z)
 {

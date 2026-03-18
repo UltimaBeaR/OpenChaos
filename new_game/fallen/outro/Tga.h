@@ -52,5 +52,4 @@ OUTRO_TGA_Info OUTRO_TGA_load(
     SLONG max_height,
     OUTRO_TGA_Pixel* data);
 
-
 #endif // FALLEN_OUTRO_TGA_H

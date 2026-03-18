@@ -10,5 +10,3 @@
 #include "DIManager.h"
 
 #endif // FALLEN_DDLIBRARY_HEADERS_FFMANAGER_H
-
-

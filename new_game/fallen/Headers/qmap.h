@@ -385,7 +385,6 @@ typedef struct
     UWORD flag;
     UWORD next;
 
-
 } QMAP_Face;
 
 #define QMAP_MAX_FACES 2048

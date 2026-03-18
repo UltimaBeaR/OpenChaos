@@ -264,14 +264,12 @@ void show_text(void)
         // pa->RS.SetTexture(pa->RS.SetTexture(handle));
 
         SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, TRUE);
-        if (text_fudge)
-        {
+        if (text_fudge) {
             SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
             SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
             SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
-        }
-        else {
+        } else {
             SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
         }
 

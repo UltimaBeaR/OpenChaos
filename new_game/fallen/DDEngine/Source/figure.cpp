@@ -115,8 +115,6 @@
 
 #include "psystem.h"
 
-
-
 extern BOOL allow_debug_keys;
 
 SLONG FIGURE_alpha = 255;
@@ -175,10 +173,6 @@ void FIGURE_draw_prim_tween_person_only(
     SLONG recurse_level,
     Thing* p_thing);
 
-
-
-
-
 // Useful.
 #define ALIGNED_STATIC_ARRAY(def, name, number, mytype, align)                        \
     static char c##name##mytype##align##StaticArray[align + number * sizeof(mytype)]; \
@@ -189,7 +183,6 @@ ALIGNED_STATIC_ARRAY(static D3DCOLOR*, MM_pcFadeTableTint, 128, D3DCOLOR, 4);
 ALIGNED_STATIC_ARRAY(static D3DMATRIX*, MM_pMatrix, 1, D3DMATRIX, 32);
 ALIGNED_STATIC_ARRAY(static D3DVERTEX*, MM_Vertex, 4, D3DVERTEX, 32);
 ALIGNED_STATIC_ARRAY(static float*, MM_pNormal, 4, float, 8);
-
 
 D3DVECTOR MM_vLightDir;
 bool MM_bLightTableAlreadySetUp = FALSE;
@@ -392,9 +385,7 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and = 0xffffffff)
         cvCur.g += cvLight.g;
         cvCur.b += cvLight.b;
     }
-
 }
-
 
 struct EdgeList {
     WORD wPt1, wPt2;
@@ -706,7 +697,6 @@ BOOL MSOptimizeIndexedList(WORD* pwIndices, int nTriangles)
     return TRUE;
 }
 
-
 // claude-ai: get_steam_rand — cheap LCG pseudo-random for steam/fire particle positions.
 // claude-ai: Not cryptographic. Seed (steam_seed) is reset each frame to get reproducible
 // claude-ai: particle patterns.
@@ -943,7 +933,7 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
                 break;
             }
 
-//			SPRITE_draw_tex(
+            //			SPRITE_draw_tex(
             SPRITE_draw_tex_distorted(
                 float(dx),
                 float(dy),
@@ -1052,7 +1042,6 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
             break;
         }
 
-
         SPRITE_draw_tex_distorted(
             float(dx),
             float(dy),
@@ -1157,7 +1146,6 @@ UWORD jacket_lookup[4][8] = {
     { 64 + 25, 10 * 64 + 5, 10 * 64 + 5, 10 * 64 + 37 }
 
 };
-
 
 // A huge number!!!!
 #define MAX_NUMBER_D3D_PRIMS MAX_PRIM_OBJECTS
@@ -1337,7 +1325,6 @@ void FIGURE_clean_all_LRU_slots(void)
     ASSERT(m_dwSizeOfQueue == 0);
 }
 
-
 // claude-ai: FIGURE_find_and_clean_prim_queue_item — LRU cache management for TomsPrimObjects.
 // claude-ai: Queue limits: PRIM_LRU_QUEUE_LENGTH=250 entries, PRIM_LRU_QUEUE_SIZE=6000 vertices total.
 // claude-ai: When full: evicts the entry with the largest (GAME_TURN - dwGameTurnLastUsed) gap.
@@ -1387,7 +1374,6 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
                 // Could try binning the _newest_ instead, but that's a real pain.
                 // Just try not to.
                 // iOldestSlot = iThrashIndex;
-
             }
 
             // Clean out this prim & slot.
@@ -1424,7 +1410,6 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
                     // Yes, it's used - bin it.
                     iOldestSlot = iThrashIndex;
                 }
-
             }
 
             // In some cases, we may have decided to clean a cache position that
@@ -1468,7 +1453,6 @@ void FIGURE_touch_LRU_of_object(TomsPrimObject* pPrimObj)
     dwGameTurnLastUsed[pPrimObj->bLRUQueueNumber] = GAME_TURN;
 }
 
-
 // Used by the FIGURE_TPO lot.
 static D3DVERTEX* TPO_pVert = NULL;
 static UWORD* TPO_pStripIndices = NULL;
@@ -1504,7 +1488,6 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj /*, int iThrashIndex = 0
     // PrimObject  *p_obj = &prim_objects[prim];
     // ASSERT ( prim < MAX_NUMBER_D3D_PRIMS );
 
-
     // Make sure we're not in the middle of compiling and object already.
     ASSERT(TPO_pVert == NULL);
     ASSERT(TPO_pStripIndices == NULL);
@@ -1524,7 +1507,6 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj /*, int iThrashIndex = 0
 
 #define MAX_VERTS 1024
 #define MAX_INDICES (MAX_VERTS * 4)
-
 
     TPO_pVert = (D3DVERTEX*)MemAlloc(MAX_VERTS * sizeof(D3DVERTEX));
     ASSERT(TPO_pVert != NULL);
@@ -1642,7 +1624,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
     ASSERT(pPrimObj == TPO_pPrimObj);
 
-
     // OK, now scan through the faces. Check to see if the face uses a new material.
     // If so, create this new material and add in this face and all subsequent faces
     // that use it.
@@ -1675,7 +1656,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
                 PolyPage* pRenderedPage = NULL;
 
-
                 if ((wTexturePage & ~TEXTURE_PAGE_MASK) != 0) {
                     // Something special about this page, e.g. jacket, special shading, etc.
                     // Don't try to combine them.
@@ -1683,7 +1663,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                 } else {
                     pRenderedPage = POLY_Page[wTexturePage & TEXTURE_PAGE_MASK].pTheRealPolyPage;
                 }
-
 
                 // OK, now we have a material description in wTexturePage.
                 // Look for an existing material with this.
@@ -1844,7 +1823,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         wRealPage += FACE_PAGE_OFFSET;
                                     }
 
-
                                     PolyPage* pa = &(POLY_Page[wRealPage]);
 
                                     // Add the vertices.
@@ -1928,7 +1906,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                                 DeadAndBuried(0xffffffff);
                                             }
 
-
                                             // Grow the bounding sphere if need be.
 
                                             float fDistSqu = (d3dvert.dvX * d3dvert.dvX) + (d3dvert.dvY * d3dvert.dvY) + (d3dvert.dvZ * d3dvert.dvZ);
@@ -1972,7 +1949,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                                 if (TPO_iNumVertices >= MAX_VERTS) {
                                                     DeadAndBuried(0xffffffff);
                                                 }
-
                                             }
                                         }
                                     }
@@ -1996,7 +1972,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                             DeadAndBuried(0x07ff07ff);
                                         }
 
-
                                     } else {
                                         ASSERT((iIndices[0] >= 0) && (iIndices[0] < pMaterial->wNumVertices));
                                         ASSERT((iIndices[1] >= 0) && (iIndices[1] < pMaterial->wNumVertices));
@@ -2017,7 +1992,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         if (TPO_iNumStripIndices >= MAX_INDICES) {
                                             DeadAndBuried(0x07ff07ff);
                                         }
-
                                     }
                                 }
                             }
@@ -2028,13 +2002,11 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
                     // And that's that material fully done.
 
-
                     WORD* pSrcIndex;
 
                     // Optimise the lists using MS's optimiser. Ta, MS. Saves me the hassle.
                     int iRes = MSOptimizeIndexedList(pFirstListIndex, pMaterial->wNumListIndices / 3);
                     ASSERT(iRes != 0);
-
 
                     // And convert back to the strip format.
                     ASSERT(TPO_pCurStripIndex == pFirstStripIndex);
@@ -2065,7 +2037,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                 DeadAndBuried(0x07ff07ff);
                             }
 
-
                             if (bOdd) {
                                 wIndex0 = wNextIndex;
                             } else {
@@ -2083,7 +2054,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                 if (TPO_iNumStripIndices >= MAX_INDICES) {
                                     DeadAndBuried(0x07ff07ff);
                                 }
-
 
                             } else {
                                 bFirst = FALSE;
@@ -2115,9 +2085,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                         DeadAndBuried(0x07ff07ff);
                     }
 
-
                     ASSERT(pMaterial->wNumStripIndices == (TPO_pCurStripIndex - pFirstStripIndex));
-
                 }
             }
 
@@ -2195,8 +2163,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
     TPO_iNumStripIndices = 0;
     TPO_iNumVertices = 0;
     TPO_iNumPrims = 0;
-
-
 }
 
 // claude-ai: FIGURE_generate_D3D_object — convenience wrapper: compiles a single prim
@@ -2218,7 +2184,6 @@ void FIGURE_generate_D3D_object(SLONG prim)
     // And clean it all up.
     FIGURE_TPO_finish_3d_object(pPrimObj);
 }
-
 
 // claude-ai: FIGURE_draw_prim_tween — full software-fallback body-part renderer.
 // claude-ai: Transforms and lights every vertex on CPU, then submits polys to the
@@ -2311,7 +2276,6 @@ void FIGURE_draw_prim_tween(
     POLY_Point* tri[3];
     POLY_Point* quad[4];
     SLONG tex_page_offset;
-
 
     tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
 
@@ -2467,16 +2431,13 @@ void FIGURE_draw_prim_tween(
         static int count = 0;
 
         count += 1;
-
     }
-
 
     POLY_set_local_rotation(
         off_x,
         off_y,
         off_z,
         fmatrix);
-
 
     //
     // Rotate all the points into the POLY_buffer.
@@ -2526,10 +2487,8 @@ void FIGURE_draw_prim_tween(
 
 no_muzzle_calcs:
 
-
     if (!MM_bLightTableAlreadySetUp) {
     }
-
 
     if (WITHIN(prim, 261, 263)) {
         //
@@ -2636,7 +2595,6 @@ no_muzzle_calcs:
         return;
     } else {
 
-
         if (!MM_bLightTableAlreadySetUp) {
 
             Pyro* p = NULL;
@@ -2648,7 +2606,6 @@ no_muzzle_calcs:
             }
             BuildMMLightingTable(p, colour_and);
         }
-
 
         extern float POLY_cam_matrix_comb[9];
         extern float POLY_cam_off_x;
@@ -2727,17 +2684,13 @@ no_muzzle_calcs:
         MM_pNormal[1] = vTemp.x * fNormScale;
         MM_pNormal[2] = vTemp.y * fNormScale;
         MM_pNormal[3] = vTemp.z * fNormScale;
-
-
     }
-
 
 #if 1
 
 #if 1
 
     // The wonderful NEW system!
-
 
 #if 1
     // The MM stuff doesn't like specular to be enabled.
@@ -2794,7 +2747,6 @@ no_muzzle_calcs:
             }
         }
 
-
         extern D3DMATRIX g_matWorld;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
@@ -2812,7 +2764,6 @@ no_muzzle_calcs:
             d3dmm.lpvVertices = pVertex;
 
 #if 1
-
 
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
@@ -2839,7 +2790,7 @@ no_muzzle_calcs:
             }
 #endif
 
-//			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
+            //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
 
         } else {
             // Alpha/clipped path - do with standard non-MM calls.
@@ -2863,7 +2814,6 @@ no_muzzle_calcs:
     // The MM stuff doesn't like specular to be enabled.
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
 #endif
-
 
 #endif
 
@@ -3084,12 +3034,10 @@ no_muzzle_calcs:
 
 #endif
 
-
     // Not done yet.
 
     if (!MM_bLightTableAlreadySetUp) {
     }
-
 }
 
 // claude-ai: FIGURE_draw_prim_tween_warped — variant of FIGURE_draw_prim_tween used for
@@ -3600,8 +3548,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     // SLONG  limb;
     struct Matrix33* rot_mat;
 
-
-
     f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
     f2 = p_person->Draw.Tweened->NextFrame->Flags;
 
@@ -3906,14 +3852,11 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     POLY_Point* quad[4];
     SLONG tex_page_offset;
 
-
     tex_page_offset = p_person->Genus.Person->pcom_colour & 0x3;
-
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
     // The wonderful NEW system!
-
 
 #if 1
     // The MM stuff doesn't like specular to be enabled.
@@ -3961,7 +3904,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             }
         }
 
-
         extern D3DMATRIX g_matWorld;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
@@ -3977,7 +3919,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             d3dmm.lpvVertices = pVertex;
 
 #if 1
-
 
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
@@ -4018,16 +3959,12 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
 #endif
 
-
     // No environment mapping.
     ASSERT(p_person && (p_person->Class != CLASS_VEHICLE));
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
-
-
     // Person drawn!
-
 }
 
 // The slower version that can cull individual chunks.
@@ -4039,8 +3976,6 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
     SLONG civ_flag = 0, legs, body, shoes, face, hands, pelvis;
     // SLONG  limb;
     struct Matrix33* rot_mat;
-
-
 
     f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
     f2 = p_person->Draw.Tweened->NextFrame->Flags;
@@ -4233,7 +4168,6 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
     };
 
     // Person drawn!
-
 }
 
 #else
@@ -4246,8 +4180,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     SLONG civ_flag = 0, legs, body, shoes, face, hands, pelvis;
     // SLONG limb;
     struct Matrix33* rot_mat;
-
-
 
     f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
     f2 = p_person->Draw.Tweened->NextFrame->Flags;
@@ -4467,7 +4399,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         } else
             recurse_level--;
     };
-
 }
 #endif
 
@@ -4582,7 +4513,6 @@ void FIGURE_draw(Thing* p_thing)
 
     DrawTween* dt = p_thing->Draw.Tweened;
 
-
     //	calc_global_cloud(p_thing->WorldPos.X>>8,p_thing->WorldPos.Y>>8,p_thing->WorldPos.Z>>8);
 
     if (dt->CurrentFrame == 0 || dt->NextFrame == 0) {
@@ -4606,13 +4536,11 @@ void FIGURE_draw(Thing* p_thing)
     // The rotation matrix of the whole object.
     //
 
-
     FIGURE_rotate_obj(
         dt->Tilt,
         dt->Angle,
         (dt->Roll + 2048) & 2047,
         &r_matrix);
-
 
     wx = 0;
     wy = 0;
@@ -4624,7 +4552,6 @@ void FIGURE_draw(Thing* p_thing)
 
     ae1 = dt->CurrentFrame->FirstElement;
     ae2 = dt->NextFrame->FirstElement;
-
 
     //
     // What colour do we draw the figure?
@@ -4644,7 +4571,6 @@ void FIGURE_draw(Thing* p_thing)
 
     NIGHT_Colour col;
 
-
     calc_sub_objects_position(
         p_thing,
         dt->AnimTween,
@@ -4655,16 +4581,11 @@ void FIGURE_draw(Thing* p_thing)
     ly += p_thing->WorldPos.Y >> 8;
     lz += p_thing->WorldPos.Z >> 8;
 
-
-
     NIGHT_find(lx, ly, lz);
-
-
 
     ASSERT(!MM_bLightTableAlreadySetUp);
 
     // Set up some data for the MM rendering thing.
-
 
     // #undef ALIGNED_STATIC_ARRAY
 
@@ -4679,7 +4600,6 @@ void FIGURE_draw(Thing* p_thing)
     BuildMMLightingTable(p, 0);
 
     MM_bLightTableAlreadySetUp = TRUE;
-
 
     //
     // Draw each body part.
@@ -4806,9 +4726,7 @@ void FIGURE_draw(Thing* p_thing)
         }
     }
     p_thing->Flags &= ~FLAGS_PERSON_AIM_AND_RUN;
-
 }
-
 
 // claude-ai: ANIM_obj_draw — draws an animated non-person object (vehicles, props, etc.)
 // claude-ai: that use the same DrawTween / keyframe animation system as characters.
@@ -5074,7 +4992,6 @@ void ANIM_obj_draw_warped(Thing* p_thing, DrawTween* dt)
             p_thing);
     }
 }
-
 
 // ========================================================
 //
@@ -5717,7 +5634,6 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     }
 }
 
-
 // claude-ai: FIGURE_draw_prim_tween_person_only_just_set_matrix — "matrix-only" body-part step
 // claude-ai: for the DRAW_WHOLE_PERSON_AT_ONCE (D3D MultiMatrix) fast path.
 // claude-ai: Computes the interpolated transform for body part [recurse_level] and stores
@@ -5810,7 +5726,6 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     POLY_Point* tri[3];
     POLY_Point* quad[4];
     SLONG tex_page_offset;
-
 
     tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
 
@@ -5914,7 +5829,6 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
 
-
     // claude-ai: NOT portable — POLY_set_local_rotation stores off_x/y/z and fmatrix into a
     // claude-ai: global transform state used by the subsequent D3D MultiMatrix matrix upload.
     // claude-ai: PORT: Pass off + mat as explicit arguments to glUniform/UBO update.
@@ -5923,7 +5837,6 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
         off_y,
         off_z,
         fmatrix);
-
 
     // Not 100% sure if I'm using character_scalef correctly...
     // ...but it seems to work OK.
@@ -5984,7 +5897,6 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
 
 no_muzzle_calcs:
 
-
     ASSERT(MM_bLightTableAlreadySetUp);
 
     ASSERT(!WITHIN(prim, 261, 263));
@@ -5992,7 +5904,6 @@ no_muzzle_calcs:
     {
 
         ASSERT(MM_bLightTableAlreadySetUp);
-
 
         extern float POLY_cam_matrix_comb[9];
         extern float POLY_cam_off_x;
@@ -6072,14 +5983,12 @@ no_muzzle_calcs:
         pnorm[1] = vTemp.x * fNormScale;
         pnorm[2] = vTemp.y * fNormScale;
         pnorm[3] = vTemp.z * fNormScale;
-
     }
 
     // No environment mapping.
     ASSERT(p_thing && (p_thing->Class != CLASS_VEHICLE));
 
     ASSERT(MM_bLightTableAlreadySetUp);
-
 
     return TRUE;
 }
@@ -6192,7 +6101,6 @@ void FIGURE_draw_prim_tween_person_only(
     POLY_Point* quad[4];
     SLONG tex_page_offset;
 
-
     tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
 
     //
@@ -6295,14 +6203,11 @@ void FIGURE_draw_prim_tween_person_only(
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
 
-
-
     POLY_set_local_rotation(
         off_x,
         off_y,
         off_z,
         fmatrix);
-
 
     //
     // Rotate all the points into the POLY_buffer.
@@ -6350,7 +6255,6 @@ void FIGURE_draw_prim_tween_person_only(
     //	x=pp->x*256; y=pp->y*256; z=pp->z*256;
 
 no_muzzle_calcs:
-
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
@@ -6461,7 +6365,6 @@ no_muzzle_calcs:
 
         ASSERT(MM_bLightTableAlreadySetUp);
 
-
         extern float POLY_cam_matrix_comb[9];
         extern float POLY_cam_off_x;
         extern float POLY_cam_off_y;
@@ -6535,11 +6438,9 @@ no_muzzle_calcs:
         MM_pNormal[1] = vTemp.x * fNormScale;
         MM_pNormal[2] = vTemp.y * fNormScale;
         MM_pNormal[3] = vTemp.z * fNormScale;
-
     }
 
     // The wonderful NEW system!
-
 
 #if 1
     // The MM stuff doesn't like specular to be enabled.
@@ -6596,7 +6497,6 @@ no_muzzle_calcs:
             }
         }
 
-
         extern D3DMATRIX g_matWorld;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
@@ -6615,7 +6515,6 @@ no_muzzle_calcs:
             d3dmm.lpvVertices = pVertex;
 
 #if 1
-
 
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
@@ -6667,10 +6566,8 @@ no_muzzle_calcs:
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
 #endif
 
-
     // No environment mapping.
     ASSERT(p_thing && (p_thing->Class != CLASS_VEHICLE));
 
     ASSERT(MM_bLightTableAlreadySetUp);
-
 }

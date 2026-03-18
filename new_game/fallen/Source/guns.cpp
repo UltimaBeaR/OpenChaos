@@ -270,7 +270,6 @@ SLONG calc_target_score_new(Thing* darci, Thing* p_target)
         return 0;
     }
 
-
     //
     // Relative angle of the target from darci.
     //

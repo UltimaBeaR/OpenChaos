@@ -32,7 +32,6 @@ void matrix_transformZMY(Matrix31* result, Matrix33* trans, Matrix31* mat2);
 void normalise_matrix(struct Matrix33* mat);
 void normalise_matrix_rows(struct Matrix33* mat);
 
-
 // Multiplies points x,y,z by matrix m.
 //
 

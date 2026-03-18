@@ -30,7 +30,6 @@ DrawTween* alloc_draw_tween(SLONG type)
             new_draw->Flags &= ~DT_FLAG_UNUSED;
             //			ASSERT(c0);
 
-
             return (new_draw);
         }
     }

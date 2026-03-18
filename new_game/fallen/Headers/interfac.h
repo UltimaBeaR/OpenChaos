@@ -99,7 +99,6 @@ extern SLONG person_get_in_specific_car(Thing* p_person, Thing* p_vehicle);
 #define INPUT_TYPE_KEY (1 << 0)
 #define INPUT_TYPE_JOY (1 << 1)
 
-
 // Only sets buttons that have gone down since the last poll. This is useful for
 // menus, etc.
 #define INPUT_TYPE_GONEDOWN (1 << 6)
@@ -111,7 +110,6 @@ extern ULONG get_hardware_input(UWORD type);
 extern ULONG get_last_input(UWORD type);
 // Allow the last input state to autorepeat, despite GONEDOWN.
 extern void allow_input_autorepeat(void);
-
 
 extern UBYTE joypad_button_use[16];
 extern UBYTE keybrd_button_use[16];

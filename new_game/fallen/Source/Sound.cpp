@@ -179,7 +179,6 @@ void SND_BeginAmbient()
         wtype = BusyCity;
         break;
     }
-
 }
 
 // claude-ai: new_outdoors_effects — called every game tick when player is outdoors.
@@ -255,7 +254,6 @@ void new_outdoors_effects()
                 wave_id = jungle_sounds[Random() % 5];
             else if (wtype == Snow)
                 wave_id = snow_sounds[Random() & 3];
-
 
             //			PlayAmbient3D(AMBIENT_EFFECT_REF, wave_id, (wtype == Snow) ? MFX_QUEUED : 0, InAir);
             PlayAmbient3D(AMBIENT_EFFECT_REF, wave_id, MFX_QUEUED, InAir);
@@ -425,7 +423,6 @@ void process_weather(void)
             // This must be done by the music system for the DC!
             //
 
-
             amb = WARE_ware[p_player->Genus.Person->Ware].ambience;
             if (amb == 4) {
                 //				if (Random()&1)
@@ -435,7 +432,6 @@ void process_weather(void)
                                                         MFX_play_ambient(WEATHER_REF,S_TUNE_CLUB_END,MFX_LOOPED);*/
             } else if (amb)
                 MFX_play_ambient(WEATHER_REF, indoors_waves[amb - 1], MFX_LOOPED);
-
         }
     }
 }
@@ -855,7 +851,6 @@ void	NewLoadWaveList(CBYTE *names[]) {
 }
 */
 
-
 // THE SEWERS ARE DEAD, LONG LIVE THE SEWERS
 
 // inline SLONG SewerHeight(NS_Hi *nh) { return (nh->bot << 5) + (-32 * 0x100); }
@@ -953,4 +948,3 @@ void SewerSoundProcess()
 
             }*/
 }
-

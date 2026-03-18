@@ -247,8 +247,8 @@ typedef struct
     UBYTE Flags2;
     UBYTE SlideOdd; // A counter for how many consecutive gameturns this person has slid along something that isn't a wall or fence.
 
-// using BUILD_PSX means that it'll be commented out both on the PSX, *AND* when Mike builds
-// PSX nads on his PC.
+    // using BUILD_PSX means that it'll be commented out both on the PSX, *AND* when Mike builds
+    // PSX nads on his PC.
     // claude-ai: GunMuzzle — позиция дула оружия в мировых координатах (только PC-сборка). Обновляется при прицеливании. Используется для raycast пуль.
     GameCoord GunMuzzle;
 

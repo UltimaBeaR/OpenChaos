@@ -4,7 +4,6 @@
 #include "DDLib.h"
 #include "tga.h"
 
-
 #ifndef VERIFY
 #define VERIFY(x) x
 #endif
@@ -29,7 +28,6 @@ inline void* GetMeAFastLoadBufferAtLeastThisBigPlease(DWORD dwSize)
         dwSizeOfFastLoadBuffer = (dwSize * 5 / 4 + 1024);
         // Ensure it's 4k-aligned.
         dwSizeOfFastLoadBuffer = ((dwSizeOfFastLoadBuffer + 4095) & ~4095);
-
 
         pvFastLoadBuffer = VirtualAlloc(NULL, dwSizeOfFastLoadBuffer, MEM_COMMIT, PAGE_READWRITE);
         ASSERT(pvFastLoadBuffer != NULL);
@@ -304,7 +302,6 @@ HRESULT D3DTexture::Reload_TGA(void)
 
     DDSURFACEDESC2 dd_sd;
 
-
     TGA_Info ti;
     TGA_Pixel* tga;
 
@@ -364,7 +361,6 @@ HRESULT D3DTexture::Reload_TGA(void)
 
         return DDERR_GENERIC;
     }
-
 
     //
     // Does this texture page contain alpha?

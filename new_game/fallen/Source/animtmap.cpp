@@ -3,7 +3,6 @@
 
 struct AnimTmap anim_tmaps[MAX_ANIM_TMAPS]; // 2656 bytes
 
-
 void sync_animtmaps(void)
 {
     SLONG c0;

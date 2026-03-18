@@ -789,4 +789,3 @@ void	stair_teleport_bodge(Thing *p_person)
 
 }
 */
-

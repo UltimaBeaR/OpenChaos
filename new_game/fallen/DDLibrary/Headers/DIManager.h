@@ -4,7 +4,6 @@
 #ifndef FALLEN_DDLIBRARY_HEADERS_DIMANAGER_H
 #define FALLEN_DDLIBRARY_HEADERS_DIMANAGER_H
 
-
 //---------------------------------------------------------------
 
 #define MOUSE DIDEVTYPE_MOUSE
@@ -27,7 +26,6 @@
 void ClearPrimaryDevice(void);
 BOOL GetInputDevice(UBYTE type, UBYTE sub_type, bool bActuallyGetOne = TRUE);
 BOOL ReadInputDevice(void);
-
 
 //---------------------------------------------------------------
 

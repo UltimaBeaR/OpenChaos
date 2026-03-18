@@ -261,7 +261,6 @@ CBYTE* PCOM_move_name[PCOM_MOVE_NUMBER] = {
     "TIED_UP",
 };
 
-
 //
 // The movement states a person can be in.
 //
@@ -978,7 +977,6 @@ void PCOM_get_vehicle_navsquare(
         *map_dest_x = ix2 >> 8;
         *map_dest_z = iz2 >> 8;
     }
-
 }
 
 //
@@ -2589,7 +2587,6 @@ void PCOM_set_person_move_park_car_on_road(Thing* p_person)
     }
 }
 
-
 void PCOM_set_person_move_goto_thing_slide(Thing* p_person, Thing* p_target)
 {
     //
@@ -2946,7 +2943,7 @@ void check_players_gang(Thing* p_target)
         if (gang_attacks[gang].Perp[c0]) {
 
             p_person = TO_THING(gang_attacks[gang].Perp[c0]);
-//			 AENG_world_line_infinite(p_target->WorldPos.X>>8,p_target->WorldPos.Y>>8,p_target->WorldPos.Z>>8,3,0xffffff,p_person->WorldPos.X>>8,p_person->WorldPos.Y>>8,p_person->WorldPos.Z>>8,0,0xffffff,1);
+            //			 AENG_world_line_infinite(p_target->WorldPos.X>>8,p_target->WorldPos.Y>>8,p_target->WorldPos.Z>>8,3,0xffffff,p_person->WorldPos.X>>8,p_person->WorldPos.Y>>8,p_person->WorldPos.Z>>8,0,0xffffff,1);
             if (p_person->Genus.Person->PlayerID) {
                 //
                 // a player attacking me
@@ -2974,7 +2971,7 @@ UWORD count_gang(Thing* p_target)
         if (gang_attacks[gang].Perp[c0]) {
             Thing* p_person;
             p_person = TO_THING(gang_attacks[gang].Perp[c0]);
-//			 AENG_world_line_infinite(p_target->WorldPos.X>>8,p_target->WorldPos.Y>>8,p_target->WorldPos.Z>>8,7,0xffff,p_person->WorldPos.X>>8,p_person->WorldPos.Y>>8,p_person->WorldPos.Z>>8,2,0xff0000,1);
+            //			 AENG_world_line_infinite(p_target->WorldPos.X>>8,p_target->WorldPos.Y>>8,p_target->WorldPos.Z>>8,7,0xffff,p_person->WorldPos.X>>8,p_person->WorldPos.Y>>8,p_person->WorldPos.Z>>8,2,0xff0000,1);
             count++;
         }
     }
@@ -4098,7 +4095,6 @@ void PCOM_set_person_ai_findcar(Thing* p_person, UWORD car)
     }
 }
 
-
 void PCOM_set_person_ai_bdeactivate(Thing* p_person, Thing* p_bomb)
 {
     SLONG speed;
@@ -4986,8 +4982,7 @@ THING_INDEX PCOM_create_player(
 
     extern SLONG playing_level(const CBYTE* name);
 
-    if (playing_level("skymiss2.ucm"))
-    {
+    if (playing_level("skymiss2.ucm")) {
         pcom_has |= PCOM_HAS_SHOTGUN;
     }
 
@@ -5310,7 +5305,6 @@ SLONG PCOM_call_cop_to_arrest_me(Thing* p_person, SLONG store_it)
 
     Thing* p_found;
     SLONG found_cop = 0;
-
 
     if (store_it) {
         if (next_arrest >= MAX_ARREST_ME) {
@@ -5651,7 +5645,6 @@ void PCOM_process_driving_still(Thing* p_person)
 
         if ((p_vehicle->Class == CLASS_VEHICLE && p_vehicle->Velocity == 0)
 
-
         ) {
             //
             // We have come to a halt.
@@ -5706,8 +5699,7 @@ void PCOM_process_driving_patrol(Thing* p_person)
         if (waypoint != EWAY_NO_MATCH) {
             if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                 PCOM_set_person_move_driveto(p_person, waypoint);
-            }
-            else {
+            } else {
                 ASSERT(0);
             }
         }
@@ -5744,8 +5736,7 @@ void PCOM_process_driving_patrol(Thing* p_person)
 
                 if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                     PCOM_set_person_move_park_car(p_person, p_person->Genus.Person->pcom_move_arg);
-                }
-                else {
+                } else {
                     ASSERT(0);
                 }
 
@@ -5776,8 +5767,7 @@ void PCOM_process_driving_patrol(Thing* p_person)
 
                 if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                     PCOM_set_person_move_driveto(p_person, waypoint);
-                }
-                else {
+                } else {
                     ASSERT(0);
                 }
             }
@@ -5847,7 +5837,6 @@ void PCOM_process_driving_wander(Thing* p_person)
                         Vehicle* veh = p_vehicle->Genus.Vehicle;
                         veh->Angle = yaw ^ 1024;
 
-
                         reinit_vehicle(p_vehicle);
 
                         //						return;
@@ -5912,8 +5901,7 @@ void PCOM_process_driving_wander(Thing* p_person)
 
                 if (p_vehicle->Class == CLASS_VEHICLE) {
                     p_vehicle->Genus.Vehicle->Angle = nyaw;
-                }
-                else {
+                } else {
                     ASSERT(0);
                 }
 
@@ -5964,8 +5952,7 @@ void PCOM_process_driving_wander(Thing* p_person)
                 if (dist < LEFT_TURN_DIST) {
                     if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                         PCOM_set_person_move_drive_down(p_person, p_person->Genus.Person->pcom_move_arg & 0xff, p_person->Genus.Person->InsideRoom);
-                    }
-                    else
+                    } else
                         ASSERT(0);
                     p_person->Genus.Person->InsideRoom = 0;
                 }
@@ -6010,8 +5997,7 @@ void PCOM_process_driving_wander(Thing* p_person)
 
             if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
                 PCOM_set_person_move_drive_down(p_person, n1, n2);
-            }
-            else {
+            } else {
                 ASSERT(0);
             }
         }
@@ -6461,7 +6447,6 @@ void PCOM_process_wander(Thing* p_person)
             return;
         }
 
-
         // FALLTHROUGH! To find a new place to wander to.
 
     default:
@@ -6552,7 +6537,6 @@ void PCOM_process_killing(Thing* p_person)
         }
     }
 
-
     if (PTIME(p_person) & 0x1) {
         SLONG too_far;
 
@@ -6622,8 +6606,8 @@ void PCOM_process_killing(Thing* p_person)
             // Say something aggressive to him- to catch his attention.
             //
 
-//			MFX_play_thing(THING_NUMBER(p_person),S_WHATRYOULOOKINAT,MFX_REPLACE,p_person);
-// wh wh wh wh wh wh
+            //			MFX_play_thing(THING_NUMBER(p_person),S_WHATRYOULOOKINAT,MFX_REPLACE,p_person);
+            // wh wh wh wh wh wh
             if (IsEnglish)
                 MFX_play_thing(THING_NUMBER(p_person), SOUND_Range(S_WTHUG1_ALERT_START, S_WTHUG1_ALERT_START + 1), MFX_REPLACE, p_person);
             PCOM_oscillate_tympanum(
@@ -6645,8 +6629,7 @@ void PCOM_process_killing(Thing* p_person)
             if (((GAME_TURN + (THING_NUMBER(p_person) << 5)) & 0xff) == 0)
             #endif
     */
-    if ((PTIME(p_person) & 0xff) == 0)
-    {
+    if ((PTIME(p_person) & 0xff) == 0) {
         Thing* p_special = PCOM_is_there_an_item_i_should_get(p_person);
 
         if (p_special) {
@@ -7185,8 +7168,7 @@ void PCOM_process_following(Thing* p_person)
 
                     if (p_person->Genus.Person->pcom_ai != PCOM_AI_CIV) {
                         // if (((GAME_TURN + (THING_NUMBER(p_person) << 5)) & 0x7f) == 0)
-                        if ((PTIME(p_person) & 0x7f) == 0)
-                        {
+                        if ((PTIME(p_person) & 0x7f) == 0) {
                             Thing* p_special = PCOM_is_there_an_item_i_should_get(p_person);
 
                             if (p_special) {
@@ -8048,10 +8030,10 @@ void PCOM_process_findcar(Thing* p_person)
             // We have got in the car... what now?
             //
 
-//				if ( ((GAME_TURN & 0xf)==(THING_NUMBER(p_person)&0xf)) || PCOM_are_there_people_who_want_to_enter(p_vehicle))
-//
-// don't use ptime we want this to happen quick
-//
+            //				if ( ((GAME_TURN & 0xf)==(THING_NUMBER(p_person)&0xf)) || PCOM_are_there_people_who_want_to_enter(p_vehicle))
+            //
+            // don't use ptime we want this to happen quick
+            //
             if (((GAME_TURN & 0xf) == (THING_NUMBER(p_person) & 0xf)) || PCOM_are_there_people_who_want_to_enter(p_vehicle))
             //				if ( ((PTIME(p_person) & 0xf)==0) || PCOM_are_there_people_who_want_to_enter(p_vehicle))
             {
@@ -8085,7 +8067,6 @@ void PCOM_process_findcar(Thing* p_person)
         break;
     }
 }
-
 
 //
 // Somebody who is talking.
@@ -8598,7 +8579,6 @@ void PCOM_process_snipe(Thing* p_person)
 
         return;
     }
-
 
     Thing* p_target = TO_THING(p_person->Genus.Person->pcom_ai_arg);
 
@@ -9262,7 +9242,6 @@ void PCOM_process_default(Thing* p_person)
         PCOM_process_warm_hands(p_person);
         break;
 
-
     case PCOM_AI_STATE_KNOCKEDOUT:
         PCOM_process_knockedout(p_person);
         break;
@@ -9602,10 +9581,10 @@ void PCOM_process_state_change(Thing* p_person)
                     //						else //play wav anyway MikeD
                     {
 
-/*
-                                                        if(((GAME_TURN+THING_NUMBER(p_person))&255)==0)
-                                                                MFX_play_thing(THING_NUMBER(p_person),S_HEY_YOU,MFX_REPLACE,p_person);
-*/
+                        /*
+                                                                                if(((GAME_TURN+THING_NUMBER(p_person))&255)==0)
+                                                                                        MFX_play_thing(THING_NUMBER(p_person),S_HEY_YOU,MFX_REPLACE,p_person);
+                        */
                     }
                     PCOM_oscillate_tympanum(
                         PCOM_SOUND_HEY,
@@ -9956,35 +9935,35 @@ void PCOM_process_state_change(Thing* p_person)
         switch (p_person->Genus.Person->pcom_ai_state) {
         case PCOM_AI_STATE_NORMAL:
 
-            {
-                //
-                // Start driving around.
-                //
+        {
+            //
+            // Start driving around.
+            //
 
-                switch (p_person->Genus.Person->pcom_move) {
-                case PCOM_MOVE_STILL:
-                    PCOM_process_driving_still(p_person);
-                    break;
+            switch (p_person->Genus.Person->pcom_move) {
+            case PCOM_MOVE_STILL:
+                PCOM_process_driving_still(p_person);
+                break;
 
-                case PCOM_MOVE_PATROL:
-                case PCOM_MOVE_PATROL_RAND:
-                    PCOM_process_driving_patrol(p_person);
-                    break;
+            case PCOM_MOVE_PATROL:
+            case PCOM_MOVE_PATROL_RAND:
+                PCOM_process_driving_patrol(p_person);
+                break;
 
-                case PCOM_MOVE_FOLLOW:
-                    break;
+            case PCOM_MOVE_FOLLOW:
+                break;
 
-                case PCOM_MOVE_WANDER:
-                    PCOM_process_driving_wander(p_person);
-                    break;
+            case PCOM_MOVE_WANDER:
+                PCOM_process_driving_wander(p_person);
+                break;
 
-                default:
-                    ASSERT(0);
-                    break;
-                }
+            default:
+                ASSERT(0);
+                break;
             }
+        }
 
-            break;
+        break;
 
         default:
             PCOM_process_default(p_person);
@@ -10388,7 +10367,6 @@ SLONG PCOM_find_runover_thing(Thing* p_person, SLONG dangle)
 
     nn = ROAD_nearest_node(rn1, rn2, wx, wz, &nnd);
 
-
     // set action to none
     what = 0;
 
@@ -10627,7 +10605,6 @@ void PCOM_process_movement(Thing* p_person)
     Thing* p_vehicle;
     Thing* p_target;
     Thing* p_bike;
-
 
     SLONG steer;
     SLONG accel;
@@ -11117,7 +11094,6 @@ void PCOM_process_movement(Thing* p_person)
         DriveCar(p_person);
 
         break;
-
 
     default:
         ASSERT(0);
@@ -11705,7 +11681,6 @@ SLONG on_same_side(Thing* p_victim, Thing* p_attacker)
     return (0);
 }
 
-
 //
 // you have been attacked
 //
@@ -11790,7 +11765,6 @@ void PCOM_attack_happened(
         }
 
         */
-
 
         // FALL-THROUGH
 
@@ -11897,7 +11871,6 @@ void PCOM_attack_happened_but_missed(Thing* p_victim, Thing* p_attacker)
 
     case PCOM_AI_COP:
     case PCOM_AI_COP_DRIVER:
-
 
         // FALL-THROUGH
 
@@ -12359,7 +12332,6 @@ void DriveCar(Thing* p_person)
     Thing* p_vehicle = TO_THING(p_person->Genus.Person->InCar);
     ASSERT(p_vehicle);
 
-
     if (p_person->Genus.Person->pcom_move_state != PCOM_MOVE_STATE_PARK_CAR_ON_ROAD) {
         //
         // If the vehicle collided last time it moved, then we had better do something.
@@ -12663,7 +12635,6 @@ void DriveCar(Thing* p_person)
     */
     p_person->Genus.Person->pcom_move_counter += PCOM_TICKS_PER_TURN * TICK_RATIO >> TICK_SHIFT;
 }
-
 
 SLONG PCOM_if_i_wanted_to_jump_how_fast_should_i_do_it(Thing* p_person)
 {

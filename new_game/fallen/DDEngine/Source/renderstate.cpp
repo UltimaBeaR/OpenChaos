@@ -209,7 +209,6 @@ void RenderState::SetEffect(DWORD effect)
     }
 }
 
-
 // InitScene
 //
 // set all state variables and remember

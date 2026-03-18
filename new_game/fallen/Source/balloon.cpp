@@ -18,7 +18,6 @@ SLONG BALLOON_balloon_upto;
 // The desired distance between balloon points.
 //
 
-
 #define BALLOON_POINT_DIST (0x2000)
 
 void BALLOON_init()
@@ -553,4 +552,3 @@ void BALLOON_find_grab(UWORD thing)
         }
     }
 }
-

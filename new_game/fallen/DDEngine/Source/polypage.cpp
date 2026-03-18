@@ -14,7 +14,6 @@
 
 #include "polypage.h"
 
-
 extern int AENG_total_polys_drawn;
 
 //-----------------------------
@@ -103,7 +102,6 @@ void PolyPage::SetScaling(float xmul, float ymul)
 PolyPoint2D* PolyPage::PointAlloc(ULONG num_points)
 {
 
-
     if (!m_VertexBuffer) {
         ASSERT(!m_VBUsed);
 
@@ -133,15 +131,12 @@ PolyPoint2D* PolyPage::PointAlloc(ULONG num_points)
     return ptr;
 }
 
-
-
 // PolyBufAlloc
 //
 // allocate a polygon in the buffer
 
 PolyPoly* PolyPage::PolyBufAlloc()
 {
-
 
     if (!m_PolyBuffer) {
         ASSERT(!m_PolyBufUsed);
@@ -166,7 +161,6 @@ PolyPoly* PolyPage::PolyBufAlloc()
     return m_PolyBuffer + (m_PolyBufUsed++);
 }
 
-
 static inline void AlphaPremult(UBYTE* color)
 {
     color[0] = UBYTE((ULONG(color[0]) * ULONG(color[3])) >> 8);
@@ -188,7 +182,6 @@ static inline void InvAlphaPremult(UBYTE* color)
 static PolyPage* ppLastPolyPageSetup = NULL;
 
 #define DRAWN_PP ppDrawn
-
 
 void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
 {
@@ -238,7 +231,6 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
 
         pp->sort_z = zmax;
     }
-
 }
 
 // AddWirePoly
@@ -248,7 +240,6 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
 void PolyPage::AddWirePoly(POLY_Point** pts, ULONG num_vertices)
 {
 }
-
 
 // MassageVertices
 //
@@ -306,7 +297,6 @@ void PolyPage::Render(IDirect3DDevice3* dev)
     if (!m_VertexBuffer /* || !m_PolyBufUsed*/)
         return;
 
-
     // apply vertex FX
     MassageVertices();
 
@@ -334,14 +324,11 @@ void PolyPage::Render(IDirect3DDevice3* dev)
 
     dev->DrawIndexedPrimitiveVB(D3DPT_TRIANGLELIST, vb, IxBuffer, dst - IxBuffer, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP | D3DDP_DONOTLIGHT);
 
-
-
     AENG_total_polys_drawn += m_PolyBufUsed;
     m_PolyBufUsed = 0;
 
     m_VBUsed = 0;
 }
-
 
 // DrawSinglePoly
 //
@@ -399,7 +386,6 @@ void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
     m_PolyBufUsed = 0;
 }
 
-
 // Clear
 //
 // clear buffer
@@ -422,7 +408,6 @@ void PolyPage::Clear()
 // SortBackFirst
 //
 // sort polygons (approx) by Z
-
 
 void PolyPage::SortBackFirst()
 {
@@ -460,7 +445,6 @@ void PolyPage::SortBackFirst()
         // now merge pairs of these sets
         sort_len *= 2;
     }
-
 }
 
 // DoMerge
@@ -499,7 +483,6 @@ inline static void DoMerge(const T* src, T* dst, ULONG len1, ULONG len2)
             dst[wpos++] = src[pos1++];
         }
     }
-
 }
 
 // MergeSortIteration
@@ -555,7 +538,6 @@ void PolyPage::MergeSortIteration(ULONG sort_len)
         }
     }
 }
-
 
 // A routine to emulate the DC's DrawPrimtiveMM call on the PC, so
 // that people can use it when developing on the PC.
@@ -663,7 +645,6 @@ extern D3DMATRIX g_matProjection;
 extern D3DMATRIX g_matWorld;
 extern D3DVIEWPORT2 g_viewData;
 
-
 // The DC version is just #defined in the header.
 
 // dwFVFType must be D3DFVF_VERTEX or D3DFVF_LVERTEX.
@@ -768,4 +749,3 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
 
     return (DD_OK);
 }
-

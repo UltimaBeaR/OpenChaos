@@ -2,7 +2,6 @@
 // Animals...
 //
 
-
 #include "game.h"
 #include "animal.h"
 #include "canid.h"
@@ -185,7 +184,6 @@ Thing* alloc_animal(UBYTE type)
     //
     // There are no spare animal structures.
     //
-
 
     return NULL;
 
@@ -584,4 +582,3 @@ SetChunkCentre(GameKeyFrameChunk *chunk, GameCoord centre) {
 
 }
 */
-

@@ -68,8 +68,6 @@
 #include "BreakTimer.h"
 #include "superfacet.h"
 
-
-
 // claude-ai: Direct3D API — replace with OpenGL: use GLuint texture handles stored in equivalent array
 extern D3DTexture TEXTURE_texture[];
 
@@ -89,7 +87,6 @@ int m_iCurrentCombo = COMBO_DIRTY;
 static UBYTE s_ClipMask; // the clip bits we care about
 
 #define STD_CLIPMASK (POLY_CLIP_LEFT | POLY_CLIP_RIGHT | POLY_CLIP_TOP | POLY_CLIP_BOTTOM | POLY_CLIP_NEAR)
-
 
 //
 // Flags for each standard texture page.
@@ -238,7 +235,6 @@ float POLY_cam_off_x;
 float POLY_cam_off_y;
 float POLY_cam_off_z;
 
-
 // claude-ai: POLY_camera_set — called once per frame to set up the camera for the whole scene.
 // claude-ai: Computes POLY_cam_matrix (3x3 rotation) from yaw/pitch/roll, then calls MATRIX_skew()
 // claude-ai: to bake view_dist and aspect ratio into the matrix so Z maps to 0..1 range.
@@ -256,7 +252,6 @@ void POLY_camera_set(
     float lens,
     SLONG splitscreen)
 {
-
 
     POLY_splitscreen = splitscreen;
 
@@ -386,7 +381,6 @@ void POLY_camera_set(
         POLY_cam_lens,
         POLY_cam_over_view_dist); // Shrink the matrix down so the furthest point has a view distance z of 1.0F
 
-
     HRESULT hres;
 
     // View matrix is just unit - we concatenate everything
@@ -468,8 +462,6 @@ void POLY_camera_set(
 
     // claude-ai: Direct3D API — replace with OpenGL: glViewport(x, y, width, height)
     hres = (the_display.lp_D3D_Viewport)->SetViewport2(&g_viewData);
-
-
 
     SUPERFACET_start_frame();
 }
@@ -759,8 +751,6 @@ void POLY_set_local_rotation(
     g_matWorld._44 = 1.0f;
     // claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for model matrix
     HRESULT hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
-
-
 }
 
 // Sets up a null local rotation, i.e. none.
@@ -797,8 +787,6 @@ void POLY_set_local_rotation_none(void)
     g_matWorld._44 = 1.0f;
     // claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for model matrix
     HRESULT hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
-
-
 }
 
 void POLY_transform_using_local_rotation_and_wibble(
@@ -889,7 +877,6 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
     SLONG i;
     //	TRACE("poly frame init\n");
 
-
     // This is going to cost serious performance - it bins all the VBs and IBs that we allocate,
     // so they all need allocating again. Madness.
     for (i = 0; i < POLY_NUM_PAGES; i++) {
@@ -905,7 +892,7 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
             POLY_Page[i].Clear();
         }
     }
-//	TRACE("poly frame init EXIT\n");
+    //	TRACE("poly frame init EXIT\n");
 
     // SPONG
     // Start the frame - we may draw polys at any time.
@@ -1008,7 +995,6 @@ inline bool POLY_tri_backfacing(POLY_Point* pp1, POLY_Point* pp2, POLY_Point* pp
     float cx, cy, cz; // normal vector (not normalized)
     float dp; // dot product
 
-
     ASSERT(pp1->MaybeValid());
     ASSERT(pp2->MaybeValid());
     ASSERT(pp3->MaybeValid());
@@ -1030,7 +1016,6 @@ inline bool POLY_tri_backfacing(POLY_Point* pp1, POLY_Point* pp2, POLY_Point* pp
 
     // dot with eye vector
     dp = cx * pp1->x + cy * pp1->y + cz * pp1->z;
-
 
     return (dp < 0);
 }
@@ -1250,7 +1235,6 @@ SLONG POLY_clip_against_nearplane(POLY_Point** rptr, float* dptr, SLONG count, P
     return wptr - wbuf;
 }
 
-
 // POLY_clip_against_side_X
 //
 // clip poly against a side (left or right)
@@ -1351,7 +1335,6 @@ SLONG POLY_clip_against_side_Y(POLY_Point** rptr, float* dptr, SLONG count, POLY
     return wptr - wbuf;
 }
 
-
 static float s_DistBuffer[128];
 static POLY_Point* s_PtrBuffer[128];
 
@@ -1413,7 +1396,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 
     second_page:;
 
-
         PolyPage* pp = &POLY_Page[page];
         // Do the indirection to the real poly page.
         PolyPage* ppDrawn = pp->pTheRealPolyPage;
@@ -1464,7 +1446,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
             pv++;
         }
 
-
         if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
             page += 1;
 
@@ -1477,7 +1458,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 
 void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
-
 
     if (generate_clip_flags) {
         POLY_setclip(pt[0]);
@@ -1563,7 +1543,6 @@ second_page:;
 void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
 
-
     if (generate_clip_flags) {
         POLY_setclip(pt[0]);
         POLY_setclip(pt[1]);
@@ -1639,7 +1618,6 @@ second_page:;
     // Do the indirection to the real poly page.
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
-
     PolyPoint2D* pv = ppDrawn->PointAlloc(6);
     POLY_Point* ppt;
     PolyPoly* ppoly = ppDrawn->PolyBufAlloc();
@@ -1692,15 +1670,12 @@ second_page:;
     pv[1] = pv[-1];
     pv[2] = pv[-2];
 
-
     if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
         page += 1;
 
         goto second_page;
     }
 }
-
-
 
 void POLY_add_quad(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
@@ -1715,7 +1690,6 @@ void POLY_add_triangle(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG
         POLY_add_triangle_fast(pp, page, backface_cull, generate_clip_flags);
     }
 }
-
 
 float POLY_world_length_to_screen(float world_length)
 {
@@ -1899,7 +1873,6 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
 
-
     POLY_add_quad(ppt, page, FALSE, TRUE);
 }
 
@@ -2013,7 +1986,6 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
 
-
     POLY_add_quad(ppt, page, FALSE, TRUE);
 }
 
@@ -2063,7 +2035,6 @@ void POLY_add_rect(POLY_Point* p1, SLONG width, SLONG height, SLONG page, UBYTE 
     ppt[1] = &pt[1];
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
-
 
     POLY_add_quad(ppt, page, FALSE, TRUE);
 }
@@ -2116,7 +2087,6 @@ void POLY_add_line_2d(float sx1, float sy1, float sx2, float sy2, ULONG colour)
     ppt[1] = &pt[1];
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
-
 
     POLY_add_quad(ppt, POLY_PAGE_COLOUR, FALSE, TRUE);
 }
@@ -2304,7 +2274,6 @@ void POLY_clip_line_add(float sx1, float sy1, float sx2, float sy2, ULONG colour
     POLY_add_line_2d(sx1, sy1, sx2, sy2, colour);
 }
 
-
 // POLY_frame_draw
 //
 // draw all the poly pages
@@ -2328,7 +2297,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
     // #ifndef TARGET_DC
     // BEGIN_SCENE;
     // #endif
-
 
     //
     // Draw the sky first...
@@ -2405,7 +2373,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                                                         SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE,FALSE);
                                                 }
                 */
-
 
                 //
                 // and render the polygons
@@ -2512,7 +2479,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
                 }
 
-
                 //
                 // sort and render the polygons
                 //
@@ -2525,8 +2491,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
 #endif
 
-    } else
-    {
+    } else {
         //
         // draw all the polygons at once
         //
@@ -2600,7 +2565,6 @@ void POLY_frame_draw_odd()
 
     PolyPage* pa;
 
-
     //
     // Start the scene.
     //
@@ -2672,7 +2636,6 @@ void POLY_frame_draw_puddles()
     // Do the indirection to the real poly page.
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
-
     if (pp->NeedsRendering()) {
         BEGIN_SCENE;
 
@@ -2728,7 +2691,6 @@ SLONG POLY_get_sphere_circle(
         return FALSE;
     }
 }
-
 
 SLONG POLY_inside_quad(
     float screen_x,

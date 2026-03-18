@@ -733,7 +733,6 @@ void AA_draw(
     px[2] &= ~0xf;
     py[2] &= ~0xf;
 
-
     //
     // The maximum span
     //

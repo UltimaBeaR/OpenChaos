@@ -13,7 +13,6 @@
 // #include <windows.h>
 #include <process.h>
 
-
 #include "asyncfile2.h"
 
 static AsyncFile File[MAX_ASYNC_FILES];
@@ -109,7 +108,6 @@ DWORD WINAPI ThreadRun(LPVOID arg)
     for (;;) {
         // wait to be signalled
         WaitForSingleObject(hEvent, INFINITE);
-
 
         // get command
         EnterCriticalSection(&csLock);
@@ -250,7 +248,6 @@ void CancelAsyncFile(void* key)
         EnterCriticalSection(&csLock);
     }
     LeaveCriticalSection(&csLock);
-
 }
 
 // List utilities

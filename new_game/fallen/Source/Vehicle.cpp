@@ -79,7 +79,6 @@
 
 #include "font2d.h"
 
-
 // Some externs
 extern SLONG is_person_ko(Thing* p_person);
 
@@ -379,7 +378,7 @@ SLONG VEH_find_runover_things(Thing* p_vehicle, UWORD thing_index[], SLONG max_n
             infront -= abs(p_vehicle->Genus.Vehicle->WheelAngle * 3);
         break;
 
-// claude-ai: BIKE SYSTEM — unfinished, do not port
+        // claude-ai: BIKE SYSTEM — unfinished, do not port
 
     default:
         ASSERT(0);
@@ -700,7 +699,6 @@ void VEH_init_vehinfo()
 
     init_arctans();
 
-
     for (ii = 0; ii < VEH_TYPE_NUMBER; ii++) {
         if (veh_info[ii].VertexAssignments) {
             MemFree(veh_info[ii].VertexAssignments);
@@ -752,8 +750,6 @@ void VEH_init_vehinfo()
             veh_info[ii].VertexAssignments[jj - obj->StartPoint] = best;
         }
     }
-
-
 }
 
 // claude-ai: VEH_alloc(): finds a free slot in the global Vehicle pool (scans Spring[0].Compression
@@ -816,7 +812,6 @@ THING_INDEX VEH_create(
     Thing* p_thing;
     int ii;
 
-
     ASSERT(WITHIN(type, 0, VEH_TYPE_NUMBER - 1));
 
     //
@@ -825,7 +820,6 @@ THING_INDEX VEH_create(
 
     yaw += 1024;
     yaw &= 2047;
-
 
     //
     // Get a DrawMesh for this thing.
@@ -1039,8 +1033,7 @@ void draw_car(Thing* p_car)
         ANIM_obj_draw(p_car, &p_car->Genus.Vehicle->Draw);
 
         p_car->WorldPos.Y += info->BodyOffset;
-    } else
-    {
+    } else {
         //
         // Draw the car as a normal prim.
         //
@@ -1068,7 +1061,6 @@ void draw_car(Thing* p_car)
             //
         }
 
-
         //
         // Draw the car shadow...
         //
@@ -1080,7 +1072,6 @@ void draw_car(Thing* p_car)
             float(veh_info[p_car->Genus.Vehicle->Type].shad_elongate) * (1.0F / 64.0F),
             float(p_car->Genus.Vehicle->Angle) * (2.0F * PI / 2048.0F),
             OVAL_TYPE_SQUARE);
-
 
         // #ifndef PSX
         //  transpose matrix for some reason
@@ -1251,34 +1242,34 @@ void draw_car(Thing* p_car)
     // Leave it! This is needed.
     AENG_set_bike_wheel_rotation(tilt, info->WheelPrim);
 
-        for (c0 = 0; c0 < 4; c0++) {
-            SLONG wx, wy, wz;
-            SLONG angle;
+    for (c0 = 0; c0 < 4; c0++) {
+        SLONG wx, wy, wz;
+        SLONG angle;
 
-            wx = info->DX[c0];
-            wy = 51 - (((128 << 8) - p_car->Genus.Vehicle->Spring[c0].Compression) >> 8);
-            wz = info->DZ[c0];
+        wx = info->DX[c0];
+        wy = 51 - (((128 << 8) - p_car->Genus.Vehicle->Spring[c0].Compression) >> 8);
+        wz = info->DZ[c0];
 
-            apply_car_matrix(&wx, &wy, &wz);
+        apply_car_matrix(&wx, &wy, &wz);
 
-            if (c0 >= 2) {
-                angle = p_car->Genus.Vehicle->Angle - p_car->Genus.Vehicle->WheelAngle;
-                angle = (angle + 2048) & 2047;
-            } else {
-                angle = p_car->Genus.Vehicle->Angle;
-            }
-
-            MESH_draw_poly(
-                info->WheelPrim,
-                (p_car->WorldPos.X >> 8) + wx,
-                (p_car->WorldPos.Y >> 8) + wy,
-                (p_car->WorldPos.Z >> 8) + wz,
-                angle,
-                0,
-                p_car->Genus.Vehicle->Roll,
-                NULL,
-                0);
+        if (c0 >= 2) {
+            angle = p_car->Genus.Vehicle->Angle - p_car->Genus.Vehicle->WheelAngle;
+            angle = (angle + 2048) & 2047;
+        } else {
+            angle = p_car->Genus.Vehicle->Angle;
         }
+
+        MESH_draw_poly(
+            info->WheelPrim,
+            (p_car->WorldPos.X >> 8) + wx,
+            (p_car->WorldPos.Y >> 8) + wy,
+            (p_car->WorldPos.Z >> 8) + wz,
+            angle,
+            0,
+            p_car->Genus.Vehicle->Roll,
+            NULL,
+            0);
+    }
 
     if (vp->Smokin) {
         vp->Smokin = 0; // must be set each time
@@ -1320,7 +1311,6 @@ void draw_car(Thing* p_car)
                     MFX_play_thing(THING_NUMBER(p_car), S_SKID_START + 1, MFX_MOVING, p_car);
                 else
                     MFX_play_thing(THING_NUMBER(p_car), S_SKID_END, MFX_MOVING, p_car);
-
             }
 
             if ((speed > 200) && (GAME_TURN & 1)) {
@@ -1438,22 +1428,22 @@ void VEH_collide_find_things(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG igno
 
     ULONG collide_types;
 
-// claude-ai: BIKE SYSTEM — unfinished, do not port
+    // claude-ai: BIKE SYSTEM — unfinished, do not port
     {
         // This is collision for a van or car - ignore bikes.
         collide_types = (1 << CLASS_VEHICLE) | (1 << CLASS_ANIM_PRIM) | (1 << CLASS_BAT);
     }
 
-        //
-        // Find everything in our sphere
-        //
+    //
+    // Find everything in our sphere
+    //
 
-        num = THING_find_sphere(
-            x, y, z,
-            radius + 0x200,
-            found,
-            VEH_MAX_COL,
-            collide_types);
+    num = THING_find_sphere(
+        x, y, z,
+        radius + 0x200,
+        found,
+        VEH_MAX_COL,
+        collide_types);
 
     //
     // Scan through
@@ -1505,7 +1495,7 @@ void VEH_collide_find_things(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG igno
         case CLASS_ANIM_PRIM:
             break;
 
-// claude-ai: BIKE SYSTEM — unfinished, do not port
+            // claude-ai: BIKE SYSTEM — unfinished, do not port
 
         case CLASS_BAT:
 
@@ -1986,8 +1976,8 @@ void nudge_car(Thing* p_car, SLONG flags, SLONG* x, SLONG* z, SLONG neg)
         break;
     }
 
-//	dx>>=4;
-//	dz>>=4;
+    //	dx>>=4;
+    //	dz>>=4;
 
     if (neg) {
         dx = -dx;
@@ -2015,7 +2005,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
 
     car_hit_flags = 0;
 
-
     // hit the kerb?
     CollideWithKerb(p_car);
 
@@ -2025,10 +2014,8 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
     veh->VelY = p_car->WorldPos.Y - old_y;
     p_car->WorldPos.Y = old_y;
 
-
     // generate corner points of the car, pushed out slightly
     GetCarPoints(p_car, x, y, z, step);
-
 
     UBYTE flags = 0, pflags = 0;
     static UBYTE flags_to_code[16] = {
@@ -2324,7 +2311,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
     // regenerate car points for new position
     GetCarPoints(p_car, x, y, z, step);
 
-
     // check each edge against the walls
     if (!VEH_collide_line_ignore_walls) {
         for (ii = 0; ii < 4; ii++) {
@@ -2391,7 +2377,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
 
                 if (slide) {
                     GetCarPoints(p_car, x, y, z, step);
-
                 }
             } while (slide);
         } else {
@@ -2434,7 +2419,6 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
 
                 if (slide) {
                     GetCarPoints(p_car, x, y, z, step);
-
                 }
             } while (slide);
         }
@@ -3191,7 +3175,6 @@ static inline void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& f
                     accel = 0;
             }
 
-
             if ((velocity < -200) || ((veh->DControl & VEH_FASTER) && (velocity < 400))) {
                 // do wheelspin smoke
                 veh->Smokin = 1;
@@ -3261,7 +3244,6 @@ static void do_car_input(Thing* p_thing)
 {
     Vehicle* veh = p_thing->Genus.Vehicle;
     VehInfo* vinfo = &veh_info[p_thing->Genus.Vehicle->Type];
-
 
     if (!(veh->Flags & FLAG_FURN_DRIVING) && !veh->VelX && !veh->VelZ) {
         siren(veh, 0);
@@ -3428,7 +3410,6 @@ static void do_car_input(Thing* p_thing)
             SLONG mvx = dx * dx + dz * dz;
             SLONG dp = (dx * -SIN(veh->Angle) + dz * COS(veh->Angle)) >> 16;
 
-
             if ((dp > 0) && (dp * dp > (mvx - (mvx >> 2)))) // cos^2 angle > 15/16 => cos angle > 3/4
             {
                 p_thing->Velocity = Root(mvx);
@@ -3449,7 +3430,6 @@ static void do_car_input(Thing* p_thing)
 
         // smokin!
         veh->Smokin = 1;
-
     }
 
     //

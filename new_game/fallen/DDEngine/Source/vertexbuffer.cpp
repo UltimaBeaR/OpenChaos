@@ -63,9 +63,7 @@ HRESULT VertexBuffer::Create(IDirect3D3* d3d, bool force_system, ULONG logsize)
     ASSERT(!m_LockedPtr);
     ASSERT(d3d);
 
-
     ASSERT(!m_TheBuffer);
-
 
     D3DVERTEXBUFFERDESC desc;
 
@@ -82,7 +80,6 @@ HRESULT VertexBuffer::Create(IDirect3D3* d3d, bool force_system, ULONG logsize)
         m_TheBuffer = NULL;
         return res;
     }
-
 
     m_LogSize = logsize;
 
@@ -107,7 +104,6 @@ D3DTLVERTEX* VertexBuffer::Lock()
         return NULL;
     }
 
-
     return m_LockedPtr;
 }
 
@@ -129,7 +125,6 @@ void VertexBuffer::Unlock()
     }
 
     m_LockedPtr = NULL;
-
 }
 
 //-----------------------------
@@ -335,7 +330,6 @@ VertexBuffer* VertexBufferPool::ExpandBuffer(VertexBuffer* buffer)
 //
 // prepare a buffer for rendering
 
-
 IDirect3DVertexBuffer* VertexBufferPool::PrepareBuffer(VertexBuffer* buffer)
 {
     ASSERT(buffer);
@@ -356,7 +350,6 @@ IDirect3DVertexBuffer* VertexBufferPool::PrepareBuffer(VertexBuffer* buffer)
 
     return buffer->m_TheBuffer;
 }
-
 
 // DumpInfo
 //

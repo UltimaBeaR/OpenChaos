@@ -1,7 +1,6 @@
 //	DDManager.cpp
 //	Guy Simmons, 12th November 1997.
 
-
 #include "DDLib.h"
 #include "..\headers\env.h"
 #include "..\headers\game.h"
@@ -919,7 +918,6 @@ void D3DDeviceInfo::CheckCaps(LPDIRECT3DDEVICE3 the_device)
 
     if (adami_lighting == 0) {
         CanDoAdamiLighting = false;
-
     }
 }
 

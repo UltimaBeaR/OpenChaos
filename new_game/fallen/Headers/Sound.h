@@ -57,15 +57,11 @@ UBYTE SOUND_Gender(Thing* p_thing);
 
 // SLONG	SOUND_Range(SLONG start, SLONG end);
 
-
-
 inline SLONG SOUND_Range(SLONG start, SLONG end)
 {
     SLONG diff = (end - start) + 1;
     return start + (rand() % diff);
 }
-
-
 
 typedef UWORD SOUNDFXG[2];
 

@@ -1,9 +1,6 @@
 #ifndef FALLEN_HEADERS_INLINE_H
 #define FALLEN_HEADERS_INLINE_H
 
-
-
-
 inline SLONG DIV64(SLONG a, SLONG b)
 {
     /* 64bit divide */
@@ -35,6 +32,5 @@ inline SLONG MUL64(SLONG a, SLONG b)
     }
     return (ret_v);
 }
-
 
 #endif // FALLEN_HEADERS_INLINE_H

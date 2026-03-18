@@ -82,7 +82,6 @@ extern SLONG NS_texture_upto;
 // things on the PSX to the PC.
 //
 
-
 //
 // The page number to use: the number of .TGA file.
 //
@@ -92,7 +91,6 @@ typedef struct
     UWORD page;
 
 } NS_Page;
-
 
 #define NS_PAGE_ROCK 0
 #define NS_PAGE_SEWER 1

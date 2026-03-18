@@ -2,7 +2,6 @@
 // The new bikes are called dikes.
 //
 
-
 #ifndef FALLEN_HEADERS_DIKE_H
 #define FALLEN_HEADERS_DIKE_H
 
@@ -110,4 +109,3 @@ void DIKE_process(DIKE_Dike* dd);
 void DIKE_draw(DIKE_Dike* dd);
 
 #endif // FALLEN_HEADERS_DIKE_H
-

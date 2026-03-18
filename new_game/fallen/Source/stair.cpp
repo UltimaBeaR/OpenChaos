@@ -1255,7 +1255,6 @@ void STAIR_calculate(UWORD seed)
                     // We need some stairs, but there is nowhere to put
                     // them!
                     //
-
                 }
 
             placed_stairs:;

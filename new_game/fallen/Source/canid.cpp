@@ -75,7 +75,6 @@
 // claude-ai:   CANID_SENSE_RADIUS = 0xD0 in fine units (same scale as >>8 coords).
 // claude-ai: ============================================================
 
-
 #include "game.h"
 #include "canid.h"
 #include "statedef.h"
@@ -391,7 +390,6 @@ void CANID_init_sleep(Thing* canid)
 {
     Animal* animal = ANIMAL_get_animal(canid);
 
-
     //
     // Use the counter for how long we should sleep.
     //
@@ -405,7 +403,6 @@ void CANID_init_bark(Thing* canid, Thing* victim)
 {
     Animal* animal = ANIMAL_get_animal(canid);
 
-
     animal->target = victim;
     animal->substate = CANID_SUBSTATE_BARK;
 }
@@ -418,7 +415,6 @@ void CANID_init_prowl(Thing* canid)
     int i, j;
     MAV_Action orders;
     Animal* animal = ANIMAL_get_animal(canid);
-
 
     switch (Random() & 0x3) {
     case 0:
@@ -460,7 +456,6 @@ void CANID_init_chase(Thing* canid, Thing* victim)
 {
     int i, j;
     MAV_Action orders;
-
 
     Animal* animal = ANIMAL_get_animal(canid);
 
@@ -1525,4 +1520,3 @@ void CANID_init_land(Thing *canid)
 {
 }
 */
-

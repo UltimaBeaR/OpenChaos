@@ -16,7 +16,6 @@ static bool SpeechCD; // speech on CD?
 //
 // locate the CD drive containing the Urban Chaos CD
 
-
 void LocateCDROM(void)
 {
     TexturesCD = ENV_get_value_number("textures", 1, "LocalInstall") ? false : true;
@@ -62,7 +61,6 @@ void LocateCDROM(void)
     }
     exit(0);
 }
-
 
 // Get*Path
 

@@ -21,14 +21,10 @@
 #include "pcom.h"
 #include "env.h"
 
-
-
 #define HEALTH_BAR_WIDTH 100
 #define HEALTH_BAR_HEIGHT 10
 #define HEALTH_BAR_VERT_GAP 2
 #define HEALTH_BAR_HORIZ_GAP 2
-
-
 
 // Coords of the bottom-left corner.
 int m_iPanelXPos = 0;
@@ -173,7 +169,6 @@ void PANEL_draw_face(SLONG x, SLONG y, SLONG face, SLONG size)
         bottom,
         POLY_PAGE_FACE1 + face - 1);
 }
-
 
 void PANEL_draw_health_bar(SLONG x, SLONG y, SLONG percentage)
 {
@@ -324,7 +319,6 @@ void PANEL_draw_number(float x, float y, UBYTE digit) // 0 <= digit <= 9... Not 
     }
 }
 
-
 typedef struct
 {
     float time;
@@ -337,7 +331,6 @@ typedef struct
 
 PANEL_Store PANEL_store[PANEL_MAX_STORES];
 SLONG PANEL_store_upto;
-
 
 /*
 void PANEL_draw_timer_do(float time, float x, float y)
@@ -447,7 +440,6 @@ void PANEL_draw_buffered()
     PANEL_store_upto = 0;
 }
 
-
 void PANEL_draw_timer(SLONG time, SLONG x, SLONG y)
 {
     if (WITHIN(PANEL_store_upto, 0, PANEL_MAX_STORES - 1)) {
@@ -490,7 +482,6 @@ void PANEL_draw_local_health(SLONG mx, SLONG my, SLONG mz, SLONG percentage, SLO
         percentage = 100;
     }
 
-
     // PC version
 
     p1.X -= 27.0f;
@@ -517,7 +508,6 @@ void PANEL_draw_local_health(SLONG mx, SLONG my, SLONG mz, SLONG percentage, SLO
         //		AENG_draw_rect(p1.X,p1.Y,percentage>>1,2,0xb0000000,3,POLY_PAGE_COLOUR);
         //		POLY_add_line(&p1, &p2, (float)2.0, 2.0, POLY_PAGE_COLOUR, 0);
     }
-
 }
 
 void PANEL_draw_gun_sight(SLONG mx, SLONG my, SLONG mz, SLONG accuracy, SLONG scale)
@@ -638,7 +628,6 @@ void PANEL_draw_gun_sight(SLONG mx, SLONG my, SLONG mz, SLONG accuracy, SLONG sc
         //		POLY_add_line(&p1, &p2, 5.0F, 5.0F, POLY_PAGE_COLOUR_ALPHA, 0);
     }
 }
-
 
 //
 // The positions of all the icons on the IC page.
@@ -920,7 +909,6 @@ void PANEL_funky_quad(
     }
 }
 
-
 //
 // The funky hearbeat. A circular buffer.
 //
@@ -941,7 +929,6 @@ ULONG PANEL_beat_tick[2];
 SLONG PANEL_beat_last_ammo[2];
 SLONG PANEL_beat_last_specialtype[2];
 float PANEL_beat_x[2];
-
 
 //
 // The different types of ammo.
@@ -1645,7 +1632,6 @@ void PANEL_new_text_process()
     }
 }
 
-
 //
 // The help message.
 //
@@ -1904,10 +1890,8 @@ ULONG PANEL_beacon_colour[PANEL_MAX_BEACON_COLOURS] = {
     0xff4488
 };
 
-
 #define PANEL_WHO_DARCI 0
 #define PANEL_WHO_ROPER 1
-
 
 void PANEL_start(void)
 {
@@ -2678,7 +2662,6 @@ void PANEL_last()
 
     bool bPanelIsAtBottomOfScreen = (m_iPanelYPos > 300);
 
-
     if (EWAY_tutorial_string) {
         //
         // Darken the whole screen...
@@ -2707,7 +2690,6 @@ void PANEL_last()
             PANEL_TUT_Y - 4,
             float(FONT2D_rightmost_x) + 6.0F,
             PANEL_TUT_Y + height + 4);
-
 
         return;
     }
@@ -2895,7 +2877,6 @@ void PANEL_last()
                         m_iPanelYPos - 53,
                         colour,
                         256);
-
                 }
 
                 itoa(p_special->Genus.Special->ammo, text, 10);
@@ -3003,7 +2984,6 @@ void PANEL_last()
         */
     }
 
-
     //
     // And the crime rate, if applicable
     //
@@ -3034,7 +3014,6 @@ void PANEL_last()
         CBYTE timing[256];
         float strip;
         SLONG c;
-
     }
 
     //
@@ -3652,7 +3631,6 @@ void PANEL_last()
                     float(FONT2D_rightmost_x) + 6.0F,
                     ybase - 2 + height);
 
-
                 if (height < 34) {
                     height = 34;
                 }
@@ -3661,7 +3639,6 @@ void PANEL_last()
             }
         }
     }
-
 
     //
     // Draw the signs.
@@ -3767,11 +3744,7 @@ void PANEL_last()
     {
 
         int iYPos = bPanelIsAtBottomOfScreen ? 0 : 360;
-
-
-
     }
-
 
     static SLONG i_know = 0;
     static SLONG the_answer = 0;
@@ -3857,11 +3830,8 @@ void PANEL_last()
         }
     }
 
-
     // TRACE ( "PDo" );
 }
-
-
 
 void PANEL_draw_completion_bar(SLONG completion)
 {
@@ -3901,7 +3871,6 @@ void PANEL_draw_completion_bar(SLONG completion)
 
     POLY_frame_draw(FALSE, FALSE);
 }
-
 
 bool bScreensaverEnabled = FALSE;
 // Darkness of screensaver, from 0(off)->0xffff(full on)

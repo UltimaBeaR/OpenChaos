@@ -2,7 +2,6 @@
 #include <MFStdLib.h>
 #include "glitter.h"
 
-
 //
 // The sparks.
 //
@@ -463,4 +462,3 @@ tail_recurse:;
 
     return &GLITTER_get_info;
 }
-

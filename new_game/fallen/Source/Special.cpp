@@ -799,7 +799,6 @@ void person_get_item(Thing* p_person, Thing* p_special)
             }
         }
 
-
         extern SLONG stat_count_bonus;
         stat_count_bonus++;
     }
@@ -922,10 +921,8 @@ void special_activate_mine(Thing* p_mine)
             0xa0);
     */
 
-
     PYRO_create(p_mine->WorldPos, PYRO_FIREBOMB);
     PYRO_create(p_mine->WorldPos, PYRO_DUSTWAVE);
-
 
     MFX_play_xyz(THING_NUMBER(p_mine), SOUND_Range(S_EXPLODE_START, S_EXPLODE_END), 0, p_mine->WorldPos.X, p_mine->WorldPos.Y, p_mine->WorldPos.Z);
 

@@ -38,7 +38,6 @@ void TEXTURE_fix_texture_styles(void);
 
 extern SLONG TEXTURE_page_num_standard;
 
-
 extern SLONG TEXTURE_page_snowflake;
 extern SLONG TEXTURE_page_sparkle;
 extern SLONG TEXTURE_page_explode2;

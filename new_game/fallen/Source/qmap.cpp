@@ -955,7 +955,6 @@ void QMAP_create_cube(QMAP_Draw* qd, SLONG map_x, SLONG map_z, SLONG cube)
             }
         }
 
-
         //
         // Create the points using the hf buffer in the QMAP_Draw structure.
         //

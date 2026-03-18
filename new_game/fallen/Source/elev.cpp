@@ -97,15 +97,11 @@
 
 #include "DCLowLevel.h"
 
-
-
 //
 // This is the last map to be loaded.
 //
 
 CBYTE ELEV_last_map_loaded[MAX_PATH];
-
-
 
 //
 // to stop psx stack overflow
@@ -991,7 +987,6 @@ void ELEV_load_level(CBYTE* fname_level)
                         ed.type = EWAY_DO_CREATE_ITEM;
                         ed.arg1 = event_point.Data[2]; // flags
 
-
                         switch (event_point.Data[0]) {
                         default:
                         case IT_NONE:
@@ -1606,7 +1601,6 @@ void ELEV_load_level(CBYTE* fname_level)
                     }
                     //					if(0)
 
-
                     //
                     // Create the waypoint.
                     //
@@ -1636,7 +1630,7 @@ void ELEV_load_level(CBYTE* fname_level)
                     continue;
                 }
 
-//			  abandon_waypoint:;
+                //			  abandon_waypoint:;
                 {
                     CBYTE title[256];
 
@@ -2035,7 +2029,6 @@ void ELEV_game_init_common(
     SND_BeginAmbient();
 }
 
-
 SLONG ELEV_game_init(
     CBYTE* fname_map,
     CBYTE* fname_lighting,
@@ -2202,7 +2195,6 @@ SLONG ELEV_game_init(
     // Process the prim data.
     //
 
-
     //
     // We have to call DIRT_init() after we've loaded the map because
     // it looks for trees to put clumps of leaves around.
@@ -2244,7 +2236,6 @@ SLONG ELEV_game_init(
         NIGHT_ambient(255, 255, 255, 110, -148, -177);
     }
 
-
     NIGHT_generate_walkable_lighting();
 
     //
@@ -2274,7 +2265,6 @@ SLONG ELEV_game_init(
 
     envmap_specials();
 
-
     calc_prim_info();
     calc_prim_normals();
     find_anim_prim_bboxes();
@@ -2292,7 +2282,7 @@ SLONG ELEV_game_init(
     loading_screen_active = FALSE;
 
     EWAY_process(); // pre process map, stick it here Or we get stack overflow
-//	MUSIC_WORLD=(Random()%6)+1;
+    //	MUSIC_WORLD=(Random()%6)+1;
 
     ELEV_game_init_common(fname_map, fname_lighting, fname_citsez, fname_level);
 
@@ -2435,7 +2425,6 @@ SLONG ELEV_game_init(
         8096);
 
 #endif
-
 
     //
     // Clear all the keys!
@@ -2622,7 +2611,6 @@ extern MFFileHandle playback_file;
 
 extern CBYTE tab_map_name[];
 
-
 // extern SLONG EWAY_conv_active;
 extern SLONG PSX_inv_open;
 
@@ -2642,36 +2630,36 @@ SLONG ELEV_load_user(SLONG mission)
 
 try_again:;
 
-/*
-        if(mission<0)
-        {
-                //
-                // bodge for publishing meeting
-                //
-                        {
-                                SLONG	c0;
-                                strcpy(tab_map_name,my_mission_names[-mission]);
-                                for(c0=0;c0<strlen(tab_map_name);c0++)
-                                {
-                                        if(tab_map_name[c0]=='.')
-                                        {
-                                                tab_map_name[c0+1]='t';
-                                                tab_map_name[c0+2]='g';
-                                                tab_map_name[c0+3]='a';
+    /*
+            if(mission<0)
+            {
+                    //
+                    // bodge for publishing meeting
+                    //
+                            {
+                                    SLONG	c0;
+                                    strcpy(tab_map_name,my_mission_names[-mission]);
+                                    for(c0=0;c0<strlen(tab_map_name);c0++)
+                                    {
+                                            if(tab_map_name[c0]=='.')
+                                            {
+                                                    tab_map_name[c0+1]='t';
+                                                    tab_map_name[c0+2]='g';
+                                                    tab_map_name[c0+3]='a';
 
-                                                break;
-                                        }
-                                }
-                        }
-                return ELEV_load_name(my_mission_names[-mission]);
+                                                    break;
+                                            }
+                                    }
+                            }
+                    return ELEV_load_name(my_mission_names[-mission]);
 
-        }
-*/
+            }
+    */
 
-//
-// Using the GetOpenFileName() function changes the current directory,
-// so we must save and restore it.
-//
+    //
+    // Using the GetOpenFileName() function changes the current directory,
+    // so we must save and restore it.
+    //
 
     GetCurrentDirectory(_MAX_PATH, curr_directory);
 
@@ -2698,7 +2686,6 @@ try_again:;
             */
         }
     }
-
 
     // extern CBYTE* STARTSCR_mission;
     extern CBYTE STARTSCR_mission[_MAX_PATH];
@@ -2732,7 +2719,6 @@ try_again:;
         *STARTSCR_mission = 0;
         return res;
     }
-
 
     //
     // So we can see the dialog boxes!
@@ -3006,8 +2992,6 @@ try_again:;
     default:
         return FALSE;
     }
-
-
 }
 
 void reload_level(void)

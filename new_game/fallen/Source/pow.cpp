@@ -298,7 +298,7 @@ void POW_insert_sprite(
     SLONG sprite_index;
     POW_Sprite* ps;
     if (POW_sprite_free == NULL) {
-//		PANEL_new_text(NULL, 500, "No more sprites");
+        //		PANEL_new_text(NULL, 500, "No more sprites");
 
         return;
     }
@@ -375,7 +375,7 @@ void POW_new(SLONG type, SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz
     //
 
     if (POW_pow_free == NULL) {
-//		PANEL_new_text(NULL, 1000, "No more pows");
+        //		PANEL_new_text(NULL, 1000, "No more pows");
 
         return;
     }

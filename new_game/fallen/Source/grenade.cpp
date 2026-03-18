@@ -347,7 +347,6 @@ void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner)
     int iNumParticles = IWouldLikeSomePyroSpritesHowManyCanIHave(20 * 4);
     iNumParticles /= 4;
 
-
     for (int ii = 0; ii < iNumParticles; ii++) {
         PARTICLE_Add(x + (((Random() & 0x7f) - 0x3f) << 9), y + (((Random() & 0x3f) - 0x1f) << 6), z + (((Random() & 0x7f) - 0x3f) << 9),
             ((Random() & 0x1f) - 0xf) << 1, (1 + (Random() & 0xf)) << 6, ((Random() & 0x1f) - 0xf) << 1,
@@ -357,16 +356,15 @@ void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner)
             POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 3) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA,
             240, 20 + (Random() & 0x1f), 1, 3 + (Random() & 3), 0);
 
-            if (Random() & 3)
-                PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 8, (Random() & 0x1f) << 8, ((Random() & 0x1f) - 0xf) << 8,
-                    POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 1) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA | PFLAG_BOUNCE,
-                    240, 5, 1, 2 + (Random() & 3), 0);
-            else
-                PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 12, (Random() & 0x1f) << 8, ((Random() & 0x1f) - 0xf) << 12,
-                    POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 3) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA,
-                    240, 5, 1, 3, 0);
+        if (Random() & 3)
+            PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 8, (Random() & 0x1f) << 8, ((Random() & 0x1f) - 0xf) << 8,
+                POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 1) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA | PFLAG_BOUNCE,
+                240, 5, 1, 2 + (Random() & 3), 0);
+        else
+            PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 12, (Random() & 0x1f) << 8, ((Random() & 0x1f) - 0xf) << 12,
+                POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 3) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA,
+                240, 5, 1, 3, 0);
     }
-
 
     SLONG sx = x >> 8;
     SLONG sy = y >> 8;

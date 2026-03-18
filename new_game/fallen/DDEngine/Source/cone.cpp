@@ -10,7 +10,6 @@
 #include <math.h>
 #include "memory.h"
 
-
 //
 // The origin of the cone.
 //

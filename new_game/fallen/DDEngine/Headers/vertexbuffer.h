@@ -7,7 +7,6 @@
 
 // tried and it is about 33% faster than not using D3D vertex buffers
 
-
 extern void VB_Init();
 extern void VB_Term();
 

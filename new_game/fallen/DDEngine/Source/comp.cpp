@@ -57,7 +57,6 @@ TGA_Pixel COMP_tga_colour(float x, float y)
     ans = COMP_tga_data[px + py * COMP_tga_info.width];
 
     return ans;
-
 }
 
 SLONG COMP_load(CBYTE* filename, COMP_Frame* cf)
@@ -618,4 +617,3 @@ finished_panning:;
         cu = (COMP_Update*)ip;
     }
 }
-

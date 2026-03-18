@@ -68,12 +68,10 @@ BOOL SetupHost(ULONG flags)
 
     ShellActive = FALSE;
 
-
     if (!SetupMemory())
         return FALSE;
     if (!SetupKeyboard())
         return FALSE;
-
 
     // Create the shell window.
     // Create & register the window class.
@@ -134,7 +132,6 @@ void ResetHost(void)
 
     ResetKeyboard();
     ResetMemory();
-
 
     UnregisterClass(TEXT("Urban Chaos"), GetModuleHandle(NULL));
 }
@@ -311,7 +308,6 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
         pMessage = "Looks like a coder has caught a bug.";
     }
 
-
     wsprintf(buff1, "Uh oh, something bad's happened!");
     wsprintf(buff2, "%s\n\n%s\n\nIn   : %s\nline : %u", buff1, pMessage, pFile, dwLine);
     strcat(buff2, "\n\nAbort=Kill Application, Retry=Debug, Ignore=Continue");
@@ -363,7 +359,6 @@ void Time(MFTime* the_time)
 static UWORD argc;
 static LPTSTR argv[MAX_PATH];
 
-
 void init_best_found(void);
 
 int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, int iWinMode)
@@ -376,17 +371,13 @@ int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, in
 
     init_best_found();
 
-
-
-
     // try and create an event
     // this always succeeds
     // if event existed before (still succeeds) and ERROR_ALREADY_EXISTS is returned, so die
     // note the event is automatically deleted by the system when the app exits (even if it crashes)
 
     HANDLE hEvent = CreateEventA(NULL, FALSE, FALSE, "UrbanChaosExclusionZone");
-    if (GetLastError() != ERROR_ALREADY_EXISTS)
-    {
+    if (GetLastError() != ERROR_ALREADY_EXISTS) {
         return MF_main(argc, argv);
     }
 

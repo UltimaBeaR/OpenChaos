@@ -61,7 +61,6 @@
 #include "eway.h"
 #include "xlat_str.h"
 
-
 extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
 
 //
@@ -347,7 +346,6 @@ SLONG help_system(void)
 
     SLONG nearest_car = 0, nearest_car_d = 0;
 
-
     p_person = NET_PERSON(0);
     if (p_person->State == STATE_DEAD)
         return (0);
@@ -420,7 +418,6 @@ SLONG help_system(void)
             }
 
             break;
-
 
         case CLASS_SPECIAL:
 
@@ -775,8 +772,6 @@ void OVERLAY_handle(void)
             }
     */
 
-
-
     if (!draw_map_screen) {
         // Waste not Want no, why have we got 50 bytes.
 
@@ -854,7 +849,7 @@ void OVERLAY_handle(void)
         extern SLONG EWAY_cam_jumped;
         extern SLONG look_pitch;
 
-//		sprintf(str,"(%d,%d,%d) fps %d up %d down %d left %d right %d geom %d",darci->WorldPos.X>>16,darci->WorldPos.Y>>16,darci->WorldPos.Z>>16,((1000)/tick_tock_unclipped)+1,in&INPUT_MASK_FORWARDS,in&INPUT_MASK_BACKWARDS,in&INPUT_MASK_LEFT,in&INPUT_MASK_RIGHT,geom);
+        //		sprintf(str,"(%d,%d,%d) fps %d up %d down %d left %d right %d geom %d",darci->WorldPos.X>>16,darci->WorldPos.Y>>16,darci->WorldPos.Z>>16,((1000)/tick_tock_unclipped)+1,in&INPUT_MASK_FORWARDS,in&INPUT_MASK_BACKWARDS,in&INPUT_MASK_LEFT,in&INPUT_MASK_RIGHT,geom);
 
         // for eidos build		sprintf(str,"(%d,%d,%d) fps %d render ticks %d",darci->WorldPos.X>>16,darci->WorldPos.Y>>16,darci->WorldPos.Z>>16,((1000)/tick_tock_unclipped)+1, SW_tick2 - SW_tick1);
         sprintf(str, "(%d,%d,%d) fps %d", darci->WorldPos.X >> 16, darci->WorldPos.Y >> 16, darci->WorldPos.Z >> 16, ((1000) / tick_tock_unclipped) + 1);
@@ -865,7 +860,6 @@ void OVERLAY_handle(void)
     // #endif
 
     if (GAME_STATE & GS_LEVEL_LOST) {
-
 
         /*
 
@@ -986,35 +980,35 @@ ULONG	col_type[]=
 
 void overlay_beacons(void)
 {
-/*
-        SLONG	c0;
-        Thing			*t_thing;
-        THING_INDEX		current_thing;
+    /*
+            SLONG	c0;
+            Thing			*t_thing;
+            THING_INDEX		current_thing;
 
-        current_thing	=	PRIMARY_USED;
-        while(current_thing)
-        {
-                t_thing			=	TO_THING(current_thing);
-                current_thing	=	t_thing->LinkChild;
+            current_thing	=	PRIMARY_USED;
+            while(current_thing)
+            {
+                    t_thing			=	TO_THING(current_thing);
+                    current_thing	=	t_thing->LinkChild;
 
-                if(t_thing->Class==CLASS_PERSON)
-                {
-                        map_beacon_draw(
-                                t_thing->WorldPos.X>>8,
-                                t_thing->WorldPos.Z>>8,
-                                col_type[t_thing->Genus.Person->PersonType],
-                                (t_thing->Genus.Person->PlayerID) ? BEACON_FLAG_POINTY : 0,
-                                t_thing->Draw.Tweened->Angle);
-                }
-        }
-//	map_beacon_draw(NET_PERSON(0)->WorldPos.X>>8,NET_PERSON(0)->WorldPos.Z>>8);
+                    if(t_thing->Class==CLASS_PERSON)
+                    {
+                            map_beacon_draw(
+                                    t_thing->WorldPos.X>>8,
+                                    t_thing->WorldPos.Z>>8,
+                                    col_type[t_thing->Genus.Person->PersonType],
+                                    (t_thing->Genus.Person->PlayerID) ? BEACON_FLAG_POINTY : 0,
+                                    t_thing->Draw.Tweened->Angle);
+                    }
+            }
+    //	map_beacon_draw(NET_PERSON(0)->WorldPos.X>>8,NET_PERSON(0)->WorldPos.Z>>8);
 
-        for(c0=1;c0<beacon_upto;c0++)
-        {
-                map_beacon_draw(beacons[c0].X,beacons[c0].Z,0x0000ff,BEACON_FLAG_BEACON,0);
+            for(c0=1;c0<beacon_upto;c0++)
+            {
+                    map_beacon_draw(beacons[c0].X,beacons[c0].Z,0x0000ff,BEACON_FLAG_BEACON,0);
 
-        }
-*/
+            }
+    */
 }
 
 void add_damage_value(SWORD x, SWORD y, SWORD z, SLONG value)
@@ -1029,10 +1023,9 @@ void add_damage_value_thing(Thing* p_thing, SLONG value)
 {
 }
 
-
 void init_overlay(void)
 {
-//	beacon_upto=1;
+    //	beacon_upto=1;
     //	memset((UBYTE*)beacons,0,sizeof(struct	Beacon)*MAX_BEACON);
     memset((UBYTE*)panel_enemy, 0, sizeof(struct TrackEnemy) * MAX_TRACK);
 }

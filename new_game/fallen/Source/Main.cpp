@@ -6,7 +6,6 @@
 #include "renderstate.h"
 #include "Drive.h"
 
-
 #ifndef EXIT_SUCCESS
 
 // Not defined on PSX
@@ -44,7 +43,6 @@ void mkt_test(void)
 
 //---------------------------------------------------------------
 
-
 // VerifyDirectX
 //
 // init DirectDraw and Direct3D and check they're OK
@@ -63,9 +61,8 @@ SLONG main(UWORD argc, TCHAR* argv[])
 
     AENG_read_detail_levels(); // get engine defaults
 
-//	ASSERT(the_qs_sound_manager.Init() == ERROR_QMIX_OK);
-//	the_qs_sound_manager.Init() == ERROR_QMIX_OK;
-
+    //	ASSERT(the_qs_sound_manager.Init() == ERROR_QMIX_OK);
+    //	the_qs_sound_manager.Init() == ERROR_QMIX_OK;
 
     // claude-ai: SetupHost() создаёт окно и инициализирует DirectX/платформу; game() — весь игровой цикл
     if (SetupHost(H_CREATE_LOG)) {

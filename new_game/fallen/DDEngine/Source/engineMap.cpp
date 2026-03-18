@@ -16,9 +16,7 @@
 #include "fc.h"
 #include "font2d.h"
 
-
 extern CBYTE* EWAY_get_mess(SLONG index);
-
 
 //
 // The size of the physical screen.
@@ -700,7 +698,6 @@ void MAP_draw_dot(
     POLY_add_triangle(tri, POLY_PAGE_IC2_ALPHA, FALSE, TRUE);
 }
 
-
 //
 // The pulses...
 //
@@ -757,7 +754,6 @@ void MAP_pulse_create(float wx, float wz, ULONG colour)
     mp->wz = wz;
     mp->radius = 0.05F;
 }
-
 
 //
 // Draws an individual pulse
@@ -883,7 +879,6 @@ void MAP_pulse_draw_all()
     }
 }
 
-
 //
 // Processes the pulses.
 //
@@ -926,7 +921,6 @@ void MAP_process_pulses()
         }
     }
 }
-
 
 //
 // Draws an arrow in the given direction...
@@ -1081,7 +1075,6 @@ void MAP_draw_3d_arrow(
     POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, FALSE, TRUE);
 }
 
-
 //
 // The map beacon colours.
 //
@@ -1191,7 +1184,6 @@ void MAP_process_beacons()
         }
     }
 }
-
 
 void MAP_beacon_draw_all()
 {
@@ -1327,14 +1319,12 @@ void MAP_beacon_draw_all()
     }
 }
 
-
 void MAP_beacon_remove(UBYTE beacon)
 {
     ASSERT(WITHIN(beacon, 0, MAP_MAX_BEACONS - 1));
 
     MAP_beacon[beacon].used = FALSE;
 }
-
 
 void MAP_draw_weapons(Thing* p_person)
 {
@@ -1707,13 +1697,11 @@ void MAP_draw()
     POLY_frame_draw(FALSE, FALSE);
 }
 
-
 void MAP_process()
 {
     MAP_process_beacons();
     MAP_process_pulses();
 }
-
 
 void MAP_draw_onscreen_beacons(void)
 {
@@ -1753,4 +1741,3 @@ void MAP_draw_onscreen_beacons(void)
             colour);
     }
 }
-
