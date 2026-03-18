@@ -160,8 +160,6 @@ UBYTE stealth_debug = 0;
 // claude-ai: CONTROLS_inventory_mode — таймер показа панели инвентаря (в тиках), 0 = скрыт
 SWORD CONTROLS_inventory_mode = 0;
 
-BOOL dodgy_psx_mode = 0;
-
 //---------------------------------------------------------------
 
 // claude-ai: SECTION: InkeyToAscii / InkeyToAsciiShift — таблицы преобразования scan-кода в ASCII.

@@ -906,25 +906,6 @@ void do_leave_map_form(void)
     }
 }
 
-// psx camera stuff (the PC does it in the engine?)
-// claude-ai: psx_camera() — устанавливает матрицу камеры на PSX. На PC всегда возвращает 0.
-// claude-ai: Сначала проверяет EWAY_grab_camera() (камера катсцены), иначе использует FC_cam[0].
-// claude-ai: На PC камера управляется внутри AENG_draw(). Функция по сути мертва для PC. Не переносить.
-SLONG psx_camera(void)
-{
-    //
-    // AENG_draw() understands about cameras now because it has to
-    // handle the splitscreen mode properly.
-    //
-
-    /*
-    // snip   ( a load of camera stuff check out sourcesafe pre 20th may to see (MikeD)
-    */
-
-    return (0);
-    return 0; // <-- otherwise error C4716: 'psx_camera' : must return a value
-}
-
 // Get what yoiu have drawn onto the Screen
 // claude-ai: screen_flip() — финальный шаг кадра: делает скриншот если нужно, затем AENG_blit() или AENG_flip().
 // claude-ai: На primary device (не 3DFX) использует blit; на 3DFX/DC — flip. На PSX сбрасывает вибрацию на экране смерти.

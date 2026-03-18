@@ -103,17 +103,6 @@ void CAM_get(
     float* radians_pitch,
     float* radians_roll);
 
-void CAM_get_psx(
-    SLONG* world_x,
-    SLONG* world_y,
-    SLONG* world_z,
-    SLONG* yaw,
-    SLONG* pitch,
-    SLONG* roll,
-    SLONG* radians_yaw,
-    SLONG* radians_pitch,
-    SLONG* radians_roll);
-
 void CAM_get_pos(
     SLONG* world_x,
     SLONG* world_y,
