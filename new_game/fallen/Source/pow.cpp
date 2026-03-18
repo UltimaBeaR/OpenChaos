@@ -271,67 +271,9 @@ void POW_init()
     POW_pow_free = 1;
 }
 
-#ifdef POO
-SLONG count_occurances(SLONG find)
-{
-    SLONG sprite;
-    SLONG count = 0;
-
-    sprite = POW_sprite_free;
-
-    while (sprite) {
-
-        if (sprite == find)
-            count++;
-
-        sprite = POW_sprite[sprite].next;
-    }
-    return (count);
-}
-
-SLONG count_used(SLONG find)
-{
-    SLONG pow, count2, sprite;
-    POW_Pow* pp;
-    POW_Sprite* ps;
-    POW_Type* pt;
-
-    SLONG ret = 0;
-
-    for (pow = POW_pow_used; pow && count2++ < 50; pow = pp->next) {
-        ASSERT(WITHIN(pow, 1, POW_MAX_POWS - 1));
-
-        pp = &POW_pow[pow];
-
-        if (pp->sprite) {
-            SLONG count = 0;
-            //
-            // Process the pow's sprites.
-            //
-
-            for (sprite = pp->sprite; sprite && count++ < 256; sprite = ps->next) {
-                if (sprite == find)
-                    ret++;
-                ps = &POW_sprite[sprite];
-            }
-        }
-    }
-
-    return (ret);
-}
-#endif
 void check_pows(void)
 {
     SLONG sprite;
-#ifdef POO
-    sprite = POW_sprite_free;
-
-    while (sprite) {
-        ASSERT(count_occurances(sprite) == 1);
-        ASSERT(count_used(sprite) == 0);
-        sprite = POW_sprite[sprite].next;
-    }
-#endif
 }
 
 //

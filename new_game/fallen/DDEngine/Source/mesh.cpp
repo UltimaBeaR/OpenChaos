@@ -100,7 +100,6 @@
 #define POLY_FLAG_DOUBLESIDED (1 << 6)
 #define POLY_FLAG_CLIPPED (1 << 7)
 
-#define CALC_CAR_CRUMPLE 0 // else use table
 
 //
 // A floating point number between 0 and 1.0F
@@ -132,9 +131,6 @@ typedef struct
     SBYTE dx, dy, dz;
 } MESH_Crumple2;
 
-#if CALC_CAR_CRUMPLE
-MESH_Crumple2 MESH_car_crumples[MESH_NUM_CRUMPLES][MESH_NUM_CRUMPVALS][6];
-#else
 MESH_Crumple2 MESH_car_crumples[MESH_NUM_CRUMPLES][MESH_NUM_CRUMPVALS][6] = {
     {
         {
@@ -467,7 +463,6 @@ MESH_Crumple2 MESH_car_crumples[MESH_NUM_CRUMPLES][MESH_NUM_CRUMPVALS][6] = {
         },
     },
 };
-#endif
 
 void MESH_init(void)
 {
@@ -487,38 +482,6 @@ void MESH_init(void)
         }
     }
 
-#if CALC_CAR_CRUMPLE
-    // calculate mesh offsets and trace out
-    static MESH_Crumple car_basic[6] = { { 1, 0.3, 0.5 }, { -1, -0.3, 1.5 }, { 1, 0.5, 0.3 }, { -1, 0.5, 0.3 }, { 1, -0.2, -1.5 }, { -1, 0.2, -0.5 } };
-
-    TRACE("MESH_Crumple2 MESH_car_crumples[MESH_NUM_CRUMPLES][MESH_NUM_CRUMPVALS][6] =\n{\n");
-    for (i = 0; i < MESH_NUM_CRUMPLES; i++) {
-        TRACE("    {\n");
-        amp = float(i) * 5.0F;
-
-        for (j = 0; j < MESH_NUM_CRUMPVALS; j++) {
-            TRACE("        { ");
-            for (k = 0; k < 6; k++) {
-                float dx = amp * (car_basic[k].dx + frand() / 2);
-                float dy = amp * (car_basic[k].dy + frand() / 2);
-                float dz = amp * (car_basic[k].dz + frand() / 2);
-
-                SBYTE idx = SBYTE(dx + 0.5);
-                SBYTE idy = SBYTE(dy + 0.5);
-                SBYTE idz = SBYTE(dz + 0.5);
-
-                TRACE("{%d,%d,%d}, ", idx, idy, idz);
-
-                MESH_car_crumples[i][j][k].dx = idx;
-                MESH_car_crumples[i][j][k].dy = idy;
-                MESH_car_crumples[i][j][k].dz = idz;
-            }
-            TRACE("},\n");
-        }
-        TRACE("    },\n");
-    }
-    TRACE("};\n");
-#endif
 }
 
 // set crumple parameters for ,-1) call to MESH_draw_poly
@@ -610,15 +573,6 @@ NIGHT_Colour* MESH_draw_guts(
     ULONG default_colour;
     ULONG default_specular;
 
-#ifdef MESH_SHOW_MOUSE_POINT
-
-    SLONG dmx;
-    SLONG dmy;
-    SLONG mdist;
-    SLONG best_mdist = 1024;
-    POLY_Point* best_mpoint = NULL;
-
-#endif
 
     ASSERT(WITHIN(crumple, -1, MESH_NUM_CRUMPLES - 1));
 
@@ -767,21 +721,6 @@ NIGHT_Colour* MESH_draw_guts(
             // pp->colour&=0xffffff;
             // pp->colour|=fade;
 
-#ifdef MESH_SHOW_MOUSE_POINT
-
-            if (pp->clip & POLY_CLIP_TRANSFORMED) {
-                dmx = MouseX - pp->X;
-                dmy = MouseY - pp->Y;
-
-                mdist = dmx * dmx + dmy * dmy;
-
-                if (best_mdist > mdist) {
-                    best_mdist = mdist;
-                    best_mpoint = pp;
-                }
-            }
-
-#endif
         }
     } else {
         UBYTE* assign = car_assign;
@@ -820,21 +759,6 @@ NIGHT_Colour* MESH_draw_guts(
             //			pp->colour|=fade;
 
 
-#ifdef MESH_SHOW_MOUSE_POINT
-
-            if (pp->clip & POLY_CLIP_TRANSFORMED) {
-                dmx = MouseX - pp->X;
-                dmy = MouseY - pp->Y;
-
-                mdist = dmx * dmx + dmy * dmy;
-
-                if (best_mdist > mdist) {
-                    best_mdist = mdist;
-                    best_mpoint = pp;
-                }
-            }
-
-#endif
 
             assign++;
         }
@@ -1247,21 +1171,6 @@ NIGHT_Colour* MESH_draw_guts(
         }
     }
 
-#ifdef MESH_SHOW_MOUSE_POINT
-
-    if (best_mpoint) {
-        FONT_buffer_add(
-            best_mpoint->X,
-            best_mpoint->Y,
-            255,
-            225,
-            225,
-            TRUE,
-            "%d",
-            best_mpoint - POLY_buffer);
-    }
-
-#endif
 
     return lpc;
 }

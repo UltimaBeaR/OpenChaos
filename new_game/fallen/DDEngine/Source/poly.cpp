@@ -94,9 +94,6 @@ static UBYTE s_ClipMask; // the clip bits we care about
 #define STD_CLIPMASK (POLY_CLIP_NEAR)
 #endif
 
-// PC should clip to sides fo screen
-#define NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB 0
-
 
 //
 // Flags for each standard texture page.

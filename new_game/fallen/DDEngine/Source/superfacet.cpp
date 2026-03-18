@@ -58,9 +58,6 @@ SLONG SUPERFACET_free_range_end;
 #define SUPERFACET_CALL_FLAG_USED (1 << 0)
 #define SUPERFACET_CALL_FLAG_2PASS (1 << 1)
 
-#ifdef SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB
-bool m_bShowDebuggingInfo = FALSE;
-#endif
 
 typedef struct
 {
@@ -497,21 +494,6 @@ void SUPERFACET_fill_facet_points(
                 lv->y = quad[j]->y;
                 lv->z = quad[j]->z;
 
-#ifdef SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB
-                if (m_bShowDebuggingInfo || (fabs(quad[0]->y - quad[2]->y) > 257)) {
-                    // Make a pretty colour from the call pointer,
-                    // so we can see the efficiency.
-
-                    // It also shows up things that won't repeat properly. There aren't many, and we can ignore them.
-                    // (e.g. wall of the
-                    DWORD dwColour = (DWORD)sc;
-                    dwColour = (dwColour >> 2) ^ (dwColour >> 6) ^ (dwColour) ^ (dwColour << 3);
-                    dwColour = (dwColour << 9) ^ (dwColour << 19) ^ (dwColour) ^ (dwColour << 29) ^ (dwColour >> 3);
-                    dwColour &= 0x7f7f7f7f;
-                    lv->color = dwColour;
-                    lv->specular = dwColour;
-                } else
-#endif
                 {
                     lv->color = quad[j]->colour;
                     lv->specular = quad[j]->specular;
@@ -1124,8 +1106,6 @@ void SUPERFACET_start_frame()
     // Initialise Tom's doberries...
     //
 
-#ifdef SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB
-#endif
 
 // #ifdef TARGET_DC
 // extern void POLY_set_local_rotation_none ( void );

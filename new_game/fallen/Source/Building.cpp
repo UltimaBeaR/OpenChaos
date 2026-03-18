@@ -1601,21 +1601,6 @@ void	show_grid(SLONG width,SLONG depth,SLONG min_x)
                         //QuickTextC(x1+((box_width)>>1)-7,z1+box_depth-12,xb_s,0);
                         //QuickTextC(x1+2,z1+(box_depth>>1)-6,zl_s,0);
                         //QuickTextC(x1+box_width-30,z1+(box_depth>>1)-6,zr_s,0);
-#ifdef	POO
-
-                        if(xt)
-                                DrawLineC(x1+(box_width>>1),z1+(box_depth>>1),MYFX(xt),z1,0x1f);
-
-                                //DrawLineC(x1+(box_width>>1),z1+(box_depth>>1),MYFX(xt),z1,0x1f);
-                        if(xb)
-                                DrawLineC(x1+(box_width>>1),z1+(box_depth>>1),MYFX(xb),z1+box_depth,0x1f0);
-
-                        if(zl)
-                                DrawLineC(x1+(box_width>>1),z1+(box_depth>>1),x1,MYFY(zl),0x1f);
-
-                        if(zr)
-                                DrawLineC(x1+(box_width>>1),z1+(box_depth>>1),x1+box_width,MYFY(zr),0x1f0);
-#endif
 
                 }
         }

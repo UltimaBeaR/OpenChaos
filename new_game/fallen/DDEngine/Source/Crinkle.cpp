@@ -13,13 +13,7 @@
 // Temporary storage for transformed crinkle points.
 //
 
-#define DISABLE_CRINKLES 0
-
-#if DISABLE_CRINKLES
-#define CRINKLE_MAX_POINTS_PER_CRINKLE 1
-#else
 #define CRINKLE_MAX_POINTS_PER_CRINKLE 700
-#endif
 
 POLY_Point CRINKLE_pp[CRINKLE_MAX_POINTS_PER_CRINKLE];
 
@@ -43,11 +37,7 @@ typedef struct
 
 } CRINKLE_Point;
 
-#if DISABLE_CRINKLES
-#define CRINKLE_MAX_POINTS 1
-#else
 #define CRINKLE_MAX_POINTS 8192
-#endif
 
 CRINKLE_Point CRINKLE_point[CRINKLE_MAX_POINTS];
 SLONG CRINKLE_point_upto;
@@ -140,10 +130,6 @@ CRINKLE_Handle CRINKLE_load(CBYTE* asc_filename)
     //
 
     return NULL;
-
-#if DISABLE_CRINKLES
-    return NULL;
-#endif
 
     handle = MF_Fopen(asc_filename, "rb");
 

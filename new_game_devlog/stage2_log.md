@@ -1235,6 +1235,24 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 
 ---
 
+## Итерация 36 — Пункт 2.7: удаление never-active и defined-as-0 флагов (2026-03-18)
+
+**Обработаны через coan** (`-UPOO -UMESH_SHOW_MOUSE_POINT -USHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB`):
+- `POO` — 3 блока в Darci.cpp, pow.cpp (2 функции `count_occurances`/`count_used` + тело `check_pows`)
+- `MESH_SHOW_MOUSE_POINT` — 4 блока в mesh.cpp (debug отображение ближайшей вершины к курсору)
+- `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` — 3 блока в superfacet.cpp (debug цветовая визуализация)
+
+Нюанс: coan не обработал `building.cpp` (вероятно, сложная вложенность условий). Один блок `#ifdef\tPOO` убран вручную (с табуляцией вместо пробела).
+
+**Обработаны вручную (defined-as-0):**
+- `DISABLE_CRINKLES = 0` (Crinkle.cpp): удалён `#define` + 3 `#if DISABLE_CRINKLES` блока; взяты PC ветки: `CRINKLE_MAX_POINTS_PER_CRINKLE = 700`, `CRINKLE_MAX_POINTS = 8192`, убран dead `return NULL`
+- `CALC_CAR_CRUMPLE = 0` (mesh.cpp): удалён `#define` + `#if` обёртка объявления (оставлена таблица-инициализатор) + удалён блок динамического расчёта (~30 строк с TRACE вызовами)
+- `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB = 0` (poly.cpp): удалён только `#define` (нет `#if` блоков — dead define)
+
+**Результат:** 0 ошибок. Debug: 129 предупреждений, Release: 293 предупреждения.
+
+---
+
 ## Статус пункта 2.7 — Устранение условной компиляции
 
 Легенда: ✅ раскрыт/удалён | ⬜ не обработан | ❓ требует анализа/решения | ➖ уже отсутствовал
@@ -1264,13 +1282,13 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 
 | Флаг | Статус | Примечание |
 |------|--------|-----------|
-| `POO` | ⬜ | нигде не определён; нужно grep-проверить наличие |
-| `DISABLE_CRINKLES` | ⬜ | `= 0` на PC; в Crinkle.cpp |
-| `CALC_CAR_CRUMPLE` | ⬜ | `= 0`; в mesh.cpp |
-| `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB` | ⬜ | `= 0` на PC |
+| `POO` | ✅ | итерация 36 |
+| `DISABLE_CRINKLES` | ✅ | итерация 36 (`= 0` на PC; взята ветка PC: 700 points, 8192 max) |
+| `CALC_CAR_CRUMPLE` | ✅ | итерация 36 (`= 0`; взята ветка таблицы, удалён блок вычисления) |
+| `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB` | ✅ | итерация 36 (только dead define, нет #if блоков) |
 | `HIGH_REZ_PEOPLE_PLEASE_BOB` | ⬜ | требует анализа (4x вершин, cheat 0x10f1a7e) |
-| `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` | ⬜ | был активен — проверить после iter 33/34 |
-| `MESH_SHOW_MOUSE_POINT` | ⬜ | был под `#ifndef NDEBUG` — проверить после iter 33 |
+| `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` | ✅ | итерация 36 (нигде не defined, удалены 3 блока) |
+| `MESH_SHOW_MOUSE_POINT` | ✅ | итерация 36 (нигде не defined, удалены 4 блока) |
 | `NEW_FLOOR` | ❓ | закомментирован в aeng.cpp; экспериментальный рендер пола |
 | No-op макросы (`TRACE`, `LogText`, `DebugText`, `ERROR_MSG`, `ASSERT`) | ⬜ | удалить определения и все вызовы |
 | `VERIFY(x)` | ⬜ | раскрыть в просто `x` везде |

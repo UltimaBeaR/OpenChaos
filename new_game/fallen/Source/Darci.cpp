@@ -356,41 +356,6 @@ inline BOOL MagicFrameCheck(Thing* p_person, UBYTE frameindex)
 void set_person_in_building_through_roof(Thing* p_person, SLONG face)
 {
     SLONG building, storey, wall, best_storey = 0;
-#ifdef POO
-    wall = prim_faces4[face].ThingIndex;
-    if (wall < 0) {
-    } else
-        return;
-
-    storey = wall_list[-wall].StoreyHead;
-    while (storey_list[storey].Prev) {
-        storey = storey_list[storey].Prev;
-        if (storey_list[storey].StoreyType == STOREY_TYPE_NORMAL)
-            break;
-    }
-
-    if (storey_list[storey].StoreyType == STOREY_TYPE_NORMAL) {
-        building = storey_list[storey].BuildingHead;
-
-        /*
-        storey=ENTER_get_ground_floor(building);
-        if(storey)
-        {
-                p_person->WorldPos.Y-=200<<8;
-
-                if (ENTER_setup(building, storey, TRUE))
-                {
-                        p_person->Flags     |= FLAGS_IN_BUILDING;
-                        GAME_FLAGS |= GF_INDOORS;
-
-
-
-                }
-        }
-
-        */
-    }
-#endif
 }
 
 SLONG damage_person_on_land(Thing* p_thing)
