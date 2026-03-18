@@ -311,7 +311,6 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
         pMessage = "Looks like a coder has caught a bug.";
     }
 
-    TRACE("LbShellMessage: %s\n", pMessage);
 
     wsprintf(buff1, "Uh oh, something bad's happened!");
     wsprintf(buff2, "%s\n\n%s\n\nIn   : %s\nline : %u", buff1, pMessage, pFile, dwLine);

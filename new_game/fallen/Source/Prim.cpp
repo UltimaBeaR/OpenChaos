@@ -2468,7 +2468,6 @@ void re_center_prim(SLONG prim, SLONG dx, SLONG dy, SLONG dz)
     ep = p_obj->EndPoint;
 
     for (c0 = sp; c0 < ep; c0++) {
-        DebugText(" prim %d x %d y %d  z %d \n", prim, prim_points[c0].X, prim_points[c0].Y, prim_points[c0].Z);
         prim_points[c0].X += dx;
         prim_points[c0].Y += dy;
         prim_points[c0].Z += dz;

@@ -4057,7 +4057,6 @@ void AENG_guess_detail_levels()
 
         float tso = 10000 / AENG_draw_some_polys(false, false);
 
-        TRACE("card draws 512-pixel opaque polys at %f per second\n", tso);
 
         if (tso < 10000) {
             generation = 0;
@@ -4071,7 +4070,6 @@ void AENG_guess_detail_levels()
         }
     }
 
-    TRACE("Card generation = %d\n", generation);
 
     // GENVAR(n) = in all generations >= n
 #define GENVAR(G) ((generation >= G) ? 1 : 0)

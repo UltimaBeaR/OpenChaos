@@ -117,11 +117,9 @@ SLONG valid_grab_angle(SLONG angle, SLONG dx, SLONG dz)
     return (1);
 
     wall_angle = calc_angle(dx, dz);
-    LogText(" wall angle %d player angle %d \n", wall_angle, angle);
     wall_angle += 512; // or -512
 
     diff = angle_diff(angle, wall_angle);
-    LogText(" wall angle %d player angle %d diff %d\n", wall_angle, angle, diff);
     diff = abs(diff);
     if (diff < 256 || abs(diff - 1024) < 256) // second if is for -512
         return (1);

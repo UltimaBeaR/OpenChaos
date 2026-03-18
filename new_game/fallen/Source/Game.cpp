@@ -172,7 +172,6 @@ void game_startup(void)
 
                     for (i = 0; i < num_connections; i++)
                     {
-                            TRACE("Connection %d: %s\n", i, NET_get_connection_name(i));
                     }
             }
     */
@@ -400,12 +399,10 @@ BOOL game_init(void)
 
 
     if (GAME_STATE & GS_RECORD) {
-        DebugText(" PLAYBACK GAME\n");
         playback_file = FileCreate(playback_name, TRUE);
         verifier_file = NULL;
     } else if (GAME_STATE & GS_PLAYBACK) {
 
-        DebugText(" RECORD GAME\n");
         playback_file = FileOpen(playback_name);
         verifier_file = NULL;
     }
@@ -504,7 +501,6 @@ BOOL game_init(void)
 BOOL game_create_psx(CBYTE* mission_name)
 {
     SLONG ret;
-    DebugText("PSX create psx mission %s\n", mission_name);
 
     //
     // Set the seed and initialise game variables.
@@ -566,7 +562,6 @@ BOOL game_create_psx(CBYTE* mission_name)
             extern void save_whole_game(CBYTE * gamename);
 
             change_extension(mission_name, "wad", save_wad);
-            DebugText("PSX create nad %s\n world %d", save_wad, TEXTURE_SET);
             save_whole_game(save_wad);
 
         } else
@@ -581,7 +576,6 @@ BOOL game_create_psx(CBYTE* mission_name)
 BOOL make_texture_clumps(CBYTE* mission_name)
 {
     SLONG ret;
-    DebugText("Making texture clumps %s\n", mission_name);
 
     //
     // Set the seed and initialise game variables.
@@ -646,7 +640,6 @@ void game_fini(void)
 
     // Stop any background music, or the disk drive thrashes horribly trying to load stuff.
     // And all the looping stuff from the game as well.
-    TRACE("gf1 ");
     stop_all_fx_and_music();
 
     // Start the loading bar.
@@ -655,7 +648,6 @@ void game_fini(void)
     //
     // Free up the FASTPRIM memory.
     //
-    TRACE("gf2 ");
 
     FASTPRIM_fini();
 
@@ -663,7 +655,6 @@ void game_fini(void)
     // Free up the SUPERFACET memory.
     //
 
-    TRACE("gf4 ");
 
     SUPERFACET_fini();
 
@@ -671,11 +662,9 @@ void game_fini(void)
     // Free up the FARFACET memory.
     //
 
-    TRACE("gf5 ");
 
     FARFACET_fini();
 
-    TRACE("gf6 ");
 
     // Free up the figure caches.
     void FIGURE_clean_all_LRU_slots(void);
@@ -685,7 +674,6 @@ void game_fini(void)
     // Unload our sound-effects.
     //
 
-    TRACE("gf7 ");
 
     if (GAME_STATE != GS_REPLAY) {
         // Don't free if replaying mission - no need.
@@ -703,12 +691,10 @@ void game_fini(void)
         verifier_file = NULL;
     }
 
-    TRACE("gf8 ");
 
 
     NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit();
 
-    TRACE("game_fini done\n");
 }
 
 //---------------------------------------------------------------
@@ -747,11 +733,9 @@ void game(void)
     }
 
 
-    TRACE("game before shutdown\n");
 
     game_shutdown();
 
-    TRACE("game after shutdown\n");
 }
 
 //---------------------------------------------------------------
@@ -1204,11 +1188,9 @@ round_again:;
 
     MEMORY_quick_init();
 
-    TRACE("game_loop init1\n");
 
     if (game_init()) {
 
-        TRACE("game_loop init2\n");
 
         already_warned_about_leaving_map = GetTickCount();
         draw_map_screen = FALSE;
@@ -1228,14 +1210,12 @@ round_again:;
             BreakStart();
         SLONG exit_game_loop = FALSE;
 
-        TRACE("game_loop init3\n");
 
 
         //
         // Initialise the SUPERFACET cache system. Allocates memory.
         //
 
-        TRACE("game_loop init4\n");
 
         SUPERFACET_init();
 
@@ -1243,7 +1223,6 @@ round_again:;
         // Initailises the FARFACET system. Allocates memory.
         //
 
-        TRACE("game_loop init5\n");
 
         FARFACET_init();
 
@@ -1251,18 +1230,15 @@ round_again:;
         // Initialises the FASTPRIM cached prim system. Allocates memory.
         //
 
-        TRACE("game_loop init6\n");
 
         FASTPRIM_init();
 
-        TRACE("game_loop init7\n");
 
         // MarkZA says put this in here.
         extern void envmap_specials(void);
         envmap_specials();
 
 
-        TRACE("game_loop init8\n");
 
         // claude-ai: Inner per-frame loop - runs while playing, exits on GS_LEVEL_WON or GS_LEVEL_LOST
         while (SHELL_ACTIVE && (GAME_STATE & (GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WON))) {
@@ -1415,7 +1391,6 @@ round_again:;
                 TRIP_process();
                 DOOR_process();
 
-                TRACE("Eway process\n");
 
                 EWAY_process();
 
@@ -1533,11 +1508,9 @@ round_again:;
         // Game has finished, what do we do now
         //
 
-        TRACE("game_loop game_fini\n");
 
         game_fini();
 
-        TRACE("game_loop gf done\n");
 
         // claude-ai: После выхода из inner loop: если GS_LEVEL_WON — проверяем какой уровень завершён для катсцен.
         // claude-ai: park2.ucm → катсцена 1 (MIB introduction cutscene).
@@ -1678,9 +1651,7 @@ round_again:;
         if (GAME_STATE == GS_LEVEL_WON) {
             FRONTEND_level_won();
         } else {
-            TRACE("game_loop LOST 5\n");
             FRONTEND_level_lost();
-            TRACE("game_loop LOST 6\n");
         }
 
         return 0;

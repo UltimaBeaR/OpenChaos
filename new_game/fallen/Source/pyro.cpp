@@ -116,7 +116,6 @@ Thing* alloc_pyro(UBYTE type)
     // There are no spare pyro structures.
     //
 
-    TRACE("Run out of pyro structures.");
 
     return NULL;
 
@@ -584,7 +583,6 @@ void PYRO_fn_init(Thing* thing)
 
                         // gnasty float version for testing purposes.
                         tst=sqrt(tst);
-                        TRACE("shot: %d %d %d : %d\n",pyro->target.X,pyro->target.Y,pyro->target.Z,tst);
         */
         move_thing_on_map(pyro->thing, &vec);
 

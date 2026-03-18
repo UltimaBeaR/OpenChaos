@@ -513,7 +513,6 @@ HRESULT Display::GenerateDefaults(void)
         // Error, invalid DD Guid
         result = DDERR_GENERIC;
         ;
-        DebugText("GenerateDefaults: unable to get default driver\n");
         // Output error.
         return result;
     }
@@ -531,7 +530,6 @@ HRESULT Display::GenerateDefaults(void)
                 &new_mode,
                 &new_device)) {
             result = DDERR_GENERIC;
-            DebugText("GenerateDefaults: unable to get default screen mode\n");
             return result;
         }
     } else {
@@ -543,7 +541,6 @@ HRESULT Display::GenerateDefaults(void)
                 &new_mode,
                 &new_device)) {
             result = DDERR_GENERIC;
-            DebugText("GenrateDefaults: unable to get default screen mode\n");
             return result;
         }
     }
@@ -753,7 +750,6 @@ void PlayQuickMovie(SLONG type, SLONG language_ignored, bool bIgnored)
         } else {
             char filename[MAX_PATH];
             sprintf(filename, "bink\\" FMV3 ".bik", type);
-            TRACE("Playing %s\n", filename);
             BinkPlay(filename, lpdds, quick_flipper);
         }
     }
@@ -791,7 +787,6 @@ HRESULT Display::InitFullscreenMode(void)
     if ((!CurrMode) || (!lp_DD4)) {
         // Error, we need a valid mode and DirectDraw 2 interface to proceed
         result = DDERR_GENERIC;
-        DebugText("InitFullScreenMode: invalid initialization\n");
         return result;
     }
 
@@ -859,7 +854,6 @@ HRESULT Display::InitFullscreenMode(void)
         return result;
     }
 
-    DebugText("SetDisplayMode failed (%d x %d x %d), trying (640 x 480 x %d)\n", w, h, bpp, bpp);
 
     // Don't give up!
     // Try 640 x 480 x bpp mode instead
@@ -887,7 +881,6 @@ HRESULT Display::InitFullscreenMode(void)
     // Keep trying
     // Try 640 x 480 x 16 mode instead
     if (bpp != DEFAULT_DEPTH) {
-        DebugText("SetDisplayMode failed (640 x 480 x %d), trying (640 x 480 x 16)\n", bpp);
         bpp = DEFAULT_DEPTH;
 
         CurrMode = ValidateMode(CurrDriver, w, h, bpp, 0, CurrDevice);
@@ -943,7 +936,6 @@ void calculate_mask_and_shift(
     SLONG num_bits = 0;
     SLONG first_bit = -1;
 
-    LogText(" bitmask %x \n", bitmask);
 
     for (i = 0, b = 1; i < 32; i++, b <<= 1) {
         if (bitmask & b) {
@@ -964,9 +956,6 @@ void calculate_mask_and_shift(
         // This is bad!
         //
 
-        LogText(" poo mask shift  first bit %d num_bits %d \n", first_bit, num_bits);
-        TRACE("No valid masks and shifts.\n");
-        LogText("No valid masks and shifts.\n");
 
         *mask = 0;
         *shift = 0;
@@ -1028,7 +1017,6 @@ HRESULT Display::InitFront(void)
     result = lp_DD4->CreateSurface(&dd_sd, &lp_DD_FrontSurface, NULL);
     if (FAILED(result)) {
         // Error
-        DebugText("InitFront: unable to create front surface result %d\n", result);
         return result;
     }
 
@@ -1036,9 +1024,7 @@ HRESULT Display::InitFront(void)
     result = lp_DD_FrontSurface->QueryInterface(IID_IDirectDrawGammaControl, (void**)&lp_DD_GammaControl);
     if (FAILED(result)) {
         lp_DD_GammaControl = NULL;
-        TRACE("No gamma\n");
     } else {
-        TRACE("Gamma control OK\n");
 
         int black, white;
 
@@ -1071,9 +1057,6 @@ HRESULT Display::InitFront(void)
     calculate_mask_and_shift(dd_sd.ddpfPixelFormat.dwGBitMask, &mask_green, &shift_green);
     calculate_mask_and_shift(dd_sd.ddpfPixelFormat.dwBBitMask, &mask_blue, &shift_blue);
 
-    LogText(" mask red %x shift red %d \n", mask_red, shift_red);
-    LogText(" mask green %x shift green %d \n", mask_green, shift_green);
-    LogText(" mask blue %x shift blue %d \n", mask_blue, shift_blue);
 
     // Success
     return DD_OK;
@@ -1114,7 +1097,6 @@ HRESULT Display::InitBack(void)
         (!hDDLibWindow) || (!IsWindow(hDDLibWindow)) || (!CurrDevice) || (!CurrMode) || (!lp_DD4) || (!lp_D3D) || (!lp_DD_FrontSurface)) {
         // Error, Not initialized properly before calling this method
         result = DDERR_GENERIC;
-        DebugText("InitBack: invalid initialisation\n");
         return result;
     }
 
@@ -1128,7 +1110,6 @@ HRESULT Display::InitBack(void)
         dd_scaps.dwCaps = DDSCAPS_BACKBUFFER;
         result = lp_DD_FrontSurface->GetAttachedSurface(&dd_scaps, &lp_DD_BackSurface);
         if (FAILED(result)) {
-            DebugText("InitBack: no attached surface\n");
             return result;
         }
     } else {
@@ -1145,7 +1126,6 @@ HRESULT Display::InitBack(void)
 
         result = lp_DD4->CreateSurface(&dd_sd, &lp_DD_BackSurface, NULL);
         if (FAILED(result)) {
-            DebugText("InitBack: unable to create back surface\n");
             return result;
         }
     }
@@ -1169,7 +1149,6 @@ HRESULT Display::InitBack(void)
         if (FAILED(result)) {
             // Error, no texture formats
             // Hope we can run OK without textures
-            DebugText("InitBack: unable to load Z formats\n");
         }
 
         // Can we create a Z buffer?
@@ -1183,7 +1162,6 @@ HRESULT Display::InitBack(void)
             memcpy(&dd_sd.ddpfPixelFormat, CurrDevice->GetZFormat(), sizeof(DDPIXELFORMAT));
             result = lp_DD4->CreateSurface(&dd_sd, &lp_DD_ZBuffer, NULL);
             if (FAILED(result)) {
-                DebugText("InitBack: unable to create ZBuffer\n");
                 dd_error(result);
 
                 // Note: we may be able to continue without a z buffer
@@ -1192,7 +1170,6 @@ HRESULT Display::InitBack(void)
                 // Attach Z buffer to back surface.
                 result = lp_DD_BackSurface->AddAttachedSurface(lp_DD_ZBuffer);
                 if (FAILED(result)) {
-                    DebugText("InitBack: unable to attach ZBuffer 1\n");
 
                     if (lp_DD_ZBuffer) {
                         lp_DD_ZBuffer->Release();
@@ -1208,7 +1185,6 @@ HRESULT Display::InitBack(void)
         //	Create the D3D device interface
         result = lp_D3D->CreateDevice(CurrDevice->guid, lp_DD_BackSurface, &lp_D3D_Device, NULL);
         if (FAILED(result)) {
-            DebugText("InitBack: unable to create D3D device\n");
             d3d_error(result);
             return result;
         }
@@ -1218,13 +1194,11 @@ HRESULT Display::InitBack(void)
         if (FAILED(result)) {
             // Error, no texture formats
             // Hope we can run OK without textures
-            DebugText("InitBack: unable to load texture formats\n");
         }
 
         //	Create the viewport
         result = InitViewport();
         if (FAILED(result)) {
-            DebugText("InitBack: unable to init viewport\n");
             return result;
         }
 
@@ -1254,7 +1228,6 @@ HRESULT Display::InitBack(void)
             dd_sd.dwHeight = h;
             result = lp_DD4->CreateSurface(&dd_sd, &lp_DD_WorkSurface, NULL);
             if (FAILED(result)) {
-                DebugText("InitBack: unable to create work surface\n");
                 dd_error(result);
                 return result;
             }
@@ -1351,7 +1324,6 @@ HRESULT Display::InitViewport(void)
     // Black material.
     result = lp_D3D->CreateMaterial(&lp_D3D_Black, NULL);
     if (FAILED(result)) {
-        DebugText("InitViewport: Error creating black material\n");
         return result;
     }
 
@@ -1367,14 +1339,12 @@ HRESULT Display::InitViewport(void)
 
     result = lp_D3D_Black->SetMaterial(&material);
     if (FAILED(result)) {
-        DebugText("InitViewport: Error setting black material\n");
         lp_D3D_Black->Release();
         lp_D3D_Black = NULL;
         return result;
     }
     result = lp_D3D_Black->GetHandle(lp_D3D_Device, &black_handle);
     if (FAILED(result)) {
-        DebugText("InitViewport: Error getting black handle\n");
         lp_D3D_Black->Release();
         lp_D3D_Black = NULL;
         return result;
@@ -1383,7 +1353,6 @@ HRESULT Display::InitViewport(void)
     // White material.
     result = lp_D3D->CreateMaterial(&lp_D3D_White, NULL);
     if (FAILED(result)) {
-        DebugText("InitViewport: Error creating white material\n");
         return result;
     }
     material.diffuse.r = D3DVAL(1.0);
@@ -1397,14 +1366,12 @@ HRESULT Display::InitViewport(void)
 
     result = lp_D3D_White->SetMaterial(&material);
     if (FAILED(result)) {
-        DebugText("InitViewport: Error setting white material\n");
         lp_D3D_White->Release();
         lp_D3D_White = NULL;
         return result;
     }
     result = lp_D3D_White->GetHandle(lp_D3D_Device, &white_handle);
     if (FAILED(result)) {
-        DebugText("InitViewport: Error getting white handle\n");
         lp_D3D_White->Release();
         lp_D3D_White = NULL;
         return result;
@@ -1596,7 +1563,6 @@ HRESULT Display::ChangeMode(
     // Check Initialization
     if ((!hDDLibWindow) || (!IsWindow(hDDLibWindow))) {
         result = DDERR_GENERIC;
-        DebugText("ChangeMode: main window not initialised\n");
         return result;
     }
 
@@ -1627,7 +1593,6 @@ HRESULT Display::ChangeMode(
     new_mode = old_driver->FindMode(w, h, bpp, 0, NULL);
     if (!new_mode) {
         result = DDERR_GENERIC;
-        DebugText("ChangeMode: mode not available with this driver\n");
         return result;
     }
 
@@ -1642,7 +1607,6 @@ HRESULT Display::ChangeMode(
             if (!next_best_device) {
                 // No D3D device is compatible with this new mode
                 result = DDERR_GENERIC;
-                DebugText("ChangeMode: No device is compatible with this mode\n");
                 return result;
             }
             new_device = next_best_device;
@@ -1671,7 +1635,6 @@ HRESULT Display::ChangeMode(
     // Create Primary Surface
     result = InitFront();
     if (FAILED(result)) {
-        DebugText("ChangeMode: Error in InitFront\n");
 
         // Try to restore old mode
         CurrMode = old_mode;
@@ -1687,7 +1650,6 @@ HRESULT Display::ChangeMode(
     // Create Render surface
     result = InitBack();
     if (FAILED(result)) {
-        DebugText("ChangeMode: Error in InitBack\n");
 
         FiniFront();
 
@@ -1724,7 +1686,6 @@ HRESULT Display::Restore(void)
     // Check Initialization
     if (!IsValid()) {
         result = DDERR_GENERIC;
-        DebugText("Restore: invalid initialisation\n");
         return result;
     }
 
@@ -1872,7 +1833,6 @@ void* Display::screen_lock(void)
         // Don't do anything if you try to lock the screen twice in a row.
         //
 
-        TRACE("Locking the screen when it is already locked!\n");
     } else {
         DDSURFACEDESC2 ddsdesc;
         HRESULT ret;
@@ -1935,7 +1895,6 @@ void Display::PlotPixel(SLONG x, SLONG y, UBYTE red, UBYTE green, UBYTE blue)
         // Do nothing if the screen is not locked.
         //
 
-        TRACE("PlotPixel while screen is not locked.\n");
     }
 }
 
@@ -1961,7 +1920,6 @@ void Display::PlotFormattedPixel(SLONG x, SLONG y, ULONG colour)
         // Do nothing if the screen is not locked.
         //
 
-        TRACE("PlotFormattedPixel while screen is not locked.\n");
     }
 }
 

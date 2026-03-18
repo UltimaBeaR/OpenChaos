@@ -893,26 +893,20 @@ void D3DDeviceInfo::CheckCaps(LPDIRECT3DDEVICE3 the_device)
 
     if (hw.dpcTriCaps.dwTextureBlendCaps & D3DPTBLENDCAPS_MODULATEALPHA) {
         CanDoModulateAlpha = true;
-        TRACE("Card can do MODULATEALPHA\n");
     } else {
         CanDoModulateAlpha = false;
-        TRACE("Card *cannot* do MODULATEALPHA\n");
     }
 
     if (hw.dpcTriCaps.dwDestBlendCaps & D3DPBLENDCAPS_INVSRCCOLOR) {
         CanDoDestInvSourceColour = true;
-        TRACE("Card can do INVSRCCOLOR\n");
     } else {
         CanDoDestInvSourceColour = false;
-        TRACE("Card *cannot* do INVSRCCOLOR\n");
     }
 
     if ((hw.dpcTriCaps.dwDestBlendCaps & D3DPBLENDCAPS_SRCCOLOR) && (hw.dpcTriCaps.dwSrcBlendCaps & D3DPBLENDCAPS_DESTCOLOR)) {
         CanDoAdamiLighting = true;
-        TRACE("Card can do ADAMI LIGHTING\n");
     } else {
         CanDoAdamiLighting = false;
-        TRACE("Card *cannot* do ADAMI LIGHTING\n");
     }
 
     SLONG adami_lighting = ENV_get_value_number("Adami_lighting", -1, "Render");
@@ -926,7 +920,6 @@ void D3DDeviceInfo::CheckCaps(LPDIRECT3DDEVICE3 the_device)
     if (adami_lighting == 0) {
         CanDoAdamiLighting = false;
 
-        TRACE("Overriding ADAMI LIGHTING\n");
     }
 }
 

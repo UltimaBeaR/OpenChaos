@@ -537,7 +537,6 @@ void add_walk_face_to_map(SWORD face, SLONG x, SLONG z)
 {
 
     if (next_walk_link >= (MAX_WALK_POOL - 4)) {
-        LogText(" failed out  of walk mem \n");
         ASSERT(0);
         return;
     }
@@ -1130,8 +1129,6 @@ void insert_point(SLONG z, SLONG x, SWORD type)
 void set_cut_blocks(SLONG x, SLONG z) // x is in pixels // zis in blocks
 {
 
-    LogText(" cut block [%d][%d] top    x %d x %x\n", x >> ELE_SHIFT, z + 1, x, x);
-    LogText(" cut block [%d][%d] bottom x %d x %x\n", x >> ELE_SHIFT, z, x, x);
     //	z=z-(edge_min_z>>ELE_SHIFT);
     cut_blocks[(x >> ELE_SHIFT) * 4 + ((z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_TOP)] = x;
     cut_blocks[(x >> ELE_SHIFT) * 4 + ((z - 1) * MAX_BOUND_SIZE * 4 + CUT_BLOCK_BOTTOM)] = x;
@@ -1140,8 +1137,6 @@ void set_cut_blocks(SLONG x, SLONG z) // x is in pixels // zis in blocks
 void set_cut_blocks_z(SLONG x, SLONG z) // x is in blocks z is in pixels
 {
 
-    LogText(" cut block [%d][%d] left   z %d z %x\n", x, z >> ELE_SHIFT, z, z);
-    LogText(" cut block [%d][%d] right  z %d z %x\n", x - 1, z >> ELE_SHIFT, z, z);
     cut_blocks[(x) * 4 + (((z >> ELE_SHIFT) - 0) * MAX_BOUND_SIZE * 4 + CUT_BLOCK_LEFT)] = z;
     cut_blocks[(x - 1) * 4 + (((z >> ELE_SHIFT) - 0) * MAX_BOUND_SIZE * 4 + CUT_BLOCK_RIGHT)] = z;
 }
@@ -1249,7 +1244,6 @@ UBYTE scan_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG flag)
             while (count) {
                 insert_point(z1, x >> 16, type);
                 if (dx) {
-                    LogText(" scan x %d \n", (x >> 16) & 0xff);
                     if ((x >> 16) & 0xff) {
                         set_cut_blocks(x >> 16, z1);
                     }
@@ -1269,7 +1263,6 @@ UBYTE scan_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG flag)
             while (count) {
                 insert_point(z1, x >> 16, type);
                 if (dx) {
-                    LogText(" scan x2 %d \n", (x >> 16) & 0xff);
                     if ((x >> 16) & 0xff) {
                         set_cut_blocks(x >> 16, z1);
                     }
@@ -1283,7 +1276,6 @@ UBYTE scan_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG flag)
     /*
             else
             {
-                    LogText(" dx longest \n");
                     x1>>=ELE_SHIFT;
                     x2>>=ELE_SHIFT;
                     dx=x2-x1;
@@ -1293,7 +1285,6 @@ UBYTE scan_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG flag)
 
                     if(count<0)
                     {
-                            LogText(" neg count %d z1 %d z2 %d \n",count,z1,z2);
                             dz=-(dz<<16)/count;
                             while(count<0)
                             {
@@ -1529,12 +1520,9 @@ void dump_edge_list(UWORD size)
 
     for (c0 = 0; c0 < size; c0++) {
         edge = edge_heads_ptr[c0];
-        DebugText(" Z %d---", c0);
         while (edge) {
-            DebugText(" %x(%d) ", edge_pool_ptr[edge].X, edge_pool_ptr[edge].Count);
             edge = edge_pool_ptr[edge].Next;
         }
-        DebugText(" \n");
     }
 }
 
@@ -1556,7 +1544,6 @@ void	show_grid(SLONG width,SLONG depth,SLONG min_x)
         box_width=(780/width);
 
 
-        LogText(" show grid  width %d  depth %d min_x %d \n",width,depth,min_x);
 
 
 
@@ -1667,10 +1654,6 @@ void build_free_tri_texture_info(struct PrimFace3* p_f3, SLONG mx, SLONG mz)
 
     p_f3->TexturePage = page;
 
-    LogText(" U[0].X %d U[0].Y %d\n", UV[0][0], UV[0][1]);
-    LogText(" U[1].X %d U[1].Y %d\n", UV[1][0], UV[1][1]);
-    LogText(" U[2].X %d U[2].Y %d\n", UV[2][0], UV[2][1]);
-    LogText(" U[3].X %d U[3].Y %d\n", UV[3][0], UV[3][1]);
 
     for (p = 0; p < 3; p++) {
         SLONG x1, z1;
@@ -1680,7 +1663,6 @@ void build_free_tri_texture_info(struct PrimFace3* p_f3, SLONG mx, SLONG mz)
         x1 = prim_points[p_f3->Points[p]].X - (mx << ELE_SHIFT);
         z1 = prim_points[p_f3->Points[p]].Z - (mz << ELE_SHIFT);
 
-        LogText(" free tri p %d  x1 %d z1 %d \n", p, x1, z1);
 
         lx = (z1 * dtx_down) >> 8;
         ly = (z1 * dty_down) >> 8;
@@ -1693,12 +1675,10 @@ void build_free_tri_texture_info(struct PrimFace3* p_f3, SLONG mx, SLONG mz)
         rx += UV[1][0];
         ry += UV[1][1];
 
-        LogText("left (%d,%d) right (%d,%d)\n", lx, ly, rx, ry);
 
         p_f3->UV[p][0] = lx + (((rx - lx) * x1) >> 8);
         p_f3->UV[p][1] = ly + (((ry - ly) * x1) >> 8);
 
-        LogText("result (%d,%d) \n", lx + (((rx - lx) * x1) >> 8), ly + (((ry - ly) * x1) >> 8));
     }
 }
 
@@ -1746,10 +1726,6 @@ void build_free_quad_texture_info(struct PrimFace4* p_f4, SLONG mx, SLONG mz)
 
     p_f4->TexturePage = page;
 
-    LogText(" U[0].X %d U[0].Y %d\n", UV[0][0], UV[0][1]);
-    LogText(" U[1].X %d U[1].Y %d\n", UV[1][0], UV[1][1]);
-    LogText(" U[2].X %d U[2].Y %d\n", UV[2][0], UV[2][1]);
-    LogText(" U[3].X %d U[3].Y %d\n", UV[3][0], UV[3][1]);
 
     for (p = 0; p < 4; p++) {
         SLONG x1, z1;
@@ -1759,7 +1735,6 @@ void build_free_quad_texture_info(struct PrimFace4* p_f4, SLONG mx, SLONG mz)
         x1 = prim_points[p_f4->Points[p]].X - (mx << ELE_SHIFT);
         z1 = prim_points[p_f4->Points[p]].Z - (mz << ELE_SHIFT);
 
-        LogText(" free tri p %d  x1 %d z1 %d \n", p, x1, z1);
 
         lx = (z1 * dtx_down) >> 8;
         ly = (z1 * dty_down) >> 8;
@@ -1772,12 +1747,10 @@ void build_free_quad_texture_info(struct PrimFace4* p_f4, SLONG mx, SLONG mz)
         rx += UV[1][0];
         ry += UV[1][1];
 
-        LogText("	left (%d,%d) right (%d,%d)\n", lx, ly, rx, ry);
 
         p_f4->UV[p][0] = lx + (((rx - lx) * x1) >> 8);
         p_f4->UV[p][1] = ly + (((ry - ly) * x1) >> 8);
 
-        LogText("		result (%d,%d) \n", lx + (((rx - lx) * x1) >> 8), ly + (((ry - ly) * x1) >> 8));
     }
 }
 
@@ -1925,7 +1898,6 @@ void create_walkable_structure(SLONG left, SLONG right, SLONG top, SLONG bottom,
     {
         SLONG c0;
         for (c0 = sf4; c0 < next_prim_face4; c0++) {
-            LogText(" face %d p0 %d p1 %d p2 %d p3 %d  SP %d  EP %d \n", c0, prim_faces4[c0].Points[0], prim_faces4[c0].Points[1], prim_faces4[c0].Points[2], prim_faces4[c0].Points[3], sp, next_prim_point);
         }
     }
 
@@ -3284,7 +3256,6 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
         SLONG dy = 0;
         SLONG prev_x_in = 0;
         edge = edge_heads_ptr[z];
-        DebugText("\n roof polys z=%d x %x", z + (edge_min_z >> 8), min_x - 256 + 128);
 
         for (x = min_x - 256 + 128; x < max_x + 256 && edge; x += ELE_SIZE) {
 
@@ -3295,7 +3266,6 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
                 //
                 // crossed an edge so flip the priority
                 //
-                DebugText("%d", edge_pool_ptr[edge].Count);
 
                 polarity += edge_pool_ptr[edge].Count;
                 edge = edge_pool_ptr[edge].Next;
@@ -3309,7 +3279,6 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
                 SLONG tl, tr, bl, br;
                 SLONG texture;
 
-                DebugText("[]");
 
                 if (x < lmin_x)
                     lmin_x = x;
@@ -3411,7 +3380,6 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
                     p_f4->ThingIndex = face_wall;
                     if (p_f4->FaceFlags & FACE_FLAG_NON_PLANAR)
                         calc_face_split(p_f4);
-                    LogText(" add walkable quad %d \n", next_prim_face4 - 1);
                     add_quad_to_walkable_list(next_prim_face4 - 1);
 
                     // void	attach_walkable_to_map(SLONG face);
@@ -3423,7 +3391,6 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
                 }
 
             } else {
-                DebugText("..");
                 //
                 // this block should not be filled
                 //
@@ -3446,7 +3413,6 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
         t_max_x = lmax_x >> 8;
 
         for (z = lmin_z; z < lmax_z; z++) {
-            LogText("\n");
             for (x = t_min_x; x <= t_max_x; x++) {
                 SLONG point;
 
@@ -3475,7 +3441,6 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
                         ASSERT(bits < 256);
 
                         if (data = lookup_roof[bits]) {
-                            DebugText(" %d(%d,%d) ", bits, data & 0xff, data >> 8);
                             if (data) {
                                 edit_map[x][z + oz].Texture = (data & 0xff) + 6 * 64;
                                 edit_map[x][z + oz].Texture |= (data >> 8) << 0xa;
@@ -3484,13 +3449,10 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
                         }
                     }
 
-                } else
-                    LogText("..");
+                }
             }
-            DebugText("\n");
         }
 
-        DebugText("\n");
 
         {
             SLONG left, top, right, bottom;
@@ -3658,7 +3620,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
     set_floor_hidden(storey, 0, PAP_FLAG_REFLECTIVE);
 
     // now step over whole rect, flagging points as either inside or outside or on the edge of the building
-    LogText(" BUILD FIRST EDGE LIST for storey %d \n", storey);
     angles = build_edge_list(storey, 0);
 
     //	ASSERT(storey!=5);
@@ -3676,33 +3637,27 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
         s = building_list[building].StoreyHead;
         while (s) {
             if (do_storeys_overlap(s, storey) && (storey_list[s].DY == storey_list[storey].DY + storey_height) && (storey_list[s].StoreyType == STOREY_TYPE_SKYLIGHT || storey_list[s].StoreyType == STOREY_TYPE_NORMAL)) {
-                LogText(" storey %d height %d is 1 above %d so edge it\n", s, storey_list[s].DY, storey);
                 build_more_edge_list(min_z, max_z, s, 0);
 
             } else
-                LogText(" failed storey %d height %d is NOT 1 above %d \n", s, storey_list[s].DY, storey);
 
             s = storey_list[s].Next;
         }
     }
 
     if (storey == 3) {
-        LogText(" about to build faulty roof \n");
     }
 
     if (!angles) {
         SLONG bound;
-        LogText(" EASY ROOF building %d storey %d \n", storey_list[storey].BuildingHead, storey);
         //		if(storey==214)
         //			ASSERT(0);
-        LogText(" final edge list \n");
         dump_edge_list(depth);
         bound = build_easy_roof(min_x, edge_min_z, max_x, depth, y, face_wall, flat_flag); // 0 changed to 1   for flat rooves
         bin_edge_list();
         clear_reflective_flag(min_x, min_z, max_x, max_z);
         return (bound);
     }
-    LogText(" COMPLEX ROOF building %d storey %d \n", storey_list[storey].BuildingHead, storey);
 
     for (z = 0; z < depth; z++) {
         SLONG polarity = 0;
@@ -3756,7 +3711,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
             }
         }
 
-        LogText(" \n");
     }
     //	ASSERT(0);
     build_bottom_edge_list(storey, y);
@@ -3874,13 +3828,11 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                         build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
                         //							LogText(" done tr+br 3 at [%d][%d]\n",x,z);
                     } else
-                        LogText(" pooerror1\n");
 
                     break;
                 case (BL + BR):
                     zl = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_LEFT];
                     zr = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_RIGHT];
-                    LogText(" zl %x zr %x \n", zl, zr);
 
                     if (zl && zr) {
                         //  pa  pb
@@ -3915,7 +3867,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                         build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
                         //						LogText(" done bl+br 3 at [%d][%d]\n",x,z);
                     } else
-                        LogText(" pooerror2\n");
                     break;
                 case (TL + BL):
                     xt = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_TOP];
@@ -4007,7 +3958,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                         build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
                         //						LogText(" done tl+tr 3 at [%d][%d]\n",x,z);
                     } else
-                        LogText(" pooerror4\n");
                     break;
 
                 case (TR + BR + BL):
@@ -4035,7 +3985,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                             //      pa
                             //	pb
                             //	p3	p2
-                            LogText("special 1b \n");
                             pb = next_prim_point;
                             add_point((x) << ELE_SHIFT, y, zl + edge_min_z);
                             p_f4 = create_a_quad(pb, p3, p1, p2, 0, 0);
@@ -4087,25 +4036,21 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                             //  pa
                             //		pb
                             //	p3	p2
-                            LogText("special 2 \n");
                             pb = next_prim_point;
                             add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
                             p_f4 = create_a_quad(p0, p3, pb, p2, 0, 0);
                             p_f4->ThingIndex = face_wall;
                             build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
-                            LogText(" done tl+br+bl 2 at [%d][%d]\n", x, z);
 
                         } else if (zr == ((z + 1) << ELE_SHIFT) || zr == 0) {
                             //  p0 pa
                             //
                             //	p3	p2
-                            LogText("special 2b \n");
                             pb = next_prim_point;
                             add_point((xt), y, (z << ELE_SHIFT) + edge_min_z);
                             p_f4 = create_a_quad(p0, p3, pa, p2, 0, 0);
                             p_f4->ThingIndex = face_wall;
                             build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
-                            LogText(" done tl+br+bl 3 at [%d][%d]\n", x, z);
                         }
                     }
                     //						else
@@ -4115,9 +4060,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                 case (TL + TR + BL):
                     xb = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_BOTTOM];
                     zr = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_RIGHT];
-                    LogText("POO3 xb %x zr %x \n", xb, zr);
-                    LogText(" [%d][%d] \n", x, z);
-                    LogText(" p0 (%d,%d,%d) p1 (%d,%d,%d) p3 (%d,%d,%d) \n", prim_points[p0].X, prim_points[p0].Y, prim_points[p0].Z, prim_points[p1].X, prim_points[p1].Y, prim_points[p1].Z, prim_points[p3].X, prim_points[p3].Y, prim_points[p3].Z);
 
                     if (xb && zr) {
                         //  p0   p1
@@ -4133,31 +4075,26 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                         build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
                         p_f3 = create_a_tri(p3, p1, p0, 0, 0);
                         build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
-                        LogText(" done tl+tr+bl 1 at [%d][%d]\n", x, z);
                     } else if (xb || zr) {
                         if (zr == ((z + 1) << ELE_SHIFT) || zr == 0) {
                             //  p0  p1
                             //
                             //	p3 pa
-                            LogText("special 3 \n");
                             pa = next_prim_point;
                             add_point((xb), y, ((z + 1) << ELE_SHIFT) + edge_min_z);
                             p_f4 = create_a_quad(p0, p3, p1, pa, 0, 0);
                             p_f4->ThingIndex = face_wall;
                             build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
-                            LogText(" done tl+tr+bl 2 at [%d][%d]\n", x, z);
 
                         } else if (xb == (x << ELE_SHIFT) || xb == 0) {
                             //  p0  p1
                             //		pb
                             //	pa3
-                            LogText("special 3b \n");
                             pb = next_prim_point;
                             add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
                             p_f4 = create_a_quad(p0, p3, p1, pb, 0, 0);
                             p_f4->ThingIndex = face_wall;
                             build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
-                            LogText(" done tl+tr+bl 3 at [%d][%d]\n", x, z);
                         }
                     }
                     //						else
@@ -4168,8 +4105,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                 case (TL + TR + BR):
                     xb = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_BOTTOM];
                     zl = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_LEFT];
-                    LogText("POO444 xb %x zl %x \n", xb, zl);
-                    LogText(" [%d][%d] \n", x, z);
 
                     if (xb && zl) {
                         //  p0  p1
@@ -4179,39 +4114,32 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                         add_point(xb, y, ((z + 1) << ELE_SHIFT) + edge_min_z);
                         pb = next_prim_point;
                         add_point((x) << ELE_SHIFT, y, zl + edge_min_z);
-                        LogText(" p0 (%d,%d,%d) p1 (%d,%d,%d) p2 (%d,%d,%d) \n", prim_points[p0].X, prim_points[p0].Y, prim_points[p0].Z, prim_points[p1].X, prim_points[p1].Y, prim_points[p1].Z, prim_points[p2].X, prim_points[p2].Y, prim_points[p2].Z);
-                        LogText(" pa (%d,%d,%d) pb (%d,%d,%d) \n", prim_points[pa].X, prim_points[pa].Y, prim_points[pa].Z, prim_points[pb].X, prim_points[pb].Y, prim_points[pb].Z);
 
                         p_f4 = create_a_quad(pb, pa, p0, p2, 0, 0);
                         p_f4->ThingIndex = face_wall;
                         build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
                         p_f3 = create_a_tri(p0, p2, p1, 0, 0);
                         build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
-                        LogText(" done tl+tr+br 1 at [%d][%d]\n", x, z);
                     } else if (xb || zl) {
                         if (xb == (x + 1) << ELE_SHIFT || xb == 0) {
                             //  p0  p1
                             //	pb
                             //		p2a
-                            LogText("special 4 \n");
                             pb = next_prim_point;
                             add_point((x) << ELE_SHIFT, y, zl + edge_min_z);
                             p_f4 = create_a_quad(p0, pb, p1, p2, 0, 0);
                             p_f4->ThingIndex = face_wall;
                             build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
-                            LogText(" done tl+tr+br 2 at [%d][%d]\n", x, z);
 
                         } else if (zl == (z) << ELE_SHIFT || zl == 0) {
                             //  pb   p1
                             //
                             //	  pa p2
-                            LogText("special 4b \n");
                             pa = next_prim_point;
                             add_point((xb), y, ((z + 1) << ELE_SHIFT) + edge_min_z);
                             p_f4 = create_a_quad(p0, pb, p1, p2, 0, 0);
                             p_f4->ThingIndex = face_wall;
                             build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
-                            LogText(" done tl+tr+br 3 at [%d][%d]\n", x, z);
                         }
                     }
                     //						else
@@ -4254,7 +4182,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
 
                         p_f3 = create_a_tri(pa, pb, p1, 0, 0);
                         build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
-                        LogText(" done tr 1 at [%d][%d]\n", x, z);
                     }
                     break;
                 case (BR):
@@ -4274,7 +4201,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
 
                         p_f3 = create_a_tri(pb, pa, p2, 0, 0);
                         build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
-                        LogText(" done br 1 at [%d][%d]\n", x, z);
                     }
                     break;
                 case (BL):
@@ -4299,7 +4225,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                     break;
 
                 default:
-                    LogText(" un supported p0...  (%d,%d,%d,%d)\n", p0, p1, p2, p3);
                     break;
                 }
             }
@@ -5286,7 +5211,6 @@ SLONG build_skylight(SLONG storey)
     //
     // Build points at roof height
     //
-    LogText(" build outer rim \n");
     start_point[0] = next_prim_point;
     ox = x;
     oz = z;
@@ -5305,7 +5229,6 @@ SLONG build_skylight(SLONG storey)
     //
     // Build points above roof and in a bit
     //
-    LogText(" build up and in \n");
 
     pcount = build_outline(&sx[0], &sz[0], storey, wall, y + up, in);
 
@@ -5922,7 +5845,6 @@ SLONG build_ledge2(SLONG y, SLONG storey, SLONG out, SLONG height, SLONG dip)
     //
     // Build points round top of building
     //
-    LogText(" build down & in \n");
     start_point[0] = next_prim_point;
     ox = x;
     oz = z;
@@ -5942,7 +5864,6 @@ SLONG build_ledge2(SLONG y, SLONG storey, SLONG out, SLONG height, SLONG dip)
     //
     // Build points at top of building height that stick out
     //
-    LogText(" build down & out \n");
 
     pcount = build_outline(&sx_l2[0], &sz_l2[0], storey, wall, y, out);
 
@@ -5957,7 +5878,6 @@ SLONG build_ledge2(SLONG y, SLONG storey, SLONG out, SLONG height, SLONG dip)
     //
     // sticky out and up
     //
-    LogText(" build up & out \n");
     start_point[2] = next_prim_point;
 
     pcount = build_outline(&sx_l2[0], &sz_l2[0], storey, wall, y + height, out);
@@ -6986,7 +6906,6 @@ void build_roof_quad(UWORD storey, SLONG y)
             // A quad roof has been found that has less than 4 walls
             //
 
-            LogText(" storey %d is a roof quad with <4 walls\n", storey);
             next_prim_point = npp;
             return;
         }
@@ -7019,12 +6938,9 @@ void center_object(SLONG sp, SLONG ep)
     //	,count;
     SLONG az = 0, ax = 0;
     if (ep - sp < 0) {
-        LogText(" sp %d ep %d \n", sp, ep);
-        ERROR_MSG(0, " center object has negative points");
         return;
     }
     if ((ep - sp) == 0) {
-        LogText("CENTER OBJECT Error sp %d ep %d \n", sp, ep);
         return;
     }
 
@@ -7055,12 +6971,9 @@ void center_object_about_xz(SLONG sp, SLONG ep, SLONG x, SLONG z)
     SLONG c0;
     //	,count;
     if (ep - sp < 0) {
-        LogText(" sp %d ep %d \n", sp, ep);
-        ERROR_MSG(0, " center object has negative points");
         return;
     }
     if ((ep - sp) == 0) {
-        LogText("CENTER OBJECT Error sp %d ep %d \n", sp, ep);
         return;
     }
 
@@ -7081,7 +6994,6 @@ SLONG build_facet(SLONG sp, SLONG mp, SLONG sf3, SLONG sf4, SLONG mf4, SLONG pre
     struct BuildingFacet* p_obj;
     p_obj = &building_facets[next_building_facet];
     //	LogText(" add facet %d to building %d \n",next_building_facet,next_building_object);
-    DebugText(" build facet sp %d mp %d ep %d sf4 %d ef4 %d\n", sp, mp, next_prim_point, sf4, next_prim_face4);
     next_building_facet++;
 
     SLONG c0;
@@ -7181,7 +7093,6 @@ SLONG build_prim_object(SLONG sp, SLONG sf3, SLONG sf4)
 void find_next_last_coord(SWORD wall, SLONG* x, SLONG* z)
 {
     SLONG next_wall;
-    LogText(" find next to last wall %d ", wall);
     while (wall) {
         next_wall = wall_list[wall].Next;
         //		LogText(" wall %d ",wall);
@@ -7266,11 +7177,9 @@ SLONG find_wall_for_fe(SLONG fe_x, SLONG fe_y, SLONG storey)
         storey = storey_list[storey].Next;
     }
     if (storey == 0)
-        LogText(" error \n");
 
     wall = storey_list[storey].WallHead;
     if (wall == 0)
-        LogText(" error \n");
     px = storey_list[storey].DX;
     pz = storey_list[storey].DZ;
     while (wall) {
@@ -7289,7 +7198,6 @@ SLONG find_wall_for_fe(SLONG fe_x, SLONG fe_y, SLONG storey)
         pz = z1;
     }
     if (best_wall == -1)
-        LogText(" best wall=-1\n");
     return (best_wall);
 }
 
@@ -8568,7 +8476,6 @@ SLONG process_external_pieces(UWORD building)
     SLONG prev_facet = 0;
 
     storey = building_list[building].StoreyHead;
-    LogText(" storey type START %d \n", storey_list[storey].StoreyType);
     while (storey && c0 < 400) {
         switch (storey_list[storey].StoreyType) {
         case STOREY_TYPE_CABLE:
@@ -8579,13 +8486,11 @@ SLONG process_external_pieces(UWORD building)
         case STOREY_TYPE_OUTSIDE_DOOR:
             if (storey_list[storey].DY == 0)
                 prev_facet = build_whole_fence(storey);
-            LogText(" storey type1 %d facet %d\n", storey_list[storey].StoreyType, prev_facet);
             break;
         case STOREY_TYPE_FENCE_BRICK:
             if (storey_list[storey].DY == 0)
                 prev_facet = build_whole_fence(storey);
             //				prev_facet=build_brick_wall(storey);
-            LogText(" storey type2 %d \n", storey_list[storey].StoreyType);
             break;
         case STOREY_TYPE_NORMAL:
             if (storey_list[storey].DY == 0) {
@@ -8877,14 +8782,11 @@ SLONG build_storey_floor(SLONG storey, SLONG y, SLONG flag)
     edge_min_z = min_z;
 
     // now step over whole rect, flagging points as either inside or outside or on the edge of the building
-    LogText(" BUILD FIRST EDGE LIST for storey %d \n", storey);
     angles = build_edge_list(storey, 0);
     dump_edge_list(depth);
 
     if (!angles) {
         SLONG bound;
-        LogText(" EASY ROOF building %d storey %d \n", storey_list[storey].BuildingHead, storey);
-        LogText(" final edge list \n");
         dump_edge_list(depth);
         bound = build_easy_roof(min_x, edge_min_z, max_x, depth, y, face_wall, flag);
         bin_edge_list();
@@ -9017,7 +8919,6 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
     memset((UBYTE*)wall_for_ladder, 0, 200);
 
     if (building == 3)
-        LogText(" build external bits\n");
 
     process_external_pieces(building); // makes seperate buildings
     //	LogText(" create building prim2  next prim_point %d \n",next_prim_point);
@@ -9051,7 +8952,6 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
 
     building_list[building].OffsetY = build_max_y;
     while (storey) {
-        LogText("storey %d \n", storey);
         SLONG x1, z1, x2, z2;
         //		LogText("MCD build storey %d \n",storey);
 
@@ -9152,8 +9052,6 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
                             STOREY_TYPE_NORMAL,
                             connect_count,
                             -wall);
-                        if (building == 3)
-                            LogText(" building 3   recessed wall \n");
                     } else {
                         if (y == 0) {
                             col_vect = insert_collision_vect(x1, y + offset_y, z1, x2, y + offset_y, z2, STOREY_TYPE_NORMAL_FOUNDATION, connect_count * 4, -wall);
@@ -9242,7 +9140,6 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
     storey = building_list[building].StoreyHead;
     while (storey) {
         SLONG bound;
-        LogText("storeyb %d \n", storey);
 
         if ((storey_list[storey].StoreyFlags & (FLAG_STOREY_TILED_ROOF | FLAG_STOREY_FLAT_TILED_ROOF)) && (storey_list[storey].StoreyType == STOREY_TYPE_NORMAL)) {
             SLONG flat = 0;
@@ -9259,17 +9156,14 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
                                     {
                                             case	STOREY_TYPE_ROOF:
                                                             if(building==3)
-                                                                    LogText(" building 3   build roof \n");
                                                             build_roof(storey,storey_list[storey_list[storey].Roof].DY+offset_y);
                                                             break;
                                             case	STOREY_TYPE_ROOF_QUAD:
                                                             if(building==3)
-                                                                    LogText(" building 3   build roof quad\n");
                                                             build_roof_quad(storey,storey_list[storey_list[storey].Roof].DY+offset_y);
                                                             break;
                                             case	STOREY_TYPE_LADDER:
                                                             if(building==3)
-                                                                    LogText(" building 3   build ladder\n");
                                                             build_ladder(storey);
                                             break;
 
@@ -9279,12 +9173,10 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
             switch (storey_list[storey].StoreyType) {
             case STOREY_TYPE_LADDER:
                 if (building == 3)
-                    LogText(" building 3   build ladder\n");
                 build_ladder(storey);
                 break;
             case STOREY_TYPE_SKYLIGHT: // where should a skylight be processed?
                 if (building == 3)
-                    LogText(" building 3   build skylight\n");
                 build_skylight(storey);
                 break;
             }
@@ -9339,7 +9231,6 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
     //	LogText(" create building prim5  next prim_point %d \n",next_prim_point);
     if (valid) {
         if (building == 3)
-            LogText(" building 3   build last facet\n");
         prev_facet = build_facet(start_point, next_prim_point, start_face3, start_face4, next_prim_face4, prev_facet, FACET_FLAG_ROOF, 0);
     }
     start_point = next_prim_point;
@@ -9543,7 +9434,6 @@ void calc_prob(void)
                         total_win1 += win;
                         total++;
                     }
-    LogText(" total %d win2 %d win1 %d  P2 %f p1 %f \n", total, total_win2, total_win1, (float)(((float)total_win2) / ((float)total)), (float)(((float)total_win1) / ((float)total)));
 }
 
 void fix_furniture(void)
@@ -9621,14 +9511,8 @@ void create_city(UBYTE mode)
     temp_next_building_facet = next_building_facet;
 
     /*
-            LogText("*************\n");
-            LogText("*create city*\n");
-            LogText("*************\n");
-            LogText(" obj %d face3 %d face4 %d point %d build %d facet %d \n",next_prim_object,next_prim_face3,next_prim_face4,next_prim_point,next_building_object,next_building_facet);
-            LogText(" col vect %d link %d \n",next_col_vect,next_col_vect_link);
     */
 
-    LogText(" next prim point %d \n", next_prim_point);
     //	wibble_floor();
     for (c0 = 1; c0 < MAX_BUILDINGS; c0++) {
         SLONG prim;
@@ -9691,24 +9575,12 @@ void create_city(UBYTE mode)
     //	SHADOW_do();
     //	printf(" done shadow\n");
 
-    LogText(" Structures (PSX1)\n");
-    LogText(" next_prim_point %d \n", next_prim_point);
-    LogText(" next_prim_face3 %d \n", next_prim_face3);
-    LogText(" next_prim_face4 %d \n", next_prim_face4);
-    LogText(" next_prim_object %d \n", next_prim_object);
-    LogText(" next_building_object %d \n", next_building_object);
-    LogText(" next_building_facet %d \n", next_building_facet);
-    LogText(" next_col_vect %d \n", next_col_vect);
-    LogText(" next_col_vect_link %d \n", next_col_vect_link);
-    LogText(" next_walk_link %d \n", next_walk_link);
     {
         SLONG high = 0;
         for (c0 = 0; c0 < MAX_WALLS; c0++) {
-            LogText(" wallflag[%d]=%d \n", c0, wall_list[c0].WallFlags);
             if (wall_list[c0].WallFlags)
                 high = c0;
         }
-        LogText(" max wall list %d \n", high);
     }
     {
         SLONG high = 0;
@@ -9716,7 +9588,6 @@ void create_city(UBYTE mode)
             if (storey_list[c0].StoreyFlags)
                 high = c0;
         }
-        LogText(" max storey list %d \n", high);
     }
     {
         SLONG high = 0;
@@ -9724,7 +9595,6 @@ void create_city(UBYTE mode)
             if (building_list[c0].BuildingFlags)
                 high = c0;
         }
-        LogText(" max building list %d \n", high);
     }
 
     for (c0 = 1; c0 < next_dwalkable; c0++) {
@@ -9733,13 +9603,11 @@ void create_city(UBYTE mode)
         for (face = dwalkables[c0].StartFace4; face < dwalkables[c0].EndFace4; face++) {
             prim_faces4[face].ThingIndex = c0; // dwalkables[c0].Building;
             void attach_walkable_to_map(SLONG face);
-            LogText(" walkable face %d  \n", face);
 
             {
                 SLONG point, c0;
                 for (c0 = 0; c0 < 4; c0++) {
                     point = prim_faces4[face].Points[c0];
-                    LogText(" point %d (%d,%d,%d) \n", point, prim_points[point].X, prim_points[point].Y, prim_points[point].Z);
                 }
             }
 

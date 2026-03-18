@@ -5484,7 +5484,6 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
             sprintf(str, "Pressed jump turn %d\n", GAME_TURN);
 
-            TRACE(str);
     }
 
     */

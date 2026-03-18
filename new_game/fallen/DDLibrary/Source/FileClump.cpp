@@ -63,10 +63,7 @@ FileClump::~FileClump()
             fwrite(Offsets, sizeof(size_t), MaxID, ClumpFD);
             fwrite(Lengths, sizeof(size_t), MaxID, ClumpFD);
 
-            TRACE("MaxID = %8.8X\n", MaxID);
             for (ULONG ii = 0; ii < MaxID; ii++) {
-                if (Offsets[ii])
-                    TRACE("%8.8X Off %8.8X Len %8.8X\n", ii, Offsets[ii], Lengths[ii]);
             }
         }
         MF_Fclose(ClumpFD);

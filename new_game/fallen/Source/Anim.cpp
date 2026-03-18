@@ -504,7 +504,6 @@ void GetCMatrix(GameKeyFrameElement* e, CMatrix33* cm)
 
     //	a = e->m00;   //if(a > 127) a -= 256;
     //	b = e->m01;   //if(b > 127) b -= 256;
-    DebugText("BB a = %d b =%d \n", a, b);
     c = UCA_Lookup[(UBYTE)a][(UBYTE)b];
     if (e->Pad & 1)
         c = -c;
@@ -1273,7 +1272,6 @@ void Anim::AddKeyFrame(KeyFrame* the_frame)
     if (the_frame) {
         StopLooping();
         frame_ptr = (KeyFrame*)MemAlloc(sizeof(KeyFrame));
-        ERROR_MSG(frame_ptr, "Unable to allocate memory for key frame.");
         *frame_ptr = *the_frame;
         frame_ptr->NextFrame = NULL;
         frame_ptr->PrevFrame = NULL;
@@ -1321,7 +1319,6 @@ void	Anim::AppendKeyFrame(KeyFrame *the_frame)
         {
                 StopLooping();
                 frame_ptr				=	(KeyFrame*)MemAlloc(sizeof(KeyFrame));
-                ERROR_MSG(frame_ptr,"Unable to allocate memory for key frame.");
                 *frame_ptr				=	*the_frame;
                 frame_ptr->NextFrame	=	NULL;
                 frame_ptr->PrevFrame	=	NULL;
@@ -1444,7 +1441,6 @@ void convert_elements(KeyFrameChunk* the_chunk, GameKeyFrameChunk* game_chunk, U
         count++;
     }
     game_chunk->MaxElements = max_ele;
-    LogText(" unique matrix count %d out of %d\n", unique, count);
 }
 
 

@@ -1411,7 +1411,6 @@ void POLY_init_render_states()
     POLY_ClearAllPages();
 
     // now sort the pages on texture
-    TRACE("Sorting texture pages: ");
     for (int ii = 0; ii < POLY_NUM_PAGES; ii++) {
         PageOrdered[ii] = false;
     }

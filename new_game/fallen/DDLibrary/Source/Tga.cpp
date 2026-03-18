@@ -171,19 +171,16 @@ TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height
     ans.contains_alpha = 0;
 
     if (tga_image_type != 2 && tga_pal != 1) {
-        TRACE("Tga must be true colour and uncompressed.\n");
         MF_Fclose(fd);
         return ans;
     }
 
     if (tga_pixel_depth != 32 && tga_pixel_depth != 24 && tga_pal != 1) {
-        TRACE("Tga must be 32-bit or 24-bit (24-bit + 8-bit alpha channel)\n");
         MF_Fclose(fd);
         return ans;
     }
 
     if (tga_width > max_width || tga_height > max_height) {
-        TRACE("Invalid dimensions:\n\tWanted <= %d x %d\n\tGot       %d x %d\n", max_width, max_height, tga_width, tga_height);
         MF_Fclose(fd);
         return ans;
     }
@@ -323,7 +320,6 @@ file_error:;
     // Error!
     //
 
-    TRACE("File error loading TGA file %s\n", file);
     MF_Fclose(fd);
     ans.valid = 0;
 
@@ -717,13 +713,11 @@ TGA_Info TGA_load_remap(const CBYTE* file, const CBYTE* pname, SLONG max_width, 
     ans.contains_alpha = 0;
 
     if (tga_pal != 1) {
-        TRACE("Tga must be true colour and uncompressed.\n");
         MF_Fclose(handle);
         return ans;
     }
 
     if (tga_width > max_width || tga_height > max_height) {
-        TRACE("Invalid dimensions:\n\tWanted <= %d x %d\n\tGot       %d x %d\n", max_width, max_height, tga_width, tga_height);
         MF_Fclose(handle);
         return ans;
     }
@@ -810,7 +804,6 @@ file_error:;
     // Error!
     //
 
-    TRACE("File error loading TGA file %s\n", file);
     MF_Fclose(handle);
     ans.valid = 0;
 
@@ -875,11 +868,9 @@ TGA_Info TGA_load_psx(const CBYTE* file, SLONG max_width, SLONG max_height, UBYT
 
     if (handle == NULL) {
         psx_load_error("dont exist", file);
-        DebugText(" %s dont exist \n", file);
         ans.valid = 0;
         return ans;
     } else
-        DebugText(" file %s exists \n", file);
 
     //
     // Read the header.
@@ -910,7 +901,6 @@ TGA_Info TGA_load_psx(const CBYTE* file, SLONG max_width, SLONG max_height, UBYT
 
     if (tga_pal != 1 && tga_image_type != 3) {
         psx_load_error("no pal/greyscale", file);
-        TRACE("missing pal\n");
         MF_Fclose(handle);
         return ans;
     }
@@ -918,7 +908,6 @@ TGA_Info TGA_load_psx(const CBYTE* file, SLONG max_width, SLONG max_height, UBYT
     if (tga_width > max_width || tga_height > max_height) {
         psx_load_error("funny size", file);
 
-        TRACE("Invalid dimensions:\n\tWanted <= %d x %d\n\tGot       %d x %d\n", max_width, max_height, tga_width, tga_height);
         MF_Fclose(handle);
         return ans;
     }
@@ -1011,7 +1000,6 @@ TGA_Info TGA_load_psx(const CBYTE* file, SLONG max_width, SLONG max_height, UBYT
         if (tga_image_type != 3) {
             psx_load_error("not gray scale", file);
 
-            TRACE(" not gray scale!\n");
             return ans;
         }
         SLONG c0;
@@ -1069,7 +1057,6 @@ file_error:;
     // Error!
     //
 
-    TRACE("File error loading TGA file %s\n", file);
     MF_Fclose(handle);
     ans.valid = 0;
 
@@ -1107,7 +1094,6 @@ void TGA_save(
 
 
     if (handle == NULL) {
-        TRACE("Cannot open TGA file %s\n", file);
 
         return;
     }

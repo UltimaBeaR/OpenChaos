@@ -59,10 +59,8 @@ static HRESULT CALLBACK D3DEnumDevicesCallback(GUID FAR* lpGuid,
     LPVOID lpContext)
 {
     if (lpD3DHWDeviceDesc->dwFlags) {
-        TRACE("HARDWARE Device %s \"%s\"\n", lpDeviceDescription, lpDeviceName);
         numdevices++;
     } else {
-        TRACE("SOFTWARE Device %s \"%s\"\n", lpDeviceDescription, lpDeviceName);
         numdevices++; // count these too
     }
     return D3DENUMRET_OK;

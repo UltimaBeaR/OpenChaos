@@ -450,7 +450,6 @@ SLONG dist_to_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b)
     // if the dot product of these two vectors is less than zero then
     // (x,z) lies 'behind' point (x1,z1)
 
-    LogText(" DTL1 dx %d dz %d da %d db %d \n", dx, dz, da, db);
 
     dprod = da * dx + db * dz;
 
@@ -1582,7 +1581,6 @@ SLONG	check_vect(SLONG m_dx,SLONG m_dy,SLONG m_dz,Thing *p_thing,SLONG scale)
         SLONG	len;
 
         len=QDIST2(abs(m_dx),abs(m_dz));
-        LogText(" movement dist %d \n",len);
 
         if(len<PERSON_RADIUS)
         {
@@ -2631,7 +2629,6 @@ SLONG slide_along_old(
                                 if(already_upto>max_facet_find)
                                 {
                                         max_facet_find=already_upto;
-                                        DebugText("max_facet_find %d \n",max_facet_find);
                                 }
 
 
@@ -5997,13 +5994,11 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
 
             if( (fall_off_flag&(FALL_OFF_FLAG_FIRE_ESCAPE|FALL_OFF_FLAG_TRUE))==(FALL_OFF_FLAG_FIRE_ESCAPE|FALL_OFF_FLAG_TRUE) )
             {
-                    DebugText("hello\n");
                     return(1);
             }
 
             if(fall_off_flag==(FALL_OFF_FLAG_FIRE_ESCAPE|FALL_OFF_FLAG_TRUE))
             {
-                    DebugText("hello\n");
                     return(1);
 
             }

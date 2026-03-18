@@ -147,7 +147,6 @@ typedef char CBYTE;
     {                \
         __assume(x); \
     }
-#define TRACE
 #define VERIFY(x) x
 
 //

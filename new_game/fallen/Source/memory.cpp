@@ -445,7 +445,6 @@ void init_memory(void)
         p_tab = &save_table[c0];
         mem_size = p_tab->StructSize * p_tab->Maximum;
         mem_cumlative += mem_size;
-        DebugText(" %s = %d  cuml %d \n", p_tab->Name, mem_size, mem_cumlative);
 
         c0++;
     }
@@ -830,32 +829,25 @@ void convert_pointers_to_index(void)
 
     if (count_special > max_special) {
         max_special = count_special;
-        DebugText(" MOSTspecialS %d \n", max_special);
     }
     if (count_bat > max_bat) {
         max_bat = count_bat;
-        DebugText(" MOSTbatS %d \n", max_bat);
     }
     if (count_mesh > max_mesh) {
         max_mesh = count_mesh;
-        DebugText(" MOSTmeshS %d \n", max_mesh);
     }
     if (count_tween > max_tween) {
         max_tween = count_tween;
-        DebugText(" MOSTtweenS %d \n", max_tween);
     }
     if (count_anim > max_anim) {
         max_anim = count_anim;
-        DebugText(" MOSTanimS %d \n", max_anim);
     }
 
     if (count_car > max_car) {
         max_car = count_car;
-        DebugText(" MOSTCARS %d \n", max_car);
     }
     if (count_people > max_people) {
         max_people = count_people;
-        DebugText(" MOSTPEOPLE %d \n", max_people);
     }
 
     for (c0 = 0; c0 < MAX_PLAYERS; c0++) {
@@ -891,7 +883,6 @@ void convert_pointers_to_index(void)
 
 #define STORE_DATA(a)                         \
     FileWrite(handle, (UBYTE*)&a, sizeof(a)); \
-    DebugText(" store data %d \n", sizeof(a))
 
 void convert_keyframe_to_index(GameKeyFrame* p, GameKeyFrameElement* p_ele, GameFightCol* p_fight, SLONG count)
 {
@@ -1141,7 +1132,6 @@ SLONG find_best_anim_offset(SLONG mx, SLONG my, SLONG mz, SLONG anim, struct Gam
     }
 
     if (next_anim_mids < 256) {
-        DebugText(" added a new anim_mid %d  (%d,%d,%d)\n", next_anim_mids, mx, my, mz);
         anim_mids[next_anim_mids].X = mx;
         anim_mids[next_anim_mids].Y = my;
         anim_mids[next_anim_mids].Z = mz;
@@ -1337,7 +1327,6 @@ void save_whole_anims_psx(MFFileHandle handle)
                         gc->AnimKeyFrames[c1].Flags = (gc->AnimKeyFrames[c1].Flags & 1); //|off_bits;
                     }
                 }
-            DebugText(" game chunk %d  bigx %d bigy %d bigz %d \n", c0, big_x, big_y, big_z);
 
             big_x = 0;
             big_y = 0;
@@ -1372,11 +1361,6 @@ void save_whole_anims_psx(MFFileHandle handle)
             }
 
             STORE_DATA(check);
-            DebugText(" peep_types -> %d  tot %d\n", gc->MaxPeopleTypes, gc->MaxPeopleTypes * sizeof(struct BodyDef));
-            DebugText(" keyframes  -> %d  tot %d\n", gc->MaxKeyFrames, gc->MaxKeyFrames * sizeof(GameKeyFrame));
-            DebugText(" animlist   -> %d  tot %d\n", gc->MaxAnimFrames, gc->MaxAnimFrames * sizeof(GameKeyFrame*));
-            DebugText(" elements   -> %d  tot %d\n", gc->MaxElements, gc->MaxElements * sizeof(GameKeyFrameElementComp));
-            DebugText(" fightcols  -> %d  tot %d\n", gc->MaxFightCols, gc->MaxFightCols * sizeof(GameFightCol));
 
             FileWrite(handle, (UBYTE*)gc->PeopleTypes, gc->MaxPeopleTypes * sizeof(struct BodyDef));
             STORE_DATA(check);
@@ -1517,11 +1501,6 @@ void save_whole_anims_psx(MFFileHandle handle)
                 STORE_DATA(gc->MultiObject[c1]);
             }
 
-            DebugText(" peep_types -> %d  tot %d\n", gc->MaxPeopleTypes, gc->MaxPeopleTypes * sizeof(struct BodyDef));
-            DebugText(" keyframes  -> %d  tot %d\n", gc->MaxKeyFrames, gc->MaxKeyFrames * sizeof(GameKeyFrame));
-            DebugText(" animlist   -> %d  tot %d\n", gc->MaxAnimFrames, gc->MaxAnimFrames * sizeof(GameKeyFrame*));
-            DebugText(" elements   -> %d  tot %d\n", gc->MaxElements, gc->MaxElements * sizeof(GameKeyFrameElementComp));
-            DebugText(" fightcols  -> %d  tot %d\n", gc->MaxFightCols, gc->MaxFightCols * sizeof(GameFightCol));
 
             //			FileWrite(handle,(UBYTE*)&gc->MultiObject[0],10*sizeof(UWORD));
             FileWrite(handle, (UBYTE*)gc->PeopleTypes, gc->MaxPeopleTypes * sizeof(struct BodyDef));
@@ -1539,7 +1518,6 @@ void save_whole_anims_psx(MFFileHandle handle)
             convert_animlist_to_pointer(gc->AnimList, gc->AnimKeyFrames, gc->MaxAnimFrames);
             convert_fightcol_to_pointer(gc->FightCols, gc->FightCols, gc->MaxFightCols);
 
-            DebugText(" anim chunk %d  bigx %d bigy %d bigz %d \n", c0, big_x, big_y, big_z);
 
             big_x = 0;
             big_y = 0;
@@ -1641,7 +1619,6 @@ void save_whole_wad(CBYTE* gamename, UBYTE type)
         // get rid of the nasty pointers
         // by converting to indexes
         convert_pointers_to_index();
-        DebugText("\n SAVE INGAME \n");
 
         STORE_DATA(save_type);
 
@@ -1676,7 +1653,6 @@ void save_whole_wad(CBYTE* gamename, UBYTE type)
                 struct PrimFace4PSX* block;
                 SLONG index;
                 // special PSX primface4
-                DebugText(" prim face 4 psx = %d was %d\n", count * sizeof(struct PrimFace4PSX), mem_size);
                 mem_size = count * sizeof(struct PrimFace4PSX);
                 block = (struct PrimFace4PSX*)MemAlloc(mem_size);
 
@@ -1727,7 +1703,6 @@ void save_whole_wad(CBYTE* gamename, UBYTE type)
                 struct PrimFace3PSX* block;
                 SLONG index;
                 // special PSX primface4
-                DebugText(" prim face3 psx = %d was %d\n", count * sizeof(struct PrimFace3PSX), mem_size);
                 mem_size = count * sizeof(struct PrimFace3PSX);
                 block = (struct PrimFace3PSX*)MemAlloc(mem_size);
 
@@ -1787,16 +1762,9 @@ void save_whole_wad(CBYTE* gamename, UBYTE type)
             }
 
             mem_cumlative += mem_size;
-            if (ptab->CountL)
-                DebugText(" %s -> %d   tot %d (%d/%d)\n", ptab->Name, mem_size, mem_cumlative, *ptab->CountL, ptab->Maximum);
-            else if (ptab->CountW)
-                DebugText(" %s -> %d   tot %d (%d/%d)\n", ptab->Name, mem_size, mem_cumlative, *ptab->CountW, ptab->Maximum);
-            else
-                DebugText(" %s -> %d   tot %d (%d)\n", ptab->Name, mem_size, mem_cumlative, ptab->Maximum);
 
             c0++;
         }
-        DebugText("\n");
 
         STORE_DATA(PRIMARY_USED);
         STORE_DATA(PRIMARY_UNUSED);
@@ -3052,7 +3020,6 @@ void save_dreamcast_wad(CBYTE* fname)
     cFullName[iLastChar - 2] = 'a';
     cFullName[iLastChar - 1] = 'd';
 
-    TRACE("Writing out level <%s>", cFullName);
 
     handle = FileCreate(cFullName, 1);
 
@@ -3062,7 +3029,6 @@ void save_dreamcast_wad(CBYTE* fname)
 
         convert_pointers_to_index();
 
-        DebugText("\n SAVE INGAME \n");
 
         STORE_DATA(save_type);
 
@@ -3113,16 +3079,8 @@ void save_dreamcast_wad(CBYTE* fname)
 
             mem_cumlative += mem_size;
 
-            if (ptab->CountL)
-                DebugText(" %s -> %d   tot %d (%d/%d)\n", ptab->Name, mem_size, mem_cumlative, *ptab->CountL, ptab->Maximum);
-            else if (ptab->CountW)
-                DebugText(" %s -> %d   tot %d (%d/%d)\n", ptab->Name, mem_size, mem_cumlative, *ptab->CountW, ptab->Maximum);
-            else
-                DebugText(" %s -> %d   tot %d (%d)\n", ptab->Name, mem_size, mem_cumlative, ptab->Maximum);
-
             c0++;
         }
-        DebugText("\n");
 
         STORE_DATA(PRIMARY_USED);
         STORE_DATA(PRIMARY_UNUSED);

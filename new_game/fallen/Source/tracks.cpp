@@ -79,10 +79,8 @@ void TRACKS_CalcDiffs(Track& track, UBYTE width)
       f=ux+uz;
       f=Root(f); if (!f) f=1;
       sf=f;
-      TRACE("track -- x: %d  z: %d  f: %d  ux: %d  uz: %d\n",x,z,f,ux,uz);
       x*=width; z*=width;
       x/=sf; z/=sf;
-      TRACE("result: x: %d   z: %d\n",x,z);
       track.sx=x; track.sz=z;*/
 
     SLONG x, z, f;

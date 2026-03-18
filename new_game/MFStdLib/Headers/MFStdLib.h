@@ -137,13 +137,6 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
 #define NoError 0
 
 
-#define DebugText
-#define TRACE
-#define LogText
-#define MFMessage
-#define ERROR_MSG(e, m) \
-    {                   \
-    }
 #ifndef ASSERT
 #define ASSERT(e) \
     {             \

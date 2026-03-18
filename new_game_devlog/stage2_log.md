@@ -1253,6 +1253,24 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 
 ---
 
+## Итерация 37 — Пункт 2.7: удаление no-op макросов (2026-03-18)
+
+Удалены no-op макросы и все их вызовы из исходников.
+
+**Решение:** `ASSERT` и `VERIFY` оставлены — документируют программные инварианты. `ASSERT` в Release раскрывается в `__assume(x)` (MSVC optimization hint), пересмотрим при переходе на Clang (Stage 3).
+
+**Удалены (61 файл, Python скрипт `tools/remove_noop_macros.py`):**
+- `TRACE(...)` — ~294 вызова, `LogText(...)` — ~394 вызова, `DebugText(...)` — ~155 вызовов, `ERROR_MSG(e,m)` — 7 вызовов
+
+**Удалены `#define` в:** `Always.h`, `MFStdLib.h`, `game.h`, `A3DManager.h`
+
+**Нюансы:**
+- 10 мест где TRACE/LogText были единственным телом `if`/`else` без скобок → осиротевшие конструкции исправлены вручную: `canid.cpp`, `building.cpp` (2), `Controls.cpp`, `eway.cpp`, `memory.cpp` (2), `night.cpp`, `Person.cpp` (2), `FileClump.cpp`, `figure.cpp`.
+
+**Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.
+
+---
+
 ## Статус пункта 2.7 — Устранение условной компиляции
 
 Легенда: ✅ раскрыт/удалён | ⬜ не обработан | ❓ требует анализа/решения | ➖ уже отсутствовал
@@ -1290,8 +1308,8 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 | `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` | ✅ | итерация 36 (нигде не defined, удалены 3 блока) |
 | `MESH_SHOW_MOUSE_POINT` | ✅ | итерация 36 (нигде не defined, удалены 4 блока) |
 | `NEW_FLOOR` | ❓ | закомментирован в aeng.cpp; экспериментальный рендер пола |
-| No-op макросы (`TRACE`, `LogText`, `DebugText`, `ERROR_MSG`, `ASSERT`) | ⬜ | удалить определения и все вызовы |
-| `VERIFY(x)` | ⬜ | раскрыть в просто `x` везде |
+| No-op макросы (`TRACE`, `LogText`, `DebugText`, `ERROR_MSG`) | ✅ | итерация 37 (ASSERT и VERIFY оставлены — документируют инварианты) |
+| `VERIFY(x)` | 🚫 | решено не удалять — документирует инварианты, аналогично ASSERT |
 
 ### Требуют решения перед обработкой
 

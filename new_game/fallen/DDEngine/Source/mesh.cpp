@@ -580,7 +580,6 @@ NIGHT_Colour* MESH_draw_guts(
     /*
             if(prim==129)
             {
-                    TRACE("hello");
             }
     */
 

@@ -8,7 +8,6 @@
 OUTRO_TGA_Info OUTRO_TGA_FileLoad_Error(OUTRO_TGA_Info& ans, FILE*& handle, const CBYTE*& file)
 {
 
-    TRACE("File error loading TGA file %s\n", *file);
     fclose(handle);
     ans.valid = FALSE;
     return ans;
@@ -47,7 +46,6 @@ OUTRO_TGA_Info OUTRO_TGA_load(
     handle = fopen(file, "rb");
 
     if (handle == NULL) {
-        TRACE("Could not open TGA file %s", file);
         ans.valid = FALSE;
         return ans;
     }
@@ -79,19 +77,16 @@ OUTRO_TGA_Info OUTRO_TGA_load(
     ans.flag = 0;
 
     if (tga_image_type != 2) {
-        TRACE("Tga must be true colour and uncompressed.\n");
         fclose(handle);
         return ans;
     }
 
     if (tga_pixel_depth != 32 && tga_pixel_depth != 24) {
-        TRACE("Tga must be 32-bit or 24-bit (24-bit + 8-bit alpha channel)\n");
         fclose(handle);
         return ans;
     }
 
     if (tga_width > max_width || tga_height > max_height) {
-        TRACE("Invalid dimensions:\n\tWanted <= %d x %d\n\tGot       %d x %d\n", max_width, max_height, tga_width, tga_height);
         fclose(handle);
         return ans;
     }

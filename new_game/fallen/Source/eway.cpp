@@ -5230,8 +5230,6 @@ extern	SLONG	SAVE_ingame(CBYTE *fname);
         SLONG ware = WARE_which_contains(ew->x >> 8, ew->z >> 8);
         if (ware)
             WARE_ware[ware].ambience = ew->ed.arg1;
-        else
-            TRACE("MISSION ERROR -- Warehouse Ambience waypoint is not inside a warehouse\n");
     } break;
         /*
                         case EWAY_DO_WAREFX:
@@ -5240,7 +5238,6 @@ extern	SLONG	SAVE_ingame(CBYTE *fname);
                                         if (ware)
                                                 WARE_ware[ware].ambience=ew->ed.arg1;
                                         else
-                                                TRACE("MISSION ERROR -- Warehouse Ambience waypoint is not inside a warehouse\n");
                                 }
                                 break;
         */

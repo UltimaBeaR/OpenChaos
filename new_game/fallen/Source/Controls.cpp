@@ -2423,7 +2423,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                         {
                                 Keys[KB_LBRACE] = 0;
 
-                                ERROR_MSG(FALSE, NULL);
                         }
         */
     }
@@ -2707,7 +2706,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
 
                         move_thing_on_map(darci, &newpos);
 
-                        TRACE("Moving floor %s\n", (dfloor > 0) ? "up" : "down");
                 }
         }
 
@@ -3130,7 +3128,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
     }
     if (steamypos<0) {
       if (!PARTICLE_SGrenade(darci,-steamypos))
-        TRACE("particle add failed (sgrenade)\n");
       steamypos++;
     }
 
@@ -3160,8 +3157,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         //		if (!psystem.Add(darci->WorldPos.X,darci->WorldPos.Y+0x100,darci->WorldPos.Z,0,0,0,POLY_PAGE_STEAM,0,0x7FFFFFFF,PFLAGS_SMOKE|PFLAG_WANDER,128,4,1,1,3))
         //		if (!psystem.Add(darci->WorldPos.X,darci->WorldPos.Y+0x300,darci->WorldPos.Z,0,0,0,POLY_PAGE_STEAM,1+((rand()&3)<<2),0x7FFFFFFF,PFLAGS_SMOKE|PFLAG_WANDER,128,4,1,2,3))
         //		if (!psystem.Exhaust(darci->WorldPos.X,darci->WorldPos.Y+0x300,darci->WorldPos.Z,2,10))
-        if (!PARTICLE_Exhaust2(darci, 2, 10))
-            TRACE("particle add failed (exhaust)\n");
     }
 
     static SLONG nav_x = 0;
@@ -3754,8 +3749,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                                                                         &x2,
                                                                         &z2);
 
-                                                                TRACE("Bounding box = (%d,%d)-(%d,%d)\n", x1, z1, x2, z2);
-                                                                TRACE("Building on square (%d,%d)\n", eo.map_x, eo.map_z);
 
                                                                 pos.X = (x1 + x2) << (ELE_SHIFT + 7);
                                                                 pos.Z = (z1 + z2) << (ELE_SHIFT + 7);
@@ -3805,7 +3798,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                                 posn.Y=darci->WorldPos.Y;
                                 posn.Z=darci->WorldPos.Z;
                                 ANIMAL_create(posn,ANIMAL_CANID);
-                                TRACE("Animal created\n");
 
                         }
         */
@@ -3821,7 +3813,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
             posn.Y = darci->WorldPos.Y + (265 << 8) + (PAP_calc_map_height_at(posn.X >> 8, posn.Z >> 8));
             chopper = CHOPPER_create(posn, CHOPPER_CIVILIAN);
             chopper->Draw.Mesh->Angle = darci->Draw.Tweened->Angle;
-            TRACE("Chopper created\n");
         }
 
         /*

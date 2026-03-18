@@ -256,7 +256,6 @@ void new_outdoors_effects()
             else if (wtype == Snow)
                 wave_id = snow_sounds[Random() & 3];
 
-            TRACE("playing amb sound: %d\n", wave_id);
 
             //			PlayAmbient3D(AMBIENT_EFFECT_REF, wave_id, (wtype == Snow) ? MFX_QUEUED : 0, InAir);
             PlayAmbient3D(AMBIENT_EFFECT_REF, wave_id, MFX_QUEUED, InAir);
@@ -725,7 +724,6 @@ void SOUND_InitFXGroups(CBYTE* fn)
             // ok, so we now have the low # in name and hi # in split
             SOUND_FXGroups[index][0] = atoi(name);
             SOUND_FXGroups[index][1] = atoi(split);
-            TRACE("Group %d goes from %d to %d\n", index, SOUND_FXGroups[index][0], SOUND_FXGroups[index][1]);
             index++;
         }
         pt += strlen(pt) + 1; // +1 to skip the 0 terminator
@@ -897,7 +895,6 @@ void SOUND_SewerPrecalc()
 
               }
 
-            TRACE("waterfall ctr: %d\n",debugctr);
 
             // create source entries
             ctr=0; debugctr=debug2=0;
@@ -926,10 +923,9 @@ void SOUND_SewerPrecalc()
                                                     SewerSounds[ctr].Z = y << (8+PAP_SHIFT_HI);
                                                     ctr++;
                                                     temp_map[x][y]=ctr;
-                                            } else TRACE("ran out of waterfall sound sources\n");
+                                            }
                                     }
                       }
-            TRACE("waterfall checked: %d  reused: %d\n",debug2,debugctr);
             for (item=0;item<ctr;item++) {
     //		SewerSounds[item].Y = NS_calc_splash_height_at(SewerSounds[item].X>>8,SewerSounds[item].Z>>8);
                     SewerSounds[item].Y = -1280 << 8;

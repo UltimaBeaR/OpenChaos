@@ -2221,7 +2221,6 @@ SLONG ELEV_game_init(
     // Process the prim data.
     //
 
-    TRACE("Q1\n");
 
     //
     // We have to call DIRT_init() after we've loaded the map because
@@ -2264,7 +2263,6 @@ SLONG ELEV_game_init(
         NIGHT_ambient(255, 255, 255, 110, -148, -177);
     }
 
-    TRACE("Q2\n");
 
     NIGHT_generate_walkable_lighting();
 
@@ -2457,7 +2455,6 @@ SLONG ELEV_game_init(
 
 #endif
 
-    TRACE("Q4\n");
 
     //
     // Clear all the keys!

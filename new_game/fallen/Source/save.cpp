@@ -30,7 +30,6 @@ SLONG SAVE_out_data(void* data, ULONG num_bytes)
 
 SLONG LOAD_in_data(void* data, ULONG num_bytes)
 {
-    DebugText(" read <%d> \n", num_bytes);
     if (fread(data, 1, num_bytes, SAVE_handle) != num_bytes) {
         return FALSE;
     } else {
@@ -428,7 +427,6 @@ void LOAD_person_dead(Thing* p_person)
     if (p_person->Flags & FLAGS_ON_MAPWHO) // Does thing currently exist on map?
         remove_thing_from_map(p_person);
 
-    DebugText(" load person %d ", THING_NUMBER(p_person));
     LOAD_in_data(&sp.yaw, sizeof(SAVE_Person) - 1);
 
     set_person_default_data(p_person, &sp);
@@ -458,7 +456,6 @@ void LOAD_person_arrested(Thing* p_person)
     if (p_person->Flags & FLAGS_ON_MAPWHO) // Does thing currently exist on map?
         remove_thing_from_map(p_person);
 
-    DebugText(" load person arrest%d ", THING_NUMBER(p_person));
     LOAD_in_data((&sp.yaw), sizeof(SAVE_Person) - 1);
 
     set_person_default_data(p_person, &sp);
@@ -488,7 +485,6 @@ void LOAD_person_full(Thing* p_person)
     if (p_person->Flags & FLAGS_ON_MAPWHO) // Does thing currently exist on map?
         remove_thing_from_map(p_person);
 
-    DebugText(" load person full %d ", THING_NUMBER(p_person));
     LOAD_in_data((&extra.Person), sizeof(extra) - 1);
 
     ASSERT(extra.Thing == THING_NUMBER(p_person));
@@ -516,7 +512,6 @@ void LOAD_special_full(Thing* p_special)
         remove_thing_from_map(p_special);
 
     SAVE_Special_extra extra;
-    DebugText(" loadspecialfull %d ", THING_NUMBER(p_special));
     LOAD_in_data((&extra.Pad), sizeof(extra) - 1);
     //	ASSERT(extra.Special==SPECIAL_NUMBER(p_special->Genus.Special));
     //	ASSERT(extra.Thing==THING_NUMBER(p_special));
@@ -564,7 +559,6 @@ void LOAD_vehicle_full(Thing* p_vehicle)
     if (p_vehicle->Flags & FLAGS_ON_MAPWHO) // Does thing currently exist on map?
         remove_thing_from_map(p_vehicle);
 
-    DebugText(" loadvehiclefull %d ", THING_NUMBER(p_vehicle));
     LOAD_in_data((&extra.Pad), sizeof(extra) - 1);
 
     ASSERT(extra.Thing == THING_NUMBER(p_vehicle));
@@ -663,7 +657,6 @@ SLONG LOAD_types(void)
         thing++;
     }
 
-    DebugText(" special %d people %d car %d \n", special, person, car);
 
     return 0;
 }
@@ -731,7 +724,6 @@ SLONG LOAD_ingame(CBYTE* fname)
     void reload_level(void);
     reload_level();
 
-    DebugText("\nLoadInGame \n\n");
     SAVE_handle = LOAD_open();
 
     SAVE_handle = LOAD_open();

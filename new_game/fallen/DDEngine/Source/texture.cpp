@@ -802,12 +802,10 @@ static void TEXTURE_load_page(SLONG page)
         sprintf(name_res32, "%stex%03d.tga", TEXTURE_people_dir, page - 64 * 9);
         sprintf(name_res64, "%stex%03dhi.tga", TEXTURE_people_dir, page - 64 * 9);
         sprintf(name_res128, "%stex%03dto.tga", TEXTURE_people_dir, page - 64 * 9);
-        DebugText("people page %d offset %d \n", page / 64, page - 64 * 9);
     } else if (page < 64 * 18) {
         sprintf(name_res32, "%stex%03d.tga", TEXTURE_prims_dir, page - 64 * 11);
         sprintf(name_res64, "%stex%03dhi.tga", TEXTURE_prims_dir, page - 64 * 11);
         sprintf(name_res128, "%stex%03dto.tga", TEXTURE_prims_dir, page - 64 * 11);
-        DebugText("prims page %d offset %d fname %s\n", page / 64, page - 64 * 11, name_res64);
     } else if (page < 64 * 21) {
         sprintf(name_res32, "%stex%03d.tga", TEXTURE_people_dir2, page - 64 * 18);
         sprintf(name_res64, "%stex%03dhi.tga", TEXTURE_people_dir2, page - 64 * 18);
@@ -840,7 +838,6 @@ static void TEXTURE_load_page(SLONG page)
                     //
                     // This texture doesn't exist	!
                     //
-                    DebugText(" cant find page %d name64 %s \n", page, name_res64);
 
                     TEXTURE_dontexist[page] = TRUE;
                 }
@@ -1290,7 +1287,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     // Texture 560 is one component of the digital timer.
     //
 
-    TRACE("Loaded extras\n");
 
     //
     // The warehouse textures.
@@ -1343,7 +1339,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
         */
 
-        TRACE("Loaded inside styles\n");
 
         //
         // Load the individual pages that we need.
@@ -1377,7 +1372,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         //	TEXTURE_load_page(156);
         //	TEXTURE_load_page(157);
 
-        TRACE("Loaded floor textures\n");
 
 
         for (i = 1; i < MAX_ANIM_TMAPS; i++) {
@@ -1392,7 +1386,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
             }
         }
 
-        TRACE("Loaded anim tmaps\n");
 
         //
         // force jacket alternatives to be loaded thugs
@@ -1431,7 +1424,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         }
 
 
-        TRACE("Loaded prim 3s\n");
 
         for (i = 1; i < next_prim_face4; i++) {
             f4 = &prim_faces4[i];
@@ -1451,7 +1443,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
             }
         }
 
-        TRACE("Loaded prim 4s\n");
 
 
         TEXTURE_load_page(156);
@@ -1535,7 +1526,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
             }
         }
 
-        TRACE("Loaded facet pages\n");
 
 
         /*
@@ -1556,7 +1546,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         }
 #endif
 
-        TRACE("Loaded sewer pages\n");
 
         for(c0=0;c0<64;c0++)
         {
@@ -1575,7 +1564,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         */
     }
 
-    TRACE("Finished loading everything\n");
 
     CloseTGAClump();
 

@@ -1170,11 +1170,8 @@ void FASTPRIM_fini()
 {
 
 
-    TRACE("FASTPRIM_fini ");
     MemFree(FASTPRIM_lvert_buffer);
-    TRACE("1 ");
     MemFree(FASTPRIM_index);
-    TRACE("2\n");
 
     FASTPRIM_lvert_buffer = NULL;
     FASTPRIM_index = NULL;

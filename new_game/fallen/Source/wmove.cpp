@@ -490,7 +490,6 @@ void WMOVE_create(Thing* p_thing)
         next_prim_face4 += 1;
         next_prim_point += 4;
         WMOVE_face_upto += 1;
-        DebugText(" next_prim_point %d primface3 %d primface4 %d   WMOVE FACE %d \n", next_prim_point, next_prim_face3, next_prim_face4, WMOVE_face_upto);
 
         wf->face4 = face4;
         wf->thing = THING_NUMBER(p_thing);

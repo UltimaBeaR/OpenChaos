@@ -32,7 +32,6 @@ inline void* GetMeAFastLoadBufferAtLeastThisBigPlease(DWORD dwSize)
         // Ensure it's 4k-aligned.
         dwSizeOfFastLoadBuffer = ((dwSizeOfFastLoadBuffer + 4095) & ~4095);
 
-        TRACE("Growing FastLoad buffer to 0x%x bytes\n", dwSizeOfFastLoadBuffer);
 
         pvFastLoadBuffer = VirtualAlloc(NULL, dwSizeOfFastLoadBuffer, MEM_COMMIT, PAGE_READWRITE);
         ASSERT(pvFastLoadBuffer != NULL);
@@ -43,7 +42,6 @@ inline void* GetMeAFastLoadBufferAtLeastThisBigPlease(DWORD dwSize)
 void NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit(void)
 {
     if (pvFastLoadBuffer != NULL) {
-        TRACE("Freeing FastLoad buffer\n");
         VirtualFree(pvFastLoadBuffer, NULL, MEM_RELEASE);
         pvFastLoadBuffer = NULL;
         dwSizeOfFastLoadBuffer = 0;
@@ -204,7 +202,6 @@ HRESULT D3DTexture::LoadTextureTGA(CBYTE* tga_file, ULONG id, BOOL bCanShrink)
     result = Reload();
 
     if (FAILED(result)) {
-        DebugText("LoadTextureTGA: unable to load texture\n");
         return (result);
     }
 
@@ -242,7 +239,6 @@ HRESULT D3DTexture::CreateUserPage(SLONG texture_size, BOOL i_want_an_alpha_chan
     result = Reload();
 
     if (FAILED(result)) {
-        DebugText("Could not create user page.\n");
     }
 
     //
@@ -314,7 +310,6 @@ HRESULT D3DTexture::Reload_TGA(void)
 
     DDSURFACEDESC2 dd_sd;
 
-    TRACE("Tex<%s>\n", texture_name);
 
     TGA_Info ti;
     TGA_Pixel* tga;
@@ -328,7 +323,6 @@ HRESULT D3DTexture::Reload_TGA(void)
     tga = (TGA_Pixel*)MemAlloc(256 * 256 * sizeof(TGA_Pixel));
 
     if (tga == NULL) {
-        TRACE("Not enough MAIN memory to load tga %s\n", texture_name);
 
         return DDERR_GENERIC;
     }
@@ -349,20 +343,17 @@ HRESULT D3DTexture::Reload_TGA(void)
         // Invalid tga.
         //
 
-        TRACE("TGA %s is invalid\n", texture_name);
         // ASSERT ( FALSE );
         MemFree(tga);
         return DDERR_GENERIC;
     }
 
     if (ti.width != ti.height) {
-        TRACE("TGA %s is not square\n", texture_name);
         MemFree(tga);
         return DDERR_GENERIC;
     }
 
     if ((ti.width & (ti.width - 1)) != 0) {
-        TRACE("TGA %s is not a valid size", texture_name);
         MemFree(tga);
         return DDERR_GENERIC;
     }
@@ -376,12 +367,10 @@ HRESULT D3DTexture::Reload_TGA(void)
     current_device = the_display.GetDeviceInfo();
 
     if (!current_device) {
-        TRACE("No device!\n");
 
         return DDERR_GENERIC;
     }
 
-    TRACE("texture = %s\n", this->texture_name);
 
     //
     // Does this texture page contain alpha?
@@ -641,7 +630,6 @@ HRESULT D3DTexture::Reload_user()
     current_device = the_display.GetDeviceInfo();
 
     if (!current_device) {
-        TRACE("No device!\n");
 
         return DDERR_GENERIC;
     }
@@ -715,7 +703,6 @@ HRESULT D3DTexture::Reload_user()
         // Couldn't find a suitable texture format.
         //
 
-        TRACE("Could not find texture format for the user texture page\n");
         return DDERR_GENERIC;
     }
 
@@ -771,7 +758,6 @@ HRESULT D3DTexture::Reload_user()
     result = lp_Surface->QueryInterface(IID_IDirect3DTexture2, (LPVOID*)&lp_Texture);
 
     if (FAILED(result)) {
-        TRACE("ReloadTextureUser: Could not get the texture interface.\n");
         Destroy();
         return DDERR_GENERIC;
     }
@@ -870,17 +856,13 @@ HRESULT D3DTexture::Destroy(void)
 
     // Release texture.
     if (lp_Texture) {
-        DebugText("Releasing texture\n");
         a = lp_Texture->Release();
-        DebugText("Done\n");
         lp_Texture = NULL;
     }
 
     // Release surface.
     if (lp_Surface) {
-        DebugText("Releasing surface\n");
         c = lp_Surface->Release();
-        DebugText("Done\n");
         lp_Surface = NULL;
     }
 

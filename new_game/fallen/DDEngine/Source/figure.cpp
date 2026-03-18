@@ -837,8 +837,7 @@ void init_flames()
         FileRead(handle, (UBYTE*)&fire_pal, 768);
 
         FileClose(handle);
-    } else
-        TRACE("Missing flame palette file.\n");
+    }
 }
 
 extern int AENG_detail_skyline;
@@ -1515,7 +1514,6 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj /*, int iThrashIndex = 0
     // PrimObject  *p_obj = &prim_objects[prim];
     // ASSERT ( prim < MAX_NUMBER_D3D_PRIMS );
 
-    TRACE("Started conversion 0x%x...", pPrimObj);
 
     // Make sure we're not in the middle of compiling and object already.
     ASSERT(TPO_pVert == NULL);
@@ -1621,7 +1619,6 @@ void FIGURE_TPO_add_prim_to_current_object(SLONG prim, UBYTE ubSubObjectNumber)
     ASSERT(prim < MAX_NUMBER_D3D_PRIMS);
     PrimObject* p_obj = &prim_objects[prim];
     ASSERT(p_obj != NULL);
-    TRACE("added prim 0x%x...", p_obj);
 
     TPO_PrimObjects[TPO_iNumPrims] = prim;
     TPO_ubPrimObjMMIndex[TPO_iNumPrims] = ubSubObjectNumber;
@@ -1662,7 +1659,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
     ASSERT(pPrimObj == TPO_pPrimObj);
 
-    TRACE("compiling %i prims...", TPO_iNumPrims);
 
     // OK, now scan through the faces. Check to see if the face uses a new material.
     // If so, create this new material and add in this face and all subsequent faces
@@ -1905,17 +1901,13 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         // Clamp if they go out of range.
                                         // This can produce a little bit of distortion, but it's better than nothing.
                                         if (d3dvert.dvTU < 0.0f) {
-                                            TRACE("Clamped a U coord to 0");
                                             d3dvert.dvTU = 0.0f;
                                         } else if (d3dvert.dvTU > 1.0f) {
-                                            TRACE("Clamped a U coord to 1");
                                             d3dvert.dvTU = 1.0f;
                                         }
                                         if (d3dvert.dvTV < 0.0f) {
-                                            TRACE("Clamped a V coord to 0");
                                             d3dvert.dvTV = 0.0f;
                                         } else if (d3dvert.dvTV > 1.0f) {
-                                            TRACE("Clamped a V coord to 1");
                                             d3dvert.dvTV = 1.0f;
                                         }
 
@@ -2066,7 +2058,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                     // Do they need inflating?
                     if (m_bPleaseInflatePeople) {
 
-                        TRACE("Inflate");
                         // Make a list of all edges.
 
                         // At most 3 edges per tri.
@@ -2305,12 +2296,10 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
                     WORD* pSrcIndex;
 
-                    TRACE("Optimise");
                     // Optimise the lists using MS's optimiser. Ta, MS. Saves me the hassle.
                     int iRes = MSOptimizeIndexedList(pFirstListIndex, pMaterial->wNumListIndices / 3);
                     ASSERT(iRes != 0);
 
-                    TRACE("Stripify");
 
                     // And convert back to the strip format.
                     ASSERT(TPO_pCurStripIndex == pFirstStripIndex);
@@ -2394,7 +2383,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
                     ASSERT(pMaterial->wNumStripIndices == (TPO_pCurStripIndex - pFirstStripIndex));
 
-                    TRACE("Done ");
                 }
             }
 
@@ -2473,7 +2461,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
     TPO_iNumVertices = 0;
     TPO_iNumPrims = 0;
 
-    TRACE("done all.\n");
 
 }
 
@@ -4702,7 +4689,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     if (!bWholePersonVisible) {
         if (bBitsOfPersonVisible) {
             // Draw the person the slow way.
-            TRACE("Partial person drawn\n");
             // Restore the saved data.
             FIGURE_dhpr_rdata1[0] = FIGURE_dhpr_rdata1_0_copy;
             FIGURE_dhpr_data_copy = FIGURE_dhpr_data_copy;

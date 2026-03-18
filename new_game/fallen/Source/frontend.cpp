@@ -794,7 +794,6 @@ void FRONTEND_scr_img_load_into_screenfull(CBYTE* name, LPDIRECTDRAWSURFACE4* sc
 
         image_file = FileOpen(fname);
         if (image_file > 0) {
-            TRACE("Loading background <%s>\n", fname);
             FileSeek(image_file, SEEK_MODE_BEGINNING, 18);
             image = image_data + (640 * 479 * 3);
             for (height = 480; height; height--, image -= (640 * 3)) {
@@ -802,14 +801,12 @@ void FRONTEND_scr_img_load_into_screenfull(CBYTE* name, LPDIRECTDRAWSURFACE4* sc
             }
             FileClose(image_file);
         } else {
-            TRACE("Unable to load background <%s>\n", fname);
         }
 
         FRONTEND_scr_add(screen, image_data);
 
         MemFree(image_data);
     } else {
-        TRACE("No memory to load background <%s>\n", fname);
     }
 }
 
@@ -4353,7 +4350,6 @@ void FRONTEND_diddle_stats()
 
 void FRONTEND_diddle_music()
 {
-    TRACE("STARTSCR_mission: %s\n", STARTSCR_mission);
     MUSIC_bodge_code = 0;
     if (strstr(STARTSCR_mission, "levels\\fight") || strstr(STARTSCR_mission, "levels\\FTutor"))
         MUSIC_bodge_code = 1;

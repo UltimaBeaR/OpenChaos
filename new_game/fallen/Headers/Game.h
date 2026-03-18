@@ -47,8 +47,6 @@
 //---------------------------------------------------------------
 
 #include <MFStdLib.h>
-#undef LogText
-#define LogText
 
 typedef SLONG MAPCO8;
 typedef SLONG MAPCO16;

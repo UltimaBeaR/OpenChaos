@@ -127,7 +127,6 @@ void matrix_transformZMY(Matrix31* result, Matrix33* trans, Matrix31* mat2);
 
 KeyFrame* advance_keyframe(KeyFrame* frame, SLONG count)
 {
-    LogText(" advance to frame %d \n", count);
     //	return(frame);
     while (count && frame->NextFrame) {
         frame = frame->NextFrame;
@@ -461,7 +460,6 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 
     SLONG dx, dy, dz;
 
-    LogText(" projectile\n");
 
     draw_info = p_thing->Draw.Tweened;
     new_position = p_thing->WorldPos;
@@ -686,7 +684,6 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
     }
     */
 
-    LogText(" projectile move  vel %d dy %d \n", p_thing->Velocity, p_thing->DY);
 
     //	if(p_thing->Timer1>3)
     if (flag & (2 | 4)) // under feet
@@ -796,7 +793,6 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
             }
             p_thing->OnFace = 0;
             p_thing->Flags &= ~FLAGS_PROJECTILE_MOVEMENT;
-            LogText(" projectile move hit floor new y %d \n", p_thing->WorldPos.Y);
             if (damage_person_on_land(p_thing))
                 return (100);
             return (ret);

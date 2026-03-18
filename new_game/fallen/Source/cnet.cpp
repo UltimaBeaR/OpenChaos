@@ -313,7 +313,6 @@ joined_session:;
             }
         }
 
-        TRACE("CNET sizeof NET_Message = %d\n", sizeof(NET_Message));
 
         //
         // Process the message loop.
@@ -323,7 +322,6 @@ joined_session:;
             NET_message_get(&mess);
 
             if (mess.player_id == NET_PLAYER_SYSTEM) {
-                TRACE("NET system message recieved\n");
 
                 if (mess.system.sysmess == NET_SYSMESS_START_GAME) {
                     CNET_player_id = mess.system.player_id;

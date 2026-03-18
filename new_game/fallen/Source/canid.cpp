@@ -310,7 +310,6 @@ int CANID_can_see(Thing* canid, Thing* target)
     //	DrawTween *dt = ANIMAL_get_drawtween(ANIMAL_get_animal(canid)); // returns head -- perfect
     DrawTween* dt = canid->Draw.Tweened;
 
-    TRACE("ping... \n");
     dx = target->WorldPos.X - canid->WorldPos.X;
     dz = target->WorldPos.Z - canid->WorldPos.Z;
 
@@ -331,12 +330,9 @@ int CANID_can_see(Thing* canid, Thing* target)
             //
             // no building in the way
             //
-            TRACE("you're seen\n");
             return (1);
-        } else
-            TRACE("come out from behind that building ya coward\n");
+        }
     }
-    TRACE("klang\n");
     return (0);
 }
 
@@ -395,7 +391,6 @@ void CANID_init_sleep(Thing* canid)
 {
     Animal* animal = ANIMAL_get_animal(canid);
 
-    TRACE("canid: sleep mode\n");
 
     //
     // Use the counter for how long we should sleep.
@@ -410,7 +405,6 @@ void CANID_init_bark(Thing* canid, Thing* victim)
 {
     Animal* animal = ANIMAL_get_animal(canid);
 
-    TRACE("canid: bark mode\n");
 
     animal->target = victim;
     animal->substate = CANID_SUBSTATE_BARK;
@@ -425,7 +419,6 @@ void CANID_init_prowl(Thing* canid)
     MAV_Action orders;
     Animal* animal = ANIMAL_get_animal(canid);
 
-    TRACE("canid: prowl mode\n");
 
     switch (Random() & 0x3) {
     case 0:
@@ -468,7 +461,6 @@ void CANID_init_chase(Thing* canid, Thing* victim)
     int i, j;
     MAV_Action orders;
 
-    TRACE("canid: chase mode\n");
 
     Animal* animal = ANIMAL_get_animal(canid);
 

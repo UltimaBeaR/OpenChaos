@@ -39,7 +39,6 @@ BOOL SetupKeyboard(void)
                                                                                         NULL,
                                                                                         0
                                                                                 );
-        ERROR_MSG(KeyboardHook,"Can't setup the keyboard.")
         if(KeyboardHook==NULL)
         {
                 // Unable to set up keyboard.

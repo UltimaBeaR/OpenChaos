@@ -362,7 +362,6 @@ void HM_load(CBYTE* fname)
     handle = MF_Fopen(fname, "rb");
 
     if (handle == NULL) {
-        TRACE("Could not open file %s\n", fname);
 
         return;
     }
@@ -405,7 +404,6 @@ file_error:;
 
     MF_Fclose(handle);
 
-    TRACE("Error loading file %s\n", fname);
 
     return;
 }

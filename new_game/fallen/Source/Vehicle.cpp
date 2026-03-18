@@ -3406,7 +3406,6 @@ static void do_car_input(Thing* p_thing)
         /*
                         if (is_driven_by_player(p_thing))
                         {
-                                TRACE("Velocity = %d\n", p_thing->Velocity);
                         }
         */
     } else {

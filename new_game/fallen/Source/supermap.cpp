@@ -952,7 +952,6 @@ SLONG build_tims_ingame(CBYTE* name)
     memset((UBYTE*)prims_remap, 0, 30 * 64 * 2);
 
     level_no = get_level_no(name);
-    DebugText("PSX create tims for level%d\n", level_no);
 
     //	sprintf(str,TEXTURE_DIR"world%d\\pages.dat",TEXTURE_SET);
     sprintf(str, "c:\\levels\\%d\\pages.dat", level_no);
@@ -1183,21 +1182,17 @@ void make_all_clumps(void)
 
     TEXTURE_create_clump = 1;
 
-    TRACE("Doing front-end\n");
     TEXTURE_load_needed("levels\\frontend.ucm", 0, 256, 40);
 
     Levels* lptr = levels; //_demo;
 
     while (lptr[c0].level) {
-        TRACE("Doing level %s\n", lptr[c0].name);
 
         CBYTE name[100];
         sprintf(name, "levels\\%s.ucm", lptr[c0].name);
         make_texture_clumps(name);
-        DebugText(" level %s mav_opt %d\n", name, MAV_opt_upto);
         if (MAV_opt_upto > highest) {
             highest = MAV_opt_upto;
-            DebugText("HIGHEST %d level %s mav_opt %d\n", highest, name, MAV_opt_upto);
         }
         c0++;
     }

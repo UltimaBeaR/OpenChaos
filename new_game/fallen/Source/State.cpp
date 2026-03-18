@@ -66,7 +66,6 @@ void set_generic_person_state_function(Thing* t_thing, UBYTE state)
                             functions	=	people_functions[t_thing->Genus.Person->PersonType].StateFunctions;
                             break;
                     default:
-                            LogText(" error thing must be person \n");
             }
     */
     //	if(functions)

@@ -95,7 +95,6 @@ static void StoreMavOpts(SLONG x, SLONG z, UBYTE* opt)
     }
 
     if (MAV_opt_upto == MAV_MAX_OPTS) {
-        TRACE("Run out of MAV opts!\n");
         ASSERT(0);
     } else {
         MAV_opt[MAV_opt_upto].opt[0] = opt[0];
@@ -1479,7 +1478,6 @@ void MAV_draw(
             }
         }
 
-    TRACE("MAV_opts_upto = %d\n", MAV_opt_upto);
 }
 
 //

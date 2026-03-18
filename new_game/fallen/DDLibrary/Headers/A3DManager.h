@@ -19,7 +19,6 @@ typedef unsigned long ULONG;
 typedef signed long SLONG;
 
 void TraceText(CBYTE* error, ...);
-#define TRACE TraceText
 
 #endif
 

@@ -4793,7 +4793,6 @@ THING_INDEX PCOM_create_person(
         }
     }
     if (ai == PCOM_AI_ASSASIN) {
-        TRACE("hello");
     }
 
     if (ai == PCOM_AI_ASSASIN && move == PCOM_MOVE_WANDER) {

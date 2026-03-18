@@ -270,9 +270,7 @@ void XLAT_load(CBYTE* fn)
     // if (!emergency_bail_out_for_martins_machine) MessageBox(0,"It timed out for some reason","erg.",MB_OK);
 
     FileClose(handle);
-    TRACE("\n");
 
-    TRACE("Language data: %s\n", XLAT_str_ptr(X_THIS_LANGUAGE_IS));
 }
 
 void XLAT_poke(SLONG offset, CBYTE* str)

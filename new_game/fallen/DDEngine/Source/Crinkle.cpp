@@ -134,11 +134,9 @@ CRINKLE_Handle CRINKLE_load(CBYTE* asc_filename)
     handle = MF_Fopen(asc_filename, "rb");
 
     if (!handle) {
-        TRACE("Could not open crinkle file \"%s\"\n", asc_filename);
 
         return NULL;
     } else {
-        TRACE("crinkle = %s\n", asc_filename);
     }
 
     ASSERT(WITHIN(CRINKLE_crinkle_upto, 1, CRINKLE_MAX_CRINKLES - 1));

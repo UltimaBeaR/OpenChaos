@@ -120,12 +120,10 @@ SLONG garbage_collection(void)
         }
 
     for (c0 = 0; c0 < 150; c0++) {
-        DebugText(" FACET_PER MAP (%d) ==%d \n", c0, per_map[c0]);
     }
     memcpy((UBYTE*)&facet_links[0], (UBYTE*)mem, next * sizeof(UWORD));
     next_facet_link = next;
 
-    DebugText(" after nfl=%d +saved=%d\n", next_facet_link, next_facet_link + saved);
 
     for (x = 0; x < PAP_SIZE_LO; x++)
         for (z = 0; z < PAP_SIZE_LO; z++) {
@@ -200,10 +198,8 @@ void link_facet_to_mapwho(SLONG mx, SLONG mz, SLONG facet)
     //	}
 
     if (mx == 13 && mz == 5)
-        LogText(" add FACET %d to %d,%d\n", facet, mx, mz);
 
     if (mx < 0 || mx > PAP_SIZE_LO || mz < 0 || mz > PAP_SIZE_LO) {
-        LogText("ERROR add facet %d to mx %d %d  nfl %d\n", facet, mx, mz, next_facet_link);
         return;
     }
 
@@ -262,7 +258,6 @@ void add_facet_to_map(SLONG facet)
     //	}
 
     if (facet == 288 || facet == 289)
-        LogText("break");
 
     x1 = p_f->x[0] << 8;
     x2 = p_f->x[1] << 8;
@@ -689,7 +684,6 @@ void build_quick_city(void)
                             index++;
                             count++;
                     }
-                    LogText(" map x %d z %d count %d \n",x,z,count);
             }
     }
 
@@ -785,7 +779,6 @@ static void mark_naughty_facets()
         }
     }
 
-    TRACE("Removed %d invisible facets\n", cnt);
 }
 
 extern void MAV_remove_facet_car(SLONG x1, SLONG z1, SLONG x2, SLONG z2);

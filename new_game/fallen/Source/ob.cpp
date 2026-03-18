@@ -148,8 +148,6 @@ UBYTE OB_hydrant_last;
 // claude-ai: PC build also logs sizeof() for debugging during development.
 void OB_init()
 {
-    TRACE("sizeof(OB_Mapwho) = %d\n", sizeof(OB_Mapwho));
-    TRACE("sizeof(OB_mapwho) = %d\n", sizeof(OB_mapwho));
 
     OB_ob_upto = 1;
 
@@ -1140,7 +1138,6 @@ void OB_add_walkable_faces()
                             abandon_face:;
                             }
                         }
-                        DebugText(" next_prim_point %d primface3 %d primface4 %d   WALKABLE prim %d face \n", next_prim_point, next_prim_face3, next_prim_face4, oi->prim);
                     }
             }
         }

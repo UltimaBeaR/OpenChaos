@@ -194,7 +194,6 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
     /*
             if (alpha < 0 || alpha > 0x10000 || beta < 0 || beta > 0x10000)
             {
-                    LogText(" get height on QUAD NOT %d alpha %x beta %x \n",face,alpha,beta);
                     return 1000000;
             }
     */

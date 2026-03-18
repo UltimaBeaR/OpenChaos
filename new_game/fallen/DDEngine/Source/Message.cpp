@@ -63,7 +63,6 @@ void MSG_add(CBYTE* fmt, ...)
     vsprintf(message, fmt, ap);
     va_end(ap);
     if (ControlFlag)
-        LogText("MSG->%s\n", message);
     /*
             for (i = 0; i < MSG_MAX_MESSAGES; i++)
             {

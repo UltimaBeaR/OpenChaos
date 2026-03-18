@@ -1256,7 +1256,6 @@ void STAIR_calculate(UWORD seed)
                     // them!
                     //
 
-                    TRACE("Oh no! Can't place stairs.\n");
                 }
 
             placed_stairs:;

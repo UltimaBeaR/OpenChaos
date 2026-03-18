@@ -614,7 +614,6 @@ void	check_pyro(Pyro *pyro)
         if(pyro->counter)
         if(pyro->counter==remember[index])
         {
-                DebugText(" pyro %d counter %d again error thing %d\n",index,pyro->counter,THING_NUMBER(pyro->thing));
 //		ASSERT(0);
         }
 

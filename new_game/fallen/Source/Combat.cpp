@@ -416,11 +416,9 @@ SLONG find_possible_combat_target(struct GameFightCol* p_fight, SLONG x, SLONG y
                     t_thing	= TO_THING(index);
                     if(t_thing!=p_thing)
                     {
-                            LogText(" found a thing at dx dz %d %d of type %d\n",dx,dz,t_thing->DrawType);
                             switch(t_thing->DrawType)
                             {
                                     case	DT_ROT_MULTI:
-                                            LogText(" its a figure \n");
                                             if(check_combat_hit_with_person(t_thing,x,y,z,p_fight,p_thing,&angle)>0)
                                             {
                                                     hit+=p_fight->Damage;
@@ -509,11 +507,9 @@ SLONG find_possible_grapple_target(struct GameFightCol* p_fight, SLONG x, SLONG 
                     t_thing	= TO_THING(index);
                     if(t_thing!=p_thing)
                     {
-                            LogText(" found a thing at dx dz %d %d of type %d\n",dx,dz,t_thing->DrawType);
                             switch(t_thing->DrawType)
                             {
                                     case	DT_ROT_MULTI:
-                                            LogText(" its a figure \n");
                                             if(check_combat_grapple_with_person(t_thing,x,y,z,p_fight,p_thing,&angle)>0)
                                             {
                                                     hit+=1000;
@@ -1240,13 +1236,11 @@ SLONG check_combat_hit_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MAPCO1
     my += p_victim->WorldPos.Y >> 8;
     mz += p_victim->WorldPos.Z >> 8;
 
-    LogText(" thing pos %d %d %d \n", mx, my, mz);
 
     dx = mx - x;
     dy = my - y;
     dz = mz - z;
 
-    LogText(" dx %d dz %d \n", dx, dz);
 
     adx = abs(dx);
     adz = abs(dz);
@@ -1314,7 +1308,6 @@ SLONG check_combat_hit_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MAPCO1
 
     dist = QDIST2(adx, adz);
 
-    LogText(" dist %d range %d-%d \n", dist, fight->Dist1, fight->Dist2);
 
 #define COMBAT_HIT_DIST_LEEWAY 0x30
 
@@ -1335,7 +1328,6 @@ SLONG check_combat_hit_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MAPCO1
                 return (1);
         }
 
-        LogText(" dist ok \n");
 
         angle = -Arctan(-dx, dz) - 512;
         if (angle < 0)
@@ -1346,7 +1338,6 @@ SLONG check_combat_hit_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MAPCO1
 
         angle -= ((fight->Angle << 3) - p_agressor->Draw.Tweened->Angle);
 
-        LogText(" angle diff %d \n", angle);
 
         if (angle < 0)
             angle = 2048 + angle;
@@ -1427,7 +1418,6 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
     {
         SLONG angle, temp_angle;
 
-        LogText(" dist ok \n");
 
         //
         // Angle I'm looking at relative to him
@@ -1465,7 +1455,6 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
 
         if (angle < (FIGHT_ANGLE_RANGE >> 1) || angle > 2048 - (FIGHT_ANGLE_RANGE >> 1)) {
             SLONG dx, dz;
-            LogText(" angle ok \n");
             return (1);
         }
 
@@ -2623,11 +2612,9 @@ SLONG find_combat_target(struct GameFightCol* p_fight, SLONG x, SLONG y, SLONG z
                     t_thing	= TO_THING(index);
                     if(t_thing!=p_thing)
                     {
-                            LogText(" found a thing at dx dz %d %d of type %d\n",dx,dz,t_thing->DrawType);
                             switch(t_thing->DrawType)
                             {
                                     case	DT_ROT_MULTI:
-                                            LogText(" its a figure \n");
                                             if(check_combat_hit_with_person(t_thing,x,y,z,p_fight,p_thing,&angle)>0)
                                             {
                                                     hit+=apply_hit_to_person(t_thing,0,0,0,p_thing,p_fight);
@@ -2663,12 +2650,10 @@ SLONG apply_violence(Thing* p_thing)
     y += p_thing->WorldPos.Y >> 8;
     z += p_thing->WorldPos.Z >> 8;
 
-    LogText(" thing apply's violence\n");
     fight_info = p_thing->Draw.Tweened->CurrentFrame->Fight;
 
     while (fight_info && count++ < 5) {
 
-        LogText(" my pos %d %d %d \n", x, y, z);
 
         hits += find_combat_target(fight_info, x, y, z, p_thing);
         fight_info = fight_info->Next;

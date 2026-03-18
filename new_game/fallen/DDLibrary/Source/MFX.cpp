@@ -168,7 +168,6 @@ void MFX_init()
                 sptr->size = ftell(fd);
                 MF_Fclose(fd);
             } else {
-                TRACE("NOT FOUND: %s (%s)\n", names[0], GetFullName(names[0]));
             }
         }
 
@@ -179,7 +178,6 @@ void MFX_init()
             if (gain) {
                 gain *= 4;
                 SetPower(sptr - Samples, float(gain));
-                TRACE("Setting %s gain to %d dB\n", sptr->fname, gain);
             }
         }
 

@@ -313,7 +313,6 @@ void load_texture_styles(UBYTE editor, UBYTE world)
                         }
                     return;
                 }
-                LogText(" read flags x %d z %d\n", temp, temp2);
                 FileRead(handle, (UBYTE*)&textures_flags[0][0], sizeof(UBYTE) * temp * temp2);
             }
 
@@ -322,7 +321,6 @@ void load_texture_styles(UBYTE editor, UBYTE world)
                                     {
                                             FileRead(handle,(UBYTE*)&temp,2);
                                             FileRead(handle,(UBYTE*)&temp2,2);
-                                            LogText(" read flags x %d z %d\n",temp,temp2);
                                             FileRead(handle,(UBYTE*)&textures_flags[0][0],sizeof(UBYTE)*temp*temp2);
                                     }
                                     else
@@ -396,7 +394,6 @@ void load_needed_anim_prims()
     for (c0 = 1; c0 < MAX_PRIMARY_THINGS; c0++) {
         if (TO_THING(c0)->Class == CLASS_ANIM_PRIM) {
             load_anim_prim_object(TO_THING(c0)->Index);
-            DebugText(" next_prim_point %d primface3 %d primface4 %d   load ANIMprim %d \n", next_prim_point, next_prim_face3, next_prim_face4, TO_THING(c0)->Index);
         }
     }
 
@@ -632,7 +629,6 @@ void load_game_map(CBYTE* name)
 
         OB_load_needed_prims();
         load_needed_anim_prims();
-        DebugText("Julyb npp %d npf3 %d name %s\n", next_prim_point, next_prim_face3, name);
 
         // claude-ai: texture_set selects which city texture palette to use.
         // claude-ai: texture_set == 0: default city (tarmac/brick), == 1: forest, == 5: snow/arctic.
@@ -664,7 +660,6 @@ void load_game_map(CBYTE* name)
 
         FileClose(handle);
     }
-    DebugText("Julyc npp %d npf3 %d \n", next_prim_point, next_prim_face3);
 }
 
 /*
@@ -791,7 +786,6 @@ SLONG load_prim_object(SLONG prim)
     MFFileHandle handle;
 
     if (prim == 15) {
-        LogText("hello");
     }
 
     ASSERT(WITHIN(prim, 0, 265));
@@ -977,12 +971,10 @@ SLONG load_prim_object(SLONG prim)
     //
     // All ok.
     //
-    DebugText(" next_prim_point %d primface3 %d primface4 %d   load prim %d \n", next_prim_point, next_prim_face3, next_prim_face4, prim);
 
     return TRUE;
 
 file_error:;
-    DebugText("FAILED next_prim_point %d primface3 %d primface4 %d   load prim %d \n", next_prim_point, next_prim_face3, next_prim_face4, prim);
 
     //
     // An error occurred.
@@ -1066,7 +1058,6 @@ void load_frame_numbers(CBYTE* vue_name, UWORD* frames, SLONG max_frames)
     name[len - 3] = 'T';
     name[len - 2] = 'X';
     name[len - 1] = 'T';
-    LogText(" load frames >%s< \n", name);
 
     f_handle = MF_Fopen(name, "r");
     if (f_handle) {
@@ -1109,7 +1100,6 @@ void load_frame_numbers(CBYTE* vue_name, UWORD* frames, SLONG max_frames)
                         // This records the order for frames, so if we need to know where 24 should be in the list you simply inquire at frames[24]
                         //
                         //
-                        LogText(" val %d at pos %d \n", val, index + 1);
                         frames[val] = index + 1;
                         index++;
                     }
@@ -1118,7 +1108,6 @@ void load_frame_numbers(CBYTE* vue_name, UWORD* frames, SLONG max_frames)
         } while (result >= 0);
         MF_Fclose(f_handle);
     } else {
-        LogText(" open error 1a, NO .txt for VUE\n");
         for (index = 0; index < max_frames; index++) {
             frames[index] = index + 1;
         }
@@ -1195,22 +1184,12 @@ void make_compress_matrix(struct KeyFrameElement* the_element, struct Matrix33* 
     ULONG encode;
     SLONG u, v, w;
     /*
-            LogText(" compress>>6 %x %x %x \n",matrix->M[0][0]>>6,matrix->M[0][1]>>6,matrix->M[0][2]>>6);
-            LogText(" compress>>6<<? %x %x %x \n",(((matrix->M[0][0]>>6))<<20),(((matrix->M[0][1]>>6))<<10),(((matrix->M[0][2]>>6))<<0));
-            LogText(" compress>>6<<?&? %x %x %x \n",((matrix->M[0][0]>>6)<<20)&CMAT0_MASK,((matrix->M[0][1]>>6)<<10)&CMAT1_MASK,((matrix->M[0][2]>>6)<<0)&CMAT2_MASK);
-            LogText(" compress %d %d %d ",matrix->M[0][0],matrix->M[0][1],matrix->M[0][2]);
 
             u=(((the_element->CMatrix.M[0]&CMAT0_MASK)<<2)>>22);
             v=(((the_element->CMatrix.M[0]&CMAT1_MASK)<<12)>>22);
             w=(((the_element->CMatrix.M[0]&CMAT2_MASK)<<22)>>22);
 
-      LogText(" into %d %d %d all %x\n",u<<6,v<<6,w<<6,the_element->CMatrix.M[0]);
 
-            LogText(" into %d \n",the_element->CMatrix.M[0]&CMAT1_MASK);
-            LogText(" into<<2 %d \n",the_element->CMatrix.M[0]&CMAT1_MASK<<12);
-            LogText(" into>>20 %d \n",((the_element->CMatrix.M[0]&CMAT1_MASK)<<12)>>22);
-            LogText(" into>>20 %d \n",(((the_element->CMatrix.M[0]&CMAT1_MASK)<<12)>>22));
-            LogText(" into>>20)<<6 %d \n",((((the_element->CMatrix.M[0]&CMAT1_MASK)<<12)>>22))<<6);
     */
     the_element->CMatrix.M[0] = ((((matrix->M[0][0] >> 6)) << 20) & CMAT0_MASK) + ((((matrix->M[0][1] >> 6)) << 10) & CMAT1_MASK) + ((((matrix->M[0][2] >> 6)) << 0) & CMAT2_MASK);
     the_element->CMatrix.M[1] = ((((matrix->M[1][0] >> 6)) << 20) & CMAT0_MASK) + ((((matrix->M[1][1] >> 6)) << 10) & CMAT1_MASK) + ((((matrix->M[1][2] >> 6)) << 0) & CMAT2_MASK);
@@ -1273,7 +1252,6 @@ void load_multi_vue(struct KeyFrameChunk* the_chunk, float shrink_me)
 
     set_default_people_types(the_chunk);
 
-    LogText("read VUE %s \n", the_chunk->VUEName);
     f_handle = MF_Fopen(the_chunk->VUEName, "r");
     if (f_handle) {
 
@@ -1318,7 +1296,6 @@ void load_multi_vue(struct KeyFrameChunk* the_chunk, float shrink_me)
                                 transform_name[c2] = tolower(transform_name[c2]);
                             }
 
-                            LogText(" object name %s \n", transform_name);
                             if ((!strcmp(transform_name, "lfoot")) || (!strcmp(transform_name, "pivot")))
                                 pivot = 1;
                             else
@@ -1512,7 +1489,6 @@ void load_key_frame_chunks(KeyFrameChunk* the_chunk, CBYTE* vue_name, float scal
         // md change
         //		the_chunk->ElementCount	=	prim_multi_objects[the_chunk->MultiObject].EndObject-prim_multi_objects[the_chunk->MultiObject].StartObject;
         the_chunk->ElementCount = ele_count; // prim_multi_objects[the_chunk->MultiObject].EndObject-prim_multi_objects[the_chunk->MultiObject].StartObject;
-        LogText(" element count %d \n", the_chunk->ElementCount);
 
         // Fudgy bit for centering.
         {
@@ -1524,7 +1500,6 @@ void load_key_frame_chunks(KeyFrameChunk* the_chunk, CBYTE* vue_name, float scal
                 sp, ep;
             struct PrimObject* p_obj;
 
-            LogText("SIZE edutils   center %d %d %d \n", x_centre, y_centre, z_centre);
 
             for (multi = the_chunk->MultiObjectStart; multi <= the_chunk->MultiObjectEnd; multi++)
                 for (c0 = prim_multi_objects[multi].StartObject; c0 < prim_multi_objects[multi].EndObject; c0++) {
@@ -1647,7 +1622,6 @@ void read_a_prim(SLONG prim, MFFileHandle handle, SLONG save_type)
         FileRead(handle, (UBYTE*)&sp, sizeof(sp));
         FileRead(handle, (UBYTE*)&ep, sizeof(ep));
 
-        LogText(" no points %d \n", ep - sp);
 
         for (c0 = sp; c0 < ep; c0++) {
             if (save_type > 3) {
@@ -1666,7 +1640,6 @@ void read_a_prim(SLONG prim, MFFileHandle handle, SLONG save_type)
 
         FileRead(handle, (UBYTE*)&sf3, sizeof(sf3));
         FileRead(handle, (UBYTE*)&ef3, sizeof(ef3));
-        LogText(" no face3 %d \n", ef3 - sf3);
         for (c0 = sf3; c0 < ef3; c0++) {
             FileRead(handle, (UBYTE*)&prim_faces3[next_prim_face3 + c0 - sf3], sizeof(struct PrimFace3));
             prim_faces3[next_prim_face3 + c0 - sf3].Points[0] += dp;
@@ -1676,7 +1649,6 @@ void read_a_prim(SLONG prim, MFFileHandle handle, SLONG save_type)
 
         FileRead(handle, (UBYTE*)&sf4, sizeof(sf4));
         FileRead(handle, (UBYTE*)&ef4, sizeof(ef4));
-        LogText(" no face4 %d \n", ef4 - sf4);
         for (c0 = sf4; c0 < ef4; c0++) {
             FileRead(handle, (UBYTE*)&prim_faces4[next_prim_face4 + c0 - sf4], sizeof(struct PrimFace4));
             prim_faces4[next_prim_face4 + c0 - sf4].Points[0] += dp;
@@ -1759,7 +1731,6 @@ SLONG load_a_multi_prim(CBYTE* name)
 
         prim_multi_objects[next_prim_multi_object].StartObject = next_prim_object;
         prim_multi_objects[next_prim_multi_object].EndObject = next_prim_object + (eo - so);
-        LogText(" load multi prim  no object %d \n", eo - so);
         for (c0 = so; c0 < eo; c0++)
             read_a_prim(c0, handle, save_type);
 
@@ -1860,13 +1831,11 @@ void load_palette(CBYTE* palette)
 
 
     if (handle == NULL) {
-        TRACE("Could not open palette file.\n");
 
         goto file_error;
     }
 
     if (fread(ENGINE_palette, 1, sizeof(ENGINE_palette), handle) != sizeof(ENGINE_palette)) {
-        TRACE("Error reading palette file.\n");
 
         MF_Fclose(handle);
 
@@ -2064,7 +2033,6 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
         convert_fightcol_to_pointer(p_chunk->FightCols, p_chunk->FightCols, p_chunk->MaxFightCols);
     } else {
 
-        LogText("PSX1 game chunk  max animkeyframes %d max theelements %d max animlist %d\n", p_chunk->MaxKeyFrames, p_chunk->MaxElements, temp);
 
         // was at 100 now at 10, a_off =-90 so we take 90 off each stored address
 
@@ -2089,11 +2057,9 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
             a = (ULONG)p_chunk->AnimKeyFrames[c0].FirstElement;
             a += ae_off;
             p_chunk->AnimKeyFrames[c0].FirstElement = (struct GameKeyFrameElement*)a;
-            DebugText(" fight %x addr3 %x \n", p_chunk->AnimKeyFrames[c0].Fight, addr3);
 
             a = (ULONG)p_chunk->AnimKeyFrames[c0].Fight;
             if (a != 0 && a < (ULONG)addr3) {
-                DebugText(" fight %x <addr3 %x abort\n", p_chunk->AnimKeyFrames[c0].Fight, addr3);
                 a = 0;
                 p_chunk->AnimKeyFrames[c0].Fight = 0;
             }
@@ -2102,12 +2068,10 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
             if (p_chunk->AnimKeyFrames[c0].Fight) {
                 struct GameFightCol* p_fight;
                 ULONG offset;
-                DebugText(" fight on animkeyframe %d \n", c0);
 
                 offset = (ULONG)p_chunk->AnimKeyFrames[c0].Fight;
                 offset -= (ULONG)addr3;
                 offset /= sizeof(struct GameFightCol);
-                DebugText(" p_chunk->AnimKeyFrames[%d].Fight %x   offset %d fixed \n", c0, p_chunk->AnimKeyFrames[c0].Fight, offset);
 
                 p_chunk->AnimKeyFrames[c0].Fight = (struct GameFightCol*)a;
 
@@ -2118,9 +2082,7 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
                     offset = (ULONG)p_fight->Next;
                     offset -= (ULONG)addr3;
                     offset /= sizeof(struct GameFightCol);
-                    DebugText(" p_fight->Next %x   offset %d fixed \n", p_fight->Next, offset);
                     if (offset > p_chunk->MaxFightCols) {
-                        DebugText(" error error offset>max %d \n", p_chunk->MaxFightCols);
                         p_fight->Next = 0;
                     } else {
                         a = (ULONG)p_fight->Next;
@@ -2167,7 +2129,6 @@ SLONG load_insert_a_multi_prim(MFFileHandle handle)
 
         prim_multi_objects[next_prim_multi_object].StartObject = next_prim_object;
         prim_multi_objects[next_prim_multi_object].EndObject = next_prim_object + (eo - so);
-        LogText(" load multi prim  no object %d \n", eo - so);
         for (c0 = so; c0 < eo; c0++)
             read_a_prim(c0, handle, save_type);
 
@@ -2264,7 +2225,6 @@ SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG typ
     extern void free_game_chunk(GameKeyFrameChunk * the_chunk);
     free_game_chunk(p_chunk);
 
-    DebugText(" load chunk name %s\n", fname);
     change_extension(fname, "all", ext_name);
     handle = FileOpen(ext_name);
     if (handle != FILE_OPEN_ERROR) {
@@ -2338,20 +2298,17 @@ SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG typ
                     }
                     break;
                 }
-                DebugText(" next_prim_point %d primface3 %d primface4 %d   load ANIMSYSTEM part %d \n", next_prim_point, next_prim_face3, next_prim_face4, c0);
             }
             p_chunk->MultiObject[c0] = 0;
         } else {
             p_chunk->MultiObject[0] = load_insert_a_multi_prim(handle);
             p_chunk->MultiObject[1] = 0;
-            DebugText(" next_prim_point %d primface3 %d primface4 %d   load ANIMSYSTEM partb %d \n", next_prim_point, next_prim_face3, next_prim_face4, 0);
         }
         load_insert_game_chunk(handle, p_chunk);
 
         FileClose(handle);
         return (1);
     } else {
-        DebugText("\n ERROR failed to open \n");
     }
     return (0);
 }
@@ -2529,7 +2486,6 @@ SLONG append_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG s
     extern void free_game_chunk(GameKeyFrameChunk * the_chunk);
     //	free_game_chunk(p_chunk);
 
-    DebugText(" APPEND chunk name %s\n", fname);
     change_extension(fname, "all", ext_name);
     handle = FileOpen(ext_name);
     if (handle != FILE_OPEN_ERROR) {
@@ -2560,7 +2516,6 @@ SLONG append_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG s
         FileClose(handle);
         return (1);
     } else {
-        DebugText("\n ERROR failed to open \n");
     }
     return (0);
 }

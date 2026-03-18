@@ -186,7 +186,6 @@ Thing* alloc_animal(UBYTE type)
     // There are no spare animal structures.
     //
 
-    TRACE("Run out of animal structures.");
 
     return NULL;
 
@@ -198,7 +197,6 @@ found_animal:
     dt = alloc_tween(type, 0);
     if (dt == NULL) {
         // Could not allocate a drawtween structure.
-        TRACE("Run out of drawtween structures.");
 
         // Free up the animal structure we allocated.
         TO_ANIMAL(a_index)->AnimalType = ANIMAL_NONE;

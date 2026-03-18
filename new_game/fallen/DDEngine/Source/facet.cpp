@@ -2069,7 +2069,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
     //		return;
 
     if (dx && dz) {
-        LogText(" diagonal wall \n");
         if (p_facet->FacetType == STOREY_TYPE_NORMAL) {
             ASSERT(0);
         }
@@ -2311,7 +2310,6 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
         break;
 
     case STOREY_TYPE_TRENCH:
-        LogText(" alt %d \n", p_facet->Y[0]);
 
     case STOREY_TYPE_NORMAL:
     case STOREY_TYPE_DOOR:

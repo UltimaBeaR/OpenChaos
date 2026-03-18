@@ -3775,11 +3775,6 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
     version = sizeof_ed_light >> 16;
     sizeof_ed_light &= 0xffff;
 
-    if (version)
-        TRACE("(new version %d lighting)\n", version);
-    else
-        TRACE("(old version lighting)\n");
-
     if (sizeof_ed_light != sizeof(ED_Light) || sizeof_night_colour != sizeof(NIGHT_Colour)) {
         //
         // Incompatable files.
@@ -3798,7 +3793,6 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
     /*	data_left=FileSize(handle)-12;
             if (data_left!=(sizeof_ed_light*ed_max_lights)+40) {
                     FileRead(handle,&version,sizeof(version));
-                    TRACE("(\"new\" lighting file version: %d)\n",version);
             } else TRACE("(\"old\" lighting file)\n");*/
 
     //
@@ -3909,7 +3903,6 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
 file_error:;
 
     //	MF_Fclose(handle);
-    TRACE("Oops it's a bit buggered.\n");
     FileClose(handle);
 
     // #endif

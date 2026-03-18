@@ -398,10 +398,8 @@ void log_primary_used_list(void)
 {
     THING_INDEX thing;
 
-    DebugText("\nPRIMARY USED\n");
     thing = PRIMARY_USED;
     while (thing) {
-        DebugText("Thing - %ld\nThing->Parent - %ld\nThing->Child - %ld\n", thing, TO_THING(thing)->LinkParent, TO_THING(thing)->LinkChild);
         thing = TO_THING(thing)->LinkChild;
     }
 }
@@ -412,10 +410,8 @@ void log_primary_unused_list(void)
 {
     THING_INDEX thing;
 
-    DebugText("\nPRIMARY UNUSED\n");
     thing = PRIMARY_UNUSED;
     while (thing) {
-        DebugText("Thing - %ld\nThing->Parent - %ld\nThing->Child - %ld\n", thing, TO_THING(thing)->LinkParent, TO_THING(thing)->LinkChild);
         thing = TO_THING(thing)->LinkChild;
     }
 }
@@ -426,10 +422,8 @@ void log_secondary_used_list(void)
 {
     THING_INDEX thing;
 
-    DebugText("\nSECONDARY USED\n");
     thing = SECONDARY_USED;
     while (thing) {
-        DebugText("Thing - %ld\nThing->Parent - %ld\nThing->Child - %ld\n", thing, TO_THING(thing)->LinkParent, TO_THING(thing)->LinkChild);
         thing = TO_THING(thing)->LinkChild;
     }
 }
@@ -440,10 +434,8 @@ void log_secondary_unused_list(void)
 {
     THING_INDEX thing;
 
-    DebugText("\nSECONDARY UNUSED\n");
     thing = SECONDARY_UNUSED;
     while (thing) {
-        DebugText("Thing - %ld\nThing->Parent - %ld\nThing->Child - %ld\n", thing, TO_THING(thing)->LinkParent, TO_THING(thing)->LinkChild);
         thing = TO_THING(thing)->LinkChild;
     }
 }
@@ -548,7 +540,6 @@ void do_packets(void)
 
         input = get_hardware_input(INPUT_TYPE_ALL); // controls;
 
-        LogText("NETWORK do packet  i am %d no players %d \n", PLAYER_ID, NO_PLAYERS);
 
         packets[PLAYER_ID].Input = input;
         packets[PLAYER_ID].Check1 = 0;
@@ -609,14 +600,6 @@ void do_packets(void)
         }
         if (0)
             for (c0 = 0; c0 < NO_PLAYERS; c0++) {
-                LogText(" NET player %d input %x, x %d z %d vel %d st %d ss %d \n",
-                    c0,
-                    packets[c0].Input,
-                    NET_PERSON(c0)->WorldPos.X,
-                    NET_PERSON(c0)->WorldPos.Z,
-                    NET_PERSON(c0)->Velocity,
-                    NET_PERSON(c0)->State,
-                    NET_PERSON(c0)->SubState);
             }
         /*
                         if(GAME_STATE&GS_RECORD)		//	Playback a network game.
@@ -719,8 +702,6 @@ void check_thing(Thing* p_thing)
     copy_important_thing_bits(&file, &file2);
 
     if (memcmp(&file2, &temp, sizeof(file2))) {
-        TRACE("Game turn = %d\n", GAME_TURN);
-        TRACE("Thing# = %d\n", THING_NUMBER(p_thing));
         ASSERT(0);
     }
 }
@@ -1314,7 +1295,6 @@ SLONG THING_find_box(SLONG x1, SLONG z1, SLONG x2, SLONG z2, THING_INDEX* array,
                     if (array_upto < array_size) {
                         array[array_upto++] = t_index;
                     } else {
-                        TRACE("THING_find found too many things for array size.");
 
                         return array_upto;
                     }

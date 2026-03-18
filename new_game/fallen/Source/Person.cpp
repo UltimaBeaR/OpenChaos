@@ -1836,7 +1836,6 @@ void sweep_feet(Thing* p_person, Thing* p_aggressor, SLONG death_type)
         }
         /*		else
                         {
-                                TRACE(" %d !<%d\n",r,prob);
                         }
         */
     }
@@ -3576,7 +3575,6 @@ void general_process_person(Thing* p_person)
     /*
             if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_FAKE_WANDER)
             {
-                    DebugText(" %d %d %d \n",p_person->State,p_person->SubState,p_person->Genus.Person->pcom_ai);
             }
     */
     //	p_person->Genus.Person->Flags &=~ FLAG_PERSON_DID_ANIMATE;
@@ -3704,7 +3702,6 @@ void general_process_person(Thing* p_person)
         SLONG x2, y2, z2, ndx;
         Thing* thing;
         Pyro* pyro;
-        TRACE("the pain the pain\n");
 
         ndx = p_person->Genus.Person->BurnIndex;
         if ((!ndx) || ((pyro = TO_PYRO(ndx - 1))->PyroType == PYRO_NONE)) {
@@ -3759,8 +3756,6 @@ void general_process_person(Thing* p_person)
                 p_person->WorldPos.X, p_person->WorldPos.Y, p_person->WorldPos.Z,
                 &x2, &y2, &z2);
 
-            if (!(p_person->Flags & FLAGS_BURNING))
-                TRACE("oh that's much better thankyou\n");
         }
     }
 
@@ -3887,7 +3882,6 @@ void general_process_person(Thing* p_person)
 
                     if (ControlFlag)
                     {
-                            TRACE("Looking for enemies\n");
                     }
             }
 
@@ -11038,11 +11032,9 @@ SLONG grab_ledge(Thing* p_person)
             switch (old_substate) {
             case SUB_STATE_STANDING_JUMP:
                 MinorEffortSound(p_person);
-                TRACE("minoreffort(stand jump grab) %d\n", p_person->Draw.Tweened->CurrentAnim);
                 break;
             case SUB_STATE_RUNNING_JUMP:
                 MinorEffortSound(p_person);
-                TRACE("minoreffort(running jump grab) %d\n", p_person->Draw.Tweened->CurrentAnim);
                 break;
             case SUB_STATE_DROP_DOWN:
                 // just in case...
@@ -11052,10 +11044,8 @@ SLONG grab_ledge(Thing* p_person)
                     MFX_play_thing(THING_NUMBER(p_person), S_ROPER_HIT_END - 1, 0, p_person);
                 else
                     MinorEffortSound(p_person);
-                TRACE("minoreffort(falling grab) %d\n", p_person->Draw.Tweened->CurrentAnim);
                 break;
             case SUB_STATE_RUNNING_JUMP_FLY:
-                TRACE("oof(run jump fly grab) %d\n", p_person->Draw.Tweened->CurrentAnim);
                 switch (p_person->Genus.Person->PersonType) {
                 case PERSON_DARCI:
                     MFX_play_thing(THING_NUMBER(p_person), S_DARCI_HIT_END, 0, p_person);
@@ -11065,8 +11055,6 @@ SLONG grab_ledge(Thing* p_person)
                     break;
                 }
                 break;
-            default:
-                TRACE("unknown grab substate: %d\n", old_substate);
             }
 
             set_anim(p_person, ANIM_FLY_GRABBING_LEDGE);
@@ -11605,7 +11593,6 @@ void fn_person_jumping(Thing* p_person)
                 p_person->SubState = SUB_STATE_RUNNING_JUMP_LAND_FAST;
                 p_person->Genus.Person->Action = ACTION_RUN;
 
-                LogText("cm1 calc landing y again %d \n", p_person->WorldPos.Y);
             } else {
                 //
                 // player has stopped pressing forward and wants to just land and be idle
@@ -11650,7 +11637,6 @@ void fn_person_jumping(Thing* p_person)
 
                 set_person_idle(p_person);
                 //						plant_feet(p_person);
-                LogText("cm2 calc landing y again %d \n", p_person->WorldPos.Y);
             }
 
             draw_info->AnimTween = 0;
@@ -11712,7 +11698,6 @@ void fn_person_jumping(Thing* p_person)
                 }
 
                 p_person->SubState = SUB_STATE_RUNNING_JUMP_LAND_FAST;
-                LogText("cm1 calc landing y again %d \n", p_person->WorldPos.Y);
             }
 
             draw_info->AnimTween = 0;

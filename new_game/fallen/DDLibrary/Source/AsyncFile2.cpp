@@ -81,7 +81,6 @@ void InitAsyncFile(void)
 void TermAsyncFile(void)
 {
     // tell thread to die
-    TRACE("MAIN: Telling worker thread to die\n");
     EnterCriticalSection(&csLock);
     KillThread = 1;
     LeaveCriticalSection(&csLock);
@@ -89,7 +88,6 @@ void TermAsyncFile(void)
     SetEvent(hEvent);
 
     // wait for thread to die
-    TRACE("MAIN: Waiting for worker thread to die\n");
     EnterCriticalSection(&csLock);
     while (KillThread != 2) {
         LeaveCriticalSection(&csLock);
@@ -98,7 +96,6 @@ void TermAsyncFile(void)
     }
     LeaveCriticalSection(&csLock);
 
-    TRACE("MAIN: Closing down\n");
     CloseHandle(hThread);
     CloseHandle(hEvent);
 }
@@ -113,20 +110,17 @@ DWORD WINAPI ThreadRun(LPVOID arg)
         // wait to be signalled
         WaitForSingleObject(hEvent, INFINITE);
 
-        TRACE("Worker: Signalled\n");
 
         // get command
         EnterCriticalSection(&csLock);
 
         if (KillThread == 1) {
-            TRACE("Worker: Received kill instruction\n");
             KillThread = 2;
             LeaveCriticalSection(&csLock);
             return 0;
         }
 
         if (CancelKey) {
-            TRACE("Worker: Received cancel instruction\n");
             AsyncFile* file = ActiveList.next;
             while (file != &ActiveList) {
                 AsyncFile* next = file->next;
@@ -142,7 +136,6 @@ DWORD WINAPI ThreadRun(LPVOID arg)
         AsyncFile* file = NULL;
 
         if (ActiveList.next != &ActiveList) {
-            TRACE("Worker: Received file load instruction\n");
             file = ActiveList.next;
             Unlink(file);
         }
@@ -153,10 +146,8 @@ DWORD WINAPI ThreadRun(LPVOID arg)
             DWORD amount;
 
             // read file
-            TRACE("Worker: Commence reading file\n");
 
             while (file->blen > BytesPerMillisecond) {
-                TRACE("Worker: Reading block\n");
                 ReadFile(file->hFile, file->buffer, BytesPerMillisecond, &amount, NULL);
                 file->buffer += BytesPerMillisecond;
                 file->blen -= BytesPerMillisecond;
@@ -164,10 +155,8 @@ DWORD WINAPI ThreadRun(LPVOID arg)
             }
 
             if (file->blen) {
-                TRACE("Worker: Reading final block\n");
                 ReadFile(file->hFile, file->buffer, file->blen, &amount, NULL);
             }
-            TRACE("Worker: Complete\n");
 
             EnterCriticalSection(&csLock);
             CompleteLink(file);
@@ -207,12 +196,10 @@ bool LoadAsyncFile(char* filename, void* buffer, DWORD blen, void* key)
     Unlink(file);
 
     // send to worker thread & signal it
-    TRACE("MAIN: Adding block to active list\n");
     EnterCriticalSection(&csLock);
     ActiveLink(file);
     LeaveCriticalSection(&csLock);
 
-    TRACE("MAIN: Signalling worker thread\n");
     SetEvent(hEvent);
 
     return true;
@@ -249,7 +236,6 @@ void CancelAsyncFile(void* key)
         return;
 
     // signal worker thread to cancel the file
-    TRACE("MAIN: Instructing worker thread to cancel\n");
     EnterCriticalSection(&csLock);
     CancelKey = key;
     LeaveCriticalSection(&csLock);
@@ -265,7 +251,6 @@ void CancelAsyncFile(void* key)
     }
     LeaveCriticalSection(&csLock);
 
-    TRACE("MAIN: Continuing after cancel\n");
 }
 
 // List utilities

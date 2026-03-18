@@ -75,7 +75,6 @@ HRESULT VertexBuffer::Create(IDirect3D3* d3d, bool force_system, ULONG logsize)
 
     ASSERT(!m_TheBuffer);
 
-    TRACE("Create vertex buffer\n");
 
     D3DVERTEXBUFFERDESC desc;
 
