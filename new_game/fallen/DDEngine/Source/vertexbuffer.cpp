@@ -36,9 +36,7 @@ VertexBuffer::VertexBuffer()
     m_LockedPtr = NULL;
     m_Prev = NULL;
     m_Next = NULL;
-#if USE_D3D_VBUF
     m_TheBuffer = NULL;
-#endif
 }
 
 VertexBuffer::~VertexBuffer()
@@ -47,19 +45,13 @@ VertexBuffer::~VertexBuffer()
     ASSERT(!m_Prev);
 
     if (m_LockedPtr) {
-#if !USE_D3D_VBUF
-        // delete[] m_LockedPtr;
-        MemFree(m_LockedPtr);
-#endif
         Unlock();
     }
 
-#if USE_D3D_VBUF
     if (m_TheBuffer) {
         m_TheBuffer->Release();
         m_TheBuffer = NULL;
     }
-#endif
 }
 
 // Create
@@ -71,7 +63,6 @@ HRESULT VertexBuffer::Create(IDirect3D3* d3d, bool force_system, ULONG logsize)
     ASSERT(!m_LockedPtr);
     ASSERT(d3d);
 
-#if USE_D3D_VBUF
 
     ASSERT(!m_TheBuffer);
 
@@ -92,14 +83,6 @@ HRESULT VertexBuffer::Create(IDirect3D3* d3d, bool force_system, ULONG logsize)
         return res;
     }
 
-#else
-
-    // m_LockedPtr = new D3DTLVERTEX[1 << logsize];
-    m_LockedPtr = (D3DTLVERTEX*)MemAlloc((1 << logsize) * sizeof(D3DTLVERTEX));
-    if (!m_LockedPtr)
-        return DDERR_OUTOFMEMORY;
-
-#endif
 
     m_LogSize = logsize;
 
@@ -112,7 +95,6 @@ HRESULT VertexBuffer::Create(IDirect3D3* d3d, bool force_system, ULONG logsize)
 
 D3DTLVERTEX* VertexBuffer::Lock()
 {
-#if USE_D3D_VBUF
 
     ASSERT(m_TheBuffer);
     ASSERT(!m_LockedPtr);
@@ -125,7 +107,6 @@ D3DTLVERTEX* VertexBuffer::Lock()
         return NULL;
     }
 
-#endif
 
     return m_LockedPtr;
 }
@@ -136,7 +117,6 @@ D3DTLVERTEX* VertexBuffer::Lock()
 
 void VertexBuffer::Unlock()
 {
-#if USE_D3D_VBUF
 
     ASSERT(m_TheBuffer);
     ASSERT(m_LockedPtr);
@@ -150,7 +130,6 @@ void VertexBuffer::Unlock()
 
     m_LockedPtr = NULL;
 
-#endif
 }
 
 //-----------------------------
@@ -356,7 +335,6 @@ VertexBuffer* VertexBufferPool::ExpandBuffer(VertexBuffer* buffer)
 //
 // prepare a buffer for rendering
 
-#if USE_D3D_VBUF
 
 IDirect3DVertexBuffer* VertexBufferPool::PrepareBuffer(VertexBuffer* buffer)
 {
@@ -379,7 +357,6 @@ IDirect3DVertexBuffer* VertexBufferPool::PrepareBuffer(VertexBuffer* buffer)
     return buffer->m_TheBuffer;
 }
 
-#endif
 
 // DumpInfo
 //

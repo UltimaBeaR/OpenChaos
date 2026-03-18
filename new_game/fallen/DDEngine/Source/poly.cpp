@@ -88,11 +88,7 @@ int m_iCurrentCombo = COMBO_DIRTY;
 
 static UBYTE s_ClipMask; // the clip bits we care about
 
-#if USE_D3D_VBUF
 #define STD_CLIPMASK (POLY_CLIP_LEFT | POLY_CLIP_RIGHT | POLY_CLIP_TOP | POLY_CLIP_BOTTOM | POLY_CLIP_NEAR)
-#else
-#define STD_CLIPMASK (POLY_CLIP_NEAR)
-#endif
 
 
 //

@@ -310,7 +310,6 @@ void PolyPage::Render(IDirect3DDevice3* dev)
     // apply vertex FX
     MassageVertices();
 
-#if USE_D3D_VBUF
     IDirect3DVertexBuffer* vb = TheVPool->PrepareBuffer(m_VertexBuffer);
     m_VertexBuffer = NULL;
     m_VertexPtr = NULL;
@@ -336,38 +335,6 @@ void PolyPage::Render(IDirect3DDevice3* dev)
     dev->DrawIndexedPrimitiveVB(D3DPT_TRIANGLELIST, vb, IxBuffer, dst - IxBuffer, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP | D3DDP_DONOTLIGHT);
 
 
-#else // !USE_D3D_VBUF
-
-    if (!Keys[KB_F8]) {
-        PolyPoly* src = m_PolyBuffer;
-        UWORD* dst = IxBuffer;
-
-        for (ii = 0; ii < m_PolyBufUsed; ii++) {
-            UWORD v1 = src->first_vertex;
-
-            for (ULONG jj = 2; jj < src->num_vertices; jj++) {
-                *dst++ = v1;
-                *dst++ = v1 + jj - 1;
-                *dst++ = v1 + jj;
-            }
-            src++;
-        }
-
-        HRESULT hres;
-
-        hres = dev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, m_VertexPtr, m_VBUsed, IxBuffer, dst - IxBuffer, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-
-        // ASSERT(hres == D3D_OK);
-    } else
-    {
-        HRESULT hres;
-
-        hres = dev->DrawPrimitive(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, m_VertexPtr, m_VBUsed, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-
-        ASSERT(hres == D3D_OK);
-    }
-
-#endif
 
     AENG_total_polys_drawn += m_PolyBufUsed;
     m_PolyBufUsed = 0;
@@ -392,9 +359,7 @@ void PolyPage::DrawSinglePoly(PolyPoly* poly, IDirect3DDevice3* dev)
         *dst++ = v1 + jj;
     }
 
-#if USE_D3D_VBUF
     dev->DrawIndexedPrimitiveVB(D3DPT_TRIANGLELIST, m_VB, IxBuffer, dst - IxBuffer, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP | D3DDP_DONOTLIGHT);
-#endif
 }
 
 // AddToBuckets
@@ -410,9 +375,7 @@ void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
     MassageVertices();
 
     // obtain vertex buffer pointer
-#if USE_D3D_VBUF
     m_VB = TheVPool->PrepareBuffer(m_VertexBuffer);
-#endif
 
     // add to buckets
     for (DWORD ii = 0; ii < m_PolyBufUsed; ii++) {
@@ -430,10 +393,8 @@ void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
     }
 
     // clear everything else
-#if USE_D3D_VBUF
     m_VertexBuffer = NULL;
     m_VertexPtr = NULL;
-#endif
     m_VBUsed = 0;
     m_PolyBufUsed = 0;
 }

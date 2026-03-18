@@ -1292,7 +1292,7 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 | `_MF_WINDOWS` / `WIN32` / `_WIN32` / `_WINDOWS` | ➖ | уже нет #ifdef в game-коде |
 | `USE_TOMS_ENGINE_PLEASE_BOB` | ✅ | итерация 39 |
 | `WE_NEED_POLYBUFFERS_PLEASE_BOB` | ✅ | итерация 40 |
-| `USE_D3D_VBUF` | ⬜ | `= 1` в vertexbuffer.h; vertexbuffer.h, poly.cpp, polypage.cpp |
+| `USE_D3D_VBUF` | ✅ | итерация 41 |
 | `NO_SERVER` | ⬜ | `= 1` в noserver.h; font2d.cpp, menufont.cpp, texture.cpp, io.cpp, supermap.cpp |
 | `ULTRA_COMPRESSED_ANIMATIONS` | ⬜ | нужно проверить есть ли #ifdef в коде |
 
@@ -1365,5 +1365,20 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 - `DDEngine/Source/poly.cpp` — 89 строк
 - `DDEngine/Source/polypage.cpp` — 85 строк
 - `DDEngine/Headers/polypage.h` — 22 строки (включая сам `#define`)
+
+**Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.
+
+---
+
+## Итерация 41 — Пункт 2.7: раскрытие USE_D3D_VBUF (2026-03-18)
+
+`USE_D3D_VBUF = 1` определён в `vertexbuffer.h` (всегда активен).
+
+**Изменено (5 файлов, 73 удаления):**
+- `DDEngine/Source/polypage.cpp` — 39 строк
+- `DDEngine/Source/vertexbuffer.cpp` — 23 строки
+- `DDEngine/Source/poly.cpp` — 4 строки
+- `DDEngine/Headers/vertexbuffer.h` — 5 строк (включая сам `#define`)
+- `DDEngine/Headers/polypage.h` — 2 строки
 
 **Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.

@@ -6,7 +6,6 @@
 #define FALLEN_DDENGINE_HEADERS_VERTEXBUFFER_H
 
 // tried and it is about 33% faster than not using D3D vertex buffers
-#define USE_D3D_VBUF 1 // set to 0 to revert to malloc'd vertex buffers
 
 
 extern void VB_Init();
@@ -44,9 +43,7 @@ private:
     VertexBuffer* m_Prev; // prev in chain
     VertexBuffer* m_Next; // next in chain
 
-#if USE_D3D_VBUF
     IDirect3DVertexBuffer* m_TheBuffer;
-#endif
 };
 
 // VertexBufferPool
@@ -64,9 +61,7 @@ public:
     void ReleaseBuffer(VertexBuffer* buffer); // release a buffer
 
     VertexBuffer* ExpandBuffer(VertexBuffer* buffer); // expand a buffer
-#if USE_D3D_VBUF
     IDirect3DVertexBuffer* PrepareBuffer(VertexBuffer* buffer); // prepare a buffer for rendering
-#endif
 
     void DumpInfo(FILE* fd); // dump info out
 

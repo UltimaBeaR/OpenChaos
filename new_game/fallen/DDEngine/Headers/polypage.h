@@ -119,9 +119,7 @@ public:
     PolyPoly* m_PolySortBuffer; // polygon sort buffer
     ULONG m_PolySortBufSize; // size of polygon sort buffer
 
-#if USE_D3D_VBUF
     IDirect3DVertexBuffer* m_VB; // vertex buffer pointer, only used in bucket sort
-#endif
 
     // SortBackFirst iteration
     void MergeSortIteration(ULONG sort_len);
