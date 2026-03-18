@@ -259,14 +259,10 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
     SLONG best_error;
     SLONG best_dx;
     SLONG best_dy;
-    SLONG best_pan;
 
     UBYTE pan[COMP_SNUM * COMP_SNUM];
     SLONG pan_upto = 0;
     SLONG pan_index;
-
-    UBYTE diff[COMP_SIZE * COMP_SIZE / 16];
-    SLONG diff_upto = 0;
 
     COMP_Pan* cp;
     COMP_Update* cu;

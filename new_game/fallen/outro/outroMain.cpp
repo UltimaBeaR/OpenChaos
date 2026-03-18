@@ -14,7 +14,6 @@
 void MAIN_main()
 {
     SLONG time1 = OS_ticks();
-    SLONG time2;
 
     extern UBYTE the_end;
 

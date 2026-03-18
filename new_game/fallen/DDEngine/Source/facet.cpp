@@ -1213,61 +1213,6 @@ static void MakeFacetPoints(float sx, float sy, float sz, float dx, float dz, fl
     FacetRows[hf] = POLY_buffer_upto;
 }
 
-static void MakeFacetPointsFence(float sx, float sy, float sz, float dx, float dz, float block_height,
-    SLONG height, SLONG max_height, NIGHT_Colour* col, SLONG foundation, SLONG count, SLONG invisible, float* diff_y)
-{
-    SLONG hf = 0;
-    float* p_diffy;
-
-    ASSERT(POLY_buffer_upto == 0); // or else FacetDiffY is accessed wrongly
-
-    while (height >= 0) {
-        float x = sx;
-        float y = sy;
-        float z = sz;
-        p_diffy = diff_y;
-        FacetRows[hf] = POLY_buffer_upto;
-
-        for (SLONG c0 = count; c0 > 0; c0--) {
-            float ty;
-
-            ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
-
-            POLY_Point* pp = &POLY_buffer[POLY_buffer_upto++];
-
-            {
-                ty = y + *p_diffy;
-                p_diffy++;
-                POLY_transform_c_saturate_z(x, ty, z, pp);
-            }
-
-            if (pp->MaybeValid()) {
-                {
-                    NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
-                }
-
-                {
-                    //	apply_cloud(SLONG(x), SLONG(ty), SLONG(z), &pp->colour);
-                }
-
-                // POLY_fadeout_point(pp);
-
-            }
-
-            x += dx;
-            z += dz;
-            col++;
-        }
-        sy += block_height;
-        height -= 4;
-        hf++;
-        foundation--;
-        if (sy > max_height)
-            break;
-    }
-    FacetRows[hf] = POLY_buffer_upto;
-}
-
 // claude-ai: FillFacetPoints — converts two rows of screen points into a row of textured quads.
 // claude-ai: Iterates columns: pairs POLY_buffer[row2+c] and POLY_buffer[row1+c] into a quad.
 // claude-ai: 'facet_backwards' flips quad vertex order for two-sided or interior-facing walls.

@@ -49,23 +49,6 @@ void mkt_test(void)
 //
 // init DirectDraw and Direct3D and check they're OK
 
-static int numdevices = 0;
-
-static HRESULT CALLBACK D3DEnumDevicesCallback(GUID FAR* lpGuid,
-    LPTSTR lpDeviceDescription,
-    LPTSTR lpDeviceName,
-    LPD3DDEVICEDESC lpD3DHWDeviceDesc,
-    LPD3DDEVICEDESC lpD3DHELDeviceDesc,
-    LPVOID lpContext)
-{
-    if (lpD3DHWDeviceDesc->dwFlags) {
-        numdevices++;
-    } else {
-        numdevices++; // count these too
-    }
-    return D3DENUMRET_OK;
-}
-
 extern HINSTANCE hGlobalThisInst;
 
 // claude-ai: Точка входа (PC/DC). Цепочка: SetupHost() → game() → ResetHost(). game() содержит весь игровой цикл.

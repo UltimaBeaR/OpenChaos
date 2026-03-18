@@ -196,8 +196,6 @@ void MF_invert_zeds(IMP_Mesh* im)
 {
     SLONG i;
 
-    IMP_Vert* iv;
-
     ASSERT(im->num_verts <= OS_MAX_TRANS);
 
     for (i = 0; i < im->num_verts; i++) {
@@ -398,10 +396,8 @@ void MF_specular_spotlight(
     float along_z;
 
     float dprod;
-    float along;
 
     float len;
-    float overlen;
 
     float rx;
     float ry;
@@ -694,7 +690,6 @@ void MF_add_triangles_light(IMP_Mesh* im, OS_Texture* ot, ULONG draw)
 
     IMP_Svert* is;
     OS_Vert* ov;
-    IMP_Mat* it;
     IMP_Face* ic;
     IMP_Vert* iv;
     OS_Buffer* ob;
@@ -761,7 +756,6 @@ void MF_add_triangles_light_bumpmapped(IMP_Mesh* im, OS_Texture* ot, ULONG draw)
     IMP_Mat* it;
     IMP_Face* ic;
     IMP_Vert* iv;
-    OS_Buffer* ob;
 
     for (pass = 0; pass < 2; pass++) {
         //
@@ -868,7 +862,6 @@ void MF_add_triangles_specular(IMP_Mesh* im, OS_Texture* ot, ULONG draw)
     IMP_Svert* is;
     OS_Vert* ov;
     IMP_Face* ic;
-    IMP_Vert* iv;
     OS_Buffer* ob;
     OS_Vert* ov1;
     OS_Vert* ov2;
@@ -942,7 +935,6 @@ void MF_add_triangles_specular_bumpmapped(IMP_Mesh* im, OS_Texture* ot, ULONG dr
     IMP_Mat* it;
     IMP_Face* ic;
     IMP_Vert* iv;
-    OS_Buffer* ob;
 
     //
     // Build the array of OS_Verts.
@@ -1125,7 +1117,6 @@ void MF_add_triangles_specular_shadowed(IMP_Mesh* im, OS_Texture* ot_specdot, OS
 
     IMP_Svert* is;
     OS_Vert* ov;
-    IMP_Mat* it;
     IMP_Face* ic;
     IMP_Vert* iv;
     OS_Buffer* ob;
@@ -1221,7 +1212,6 @@ void MF_add_triangles_bumpmapped_pass(IMP_Mesh* im, SLONG pass, ULONG draw)
     IMP_Mat* it;
     IMP_Face* ic;
     IMP_Vert* iv;
-    OS_Buffer* ob;
 
     //
     // Build the array of OS_Verts.

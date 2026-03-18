@@ -1428,3 +1428,29 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 - `DDEngine/Source/aeng.cpp` — 18 строк (2 вызова draw_quick_floor + глобальные массивы)
 
 **Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.
+
+---
+
+## Итерация 45 — Пункт 4: удаление мёртвых сущностей через компилятор (2026-03-18)
+
+Использованы предупреждения MSVC C4505 (unreferenced static function) и C4101 (unreferenced local variable).
+
+**Удалены статические функции (C4505, 9 функций):**
+- `BinkClient.cpp`: `ClearScreen`, `NextBinkFrame`, `EndMovie` — Bink-видео заглушки, тела полностью закомментированы
+- `Drive.cpp`: `Exit` — "Cannot locate Urban Chaos CD-ROM", никогда не вызывалась
+- `Main.cpp`: `D3DEnumDevicesCallback` + `numdevices` — D3D device enumeration, не используется
+- `facet.cpp`: `MakeFacetPointsFence` — рендеринг заборов, не вызывается (~53 строки)
+- `vehicle.cpp`: `set_vehicle_draw` — начинается с `ASSERT(0); return;`, мёртвая
+- `truetype.cpp`: `ShowDebug` — debug визуализация shadow surface (~39 строк)
+- `DCLowLevel.h`: `DumpTracies` — пустая DC-era заглушка
+
+**Удалены неиспользуемые локальные переменные (C4101, ~25 мест):**
+- `comp.cpp`: `best_pan`, `diff` + `diff_upto`
+- `DIManager.cpp`: `pDevice` (в callback), `hr` (в `OS_joy_init`)
+- `Tga.cpp`: `red`, `green`, `blue`, `definitely_no_alpha`, `col` (из `col, palpos`), `num_pixels`, `bpp`
+- `outro/imp.cpp`: `il`
+- `outro/mf.cpp`: `iv` (MF_invert_zeds), `along`, `overlen`, `it` (MF_add_triangles_light), `ob` (MF_add_triangles_light_bumpmapped), `iv` (MF_add_triangles_specular), `ob` (MF_add_triangles_specular_bumpmapped), `it` (MF_add_triangles_specular_shadowed), `ob` (MF_add_triangles_bumpmapped_pass)
+- `outro/outroMain.cpp`: `time2`
+- `outro/wire.cpp`: `px`, `pz`, `index`
+
+**Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 269 предупреждений (было 294, −25).

@@ -33,7 +33,6 @@ BOOL CALLBACK OS_joy_enum(
     LPVOID context)
 {
     HRESULT hr;
-    LPDIRECTINPUTDEVICE pDevice;
 
     //
     // Get an interface to the joystick.
@@ -77,8 +76,6 @@ BOOL CALLBACK OS_joy_enum(
 
 void OS_joy_init(void)
 {
-    HRESULT hr;
-
     //
     // Initialise everything.
     //

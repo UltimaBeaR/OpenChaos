@@ -842,10 +842,6 @@ TGA_Info TGA_load_psx(const CBYTE* file, SLONG max_width, SLONG max_height, UBYT
     SLONG y1;
     SLONG y2;
 
-    UBYTE red;
-    UBYTE green;
-    UBYTE blue;
-
     SLONG tga_pixel_depth;
     SLONG tga_image_type;
     SLONG tga_id_length;
@@ -854,7 +850,6 @@ TGA_Info TGA_load_psx(const CBYTE* file, SLONG max_width, SLONG max_height, UBYT
 
     UBYTE header[18];
     UBYTE junk;
-    UBYTE definitely_no_alpha;
 
     FILE* handle;
 
@@ -928,7 +923,7 @@ TGA_Info TGA_load_psx(const CBYTE* file, SLONG max_width, SLONG max_height, UBYT
     }
 
     if (tga_pal) {
-        UBYTE col, palpos = 0;
+        UBYTE palpos = 0;
         //
         // The file has colour map data- but how much?
         //
@@ -1083,9 +1078,7 @@ void TGA_save(
     SLONG x;
     SLONG y;
 
-    SLONG num_pixels;
     UBYTE header[18];
-    SLONG bpp;
 
     FILE* handle;
 

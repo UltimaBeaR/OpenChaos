@@ -12,16 +12,6 @@ static bool SFX_CD; // sound effects on CD?
 static bool MoviesCD; // movies on CD?
 static bool SpeechCD; // speech on CD?
 
-// Exit
-//
-// exit on failure
-
-static void Exit(void)
-{
-    MessageBox(NULL, "Cannot locate Urban Chaos CD-ROM", NULL, MB_ICONERROR);
-    exit(1);
-}
-
 // LocateCDROM
 //
 // locate the CD drive containing the Urban Chaos CD

@@ -793,26 +793,6 @@ void VEH_dealloc(Vehicle* veh)
 // Initialises a vehicles drawmesh structure.
 //
 
-static void set_vehicle_draw(Thing* p_thing)
-{
-    DrawTween* draw;
-    ASSERT(0);
-    return;
-
-    draw = &p_thing->Genus.Vehicle->Draw;
-
-    draw->Angle = p_thing->Genus.Vehicle->Angle;
-    draw->Roll = 0;
-    draw->Tilt = 0;
-    draw->AnimTween = 0;
-    draw->TweenStage = 0;
-    draw->CurrentFrame = game_chunk[5].AnimList[2];
-    draw->NextFrame = draw->CurrentFrame->NextFrame;
-    draw->QueuedFrame = NULL;
-    draw->TheChunk = &game_chunk[5];
-    draw->FrameIndex = 0;
-    draw->Flags = 0;
-}
 // claude-ai: VEH_create(): main vehicle spawning function.
 // claude-ai: Allocates a DrawMesh + Thing (CLASS_VEHICLE) + Vehicle struct, links them together.
 // claude-ai: Positions vehicle at (x,y,z) with given yaw/pitch/roll; calls reinit_vehicle() for physics.

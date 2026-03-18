@@ -179,7 +179,6 @@ IMP_Mesh IMP_load(CBYTE* fname, float scale)
     IMP_Svert* is;
     IMP_Quad* iq;
     IMP_Edge* ie;
-    IMP_Line* il;
 
     IMP_Mesh ans;
     CBYTE line[256];

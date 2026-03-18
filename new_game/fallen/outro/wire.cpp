@@ -141,9 +141,6 @@ void WIRE_plane_process()
 void WIRE_plane_draw()
 {
     SLONG i;
-    SLONG px;
-    SLONG pz;
-    SLONG index;
 
     OS_Buffer* ob = OS_buffer_new();
     OS_Vert* ov;

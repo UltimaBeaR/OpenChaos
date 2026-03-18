@@ -109,7 +109,5 @@ void DCLL_memstream_stop(void); // Stops playing the file
 void DCLL_memstream_unload(void); // Frees memory.
 
 
-static void DumpTracies(void) { }
-
 
 #endif // FALLEN_DDLIBRARY_HEADERS_DCLOWLEVEL_H
