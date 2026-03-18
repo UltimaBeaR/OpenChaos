@@ -3280,12 +3280,9 @@ UBYTE AENG_aa_buffer[AENG_AA_BUF_SIZE][AENG_AA_BUF_SIZE];
 
 #define MAP_SIZE_TWEAK 0
 
-// #define	NEW_FLOOR defined
 
-#ifndef NEW_FLOOR
 POLY_Point AENG_upper[MAP_WIDTH / 2 + MAP_SIZE_TWEAK][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK];
 POLY_Point AENG_lower[MAP_WIDTH / 2 + MAP_SIZE_TWEAK * 2][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK * 2];
-#endif
 
 //
 // Globals affecting the way the engine works.
@@ -5342,15 +5339,11 @@ void AENG_draw_city()
     }
 
 
-#ifdef NEW_FLOOR
-    draw_quick_floor(0);
-#endif
 
     //
     // Rotate all the points.   //draw_floor
     //
 
-#ifndef NEW_FLOOR
     colour = 0x00888888;
     specular = 0xff000000;
 
@@ -5499,7 +5492,6 @@ void AENG_draw_city()
                 }
             }
         }
-#endif
     BreakTime("Rotated points");
 
 
@@ -6459,7 +6451,6 @@ void AENG_draw_city()
 
 
 
-#ifndef NEW_FLOOR
     if (AENG_detail_people_reflection) {
         SLONG oldcolour[4];
         SLONG oldspecular[4];
@@ -6564,7 +6555,6 @@ void AENG_draw_city()
             }
         }
     }
-#endif
     BreakTime("Drawn reflective squares");
 
     /*
@@ -6790,7 +6780,6 @@ void AENG_draw_city()
     // draw floor draw_floor  //things to search for
     //
 
-#ifndef NEW_FLOOR
 
     SLONG num_squares_drawn = 0;
 
@@ -7231,7 +7220,6 @@ void AENG_draw_city()
                 }
             }
     }
-#endif
     BreakTime("Drawn floors");
 
 
@@ -8604,7 +8592,6 @@ void AENG_draw_warehouse()
     //
     // Rotate all the points.
     //
-#ifndef NEW_FLOOR
     for (z = NGAMUT_point_zmin; z <= NGAMUT_point_zmax; z++) {
         for (x = NGAMUT_point_gamut[z].xmin; x <= NGAMUT_point_gamut[z].xmax; x++) {
             ASSERT(WITHIN(x, 0, PAP_SIZE_HI - 1));
@@ -8663,7 +8650,6 @@ void AENG_draw_warehouse()
             }
         }
     }
-#endif
     //
     // Who shall we generate shadows for?
     //
@@ -9097,14 +9083,10 @@ void AENG_draw_warehouse()
         }
     }
 
-#ifdef NEW_FLOOR
-    draw_quick_floor(1);
-#endif
 
     //
     // Create all the squares.
     //
-#ifndef NEW_FLOOR
     for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++) {
         for (x = NGAMUT_gamut[z].xmin; x <= NGAMUT_gamut[z].xmax; x++) {
             ASSERT(WITHIN(x, 0, PAP_SIZE_HI - 2));
@@ -9146,7 +9128,6 @@ void AENG_draw_warehouse()
             }
         }
     }
-#endif
 
     //
     // Draw the objects and the things.

@@ -1304,10 +1304,10 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 | `DISABLE_CRINKLES` | ✅ | итерация 36 (`= 0` на PC; взята ветка PC: 700 points, 8192 max) |
 | `CALC_CAR_CRUMPLE` | ✅ | итерация 36 (`= 0`; взята ветка таблицы, удалён блок вычисления) |
 | `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB` | ✅ | итерация 36 (только dead define, нет #if блоков) |
-| `HIGH_REZ_PEOPLE_PLEASE_BOB` | ⬜ | требует анализа (4x вершин, cheat 0x10f1a7e) |
+| `HIGH_REZ_PEOPLE_PLEASE_BOB` | ✅ | итерация 44 |
 | `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` | ✅ | итерация 36 (нигде не defined, удалены 3 блока) |
 | `MESH_SHOW_MOUSE_POINT` | ✅ | итерация 36 (нигде не defined, удалены 4 блока) |
-| `NEW_FLOOR` | ❓ | закомментирован в aeng.cpp; экспериментальный рендер пола |
+| `NEW_FLOOR` | ✅ | итерация 44 |
 | No-op макросы (`TRACE`, `LogText`, `DebugText`, `ERROR_MSG`) | ✅ | итерация 37 (ASSERT и VERIFY оставлены — документируют инварианты) |
 | `VERIFY(x)` | 🚫 | решено не удалять — документирует инварианты, аналогично ASSERT |
 | `TEX_EMBED` | ✅ | итерация 38 |
@@ -1410,5 +1410,21 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 - `Source/io.cpp` — 23 строки (load_insert_game_chunk: убраны UCA ветки чтения)
 - `Headers/anim.h` — 20 строк (struct GameKeyFrameElement UCA вариант)
 - `Source/memory.cpp` — 9 строк (save_psx ветки)
+
+**Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.
+
+---
+
+## Итерация 44 — Пункт 2.7: удаление HIGH_REZ_PEOPLE_PLEASE_BOB и NEW_FLOOR (2026-03-18)
+
+Оба флага нигде не определены — удалены за один прогон coan.
+
+**HIGH_REZ_PEOPLE_PLEASE_BOB:** subdivision + inflate рендеринг персонажей, активировался чит-кодом 0x10f1a7e ("inflate"). Закомментирован в figure.cpp.
+
+**NEW_FLOOR:** экспериментальный `draw_quick_floor()` — незаконченная альтернатива рендереру пола. Рабочий рендер пола всегда был в `#ifndef NEW_FLOOR` ветках.
+
+**Изменено (2 файла, 319 удалений):**
+- `DDEngine/Source/figure.cpp` — 301 строка (subdivision + inflate рендеринг персонажей)
+- `DDEngine/Source/aeng.cpp` — 18 строк (2 вызова draw_quick_floor + глобальные массивы)
 
 **Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.
