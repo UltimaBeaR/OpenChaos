@@ -577,12 +577,10 @@ SLONG FASTPRIM_draw(
                         pu = (f3->UV[k][0] & 0x3f) * (1.0F / 32.0F);
                         pv = (f3->UV[k][1]) * (1.0F / 32.0F);
 
-#ifdef TEX_EMBED
 
                         pu = pu * pp->m_UScale + pp->m_UOffset;
                         pv = pv * pp->m_VScale + pp->m_VOffset;
 
-#endif
 
                         if (lpc) {
                             NIGHT_get_d3d_colour(
@@ -691,12 +689,10 @@ SLONG FASTPRIM_draw(
                         pu = (f4->UV[k][0] & 0x3f) * (1.0F / 32.0F);
                         pv = (f4->UV[k][1]) * (1.0F / 32.0F);
 
-#ifdef TEX_EMBED
 
                         pu = pu * pp->m_UScale + pp->m_UOffset;
                         pv = pv * pp->m_VScale + pp->m_VOffset;
 
-#endif
 
                         if (lpc) {
                             NIGHT_get_d3d_colour(

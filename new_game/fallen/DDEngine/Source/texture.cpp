@@ -1694,12 +1694,10 @@ LPDIRECT3DTEXTURE2 TEXTURE_get_handle(SLONG page)
     return TEXTURE_texture[page].GetD3DTexture();
 }
 
-#ifdef TEX_EMBED
 D3DTexture* TEXTURE_get_D3DTexture(SLONG page)
 {
     return &(TEXTURE_texture[page]);
 }
-#endif
 
 void TEXTURE_get_minitexturebits_uvs(
     UWORD texture,

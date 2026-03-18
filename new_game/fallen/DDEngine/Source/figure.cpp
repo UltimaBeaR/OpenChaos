@@ -1692,7 +1692,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
                 PolyPage* pRenderedPage = NULL;
 
-#ifdef TEX_EMBED
 
                 if ((wTexturePage & ~TEXTURE_PAGE_MASK) != 0) {
                     // Something special about this page, e.g. jacket, special shading, etc.
@@ -1702,7 +1701,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                     pRenderedPage = POLY_Page[wTexturePage & TEXTURE_PAGE_MASK].pTheRealPolyPage;
                 }
 
-#endif
 
                 // OK, now we have a material description in wTexturePage.
                 // Look for an existing material with this.
@@ -1710,7 +1708,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                 int iMatNum;
                 for (iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
 #if 1
-#ifdef TEX_EMBED
                     if (pRenderedPage != NULL) {
                         if ((pMaterial->wTexturePage & ~TEXTURE_PAGE_MASK) == 0) {
                             // Nothing special about this page.
@@ -1720,7 +1717,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                             }
                         }
                     }
-#endif
 #endif
 
                     if (pMaterial->wTexturePage == wTexturePage) {
@@ -1832,7 +1828,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                     bSamePage = TRUE;
                                 }
 #if 1
-#ifdef TEX_EMBED
                                 else if (pRenderedPage != NULL) {
                                     // if ( ( ( pMaterial->wTexturePage & ~TEXTURE_PAGE_MASK ) == 0 ) &&
                                     //	 ( ( wTexturePage & ~TEXTURE_PAGE_MASK ) == 0 )
@@ -1844,7 +1839,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         }
                                     }
                                 }
-#endif
 #endif
 
                                 if (bSamePage) {
@@ -1897,7 +1891,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                             d3dvert.dvTU = float(p_f4->UV[i][0] & 0x3f) * (1.0F / 32.0F);
                                             d3dvert.dvTV = float(p_f4->UV[i][1]) * (1.0F / 32.0F);
                                         }
-#ifdef TEX_EMBED
                                         // Clamp if they go out of range.
                                         // This can produce a little bit of distortion, but it's better than nothing.
                                         if (d3dvert.dvTU < 0.0f) {
@@ -1915,7 +1908,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         d3dvert.dvTV = d3dvert.dvTV * pa->m_VScale + pa->m_VOffset;
 
                                         // Now scale by the page offset and scale
-#endif
                                         d3dvert.dvX = AENG_dx_prim_points[pt].X;
                                         d3dvert.dvY = AENG_dx_prim_points[pt].Y;
                                         d3dvert.dvZ = AENG_dx_prim_points[pt].Z;

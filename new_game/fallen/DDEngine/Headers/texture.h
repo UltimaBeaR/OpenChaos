@@ -129,10 +129,8 @@ extern SLONG TEXTURE_num_textures; // The total number of pages.
 // D3DTEXTUREHANDLE TEXTURE_get_handle(SLONG page);
 LPDIRECT3DTEXTURE2 TEXTURE_get_handle(SLONG page);
 
-#ifdef TEX_EMBED
 class D3DTexture;
 D3DTexture* TEXTURE_get_D3DTexture(SLONG page);
-#endif
 
 //
 // The handle of each crinkle. NULL => No crinkle for that page.

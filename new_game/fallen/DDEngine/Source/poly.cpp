@@ -1432,12 +1432,8 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 #if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
         PolyPage* pp = &POLY_Page[page];
-#ifdef TEX_EMBED
         // Do the indirection to the real poly page.
         PolyPage* ppDrawn = pp->pTheRealPolyPage;
-#else
-        PolyPage* ppDrawn = pp;
-#endif
 
         PolyPoint2D* pv = ppDrawn->PointAlloc(3 + (poly_points - 3) * 3);
 
@@ -1447,11 +1443,7 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
         ppt = rptr[0];
 
         pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
         pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-        pv->SetUV(ppt->u, ppt->v);
-#endif
         pv->SetColour(ppt->colour);
         pv->SetSpecular(ppt->specular);
 
@@ -1463,11 +1455,7 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
             ppt = rptr[laura - 1];
 
             pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
             pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-            pv->SetUV(ppt->u, ppt->v);
-#endif
             pv->SetColour(ppt->colour);
             pv->SetSpecular(ppt->specular);
 
@@ -1476,11 +1464,7 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
             ppt = rptr[laura];
 
             pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
             pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-            pv->SetUV(ppt->u, ppt->v);
-#endif
             pv->SetColour(ppt->colour);
             pv->SetSpecular(ppt->specular);
 
@@ -1501,12 +1485,8 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
       // The version with index buffers
 
         PolyPage* pp = &POLY_Page[page];
-#ifdef TEX_EMBED
         // Do the indirection to the real poly page.
         PolyPage* ppDrawn = pp->pTheRealPolyPage;
-#else
-        PolyPage* ppDrawn = pp;
-#endif
 
         PolyPoint2D* pv = ppDrawn->FanAlloc(poly_points);
 
@@ -1517,11 +1497,7 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
             ppt = rptr[i];
 
             pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
             pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-            pv->SetUV(ppt->u, ppt->v);
-#endif
             pv->SetColour(ppt->colour);
             pv->SetSpecular(ppt->specular);
 
@@ -1579,12 +1555,8 @@ void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, 
 second_page:;
 
     PolyPage* pp = &POLY_Page[page];
-#ifdef TEX_EMBED
     // Do the indirection to the real poly page.
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
-#else
-    PolyPage* ppDrawn = pp;
-#endif
 
 #if WE_NEED_POLYBUFFERS_PLEASE_BOB
     PolyPoint2D* pv = ppDrawn->PointAlloc(3);
@@ -1606,11 +1578,7 @@ second_page:;
     ppt = pt[0];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -1619,11 +1587,7 @@ second_page:;
     ppt = pt[1];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -1632,11 +1596,7 @@ second_page:;
     ppt = pt[2];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -1723,12 +1683,8 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
 second_page:;
 
     PolyPage* pp = &POLY_Page[page];
-#ifdef TEX_EMBED
     // Do the indirection to the real poly page.
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
-#else
-    PolyPage* ppDrawn = pp;
-#endif
 
 #if WE_NEED_POLYBUFFERS_PLEASE_BOB
 
@@ -1752,11 +1708,7 @@ second_page:;
     ppt = pt[0];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -1765,11 +1717,7 @@ second_page:;
     ppt = pt[1];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -1778,11 +1726,7 @@ second_page:;
     ppt = pt[2];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -1791,11 +1735,7 @@ second_page:;
     ppt = pt[3];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -1825,11 +1765,7 @@ second_page:;
     ppt = pt[0];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -1838,11 +1774,7 @@ second_page:;
     ppt = pt[1];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -1851,11 +1783,7 @@ second_page:;
     ppt = pt[3];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -1864,11 +1792,7 @@ second_page:;
     ppt = pt[2];
 
     pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-#ifdef TEX_EMBED
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-#else
-    pv->SetUV(ppt->u, ppt->v);
-#endif
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
@@ -2490,9 +2414,7 @@ void POLY_clip_line_add(float sx1, float sy1, float sx2, float sy2, ULONG colour
 //
 // draw all the poly pages
 
-#ifdef TEX_EMBED
 extern SLONG PageOrder[POLY_NUM_PAGES];
-#endif
 
 void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 {
@@ -2570,15 +2492,9 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         //
         //		BreakTime("FRAMEDRAW start alphasort");
 
-#ifdef TEX_EMBED
         for (i = 0; i <= iPolyNumPagesRender; i++) // <= because we skip POLY_PAGE_COLOUR...
         {
             k = PageOrder[i];
-#else
-        for (i = 0; i <= POLY_NUM_PAGES; i++) // <= because we skip POLY_PAGE_COLOUR...
-        {
-            k = i;
-#endif
             //
             // Do POLY_PAGE_COLOUR first!
             //
@@ -2699,14 +2615,9 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 #else // do it page by page
       //		BreakTime("FRAMEDRAW start page by page");
 
-#ifdef TEX_EMBED
         for (i = 0; i <= iPolyNumPagesRender; i++) // <= because we skip POLY_PAGE_COLOUR...
         {
             k = PageOrder[i];
-#else
-        for (i = 0; i < POLY_NUM_PAGES; i++) {
-            k = i;
-#endif
 
             pa = &POLY_Page[k];
 
@@ -2763,13 +2674,8 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         //
         //		BreakTime("FRAMEDRAW start all polys at once");
 
-#ifdef TEX_EMBED
         for (i = 0; i < iPolyNumPagesRender; i++) {
             k = PageOrder[i];
-#else
-        for (i = 0; i < POLY_NUM_PAGES; i++) {
-            k = i;
-#endif
 
             pa = &POLY_Page[k];
 
@@ -2905,12 +2811,8 @@ void POLY_frame_draw_puddles()
 {
 
     PolyPage* pp = &POLY_Page[POLY_PAGE_PUDDLE];
-#ifdef TEX_EMBED
     // Do the indirection to the real poly page.
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
-#else
-    PolyPage* ppDrawn = pp;
-#endif
 
 
     if (pp->NeedsRendering()) {

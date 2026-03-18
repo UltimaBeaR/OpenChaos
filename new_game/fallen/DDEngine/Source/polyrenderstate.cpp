@@ -20,10 +20,8 @@
 extern RenderState DefRenderState;
 extern PolyPage POLY_Page[POLY_NUM_PAGES];
 
-#ifdef TEX_EMBED
 SLONG PageOrder[POLY_NUM_PAGES];
 static bool PageOrdered[POLY_NUM_PAGES];
-#endif
 
 // static flag for render state setup
 
@@ -36,15 +34,11 @@ static bool RenderStates_OK = false;
 #undef SET_NO_TEXTURE
 #undef SET_RENDER_STATE
 
-#ifdef TEX_EMBED
 #define SET_TEXTURE(PAGE)                               \
     {                                                   \
         pa->RS.SetTexture(TEXTURE_get_handle(PAGE));    \
         pa->SetTexOffset(TEXTURE_get_D3DTexture(PAGE)); \
     }
-#else
-#define SET_TEXTURE(PAGE) pa->RS.SetTexture(TEXTURE_get_handle(PAGE))
-#endif
 #define SET_NO_TEXTURE pa->RS.SetTexture(NULL)
 #define SET_RENDER_STATE(I, V) pa->RS.SetRenderState(I, V)
 #define SET_EFFECT(FX) pa->RS.SetEffect(FX)
@@ -1402,7 +1396,6 @@ void POLY_init_render_states()
         // TRACE ( "0x%x ", POLY_Page[ii].RS.GetTexture() );
     }
 
-#ifdef TEX_EMBED
 
     // Before we do this, we must flush all the currently queued polys,
     // because this will change the sorting order, and thus some
@@ -1464,7 +1457,6 @@ void POLY_init_render_states()
     extern int iPolyNumPagesRender;
     iPolyNumPagesRender = pos;
 
-#endif
 
 
     RenderStates_OK = TRUE;

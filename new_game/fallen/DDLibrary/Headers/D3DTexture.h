@@ -58,12 +58,10 @@ public:
     HRESULT Reload_user(void);
     BOOL GreyScale;
     BOOL UserWantsAlpha; // The user page needs an alpha-channel.
-#ifdef TEX_EMBED
     // char *name;			// Texture file name.
     UBYTE bPagePos; // Position in page.
     UBYTE bPageType; // One of D3DPAGE_xxx
     WORD wPageNum; // The D3Dpage this is in.
-#endif
 
     D3DTexture* NextTexture;
 
@@ -75,11 +73,9 @@ public:
         lp_Surface = NULL;
         lp_Texture = NULL;
         Type = D3DTEXTURE_TYPE_UNUSED;
-#ifdef TEX_EMBED
         wPageNum = -1; // None.
         bPagePos = 0;
         bPageType = D3DPAGE_NONE;
-#endif
         // IT WOULD FUCKING HELP IF SOME OF THESE ACTUALLY GOT SET UP WITH DEFAULTS
         GreyScale = FALSE;
         UserWantsAlpha = FALSE;
@@ -131,9 +127,7 @@ public:
 
     LPDIRECT3DTEXTURE2 GetD3DTexture() { return lp_Texture; }
     LPDIRECTDRAWSURFACE4 GetSurface(void) { return lp_Surface; }
-#ifdef TEX_EMBED
     void GetTexOffsetAndScale(float* pfUScale, float* pfUOffset, float* pfVScale, float* pfVOffset);
-#endif
 
     HRESULT SetColorKey(SLONG flags, LPDDCOLORKEY key)
     {

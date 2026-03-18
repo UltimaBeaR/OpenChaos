@@ -2489,7 +2489,6 @@ void AENG_draw_dirt()
             // Fix the uv's for texture paging.
             //
 
-#ifdef TEX_EMBED
 
             if (world_type == WORLD_TYPE_SNOW) {
                 pp = &POLY_Page[POLY_PAGE_SNOWFLAKE];
@@ -2505,7 +2504,6 @@ void AENG_draw_dirt()
             AENG_dirt_uvlookup[i].u = AENG_dirt_uvlookup[i].u * pp->m_UScale + pp->m_UOffset;
             AENG_dirt_uvlookup[i].v = AENG_dirt_uvlookup[i].v * pp->m_VScale + pp->m_VOffset;
 
-#endif
         }
 
         AENG_dirt_uvlookup_valid = TRUE;
@@ -2736,7 +2734,6 @@ void AENG_draw_dirt()
                 lv[3].color = rubbish_colour;
                 lv[3].specular = 0xff000000;
 
-#ifdef TEX_EMBED
 
                 pp = &POLY_Page[POLY_PAGE_RUBBISH];
 
@@ -2752,7 +2749,6 @@ void AENG_draw_dirt()
                 lv[3].tu = lv[3].tu * pp->m_UScale + pp->m_UOffset;
                 lv[3].tv = lv[3].tv * pp->m_VScale + pp->m_VOffset;
 
-#endif
 
                 //
                 // Build the indices.
@@ -4281,11 +4277,9 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
     pv->tu = 0.0f;
     pv->tv = 1.0f;
 
-#ifdef TEX_EMBED
     pv->tu = pv->tu * kerb_scaleu + kerb_du;
     pv->tv = pv->tv * kerb_scalev + kerb_dv;
 
-#endif
 
     // set verts colour
     pv->color = c1; // 0xff808080;//202020;
@@ -4300,11 +4294,9 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
     pv->tu = 1.0f;
     pv->tv = 1.0f;
 
-#ifdef TEX_EMBED
     pv->tu = pv->tu * kerb_scaleu + kerb_du;
     pv->tv = pv->tv * kerb_scalev + kerb_dv;
 
-#endif
 
     // set verts colour
     pv->color = c2; // 0xff808080;//202020;
@@ -4319,11 +4311,9 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
     pv->tu = 1.0f;
     pv->tv = 0.0f;
 
-#ifdef TEX_EMBED
     pv->tu = pv->tu * kerb_scaleu + kerb_du;
     pv->tv = pv->tv * kerb_scalev + kerb_dv;
 
-#endif
 
     // set verts colour
     pv->color = c2; // 0xff808080;//202020;
@@ -4338,12 +4328,10 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
     pv->tu = 0.0f;
     pv->tv = 0.0f;
 
-#ifdef TEX_EMBED
 
     pv->tu = pv->tu * kerb_scaleu + kerb_du;
     pv->tv = pv->tv * kerb_scalev + kerb_dv;
 
-#endif
 
     // set verts colour
     pv->color = c1; // 0xff808080;//202020;
@@ -4578,14 +4566,12 @@ void draw_quick_floor(SLONG warehouse)
     SLONG no_floor = 0;
     SLONG is_shadow;
 
-#ifdef TEX_EMBED
     pp = &POLY_Page[0];
 
     kerb_du = pp->m_UOffset;
     kerb_dv = pp->m_VOffset;
     kerb_scaleu = pp->m_UScale;
     kerb_scalev = pp->m_VScale;
-#endif
 
     if (GAME_FLAGS & GF_NO_FLOOR)
         no_floor = 1;
@@ -4837,8 +4823,6 @@ void draw_quick_floor(SLONG warehouse)
                             current_set = c0;
 
                             group[current_set].page = tex_handle;
-#ifdef TEX_EMBED
-#endif
 
                             break;
                         }
@@ -4877,8 +4861,6 @@ void draw_quick_floor(SLONG warehouse)
                         ASSERT(bin_set == current_set);
 
                         group[current_set].page = tex_handle;
-#ifdef TEX_EMBED
-#endif
                     }
                 }
                 //			group[current_set]=page;
@@ -4946,7 +4928,6 @@ void draw_quick_floor(SLONG warehouse)
                     &pv[2].tu,
                     &pv[2].tv);
 
-#ifdef TEX_EMBED
 
                 pv[0].tu = pv[0].tu * pp->m_UScale + pp->m_UOffset;
                 pv[1].tu = pv[1].tu * pp->m_UScale + pp->m_UOffset;
@@ -4958,7 +4939,6 @@ void draw_quick_floor(SLONG warehouse)
                 pv[2].tv = pv[2].tv * pp->m_VScale + pp->m_VOffset;
                 pv[3].tv = pv[3].tv * pp->m_VScale + pp->m_VOffset;
 
-#endif
 
 
                 if ((p1->Flags & (PAP_FLAG_ROOF_EXISTS)) && warehouse == 0) {

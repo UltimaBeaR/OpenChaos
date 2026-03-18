@@ -1310,9 +1310,27 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 | `NEW_FLOOR` | ❓ | закомментирован в aeng.cpp; экспериментальный рендер пола |
 | No-op макросы (`TRACE`, `LogText`, `DebugText`, `ERROR_MSG`) | ✅ | итерация 37 (ASSERT и VERIFY оставлены — документируют инварианты) |
 | `VERIFY(x)` | 🚫 | решено не удалять — документирует инварианты, аналогично ASSERT |
+| `TEX_EMBED` | ✅ | итерация 38 |
 
-### Требуют решения перед обработкой
+---
 
-| Флаг | Проблема |
-|------|---------|
-| `TEX_EMBED` | В vcxproj (`#define TEX_EMBED`), но закомментирован в polypage.h. Нужно выяснить: какая ветка реально активна сейчас? Если vcxproj определяет — это `#ifdef TEX_EMBED` ветки. Много блоков (~40+ в poly.cpp, aeng.cpp, fastprim.cpp, figure.cpp). |
+## Итерация 38 — Пункт 2.7: раскрытие TEX_EMBED (2026-03-18)
+
+`TEX_EMBED` определён в обоих конфигах vcxproj (Debug и Release). Закомментированный `// #define TEX_EMBED` в `polypage.h` — устаревший артефакт, vcxproj доминирует.
+
+**Действие:** coan `-DTEX_EMBED --no-transients --recurse`, затем ручные правки.
+
+**Изменено (12 файлов, 180 удалений):**
+- `DDEngine/Source/poly.cpp` — 24 блока TEX_EMBED
+- `DDEngine/Source/aeng.cpp` — 10 блоков
+- `DDEngine/Source/polypage.cpp` — 7 блоков
+- `DDEngine/Source/figure.cpp` — 4 блока
+- `DDEngine/Source/polyrenderstate.cpp` — 3 блока
+- `DDEngine/Source/fastprim.cpp`, `superfacet.cpp`, `texture.cpp` — по 1-2 блока
+- `DDEngine/Headers/polypage.h` — 3 блока + удалён `// #define TEX_EMBED` комментарий
+- `DDEngine/Headers/texture.h` — 1 блок
+- `DDLibrary/Headers/D3DTexture.h` — 3 блока
+- `DDLibrary/Source/D3DTexture.cpp` — 4 блока
+- `Fallen.vcxproj` — убран `TEX_EMBED;` из PreprocessorDefinitions обоих конфигов
+
+**Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.
