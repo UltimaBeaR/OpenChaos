@@ -1850,35 +1850,6 @@ void HM_rel_cube_to_world(
     matrix[7] = hp_z->y - hp_o->y;
     matrix[8] = hp_z->z - hp_o->z;
 
-#if WE_WANT_TO_NORMALISE_THE_MATRIX
-
-    //
-    // ASSUME THAT THE MATRIX IS ORTHOGONAL!  Normalise each vector of the matrix
-    // 'doubley' so that the space of the box goes from 0 to 1 in each axis..
-    //
-
-    len = matrix[0] * matrix[0] + matrix[1] * matrix[1] + matrix[2] * matrix[2];
-    len = 1.0F / len;
-
-    matrix[0] *= len;
-    matrix[1] *= len;
-    matrix[2] *= len;
-
-    len = matrix[3] * matrix[3] + matrix[4] * matrix[4] + matrix[5] * matrix[5];
-    len = 1.0F / len;
-
-    matrix[3] *= len;
-    matrix[4] *= len;
-    matrix[5] *= len;
-
-    len = matrix[6] * matrix[6] + matrix[7] * matrix[7] + matrix[8] * matrix[8];
-    len = 1.0F / len;
-
-    matrix[6] *= len;
-    matrix[7] *= len;
-    matrix[8] *= len;
-
-#endif
 
     //
     // Convert from cube-space to world space.

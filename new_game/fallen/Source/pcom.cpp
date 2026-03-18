@@ -4861,11 +4861,6 @@ THING_INDEX PCOM_create_person(
             p_person->Flags |= FLAGS_HAS_GUN;
         }
 
-#if NO_MORE_HAPPY_BALOONS
-        if (pcom_has & PCOM_HAS_BALLOON) {
-            p_person->Genus.Person->Balloon = BALLOON_create(p_index, BALLOON_TYPE_YELLOW);
-        }
-#endif
         if (pcom_has & PCOM_HAS_SHOTGUN) {
 
             //
@@ -10204,51 +10199,6 @@ void PCOM_process_state_change(Thing* p_person)
         break;
     }
 
-#if SANITY_PREVAILED
-
-    //
-    // MASTER OVERRIDE! If you are racist and see someone of the colour
-    // you hate...
-    //
-
-    if (p_person->Genus.Person->Flags & FLAG_PERSON_RACIST) {
-        if (((THING_NUMBER(p_person) + GAME_TURN) & 0xf) == 0) {
-            if (p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL || p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_WARM_HANDS || p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FOLLOW) {
-                SLONG i;
-
-                Thing* p_found;
-
-                //
-                // If you can see someone you hate...
-                //
-
-                PCOM_found_num = THING_find_sphere(
-                    p_person->WorldPos.X >> 8,
-                    p_person->WorldPos.Y >> 8,
-                    p_person->WorldPos.Z >> 8,
-                    0x600,
-                    PCOM_found,
-                    PCOM_MAX_FIND,
-                    1 << CLASS_PERSON);
-
-                for (i = 0; i < PCOM_found_num; i++) {
-                    p_found = TO_THING(PCOM_found[i]);
-
-                    if (p_found->Genus.Person->colour == p_person->Genus.Person->hate_colour) {
-                        //
-                        // He hates this person!
-                        //
-
-                        if (can_a_see_b(p_person, p_found)) {
-                            PCOM_set_person_ai_kill_person(p_person, p_found);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-#endif
 }
 
 //

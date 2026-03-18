@@ -2402,29 +2402,6 @@ SLONG ELEV_game_init(
 
     insert_collision_facets();
 
-#if GET_RID_OF_THE_BLOODY_MIST
-
-    //
-    // Put down some mist.
-    //
-
-    MIST_create(
-        17,
-        84,
-        14914,
-        13655,
-        19010,
-        17751);
-
-    MIST_create(
-        17,
-        84,
-        8787,
-        4000,
-        12883,
-        8096);
-
-#endif
 
     //
     // Clear all the keys!

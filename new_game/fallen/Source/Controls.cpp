@@ -1617,45 +1617,6 @@ void process_controls(void)
     //	PANEL_new_text(NULL, 2000, "abcdefghijk lmnopqr stuvwxyz ABCDEFG HIJKLMNO PQRSTUVWXYZ 0123456789 !\"�$%^ &*(){} []<>\\/:;'@ #~?-=+.,");
     //	PANEL_new_text(NULL, 2000, "a-b-c-d-e-f-g  h-i-j-k-l-m-n");
 
-#if THIS_IS_A_LOS_TEST
-
-    {
-        SLONG x1, y1, z1;
-        SLONG x2, y2, z2;
-
-        x1 = (darci->WorldPos.X >> 8);
-        y1 = (darci->WorldPos.Y >> 8) + 0x60;
-        z1 = (darci->WorldPos.Z >> 8);
-
-        x2 = (darci->WorldPos.X >> 8);
-        y2 = (darci->WorldPos.Y >> 8) + 0x60;
-        z2 = (darci->WorldPos.Z >> 8);
-
-        x2 -= SIN(darci->Draw.Tweened->Angle) >> 6;
-        z2 -= COS(darci->Draw.Tweened->Angle) >> 6;
-
-        SLONG colour;
-
-        if (there_is_a_los(
-                x1, y1, z1,
-                x2, y2, z2,
-                0)) {
-            colour = 0xffffff;
-        } else {
-            colour = 0xbb0000;
-        }
-
-        AENG_world_line(
-            x1, y1, z1,
-            32,
-            colour || 0x111111,
-            x2, y2, z2,
-            16,
-            colour,
-            FALSE);
-    }
-
-#endif
 
     if (allow_debug_keys) {
         /*
@@ -1794,69 +1755,6 @@ void process_controls(void)
         }
     }
 
-#if WE_NEED_THE_NUMBER_KEYS
-
-    if (Keys[KB_7]) {
-        Keys[KB_7] = 0;
-
-        PARTICLE_Add(
-            darci->WorldPos.X,
-            darci->WorldPos.Y + 0x5000,
-            darci->WorldPos.Z,
-            -SIN(darci->Draw.Tweened->Angle) >> 2,
-            0,
-            -COS(darci->Draw.Tweened->Angle) >> 2,
-            POLY_PAGE_FLAMES2,
-            2 + ((Random() & 0x3) << 2),
-            0xffffffff,
-            PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_EXPLODE_ON_IMPACT | PFLAG_GRAVITY | PFLAG_LEAVE_TRAIL,
-            100,
-            160,
-            1,
-            1,
-            1);
-
-        /*
-
-        static pow_size = POW_CREATE_MEDIUM;
-
-        pow_size += 1;
-        pow_size %= 3;
-
-        POW_create(
-                pow_size,
-                darci->WorldPos.X - SIN(darci->Draw.Tweened->Angle),
-                darci->WorldPos.Y,// + 0x8000,
-                darci->WorldPos.Z - COS(darci->Draw.Tweened->Angle));
-
-        */
-
-        /*
-
-        BAT_create(
-                BAT_TYPE_BAT,
-                darci->WorldPos.X >> 8,
-                darci->WorldPos.Z >> 8);
-
-        */
-
-        /*
-
-        {
-                SLONG	index;
-                index=BAT_create(
-                        BAT_TYPE_GARGOYLE,
-                        darci->WorldPos.X >> 8,
-                        darci->WorldPos.Z >> 8,0);
-                TO_THING(index)->Genus.Bat->state=8;
-        }
-
-        */
-
-        //		ROAD_calc_mapsquare_type();
-    }
-
-#endif
 
     /*
 
@@ -2602,43 +2500,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
     }
     */
 
-#if WE_WANNA_TEST_THE_LOS_STUFF
-
-    {
-        SLONG x1, y1, z1;
-        SLONG x2, y2, z2;
-
-        calc_sub_objects_position(
-            darci,
-            darci->Draw.Tweened->AnimTween,
-            SUB_OBJECT_HEAD,
-            &x2,
-            &y2,
-            &z2);
-
-        x2 += darci->WorldPos.X >> 8;
-        y2 += darci->WorldPos.Y >> 8;
-        z2 += darci->WorldPos.Z >> 8;
-
-        if (there_is_a_los(x2, y2, z2, x1, y1, z1)) {
-            AENG_world_line(
-                x1, 0, z1, 16, 0x00ffffff,
-                x2, 0, z2, 16, 0x00dddddd,
-                TRUE);
-        } else {
-            AENG_world_line(
-                x1, 0, z1, 16, 0x00eeee00,
-                x2, 0, z2, 16, 0x00dddd00,
-                TRUE);
-
-            AENG_world_line(
-                x2, 12, z2, 8, 0x00866dd,
-                los_failure_x, 12, los_failure_z, 8, 0x00ff22ee,
-                TRUE);
-        }
-    }
-
-#endif
 
     /*
 

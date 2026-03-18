@@ -1,4 +1,3 @@
-#define ASYNC_FILE_IO 0
 #define TALK_3D 0
 
 #include "MFX.h"
@@ -9,9 +8,6 @@
 
 #include "drive.h"
 
-#if ASYNC_FILE_IO
-#include "asyncfile2.h"
-#endif
 
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -30,9 +26,6 @@ struct MFX_Sample {
     MFX_Sample* prev_lru; // prev LRU entry (i.e. sample used before this one)
     MFX_Sample* next_lru; // next LRU entry (i.e. sample used after this one)
     char* fname; // sample filename
-#if ASYNC_FILE_IO
-    unsigned char* loadBuffer;
-#endif
     unsigned int handle;
     bool is3D;
     int size;
@@ -108,9 +101,6 @@ void SetPower(SLONG wave, float dB); // set power for sample in dB (0 = normal)
 static void InitVoices();
 static void LoadWaveFile(MFX_Sample* sptr);
 static void LoadTalkFile(char* filename);
-#if ASYNC_FILE_IO
-static void LoadWaveFileAsync(MFX_Sample* sptr);
-#endif
 static void UnloadWaveFile(MFX_Sample* sptr);
 static void UnloadTalkFile();
 static void FinishLoading(MFX_Voice* vptr);
@@ -128,9 +118,6 @@ void MFX_init()
     alContext = alcCreateContext(alDevice, nullptr);
     alcMakeContextCurrent(alContext);
 
-#if ASYNC_FILE_IO
-    InitAsyncFile();
-#endif
 
     InitVoices();
 
@@ -219,9 +206,6 @@ void MFX_term()
     alcDestroyContext(alContext);
     alcCloseDevice(alDevice);
 
-#if ASYNC_FILE_IO
-    TermAsyncFile();
-#endif
 }
 
 static char* GetFullName(char* fname)
@@ -487,11 +471,7 @@ static void SetupVoice(MFX_Voice* vptr, UWORD channel_id, ULONG wave, ULONG flag
 
     // load the sample
     if (!sptr->handle) {
-#if ASYNC_FILE_IO
-        LoadWaveFileAsync(sptr);
-#else
         LoadWaveFile(sptr);
-#endif
         if (!sptr->handle) {
             return;
         }
@@ -963,40 +943,6 @@ static void LoadTalkFile(char* filename)
     SDL_FreeWAV(dataBuffer);
 }
 
-#if ASYNC_FILE_IO
-
-static void LoadWaveFileAsync(MFX_Sample* sptr)
-{
-    if (!sptr->fname || sptr->handle) {
-        return;
-    }
-
-    FILE* fd = MF_Fopen(GetFullName(sptr->fname), "rb");
-    if (!fd) {
-        return;
-    }
-
-    fseek(fd, 0, SEEK_END);
-    sptr->size = ftell(fd);
-    MF_Fclose(fd);
-
-    sptr->loadBuffer = new unsigned char[sptr->size];
-
-    AllocatedRAM += sptr->size;
-
-    if (!LoadAsyncFile(GetFullName(sptr->fname), sptr->loadBuffer, sptr->size, sptr)) {
-        delete[] sptr->loadBuffer;
-        AllocatedRAM -= sptr->size;
-
-        // fall back to synchronous loading
-        LoadWaveFile(sptr);
-        return;
-    }
-
-    sptr->loading = true;
-}
-
-#endif
 
 static void UnloadWaveFile(MFX_Sample* sptr)
 {
@@ -1012,12 +958,6 @@ static void UnloadWaveFile(MFX_Sample* sptr)
     }
 
     // cancel pending IO
-#if ASYNC_FILE_IO
-    if (sptr->loading) {
-        CancelAsyncFile(sptr);
-        sptr->loading = false;
-    }
-#endif
 
     // free
     alDeleteBuffers(1, &sptr->handle);
@@ -1098,45 +1038,6 @@ void MFX_set_listener(SLONG x, SLONG y, SLONG z, SLONG heading, SLONG roll, SLON
 
 void MFX_update()
 {
-#if ASYNC_FILE_IO
-    // check for async completions
-    MFX_Sample* sptr;
-
-    while (sptr = (MFX_Sample*)GetNextCompletedAsyncFile()) {
-        SDL_AudioSpec spec;
-        Uint32 bufferSize;
-        Uint8* dataBuffer;
-
-        SDL_RWops* rwops = SDL_RWFromMem(sptr->loadBuffer, sptr->size);
-        if (!SDL_LoadWAV_RW(rwops, SDL_TRUE, &spec, &dataBuffer, &bufferSize)) {
-            delete[] sptr->loadBuffer;
-            AllocatedRAM -= sptr->size;
-
-            continue;
-        }
-        ASSERT(SDL_AUDIO_BITSIZE(spec.format) == 16);
-
-        delete[] sptr->loadBuffer;
-        AllocatedRAM -= sptr->size;
-
-        sptr->size = bufferSize;
-        AllocatedRAM += sptr->size;
-
-        sptr->loading = false;
-        sptr->is3D = sptr->is3D && spec.channels == 1;
-        alGenBuffers(1, &sptr->handle);
-        alBufferData(sptr->handle, spec.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16,
-            dataBuffer, bufferSize, spec.freq);
-        SDL_FreeWAV(dataBuffer);
-
-        // and trigger any voices that were waiting for it
-        for (int ii = 0; ii < MAX_VOICE; ii++) {
-            if (Voices[ii].smp == sptr) {
-                FinishLoading(&Voices[ii]);
-            }
-        }
-    }
-#endif
 
     for (int ii = 0; ii < MAX_VOICE; ii++) {
         MFX_Voice* vptr = &Voices[ii];

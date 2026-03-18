@@ -2948,11 +2948,7 @@ void AENG_draw_dirt()
                 dd->dx >> 2,
                 dd->dy >> TICK_SHIFT,
                 dd->dz >> 2,
-#ifdef TARGET
-                0xff224455,
-#else
                 0x00224455,
-#endif
                 POLY_PAGE_DROPLET);
             break;
 
@@ -2977,11 +2973,7 @@ void AENG_draw_dirt()
                 dd->dx >> 2,
                 dd->dy >> TICK_SHIFT,
                 dd->dz >> 2,
-#ifdef TARGET
-                0xff775533,
-#else
                 0x00775533,
-#endif
                 POLY_PAGE_DROPLET);
             break;
 
@@ -9474,39 +9466,6 @@ void AENG_draw_messages()
 //
 
 // MSG_draw();
-#if werrr
-
-        SLONG x;
-        SLONG y;
-
-        SLONG dx;
-        SLONG dy;
-
-        for (x = 0; x < AENG_AA_BUF_SIZE; x++)
-            for (y = 0; y < AENG_AA_BUF_SIZE; y++) {
-                for (dx = 0; dx < AENG_AA_PIX_SIZE; dx++)
-                    for (dy = 0; dy < AENG_AA_PIX_SIZE; dy++) {
-                        the_display.PlotPixel(
-                            AENG_AA_LEFT + x * AENG_AA_PIX_SIZE + dx,
-                            AENG_AA_TOP + y * AENG_AA_PIX_SIZE + dy,
-                            AENG_aa_buffer[y][x],
-                            AENG_aa_buffer[y][x],
-                            AENG_aa_buffer[y][x]);
-                    }
-            }
-
-        for (SLONG i = 0; i < 3; i++) {
-            x = AENG_AA_LEFT + (px[i] * AENG_AA_PIX_SIZE >> 16);
-            y = AENG_AA_TOP + (py[i] * AENG_AA_PIX_SIZE >> 16);
-
-            the_display.PlotPixel(x + 0, y + 0, 255, 255, 0);
-            the_display.PlotPixel(x + 1, y + 0, 255, 100, 0);
-            the_display.PlotPixel(x + 0, y + 1, 255, 100, 0);
-            the_display.PlotPixel(x - 1, y + 0, 255, 100, 0);
-            the_display.PlotPixel(x + 0, y - 1, 255, 100, 0);
-        }
-
-#endif
 
         the_display.screen_unlock();
     }

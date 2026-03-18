@@ -1493,17 +1493,13 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         // The sewer pages.
         //
 
-#if !defined(TARGET_DC)
-        for (i = 0; i < NS_PAGE_NUMBER; i++)
-        {
-                page = NS_page[i].page;
+        for (i = 0; i < NS_PAGE_NUMBER; i++) {
+            page = NS_page[i].page;
 
-                if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED)
-                {
-                        TEXTURE_load_page(page);
-                }
+            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                TEXTURE_load_page(page);
+            }
         }
-#endif
 
 
         for(c0=0;c0<64;c0++)

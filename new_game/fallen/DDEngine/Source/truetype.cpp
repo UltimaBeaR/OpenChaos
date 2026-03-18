@@ -31,8 +31,7 @@
 #include "polypoint.h"
 #include "env.h"
 
-#define ANTIALIAS_BY_HAND 1 // antialias by hand?
-#define AA_SIZE (ANTIALIAS_BY_HAND ? 2 : 1) // multiplier
+#define AA_SIZE 2 // ANTIALIAS_BY_HAND = 1 always
 #define NUM_TT_PAGES 4 // number of 256x256 texture pages to allocate
 #define MIN_TT_HEIGHT 8 // minimum height of a line of text
 #define MAX_TT_HEIGHT 64 // maximum height of a line of text
@@ -588,7 +587,6 @@ static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width)
     dpitch /= 2;
     dptr += cptr->y * dpitch;
 
-#if ANTIALIAS_BY_HAND
     for (int y = 0; y < FontHeight; y++) {
         for (int x = 0; x < width; x++) {
             int acc = sptr[0] + sptr[1] + sptr[spitch + 0] + sptr[spitch + 1];
@@ -598,15 +596,6 @@ static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width)
         sptr += (spitch - width) * 2;
         dptr += dpitch;
     }
-#else
-    for (int y = 0; y < FontHeight; y++) {
-        for (int x = 0; x < width; x++) {
-            dptr[x] = PixMapping[sptr[x]];
-        }
-        dptr += dpitch;
-        sptr += spitch;
-    }
-#endif
 
     cptr->texture->UnlockUser();
     cptr->width = width;

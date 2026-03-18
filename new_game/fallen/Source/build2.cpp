@@ -83,23 +83,6 @@ SLONG garbage_collection(void)
             if (index = PAP_2LO(x, z).ColVectHead) {
 
                 PAP_2LO(x, z).ColVectHead = next;
-#ifdef SAVE_A_FEW_MORE_BYTES
-                for (c0 = 1; c0 < next; c0++) {
-                    SLONG match = 0;
-
-                    count = 0;
-                    while (mem[c0 + match] == facet_links[index + match] && (c0 + match) < next) {
-                        count++;
-                        if (facet_links[index + match] < 0) {
-                            saved += count;
-                            //						DebugText(" found match   saved %d (total %d)\n",count,saved);
-                            PAP_2LO(x, z).ColVectHead = c0;
-                            goto repeated_duplicate;
-                        }
-                        match++;
-                    }
-                }
-#endif
 
                 count = 0;
                 while (1) {
@@ -112,9 +95,6 @@ SLONG garbage_collection(void)
                         break;
                     }
                 }
-#ifdef SAVE_A_FEW_MORE_BYTES
-            repeated_duplicate:;
-#endif
             }
         }
 

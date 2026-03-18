@@ -30,26 +30,7 @@
 int m_iPanelXPos = 0;
 int m_iPanelYPos = 480;
 
-#ifdef BODGE_MY_PANELS_PLEASE_BOB
-#define DEPTH_BODGE_START (0.95f)
-#define DEPTH_BODGE_INC (0.00001f)
-float PANEL_fDepthBodgeValue;
 
-#endif
-
-#ifdef BODGE_MY_PANELS_PLEASE_BOB
-void PANEL_ResetDepthBodge(void)
-{
-    PANEL_fDepthBodgeValue = DEPTH_BODGE_START;
-}
-
-float PANEL_GetNextDepthBodge(void)
-{
-    PANEL_fDepthBodgeValue += DEPTH_BODGE_INC;
-    ASSERT(PANEL_fDepthBodgeValue < 1.0f);
-    return (PANEL_fDepthBodgeValue);
-}
-#else
 // Just use 0.9 as a goodish value.
 float PANEL_GetNextDepthBodge(void)
 {
@@ -61,7 +42,6 @@ void PANEL_ResetDepthBodge(void)
     // Do nothing.
 }
 
-#endif
 
 UBYTE PANEL_scanner_poo = 0;
 

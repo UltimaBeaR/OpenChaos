@@ -59,10 +59,6 @@
 #include "eway.h"
 #include "..\headers\inside2.h"
 #include "memory.h"
-#ifdef FS_ISO9660
-#include <libcd.h>
-#include <ctype.h>
-#endif
 
 //		STOREY_TYPE_NORMAL
 

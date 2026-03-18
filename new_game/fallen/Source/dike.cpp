@@ -205,13 +205,9 @@ void DIKE_process(DIKE_Dike* dd)
 
     dist = Root(dx * dx + dy * dy + dz * dz) << (DIKE_DIST_SHIFT);
 
-#if DIKE_DIST_SHIFT != 0
-
     dx = dd->fx - dd->bx;
     dy = dd->fy - dd->by;
     dz = dd->fz - dd->bz;
-
-#endif
 
     //
     // The frame of the bike exerts an equal but opposite force on each wheel.

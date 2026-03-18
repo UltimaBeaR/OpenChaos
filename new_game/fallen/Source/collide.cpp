@@ -3291,79 +3291,6 @@ SLONG slide_along(
     // Slide along the no-go squares.
     //
 
-#if OLD_METHOD_THAT_LETS_YOU_GET_RIGHT_TO_THE_EDGE_OF_NOGO_SQUARES
-
-    {
-        if (PAP_2HI(*x2 >> 16, *z2 >> 16).Flags & PAP_FLAG_NOGO) {
-            /*
-            if (PAP_2HI(x1 >> 16, z1 >> 16).Flags & PAP_FLAG_NOGO)
-            {
-                    SLONG tx;
-                    SLONG tz;
-                    SLONG score;
-                    SLONG best_score = INFINITY;
-                    SLONG best_x = *x2;
-                    SLONG best_z = *z2;
-                    SLONG here  = PAP_calc_map_height_at(x1 >> 8, z1 >> 8);
-                    SLONG there;
-
-                    //
-                    // Emergency! This person is on a no-go square! Find somewhere
-                    // nearby that isn't a no-go square.
-                    //
-
-                    for (dx = -0x2000; dx <= +0x2000; dx += 0x2000)
-                    for (dz = -0x2000; dz <= +0x2000; dz += 0x2000)
-                    {
-                            if (dx == 0 && dz == 0)
-                            {
-                                    continue;
-                            }
-
-                            tx = x1 + dx;
-                            tz = z1 + dz;
-
-                            if (!(PAP_2HI(tx >> 16, tz >> 16).Flags & PAP_FLAG_NOGO))
-                            {
-                                    there = PAP_calc_map_height_at(tx >> 8, tz >> 8);
-
-                                    if (abs(here - there) <= 0x50)
-                                    {
-                                            score = abs(dx) + abs(dz) + abs(here - there);
-
-                                            if (score < best_score)
-                                            {
-                                                    best_score = score;
-                                                    best_x     = tx;
-                                                    best_z     = tz;
-                                            }
-                                    }
-                            }
-                    }
-
-               *x2 = best_x;
-               *z2 = best_z;
-            }
-            else
-            */
-            {
-                //
-                // Not allowed to go here. Where should we go?
-                //
-
-                if ((x1 >> 16) != (*x2 >> 16) && !(PAP_2HI(x1 >> 16, *z2 >> 16).Flags & PAP_FLAG_NOGO)) {
-                    *x2 = x1;
-                } else if ((z1 >> 16) != (*z2 >> 16) && !(PAP_2HI(*x2 >> 16, z1 >> 16).Flags & PAP_FLAG_NOGO)) {
-                    *z2 = z1;
-                } else {
-                    *x2 = x1;
-                    *z2 = z1;
-                }
-            }
-        }
-    }
-
-#else
 
     {
         UBYTE collide = 0;
@@ -3509,7 +3436,6 @@ SLONG slide_along(
         }
     }
 
-#endif
 
     if (COLLIDE_can_i_fastnav(x1 >> 16, z1 >> 16) && COLLIDE_can_i_fastnav(*x2 >> 16, *z2 >> 16)) {
         //

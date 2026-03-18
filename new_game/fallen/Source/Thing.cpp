@@ -133,26 +133,6 @@ void free_primary_thing(THING_INDEX thing)
     PRIMARY_UNUSED = thing;
     PRIMARY_COUNT--;
 
-#if I_WAS_MAKING_SURE_OF_IT
-
-    {
-        Thing* p_thing;
-        Thing* p_parent;
-        Thing* p_child;
-
-        p_thing = TO_THING(thing);
-
-        p_child = (p_thing->LinkChild) ? TO_THING(p_thing->LinkChild) : NULL;
-        p_parent = (p_thing->LinkParent) ? TO_THING(p_thing->LinkParent) : NULL;
-
-        if (PRIMARY_USED == thing) {
-            ASSERT(p_parent == NULL);
-
-            PRIMARY_USED = p_thing->Child;
-        } else {
-        }
-    }
-#endif
 }
 
 //---------------------------------------------------------------

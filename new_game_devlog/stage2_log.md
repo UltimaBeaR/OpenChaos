@@ -1579,6 +1579,52 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
+## Итерация 54 — Пункт 2.7: финальная зачистка #ifdef (2026-03-18)
+
+Устранены все оставшиеся `#ifdef`/`#ifndef`/`#if` блоки кроме include guards и разрешённых исключений.
+
+**Удалён orphan-файл:**
+- `DDEngine/Source/tom.cpp` (~1000 строк) — PSX software renderer helper, включался только из `sw.cpp` (удалён в итерации 32). Не в vcxproj.
+
+**coan прогон А (15 нигде-не-defined флагов):**
+- `TARGET` (aeng.cpp) — DC-era неизвестный флаг, цвет DIRT_TYPE_WATER/URINE (0xff… vs 0x00…); взята `#else` ветка
+- `THIS_IS_A_LOS_TEST`, `WE_NEED_THE_NUMBER_KEYS`, `WE_WANNA_TEST_THE_LOS_STUFF` (Controls.cpp) — debug-тесты
+- `I_WAS_MAKING_SURE_OF_IT` (Thing.cpp), `WE_WANT_THE_SURFING_THAT_BREAKS_WHEN_YOU_PRESS_C` (Person.cpp) — dev-тесты
+- `SANITY_PREVAILED`, `NO_MORE_HAPPY_BALOONS` (pcom.cpp) — мёртвый геймплей
+- `OLD_METHOD_THAT_LETS_YOU_GET_RIGHT_TO_THE_EDGE_OF_NOGO_SQUARES` (collide.cpp) — старый алгоритм NOGO
+- `GET_RID_OF_THE_BLOODY_MIST` (elev.cpp) — создание тумана (MIST_create) отключено
+- `WE_WANT_TO_NORMALISE_THE_MATRIX` (hm.cpp) — нормализация матрицы в HM_rel_cube_to_world
+- `FS_ISO9660` (io.cpp) — CD-ROM либы для PSX
+- `WE_CALCULATE_OUR_OWN_LIGHT_POSITIONS` (ns.cpp) — NS_cache_find_light (~187 строк)
+- `SAVE_A_FEW_MORE_BYTES` (build2.cpp) — дедупликация facet_links с goto; label `repeated_duplicate:` удалён вместе с блоком
+- `BODGE_MY_PANELS_PLEASE_BOB` (panel.cpp) — DC-only depth hack; раскрыта `#else` ветка (return 0.9f)
+
+**coan прогон Б (PSX/USE_A3D):**
+- `PSX`, `USE_A3D` — оставшиеся блоки в Sound.cpp, Controls.cpp, collide.cpp, eway.cpp, overlay.cpp — все оказались внутри `/* */` комментариев → coan корректно не трогал
+
+**coan прогон В + Г (defined-as-1/0):**
+- `FARFACET_USE_INDEXED_LISTS = 1` (farfacet.cpp) — раскрыты 7 блоков
+- `ANTIALIAS_BY_HAND = 1` (truetype.cpp) — раскрыты блоки; `AA_SIZE` изменён на константу `2`
+- `ASYNC_FILE_IO = 0` (MFX.cpp) — удалены 9 блоков (~99 строк)
+- `ULTRA_DEBUG = 0` (FMatrix.cpp) — удалены 3 блока (~34 строки)
+
+**Ручные правки:**
+- `aeng.cpp: #if werrr` — debug-визуализация AA-буфера, удалён (~33 строки)
+- `dike.cpp: #if DIKE_DIST_SHIFT != 0` — DIKE_DIST_SHIFT=2, всегда true → раскрыт
+- `texture.cpp: #if !defined(TARGET_DC)` — раскрыт
+- `memory.cpp: #if 1 // TEST_DC` → раскрыт
+
+**Оставлены (не активный код):**
+- PSX/JAPANESE блоки в `/* */` комментариях — coan их не трогает (верно)
+- `midasdll.h`, `outro/Always.h` — внешняя библиотека и стандартные defensive defines
+- `Night.h: #ifndef POLY_FADEOUT_START` — defensive define для константы
+
+**Итог:** 20 файлов, −1851 строка. Debug: 127 предупреждений, Release: 252 предупреждений. Ошибок: 0.
+
+После итерации 54: в кодовой базе не осталось активных `#ifdef`/`#ifndef`/`#if` блоков кроме include guards и разрешённых исключений. Пункт 2.7 завершён. **Этап 2 полностью завершён.**
+
+---
+
 ## ✅ Рантайм-регрессия — обнаружена и исправлена (2026-03-18)
 
 В ходе итераций Этапа 2 была сломана игра в рантайме при удалении no-op макросов (`TRACE`, `LogText` и др.) — когда вызов был единственным statement в теле `if`/`else` без скобок, удаление оставляло dangling конструкцию, захватывающую следующую строку.

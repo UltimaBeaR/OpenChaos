@@ -9999,41 +9999,6 @@ void fn_person_idle(Thing* p_person)
             // Take out the surfing for now...
             //
 
-#if WE_WANT_THE_SURFING_THAT_BREAKS_WHEN_YOU_PRESS_C
-
-            if (f4->FaceFlags & FACE_FLAG_WMOVE) {
-                SLONG wmove_index;
-
-                WMOVE_Face* wf;
-                Thing* p_thing;
-
-                wmove_index = f4->ThingIndex;
-
-                wf = &WMOVE_face[wmove_index];
-
-                if (wf->thing) {
-                    p_thing = TO_THING(wf->thing);
-                    if (p_thing->Class == CLASS_VEHICLE) {
-                        if (p_thing->Velocity > 100) {
-                            if (person_holding_2handed(p_person)) {
-                                if (p_person->Draw.Tweened->CurrentAnim != ANIM_SURF_AK)
-                                    set_anim(p_person, ANIM_SURF_AK);
-                            } else {
-                                if (p_person->Draw.Tweened->CurrentAnim != ANIM_SURF)
-                                    set_anim(p_person, ANIM_SURF);
-                            }
-
-                        } else {
-                            if (p_person->Draw.Tweened->CurrentAnim != ANIM_STAND_READY)
-                                set_anim(p_person, ANIM_STAND_READY);
-                        }
-                    }
-                    person_normal_animate(p_person);
-                    return;
-                }
-            }
-
-#endif
         }
 
         if (p_person->Genus.Person->PlayerID && p_person->Genus.Person->Mode != PERSON_MODE_FIGHT && !person_has_gun_out(p_person)) {

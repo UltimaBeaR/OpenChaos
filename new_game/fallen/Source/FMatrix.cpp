@@ -1,7 +1,6 @@
 #include "game.h"
 #include "FMatrix.h"
 
-#define ULTRA_DEBUG 0
 
 void FMATRIX_calc(SLONG matrix[9], SLONG yaw, SLONG pitch, SLONG roll)
 {
@@ -49,17 +48,6 @@ void FMATRIX_calc(SLONG matrix[9], SLONG yaw, SLONG pitch, SLONG roll)
         matrix[5] = -MUL64(cy, sp);
         matrix[8] = MUL64(cy, cp);
 
-#if ULTRA_DEBUG
-        ASSERT(matrix[0] == MUL64(cy, cr) + MUL64(MUL64(sy, sp), sr));
-        ASSERT(matrix[3] == MUL64(cy, sr) - MUL64(MUL64(sy, sp), cr));
-        ASSERT(matrix[6] == MUL64(sy, cp));
-        ASSERT(matrix[1] == MUL64(-cp, sr));
-        ASSERT(matrix[4] == MUL64(cp, cr));
-        ASSERT(matrix[7] == sp);
-        ASSERT(matrix[2] == MUL64(-sy, cr) + MUL64(MUL64(cy, sp), sr));
-        ASSERT(matrix[5] == MUL64(-sy, sr) - MUL64(MUL64(cy, sp), cr));
-        ASSERT(matrix[8] == MUL64(cy, cp));
-#endif
     } else if (roll) {
         cy = COS(yaw & 2047);
         cp = 65536;
@@ -79,17 +67,6 @@ void FMATRIX_calc(SLONG matrix[9], SLONG yaw, SLONG pitch, SLONG roll)
         matrix[5] = MUL64(-sy, sr);
         matrix[8] = cy;
 
-#if ULTRA_DEBUG
-        ASSERT(matrix[0] == MUL64(cy, cr) + MUL64(MUL64(sy, sp), sr));
-        ASSERT(matrix[3] == MUL64(cy, sr) - MUL64(MUL64(sy, sp), cr));
-        ASSERT(matrix[6] == MUL64(sy, cp));
-        ASSERT(matrix[1] == MUL64(-cp, sr));
-        ASSERT(matrix[4] == MUL64(cp, cr));
-        ASSERT(matrix[7] == sp);
-        ASSERT(matrix[2] == MUL64(-sy, cr) + MUL64(MUL64(cy, sp), sr));
-        ASSERT(matrix[5] == MUL64(-sy, sr) - MUL64(MUL64(cy, sp), cr));
-        ASSERT(matrix[8] == MUL64(cy, cp));
-#endif
     } else {
         cy = COS(yaw & 2047);
         cp = 65536;
@@ -109,17 +86,6 @@ void FMATRIX_calc(SLONG matrix[9], SLONG yaw, SLONG pitch, SLONG roll)
         matrix[5] = 0;
         matrix[8] = cy;
 
-#if ULTRA_DEBUG
-        ASSERT(matrix[0] == MUL64(cy, cr) + MUL64(MUL64(sy, sp), sr));
-        ASSERT(matrix[3] == MUL64(cy, sr) - MUL64(MUL64(sy, sp), cr));
-        ASSERT(matrix[6] == MUL64(sy, cp));
-        ASSERT(matrix[1] == MUL64(-cp, sr));
-        ASSERT(matrix[4] == MUL64(cp, cr));
-        ASSERT(matrix[7] == sp);
-        ASSERT(matrix[2] == MUL64(-sy, cr) + MUL64(MUL64(cy, sp), sr));
-        ASSERT(matrix[5] == MUL64(-sy, sr) - MUL64(MUL64(cy, sp), cr));
-        ASSERT(matrix[8] == MUL64(cy, cp));
-#endif
     }
 }
 
