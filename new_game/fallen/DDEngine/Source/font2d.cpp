@@ -140,11 +140,7 @@ void FONT2D_init(SLONG font_id)
 {
     TGA_Info ti;
 
-#ifdef NO_SERVER
 #define TEXTURE_EXTRA_DIR "server\\textures\\extras\\"
-#else
-#define TEXTURE_EXTRA_DIR "u:\\urbanchaos\\textures\\extras\\"
-#endif
 
     CBYTE fname[256];
 

@@ -81,7 +81,6 @@ SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG typ
 SLONG load_anim_prim_object(SLONG prim);
 
 
-#ifdef NO_SERVER
 // claude-ai: Path globals for resource directories.
 // claude-ai: NO_SERVER mode: all paths relative to exe dir (e.g., "server\prims").
 // claude-ai: Server mode: paths point to network share (u:\urbanchaos\...).
@@ -91,14 +90,6 @@ CBYTE PRIM_DIR[100] = "server\\prims";
 CBYTE DATA_DIR[100] = "";
 CBYTE LEVELS_DIR[100] = "";
 CBYTE TEXTURE_WORLD_DIR[100] = "";
-#else
-
-CBYTE EXTRAS_DIR[100] = "data\\textures";
-CBYTE PRIM_DIR[100] = "u:\\urbanchaos\\prims";
-CBYTE DATA_DIR[100] = "";
-CBYTE LEVELS_DIR[100] = "";
-CBYTE TEXTURE_WORLD_DIR[100] = "";
-#endif
 
 
 

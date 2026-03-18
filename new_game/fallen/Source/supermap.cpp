@@ -842,11 +842,7 @@ void copy_to_psx_tim(UBYTE* data, SLONG w, SLONG h, UBYTE* pal, SLONG tim_x, SLO
         }
 }
 
-#ifdef NO_SERVER
 #define TEXTURE_DIR "server\\gary16\\"
-#else
-#define TEXTURE_DIR "u:\\urbanchaos\\gary16\\"
-#endif
 
 void make_psx_pal(UWORD page_id, UBYTE* pal)
 {

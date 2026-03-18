@@ -39,12 +39,7 @@ void MENUFONT_Page(SLONG page)
 //
 // oh fuck
 //
-#ifdef NO_SERVER
 #define TEXTURE_EXTRA_DIR "server\\textures\\extras\\"
-#else
-#define TEXTURE_EXTRA_DIR "u:\\urbanchaos\\textures\\extras\\"
-
-#endif
 
 /*void MENUFONT_Load(CBYTE *fn, SLONG page, CBYTE *fontlist) {
   TGA_Pixel *temp;

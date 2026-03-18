@@ -616,21 +616,12 @@ void TEXTURE_choose_set(SLONG number)
     // Set the directories.
     //
 
-#ifdef NO_SERVER
     sprintf(TEXTURE_inside_dir, "server\\%s\\world%d\\insides\\", textures, number);
     sprintf(TEXTURE_prims_dir, "server\\%s\\shared\\prims\\", textures);
     sprintf(TEXTURE_people_dir, "server\\%s\\shared\\people\\", textures);
     sprintf(TEXTURE_people_dir2, "server\\%s\\shared\\people2\\", textures);
     sprintf(TEXTURE_world_dir, "server\\%s\\world%d\\", textures, number);
     sprintf(TEXTURE_shared_dir, "server\\%s\\shared\\", textures, number);
-#else
-    sprintf(TEXTURE_inside_dir, "u:\\urbanchaos\\%s\\world%d\\insides\\", textures, number);
-    sprintf(TEXTURE_prims_dir, "u:\\urbanchaos\\%s\\shared\\prims\\", textures);
-    sprintf(TEXTURE_people_dir, "u:\\urbanchaos\\%s\\shared\\people\\", textures);
-    sprintf(TEXTURE_people_dir2, "u:\\urbanchaos\\%s\\shared\\people2\\", textures);
-    sprintf(TEXTURE_world_dir, "u:\\urbanchaos\\%s\\world%d\\", textures, number);
-    sprintf(TEXTURE_shared_dir, "u:\\urbanchaos\\%s\\shared\\", textures);
-#endif
     strcpy(TEXTURE_WORLD_DIR, TEXTURE_world_dir);
     sprintf(TEXTURE_fx_inifile, "%ssoundfx.ini", TEXTURE_world_dir);
     sprintf(TEXTURE_shared_fx_inifile, "%ssoundfx.ini", TEXTURE_shared_dir);
@@ -680,11 +671,7 @@ void TEXTURE_choose_set(SLONG number)
             POLY_init_texture_flags();
             POLY_load_texture_flags(world_texture_flags);
             POLY_load_texture_flags(shared_texture_flags);
-#ifdef NO_SERVER
             POLY_load_texture_flags("server\\textures\\shared\\prims\\textype.txt", 11 * 64);
-#else
-            POLY_load_texture_flags("u:\\urbanchaos\\textures\\shared\\prims\\textype.txt", 11 * 64);
-#endif
         }
 
         //
@@ -1053,14 +1040,8 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     // Where we load the extra textures from.
     //
 
-#ifdef NO_SERVER
 #define TEXTURE_EXTRA_DIR "server\\textures\\extras\\"
 #define TEXTURE_PEOPLE3_DIR "server\\textures\\shared\\people3\\"
-#else
-#define TEXTURE_EXTRA_DIR "u:\\urbanchaos\\textures\\extras\\"
-#define TEXTURE_PEOPLE3_DIR "u:\\urbanchaos\\textures\\shared\\people3\\"
-
-#endif
 
     //
     // Tell the font page its a font page.
