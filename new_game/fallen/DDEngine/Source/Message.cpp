@@ -62,37 +62,36 @@ void MSG_add(CBYTE* fmt, ...)
     va_start(ap, fmt);
     vsprintf(message, fmt, ap);
     va_end(ap);
-    if (ControlFlag)
-        /*
-                for (i = 0; i < MSG_MAX_MESSAGES; i++)
-                {
-                        //
-                        // If we find the same message already present, just make that message
-                        // hang around longer.
-                        //
+    /*
+            for (i = 0; i < MSG_MAX_MESSAGES; i++)
+            {
+                    //
+                    // If we find the same message already present, just make that message
+                    // hang around longer.
+                    //
 
-                        if (MSG_message[i].timer)
-                        {
-                                if (strncmp(MSG_message[i].message, message, MSG_MAX_LENGTH - 1) == 0)
-                                {
-                                        MSG_message[i].timer = MSG_TIMER;
-                                        return;
-                                }
-                        }
+                    if (MSG_message[i].timer)
+                    {
+                            if (strncmp(MSG_message[i].message, message, MSG_MAX_LENGTH - 1) == 0)
+                            {
+                                    MSG_message[i].timer = MSG_TIMER;
+                                    return;
+                            }
+                    }
 
-                        if (MSG_message[i].timer < oldtimer)
-                        {
-                                oldest   = i;
-                                oldtimer = MSG_message[i].timer;
-                        }
-                }
-        */
+                    if (MSG_message[i].timer < oldtimer)
+                    {
+                            oldest   = i;
+                            oldtimer = MSG_message[i].timer;
+                    }
+            }
+    */
 
-        //
-        // Overwrite the oldest message.
-        //
+    //
+    // Overwrite the oldest message.
+    //
 
-        strncpy(MSG_message[current_message].message, message, MSG_MAX_LENGTH - 1);
+    strncpy(MSG_message[current_message].message, message, MSG_MAX_LENGTH - 1);
 
     MSG_message[current_message].timer = MSG_TIMER;
 

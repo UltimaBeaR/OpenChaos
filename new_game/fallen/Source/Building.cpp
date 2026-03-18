@@ -3621,9 +3621,9 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
             if (do_storeys_overlap(s, storey) && (storey_list[s].DY == storey_list[storey].DY + storey_height) && (storey_list[s].StoreyType == STOREY_TYPE_SKYLIGHT || storey_list[s].StoreyType == STOREY_TYPE_NORMAL)) {
                 build_more_edge_list(min_z, max_z, s, 0);
 
-            } else
+            }
 
-                s = storey_list[s].Next;
+            s = storey_list[s].Next;
         }
     }
 
@@ -3808,9 +3808,9 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                         p_f3 = create_a_tri(p2, p1, pa, 0, 0);
                         build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
                         //							LogText(" done tr+br 3 at [%d][%d]\n",x,z);
-                    } else
+                    }
 
-                        break;
+                    break;
                 case (BL + BR):
                     zl = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_LEFT];
                     zr = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_RIGHT];
@@ -3847,8 +3847,8 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                         p_f3 = create_a_tri(p3, p2, pa, 0, 0);
                         build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
                         //						LogText(" done bl+br 3 at [%d][%d]\n",x,z);
-                    } else
-                        break;
+                    }
+                    break;
                 case (TL + BL):
                     xt = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_TOP];
                     xb = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_BOTTOM];
@@ -3938,8 +3938,8 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                         p_f3 = create_a_tri(pa, p1, p0, 0, 0);
                         build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
                         //						LogText(" done tl+tr 3 at [%d][%d]\n",x,z);
-                    } else
-                        break;
+                    }
+                    break;
 
                 case (TR + BR + BL):
                     xt = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_TOP];
@@ -7108,11 +7108,8 @@ SLONG find_wall_for_fe(SLONG fe_x, SLONG fe_y, SLONG storey)
     while (storey_list[storey].StoreyType == STOREY_TYPE_LADDER || storey_list[storey].StoreyType == STOREY_TYPE_FIRE_ESCAPE || storey_list[storey].StoreyType == STOREY_TYPE_STAIRCASE || storey_list[storey].StoreyType == STOREY_TYPE_FENCE_BRICK || storey_list[storey].StoreyType == STOREY_TYPE_FENCE_FLAT || storey_list[storey].StoreyType == STOREY_TYPE_OUTSIDE_DOOR || storey_list[storey].StoreyType == STOREY_TYPE_FENCE) {
         storey = storey_list[storey].Next;
     }
-    if (storey == 0)
-
-        wall = storey_list[storey].WallHead;
-    if (wall == 0)
-        px = storey_list[storey].DX;
+    wall = storey_list[storey].WallHead;
+    px = storey_list[storey].DX;
     pz = storey_list[storey].DZ;
     while (wall) {
         x1 = wall_list[wall].DX;
@@ -7129,8 +7126,7 @@ SLONG find_wall_for_fe(SLONG fe_x, SLONG fe_y, SLONG storey)
         px = x1;
         pz = z1;
     }
-    if (best_wall == -1)
-        return (best_wall);
+    return (best_wall);
 }
 
 SLONG sp_stairs[300];
@@ -8849,9 +8845,7 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
     memset((UBYTE*)wall_for_fe, 0, 200);
     memset((UBYTE*)wall_for_ladder, 0, 200);
 
-    if (building == 3)
-
-        process_external_pieces(building); // makes seperate buildings
+    process_external_pieces(building); // makes seperate buildings
     //	LogText(" create building prim2  next prim_point %d \n",next_prim_point);
 
     start_point = next_prim_point;
@@ -9103,12 +9097,10 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
         } else {
             switch (storey_list[storey].StoreyType) {
             case STOREY_TYPE_LADDER:
-                if (building == 3)
-                    build_ladder(storey);
+                build_ladder(storey);
                 break;
             case STOREY_TYPE_SKYLIGHT: // where should a skylight be processed?
-                if (building == 3)
-                    build_skylight(storey);
+                build_skylight(storey);
                 break;
             }
         }
@@ -9161,8 +9153,7 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
 
     //	LogText(" create building prim5  next prim_point %d \n",next_prim_point);
     if (valid) {
-        if (building == 3)
-            prev_facet = build_facet(start_point, next_prim_point, start_face3, start_face4, next_prim_face4, prev_facet, FACET_FLAG_ROOF, 0);
+        prev_facet = build_facet(start_point, next_prim_point, start_face3, start_face4, next_prim_face4, prev_facet, FACET_FLAG_ROOF, 0);
     }
     start_point = next_prim_point;
     start_face3 = next_prim_face3;

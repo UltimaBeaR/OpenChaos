@@ -195,11 +195,9 @@ void link_facet_to_mapwho(SLONG mx, SLONG mz, SLONG facet)
     //		ASSERT(0);
     //	}
 
-    if (mx == 13 && mz == 5)
-
-        if (mx < 0 || mx > PAP_SIZE_LO || mz < 0 || mz > PAP_SIZE_LO) {
-            return;
-        }
+    if (mx < 0 || mx > PAP_SIZE_LO || mz < 0 || mz > PAP_SIZE_LO) {
+        return;
+    }
 
     //	DebugText(" add facet %d to mx %d %d  nfl %d link count %d\n",facet,mx,mz,next_facet_link,facet_link_count);
 
@@ -255,9 +253,7 @@ void add_facet_to_map(SLONG facet)
     //		ASSERT(0);
     //	}
 
-    if (facet == 288 || facet == 289)
-
-        x1 = p_f->x[0] << 8;
+    x1 = p_f->x[0] << 8;
     x2 = p_f->x[1] << 8;
     z1 = p_f->z[0] << 8;
     z2 = p_f->z[1] << 8;
