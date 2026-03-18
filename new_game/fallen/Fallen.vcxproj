@@ -71,6 +71,7 @@
       <ObjectFileName>.\Release\</ObjectFileName>
       <ProgramDataBaseFileName>.\Release\</ProgramDataBaseFileName>
       <StructMemberAlignment>1Byte</StructMemberAlignment>
+      <AdditionalOptions>/clang:-fno-strict-aliasing /clang:-O2 /clang:-fno-inline-functions</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
