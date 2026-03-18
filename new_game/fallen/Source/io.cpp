@@ -1965,29 +1965,10 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
     // Load the anim elements
     //
 
-#ifndef ULTRA_COMPRESSED_ANIMATIONS
     FileRead(handle, (UBYTE*)&addr2, sizeof(addr2));
     FileRead(handle, (UBYTE*)&p_chunk->TheElements[0], sizeof(struct GameKeyFrameElement) * p_chunk->MaxElements);
     FileRead(handle, &check, 2);
     ASSERT(check == 666);
-#else
-
-    // #error  // need to load in a different file, or bodge the sizeof command above.
-    FileRead(handle, (UBYTE*)&addr2, sizeof(addr2));
-    // JCL - convert compressed to ultra compressed.
-    for (c0 = 0; c0 < p_chunk->MaxElements; c0++) {
-
-        FileRead(handle, (UBYTE*)&temp_mem[c0], sizeof(struct GameKeyFrameElementBig));
-        CMatrix33 c = *((CMatrix33*)(&temp_mem[c0])); //! er....
-        SetCMatrix(&p_chunk->TheElements[c0], &c);
-        p_chunk->TheElements[c0].OffsetX = (temp_mem[c0].OffsetX) & 0xff;
-        p_chunk->TheElements[c0].OffsetY = (temp_mem[c0].OffsetY) & 0xff;
-        p_chunk->TheElements[c0].OffsetZ = (temp_mem[c0].OffsetZ) & 0xff;
-    }
-    FileRead(handle, &check, 2);
-    ASSERT(check == 666);
-
-#endif
 
     //
     // Load the animlist
@@ -2361,14 +2342,10 @@ SLONG load_append_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
     // Load the anim elements
     //
 
-#ifndef ULTRA_COMPRESSED_ANIMATIONS
     FileRead(handle, (UBYTE*)&addr2, sizeof(addr2));
     FileRead(handle, (UBYTE*)&p_chunk->TheElements[p_chunk->MaxElements], sizeof(struct GameKeyFrameElement) * MaxElements);
     FileRead(handle, &check, 2);
     ASSERT(check == 666);
-#else
-
-#endif
 
     //
     // Load the animlist

@@ -1143,7 +1143,6 @@ SLONG find_best_anim_offset(SLONG mx, SLONG my, SLONG mz, SLONG anim, struct Gam
 }
 
 extern void convert_to_psx_gke(GameKeyFrameElementComp* to, GameKeyFrameElement* from);
-#ifndef ULTRA_COMPRESSED_ANIMATIONS
 
 void fix_psxed_anims(void)
 {
@@ -1531,7 +1530,6 @@ void save_whole_anims_psx(MFFileHandle handle)
     STORE_DATA(next_anim_mids);
     FileWrite(handle, (UBYTE*)anim_mids, next_anim_mids * sizeof(PrimPoint));
 }
-#endif
 
 #define getPSXU(page) (((page) & 7) << 5)
 #define getPSXV(page) (((page) & 0x38) << 2)
@@ -1857,9 +1855,7 @@ void save_whole_wad(CBYTE* gamename, UBYTE type)
             break;
 
         case 1:
-#ifndef ULTRA_COMPRESSED_ANIMATIONS
             save_whole_anims_psx(handle);
-#endif
             break;
         }
 
@@ -1879,7 +1875,6 @@ void save_whole_game(CBYTE* gamename)
     //	return;
     extern SLONG save_psx;
 
-#ifndef ULTRA_COMPRESSED_ANIMATIONS
     if (save_psx) {
         //		save_whole_wad(gamename,0);
 
@@ -1902,7 +1897,6 @@ void save_whole_game(CBYTE* gamename)
 
         fix_psxed_anims();
     }
-#endif
 }
 
 
@@ -2356,9 +2350,6 @@ void load_whole_game(CBYTE* gamename)
     extern UWORD player_dlight;
     player_dlight = 0;
 
-#ifdef ULTRA_COMPRESSED_ANIMATIONS
-    gamename[strlen(gamename) - 3] = 'n';
-#endif
 
     if (mem_all)
         MemFree(mem_all);

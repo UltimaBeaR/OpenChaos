@@ -301,7 +301,6 @@ void ANIM_fini(void)
 // claude-ai: M[1] stores row 1 the same way. M[2] = cross product of rows 0 and 1.
 // claude-ai: GameKeyFrameElement: OffsetX/Y/Z (bone local translation) + compressed CMatrix.
 // claude-ai: GameKeyFrameElementComp: same but with 8-bit m00/m01/m10/m11 + Pad encoding.
-#ifndef ULTRA_COMPRESSED_ANIMATIONS
 void SetCMatrixComp(GameKeyFrameElementComp* e, CMatrix33* cm)
 {
     e->Pad = 0;
@@ -387,200 +386,7 @@ void convert_to_psx_gke(GameKeyFrameElementComp* to, GameKeyFrameElement* from)
 
     SetCMatrixComp(to, &from->CMatrix);
 }
-#endif
 
-#ifdef ULTRA_COMPRESSED_ANIMATIONS
-// JCL
-
-//! this could be halved in size(ish) -> symmetrical about diagonal
-SBYTE UCA_Lookup[256][256];
-
-void UCA_LookupSetup()
-{
-    SLONG c0;
-    SLONG c1;
-
-    for (c0 = -128; c0 < 128; c0++)
-        for (c1 = -128; c1 < 128; c1++)
-            UCA_Lookup[(UBYTE)c0][(UBYTE)c1] = Root(16383 - ((c0 * c0) + (c1 * c1)));
-}
-void SetCMatrix(GameKeyFrameElement* e, CMatrix33* cm)
-{
-    e->Pad = 0;
-
-    // need to store the two smallest elements of the top row for accuracy
-
-    SBYTE a, b, c;
-
-    a = ((cm->M[0] & CMAT0_MASK) >> 22);
-    b = ((cm->M[0] & CMAT1_MASK) >> 12);
-    c = ((cm->M[0] & CMAT2_MASK) >> 02);
-
-    if (abs(a) > abs(b)) {
-        if (abs(a) > abs(c)) {
-            e->m00 = b;
-            e->m01 = c;
-            e->Pad |= 0;
-            if (a < 0)
-                e->Pad |= 1;
-        } else {
-            e->m00 = a;
-            e->m01 = b;
-            e->Pad |= 4;
-            if (c < 0)
-                e->Pad |= 1;
-        }
-    } else {
-        if (abs(b) > abs(c)) {
-            e->m00 = a;
-            e->m01 = c;
-            e->Pad |= 8;
-            if (b < 0)
-                e->Pad |= 1;
-        } else {
-            e->m00 = a;
-            e->m01 = b;
-            e->Pad |= 4;
-            if (c < 0)
-                e->Pad |= 1;
-        }
-    }
-
-    a = ((cm->M[1] & CMAT0_MASK) >> 22);
-    b = ((cm->M[1] & CMAT1_MASK) >> 12);
-    c = ((cm->M[1] & CMAT2_MASK) >> 02);
-
-    if (abs(a) > abs(b)) {
-        if (abs(a) > abs(c)) {
-            e->m10 = b;
-            e->m11 = c;
-            e->Pad |= 0;
-            if (a < 0)
-                e->Pad |= 2;
-        } else {
-            e->m10 = a;
-            e->m11 = b;
-            e->Pad |= 16;
-            if (c < 0)
-                e->Pad |= 2;
-        }
-    } else {
-        if (abs(b) > abs(c)) {
-            e->m10 = a;
-            e->m11 = c;
-            e->Pad |= 32;
-            if (b < 0)
-                e->Pad |= 2;
-        } else {
-            e->m10 = a;
-            e->m11 = b;
-            e->Pad |= 16;
-            if (c < 0)
-                e->Pad |= 2;
-        }
-    }
-}
-
-// claude-ai: GetCMatrix() — decompresses a stored GameKeyFrameElement back into a CMatrix33.
-// claude-ai: Reads the Pad byte to determine which element was omitted, then calls
-// claude-ai: UCA_Lookup[a][b] to reconstruct the third element c = sqrt(16383 - a² - b²).
-// claude-ai: The UCA_Lookup table is pre-computed in UCA_LookupSetup() at game start.
-// claude-ai: Row 2 (m20/m21/m22) is always reconstructed as cross product of rows 0 and 1.
-// claude-ai: NOTE: This is the ULTRA_COMPRESSED_ANIMATIONS path (PSX-targeted).
-void GetCMatrix(GameKeyFrameElement* e, CMatrix33* cm)
-{
-    SLONG a, b, c;
-    SLONG m00, m01, m02;
-    SLONG m10, m11, m12;
-    SLONG data;
-
-    data = *((SLONG*)e);
-    a = (data << 24) >> 24;
-    b = (data << 16) >> 24;
-    //	ASSERT(a==e->m00);
-    //	ASSERT(b==e->m01);
-
-    //	DebugText(" AA a = %d b =%d \n",a,b);
-
-    //	a = e->m00;   //if(a > 127) a -= 256;
-    //	b = e->m01;   //if(b > 127) b -= 256;
-    c = UCA_Lookup[(UBYTE)a][(UBYTE)b];
-    if (e->Pad & 1)
-        c = -c;
-
-    if ((e->Pad & 12) == 0) {
-        m00 = c;
-        m01 = a;
-        m02 = b;
-    } else if ((e->Pad & 12) == 4) {
-        m00 = a;
-        m01 = b;
-        m02 = c;
-    } else if ((e->Pad & 12) == 8) {
-        m00 = a;
-        m01 = c;
-        m02 = b;
-    }
-
-    a = (data << 8) >> 24;
-    b = (data << 0) >> 24;
-    //	ASSERT(a==e->m10);
-    //	ASSERT(b==e->m11);
-
-    //	DebugText(" CC a = %d b =%d \n",a,b);
-    //	a = e->m10;   //if(a > 127) a -= 256;
-    //	b = e->m11;   //if(b > 127) b -= 256;
-    //	DebugText(" DD a = %d b =%d \n",a,b);
-    c = UCA_Lookup[(UBYTE)a][(UBYTE)b];
-    if (e->Pad & 2)
-        c = -c;
-
-    if ((e->Pad & 48) == 0) {
-        m10 = c;
-        m11 = a;
-        m12 = b;
-    } else if ((e->Pad & 48) == 16) {
-        m10 = a;
-        m11 = b;
-        m12 = c;
-    } else if ((e->Pad & 48) == 32) {
-        m10 = a;
-        m11 = c;
-        m12 = b;
-    }
-
-    //
-    // cross product PSX_OPT
-    //
-    SLONG m20 = ((m01 * m12) >> 7) - ((m02 * m11) >> 7);
-    SLONG m21 = ((m02 * m10) >> 7) - ((m00 * m12) >> 7);
-    SLONG m22 = ((m00 * m11) >> 7) - ((m01 * m10) >> 7);
-
-    // damn....
-    if (m20 > 127)
-        m20 = 127; //-= m20 - 127;
-
-    if (m20 < -127)
-        m20 = -127; //+= m20 + 127;
-
-    if (m21 > 127)
-        m21 = 127; //-= m21 - 127;
-
-    if (m21 < -127)
-        m21 = -127; //+= m21 + 127;
-
-    if (m22 > 127)
-        m22 = 127; //-= m22 - 127;
-
-    if (m22 < -127)
-        m22 = -127; //+= m22 + 127;
-
-    cm->M[0] = ((m00 << 22) & CMAT0_MASK) + ((m01 << 12) & CMAT1_MASK) + ((m02 << 02) & CMAT2_MASK);
-    cm->M[1] = ((m10 << 22) & CMAT0_MASK) + ((m11 << 12) & CMAT1_MASK) + ((m12 << 02) & CMAT2_MASK);
-    cm->M[2] = ((m20 << 22) & CMAT0_MASK) + ((m21 << 12) & CMAT1_MASK) + ((m22 << 02) & CMAT2_MASK);
-}
-
-#endif
 //************************************************************************************************
 
 void convert_anim(Anim* key_list, GameKeyFrameChunk* p_chunk, KeyFrameChunk* the_chunk);
@@ -689,9 +495,6 @@ extern SLONG append_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, 
 // claude-ai: darci_normal_count = next_prim_point after loading, marks end of normal prim range.
 void setup_people_anims(void)
 {
-#ifdef ULTRA_COMPRESSED_ANIMATIONS
-    UCA_LookupSetup();
-#endif
 
     setup_anim_stuff();
     load_anim_system(&game_chunk[ANIM_TYPE_DARCI], "darci1.all", 1);

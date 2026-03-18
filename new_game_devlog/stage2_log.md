@@ -1294,7 +1294,7 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 | `WE_NEED_POLYBUFFERS_PLEASE_BOB` | ✅ | итерация 40 |
 | `USE_D3D_VBUF` | ✅ | итерация 41 |
 | `NO_SERVER` | ✅ | итерация 42 |
-| `ULTRA_COMPRESSED_ANIMATIONS` | ⬜ | нужно проверить есть ли #ifdef в коде |
+| `ULTRA_COMPRESSED_ANIMATIONS` | ✅ | итерация 43 (PSX-флаг, нигде не определён; `-U`) |
 
 ### Никогда не активны → удалить весь блок
 
@@ -1396,5 +1396,19 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 - `DDEngine/Source/font2d.cpp` — 4 строки
 - `Source/supermap.cpp` — 4 строки
 - `Headers/noserver.h` — 1 строка (сам `#define`)
+
+**Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.
+
+---
+
+## Итерация 43 — Пункт 2.7: удаление ULTRA_COMPRESSED_ANIMATIONS (2026-03-18)
+
+`ULTRA_COMPRESSED_ANIMATIONS` нигде не определён (ни в vcxproj, ни в хедерах) — PSX-специфичный формат анимаций. `#ifdef` ветки — PSX-код (удалить), `#ifndef` ветки — PC-код (раскрыть).
+
+**Изменено (4 файла, 249 удалений):**
+- `Source/Anim.cpp` — 197 строк (весь UCA-путь: lookup table, GetCMatrix UCA вариант, SetCMatrixComp UCA, UCA_LookupSetup)
+- `Source/io.cpp` — 23 строки (load_insert_game_chunk: убраны UCA ветки чтения)
+- `Headers/anim.h` — 20 строк (struct GameKeyFrameElement UCA вариант)
+- `Source/memory.cpp` — 9 строк (save_psx ветки)
 
 **Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.

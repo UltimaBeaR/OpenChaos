@@ -141,7 +141,6 @@ struct	GameKeyFrameElementBig
 
 
 
-#ifndef ULTRA_COMPRESSED_ANIMATIONS
 struct	GameKeyFrameElement
 {
 	struct	CMatrix33	CMatrix;
@@ -163,25 +162,6 @@ inline	void	SetCMatrix(GameKeyFrameElement *e, CMatrix33 *c)
 };
 
 //************************************************************************************************
-#else
-
-// JCL - wow - 4 bytes for the matrix instead of 36 (well, 12..)
-
-struct	GameKeyFrameElement
-{
-	SBYTE				m00, m01, m10, m11;
-//	SBYTE				dm02, dm12, dm20, dm21, dm22;
-//	UBYTE				pad1,pad2,pad3;
-	SBYTE				OffsetX;
-	SBYTE				OffsetY;
-	SBYTE				OffsetZ;
-	UBYTE				Pad;
-};
-
-void	GetCMatrix(GameKeyFrameElement *e, CMatrix33 *c);
-void	SetCMatrix(GameKeyFrameElement *e, CMatrix33 *c);
-
-#endif
 //************************************************************************************************
 //************************************************************************************************
 
