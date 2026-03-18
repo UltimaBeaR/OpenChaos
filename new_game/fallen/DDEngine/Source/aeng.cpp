@@ -1261,17 +1261,10 @@ void AENG_calc_gamut_lo_only(
         }
     }
 
-#if 1
     AENG_gamut_lo_xmin = (SLONG)(gamut_lo_xmin);
     AENG_gamut_lo_xmax = (SLONG)(gamut_lo_xmax);
     AENG_gamut_lo_zmin = (SLONG)(gamut_lo_zmin);
     AENG_gamut_lo_zmax = (SLONG)(gamut_lo_zmax);
-#else
-    AENG_gamut_lo_xmin = (SLONG)(gamut_lo_xmin * 0.25f);
-    AENG_gamut_lo_xmax = (SLONG)(gamut_lo_xmax * 0.25f);
-    AENG_gamut_lo_zmin = (SLONG)(gamut_lo_zmin * 0.25f);
-    AENG_gamut_lo_zmax = (SLONG)(gamut_lo_zmax * 0.25f);
-#endif
 
     // Just catch the dodgy edge condition.
     if (AENG_gamut_lo_xmax == PAP_SIZE_LO) {
@@ -2058,7 +2051,6 @@ void AENG_draw_rain()
         y1 += AENG_cam_y;
         z1 += AENG_cam_z;
 
-#if 1 // shade the rain
         SLONG px = SLONG(x1) >> 10;
         SLONG pz = SLONG(z1) >> 10;
         SLONG dx = (SLONG(x1) >> 8) & 3;
@@ -2083,7 +2075,6 @@ void AENG_draw_rain()
         NIGHT_get_d3d_colour(nq->colour[dx + dz * PAP_BLOCKS], &col, &spec);
 
         colour = col;
-#endif
 
         SHAPE_droplet(
             SLONG(x1),
@@ -3509,56 +3500,8 @@ void show_gamut_hi(SLONG x, SLONG z)
     //	AENG_draw_rect(x*2,z*2,1,1,0xffff00,1,POLY_PAGE_COLOUR);
 }
 
-#if 1
 // Bin this.
 #define show_facet(thing) sizeof(thing)
-
-#else
-
-void show_facet(SLONG facet)
-{
-    return;
-
-    struct DFacet* p_facet;
-    SLONG x1, z1, x2, z2;
-    SLONG colour = 0xffffff;
-
-    p_facet = &dfacets[facet];
-
-    x1 = p_facet->x[0];
-    x2 = p_facet->x[1];
-    z1 = p_facet->z[0];
-    z2 = p_facet->z[1];
-
-    x1 *= 2;
-    z1 *= 2;
-    x2 *= 2;
-    z2 *= 2;
-
-    x1 += (p_facet->Y[0] >> 8);
-    z1 -= (p_facet->Y[0] >> 8);
-    x2 += (p_facet->Y[0] >> 8);
-    z2 -= (p_facet->Y[0] >> 8);
-
-    switch (p_facet->Height) {
-    case 2:
-        colour = 0xff;
-        break;
-    case 3:
-        colour = 0xff00;
-        break;
-    case 4:
-        colour = 0x7f7f;
-        break;
-    case 5:
-        colour = 0xffff;
-        break;
-    }
-
-    POLY_add_line_2d((float)x1, (float)z1, (float)x2, (float)z2, colour);
-}
-
-#endif
 
 void AENG_draw_people_messages()
 {
@@ -7608,7 +7551,6 @@ void AENG_draw_city()
                             //
 
                             {
-#if 1
                                 ULONG car_colours[6] = {
                                     0xffffff00,
                                     0xffff00ff,
@@ -7619,23 +7561,6 @@ void AENG_draw_city()
                                 };
 
                                 MESH_colour_and = car_colours[THING_NUMBER(p_thing) % 6];
-#else
-
-#define DEFCOL(R, G, B) (0xFF000000 | R | (G << 8) | (B << 16))
-
-                                static DWORD colours[7] = {
-                                    DEFCOL(18, 192, 120),
-                                    DEFCOL(255, 14, 90),
-                                    DEFCOL(112, 122, 216),
-                                    DEFCOL(176, 158, 54),
-                                    DEFCOL(0, 149, 186),
-                                    DEFCOL(194, 162, 34),
-                                    DEFCOL(255, 255, 255),
-                                };
-
-                                int col = THING_NUMBER(p_thing) % 7;
-                                MESH_colour_and = colours[col];
-#endif
                             }
 
                             extern void draw_car(Thing * p_car);

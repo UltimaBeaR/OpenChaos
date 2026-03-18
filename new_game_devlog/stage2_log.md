@@ -27,9 +27,9 @@
 | Debug-флаги (`DEBUG_POOSHIT`, `HEAP_DEBUGGING_PLEASE_BOB` и др.) | ✅ | итерация 29 (`HIGH_REZ_PEOPLE_PLEASE_BOB` — пропущен, разобраться позже) |
 | Debug визуализации (`WE_WANT_TO_DRAW_*` и др.) | ✅ | итерация 30 |
 | Developer joke flags (`GONNA_FIREBOMB_YOUR_ASS` и др.) | ✅ | итерация 31 |
-| `FACET_REMOVAL_TEST` | ✅ | итерация 33 (решено: Release-only кодовая база) |
+| `FACET_REMOVAL_TEST` | ✅ | итерация 34 (решено: Release-only кодовая база) |
 | `SUPERCRINKLES_ENABLED` | ✅ | итерация 25 |
-| `_DEBUG`, `DEBUG`, `NDEBUG`, `FINAL`, `_RELEASE` (все debug/release блоки) | ✅ | итерация 33 |
+| `_DEBUG`, `DEBUG`, `NDEBUG`, `FINAL`, `_RELEASE` (все debug/release блоки) | ✅ | итерация 34 |
 
 ---
 
@@ -977,7 +977,7 @@ Exit code 19 — норма.
 
 ---
 
-## Пункт 3 — Удаление orphan-файлов (2026-03-18)
+## Итерация 32 — Удаление orphan-файлов (2026-03-18)
 
 Удалены файлы, не упомянутые в `Fallen.vcxproj` и не включаемые ни одним `#include`.
 
@@ -993,7 +993,7 @@ Exit code 19 — норма.
 
 ---
 
-## Итерация 32 — Инвентаризация и удаление оставшихся флагов (2026-03-18)
+## Итерация 33 — Инвентаризация и удаление оставшихся флагов (2026-03-18)
 
 ### Что удалено
 
@@ -1144,7 +1144,7 @@ no-op макросы (`TRACE`, `LogText`, `DebugText`, `ERROR_MSG`, `ASSERT`), `
 
 ---
 
-## Итерация 33 — Release-only: удаление всего debug-кода (2026-03-18)
+## Итерация 34 — Release-only: удаление всего debug-кода (2026-03-18)
 
 **Решение:** Сфокусировать кодовую базу исключительно на Release-сборке. Debug-код удаляется навсегда.
 Мотивация: Release-only кодовая база проще для доработки. Если что-то понадобится — восстановить из `original_game/`.
@@ -1170,7 +1170,7 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 
 ---
 
-## Итерация 34 — Удаление оставшегося debug-кода (2026-03-18)
+## Итерация 35 — Удаление оставшегося debug-кода (2026-03-18)
 
 Удалён debug-код который оказался безусловно активным после итерации 33.
 
@@ -1210,7 +1210,7 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 
 ---
 
-## Итерация 35 — Пункт 2.7: малые флаги (2026-03-18)
+## Итерация 36 — Пункт 2.7: малые флаги (2026-03-18)
 
 Первая итерация пункта 2.7 — полное устранение условной компиляции.
 
@@ -1235,7 +1235,7 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 
 ---
 
-## Итерация 36 — Пункт 2.7: удаление never-active и defined-as-0 флагов (2026-03-18)
+## Итерация 37 — Пункт 2.7: удаление never-active и defined-as-0 флагов (2026-03-18)
 
 **Обработаны через coan** (`-UPOO -UMESH_SHOW_MOUSE_POINT -USHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB`):
 - `POO` — 3 блока в Darci.cpp, pow.cpp (2 функции `count_occurances`/`count_used` + тело `check_pows`)
@@ -1253,7 +1253,7 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 
 ---
 
-## Итерация 37 — Пункт 2.7: удаление no-op макросов (2026-03-18)
+## Итерация 38 — Пункт 2.7: удаление no-op макросов (2026-03-18)
 
 Удалены no-op макросы и все их вызовы из исходников.
 
@@ -1279,42 +1279,42 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 
 | Флаг | Статус | Итерация / примечание |
 |------|--------|-----------------------|
-| `VERSION_D3D` | ✅ | итерация 35 |
-| `LIGHT_COLOURED` | ✅ | итерация 35 |
-| `MARKS_MACHINE` | ✅ | итерация 35 |
-| `DRAW_WHOLE_PERSON_AT_ONCE` | ✅ | итерация 35 |
-| `MUST_DOUBLE_CLICK_FORWARDS_TO_GET_OUT_OF_FIGHT_MODE` | ✅ | итерация 35 (был в `/* */`) |
-| `REMAP_KEYBOARD` | ✅ | итерация 35 (dead define — нет #ifdef) |
-| `NEW_LEVELS` | ✅ | итерация 35 (dead define — нет #ifdef) |
-| `WANT_AN_EXIT_MENU_ITEM` / `WANT_A_KEYBOARD_ITEM` / `WANT_A_START_JOYSTICK_ITEM` | ✅ | итерация 35 (dead defines) |
-| `ALLOW_JOYPAD_IN_FRONTEND` / `ANNOYING_HACK_FOR_SIMON` | ✅ | итерация 35 (dead defines) |
+| `VERSION_D3D` | ✅ | итерация 36 |
+| `LIGHT_COLOURED` | ✅ | итерация 36 |
+| `MARKS_MACHINE` | ✅ | итерация 36 |
+| `DRAW_WHOLE_PERSON_AT_ONCE` | ✅ | итерация 36 |
+| `MUST_DOUBLE_CLICK_FORWARDS_TO_GET_OUT_OF_FIGHT_MODE` | ✅ | итерация 36 (был в `/* */`) |
+| `REMAP_KEYBOARD` | ✅ | итерация 36 (dead define — нет #ifdef) |
+| `NEW_LEVELS` | ✅ | итерация 36 (dead define — нет #ifdef) |
+| `WANT_AN_EXIT_MENU_ITEM` / `WANT_A_KEYBOARD_ITEM` / `WANT_A_START_JOYSTICK_ITEM` | ✅ | итерация 36 (dead defines) |
+| `ALLOW_JOYPAD_IN_FRONTEND` / `ANNOYING_HACK_FOR_SIMON` | ✅ | итерация 36 (dead defines) |
 | `MF_DD2` | ➖ | уже отсутствовал |
 | `_MF_WINDOWS` / `WIN32` / `_WIN32` / `_WINDOWS` | ➖ | уже нет #ifdef в game-коде |
-| `USE_TOMS_ENGINE_PLEASE_BOB` | ✅ | итерация 39 |
-| `WE_NEED_POLYBUFFERS_PLEASE_BOB` | ✅ | итерация 40 |
-| `USE_D3D_VBUF` | ✅ | итерация 41 |
-| `NO_SERVER` | ✅ | итерация 42 |
-| `ULTRA_COMPRESSED_ANIMATIONS` | ✅ | итерация 43 (PSX-флаг, нигде не определён; `-U`) |
+| `USE_TOMS_ENGINE_PLEASE_BOB` | ✅ | итерация 40 |
+| `WE_NEED_POLYBUFFERS_PLEASE_BOB` | ✅ | итерация 41 |
+| `USE_D3D_VBUF` | ✅ | итерация 42 |
+| `NO_SERVER` | ✅ | итерация 43 |
+| `ULTRA_COMPRESSED_ANIMATIONS` | ✅ | итерация 44 (PSX-флаг, нигде не определён; `-U`) |
 
 ### Никогда не активны → удалить весь блок
 
 | Флаг | Статус | Примечание |
 |------|--------|-----------|
-| `POO` | ✅ | итерация 36 |
-| `DISABLE_CRINKLES` | ✅ | итерация 36 (`= 0` на PC; взята ветка PC: 700 points, 8192 max) |
-| `CALC_CAR_CRUMPLE` | ✅ | итерация 36 (`= 0`; взята ветка таблицы, удалён блок вычисления) |
-| `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB` | ✅ | итерация 36 (только dead define, нет #if блоков) |
-| `HIGH_REZ_PEOPLE_PLEASE_BOB` | ✅ | итерация 44 |
-| `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` | ✅ | итерация 36 (нигде не defined, удалены 3 блока) |
-| `MESH_SHOW_MOUSE_POINT` | ✅ | итерация 36 (нигде не defined, удалены 4 блока) |
-| `NEW_FLOOR` | ✅ | итерация 44 |
-| No-op макросы (`TRACE`, `LogText`, `DebugText`, `ERROR_MSG`) | ✅ | итерация 37 (ASSERT и VERIFY оставлены — документируют инварианты) |
+| `POO` | ✅ | итерация 37 |
+| `DISABLE_CRINKLES` | ✅ | итерация 37 (`= 0` на PC; взята ветка PC: 700 points, 8192 max) |
+| `CALC_CAR_CRUMPLE` | ✅ | итерация 37 (`= 0`; взята ветка таблицы, удалён блок вычисления) |
+| `NO_CLIPPING_TO_THE_SIDES_PLEASE_BOB` | ✅ | итерация 37 (только dead define, нет #if блоков) |
+| `HIGH_REZ_PEOPLE_PLEASE_BOB` | ✅ | итерация 45 |
+| `SHOW_ME_SUPERFACET_DEBUGGING_PLEASE_BOB` | ✅ | итерация 37 (нигде не defined, удалены 3 блока) |
+| `MESH_SHOW_MOUSE_POINT` | ✅ | итерация 37 (нигде не defined, удалены 4 блока) |
+| `NEW_FLOOR` | ✅ | итерация 45 |
+| No-op макросы (`TRACE`, `LogText`, `DebugText`, `ERROR_MSG`) | ✅ | итерация 38 (ASSERT и VERIFY оставлены — документируют инварианты) |
 | `VERIFY(x)` | 🚫 | решено не удалять — документирует инварианты, аналогично ASSERT |
-| `TEX_EMBED` | ✅ | итерация 38 |
+| `TEX_EMBED` | ✅ | итерация 39 |
 
 ---
 
-## Итерация 38 — Пункт 2.7: раскрытие TEX_EMBED (2026-03-18)
+## Итерация 39 — Пункт 2.7: раскрытие TEX_EMBED (2026-03-18)
 
 `TEX_EMBED` определён в обоих конфигах vcxproj (Debug и Release). Закомментированный `// #define TEX_EMBED` в `polypage.h` — устаревший артефакт, vcxproj доминирует.
 
@@ -1337,7 +1337,7 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 
 ---
 
-## Итерация 39 — Пункт 2.7: раскрытие USE_TOMS_ENGINE_PLEASE_BOB (2026-03-18)
+## Итерация 40 — Пункт 2.7: раскрытие USE_TOMS_ENGINE_PLEASE_BOB (2026-03-18)
 
 `USE_TOMS_ENGINE_PLEASE_BOB = 1` определён в `aeng.h` (всегда активен).
 
@@ -1357,7 +1357,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Итерация 40 — Пункт 2.7: раскрытие WE_NEED_POLYBUFFERS_PLEASE_BOB (2026-03-18)
+## Итерация 41 — Пункт 2.7: раскрытие WE_NEED_POLYBUFFERS_PLEASE_BOB (2026-03-18)
 
 `WE_NEED_POLYBUFFERS_PLEASE_BOB = 1` определён в `polypage.h` (всегда активен).
 
@@ -1370,7 +1370,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Итерация 41 — Пункт 2.7: раскрытие USE_D3D_VBUF (2026-03-18)
+## Итерация 42 — Пункт 2.7: раскрытие USE_D3D_VBUF (2026-03-18)
 
 `USE_D3D_VBUF = 1` определён в `vertexbuffer.h` (всегда активен).
 
@@ -1385,7 +1385,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Итерация 42 — Пункт 2.7: раскрытие NO_SERVER (2026-03-18)
+## Итерация 43 — Пункт 2.7: раскрытие NO_SERVER (2026-03-18)
 
 `NO_SERVER = 1` определён в `noserver.h` (всегда активен — standalone режим).
 
@@ -1401,7 +1401,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Итерация 43 — Пункт 2.7: удаление ULTRA_COMPRESSED_ANIMATIONS (2026-03-18)
+## Итерация 44 — Пункт 2.7: удаление ULTRA_COMPRESSED_ANIMATIONS (2026-03-18)
 
 `ULTRA_COMPRESSED_ANIMATIONS` нигде не определён (ни в vcxproj, ни в хедерах) — PSX-специфичный формат анимаций. `#ifdef` ветки — PSX-код (удалить), `#ifndef` ветки — PC-код (раскрыть).
 
@@ -1415,7 +1415,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Итерация 44 — Пункт 2.7: удаление HIGH_REZ_PEOPLE_PLEASE_BOB и NEW_FLOOR (2026-03-18)
+## Итерация 45 — Пункт 2.7: удаление HIGH_REZ_PEOPLE_PLEASE_BOB и NEW_FLOOR (2026-03-18)
 
 Оба флага нигде не определены — удалены за один прогон coan.
 
@@ -1431,7 +1431,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Итерация 45 — Пункт 4: удаление мёртвых сущностей через компилятор (2026-03-18)
+## Итерация 46 — Пункт 4: удаление мёртвых сущностей через компилятор (2026-03-18)
 
 Использованы предупреждения MSVC C4505 (unreferenced static function) и C4101 (unreferenced local variable).
 
@@ -1457,7 +1457,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Итерация 46 — Пункт 4: удаление изолированных PSX-функций (2026-03-18)
+## Итерация 47 — Пункт 4: удаление изолированных PSX-функций (2026-03-18)
 
 **Удалено 5 сущностей:**
 - `Tga.cpp`: `psx_load_error()` + `TGA_load_psx()` — 245 строк. `TGA_load_psx` нигде не вызывается; `psx_load_error` вызывается только из неё.
@@ -1471,7 +1471,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Итерация 47 — Пункт 4: удаление runtime PSX-export режима (save_psx/build_psx) (2026-03-18)
+## Итерация 48 — Пункт 4: удаление runtime PSX-export режима (save_psx/build_psx) (2026-03-18)
 
 `save_psx` и `build_psx` — runtime-переменные режима PSX-экспорта для разработчиков: `save_psx = ENV_get_value_number("psx", 0, "Secret")`. На PC всегда равны 0 — режим недоступен.
 
@@ -1512,7 +1512,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Пункт 5 — clang-format (2026-03-18)
+## Итерация 49 — clang-format (2026-03-18)
 
 Запущен `clang-format -i` на всех `.cpp`/`.h` файлах в `fallen/` и `MFStdLib/` (408 + несколько файлов).
 Конфиг: `new_game/.clang-format` (WebKit-based, tabs→4 spaces, MaxEmptyLinesToKeep: 1 и др.).
@@ -1521,7 +1521,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Пункт 6 — Удаление файлов ставших пустыми (2026-03-18)
+## Итерация 50 — Удаление файлов ставших пустыми (2026-03-18)
 
 Поиск файлов без значимого кода (только includes/guards/комментарии). Удалено 10 файлов + очищены все ссылающиеся `#include` и vcxproj записи.
 
@@ -1547,7 +1547,7 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Пункт 3 — Повторный проход: удаление orphan-файлов (2026-03-18)
+## Итерация 51 — Повторный проход: удаление orphan-файлов (2026-03-18)
 
 Дополнительный проход после итераций 45-47. Удалены файлы без `#include` и без записи в vcxproj, которые стали orphan после удаления мёртвых сущностей.
 
@@ -1555,11 +1555,27 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
-## Пункт 4 — Завершение: удаление мёртвых сущностей (2026-03-18)
+## Итерация 52 — Завершение удаления мёртвых сущностей (2026-03-18)
 
-Пункт 4 завершён. Все мёртвые функции, переменные и типы, выявленные через предупреждения компилятора (C4505, C4101) и ручной анализ, удалены в итерациях 45-47 и последующих проходах.
+Удалены все мёртвые функции, переменные и типы, выявленные через предупреждения компилятора (C4505, C4101) и ручной анализ — в итерациях 46-48 и последующих проходах.
 
 **Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 255 предупреждений.
+
+---
+
+## Итерация 53 — Удаление препроцессорных обёрток (#ifdef UNUSED, #if 1) (2026-03-18)
+
+Кластер 1: `#ifdef UNUSED` — все 17 блоков удалены.
+Кластер 2: `#if 1` — все блоки удалены из всех файлов.
+
+**Файлы изменены:**
+- `Source/Combat.cpp`, `Source/collide.cpp`, `Source/eway.cpp`, `Source/interfac.cpp`, `Source/mav.cpp`, `Source/overlay.cpp`, `Source/Person.cpp`, `Source/Player.cpp`, `Source/ob.cpp`, `Source/frontend.cpp`, `Source/Attract.cpp` — кластеры `#ifdef UNUSED` и/или `#if 1`
+- `DDEngine/Source/oval.cpp`, `DDEngine/Source/aeng.cpp`, `DDEngine/Source/figure.cpp`, `DDEngine/Source/poly.cpp`, `DDEngine/Source/superfacet.cpp` — кластер `#if 1`
+- `Headers/combat.h` — удалены мёртвые struct `ComboHistory`/`BlockHistory` и объявления функций
+
+**Правило для `#if 1` с `#else`:** сохраняется ветка `#if 1` (активный код), удаляется `#else` ветка (старый код).
+
+**Результат:** 0 ошибок, 252 предупреждения (базовый уровень).
 
 ---
 

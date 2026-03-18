@@ -472,7 +472,6 @@ void OVERLAY_handle(void)
     // Internal gubbins.
     POLY_flush_local_rot();
 
-#if 1
     // Reset the viewport so that text, etc gets drawn even when in letterbox mode.
 
     // HRESULT hres = (the_display.lp_D3D_Viewport)->EndScene();
@@ -495,8 +494,6 @@ void OVERLAY_handle(void)
     HRESULT hres = (the_display.lp_D3D_Viewport)->SetViewport2(&viewData);
 
     // hres = (the_display.lp_D3D_Viewport)->BeginScene();
-
-#endif
 
     PANEL_start();
 

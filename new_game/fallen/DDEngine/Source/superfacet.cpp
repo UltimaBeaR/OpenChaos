@@ -1173,7 +1173,6 @@ SLONG SUPERFACET_draw(SLONG facet)
     the_display.lp_D3D_Device->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
     the_display.lp_D3D_Device->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-#if 1
     // Using DrawIndPrim all the time, not MM.
     // Means we don't have to clip.
 
@@ -1200,7 +1199,6 @@ SLONG SUPERFACET_draw(SLONG facet)
 
         // ASSERT ( sc->texture != NULL );
 
-#if 1
         the_display.lp_D3D_Device->DrawIndexedPrimitive(
             D3DPT_TRIANGLELIST,
             D3DFVF_LVERTEX,
@@ -1210,15 +1208,6 @@ SLONG SUPERFACET_draw(SLONG facet)
             sc->indexcount,
             0);
 
-#else
-        DrawIndPrimMM(
-            the_display.lp_D3D_Device,
-            D3DFVF_LVERTEX,
-            &d3dmm,
-            sc->lvertcount,
-            SUPERFACET_index + sc->index,
-            sc->indexcount);
-#endif
 
         //
         // What about those 2-pass texture pages???
@@ -1235,7 +1224,6 @@ SLONG SUPERFACET_draw(SLONG facet)
             the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_FOGENABLE, FALSE);
             the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
 
-#if 1
             the_display.lp_D3D_Device->DrawIndexedPrimitive(
                 D3DPT_TRIANGLELIST,
                 D3DFVF_LVERTEX,
@@ -1244,18 +1232,6 @@ SLONG SUPERFACET_draw(SLONG facet)
                 SUPERFACET_index + sc->index,
                 sc->indexcount,
                 0);
-#else
-            the_display.lp_D3D_Device->DrawIndexedPrimitive(
-                D3DPT_TRIANGLELIST,
-                D3DFVF_LVERTEX,
-                SUPERFACET_lvert + sc->lvert,
-                sc->lvertcount,
-                SUPERFACET_2pass_index,
-                SUPERFACET_2pass_index_upto,
-                // SUPERFACET_index + sc->index,
-                // sc->indexcount,
-                0);
-#endif
 
             // And go back to sanity.
             the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
@@ -1264,129 +1240,6 @@ SLONG SUPERFACET_draw(SLONG facet)
         }
     }
 
-#else
-    // Using DrawIndPrimMM - a pain in the arse.
-
-#define USING_MULTITEX_FOR_WINDOWS 0
-
-    for (i = 0; i < sf->num; i++) {
-        ASSERT(WITHIN(sf->call + i, 0, SUPERFACET_MAX_CALLS - 1));
-
-        sc = &SUPERFACET_call[sf->call + i];
-
-        ASSERT(sc->flag & SUPERFACET_CALL_FLAG_USED);
-
-        if (!sc->indexcount) {
-            //
-            // Oh dear...
-            //
-
-            continue;
-        }
-
-        //
-        // Setup renderstates...?
-        //
-
-        the_display.lp_D3D_Device->SetTexture(0, sc->texture);
-
-        // ASSERT ( sc->texture != NULL );
-
-        //
-        // Setup transform states...?
-        //
-
-        d3dmm.lpvVertices = SUPERFACET_lvert + sc->lvert;
-        d3dmm.lpd3dMatrices = SUPERFACET_matrix;
-        d3dmm.lpvLightDirs = NULL;
-        d3dmm.lpLightTable = NULL;
-
-        /*
-
-
-        the_display.lp_D3D_Device->DrawIndexedPrimitive(
-                                                                        D3DPT_TRIANGLELIST,
-                                                                        D3DFVF_LVERTEX,
-                                                                        SUPERFACET_lvert + sc->lvert,
-                                                                        sc->lvertcount,
-                                                                        SUPERFACET_index + sc->index,
-                                                                        sc->indexcount,
-                                                                        0);
-        */
-
-        // TRACE ( "S5" );
-        DrawIndPrimMM(
-            the_display.lp_D3D_Device,
-            D3DFVF_LVERTEX,
-            &d3dmm,
-            sc->lvertcount,
-            SUPERFACET_index + sc->index,
-            sc->indexcount);
-        // TRACE ( "F5" );
-
-        //
-        // What about those 2-pass texture pages???
-        //
-
-        if (sc->flag & SUPERFACET_CALL_FLAG_2PASS) {
-            //
-            // Create a 2pass index list from this index list.
-            //
-
-            SUPERFACET_2pass_index_upto = 0;
-
-            for (j = 0; j < sc->indexcount; j += 5) {
-                ASSERT(WITHIN(SUPERFACET_2pass_index_upto + 5, 0, SUPERFACET_MAX_2PASS_INDICES - 1));
-
-                SUPERFACET_2pass_index[SUPERFACET_2pass_index_upto + 0] = SUPERFACET_index[sc->index + j + 0];
-                SUPERFACET_2pass_index[SUPERFACET_2pass_index_upto + 1] = SUPERFACET_index[sc->index + j + 1];
-                SUPERFACET_2pass_index[SUPERFACET_2pass_index_upto + 2] = SUPERFACET_index[sc->index + j + 2];
-
-                SUPERFACET_2pass_index[SUPERFACET_2pass_index_upto + 3] = SUPERFACET_index[sc->index + j + 3];
-                SUPERFACET_2pass_index[SUPERFACET_2pass_index_upto + 4] = SUPERFACET_index[sc->index + j + 2];
-                SUPERFACET_2pass_index[SUPERFACET_2pass_index_upto + 5] = SUPERFACET_index[sc->index + j + 1];
-
-                SUPERFACET_2pass_index_upto += 6;
-            }
-
-            the_display.lp_D3D_Device->SetTexture(0, sc->texture_2pass);
-
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, TRUE);
-
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_DECAL);
-
-            /*
-
-            DrawIndPrimMM(
-                    the_display.lp_D3D_Device,
-                    D3DFVF_LVERTEX,
-               &d3dmm,
-                    sc->lvertcount,
-                    SUPERFACET_index + sc->index,
-                    sc->indexcount);
-
-            */
-
-            the_display.lp_D3D_Device->DrawIndexedPrimitive(
-                D3DPT_TRIANGLELIST,
-                D3DFVF_LVERTEX,
-                SUPERFACET_lvert + sc->lvert,
-                sc->lvertcount,
-                SUPERFACET_2pass_index,
-                SUPERFACET_2pass_index_upto,
-                // SUPERFACET_index + sc->index,
-                // sc->indexcount,
-                0);
-
-            // And go back to sanity.
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_FOGENABLE, TRUE);
-            the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-        }
-    }
-
-#endif
 
     return TRUE;
 }

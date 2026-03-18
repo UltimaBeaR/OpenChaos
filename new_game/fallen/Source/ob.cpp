@@ -607,17 +607,10 @@ SLONG OB_avoid(
 
     // #ifdef PSX
 
-#if 1
 
     SLONG roomy1 = !MAV_inside(px1, ob_y + 0x40, pz1);
     SLONG roomy2 = !MAV_inside(px2, ob_y + 0x40, pz2);
 
-#else
-
-    SLONG roomy1 = there_is_a_los(ob_x, ob_y + 0x40, ob_z, px1, ob_y + 0x40, pz1, LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG);
-    SLONG roomy2 = there_is_a_los(ob_x, ob_y + 0x40, ob_z, px2, ob_y + 0x40, pz2, LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG);
-
-#endif
 
     if (roomy1 ^ roomy2) {
         //

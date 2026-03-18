@@ -192,13 +192,11 @@ void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
             pp[i].specular = 0xff000000;
         }
 
-#if 1
         // A reordering that matches the way the land is drawn, and avoids Z-fights.
         quad[0] = &pp[1];
         quad[1] = &pp[3];
         quad[2] = &pp[0];
         quad[3] = &pp[2];
-#endif
 
         POLY_add_quad(quad, page, FALSE);
     }

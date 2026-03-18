@@ -431,7 +431,6 @@ void POLY_camera_set(
     g_viewData.dwSize = sizeof(D3DVIEWPORT2);
     float fMyMulX = POLY_screen_mul_x * POLY_ZCLIP_PLANE;
     float fMyMulY = POLY_screen_mul_y * POLY_ZCLIP_PLANE;
-#if 1
     g_dw3DStuffHeight = fMyMulY * PolyPage::s_YScale * 2;
     g_dw3DStuffY = (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
     g_viewData.dwWidth = fMyMulX * PolyPage::s_XScale * 2;
@@ -444,21 +443,6 @@ void POLY_camera_set(
     g_viewData.dvClipHeight = 2.0f;
     g_viewData.dvMinZ = 0.0f;
     g_viewData.dvMaxZ = 1.0f;
-#else
-    // A horrible hack for letterbox mode.
-    g_dw3DStuffHeight = fMyMulY * PolyPage::s_YScale * 2;
-    g_dw3DStuffY = (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
-    g_viewData.dwWidth = POLY_screen_width;
-    g_viewData.dwHeight = POLY_screen_height;
-    g_viewData.dwX = 0;
-    g_viewData.dwY = 0;
-    g_viewData.dvClipX = -1.0f;
-    g_viewData.dvClipY = 1.0f;
-    g_viewData.dvClipWidth = 2.0f;
-    g_viewData.dvClipHeight = 2.0f;
-    g_viewData.dvMinZ = 0.0f;
-    g_viewData.dvMaxZ = 1.0f;
-#endif
 
     // claude-ai: Direct3D API — replace with OpenGL: glViewport(x, y, width, height)
     hres = (the_display.lp_D3D_Viewport)->SetViewport2(&g_viewData);
@@ -570,7 +554,6 @@ void POLY_transform_c_saturate_z(
 
         pt->Z = POLY_ZCLIP_PLANE / pt->z;
 
-#if 1
         pt->X = POLY_screen_mid_x - POLY_screen_mul_x * pt->x * pt->Z;
         pt->Y = POLY_screen_mid_y - POLY_screen_mul_y * pt->y * pt->Z;
 
@@ -588,30 +571,6 @@ void POLY_transform_c_saturate_z(
             pt->clip |= POLY_CLIP_TOP;
         else if (pt->Y > POLY_screen_clip_bottom)
             pt->clip |= POLY_CLIP_BOTTOM;
-#else
-        ASSERT(POLY_CLIP_LEFT == 1);
-        ASSERT(POLY_CLIP_RIGHT == 2);
-        ASSERT(POLY_CLIP_TOP == 4);
-        ASSERT(POLY_CLIP_BOTTOM == 8);
-
-        float xml, rmx, ymt, bmy;
-
-        pt->clip = POLY_CLIP_TRANSFORMED;
-
-        pt->X = POLY_screen_mid_x - POLY_screen_mul_x * pt->x * pt->Z;
-        xml = pt->X - POLY_screen_clip_left;
-        rmx = POLY_screen_clip_right - pt->X;
-
-        pt->clip |= *((ULONG*)&xml) >> 31;
-        pt->clip |= (*((ULONG*)&rmx) >> 31) << 1;
-
-        pt->Y = POLY_screen_mid_y - POLY_screen_mul_y * pt->y * pt->Z;
-        ymt = pt->Y - POLY_screen_clip_top;
-        bmy = POLY_screen_clip_bottom - pt->Y;
-
-        pt->clip |= (*((ULONG*)&ymt) >> 31) << 2;
-        pt->clip |= (*((ULONG*)&bmy) >> 31) << 3;
-#endif
     }
 }
 
@@ -2387,7 +2346,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         // now draw the alpha polygons
         //
 
-#if 1 // do it the bucket-sort way globally
 
         //
         // generate the buckets
@@ -2437,59 +2395,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         }
         //		BreakTime("FRAMEDRAW end buckets");
 
-#else // do it page by page
-      //		BreakTime("FRAMEDRAW start page by page");
-
-        for (i = 0; i <= iPolyNumPagesRender; i++) // <= because we skip POLY_PAGE_COLOUR...
-        {
-            k = PageOrder[i];
-
-            pa = &POLY_Page[k];
-
-            if (!pa->NeedsRendering()) {
-                continue;
-            }
-
-            if (k == POLY_PAGE_SHADOW && !draw_shadow_page) {
-                //
-                // Ignore the shadow page.
-                //
-
-                continue;
-            }
-
-            if (pa->RS.NeedsSorting()) {
-                // set render state
-                pa->RS.SetChanged();
-
-                if (POLY_force_additive_alpha) {
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZBIAS, 2);
-                }
-
-                if (INDOORS_INDEX) {
-                    // poo poo poo for fadeing current floor of building
-
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
-                }
-
-                //
-                // sort and render the polygons
-                //
-
-                pa->SortBackFirst();
-                pa->Render(the_display.lp_D3D_Device);
-            }
-        }
-        //		BreakTime("FRAMEDRAW end page by page");
-
-#endif
 
     } else {
         //

@@ -166,7 +166,6 @@ reinit_because_of_language_change:
 
     //	the_display.create_background_surface(image_mem);
 
-#if 1
     LPDIRECT3DDEVICE3 dev = the_display.lp_D3D_Device;
     HRESULT hres;
 
@@ -220,7 +219,6 @@ reinit_because_of_language_change:
     dev->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
     dev->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
     dev->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ZERO);
-#endif
 
     // claude-ai: Главный цикл frontend. 60fps (lock_frame_rate(60) в конце).
     // claude-ai: Вызывает FRONTEND_loop() каждый кадр → возвращает STARTS_* код.

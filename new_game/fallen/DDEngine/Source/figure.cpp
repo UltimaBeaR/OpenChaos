@@ -302,7 +302,6 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and = 0xffffffff)
         cvAmb.b = (cvAmb.b > p->counter) ? (cvAmb.b - p->counter) : 3;
     }
 
-#if 1
     // On the PC, people are lit x2, so we need to double these.
     cvLight.r *= 2.0f;
     cvLight.g *= 2.0f;
@@ -310,7 +309,6 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and = 0xffffffff)
     cvAmb.r *= 2.0f;
     cvAmb.g *= 2.0f;
     cvAmb.b *= 2.0f;
-#endif
 
     // OK, now make up the fade table for this light.
     const float fColourScale = (1.0f / (256.0f * 128.0f)) * 255.0f * NIGHT_LIGHT_MULTIPLIER;
@@ -1669,7 +1667,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                 PrimObjectMaterial* pMaterial = pPrimObj->pMaterials;
                 int iMatNum;
                 for (iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
-#if 1
                     if (pRenderedPage != NULL) {
                         if ((pMaterial->wTexturePage & ~TEXTURE_PAGE_MASK) == 0) {
                             // Nothing special about this page.
@@ -1679,7 +1676,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                             }
                         }
                     }
-#endif
 
                     if (pMaterial->wTexturePage == wTexturePage) {
                         // Exactly the same page.
@@ -1789,7 +1785,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                     // Exactly the same page.
                                     bSamePage = TRUE;
                                 }
-#if 1
                                 else if (pRenderedPage != NULL) {
                                     // if ( ( ( pMaterial->wTexturePage & ~TEXTURE_PAGE_MASK ) == 0 ) &&
                                     //	 ( ( wTexturePage & ~TEXTURE_PAGE_MASK ) == 0 )
@@ -1801,7 +1796,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         }
                                     }
                                 }
-#endif
 
                                 if (bSamePage) {
                                     // This uses this material, so add it.
@@ -2686,16 +2680,12 @@ no_muzzle_calcs:
         MM_pNormal[3] = vTemp.z * fNormScale;
     }
 
-#if 1
 
-#if 1
 
     // The wonderful NEW system!
 
-#if 1
     // The MM stuff doesn't like specular to be enabled.
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, FALSE);
-#endif
 
     // For now, just calculate as-and-when.
     TomsPrimObject* pPrimObj = &(D3DObj[prim]);
@@ -2763,7 +2753,6 @@ no_muzzle_calcs:
             }
             d3dmm.lpvVertices = pVertex;
 
-#if 1
 
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
@@ -2788,7 +2777,6 @@ no_muzzle_calcs:
                     pMat->wNumStripIndices);
                 // TRACE ( "F4" );
             }
-#endif
 
             //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
 
@@ -2810,229 +2798,10 @@ no_muzzle_calcs:
         pMat++;
     }
 
-#if 1
     // The MM stuff doesn't like specular to be enabled.
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
-#endif
 
-#endif
 
-#else
-
-    //
-    // The quads.
-    //
-
-    float fMyU[4], fMyV[4];
-
-    for (i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
-        p_f4 = &prim_faces4[i];
-
-        fMyU[0] = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-        fMyV[0] = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
-
-        fMyU[1] = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
-        fMyV[1] = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
-
-        fMyU[2] = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
-        fMyV[2] = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
-
-        fMyU[3] = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
-        fMyV[3] = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
-
-        page = p_f4->UV[0][0] & 0xc0;
-        page <<= 2;
-        page |= p_f4->TexturePage;
-
-        if (p_f4->FaceFlags & FACE_FLAG_THUG_JACKET) {
-            switch (page) {
-            case 64 + 21:
-            case 10 * 64 + 2:
-            case 10 * 64 + 32:
-                page = jacket_lookup[0][GET_SKILL(p_thing) >> 2];
-                break;
-            case 64 + 22:
-            case 10 * 64 + 3:
-            case 10 * 64 + 33:
-                page = jacket_lookup[1][GET_SKILL(p_thing) >> 2];
-                break;
-            case 64 + 24:
-            case 10 * 64 + 4:
-            case 10 * 64 + 36:
-                page = jacket_lookup[2][GET_SKILL(p_thing) >> 2];
-                break;
-            case 64 + 25:
-            case 10 * 64 + 5:
-            case 10 * 64 + 37:
-                page = jacket_lookup[3][GET_SKILL(p_thing) >> 2];
-                break;
-            default:
-                //							ASSERT(0);
-                break;
-            }
-            page += FACE_PAGE_OFFSET;
-        } else
-
-            if (tex_page_offset && page > 10 * 64 && alt_texture[page - 10 * 64])
-        //				if(alt_texture[page-512]&&page<1024)
-        {
-            page = alt_texture[page - 10 * 64] + tex_page_offset - 1;
-        } else
-            page += FACE_PAGE_OFFSET;
-
-        PolyPage* pa = &(POLY_Page[page]);
-        if (!pa->RS.NeedsSorting() && (FIGURE_alpha == 255)) {
-            // Unlit untransformed vertices!
-            WORD wIndices[5] = { 0, 1, 2, 3, -1 };
-            for (int i = 0; i < 4; i++) {
-                const float fNormScale = 1.0f / 256.0f;
-
-                int pt = p_f4->Points[i];
-                ASSERT(WITHIN(pt, sp, ep));
-
-                MM_Vertex[i].dvX = AENG_dx_prim_points[pt].X;
-                MM_Vertex[i].dvY = AENG_dx_prim_points[pt].Y;
-                MM_Vertex[i].dvZ = AENG_dx_prim_points[pt].Z;
-                MM_Vertex[i].dvNX = prim_normal[pt].X * fNormScale;
-                MM_Vertex[i].dvNY = prim_normal[pt].Y * fNormScale;
-                MM_Vertex[i].dvNZ = prim_normal[pt].Z * fNormScale;
-                MM_Vertex[i].dvTU = fMyU[i];
-                MM_Vertex[i].dvTV = fMyV[i];
-                // This must be done after setting the rest up, since it blats the 12th byte of the vertex.
-                SET_MM_INDEX((MM_Vertex[i]), 0);
-            }
-
-            D3DMULTIMATRIX d3dmm;
-            d3dmm.lpd3dMatrices = MM_pMatrix;
-            d3dmm.lpvLightDirs = MM_pNormal;
-            if (p_f4->FaceFlags & FACE_FLAG_TINT) {
-                // Tinted colours.
-                d3dmm.lpLightTable = MM_pcFadeTableTint;
-            } else {
-                // Normal.
-                d3dmm.lpLightTable = MM_pcFadeTable;
-            }
-            d3dmm.lpvVertices = MM_Vertex;
-
-            // Although in theory this might happen, I've never actually seen it.
-            ASSERT((p_f4->DrawFlags & POLY_FLAG_TEXTURED) != 0);
-
-            // pa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-            pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-            pa->RS.SetChanged();
-            HRESULT hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_VERTEX, (void*)&d3dmm, 4, wIndices, 5, D3DDP_MULTIMATRIX);
-            ASSERT(SUCCEEDED(hres));
-        } else {
-            // Alpha-blended, clipped, or otherwise special-cased. Ignore for now, but need to be handled.
-        }
-    }
-
-    //
-    // The tris.
-    //
-
-    for (i = p_obj->StartFace3; i < p_obj->EndFace3; i++) {
-        p_f3 = &prim_faces3[i];
-
-        fMyU[0] = float(p_f3->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-        fMyV[0] = float(p_f3->UV[0][1]) * (1.0F / 32.0F);
-
-        fMyU[1] = float(p_f3->UV[1][0]) * (1.0F / 32.0F);
-        fMyV[1] = float(p_f3->UV[1][1]) * (1.0F / 32.0F);
-
-        fMyU[2] = float(p_f3->UV[2][0]) * (1.0F / 32.0F);
-        fMyV[2] = float(p_f3->UV[2][1]) * (1.0F / 32.0F);
-
-        page = p_f3->UV[0][0] & 0xc0;
-        page <<= 2;
-        page |= p_f3->TexturePage;
-
-        if (p_f3->FaceFlags & FACE_FLAG_THUG_JACKET) {
-            switch (page) {
-            case 64 + 21:
-            case 10 * 64 + 2:
-            case 10 * 64 + 32:
-                page = jacket_lookup[0][GET_SKILL(p_thing) >> 2];
-                break;
-            case 64 + 22:
-            case 10 * 64 + 3:
-            case 10 * 64 + 33:
-                page = jacket_lookup[1][GET_SKILL(p_thing) >> 2];
-                break;
-            case 64 + 24:
-            case 10 * 64 + 4:
-            case 10 * 64 + 36:
-                page = jacket_lookup[2][GET_SKILL(p_thing) >> 2];
-                break;
-            case 64 + 25:
-            case 10 * 64 + 5:
-            case 10 * 64 + 37:
-                page = jacket_lookup[3][GET_SKILL(p_thing) >> 2];
-                break;
-            default:
-                //							ASSERT(0);
-                break;
-            }
-            page += FACE_PAGE_OFFSET;
-        } else
-
-            if (tex_page_offset && page > 10 * 64 && alt_texture[page - 10 * 64])
-        //				if(alt_texture[page-512]&&page<1024)
-        {
-            page = alt_texture[page - 10 * 64] + tex_page_offset - 1;
-        } else
-            page += FACE_PAGE_OFFSET;
-
-        PolyPage* pa = &(POLY_Page[page]);
-        if (!pa->RS.NeedsSorting() && (FIGURE_alpha == 255)) {
-            // Unlit untransformed vertices!
-            WORD wIndices[4] = { 0, 1, 2, -1 };
-            for (int i = 0; i < 3; i++) {
-                const float fNormScale = 1.0f / 256.0f;
-
-                int pt = p_f3->Points[i];
-                ASSERT(WITHIN(pt, sp, ep));
-
-                MM_Vertex[i].dvX = AENG_dx_prim_points[pt].X;
-                MM_Vertex[i].dvY = AENG_dx_prim_points[pt].Y;
-                MM_Vertex[i].dvZ = AENG_dx_prim_points[pt].Z;
-                MM_Vertex[i].dvNX = prim_normal[pt].X * fNormScale;
-                MM_Vertex[i].dvNY = prim_normal[pt].Y * fNormScale;
-                MM_Vertex[i].dvNZ = prim_normal[pt].Z * fNormScale;
-                MM_Vertex[i].dvTU = fMyU[i];
-                MM_Vertex[i].dvTV = fMyV[i];
-                // This must be done after setting the rest up, since it blats the 12th byte of the vertex.
-                SET_MM_INDEX((MM_Vertex[i]), 0);
-            }
-
-            D3DMULTIMATRIX d3dmm;
-            d3dmm.lpd3dMatrices = MM_pMatrix;
-            d3dmm.lpvLightDirs = MM_pNormal;
-            if (p_f3->FaceFlags & FACE_FLAG_TINT) {
-                // Tinted colours.
-                d3dmm.lpLightTable = MM_pcFadeTableTint;
-            } else {
-                // Normal.
-                d3dmm.lpLightTable = MM_pcFadeTable;
-            }
-            d3dmm.lpvVertices = MM_Vertex;
-
-            // Although in theory this might happen, I've never actually seen it.
-            ASSERT((p_f3->DrawFlags & POLY_FLAG_TEXTURED) != 0);
-
-            // pa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-            pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-            pa->RS.SetChanged();
-            HRESULT hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_VERTEX, (void*)&d3dmm, 3, wIndices, 4, D3DDP_MULTIMATRIX);
-            ASSERT(SUCCEEDED(hres));
-        } else {
-            // Alpha-blended, clipped, or otherwise special-cased. Ignore for now, but need to be handled.
-        }
-    }
-
-#endif
 
     // Not done yet.
 
@@ -3423,7 +3192,6 @@ struct structFIGURE_dhpr_data {
     BYTE bPersonID;
 } FIGURE_dhpr_data;
 
-#if 1
 
 // Got to split this up - the compiler is getting very confused.
 struct structFIGURE_dhpr_rdata1 {
@@ -3452,21 +3220,6 @@ struct structFIGURE_dhpr_rdata2 {
 
 } FIGURE_dhpr_rdata2[MAX_RECURSION];
 
-#else
-struct
-{
-    SLONG part_number;
-    CMatrix33* parent_base_mat;
-    Matrix31* parent_base_pos;
-    Matrix33* parent_current_mat;
-    Matrix31* parent_current_pos;
-    Matrix33 end_mat;
-    Matrix31 end_pos;
-    Matrix31 pos;
-
-    SLONG current_child_number;
-} FIGURE_dhpr_rdata[MAX_RECURSION];
-#endif
 
 #define PART_FACE 1
 #define PART_TROUSERS 2
@@ -3513,7 +3266,6 @@ void local_set_seed(SLONG seed)
 ULONG jacket_col;
 ULONG leg_col;
 
-#if 1
 // Optimised version
 
 // volatile int m_iRecurseLevelDebugging;
@@ -3858,10 +3610,8 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     // The wonderful NEW system!
 
-#if 1
     // The MM stuff doesn't like specular to be enabled.
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, FALSE);
-#endif
 
     // Tell the LRU cache we used this one.
     FIGURE_touch_LRU_of_object(pPrimObj);
@@ -3918,7 +3668,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             }
             d3dmm.lpvVertices = pVertex;
 
-#if 1
 
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
@@ -3941,7 +3690,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                     pMat->wNumStripIndices);
                 // TRACE ( "F4" );
             }
-#endif
 
             //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
         }
@@ -3954,10 +3702,8 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         pMat++;
     }
 
-#if 1
     // The MM stuff doesn't like specular to be enabled.
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
-#endif
 
     // No environment mapping.
     ASSERT(p_person && (p_person->Class != CLASS_VEHICLE));
@@ -4170,237 +3916,6 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
     // Person drawn!
 }
 
-#else
-// Old version
-void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
-{
-    SLONG recurse_level = 0;
-    SLONG dx, dy, dz;
-    UWORD f1, f2;
-    SLONG civ_flag = 0, legs, body, shoes, face, hands, pelvis;
-    // SLONG limb;
-    struct Matrix33* rot_mat;
-
-    f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
-    f2 = p_person->Draw.Tweened->NextFrame->Flags;
-
-    dx = ((f1 & 0xe) << (28)) >> 21;
-    dx -= ((f2 & 0xe) << (28)) >> 21;
-
-    dy = ((f1 & 0xff00) << (16)) >> 16;
-    dy -= ((f2 & 0xff00) << (16)) >> 16;
-
-    dz = ((f1 & 0x70) << (25)) >> 21;
-    dz -= ((f1 & 0x70) << (25)) >> 21;
-    /*
-            if(p_person->Genus.Person->PersonType==PERSON_CIV ||p_person->Genus.Person->PersonType==PERSON_CIV2)
-            {
-                    local_set_seed(THING_NUMBER(p_person));
-                    legs=mandom()&3;
-                    body=mandom()&3;
-                    shoes=mandom()&3;
-                    face=mandom()&3;
-                    hands=mandom()&1;
-                    pelvis=legs; //Random()&3;
-                    if (GAME_FLAGS & GF_RAINING)
-                    {
-                            pelvis=(mandom()%3)+4;
-                            body=pelvis;
-                    }
-
-                    civ_flag=1;
-
-            }
-    */
-    ASSERT(p_person->Class == CLASS_PERSON);
-
-    while (recurse_level >= 0) {
-        if (FIGURE_dhpr_rdata1[recurse_level].current_child_number == 0) {
-            {
-                SLONG body_part;
-                SLONG id;
-                // draw this level.
-                /*
-                                                if(civ_flag)
-                                                {
-                                                        switch(part_type[FIGURE_dhpr_rdata1[recurse_level].part_number])
-                                                        {
-                                                                case	PART_FACE:
-                                                                        body_part=face;
-                                                                        break;
-                                                                case	PART_HANDS:
-                                                                        body_part=hands;
-                                                                        break;
-                                                                case	PART_TROUSERS:
-                                                                        body_part=legs;
-                                                                        break;
-                                                                case	PART_JACKET:
-                                                                        body_part=body;
-                                                                        break;
-                                                                case	PART_SHOES:
-                                                                        body_part=shoes;
-                                                                        break;
-                                                                case	PART_PELVIS:
-                                                                        body_part=pelvis;
-                                                                        break;
-                                                                default:
-                                                                        ASSERT(0);
-                                                                        break;
-
-                                                        }
-                                                        body_part=0;
-                                                }
-                                                else
-                                                {
-                                                        body_part=FIGURE_dhpr_data.body_def->BodyPart[FIGURE_dhpr_rdata1[recurse_level].part_number];
-                                                }
-                */
-                // limb=part_type[FIGURE_dhpr_rdata1[recurse_level].part_number];
-
-                body_part = FIGURE_dhpr_data.body_def->BodyPart[FIGURE_dhpr_rdata1[recurse_level].part_number];
-                /*				if(  (p_person->Flags&FLAGS_PERSON_AIM_AND_RUN) && body_part_upper[FIGURE_dhpr_rdata1[recurse_level].part_number])
-                                                {
-                                                        rot_mat=FIGURE_dhpr_data.world_mat2;
-                                                }
-                                                else
-                */
-                {
-                    rot_mat = FIGURE_dhpr_data.world_mat;
-                }
-
-                FIGURE_draw_prim_tween(FIGURE_dhpr_data.start_object + body_part, // FIGURE_dhpr_data.body_def->BodyPart[FIGURE_dhpr_rdata1[recurse_level].part_number],
-                    FIGURE_dhpr_data.world_pos->M[0],
-                    FIGURE_dhpr_data.world_pos->M[1],
-                    FIGURE_dhpr_data.world_pos->M[2],
-                    FIGURE_dhpr_data.tween,
-                    &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number],
-                    &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number],
-                    rot_mat,
-                    FIGURE_dhpr_data.dx + dx,
-                    FIGURE_dhpr_data.dy + dy,
-                    FIGURE_dhpr_data.dz + dz,
-                    FIGURE_dhpr_data.colour, // limb==PART_JACKET?jacket_col:(limb==PART_TROUSERS?leg_col:FIGURE_dhpr_data.colour),
-                    FIGURE_dhpr_data.specular,
-                    FIGURE_dhpr_rdata1[recurse_level].parent_base_mat,
-                    FIGURE_dhpr_rdata1[recurse_level].parent_base_pos,
-                    FIGURE_dhpr_rdata1[recurse_level].parent_current_mat,
-                    FIGURE_dhpr_rdata1[recurse_level].parent_current_pos,
-                    &FIGURE_dhpr_rdata2[recurse_level].end_mat,
-                    &FIGURE_dhpr_rdata2[recurse_level].end_pos,
-                    p_person,
-                    FIGURE_dhpr_rdata1[recurse_level].part_number);
-
-                //
-                // draw a weapon in hand
-                //
-                if (p_person->Genus.Person->PersonType != PERSON_ROPER)
-                    if ((id = (p_person->Draw.Tweened->PersonID >> 5))) {
-
-                        SLONG hand;
-                        if (id == 2)
-                            hand = SUB_OBJECT_RIGHT_HAND;
-                        else
-                            hand = SUB_OBJECT_LEFT_HAND;
-
-                        if (FIGURE_dhpr_rdata1[recurse_level].part_number == hand) {
-                            if (p_person->Draw.Tweened->Flags & DT_FLAG_GUNFLASH) {
-                                SLONG prim;
-                                p_person->Draw.Tweened->Flags &= ~DT_FLAG_GUNFLASH;
-                                switch (p_person->Draw.Tweened->PersonID >> 5) {
-                                case 1: // Pistol
-                                    prim = 261;
-                                    break;
-
-                                case 3: // Shotgun
-                                    prim = 262;
-                                    break;
-
-                                case 5: // AK
-                                    prim = 263;
-                                    break;
-
-                                default:
-                                    goto dont_draw_the_muzzle_flash;
-                                    break;
-                                }
-
-                                FIGURE_draw_prim_tween(prim,
-                                    FIGURE_dhpr_data.world_pos->M[0],
-                                    FIGURE_dhpr_data.world_pos->M[1],
-                                    FIGURE_dhpr_data.world_pos->M[2],
-                                    FIGURE_dhpr_data.tween,
-                                    &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number],
-                                    &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number],
-                                    FIGURE_dhpr_data.world_mat,
-                                    FIGURE_dhpr_data.dx + dx,
-                                    FIGURE_dhpr_data.dy + dy,
-                                    FIGURE_dhpr_data.dz + dz,
-                                    FIGURE_dhpr_data.colour,
-                                    FIGURE_dhpr_data.specular,
-                                    FIGURE_dhpr_rdata1[recurse_level].parent_base_mat,
-                                    FIGURE_dhpr_rdata1[recurse_level].parent_base_pos,
-                                    FIGURE_dhpr_rdata1[recurse_level].parent_current_mat,
-                                    FIGURE_dhpr_rdata1[recurse_level].parent_current_pos,
-                                    &FIGURE_dhpr_rdata2[recurse_level].end_mat,
-                                    &FIGURE_dhpr_rdata2[recurse_level].end_pos,
-                                    p_person,
-                                    FIGURE_dhpr_rdata1[recurse_level].part_number);
-
-                            dont_draw_the_muzzle_flash:;
-                            }
-
-                            FIGURE_draw_prim_tween(255 + (p_person->Draw.Tweened->PersonID >> 5),
-                                FIGURE_dhpr_data.world_pos->M[0],
-                                FIGURE_dhpr_data.world_pos->M[1],
-                                FIGURE_dhpr_data.world_pos->M[2],
-                                FIGURE_dhpr_data.tween,
-                                &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number],
-                                &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number],
-                                FIGURE_dhpr_data.world_mat,
-                                FIGURE_dhpr_data.dx + dx,
-                                FIGURE_dhpr_data.dy + dy,
-                                FIGURE_dhpr_data.dz + dz,
-                                FIGURE_dhpr_data.colour,
-                                FIGURE_dhpr_data.specular,
-                                FIGURE_dhpr_rdata1[recurse_level].parent_base_mat,
-                                FIGURE_dhpr_rdata1[recurse_level].parent_base_pos,
-                                FIGURE_dhpr_rdata1[recurse_level].parent_current_mat,
-                                FIGURE_dhpr_rdata1[recurse_level].parent_current_pos,
-                                &FIGURE_dhpr_rdata2[recurse_level].end_mat,
-                                &FIGURE_dhpr_rdata2[recurse_level].end_pos,
-                                p_person,
-                                FIGURE_dhpr_rdata1[recurse_level].part_number);
-                        }
-                    }
-            }
-        }
-
-        // and do children
-
-        if (body_part_children[FIGURE_dhpr_rdata1[recurse_level].part_number][FIGURE_dhpr_rdata1[recurse_level].current_child_number] != -1) {
-            FIGURE_dhpr_rdata1[recurse_level + 1].current_child_number = 0;
-
-            // really only need to do these next 3 lines once...
-            FIGURE_dhpr_rdata1[recurse_level].pos.M[0] = FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number].OffsetX;
-            FIGURE_dhpr_rdata1[recurse_level].pos.M[1] = FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number].OffsetY;
-            FIGURE_dhpr_rdata1[recurse_level].pos.M[2] = FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number].OffsetZ;
-
-            FIGURE_dhpr_rdata1[recurse_level + 1].part_number = body_part_children[FIGURE_dhpr_rdata1[recurse_level].part_number][FIGURE_dhpr_rdata1[recurse_level].current_child_number];
-            CMatrix33 tmat;
-            GetCMatrix(&FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number], &tmat);
-            FIGURE_dhpr_rdata1[recurse_level + 1].parent_base_mat = &tmat;
-            FIGURE_dhpr_rdata1[recurse_level + 1].parent_base_pos = &FIGURE_dhpr_rdata1[recurse_level].pos;
-            FIGURE_dhpr_rdata1[recurse_level + 1].parent_current_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
-            FIGURE_dhpr_rdata1[recurse_level + 1].parent_current_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
-            FIGURE_dhpr_rdata1[recurse_level + 1].current_child_number = 0;
-
-            FIGURE_dhpr_rdata1[recurse_level].current_child_number++;
-            recurse_level++;
-        } else
-            recurse_level--;
-    };
-}
-#endif
 
 // claude-ai: get_sort_z_bodge — computes a sort-Z hint for a character's world position (px, pz).
 // claude-ai: Checks MAV navigation caps (MAV_CAPS_GOTO) to detect if the character is next to
@@ -6442,10 +5957,8 @@ no_muzzle_calcs:
 
     // The wonderful NEW system!
 
-#if 1
     // The MM stuff doesn't like specular to be enabled.
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, FALSE);
-#endif
 
     // For now, just calculate as-and-when.
     TomsPrimObject* pPrimObj = &(D3DObj[prim]);
@@ -6514,7 +6027,6 @@ no_muzzle_calcs:
             }
             d3dmm.lpvVertices = pVertex;
 
-#if 1
 
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
@@ -6539,7 +6051,6 @@ no_muzzle_calcs:
                     pMat->wNumStripIndices);
                 // TRACE ( "F4" );
             }
-#endif
 
             //			ASSERT ( SUCCEEDED ( hres ) );  //triggers all the time when inside on start of RTA
 
@@ -6561,10 +6072,8 @@ no_muzzle_calcs:
         pMat++;
     }
 
-#if 1
     // The MM stuff doesn't like specular to be enabled.
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
-#endif
 
     // No environment mapping.
     ASSERT(p_thing && (p_thing->Class != CLASS_VEHICLE));
