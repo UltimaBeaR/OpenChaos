@@ -1290,7 +1290,7 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 | `ALLOW_JOYPAD_IN_FRONTEND` / `ANNOYING_HACK_FOR_SIMON` | ✅ | итерация 35 (dead defines) |
 | `MF_DD2` | ➖ | уже отсутствовал |
 | `_MF_WINDOWS` / `WIN32` / `_WIN32` / `_WINDOWS` | ➖ | уже нет #ifdef в game-коде |
-| `USE_TOMS_ENGINE_PLEASE_BOB` | ⬜ | `= 1` в aeng.h; много блоков в figure.cpp, poly.cpp |
+| `USE_TOMS_ENGINE_PLEASE_BOB` | ✅ | итерация 39 |
 | `WE_NEED_POLYBUFFERS_PLEASE_BOB` | ⬜ | `= 1` в polypage.h; poly.cpp, polypage.cpp, polypage.h |
 | `USE_D3D_VBUF` | ⬜ | `= 1` в vertexbuffer.h; vertexbuffer.h, poly.cpp, polypage.cpp |
 | `NO_SERVER` | ⬜ | `= 1` в noserver.h; font2d.cpp, menufont.cpp, texture.cpp, io.cpp, supermap.cpp |
@@ -1332,5 +1332,25 @@ coan source -UFACET_REMOVAL_TEST -USHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB --no-tran
 - `DDLibrary/Headers/D3DTexture.h` — 3 блока
 - `DDLibrary/Source/D3DTexture.cpp` — 4 блока
 - `Fallen.vcxproj` — убран `TEX_EMBED;` из PreprocessorDefinitions обоих конфигов
+
+**Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.
+
+---
+
+## Итерация 39 — Пункт 2.7: раскрытие USE_TOMS_ENGINE_PLEASE_BOB (2026-03-18)
+
+`USE_TOMS_ENGINE_PLEASE_BOB = 1` определён в `aeng.h` (всегда активен).
+
+**Нюанс:** первый запуск coan (`-DUSE_TOMS_ENGINE_PLEASE_BOB` без `=1`) упал с exit 7 на `figure.cpp` — флаг используется в `#if`, нужно числовое значение. Второй запуск (`-DUSE_TOMS_ENGINE_PLEASE_BOB=1`) прошёл успешно. Остался мусорный `coan_out_000000` от первого запуска — удалён.
+
+coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на error-комментарий (`differently redefines`) — убран вручную вместе с описывающими комментариями (5 строк).
+
+**Изменено (6 файлов, ~620 удалений):**
+- `DDEngine/Source/figure.cpp` — 563 строки (крупнейший блок — весь альтернативный рендерер)
+- `DDEngine/Source/poly.cpp` — 49 строк
+- `DDEngine/Source/polyrenderstate.cpp` — 4 строки
+- `DDEngine/Source/texture.cpp` — 2 строки
+- `DDEngine/Headers/aeng.h` — убран `#define` и описание
+- `Headers/prim.h` — убран `#define`
 
 **Результат:** 0 ошибок. Debug: 130 предупреждений, Release: 294 предупреждения.

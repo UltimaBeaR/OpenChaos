@@ -506,12 +506,8 @@ void POLY_init_render_states()
 
             case POLY_PAGE_SKY:
                 SET_TEXTURE((TEXTURE_page_sky));
-#if USE_TOMS_ENGINE_PLEASE_BOB
                 // This now needs to be Z-buffered, because it is no longer the first thing drawn any more.
                 SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, TRUE);
-#else
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
-#endif
                 SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
                 SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
                 break;

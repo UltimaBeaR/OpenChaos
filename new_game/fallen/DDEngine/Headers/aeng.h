@@ -12,12 +12,6 @@
 #define KERB_HEIGHT 32.0F
 #define KERB_HEIGHTI ((SLONG)(KERB_HEIGHT))
 
-// Set this to 1 to enable TomF's new D3D-friendly engine.
-// 0 enables the old engine again.
-// NOTE! There are other versions of this define dotted around in other header
-// files! Make sure they all agree or you'll have grief.
-#define USE_TOMS_ENGINE_PLEASE_BOB 1
-
 //
 // Call once at the start of the whole program.
 //

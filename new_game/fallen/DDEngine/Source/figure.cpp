@@ -182,9 +182,7 @@ void FIGURE_draw_prim_tween_person_only(
 bool m_bPleaseInflatePeople = FALSE;
 #endif
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
 
 // Useful.
 #define ALIGNED_STATIC_ARRAY(def, name, number, mytype, align)                        \
@@ -402,7 +400,6 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and = 0xffffffff)
 
 }
 
-#endif
 
 struct EdgeList {
     WORD wPt1, wPt2;
@@ -714,7 +711,6 @@ BOOL MSOptimizeIndexedList(WORD* pwIndices, int nTriangles)
     return TRUE;
 }
 
-#endif // #if USE_TOMS_ENGINE_PLEASE_BOB
 
 // claude-ai: get_steam_rand — cheap LCG pseudo-random for steam/fire particle positions.
 // claude-ai: Not cryptographic. Seed (steam_seed) is reset each frame to get reproducible
@@ -1167,7 +1163,6 @@ UWORD jacket_lookup[4][8] = {
 
 };
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
 
 // A huge number!!!!
 #define MAX_NUMBER_D3D_PRIMS MAX_PRIM_OBJECTS
@@ -2476,7 +2471,6 @@ void FIGURE_generate_D3D_object(SLONG prim)
     FIGURE_TPO_finish_3d_object(pPrimObj);
 }
 
-#endif // #if USE_TOMS_ENGINE_PLEASE_BOB
 
 // claude-ai: FIGURE_draw_prim_tween — full software-fallback body-part renderer.
 // claude-ai: Transforms and lights every vertex on CPU, then submits polys to the
@@ -2784,12 +2778,10 @@ void FIGURE_draw_prim_tween(
 
 no_muzzle_calcs:
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
 
     if (!MM_bLightTableAlreadySetUp) {
     }
 
-#endif
 
     if (WITHIN(prim, 261, 263)) {
         //
@@ -2896,7 +2888,6 @@ no_muzzle_calcs:
         return;
     } else {
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
 
         if (!MM_bLightTableAlreadySetUp) {
 
@@ -2990,99 +2981,8 @@ no_muzzle_calcs:
         MM_pNormal[3] = vTemp.z * fNormScale;
 
 
-#else // #if USE_TOMS_ENGINE_PLEASE_BOB
-
-        Pyro* p = NULL;
-
-        if (p_thing->Class == CLASS_PERSON && p_thing->Genus.Person->BurnIndex) {
-            p = TO_PYRO(p_thing->Genus.Person->BurnIndex - 1);
-
-            if (p->PyroType != PYRO_IMMOLATE) {
-                p = NULL;
-            }
-        }
-
-        for (i = sp; i < ep; i++) {
-            ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
-
-            pp = &POLY_buffer[POLY_buffer_upto++];
-
-            POLY_transform_using_local_rotation(
-                AENG_dx_prim_points[i].X,
-                AENG_dx_prim_points[i].Y,
-                AENG_dx_prim_points[i].Z,
-                pp);
-
-            //
-            // Do the lighting...
-            //
-
-            {
-                nx = prim_normal[i].X;
-                ny = prim_normal[i].Y;
-                nz = prim_normal[i].Z;
-
-                FMATRIX_MUL(
-                    imatrix,
-                    nx,
-                    ny,
-                    nz);
-
-                dprod = nx * NIGHT_amb_norm_x + ny * NIGHT_amb_norm_y + nz * NIGHT_amb_norm_z;
-
-                r = NIGHT_amb_red << 0;
-                g = NIGHT_amb_green << 0;
-                b = NIGHT_amb_blue << 0;
-
-                if (dprod > 0) {
-                    dr = NIGHT_amb_red * dprod >> 15;
-                    dg = NIGHT_amb_green * dprod >> 15;
-                    db = NIGHT_amb_blue * dprod >> 15;
-
-                    r += dr; // + (dr >> 1);
-                    g += dg; // + (dg >> 1);
-                    b += db; // + (db >> 1);
-                }
-
-                //
-                // Now for the lights...
-                //
-
-                for (j = 0; j < NIGHT_found_upto; j++) {
-                    nf = &NIGHT_found[j];
-
-                    dprod = nx * nf->dx + ny * nf->dy + nz * nf->dz;
-
-                    if (dprod < 0) {
-                        dr = nf->r * dprod >> 15;
-                        dg = nf->g * dprod >> 15;
-                        db = nf->b * dprod >> 15;
-
-                        r -= dr; // + (dr >> 1);
-                        g -= dg; // + (dg >> 1);
-                        b -= db; // + (db >> 1);
-                    }
-                }
-
-                if (p) {
-                    r = (r > p->counter) ? (r - p->counter) : 10;
-                    g = (g > p->counter) ? (g - p->counter) : 4;
-                    b = (b > p->counter) ? (b - p->counter) : 3;
-                }
-
-                SATURATE(r, 0, 255);
-                SATURATE(g, 0, 255);
-                SATURATE(b, 0, 255);
-
-                pp->colour = (r << 16) | (g << 8) | (b << 0);
-                pp->colour |= FIGURE_alpha << 24;
-                pp->specular = 0xff000000;
-            }
-        }
-#endif // #else //#if USE_TOMS_ENGINE_PLEASE_BOB
     }
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
 
 #if 1
 
@@ -3436,461 +3336,11 @@ no_muzzle_calcs:
 
 #endif
 
-#else // #if USE_TOMS_ENGINE_PLEASE_BOB
 
-    //
-    // The quads.
-    //
-
-    for (i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
-        p_f4 = &prim_faces4[i];
-
-        p0 = p_f4->Points[0] - sp;
-        p1 = p_f4->Points[1] - sp;
-        p2 = p_f4->Points[2] - sp;
-        p3 = p_f4->Points[3] - sp;
-
-        ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
-        ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
-        ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
-        ASSERT(WITHIN(p3, 0, POLY_buffer_upto - 1));
-        /*
-                        p_f4->Bright[0]=store_dprod[p0];
-                        p_f4->Bright[1]=store_dprod[p1];
-                        p_f4->Bright[2]=store_dprod[p2];
-                        p_f4->Bright[4]=store_dprod[p3];
-        */
-
-        quad[0] = &POLY_buffer[p0];
-        quad[1] = &POLY_buffer[p1];
-        quad[2] = &POLY_buffer[p2];
-        quad[3] = &POLY_buffer[p3];
-
-        if (POLY_valid_quad(quad)) {
-            if (p_f4->DrawFlags & POLY_FLAG_TEXTURED) {
-                quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-                quad[0]->v = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
-
-                quad[1]->u = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
-                quad[1]->v = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
-
-                quad[2]->u = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
-                quad[2]->v = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
-
-                quad[3]->u = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
-                quad[3]->v = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
-
-                if (p_f4->FaceFlags & FACE_FLAG_TINT) {
-                    qc0 = quad[0]->colour;
-                    qc1 = quad[1]->colour;
-                    qc2 = quad[2]->colour;
-                    qc3 = quad[3]->colour;
-
-                    quad[0]->colour &= colour_and;
-                    quad[1]->colour &= colour_and;
-                    quad[2]->colour &= colour_and;
-                    quad[3]->colour &= colour_and;
-                }
-
-                page = p_f4->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f4->TexturePage;
-
-                if (p_f4->FaceFlags & FACE_FLAG_THUG_JACKET) {
-                    switch (page) {
-                    case 64 + 21:
-                    case 10 * 64 + 2:
-                    case 10 * 64 + 32:
-                        page = jacket_lookup[0][GET_SKILL(p_thing) >> 2];
-                        break;
-                    case 64 + 22:
-                    case 10 * 64 + 3:
-                    case 10 * 64 + 33:
-                        page = jacket_lookup[1][GET_SKILL(p_thing) >> 2];
-                        break;
-                    case 64 + 24:
-                    case 10 * 64 + 4:
-                    case 10 * 64 + 36:
-                        page = jacket_lookup[2][GET_SKILL(p_thing) >> 2];
-                        break;
-                    case 64 + 25:
-                    case 10 * 64 + 5:
-                    case 10 * 64 + 37:
-                        page = jacket_lookup[3][GET_SKILL(p_thing) >> 2];
-                        break;
-                    default:
-                        //							ASSERT(0);
-                        break;
-                    }
-                    page += FACE_PAGE_OFFSET;
-                } else
-
-                    if (tex_page_offset && page > 10 * 64 && alt_texture[page - 10 * 64])
-                //				if(alt_texture[page-512]&&page<1024)
-                {
-                    page = alt_texture[page - 10 * 64] + tex_page_offset - 1;
-                } else
-                    page += FACE_PAGE_OFFSET;
-
-                PolyPage* pa = &(POLY_Page[page]);
-#if USE_TOMS_ENGINE_PLEASE_BOB
-                if (!pa->RS.NeedsSorting() && (FIGURE_alpha == 255)) {
-                    // Do an immediate render, not a deferred one.
-
-                    //
-                    // and render the polygons
-                    //
-
-                    static iCount = 0;
-
-                    if (FALSE) {
-
-                        // LVertex.
-                        WORD wIndices[6] = { 0, 1, 2, 2, 1, 3 };
-                        D3DLVERTEX lVertex[4];
-                        for (int i = 0; i < 4; i++) {
-
-                            int pt = p_f4->Points[i];
-                            ASSERT(WITHIN(pt, sp, ep));
-                            lVertex[i].dvX = AENG_dx_prim_points[pt].X;
-                            lVertex[i].dvY = AENG_dx_prim_points[pt].Y;
-                            lVertex[i].dvZ = AENG_dx_prim_points[pt].Z;
-                            lVertex[i].dvTU = quad[i]->u;
-                            lVertex[i].dvTV = quad[i]->v;
-                            lVertex[i].dcColor = quad[i]->colour;
-                            lVertex[i].dcSpecular = quad[i]->specular;
-                        }
-
-                        HRESULT hres;
-
-                        if (FALSE && the_display.GetDeviceInfo()->AdamiLightingSupported()) {
-                            // Draw lighting triangle
-                            PolyPage* tpa = &(POLY_Page[POLY_PAGE_COLOUR]);
-                            tpa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-                            tpa->RS.SetChanged();
-                            hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_LVERTEX, lVertex, 4, wIndices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-                        }
-
-                        // pa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-                        pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-                        pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                        pa->RS.SetChanged();
-                        hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_LVERTEX, lVertex, 4, wIndices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-                    }
-                } else
-#endif // #if USE_TOMS_ENGINE_PLEASE_BOB
-                {
-                    if (FIGURE_alpha != 255) {
-                        POLY_Page[page].RS.SetTempTransparent();
-                    }
-                    else if (the_display.GetDeviceInfo()->AdamiLightingSupported())
-                    {
-                        // draw lighting quad
-                        POLY_add_quad(quad, POLY_PAGE_COLOUR, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
-                    }
-
-                    // draw texture quad
-                    POLY_add_quad(quad, page, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
-                }
-
-                if (p_f4->FaceFlags & FACE_FLAG_TINT) {
-                    quad[0]->colour = qc0;
-                    quad[1]->colour = qc1;
-                    quad[2]->colour = qc2;
-                    quad[3]->colour = qc3;
-                }
-            } else {
-            }
-        }
-    }
-
-    //
-    // The triangles.
-    //
-
-    for (i = p_obj->StartFace3; i < p_obj->EndFace3; i++) {
-        p_f3 = &prim_faces3[i];
-
-        p0 = p_f3->Points[0] - sp;
-        p1 = p_f3->Points[1] - sp;
-        p2 = p_f3->Points[2] - sp;
-
-        /*
-                        p_f3->Bright[0]=store_dprod[p0];
-                        p_f3->Bright[1]=store_dprod[p1];
-                        p_f3->Bright[2]=store_dprod[p2];
-        */
-
-        ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
-        ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
-        ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
-
-        tri[0] = &POLY_buffer[p0];
-        tri[1] = &POLY_buffer[p1];
-        tri[2] = &POLY_buffer[p2];
-
-        if (POLY_valid_triangle(tri)) {
-            if (p_f3->DrawFlags & POLY_FLAG_TEXTURED) {
-                tri[0]->u = float(p_f3->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-                tri[0]->v = float(p_f3->UV[0][1]) * (1.0F / 32.0F);
-
-                tri[1]->u = float(p_f3->UV[1][0]) * (1.0F / 32.0F);
-                tri[1]->v = float(p_f3->UV[1][1]) * (1.0F / 32.0F);
-
-                tri[2]->u = float(p_f3->UV[2][0]) * (1.0F / 32.0F);
-                tri[2]->v = float(p_f3->UV[2][1]) * (1.0F / 32.0F);
-
-                if (p_f3->FaceFlags & FACE_FLAG_TINT) {
-                    qc0 = tri[0]->colour;
-                    qc1 = tri[1]->colour;
-                    qc2 = tri[2]->colour;
-
-                    tri[0]->colour &= colour_and;
-                    tri[1]->colour &= colour_and;
-                    tri[2]->colour &= colour_and;
-                }
-
-                page = p_f3->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f3->TexturePage;
-                if (p_f3->FaceFlags & FACE_FLAG_THUG_JACKET) {
-                    switch (page) {
-                    case 64 + 21:
-                    case 10 * 64 + 2:
-                    case 10 * 64 + 32:
-                        page = jacket_lookup[0][GET_SKILL(p_thing) >> 2];
-                        break;
-                    case 64 + 22:
-                    case 10 * 64 + 3:
-                    case 10 * 64 + 33:
-                        page = jacket_lookup[1][GET_SKILL(p_thing) >> 2];
-                        break;
-                    case 64 + 24:
-                    case 10 * 64 + 4:
-                    case 10 * 64 + 36:
-                        page = jacket_lookup[2][GET_SKILL(p_thing) >> 2];
-                        break;
-                    case 64 + 25:
-                    case 10 * 64 + 5:
-                    case 10 * 64 + 37:
-                        page = jacket_lookup[3][GET_SKILL(p_thing) >> 2];
-                        break;
-                    default:
-                        //							ASSERT(0);
-                        break;
-                    }
-                    page += FACE_PAGE_OFFSET;
-                } else if (tex_page_offset && page > 10 * 64 && alt_texture[page - 10 * 64]) {
-                    page = alt_texture[page - 10 * 64] + tex_page_offset - 1;
-                } else
-                    page += FACE_PAGE_OFFSET;
-                // ASSERT(TEXTURE_dontexist[page]==0);
-
-                PolyPage* pa = &(POLY_Page[page]);
-
-#if USE_TOMS_ENGINE_PLEASE_BOB
-                if (!pa->RS.NeedsSorting() && (FIGURE_alpha == 255)) {
-                    // Do an immediate render, not a deferred one.
-
-                    //
-                    // and render the polygons
-                    //
-
-                    static int iCount = 0;
-                    if (FALSE) {
-                        // LVertex.
-                        WORD wIndices[3] = { 0, 1, 2 };
-                        D3DLVERTEX lVertex[3];
-                        for (int i = 0; i < 3; i++) {
-
-                            int pt = p_f3->Points[i];
-                            ASSERT(WITHIN(pt, sp, ep));
-
-                            lVertex[i].dvX = AENG_dx_prim_points[pt].X;
-                            lVertex[i].dvY = AENG_dx_prim_points[pt].Y;
-                            lVertex[i].dvZ = AENG_dx_prim_points[pt].Z;
-                            lVertex[i].dvTU = tri[i]->u;
-                            lVertex[i].dvTV = tri[i]->v;
-                            lVertex[i].dcColor = tri[i]->colour;
-                            lVertex[i].dcSpecular = tri[i]->specular;
-                        }
-                        // lVertex[2].dcColor = ( ( lVertex[2].dcColor + 0x00400000 ) & 0x00ff0000 ) | ( lVertex[2].dcColor & ~0x00ff0000 );
-
-                        HRESULT hres;
-
-                        if (FALSE && the_display.GetDeviceInfo()->AdamiLightingSupported()) {
-                            // Draw lighting triangle
-                            PolyPage* tpa = &(POLY_Page[POLY_PAGE_COLOUR]);
-                            // tpa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-                            tpa->RS.SetChanged();
-                            hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_LVERTEX, lVertex, 3, wIndices, 3, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-                        }
-
-                        // pa->RS.SetRenderState ( D3DRENDERSTATE_CULLMODE, D3DCULL_CCW );
-                        pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-                        pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                        pa->RS.SetChanged();
-                        hres = (the_display.lp_D3D_Device)->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_LVERTEX, lVertex, 3, wIndices, 3, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-                    }
-                } else
-
-#endif // #if USE_TOMS_ENGINE_PLEASE_BOB
-                {
-                    if (FIGURE_alpha != 255) {
-                        POLY_Page[page].RS.SetTempTransparent();
-                    }
-
-                    else if (the_display.GetDeviceInfo()->AdamiLightingSupported())
-                    {
-                        // add lighting triangle
-                        POLY_add_triangle(tri, POLY_PAGE_COLOUR, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
-                    }
-
-                    POLY_add_triangle(tri, page, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
-                }
-
-                if (p_f3->FaceFlags & FACE_FLAG_TINT) {
-                    tri[0]->colour = qc0;
-                    tri[1]->colour = qc1;
-                    tri[2]->colour = qc2;
-                }
-            } else {
-            }
-        }
-    }
-#endif // #else //#if USE_TOMS_ENGINE_PLEASE_BOB
-
-#if USE_TOMS_ENGINE_PLEASE_BOB
     // Not done yet.
-#else // #if USE_TOMS_ENGINE_PLEASE_BOB
 
-    //
-    // Environment mapping!
-    //
-
-    if (p_thing && p_thing->Class == CLASS_VEHICLE) {
-        float nx;
-        float ny;
-        float nz;
-
-        float dx;
-        float dy;
-        float dz;
-
-        float comb[9];
-        float cam_matrix[9];
-
-        SLONG num_points = ep - sp;
-
-        extern float AENG_cam_yaw;
-        extern float AENG_cam_pitch;
-        extern float AENG_cam_roll;
-
-        MATRIX_calc(cam_matrix, AENG_cam_yaw, AENG_cam_pitch, AENG_cam_roll);
-        MATRIX_3x3mul(comb, cam_matrix, fmatrix);
-
-        //
-        // Environment map the van. Work out the uv coords at all the points.
-        //
-
-        for (i = 0; i < num_points; i++) {
-            nx = prim_normal[sp + i].X * (2.0F / 256.0F);
-            ny = prim_normal[sp + i].Y * (2.0F / 256.0F);
-            nz = prim_normal[sp + i].Z * (2.0F / 256.0F);
-
-            MATRIX_MUL(
-                comb,
-                nx,
-                ny,
-                nz);
-
-            dx = POLY_buffer[i].x;
-            dy = POLY_buffer[i].y;
-            dz = POLY_buffer[i].z;
-
-            POLY_buffer[i].u = (nx * 0.5F) + 0.5F;
-            POLY_buffer[i].v = (ny * 0.5F) + 0.5F;
-
-            POLY_buffer[i].colour = 0xff888888;
-        }
-
-        //
-        // Add the triangles and quads.
-        //
-
-        //
-        // The quads.
-        //
-
-        for (i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
-            p_f4 = &prim_faces4[i];
-
-            if (p_f4->FaceFlags & (FACE_FLAG_ENVMAP | FACE_FLAG_TINT)) {
-                p0 = p_f4->Points[0] - sp;
-                p1 = p_f4->Points[1] - sp;
-                p2 = p_f4->Points[2] - sp;
-                p3 = p_f4->Points[3] - sp;
-
-                ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
-                ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
-                ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
-                ASSERT(WITHIN(p3, 0, POLY_buffer_upto - 1));
-
-                quad[0] = &POLY_buffer[p0];
-                quad[1] = &POLY_buffer[p1];
-                quad[2] = &POLY_buffer[p2];
-                quad[3] = &POLY_buffer[p3];
-
-                if (POLY_valid_quad(quad)) {
-                    if ((p_f4->FaceFlags & (FACE_FLAG_ENVMAP | FACE_FLAG_TINT)) == (FACE_FLAG_ENVMAP | FACE_FLAG_TINT)) {
-                        page = POLY_PAGE_WINMAP;
-                    } else {
-                        page = POLY_PAGE_ENVMAP;
-                    }
-
-                    POLY_add_quad(quad, page, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
-                }
-            }
-        }
-
-        //
-        // The triangles.
-        //
-
-        for (i = p_obj->StartFace3; i < p_obj->EndFace3; i++) {
-            p_f3 = &prim_faces3[i];
-
-            if (p_f3->FaceFlags & (FACE_FLAG_ENVMAP | FACE_FLAG_TINT)) {
-                p0 = p_f3->Points[0] - sp;
-                p1 = p_f3->Points[1] - sp;
-                p2 = p_f3->Points[2] - sp;
-
-                ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
-                ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
-                ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
-
-                tri[0] = &POLY_buffer[p0];
-                tri[1] = &POLY_buffer[p1];
-                tri[2] = &POLY_buffer[p2];
-
-                if (POLY_valid_triangle(tri)) {
-                    if ((p_f3->FaceFlags & (FACE_FLAG_ENVMAP | FACE_FLAG_TINT)) == (FACE_FLAG_ENVMAP | FACE_FLAG_TINT)) {
-                        page = POLY_PAGE_WINMAP;
-                    } else {
-                        page = POLY_PAGE_ENVMAP;
-                    }
-
-                    POLY_add_triangle(tri, page, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
-                }
-            }
-        }
-    }
-#endif // #else //#if USE_TOMS_ENGINE_PLEASE_BOB
-
-#if USE_TOMS_ENGINE_PLEASE_BOB
     if (!MM_bLightTableAlreadySetUp) {
     }
-#endif // #if USE_TOMS_ENGINE_PLEASE_BOB
 
 }
 
@@ -4728,9 +4178,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     tex_page_offset = p_person->Genus.Person->pcom_colour & 0x3;
 
-#if !USE_TOMS_ENGINE_PLEASE_BOB
-#error Dont use this rout if USE_TOMS_ENGINE_PLEASE_BOB is not 1
-#endif
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
@@ -5516,7 +4963,6 @@ void FIGURE_draw(Thing* p_thing)
     NIGHT_find(lx, ly, lz);
 
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
 
     ASSERT(!MM_bLightTableAlreadySetUp);
 
@@ -5537,7 +4983,6 @@ void FIGURE_draw(Thing* p_thing)
 
     MM_bLightTableAlreadySetUp = TRUE;
 
-#endif
 
     //
     // Draw each body part.
@@ -5616,11 +5061,9 @@ void FIGURE_draw(Thing* p_thing)
         }
     }
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
     // Clean up after ourselves.
     ASSERT(MM_bLightTableAlreadySetUp);
     MM_bLightTableAlreadySetUp = FALSE;
-#endif // #if USE_TOMS_ENGINE_PLEASE_BOB
 
     //
     // In case this thing ain't a person...
@@ -6844,9 +6287,6 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
 
 no_muzzle_calcs:
 
-#if !USE_TOMS_ENGINE_PLEASE_BOB
-#error Dont use this rout if USE_TOMS_ENGINE_PLEASE_BOB is not 1
-#endif
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
@@ -7214,9 +6654,6 @@ void FIGURE_draw_prim_tween_person_only(
 
 no_muzzle_calcs:
 
-#if !USE_TOMS_ENGINE_PLEASE_BOB
-#error Dont use this rout if USE_TOMS_ENGINE_PLEASE_BOB is not 1
-#endif
 
     ASSERT(MM_bLightTableAlreadySetUp);
 

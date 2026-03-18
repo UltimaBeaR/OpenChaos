@@ -231,13 +231,11 @@ SLONG POLY_page_is_masked_self_illuminating(SLONG page)
     }
 }
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
 D3DMATRIX g_matProjection;
 D3DVIEWPORT2 g_viewData;
 // Used to hack in letterbox mode.
 DWORD g_dw3DStuffHeight;
 DWORD g_dw3DStuffY;
-#endif
 
 float POLY_cam_matrix_comb[9];
 float POLY_cam_off_x;
@@ -392,7 +390,6 @@ void POLY_camera_set(
         POLY_cam_lens,
         POLY_cam_over_view_dist); // Shrink the matrix down so the furthest point has a view distance z of 1.0F
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
 
     HRESULT hres;
 
@@ -476,7 +473,6 @@ void POLY_camera_set(
     // claude-ai: Direct3D API — replace with OpenGL: glViewport(x, y, width, height)
     hres = (the_display.lp_D3D_Viewport)->SetViewport2(&g_viewData);
 
-#endif // #if USE_TOMS_ENGINE_PLEASE_BOB
 
 
     SUPERFACET_start_frame();
@@ -717,9 +713,7 @@ SLONG POLY_get_screen_pos(
 // The combined rotation matrix.
 //
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
 D3DMATRIX g_matWorld;
-#endif
 
 // claude-ai: POLY_set_local_rotation — sets up the combined camera+object transform for the next mesh.
 // claude-ai: Call this before transforming each mesh's vertices.
@@ -750,7 +744,6 @@ void POLY_set_local_rotation(
         POLY_cam_matrix,
         matrix);
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
     // Dump into the WORLD matrix.
     g_matWorld._11 = POLY_cam_matrix_comb[0];
     g_matWorld._21 = POLY_cam_matrix_comb[1];
@@ -770,7 +763,6 @@ void POLY_set_local_rotation(
     g_matWorld._44 = 1.0f;
     // claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for model matrix
     HRESULT hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
-#endif
 
 
 }
@@ -790,7 +782,6 @@ void POLY_set_local_rotation_none(void)
         POLY_cam_off_y,
         POLY_cam_off_z);
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
     // Dump into the WORLD matrix.
     g_matWorld._11 = POLY_cam_matrix[0];
     g_matWorld._21 = POLY_cam_matrix[1];
@@ -810,7 +801,6 @@ void POLY_set_local_rotation_none(void)
     g_matWorld._44 = 1.0f;
     // claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for model matrix
     HRESULT hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
-#endif
 
 
 }
@@ -922,7 +912,6 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
 //	TRACE("poly frame init EXIT\n");
 
     // SPONG
-#if USE_TOMS_ENGINE_PLEASE_BOB
     // Start the frame - we may draw polys at any time.
     // TRACE("Dodgy one!\n");
     POLY_init_render_states();
@@ -951,7 +940,6 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
     //	BreakTime("FRAMEDRAW init scene");
 
     BEGIN_SCENE;
-#endif
 }
 
 SLONG POLY_valid_triangle(POLY_Point* pp[3])
@@ -2427,7 +2415,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
     static int iPageNumberToClear = 0;
 
     // SPONG
-#if USE_TOMS_ENGINE_PLEASE_BOB
 
     // These will have been done in POLY_frame_init().
     // POLY_init_render_states();
@@ -2435,42 +2422,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
     // BEGIN_SCENE;
     // #endif
 
-#else
-    ULONG fog_colour;
-
-    // Already done if using Tom's engine.
-    //	BreakTime("FRAMEDRAW start");
-    POLY_init_render_states();
-    //	BreakTime("FRAMEDRAW init render states");
-
-    //
-    // Start the scene.
-    //
-    BEGIN_SCENE;
-
-    if ((GAME_FLAGS & GF_SEWERS) || (GAME_FLAGS & GF_INDOORS)) {
-        fog_colour = 0;
-    } else {
-        if (fade_black) {
-            fog_colour = 0;
-        } else {
-            fog_colour = (NIGHT_sky_colour.red << 16) | (NIGHT_sky_colour.green << 8) | (NIGHT_sky_colour.blue << 0);
-        }
-
-        if (draw_3d) {
-            SLONG white = NIGHT_sky_colour.red + NIGHT_sky_colour.green + NIGHT_sky_colour.blue;
-
-            white /= 3;
-
-            fog_colour = (white << 16) | (white << 8) | (white << 0);
-        }
-    }
-
-    // set default render state
-    DefRenderState.InitScene(fog_colour);
-    //	BreakTime("FRAMEDRAW init scene");
-
-#endif
 
     //
     // Draw the sky first...

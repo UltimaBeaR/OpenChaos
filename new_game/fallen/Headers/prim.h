@@ -9,7 +9,6 @@
 // 0 enables the old engine again.
 // NOTE! There are other versions of this define dotted around in other header
 // files! Make sure they all agree or you'll have grief.
-#define USE_TOMS_ENGINE_PLEASE_BOB 1
 
 
 //

@@ -1578,12 +1578,10 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     // Guess what this does.
     NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit();
 
-#if USE_TOMS_ENGINE_PLEASE_BOB
     // Start a new frame, so that the new textures get set up and sorted.
     // Yes, it is crufty why starting a new frame does this. But it's historical.
     // Just trust me, OK?
     POLY_frame_init(FALSE, FALSE);
-#endif
 }
 
 void TEXTURE_load_needed_object(SLONG prim)
