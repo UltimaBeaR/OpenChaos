@@ -59,7 +59,6 @@
 #include "eway.h"
 #include "..\headers\inside2.h"
 #include "memory.h"
-#include "..\headers\noserver.h"
 #ifdef FS_ISO9660
 #include <libcd.h>
 #include <ctype.h>

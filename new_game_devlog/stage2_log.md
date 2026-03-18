@@ -1521,6 +1521,32 @@ coan заменил `#define USE_TOMS_ENGINE_PLEASE_BOB 1` в `aeng.h` на erro
 
 ---
 
+## Пункт 6 — Удаление файлов ставших пустыми (2026-03-18)
+
+Поиск файлов без значимого кода (только includes/guards/комментарии). Удалено 10 файлов + очищены все ссылающиеся `#include` и vcxproj записи.
+
+**Удалены файлы:**
+- `DDEngine/Headers/font3d.h` — только `// THIS IS PANTS!` и guard; Font3D класс удалён ранее
+- `DDEngine/Source/polypoint.cpp` — только includes; все методы inline в `polypoint.h`
+- `DDEngine/Source/ray.cpp` — только includes; RAY_ функции удалены в итерации 6
+- `DDLibrary/Headers/FFManager.h` — только includes, нет объявлений; Force Feedback не реализован
+- `DDLibrary/Source/FFManager.cpp` — только комментарий-заголовок
+- `DDLibrary/Source/GDebug.cpp` — только `#include "DDLib.h"`, нет кода
+- `Headers/america.h` — пустой guard
+- `Headers/demo.h` — пустой guard; `VERSION_DEMO` удалён в итерации 32
+- `Headers/noserver.h` — пустой guard; `NO_SERVER` раскрыт в итерации 42
+- `Source/Env.cpp` — только includes; всё тело было в `#if 0` (удалено в итерации 8)
+
+**Оставлены (не пустые, скрипт ошибочно классифицировал):**
+- `Headers/animate.h` — ANIM_*, ACTION_*, SUB_OBJECT_* константы (~700 строк)
+- `Headers/statedef.h` — STATE_*, SUB_STATE_* константы (~150 строк)
+- `Headers/sample.h` — SAMPLE_* звуковые константы
+- `DDLibrary/Headers/Debug.h` — `dd_error`/`d3d_error`/`di_error` no-op макросы (используются в GDisplay.cpp)
+
+**Результат:** 0 ошибок. Debug: 128 предупреждений (−2), Release: 253 предупреждения (−2).
+
+---
+
 ## Пункт 3 — Повторный проход: удаление orphan-файлов (2026-03-18)
 
 Дополнительный проход после итераций 45-47. Удалены файлы без `#include` и без записи в vcxproj, которые стали orphan после удаления мёртвых сущностей.

@@ -15,7 +15,6 @@
 #include "..\ddengine\headers\poly.h"
 #include "..\DDLibrary\headers\D3DTexture.h"
 #include "..\DDLibrary\headers\GDisplay.h"
-#include "..\ddengine\headers\font3d.h"
 #include "..\ddengine\headers\font2d.h"
 #include "..\ddengine\headers\panel.h"
 

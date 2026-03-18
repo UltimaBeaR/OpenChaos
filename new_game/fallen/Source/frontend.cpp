@@ -9,7 +9,6 @@
 // #define BIN_STUFF_PLEASE_BOB I have been defined
 // #define BIN_BACKGROUNDS_PLEASE_BOB I have been defined
 
-#include "demo.h"
 #include "DDLib.h"
 #include "frontend.h"
 #include "xlat_str.h"

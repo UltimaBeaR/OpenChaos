@@ -33,7 +33,6 @@
 #include "..\headers\ob.h"
 #include "memory.h"
 #include "mav.h"
-#include "noserver.h"
 #include "..\ddengine\headers\texture.h"
 #include "..\headers\env.h"
 

@@ -144,11 +144,9 @@
     <ClCompile Include="DDEngine\Source\planmap.cpp" />
     <ClCompile Include="DDEngine\Source\poly.cpp" />
     <ClCompile Include="DDEngine\Source\polypage.cpp" />
-    <ClCompile Include="DDEngine\Source\polypoint.cpp" />
     <ClCompile Include="DDEngine\Source\polyrenderstate.cpp" />
     <ClCompile Include="DDEngine\Source\qeng.cpp" />
     <ClCompile Include="DDEngine\Source\Quaternion.cpp" />
-    <ClCompile Include="DDEngine\Source\ray.cpp" />
     <ClCompile Include="DDEngine\Source\renderstate.cpp" />
     <ClCompile Include="DDEngine\Source\shape.cpp" />
     <ClCompile Include="DDEngine\Source\sky.cpp" />
@@ -166,9 +164,7 @@
     <ClCompile Include="DDLibrary\Source\DDManager.cpp" />
     <ClCompile Include="DDLibrary\Source\DIManager.cpp" />
     <ClCompile Include="DDLibrary\Source\Drive.cpp" />
-    <ClCompile Include="DDLibrary\Source\FFManager.cpp" />
     <ClCompile Include="DDLibrary\Source\FileClump.cpp" />
-    <ClCompile Include="DDLibrary\Source\GDebug.cpp" />
     <ClCompile Include="DDLibrary\Source\GDisplay.cpp" />
     <ClCompile Include="DDLibrary\Source\GHost.cpp" />
     <ClCompile Include="DDLibrary\Source\GKeyboard.cpp" />
@@ -262,9 +258,6 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\Enemy.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
-    </ClCompile>
-    <ClCompile Include="Source\Env.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> /D /NODEFAULTLIB:libcmtd.lib" "  /D /NODEFAULTLIB:libcmtd.lib" "</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="Source\env2.cpp">
@@ -557,7 +550,6 @@
     <ClInclude Include="DDLibrary\Headers\Debug.h" />
     <ClInclude Include="DDLibrary\Headers\DIManager.h" />
     <ClInclude Include="DDLibrary\Headers\Drive.h" />
-    <ClInclude Include="DDLibrary\Headers\FFManager.h" />
     <ClInclude Include="DDLibrary\Headers\FileClump.h" />
     <ClInclude Include="DDLibrary\Headers\GDisplay.h" />
     <ClInclude Include="DDLibrary\Headers\GWorkScreen.h" />
@@ -568,7 +560,6 @@
     <ClInclude Include="DDLibrary\Headers\WindProcs.h" />
     <ClInclude Include="Editor\Headers\Editor.h" />
     <ClInclude Include="Editor\Headers\Editor.hpp" />
-    <ClInclude Include="Headers\america.h" />
     <ClInclude Include="Headers\animal.h" />
     <ClInclude Include="Headers\animate.h" />
     <ClInclude Include="Headers\animtmap.h" />
@@ -591,7 +582,6 @@
     <ClInclude Include="Headers\Controls.h" />
     <ClInclude Include="Headers\Cop.h" />
     <ClInclude Include="Headers\Darci.h" />
-    <ClInclude Include="Headers\demo.h" />
     <ClInclude Include="Headers\dirt.h" />
     <ClInclude Include="Headers\drawtype.h" />
     <ClInclude Include="Headers\drip.h" />
@@ -625,7 +615,6 @@
     <ClInclude Include="Headers\morph.h" />
     <ClInclude Include="Headers\music.h" />
     <ClInclude Include="Headers\night.h" />
-    <ClInclude Include="Headers\noserver.h" />
     <ClInclude Include="Headers\ns.h" />
     <ClInclude Include="Headers\ob.h" />
     <ClInclude Include="Headers\overlay.h" />

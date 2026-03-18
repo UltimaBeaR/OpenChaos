@@ -46,7 +46,6 @@
 #include "fc.h"
 #include "cnet.h"
 #include "memory.h"
-#include "america.h"
 #include "wmove.h"
 #include "panel.h"
 #include "env.h"

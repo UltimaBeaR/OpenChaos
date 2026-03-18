@@ -80,7 +80,6 @@
 #include "..\headers\io.h"
 #include "..\headers\inside2.h"
 #include "sound.h"
-#include "..\headers\noserver.h"
 #include "ware.h"
 #include "truetype.h"
 #include "font2d.h"

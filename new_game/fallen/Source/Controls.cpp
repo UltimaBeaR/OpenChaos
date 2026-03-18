@@ -117,7 +117,6 @@
 #include "music.h"
 #include "night.h"
 #include "grenade.h"
-#include "demo.h"
 
 #include <DDLib.h>
 #include "vertexbuffer.h"
@@ -125,7 +124,6 @@
 #include "renderstate.h"
 #include "polypage.h"
 #include "font2d.h"
-#include "FFManager.h"
 #include "..\ddlibrary\headers\ddlib.h"
 #include "..\ddengine\headers\texture.h"
 

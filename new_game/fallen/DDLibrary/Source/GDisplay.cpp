@@ -2,7 +2,6 @@
 // Guy Simmons, 13th November 1997.
 
 #include "DDLib.h"
-#include "..\headers\demo.h"
 #include "..\headers\interfac.h"
 #include "BinkClient.h"
 #include "..\headers\env.h"

@@ -8,7 +8,6 @@
 #include "MenuFont.h"
 #include "tga.h"
 #include "poly.h"
-#include "..\headers\noserver.h"
 
 CharData FontInfo[256];
 CBYTE FontName[_MAX_PATH];
