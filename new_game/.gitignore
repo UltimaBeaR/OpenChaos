@@ -1,9 +1,15 @@
-.vs
-/fallen/Debug
-/fallen/Release
-/fallen/vcpkg_installed
-/fallen/config.ini
-/fallen/DebugLog.txt
+
+# CMake build directory (contains Debug/ and Release/ subdirs with compiled output)
+/build/
+
+# vcpkg installed packages (like node_modules — dependency installation, not source)
+/vcpkg_installed/
+
+# Runtime-generated files
+DebugLog.txt
+
+# Visual Studio
+.vs/
 *.VC.db
 *.VC.opendb
 *.vcxproj.user

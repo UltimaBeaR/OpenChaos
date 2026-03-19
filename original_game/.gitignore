@@ -1,9 +1,16 @@
-.vs
-/fallen/Debug
-/fallen/Release
-/fallen/vcpkg_installed
+# Build output
+/fallen/Debug/
+/fallen/Release/
+
+# vcpkg installed packages (like node_modules — dependency installation, not source)
+/fallen/vcpkg_installed/
+
+# Runtime-generated files
 /fallen/config.ini
 /fallen/DebugLog.txt
+
+# Visual Studio
+.vs/
 *.VC.db
 *.VC.opendb
 *.vcxproj.user

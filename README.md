@@ -3,7 +3,16 @@
 Fan modernization of the game Urban Chaos (1999, MuckyFoot Productions) — AI-assisted analysis and
 reimplementation with modern tech: updated C++ standard, modern graphics API, controller support, etc.
 
-Original Urban Chaos source code: https://github.com/dizzy2003/MuckyFoot-UrbanChaos
+This repository contains two versions of the game:
+
+- **Original game** — the original 1999 source code by Mike Diskett, updated by community contributors
+  to build and run on modern Windows (SDL2/OpenAL audio, VS2017+ support, vcpkg integration, rendering fixes).
+  Kept as a read-only reference — used to verify correct behavior when modernizing.
+  Upstream source: https://github.com/dizzy2003/MuckyFoot-UrbanChaos
+- **New game** — the modernized version under active development (`new_game/`).
+  Iterative refactor of the original: updated compiler, modern build system, eventually new renderer and cross-platform support — while keeping gameplay identical.
+
+Both versions require a legal copy of the game for resource files (textures, levels, sounds).
 
 ## Repository structure
 
@@ -18,68 +27,17 @@ tools/                        — development utilities (coan, etc.)
 legal/                        — rights history, attribution, legal details
 ```
 
-## Prerequisites
+## Setup
 
-- **Visual Studio 2026** with the C++ Desktop workload and vcpkg integration
-- **GNU make** (via [Chocolatey](https://chocolatey.org/): `choco install make`, or bundled with Git for Windows)
-- **A copy of Urban Chaos** — Steam version recommended
+Game resource files (textures, levels, sounds, etc.) are **not included** in this repository —
+they are copyrighted by the publisher and not covered by the MIT license of this project.
 
-## Setup: game resources
-
-Game resource files (textures, levels, sounds, etc.) are **not included** in this repository.
-They are copyrighted by the publisher and not covered by the MIT license of this project.
-
-**Step 1 — Copy resources from your game installation into the repo:**
-
-Copy everything from your Urban Chaos installation folder **except `.exe` and `.dll` files**
-into `original_game_resources/`:
-
-```
-# Steam default path:
-C:\Program Files (x86)\Steam\steamapps\common\Urban Chaos\
-```
-
-After this, `original_game_resources/` should contain folders like `clumps/`, `levels/`,
-`Textures/`, `bink/`, etc.
-
-**Step 2 — Copy resources into the build output folders:**
-
-After building (see below), copy the contents of `original_game_resources/` into each
-output folder you want to run:
-
-```
-# For the new game — Debug build:
-new_game/fallen/Debug/
-
-# For the new game — Release build:
-new_game/fallen/Release/
-
-# For the original game:
-original_game/fallen/Debug/
-```
-
-> **Note:** `config.ini` will be overwritten during copy — this is expected.
-
-## Building and running
-
-Run all commands from the **repository root** using `make`:
-
-| Command | Description |
-|---------|-------------|
-| `make build-debug` | Full rebuild — new game, Debug |
-| `make build-release` | Full rebuild — new game, Release |
-| `make run-debug` | Run the new game, Debug build |
-| `make run-release` | Run the new game, Release build |
-
-To build and run the **original game**, open `original_game/fallen/Fallen.sln` in Visual Studio
-and build the Debug configuration. Then copy the resources (Step 2 above) and run
-`original_game/fallen/Debug/Fallen.exe` directly.
+- **New game** — prerequisites, build, run: [`new_game/SETUP.md`](new_game/SETUP.md)
+- **Original game** — prerequisites, build, run: [`original_game/SETUP.md`](original_game/SETUP.md)
 
 ## Development
 
 Development is structured into phases and stages. See [`new_game_planning/phases.md`](new_game_planning/phases.md) for the current status and roadmap.
-
-See [`new_game/README.md`](new_game/README.md) for code formatting and other development notes.
 
 ## Legal
 

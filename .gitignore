@@ -1,17 +1,4 @@
 # Game resources — not committed (copyright belongs to the publisher, not covered by MIT license)
 original_game_resources/*
+# Keep .gitkeep so the directory exists after clone (all other contents are gitignored above)
 !original_game_resources/.gitkeep
-
-# Build output — original game
-original_game/fallen/Debug/*
-original_game/fallen/Release/*
-original_game/fallen/vcpkg_installed/
-
-# Keep .gitkeep files in tracked empty directories
-!**/.gitkeep
-
-# Visual Studio
-.vs/
-*.VC.db
-*.VC.opendb
-*.vcxproj.user
