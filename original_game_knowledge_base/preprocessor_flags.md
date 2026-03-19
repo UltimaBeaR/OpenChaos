@@ -127,6 +127,8 @@ Debug:    _DEBUG + DEBUG → ASSERT, debug output, debug keys, FACET_REMOVAL_TES
                             MESH_SHOW_MOUSE_POINT, SHOW_ME_FIGURE_DEBUGGING_PLEASE_BOB
 ```
 
+**⚠️ Баг в vcxproj:** Release конфиг использует `MultiThreadedDebug` (`/MTd`) вместо `MultiThreaded` (`/MT`) — это автоматически определяет `_DEBUG`, из-за чего ВСЕ `#ifdef _DEBUG` блоки активны в Release. Отладочные надписи ("music mode %d vol %f %s" в panel.cpp) показываются в Release. 103 строки `/NODEFAULTLIB:libcmtd.lib` — костыли для подавления конфликта линковки из-за этой ошибки. Артефакт кривой конвертации `.dsp` → `.vcxproj`.
+
 **FINAL** — самый строгий уровень. Гейтит: debug key overrides (Crinkle.cpp, figure.cpp), TCP/IP console, debug rendering modes.
 
 ---
@@ -136,7 +138,7 @@ Debug:    _DEBUG + DEBUG → ASSERT, debug output, debug keys, FACET_REMOVAL_TES
 | Флаг | Файлы | Назначение |
 |------|-------|-----------|
 | `EDITOR` | ~30 файлов | Level Editor. Глубоко интегрирован: Building.cpp, collide.cpp, Anim.cpp, poly.cpp |
-| `BUILD_PSX` | ~17 файлов | PSX build дифференциация (Game.h, psxeng.h). Отличается от `PSX` — препроцессорный этап |
+| `BUILD_PSX` | ~17 файлов | PSX build дифференциация. Определяется ТОЛЬКО внутри `#ifdef PSX` в Game.h → на PC никогда не определён. `#ifndef BUILD_PSX` блоки (memory.cpp, Person.cpp) всегда активны на PC |
 | `DOG_POO` | 7 файлов | Мёртвая камера cam.cpp (весь файл в `#ifdef DOG_POO`) + debug коллизий |
 | `POO` | 9 файлов | Debug визуализация граней зданий (линии) |
 | `FUNNY_FANNY` | 2 файла | Код зданий в редакторе |
@@ -255,7 +257,7 @@ Debug:    _DEBUG + DEBUG → ASSERT, debug output, debug keys, FACET_REMOVAL_TES
 - `WEVE_REPLACED_THE_HEARTBEAT_WITH_A_SCANNER` — panel.cpp: замена heartbeat на scanner UI
 - `GOTTA_DO_A_BETTA_JOB`, `ONE_DAY`, `DONE_ON_PC_NOW`, `POO_SHIT_GOD_DAMN`, `OLD_DOG_POO_OF_A_SYSTEM_OR_IS_IT`
 
-**Прочие**: `USE_A3D`/`A3D_SOUND` (Aureal 3D audio, в psxeng.h), `DONT_WORRY_ABOUT_INSIDES_FOR_NOW` (Glide Engine stub), `NO_TRANSFORM` (Editor), `TOPMAP_BACK` (не найден в коде), `WHEN_DO_I_WANT_TO_TWO_PASS` (PSXENG), `WE_WANT_A_WHITE_SHADOW`, `WE_WANT_TO_DARKEN_PEOPLE_IN_SHADOW_ABRUPTLY`
+**Прочие**: `USE_A3D` (определён в Sound.h, `#define USE_A3D`; Aureal 3D audio — компания обанкротилась в 2000), `A3D_SOUND` (A3DManager.cpp, условная инициализация/очистка A3D), `DONT_WORRY_ABOUT_INSIDES_FOR_NOW` (Glide Engine stub), `NO_TRANSFORM` (Editor), `TOPMAP_BACK` (не найден в коде), `WHEN_DO_I_WANT_TO_TWO_PASS` (PSXENG), `WE_WANT_A_WHITE_SHADOW`, `WE_WANT_TO_DARKEN_PEOPLE_IN_SHADOW_ABRUPTLY`
 
 ---
 

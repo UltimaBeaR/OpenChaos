@@ -41,6 +41,24 @@
 | Мультиплеер / split-screen | Спланирован (CTF mode, MAX_PLAYERS=2), в финале отключён |
 | GS_REPLAY (demo/replay режим) | Есть в коде, в игру не вошло |
 | Zipwire / тросы | Закомментирован в пре-релизе — **артефакт пре-релиза, есть в финальной игре** (подтверждено: первый уровень, тренировочная полоса) |
+| Симуляция ткани (cloth.cpp) | `CLOTH_process()` — тело функции в `#if 0`. Verlet-интеграция, пружинные связи. Структуры и API есть, логика отключена |
+| Indoor navigation AI (inside2.cpp) | `INSIDE2_mav_nav_calc()` — ~400 строк в `#if 0`. Навигация NPC внутри зданий |
+| Heartbeat HUD (panel.cpp) | `PANEL_do_heartbeat()` — ~260 строк в `#if 0`. Монитор сердечного ритма. Заменён обычной шкалой HP (подтверждено TCRF) |
+| 3D компас (panel.cpp) | `PANEL_draw_compass()` + `PANEL_draw_compass_angle()` — ~100 строк в `#if 0`. HUD компас |
+| Портреты врагов (overlay.cpp) | `track_enemy()` — тело в `#ifdef OLD_POO`. Старая HUD-система: портреты лиц + HP-полоска в углу экрана. Заменена floating HP bar над головой (PANEL_draw_local_health) |
+| Цифры урона (DAMAGE_TEXT) | `#ifdef DAMAGE_TEXT` блоки в aeng.cpp. Плавающие числа урона над персонажами в 3D. В финале убраны (подтверждено TCRF) |
+| TCP/IP консоль (console.cpp) | ~215 строк в `#if 0 / #ifndef FINAL`. Удалённая отладочная консоль |
+| 3D шрифты (Font3D) | font3d.h/font3d.cpp — весь класс в `#if 0`. Использовался в briefing, pause, startscr — все вызовы мёртвые |
+| Aureal A3D звук | `USE_A3D` в Sound.h, A3DManager.cpp. 3D-аудио Aureal. Компания обанкротилась в 2000, технология мертва |
+| Force Feedback | FFManager.h/FFManager.cpp — не реализован (пустые файлы, только скелет) |
+| Ray система | ray.cpp — ~1400 строк в `#if 0` ("Intel C compiler barfs"). RAY_ функции нигде не вызываются |
+| ENV система | Env.cpp — всё содержимое (ENV_load и др.) в `#if 0` |
+| Attract mode (DDEngine) | DDEngine/Source/Attract.cpp — режим демонстрации, вырезан |
+| Шарики (Balloon.cpp) | Код полный, но `load_prim_object(PRIM_OBJ_BALLOON)` закомментировано в ob.cpp. Пользователь не видел шариков в PC лонгплее |
+| Старая камера (cam.cpp) | Весь файл в `#ifdef DOG_POO` — никогда не компилировался. Заменена FC (Final Camera) в fc.cpp |
+| Старая AI команда (Command.cpp) | Legacy AI-командная система. Заменена PCOM в финале. Не в vcxproj |
+| Software renderer (sw.cpp/tom.cpp) | Включал tom.cpp 3 раза для генерации вариантов. Не в vcxproj, мёртвый |
+| Thug old AI (Thug.cpp) | `fn_thug_normal()` — тело в `#if 0`. Старая waypoint AI для бандитов |
 
 ---
 

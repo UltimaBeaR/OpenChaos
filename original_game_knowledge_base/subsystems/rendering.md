@@ -6,7 +6,6 @@
 - `fallen/DDEngine/mesh.cpp` — загрузка и рендеринг 3D мешей
 - `fallen/DDEngine/texture.cpp`, `D3DTexture.cpp` — управление текстурами
 - `fallen/DDEngine/light.cpp` — освещение
-- `fallen/DDEngine/cam.cpp` — камера
 - `fallen/DDEngine/sky.cpp` — небо
 - `fallen/DDEngine/shadow.cpp` — тени (спрайты)
 - `fallen/DDEngine/sprite.cpp` — 2D спрайты

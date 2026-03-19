@@ -22,15 +22,15 @@ original_game/
 │   ├── Headers/         — заголовки
 │   ├── DDEngine/        — движок рендеринга (~60 .cpp)
 │   ├── DDLibrary/       — низкоуровневый DirectX (~22 .cpp)
-│   ├── Editor/          — IGNORED: инструмент редактора уровней
-│   ├── GEdit/           — IGNORED: инструмент редактора уровней
+│   ├── Editor/          — редактор уровней (в основном IGNORED). ⚠️ Содержит рантайм-код: Anim.h (анимационные структуры, включается через Structs.h), Prim.h (прим-объекты), prim_draw.h (rotate_obj для interact.cpp), map.h (edit_map для building/collide), outline.cpp (build_roof_grid — рантайм), ed.h (ED_Light для загрузки .lgt), Thing.h (MapThingPSX для io.cpp save_type==18)
+│   ├── GEdit/           — IGNORED: инструмент редактора уровней (GEdit.h включается 43+ файлами без guard, но все вызовы — в #ifdef EDITOR блоках)
 │   ├── Ledit/           — IGNORED: инструмент редактора уровней
 │   ├── SeEdit/          — IGNORED: инструмент редактора звука
 │   ├── PSXENG/ psxlib/  — IGNORED: PSX-специфичный рендеринг (psxlib/GHost.cpp — исключение: PSX controls задокументированы)
 │   ├── Glide Engine/    — IGNORED: 3dfx Glide рендерер, VERSION_GLIDE не определён, мёртвый код
 │   └── Debug/           — ресурсы игры (Steam) + артефакты сборки
 ├── MFLib1/              — IGNORED: внутренняя графическая библиотека студии, не игровой код
-├── MFStdLib/            — IGNORED: внутренние утилиты студии (файлы, память, математика), не игровой код
+├── MFStdLib/            — базовые утилиты: типы (SLONG, UBYTE, UWORD — MFTypes.h), память (StdMem.cpp), математика (inline.h: MUL64/DIV64), Always.h. Активно используется всей кодовой базой.
 ├── MuckyBasic/          — IGNORED: скриптовый VM + компилятор, не интегрирован с игрой (нет механизма вызова из игрового кода)
 └── thrust/              — IGNORED: посторонний проект, не относится к игре
 ```
@@ -120,7 +120,7 @@ MAX_THINGS = 700 (400 основных + 300 вторичных).
 | Оружие / Предметы | Special.cpp | [weapons_items.md](subsystems/weapons_items.md) |
 | UI / HUD / Frontend | interfac.cpp, frontend.cpp | [ui.md](subsystems/ui.md) |
 | Визуальные эффекты | Effect.cpp, Fire.cpp, cloth.cpp | [effects.md](subsystems/effects.md) |
-| Камера | cam.cpp, fc.cpp | [camera.md](subsystems/camera.md) |
+| Камера | fc.cpp (активная); cam.cpp — МЁРТВЫЙ КОД (`#ifdef DOG_POO`) | [camera.md](subsystems/camera.md) |
 | Прогресс / Сохранения | frontend.cpp, Game.cpp | [player_progress.md](subsystems/player_progress.md) |
 | Математика / Утилиты | maths.cpp, Matrix.cpp | [math_utils.md](subsystems/math_utils.md) |
 | Форматы ресурсов | io.cpp, Level.cpp | [resource_formats/](resource_formats/README.md) |
