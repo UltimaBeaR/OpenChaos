@@ -7169,6 +7169,476 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "SpecialEffect",
+      "file": "new/engine/graphics/pipeline/render_state.h",
+      "orig_name": "SpecialEffect",
+      "orig_file": "fallen/DDEngine/Headers/renderstate.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RenderState",
+      "file": "new/engine/graphics/pipeline/render_state.h",
+      "orig_name": "RenderState",
+      "orig_file": "fallen/DDEngine/Headers/renderstate.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FloatAsDword",
+      "file": "new/engine/graphics/pipeline/render_state.cpp",
+      "orig_name": "FloatAsDword",
+      "orig_file": "fallen/DDEngine/Source/renderstate.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RenderState::s_State",
+      "file": "new/engine/graphics/pipeline/render_state.cpp",
+      "orig_name": "RenderState::s_State",
+      "orig_file": "fallen/DDEngine/Source/renderstate.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_LISTS",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "MAX_LISTS",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_BUCKETS",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "MAX_BUCKETS",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUCKET_POOL_SIZE",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BUCKET_POOL_SIZE",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BucketHead",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BucketHead",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BucketQuad",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BucketQuad",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BucketTri",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BucketTri",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BucketLine",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BucketLine",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BucketPoint",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BucketPoint",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "e_bucket_pool",
+      "file": "new/engine/graphics/pipeline/bucket_globals.cpp",
+      "orig_name": "e_bucket_pool",
+      "orig_file": "fallen/DDEngine/Source/Bucket.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "e_buckets",
+      "file": "new/engine/graphics/pipeline/bucket_globals.cpp",
+      "orig_name": "e_buckets",
+      "orig_file": "fallen/DDEngine/Source/Bucket.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "e_end_buckets",
+      "file": "new/engine/graphics/pipeline/bucket_globals.cpp",
+      "orig_name": "e_end_buckets",
+      "orig_file": "fallen/DDEngine/Source/Bucket.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "bucket_lists",
+      "file": "new/engine/graphics/pipeline/bucket_globals.cpp",
+      "orig_name": "bucket_lists",
+      "orig_file": "fallen/DDEngine/Source/Bucket.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_buckets",
+      "file": "new/engine/graphics/pipeline/bucket.cpp",
+      "orig_name": "init_buckets",
+      "orig_file": "fallen/DDEngine/Source/Bucket.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "VertexBuffer",
+      "file": "new/engine/graphics/pipeline/vertex_buffer.h",
+      "orig_name": "VertexBuffer",
+      "orig_file": "fallen/DDEngine/Headers/vertexbuffer.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "VertexBufferPool",
+      "file": "new/engine/graphics/pipeline/vertex_buffer.h",
+      "orig_name": "VertexBufferPool",
+      "orig_file": "fallen/DDEngine/Headers/vertexbuffer.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TheVPool",
+      "file": "new/engine/graphics/pipeline/vertex_buffer_globals.cpp",
+      "orig_name": "TheVPool",
+      "orig_file": "fallen/DDEngine/Source/vertexbuffer.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "VB_Init",
+      "file": "new/engine/graphics/pipeline/vertex_buffer.cpp",
+      "orig_name": "VB_Init",
+      "orig_file": "fallen/DDEngine/Source/vertexbuffer.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "VB_Term",
+      "file": "new/engine/graphics/pipeline/vertex_buffer.cpp",
+      "orig_name": "VB_Term",
+      "orig_file": "fallen/DDEngine/Source/vertexbuffer.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_LIST_1",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "TEXTURE_LIST_1",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_LIST_2",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "TEXTURE_LIST_2",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_LIST_3",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "TEXTURE_LIST_3",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_LIST_4",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "TEXTURE_LIST_4",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_LIST_5",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "TEXTURE_LIST_5",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_LIST_6",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "TEXTURE_LIST_6",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LAST_NORMAL_PAGE",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "LAST_NORMAL_PAGE",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_LIST_2",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "SKY_LIST_2",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_LIST_1",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "SKY_LIST_1",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MASK_LIST_1",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "MASK_LIST_1",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COLOUR_LIST_1",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "COLOUR_LIST_1",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WATER_LIST_1",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "WATER_LIST_1",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ALPHA_LIST_1",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "ALPHA_LIST_1",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_LIST_1",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "FOG_LIST_1",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUCKET_NONE",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BUCKET_NONE",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUCKET_QUAD",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BUCKET_QUAD",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUCKET_TRI",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BUCKET_TRI",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUCKET_LINE",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BUCKET_LINE",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUCKET_POINT",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BUCKET_POINT",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GET_BUCKET",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "GET_BUCKET",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUCKETS_FULL",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "BUCKETS_FULL",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "reset_buckets",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "reset_buckets",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_vertex",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "check_vertex",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "add_bucket",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "add_bucket",
+      "orig_file": "fallen/DDEngine/Headers/Bucket.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "vertex_pool",
+      "file": "new/engine/graphics/pipeline/bucket.h",
+      "orig_name": "vertex_pool",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -151,3 +151,12 @@ Entity mapping обновлён (33 записи — file path).
 - `GHost.cpp`, `WindProcs.cpp`, `D3DTexture.cpp` — удалены из CMakeLists, старые хедеры стали редиректами
 
 ---
+
+## Итерация 15 — engine/graphics/pipeline/render_state + bucket + vertex_buffer (2026-03-21)
+
+- `vertex_buffer.h` потребовал `<MFStdLib.h>` (для `ASSERT` в inline `GetPtr()`) и `<stdio.h>` (для `FILE*` в `DumpInfo`) — без них build падал
+- `vertex_buffer.cpp` включал `console.h` и `poly.h` в оригинале — оба не используются в коде файла; в новом не включены
+- `RenderState::s_State` — статический член класса, определён в render_state.cpp (не в _globals) — это корректно, static member обязан определяться в .cpp класса
+- `vertex_pool[]` в bucket.h — extern объявление (определение в aeng.cpp, ещё не перенесён)
+
+---

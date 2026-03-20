@@ -81,11 +81,15 @@ set(SOURCES_NEW
     src/new/engine/graphics/graphics_api/wind_procs_globals.cpp
     src/new/engine/graphics/graphics_api/host.cpp
     src/new/engine/graphics/graphics_api/host_globals.cpp
+    src/new/engine/graphics/pipeline/render_state.cpp
+    src/new/engine/graphics/pipeline/bucket.cpp
+    src/new/engine/graphics/pipeline/bucket_globals.cpp
+    src/new/engine/graphics/pipeline/vertex_buffer.cpp
+    src/new/engine/graphics/pipeline/vertex_buffer_globals.cpp
 )
 
 set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/aeng.cpp
-    src/old/fallen/DDEngine/Source/Bucket.cpp
     src/old/fallen/DDEngine/Source/build.cpp
     src/old/fallen/DDEngine/Source/cone.cpp
     src/old/fallen/DDEngine/Source/console.cpp
@@ -108,7 +112,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/polypage.cpp
     src/old/fallen/DDEngine/Source/polyrenderstate.cpp
     src/old/fallen/DDEngine/Source/qeng.cpp
-    src/old/fallen/DDEngine/Source/renderstate.cpp
     src/old/fallen/DDEngine/Source/shape.cpp
     src/old/fallen/DDEngine/Source/sky.cpp
     src/old/fallen/DDEngine/Source/smap.cpp
@@ -117,7 +120,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/Text.cpp
     src/old/fallen/DDEngine/Source/texture.cpp
     src/old/fallen/DDEngine/Source/truetype.cpp
-    src/old/fallen/DDEngine/Source/vertexbuffer.cpp
     src/old/fallen/DDEngine/Source/wibble.cpp
 )
 
