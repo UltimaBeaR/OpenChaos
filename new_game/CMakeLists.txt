@@ -33,7 +33,10 @@ find_package(OpenAL CONFIG REQUIRED)
 set(SOURCES_MFSTDLIB
     src/old/MFStdLib/Source/StdLib/StdFile.cpp
     src/old/MFStdLib/Source/StdLib/StdMaths.cpp
-    src/old/MFStdLib/Source/StdLib/StdMem.cpp
+)
+
+set(SOURCES_NEW
+    src/new/core/memory.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -224,6 +227,7 @@ set(SOURCES_GAME
 # Target
 # ---------------------------------------------------------------------------
 add_executable(Fallen WIN32
+    ${SOURCES_NEW}
     ${SOURCES_MFSTDLIB}
     ${SOURCES_DDENGINE}
     ${SOURCES_DDLIBRARY}

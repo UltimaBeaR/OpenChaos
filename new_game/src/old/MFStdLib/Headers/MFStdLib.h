@@ -40,32 +40,7 @@
 
 //---------------------------------------------------------------
 
-#define TRUE 1
-#define FALSE 0
-
-typedef unsigned char UBYTE;
-typedef signed char SBYTE;
-typedef char CBYTE;
-typedef unsigned short UWORD;
-typedef signed short SWORD;
-typedef unsigned long ULONG;
-typedef signed long SLONG;
-
-typedef struct
-{
-    SLONG X,
-        Y;
-} MFPoint;
-
-typedef struct
-{
-    SLONG Left,
-        Top,
-        Right,
-        Bottom,
-        Width,
-        Height;
-} MFRect;
+#include "core/types.h"
 
 //---------------------------------------------------------------
 // MF Standard includes.
@@ -73,7 +48,7 @@ typedef struct
 #include "StdFile.h"
 #include "StdKeybd.h"
 #include "StdMaths.h"
-#include "StdMem.h"
+#include "core/memory.h"
 #include "StdMouse.h"
 
 //---------------------------------------------------------------
@@ -148,75 +123,6 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
 #define KEYBOARD DIDEVTYPE_KEYBOARD
 #define JOYSTICK DIDEVTYPE_JOYSTICK
 
-//---------------------------------------------------------------
-// Standard macros.
-
-#define sgn(a) (((a) < 0) ? -1 : 1)
-#define swap(a, b) \
-    {              \
-        a ^= b;    \
-        b ^= a;    \
-        a ^= b;    \
-    }
-
-#define in_range(a, min, max) \
-    {                         \
-        if (a > (max))        \
-            a = (max);        \
-        else if (a < (min))   \
-            a = (min);        \
-    }
-#ifndef min
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#endif
-
-#ifndef max
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#endif
-
-//---------------------------------------------------------------
-
-//
-// Stuff put in by Mark...
-//
-#undef INFINITY
-#define INFINITY 0x7fffffff
-#define PI (3.14159265F)
-#define WITHIN(x, a, b) ((x) >= (a) && (x) <= (b))
-#define SATURATE(x, a, b)       \
-    {                           \
-        if ((x) < (a)) {        \
-            (x) = (a);          \
-        } else if ((x) > (b)) { \
-            (x) = (b);          \
-        }                       \
-    }
-#define SWAP(a, b)  \
-    {               \
-        SLONG temp; \
-        temp = (a); \
-        (a) = (b);  \
-        (b) = temp; \
-    }
-#define SWAP_FL(a, b) \
-    {                 \
-        float temp;   \
-        temp = (a);   \
-        (a) = (b);    \
-        (b) = temp;   \
-    }
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-#define SIGN(x) (((x)) ? (((x) > 0) ? +1 : -1) : 0)
-
-//
-// Some maths stuff by mike
-//
-
-#define QDIST3(x, y, z) ((x) > (y) ? ((x) > (z) ? (x) + ((y) >> 2) + ((z) >> 2) : (z) + ((x) >> 2) + ((y) >> 2)) : ((y) > (z) ? ((y) + ((x) >> 2) + ((z) >> 2)) : (z) + ((x) >> 2) + ((y) >> 2)))
-#define QDIST2(x, y) ((x) > (y) ? ((x) + ((y) >> 1)) : ((y) + ((x) >> 1)))
-
-#define SDIST3(x, y, z) (((x) * (x)) + ((y) * (y)) + ((z) * (z)))
-#define SDIST2(x, y) (((x) * (x)) + ((y) * (y)))
+#include "core/macros.h"
 
 #endif // MFSTDLIB_HEADERS_MFSTDLIB_H

@@ -79,6 +79,376 @@
       "conflict": false,
       "stage": 2,
       "date": "2026-03-20"
+    },
+    {
+      "name": "UBYTE",
+      "file": "new/core/types.h",
+      "orig_name": "UBYTE",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SBYTE",
+      "file": "new/core/types.h",
+      "orig_name": "SBYTE",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CBYTE",
+      "file": "new/core/types.h",
+      "orig_name": "CBYTE",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "UWORD",
+      "file": "new/core/types.h",
+      "orig_name": "UWORD",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SWORD",
+      "file": "new/core/types.h",
+      "orig_name": "SWORD",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ULONG",
+      "file": "new/core/types.h",
+      "orig_name": "ULONG",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SLONG",
+      "file": "new/core/types.h",
+      "orig_name": "SLONG",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFPoint",
+      "file": "new/core/types.h",
+      "orig_name": "MFPoint",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFRect",
+      "file": "new/core/types.h",
+      "orig_name": "MFRect",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetupMemory",
+      "file": "new/core/memory.h",
+      "orig_name": "SetupMemory",
+      "orig_file": "MFStdLib/Source/StdLib/StdMem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ResetMemory",
+      "file": "new/core/memory.h",
+      "orig_name": "ResetMemory",
+      "orig_file": "MFStdLib/Source/StdLib/StdMem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MemAlloc",
+      "file": "new/core/memory.h",
+      "orig_name": "MemAlloc",
+      "orig_file": "MFStdLib/Source/StdLib/StdMem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MemReAlloc",
+      "file": "new/core/memory.h",
+      "orig_name": "MemReAlloc",
+      "orig_file": "MFStdLib/Source/StdLib/StdMem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MemFree",
+      "file": "new/core/memory.h",
+      "orig_name": "MemFree",
+      "orig_file": "MFStdLib/Source/StdLib/StdMem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFHeap",
+      "file": "new/core/memory.cpp",
+      "orig_name": "MFHeap",
+      "orig_file": "MFStdLib/Source/StdLib/StdMem.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFnew",
+      "file": "new/core/memory.h",
+      "orig_name": "MFnew",
+      "orig_file": "MFStdLib/Headers/StdMem.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFdelete",
+      "file": "new/core/memory.h",
+      "orig_name": "MFdelete",
+      "orig_file": "MFStdLib/Headers/StdMem.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TRUE",
+      "file": "new/core/types.h",
+      "orig_name": "TRUE",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FALSE",
+      "file": "new/core/types.h",
+      "orig_name": "FALSE",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "min",
+      "file": "new/core/macros.h",
+      "orig_name": "min",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "max",
+      "file": "new/core/macros.h",
+      "orig_name": "max",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "sgn",
+      "file": "new/core/macros.h",
+      "orig_name": "sgn",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "swap",
+      "file": "new/core/macros.h",
+      "orig_name": "swap",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "in_range",
+      "file": "new/core/macros.h",
+      "orig_name": "in_range",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "INFINITY",
+      "file": "new/core/macros.h",
+      "orig_name": "INFINITY",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "PI",
+      "file": "new/core/macros.h",
+      "orig_name": "PI",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WITHIN",
+      "file": "new/core/macros.h",
+      "orig_name": "WITHIN",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SATURATE",
+      "file": "new/core/macros.h",
+      "orig_name": "SATURATE",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SWAP",
+      "file": "new/core/macros.h",
+      "orig_name": "SWAP",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SWAP_FL",
+      "file": "new/core/macros.h",
+      "orig_name": "SWAP_FL",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MIN",
+      "file": "new/core/macros.h",
+      "orig_name": "MIN",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX",
+      "file": "new/core/macros.h",
+      "orig_name": "MAX",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SIGN",
+      "file": "new/core/macros.h",
+      "orig_name": "SIGN",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QDIST3",
+      "file": "new/core/macros.h",
+      "orig_name": "QDIST3",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QDIST2",
+      "file": "new/core/macros.h",
+      "orig_name": "QDIST2",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SDIST3",
+      "file": "new/core/macros.h",
+      "orig_name": "SDIST3",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SDIST2",
+      "file": "new/core/macros.h",
+      "orig_name": "SDIST2",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }

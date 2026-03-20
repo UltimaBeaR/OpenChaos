@@ -17,3 +17,10 @@
 - Порядок миграции из stage4_rules.md **корректен** — начинаем с core/ (математика, память)
 
 ---
+
+## Итерация 1 — core/types + core/macros + core/memory (2026-03-20)
+
+- `memory.h` включает `<windef.h>` для BOOL — временная Windows-зависимость до Этапа 8
+- No-op ASSERT вызовы из memory.cpp убраны
+
+---
