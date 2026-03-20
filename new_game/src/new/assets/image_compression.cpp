@@ -1,16 +1,10 @@
-//
-// Image compression.
-//
-
 #include <MFStdLib.h>
-#include "ic.h"
-#include "tga.h"
+#include "assets/image_compression.h"
+#include "assets/tga.h"
 
-//
-// Converts 24-bit RGB into 5:6:5
-//
-
-ULONG IC_convert(UBYTE r, UBYTE g, UBYTE b)
+// Convert 24-bit RGB to a packed 5:6:5 16-bit colour value.
+// uc_orig: IC_convert (fallen/DDEngine/Source/ic.cpp)
+static ULONG IC_convert(UBYTE r, UBYTE g, UBYTE b)
 {
     SLONG nr = r;
     SLONG ng = g;
@@ -37,6 +31,7 @@ ULONG IC_convert(UBYTE r, UBYTE g, UBYTE b)
     return ans;
 }
 
+// uc_orig: IC_pack (fallen/DDEngine/Source/ic.cpp)
 IC_Packet IC_pack(
     TGA_Pixel* tga,
     SLONG tga_width,
@@ -81,10 +76,6 @@ IC_Packet IC_pack(
     SLONG best_error = INFINITY;
     IC_Packet best_ans;
 
-    //
-    // Try lines between points i and j.
-    //
-
     for (i = 1; i < 16; i++)
         for (j = 0; j < i; j++) {
             if (i == j) {
@@ -109,16 +100,8 @@ IC_Packet IC_pack(
             b2 = tp2->blue;
 
             if (r1 == r2 && g1 == g2 && b1 == b2) {
-                //
-                // Not a valid line.
-                //
-
                 continue;
             }
-
-            //
-            // Work out the four colours we get from the line.
-            //
 
             r[0] = r1;
             g[0] = g1;
@@ -139,11 +122,6 @@ IC_Packet IC_pack(
             r[3] = r2;
             g[3] = g2;
             b[3] = b2;
-
-            //
-            // Work out the score of the line- i.e. the amount of
-            // error and the answer bits while we are at it.
-            //
 
             bit = 0;
             error = 0;
@@ -176,10 +154,6 @@ IC_Packet IC_pack(
             }
 
             if (error < best_error) {
-                //
-                // Found a better line.
-                //
-
                 best_error = error;
                 best_ans.colour1 = IC_convert(r1, g1, b1);
                 best_ans.colour2 = IC_convert(r2, g2, b2);
@@ -188,10 +162,7 @@ IC_Packet IC_pack(
         }
 
     if (best_error == INFINITY) {
-        //
-        // There are no lines! All the pixels must be the same colour.
-        //
-
+        // All 16 pixels are the same colour; no valid line exists.
         tp = &tga[px + py * tga_width];
 
         best_ans.colour1 = IC_convert(tp->red, tp->green, tp->blue);
@@ -202,6 +173,7 @@ IC_Packet IC_pack(
     return best_ans;
 }
 
+// uc_orig: IC_unpack (fallen/DDEngine/Source/ic.cpp)
 void IC_unpack(
     IC_Packet ip,
     TGA_Pixel* tga,
@@ -242,10 +214,7 @@ void IC_unpack(
     for (i = 0; i < 4; i++) {
         tp = &tga[px + (py + i) * tga_width];
 
-        //
-        // Unwind the loop a bit.
-        //
-
+        // uc_orig: IC_DECOMPRESS_A_PIXEL (fallen/DDEngine/Source/ic.cpp)
 #define IC_DECOMPRESS_A_PIXEL() \
     {                           \
         bit = ip.bit >> 30;     \
@@ -265,8 +234,8 @@ void IC_unpack(
     }
 }
 
-TGA_Pixel test[256 * 256];
 
+// uc_orig: IC_test (fallen/DDEngine/Source/ic.cpp)
 void IC_test()
 {
     SLONG x;
@@ -280,9 +249,6 @@ void IC_test()
     if (!ti.valid) {
         return;
     }
-
-    ASSERT((ti.width & 0x3) == 0);
-    ASSERT((ti.height & 0x3) == 0);
 
     for (x = 0; x < ti.width; x += 4)
         for (y = 0; y < ti.height; y += 4) {

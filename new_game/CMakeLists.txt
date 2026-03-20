@@ -53,6 +53,14 @@ set(SOURCES_NEW
     src/new/assets/file_clump.cpp
     src/new/assets/tga.cpp
     src/new/assets/tga_globals.cpp
+    src/new/assets/image_compression.cpp
+    src/new/assets/image_compression_globals.cpp
+    src/new/assets/compression.cpp
+    src/new/assets/compression_globals.cpp
+    src/new/engine/lighting/ngamut.cpp
+    src/new/engine/lighting/ngamut_globals.cpp
+    src/new/engine/graphics/graphics_api/work_screen.cpp
+    src/new/engine/graphics/graphics_api/work_screen_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -61,7 +69,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/BreakTimer.cpp
     src/old/fallen/DDEngine/Source/Bucket.cpp
     src/old/fallen/DDEngine/Source/build.cpp
-    src/old/fallen/DDEngine/Source/comp.cpp
     src/old/fallen/DDEngine/Source/cone.cpp
     src/old/fallen/DDEngine/Source/console.cpp
     src/old/fallen/DDEngine/Source/Crinkle.cpp
@@ -75,11 +82,9 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/Font.cpp
     src/old/fallen/DDEngine/Source/font2d.cpp
     src/old/fallen/DDEngine/Source/Gamut.cpp
-    src/old/fallen/DDEngine/Source/ic.cpp
     src/old/fallen/DDEngine/Source/menufont.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
     src/old/fallen/DDEngine/Source/Message.cpp
-    src/old/fallen/DDEngine/Source/NGamut.cpp
     src/old/fallen/DDEngine/Source/oval.cpp
     src/old/fallen/DDEngine/Source/panel.cpp
     src/old/fallen/DDEngine/Source/planmap.cpp
@@ -107,7 +112,6 @@ set(SOURCES_DDLIBRARY
     src/old/fallen/DDLibrary/Source/Drive.cpp
     src/old/fallen/DDLibrary/Source/GDisplay.cpp
     src/old/fallen/DDLibrary/Source/GHost.cpp
-    src/old/fallen/DDLibrary/Source/GWorkScreen.cpp
     src/old/fallen/DDLibrary/Source/MFX.cpp
     src/old/fallen/DDLibrary/Source/net.cpp
     src/old/fallen/DDLibrary/Source/WindProcs.cpp

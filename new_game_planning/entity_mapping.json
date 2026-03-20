@@ -3929,6 +3929,846 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "IC_Packet",
+      "file": "new/assets/image_compression.h",
+      "orig_name": "IC_Packet",
+      "orig_file": "fallen/DDEngine/Headers/ic.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "IC_pack",
+      "file": "new/assets/image_compression.h",
+      "orig_name": "IC_pack",
+      "orig_file": "fallen/DDEngine/Headers/ic.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "IC_unpack",
+      "file": "new/assets/image_compression.h",
+      "orig_name": "IC_unpack",
+      "orig_file": "fallen/DDEngine/Headers/ic.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "IC_test",
+      "file": "new/assets/image_compression.h",
+      "orig_name": "IC_test",
+      "orig_file": "fallen/DDEngine/Headers/ic.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "IC_convert",
+      "file": "new/assets/image_compression.cpp",
+      "orig_name": "IC_convert",
+      "orig_file": "fallen/DDEngine/Source/ic.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "IC_DECOMPRESS_A_PIXEL",
+      "file": "new/assets/image_compression.cpp",
+      "orig_name": "IC_DECOMPRESS_A_PIXEL",
+      "orig_file": "fallen/DDEngine/Source/ic.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "test",
+      "file": "new/assets/image_compression.cpp",
+      "orig_name": "test",
+      "orig_file": "fallen/DDEngine/Source/ic.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_SIZE",
+      "file": "new/assets/compression.h",
+      "orig_name": "COMP_SIZE",
+      "orig_file": "fallen/DDEngine/Headers/comp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_SNUM",
+      "file": "new/assets/compression.h",
+      "orig_name": "COMP_SNUM",
+      "orig_file": "fallen/DDEngine/Headers/comp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_SSIZE",
+      "file": "new/assets/compression.h",
+      "orig_name": "COMP_SSIZE",
+      "orig_file": "fallen/DDEngine/Headers/comp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_TGA_MAX_WIDTH",
+      "file": "new/assets/compression.h",
+      "orig_name": "COMP_TGA_MAX_WIDTH",
+      "orig_file": "fallen/DDEngine/Headers/comp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_TGA_MAX_HEIGHT",
+      "file": "new/assets/compression.h",
+      "orig_name": "COMP_TGA_MAX_HEIGHT",
+      "orig_file": "fallen/DDEngine/Headers/comp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_Frame",
+      "file": "new/assets/compression.h",
+      "orig_name": "COMP_Frame",
+      "orig_file": "fallen/DDEngine/Headers/comp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_Delta",
+      "file": "new/assets/compression.h",
+      "orig_name": "COMP_Delta",
+      "orig_file": "fallen/DDEngine/Headers/comp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_load",
+      "file": "new/assets/compression.h",
+      "orig_name": "COMP_load",
+      "orig_file": "fallen/DDEngine/Headers/comp.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_calc",
+      "file": "new/assets/compression.h",
+      "orig_name": "COMP_calc",
+      "orig_file": "fallen/DDEngine/Headers/comp.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_decomp",
+      "file": "new/assets/compression.h",
+      "orig_name": "COMP_decomp",
+      "orig_file": "fallen/DDEngine/Headers/comp.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_Pan",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_Pan",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_Update",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_Update",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_tga_data",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_tga_data",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_tga_info",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_tga_info",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_tga_colour",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_tga_colour",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_SAMPLES_PER_PIXEL",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_SAMPLES_PER_PIXEL",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_MAX_DATA",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_MAX_DATA",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_data",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_data",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_frame",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_frame",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_MAX_PAN",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_MAX_PAN",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_MAX_ERROR_PER_PIXEL",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_MAX_ERROR_PER_PIXEL",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_square_error",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_square_error",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_square_copy",
+      "file": "new/assets/compression.cpp",
+      "orig_name": "COMP_square_copy",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_SIZE",
+      "file": "new/engine/lighting/ngamut.h",
+      "orig_name": "NGAMUT_SIZE",
+      "orig_file": "fallen/DDEngine/Headers/NGamut.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_SIZE_LO",
+      "file": "new/engine/lighting/ngamut.h",
+      "orig_name": "NGAMUT_SIZE_LO",
+      "orig_file": "fallen/DDEngine/Headers/NGamut.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_Gamut",
+      "file": "new/engine/lighting/ngamut.h",
+      "orig_name": "NGAMUT_Gamut",
+      "orig_file": "fallen/DDEngine/Headers/NGamut.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_init",
+      "file": "new/engine/lighting/ngamut.h",
+      "orig_name": "NGAMUT_init",
+      "orig_file": "fallen/DDEngine/Headers/NGamut.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_add_line",
+      "file": "new/engine/lighting/ngamut.h",
+      "orig_name": "NGAMUT_add_line",
+      "orig_file": "fallen/DDEngine/Headers/NGamut.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_view_square",
+      "file": "new/engine/lighting/ngamut.h",
+      "orig_name": "NGAMUT_view_square",
+      "orig_file": "fallen/DDEngine/Headers/NGamut.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_calculate_point_gamut",
+      "file": "new/engine/lighting/ngamut.h",
+      "orig_name": "NGAMUT_calculate_point_gamut",
+      "orig_file": "fallen/DDEngine/Headers/NGamut.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_calculate_out_gamut",
+      "file": "new/engine/lighting/ngamut.h",
+      "orig_name": "NGAMUT_calculate_out_gamut",
+      "orig_file": "fallen/DDEngine/Headers/NGamut.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_calculate_lo_gamut",
+      "file": "new/engine/lighting/ngamut.h",
+      "orig_name": "NGAMUT_calculate_lo_gamut",
+      "orig_file": "fallen/DDEngine/Headers/NGamut.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_gamut",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_gamut",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_zmin",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_zmin",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_zmax",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_zmax",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_xmin",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_xmin",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_add_square",
+      "file": "new/engine/lighting/ngamut.cpp",
+      "orig_name": "NGAMUT_add_square",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_point_gamut",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_point_gamut",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_point_zmin",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_point_zmin",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_point_zmax",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_point_zmax",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_out_gamut",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_out_gamut",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_out_zmin",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_out_zmin",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_out_zmax",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_out_zmax",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MIN3",
+      "file": "new/engine/lighting/ngamut.cpp",
+      "orig_name": "MIN3",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX3",
+      "file": "new/engine/lighting/ngamut.cpp",
+      "orig_name": "MAX3",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_lo_gamut",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_lo_gamut",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_lo_zmin",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_lo_zmin",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NGAMUT_lo_zmax",
+      "file": "new/engine/lighting/ngamut_globals.h",
+      "orig_name": "NGAMUT_lo_zmax",
+      "orig_file": "fallen/DDEngine/Source/NGamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WorkScreen",
+      "file": "new/engine/graphics/graphics_api/work_screen_globals.h",
+      "orig_name": "WorkScreen",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WorkScreenDepth",
+      "file": "new/engine/graphics/graphics_api/work_screen_globals.h",
+      "orig_name": "WorkScreenDepth",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WorkScreenHeight",
+      "file": "new/engine/graphics/graphics_api/work_screen_globals.h",
+      "orig_name": "WorkScreenHeight",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WorkScreenWidth",
+      "file": "new/engine/graphics/graphics_api/work_screen_globals.h",
+      "orig_name": "WorkScreenWidth",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WorkScreenPixelWidth",
+      "file": "new/engine/graphics/graphics_api/work_screen_globals.h",
+      "orig_name": "WorkScreenPixelWidth",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WorkWindow",
+      "file": "new/engine/graphics/graphics_api/work_screen_globals.h",
+      "orig_name": "WorkWindow",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WorkWindowHeight",
+      "file": "new/engine/graphics/graphics_api/work_screen_globals.h",
+      "orig_name": "WorkWindowHeight",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WorkWindowWidth",
+      "file": "new/engine/graphics/graphics_api/work_screen_globals.h",
+      "orig_name": "WorkWindowWidth",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WorkWindowRect",
+      "file": "new/engine/graphics/graphics_api/work_screen_globals.h",
+      "orig_name": "WorkWindowRect",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ShowWorkScreen",
+      "file": "new/engine/graphics/graphics_api/work_screen.h",
+      "orig_name": "ShowWorkScreen",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LockWorkScreen",
+      "file": "new/engine/graphics/graphics_api/work_screen.h",
+      "orig_name": "LockWorkScreen",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "UnlockWorkScreen",
+      "file": "new/engine/graphics/graphics_api/work_screen.h",
+      "orig_name": "UnlockWorkScreen",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetWorkWindowBounds",
+      "file": "new/engine/graphics/graphics_api/work_screen.h",
+      "orig_name": "SetWorkWindowBounds",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetWorkWindow",
+      "file": "new/engine/graphics/graphics_api/work_screen.h",
+      "orig_name": "SetWorkWindow",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GlobalToLocal",
+      "file": "new/engine/graphics/graphics_api/work_screen.h",
+      "orig_name": "GlobalToLocal",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GlobalXYToLocal",
+      "file": "new/engine/graphics/graphics_api/work_screen.h",
+      "orig_name": "GlobalXYToLocal",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "XYInRect",
+      "file": "new/engine/graphics/graphics_api/work_screen.h",
+      "orig_name": "XYInRect",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "PointInRect",
+      "file": "new/engine/graphics/graphics_api/work_screen.h",
+      "orig_name": "PointInRect",
+      "orig_file": "fallen/DDLibrary/Headers/GWorkScreen.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CurrentPalette",
+      "file": "new/engine/graphics/graphics_api/work_screen_globals.h",
+      "orig_name": "CurrentPalette",
+      "orig_file": "fallen/DDLibrary/Source/GWorkScreen.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ClearWorkScreen",
+      "file": "new/engine/graphics/graphics_api/work_screen.cpp",
+      "orig_name": "ClearWorkScreen",
+      "orig_file": "fallen/DDLibrary/Source/GWorkScreen.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ShowWorkWindow",
+      "file": "new/engine/graphics/graphics_api/work_screen.cpp",
+      "orig_name": "ShowWorkWindow",
+      "orig_file": "fallen/DDLibrary/Source/GWorkScreen.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetPalette",
+      "file": "new/engine/graphics/graphics_api/work_screen.cpp",
+      "orig_name": "SetPalette",
+      "orig_file": "fallen/DDLibrary/Source/GWorkScreen.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FindColour",
+      "file": "new/engine/graphics/graphics_api/work_screen.cpp",
+      "orig_name": "FindColour",
+      "orig_file": "fallen/DDLibrary/Source/GWorkScreen.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_DataBuffer",
+      "file": "assets/compression.h",
+      "orig_name": "(anonymous struct for COMP_data)",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_tga_data",
+      "file": "assets/compression_globals.h",
+      "orig_name": "COMP_tga_data",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_tga_info",
+      "file": "assets/compression_globals.h",
+      "orig_name": "COMP_tga_info",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_data",
+      "file": "assets/compression_globals.h",
+      "orig_name": "COMP_data",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COMP_frame",
+      "file": "assets/compression_globals.h",
+      "orig_name": "COMP_frame",
+      "orig_file": "fallen/DDEngine/Source/comp.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "test",
+      "file": "assets/image_compression_globals.h",
+      "orig_name": "test",
+      "orig_file": "fallen/DDEngine/Source/ic.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }

@@ -1,24 +1,6 @@
-// WorkScreen.cpp
-// Guy Simmons, 10th December 1997
+#include "work_screen.h"
 
-// The work screen is never used on the DC
-
-#include "DDLib.h"
-
-UBYTE CurrentPalette[256 * 3],
-    WorkScreenDepth,
-    *WorkScreen,
-    *WorkWindow;
-SLONG WorkScreenHeight,
-    WorkScreenWidth,
-    WorkScreenPixelWidth,
-    WorkWindowHeight,
-    WorkWindowWidth;
-
-MFRect WorkWindowRect;
-
-//---------------------------------------------------------------
-
+// uc_orig: ShowWorkScreen (fallen/DDLibrary/Source/GWorkScreen.cpp)
 void ShowWorkScreen(ULONG flags)
 {
     flags = flags;
@@ -26,8 +8,7 @@ void ShowWorkScreen(ULONG flags)
     the_display.ShowWorkScreen();
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: LockWorkScreen (fallen/DDLibrary/Source/GWorkScreen.cpp)
 void* LockWorkScreen(void)
 {
     DDSURFACEDESC2 dd_sd;
@@ -56,8 +37,7 @@ void* LockWorkScreen(void)
     return 0;
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: UnlockWorkScreen (fallen/DDLibrary/Source/GWorkScreen.cpp)
 void UnlockWorkScreen(void)
 {
     HRESULT result;
@@ -71,8 +51,7 @@ void UnlockWorkScreen(void)
     }
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: ClearWorkScreen (fallen/DDLibrary/Source/GWorkScreen.cpp)
 void ClearWorkScreen(UBYTE colour)
 {
     DDBLTFX dd_bltfx;
@@ -93,8 +72,7 @@ void ClearWorkScreen(UBYTE colour)
     }
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: ShowWorkWindow (fallen/DDLibrary/Source/GWorkScreen.cpp)
 void ShowWorkWindow(ULONG flags)
 {
     SLONG x_scale,
@@ -112,7 +90,6 @@ void ShowWorkWindow(ULONG flags)
     ww_source_rect.bottom = WorkWindowRect.Bottom;
 
     if (the_display.IsFullScreen()) {
-        //		result	=	the_display.ShowWorkScreen();
         result = the_display.lp_DD_FrontSurface->Blt(
             &ww_source_rect,
             the_display.lp_DD_WorkSurface,
@@ -140,8 +117,7 @@ void ShowWorkWindow(ULONG flags)
     }
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: SetWorkWindowBounds (fallen/DDLibrary/Source/GWorkScreen.cpp)
 void SetWorkWindowBounds(SLONG left, SLONG top, SLONG width, SLONG height)
 {
     if ((left + width) >= WorkScreenPixelWidth) {
@@ -171,8 +147,7 @@ void SetWorkWindowBounds(SLONG left, SLONG top, SLONG width, SLONG height)
     SetWorkWindow();
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: GlobalToLocal (fallen/DDLibrary/Source/GWorkScreen.cpp)
 MFPoint* GlobalToLocal(MFPoint* the_point)
 {
     the_point->X -= WorkWindowRect.Left;
@@ -181,16 +156,14 @@ MFPoint* GlobalToLocal(MFPoint* the_point)
     return the_point;
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: GlobalXYToLocal (fallen/DDLibrary/Source/GWorkScreen.cpp)
 void GlobalXYToLocal(SLONG* x, SLONG* y)
 {
     *x -= WorkWindowRect.Left;
     *y -= WorkWindowRect.Top;
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: SetPalette (fallen/DDLibrary/Source/GWorkScreen.cpp)
 void SetPalette(UBYTE* the_palette)
 {
     ULONG c0;
@@ -202,8 +175,7 @@ void SetPalette(UBYTE* the_palette)
     }
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: FindColour (fallen/DDLibrary/Source/GWorkScreen.cpp)
 SLONG FindColour(UBYTE* the_palette, SLONG r, SLONG g, SLONG b)
 {
     SLONG found = -1;
@@ -245,7 +217,7 @@ SLONG FindColour(UBYTE* the_palette, SLONG r, SLONG g, SLONG b)
         break;
     }
     case 2:
-        found = the_display.GetFormattedPixel(r, g, b); //			 found=(((r>>3)<<11)|((g>>2)<<5)|(b>>3));
+        found = the_display.GetFormattedPixel(r, g, b);
         break;
     case 4:
         found = ((r << 16) | (g << 8) | (b));
@@ -253,5 +225,3 @@ SLONG FindColour(UBYTE* the_palette, SLONG r, SLONG g, SLONG b)
     }
     return (found);
 }
-
-//---------------------------------------------------------------

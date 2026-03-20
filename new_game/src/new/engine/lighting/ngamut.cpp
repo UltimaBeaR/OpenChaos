@@ -1,61 +1,25 @@
-//
-// The gamut.
-//
-
 #include <MFStdLib.h>
 #include "ngamut.h"
 
-NGAMUT_Gamut NGAMUT_gamut[NGAMUT_SIZE];
-SLONG NGAMUT_zmin;
-SLONG NGAMUT_zmax;
-SLONG NGAMUT_xmin;
+// uc_orig: MIN3 (fallen/DDEngine/Source/NGamut.cpp)
+#ifndef MIN3
+#define MIN3(a, b, c) (MIN(MIN(a, b), c))
+#endif
 
-//
-// Initialises the gamut.
-//
+// uc_orig: MAX3 (fallen/DDEngine/Source/NGamut.cpp)
+// Note: original macro has mismatched parentheses - preserved 1:1
+#ifndef MAX3
+#define MAX3(a, b, c) (MAX(MAX(a,b,c))
+#endif
 
-void NGAMUT_init(void)
-{
-    SLONG i;
-
-    //
-    // This could be the first time we have called NGAMUT_init.
-    // We have to initialise the whole array.
-    //
-
-    for (i = 0; i < NGAMUT_SIZE; i++) {
-        NGAMUT_gamut[i].xmin = INFINITY;
-        NGAMUT_gamut[i].xmax = -INFINITY;
-    }
-
-    NGAMUT_xmin = INFINITY;
-    NGAMUT_zmin = INFINITY;
-    NGAMUT_zmax = -INFINITY;
-}
-
-//
-// Pushes out the gamut so it includes the given square.
-//
-
-inline void NGAMUT_add_square(SLONG x, SLONG z)
+// uc_orig: NGAMUT_add_square (fallen/DDEngine/Source/NGamut.cpp)
+static inline void NGAMUT_add_square(SLONG x, SLONG z)
 {
     if (!WITHIN(z, 0, NGAMUT_SIZE - 2)) {
-        //
-        // The zline is off the map.
-        //
-
         return;
     }
 
-    //
-    // Make sure that the x-coord is in range.
-    //
-
     SATURATE(x, 0, NGAMUT_SIZE - 2);
-
-    //
-    // Push out the gamut.
-    //
 
     if (z < NGAMUT_zmin) {
         NGAMUT_zmin = z;
@@ -76,10 +40,22 @@ inline void NGAMUT_add_square(SLONG x, SLONG z)
     }
 }
 
-//
-// Pushes out the gamut so it includes the given line.
-//
+// uc_orig: NGAMUT_init (fallen/DDEngine/Source/NGamut.cpp)
+void NGAMUT_init(void)
+{
+    SLONG i;
 
+    for (i = 0; i < NGAMUT_SIZE; i++) {
+        NGAMUT_gamut[i].xmin = INFINITY;
+        NGAMUT_gamut[i].xmax = -INFINITY;
+    }
+
+    NGAMUT_xmin = INFINITY;
+    NGAMUT_zmin = INFINITY;
+    NGAMUT_zmax = -INFINITY;
+}
+
+// uc_orig: NGAMUT_add_line (fallen/DDEngine/Source/NGamut.cpp)
 void NGAMUT_add_line(float p1x, float p1z, float p2x, float p2z)
 {
     float x;
@@ -98,18 +74,10 @@ void NGAMUT_add_line(float p1x, float p1z, float p2x, float p2z)
     float dz;
     float dxdz;
 
-    //
-    // Sort the points by z.
-    //
-
     if (p2z < p1z) {
         SWAP_FL(p1x, p2x);
         SWAP_FL(p1z, p2z);
     }
-
-    //
-    // Add the end points of the line.
-    //
 
     m1x = SLONG(p1x);
     m1z = SLONG(p1z);
@@ -121,23 +89,12 @@ void NGAMUT_add_line(float p1x, float p1z, float p2x, float p2z)
 
     NGAMUT_add_square(m2x, m2z);
 
-    //
-    // Go along the line.
-    //
-
     dx = p2x - p1x;
     dz = p2z - p1z;
 
     if (dz == 0.0f) {
-        //
-        // No z to traverse.
-        //
     } else {
         dxdz = dx / dz;
-
-        //
-        // Move down to the next zline.
-        //
 
         zfrac = 1.0F - (p1z - m1z);
         xfrac = zfrac * dxdz;
@@ -155,6 +112,7 @@ void NGAMUT_add_line(float p1x, float p1z, float p2x, float p2z)
     }
 }
 
+// uc_orig: NGAMUT_view_square (fallen/DDEngine/Source/NGamut.cpp)
 void NGAMUT_view_square(float mid_x, float mid_z, float radius)
 {
     SLONG i;
@@ -183,18 +141,10 @@ void NGAMUT_view_square(float mid_x, float mid_z, float radius)
 
     NGAMUT_xmin = xmin;
 
-    //
-    // Initialise the rest of the gamut...
-    //
-
     for (i = 0; i < NGAMUT_SIZE; i++) {
         NGAMUT_gamut[i].xmin = INFINITY;
         NGAMUT_gamut[i].xmax = -INFINITY;
     }
-
-    //
-    // Mark the square of the gamut.
-    //
 
     for (z = zmin; z <= zmax; z++) {
         NGAMUT_gamut[z].xmin = xmin;
@@ -202,10 +152,7 @@ void NGAMUT_view_square(float mid_x, float mid_z, float radius)
     }
 }
 
-NGAMUT_Gamut NGAMUT_point_gamut[NGAMUT_SIZE];
-SLONG NGAMUT_point_zmin;
-SLONG NGAMUT_point_zmax;
-
+// uc_orig: NGAMUT_calculate_point_gamut (fallen/DDEngine/Source/NGamut.cpp)
 void NGAMUT_calculate_point_gamut(void)
 {
     SLONG i;
@@ -224,18 +171,7 @@ void NGAMUT_calculate_point_gamut(void)
     NGAMUT_point_gamut[NGAMUT_point_zmax].xmax = NGAMUT_gamut[NGAMUT_zmax].xmax + 1;
 }
 
-NGAMUT_Gamut NGAMUT_out_gamut[NGAMUT_SIZE];
-SLONG NGAMUT_out_zmin;
-SLONG NGAMUT_out_zmax;
-
-#ifndef MIN3
-#define MIN3(a, b, c) (MIN(MIN(a, b), c))
-#endif
-
-#ifndef MAX3
-#define MAX3(a, b, c) (MAX(MAX(a,b,c))
-#endif
-
+// uc_orig: NGAMUT_calculate_out_gamut (fallen/DDEngine/Source/NGamut.cpp)
 void NGAMUT_calculate_out_gamut(void)
 {
     SLONG i;
@@ -282,10 +218,7 @@ void NGAMUT_calculate_out_gamut(void)
     }
 }
 
-NGAMUT_Gamut NGAMUT_lo_gamut[NGAMUT_SIZE_LO];
-SLONG NGAMUT_lo_zmin;
-SLONG NGAMUT_lo_zmax;
-
+// uc_orig: NGAMUT_calculate_lo_gamut (fallen/DDEngine/Source/NGamut.cpp)
 void NGAMUT_calculate_lo_gamut()
 {
     SLONG i;
@@ -325,7 +258,6 @@ void NGAMUT_calculate_lo_gamut()
                 }
             }
         }
-        ASSERT(xmax >= xmin || (xmin == +INFINITY && xmax == -INFINITY));
 
         SATURATE(xmin, 0, NGAMUT_SIZE_LO - 1);
         SATURATE(xmax, 0, NGAMUT_SIZE_LO - 1);

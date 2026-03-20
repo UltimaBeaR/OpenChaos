@@ -1,18 +1,12 @@
-//
-// Movie compression.
-//
+#include <MFStdLib.h>
+#include "assets/compression.h"
+#include "assets/image_compression.h"
+#include "assets/tga.h"
 
-#include <MFStdlib.h>
-#include "comp.h"
-#include "ic.h"
-#include "tga.h"
+// Internal delta data layout: zero or more COMP_Pan RLE entries followed by
+// one or more COMP_Update entries. The last COMP_Update has last == TRUE.
 
-//
-// COMP_Delta data structures.  There are as many pan structures as you need
-// followed by at least one COMP_Update structure.  If (last) then that
-// COMP_Update is the last one.
-//
-
+// uc_orig: COMP_Pan (fallen/DDEngine/Source/comp.cpp)
 typedef struct
 {
     UBYTE num;
@@ -20,6 +14,7 @@ typedef struct
 
 } COMP_Pan;
 
+// uc_orig: COMP_Update (fallen/DDEngine/Source/comp.cpp)
 typedef struct
 {
     UBYTE x;
@@ -30,19 +25,10 @@ typedef struct
 
 } COMP_Update;
 
-//
-// Memory for a tga.
-//
 
-TGA_Pixel COMP_tga_data[COMP_TGA_MAX_WIDTH * COMP_TGA_MAX_HEIGHT];
-TGA_Info COMP_tga_info;
-
-//
-// Returns the colour of the virtual pixel at the given location where
-// x and y go from 0.0 to 1.0F
-//
-
-TGA_Pixel COMP_tga_colour(float x, float y)
+// Samples the loaded TGA at normalised coordinates [0,1) x [0,1).
+// uc_orig: COMP_tga_colour (fallen/DDEngine/Source/comp.cpp)
+static TGA_Pixel COMP_tga_colour(float x, float y)
 {
     TGA_Pixel ans;
     SLONG px;
@@ -59,6 +45,7 @@ TGA_Pixel COMP_tga_colour(float x, float y)
     return ans;
 }
 
+// uc_orig: COMP_load (fallen/DDEngine/Source/comp.cpp)
 SLONG COMP_load(CBYTE* filename, COMP_Frame* cf)
 {
 
@@ -87,10 +74,8 @@ SLONG COMP_load(CBYTE* filename, COMP_Frame* cf)
         return FALSE;
     }
 
-    //
-    // Sample the tga to fit into our frame.
-    //
-
+    // Downsample the TGA to fit into a COMP_SIZE x COMP_SIZE frame
+    // uc_orig: COMP_SAMPLES_PER_PIXEL (fallen/DDEngine/Source/comp.cpp)
 #define COMP_SAMPLES_PER_PIXEL 4
 
     for (px = 0; px < COMP_SIZE; px++)
@@ -123,12 +108,10 @@ SLONG COMP_load(CBYTE* filename, COMP_Frame* cf)
     return TRUE;
 }
 
-//
-// Returns the difference between the two squares. The square coordinates
-// clamp to be inside the frame.
-//
-
-SLONG COMP_square_error(
+// Returns the sum of absolute per-channel differences between two same-sized
+// squares, each clamped to remain inside the frame bounds.
+// uc_orig: COMP_square_error (fallen/DDEngine/Source/comp.cpp)
+static SLONG COMP_square_error(
     COMP_Frame* f1,
     SLONG sx1,
     SLONG sy1,
@@ -176,11 +159,9 @@ SLONG COMP_square_error(
     return error;
 }
 
-//
-// Copies one square onto another.
-//
-
-void COMP_square_copy(
+// Copies a square region from f1 into f2; coordinates are clamped to frame bounds.
+// uc_orig: COMP_square_copy (fallen/DDEngine/Source/comp.cpp)
+static void COMP_square_copy(
     COMP_Frame* f1,
     SLONG sx1,
     SLONG sy1,
@@ -222,21 +203,8 @@ void COMP_square_copy(
         }
 }
 
-//
-// The compression data.
-//
 
-#define COMP_MAX_DATA (1024 * 16)
-
-struct
-{
-    SLONG size;
-    UBYTE data[COMP_MAX_DATA];
-
-} COMP_data;
-
-COMP_Frame COMP_frame;
-
+// uc_orig: COMP_calc (fallen/DDEngine/Source/comp.cpp)
 COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
 {
     SLONG i;
@@ -270,10 +238,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
     SLONG cu_valid;
     SLONG cu_num;
 
-    //
-    // Work out the best pan values to get from frame one to frame two.
-    //
-
+    // uc_orig: COMP_MAX_PAN (fallen/DDEngine/Source/comp.cpp)
 #define COMP_MAX_PAN 5
 
     for (sx = 0; sx < COMP_SNUM; sx++)
@@ -301,10 +266,6 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
                         best_dy = dy;
 
                         if (best_error == 0) {
-                            //
-                            // We're not going to get any better than this!
-                            //
-
                             goto found_best_pan;
                         }
                     }
@@ -312,26 +273,17 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
 
         found_best_pan:;
 
-    //
-    // The maximum error per-pixel we can live with.
-    //
-
+    // uc_orig: COMP_MAX_ERROR_PER_PIXEL (fallen/DDEngine/Source/comp.cpp)
 #define COMP_MAX_ERROR_PER_PIXEL 32
 
             if (best_error < (COMP_SSIZE * COMP_SSIZE * COMP_MAX_ERROR_PER_PIXEL)) {
                 pan[pan_upto++] = (best_dx + COMP_MAX_PAN) | ((best_dy + COMP_MAX_PAN) << 4);
             } else {
-                //
-                // Mark as undefined.
-                //
-
                 pan[pan_upto++] = 255;
             }
         }
 
-    //
-    // RLE the pan values
-    //
+    // RLE-encode the pan values into the output buffer.
 
     cp = (COMP_Pan*)COMP_data.data;
 
@@ -349,9 +301,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
         }
     }
 
-    //
-    // Build the frame from just the pan info.
-    //
+    // Apply pan offsets to build the preliminary reconstructed frame.
 
     pan_upto = 0;
 
@@ -379,9 +329,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
             pan_upto += 1;
         }
 
-    //
-    // Work out which packets we have to store in full.
-    //
+    // Emit IC packets for 4x4 blocks that differ too much from f2.
 
     cu = (COMP_Update*)(cp + 1);
     ip = (IC_Packet*)(cp + 1);
@@ -393,10 +341,6 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
             pan_index = (sx / COMP_SSIZE) * COMP_SNUM + (sy / COMP_SSIZE);
 
             if (pan[pan_index] == 255) {
-                //
-                // Always update undefined pans.
-                //
-
                 error = INFINITY;
             } else {
                 error = COMP_square_error(
@@ -409,10 +353,6 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
                 cu_num += 1;
 
                 if (cu_valid) {
-                    //
-                    // Add another packet.
-                    //
-
                     *ip = IC_pack(
                         (TGA_Pixel*)f2->p,
                         COMP_SIZE,
@@ -423,21 +363,10 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
                     cu->num += 1;
 
                     if (cu->num == 255) {
-                        //
-                        // We have to start another run!
-                        //
-
                         cu_valid = FALSE;
                     }
                 } else {
-                    //
-                    // Create a new packet.
-                    //
-
                     cu = (COMP_Update*)ip;
-
-                    ASSERT((sx & 0x3) == 0);
-                    ASSERT((sy & 0x3) == 0);
 
                     cu->x = sx;
                     cu->y = sy;
@@ -455,10 +384,6 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
                     cu_valid = TRUE;
                 }
 
-                //
-                // Build the frame.
-                //
-
                 IC_unpack(
                     *ip,
                     (TGA_Pixel*)ans->p,
@@ -469,30 +394,18 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
 
                 ip += 1;
             } else {
-                //
-                // We'll have to start another RLE run next time we find a
-                // square to update.
-                //
-
                 cu_valid = FALSE;
             }
         }
 
     if (cu_num == 0) {
-        //
-        // Create a dud last packet.
-        //
-
+        // No updates: write a sentinel last packet with zero blocks.
         cu->x = 0;
         cu->y = 0;
         cu->num = 0;
         cu->last = 1;
         ip = cu->ip;
     } else {
-        //
-        // Mark the last packet as the last one.
-        //
-
         cu->last = TRUE;
     }
 
@@ -501,13 +414,10 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
 
     COMP_data.size = data_end - data_start;
 
-    //
-    // Done!
-    //
-
     return (COMP_Delta*)&COMP_data;
 }
 
+// uc_orig: COMP_decomp (fallen/DDEngine/Source/comp.cpp)
 void COMP_decomp(
     COMP_Frame* base,
     COMP_Delta* delta,
@@ -523,9 +433,7 @@ void COMP_decomp(
     COMP_Update* cu;
     IC_Packet* ip;
 
-    //
-    // Use the pan info to copy over data.
-    //
+    // Apply RLE pan entries to copy sub-blocks from base into result.
 
     cp = (COMP_Pan*)delta->data;
 
@@ -559,10 +467,6 @@ void COMP_decomp(
                 sx += COMP_SSIZE;
 
                 if (sx >= COMP_SIZE) {
-                    //
-                    // Finished doing pan copying.
-                    //
-
                     goto finished_panning;
                 }
             }
@@ -573,9 +477,7 @@ void COMP_decomp(
 
 finished_panning:;
 
-    //
-    // Put in all the packets.
-    //
+    // Apply IC packets to overwrite blocks that needed full updates.
 
     cu = (COMP_Update*)(cp + 1);
 
@@ -584,13 +486,7 @@ finished_panning:;
         sy = cu->y;
         ip = cu->ip;
 
-        ASSERT((sx & 0x3) == 0);
-        ASSERT((sy & 0x3) == 0);
-
         for (i = 0; i < cu->num; i++) {
-            ASSERT(WITHIN(sx, 0, COMP_SIZE - 4));
-            ASSERT(WITHIN(sy, 0, COMP_SIZE - 4));
-
             IC_unpack(
                 *ip,
                 (TGA_Pixel*)result->p,
