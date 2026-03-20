@@ -6,16 +6,7 @@
 #include <process.h>
 
 #include "engine/io/async_file.h"
-
-// uc_orig: File (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static AsyncFile File[MAX_ASYNC_FILES];
-
-// uc_orig: FreeList (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static AsyncFile FreeList;
-// uc_orig: ActiveList (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static AsyncFile ActiveList;
-// uc_orig: CompleteList (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static AsyncFile CompleteList;
+#include "engine/io/async_file_globals.h"
 
 // uc_orig: Unlink (fallen/DDLibrary/Source/AsyncFile2.cpp)
 static void Unlink(AsyncFile* file);
@@ -25,23 +16,8 @@ static void FreeLink(AsyncFile* file);
 static void ActiveLink(AsyncFile* file);
 // uc_orig: CompleteLink (fallen/DDLibrary/Source/AsyncFile2.cpp)
 static void CompleteLink(AsyncFile* file);
-
-// uc_orig: KillThread (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static int KillThread;
-// uc_orig: CancelKey (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static void* CancelKey;
-
-// uc_orig: csLock (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static CRITICAL_SECTION csLock;
-// uc_orig: hEvent (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static HANDLE hEvent;
-// uc_orig: hThread (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static HANDLE hThread;
 // uc_orig: ThreadRun (fallen/DDLibrary/Source/AsyncFile2.cpp)
 static DWORD WINAPI ThreadRun(LPVOID arg);
-
-// uc_orig: BytesPerMillisecond (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static const int BytesPerMillisecond = 128 * 1024;
 
 // uc_orig: InitAsyncFile (fallen/DDLibrary/Source/AsyncFile2.cpp)
 void InitAsyncFile(void)

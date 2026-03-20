@@ -1,116 +1,52 @@
+// uc_orig: TALK_3D (fallen/DDLibrary/Source/MFX.cpp)
 #define TALK_3D 0
 
-#include "MFX.h"
-
-#include "..\headers\fc.h"
-#include "..\headers\env.h"
+#include "engine/audio/mfx_globals.h"
+#include "core/math.h"
+#include "engine/io/drive.h"
 #include <cmath>
-
-#include "drive.h"
-
 #include <AL/al.h>
-#include <AL/alc.h>
 #include <AL/alext.h>
 #include <SDL2/SDL_audio.h>
+// Temporary: fc.h not yet migrated
+#include "fallen/Headers/fc.h"
+// Temporary: env.h not yet migrated
+#include "fallen/Headers/env.h"
+// Temporary: MF_Fopen/MF_Fclose from MFStdLib
+#include "MFStdLib/Headers/MFStdLib.h"
+// Temporary: sound_id.h not yet migrated
+#include "fallen/Headers/sound_id.h"
 
-#define COORDINATE_UNITS float(1.0 / 256.0) // 1 tile ~= 1 meter
-
-enum SampleType {
-    SMP_Ambient = 0,
-    SMP_Music,
-    SMP_Effect
-};
-
-struct MFX_Sample {
-    MFX_Sample* prev_lru; // prev LRU entry (i.e. sample used before this one)
-    MFX_Sample* next_lru; // next LRU entry (i.e. sample used after this one)
-    char* fname; // sample filename
-    unsigned int handle;
-    bool is3D;
-    int size;
-    int usecount;
-    int type; // SampleType of sample - used to get volume
-    float linscale; // linear scaling for sample volume - used to set 3D distances
-    bool loading;
-};
-
-#define MAX_SAMPLE 552
-#define MAX_SAMPLE_MEM 64 * 1024 * 1024
-
-// MFX_QWave
-//
-// control block for a queued wave
-
-struct MFX_QWave {
-    MFX_QWave* next; // next voice to be queued, or NULL
-    ULONG wave; // sound sample to be played
-    ULONG flags;
-    bool is3D;
-    SLONG x, y, z; // coordinates of the voice
-    float gain;
-};
-
-#define MAX_QWAVE 32 // number of queued wave slots
-#define MAX_QVOICE 5 // maximum waves queued per voice
-
-struct MFX_Voice {
-    UWORD id; // channel_id for this voice
-    unsigned int handle;
-    ULONG wave; // sound sample playing on this voice
-    ULONG flags;
-    bool is3D;
-    SLONG x, y, z; // coordinates of this voice
-    Thing* thing; // thing this voice belongs to
-    MFX_QWave* queue; // queue of samples to play
-    SLONG queuesz; // number of queued samples
-    MFX_Sample* smp; // sample being played
-    bool playing;
-    float ratemult;
-    float gain;
-};
-
-#define MAX_VOICE 64
-#define VOICE_MSK 63 // mask for voice indices
-
-ALCdevice* alDevice;
-ALCcontext* alContext;
-
-static MFX_Voice Voices[MAX_VOICE];
-static MFX_QWave QWaves[MAX_QWAVE];
-static MFX_QWave* QFree; // first free queue elt. (NEVER NULL - we waste one element)
-static MFX_QWave* QFreeLast; // last free queue elt.
-
-static MFX_Sample Samples[MAX_SAMPLE];
-static MFX_Sample TalkSample;
-static int NumSamples;
-static MFX_Sample LRU; // sentinel for LRU dllist
-
-static const float MinDist = 512; // min distance for 3D provider
-static const float MaxDist = (64 << 8); // max distance for 3D provider
-static float Gain2D = 1.0; // gain for 2D voices
-static float LX, LY, LZ; // listener coords
-
-static float Volumes[3]; // volumes for each SampleType
-
-static int AllocatedRAM = 0;
-
+// uc_orig: GetFullName (fallen/DDLibrary/Source/MFX.cpp)
 static char* GetFullName(char* fname);
-void SetLinearScale(SLONG wave, float linscale); // set volume scaling for sample (1.0 = normal)
-void SetPower(SLONG wave, float dB); // set power for sample in dB (0 = normal)
+// uc_orig: SetLinearScale (fallen/DDLibrary/Source/MFX.cpp)
+void SetLinearScale(SLONG wave, float linscale);
+// uc_orig: SetPower (fallen/DDLibrary/Source/MFX.cpp)
+void SetPower(SLONG wave, float dB);
+// uc_orig: InitVoices (fallen/DDLibrary/Source/MFX.cpp)
 static void InitVoices();
+// uc_orig: LoadWaveFile (fallen/DDLibrary/Source/MFX.cpp)
 static void LoadWaveFile(MFX_Sample* sptr);
+// uc_orig: LoadTalkFile (fallen/DDLibrary/Source/MFX.cpp)
 static void LoadTalkFile(char* filename);
+// uc_orig: UnloadWaveFile (fallen/DDLibrary/Source/MFX.cpp)
 static void UnloadWaveFile(MFX_Sample* sptr);
+// uc_orig: UnloadTalkFile (fallen/DDLibrary/Source/MFX.cpp)
 static void UnloadTalkFile();
+// uc_orig: FinishLoading (fallen/DDLibrary/Source/MFX.cpp)
 static void FinishLoading(MFX_Voice* vptr);
-
+// uc_orig: PlayVoice (fallen/DDLibrary/Source/MFX.cpp)
 static void PlayVoice(MFX_Voice* vptr);
+// uc_orig: MoveVoice (fallen/DDLibrary/Source/MFX.cpp)
 static void MoveVoice(MFX_Voice* vptr);
+// uc_orig: SetVoiceRate (fallen/DDLibrary/Source/MFX.cpp)
 static void SetVoiceRate(MFX_Voice* vptr, float mult);
+// uc_orig: SetVoiceGain (fallen/DDLibrary/Source/MFX.cpp)
 static void SetVoiceGain(MFX_Voice* vptr, float gain);
 
 extern CBYTE* sound_list[];
 
+// uc_orig: MFX_init (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_init()
 {
     alDevice = alcOpenDevice(nullptr);
@@ -119,7 +55,6 @@ void MFX_init()
 
     InitVoices();
 
-    // initialize Samples[]
     LRU.prev_lru = LRU.next_lru = &LRU;
     AllocatedRAM = 0;
 
@@ -169,8 +104,6 @@ void MFX_init()
         names++;
     }
 
-    ASSERT(NumSamples <= MAX_SAMPLE);
-
     sptr = &TalkSample;
 
     sptr->prev_lru = NULL;
@@ -188,11 +121,11 @@ void MFX_init()
     Volumes[SMP_Effect] = float(ENV_get_value_number("fx_volume", 127, "Audio")) / 127.0f;
 }
 
+// uc_orig: MFX_term (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_term()
 {
     MFX_free_wave_list();
 
-    // free waves
     for (int ii = 0; ii < NumSamples; ii++) {
         UnloadWaveFile(&Samples[ii]);
     }
@@ -205,13 +138,13 @@ void MFX_term()
     alcCloseDevice(alDevice);
 }
 
+// uc_orig: GetFullName (fallen/DDLibrary/Source/MFX.cpp)
 static char* GetFullName(char* fname)
 {
     CBYTE buf[MAX_PATH];
     static CBYTE pathname[MAX_PATH];
 
-    if (strchr(fname, '-')) // usefully, all the taunts etc have a - in them, and none of the other sounds do... bonus!
-    {
+    if (strchr(fname, '-')) {
         CHAR* ptr = strrchr(fname, '\\') + 1;
         sprintf(buf, "talk2\\misc\\%s", ptr);
         strcpy(pathname, GetSFXPath());
@@ -234,18 +167,21 @@ static char* GetFullName(char* fname)
     return pathname;
 }
 
-void SetLinearScale(SLONG wave, float linscale)
+// uc_orig: SetLinearScale (fallen/DDLibrary/Source/MFX.cpp)
+static void SetLinearScale(SLONG wave, float linscale)
 {
     if ((wave >= 0) && (wave < NumSamples)) {
         Samples[wave].linscale = linscale;
     }
 }
 
-void SetPower(SLONG wave, float dB)
+// uc_orig: SetPower (fallen/DDLibrary/Source/MFX.cpp)
+static void SetPower(SLONG wave, float dB)
 {
     SetLinearScale(wave, float(exp(log(10) * dB / 20)));
 }
 
+// uc_orig: InitVoices (fallen/DDLibrary/Source/MFX.cpp)
 static void InitVoices()
 {
     int ii;
@@ -275,12 +211,13 @@ static void InitVoices()
     LX = LY = LZ = 0;
 }
 
-// hash a channel ID to a voice ID
+// uc_orig: Hash (fallen/DDLibrary/Source/MFX.cpp)
 static inline int Hash(UWORD channel_id)
 {
     return (channel_id * 37) & VOICE_MSK;
 }
 
+// uc_orig: FindVoice (fallen/DDLibrary/Source/MFX.cpp)
 static MFX_Voice* FindVoice(UWORD channel_id, ULONG wave)
 {
     int offset = Hash(channel_id);
@@ -295,6 +232,7 @@ static MFX_Voice* FindVoice(UWORD channel_id, ULONG wave)
     return NULL;
 }
 
+// uc_orig: FindFirst (fallen/DDLibrary/Source/MFX.cpp)
 static MFX_Voice* FindFirst(UWORD channel_id)
 {
     int offset = Hash(channel_id);
@@ -309,7 +247,7 @@ static MFX_Voice* FindFirst(UWORD channel_id)
     return NULL;
 }
 
-// find the next active voice with the same channel ID
+// uc_orig: FindNext (fallen/DDLibrary/Source/MFX.cpp)
 static MFX_Voice* FindNext(MFX_Voice* vptr)
 {
     int offset = Hash(vptr->id);
@@ -326,6 +264,7 @@ static MFX_Voice* FindNext(MFX_Voice* vptr)
     return NULL;
 }
 
+// uc_orig: FindFree (fallen/DDLibrary/Source/MFX.cpp)
 static MFX_Voice* FindFree(UWORD channel_id)
 {
     int offset = Hash(channel_id);
@@ -340,6 +279,7 @@ static MFX_Voice* FindFree(UWORD channel_id)
     return NULL;
 }
 
+// uc_orig: FreeVoiceSource (fallen/DDLibrary/Source/MFX.cpp)
 static void FreeVoiceSource(MFX_Voice* vptr)
 {
     if (vptr->handle) {
@@ -350,12 +290,12 @@ static void FreeVoiceSource(MFX_Voice* vptr)
     }
 }
 
+// uc_orig: FreeVoice (fallen/DDLibrary/Source/MFX.cpp)
 static void FreeVoice(MFX_Voice* vptr)
 {
     if (!vptr)
         return;
 
-    // remove queue
     QFreeLast->next = vptr->queue;
     while (QFreeLast->next) {
         QFreeLast = QFreeLast->next;
@@ -363,7 +303,6 @@ static void FreeVoice(MFX_Voice* vptr)
     vptr->queue = NULL;
     vptr->queuesz = 0;
 
-    // reset data
     FreeVoiceSource(vptr);
 
     if (vptr->thing) {
@@ -376,9 +315,9 @@ static void FreeVoice(MFX_Voice* vptr)
     vptr->smp = NULL;
 }
 
+// uc_orig: GetVoiceForWave (fallen/DDLibrary/Source/MFX.cpp)
 static MFX_Voice* GetVoiceForWave(UWORD channel_id, ULONG wave, ULONG flags)
 {
-    // just return a new voice if overlapped
     if (flags & MFX_OVERLAP) {
         return FindFree(channel_id);
     }
@@ -386,17 +325,14 @@ static MFX_Voice* GetVoiceForWave(UWORD channel_id, ULONG wave, ULONG flags)
     MFX_Voice* vptr;
 
     if (flags & (MFX_QUEUED | MFX_NEVER_OVERLAP)) {
-        // find first voice on this channel, if any
         vptr = FindFirst(channel_id);
     } else {
-        // find voice playing this sample, if any
         vptr = FindVoice(channel_id, wave);
     }
 
     if (!vptr) {
         vptr = FindFree(channel_id);
     } else {
-        // found a voice - return NULL if not queued but never overlapped (else queue)
         if ((flags & (MFX_NEVER_OVERLAP | MFX_QUEUED)) == MFX_NEVER_OVERLAP) {
             return NULL;
         }
@@ -405,6 +341,7 @@ static MFX_Voice* GetVoiceForWave(UWORD channel_id, ULONG wave, ULONG flags)
     return vptr;
 }
 
+// uc_orig: SetupVoiceTalk (fallen/DDLibrary/Source/MFX.cpp)
 static SLONG SetupVoiceTalk(MFX_Voice* vptr, char* filename)
 {
     vptr->id = 0;
@@ -435,6 +372,7 @@ static SLONG SetupVoiceTalk(MFX_Voice* vptr, char* filename)
     return TRUE;
 }
 
+// uc_orig: SetupVoice (fallen/DDLibrary/Source/MFX.cpp)
 static void SetupVoice(MFX_Voice* vptr, UWORD channel_id, ULONG wave, ULONG flags, bool is3D)
 {
     vptr->id = channel_id;
@@ -455,7 +393,6 @@ static void SetupVoice(MFX_Voice* vptr, UWORD channel_id, ULONG wave, ULONG flag
 
     MFX_Sample* sptr = &Samples[wave];
 
-    // once the level's won or lost, no more sounds
     if ((sptr->type != SMP_Music) && (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON))) {
         return;
     }
@@ -466,7 +403,6 @@ static void SetupVoice(MFX_Voice* vptr, UWORD channel_id, ULONG wave, ULONG flag
         return;
     }
 
-    // load the sample
     if (!sptr->handle) {
         LoadWaveFile(sptr);
         if (!sptr->handle) {
@@ -474,13 +410,11 @@ static void SetupVoice(MFX_Voice* vptr, UWORD channel_id, ULONG wave, ULONG flag
         }
     }
 
-    // unlink from LRU queue
     if (sptr->prev_lru) {
         sptr->prev_lru->next_lru = sptr->next_lru;
         sptr->next_lru->prev_lru = sptr->prev_lru;
     }
 
-    // free some stuff if we've got too many loaded
     if (AllocatedRAM > MAX_SAMPLE_MEM) {
         MFX_Sample* sptr = LRU.next_lru;
         while (sptr != &LRU) {
@@ -495,7 +429,6 @@ static void SetupVoice(MFX_Voice* vptr, UWORD channel_id, ULONG wave, ULONG flag
         }
     }
 
-    // link in at front
     sptr->next_lru = &LRU;
     sptr->prev_lru = LRU.prev_lru;
     sptr->next_lru->prev_lru = sptr;
@@ -507,8 +440,8 @@ static void SetupVoice(MFX_Voice* vptr, UWORD channel_id, ULONG wave, ULONG flag
         FinishLoading(vptr);
     }
 }
-// TODO: Review memory leak due to OpenAL Usage
-//  set up voice after sample has loaded
+
+// uc_orig: FinishLoading (fallen/DDLibrary/Source/MFX.cpp)
 static void FinishLoading(MFX_Voice* vptr)
 {
     MFX_Sample* sptr = vptr->smp;
@@ -543,6 +476,7 @@ static void FinishLoading(MFX_Voice* vptr)
     }
 }
 
+// uc_orig: PlayVoice (fallen/DDLibrary/Source/MFX.cpp)
 static void PlayVoice(MFX_Voice* vptr)
 {
     if (vptr->handle) {
@@ -554,6 +488,7 @@ static void PlayVoice(MFX_Voice* vptr)
     vptr->playing = true;
 }
 
+// uc_orig: MoveVoice (fallen/DDLibrary/Source/MFX.cpp)
 static void MoveVoice(MFX_Voice* vptr)
 {
     if (vptr->is3D) {
@@ -563,7 +498,6 @@ static void MoveVoice(MFX_Voice* vptr)
 
         ALfloat position[3];
         if ((fabs(x - LX) < 0.5) && (fabs(y - LY) < 0.5) && (fabs(z - LZ) < 0.5)) {
-            // set exactly at the listener if within epsilon
             position[0] = LX;
             position[1] = LY;
             position[2] = LZ;
@@ -576,6 +510,7 @@ static void MoveVoice(MFX_Voice* vptr)
     }
 }
 
+// uc_orig: SetVoiceRate (fallen/DDLibrary/Source/MFX.cpp)
 static void SetVoiceRate(MFX_Voice* vptr, float mult)
 {
     if (vptr->handle) {
@@ -584,6 +519,7 @@ static void SetVoiceRate(MFX_Voice* vptr, float mult)
     vptr->ratemult = mult;
 }
 
+// uc_orig: SetVoiceGain (fallen/DDLibrary/Source/MFX.cpp)
 static void SetVoiceGain(MFX_Voice* vptr, float gain)
 {
     if (vptr->smp == NULL) {
@@ -605,6 +541,7 @@ static void SetVoiceGain(MFX_Voice* vptr, float gain)
     vptr->gain = gain;
 }
 
+// uc_orig: IsVoiceDone (fallen/DDLibrary/Source/MFX.cpp)
 static bool IsVoiceDone(MFX_Voice* vptr)
 {
     if (vptr->flags & MFX_LOOPED) {
@@ -630,10 +567,10 @@ static bool IsVoiceDone(MFX_Voice* vptr)
     return (state != AL_PLAYING);
 }
 
+// uc_orig: QueueWave (fallen/DDLibrary/Source/MFX.cpp)
 static void QueueWave(MFX_Voice* vptr, UWORD wave, ULONG flags, bool is3D, SLONG x, SLONG y, SLONG z)
 {
     if ((flags & MFX_SHORT_QUEUE) && vptr->queue) {
-        // short queue - just blat it over the queued one
         vptr->queue->flags = flags;
         vptr->queue->wave = wave;
         vptr->queue->x = x;
@@ -645,12 +582,10 @@ static void QueueWave(MFX_Voice* vptr, UWORD wave, ULONG flags, bool is3D, SLONG
     if (vptr->queuesz > MAX_QVOICE) {
         return;
     }
-    // no free slots
     if (QFree == QFreeLast) {
         return;
     }
 
-    // allocate a queue element
     MFX_QWave* qptr = vptr->queue;
 
     if (qptr) {
@@ -675,6 +610,7 @@ static void QueueWave(MFX_Voice* vptr, UWORD wave, ULONG flags, bool is3D, SLONG
     qptr->gain = 1.0;
 }
 
+// uc_orig: TriggerPairedVoice (fallen/DDLibrary/Source/MFX.cpp)
 static void TriggerPairedVoice(UWORD channel_id)
 {
     MFX_Voice* vptr = FindFirst(channel_id);
@@ -686,7 +622,8 @@ static void TriggerPairedVoice(UWORD channel_id)
     vptr->flags &= ~MFX_PAIRED_TRK2;
     PlayVoice(vptr);
 }
-// TODO: Review memory leak due to OpenAL Usage
+
+// uc_orig: PlayWave (fallen/DDLibrary/Source/MFX.cpp)
 static UBYTE PlayWave(UWORD channel_id, ULONG wave, ULONG flags, bool is3D, SLONG x, SLONG y, SLONG z, Thing* thing)
 {
     MFX_Voice* vptr = GetVoiceForWave(channel_id, wave, flags);
@@ -706,7 +643,6 @@ static UBYTE PlayWave(UWORD channel_id, ULONG wave, ULONG flags, bool is3D, SLON
     }
 
     if (vptr->smp) {
-        // once the level's won or lost, no more sounds
         if ((vptr->smp->type != SMP_Music) && (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON))) {
             return 0;
         }
@@ -737,6 +673,7 @@ static UBYTE PlayWave(UWORD channel_id, ULONG wave, ULONG flags, bool is3D, SLON
     return 1;
 }
 
+// uc_orig: PlayTalk (fallen/DDLibrary/Source/MFX.cpp)
 static UBYTE PlayTalk(char* filename, SLONG x, SLONG y, SLONG z)
 {
     MFX_Voice* vptr = GetVoiceForWave(0, NumSamples, 0);
@@ -768,6 +705,7 @@ static UBYTE PlayTalk(char* filename, SLONG x, SLONG y, SLONG z)
     return 1;
 }
 
+// uc_orig: MFX_get_volumes (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_get_volumes(SLONG* fx, SLONG* amb, SLONG* mus)
 {
     *fx = SLONG(127 * Volumes[SMP_Effect]);
@@ -775,6 +713,7 @@ void MFX_get_volumes(SLONG* fx, SLONG* amb, SLONG* mus)
     *mus = SLONG(127 * Volumes[SMP_Music]);
 }
 
+// uc_orig: MFX_set_volumes (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_set_volumes(SLONG fx, SLONG amb, SLONG mus)
 {
     fx = min(max(fx, 0), 127);
@@ -790,34 +729,37 @@ void MFX_set_volumes(SLONG fx, SLONG amb, SLONG mus)
     ENV_set_value_number("fx_volume", fx, "Audio");
 }
 
+// uc_orig: MFX_play_xyz (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_play_xyz(UWORD channel_id, ULONG wave, ULONG flags, SLONG x, SLONG y, SLONG z)
 {
     PlayWave(channel_id, wave, flags, true, x >> 8, y >> 8, z >> 8, NULL);
 }
 
+// uc_orig: MFX_play_thing (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_play_thing(UWORD channel_id, ULONG wave, ULONG flags, Thing* p)
 {
     PlayWave(channel_id, wave, flags, true, 0, 0, 0, p);
 }
 
+// uc_orig: MFX_play_ambient (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_play_ambient(UWORD channel_id, ULONG wave, ULONG flags)
 {
     if (wave < NumSamples) {
-        // save 3D channels for non-ambient sounds
         Samples[wave].is3D = false;
         if (Samples[wave].type == SMP_Effect) {
-            // use this volume setting
             Samples[wave].type = SMP_Ambient;
         }
     }
     PlayWave(channel_id, wave, flags, true, FC_cam[0].x, FC_cam[0].y, FC_cam[0].z, NULL);
 }
 
+// uc_orig: MFX_play_stereo (fallen/DDLibrary/Source/MFX.cpp)
 UBYTE MFX_play_stereo(UWORD channel_id, ULONG wave, ULONG flags)
 {
     return PlayWave(channel_id, wave, flags, false, 0, 0, 0, NULL);
 }
 
+// uc_orig: MFX_stop (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_stop(SLONG channel_id, ULONG wave)
 {
     if (channel_id == MFX_CHANNEL_ALL) {
@@ -837,7 +779,7 @@ void MFX_stop(SLONG channel_id, ULONG wave)
     }
 }
 
-// stop all sounds attached to a thing
+// uc_orig: MFX_stop_attached (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_stop_attached(Thing* p)
 {
     for (int ii = 0; ii < MAX_VOICE; ii++) {
@@ -846,6 +788,7 @@ void MFX_stop_attached(Thing* p)
     }
 }
 
+// uc_orig: MFX_set_pitch (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_set_pitch(UWORD channel_id, ULONG wave, SLONG pitchbend)
 {
     MFX_Voice* vptr = FindVoice(channel_id, wave);
@@ -857,6 +800,7 @@ void MFX_set_pitch(UWORD channel_id, ULONG wave, SLONG pitchbend)
     SetVoiceRate(vptr, pitch);
 }
 
+// uc_orig: MFX_set_gain (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_set_gain(UWORD channel_id, ULONG wave, UBYTE gain)
 {
     MFX_Voice* vptr = FindVoice(channel_id, wave);
@@ -868,6 +812,7 @@ void MFX_set_gain(UWORD channel_id, ULONG wave, UBYTE gain)
     SetVoiceGain(vptr, fgain);
 }
 
+// uc_orig: MFX_set_queue_gain (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_set_queue_gain(UWORD channel_id, ULONG wave, UBYTE gain)
 {
     float fgain = float(gain) / 256.0f;
@@ -888,6 +833,7 @@ void MFX_set_queue_gain(UWORD channel_id, ULONG wave, UBYTE gain)
     }
 }
 
+// uc_orig: LoadWaveFile (fallen/DDLibrary/Source/MFX.cpp)
 static void LoadWaveFile(MFX_Sample* sptr)
 {
     if (!sptr->fname || sptr->handle) {
@@ -900,7 +846,6 @@ static void LoadWaveFile(MFX_Sample* sptr)
     if (!SDL_LoadWAV(GetFullName(sptr->fname), &spec, &dataBuffer, &bufferSize)) {
         return;
     }
-    ASSERT(SDL_AUDIO_BITSIZE(spec.format) == 16);
 
     sptr->size = bufferSize;
     AllocatedRAM += bufferSize;
@@ -913,6 +858,7 @@ static void LoadWaveFile(MFX_Sample* sptr)
     SDL_FreeWAV(dataBuffer);
 }
 
+// uc_orig: LoadTalkFile (fallen/DDLibrary/Source/MFX.cpp)
 static void LoadTalkFile(char* filename)
 {
     if (TalkSample.handle) {
@@ -927,7 +873,6 @@ static void LoadTalkFile(char* filename)
     if (!SDL_LoadWAV(filename, &spec, &dataBuffer, &bufferSize)) {
         return;
     }
-    ASSERT(SDL_AUDIO_BITSIZE(spec.format) == 16);
 
     TalkSample.size = bufferSize;
     AllocatedRAM += TalkSample.size;
@@ -940,28 +885,26 @@ static void LoadTalkFile(char* filename)
     SDL_FreeWAV(dataBuffer);
 }
 
+// uc_orig: UnloadWaveFile (fallen/DDLibrary/Source/MFX.cpp)
 static void UnloadWaveFile(MFX_Sample* sptr)
 {
     if (!sptr->handle || sptr->usecount > 0) {
         return;
     }
 
-    // unlink
     if (sptr->prev_lru) {
         sptr->prev_lru->next_lru = sptr->next_lru;
         sptr->next_lru->prev_lru = sptr->prev_lru;
         sptr->next_lru = sptr->prev_lru = NULL;
     }
 
-    // cancel pending IO
-
-    // free
     alDeleteBuffers(1, &sptr->handle);
     sptr->handle = 0;
 
     AllocatedRAM -= sptr->size;
 }
 
+// uc_orig: UnloadTalkFile (fallen/DDLibrary/Source/MFX.cpp)
 static void UnloadTalkFile()
 {
     if (!TalkSample.handle) {
@@ -973,11 +916,11 @@ static void UnloadTalkFile()
     AllocatedRAM -= TalkSample.size;
 }
 
+// uc_orig: MFX_load_wave_list (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_load_wave_list()
 {
     MFX_free_wave_list();
 
-    // free waves
     for (int ii = 0; ii < NumSamples; ii++) {
         if (Samples[ii].type == SMP_Music) {
             UnloadWaveFile(&Samples[ii]);
@@ -986,9 +929,9 @@ void MFX_load_wave_list()
     UnloadWaveFile(&TalkSample);
 }
 
+// uc_orig: MFX_free_wave_list (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_free_wave_list()
 {
-    // reset the music system
     extern void MUSIC_reset();
     MUSIC_reset();
 
@@ -997,6 +940,7 @@ void MFX_free_wave_list()
     InitVoices();
 }
 
+// uc_orig: MFX_set_listener (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_set_listener(SLONG x, SLONG y, SLONG z, SLONG heading, SLONG roll, SLONG pitch)
 {
     x >>= 8;
@@ -1018,13 +962,11 @@ void MFX_set_listener(SLONG x, SLONG y, SLONG z, SLONG heading, SLONG roll, SLON
         LY,
         LZ
     };
-    ALfloat orientation[6] = { -xorient, 0.0f, -zorient, // front
-        0.0f, 1.0f, 0.0f }; // up
+    ALfloat orientation[6] = { -xorient, 0.0f, -zorient,
+        0.0f, 1.0f, 0.0f };
     alListenerfv(AL_POSITION, position);
     alListenerfv(AL_ORIENTATION, orientation);
 
-    // move voices so the epsilon checks
-    // get made
     for (int ii = 0; ii < MAX_VOICE; ii++) {
         if (Voices[ii].is3D) {
             MoveVoice(&Voices[ii]);
@@ -1032,6 +974,7 @@ void MFX_set_listener(SLONG x, SLONG y, SLONG z, SLONG heading, SLONG roll, SLON
     }
 }
 
+// uc_orig: MFX_update (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_update()
 {
 
@@ -1049,7 +992,6 @@ void MFX_update()
             if (!vptr->queue) {
                 FreeVoice(vptr);
             } else {
-                // get next wave from queue
                 MFX_QWave* qptr = vptr->queue;
                 vptr->queue = qptr->next;
 
@@ -1057,13 +999,11 @@ void MFX_update()
                     TriggerPairedVoice(Voices[ii].id + 1);
                 }
 
-                // free the old sample and set up the new one
                 Thing* thing = vptr->thing;
                 FreeVoiceSource(vptr);
                 SetupVoice(vptr, vptr->id, qptr->wave, qptr->flags & ~MFX_PAIRED_TRK2, qptr->is3D);
                 vptr->thing = thing;
 
-                // set the position
                 if ((vptr->flags & MFX_MOVING) && vptr->thing) {
                     vptr->x = vptr->thing->WorldPos.X >> 8;
                     vptr->y = vptr->thing->WorldPos.Y >> 8;
@@ -1074,12 +1014,10 @@ void MFX_update()
                     vptr->z = qptr->z;
                 }
 
-                // relocate and play
                 MoveVoice(vptr);
                 PlayVoice(vptr);
                 SetVoiceGain(vptr, qptr->gain);
 
-                // release queue element
                 qptr->next = QFree;
                 QFree = qptr;
             }
@@ -1102,6 +1040,7 @@ void MFX_update()
     }
 }
 
+// uc_orig: MFX_get_wave (fallen/DDLibrary/Source/MFX.cpp)
 UWORD MFX_get_wave(UWORD channel_id, UBYTE index)
 {
     MFX_Voice* vptr = FindFirst(channel_id);
@@ -1113,11 +1052,13 @@ UWORD MFX_get_wave(UWORD channel_id, UBYTE index)
     return vptr ? vptr->wave : 0;
 }
 
+// uc_orig: MFX_QUICK_play (fallen/DDLibrary/Source/MFX.cpp)
 SLONG MFX_QUICK_play(CBYTE* str, SLONG x, SLONG y, SLONG z)
 {
     return PlayTalk(str, x, y, z);
 }
 
+// uc_orig: MFX_QUICK_still_playing (fallen/DDLibrary/Source/MFX.cpp)
 SLONG MFX_QUICK_still_playing()
 {
     MFX_Voice* vptr = GetVoiceForWave(0, NumSamples, 0);
@@ -1128,11 +1069,13 @@ SLONG MFX_QUICK_still_playing()
     return IsVoiceDone(vptr) ? 0 : 1;
 }
 
+// uc_orig: MFX_QUICK_stop (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_QUICK_stop()
 {
     MFX_stop(0, NumSamples);
 }
 
+// uc_orig: MFX_QUICK_wait (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_QUICK_wait()
 {
     while (MFX_QUICK_still_playing())

@@ -1,4 +1,5 @@
 #include "core/quaternion.h"
+#include "core/quaternion_globals.h"
 #include "core/fmatrix.h"
 #include "core/math.h"
 #include <math.h>
@@ -384,15 +385,6 @@ void QuatToMatrixInteger(QuatInt* quat, Matrix33* m)
     m->M[1][2] = yz + wx;
     m->M[2][2] = (1 << 15) - (xx + yy);
 }
-
-// Lookup table for acos in PSX angle units (0-2047), covering [0, 1] in 1025 steps.
-// Only half the table needed because input to QuatSlerpInteger is always >= 0.
-// uc_orig: acos_table (fallen/DDEngine/Source/Quaternion.cpp)
-SWORD acos_table[1025];
-
-// Flag set once BuildACosTable has been called.
-// uc_orig: acos_table_init (fallen/DDEngine/Source/Quaternion.cpp)
-BOOL acos_table_init = FALSE;
 
 // Populate acos_table with PSX angle values corresponding to acos(i/1025) for i = 0..1024.
 // uc_orig: BuildACosTable (fallen/DDEngine/Source/Quaternion.cpp)

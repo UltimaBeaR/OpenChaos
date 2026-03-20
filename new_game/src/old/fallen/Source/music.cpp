@@ -4,6 +4,7 @@
 // 14 june 99
 //
 
+#include "game.h"
 #include "music.h"
 #include "sound.h"
 #include "mfx.h"

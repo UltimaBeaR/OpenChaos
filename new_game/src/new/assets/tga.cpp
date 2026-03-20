@@ -3,15 +3,6 @@
 #include "engine/io/file.h"
 #include <cstring>
 
-// uc_orig: tclump (fallen/DDLibrary/Source/Tga.cpp)
-static FileClump* tclump = NULL;
-
-// uc_orig: writing (fallen/DDLibrary/Source/Tga.cpp)
-static bool writing;
-
-// uc_orig: init_convert (fallen/DDLibrary/Source/Tga.cpp)
-static bool init_convert = false;
-
 // Forward declarations.
 // uc_orig: TGA_load_from_file (fallen/DDLibrary/Source/Tga.cpp)
 TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixel* data, BOOL bCanShrink = TRUE);
@@ -400,25 +391,6 @@ static UBYTE* ReadSquished(ULONG id)
 
     return output;
 }
-
-// Colour conversion lookup tables used when compressing pixels to 16-bit formats.
-// uc_orig: C8to4 (fallen/DDLibrary/Source/Tga.cpp)
-static UBYTE C8to4[256];
-
-// uc_orig: C8to5 (fallen/DDLibrary/Source/Tga.cpp)
-static UBYTE C8to5[256];
-
-// uc_orig: C8to6 (fallen/DDLibrary/Source/Tga.cpp)
-static UBYTE C8to6[256];
-
-// uc_orig: C4to8 (fallen/DDLibrary/Source/Tga.cpp)
-static UBYTE C4to8[16];
-
-// uc_orig: C5to8 (fallen/DDLibrary/Source/Tga.cpp)
-static UBYTE C5to8[32];
-
-// uc_orig: C6to8 (fallen/DDLibrary/Source/Tga.cpp)
-static UBYTE C6to8[64];
 
 // Populate the 8-bit <-> 4/5/6-bit conversion lookup tables.
 // uc_orig: TGA_make_conversion_tables (fallen/DDLibrary/Source/Tga.cpp)

@@ -2,6 +2,7 @@
 // Guy Simmons, 20th November 1997.
 
 #include "DDLib.h"
+#include "game.h"
 #include "..\headers\Sound.h"
 #include "mfx.h"
 

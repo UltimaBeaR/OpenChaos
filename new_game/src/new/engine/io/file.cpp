@@ -1,18 +1,7 @@
 #include "engine/io/file.h"
+#include "engine/io/file_globals.h"
 
 #include <cstring>
-
-// uc_orig: MAX_LENGTH_OF_BASE_PATH (MFStdLib/Source/StdLib/StdFile.cpp)
-#define MAX_LENGTH_OF_BASE_PATH 64
-
-// uc_orig: cBasePath (MFStdLib/Source/StdLib/StdFile.cpp)
-static CBYTE cBasePath[MAX_LENGTH_OF_BASE_PATH + 1];
-
-// uc_orig: MAX_LENGTH_OF_FULL_NAME (MFStdLib/Source/StdLib/StdFile.cpp)
-#define MAX_LENGTH_OF_FULL_NAME (MAX_LENGTH_OF_BASE_PATH + 128)
-
-// uc_orig: cTempFilename (MFStdLib/Source/StdLib/StdFile.cpp)
-static CBYTE cTempFilename[MAX_LENGTH_OF_FULL_NAME + 1];
 
 // Prepend cBasePath to filename. Returns pointer to static buffer.
 // uc_orig: MakeFullPathName (MFStdLib/Source/StdLib/StdFile.cpp)

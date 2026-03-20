@@ -1,21 +1,13 @@
-// drive.cpp
-//
-// CD-ROM drives
+#include "engine/io/drive.h"
+#include "engine/io/drive_globals.h"
+#include <cstdio>
+#include <cstring>
+// Temporary: env.h not yet migrated
+#include "fallen/Headers/env.h"
+// Temporary: MF_Fopen/MF_Fclose from MFStdLib
+#include "MFStdLib/Headers/MFStdLib.h"
 
-#include "ddlib.h"
-#include "drive.h"
-#include "..\headers\env.h"
-
-static char Path[MAX_PATH]; // CD-ROM path
-static bool TexturesCD; // textures on CD?
-static bool SFX_CD; // sound effects on CD?
-static bool MoviesCD; // movies on CD?
-static bool SpeechCD; // speech on CD?
-
-// LocateCDROM
-//
-// locate the CD drive containing the Urban Chaos CD
-
+// uc_orig: LocateCDROM (fallen/DDLibrary/Source/Drive.cpp)
 void LocateCDROM(void)
 {
     TexturesCD = ENV_get_value_number("textures", 1, "LocalInstall") ? false : true;
@@ -24,7 +16,7 @@ void LocateCDROM(void)
     SpeechCD = ENV_get_value_number("speech", 1, "LocalInstall") ? false : true;
 
     if (!TexturesCD && !SFX_CD && !MoviesCD && !SpeechCD)
-        return; // don't need CD-ROM
+        return;
 
     char strings[256];
 
@@ -40,12 +32,11 @@ void LocateCDROM(void)
             if (GetDriveType(sptr) == DRIVE_CDROM) {
                 char filename[MAX_PATH];
 
-                sprintf(filename, "%sclumps\\mib.txc", sptr); // fallen.ex_ doesnt exist on eidos funny fanny builds
+                sprintf(filename, "%sclumps\\mib.txc", sptr);
 
                 FILE* fd = MF_Fopen(filename, "rb");
 
                 if (fd) {
-                    // found it!
                     MF_Fclose(fd);
                     strcpy(Path, sptr);
                     return;
@@ -62,12 +53,16 @@ void LocateCDROM(void)
     exit(0);
 }
 
-// Get*Path
-
+// uc_orig: GetPath (fallen/DDLibrary/Source/Drive.cpp)
 static inline char* GetPath(bool on_cd) { return on_cd ? Path : (char*)".\\"; }
 
+// uc_orig: GetCDPath (fallen/DDLibrary/Source/Drive.cpp)
 char* GetCDPath(void) { return Path; }
+// uc_orig: GetTexturePath (fallen/DDLibrary/Source/Drive.cpp)
 char* GetTexturePath(void) { return GetPath(TexturesCD); }
+// uc_orig: GetSFXPath (fallen/DDLibrary/Source/Drive.cpp)
 char* GetSFXPath(void) { return GetPath(SFX_CD); }
+// uc_orig: GetMoviesPath (fallen/DDLibrary/Source/Drive.cpp)
 char* GetMoviesPath(void) { return GetPath(MoviesCD); }
+// uc_orig: GetSpeechPath (fallen/DDLibrary/Source/Drive.cpp)
 char* GetSpeechPath(void) { return GetPath(SpeechCD); }

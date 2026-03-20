@@ -4769,6 +4769,1646 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "AA_FIX",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_FIX",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_PIX",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_PIX",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_PMN",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_PMN",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_MAX_SPAN_X",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_MAX_SPAN_X",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_MAX_SPAN_Y",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_MAX_SPAN_Y",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_Span",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_Span",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_span",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_span",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_pixel_rhs",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_pixel_rhs",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_pixel_lhs",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_pixel_lhs",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_span_rhs",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_span_rhs",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_span_lhs",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_span_lhs",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_line_rhs",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_line_rhs",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_line_lhs",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_line_lhs",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_draw_do",
+      "file": "new/engine/graphics/geometry/aa.cpp",
+      "orig_name": "AA_draw_do",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AA_draw",
+      "file": "new/engine/graphics/geometry/aa.h",
+      "orig_name": "AA_draw",
+      "orig_file": "fallen/DDEngine/Source/aa.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "BreakStart",
+      "file": "new/core/timer.h",
+      "orig_name": "BreakStart",
+      "orig_file": "fallen/DDEngine/Headers/BreakTimer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "BreakEnd",
+      "file": "new/core/timer.h",
+      "orig_name": "BreakEnd",
+      "orig_file": "fallen/DDEngine/Headers/BreakTimer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "BreakTime",
+      "file": "new/core/timer.h",
+      "orig_name": "BreakTime",
+      "orig_file": "fallen/DDEngine/Headers/BreakTimer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "BreakFacets",
+      "file": "new/core/timer.h",
+      "orig_name": "BreakFacets",
+      "orig_file": "fallen/DDEngine/Headers/BreakTimer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "BreakFrame",
+      "file": "new/core/timer.h",
+      "orig_name": "BreakFrame",
+      "orig_file": "fallen/DDEngine/Headers/BreakTimer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetFineTimerFreq",
+      "file": "new/core/timer.cpp",
+      "orig_name": "GetFineTimerFreq",
+      "orig_file": "fallen/DDEngine/Source/BreakTimer.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetFineTimerValue",
+      "file": "new/core/timer.cpp",
+      "orig_name": "GetFineTimerValue",
+      "orig_file": "fallen/DDEngine/Source/BreakTimer.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "stopwatch_start",
+      "file": "new/core/timer.cpp",
+      "orig_name": "stopwatch_start",
+      "orig_file": "fallen/DDEngine/Source/BreakTimer.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "StartStopwatch",
+      "file": "new/core/timer.h",
+      "orig_name": "StartStopwatch",
+      "orig_file": "fallen/DDEngine/Source/BreakTimer.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "StopStopwatch",
+      "file": "new/core/timer.h",
+      "orig_name": "StopStopwatch",
+      "orig_file": "fallen/DDEngine/Source/BreakTimer.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "s32",
+      "file": "new/assets/bink_client.cpp",
+      "orig_name": "s32",
+      "orig_file": "fallen/DDLibrary/Source/BinkClient.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "u32",
+      "file": "new/assets/bink_client.cpp",
+      "orig_name": "u32",
+      "orig_file": "fallen/DDLibrary/Source/BinkClient.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "BinkMessage",
+      "file": "new/assets/bink_client.h",
+      "orig_name": "BinkMessage",
+      "orig_file": "fallen/DDLibrary/Source/BinkClient.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "BinkPlay",
+      "file": "new/assets/bink_client.h",
+      "orig_name": "BinkPlay",
+      "orig_file": "fallen/DDLibrary/Source/BinkClient.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Path",
+      "file": "new/engine/io/drive.cpp",
+      "orig_name": "Path",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TexturesCD",
+      "file": "new/engine/io/drive.cpp",
+      "orig_name": "TexturesCD",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SFX_CD",
+      "file": "new/engine/io/drive.cpp",
+      "orig_name": "SFX_CD",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MoviesCD",
+      "file": "new/engine/io/drive.cpp",
+      "orig_name": "MoviesCD",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SpeechCD",
+      "file": "new/engine/io/drive.cpp",
+      "orig_name": "SpeechCD",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetPath",
+      "file": "new/engine/io/drive.cpp",
+      "orig_name": "GetPath",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MSG_MAX_LENGTH",
+      "file": "new/engine/graphics/pipeline/message.cpp",
+      "orig_name": "MSG_MAX_LENGTH",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MSG_MAX_MESSAGES",
+      "file": "new/engine/graphics/pipeline/message.cpp",
+      "orig_name": "MSG_MAX_MESSAGES",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MSG_Message",
+      "file": "new/engine/graphics/pipeline/message.cpp",
+      "orig_name": "MSG_Message",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MSG_message",
+      "file": "new/engine/graphics/pipeline/message.cpp",
+      "orig_name": "MSG_message",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "current_message",
+      "file": "new/engine/graphics/pipeline/message.cpp",
+      "orig_name": "current_message",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "message_count",
+      "file": "new/engine/graphics/pipeline/message.cpp",
+      "orig_name": "message_count",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "draw_message_offset",
+      "file": "new/engine/graphics/pipeline/message.cpp",
+      "orig_name": "draw_message_offset",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MSG_TIMER",
+      "file": "new/engine/graphics/pipeline/message.cpp",
+      "orig_name": "MSG_TIMER",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SCREEN_SIZE",
+      "file": "new/engine/graphics/pipeline/message.cpp",
+      "orig_name": "SCREEN_SIZE",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MSG_clear",
+      "file": "new/engine/graphics/pipeline/message.h",
+      "orig_name": "MSG_clear",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MSG_add",
+      "file": "new/engine/graphics/pipeline/message.h",
+      "orig_name": "MSG_add",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MSG_draw",
+      "file": "new/engine/graphics/pipeline/message.h",
+      "orig_name": "MSG_draw",
+      "orig_file": "fallen/DDEngine/Source/Message.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_LOOPED",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_LOOPED",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_MOVING",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_MOVING",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_REPLACE",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_REPLACE",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_OVERLAP",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_OVERLAP",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_QUEUED",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_QUEUED",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_CAMERA",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_CAMERA",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_HI_PRIORITY",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_HI_PRIORITY",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_LO_PRIORITY",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_LO_PRIORITY",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_LOCKY",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_LOCKY",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_SHORT_QUEUE",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_SHORT_QUEUE",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_PAIRED_TRK1",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_PAIRED_TRK1",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_PAIRED_TRK2",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_PAIRED_TRK2",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_EARLY_OUT",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_EARLY_OUT",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_NEVER_OVERLAP",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_NEVER_OVERLAP",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_ENV_NONE",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_ENV_NONE",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_ENV_ALLEY",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_ENV_ALLEY",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_ENV_SEWER",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_ENV_SEWER",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_ENV_STADIUM",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_ENV_STADIUM",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_CHANNEL_ALL",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_CHANNEL_ALL",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_WAVE_ALL",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_WAVE_ALL",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_get_volumes",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_get_volumes",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_set_volumes",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_set_volumes",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_play_xyz",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_play_xyz",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_play_thing",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_play_thing",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_play_ambient",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_play_ambient",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_play_stereo",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_play_stereo",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_stop",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_stop",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_stop_attached",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_stop_attached",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_set_pitch",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_set_pitch",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_set_gain",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_set_gain",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_set_queue_gain",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_set_queue_gain",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_set_listener",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_set_listener",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_load_wave_list",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_load_wave_list",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_free_wave_list",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_free_wave_list",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_get_wave",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_get_wave",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_update",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_update",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_init",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_init",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_term",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_term",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_QUICK_play",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_QUICK_play",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_QUICK_wait",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_QUICK_wait",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_QUICK_stop",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_QUICK_stop",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_QUICK_still_playing",
+      "file": "new/engine/audio/mfx.h",
+      "orig_name": "MFX_QUICK_still_playing",
+      "orig_file": "fallen/DDLibrary/Headers/MFX.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TALK_3D",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "TALK_3D",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COORDINATE_UNITS",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "COORDINATE_UNITS",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SampleType",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "SampleType",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SMP_Ambient",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "SMP_Ambient",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SMP_Music",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "SMP_Music",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SMP_Effect",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "SMP_Effect",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_Sample",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MFX_Sample",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_SAMPLE",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MAX_SAMPLE",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_SAMPLE_MEM",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MAX_SAMPLE_MEM",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_QWave",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MFX_QWave",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_QWAVE",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MAX_QWAVE",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_QVOICE",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MAX_QVOICE",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_Voice",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MFX_Voice",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_VOICE",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MAX_VOICE",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "VOICE_MSK",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "VOICE_MSK",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "alDevice",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "alDevice",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "alContext",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "alContext",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Voices",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "Voices",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QWaves",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "QWaves",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QFree",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "QFree",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QFreeLast",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "QFreeLast",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Samples",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "Samples",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TalkSample",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "TalkSample",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "NumSamples",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "NumSamples",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LRU",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "LRU",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MinDist",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MinDist",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MaxDist",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MaxDist",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Gain2D",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "Gain2D",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LX",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "LX",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LY",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "LY",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LZ",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "LZ",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Volumes",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "Volumes",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AllocatedRAM",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "AllocatedRAM",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetFullName",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "GetFullName",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetLinearScale",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "SetLinearScale",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetPower",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "SetPower",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "InitVoices",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "InitVoices",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LoadWaveFile",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "LoadWaveFile",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LoadTalkFile",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "LoadTalkFile",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "UnloadWaveFile",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "UnloadWaveFile",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "UnloadTalkFile",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "UnloadTalkFile",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FinishLoading",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "FinishLoading",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "PlayVoice",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "PlayVoice",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MoveVoice",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "MoveVoice",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetVoiceRate",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "SetVoiceRate",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetVoiceGain",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "SetVoiceGain",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Hash",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "Hash",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FindVoice",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "FindVoice",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FindFirst",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "FindFirst",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FindNext",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "FindNext",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FindFree",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "FindFree",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FreeVoiceSource",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "FreeVoiceSource",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FreeVoice",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "FreeVoice",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetVoiceForWave",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "GetVoiceForWave",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetupVoiceTalk",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "SetupVoiceTalk",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetupVoice",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "SetupVoice",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "IsVoiceDone",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "IsVoiceDone",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QueueWave",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "QueueWave",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TriggerPairedVoice",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "TriggerPairedVoice",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "PlayWave",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "PlayWave",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "PlayTalk",
+      "file": "new/engine/audio/mfx.cpp",
+      "orig_name": "PlayTalk",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COORDINATE_UNITS",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "COORDINATE_UNITS",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SampleType",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "SampleType",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SMP_Ambient",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "SMP_Ambient",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SMP_Music",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "SMP_Music",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SMP_Effect",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "SMP_Effect",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_Sample",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "MFX_Sample",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_SAMPLE",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "MAX_SAMPLE",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_SAMPLE_MEM",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "MAX_SAMPLE_MEM",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_QWave",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "MFX_QWave",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_QWAVE",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "MAX_QWAVE",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_QVOICE",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "MAX_QVOICE",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MFX_Voice",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "MFX_Voice",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_VOICE",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "MAX_VOICE",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "VOICE_MSK",
+      "file": "new/engine/audio/mfx_globals.h",
+      "orig_name": "VOICE_MSK",
+      "orig_file": "fallen/DDLibrary/Source/MFX.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }

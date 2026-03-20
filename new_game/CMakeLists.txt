@@ -40,7 +40,9 @@ set(SOURCES_NEW
     src/new/core/math.cpp
     src/new/core/math_globals.cpp
     src/new/engine/io/file.cpp
+    src/new/engine/io/file_globals.cpp
     src/new/engine/io/async_file.cpp
+    src/new/engine/io/async_file_globals.cpp
     src/new/engine/input/keyboard.cpp
     src/new/engine/input/keyboard_globals.cpp
     src/new/engine/input/mouse.cpp
@@ -50,6 +52,7 @@ set(SOURCES_NEW
     src/new/core/matrix.cpp
     src/new/core/fmatrix.cpp
     src/new/core/quaternion.cpp
+    src/new/core/quaternion_globals.cpp
     src/new/assets/file_clump.cpp
     src/new/assets/tga.cpp
     src/new/assets/tga_globals.cpp
@@ -61,12 +64,21 @@ set(SOURCES_NEW
     src/new/engine/lighting/ngamut_globals.cpp
     src/new/engine/graphics/graphics_api/work_screen.cpp
     src/new/engine/graphics/graphics_api/work_screen_globals.cpp
+    src/new/engine/graphics/geometry/aa.cpp
+    src/new/engine/graphics/geometry/aa_globals.cpp
+    src/new/engine/graphics/pipeline/message.cpp
+    src/new/engine/graphics/pipeline/message_globals.cpp
+    src/new/core/timer.cpp
+    src/new/core/timer_globals.cpp
+    src/new/assets/bink_client.cpp
+    src/new/engine/io/drive.cpp
+    src/new/engine/io/drive_globals.cpp
+    src/new/engine/audio/mfx.cpp
+    src/new/engine/audio/mfx_globals.cpp
 )
 
 set(SOURCES_DDENGINE
-    src/old/fallen/DDEngine/Source/aa.cpp
     src/old/fallen/DDEngine/Source/aeng.cpp
-    src/old/fallen/DDEngine/Source/BreakTimer.cpp
     src/old/fallen/DDEngine/Source/Bucket.cpp
     src/old/fallen/DDEngine/Source/build.cpp
     src/old/fallen/DDEngine/Source/cone.cpp
@@ -81,10 +93,8 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/flamengine.cpp
     src/old/fallen/DDEngine/Source/Font.cpp
     src/old/fallen/DDEngine/Source/font2d.cpp
-    src/old/fallen/DDEngine/Source/Gamut.cpp
     src/old/fallen/DDEngine/Source/menufont.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
-    src/old/fallen/DDEngine/Source/Message.cpp
     src/old/fallen/DDEngine/Source/oval.cpp
     src/old/fallen/DDEngine/Source/panel.cpp
     src/old/fallen/DDEngine/Source/planmap.cpp
@@ -106,13 +116,10 @@ set(SOURCES_DDENGINE
 )
 
 set(SOURCES_DDLIBRARY
-    src/old/fallen/DDLibrary/Source/BinkClient.cpp
     src/old/fallen/DDLibrary/Source/D3DTexture.cpp
     src/old/fallen/DDLibrary/Source/DDManager.cpp
-    src/old/fallen/DDLibrary/Source/Drive.cpp
     src/old/fallen/DDLibrary/Source/GDisplay.cpp
     src/old/fallen/DDLibrary/Source/GHost.cpp
-    src/old/fallen/DDLibrary/Source/MFX.cpp
     src/old/fallen/DDLibrary/Source/net.cpp
     src/old/fallen/DDLibrary/Source/WindProcs.cpp
 )
