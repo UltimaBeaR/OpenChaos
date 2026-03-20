@@ -38,3 +38,9 @@
 - `file.h` включает `<windows.h>` напрямую для HANDLE/BOOL — self-contained до Этапа 8
 
 ---
+
+## Итерация 4 — engine/input/keyboard + engine/input/mouse (2026-03-20)
+
+Штатно.
+
+---

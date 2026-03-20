@@ -939,6 +939,1166 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "KB_ESC",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_ESC",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_1",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_1",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_2",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_2",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_3",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_3",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_4",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_4",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_5",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_5",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_6",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_6",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_7",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_7",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_8",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_8",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_9",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_9",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_0",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_0",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_MINUS",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_MINUS",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_PLUS",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_PLUS",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_BS",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_BS",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_TAB",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_TAB",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_Q",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_Q",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_W",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_W",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_E",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_E",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_R",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_R",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_T",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_T",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_Y",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_Y",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_U",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_U",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_I",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_I",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_O",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_O",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_LBRACE",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_LBRACE",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_RBRACE",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_RBRACE",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_ENTER",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_ENTER",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_LCONTROL",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_LCONTROL",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_CAPSLOCK",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_CAPSLOCK",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_A",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_A",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_S",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_S",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_D",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_D",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_G",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_G",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_H",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_H",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_J",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_J",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_K",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_K",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_L",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_L",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_COLON",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_COLON",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_QUOTE",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_QUOTE",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_TILD",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_TILD",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_LSHIFT",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_LSHIFT",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_BACKSLASH",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_BACKSLASH",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_Z",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_Z",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_X",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_X",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_C",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_C",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_V",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_V",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_B",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_B",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_N",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_N",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_M",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_M",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_COMMA",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_COMMA",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_POINT",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_POINT",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_FORESLASH",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_FORESLASH",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_RSHIFT",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_RSHIFT",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_LALT",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_LALT",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_SPACE",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_SPACE",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_RALT",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_RALT",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_RCONTROL",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_RCONTROL",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F1",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F1",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F2",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F2",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F3",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F3",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F4",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F4",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F5",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F5",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F6",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F6",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F7",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F7",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F8",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F8",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F9",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F9",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F10",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F10",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F11",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F11",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_F12",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_F12",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_PRTSC",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_PRTSC",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_SCROLLLOCK",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_SCROLLLOCK",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_INS",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_INS",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_HOME",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_HOME",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_PGUP",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_PGUP",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_DEL",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_DEL",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_END",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_END",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_PGDN",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_PGDN",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_LEFT",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_LEFT",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_UP",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_UP",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_RIGHT",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_RIGHT",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_DOWN",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_DOWN",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_NUMLOCK",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_NUMLOCK",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_PSLASH",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_PSLASH",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_ASTERISK",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_ASTERISK",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_PMINUS",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_PMINUS",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P7",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P7",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P8",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P8",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P9",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P9",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_PPLUS",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_PPLUS",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P4",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P4",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P5",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P5",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P6",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P6",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P1",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P1",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P2",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P2",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P3",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P3",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_PENTER",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_PENTER",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_P0",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_P0",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KB_PPOINT",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "KB_PPOINT",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AltFlag",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "AltFlag",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ControlFlag",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "ControlFlag",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ShiftFlag",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "ShiftFlag",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Keys",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "Keys",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LastKey",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "LastKey",
+      "orig_file": "MFStdLib/Headers/StdKeybd.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LastMouse",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "LastMouse",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MouseMoved",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "MouseMoved",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LeftButton",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "LeftButton",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MiddleButton",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "MiddleButton",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "RightButton",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "RightButton",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MouseX",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "MouseX",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MouseY",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "MouseY",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LeftMouse",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "LeftMouse",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MiddleMouse",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "MiddleMouse",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "RightMouse",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "RightMouse",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MousePoint",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "MousePoint",
+      "orig_file": "MFStdLib/Headers/StdMouse.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }
