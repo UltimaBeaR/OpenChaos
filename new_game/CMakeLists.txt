@@ -32,11 +32,11 @@ find_package(OpenAL CONFIG REQUIRED)
 # ---------------------------------------------------------------------------
 set(SOURCES_MFSTDLIB
     src/old/MFStdLib/Source/StdLib/StdFile.cpp
-    src/old/MFStdLib/Source/StdLib/StdMaths.cpp
 )
 
 set(SOURCES_NEW
     src/new/core/memory.cpp
+    src/new/core/math.cpp
 )
 
 set(SOURCES_DDENGINE

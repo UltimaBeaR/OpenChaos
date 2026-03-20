@@ -24,3 +24,9 @@
 - No-op ASSERT вызовы из memory.cpp убраны
 
 ---
+
+## Итерация 2 — core/math (2026-03-20)
+
+- `math.h` включает `<cmath>` и `<cstdlib>` (для sqrt в Root() и abs в Hypotenuse)
+
+---

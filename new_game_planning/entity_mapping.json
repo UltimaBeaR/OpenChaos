@@ -449,6 +449,176 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "SIN",
+      "file": "new/core/math.h",
+      "orig_name": "SIN",
+      "orig_file": "MFStdLib/Headers/StdMaths.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COS",
+      "file": "new/core/math.h",
+      "orig_name": "COS",
+      "orig_file": "MFStdLib/Headers/StdMaths.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SIN_F",
+      "file": "new/core/math.h",
+      "orig_name": "SIN_F",
+      "orig_file": "MFStdLib/Headers/StdMaths.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "COS_F",
+      "file": "new/core/math.h",
+      "orig_name": "COS_F",
+      "orig_file": "MFStdLib/Headers/StdMaths.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "PROPTABLE_SIZE",
+      "file": "new/core/math.h",
+      "orig_name": "PROPTABLE_SIZE",
+      "orig_file": "MFStdLib/Headers/StdMaths.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "PROP",
+      "file": "new/core/math.h",
+      "orig_name": "PROP",
+      "orig_file": "MFStdLib/Headers/StdMaths.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SinTable",
+      "file": "new/core/math.cpp",
+      "orig_name": "SinTable",
+      "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CosTable",
+      "file": "new/core/math.cpp",
+      "orig_name": "CosTable",
+      "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SinTableF",
+      "file": "new/core/math.cpp",
+      "orig_name": "SinTableF",
+      "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CosTableF",
+      "file": "new/core/math.cpp",
+      "orig_name": "CosTableF",
+      "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AtanTable",
+      "file": "new/core/math.cpp",
+      "orig_name": "AtanTable",
+      "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Proportions",
+      "file": "new/core/math.cpp",
+      "orig_name": "Proportions",
+      "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Arctan",
+      "file": "new/core/math.cpp",
+      "orig_name": "Arctan",
+      "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Root",
+      "file": "new/core/math.cpp",
+      "orig_name": "Root",
+      "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Hypotenuse",
+      "file": "new/core/math.h",
+      "orig_name": "Hypotenuse",
+      "orig_file": "MFStdLib/Headers/StdMaths.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LookUp",
+      "file": "new/core/math.cpp",
+      "orig_name": "LookUp",
+      "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "xchg",
+      "file": "new/core/math.cpp",
+      "orig_name": "xchg",
+      "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }
