@@ -77,3 +77,13 @@ Entity mapping обновлён (33 записи — file path).
 - MOUSE/KEYBOARD/JOYSTICK макросы убраны из MFStdLib.h (дубликат, теперь в joystick.h через DDlib.h → DIManager.h redirect)
 
 ---
+
+## Итерация 8 — core/fixed_math + core/matrix + core/fmatrix (2026-03-20)
+
+- `fmatrix.cpp` временно включает `fallen/Headers/prim.h` — нужны struct Matrix33/CMatrix33/Matrix31/SMatrix31 + CMAT masks
+- `MATRIX_find_angles_old` перенесён (неиспользуемая старая версия, но код 1:1)
+- `MATRIX_calc_int` перенесён — не объявлен в хедере, но определён в оригинале
+- ASSERT вызовы в matrix_transform/matrix_transform_small убраны (no-op)
+- `ray.h` (DDEngine) — мёртвый файл (нет реализации, нигде не вызывается), не переносить
+
+---

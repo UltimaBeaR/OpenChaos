@@ -47,6 +47,8 @@ set(SOURCES_NEW
     src/new/engine/input/mouse_globals.cpp
     src/new/engine/input/joystick.cpp
     src/new/engine/input/joystick_globals.cpp
+    src/new/core/matrix.cpp
+    src/new/core/fmatrix.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -70,7 +72,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/font2d.cpp
     src/old/fallen/DDEngine/Source/Gamut.cpp
     src/old/fallen/DDEngine/Source/ic.cpp
-    src/old/fallen/DDEngine/Source/Matrix.cpp
     src/old/fallen/DDEngine/Source/menufont.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
     src/old/fallen/DDEngine/Source/Message.cpp
@@ -155,7 +156,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/eway.cpp
     src/old/fallen/Source/fc.cpp
     src/old/fallen/Source/fire.cpp
-    src/old/fallen/Source/FMatrix.cpp
     src/old/fallen/Source/fog.cpp
     src/old/fallen/Source/frontend.cpp
     src/old/fallen/Source/Game.cpp

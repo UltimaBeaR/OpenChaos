@@ -2819,6 +2819,356 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "DIV64",
+      "file": "new/core/fixed_math.h",
+      "orig_name": "DIV64",
+      "orig_file": "fallen/Headers/inline.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MUL64",
+      "file": "new/core/fixed_math.h",
+      "orig_name": "MUL64",
+      "orig_file": "fallen/Headers/inline.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_calc",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_calc",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_vector",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_vector",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_skew",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_skew",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_MUL",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_MUL",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_MUL_INT",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_MUL_INT",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_MUL_BY_TRANSPOSE",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_MUL_BY_TRANSPOSE",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_3x3mul",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_3x3mul",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_TRANSPOSE",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_TRANSPOSE",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_rotate_about_its_x",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_rotate_about_its_x",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_rotate_about_its_y",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_rotate_about_its_y",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_rotate_about_its_z",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_rotate_about_its_z",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Direction",
+      "file": "new/core/matrix.h",
+      "orig_name": "Direction",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_find_angles",
+      "file": "new/core/matrix.h",
+      "orig_name": "MATRIX_find_angles",
+      "orig_file": "fallen/DDEngine/Headers/Matrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_calc_int",
+      "file": "new/core/matrix.cpp",
+      "orig_name": "MATRIX_calc_int",
+      "orig_file": "fallen/DDEngine/Source/Matrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_ROTATE_ABOUT_Z",
+      "file": "new/core/matrix.cpp",
+      "orig_name": "MATRIX_ROTATE_ABOUT_Z",
+      "orig_file": "fallen/DDEngine/Source/Matrix.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_FA_VECTOR_TOO_SMALL",
+      "file": "new/core/matrix.cpp",
+      "orig_name": "MATRIX_FA_VECTOR_TOO_SMALL",
+      "orig_file": "fallen/DDEngine/Source/Matrix.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_FA_ANGLE_TOO_SMALL",
+      "file": "new/core/matrix.cpp",
+      "orig_name": "MATRIX_FA_ANGLE_TOO_SMALL",
+      "orig_file": "fallen/DDEngine/Source/Matrix.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATRIX_find_angles_old",
+      "file": "new/core/matrix.cpp",
+      "orig_name": "MATRIX_find_angles_old",
+      "orig_file": "fallen/DDEngine/Source/Matrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FMATRIX_calc",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "FMATRIX_calc",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FMATRIX_vector",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "FMATRIX_vector",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FMATRIX_find_angles",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "FMATRIX_find_angles",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "build_tween_matrix",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "build_tween_matrix",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "init_matrix33",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "init_matrix33",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "matrix_transform",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "matrix_transform",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "matrix_transform_small",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "matrix_transform_small",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "matrix_transformZMY",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "matrix_transformZMY",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "normalise_matrix",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "normalise_matrix",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "normalise_matrix_rows",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "normalise_matrix_rows",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FMATRIX_MUL",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "FMATRIX_MUL",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FMATRIX_MUL_BY_TRANSPOSE",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "FMATRIX_MUL_BY_TRANSPOSE",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FMATRIX_TRANSPOSE",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "FMATRIX_TRANSPOSE",
+      "orig_file": "fallen/Headers/FMatrix.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAT_SHIFT",
+      "file": "new/core/fmatrix.cpp",
+      "orig_name": "MAT_SHIFT",
+      "orig_file": "fallen/Source/FMatrix.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAT_SHIFTD",
+      "file": "new/core/fmatrix.cpp",
+      "orig_name": "MAT_SHIFTD",
+      "orig_file": "fallen/Source/FMatrix.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }
