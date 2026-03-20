@@ -87,3 +87,13 @@ Entity mapping обновлён (33 записи — file path).
 - `ray.h` (DDEngine) — мёртвый файл (нет реализации, нигде не вызывается), не переносить
 
 ---
+
+## Итерация 9 — assets/file_clump + assets/tga + core/quaternion (2026-03-20)
+
+- `tga.h` потребовал `<windows.h>` для `BOOL` в сигнатуре `TGA_load`
+- `quaternion.cpp` агент использовал `<windef.h>` без `_WIN32` — заменено на `<windows.h>`
+- `quaternion.cpp` временно включает `fallen/Headers/prim.h` (Matrix33/CMatrix33 + CMAT masks)
+- tga_width/tga_height/TGA_header — non-static глобалы → вынесены в `assets/tga_globals.h/.cpp`
+- Первая итерация с использованием subagent'ов (tga + quaternion параллельно)
+
+---

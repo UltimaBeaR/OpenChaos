@@ -49,6 +49,10 @@ set(SOURCES_NEW
     src/new/engine/input/joystick_globals.cpp
     src/new/core/matrix.cpp
     src/new/core/fmatrix.cpp
+    src/new/core/quaternion.cpp
+    src/new/assets/file_clump.cpp
+    src/new/assets/tga.cpp
+    src/new/assets/tga_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -83,7 +87,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/polypage.cpp
     src/old/fallen/DDEngine/Source/polyrenderstate.cpp
     src/old/fallen/DDEngine/Source/qeng.cpp
-    src/old/fallen/DDEngine/Source/Quaternion.cpp
     src/old/fallen/DDEngine/Source/renderstate.cpp
     src/old/fallen/DDEngine/Source/shape.cpp
     src/old/fallen/DDEngine/Source/sky.cpp
@@ -102,13 +105,11 @@ set(SOURCES_DDLIBRARY
     src/old/fallen/DDLibrary/Source/D3DTexture.cpp
     src/old/fallen/DDLibrary/Source/DDManager.cpp
     src/old/fallen/DDLibrary/Source/Drive.cpp
-    src/old/fallen/DDLibrary/Source/FileClump.cpp
     src/old/fallen/DDLibrary/Source/GDisplay.cpp
     src/old/fallen/DDLibrary/Source/GHost.cpp
     src/old/fallen/DDLibrary/Source/GWorkScreen.cpp
     src/old/fallen/DDLibrary/Source/MFX.cpp
     src/old/fallen/DDLibrary/Source/net.cpp
-    src/old/fallen/DDLibrary/Source/Tga.cpp
     src/old/fallen/DDLibrary/Source/WindProcs.cpp
 )
 

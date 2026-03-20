@@ -3169,6 +3169,576 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "FileClump::FileClump",
+      "file": "new/assets/file_clump.h",
+      "orig_name": "FileClump::FileClump",
+      "orig_file": "fallen/DDLibrary/Source/FileClump.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileClump::~FileClump",
+      "file": "new/assets/file_clump.h",
+      "orig_name": "FileClump::~FileClump",
+      "orig_file": "fallen/DDLibrary/Source/FileClump.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileClump::Exists",
+      "file": "new/assets/file_clump.h",
+      "orig_name": "FileClump::Exists",
+      "orig_file": "fallen/DDLibrary/Source/FileClump.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileClump::Read",
+      "file": "new/assets/file_clump.h",
+      "orig_name": "FileClump::Read",
+      "orig_file": "fallen/DDLibrary/Source/FileClump.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileClump::Write",
+      "file": "new/assets/file_clump.h",
+      "orig_name": "FileClump::Write",
+      "orig_file": "fallen/DDLibrary/Source/FileClump.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileClump",
+      "file": "new/assets/file_clump.h",
+      "orig_name": "FileClump",
+      "orig_file": "fallen/DDLibrary/Headers/FileClump.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TGA_Pixel",
+      "file": "new/assets/tga.h",
+      "orig_name": "TGA_Pixel",
+      "orig_file": "fallen/DDLibrary/Headers/Tga.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TGA_Info",
+      "file": "new/assets/tga.h",
+      "orig_name": "TGA_Info",
+      "orig_file": "fallen/DDLibrary/Headers/Tga.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TGA_load",
+      "file": "new/assets/tga.h",
+      "orig_name": "TGA_load",
+      "orig_file": "fallen/DDLibrary/Headers/Tga.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TGA_save",
+      "file": "new/assets/tga.h",
+      "orig_name": "TGA_save",
+      "orig_file": "fallen/DDLibrary/Headers/Tga.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OpenTGAClump",
+      "file": "new/assets/tga.h",
+      "orig_name": "OpenTGAClump",
+      "orig_file": "fallen/DDLibrary/Headers/Tga.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "DoesTGAExist",
+      "file": "new/assets/tga.h",
+      "orig_name": "DoesTGAExist",
+      "orig_file": "fallen/DDLibrary/Headers/Tga.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CloseTGAClump",
+      "file": "new/assets/tga.h",
+      "orig_name": "CloseTGAClump",
+      "orig_file": "fallen/DDLibrary/Headers/Tga.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetTGAClump",
+      "file": "new/assets/tga.h",
+      "orig_name": "GetTGAClump",
+      "orig_file": "fallen/DDLibrary/Headers/Tga.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TGA_load_remap",
+      "file": "new/assets/tga.h",
+      "orig_name": "TGA_load_remap",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "tclump",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "tclump",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "writing",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "writing",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "init_convert",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "init_convert",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "tga_width",
+      "file": "new/assets/tga_globals.cpp",
+      "orig_name": "tga_width",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "tga_height",
+      "file": "new/assets/tga_globals.cpp",
+      "orig_name": "tga_height",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TGA_header",
+      "file": "new/assets/tga_globals.cpp",
+      "orig_name": "TGA_header",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "C8to4",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "C8to4",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "C8to5",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "C8to5",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "C8to6",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "C8to6",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "C4to8",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "C4to8",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "C5to8",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "C5to8",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "C6to8",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "C6to8",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TGA_load_from_file",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "TGA_load_from_file",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TGA_make_conversion_tables",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "TGA_make_conversion_tables",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TGA_write_compressed",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "TGA_write_compressed",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TGA_read_compressed",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "TGA_read_compressed",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "WriteSquished",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "WriteSquished",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ReadSquished",
+      "file": "new/assets/tga.cpp",
+      "orig_name": "ReadSquished",
+      "orig_file": "fallen/DDLibrary/Source/Tga.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FloatMatrix",
+      "file": "new/core/quaternion.h",
+      "orig_name": "FloatMatrix",
+      "orig_file": "fallen/DDEngine/Headers/Quaternion.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CQuaternion",
+      "file": "new/core/quaternion.h",
+      "orig_name": "CQuaternion",
+      "orig_file": "fallen/DDEngine/Headers/Quaternion.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QuatSlerp",
+      "file": "new/core/quaternion.h",
+      "orig_name": "QuatSlerp",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QuatToMatrix",
+      "file": "new/core/quaternion.h",
+      "orig_name": "QuatToMatrix",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QUATERNION_BuildTweenInteger",
+      "file": "new/core/quaternion.h",
+      "orig_name": "QUATERNION_BuildTweenInteger",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "DELTA",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "DELTA",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QuatMul",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "QuatMul",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "EulerToQuat",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "EulerToQuat",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MatrixToQuat",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "MatrixToQuat",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "cmat_to_fmat",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "cmat_to_fmat",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "fmat_to_mat",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "fmat_to_mat",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "is_unit",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "is_unit",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "check_isonormal",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "check_isonormal",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CQuaternion::BuildTween",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "CQuaternion::BuildTween",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QuatInt",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "QuatInt",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MatrixToQuatInteger",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "MatrixToQuatInteger",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QuatToMatrixInteger",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "QuatToMatrixInteger",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "acos_table",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "acos_table",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "acos_table_init",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "acos_table_init",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "BuildACosTable",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "BuildACosTable",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "DELTA_INT",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "DELTA_INT",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "QuatSlerpInteger",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "QuatSlerpInteger",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "cmat_to_mat",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "cmat_to_mat",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "check_isonormal_integer",
+      "file": "new/core/quaternion.cpp",
+      "orig_name": "check_isonormal_integer",
+      "orig_file": "fallen/DDEngine/Source/Quaternion.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }
