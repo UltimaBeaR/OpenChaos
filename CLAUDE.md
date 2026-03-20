@@ -55,8 +55,8 @@ CLAUDE.md                           — этот файл
 | Вопросы про игру, анализ, планирование | `original_game_knowledge_base_dense/DENSE_SUMMARY.md` — **читать вместо** subsystem файлов |
 | Глубокий вопрос про одну конкретную подсистему | `subsystems/X.md` или `resource_formats/X.md` напрямую |
 | Фазы разработки, текущий статус | `new_game_planning/phases.md` |
-| Этапы Фазы 3, что делать дальше | `new_game_planning/stages.md` |
-| **Работа на Этапе 4** | `new_game_planning/stages.md` → затем **`new_game_planning/stage4_rules.md`** |
+| Этапы Фазы 3, текущий этап | `new_game_planning/stages.md` (индекс) |
+| **Работа на Этапе 4** | **`new_game_planning/stage4_rules.md`** |
 | Пре-релизные баги для фикса | `new_game_planning/prerelease_fixes.md` |
 | Технологии, архитектура, стек | `new_game_planning/tech_and_architecture.md` |
 | Тестирование | `new_game_planning/testing.md` |
@@ -113,7 +113,7 @@ CLAUDE.md                           — этот файл
   - Компактная версия всей KB → `original_game_knowledge_base_dense/DENSE_SUMMARY.md`
   - Технологии и архитектура новой игры → `new_game_planning/tech_and_architecture.md`
   - Фазы разработки → `new_game_planning/phases.md`
-  - Этапы Фазы 3 → `new_game_planning/stages.md`
+  - Этапы Фазы 3 → `new_game_planning/stages.md` (индекс) + `new_game_planning/stage*.md`
   - Пре-релизные баги → `new_game_planning/prerelease_fixes.md`
   - Соответствия старых/новых имён сущностей → `new_game_planning/entity_mapping.json` (управляется через `tools/entity_map.py`, Этап 4+)
     - `new_game_planning/entity_mapping.md` — **LEGACY, только чтение**: человекочитаемый файл с Этапа 2, данные уже перенесены в JSON
@@ -143,7 +143,7 @@ CLAUDE.md                           — этот файл
 
 1. **Фаза 1 (ЗАВЕРШЕНА):** Анализ оригинального кода → `original_game_knowledge_base/` + `original_game_knowledge_base_dense/`
 2. **Фаза 2 (ПАРАЛЛЕЛЬНАЯ):** Планирование и архитектура → `new_game_planning/` (идёт параллельно, началась ещё до Фазы 1)
-3. **Фаза 3 (ТЕКУЩАЯ, Этап 3.5):** Разработка → `new_game/`, все этапы в `new_game_planning/stages.md`
+3. **Фаза 3 (ТЕКУЩАЯ, Этап 4):** Разработка → `new_game/`, все этапы в `new_game_planning/stages.md`
 
 ## Workflow (экономия контекста)
 
