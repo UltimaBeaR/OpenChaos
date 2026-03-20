@@ -8,11 +8,46 @@
 // Integer 3x3 matrix operations using PSX angle system (0-2047 = full rotation).
 // Fixed-point 16.16: 65536 = 1.0. Uses SIN/COS lookup tables and MUL64.
 
-// Forward declarations for matrix structs (defined in prim.h, not yet migrated).
-struct Matrix33;
-struct CMatrix33;
-struct Matrix31;
-struct SMatrix31;
+// Bit field shifts and masks for the compressed CMatrix33 format.
+// Each SLONG in CMatrix33.M[] packs three 10-bit signed values.
+// uc_orig: SMAT_SHIFT0 (fallen/Headers/prim.h)
+#define SMAT_SHIFT0 (2)
+// uc_orig: SMAT_SHIFT1 (fallen/Headers/prim.h)
+#define SMAT_SHIFT1 (12)
+// uc_orig: SMAT_SHIFT2 (fallen/Headers/prim.h)
+#define SMAT_SHIFT2 (22)
+// uc_orig: SMAT_SHIFTD (fallen/Headers/prim.h)
+#define SMAT_SHIFTD (22)
+// uc_orig: CMAT0_MASK (fallen/Headers/prim.h)
+#define CMAT0_MASK (0x3ff00000)
+// uc_orig: CMAT1_MASK (fallen/Headers/prim.h)
+#define CMAT1_MASK (0x000ffc00)
+// uc_orig: CMAT2_MASK (fallen/Headers/prim.h)
+#define CMAT2_MASK (0x000003ff)
+
+// Compressed 3x3 integer matrix: each SLONG packs three 10-bit values via CMAT masks.
+// uc_orig: CMatrix33 (fallen/Headers/prim.h)
+struct CMatrix33 {
+    SLONG M[3];
+};
+
+// Full 3x3 integer matrix, 15-bit fraction (elements in range [-32768, 32767]).
+// uc_orig: Matrix33 (fallen/Headers/prim.h)
+struct Matrix33 {
+    SLONG M[3][3];
+};
+
+// 3x1 integer column vector (32-bit components).
+// uc_orig: Matrix31 (fallen/Headers/prim.h)
+struct Matrix31 {
+    SLONG M[3];
+};
+
+// 3x1 short column vector (16-bit components).
+// uc_orig: SMatrix31 (fallen/Headers/prim.h)
+struct SMatrix31 {
+    SWORD M[3];
+};
 
 // Build rotation matrix from PSX Euler angles.
 // uc_orig: FMATRIX_calc (fallen/Headers/FMatrix.h)
@@ -40,6 +75,14 @@ void matrix_transformZMY(Matrix31* result, Matrix33* trans, Matrix31* mat2);
 void normalise_matrix(struct Matrix33* mat);
 // uc_orig: normalise_matrix_rows (fallen/Headers/FMatrix.h)
 void normalise_matrix_rows(struct Matrix33* mat);
+
+// Multiply two 3x3 integer matrices (15-bit fraction, result >>15).
+// uc_orig: matrix_mult33 (fallen/Source/maths.cpp)
+void matrix_mult33(Matrix33* result, Matrix33* mat1, Matrix33* mat2);
+
+// Build 3x3 rotation matrix from three Euler angles (0-2047 = full rotation, SIN/COS tables).
+// uc_orig: rotate_obj (fallen/Source/maths.cpp)
+void rotate_obj(SWORD xangle, SWORD yangle, SWORD zangle, Matrix33* r3);
 
 // Transform point (x,y,z) by integer matrix m using MUL64 (16.16 fixed-point multiply).
 // uc_orig: FMATRIX_MUL (fallen/Headers/FMatrix.h)

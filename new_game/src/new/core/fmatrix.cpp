@@ -3,9 +3,6 @@
 #include "core/fmatrix.h"
 #include "core/math.h"
 
-// Temporary: Matrix33, CMatrix33, etc. defined in prim.h (not yet migrated).
-#include "fallen/Headers/prim.h"
-
 // uc_orig: FMATRIX_calc (fallen/Source/FMatrix.cpp)
 void FMATRIX_calc(SLONG matrix[9], SLONG yaw, SLONG pitch, SLONG roll)
 {
@@ -288,4 +285,55 @@ void FMATRIX_find_angles(SLONG* matrix, SLONG* yaw, SLONG* pitch, SLONG* roll)
 
     *roll = (*roll + 2048) & 2047;
     *pitch = (*pitch + 2048) & 2047;
+}
+
+// uc_orig: matrix_mult33 (fallen/Source/maths.cpp)
+void matrix_mult33(Matrix33* result, Matrix33* mat1, Matrix33* mat2)
+{
+    result->M[0][0] = ((mat1->M[0][0] * mat2->M[0][0]) + (mat1->M[0][1] * mat2->M[1][0]) + (mat1->M[0][2] * mat2->M[2][0])) >> 15;
+    result->M[0][1] = ((mat1->M[0][0] * mat2->M[0][1]) + (mat1->M[0][1] * mat2->M[1][1]) + (mat1->M[0][2] * mat2->M[2][1])) >> 15;
+    result->M[0][2] = ((mat1->M[0][0] * mat2->M[0][2]) + (mat1->M[0][1] * mat2->M[1][2]) + (mat1->M[0][2] * mat2->M[2][2])) >> 15;
+    result->M[1][0] = ((mat1->M[1][0] * mat2->M[0][0]) + (mat1->M[1][1] * mat2->M[1][0]) + (mat1->M[1][2] * mat2->M[2][0])) >> 15;
+    result->M[1][1] = ((mat1->M[1][0] * mat2->M[0][1]) + (mat1->M[1][1] * mat2->M[1][1]) + (mat1->M[1][2] * mat2->M[2][1])) >> 15;
+    result->M[1][2] = ((mat1->M[1][0] * mat2->M[0][2]) + (mat1->M[1][1] * mat2->M[1][2]) + (mat1->M[1][2] * mat2->M[2][2])) >> 15;
+    result->M[2][0] = ((mat1->M[2][0] * mat2->M[0][0]) + (mat1->M[2][1] * mat2->M[1][0]) + (mat1->M[2][2] * mat2->M[2][0])) >> 15;
+    result->M[2][1] = ((mat1->M[2][0] * mat2->M[0][1]) + (mat1->M[2][1] * mat2->M[1][1]) + (mat1->M[2][2] * mat2->M[2][1])) >> 15;
+    result->M[2][2] = ((mat1->M[2][0] * mat2->M[0][2]) + (mat1->M[2][1] * mat2->M[1][2]) + (mat1->M[2][2] * mat2->M[2][2])) >> 15;
+}
+
+// uc_orig: rotate_obj (fallen/Source/maths.cpp)
+void rotate_obj(SWORD xangle, SWORD yangle, SWORD zangle, Matrix33* r3)
+{
+    SLONG sinx, cosx, siny, cosy, sinz, cosz;
+    SLONG cxcz, sysz, sxsycz, sxsysz, sysx, cxczsy, sxsz, cxsysz, czsx, cxsy, sycz, cxsz;
+
+    sinx = SIN(xangle & (2048 - 1)) >> 1;
+    cosx = COS(xangle & (2048 - 1)) >> 1;
+    siny = SIN(yangle & (2048 - 1)) >> 1;
+    cosy = COS(yangle & (2048 - 1)) >> 1;
+    sinz = SIN(zangle & (2048 - 1)) >> 1;
+    cosz = COS(zangle & (2048 - 1)) >> 1;
+
+    cxsy = (cosx * cosy);
+    sycz = (cosy * cosz);
+    cxcz = (cosx * cosz);
+    cxsz = (cosx * sinz);
+    czsx = (cosz * sinx);
+    sysx = (cosy * sinx);
+    sysz = (cosy * sinz);
+    sxsz = (sinx * sinz);
+    sxsysz = (sxsz >> 15) * siny;
+    cxczsy = (cxcz >> 15) * siny;
+    cxsysz = ((cosx * siny) >> 15) * sinz;
+    sxsycz = (czsx >> 15) * siny;
+
+    r3->M[0][0] = (sycz) >> 15;
+    r3->M[0][1] = (-sysz) >> 15;
+    r3->M[0][2] = siny;
+    r3->M[1][0] = (sxsycz + cxsz) >> 15;
+    r3->M[1][1] = (cxcz - sxsysz) >> 15;
+    r3->M[1][2] = (-sysx) >> 15;
+    r3->M[2][0] = (sxsz - cxczsy) >> 15;
+    r3->M[2][1] = (cxsysz + czsx) >> 15;
+    r3->M[2][2] = (cxsy) >> 15;
 }

@@ -5,32 +5,9 @@
 #define FALLEN_HEADERS_STRUCTS_H
 
 #include "anim.h"
+#include "core/vector.h"
 
 //---------------------------------------------------------------
-
-typedef struct
-{
-    SLONG X,
-        Y,
-        Z;
-} GameCoord;
-
-struct SVector {
-    SLONG X, Y, Z;
-};
-
-struct SmallSVector {
-    SWORD X, Y, Z;
-};
-
-struct SVECTOR {
-    SLONG X, Y, Z;
-};
-
-struct TinyXZ {
-    SBYTE Dx, Dz;
-    SWORD Angle;
-};
 
 struct MiniTextureBits {
     UWORD X : 3;

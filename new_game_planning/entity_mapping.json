@@ -3739,6 +3739,196 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "SMAT_SHIFT0",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "SMAT_SHIFT0",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SMAT_SHIFT1",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "SMAT_SHIFT1",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SMAT_SHIFT2",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "SMAT_SHIFT2",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SMAT_SHIFTD",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "SMAT_SHIFTD",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CMAT0_MASK",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "CMAT0_MASK",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CMAT1_MASK",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "CMAT1_MASK",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CMAT2_MASK",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "CMAT2_MASK",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CMatrix33",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "CMatrix33",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Matrix33",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "Matrix33",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Matrix31",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "Matrix31",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SMatrix31",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "SMatrix31",
+      "orig_file": "fallen/Headers/prim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "matrix_mult33",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "matrix_mult33",
+      "orig_file": "fallen/Source/maths.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "rotate_obj",
+      "file": "new/core/fmatrix.h",
+      "orig_name": "rotate_obj",
+      "orig_file": "fallen/Source/maths.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MATHS_seg_intersect",
+      "file": "new/core/math.h",
+      "orig_name": "MATHS_seg_intersect",
+      "orig_file": "fallen/Source/maths.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SVector",
+      "file": "new/core/vector.h",
+      "orig_name": "SVector",
+      "orig_file": "fallen/Headers/Structs.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SmallSVector",
+      "file": "new/core/vector.h",
+      "orig_name": "SmallSVector",
+      "orig_file": "fallen/Headers/Structs.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SVECTOR",
+      "file": "new/core/vector.h",
+      "orig_name": "SVECTOR",
+      "orig_file": "fallen/Headers/Structs.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GameCoord",
+      "file": "new/core/vector.h",
+      "orig_name": "GameCoord",
+      "orig_file": "fallen/Headers/Structs.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TinyXZ",
+      "file": "new/core/vector.h",
+      "orig_name": "TinyXZ",
+      "orig_file": "fallen/Headers/Structs.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }

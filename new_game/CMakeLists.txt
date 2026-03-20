@@ -174,7 +174,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/io.cpp
     src/old/fallen/Source/Main.cpp
     src/old/fallen/Source/Map.cpp
-    src/old/fallen/Source/maths.cpp
     src/old/fallen/Source/mav.cpp
     src/old/fallen/Source/memory.cpp
     src/old/fallen/Source/mist.cpp

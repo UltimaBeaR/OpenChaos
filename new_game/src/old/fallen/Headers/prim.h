@@ -261,31 +261,10 @@ UBYTE prim_get_shadow_type(SLONG prim);
 #define PRIM_DAMAGE_LEAN (1 << 3)
 #define PRIM_DAMAGE_NOLOS (1 << 4) // You can't see through this prim (included in LOS calculation)
 
-#define SMAT_SHIFT0 (2)
-#define SMAT_SHIFT1 (12)
-#define SMAT_SHIFT2 (22)
-#define SMAT_SHIFTD (22)
-#define CMAT0_MASK (0x3ff00000)
-#define CMAT1_MASK (0x000ffc00)
-#define CMAT2_MASK (0x000003ff)
+// Matrix types and CMAT/SMAT macros are now in core/fmatrix.h.
+#include "core/fmatrix.h"
 
 // STRUCTS
-struct CMatrix33 {
-    SLONG M[3];
-};
-
-struct Matrix33 {
-    SLONG M[3][3];
-};
-
-struct Matrix31 {
-    SLONG M[3];
-};
-
-struct SMatrix31 {
-    SWORD M[3];
-};
-
 struct OldPrimPoint {
     SLONG X, Y, Z;
 };

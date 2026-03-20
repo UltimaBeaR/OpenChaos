@@ -88,6 +88,18 @@ Entity mapping обновлён (33 записи — file path).
 
 ---
 
+## Итерация 10 — core/fmatrix типы + core/vector + maths.cpp (2026-03-20)
+
+- Matrix33/CMatrix33/Matrix31/SMatrix31 + SMAT/CMAT макросы перенесены из prim.h в fmatrix.h
+- prim.h теперь включает core/fmatrix.h вместо дублирующих определений
+- Structs.h теперь включает core/vector.h (SVector/SmallSVector/SVECTOR/GameCoord/TinyXZ)
+- matrix_mult33 и rotate_obj перенесены из maths.cpp в core/fmatrix.cpp
+- MATHS_seg_intersect перенесён из maths.cpp в core/math.cpp
+- maths.cpp удалён (опустел), убран из CMakeLists
+- Временные `#include "fallen/Headers/prim.h"` удалены из fmatrix.cpp и quaternion.cpp
+
+---
+
 ## Итерация 9 — assets/file_clump + assets/tga + core/quaternion (2026-03-20)
 
 - `tga.h` потребовал `<windows.h>` для `BOOL` в сигнатуре `TGA_load`

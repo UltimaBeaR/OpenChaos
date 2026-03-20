@@ -4,9 +4,6 @@
 #include <math.h>
 #include <windows.h>
 
-// Temporary: Matrix33, CMatrix33, CMAT masks defined in prim.h (not yet migrated).
-#include "fallen/Headers/prim.h"
-
 // Forward declaration of integer SLERP path used by CQuaternion::BuildTween.
 // uc_orig: QUATERNION_BuildTweenInteger (fallen/DDEngine/Source/Quaternion.cpp)
 void QUATERNION_BuildTweenInteger(struct Matrix33* dest, struct CMatrix33* cm1, struct CMatrix33* cm2, SLONG tween);
