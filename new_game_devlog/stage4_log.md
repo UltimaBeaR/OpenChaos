@@ -1,0 +1,19 @@
+# Лог Этапа 4 — Реструктуризация кодовой базы
+
+## Итерация 0 — Подготовка (2026-03-20)
+
+**Создано:**
+- `tools/entity_map.py` + `new_game_planning/entity_mapping.json`
+- `src/old/` — старый код перемещён: `src/fallen/` → `src/old/fallen/`, `src/MFStdLib/` → `src/old/MFStdLib/`
+- `src/new/` — создана целевая иерархия папок (пустая)
+- CMakeLists.txt обновлён: пути источников, include directories (добавлены `src/new/` и `src/old/`)
+
+**Компиляция:** Release ✅, Debug ✅
+
+**Анализ DAG (автоматический):**
+- `MFStdLib` (StdMem, StdMaths и др.) — чистый core, нет зависимостей на проект ✓
+- `Game.h` — мега-хаб: 26 инклудов, включается в 22+ файлах. Это **не блокер** — `new/` файлы пишутся чистыми, без Game.h
+- Нарушения слоёв в `old/`: `MFx.h` (аудио) включает `Thing.h`; `poly.cpp` (graphics) включает `Game.h`/`night.h`/`eway.h` — остаются в `old/` как есть, в `new/` будут чистые include-ы
+- Порядок миграции из stage4_rules.md **корректен** — начинаем с core/ (математика, память)
+
+---

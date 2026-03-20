@@ -169,7 +169,38 @@ int g_thing_count = 0;
 **Файл:** `new_game_planning/entity_mapping.json`
 **Скрипт:** `tools/entity_map.py`
 
-Создать оба в самом начале Этапа 4, до первого переноса.
+> **LEGACY:** `new_game_planning/entity_mapping.md` — старый файл с Этапа 2 (human-readable, не используется как инструмент).
+> Данные из него **уже перенесены** в JSON (stage 2 записи). `.md` оставлен как исторический документ.
+
+### Типы записей (--kind)
+
+| kind | Что означает | `file` поле | `stage` |
+|------|-------------|-------------|---------|
+| `file` | Файловый переезд: файл в `old/` пришёл с другого пути в `original_game/` | путь в `old/` | 2 |
+| `function` | Функция перенесена из `old/` в `new/` | путь в `new/` | 4 |
+| `struct` | Структура перенесена | путь в `new/` | 4 |
+| `class` | Класс перенесён | путь в `new/` | 4 |
+| `variable` | Глобальная переменная перенесена | путь в `new/` | 4 |
+| `type` | Typedef/псевдоним типа перенесён | путь в `new/` | 4 |
+| `macro` | #define макрос перенесён | путь в `new/` | 4 |
+
+Поле `orig_file` — **всегда путь в `original_game/`**, не в `old/` и не в `new/`.
+Правило простое: путь должен существовать в `original_game/`, а не в `new_game/`.
+
+### Workflow: перед каждым add — сначала find
+
+```
+python tools/entity_map.py find --name ENTITY_NAME
+```
+
+**Результат `find` → что делать:**
+
+- **Нет результатов** → записи нет. Используй путь файла в `original_game/` как `--orig-file`.
+- **Есть `kind: file` запись (stage 2)** → файл в `old/` пришёл с другого пути в `original_game/`.
+  Используй `orig_file` из этой записи как `--orig-file` для новых entity-записей.
+  Например: `anim.h` пришёл из `fallen/Editor/Headers/Anim.h` → все сущности из него
+  получают `--orig-file "fallen/Editor/Headers/Anim.h"`, не `fallen/Headers/anim.h`.
+- **Есть entity запись (stage 4)** → уже перенесено. Не добавлять дубликат.
 
 ### Формат JSON
 
@@ -183,25 +214,22 @@ int g_thing_count = 0;
       "orig_file": "fallen/Source/Thing.cpp",
       "kind": "function",
       "conflict": false,
+      "stage": 4,
       "date": "2026-03-20"
     }
   ]
 }
 ```
 
-Поля: `name` (текущее), `file` (в `new/`, от корня `new_game/`), `orig_name`, `orig_file` (`fallen/...`), `kind` (`function`/`class`/`struct`/`variable`/`type`), `conflict`, `date`.
-
 ### Команды `entity_map.py`
 
 ```
-python tools/entity_map.py add    --name NAME --file FILE --orig-name ORIG --orig-file ORIG_FILE --kind KIND
-python tools/entity_map.py find   --name NAME        # поиск по name и orig_name
-python tools/entity_map.py list   [--kind KIND]
+python tools/entity_map.py add    --name NAME --file FILE --orig-name ORIG --orig-file ORIG_FILE --kind KIND [--conflict] [--stage N]
+python tools/entity_map.py find   --name NAME            # поиск по name и orig_name (substring)
+python tools/entity_map.py list   [--kind KIND] [--stage N]
 python tools/entity_map.py stats
 python tools/entity_map.py rename --name OLD --new-name NEW   # при переименовании в будущем
 ```
-
-Перед `add` — всегда `find` чтобы не создавать дубликаты.
 
 ---
 

@@ -117,7 +117,8 @@ CLAUDE.md                           — этот файл
   - Фазы разработки → `new_game_planning/phases.md`
   - Этапы Фазы 3 → `new_game_planning/stages.md`
   - Пре-релизные баги → `new_game_planning/prerelease_fixes.md`
-  - Соответствия старых/новых имён сущностей → `new_game_planning/entity_mapping.md` (создаётся на Этапе 2)
+  - Соответствия старых/новых имён сущностей → `new_game_planning/entity_mapping.json` (управляется через `tools/entity_map.py`, Этап 4+)
+    - `new_game_planning/entity_mapping.md` — **LEGACY, только чтение**: человекочитаемый файл с Этапа 2, данные уже перенесены в JSON
   - Правила работы → этот файл (CLAUDE.md)
 - **После каждого важного решения** — сразу записывать в нужный файл. Не откладывать.
 

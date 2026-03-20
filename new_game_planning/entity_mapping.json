@@ -1,0 +1,84 @@
+{
+  "entries": [
+    {
+      "name": "anim.h",
+      "file": "old/fallen/Headers/anim.h",
+      "orig_name": "Anim.h",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "file",
+      "conflict": false,
+      "stage": 2,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "prim.h",
+      "file": "old/fallen/Headers/prim.h",
+      "orig_name": "Prim.h",
+      "orig_file": "fallen/Editor/Headers/Prim.h",
+      "kind": "file",
+      "conflict": false,
+      "stage": 2,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "prim_draw.h",
+      "file": "old/fallen/Headers/prim_draw.h",
+      "orig_name": "prim_draw.h",
+      "orig_file": "fallen/Editor/Headers/prim_draw.h",
+      "kind": "file",
+      "conflict": false,
+      "stage": 2,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ed.h",
+      "file": "old/fallen/Headers/ed.h",
+      "orig_name": "ed.h",
+      "orig_file": "fallen/ledit/headers/ed.h",
+      "kind": "file",
+      "conflict": false,
+      "stage": 2,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "edmap.h",
+      "file": "old/fallen/Headers/edmap.h",
+      "orig_name": "map.h",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "file",
+      "conflict": true,
+      "stage": 2,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "outline.h",
+      "file": "old/fallen/Headers/outline.h",
+      "orig_name": "outline.h",
+      "orig_file": "fallen/Editor/Headers/outline.h",
+      "kind": "file",
+      "conflict": false,
+      "stage": 2,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "mapthing.h",
+      "file": "old/fallen/Headers/mapthing.h",
+      "orig_name": "Thing.h",
+      "orig_file": "fallen/Editor/Headers/Thing.h",
+      "kind": "file",
+      "conflict": true,
+      "stage": 2,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "outline.cpp",
+      "file": "old/fallen/Source/outline.cpp",
+      "orig_name": "outline.cpp",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "file",
+      "conflict": false,
+      "stage": 2,
+      "date": "2026-03-20"
+    }
+  ]
+}
