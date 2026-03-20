@@ -2099,6 +2099,286 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "LocateCDROM",
+      "file": "new/engine/io/drive.h",
+      "orig_name": "LocateCDROM",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetCDPath",
+      "file": "new/engine/io/drive.h",
+      "orig_name": "GetCDPath",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetTexturePath",
+      "file": "new/engine/io/drive.h",
+      "orig_name": "GetTexturePath",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetSFXPath",
+      "file": "new/engine/io/drive.h",
+      "orig_name": "GetSFXPath",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetMoviesPath",
+      "file": "new/engine/io/drive.h",
+      "orig_name": "GetMoviesPath",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetSpeechPath",
+      "file": "new/engine/io/drive.h",
+      "orig_name": "GetSpeechPath",
+      "orig_file": "fallen/DDLibrary/Source/Drive.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "AsyncFile",
+      "file": "new/engine/io/async_file.h",
+      "orig_name": "AsyncFile",
+      "orig_file": "fallen/DDLibrary/Headers/AsyncFile2.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_ASYNC_FILES",
+      "file": "new/engine/io/async_file.h",
+      "orig_name": "MAX_ASYNC_FILES",
+      "orig_file": "fallen/DDLibrary/Headers/AsyncFile2.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "InitAsyncFile",
+      "file": "new/engine/io/async_file.h",
+      "orig_name": "InitAsyncFile",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "TermAsyncFile",
+      "file": "new/engine/io/async_file.h",
+      "orig_name": "TermAsyncFile",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "LoadAsyncFile",
+      "file": "new/engine/io/async_file.h",
+      "orig_name": "LoadAsyncFile",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetNextCompletedAsyncFile",
+      "file": "new/engine/io/async_file.h",
+      "orig_name": "GetNextCompletedAsyncFile",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CancelAsyncFile",
+      "file": "new/engine/io/async_file.h",
+      "orig_name": "CancelAsyncFile",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "File",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "File",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FreeList",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "FreeList",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ActiveList",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "ActiveList",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CompleteList",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "CompleteList",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KillThread",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "KillThread",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CancelKey",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "CancelKey",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "csLock",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "csLock",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "hEvent",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "hEvent",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "hThread",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "hThread",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "BytesPerMillisecond",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "BytesPerMillisecond",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Unlink",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "Unlink",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FreeLink",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "FreeLink",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ActiveLink",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "ActiveLink",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "CompleteLink",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "CompleteLink",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ThreadRun",
+      "file": "new/engine/io/async_file.cpp",
+      "orig_name": "ThreadRun",
+      "orig_file": "fallen/DDLibrary/Source/AsyncFile2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }

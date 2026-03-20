@@ -44,3 +44,11 @@
 Штатно.
 
 ---
+
+## Итерация 5 — engine/io/drive + engine/io/async_file (2026-03-20)
+
+- `drive.h` — только декларации; `Drive.cpp` остаётся в `old/` (зависит от `env.h`)
+- `AsyncFile2.cpp` полностью перенесён в `async_file.cpp`, удалён из CMakeLists
+- `AsyncFile.h` (старая версия) — редирект на `async_file.h`, как и `AsyncFile2.h`
+
+---

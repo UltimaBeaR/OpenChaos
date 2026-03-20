@@ -38,6 +38,7 @@ set(SOURCES_NEW
     src/new/core/memory.cpp
     src/new/core/math.cpp
     src/new/engine/io/file.cpp
+    src/new/engine/io/async_file.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -88,7 +89,6 @@ set(SOURCES_DDENGINE
 )
 
 set(SOURCES_DDLIBRARY
-    src/old/fallen/DDLibrary/Source/AsyncFile2.cpp
     src/old/fallen/DDLibrary/Source/BinkClient.cpp
     src/old/fallen/DDLibrary/Source/D3DTexture.cpp
     src/old/fallen/DDLibrary/Source/DDManager.cpp
