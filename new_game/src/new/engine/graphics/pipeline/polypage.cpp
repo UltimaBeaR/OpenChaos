@@ -1,37 +1,48 @@
-// polypage.cpp
-//
-// PolyPage class - main low-level rendering
-
+#include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/pipeline/polypage_globals.h"
+#include "engine/graphics/pipeline/vertex_buffer_globals.h"
+#include "core/matrix.h"
 #include <MFStdLib.h>
 #include <DDLib.h>
 #include <math.h>
-#include "poly.h"
-#include "vertexbuffer.h"
-#include "polypoint.h"
-#include "renderstate.h"
-#include "game.h"
-#include "matrix.h"
 
-#include "polypage.h"
-
+// AENG_total_polys_drawn is defined in aeng.cpp (not yet migrated).
 extern int AENG_total_polys_drawn;
 
-//-----------------------------
-// PolyPage
-//-----------------------------
+// g_dw3DStuffHeight and g_dw3DStuffY are defined in poly.cpp (not yet migrated).
+// Used by GenerateMMMatrixFromStandardD3DOnes to support letterbox mode.
+extern DWORD g_dw3DStuffHeight;
+extern DWORD g_dw3DStuffY;
 
-// static members
-
+// PolyPage static member definitions.
+// uc_orig: s_AlphaSort (fallen/DDEngine/Source/polypage.cpp)
 bool PolyPage::s_AlphaSort = true;
+// uc_orig: s_ColourMask (fallen/DDEngine/Source/polypage.cpp)
 ULONG PolyPage::s_ColourMask = 0xFFFFFFFF;
+// uc_orig: s_XScale (fallen/DDEngine/Source/polypage.cpp)
 float PolyPage::s_XScale = 1.0;
+// uc_orig: s_YScale (fallen/DDEngine/Source/polypage.cpp)
 float PolyPage::s_YScale = 1.0;
 
-float not_private_smiley_xscale;
-float not_private_smiley_yscale;
+// uc_orig: AlphaPremult (fallen/DDEngine/Source/polypage.cpp)
+// Premultiply colour channels by alpha channel.
+static inline void AlphaPremult(UBYTE* color)
+{
+    color[0] = UBYTE((ULONG(color[0]) * ULONG(color[3])) >> 8);
+    color[1] = UBYTE((ULONG(color[1]) * ULONG(color[3])) >> 8);
+    color[2] = UBYTE((ULONG(color[2]) * ULONG(color[3])) >> 8);
+}
 
-// constructor & destructor
+// uc_orig: InvAlphaPremult (fallen/DDEngine/Source/polypage.cpp)
+// Premultiply colour channels by inverse alpha channel.
+static inline void InvAlphaPremult(UBYTE* color)
+{
+    color[0] = UBYTE((ULONG(color[0]) * ULONG(255 - color[3])) >> 8);
+    color[1] = UBYTE((ULONG(color[1]) * ULONG(255 - color[3])) >> 8);
+    color[2] = UBYTE((ULONG(color[2]) * ULONG(255 - color[3])) >> 8);
+}
 
+// uc_orig: PolyPage (fallen/DDEngine/Source/polypage.cpp)
 PolyPage::PolyPage(ULONG logsize)
 {
     m_VertexBuffer = NULL;
@@ -55,6 +66,7 @@ PolyPage::PolyPage(ULONG logsize)
     ASSERT(sizeof(PolyPoint2D) == sizeof(D3DTLVERTEX));
 }
 
+// uc_orig: ~PolyPage (fallen/DDEngine/Source/polypage.cpp)
 PolyPage::~PolyPage()
 {
     delete[] m_PolyBuffer;
@@ -67,41 +79,28 @@ PolyPage::~PolyPage()
     }
 }
 
-// SetTexEmbed
-//
-// set texture embedding
-
+// uc_orig: SetTexOffset (fallen/DDEngine/Source/polypage.cpp)
 void PolyPage::SetTexOffset(D3DTexture* src)
 {
     src->GetTexOffsetAndScale(&m_UScale, &m_UOffset, &m_VScale, &m_VOffset);
 }
 
-// SetGreenScreen
-//
-// set green screen (or not)
-
+// uc_orig: SetGreenScreen (fallen/DDEngine/Source/polypage.cpp)
 void PolyPage::SetGreenScreen(bool enabled)
 {
     s_ColourMask = enabled ? 0xFF00FF00 : 0xFFFFFFFF;
 }
 
-// PolyPage::SetScaling
-//
-// set screen scaling factors
-
+// uc_orig: SetScaling (fallen/DDEngine/Source/polypage.cpp)
 void PolyPage::SetScaling(float xmul, float ymul)
 {
     not_private_smiley_xscale = s_XScale = xmul;
     not_private_smiley_yscale = s_YScale = ymul;
 }
 
-// PointAlloc
-//
-// allocate some points
-
+// uc_orig: PointAlloc (fallen/DDEngine/Source/polypage.cpp)
 PolyPoint2D* PolyPage::PointAlloc(ULONG num_points)
 {
-
     if (!m_VertexBuffer) {
         ASSERT(!m_VBUsed);
 
@@ -131,13 +130,9 @@ PolyPoint2D* PolyPage::PointAlloc(ULONG num_points)
     return ptr;
 }
 
-// PolyBufAlloc
-//
-// allocate a polygon in the buffer
-
+// uc_orig: PolyBufAlloc (fallen/DDEngine/Source/polypage.cpp)
 PolyPoly* PolyPage::PolyBufAlloc()
 {
-
     if (!m_PolyBuffer) {
         ASSERT(!m_PolyBufUsed);
 
@@ -161,46 +156,24 @@ PolyPoly* PolyPage::PolyBufAlloc()
     return m_PolyBuffer + (m_PolyBufUsed++);
 }
 
-static inline void AlphaPremult(UBYTE* color)
-{
-    color[0] = UBYTE((ULONG(color[0]) * ULONG(color[3])) >> 8);
-    color[1] = UBYTE((ULONG(color[1]) * ULONG(color[3])) >> 8);
-    color[2] = UBYTE((ULONG(color[2]) * ULONG(color[3])) >> 8);
-}
-
-static inline void InvAlphaPremult(UBYTE* color)
-{
-    color[0] = UBYTE((ULONG(color[0]) * ULONG(255 - color[3])) >> 8);
-    color[1] = UBYTE((ULONG(color[1]) * ULONG(255 - color[3])) >> 8);
-    color[2] = UBYTE((ULONG(color[2]) * ULONG(255 - color[3])) >> 8);
-}
-
-// AddFan
-//
-// submit a fan
-
-static PolyPage* ppLastPolyPageSetup = NULL;
-
-#define DRAWN_PP ppDrawn
-
+// uc_orig: AddFan (fallen/DDEngine/Source/polypage.cpp)
 void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
 {
     ULONG ii;
 
     PolyPage* ppDrawn = pTheRealPolyPage;
 
-    PolyPoly* pp = DRAWN_PP->PolyBufAlloc();
+    PolyPoly* pp = ppDrawn->PolyBufAlloc();
     ASSERT(pp != NULL);
 
-    PolyPoint2D* pv = DRAWN_PP->PointAlloc(num_vertices);
+    PolyPoint2D* pv = ppDrawn->PointAlloc(num_vertices);
     ASSERT(pv != NULL);
 
-    pp->first_vertex = pv - DRAWN_PP->m_VertexPtr;
+    pp->first_vertex = pv - ppDrawn->m_VertexPtr;
     pp->num_vertices = num_vertices;
 
     float zmax = pts[0]->Z;
 
-    // apply Z bias (doesn't seem to work in D3D)
     if (RS.ZLift()) {
         float zbias = float(RS.ZLift()) / 65536.0F;
         for (ii = 0; ii < num_vertices; ii++) {
@@ -233,22 +206,19 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
     }
 }
 
-// AddWirePoly
-//
-// submit a wireframe polygon
-
+// uc_orig: AddWirePoly (fallen/DDEngine/Source/polypage.cpp)
 void PolyPage::AddWirePoly(POLY_Point** pts, ULONG num_vertices)
 {
+    // Wireframe submission not implemented on PC.
+    (void)pts;
+    (void)num_vertices;
 }
 
-// MassageVertices
-//
-// change vertices to match RS.GetEffect()
-
+// uc_orig: MassageVertices (fallen/DDEngine/Source/polypage.cpp)
+// Apply per-vertex colour transformations controlled by the render state effect.
 void PolyPage::MassageVertices()
 {
     if (pTheRealPolyPage != this) {
-        // Don't do this to non-drawn pages.
         return;
     }
 
@@ -284,20 +254,15 @@ void PolyPage::MassageVertices()
     }
 }
 
-// Render
-//
-// render to card (render state should already be set up)
-
-static UWORD IxBuffer[65536];
-
+// uc_orig: Render (fallen/DDEngine/Source/polypage.cpp)
+// Flush all buffered polygons to D3D using indexed primitive drawing.
 void PolyPage::Render(IDirect3DDevice3* dev)
 {
     ULONG ii;
 
-    if (!m_VertexBuffer /* || !m_PolyBufUsed*/)
+    if (!m_VertexBuffer)
         return;
 
-    // apply vertex FX
     MassageVertices();
 
     IDirect3DVertexBuffer* vb = TheVPool->PrepareBuffer(m_VertexBuffer);
@@ -330,10 +295,8 @@ void PolyPage::Render(IDirect3DDevice3* dev)
     m_VBUsed = 0;
 }
 
-// DrawSinglePoly
-//
-// draw a single polygon
-
+// uc_orig: DrawSinglePoly (fallen/DDEngine/Source/polypage.cpp)
+// Render a single polygon from a bucket sort pass.
 void PolyPage::DrawSinglePoly(PolyPoly* poly, IDirect3DDevice3* dev)
 {
     UWORD* dst = IxBuffer;
@@ -349,22 +312,17 @@ void PolyPage::DrawSinglePoly(PolyPoly* poly, IDirect3DDevice3* dev)
     dev->DrawIndexedPrimitiveVB(D3DPT_TRIANGLELIST, m_VB, IxBuffer, dst - IxBuffer, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP | D3DDP_DONOTLIGHT);
 }
 
-// AddToBuckets
-//
-// add polygons to buckets
-
+// uc_orig: AddToBuckets (fallen/DDEngine/Source/polypage.cpp)
+// Distribute this page's polygons into Z-depth buckets for later bucket-sorted rendering.
 void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
 {
     if (!m_VertexBuffer || !m_PolyBufUsed)
         return;
 
-    // apply vertex effects
     MassageVertices();
 
-    // obtain vertex buffer pointer
     m_VB = TheVPool->PrepareBuffer(m_VertexBuffer);
 
-    // add to buckets
     for (DWORD ii = 0; ii < m_PolyBufUsed; ii++) {
         PolyPoly* poly = &m_PolyBuffer[ii];
 
@@ -379,78 +337,61 @@ void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
         buckets[bucket] = poly;
     }
 
-    // clear everything else
     m_VertexBuffer = NULL;
     m_VertexPtr = NULL;
     m_VBUsed = 0;
     m_PolyBufUsed = 0;
 }
 
-// Clear
-//
-// clear buffer
-
+// uc_orig: Clear (fallen/DDEngine/Source/polypage.cpp)
 void PolyPage::Clear()
 {
     if (!m_VertexBuffer)
         return;
 
-    // #if USE_D3D_VBUF
     TheVPool->ReleaseBuffer(m_VertexBuffer);
     m_VertexBuffer = NULL;
     m_VertexPtr = NULL;
-    // #endif
 
     m_VBUsed = 0;
     m_PolyBufUsed = 0;
 }
 
-// SortBackFirst
-//
-// sort polygons (approx) by Z
-
+// uc_orig: SortBackFirst (fallen/DDEngine/Source/polypage.cpp)
+// Approximate back-to-front merge sort of polygons by Z depth.
 void PolyPage::SortBackFirst()
 {
     if (!m_PolyBufUsed || !PolyPage::AlphaSortEnabled())
         return;
 
-    // delete old sort array if buffer has been resized
     if (m_PolySortBuffer && (m_PolySortBufSize != m_PolyBufSize)) {
         delete[] m_PolySortBuffer;
         m_PolySortBuffer = NULL;
     }
 
-    // allocate a sort array if necessary
-    // (lazy allocation so unsorted pages don't waste RAM)
     if (!m_PolySortBuffer) {
         m_PolySortBufSize = m_PolyBufSize;
         m_PolySortBuffer = new PolyPoly[m_PolySortBufSize];
 
         if (!m_PolySortBuffer)
-            return; // erk
+            return;
     }
 
-    // run the merge sort (non-recursive for speed)
-    ULONG sort_len = 1; // sort pairs first
+    ULONG sort_len = 1;
 
     while (sort_len < m_PolyBufUsed) {
-        // sort each <n*2> items by merging 2 sets of <n> items
         MergeSortIteration(sort_len);
 
-        // switch arrays
         PolyPoly* tmp = m_PolyBuffer;
         m_PolyBuffer = m_PolySortBuffer;
         m_PolySortBuffer = tmp;
 
-        // now merge pairs of these sets
         sort_len *= 2;
     }
 }
 
-// DoMerge
-//
-// merge a single set (class T must have a < & <= operator, hopefully inline)
-
+// uc_orig: DoMerge (fallen/DDEngine/Source/polypage.cpp)
+// Merge two sorted subarrays of src into dst.
 template <class T>
 inline static void DoMerge(const T* src, T* dst, ULONG len1, ULONG len2)
 {
@@ -461,19 +402,16 @@ inline static void DoMerge(const T* src, T* dst, ULONG len1, ULONG len2)
 
     for (;;) {
         if (src[pos2] < src[pos1]) {
-            // write from 2nd array
             dst[wpos++] = src[pos2++];
             if (pos2 == end)
-                break; // end of 2nd input array
+                break;
         } else {
-            // write from 1st array
             dst[wpos++] = src[pos1++];
             if (pos1 == len1)
-                break; // end of 1st input array
+                break;
         }
     }
 
-    // append the rest of the other array
     if (pos1 == len1) {
         while (pos2 < end) {
             dst[wpos++] = src[pos2++];
@@ -485,77 +423,61 @@ inline static void DoMerge(const T* src, T* dst, ULONG len1, ULONG len2)
     }
 }
 
-// MergeSortIteration
-//
-// merge pairs of size sort_len
-
+// uc_orig: MergeSortIteration (fallen/DDEngine/Source/polypage.cpp)
 void PolyPage::MergeSortIteration(ULONG sort_len)
 {
     ULONG ii;
     ULONG set_len = sort_len * 2;
-    ULONG limit = set_len <= m_PolyBufUsed ? m_PolyBufUsed - set_len : 0; // inclusive
+    ULONG limit = set_len <= m_PolyBufUsed ? m_PolyBufUsed - set_len : 0;
     PolyPoly* src = m_PolyBuffer;
     PolyPoly* dst = m_PolySortBuffer;
 
     if (sort_len == 1) {
-        // zip through pair-sorts
         for (ii = 0; ii <= limit; ii += set_len) {
             if (src[0].sort_z > src[1].sort_z) {
-                // wrong order
                 dst[0] = src[1];
                 dst[1] = src[0];
             } else {
-                // right order
                 dst[0] = src[0];
                 dst[1] = src[1];
             }
             src += set_len;
             dst += set_len;
         }
-        // last bit
         if (ii != m_PolyBufUsed) {
             dst[0] = src[0];
         }
     } else {
-        // merge each pair of sets
         for (ii = 0; ii <= limit; ii += set_len) {
             DoMerge<PolyPoly>(src, dst, sort_len, sort_len);
             src += set_len;
             dst += set_len;
         }
-        // last bit
         if (ii != m_PolyBufUsed) {
             if (ii + sort_len >= m_PolyBufUsed) {
-                // only 1 part - just copy
                 while (ii < m_PolyBufUsed) {
                     *dst++ = *src++;
                     ii++;
                 }
             } else {
-                // 2 parts - merge
                 DoMerge<PolyPoly>(src, dst, sort_len, m_PolyBufUsed - (ii + sort_len));
             }
         }
     }
 }
 
-// A routine to emulate the DC's DrawPrimtiveMM call on the PC, so
-// that people can use it when developing on the PC.
-
-// See polypage.h for more details.
-
+// uc_orig: GenerateMMMatrixFromStandardD3DOnes (fallen/DDEngine/Source/polypage.cpp)
+// Builds a combined world-view-projection matrix usable by DrawIndPrimMM.
+// Accounts for the letterbox rendering mode via g_dw3DStuffHeight/g_dw3DStuffY.
 void GenerateMMMatrixFromStandardD3DOnes(D3DMATRIX* pmOutput,
     const D3DMATRIX* mProjectionMatrix,
     const D3DMATRIX* mWorldMatrix,
     const D3DVIEWPORT2* d3dvpt)
 {
-    // Matrices must be 32-byte aligned.
     ASSERT(((DWORD)(pmOutput) & 31) == 0);
 
     D3DMATRIX mMyPrivateWorld;
     if (mWorldMatrix == NULL) {
-        // Use the standard camera matrix, rather than anything custom.
-        // This is faster than calling POLY_set_local_rotation_none first.
         float POLY_cam_off_x = -POLY_cam_x;
         float POLY_cam_off_y = -POLY_cam_y;
         float POLY_cam_off_z = -POLY_cam_z;
@@ -587,8 +509,6 @@ void GenerateMMMatrixFromStandardD3DOnes(D3DMATRIX* pmOutput,
 
     D3DMATRIX matTemp;
     {
-        //_Multiply4dM((float *)pResultMatrix, (float *)g_matWorld, (float *)g_matProjection);
-
         matTemp._11 = mWorldMatrix->_11 * mProjectionMatrix->_11 + mWorldMatrix->_12 * mProjectionMatrix->_21 + mWorldMatrix->_13 * mProjectionMatrix->_31 + mWorldMatrix->_14 * mProjectionMatrix->_41;
         matTemp._12 = mWorldMatrix->_11 * mProjectionMatrix->_12 + mWorldMatrix->_12 * mProjectionMatrix->_22 + mWorldMatrix->_13 * mProjectionMatrix->_32 + mWorldMatrix->_14 * mProjectionMatrix->_42;
         matTemp._13 = mWorldMatrix->_11 * mProjectionMatrix->_13 + mWorldMatrix->_12 * mProjectionMatrix->_23 + mWorldMatrix->_13 * mProjectionMatrix->_33 + mWorldMatrix->_14 * mProjectionMatrix->_43;
@@ -610,9 +530,7 @@ void GenerateMMMatrixFromStandardD3DOnes(D3DMATRIX* pmOutput,
         matTemp._44 = mWorldMatrix->_41 * mProjectionMatrix->_14 + mWorldMatrix->_42 * mProjectionMatrix->_24 + mWorldMatrix->_43 * mProjectionMatrix->_34 + mWorldMatrix->_44 * mProjectionMatrix->_44;
     }
 
-    // Version that knows about the letterbox mode hack.
-    extern DWORD g_dw3DStuffHeight;
-    extern DWORD g_dw3DStuffY;
+    // Version that handles the letterbox mode height/Y offset hack.
     DWORD dwWidth = d3dvpt->dwWidth >> 1;
     DWORD dwHeight = g_dw3DStuffHeight >> 1;
     DWORD dwX = d3dvpt->dwX;
@@ -629,7 +547,7 @@ void GenerateMMMatrixFromStandardD3DOnes(D3DMATRIX* pmOutput,
     pmOutput->_32 = matTemp._31 * (float)dwWidth + matTemp._34 * (float)(dwX + dwWidth);
     pmOutput->_33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
     pmOutput->_34 = matTemp._34;
-    // Validation magic number.
+    // Validation magic number used by DrawIndPrimMM to check matrix alignment.
     unsigned long EVal = 0xe0001000;
     pmOutput->_41 = *(float*)&EVal;
     pmOutput->_42 = matTemp._41 * (float)dwWidth + matTemp._44 * (float)(dwX + dwWidth);
@@ -637,18 +555,9 @@ void GenerateMMMatrixFromStandardD3DOnes(D3DMATRIX* pmOutput,
     pmOutput->_44 = matTemp._44;
 }
 
-// You can usually get the standard data from these globals - I keep them
-// all current, and update g_matWorld when you call POLY_set_local_rotation
-// and similar calls. You can use a different matrix of course and not call
-// POLY_set_local_rotation, which is probably slightly faster.
-extern D3DMATRIX g_matProjection;
-extern D3DMATRIX g_matWorld;
-extern D3DVIEWPORT2 g_viewData;
-
-// The DC version is just #defined in the header.
-
-// dwFVFType must be D3DFVF_VERTEX or D3DFVF_LVERTEX.
-// d3dmm is the multimatrix info block:
+// uc_orig: DrawIndPrimMM (fallen/DDEngine/Source/polypage.cpp)
+// Software emulation of the Dreamcast's DrawPrimitiveMM.
+// Transforms vertices using per-vertex matrix indices, then submits as indexed triangles.
 HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
     DWORD dwFVFType,
     D3DMULTIMATRIX* d3dmm,
@@ -656,7 +565,6 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
     WORD* pwIndices,
     DWORD dwNumIndices)
 {
-    // Check alignments.
     ASSERT(((DWORD)(d3dmm->lpd3dMatrices) & 31) == 0);
     ASSERT(((DWORD)(d3dmm->lpvVertices) & 31) == 0);
     ASSERT(((DWORD)(d3dmm->lpLightTable) & 3) == 0);
@@ -670,7 +578,6 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
     WORD* pwCurIndex = pwIndices;
     while (TRUE) {
         WORD wIndex[3];
-        // Start a strip.
         wIndex[1] = *pwCurIndex++;
         wIndex[2] = *pwCurIndex++;
         ASSERT(dwNumIndices > 1);
@@ -685,11 +592,9 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
             dwNumIndices--;
 
             if (wIndex[2] == 0xffff) {
-                // End of list.
                 break;
             }
 
-            // Load & transform the verts.
             for (int i = 0; i < 3; i++) {
                 WORD wVertIndex = wIndex[i];
                 ASSERT(wVertIndex < wNumVertices);
@@ -712,7 +617,6 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
                 pTLVert[i].dvTV = pLVert[wIndex[i]].dvTV;
 
                 if (dwFVFType == D3DFVF_VERTEX) {
-                    // I don't actually do lighting yet - just make sure it's visible.
                     pTLVert[i].dcColor = 0xffffffff;
                     pTLVert[i].dcSpecular = 0xffffffff;
                 } else {
@@ -721,7 +625,6 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
                 }
             }
 
-            // And draw the thing.
             WORD wMyIndices[3];
             if (bEven) {
                 wMyIndices[0] = 0;
@@ -732,20 +635,15 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
                 wMyIndices[1] = 1;
                 wMyIndices[2] = 2;
             }
-            // HRESULT hres = lpDevice->DrawIndexedPrimitive ( D3DPT_TRIANGLELIST, D3DVT_TLVERTEX, pTLVert, 3, wMyIndices, 3, 0 );
             HRESULT hres = lpDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, pTLVert, 3, wMyIndices, 3, 0);
             if (FAILED(hres)) {
                 return (hres);
             }
         }
         if (dwNumIndices == 0) {
-            // No more indices.
             break;
         }
     }
-
-    // Check that the next index exists to work around MS driver bug.
-    // ASSERT ( *pwCurIndex == 0x1234 );
 
     return (DD_OK);
 }

@@ -160,3 +160,14 @@ Entity mapping обновлён (33 записи — file path).
 - `vertex_pool[]` в bucket.h — extern объявление (определение в aeng.cpp, ещё не перенесён)
 
 ---
+
+## Итерация 16 — engine/graphics/pipeline/polypoint + polypage (2026-03-21)
+
+- `polypage.cpp` требовал `core/matrix.h` для `MATRIX_MUL` (в `GenerateMMMatrixFromStandardD3DOnes`) — в оригинале шёл через `matrix.h`
+- Инлайн `DRAWN_PP` макрос (`#define DRAWN_PP ppDrawn`) не перенесён — это был локальный алиас переменной `ppDrawn` в той же функции, замена прямая
+- `FanAlloc` и `SetTexOffset(UBYTE)` — dead declarations без реализации, не перенесены
+- `ppLastPolyPageSetup` — объявлен в оригинале но нигде не используется, не перенесён
+- `PolyPage::s_AlphaSort` и другие статические члены — определены в `polypage.cpp` (не в `_globals`), аналогично прецеденту `RenderState::s_State` из итерации 15
+- `polypage.h` включает `poly.h` (temporary) — `POLY_Point` ещё не мигрирован
+
+---

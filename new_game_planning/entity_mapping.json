@@ -7639,6 +7639,266 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "INT_COPY_FLOAT",
+      "file": "new/engine/graphics/pipeline/polypoint.h",
+      "orig_name": "INT_COPY_FLOAT",
+      "orig_file": "fallen/DDEngine/Headers/polypoint.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PolyPoint2D",
+      "file": "new/engine/graphics/pipeline/polypoint.h",
+      "orig_name": "PolyPoint2D",
+      "orig_file": "fallen/DDEngine/Headers/polypoint.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PolyPoly",
+      "file": "new/engine/graphics/pipeline/polypage.h",
+      "orig_name": "PolyPoly",
+      "orig_file": "fallen/DDEngine/Headers/polypage.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PolyPage",
+      "file": "new/engine/graphics/pipeline/polypage.h",
+      "orig_name": "PolyPage",
+      "orig_file": "fallen/DDEngine/Headers/polypage.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DMULTIMATRIX",
+      "file": "new/engine/graphics/pipeline/polypage.h",
+      "orig_name": "D3DMULTIMATRIX",
+      "orig_file": "fallen/DDEngine/Headers/polypage.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SET_MM_INDEX",
+      "file": "new/engine/graphics/pipeline/polypage.h",
+      "orig_name": "SET_MM_INDEX",
+      "orig_file": "fallen/DDEngine/Headers/polypage.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GET_MM_INDEX",
+      "file": "new/engine/graphics/pipeline/polypage.h",
+      "orig_name": "GET_MM_INDEX",
+      "orig_file": "fallen/DDEngine/Headers/polypage.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GenerateMMMatrixFromStandardD3DOnes",
+      "file": "new/engine/graphics/pipeline/polypage.cpp",
+      "orig_name": "GenerateMMMatrixFromStandardD3DOnes",
+      "orig_file": "fallen/DDEngine/Source/polypage.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DrawIndPrimMM",
+      "file": "new/engine/graphics/pipeline/polypage.cpp",
+      "orig_name": "DrawIndPrimMM",
+      "orig_file": "fallen/DDEngine/Source/polypage.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "IxBuffer",
+      "file": "new/engine/graphics/pipeline/polypage_globals.h",
+      "orig_name": "IxBuffer",
+      "orig_file": "fallen/DDEngine/Source/polypage.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "not_private_smiley_xscale",
+      "file": "new/engine/graphics/pipeline/polypage_globals.h",
+      "orig_name": "not_private_smiley_xscale",
+      "orig_file": "fallen/DDEngine/Source/polypage.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "not_private_smiley_yscale",
+      "file": "new/engine/graphics/pipeline/polypage_globals.h",
+      "orig_name": "not_private_smiley_yscale",
+      "orig_file": "fallen/DDEngine/Source/polypage.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AlphaPremult",
+      "file": "new/engine/graphics/pipeline/polypage.cpp",
+      "orig_name": "AlphaPremult",
+      "orig_file": "fallen/DDEngine/Source/polypage.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "InvAlphaPremult",
+      "file": "new/engine/graphics/pipeline/polypage.cpp",
+      "orig_name": "InvAlphaPremult",
+      "orig_file": "fallen/DDEngine/Source/polypage.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DoMerge",
+      "file": "new/engine/graphics/pipeline/polypage.cpp",
+      "orig_name": "DoMerge",
+      "orig_file": "fallen/DDEngine/Source/polypage.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SetSC",
+      "file": "new/engine/graphics/pipeline/polypoint.h",
+      "orig_name": "SetSC",
+      "orig_file": "fallen/DDEngine/Headers/polypoint.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SetUV",
+      "file": "new/engine/graphics/pipeline/polypoint.h",
+      "orig_name": "SetUV",
+      "orig_file": "fallen/DDEngine/Headers/polypoint.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SetUV2",
+      "file": "new/engine/graphics/pipeline/polypoint.h",
+      "orig_name": "SetUV2",
+      "orig_file": "fallen/DDEngine/Headers/polypoint.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MakeD3DColour",
+      "file": "new/engine/graphics/pipeline/polypoint.h",
+      "orig_name": "MakeD3DColour",
+      "orig_file": "fallen/DDEngine/Headers/polypoint.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ModulateD3DColours",
+      "file": "new/engine/graphics/pipeline/polypoint.h",
+      "orig_name": "ModulateD3DColours",
+      "orig_file": "fallen/DDEngine/Headers/polypoint.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SetColour",
+      "file": "new/engine/graphics/pipeline/polypoint.h",
+      "orig_name": "SetColour",
+      "orig_file": "fallen/DDEngine/Headers/polypoint.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SetSpecular",
+      "file": "new/engine/graphics/pipeline/polypoint.h",
+      "orig_name": "SetSpecular",
+      "orig_file": "fallen/DDEngine/Headers/polypoint.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PolyPoly_operator_lt",
+      "file": "new/engine/graphics/pipeline/polypage.h",
+      "orig_name": "operator<",
+      "orig_file": "fallen/DDEngine/Headers/polypage.h",
+      "kind": "function",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PolyPoly_operator_lte",
+      "file": "new/engine/graphics/pipeline/polypage.h",
+      "orig_name": "operator<=",
+      "orig_file": "fallen/DDEngine/Headers/polypage.h",
+      "kind": "function",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PolyPoly_operator_gt",
+      "file": "new/engine/graphics/pipeline/polypage.h",
+      "orig_name": "operator>",
+      "orig_file": "fallen/DDEngine/Headers/polypage.h",
+      "kind": "function",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PolyPoly_operator_gte",
+      "file": "new/engine/graphics/pipeline/polypage.h",
+      "orig_name": "operator>=",
+      "orig_file": "fallen/DDEngine/Headers/polypage.h",
+      "kind": "function",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

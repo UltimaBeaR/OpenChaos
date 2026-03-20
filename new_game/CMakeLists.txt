@@ -86,6 +86,8 @@ set(SOURCES_NEW
     src/new/engine/graphics/pipeline/bucket_globals.cpp
     src/new/engine/graphics/pipeline/vertex_buffer.cpp
     src/new/engine/graphics/pipeline/vertex_buffer_globals.cpp
+    src/new/engine/graphics/pipeline/polypage.cpp
+    src/new/engine/graphics/pipeline/polypage_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -109,7 +111,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/panel.cpp
     src/old/fallen/DDEngine/Source/planmap.cpp
     src/old/fallen/DDEngine/Source/poly.cpp
-    src/old/fallen/DDEngine/Source/polypage.cpp
     src/old/fallen/DDEngine/Source/polyrenderstate.cpp
     src/old/fallen/DDEngine/Source/qeng.cpp
     src/old/fallen/DDEngine/Source/shape.cpp
