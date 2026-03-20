@@ -222,7 +222,7 @@
     },
     {
       "name": "MFHeap",
-      "file": "new/core/memory.cpp",
+      "file": "new/core/memory_globals.cpp",
       "orig_name": "MFHeap",
       "orig_file": "MFStdLib/Source/StdLib/StdMem.cpp",
       "kind": "variable",
@@ -512,7 +512,7 @@
     },
     {
       "name": "SinTable",
-      "file": "new/core/math.cpp",
+      "file": "new/core/math_globals.cpp",
       "orig_name": "SinTable",
       "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
       "kind": "variable",
@@ -522,7 +522,7 @@
     },
     {
       "name": "CosTable",
-      "file": "new/core/math.cpp",
+      "file": "new/core/math_globals.cpp",
       "orig_name": "CosTable",
       "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
       "kind": "variable",
@@ -532,7 +532,7 @@
     },
     {
       "name": "SinTableF",
-      "file": "new/core/math.cpp",
+      "file": "new/core/math_globals.cpp",
       "orig_name": "SinTableF",
       "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
       "kind": "variable",
@@ -542,7 +542,7 @@
     },
     {
       "name": "CosTableF",
-      "file": "new/core/math.cpp",
+      "file": "new/core/math_globals.cpp",
       "orig_name": "CosTableF",
       "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
       "kind": "variable",
@@ -552,7 +552,7 @@
     },
     {
       "name": "AtanTable",
-      "file": "new/core/math.cpp",
+      "file": "new/core/math_globals.cpp",
       "orig_name": "AtanTable",
       "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
       "kind": "variable",
@@ -562,7 +562,7 @@
     },
     {
       "name": "Proportions",
-      "file": "new/core/math.cpp",
+      "file": "new/core/math_globals.cpp",
       "orig_name": "Proportions",
       "orig_file": "MFStdLib/Source/StdLib/StdMaths.cpp",
       "kind": "variable",
@@ -1942,7 +1942,7 @@
     },
     {
       "name": "AltFlag",
-      "file": "new/engine/input/keyboard.h",
+      "file": "new/engine/input/keyboard_globals.h",
       "orig_name": "AltFlag",
       "orig_file": "MFStdLib/Headers/StdKeybd.h",
       "kind": "variable",
@@ -1952,7 +1952,7 @@
     },
     {
       "name": "ControlFlag",
-      "file": "new/engine/input/keyboard.h",
+      "file": "new/engine/input/keyboard_globals.h",
       "orig_name": "ControlFlag",
       "orig_file": "MFStdLib/Headers/StdKeybd.h",
       "kind": "variable",
@@ -1962,7 +1962,7 @@
     },
     {
       "name": "ShiftFlag",
-      "file": "new/engine/input/keyboard.h",
+      "file": "new/engine/input/keyboard_globals.h",
       "orig_name": "ShiftFlag",
       "orig_file": "MFStdLib/Headers/StdKeybd.h",
       "kind": "variable",
@@ -1972,7 +1972,7 @@
     },
     {
       "name": "Keys",
-      "file": "new/engine/input/keyboard.h",
+      "file": "new/engine/input/keyboard_globals.h",
       "orig_name": "Keys",
       "orig_file": "MFStdLib/Headers/StdKeybd.h",
       "kind": "variable",
@@ -1982,7 +1982,7 @@
     },
     {
       "name": "LastKey",
-      "file": "new/engine/input/keyboard.h",
+      "file": "new/engine/input/keyboard_globals.h",
       "orig_name": "LastKey",
       "orig_file": "MFStdLib/Headers/StdKeybd.h",
       "kind": "variable",
@@ -1992,7 +1992,7 @@
     },
     {
       "name": "LastMouse",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "LastMouse",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "struct",
@@ -2002,7 +2002,7 @@
     },
     {
       "name": "MouseMoved",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "MouseMoved",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "variable",
@@ -2012,7 +2012,7 @@
     },
     {
       "name": "LeftButton",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "LeftButton",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "variable",
@@ -2022,7 +2022,7 @@
     },
     {
       "name": "MiddleButton",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "MiddleButton",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "variable",
@@ -2032,7 +2032,7 @@
     },
     {
       "name": "RightButton",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "RightButton",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "variable",
@@ -2042,7 +2042,7 @@
     },
     {
       "name": "MouseX",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "MouseX",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "variable",
@@ -2052,7 +2052,7 @@
     },
     {
       "name": "MouseY",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "MouseY",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "variable",
@@ -2062,7 +2062,7 @@
     },
     {
       "name": "LeftMouse",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "LeftMouse",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "variable",
@@ -2072,7 +2072,7 @@
     },
     {
       "name": "MiddleMouse",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "MiddleMouse",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "variable",
@@ -2082,7 +2082,7 @@
     },
     {
       "name": "RightMouse",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "RightMouse",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "variable",
@@ -2092,7 +2092,7 @@
     },
     {
       "name": "MousePoint",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "MousePoint",
       "orig_file": "MFStdLib/Headers/StdMouse.h",
       "kind": "variable",
@@ -2412,7 +2412,7 @@
     },
     {
       "name": "key_turn",
-      "file": "new/engine/input/keyboard.cpp",
+      "file": "new/engine/input/keyboard_globals.cpp",
       "orig_name": "key_turn",
       "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
       "kind": "variable",
@@ -2422,7 +2422,7 @@
     },
     {
       "name": "MAX_RELEASE",
-      "file": "new/engine/input/keyboard.cpp",
+      "file": "new/engine/input/keyboard_globals.h",
       "orig_name": "MAX_RELEASE",
       "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
       "kind": "macro",
@@ -2432,7 +2432,7 @@
     },
     {
       "name": "Released",
-      "file": "new/engine/input/keyboard.cpp",
+      "file": "new/engine/input/keyboard_globals.cpp",
       "orig_name": "Released",
       "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
       "kind": "variable",
@@ -2442,7 +2442,7 @@
     },
     {
       "name": "release_count",
-      "file": "new/engine/input/keyboard.cpp",
+      "file": "new/engine/input/keyboard_globals.cpp",
       "orig_name": "release_count",
       "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
       "kind": "variable",
@@ -2452,7 +2452,7 @@
     },
     {
       "name": "game_turn",
-      "file": "new/engine/input/keyboard.cpp",
+      "file": "new/engine/input/keyboard_globals.cpp",
       "orig_name": "game_turn",
       "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
       "kind": "variable",
@@ -2462,7 +2462,7 @@
     },
     {
       "name": "KeyboardHook",
-      "file": "new/engine/input/keyboard.cpp",
+      "file": "new/engine/input/keyboard_globals.cpp",
       "orig_name": "KeyboardHook",
       "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
       "kind": "variable",
@@ -2562,7 +2562,7 @@
     },
     {
       "name": "MouseDX",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "MouseDX",
       "orig_file": "fallen/DDLibrary/Source/GMouse.cpp",
       "kind": "variable",
@@ -2572,7 +2572,7 @@
     },
     {
       "name": "MouseDY",
-      "file": "new/engine/input/mouse.h",
+      "file": "new/engine/input/mouse_globals.h",
       "orig_name": "MouseDY",
       "orig_file": "fallen/DDLibrary/Source/GMouse.cpp",
       "kind": "variable",
@@ -2592,7 +2592,7 @@
     },
     {
       "name": "OldMouseX",
-      "file": "new/engine/input/mouse.cpp",
+      "file": "new/engine/input/mouse_globals.cpp",
       "orig_name": "OldMouseX",
       "orig_file": "fallen/DDLibrary/Source/GMouse.cpp",
       "kind": "variable",
@@ -2602,7 +2602,7 @@
     },
     {
       "name": "OldMouseY",
-      "file": "new/engine/input/mouse.cpp",
+      "file": "new/engine/input/mouse_globals.cpp",
       "orig_name": "OldMouseY",
       "orig_file": "fallen/DDLibrary/Source/GMouse.cpp",
       "kind": "variable",

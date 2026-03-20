@@ -1,14 +1,12 @@
 #include <windows.h>
 #include "core/memory.h"
+#include "core/memory_globals.h"
 
 // uc_orig: INITIAL_HEAP_SIZE (MFStdLib/Source/StdLib/StdMem.cpp)
 #define INITIAL_HEAP_SIZE (8 * 1024 * 1024)
 
 // uc_orig: MAXIMUM_HEAP_SIZE (MFStdLib/Source/StdLib/StdMem.cpp)
 #define MAXIMUM_HEAP_SIZE 0
-
-// uc_orig: MFHeap (MFStdLib/Source/StdLib/StdMem.cpp)
-HANDLE MFHeap = NULL;
 
 // uc_orig: SetupMemory (MFStdLib/Source/StdLib/StdMem.cpp)
 BOOL SetupMemory(void)

@@ -36,11 +36,15 @@ set(SOURCES_MFSTDLIB
 
 set(SOURCES_NEW
     src/new/core/memory.cpp
+    src/new/core/memory_globals.cpp
     src/new/core/math.cpp
+    src/new/core/math_globals.cpp
     src/new/engine/io/file.cpp
     src/new/engine/io/async_file.cpp
     src/new/engine/input/keyboard.cpp
+    src/new/engine/input/keyboard_globals.cpp
     src/new/engine/input/mouse.cpp
+    src/new/engine/input/mouse_globals.cpp
 )
 
 set(SOURCES_DDENGINE

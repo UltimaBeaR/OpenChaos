@@ -218,18 +218,7 @@
 // uc_orig: KB_PPOINT (MFStdLib/Headers/StdKeybd.h)
 #define KB_PPOINT 0x53
 
-// Keyboard state globals.
-
-// uc_orig: AltFlag (MFStdLib/Headers/StdKeybd.h)
-extern volatile UBYTE AltFlag;
-// uc_orig: ControlFlag (MFStdLib/Headers/StdKeybd.h)
-extern volatile UBYTE ControlFlag;
-// uc_orig: ShiftFlag (MFStdLib/Headers/StdKeybd.h)
-extern volatile UBYTE ShiftFlag;
-// uc_orig: Keys (MFStdLib/Headers/StdKeybd.h)
-extern volatile UBYTE Keys[256];
-// uc_orig: LastKey (MFStdLib/Headers/StdKeybd.h)
-extern volatile UBYTE LastKey;
+#include "engine/input/keyboard_globals.h"
 
 // uc_orig: SetupKeyboard (fallen/DDLibrary/Source/GKeyboard.cpp)
 BOOL SetupKeyboard(void);

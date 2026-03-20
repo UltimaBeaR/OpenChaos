@@ -60,3 +60,12 @@
 - ASSERT вызов в `ClearLatchedKeys` убран (no-op макрос)
 
 ---
+
+## Фикс — вынос глобалов в `_globals` файлы (2026-03-20)
+
+Правило было в stage4_rules.md с самого начала, но игнорировалось итерации 1–6.
+Созданы: `memory_globals`, `math_globals`, `keyboard_globals`, `mouse_globals` (.h + .cpp).
+Entity mapping обновлён (33 записи — file path).
+Чеклист самопроверки дополнен пунктом B (проверка `_globals`).
+
+---
