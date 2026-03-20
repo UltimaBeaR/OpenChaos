@@ -45,6 +45,8 @@ set(SOURCES_NEW
     src/new/engine/input/keyboard_globals.cpp
     src/new/engine/input/mouse.cpp
     src/new/engine/input/mouse_globals.cpp
+    src/new/engine/input/joystick.cpp
+    src/new/engine/input/joystick_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -98,7 +100,6 @@ set(SOURCES_DDLIBRARY
     src/old/fallen/DDLibrary/Source/BinkClient.cpp
     src/old/fallen/DDLibrary/Source/D3DTexture.cpp
     src/old/fallen/DDLibrary/Source/DDManager.cpp
-    src/old/fallen/DDLibrary/Source/DIManager.cpp
     src/old/fallen/DDLibrary/Source/Drive.cpp
     src/old/fallen/DDLibrary/Source/FileClump.cpp
     src/old/fallen/DDLibrary/Source/GDisplay.cpp

@@ -2619,6 +2619,206 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "the_state",
+      "file": "new/engine/input/joystick_globals.h",
+      "orig_name": "the_state",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OS_joy_direct_input",
+      "file": "new/engine/input/joystick_globals.h",
+      "orig_name": "OS_joy_direct_input",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OS_joy_input_device",
+      "file": "new/engine/input/joystick_globals.h",
+      "orig_name": "OS_joy_input_device",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OS_joy_input_device2",
+      "file": "new/engine/input/joystick_globals.h",
+      "orig_name": "OS_joy_input_device2",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OS_joy_x_range_min",
+      "file": "new/engine/input/joystick_globals.h",
+      "orig_name": "OS_joy_x_range_min",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OS_joy_x_range_max",
+      "file": "new/engine/input/joystick_globals.h",
+      "orig_name": "OS_joy_x_range_max",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OS_joy_y_range_min",
+      "file": "new/engine/input/joystick_globals.h",
+      "orig_name": "OS_joy_y_range_min",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OS_joy_y_range_max",
+      "file": "new/engine/input/joystick_globals.h",
+      "orig_name": "OS_joy_y_range_max",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MOUSE",
+      "file": "new/engine/input/joystick.h",
+      "orig_name": "MOUSE",
+      "orig_file": "fallen/DDLibrary/Headers/DIManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KEYBOARD",
+      "file": "new/engine/input/joystick.h",
+      "orig_name": "KEYBOARD",
+      "orig_file": "fallen/DDLibrary/Headers/DIManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "JOYSTICK",
+      "file": "new/engine/input/joystick.h",
+      "orig_name": "JOYSTICK",
+      "orig_file": "fallen/DDLibrary/Headers/DIManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "DI_DRIVER_INIT",
+      "file": "new/engine/input/joystick.h",
+      "orig_name": "DI_DRIVER_INIT",
+      "orig_file": "fallen/DDLibrary/Headers/DIManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "DI_DEVICE_VALID",
+      "file": "new/engine/input/joystick.h",
+      "orig_name": "DI_DEVICE_VALID",
+      "orig_file": "fallen/DDLibrary/Headers/DIManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "DI_DEVICE_NEEDS_POLL",
+      "file": "new/engine/input/joystick.h",
+      "orig_name": "DI_DEVICE_NEEDS_POLL",
+      "orig_file": "fallen/DDLibrary/Headers/DIManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ENABLE_REMAPPING",
+      "file": "new/engine/input/joystick.h",
+      "orig_name": "ENABLE_REMAPPING",
+      "orig_file": "fallen/DDLibrary/Headers/DIManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "GetInputDevice",
+      "file": "new/engine/input/joystick.h",
+      "orig_name": "GetInputDevice",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ReadInputDevice",
+      "file": "new/engine/input/joystick.h",
+      "orig_name": "ReadInputDevice",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OS_joy_enum",
+      "file": "new/engine/input/joystick.cpp",
+      "orig_name": "OS_joy_enum",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OS_joy_init",
+      "file": "new/engine/input/joystick.cpp",
+      "orig_name": "OS_joy_init",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OS_joy_poll",
+      "file": "new/engine/input/joystick.cpp",
+      "orig_name": "OS_joy_poll",
+      "orig_file": "fallen/DDLibrary/Source/DIManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }

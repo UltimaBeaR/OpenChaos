@@ -116,12 +116,8 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
     }
 #endif
 
-//---------------------------------------------------------------
-// Input.
-
-#define MOUSE DIDEVTYPE_MOUSE
-#define KEYBOARD DIDEVTYPE_KEYBOARD
-#define JOYSTICK DIDEVTYPE_JOYSTICK
+// Input defines moved to engine/input/joystick.h (Stage 4).
+// Available through DDlib.h -> DIManager.h -> joystick.h
 
 #include "core/macros.h"
 

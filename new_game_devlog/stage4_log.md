@@ -69,3 +69,11 @@ Entity mapping обновлён (33 записи — file path).
 Чеклист самопроверки дополнен пунктом B (проверка `_globals`).
 
 ---
+
+## Итерация 7 — engine/input/joystick (DIManager) (2026-03-20)
+
+- `ClearPrimaryDevice` не перенесён — мёртвая декларация, нигде не вызывается
+- `DIRECTINPUT_VERSION 0x0700` нужен перед `<dinput.h>` — добавлен в joystick_globals.h и joystick.cpp
+- MOUSE/KEYBOARD/JOYSTICK макросы убраны из MFStdLib.h (дубликат, теперь в joystick.h через DDlib.h → DIManager.h redirect)
+
+---
