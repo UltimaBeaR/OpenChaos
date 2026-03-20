@@ -6409,6 +6409,766 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FastLoadFileSomewhere",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "FastLoadFileSomewhere",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FreeAllD3DPages",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "FreeAllD3DPages",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OS_calculate_mask_and_shift",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "OS_calculate_mask_and_shift",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Char",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "Char",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Font",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "Font",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3DTexture",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DPage",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3DPage",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3D_TEXTURE_FONT",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3D_TEXTURE_FONT",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3D_TEXTURE_FONT2",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3D_TEXTURE_FONT2",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTEXTURE_TYPE_UNUSED",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3DTEXTURE_TYPE_UNUSED",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTEXTURE_TYPE_TGA",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3DTEXTURE_TYPE_TGA",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTEXTURE_TYPE_USER",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3DTEXTURE_TYPE_USER",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DPAGE_NONE",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3DPAGE_NONE",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DPAGE_64_3X3",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3DPAGE_64_3X3",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DPAGE_64_4X4",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3DPAGE_64_4X4",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DPAGE_32_3X3",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3DPAGE_32_3X3",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DPAGE_32_4X4",
+      "file": "new/engine/graphics/resources/d3d_texture.h",
+      "orig_name": "D3DPAGE_32_4X4",
+      "orig_file": "fallen/DDLibrary/Headers/D3DTexture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GetMeAFastLoadBufferAtLeastThisBigPlease",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "GetMeAFastLoadBufferAtLeastThisBigPlease",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DPage::EnsureLoaded",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DPage::EnsureLoaded",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DPage::Unload",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DPage::Unload",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::GetTexOffsetAndScale",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::GetTexOffsetAndScale",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::ChangeTextureTGA",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::ChangeTextureTGA",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::LoadTextureTGA",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::LoadTextureTGA",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::CreateUserPage",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::CreateUserPage",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::Reload_TGA",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::Reload_TGA",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::Reload_user",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::Reload_user",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::LockUser",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::LockUser",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::UnlockUser",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::UnlockUser",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::Reload",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::Reload",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::Destroy",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::Destroy",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "scan_for_baseline",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "scan_for_baseline",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::CreateFonts",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::CreateFonts",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::GetFont",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::GetFont",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::set_greyscale",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::set_greyscale",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DTexture::BeginLoading",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "D3DTexture::BeginLoading",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "VERIFY",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "VERIFY",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MATCH_TGA_PIXELS",
+      "file": "new/engine/graphics/resources/d3d_texture.cpp",
+      "orig_name": "MATCH_TGA_PIXELS",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EmbedSource",
+      "file": "new/engine/graphics/resources/d3d_texture_globals.cpp",
+      "orig_name": "EmbedSource",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EmbedSurface",
+      "file": "new/engine/graphics/resources/d3d_texture_globals.cpp",
+      "orig_name": "EmbedSurface",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EmbedTexture",
+      "file": "new/engine/graphics/resources/d3d_texture_globals.cpp",
+      "orig_name": "EmbedTexture",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EmbedOffset",
+      "file": "new/engine/graphics/resources/d3d_texture_globals.cpp",
+      "orig_name": "EmbedOffset",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "dwSizeOfFastLoadBuffer",
+      "file": "new/engine/graphics/resources/d3d_texture_globals.cpp",
+      "orig_name": "dwSizeOfFastLoadBuffer",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "pvFastLoadBuffer",
+      "file": "new/engine/graphics/resources/d3d_texture_globals.cpp",
+      "orig_name": "pvFastLoadBuffer",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "m_bTexturePagesInitialised",
+      "file": "new/engine/graphics/resources/d3d_texture_globals.cpp",
+      "orig_name": "m_bTexturePagesInitialised",
+      "orig_file": "fallen/DDLibrary/Source/D3DTexture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ChangeDDInfo",
+      "file": "new/engine/graphics/graphics_api/wind_procs.h",
+      "orig_name": "ChangeDDInfo",
+      "orig_file": "fallen/DDLibrary/Headers/WindProcs.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDLibShellProc",
+      "file": "new/engine/graphics/graphics_api/wind_procs.cpp",
+      "orig_name": "DDLibShellProc",
+      "orig_file": "fallen/DDLibrary/Source/WindProcs.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "app_inactive",
+      "file": "new/engine/graphics/graphics_api/wind_procs_globals.cpp",
+      "orig_name": "app_inactive",
+      "orig_file": "fallen/DDLibrary/Source/WindProcs.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "restore_surfaces",
+      "file": "new/engine/graphics/graphics_api/wind_procs_globals.cpp",
+      "orig_name": "restore_surfaces",
+      "orig_file": "fallen/DDLibrary/Source/WindProcs.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDLibThread",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "DDLibThread",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SetupHost",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "SetupHost",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ResetHost",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "ResetHost",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShellPaused",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "ShellPaused",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShellPauseOn",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "ShellPauseOn",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShellPauseOff",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "ShellPauseOff",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LibShellActive",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "LibShellActive",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LibShellChanged",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "LibShellChanged",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LibShellMessage",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "LibShellMessage",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Time",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "Time",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WinMain",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "WinMain",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSE_TIMEOUT",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "PAUSE_TIMEOUT",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSE",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "PAUSE",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSE_ACK",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "PAUSE_ACK",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "iGlobalWinMode",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "iGlobalWinMode",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShellID",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "ShellID",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "hDDLibAccel",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "hDDLibAccel",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "hDDLibThread",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "hDDLibThread",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "hGlobalPrevInst",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "hGlobalPrevInst",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "hGlobalThisInst",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "hGlobalThisInst",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "lpszGlobalArgs",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "lpszGlobalArgs",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDLibClass",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "DDLibClass",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShellActive",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "ShellActive",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PauseFlags",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "PauseFlags",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PauseCount",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "PauseCount",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "argc",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "argc",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "argv",
+      "file": "new/engine/graphics/graphics_api/host_globals.cpp",
+      "orig_name": "argv",
+      "orig_file": "fallen/DDLibrary/Source/GHost.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

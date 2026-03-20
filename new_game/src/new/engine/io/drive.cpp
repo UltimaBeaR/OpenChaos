@@ -2,6 +2,7 @@
 #include "engine/io/drive_globals.h"
 #include <cstdio>
 #include <cstring>
+#include "core/types.h"  // CBYTE/SLONG needed by env.h
 // Temporary: env.h not yet migrated
 #include "fallen/Headers/env.h"
 // Temporary: MF_Fopen/MF_Fclose from MFStdLib

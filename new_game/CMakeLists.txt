@@ -75,6 +75,12 @@ set(SOURCES_NEW
     src/new/engine/io/drive_globals.cpp
     src/new/engine/audio/mfx.cpp
     src/new/engine/audio/mfx_globals.cpp
+    src/new/engine/graphics/resources/d3d_texture.cpp
+    src/new/engine/graphics/resources/d3d_texture_globals.cpp
+    src/new/engine/graphics/graphics_api/wind_procs.cpp
+    src/new/engine/graphics/graphics_api/wind_procs_globals.cpp
+    src/new/engine/graphics/graphics_api/host.cpp
+    src/new/engine/graphics/graphics_api/host_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -116,12 +122,9 @@ set(SOURCES_DDENGINE
 )
 
 set(SOURCES_DDLIBRARY
-    src/old/fallen/DDLibrary/Source/D3DTexture.cpp
     src/old/fallen/DDLibrary/Source/DDManager.cpp
     src/old/fallen/DDLibrary/Source/GDisplay.cpp
-    src/old/fallen/DDLibrary/Source/GHost.cpp
     src/old/fallen/DDLibrary/Source/net.cpp
-    src/old/fallen/DDLibrary/Source/WindProcs.cpp
 )
 
 set(SOURCES_OUTRO
