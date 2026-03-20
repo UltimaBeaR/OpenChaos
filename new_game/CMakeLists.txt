@@ -37,6 +37,7 @@ set(SOURCES_MFSTDLIB
 set(SOURCES_NEW
     src/new/core/memory.cpp
     src/new/core/math.cpp
+    src/new/engine/io/file.cpp
 )
 
 set(SOURCES_DDENGINE

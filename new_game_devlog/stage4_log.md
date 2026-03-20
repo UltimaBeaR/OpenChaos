@@ -30,3 +30,11 @@
 - `math.h` включает `<cmath>` и `<cstdlib>` (для sqrt в Root() и abs в Hypotenuse)
 
 ---
+
+## Итерация 3 — engine/io/file (2026-03-20)
+
+- `TraceText` оставлен в `old/StdFile.cpp` — относится к Host section, не к файловому I/O
+- `TraceText` нигде не вызывается (мёртвый код), удалится при миграции Host section
+- `file.h` включает `<windows.h>` напрямую для HANDLE/BOOL — self-contained до Этапа 8
+
+---

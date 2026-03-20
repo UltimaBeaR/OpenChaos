@@ -619,6 +619,326 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "MFFileHandle",
+      "file": "new/engine/io/file.h",
+      "orig_name": "MFFileHandle",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FILE_OPEN_ERROR",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FILE_OPEN_ERROR",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FILE_CLOSE_ERROR",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FILE_CLOSE_ERROR",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FILE_CREATION_ERROR",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FILE_CREATION_ERROR",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FILE_SIZE_ERROR",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FILE_SIZE_ERROR",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FILE_READ_ERROR",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FILE_READ_ERROR",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FILE_WRITE_ERROR",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FILE_WRITE_ERROR",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FILE_SEEK_ERROR",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FILE_SEEK_ERROR",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FILE_LOAD_AT_ERROR",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FILE_LOAD_AT_ERROR",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SEEK_MODE_BEGINNING",
+      "file": "new/engine/io/file.h",
+      "orig_name": "SEEK_MODE_BEGINNING",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SEEK_MODE_CURRENT",
+      "file": "new/engine/io/file.h",
+      "orig_name": "SEEK_MODE_CURRENT",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SEEK_MODE_END",
+      "file": "new/engine/io/file.h",
+      "orig_name": "SEEK_MODE_END",
+      "orig_file": "MFStdLib/Headers/StdFile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileExists",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileExists",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileOpen",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileOpen",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileClose",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileClose",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileCreate",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileCreate",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileDelete",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileDelete",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileSize",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileSize",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileRead",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileRead",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileWrite",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileWrite",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileSeek",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileSeek",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileLoadAt",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileLoadAt",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "FileSetBasePath",
+      "file": "new/engine/io/file.h",
+      "orig_name": "FileSetBasePath",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MF_Fopen",
+      "file": "new/engine/io/file.h",
+      "orig_name": "MF_Fopen",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MF_Fclose",
+      "file": "new/engine/io/file.h",
+      "orig_name": "MF_Fclose",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_LENGTH_OF_BASE_PATH",
+      "file": "new/engine/io/file.cpp",
+      "orig_name": "MAX_LENGTH_OF_BASE_PATH",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "cBasePath",
+      "file": "new/engine/io/file.cpp",
+      "orig_name": "cBasePath",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_LENGTH_OF_FULL_NAME",
+      "file": "new/engine/io/file.cpp",
+      "orig_name": "MAX_LENGTH_OF_FULL_NAME",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "cTempFilename",
+      "file": "new/engine/io/file.cpp",
+      "orig_name": "cTempFilename",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MakeFullPathName",
+      "file": "new/engine/io/file.cpp",
+      "orig_name": "MakeFullPathName",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "INITIAL_HEAP_SIZE",
+      "file": "new/core/memory.cpp",
+      "orig_name": "INITIAL_HEAP_SIZE",
+      "orig_file": "MFStdLib/Source/StdLib/StdMem.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAXIMUM_HEAP_SIZE",
+      "file": "new/core/memory.cpp",
+      "orig_name": "MAXIMUM_HEAP_SIZE",
+      "orig_file": "MFStdLib/Source/StdLib/StdMem.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }

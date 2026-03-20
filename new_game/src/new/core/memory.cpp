@@ -1,9 +1,10 @@
-// uc_orig_file: MFStdLib/Source/StdLib/StdMem.cpp
-
 #include <windows.h>
 #include "core/memory.h"
 
+// uc_orig: INITIAL_HEAP_SIZE (MFStdLib/Source/StdLib/StdMem.cpp)
 #define INITIAL_HEAP_SIZE (8 * 1024 * 1024)
+
+// uc_orig: MAXIMUM_HEAP_SIZE (MFStdLib/Source/StdLib/StdMem.cpp)
 #define MAXIMUM_HEAP_SIZE 0
 
 // uc_orig: MFHeap (MFStdLib/Source/StdLib/StdMem.cpp)
