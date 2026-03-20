@@ -34,4 +34,12 @@ extern volatile LastMouse RightMouse;
 // uc_orig: MousePoint (MFStdLib/Headers/StdMouse.h)
 extern volatile MFPoint MousePoint;
 
+// uc_orig: MouseDX (fallen/DDLibrary/Source/GMouse.cpp)
+extern volatile SLONG MouseDX;
+// uc_orig: MouseDY (fallen/DDLibrary/Source/GMouse.cpp)
+extern volatile SLONG MouseDY;
+
+// uc_orig: RecenterMouse (fallen/DDLibrary/Source/GMouse.cpp)
+void RecenterMouse(void);
+
 #endif // ENGINE_INPUT_MOUSE_H

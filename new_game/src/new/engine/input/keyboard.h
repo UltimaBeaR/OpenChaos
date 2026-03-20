@@ -231,4 +231,11 @@ extern volatile UBYTE Keys[256];
 // uc_orig: LastKey (MFStdLib/Headers/StdKeybd.h)
 extern volatile UBYTE LastKey;
 
+// uc_orig: SetupKeyboard (fallen/DDLibrary/Source/GKeyboard.cpp)
+BOOL SetupKeyboard(void);
+// uc_orig: ResetKeyboard (fallen/DDLibrary/Source/GKeyboard.cpp)
+void ResetKeyboard(void);
+// uc_orig: ClearLatchedKeys (fallen/DDLibrary/Source/GKeyboard.cpp)
+void ClearLatchedKeys(void);
+
 #endif // ENGINE_INPUT_KEYBOARD_H

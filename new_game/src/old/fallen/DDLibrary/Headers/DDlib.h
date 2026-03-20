@@ -16,11 +16,8 @@
 
 #include "WindProcs.h"
 
-//---------------------------------------------------------------
-// mikes mouse stuff
-
-extern volatile SLONG MouseDX, MouseDY;
-extern void RecenterMouse(void);
+// MouseDX, MouseDY, RecenterMouse moved to engine/input/mouse.h (Stage 4)
+// Already available through MFStdLib.h -> StdMouse.h -> engine/input/mouse.h
 
 //---------------------------------------------------------------
 

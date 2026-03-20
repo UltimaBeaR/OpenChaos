@@ -2379,6 +2379,246 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-20"
+    },
+    {
+      "name": "SetupKeyboard",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "SetupKeyboard",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ResetKeyboard",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "ResetKeyboard",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "ClearLatchedKeys",
+      "file": "new/engine/input/keyboard.h",
+      "orig_name": "ClearLatchedKeys",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "key_turn",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "key_turn",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MAX_RELEASE",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "MAX_RELEASE",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "Released",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "Released",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "release_count",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "release_count",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "game_turn",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "game_turn",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KeyboardHook",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "KeyboardHook",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KeyboardProc",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "KeyboardProc",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "SetFlagsFromKeyArray",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "SetFlagsFromKeyArray",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KEYMASK_REPEAT",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "KEYMASK_REPEAT",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KEYMASK_SCAN",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "KEYMASK_SCAN",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KEYMASK_EXTENDED",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "KEYMASK_EXTENDED",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KEYMASK_RESERVED",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "KEYMASK_RESERVED",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KEYMASK_CONTEXT",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "KEYMASK_CONTEXT",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KEYMASK_PSTATE",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "KEYMASK_PSTATE",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "KEYMASK_TSTATE",
+      "file": "new/engine/input/keyboard.cpp",
+      "orig_name": "KEYMASK_TSTATE",
+      "orig_file": "fallen/DDLibrary/Source/GKeyboard.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MouseDX",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "MouseDX",
+      "orig_file": "fallen/DDLibrary/Source/GMouse.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MouseDY",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "MouseDY",
+      "orig_file": "fallen/DDLibrary/Source/GMouse.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "RecenterMouse",
+      "file": "new/engine/input/mouse.h",
+      "orig_name": "RecenterMouse",
+      "orig_file": "fallen/DDLibrary/Source/GMouse.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OldMouseX",
+      "file": "new/engine/input/mouse.cpp",
+      "orig_name": "OldMouseX",
+      "orig_file": "fallen/DDLibrary/Source/GMouse.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "OldMouseY",
+      "file": "new/engine/input/mouse.cpp",
+      "orig_name": "OldMouseY",
+      "orig_file": "fallen/DDLibrary/Source/GMouse.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
+    },
+    {
+      "name": "MouseProc",
+      "file": "new/engine/input/mouse.cpp",
+      "orig_name": "MouseProc",
+      "orig_file": "fallen/DDLibrary/Source/GMouse.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-20"
     }
   ]
 }

@@ -52,3 +52,11 @@
 - `AsyncFile.h` (старая версия) — редирект на `async_file.h`, как и `AsyncFile2.h`
 
 ---
+
+## Итерация 6 — engine/input/keyboard.cpp + engine/input/mouse.cpp (2026-03-20)
+
+- `mouse.cpp` временно включает `DDlib.h` для `hDDLibWindow` (GDisplay ещё не мигрирован)
+- `MouseDX`/`MouseDY`/`RecenterMouse` перенесены из `DDlib.h` в `mouse.h`
+- ASSERT вызов в `ClearLatchedKeys` убран (no-op макрос)
+
+---
