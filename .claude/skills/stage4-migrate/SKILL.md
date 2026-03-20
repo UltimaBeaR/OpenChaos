@@ -42,8 +42,8 @@ Both include directories are in CMakeLists.txt:
 
 ## Iteration Size
 
-~1500-2000 lines total per iteration (all files in the batch combined).
-Pick thematically related files. For files >3000 lines — split into ~2000 line chunks.
+~1200-1500 lines total per iteration (all files in the batch combined).
+Pick thematically related files. For files >2000 lines — split into ~1500 line chunks.
 Use subagents for parallel file creation on large batches.
 
 ## Migration Order (bottom-up by DAG)
@@ -375,9 +375,9 @@ A dependency from outside `engine/` directly into `engine/graphics/` is a visibl
 
 # Iteration Rules
 
-1. **Iteration size — 1500-2000 lines, target ~130 iterations total:**
-   Each iteration = ~1500-2000 lines total (all files in batch). Pick thematically related files,
-   combining small and medium ones. For files >3000 lines — split into ~2000 line chunks.
+1. **Iteration size — 1200-1500 lines:**
+   Each iteration = ~1200-1500 lines total (all files in batch). Pick thematically related files,
+   combining small and medium ones. For files >2000 lines — split into ~1500 line chunks.
    Use subagents for parallel file creation on large batches.
 
 2. **Compilation** — Claude compiles independently (`make build-release`) after each iteration.
