@@ -97,3 +97,8 @@ NIGHT_Colour NIGHT_walkable[NIGHT_MAX_WALKABLE];
 // uc_orig: NIGHT_roof_walkable (fallen/Source/night.cpp)
 // MAX_ROOF_FACE4 * 4 entries. MAX_ROOF_FACE4=10000 defined in fallen/Headers/memory.h.
 NIGHT_Colour NIGHT_roof_walkable[10000 * 4]; // 10000 = MAX_ROOF_FACE4
+
+// uc_orig: hidden_roof_index (fallen/Source/night.cpp)
+// Index into NIGHT_roof_walkable[] for each hi-map (x,z) square that has a hidden roof.
+// Set by NIGHT_generate_roof_walkable; read by aeng.cpp for hidden-roof lighting lookup.
+UWORD hidden_roof_index[128][128];

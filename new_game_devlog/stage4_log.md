@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 69 — engine/lighting/night (второй чанк: dfcache_recalc..NIGHT_load_ed_file) (2026-03-21)
+
+- Мигрированы: `NIGHT_dfcache_recalc`, `NIGHT_dfcache_create`, `NIGHT_dfcache_destroy`, `NIGHT_get_light_at`, `NIGHT_find`, `NIGHT_init`, `calc_lighting__for_point`, `NIGHT_generate_roof_walkable`, `NIGHT_generate_walkable_lighting`, `NIGHT_destroy_all_cached_info`, `NIGHT_load_ed_file`.
+- `hidden_roof_index[128][128]` — в оригинале определён внутри `night.cpp` без `static`, доступен из `aeng.cpp` через `extern`. Перенесён в `night_globals.cpp`. В `aeng.cpp` убрано inline-`extern` объявление — теперь доступен через `fallen/Headers/night.h` → `night_globals.h`.
+- `old/fallen/Source/night.cpp` полностью заменён redirect-заглушкой.
+
+---
+
 ## Итерация 68 — engine/lighting/night (первый чанк: globals + ambient + slight + dlight + cache + dfcache_init) (2026-03-21)
 
 - Исходный файл: `old/fallen/Source/night.cpp` (3905 строк). Первый чанк — ~2300 строк.

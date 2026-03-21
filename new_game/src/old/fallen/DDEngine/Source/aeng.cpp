@@ -6690,8 +6690,6 @@ void AENG_draw_city()
                             POLY_transform((x) << 8, y, (z + 1) << 8, &fake_roof[3]);
                             POLY_transform((x + 1) << 8, y, (z + 1) << 8, &fake_roof[2]);
 
-                            extern UWORD hidden_roof_index[128][128];
-
                             light_lookup = hidden_roof_index[x][z];
 
                             ASSERT(light_lookup);

@@ -44769,6 +44769,126 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dfcache_recalc",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dfcache_recalc",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dfcache_create",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dfcache_create",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dfcache_destroy",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dfcache_destroy",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_get_light_at",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "NIGHT_get_light_at",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_find",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "NIGHT_find",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_init",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "NIGHT_init",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_lighting__for_point",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "calc_lighting__for_point",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_generate_roof_walkable",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "NIGHT_generate_roof_walkable",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_generate_walkable_lighting",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "NIGHT_generate_walkable_lighting",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_destroy_all_cached_info",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "NIGHT_destroy_all_cached_info",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_load_ed_file",
+      "file": "new/engine/lighting/night.cpp",
+      "orig_name": "NIGHT_load_ed_file",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "hidden_roof_index",
+      "file": "new/engine/lighting/night_globals.cpp",
+      "orig_name": "hidden_roof_index",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

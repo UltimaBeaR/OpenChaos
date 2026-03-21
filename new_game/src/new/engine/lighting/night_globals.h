@@ -97,4 +97,9 @@ extern NIGHT_Colour NIGHT_walkable[NIGHT_MAX_WALKABLE];
 // uc_orig: NIGHT_roof_walkable (fallen/Source/night.cpp)
 extern NIGHT_Colour NIGHT_roof_walkable[];
 
+// uc_orig: hidden_roof_index (fallen/Source/night.cpp)
+// Index into NIGHT_roof_walkable[] for each hi-map (x,z) square that has a hidden roof.
+// Set by NIGHT_generate_roof_walkable; read by aeng.cpp for hidden-roof lighting lookup.
+extern UWORD hidden_roof_index[128][128];
+
 #endif // ENGINE_LIGHTING_NIGHT_GLOBALS_H
