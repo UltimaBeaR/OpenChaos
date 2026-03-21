@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 83 — ai/pcom (второй чанк: movement state setters + gang attack system) (2026-03-21)
+
+- Перенесены: все `PCOM_set_person_move_*` / `PCOM_set_person_substate_*` (22 функции), `PCOM_renav`, `PCOM_finished_nav`, `PCOM_set_person_move_pause`, `PCOM_set_person_move_animation`, `PCOM_set_person_move_shoot`, `PCOM_set_person_move_circle`.
+- Gang attack ring: `check_players_gang`, `count_gang`, `get_any_gang_member`, `get_nearest_gang_member`, `find_target_from_gang`, `remove_from_gang_attack`, `scare_gang_attack`, `reset_gang_attack`, `process_gang_attack`, `push_into_attack_group_at_angle`, `PCOM_new_gang_attack`.
+- `check_players_gang` и др. — в оригинале без `static` (внешние файлы: Person.cpp, interfac.cpp, combat.cpp их вызывают). Написаны non-static сразу.
+- `gang_angle_priority` — в оригинале `static` в pcom.cpp; по правилам перемещена в `pcom_globals.cpp` + `pcom_globals.h` (extern `UBYTE gang_angle_priority[8]`).
+- `dist_to_target` был внутри нового `#if 0 // MIGRATED` блока — добавлен forward decl в верхнюю секцию old/pcom.cpp.
+- `PCOM_set_person_move_runaway` не объявлена в pcom.h (используется только внутри pcom.cpp) — добавлен forward decl в old/pcom.cpp для оставшихся вызывающих.
+- Добавлен include `ai/combat_globals.h` в new/ai/pcom.cpp (нужен `gang_attacks[]`); добавлен include `fallen/Headers/Person.h // Temporary:`.
+- `#if 0 // MIGRATED` охватывает строки 1751–3394 old/pcom.cpp.
+
+---
+
 ## Итерация 82 — ai/pcom (первый чанк: globals + утилиты + запросы, PCOM_init..PCOM_alert_my_gang_to_flee) (2026-03-21)
 
 - `old/fallen/Headers/pcom.h` заменён redirect-заглушкой; новый `new/ai/pcom.h` содержит полный публичный API.

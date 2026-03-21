@@ -6,6 +6,8 @@
 #include "ai/pcom.h"
 #include "ai/pcom_globals.h"
 #include "ai/mav.h"
+#include "ai/combat.h"
+#include "ai/combat_globals.h"
 #include "missions/eway.h"
 #include "missions/memory_globals.h"    // Temporary: dfacets, DFacet, next_dfacet
 #include "fallen/Headers/collide.h"     // Temporary: there_is_a_los_mav, can_a_see_b
@@ -15,6 +17,7 @@
 #include "fallen/Headers/ob.h"          // Temporary: person_has_special, THING_find_sphere
 #include "fallen/Headers/statedef.h"    // Temporary: state/substate constants
 #include "fallen/Headers/animate.h"     // Temporary: SUB_OBJECT_PELVIS, ANIM_SIT_DOWN, ANIM_SIT_IDLE
+#include "fallen/Headers/Person.h"      // Temporary: set_person_idle, set_person_goto_xz, set_person_circle, etc.
 
 // --- Internal movement state constants (file-local) ---
 
@@ -1252,9 +1255,6 @@ void PCOM_alert_my_gang_to_a_fight(Thing* p_person, Thing* p_target)
     }
 }
 
-// uc_orig: am_i_a_thug (fallen/Source/pcom.cpp)  [external ref]
-SLONG am_i_a_thug(Thing* p_person);
-
 // Signals all same-colour gang members to flee from p_target.
 // uc_orig: PCOM_alert_my_gang_to_flee (fallen/Source/pcom.cpp)
 void PCOM_alert_my_gang_to_flee(Thing* p_person, Thing* p_target)
@@ -1281,4 +1281,1262 @@ void PCOM_alert_my_gang_to_flee(Thing* p_person, Thing* p_target)
                         }
                 }
     }
+}
+
+// ============================================================
+// Movement state setters — second chunk
+// These functions configure pcom_move_state and start locomotion.
+// ============================================================
+
+// Additional forward declarations needed by this chunk.
+
+// uc_orig: find_arrestee (fallen/Source/pcom.cpp)  [defined in Person.cpp]
+extern UWORD find_arrestee(Thing* p_person);
+
+// uc_orig: set_person_arrest (fallen/Source/Person.cpp)
+extern void set_person_arrest(Thing* p_person, SLONG who_to_arrest);
+
+// uc_orig: dist_to_target (fallen/Source/Person.cpp)
+extern SLONG dist_to_target(Thing* p_person_a, Thing* p_person_b);
+
+// uc_orig: get_gangattack (fallen/Source/Combat.cpp)  [declared in ai/combat.h]
+// already declared via #include "ai/combat.h"
+
+// Halt the person in place and set move state to STILL.
+// uc_orig: PCOM_set_person_move_still (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_still(Thing* p_person)
+{
+    set_person_idle(p_person);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_STILL;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Navigate to world-space (dest_x, dest_z) via MAV pathfinding.
+// Handles warehouse routing: exits/enters/stays-inside warehouse as needed.
+// Falls back to LOSMAV mode when in a wander-safe square as a civilian.
+// uc_orig: PCOM_set_person_move_mav_to_xz (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_mav_to_xz(Thing* p_person, SLONG dest_x, SLONG dest_z, SLONG speed)
+{
+    SLONG caps;
+
+    SLONG goal_x;
+    SLONG goal_z;
+
+    SLONG start_x;
+    SLONG start_y;
+    SLONG start_z;
+
+    start_x = p_person->WorldPos.X >> 16;
+    start_z = p_person->WorldPos.Z >> 16;
+
+    dest_x >>= 8;
+    dest_z >>= 8;
+
+    p_person->Genus.Person->pcom_move_arg = (dest_x << 8) | (dest_z);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_GOTO_XZ;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
+    p_person->Genus.Person->pcom_move_counter = 0;
+
+    caps = (p_person->Genus.Person->pcom_bent & PCOM_BENT_RESTRICTED) ? MAV_CAPS_GOTO : MAV_CAPS_DARCI;
+
+    if (p_person->Genus.Person->pcom_ai == PCOM_AI_CIV) {
+        if ((p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL && p_person->Genus.Person->pcom_move == PCOM_MOVE_WANDER) || (p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FLEE_PLACE || p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FLEE_PERSON)) {
+            if (WAND_square_is_wander(p_person->WorldPos.X >> 16, p_person->WorldPos.Z >> 16)) {
+                caps = MAV_CAPS_GOTO;
+            }
+        }
+    }
+
+    UWORD nav_into_ware = NULL;
+    UBYTE nav_outof_ware = FALSE;
+    UBYTE nav_inside_ware = FALSE;
+
+    if ((p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FLEE_PLACE || p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FLEE_PERSON)) {
+        if (p_person->Genus.Person->Ware) {
+            nav_outof_ware = TRUE;
+        }
+    }
+
+    if (p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_HOMESICK) {
+        if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_HOME_IN_WAREHOUSE) {
+            nav_into_ware = WARE_which_contains(
+                p_person->Genus.Person->HomeX >> 8,
+                p_person->Genus.Person->HomeZ >> 8);
+        }
+    }
+
+    if (nav_into_ware && p_person->Genus.Person->Ware) {
+        if (nav_into_ware == p_person->Genus.Person->Ware) {
+            nav_into_ware = NULL;
+            nav_inside_ware = TRUE;
+        } else {
+            nav_outof_ware = TRUE;
+            nav_into_ware = FALSE;
+        }
+    }
+
+    if (nav_outof_ware) {
+        p_person->Genus.Person->pcom_move_ma = WARE_mav_exit(
+            p_person,
+            caps);
+    } else if (nav_into_ware) {
+        p_person->Genus.Person->pcom_move_ma = WARE_mav_enter(
+            p_person,
+            nav_into_ware,
+            caps);
+    } else if (nav_inside_ware) {
+        p_person->Genus.Person->pcom_move_ma = WARE_mav_inside(
+            p_person,
+            dest_x,
+            dest_z,
+            caps);
+    } else {
+        p_person->Genus.Person->pcom_move_ma = MAV_do(
+            start_x,
+            start_z,
+            dest_x,
+            dest_z,
+            caps);
+    }
+
+    PCOM_get_mav_action_pos(
+        p_person,
+        &goal_x,
+        &goal_z);
+
+    set_person_goto_xz(
+        p_person,
+        goal_x,
+        goal_z,
+        speed);
+}
+
+// Navigate to a Thing via MAV pathfinding.
+// Handles warehouse routing relative to target's location.
+// Uses LOSMAV (straight-line run) when LOS is blocked and conditions allow.
+// uc_orig: PCOM_set_person_move_mav_to_thing (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_mav_to_thing(Thing* p_person, Thing* p_target, SLONG speed)
+{
+    SLONG goal_x;
+    SLONG goal_z;
+
+    SLONG start_x;
+    SLONG start_y;
+    SLONG start_z;
+
+    calc_sub_objects_position(
+        p_person,
+        p_person->Draw.Tweened->AnimTween,
+        SUB_OBJECT_LEFT_FOOT,
+        &start_x,
+        &start_y,
+        &start_z);
+
+    start_x += p_person->WorldPos.X >> 8;
+    start_z += p_person->WorldPos.Z >> 8;
+
+    start_x >>= 8;
+    start_z >>= 8;
+
+    SLONG dest_x;
+    SLONG dest_z;
+
+    UBYTE nav_outof_ware = FALSE;
+    UBYTE nav_inside_ware = FALSE;
+    SLONG nav_into_ware = NULL;
+
+    UBYTE caps = (p_person->Genus.Person->pcom_bent & PCOM_BENT_RESTRICTED) ? MAV_CAPS_GOTO : MAV_CAPS_DARCI;
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_GOTO_THING;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
+    p_person->Genus.Person->pcom_move_arg = THING_NUMBER(p_target);
+    p_person->Genus.Person->pcom_move_counter = 0;
+
+    if (p_person->Genus.Person->Ware) {
+        if (p_target->Class != CLASS_PERSON) {
+            nav_outof_ware = TRUE;
+        } else if (p_target->Genus.Person->Ware != p_person->Genus.Person->Ware) {
+            nav_outof_ware = TRUE;
+        } else {
+            nav_inside_ware = TRUE;
+        }
+    } else if (p_target->Class == CLASS_PERSON && p_target->Genus.Person->Ware) {
+        nav_into_ware = p_target->Genus.Person->Ware;
+    }
+
+    if (nav_into_ware) {
+        p_person->Genus.Person->pcom_move_ma = WARE_mav_enter(
+            p_person,
+            nav_into_ware,
+            caps);
+    } else if (nav_outof_ware) {
+        p_person->Genus.Person->pcom_move_ma = WARE_mav_exit(
+            p_person,
+            caps);
+    } else {
+        if (!nav_inside_ware && PCOM_should_i_try_to_los_mav_to_person(p_person, p_target)) {
+            if (!there_is_a_los_mav(
+                    p_person->WorldPos.X >> 8,
+                    p_person->WorldPos.Y + 0x4000 >> 8,
+                    p_person->WorldPos.Z >> 8,
+                    p_target->WorldPos.X >> 8,
+                    p_target->WorldPos.Y + 0x4000 >> 8,
+                    p_target->WorldPos.Z >> 8)) {
+                p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_LOSMAV;
+
+                set_person_goto_xz(
+                    p_person,
+                    p_target->WorldPos.X >> 8,
+                    p_target->WorldPos.Z >> 8,
+                    speed);
+
+                return;
+            }
+        }
+
+        PCOM_get_person_dest(
+            p_person,
+            &dest_x,
+            &dest_z);
+
+        dest_x >>= 8;
+        dest_z >>= 8;
+
+        // Guard against off-map vehicles (MikeD).
+        SATURATE(dest_x, 0, PAP_SIZE_HI - 1);
+        SATURATE(dest_z, 0, PAP_SIZE_HI - 1);
+
+        if (nav_inside_ware) {
+            p_person->Genus.Person->pcom_move_ma = WARE_mav_inside(
+                p_person,
+                dest_x,
+                dest_z,
+                caps);
+        } else {
+            p_person->Genus.Person->pcom_move_ma = MAV_do(
+                start_x,
+                start_z,
+                dest_x,
+                dest_z,
+                caps);
+        }
+    }
+
+    if (p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NAVTOKILL) {
+        if (p_person->Genus.Person->pcom_bent & PCOM_BENT_RESTRICTED) {
+            if (!MAV_do_found_dest) {
+                // Can't nav to target — go home instead.
+                PCOM_set_person_ai_homesick(p_person);
+                return;
+            }
+        }
+    }
+
+    PCOM_get_mav_action_pos(
+        p_person,
+        &goal_x,
+        &goal_z);
+
+    set_person_goto_xz(
+        p_person,
+        goal_x,
+        goal_z,
+        speed);
+}
+
+// Navigate to an EWAY waypoint via MAV.
+// Handles warehouse routing based on waypoint's warehouse membership.
+// uc_orig: PCOM_set_person_move_mav_to_waypoint (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_mav_to_waypoint(Thing* p_person, SLONG waypoint, SLONG speed)
+{
+    SLONG goal_x;
+    SLONG goal_z;
+
+    SLONG dest_x;
+    SLONG dest_y;
+    SLONG dest_z;
+
+    SLONG start_x;
+    SLONG start_y;
+    SLONG start_z;
+
+    calc_sub_objects_position(
+        p_person,
+        p_person->Draw.Tweened->AnimTween,
+        SUB_OBJECT_LEFT_FOOT,
+        &start_x,
+        &start_y,
+        &start_z);
+
+    start_x += p_person->WorldPos.X >> 8;
+    start_z += p_person->WorldPos.Z >> 8;
+
+    start_x >>= 8;
+    start_z >>= 8;
+
+    UBYTE caps = (p_person->Genus.Person->pcom_bent & PCOM_BENT_RESTRICTED) ? MAV_CAPS_GOTO : MAV_CAPS_DARCI;
+    UBYTE eware = EWAY_get_warehouse(waypoint);
+    UBYTE nav_outof_ware = FALSE;
+    UBYTE nav_inside_ware = FALSE;
+    SLONG nav_into_ware = NULL;
+
+    EWAY_get_position(
+        waypoint,
+        &dest_x,
+        &dest_y,
+        &dest_z);
+
+    dest_x >>= 8;
+    dest_z >>= 8;
+
+    p_person->Genus.Person->pcom_move_arg = waypoint;
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_GOTO_WAYPOINT;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
+    p_person->Genus.Person->pcom_move_counter = 0;
+
+    if (p_person->Genus.Person->Ware) {
+        if (eware != p_person->Genus.Person->Ware) {
+            nav_outof_ware = TRUE;
+        } else {
+            nav_inside_ware = TRUE;
+        }
+    } else {
+        if (eware) {
+            nav_into_ware = eware;
+        }
+    }
+
+    if (nav_into_ware) {
+        p_person->Genus.Person->pcom_move_ma = WARE_mav_enter(
+            p_person,
+            nav_into_ware,
+            caps);
+    } else if (nav_outof_ware) {
+        p_person->Genus.Person->pcom_move_ma = WARE_mav_exit(
+            p_person,
+            caps);
+    } else {
+        if (nav_inside_ware) {
+            p_person->Genus.Person->pcom_move_ma = WARE_mav_inside(
+                p_person,
+                dest_x,
+                dest_z,
+                caps);
+        } else {
+            p_person->Genus.Person->pcom_move_ma = MAV_do(
+                start_x,
+                start_z,
+                dest_x,
+                dest_z,
+                caps);
+        }
+    }
+
+    PCOM_get_mav_action_pos(
+        p_person,
+        &goal_x,
+        &goal_z);
+
+    set_person_goto_xz(
+        p_person,
+        goal_x,
+        goal_z,
+        speed);
+}
+
+// Pick a random direction away from (from_x, from_z) and nav there.
+// Retries up to 3 times if the chosen path would run toward the threat.
+// uc_orig: PCOM_set_person_move_runaway (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_runaway(
+    Thing* p_person,
+    SLONG from_x,
+    SLONG from_z)
+{
+    SLONG dx;
+    SLONG dz;
+    SLONG dist;
+
+    SLONG goal_x;
+    SLONG goal_z;
+
+    SLONG dest_x;
+    SLONG dest_z;
+
+    SLONG dist_me;
+    SLONG dist_from;
+
+    SLONG tries = 0;
+
+    while (1) {
+        dx = (p_person->WorldPos.X >> 8) - from_x;
+        dz = (p_person->WorldPos.Z >> 8) - from_z;
+
+        dist = abs(dx) + abs(dz) + 1;
+
+        dx = (dx << 13) / dist;
+        dz = (dz << 13) / dist;
+
+        dx += (Random() & 0x7ff);
+        dz += (Random() & 0x7ff);
+
+        dx -= 0x400;
+        dz -= 0x400;
+
+        goal_x = (p_person->WorldPos.X >> 8) + dx;
+        goal_z = (p_person->WorldPos.Z >> 8) + dz;
+
+        // Stay on map.
+        if (goal_x < 0) {
+            goal_x = -goal_x;
+        }
+        if (goal_z < 0) {
+            goal_z = -goal_z;
+        }
+
+        if (goal_x > (PAP_SIZE_HI << PAP_SHIFT_HI)) {
+            goal_x = 2 * (PAP_SIZE_HI << PAP_SHIFT_HI) - goal_x;
+        }
+        if (goal_z > (PAP_SIZE_HI << PAP_SHIFT_HI)) {
+            goal_z = 2 * (PAP_SIZE_HI << PAP_SHIFT_HI) - goal_z;
+        }
+
+        PCOM_set_person_move_mav_to_xz(
+            p_person,
+            goal_x,
+            goal_z,
+            PCOM_MOVE_SPEED_RUN);
+
+        PCOM_get_mav_action_pos(
+            p_person,
+            &dest_x,
+            &dest_z);
+
+        dx = abs((p_person->WorldPos.X >> 8) - dest_x);
+        dz = abs((p_person->WorldPos.Z >> 8) - dest_z);
+
+        dist_me = QDIST2(dx, dz);
+
+        dx = abs(from_x - dest_x);
+        dz = abs(from_z - dest_z);
+
+        dist_from = QDIST2(dx, dz);
+
+        if (dist_from < dist_me) {
+            // Running toward the threat — retry.
+            tries += 1;
+
+            if (tries < 3) {
+                // Have another go.
+            } else {
+                // Give up.
+                break;
+            }
+        } else {
+            // Running away correctly.
+            break;
+        }
+    }
+}
+
+// Decide 3-point-turn vs. straight drive based on vehicle angle to destination.
+// Used for DRIVETO state. Sets pcom_move_substate accordingly.
+// uc_orig: PCOM_set_person_substate_goto_or_3pturn (fallen/Source/pcom.cpp)
+void PCOM_set_person_substate_goto_or_3pturn(Thing* p_person)
+{
+    SLONG dx;
+    SLONG dz;
+    SLONG dest_x;
+    SLONG dest_z;
+    SLONG wangle;
+    SLONG dangle;
+
+    Thing* p_vehicle;
+
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+
+    p_vehicle = TO_THING(p_person->Genus.Person->InCar);
+
+    PCOM_get_person_dest(
+        p_person,
+        &dest_x,
+        &dest_z);
+
+    dx = dest_x - (p_vehicle->WorldPos.X >> 8);
+    dz = dest_z - (p_vehicle->WorldPos.Z >> 8);
+
+    wangle = calc_angle(dx, dz);
+    wangle += 1024;
+    wangle &= 2047;
+
+    dangle = wangle - p_vehicle->Genus.Vehicle->Angle;
+
+    if (dangle < -1024) {
+        dangle += 2048;
+    }
+    if (dangle > +1024) {
+        dangle -= 2048;
+    }
+
+    if (abs(dangle) > 750) {
+        p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_3PTURN;
+    } else {
+        p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
+    }
+}
+
+// Like PCOM_set_person_substate_goto_or_3pturn, but never 3-point-turns.
+// When facing away from the next node, swaps n1/n2 road nodes so direction is forward.
+// Used only for DRIVE_DOWN, not DRIVETO.
+// uc_orig: PCOM_set_person_substate_goto (fallen/Source/pcom.cpp)
+void PCOM_set_person_substate_goto(Thing* p_person)
+{
+    SLONG dx;
+    SLONG dz;
+    SLONG dest_x;
+    SLONG dest_z;
+    SLONG wangle;
+    SLONG dangle;
+
+    Thing* p_vehicle;
+
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+
+    p_vehicle = TO_THING(p_person->Genus.Person->InCar);
+
+    PCOM_get_person_dest(
+        p_person,
+        &dest_x,
+        &dest_z);
+
+    dx = dest_x - (p_vehicle->WorldPos.X >> 8);
+    dz = dest_z - (p_vehicle->WorldPos.Z >> 8);
+
+    wangle = calc_angle(dx, dz);
+    wangle += 1024;
+    wangle &= 2047;
+
+    dangle = wangle - p_vehicle->Genus.Vehicle->Angle;
+
+    if (dangle < -1024) {
+        dangle += 2048;
+    }
+    if (dangle > +1024) {
+        dangle -= 2048;
+    }
+
+    if (abs(dangle) > 750) {
+        // swap the road nodes so we go in the forward direction
+        p_person->Genus.Person->pcom_move_arg = (p_person->Genus.Person->pcom_move_arg << 8) | (p_person->Genus.Person->pcom_move_arg >> 8);
+    }
+
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
+}
+
+// Start driving toward a road waypoint; decide turn method based on vehicle angle.
+// uc_orig: PCOM_set_person_move_driveto (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_driveto(Thing* p_person, SLONG waypoint)
+{
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_DRIVETO;
+    p_person->Genus.Person->pcom_move_arg = waypoint;
+    p_person->Genus.Person->pcom_move_counter = 0;
+
+    PCOM_set_person_substate_goto_or_3pturn(p_person);
+}
+
+// Start parking at a road waypoint.
+// uc_orig: PCOM_set_person_move_park_car (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_park_car(Thing* p_person, SLONG waypoint)
+{
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_PARK_CAR;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_NONE;
+    p_person->Genus.Person->pcom_move_arg = waypoint;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Drive freely along a road segment between nodes n1 and n2.
+// uc_orig: PCOM_set_person_move_drive_down (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_drive_down(Thing* p_person, SLONG n1, SLONG n2)
+{
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_DRIVE_DOWN;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
+    p_person->Genus.Person->pcom_move_arg = (n1 << 8) | n2;
+    p_person->Genus.Person->pcom_move_counter = 0;
+
+    PCOM_set_person_substate_goto(p_person);
+}
+
+// If currently driving a road segment: switch to PARK_CAR_ON_ROAD (park at road edge).
+// Otherwise: stop immediately in place (PARK_CAR with no waypoint).
+// uc_orig: PCOM_set_person_move_park_car_on_road (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_park_car_on_road(Thing* p_person)
+{
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+
+    if (p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_DRIVE_DOWN) {
+        // Stop near the edge of the road — pcom_move_arg unchanged (same road nodes).
+        p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_PARK_CAR_ON_ROAD;
+        p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
+        p_person->Genus.Person->pcom_move_counter = 0;
+    } else {
+        // Stop in place.
+        p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_PARK_CAR;
+        p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_NONE;
+        p_person->Genus.Person->pcom_move_arg = NULL;
+        p_person->Genus.Person->pcom_move_counter = 0;
+    }
+}
+
+// Start a sliding tackle toward p_target; notifies cop system if person is a thug.
+// uc_orig: PCOM_set_person_move_goto_thing_slide (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_goto_thing_slide(Thing* p_person, Thing* p_target)
+{
+    if (am_i_a_thug(p_person)) {
+        PCOM_call_cop_to_arrest_me(p_person, 1);
+    }
+
+    set_person_sliding_tackle(p_person, p_target);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_GOTO_THING_SLIDE;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_NONE;
+    p_person->Genus.Person->pcom_move_arg = THING_NUMBER(p_target);
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Re-run pathfinding for the current move state (XZ/THING/WAYPOINT).
+// Called when the nav result becomes stale (e.g. target moved far).
+// uc_orig: PCOM_renav (fallen/Source/pcom.cpp)
+void PCOM_renav(Thing* p_person)
+{
+    SLONG dest_x;
+    SLONG dest_y;
+    SLONG dest_z;
+
+    Thing* p_target;
+
+    switch (p_person->Genus.Person->pcom_move_state) {
+    case PCOM_MOVE_STATE_GOTO_XZ:
+
+        dest_x = (p_person->Genus.Person->pcom_move_arg >> 8) & 0xff;
+        dest_z = (p_person->Genus.Person->pcom_move_arg >> 0) & 0xff;
+
+        dest_x <<= 8;
+        dest_z <<= 8;
+
+        dest_x += 0x80;
+        dest_z += 0x80;
+
+        PCOM_set_person_move_mav_to_xz(
+            p_person,
+            dest_x,
+            dest_z,
+            p_person->Genus.Person->GotoSpeed);
+
+        break;
+
+    case PCOM_MOVE_STATE_GOTO_THING:
+
+        p_target = TO_THING(p_person->Genus.Person->pcom_move_arg);
+
+        PCOM_set_person_move_mav_to_thing(
+            p_person,
+            p_target,
+            p_person->Genus.Person->GotoSpeed);
+
+        break;
+
+    case PCOM_MOVE_STATE_GOTO_WAYPOINT:
+
+        PCOM_set_person_move_mav_to_waypoint(
+            p_person,
+            p_person->Genus.Person->pcom_move_arg,
+            p_person->Genus.Person->GotoSpeed);
+
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+}
+
+// Returns TRUE if the person has reached their navigation destination.
+// Accounts for following mode (tighter threshold) and prolonged sliding.
+// uc_orig: PCOM_finished_nav (fallen/Source/pcom.cpp)
+SLONG PCOM_finished_nav(Thing* p_person)
+{
+    SLONG dest_x;
+    SLONG dest_z;
+
+    if (p_person->State == STATE_IDLE) {
+        // Not moving at all — treat as finished.
+        return TRUE;
+    }
+
+    if (p_person->State == STATE_DANGLING) {
+        // Mid-manoeuvre, can't stop.
+        return FALSE;
+    }
+
+    PCOM_get_person_dest(
+        p_person,
+        &dest_x,
+        &dest_z);
+
+    dest_x &= 0xffffff00;
+    dest_z &= 0xffffff00;
+
+    dest_x |= 0x80;
+    dest_z |= 0x80;
+
+    SLONG dist = PCOM_person_dist_from(
+        p_person,
+        dest_x,
+        dest_z);
+
+    if (p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FOLLOWING) {
+        return (dist < 0x60);
+    } else if (p_person->Genus.Person->SlideOdd > 20) {
+        // Person has been sliding a long time; accept a wider threshold.
+        if (dist < 0x100) {
+            p_person->Genus.Person->SlideOdd = 1;
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    } else {
+        return (dist < PCOM_ARRIVE_DIST);
+    }
+}
+
+// Halt person and enter PAUSE move state (idle until timeout).
+// uc_orig: PCOM_set_person_move_pause (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_pause(Thing* p_person)
+{
+    set_person_idle(p_person);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_PAUSE;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Play a one-shot animation and wait for it to finish.
+// uc_orig: PCOM_set_person_move_animation (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_animation(Thing* p_person, SLONG anim)
+{
+    set_person_do_a_simple_anim(p_person, anim);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_ANIMATION;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_ANIM;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Execute a punch move; waits in WAIT_CIRCLE state until done.
+// uc_orig: PCOM_set_person_move_punch (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_punch(Thing* p_person)
+{
+    turn_to_target_and_punch(p_person);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_WAIT_CIRCLE;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_PUNCH;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Execute a kick move; waits in WAIT_CIRCLE state until done.
+// uc_orig: PCOM_set_person_move_kick (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_kick(Thing* p_person)
+{
+    turn_to_target_and_kick(p_person);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_WAIT_CIRCLE;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_KICK;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Bend down to pick up a Special item.
+// uc_orig: PCOM_set_person_move_pickup_special (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_pickup_special(Thing* p_person, Thing* p_special)
+{
+    set_person_special_pickup(p_person);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_ANIMATION;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_ANIM;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Find the best arrest target and initiate arrest animation.
+// Falls back to STILL if no target found.
+// uc_orig: PCOM_set_person_move_arrest (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_arrest(Thing* p_person)
+{
+    UWORD index;
+
+    index = PCOM_person_wants_to_kill(p_person);
+
+    if (index == NULL) {
+        index = find_arrestee(p_person);
+    }
+
+    if (index) {
+        set_person_arrest(p_person, index);
+
+        p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_WAIT_CIRCLE;
+        p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_ARREST;
+        p_person->Genus.Person->pcom_move_counter = 0;
+    } else {
+        PCOM_set_person_move_still(p_person);
+    }
+}
+
+// Draw best available ranged weapon: shotgun > AK47 > grenade > pistol.
+// uc_orig: PCOM_set_person_move_draw_gun (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_draw_gun(Thing* p_person)
+{
+    Thing* p_special;
+
+    if ((p_special = person_has_special(p_person, SPECIAL_SHOTGUN)) && p_special->Genus.Special->ammo) {
+        set_person_draw_item(p_person, SPECIAL_SHOTGUN);
+    } else if ((p_special = person_has_special(p_person, SPECIAL_AK47)) && p_special->Genus.Special->ammo) {
+        set_person_draw_item(p_person, SPECIAL_AK47);
+    } else if ((p_special = person_has_special(p_person, SPECIAL_GRENADE)) && p_special->Genus.Special->ammo) {
+        set_person_draw_item(p_person, SPECIAL_GRENADE);
+    } else {
+        set_person_draw_gun(p_person);
+    }
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_ANIMATION;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GUNOUT;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Draw a hand-to-hand weapon of given special_type.
+// uc_orig: PCOM_set_person_move_draw_h2h (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_draw_h2h(Thing* p_person, SLONG special)
+{
+    Thing* p_special;
+
+    {
+        set_person_draw_item(p_person, special);
+    }
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_ANIMATION;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GUNOUT;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Holster the current weapon; handles SpecialUse items separately from guns.
+// uc_orig: PCOM_set_person_move_gun_away (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_gun_away(Thing* p_person)
+{
+    if (p_person->Genus.Person->SpecialUse) {
+        p_person->Genus.Person->SpecialUse = NULL;
+        p_person->Draw.Tweened->PersonID &= ~0xe0;
+
+        set_person_idle(p_person);
+    } else {
+        set_person_gun_away(p_person);
+    }
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_ANIMATION;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GUNAWAY;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// Fire the current gun.
+// uc_orig: PCOM_set_person_move_shoot (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_shoot(Thing* p_person)
+{
+    set_person_shoot(p_person, 1);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_ANIMATION;
+    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_SHOOT;
+    p_person->Genus.Person->pcom_move_counter = 0;
+}
+
+// ============================================================
+// Gang attack system — melee coordination ring
+// ============================================================
+
+// gang_angle_priority is declared in ai/pcom_globals.h (defined in pcom_globals.cpp)
+
+// uc_orig: get_gangattack (fallen/Source/pcom.cpp) [external ref — defined in combat.cpp]
+// already declared via ai/combat.h
+
+// Validate all attacker slots around p_target; clear any that have left fight mode.
+// uc_orig: check_players_gang (fallen/Source/pcom.cpp)
+void check_players_gang(Thing* p_target)
+{
+    SLONG gang;
+    SLONG c0, count = 0;
+    Thing* p_person;
+
+    gang = p_target->Genus.Person->GangAttack;
+    if (gang == 0)
+        return;
+
+    for (c0 = 0; c0 < 4; c0++) {
+        if (gang_attacks[gang].Perp[c0]) {
+            p_person = TO_THING(gang_attacks[gang].Perp[c0]);
+            if (p_person->Genus.Person->PlayerID) {
+                // Player — clear slot if they stopped fighting.
+                if (p_person->Genus.Person->Mode != PERSON_MODE_FIGHT) {
+                    remove_from_gang_attack(p_person, p_target);
+                }
+            }
+        }
+    }
+}
+
+// Count how many attacker slots are occupied around p_target.
+// uc_orig: count_gang (fallen/Source/pcom.cpp)
+UWORD count_gang(Thing* p_target)
+{
+    SLONG gang;
+    SLONG c0, count = 0;
+
+    gang = p_target->Genus.Person->GangAttack;
+    if (gang == 0)
+        return (0);
+
+    for (c0 = 0; c0 < 4; c0++) {
+        if (gang_attacks[gang].Perp[c0]) {
+            count++;
+        }
+    }
+    return (count);
+}
+
+// uc_orig: dist_to_target (fallen/Source/pcom.cpp) [external ref — defined in Person.cpp]
+// already declared above
+
+// Return the THING_NUMBER of any attacker already close to p_target (dist < 512).
+// uc_orig: get_any_gang_member (fallen/Source/pcom.cpp)
+UWORD get_any_gang_member(Thing* p_target)
+{
+    SLONG gang;
+    SLONG c0, count = 0, ret;
+
+    gang = p_target->Genus.Person->GangAttack;
+    if (gang == 0)
+        return (0);
+
+    for (c0 = 0; c0 < 4; c0++) {
+        if (ret = gang_attacks[gang].Perp[c0]) {
+            if (dist_to_target(p_target, TO_THING(ret)) < 512) {
+                return (ret);
+            }
+        }
+    }
+    return (0);
+}
+
+// Return the THING_NUMBER of the closest non-KO'd attacker in p_target's gang ring.
+// uc_orig: get_nearest_gang_member (fallen/Source/pcom.cpp)
+UWORD get_nearest_gang_member(Thing* p_target)
+{
+    SLONG gang;
+    SLONG c0, count = 0, ret;
+    SLONG bdist = 99999999, best_targ = 0, dist;
+
+    gang = p_target->Genus.Person->GangAttack;
+    if (gang == 0)
+        return (0);
+
+    for (c0 = 0; c0 < 4; c0++) {
+        if (ret = gang_attacks[gang].Perp[c0]) {
+            if (!is_person_ko(TO_THING(ret)))
+                if ((dist = dist_to_target(p_target, TO_THING(ret))) < bdist) {
+                    best_targ = ret;
+                    bdist = dist;
+                }
+        }
+    }
+    return (best_targ);
+}
+
+// Return the THING_NUMBER of the first occupied slot (priority: 0,1,3,2).
+// Used by the victim to know who their current attacker is.
+// uc_orig: find_target_from_gang (fallen/Source/pcom.cpp)
+UWORD find_target_from_gang(Thing* p_target)
+{
+    SLONG gang;
+    SLONG c0, perp;
+
+    gang = p_target->Genus.Person->GangAttack;
+    if (gang == 0)
+        return (0);
+
+    if (perp = gang_attacks[gang].Perp[0])
+        return (perp);
+
+    if (perp = gang_attacks[gang].Perp[1])
+        return (perp);
+
+    if (perp = gang_attacks[gang].Perp[3])
+        return (perp);
+
+    if (perp = gang_attacks[gang].Perp[2])
+        return (perp);
+
+    return (0);
+}
+
+// Remove p_person from p_target's gang attack slots. Returns 1 if found and removed.
+// uc_orig: remove_from_gang_attack (fallen/Source/pcom.cpp)
+SLONG remove_from_gang_attack(Thing* p_person, Thing* p_target)
+{
+    SLONG gang;
+    SLONG c0;
+    SLONG removed = 0;
+
+    gang = p_target->Genus.Person->GangAttack;
+    if (gang == 0)
+        return (0);
+
+    for (c0 = 0; c0 < 4; c0++) {
+        if (gang_attacks[gang].Perp[c0] == THING_NUMBER(p_person)) {
+            gang_attacks[gang].Perp[c0] = 0;
+            removed = 1;
+        }
+    }
+    return (removed);
+}
+
+// Set Agression=-55 on all attackers in p_target's gang slots (frighten them off).
+// Called e.g. when the target fires a gun.
+// uc_orig: scare_gang_attack (fallen/Source/pcom.cpp)
+void scare_gang_attack(Thing* p_target)
+{
+    SLONG gang;
+    SLONG c0;
+
+    gang = p_target->Genus.Person->GangAttack;
+    if (gang == 0)
+        return;
+
+    for (c0 = 0; c0 < 4; c0++) {
+        if (gang_attacks[gang].Perp[c0]) {
+            TO_THING(gang_attacks[gang].Perp[c0])->Genus.Person->Agression = -55;
+        }
+    }
+}
+
+// Re-slot all current attackers around p_target after positional changes.
+// Clears all slots then re-inserts each attacker at their current angle.
+// uc_orig: reset_gang_attack (fallen/Source/pcom.cpp)
+void reset_gang_attack(Thing* p_target)
+{
+    UWORD perps[4];
+    Thing* p_person;
+    UWORD gang;
+    SLONG c0;
+
+    gang = p_target->Genus.Person->GangAttack;
+    if (gang == 0)
+        return;
+
+    for (c0 = 0; c0 < 4; c0++) {
+        perps[c0] = gang_attacks[gang].Perp[c0];
+        gang_attacks[gang].Perp[c0] = 0;
+    }
+
+    for (c0 = 0; c0 < 4; c0++) {
+        SLONG dx, dz, reqd_angle;
+
+        if (perps[c0]) {
+            p_person = TO_THING(perps[c0]);
+
+            dx = p_target->WorldPos.X - p_person->WorldPos.X >> 8;
+            dz = p_target->WorldPos.Z - p_person->WorldPos.Z >> 8;
+
+            reqd_angle = calc_angle(dx, dz) + 256;
+            reqd_angle &= 2047;
+            reqd_angle >>= 9;
+
+            push_into_attack_group_at_angle(p_person, (SLONG)gang, reqd_angle);
+        }
+    }
+}
+
+// Per-frame melee coordination: if p_person is attacking (SUB_STATE_CIRCLING_CIRCLE),
+// back off other co-attackers (Agression=-100) to prevent simultaneous pile-in.
+// uc_orig: process_gang_attack (fallen/Source/pcom.cpp)
+void process_gang_attack(Thing* p_person, Thing* p_target)
+{
+    SLONG gang;
+    SLONG c0;
+    SLONG me;
+    SLONG attack_count = 0;
+
+    me = THING_NUMBER(p_person);
+
+    gang = p_target->Genus.Person->GangAttack;
+
+    if (p_person->SubState == SUB_STATE_CIRCLING_CIRCLE) {
+        for (c0 = 0; c0 < 4; c0++) {
+            SLONG perp;
+            perp = gang_attacks[gang].Perp[c0];
+            if (perp && perp != me) {
+                switch (TO_THING(perp)->SubState) {
+                case SUB_STATE_CIRCLING_CIRCLE:
+                    TO_THING(perp)->Genus.Person->Agression = -100;
+                    attack_count++;
+                    break;
+                }
+            }
+        }
+    }
+
+    return;
+    // Original rotation logic below was commented out in the original (left-in dead block).
+    /*
+        for(c0=0;c0<4;c0++)
+        {
+            if(gang_attacks[gang].Perp[c0]==me)
+            {
+                left=gang_attacks[gang].Perp[(c0-1)&3];
+                right=gang_attacks[gang].Perp[(c0+1)&3];
+                if(left==0 && right==0)
+                    return;
+
+                if(left==0&& right)
+                {
+                    lleft=gang_attacks[gang].Perp[(c0-2)&3];
+                    if(lleft==0)
+                    {
+                        gang_attacks[gang].Perp[c0]=0;
+                        p_person->Genus.Person->AttackAngle=(c0-1)&3;
+                        gang_attacks[gang].Perp[(c0-1)&3]=me;
+                        p_person->Genus.Person->Agression=-60-(c0<<2);
+                    }
+                }
+                else
+                if(left&&right==0)
+                {
+                    rright=gang_attacks[gang].Perp[(c0+2)&3];
+                    if(rright==0)
+                    {
+                        gang_attacks[gang].Perp[c0]=0;
+                        p_person->Genus.Person->AttackAngle=(c0+1)&3;
+                        ASSERT(gang_attacks[gang].Perp[(c0+1)&3]==0);
+                        gang_attacks[gang].Perp[(c0+1)&3]=me;
+                        p_person->Genus.Person->Agression=-60-(c0<<2);
+                    }
+                }
+                return;
+            }
+        }
+    */
+}
+
+// Claim a cardinal slot in the gang ring for p_person, displacing others if needed.
+// Rotates existing occupants to adjacent slots (positive or negative direction).
+// uc_orig: push_into_attack_group_at_angle (fallen/Source/pcom.cpp)
+void push_into_attack_group_at_angle(Thing* p_person, SLONG gang, SLONG reqd_angle)
+{
+    SLONG c0 = 4;
+    Thing* p_copy;
+
+    MSG_add("try push in  at %d    [%d %d %d %d %d %d %d %d] \n", reqd_angle, gang_attacks[gang].Perp[0], gang_attacks[gang].Perp[1], gang_attacks[gang].Perp[2], gang_attacks[gang].Perp[3], gang_attacks[gang].Perp[4], gang_attacks[gang].Perp[5], gang_attacks[gang].Perp[6], gang_attacks[gang].Perp[7]);
+
+    if (gang_attacks[gang].Perp[(reqd_angle) & 3] != 0)
+        for (c0 = 1; c0 <= 2; c0++) {
+            ASSERT(gang_attacks[gang].Perp[(reqd_angle + c0) & 3] != THING_NUMBER(p_person));
+            ASSERT(gang_attacks[gang].Perp[(reqd_angle - c0) & 3] != THING_NUMBER(p_person));
+
+            if (gang_attacks[gang].Perp[(reqd_angle + c0) & 3] == 0) {
+                // Rotate positive direction.
+                MSG_add(" push in at position %d shoving %d peeps ", reqd_angle, c0);
+                while (c0 > 0) {
+                    gang_attacks[gang].Perp[(reqd_angle + c0) & 3] = gang_attacks[gang].Perp[(reqd_angle + c0 - 1) & 3];
+                    p_copy = TO_THING(gang_attacks[gang].Perp[(reqd_angle + c0 - 1) & 3]);
+                    p_copy->Genus.Person->AttackAngle = (reqd_angle + c0) & 3;
+                    c0--;
+                }
+                break;
+            } else if (gang_attacks[gang].Perp[(reqd_angle - c0 + 8) & 3] == 0) {
+                // Rotate negative direction.
+                MSG_add(" push in at position %d shoving NEG %d peeps ", reqd_angle, c0);
+                while (c0 > 0) {
+                    gang_attacks[gang].Perp[(reqd_angle - c0 + 8) & 3] = gang_attacks[gang].Perp[(reqd_angle - c0 + 1 + 8) & 3];
+                    p_copy = TO_THING(gang_attacks[gang].Perp[(reqd_angle - c0 + 1 + 8) & 3]);
+                    p_copy->Genus.Person->AttackAngle = (reqd_angle - c0 + 8) & 3;
+                    c0--;
+                }
+                break;
+            }
+            if (c0 == 4)
+                MSG_add("FAILED to push in\n");
+        }
+
+    // Assign p_person to the desired angle (may share if ring is full).
+    gang_attacks[gang].Perp[reqd_angle & 3] = THING_NUMBER(p_person);
+    p_person->Genus.Person->AttackAngle = reqd_angle;
+}
+
+// Enter gang combat against p_target: allocate a gang slot if needed,
+// then claim a cardinal angle slot for p_person.
+// uc_orig: PCOM_new_gang_attack (fallen/Source/pcom.cpp)
+void PCOM_new_gang_attack(Thing* p_person, Thing* p_target)
+{
+    SLONG gang;
+    SLONG c0;
+
+    SLONG reqd_angle;
+    SLONG dx;
+    SLONG dz;
+
+    dx = p_target->WorldPos.X - p_person->WorldPos.X >> 8;
+    dz = p_target->WorldPos.Z - p_person->WorldPos.Z >> 8;
+
+    reqd_angle = calc_angle(dx, dz);
+    reqd_angle &= 2047;
+    reqd_angle >>= 9;
+
+    if (p_target->Genus.Person->GangAttack == 0) {
+        // Allocate a new gang struct for this target.
+        gang = get_gangattack(p_target);
+    } else {
+        gang = p_target->Genus.Person->GangAttack;
+    }
+
+    // Ensure p_person is not already in the ring.
+    for (c0 = 0; c0 < 4; c0++) {
+        if (gang_attacks[gang].Perp[c0] == THING_NUMBER(p_person)) {
+            gang_attacks[gang].Perp[c0] = 0;
+        }
+    }
+
+    if (gang_attacks[gang].Perp[reqd_angle] == 0) {
+        // Preferred angle is free — claim it directly.
+        gang_attacks[gang].Perp[reqd_angle] = THING_NUMBER(p_person);
+        p_person->Genus.Person->AttackAngle = reqd_angle;
+    } else {
+        // Angle occupied — rotate others to make room.
+        push_into_attack_group_at_angle(
+            p_person,
+            gang,
+            reqd_angle);
+    }
+}
+
+// Start circling a target (melee wind-up phase).
+// Joins the gang attack ring for p_target.
+// uc_orig: PCOM_set_person_move_circle (fallen/Source/pcom.cpp)
+void PCOM_set_person_move_circle(Thing* p_person, Thing* p_target)
+{
+    set_person_circle(p_person, p_target);
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_CIRCLE;
+    p_person->Genus.Person->pcom_move_arg = THING_NUMBER(p_target);
+    p_person->Genus.Person->pcom_move_counter = 0;
+
+    PCOM_new_gang_attack(p_person, p_target);
 }

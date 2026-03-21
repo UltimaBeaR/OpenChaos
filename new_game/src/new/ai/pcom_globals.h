@@ -46,4 +46,8 @@ extern UWORD PCOM_found[PCOM_MAX_FIND];
 // uc_orig: PCOM_found_num (fallen/Source/pcom.cpp)
 extern SLONG PCOM_found_num;
 
+// Priority order for assigning cardinal attack angles (compass sectors, clockwise).
+// uc_orig: gang_angle_priority (fallen/Source/pcom.cpp)
+extern UBYTE gang_angle_priority[8];
+
 #endif // AI_PCOM_GLOBALS_H

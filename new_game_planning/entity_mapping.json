@@ -54529,6 +54529,126 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_runaway",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_move_runaway",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_players_gang",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "check_players_gang",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "count_gang",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "count_gang",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_any_gang_member",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "get_any_gang_member",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_nearest_gang_member",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "get_nearest_gang_member",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_target_from_gang",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "find_target_from_gang",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "remove_from_gang_attack",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "remove_from_gang_attack",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "scare_gang_attack",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "scare_gang_attack",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "reset_gang_attack",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "reset_gang_attack",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "process_gang_attack",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "process_gang_attack",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "push_into_attack_group_at_angle",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "push_into_attack_group_at_angle",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "gang_angle_priority",
+      "file": "new/ai/pcom_globals.cpp",
+      "orig_name": "gang_angle_priority",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

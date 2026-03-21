@@ -122,6 +122,8 @@ extern UBYTE combo_display;
 void push_into_attack_group_at_angle(Thing* p_person, SLONG gang, SLONG reqd_angle);
 SLONG remove_from_gang_attack(Thing* p_person, Thing* p_target);
 void PCOM_set_person_ai_flee_person(Thing* p_person, Thing* p_scary);
+void PCOM_set_person_move_runaway(Thing* p_person, SLONG from_x, SLONG from_z);
+extern SLONG dist_to_target(Thing* p_person_a, Thing* p_person_b);
 SLONG person_holding_2handed(Thing* p_person);
 
 void DriveCar(Thing* p_person);
@@ -1747,6 +1749,8 @@ void PCOM_alert_my_gang_to_flee(Thing* p_person, Thing* p_target)
 }
 
 #endif // MIGRATED to src/new/ai/pcom.cpp + pcom_globals.cpp
+
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 83)
 
 // ========================================================
 //
@@ -3392,6 +3396,8 @@ void PCOM_set_person_move_circle(Thing* p_person, Thing* p_target)
 
     PCOM_new_gang_attack(p_person, p_target);
 }
+
+#endif // MIGRATED to src/new/ai/pcom.cpp (iteration 83)
 
 //
 // Makes a person get in a car.
