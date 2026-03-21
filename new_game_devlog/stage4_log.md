@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 67 — ai/mav (второй чанк: MAV_draw..MAV_turn_car_movement_off) (2026-03-21)
+
+- `TRACE` — в оригинальном `MFStdLib.h` был no-op `#define TRACE`; убран при переносе библиотеки. Добавлен `#ifndef TRACE / #define TRACE(...) / #endif` в `new/ai/mav.cpp`.
+- `WARE_ware` / `WARE_nav` не объявлены через `world/environment/ware.h` — нужен явный `#include "world/environment/ware_globals.h"`.
+- `MAP_HEIGHT` / `MAP_WIDTH` не объявлены в `mav_globals.h` — добавлен `#include "fallen/Headers/Map.h"` (редирект в `world/map/map.h`).
+- Первые реализации `MAV_draw` и `MAV_precalculate_warehouse_nav` были написаны неверно (`DRAW3D_line` не существует; warehouse-функция потеряла ~220 строк логики: лестницы, прыжки, staircase hack). Переписаны строго по оригиналу после чтения `original_game/fallen/Source/mav.cpp`.
+- `PQ_Type` + `PQ_HEAP_MAX_SIZE` + `PQ_better` — local definitions перед inline-включением `pq.h/pq.cpp` (шаблонный heap). Паттерн воспроизведён 1:1.
+- old/fallen/Source/mav.cpp полностью заменён redirect-заглушкой.
+
+---
+
 ## Итерация 66 — ai/mav (первый чанк: MAV_init..MAV_precalculate) (2026-03-21)
 
 - `StoreMavOpts` — в оригинале `static`, но `MAV_precalculate_warehouse_nav` (остаётся в old mav.cpp) её вызывает. Сделана публичной, добавлена в `mav.h`.

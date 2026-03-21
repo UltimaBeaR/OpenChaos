@@ -43179,6 +43179,416 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_last_mx",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_last_mx",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_last_mz",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_last_mz",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_dmx",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_dmx",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_dmz",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_dmz",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_start_x",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_start_x",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_start_z",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_start_z",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_dest_x",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_dest_x",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_dest_z",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_dest_z",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_LOOKAHEAD",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_LOOKAHEAD",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_node",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_node",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_node_upto",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_node_upto",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_flag",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_flag",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_dir",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_dir",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_do_found_dest",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_do_found_dest",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_height_los_fail_x",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_height_los_fail_x",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_height_los_fail_y",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_height_los_fail_y",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_height_los_fail_z",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_height_los_fail_z",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_draw",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_draw",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_can_i_walk",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_can_i_walk",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_clear_bbox",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_clear_bbox",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_get_first_action_from_nodelist",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_get_first_action_from_nodelist",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_create_nodelist_from_pos",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_create_nodelist_from_pos",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_do",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_do",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_inside",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_inside",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_height_los_fast",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_height_los_fast",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_height_los_slow",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_height_los_slow",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_precalculate_warehouse_nav",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_precalculate_warehouse_nav",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_get_caps",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_get_caps",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_turn_car_movement_on",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_turn_car_movement_on",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_turn_car_movement_off",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_turn_car_movement_off",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_visited_set",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_visited_set",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_visited_get",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_visited_get",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_action_set",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_action_set",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_action_get",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_action_get",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_dir_set",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_dir_set",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_dir_get",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_dir_get",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PQ_Type",
+      "file": "new/ai/mav.cpp",
+      "orig_name": "PQ_Type",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PQ_HEAP_MAX_SIZE",
+      "file": "new/ai/mav.cpp",
+      "orig_name": "PQ_HEAP_MAX_SIZE",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PQ_better",
+      "file": "new/ai/mav.cpp",
+      "orig_name": "PQ_better",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_score_pos",
+      "file": "new/ai/mav.cpp",
+      "orig_name": "MAV_score_pos",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_MAX_OVERFLOWS",
+      "file": "new/ai/mav.cpp",
+      "orig_name": "MAV_MAX_OVERFLOWS",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
