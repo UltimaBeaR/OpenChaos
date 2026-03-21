@@ -355,3 +355,11 @@ Entity mapping обновлён (33 записи — file path).
 - `engine/effects/psystem.cpp` включает `world/map/pap.h` — DAG нарушение (`engine/` → `world/`), аналогично sm.cpp из итерации 33; pre-existing coupling из оригинала, перенесён 1:1; tech debt
 
 ---
+
+## Итерация 36 — engine/graphics/pipeline/sky (2026-03-21)
+
+- `sky.cpp` включает `fallen/Headers/Game.h` первым — нужен `GAME_TURN` (для wibble лунного отражения); временная зависимость на `game.h`, порядок инклудов критичен (та же причина что в итерации 25: game.h → MFStdLib.h объявляет extern DisplayWidth/Height, а gd_display.h перебивает их макросами)
+- `SKY_draw_poly_sky_old` не объявлен в оригинальном `sky.h`, но вызывается из `aeng.cpp` через extern — добавлен в новый `sky.h`
+- `cam.h` включался в оригинале, но ни один CAM_* символ не используется — не перенесён
+
+---

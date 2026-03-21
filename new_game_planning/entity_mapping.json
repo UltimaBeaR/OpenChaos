@@ -23409,6 +23409,416 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_Star",
+      "file": "new/engine/graphics/pipeline/sky_globals.h",
+      "orig_name": "SKY_Star",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_MAX_STARS",
+      "file": "new/engine/graphics/pipeline/sky_globals.h",
+      "orig_name": "SKY_MAX_STARS",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_Texture",
+      "file": "new/engine/graphics/pipeline/sky_globals.h",
+      "orig_name": "SKY_Texture",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_NUM_TEXTURES",
+      "file": "new/engine/graphics/pipeline/sky_globals.h",
+      "orig_name": "SKY_NUM_TEXTURES",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_Cloud",
+      "file": "new/engine/graphics/pipeline/sky_globals.h",
+      "orig_name": "SKY_Cloud",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_NUM_CLOUDS",
+      "file": "new/engine/graphics/pipeline/sky_globals.h",
+      "orig_name": "SKY_NUM_CLOUDS",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_star",
+      "file": "new/engine/graphics/pipeline/sky_globals.h",
+      "orig_name": "SKY_star",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_star_upto",
+      "file": "new/engine/graphics/pipeline/sky_globals.h",
+      "orig_name": "SKY_star_upto",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_texture",
+      "file": "new/engine/graphics/pipeline/sky_globals.h",
+      "orig_name": "SKY_texture",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_cloud",
+      "file": "new/engine/graphics/pipeline/sky_globals.h",
+      "orig_name": "SKY_cloud",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_STAR_T_DIM",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_STAR_T_DIM",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_STAR_T_MEDIUM",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_STAR_T_MEDIUM",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_STAR_T_BRIGHT",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_STAR_T_BRIGHT",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_STAR_T_PLANET",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_STAR_T_PLANET",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_wibble_y1",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_wibble_y1",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_wibble_y2",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_wibble_y2",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_wibble_g1",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_wibble_g1",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_wibble_g2",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_wibble_g2",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_wibble_s1",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_wibble_s1",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_wibble_s2",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_wibble_s2",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_init",
+      "file": "new/engine/graphics/pipeline/sky.h",
+      "orig_name": "SKY_init",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_draw_stars",
+      "file": "new/engine/graphics/pipeline/sky.h",
+      "orig_name": "SKY_draw_stars",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_draw_poly_clouds",
+      "file": "new/engine/graphics/pipeline/sky.h",
+      "orig_name": "SKY_draw_poly_clouds",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_draw_poly_moon",
+      "file": "new/engine/graphics/pipeline/sky.h",
+      "orig_name": "SKY_draw_poly_moon",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_draw_moon_reflection",
+      "file": "new/engine/graphics/pipeline/sky.h",
+      "orig_name": "SKY_draw_moon_reflection",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_draw_poly_sky",
+      "file": "new/engine/graphics/pipeline/sky.h",
+      "orig_name": "SKY_draw_poly_sky",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_draw_poly_sky_old",
+      "file": "new/engine/graphics/pipeline/sky.h",
+      "orig_name": "SKY_draw_poly_sky_old",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_STAR_DIST",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_STAR_DIST",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_CLOUD_DIST",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_CLOUD_DIST",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_VERY_FAR_AWAY",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_VERY_FAR_AWAY",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_MOON_YAW",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_MOON_YAW",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_MOON_PITCH",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_MOON_PITCH",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_MOON_DIST",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_MOON_DIST",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_MOON_RADIUS",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_MOON_RADIUS",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_MOON_UV_IN",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_MOON_UV_IN",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_MOON_SEGMENTS",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_MOON_SEGMENTS",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_MOON_SEG_DY",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_MOON_SEG_DY",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_MOON_SEG_DV",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_MOON_SEG_DV",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_CIRCLE_STEPS",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_CIRCLE_STEPS",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_HORIZON",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_HORIZON",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SKY_MAXUP",
+      "file": "new/engine/graphics/pipeline/sky.cpp",
+      "orig_name": "SKY_MAXUP",
+      "orig_file": "fallen/DDEngine/Source/sky.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -1,84 +1,41 @@
-//
-// Sky...
-//
+// Must come before gd_display.h: game.h -> MFStdLib.h declares extern DisplayWidth/Height,
+// while gd_display.h redefines them as macros (#define 640/480). Wrong order causes syntax errors.
+#include "fallen/Headers/Game.h"
 
 #include <MFStdLib.h>
-#include <DDLib.h>
-#include "game.h"
-#include "matrix.h"
-#include "poly.h"
-#include "aeng.h"
+#include "engine/graphics/pipeline/sky.h"
+#include "engine/graphics/pipeline/sky_globals.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/graphics_api/gd_display.h"
+#include "core/matrix.h"
 #include <math.h>
-#include "cam.h"
 
+// uc_orig: SKY_STAR_T_DIM (fallen/DDEngine/Source/sky.cpp)
 #define SKY_STAR_T_DIM 1
+// uc_orig: SKY_STAR_T_MEDIUM (fallen/DDEngine/Source/sky.cpp)
 #define SKY_STAR_T_MEDIUM 2
+// uc_orig: SKY_STAR_T_BRIGHT (fallen/DDEngine/Source/sky.cpp)
 #define SKY_STAR_T_BRIGHT 3
+// uc_orig: SKY_STAR_T_PLANET (fallen/DDEngine/Source/sky.cpp)
 #define SKY_STAR_T_PLANET 4
 
-typedef struct
-{
-    UBYTE colour;
-    UBYTE spread;
-    UWORD shit;
-    float yaw;
-    float pitch;
-    float vector[3];
-
-} SKY_Star;
-
-#define SKY_MAX_STARS 4096
-
-SKY_Star SKY_star[SKY_MAX_STARS];
-SLONG SKY_star_upto;
-
-//
-// Each cloud texture...
-//
-
-typedef struct
-{
-    float u1, v1;
-    float u2, v2;
-
-} SKY_Texture;
-
-#define SKY_NUM_TEXTURES 5
-
-SKY_Texture SKY_texture[SKY_NUM_TEXTURES] = {
-    { 0.000F, 0.000F, 1.000F, 0.234F },
-    { 0.000F, 0.234F, 0.566F, 0.375F },
-    { 0.566F, 0.234F, 1.000F, 0.375F },
-    { 0.000F, 0.375F, 1.000F, 0.648F },
-    { 0.000F, 0.648F, 1.000F, 1.000F }
-};
-
-typedef struct
-{
-    UBYTE texture;
-    UBYTE flip; // 1 => Reflect the cloud texture in u.
-    UBYTE width;
-    UBYTE height;
-    float yaw;
-    float pitch;
-    float dyaw;
-
-} SKY_Cloud;
-
-#define SKY_NUM_CLOUDS 200
-
-SKY_Cloud SKY_cloud[SKY_NUM_CLOUDS];
-
+// Wibble constants for moon reflection distortion (lookup table indices).
+// uc_orig: SKY_wibble_y1 (fallen/DDEngine/Source/sky.cpp)
 #define SKY_wibble_y1 62
+// uc_orig: SKY_wibble_y2 (fallen/DDEngine/Source/sky.cpp)
 #define SKY_wibble_y2 137
+// uc_orig: SKY_wibble_g1 (fallen/DDEngine/Source/sky.cpp)
 #define SKY_wibble_g1 17
+// uc_orig: SKY_wibble_g2 (fallen/DDEngine/Source/sky.cpp)
 #define SKY_wibble_g2 78
+// uc_orig: SKY_wibble_s1 (fallen/DDEngine/Source/sky.cpp)
 #define SKY_wibble_s1 40
+// uc_orig: SKY_wibble_s2 (fallen/DDEngine/Source/sky.cpp)
 #define SKY_wibble_s2 45
 
+// uc_orig: SKY_init (fallen/DDEngine/Source/sky.cpp)
 void SKY_init(CBYTE* star_file)
 {
-
     SLONG i;
 
     float twidth;
@@ -101,10 +58,7 @@ void SKY_init(CBYTE* star_file)
     SKY_Cloud* sc;
     SKY_Texture* st;
 
-    //
     // Create all the clouds.
-    //
-
     for (i = 0; i < SKY_NUM_CLOUDS; i++) {
         sc = &SKY_cloud[i];
 
@@ -121,11 +75,8 @@ void SKY_init(CBYTE* star_file)
         twidth = (st->u2 - st->u1) * 256.0F;
         theight = (st->v2 - st->v1) * 256.0F;
 
-        //
         // Randomise the height and width of the cloud, but always make the
         // texels more than one pixel so we get the benefit of filtering.
-        //
-
         twidth *= 0.3F + (float(rand()) * 0.5F / float(RAND_MAX));
         theight *= 0.3F + (float(rand()) * 0.5F / float(RAND_MAX));
 
@@ -133,10 +84,7 @@ void SKY_init(CBYTE* star_file)
         sc->height = UBYTE(theight);
     }
 
-    //
-    // Place down the stars.
-    //
-
+    // Place the stars.
     if (star_file == NULL) {
         handle = NULL;
     } else {
@@ -144,10 +92,7 @@ void SKY_init(CBYTE* star_file)
     }
 
     if (handle == NULL) {
-        //
-        // Randomly generate the stars...
-        //
-
+        // Randomly generate the stars.
         for (i = 0; i < SKY_MAX_STARS; i++) {
             yaw = rand() % 360;
             pitch = rand() % 60;
@@ -168,20 +113,14 @@ void SKY_init(CBYTE* star_file)
 
         while (fgets(line, 128, handle)) {
             if (SKY_star_upto >= SKY_MAX_STARS) {
-                //
                 // Can't read in any more stars.
-                //
-
                 break;
             }
 
             match = sscanf(line, "Star: %d, %d, %d", &yaw, &pitch, &bright);
 
             if (match == 3) {
-                //
                 // Make sure that the brightness isn't out of range.
-                //
-
                 SATURATE(bright, 0, 255);
 
                 SKY_star[SKY_star_upto].colour = bright;
@@ -196,10 +135,7 @@ void SKY_init(CBYTE* star_file)
         MF_Fclose(handle);
     }
 
-    //
-    // London, England.
-    //
-
+    // London, England: apply a latitude tilt to star positions.
     SKY_Star* ss;
 
     float dpitch = 39.0F * 2.0F * PI / 360.0F;
@@ -214,11 +150,12 @@ void SKY_init(CBYTE* star_file)
     }
 }
 
+// uc_orig: SKY_draw_stars (fallen/DDEngine/Source/sky.cpp)
 void SKY_draw_stars(
-    float mid_x, // The world camera position
+    float mid_x,
     float mid_y,
     float mid_z,
-    float max_dist) // How far away anything is drawn.
+    float max_dist)
 {
     SLONG i;
 
@@ -237,10 +174,8 @@ void SKY_draw_stars(
     for (i = 0; i < SKY_star_upto; i++) {
         ss = &SKY_star[i];
 
-        //
-        // Draw it.
-        //
-
+// Place the star at a distance just inside the far clip plane.
+// uc_orig: SKY_STAR_DIST (fallen/DDEngine/Source/sky.cpp)
 #define SKY_STAR_DIST (max_dist - 256.0F)
 
         temp.X = ss->vector[0] * SKY_STAR_DIST + mid_x;
@@ -258,9 +193,7 @@ void SKY_draw_stars(
             SLONG py = SLONG(pp.Y * ymul);
 
             if ((rand() & 0x7f) == (i & 0x7f)) {
-                //
-                // Make the star twinkle!
-                //
+                // Make the star twinkle — skip drawing this frame.
             } else {
                 the_display.PlotPixel(
                     px, py,
@@ -281,13 +214,13 @@ void SKY_draw_stars(
     }
 }
 
+// uc_orig: SKY_draw_poly_clouds (fallen/DDEngine/Source/sky.cpp)
 void SKY_draw_poly_clouds(
     float mid_x,
     float mid_y,
     float mid_z,
     float max_dist)
 {
-
     SLONG i;
     SLONG j;
 
@@ -317,24 +250,15 @@ void SKY_draw_poly_clouds(
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    //
-    // Draw and animate the cloud quads.
-    //
-
+// Distance for cloud placement: just inside the far clip plane.
+// uc_orig: SKY_CLOUD_DIST (fallen/DDEngine/Source/sky.cpp)
 #define SKY_CLOUD_DIST (max_dist - 512.0F)
 
     for (i = 0; i < SKY_NUM_CLOUDS; i++) {
         sc = &SKY_cloud[i];
 
-        //
-        // Animate it.
-        //
-
+        // Animate: rotate cloud around the sky sphere.
         sc->yaw += sc->dyaw;
-
-        //
-        // Draw it.
-        //
 
         yaw = sc->yaw;
         pitch = sc->pitch;
@@ -355,10 +279,6 @@ void SKY_draw_poly_clouds(
             &mid);
 
         if (!mid.IsValid()) {
-            //
-            // Abandon this cloud.
-            //
-
             continue;
         }
 
@@ -366,17 +286,11 @@ void SKY_draw_poly_clouds(
         height = float(sc->height);
 
         if (mid.X + width < 0 || mid.X - width > screen_width || mid.Y + height < 0 || mid.Y - width > screen_height) {
-            //
-            // Abandon this cloud.
-            //
-
             continue;
         }
 
-        //
-        // The very end of the zbuffer...
-        //
-
+// Place clouds at the very back of the z-buffer (behind everything).
+// uc_orig: SKY_VERY_FAR_AWAY (fallen/DDEngine/Source/sky.cpp)
 #define SKY_VERY_FAR_AWAY (1.0F / 65536.0F)
 
         mid.Z = SKY_VERY_FAR_AWAY;
@@ -391,10 +305,7 @@ void SKY_draw_poly_clouds(
             pp[j].Y += (j >> 1) ? height : -height;
         }
 
-        //
         // The sky texture.
-        //
-
         SKY_Texture* st;
 
         ASSERT(WITHIN(sc->texture, 0, SKY_NUM_TEXTURES - 1));
@@ -427,6 +338,7 @@ void SKY_draw_poly_clouds(
     return;
 }
 
+// uc_orig: SKY_draw_poly_moon (fallen/DDEngine/Source/sky.cpp)
 void SKY_draw_poly_moon(
     float mid_x,
     float mid_y,
@@ -455,9 +367,6 @@ void SKY_draw_poly_moon(
     float width;
     float height;
 
-    // SKY_Cloud   *sc;
-    // SKY_Texture *st;
-
     POLY_Point mid;
     POLY_Point pp[4];
     POLY_Point* quad[4];
@@ -467,22 +376,22 @@ void SKY_draw_poly_moon(
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    //
-    // Create the moon quad.
-    //
-
+// Fixed moon position in the sky.
+// uc_orig: SKY_MOON_YAW (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MOON_YAW (0)
+// uc_orig: SKY_MOON_PITCH (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MOON_PITCH (PI / 8.0F)
+// uc_orig: SKY_MOON_DIST (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MOON_DIST (max_dist - 128.0F)
-// This is hooooooooooj.
+// Moon appears large on screen.
+// uc_orig: SKY_MOON_RADIUS (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MOON_RADIUS (screen_width * 0.15F)
+// uc_orig: SKY_MOON_UV_IN (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MOON_UV_IN (0.02F)
 
-    const struct
-    {
+    const struct {
         float u;
         float v;
-
     } moon_uv[4] = {
         { SKY_MOON_UV_IN, SKY_MOON_UV_IN },
         { 1.0F - SKY_MOON_UV_IN, SKY_MOON_UV_IN },
@@ -509,17 +418,9 @@ void SKY_draw_poly_moon(
         &mid);
 
     if (!mid.IsValid()) {
-        //
-        // Abandon the moon. - you can't see the whole of it <g>
-        //
-
         on_screen_for = 0;
     } else {
         if (mid.X + SKY_MOON_RADIUS < 0 || mid.X - SKY_MOON_RADIUS > screen_width || mid.Y + SKY_MOON_RADIUS < 0 || mid.Y - SKY_MOON_RADIUS > screen_height) {
-            //
-            // Abandon the moon.
-            //
-
             on_screen_for = 0;
         } else {
             mid.Z = SKY_VERY_FAR_AWAY;
@@ -545,6 +446,7 @@ void SKY_draw_poly_moon(
     return;
 }
 
+// uc_orig: SKY_draw_moon_reflection (fallen/DDEngine/Source/sky.cpp)
 SLONG SKY_draw_moon_reflection(
     float mid_x,
     float mid_y,
@@ -555,7 +457,6 @@ SLONG SKY_draw_moon_reflection(
     float* moon_x2,
     float* moon_y2)
 {
-
     SLONG i;
     SLONG j;
 
@@ -577,9 +478,6 @@ SLONG SKY_draw_moon_reflection(
     float width;
     float height;
 
-    // SKY_Cloud   *sc;
-    // SKY_Texture *st;
-
     POLY_Point mid;
     POLY_Point pp[4];
     POLY_Point* quad[4];
@@ -594,15 +492,9 @@ SLONG SKY_draw_moon_reflection(
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    //
-    // Create the moon quad.
-    //
-
-    const struct
-    {
+    const struct {
         float u;
         float v;
-
     } moon_uv[4] = {
         { SKY_MOON_UV_IN, SKY_MOON_UV_IN },
         { 1.0F - SKY_MOON_UV_IN, SKY_MOON_UV_IN },
@@ -619,6 +511,7 @@ SLONG SKY_draw_moon_reflection(
         pitch);
 
     temp.X = vector[0] * SKY_MOON_DIST + mid_x;
+    // Reflection: negate Y to flip the moon below the waterline.
     temp.Y = -vector[1] * SKY_MOON_DIST + mid_y * 0.5f;
     temp.Z = vector[2] * SKY_MOON_DIST + mid_z;
 
@@ -629,32 +522,23 @@ SLONG SKY_draw_moon_reflection(
         &mid);
 
     if (!mid.IsValid()) {
-        //
-        // Abandon the moon.
-        //
-
         return FALSE;
     } else {
         if (mid.X + SKY_MOON_RADIUS < 8 || mid.X - SKY_MOON_RADIUS > screen_width + 8 || mid.Y + SKY_MOON_RADIUS < 8 || mid.Y - SKY_MOON_RADIUS > screen_height + 8) {
-            //
-            // Abandon the moon.
-            //
-
             return FALSE;
         } else {
             mid.Z = SKY_VERY_FAR_AWAY;
             mid.colour = 0xffaaaa88;
             mid.specular = 0x00000000;
 
+// Number of horizontal slices the moon reflection is divided into (for the wibble effect).
+// uc_orig: SKY_MOON_SEGMENTS (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MOON_SEGMENTS 16
 
             y = mid.Y - SKY_MOON_RADIUS;
             v = moon_uv[0].v;
 
-            //
-            // What's the first lines' wibble?
-            //
-
+            // Calculate the first line's wibble offset.
             angle1 = SLONG(y) * SKY_wibble_y1;
             angle2 = SLONG(y) * SKY_wibble_y2;
             angle1 += GAME_TURN * SKY_wibble_g1;
@@ -666,20 +550,16 @@ SLONG SKY_draw_moon_reflection(
             offset2 = SIN(angle1) * SKY_wibble_s1 >> 19;
             offset2 += COS(angle2) * SKY_wibble_s2 >> 19;
 
-            //
-            // The amount of 'y' and 'v' in each segment.
-            //
-
+// Y and V step per segment.
+// uc_orig: SKY_MOON_SEG_DY (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MOON_SEG_DY (float(SKY_MOON_RADIUS) / float(SKY_MOON_SEGMENTS))
+// uc_orig: SKY_MOON_SEG_DV (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MOON_SEG_DV ((moon_uv[2].v - moon_uv[0].v) / float(SKY_MOON_SEGMENTS))
 
             for (i = 0; i < SKY_MOON_SEGMENTS; i++) {
                 offset1 = offset2;
 
-                //
-                // What's the next lines' wibble?
-                //
-
+                // Calculate the next line's wibble offset.
                 angle1 = SLONG(y + SKY_MOON_SEG_DY) * SKY_wibble_y1;
                 angle2 = SLONG(y + SKY_MOON_SEG_DY) * SKY_wibble_y2;
                 angle1 += GAME_TURN * SKY_wibble_g1;
@@ -729,6 +609,7 @@ SLONG SKY_draw_moon_reflection(
     return TRUE;
 }
 
+// uc_orig: SKY_draw_poly_sky (fallen/DDEngine/Source/sky.cpp)
 void SKY_draw_poly_sky(
     float world_camera_x,
     float world_camera_y,
@@ -760,16 +641,14 @@ void SKY_draw_poly_sky(
             px, py, pz,
             &screen_x,
             &screen_y)) {
-        //
         // Can't see the horizon.
-        //
-
         return;
     }
 
     POLY_Point pp[4];
     POLY_Point* quad[4];
 
+    // Bottom gradient band (bot_colour).
     pp[0].X = 0.0F;
     pp[0].Y = screen_y - 256.0F;
     pp[0].Z = 0.5F;
@@ -813,6 +692,7 @@ void SKY_draw_poly_sky(
 
     POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, TRUE);
 
+    // Top gradient band (fades from bot_colour to top_colour).
     pp[0].X = 0.0F;
     pp[0].Y = screen_y - 1024.0F;
     pp[0].Z = 0.5F;
@@ -859,8 +739,9 @@ void SKY_draw_poly_sky(
 
 //  0  1
 //
-//	2  3
+//  2  3
 
+// uc_orig: SKY_draw_poly_sky_old (fallen/DDEngine/Source/sky.cpp)
 void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float world_camera_z, float world_camera_yaw, float max_dist, ULONG bot_colour, ULONG top_colour)
 {
     SLONG i;
@@ -874,11 +755,13 @@ void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float wor
 
     float angle;
 
+// Number of steps in the horizon circle.
+// uc_orig: SKY_CIRCLE_STEPS (fallen/DDEngine/Source/sky.cpp)
 #define SKY_CIRCLE_STEPS 30
-    // 30
 
+// uc_orig: SKY_HORIZON (fallen/DDEngine/Source/sky.cpp)
 #define SKY_HORIZON 0.0F
-//(world_camera_y * 0.0 -  256.0F)
+// uc_orig: SKY_MAXUP (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MAXUP (world_camera_y * 0.0f + 12072.0F)
 
     POLY_Point pp_bot[SKY_CIRCLE_STEPS];
@@ -889,25 +772,20 @@ void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float wor
     angle = 0.0F;
     max_dist = 66.0F * 256.0F;
 
-    //	max_dist-=2256;
-
     for (i = 0; i < SKY_CIRCLE_STEPS; i++) {
-        x = world_camera_x + (float)sin(angle) * (max_dist); // - 378.0F);
-        z = world_camera_z + (float)cos(angle) * (max_dist); // - 378.0F);
+        x = world_camera_x + (float)sin(angle) * (max_dist);
+        z = world_camera_z + (float)cos(angle) * (max_dist);
 
         POLY_transform_c_saturate_z(x, SKY_HORIZON, z, &pp_bot[i]);
 
-        //
         // Only bother transforming the higher point if the lower point
         // wasn't behind you.
-        //
-
         if (pp_bot[i].IsValid()) {
             pp_bot[i].colour = bot_colour;
             pp_bot[i].specular = 0xff000000;
 
-            x = world_camera_x + (float)sin(angle) * (max_dist); // - 1024.0F);
-            z = world_camera_z + (float)cos(angle) * (max_dist); // - 1024.0F);
+            x = world_camera_x + (float)sin(angle) * (max_dist);
+            z = world_camera_z + (float)cos(angle) * (max_dist);
 
             POLY_transform_c_saturate_z(
                 x,
@@ -923,13 +801,8 @@ void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float wor
         angle += 2.0F * PI / SKY_CIRCLE_STEPS;
     }
 
-    //
     // Draw the sky quads.
-    //
-
-    for (i = 0; i < SKY_CIRCLE_STEPS; i++)
-    //	for (i = 0; i < 1; i++)
-    {
+    for (i = 0; i < SKY_CIRCLE_STEPS; i++) {
         p1 = i + 0;
         p2 = i + 1;
 
