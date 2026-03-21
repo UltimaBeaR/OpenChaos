@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 65 — actors/items/special (2026-03-21)
+
+- Циклический include: `Game.h` → `Special.h` (redirect) → `special.h` → `Game.h`. Решение: убран `#include "fallen/Headers/Game.h"` из `special.h`, заменён на `#ifndef THING_INDEX` guard + `#include "fallen/Headers/Structs.h"` (паттерн из `barrel.h`). `MemTable` и `save_table` forward-объявлены с `#ifndef FALLEN_HEADERS_GAME_H` guard чтобы не переопределять.
+- `find_empty_special` — в оригинале не `static`, используется из `save.cpp` через `extern`. Ошибочно сделана static; исправлено, добавлена в `special.h`.
+- `SAVE_TABLE_SPECIAL` перенесён в `special.h` из `Game.h` (нужен для `MAX_SPECIALS` макроса).
+- `actors/items/special.cpp` зависит от `effects/` и `ui/hud/` — DAG-нарушения унаследованные из оригинала; помечены `// Temporary:`.
+
+---
+
 ## Итерация 64 — assets/texture (2026-03-21)
 
 - `TEXTURE_get_fiddled_position` существует только в Glide-версии (`fallen/Glide Engine/Source/gltexture.cpp`); добавлен stub возвращающий `page` как есть — функция объявлена в `texture.h` и вызывается из `aeng.cpp`, но в D3D-билде не используется по смыслу.

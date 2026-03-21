@@ -42359,6 +42359,686 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_AMMO_IN_A_PISTOL",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_AMMO_IN_A_PISTOL",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_AMMO_IN_A_SHOTGUN",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_AMMO_IN_A_SHOTGUN",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_AMMO_IN_A_GRENADE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_AMMO_IN_A_GRENADE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_AMMO_IN_A_AK47",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_AMMO_IN_A_AK47",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RMAX_SPECIALS",
+      "file": "new/actors/items/special.h",
+      "orig_name": "RMAX_SPECIALS",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_SPECIALS",
+      "file": "new/actors/items/special.h",
+      "orig_name": "MAX_SPECIALS",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_TABLE_SPECIAL",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SAVE_TABLE_SPECIAL",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_NONE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_NONE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_KEY",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_KEY",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_GUN",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_GUN",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_HEALTH",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_HEALTH",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_BOMB",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_BOMB",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_SHOTGUN",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_SHOTGUN",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_KNIFE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_KNIFE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_EXPLOSIVES",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_EXPLOSIVES",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_GRENADE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_GRENADE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_AK47",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_AK47",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_MINE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_MINE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_THERMODROID",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_THERMODROID",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_BASEBALLBAT",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_BASEBALLBAT",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_AMMO_PISTOL",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_AMMO_PISTOL",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_AMMO_SHOTGUN",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_AMMO_SHOTGUN",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_AMMO_AK47",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_AMMO_AK47",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_KEYCARD",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_KEYCARD",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_FILE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_FILE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_FLOPPY_DISK",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_FLOPPY_DISK",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_CROWBAR",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_CROWBAR",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_VIDEO",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_VIDEO",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_GLOVES",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_GLOVES",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_WEEDAWAY",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_WEEDAWAY",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_TREASURE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_TREASURE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_CARKEY_RED",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_CARKEY_RED",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_CARKEY_BLUE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_CARKEY_BLUE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_CARKEY_GREEN",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_CARKEY_GREEN",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_CARKEY_BLACK",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_CARKEY_BLACK",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_CARKEY_WHITE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_CARKEY_WHITE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_WIRE_CUTTER",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_WIRE_CUTTER",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_NUM_TYPES",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_NUM_TYPES",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_GROUP_USEFUL",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_GROUP_USEFUL",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_GROUP_ONEHANDED_WEAPON",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_GROUP_ONEHANDED_WEAPON",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_GROUP_TWOHANDED_WEAPON",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_GROUP_TWOHANDED_WEAPON",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_GROUP_STRANGE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_GROUP_STRANGE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_GROUP_AMMO",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_GROUP_AMMO",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_GROUP_COOKIE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_GROUP_COOKIE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_SUBSTATE_NONE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_SUBSTATE_NONE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_SUBSTATE_ACTIVATED",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_SUBSTATE_ACTIVATED",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_SUBSTATE_IS_DIRT",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_SUBSTATE_IS_DIRT",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_SUBSTATE_PROJECTILE",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_SUBSTATE_PROJECTILE",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_Info",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_Info",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_info",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_info",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Special",
+      "file": "new/actors/items/special.h",
+      "orig_name": "Special",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SpecialPtr",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SpecialPtr",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_empty_special",
+      "file": "new/actors/items/special.h",
+      "orig_name": "find_empty_special",
+      "orig_file": "fallen/Source/Special.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_specials",
+      "file": "new/actors/items/special.h",
+      "orig_name": "init_specials",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_special",
+      "file": "new/actors/items/special.h",
+      "orig_name": "alloc_special",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "special_drop",
+      "file": "new/actors/items/special.h",
+      "orig_name": "special_drop",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "person_has_special",
+      "file": "new/actors/items/special.h",
+      "orig_name": "person_has_special",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "person_has_twohanded_weapon",
+      "file": "new/actors/items/special.h",
+      "orig_name": "person_has_twohanded_weapon",
+      "orig_file": "fallen/Source/Special.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "should_person_get_item",
+      "file": "new/actors/items/special.h",
+      "orig_name": "should_person_get_item",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "person_get_item",
+      "file": "new/actors/items/special.h",
+      "orig_name": "person_get_item",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_prime_grenade",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_prime_grenade",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_throw_grenade",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_throw_grenade",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPECIAL_set_explosives",
+      "file": "new/actors/items/special.h",
+      "orig_name": "SPECIAL_set_explosives",
+      "orig_file": "fallen/Headers/Special.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_special",
+      "file": "new/actors/items/special.h",
+      "orig_name": "free_special",
+      "orig_file": "fallen/Source/Special.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "special_normal",
+      "file": "new/actors/items/special.h",
+      "orig_name": "special_normal",
+      "orig_file": "fallen/Source/Special.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "special_pickup",
+      "file": "new/actors/items/special.h",
+      "orig_name": "special_pickup",
+      "orig_file": "fallen/Source/Special.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "special_activate_mine",
+      "file": "new/actors/items/special.h",
+      "orig_name": "special_activate_mine",
+      "orig_file": "fallen/Source/Special.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "special_di",
+      "file": "new/actors/items/special_globals.h",
+      "orig_name": "special_di",
+      "orig_file": "fallen/Source/Special.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -323,7 +323,8 @@ set(SOURCES_GAME
     src/new/engine/physics/sm_globals.cpp
     src/new/engine/audio/sound.cpp
     src/new/engine/audio/sound_globals.cpp
-    src/old/fallen/Source/Special.cpp
+    src/new/actors/items/special.cpp
+    src/new/actors/items/special_globals.cpp
     src/new/world/environment/stair.cpp
     src/new/world/environment/stair_globals.cpp
     src/new/world/map/supermap.cpp
