@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 76 — missions/elev (второй чанк: ELEV_game_init_common + ELEV_game_init + остальные) (2026-03-21)
+
+- `old/fallen/Source/elev.cpp` заменён redirect-заглушкой. `new/missions/elev.cpp` теперь полный.
+- `SND_BeginAmbient` — объявлена в `engine/audio/sound.h` (уже включён через `fallen/Headers/sound.h`); `extern void SND_BeginAmbient()` внутри `ELEV_game_init_common` оставлен как в оригинале.
+- `char junk[1000]` в `ELEV_load_name` — локальная переменная, shadowing глобального `CBYTE junk[2048]` из `elev_globals`; паттерн оригинала, сохранён.
+- `MAV_init`, `MAV_precalculate` — через `fallen/Headers/mav.h` (`// Temporary:`).
+- `COLLIDE_calc_fastnav_bits`, `COLLIDE_find_seethrough_fences`, `insert_collision_facets` — через `fallen/Headers/collide.h` (`// Temporary:`).
+- `STARTSCR_mission` — уже мигрирован в `assets/startscr_globals.h`; включён напрямую (без Temporary).
+- `playback_file` — уже в `actors/core/thing_globals.h`; включён напрямую.
+
+---
+
 ## Итерация 75 — missions/elev (первый чанк: globals + ELEV_load_level) (2026-03-21)
 
 - `old/fallen/Source/elev.cpp` (2976 строк): перенесён первый чанк — globals + `ELEV_load_level` (~1884 строки). Остальные функции (`ELEV_game_init_common`, `ELEV_game_init`, `ELEV_create_similar_name`, `ELEV_load_name`, `ELEV_load_user`, `reload_level`) остаются в `old/` до следующей итерации.

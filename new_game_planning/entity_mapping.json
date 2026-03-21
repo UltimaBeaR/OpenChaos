@@ -47399,6 +47399,66 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_game_init_common",
+      "file": "new/missions/elev.cpp",
+      "orig_name": "ELEV_game_init_common",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_game_init",
+      "file": "new/missions/elev.cpp",
+      "orig_name": "ELEV_game_init",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_create_similar_name",
+      "file": "new/missions/elev.cpp",
+      "orig_name": "ELEV_create_similar_name",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_load_name",
+      "file": "new/missions/elev.cpp",
+      "orig_name": "ELEV_load_name",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_load_user",
+      "file": "new/missions/elev.cpp",
+      "orig_name": "ELEV_load_user",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "reload_level",
+      "file": "new/missions/elev.cpp",
+      "orig_name": "reload_level",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
