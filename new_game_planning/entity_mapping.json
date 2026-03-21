@@ -47289,6 +47289,116 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_last_map_loaded",
+      "file": "new/missions/elev_globals.h",
+      "orig_name": "ELEV_last_map_loaded",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "junk",
+      "file": "new/missions/elev_globals.h",
+      "orig_name": "junk",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "event_point",
+      "file": "new/missions/elev_globals.h",
+      "orig_name": "event_point",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "iamapsx",
+      "file": "new/missions/elev_globals.h",
+      "orig_name": "iamapsx",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "quick_load",
+      "file": "new/missions/elev_globals.h",
+      "orig_name": "quick_load",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "loading_screen_active",
+      "file": "new/missions/elev_globals.h",
+      "orig_name": "loading_screen_active",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_fname_map",
+      "file": "new/missions/elev_globals.h",
+      "orig_name": "ELEV_fname_map",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_fname_lighting",
+      "file": "new/missions/elev_globals.h",
+      "orig_name": "ELEV_fname_lighting",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_fname_citsez",
+      "file": "new/missions/elev_globals.h",
+      "orig_name": "ELEV_fname_citsez",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_fname_level",
+      "file": "new/missions/elev_globals.h",
+      "orig_name": "ELEV_fname_level",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELEV_load_level",
+      "file": "new/missions/elev.h",
+      "orig_name": "ELEV_load_level",
+      "orig_file": "fallen/Source/elev.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -331,6 +331,8 @@ set(SOURCES_GAME
     src/new/missions/memory_globals.cpp
     src/new/missions/save.cpp
     src/new/missions/save_globals.cpp
+    src/new/missions/elev.cpp
+    src/new/missions/elev_globals.cpp
     src/old/fallen/Source/shadow.cpp
     src/new/engine/physics/sm.cpp
     src/new/engine/physics/sm_globals.cpp

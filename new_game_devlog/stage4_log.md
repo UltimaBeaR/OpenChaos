@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 75 — missions/elev (первый чанк: globals + ELEV_load_level) (2026-03-21)
+
+- `old/fallen/Source/elev.cpp` (2976 строк): перенесён первый чанк — globals + `ELEV_load_level` (~1884 строки). Остальные функции (`ELEV_game_init_common`, `ELEV_game_init`, `ELEV_create_similar_name`, `ELEV_load_name`, `ELEV_load_user`, `reload_level`) остаются в `old/` до следующей итерации.
+- `panel.h` находится в `fallen/DDEngine/Headers/` (не в `fallen/Headers/`) — исправлено при компиляции.
+- `Vehicle.h` ещё не мигрирован в `new/actors/vehicles/` — использован `fallen/Headers/Vehicle.h` с пометкой `// Temporary:`.
+- `people_types[50]` — определён в `Person.cpp`, нет в заголовке; добавлен inline-`extern` forward declaration.
+- `vehicle_random[]` — аналогично, только inline-`extern` в `old/elev.cpp`; воспроизведён паттерн.
+- `elev.h` изначально содержал `uc_orig` для ещё не мигрированных функций — исправлено: `uc_orig` только на `ELEV_load_level`, остальные объявления без него до момента миграции.
+
+---
+
 ## Итерация 74 — actors/animals/bat (второй чанк: BAT_normal + BAT_create + BAT_apply_hit) (2026-03-21)
 
 - `old/fallen/Source/bat.cpp` заменён redirect-заглушкой. `new/actors/animals/bat.cpp` теперь полный.
