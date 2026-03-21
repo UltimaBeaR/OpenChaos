@@ -38919,6 +38919,176 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_semisphere",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_semisphere",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_semisphere_textured",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_semisphere_textured",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_sphere",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_sphere",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_alpha_sphere",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_alpha_sphere",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_sparky_line",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_sparky_line",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_glitter",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_glitter",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_tripwire_uvs",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_tripwire_uvs",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_tripwire",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_tripwire",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_waterfall",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_waterfall",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_droplet",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_droplet",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHADOW_cylindrical_shadow",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHADOW_cylindrical_shadow",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_prim_shadow",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_prim_shadow",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_draw_balloon",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_draw_balloon",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_colour_mult",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "SHAPE_colour_mult",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_balloon_colour",
+      "file": "new/engine/graphics/geometry/shape_globals.cpp",
+      "orig_name": "SHAPE_balloon_colour",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHAPE_MAX_SPARKY_POINTS",
+      "file": "new/engine/graphics/geometry/shape.h",
+      "orig_name": "SHAPE_MAX_SPARKY_POINTS",
+      "orig_file": "fallen/DDEngine/Headers/shape.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DC_SHADOW_Z_ADJUST",
+      "file": "new/engine/graphics/geometry/shape.cpp",
+      "orig_name": "DC_SHADOW_Z_ADJUST",
+      "orig_file": "fallen/DDEngine/Source/shape.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

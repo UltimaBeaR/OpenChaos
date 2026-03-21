@@ -228,7 +228,8 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/mesh.cpp
     src/old/fallen/DDEngine/Source/panel.cpp
     src/old/fallen/DDEngine/Source/poly.cpp
-    src/old/fallen/DDEngine/Source/shape.cpp
+    src/new/engine/graphics/geometry/shape.cpp
+    src/new/engine/graphics/geometry/shape_globals.cpp
     src/old/fallen/DDEngine/Source/texture.cpp
 )
 

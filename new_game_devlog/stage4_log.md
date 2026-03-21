@@ -589,3 +589,14 @@ Entity mapping обновлён (33 записи — file path).
 - `SUPERFACET_build_call`: `foundation` uninitialized when `df->FHeight == 0` — pre-existing bug in original (no else clause at line 615 of original); preserved 1:1
 - `SUPERFACET_create_points`: `foundation` has proper `else { foundation = 0; }` — confirmed from git history
 
+---
+
+## Итерация 59 — engine/graphics/geometry/shape (2026-03-21)
+
+- `SHAPE_colour_mult` и `SHAPE_tripwire_uvs` и `SHADOW_cylindrical_shadow` — file-private static (нигде не объявлены в оригинальном `shape.h`, не используются снаружи)
+- `Game.h` включается первым — тот же паттерн что итерация 25 и 36: `MFStdLib.h` объявляет `extern DisplayWidth/Height`, `gd_display.h` переопределяет их как `#define`; обратный порядок — синтаксическая ошибка
+- `SHAPE_balloon_colour` — non-static global (используется в `mesh.cpp` через `extern`); вынесен в `shape_globals`
+- `balloon_colours[4]` — static local внутри `SHAPE_draw_balloon`, не file-scope; остаётся в `.cpp`
+- `Night.h` находится в `fallen/Headers/`, не в `DDEngine/Headers/` (как в оригинале)
+
+---
