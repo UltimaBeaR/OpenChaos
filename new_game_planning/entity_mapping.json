@@ -35189,6 +35189,416 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_GAME_CHUNKS",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "MAX_GAME_CHUNKS",
+      "orig_file": "fallen/Headers/interact.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_ANIM_CHUNKS",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "MAX_ANIM_CHUNKS",
+      "orig_file": "fallen/Headers/interact.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AnimPrimBbox",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "AnimPrimBbox",
+      "orig_file": "fallen/Headers/interact.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "global_anim_array",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "global_anim_array",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "test_chunk",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "test_chunk",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "test_chunk2",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "test_chunk2",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "test_chunk3",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "test_chunk3",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "thug_chunk",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "thug_chunk",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "the_elements",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "the_elements",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "game_chunk",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "game_chunk",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "anim_chunk",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "anim_chunk",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_game_chunk",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "next_game_chunk",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_anim_chunk",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "next_anim_chunk",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "anim_prim_bbox",
+      "file": "new/assets/anim_globals.h",
+      "orig_name": "anim_prim_bbox",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "grab_px",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "grab_px",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "grab_py",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "grab_py",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "grab_pz",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "grab_pz",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "best_dist",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "best_dist",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "best_x",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "best_x",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "best_y",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "best_y",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "best_z",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "best_z",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "best_angle",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "best_angle",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "r_matrix",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "r_matrix",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "offset",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "offset",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "matrix",
+      "file": "new/actors/core/interact_globals.h",
+      "orig_name": "matrix",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHECK_WIDTH",
+      "file": "new/actors/core/interact.cpp",
+      "orig_name": "CHECK_WIDTH",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHECK_FORWARD",
+      "file": "new/actors/core/interact.cpp",
+      "orig_name": "CHECK_FORWARD",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ON_MAP",
+      "file": "new/actors/core/interact.cpp",
+      "orig_name": "ON_MAP",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_angle",
+      "file": "new/actors/core/interact.cpp",
+      "orig_name": "calc_angle",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "angle_diff",
+      "file": "new/actors/core/interact.cpp",
+      "orig_name": "angle_diff",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "valid_grab_angle",
+      "file": "new/actors/core/interact.cpp",
+      "orig_name": "valid_grab_angle",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_cable_y_along",
+      "file": "new/actors/core/interact.h",
+      "orig_name": "find_cable_y_along",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_cable_along",
+      "file": "new/actors/core/interact.cpp",
+      "orig_name": "get_cable_along",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_grab_cable_facet",
+      "file": "new/actors/core/interact.h",
+      "orig_name": "check_grab_cable_facet",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_grab_ladder_facet",
+      "file": "new/actors/core/interact.h",
+      "orig_name": "check_grab_ladder_facet",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_grab_face",
+      "file": "new/actors/core/interact.h",
+      "orig_name": "find_grab_face",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_grab_face_in_sewers",
+      "file": "new/actors/core/interact.h",
+      "orig_name": "find_grab_face_in_sewers",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_sub_objects_position",
+      "file": "new/actors/core/interact.h",
+      "orig_name": "calc_sub_objects_position",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_sub_objects_position_fix8",
+      "file": "new/actors/core/interact.h",
+      "orig_name": "calc_sub_objects_position_fix8",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_sub_objects_position_keys",
+      "file": "new/actors/core/interact.h",
+      "orig_name": "calc_sub_objects_position_keys",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_sub_objects_position_global",
+      "file": "new/actors/core/interact.h",
+      "orig_name": "calc_sub_objects_position_global",
+      "orig_file": "fallen/Source/interact.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

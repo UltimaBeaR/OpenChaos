@@ -60,6 +60,7 @@ set(SOURCES_NEW
     src/new/assets/image_compression_globals.cpp
     src/new/assets/compression.cpp
     src/new/assets/compression_globals.cpp
+    src/new/assets/anim_globals.cpp
     src/new/engine/lighting/ngamut.cpp
     src/new/engine/lighting/ngamut_globals.cpp
     src/new/engine/graphics/graphics_api/work_screen.cpp
@@ -185,6 +186,8 @@ set(SOURCES_NEW
     src/new/actors/core/player_globals.cpp
     src/new/actors/core/thing.cpp
     src/new/actors/core/thing_globals.cpp
+    src/new/actors/core/interact.cpp
+    src/new/actors/core/interact_globals.cpp
     src/new/actors/characters/cop.cpp
     src/new/actors/characters/cop_globals.cpp
     src/new/actors/characters/roper.cpp
@@ -277,7 +280,6 @@ set(SOURCES_GAME
     src/new/ui/menus/gamemenu_globals.cpp
     src/new/actors/items/guns.cpp
     src/old/fallen/Source/hm.cpp
-    src/old/fallen/Source/interact.cpp
     src/old/fallen/Source/interfac.cpp
     src/old/fallen/Source/io.cpp
     src/old/fallen/Source/Main.cpp

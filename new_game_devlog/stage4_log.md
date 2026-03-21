@@ -539,3 +539,14 @@ Entity mapping обновлён (33 записи — file path).
 - `playbacks[]` в attract_globals.cpp — строки с `\\` (Windows path сепаратор); оставлены 1:1, это data assets
 
 ---
+
+## Итерация 54 — actors/core/interact + assets/anim_globals (2026-03-21)
+
+- `AnimPrimBbox` typedef и `MAX_GAME_CHUNKS`/`MAX_ANIM_CHUNKS` были только в оригинальном `interact.h` — перенесены в `assets/anim_globals.h`
+- `DFacet` хранит XZ координаты как байты: `p_facet->x[0] << 8` (не `->X[0]`) — критично для `check_grab_cable_facet` и `get_cable_along`
+- `check_grab_cable_facet` использует `nearest_point_on_line_and_dist_and_along` (с `along`), не укороченную версию без `along`
+- `check_grab_ladder_facet` вызывает `correct_pos_for_ladder()` для расчёта угла хвата
+- `calc_angle`, `angle_diff`, `valid_grab_angle`, `get_cable_along` — file-private хелперы, `static`
+- `find_grab_face_in_sewers` использует локальные `best_*` переменные вместо глобальных — в оригинале тоже локальные; globals используются только в `find_grab_face`
+
+---
