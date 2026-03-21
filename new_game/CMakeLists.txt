@@ -290,7 +290,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/memory.cpp
     src/old/fallen/Source/night.cpp
     src/old/fallen/Source/ns.cpp
-    src/old/fallen/Source/ob.cpp
+    src/new/world/map/ob.cpp
+    src/new/world/map/ob_globals.cpp
     src/new/ui/hud/overlay.cpp
     src/new/ui/hud/overlay_globals.cpp
 
@@ -322,7 +323,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/Special.cpp
     src/new/world/environment/stair.cpp
     src/new/world/environment/stair_globals.cpp
-    src/old/fallen/Source/supermap.cpp
+    src/new/world/map/supermap.cpp
+    src/new/world/map/supermap_globals.cpp
     src/new/world/environment/tripwire.cpp
     src/new/world/environment/tripwire_globals.cpp
     src/old/fallen/Source/vehicle.cpp

@@ -600,3 +600,15 @@ Entity mapping обновлён (33 записи — file path).
 - `Night.h` находится в `fallen/Headers/`, не в `DDEngine/Headers/` (как в оригинале)
 
 ---
+
+## Итерация 60 — world/map/ob + world/map/supermap (2026-03-21)
+
+- `envmap_specials` — не static: вызывается из `elev.cpp` и `Game.cpp`; добавлена декларация в `ob.h`
+- `make_all_clumps` — dev tool (итерируется по всем уровням, создаёт texture clumps, exit(0)); не удалялась — вызывается из `game_startup`; зависит от `make_texture_clumps` (defined in Game.cpp, not yet migrated) через forward decl
+- `next_dbuilding`/`next_dfacet`/`next_dstyle` и др. (9 переменных) — объявлены `extern` в `fallen/Headers/supermap.h`, были определены в `old/supermap.cpp`; перенесены в `supermap_globals.cpp`
+- `fallen/Headers/supermap.h` — **не редиректится**: содержит определения структур (DFacet, DBuilding, DWalkable, DStorey) которые нужны и в `old/` коде; `new/world/map/supermap.h` включает его
+- `create_super_dbuilding` — editor function, нигде не вызывается; не мигрировалась (мёртвый код)
+- `levels[]` — изначально static в supermap.cpp, нарушение правила globals; исправлено — перенесено в `supermap_globals.cpp`; struct `Levels` + extern — в `supermap_globals.h`
+- `supermap_globals.cpp` включает `fallen/Headers/Game.h` (Temporary) для PERSON_* констант в `levels[]`
+
+---

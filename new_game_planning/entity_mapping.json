@@ -39089,6 +39089,816 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "OB_MAX_OBS",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_MAX_OBS",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_SIZE",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_SIZE",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_MAX_PER_SQUARE",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_MAX_PER_SQUARE",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_FLAG_ON_FLOOR",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_FLAG_ON_FLOOR",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_FLAG_SEARCHABLE",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_FLAG_SEARCHABLE",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_FLAG_NOT_ON_PSX",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_FLAG_NOT_ON_PSX",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_FLAG_DAMAGED",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_FLAG_DAMAGED",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_FLAG_WAREHOUSE",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_FLAG_WAREHOUSE",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_FLAG_HIDDEN_ITEM",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_FLAG_HIDDEN_ITEM",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_FLAG_RESERVED1",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_FLAG_RESERVED1",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_FLAG_RESERVED2",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_FLAG_RESERVED2",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_OB_TRIPWIRE",
+      "file": "new/world/map/ob.h",
+      "orig_name": "FIND_OB_TRIPWIRE",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_OB_SWITCH_OR_VALVE",
+      "file": "new/world/map/ob.h",
+      "orig_name": "FIND_OB_SWITCH_OR_VALVE",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_Mapwho",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_Mapwho",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_Info",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_Info",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_Ob",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_Ob",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_workaround",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_workaround",
+      "orig_file": "fallen/Headers/ob.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_mapwho",
+      "file": "new/world/map/ob_globals.h",
+      "orig_name": "OB_mapwho",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_ob",
+      "file": "new/world/map/ob_globals.h",
+      "orig_name": "OB_ob",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_ob_upto",
+      "file": "new/world/map/ob_globals.h",
+      "orig_name": "OB_ob_upto",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_init",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_init",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_load_needed_prims",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_load_needed_prims",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_create",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_create",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_find",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_find",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_find_inside",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_find_inside",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_find_type",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_find_type",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_find_index",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_find_index",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_avoid",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_avoid",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_remove",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_remove",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_damage",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_damage",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_inside_prim",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_inside_prim",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_process",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_process",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_convert_dustbins_to_barrels",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_convert_dustbins_to_barrels",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_make_all_the_switches_be_at_the_proper_height",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_make_all_the_switches_be_at_the_proper_height",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_add_walkable_faces",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_add_walkable_faces",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_find_min_y",
+      "file": "new/world/map/ob.h",
+      "orig_name": "OB_find_min_y",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "envmap_specials",
+      "file": "new/world/map/ob.h",
+      "orig_name": "envmap_specials",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_SNAP_WIDTH",
+      "file": "new/world/map/ob.cpp",
+      "orig_name": "OB_SNAP_WIDTH",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_AVOID_LOOK_EXTRA",
+      "file": "new/world/map/ob.cpp",
+      "orig_name": "OB_AVOID_LOOK_EXTRA",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PRIM_OBJ_CHOPPER",
+      "file": "new/world/map/ob.cpp",
+      "orig_name": "PRIM_OBJ_CHOPPER",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PRIM_OBJ_CHOPPER_BLADES",
+      "file": "new/world/map/ob.cpp",
+      "orig_name": "PRIM_OBJ_CHOPPER_BLADES",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_MAX_HYDRANTS",
+      "file": "new/world/map/ob_globals.h",
+      "orig_name": "OB_MAX_HYDRANTS",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_Hydrant",
+      "file": "new/world/map/ob_globals.h",
+      "orig_name": "OB_Hydrant",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_found",
+      "file": "new/world/map/ob_globals.cpp",
+      "orig_name": "OB_found",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_return",
+      "file": "new/world/map/ob_globals.cpp",
+      "orig_name": "OB_return",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_hydrant",
+      "file": "new/world/map/ob_globals.cpp",
+      "orig_name": "OB_hydrant",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_hydrant_last",
+      "file": "new/world/map/ob_globals.cpp",
+      "orig_name": "OB_hydrant_last",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_compress",
+      "file": "new/world/map/ob.cpp",
+      "orig_name": "OB_compress",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_general_prims",
+      "file": "new/world/map/ob.cpp",
+      "orig_name": "load_general_prims",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_face_type",
+      "file": "new/world/map/ob.cpp",
+      "orig_name": "set_face_type",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ob_allowed_to_be_walkable",
+      "file": "new/world/map/ob.cpp",
+      "orig_name": "ob_allowed_to_be_walkable",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "special_object_flag",
+      "file": "new/world/map/ob.cpp",
+      "orig_name": "special_object_flag",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OB_height_fiddle_de_dee",
+      "file": "new/world/map/ob.cpp",
+      "orig_name": "OB_height_fiddle_de_dee",
+      "orig_file": "fallen/Source/ob.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "level_index",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "level_index",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERMAP_counter",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "SUPERMAP_counter",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "first_walkable_prim_point",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "first_walkable_prim_point",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "number_of_walkable_prim_points",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "number_of_walkable_prim_points",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "first_walkable_prim_face4",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "first_walkable_prim_face4",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "number_of_walkable_prim_faces4",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "number_of_walkable_prim_faces4",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "people_types",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "people_types",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DONT_load",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "DONT_load",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_dbuilding",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "next_dbuilding",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_dfacet",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "next_dfacet",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_dstyle",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "next_dstyle",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_dwalkable",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "next_dwalkable",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_dstorey",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "next_dstorey",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_paint_mem",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "next_paint_mem",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_facet_link",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "next_facet_link",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "facet_link_count",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "facet_link_count",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_inside_mem",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "next_inside_mem",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_super_map",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "load_super_map",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "add_sewer_ladder",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "add_sewer_ladder",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_electric_fence_dbuilding",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "find_electric_fence_dbuilding",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_electric_fence_state",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "set_electric_fence_state",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERMAP_counter_increase",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "SUPERMAP_counter_increase",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_level_no",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "get_level_no",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_inside_for_xyz",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "calc_inside_for_xyz",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "make_all_clumps",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "make_all_clumps",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Levels",
+      "file": "new/world/map/supermap_globals.h",
+      "orig_name": "Levels",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "levels",
+      "file": "new/world/map/supermap_globals.cpp",
+      "orig_name": "levels",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_walkables",
+      "file": "new/world/map/supermap.cpp",
+      "orig_name": "load_walkables",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
