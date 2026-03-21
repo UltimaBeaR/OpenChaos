@@ -495,3 +495,13 @@ Entity mapping обновлён (33 записи — file path).
 - `door_x/y/z/door_angle/dy` в `WARE_init` — declared-but-unused переменные из оригинала, перенесены 1:1
 
 ---
+
+## Итерация 50 — ui/menus/gamemenu + missions/save + actors/core/effect + actors/characters/enemy (2026-03-21)
+
+- `Effect.cpp`/`Enemy.cpp` — мёртвый код (init_effect/init_enemy нигде не вызываются снаружи); перенесены 1:1 с пометкой в комментарии
+- `GAMEMENU_menu[]` + `GAMEMENU_Menu` typedef — перемещены из `gamemenu.cpp` в `gamemenu_globals`; в `gamemenu_globals.cpp` добавлен `#include "assets/xlat_str.h"` для констант X_*
+- `SAVE_out_data`/`LOAD_in_data` — в оригинале non-static, но нигде не используются снаружи → помечены `static` в новом файле
+- `save.cpp` — двойной `SAVE_handle = LOAD_open()` в `LOAD_ingame` перенесён 1:1 (баг оригинала)
+- `save.cpp` — unreachable код после `return(1)` в `SAVE_person` (wandering civ/driver ветки) перенесён 1:1 с комментарием
+
+---

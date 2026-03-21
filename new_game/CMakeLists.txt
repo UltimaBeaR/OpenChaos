@@ -262,16 +262,17 @@ set(SOURCES_GAME
     src/new/world/environment/door.cpp
     src/new/world/environment/door_globals.cpp
     src/old/fallen/Source/drawtype.cpp
-    src/old/fallen/Source/Effect.cpp
+    src/new/actors/core/effect.cpp
     src/old/fallen/Source/elev.cpp
-    src/old/fallen/Source/Enemy.cpp
+    src/new/actors/characters/enemy.cpp
 
     src/old/fallen/Source/eway.cpp
     src/old/fallen/Source/fc.cpp
     src/old/fallen/Source/fog.cpp
     src/old/fallen/Source/frontend.cpp
     src/old/fallen/Source/Game.cpp
-    src/old/fallen/Source/gamemenu.cpp
+    src/new/ui/menus/gamemenu.cpp
+    src/new/ui/menus/gamemenu_globals.cpp
     src/old/fallen/Source/guns.cpp
     src/old/fallen/Source/hm.cpp
     src/old/fallen/Source/interact.cpp
@@ -300,7 +301,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/qmap.cpp
     src/new/world/map/road.cpp
     src/new/world/map/road_globals.cpp
-    src/old/fallen/Source/save.cpp
+    src/new/missions/save.cpp
+    src/new/missions/save_globals.cpp
     src/old/fallen/Source/shadow.cpp
     src/new/engine/physics/sm.cpp
     src/new/engine/physics/sm_globals.cpp

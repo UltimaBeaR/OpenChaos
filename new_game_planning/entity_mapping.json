@@ -32429,6 +32429,706 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_DO_NOTHING",
+      "file": "new/ui/menus/gamemenu.h",
+      "orig_name": "GAMEMENU_DO_NOTHING",
+      "orig_file": "fallen/Headers/gamemenu.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_DO_RESTART",
+      "file": "new/ui/menus/gamemenu.h",
+      "orig_name": "GAMEMENU_DO_RESTART",
+      "orig_file": "fallen/Headers/gamemenu.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_DO_CHOOSE_NEW_MISSION",
+      "file": "new/ui/menus/gamemenu.h",
+      "orig_name": "GAMEMENU_DO_CHOOSE_NEW_MISSION",
+      "orig_file": "fallen/Headers/gamemenu.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_DO_NEXT_LEVEL",
+      "file": "new/ui/menus/gamemenu.h",
+      "orig_name": "GAMEMENU_DO_NEXT_LEVEL",
+      "orig_file": "fallen/Headers/gamemenu.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_init",
+      "file": "new/ui/menus/gamemenu.h",
+      "orig_name": "GAMEMENU_init",
+      "orig_file": "fallen/Headers/gamemenu.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_process",
+      "file": "new/ui/menus/gamemenu.h",
+      "orig_name": "GAMEMENU_process",
+      "orig_file": "fallen/Headers/gamemenu.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_is_paused",
+      "file": "new/ui/menus/gamemenu.h",
+      "orig_name": "GAMEMENU_is_paused",
+      "orig_file": "fallen/Headers/gamemenu.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_slowdown_mul",
+      "file": "new/ui/menus/gamemenu.h",
+      "orig_name": "GAMEMENU_slowdown_mul",
+      "orig_file": "fallen/Headers/gamemenu.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_set_level_lost_reason",
+      "file": "new/ui/menus/gamemenu.h",
+      "orig_name": "GAMEMENU_set_level_lost_reason",
+      "orig_file": "fallen/Headers/gamemenu.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_draw",
+      "file": "new/ui/menus/gamemenu.h",
+      "orig_name": "GAMEMENU_draw",
+      "orig_file": "fallen/Headers/gamemenu.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_initialise",
+      "file": "new/ui/menus/gamemenu.cpp",
+      "orig_name": "GAMEMENU_initialise",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_MENU_TYPE_NONE",
+      "file": "new/ui/menus/gamemenu.cpp",
+      "orig_name": "GAMEMENU_MENU_TYPE_NONE",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_MENU_TYPE_PAUSE",
+      "file": "new/ui/menus/gamemenu.cpp",
+      "orig_name": "GAMEMENU_MENU_TYPE_PAUSE",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_MENU_TYPE_WON",
+      "file": "new/ui/menus/gamemenu.cpp",
+      "orig_name": "GAMEMENU_MENU_TYPE_WON",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_MENU_TYPE_LOST",
+      "file": "new/ui/menus/gamemenu.cpp",
+      "orig_name": "GAMEMENU_MENU_TYPE_LOST",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_MENU_TYPE_SURE",
+      "file": "new/ui/menus/gamemenu.cpp",
+      "orig_name": "GAMEMENU_MENU_TYPE_SURE",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_MENU_TYPE_NUMBER",
+      "file": "new/ui/menus/gamemenu.cpp",
+      "orig_name": "GAMEMENU_MENU_TYPE_NUMBER",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_Menu",
+      "file": "new/ui/menus/gamemenu.cpp",
+      "orig_name": "GAMEMENU_Menu",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_menu",
+      "file": "new/ui/menus/gamemenu.cpp",
+      "orig_name": "GAMEMENU_menu",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_menu_type",
+      "file": "new/ui/menus/gamemenu_globals.cpp",
+      "orig_name": "GAMEMENU_menu_type",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_menu_selection",
+      "file": "new/ui/menus/gamemenu_globals.cpp",
+      "orig_name": "GAMEMENU_menu_selection",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_background",
+      "file": "new/ui/menus/gamemenu_globals.cpp",
+      "orig_name": "GAMEMENU_background",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_fadein_x",
+      "file": "new/ui/menus/gamemenu_globals.cpp",
+      "orig_name": "GAMEMENU_fadein_x",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_slowdown",
+      "file": "new/ui/menus/gamemenu_globals.cpp",
+      "orig_name": "GAMEMENU_slowdown",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_wait",
+      "file": "new/ui/menus/gamemenu_globals.cpp",
+      "orig_name": "GAMEMENU_wait",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAMEMENU_level_lost_reason",
+      "file": "new/ui/menus/gamemenu_globals.cpp",
+      "orig_name": "GAMEMENU_level_lost_reason",
+      "orig_file": "fallen/Source/gamemenu.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_effect",
+      "file": "new/actors/core/effect.h",
+      "orig_name": "init_effect",
+      "orig_file": "fallen/Source/Effect.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "process_effect",
+      "file": "new/actors/core/effect.cpp",
+      "orig_name": "process_effect",
+      "orig_file": "fallen/Source/Effect.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_enemy",
+      "file": "new/actors/characters/enemy.h",
+      "orig_name": "init_enemy",
+      "orig_file": "fallen/Source/Enemy.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_ingame",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_ingame",
+      "orig_file": "fallen/Headers/save.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LOAD_ingame",
+      "file": "new/missions/save.h",
+      "orig_name": "LOAD_ingame",
+      "orig_file": "fallen/Headers/save.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_out_data",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_out_data",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LOAD_in_data",
+      "file": "new/missions/save.cpp",
+      "orig_name": "LOAD_in_data",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_handle",
+      "file": "new/missions/save_globals.cpp",
+      "orig_name": "SAVE_handle",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "skip",
+      "file": "new/missions/save_globals.cpp",
+      "orig_name": "skip",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "skip_class_none",
+      "file": "new/missions/save_globals.cpp",
+      "orig_name": "skip_class_none",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_PERSON_TYPE_NORMAL",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_PERSON_TYPE_NORMAL",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_PERSON_TYPE_WANDERING_DRIVER",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_PERSON_TYPE_WANDERING_DRIVER",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_PERSON_TYPE_DEAD",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_PERSON_TYPE_DEAD",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_PERSON_TYPE_ARRESTED",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_PERSON_TYPE_ARRESTED",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_PERSON_TYPE_WANDERING_CIV",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_PERSON_TYPE_WANDERING_CIV",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_PERSON_TYPE_FULL",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_PERSON_TYPE_FULL",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_SPECIAL_TYPE_FULL",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_SPECIAL_TYPE_FULL",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_VEHICLE_TYPE_FULL",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_VEHICLE_TYPE_FULL",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_VEHICLE_TYPE_WANDERING",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_VEHICLE_TYPE_WANDERING",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_SKIP",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_SKIP",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_SKIP_CLASS_NONE",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_SKIP_CLASS_NONE",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_GAME_EWAY",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_GAME_EWAY",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_Person",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_Person",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_Person_extra",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_Person_extra",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_Special_extra",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_Special_extra",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_just_vehicle",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_just_vehicle",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_Vehicle_extra",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_Vehicle_extra",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LOAD_open",
+      "file": "new/missions/save.cpp",
+      "orig_name": "LOAD_open",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_open",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_open",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_special",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_special",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_vehicle",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_vehicle",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_person",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_person",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_things",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_things",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SAVE_eways",
+      "file": "new/missions/save.cpp",
+      "orig_name": "SAVE_eways",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LOAD_eways",
+      "file": "new/missions/save.cpp",
+      "orig_name": "LOAD_eways",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_person_default_data",
+      "file": "new/missions/save.cpp",
+      "orig_name": "set_person_default_data",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LOAD_person_dead",
+      "file": "new/missions/save.cpp",
+      "orig_name": "LOAD_person_dead",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LOAD_person_arrested",
+      "file": "new/missions/save.cpp",
+      "orig_name": "LOAD_person_arrested",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LOAD_person_full",
+      "file": "new/missions/save.cpp",
+      "orig_name": "LOAD_person_full",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LOAD_special_full",
+      "file": "new/missions/save.cpp",
+      "orig_name": "LOAD_special_full",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LOAD_vehicle_full",
+      "file": "new/missions/save.cpp",
+      "orig_name": "LOAD_vehicle_full",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LOAD_types",
+      "file": "new/missions/save.cpp",
+      "orig_name": "LOAD_types",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fix_thing_lists",
+      "file": "new/missions/save.cpp",
+      "orig_name": "fix_thing_lists",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "remove_specials",
+      "file": "new/missions/save.cpp",
+      "orig_name": "remove_specials",
+      "orig_file": "fallen/Source/save.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
