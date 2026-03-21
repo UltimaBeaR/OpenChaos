@@ -14759,6 +14759,406 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_Letter",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_Letter",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_rightmost_x",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_rightmost_x",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_leftmost_x",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_leftmost_x",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_init",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_init",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_GetLetterWidth",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_GetLetterWidth",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_DrawLetter",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_DrawLetter",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_DrawString",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_DrawString",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_DrawStringWrap",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_DrawStringWrap",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_DrawStringWrapTo",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_DrawStringWrapTo",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_DrawStringRightJustify",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_DrawStringRightJustify",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_DrawStringRightJustifyNoWrap",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_DrawStringRightJustifyNoWrap",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_DrawStringCentred",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_DrawStringCentred",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_DrawStrikethrough",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_DrawStrikethrough",
+      "orig_file": "fallen/DDEngine/Headers/font2d.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_DrawString_3d",
+      "file": "new/engine/graphics/resources/font2d.h",
+      "orig_name": "FONT2D_DrawString_3d",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_letter",
+      "file": "new/engine/graphics/resources/font2d_globals.h",
+      "orig_name": "FONT2D_letter",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_punct",
+      "file": "new/engine/graphics/resources/font2d_globals.h",
+      "orig_name": "FONT2D_punct",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DST_offset1",
+      "file": "new/engine/graphics/resources/font2d_globals.h",
+      "orig_name": "DST_offset1",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DST_offset2",
+      "file": "new/engine/graphics/resources/font2d_globals.h",
+      "orig_name": "DST_offset2",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ConsoleText",
+      "file": "new/engine/graphics/resources/console_globals.h",
+      "orig_name": "ConsoleText",
+      "orig_file": "fallen/DDEngine/Source/console.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONSOLE_Mess",
+      "file": "new/engine/graphics/resources/console_globals.h",
+      "orig_name": "CONSOLE_Mess",
+      "orig_file": "fallen/DDEngine/Source/console.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONSOLE_mess",
+      "file": "new/engine/graphics/resources/console_globals.h",
+      "orig_name": "CONSOLE_mess",
+      "orig_file": "fallen/DDEngine/Source/console.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONSOLE_font",
+      "file": "new/engine/graphics/resources/console.h",
+      "orig_name": "CONSOLE_font",
+      "orig_file": "fallen/DDEngine/Headers/console.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONSOLE_draw",
+      "file": "new/engine/graphics/resources/console.h",
+      "orig_name": "CONSOLE_draw",
+      "orig_file": "fallen/DDEngine/Headers/console.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONSOLE_text",
+      "file": "new/engine/graphics/resources/console.h",
+      "orig_name": "CONSOLE_text",
+      "orig_file": "fallen/DDEngine/Headers/console.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONSOLE_clear",
+      "file": "new/engine/graphics/resources/console.h",
+      "orig_name": "CONSOLE_clear",
+      "orig_file": "fallen/DDEngine/Headers/console.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONSOLE_scroll",
+      "file": "new/engine/graphics/resources/console.h",
+      "orig_name": "CONSOLE_scroll",
+      "orig_file": "fallen/DDEngine/Headers/console.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONSOLE_text_at",
+      "file": "new/engine/graphics/resources/console.h",
+      "orig_name": "CONSOLE_text_at",
+      "orig_file": "fallen/DDEngine/Headers/console.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONSOLE_status",
+      "file": "new/engine/graphics/resources/console.h",
+      "orig_name": "CONSOLE_status",
+      "orig_file": "fallen/DDEngine/Source/console.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "console_Data",
+      "file": "new/engine/graphics/resources/console_globals.h",
+      "orig_name": "Data",
+      "orig_file": "fallen/DDEngine/Source/console.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "console_status_text",
+      "file": "new/engine/graphics/resources/console_globals.h",
+      "orig_name": "status_text",
+      "orig_file": "fallen/DDEngine/Source/console.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "console_last_tick",
+      "file": "new/engine/graphics/resources/console_globals.h",
+      "orig_name": "last_tick",
+      "orig_file": "fallen/DDEngine/Source/console.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "console_this_tick",
+      "file": "new/engine/graphics/resources/console_globals.h",
+      "orig_name": "this_tick",
+      "orig_file": "fallen/DDEngine/Source/console.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FontAtlasPixels",
+      "file": "new/engine/graphics/resources/font2d_globals.h",
+      "orig_name": "MyArrayType",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "type",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "font2d_data",
+      "file": "new/engine/graphics/resources/font2d_globals.h",
+      "orig_name": "FONT2D_data",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_DrawString_NoTrueType",
+      "file": "new/engine/graphics/resources/font2d.cpp",
+      "orig_name": "FONT2D_DrawString_NoTrueType",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_found_data",
+      "file": "new/engine/graphics/resources/font2d.cpp",
+      "orig_name": "FONT2D_found_data",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_GetIndex",
+      "file": "new/engine/graphics/resources/font2d.cpp",
+      "orig_name": "FONT2D_GetIndex",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONSOLE_no_text",
+      "file": "new/engine/graphics/resources/console.cpp",
+      "orig_name": "CONSOLE_no_text",
+      "orig_file": "fallen/DDEngine/Source/console.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT2D_NUM_BASELINES",
+      "file": "new/engine/graphics/resources/font2d.cpp",
+      "orig_name": "FONT2D_NUM_BASELINES",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_EXTRA_DIR",
+      "file": "new/engine/graphics/resources/font2d.cpp",
+      "orig_name": "TEXTURE_EXTRA_DIR",
+      "orig_file": "fallen/DDEngine/Source/font2d.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

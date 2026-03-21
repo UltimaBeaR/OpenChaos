@@ -101,13 +101,16 @@ set(SOURCES_NEW
     src/new/assets/xlat_str.cpp
     src/new/assets/xlat_str_globals.cpp
     src/new/assets/sound_id_globals.cpp
+    src/new/engine/graphics/resources/font2d.cpp
+    src/new/engine/graphics/resources/font2d_globals.cpp
+    src/new/engine/graphics/resources/console.cpp
+    src/new/engine/graphics/resources/console_globals.cpp
 )
 
 set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/aeng.cpp
     src/old/fallen/DDEngine/Source/build.cpp
     src/old/fallen/DDEngine/Source/cone.cpp
-    src/old/fallen/DDEngine/Source/console.cpp
     src/old/fallen/DDEngine/Source/Crinkle.cpp
     src/old/fallen/DDEngine/Source/drawxtra.cpp
     src/old/fallen/DDEngine/Source/engineMap.cpp
@@ -116,7 +119,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/fastprim.cpp
     src/old/fallen/DDEngine/Source/figure.cpp
     src/old/fallen/DDEngine/Source/flamengine.cpp
-    src/old/fallen/DDEngine/Source/font2d.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
     src/old/fallen/DDEngine/Source/oval.cpp
     src/old/fallen/DDEngine/Source/panel.cpp

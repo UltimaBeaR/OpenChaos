@@ -214,3 +214,14 @@ Entity mapping обновлён (33 записи — file path).
 - `qeng.cpp` полностью мигрирован, old/qeng.cpp удалён; `Text.cpp` полностью мигрирован, old/Text.cpp удалён
 
 ---
+
+## Итерация 22 — engine/graphics/resources/font2d + console (2026-03-21)
+
+- `font2d_data` (временный буфер TGA для инициализации атласа) — хранится как `void*` в `_globals`, чтобы не тащить `assets/tga.h` в слой `engine/graphics`. Настоящий тип `TGA_Pixel[256][256]`, локальный typedef `FontAtlasPixels` в `font2d.cpp`, доступ через макрос `FONT2D_DATA`
+- `FONT2D_DrawString_NoTrueType` — file-private static, в новом файле тоже static; вызывается только из `FONT2D_DrawString_3d`
+- `FONT2D_DrawString_3d` — не объявлена в оригинальном `font2d.h`, но вызывается из `facet.cpp` и `guns.cpp` через `extern`; добавлена в `font2d.h`
+- `CONSOLE_status` — не объявлена в оригинальном `console.h`, вызывается из `Controls.cpp` через `extern`; добавлена в `console.h`
+- `console_Data`, `console_status_text`, `console_last_tick`, `console_this_tick` — в оригинале были static; вынесены в `_globals` по правилу, переименованы через conflict-конвенцию (префикс `console_`)
+- `PANEL_new_text` / `PANEL_draw_quad` / `PANEL_GetNextDepthBodge` — forward declarations в `console.cpp` / `font2d.cpp`; panel.cpp ещё зависит от `game.h`
+
+---
