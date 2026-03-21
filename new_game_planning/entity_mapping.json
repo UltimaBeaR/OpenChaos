@@ -46079,6 +46079,216 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "convert_drawtype_to_pointer",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "convert_drawtype_to_pointer",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_thing_to_pointer",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "convert_thing_to_pointer",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_index_to_pointers",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "convert_index_to_pointers",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "uncache",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "uncache",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_whole_anims",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "load_whole_anims",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "flag_v_faces",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "flag_v_faces",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_whole_game",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "load_whole_game",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_quick_init",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "MEMORY_quick_init",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_quick_save",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "MEMORY_quick_save",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_quick_load_available",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "MEMORY_quick_load_available",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_quick_load",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "MEMORY_quick_load",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "save_dreamcast_wad",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "save_dreamcast_wad",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_drawtype_to_pointer",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_drawtype_to_pointer",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_thing_to_pointer",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_thing_to_pointer",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_QUICK_FNAME",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "MEMORY_QUICK_FNAME",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_QUICK_CHECK",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "MEMORY_QUICK_CHECK",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GET_DATA",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "GET_DATA",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STORE_DATA",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "STORE_DATA",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QSTORE_DATA",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "QSTORE_DATA",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QREAD_DATA",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "QREAD_DATA",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STORE_DATA_DC",
+      "file": "new/missions/memory.cpp",
+      "orig_name": "STORE_DATA",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

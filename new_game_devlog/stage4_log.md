@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 72 — missions/memory (второй чанк: convert_to_pointer + load + MEMORY_quick + save_dreamcast_wad) (2026-03-21)
+
+- `old/fallen/Source/memory.cpp` заменён redirect-заглушкой. `new/missions/memory.cpp` теперь полный.
+- `convert_drawtype_to_pointer` / `convert_thing_to_pointer` — в оригинале `static`, но нужны снаружи (`convert_index_to_pointers`). Убран `static`, добавлены в `memory.h`.
+- `EWAY_time_accurate/time/tick`, `EWAY_cam_*` (15 переменных) — не объявлены в `eway.h`, были только inline-`extern` в `old/memory.cpp`. Добавлены явные `extern` в `new/missions/memory.cpp`.
+- `TEXTURE_set` — объявлен в `new/assets/texture_globals.h`; добавлен `extern SLONG TEXTURE_set` в `memory.cpp`.
+- `STORE_DATA_DC` — переименован из `STORE_DATA` (в `save_dreamcast_wad`) чтобы избежать конфликта с `STORE_DATA` из `save_whole_anims` (оба в одном TU). Помечен `--conflict` в entity mapping.
+- Include-порядок в `memory.h`: `Game.h` перемещён до `memory_globals.h` (supermap.h внутри memory_globals.h нужен `MFFileHandle`).
+
+---
+
 ## Итерация 71 — missions/memory (первый чанк: globals + save_table + convert + save_whole) (2026-03-21)
 
 - Исходный файл: `old/fallen/Source/memory.cpp` (2409 строк). Первый чанк ~670 строк (без `save_table`).

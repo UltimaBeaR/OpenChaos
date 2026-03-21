@@ -11,8 +11,8 @@
 // Also contains the quick save/load system (F5/F9 in PC build) via MEMORY_quick_*.
 
 #include "core/types.h"
+#include "fallen/Headers/Game.h" // Temporary: MemTable, save_table, and Game.h types (must come before memory_globals.h which pulls supermap.h needing MFFileHandle)
 #include "missions/memory_globals.h"
-#include "fallen/Headers/Game.h" // Temporary: MemTable, save_table, and Game.h types
 
 // Memory table type flags used in save_table[] entries.
 // uc_orig: MEM_DYNAMIC (fallen/Source/memory.cpp)
@@ -40,6 +40,12 @@ void convert_fightcol_to_pointer(GameFightCol* p, GameFightCol* p_fight, SLONG c
 void convert_drawtype_to_index(Thing* p_thing, SLONG meshtype);
 // uc_orig: convert_thing_to_index (fallen/Source/memory.cpp)
 void convert_thing_to_index(Thing* p_thing);
+
+// Internal helpers for per-thing index-to-pointer conversion (inverse of above).
+// uc_orig: convert_drawtype_to_pointer (fallen/Source/memory.cpp)
+void convert_drawtype_to_pointer(Thing* p_thing, SLONG meshtype);
+// uc_orig: convert_thing_to_pointer (fallen/Source/memory.cpp)
+void convert_thing_to_pointer(Thing* p_thing);
 
 // Level memory table initialization — allocates all game arrays from a single flat block.
 // uc_orig: init_memory (fallen/Source/memory.cpp)
