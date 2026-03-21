@@ -592,6 +592,24 @@ void PCOM_set_person_ai_summon(Thing* p_person);
 // uc_orig: PCOM_set_person_ai_getitem (fallen/Source/pcom.cpp)
 void PCOM_set_person_ai_getitem(Thing* p_person, Thing* p_special, SLONG move_speed, SLONG excar_state, SLONG excar_arg);
 
+// uc_orig: PCOM_set_person_ai_knocked_out (fallen/Source/pcom.cpp)
+void PCOM_set_person_ai_knocked_out(Thing* p_person);
+
+// uc_orig: PCOM_set_person_ai_arrest (fallen/Source/pcom.cpp)
+void PCOM_set_person_ai_arrest(Thing* p_person, Thing* p_target);
+
+// uc_orig: PCOM_set_person_ai_leavecar (fallen/Source/pcom.cpp)
+void PCOM_set_person_ai_leavecar(Thing* p_person, SLONG excar_state, SLONG excar_substate, SLONG excar_arg);
+
+// uc_orig: PCOM_set_person_ai_investigate (fallen/Source/pcom.cpp)
+void PCOM_set_person_ai_investigate(Thing* p_person, SLONG odd_x, SLONG odd_z);
+
+// uc_orig: PCOM_process_getitem (fallen/Source/pcom.cpp)
+void PCOM_process_getitem(Thing* p_person);
+
+// uc_orig: PCOM_process_summon (fallen/Source/pcom.cpp)
+void PCOM_process_summon(Thing* p_person);
+
 // uc_orig: PCOM_new_gang_attack (fallen/Source/pcom.cpp)
 void PCOM_new_gang_attack(Thing* p_person, Thing* p_target);
 

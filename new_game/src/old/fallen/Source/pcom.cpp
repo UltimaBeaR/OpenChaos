@@ -3399,6 +3399,11 @@ void PCOM_set_person_move_circle(Thing* p_person, Thing* p_target)
 
 #endif // MIGRATED to src/new/ai/pcom.cpp (iteration 83)
 
+// Functions in this block are declared in new/ai/pcom.h (via the redirect in old/fallen/Headers/pcom.h).
+// No additional forward declarations needed.
+
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 84)
+
 //
 // Makes a person get in a car.
 //
@@ -4976,6 +4981,8 @@ THING_INDEX PCOM_create_person(
 
     return p_index;
 }
+
+#endif // MIGRATED to src/new/ai/pcom.cpp (iteration 84)
 
 THING_INDEX PCOM_create_player(
     SLONG type,

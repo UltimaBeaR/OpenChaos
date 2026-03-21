@@ -50,4 +50,10 @@ extern SLONG PCOM_found_num;
 // uc_orig: gang_angle_priority (fallen/Source/pcom.cpp)
 extern UBYTE gang_angle_priority[8];
 
+// Bane boss summon targets — up to 4 bodies raised during PCOM_AI_STATE_SUMMON.
+// uc_orig: PCOM_SUMMON_NUM_BODIES (fallen/Source/pcom.cpp)
+#define PCOM_SUMMON_NUM_BODIES 4
+// uc_orig: PCOM_summon (fallen/Source/pcom.cpp)
+extern UWORD PCOM_summon[PCOM_SUMMON_NUM_BODIES];
+
 #endif // AI_PCOM_GLOBALS_H

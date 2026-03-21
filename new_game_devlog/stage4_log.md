@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 84 — ai/pcom (третий чанк: AI setters + PCOM_create_person) (2026-03-22)
+
+- `PCOM_summon[4]` — `static` в оригинале нет, глобал → `pcom_globals.cpp` + `pcom_globals.h`; макрос `PCOM_SUMMON_NUM_BODIES` туда же.
+- Добавлены includes в `new/ai/pcom.cpp`: `engine/audio/mfx.h`, `engine/audio/sound.h` (SOUND_Range), `assets/sound_id.h` (S_COP_ARREST_START/END), `fallen/Headers/spark.h`, `fallen/Headers/balloon.h`, `fallen/Headers/cnet.h`, `fallen/Headers/overlay.h // Temporary:` (track_enemy — нарушение DAG, но Temporary).
+- 6 функций не были объявлены в pcom.h (`PCOM_set_person_ai_knocked_out`, `PCOM_set_person_ai_arrest`, `PCOM_set_person_ai_leavecar`, `PCOM_set_person_ai_investigate`, `PCOM_process_getitem`, `PCOM_process_summon`) — добавлены в `new/ai/pcom.h`.
+- `PersonIsMIB` — в оригинале закомментированное тело определения + два extern forward decl; воспроизведено как extern + заблокированный комментарий (мёртвый код).
+- `UWORD anim` в `PCOM_set_person_ai_hands_up` — объявлена но не используется (как в оригинале); оставлено для 1:1 (без предупреждений компилятора).
+
+---
+
 ## Итерация 83 — ai/pcom (второй чанк: movement state setters + gang attack system) (2026-03-21)
 
 - Перенесены: все `PCOM_set_person_move_*` / `PCOM_set_person_substate_*` (22 функции), `PCOM_renav`, `PCOM_finished_nav`, `PCOM_set_person_move_pause`, `PCOM_set_person_move_animation`, `PCOM_set_person_move_shoot`, `PCOM_set_person_move_circle`.

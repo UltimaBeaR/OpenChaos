@@ -161,3 +161,6 @@ SLONG PCOM_found_num;
 
 // uc_orig: gang_angle_priority (fallen/Source/pcom.cpp)
 UBYTE gang_angle_priority[] = { 0, 2, 6, 4, 1, 7, 3, 5 };
+
+// uc_orig: PCOM_summon (fallen/Source/pcom.cpp)
+UWORD PCOM_summon[PCOM_SUMMON_NUM_BODIES];

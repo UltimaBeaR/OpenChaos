@@ -54649,6 +54649,336 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SUMMON_NUM_BODIES",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_SUMMON_NUM_BODIES",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_summon",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_summon",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_move_getincar",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_move_getincar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_move_leavecar",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_move_leavecar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_normal",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_normal",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_knocked_out",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_knocked_out",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_arrest",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_arrest",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_kill_person",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_kill_person",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_homesick",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_homesick",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_leavecar",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_leavecar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_investigate",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_investigate",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_flee_place",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_flee_place",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_flee_person",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_flee_person",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_aimless",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_aimless",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_navtokill_shoot",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_navtokill_shoot",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_SPRINTATME_DANGLE",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_SPRINTATME_DANGLE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_target_sprinting_towards_me",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_target_sprinting_towards_me",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_navtokill",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_navtokill",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_follow",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_follow",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_findcar",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_findcar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_bdeactivate",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_bdeactivate",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_snipe",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_snipe",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_warm_hands",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_warm_hands",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_hands_up",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_hands_up",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_talk_to",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_talk_to",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_hitch",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_hitch",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_taunt",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_taunt",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_summon",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_summon",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_is_there_an_item_i_should_get",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_is_there_an_item_i_should_get",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_set_person_ai_getitem",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_set_person_ai_getitem",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_getitem",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_getitem",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_summon",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_summon",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_create_person",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_create_person",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }
