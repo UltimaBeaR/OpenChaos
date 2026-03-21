@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 77 — missions/eway (первый чанк: globals + get_level_word..EWAY_created_last_waypoint) (2026-03-21)
+
+- `old/fallen/Source/eway.cpp` (6503 строки): перенесён первый чанк — все глобальные переменные и функции от `get_level_word` до `EWAY_created_last_waypoint` (~1930 строк). Остаток (`EWAY_evaluate_condition`..`EWAY_deduct_time_penalty`) — в `old/`, итерация следующая.
+- Архитектурное решение: типовые определения (`EWAY_Way`, `EWAY_Cond` и т.д.) перенесены в `eway_globals.h`, а не в `eway.h` — потому что глобальные переменные в `eway_globals.h` ссылаются на эти типы. Иначе circular include.
+- `EWAY_evaluate_condition` — в оригинале дефолтный аргумент (`= FALSE`) объявлен прямо в `definition` в cpp-файле, не в хедере. Forward declaration в `eway.h` без дефолта — иначе C++ дала бы ошибку "default argument already specified".
+- `ob_index` в `EWAY_create_item`: конфликт глобального `ob_index` и локальной переменной с тем же именем → локальная переименована `ob_index_local` (conflict rename).
+- `fallen/Headers/drive.h` уже мигрирован → `engine/io/drive.h` (без Temporary).
+- `fallen/Headers/aeng.h` находится в `fallen/DDEngine/Headers/aeng.h` — исправлено при компиляции.
+- `memory.h` уже redirect-заглушка → include исправлен на `missions/memory.h` напрямую.
+- `person_ok_for_conversation` — не объявлена ни в одном заголовке; добавлен inline-`extern` forward declaration.
+
+---
+
 ## Итерация 76 — missions/elev (второй чанк: ELEV_game_init_common + ELEV_game_init + остальные) (2026-03-21)
 
 - `old/fallen/Source/elev.cpp` заменён redirect-заглушкой. `new/missions/elev.cpp` теперь полный.

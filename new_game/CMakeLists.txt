@@ -286,6 +286,8 @@ set(SOURCES_GAME
     src/new/actors/characters/enemy.cpp
 
     src/old/fallen/Source/eway.cpp
+    src/new/missions/eway.cpp
+    src/new/missions/eway_globals.cpp
     src/new/ui/camera/fc.cpp
     src/new/ui/camera/fc_globals.cpp
     src/old/fallen/Source/fog.cpp

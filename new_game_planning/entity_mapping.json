@@ -47459,6 +47459,2736 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MAX_CONDS",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_MAX_CONDS",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MAX_WAYS",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_MAX_WAYS",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MAX_EDEFS",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_MAX_EDEFS",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MAX_TIMERS",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_MAX_TIMERS",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MESS_BUFFER_SIZE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_MESS_BUFFER_SIZE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MAX_MESSES",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_MAX_MESSES",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MAX_COUNTERS",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_MAX_COUNTERS",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_Conddef",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_Conddef",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_Stay",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_Stay",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_Cond",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_Cond",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_Do",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_Do",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_Way",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_Way",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_Edef",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_Edef",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cond_upto",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cond_upto",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cond",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cond",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_way",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_way",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_edef",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_edef",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_mess",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_mess",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_mess_buffer",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_mess_buffer",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_way_upto",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_way_upto",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_edef_upto",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_edef_upto",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_magic_radius_flag",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_magic_radius_flag",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_mess_buffer_upto",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_mess_buffer_upto",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_mess_upto",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_mess_upto",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_time_accurate",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_time_accurate",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_time",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_time",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_tick",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_tick",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_count_up",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_count_up",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_count_up_visible",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_count_up_visible",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_count_up_add_penalties",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_count_up_add_penalties",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_count_up_num_penalties",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_count_up_num_penalties",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_count_up_penalty_timer",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_count_up_penalty_timer",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_jumped",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_jumped",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_timer",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_timer",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_counter",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_counter",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_fake_wander_text_normal_index",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_fake_wander_text_normal_index",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_fake_wander_text_normal_number",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_fake_wander_text_normal_number",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_fake_wander_text_guilty_index",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_fake_wander_text_guilty_index",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_fake_wander_text_guilty_number",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_fake_wander_text_guilty_number",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_fake_wander_text_annoyed_index",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_fake_wander_text_annoyed_index",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_fake_wander_text_annoyed_number",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_fake_wander_text_annoyed_number",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_tutorial_string",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_tutorial_string",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_tutorial_counter",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_tutorial_counter",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_darci_move",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_darci_move",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_used_thing",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_used_thing",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GAME_cut_scene",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "GAME_cut_scene",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_message",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_message",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "talk_thing",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "talk_thing",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "crap_levels",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "crap_levels",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ob_x",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "ob_x",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ob_y",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "ob_y",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ob_z",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "ob_z",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ob_yaw",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "ob_yaw",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ob_prim",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "ob_prim",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ob_index",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "ob_index",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_active",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_active",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_goinactive",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_goinactive",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conv_active",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_conv_active",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conv_waypoint",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_conv_waypoint",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conv_person_a",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_conv_person_a",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conv_person_b",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_conv_person_b",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conv_str",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_conv_str",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conv_str_count",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_conv_str_count",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conv_timer",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_conv_timer",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conv_skip",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_conv_skip",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conv_ambient",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_conv_ambient",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conv_talk",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_conv_talk",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_level_word",
+      "file": "new/missions/eway.h",
+      "orig_name": "get_level_word",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "playing_combat_tutorial",
+      "file": "new/missions/eway.h",
+      "orig_name": "playing_combat_tutorial",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "playing_level",
+      "file": "new/missions/eway.h",
+      "orig_name": "playing_level",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "playing_real_mission",
+      "file": "new/missions/eway.h",
+      "orig_name": "playing_real_mission",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_talk",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_talk",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_eway_talk",
+      "file": "new/missions/eway.h",
+      "orig_name": "check_eway_talk",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_talk_conv",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_talk_conv",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_get_mess",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_get_mess",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_init",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_init",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_create_player",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_create_player",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_create_enemy",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_create_enemy",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_create_animal",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_create_animal",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_create_item",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_create_item",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_create_vehicle",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_create_vehicle",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_create_cond",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_create_cond",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_create",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_create",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_set_message",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_set_message",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_find_id",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_find_id",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_fix_cond",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_fix_cond",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_fix_do",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_fix_do",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_fix_edef",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_fix_edef",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_load_message_file",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_load_message_file",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_load_fake_wander_text",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_load_fake_wander_text",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_get_fake_wander_message",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_get_fake_wander_message",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_created_last_waypoint",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_created_last_waypoint",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_x",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_x",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_y",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_y",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_z",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_z",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_dx",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_dx",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_dy",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_dy",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_dz",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_dz",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_yaw",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_yaw",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_pitch",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_pitch",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_want_yaw",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_want_yaw",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_want_pitch",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_want_pitch",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_waypoint",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_waypoint",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_target",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_target",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_delay",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_delay",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_speed",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_speed",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_freeze",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_freeze",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_cant_interrupt",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_cant_interrupt",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_thing",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_thing",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_targx",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_targx",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_targy",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_targy",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_targz",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_targz",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_lens",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_lens",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_warehouse",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_warehouse",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_lock",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_lock",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_last_yaw",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_last_yaw",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_last_x",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_last_x",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_last_y",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_last_y",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_last_z",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_last_z",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_skip",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_skip",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_last_dyaw",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_cam_last_dyaw",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_CONV_TALK_A",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_CONV_TALK_A",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_CONV_TALK_B",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_CONV_TALK_B",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FLAG_ACTIVE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FLAG_ACTIVE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FLAG_COUNTDOWN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FLAG_COUNTDOWN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FLAG_DEAD",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FLAG_DEAD",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FLAG_TRIGGERED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FLAG_TRIGGERED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FLAG_GOTITEM",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FLAG_GOTITEM",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FLAG_FINISHED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FLAG_FINISHED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FLAG_CLEARED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FLAG_CLEARED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FLAG_WHY_LOST",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FLAG_WHY_LOST",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_STAY_ALWAYS",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_STAY_ALWAYS",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_STAY_WHILE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_STAY_WHILE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_STAY_WHILE_TIME",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_STAY_WHILE_TIME",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_STAY_TIME",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_STAY_TIME",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_STAY_AFTER_TIME",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_STAY_AFTER_TIME",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_STAY_DIE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_STAY_DIE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_NOTHING",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_NOTHING",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CREATE_PLAYER",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CREATE_PLAYER",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CREATE_ANIMAL",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CREATE_ANIMAL",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CREATE_ENEMY",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CREATE_ENEMY",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CREATE_ITEM",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CREATE_ITEM",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CREATE_VEHICLE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CREATE_VEHICLE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_SOUND_ALARM",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_SOUND_ALARM",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CONTROL_DOOR",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CONTROL_DOOR",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_EXPLODE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_EXPLODE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_MESSAGE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_MESSAGE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_ELECTRIFY_FENCE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_ELECTRIFY_FENCE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CAMERA_CREATE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CAMERA_CREATE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CAMERA_WAYPOINT",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CAMERA_WAYPOINT",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CAMERA_TARGET",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CAMERA_TARGET",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_MISSION_FAIL",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_MISSION_FAIL",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_MISSION_COMPLETE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_MISSION_COMPLETE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CHANGE_ENEMY",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CHANGE_ENEMY",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CREATE_PLATFORM",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CREATE_PLATFORM",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CREATE_BOMB",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CREATE_BOMB",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_ACTIVATE_PRIM",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_ACTIVATE_PRIM",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_SOUND_EFFECT",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_SOUND_EFFECT",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_NAV_BEACON",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_NAV_BEACON",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_SPOT_FX",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_SPOT_FX",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_WATER_SPOUT",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_WATER_SPOUT",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_KILL_WAYPOINT",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_KILL_WAYPOINT",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_OBJECTIVE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_OBJECTIVE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_GROUP_LIFE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_GROUP_LIFE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_GROUP_DEATH",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_GROUP_DEATH",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CONVERSATION",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CONVERSATION",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_INCREASE_COUNTER",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_INCREASE_COUNTER",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_EMIT_STEAM",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_EMIT_STEAM",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_TRANSFER_PLAYER",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_TRANSFER_PLAYER",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_AUTOSAVE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_AUTOSAVE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CREATE_BARREL",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CREATE_BARREL",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_LOCK_VEHICLE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_LOCK_VEHICLE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_GROUP_RESET",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_GROUP_RESET",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_VISIBLE_COUNT_UP",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_VISIBLE_COUNT_UP",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_RESET_COUNTER",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_RESET_COUNTER",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CUTSCENE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CUTSCENE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CREATE_MIST",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CREATE_MIST",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CHANGE_ENEMY_FLG",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CHANGE_ENEMY_FLG",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_STALL_CAR",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_STALL_CAR",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_EXTEND_COUNTDOWN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_EXTEND_COUNTDOWN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_MOVE_THING",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_MOVE_THING",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_MAKE_PERSON_PEE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_MAKE_PERSON_PEE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_CONE_PENALTIES",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_CONE_PENALTIES",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_SIGN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_SIGN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_WAREFX",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_WAREFX",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_NO_FLOOR",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_NO_FLOOR",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_SHAKE_CAMERA",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_SHAKE_CAMERA",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_AMBIENT_CONV",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_AMBIENT_CONV",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DO_END_OF_WORLD",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DO_END_OF_WORLD",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_FALSE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_FALSE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_TRUE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_TRUE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PROXIMITY",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PROXIMITY",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_TRIPWIRE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_TRIPWIRE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PRESSURE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PRESSURE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_CAMERA",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_CAMERA",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_SWITCH",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_SWITCH",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_TIME",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_TIME",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_DEPENDENT",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_DEPENDENT",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_BOOL_AND",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_BOOL_AND",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_BOOL_OR",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_BOOL_OR",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_COUNTDOWN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_COUNTDOWN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_COUNTDOWN_SEE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_COUNTDOWN_SEE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PERSON_DEAD",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PERSON_DEAD",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PERSON_NEAR",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PERSON_NEAR",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_CAMERA_AT",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_CAMERA_AT",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PLAYER_CUBE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PLAYER_CUBE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_A_SEE_B",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_A_SEE_B",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_GROUP_DEAD",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_GROUP_DEAD",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_HALF_DEAD",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_HALF_DEAD",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PERSON_USED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PERSON_USED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_ITEM_HELD",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_ITEM_HELD",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_RADIUS_USED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_RADIUS_USED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PRIM_DAMAGED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PRIM_DAMAGED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_CONVERSE_END",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_CONVERSE_END",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_COUNTER_GTEQ",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_COUNTER_GTEQ",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PERSON_ARRESTED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PERSON_ARRESTED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PLAYER_CUBOID",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PLAYER_CUBOID",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_KILLED_NOT_ARRESTED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_KILLED_NOT_ARRESTED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_CRIME_RATE_GTEQ",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_CRIME_RATE_GTEQ",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_CRIME_RATE_LTEQ",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_CRIME_RATE_LTEQ",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_IS_MURDERER",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_IS_MURDERER",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PERSON_IN_VEHICLE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PERSON_IN_VEHICLE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_THING_RADIUS_DIR",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_THING_RADIUS_DIR",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_SPECIFIC_ITEM_HELD",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_SPECIFIC_ITEM_HELD",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_RANDOM",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_RANDOM",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PLAYER_FIRED_GUN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PLAYER_FIRED_GUN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PRIM_ACTIVATED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PRIM_ACTIVATED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_DARCI_GRABBED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_DARCI_GRABBED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_PUNCHED_AND_KICKED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_PUNCHED_AND_KICKED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_MOVE_RADIUS_DIR",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_MOVE_RADIUS_DIR",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_COND_AFTER_FIRST_GAMETURN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_COND_AFTER_FIRST_GAMETURN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_ANIMAL_BAT",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_ANIMAL_BAT",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_ANIMAL_GARGOYLE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_ANIMAL_GARGOYLE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_ANIMAL_BALROG",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_ANIMAL_BALROG",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_ANIMAL_BANE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_ANIMAL_BANE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_VAN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_VAN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_HELICOPTER",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_HELICOPTER",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_BIKE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_BIKE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_CAR",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_CAR",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_TAXI",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_TAXI",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_POLICE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_POLICE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_AMBULANCE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_AMBULANCE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_MEATWAGON",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_MEATWAGON",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_SEDAN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_SEDAN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_JEEP",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_JEEP",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_WILDCATVAN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_WILDCATVAN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_CAMERA_TARGET_PLACE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_CAMERA_TARGET_PLACE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_CAMERA_TARGET_THING",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_CAMERA_TARGET_THING",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_CAMERA_TARGET_NEAR",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_CAMERA_TARGET_NEAR",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_CAMERA_LOCK_PLAYER",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_CAMERA_LOCK_PLAYER",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_CAMERA_LOCK_DIRECTION",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_CAMERA_LOCK_DIRECTION",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_CAMERA_CANT_INTERRUPT",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_CAMERA_CANT_INTERRUPT",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_OBJECTIVE_MAIN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_OBJECTIVE_MAIN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_OBJECTIVE_SUB",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_OBJECTIVE_SUB",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_OBJECTIVE_ADDITIONAL",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_OBJECTIVE_ADDITIONAL",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_STEAM_FORWARD",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_STEAM_FORWARD",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_STEAM_UP",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_STEAM_UP",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_STEAM_DOWN",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_STEAM_DOWN",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_LOCK",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_LOCK",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_SUBTYPE_VEHICLE_UNLOCK",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_SUBTYPE_VEHICLE_UNLOCK",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_ARG_ITEM_FOLLOW_PERSON",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_ARG_ITEM_FOLLOW_PERSON",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_ARG_ITEM_STASHED_IN_PRIM",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_ARG_ITEM_STASHED_IN_PRIM",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MESSAGE_WHO_RADIO",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_MESSAGE_WHO_RADIO",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MESSAGE_WHO_STREETNAME",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_MESSAGE_WHO_STREETNAME",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MESSAGE_WHO_TUTORIAL",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_MESSAGE_WHO_TUTORIAL",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FAKE_MESSAGE_NORMAL",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FAKE_MESSAGE_NORMAL",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FAKE_MESSAGE_ANNOYED",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FAKE_MESSAGE_ANNOYED",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FAKE_MESSAGE_GUILTY",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FAKE_MESSAGE_GUILTY",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DARCI_MOVE_PUNCH",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DARCI_MOVE_PUNCH",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DARCI_MOVE_KICK",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DARCI_MOVE_KICK",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_DONT_CARE",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_DONT_CARE",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_NO_MATCH",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_NO_MATCH",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FIND_FIRST",
+      "file": "new/missions/eway_globals.h",
+      "orig_name": "EWAY_FIND_FIRST",
+      "orig_file": "fallen/Headers/eway.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
