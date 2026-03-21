@@ -285,7 +285,7 @@ set(SOURCES_GAME
     src/old/fallen/Source/ob.cpp
     src/old/fallen/Source/overlay.cpp
 
-    src/old/fallen/Source/pause.cpp
+    src/new/ui/pause.cpp
     src/old/fallen/Source/pcom.cpp
     src/old/fallen/Source/Person.cpp
     src/old/fallen/Source/Pjectile.cpp
@@ -314,7 +314,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/vehicle.cpp
 
     src/new/world/navigation/wand.cpp
-    src/old/fallen/Source/ware.cpp
+    src/new/world/environment/ware.cpp
+    src/new/world/environment/ware_globals.cpp
     src/old/fallen/Source/widget.cpp
     src/old/fallen/Source/wmove.cpp
 )

@@ -31959,6 +31959,476 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_Ware",
+      "file": "new/world/environment/ware.h",
+      "orig_name": "WARE_Ware",
+      "orig_file": "fallen/Headers/ware.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_Door",
+      "file": "new/world/environment/ware.h",
+      "orig_name": "WARE_Ware",
+      "orig_file": "fallen/Headers/ware.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_MAX_DOORS",
+      "file": "new/world/environment/ware.h",
+      "orig_name": "WARE_MAX_DOORS",
+      "orig_file": "fallen/Headers/ware.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_MAX_WARES",
+      "file": "new/world/environment/ware.h",
+      "orig_name": "WARE_MAX_WARES",
+      "orig_file": "fallen/Headers/ware.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_MAX_NAVS",
+      "file": "new/world/environment/ware.h",
+      "orig_name": "WARE_MAX_NAVS",
+      "orig_file": "fallen/Headers/ware.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_MAX_HEIGHTS",
+      "file": "new/world/environment/ware.h",
+      "orig_name": "WARE_MAX_HEIGHTS",
+      "orig_file": "fallen/Headers/ware.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_MAX_ROOFTEXES",
+      "file": "new/world/environment/ware.h",
+      "orig_name": "WARE_MAX_ROOFTEXES",
+      "orig_file": "fallen/Headers/ware.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_init",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_init",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_in_floorplan",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_in_floorplan",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_which_contains",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_which_contains",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_inside",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_inside",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_get_caps",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_get_caps",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_calc_height_at",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_calc_height_at",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_bounding_box",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_bounding_box",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_enter",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_enter",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_exit",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_exit",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_mav_enter",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_mav_enter",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_mav_inside",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_mav_inside",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_mav_exit",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_mav_exit",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_debug",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_debug",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_OFFSET_TO_ROOFTEXTURES",
+      "file": "new/world/environment/ware.cpp",
+      "orig_name": "WARE_OFFSET_TO_ROOFTEXTURES",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_ware",
+      "file": "new/world/environment/ware_globals.cpp",
+      "orig_name": "WARE_ware",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_ware_upto",
+      "file": "new/world/environment/ware_globals.cpp",
+      "orig_name": "WARE_ware_upto",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_nav",
+      "file": "new/world/environment/ware_globals.cpp",
+      "orig_name": "WARE_nav",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_nav_upto",
+      "file": "new/world/environment/ware_globals.cpp",
+      "orig_name": "WARE_nav_upto",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_height",
+      "file": "new/world/environment/ware_globals.cpp",
+      "orig_name": "WARE_height",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_height_upto",
+      "file": "new/world/environment/ware_globals.cpp",
+      "orig_name": "WARE_height_upto",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_rooftex",
+      "file": "new/world/environment/ware_globals.cpp",
+      "orig_name": "WARE_rooftex",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_rooftex_upto",
+      "file": "new/world/environment/ware_globals.cpp",
+      "orig_name": "WARE_rooftex_upto",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_in",
+      "file": "new/world/environment/ware_globals.cpp",
+      "orig_name": "WARE_in",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WARE_roof_tex",
+      "file": "new/world/environment/ware_globals.cpp",
+      "orig_name": "WARE_roof_tex",
+      "orig_file": "fallen/Source/ware.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSE_handler",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "PAUSE_handler",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "selected",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "selected",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AXIS_CENTRE",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "AXIS_CENTRE",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NOISE_TOLERANCE",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "NOISE_TOLERANCE",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AXIS_MIN",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "AXIS_MIN",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AXIS_MAX",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "AXIS_MAX",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSED_KEY_START",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "PAUSED_KEY_START",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSED_KEY_UP",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "PAUSED_KEY_UP",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSED_KEY_DOWN",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "PAUSED_KEY_DOWN",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSED_KEY_OKAY",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "PAUSED_KEY_OKAY",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSE_MENU_RESUME",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "PAUSE_MENU_RESUME",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSE_MENU_RESTART",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "PAUSE_MENU_RESTART",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSE_MENU_EXIT",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "PAUSE_MENU_EXIT",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAUSE_MENU_SIZE",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "PAUSE_MENU_SIZE",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NORMAL_COLOUR",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "NORMAL_COLOUR",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SELECT_COLOUR",
+      "file": "new/ui/pause.cpp",
+      "orig_name": "SELECT_COLOUR",
+      "orig_file": "fallen/Source/pause.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

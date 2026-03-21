@@ -485,3 +485,13 @@ Entity mapping обновлён (33 записи — file path).
 - `page` и `MapElement* me` в `ROAD_sink` — declared-but-unused переменные из оригинала; перенесены 1:1
 
 ---
+
+## Итерация 49 — world/environment/ware + ui/pause (2026-03-21)
+
+- `WARE_enter`/`WARE_exit` полностью закомментированы в оригинале (`/* */`), но вызываются из `collide.cpp` → написаны минимальные стабы (WARE_in + NIGHT_destroy_all_cached_info); ambient light save/restore не перенесён — было за `/* */`
+- `WARE_Door` — анонимный nested struct из оригинала вынесен в именованный `struct WARE_Door` для extern-декларации; layout идентичен
+- `WARE_bounding_box` — в оригинале non-static, но вызывается только из `ware.cpp`; сделана `static`
+- `ware_globals.h` добавлен `<string.h>` первым include — `mav.h` → `structs.h` → `anim.h` использует `strcpy`; та же причина что в barrel.cpp (итерация 45)
+- `door_x/y/z/door_angle/dy` в `WARE_init` — declared-but-unused переменные из оригинала, перенесены 1:1
+
+---
