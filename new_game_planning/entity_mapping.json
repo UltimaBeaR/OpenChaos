@@ -22929,6 +22929,486 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_Poly",
+      "file": "new/engine/graphics/geometry/cone.h",
+      "orig_name": "CONE_Poly",
+      "orig_file": "fallen/DDEngine/Headers/cone.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_create",
+      "file": "new/engine/graphics/geometry/cone.h",
+      "orig_name": "CONE_create",
+      "orig_file": "fallen/DDEngine/Headers/cone.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_clip",
+      "file": "new/engine/graphics/geometry/cone.h",
+      "orig_name": "CONE_clip",
+      "orig_file": "fallen/DDEngine/Headers/cone.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_intersect_with_map",
+      "file": "new/engine/graphics/geometry/cone.h",
+      "orig_name": "CONE_intersect_with_map",
+      "orig_file": "fallen/DDEngine/Headers/cone.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_draw",
+      "file": "new/engine/graphics/geometry/cone.h",
+      "orig_name": "CONE_draw",
+      "orig_file": "fallen/DDEngine/Headers/cone.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_Point",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_Point",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_MAX_POINTS",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_MAX_POINTS",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_origin_x",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_origin_x",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_origin_y",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_origin_y",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_origin_z",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_origin_z",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_origin_colour",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_origin_colour",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_end_x",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_end_x",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_end_y",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_end_y",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_end_z",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_end_z",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_point",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_point",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_point_upto",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_point_upto",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_COLVECT_DONE",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_COLVECT_DONE",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_colvect_done",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_colvect_done",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_colvect_done_upto",
+      "file": "new/engine/graphics/geometry/cone_globals.h",
+      "orig_name": "CONE_colvect_done_upto",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_interpolate_colour",
+      "file": "new/engine/graphics/geometry/cone.cpp",
+      "orig_name": "CONE_interpolate_colour",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_insert_points",
+      "file": "new/engine/graphics/geometry/cone.cpp",
+      "orig_name": "CONE_insert_points",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CONE_intersect_square",
+      "file": "new/engine/graphics/geometry/cone.cpp",
+      "orig_name": "CONE_intersect_square",
+      "orig_file": "fallen/DDEngine/Source/cone.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_RATIO",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_RATIO",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_SIZE",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_SIZE",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_Square",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_Square",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_lvert_buffer",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_lvert_buffer",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_lvert",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_lvert",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_lvert_max",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_lvert_max",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_lvert_upto",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_lvert_upto",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_index",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_index",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_index_max",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_index_max",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_index_upto",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_index_upto",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_square",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_square",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_Outline",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_Outline",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_MAX_OUTLINES",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_MAX_OUTLINES",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_outline",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_outline",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_outline_upto",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_outline_upto",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_renderstate",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_renderstate",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_default_renderstate",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_default_renderstate",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_matrix_buffer",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_matrix_buffer",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_matrix",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_matrix",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_num_squares_drawn",
+      "file": "new/engine/graphics/geometry/farfacet_globals.h",
+      "orig_name": "FARFACET_num_squares_drawn",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_init",
+      "file": "new/engine/graphics/geometry/farfacet.h",
+      "orig_name": "FARFACET_init",
+      "orig_file": "fallen/DDEngine/Headers/farfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_draw",
+      "file": "new/engine/graphics/geometry/farfacet.h",
+      "orig_name": "FARFACET_draw",
+      "orig_file": "fallen/DDEngine/Headers/farfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_fini",
+      "file": "new/engine/graphics/geometry/farfacet.h",
+      "orig_name": "FARFACET_fini",
+      "orig_file": "fallen/DDEngine/Headers/farfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_find_vertex",
+      "file": "new/engine/graphics/geometry/farfacet.cpp",
+      "orig_name": "FARFACET_find_vertex",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_add_index",
+      "file": "new/engine/graphics/geometry/farfacet.cpp",
+      "orig_name": "FARFACET_add_index",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FARFACET_create_square",
+      "file": "new/engine/graphics/geometry/farfacet.cpp",
+      "orig_name": "FARFACET_create_square",
+      "orig_file": "fallen/DDEngine/Source/farfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

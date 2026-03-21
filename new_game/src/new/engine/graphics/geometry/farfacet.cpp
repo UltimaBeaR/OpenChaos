@@ -1,102 +1,22 @@
-//
-// Faster far-facets...
-//
-
-#include "game.h"
-#include "ddlib.h"
-#include "pap.h"
-#include "poly.h"
-#include "polypoint.h"
-#include "polypage.h"
-#include "night.h"
-#include "supermap.h"
-#include "memory.h"
-#include "matrix.h"
+// Temporary includes: game.h, supermap.h, memory.h (fallen) not yet migrated
+#include "fallen/Headers/Game.h"
+#include "world/map/pap.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/graphics_api/gd_display.h"
+#include "fallen/Headers/supermap.h"
+#include "fallen/Headers/memory.h"
+#include "core/matrix.h"
 #include <math.h>
+#include "engine/graphics/geometry/farfacet.h"
+#include "engine/graphics/geometry/farfacet_globals.h"
+#include "engine/graphics/pipeline/render_state.h"
+#include "engine/input/keyboard.h"
 
-//
-// How many lo-res mapsquares per FARFACET_square.
-//
-
-#define FARFACET_RATIO (4) // 4x4 lo-res mapsqures in a FARFACET_square
-#define FARFACET_SIZE (PAP_SIZE_LO / FARFACET_RATIO)
-
-// Set to 1 to use DrawIndPrim, rather than the MM stuff.
-
-//
-// Where we store the lverts.
-//
-
-D3DLVERTEX* FARFACET_lvert_buffer; // Unaligned buffer FARFACET_lvert_max elements + 31bytes long.
-D3DLVERTEX* FARFACET_lvert; // Aligned to 32 bytes
-SLONG FARFACET_lvert_max;
-SLONG FARFACET_lvert_upto;
-
-//
-// Index storage.
-//
-
-UWORD* FARFACET_index;
-SLONG FARFACET_index_max; // The number of elements in the FARFACET_index[] array.
-SLONG FARFACET_index_upto;
-
-//
-// 2D map.
-//
-
-typedef struct
-{
-    UWORD lvert;
-    UWORD lvertcount;
-    UWORD index;
-    UWORD indexcount;
-
-} FARFACET_Square;
-
-FARFACET_Square FARFACET_square[FARFACET_SIZE][FARFACET_SIZE];
-
-//
-// During initialisation we use this array to store the rectangular
-// outline of each facet.
-//
-
-typedef struct
-{
-    UBYTE x1;
-    SBYTE y1;
-    UBYTE z1;
-
-    UBYTE x2;
-    SBYTE y2;
-    UBYTE z2;
-
-} FARFACET_Outline;
-
-#define FARFACET_MAX_OUTLINES (8192 / ((32 / FARFACET_RATIO) * (32 / FARFACET_RATIO)) + 256)
-
-FARFACET_Outline* FARFACET_outline;
-SLONG FARFACET_outline_upto;
-
-//
-// The renderstate of the farfacets... no texture, no fogging, backface culled.
-//
-
-RenderState FARFACET_renderstate;
-RenderState FARFACET_default_renderstate;
-
-//
-// A 32-byte aligned matrix.
-//
-
-UBYTE FARFACET_matrix_buffer[sizeof(D3DMATRIX) + 32];
-D3DMATRIX* FARFACET_matrix;
-
-//
-// Looks for a vertex at (x,y,z) for the given square. If found
-// it returns that vertex index, otherwise it creates one.
-//
-
-UWORD FARFACET_find_vertex(FARFACET_Square* fs, UBYTE map_x, SBYTE map_y, UBYTE map_z)
+// uc_orig: FARFACET_find_vertex (fallen/DDEngine/Source/farfacet.cpp)
+// Looks up a vertex at (map_x, map_y, map_z) in the given square's vertex buffer.
+// If not found, creates a new vertex. Returns the local vertex index within the square.
+static UWORD FARFACET_find_vertex(FARFACET_Square* fs, UBYTE map_x, SBYTE map_y, UBYTE map_z)
 {
     SLONG i;
 
@@ -116,23 +36,12 @@ UWORD FARFACET_find_vertex(FARFACET_Square* fs, UBYTE map_x, SBYTE map_y, UBYTE 
         }
     }
 
-    //
-    // We need to create another point.
-    //
-
+    // Vertex not found — create a new one, growing the buffer if needed.
     if (FARFACET_lvert_upto >= FARFACET_lvert_max) {
         SLONG old_offset;
         SLONG new_offset;
 
-        //
-        // How much is FARFACET_lvert offset into the FARFACET_lvert_buffer?
-        //
-
         old_offset = ((UBYTE*)FARFACET_lvert) - ((UBYTE*)FARFACET_lvert_buffer);
-
-        //
-        // Double the length of the array.
-        //
 
         FARFACET_lvert_max *= 2;
         FARFACET_lvert_buffer = (D3DLVERTEX*)realloc(FARFACET_lvert_buffer, sizeof(D3DLVERTEX) * FARFACET_lvert_max + 31);
@@ -141,15 +50,7 @@ UWORD FARFACET_find_vertex(FARFACET_Square* fs, UBYTE map_x, SBYTE map_y, UBYTE 
 
         ASSERT(FARFACET_lvert_upto < FARFACET_lvert_max);
 
-        //
-        // What is the new offset into the FARFACET_lvert_buffer?
-        //
-
         new_offset = ((UBYTE*)FARFACET_lvert) - ((UBYTE*)FARFACET_lvert_buffer);
-
-        //
-        // If the offsets are different then we have to move the data around.
-        //
 
         if (new_offset != old_offset) {
             memmove(((UBYTE*)FARFACET_lvert_buffer) + new_offset, ((UBYTE*)FARFACET_lvert_buffer) + old_offset, sizeof(D3DLVERTEX) * FARFACET_lvert_upto);
@@ -172,11 +73,9 @@ UWORD FARFACET_find_vertex(FARFACET_Square* fs, UBYTE map_x, SBYTE map_y, UBYTE 
     return fs->lvertcount++;
 }
 
-//
-// Adds an index to the given square.
-//
-
-void FARFACET_add_index(FARFACET_Square* fs, UWORD index)
+// uc_orig: FARFACET_add_index (fallen/DDEngine/Source/farfacet.cpp)
+// Appends an index value to the index buffer, growing it if needed.
+static void FARFACET_add_index(FARFACET_Square* fs, UWORD index)
 {
     if (FARFACET_index_upto >= FARFACET_index_max) {
         FARFACET_index_max *= 2;
@@ -191,11 +90,11 @@ void FARFACET_add_index(FARFACET_Square* fs, UWORD index)
     fs->indexcount += 1;
 }
 
-//
-// Builds the drawprim call for the given square.
-//
-
-void FARFACET_create_square(SLONG square_x, SLONG square_z)
+// uc_orig: FARFACET_create_square (fallen/DDEngine/Source/farfacet.cpp)
+// Builds DrawIndexedPrimitive data for a single farfacet square.
+// Gathers all facets in the covered lo-res squares, merges aligned rectangles into strips,
+// then converts strips into indexed triangle lists.
+static void FARFACET_create_square(SLONG square_x, SLONG square_z)
 {
     SLONG i;
     SLONG j;
@@ -226,28 +125,15 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
 
     fs = &FARFACET_square[square_x][square_z];
 
-    //
-    // Initialise the outline array.
-    //
-
     memset(FARFACET_outline, 0, sizeof(FARFACET_outline));
 
     FARFACET_outline_upto = 0;
 
-    //
-    // Mark all facets as not added.
-    //
-
+    // Mark all facets as not yet processed.
     for (i = 1; i < next_dfacet; i++) {
         df = &dfacets[i];
-
         df->Counter[0] = FALSE;
     }
-
-    //
-    // The bounding box of lo-res mapsquares covered by this
-    // farfacet square.
-    //
 
     SLONG lo_min_x;
     SLONG lo_min_z;
@@ -264,20 +150,13 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
     lo_max_x = (square_x + 1) * FARFACET_RATIO;
     lo_max_z = (square_z + 1) * FARFACET_RATIO;
 
-    //
-    // The box we clip facet outlines against.
-    //
-
     SLONG hi_min_x = lo_min_x * 4;
     SLONG hi_min_z = lo_min_z * 4;
 
     SLONG hi_max_x = lo_max_x * 4;
     SLONG hi_max_z = lo_max_z * 4;
 
-    //
-    // Add this squares facets to the outline array.
-    //
-
+    // Collect outlines of all eligible facets in this farfacet square.
     for (lo_x = lo_min_x; lo_x < lo_max_x; lo_x++)
         for (lo_z = lo_min_z; lo_z < lo_max_z; lo_z++) {
             f_list = PAP_2LO(lo_x, lo_z).ColVectHead;
@@ -289,10 +168,6 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
                     facet = facet_links[f_list];
 
                     if (facet < 0) {
-                        //
-                        // The last facet in the list for each square is negative.
-                        //
-
                         facet = -facet;
                         exit = TRUE;
                     }
@@ -301,28 +176,13 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
 
                     df = &dfacets[facet];
 
-                    //
-                    // Have we done this facet before?
-                    //
-
                     if (df->Counter[0]) {
-                        //
-                        // Don't do this facet twice.
-                        //
-
                         goto abort_facet;
                     }
 
-                    //
-                    // Mark this facet as done.
-                    //
-
                     df->Counter[0] = TRUE;
 
-                    //
-                    // Only draw certain types of facet.
-                    //
-
+                    // Only draw normal walls and doors; skip foundations and inside-only walls.
                     if (df->FacetType != STOREY_TYPE_NORMAL && df->FacetType != STOREY_TYPE_DOOR) {
                         goto abort_facet;
                     }
@@ -334,10 +194,6 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
                     if (df->FacetFlags & FACET_FLAG_INSIDE) {
                         goto abort_facet;
                     }
-
-                    //
-                    // Add this facet's outline to the array.
-                    //
 
                     ASSERT(WITHIN(FARFACET_outline_upto, 0, FARFACET_MAX_OUTLINES - 1));
 
@@ -364,10 +220,7 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
             }
         }
 
-    //
-    // Go through the outline array and merge rectangles that connect to eachother.
-    //
-
+    // Merge aligned adjacent outline rectangles (vertically stacked or horizontally adjacent).
     while (1) {
         old_outline_upto = FARFACET_outline_upto;
 
@@ -383,103 +236,29 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
                 dx2 = SIGN(fo2->x2 - fo2->x1);
                 dz2 = SIGN(fo2->z2 - fo2->z1);
 
-                //
-                // Do facet1 and facet2 connect?
-                //
-
                 if (dx1 == dx2 && dz1 == dz2) {
-                    //
-                    // They are pointing in the same direction- that's a good start!
-                    //
-
                     if (fo1->x1 == fo2->x1 && fo1->z1 == fo2->z1 && fo1->x2 == fo2->x2 && fo1->z2 == fo2->z2) {
-                        //
-                        // The facets are on top of oneanother.
-                        //
-
+                        // Same footprint: try to merge vertically.
                         if (fo1->y2 == fo2->y1) {
-                            //
-                            // Facet2 is directly on top of our facet.
-                            //
-
                             fo1->y2 = fo2->y2;
-
-                            //
-                            // Replace this facet with the one at the end of the array
-                            // and shorten the array.
-                            //
-
                             FARFACET_outline[j] = FARFACET_outline[--FARFACET_outline_upto];
-
-                            //
-                            // Do the facet again.
-                            //
-
                             j--;
                         } else if (fo1->y1 == fo2->y2) {
-                            //
-                            // Facet2 is directly below our facet.
-                            //
-
                             fo1->y1 = fo2->y1;
-
-                            //
-                            // Replace this facet with the one at the end of the array
-                            // and shorten the array.
-                            //
-
                             FARFACET_outline[j] = FARFACET_outline[--FARFACET_outline_upto];
-
-                            //
-                            // Do the facet again.
-                            //
-
                             j--;
                         }
                     } else if (fo1->y1 == fo2->y1 && fo1->y2 == fo2->y2) {
-                        //
-                        // The facets are at the same height.
-                        //
-
+                        // Same height range: try to merge horizontally.
                         if (fo1->x1 == fo2->x2 && fo1->z1 == fo2->z2) {
-                            //
-                            // Facet2 is directly to the left of our facet.
-                            //
-
                             fo1->x1 = fo2->x1;
                             fo1->z1 = fo2->z1;
-
-                            //
-                            // Replace this facet with the one at the end of the array
-                            // and shorten the array.
-                            //
-
                             FARFACET_outline[j] = FARFACET_outline[--FARFACET_outline_upto];
-
-                            //
-                            // Do the facet again.
-                            //
-
                             j--;
                         } else if (fo1->x2 == fo2->x1 && fo1->z2 == fo2->z1) {
-                            //
-                            // Facet2 is directly to the right of our facet.
-                            //
-
                             fo1->x2 = fo2->x2;
                             fo1->z2 = fo2->z2;
-
-                            //
-                            // Replace this facet with the one at the end of the array
-                            // and shorten the array.
-                            //
-
                             FARFACET_outline[j] = FARFACET_outline[--FARFACET_outline_upto];
-
-                            //
-                            // Do the facet again.
-                            //
-
                             j--;
                         }
                     }
@@ -488,19 +267,11 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
         }
 
         if (FARFACET_outline_upto == old_outline_upto) {
-            //
-            // Looped through without making any changes.
-            //
-
             break;
         }
     }
 
-    //
-    // Now convert the outlines to strips and build the
-    // DrawPrimitive data.
-    //
-
+    // Convert outlines into strips, then into indexed triangles.
     fs->lvert = FARFACET_lvert_upto;
     fs->lvertcount = 0;
     fs->index = FARFACET_index_upto;
@@ -516,20 +287,12 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
             break;
         }
 
-        //
-        // Create a simple strip from the last outline
-        // and shorten the array so we don't look for
-        // that outline again.
-        //
-
+        // Start a strip from the last outline entry.
         strip[0] = FARFACET_outline_upto - 1;
         strip_upto = 1;
         FARFACET_outline_upto -= 1;
 
-        //
-        // Try and lengthen the strip by adding onto the beginning.
-        //
-
+        // Grow the strip by prepending outlines that connect to the current head.
         fo1 = &FARFACET_outline[strip[0]];
 
     add_onto_beginning:;
@@ -538,12 +301,6 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
             fo2 = &FARFACET_outline[i];
 
             if (fo2->x2 == fo1->x1 && fo2->y2 == fo1->y1 && fo2->z2 == fo1->z1) {
-                //
-                // Swap this facet with the one at the end of the
-                // outline array and shorten the array so we dont
-                // consider it again.
-                //
-
                 FARFACET_outline_upto -= 1;
 
                 SWAP(fo2->x1, FARFACET_outline[FARFACET_outline_upto].x1);
@@ -554,11 +311,6 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
                 SWAP(fo2->y2, FARFACET_outline[FARFACET_outline_upto].y2);
                 SWAP(fo2->z2, FARFACET_outline[FARFACET_outline_upto].z2);
 
-                //
-                // We can add this outline onto the beginning
-                // of the strip.
-                //
-
                 ASSERT(WITHIN(strip_upto, 1, FARFACET_MAX_STRIP_LENGTH - 1));
 
                 memmove(strip + 1, strip + 0, sizeof(UWORD) * strip_upto);
@@ -566,18 +318,11 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
 
                 strip[0] = FARFACET_outline_upto;
 
-                //
-                // Start again.
-                //
-
                 goto add_onto_beginning;
             }
         }
 
-        //
-        // Now lengthen the strip by adding onto the end.
-        //
-
+        // Grow the strip by appending outlines that connect to the current tail.
         ASSERT(WITHIN(strip_upto, 1, FARFACET_MAX_STRIP_LENGTH - 1));
 
         fo1 = &FARFACET_outline[strip[strip_upto - 1]];
@@ -588,12 +333,6 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
             fo2 = &FARFACET_outline[i];
 
             if (fo2->x1 == fo1->x2 && fo2->y1 == fo1->y2 && fo2->z1 == fo1->z2) {
-                //
-                // Swap this facet with the one at the end of the
-                // outline array and shorten the array so we dont
-                // consider it again.
-                //
-
                 FARFACET_outline_upto -= 1;
 
                 SWAP(fo2->x1, FARFACET_outline[FARFACET_outline_upto].x1);
@@ -604,33 +343,20 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
                 SWAP(fo2->y2, FARFACET_outline[FARFACET_outline_upto].y2);
                 SWAP(fo2->z2, FARFACET_outline[FARFACET_outline_upto].z2);
 
-                //
-                // We can add this outline onto the end of the strip.
-                //
-
                 ASSERT(WITHIN(strip_upto, 1, FARFACET_MAX_STRIP_LENGTH - 1));
 
                 strip[strip_upto++] = FARFACET_outline_upto;
-
-                //
-                // Start again.
-                //
 
                 goto add_onto_end;
             }
         }
 
-        //
-        // Add this strip to the square. The initial points of the
-        // first outline now.
-        //
-
+        // Emit the strip as a triangle list into the square's index buffer.
         fo = &FARFACET_outline[strip[0]];
 
         v1 = FARFACET_find_vertex(fs, fo->x1, fo->y1, fo->z1);
         v2 = FARFACET_find_vertex(fs, fo->x1, fo->y2, fo->z1);
 
-        // Do nothing.
         SLONG v1prev = v1;
         SLONG v2prev = v2;
 
@@ -652,12 +378,9 @@ void FARFACET_create_square(SLONG square_x, SLONG square_z)
     }
 }
 
+// uc_orig: FARFACET_init (fallen/DDEngine/Source/farfacet.cpp)
 void FARFACET_init()
 {
-    //
-    // Initialise memory.
-    //
-
     FARFACET_lvert_max = 1024;
     FARFACET_lvert_upto = 0;
     FARFACET_lvert_buffer = (D3DLVERTEX*)malloc(sizeof(D3DLVERTEX) * FARFACET_lvert_max + 31);
@@ -677,10 +400,6 @@ void FARFACET_init()
 
     FARFACET_matrix = (D3DMATRIX*)((SLONG(FARFACET_matrix_buffer) + 31) & ~0x1f);
 
-    //
-    // Calculate the FARFACET squares.
-    //
-
     SLONG x;
     SLONG z;
 
@@ -689,23 +408,13 @@ void FARFACET_init()
             FARFACET_create_square(x, z);
         }
 
-    //
-    // We don't need the outline array any more.
-    //
-
     free(FARFACET_outline);
 
-    //
-    // Setup our renderstate.
-    //
-
     FARFACET_renderstate.SetRenderState(D3DRENDERSTATE_FOGENABLE, TRUE);
-
     FARFACET_renderstate.SetTexture(NULL);
 }
 
-SLONG FARFACET_num_squares_drawn;
-
+// uc_orig: FARFACET_draw (fallen/DDEngine/Source/farfacet.cpp)
 void FARFACET_draw(
     float x,
     float y,
@@ -716,14 +425,9 @@ void FARFACET_draw(
     float draw_dist,
     float lens)
 {
-
     if (!Keys[KB_R]) {
         return;
     }
-
-    //
-    // The five point of the view pyramid.
-    //
 
     float width;
     float height;
@@ -746,13 +450,9 @@ void FARFACET_draw(
 
     FARFACET_num_squares_drawn = 0;
 
-    //
-    // The dimensions of the view pyramid.
-    //
-
+    depth = draw_dist;
     width = draw_dist;
     height = draw_dist;
-    depth = draw_dist;
 
     width *= POLY_screen_width;
     width /= POLY_screen_height;
@@ -760,19 +460,12 @@ void FARFACET_draw(
     width /= lens;
     height /= lens;
 
-    //
-    // Finds the points of the cone in world space
-    //
-
+    // Project the four corners of the view frustum onto the XZ plane.
     cone[3].x = cone[4].x = x / 256.0f;
     cone[3].z = cone[4].z = z / 256.0f;
 
     cone[3].x += depth * matrix[6];
     cone[3].z += depth * matrix[8];
-
-    //
-    // cone[0] is the top left corner...
-    //
 
     cone[0].x = cone[3].x + height * matrix[3];
     cone[0].z = cone[3].z + height * matrix[5];
@@ -780,19 +473,11 @@ void FARFACET_draw(
     cone[0].x = cone[0].x - width * matrix[0];
     cone[0].z = cone[0].z - width * matrix[2];
 
-    //
-    // cone[1] is the top right corner...
-    //
-
     cone[1].x = cone[3].x + height * matrix[3];
     cone[1].z = cone[3].z + height * matrix[5];
 
     cone[1].x = cone[1].x + width * matrix[0];
     cone[1].z = cone[1].z + width * matrix[2];
-
-    //
-    // cone[2] is the bottom right corner...
-    //
 
     cone[2].x = cone[3].x - height * matrix[3];
     cone[2].z = cone[3].z - height * matrix[5];
@@ -800,19 +485,11 @@ void FARFACET_draw(
     cone[2].x = cone[2].x + width * matrix[0];
     cone[2].z = cone[2].z + width * matrix[2];
 
-    //
-    // cone[3] is the bottom left corner...
-    //
-
     cone[3].x = cone[3].x - height * matrix[3];
     cone[3].z = cone[3].z - height * matrix[5];
 
     cone[3].x = cone[3].x - width * matrix[0];
     cone[3].z = cone[3].z - width * matrix[2];
-
-    //
-    // Find the bounding box of squares we should draw.
-    //
 
     SLONG square_min_x = +INFINITY;
     SLONG square_min_z = +INFINITY;
@@ -838,11 +515,7 @@ void FARFACET_draw(
         }
     }
 
-    //
-    // This is in high-res map squares, now convert to our
-    // size of square.
-    //
-
+    // Convert world coordinates to farfacet square indices.
     square_min_x /= 4 * FARFACET_RATIO;
     square_min_z /= 4 * FARFACET_RATIO;
 
@@ -855,20 +528,10 @@ void FARFACET_draw(
     SATURATE(square_max_x, 0, FARFACET_SIZE - 1);
     SATURATE(square_max_z, 0, FARFACET_SIZE - 1);
 
-    //
-    // Setup renderstate.
-    //
-
     FARFACET_renderstate.SetChanged();
 
-    //
-    // Initialise Tom's doberries...
-    //
-
-    // Adjust the projection to put the RHW values a little further back than normal.
-    // This is sort of like a Z-bias. It's there to avoid Z-fighting with the real scene polygons.
-    // Note that this uniform scale _does_ put the RHWs back because we are using the multimatrix stuff,
-    // which has several cheats. Fortunately.
+    // Slightly scale the projection matrix to push RHW values further back,
+    // acting as a Z-bias to avoid Z-fighting with the normal scene polygons.
 #define MY_PROJ_MATRIX_SCALE 1.01f
     D3DMATRIX matMyProj = g_matProjection;
     matMyProj._11 *= MY_PROJ_MATRIX_SCALE;
@@ -889,10 +552,6 @@ void FARFACET_draw(
     matMyProj._44 *= MY_PROJ_MATRIX_SCALE;
 
     (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_PROJECTION, &matMyProj);
-
-    //
-    // Draw all the squares.
-    //
 
     SLONG square_x;
     SLONG square_z;
@@ -915,10 +574,6 @@ void FARFACET_draw(
             fs = &FARFACET_square[square_x][square_z];
 
             if (fs->indexcount) {
-                //
-                // Don't draw squares to close to the camera- or behind it!
-                //
-
                 mid_y = 0.0F;
 
                 mid_x = (float(square_x) + 0.5F) * (4.0F * FARFACET_RATIO * 256.0F);
@@ -930,7 +585,7 @@ void FARFACET_draw(
 
                 dprod = dx * matrix[6] + dy * matrix[7] + dz * matrix[8];
 
-                // React to the fog distance change.
+                // Only draw squares beyond the fog/draw distance.
                 extern SLONG CurDrawDistance;
                 if (dprod * 2.5f < (float)CurDrawDistance) {
                     continue;
@@ -949,22 +604,14 @@ void FARFACET_draw(
             }
         }
 
-    //
-    // Revert to default renderstate.
-    //
-
     FARFACET_default_renderstate.SetChanged();
 
-    // Restore the projection matrix.
     (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_PROJECTION, &g_matProjection);
 }
 
+// uc_orig: FARFACET_fini (fallen/DDEngine/Source/farfacet.cpp)
 void FARFACET_fini()
 {
-    //
-    // Free memory.
-    //
-
     free(FARFACET_lvert_buffer);
     free(FARFACET_index);
 }

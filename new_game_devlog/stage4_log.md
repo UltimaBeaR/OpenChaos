@@ -339,6 +339,15 @@ Entity mapping обновлён (33 записи — file path).
 
 ---
 
+## Итерация 35 — engine/graphics/geometry/cone + farfacet (2026-03-21)
+
+- `cone.cpp` включает `fallen/Headers/memory.h` напрямую — `fallen/Headers/Game.h` не тянет его транзитивно (Memory.h давно вынесен из цепочки); `facet_links`/`dfacets` объявлены только там
+- `CONE_interpolate_colour` и `CONE_insert_points` — file-private `static`, не объявлены в хедере; в новом файле тоже `static`
+- Макросы `CONE_MAX_POLY_POINTS`, `CONE_SWAP_POINT_INFO`, `CONE_MAX_DONE`, `FARFACET_MAX_STRIP_LENGTH`, `MY_PROJ_MATRIX_SCALE` — внутри тел функций, маппинг не нужен
+- `farfacet.cpp` включает `fallen/Headers/memory.h` по той же причине
+
+---
+
 ## Итерация 34 — engine/effects/psystem (2026-03-21)
 
 - `PARTICLE_Draw` — реализован в `drawxtra.cpp` (DDEngine), не в psystem.cpp; остался в redirect `PSystem.h` как самостоятельная декларация

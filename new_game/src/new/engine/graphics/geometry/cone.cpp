@@ -1,46 +1,118 @@
-//
-// Cones clipped by planar polygons.
-//
-
-#include "game.h"
-#include "poly.h"
-#include "cone.h"
-#include "pap.h"
-#include "supermap.h"
+// Temporary includes: game.h, supermap.h, memory.h (fallen) not yet migrated
+#include "fallen/Headers/Game.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/geometry/cone.h"
+#include "world/map/pap.h"
+#include "fallen/Headers/supermap.h"
+#include "fallen/Headers/memory.h"
 #include <math.h>
-#include "memory.h"
+#include "engine/graphics/geometry/cone_globals.h"
 
-//
-// The origin of the cone.
-//
-
-float CONE_origin_x;
-float CONE_origin_y;
-float CONE_origin_z;
-ULONG CONE_origin_colour;
-float CONE_end_x;
-float CONE_end_y;
-float CONE_end_z;
-
-//
-// The points around the base of the cone.
-//
-
-typedef struct
+// uc_orig: CONE_interpolate_colour (fallen/DDEngine/Source/cone.cpp)
+// Interpolates between two packed ARGB colours by scalar v in [0,1].
+// Uses a fixed-point trick: reads mantissa bits of (32768 + v) as an 8-bit fraction.
+static ULONG CONE_interpolate_colour(float v, ULONG colour1, ULONG colour2)
 {
-    float x;
-    float y;
-    float z;
-    ULONG colour;
-    POLY_Point pp;
+    SLONG rb1, rb2, drb, rba;
+    SLONG ga1, ga2, dga, gaa;
 
-} CONE_Point;
+    union {
+        float vfloat;
+        ULONG vfixed8;
+    };
 
-#define CONE_MAX_POINTS 64
+    SLONG answer;
 
-CONE_Point CONE_point[CONE_MAX_POINTS];
-SLONG CONE_point_upto;
+    if (colour1 == colour2) {
+        return colour1;
+    }
 
+    if (v < 0.01F) {
+        return colour1;
+    }
+    if (v > 0.99F) {
+        return colour2;
+    }
+
+    // Extract the fractional part as 8-bit fixed point via float bit pattern trick.
+    vfloat = 32768.0F + v;
+    vfixed8 &= 0xff;
+
+    // Interpolate red and blue channels simultaneously (they occupy bits 0-7 and 16-23).
+    rb1 = colour1 & (0x00ff00ff);
+    rb2 = colour2 & (0x00ff00ff);
+
+    if (rb1 != rb2) {
+        drb = rb2 - rb1;
+        drb *= vfixed8;
+        drb >>= 8;
+        rba = rb1 + drb;
+        rba &= 0x00ff00ff;
+    } else {
+        rba = rb1;
+    }
+
+    // Interpolate green and alpha channels simultaneously.
+    ga1 = colour1 >> 8;
+    ga2 = colour2 >> 8;
+
+    ga1 &= 0x00ff00ff;
+    ga2 &= 0x00ff00ff;
+
+    if (ga1 != ga2) {
+        dga = ga2 - ga1;
+        dga *= vfixed8;
+        gaa = (ga1 << 8) + dga;
+        gaa &= 0xff00ff00;
+    } else {
+        gaa = ga1 << 8;
+    }
+
+    answer = rba | gaa;
+
+    return answer;
+}
+
+// uc_orig: CONE_insert_points (fallen/DDEngine/Source/cone.cpp)
+// Inserts two new points into the CONE_point array after the given index.
+// Used when a cone ray crosses the boundary of a clipping polygon.
+static void CONE_insert_points(
+    SLONG point,
+    float x1,
+    float y1,
+    float z1,
+    ULONG colour1,
+    float x2,
+    float y2,
+    float z2,
+    ULONG colour2)
+{
+    SLONG i;
+
+    ASSERT(WITHIN(point, 0, CONE_point_upto - 1));
+
+    if (CONE_point_upto >= CONE_MAX_POINTS - 1) {
+        return;
+    }
+
+    for (i = CONE_point_upto + 1; i - 2 >= point; i--) {
+        CONE_point[i] = CONE_point[i - 2];
+    }
+
+    CONE_point[point + 0].x = x1;
+    CONE_point[point + 0].y = y1;
+    CONE_point[point + 0].z = z1;
+    CONE_point[point + 0].colour = colour1;
+
+    CONE_point[point + 1].x = x2;
+    CONE_point[point + 1].y = y2;
+    CONE_point[point + 1].z = z2;
+    CONE_point[point + 1].colour = colour2;
+
+    CONE_point_upto += 2;
+}
+
+// uc_orig: CONE_create (fallen/DDEngine/Source/cone.cpp)
 void CONE_create(
     float x,
     float y,
@@ -70,19 +142,12 @@ void CONE_create(
 
     float dist;
 
-    //
-    // The origin of the cone.
-    //
-
     CONE_origin_x = x;
     CONE_origin_y = y;
     CONE_origin_z = z;
     CONE_origin_colour = colour_start;
 
-    //
-    // Normalise (dx,dy,dz).
-    //
-
+    // Normalize direction.
     dist = dx * dx + dy * dy + dz * dz;
     dist = sqrt(dist);
 
@@ -90,53 +155,31 @@ void CONE_create(
     dy = dy * (1.0F / dist);
     dz = dz * (1.0F / dist);
 
-    //
-    // Construct two vectors orthogonal to (dx,dy,dz) and to eachother.
-    //
-
+    // Build two vectors orthogonal to (dx,dy,dz) using a perpendicular trick.
     px = dy;
     py = dz;
     pz = dx;
 
-    //
-    // (px,py,pz) is not paralell to (dx,dy,dz) so (d x p) will be
-    // orthogonal to (dx,dy,dz)
-    //
-
+    // a = d x p (orthogonal to d)
     ax = dy * pz - dz * py;
     ay = dz * px - dx * pz;
     az = dx * py - dy * px;
 
-    //
-    // Create a vector parallel to both a and d.
-    //
-
+    // b = d x a (orthogonal to both a and d)
     bx = dy * az - dz * ay;
     by = dz * ax - dx * az;
     bz = dx * ay - dy * ax;
-
-    //
-    // The number of points around the edge of the base depends on 'detail'...
-    // Always use at least 4 points.
-    //
 
     ASSERT(WITHIN(detail, 0, 256));
 
     CONE_point_upto = 4;
     CONE_point_upto += detail * (CONE_MAX_POINTS - 4) >> 8;
 
-    //
-    // The midpoints of the circle at the end of the cone.
-    //
-
     CONE_end_x = CONE_origin_x + dx * length;
     CONE_end_y = CONE_origin_y + dy * length;
     CONE_end_z = CONE_origin_z + dz * length;
 
-    //
-    // Build the bottom points of the cone.
-    //
-
+    // Build the base circle points.
     float angle;
     float along_a;
     float along_b;
@@ -157,142 +200,7 @@ void CONE_create(
     }
 }
 
-ULONG CONE_interpolate_colour(float v, ULONG colour1, ULONG colour2)
-{
-    SLONG rb1, rb2, drb, rba;
-    SLONG ga1, ga2, dga, gaa;
-
-    union {
-        float vfloat;
-        ULONG vfixed8;
-    };
-
-    SLONG answer;
-
-    //
-    // Early outs.
-    //
-
-    if (colour1 == colour2) {
-        return colour1;
-    }
-
-    if (v < 0.01F) {
-        return colour1;
-    }
-    if (v > 0.99F) {
-        return colour2;
-    }
-
-    //
-    // Work out how much to interpolate along in fixed point 8.
-    //
-
-    vfloat = 32768.0F + v;
-    vfixed8 &= 0xff;
-
-    //
-    // Red and blue.
-    //
-
-    rb1 = colour1 & (0x00ff00ff);
-    rb2 = colour2 & (0x00ff00ff);
-
-    if (rb1 != rb2) {
-        //
-        // Do interpolation of red and blue simultaneously.
-        //
-
-        drb = rb2 - rb1;
-        drb *= vfixed8;
-        drb >>= 8;
-        rba = rb1 + drb;
-        rba &= 0x00ff00ff;
-    } else {
-        //
-        // No need to interpolated red and blue.
-        //
-
-        rba = rb1;
-    }
-
-    //
-    // Green and alpha.
-    //
-
-    ga1 = colour1 >> 8;
-    ga2 = colour2 >> 8;
-
-    ga1 &= 0x00ff00ff;
-    ga2 &= 0x00ff00ff;
-
-    if (ga1 != ga2) {
-        //
-        // Do interpolationg of red and blue simultaneously.
-        //
-
-        dga = ga2 - ga1;
-        dga *= vfixed8;
-        gaa = (ga1 << 8) + dga;
-        gaa &= 0xff00ff00;
-    } else {
-        //
-        // No need to interpolate green and alpha.
-        //
-
-        gaa = ga1 << 8;
-    }
-
-    answer = rba | gaa;
-
-    return answer;
-}
-
-//
-// Inserts two new points in the cone after the given point at the given
-// position.
-//
-
-void CONE_insert_points(
-    SLONG point,
-    float x1,
-    float y1,
-    float z1,
-    ULONG colour1,
-    float x2,
-    float y2,
-    float z2,
-    ULONG colour2)
-{
-    SLONG i;
-
-    ASSERT(WITHIN(point, 0, CONE_point_upto - 1));
-
-    if (CONE_point_upto >= CONE_MAX_POINTS - 1) {
-        //
-        // We already have the maximum number of point.
-        //
-
-        return;
-    }
-
-    for (i = CONE_point_upto + 1; i - 2 >= point; i--) {
-        CONE_point[i] = CONE_point[i - 2];
-    }
-
-    CONE_point[point + 0].x = x1;
-    CONE_point[point + 0].y = y1;
-    CONE_point[point + 0].z = z1;
-    CONE_point[point + 0].colour = colour1;
-
-    CONE_point[point + 1].x = x2;
-    CONE_point[point + 1].y = y2;
-    CONE_point[point + 1].z = z2;
-    CONE_point[point + 1].colour = colour2;
-
-    CONE_point_upto += 2;
-}
-
+// uc_orig: CONE_clip (fallen/DDEngine/Source/cone.cpp)
 void CONE_clip(
     CONE_Poly p[],
     SLONG num_points)
@@ -390,11 +298,7 @@ void CONE_clip(
 
     ASSERT(WITHIN(num_points, 3, CONE_MAX_POLY_POINTS));
 
-    //
-    // Find the plane of the polygon. Defined by the position of point 0, and
-    // two vectors from point 0 to point 1 and point 0 to point (num_points - 1).
-    //
-
+    // Compute the plane of the clipping polygon from its first, second, and last points.
     CONE_Poly* vp = &p[1];
     CONE_Poly* wp = &p[num_points - 1];
 
@@ -412,18 +316,12 @@ void CONE_clip(
     overlen_v = 1.0F / len_v;
     overlen_w = 1.0F / len_w;
 
-    //
-    // The normal of the plane.
-    //
-
+    // Plane normal.
     float nx = vy * wz - vz * wy;
     float ny = vz * wx - vx * wz;
     float nz = vx * wy - vy * wx;
 
-    //
-    // Which side of the plane is the origin of the cone?
-    //
-
+    // Check which side of the plane the cone origin is on.
     float ox = CONE_origin_x - p[0].x;
     float oy = CONE_origin_y - p[0].y;
     float oz = CONE_origin_z - p[0].z;
@@ -431,18 +329,11 @@ void CONE_clip(
     float dpo = ox * nx + oy * ny + oz * nz;
 
     if (dpo >= 0.0F) {
-        //
-        // The origin is on the back side of the quad.
-        //
-
+        // Origin is behind the polygon — nothing to clip.
         return;
     }
 
-    //
-    // Find all the points of the polyon in terms of the
-    // two vectors v and w.
-    //
-
+    // Project the polygon points onto the v and w basis vectors.
     along_p[0].along_v = 0.0F;
     along_p[0].along_w = 0.0F;
 
@@ -463,11 +354,6 @@ void CONE_clip(
         along_p[i].along_w = (px * wx + py * wy + pz * wz) * overlen_w;
     }
 
-    //
-    // Check all the points of the cone.  If the line connecting two points
-    // crosses over the edge of a polygon, then create a point at the intersection.
-    //
-
     point_info_then->failed_side = TRUE;
 
     for (i = 0; i < CONE_point_upto; i++) {
@@ -480,27 +366,14 @@ void CONE_clip(
         dpc = px * nx + py * ny + pz * nz;
 
         if (dpc <= 0.0F) {
-            //
-            // This point is on the front side of the quad.
-            //
-
             point_info_now->failed_side = TRUE;
         } else {
             point_info_now->failed_side = FALSE;
 
-            //
-            // The origin of the cone is on the front of the quad and this
-            // point is on the back of the quad.  How far along the line
-            // is the intersection with the plane?
-            //
-
+            // Find intersection of the cone ray with the polygon plane.
             along = dpo / (dpo - dpc);
 
             ASSERT(WITHIN(along, 0.0F, 1.0F));
-
-            //
-            // The intersection point.
-            //
 
             ix = CONE_origin_x + along * (cp->x - CONE_origin_x);
             iy = CONE_origin_y + along * (cp->y - CONE_origin_y);
@@ -512,22 +385,13 @@ void CONE_clip(
             point_info_now->iz = iz;
             point_info_now->icolour = icolour;
 
-            //
-            // Find the intersection point in terms of the two vectors
-            // v and w.
-            //
-
+            // Project the intersection onto the polygon plane and test it against each polygon edge.
             px = ix - p[0].x;
             py = iy - p[0].y;
             pz = iz - p[0].z;
 
             along_v = (px * vx + py * vy + pz * vz) * overlen_v;
             along_w = (px * wx + py * wy + pz * wz) * overlen_w;
-
-            //
-            // Is this point inside the polygon? We can optimise here because
-            // the first and last points (av,aw)s are easy constants. (0s and 1s)
-            //
 
             for (j = 0; j < num_points; j++) {
                 p1 = j + 0;
@@ -545,26 +409,14 @@ void CONE_clip(
 
                 dprod = av * bv + aw * bw;
 
-                //
-                // Remember the dprods WRT each line of the poly so we can create
-                // a point on the intersection of each line.
-                //
-
                 point_info_now->dprod[j] = dprod;
 
                 if (dprod < 0.0F) {
-                    //
-                    // This ray does not intersect the polygon.
-                    //
-
+                    // Intersection is outside the polygon.
                     point_info_now->failed_dprod = j;
 
                     if (point_info_then->failed_side == FALSE && point_info_then->failed_dprod == num_points) {
-                        //
-                        // The last point did intersect the polygon. We must
-                        // create a point along the edge of the polygon.
-                        //
-
+                        // Previous ray was inside the polygon, so insert a boundary point.
                         along = point_info_then->dprod[j] / (point_info_then->dprod[j] - dprod);
 
                         insert_x1 = point_info_then->ix + along * (ix - point_info_then->ix);
@@ -572,10 +424,7 @@ void CONE_clip(
                         insert_z1 = point_info_then->iz + along * (iz - point_info_then->iz);
                         insert_colour1 = CONE_interpolate_colour(along, point_info_then->icolour, icolour);
 
-                        //
-                        // Create another point at the end of the ray...
-                        //
-
+                        // The second inserted point is scaled to match the full ray length.
                         dx = cp->x - CONE_origin_x;
                         dy = cp->y - CONE_origin_y;
                         dz = cp->z - CONE_origin_z;
@@ -610,10 +459,6 @@ void CONE_clip(
                             insert_z2,
                             insert_colour2);
 
-                        //
-                        // Skip over the inserted points...
-                        //
-
                         i += 2;
                     }
 
@@ -621,10 +466,7 @@ void CONE_clip(
                 }
             }
 
-            //
-            // Make this ray finish at the intersection with this polygon.
-            //
-
+            // Intersection is inside the polygon: clamp this cone point to the polygon surface.
             point_info_now->failed_dprod = num_points;
 
             cp->x = ix;
@@ -633,21 +475,13 @@ void CONE_clip(
             cp->colour = icolour;
 
             if (point_info_then->failed_side == FALSE && point_info_then->failed_dprod < num_points) {
-                //
-                // The last point was not in the polygon, so create an intersection
-                // point between this point and the last one.
-                //
-
+                // Previous ray was outside the polygon: insert boundary entry point.
                 along = point_info_then->dprod[point_info_then->failed_dprod] / (point_info_then->dprod[point_info_then->failed_dprod] - point_info_now->dprod[point_info_then->failed_dprod]);
 
                 insert_x2 = point_info_then->ix + along * (ix - point_info_then->ix);
                 insert_y2 = point_info_then->iy + along * (iy - point_info_then->iy);
                 insert_z2 = point_info_then->iz + along * (iz - point_info_then->iz);
                 insert_colour2 = CONE_interpolate_colour(along, point_info_then->icolour, icolour);
-
-                //
-                // Create another point at the end of the ray...
-                //
 
                 ASSERT(WITHIN(i, 1, CONE_point_upto));
 
@@ -687,10 +521,6 @@ void CONE_clip(
                     insert_z2,
                     insert_colour2);
 
-                //
-                // Skip over the inserted points.
-                //
-
                 i += 2;
             }
 
@@ -703,42 +533,19 @@ void CONE_clip(
     }
 }
 
-//
-// Intersects the cone with colvects and walkable faces on the
-// given square.
-//
-
-#define CONE_COLVECT_DONE 4
-
-SLONG CONE_colvect_done[CONE_COLVECT_DONE];
-SLONG CONE_colvect_done_upto;
-
-void CONE_intersect_square(
+// uc_orig: CONE_intersect_square (fallen/DDEngine/Source/cone.cpp)
+// Clips the cone against all collision facets in the given lo-res map square.
+static void CONE_intersect_square(
     SLONG mx,
     SLONG mz)
 {
     SLONG i;
 
-    SLONG x1;
-    SLONG z1;
-
-    SLONG w_list;
-    SLONG w_face;
-
-    PrimFace4* p_f4;
-    PrimPoint* pp;
-
     SLONG f_list;
-    SLONG exit;
     SLONG facet;
-    SLONG build;
+    SLONG exit;
 
     DFacet* df;
-
-    SLONG face_height;
-    UBYTE face_order[4] = { 0, 1, 3, 2 };
-
-    Thing* p_fthing;
 
     CONE_Poly poly[4];
 
@@ -763,23 +570,12 @@ void CONE_intersect_square(
                 exit = TRUE;
             }
 
-            //
-            // Have we done this facet already?
-            //
-
+            // Deduplicate: skip facets we already processed this cone-map traversal.
             for (i = 0; i < CONE_COLVECT_DONE; i++) {
                 if (CONE_colvect_done[i] == facet) {
-                    //
-                    // Dont do this facet again
-                    //
-
                     goto ignore_this_facet;
                 }
             }
-
-            //
-            // Remember this facet.
-            //
 
             ASSERT(WITHIN(CONE_colvect_done_upto, 0, CONE_COLVECT_DONE - 1));
             ASSERT(CONE_COLVECT_DONE == 4 || CONE_COLVECT_DONE == 8);
@@ -787,10 +583,6 @@ void CONE_intersect_square(
             CONE_colvect_done[CONE_colvect_done_upto] = facet;
             CONE_colvect_done_upto += 1;
             CONE_colvect_done_upto &= CONE_COLVECT_DONE - 1;
-
-            //
-            // The poly covering the facet.
-            //
 
             df = &dfacets[facet];
 
@@ -811,17 +603,10 @@ void CONE_intersect_square(
             poly[3].z = float(df->z[0] << 8);
 
             if (df->FacetType == STOREY_TYPE_NORMAL_FOUNDATION) {
-                //
-                // Foundations go down deep into the ground...
-                //
-
+                // Foundations extend below ground.
                 poly[0].y -= 256.0F;
                 poly[3].y -= 256.0F;
             }
-
-            //
-            // Clip the cone to this colvect.
-            //
 
             CONE_clip(poly, 4);
 
@@ -831,66 +616,10 @@ void CONE_intersect_square(
         }
     }
 
-    /*
-
-    //
-    // The walkable faces.
-    //
-
-    w_list = me->Walkable;
-
-    while(w_list)
-    {
-            w_face = walk_links[w_list].Face;
-
-            if (w_face > 0)
-            {
-                    p_f4 = &prim_faces4[w_face];
-
-                    //
-                    // Find the thing this face is a part of!!!
-                    //
-
-                    wall = p_f4->ThingIndex;
-
-                    if (wall < 0)
-                    {
-                            storey   = wall_list[-wall].StoreyHead;
-                            building = storey_list[storey].BuildingHead;
-                            thing    = building_list[building].ThingIndex;
-                            p_fthing = TO_THING(thing);
-
-                            poly[0].x  = float(p_fthing->WorldPos.X >> 8);
-                            poly[0].y  = float(p_fthing->WorldPos.Y >> 8);
-                            poly[0].z  = float(p_fthing->WorldPos.Z >> 8);
-
-                            poly[1]    = poly[0];
-                            poly[2]    = poly[0];
-                            poly[3]    = poly[0];
-
-                            for (i = 0; i < 4; i++)
-                            {
-                                    pp = &prim_points[p_f4->Points[face_order[i]]];
-
-                                    poly[i].x += float(pp->X);
-                                    poly[i].y += float(pp->Y);
-                                    poly[i].z += float(pp->Z);
-                            }
-
-                            //
-                            // Clip the cone to this walkable face.
-                            //
-
-                            CONE_clip(poly, 4);
-                    }
-            }
-
-            w_list = walk_links[w_list].Next;
-    }
-
-    */
+    // Walkable face intersection is commented out in the original.
 }
 
+// uc_orig: CONE_intersect_with_map (fallen/DDEngine/Source/cone.cpp)
 void CONE_intersect_with_map()
 {
     SLONG i;
@@ -917,10 +646,6 @@ void CONE_intersect_with_map()
     SLONG len;
     SLONG steps;
 
-    //
-    // Make sure we dont do the same mapsquare more than once.
-    //
-
 #define CONE_MAX_DONE 4
 
     struct
@@ -930,10 +655,6 @@ void CONE_intersect_with_map()
 
     } done[CONE_MAX_DONE] = { { -1, -1 }, { -1, -1 }, { -1, -1 }, { -1, -1 } };
     SLONG done_upto = 0;
-
-    //
-    // Make sure we dont do a colvect more than once.
-    //
 
     for (i = 0; i < CONE_COLVECT_DONE; i++) {
         CONE_colvect_done[i] = -1;
@@ -952,10 +673,7 @@ void CONE_intersect_with_map()
 
     len = QDIST2(abs(dx), abs(dz)) + 1;
 
-    //
     // Four steps per lo-res mapsquare.
-    //
-
     dx = (dx << 8) / len;
     dz = (dz << 8) / len;
 
@@ -973,19 +691,11 @@ void CONE_intersect_with_map()
             mx = x - lx + lx * j >> PAP_SHIFT_LO;
             mz = z - lz + lz * j >> PAP_SHIFT_LO;
 
-            //
-            // Have we done this mapsquare before?
-            //
-
             for (k = 0; k < CONE_MAX_DONE; k++) {
                 if (done[k].x == mx && done[k].z == mz) {
                     goto already_done_this_square;
                 }
             }
-
-            //
-            // Remember this square.
-            //
 
             ASSERT(WITHIN(done_upto, 0, CONE_MAX_DONE - 1));
 
@@ -997,10 +707,6 @@ void CONE_intersect_with_map()
             done_upto += 1;
             done_upto &= CONE_MAX_DONE - 1;
 
-            //
-            // Intersect the cone with stuff one this mapsquare.
-            //
-
             CONE_intersect_square(mx, mz);
 
         already_done_this_square:;
@@ -1011,6 +717,7 @@ void CONE_intersect_with_map()
     }
 }
 
+// uc_orig: CONE_draw (fallen/DDEngine/Source/cone.cpp)
 void CONE_draw()
 {
     SLONG i;
@@ -1026,10 +733,7 @@ void CONE_draw()
     CONE_Point* cp1;
     CONE_Point* cp2;
 
-    //
-    // Rotate the origin of the cone.
-    //
-
+    // Project the cone origin.
     POLY_transform(
         CONE_origin_x,
         CONE_origin_y,
@@ -1037,10 +741,7 @@ void CONE_draw()
         &ppo);
 
     if (!ppo.IsValid()) {
-        //
-        // If the origin of the cone is behind us, then we are doomed!
-        //
-
+        // Origin is behind the camera: nothing visible.
         return;
     }
 
@@ -1049,10 +750,7 @@ void CONE_draw()
     ppo.colour = CONE_origin_colour;
     ppo.specular = 0x00000000;
 
-    //
-    // Rotate all the points in the cone.
-    //
-
+    // Project all base circle points.
     for (i = 0; i < CONE_point_upto; i++) {
         cp = &CONE_point[i];
 
@@ -1068,10 +766,7 @@ void CONE_draw()
         cp->pp.v = 0.0F;
     }
 
-    //
-    // Generate the triangles.
-    //
-
+    // Emit the triangle fan.
     tri[0] = &ppo;
 
     for (i = 0; i < CONE_point_upto; i++) {

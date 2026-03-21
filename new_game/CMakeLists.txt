@@ -161,15 +161,17 @@ set(SOURCES_NEW
     src/new/effects/tracks_globals.cpp
     src/new/world/map/map.cpp
     src/new/world/map/map_globals.cpp
+    src/new/engine/graphics/geometry/cone.cpp
+    src/new/engine/graphics/geometry/cone_globals.cpp
+    src/new/engine/graphics/geometry/farfacet.cpp
+    src/new/engine/graphics/geometry/farfacet_globals.cpp
 )
 
 set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/aeng.cpp
-    src/old/fallen/DDEngine/Source/cone.cpp
     src/old/fallen/DDEngine/Source/drawxtra.cpp
     src/old/fallen/DDEngine/Source/engineMap.cpp
     src/old/fallen/DDEngine/Source/facet.cpp
-    src/old/fallen/DDEngine/Source/farfacet.cpp
     src/old/fallen/DDEngine/Source/fastprim.cpp
     src/old/fallen/DDEngine/Source/figure.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
