@@ -30119,6 +30119,626 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_X1_DEACTIVATED",
+      "file": "new/world/environment/tripwire.h",
+      "orig_name": "TRIP_X1_DEACTIVATED",
+      "orig_file": "fallen/Headers/trip.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_Wire",
+      "file": "new/world/environment/tripwire.h",
+      "orig_name": "TRIP_Wire",
+      "orig_file": "fallen/Headers/trip.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_MAX_WIRES",
+      "file": "new/world/environment/tripwire.h",
+      "orig_name": "TRIP_MAX_WIRES",
+      "orig_file": "fallen/Headers/trip.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_Info",
+      "file": "new/world/environment/tripwire.h",
+      "orig_name": "TRIP_Info",
+      "orig_file": "fallen/Headers/trip.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_wire",
+      "file": "new/world/environment/tripwire_globals.h",
+      "orig_name": "TRIP_wire",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_wire_upto",
+      "file": "new/world/environment/tripwire_globals.h",
+      "orig_name": "TRIP_wire_upto",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_get_upto",
+      "file": "new/world/environment/tripwire_globals.h",
+      "orig_name": "TRIP_get_upto",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_get_info",
+      "file": "new/world/environment/tripwire_globals.h",
+      "orig_name": "TRIP_get_info",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_NOT_COLLIDED",
+      "file": "new/world/environment/tripwire.cpp",
+      "orig_name": "TRIP_NOT_COLLIDED",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_init",
+      "file": "new/world/environment/tripwire.cpp",
+      "orig_name": "TRIP_init",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_create",
+      "file": "new/world/environment/tripwire.cpp",
+      "orig_name": "TRIP_create",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_collide",
+      "file": "new/world/environment/tripwire.cpp",
+      "orig_name": "TRIP_collide",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_process",
+      "file": "new/world/environment/tripwire.cpp",
+      "orig_name": "TRIP_process",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_get_start",
+      "file": "new/world/environment/tripwire.cpp",
+      "orig_name": "TRIP_get_start",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_get_next",
+      "file": "new/world/environment/tripwire.cpp",
+      "orig_name": "TRIP_get_next",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_activated",
+      "file": "new/world/environment/tripwire.cpp",
+      "orig_name": "TRIP_activated",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRIP_deactivate",
+      "file": "new/world/environment/tripwire.cpp",
+      "orig_name": "TRIP_deactivate",
+      "orig_file": "fallen/Source/trip.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_TYPE_STRIP1",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_TYPE_STRIP1",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_TYPE_STRIP2",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_TYPE_STRIP2",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_TYPE_CORNER",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_TYPE_CORNER",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_TYPE_WHOLE",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_TYPE_WHOLE",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_TYPE_NUMBER",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_TYPE_NUMBER",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_Puddle",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_Puddle",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_MAX_PUDDLES",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_MAX_PUDDLES",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_MAPWHO_SIZE",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_MAPWHO_SIZE",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_puddle",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_puddle",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_puddle_upto",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_puddle_upto",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_mapwho",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_mapwho",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_get_upto",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_get_upto",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_get_z",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_get_z",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_get_x_min",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_get_x_min",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_get_x_max",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_get_x_max",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_get_info",
+      "file": "new/world/environment/puddle_globals.h",
+      "orig_name": "PUDDLE_get_info",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_Info",
+      "file": "new/world/environment/puddle.h",
+      "orig_name": "PUDDLE_Info",
+      "orig_file": "fallen/Headers/puddle.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_Texture",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_Texture",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_texture",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_texture",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_ripple",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_ripple",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_create_do",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_create_do",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_init",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_init",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_create",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_create",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_precalculate",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_precalculate",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_in",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_in",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_splash",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_splash",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_process",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_process",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_get_start",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_get_start",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_get_next",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_get_next",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_EXTEND_REFLECTION",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_EXTEND_REFLECTION",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_WHOLE_SIZE",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_WHOLE_SIZE",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_NUM_RIPPLES",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_NUM_RIPPLES",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PUDDLE_SPLASH_Y_RANGE",
+      "file": "new/world/environment/puddle.cpp",
+      "orig_name": "PUDDLE_SPLASH_Y_RANGE",
+      "orig_file": "fallen/Source/puddle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAND_init",
+      "file": "new/world/navigation/wand.h",
+      "orig_name": "WAND_init",
+      "orig_file": "fallen/Headers/wand.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAND_get_next_place",
+      "file": "new/world/navigation/wand.h",
+      "orig_name": "WAND_get_next_place",
+      "orig_file": "fallen/Headers/wand.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAND_square_is_wander",
+      "file": "new/world/navigation/wand.h",
+      "orig_name": "WAND_square_is_wander",
+      "orig_file": "fallen/Headers/wand.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAND_draw",
+      "file": "new/world/navigation/wand.h",
+      "orig_name": "WAND_draw",
+      "orig_file": "fallen/Headers/wand.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAND_find_good_start_point",
+      "file": "new/world/navigation/wand.h",
+      "orig_name": "WAND_find_good_start_point",
+      "orig_file": "fallen/Source/wand.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAND_find_good_start_point_near",
+      "file": "new/world/navigation/wand.h",
+      "orig_name": "WAND_find_good_start_point_near",
+      "orig_file": "fallen/Source/wand.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAND_find_good_start_point_for_car",
+      "file": "new/world/navigation/wand.h",
+      "orig_name": "WAND_find_good_start_point_for_car",
+      "orig_file": "fallen/Source/wand.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAND_square_for_person",
+      "file": "new/world/navigation/wand.cpp",
+      "orig_name": "WAND_square_for_person",
+      "orig_file": "fallen/Source/wand.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAND_MAX_LOOKS",
+      "file": "new/world/navigation/wand.cpp",
+      "orig_name": "WAND_MAX_LOOKS",
+      "orig_file": "fallen/Source/wand.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAND_MAX_MOVE",
+      "file": "new/world/navigation/wand.cpp",
+      "orig_name": "WAND_MAX_MOVE",
+      "orig_file": "fallen/Source/wand.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SEARCH_SIZE",
+      "file": "new/world/navigation/wand.cpp",
+      "orig_name": "SEARCH_SIZE",
+      "orig_file": "fallen/Source/wand.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SEARCH_SIZE2",
+      "file": "new/world/navigation/wand.cpp",
+      "orig_name": "SEARCH_SIZE2",
+      "orig_file": "fallen/Source/wand.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

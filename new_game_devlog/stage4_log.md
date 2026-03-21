@@ -450,6 +450,15 @@ Entity mapping обновлён (33 записи — file path).
 
 ---
 
+## Итерация 46 — world/environment/puddle + tripwire + world/navigation/wand (2026-03-21)
+
+- `PUDDLE_texture` / `PUDDLE_ripple` — non-static в оригинале, но нигде не используются снаружи; оставлены `static` в `puddle.cpp` (аналогично `alDevice`/`alContext` из итерации 13)
+- `WAND_square_for_person` — не объявлена в оригинальном `wand.h`, file-private static хелпер
+- `WAND_find_good_start_point` / `WAND_find_good_start_point_near` / `WAND_find_good_start_point_for_car` — не в оригинальном `wand.h`, но вызываются снаружи через extern forward declarations; добавлены в `wand.h`
+- `MapElement* me` в `PUDDLE_init` — declared-but-unused, из оригинала, перенесён 1:1
+
+---
+
 ## Итерация 44 — world/environment/id.h (header-only) + stair + plat (2026-03-21)
 
 - `id.h` → header-only `world/environment/id.h`; нет зависимостей кроме `core/types.h`; `id.cpp` отсутствует в `old/` (удалён на этапе 2)

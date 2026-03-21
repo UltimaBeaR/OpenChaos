@@ -291,7 +291,8 @@ set(SOURCES_GAME
     src/new/world/environment/plat_globals.cpp
     src/old/fallen/Source/playcuts.cpp
     src/old/fallen/Source/Prim.cpp
-    src/old/fallen/Source/puddle.cpp
+    src/new/world/environment/puddle.cpp
+    src/new/world/environment/puddle_globals.cpp
     src/old/fallen/Source/pyro.cpp
     src/old/fallen/Source/qedit.cpp
     src/old/fallen/Source/qmap.cpp
@@ -306,10 +307,11 @@ set(SOURCES_GAME
     src/new/world/environment/stair_globals.cpp
     src/old/fallen/Source/supermap.cpp
     src/old/fallen/Source/Thing.cpp
-    src/old/fallen/Source/trip.cpp
+    src/new/world/environment/tripwire.cpp
+    src/new/world/environment/tripwire_globals.cpp
     src/old/fallen/Source/vehicle.cpp
 
-    src/old/fallen/Source/wand.cpp
+    src/new/world/navigation/wand.cpp
     src/old/fallen/Source/ware.cpp
     src/old/fallen/Source/widget.cpp
     src/old/fallen/Source/wmove.cpp
