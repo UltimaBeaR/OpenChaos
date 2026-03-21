@@ -45139,6 +45139,296 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "key_frame_count",
+      "file": "new/assets/anim_loader_globals.h",
+      "orig_name": "key_frame_count",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "current_element",
+      "file": "new/assets/anim_loader_globals.h",
+      "orig_name": "current_element",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "x_centre",
+      "file": "new/assets/anim_loader_globals.h",
+      "orig_name": "x_centre",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "y_centre",
+      "file": "new/assets/anim_loader_globals.h",
+      "orig_name": "y_centre",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "z_centre",
+      "file": "new/assets/anim_loader_globals.h",
+      "orig_name": "z_centre",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_frame_numbers",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "load_frame_numbers",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "invert_mult",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "invert_mult",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "sort_multi_object",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "sort_multi_object",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_default_people_types",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "set_default_people_types",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "make_compress_matrix",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "make_compress_matrix",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "normalise_max_matrix",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "normalise_max_matrix",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_multi_vue",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "load_multi_vue",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_anim_mesh",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "load_anim_mesh",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_key_frame_chunks",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "load_key_frame_chunks",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "read_a_prim",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "read_a_prim",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_a_multi_prim",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "load_a_multi_prim",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_matching_face",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "find_matching_face",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "create_kline_bottle",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "create_kline_bottle",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_palette",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "load_palette",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "save_insert_a_multi_prim",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "save_insert_a_multi_prim",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "save_insert_game_chunk",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "save_insert_game_chunk",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "save_anim_system",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "save_anim_system",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_insert_game_chunk",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "load_insert_game_chunk",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_insert_a_multi_prim",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "load_insert_a_multi_prim",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_anim_system",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "load_anim_system",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_append_game_chunk",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "load_append_game_chunk",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "skip_a_prim",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "skip_a_prim",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "skip_load_a_multi_prim",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "skip_load_a_multi_prim",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "append_anim_system",
+      "file": "new/assets/anim_loader.h",
+      "orig_name": "append_anim_system",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

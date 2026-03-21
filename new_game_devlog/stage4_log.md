@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 70 — assets/anim_loader (io.cpp второй чанк: VUE loader + .all/.moj loaders) (2026-03-21)
+
+- `prim_points`, `prim_faces3/4`, `prim_objects`, `prim_multi_objects` объявлены в `memory.h` (не в `prim.h`) — добавлен `// Temporary:` include на `memory.h`.
+- `DONT_load` из `world/map/supermap_globals.h` — DAG-нарушение (assets → world); помечено `// Temporary:`.
+- `old/fallen/Source/io.cpp` полностью заменён redirect-заглушкой.
+
+---
+
 ## Итерация 69 — engine/lighting/night (второй чанк: dfcache_recalc..NIGHT_load_ed_file) (2026-03-21)
 
 - Мигрированы: `NIGHT_dfcache_recalc`, `NIGHT_dfcache_create`, `NIGHT_dfcache_destroy`, `NIGHT_get_light_at`, `NIGHT_find`, `NIGHT_init`, `calc_lighting__for_point`, `NIGHT_generate_roof_walkable`, `NIGHT_generate_walkable_lighting`, `NIGHT_destroy_all_cached_info`, `NIGHT_load_ed_file`.
