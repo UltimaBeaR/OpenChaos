@@ -33579,6 +33579,746 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_PYROS",
+      "file": "new/effects/pyro.h",
+      "orig_name": "MAX_PYROS",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_NONE",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_NONE",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FIREWALL",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FIREWALL",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FIREPOOL",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FIREPOOL",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_BONFIRE",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_BONFIRE",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_IMMOLATE",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_IMMOLATE",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_EXPLODE",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_EXPLODE",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_DUSTWAVE",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_DUSTWAVE",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_EXPLODE2",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_EXPLODE2",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_STREAMER",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_STREAMER",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_TWANGER",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_TWANGER",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FLICKER",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FLICKER",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_HITSPANG",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_HITSPANG",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FIREBOMB",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FIREBOMB",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_SPLATTERY",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_SPLATTERY",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_IRONICWATERFALL",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_IRONICWATERFALL",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_NEWDOME",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_NEWDOME",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_WHOOMPH",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_WHOOMPH",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_GAMEOVER",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_GAMEOVER",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_RANGE",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_RANGE",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FLAGS_INSTANT",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FLAGS_INSTANT",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FLAGS_WAVE",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FLAGS_WAVE",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FLAGS_INFINITE",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FLAGS_INFINITE",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FLAGS_TOUCHPOINT",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FLAGS_TOUCHPOINT",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FLAGS_FLICKER",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FLAGS_FLICKER",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FLAGS_BONFIRE",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FLAGS_BONFIRE",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FLAGS_FLAME",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FLAGS_FLAME",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FLAGS_SMOKE",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FLAGS_SMOKE",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_FLAGS_STATIC",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_FLAGS_STATIC",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Pyro",
+      "file": "new/effects/pyro.h",
+      "orig_name": "Pyro",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PyroPtr",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PyroPtr",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RadPoint",
+      "file": "new/effects/pyro.h",
+      "orig_name": "RadPoint",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PyrPoint",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PyrPoint",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Pyrex",
+      "file": "new/effects/pyro.h",
+      "orig_name": "Pyrex",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_pyros",
+      "file": "new/effects/pyro.h",
+      "orig_name": "init_pyros",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_pyro",
+      "file": "new/effects/pyro.h",
+      "orig_name": "alloc_pyro",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_create",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_create",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_get_pyro",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_get_pyro",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_construct",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_construct",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_hitspang",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_hitspang",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_blast_radius",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_blast_radius",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_init_state",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_init_state",
+      "orig_file": "fallen/Headers/pyro.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MergeSoundFX",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "MergeSoundFX",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "normalise_val256",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "normalise_val256",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_pyro",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "free_pyro",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_fn_init",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_fn_init",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_fn_normal",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_fn_normal",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_fn_init_ex",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_fn_init_ex",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_fn_normal_ex",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_fn_normal_ex",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_defaultpoints",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "PYRO_defaultpoints",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "global_spang_count",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "global_spang_count",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "col_with",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "col_with",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_MAX_COL_WITH",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "MAX_COL_WITH",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BONFIRE_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "BONFIRE_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "IMMOLATE_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "IMMOLATE_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EXPLODE_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "EXPLODE_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DUSTWAVE_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "DUSTWAVE_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EXPLODE2_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "EXPLODE2_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STREAMER_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "STREAMER_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TWANGER_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "TWANGER_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIREBOMB_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "FIREBOMB_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "IRONICWATERFALL_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "IRONICWATERFALL_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NEWDOME_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "NEWDOME_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_state_function",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "PYRO_state_function",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PYRO_functions",
+      "file": "new/effects/pyro_globals.h",
+      "orig_name": "PYRO_functions",
+      "orig_file": "fallen/Source/pyro.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_GUN_AIM",
+      "file": "new/actors/items/guns.h",
+      "orig_name": "MAX_GUN_AIM",
+      "orig_file": "fallen/Source/guns.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GUN_RANGE_BLOCKS",
+      "file": "new/actors/items/guns.cpp",
+      "orig_name": "GUN_RANGE_BLOCKS",
+      "orig_file": "fallen/Source/guns.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GUN_ANGLE_RANGE",
+      "file": "new/actors/items/guns.cpp",
+      "orig_name": "GUN_ANGLE_RANGE",
+      "orig_file": "fallen/Source/guns.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_NEW_TARGET_DANGLE",
+      "file": "new/actors/items/guns.cpp",
+      "orig_name": "MAX_NEW_TARGET_DANGLE",
+      "orig_file": "fallen/Source/guns.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_gun_aim_stats",
+      "file": "new/actors/items/guns.h",
+      "orig_name": "get_gun_aim_stats",
+      "orig_file": "fallen/Source/guns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_target_score_new",
+      "file": "new/actors/items/guns.h",
+      "orig_name": "calc_target_score_new",
+      "orig_file": "fallen/Source/guns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_target_new",
+      "file": "new/actors/items/guns.h",
+      "orig_name": "find_target_new",
+      "orig_file": "fallen/Source/guns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_snipe_target_score",
+      "file": "new/actors/items/guns.h",
+      "orig_name": "calc_snipe_target_score",
+      "orig_file": "fallen/Source/guns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_snipe_target",
+      "file": "new/actors/items/guns.h",
+      "orig_name": "find_snipe_target",
+      "orig_file": "fallen/Source/guns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

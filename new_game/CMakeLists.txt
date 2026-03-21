@@ -274,7 +274,7 @@ set(SOURCES_GAME
     src/old/fallen/Source/Game.cpp
     src/new/ui/menus/gamemenu.cpp
     src/new/ui/menus/gamemenu_globals.cpp
-    src/old/fallen/Source/guns.cpp
+    src/new/actors/items/guns.cpp
     src/old/fallen/Source/hm.cpp
     src/old/fallen/Source/interact.cpp
     src/old/fallen/Source/interfac.cpp
@@ -298,7 +298,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/Prim.cpp
     src/new/world/environment/puddle.cpp
     src/new/world/environment/puddle_globals.cpp
-    src/old/fallen/Source/pyro.cpp
+    src/new/effects/pyro.cpp
+    src/new/effects/pyro_globals.cpp
     src/old/fallen/Source/qedit.cpp
     src/old/fallen/Source/qmap.cpp
     src/new/world/map/road.cpp

@@ -1,77 +1,25 @@
-// claude-ai: PYRO — high-level pyrotechnics system (fire, explosions, smoke, blood, game-over)
-// claude-ai: Each PYRO = Thing(CLASS_PYRO) with state machine (INIT→NORMAL), MAX_PYROS=64 (PC)
-// claude-ai: 18 types: FIREWALL(line of FLICKER), FIREPOOL, BONFIRE(dlight+sound), IMMOLATE(-10HP/frame on victim),
-// claude-ai:   EXPLODE(old Pyrex hemisphere), DUSTWAVE, EXPLODE2(new big bang, dlight COS fade),
-// claude-ai:   STREAMER(4 smoke trails), TWANGER(light beams), FLICKER(RIBBON oscillating fire),
-// claude-ai:   HITSPANG(bullet impact, blood/sparks, max 5 concurrent), FIREBOMB(TICK_RATIO driven),
-// claude-ai:   SPLATTERY(blood splats + TRACKS_AddQuad), IRONICWATERFALL(fountain/chimney/smoke),
-// claude-ai:   NEWDOME(dome+sprites, SIN radius), WHOOMPH(Balrog fireball impact), GAMEOVER(8 dlights, kills Darci)
-// claude-ai: PYRO_construct(pos, types_bitmask, scale) — composite: &1=TWANGER &2=EXPLODE2+gust &4=DUST &8=STREAMER &16=BONFIRE &32=NEWDOME+gust &64=FIREBOMB &128=FIREBOMB+WAVE
-// claude-ai: PYRO_blast_radius(x,y,z,r,str) — finds CLASS_PERSON in sphere → creates IMMOLATE on each
-// claude-ai: PYRO_hitspang() — from LEFT_HAND of shooter; person target=blood from HEAD; non-person=sparks
-// claude-ai: IMMOLATE details: tracks victim, particles on random bones(1-5/frame), -10HP/frame, RIBBON fire progression
-// claude-ai: MergeSoundFX() — reuses sound from nearby same-type PYRO (sphere 5*256) to avoid overlapping
-// claude-ai: Uses subsystems: PARTICLE_Add, RIBBON, DIRT_new_water/sparks, NIGHT_dlight, TRACKS_AddQuad, MFX
-
-//
-// Pyrotechnics
-// Burning (and maybe Exploding) Things
-//
+// Pyrotechnics — fire, explosions, smoke and bullet-hit effects.
+// Each pyro is a CLASS_PYRO Thing with a state machine (INIT -> NORMAL).
+// The PYRO_functions table maps PyroType to per-type StateFunction arrays.
+// All 18 pyro types share the same PYRO_fn_init/PYRO_fn_normal dispatch,
+// except PYRO_EXPLODE which uses PYRO_fn_init_ex/PYRO_fn_normal_ex.
 
 #include "game.h"
-#include "pyro.h"
+#include "effects/pyro.h"
+#include "effects/pyro_globals.h"
 #include "statedef.h"
-#include "..\DDEngine\Headers\Matrix.h"
-#include "..\DDEngine\Headers\Sprite.h"
-#include "..\DDEngine\Headers\poly.h"
-#include "dirt.h"
 #include "ribbon.h"
-#include "combat.h"
-#include "barrel.h"
-#include "sound.h"
-#include "animate.h"
-#include "interact.h"
 #include "night.h"
-#include "mfx.h"
+#include "dirt.h"
+#include "sound.h"
 #include "psystem.h"
 #include "pcom.h"
 #include "gamemenu.h"
+#include "animate.h"
+#include "combat.h"
+#include "engine/graphics/pipeline/poly.h"
 
-RadPoint PYRO_defaultpoints[16];
-
-/************************************************************
- *
- *   Generic pyro infrastructure stuff
- *
- */
-
-GenusFunctions PYRO_functions[PYRO_RANGE] = {
-    { PYRO_NONE, NULL },
-    { PYRO_FIREWALL, PYRO_state_function },
-    { PYRO_FIREPOOL, PYRO_state_function },
-    { PYRO_BONFIRE, BONFIRE_state_function },
-    { PYRO_IMMOLATE, IMMOLATE_state_function },
-    { PYRO_EXPLODE, EXPLODE_state_function },
-    { PYRO_DUSTWAVE, DUSTWAVE_state_function },
-    { PYRO_EXPLODE2, EXPLODE2_state_function },
-    { PYRO_STREAMER, STREAMER_state_function },
-    { PYRO_TWANGER, TWANGER_state_function },
-    { PYRO_FLICKER, PYRO_state_function },
-    { PYRO_HITSPANG, PYRO_state_function },
-    { PYRO_FIREBOMB, FIREBOMB_state_function },
-    { PYRO_SPLATTERY, PYRO_state_function },
-    { PYRO_IRONICWATERFALL, IRONICWATERFALL_state_function },
-    { PYRO_NEWDOME, NEWDOME_state_function },
-    { PYRO_WHOOMPH, PYRO_state_function },
-    { PYRO_GAMEOVER, PYRO_state_function },
-};
-
-//
-// Zeros out the pyros in the 'the_game' structure.
-//
-
-SBYTE global_spang_count = 0;
-
+// uc_orig: init_pyros (fallen/Source/pyro.cpp)
 void init_pyros(void)
 {
     memset((UBYTE*)PYROS, 0, sizeof(Pyro) * MAX_PYROS);
@@ -83,10 +31,7 @@ void init_pyros(void)
     PYRO_COUNT = 1;
 }
 
-//
-// Creates a new pyro of the given type.
-//
-
+// uc_orig: alloc_pyro (fallen/Source/pyro.cpp)
 Thing* alloc_pyro(UBYTE type)
 {
 
@@ -100,10 +45,7 @@ Thing* alloc_pyro(UBYTE type)
 
     ASSERT(WITHIN(type, 1, PYRO_RANGE - 1));
 
-    //
     // Look for an unused pyro structure.
-    //
-
     for (i = 1; i < MAX_PYROS; i++) {
         if (PYROS[i].PyroType == PYRO_NONE) {
             a_index = i;
@@ -112,10 +54,7 @@ Thing* alloc_pyro(UBYTE type)
         }
     }
 
-    //
     // There are no spare pyro structures.
-    //
-
     return NULL;
 
 found_pyro:
@@ -124,47 +63,36 @@ found_pyro:
     if (t_index) {
         p_thing = TO_THING(t_index);
         p_pyro = TO_PYRO(a_index);
-        //		DebugText(" alloc pyro %d thing %d\n",a_index,THING_NUMBER(p_thing));
 
         if (a_index >= PYRO_COUNT)
             PYRO_COUNT = a_index + 1;
 
-        //
         // Link the pyro to the thing and back again.
-        //
-
         p_thing->Class = CLASS_PYRO;
         p_thing->Genus.Pyro = p_pyro;
         p_pyro->PyroType = type;
         p_pyro->thing = p_thing;
 
-        //
-        // Set the draw type
-        //
-
+        // Set the draw type.
         p_thing->DrawType = DT_PYRO;
-
-        //		PYRO_COUNT++;
 
         return p_thing;
     } else {
-        //
-        // Free up the pyro structure
-        //
-
+        // Free up the pyro structure.
         TO_PYRO(a_index)->PyroType = PYRO_NONE;
 
         return NULL;
     }
 }
 
+// uc_orig: free_pyro (fallen/Source/pyro.cpp)
 void free_pyro(Thing* p_thing)
 {
     Pyro* pyro = PYRO_get_pyro(p_thing);
 
     remove_thing_from_map(p_thing);
 
-    // Free up type-specific info
+    // Free up type-specific info.
     switch (pyro->PyroType) {
     case PYRO_IMMOLATE: {
         UBYTE i, r;
@@ -186,16 +114,14 @@ void free_pyro(Thing* p_thing)
 
     pyro->soundid = 0;
 
-    //
     // Free the pyro structure and the thing structure.
-    //
     pyro->PyroType = PYRO_NONE;
-    //	PYRO_COUNT--;
 
     p_thing->DrawType = DT_NONE;
     free_thing(p_thing);
 }
 
+// uc_orig: PYRO_create (fallen/Source/pyro.cpp)
 Thing* PYRO_create(GameCoord pos, UBYTE type)
 {
     Thing* p_thing = alloc_pyro(type);
@@ -205,16 +131,14 @@ Thing* PYRO_create(GameCoord pos, UBYTE type)
 
         add_thing_to_map(p_thing);
 
-        //
         // Make it initialise itself.
-        //
-
         set_state_function(p_thing, STATE_INIT);
     }
 
     return p_thing;
 }
 
+// uc_orig: PYRO_get_pyro (fallen/Source/pyro.cpp)
 Pyro* PYRO_get_pyro(struct Thing* pyro_thing)
 {
     Pyro* pyro;
@@ -229,19 +153,15 @@ Pyro* PYRO_get_pyro(struct Thing* pyro_thing)
     return pyro;
 }
 
-/*************************************************************
- *
- *   Blast radius stuff
- *   (rocket jumping, anyone? :P )
- */
-
-#define MAX_COL_WITH 16
-
+// Finds all CLASS_PERSON Things in radius and applies PYRO_IMMOLATE to each.
+// uc_orig: PYRO_blast_radius (fallen/Source/pyro.cpp)
 void PYRO_blast_radius(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG strength)
 {
+// Local MAX_COL_WITH is separate from the file-scope col_with[] array.
+#define MAX_COL_WITH 16
 
     SLONG collide_types, col_with_upto, i;
-    THING_INDEX col_with[MAX_COL_WITH];
+    THING_INDEX local_col_with[MAX_COL_WITH];
     Thing* col_thing;
 
     collide_types = (1 << CLASS_PERSON);
@@ -251,17 +171,15 @@ void PYRO_blast_radius(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG strength)
         y >> 8,
         z >> 8,
         radius,
-        col_with,
+        local_col_with,
         MAX_COL_WITH,
         collide_types);
 
     ASSERT(col_with_upto <= MAX_COL_WITH);
 
     for (i = 0; i < col_with_upto; i++) {
-        col_thing = TO_THING(col_with[i]);
+        col_thing = TO_THING(local_col_with[i]);
 
-        // stuff to do to everything:
-        // stuff to do to specific classes (for when collide_types gets new flags):
         switch (col_thing->Class) {
         case CLASS_PERSON: {
             Thing* pyro = PYRO_create(col_thing->WorldPos, PYRO_IMMOLATE);
@@ -272,24 +190,14 @@ void PYRO_blast_radius(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG strength)
         } break;
         }
     }
+
+#undef MAX_COL_WITH
 }
 
-/*************************************************************
- *
- *   Pyro Utility Belt
- *
- */
-
-//
-// MergeSoundFX creates a sound effect for the pyro, unless
-// other pyros of the same time already did that and are close
-// by, in which case they share.
-//
-
-#define MAX_COL_WITH 16
-THING_INDEX col_with[MAX_COL_WITH];
-
-SLONG MergeSoundFX(Thing* thing, Pyro* pyro)
+// Tries to share a sound effect with a nearby pyro of the same type.
+// If no match is found, creates a new sound for EXPLODE2, BONFIRE, or FLICKER.
+// uc_orig: MergeSoundFX (fallen/Source/pyro.cpp)
+static SLONG MergeSoundFX(Thing* thing, Pyro* pyro)
 {
     SLONG col_with_upto;
     SLONG collide_types = (1 << CLASS_PYRO);
@@ -302,22 +210,18 @@ SLONG MergeSoundFX(Thing* thing, Pyro* pyro)
         thing->WorldPos.Z >> 8,
         5 * 256,
         col_with,
-        MAX_COL_WITH,
+        PYRO_MAX_COL_WITH,
         collide_types);
 
     for (i = 0; i < col_with_upto; i++) {
         col_thing = TO_THING(col_with[i]);
 
-        // skip all the dull things
-        if ((col_thing->State == STATE_DEAD) || (col_thing->State == STATE_DYING) || // Dead or dying things are of no interest
-            (col_thing->Genus.Pyro->PyroType != pyro->PyroType) || // nor non-matching kinds of pyro
-            (!col_thing->Genus.Pyro->soundid)) // can't share if it has no sound to share
+        if ((col_thing->State == STATE_DEAD) || (col_thing->State == STATE_DYING) || (col_thing->Genus.Pyro->PyroType != pyro->PyroType) || (!col_thing->Genus.Pyro->soundid))
             continue;
 
         if ((pyro->PyroType == PYRO_EXPLODE2) && (col_thing->Genus.Pyro->counter > 50))
             continue;
 
-        // it'd be nice to average out the position and modify the gain, but hey.
         pyro->soundid = col_thing->Genus.Pyro->soundid;
         return pyro->soundid;
     }
@@ -329,24 +233,25 @@ SLONG MergeSoundFX(Thing* thing, Pyro* pyro)
         break;
     case PYRO_BONFIRE:
     case PYRO_FLICKER:
-        //		sample=S_FIRE; mode=WAVE_LOOP; break;
         sample = S_FIRE;
         mode = MFX_LOOPED;
         break;
     default:
-        return 0; // since we don't know what sound to play, we won't.
+        return 0;
     }
     MFX_play_thing(THING_NUMBER(thing), sample, MFX_OVERLAP | mode, thing);
-    pyro->soundid = THING_NUMBER(thing); // heh.
+    pyro->soundid = THING_NUMBER(thing);
 
     return pyro->soundid;
 }
 
+// Normalises a 3D vector to magnitude 256 (fixed-point unit vector).
+// File-private; Vehicle.cpp has its own independent copy.
+// uc_orig: normalise_val256 (fallen/Source/pyro.cpp)
 static void normalise_val256(SLONG* vx, SLONG* vy, SLONG* vz)
 {
     SLONG len;
 
-    // was	if ((abs(*vx)>512)&&(abs(*vy)>512)&&(abs(*vz)>512))
     if ((abs(*vx) > 32768) && (abs(*vy) > 32768) && (abs(*vz) > 32768)) {
         (*vx) >>= 8;
         (*vy) >>= 8;
@@ -365,73 +270,9 @@ static void normalise_val256(SLONG* vx, SLONG* vy, SLONG* vz)
     *vz = (*vz << 8) / len;
 }
 
-/*************************************************************
- *
- *   Specific pyro behaviour stuff
- *
- */
-
-//
-// The functions called when a pyro is in each State.
-// course, they all do the same right now
-//
-
-void PYRO_fn_init(Thing*);
-void PYRO_fn_normal(Thing*);
-void PYRO_fn_init_ex(Thing*);
-void PYRO_fn_normal_ex(Thing*);
-
-StateFunction BONFIRE_state_function[] = {
-    { STATE_INIT, PYRO_fn_init },
-    { STATE_NORMAL, PYRO_fn_normal }
-};
-StateFunction IMMOLATE_state_function[] = {
-    { STATE_INIT, PYRO_fn_init },
-    { STATE_NORMAL, PYRO_fn_normal }
-};
-StateFunction EXPLODE_state_function[] = {
-    { STATE_INIT, PYRO_fn_init_ex },
-    { STATE_NORMAL, PYRO_fn_normal_ex }
-};
-StateFunction DUSTWAVE_state_function[] = {
-    { STATE_INIT, PYRO_fn_init },
-    { STATE_NORMAL, PYRO_fn_normal }
-};
-StateFunction EXPLODE2_state_function[] = {
-    { STATE_INIT, PYRO_fn_init },
-    { STATE_NORMAL, PYRO_fn_normal }
-};
-StateFunction STREAMER_state_function[] = {
-    { STATE_INIT, PYRO_fn_init },
-    { STATE_NORMAL, PYRO_fn_normal }
-};
-StateFunction TWANGER_state_function[] = {
-    { STATE_INIT, PYRO_fn_init },
-    { STATE_NORMAL, PYRO_fn_normal }
-};
-StateFunction FIREBOMB_state_function[] = {
-    { STATE_INIT, PYRO_fn_init },
-    { STATE_NORMAL, PYRO_fn_normal }
-};
-StateFunction IRONICWATERFALL_state_function[] = {
-    { STATE_INIT, PYRO_fn_init },
-    { STATE_NORMAL, PYRO_fn_normal }
-};
-StateFunction NEWDOME_state_function[] = {
-    { STATE_INIT, PYRO_fn_init },
-    { STATE_NORMAL, PYRO_fn_normal }
-};
-StateFunction PYRO_state_function[] = {
-    { STATE_INIT, PYRO_fn_init },
-    { STATE_NORMAL, PYRO_fn_normal }
-};
-
-// ========================================================
-//
-// The state functions.
-//
-// ========================================================
-
+// Initialises a pyro: resets counters and sets up type-specific resources
+// (ribbons, dynamic lights, streamer data, etc.), then transitions to STATE_NORMAL.
+// uc_orig: PYRO_fn_init (fallen/Source/pyro.cpp)
 void PYRO_fn_init(Thing* thing)
 {
     Pyro* pyro = PYRO_get_pyro(thing);
@@ -473,16 +314,16 @@ void PYRO_fn_init(Thing* thing)
         break;
     case PYRO_STREAMER:
         for (i = 0; i < 4; i++) {
-            // set streamer start time offsets
+            // Set streamer start time offsets.
             pyro->radii[i] = rand() & 0x3f;
-            // prepare streamer attitudes
+            // Prepare streamer attitudes.
             pyro->radii[i + 4] = rand();
         }
-        pyro->counter = 4; // each streamer decs this when done
+        pyro->counter = 4; // Each streamer decrements this when done.
         break;
     case PYRO_TWANGER:
         for (i = 0; i < 8; i++) {
-            // set twanger attitudes;
+            // Set twanger attitudes.
             pyro->radii[i] = rand();
         }
         pyro->tints[0] = pyro->tints[1] = 0;
@@ -492,8 +333,6 @@ void PYRO_fn_init(Thing* thing)
         pyro->scale = 140 + (rand() & 0x7f);
         pyro->radii[0] = 256;
         pyro->radii[1] = 0;
-        //		pyro->padding=RIBBON_alloc(RIBBON_FLAG_CONVECT|RIBBON_FLAG_FADE|RIBBON_FLAG_SLIDE,8+(rand()&0xf),POLY_PAGE_SPARKLE,-1,8,1);
-        //		pyro->scale=100;
         pyro->tints[0] = pyro->tints[1] = 0;
         if (!pyro->Dummy) {
             free_pyro(thing);
@@ -510,9 +349,8 @@ void PYRO_fn_init(Thing* thing)
         GameCoord vec, old;
 
         if (pyro->Dummy) {
-
-            // we're shooting a thing, so set up a hit location
-            // hopefully the creator has set a 'victim' by now
+            // We're shooting a thing, so set up a hit location.
+            // Hopefully the creator has set a 'victim' by now.
 
             if (pyro->victim->Class == CLASS_PERSON) {
                 calc_sub_objects_position(
@@ -529,7 +367,6 @@ void PYRO_fn_init(Thing* thing)
                 vec.X += pyro->victim->WorldPos.X;
                 vec.Y += pyro->victim->WorldPos.Y;
                 vec.Z += pyro->victim->WorldPos.Z;
-                // #ifndef VERSION_GERMAN
                 if (VIOLENCE)
                     for (i = 0; i < 2; i++)
                         DIRT_new_water(
@@ -540,22 +377,18 @@ void PYRO_fn_init(Thing* thing)
                             0,
                             (Random() & 0xf) - 7,
                             DIRT_TYPE_BLOOD);
-                // #endif
             } else {
-                //
-                // Shooting non-people...
-                //
-
+                // Shooting non-people.
                 vec = pyro->victim->WorldPos;
                 DIRT_new_sparks(vec.X >> 8, vec.Y >> 8, vec.Z >> 8, 2);
             }
 
         } else {
-            // we're shooting a random location, target should be preset
+            // We're shooting a random location, target should be preset.
             vec = pyro->target;
         }
 
-        // the WorldPos should be the source of the shot
+        // The WorldPos should be the source of the shot.
         pyro->target.X = pyro->thing->WorldPos.X - vec.X;
         pyro->target.Y = pyro->thing->WorldPos.Y - vec.Y;
         pyro->target.Z = pyro->thing->WorldPos.Z - vec.Z;
@@ -567,45 +400,33 @@ void PYRO_fn_init(Thing* thing)
 
         normalise_val256(&pyro->target.X, &pyro->target.Y, &pyro->target.Z);
 
-        if (abs(old.X) < abs(pyro->target.X << 1)) { // too big
+        if (abs(old.X) < abs(pyro->target.X << 1)) {
             pyro->target = old;
             pyro->target.X >>= 1;
             pyro->target.Y >>= 1;
             pyro->target.Z >>= 1;
         }
 
-        //		pyro->target.X>>=2; pyro->target.Y>>=2; pyro->target.Z>>=2;
-
-        /*		SLONG tst=	(pyro->target.X*pyro->target.X)+
-                                                (pyro->target.Y*pyro->target.Y)+
-                                                (pyro->target.Z*pyro->target.Z);
-
-                        // gnasty float version for testing purposes.
-                        tst=sqrt(tst);
-        */
         move_thing_on_map(pyro->thing, &vec);
 
         break;
     }
 
-    //
     // Start being a normal pyro.
-    //
-
     set_state_function(thing, STATE_NORMAL);
 }
 
+// Initialises PYRO_EXPLODE: builds old hemisphere geometry from PYRO_defaultpoints,
+// then transitions to STATE_NORMAL.
+// uc_orig: PYRO_fn_init_ex (fallen/Source/pyro.cpp)
 void PYRO_fn_init_ex(Thing* thing)
 {
     Pyrex* pyro = (Pyrex*)PYRO_get_pyro(thing);
     UBYTE i, j;
     SLONG height, radius;
     RadPoint* pt;
-    SLONG cx, cz;
 
-    // if this is the first time an explosion is created, then set up
-    // global precalc stuff for the hemisphere
-
+    // On first explosion, precalculate the hemisphere vertex positions.
     if (!PYRO_defaultpoints[0].flags) {
         PYRO_defaultpoints[0].flags = 1;
 
@@ -614,8 +435,6 @@ void PYRO_fn_init_ex(Thing* thing)
 
             height = SIN(i * 350);
             radius = COS(i * 350) >> 8;
-
-            // generate ring x,y
 
             for (j = 0; j < 8; j++) {
                 pt->x = (radius * ((SLONG)SIN(j * 256))) / 256;
@@ -626,8 +445,7 @@ void PYRO_fn_init_ex(Thing* thing)
         }
     }
 
-    // set up the stuff specific to this hemisphere
-
+    // Set up per-instance explosion data.
     for (i = 0; i < 8; i++) {
         pyro->points[i].delta = 40 + (rand() & 0x1f);
         pyro->points[i].radius = 10;
@@ -643,11 +461,12 @@ void PYRO_fn_init_ex(Thing* thing)
 
     thing->Genus.Pyro->Timer1 = 0;
 
-    // Start being a normal pyro.
-
     set_state_function(thing, STATE_NORMAL);
 }
 
+// Per-frame update for all pyro types except PYRO_EXPLODE.
+// Each type has its own timing, particle emission, and lifetime logic.
+// uc_orig: PYRO_fn_normal (fallen/Source/pyro.cpp)
 void PYRO_fn_normal(Thing* thing)
 {
     GameCoord new_pos;
@@ -695,9 +514,9 @@ void PYRO_fn_normal(Thing* thing)
             pyro->counter += 2;
         break;
     case PYRO_BONFIRE:
-        // do some dynamic light stuff
+        // Update dynamic light with flickering colour.
         if ((((THING_NUMBER(thing)) + GAME_TURN) & 7) == 0)
-            MFX_play_thing(99, S_FIRE, MFX_LOOPED | MFX_QUEUED, thing); // mikeD sort of 3d sound
+            MFX_play_thing(99, S_FIRE, MFX_LOOPED | MFX_QUEUED, thing);
 
         if (pyro->dlight) {
             SWORD max = pyro->Dummy;
@@ -767,9 +586,6 @@ void PYRO_fn_normal(Thing* thing)
                     px += pyro->victim->WorldPos.X;
                     py += pyro->victim->WorldPos.Y;
                     pz += pyro->victim->WorldPos.Z;
-                    /*PARTICLE_Add(px,py,pz,0,512,0,POLY_PAGE_FLAMES2,2+((Random()&3)<<2),0x00FFFFFF,
-                            PFLAG_SPRITEANI|PFLAG_SPRITELOOP|PFLAG_FADE2|PFLAG_RESIZE,
-                            300,50,1,1,1);*/
                     PARTICLE_Add(px, py, pz,
                         256 + (Random() & 0xff), 256 + (Random() & 0xff), 256 + (Random() & 0xff),
                         POLY_PAGE_FLAMES2, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
@@ -779,18 +595,11 @@ void PYRO_fn_normal(Thing* thing)
 
                 if ((pyro->victim->State != STATE_DEAD) && (pyro->victim->State != STATE_DYING) && (pyro->radius < 290)) {
                     if ((pyro->victim->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) || (pyro->victim->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL)) {
-                        //
                         // Nothing hurts this person.
-                        //
                     } else {
                         pyro->victim->Genus.Person->Health -= 10;
-                        // TRACE("person's health going down due to immolation\n");
 
                         if (pyro->victim->Genus.Person->Health <= 0) {
-                            //
-                            // The person has died.
-                            //
-
                             pyro->victim->Genus.Person->Health = 0;
 
                             set_person_dead(
@@ -819,8 +628,6 @@ void PYRO_fn_normal(Thing* thing)
                         case 150:
                             pyro->radii[4] = RIBBON_alloc(RIBBON_FLAG_CONVECT | RIBBON_FLAG_FADE | RIBBON_FLAG_SLIDE, 3, POLY_PAGE_FLAMES3, 90, 3, 5 + (rand() & 7));
                             break;
-                            // case 350:
-                            //	free_pyro(thing);
                         }
                         if ((pyro->radius > 350) && (!pyro->victim->Genus.Person->BurnIndex))
                             free_pyro(thing);
@@ -832,7 +639,6 @@ void PYRO_fn_normal(Thing* thing)
         }
         break;
     case PYRO_DUSTWAVE:
-        // BARREL_hit_with_sphere(pyro->thing->WorldPos.X>>8,pyro->thing->WorldPos.Y>>8,pyro->thing->WorldPos.Z>>8,pyro->counter*3);
         if (pyro->counter < 120)
             pyro->counter += 8;
         else
@@ -892,7 +698,7 @@ void PYRO_fn_normal(Thing* thing)
             free_pyro(thing);
         break;
 
-    case PYRO_IRONICWATERFALL: // it's extra ironic now it does chimney smoke... :P
+    case PYRO_IRONICWATERFALL:
         if (pyro->thing->Flags & FLAGS_IN_VIEW) {
             SLONG px, py, pz;
             px = pyro->thing->WorldPos.X >> 8;
@@ -952,9 +758,8 @@ void PYRO_fn_normal(Thing* thing)
         dx = SIN(pyro->radius & 2047) / 8;
         dz = COS(pyro->radius & 2047) / 8;
 
-        // pinch+twist code
+        // Pinch+twist deformation for non-straight flames.
         if (pyro->radii[0] < 256) {
-            // temp
             dx *= pyro->radii[0];
             dx /= 256;
             dz *= pyro->radii[1];
@@ -990,7 +795,6 @@ void PYRO_fn_normal(Thing* thing)
         break;
 
     case PYRO_GAMEOVER:
-        // TRACE("armageddon: %d\n",pyro->counter);
         if (GAMEMENU_is_paused())
             break;
         if (!pyro->counter) {
@@ -1042,7 +846,6 @@ void PYRO_fn_normal(Thing* thing)
 
     case PYRO_FIREBOMB:
         if (pyro->radii[0] < 0xfe00) {
-            // pyro->counter++;
             if (pyro->radii[0] > 2560)
                 pyro->radii[0] += 9 * TICK_RATIO;
             pyro->radii[0] += TICK_RATIO;
@@ -1055,9 +858,6 @@ void PYRO_fn_normal(Thing* thing)
 
     case PYRO_SPLATTERY:
         if (pyro->counter < 254) {
-            /*			Thing *np = PYRO_create(thing->WorldPos,PYRO_ONESMOKE);
-                                    if (np) np->Genus.Pyro->target=thing->WorldPos; // original position for poss. light fx?*/
-
             for (SLONG i = 0; i < 4; i++) {
                 UBYTE sz;
                 SLONG dx, dr, dz, x, y, z, b, ox, oz;
@@ -1114,6 +914,9 @@ void PYRO_fn_normal(Thing* thing)
     }
 }
 
+// Per-frame update for PYRO_EXPLODE (old hemisphere explosion).
+// Expands each point by its delta until they collapse back, then frees.
+// uc_orig: PYRO_fn_normal_ex (fallen/Source/pyro.cpp)
 void PYRO_fn_normal_ex(Thing* thing)
 {
     Pyrex* pyro = (Pyrex*)PYRO_get_pyro(thing);
@@ -1134,8 +937,8 @@ void PYRO_fn_normal_ex(Thing* thing)
         free_pyro(thing);
 }
 
-// --------- interface thingy ---------
-
+// Creates one or more pyro effects at posn based on a types bitmask.
+// uc_orig: PYRO_construct (fallen/Source/pyro.cpp)
 void PYRO_construct(GameCoord posn, SLONG types, SLONG scale)
 {
     Thing* thing;
@@ -1150,26 +953,22 @@ void PYRO_construct(GameCoord posn, SLONG types, SLONG scale)
             SLONG cx, cz;
             thing->Genus.Pyro->scale = scale;
 
-            // do initial blast gust
+            // Do initial blast gust.
             cx = thing->WorldPos.X >> 8;
             cz = thing->WorldPos.Z >> 8;
             DIRT_gust(thing, cx, cz, cx + scale, cz);
             DIRT_gust(thing, cx + scale, cz, cx, cz);
-
-            // and explode fx
-            //			play_quick_wave(thing,S_EXPLODE_START+(rand()%3),0);
         }
     }
     if (types & 4) {
         thing = PYRO_create(posn, PYRO_DUSTWAVE);
         if (thing)
             thing->Genus.Pyro->scale = scale;
-        //		BARREL_hit_with_sphere(thing->WorldPos.X>>8,thing->WorldPos.Y>>8,thing->WorldPos.Z>>8,512);
     }
     if (types & 8) {
         thing = PYRO_create(posn, PYRO_STREAMER);
         if (thing)
-            thing->Genus.Pyro->scale = scale; // no effect
+            thing->Genus.Pyro->scale = scale;
     }
     if (types & 16) {
         thing = PYRO_create(posn, PYRO_BONFIRE);
@@ -1180,14 +979,10 @@ void PYRO_construct(GameCoord posn, SLONG types, SLONG scale)
             SLONG cx, cz;
             thing->Genus.Pyro->scale = scale;
 
-            // do initial blast gust
             cx = thing->WorldPos.X >> 8;
             cz = thing->WorldPos.Z >> 8;
             DIRT_gust(thing, cx, cz, cx + scale, cz);
             DIRT_gust(thing, cx + scale, cz, cx, cz);
-
-            // and explode fx
-            //			play_quick_wave(thing,S_EXPLODE_START+(rand()%3),0);
         }
     }
     if (types & 64) {
@@ -1200,6 +995,8 @@ void PYRO_construct(GameCoord posn, SLONG types, SLONG scale)
     }
 }
 
+// Creates a PYRO_HITSPANG from p_person's left hand toward a victim Thing.
+// uc_orig: PYRO_hitspang (fallen/Source/pyro.cpp)
 void PYRO_hitspang(Thing* p_person, Thing* victim)
 {
     GameCoord vec;
@@ -1226,11 +1023,13 @@ void PYRO_hitspang(Thing* p_person, Thing* victim)
     if (!thing)
         return;
     thing->Genus.Pyro->victim = victim;
-    thing->Genus.Pyro->Dummy = 1; // arbitrarily using this to indicate 'person' target
-    PYRO_fn_init(thing); // do this now so it has definatly been done by the time we call the draw routine
+    thing->Genus.Pyro->Dummy = 1; // 1 = targeting a Thing (not a coordinate)
+    PYRO_fn_init(thing);
     global_spang_count++;
 }
 
+// Creates a PYRO_HITSPANG from p_person's left hand toward a world coordinate.
+// uc_orig: PYRO_hitspang (fallen/Source/pyro.cpp)
 void PYRO_hitspang(Thing* p_person, SLONG x, SLONG y, SLONG z)
 {
     GameCoord vec;
@@ -1259,8 +1058,8 @@ void PYRO_hitspang(Thing* p_person, SLONG x, SLONG y, SLONG z)
     thing->Genus.Pyro->target.X = x;
     thing->Genus.Pyro->target.Y = y;
     thing->Genus.Pyro->target.Z = z;
-    thing->Genus.Pyro->Dummy = 0; // arbitrarily using this to indicate 'vector' target
+    thing->Genus.Pyro->Dummy = 0; // 0 = targeting a world coordinate
     DIRT_new_sparks(x >> 8, y >> 8, z >> 8, 2);
-    PYRO_fn_init(thing); // do this now so it has definatly been done by the time we call the draw routine
+    PYRO_fn_init(thing);
     global_spang_count++;
 }

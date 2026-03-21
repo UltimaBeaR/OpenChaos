@@ -514,3 +514,16 @@ Entity mapping обновлён (33 записи — file path).
 - `FONT_draw` в cnet.cpp: декларирован в `engine/graphics/pipeline/aeng.h` (тип `SLONG FONT_draw(SLONG x, SLONG y, CBYTE* text, ...)`)
 
 ---
+
+## Итерация 52 — effects/pyro + actors/items/guns (2026-03-21)
+
+- `MAX_COL_WITH` переименован в `PYRO_MAX_COL_WITH` — конфликт: file-scope macro столкнулся с локальным массивом того же имени в `PYRO_blast_radius`; conflict-rename по правилу
+- `PYRO_blast_radius` использует local `#define MAX_COL_WITH 16` для stack array внутри функции — не file-scope, не переносится в `_globals`
+- `normalise_val256` — static file-private; независимая копия также существует в `Vehicle.cpp` (не мигрирована), обе 1:1 с оригиналом
+- `free_pyro` — в оригинальном `pyro.h` закомментирована; в новом `pyro.h` тоже не объявлена (implementation detail); вызывается только изнутри `pyro.cpp`
+- `PYRO_init_state` — объявлена в оригинальном `pyro.h`, тело никогда не реализовано; перенесена как dead ABI declaration
+- `col_with[]` — shared global (используется в `Person.cpp` через `extern`); в `_globals`
+- State function arrays + `PYRO_functions` — обнаружены check B при ревью; перемещены из `pyro.cpp` в `pyro_globals`
+- `guns.cpp`: dead code `calc_target_score` + `find_target` (old gun targeting в `/* */` в оригинале) — не перенесён
+
+---
