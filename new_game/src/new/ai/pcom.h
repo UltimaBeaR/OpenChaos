@@ -801,4 +801,43 @@ void draw_view_line(Thing* p_person, Thing* p_target);
 // uc_orig: PCOM_process_navtokill (fallen/Source/pcom.cpp)
 void PCOM_process_navtokill(Thing* p_person);
 
+// uc_orig: PCOM_process_findcar (fallen/Source/pcom.cpp)
+void PCOM_process_findcar(Thing* p_person);
+
+// uc_orig: PCOM_process_talk (fallen/Source/pcom.cpp)
+void PCOM_process_talk(Thing* p_person);
+
+// uc_orig: PCOM_process_hands_up (fallen/Source/pcom.cpp)
+void PCOM_process_hands_up(Thing* p_person);
+
+// uc_orig: PCOM_process_hitch (fallen/Source/pcom.cpp)
+void PCOM_process_hitch(Thing* p_person);
+
+// uc_orig: PCOM_process_knockedout (fallen/Source/pcom.cpp)
+void PCOM_process_knockedout(Thing* p_person);
+
+// uc_orig: PCOM_process_taunt (fallen/Source/pcom.cpp)
+void PCOM_process_taunt(Thing* p_person);
+
+// uc_orig: PCOM_process_arrest (fallen/Source/pcom.cpp)
+void PCOM_process_arrest(Thing* p_person);
+
+// uc_orig: PCOM_process_homesick (fallen/Source/pcom.cpp)
+void PCOM_process_homesick(Thing* p_person);
+
+// uc_orig: PCOM_process_bdeactivate (fallen/Source/pcom.cpp)
+void PCOM_process_bdeactivate(Thing* p_person);
+
+// uc_orig: PCOM_process_leavecar (fallen/Source/pcom.cpp)
+void PCOM_process_leavecar(Thing* p_person);
+
+// uc_orig: PCOM_process_snipe (fallen/Source/pcom.cpp)
+void PCOM_process_snipe(Thing* p_person);
+
+// uc_orig: PCOM_process_warm_hands (fallen/Source/pcom.cpp)
+void PCOM_process_warm_hands(Thing* p_person);
+
+// uc_orig: PCOM_process_normal (fallen/Source/pcom.cpp)
+void PCOM_process_normal(Thing* p_person);
+
 #endif // AI_PCOM_H

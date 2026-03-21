@@ -7999,6 +7999,8 @@ void PCOM_process_navtokill(Thing* p_person)
 
 #endif // MIGRATED to src/new/ai/pcom.cpp (iteration 86)
 
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 87)
+
 // claude-ai: PCOM_process_findcar - car-entry AI: navigates to nearest car door (FINDCAR substate), then gets in via get_person_in_car(); transition to DRIVER state once seated
 void PCOM_process_findcar(Thing* p_person)
 {
@@ -9421,6 +9423,8 @@ Thing* PCOM_find_bodyguard_victim(Thing* p_bodyguard, Thing* p_client)
 
     return best_victim;
 }
+
+#endif // MIGRATED to src/new/ai/pcom.cpp (iteration 87)
 
 // claude-ai: PCOM_process_state_change - MASTER AI dispatcher: outer switch on pcom_ai type, inner switch on pcom_ai_state; each AI type has unique state-override logic on top of PCOM_process_default(); this is the brain of all NPC behaviour
 // claude-ai: Per-AI-type overrides: CIV=PCOM_process_default; GUARD=investigate sounds+process_default; ASSASIN/BOSS=attack-on-see; COP=arrest+navtokill logic; GANG=taunt+scan+process_default; BODYGUARD=protect client; DRIVER/COP_DRIVER=find-car; BDISPOSER=scan-bombs; BIKER=bike-or-find-bike; MIB=kill-on-see; BANE=summon; SUICIDE=insta-die; KILL_COLOUR=hunt by colour; FLEE_PLAYER=flee Darci; BULLY=bully targets; FIGHT_TEST=MIB-like

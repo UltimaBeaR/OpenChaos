@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 87 — ai/pcom (седьмой чанк: PCOM_process_findcar..PCOM_find_bodyguard_victim) (2026-03-22)
+
+- `in_right_place_for_car` (из Vehicle.cpp) — добавлен как file-scope `extern` в `new/ai/pcom.cpp` (используется в `PCOM_process_findcar` и `PCOM_process_hitch`).
+- `person_drawn_recently` — static helper, не объявлена в заголовке.
+- `PCOM_MAX_BENCH_WALK` — file-local `#define` (был inline в оригинале), добавлен перед `PCOM_process_normal`.
+- Добавлены `// Temporary:` includes: `actors/core/thing.h` (для `THING_find_nearest`) и `actors/items/special.h` (для `SPECIAL_BOMB`, `SPECIAL_SUBSTATE_*`).
+- Осталось в old/pcom.cpp: ~3240 строк (строки 9428–12666).
+
+---
+
 ## Итерация 86 — ai/pcom (шестой чанк: PCOM_process_killing..PCOM_process_navtokill) (2026-03-22)
 
 - `timer_bored` и `IsEnglish` — добавлены как file-scope `extern` в `new/ai/pcom.cpp` (ранее объявлялись как inline-extern внутри тел функций в old).

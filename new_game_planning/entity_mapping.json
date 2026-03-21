@@ -55279,6 +55279,206 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_findcar",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_findcar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_talk",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_talk",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_hands_up",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_hands_up",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_hitch",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_hitch",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_knockedout",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_knockedout",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_taunt",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_taunt",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_arrest",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_arrest",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_homesick",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_homesick",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_bdeactivate",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_bdeactivate",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_leavecar",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_leavecar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_snipe",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_snipe",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_warm_hands",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_warm_hands",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_drawn_recently",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "person_drawn_recently",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_teleport_home",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_teleport_home",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_MAX_BENCH_WALK",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MAX_BENCH_WALK",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_normal",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_normal",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_find_bomb",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_find_bomb",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_default",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_default",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_alert_nearby_mib_to_attack",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_alert_nearby_mib_to_attack",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_find_bodyguard_victim",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_find_bodyguard_victim",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }
