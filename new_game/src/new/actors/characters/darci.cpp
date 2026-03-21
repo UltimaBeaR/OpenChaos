@@ -1,109 +1,46 @@
-// Darci.cpp
-// Guy Simmons, 4th January 1998
-// claude-ai: Darci Mason — управляемый игроком персонаж. ЕДИНСТВЕННЫЙ полностью реализованный персонаж в пре-релизной версии.
-// claude-ai: Содержит физику Darci: гравитация 4<<8 = 1024 ед/тик, терминальная скорость DY = -30000.
-// claude-ai: Смерть от падения: DY <= -30000. Урон от падения: DY < -20000 → урон = (-DY - 20000) / 100.
-// claude-ai: fn_darci_normal() отсутствует — STATE_NORMAL = NULL (Darci не имеет "нормального" AI-режима, управляется игроком).
+// uc_orig: Darci.cpp (fallen/Source/Darci.cpp)
+// Darci Mason — the player-controlled character.
+// Physics, movement, and state initialisation for Darci.
 
-#include "Game.h"
-#include "Darci.h"
-#include "animate.h"
-#include "combat.h"
-#include "id.h"
-// #include	"c:\fallen\editor\headers\collide.hpp"
-// #include	"c:\fallen\editor\headers\map.h"
-#include "statedef.h"
-#include "enter.h"
-#include "pap.h"
-#include "supermap.h"
-#include "ns.h"
-#include "pcom.h"
-#include "walkable.h"
-#include "memory.h"
-#include "sound.h"
-#include "mav.h"
+#include "fallen/Headers/Game.h"
+#include "fallen/Headers/statedef.h"
+#include "fallen/Headers/animate.h"
+#include "fallen/Headers/pap.h"
+#include "fallen/Headers/pcom.h"
+#include "fallen/Headers/ns.h"
+#include "fallen/Headers/memory.h"
+#include "fallen/Headers/Sound.h"
+#include "fallen/Headers/mav.h"
+#include "fallen/Headers/collide.h"
+#include "fallen/Headers/building.h"
+#include "fallen/Headers/barrel.h"
+#include "fallen/Headers/Person.h"
+#include "actors/characters/darci.h"
+#include "actors/characters/darci_globals.h"
 
-//---------------------------------------------------------------
-// This is all temporary editor reliant stuff.
-
-// #include	"..\Editor\Headers\Thing.h"
-// #include	"..\Editor\Headers\engine.h"
-
-// #include	"c:\fallen\editor\headers\prim_draw.h"
-/*
-struct	SVector
-{
-        SLONG	X,Y,Z;
-};
-*/
-
-SLONG calc_height_at(SLONG x, SLONG z);
-
-void fn_darci_init(Thing* t_thing);
-
-// claude-ai: Гравитация Darci: 4<<8 = 1024 единиц/тик. Применяется к DY каждый кадр.
-#define GRAVITY ((4 << 8))
-
-// extern	SLONG	calc_height_on_face(SLONG x,SLONG z,SLONG face);
+// Forward declarations for functions not in any header (declared inline in originals).
+extern SLONG calc_height_at(SLONG x, SLONG z);
 extern SLONG set_person_kick_off_wall(Thing* p_person, SLONG col, SLONG set_pos);
 extern void add_damage_value_thing(Thing* p_thing, SLONG value);
 extern void locked_anim_change(Thing* p_person, UWORD locked_object, UWORD anim, SLONG dangle = 0);
-
-/*
- Tables we need
-
-  for each person id a chunk address
-
-  for each person, for each move a frame pointer or 0 if move not supported
-
-  Darci
-  Roper
-  Cop
-
-  Soldier
-  Rasters
-  triads
-  Mafia
-  Dockers
-  Unknown
-  Tramp
-  Fat Bloke Inside Buildings
-  Child
-
-
-  1. a table to find the anim number for a particular person
-     i.e ANIM_HIT1 is an index into anim_array but each
-
-
-*/
-
-//---------------------------------------------------------------
 extern void fn_person_moveing(Thing* p_person);
 extern void fn_person_idle(Thing* p_person);
+extern SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_this_building, Thing* p_person, SLONG neg_dy, SLONG pos_dy, SLONG* ret_y);
+extern SLONG person_slide_inside(SLONG inside_index, SLONG x1, SLONG y1, SLONG z1, SLONG* x2, SLONG* y2, SLONG* z2);
+extern SLONG actual_sliding;
+extern SLONG last_slide_dist;
+extern SLONG last_slide_colvect;
+extern SLONG slide_into_warehouse;
+extern SLONG slide_outof_warehouse;
 
-// claude-ai: Таблица состояний Darci. STATE_NORMAL = NULL (нет AI-режима, только player input).
-// claude-ai: Darci использует generic fn_person_* функции из Person.cpp для большинства состояний.
-StateFunction darci_states[] = {
-    { STATE_INIT, fn_darci_init },
-    { STATE_NORMAL, NULL },
-    { STATE_HIT, NULL },
-    { STATE_ABOUT_TO_REMOVE, NULL },
-    { STATE_REMOVE_ME, NULL },
-    { STATE_MOVEING, fn_person_moveing },
-    { STATE_IDLE, fn_person_idle }
+// Gravity applied to Darci's DY each tick: 4<<8 = 1024 units/tick.
+// uc_orig: GRAVITY (fallen/Source/Darci.cpp)
+#define GRAVITY ((4 << 8))
 
-};
 
-//---------------------------------------------------------------
-
+// uc_orig: fn_darci_init (fallen/Source/Darci.cpp)
 void fn_darci_init(Thing* t_thing)
 {
-
-    //
-    // Angle set already when the person was created.
-    // OnFace set when person created too.
-    //
-
     t_thing->DrawType = DT_ROT_MULTI;
     t_thing->Draw.Tweened->Roll = 0;
     t_thing->Draw.Tweened->Tilt = 0;
@@ -114,19 +51,24 @@ void fn_darci_init(Thing* t_thing)
     t_thing->Draw.Tweened->TheChunk = &game_chunk[0];
     t_thing->Draw.Tweened->FrameIndex = 0;
     t_thing->Draw.Tweened->Flags = FLAGS_DRAW_SHADOW;
-    //	t_thing->Genus.Person->Health		=	200;
 
     set_anim(t_thing, ANIM_STAND_READY);
     set_person_idle(t_thing);
     add_thing_to_map(t_thing);
 }
 
-//---------------------------------------------------------------
+// uc_orig: fn_darci_normal (fallen/Headers/Darci.h)
+void fn_darci_normal(Thing* t_thing)
+{
+    // Intentionally empty — Darci has no AI normal mode; driven by player input.
+}
+
+// Forward declaration for already-migrated matrix function (core/fmatrix.h).
 void matrix_transformZMY(Matrix31* result, Matrix33* trans, Matrix31* mat2);
 
+// uc_orig: advance_keyframe (fallen/Source/Darci.cpp)
 KeyFrame* advance_keyframe(KeyFrame* frame, SLONG count)
 {
-    //	return(frame);
     while (count && frame->NextFrame) {
         frame = frame->NextFrame;
         count--;
@@ -134,17 +76,7 @@ KeyFrame* advance_keyframe(KeyFrame* frame, SLONG count)
     return (frame);
 }
 
-#define DIR_FORWARD (1 << 0)
-#define DIR_BACKWARD (1 << 1)
-#define DIR_LEFT (1 << 2)
-#define DIR_RIGHT (1 << 3)
-
-ULONG move_thing(SLONG m_dx, SLONG m_dy, SLONG m_dz, struct MapThing* p_thing);
-static SLONG air_walking = 0;
-
-static THING_INDEX history_thing[100];
-static SWORD history = 0;
-
+// uc_orig: do_floor_collide (fallen/Source/Darci.cpp)
 SLONG do_floor_collide(Thing* p_thing, SWORD pelvis, SLONG* new_y, SLONG* foot_y, SLONG max_range)
 {
     SLONG x, y, z;
@@ -153,10 +85,7 @@ SLONG do_floor_collide(Thing* p_thing, SWORD pelvis, SLONG* new_y, SLONG* foot_y
     calc_sub_objects_position(p_thing, p_thing->Draw.Tweened->AnimTween, pelvis ? 0 : 3, &x, &y, &z);
     *foot_y = y;
 
-    //
-    // So the feet don't poke through walls.
-    //
-
+    // Prevent feet from poking through walls.
     x >>= 2;
     z >>= 2;
 
@@ -177,6 +106,7 @@ SLONG do_floor_collide(Thing* p_thing, SWORD pelvis, SLONG* new_y, SLONG* foot_y
         return (0);
 }
 
+// uc_orig: predict_collision_with_floor (fallen/Source/Darci.cpp)
 SLONG predict_collision_with_floor(Thing* p_thing, SWORD pelvis, SLONG* new_y, SLONG* foot_y)
 {
     SLONG ret;
@@ -185,8 +115,6 @@ SLONG predict_collision_with_floor(Thing* p_thing, SWORD pelvis, SLONG* new_y, S
     SLONG c0;
     SLONG dx, dy, dz;
 
-    //	MSG_add(" START COLLIDE dy %d posy %d ",p_thing->DY,p_thing->WorldPos.Y);
-
     temp_pos = p_thing->WorldPos;
     temp_velocity = p_thing->Velocity;
     temp_dy = p_thing->DY;
@@ -194,11 +122,9 @@ SLONG predict_collision_with_floor(Thing* p_thing, SWORD pelvis, SLONG* new_y, S
     if (ret)
         return (ret);
 
-    //	for(c0=0;c0<3;c0++)
-    //	if(0)
     {
         SLONG dx, dy, dz;
-        dx = (SIN(p_thing->Draw.Tweened->Angle) * p_thing->Velocity) >> 8; // was 16
+        dx = (SIN(p_thing->Draw.Tweened->Angle) * p_thing->Velocity) >> 8;
         dz = (COS(p_thing->Draw.Tweened->Angle) * p_thing->Velocity) >> 8;
         dy = p_thing->DY;
 
@@ -211,14 +137,11 @@ SLONG predict_collision_with_floor(Thing* p_thing, SWORD pelvis, SLONG* new_y, S
         if (p_thing->DY < -30000)
             p_thing->DY = -30000;
 
-        //		MSG_add(" dxyz %d %d %d \n",dx,dy,dz);
-
-        p_thing->WorldPos.X -= dx; //(SIN(p_thing->Draw.Tweened->Angle)*p_thing->Velocity)>>16;
-        p_thing->WorldPos.Z -= dz; //(COS(p_thing->Draw.Tweened->Angle)*p_thing->Velocity)>>16;
-        p_thing->WorldPos.Y += dy; // p_thing->DY;
+        p_thing->WorldPos.X -= dx;
+        p_thing->WorldPos.Z -= dz;
+        p_thing->WorldPos.Y += dy;
     }
 
-    //	if(MAV_HEIGHT(temp_pos.WorldPos.X>>16,temp_pos.WorldPos.Z>>16
     ret = do_floor_collide(p_thing, pelvis, new_y, foot_y, 128);
 
     p_thing->Velocity = temp_velocity;
@@ -227,9 +150,7 @@ SLONG predict_collision_with_floor(Thing* p_thing, SWORD pelvis, SLONG* new_y, S
     return (ret);
 }
 
-extern SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_this_building, Thing* p_person, SLONG neg_dy, SLONG pos_dy, SLONG* ret_y);
-extern SLONG nearest_point_on_line_and_dist(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b, SLONG* ret_x, SLONG* ret_z);
-
+// uc_orig: predict_collision_with_face (fallen/Source/Darci.cpp)
 SLONG predict_collision_with_face(Thing* p_thing, SLONG wx, SLONG wy, SLONG wz, SWORD pelvis, SLONG* new_y, SLONG* foot_y)
 {
     SLONG ret;
@@ -243,10 +164,7 @@ SLONG predict_collision_with_face(Thing* p_thing, SLONG wx, SLONG wy, SLONG wz, 
     if (p_thing->DY > 0)
         return (0);
 
-    //
-    // The thing index whose faces we ignore.
-    //
-
+    // Ignore the building we're currently inside when detecting face collisions.
     if (p_thing->Flags & FLAGS_IN_BUILDING) {
         ignore_building = INDOORS_DBUILDING;
     } else {
@@ -255,29 +173,21 @@ SLONG predict_collision_with_face(Thing* p_thing, SLONG wx, SLONG wy, SLONG wz, 
 
     calc_sub_objects_position(
         p_thing,
-        255, // p_thing->Draw.Tweened->AnimTween,
+        255,
         pelvis ? 0 : SUB_OBJECT_LEFT_FOOT,
         &fx,
         &fy,
         &fz);
 
     if (!pelvis) {
-        //
-        // Get rid of the (x,z) offset of the foot. This fixes the bug where
-        // Darci falls through the ground if she is jumping and sliding against
-        // a wall.  (Her foot was poking through the wall in front of her.)
-        //
-
-        fx = 0; // maybe shifting by 2 will be even better
-        fz = 0; // Remember to change the corresponding code in plant_feet()
+        // Clear XZ offset of the foot to prevent falling-through-ground bug
+        // when jumping and sliding against a wall.
+        fx = 0;
+        fz = 0;
     }
 
     *foot_y = fy;
-    //
-    // you can overshoot by your velocity or be 5 short of landing on it
-    //
 
-    // ret=find_face_near_y(wx+fx,wy+fy,wz+fz, ignore_building,p_thing,-(abs(p_thing->DY>>8)),5);
     {
         SLONG min_y, max_y;
         max_y = abs(p_thing->DY >> 9);
@@ -294,50 +204,22 @@ SLONG predict_collision_with_face(Thing* p_thing, SLONG wx, SLONG wy, SLONG wz, 
 
     if (ret == GRAB_FLOOR)
         ret = 0;
-    else {
-        //
-        // set person pos to be on face
-        //
-    }
-    /*
-            if(ret)
-            {
-                    CBYTE	str[100];
-                    sprintf(str," FOUND face at %d y %d \n",ret,(*new_y));
-                    CONSOLE_text(str);
-            }
-    */
-
-    //		if(ret)
-    //			break;
 
     return (ret);
 }
 
+// uc_orig: col_is_fence (fallen/Source/Darci.cpp)
 SLONG col_is_fence(SLONG col)
 {
-    /*
-    SLONG	face;
-
-    face=col_vects[col].Face;
-    if(face>0)
-    {
-            if(prim_faces4[face].Type==FACE_TYPE_FENCE)
-                    return(1);
-    }
-    */
-
-    //	if(col_vects[col].PrimType==STOREY_TYPE_FENCE || col_vects[col].PrimType==STOREY_TYPE_FENCE_FLAT)
-    //	if(dfacets[col].FacetType==STOREY_TYPE_FENCE || dfacets[col].FacetType==STOREY_TYPE_FENCE_FLAT)
     if (dfacets[col].FacetType == STOREY_TYPE_FENCE || dfacets[col].FacetType == STOREY_TYPE_FENCE_FLAT || dfacets[col].FacetType == STOREY_TYPE_FENCE_BRICK) {
-        //		MSG_add(" col vect %d is fence \n",col);
         return (1);
-
     } else
         return (0);
 }
 
-inline BOOL MagicFrameCheck(Thing* p_person, UBYTE frameindex)
+// uc_orig: MagicFrameCheck (fallen/Source/Darci.cpp)
+// Returns TRUE once when FrameIndex first reaches frameindex; resets when it drops back.
+static inline BOOL MagicFrameCheck(Thing* p_person, UBYTE frameindex)
 {
     if (p_person->Draw.Tweened->FrameIndex >= frameindex) {
         if (!(p_person->Genus.Person->Flags2 & FLAG2_SYNC_SOUNDFX)) {
@@ -350,22 +232,21 @@ inline BOOL MagicFrameCheck(Thing* p_person, UBYTE frameindex)
     return FALSE;
 }
 
+// uc_orig: set_person_in_building_through_roof (fallen/Source/Darci.cpp)
 void set_person_in_building_through_roof(Thing* p_person, SLONG face)
 {
     SLONG building, storey, wall, best_storey = 0;
+    // Stub — body intentionally empty in the pre-release source.
 }
 
+// uc_orig: damage_person_on_land (fallen/Source/Darci.cpp)
+// DY <= -30000 → instant death. DY < -20000 → damage = (-DY - 20000) / 100.
 SLONG damage_person_on_land(Thing* p_thing)
 {
     SLONG sound;
     SLONG damage;
 
-    StopScreamFallSound(p_thing); // just in case
-
-    //
-    // When Darci lands she makes a sound depending on how
-    // hard she hit the ground.
-    //
+    StopScreamFallSound(p_thing);
 
     if (p_thing->DY < -20000) {
         sound = PCOM_SOUND_DROP_BIG;
@@ -384,22 +265,12 @@ SLONG damage_person_on_land(Thing* p_thing)
             p_thing->WorldPos.X >> 8,
             p_thing->WorldPos.Y >> 8,
             p_thing->WorldPos.Z >> 8);
-
-        //
-        // Actually do the sound...
-        //
-
-        // <GRUNT GRUNT GRUNT> :)
     }
 
     if (p_thing->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL) {
-        //
         // Only the player can hurt this person.
-        //
     } else if (p_thing->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) {
-        //
-        // Nothing hurts this person!
-        //
+        // Nothing hurts this person.
     } else if (p_thing->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FOLLOWING) {
     } else {
         if (p_thing->DY <= -30000) {
@@ -418,17 +289,7 @@ SLONG damage_person_on_land(Thing* p_thing)
 
         p_thing->Genus.Person->Health -= damage;
 
-        //		add_damage_value_thing(p_thing,damage>>1);
-
         if (p_thing->Genus.Person->Health <= 0) {
-            //
-            // sets us up in the right spot to change anim to dead
-            //
-
-            // void locked_anim_change(Thing *p_person,UWORD locked_object,UWORD anim);
-
-            // locked_anim_change(p_thing,SUB_OBJECT_LEFT_FOOT,ANIM_STAND_READY);
-
             set_person_dead(
                 p_thing,
                 NULL,
@@ -443,11 +304,7 @@ SLONG damage_person_on_land(Thing* p_thing)
     return (0);
 }
 
-extern SLONG actual_sliding;
-extern SLONG last_slide_dist;
-
-UBYTE just_started_falling_off_backwards;
-
+// uc_orig: projectile_move_thing (fallen/Source/Darci.cpp)
 SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 {
     GameCoord new_position;
@@ -462,7 +319,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
     new_position = p_thing->WorldPos;
 
     dx = (SIN(p_thing->Draw.Tweened->Angle) * p_thing->Velocity) >> 8;
-    dz = (COS(p_thing->Draw.Tweened->Angle) * p_thing->Velocity) >> 8; // fixed 8
+    dz = (COS(p_thing->Draw.Tweened->Angle) * p_thing->Velocity) >> 8;
     dy = p_thing->DY;
 
     dx = (dx * TICK_RATIO) >> TICK_SHIFT;
@@ -471,10 +328,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 
     if (p_thing->Genus.Person->Ware) {
         SLONG px, py, pz, wy;
-        //
-        // slide along warehouse roof
-        //
-
+        // Slide along warehouse roof.
         calc_sub_objects_position(p_thing, p_thing->Draw.Tweened->AnimTween, SUB_OBJECT_HEAD, &px, &py, &pz);
         px += (dx + p_thing->WorldPos.X) >> 8;
         py += (dy + p_thing->WorldPos.Y) >> 8;
@@ -494,10 +348,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
         SLONG x1, x2, y1, y2, z1, z2;
         {
             {
-                //
-                // Work out the position of the pelvis.
-                //
-
+                // Get pelvis world position.
                 calc_sub_objects_position(p_thing, p_thing->Draw.Tweened->AnimTween, 0, &x1, &y1, &z1);
 
                 x1 <<= 8;
@@ -508,10 +359,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                 y1 += p_thing->WorldPos.Y;
                 z1 += p_thing->WorldPos.Z;
 
-                //
-                // The end of our movement vector.
-                //
-
+                // End of movement vector.
                 x2 = x1 - dx;
                 y2 = y1 + dy;
                 z2 = z1 - dz;
@@ -520,24 +368,12 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                     return (0);
 
                 if (p_thing->Flags & FLAGS_IN_SEWERS) {
-                    //
-                    // Slide along the walls of the sewer as you jump.
-                    //
-
+                    // Slide along sewer walls when jumping.
                     NS_slide_along(x1, y1, z1, &x2, &y2, &z2, 50);
-
-                    //
-                    // Pretend you never collide.
-                    //
-
-                    col = 0; // This means we can't do any funcky kicks or anything
-                             // in the sewers :o(
+                    col = 0;
                 } else {
                     if (!(flag & 8)) {
-                        //
                         // Collide with things.
-                        //
-
                         collide_against_things(
                             p_thing,
                             50,
@@ -545,17 +381,11 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                             &x2, &y2, &z2);
 
                         if (p_thing->State == STATE_DYING) {
-                            //
                             // Darci died while colliding with things.
-                            //
-
                             return 100;
                         }
 
-                        //
-                        // Collision with OB_jects.
-                        //
-
+                        // Collision with objects.
                         collide_against_objects(
                             p_thing,
                             30,
@@ -563,9 +393,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                             &x2, &y2, &z2);
                     }
 
-                    //
                     // Collision with walls.
-                    //
                     if (p_thing->Genus.Person->InsideIndex) {
                         person_slide_inside(
                             p_thing->Genus.Person->InsideIndex,
@@ -575,8 +403,6 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                             &z2);
                     } else {
                         SLONG extra_wall_height = 0;
-
-                        extra_wall_height = 0; //-p_thing->DY << 3;
 
                         SATURATE(extra_wall_height, 0, 128);
 
@@ -589,16 +415,10 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                         slide_along(
                             x1, y1, z1,
                             &x2, &y2, &z2,
-                            extra_wall_height, // Stop Darci going through walls- the extra height added to a wall height.
+                            extra_wall_height,
                             50, SLIDE_ALONG_FLAG_JUMPING);
 
                         just_started_falling_off_backwards = FALSE;
-
-                        //
-                        // This next bit of code is probably redundant as we can no longer jump through doors, but It cant do any harm to leave it in (apart from code bloat)
-                        //
-                        extern SLONG slide_into_warehouse;
-                        extern SLONG slide_outof_warehouse;
 
                         if (slide_into_warehouse) {
                             p_thing->Genus.Person->Flags |= FLAG_PERSON_WAREHOUSE;
@@ -610,10 +430,6 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                             p_thing->Genus.Person->Ware = 0;
                         }
                     }
-
-                    //
-                    // The collision vector we sliding over.
-                    //
 
                     if (actual_sliding) {
                         col = last_slide_colvect;
@@ -628,17 +444,9 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 
             if (col) {
                 if (col_is_fence(col) || dfacets[col].FacetType == STOREY_TYPE_NORMAL) {
-                    //
-                    // The person has hit a fence.
-                    //
-
                     if (dfacets[col].FacetFlags & FACET_FLAG_UNCLIMBABLE) {
-                        //
-                        // You can't land on this fence- so we'll just slide
-                        // along it instead.
-                        //
+                        // Can't land on this fence — just slide.
                     } else {
-
                         if (set_person_land_on_fence(p_thing, col, 1)) {
                             return (2);
                         }
@@ -663,77 +471,44 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
     SATURATE(new_position.Z, 0, (PAP_SIZE_HI << 16) - 1);
 
     p_thing->Velocity += p_thing->DeltaVelocity;
-    //	p_thing->DY-=GRAVITY; //gravity
     p_thing->DY -= (GRAVITY * TICK_RATIO) >> TICK_SHIFT; // gravity
 
     if (p_thing->DY < -30000) {
-        p_thing->DY = -30000; // hit terminal velocity... must be scary... so...
+        p_thing->DY = -30000; // terminal velocity
     }
 
-    /*
-    if(p_thing->DY==-(40<<8) && p_thing->Velocity>10)
-    {
-
-            locked_anim_change(p_thing,0,ANIM_FALL_LONG);
-
-    }
-    */
-
-    //	if(p_thing->Timer1>3)
     if (flag & (2 | 4)) // under feet
     {
         SLONG new_y, on_face, foot_y;
         if (face = predict_collision_with_face(p_thing, new_position.X >> 8, new_position.Y >> 8, new_position.Z >> 8, flag & 4, &new_y, &foot_y)) {
-            // ASSERT(face>0);
-
             {
                 if (!(GAME_FLAGS & GF_INDOORS))
                     if (face > 0 && prim_faces4[face].Type == FACE_TYPE_SKYLIGHT) {
                         ASSERT(0);
-                        //
-                        // fall through skylight into building
-                        //
-
                         set_person_in_building_through_roof(p_thing, face);
                         return (0);
                     }
             }
-            if (flag & 4) // falling with pelvis as lowest point
+            if (flag & 4)
                 return (1);
-            // on_face=calc_height_on_face(new_position.X>>8,new_position.Z>>8,face,&new_y);
             MSG_add(" projectile move hit face %d new y %d pelvis col %d\n", face, new_y, flag & 4);
-            /*
-                                    if(!on_face)
-                                    {
-                                            ASSERT(0);
-                                            //new_y=p_thing->WorldPos.Y>>8;   //use new_y anyway!!!
-                                    }
-            */
 
             p_thing->OnFace = face;
 
             p_thing->Flags &= ~FLAGS_PROJECTILE_MOVEMENT;
 
             if ((flag & 4) == 0) {
-                //
-                // foot collsion with face
-                //
                 new_position.Y = (new_y - foot_y + 5) << 8;
 
                 if (p_thing->Draw.Tweened->CurrentAnim == ANIM_PLUNGE_START || p_thing->Draw.Tweened->CurrentAnim == ANIM_PLUNGE_FORWARDS) {
-                    // new_position.Y   = PAP_calc_map_at_thing(p_thing,new_position.X>>8,new_position.Z>>8);
                     new_position.Y = PAP_calc_map_height_at(new_position.X >> 8, new_position.Z >> 8);
                     new_position.Y -= 0x50;
                     new_position.Y <<= 8;
                 }
 
-                //
-                // I've put this back in, because we were exiting and not finding ourselves on the face
-                //
                 move_thing_on_map(p_thing, &new_position);
             }
 
-            // hurt person
             if (damage_person_on_land(p_thing))
                 return (100);
 
@@ -749,10 +524,6 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                 p_thing->WorldPos.Y = NS_calc_height_at(new_position.X >> 8, new_position.Z >> 8) << 8;
             } else {
                 if ((flag & 4) == 0) {
-                    //
-                    // foot collsion with face
-                    //
-
                     new_position.Y = (new_y - foot_y + 5) << 8;
 
                     if (p_thing->Draw.Tweened->CurrentAnim == ANIM_PLUNGE_START || p_thing->Draw.Tweened->CurrentAnim == ANIM_PLUNGE_FORWARDS) {
@@ -761,26 +532,11 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                         new_position.Y <<= 8;
                     }
 
-                    //
-                    // I've put this back in, because we were exiting and not finding ourselves on the face
-                    //
-
                 } else {
                     new_position.Y = PAP_calc_height_at_thing(p_thing, new_position.X >> 8, new_position.Z >> 8) << 8;
                     new_position.X = p_thing->WorldPos.X;
                     new_position.Z = p_thing->WorldPos.Z;
                 }
-                /*
-                                                if(p_thing->WorldPos.Y>(new_position.Y+(32<<8)))
-                                                {
-                                                        return(0);
-
-                                                }
-                */
-
-                //
-                // foot can collide roof top
-                //
 
                 move_thing_on_map(p_thing, &new_position);
             }
@@ -792,26 +548,17 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
         }
     }
 
-    //
     // Actually move the person.
-    //
-
     move_thing_on_map(p_thing, &new_position);
 
-    //
-    // Hit some barrels.
-    //
-
+    // Hit any nearby barrels.
     BARREL_hit_with_sphere(
         p_thing->WorldPos.X >> 8,
         p_thing->WorldPos.Y >> 8,
         p_thing->WorldPos.Z >> 8,
         0x70);
 
-    //
-    // Is this person going to fall to his death?
-    //
-
+    // Check whether this person is falling to their death.
     SLONG death_check;
 
     if (p_thing->Genus.Person->PlayerID) {
@@ -822,10 +569,6 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 
     if (GAME_FLAGS & GF_NO_FLOOR) {
         if (p_thing->WorldPos.Y < 0x0 && p_thing->DY < -6000) {
-            //
-            // Stop Roper popping back onto buildings by falling underneath them.
-            //
-
             p_thing->Velocity = 0;
         }
     }
@@ -833,11 +576,8 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
     if (p_thing->DY < death_check) {
         if ((GAME_TURN & 0x3) == THING_NUMBER(p_thing)) {
             if (p_thing->Draw.Tweened->CurrentAnim == ANIM_PLUNGE_START || p_thing->Draw.Tweened->CurrentAnim == ANIM_PLUNGE_FORWARDS) {
-                //
-                // Already falling to your death...
-                //
                 if (MagicFrameCheck(p_thing, 2)) {
-                    ScreamFallSound(p_thing); // scream yer lungs out!
+                    ScreamFallSound(p_thing);
                 }
 
                 p_thing->Velocity = 0;
@@ -849,10 +589,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 
                 SLONG height;
 
-                //
-                // Is this person going to die?
-                //
-
+                // Is this person going to die from the fall?
                 for (i = 1; i < 4; i++) {
                     mx = (p_thing->WorldPos.X >> 8) - (dx * i >> 5);
                     mz = (p_thing->WorldPos.Z >> 8) - (dz * i >> 5);
@@ -861,59 +598,14 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                         height = PAP_calc_map_height_at(mx, mz);
 
                         if (height >= (p_thing->WorldPos.Y >> 8) - 0x600) {
-                            //
-                            // No death!
-                            //
-
-                            /*
-
-                            AENG_world_line(
-                                    p_thing->WorldPos.X >> 8,
-                                    p_thing->WorldPos.Y >> 8,
-                                    p_thing->WorldPos.Z >> 8,
-                                    0x10,
-                                    0xffffff,
-                                    p_thing->WorldPos.X           >> 8,
-                                    p_thing->WorldPos.Y + 0x10000 >> 8,
-                                    p_thing->WorldPos.Z           >> 8,
-                                    0x0,
-                                    0xffeeee,
-                                    FALSE);
-
-                            */
-
+                            // Safe landing ahead — no death.
                             goto no_death;
                         }
                     }
                 }
 
-                //
-                // This person is going to die!
-                //
-
-                /*
-
-                AENG_world_line(
-                        p_thing->WorldPos.X >> 8,
-                        p_thing->WorldPos.Y >> 8,
-                        p_thing->WorldPos.Z >> 8,
-                        0x10,
-                        0xff0000,
-                        p_thing->WorldPos.X           >> 8,
-                        p_thing->WorldPos.Y + 0x10000 >> 8,
-                        p_thing->WorldPos.Z           >> 8,
-                        0x0,
-                        0xaacc00,
-                        FALSE);
-
-                */
-
+                // Person is going to die — start fall animation.
                 locked_anim_change(p_thing, SUB_OBJECT_PELVIS, ANIM_PLUNGE_START);
-
-                /*				if (MagicFrameCheck(p_thing,0))
-                                                {
-                                                        ScreamFallSound(p_thing);	// scream yer lungs out!
-                                                }*/
 
             no_death:;
             }
@@ -923,12 +615,12 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
     return (ret);
 }
 
-// could be logarithmic/ linear/ stepped
+// uc_orig: change_velocity_to (fallen/Source/Darci.cpp)
 void change_velocity_to(Thing* p_thing, SWORD velocity)
 {
     SLONG dv;
 
-    velocity = (velocity * 3) >> 2; // fps required , fps used when setting up these values
+    velocity = (velocity * 3) >> 2;
 
     dv = velocity - p_thing->Velocity;
     if (dv < 0) {
@@ -945,32 +637,34 @@ void change_velocity_to(Thing* p_thing, SWORD velocity)
     }
 }
 
+// uc_orig: change_velocity_to_slow (fallen/Source/Darci.cpp)
 void change_velocity_to_slow(Thing* p_thing, SWORD velocity)
 {
     SLONG dv;
 
-    velocity = (velocity * 3) >> 2; // fps required , fps used when setting up these values
+    velocity = (velocity * 3) >> 2;
 
     dv = velocity - p_thing->Velocity;
     if (dv < 0) {
         if (dv > -2)
             p_thing->Velocity = velocity;
         else
-            p_thing->Velocity -= 1; //(dv>>3);
+            p_thing->Velocity -= 1;
 
     } else if (dv > 0) {
         if (dv < 2)
             p_thing->Velocity = velocity;
         else
-            p_thing->Velocity += 1; //(dv>>3);
+            p_thing->Velocity += 1;
     }
 }
 
+// uc_orig: trickle_velocity_to (fallen/Source/Darci.cpp)
 void trickle_velocity_to(Thing* p_thing, SWORD velocity)
 {
     SLONG dv;
 
-    velocity = (velocity * 3) >> 2; // fps required , fps used when setting up these values
+    velocity = (velocity * 3) >> 2;
 
     dv = velocity - p_thing->Velocity;
     if (dv < 0) {
@@ -981,187 +675,16 @@ void trickle_velocity_to(Thing* p_thing, SWORD velocity)
     }
 }
 
+// uc_orig: set_thing_velocity (fallen/Source/Darci.cpp)
 void set_thing_velocity(Thing* t_thing, SLONG vel)
 {
-    vel = (vel * 3) >> 2; // fps required , fps used when setting up these values
-
+    vel = (vel * 3) >> 2;
     t_thing->Velocity = vel;
 }
 
-#define REQUIRED_DIST_JUMP_GRAB 35
-
-extern SLONG dist_to_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b);
-extern void nearest_point_on_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b, SLONG* ret_x, SLONG* ret_z);
-extern void calc_things_height(struct MapThing* p_thing); // editor\collide.c
-// extern	struct	CollisionVect		col_vects[];
-
-extern void highlight_face(SLONG face);
-extern void e_draw_3d_mapwho(SLONG x1, SLONG z1);
-
+// uc_orig: show_walkable (fallen/Source/Darci.cpp)
+// Debug stub — was intended to visualise the walkable map grid; returns immediately.
 void show_walkable(SLONG mx, SLONG mz)
 {
-    SLONG index;
-    SLONG check_face;
-
     return;
-    /*
-
-            index=MAP[MAP_INDEX(mx,mz)].Walkable;
-            if(index)
-                    e_draw_3d_mapwho(mx,mz);
-
-            while(index)
-            {
-                    check_face=walk_links[index].Face;
-                    if(check_face>0)
-                            highlight_face(check_face);
-
-                    index=walk_links[index].Next;
-            }
-    */
 }
-
-//---------------------------------------------------------------
-
-/*
-
-  What Is players Input?
-
-  Direction  +  Punch/Kick/Action/Block/Jump/Crouch/Mode Change
-
-  Direction  (Forwards/Backwards/Left/Right)
-
-
-  What is players current status?
-
-  (Fast Mode)Run/(Stealth Mode)Walk/(combat mode) fighting
-
-  Sub Status
-  Standing/Crouching/Jumping/Climbing/Vaulting/PullingUp/ Shooting/Swimming
-
-  What scenery is player able to interact with
-
-  (MOVEMENT FAST)
-        X to Jump Up and vault over all one move ( a high fence)
-        X to jump up grab swing onto and continue running
-        X to fault over (a small fence)
-        Edge to jump from (long Jump)
-        steps/slope to move up/down
-        Wall to step up and back flip off
-        Post to grab and swing arround
-
-
-  (MOVEMENT STEALTH)
-    X to pull up and stand on (1 storey building)
-        Wall to sidle along
-        Edge to drop down from (1 storey building)
-
-
-
-
-
-Code For pull up onto Storey
-
-  1. Detect Wall, face to stand on at end
-  2. Face wall At correct angle for anim
-  3. Play Anim to take you up wall
-  4. At end of anim
-        a. Go to stand anim
-        b. Relocate players position so anim change leaves a foot in same place
-        c. Set player to be on face.
-
-Code for pull up onto multi height storey
-
-  See 1& 2 above
-  3. Play jump anim, cut short or prolong until at correct position for hands to grasp ledge
-  see 4 above
-
-
-Alternate Method for Pull Up Onto Storey
-
-  Break Movement into 3 parts
-
-  jump to dangle position,
-
-  from dangle to pull up onto knee
-
-  from knee to standing.
-
-
-  Dangle Options
-        Swing (If Available)
-        Pull Up Onto Knee
-        Drop back to Floor
-
-
-  Kneeling on Edge Options
-        Stand Up
-        Go Back To Dangle
-        Rush Forward
-        Roll Forward
-
-
-
-
-
-
-
-
-
-//to do
-
-  create a collision poly system that allows players to walk/jump/vault/pull up
-  onto faces
-
-        Fire escapes can be walked up onto
-
-        Ledges can be pulled up onto
-
-        Buildings can be jumped accross from one to the other
-
-  Code for detecting the existence of interactible scenery when interaction is requested
-
-  Code for performing the interaction
-
-
-  Kerbs/ Kerbs as roof tops
-  Floor Slopes/Floor Slopes as roof tops
-
-
-  Do we link existing poly's or do we build special collision polys
-
-  Point
-  {
-        UWORD x;
-        UWORD Y;
-        UWORD Z;
-  }; //6
-
-  PolyQuad
-  {
-        Point[4];
-        SWORD	PrimFace;
-        UWORD	Flags;	//walkable, verticle, vaultable, high,med,flat,
-
-  }; //4*6=24+4 =28
-
-  PolyTri
-  {
-        Point[3];
-        SWORD	PrimFace;
-        UWORD	Flags;	//walkable, verticle, vaultable, high,med,flat,
-  }; //3*6=18+4 =22
-
-
-
-//jump2 at frame 6
-
-//walk and run are now alligned
-
-
-
-
-
-
-
-*/

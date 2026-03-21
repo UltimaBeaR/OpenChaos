@@ -191,6 +191,12 @@ set(SOURCES_NEW
     src/new/actors/characters/thug_globals.cpp
     src/new/actors/characters/snipe.cpp
     src/new/actors/characters/snipe_globals.cpp
+    src/new/actors/characters/darci.cpp
+    src/new/actors/characters/darci_globals.cpp
+    src/new/actors/animals/animal.cpp
+    src/new/actors/animals/animal_globals.cpp
+    src/new/actors/vehicles/chopper.cpp
+    src/new/actors/vehicles/chopper_globals.cpp
     src/new/assets/startscr.cpp
     src/new/assets/startscr_globals.cpp
 )
@@ -229,19 +235,16 @@ set(SOURCES_OUTRO
 
 set(SOURCES_GAME
     src/old/fallen/Source/Anim.cpp
-    src/old/fallen/Source/animal.cpp
     src/old/fallen/Source/Attract.cpp
     src/old/fallen/Source/balloon.cpp
     src/old/fallen/Source/barrel.cpp
     src/old/fallen/Source/bat.cpp
     src/old/fallen/Source/building.cpp
     src/old/fallen/Source/canid.cpp
-    src/old/fallen/Source/chopper.cpp
     src/old/fallen/Source/cnet.cpp
     src/old/fallen/Source/collide.cpp
     src/old/fallen/Source/combat.cpp
     src/old/fallen/Source/Controls.cpp
-    src/old/fallen/Source/Darci.cpp
     src/old/fallen/Source/dike.cpp
     src/old/fallen/Source/dirt.cpp
     src/new/world/environment/door.cpp

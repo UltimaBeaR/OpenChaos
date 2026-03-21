@@ -26069,6 +26069,766 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "darci_states",
+      "file": "new/actors/characters/darci_globals.cpp",
+      "orig_name": "darci_states",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_darci_init",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "fn_darci_init",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_darci_normal",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "fn_darci_normal",
+      "orig_file": "fallen/Headers/Darci.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "advance_keyframe",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "advance_keyframe",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "do_floor_collide",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "do_floor_collide",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "predict_collision_with_floor",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "predict_collision_with_floor",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "predict_collision_with_face",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "predict_collision_with_face",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "col_is_fence",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "col_is_fence",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MagicFrameCheck",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "MagicFrameCheck",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_person_in_building_through_roof",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "set_person_in_building_through_roof",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "damage_person_on_land",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "damage_person_on_land",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "projectile_move_thing",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "projectile_move_thing",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "change_velocity_to",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "change_velocity_to",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "change_velocity_to_slow",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "change_velocity_to_slow",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "trickle_velocity_to",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "trickle_velocity_to",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_thing_velocity",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "set_thing_velocity",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "show_walkable",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "show_walkable",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "air_walking",
+      "file": "new/actors/characters/darci_globals.cpp",
+      "orig_name": "air_walking",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "history_thing",
+      "file": "new/actors/characters/darci_globals.cpp",
+      "orig_name": "history_thing",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "history",
+      "file": "new/actors/characters/darci_globals.cpp",
+      "orig_name": "history",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "just_started_falling_off_backwards",
+      "file": "new/actors/characters/darci_globals.cpp",
+      "orig_name": "just_started_falling_off_backwards",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GRAVITY",
+      "file": "new/actors/characters/darci.cpp",
+      "orig_name": "GRAVITY",
+      "orig_file": "fallen/Source/Darci.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_functions",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "ANIMAL_functions",
+      "orig_file": "fallen/Source/animal.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Animal",
+      "file": "new/actors/animals/animal.h",
+      "orig_name": "Animal",
+      "orig_file": "fallen/Headers/animal.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_ANIMALS",
+      "file": "new/actors/animals/animal.h",
+      "orig_name": "MAX_ANIMALS",
+      "orig_file": "fallen/Headers/animal.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_NONE",
+      "file": "new/actors/animals/animal.h",
+      "orig_name": "ANIMAL_NONE",
+      "orig_file": "fallen/Headers/animal.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_CANID",
+      "file": "new/actors/animals/animal.h",
+      "orig_name": "ANIMAL_CANID",
+      "orig_file": "fallen/Headers/animal.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_NUMBER",
+      "file": "new/actors/animals/animal.h",
+      "orig_name": "ANIMAL_NUMBER",
+      "orig_file": "fallen/Headers/animal.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_animals",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "init_animals",
+      "orig_file": "fallen/Source/animal.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_animal",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "alloc_animal",
+      "orig_file": "fallen/Source/animal.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_animal",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "free_animal",
+      "orig_file": "fallen/Source/animal.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_create",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "ANIMAL_create",
+      "orig_file": "fallen/Source/animal.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_animate",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "ANIMAL_animate",
+      "orig_file": "fallen/Source/animal.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_set_anim",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "ANIMAL_set_anim",
+      "orig_file": "fallen/Source/animal.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_get_animal",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "ANIMAL_get_animal",
+      "orig_file": "fallen/Source/animal.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_tween",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "alloc_tween",
+      "orig_file": "fallen/Source/animal.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_animatetween",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "ANIMAL_animatetween",
+      "orig_file": "fallen/Source/animal.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_draw",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "ANIMAL_draw",
+      "orig_file": "fallen/Headers/animal.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIMAL_register",
+      "file": "new/actors/animals/animal.cpp",
+      "orig_name": "ANIMAL_register",
+      "orig_file": "fallen/Headers/animal.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Chopper",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "Chopper",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_CHOPPERS",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "MAX_CHOPPERS",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_NONE",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_NONE",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_CIVILIAN",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_CIVILIAN",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_NUMB",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_NUMB",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_substate_idle",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_substate_idle",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_substate_takeoff",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_substate_takeoff",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_substate_landing",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_substate_landing",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_substate_landed",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_substate_landed",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_substate_tracking",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_substate_tracking",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_substate_homing",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_substate_homing",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_substate_patrolling",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_substate_patrolling",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_functions",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_functions",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CIVILIAN_state_function",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CIVILIAN_state_function",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_choppers",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "init_choppers",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_chopper",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "alloc_chopper",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_chopper",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "free_chopper",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_create",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_create",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_get_chopper",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_get_chopper",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_get_drawmesh",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_get_drawmesh",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_altitude",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_altitude",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_home",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_home",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_limit",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_limit",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_damp",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_damp",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_radius_broken",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_radius_broken",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_predict_altitude",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_predict_altitude",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_fn_init",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_fn_init",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_fn_normal",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_fn_normal",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_init_state",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_init_state",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HARDWIRED_RADIUS",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "HARDWIRED_RADIUS",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DETECTION_RADIUS",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "DETECTION_RADIUS",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "IGNORAMUS_RADIUS",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "IGNORAMUS_RADIUS",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PRIM_OBJ_CHOPPER",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "PRIM_OBJ_CHOPPER",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PRIM_OBJ_CHOPPER_BLADES",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "PRIM_OBJ_CHOPPER_BLADES",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHOPPER_AVOID_SPEED",
+      "file": "new/actors/vehicles/chopper.cpp",
+      "orig_name": "CHOPPER_AVOID_SPEED",
+      "orig_file": "fallen/Source/chopper.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AnimalPtr",
+      "file": "new/actors/animals/animal.h",
+      "orig_name": "AnimalPtr",
+      "orig_file": "fallen/Headers/animal.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ChopperPtr",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "ChopperPtr",
+      "orig_file": "fallen/Headers/chopper.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -1,0 +1,6 @@
+#ifndef ACTORS_VEHICLES_CHOPPER_GLOBALS_H
+#define ACTORS_VEHICLES_CHOPPER_GLOBALS_H
+
+#include "actors/vehicles/chopper.h"
+
+#endif // ACTORS_VEHICLES_CHOPPER_GLOBALS_H

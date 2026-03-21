@@ -406,3 +406,13 @@ Entity mapping обновлён (33 записи — file path).
 - Ошибки компиляции при циклических include через `Game.h` → `Player.h`/`Switch.h`: решено по паттерну из предыдущих итераций (`#ifndef THING_INDEX + Structs.h` вместо `Game.h` в `.h` файлах)
 
 ---
+## Итерация 41 — actors/characters/darci + actors/animals/animal + actors/vehicles/chopper (2026-03-21)
+
+- `chopper.h` требует `<string.h>` перед `Structs.h` (аналогично animal.h) — `Structs.h` → `anim.h` использует `strcpy`; также зависит от `actors/core/drawtype.h` для типа `DrawMesh`
+- `CHOPPER_fn_init`/`CHOPPER_fn_normal` — `memory.cpp` ссылается напрямую → сделаны public; объявлены в `chopper.h`
+- `CHOPPER_AVOID_SPEED` — `#define` внутри тела функции `CHOPPER_home` (1:1 с оригиналом)
+- `darci_states[]`, `ANIMAL_functions[]`, `CHOPPER_functions[]`/`CIVILIAN_state_function[]` — все перемещены в соответствующие `_globals.cpp`
+- `person_slide_inside` — возвращает `SLONG` (не `void`): тип взят из `inside2.h`
+- Строки 1026–1167 оригинального `Darci.cpp` — большой `/* */`-комментарий, не мигрировался
+
+---
