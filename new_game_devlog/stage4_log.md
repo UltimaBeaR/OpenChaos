@@ -427,3 +427,13 @@ Entity mapping обновлён (33 записи — file path).
 - `BALLOON_get_attached_point` — file-private static, не объявлена в оригинальном `balloon.h`
 
 ---
+
+## Итерация 43 — actors/items/hook + effects/pow (2026-03-21)
+
+- `HOOK_reel()` — объявлена в оригинальном `hook.h`, реализации нет нигде (мёртвая декларация пре-релиза); сохранена в `hook.h` для ABI-совместимости, не реализована
+- `check_pows()` — non-static (оригинал объявляет через local forward decl внутри `POW_init`); перенесена как non-static; `POW_insert_sprite` — non-static в оригинале, помечена `static` как file-private
+- `pow.h` включает `<MFStdLib.h>` — нужен `ASSERT` для inline `POW_create`
+- `effects/pow.h` включает `world/map/pap.h` (Temporary) — для `PAP_SIZE_LO` в `extern UBYTE POW_mapwho[]`; pre-existing coupling из оригинала
+- `sizeof(POW_mapwho)` заменено на `PAP_SIZE_LO * sizeof(POW_mapwho[0])` — extern incomplete array не допускает sizeof
+
+---

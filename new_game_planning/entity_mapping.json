@@ -27349,6 +27349,856 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_Point",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_Point",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_point",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_point",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_reeled",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_reeled",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_state",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_state",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_grapple_yaw",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_grapple_yaw",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_grapple_pitch",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_grapple_pitch",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_spin_x",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_spin_x",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_spin_y",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_spin_y",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_spin_z",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_spin_z",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_spin_speed",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_spin_speed",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_countdown",
+      "file": "new/actors/items/hook_globals.h",
+      "orig_name": "HOOK_countdown",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_NUM_POINTS",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_NUM_POINTS",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_STATE_STILL",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_STATE_STILL",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_STATE_SPINNING",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_STATE_SPINNING",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_STATE_FLYING",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_STATE_FLYING",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_REELED_CONTINUE",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_REELED_CONTINUE",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_REELED_IN",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_REELED_IN",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_REELED_TAUT",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_REELED_TAUT",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_init",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_init",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_get_state",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_get_state",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_spin",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_spin",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_release",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_release",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_process",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_process",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_pos_grapple",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_pos_grapple",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_pos_point",
+      "file": "new/actors/items/hook.h",
+      "orig_name": "HOOK_pos_point",
+      "orig_file": "fallen/Headers/hook.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_make_loop",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_make_loop",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_process_points",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_process_points",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_process_flying",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_process_flying",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_process_spinning",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_process_spinning",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_POINT_DIST",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_POINT_DIST",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_POINT_GRAVITY",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_POINT_GRAVITY",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_POINT_FRICTION",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_POINT_FRICTION",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_POINT_ATTRACT",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_POINT_ATTRACT",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_POINT_JUMP",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_POINT_JUMP",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_GRAPPLE_GRAVITY",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_GRAPPLE_GRAVITY",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_LOOP_RADIUS",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_LOOP_RADIUS",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_LOOP_ANGLE",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_LOOP_ANGLE",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_LOOP_RAISE",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_LOOP_RAISE",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HOOK_NUM_HOLD",
+      "file": "new/actors/items/hook.cpp",
+      "orig_name": "HOOK_NUM_HOLD",
+      "orig_file": "fallen/Source/hook.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_Sprite",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_Sprite",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_MAX_SPRITES",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_MAX_SPRITES",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_sprite",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_sprite",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_sprite_free",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_sprite_free",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_Pow",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_Pow",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_MAX_POWS",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_MAX_POWS",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_pow",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_pow",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_pow_free",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_pow_free",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_pow_used",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_pow_used",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_mapwho",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_mapwho",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TYPE_UNUSED",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_TYPE_UNUSED",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TYPE_BASIC_SPHERE_LARGE",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_TYPE_BASIC_SPHERE_LARGE",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TYPE_BASIC_SPHERE_MEDIUM",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_TYPE_BASIC_SPHERE_MEDIUM",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TYPE_BASIC_SPHERE_SMALL",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_TYPE_BASIC_SPHERE_SMALL",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TYPE_SPAWN_SPHERE_LARGE",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_TYPE_SPAWN_SPHERE_LARGE",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TYPE_SPAWN_SPHERE_MEDIUM",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_TYPE_SPAWN_SPHERE_MEDIUM",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TYPE_MULTISPAWN",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_TYPE_MULTISPAWN",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TYPE_MULTISPAWN_SEMI",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_TYPE_MULTISPAWN_SEMI",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TYPE_NUMBER",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_TYPE_NUMBER",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_CREATE_LARGE_SEMI",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_CREATE_LARGE_SEMI",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_CREATE_MEDIUM",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_CREATE_MEDIUM",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_CREATE_LARGE",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_CREATE_LARGE",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_init",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_init",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_new",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_new",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_create",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_create",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_process",
+      "file": "new/effects/pow.h",
+      "orig_name": "POW_process",
+      "orig_file": "fallen/Headers/pow.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_Spawn",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_Spawn",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_ARRANGE_SPHERE",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_ARRANGE_SPHERE",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_ARRANGE_SEMISPHERE",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_ARRANGE_SEMISPHERE",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_ARRANGE_CIRCLE",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_ARRANGE_CIRCLE",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_ARRANGE_NOTHING",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_ARRANGE_NOTHING",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TYPE_MAX_SPAWN",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_TYPE_MAX_SPAWN",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_Type",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_Type",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_type",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_type",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_SPAWN_FLAG_MIDDLE",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_SPAWN_FLAG_MIDDLE",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_SPAWN_FLAG_AWAY",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_SPAWN_FLAG_AWAY",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_SPAWN_FLAG_UPPER",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_SPAWN_FLAG_UPPER",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_SPAWN_FLAG_FAR_OFF",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_SPAWN_FLAG_FAR_OFF",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_TICKS_PER_SECOND",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_TICKS_PER_SECOND",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_DELTA_SHIFT",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_DELTA_SHIFT",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_MAX_FRAME_SPEED",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_MAX_FRAME_SPEED",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_FLAG_SPAWNED_1",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_FLAG_SPAWNED_1",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_FLAG_SPAWNED_2",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_FLAG_SPAWNED_2",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_FLAG_SPAWNED_3",
+      "file": "new/effects/pow_globals.h",
+      "orig_name": "POW_FLAG_SPAWNED_3",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_pows",
+      "file": "new/effects/pow.cpp",
+      "orig_name": "check_pows",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POW_insert_sprite",
+      "file": "new/effects/pow.cpp",
+      "orig_name": "POW_insert_sprite",
+      "orig_file": "fallen/Source/pow.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -205,6 +205,10 @@ set(SOURCES_NEW
     src/new/actors/items/grenade_globals.cpp
     src/new/actors/items/dike.cpp
     src/new/actors/items/dike_globals.cpp
+    src/new/actors/items/hook.cpp
+    src/new/actors/items/hook_globals.cpp
+    src/new/effects/pow.cpp
+    src/new/effects/pow_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -266,7 +270,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/gamemenu.cpp
     src/old/fallen/Source/guns.cpp
     src/old/fallen/Source/hm.cpp
-    src/old/fallen/Source/hook.cpp
     src/old/fallen/Source/interact.cpp
     src/old/fallen/Source/interfac.cpp
     src/old/fallen/Source/io.cpp
@@ -284,7 +287,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/Pjectile.cpp
     src/old/fallen/Source/plat.cpp
     src/old/fallen/Source/playcuts.cpp
-    src/old/fallen/Source/pow.cpp
     src/old/fallen/Source/Prim.cpp
     src/old/fallen/Source/puddle.cpp
     src/old/fallen/Source/pyro.cpp
