@@ -177,6 +177,8 @@ set(SOURCES_NEW
     src/new/engine/graphics/pipeline/poly_render_globals.cpp
     src/new/engine/lighting/smap.cpp
     src/new/engine/lighting/smap_globals.cpp
+    src/new/engine/lighting/night.cpp
+    src/new/engine/lighting/night_globals.cpp
     src/new/world/navigation/inside2.cpp
     src/new/world/navigation/inside2_globals.cpp
     src/new/world/environment/build2.cpp

@@ -1,5 +1,21 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 68 — engine/lighting/night (первый чанк: globals + ambient + slight + dlight + cache + dfcache_init) (2026-03-21)
+
+- Исходный файл: `old/fallen/Source/night.cpp` (3905 строк). Первый чанк — ~2300 строк.
+- Созданы новые файлы: `new/engine/lighting/night.h`, `new/engine/lighting/night.cpp`, `new/engine/lighting/night_globals.h`, `new/engine/lighting/night_globals.cpp`.
+- `old/fallen/Headers/Night.h` заменён redirect-заглушкой (2 строки).
+- Мигрированы: все types/macros из `Night.h`, все globals, функции `NIGHT_ambient`, `NIGHT_ambient_at_point`, `NIGHT_slight_*`, `NIGHT_light_mapsquare`, `NIGHT_get_facet_info`, `NIGHT_light_prim`, `NIGHT_dlight_*`, `NIGHT_cache_*`, `NIGHT_dfcache_init`.
+- **Ошибка компиляции 1:** `NIGHT_FLAG_INSIDE` — file-scope `#define` в оригинальном `night.cpp`, используется как в новом `night.cpp`, так и в оставшемся `old/night.cpp` (в `NIGHT_dfcache_create`). Перемещён в `night.h`.
+- **Ошибка линковки:** `hidden_roof_index[128][128]` — в оригинале не `static`, доступен из `aeng.cpp` через `extern`. При переносе ошибочно сделан `static` в `old/night.cpp`. Исправлено на non-static.
+- **CHECK B fix:** `NIGHT_llight[NIGHT_MAX_LLIGHTS]` и `NIGHT_llight_upto` — сначала оставлены как `static` в `night.cpp`, но правило требует все globals в `_globals`. Перемещены в `night_globals.cpp`. Тип `NIGHT_Llight` и макрос `NIGHT_MAX_LLIGHTS` перемещены в `night.h`.
+- **CHECK A fix:** `NIGHT_Precalc`, `NIGHT_Preblock`, `NIGHT_Point`, `NIGHT_MAX_POINTS` — отсутствовали `uc_orig` комментарии. Добавлены.
+- **CHECK A fix:** `NIGHT_specular_enable` extern — отсутствовал `uc_orig`. Добавлен (origin: `Controls.cpp`).
+- `NIGHT_slight_init`, `NIGHT_slight_compress`, `NIGHT_dlight_init`, `NIGHT_cache_init`, `NIGHT_dfcache_init`, `NIGHT_dlight_squares_do` — в оригинале не в header, но `NIGHT_init()` (осталась в `old/night.cpp`) вызывает первые 4 из них. Решение: убран `static`, добавлены объявления в `night.h`.
+- Сборка [296/296] ОК, 52 предупреждения (все из old/ файлов, не новые).
+
+---
+
 ## Итерация 67 — ai/mav (второй чанк: MAV_draw..MAV_turn_car_movement_off) (2026-03-21)
 
 - `TRACE` — в оригинальном `MFStdLib.h` был no-op `#define TRACE`; убран при переносе библиотеки. Добавлен `#ifndef TRACE / #define TRACE(...) / #endif` в `new/ai/mav.cpp`.

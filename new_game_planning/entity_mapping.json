@@ -43589,6 +43589,1186 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Slight",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_Slight",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Smap",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_Smap",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Smap_2d",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_Smap_2d",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Dlight",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_Dlight",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Colour",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_Colour",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Square",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_Square",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Dfcache",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_Dfcache",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Found",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_Found",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_MAX_SLIGHTS",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_MAX_SLIGHTS",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_LIGHT_MULTIPLIER",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_LIGHT_MULTIPLIER",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_DLIGHT_FLAG_USED",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_DLIGHT_FLAG_USED",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_DLIGHT_FLAG_REMOVE",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_DLIGHT_FLAG_REMOVE",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_MAX_DLIGHTS",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_MAX_DLIGHTS",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_SQUARE_FLAG_USED",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_SQUARE_FLAG_USED",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_SQUARE_FLAG_WARE",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_SQUARE_FLAG_WARE",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_SQUARE_FLAG_DELETEME",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_SQUARE_FLAG_DELETEME",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_MAX_SQUARES",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_MAX_SQUARES",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_MAX_DFCACHES",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_MAX_DFCACHES",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_MAX_BRIGHT",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_MAX_BRIGHT",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_FADEOUT_START",
+      "file": "engine/lighting/night.h",
+      "orig_name": "POLY_FADEOUT_START",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_MAX_WALKABLE",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_MAX_WALKABLE",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_WALKABLE_POINT",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_WALKABLE_POINT",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_ROOF_WALKABLE_POINT",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_ROOF_WALKABLE_POINT",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_MAX_FOUND",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_MAX_FOUND",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_FLAG_INSIDE",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_FLAG_INSIDE",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_FLAG_LIGHTS_UNDER_LAMPOSTS",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_FLAG_LIGHTS_UNDER_LAMPOSTS",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_FLAG_DARKEN_BUILDING_POINTS",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_FLAG_DARKEN_BUILDING_POINTS",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_FLAG_DAYTIME",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_FLAG_DAYTIME",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_red",
+      "file": "engine/lighting/night.h",
+      "orig_name": "get_red",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_green",
+      "file": "engine/lighting/night.h",
+      "orig_name": "get_green",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_blue",
+      "file": "engine/lighting/night.h",
+      "orig_name": "get_blue",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_red",
+      "file": "engine/lighting/night.h",
+      "orig_name": "set_red",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_green",
+      "file": "engine/lighting/night.h",
+      "orig_name": "set_green",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_blue",
+      "file": "engine/lighting/night.h",
+      "orig_name": "set_blue",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "or_red",
+      "file": "engine/lighting/night.h",
+      "orig_name": "or_red",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "or_green",
+      "file": "engine/lighting/night.h",
+      "orig_name": "or_green",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "or_blue",
+      "file": "engine/lighting/night.h",
+      "orig_name": "or_blue",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "nor_red",
+      "file": "engine/lighting/night.h",
+      "orig_name": "nor_red",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "nor_green",
+      "file": "engine/lighting/night.h",
+      "orig_name": "nor_green",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "nor_blue",
+      "file": "engine/lighting/night.h",
+      "orig_name": "nor_blue",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_get_d3d_colour",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_get_d3d_colour",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_get_d3d_colour_and_fade",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_get_d3d_colour_and_fade",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_get_d3d_colour_dim",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_get_d3d_colour_dim",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_ambient",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_ambient",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_ambient_at_point",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_ambient_at_point",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_slight_compress",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_slight_compress",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_slight_init",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_slight_init",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_slight_create",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_slight_create",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_slight_delete",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_slight_delete",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_slight_delete_all",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_slight_delete_all",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_light_mapsquare",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_light_mapsquare",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_get_facet_info",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_get_facet_info",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_light_prim",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_light_prim",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight_init",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dlight_init",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight_create",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dlight_create",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight_destroy",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dlight_destroy",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight_move",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dlight_move",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight_colour",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dlight_colour",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight_squares_do",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dlight_squares_do",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight_squares_up",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dlight_squares_up",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight_squares_down",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dlight_squares_down",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_cache_init",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_cache_init",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_cache_recalc",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_cache_recalc",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_cache_create",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_cache_create",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_cache_create_inside",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_cache_create_inside",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_cache_destroy",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_cache_destroy",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dfcache_init",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_dfcache_init",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Llight",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_Llight",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_MAX_LLIGHTS",
+      "file": "engine/lighting/night.h",
+      "orig_name": "NIGHT_MAX_LLIGHTS",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_llight",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_llight",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_llight_upto",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_llight_upto",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_slight",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_slight",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_slight_upto",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_slight_upto",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_smap",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_smap",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_dlight",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight_free",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_dlight_free",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dlight_used",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_dlight_used",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_square",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_square",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_square_free",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_square_free",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_square_num_used",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_square_num_used",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_cache",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_cache",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dfcache",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_dfcache",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dfcache_free",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_dfcache_free",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dfcache_used",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_dfcache_used",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_dfcache_counter",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_dfcache_counter",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_flag",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_flag",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_lampost_radius",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_lampost_radius",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_lampost_red",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_lampost_red",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_lampost_green",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_lampost_green",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_lampost_blue",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_lampost_blue",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_sky_colour",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_sky_colour",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_amb_d3d_colour",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_amb_d3d_colour",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_amb_d3d_specular",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_amb_d3d_specular",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_amb_red",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_amb_red",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_amb_green",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_amb_green",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_amb_blue",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_amb_blue",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_amb_norm_x",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_amb_norm_x",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_amb_norm_y",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_amb_norm_y",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_amb_norm_z",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_amb_norm_z",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_old_amb_red",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_old_amb_red",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_old_amb_green",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_old_amb_green",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_old_amb_blue",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_old_amb_blue",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_old_amb_norm_x",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_old_amb_norm_x",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_old_amb_norm_y",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_old_amb_norm_y",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_old_amb_norm_z",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_old_amb_norm_z",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_found",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_found",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_found_upto",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_found_upto",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_first_walkable_prim_point",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_first_walkable_prim_point",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_walkable",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_walkable",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_roof_walkable",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "NIGHT_roof_walkable",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "engine/lighting/night.h",
+      "file": "engine/lighting/night.h",
+      "orig_name": "fallen/Headers/Night.h",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "file",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "engine/lighting/night.cpp",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "fallen/Source/night.cpp",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "file",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "engine/lighting/night_globals.cpp",
+      "file": "engine/lighting/night_globals.cpp",
+      "orig_name": "fallen/Source/night.cpp",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "file",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Precalc",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_Precalc",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Preblock",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_Preblock",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_Point",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_Point",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NIGHT_MAX_POINTS",
+      "file": "engine/lighting/night.cpp",
+      "orig_name": "NIGHT_MAX_POINTS",
+      "orig_file": "fallen/Source/night.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_FADEOUT_END",
+      "file": "engine/lighting/night.h",
+      "orig_name": "POLY_FADEOUT_END",
+      "orig_file": "fallen/Headers/Night.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
