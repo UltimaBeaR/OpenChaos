@@ -756,5 +756,29 @@ void PCOM_process_state_change(Thing* p_person);
 // uc_orig: PCOM_process_movement (fallen/Source/pcom.cpp)
 void PCOM_process_movement(Thing* p_person);
 
+// uc_orig: init_arrest (fallen/Source/pcom.cpp)
+void init_arrest(void);
+
+// uc_orig: do_arrests (fallen/Source/pcom.cpp)
+void do_arrests(void);
+
+// uc_orig: should_person_regen (fallen/Source/pcom.cpp)
+SLONG should_person_regen(Thing* p_person);
+
+// uc_orig: PCOM_process_driving_still (fallen/Source/pcom.cpp)
+void PCOM_process_driving_still(Thing* p_person);
+
+// uc_orig: PCOM_process_driving_patrol (fallen/Source/pcom.cpp)
+void PCOM_process_driving_patrol(Thing* p_person);
+
+// uc_orig: PCOM_process_driving_wander (fallen/Source/pcom.cpp)
+void PCOM_process_driving_wander(Thing* p_person);
+
+// uc_orig: PCOM_process_patrol (fallen/Source/pcom.cpp)
+void PCOM_process_patrol(Thing* p_person);
+
+// uc_orig: PCOM_process_wander (fallen/Source/pcom.cpp)
+void PCOM_process_wander(Thing* p_person);
+
 
 #endif // AI_PCOM_H

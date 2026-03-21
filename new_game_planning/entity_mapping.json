@@ -54979,6 +54979,226 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_create_player",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_create_player",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_change_person_attributes",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_change_person_attributes",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_get_zone_for_position",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_get_zone_for_position",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_can_i_see_person_to_attack",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_can_i_see_person_to_attack",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_can_i_see_person_to_bully",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_can_i_see_person_to_bully",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "arrest_me",
+      "file": "new/ai/pcom_globals.cpp",
+      "orig_name": "arrest_me",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "next_arrest",
+      "file": "new/ai/pcom_globals.cpp",
+      "orig_name": "next_arrest",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAX_ARREST_ME",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "MAX_ARREST_ME",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_arrest",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "init_arrest",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "do_arrests",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "do_arrests",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_call_cop_to_arrest_me",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_call_cop_to_arrest_me",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_can_i_see_person_to_taunt",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_can_i_see_person_to_taunt",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_get_next_patrol_waypoint",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_get_next_patrol_waypoint",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_driving_still",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_driving_still",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_driving_patrol",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_driving_patrol",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_driving_wander",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_driving_wander",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_patrol",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_patrol",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "should_person_regen",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "should_person_regen",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_do_regen",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_do_regen",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_wander",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_wander",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "LEFT_TURN_DIST",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "LEFT_TURN_DIST",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "RIGHT_TURN_DIST",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "RIGHT_TURN_DIST",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

@@ -56,4 +56,12 @@ extern UBYTE gang_angle_priority[8];
 // uc_orig: PCOM_summon (fallen/Source/pcom.cpp)
 extern UWORD PCOM_summon[PCOM_SUMMON_NUM_BODIES];
 
+// Deferred arrest queue — persons that must be arrested at end of frame.
+// uc_orig: MAX_ARREST_ME (fallen/Source/pcom.cpp)
+#define MAX_ARREST_ME 100
+// uc_orig: arrest_me (fallen/Source/pcom.cpp)
+extern Thing* arrest_me[MAX_ARREST_ME];
+// uc_orig: next_arrest (fallen/Source/pcom.cpp)
+extern UWORD next_arrest;
+
 #endif // AI_PCOM_GLOBALS_H

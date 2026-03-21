@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 85 — ai/pcom (пятый чанк: PCOM_create_player..PCOM_process_wander) (2026-03-22)
+
+- `arrest_me[100]` + `next_arrest` — глобалы → `pcom_globals.cpp/h`; `MAX_ARREST_ME` макрос туда же.
+- `PCOM_can_i_see_person_to_arrest` — полностью в `/* */` в оригинале → dead code, не перенесена; в `pcom.h` декларация сохранена проактивно (была добавлена ранее итерацией 84).
+- `extern ULONG timer_bored` — был в блоке `#if 0 MIGRATED (iter 82)` перед `PCOM_do_regen`; после `#if 0` блокировки пропал из active зоны → добавлен заново после `#endif MIGRATED iter 85` для остатка pcom.cpp.
+- `fallen/Headers/Vehicle.h` — добавлен как `// Temporary:` include для `reinit_vehicle` и `Vehicle` struct (нужен `PCOM_process_driving_wander`).
+- 8 новых функций добавлены в `pcom.h`: `init_arrest`, `do_arrests`, `should_person_regen`, `PCOM_process_driving_still/patrol/wander`, `PCOM_process_patrol`, `PCOM_process_wander`.
+
+---
+
 ## Итерация 84 — ai/pcom (третий чанк: AI setters + PCOM_create_person) (2026-03-22)
 
 - `PCOM_summon[4]` — `static` в оригинале нет, глобал → `pcom_globals.cpp` + `pcom_globals.h`; макрос `PCOM_SUMMON_NUM_BODIES` туда же.

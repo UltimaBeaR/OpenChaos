@@ -4984,6 +4984,8 @@ THING_INDEX PCOM_create_person(
 
 #endif // MIGRATED to src/new/ai/pcom.cpp (iteration 84)
 
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 85)
+
 THING_INDEX PCOM_create_player(
     SLONG type,
     SLONG pcom_has,
@@ -6500,6 +6502,10 @@ void PCOM_process_wander(Thing* p_person)
         break;
     }
 }
+
+#endif // MIGRATED to src/new/ai/pcom.cpp (iteration 85)
+
+extern ULONG timer_bored;
 
 //
 // The AI for combat.

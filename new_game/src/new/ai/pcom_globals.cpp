@@ -164,3 +164,9 @@ UBYTE gang_angle_priority[] = { 0, 2, 6, 4, 1, 7, 3, 5 };
 
 // uc_orig: PCOM_summon (fallen/Source/pcom.cpp)
 UWORD PCOM_summon[PCOM_SUMMON_NUM_BODIES];
+
+// uc_orig: arrest_me (fallen/Source/pcom.cpp)
+Thing* arrest_me[MAX_ARREST_ME];
+
+// uc_orig: next_arrest (fallen/Source/pcom.cpp)
+UWORD next_arrest = 0;

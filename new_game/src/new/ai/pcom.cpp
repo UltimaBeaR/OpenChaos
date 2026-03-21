@@ -25,6 +25,7 @@
 #include "fallen/Headers/balloon.h"     // Temporary: BALLOON_create
 #include "fallen/Headers/cnet.h"        // Temporary: NET_PERSON
 #include "fallen/Headers/overlay.h"     // Temporary: track_enemy
+#include "fallen/Headers/Vehicle.h"     // Temporary: reinit_vehicle, Vehicle struct, ROAD_find
 
 // --- Internal movement state constants (file-local) ---
 
@@ -3826,4 +3827,1081 @@ THING_INDEX PCOM_create_person(
     }
 
     return p_index;
+}
+
+// uc_orig: PCOM_create_player (fallen/Source/pcom.cpp)
+THING_INDEX PCOM_create_player(
+    SLONG type,
+    SLONG pcom_has,
+    SLONG world_x,
+    SLONG world_y,
+    SLONG world_z,
+    SLONG id,
+    SLONG yaw)
+{
+    Thing* p_person = create_player(
+        type,
+        world_x,
+        world_y,
+        world_z,
+        id);
+
+    extern SLONG playing_level(const CBYTE* name);
+
+    if (playing_level("skymiss2.ucm")) {
+        pcom_has |= PCOM_HAS_SHOTGUN;
+    }
+
+    if (p_person) {
+        p_person->Draw.Tweened->Angle = yaw;
+
+        p_person->Genus.Person->pcom_ai = PCOM_AI_NONE;
+        p_person->Genus.Person->pcom_move = PCOM_MOVE_STILL;
+        p_person->Genus.Person->pcom_bent = 0;
+
+        p_person->Genus.Person->pcom_ai_state = PCOM_AI_STATE_PLAYER;
+        p_person->Genus.Person->pcom_ai_substate = PCOM_AI_SUBSTATE_NONE;
+        p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_PLAYER;
+
+        if (pcom_has & PCOM_HAS_GUN) {
+            p_person->Flags |= FLAGS_HAS_GUN;
+        }
+
+        if (pcom_has & PCOM_HAS_SHOTGUN) {
+            Thing* p_special = alloc_special(
+                SPECIAL_SHOTGUN,
+                SPECIAL_SUBSTATE_NONE,
+                0, 0, 0, NULL);
+            if (p_special) {
+                if (should_person_get_item(p_person, p_special)) {
+                    person_get_item(p_person, p_special);
+                    set_person_draw_item(p_person, SPECIAL_SHOTGUN);
+                }
+            }
+        }
+
+        if (pcom_has & PCOM_HAS_BALLOON) {
+            p_person->Genus.Person->Balloon = BALLOON_create(THING_NUMBER(p_person), BALLOON_TYPE_YELLOW);
+        }
+
+        return THING_NUMBER(p_person);
+    }
+
+    return NULL;
+}
+
+// uc_orig: PCOM_change_person_attributes (fallen/Source/pcom.cpp)
+void PCOM_change_person_attributes(
+    Thing* p_person,
+    SLONG colour,
+    SLONG group,
+    SLONG ai,
+    SLONG ai_other,
+    SLONG move,
+    SLONG move_follow,
+    SLONG bent,
+    SLONG yaw)
+{
+    if (is_person_dead(p_person)) {
+        return;
+    }
+
+    p_person->Genus.Person->pcom_colour = colour;
+    p_person->Genus.Person->pcom_group = group;
+    p_person->Genus.Person->pcom_ai = ai;
+    p_person->Genus.Person->pcom_move = move;
+    p_person->Genus.Person->pcom_bent = bent;
+
+    p_person->Genus.Person->pcom_ai_state = PCOM_AI_STATE_NORMAL;
+    p_person->Genus.Person->pcom_ai_substate = PCOM_AI_SUBSTATE_NONE;
+    p_person->Genus.Person->pcom_ai_arg = NULL;
+    p_person->Genus.Person->pcom_ai_other = ai_other;
+
+    p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_STILL;
+    p_person->Genus.Person->pcom_move_counter = 0;
+    p_person->Genus.Person->pcom_move_arg = 0;
+    p_person->Genus.Person->pcom_move_follow = move_follow;
+
+    if (p_person->Genus.Person->pcom_move == PCOM_MOVE_HANDS_UP) {
+        void drop_current_gun(Thing * p_person, SLONG change_anim);
+
+        drop_current_gun(p_person, 0);
+    }
+
+    if (p_person->Genus.Person->pcom_move == PCOM_MOVE_STILL || p_person->Genus.Person->pcom_move == PCOM_MOVE_DANCE || p_person->Genus.Person->pcom_move == PCOM_MOVE_HANDS_UP || p_person->Genus.Person->pcom_move == PCOM_MOVE_TIED_UP) {
+        p_person->Genus.Person->HomeX = p_person->WorldPos.X >> 8;
+        p_person->Genus.Person->HomeZ = p_person->WorldPos.Z >> 8;
+        /*
+        p_person->Genus.Person->HomeYaw = yaw >> 3;
+        p_person->Draw.Tweened->Angle   = yaw;
+        */
+    }
+
+    PCOM_set_person_ai_normal(p_person);
+}
+
+// Returns the zone bitmask (4-bit) for the PAP cell at the person's destination navsquare.
+// NPCs with a non-zero pcom_zone field only perceive targets within their own zone.
+// uc_orig: PCOM_get_zone_for_position (fallen/Source/pcom.cpp)
+UBYTE PCOM_get_zone_for_position(Thing* p_person)
+{
+    UBYTE zone;
+
+    SLONG dest_x;
+    SLONG dest_z;
+
+    PAP_Hi* ph;
+
+    PCOM_get_person_navsquare(
+        p_person,
+        &dest_x,
+        &dest_z);
+
+    ph = &PAP_2HI(dest_x, dest_z);
+
+    ASSERT(PAP_FLAG_ZONE1 == (1 << 10));
+
+    zone = ph->Flags >> 10;
+
+    return zone;
+}
+
+// Variant that takes a world position directly instead of a person pointer.
+// uc_orig: PCOM_get_zone_for_position (fallen/Source/pcom.cpp)
+UBYTE PCOM_get_zone_for_position(SLONG x, SLONG z)
+{
+    UBYTE zone;
+
+    PAP_Hi* ph;
+
+    ph = &PAP_2HI(x >> 8, z >> 8);
+
+    ASSERT(PAP_FLAG_ZONE1 == (1 << 10));
+
+    zone = ph->Flags >> 10;
+
+    return zone;
+}
+
+// Returns the player if this NPC can see them and they share the same zone.
+// uc_orig: PCOM_can_i_see_person_to_attack (fallen/Source/pcom.cpp)
+Thing* PCOM_can_i_see_person_to_attack(Thing* p_person)
+{
+    Thing* p_target = NET_PERSON(0);
+
+    if (p_target->State == STATE_DEAD || p_target->State == STATE_DYING || stealth_debug) {
+        return NULL;
+    }
+
+    if (p_person->Genus.Person->pcom_zone) {
+        if (PCOM_get_zone_for_position(p_target) & p_person->Genus.Person->pcom_zone) {
+            // Target is in our zone.
+        } else {
+            return NULL;
+        }
+    }
+
+    if (can_a_see_b(p_person, p_target)) {
+        return p_target;
+    }
+
+    return NULL;
+}
+
+// Finds the nearest visible civ or player to intimidate.
+// Only considers wandering civs and players (unless PCOM_BENT_ONLY_KILL_PLAYER).
+// uc_orig: PCOM_can_i_see_person_to_bully (fallen/Source/pcom.cpp)
+Thing* PCOM_can_i_see_person_to_bully(Thing* p_person)
+{
+    SLONG i;
+
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+    SLONG score;
+
+    SLONG best_score = INFINITY;
+    Thing* best_thing = NULL;
+
+    Thing* p_found;
+
+    PCOM_found_num = THING_find_sphere(
+        p_person->WorldPos.X >> 8,
+        p_person->WorldPos.Y >> 8,
+        p_person->WorldPos.Z >> 8,
+        0x600,
+        PCOM_found,
+        PCOM_MAX_FIND,
+        1 << CLASS_PERSON);
+
+    for (i = 0; i < PCOM_found_num; i++) {
+        p_found = TO_THING(PCOM_found[i]);
+
+        if (p_found == p_person) {
+            continue;
+        }
+
+        if (p_found->State == STATE_DEAD || p_found->State == STATE_DYING) {
+            continue;
+        }
+
+        if (p_person->Genus.Person->pcom_bent & PCOM_BENT_ONLY_KILL_PLAYER) {
+            if (!p_found->Genus.Person->PlayerID) {
+                continue;
+            }
+        } else {
+            if (p_found->Genus.Person->pcom_ai == PCOM_AI_CIV && p_found->Genus.Person->pcom_move == PCOM_MOVE_WANDER) {
+                // wandering civ — valid bully target
+            } else if (p_found->Genus.Person->PlayerID) {
+                // player — valid bully target
+            } else {
+                continue;
+            }
+        }
+
+        if (can_a_see_b(p_person, p_found)) {
+            dx = abs(p_person->WorldPos.X - p_found->WorldPos.X);
+            dy = abs(p_person->WorldPos.Y - p_found->WorldPos.Y);
+            dz = abs(p_person->WorldPos.Z - p_found->WorldPos.Z);
+
+            score = dx + dy + dy + dz; // y-axis weighted double
+
+            if (p_found->Genus.Person->PlayerID) {
+                score >>= 1; // more likely to bully player
+            }
+
+            if (best_score > score) {
+                best_score = score;
+                best_thing = p_found;
+            }
+        }
+    }
+
+    return best_thing;
+}
+
+// Deferred arrest queue — persons queued via store_it=1 are processed at frame end by do_arrests().
+// Using a queue avoids modifying NPC state mid-frame while iterating the person list.
+// uc_orig: init_arrest (fallen/Source/pcom.cpp)
+void init_arrest(void)
+{
+    next_arrest = 0;
+}
+
+// uc_orig: do_arrests (fallen/Source/pcom.cpp)
+void do_arrests(void)
+{
+    SLONG c0;
+    for (c0 = 0; c0 < next_arrest; c0++) {
+        PCOM_call_cop_to_arrest_me(arrest_me[c0], 0);
+    }
+
+    next_arrest = 0;
+}
+
+// Finds a nearby cop NPC and instructs it to arrest p_person.
+// If store_it is true, queues the request for end-of-frame processing via do_arrests().
+// uc_orig: PCOM_call_cop_to_arrest_me (fallen/Source/pcom.cpp)
+SLONG PCOM_call_cop_to_arrest_me(Thing* p_person, SLONG store_it)
+{
+    SLONG i;
+
+    Thing* p_found;
+    SLONG found_cop = 0;
+
+    if (store_it) {
+        if (next_arrest >= MAX_ARREST_ME) {
+            ASSERT(0);
+            return (0);
+        }
+
+        arrest_me[next_arrest] = p_person;
+        next_arrest++;
+        return (0);
+    }
+
+    if (p_person->Genus.Person->PersonType == PERSON_TRAMP)
+        return (0);
+
+    PCOM_found_num = THING_find_sphere(
+        p_person->WorldPos.X >> 8,
+        p_person->WorldPos.Y >> 8,
+        p_person->WorldPos.Z >> 8,
+        0x800,
+        PCOM_found,
+        PCOM_MAX_FIND,
+        (1 << CLASS_PERSON) | (1 << CLASS_VEHICLE));
+
+    for (i = 0; i < PCOM_found_num; i++) {
+        p_found = TO_THING(PCOM_found[i]);
+
+        if (p_found == p_person) {
+            continue;
+        }
+
+        if (p_found->State == STATE_DEAD || p_found->State == STATE_DYING) {
+            continue;
+        }
+
+        if (p_found->Class == CLASS_VEHICLE) {
+            if (p_found->Genus.Vehicle->Driver) {
+                p_found = TO_THING(p_found->Genus.Vehicle->Driver);
+            } else {
+                continue;
+            }
+        }
+
+        if (p_found->Genus.Person->pcom_ai == PCOM_AI_COP || p_found->Genus.Person->pcom_ai == PCOM_AI_COP_DRIVER) {
+            if (PCOM_person_doing_nothing_important(p_found))
+                switch (p_found->Genus.Person->pcom_ai_state) {
+                case PCOM_AI_STATE_INVESTIGATING:
+                case PCOM_AI_STATE_NORMAL:
+                case PCOM_AI_STATE_WARM_HANDS:
+                case PCOM_AI_STATE_HOMESICK:
+                    if (can_a_see_b(p_person, p_found)) {
+                        p_person->Genus.Person->Flags |= FLAG_PERSON_FELON;
+                        found_cop = 1;
+
+                        if (p_found->Genus.Person->pcom_ai == PCOM_AI_COP || p_found->Genus.Person->InCar == 0) {
+                            PCOM_set_person_ai_arrest(p_found, p_person);
+                        } else {
+                            PCOM_set_person_ai_leavecar(
+                                p_found,
+                                PCOM_EXCAR_ARREST_PERSON,
+                                0,
+                                THING_NUMBER(p_person));
+                        }
+                    }
+                    break;
+                }
+        }
+    }
+
+    return found_cop;
+}
+
+// PCOM_can_i_see_person_to_arrest — fully commented out in original source, dead code.
+
+// Returns the player if this NPC has line-of-sight to taunt them.
+// uc_orig: PCOM_can_i_see_person_to_taunt (fallen/Source/pcom.cpp)
+Thing* PCOM_can_i_see_person_to_taunt(Thing* p_person)
+{
+    SLONG i;
+
+    for (i = 0; i < NO_PLAYERS; i++) {
+        Thing* p_target = NET_PERSON(0);
+
+        if (p_target->State == STATE_DEAD || p_target->State == STATE_DYING || stealth_debug) {
+            continue;
+        }
+
+        if (can_a_see_b(p_person, p_target)) {
+            return p_target;
+        }
+    }
+
+    return NULL;
+}
+
+// Returns the next patrol waypoint index for this person (wraps around or picks random).
+// uc_orig: PCOM_get_next_patrol_waypoint (fallen/Source/pcom.cpp)
+SLONG PCOM_get_next_patrol_waypoint(Thing* p_person)
+{
+    SLONG waypoint;
+
+    if (p_person->Genus.Person->pcom_move == PCOM_MOVE_PATROL) {
+        waypoint = EWAY_find_waypoint(
+            p_person->Genus.Person->pcom_move_arg + 1,
+            EWAY_DONT_CARE,
+            p_person->Genus.Person->pcom_colour,
+            p_person->Genus.Person->pcom_group,
+            TRUE);
+    } else {
+        waypoint = EWAY_find_waypoint_rand(
+            p_person->Genus.Person->pcom_move_arg,
+            p_person->Genus.Person->pcom_colour,
+            p_person->Genus.Person->pcom_group,
+            TRUE);
+    }
+
+    return waypoint;
+}
+
+// AI tick for a person in a parked vehicle (PCOM_MOVE_STILL).
+// Applies brakes until fully stopped.
+// uc_orig: PCOM_process_driving_still (fallen/Source/pcom.cpp)
+void PCOM_process_driving_still(Thing* p_person)
+{
+    ASSERT(p_person->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_BIKING));
+
+    Thing* p_vehicle;
+
+    p_vehicle = TO_THING(p_person->Genus.Person->InCar);
+
+    switch (p_person->Genus.Person->pcom_move_state) {
+    case PCOM_MOVE_STATE_STILL:
+
+        if (p_vehicle->Velocity != 0) {
+            PCOM_set_person_move_park_car_on_road(p_person);
+        }
+
+        break;
+
+    case PCOM_MOVE_STATE_PARK_CAR:
+    case PCOM_MOVE_STATE_PARK_BIKE:
+
+        if ((p_vehicle->Class == CLASS_VEHICLE && p_vehicle->Velocity == 0)
+
+        ) {
+            p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_STILL;
+            p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_NONE;
+            p_person->Genus.Person->pcom_move_arg = 0;
+            p_person->Genus.Person->pcom_move_counter = 0;
+        }
+
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+}
+
+// AI tick for a person driving between EWAY waypoints.
+// Advances to the next waypoint on arrival; parks permanently at delay==10s waypoints.
+// uc_orig: PCOM_process_driving_patrol (fallen/Source/pcom.cpp)
+void PCOM_process_driving_patrol(Thing* p_person)
+{
+    SLONG dx;
+    SLONG dz;
+    SLONG dist;
+    SLONG waypoint;
+
+    SLONG dest_x;
+    SLONG dest_z;
+
+    Thing* p_vehicle;
+
+    switch (p_person->Genus.Person->pcom_move_state) {
+    case PCOM_MOVE_STATE_STILL:
+
+        waypoint = EWAY_find_nearest_waypoint(
+            p_person->WorldPos.X >> 8,
+            p_person->WorldPos.Y >> 8,
+            p_person->WorldPos.Z >> 8,
+            p_person->Genus.Person->pcom_colour,
+            p_person->Genus.Person->pcom_group);
+
+        if (waypoint != EWAY_NO_MATCH) {
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
+                PCOM_set_person_move_driveto(p_person, waypoint);
+            } else {
+                ASSERT(0);
+            }
+        }
+
+        break;
+
+    case PCOM_MOVE_STATE_DRIVETO:
+    case PCOM_MOVE_STATE_BIKETO:
+
+        ASSERT(p_person->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_BIKING));
+
+        PCOM_get_person_dest(
+            p_person,
+            &dest_x,
+            &dest_z);
+
+        p_vehicle = TO_THING(p_person->Genus.Person->InCar);
+
+        dx = dest_x - (p_vehicle->WorldPos.X >> 8);
+        dz = dest_z - (p_vehicle->WorldPos.Z >> 8);
+
+        dist = QDIST2(abs(dx), abs(dz));
+
+        if (dist < 0x300) {
+            if (EWAY_get_delay(p_person->Genus.Person->pcom_move_arg, 0) == 10 * 1000) {
+                // Maximum delay means driver should park permanently here.
+                if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
+                    PCOM_set_person_move_park_car(p_person, p_person->Genus.Person->pcom_move_arg);
+                } else {
+                    ASSERT(0);
+                }
+
+                p_person->Genus.Person->pcom_move = PCOM_MOVE_STILL;
+            } else {
+                if (p_person->Genus.Person->pcom_move == PCOM_MOVE_PATROL) {
+                    waypoint = EWAY_find_waypoint(
+                        p_person->Genus.Person->pcom_move_arg + 1,
+                        EWAY_DONT_CARE,
+                        p_person->Genus.Person->pcom_colour,
+                        p_person->Genus.Person->pcom_group,
+                        TRUE);
+                } else {
+                    waypoint = EWAY_find_waypoint_rand(
+                        p_person->Genus.Person->pcom_move_arg,
+                        p_person->Genus.Person->pcom_colour,
+                        p_person->Genus.Person->pcom_group,
+                        TRUE);
+                }
+
+                if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
+                    PCOM_set_person_move_driveto(p_person, waypoint);
+                } else {
+                    ASSERT(0);
+                }
+            }
+        }
+
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+}
+
+// AI tick for a person driving aimlessly along road segments.
+// Follows road graph, picking next segment at each junction via ROAD_whereto_now().
+// Off-map vehicles are teleported to a new road start; fake-wander vehicles regen near player.
+// uc_orig: PCOM_process_driving_wander (fallen/Source/pcom.cpp)
+void PCOM_process_driving_wander(Thing* p_person)
+{
+    SLONG dx;
+    SLONG dz;
+    SLONG dist;
+
+    SLONG dest_x;
+    SLONG dest_z;
+
+    SLONG n1;
+    SLONG n2;
+
+    SLONG wtn1;
+    SLONG wtn2;
+
+    Thing* p_vehicle;
+
+    if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_FAKE_WANDER) {
+        p_vehicle = TO_THING(p_person->Genus.Person->InCar);
+
+        if (p_vehicle->Flags & FLAGS_IN_VIEW) {
+            p_person->Genus.Person->sewerbits = 0;
+        } else {
+            p_person->Genus.Person->sewerbits++;
+            if (p_person->Genus.Person->sewerbits > 50) {
+                SLONG dx, dz;
+                Thing* p_darci = NET_PERSON(0);
+                dx = abs((p_person->WorldPos.X - p_darci->WorldPos.X) >> 8);
+                dz = abs((p_person->WorldPos.Z - p_darci->WorldPos.Z) >> 8);
+                if (QDIST2(dx, dz) >= (DRAW_DIST << 8)) {
+                    SLONG x, z, yaw;
+
+                    extern SLONG WAND_find_good_start_point_for_car(SLONG * posx, SLONG * posz, SLONG * yaw, SLONG anywhere);
+
+                    if (WAND_find_good_start_point_for_car(&x, &z, &yaw, 0)) {
+                        GameCoord newpos;
+
+                        newpos.X = x << 8;
+                        newpos.Y = 0; // calculated properly in reinit_vehicle()
+                        newpos.Z = z << 8;
+                        move_thing_on_map(p_vehicle, &newpos);
+                        p_person->Genus.Person->sewerbits = Random() & 15;
+                        p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_STILL; // re-init the wander
+
+                        p_person->WorldPos = newpos;
+
+                        Vehicle* veh = p_vehicle->Genus.Vehicle;
+                        veh->Angle = yaw ^ 1024;
+
+                        reinit_vehicle(p_vehicle);
+                    }
+                }
+            }
+        }
+    }
+
+    switch (p_person->Genus.Person->pcom_move_state) {
+    case PCOM_MOVE_STATE_DRIVE_DOWN:
+    case PCOM_MOVE_STATE_BIKE_DOWN:
+
+        p_vehicle = TO_THING(p_person->Genus.Person->InCar);
+
+        if (ROAD_is_end_of_the_line(p_person->Genus.Person->pcom_move_arg & 0xff)) {
+            if (!WITHIN(p_vehicle->WorldPos.X, 0, PAP_SIZE_HI << 16) || !WITHIN(p_vehicle->WorldPos.Z, 0, PAP_SIZE_HI << 16)) {
+                SLONG world_x = p_vehicle->WorldPos.X >> 8;
+                SLONG world_z = p_vehicle->WorldPos.Z >> 8;
+                SLONG nrn1;
+                SLONG nrn2;
+                SLONG nyaw;
+
+                ROAD_find_me_somewhere_to_appear(
+                    &world_x,
+                    &world_z,
+                    &nrn1,
+                    &nrn2,
+                    &nyaw);
+
+                p_vehicle->Genus.Vehicle->oldX[0] = p_vehicle->Genus.Vehicle->oldX[1] = p_vehicle->Genus.Vehicle->oldX[2] = p_vehicle->Genus.Vehicle->oldX[3] = 0;
+                p_vehicle->Genus.Vehicle->oldZ[0] = p_vehicle->Genus.Vehicle->oldZ[1] = p_vehicle->Genus.Vehicle->oldZ[2] = p_vehicle->Genus.Vehicle->oldZ[3] = 0;
+                p_vehicle->Genus.Vehicle->Smokin = 0;
+
+                GameCoord newpos;
+
+                newpos.X = world_x << 8;
+                newpos.Z = world_z << 8;
+                newpos.Y = PAP_calc_height_at(world_x, world_z) + 0x40 << 8;
+
+                move_thing_on_map(p_vehicle, &newpos);
+
+                if (p_vehicle->Class == CLASS_VEHICLE) {
+                    p_vehicle->Genus.Vehicle->Angle = nyaw;
+                } else {
+                    ASSERT(0);
+                }
+
+                p_person->Genus.Person->pcom_move_arg = nrn1 << 8;
+                p_person->Genus.Person->pcom_move_arg |= nrn2;
+            }
+        } else {
+            PCOM_get_person_dest(
+                p_person,
+                &dest_x,
+                &dest_z);
+
+            dx = dest_x - (p_vehicle->WorldPos.X >> 8);
+            dz = dest_z - (p_vehicle->WorldPos.Z >> 8);
+
+            dist = QDIST2(abs(dx), abs(dz));
+
+#define LEFT_TURN_DIST 0x380
+#define RIGHT_TURN_DIST 0x280
+
+            if (dist < LEFT_TURN_DIST) {
+                if (!p_person->Genus.Person->InsideRoom) {
+                    ROAD_whereto_now(
+                        p_person->Genus.Person->pcom_move_arg >> 8,
+                        p_person->Genus.Person->pcom_move_arg & 0xff,
+                        &wtn1,
+                        &wtn2);
+
+                    p_person->Genus.Person->InsideRoom = wtn2;
+                }
+
+                if (ROAD_bend(p_person->Genus.Person->pcom_move_arg >> 8, p_person->Genus.Person->pcom_move_arg & 0xff, p_person->Genus.Person->InsideRoom) < 0) {
+                    // left turn -- start turning later than right turn
+                    dist += LEFT_TURN_DIST - RIGHT_TURN_DIST;
+                }
+
+                if (dist < LEFT_TURN_DIST) {
+                    if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
+                        PCOM_set_person_move_drive_down(p_person, p_person->Genus.Person->pcom_move_arg & 0xff, p_person->Genus.Person->InsideRoom);
+                    } else
+                        ASSERT(0);
+                    p_person->Genus.Person->InsideRoom = 0;
+                }
+            } else {
+                p_person->Genus.Person->InsideRoom = 0;
+            }
+        }
+
+        break;
+
+    default:
+
+        ROAD_find(
+            p_person->WorldPos.X >> 8,
+            p_person->WorldPos.Z >> 8,
+            &n1,
+            &n2);
+
+        if (n1 && n2) {
+            dist = ROAD_signed_dist(
+                n1,
+                n2,
+                p_person->WorldPos.X >> 8,
+                p_person->WorldPos.Z >> 8);
+
+            if (dist < 0) {
+                SWAP(n1, n2);
+            }
+
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
+                PCOM_set_person_move_drive_down(p_person, n1, n2);
+            } else {
+                ASSERT(0);
+            }
+        }
+
+        p_person->Genus.Person->InsideRoom = 0; // InsideRoom = next road node to drive to
+        break;
+    }
+}
+
+// AI tick for a person walking between EWAY patrol waypoints.
+// Handles sequential (PCOM_MOVE_PATROL) and random (PCOM_MOVE_PATROL_RAND) modes.
+// uc_orig: PCOM_process_patrol (fallen/Source/pcom.cpp)
+void PCOM_process_patrol(Thing* p_person)
+{
+    SLONG waittime;
+    SLONG waypoint;
+
+    switch (p_person->Genus.Person->pcom_move_state) {
+    default:
+    case PCOM_MOVE_STATE_STILL:
+
+        waypoint = EWAY_find_nearest_waypoint(
+            p_person->WorldPos.X >> 8,
+            p_person->WorldPos.Y >> 8,
+            p_person->WorldPos.Z >> 8,
+            p_person->Genus.Person->pcom_colour,
+            p_person->Genus.Person->pcom_group);
+
+        if (waypoint == EWAY_NO_MATCH) {
+            PCOM_set_person_move_pause(p_person);
+        } else {
+            SLONG way_x;
+            SLONG way_y;
+            SLONG way_z;
+
+            EWAY_get_position(
+                waypoint,
+                &way_x,
+                &way_y,
+                &way_z);
+
+            SLONG dx = abs(way_x - (p_person->WorldPos.X >> 8));
+            SLONG dy = abs(way_y - (p_person->WorldPos.Y >> 8));
+            SLONG dz = abs(way_z - (p_person->WorldPos.Z >> 8));
+
+            SLONG dist = QDIST3(dx, dy, dz);
+
+            if (dist < 0x100) {
+                p_person->Genus.Person->pcom_move_arg = waypoint;
+                waypoint = PCOM_get_next_patrol_waypoint(p_person);
+            }
+
+            PCOM_set_person_move_mav_to_waypoint(
+                p_person,
+                waypoint,
+                (p_person->Genus.Person->pcom_bent & PCOM_BENT_DILIGENT) ? PCOM_MOVE_SPEED_RUN : PCOM_MOVE_SPEED_WALK);
+        }
+
+        break;
+
+    case PCOM_MOVE_STATE_GOTO_WAYPOINT:
+
+        if (PCOM_finished_nav(p_person)) {
+            waypoint = p_person->Genus.Person->pcom_move_arg;
+
+            if (EWAY_get_delay(waypoint, 0) == 10 * 1000) {
+                SLONG way_x;
+                SLONG way_y;
+                SLONG way_z;
+
+                EWAY_get_position(
+                    waypoint,
+                    &way_x,
+                    &way_y,
+                    &way_z);
+
+                p_person->Genus.Person->pcom_move = PCOM_MOVE_STILL;
+                p_person->Genus.Person->HomeX = way_x;
+                p_person->Genus.Person->HomeZ = way_z;
+                p_person->Genus.Person->HomeYaw = EWAY_get_angle(waypoint) >> 3;
+
+                PCOM_set_person_move_still(p_person);
+            } else {
+                PCOM_set_person_move_pause(p_person);
+                p_person->Draw.Tweened->Angle = EWAY_get_angle(p_person->Genus.Person->pcom_move_arg);
+            }
+        }
+
+        break;
+
+    case PCOM_MOVE_STATE_PAUSE:
+
+        waittime = PCOM_get_duration(EWAY_get_delay(p_person->Genus.Person->pcom_move_arg, 0) / 100);
+
+        if (p_person->Genus.Person->pcom_bent & PCOM_BENT_LAZY) {
+            waittime += waittime;
+        }
+
+        if (p_person->Genus.Person->pcom_move_counter >= waittime) {
+            waypoint = PCOM_get_next_patrol_waypoint(p_person);
+
+            if (waypoint == EWAY_NO_MATCH || waypoint == p_person->Genus.Person->pcom_move_arg) {
+                PCOM_set_person_move_pause(p_person);
+            } else {
+                PCOM_set_person_move_mav_to_waypoint(
+                    p_person,
+                    waypoint,
+                    (p_person->Genus.Person->pcom_bent & PCOM_BENT_DILIGENT) ? PCOM_MOVE_SPEED_RUN : PCOM_MOVE_SPEED_WALK);
+            }
+        } else {
+            p_person->Draw.Tweened->Angle = EWAY_get_angle(p_person->Genus.Person->pcom_move_arg);
+        }
+
+        break;
+    }
+}
+
+// Returns true when a wandering NPC is far enough from the player and has been
+// stationary long enough to warrant teleporting it to a new position.
+// uc_orig: should_person_regen (fallen/Source/pcom.cpp)
+SLONG should_person_regen(Thing* p_person)
+{
+    SLONG dx, dz;
+    Thing* p_darci = NET_PERSON(0);
+    dx = abs((p_person->WorldPos.X - p_darci->WorldPos.X) >> 8);
+    dz = abs((p_person->WorldPos.Z - p_darci->WorldPos.Z) >> 8);
+    if (QDIST2(dx, dz) < (DRAW_DIST << 8))
+        return (0);
+
+    if (p_person->Genus.Person->InsideRoom > 50)
+        return (1);
+    else
+        return (0);
+}
+
+// Teleports an out-of-view wandering NPC to a new start point and optionally
+// converts it to a gang/cop attacker when timer_bored threshold is reached.
+// uc_orig: PCOM_do_regen (fallen/Source/pcom.cpp)
+SLONG PCOM_do_regen(Thing* p_person)
+{
+    SLONG wand_x;
+    SLONG wand_z;
+
+    SLONG nx, nz;
+
+    extern ULONG timer_bored;
+
+    if (NET_PERSON(0)->Genus.Person->Ware || EWAY_stop_player_moving()) {
+        return (0);
+    }
+
+    if (p_person->Genus.Person->Target) {
+        Thing* p_target = TO_THING(p_person->Genus.Person->Target);
+
+        remove_from_gang_attack(p_person, p_target);
+    }
+
+    extern SLONG WAND_find_good_start_point(SLONG * mapx, SLONG * mapz);
+    if (WAND_find_good_start_point(&nx, &nz)) {
+        GameCoord new_position;
+
+        new_position.X = nx << 8;
+        new_position.Y = PAP_calc_height_at(nx, nz) << 8;
+        new_position.Z = nz << 8;
+        move_thing_on_map(p_person, &new_position);
+        p_person->Genus.Person->Flags &= ~(FLAG_PERSON_KO | FLAG_PERSON_HELPLESS | FLAG_PERSON_WAREHOUSE | FLAG_PERSON_ARRESTED | FLAG_PERSON_ARRESTED | FLAG_PERSON_SEARCHED);
+        p_person->Genus.Person->Ware = 0;
+        p_person->OnFace = 0;
+
+        if ((signed)timer_bored > (BOREDOM_RATE * 5000) && BOREDOM_RATE != 255)
+        {
+            Thing* darci;
+            darci = NET_PERSON(0);
+
+            if (darci->Genus.Person->PersonType != PERSON_DARCI && darci->Genus.Person->PersonType != PERSON_ROPER) {
+                p_person->Genus.Person->pcom_ai = PCOM_AI_COP;
+                p_person->Genus.Person->pcom_bent = 0;
+                p_person->Genus.Person->PersonType = PERSON_COP;
+                p_person->Draw.Tweened->MeshID = 4;
+            } else {
+                p_person->Genus.Person->pcom_ai = PCOM_AI_GANG;
+                p_person->Genus.Person->PersonType = PERSON_THUG_RASTA;
+                p_person->Genus.Person->pcom_bent = PCOM_BENT_FIGHT_BACK;
+                p_person->Draw.Tweened->MeshID = (Random() % 3);
+            }
+
+            p_person->Genus.Person->pcom_ai_state = PCOM_AI_STATE_NORMAL;
+            p_person->Genus.Person->pcom_ai_substate = PCOM_AI_SUBSTATE_NONE;
+            p_person->Genus.Person->pcom_ai_arg = NULL;
+            p_person->Genus.Person->pcom_ai_other = NULL;
+
+            p_person->Genus.Person->pcom_move = PCOM_MOVE_WANDER;
+            p_person->Genus.Person->pcom_move_counter = 0;
+            p_person->Genus.Person->pcom_move_arg = 0;
+
+            p_person->Genus.Person->InsideRoom = Random() & 15;
+            p_person->Draw.Tweened->PersonID = 0;
+            p_person->Genus.Person->pcom_colour = 0;
+            p_person->Genus.Person->pcom_group = 0;
+
+            if (timer_bored & 16)
+                p_person->Flags |= FLAGS_HAS_GUN;
+            else
+                p_person->Flags &= ~FLAGS_HAS_GUN;
+
+            p_person->Genus.Person->Health = 200;
+
+            PCOM_set_person_ai_navtokill(p_person, NET_PERSON(0));
+            timer_bored = 0;
+        } else {
+            p_person->Flags &= ~FLAGS_HAS_GUN;
+            p_person->Genus.Person->pcom_ai = PCOM_AI_CIV;
+            p_person->Genus.Person->pcom_bent = 0;
+
+            p_person->Genus.Person->pcom_ai_state = PCOM_AI_STATE_NORMAL;
+            p_person->Genus.Person->pcom_ai_substate = PCOM_AI_SUBSTATE_NONE;
+            p_person->Genus.Person->pcom_ai_arg = NULL;
+            p_person->Genus.Person->pcom_ai_other = NULL;
+
+            p_person->Genus.Person->pcom_move = PCOM_MOVE_WANDER;
+            p_person->Genus.Person->pcom_move_counter = 0;
+            p_person->Genus.Person->pcom_move_arg = 0;
+            p_person->Genus.Person->InsideRoom = Random() & 15;
+
+            p_person->Draw.Tweened->PersonID = 0;
+            p_person->Draw.Tweened->MeshID = (Random() & 1) + 8;
+            p_person->Genus.Person->pcom_colour = Random() & 3;
+            p_person->Genus.Person->PersonType = PERSON_CIV;
+            p_person->Genus.Person->Health = 130;
+            p_person->Flags &= ~FLAGS_HAS_GUN;
+
+            WAND_get_next_place(
+                p_person,
+                &wand_x,
+                &wand_z);
+
+            PCOM_set_person_move_mav_to_xz(
+                p_person,
+                wand_x,
+                wand_z,
+                PCOM_MOVE_SPEED_WALK);
+
+            p_person->Genus.Person->pcom_ai_counter = 0;
+        }
+        return (1);
+    }
+    return (0);
+}
+
+// AI tick for a foot-wandering NPC.
+// Picks a random accessible street position via WAND_get_next_place().
+// Fake-wander NPCs (gang/cop spawns) check for player proximity and may attack.
+// uc_orig: PCOM_process_wander (fallen/Source/pcom.cpp)
+void PCOM_process_wander(Thing* p_person)
+{
+    SLONG wand_x;
+    SLONG wand_z;
+
+    if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_FAKE_WANDER) {
+        if (p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_COP) {
+            if ((PTIME(p_person) & 0xf) == 0) {
+                if (PCOM_should_fake_person_attack_darci(p_person)) {
+                    PCOM_set_person_ai_navtokill(p_person, NET_PERSON(0));
+
+                    return;
+                } else {
+                    if (PCOM_get_dist_between(p_person, NET_PERSON(0)) < 0x100 * 15) {
+                        PCOM_set_person_ai_flee_person(p_person, NET_PERSON(0));
+
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    switch (p_person->Genus.Person->pcom_move_state) {
+    case PCOM_MOVE_STATE_GOTO_XZ:
+        if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_FAKE_WANDER)
+            if (p_person->Genus.Person->pcom_ai == PCOM_AI_CIV) {
+                if ((p_person->Flags & FLAGS_IN_VIEW)) {
+                    p_person->Genus.Person->InsideRoom = 0;
+                } else {
+                    p_person->Genus.Person->InsideRoom++;
+
+                    if (should_person_regen(p_person))
+                    {
+                        SLONG nx, nz;
+                        p_person->Genus.Person->InsideRoom = 240;
+
+                        if (PCOM_do_regen(p_person))
+                            return;
+                        /*
+                        extern	SLONG	WAND_find_good_start_point(SLONG *mapx,SLONG *mapz);
+                                                                        if(WAND_find_good_start_point(&nx,&nz))
+                                                                        {
+                                                                                GameCoord new_position;
+
+                                                                                new_position.X = nx<<8;
+                                                                                new_position.Y = PAP_calc_height_at(nx,nz)<<8;
+                                                                                new_position.Z = nz<<8;
+                                                                                move_thing_on_map(p_person, &new_position);
+
+                                                                                if(timer_bored>10000)
+                                                                                {
+                                                                                        p_person->Genus.Person->pcom_ai     = PCOM_AI_GANG;
+                                                                                        p_person->Genus.Person->pcom_bent   = PCOM_BENT_FIGHT_BACK;
+
+                                                                                        p_person->Genus.Person->pcom_ai_state     = PCOM_AI_STATE_NORMAL;
+                                                                                        p_person->Genus.Person->pcom_ai_substate  = PCOM_AI_SUBSTATE_NONE;
+                                                                                        p_person->Genus.Person->pcom_ai_arg       = NULL;
+                                                                                        p_person->Genus.Person->pcom_ai_other     = NULL;
+
+                                                                                        p_person->Genus.Person->pcom_move_counter = 0;
+                                                                                        p_person->Genus.Person->pcom_move_arg     = 0;
+
+                                                                                        p_person->Genus.Person->InsideRoom=Random()&15;
+                                                                                        p_person->Draw.Tweened->PersonID = 0;
+                                                                                        p_person->Draw.Tweened->MeshID=0;
+                                                                                        p_person->Genus.Person->pcom_colour=Random()&3;
+                                                                                        PCOM_set_person_ai_kill_person(p_person,NET_PERSON(0),0);
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                        p_person->Genus.Person->InsideRoom=Random()&15;
+                                                                                        p_person->Draw.Tweened->PersonID = 0;
+                                                                                        p_person->Draw.Tweened->MeshID=(Random()&1)+8;
+                                                                                        p_person->Genus.Person->pcom_colour=Random()&3;
+
+                                                                                        goto new_wander;
+                                                                                }
+                                                                        }
+                        */
+                    }
+                }
+            }
+
+        if (!PCOM_finished_nav(p_person) && p_person->Genus.Person->pcom_ai_counter < PCOM_get_duration(50)) {
+            p_person->Genus.Person->pcom_ai_counter += PCOM_TICKS_PER_TURN * TICK_RATIO >> TICK_SHIFT;
+
+            return;
+        }
+
+        if (p_person->Genus.Person->pcom_ai == PCOM_AI_ASSASIN) {
+            PCOM_set_person_ai_normal(p_person);
+
+            return;
+        }
+
+        if (p_person->Genus.Person->pcom_ai == PCOM_AI_DRIVER || p_person->Genus.Person->pcom_ai == PCOM_AI_COP_DRIVER) {
+            PCOM_set_person_ai_findcar(p_person, NULL);
+
+            return;
+        }
+
+        // FALLTHROUGH to pick next wander destination.
+
+    default:
+    case PCOM_MOVE_STATE_STILL:
+
+        WAND_get_next_place(
+            p_person,
+            &wand_x,
+            &wand_z);
+
+        PCOM_set_person_move_mav_to_xz(
+            p_person,
+            wand_x,
+            wand_z,
+            PCOM_MOVE_SPEED_WALK);
+
+        p_person->Genus.Person->pcom_ai_counter = 0;
+
+        break;
+    }
 }
