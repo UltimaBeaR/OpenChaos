@@ -8699,6 +8699,2766 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "ftol",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "ftol",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_ZCLIP_PLANE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_ZCLIP_PLANE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_init",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_init",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_global_cloud",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "calc_global_cloud",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "apply_cloud",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "apply_cloud",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "use_global_cloud",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "use_global_cloud",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_init_texture_flags",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_init_texture_flags",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_load_texture_flags",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_load_texture_flags",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_reset_render_states",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_reset_render_states",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_SPLITSCREEN_NONE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_SPLITSCREEN_NONE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_SPLITSCREEN_TOP",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_SPLITSCREEN_TOP",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_SPLITSCREEN_BOTTOM",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_SPLITSCREEN_BOTTOM",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_cam_x",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_cam_x",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_cam_y",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_cam_y",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_cam_z",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_cam_z",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_cam_matrix",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_cam_matrix",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_camera_set",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_camera_set",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_screen_width",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_screen_width",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_screen_height",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_screen_height",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_CLIP_LEFT",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_CLIP_LEFT",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_CLIP_RIGHT",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_CLIP_RIGHT",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_CLIP_TOP",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_CLIP_TOP",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_CLIP_BOTTOM",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_CLIP_BOTTOM",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_CLIP_TRANSFORMED",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_CLIP_TRANSFORMED",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_CLIP_FAR",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_CLIP_FAR",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_CLIP_NEAR",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_CLIP_NEAR",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_CLIP_OFFSCREEN",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_CLIP_OFFSCREEN",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_Point",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_Point",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_flush_local_rot",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_flush_local_rot",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_transform",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_transform",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_transform_c",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_transform_c",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_set_local_rotation_none",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_set_local_rotation_none",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_transform_abs",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_transform_abs",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_transform_c_saturate_z",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_transform_c_saturate_z",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_transform_from_view_space",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_transform_from_view_space",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_get_screen_pos",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_get_screen_pos",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_perspective",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_perspective",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_setclip",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_setclip",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_world_length_to_screen",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_world_length_to_screen",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_approx_len",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_approx_len",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_get_sphere_circle",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_get_sphere_circle",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_set_wibble",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_set_wibble",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_set_local_rotation",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_set_local_rotation",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_transform_using_local_rotation",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_transform_using_local_rotation",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_transform_using_local_rotation_and_wibble",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_transform_using_local_rotation_and_wibble",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_sphere_visible",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_sphere_visible",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_page_is_masked_self_illuminating",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_page_is_masked_self_illuminating",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_BUFFER_SIZE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_BUFFER_SIZE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_SHADOW_SIZE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_SHADOW_SIZE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_buffer",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_buffer",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_buffer_upto",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_buffer_upto",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_shadow",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_shadow",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_shadow_upto",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_shadow_upto",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_colour_restrict",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_colour_restrict",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_force_additive_alpha",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_force_additive_alpha",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_FADEOUT_START",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_FADEOUT_START",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_FADEOUT_END",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_FADEOUT_END",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fade_point_more",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "fade_point_more",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_fadeout_point",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_fadeout_point",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_fadeout_buffer",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_fadeout_buffer",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_NUM_PAGES",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_NUM_PAGES",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_frame_init",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_frame_init",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_valid_triangle",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_valid_triangle",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_valid_quad",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_valid_quad",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_valid_line",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_valid_line",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_add_poly",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_poly",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_add_triangle",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_triangle",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_add_quad",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_quad",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_add_quad_split2",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_quad_split2",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_create_cylinder_points",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_create_cylinder_points",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_add_line",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_line",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_add_line_tex",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_line_tex",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_add_line_2d",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_line_2d",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_clip_line_box",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_clip_line_box",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_clip_line_add",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_clip_line_add",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_frame_draw",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_frame_draw",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_sort_sewater_page",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_sort_sewater_page",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_frame_draw_odd",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_frame_draw_odd",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_frame_draw_puddles",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_frame_draw_puddles",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_frame_draw_sewater",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_frame_draw_sewater",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_interpolate_colour",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_interpolate_colour",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_frame_draw_focused",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_frame_draw_focused",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_add_shared_start",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_shared_start",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_add_shared_point",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_shared_point",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_add_shared_tri",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_shared_tri",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_inside_quad",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_inside_quad",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAG_TRANSPARENT",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAG_TRANSPARENT",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAG_WRAP",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAG_WRAP",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAG_ADD_ALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAG_ADD_ALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAG_2PASS",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAG_2PASS",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAG_SELF_ILLUM",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAG_SELF_ILLUM",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAG_NO_FOG",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAG_NO_FOG",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAG_WINDOW",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAG_WINDOW",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAG_WINDOW_2ND",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAG_WINDOW_2ND",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAG_ALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAG_ALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "draw_3d",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "draw_3d",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_page_flag",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_page_flag",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_init_render_states",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_init_render_states",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FADE_MF",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FADE_MF",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SNOWFLAKE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SNOWFLAKE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SPLASH",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SPLASH",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_METEOR",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_METEOR",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LITE_BOLT",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LITE_BOLT",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LADSHAD",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LADSHAD",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LASTPANEL_ALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LASTPANEL_ALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LASTPANEL_SUB",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LASTPANEL_SUB",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LASTPANEL2_SUB",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LASTPANEL2_SUB",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LASTPANEL2_ADDALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LASTPANEL2_ADDALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LASTPANEL_ADDALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LASTPANEL_ADDALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LASTPANEL2_ALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LASTPANEL2_ALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LASTPANEL2_ADD",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LASTPANEL2_ADD",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_EXPLODE2_ADDITIVE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_EXPLODE2_ADDITIVE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_EXPLODE1_ADDITIVE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_EXPLODE1_ADDITIVE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SHADOW_SQUARE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SHADOW_SQUARE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_PCFLAMER",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_PCFLAMER",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SIGN",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SIGN",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LASTPANEL_ADD",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LASTPANEL_ADD",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LEAF",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LEAF",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_RUBBISH",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_RUBBISH",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FADECAT",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FADECAT",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LADDER",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LADDER",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SMOKECLOUD2",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SMOKECLOUD2",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SMOKECLOUD",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SMOKECLOUD",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_TINY_BUTTONS",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_TINY_BUTTONS",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FINALGLOW",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FINALGLOW",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_BIG_LEAF",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_BIG_LEAF",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_BIG_RAIN",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_BIG_RAIN",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_BIG_BUTTONS",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_BIG_BUTTONS",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_COLOUR_WITH_FOG",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_COLOUR_WITH_FOG",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_ALPHA_OVERLAY",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_ALPHA_OVERLAY",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_TYRESKID",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_TYRESKID",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_COLOUR",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_COLOUR",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_POLAROID",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_POLAROID",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_MENULOGO",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_MENULOGO",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SUBTRACTIVEALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SUBTRACTIVEALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_NEWFONT_INVERSE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_NEWFONT_INVERSE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_IC_NORMAL",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_IC_NORMAL",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_IC2_NORMAL",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_IC2_NORMAL",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_IC_ALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_IC_ALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_IC2_ALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_IC2_ALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_IC_ADDITIVE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_IC_ADDITIVE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_IC2_ADDITIVE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_IC2_ADDITIVE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_IC_ALPHA_END",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_IC_ALPHA_END",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_IC2_ALPHA_END",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_IC2_ALPHA_END",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_PRESS1",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_PRESS1",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_PRESS2",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_PRESS2",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_NEWFONT",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_NEWFONT",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_TARGET",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_TARGET",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SMOKER",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SMOKER",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_DEVIL",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_DEVIL",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_ANGEL",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_ANGEL",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_ADDITIVEALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_ADDITIVEALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_TYRETRACK",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_TYRETRACK",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_WINMAP",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_WINMAP",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LENSFLARE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LENSFLARE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_HITSPANG",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_HITSPANG",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_BLOOM2",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_BLOOM2",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_BLOOM1",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_BLOOM1",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_BLOODSPLAT",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_BLOODSPLAT",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAMES3",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAMES3",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_DUSTWAVE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_DUSTWAVE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_BIGBANG",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_BIGBANG",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FACE1",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FACE1",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FACE2",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FACE2",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FACE3",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FACE3",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FACE4",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FACE4",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FACE5",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FACE5",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FACE6",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FACE6",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FONT2D",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FONT2D",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FOOTPRINT",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FOOTPRINT",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_BARBWIRE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_BARBWIRE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_MENUPASS",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_MENUPASS",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_MENUTEXT",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_MENUTEXT",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_MENUFLAME",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_MENUFLAME",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAMES2",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAMES2",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SMOKE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SMOKE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FLAMES",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FLAMES",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SEWATER",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SEWATER",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SKY",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SKY",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SHADOW",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SHADOW",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SHADOW_OVAL",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SHADOW_OVAL",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_PUDDLE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_PUDDLE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_CLOUDS",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_CLOUDS",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_ALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_ALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_ADDITIVE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_ADDITIVE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_MOON",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_MOON",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_MANONMOON",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_MANONMOON",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_MASKED",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_MASKED",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_ENVMAP",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_ENVMAP",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_WATER",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_WATER",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_DRIP",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_DRIP",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_FOG",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_FOG",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_STEAM",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_STEAM",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_BANG",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_BANG",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_TEXT",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_TEXT",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_LOGO",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_LOGO",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_DROPLET",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_DROPLET",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_RAINDROP",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_RAINDROP",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_SPARKLE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_SPARKLE",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_EXPLODE2",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_EXPLODE2",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_EXPLODE1",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_EXPLODE1",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_COLOUR_ALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_COLOUR_ALPHA",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_PAGE_TEST_SHADOWMAP",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_PAGE_TEST_SHADOWMAP",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CallbackInfo",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "CallbackInfo",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDModeInfo",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DDModeInfo",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "D3DDeviceInfo",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DDDriverInfo",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverManager",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DDDriverManager",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "the_manager",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "the_manager",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FlagsToBitDepth",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "FlagsToBitDepth",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FlagsToMask",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "FlagsToMask",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BitDepthToFlags",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "BitDepthToFlags",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "IsPalettized",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "IsPalettized",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GetDesktopMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "GetDesktopMode",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GetFullscreenMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "GetFullscreenMode",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ValidateDriver",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "ValidateDriver",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ValidateDevice",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "ValidateDevice",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ValidateMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "ValidateMode",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "InitStruct",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "InitStruct",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "enumDisplayType",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "enumDisplayType",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "eDisplayType",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "eDisplayType",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Display",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "Display",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "the_display",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "the_display",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RealDisplayWidth",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "RealDisplayWidth",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RealDisplayHeight",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "RealDisplayHeight",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DisplayBPP",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "DisplayBPP",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "hDDLibStyle",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "hDDLibStyle",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "hDDLibStyleEx",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "hDDLibStyleEx",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "hDDLibMenu",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "hDDLibMenu",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "hDDLibWindow",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "hDDLibWindow",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OpenDisplay",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "OpenDisplay",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CloseDisplay",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "CloseDisplay",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SetDisplay",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "SetDisplay",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ClearDisplay",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "ClearDisplay",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "InitBackImage",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "InitBackImage",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "UseBackSurface",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "UseBackSurface",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ResetBackImage",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "ResetBackImage",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShowBackImage",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "ShowBackImage",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHELL_ACTIVE",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "SHELL_ACTIVE",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHELL_CHANGED",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "SHELL_CHANGED",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_USE_3D",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "FLAGS_USE_3D",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_USE_WORKSCREEN",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "FLAGS_USE_WORKSCREEN",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DEFAULT_WIDTH",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "DEFAULT_WIDTH",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DEFAULT_HEIGHT",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "DEFAULT_HEIGHT",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DEFAULT_DEPTH",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "DEFAULT_DEPTH",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DISPLAY_INIT",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "DISPLAY_INIT",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DISPLAY_PAUSE",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "DISPLAY_PAUSE",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DISPLAY_PAUSE_ACK",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "DISPLAY_PAUSE_ACK",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DISPLAY_LOCKED",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "DISPLAY_LOCKED",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BK_COL_NONE",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "BK_COL_NONE",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BK_COL_BLACK",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "BK_COL_BLACK",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BK_COL_WHITE",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "BK_COL_WHITE",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BK_COL_USER",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "BK_COL_USER",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DisplayWidth",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "DisplayWidth",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DisplayHeight",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "DisplayHeight",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShellPaused",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "ShellPaused",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShellPauseOn",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "ShellPauseOn",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShellPauseOff",
+      "file": "new/engine/graphics/graphics_api/gd_display.h",
+      "orig_name": "ShellPauseOff",
+      "orig_file": "fallen/DDLibrary/Headers/GDisplay.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_INIT",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_INIT",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_VALID",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_VALID",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_PRIMARY",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_PRIMARY",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_D3D",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_D3D",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_M_LOADED",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_M_LOADED",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_D_LOADED",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_D_LOADED",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_SUPPORTS_16BIT",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_SUPPORTS_16BIT",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_SUPPORTS_32BIT",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_SUPPORTS_32BIT",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_RENDERS_TO_16BIT",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_RENDERS_TO_16BIT",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_RENDERS_TO_32BIT",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_RENDERS_TO_32BIT",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_MODE_320",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_MODE_320",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_MODE_512",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_MODE_512",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_MODE_640",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_MODE_640",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_MODE_800",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_MODE_800",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_MODE_1024",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_MODE_1024",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DD_DRIVER_LOW_MEMORY",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "DD_DRIVER_LOW_MEMORY",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3D_DEVICE_VALID",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "D3D_DEVICE_VALID",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3D_DEVICE_F_LOADED",
+      "file": "new/engine/graphics/graphics_api/dd_manager.h",
+      "orig_name": "D3D_DEVICE_F_LOADED",
+      "orig_file": "fallen/DDLibrary/Headers/DDManager.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

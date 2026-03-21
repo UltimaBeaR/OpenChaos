@@ -178,3 +178,14 @@ Entity mapping обновлён (33 записи — file path).
 - Bit-pattern макросы (`_____` … `xxxxx`) вынесены в `font_globals.cpp` вместе с данными шрифта — они используются только для инициализации таблиц
 
 ---
+
+## Итерация 18 — engine/graphics/pipeline/poly.h + dd_manager.h + gd_display.h (header-only) (2026-03-21)
+
+- Header-only миграция: все три `.cpp` реализации остаются в `old/` (зависят от `game.h`/`night.h`/`eway.h`)
+- `poly.h` не имел своих `#include` — стал чистым заголовком с единственной зависимостью `core/types.h`
+- `dd_manager.h` самодостаточен: только `<windows.h>/<ddraw.h>/<d3d.h>` + `core/types.h`
+- `gd_display.h` включает `dd_manager.h` + `d3d_texture.h` — оба уже в `new/`
+- `wind_procs.h` освобождён от temporary `#include "fallen/DDLibrary/Headers/DDManager.h"` — теперь напрямую `dd_manager.h`
+- Разблокирует миграцию файлов зависящих от `poly.h` (crinkle, facet, mesh, console, Text, aeng и др.)
+
+---

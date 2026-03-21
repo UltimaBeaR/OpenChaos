@@ -1,12 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GRAPHICS_API_WIND_PROCS_H
 #define ENGINE_GRAPHICS_GRAPHICS_API_WIND_PROCS_H
 
-#include <windows.h>
-#include <ddraw.h>
-#include <d3d.h>
-#include "core/types.h"
-// Temporary: DDDriverInfo, D3DDeviceInfo, DDModeInfo not yet migrated to new/
-#include "fallen/DDLibrary/Headers/DDManager.h"  // Temporary: until dd_manager is migrated
+#include "engine/graphics/graphics_api/dd_manager.h"
 
 // uc_orig: ChangeDDInfo (fallen/DDLibrary/Headers/WindProcs.h)
 // Holds the current and requested driver/device/mode for a display change operation.
