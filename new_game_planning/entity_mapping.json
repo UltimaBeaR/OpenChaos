@@ -43039,6 +43039,146 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_opt",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_opt",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_opt_upto",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_opt_upto",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_nav",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_nav",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_nav_pitch",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_nav_pitch",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "StoreMavOpts",
+      "file": "new/ai/mav.h",
+      "orig_name": "StoreMavOpts",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_init",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_init",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_calc_height_array",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_calc_height_array",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_turn_off_square",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_turn_off_square",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_turn_off_whole_square",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_turn_off_whole_square",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_turn_off_whole_square_car",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_turn_off_whole_square_car",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_remove_facet_car",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_remove_facet_car",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_turn_movement_off",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_turn_movement_off",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_turn_movement_on",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_turn_movement_on",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAV_precalculate",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_precalculate",
+      "orig_file": "fallen/Source/mav.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

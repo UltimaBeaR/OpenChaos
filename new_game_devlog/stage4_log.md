@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 66 — ai/mav (первый чанк: MAV_init..MAV_precalculate) (2026-03-21)
+
+- `StoreMavOpts` — в оригинале `static`, но `MAV_precalculate_warehouse_nav` (остаётся в old mav.cpp) её вызывает. Сделана публичной, добавлена в `mav.h`.
+- Include-порядок: `Game.h` должен идти первым — он подтягивает `MFStdLib.h` (нужен для `MFFileHandle` в `supermap.h`) и `string.h` (нужен для `strcpy` в `anim.h`). Добавлен этот паттерн как в `new/ai/mav.cpp`, так и в `old/mav.cpp` и `new/ai/mav_globals.h`.
+- Ошибочная первая реализация `MAV_calc_height_array` использовала неверные поля структуры (bounding box); переписана точно по оригиналу: `db->Walkable` → `dw->Next` → `dw->StartFace4..EndFace4` → `roof_faces4[j].RX/RZ/Y`.
+- Три ошибки компиляции исправлены (undeclared `StoreMavOpts`, undeclared `strcpy` в двух единицах трансляции), сборка [294/294] ОК.
+
+---
+
 ## Итерация 65 — actors/items/special (2026-03-21)
 
 - Циклический include: `Game.h` → `Special.h` (redirect) → `special.h` → `Game.h`. Решение: убран `#include "fallen/Headers/Game.h"` из `special.h`, заменён на `#ifndef THING_INDEX` guard + `#include "fallen/Headers/Structs.h"` (паттерн из `barrel.h`). `MemTable` и `save_table` forward-объявлены с `#ifndef FALLEN_HEADERS_GAME_H` guard чтобы не переопределять.
