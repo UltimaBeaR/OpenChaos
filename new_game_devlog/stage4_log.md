@@ -198,3 +198,12 @@ Entity mapping обновлён (33 записи — file path).
 - `PANEL_draw_quad` — forward declaration в `menufont.cpp` (panel.cpp ещё не мигрирован, зависит от `game.h`)
 
 ---
+
+## Итерация 20 — world/map/qmap (header+globals) + pipeline/qeng + pipeline/text (2026-03-21)
+
+- `qmap.h` — только header+globals; `qmap.cpp` остаётся в `old/` (включает `game.h`); глобалы вынесены из `qmap.cpp` в `qmap_globals.cpp`
+- `qmap.h` содержит дублирующие `extern`-декларации с `qmap_globals.h` — допустимо в C++, определение одно в `qmap_globals.cpp`
+- `text.cpp` — временные `extern D3DTexture TEXTURE_texture[]` и `extern SLONG TEXTURE_page_font` вместо include `texture.h` (цепочка `texture.h → crinkle.h → aeng.h` не поддаётся temporary include из new/)
+- `qeng.cpp` полностью мигрирован, old/qeng.cpp удалён; `Text.cpp` полностью мигрирован, old/Text.cpp удалён
+
+---

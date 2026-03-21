@@ -93,6 +93,11 @@ set(SOURCES_NEW
     src/new/engine/graphics/geometry/sprite.cpp
     src/new/engine/graphics/resources/menufont.cpp
     src/new/engine/graphics/resources/menufont_globals.cpp
+    src/new/engine/graphics/pipeline/qeng.cpp
+    src/new/engine/graphics/pipeline/qeng_globals.cpp
+    src/new/world/map/qmap_globals.cpp
+    src/new/engine/graphics/pipeline/text.cpp
+    src/new/engine/graphics/pipeline/text_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -115,12 +120,10 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/planmap.cpp
     src/old/fallen/DDEngine/Source/poly.cpp
     src/old/fallen/DDEngine/Source/polyrenderstate.cpp
-    src/old/fallen/DDEngine/Source/qeng.cpp
     src/old/fallen/DDEngine/Source/shape.cpp
     src/old/fallen/DDEngine/Source/sky.cpp
     src/old/fallen/DDEngine/Source/smap.cpp
     src/old/fallen/DDEngine/Source/superfacet.cpp
-    src/old/fallen/DDEngine/Source/Text.cpp
     src/old/fallen/DDEngine/Source/texture.cpp
     src/old/fallen/DDEngine/Source/truetype.cpp
     src/old/fallen/DDEngine/Source/wibble.cpp

@@ -1,30 +1,37 @@
-//	Text.cpp
-//	Guy Simmons, 17th May 1998.
-
+#include <MFStdLib.h>
 #include <DDLib.h>
-#include "poly.h"
-#include "texture.h"
-#include "vertexbuffer.h"
-#include "polypoint.h"
-#include "renderstate.h"
-#include "polypage.h"
+#include "engine/graphics/pipeline/text.h"
+#include "engine/graphics/pipeline/text_globals.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/polypoint.h"
+#include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/pipeline/render_state.h"
+#include "engine/graphics/pipeline/vertex_buffer.h"
+#include "engine/graphics/resources/d3d_texture.h"
 
-//---------------------------------------------------------------
-#define TEXTURE_STEP 0.00390625f
-
-// D3DTexture		font_page;
-
+// Temporary: these externs live in texture.cpp (still in old/), migrated here
+// once texture.cpp is split out.
 extern D3DTexture TEXTURE_texture[];
 extern SLONG TEXTURE_page_font;
 
+// Texture UV step: 1/256 for a 256-pixel texture.
+// uc_orig: TEXTURE_STEP (fallen/DDEngine/Source/Text.cpp)
+#define TEXTURE_STEP 0.00390625f
+
+// The font texture page is an alias into the shared TEXTURE_texture array.
+// uc_orig: font_page (fallen/DDEngine/Source/Text.cpp)
 #define font_page (TEXTURE_texture[TEXTURE_page_font])
 
-//---------------------------------------------------------------
+// Fade boundaries used when text_fudge is enabled: text alpha ramps at these Y coords.
+// uc_orig: TEXT_TOP (fallen/DDEngine/Source/Text.cpp)
+#define TEXT_TOP 280
+// uc_orig: TEXT_BOT (fallen/DDEngine/Source/Text.cpp)
+#define TEXT_BOT 430
 
+// uc_orig: text_width (fallen/DDEngine/Source/Text.cpp)
 SLONG text_width(CBYTE* message, SLONG font_id, SLONG* char_count)
 {
-    SLONG count = 0,
-          width = 0;
+    SLONG count = 0, width = 0;
     Char* the_char;
     Font* the_font;
 
@@ -51,12 +58,10 @@ SLONG text_width(CBYTE* message, SLONG font_id, SLONG* char_count)
     return width;
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: text_height (fallen/DDEngine/Source/Text.cpp)
 SLONG text_height(CBYTE* message, SLONG font_id, SLONG* char_count)
 {
-    SLONG count = 0,
-          height = 0;
+    SLONG count = 0, height = 0;
     Char* the_char;
     Font* the_font;
 
@@ -70,7 +75,6 @@ SLONG text_height(CBYTE* message, SLONG font_id, SLONG* char_count)
             if (the_char->Height > height)
                 height = the_char->Height + 1;
         }
-
         message++;
         count++;
     }
@@ -81,24 +85,14 @@ SLONG text_height(CBYTE* message, SLONG font_id, SLONG* char_count)
     return height;
 }
 
-//---------------------------------------------------------------
-
-#define TEXT_TOP 280
-#define TEXT_BOT 430
-
-BOOL text_fudge = FALSE;
-ULONG text_colour;
-
+// uc_orig: draw_text_at (fallen/DDEngine/Source/Text.cpp)
 void draw_text_at(float x, float y, CBYTE* message, SLONG font_id)
 {
-    float offset_x,
-        offset_y;
-    SLONG b_colour,
-        t_colour;
+    float offset_x, offset_y;
+    SLONG b_colour, t_colour;
     Char* the_char;
     Font* the_font;
-    POLY_Point pp[4],
-        *quad[4];
+    POLY_Point pp[4], *quad[4];
 
     the_font = font_page.GetFont(font_id);
     if (!the_font)
@@ -128,30 +122,31 @@ void draw_text_at(float x, float y, CBYTE* message, SLONG font_id)
                 the_char = &the_font->CharSet[*message - 33];
                 if (the_char) {
                     if (text_fudge) {
+                        // Fade in/out at top and bottom screen boundaries.
                         if (offset_y < TEXT_TOP) {
                             t_colour = (((SLONG)offset_y - TEXT_TOP) * 20) + 255;
                             if (t_colour < 0)
                                 t_colour = 0;
-                            t_colour *= 0x00010101; //(t_colour<<24)|0x00ffffff;
+                            t_colour *= 0x00010101;
 
                             b_colour = ((((SLONG)offset_y + the_char->Height) - TEXT_TOP) * 20) + 255;
                             if (b_colour > 255)
                                 b_colour = 255;
                             else if (b_colour < 0)
                                 b_colour = 0;
-                            b_colour *= 0x00010101; //(b_colour<<24)|0x00ffffff;
+                            b_colour *= 0x00010101;
                         } else if ((offset_y + the_char->Height) > TEXT_BOT) {
                             b_colour = ((TEXT_BOT - ((SLONG)offset_y + the_char->Height)) * 20) + 255;
                             if (b_colour < 0)
                                 b_colour = 0;
-                            b_colour *= 0x00010101; //(b_colour<<24)|0x00ffffff;
+                            b_colour *= 0x00010101;
 
                             t_colour = ((TEXT_BOT - (SLONG)offset_y) * 20) + 255;
                             if (t_colour > 255)
                                 t_colour = 255;
                             else if (t_colour < 0)
                                 t_colour = 0;
-                            t_colour *= 0x00010101; //(t_colour<<24)|0x00ffffff;
+                            t_colour *= 0x00010101;
                         } else {
                             t_colour = b_colour = 0x00ffffff;
                         }
@@ -196,7 +191,6 @@ void draw_text_at(float x, float y, CBYTE* message, SLONG font_id)
                     offset_x += the_char->Width + 1.0f;
                 }
             }
-
             break;
         }
 
@@ -204,8 +198,7 @@ void draw_text_at(float x, float y, CBYTE* message, SLONG font_id)
     }
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: draw_centre_text_at (fallen/DDEngine/Source/Text.cpp)
 void draw_centre_text_at(float x, float y, CBYTE* message, SLONG font_id, SLONG flag)
 {
     CBYTE temp;
@@ -216,13 +209,11 @@ void draw_centre_text_at(float x, float y, CBYTE* message, SLONG font_id, SLONG 
     height = (float)text_height("y", font_id, NULL);
     while (*message) {
         width = (float)text_width(message, font_id, &char_count);
-        //		LogText(" message >%s< len %d \n",message,char_count);
 
         temp = *(message + char_count);
         if (flag)
             *(message + char_count) = 0;
 
-        //		LogText(" draw text message >%s< width %d \n",message,width);
         draw_text_at((640 - ((SLONG)width)) >> 1, y, message, font_id);
         if (!flag)
             break;
@@ -235,49 +226,9 @@ void draw_centre_text_at(float x, float y, CBYTE* message, SLONG font_id, SLONG 
     }
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: show_text (fallen/DDEngine/Source/Text.cpp)
 void show_text(void)
 {
+    // Deprecated: rendering is now handled entirely through the POLY pipeline.
     return;
-
-    PolyPage* pa = &POLY_Page[POLY_PAGE_TEXT];
-
-    DDCOLORKEY ck;
-    if (font_page.GetD3DTexture()) {
-        ck.dwColorSpaceLowValue = 0;
-        ck.dwColorSpaceHighValue = 0;
-        font_page.SetColorKey(DDCKEY_SRCBLT, &ck);
-    } else {
-        //		return;
-    }
-
-#define SET_RENDER_STATE(I, V) pa->RS.SetRenderState(I, V)
-
-    if (pa->NeedsRendering()) {
-        BEGIN_SCENE;
-
-        SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
-        SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
-        SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
-        //		SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREHANDLE,texture);
-        // pa->RS.SetTexture(pa->RS.SetTexture(handle));
-
-        SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, TRUE);
-        if (text_fudge) {
-            SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-            SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-            SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-            SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
-        } else {
-            SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-        }
-
-        pa->RS.SetChanged();
-        pa->Render(the_display.lp_D3D_Device);
-
-        END_SCENE;
-    }
 }
-
-//---------------------------------------------------------------

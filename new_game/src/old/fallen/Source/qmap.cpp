@@ -6,54 +6,7 @@
 #include <MFStdLib.h>
 #include "qmap.h"
 #include "..\ddengine\headers\qeng.h"
-
-//
-// The actual data declared in the header file...
-//
-
-UWORD QMAP_texture[QMAP_MAX_TEXTURES];
-SLONG QMAP_texture_upto;
-
-QMAP_Style QMAP_style[QMAP_MAX_STYLES];
-SLONG QMAP_style_upto;
-
-QMAP_Road QMAP_road[QMAP_MAX_ROADS];
-SLONG QMAP_road_upto;
-
-QMAP_Cube QMAP_cube[QMAP_MAX_CUBES];
-SLONG QMAP_cube_upto;
-
-QMAP_Gtex QMAP_gtex[QMAP_MAX_GTEXES];
-SLONG QMAP_gtex_upto;
-
-QMAP_Cable QMAP_cable[QMAP_MAX_CABLES];
-SLONG QMAP_cable_upto;
-
-SBYTE QMAP_height[QMAP_MAX_HEIGHTS];
-SLONG QMAP_height_upto;
-
-QMAP_Hmap QMAP_hmap[QMAP_MAX_HMAPS];
-SLONG QMAP_hmap_upto;
-
-QMAP_Fence QMAP_fence[QMAP_MAX_FENCES];
-SLONG QMAP_fence_upto;
-
-QMAP_Light QMAP_light[QMAP_MAX_LIGHTS];
-SLONG QMAP_light_upto;
-
-QMAP_Prim QMAP_prim[QMAP_MAX_PRIMS];
-SLONG QMAP_prim_upto;
-
-UWORD QMAP_all[QMAP_MAX_ALL];
-SLONG QMAP_all_upto;
-
-QMAP_Map QMAP_map[QMAP_MAPSIZE][QMAP_MAPSIZE];
-
-QMAP_Point QMAP_point[QMAP_MAX_POINTS];
-UWORD QMAP_point_free;
-
-QMAP_Face QMAP_face[QMAP_MAX_FACES];
-UWORD QMAP_face_free;
+// Global definitions moved to new/world/map/qmap_globals.cpp
 
 void QMAP_init()
 {
