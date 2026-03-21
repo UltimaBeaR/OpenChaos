@@ -171,3 +171,10 @@ Entity mapping обновлён (33 записи — file path).
 - `polypage.h` включает `poly.h` (temporary) — `POLY_Point` ещё не мигрирован
 
 ---
+
+## Итерация 17 — engine/graphics/resources/font (2026-03-21)
+
+- `font.cpp` включает `<MFStdLib.h>` перед `GDisplay.h` — MFStdLib тянет `<windows.h>/<ddraw.h>/<d3d.h>`, без этого DDManager.h не компилируется
+- Bit-pattern макросы (`_____` … `xxxxx`) вынесены в `font_globals.cpp` вместе с данными шрифта — они используются только для инициализации таблиц
+
+---

@@ -88,6 +88,8 @@ set(SOURCES_NEW
     src/new/engine/graphics/pipeline/vertex_buffer_globals.cpp
     src/new/engine/graphics/pipeline/polypage.cpp
     src/new/engine/graphics/pipeline/polypage_globals.cpp
+    src/new/engine/graphics/resources/font.cpp
+    src/new/engine/graphics/resources/font_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -103,7 +105,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/fastprim.cpp
     src/old/fallen/DDEngine/Source/figure.cpp
     src/old/fallen/DDEngine/Source/flamengine.cpp
-    src/old/fallen/DDEngine/Source/Font.cpp
     src/old/fallen/DDEngine/Source/font2d.cpp
     src/old/fallen/DDEngine/Source/menufont.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp

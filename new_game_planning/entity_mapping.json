@@ -7899,6 +7899,806 @@
       "conflict": true,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_HEIGHT",
+      "file": "new/engine/graphics/resources/font.h",
+      "orig_name": "FONT_HEIGHT",
+      "orig_file": "fallen/DDEngine/Headers/Font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_WIDTH",
+      "file": "new/engine/graphics/resources/font.h",
+      "orig_name": "FONT_WIDTH",
+      "orig_file": "fallen/DDEngine/Headers/Font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_MAX_LENGTH",
+      "file": "new/engine/graphics/resources/font.h",
+      "orig_name": "FONT_MAX_LENGTH",
+      "orig_file": "fallen/DDEngine/Headers/Font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_buffer_add",
+      "file": "new/engine/graphics/resources/font.h",
+      "orig_name": "FONT_buffer_add",
+      "orig_file": "fallen/DDEngine/Headers/Font.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_buffer_draw",
+      "file": "new/engine/graphics/resources/font.h",
+      "orig_name": "FONT_buffer_draw",
+      "orig_file": "fallen/DDEngine/Headers/Font.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_draw",
+      "file": "new/engine/graphics/resources/font.h",
+      "orig_name": "FONT_draw",
+      "orig_file": "fallen/DDEngine/Headers/Font.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_draw_coloured_text",
+      "file": "new/engine/graphics/resources/font.h",
+      "orig_name": "FONT_draw_coloured_text",
+      "orig_file": "fallen/DDEngine/Headers/Font.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_draw_coloured_char",
+      "file": "new/engine/graphics/resources/font.h",
+      "orig_name": "FONT_draw_coloured_char",
+      "orig_file": "fallen/DDEngine/Headers/Font.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_draw_speech_bubble_text",
+      "file": "new/engine/graphics/resources/font.h",
+      "orig_name": "FONT_draw_speech_bubble_text",
+      "orig_file": "fallen/DDEngine/Headers/Font.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_Char",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_Char",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_upper",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_upper",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_lower",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_lower",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_number",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_number",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_punct",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_punct",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_Message",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_Message",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_buffer",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_buffer",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_buffer_upto",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_buffer_upto",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_message",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_message",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_message_upto",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_message_upto",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_DOT",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_DOT",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_NUMBER",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_NUMBER",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_BUFFER_SIZE",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_BUFFER_SIZE",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_MAX_MESSAGES",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_MAX_MESSAGES",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_TAB",
+      "file": "new/engine/graphics/resources/font.cpp",
+      "orig_name": "FONT_TAB",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_____",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "_____",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "____x",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "____x",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "___x_",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "___x_",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "___xx",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "___xx",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "__x__",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "__x__",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "__x_x",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "__x_x",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "__xx_",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "__xx_",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "__xxx",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "__xxx",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_x___",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "_x___",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_x__x",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "_x__x",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_x_x_",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "_x_x_",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_x_xx",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "_x_xx",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_xx__",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "_xx__",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_xx_x",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "_xx_x",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_xxx_",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "_xxx_",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_xxxx",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "_xxxx",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "x____",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "x____",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "x___x",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "x___x",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "x__x_",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "x__x_",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "x__xx",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "x__xx",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "x_x__",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "x_x__",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "x_x_x",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "x_x_x",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "x_xx_",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "x_xx_",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "x_xxx",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "x_xxx",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xx___",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "xx___",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xx__x",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "xx__x",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xx_x_",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "xx_x_",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xx_xx",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "xx_xx",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xxx__",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "xxx__",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xxx_x",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "xxx_x",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xxxx_",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "xxxx_",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xxxxx",
+      "file": "new/engine/graphics/resources/font_globals.cpp",
+      "orig_name": "xxxxx",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_COMMA",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_COMMA",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_QMARK",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_QMARK",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_PLING",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_PLING",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_QUOTES",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_QUOTES",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_OPEN",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_OPEN",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_CLOSE",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_CLOSE",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_PLUS",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_PLUS",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_MINUS",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_MINUS",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_EQUAL",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_EQUAL",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_HASH",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_HASH",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_PCENT",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_PCENT",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_STAR",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_STAR",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_BSLASH",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_BSLASH",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_FSLASH",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_FSLASH",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_COLON",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_COLON",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_SCOLON",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_SCOLON",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_APOST",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_APOST",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_AMPER",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_AMPER",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_POUND",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_POUND",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_DOLLAR",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_DOLLAR",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_LT",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_LT",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_GT",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_GT",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_AT",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_AT",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_PUNCT_UNDER",
+      "file": "new/engine/graphics/resources/font_globals.h",
+      "orig_name": "FONT_PUNCT_UNDER",
+      "orig_file": "fallen/DDEngine/Source/Font.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
