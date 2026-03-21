@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 88 — ai/pcom (восьмой чанк: PCOM_process_state_change..PCOM_process_movement) (2026-03-22)
+
+- `PCOM_runover_scary_person`, `Noise`, `MAX_NOISE`, `noise_count`, `noises[]`, `PCOM_debug_string` — глобалы → `pcom_globals.cpp/h`; удалены из old/pcom.cpp.
+- `PCOM_RUNOVER_*` макросы и `BLOCKED(C)` оставлены активными в old/pcom.cpp (нужны `DriveCar` который ещё не мигрирован); продублированы в new/pcom.cpp.
+- `set_person_fight_idle`, `people_allowed_to_hit_each_other` — нет заголовков → добавлены как file-scope `extern` в new/pcom.cpp.
+- `fallen/Headers/road.h` — добавлен как `// Temporary:` include (нужен `ROAD_nearest_node`, `ROAD_node_degree`, `ROAD_is_zebra`, `JN_RADIUS_IN`, `NEAR_JUNCTION`, `AT_JUNCTION`).
+- Осталось в old/pcom.cpp: ~1590 строк (строки 11092–12666).
+
+---
+
 ## Итерация 87 — ai/pcom (седьмой чанк: PCOM_process_findcar..PCOM_find_bodyguard_victim) (2026-03-22)
 
 - `in_right_place_for_car` (из Vehicle.cpp) — добавлен как file-scope `extern` в `new/ai/pcom.cpp` (используется в `PCOM_process_findcar` и `PCOM_process_hitch`).

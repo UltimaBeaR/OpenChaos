@@ -9426,6 +9426,7 @@ Thing* PCOM_find_bodyguard_victim(Thing* p_bodyguard, Thing* p_client)
 
 #endif // MIGRATED to src/new/ai/pcom.cpp (iteration 87)
 
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 88)
 // claude-ai: PCOM_process_state_change - MASTER AI dispatcher: outer switch on pcom_ai type, inner switch on pcom_ai_state; each AI type has unique state-override logic on top of PCOM_process_default(); this is the brain of all NPC behaviour
 // claude-ai: Per-AI-type overrides: CIV=PCOM_process_default; GUARD=investigate sounds+process_default; ASSASIN/BOSS=attack-on-see; COP=arrest+navtokill logic; GANG=taunt+scan+process_default; BODYGUARD=protect client; DRIVER/COP_DRIVER=find-car; BDISPOSER=scan-bombs; BIKER=bike-or-find-bike; MIB=kill-on-see; BANE=summon; SUICIDE=insta-die; KILL_COLOUR=hunt by colour; FLEE_PLAYER=flee Darci; BULLY=bully targets; FIGHT_TEST=MIB-like
 void PCOM_process_state_change(Thing* p_person)
@@ -10238,6 +10239,7 @@ void PCOM_process_state_change(Thing* p_person)
         break;
     }
 }
+#endif // MIGRATED to src/new/ai/pcom.cpp (iteration 88) [PCOM_process_state_change]
 
 //
 // For a person driving a car.. this function looks ahead of the car and
@@ -10253,10 +10255,11 @@ void PCOM_process_state_change(Thing* p_person)
 #define PCOM_RUNOVER_RUNAWAY (1 << 6) // Get our of the car and peg-it!
 #define PCOM_RUNOVER_REVERSE (1 << 7)
 
-Thing* PCOM_runover_scary_person;
+// PCOM_runover_scary_person moved to pcom_globals.cpp (iteration 88)
 
 // no messing here, -ve dangle means turning LEFT as most people would imagine it would
 
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 88) [PCOM_find_runover_thing + PCOM_process_movement]
 // claude-ai: PCOM_find_runover_thing - obstacle detection for driving AI: scans things ahead of vehicle and returns PCOM_RUNOVER_* flags; handles pedestrians (stop/beep/shout), parked cars (stop/avoid), moving cars (stop), junction priority (yield), armed pedestrians (runaway)
 SLONG PCOM_find_runover_thing(Thing* p_person, SLONG dangle)
 {
@@ -11089,6 +11092,8 @@ void PCOM_process_movement(Thing* p_person)
     }
 }
 
+#endif // MIGRATED to src/new/ai/pcom.cpp (iteration 88) [PCOM_find_runover_thing + PCOM_process_movement]
+
 // claude-ai: PCOM_process_person - TOP-LEVEL per-frame AI entry point called for every person; calls StateFn (animation), then PCOM_process_movement(), then PCOM_process_state_change(); also handles player idle dance interaction and wander-civ resurrection
 void PCOM_process_person(Thing* p_person)
 {
@@ -11229,17 +11234,7 @@ void PCOM_process_person(Thing* p_person)
     }
 }
 
-struct Noise {
-    UWORD Type;
-    UWORD Person;
-    SWORD X, Y, Z;
-};
-
-#define MAX_NOISE 4
-
-SWORD noise_count = 0;
-
-struct Noise noises[MAX_NOISE + 1];
+// Noise struct, MAX_NOISE, noise_count, noises[] moved to pcom_globals.cpp (iteration 88)
 
 void init_noises(void)
 {
@@ -11973,7 +11968,7 @@ void PCOM_knockdown_happened(Thing* p_person)
     }
 }
 
-CBYTE PCOM_debug_string[256];
+// PCOM_debug_string moved to pcom_globals.cpp (iteration 88)
 
 // claude-ai: PCOM_person_state_debug - debug string builder (PC only): formats all AI fields into human-readable string for on-screen debug overlay; shows pcom_ai, pcom_ai_state, pcom_move, pcom_move_state, pcom_bent flags
 CBYTE* PCOM_person_state_debug(Thing* p_person)

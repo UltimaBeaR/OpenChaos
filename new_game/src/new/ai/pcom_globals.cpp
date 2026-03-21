@@ -170,3 +170,15 @@ Thing* arrest_me[MAX_ARREST_ME];
 
 // uc_orig: next_arrest (fallen/Source/pcom.cpp)
 UWORD next_arrest = 0;
+
+// uc_orig: PCOM_runover_scary_person (fallen/Source/pcom.cpp)
+Thing* PCOM_runover_scary_person = nullptr;
+
+// uc_orig: noise_count (fallen/Source/pcom.cpp)
+SWORD noise_count = 0;
+
+// uc_orig: noises (fallen/Source/pcom.cpp)
+struct Noise noises[MAX_NOISE + 1];
+
+// uc_orig: PCOM_debug_string (fallen/Source/pcom.cpp)
+CBYTE PCOM_debug_string[256];

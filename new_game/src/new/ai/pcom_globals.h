@@ -64,4 +64,30 @@ extern Thing* arrest_me[MAX_ARREST_ME];
 // uc_orig: next_arrest (fallen/Source/pcom.cpp)
 extern UWORD next_arrest;
 
+// The pedestrian or person that scared the current vehicle driver into fleeing.
+// Set by PCOM_find_runover_thing, read by DriveCar.
+// uc_orig: PCOM_runover_scary_person (fallen/Source/pcom.cpp)
+extern Thing* PCOM_runover_scary_person;
+
+// Noise propagation queue — collects sounds during physics/collision for
+// batch processing at end of frame via process_noises().
+// uc_orig: MAX_NOISE (fallen/Source/pcom.cpp)
+#define MAX_NOISE 4
+
+// uc_orig: Noise (fallen/Source/pcom.cpp)
+struct Noise {
+    UWORD Type;
+    UWORD Person;
+    SWORD X, Y, Z;
+};
+
+// uc_orig: noise_count (fallen/Source/pcom.cpp)
+extern SWORD noise_count;
+// uc_orig: noises (fallen/Source/pcom.cpp)
+extern struct Noise noises[MAX_NOISE + 1];
+
+// Static debug output buffer for PCOM_person_state_debug().
+// uc_orig: PCOM_debug_string (fallen/Source/pcom.cpp)
+extern CBYTE PCOM_debug_string[256];
+
 #endif // AI_PCOM_GLOBALS_H

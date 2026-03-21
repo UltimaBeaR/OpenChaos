@@ -55479,6 +55479,196 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_state_change",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_state_change",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_RUNOVER_STOP",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_RUNOVER_STOP",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_RUNOVER_BEEP_HORN",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_RUNOVER_BEEP_HORN",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_RUNOVER_SHOUT_OUT",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_RUNOVER_SHOUT_OUT",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_RUNOVER_TURN_LEFT",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_RUNOVER_TURN_LEFT",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_RUNOVER_TURN_RIGHT",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_RUNOVER_TURN_RIGHT",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_RUNOVER_SLOW_DOWN",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_RUNOVER_SLOW_DOWN",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_RUNOVER_RUNAWAY",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_RUNOVER_RUNAWAY",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_RUNOVER_REVERSE",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_RUNOVER_REVERSE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "BLOCKED",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "BLOCKED",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_RUNOVER_FIND",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_RUNOVER_FIND",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_runover_scary_person",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_runover_scary_person",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_find_runover_thing",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_find_runover_thing",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_movement",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_movement",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Noise",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "Noise",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAX_NOISE",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "MAX_NOISE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "noise_count",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "noise_count",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "noises",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "noises",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_debug_string",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_debug_string",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }
