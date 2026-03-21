@@ -17069,6 +17069,906 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_MAX_FLAME_POINTS",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_MAX_FLAME_POINTS",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_MAX_FLAMES",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_MAX_FLAMES",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_MAX_FIRE",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_MAX_FIRE",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_Flame",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_Flame",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_Fire",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_Fire",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_MAX_POINTS",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_MAX_POINTS",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_Point",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_Point",
+      "orig_file": "fallen/Headers/fire.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_Info",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_Info",
+      "orig_file": "fallen/Headers/fire.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_init",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_init",
+      "orig_file": "fallen/Headers/fire.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_create",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_create",
+      "orig_file": "fallen/Headers/fire.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_process",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_process",
+      "orig_file": "fallen/Headers/fire.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_get_start",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_get_start",
+      "orig_file": "fallen/Headers/fire.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_get_next",
+      "file": "new/effects/fire.h",
+      "orig_name": "FIRE_get_next",
+      "orig_file": "fallen/Headers/fire.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_flame",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_flame",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_flame_free",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_flame_free",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_fire",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_fire",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_fire_last",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_fire_last",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_get_z",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_get_z",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_get_xmin",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_get_xmin",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_get_xmax",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_get_xmax",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_get_fire_upto",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_get_fire_upto",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_get_flame",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_get_flame",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_get_info",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_get_info",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_get_point",
+      "file": "new/effects/fire_globals.h",
+      "orig_name": "FIRE_get_point",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_MAX_POINTS",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_MAX_POINTS",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_MAX_MIST",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_MAX_MIST",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_MAX_STRENGTH",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_MAX_STRENGTH",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_Point",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_Point",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_Mist",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_Mist",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_init",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_init",
+      "orig_file": "fallen/Headers/mist.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_create",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_create",
+      "orig_file": "fallen/Headers/mist.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_gust",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_gust",
+      "orig_file": "fallen/Headers/mist.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_process",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_process",
+      "orig_file": "fallen/Headers/mist.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_start",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_get_start",
+      "orig_file": "fallen/Headers/mist.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_detail",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_get_detail",
+      "orig_file": "fallen/Headers/mist.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_point",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_get_point",
+      "orig_file": "fallen/Headers/mist.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_texture",
+      "file": "new/effects/mist.h",
+      "orig_name": "MIST_get_texture",
+      "orig_file": "fallen/Headers/mist.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_point",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_point",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_point_upto",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_point_upto",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_mist",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_mist",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_mist_upto",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_mist_upto",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_upto",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_get_upto",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_dx",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_get_dx",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_dz",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_get_dz",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_du",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_get_du",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_dv",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_get_dv",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_turn",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_get_turn",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_base_u",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_get_base_u",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_base_v",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_get_base_v",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_off_u_odd",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_off_u_odd",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_off_v_odd",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_off_v_odd",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_off_u_even",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_off_u_even",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_off_v_even",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_off_v_even",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MIST_get_mist",
+      "file": "new/effects/mist_globals.h",
+      "orig_name": "MIST_get_mist",
+      "orig_file": "fallen/Source/mist.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_SPARK_LIFE",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_SPARK_LIFE",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_SPARK_GRAVITY",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_SPARK_GRAVITY",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_MAX_SPARKS",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_MAX_SPARKS",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_MAX_GLITTER",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_MAX_GLITTER",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_MAPWHO",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_MAPWHO",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_Spark",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_Spark",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_Glitter",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_Glitter",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_FLAG_DXPOS",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_FLAG_DXPOS",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_FLAG_DXNEG",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_FLAG_DXNEG",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_FLAG_DYPOS",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_FLAG_DYPOS",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_FLAG_DYNEG",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_FLAG_DYNEG",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_FLAG_DZPOS",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_FLAG_DZPOS",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_FLAG_DZNEG",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_FLAG_DZNEG",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_FLAG_USED",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_FLAG_USED",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_FLAG_DESTROY",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_FLAG_DESTROY",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_Info",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_Info",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_init",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_init",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_create",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_create",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_destroy",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_destroy",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_add",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_add",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_process",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_process",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_get_start",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_get_start",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_get_next",
+      "file": "new/effects/glitter.h",
+      "orig_name": "GLITTER_get_next",
+      "orig_file": "fallen/Headers/glitter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_spark",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_spark",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_spark_free",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_spark_free",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_glitter",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_glitter",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_glitter_last",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_glitter_last",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_mapwho",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_mapwho",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_get_z",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_get_z",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_get_xmin",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_get_xmin",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_get_xmax",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_get_xmax",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_get_glitter",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_get_glitter",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_get_spark",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_get_spark",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLITTER_get_info",
+      "file": "new/effects/glitter_globals.h",
+      "orig_name": "GLITTER_get_info",
+      "orig_file": "fallen/Source/glitter.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_num_flames_for_size",
+      "file": "new/effects/fire.cpp",
+      "orig_name": "FIRE_num_flames_for_size",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIRE_add_flame",
+      "file": "new/effects/fire.cpp",
+      "orig_name": "FIRE_add_flame",
+      "orig_file": "fallen/Source/fire.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

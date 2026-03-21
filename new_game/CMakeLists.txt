@@ -122,6 +122,12 @@ set(SOURCES_NEW
     src/new/engine/graphics/pipeline/wibble_globals.cpp
     src/new/engine/graphics/resources/truetype.cpp
     src/new/engine/graphics/resources/truetype_globals.cpp
+    src/new/effects/fire.cpp
+    src/new/effects/fire_globals.cpp
+    src/new/effects/mist.cpp
+    src/new/effects/mist_globals.cpp
+    src/new/effects/glitter.cpp
+    src/new/effects/glitter_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -194,12 +200,10 @@ set(SOURCES_GAME
 
     src/old/fallen/Source/eway.cpp
     src/old/fallen/Source/fc.cpp
-    src/old/fallen/Source/fire.cpp
     src/old/fallen/Source/fog.cpp
     src/old/fallen/Source/frontend.cpp
     src/old/fallen/Source/Game.cpp
     src/old/fallen/Source/gamemenu.cpp
-    src/old/fallen/Source/glitter.cpp
     src/old/fallen/Source/grenade.cpp
     src/old/fallen/Source/guns.cpp
     src/old/fallen/Source/Hierarchy.cpp
@@ -213,7 +217,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/Map.cpp
     src/old/fallen/Source/mav.cpp
     src/old/fallen/Source/memory.cpp
-    src/old/fallen/Source/mist.cpp
     src/old/fallen/Source/music.cpp
     src/old/fallen/Source/night.cpp
     src/old/fallen/Source/ns.cpp

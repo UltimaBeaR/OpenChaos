@@ -259,3 +259,14 @@ Entity mapping обновлён (33 записи — file path).
 - `truetype.cpp` — `ShowDebug` — объявлена как static forward declaration, реализации нет ни в оригинале ни в новом файле (dead declaration в пре-релизной версии)
 
 ---
+
+## Итерация 26 — effects/fire + effects/mist + effects/glitter (2026-03-21)
+
+- Первая итерация в новой директории `effects/` (game-level) — создана
+- `FIRE_Flame`, `FIRE_Fire`, `MIST_Point`, `MIST_Mist`, `GLITTER_Spark`, `GLITTER_Glitter` — file-private structs, вынесены в `.h` (нужны для `_globals`)
+- `fire.cpp`/`mist.cpp` include `game.h` — ожидаемо для game-level effects (GAME_TURN, TICK_INV_RATIO)
+- `FIRE_get_next` — unfinished pre-release stub; always returns NULL; перенесён 1:1
+- `calc_height_at` — forward declaration в `mist.cpp`, вызов закомментирован в оригинале; перенесён с `uc_orig`
+- `static SLONG type_cycle` в `MIST_create` — static local (функциональная), не file-scope глобал; остаётся в .cpp
+
+---
