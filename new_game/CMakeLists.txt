@@ -221,6 +221,8 @@ set(SOURCES_NEW
     src/new/effects/pow_globals.cpp
     src/new/engine/graphics/geometry/superfacet.cpp
     src/new/engine/graphics/geometry/superfacet_globals.cpp
+    src/new/assets/level_loader.cpp
+    src/new/assets/level_loader_globals.cpp
 )
 
 set(SOURCES_DDENGINE

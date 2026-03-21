@@ -44889,6 +44889,256 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "EXTRAS_DIR",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "EXTRAS_DIR",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PRIM_DIR",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "PRIM_DIR",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DATA_DIR",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "DATA_DIR",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LEVELS_DIR",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "LEVELS_DIR",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_WORLD_DIR",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "TEXTURE_WORLD_DIR",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "local_next_prim_point",
+      "file": "new/assets/level_loader_globals.cpp",
+      "orig_name": "local_next_prim_point",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "local_next_prim_face4",
+      "file": "new/assets/level_loader_globals.cpp",
+      "orig_name": "local_next_prim_face4",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "local_next_prim_face3",
+      "file": "new/assets/level_loader_globals.cpp",
+      "orig_name": "local_next_prim_face3",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "local_next_prim_object",
+      "file": "new/assets/level_loader_globals.cpp",
+      "orig_name": "local_next_prim_object",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "local_next_prim_multi_object",
+      "file": "new/assets/level_loader_globals.cpp",
+      "orig_name": "local_next_prim_multi_object",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LoadGameThing",
+      "file": "new/assets/level_loader.h",
+      "orig_name": "LoadGameThing",
+      "orig_file": "fallen/Headers/io.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "record_prim_status",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "record_prim_status",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "revert_to_prim_status",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "revert_to_prim_status",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_colour",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "find_colour",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "change_extension",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "change_extension",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_texture_instyles",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "load_texture_instyles",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_texture_styles",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "load_texture_styles",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_anim_prim_object",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "load_anim_prim_object",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_needed_anim_prims",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "load_needed_anim_prims",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_level_anim_prims",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "load_level_anim_prims",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_game_map",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "load_game_map",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_all_prims",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "load_all_prims",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_prim_object",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "load_prim_object",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_all_individual_prims",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "load_all_individual_prims",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "read_object_name",
+      "file": "new/assets/level_loader.cpp",
+      "orig_name": "read_object_name",
+      "orig_file": "fallen/Source/io.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
