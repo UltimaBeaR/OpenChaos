@@ -1,40 +1,358 @@
-//
-// Road stuff...
-//
+#include <string.h>
 
-#include "game.h"
-#include "road.h"
-#include "pap.h"
-#include "mav.h"
-#include "elev.h"
-#include "texture.h"
+#include "world/map/road.h"
+#include "world/map/road_globals.h"
+#include "world/map/map.h"
+#include "world/map/pap.h"
+// Temporary: world/ should not depend on actors/ — pre-existing coupling from original (game.h -> Thing.h).
+#include "actors/core/thing.h"
+#include "engine/graphics/pipeline/aeng.h"
+#include "engine/graphics/resources/console.h"
+#include "assets/texture.h"
 
-#include "memory.h"
+// Temporary: elev.h not yet migrated — needed for ELEV_fname_map.
+#include "fallen/Headers/elev.h"
+// Temporary: mav.h not yet migrated — needed for MAVHEIGHT macro.
+#include "fallen/Headers/mav.h"
 
-//
-// The width of the roads.
-//
+// TEXTURE_set is defined in texture.cpp (not yet migrated to new/).
+extern SLONG TEXTURE_set;
 
+// Road width in map squares — used for camber calculation.
+// uc_orig: ROAD_WIDTH (fallen/Source/road.cpp)
 #define ROAD_WIDTH 5
 
-//
-// The wander system for vehicles.
-//
+// ============================================================
+// Private helpers — only used within this file.
+// ============================================================
 
-ROAD_Node* ROAD_node;
-SLONG ROAD_node_upto;
+// uc_orig: ROAD_find_node (fallen/Source/road.cpp)
+// Returns index of the node at (x, z), creating one if needed.
+static SLONG ROAD_find_node(SLONG x, SLONG z)
+{
+    SLONG i;
 
-//
-// The nodes at the edge of the map.
-//
+    for (i = 1; i < ROAD_node_upto; i++) {
+        if (ROAD_node[i].x == x && ROAD_node[i].z == z) {
+            return i;
+        }
+    }
 
-UBYTE* ROAD_edge; //[ROAD_MAX_EDGES];
-UWORD ROAD_edge_upto;
+    ASSERT(WITHIN(ROAD_node_upto, 1, ROAD_MAX_NODES - 1));
 
-//
-// Returns the position of a node.
-//
+    ROAD_node[ROAD_node_upto].x = x;
+    ROAD_node[ROAD_node_upto].z = z;
 
+    return ROAD_node_upto++;
+}
+
+// uc_orig: ROAD_connect (fallen/Source/road.cpp)
+// Creates a bidirectional connection between two road nodes.
+static void ROAD_connect(SLONG n1, SLONG n2)
+{
+    SLONG i;
+
+    ROAD_Node* rn1;
+    ROAD_Node* rn2;
+
+    ASSERT(WITHIN(n1, 1, ROAD_MAX_NODES - 1));
+    ASSERT(WITHIN(n2, 1, ROAD_MAX_NODES - 1));
+
+    rn1 = &ROAD_node[n1];
+    rn2 = &ROAD_node[n2];
+
+    for (i = 0; i < 4; i++) {
+        if (rn1->c[i] == n2) {
+            goto connected_2_to_1;
+        }
+
+        if (rn1->c[i] == 0) {
+            rn1->c[i] = n2;
+            goto connected_2_to_1;
+        }
+    }
+
+    ASSERT(0);
+
+connected_2_to_1:;
+
+    for (i = 0; i < 4; i++) {
+        if (rn2->c[i] == n1) {
+            return;
+        }
+
+        if (rn2->c[i] == 0) {
+            rn2->c[i] = n1;
+            return;
+        }
+    }
+
+    ASSERT(0);
+}
+
+// uc_orig: ROAD_disconnect (fallen/Source/road.cpp)
+// Removes the bidirectional connection between two road nodes.
+static void ROAD_disconnect(SLONG n1, SLONG n2)
+{
+    SLONG i;
+    SLONG j;
+
+    ASSERT(WITHIN(n1, 1, ROAD_node_upto - 1));
+    ASSERT(WITHIN(n2, 1, ROAD_node_upto - 1));
+
+    ROAD_Node* rn1 = &ROAD_node[n1];
+    ROAD_Node* rn2 = &ROAD_node[n2];
+
+    for (i = 0; i < 4; i++) {
+        if (rn1->c[i] == n2) {
+            for (j = i; j < 3; j++) {
+                rn1->c[j] = rn1->c[j + 1];
+            }
+
+            rn1->c[3] = 0;
+
+            goto found_2_from_1;
+        }
+    }
+
+    ASSERT(0);
+
+found_2_from_1:;
+
+    for (i = 0; i < 4; i++) {
+        if (rn2->c[i] == n1) {
+            for (j = i; j < 3; j++) {
+                rn2->c[j] = rn2->c[j + 1];
+            }
+
+            rn2->c[3] = 0;
+
+            goto found_1_from_2;
+        }
+    }
+
+    ASSERT(0);
+
+found_1_from_2:;
+
+    return;
+}
+
+// uc_orig: ROAD_intersect (fallen/Source/road.cpp)
+// Finds a road segment that crosses the segment from (x1,z1) to (x2,z2).
+// Returns TRUE and fills *in1, *in2, *ix, *iz if an intersection was found.
+// Roads must be axis-aligned (either x1==x2 or z1==z2).
+static SLONG ROAD_intersect(
+    SLONG x1, SLONG z1,
+    SLONG x2, SLONG z2,
+    SLONG* in1,
+    SLONG* in2,
+    SLONG* ix,
+    SLONG* iz)
+{
+    SLONG i;
+    SLONG j;
+
+    ROAD_Node* rn;
+    ROAD_Node* rm;
+
+    SLONG minx;
+    SLONG maxx;
+
+    SLONG minz;
+    SLONG maxz;
+
+    for (i = 1; i < ROAD_node_upto; i++) {
+        rn = &ROAD_node[i];
+
+        // Two roads don't count as intersecting if they share an end point.
+        if ((x1 == rn->x && z1 == rn->z) || (x2 == rn->x && z2 == rn->z)) {
+            continue;
+        }
+
+        for (j = 0; j < 4; j++) {
+            if (rn->c[j] == 0) {
+                break;
+            }
+
+            if (rn->c[j] < i) {
+                rm = &ROAD_node[rn->c[j]];
+
+                if ((x1 == rm->x && z1 == rm->z) || (x2 == rm->x && z2 == rm->z)) {
+                    continue;
+                }
+
+                if (x1 == x2) {
+                    if (rn->x == rm->x) {
+                        // Parallel roads can't intersect.
+                    } else {
+                        minx = rn->x;
+                        maxx = rm->x;
+
+                        if (minx > maxx) {
+                            SWAP(minx, maxx);
+                        }
+
+                        if (WITHIN(x1, minx, maxx)) {
+                            minz = z1;
+                            maxz = z2;
+
+                            if (minz > maxz) {
+                                SWAP(minz, maxz);
+                            }
+
+                            if (WITHIN(rn->z, minz, maxz)) {
+                                *in1 = i;
+                                *in2 = rn->c[j];
+                                *ix = x1;
+                                *iz = rn->z;
+
+                                return TRUE;
+                            }
+                        }
+                    }
+                } else {
+                    ASSERT(z1 == z2);
+
+                    if (rn->z == rm->z) {
+                        // Parallel roads can't intersect.
+                    } else {
+                        minz = rn->z;
+                        maxz = rm->z;
+
+                        if (minz > maxz) {
+                            SWAP(minz, maxz);
+                        }
+
+                        if (WITHIN(z1, minz, maxz)) {
+                            minx = x1;
+                            maxx = x2;
+
+                            if (minx > maxx) {
+                                SWAP(minx, maxx);
+                            }
+
+                            if (WITHIN(rn->x, minx, maxx)) {
+                                *in1 = i;
+                                *in2 = rn->c[j];
+                                *ix = rn->x;
+                                *iz = z1;
+
+                                return TRUE;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+// uc_orig: ROAD_split (fallen/Source/road.cpp)
+// Inserts a new node at (splitx, splitz) on the segment n1–n2, replacing it with two segments.
+static void ROAD_split(SLONG n1, SLONG n2, SLONG splitx, SLONG splitz)
+{
+    SLONG sn = ROAD_find_node(splitx, splitz);
+
+    if (sn == n1 || sn == n2) {
+        // Splitting at an endpoint does nothing.
+        return;
+    }
+
+    ASSERT(WITHIN(n1, 1, ROAD_node_upto - 1));
+    ASSERT(WITHIN(n2, 1, ROAD_node_upto - 1));
+
+    ROAD_disconnect(n1, n2);
+
+    ROAD_connect(n1, sn);
+    ROAD_connect(n2, sn);
+}
+
+// uc_orig: ROAD_add (fallen/Source/road.cpp)
+// Adds a road segment from (x1,z1) to (x2,z2), splitting at any existing intersections.
+static void ROAD_add(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
+{
+    SLONG n1;
+    SLONG n2;
+
+    SLONG in1;
+    SLONG in2;
+
+    SLONG ix;
+    SLONG iz;
+
+    if (ROAD_node_upto >= ROAD_MAX_NODES - 4) {
+        // Not enough nodes left for this to be safe.
+        return;
+    }
+
+    if (x1 == x2 && z1 == z2) {
+        return;
+    }
+
+    if ((x1 == 121 && z1 == 33) || (x2 == 121 && z2 == 33)) {
+        // Don't add this road on "Cop Killers" / "Arms Breaker" mission.
+        if (strstr(ELEV_fname_map, "gpost3.iam")) {
+            return;
+        }
+    }
+
+    n1 = ROAD_find_node(x1, z1);
+    n2 = ROAD_find_node(x2, z2);
+
+    if (!ROAD_intersect(x1, z1, x2, z2, &in1, &in2, &ix, &iz)) {
+        ROAD_connect(n1, n2);
+    } else {
+        ROAD_split(in1, in2, ix, iz);
+
+        ROAD_add(x1, z1, ix, iz);
+        ROAD_add(x2, z2, ix, iz);
+    }
+}
+
+// uc_orig: ROAD_is_middle (fallen/Source/road.cpp)
+// Returns TRUE if the given square is surrounded by road squares in a 5x5 area
+// (i.e. it lies along the centre-line of a road, not at the edge).
+static SLONG ROAD_is_middle(SLONG map_x, SLONG map_z)
+{
+    SLONG dx;
+    SLONG dz;
+
+    SLONG mx;
+    SLONG mz;
+
+    if (!WITHIN(map_x, 2, PAP_SIZE_HI - 3) || !WITHIN(map_z, 2, PAP_SIZE_HI - 3)) {
+        return FALSE;
+    }
+
+    if (!ROAD_is_road(map_x, map_z)) {
+        return FALSE;
+    }
+
+    if (!ROAD_is_road(map_x + 2, map_z + 2)) {
+        return FALSE;
+    }
+
+    for (dx = -2; dx <= +2; dx++)
+        for (dz = -2; dz <= +2; dz++) {
+            mx = map_x + dx;
+            mz = map_z + dz;
+
+            if (!ROAD_is_road(mx, mz)) {
+                return FALSE;
+            }
+        }
+
+    return TRUE;
+}
+
+// ============================================================
+// Public functions
+// ============================================================
+
+// uc_orig: ROAD_node_pos (fallen/Source/road.cpp)
 void ROAD_node_pos(
     SLONG node,
     SLONG* node_x,
@@ -50,8 +368,7 @@ void ROAD_node_pos(
     *node_z = (rn->z << 8) + 0x80;
 }
 
-// the bendiness of a junction n1 -> n2 -> n3
-
+// uc_orig: ROAD_bend (fallen/Source/road.cpp)
 SLONG ROAD_bend(SLONG n1, SLONG n2, SLONG n3)
 {
     ASSERT(WITHIN(n1, 1, ROAD_node_upto - 1));
@@ -71,8 +388,7 @@ SLONG ROAD_bend(SLONG n1, SLONG n2, SLONG n3)
     return x12 * z23 - z12 * x23;
 }
 
-// the degree of a road node
-
+// uc_orig: ROAD_node_degree (fallen/Source/road.cpp)
 SLONG ROAD_node_degree(SLONG node)
 {
     ASSERT(WITHIN(node, 1, ROAD_node_upto - 1));
@@ -93,10 +409,7 @@ SLONG ROAD_node_degree(SLONG node)
     return degree;
 }
 
-// ROAD_nearest_node
-//
-// return the nearer of rn1 and rn2 in nn, and the distance squared in nnd; wx,wz = WorldPos >> 8
-
+// uc_orig: ROAD_nearest_node (fallen/Source/road.cpp)
 SLONG ROAD_nearest_node(SLONG rn1, SLONG rn2, SLONG wx, SLONG wz, SLONG* nnd)
 {
     ASSERT(WITHIN(rn1, 1, ROAD_node_upto - 1));
@@ -122,10 +435,7 @@ SLONG ROAD_nearest_node(SLONG rn1, SLONG rn2, SLONG wx, SLONG wz, SLONG* nnd)
     return rn2;
 }
 
-//
-// Creates curbs and cambers.
-//
-
+// uc_orig: ROAD_sink (fallen/Source/road.cpp)
 void ROAD_sink()
 {
     SLONG dx;
@@ -145,10 +455,6 @@ void ROAD_sink()
     for (mx = 0; mx < MAP_WIDTH - 1; mx++)
         for (mz = 0; mz < MAP_HEIGHT - 1; mz++) {
             if (ROAD_is_road(mx, mz)) {
-                //
-                // This is a road texture...
-                //
-
                 PAP_2HI(mx + 0, mz + 0).Flags |= PAP_FLAG_SINK_SQUARE;
 
                 PAP_2HI(mx + 0, mz + 0).Flags |= PAP_FLAG_SINK_POINT;
@@ -158,10 +464,7 @@ void ROAD_sink()
             }
         }
 
-    //
-    // Which points don't need to be transformed on the upper level?
-    //
-
+    // Mark which PAP hi-points don't need the upper level.
     for (mx = 0; mx < MAP_WIDTH; mx++)
         for (mz = 0; mz < MAP_HEIGHT; mz++) {
             PAP_2HI(mx, mz).Flags |= PAP_FLAG_NOUPPER;
@@ -171,10 +474,6 @@ void ROAD_sink()
         for (mz = 0; mz < MAP_HEIGHT - 1; mz++) {
             if (PAP_2HI(mx, mz).Flags & PAP_FLAG_SINK_SQUARE) {
             } else {
-                //
-                // We need the upper level.
-                //
-
                 PAP_2HI(mx + 0, mz + 0).Flags &= ~PAP_FLAG_NOUPPER;
                 PAP_2HI(mx + 1, mz + 0).Flags &= ~PAP_FLAG_NOUPPER;
                 PAP_2HI(mx + 0, mz + 1).Flags &= ~PAP_FLAG_NOUPPER;
@@ -182,19 +481,12 @@ void ROAD_sink()
             }
         }
 
-    //
-    // Give the roads a camber.
-    //
-
+    // Apply camber: points close to a road edge get a small height boost.
     for (mx = 0; mx < MAP_WIDTH - 1; mx++)
         for (mz = 0; mz < MAP_HEIGHT - 1; mz++) {
             ph = &PAP_2HI(mx, mz);
 
             if (PAP_2HI(mx, mz).Flags & PAP_FLAG_SINK_POINT) {
-                //
-                // How close is this point to the edge of a road?
-                //
-
                 best_dist = 2;
 
                 for (dx = -1; dx <= +1; dx++)
@@ -203,9 +495,7 @@ void ROAD_sink()
 
                             if (PAP_on_map_hi(mx + dx, mz + dz)) {
                                 if (PAP_2HI(mx + dx, mz + dz).Flags & PAP_FLAG_NOUPPER) {
-                                    //
-                                    // This is not the edge of a road.
-                                    //
+                                    // Not the edge of a road.
                                 } else {
                                     dist = MAX(abs(dx), abs(dz));
 
@@ -226,6 +516,7 @@ void ROAD_sink()
         }
 }
 
+// uc_orig: ROAD_is_road (fallen/Source/road.cpp)
 SLONG ROAD_is_road(SLONG map_x, SLONG map_z)
 {
     PAP_Hi* ph;
@@ -243,7 +534,6 @@ SLONG ROAD_is_road(SLONG map_x, SLONG map_z)
 
     num = ph->Texture & 0x3ff;
 
-    extern SLONG TEXTURE_set;
     if (WITHIN(num, 323, 356) || ((TEXTURE_set == 7 || TEXTURE_set == 8) && (num == 35 || num == 36 || num == 39))) {
         return TRUE;
     }
@@ -251,6 +541,7 @@ SLONG ROAD_is_road(SLONG map_x, SLONG map_z)
     return FALSE;
 }
 
+// uc_orig: ROAD_is_zebra (fallen/Source/road.cpp)
 SLONG ROAD_is_zebra(SLONG map_x, SLONG map_z)
 {
     PAP_Hi* ph;
@@ -271,461 +562,7 @@ SLONG ROAD_is_zebra(SLONG map_x, SLONG map_z)
     }
 }
 
-//
-// Returns the index of a node at (x,z).  Create one if it has to.
-//
-
-SLONG ROAD_find_node(SLONG x, SLONG z)
-{
-    SLONG i;
-
-    //
-    // Look for a node that already exists.
-    //
-
-    for (i = 1; i < ROAD_node_upto; i++) {
-        if (ROAD_node[i].x == x && ROAD_node[i].z == z) {
-            return i;
-        }
-    }
-
-    //
-    // We must create a new node.
-    //
-
-    ASSERT(WITHIN(ROAD_node_upto, 1, ROAD_MAX_NODES - 1));
-
-    ROAD_node[ROAD_node_upto].x = x;
-    ROAD_node[ROAD_node_upto].z = z;
-
-    return ROAD_node_upto++;
-}
-
-//
-// Connects the two nodes together.
-//
-
-void ROAD_connect(SLONG n1, SLONG n2)
-{
-    SLONG i;
-
-    ROAD_Node* rn1;
-    ROAD_Node* rn2;
-
-    ASSERT(WITHIN(n1, 1, ROAD_MAX_NODES - 1));
-    ASSERT(WITHIN(n2, 1, ROAD_MAX_NODES - 1));
-
-    rn1 = &ROAD_node[n1];
-    rn2 = &ROAD_node[n2];
-
-    for (i = 0; i < 4; i++) {
-        if (rn1->c[i] == n2) {
-            //
-            // Already connected
-            //
-
-            goto connected_2_to_1;
-        }
-
-        if (rn1->c[i] == 0) {
-            //
-            // Found a spare slot.
-            //
-
-            rn1->c[i] = n2;
-
-            goto connected_2_to_1;
-        }
-    }
-
-    //
-    // No spare slots!
-    //
-
-    ASSERT(0);
-
-connected_2_to_1:;
-
-    for (i = 0; i < 4; i++) {
-        if (rn2->c[i] == n1) {
-            //
-            // Already connected
-            //
-
-            return;
-        }
-
-        if (rn2->c[i] == 0) {
-            //
-            // Found a spare slot.
-            //
-
-            rn2->c[i] = n1;
-
-            return;
-        }
-    }
-
-    //
-    // No spare slots!
-    //
-
-    ASSERT(0);
-}
-
-//
-// Disconects the two nodes.
-//
-
-void ROAD_disconnect(SLONG n1, SLONG n2)
-{
-    SLONG i;
-    SLONG j;
-
-    ASSERT(WITHIN(n1, 1, ROAD_node_upto - 1));
-    ASSERT(WITHIN(n2, 1, ROAD_node_upto - 1));
-
-    ROAD_Node* rn1 = &ROAD_node[n1];
-    ROAD_Node* rn2 = &ROAD_node[n2];
-
-    for (i = 0; i < 4; i++) {
-        if (rn1->c[i] == n2) {
-            for (j = i; j < 3; j++) {
-                rn1->c[j] = rn1->c[j + 1];
-            }
-
-            rn1->c[3] = 0;
-
-            goto found_2_from_1;
-        }
-    }
-
-    //
-    // These two nodes aren't connected!
-    //
-
-    ASSERT(0);
-
-found_2_from_1:;
-
-    for (i = 0; i < 4; i++) {
-        if (rn2->c[i] == n1) {
-            for (j = i; j < 3; j++) {
-                rn2->c[j] = rn2->c[j + 1];
-            }
-
-            rn2->c[3] = 0;
-
-            goto found_1_from_2;
-        }
-    }
-
-    //
-    // These two nodes aren't connected!
-    //
-
-    ASSERT(0);
-
-found_1_from_2:;
-
-    return;
-}
-
-//
-// Fills in the indices of a road that intersects a road from (x1,z1) to (x2,z2).
-// This function returns TRUE if it found an intersecting road or FALSE if it didn't.
-//
-
-SLONG ROAD_intersect(
-    SLONG x1, SLONG z1,
-    SLONG x2, SLONG z2,
-
-    SLONG* in1,
-    SLONG* in2,
-    SLONG* ix, // Intersection point
-    SLONG* iz)
-{
-    SLONG i;
-    SLONG j;
-
-    ROAD_Node* rn;
-    ROAD_Node* rm;
-
-    SLONG minx;
-    SLONG maxx;
-
-    SLONG minz;
-    SLONG maxz;
-
-    for (i = 1; i < ROAD_node_upto; i++) {
-        rn = &ROAD_node[i];
-
-        //
-        // Two roads don't count as intersecting if they share an end point.
-        //
-
-        if ((x1 == rn->x && z1 == rn->z) || (x2 == rn->x && z2 == rn->z)) {
-            continue;
-        }
-
-        for (j = 0; j < 4; j++) {
-            if (rn->c[j] == 0) {
-                break;
-            }
-
-            if (rn->c[j] < i) {
-                rm = &ROAD_node[rn->c[j]];
-
-                //
-                // Two roads don't count as intersecting if they share an end point.
-                //
-
-                if ((x1 == rm->x && z1 == rm->z) || (x2 == rm->x && z2 == rm->z)) {
-                    continue;
-                }
-
-                if (x1 == x2) {
-                    if (rn->x == rm->x) {
-                        //
-                        // These roads are parallel so they can't intersect.
-                        //
-                    } else {
-                        minx = rn->x;
-                        maxx = rm->x;
-
-                        if (minx > maxx) {
-                            SWAP(minx, maxx);
-                        }
-
-                        if (WITHIN(x1, minx, maxx)) {
-                            minz = z1;
-                            maxz = z2;
-
-                            if (minz > maxz) {
-                                SWAP(minz, maxz);
-                            }
-
-                            if (WITHIN(rn->z, minz, maxz)) {
-                                //
-                                // These roads intersect.
-                                //
-
-                                *in1 = i;
-                                *in2 = rn->c[j];
-                                *ix = x1;
-                                *iz = rn->z;
-
-                                return TRUE;
-                            }
-                        }
-                    }
-                } else {
-                    ASSERT(z1 == z2);
-
-                    if (rn->z == rm->z) {
-                        //
-                        // These roads are parallel so they can't intersect.
-                        //
-                    } else {
-                        minz = rn->z;
-                        maxz = rm->z;
-
-                        if (minz > maxz) {
-                            SWAP(minz, maxz);
-                        }
-
-                        if (WITHIN(z1, minz, maxz)) {
-                            minx = x1;
-                            maxx = x2;
-
-                            if (minx > maxx) {
-                                SWAP(minx, maxx);
-                            }
-
-                            if (WITHIN(rn->x, minx, maxx)) {
-                                //
-                                // These roads intersect.
-                                //
-
-                                *in1 = i;
-                                *in2 = rn->c[j];
-                                *ix = rn->x;
-                                *iz = z1;
-
-                                return TRUE;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    //
-    // Found no intersecting roads.
-    //
-
-    return FALSE;
-}
-
-//
-// Inserts an extra point in the given road.
-//
-
-void ROAD_split(SLONG n1, SLONG n2, SLONG splitx, SLONG splitz)
-{
-    SLONG sn = ROAD_find_node(splitx, splitz);
-
-    if (sn == n1 || sn == n2) {
-        //
-        // Splitting a road at one of its end-points does nothing.
-        //
-
-        return;
-    }
-
-    ASSERT(WITHIN(n1, 1, ROAD_node_upto - 1));
-    ASSERT(WITHIN(n2, 1, ROAD_node_upto - 1));
-
-    ROAD_Node* rn1 = &ROAD_node[n1];
-    ROAD_Node* rn2 = &ROAD_node[n2];
-
-    //
-    // Make sure this split point lies on the road and it in the
-    // middle of it.
-    //
-
-    //
-    // Disconnect the two road nodes.
-    //
-
-    ROAD_disconnect(n1, n2);
-
-    //
-    // Connect the two new roads.
-    //
-
-    ROAD_connect(n1, sn);
-    ROAD_connect(n2, sn);
-}
-
-//
-// Adds a new road.
-//
-
-void ROAD_add(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
-{
-    SLONG n1;
-    SLONG n2;
-
-    SLONG in1;
-    SLONG in2;
-
-    SLONG ix;
-    SLONG iz;
-
-    if (ROAD_node_upto >= ROAD_MAX_NODES - 4) {
-        //
-        // There aren't enough road nodes left for this to be a safe operation.
-        //
-
-        return;
-    }
-
-    //
-    // Don't add any silly roads.
-    //
-
-    if (x1 == x2 && z1 == z2) {
-        return;
-    }
-
-    if ((x1 == 121 && z1 == 33) || (x2 == 121 && z2 == 33)) {
-        //
-        // Don't add this road if we are on the "Cop Killers" or
-        // "Arms Breaker" mission.
-        //
-
-        if (strstr(ELEV_fname_map, "gpost3.iam")) {
-            return;
-        }
-    }
-
-    //
-    // The nodes at our start and end.
-    //
-
-    n1 = ROAD_find_node(x1, z1);
-    n2 = ROAD_find_node(x2, z2);
-
-    //
-    // We must create nodes at the intersection point of this road
-    // with any other one.
-    //
-
-    if (!ROAD_intersect(x1, z1, x2, z2, &in1, &in2, &ix, &iz)) {
-        //
-        // We are done.
-        //
-
-        ROAD_connect(n1, n2);
-    } else {
-        //
-        // Split up the road we intersect.
-        //
-
-        ROAD_split(in1, in2, ix, iz);
-
-        //
-        // Split ourselves up and insert each bit.
-        //
-
-        ROAD_add(x1, z1, ix, iz);
-        ROAD_add(x2, z2, ix, iz);
-    }
-}
-
-//
-// Returns TRUE if the given square lies along the middle of a road.
-//
-
-SLONG ROAD_is_middle(SLONG map_x, SLONG map_z)
-{
-    SLONG dx;
-    SLONG dz;
-
-    SLONG mx;
-    SLONG mz;
-
-    if (!WITHIN(map_x, 2, PAP_SIZE_HI - 3) || !WITHIN(map_z, 2, PAP_SIZE_HI - 3)) {
-        return FALSE;
-    }
-
-    //
-    // Do some quick rejection first.
-    //
-
-    if (!ROAD_is_road(map_x, map_z)) {
-        return FALSE;
-    }
-
-    if (!ROAD_is_road(map_x + 2, map_z + 2)) {
-        return FALSE;
-    }
-
-    for (dx = -2; dx <= +2; dx++)
-        for (dz = -2; dz <= +2; dz++) {
-            mx = map_x + dx;
-            mz = map_z + dz;
-
-            if (!ROAD_is_road(mx, mz)) {
-                return FALSE;
-            }
-        }
-
-    return TRUE;
-}
-
+// uc_orig: ROAD_is_end_of_the_line (fallen/Source/road.cpp)
 SLONG ROAD_is_end_of_the_line(SLONG n)
 {
     ROAD_Node* rn;
@@ -735,11 +572,6 @@ SLONG ROAD_is_end_of_the_line(SLONG n)
     rn = &ROAD_node[n];
 
     if (rn->c[0] && rn->c[1] == NULL) {
-        //
-        // This node is only connected to one other. It is a canditate for
-        // leading of the edge of the map.
-        //
-
         if (rn->x == 0 || rn->z == 0 || rn->x == PAP_SIZE_HI - 1 || rn->z == PAP_SIZE_HI - 1) {
             return TRUE;
         }
@@ -748,6 +580,7 @@ SLONG ROAD_is_end_of_the_line(SLONG n)
     return FALSE;
 }
 
+// uc_orig: ROAD_wander_calc (fallen/Source/road.cpp)
 void ROAD_wander_calc()
 {
     SLONG x;
@@ -763,10 +596,6 @@ void ROAD_wander_calc()
 
     ROAD_Node* rn;
 
-    //
-    // Clear all road info.
-    //
-
     ROAD_node_upto = 1;
 
     memset(ROAD_node, 0, sizeof(ROAD_Node) * ROAD_MAX_NODES);
@@ -775,10 +604,7 @@ void ROAD_wander_calc()
 
     memset(ROAD_edge, 0, sizeof(UBYTE) * ROAD_MAX_EDGES);
 
-    //
     // Find all roads parallel to the z-axis.
-    //
-
     for (x = 2; x < PAP_SIZE_HI - 2; x++) {
         p1valid = FALSE;
         p2valid = FALSE;
@@ -794,10 +620,6 @@ void ROAD_wander_calc()
                 }
             } else {
                 if (p1valid && p2valid) {
-                    //
-                    // Create a new road if it long enough.
-                    //
-
                     if (abs(p2 - p1) > 2) {
                         ROAD_add(x, p1, x, p2);
                     }
@@ -809,10 +631,7 @@ void ROAD_wander_calc()
         }
     }
 
-    //
     // Find all roads parallel to the x-axis.
-    //
-
     for (z = 2; z < PAP_SIZE_HI - 2; z++) {
         p1valid = FALSE;
         p2valid = FALSE;
@@ -828,10 +647,6 @@ void ROAD_wander_calc()
                 }
             } else {
                 if (p1valid && p2valid) {
-                    //
-                    // Create a new road if it is long enough.
-                    //
-
                     if (abs(p2 - p1) > 2) {
                         ROAD_add(p1, z, p2, z);
                     }
@@ -843,21 +658,12 @@ void ROAD_wander_calc()
         }
     }
 
-    //
-    // Find all nodes that lead off the map and put them right at
-    // the edge of the map.  Make a note of them all somewhere.
-    //
-
+    // Find edge nodes (single-connection nodes near the map edge) and record them.
     for (i = 1; i < ROAD_node_upto; i++) {
         rn = &ROAD_node[i];
 
         if (rn->c[0] && rn->c[1] == NULL) {
             onedge = FALSE;
-
-            //
-            // This node is only connected to one other. It is a canditate for
-            // leading of the edge of the map.
-            //
 
             if (rn->x == 2) {
                 rn->x = 0;
@@ -886,10 +692,11 @@ void ROAD_wander_calc()
     }
 }
 
+// uc_orig: ROAD_find_me_somewhere_to_appear (fallen/Source/road.cpp)
 void ROAD_find_me_somewhere_to_appear(
-    SLONG* world_x, // Current position on calling, new position on return.
+    SLONG* world_x,
     SLONG* world_z,
-    SLONG* nrn1, // The new road you are on.
+    SLONG* nrn1,
     SLONG* nrn2,
     SLONG* nyaw)
 {
@@ -910,15 +717,10 @@ void ROAD_find_me_somewhere_to_appear(
         ROAD_Node* rn1 = &ROAD_node[ROAD_edge[i]];
         ROAD_Node* rn2 = &ROAD_node[rn1->c[0]];
 
-        ASSERT(
-            rn1->x == rn2->x || rn1->z == rn2->z);
+        ASSERT(rn1->x == rn2->x || rn1->z == rn2->z);
     }
 
     if (ROAD_edge_upto) {
-        //
-        // A bit of random number coding!
-        //
-
         for (i = 0; i < 32; i++) {
             e = Random() & (ROAD_MAX_EDGES - 1);
 
@@ -934,20 +736,13 @@ void ROAD_find_me_somewhere_to_appear(
             dz = abs((rn->z << 8) - *world_z);
 
             if (dx + dz > 0x1000) {
-                //
-                // Found a good node- i.e. its far enough away.  Is there somebody
-                // too close to the node?
-                //
-
                 if (THING_find_nearest(
                         rn->x << 8,
                         MAVHEIGHT(rn->x, rn->z) << 6,
                         rn->z << 8,
                         0x400,
                         1 << CLASS_VEHICLE)) {
-                    //
-                    // There is another vehicle too close to the node.
-                    //
+                    // Another vehicle is too close to this node — skip it.
                 } else {
 
                     *nrn1 = ROAD_edge[e];
@@ -960,9 +755,6 @@ void ROAD_find_me_somewhere_to_appear(
 
         if (*nrn1 == 0) {
             CONSOLE_text("Road node alert!");
-            //
-            // Oh dear! Use the first road edge.
-            //
 
             ASSERT(WITHIN(ROAD_edge[0], 1, ROAD_node_upto - 1));
 
@@ -972,19 +764,12 @@ void ROAD_find_me_somewhere_to_appear(
             *nrn2 = rn->c[0];
         }
 
-        //
-        // Position the vehicle for being on the road... badly for now!
-        //
-
+        // Position the vehicle at the road entry point.
         *world_x = rn->x << 8;
         *world_z = rn->z << 8;
 
         *world_x += 0x80;
         *world_z += 0x80;
-
-        //
-        // Our new yaw.
-        //
 
         dx = ROAD_node[*nrn2].x - ROAD_node[*nrn1].x;
         dz = ROAD_node[*nrn2].z - ROAD_node[*nrn1].z;
@@ -997,18 +782,15 @@ void ROAD_find_me_somewhere_to_appear(
 
         ASSERT(
             ROAD_node[*nrn1].x == ROAD_node[*nrn2].x || ROAD_node[*nrn1].z == ROAD_node[*nrn2].z);
-    } else {
-        //
-        // Oh dear... what now?  Appear somewhere random or assert?
-        //
 
+    } else {
         ASSERT(0);
     }
 }
 
+// uc_orig: ROAD_debug (fallen/Source/road.cpp)
 void ROAD_debug()
 {
-
     SLONG i;
     SLONG j;
 
@@ -1022,20 +804,12 @@ void ROAD_debug()
 
     ROAD_Node* rn;
 
-    //
-    // Draw all the nodes.
-    //
-
     for (i = 1; i < ROAD_node_upto; i++) {
         rn = &ROAD_node[i];
 
         ROAD_node_pos(i, &nx, &nz);
 
         ny = PAP_calc_map_height_at(nx, nz);
-
-        //
-        // The node.
-        //
 
         AENG_world_line(
             nx, ny, nz,
@@ -1065,13 +839,14 @@ void ROAD_debug()
     }
 }
 
+// uc_orig: ROAD_signed_dist (fallen/Source/road.cpp)
 SLONG ROAD_signed_dist(
     SLONG n1,
     SLONG n2,
     SLONG world_x,
     SLONG world_z)
 {
-    SLONG dist = 0x10000; // Very far away... but not unreasonable.
+    SLONG dist = 0x10000; // Very far — but not unreasonable as a default.
 
     ASSERT(WITHIN(n1, 1, ROAD_node_upto - 1));
     ASSERT(WITHIN(n2, 1, ROAD_node_upto - 1));
@@ -1116,10 +891,10 @@ SLONG ROAD_signed_dist(
     return dist;
 }
 
+// uc_orig: ROAD_find (fallen/Source/road.cpp)
 void ROAD_find(
     SLONG world_x,
     SLONG world_z,
-
     SLONG* n1,
     SLONG* n2)
 {
@@ -1158,6 +933,7 @@ void ROAD_find(
     *n2 = best_n2;
 }
 
+// uc_orig: ROAD_whereto_now (fallen/Source/road.cpp)
 void ROAD_whereto_now(
     SLONG n1,
     SLONG n2,
@@ -1195,6 +971,7 @@ void ROAD_whereto_now(
     *wtn2 = best_node;
 }
 
+// uc_orig: ROAD_get_dest (fallen/Source/road.cpp)
 void ROAD_get_dest(
     SLONG n1,
     SLONG n2,
@@ -1231,12 +1008,7 @@ void ROAD_get_dest(
     }
 }
 
-//
-// There are 512 textures on the map and 2 bits for each texture.
-//
-
-UBYTE ROAD_mapsquare_type[512 / 4];
-
+// uc_orig: ROAD_calc_mapsquare_type (fallen/Source/road.cpp)
 void ROAD_calc_mapsquare_type()
 {
     SLONG mx;
@@ -1255,10 +1027,6 @@ void ROAD_calc_mapsquare_type()
     for (mx = 0; mx < PAP_SIZE_HI; mx++)
         for (mz = 0; mz < PAP_SIZE_HI; mz++) {
             ph = &PAP_2HI(mx, mz);
-
-            //
-            // The texture page on this mapsquare.
-            //
 
             page = ph->Texture & 0x3ff;
 
@@ -1307,6 +1075,7 @@ void ROAD_calc_mapsquare_type()
         }
 }
 
+// uc_orig: ROAD_get_mapsquare_type (fallen/Source/road.cpp)
 SLONG ROAD_get_mapsquare_type(SLONG mx, SLONG mz)
 {
     SLONG page;
@@ -1317,10 +1086,6 @@ SLONG ROAD_get_mapsquare_type(SLONG mx, SLONG mz)
     PAP_Hi* ph;
 
     ph = &PAP_2HI(mx, mz);
-
-    //
-    // The texture page on this mapsquare.
-    //
 
     page = ph->Texture & 0x3ff;
 

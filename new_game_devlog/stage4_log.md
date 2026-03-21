@@ -477,3 +477,11 @@ Entity mapping обновлён (33 записи — file path).
 - `slow_mo` — в оригинале `static` file-scope; перенесён в `_globals` по правилу
 
 ---
+
+## Итерация 48 — world/map/road (2026-03-21)
+
+- `road.cpp` включает `actors/core/thing.h` — DAG нарушение (`world/` → `actors/`); pre-existing coupling из оригинала (game.h → Thing.h → THING_find_nearest); помечено `// Temporary:`
+- `ROAD_find_node/connect/disconnect/intersect/split/add/is_middle` — file-private; в оригинале не были static; сделаны static как file-private helpers
+- `page` и `MapElement* me` в `ROAD_sink` — declared-but-unused переменные из оригинала; перенесены 1:1
+
+---

@@ -298,7 +298,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/pyro.cpp
     src/old/fallen/Source/qedit.cpp
     src/old/fallen/Source/qmap.cpp
-    src/old/fallen/Source/road.cpp
+    src/new/world/map/road.cpp
+    src/new/world/map/road_globals.cpp
     src/old/fallen/Source/save.cpp
     src/old/fallen/Source/shadow.cpp
     src/new/engine/physics/sm.cpp

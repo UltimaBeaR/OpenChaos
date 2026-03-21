@@ -31539,6 +31539,426 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_Node",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_Node",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_MAX_NODES",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_MAX_NODES",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_MAX_EDGES",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_MAX_EDGES",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_LANE",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_LANE",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "JN_RADIUS_IN",
+      "file": "new/world/map/road.h",
+      "orig_name": "JN_RADIUS_IN",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "JN_RADIUS_OUT",
+      "file": "new/world/map/road.h",
+      "orig_name": "JN_RADIUS_OUT",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AT_JUNCTION",
+      "file": "new/world/map/road.h",
+      "orig_name": "AT_JUNCTION",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NEAR_JUNCTION",
+      "file": "new/world/map/road.h",
+      "orig_name": "NEAR_JUNCTION",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_TYPE_TARMAC",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_TYPE_TARMAC",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_TYPE_GRASS",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_TYPE_GRASS",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_TYPE_DIRT",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_TYPE_DIRT",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_TYPE_SLIPPERY",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_TYPE_SLIPPERY",
+      "orig_file": "fallen/Headers/road.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_node",
+      "file": "new/world/map/road_globals.h",
+      "orig_name": "ROAD_node",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_node_upto",
+      "file": "new/world/map/road_globals.h",
+      "orig_name": "ROAD_node_upto",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_edge",
+      "file": "new/world/map/road_globals.h",
+      "orig_name": "ROAD_edge",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_edge_upto",
+      "file": "new/world/map/road_globals.h",
+      "orig_name": "ROAD_edge_upto",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_mapsquare_type",
+      "file": "new/world/map/road_globals.h",
+      "orig_name": "ROAD_mapsquare_type",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_WIDTH",
+      "file": "new/world/map/road.cpp",
+      "orig_name": "ROAD_WIDTH",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_sink",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_sink",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_is_road",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_is_road",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_is_zebra",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_is_zebra",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_calc_mapsquare_type",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_calc_mapsquare_type",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_get_mapsquare_type",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_get_mapsquare_type",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_wander_calc",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_wander_calc",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_find",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_find",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_node_pos",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_node_pos",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_node_degree",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_node_degree",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_nearest_node",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_nearest_node",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_whereto_now",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_whereto_now",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_get_dest",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_get_dest",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_is_end_of_the_line",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_is_end_of_the_line",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_bend",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_bend",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_find_me_somewhere_to_appear",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_find_me_somewhere_to_appear",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_signed_dist",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_signed_dist",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_debug",
+      "file": "new/world/map/road.h",
+      "orig_name": "ROAD_debug",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_find_node",
+      "file": "new/world/map/road.cpp",
+      "orig_name": "ROAD_find_node",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_connect",
+      "file": "new/world/map/road.cpp",
+      "orig_name": "ROAD_connect",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_disconnect",
+      "file": "new/world/map/road.cpp",
+      "orig_name": "ROAD_disconnect",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_intersect",
+      "file": "new/world/map/road.cpp",
+      "orig_name": "ROAD_intersect",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_split",
+      "file": "new/world/map/road.cpp",
+      "orig_name": "ROAD_split",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_add",
+      "file": "new/world/map/road.cpp",
+      "orig_name": "ROAD_add",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROAD_is_middle",
+      "file": "new/world/map/road.cpp",
+      "orig_name": "ROAD_is_middle",
+      "orig_file": "fallen/Source/road.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
