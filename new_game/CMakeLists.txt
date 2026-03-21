@@ -211,6 +211,8 @@ set(SOURCES_NEW
     src/new/actors/animals/bat_globals.cpp
     src/new/actors/vehicles/chopper.cpp
     src/new/actors/vehicles/chopper_globals.cpp
+    src/new/actors/vehicles/vehicle.cpp
+    src/new/actors/vehicles/vehicle_globals.cpp
     src/new/assets/startscr.cpp
     src/new/assets/startscr_globals.cpp
     src/new/actors/items/balloon.cpp

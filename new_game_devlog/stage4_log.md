@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 90 — actors/vehicles/vehicle (чанк 1: VehInfo..draw_car) (2026-03-22)
+
+- Чанк 1 (~1140 строк) из 3 чанков Vehicle.cpp: VehInfo table, statefunctions, helpers матриц, alloc/dealloc, draw_car, VEH_on_road, VEH_add_damage/bounce, init/create.
+- `WHEELTIME` и `WHEELRATIO` перемещены в `vehicle.h` (нужны для размера массива `arctan_table[]` в vehicle_globals.h).
+- `car_matrix`, `arctan_table`, `arctan_table_ok` определены в `vehicle_globals.cpp` (не в vehicle.cpp) — выполнение правила "все глобалы в _globals".
+- `make_car_matrix`, `make_car_matrix_p`, `apply_car_matrix`, `is_driven_by_player`, `there_is_a_los_car`, `should_i_collide_against_this_anim_prim` — non-static (используются из old/ chunks 2+3 через extern).
+- `GetCarPoints` — оставлен активным и в old/Vehicle.cpp (static inline, нужен CollideCar и др. в chunks 2+3); в new/vehicle.cpp отдельная `static inline` копия для `VEH_on_road`. Будет удалён из old/ когда chunks 2+3 мигрируют.
+- `init_arctans` — определена в new/vehicle.cpp (вызывается из `VEH_init_vehinfo`); тоже нужна в old/ (в `#if 0` блок не помещена — используется steering_wheel в chunks 2+3 через `arctan_table_ok` guard).
+- Redirect-заголовок old/fallen/Headers/Vehicle.h: `#pragma once` + include vehicle.h + vehicle_globals.h.
+- Добавлены `// Temporary:` includes: `fallen/DDEngine/Headers/font2d.h`, `fallen/Headers/pcom.h`, `fallen/Headers/psystem.h`.
+
+---
+
 ## Итерация 89 — ai/pcom (девятый чанк: PCOM_process_person..PCOM_make_driver_run_away) (2026-03-22)
 
 - `on_same_side` — не static в оригинале, но нигде не объявлена в заголовках; помечена `static` в new/ (только внутреннее использование).

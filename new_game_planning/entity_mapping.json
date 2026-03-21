@@ -55719,6 +55719,1186 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "FLAG_VEH_DRIVING",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "FLAG_VEH_DRIVING",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FLAG_VEH_WHEEL1_GRIP",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "FLAG_VEH_WHEEL1_GRIP",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FLAG_VEH_WHEEL2_GRIP",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "FLAG_VEH_WHEEL2_GRIP",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FLAG_VEH_WHEEL3_GRIP",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "FLAG_VEH_WHEEL3_GRIP",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FLAG_VEH_WHEEL4_GRIP",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "FLAG_VEH_WHEEL4_GRIP",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FLAG_VEH_ANIMATING",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "FLAG_VEH_ANIMATING",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FLAG_VEH_FX_STATE",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "FLAG_VEH_FX_STATE",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FLAG_VEH_SHOT_AT",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "FLAG_VEH_SHOT_AT",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FLAG_VEH_STALLED",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "FLAG_VEH_STALLED",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FLAG_VEH_IN_AIR",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "FLAG_VEH_IN_AIR",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Suspension",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "Suspension",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_ACCEL",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_ACCEL",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_DECEL",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_DECEL",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_FASTER",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_FASTER",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_SIREN",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_SIREN",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_SPEED_LIMIT",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_SPEED_LIMIT",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_REVERSE_SPEED",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_REVERSE_SPEED",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "WHEELTIME",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "WHEELTIME",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "WHEELRATIO",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "WHEELRATIO",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Vehicle",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "Vehicle",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "RMAX_VEHICLES",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "RMAX_VEHICLES",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAX_VEHICLES",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "MAX_VEHICLES",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_NULL",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_NULL",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_TYPE_VAN",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_TYPE_VAN",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_TYPE_CAR",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_TYPE_CAR",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_TYPE_TAXI",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_TYPE_TAXI",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_TYPE_POLICE",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_TYPE_POLICE",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_TYPE_AMBULANCE",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_TYPE_AMBULANCE",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_TYPE_JEEP",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_TYPE_JEEP",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_TYPE_MEATWAGON",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_TYPE_MEATWAGON",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_TYPE_SEDAN",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_TYPE_SEDAN",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_TYPE_WILDCATVAN",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_TYPE_WILDCATVAN",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_TYPE_NUMBER",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_TYPE_NUMBER",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_COL_TYPE_BBOX",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_COL_TYPE_BBOX",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_COL_TYPE_CYLINDER",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_COL_TYPE_CYLINDER",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_Col",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_Col",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_MAX_COL",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_MAX_COL",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_statefunctions",
+      "file": "new/actors/vehicles/vehicle_globals.h",
+      "orig_name": "VEH_statefunctions",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_driving",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_driving",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_vehicles",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "init_vehicles",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_create",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_create",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_vehicle_body_prim",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "get_vehicle_body_prim",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_vehicle_body_offset",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "get_vehicle_body_offset",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_find_runover_things",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_find_runover_things",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_find_door",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_find_door",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_vehicle_driver",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "get_vehicle_driver",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_init_vehinfo",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_init_vehinfo",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_get_assignments",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_get_assignments",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "reinit_vehicle",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "reinit_vehicle",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "vehicle_wheel_pos_init",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "vehicle_wheel_pos_init",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "vehicle_wheel_pos_get",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "vehicle_wheel_pos_get",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_collide_find_things",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_collide_find_things",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_add_damage",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_add_damage",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_bounce",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_bounce",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "GetRunoverHP",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "GetRunoverHP",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_throw_out_person",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_throw_out_person",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_shake_fences",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_shake_fences",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_co_damage",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_co_damage",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_reduce_health",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_reduce_health",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_on_road",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_on_road",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_car_door_offsets",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "get_car_door_offsets",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "steering_wheel",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "steering_wheel",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "nudge_car",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "nudge_car",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "draw_car",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "draw_car",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_collide_line_ignore_walls",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "VEH_collide_line_ignore_walls",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "car_hit_flags",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "car_hit_flags",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim",
+      "file": "new/actors/vehicles/vehicle.h",
+      "orig_name": "sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VehInfo",
+      "file": "new/actors/vehicles/vehicle_globals.h",
+      "orig_name": "VehInfo",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "veh_info",
+      "file": "new/actors/vehicles/vehicle_globals.h",
+      "orig_name": "veh_info",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "vehicle_random",
+      "file": "new/actors/vehicles/vehicle_globals.h",
+      "orig_name": "vehicle_random",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_col",
+      "file": "new/actors/vehicles/vehicle_globals.h",
+      "orig_name": "VEH_col",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_col_upto",
+      "file": "new/actors/vehicles/vehicle_globals.h",
+      "orig_name": "VEH_col_upto",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "vehicle_wheel_pos_vehicle",
+      "file": "new/actors/vehicles/vehicle_globals.h",
+      "orig_name": "vehicle_wheel_pos_vehicle",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "car_matrix",
+      "file": "new/actors/vehicles/vehicle_globals.h",
+      "orig_name": "car_matrix",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "arctan_table",
+      "file": "new/actors/vehicles/vehicle_globals.h",
+      "orig_name": "arctan_table",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "arctan_table_ok",
+      "file": "new/actors/vehicles/vehicle_globals.h",
+      "orig_name": "arctan_table_ok",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MIN_COMPRESSION",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "MIN_COMPRESSION",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAX_COMPRESSION",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "MAX_COMPRESSION",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "UNITS_PER_METER",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "UNITS_PER_METER",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "TICK_LOOP",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "TICK_LOOP",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "TICKS_PER_SECOND",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "TICKS_PER_SECOND",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "GRAVITY",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "GRAVITY",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SKID_START",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "SKID_START",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SKID_FORCE",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "SKID_FORCE",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NEAR_SKID_FORCE",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "NEAR_SKID_FORCE",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "STABLE_COUNT",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "STABLE_COUNT",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CAR_VEL_SHIFT",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "CAR_VEL_SHIFT",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "WHEEL_GRAV",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "WHEEL_GRAV",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "WHEELBASE_VAN",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "WHEELBASE_VAN",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "WHEELBASE_CAR",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "WHEELBASE_CAR",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ENGINE_LGV",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "ENGINE_LGV",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ENGINE_CAR",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "ENGINE_CAR",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ENGINE_PIG",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "ENGINE_PIG",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ENGINE_AMB",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "ENGINE_AMB",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "make_car_matrix",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "make_car_matrix",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "make_car_matrix_p",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "make_car_matrix_p",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "apply_car_matrix",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "apply_car_matrix",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "is_driven_by_player",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "is_driven_by_player",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "there_is_a_los_car",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "there_is_a_los_car",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "should_i_collide_against_this_anim_prim",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "should_i_collide_against_this_anim_prim",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_alloc",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "VEH_alloc",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_dealloc",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "VEH_dealloc",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "free_vehicle",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "free_vehicle",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "animate_car",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "animate_car",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_car_collision_turn",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "calc_car_collision_turn",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_car_normal",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "calc_car_normal",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_car_vect",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "calc_car_vect",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "normalise_val256",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "normalise_val256",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "GetCarPoints",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "GetCarPoints",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_arctans",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "init_arctans",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "veh_info",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "veh_info",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_collide_line_ignore_walls",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "VEH_collide_line_ignore_walls",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "car_matrix",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "car_matrix",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "arctan_table",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "arctan_table",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "arctan_table_ok",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "arctan_table_ok",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "vehicle_random",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "vehicle_random",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_statefunctions",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "VEH_statefunctions",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

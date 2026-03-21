@@ -79,6 +79,11 @@
 
 #include "font2d.h"
 
+
+// Include new vehicle headers (migration).
+#include "actors/vehicles/vehicle.h"
+#include "actors/vehicles/vehicle_globals.h"
+
 // Some externs
 extern SLONG is_person_ko(Thing* p_person);
 
@@ -124,11 +129,23 @@ extern BOOL allow_debug_keys;
 static void siren(Vehicle* veh, UBYTE play);
 static inline void GetCarPoints(Thing* p_car, SLONG* x, SLONG* y, SLONG* z, SLONG step);
 extern SLONG is_person_ko_and_lay_down(Thing* p_person);
+
+// These helpers were migrated to new/vehicle.cpp (chunk 1) but are still used by chunks 2+3.
+// car_matrix, arctan_table, arctan_table_ok are declared via vehicle_globals.h.
+extern void make_car_matrix(Vehicle* v);
+extern void make_car_matrix_p(SLONG angle, SLONG tilt, SLONG roll);
+extern void apply_car_matrix(SLONG* x, SLONG* y, SLONG* z);
+extern bool is_driven_by_player(Thing* p_car);
+extern SLONG there_is_a_los_car(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
+extern SLONG should_i_collide_against_this_anim_prim(Thing* p_animprim);
+
 // claude-ai: vehicle_random[]: weighted list of vehicle types for random NPC vehicle spawning.
 // claude-ai: Police/Ambulance/etc. are NOT in this list — only civilian types.
 //
 // random vehicle types
 //
+
+#if 0 // MIGRATED to src/new/actors/vehicles/vehicle.cpp (iteration 90) [vehicle_random..draw_car]
 UBYTE vehicle_random[] = {
     VEH_TYPE_VAN, VEH_TYPE_CAR, VEH_TYPE_TAXI, VEH_TYPE_JEEP,
     VEH_TYPE_SEDAN, VEH_TYPE_VAN, VEH_TYPE_CAR, VEH_TYPE_TAXI,
@@ -1391,6 +1408,7 @@ Suggested Readings:
 extern SLONG there_is_a_los_car(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 extern SLONG should_i_collide_against_this_anim_prim(Thing* p_animprim);
 
+#endif // MIGRATED to src/new/actors/vehicles/vehicle.cpp (iteration 90) [vehicle_random..draw_car]
 VEH_Col VEH_col[VEH_MAX_COL];
 SLONG VEH_col_upto;
 
@@ -1793,9 +1811,9 @@ void VEH_co_damage(Thing* v1, Thing* v2)
 // claude-ai: Corner order: [0]=front-left, [1]=front-right, [2]=rear-right, [3]=rear-left (winding order).
 // claude-ai: Output coords are in world units (already shifted >>8 from fixed-point).
 // GetCarPoints
-//
-// generate corner points of the car
-
+// Still active: static inline, used by CollideCar and other chunks 2+3 functions.
+// Definition is also present in new/vehicle.cpp for VEH_on_road. Will be removed
+// from here when chunks 2+3 are migrated.
 static inline void GetCarPoints(Thing* p_car, SLONG* x, SLONG* y, SLONG* z, SLONG step)
 {
     Vehicle* veh;
@@ -2993,6 +3011,7 @@ void VEH_driving(Thing* p_thing)
 //
 // init arctan table (for steering)
 
+#if 0 // MIGRATED to src/new/actors/vehicles/vehicle.cpp (iteration 90) [arctan_table + init_arctans]
 static SLONG arctan_table[2 * WHEELTIME + 1];
 static SLONG arctan_table_ok = 0;
 
@@ -3015,6 +3034,7 @@ static void init_arctans(void)
 
     arctan_table_ok = 1;
 }
+#endif // MIGRATED (arctan_table + init_arctans)
 
 // steering_wheel
 //
