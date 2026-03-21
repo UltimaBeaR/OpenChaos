@@ -11094,6 +11094,8 @@ void PCOM_process_movement(Thing* p_person)
 
 #endif // MIGRATED to src/new/ai/pcom.cpp (iteration 88) [PCOM_find_runover_thing + PCOM_process_movement]
 
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 89) [PCOM_process_person..PCOM_make_driver_run_away]
+
 // claude-ai: PCOM_process_person - TOP-LEVEL per-frame AI entry point called for every person; calls StateFn (animation), then PCOM_process_movement(), then PCOM_process_state_change(); also handles player idle dance interaction and wander-civ resurrection
 void PCOM_process_person(Thing* p_person)
 {
@@ -12659,3 +12661,5 @@ void PCOM_make_driver_run_away(Thing* p_driver, Thing* p_scary)
             THING_NUMBER(p_scary));
     }
 }
+
+#endif // MIGRATED to src/new/ai/pcom.cpp (iteration 89) [PCOM_process_person..PCOM_make_driver_run_away]

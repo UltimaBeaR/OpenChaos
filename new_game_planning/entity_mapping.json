@@ -55669,6 +55669,56 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "init_noises",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "init_noises",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "process_noises",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "process_noises",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "on_same_side",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "on_same_side",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ParkCar",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "ParkCar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DriveCar",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "DriveCar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

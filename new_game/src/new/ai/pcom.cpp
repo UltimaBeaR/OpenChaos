@@ -8365,3 +8365,1344 @@ void PCOM_process_movement(Thing* p_person)
         break;
     }
 }
+
+// ============================================================
+// Top-level per-frame NPC entry point
+// ============================================================
+
+// Called every game tick for every person. Runs movement AI (StateFn + PCOM_process_movement),
+// then state-change logic. Players only run StateFn (idle dance check) and return early.
+// Wandering civilians are resurrected here after 200 frames out of view.
+// uc_orig: PCOM_process_person (fallen/Source/pcom.cpp)
+void PCOM_process_person(Thing* p_person)
+{
+    if (p_person->StateFn) {
+        p_person->StateFn(p_person);
+    }
+
+    if (p_person->Genus.Person->PlayerID) {
+        // Keep track of how long the player has been idle.
+        if (p_person->State == STATE_IDLE) {
+            p_person->Genus.Person->pcom_move_counter += PCOM_TICKS_PER_TURN * TICK_RATIO >> TICK_SHIFT;
+
+            if (p_person->Genus.Person->pcom_move_counter > PCOM_get_duration(30)) {
+                p_person->Genus.Person->pcom_move_counter = 0;
+
+                UWORD pnear;
+
+                // Is Darci near someone dancing?
+                remove_thing_from_map(p_person);
+
+                pnear = THING_find_nearest(
+                    p_person->WorldPos.X >> 8,
+                    p_person->WorldPos.Y >> 8,
+                    p_person->WorldPos.Z >> 8,
+                    0x200,
+                    1 << CLASS_PERSON);
+
+                add_thing_to_map(p_person);
+
+                if (pnear) {
+                    Thing* p_near;
+
+                    // Is this person dancing?
+                    p_near = TO_THING(pnear);
+
+                    ASSERT(p_near->Class == CLASS_PERSON);
+
+                    if (p_near->State == STATE_MOVEING && (p_near->SubState == SUB_STATE_SIMPLE_ANIM || p_near->SubState == SUB_STATE_SIMPLE_ANIM_OVER) && (p_near->Draw.Tweened->CurrentAnim == ANIM_DANCE_BOOGIE || p_near->Draw.Tweened->CurrentAnim == ANIM_DANCE_WOOGIE || p_near->Draw.Tweened->CurrentAnim == ANIM_DANCE_HEADBANG)) {
+                        // This person is dancing... dance with him!
+                        set_face_thing(p_person, p_near);
+
+                        set_person_do_a_simple_anim(p_person, p_near->Draw.Tweened->CurrentAnim);
+
+                        p_person->Genus.Person->Flags |= FLAG_PERSON_NO_RETURN_TO_NORMAL;
+                        p_person->Genus.Person->Action = ACTION_SIT_BENCH;
+                    }
+                }
+            }
+        } else {
+            p_person->Genus.Person->pcom_move_counter = 0;
+        }
+
+        // Players don't need to do the rest of this stuff.
+        return;
+    }
+
+    PCOM_process_movement(p_person);
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_HELPLESS) {
+        return;
+    }
+
+    if (p_person->State == STATE_DEAD || p_person->State == STATE_DYING) {
+        // No AI after brain death. But maybe this person should be resurrected.
+        if (p_person->Genus.Person->pcom_ai == PCOM_AI_CIV && p_person->Genus.Person->pcom_move == PCOM_MOVE_WANDER) {
+            // Wandering civilians come back to life when out of view after 200 frames.
+            // NOTE: newpos is computed but never assigned to p_person->WorldPos before
+            // plant_feet(); civ resurrects at current death location, not home position
+            // (pre-release bug, preserved 1:1).
+            if (!(p_person->Flags & FLAGS_IN_VIEW)) {
+                p_person->Genus.Person->pcom_ai_counter += 1;
+
+                if (p_person->Genus.Person->pcom_ai_counter > 200) {
+                    // Bring this person back to life. Put him at home.
+                    GameCoord newpos;
+
+                    newpos.X = (p_person->Genus.Person->HomeX << 16) + 0x8000;
+                    newpos.Z = (p_person->Genus.Person->HomeZ << 16) + 0x8000;
+                    newpos.Y = PAP_calc_map_height_at(newpos.X >> 8, newpos.Z >> 8);
+
+                    extern SLONG plant_feet(Thing * p_person); // in collide.cpp
+
+                    plant_feet(p_person);
+
+                    // Give him back his health.
+                    p_person->Genus.Person->Health = health[p_person->Genus.Person->PersonType];
+
+                    // Make him start doing what he normally does.
+                    p_person->Flags &= ~FLAGS_BURNING;
+                    p_person->Genus.Person->BurnIndex = 0;
+
+                    PCOM_set_person_ai_normal(p_person);
+                }
+            }
+        }
+    } else {
+        // Is it time to change what we are doing?
+        PCOM_process_state_change(p_person);
+    }
+}
+
+// ============================================================
+// Noise propagation system
+// ============================================================
+
+// Reset the deferred noise queue. Called at the start of each frame.
+// uc_orig: init_noises (fallen/Source/pcom.cpp)
+void init_noises(void)
+{
+    noise_count = 0;
+}
+
+// Flush all deferred noises accumulated during physics / collision this frame.
+// Each entry calls PCOM_oscillate_tympanum with store_it=0 to do actual propagation.
+// uc_orig: process_noises (fallen/Source/pcom.cpp)
+void process_noises(void)
+{
+    SLONG c0;
+    for (c0 = 0; c0 < noise_count; c0++) {
+        PCOM_oscillate_tympanum(
+            noises[c0].Type,
+            (noises[c0].Person) ? (TO_THING(noises[c0].Person)) : NULL,
+            noises[c0].X,
+            noises[c0].Y,
+            noises[c0].Z, 0);
+    }
+    noise_count = 0;
+}
+
+// Propagate a sound event to all persons within hearing radius.
+// If store_it is non-zero, the event is queued in noises[] for deferred processing.
+// DRAW_GUN uses vision (can_a_see_b) instead of radius alone.
+// Radii range from 0x180 (van near-miss) to 0xa00 (gunshot).
+// uc_orig: PCOM_oscillate_tympanum (fallen/Source/pcom.cpp)
+void PCOM_oscillate_tympanum(
+    SLONG type,
+    Thing* p_person,
+    SLONG sound_x,
+    SLONG sound_y,
+    SLONG sound_z,
+    UBYTE store_it)
+{
+    SLONG i;
+
+    SLONG found_upto;
+    SLONG radius;
+
+    Thing* p_found;
+
+    if (stealth_debug && (p_person == NET_PERSON(0)))
+        return;
+
+    if (store_it) {
+        struct Noise* p_noise;
+
+        if (noise_count >= MAX_NOISE) {
+            ASSERT(0);
+            return;
+        }
+
+        p_noise = &noises[noise_count];
+        p_noise->Type = type;
+        p_noise->Person = p_person ? (THING_NUMBER(p_person)) : 0;
+        p_noise->X = (SWORD)sound_x;
+        p_noise->Y = (SWORD)sound_y;
+        p_noise->Z = (SWORD)sound_z;
+        noise_count++;
+        return;
+    }
+
+    // Hearing radius per sound type.
+    switch (type) {
+    case PCOM_SOUND_FOOTSTEP:
+        radius = 0x280;
+        break;
+    case PCOM_SOUND_UNUSUAL:
+        radius = 0x600;
+        break;
+    case PCOM_SOUND_HEY:
+        radius = 0x600;
+        break;
+    case PCOM_SOUND_ALARM:
+        radius = 0x800;
+        break;
+    case PCOM_SOUND_FIGHT:
+        radius = 0x900;
+        break;
+    case PCOM_SOUND_GUNSHOT:
+        radius = 0xa00;
+        break;
+    case PCOM_SOUND_DROP:
+        radius = 0x200;
+        break;
+    case PCOM_SOUND_DROP_MED:
+        radius = 0x400;
+        break;
+    case PCOM_SOUND_DROP_BIG:
+        radius = 0x600;
+        break;
+    case PCOM_SOUND_VAN:
+        radius = 0x180;
+        break;
+    case PCOM_SOUND_BANG:
+        radius = 0x700;
+        break;
+    case PCOM_SOUND_MINE:
+        radius = 0x300;
+        break;
+    case PCOM_SOUND_LOOKINGATME:
+        radius = 0x400;
+        break;
+    case PCOM_SOUND_WANKER:
+        radius = 0x400;
+        break;
+    case PCOM_SOUND_DRAW_GUN:
+        radius = 0x600;
+        break;
+    case PCOM_SOUND_GRENADE_HIT:
+        radius = 0x300;
+        break;
+    case PCOM_SOUND_GRENADE_FLY:
+        radius = 0x300;
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+
+    // Find all persons within hearing distance.
+    found_upto = THING_find_sphere(
+        sound_x,
+        sound_y,
+        sound_z,
+        radius,
+        THING_array,
+        THING_ARRAY_SIZE,
+        THING_FIND_PEOPLE);
+
+    if (type == PCOM_SOUND_DRAW_GUN && p_person) {
+        // DRAW_GUN is a visual event: remove persons who cannot see the source.
+        for (i = 0; i < found_upto; i++) {
+            p_found = TO_THING(THING_array[i]);
+
+            if (!can_a_see_b(p_found, p_person)) {
+                THING_array[i] = THING_array[found_upto - 1];
+
+                i -= 1;
+                found_upto -= 1;
+            }
+        }
+    }
+
+    for (i = 0; i < found_upto; i++) {
+        p_found = TO_THING(THING_array[i]);
+
+        if (p_found == p_person) {
+            // Don't disturb yourself!
+            continue;
+        }
+
+        if (p_person && p_person->Class == CLASS_PERSON) {
+            if (p_person->Genus.Person->Ware != p_found->Genus.Person->Ware) {
+                // Ignore sounds in a warehouse you're not in; if you're in
+                // a warehouse, ignore sounds outside.
+                continue;
+            }
+        }
+
+        if (p_found->Genus.Person->Flags & FLAG_PERSON_HELPLESS) {
+            continue;
+        }
+
+        if (p_found->State == STATE_DEAD || p_found->State == STATE_DYING) {
+            continue;
+        }
+
+        if (p_found->Genus.Person->PlayerID) {
+            continue;
+        }
+
+        if (p_found->Genus.Person->pcom_bent & PCOM_BENT_ROBOT) {
+            // Robotic people ignore sounds.
+            continue;
+        }
+
+        if (p_found->Genus.Person->pcom_zone) {
+            // Ignore sounds that aren't in your zone.
+            if (!(PCOM_get_zone_for_position(sound_x, sound_z) & p_found->Genus.Person->pcom_zone)) {
+                continue;
+            }
+        }
+
+        switch (p_found->Genus.Person->pcom_move_state) {
+        case PCOM_MOVE_STATE_GOTO_XZ:
+        case PCOM_MOVE_STATE_GOTO_WAYPOINT:
+        case PCOM_MOVE_STATE_GOTO_THING:
+
+            if (p_found->Genus.Person->pcom_move_substate == PCOM_MOVE_SUBSTATE_ACTION) {
+                // In the middle of doing a complicated moving manoeuvre.
+                continue;
+            }
+        }
+
+        if (type == PCOM_SOUND_VAN) {
+            // Only civilians are scared of cars...
+            if (p_found->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_BIKING)) {
+                // ...but not civs driving.
+            } else {
+                if (p_found->Genus.Person->pcom_ai_state == PCOM_AI_CIV) {
+                    if (p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FLEE_PLACE && p_found->Genus.Person->pcom_ai_state == PCOM_AI_SUBSTATE_SUPRISED) {
+                        // Don't scare them again or they'll never run away.
+                    } else {
+                        if (ROAD_is_zebra(
+                                p_found->WorldPos.X >> 16,
+                                p_found->WorldPos.Z >> 16)) {
+                            // Civs on zebra crossings have a sense of security.
+                        } else {
+                            PCOM_set_person_ai_flee_place(
+                                p_found,
+                                sound_x,
+                                sound_z);
+                            p_found->Genus.Person->pcom_ai_substate = PCOM_AI_SUBSTATE_LEGIT;
+                        }
+                    }
+                }
+            }
+        } else if (type == PCOM_SOUND_GRENADE_FLY || type == PCOM_SOUND_GRENADE_HIT) {
+            // Ignore this unless you can see the grenade.
+            if (!can_i_see_place(
+                    p_found,
+                    sound_x,
+                    sound_y,
+                    sound_z)) {
+                if (type == PCOM_SOUND_GRENADE_HIT) {
+                    // Some people will investigate this sound...
+                    if (p_found->Genus.Person->pcom_ai == PCOM_AI_GANG || p_found->Genus.Person->pcom_ai == PCOM_AI_COP) {
+                        if (p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL || p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_WARM_HANDS) {
+                            PCOM_set_person_ai_investigate(
+                                p_found,
+                                sound_x,
+                                sound_z);
+                        }
+                    }
+                }
+            } else {
+                if (/* This grenade is going to land near me... */ 1) {
+                    PCOM_set_person_ai_flee_place(
+                        p_found,
+                        sound_x,
+                        sound_z);
+                }
+            }
+        } else {
+            switch (p_found->Genus.Person->pcom_ai) {
+            case PCOM_AI_FIGHT_TEST:
+            case PCOM_AI_NONE:
+                break;
+
+            case PCOM_AI_CIV:
+
+                // Scared of gun-shots, explosions and fighting.
+                if (type == PCOM_SOUND_FIGHT && (p_found->Genus.Person->pcom_bent & PCOM_BENT_FIGHT_BACK)) {
+                    // Fight-back civs aren't scared of fighting!
+                } else if (type == PCOM_SOUND_GUNSHOT || type == PCOM_SOUND_BANG || type == PCOM_SOUND_MINE || type == PCOM_SOUND_LOOKINGATME || type == PCOM_SOUND_DRAW_GUN) {
+                    if (p_person) {
+                        PCOM_set_person_ai_flee_person(
+                            p_found,
+                            p_person);
+                    } else {
+                        PCOM_set_person_ai_flee_place(
+                            p_found,
+                            sound_x,
+                            sound_z);
+                    }
+                    if (!VIOLENCE) {
+                        p_found->Genus.Person->pcom_ai_substate = PCOM_AI_SUBSTATE_LEGIT;
+                    }
+                }
+
+                break;
+
+            case PCOM_AI_GUARD:
+
+                if (p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL || p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_WARM_HANDS || p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_HOMESICK) {
+                    PCOM_set_person_ai_investigate(
+                        p_found,
+                        sound_x,
+                        sound_z);
+                    SOUND_Curious(p_found);
+                }
+
+                break;
+
+            case PCOM_AI_ASSASIN:
+                break;
+
+            case PCOM_AI_GANG:
+
+                // Thugs ain't scared of anything! But they are interested by things...
+
+            case PCOM_AI_COP:
+
+                // Ignore sounds made by Darci.
+                if (p_person && p_person->Genus.Person->PersonType == PERSON_DARCI) {
+                    if (type == PCOM_SOUND_FOOTSTEP) {
+                        // They ignore Darci's footsteps!
+                        continue;
+                    }
+                }
+
+                if (p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL || p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_HOMESICK || p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_WARM_HANDS) {
+                    PCOM_set_person_ai_investigate(
+                        p_found,
+                        sound_x,
+                        sound_z);
+                }
+
+                break;
+
+            case PCOM_AI_DOORMAN:
+            case PCOM_AI_BODYGUARD:
+            case PCOM_AI_DRIVER:
+            case PCOM_AI_BDISPOSER:
+            case PCOM_AI_BIKER:
+            case PCOM_AI_BOSS:
+            case PCOM_AI_BULLY:
+            case PCOM_AI_COP_DRIVER:
+            case PCOM_AI_SUICIDE:
+            case PCOM_AI_FLEE_PLAYER:
+            case PCOM_AI_KILL_COLOUR:
+            case PCOM_AI_BANE:
+            case PCOM_AI_SHOOT_DEAD:
+                break;
+
+            case PCOM_AI_MIB:
+
+                if (p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL || p_found->Genus.Person->pcom_ai_state == PCOM_AI_STATE_HOMESICK) {
+                    if (p_person && p_person->Genus.Person->PlayerID) {
+                        PCOM_alert_nearby_mib_to_attack(p_person);
+                    }
+                }
+
+                break;
+
+            default:
+                ASSERT(0);
+                break;
+            }
+        }
+    }
+}
+
+// ============================================================
+// Combat callbacks
+// ============================================================
+
+// Called when p_victim is grappled by p_attacker. Currently no-op (stub).
+// uc_orig: PCOM_youre_being_grappled (fallen/Source/pcom.cpp)
+void PCOM_youre_being_grappled(
+    Thing* p_victim,
+    Thing* p_attacker)
+{
+}
+
+// Returns non-zero if both persons are on the same side (cop/Darci/Roper).
+// uc_orig: on_same_side (fallen/Source/pcom.cpp)
+static SLONG on_same_side(Thing* p_victim, Thing* p_attacker)
+{
+    if (p_victim->Genus.Person->PersonType == PERSON_ROPER || p_victim->Genus.Person->PersonType == PERSON_DARCI || p_victim->Genus.Person->PersonType == PERSON_COP) {
+        if (p_attacker->Genus.Person->PersonType == PERSON_ROPER || p_attacker->Genus.Person->PersonType == PERSON_DARCI || p_attacker->Genus.Person->PersonType == PERSON_COP) {
+            return (1);
+        }
+    }
+    return (0);
+}
+
+// Hit callback: called when p_victim is actually struck by p_attacker.
+// Dispatches to fight (retaliate -> NAVTOKILL) or flee (CIVs -> FLEE_PERSON)
+// based on AI type and pcom_bent flags.
+// uc_orig: PCOM_attack_happened (fallen/Source/pcom.cpp)
+void PCOM_attack_happened(
+    Thing* p_victim,
+    Thing* p_attacker)
+{
+    if (p_victim->Genus.Person->PlayerID) {
+        return;
+    }
+
+    if (p_attacker == NET_PERSON(0) && stealth_debug)
+        return;
+
+    if (p_victim->Genus.Person->Flags & FLAG_PERSON_HELPLESS) {
+        return;
+    }
+    if (!people_allowed_to_hit_each_other(p_victim, p_attacker)) {
+        // Don't retaliate if you can't hurt them.
+        return;
+    }
+
+    if (p_victim->Genus.Person->pcom_bent & PCOM_BENT_FIGHT_BACK)
+        goto fight;
+    if (p_victim->Genus.Person->pcom_bent & PCOM_BENT_ROBOT)
+        return;
+
+    if (p_victim->SubState == SUB_STATE_GRAPPLE_HOLD || p_victim->SubState == SUB_STATE_GRAPPLE_ATTACK) {
+        // Take hit while grappling -- release the grappled person.
+        set_person_fight_idle(TO_THING(p_victim->Genus.Person->Target));
+    }
+
+    if (p_victim->SubState == SUB_STATE_GRAPPLE_HELD) {
+        // No sensible options here.
+        return;
+    }
+
+    switch (p_victim->Genus.Person->pcom_ai) {
+    case PCOM_AI_CIV:
+        goto flee;
+        break;
+
+    case PCOM_AI_COP:
+    case PCOM_AI_COP_DRIVER:
+
+        /*
+        if (p_attacker->Genus.Person->pcom_ai == PCOM_AI_COP ||
+                p_attacker->Genus.Person->pcom_ai == PCOM_AI_COP_DRIVER)
+        {
+                // A cop hitting another cop? It must have been
+                // an accident.
+                return;
+        }
+        */
+
+        // FALL-THROUGH
+
+    case PCOM_AI_GANG:
+    case PCOM_AI_GUARD:
+    case PCOM_AI_ASSASIN:
+        goto fight;
+        break;
+
+    case PCOM_AI_BODYGUARD:
+
+        // Ignore hits from the person you're meant to be protecting.
+        if (THING_NUMBER(p_attacker) != EWAY_get_person(p_victim->Genus.Person->pcom_ai_other)) {
+            goto fight;
+        }
+
+        break;
+    }
+
+    return;
+
+fight:
+
+    // If you are already fighting your attacker, no need to re-trigger.
+    if (p_victim->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NAVTOKILL || p_victim->Genus.Person->pcom_ai_state == PCOM_AI_STATE_KILLING) {
+        if (p_victim->Genus.Person->pcom_ai_arg == THING_NUMBER(p_attacker)) {
+            return;
+        }
+    }
+
+    // Don't retaliate against someone in your own gang.
+    if ((p_victim->Genus.Person->pcom_bent & PCOM_BENT_GANG) && (p_attacker->Genus.Person->pcom_bent & PCOM_BENT_GANG) && (p_victim->Genus.Person->pcom_colour == p_attacker->Genus.Person->pcom_colour)) {
+        return;
+    }
+
+    PCOM_set_person_ai_kill_person(p_victim, p_attacker);
+
+    return;
+
+flee:
+    PCOM_set_person_ai_flee_person(p_victim, p_attacker);
+    if (!VIOLENCE)
+        p_victim->Genus.Person->pcom_ai_substate = PCOM_AI_SUBSTATE_LEGIT;
+
+    return;
+}
+
+// Near-miss callback: same fight/flee dispatch as PCOM_attack_happened
+// but called when an attack narrowly misses p_victim.
+// uc_orig: PCOM_attack_happened_but_missed (fallen/Source/pcom.cpp)
+void PCOM_attack_happened_but_missed(Thing* p_victim, Thing* p_attacker)
+{
+    if (p_victim->Genus.Person->PlayerID) {
+        return;
+    }
+
+    if (p_attacker == NET_PERSON(0) && stealth_debug)
+        return;
+
+    if (p_victim->Genus.Person->Flags & FLAG_PERSON_HELPLESS) {
+        return;
+    }
+
+    if (on_same_side(p_victim, p_attacker))
+        return;
+
+    if (p_victim->Genus.Person->pcom_bent & PCOM_BENT_ROBOT)
+        return;
+
+    if (!people_allowed_to_hit_each_other(p_victim, p_attacker))
+        return;
+
+    if (p_victim->Genus.Person->pcom_bent & PCOM_BENT_FIGHT_BACK)
+        goto fight;
+
+    switch (p_victim->Genus.Person->pcom_ai) {
+    case PCOM_AI_CIV:
+        goto flee;
+        break;
+
+    case PCOM_AI_COP:
+    case PCOM_AI_COP_DRIVER:
+
+        // FALL-THROUGH
+
+    case PCOM_AI_GANG:
+    case PCOM_AI_GUARD:
+    case PCOM_AI_ASSASIN:
+        goto fight;
+        break;
+
+    case PCOM_AI_BODYGUARD:
+
+        // Ignore hits from the person you're meant to be protecting.
+        if (THING_NUMBER(p_attacker) != EWAY_get_person(p_victim->Genus.Person->pcom_ai_other)) {
+            goto fight;
+        }
+
+        break;
+    }
+
+    return;
+
+fight:
+
+    // If you are already fighting your attacker, no need to re-trigger.
+    if (p_victim->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NAVTOKILL || p_victim->Genus.Person->pcom_ai_state == PCOM_AI_STATE_KILLING) {
+        if (p_victim->Genus.Person->pcom_ai_arg == THING_NUMBER(p_attacker)) {
+            return;
+        }
+    }
+
+    // Don't retaliate against someone in your own gang.
+    if ((p_victim->Genus.Person->pcom_bent & PCOM_BENT_GANG) && (p_attacker->Genus.Person->pcom_bent & PCOM_BENT_GANG) && (p_victim->Genus.Person->pcom_colour == p_attacker->Genus.Person->pcom_colour)) {
+        return;
+    }
+
+    PCOM_set_person_ai_kill_person(p_victim, p_attacker);
+
+    return;
+
+flee:
+    PCOM_set_person_ai_flee_person(p_victim, p_attacker);
+    if (!VIOLENCE)
+        p_victim->Genus.Person->pcom_ai_substate = PCOM_AI_SUBSTATE_LEGIT;
+    return;
+}
+
+// Returns TRUE if the person's move state should keep them moving after initiating a jump.
+// For difficult pull-up jumps (MAV_ACTION_JUMPPULL2) always moves. For near-destination
+// cases (dist < 0x100), stops to avoid overshooting.
+// uc_orig: PCOM_jumping_navigating_person_continue_moving (fallen/Source/pcom.cpp)
+SLONG PCOM_jumping_navigating_person_continue_moving(Thing* p_person)
+{
+    if (p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_GOTO_XZ || p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_GOTO_WAYPOINT || p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_GOTO_THING) {
+        // Unless you're doing a difficult jump that you'll really have to commit to...
+        if (p_person->Genus.Person->pcom_move_ma.action != MAV_ACTION_JUMPPULL2) {
+            SLONG goal_x;
+            SLONG goal_z;
+
+            PCOM_get_mav_action_pos(
+                p_person,
+                &goal_x,
+                &goal_z);
+
+            SLONG dx = goal_x - (p_person->WorldPos.X >> 8);
+            SLONG dz = goal_z - (p_person->WorldPos.Z >> 8);
+
+            SLONG dist = abs(dx) + abs(dz);
+
+            if (dist < 0x100) {
+                // Stop moving or you'll overshoot.
+                return FALSE;
+            }
+        }
+    }
+
+    return TRUE;
+}
+
+// Knockdown callback: transitions AI to KNOCKEDOUT state to wait for recovery.
+// Skips transition if already in active combat (KILLING/NAVTOKILL/CIRCLE) so
+// fighters get back up fighting rather than wandering.
+// uc_orig: PCOM_knockdown_happened (fallen/Source/pcom.cpp)
+void PCOM_knockdown_happened(Thing* p_person)
+{
+    if (p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_KILLING || p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NAVTOKILL || p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_CIRCLE || p_person->State == STATE_CIRCLING) {
+        // If you do this to people who are attacking you, then when they get up
+        // they just wander off rather than getting back into the fight.
+    } else {
+        PCOM_set_person_ai_knocked_out(p_person);
+    }
+}
+
+// ============================================================
+// Debug output
+// ============================================================
+
+// Build a human-readable debug string of all AI fields for on-screen overlay (PC only).
+// Shows pcom_ai, pcom_ai_state, pcom_move, pcom_move_state, pcom_bent flags.
+// uc_orig: PCOM_person_state_debug (fallen/Source/pcom.cpp)
+CBYTE* PCOM_person_state_debug(Thing* p_person)
+{
+    SLONG i;
+    CBYTE bent[256];
+
+    if (p_person->Genus.Person->PlayerID) {
+        sprintf(
+            PCOM_debug_string,
+            "Player %d\n"
+            "Pos (0x%x,0x%x) height 0x%x\n"
+            "Warehouse %d\n",
+            p_person->Genus.Person->PlayerID,
+            p_person->WorldPos.X >> 8,
+            p_person->WorldPos.Z >> 8,
+            p_person->WorldPos.Y >> 8,
+            p_person->Genus.Person->Ware);
+
+        return PCOM_debug_string;
+    }
+
+    bent[0] = '\000';
+
+    for (i = 0; i < PCOM_BENT_NUMBER; i++) {
+        if (p_person->Genus.Person->pcom_bent & (1 << i)) {
+            strcat(bent, PCOM_bent_name[i]);
+        }
+    }
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_HELPLESS) {
+        strcat(bent, "Helpless ");
+    }
+
+    sprintf(
+        PCOM_debug_string,
+        "%s%s%s,ptype %d,mesh %d personid %d \nState  %s : %s\nMove   %s : %s\nPerson 0x%p(%d) action %d anim %d Y %d st %d subs %d Agr %d",
+        bent,
+        PCOM_ai_name[p_person->Genus.Person->pcom_ai],
+        (p_person->Genus.Person->Ware) ? " ware" : "",
+        p_person->Genus.Person->PersonType,
+        p_person->Draw.Tweened->MeshID,
+        p_person->Draw.Tweened->PersonID,
+        PCOM_ai_state_name[p_person->Genus.Person->pcom_ai_state],
+        PCOM_ai_substate_name[p_person->Genus.Person->pcom_ai_substate],
+        PCOM_move_name[p_person->Genus.Person->pcom_move],
+        PCOM_move_state_name[p_person->Genus.Person->pcom_move_state],
+        p_person, THING_NUMBER(p_person), p_person->Genus.Person->Action, p_person->Draw.Tweened->CurrentAnim,
+        p_person->WorldPos.Y >> 8,
+        p_person->State,
+        p_person->SubState,
+        p_person->Genus.Person->Agression);
+
+    return PCOM_debug_string;
+}
+
+// ============================================================
+// Cop interaction callbacks
+// ============================================================
+
+// Called when a cop aims a gun at p_person.
+// Guilty persons retaliate (NAVTOKILL); innocent idle persons put hands up.
+// Cops, Darci, and Roper are exempt from hands-up.
+// uc_orig: PCOM_cop_aiming_at_you (fallen/Source/pcom.cpp)
+SLONG PCOM_cop_aiming_at_you(Thing* p_person, Thing* p_cop)
+{
+    if (p_cop == NET_PERSON(0) && stealth_debug) {
+        return 0;
+    }
+
+    if (p_person->Genus.Person->pcom_bent & PCOM_BENT_ROBOT) {
+        return 0;
+    }
+
+    if (p_person->Genus.Person->pcom_ai == PCOM_AI_BODYGUARD) {
+        // Bodyguards ignore being aimed at by the person they are guarding.
+        if (THING_NUMBER(p_cop) == EWAY_get_person(p_person->Genus.Person->pcom_ai_other)) {
+            return 0;
+        }
+    }
+
+    if (is_person_guilty(p_person)) {
+
+        if (p_person->State == STATE_DYING || p_person->State == STATE_DEAD)
+            return (0);
+
+        // Don't put hands up because you are guilty and need to do something else.
+        if (p_person->Genus.Person->pcom_ai_state != PCOM_AI_STATE_NAVTOKILL && p_person->Genus.Person->pcom_ai_state != PCOM_AI_STATE_FLEE_PERSON) {
+            PCOM_set_person_ai_navtokill(p_person, p_cop);
+            return (1);
+        } else {
+            return (0);
+        }
+        /*
+                if (PCOM_person_has_any_sort_of_gun(p_person))
+                {
+                        // you have a gun so kill the cop
+                        PCOM_set_person_ai_navtokill_shoot(p_person, p_cop);
+                        return(1);
+                }
+                else
+                if (!(p_person->Genus.Person->pcom_bent & PCOM_BENT_FIGHT_BACK) && p_person->Genus.Person->pcom_ai != PCOM_AI_ASSASIN)
+                {
+                        // no gun so run away
+                        PCOM_set_person_ai_flee_person(p_person, p_cop);
+                        return(1);
+                }
+        */
+    }
+    if (p_person->Genus.Person->PersonType == PERSON_ROPER || p_person->Genus.Person->PersonType == PERSON_DARCI || p_person->Genus.Person->PersonType == PERSON_COP) {
+        // Cops, Darci, and Roper don't put hands up.
+        return (0);
+    }
+
+    /*
+            if(p_person->Genus.Person->PersonType==PERSON_ROPER||p_person->Genus.Person->PersonType==PERSON_DARCI||p_person->Genus.Person->PersonType==PERSON_COP||p_person->Genus.Person->PersonType==PERSON_THUG_GREY || p_person->Genus.Person->PersonType==PERSON_THUG_RASTA|| p_person->Genus.Person->PersonType==PERSON_THUG_RED)
+            {
+                    // Thugs don't hands up
+                    return(0);
+            }
+    */
+
+    if (PCOM_person_doing_nothing_important(p_person)) {
+        PCOM_set_person_ai_hands_up(p_person, p_cop);
+        return (1);
+    }
+    return (0);
+}
+
+// ============================================================
+// Conversation helpers
+// ============================================================
+
+// Start a conversation between two persons. p_person_a talks, p_person_b listens (if requested).
+// Both are marked non-interruptible during the conversation.
+// uc_orig: PCOM_make_people_talk_to_eachother (fallen/Source/pcom.cpp)
+void PCOM_make_people_talk_to_eachother(
+    Thing* p_person_a,
+    Thing* p_person_b,
+    UBYTE is_a_asking_a_question,
+    UBYTE stay_looking_at_eachother,
+    UBYTE make_the_person_talked_at_listen)
+{
+    SLONG substate;
+
+    if (is_a_asking_a_question) {
+        substate = PCOM_AI_SUBSTATE_TALK_ASK;
+    } else {
+        substate = PCOM_AI_SUBSTATE_TALK_TELL;
+    }
+
+    PCOM_set_person_ai_talk_to(p_person_a, p_person_b, substate, stay_looking_at_eachother);
+
+    p_person_a->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
+
+    if (make_the_person_talked_at_listen) {
+        PCOM_set_person_ai_talk_to(p_person_b, p_person_a, PCOM_AI_SUBSTATE_TALK_LISTEN, stay_looking_at_eachother);
+        p_person_b->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
+    }
+}
+
+// End a conversation between two persons. Clears no-return flag and resets to normal AI.
+// uc_orig: PCOM_stop_people_talking_to_eachother (fallen/Source/pcom.cpp)
+void PCOM_stop_people_talking_to_eachother(
+    Thing* p_person_a,
+    Thing* p_person_b)
+{
+    p_person_a->Genus.Person->Flags &= ~FLAG_PERSON_NO_RETURN_TO_NORMAL;
+    p_person_b->Genus.Person->Flags &= ~FLAG_PERSON_NO_RETURN_TO_NORMAL;
+
+    if (p_person_a->Genus.Person->pcom_ai_state == PCOM_AI_STATE_TALK) {
+        PCOM_set_person_ai_normal(p_person_a);
+    }
+    if (p_person_b->Genus.Person->pcom_ai_state == PCOM_AI_STATE_TALK) {
+        PCOM_set_person_ai_normal(p_person_b);
+    }
+}
+
+// ============================================================
+// Relationship queries
+// ============================================================
+
+// Returns TRUE if person A is currently hostile toward person B.
+// Considers same-gang colour (friends), player exemptions (bodyguards, followers,
+// other players), and active KILLING/NAVTOKILL/ARREST/TAUNT target.
+// uc_orig: PCOM_person_a_hates_b (fallen/Source/pcom.cpp)
+SLONG PCOM_person_a_hates_b(Thing* p_person_a, Thing* p_person_b)
+{
+    ASSERT(p_person_a->Class == CLASS_PERSON);
+    ASSERT(p_person_b->Class == CLASS_PERSON);
+
+    if (p_person_a == p_person_b) {
+        // Nobody hates themselves.
+        return FALSE;
+    }
+
+    // People in the same gang like each other.
+    if (p_person_a->Genus.Person->pcom_bent & p_person_b->Genus.Person->pcom_bent & PCOM_BENT_GANG) {
+        if (p_person_a->Genus.Person->pcom_colour == p_person_b->Genus.Person->pcom_colour) {
+            return FALSE;
+        }
+    }
+
+    if (p_person_a->Genus.Person->PlayerID) {
+        // Players like their bodyguards.
+        if (p_person_b->Genus.Person->pcom_ai == PCOM_AI_BODYGUARD && EWAY_get_person(p_person_b->Genus.Person->pcom_ai_other) == THING_NUMBER(p_person_a)) {
+            return FALSE;
+        }
+
+        // Players like other players.
+        if (p_person_b->Genus.Person->PersonType == PERSON_DARCI || p_person_b->Genus.Person->PersonType == PERSON_ROPER) {
+            return FALSE;
+        }
+
+        // Players like people who are following them.
+        if (p_person_b->Genus.Person->pcom_move == PCOM_MOVE_FOLLOW && EWAY_get_person(p_person_b->Genus.Person->pcom_move_follow) == THING_NUMBER(p_person_a)) {
+            return FALSE;
+        }
+
+        // Players hate everybody else...
+        return TRUE;
+    }
+
+    if (p_person_a->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NAVTOKILL || p_person_a->Genus.Person->pcom_ai_state == PCOM_AI_STATE_KILLING || p_person_a->Genus.Person->pcom_ai_state == PCOM_AI_STATE_TAUNT || p_person_a->Genus.Person->pcom_ai_state == PCOM_AI_STATE_ARREST) {
+        // These people don't like the person they are dealing with.
+        if (p_person_a->Genus.Person->pcom_ai_arg == THING_NUMBER(p_person_b)) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+// Returns the thing index of the person this NPC wants to kill, or NULL.
+// uc_orig: PCOM_person_wants_to_kill (fallen/Source/pcom.cpp)
+THING_INDEX PCOM_person_wants_to_kill(Thing* p_person)
+{
+    if (p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NAVTOKILL || p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_KILLING) {
+        return p_person->Genus.Person->pcom_ai_arg;
+    }
+
+    return NULL;
+}
+
+// ============================================================
+// Vehicle driving AI
+// ============================================================
+
+// Decelerate vehicle to a stop and steer to the desired parking angle.
+// The target angle is retrieved via EWAY_get_angle(pcom_move_arg).
+// uc_orig: ParkCar (fallen/Source/pcom.cpp)
+void ParkCar(Thing* p_person)
+{
+    SLONG wangle;
+    SLONG dangle;
+
+    // Must be in a car to do this.
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+
+    Thing* p_vehicle = TO_THING(p_person->Genus.Person->InCar);
+
+    // What direction do we want the car to face?
+    p_vehicle->Genus.Vehicle->IsAnalog = 0;
+    p_vehicle->Genus.Vehicle->Steering = 0;
+
+    if (p_person->Genus.Person->pcom_move_arg) {
+        wangle = EWAY_get_angle(p_person->Genus.Person->pcom_move_arg);
+
+        dangle = wangle - p_vehicle->Genus.Vehicle->Angle;
+
+        if (dangle < -1024) {
+            dangle += 2048;
+        }
+        if (dangle > +1024) {
+            dangle -= 2048;
+        }
+
+        if (dangle < -8) {
+            p_vehicle->Genus.Vehicle->Steering = -1;
+        }
+        if (dangle > +8) {
+            p_vehicle->Genus.Vehicle->Steering = +1;
+        }
+    }
+
+    // Decelerate.
+    if (WITHIN(p_vehicle->Velocity, -10, +10)) {
+        p_vehicle->Genus.Vehicle->DControl = 0;
+        p_vehicle->Velocity = 0;
+    } else if (p_vehicle->Velocity > 0) {
+        p_vehicle->Genus.Vehicle->DControl = VEH_DECEL;
+    } else {
+        p_vehicle->Genus.Vehicle->DControl = VEH_ACCEL;
+    }
+}
+
+// Core car driving AI. Follows the road network node by node; steers toward the next
+// waypoint; applies acceleration/braking. Calls PCOM_find_runover_thing to react to
+// obstacles. Handles lane keeping via ROAD_signed_dist. Three sub-states:
+//   DRIVE_DOWN / PARK_CAR_ON_ROAD: road-following with lane correction
+//   DRIVETO: free-drive to a specific coordinate
+// uc_orig: DriveCar (fallen/Source/pcom.cpp)
+void DriveCar(Thing* p_person)
+{
+    SLONG dx;
+    SLONG dz;
+    SLONG dist;
+    SLONG dest_x;
+    SLONG dest_z;
+    SLONG wangle;
+    SLONG dangle;
+    SLONG dlane;
+    SLONG dspeed;
+    SLONG wspeed;
+    SLONG what;
+
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+
+    Thing* p_vehicle = TO_THING(p_person->Genus.Person->InCar);
+    ASSERT(p_vehicle);
+
+    if (p_person->Genus.Person->pcom_move_state != PCOM_MOVE_STATE_PARK_CAR_ON_ROAD) {
+        // If the vehicle collided last time it moved, do something about it.
+        if (p_vehicle->Flags & FLAGS_COLLIDED) {
+            switch (p_person->Genus.Person->pcom_move_substate) {
+            case PCOM_MOVE_SUBSTATE_GOTO:
+                p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_3PTURN;
+                p_person->Genus.Person->pcom_move_counter = 0;
+                break;
+
+            case PCOM_MOVE_SUBSTATE_3PTURN:
+                p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
+                p_person->Genus.Person->pcom_move_counter = 0;
+                break;
+
+            default:
+                ASSERT(0);
+                break;
+            }
+        }
+    }
+
+    // Where are we going?
+    PCOM_get_person_dest(
+        p_person,
+        &dest_x,
+        &dest_z);
+
+    // If we are driving down a road, apply lane correction.
+    if ((p_person->Genus.Person->pcom_move_state != PCOM_MOVE_STATE_DRIVETO) && (p_person->Genus.Person->pcom_move_substate != PCOM_MOVE_SUBSTATE_3PTURN)) {
+        // How far are we from the middle of the road?
+        dist = ROAD_signed_dist(
+            p_person->Genus.Person->pcom_move_arg >> 8,
+            p_person->Genus.Person->pcom_move_arg & 0xff,
+            p_vehicle->WorldPos.X >> 8,
+            p_vehicle->WorldPos.Z >> 8);
+
+        if (p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_PARK_CAR_ON_ROAD) {
+            dlane = 0x300 - dist;
+        } else {
+            dlane = 0x180 - dist;
+        }
+
+        if (abs(dlane) > 0x80 || p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_PARK_CAR_ON_ROAD) {
+            // We are quite far from our lane. Aim for the middle of our lane.
+            SLONG rx1;
+            SLONG rz1;
+
+            SLONG rx2;
+            SLONG rz2;
+
+            SLONG rdest_x;
+            SLONG rdest_z;
+
+            ROAD_node_pos(
+                p_person->Genus.Person->pcom_move_arg >> 8,
+                &rx1,
+                &rz1);
+
+            ROAD_node_pos(
+                p_person->Genus.Person->pcom_move_arg & 0xff,
+                &rx2,
+                &rz2);
+
+            nearest_point_on_line(
+                rx1, rz1,
+                rx2, rz2,
+                p_vehicle->WorldPos.X >> 8,
+                p_vehicle->WorldPos.Z >> 8,
+                &rdest_x,
+                &rdest_z);
+
+            SLONG drx = SIGN(rx2 - rx1) << 8;
+            SLONG drz = SIGN(rz2 - rz1) << 8;
+
+            rdest_x += drx;
+            rdest_z += drz;
+
+            rdest_x += drx;
+            rdest_z += drz;
+
+            rdest_x -= drz;
+            rdest_z += drx;
+
+            if (p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_PARK_CAR_ON_ROAD) {
+                rdest_x -= drz;
+                rdest_z += drx;
+
+                rdest_x -= drz;
+                rdest_z += drx;
+            }
+
+            dest_x = rdest_x;
+            dest_z = rdest_z;
+        }
+    }
+
+    // What direction do we want the car to face?
+    dx = dest_x - (p_vehicle->WorldPos.X >> 8);
+    dz = dest_z - (p_vehicle->WorldPos.Z >> 8);
+
+    dangle = (p_vehicle->Genus.Vehicle->Angle - (calc_angle(dx, dz) + 1024)) & 2047;
+
+    if (dangle >= 1024)
+        dangle -= 2048;
+
+    // What speed do we want to be going at?
+    if (p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_PARK_CAR_ON_ROAD) {
+        if (abs(dangle) < 100 && abs(dlane) < 0x80) {
+            wspeed = 0;
+        } else {
+            wspeed = VEH_SPEED_LIMIT >> 1;
+        }
+    } else {
+        switch (p_person->Genus.Person->pcom_move_substate) {
+        case PCOM_MOVE_SUBSTATE_GOTO:
+
+            if (abs(dangle) > 100) {
+                wspeed = VEH_SPEED_LIMIT - ((abs(dangle) - 100) >> 1);
+
+                if (wspeed < 250) {
+                    wspeed = 250;
+                }
+            } else {
+                wspeed = VEH_SPEED_LIMIT;
+            }
+
+            if (p_person->Genus.Person->pcom_bent & PCOM_BENT_DILIGENT) {
+                wspeed += wspeed;
+            }
+
+            break;
+
+        case PCOM_MOVE_SUBSTATE_3PTURN:
+
+            // Always reverse for a little while at least.
+            if (p_person->Genus.Person->pcom_move_counter < PCOM_get_duration(15)) {
+            } else {
+                if (abs(dangle) < 500) {
+                    // We can start driving normally.
+                    p_person->Genus.Person->pcom_move_substate = PCOM_MOVE_SUBSTATE_GOTO;
+                }
+            }
+
+            wspeed = -VEH_REVERSE_SPEED;
+            dangle = -dangle;
+
+            break;
+
+        default:
+            ASSERT(0);
+            break;
+        }
+    }
+
+    // Are we going to crash into anyone?
+    what = PCOM_find_runover_thing(p_person, dangle);
+
+    if (what & PCOM_RUNOVER_STOP) {
+        if (wspeed > 0) {
+            wspeed = 0;
+        }
+    }
+    //	if (what & PCOM_RUNOVER_BEEP_HORN)  {MFX_play_thing(THING_NUMBER(p_person), S_BEEP,         MFX_REPLACE, p_person);}
+    //	if (what & PCOM_RUNOVER_SHOUT_OUT)  {MFX_play_thing(THING_NUMBER(p_person), S_GETOUTTHEWAY, MFX_REPLACE, p_person);}
+    if (what & (PCOM_RUNOVER_BEEP_HORN | PCOM_RUNOVER_SHOUT_OUT)) {
+        MFX_play_thing(THING_NUMBER(p_person), SOUND_Range(S_CAR_HORN_START, S_CAR_HORN_END), MFX_REPLACE, p_person);
+    }
+
+    if (what & PCOM_RUNOVER_SLOW_DOWN) {
+        if (wspeed > 0) {
+            wspeed >>= 1;
+        }
+    }
+    if (what & PCOM_RUNOVER_REVERSE) {
+        wspeed = -(wspeed >> 2);
+        dangle = 0;
+    }
+
+    if (what & PCOM_RUNOVER_TURN_LEFT) {
+        p_person->Genus.Person->pcom_move_flag |= PCOM_MOVE_FLAG_AVOID_LEFT;
+        p_person->Genus.Person->pcom_move_counter = 0;
+    }
+    if (what & PCOM_RUNOVER_TURN_RIGHT) {
+        p_person->Genus.Person->pcom_move_flag |= PCOM_MOVE_FLAG_AVOID_RIGHT;
+        p_person->Genus.Person->pcom_move_counter = 0;
+    }
+
+    if (what & PCOM_RUNOVER_RUNAWAY) {
+        // The movement AI is updating high-level AI through complexity.
+        PCOM_set_person_ai_flee_person(p_person, PCOM_runover_scary_person);
+        return;
+    }
+
+    // Turn towards our destination.
+    p_vehicle->Genus.Vehicle->IsAnalog = 0;
+    p_vehicle->Genus.Vehicle->Steering = 0;
+
+    if (dangle > +8) {
+        p_vehicle->Genus.Vehicle->Steering = +1;
+    }
+    if (dangle < -8) {
+        p_vehicle->Genus.Vehicle->Steering = -1;
+    }
+
+    // Accelerate / decelerate.
+    p_vehicle->Genus.Vehicle->DControl = 0;
+
+    dspeed = p_vehicle->Velocity - wspeed;
+
+    if (dspeed < -10) {
+        p_vehicle->Genus.Vehicle->DControl = VEH_ACCEL;
+    }
+    if (dspeed > +10) {
+        p_vehicle->Genus.Vehicle->DControl = VEH_DECEL;
+    }
+
+    // shift up if PCOM_BENT_DILIGENT person (disabled in original, kept 1:1)
+    if (p_person->Genus.Person->pcom_bent & PCOM_BENT_DILIGENT) {
+        //		p_vehicle->Genus.Vehicle->DControl |= VEH_FASTER;
+    }
+
+    // Lateral avoidance: steer around obstacles for a brief window.
+    if (p_person->Genus.Person->pcom_move_flag & PCOM_MOVE_FLAG_AVOID_LEFT) {
+        p_vehicle->Genus.Vehicle->Steering = -1;
+    }
+    if (p_person->Genus.Person->pcom_move_flag & PCOM_MOVE_FLAG_AVOID_RIGHT) {
+        p_vehicle->Genus.Vehicle->Steering = +1;
+    }
+
+    if (p_person->Genus.Person->pcom_move_flag & (PCOM_MOVE_FLAG_AVOID_LEFT | PCOM_MOVE_FLAG_AVOID_RIGHT)) {
+        SLONG avoid_time;
+
+        if (p_vehicle->Velocity > 700) {
+            avoid_time = PCOM_get_duration(1);
+        } else {
+            avoid_time = PCOM_get_duration(2);
+        }
+
+        if (p_person->Genus.Person->pcom_move_counter > avoid_time) {
+            p_person->Genus.Person->pcom_move_flag &= ~(PCOM_MOVE_FLAG_AVOID_LEFT | PCOM_MOVE_FLAG_AVOID_RIGHT);
+        }
+    }
+    /*
+            AENG_world_line_infinite(
+                    p_vehicle->WorldPos.X >> 8,
+                    p_vehicle->WorldPos.Y >> 8,
+                    p_vehicle->WorldPos.Z >> 8,
+                    32,
+                    0xffffff,
+                    dest_x,
+                    0,
+                    dest_z,
+                    0,
+                    0x000000,
+                    TRUE);
+    */
+    p_person->Genus.Person->pcom_move_counter += PCOM_TICKS_PER_TURN * TICK_RATIO >> TICK_SHIFT;
+}
+
+// Returns the jump speed an NPC should use when initiating a jump during navigation.
+// NPCs navigating toward a goal use speed 24 (slower, controlled); all others use 40.
+// uc_orig: PCOM_if_i_wanted_to_jump_how_fast_should_i_do_it (fallen/Source/pcom.cpp)
+SLONG PCOM_if_i_wanted_to_jump_how_fast_should_i_do_it(Thing* p_person)
+{
+    if (!p_person->Genus.Person->PlayerID) {
+        switch (p_person->Genus.Person->pcom_move_state) {
+        case PCOM_MOVE_STATE_GOTO_XZ:
+        case PCOM_MOVE_STATE_GOTO_WAYPOINT:
+        case PCOM_MOVE_STATE_GOTO_THING:
+
+            switch (p_person->Genus.Person->pcom_move_ma.action) {
+            case MAV_ACTION_JUMP:
+            case MAV_ACTION_PULLUP:
+            case MAV_ACTION_CLIMB_OVER:
+                return 24;
+            }
+        }
+    }
+
+    return 40;
+}
+
+// Make the driver flee from p_scary. If not driving, use FLEE_PERSON directly;
+// if driving, transition to LEAVECAR state first then flee.
+// uc_orig: PCOM_make_driver_run_away (fallen/Source/pcom.cpp)
+void PCOM_make_driver_run_away(Thing* p_driver, Thing* p_scary)
+{
+    if (p_driver->Genus.Person->pcom_ai_state == PCOM_AI_STATE_LEAVECAR || p_driver->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FLEE_PERSON) {
+        return;
+    }
+
+    if (!(p_driver->Genus.Person->Flags & FLAG_PERSON_DRIVING)) {
+        PCOM_set_person_ai_flee_person(p_driver, p_scary);
+    } else {
+        PCOM_set_person_ai_leavecar(
+            p_driver,
+            PCOM_EXCAR_FLEE_PERSON,
+            0,
+            THING_NUMBER(p_scary));
+    }
+}

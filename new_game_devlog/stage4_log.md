@@ -1,5 +1,12 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 89 — ai/pcom (девятый чанк: PCOM_process_person..PCOM_make_driver_run_away) (2026-03-22)
+
+- `on_same_side` — не static в оригинале, но нигде не объявлена в заголовках; помечена `static` в new/ (только внутреннее использование).
+- old/pcom.cpp полностью перенесён: всё тело файла теперь в `#if 0 // MIGRATED` блоках. Активны только заголовки, globals и forward declarations в начале файла.
+
+---
+
 ## Итерация 88 — ai/pcom (восьмой чанк: PCOM_process_state_change..PCOM_process_movement) (2026-03-22)
 
 - `PCOM_runover_scary_person`, `Noise`, `MAX_NOISE`, `noise_count`, `noises[]`, `PCOM_debug_string` — глобалы → `pcom_globals.cpp/h`; удалены из old/pcom.cpp.
