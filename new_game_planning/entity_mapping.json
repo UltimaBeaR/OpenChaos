@@ -21189,6 +21189,986 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_SILENT",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_SILENT",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_DRIVING",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_DRIVING",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_SPRINTING",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_SPRINTING",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_CRAWLING",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_CRAWLING",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_FIGHTING",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_FIGHTING",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_TRAIN_COMBAT",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_TRAIN_COMBAT",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_TRAIN_DRIVING",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_TRAIN_DRIVING",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_TRAIN_ASSAULT",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_TRAIN_ASSAULT",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_FINAL_RECKONING",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_FINAL_RECKONING",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_TIMER",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_TIMER",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_GAMELOST",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_GAMELOST",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_GAMEWON",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_GAMEWON",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_BRIEFING",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_BRIEFING",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_FRONTEND",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_FRONTEND",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_CHAOS",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_CHAOS",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_MODE_FORCE",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_MODE_FORCE",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_gain",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_gain",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_mode",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_mode",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_mode_process",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_mode_process",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_reset",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_reset",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_is_playing",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_is_playing",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "music_mode_override",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "music_mode_override",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_bodge_code",
+      "file": "new/engine/audio/music.h",
+      "orig_name": "MUSIC_bodge_code",
+      "orig_file": "fallen/Headers/music.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "music_current_wave",
+      "file": "new/engine/audio/music_globals.h",
+      "orig_name": "music_current_wave",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "music_max_gain",
+      "file": "new/engine/audio/music_globals.h",
+      "orig_name": "music_max_gain",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "music_current_mode",
+      "file": "new/engine/audio/music_globals.h",
+      "orig_name": "music_current_mode",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "music_request_mode",
+      "file": "new/engine/audio/music_globals.h",
+      "orig_name": "music_request_mode",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "music_current_level",
+      "file": "new/engine/audio/music_globals.h",
+      "orig_name": "music_current_level",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "just_asked_for_mode_now",
+      "file": "new/engine/audio/music_globals.h",
+      "orig_name": "just_asked_for_mode_now",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "just_asked_for_mode_number",
+      "file": "new/engine/audio/music_globals.h",
+      "orig_name": "just_asked_for_mode_number",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "last_MFX_QUICK_play_id",
+      "file": "new/engine/audio/music_globals.h",
+      "orig_name": "last_MFX_QUICK_play_id",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "last_MFX_QUICK_mode",
+      "file": "new/engine/audio/music_globals.h",
+      "orig_name": "last_MFX_QUICK_mode",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "music_volume",
+      "file": "new/engine/audio/music_globals.h",
+      "orig_name": "music_volume",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_play_the_mode",
+      "file": "new/engine/audio/music.cpp",
+      "orig_name": "MUSIC_play_the_mode",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_set_the_volume",
+      "file": "new/engine/audio/music.cpp",
+      "orig_name": "MUSIC_set_the_volume",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_stop_the_mode",
+      "file": "new/engine/audio/music.cpp",
+      "orig_name": "MUSIC_stop_the_mode",
+      "orig_file": "fallen/Source/music.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUNDENV_precalc",
+      "file": "new/engine/audio/soundenv.h",
+      "orig_name": "SOUNDENV_precalc",
+      "orig_file": "fallen/Headers/soundenv.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUNDENV_upload",
+      "file": "new/engine/audio/soundenv.h",
+      "orig_name": "SOUNDENV_upload",
+      "orig_file": "fallen/Headers/soundenv.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AudioGroundQuad",
+      "file": "new/engine/audio/soundenv_globals.h",
+      "orig_name": "AudioGroundQuad",
+      "orig_file": "fallen/Source/soundenv.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUNDENV_gndquads",
+      "file": "new/engine/audio/soundenv_globals.h",
+      "orig_name": "SOUNDENV_gndquads",
+      "orig_file": "fallen/Source/soundenv.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUNDENV_gndctr",
+      "file": "new/engine/audio/soundenv_globals.h",
+      "orig_name": "SOUNDENV_gndctr",
+      "orig_file": "fallen/Source/soundenv.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUNDENV_CB_fn",
+      "file": "new/engine/audio/soundenv.cpp",
+      "orig_name": "SOUNDENV_CB_fn",
+      "orig_file": "fallen/Source/soundenv.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUNDENV_ClearRange",
+      "file": "new/engine/audio/soundenv.cpp",
+      "orig_name": "SOUNDENV_ClearRange",
+      "orig_file": "fallen/Source/soundenv.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUNDENV_Quadify",
+      "file": "new/engine/audio/soundenv.cpp",
+      "orig_name": "SOUNDENV_Quadify",
+      "orig_file": "fallen/Source/soundenv.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "cback",
+      "file": "new/engine/audio/soundenv.cpp",
+      "orig_name": "cback",
+      "orig_file": "fallen/Source/soundenv.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_BUFFER_LENGTH",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_BUFFER_LENGTH",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_SURFACE_NONE",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_SURFACE_NONE",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_SURFACE_MUDDY",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_SURFACE_MUDDY",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_SURFACE_WATER",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_SURFACE_WATER",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_SURFACE_ONSNOW",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_SURFACE_ONSNOW",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_TYPE_TYRE",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_TYPE_TYRE",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_TYPE_TYRE_SKID",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_TYPE_TYRE_SKID",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_TYPE_LEFT_PRINT",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_TYPE_LEFT_PRINT",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_TYPE_RIGHT_PRINT",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_TYPE_RIGHT_PRINT",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_FLAGS_FLIPABLE",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_FLAGS_FLIPABLE",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_FLAGS_SPLUTTING",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_FLAGS_SPLUTTING",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_FLAGS_INVALPHA",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_FLAGS_INVALPHA",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Track",
+      "file": "new/effects/tracks.h",
+      "orig_name": "Track",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TrackPtr",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TrackPtr",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TO_TRACK",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TO_TRACK",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACK_NUMBER",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACK_NUMBER",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_InitOnce",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_InitOnce",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_Reset",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_Reset",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_Draw",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_Draw",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_DrawTrack",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_DrawTrack",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_CalcDiffs",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_CalcDiffs",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_AddQuad",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_AddQuad",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_AddTrack",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_AddTrack",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_Add",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_Add",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_GroundAtXZ",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_GroundAtXZ",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_Bleed",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_Bleed",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TRACKS_Bloodpool",
+      "file": "new/effects/tracks.h",
+      "orig_name": "TRACKS_Bloodpool",
+      "orig_file": "fallen/Headers/tracks.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tracks",
+      "file": "new/effects/tracks_globals.h",
+      "orig_name": "tracks",
+      "orig_file": "fallen/Source/tracks.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "track_head",
+      "file": "new/effects/tracks_globals.h",
+      "orig_name": "track_head",
+      "orig_file": "fallen/Source/tracks.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "track_tail",
+      "file": "new/effects/tracks_globals.h",
+      "orig_name": "track_tail",
+      "orig_file": "fallen/Source/tracks.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "track_eob",
+      "file": "new/effects/tracks_globals.h",
+      "orig_name": "track_eob",
+      "orig_file": "fallen/Source/tracks.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RShift8",
+      "file": "new/effects/tracks.cpp",
+      "orig_name": "RShift8",
+      "orig_file": "fallen/Source/tracks.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_HEIGHT_SHIFT",
+      "file": "new/world/map/map.h",
+      "orig_name": "MAP_HEIGHT_SHIFT",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_WIDTH_SHIFT",
+      "file": "new/world/map/map.h",
+      "orig_name": "MAP_WIDTH_SHIFT",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_HEIGHT",
+      "file": "new/world/map/map.h",
+      "orig_name": "MAP_HEIGHT",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_WIDTH",
+      "file": "new/world/map/map.h",
+      "orig_name": "MAP_WIDTH",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_SIZE",
+      "file": "new/world/map/map.h",
+      "orig_name": "MAP_SIZE",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_INDEX",
+      "file": "new/world/map/map.h",
+      "orig_name": "MAP_INDEX",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELE_SHIFT",
+      "file": "new/world/map/map.h",
+      "orig_name": "ELE_SHIFT",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ELE_SIZE",
+      "file": "new/world/map/map.h",
+      "orig_name": "ELE_SIZE",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLOOR_SHADOW_TYPE",
+      "file": "new/world/map/map.h",
+      "orig_name": "FLOOR_SHADOW_TYPE",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLOOR_HIDDEN",
+      "file": "new/world/map/map.h",
+      "orig_name": "FLOOR_HIDDEN",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLOOR_TRENCH",
+      "file": "new/world/map/map.h",
+      "orig_name": "FLOOR_TRENCH",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLOOR_ANIM_TMAP",
+      "file": "new/world/map/map.h",
+      "orig_name": "FLOOR_ANIM_TMAP",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLOOR_IS_ROOF",
+      "file": "new/world/map/map.h",
+      "orig_name": "FLOOR_IS_ROOF",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLOOR_HEIGHT_SHIFT",
+      "file": "new/world/map/map.h",
+      "orig_name": "FLOOR_HEIGHT_SHIFT",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MapElement",
+      "file": "new/world/map/map.h",
+      "orig_name": "MapElement",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CodedTexture",
+      "file": "new/world/map/map.h",
+      "orig_name": "CodedTexture",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_map",
+      "file": "new/world/map/map.h",
+      "orig_name": "init_map",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_light_get_height",
+      "file": "new/world/map/map.h",
+      "orig_name": "MAP_light_get_height",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_light_get_light",
+      "file": "new/world/map/map.h",
+      "orig_name": "MAP_light_get_light",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_light_set_light",
+      "file": "new/world/map/map.h",
+      "orig_name": "MAP_light_set_light",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_light_map",
+      "file": "new/world/map/map_globals.h",
+      "orig_name": "MAP_light_map",
+      "orig_file": "fallen/Headers/Map.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

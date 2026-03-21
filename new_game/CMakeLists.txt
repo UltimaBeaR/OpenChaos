@@ -151,6 +151,14 @@ set(SOURCES_NEW
     src/new/world/map/pap_globals.cpp
     src/new/world/navigation/walkable.cpp
     src/new/world/navigation/walkable_globals.cpp
+    src/new/engine/audio/music.cpp
+    src/new/engine/audio/music_globals.cpp
+    src/new/engine/audio/soundenv.cpp
+    src/new/engine/audio/soundenv_globals.cpp
+    src/new/effects/tracks.cpp
+    src/new/effects/tracks_globals.cpp
+    src/new/world/map/map.cpp
+    src/new/world/map/map_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -232,10 +240,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/interfac.cpp
     src/old/fallen/Source/io.cpp
     src/old/fallen/Source/Main.cpp
-    src/old/fallen/Source/Map.cpp
     src/old/fallen/Source/mav.cpp
     src/old/fallen/Source/memory.cpp
-    src/old/fallen/Source/music.cpp
     src/old/fallen/Source/night.cpp
     src/old/fallen/Source/ns.cpp
     src/old/fallen/Source/ob.cpp
@@ -262,7 +268,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/sm.cpp
     src/old/fallen/Source/snipe.cpp
     src/old/fallen/Source/Sound.cpp
-    src/old/fallen/Source/soundenv.cpp
     src/old/fallen/Source/Special.cpp
     src/old/fallen/Source/stair.cpp
     src/old/fallen/Source/startscr.cpp
@@ -271,7 +276,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/Switch.cpp
     src/old/fallen/Source/Thing.cpp
     src/old/fallen/Source/Thug.cpp
-    src/old/fallen/Source/tracks.cpp
     src/old/fallen/Source/trip.cpp
     src/old/fallen/Source/vehicle.cpp
 

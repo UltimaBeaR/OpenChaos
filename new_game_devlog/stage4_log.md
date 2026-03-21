@@ -319,3 +319,14 @@ Entity mapping обновлён (33 записи — file path).
 - `PAP_FLATTISH_SAMPLES` — `#define` внутри тела функции, не file-scope; маппинг не нужен
 
 ---
+
+## Итерация 32 — engine/audio/music + engine/audio/soundenv + effects/tracks + world/map/map (2026-03-21)
+
+- `tracks.h` НЕ включает `game.h` — циклический include: `game.h` → `tracks.h` redirect → `effects/tracks.h` → `game.h`. Решение: `struct Thing;` forward declaration, `UWORD` вместо `THING_INDEX` для `Track.thing` (аналогично pap.h)
+- `tracks.cpp` — `game.h` идёт первым include'ом, иначе типы не резолвятся. `sound.h` исключён — цепочка `sound.h` → `Structs.h` → `anim.h` вызывала ошибки `strcpy`/`rand` undeclared; `world_type` берётся через `extern`, `WORLD_TYPE_SNOW` переопределён локально
+- `soundenv.cpp` — `<MFStdLib.h>` идёт первым (нужен `BOOL`); `AudioGroundQuad` определён в `soundenv_globals.h` (не был в оригинале — там просто массив int'ов без типа)
+- `map.h` включает `building.h` (для `RMAX_PRIM_POINTS`) и guard `#ifndef THING_INDEX` перед `#include "light.h"` — `light.h` требует оба типа без `game.h`
+- `MAP_light_map` определён в `map.cpp` (non-trivial initializer); `map_globals.cpp` — пустой stub для соответствия паттерну `_globals`
+- `MapElement.MapWho` — `UWORD` вместо `THING_INDEX` (аналогично Track.thing — избегаем game.h зависимости в map.h)
+
+---
