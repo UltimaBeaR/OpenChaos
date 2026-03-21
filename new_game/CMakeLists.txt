@@ -169,6 +169,10 @@ set(SOURCES_NEW
     src/new/engine/graphics/pipeline/sky_globals.cpp
     src/new/engine/graphics/geometry/fastprim.cpp
     src/new/engine/graphics/geometry/fastprim_globals.cpp
+    src/new/engine/graphics/pipeline/poly_render.cpp
+    src/new/engine/graphics/pipeline/poly_render_globals.cpp
+    src/new/engine/lighting/smap.cpp
+    src/new/engine/lighting/smap_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -180,9 +184,7 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/mesh.cpp
     src/old/fallen/DDEngine/Source/panel.cpp
     src/old/fallen/DDEngine/Source/poly.cpp
-    src/old/fallen/DDEngine/Source/polyrenderstate.cpp
     src/old/fallen/DDEngine/Source/shape.cpp
-    src/old/fallen/DDEngine/Source/smap.cpp
     src/old/fallen/DDEngine/Source/superfacet.cpp
     src/old/fallen/DDEngine/Source/texture.cpp
 )

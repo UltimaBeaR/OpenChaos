@@ -372,3 +372,13 @@ Entity mapping обновлён (33 записи — file path).
 - `FASTPRIM_find_texture_from_page` — статическая вспомогательная функция в оригинале не объявлена нигде, объявлена в новом `.cpp` без `static` (нужна linkage для возможного использования снаружи в будущем — как в оригинале не была static)
 
 ---
+
+## Итерация 38 — engine/graphics/pipeline/poly_render + engine/lighting/smap (2026-03-21)
+
+- `RenderStates_OK` — `static bool` в оригинале, оставлен в `poly_render.cpp` (не в _globals): единственное исключение из правила globals — это implementation state, не покидает файл, так сохраняет исходную инкапсуляцию
+- `polyrenderstate.cpp` не имел собственного заголовка; все публичные функции уже объявлены в `poly.h` — создан минимальный `poly_render.h` только как redirect на `poly.h`
+- `SMAP_bike` объявлена в оригинальном `smap.h`, но никогда не была реализована — перенесена как пустая заглушка для ABI-совместимости
+- `SMAP_get_world_pos` — только forward declaration в оригинальном `smap.cpp` без тела — не перенесена (мёртвый код)
+- `smap.h` включает `engine/graphics/pipeline/aeng.h` для `SVector_F` в публичном API — DAG нарушение `engine/lighting` → `engine/graphics`, помечено `// Temporary:`
+
+---

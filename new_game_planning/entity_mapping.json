@@ -24219,6 +24219,536 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "PageOrder",
+      "file": "new/engine/graphics/pipeline/poly_render_globals.h",
+      "orig_name": "PageOrder",
+      "orig_file": "fallen/DDEngine/Source/polyrenderstate.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PageOrdered",
+      "file": "new/engine/graphics/pipeline/poly_render_globals.h",
+      "orig_name": "PageOrdered",
+      "orig_file": "fallen/DDEngine/Source/polyrenderstate.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RenderStates_OK",
+      "file": "new/engine/graphics/pipeline/poly_render.cpp",
+      "orig_name": "RenderStates_OK",
+      "orig_file": "fallen/DDEngine/Source/polyrenderstate.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_Link",
+      "file": "new/engine/lighting/smap.h",
+      "orig_name": "smap_link",
+      "orig_file": "fallen/DDEngine/Headers/smap.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_person",
+      "file": "new/engine/lighting/smap.h",
+      "orig_name": "SMAP_person",
+      "orig_file": "fallen/DDEngine/Headers/smap.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_bike",
+      "file": "new/engine/lighting/smap.h",
+      "orig_name": "SMAP_bike",
+      "orig_file": "fallen/DDEngine/Headers/smap.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_project_onto_poly",
+      "file": "new/engine/lighting/smap.h",
+      "orig_name": "SMAP_project_onto_poly",
+      "orig_file": "fallen/DDEngine/Headers/smap.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_Point",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_Point",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_MAX_POINTS",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_MAX_POINTS",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_MAX_LINKS",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_MAX_LINKS",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_plane_ux",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_plane_ux",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_plane_uy",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_plane_uy",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_plane_uz",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_plane_uz",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_plane_vx",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_plane_vx",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_plane_vy",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_plane_vy",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_plane_vz",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_plane_vz",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_plane_nx",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_plane_nx",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_plane_ny",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_plane_ny",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_plane_nz",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_plane_nz",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_u_min",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_u_min",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_u_max",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_u_max",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_v_min",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_v_min",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_v_max",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_v_max",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_n_min",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_n_min",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_n_max",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_n_max",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_u_map_mul_float",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_u_map_mul_float",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_v_map_mul_float",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_v_map_mul_float",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_u_map_add_float",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_u_map_add_float",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_v_map_add_float",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_v_map_add_float",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_u_map_mul_slong",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_u_map_mul_slong",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_v_map_mul_slong",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_v_map_mul_slong",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_bitmap",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_bitmap",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_res_u",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_res_u",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_res_v",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_res_v",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_point",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_point",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_point_upto",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_point_upto",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_link",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_link",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_link_upto",
+      "file": "new/engine/lighting/smap_globals.h",
+      "orig_name": "SMAP_link_upto",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_vector_normalise",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_vector_normalise",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_init",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_init",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_point_add",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_point_add",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_point_finished",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_point_finished",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_tri_add",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_tri_add",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_add_prim_triangles",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_add_prim_triangles",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_prim_points",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_prim_points",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_add_tweened_points",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_add_tweened_points",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_wrong_side",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_wrong_side",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_convert_uvs",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_convert_uvs",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_MAX_PARTS",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_MAX_PARTS",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_CLIP_U_LESS",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_CLIP_U_LESS",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_CLIP_U_MORE",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_CLIP_U_MORE",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_CLIP_V_LESS",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_CLIP_V_LESS",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SMAP_CLIP_V_MORE",
+      "file": "new/engine/lighting/smap.cpp",
+      "orig_name": "SMAP_CLIP_V_MORE",
+      "orig_file": "fallen/DDEngine/Source/smap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
