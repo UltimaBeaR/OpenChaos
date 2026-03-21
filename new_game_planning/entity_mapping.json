@@ -40309,6 +40309,426 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_screen_size_x",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_screen_size_x",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_screen_size_y",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_screen_size_y",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_screen_x",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_screen_x",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_screen_y",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_screen_y",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_world_x",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_world_x",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_world_z",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_world_z",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_scale_x",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_scale_x",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_scale_y",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_scale_y",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_Pulse",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_Pulse",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_MAX_PULSES",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_MAX_PULSES",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_pulse",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_pulse",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_MAX_BEACON_COLOURS",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_MAX_BEACON_COLOURS",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_beacon_colour",
+      "file": "new/ui/hud/eng_map_globals.h",
+      "orig_name": "MAP_beacon_colour",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_fadeout_colour",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_fadeout_colour",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_draw_prim",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_draw_prim",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_sprite",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_sprite",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_draw_line",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_draw_line",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_draw_dot",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_draw_dot",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_pulse_init",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_pulse_init",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_pulse_create",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_pulse_create",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_pulse_draw",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_pulse_draw",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_pulse_draw_all",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_pulse_draw_all",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_process_pulses",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_process_pulses",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_draw_arrow",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_draw_arrow",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_draw_3d_arrow",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_draw_3d_arrow",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_beacon_init",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_beacon_init",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_beacon_create",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_beacon_create",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_process_beacons",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_process_beacons",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_beacon_draw_all",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_beacon_draw_all",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_beacon_remove",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_beacon_remove",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_draw_weapons",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_draw_weapons",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_draw",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_draw",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_process",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_process",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_draw_onscreen_beacons",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_draw_onscreen_beacons",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_SCREEN_X",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_SCREEN_X",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_SCREEN_Y",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_SCREEN_Y",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_SCREEN_IX",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_SCREEN_IX",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_SCREEN_IY",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_SCREEN_IY",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_WORLD_X",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_WORLD_X",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_WORLD_Z",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_WORLD_Z",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_3DARROW_DANGLE",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_3DARROW_DANGLE",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_3DARROW_DDIST",
+      "file": "new/ui/hud/eng_map.cpp",
+      "orig_name": "MAP_3DARROW_DDIST",
+      "orig_file": "fallen/DDEngine/Source/engineMap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

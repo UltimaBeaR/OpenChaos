@@ -1,65 +1,58 @@
-//
-// The new map screen
-//
+#include "ui/hud/eng_map.h"
+#include "ui/hud/eng_map_globals.h"
 
 #include <MFStdLib.h>
-#include <DDLib.h>
 #include <math.h>
-#include "game.h"
-#include "poly.h"
-#include "text.h"
-#include "texture.h"
-#include "mav.h"
-#include "menufont.h"
-#include "matrix.h"
-#include "memory.h"
-#include "fc.h"
-#include "font2d.h"
 
+// game.h must come before gd_display.h: game.h → MFStdLib.h declares extern SLONG DisplayWidth/Height,
+// then gd_display.h #defines them as 640/480. Wrong order causes syntax errors.
+// Temporary: game.h needed for Thing, NET_PERSON, NET_PLAYER, CLASS_*, PERSON_*, FLAGS_HAS_GUN,
+//            TO_THING, DisplayWidth/DisplayHeight, SPECIAL_info, PRIM_OBJ_ITEM_GUN, SPECIAL_NUM_TYPES
+#include "fallen/Headers/game.h"
+#include "engine/graphics/graphics_api/gd_display.h"
+
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/text.h"
+#include "assets/texture.h"
+// Temporary: mav.h needed for MAV_get_caps, MAV_CAPS_*, MAV_DIR_*
+#include "fallen/Headers/mav.h"
+#include "engine/graphics/resources/menufont.h"
+#include "core/matrix.h"
+#include "engine/graphics/resources/font2d.h"
+// Temporary: fc.h and fc_globals.h needed for FC_cam in MAP_draw_onscreen_beacons
+#include "ui/camera/fc.h"
+#include "ui/camera/fc_globals.h"
+// Temporary: memory.h needed for prim_points/prim_faces4/prim_faces3/prim_objects, MAP_beacon
+#include "fallen/Headers/memory.h"
+// Temporary: aeng.h needed for AENG_clear_screen, POLY_frame_init, POLY_frame_draw
+#include "engine/graphics/pipeline/aeng.h"
+
+// EWAY_get_mess returns the message string for a beacon label.
 extern CBYTE* EWAY_get_mess(SLONG index);
 
-//
-// The size of the physical screen.
-//
+// Used in MAP_beacon_create to bounds-check the message index.
+extern SLONG EWAY_mess_upto;
 
-float MAP_screen_size_x;
-float MAP_screen_size_y;
+// MAP_SCREEN_X/Y: world position → virtual screen position.
+// MAP_SCREEN_IX/IY: integer world position (>>8 units) → virtual screen position.
+// MAP_WORLD_X/Z: virtual screen position → world position.
+// uc_orig: MAP_SCREEN_X (fallen/DDEngine/Source/engineMap.cpp)
+#define MAP_SCREEN_X(world_x)  (MAP_screen_x + ((world_x) - MAP_world_x) * MAP_scale_x)
+// uc_orig: MAP_SCREEN_Y (fallen/DDEngine/Source/engineMap.cpp)
+#define MAP_SCREEN_Y(world_z)  (MAP_screen_y + ((world_z) - MAP_world_z) * MAP_scale_y)
+// uc_orig: MAP_SCREEN_IX (fallen/DDEngine/Source/engineMap.cpp)
+#define MAP_SCREEN_IX(world_x) (MAP_screen_x + (((float)(world_x)) * (1.0f / 256.0f) - MAP_world_x) * MAP_scale_x)
+// uc_orig: MAP_SCREEN_IY (fallen/DDEngine/Source/engineMap.cpp)
+#define MAP_SCREEN_IY(world_z) (MAP_screen_y + (((float)(world_z)) * (1.0f / 256.0f) - MAP_world_z) * MAP_scale_y)
+// uc_orig: MAP_WORLD_X (fallen/DDEngine/Source/engineMap.cpp)
+#define MAP_WORLD_X(screen_x)  (((screen_x) - MAP_screen_x) / MAP_scale_x + MAP_world_x)
+// uc_orig: MAP_WORLD_Z (fallen/DDEngine/Source/engineMap.cpp)
+#define MAP_WORLD_Z(screen_y)  (((screen_y) - MAP_screen_y) / MAP_scale_y + MAP_world_z)
 
-//
-// The current mapping from the world to the screen.
-//
-
-float MAP_screen_x = 0.60F;
-float MAP_screen_y = 0.55F;
-float MAP_world_x;
-float MAP_world_z;
-float MAP_scale_x = 0.03F; // Virtual p0ixels per mapsquare
-float MAP_scale_y = 0.03F * 1.33F;
-
-//
-// Returns the screen coord of the given (floating point!) world position.
-//
-
-#define MAP_SCREEN_X(world_x) (MAP_screen_x + ((world_x) - MAP_world_x) * MAP_scale_x)
-#define MAP_SCREEN_Y(world_z) (MAP_screen_y + ((world_z) - MAP_world_z) * MAP_scale_y)
-
-#define MAP_SCREEN_IX(world_x) (MAP_screen_x + (((float)world_x) * (1.0f / 256.0f) - MAP_world_x) * MAP_scale_x)
-#define MAP_SCREEN_IY(world_z) (MAP_screen_y + (((float)world_z) * (1.0f / 256.0f) - MAP_world_z) * MAP_scale_y)
-
-//
-// Returns the world position of the given point on the screen.
-//
-
-#define MAP_WORLD_X(screen_x) (((screen_x) - MAP_screen_x) / MAP_scale_x + MAP_world_x)
-#define MAP_WORLD_Z(screen_y) (((screen_y) - MAP_screen_y) / MAP_scale_y + MAP_world_z)
-
-//
-// Returns a shade of grey depending on its virtual screen position.
-//
-
-ULONG MAP_fadeout_colour(
-    float sx,
-    float sy)
+// Returns a grey shade (as ARGB) based on distance from map centre.
+// Used to fade out map sprites and dots towards the edge.
+// uc_orig: MAP_fadeout_colour (fallen/DDEngine/Source/engineMap.cpp)
+static ULONG MAP_fadeout_colour(float sx, float sy)
 {
     float dx = (sx - MAP_screen_x) * (1.0F / 0.38F);
     float dy = (sy - MAP_screen_y) * (1.0F / 0.48F);
@@ -84,16 +77,10 @@ ULONG MAP_fadeout_colour(
     return colour;
 }
 
-//
-// Draws a prim.
-//
-
-void MAP_draw_prim(
-    SLONG prim,
-    float cx,
-    float cy,
-    float yaw,
-    float scale)
+// Draws a prim model (vehicle/special item) projected onto the 2D map.
+// Uses a simplified top-down orthographic projection centred at (cx, cy).
+// uc_orig: MAP_draw_prim (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_draw_prim(SLONG prim, float cx, float cy, float yaw, float scale)
 {
     SLONG i;
 
@@ -122,16 +109,9 @@ void MAP_draw_prim(
     POLY_Point* tri[3];
     POLY_Point* quad[4];
 
-    MATRIX_calc(
-        matrix,
-        yaw + prim,
-        -0.5F,
-        0.0F);
+    MATRIX_calc(matrix, yaw + prim, -0.5F, 0.0F);
 
-    //
-    // Assume maximum dimensions of 1 mapsquare...
-    //
-
+    // Scale down to 1 map square dimensions.
     matrix[0] *= 1.0F / 256.0F;
     matrix[1] *= 1.0F / 256.0F;
     matrix[2] *= 1.0F / 256.0F;
@@ -142,17 +122,10 @@ void MAP_draw_prim(
     matrix[7] *= 1.0F / 256.0F;
     matrix[8] *= 1.0F / 256.0F;
 
-    //
-    // Aspect ratio...
-    //
-
+    // Correct for 4:3 aspect ratio.
     matrix[3] *= 1.0F / 1.33F;
     matrix[4] *= 1.0F / 1.33F;
     matrix[5] *= 1.0F / 1.33F;
-
-    //
-    // Rotate the points.
-    //
 
     po = &prim_objects[prim];
     pp = &POLY_buffer[0];
@@ -162,11 +135,7 @@ void MAP_draw_prim(
         y = float(prim_points[i].Y);
         z = float(prim_points[i].Z);
 
-        MATRIX_MUL(
-            matrix,
-            x,
-            y,
-            z);
+        MATRIX_MUL(matrix, x, y, z);
 
         z += 1.0F;
 
@@ -197,10 +166,6 @@ void MAP_draw_prim(
 
     POLY_buffer_upto = po->EndPoint - po->StartPoint;
 
-    //
-    // The quads.
-    //
-
     for (i = po->StartFace4; i < po->EndFace4; i++) {
         p_f4 = &prim_faces4[i];
 
@@ -222,13 +187,10 @@ void MAP_draw_prim(
         if (POLY_valid_quad(quad)) {
             quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
             quad[0]->v = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
-
             quad[1]->u = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
             quad[1]->v = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
-
             quad[2]->u = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
             quad[2]->v = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
-
             quad[3]->u = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
             quad[3]->v = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
 
@@ -239,10 +201,6 @@ void MAP_draw_prim(
             POLY_add_quad(quad, page, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
         }
     }
-
-    //
-    // The triangles.
-    //
 
     for (i = po->StartFace3; i < po->EndFace3; i++) {
         p_f3 = &prim_faces3[i];
@@ -262,10 +220,8 @@ void MAP_draw_prim(
         if (POLY_valid_triangle(tri)) {
             tri[0]->u = float(p_f3->UV[0][0] & 0x3f) * (1.0F / 32.0F);
             tri[0]->v = float(p_f3->UV[0][1]) * (1.0F / 32.0F);
-
             tri[1]->u = float(p_f3->UV[1][0]) * (1.0F / 32.0F);
             tri[1]->v = float(p_f3->UV[1][1]) * (1.0F / 32.0F);
-
             tri[2]->u = float(p_f3->UV[2][0]) * (1.0F / 32.0F);
             tri[2]->v = float(p_f3->UV[2][1]) * (1.0F / 32.0F);
 
@@ -278,11 +234,10 @@ void MAP_draw_prim(
     }
 }
 
-//
-// Draws a sprite
-//
-
-void MAP_sprite(
+// Draws a single textured quad on the map with per-corner fade-out and an optional shadow strip.
+// shadow 0 = no shadow, 1-7 = different shadow patterns (which corners/triangles are lit vs dark).
+// uc_orig: MAP_sprite (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_sprite(
     SLONG page,
     float x,
     float y,
@@ -310,10 +265,6 @@ void MAP_sprite(
     ULONG colour1 = MAP_fadeout_colour(x2, y1);
     ULONG colour2 = MAP_fadeout_colour(x1, y2);
     ULONG colour3 = MAP_fadeout_colour(x2, y2);
-
-    //
-    // Convert from virtual to real screen coords.
-    //
 
     x1 *= MAP_screen_size_x;
     y1 *= MAP_screen_size_y;
@@ -367,18 +318,10 @@ void MAP_sprite(
         POLY_Point ps[4];
         POLY_Point* tri[3];
 
-        //
-        // Create four darkened points.
-        //
-
         ps[0] = *(quad[0]);
         ps[1] = *(quad[1]);
         ps[2] = *(quad[2]);
         ps[3] = *(quad[3]);
-
-        //
-        // Darken the points.
-        //
 
         for (i = 0; i < 4; i++) {
             ps[i].colour >>= 1;
@@ -387,121 +330,84 @@ void MAP_sprite(
 
         switch (shadow) {
         case 0:
-            ASSERT(0); // We shouldn't be doing any of this in this case.
+            ASSERT(0);
             break;
 
         case 1:
-
             tri[0] = &ps[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             tri[0] = quad[1];
             tri[1] = quad[3];
             tri[2] = quad[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             break;
 
         case 2:
-
             tri[0] = &ps[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             tri[0] = quad[1];
             tri[1] = quad[3];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             break;
 
         case 3:
-
-            // ps[2].colour += 0x00101010;
-
             tri[0] = quad[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             tri[0] = quad[1];
             tri[1] = quad[3];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             break;
 
         case 4:
-
             tri[0] = quad[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             tri[0] = quad[1];
             tri[1] = &ps[3];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             break;
 
         case 5:
-
             tri[0] = &ps[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             tri[0] = quad[1];
             tri[1] = &ps[3];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             break;
 
         case 6:
-
             tri[0] = &ps[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             tri[0] = quad[1];
             tri[1] = quad[3];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             break;
 
         case 7:
-
             tri[0] = quad[0];
             tri[1] = quad[1];
             tri[2] = quad[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             tri[0] = quad[1];
             tri[1] = &ps[3];
             tri[2] = &ps[2];
-
             POLY_add_triangle(tri, page, FALSE, TRUE);
-
             break;
 
         default:
@@ -513,16 +419,9 @@ void MAP_sprite(
     }
 }
 
-//
-// Draws a line.
-//
-
-void MAP_draw_line(
-    float x1,
-    float y1,
-    float x2,
-    float y2,
-    ULONG colour)
+// Draws a thin line between two virtual screen positions using a thin quad.
+// uc_orig: MAP_draw_line (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_draw_line(float x1, float y1, float x2, float y2, ULONG colour)
 {
     POLY_Point pp[4];
     POLY_Point* quad[4];
@@ -537,18 +436,10 @@ void MAP_draw_line(
         return;
     }
 
-    //
-    // Convert to screen coords.
-    //
-
     x1 *= MAP_screen_size_x;
     y1 *= MAP_screen_size_y;
     x2 *= MAP_screen_size_x;
     y2 *= MAP_screen_size_y;
-
-    //
-    // Setup points
-    //
 
     pp[0].z = 0.9F;
     pp[0].Z = 0.1F;
@@ -581,25 +472,19 @@ void MAP_draw_line(
     if (dx > dy) {
         pp[0].X = x1;
         pp[0].Y = y1 - 1.0F;
-
         pp[1].X = x1;
         pp[1].Y = y1 + 1.0F;
-
         pp[2].X = x2;
         pp[2].Y = y2 - 1.0F;
-
         pp[3].X = x2;
         pp[3].Y = y2 + 1.0F;
     } else {
         pp[0].X = x1 - 1.0F;
         pp[0].Y = y1;
-
         pp[1].X = x1 + 1.0F;
         pp[1].Y = y1;
-
         pp[2].X = x2 - 1.0F;
         pp[2].Y = y2;
-
         pp[3].X = x2 + 1.0F;
         pp[3].Y = y2;
     }
@@ -612,16 +497,9 @@ void MAP_draw_line(
     POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE, TRUE);
 }
 
-//
-// Draws an orientated alpha dot with the given colour.
-//
-
-void MAP_draw_dot(
-    float x,
-    float y,
-    float size,
-    float angle,
-    ULONG colour)
+// Draws a small triangle sprite for a person/vehicle dot, oriented by angle.
+// uc_orig: MAP_draw_dot (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_draw_dot(float x, float y, float size, float angle, ULONG colour)
 {
     SLONG mul;
 
@@ -641,26 +519,22 @@ void MAP_draw_dot(
 
         a = (colour >> 24) & 0xff;
         r = (colour >> 16) & 0xff;
-        g = (colour >> 8) & 0xff;
-        b = (colour >> 0) & 0xff;
+        g = (colour >>  8) & 0xff;
+        b = (colour >>  0) & 0xff;
 
         a = a * mul >> 8;
         r = r * mul >> 8;
         g = g * mul >> 8;
         b = b * mul >> 8;
 
-        colour = a << 24;
+        colour  = a << 24;
         colour |= r << 16;
-        colour |= g << 8;
-        colour |= b << 0;
+        colour |= g <<  8;
+        colour |= b <<  0;
     }
 
-    //
-    // Convert from virtual to real screen coords.
-    //
-
-    x *= MAP_screen_size_x;
-    y *= MAP_screen_size_y;
+    x  *= MAP_screen_size_x;
+    y  *= MAP_screen_size_y;
     dx *= MAP_screen_size_x;
     dy *= MAP_screen_size_y;
 
@@ -698,38 +572,19 @@ void MAP_draw_dot(
     POLY_add_triangle(tri, POLY_PAGE_IC2_ALPHA, FALSE, TRUE);
 }
 
-//
-// The pulses...
-//
+// --- pulse system ---
 
-typedef struct
-{
-    SLONG life; // 0 => unused
-    ULONG colour;
-    float wx;
-    float wz;
-    float radius;
-
-} MAP_Pulse;
-
-#define MAP_MAX_PULSES 16
-
-MAP_Pulse MAP_pulse[MAP_MAX_PULSES];
-
-//
-// Initialises the pulses
-//
-
+// Resets all pulse slots. Called from elev.cpp (ELEVATOR_reset).
+// uc_orig: MAP_pulse_init (fallen/DDEngine/Source/engineMap.cpp)
 void MAP_pulse_init()
 {
     memset(MAP_pulse, 0, sizeof(MAP_pulse));
 }
 
-//
-// Creates a new pulse.
-//
-
-void MAP_pulse_create(float wx, float wz, ULONG colour)
+// Creates a new expanding pulse ring at the given world position.
+// Replaces the shortest-lived existing pulse if all slots are used.
+// uc_orig: MAP_pulse_create (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_pulse_create(float wx, float wz, ULONG colour)
 {
     SLONG i;
     SLONG best_life = INFINITY;
@@ -755,11 +610,9 @@ void MAP_pulse_create(float wx, float wz, ULONG colour)
     mp->radius = 0.05F;
 }
 
-//
-// Draws an individual pulse
-//
-
-void MAP_pulse_draw(float wx, float wz, float radius, ULONG colour, UBYTE fade)
+// Draws a single pulse ring as a quad with alpha from life counter.
+// uc_orig: MAP_pulse_draw (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_pulse_draw(float wx, float wz, float radius, ULONG colour, UBYTE fade)
 {
     float x;
     float y;
@@ -786,28 +639,16 @@ void MAP_pulse_draw(float wx, float wz, float radius, ULONG colour, UBYTE fade)
     colour &= MAP_fadeout_colour(x, y);
 
     if (colour == 0) {
-        //
-        // Don't draw a black pulse...
-        //
-
         return;
     }
 
     colour &= 0xffffff;
     colour |= fade << 24;
 
-    //
-    // Convert to screen coords.
-    //
-
     x1 *= MAP_screen_size_x;
     y1 *= MAP_screen_size_y;
     x2 *= MAP_screen_size_x;
     y2 *= MAP_screen_size_y;
-
-    //
-    // Setup points
-    //
 
     pp[0].X = x1;
     pp[0].Y = y1;
@@ -853,14 +694,11 @@ void MAP_pulse_draw(float wx, float wz, float radius, ULONG colour, UBYTE fade)
     POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, FALSE, TRUE);
 }
 
-//
-// Draws all the pulses.
-//
-
-void MAP_pulse_draw_all()
+// Draws all active pulses.
+// uc_orig: MAP_pulse_draw_all (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_pulse_draw_all()
 {
     SLONG i;
-
     MAP_Pulse* mp;
 
     for (i = 0; i < MAP_MAX_PULSES; i++) {
@@ -870,23 +708,15 @@ void MAP_pulse_draw_all()
             continue;
         }
 
-        MAP_pulse_draw(
-            mp->wx,
-            mp->wz,
-            mp->radius,
-            mp->colour,
-            mp->life);
+        MAP_pulse_draw(mp->wx, mp->wz, mp->radius, mp->colour, mp->life);
     }
 }
 
-//
-// Processes the pulses.
-//
-
-void MAP_process_pulses()
+// Advances pulse animations at ~20 fps regardless of game frame rate.
+// uc_orig: MAP_process_pulses (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_process_pulses()
 {
     SLONG i;
-
     MAP_Pulse* mp;
 
     static SLONG now = 0;
@@ -899,10 +729,6 @@ void MAP_process_pulses()
     }
 
     while (last < now) {
-        //
-        // Process at 20 fps...
-        //
-
         last += (1000 / 20);
 
         for (i = 0; i < MAP_MAX_PULSES; i++) {
@@ -922,11 +748,12 @@ void MAP_process_pulses()
     }
 }
 
-//
-// Draws an arrow in the given direction...
-//
+// --- map arrows ---
 
-void MAP_draw_arrow(float angle, ULONG colour)
+// Draws a small animated arrow sprite pointing in the given direction.
+// Used when a beacon is off-screen to indicate its direction.
+// uc_orig: MAP_draw_arrow (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_draw_arrow(float angle, ULONG colour)
 {
     float x;
     float y;
@@ -991,9 +818,9 @@ void MAP_draw_arrow(float angle, ULONG colour)
     POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, FALSE, TRUE);
 }
 
-void MAP_draw_3d_arrow(
-    float angle,
-    ULONG colour)
+// Draws a perspective-projected 3D arrow for a beacon that is off-screen.
+// uc_orig: MAP_draw_3d_arrow (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_draw_3d_arrow(float angle, ULONG colour)
 {
     SLONG i;
 
@@ -1036,20 +863,18 @@ void MAP_draw_3d_arrow(
     quad[3] = &pp[3];
 
     static float dangle = 0.25F;
-    static float ddist = 0.25F;
-    static float width = 800.0F;
-    static float below = 0.5F;
+    static float ddist  = 0.25F;
+    static float width  = 800.0F;
+    static float below  = 0.5F;
 
-    //
-    // We have our own mini transformation function!
-    //
+// uc_orig: MAP_3DARROW_DANGLE (fallen/DDEngine/Source/engineMap.cpp)
+#define MAP_3DARROW_DANGLE (dangle)
+// uc_orig: MAP_3DARROW_DDIST (fallen/DDEngine/Source/engineMap.cpp)
+#define MAP_3DARROW_DDIST  (ddist)
 
     for (i = 0; i < 4; i++) {
         pangle = angle;
-        pdist = 1.0F;
-
-#define MAP_3DARROW_DANGLE (dangle)
-#define MAP_3DARROW_DDIST (ddist)
+        pdist  = 1.0F;
 
         if (i & 1) {
             pangle -= MAP_3DARROW_DANGLE;
@@ -1075,54 +900,34 @@ void MAP_draw_3d_arrow(
     POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, FALSE, TRUE);
 }
 
-//
-// The map beacon colours.
-//
+// --- beacon system ---
 
-#define MAP_MAX_BEACON_COLOURS 6
-
-ULONG MAP_beacon_colour[MAP_MAX_BEACON_COLOURS] = {
-    0xffff00,
-    0xff0000,
-    0x00ff00,
-    0x0000ff,
-    0xff00ff,
-    0x00ffff
-};
-
-//
-// Initialise the beacons.
-//
-
+// Resets all beacon slots. Called from elev.cpp (ELEVATOR_reset).
+// uc_orig: MAP_beacon_init (fallen/DDEngine/Source/engineMap.cpp)
 void MAP_beacon_init()
 {
     memset(MAP_beacon, 0, sizeof(MAP_Beacon) * MAP_MAX_BEACONS);
 }
 
-//
-// Creates a beacon
-//
-
+// uc_orig: MAP_beacon_create (fallen/DDEngine/Source/engineMap.cpp)
 UBYTE MAP_beacon_create(SLONG x, SLONG z, SLONG index, UWORD track_thing)
 {
     SLONG i;
-
     MAP_Beacon* mb;
 
-    extern SLONG EWAY_mess_upto;
     ASSERT(index >= 0 && index < EWAY_mess_upto);
 
     for (i = 1; i < MAP_MAX_BEACONS; i++) {
         mb = &MAP_beacon[i];
 
         if (!mb->used) {
-            mb->used = TRUE;
-            mb->counter = 0;
+            mb->used        = TRUE;
+            mb->counter     = 0;
             mb->track_thing = track_thing;
-            mb->index = index;
-            mb->wx = x >> 0; // float(x) * (1.0F / 256.0F);
-            mb->wz = z >> 0; // float(z) * (1.0F / 256.0F);
-            mb->ticks = GetTickCount();
+            mb->index       = index;
+            mb->wx          = x >> 0;
+            mb->wz          = z >> 0;
+            mb->ticks       = GetTickCount();
 
             return i;
         }
@@ -1131,17 +936,14 @@ UBYTE MAP_beacon_create(SLONG x, SLONG z, SLONG index, UWORD track_thing)
     return 0;
 }
 
-//
-// Processes the beacons.
-//
-
-void MAP_process_beacons()
+// Advances beacon animations at ~20 fps; tracks moving things if track_thing is set.
+// uc_orig: MAP_process_beacons (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_process_beacons()
 {
     SLONG i;
-
     MAP_Beacon* mb;
 
-    static SLONG now = 0;
+    static SLONG now  = 0;
     static SLONG last = 0;
 
     now = GetTickCount();
@@ -1151,10 +953,6 @@ void MAP_process_beacons()
     }
 
     while (last < now) {
-        //
-        // Process at 20 fps...
-        //
-
         last += (1000 / 20);
 
         for (i = 1; i < MAP_MAX_BEACONS; i++) {
@@ -1185,7 +983,10 @@ void MAP_process_beacons()
     }
 }
 
-void MAP_beacon_draw_all()
+// Draws all active beacons: a coloured square icon, a text label from EWAY message table,
+// and an off-screen direction arrow if the beacon is out of map view.
+// uc_orig: MAP_beacon_draw_all (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_beacon_draw_all()
 {
     SLONG i;
 
@@ -1226,9 +1027,7 @@ void MAP_beacon_draw_all()
 
             colour = MAP_beacon_colour[i % MAP_MAX_BEACON_COLOURS] | (colour << 24);
 
-            MAP_draw_arrow(
-                angle,
-                colour);
+            MAP_draw_arrow(angle, colour);
         }
 
         {
@@ -1237,7 +1036,7 @@ void MAP_beacon_draw_all()
             float x2;
             float y2;
 
-            float radius = 0.03F; // + sin(GetTickCount() * 0.005F) * 0.01F;
+            float radius = 0.03F;
 
             SLONG colour;
 
@@ -1254,10 +1053,6 @@ void MAP_beacon_draw_all()
             y1 = y1 - radius * MAP_screen_size_y;
 
             colour = MAP_beacon_colour[i % MAP_MAX_BEACON_COLOURS] | 0xff000000;
-
-            //
-            // Setup points
-            //
 
             pp[0].X = x1;
             pp[0].Y = y1;
@@ -1302,10 +1097,6 @@ void MAP_beacon_draw_all()
 
             POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, FALSE, TRUE);
 
-            //
-            // Draw the text
-            //
-
             MENUFONT_Draw(
                 SLONG(0.3F * MAP_screen_size_x),
                 SLONG(list * MAP_screen_size_y),
@@ -1319,14 +1110,16 @@ void MAP_beacon_draw_all()
     }
 }
 
+// uc_orig: MAP_beacon_remove (fallen/DDEngine/Source/engineMap.cpp)
 void MAP_beacon_remove(UBYTE beacon)
 {
     ASSERT(WITHIN(beacon, 0, MAP_MAX_BEACONS - 1));
-
     MAP_beacon[beacon].used = FALSE;
 }
 
-void MAP_draw_weapons(Thing* p_person)
+// Draws items and specials carried by a person as rotating prim models on the side of the map.
+// uc_orig: MAP_draw_weapons (fallen/DDEngine/Source/engineMap.cpp)
+static void MAP_draw_weapons(Thing* p_person)
 {
     float x;
     float y;
@@ -1341,13 +1134,7 @@ void MAP_draw_weapons(Thing* p_person)
     y = 0.25F;
 
     if (p_person->Flags & FLAGS_HAS_GUN) {
-        MAP_draw_prim(
-            PRIM_OBJ_ITEM_GUN,
-            x,
-            y,
-            yaw,
-            0.5F);
-
+        MAP_draw_prim(PRIM_OBJ_ITEM_GUN, x, y, yaw, 0.5F);
         y += 0.1F;
     }
 
@@ -1370,6 +1157,10 @@ void MAP_draw_weapons(Thing* p_person)
     }
 }
 
+// Draws the full-screen world minimap: clears screen, draws terrain tiles from PAP_2HI,
+// draws MAV nav lines, draws person/vehicle dots from PAP_2LO lists, draws stats text,
+// draws pulses and beacons, then flips.
+// uc_orig: MAP_draw (fallen/DDEngine/Source/engineMap.cpp)
 void MAP_draw()
 {
     float x;
@@ -1412,38 +1203,18 @@ void MAP_draw()
 
     SLONG index;
 
-    Thing* darci = NET_PERSON(0);
+    Thing* darci  = NET_PERSON(0);
     Thing* p_thing;
-
-    //
-    // Clear the screen.
-    //
 
     AENG_clear_screen();
 
-    //
-    // Clear the buffers.
-    //
-
     POLY_frame_init(FALSE, FALSE);
-
-    //
-    // The real screen size.
-    //
 
     MAP_screen_size_x = float(DisplayWidth);
     MAP_screen_size_y = float(DisplayHeight);
 
-    //
-    // Centre the map on darci.
-    //
-
     MAP_world_x = float(darci->WorldPos.X) * (1.0F / 65536.0F);
     MAP_world_z = float(darci->WorldPos.Z) * (1.0F / 65536.0F);
-
-    //
-    // Find the four points at the edge of the screen.
-    //
 
     fx1 = MAP_WORLD_X(0.2F);
     fz1 = MAP_WORLD_Z(0.0F);
@@ -1465,14 +1236,10 @@ void MAP_draw()
             TEXTURE_get_minitexturebits_uvs(
                 PAP_2HI(mx, mz).Texture,
                 &page,
-                &u0,
-                &v0,
-                &u1,
-                &v1,
-                &u2,
-                &v2,
-                &u3,
-                &v3);
+                &u0, &v0,
+                &u1, &v1,
+                &u2, &v2,
+                &u3, &v3);
 
             MAP_sprite(
                 page,
@@ -1480,14 +1247,10 @@ void MAP_draw()
                 MAP_SCREEN_Y(float(mz)),
                 MAP_scale_x,
                 MAP_scale_y,
-                u0,
-                v0,
-                u1,
-                v1,
-                u2,
-                v2,
-                u3,
-                v3,
+                u0, v0,
+                u1, v1,
+                u2, v2,
+                u3, v3,
                 PAP_2HI(mx, mz).Flags & (PAP_FLAG_SHADOW_1 | PAP_FLAG_SHADOW_2 | PAP_FLAG_SHADOW_3));
 
             for (i = 0; i < 4; i++) {
@@ -1495,15 +1258,9 @@ void MAP_draw()
 
                 colour = 0;
 
-                if (!(opt & MAV_CAPS_GOTO)) {
-                    colour = 0xffff0000;
-                }
-                if ((opt & MAV_CAPS_CLIMB_OVER)) {
-                    colour = 0xffffff00;
-                }
-                if ((opt & MAV_CAPS_LADDER_UP)) {
-                    colour = 0xff00ffff;
-                }
+                if (!(opt & MAV_CAPS_GOTO))       colour = 0xffff0000;
+                if (opt & MAV_CAPS_CLIMB_OVER)    colour = 0xffffff00;
+                if (opt & MAV_CAPS_LADDER_UP)     colour = 0xff00ffff;
 
                 if (colour) {
                     switch (i) {
@@ -1536,17 +1293,10 @@ void MAP_draw()
                         break;
                     }
 
-                    MAP_draw_line(
-                        x1, y1,
-                        x2, y2,
-                        colour);
+                    MAP_draw_line(x1, y1, x2, y2, colour);
                 }
             }
         }
-
-    //
-    // Draw the important things...
-    //
 
     mx1 >>= 2;
     mz1 >>= 2;
@@ -1566,9 +1316,9 @@ void MAP_draw()
                     switch (p_thing->Genus.Person->PersonType) {
                     case PERSON_DARCI:
                     case PERSON_ROPER:
-                        scale = float(GetTickCount());
+                        scale  = float(GetTickCount());
                         scale *= 0.02F;
-                        scale = sin(scale);
+                        scale  = sin(scale);
                         scale *= 0.2F;
                         scale += 1.0F;
                         scale *= MAP_scale_x;
@@ -1576,49 +1326,42 @@ void MAP_draw()
                         break;
 
                     case PERSON_COP:
-
-                        red = ((GetTickCount() >> 3)) & 0x1ff;
+                        red  = ((GetTickCount() >> 3)) & 0x1ff;
                         blue = ((GetTickCount() >> 3) + 0xff) & 0x1ff;
-
-                        if (red > 0xff) {
-                            red = 0x1ff - red;
-                        }
-                        if (blue > 0xff) {
-                            blue = 0x1ff - blue;
-                        }
-
-                        colour = 0xff000000;
+                        if (red  > 0xff) red  = 0x1ff - red;
+                        if (blue > 0xff) blue = 0x1ff - blue;
+                        colour  = 0xff000000;
                         colour |= red << 16;
                         colour |= blue;
-                        scale = MAP_scale_x * 0.5F;
+                        scale   = MAP_scale_x * 0.5F;
                         break;
 
                     case PERSON_THUG_RASTA:
                     case PERSON_THUG_GREY:
                     case PERSON_THUG_RED:
-                        scale = MAP_scale_x * 0.5F;
+                        scale  = MAP_scale_x * 0.5F;
                         colour = 0xffff0000;
                         break;
 
                     case PERSON_SLAG_TART:
                     case PERSON_SLAG_FATUGLY:
-                        scale = MAP_scale_x * 0.5F;
+                        scale  = MAP_scale_x * 0.5F;
                         colour = 0xffffff00;
                         break;
 
                     case PERSON_CIV:
                     case PERSON_MECHANIC:
-                        scale = MAP_scale_x * 0.5F;
+                        scale  = MAP_scale_x * 0.5F;
                         colour = 0xff00ff00;
                         break;
 
                     case PERSON_HOSTAGE:
-                        scale = MAP_scale_x * 0.5F;
+                        scale  = MAP_scale_x * 0.5F;
                         colour = 0xffff00ff;
                         break;
 
                     default:
-                        scale = MAP_scale_x * 0.5F;
+                        scale  = MAP_scale_x * 0.5F;
                         colour = 0xff888888;
                         break;
                     }
@@ -1633,7 +1376,6 @@ void MAP_draw()
                     break;
 
                 case CLASS_VEHICLE:
-
                     MAP_draw_dot(
                         MAP_SCREEN_X(float(p_thing->WorldPos.X) * (1.0F / 65536.0F)),
                         MAP_SCREEN_Y(float(p_thing->WorldPos.Z) * (1.0F / 65536.0F)),
@@ -1651,66 +1393,44 @@ void MAP_draw()
             }
         }
 
-    //
-    // Use the startscreen code to plonk down a logo...
-    //
-
+    // Forward declaration for start screen logo (startscr.cpp not yet migrated).
     void STARTSCR_plonk_logo(void);
+    // logo disabled: STARTSCR_plonk_logo();
 
-    // this logo sucks
-    // STARTSCR_plonk_logo();
-
-    //
-    // Draw the stats
-    //
-
-    FONT2D_DrawString("Strength:", 10, 10, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
-    FONT2D_DrawString("Stamina:", 10, 30, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
-    FONT2D_DrawString("Skill:", 10, 50, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
+    FONT2D_DrawString("Strength:",     10, 10, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
+    FONT2D_DrawString("Stamina:",      10, 30, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
+    FONT2D_DrawString("Skill:",        10, 50, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
     FONT2D_DrawString("Constitution:", 10, 70, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
-    itoa(NET_PLAYER(0)->Genus.Player->Strength, str, 10);
+    itoa(NET_PLAYER(0)->Genus.Player->Strength,     str, 10);
     FONT2D_DrawString(str, 100, 10, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
-    itoa(NET_PLAYER(0)->Genus.Player->Stamina, str, 10);
+    itoa(NET_PLAYER(0)->Genus.Player->Stamina,      str, 10);
     FONT2D_DrawString(str, 100, 30, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
-    itoa(NET_PLAYER(0)->Genus.Player->Skill, str, 10);
+    itoa(NET_PLAYER(0)->Genus.Player->Skill,        str, 10);
     FONT2D_DrawString(str, 100, 50, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
     itoa(NET_PLAYER(0)->Genus.Player->Constitution, str, 10);
     FONT2D_DrawString(str, 100, 70, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
 
-    //
-    // Draw the pulses.
-    //
-
     MAP_pulse_draw_all();
     MAP_beacon_draw_all();
 
-    //
-    // Draw the weapons carried by Darci...
-    //
-
     MAP_draw_weapons(darci);
-
-    //
-    // Draw the frame.
-    //
 
     POLY_frame_draw(FALSE, FALSE);
 }
 
+// uc_orig: MAP_process (fallen/DDEngine/Source/engineMap.cpp)
 void MAP_process()
 {
     MAP_process_beacons();
     MAP_process_pulses();
 }
 
+// Draws directional 3D arrows for beacons that are off-screen during normal gameplay.
+// Uses the camera (FC_cam[0]) to compute relative angle.
+// uc_orig: MAP_draw_onscreen_beacons (fallen/DDEngine/Source/engineMap.cpp)
 void MAP_draw_onscreen_beacons(void)
 {
     SLONG i;
-
-    float x;
-    float y;
-
-    float list = 0.05F;
 
     float dx;
     float dz;
@@ -1728,16 +1448,13 @@ void MAP_draw_onscreen_beacons(void)
             continue;
         }
 
-        dx = float(mb->wx - (FC_cam[0].x >> 8));
-        dz = float(mb->wz - (FC_cam[0].z >> 8));
-
+        dx    = float(mb->wx - (FC_cam[0].x >> 8));
+        dz    = float(mb->wz - (FC_cam[0].z >> 8));
         angle = -atan2(dx, dz) - float(FC_cam[0].yaw) * (2.0F * PI / (2048.0F * 256.0F));
-        dist = fabs(dx) + fabs(dz);
+        dist  = fabs(dx) + fabs(dz);
 
         colour = MAP_beacon_colour[i % MAP_MAX_BEACON_COLOURS];
 
-        MAP_draw_3d_arrow(
-            angle,
-            colour);
+        MAP_draw_3d_arrow(angle, colour);
     }
 }

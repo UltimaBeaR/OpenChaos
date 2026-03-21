@@ -623,3 +623,13 @@ Entity mapping обновлён (33 записи — file path).
 - Новая директория `ui/camera/` создана
 
 ---
+
+## Итерация 62 — ui/hud/eng_map (2026-03-21)
+
+- `MAP_pulse_init` и `MAP_beacon_init` — в оригинале не были static; изначально сделаны static, но `elev.cpp` вызывает их через extern → исправлено на non-static; добавлены в `eng_map.h`
+- `DisplayWidth`/`DisplayHeight` — нужен `gd_display.h` после `game.h` чтобы заменить `extern SLONG` на `#define 640/480`; без него линкер не мог найти символы (та же схема что sky.cpp итерации 36)
+- `eng_map_globals.h` включает `fallen/Headers/memory.h` — требует `<string.h>` (→ anim.h → strcpy) и `<MFStdLib.h>` (→ supermap.h → MFFileHandle) перед ним
+- `MAP_init` — объявлена в оригинальном `map.h`, но нигде не реализована и не вызывается → мёртвая декларация, не перенесена
+- `FC_cam` — объявлен в `fc_globals.h`, не в `fc.h`; добавлен include `fc_globals.h`
+
+---

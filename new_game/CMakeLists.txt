@@ -144,6 +144,8 @@ set(SOURCES_NEW
     src/new/world/environment/build_globals.cpp
     src/new/ui/hud/planmap.cpp
     src/new/ui/hud/planmap_globals.cpp
+    src/new/ui/hud/eng_map.cpp
+    src/new/ui/hud/eng_map_globals.cpp
     src/new/engine/graphics/graphics_api/dd_manager.cpp
     src/new/engine/graphics/graphics_api/dd_manager_globals.cpp
     src/new/engine/lighting/shadow.cpp
@@ -222,7 +224,6 @@ set(SOURCES_NEW
 set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/aeng.cpp
     src/old/fallen/DDEngine/Source/drawxtra.cpp
-    src/old/fallen/DDEngine/Source/engineMap.cpp
     src/old/fallen/DDEngine/Source/facet.cpp
     src/old/fallen/DDEngine/Source/figure.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
