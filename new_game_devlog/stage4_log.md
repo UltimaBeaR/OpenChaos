@@ -438,6 +438,18 @@ Entity mapping обновлён (33 записи — file path).
 
 ---
 
+## Итерация 45 — actors/items/barrel + actors/animals/canid (2026-03-21)
+
+- `BARREL_position_on_hands` / `BARREL_throw`: объявлены в оригинальном `barrel.h`, но реализации в `/* */` блоке в `barrel.cpp`; вызовы из `Person.cpp` тоже в `/* */`. Оставлены как объявления без реализации — ABI совместимость, линкер не жалуется.
+- `BARREL_convert_stationary_to_moving` / `BARREL_convert_moving_to_stationary`: не были в оригинальном `barrel.h`, но вызываются из `memory.cpp` и `eway.cpp` → сделаны публичными (не static).
+- `CANID_fn_init` / `CANID_fn_normal`: добавлены в `canid.h` (в оригинале не объявлялись) — нужны для таблицы `CANID_state_function[]` в `canid_globals.cpp`.
+- `CANID_fn_normal`: substate switch полностью закомментирован в оригинале (`/* */`) — сохранён 1:1 как закомментированный блок.
+- Код «CODE GRAVEYARD» (fly/perch/flee/walk поведения, ~400 строк в `/* */`) — не мигрирован.
+- `barrel.cpp`: `#include <string.h>` добавлен перед `fallen/Headers/Structs.h` — `anim.h` использует `strcpy` без включения `<string.h>`.
+- `canid_globals.cpp`: добавлен `#include "statedef.h"` — `STATE_INIT`/`STATE_NORMAL` определены там, не в `state.h`.
+
+---
+
 ## Итерация 44 — world/environment/id.h (header-only) + stair + plat (2026-03-21)
 
 - `id.h` → header-only `world/environment/id.h`; нет зависимостей кроме `core/types.h`; `id.cpp` отсутствует в `old/` (удалён на этапе 2)

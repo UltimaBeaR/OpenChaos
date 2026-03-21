@@ -246,10 +246,12 @@ set(SOURCES_OUTRO
 set(SOURCES_GAME
     src/old/fallen/Source/Anim.cpp
     src/old/fallen/Source/Attract.cpp
-    src/old/fallen/Source/barrel.cpp
+    src/new/actors/items/barrel.cpp
+    src/new/actors/items/barrel_globals.cpp
     src/old/fallen/Source/bat.cpp
     src/old/fallen/Source/building.cpp
-    src/old/fallen/Source/canid.cpp
+    src/new/actors/animals/canid.cpp
+    src/new/actors/animals/canid_globals.cpp
     src/old/fallen/Source/cnet.cpp
     src/old/fallen/Source/collide.cpp
     src/old/fallen/Source/combat.cpp

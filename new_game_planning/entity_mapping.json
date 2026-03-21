@@ -29349,6 +29349,776 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_Sphere",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "BARREL_Sphere",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Barrel",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "Barrel",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BarrelPtr",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "BarrelPtr",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_MAX_SPHERES",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "BARREL_MAX_SPHERES",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_MAX_BARRELS",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "BARREL_MAX_BARRELS",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TO_BARREL",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "TO_BARREL",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_NUMBER",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "BARREL_NUMBER",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_TYPE_NORMAL",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "BARREL_TYPE_NORMAL",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_TYPE_CONE",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "BARREL_TYPE_CONE",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_TYPE_BURNING",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "BARREL_TYPE_BURNING",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_TYPE_BIN",
+      "file": "new/actors/items/barrel.h",
+      "orig_name": "BARREL_TYPE_BIN",
+      "orig_file": "fallen/Headers/barrel.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_init",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_init",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_hit_with_sphere",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_hit_with_sphere",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_hit_with_prim",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_hit_with_prim",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_process_normal",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_process_normal",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_alloc",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_alloc",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_fire_pos",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_fire_pos",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_dissapear",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_dissapear",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_shoot",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_shoot",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_is_stacked",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_is_stacked",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_convert_stationary_to_moving",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_convert_stationary_to_moving",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_convert_moving_to_stationary",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_convert_moving_to_stationary",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_FLAG_STACKED",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_FLAG_STACKED",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_FLAG_STILL",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_FLAG_STILL",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_FLAG_GROUNDED",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_FLAG_GROUNDED",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_FLAG_HELD",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_FLAG_HELD",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_FLAG_HIT",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_FLAG_HIT",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_FLAG_RUBBISH",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_FLAG_RUBBISH",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_FLAG_CANS",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_FLAG_CANS",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_DIAMETER",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_DIAMETER",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_RADIUS",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_RADIUS",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_HEIGHT",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_HEIGHT",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_STACK_RADIUS",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_STACK_RADIUS",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_SPHERE_RADIUS",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_SPHERE_RADIUS",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_SPHERE_DIST",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_SPHERE_DIST",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_GRAVITY",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_GRAVITY",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_MAX_FIND",
+      "file": "new/actors/items/barrel_globals.h",
+      "orig_name": "BARREL_MAX_FIND",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_sphere",
+      "file": "new/actors/items/barrel_globals.cpp",
+      "orig_name": "BARREL_sphere",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_sphere_last",
+      "file": "new/actors/items/barrel_globals.cpp",
+      "orig_name": "BARREL_sphere_last",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_barrel",
+      "file": "new/actors/items/barrel_globals.cpp",
+      "orig_name": "BARREL_barrel",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_barrel_upto",
+      "file": "new/actors/items/barrel_globals.cpp",
+      "orig_name": "BARREL_barrel_upto",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_fx_rate",
+      "file": "new/actors/items/barrel_globals.cpp",
+      "orig_name": "BARREL_fx_rate",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "found_barrel",
+      "file": "new/actors/items/barrel_globals.cpp",
+      "orig_name": "found_barrel",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_state_function",
+      "file": "new/actors/animals/canid_globals.cpp",
+      "orig_name": "CANID_state_function",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_register",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_register",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_init",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_init",
+      "orig_file": "fallen/Headers/canid.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_normal",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_normal",
+      "orig_file": "fallen/Headers/canid.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_fn_init",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_fn_init",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_fn_normal",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_fn_normal",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_SUBSTATE_NONE",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_SUBSTATE_NONE",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_SUBSTATE_SLEEP",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_SUBSTATE_SLEEP",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_SUBSTATE_PROWL",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_SUBSTATE_PROWL",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_SUBSTATE_CHASE",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_SUBSTATE_CHASE",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_SUBSTATE_FLEE",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_SUBSTATE_FLEE",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_SUBSTATE_BARK",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_SUBSTATE_BARK",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_SUBSTATE_NUMBER",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_SUBSTATE_NUMBER",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_MAX_SENSE",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_MAX_SENSE",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_SENSE_RADIUS",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_SENSE_RADIUS",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_spheres_get",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_spheres_get",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_spheres_give",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_spheres_give",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_stacked_sphere",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_stacked_sphere",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_hit_noise",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_hit_noise",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_process_sphere",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_process_sphere",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BARREL_push_apart",
+      "file": "new/actors/items/barrel.cpp",
+      "orig_name": "BARREL_push_apart",
+      "orig_file": "fallen/Source/barrel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_Homing",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_Homing",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_6sense",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_6sense",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_can_see",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_can_see",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_LOS",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_LOS",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_init_sleep",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_init_sleep",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_init_bark",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_init_bark",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_init_prowl",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_init_prowl",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_init_chase",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_init_chase",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_start_doing_something",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_start_doing_something",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_process_sleep",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_process_sleep",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_process_bark",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_process_bark",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_process_prowl",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_process_prowl",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CANID_process_chase",
+      "file": "new/actors/animals/canid.cpp",
+      "orig_name": "CANID_process_chase",
+      "orig_file": "fallen/Source/canid.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
