@@ -1,29 +1,22 @@
 #include "game.h"
-#include "drip.h"
+#include "effects/drip.h"
+#include "effects/drip_globals.h"
 #include "pap.h"
 #include "psystem.h"
-#include "poly.h"
+#include "engine/graphics/pipeline/poly.h"
 #include "puddle.h"
 #include "mav.h"
-
 #include "memory.h"
 
-typedef struct
-{
-    UWORD x;
-    SWORD y;
-    UWORD z;
-    UBYTE size;
-    UBYTE fade; // 0 => No drip.
-    UBYTE flags;
+// Starting fade and size for a newly created drip.
+#define DRIP_SFADE (255)
+#define DRIP_SSIZE (rand() & 0x7)
 
-} DRIP_Drip;
+// Per-tick changes applied in DRIP_process.
+#define DRIP_DFADE 16
+#define DRIP_DSIZE 4
 
-#define DRIP_MAX_DRIPS 1024
-
-DRIP_Drip DRIP_drip[DRIP_MAX_DRIPS];
-SLONG DRIP_last;
-
+// uc_orig: DRIP_init (fallen/Source/drip.cpp)
 void DRIP_init()
 {
     SLONG i;
@@ -33,12 +26,7 @@ void DRIP_init()
     }
 }
 
-#define DRIP_SFADE (255)
-#define DRIP_SSIZE (rand() & 0x7)
-
-#define DRIP_DFADE 16
-#define DRIP_DSIZE 4
-
+// uc_orig: DRIP_create (fallen/Source/drip.cpp)
 void DRIP_create(
     UWORD x,
     SWORD y,
@@ -56,6 +44,7 @@ void DRIP_create(
     DRIP_drip[DRIP_last].flags = flags;
 }
 
+// uc_orig: DRIP_create_if_in_puddle (fallen/Source/drip.cpp)
 void DRIP_create_if_in_puddle(
     UWORD x,
     SWORD y,
@@ -93,6 +82,7 @@ void DRIP_create_if_in_puddle(
     }
 }
 
+// uc_orig: DRIP_process (fallen/Source/drip.cpp)
 void DRIP_process()
 {
     SLONG i;
@@ -121,13 +111,13 @@ void DRIP_process()
     }
 }
 
-SLONG DRIP_get_upto;
-
+// uc_orig: DRIP_get_start (fallen/Source/drip.cpp)
 void DRIP_get_start()
 {
     DRIP_get_upto = 0;
 }
 
+// uc_orig: DRIP_get_next (fallen/Source/drip.cpp)
 DRIP_Info* DRIP_get_next()
 {
     DRIP_Info* di;

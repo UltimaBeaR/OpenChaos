@@ -17969,6 +17969,836 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_MAX_POINTS",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_MAX_POINTS",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_TYPE_POINT",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_TYPE_POINT",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_TYPE_LIMB",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_TYPE_LIMB",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_TYPE_GROUND",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_TYPE_GROUND",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_TYPE_CIRCULAR",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_TYPE_CIRCULAR",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_FLAG_CLAMP_X",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_FLAG_CLAMP_X",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_FLAG_CLAMP_Y",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_FLAG_CLAMP_Y",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_FLAG_CLAMP_Z",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_FLAG_CLAMP_Z",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_FLAG_FAST",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_FLAG_FAST",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_FLAG_SLOW",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_FLAG_SLOW",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_FLAG_DART_ABOUT",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_FLAG_DART_ABOUT",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_FLAG_STILL",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_FLAG_STILL",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_Pinfo",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_Pinfo",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_Info",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_Info",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_init",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_init",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_create",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_create",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_in_sphere",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_in_sphere",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_show_electric_fences",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_show_electric_fences",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_process",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_process",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_start",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_get_start",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_next",
+      "file": "new/effects/spark.h",
+      "orig_name": "SPARK_get_next",
+      "orig_file": "fallen/Headers/spark.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_Point",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_Point",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_MAX_SPARKS",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_MAX_SPARKS",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_Spark",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_Spark",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_spark",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_spark",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_spark_last",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_spark_last",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_mapwho",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_mapwho",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_z",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_z",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_xmin",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_xmin",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_xmax",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_xmax",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_spark",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_spark",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_point",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_point",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_info",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_info",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_x1",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_x1",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_y1",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_y1",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_z1",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_z1",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_x2",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_x2",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_y2",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_y2",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_get_z2",
+      "file": "new/effects/spark_globals.h",
+      "orig_name": "SPARK_get_z2",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_point_set_velocity",
+      "file": "new/effects/spark.cpp",
+      "orig_name": "SPARK_point_set_velocity",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_point_pos",
+      "file": "new/effects/spark.cpp",
+      "orig_name": "SPARK_point_pos",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_new_point",
+      "file": "new/effects/spark.cpp",
+      "orig_name": "SPARK_new_point",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_create_auxillary",
+      "file": "new/effects/spark.cpp",
+      "orig_name": "SPARK_create_auxillary",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_find_midpoint",
+      "file": "new/effects/spark.cpp",
+      "orig_name": "SPARK_find_midpoint",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_build_spark",
+      "file": "new/effects/spark.cpp",
+      "orig_name": "SPARK_build_spark",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_MAX_CHOICES",
+      "file": "new/effects/spark.cpp",
+      "orig_name": "SPARK_MAX_CHOICES",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPARK_MAX_DONE",
+      "file": "new/effects/spark.cpp",
+      "orig_name": "SPARK_MAX_DONE",
+      "orig_file": "fallen/Source/spark.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_RIBBONS",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "MAX_RIBBONS",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_RIBBON_SIZE",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "MAX_RIBBON_SIZE",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_FLAG_USED",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_FLAG_USED",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_FLAG_FADE",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_FLAG_FADE",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_FLAG_SLIDE",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_FLAG_SLIDE",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_FLAG_DOUBLED",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_FLAG_DOUBLED",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_FLAG_CONVECT",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_FLAG_CONVECT",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_FLAG_IALPHA",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_FLAG_IALPHA",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Ribbon",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "Ribbon",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_init",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_init",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_draw",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_draw",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_process",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_process",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_alloc",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_alloc",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_free",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_free",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_extend",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_extend",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_length",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_length",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RIBBON_life",
+      "file": "new/effects/ribbon.h",
+      "orig_name": "RIBBON_life",
+      "orig_file": "fallen/Headers/ribbon.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ribbon_Ribbons",
+      "file": "new/effects/ribbon_globals.h",
+      "orig_name": "Ribbons",
+      "orig_file": "fallen/Source/ribbon.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Coord",
+      "file": "new/effects/ribbon.cpp",
+      "orig_name": "Coord",
+      "orig_file": "fallen/Source/ribbon.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_FLAG_PUDDLES_ONLY",
+      "file": "new/effects/drip.h",
+      "orig_name": "DRIP_FLAG_PUDDLES_ONLY",
+      "orig_file": "fallen/Headers/drip.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_Info",
+      "file": "new/effects/drip.h",
+      "orig_name": "DRIP_Info",
+      "orig_file": "fallen/Headers/drip.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_init",
+      "file": "new/effects/drip.h",
+      "orig_name": "DRIP_init",
+      "orig_file": "fallen/Headers/drip.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_create",
+      "file": "new/effects/drip.h",
+      "orig_name": "DRIP_create",
+      "orig_file": "fallen/Headers/drip.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_create_if_in_puddle",
+      "file": "new/effects/drip.h",
+      "orig_name": "DRIP_create_if_in_puddle",
+      "orig_file": "fallen/Headers/drip.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_process",
+      "file": "new/effects/drip.h",
+      "orig_name": "DRIP_process",
+      "orig_file": "fallen/Headers/drip.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_get_start",
+      "file": "new/effects/drip.h",
+      "orig_name": "DRIP_get_start",
+      "orig_file": "fallen/Headers/drip.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_get_next",
+      "file": "new/effects/drip.h",
+      "orig_name": "DRIP_get_next",
+      "orig_file": "fallen/Headers/drip.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_MAX_DRIPS",
+      "file": "new/effects/drip_globals.h",
+      "orig_name": "DRIP_MAX_DRIPS",
+      "orig_file": "fallen/Source/drip.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_Drip",
+      "file": "new/effects/drip_globals.h",
+      "orig_name": "DRIP_Drip",
+      "orig_file": "fallen/Source/drip.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_drip",
+      "file": "new/effects/drip_globals.h",
+      "orig_name": "DRIP_drip",
+      "orig_file": "fallen/Source/drip.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_last",
+      "file": "new/effects/drip_globals.h",
+      "orig_name": "DRIP_last",
+      "orig_file": "fallen/Source/drip.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_get_upto",
+      "file": "new/effects/drip_globals.h",
+      "orig_name": "DRIP_get_upto",
+      "orig_file": "fallen/Source/drip.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_SFADE",
+      "file": "new/effects/drip.cpp",
+      "orig_name": "DRIP_SFADE",
+      "orig_file": "fallen/Source/drip.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_SSIZE",
+      "file": "new/effects/drip.cpp",
+      "orig_name": "DRIP_SSIZE",
+      "orig_file": "fallen/Source/drip.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_DFADE",
+      "file": "new/effects/drip.cpp",
+      "orig_name": "DRIP_DFADE",
+      "orig_file": "fallen/Source/drip.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRIP_DSIZE",
+      "file": "new/effects/drip.cpp",
+      "orig_name": "DRIP_DSIZE",
+      "orig_file": "fallen/Source/drip.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

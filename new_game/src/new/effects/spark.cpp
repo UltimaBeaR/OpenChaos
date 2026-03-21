@@ -1,75 +1,18 @@
 #include <MFStdLib.h>
 #include "game.h"
-#include "spark.h"
-#include "glitter.h"
+#include "effects/spark.h"
+#include "effects/spark_globals.h"
+#include "effects/glitter.h"
+#include "effects/glitter_globals.h"
 #include "sound.h"
 #include "pap.h"
-#include "mfx.h"
+#include "engine/audio/mfx.h"
 #include "memory.h"
 
-//
-// The points at the start and end of each spark.
-//
-
-typedef struct
-{
-    UBYTE type;
-    UBYTE flag;
-    UBYTE dist;
-    SBYTE dx;
-    SBYTE dy;
-    SBYTE dz;
-
-    union {
-        struct
-        {
-            UWORD x;
-            UWORD y;
-            UWORD z;
-        } Pos;
-
-        struct
-        {
-            UWORD person;
-            UWORD limb;
-        } Peep;
-    };
-
-} SPARK_Point;
-
-typedef struct
-{
-    UBYTE used;
-    UBYTE die;
-    UBYTE num_points;
-    UBYTE next;
-    UBYTE map_z;
-    UBYTE map_x;
-    UBYTE glitter;
-    UBYTE useless_padding;
-
-    SPARK_Point point[4];
-
-} SPARK_Spark;
-
-#define SPARK_MAX_SPARKS 32
-
-SPARK_Spark SPARK_spark[SPARK_MAX_SPARKS];
-SLONG SPARK_spark_last;
-
-//
-// The spark mapwho.
-//
-
-UBYTE SPARK_mapwho[MAP_HEIGHT];
-
+// uc_orig: SPARK_init (fallen/Source/spark.cpp)
 void SPARK_init()
 {
     SLONG i;
-
-    //
-    // Mark all the sparks as unused.
-    //
 
     for (i = 0; i < SPARK_MAX_SPARKS; i++) {
         SPARK_spark[i].used = FALSE;
@@ -77,31 +20,19 @@ void SPARK_init()
 
     SPARK_spark_last = 1;
 
-    //
-    // Clear the mapwho.
-    //
-
     for (i = 0; i < MAP_HEIGHT; i++) {
         SPARK_mapwho[i] = NULL;
     }
 }
 
-//
-// Initialises the movement vector of the given point.
-//
-
-void SPARK_point_set_velocity(SPARK_Point* sp)
+// Sets random velocity on a spark point. LIMB-type points have no movement.
+// uc_orig: SPARK_point_set_velocity (fallen/Source/spark.cpp)
+static void SPARK_point_set_velocity(SPARK_Point* sp)
 {
     if (sp->type == SPARK_TYPE_LIMB) {
-        //
-        // The values are ignored... so we dont  even have to
-        // set them to zero if we don't want to.
-        //
-
         sp->dx = 0;
         sp->dy = 0;
         sp->dz = 0;
-
         return;
     } else {
         SLONG dx = (rand() & 0xff) - 0x1f;
@@ -138,18 +69,14 @@ void SPARK_point_set_velocity(SPARK_Point* sp)
     }
 }
 
-//
-// Find the (x,y,z) of the given point.
-//
-
-void SPARK_point_pos(
+// Resolves the world position of a spark point. LIMB-type points track a character bone.
+// uc_orig: SPARK_point_pos (fallen/Source/spark.cpp)
+static void SPARK_point_pos(
     SPARK_Point* sp,
     SLONG* px,
     SLONG* py,
     SLONG* pz)
 {
-    CollisionVect* p_vect;
-
     if (sp->type == SPARK_TYPE_LIMB) {
         Thing* p_person = TO_THING(sp->Peep.person);
 
@@ -175,12 +102,9 @@ void SPARK_point_pos(
     }
 }
 
-//
-// Fills in the point structure with a new point somewhere
-// near the given sphere.
-//
-
-void SPARK_new_point(
+// Picks a new point near a sphere, preferring ground-level positions.
+// uc_orig: SPARK_new_point (fallen/Source/spark.cpp)
+static void SPARK_new_point(
     SLONG mid_x,
     SLONG mid_y,
     SLONG mid_z,
@@ -189,10 +113,6 @@ void SPARK_new_point(
 {
     SLONG i;
 
-    //
-    // Initialise with a circular spark going into the air somewhere.
-    //
-
     SLONG best_x = mid_x + (rand() & 0x3f) - 0x1f;
     SLONG best_y = mid_y + (rand() & 0x3f) - 0x1f;
     SLONG best_z = mid_z + (rand() & 0x3f) - 0x1f;
@@ -200,10 +120,6 @@ void SPARK_new_point(
     SLONG best_type = SPARK_TYPE_CIRCULAR;
     SLONG best_dist = radius;
     SLONG best_score = radius;
-
-    //
-    // Look for points on the ground...
-    //
 
     SLONG x;
     SLONG y;
@@ -227,10 +143,6 @@ void SPARK_new_point(
 
         dist = QDIST3(dx, dy, dz);
 
-        //
-        // Is this any good?
-        //
-
         score = dist;
 
         if (score < best_score) {
@@ -243,10 +155,6 @@ void SPARK_new_point(
         }
     }
 
-    //
-    // Create the new point.
-    //
-
     sp->Pos.x = best_x;
     sp->Pos.y = best_y;
     sp->Pos.z = best_z;
@@ -257,11 +165,9 @@ void SPARK_new_point(
     SPARK_point_set_velocity(sp);
 }
 
-//
-// Creates new auxillary points (2 and/or 3) for the given spark.
-//
-
-void SPARK_create_auxillary(
+// Creates the two auxiliary branch points (indices 2 and 3) for an existing spark.
+// uc_orig: SPARK_create_auxillary (fallen/Source/spark.cpp)
+static void SPARK_create_auxillary(
     SPARK_Spark* ss,
     UBYTE point_2,
     UBYTE point_3)
@@ -275,10 +181,6 @@ void SPARK_create_auxillary(
 
     SPARK_point_pos(&ss->point[0], &px1, &py1, &pz1);
     SPARK_point_pos(&ss->point[1], &px2, &py2, &pz2);
-
-    //
-    // Create a couple of other smaller tendrils.
-    //
 
     SLONG dx = px2 - px1;
     SLONG dy = py2 - py1;
@@ -321,6 +223,7 @@ void SPARK_create_auxillary(
     }
 }
 
+// uc_orig: SPARK_create (fallen/Source/spark.cpp)
 void SPARK_create(
     SPARK_Pinfo* p1,
     SPARK_Pinfo* p2,
@@ -333,10 +236,6 @@ void SPARK_create(
     if (max_life == 0) {
         max_life = 1;
     }
-
-    //
-    // Look for an unused spark structure...
-    //
 
     for (i = 0; i < SPARK_MAX_SPARKS; i++) {
         SPARK_spark_last += 1;
@@ -352,10 +251,6 @@ void SPARK_create(
         }
     }
 
-    //
-    // No spare spark structures.
-    //
-
     return;
 
 found_spare_spark:;
@@ -363,11 +258,7 @@ found_spare_spark:;
     ss->used = TRUE;
     ss->die = rand() % max_life;
     ss->die += 8;
-    ss->glitter = NULL; // To be created later... maybe!
-
-    //
-    // Create the first two points.
-    //
+    ss->glitter = NULL;
 
     ss->num_points = 4;
 
@@ -395,16 +286,8 @@ found_spare_spark:;
         ss->point[1].Peep.limb = p2->limb;
     }
 
-    //
-    // Set the velocity of the points.
-    //
-
     SPARK_point_set_velocity(&ss->point[0]);
     SPARK_point_set_velocity(&ss->point[1]);
-
-    //
-    // Where shall we locate this spark?
-    //
 
     SLONG px1;
     SLONG py1;
@@ -427,13 +310,10 @@ found_spare_spark:;
         ss->glitter = GLITTER_create(0, mx, mz, 0x005566ff);
     }
 
-    //
-    // Create a couple of other smaller tendrils.
-    //
-
     SPARK_create_auxillary(ss, TRUE, TRUE);
 }
 
+// uc_orig: SPARK_process (fallen/Source/spark.cpp)
 void SPARK_process()
 {
     SLONG i;
@@ -455,14 +335,7 @@ void SPARK_process()
         if (ss->die == 0) {
             ss->used = FALSE;
 
-            //
-            // Kill off the glitter object.
-            //
             GLITTER_destroy(ss->glitter);
-
-            //
-            // Take this spark out of the linked list.
-            //
 
             UBYTE next;
             UBYTE* prev;
@@ -472,12 +345,7 @@ void SPARK_process()
 
             while (1) {
                 if (next == i) {
-                    //
-                    // Found our spark.
-                    //
-
                     *prev = ss->next;
-
                     break;
                 } else {
                     ASSERT(WITHIN(next, 1, SPARK_MAX_SPARKS - 1));
@@ -498,10 +366,6 @@ void SPARK_process()
                     sp->Pos.z += sp->dz >> 4;
 
                     if (sp->type == SPARK_TYPE_CIRCULAR) {
-                        //
-                        // MAKE THE POINT sp->dist DISTANCE FROM ss->point[0]...
-                        //
-
                         sp->dx = 0;
                         sp->dy = 0;
                         sp->dz = 0;
@@ -515,15 +379,10 @@ void SPARK_process()
                 }
             }
 
-            //
-            // Create new sparks?
-            //
-
             point_2 = ((rand() & 0xf) == (i & 0xf));
             point_3 = ((rand() & 0xf) == (i & 0xf));
 
             if (point_2 | point_3) {
-
                 //				play_quick_wave_xyz(ss->map_x<<16,256<<8,ss->map_z<<16,S_ELEC_START+(i%5),point_3,WAVE_PLAY_INTERUPT);
                 MFX_play_xyz(point_3, S_ELEC_START + (i % 5), ss->map_x << 16, 256 << 8, ss->map_z << 16, MFX_REPLACE);
 
@@ -532,10 +391,6 @@ void SPARK_process()
                     point_2,
                     point_3);
             }
-
-            //
-            // Create a glittery spark at the end of one of the tendrils.
-            //
 
             {
                 SLONG px;
@@ -560,7 +415,10 @@ void SPARK_process()
     }
 }
 
-void SPARK_find_midpoint(
+// Calculates a perturbed midpoint between two world-space endpoints.
+// Used to build the jagged lightning polyline.
+// uc_orig: SPARK_find_midpoint (fallen/Source/spark.cpp)
+static void SPARK_find_midpoint(
     SLONG x1, SLONG y1, SLONG z1,
     SLONG x2, SLONG y2, SLONG z2,
     SLONG* mx, SLONG* my, SLONG* mz)
@@ -575,21 +433,14 @@ void SPARK_find_midpoint(
         dist = 4;
     }
 
-    //
-    // Create the mid point.
-    //
-
     *mx = (x1 + dx) + (rand() % (dist >> 1)) - (dist >> 2);
     *my = (y1 + dy) + (rand() % (dist >> 2));
     *mz = (z1 + dz) + (rand() % (dist >> 1)) - (dist >> 2);
 }
 
-//
-// Fills the (x,y,z)s of the given SPARK_Info structure with a spark between
-// the two given points.
-//
-
-void SPARK_build_spark(
+// Fills si with a 5-point jagged lightning path between the two endpoints.
+// uc_orig: SPARK_build_spark (fallen/Source/spark.cpp)
+static void SPARK_build_spark(
     SPARK_Info* si,
     SLONG x1, SLONG y1, SLONG z1,
     SLONG x2, SLONG y2, SLONG z2)
@@ -601,10 +452,6 @@ void SPARK_build_spark(
     si->x[4] = x2;
     si->y[4] = y2;
     si->z[4] = z2;
-
-    //
-    // Create the middle points.
-    //
 
     SPARK_find_midpoint(
         si->x[0], si->y[0], si->z[0],
@@ -622,19 +469,7 @@ void SPARK_build_spark(
         &si->x[3], &si->y[3], &si->z[3]);
 }
 
-UBYTE SPARK_get_z;
-UBYTE SPARK_get_xmin;
-UBYTE SPARK_get_xmax;
-UBYTE SPARK_get_spark;
-UBYTE SPARK_get_point;
-SPARK_Info SPARK_get_info;
-SLONG SPARK_get_x1;
-SLONG SPARK_get_y1;
-SLONG SPARK_get_z1;
-SLONG SPARK_get_x2;
-SLONG SPARK_get_y2;
-SLONG SPARK_get_z2;
-
+// uc_orig: SPARK_get_start (fallen/Source/spark.cpp)
 void SPARK_get_start(UBYTE xmin, UBYTE xmax, UBYTE z)
 {
     SPARK_get_xmin = xmin;
@@ -649,6 +484,7 @@ void SPARK_get_start(UBYTE xmin, UBYTE xmax, UBYTE z)
     }
 }
 
+// uc_orig: SPARK_get_next (fallen/Source/spark.cpp)
 SPARK_Info* SPARK_get_next()
 {
     SPARK_Spark* ss;
@@ -662,10 +498,6 @@ tail_recurse:;
     ASSERT(WITHIN(SPARK_get_spark, 0, SPARK_MAX_SPARKS - 1));
 
     ss = &SPARK_spark[SPARK_get_spark];
-
-    //
-    // Only used sparks should be in the mapwho...
-    //
 
     ASSERT(ss->used);
 
@@ -682,10 +514,6 @@ tail_recurse:;
         goto tail_recurse;
     }
 
-    //
-    // The two points we build the spark between.
-    //
-
     SPARK_Point* sp1;
     SPARK_Point* sp2;
     SPARK_Point* sp;
@@ -699,10 +527,6 @@ tail_recurse:;
 
         SPARK_point_pos(sp1, &x1, &y1, &z1);
         SPARK_point_pos(sp2, &x2, &y2, &z2);
-
-        //
-        // Build the spark info...
-        //
 
         SPARK_get_info.num_points = 5;
         SPARK_get_info.colour = 0x002233ff;
@@ -722,10 +546,6 @@ tail_recurse:;
         SPARK_get_z2 = SPARK_get_info.z[3];
     } else {
         if ((rand() & 0xf) > ss->die) {
-            //
-            // Dont draw the extra sparks if it is dying out...
-            //
-
             SPARK_get_point += 1;
 
             goto tail_recurse;
@@ -745,10 +565,6 @@ tail_recurse:;
             z1 = SPARK_get_z2;
         }
 
-        //
-        // Build the spark info...
-        //
-
         SPARK_get_info.num_points = 5;
         SPARK_get_info.colour = 0x001825dd;
         SPARK_get_info.size = 20;
@@ -764,6 +580,7 @@ tail_recurse:;
     return &SPARK_get_info;
 }
 
+// uc_orig: SPARK_in_sphere (fallen/Source/spark.cpp)
 void SPARK_in_sphere(
     SLONG mid_x,
     SLONG mid_y,
@@ -773,9 +590,6 @@ void SPARK_in_sphere(
     UBYTE max_create)
 {
     SLONG i;
-    SLONG j;
-
-    SLONG num;
 
     SLONG x1;
     SLONG z1;
@@ -784,33 +598,6 @@ void SPARK_in_sphere(
 
     SLONG mx;
     SLONG mz;
-
-    SLONG dmx;
-    SLONG dmz;
-
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
-    SLONG dist;
-
-    SLONG along;
-
-    SLONG px;
-    SLONG py;
-    SLONG pz;
-
-    SLONG gx;
-    SLONG gy;
-    SLONG gz;
-
-    THING_INDEX t_index;
-
-    Thing* p_thing;
-    MapElement* me;
-
-    //
-    // All the places we could put a spark.
-    //
 
 #define SPARK_MAX_CHOICES 16
 
@@ -825,18 +612,10 @@ void SPARK_in_sphere(
     SPARK_Pinfo* sp1;
     SPARK_Pinfo* sp2;
 
-    //
-    // The colvects we have done already.
-    //
-
 #define SPARK_MAX_DONE 64
 
     UWORD done[SPARK_MAX_DONE];
     SLONG done_upto = 0;
-
-    //
-    // The mapsquares to search.
-    //
 
     x1 = mid_x - radius >> 8;
     z1 = mid_z - radius >> 8;
@@ -848,106 +627,13 @@ void SPARK_in_sphere(
     SATURATE(x2, 0, MAP_WIDTH - 1);
     SATURATE(z2, 0, MAP_HEIGHT - 1);
 
-    //
-    // Look for colvects or prims for the sparks to start from...
-    //
-
     for (mx = x1; mx <= x2; mx++)
         for (mz = z1; mz <= z2; mz++) {
-            me = &MAP[MAP_INDEX(mx, mz)];
+            MapElement* me = &MAP[MAP_INDEX(mx, mz)];
 
             /*
-
-            //
-            // Any prims on this square?
-            //
-
-            t_index = me->MapWho;
-
-            while(t_index)
-            {
-                    p_thing = TO_THING(t_index);
-
-                    if (p_thing->Class == CLASS_FURNITURE || p_thing->Class == CLASS_VEHICLE)
-                    {
-                            //
-                            // Pick a random point on the prim.
-                            //
-
-                            get_rotated_point_world_pos(
-                                    -1,
-                                    p_thing->Draw.Mesh->ObjectId,
-                                    p_thing->WorldPos.X >> 8,
-                                    p_thing->WorldPos.Y >> 8,
-                                    p_thing->WorldPos.Z >> 8,
-                                    p_thing->Draw.Mesh->Angle,
-                                    p_thing->Draw.Mesh->Tilt,
-                                    p_thing->Draw.Mesh->Roll,
-                                    &px,
-                                    &py,
-                                    &pz);
-
-                            dx = abs(px - mid_x);
-                            dy = abs(py - mid_y);
-                            dz = abs(pz - mid_z);
-
-                            dist = QDIST3(dx,dy,dz);
-
-                            if (dist < radius)
-                            {
-                                    //
-                                    // Pick a point on the ground for the spark to go to.
-                                    //
-
-                                    dx = px - (p_thing->WorldPos.X >> 8) >> 1;
-                                    dz = pz - (p_thing->WorldPos.Z >> 8) >> 1;
-
-                                    gx = px + dx;
-                                    gz = pz + dz;
-
-                                    dy = calc_map_height_at(gx,gz);
-
-                                    //
-                                    // Make this one of our choices.
-                                    //
-
-                                    if (choice_upto < SPARK_MAX_CHOICES)
-                                    {
-                                            sp1 = &choice[choice_upto].p1;
-                                            sp2 = &choice[choice_upto].p2;
-
-                                            choice_upto += 1;
-                                    }
-                                    else
-                                    {
-                                            SLONG overwrite = rand() % SPARK_MAX_CHOICES;
-
-                                            sp1 = &choice[overwrite].p1;
-                                            sp2 = &choice[overwrite].p2;
-                                    }
-
-                                    sp1->type = SPARK_TYPE_POINT;
-                                    sp1->flag = SPARK_FLAG_STILL;
-                                    sp1->x    = px;
-                                    sp1->y    = py;
-                                    sp1->z    = pz;
-
-                                    sp2->type = SPARK_TYPE_GROUND;
-                                    sp2->flag = SPARK_FLAG_SLOW | SPARK_FLAG_DART_ABOUT;
-                                    sp2->x    = gx;
-                                    sp2->y    = gy;
-                                    sp2->z    = gz;
-                            }
-                    }
-
-                    t_index = p_thing->Child;
-            }
-
+            // (prim-based spark origins — commented out in original)
             */
-
-            //
-            // Any colvects?
-            //
 
             SLONG v_list;
             SLONG i_vect;
@@ -956,10 +642,6 @@ void SPARK_in_sphere(
 
             v_list = MAP2(mx, mz).ColVectHead;
         }
-
-    //
-    // Create the sparks!
-    //
 
     SLONG choose;
 
@@ -978,6 +660,7 @@ void SPARK_in_sphere(
     }
 }
 
+// uc_orig: SPARK_show_electric_fences (fallen/Source/spark.cpp)
 void SPARK_show_electric_fences()
 {
     SLONG i;
@@ -1000,10 +683,6 @@ void SPARK_show_electric_fences()
         df = &dfacets[i];
 
         if (df->FacetFlags & FACET_FLAG_ELECTRIFIED) {
-            //
-            // Find a random place along the fence.
-            //
-
             dx = df->x[1] - df->x[0] << 8;
             dz = df->z[1] - df->z[0] << 8;
 

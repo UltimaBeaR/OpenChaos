@@ -128,6 +128,12 @@ set(SOURCES_NEW
     src/new/effects/mist_globals.cpp
     src/new/effects/glitter.cpp
     src/new/effects/glitter_globals.cpp
+    src/new/effects/spark.cpp
+    src/new/effects/spark_globals.cpp
+    src/new/effects/ribbon.cpp
+    src/new/effects/ribbon_globals.cpp
+    src/new/effects/drip.cpp
+    src/new/effects/drip_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -193,7 +199,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/dirt.cpp
     src/old/fallen/Source/door.cpp
     src/old/fallen/Source/drawtype.cpp
-    src/old/fallen/Source/drip.cpp
     src/old/fallen/Source/Effect.cpp
     src/old/fallen/Source/elev.cpp
     src/old/fallen/Source/Enemy.cpp
@@ -237,7 +242,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/pyro.cpp
     src/old/fallen/Source/qedit.cpp
     src/old/fallen/Source/qmap.cpp
-    src/old/fallen/Source/ribbon.cpp
     src/old/fallen/Source/road.cpp
     src/old/fallen/Source/Roper.cpp
     src/old/fallen/Source/save.cpp
@@ -246,7 +250,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/snipe.cpp
     src/old/fallen/Source/Sound.cpp
     src/old/fallen/Source/soundenv.cpp
-    src/old/fallen/Source/spark.cpp
     src/old/fallen/Source/Special.cpp
     src/old/fallen/Source/stair.cpp
     src/old/fallen/Source/startscr.cpp

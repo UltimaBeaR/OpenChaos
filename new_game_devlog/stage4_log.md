@@ -260,6 +260,16 @@ Entity mapping обновлён (33 записи — file path).
 
 ---
 
+## Итерация 27 — effects/spark + effects/ribbon + effects/drip (2026-03-21)
+
+- `spark.h` включает `fallen/Headers/Game.h` для `THING_INDEX` (используется в `SPARK_Pinfo.person`)
+- `spark_globals.h` включает `fallen/Headers/Map.h` для `MAP_HEIGHT` (размер массива `SPARK_mapwho`)
+- `Ribbons[]` (static file-private в оригинале) → переименована в `ribbon_Ribbons` (conflict rename, флаг `--conflict`)
+- `NextRibbon` в `RIBBON_alloc` — static local внутри функции, остаётся в `.cpp` (не file-scope global)
+- `ribbon.cpp` включает `DrawXtra.h` — временный include для `RIBBON_draw_ribbon` (drawxtra.cpp не мигрирован)
+
+---
+
 ## Итерация 26 — effects/fire + effects/mist + effects/glitter (2026-03-21)
 
 - Первая итерация в новой директории `effects/` (game-level) — создана
