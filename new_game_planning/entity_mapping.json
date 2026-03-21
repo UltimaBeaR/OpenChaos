@@ -46289,6 +46289,996 @@
       "conflict": true,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_TYPE_UNUSED",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_TYPE_UNUSED",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_TYPE_BAT",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_TYPE_BAT",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_TYPE_GARGOYLE",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_TYPE_GARGOYLE",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_TYPE_BALROG",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_TYPE_BALROG",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_TYPE_BANE",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_TYPE_BANE",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Bat",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "Bat",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BatPtr",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BatPtr",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RBAT_MAX_BATS",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "RBAT_MAX_BATS",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_MAX_BATS",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_MAX_BATS",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_init",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_init",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_create",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_create",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_apply_hit",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_apply_hit",
+      "orig_file": "fallen/Headers/bat.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_normal",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_normal",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_change_state",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_change_state",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_set_anim",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_set_anim",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_animate",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_animate",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_turn_to_target",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_turn_to_target",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_turn_to_place",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_turn_to_place",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_emit_fireball",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_emit_fireball",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_balrog_slide_along",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_balrog_slide_along",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_find_summon_people",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_find_summon_people",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_process_bane_sparks",
+      "file": "new/actors/animals/bat.h",
+      "orig_name": "BAT_process_bane_sparks",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUMMON_NUM_BODIES",
+      "file": "new/actors/animals/bat_globals.h",
+      "orig_name": "BAT_SUMMON_NUM_BODIES",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_summon",
+      "file": "new/actors/animals/bat_globals.h",
+      "orig_name": "BAT_summon",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_state_name",
+      "file": "new/actors/animals/bat_globals.h",
+      "orig_name": "BAT_state_name",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_FLAG_ATTACKED",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_FLAG_ATTACKED",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_FLAG_SYNC_FX",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_FLAG_SYNC_FX",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_FLAG_SYNC_FX2",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_FLAG_SYNC_FX2",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_TICKS_PER_SECOND",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_TICKS_PER_SECOND",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_IDLE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_IDLE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_GOTO",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_GOTO",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_CIRCLE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_CIRCLE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_ATTACK",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_ATTACK",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_DYING",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_DYING",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_DEAD",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_DEAD",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_GROUND",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_GROUND",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_RECOIL",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_RECOIL",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BALROG_WANDER",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BALROG_WANDER",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BALROG_ROAR",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BALROG_ROAR",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BALROG_FOLLOW",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BALROG_FOLLOW",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BALROG_CHARGE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BALROG_CHARGE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BALROG_SWIPE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BALROG_SWIPE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BALROG_STOMP",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BALROG_STOMP",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BALROG_FIREBALL",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BALROG_FIREBALL",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BALROG_IDLE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BALROG_IDLE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BANE_IDLE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BANE_IDLE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BANE_ATTACK",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BANE_ATTACK",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_BANE_START",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_BANE_START",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_STATE_NUMBER",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_STATE_NUMBER",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_NONE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_NONE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_CIRCLE_HOME",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_CIRCLE_HOME",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_CIRCLE_TARGET",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_CIRCLE_TARGET",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_CIRCLE_WANT",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_CIRCLE_WANT",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_GROUND_WAIT",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_GROUND_WAIT",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_GROUND_WAKE_UP",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_GROUND_WAKE_UP",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_GROUND_FLY_UP",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_GROUND_FLY_UP",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_DEAD_INITIAL",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_DEAD_INITIAL",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_DEAD_LOOP",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_DEAD_LOOP",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_DEAD_FINAL",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_DEAD_FINAL",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_YOMP_START",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_YOMP_START",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_YOMP_MIDDLE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_YOMP_MIDDLE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_YOMP_END",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_YOMP_END",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_FIREBALL_TURN",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_FIREBALL_TURN",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_SUBSTATE_FIREBALL_FIRE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_SUBSTATE_FIREBALL_FIRE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BAT_FLY",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BAT_FLY",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BAT_DIE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BAT_DIE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GARGOYLE_WAIT",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GARGOYLE_WAIT",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GARGOYLE_WAKE_UP",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GARGOYLE_WAKE_UP",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GARGOYLE_FLY_UP",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GARGOYLE_FLY_UP",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GARGOYLE_FLY",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GARGOYLE_FLY",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GARGOYLE_FLY_FORWARDS",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GARGOYLE_FLY_FORWARDS",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GARGOYLE_ATTACK",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GARGOYLE_ATTACK",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GARGOYLE_TAKE_HIT",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GARGOYLE_TAKE_HIT",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GARGOYLE_START_FALL",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GARGOYLE_START_FALL",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GARGOYLE_FALL_LOOP",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GARGOYLE_FALL_LOOP",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GARGOYLE_HIT_GROUND",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GARGOYLE_HIT_GROUND",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BALROG_YOMP",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BALROG_YOMP",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BALROG_IDLE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BALROG_IDLE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BALROG_SWIPE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BALROG_SWIPE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BALROG_YOMP_START",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BALROG_YOMP_START",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BALROG_YOMP_END",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BALROG_YOMP_END",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BALROG_TURN",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BALROG_TURN",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BALROG_ROAR",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BALROG_ROAR",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BALROG_STOMP",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BALROG_STOMP",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BALROG_TAKE_HIT",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BALROG_TAKE_HIT",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BALROG_DIE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BALROG_DIE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BANE_IDLE",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BANE_IDLE",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_BANE_ATTACK",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_BANE_ATTACK",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GENERIC_FLY",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GENERIC_FLY",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_ANIM_GENERIC_TAKE_HIT",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_ANIM_GENERIC_TAKE_HIT",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_BALROG_WIDTH",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_BALROG_WIDTH",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_COLLIDE_XS",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_COLLIDE_XS",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_COLLIDE_XL",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_COLLIDE_XL",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_COLLIDE_ZS",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_COLLIDE_ZS",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_COLLIDE_ZL",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_COLLIDE_ZL",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_COLLIDE_SS",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_COLLIDE_SS",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_COLLIDE_LS",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_COLLIDE_LS",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_COLLIDE_SL",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_COLLIDE_SL",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BAT_COLLIDE_LL",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "BAT_COLLIDE_LL",
+      "orig_file": "fallen/Source/bat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

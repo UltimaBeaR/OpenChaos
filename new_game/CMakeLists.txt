@@ -207,6 +207,8 @@ set(SOURCES_NEW
     src/new/actors/characters/darci_globals.cpp
     src/new/actors/animals/animal.cpp
     src/new/actors/animals/animal_globals.cpp
+    src/new/actors/animals/bat.cpp
+    src/new/actors/animals/bat_globals.cpp
     src/new/actors/vehicles/chopper.cpp
     src/new/actors/vehicles/chopper_globals.cpp
     src/new/assets/startscr.cpp

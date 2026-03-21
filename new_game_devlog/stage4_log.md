@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 73 — actors/animals/bat (первый чанк: globals + BAT_find_summon_people..BAT_balrog_slide_along) (2026-03-21)
+
+- `old/fallen/Source/bat.cpp` (2908 строк) разбит: первый чанк (1342 строки) → `new/actors/animals/bat.cpp`.
+- `BAT_state_name[]` — в оригинале file-scope (не `static`), перенесён в `bat_globals.cpp`.
+- `BAT_summon[]` — аналогично, в `bat_globals.cpp`.
+- `BAT_ANIM_*` и прочие file-private макросы (`BAT_FLAG_*`, `BAT_STATE_*`, `BAT_SUBSTATE_*`, `BAT_COLLIDE_*`, `BAT_BALROG_WIDTH`, `BAT_TICKS_PER_SECOND`) остаются в `bat.cpp` (не в `.h`).
+- `advance_keyframe(DrawTween*)` — не в `darci.h` (там другая сигнатура); используется inline-`extern` forward declaration (паттерн из `animal.cpp`).
+- `is_person_dead`, `is_person_ko` — inline-`extern` forward declarations (паттерн из `guns.cpp`/`psystem.cpp`).
+- `set_person_float_up` — объявлена в `Person.h`, доступна через `Game.h`.
+- `pcom.h` — временный include (нужен `PCOM_AI_NONE`, `PCOM_AI_SUICIDE`), помечен `// Temporary:`.
+
+---
+
 ## Итерация 72 — missions/memory (второй чанк: convert_to_pointer + load + MEMORY_quick + save_dreamcast_wad) (2026-03-21)
 
 - `old/fallen/Source/memory.cpp` заменён redirect-заглушкой. `new/missions/memory.cpp` теперь полный.
