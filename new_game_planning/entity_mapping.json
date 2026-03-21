@@ -45429,6 +45429,656 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_Beacon",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "MAP_Beacon",
+      "orig_file": "fallen/Headers/memory.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_MAX_BEACONS",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "MAP_MAX_BEACONS",
+      "orig_file": "fallen/Headers/memory.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PSX_TEX",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "PSX_TEX",
+      "orig_file": "fallen/Headers/memory.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_ROOF_FACE4",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "MAX_ROOF_FACE4",
+      "orig_file": "fallen/Headers/memory.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAP_beacon",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "MAP_beacon",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "psx_textures_xy",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "psx_textures_xy",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "mem_all",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "mem_all",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "mem_all_size",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "mem_all_size",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "psx_remap",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "psx_remap",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "facet_links",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "facet_links",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "dbuildings",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "dbuildings",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "dfacets",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "dfacets",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "dwalkables",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "dwalkables",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "dstyles",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "dstyles",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "dstoreys",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "dstoreys",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "paint_mem",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "paint_mem",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "anim_mids",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "anim_mids",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_anim_mids",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "next_anim_mids",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "inside_storeys",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "inside_storeys",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "inside_stairs",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "inside_stairs",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "inside_block",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "inside_block",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "inside_tex",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "inside_tex",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "roof_bounds",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "roof_bounds",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "prim_points",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "prim_points",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "prim_faces4",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "prim_faces4",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "prim_faces3",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "prim_faces3",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "prim_objects",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "prim_objects",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "prim_multi_objects",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "prim_multi_objects",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "prim_normal",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "prim_normal",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "prim_info",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "prim_info",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_roof_face4",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "next_roof_face4",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "roof_faces4",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "roof_faces4",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "darci_normal",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "darci_normal",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "darci_normal_count",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "darci_normal_count",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_quick_avaliable",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "MEMORY_quick_avaliable",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "save_table",
+      "file": "new/missions/memory_globals.h",
+      "orig_name": "save_table",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "M_",
+      "file": "new/missions/memory_globals.cpp",
+      "orig_name": "M_",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEM_DYNAMIC",
+      "file": "new/missions/memory.h",
+      "orig_name": "MEM_DYNAMIC",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEM_STATIC",
+      "file": "new/missions/memory.h",
+      "orig_name": "MEM_STATIC",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_memory",
+      "file": "new/missions/memory.h",
+      "orig_name": "init_memory",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "release_memory",
+      "file": "new/missions/memory.h",
+      "orig_name": "release_memory",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_darci_normals",
+      "file": "new/missions/memory.h",
+      "orig_name": "set_darci_normals",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_drawtype_to_index",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_drawtype_to_index",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_thing_to_index",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_thing_to_index",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_pointers_to_index",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_pointers_to_index",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_keyframe_to_index",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_keyframe_to_index",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_animlist_to_index",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_animlist_to_index",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_fightcol_to_index",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_fightcol_to_index",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_keyframe_to_pointer",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_keyframe_to_pointer",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_animlist_to_pointer",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_animlist_to_pointer",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_fightcol_to_pointer",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_fightcol_to_pointer",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "save_whole_anims",
+      "file": "new/missions/memory.h",
+      "orig_name": "save_whole_anims",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_best_anim_offset_old",
+      "file": "new/missions/memory.h",
+      "orig_name": "find_best_anim_offset_old",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_best_anim_offset",
+      "file": "new/missions/memory.h",
+      "orig_name": "find_best_anim_offset",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "save_whole_game",
+      "file": "new/missions/memory.h",
+      "orig_name": "save_whole_game",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_index_to_pointers",
+      "file": "new/missions/memory.h",
+      "orig_name": "convert_index_to_pointers",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_whole_anims",
+      "file": "new/missions/memory.h",
+      "orig_name": "load_whole_anims",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "flag_v_faces",
+      "file": "new/missions/memory.h",
+      "orig_name": "flag_v_faces",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_whole_game",
+      "file": "new/missions/memory.h",
+      "orig_name": "load_whole_game",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "uncache",
+      "file": "new/missions/memory.h",
+      "orig_name": "uncache",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "save_dreamcast_wad",
+      "file": "new/missions/memory.h",
+      "orig_name": "save_dreamcast_wad",
+      "orig_file": "fallen/Source/memory.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_quick_init",
+      "file": "new/missions/memory.h",
+      "orig_name": "MEMORY_quick_init",
+      "orig_file": "fallen/Headers/memory.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_quick_save",
+      "file": "new/missions/memory.h",
+      "orig_name": "MEMORY_quick_save",
+      "orig_file": "fallen/Headers/memory.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_quick_load_available",
+      "file": "new/missions/memory.h",
+      "orig_name": "MEMORY_quick_load_available",
+      "orig_file": "fallen/Headers/memory.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEMORY_quick_load",
+      "file": "new/missions/memory.h",
+      "orig_name": "MEMORY_quick_load",
+      "orig_file": "fallen/Headers/memory.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

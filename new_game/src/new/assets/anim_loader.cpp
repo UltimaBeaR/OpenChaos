@@ -1,7 +1,7 @@
 #include "fallen/Headers/Game.h"   // Temporary: Game struct, ENGINE_palette macro, MFFileHandle, etc.
 #include "fallen/Headers/anim.h"   // Temporary: KeyFrameChunk, GameKeyFrameChunk, KeyFrameElement, etc.
 #include "fallen/Headers/prim.h"   // Temporary: prim_names[], next_prim_multi_object, prim type defs
-#include "fallen/Headers/memory.h" // Temporary: prim_points, prim_faces3/4, prim_objects, prim_multi_objects (not yet migrated)
+#include "missions/memory_globals.h" // Temporary: prim_points, prim_faces3/4, prim_objects, prim_multi_objects
 
 #include "assets/anim_loader.h"
 #include "assets/anim_loader_globals.h"

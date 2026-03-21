@@ -1,3 +1,7 @@
+// Redirect stub for memory.cpp — second chunk (not yet migrated to new/).
+// First chunk is in new/missions/memory.cpp + new/missions/memory_globals.cpp.
+// This file will become a single-line redirect once the second chunk is also migrated.
+
 #include "game.h"
 #include "ob.h"
 #include "memory.h"
@@ -8,7 +12,6 @@
 #include "barrel.h"
 #include "eway.h"
 #include "pap.h"
-#include "ob.h"
 #include "mav.h"
 #include "road.h"
 #include "balloon.h"
@@ -21,129 +24,16 @@
 #include "door.h"
 #include "spark.h"
 #include "playcuts.h"
-#include "eway.h"
 #include "statedef.h"
 #include "poly.h"
 #include "sound.h"
 
+#include "missions/memory.h"
+#include "missions/memory_globals.h"
+
 extern ULONG level_index;
-/*
-
-  //
-  // e3.ucm 16 aug 99
-  //
-
- MOSTspecialS 49
- MOSTmeshS 138
- MOSTtweenS 66
- MOSTCARS 29
- MOSTPEOPLE 66
-
- SAVE INGAME
- store data 4
- Pap_Hi -> 98304   tot 98304 (16384)
- Pap_Lo -> 8192   tot 106496 (1024)
- net_peep -> 40   tot 106536 (10)
- net_plyr -> 40   tot 106576 (10)
- f-links -> 10666   tot 117242 (5333/32000)
- dbuildings -> 4728   tot 121970 (197/1024)
- dfacets -> 71968   tot 193938 (2768/16384)
- dwalkables -> 5874   tot 199812 (267/2048)
- dstyles -> 8746   tot 208558 (4373/10000)
- dstoreys -> 3192   tot 211750 (532/10000)
- paintmem -> 2379   tot 214129 (2379/64000)
- insideStoreys -> 22   tot 214151 (1/2000)
- insideStairs -> 10   tot 214161 (1/8000)
- insideblock -> 1   tot 214162 (1/64000)
- roof bounds -> 6   tot 214168 (1/2000)
- prim_points -> 64170   tot 278338 (10695/65000)
- prim face 4 psx = 98568 was 139638
- prim_faces4 -> 98568   tot 376906 (4107/32760)
- prim face3 psx = 131460 was 184044
- prim_faces3 -> 131460   tot 508366 (6573/32000)
- prim_objects -> 8928   tot 517294 (558/2000)
- prim_Mobjects -> 136   tot 517430 (17/100)
- ob_ob -> 5776   tot 523206 (722/2048)
- ob_ mapwho -> 2048   tot 525254 (1024)
- EWAY_mess -> 280   tot 525534 (70/128)
- EWAY_mess buf -> 4651   tot 530185 (4651/8192)
- EWAY_timer -> 0   tot 530185 (32)
- EWAY_cond -> 114   tot 530299 (19/128)
- EWAY_way -> 10272   tot 540571 (321/512)
- EWAY_edef -> 900   tot 541471 (75/150)
- EWAY_counter -> 10   tot 541481 (10)
- vehicles -> 6120   tot 547601 (34)
- people -> 11008   tot 558609 (86)
- animals -> 120   tot 558729 (6)
- choppers -> 336   tot 559065 (4)
- pyro -> 2688   tot 561753 (32)
- players -> 272   tot 562025 (2)
- projectiles -> 80   tot 562105 (10)
- special -> 1980   tot 564085 (99)
- switches -> 56   tot 564141 (2)
- bats -> 320   tot 564461 (10)
- thing -> 23460   tot 587921 (391)
- drawtween -> 4472   tot 592393 (86)
- drawmesh -> 1680   tot 594073 (168)
- barrelsphere -> 2240   tot 596313 (80)
- barrels -> 354   tot 596667 (59/300)
- plat -> 12   tot 596679 (1/32)
- wmove -> 4608   tot 601287 (192)
- mav_opt -> 3220   tot 604507 (805/1024)
- mav_nav -> 32768   tot 637275 (16384)
- road_noads -> 150   tot 637425 (25/256)
- balloons -> 104   tot 637529 (1/32)
- tracks -> 1600   tot 639129 (50)
- roofface4 -> 31960   tot 671089 (3196/10000)
- fastnav -> 2048   tot 673137 (2048)
- night_slight -> 2048   tot 675185 (256/256)
- night_smap -> 2048   tot 677233 (1024)
- night_dlight -> 768   tot 678001 (64)
- WARE_ware -> 32   tot 678033 (1/32)
- WARE_nav -> 0   tot 678033 (0/4096)
- WARE_height -> 0   tot 678033 (0/8192)
- WARE_rooftex -> 0   tot 678033 (0/4096)
- Trip_Wire -> 14   tot 678047 (1/32)
- Road_edges -> 0   tot 678047 (0/8)
- Thing_heads -> 38   tot 678085 (19)
- psx_remap -> 256   tot 678341 (128)
- psx_tex_xy -> 2000   tot 680341 (1000)
- map_beacon -> 512   tot 680853 (32)
- cutscene_data -> 0   tot 680853 (0/20)
- cutscene_trks -> 0   tot 680853 (0/300)
- cutscene_pkts -> 0   tot 680853 (0/38400)
- cutscene_text -> 0   tot 680853 (0/4096)
- darci normal -> 482   tot 681335 (241/1200)
-
-*/
 extern void BAT_normal(Thing* p_thing);
-
-#define M_(x) x
-
-/*
-
-extern	SLONG FC_x;
-extern	SLONG FC_y;
-extern	SLONG FC_z;
-extern	SLONG FC_want_x;
-extern	SLONG FC_want_y;
-extern	SLONG FC_want_z;
-extern	SLONG FC_dx;
-extern	SLONG FC_dy;
-extern	SLONG FC_dz;
-extern	SLONG FC_yaw;
-extern	SLONG FC_pitch;
-extern	SLONG FC_roll;
-extern	SLONG FC_want_yaw;
-extern	SLONG FC_want_pitch;
-extern	SLONG FC_want_roll;
-extern	SLONG FC_lens ;	// Initialise this here because of the game editor!
-extern	SLONG FC_toonear;
-extern	SLONG FC_rotate;
-extern	SLONG FC_nobehind;
-extern	SLONG FC_lookabove;
-extern	UBYTE FC_shake;
-*/
+extern SLONG person_normal_animate(Thing* p_thing);
 
 extern ULONG NIGHT_amb_d3d_colour;
 extern ULONG NIGHT_amb_d3d_specular;
@@ -170,976 +60,38 @@ extern UWORD EWAY_fake_wander_text_guilty_number;
 extern UWORD EWAY_fake_wander_text_annoyed_index;
 extern UWORD EWAY_fake_wander_text_annoyed_number;
 
+extern SLONG EWAY_time_accurate;
+extern SLONG EWAY_time;
+extern SLONG EWAY_tick;
+
+extern SLONG EWAY_cam_active;
+extern SLONG EWAY_cam_x;
+extern SLONG EWAY_cam_y;
+extern SLONG EWAY_cam_z;
+extern SLONG EWAY_cam_dx;
+extern SLONG EWAY_cam_dy;
+extern SLONG EWAY_cam_dz;
+extern SLONG EWAY_cam_yaw;
+extern SLONG EWAY_cam_pitch;
+extern SLONG EWAY_cam_waypoint;
+extern SLONG EWAY_cam_target;
+extern SLONG EWAY_cam_delay;
+extern SLONG EWAY_cam_speed;
+extern SLONG EWAY_cam_freeze;
+extern SLONG EWAY_cam_cant_interrupt;
+
 extern UBYTE semtex;
 extern UBYTE estate;
 
 extern UWORD* thing_class_head;
 extern SWORD world_type;
 
-extern void PLAT_process(Thing* p_thing);
 extern SLONG TEXTURE_set;
-// extern	Thing *CAM_focus;
-
-void convert_index_to_pointers(void);
-
-SLONG load_anim_prim_object(SLONG prim);
-
-MAP_Beacon* MAP_beacon; //[MAP_MAX_BEACONS];
-
-PSX_TEX* psx_textures_xy; //[200][5];
-
-void* mem_all = 0;
-ULONG mem_all_size = 0;
-
-UWORD* psx_remap;
-
-//
-// supermap stuff to do with ingame facets facet textures inside buildings and walkable rooftops
-//
-
-SWORD* facet_links; //[MAX_FACET_LINK];
-
-struct DBuilding* dbuildings; //[MAX_DBUILDINGS];
-struct DFacet* dfacets; //[MAX_DFACETS	 ];
-struct DWalkable* dwalkables; //[MAX_DWALKABLES];
-SWORD* dstyles; //[MAX_DSTYLES	 ];
-struct DStorey* dstoreys; //[MAX_DSTOREYS];
-
-UBYTE* paint_mem; //[MAX_PAINTMEM];
-
-//
-// for compressed anims
-//
-
-struct PrimPoint* anim_mids; //[256];
-ULONG next_anim_mids = 0;
-
-//
-// from inside2
-//
-
-struct InsideStorey* inside_storeys; //[MAX_INSIDE_RECT];
-struct Staircase* inside_stairs; //[MAX_INSIDE_STAIRS];
-UBYTE* inside_block; //[MAX_INSIDE_MEM];
-UBYTE inside_tex[64][16];
-
-//
-// from building.cpp
-//
-
-struct BoundBox* roof_bounds; //[MAX_ROOF_BOUND];
-struct PrimPoint* prim_points; //[MAX_PRIM_POINTS];
-struct PrimFace4* prim_faces4; //[MAX_PRIM_FACES4];
-struct PrimFace3* prim_faces3; //[MAX_PRIM_FACES3];
-struct PrimObject* prim_objects; //[MAX_PRIM_OBJECTS];
-struct PrimMultiObject* prim_multi_objects; //[MAX_PRIM_MOBJECTS];
-PrimNormal* prim_normal; //[MAX_PRIM_POINTS];
-
-UWORD next_roof_face4 = 1;
-struct RoofFace4* roof_faces4;
-
-extern SLONG EWAY_time_accurate; // 1600 ticks per second
-extern SLONG EWAY_time; // 100  ticks per second
-extern SLONG EWAY_tick; // The amount of time since the last process waypoints: (100 ticks per sec.)
-
-//
-// The cut-scene camera.
-//
-
-extern SLONG EWAY_cam_active;
-extern SLONG EWAY_cam_x; // Big coordinates...
-extern SLONG EWAY_cam_y;
-extern SLONG EWAY_cam_z;
-extern SLONG EWAY_cam_dx;
-extern SLONG EWAY_cam_dy;
-extern SLONG EWAY_cam_dz;
-extern SLONG EWAY_cam_yaw;
-extern SLONG EWAY_cam_pitch;
-extern SLONG EWAY_cam_waypoint;
-extern SLONG EWAY_cam_target;
-extern SLONG EWAY_cam_delay;
-extern SLONG EWAY_cam_speed;
-extern SLONG EWAY_cam_freeze; // Stop the player moving.
-extern UBYTE* EWAY_counter;
-extern SLONG EWAY_cam_cant_interrupt;
-
-extern SLONG EWAY_cam_active;
-extern SLONG EWAY_cam_goinactive;
-extern SLONG EWAY_cam_x; // Big coordinates...
-extern SLONG EWAY_cam_y;
-extern SLONG EWAY_cam_z;
-extern SLONG EWAY_cam_dx;
-extern SLONG EWAY_cam_dy;
-extern SLONG EWAY_cam_dz;
-extern SLONG EWAY_cam_yaw;
-extern SLONG EWAY_cam_pitch;
-extern SLONG EWAY_cam_want_yaw;
-extern SLONG EWAY_cam_want_pitch;
-extern SLONG EWAY_cam_waypoint;
-extern SLONG EWAY_cam_target;
-extern SLONG EWAY_cam_delay;
-extern SLONG EWAY_cam_speed;
-extern SLONG EWAY_cam_freeze; // Stop the player moving.
-extern SLONG EWAY_cam_cant_interrupt;
-extern UWORD EWAY_cam_thing;
-extern SLONG EWAY_cam_targx;
-extern SLONG EWAY_cam_targy;
-extern SLONG EWAY_cam_targz;
-extern SLONG EWAY_cam_lens; // 16-bit fixed point
-extern SLONG EWAY_cam_warehouse;
-extern SLONG EWAY_cam_lock;
-extern SLONG EWAY_cam_last_yaw;
-extern SLONG EWAY_cam_last_x;
-extern SLONG EWAY_cam_last_y;
-extern SLONG EWAY_cam_last_z;
-extern SLONG EWAY_cam_skip;
-extern SLONG EWAY_cam_last_dyaw;
-
-UWORD* darci_normal;
-UWORD darci_normal_count = 0;
-
-void release_memory(void)
-{
-}
-
-#define MEM_DYNAMIC 1
-#define MEM_STATIC 2
-
-struct MemTable save_table[] = {
-
-    { M_("Pap_Hi"), (void**)&PAP_hi, MEM_STATIC, 0, 0, PAP_SIZE_HI* PAP_SIZE_HI, sizeof(PAP_Hi), 0 }, // 0
-    { M_("Pap_Lo"), (void**)&PAP_lo, MEM_STATIC, 0, 0, PAP_SIZE_LO* PAP_SIZE_LO, sizeof(PAP_Lo), 0 }, // 1
-    { M_("net_peep"), (void**)&NETPERSON, MEM_STATIC, 0, 0, 10, sizeof(Thing*), 0 }, // 2
-    { M_("net_plyr"), (void**)&NETPLAYERS, MEM_STATIC, 0, 0, 10, sizeof(Thing*), 0 }, // 3
-    { M_("f-links"), (void**)&facet_links, MEM_DYNAMIC, 0, (UWORD*)&next_facet_link, MAX_FACET_LINK, sizeof(SWORD), 0 }, // 4
-    { M_("dbuildings"), (void**)&dbuildings, MEM_DYNAMIC, &next_dbuilding, 0, MAX_DBUILDINGS, sizeof(struct DBuilding), 0 }, // 5
-    { M_("dfacets"), (void**)&dfacets, MEM_DYNAMIC, &next_dfacet, 0, MAX_DFACETS, sizeof(struct DFacet), 0 }, // 6
-    { M_("dwalkables"), (void**)&dwalkables, MEM_DYNAMIC, &next_dwalkable, 0, MAX_DWALKABLES, sizeof(struct DWalkable), 0 }, // 7
-    { M_("dstyles"), (void**)&dstyles, MEM_DYNAMIC, &next_dstyle, 0, MAX_DSTYLES, sizeof(SWORD), 0 }, // 8
-    { M_("dstoreys"), (void**)&dstoreys, MEM_DYNAMIC, 0, (UWORD*)&next_dstorey, MAX_DSTOREYS, sizeof(struct DStorey), 0 }, // 9
-    { M_("paintmem"), (void**)&paint_mem, MEM_DYNAMIC, 0, (UWORD*)&next_paint_mem, MAX_PAINTMEM, sizeof(UBYTE), 0 }, // 10
-    { M_("insideStoreys"), (void**)&inside_storeys, MEM_DYNAMIC, 0, (UWORD*)&next_inside_storey, MAX_INSIDE_RECT, sizeof(struct InsideStorey), 0 }, // 11
-    { M_("insideStairs"), (void**)&inside_stairs, MEM_DYNAMIC, 0, &next_inside_stair, MAX_INSIDE_STAIRS, sizeof(struct Staircase), 0 }, // 12
-    { M_("insideblock"), (void**)&inside_block, MEM_DYNAMIC, &next_inside_block, 0, MAX_INSIDE_MEM, sizeof(UBYTE), 0 }, // 13
-    { M_("roof bounds"), (void**)&roof_bounds, MEM_DYNAMIC, 0, &next_roof_bound, MAX_ROOF_BOUND, sizeof(struct BoundBox), 0 }, // 14
-    { M_("prim_points"), (void**)&prim_points, MEM_DYNAMIC, 0, &next_prim_point, RMAX_PRIM_POINTS, sizeof(struct PrimPoint), 256 }, // 15
-    { M_("prim_faces4"), (void**)&prim_faces4, MEM_DYNAMIC, 0, &next_prim_face4, RMAX_PRIM_FACES4, sizeof(struct PrimFace4), 64 }, // 16
-    { M_("prim_faces3"), (void**)&prim_faces3, MEM_DYNAMIC, 0, &next_prim_face3, MAX_PRIM_FACES3, sizeof(struct PrimFace3), 0 }, // 17
-    { M_("prim_objects"), (void**)&prim_objects, MEM_DYNAMIC, 0, &next_prim_object, MAX_PRIM_OBJECTS, sizeof(struct PrimObject), 0 }, // 18
-    { M_("prim_Mobjects"), (void**)&prim_multi_objects, MEM_DYNAMIC, 0, &next_prim_multi_object, MAX_PRIM_MOBJECTS, sizeof(struct PrimMultiObject), 0 }, // 19
-
-    /*
-    #ifdef TEST_DC
-            {M_("prim normal")	,(void**)&prim_normal			,MEM_DYNAMIC,0							,&next_prim_point			,MAX_PRIM_POINTS			,sizeof(PrimNormal)				},
-    #endif
-    */
-
-    { M_("ob_ob"), (void**)&OB_ob, MEM_DYNAMIC, &OB_ob_upto, 0, OB_MAX_OBS, sizeof(OB_Ob), 0 }, // 20
-    { M_("ob_ mapwho"), (void**)&OB_mapwho, MEM_STATIC, 0, 0, OB_SIZE* OB_SIZE, sizeof(OB_Mapwho), 0 }, // 21
-    { M_("EWAY_mess"), (void**)&EWAY_mess, MEM_DYNAMIC, &EWAY_mess_upto, 0, EWAY_MAX_MESSES, sizeof(CBYTE*), 0 }, // 22
-    { M_("EWAY_mess buf"), (void**)&EWAY_mess_buffer, MEM_DYNAMIC, &EWAY_mess_buffer_upto, 0, EWAY_MESS_BUFFER_SIZE, sizeof(CBYTE), 0 }, // 23
-    { M_("EWAY_timer"), (void**)&EWAY_timer, MEM_STATIC, 0, 0, EWAY_MAX_TIMERS, sizeof(UWORD), 0 }, // 24
-    { M_("EWAY_cond"), (void**)&EWAY_cond, MEM_DYNAMIC, &EWAY_cond_upto, 0, EWAY_MAX_CONDS, sizeof(EWAY_Cond), 0 }, // 25
-    { M_("EWAY_way"), (void**)&EWAY_way, MEM_DYNAMIC, &EWAY_way_upto, 0, EWAY_MAX_WAYS, sizeof(EWAY_Way), 0 }, // 26
-    { M_("EWAY_edef"), (void**)&EWAY_edef, MEM_DYNAMIC, &EWAY_edef_upto, 0, EWAY_MAX_EDEFS, sizeof(EWAY_Edef), 0 }, // 27
-    { M_("EWAY_counter"), (void**)&EWAY_counter, MEM_STATIC, 0, 0, EWAY_MAX_COUNTERS, sizeof(UBYTE), 0 }, // 28
-
-    { M_("vehicles"), (void**)&VEHICLES, MEM_STATIC, 0, 0, RMAX_VEHICLES, sizeof(Vehicle), 32 }, // 29
-    { M_("people"), (void**)&PEOPLE, MEM_STATIC, 0, 0, RMAX_PEOPLE, sizeof(Person), 128 }, // 30
-    { M_("animals"), (void**)&ANIMALS, MEM_STATIC, 0, 0, MAX_ANIMALS, sizeof(Animal), 0 }, // 31
-    { M_("choppers"), (void**)&CHOPPERS, MEM_STATIC, 0, 0, MAX_CHOPPERS, sizeof(Chopper), 0 }, // 32
-    { M_("pyro"), (void**)&PYROS, MEM_STATIC, 0, 0, MAX_PYROS, sizeof(Pyro), 0 }, // 33
-    { M_("players"), (void**)&PLAYERS, MEM_STATIC, 0, 0, MAX_PLAYERS, sizeof(Player), 0 }, // 34
-    { M_("projectiles"), (void**)&PROJECTILES, MEM_STATIC, 0, 0, MAX_PROJECTILES, sizeof(Projectile), 0 }, // 35
-    { M_("special"), (void**)&SPECIALS, MEM_STATIC, 0, 0, RMAX_SPECIALS, sizeof(Special), 128 }, // 36
-    { M_("switches"), (void**)&SWITCHES, MEM_STATIC, 0, 0, MAX_SWITCHES, sizeof(Switch), 0 }, // 37
-    { M_("bats"), (void**)&BATS, MEM_STATIC, 0, 0, RBAT_MAX_BATS, sizeof(Bat), 32 }, // 38
-    { M_("thing"), (void**)&THINGS, MEM_STATIC, 0, 0, MAX_THINGS, sizeof(Thing), 0 }, // 39
-    { M_("drawtween"), (void**)&DRAW_TWEENS, MEM_STATIC, 0, 0, RMAX_DRAW_TWEENS, sizeof(DrawTween), 128 }, // 40
-    { M_("drawmesh"), (void**)&DRAW_MESHES, MEM_STATIC, 0, 0, RMAX_DRAW_MESHES, sizeof(DrawMesh), 128 }, // 41
-    { M_("barrelsphere"), (void**)&BARREL_sphere, MEM_STATIC, 0, 0, BARREL_MAX_SPHERES, sizeof(BARREL_Sphere), 0 }, // 43
-    { M_("barrels"), (void**)&BARREL_barrel, MEM_DYNAMIC, &BARREL_barrel_upto, 0, BARREL_MAX_BARRELS, sizeof(Barrel), 0 }, // 44
-    { M_("plat"), (void**)&PLAT_plat, MEM_DYNAMIC, &PLAT_plat_upto, 0, RPLAT_MAX_PLATS, sizeof(Plat), 2 }, // 45
-    { M_("wmove"), (void**)&WMOVE_face, MEM_DYNAMIC, &WMOVE_face_upto, 0, RWMOVE_MAX_FACES, sizeof(WMOVE_Face), 64 }, // 46
-    { M_("mav_opt"), (void**)&MAV_opt, MEM_DYNAMIC, &MAV_opt_upto, 0, MAV_MAX_OPTS, sizeof(MAV_Opt), 0 }, // 47
-
-    //{M_("mav height")	,(void**)&MAV_height			,MEM_STATIC, 0							,0							,PAP_SIZE_HI*PAP_SIZE_HI	,sizeof(SBYTE)					},
-
-    { M_("mav_nav"), (void**)&MAV_nav, MEM_STATIC, 0, 0, PAP_SIZE_HI* PAP_SIZE_HI, sizeof(UWORD), 0 }, // 48
-    { M_("road_noads"), (void**)&ROAD_node, MEM_DYNAMIC, &ROAD_node_upto, 0, ROAD_MAX_NODES, sizeof(ROAD_Node), 0 }, // 49
-    { M_("balloons"), (void**)&BALLOON_balloon, MEM_DYNAMIC, &BALLOON_balloon_upto, 0, BALLOON_MAX_BALLOONS, sizeof(BALLOON_Balloon), 0 }, // 50
-    { M_("tracks"), (void**)&tracks, MEM_STATIC, 0, 0, TRACK_BUFFER_LENGTH, sizeof(Track), 0 }, // 51
-    { M_("roofface4"), (void**)&roof_faces4, MEM_DYNAMIC, 0, &next_roof_face4, MAX_ROOF_FACE4, sizeof(struct RoofFace4), 0 }, // 52
-    { M_("fastnav"), (void**)&COLLIDE_fastnav, MEM_STATIC, 0, 0, PAP_SIZE_HI* PAP_SIZE_HI >> 3, sizeof(UBYTE), 0 }, // 53
-    { M_("night_slight"), (void**)&NIGHT_slight, MEM_DYNAMIC, &NIGHT_slight_upto, 0, NIGHT_MAX_SLIGHTS, sizeof(NIGHT_Slight), 0 }, // 54
-    { M_("night_smap"), (void**)&NIGHT_smap, MEM_STATIC, 0, 0, PAP_SIZE_LO* PAP_SIZE_LO, sizeof(NIGHT_Smap), 0 }, // 55
-    { M_("night_dlight"), (void**)&NIGHT_dlight, MEM_STATIC, 0, 0, NIGHT_MAX_DLIGHTS, sizeof(NIGHT_Dlight), 0 }, // 56
-    { M_("WARE_ware"), (void**)&WARE_ware, MEM_DYNAMIC, 0, &WARE_ware_upto, WARE_MAX_WARES, sizeof(WARE_Ware), 0 }, // 57
-    { M_("WARE_nav"), (void**)&WARE_nav, MEM_DYNAMIC, 0, &WARE_nav_upto, WARE_MAX_NAVS, sizeof(UWORD), 0 }, // 58
-    { M_("WARE_height"), (void**)&WARE_height, MEM_DYNAMIC, 0, &WARE_height_upto, WARE_MAX_HEIGHTS, sizeof(SBYTE), 0 }, // 59
-    { M_("WARE_rooftex"), (void**)&WARE_rooftex, MEM_DYNAMIC, 0, &WARE_rooftex_upto, WARE_MAX_ROOFTEXES, sizeof(UWORD), 0 }, // 60
-    { M_("Trip_Wire"), (void**)&TRIP_wire, MEM_DYNAMIC, &TRIP_wire_upto, 0, TRIP_MAX_WIRES, sizeof(TRIP_Wire), 0 }, // 61
-    { M_("Road_edges"), (void**)&ROAD_edge, MEM_DYNAMIC, 0, &ROAD_edge_upto, ROAD_MAX_EDGES, sizeof(UBYTE), 0 }, // 62
-    { M_("Thing_heads"), (void**)&thing_class_head, MEM_STATIC, 0, 0, CLASS_END, sizeof(UWORD), 0 }, // 63
-    { M_("psx_remap"), (void**)&psx_remap, MEM_STATIC, 0, 0, 128, sizeof(UWORD), 0 }, // 64
-    { M_("psx_tex_xy"), (void**)&psx_textures_xy, MEM_STATIC, 0, 0, 200 * 5, sizeof(UWORD), 0 }, // 65
-    { M_("map_beacon"), (void**)&MAP_beacon, MEM_STATIC, 0, 0, MAP_MAX_BEACONS, sizeof(MAP_Beacon), 0 }, // 66
-    //	{"anim_mids"	,(void**)&anim_mids				,MEM_STATIC ,0							,&next_anim_mids			,256						,sizeof(PrimPoint)				},
-    // cutscene memory
-    { M_("cutscene_data"), (void**)&PLAYCUTS_cutscenes, MEM_DYNAMIC, 0, &PLAYCUTS_cutscene_ctr, MAX_CUTSCENES, sizeof(CPData), 0 },
-    { M_("cutscene_trks"), (void**)&PLAYCUTS_tracks, MEM_DYNAMIC, 0, &PLAYCUTS_track_ctr, MAX_CUTSCENE_TRACKS, sizeof(CPChannel), 0 },
-    { M_("cutscene_pkts"), (void**)&PLAYCUTS_packets, MEM_DYNAMIC, 0, &PLAYCUTS_packet_ctr, MAX_CUTSCENE_PACKETS, sizeof(CPPacket), 0 },
-    { M_("cutscene_text"), (void**)&PLAYCUTS_text_data, MEM_DYNAMIC, 0, &PLAYCUTS_text_ctr, MAX_CUTSCENE_TEXT, sizeof(CBYTE), 0 },
-    { M_("darci normal"), (void**)&darci_normal, MEM_DYNAMIC, 0, &darci_normal_count, 12000, sizeof(UWORD), 0 },
-    { M_("prim info"), (void**)&prim_info, MEM_STATIC, 0, 0, 256, sizeof(PrimInfo), 0 },
-
-    { M_("Doors-gates"), (void**)&DOOR_door, MEM_STATIC, 0, 0, DOOR_MAX_DOORS, sizeof(DOOR_Door), 0 },
-
-    //
-    // new ones added by MikeD for footstep surfaces
-    //
-    { M_("soundfxmap"), (void**)&SOUND_FXMapping, MEM_STATIC, 0, 0, 1024, sizeof(UBYTE), 0 }, // 48
-    { M_("soundfxgroup"), (void**)&SOUND_FXGroups, MEM_STATIC, 0, 0, 128 * 2, sizeof(UWORD), 0 }, // 48
-
-    { 0, 0, 0, 0, 0, 0, 0 }
-    //	{""		,(void**)		,1,0					,&		,MAX_PAINTMEM			,sizeof(struct )	},
-
-};
-
-void init_memory(void)
-{
-    SLONG c0 = 0;
-    SLONG mem_size, mem_cumlative = 0;
-    struct MemTable* p_tab;
-    UBYTE* p_all;
-    SLONG temp;
-
-    // FIXME FUDGE!
-
-    save_table[SAVE_TABLE_PEOPLE].Maximum = RMAX_PEOPLE;
-    save_table[SAVE_TABLE_VEHICLE].Maximum = RMAX_VEHICLES;
-    save_table[SAVE_TABLE_SPECIAL].Maximum = RMAX_SPECIALS;
-    save_table[SAVE_TABLE_BAT].Maximum = RBAT_MAX_BATS;
-    save_table[SAVE_TABLE_DTWEEN].Maximum = RMAX_DRAW_TWEENS;
-    save_table[SAVE_TABLE_DMESH].Maximum = RMAX_DRAW_MESHES;
-
-    extern UBYTE music_max_gain;
-
-    //	 temp= ENV_get_value_number("music_vol", 128, "Audio");
-    //	 SATURATE(temp,0,255);
-    //	 music_max_gain=temp;
-
-    while (save_table[c0].Point) {
-        void* ptr;
-        p_tab = &save_table[c0];
-        mem_size = p_tab->StructSize * p_tab->Maximum;
-        mem_cumlative += mem_size;
-
-        c0++;
-    }
-
-    c0 = 0;
-    mem_cumlative += 1024;
-
-    if (mem_all) {
-        MemFree(mem_all);
-        mem_all = NULL;
-    }
-
-    // Not used on DC.
-
-    mem_all = MemAlloc(mem_cumlative);
-    ASSERT(mem_all);
-    mem_all_size = mem_cumlative;
-
-    p_all = (UBYTE*)mem_all;
-
-    while (save_table[c0].Point) {
-        void* ptr;
-        p_tab = &save_table[c0];
-        mem_size = p_tab->StructSize * p_tab->Maximum;
-
-        mem_size += 3;
-        mem_size &= 0xfffffffc;
-        *p_tab->Point = p_all;
-        p_all += mem_size;
-        c0++;
-    }
-
-    anim_mids = (PrimPoint*)MemAlloc(256 * sizeof(PrimPoint));
-    // because furniture isnt saved at the moment, so isnt in the table
-    the_game.Furnitures = (Furniture*)MemAlloc(sizeof(Furniture) * MAX_FURNITURE);
-    //	{"prim normal"	,(void**)&prim_normal			,1,0							,&next_prim_point			,MAX_PRIM_POINTS		,sizeof(PrimNormal)				},
-    prim_normal = (PrimNormal*)MemAlloc(sizeof(PrimNormal) * MAX_PRIM_POINTS);
-}
-void set_darci_normals(void)
-{
-    SLONG count_vertex;
-    SLONG c0, c1, index;
-    SLONG sp, ep;
-    SLONG last_point = 0, first_point = 0x7fffffff;
-    SLONG start_object;
-    for (c0 = 1; c0 < darci_normal_count; c0++) {
-        SLONG nx, ny, nz, c;
-
-        nx = prim_normal[c0].X;
-        ny = prim_normal[c0].Y;
-        nz = prim_normal[c0].Z;
-        SATURATE(nx, -256, 255);
-        SATURATE(ny, -256, 255);
-        SATURATE(nz, -256, 255);
-
-        nx >>= 4;
-        nx += 16;
-        ASSERT(nx >= 0 && nx <= 31);
-
-        ny >>= 4;
-        ny += 16;
-        ASSERT(ny >= 0 && ny <= 31);
-
-        nz >>= 4;
-        nz += 16;
-        ASSERT(nz >= 0 && nz <= 31);
-
-        nx &= 31;
-        ny &= 31;
-        nz &= 31;
-
-        c = nx << 10;
-        c |= ny << 5;
-        c |= nz;
-        darci_normal[c0] = c;
-    }
-    return;
-    /*
-            start_object = prim_multi_objects[game_chunk[0].MultiObject[0]].StartObject;
-            for(c0=0;c0<15;c0++)
-            {
-                    index = start_object+game_chunk[0].PeopleTypes[0].BodyPart[c0];
-
-                    sp=prim_objects[index].StartPoint;
-                    ep=prim_objects[index].EndPoint;
-
-                    if(sp<first_point)
-                            first_point=sp;
-                    if(ep>last_point)
-                            last_point=ep;
-
-
-            }
-            ASSERT(last_point-first_point>0 &&last_point-first_point<1000);
-
-    //	darci_normal=(UWORD*)MemAlloc((last_point-first_point+2)*2);
-            darci_normal[0]=first_point-1;
-
-            for(c0=0;c0<15;c0++)
-            {
-                    index = start_object+game_chunk[0].PeopleTypes[0].BodyPart[c0];
-                    sp=prim_objects[index].StartPoint;
-                    ep=prim_objects[index].EndPoint;
-                    for(c1=sp;c1<ep;c1++)
-                    {
-                            SLONG	nx,ny,nz,c;
-
-                            nx=prim_normal[c1].X;
-                            ny=prim_normal[c1].Y;
-                            nz=prim_normal[c1].Z;
-                            SATURATE(nx,-256,255);
-                            SATURATE(ny,-256,255);
-                            SATURATE(nz,-256,255);
-    //			>>1 =-127 ->127
-    //			>>1 =-63 -> 63
-    //			>>1 =-31 -> 31
-    //			>>1 =-15 -> 15
-                            nx>>=4;
-                            nx+=16;
-                            ASSERT(nx>=0 &&nx<=31);
-
-                            ny>>=4;
-                            ny+=16;
-                            ASSERT(ny>=0 && ny<=31);
-
-                            nz>>=4;
-                            nz+=16;
-                            ASSERT(nz>=0 && nz<=31);
-
-                            nx&=31;
-                            ny&=31;
-                            nz&=31;
-
-                            c=nx<<10;
-                            c|=ny<<5;
-                            c|=nz;
-                            darci_normal[c1-first_point+1]=c;
-
-
-                    }
-            }
-            darci_normal_count=last_point-first_point+1;
-    */
-}
-
-void convert_drawtype_to_index(Thing* p_thing, SLONG meshtype)
-{
-    switch (meshtype) {
-    case DT_MESH:
-        if (p_thing->Draw.Mesh) {
-            ULONG drawtype;
-            drawtype = (p_thing->Draw.Mesh - DRAW_MESHES);
-            p_thing->Draw.Mesh = (DrawMesh*)drawtype;
-        }
-        break;
-    case DT_ROT_MULTI:
-    case DT_ANIM_PRIM:
-    case DT_BIKE:
-        if (p_thing->Draw.Tweened) {
-            ULONG drawtype;
-            SLONG chunk;
-
-            switch (p_thing->Class) {
-            case CLASS_BIKE:
-            case CLASS_PERSON:
-            case CLASS_VEHICLE:
-            case CLASS_ANIMAL:
-                chunk = (ULONG)(p_thing->Draw.Tweened->TheChunk - &game_chunk[0]);
-                ASSERT(chunk >= 0);
-                chunk |= 1 << 16;
-                p_thing->Draw.Tweened->TheChunk = (GameKeyFrameChunk*)chunk;
-                break;
-            case CLASS_BAT:
-            case CLASS_ANIM_PRIM:
-                chunk = (ULONG)(p_thing->Draw.Tweened->TheChunk - &anim_chunk[0]);
-                ASSERT(chunk >= 0);
-                chunk |= 2 << 16;
-                p_thing->Draw.Tweened->TheChunk = (GameKeyFrameChunk*)chunk;
-                break;
-            }
-
-            drawtype = (p_thing->Draw.Tweened - DRAW_TWEENS);
-            p_thing->Draw.Tweened = (DrawTween*)drawtype;
-        }
-        break;
-    }
-}
-
-void convert_thing_to_index(Thing* p_thing)
-{
-    //	ASSERT(THING_NUMBER(p_thing)!=94);
-    switch (p_thing->DrawType) {
-    case DT_MESH:
-    case DT_CHOPPER:
-        convert_drawtype_to_index(p_thing, DT_MESH);
-        break;
-    case DT_ROT_MULTI:
-        convert_drawtype_to_index(p_thing, DT_ROT_MULTI);
-        break;
-
-    case DT_ANIM_PRIM:
-    case DT_BIKE:
-        convert_drawtype_to_index(p_thing, DT_ANIM_PRIM);
-        break;
-    }
-
-    switch (p_thing->Class) {
-
-    case CLASS_NONE:
-        break;
-    case CLASS_PLAYER:
-        p_thing->Genus.Player->PlayerPerson = (Thing*)THING_NUMBER(p_thing->Genus.Player->PlayerPerson);
-        p_thing->Genus.Player = (Player*)PLAYER_NUMBER(p_thing->Genus.Player);
-
-        break;
-    case CLASS_CAMERA:
-        break;
-    case CLASS_PROJECTILE:
-        p_thing->Genus.Projectile = (Projectile*)PROJECTILE_NUMBER(p_thing->Genus.Projectile);
-        break;
-    case CLASS_BUILDING:
-        break;
-    case CLASS_PERSON:
-        p_thing->Genus.Person = (Person*)PERSON_NUMBER(p_thing->Genus.Person);
-
-        break;
-    case CLASS_ANIMAL:
-        p_thing->Genus.Animal = (Animal*)ANIMAL_NUMBERb(p_thing->Genus.Animal);
-
-        break;
-    case CLASS_FURNITURE:
-        p_thing->Genus.Furniture = (Furniture*)FURNITURE_NUMBER(p_thing->Genus.Furniture);
-        break;
-    case CLASS_SWITCH:
-        p_thing->Genus.Switch = (Switch*)SWITCH_NUMBER(p_thing->Genus.Switch);
-        break;
-    case CLASS_VEHICLE:
-        p_thing->Genus.Vehicle = (Vehicle*)VEHICLE_NUMBER(p_thing->Genus.Vehicle);
-        break;
-    case CLASS_SPECIAL:
-        p_thing->Genus.Special = (Special*)SPECIAL_NUMBER(p_thing->Genus.Special);
-        break;
-    case CLASS_ANIM_PRIM:
-        break;
-    case CLASS_CHOPPER:
-        p_thing->Genus.Chopper = (Chopper*)CHOPPER_NUMBER(p_thing->Genus.Chopper);
-
-        break;
-    case CLASS_PYRO:
-        p_thing->Genus.Pyro = (Pyro*)PYRO_NUMBER(p_thing->Genus.Pyro);
-        break;
-    case CLASS_TRACK:
-        if (p_thing->Genus.Track->flags == TRACK_FLAGS_SPLUTTING)
-            p_thing->Genus.Track->page = POLY_PAGE_BLOODSPLAT;
-        p_thing->Genus.Track = (Track*)TRACK_NUMBER(p_thing->Genus.Track);
-        break;
-    case CLASS_PLAT:
-        p_thing->Genus.Plat = (Plat*)PLAT_NUMBER(p_thing->Genus.Plat);
-
-        break;
-    case CLASS_BARREL:
-        p_thing->Genus.Barrel = (Barrel*)BARREL_NUMBER(p_thing->Genus.Barrel);
-
-        break;
-    case CLASS_BAT:
-        p_thing->Genus.Bat = (Bat*)BAT_NUMBER(p_thing->Genus.Bat);
-        break;
-
-    default:
-        ASSERT(0);
-        break;
-    }
-}
-
-void convert_pointers_to_index(void)
-{
-    SLONG c0, i;
-    static int max_people = 0, max_car = 0, max_mesh = 0, max_tween = 0, max_anim = 0, max_special = 0, max_bat = 0;
-    SLONG count_people = 0, count_car = 0, count_mesh = 0, count_tween = 0, count_anim = 0, count_special = 0, count_bat = 0;
-    SLONG gap = 0;
-
-    for (c0 = 0; c0 < MAX_THINGS; c0++) {
-        convert_thing_to_index(TO_THING(c0));
-        /*
-                        switch(TO_THING(c0)->Class)
-                        {
-                                case	CLASS_PERSON:
-                                        count_people++;
-                                        break;
-                                case	CLASS_VEHICLE:
-                                        count_car++;
-                                        break;
-                                case	CLASS_SPECIAL:
-                                        count_special++;
-                                        break;
-                                case	CLASS_BAT:
-                                        count_bat++;
-                                        break;
-                        }
-                        switch(TO_THING(c0)->DrawType)
-                        {
-                                case	DT_MESH:
-                                case	DT_CHOPPER:
-                                        count_mesh++;
-                                        break;
-                                case	DT_ROT_MULTI:
-                                        count_tween++;
-                                        break;
-
-                                case	DT_ANIM_PRIM:
-                                case	DT_BIKE:
-                                        count_anim++;
-                                        break;
-                        }
-        */
-    }
-    for (i = 0; i < RMAX_DRAW_MESHES; i++) {
-        if (DRAW_MESHES[i].Angle != 0xfafa) {
-            if (i > count_mesh) {
-                count_mesh = i;
-            }
-        }
-    }
-
-    for (c0 = 0; c0 < RMAX_DRAW_TWEENS; c0++) {
-        if (!(DRAW_TWEENS[c0].Flags & DT_FLAG_UNUSED)) {
-            if (c0 > count_tween)
-                count_tween = c0;
-        }
-    }
-    for (i = 0; i < RMAX_VEHICLES; i++) {
-        if (TO_VEHICLE(i)->Spring[0].Compression != VEH_NULL) {
-            if (i > count_car)
-                count_car = i;
-        }
-    }
-    for (c0 = 0; c0 < RMAX_PEOPLE; c0++) {
-        if (PEOPLE[c0].AnimType != PERSON_NONE) {
-            if (c0 > count_people)
-                count_people = c0;
-        }
-    }
-    for (c0 = 1; c0 < RMAX_SPECIALS; c0++) {
-        if (SPECIALS[c0].SpecialType != SPECIAL_NONE) {
-            if (c0 > count_special)
-                count_special = c0;
-        }
-    }
-
-    for (i = 0; i < RBAT_MAX_BATS; i++) {
-        if (TO_BAT(i)->type != BAT_TYPE_UNUSED) {
-            if (i > count_bat)
-                count_bat = i;
-        }
-    }
-
-    save_table[SAVE_TABLE_PEOPLE].Maximum = MIN(save_table[SAVE_TABLE_PEOPLE].Extra + count_people, RMAX_PEOPLE);
-    save_table[SAVE_TABLE_VEHICLE].Maximum = MIN(save_table[SAVE_TABLE_VEHICLE].Extra + count_car, RMAX_VEHICLES);
-    save_table[SAVE_TABLE_SPECIAL].Maximum = MIN(save_table[SAVE_TABLE_SPECIAL].Extra + count_special, RMAX_SPECIALS);
-    save_table[SAVE_TABLE_BAT].Maximum = MIN(save_table[SAVE_TABLE_BAT].Extra + count_bat, RBAT_MAX_BATS);
-    save_table[SAVE_TABLE_DTWEEN].Maximum = MIN(save_table[SAVE_TABLE_DTWEEN].Extra + count_tween, RMAX_DRAW_TWEENS);
-    save_table[SAVE_TABLE_DMESH].Maximum = MIN(save_table[SAVE_TABLE_DMESH].Extra + count_mesh, RMAX_DRAW_MESHES);
-
-    extern CBYTE ELEV_fname_level[];
-    if (level_index == 0) {
-        // This is probably Breakout! - in which case, we need the fudge in.
-        // Make sure you manually step into the fudge code.
-        if (strstr(ELEV_fname_level, "FTutor")) {
-        } else {
-            // ASSERT ( strstr ( ELEV_fname_level, "Album1" ) );
-            // ASSERT ( FALSE );
-        }
-    }
-    if (level_index == 20 || level_index == 19 || level_index == 26 || level_index == 24 || strstr(ELEV_fname_level, "Album1")) {
-        // cop killers or semtex or estate map or stern revenge
-
-        save_table[SAVE_TABLE_PEOPLE].Maximum = MIN(save_table[SAVE_TABLE_PEOPLE].Extra + count_people + 30, RMAX_PEOPLE);
-        save_table[SAVE_TABLE_DTWEEN].Maximum = MIN(save_table[SAVE_TABLE_DTWEEN].Extra + count_tween + 30, RMAX_DRAW_TWEENS);
-        save_table[SAVE_TABLE_DMESH].Maximum = MIN(save_table[SAVE_TABLE_DMESH].Extra + count_mesh + 30, RMAX_DRAW_MESHES);
-    }
-
-    if (count_special > max_special) {
-        max_special = count_special;
-    }
-    if (count_bat > max_bat) {
-        max_bat = count_bat;
-    }
-    if (count_mesh > max_mesh) {
-        max_mesh = count_mesh;
-    }
-    if (count_tween > max_tween) {
-        max_tween = count_tween;
-    }
-    if (count_anim > max_anim) {
-        max_anim = count_anim;
-    }
-
-    if (count_car > max_car) {
-        max_car = count_car;
-    }
-    if (count_people > max_people) {
-        max_people = count_people;
-    }
-
-    for (c0 = 0; c0 < MAX_PLAYERS; c0++) {
-        NET_PERSON(c0) = (Thing*)THING_NUMBER(NET_PERSON(c0));
-        NET_PLAYER(c0) = (Thing*)THING_NUMBER(NET_PLAYER(c0));
-    }
-
-    for (c0 = 0; c0 < EWAY_mess_upto; c0++) {
-        EWAY_mess[c0] = (CBYTE*)((SLONG)(EWAY_mess[c0] - EWAY_mess_buffer));
-    }
-
-    for (c0 = 0; c0 < PYRO_COUNT; c0++) {
-        if (TO_PYRO(c0)->thing)
-            TO_PYRO(c0)->thing = (Thing*)THING_NUMBER(TO_PYRO(c0)->thing);
-
-        if (TO_PYRO(c0)->victim)
-            TO_PYRO(c0)->victim = (Thing*)THING_NUMBER(TO_PYRO(c0)->victim);
-    }
-
-    // cutscene stuff. convert the track pointers first:
-    for (c0 = 0; c0 < PLAYCUTS_cutscene_ctr; c0++) {
-        PLAYCUTS_cutscenes[c0].channels = (CPChannel*)(PLAYCUTS_cutscenes[c0].channels - PLAYCUTS_tracks);
-    }
-    for (c0 = 0; c0 < PLAYCUTS_track_ctr; c0++) {
-        PLAYCUTS_tracks[c0].packets = (CPPacket*)(PLAYCUTS_tracks[c0].packets - PLAYCUTS_packets);
-    }
-    for (c0 = 0; c0 < PLAYCUTS_packet_ctr; c0++) {
-        //		if (PLAYCUTS_packets[c0].type==PT_TEXT) PLAYCUTS_packets[c0].pos.X-=PLAYCUTS_text_data;
-        if (PLAYCUTS_packets[c0].type == 5)
-            PLAYCUTS_packets[c0].pos.X -= (ULONG)PLAYCUTS_text_data;
-    }
-}
-
-#define STORE_DATA(a) \
-    FileWrite(handle, (UBYTE*)&a, sizeof(a));
-
-void convert_keyframe_to_index(GameKeyFrame* p, GameKeyFrameElement* p_ele, GameFightCol* p_fight, SLONG count)
-{
-    SLONG c0;
-    for (c0 = 0; c0 < count; c0++) {
-        p[c0].FirstElement = (GameKeyFrameElement*)((SLONG)(p[c0].FirstElement - p_ele));
-        p[c0].PrevFrame = (GameKeyFrame*)((SLONG)(p[c0].PrevFrame - p));
-        p[c0].NextFrame = (GameKeyFrame*)((SLONG)(p[c0].NextFrame - p));
-        p[c0].Fight = (GameFightCol*)((SLONG)(p[c0].Fight - p_fight));
-    }
-}
-
-void convert_animlist_to_index(GameKeyFrame** p, GameKeyFrame* p_anim, SLONG count)
-{
-    SLONG c0;
-    for (c0 = 0; c0 < count; c0++) {
-        p[c0] = (GameKeyFrame*)((SLONG)(p[c0] - p_anim));
-    }
-}
-
-void convert_fightcol_to_index(GameFightCol* p, GameFightCol* p_fight, SLONG count)
-{
-    SLONG c0;
-    for (c0 = 0; c0 < count; c0++) {
-        p[c0].Next = (GameFightCol*)((SLONG)(p[c0].Next - p_fight));
-    }
-}
-
-void convert_keyframe_to_pointer(GameKeyFrame* p, GameKeyFrameElement* p_ele, GameFightCol* p_fight, SLONG count)
-{
-    SLONG c0;
-
-    ASSERT((((ULONG)p) & 3) == 0);
-    ASSERT((((ULONG)p_ele) & 3) == 0);
-    ASSERT((((ULONG)p_fight) & 3) == 0);
-
-    for (c0 = 0; c0 < count; c0++) {
-        if (((SLONG)p[c0].FirstElement) < 0)
-            p[c0].FirstElement = NULL;
-        else
-            p[c0].FirstElement = &p_ele[(SLONG)p[c0].FirstElement];
-
-        if (((SLONG)p[c0].PrevFrame) < 0)
-            p[c0].PrevFrame = NULL;
-        else
-            p[c0].PrevFrame = &p[(SLONG)p[c0].PrevFrame];
-
-        if (((SLONG)p[c0].NextFrame) < 0)
-            p[c0].NextFrame = NULL;
-        else
-            p[c0].NextFrame = &p[(SLONG)p[c0].NextFrame];
-
-        if (((SLONG)p[c0].Fight) < 0)
-            p[c0].Fight = NULL;
-        else
-            p[c0].Fight = &p_fight[(SLONG)p[c0].Fight];
-    }
-}
-
-void convert_animlist_to_pointer(GameKeyFrame** p, GameKeyFrame* p_anim, SLONG count)
-{
-    SLONG c0;
-    for (c0 = 0; c0 < count; c0++) {
-        p[c0] = &p_anim[(SLONG)p[c0]];
-    }
-}
-
-void convert_fightcol_to_pointer(GameFightCol* p, GameFightCol* p_fight, SLONG count)
-{
-    SLONG c0;
-    for (c0 = 0; c0 < count; c0++) {
-
-        if (((SLONG)p[c0].Next) < 0)
-            p[c0].Next = 0;
-        else
-            p[c0].Next = &p_fight[(SLONG)p[c0].Next];
-    }
-}
-
-void save_whole_anims(MFFileHandle handle)
-{
-    SLONG c0, c1;
-    SLONG blank = -1;
-    SLONG check = 666;
-
-    STORE_DATA(next_game_chunk);
-    STORE_DATA(next_anim_chunk);
-
-    for (c0 = 0; c0 < next_game_chunk; c0++) {
-        if (game_chunk[c0].MultiObject[0]) {
-            struct GameKeyFrameChunk* gc;
-            gc = &game_chunk[c0];
-            STORE_DATA(c0); // 4
-            STORE_DATA(gc->MaxPeopleTypes); // 2
-            STORE_DATA(gc->MaxKeyFrames); // 2
-            STORE_DATA(gc->MaxAnimFrames); // 2
-            STORE_DATA(gc->MaxFightCols); // 2
-            STORE_DATA(gc->MaxElements); // 4
-            STORE_DATA(gc->ElementCount); // 4
-
-            //
-            // Convert the pointers to indexes
-            //
-
-            convert_keyframe_to_index(gc->AnimKeyFrames, gc->TheElements, gc->FightCols, gc->MaxKeyFrames);
-            convert_animlist_to_index(gc->AnimList, gc->AnimKeyFrames, gc->MaxAnimFrames);
-            convert_fightcol_to_index(gc->FightCols, gc->FightCols, gc->MaxFightCols);
-
-            //
-            // now save the data blocks
-            //
-            STORE_DATA(check);
-            for (c1 = 0; c1 < 10; c1++) {
-                STORE_DATA(gc->MultiObject[c1]);
-            }
-
-            STORE_DATA(check);
-            FileWrite(handle, (UBYTE*)gc->PeopleTypes, gc->MaxPeopleTypes * sizeof(struct BodyDef));
-            STORE_DATA(check);
-            FileWrite(handle, (UBYTE*)gc->AnimKeyFrames, gc->MaxKeyFrames * sizeof(GameKeyFrame));
-            STORE_DATA(check);
-            FileWrite(handle, (UBYTE*)gc->AnimList, gc->MaxAnimFrames * sizeof(GameKeyFrame*));
-            STORE_DATA(check);
-            FileWrite(handle, (UBYTE*)gc->TheElements, gc->MaxElements * sizeof(GameKeyFrameElement));
-            STORE_DATA(check);
-            FileWrite(handle, (UBYTE*)gc->FightCols, gc->MaxFightCols * sizeof(GameFightCol));
-            STORE_DATA(check);
-
-            //
-            // Now convert the indexes back to pointers
-            //
-
-            convert_keyframe_to_pointer(gc->AnimKeyFrames, gc->TheElements, gc->FightCols, gc->MaxKeyFrames);
-            convert_animlist_to_pointer(gc->AnimList, gc->AnimKeyFrames, gc->MaxAnimFrames);
-            convert_fightcol_to_pointer(gc->FightCols, gc->FightCols, gc->MaxFightCols);
-
-        } else
-            STORE_DATA(blank);
-    }
-
-    for (c0 = 0; c0 < next_anim_chunk; c0++) {
-        if (anim_chunk[c0].MultiObject[0]) {
-            struct GameKeyFrameChunk* gc;
-            gc = &anim_chunk[c0];
-            STORE_DATA(c0); // 4
-            STORE_DATA(gc->MaxPeopleTypes); // 2
-            STORE_DATA(gc->MaxKeyFrames); // 2
-            STORE_DATA(gc->MaxAnimFrames); // 2
-            STORE_DATA(gc->MaxFightCols); // 2
-            STORE_DATA(gc->MaxElements); // 4
-            STORE_DATA(gc->ElementCount); // 4
-
-            //
-            // Convert the pointers to indexes
-            //
-
-            convert_keyframe_to_index(gc->AnimKeyFrames, gc->TheElements, gc->FightCols, gc->MaxKeyFrames);
-            convert_animlist_to_index(gc->AnimList, gc->AnimKeyFrames, gc->MaxAnimFrames);
-            convert_fightcol_to_index(gc->FightCols, gc->FightCols, gc->MaxFightCols);
-
-            //
-            // now save the data blocks
-            //
-            for (c1 = 0; c1 < 10; c1++) {
-                STORE_DATA(gc->MultiObject[c1]);
-            }
-
-            //			FileWrite(handle,(UBYTE*)&gc->MultiObject[0],10*sizeof(UWORD));
-            FileWrite(handle, (UBYTE*)gc->PeopleTypes, gc->MaxPeopleTypes * sizeof(struct BodyDef));
-            FileWrite(handle, (UBYTE*)gc->AnimKeyFrames, gc->MaxKeyFrames * sizeof(GameKeyFrame));
-            FileWrite(handle, (UBYTE*)gc->AnimList, gc->MaxAnimFrames * sizeof(GameKeyFrame*));
-            FileWrite(handle, (UBYTE*)gc->TheElements, gc->MaxElements * sizeof(GameKeyFrameElement));
-            FileWrite(handle, (UBYTE*)gc->FightCols, gc->MaxFightCols * sizeof(GameFightCol));
-
-            //
-            // Now convert the indexes back to pointers
-            //
-
-            convert_keyframe_to_pointer(gc->AnimKeyFrames, gc->TheElements, gc->FightCols, gc->MaxKeyFrames);
-            convert_animlist_to_pointer(gc->AnimList, gc->AnimKeyFrames, gc->MaxAnimFrames);
-            convert_fightcol_to_pointer(gc->FightCols, gc->FightCols, gc->MaxFightCols);
-
-        } else
-            STORE_DATA(blank);
-    }
-}
-
-SLONG find_best_anim_offset_old(SLONG mx, SLONG my, SLONG mz, SLONG bdist)
-{
-    SLONG c0, dist;
-
-    bdist = 128 - bdist;
-    ASSERT(bdist > 0);
-
-    for (c0 = 0; (unsigned)c0 < next_anim_mids; c0++) {
-        SLONG dx, dy, dz;
-        dx = anim_mids[c0].X - mx;
-        dy = anim_mids[c0].Y - my;
-        dz = anim_mids[c0].Z - mz;
-
-        dist = Root(dx * dx + dy * dy + dz * dz);
-        if (dist < bdist)
-            return (c0);
-    }
-
-    if (next_anim_mids < 256) {
-        anim_mids[next_anim_mids].X = mx;
-        anim_mids[next_anim_mids].Y = my;
-        anim_mids[next_anim_mids].Z = mz;
-        next_anim_mids++;
-        return (next_anim_mids - 1);
-    }
-    ASSERT(0);
-    return 0;
-}
-
-SLONG find_best_anim_offset(SLONG mx, SLONG my, SLONG mz, SLONG anim, struct GameKeyFrameChunk* gc)
-{
-    SLONG c0, dist, bdist;
-
-    //	if(anim<1565 || anim>1570)
-    if (1) {
-        for (c0 = 0; (unsigned)c0 < next_anim_mids; c0++) {
-            SLONG cx, cy, cz;
-            SLONG dx, dy, dz;
-            SLONG ele;
-
-            bdist = 0;
-            cx = anim_mids[c0].X;
-            cy = anim_mids[c0].Y;
-            cz = anim_mids[c0].Z;
-
-            for (ele = 0; ele < gc->ElementCount; ele++) {
-                dx = gc->AnimKeyFrames[anim].FirstElement[ele].OffsetX + mx - cx;
-                dy = gc->AnimKeyFrames[anim].FirstElement[ele].OffsetY + my - cy;
-                dz = gc->AnimKeyFrames[anim].FirstElement[ele].OffsetZ + mz - cz;
-                dist = Root(dx * dx + dy * dy + dz * dz);
-                if (dist > bdist)
-                    bdist = dist;
-            }
-            if (bdist < 128)
-                return (c0);
-        }
-    } else {
-        ASSERT(0);
-    }
-
-    if (next_anim_mids < 256) {
-        anim_mids[next_anim_mids].X = mx;
-        anim_mids[next_anim_mids].Y = my;
-        anim_mids[next_anim_mids].Z = mz;
-        next_anim_mids++;
-        return (next_anim_mids - 1);
-    }
-    ASSERT(0);
-    return 0;
-}
-
-void save_whole_game(CBYTE* gamename)
-{
-}
-
-extern SLONG person_normal_animate(Thing* p_person);
 
 void convert_drawtype_to_pointer(Thing* p_thing, SLONG meshtype)
 {
     switch (meshtype) {
     case DT_MESH:
-        //			if(p_thing->Draw.Mesh)
         {
             DrawMesh* drawtype;
             drawtype = TO_DRAW_MESH((ULONG)p_thing->Draw.Mesh);
@@ -1150,7 +102,6 @@ void convert_drawtype_to_pointer(Thing* p_thing, SLONG meshtype)
     case DT_ROT_MULTI:
     case DT_ANIM_PRIM:
     case DT_BIKE:
-        //			if(p_thing->Draw.Tweened)
         {
             DrawTween* drawtype;
             SLONG chunk;
@@ -1208,11 +159,6 @@ void convert_drawtype_to_pointer(Thing* p_thing, SLONG meshtype)
                 drawtype->QueuedFrame = 0;
                 drawtype->InterruptFrame = 0;
 
-                //						load_anim_prim_object(p_thing->Index); // make sure the anim prim is loaded, wont load it if it's already in
-                //
-                //
-                // bat's dont set up index right
-                //
                 drawtype->CurrentFrame = anim_chunk[p_thing->Index].AnimList[drawtype->CurrentAnim];
                 if (drawtype->CurrentFrame)
                     drawtype->NextFrame = drawtype->CurrentFrame->NextFrame;
@@ -1244,10 +190,6 @@ void convert_drawtype_to_pointer(Thing* p_thing, SLONG meshtype)
     }
 }
 
-//
-// what's left is function pointers
-// and
-
 extern void process_hardware_level_input_for_player(Thing* p_thing);
 extern void fn_anim_prim_normal(Thing* p_thing);
 
@@ -1261,7 +203,7 @@ void convert_thing_to_pointer(Thing* p_thing)
     case CLASS_PLAYER:
         p_thing->Genus.Player = (Player*)TO_PLAYER((SLONG)p_thing->Genus.Player);
         p_thing->Genus.Player->PlayerPerson = (Thing*)TO_THING((SLONG)p_thing->Genus.Player->PlayerPerson);
-        p_thing->StateFn = process_hardware_level_input_for_player; // Bodge for now
+        p_thing->StateFn = process_hardware_level_input_for_player;
 
         break;
     case CLASS_CAMERA:
@@ -1368,7 +310,6 @@ void convert_index_to_pointers(void)
         if (TO_PYRO(c0)->victim)
             TO_PYRO(c0)->victim = TO_THING((ULONG)TO_PYRO(c0)->victim);
     }
-    // cutscene stuff. convert the track pointers back first:
     for (c0 = 0; c0 < PLAYCUTS_cutscene_ctr; c0++) {
         PLAYCUTS_cutscenes[c0].channels = PLAYCUTS_tracks + (SLONG)PLAYCUTS_cutscenes[c0].channels;
     }
@@ -1376,7 +317,6 @@ void convert_index_to_pointers(void)
         PLAYCUTS_tracks[c0].packets = PLAYCUTS_packets + (SLONG)PLAYCUTS_tracks[c0].packets;
     }
     for (c0 = 0; c0 < PLAYCUTS_packet_ctr; c0++) {
-        //		if (PLAYCUTS_packets[c0].type==PT_TEXT) PLAYCUTS_packets[c0].pos.X+=PLAYCUTS_text_data;
         if (PLAYCUTS_packets[c0].type == 5)
             PLAYCUTS_packets[c0].pos.X += (ULONG)PLAYCUTS_text_data;
     }
@@ -1506,12 +446,7 @@ void load_whole_anims(UBYTE* p_all)
     p_all += next_anim_mids * sizeof(PrimPoint);
 }
 
-extern SLONG EWAY_count_up; // The visible count-up timer...
-
-//
-// The penalties incurred for the count-up timer.
-//
-
+extern SLONG EWAY_count_up;
 extern UBYTE EWAY_count_up_add_penalties;
 extern SWORD EWAY_count_up_num_penalties;
 extern UWORD EWAY_count_up_penalty_timer;
@@ -1531,7 +466,7 @@ void flag_v_faces(void)
         wx = prim_points[p4->Points[0]].X - prim_points[p4->Points[2]].X;
         wz = prim_points[p4->Points[0]].Z - prim_points[p4->Points[2]].Z;
 
-        ny = ((vz) * (wx)) - (vx * wz) >> 8; // perform cross product on vect V & W
+        ny = ((vz) * (wx)) - (vx * wz) >> 8;
 
         if (ny < 2)
             p4->FaceFlags |= FACE_FLAG_VERTICAL;
@@ -1547,7 +482,7 @@ void flag_v_faces(void)
         wx = prim_points[p3->Points[0]].X - prim_points[p3->Points[2]].X;
         wz = prim_points[p3->Points[0]].Z - prim_points[p3->Points[2]].Z;
 
-        ny = ((vz) * (wx)) - (vx * wz) >> 8; // perform cross product on vect V & W
+        ny = ((vz) * (wx)) - (vx * wz) >> 8;
 
         if (ny < 2)
             p3->FaceFlags |= FACE_FLAG_VERTICAL;
@@ -1558,8 +493,6 @@ void flag_v_faces(void)
 
 void load_whole_game(CBYTE* gamename)
 {
-    //	return;
-
     SLONG c0 = 0, id;
     SLONG* p_slong;
     UWORD* p_uword;
@@ -1601,22 +534,17 @@ void load_whole_game(CBYTE* gamename)
 
     GET_DATA(save_type);
 
-    //	printf("Save Type: %d\n",save_type);
     while (save_table[c0].Point) {
         SLONG struct_size;
-        //		printf("Loading: %s\n",save_table[c0].Name);
         id = *((SLONG*)p_all);
-        //		printf(" id %d ",id);
         ASSERT(id == c0);
         p_all += 4;
 
         count = *((SLONG*)p_all);
-        //		printf(" count %d",count);
         p_all += 4;
 
         struct_size = *((SLONG*)p_all);
         p_all += 4;
-        //		printf(" struct size %d shouldbe %d memsize %d\n",struct_size,save_table[c0].StructSize,*(SLONG*)p_all);
         ASSERT(struct_size == save_table[c0].StructSize);
 
         mem_size = *((SLONG*)p_all);
@@ -1745,32 +673,16 @@ void load_whole_game(CBYTE* gamename)
 
     ASSERT(check == 666);
 
-    // NIGHT_flag&=~NIGHT_FLAG_DAYTIME;
-
-    // This needs to go here, if it doesn't then the later levels will
-    // automatically fail because the timer will be over the time limit.
-
     EWAY_time_accurate = 0;
     EWAY_time = 0;
     EWAY_count_up = 0;
-
-    //
-    // The penalties on the count-up timer.
-    //
 
     EWAY_count_up_add_penalties = 0;
     EWAY_count_up_num_penalties = 0;
     EWAY_count_up_penalty_timer = 0;
 
-    //	NIGHT_amb_red*=2;
-    //	NIGHT_amb_green*=2;
-    //	NIGHT_amb_blue*=2;
-
     SATURATE(NIGHT_amb_blue, 25, 127);
 
-    //
-    // this needs to be before convert_index_to_pointers (because c_i_t_p needs the anims in place)
-    //
     load_whole_anims(p_all);
 
     void setup_global_anim_array(void);
@@ -1785,11 +697,9 @@ void load_whole_game(CBYTE* gamename)
 
     uncache();
 
-    //	if(texture_set_local!=TEXTURE_set)
     {
         TEXTURE_choose_set(texture_set_local);
-        ASSERT(0); // you need a filename for TEXTURE_load_needed()
-        //		TEXTURE_load_needed();
+        ASSERT(0);
     }
 
     extern void PARTICLE_Reset();
@@ -1801,7 +711,6 @@ void load_whole_game(CBYTE* gamename)
     extern void PCOM_init(void);
     PCOM_init();
 
-    //	calc_prim_info();
     VEH_init_vehinfo();
 
     extern void init_noises(void);
@@ -1810,25 +719,15 @@ void load_whole_game(CBYTE* gamename)
     init_arrest();
 
     calc_prim_normals();
-    //	find_anim_prim_bboxes();
 
-    //	TEXTURE_fix_prim_textures();
-    //	TEXTURE_fix_texture_styles();
     AENG_create_dx_prim_points();
     NIGHT_generate_walkable_lighting();
 
     flag_v_faces();
 }
 
-//
-// Quick load\save filename.
-// The value we save out at the end to make sure we're okay.
-//
-
 #define MEMORY_QUICK_FNAME "data\\quicksave.dat"
 #define MEMORY_QUICK_CHECK 314159265
-
-SLONG MEMORY_quick_avaliable;
 
 void MEMORY_quick_init()
 {
@@ -1850,18 +749,10 @@ void MEMORY_quick_save()
         return;
     }
 
-    //
-    // Save out a version number.
-    //
-
     SLONG version = 1;
 
     if (fwrite(&version, sizeof(SLONG), 1, handle) != 1)
         goto file_error;
-
-    //
-    // Go through the memory table and save all arrays.
-    //
 
     MemTable* mt;
 
@@ -1871,10 +762,6 @@ void MEMORY_quick_save()
         if (fwrite(mt->Point, mt->StructSize, mt->Maximum, handle) != (unsigned)mt->Maximum)
             goto file_error;
     }
-
-    //
-    // Save out the extra data we might need!
-    //
 
 #define QSTORE_DATA(x)                           \
     if (fwrite(&(x), sizeof(x), 1, handle) != 1) \
@@ -1961,10 +848,6 @@ void MEMORY_quick_save()
 
     QSTORE_DATA(GAME_FLAGS);
 
-    //
-    // Lighting stuff that isn't saved on the PSX, so it isn't in the save table.
-    //
-
     if (fwrite(NIGHT_square, sizeof(NIGHT_Square), NIGHT_MAX_SQUARES, handle) != NIGHT_MAX_SQUARES)
         goto file_error;
     if (fwrite(&NIGHT_square_free, sizeof(NIGHT_square_free), 1, handle) != 1)
@@ -1978,10 +861,6 @@ void MEMORY_quick_save()
         goto file_error;
     if (fwrite(&NIGHT_dfcache_free, sizeof(UBYTE), 1, handle) != 1)
         goto file_error;
-
-    //
-    // Make sure we're in the right place.
-    //
 
     checksum = MEMORY_QUICK_CHECK;
 
@@ -2022,20 +901,12 @@ SLONG MEMORY_quick_load()
         return FALSE;
     }
 
-    //
-    // Save out a version number.
-    //
-
     SLONG version;
 
     if (fread(&version, sizeof(SLONG), 1, handle) != 1)
         goto file_error;
 
     ASSERT(version == 1);
-
-    //
-    // Go through the memory table and load all arrays.
-    //
 
     MemTable* mt;
 
@@ -2045,10 +916,6 @@ SLONG MEMORY_quick_load()
         if (fread(mt->Point, mt->StructSize, mt->Maximum, handle) != (unsigned)mt->Maximum)
             goto file_error;
     }
-
-    //
-    // Save out the extra data we might need!
-    //
 
 #define QREAD_DATA(x)                           \
     if (fread(&(x), sizeof(x), 1, handle) != 1) \
@@ -2135,10 +1002,6 @@ SLONG MEMORY_quick_load()
 
     QREAD_DATA(GAME_FLAGS);
 
-    //
-    // Lighting stuff that isn't saved on the PSX, so it isn't in the save table.
-    //
-
     if (fread(NIGHT_square, sizeof(NIGHT_Square), NIGHT_MAX_SQUARES, handle) != NIGHT_MAX_SQUARES)
         goto file_error;
     if (fread(&NIGHT_square_free, sizeof(NIGHT_square_free), 1, handle) != 1)
@@ -2152,10 +1015,6 @@ SLONG MEMORY_quick_load()
         goto file_error;
     if (fread(&NIGHT_dfcache_free, sizeof(UBYTE), 1, handle) != 1)
         goto file_error;
-
-    //
-    // Make sure we're in the right place.
-    //
 
     QREAD_DATA(checksum);
 
@@ -2178,10 +1037,6 @@ file_error:;
     return FALSE;
 }
 
-//
-// Dreamcast load/save games...
-//
-
 void save_dreamcast_wad(CBYTE* fname)
 {
 
@@ -2199,26 +1054,14 @@ void save_dreamcast_wad(CBYTE* fname)
     UWORD padding_word;
     ULONG struct_size;
 
-    //
-    // The dreamcast doesn't want darci_normals...
-    //
-
     darci_normal_count = 0;
 
-    //
-    // remove anything that can't survive the reload (transient effects)
-    //
-
-    // Sets up level_index for special fudges.
     extern SLONG get_level_no(CBYTE * name);
     get_level_no(fname);
-
-    // Add a full pathname.
 
     char cFullName[100] = "c:\\fallen\\";
     strcat(cFullName, fname);
 
-    // Change the extension to ".dad"
     int iLastChar = strlen(cFullName);
     ASSERT(cFullName[iLastChar - 4] == '.');
     ASSERT(cFullName[iLastChar - 3] == 'u');
@@ -2232,17 +1075,16 @@ void save_dreamcast_wad(CBYTE* fname)
     handle = FileCreate(cFullName, 1);
 
     if (handle != FILE_CREATION_ERROR) {
-        // get rid of the nasty pointers
-        // by converting to indexes
-
         convert_pointers_to_index();
+
+#define STORE_DATA(a) \
+    FileWrite(handle, (UBYTE*)&a, sizeof(a));
 
         STORE_DATA(save_type);
 
         while (save_table[c0].Point) {
             mem_size = 0;
             count = 0;
-            //			ASSERT(c0!=29);
             ptab = &save_table[c0];
             switch (ptab->Type) {
             case MEM_STATIC:
@@ -2255,13 +1097,10 @@ void save_dreamcast_wad(CBYTE* fname)
                     count = *ptab->CountL;
                 } else {
                     if (ptab->CountW)
-
                         count = *ptab->CountW;
                 }
-                if (ptab->Extra) // redundant but more readable!
-                    count += ptab->Extra; // we have some extra ones so increase how many we create,
-                                          // this is also saved into the next_blah_blah filed but the
-                                          // loader will subtract this off for next_blah_blah
+                if (ptab->Extra)
+                    count += ptab->Extra;
 
                 mem_size = count * ptab->StructSize;
                 break;
@@ -2273,7 +1112,6 @@ void save_dreamcast_wad(CBYTE* fname)
 
             p_mem = (UBYTE*)*ptab->Point;
 
-            // chunk id
             FileWrite(handle, (UBYTE*)&c0, 4);
             FileWrite(handle, (UBYTE*)&count, 4);
             struct_size = ptab->StructSize;
@@ -2324,9 +1162,41 @@ void save_dreamcast_wad(CBYTE* fname)
         STORE_DATA(EWAY_time);
         STORE_DATA(EWAY_tick);
 
+        extern SLONG EWAY_cam_active;
+        extern SLONG EWAY_cam_goinactive;
+        extern SLONG EWAY_cam_x;
+        extern SLONG EWAY_cam_y;
+        extern SLONG EWAY_cam_z;
+        extern SLONG EWAY_cam_dx;
+        extern SLONG EWAY_cam_dy;
+        extern SLONG EWAY_cam_dz;
+        extern SLONG EWAY_cam_yaw;
+        extern SLONG EWAY_cam_pitch;
+        extern SLONG EWAY_cam_want_yaw;
+        extern SLONG EWAY_cam_want_pitch;
+        extern SLONG EWAY_cam_waypoint;
+        extern SLONG EWAY_cam_target;
+        extern SLONG EWAY_cam_delay;
+        extern SLONG EWAY_cam_speed;
+        extern SLONG EWAY_cam_freeze;
+        extern SLONG EWAY_cam_cant_interrupt;
+        extern UWORD EWAY_cam_thing;
+        extern SLONG EWAY_cam_targx;
+        extern SLONG EWAY_cam_targy;
+        extern SLONG EWAY_cam_targz;
+        extern SLONG EWAY_cam_lens;
+        extern SLONG EWAY_cam_warehouse;
+        extern SLONG EWAY_cam_lock;
+        extern SLONG EWAY_cam_last_yaw;
+        extern SLONG EWAY_cam_last_x;
+        extern SLONG EWAY_cam_last_y;
+        extern SLONG EWAY_cam_last_z;
+        extern SLONG EWAY_cam_skip;
+        extern SLONG EWAY_cam_last_dyaw;
+
         STORE_DATA(EWAY_cam_active);
         STORE_DATA(EWAY_cam_goinactive);
-        STORE_DATA(EWAY_cam_x); // Big coordinates...
+        STORE_DATA(EWAY_cam_x);
         STORE_DATA(EWAY_cam_y);
         STORE_DATA(EWAY_cam_z);
         STORE_DATA(EWAY_cam_dx);
@@ -2340,14 +1210,14 @@ void save_dreamcast_wad(CBYTE* fname)
         STORE_DATA(EWAY_cam_target);
         STORE_DATA(EWAY_cam_delay);
         STORE_DATA(EWAY_cam_speed);
-        STORE_DATA(EWAY_cam_freeze); // Stop the player moving.
+        STORE_DATA(EWAY_cam_freeze);
         STORE_DATA(EWAY_cam_cant_interrupt);
         STORE_DATA(EWAY_cam_thing);
         STORE_DATA(EWAY_cam_thing);
         STORE_DATA(EWAY_cam_targx);
         STORE_DATA(EWAY_cam_targy);
         STORE_DATA(EWAY_cam_targz);
-        STORE_DATA(EWAY_cam_lens); // 16-bit fixed point
+        STORE_DATA(EWAY_cam_lens);
         STORE_DATA(EWAY_cam_warehouse);
         STORE_DATA(EWAY_cam_lock);
         STORE_DATA(EWAY_cam_last_yaw);
@@ -2398,12 +1268,6 @@ void save_dreamcast_wad(CBYTE* fname)
 
         FileClose(handle);
 
-        //
-        // convert back again
-        //
-
         convert_index_to_pointers();
     }
 }
-
-// #ifdef TARGET_DC

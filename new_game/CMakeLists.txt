@@ -324,6 +324,8 @@ set(SOURCES_GAME
     src/new/world/map/qmap.cpp
     src/new/world/map/road.cpp
     src/new/world/map/road_globals.cpp
+    src/new/missions/memory.cpp
+    src/new/missions/memory_globals.cpp
     src/new/missions/save.cpp
     src/new/missions/save_globals.cpp
     src/old/fallen/Source/shadow.cpp

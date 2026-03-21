@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 71 — missions/memory (первый чанк: globals + save_table + convert + save_whole) (2026-03-21)
+
+- Исходный файл: `old/fallen/Source/memory.cpp` (2409 строк). Первый чанк ~670 строк (без `save_table`).
+- Созданы: `new/missions/memory.h`, `new/missions/memory.cpp`, `new/missions/memory_globals.h`, `new/missions/memory_globals.cpp`.
+- `old/fallen/Headers/memory.h` заменён redirect-заглушкой.
+- `EWAY_counter` определён в `eway.cpp` (не в `eway.h`) — добавлен `extern UBYTE* EWAY_counter` в `memory_globals.cpp`.
+- **CHECK B fix:** `save_table[]` сначала ошибочно оказался в `memory.cpp`; перемещён в `memory_globals.cpp`. Все сопутствующие includes (ob.h, eway.h, pap.h, ...) перенесены туда же.
+- `prim_info` — определён в `Prim.cpp` (не мигрирован); в `memory_globals.h` — только `extern`, определение остаётся в `Prim.cpp` до его миграции.
+- `convert_keyframe_to_pointer` и аналоги: в оригинале `static`, но вызываются из `old/memory.cpp` (второй чанк). Убран `static`, добавлены объявления в `memory.h`.
+- Второй чанк (`convert_index_to_pointers`, `uncache`, `load_*`, `MEMORY_quick_*`, `save_dreamcast_wad`) остаётся в `old/memory.cpp` до следующей итерации.
+
+---
+
 ## Итерация 70 — assets/anim_loader (io.cpp второй чанк: VUE loader + .all/.moj loaders) (2026-03-21)
 
 - `prim_points`, `prim_faces3/4`, `prim_objects`, `prim_multi_objects` объявлены в `memory.h` (не в `prim.h`) — добавлен `// Temporary:` include на `memory.h`.
