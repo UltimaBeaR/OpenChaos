@@ -60,6 +60,7 @@ set(SOURCES_NEW
     src/new/assets/image_compression_globals.cpp
     src/new/assets/compression.cpp
     src/new/assets/compression_globals.cpp
+    src/new/assets/anim.cpp
     src/new/assets/anim_globals.cpp
     src/new/engine/lighting/ngamut.cpp
     src/new/engine/lighting/ngamut_globals.cpp

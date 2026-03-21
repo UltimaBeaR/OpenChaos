@@ -5,6 +5,39 @@
 #include <MFStdLib.h>
 #include "fallen/Headers/anim.h"
 
+// ---- Globals from Anim.cpp ----
+
+// Next free slot in prim_points[] (world/character vertex positions).
+// Initialized to 1; slot 0 is reserved as an invalid sentinel.
+// uc_orig: next_prim_point (fallen/Source/Anim.cpp)
+extern UWORD next_prim_point;
+// uc_orig: next_prim_face4 (fallen/Source/Anim.cpp)
+extern UWORD next_prim_face4;
+// uc_orig: next_prim_face3 (fallen/Source/Anim.cpp)
+extern UWORD next_prim_face3;
+// uc_orig: next_prim_object (fallen/Source/Anim.cpp)
+extern UWORD next_prim_object;
+// uc_orig: next_prim_multi_object (fallen/Source/Anim.cpp)
+extern UWORD next_prim_multi_object;
+
+// Set when the Roper pickup animation has been loaded.
+// uc_orig: roper_pickup (fallen/Source/Anim.cpp)
+extern UBYTE roper_pickup;
+
+// Multi-part animation data for character body variants.
+// uc_orig: prim_multi_anims (fallen/Source/Anim.cpp)
+extern struct PrimMultiAnim prim_multi_anims[10000];
+// uc_orig: next_prim_multi_anim (fallen/Source/Anim.cpp)
+extern UWORD next_prim_multi_anim;
+
+// Set when the current level uses the estate variant (banesuit models).
+// uc_orig: estate (fallen/Source/Anim.cpp)
+extern UBYTE estate;
+
+// Set when the current level is semtex.ucm (affects combat animation setup).
+// uc_orig: semtex (fallen/Source/Anim.cpp)
+extern UBYTE semtex;
+
 // Maximum number of animation chunks in the runtime system.
 // uc_orig: MAX_GAME_CHUNKS (fallen/Headers/interact.h)
 #define MAX_GAME_CHUNKS 5

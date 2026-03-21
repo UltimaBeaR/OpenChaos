@@ -36519,6 +36519,946 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_YOMP",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_YOMP",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_STAND_READY",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_STAND_READY",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_BREATHE",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_BREATHE",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_RUNNING_JUMP",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_RUNNING_JUMP",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_RUNNING_JUMP_FLY",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_RUNNING_JUMP_FLY",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_RUNNING_JUMP_LAND",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_RUNNING_JUMP_LAND",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_RUNNING_JUMP_LAND_RUN",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_RUNNING_JUMP_LAND_RUN",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_DRAW_GUN",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_DRAW_GUN",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_GUN_AIM",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_GUN_AIM",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_GUN_SHOOT",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_GUN_SHOOT",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_LISTEN",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_LISTEN",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_JUMP_SPOT_TAKEOFF",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_JUMP_SPOT_TAKEOFF",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_JUMP_SPOT_LAND",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_JUMP_SPOT_LAND",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_JUMP_SPOT_STATIC",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_JUMP_SPOT_STATIC",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_TELL",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_TELL",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_SHOTGUN_TAKEOUT",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_SHOTGUN_TAKEOUT",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_SHOTGUN_SHOOT",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_SHOTGUN_SHOOT",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_SWIG_FLASK",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_SWIG_FLASK",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_YOMP_START",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_YOMP_START",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_AK_TAKEOUT",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_AK_TAKEOUT",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_AK_SHOOT",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_AK_SHOOT",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_AK_AIM",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_AK_AIM",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_AK_AIM_L",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_AK_AIM_L",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_AK_AIM_R",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_AK_AIM_R",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_SHOTGUN_AIM",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_SHOTGUN_AIM",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_SHOTGUN_AIM_L",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_SHOTGUN_AIM_L",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_SHOTGUN_AIM_R",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_SHOTGUN_AIM_R",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_GUN_AIM_L",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_GUN_AIM_L",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_GUN_AIM_R",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_GUN_AIM_R",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_WALK_BACKWARDS",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_WALK_BACKWARDS",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_RUN_WITH_AK",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_RUN_WITH_AK",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_WALK_BACKWARDS_WITH_AK",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_WALK_BACKWARDS_WITH_AK",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_PICKUP_CARRY",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_PICKUP_CARRY",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_START_WALK_CARRY",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_START_WALK_CARRY",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_WALK_CARRY",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_WALK_CARRY",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_WALK_STOP_CARRY",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_WALK_STOP_CARRY",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_PUTDOWN_CARRY",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_PUTDOWN_CARRY",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_PICKUP_CARRY_V",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_PICKUP_CARRY_V",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_START_WALK_CARRY_V",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_START_WALK_CARRY_V",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_WALK_CARRY_V",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_WALK_CARRY_V",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_WALK_STOP_CARRY_V",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_WALK_STOP_CARRY_V",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_PUTDOWN_CARRY_V",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_PUTDOWN_CARRY_V",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_STAND_CARRY",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_STAND_CARRY",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_STAND_CARRY_V",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_STAND_CARRY_V",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_CLIMB_OVER_FENCE",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_CLIMB_OVER_FENCE",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_TWO_PISTOL_DRAW",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_TWO_PISTOL_DRAW",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_TWO_PISTOL_FIRE",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_TWO_PISTOL_FIRE",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_TWO_PISTOL_AWAY",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_TWO_PISTOL_AWAY",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_TWO_PISTOL_RUN",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_TWO_PISTOL_RUN",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_TWO_PISTOL_AIM",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_TWO_PISTOL_AIM",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_TWO_PISTOL_AIM_L",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_TWO_PISTOL_AIM_L",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_TWO_PISTOL_AIM_R",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_TWO_PISTOL_AIM_R",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_TWO_PISTOL_CROUCH",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_TWO_PISTOL_CROUCH",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_TWO_PISTOL_CROUCH_HOLD",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_TWO_PISTOL_CROUCH_HOLD",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_TWO_PISTOL_CROUCH_STAND_UP",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_TWO_PISTOL_CROUCH_STAND_UP",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_SHOTGUN_CROUCH",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_SHOTGUN_CROUCH",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_SHOTGUN_CROUCH_HOLD",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_SHOTGUN_CROUCH_HOLD",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_SHOTGUN_CROUCH_STAND_UP",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_SHOTGUN_CROUCH_STAND_UP",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_SHOTGUN_RUN",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_SHOTGUN_RUN",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NROPER_ANIM_SHOTGUN_START_RUN",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "NROPER_ANIM_SHOTGUN_START_RUN",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_anim",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "convert_anim",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIM_init",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "ANIM_init",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ANIM_fini",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "ANIM_fini",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SetCMatrixComp",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "SetCMatrixComp",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_anim_prims",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "init_anim_prims",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "reset_anim_stuff",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "reset_anim_stuff",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "setup_anim_stuff",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "setup_anim_stuff",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_next_prim_point",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "set_next_prim_point",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "setup_people_anims",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "setup_people_anims",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "setup_extra_anims",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "setup_extra_anims",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "setup_global_anim_array",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "setup_global_anim_array",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_sub_objects_position_no_tween",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "calc_sub_objects_position_no_tween",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fix_multi_object_for_anim",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "fix_multi_object_for_anim",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Anim::Anim",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "Anim::Anim",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Anim::~Anim",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "Anim::~Anim",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Anim::StartLooping",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "Anim::StartLooping",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Anim::StopLooping",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "Anim::StopLooping",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Anim::SetAllTweens",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "Anim::SetAllTweens",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Anim::AddKeyFrame",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "Anim::AddKeyFrame",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Anim::RemoveKeyFrame",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "Anim::RemoveKeyFrame",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Character::AddAnim",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "Character::AddAnim",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Character::RemoveAnim",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "Character::RemoveAnim",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "convert_elements",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "convert_elements",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_game_chunk",
+      "file": "new/assets/anim.cpp",
+      "orig_name": "free_game_chunk",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_prim_point",
+      "file": "new/assets/anim_globals.cpp",
+      "orig_name": "next_prim_point",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_prim_face4",
+      "file": "new/assets/anim_globals.cpp",
+      "orig_name": "next_prim_face4",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_prim_face3",
+      "file": "new/assets/anim_globals.cpp",
+      "orig_name": "next_prim_face3",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_prim_object",
+      "file": "new/assets/anim_globals.cpp",
+      "orig_name": "next_prim_object",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_prim_multi_object",
+      "file": "new/assets/anim_globals.cpp",
+      "orig_name": "next_prim_multi_object",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "roper_pickup",
+      "file": "new/assets/anim_globals.cpp",
+      "orig_name": "roper_pickup",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "prim_multi_anims",
+      "file": "new/assets/anim_globals.cpp",
+      "orig_name": "prim_multi_anims",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_prim_multi_anim",
+      "file": "new/assets/anim_globals.cpp",
+      "orig_name": "next_prim_multi_anim",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "estate",
+      "file": "new/assets/anim_globals.cpp",
+      "orig_name": "estate",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "semtex",
+      "file": "new/assets/anim_globals.cpp",
+      "orig_name": "semtex",
+      "orig_file": "fallen/Source/Anim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

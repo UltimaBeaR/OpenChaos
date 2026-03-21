@@ -28,3 +28,29 @@ SLONG next_anim_chunk = 0;
 
 // uc_orig: anim_prim_bbox (fallen/Source/interact.cpp)
 AnimPrimBbox anim_prim_bbox[MAX_ANIM_CHUNKS];
+
+// ---- Globals from Anim.cpp ----
+
+// uc_orig: next_prim_point (fallen/Source/Anim.cpp)
+UWORD next_prim_point = 1;
+// uc_orig: next_prim_face4 (fallen/Source/Anim.cpp)
+UWORD next_prim_face4 = 1;
+// uc_orig: next_prim_face3 (fallen/Source/Anim.cpp)
+UWORD next_prim_face3 = 1;
+// uc_orig: next_prim_object (fallen/Source/Anim.cpp)
+UWORD next_prim_object = 1;
+// uc_orig: next_prim_multi_object (fallen/Source/Anim.cpp)
+UWORD next_prim_multi_object = 1;
+
+// uc_orig: roper_pickup (fallen/Source/Anim.cpp)
+UBYTE roper_pickup = 0;
+
+// uc_orig: prim_multi_anims (fallen/Source/Anim.cpp)
+struct PrimMultiAnim prim_multi_anims[10000];
+// uc_orig: next_prim_multi_anim (fallen/Source/Anim.cpp)
+UWORD next_prim_multi_anim = 1;
+
+// uc_orig: estate (fallen/Source/Anim.cpp)
+UBYTE estate = 0;
+// uc_orig: semtex (fallen/Source/Anim.cpp)
+UBYTE semtex = 0;

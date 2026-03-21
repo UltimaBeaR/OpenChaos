@@ -563,3 +563,10 @@ Entity mapping обновлён (33 записи — file path).
 - `qedit.cpp` — все функции static (file-private); зависит от `engine/graphics/pipeline/qeng.h` (DAG: world → engine — допустимо)
 
 ---
+
+## Итерация 56 — assets/anim (2026-03-21)
+
+- Build fix: include order bug — `assets/anim.h` included `fallen/Headers/anim.h` before `assets/anim_globals.h`, causing `UBYTE`/`SLONG` unknown in `Prim.h` (which uses them at line 231 before its own `core/fmatrix.h` include at line 265). Fixed by swapping order in `anim.h`: globals first (brings in MFStdLib → core/types.h), then fallen/Headers/anim.h.
+- `convert_anim`, `load_anim_system`, `append_anim_system`, `darci_normal_count`, `playing_combat_tutorial`, `playing_level` — forward-declared as extern (defined in io.cpp, not yet migrated)
+- `setup_anim_stuff` — not declared in anim.h (private helper, called only from io.cpp which uses the redirect)
+
