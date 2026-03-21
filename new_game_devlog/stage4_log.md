@@ -330,3 +330,11 @@ Entity mapping обновлён (33 записи — file path).
 - `MapElement.MapWho` — `UWORD` вместо `THING_INDEX` (аналогично Track.thing — избегаем game.h зависимости в map.h)
 
 ---
+
+## Итерация 33 — world/environment/door + engine/physics/sm (2026-03-21)
+
+- `DOOR_find` и `DOOR_knock_over_people` — не объявлены в `door.h`, нигде не вызываются снаружи → помечены `static`
+- `sm.cpp` (`engine/physics/`) включает `world/map/pap.h` — нарушение DAG (`engine/` не должен зависеть от `world/`); pre-existing coupling из оригинала, перенесён 1:1; tech debt
+- Приватные structs `SM_Sphere`, `SM_Link`, `SM_Object` из `sm.cpp` вынесены в `sm_globals.h` (нужны для объявления extern-массивов)
+
+---

@@ -218,7 +218,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/Darci.cpp
     src/old/fallen/Source/dike.cpp
     src/old/fallen/Source/dirt.cpp
-    src/old/fallen/Source/door.cpp
+    src/new/world/environment/door.cpp
+    src/new/world/environment/door_globals.cpp
     src/old/fallen/Source/drawtype.cpp
     src/old/fallen/Source/Effect.cpp
     src/old/fallen/Source/elev.cpp
@@ -265,7 +266,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/Roper.cpp
     src/old/fallen/Source/save.cpp
     src/old/fallen/Source/shadow.cpp
-    src/old/fallen/Source/sm.cpp
+    src/new/engine/physics/sm.cpp
+    src/new/engine/physics/sm_globals.cpp
     src/old/fallen/Source/snipe.cpp
     src/old/fallen/Source/Sound.cpp
     src/old/fallen/Source/Special.cpp

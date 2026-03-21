@@ -22169,6 +22169,406 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "DOOR_Door",
+      "file": "new/world/environment/door.h",
+      "orig_name": "DOOR_Door",
+      "orig_file": "fallen/Headers/door.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DOOR_MAX_DOORS",
+      "file": "new/world/environment/door.h",
+      "orig_name": "DOOR_MAX_DOORS",
+      "orig_file": "fallen/Headers/door.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DOOR_open",
+      "file": "new/world/environment/door.h",
+      "orig_name": "DOOR_open",
+      "orig_file": "fallen/Headers/door.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DOOR_shut",
+      "file": "new/world/environment/door.h",
+      "orig_name": "DOOR_shut",
+      "orig_file": "fallen/Headers/door.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DOOR_process",
+      "file": "new/world/environment/door.h",
+      "orig_name": "DOOR_process",
+      "orig_file": "fallen/Headers/door.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DOOR_door",
+      "file": "new/world/environment/door_globals.h",
+      "orig_name": "DOOR_door",
+      "orig_file": "fallen/Source/door.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DOOR_find",
+      "file": "new/world/environment/door.cpp",
+      "orig_name": "DOOR_find",
+      "orig_file": "fallen/Source/door.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DOOR_knock_over_people",
+      "file": "new/world/environment/door.cpp",
+      "orig_name": "DOOR_knock_over_people",
+      "orig_file": "fallen/Source/door.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DOOR_AJAR",
+      "file": "new/world/environment/door.cpp",
+      "orig_name": "DOOR_AJAR",
+      "orig_file": "fallen/Source/door.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_Info",
+      "file": "new/engine/physics/sm.h",
+      "orig_name": "SM_Info",
+      "orig_file": "fallen/Headers/sm.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_CUBE_TYPE_ROCK",
+      "file": "new/engine/physics/sm.h",
+      "orig_name": "SM_CUBE_TYPE_ROCK",
+      "orig_file": "fallen/Headers/sm.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_CUBE_TYPE_JELLY",
+      "file": "new/engine/physics/sm.h",
+      "orig_name": "SM_CUBE_TYPE_JELLY",
+      "orig_file": "fallen/Headers/sm.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_CUBE_TYPE_CARDBOARD",
+      "file": "new/engine/physics/sm.h",
+      "orig_name": "SM_CUBE_TYPE_CARDBOARD",
+      "orig_file": "fallen/Headers/sm.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_CUBE_TYPE_NUMBER",
+      "file": "new/engine/physics/sm.h",
+      "orig_name": "SM_CUBE_TYPE_NUMBER",
+      "orig_file": "fallen/Headers/sm.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_init",
+      "file": "new/engine/physics/sm.h",
+      "orig_name": "SM_init",
+      "orig_file": "fallen/Headers/sm.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_create_cube",
+      "file": "new/engine/physics/sm.h",
+      "orig_name": "SM_create_cube",
+      "orig_file": "fallen/Headers/sm.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_process",
+      "file": "new/engine/physics/sm.h",
+      "orig_name": "SM_process",
+      "orig_file": "fallen/Headers/sm.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_get_start",
+      "file": "new/engine/physics/sm.h",
+      "orig_name": "SM_get_start",
+      "orig_file": "fallen/Headers/sm.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_get_next",
+      "file": "new/engine/physics/sm.h",
+      "orig_name": "SM_get_next",
+      "orig_file": "fallen/Headers/sm.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_Sphere",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_Sphere",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_MAX_SPHERES",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_MAX_SPHERES",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_Link",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_Link",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_MAX_LINKS",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_MAX_LINKS",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_Object",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_Object",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_MAX_OBJECTS",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_MAX_OBJECTS",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_sphere",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_sphere",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_sphere_upto",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_sphere_upto",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_link",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_link",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_link_upto",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_link_upto",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_object",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_object",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_object_upto",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_object_upto",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_get_upto",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_get_upto",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_get_info",
+      "file": "new/engine/physics/sm_globals.h",
+      "orig_name": "SM_get_info",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_CUBE_RES_MIN",
+      "file": "new/engine/physics/sm.cpp",
+      "orig_name": "SM_CUBE_RES_MIN",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_CUBE_RES_MAX",
+      "file": "new/engine/physics/sm.cpp",
+      "orig_name": "SM_CUBE_RES_MAX",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_CUBE_DENSITY_MIN",
+      "file": "new/engine/physics/sm.cpp",
+      "orig_name": "SM_CUBE_DENSITY_MIN",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_CUBE_DENSITY_MAX",
+      "file": "new/engine/physics/sm.cpp",
+      "orig_name": "SM_CUBE_DENSITY_MAX",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_CUBE_JELLYNESS_MIN",
+      "file": "new/engine/physics/sm.cpp",
+      "orig_name": "SM_CUBE_JELLYNESS_MIN",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_CUBE_JELLYNESS_MAX",
+      "file": "new/engine/physics/sm.cpp",
+      "orig_name": "SM_CUBE_JELLYNESS_MAX",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SM_GRAVITY",
+      "file": "new/engine/physics/sm.cpp",
+      "orig_name": "SM_GRAVITY",
+      "orig_file": "fallen/Source/sm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

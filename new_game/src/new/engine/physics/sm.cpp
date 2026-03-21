@@ -1,74 +1,33 @@
-//
-// Sphere-matter.
-//
-
-#include "game.h"
 #include <MFStdLib.h>
-#include "pap.h"
-#include "sm.h"
-#include "inline.h"
-#include "..\ddengine\headers\aeng.h"
 
-//
-// The spheres that make up an object.
-//
+#include "engine/physics/sm.h"
+#include "engine/physics/sm_globals.h"
+#include "core/fixed_math.h"
+#include "world/map/pap.h"
+#include "world/map/pap_globals.h"
+#include "engine/input/keyboard_globals.h"
+#include "engine/graphics/pipeline/aeng.h"
 
-typedef struct
-{
-    SLONG x;
-    SLONG y;
-    SLONG z;
-    SLONG dx; // 8-bit fixed point
-    SLONG dy;
-    SLONG dz;
-    SLONG radius;
-    SLONG mass;
+// uc_orig: SM_CUBE_RES_MIN (fallen/Source/sm.cpp)
+#define SM_CUBE_RES_MIN 2
+// uc_orig: SM_CUBE_RES_MAX (fallen/Source/sm.cpp)
+#define SM_CUBE_RES_MAX 5
 
-} SM_Sphere;
+// uc_orig: SM_CUBE_DENSITY_MIN (fallen/Source/sm.cpp)
+#define SM_CUBE_DENSITY_MIN 0x01000
+// uc_orig: SM_CUBE_DENSITY_MAX (fallen/Source/sm.cpp)
+#define SM_CUBE_DENSITY_MAX 0x10000
 
-#define SM_MAX_SPHERES 1024
+// uc_orig: SM_CUBE_JELLYNESS_MIN (fallen/Source/sm.cpp)
+#define SM_CUBE_JELLYNESS_MIN 0x10000
+// uc_orig: SM_CUBE_JELLYNESS_MAX (fallen/Source/sm.cpp)
+#define SM_CUBE_JELLYNESS_MAX 0x00400
 
-SM_Sphere SM_sphere[SM_MAX_SPHERES];
-SLONG SM_sphere_upto;
+// uc_orig: SM_GRAVITY (fallen/Source/sm.cpp)
+#define SM_GRAVITY (-0x200)
 
-//
-// The elastic connections between spheres.
-//
-
-typedef struct
-{
-    UWORD sphere1;
-    UWORD sphere2;
-    SLONG dist; // Distance squared...
-
-} SM_Link;
-
-#define SM_MAX_LINKS 1024
-
-SM_Link SM_link[SM_MAX_LINKS];
-SLONG SM_link_upto;
-
-//
-// An object.
-//
-
-typedef struct
-{
-    UWORD sphere_index;
-    UWORD sphere_num;
-    UWORD link_index;
-    UWORD link_num;
-    SLONG jellyness;
-    SLONG resolution;
-    SLONG density;
-
-} SM_Object;
-
-#define SM_MAX_OBJECTS 16
-
-SM_Object SM_object[SM_MAX_OBJECTS];
-SLONG SM_object_upto;
-
+// Resets all sphere-matter state, clearing all spheres, links, and objects.
+// uc_orig: SM_init (fallen/Source/sm.cpp)
 void SM_init(void)
 {
     SM_sphere_upto = 0;
@@ -76,25 +35,18 @@ void SM_init(void)
     SM_object_upto = 0;
 }
 
-//
-// The minimum and maximum ranges of the cube variables.
-//
-
-#define SM_CUBE_RES_MIN 2
-#define SM_CUBE_RES_MAX 5
-
-#define SM_CUBE_DENSITY_MIN 0x01000
-#define SM_CUBE_DENSITY_MAX 0x10000
-
-#define SM_CUBE_JELLYNESS_MIN 0x10000
-#define SM_CUBE_JELLYNESS_MAX 0x00400
-
+// Creates a cube-shaped sphere-matter object from corner (x1,y1,z1) to (x2,y2,z2).
+// amount_resolution (0-256) controls grid density: more spheres = more fidelity.
+// amount_density (0-256) controls mass per unit volume.
+// amount_jellyness (0-256) controls spring stiffness (higher = more rigid).
+// Spheres are laid out in a regular grid; each adjacent pair is connected by a link.
+// uc_orig: SM_create_cube (fallen/Source/sm.cpp)
 void SM_create_cube(
     SLONG cx1, SLONG cy1, SLONG cz1,
     SLONG cx2, SLONG cy2, SLONG cz2,
-    SLONG amount_resolution, // 0 - 256
-    SLONG amount_density, // 0 - 256
-    SLONG amount_jellyness) // 0 - 256
+    SLONG amount_resolution,
+    SLONG amount_density,
+    SLONG amount_jellyness)
 {
     SLONG i;
     SLONG j;
@@ -137,10 +89,7 @@ void SM_create_cube(
     SM_Sphere* ss;
     SM_Link* sl;
 
-    //
-    // We work in 16-bit fixed point, not 8-bit.
-    //
-
+    // Work in 16-bit fixed point (not 8-bit).
     cx1 <<= 8;
     cy1 <<= 8;
     cz1 <<= 8;
@@ -149,10 +98,6 @@ void SM_create_cube(
     cy2 <<= 8;
     cz2 <<= 8;
 
-    //
-    // The values we use to create the object.
-    //
-
     SLONG resolution = SM_CUBE_RES_MIN + (amount_resolution * (SM_CUBE_RES_MAX - SM_CUBE_RES_MIN) >> 8);
     SLONG density = SM_CUBE_DENSITY_MIN + (amount_density * (SM_CUBE_DENSITY_MAX - SM_CUBE_DENSITY_MIN) >> 8);
     SLONG jellyness = SM_CUBE_JELLYNESS_MIN + (amount_jellyness * (SM_CUBE_JELLYNESS_MAX - SM_CUBE_JELLYNESS_MIN) >> 8);
@@ -160,10 +105,6 @@ void SM_create_cube(
     resolution = amount_resolution;
     density = amount_density;
     jellyness = amount_jellyness;
-
-    //
-    // The mass of the object is divided evenly among all the spheres.
-    //
 
     dx = cx2 - cx1;
     dy = cy2 - cy1;
@@ -179,10 +120,6 @@ void SM_create_cube(
 
     radius = QDIST3(abs(dx >> 1), abs(dy >> 1), abs(dz >> 1));
 
-    //
-    // Create the object.
-    //
-
     ASSERT(WITHIN(SM_object_upto, 0, SM_MAX_OBJECTS - 1));
 
     so = &SM_object[SM_object_upto++];
@@ -195,24 +132,12 @@ void SM_create_cube(
     so->resolution = resolution;
     so->density = density;
 
-    //
-    // Add the spheres and links to the object.
-    //
-
     for (i = 0; i < resolution; i++)
         for (j = 0; j < resolution; j++)
             for (k = 0; k < resolution; k++) {
-                //
-                // The position of this sphere.
-                //
-
                 sx = cx1 + i * dx + (dx >> 1);
                 sy = cy1 + j * dy + (dy >> 1);
                 sz = cz1 + k * dx + (dx >> 1);
-
-                //
-                // Create a sphere.
-                //
 
                 ASSERT(WITHIN(SM_sphere_upto, 0, SM_MAX_SPHERES - 1));
 
@@ -229,10 +154,7 @@ void SM_create_cube(
 
                 so->sphere_num += 1;
 
-                //
-                // Adds links from this sphere to spheres with a higher index.
-                //
-
+                // Add spring links to all adjacent spheres with higher index.
                 index1 = k + (j * resolution) + (i * resolution * resolution);
 
                 for (di = 0; di < 2; di++)
@@ -260,10 +182,6 @@ void SM_create_cube(
                             dist += MUL64(dsy, dsy);
                             dist += MUL64(dsz, dsz);
 
-                            //
-                            // Create the new link.
-                            //
-
                             ASSERT(WITHIN(SM_link_upto, 0, SM_MAX_LINKS - 1));
 
                             sl = &SM_link[SM_link_upto++];
@@ -277,6 +195,11 @@ void SM_create_cube(
             }
 }
 
+// Advances sphere-matter simulation by one tick.
+// Applies gravity, movement, ground collision, and friction to all spheres.
+// Then applies spring forces between linked sphere pairs.
+// Also responds to KB_P5 key for debug impulse on sphere 8.
+// uc_orig: SM_process (fallen/Source/sm.cpp)
 void SM_process()
 {
     SLONG i;
@@ -301,33 +224,18 @@ void SM_process()
     SM_Sphere* ss2;
     SM_Link* sl;
 
-    //
-    // Process all the spheres.
-    //
+    (void)ax; (void)ay; (void)az;
 
     for (i = 0; i < SM_sphere_upto; i++) {
         ss = &SM_sphere[i];
 
-        //
-        // Gravity.
-        //
-
-#define SM_GRAVITY (-0x200)
-
         ss->dy += SM_GRAVITY;
-
-        //
-        // Movement.
-        //
 
         ss->x += ss->dx / 256;
         ss->y += ss->dy / 256;
         ss->z += ss->dz / 256;
 
-        //
-        // Collision with the ground.
-        //
-
+        // Ground collision: bounce off terrain height.
         height = PAP_calc_height_at(ss->x >> 8, ss->z >> 8) << 8;
 
         if (ss->y - ss->radius < height) {
@@ -338,10 +246,7 @@ void SM_process()
             ss->dz /= 2;
         }
 
-        //
-        // Friction.
-        //
-
+        // Friction (damping).
         ss->dx -= ss->dx / 256;
         ss->dy -= ss->dy / 256;
         ss->dz -= ss->dz / 256;
@@ -355,16 +260,8 @@ void SM_process()
         ss->dz -= SIGN(ss->dz);
     }
 
-    //
-    // Process each object.
-    //
-
     for (i = 0; i < SM_object_upto; i++) {
         so = &SM_object[i];
-
-        //
-        // Process all the links.
-        //
 
         for (j = 0; j < SM_link_upto; j++) {
             sl = &SM_link[j];
@@ -388,10 +285,7 @@ void SM_process()
             if (ddist) {
                 force = MUL64(ddist, so->jellyness);
 
-                //
-                // Equal and opposite force on both spheres.
-                //
-
+                // Equal and opposite spring forces on both spheres.
                 accel = DIV64(force, ss1->mass);
 
                 ss1->dx += MUL64(dx, accel);
@@ -407,18 +301,15 @@ void SM_process()
         }
     }
 
+    // Debug: KB_P5 applies upward impulse to sphere 8.
     if (Keys[KB_P5]) {
         SM_sphere[8].dy -= SM_GRAVITY * 50;
     }
 }
 
-//
-// Getting the spheres.
-//
-
-SLONG SM_get_upto;
-SM_Info SM_get_info;
-
+// Resets the iteration cursor to begin enumerating all spheres via SM_get_next().
+// When ControlFlag is set, also draws debug lines for all spring links.
+// uc_orig: SM_get_start (fallen/Source/sm.cpp)
 void SM_get_start()
 {
     SM_get_upto = 0;
@@ -430,10 +321,6 @@ void SM_get_start()
 
         SM_Sphere* ss1;
         SM_Sphere* ss2;
-
-        //
-        // Draw all the links.
-        //
 
         for (i = 0; i < SM_link_upto; i++) {
             sl = &SM_link[i];
@@ -452,6 +339,10 @@ void SM_get_start()
     }
 }
 
+// Returns the next sphere's render info (position, radius, colour) for the current frame.
+// Returns NULL when all spheres have been visited.
+// Colour is a hash of the sphere index (deterministic per-sphere colour for debug rendering).
+// uc_orig: SM_get_next (fallen/Source/sm.cpp)
 SM_Info* SM_get_next()
 {
     SM_Sphere* ss;
