@@ -37459,6 +37459,1056 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_STATE_FOCUS",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_STATE_FOCUS",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_STATE_DISABLED",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_STATE_DISABLED",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_STATE_ACTIVATED",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_STATE_ACTIVATED",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_STATE_BLOCKFOCUS",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_STATE_BLOCKFOCUS",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_STATE_ALIGNLEFT",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_STATE_ALIGNLEFT",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_STATE_SHRINKTEXT",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_STATE_SHRINKTEXT",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WS_MOVE",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WS_MOVE",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WS_FADEIN",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WS_FADEIN",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WS_FADEOUT",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WS_FADEOUT",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WS_OK",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WS_OK",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WS_FAIL",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WS_FAIL",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WS_BLIP",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WS_BLIP",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_Void",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_Void",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_Clik",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_Clik",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_Char",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_Char",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_Data",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_Data",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_Proc",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "FORM_Proc",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Methods",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "Methods",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WidgetPoint",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WidgetPoint",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Widget",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "Widget",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Form",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "Form",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_Create",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "FORM_Create",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_AddWidget",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "FORM_AddWidget",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_DelWidget",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "FORM_DelWidget",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_Process",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "FORM_Process",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_Draw",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "FORM_Draw",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_Free",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "FORM_Free",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_Focus",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "FORM_Focus",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_GetWidgetFromPoint",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "FORM_GetWidgetFromPoint",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_menu",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "WIDGET_menu",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_Create",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "WIDGET_Create",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_snd",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "WIDGET_snd",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_SetState",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_SetState",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_ToggleState",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_ToggleState",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_State",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_State",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TO_WIDGETPNT",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "TO_WIDGETPNT",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_To_Screen",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "FORM_To_Screen",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_Centre",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIDGET_Centre",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUTTON_Free",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "BUTTON_Free",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUTTON_Draw",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "BUTTON_Draw",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUTTON_Push",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "BUTTON_Push",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUTTON_HitTest",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "BUTTON_HitTest",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STATIC_Init",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "STATIC_Init",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHECK_Draw",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "CHECK_Draw",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHECK_Push",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "CHECK_Push",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RADIO_Push",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "RADIO_Push",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "INPUT_Init",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "INPUT_Init",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "INPUT_Free",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "INPUT_Free",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "INPUT_Draw",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "INPUT_Draw",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "INPUT_Char",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "INPUT_Char",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "INPUT_Data",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "INPUT_Data",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LISTS_Free",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "LISTS_Free",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LISTS_Draw",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "LISTS_Draw",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LISTS_Data",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "LISTS_Data",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LISTS_Push",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "LISTS_Push",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LISTS_Char",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "LISTS_Char",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTS_Init",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "TEXTS_Init",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTS_Free",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "TEXTS_Free",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTS_Draw",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "TEXTS_Draw",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTS_Data",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "TEXTS_Data",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTS_Char",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "TEXTS_Char",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLYPH_Draw",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "GLYPH_Draw",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHADE_Draw",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "SHADE_Draw",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUTTON_Methods",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "BUTTON_Methods",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STATIC_Methods",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "STATIC_Methods",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CHECK_Methods",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "CHECK_Methods",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RADIO_Methods",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "RADIO_Methods",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "INPUT_Methods",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "INPUT_Methods",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LISTS_Methods",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "LISTS_Methods",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTS_Methods",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "TEXTS_Methods",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GLYPH_Methods",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "GLYPH_Methods",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHADE_Methods",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "SHADE_Methods",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WidgetTick",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "WidgetTick",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EatenKey",
+      "file": "new/ui/menus/widget_globals.cpp",
+      "orig_name": "EatenKey",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WBN_PUSH",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WBN_PUSH",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIN_ENTER",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIN_ENTER",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WLN_ENTER",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WLN_ENTER",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WFN_CHAR",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WFN_CHAR",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WFN_FOCUS",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WFN_FOCUS",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WFN_PAINT",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WFN_PAINT",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WLM_ADDSTRING",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WLM_ADDSTRING",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIM_SETSTRING",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIM_SETSTRING",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIM_SETMODE",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WIM_SETMODE",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WTM_ADDSTRING",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WTM_ADDSTRING",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WTM_ADDBLOCK",
+      "file": "new/ui/menus/widget.h",
+      "orig_name": "WTM_ADDBLOCK",
+      "orig_file": "fallen/Headers/widget.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ListEntry",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "ListEntry",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_WS_MOVE",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "_WS_MOVE",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_WS_FADEIN",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "_WS_FADEIN",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_WS_FADEOUT",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "_WS_FADEOUT",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_WS_OK",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "_WS_OK",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_WS_FAIL",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "_WS_FAIL",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "_WS_BLIP",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "_WS_BLIP",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RECT_LEFT",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "RECT_LEFT",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RECT_RIGHT",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "RECT_RIGHT",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RECT_TOP",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "RECT_TOP",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RECT_BOTTOM",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "RECT_BOTTOM",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIF_EDIT",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "WIF_EDIT",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIF_PASS",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "WIF_PASS",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShiftAlpha",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "ShiftAlpha",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AlterAlpha",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "AlterAlpha",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_Rect",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "WIDGET_Rect",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIDGET_Free",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "WIDGET_Free",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "INPUT_caretchk",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "INPUT_caretchk",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LISTS_caretchk",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "LISTS_caretchk",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FORM_KeyProc",
+      "file": "new/ui/menus/widget.cpp",
+      "orig_name": "FORM_KeyProc",
+      "orig_file": "fallen/Source/widget.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

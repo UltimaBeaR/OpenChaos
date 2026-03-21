@@ -570,3 +570,13 @@ Entity mapping обновлён (33 записи — file path).
 - `convert_anim`, `load_anim_system`, `append_anim_system`, `darci_normal_count`, `playing_combat_tutorial`, `playing_level` — forward-declared as extern (defined in io.cpp, not yet migrated)
 - `setup_anim_stuff` — not declared in anim.h (private helper, called only from io.cpp which uses the redirect)
 
+---
+
+## Итерация 57 — ui/menus/widget (2026-03-21)
+
+- Method tables (`BUTTON_Methods` etc.) moved to `widget_globals.cpp`; all method implementations made public (declared in `widget.h`) since they're referenced by the tables in a separate translation unit
+- `interfac.h` included temporarily for `get_hardware_input`, `INPUT_TYPE_JOY`, `INPUT_MASK_*`
+- `DrawXtra.h` included temporarily for `DRAW2D_Box/Tri/Sprite` (drawxtra.cpp not yet migrated)
+- `InkeyToAscii`/`InkeyToAsciiShift` — extern forward declarations (defined in Controls.cpp, not yet migrated)
+- `hDDLibWindow` — local `extern` inside `FORM_Process` as in the original
+
