@@ -505,3 +505,12 @@ Entity mapping обновлён (33 записи — file path).
 - `save.cpp` — unreachable код после `return(1)` в `SAVE_person` (wandering civ/driver ветки) перенесён 1:1 с комментарием
 
 ---
+
+## Итерация 51 — ui/hud/overlay + ui/menus/cnet (2026-03-21)
+
+- `pq.cpp` пропущен — это include-only файл (шаблон для A*), `#include "pq.cpp"` прямо в `mav.cpp`; будет перенесён вместе с mav
+- `timer_prev` в оригинале был `static` file-scope → вынесен в `overlay_globals` по правилу (не-static там)
+- Фикс check B при ревью: `help_text`, `help_xlat`, `panel_enemy`, `panel_gun_sight`, `track_count`, `timer_prev` изначально были оставлены в `overlay.cpp` — перемещены в `overlay_globals`
+- `FONT_draw` в cnet.cpp: декларирован в `engine/graphics/pipeline/aeng.h` (тип `SLONG FONT_draw(SLONG x, SLONG y, CBYTE* text, ...)`)
+
+---

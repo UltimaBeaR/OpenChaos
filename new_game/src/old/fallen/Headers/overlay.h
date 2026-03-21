@@ -1,8 +1,4 @@
 #ifndef FALLEN_HEADERS_OVERLAY_H
 #define FALLEN_HEADERS_OVERLAY_H
-
-extern void OVERLAY_handle(void);
-extern void track_enemy(Thing* p_thing);
-extern void track_gun_sight(Thing* p_thing, SLONG accuracy);
-
+#include "ui/hud/overlay.h"
 #endif // FALLEN_HEADERS_OVERLAY_H

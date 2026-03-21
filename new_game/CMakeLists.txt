@@ -254,7 +254,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/building.cpp
     src/new/actors/animals/canid.cpp
     src/new/actors/animals/canid_globals.cpp
-    src/old/fallen/Source/cnet.cpp
+    src/new/ui/menus/cnet.cpp
+    src/new/ui/menus/cnet_globals.cpp
     src/old/fallen/Source/collide.cpp
     src/old/fallen/Source/combat.cpp
     src/old/fallen/Source/Controls.cpp
@@ -284,7 +285,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/night.cpp
     src/old/fallen/Source/ns.cpp
     src/old/fallen/Source/ob.cpp
-    src/old/fallen/Source/overlay.cpp
+    src/new/ui/hud/overlay.cpp
+    src/new/ui/hud/overlay_globals.cpp
 
     src/new/ui/pause.cpp
     src/old/fallen/Source/pcom.cpp

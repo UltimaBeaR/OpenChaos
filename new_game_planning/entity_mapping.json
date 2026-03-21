@@ -33129,6 +33129,456 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "OVERLAY_handle",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "OVERLAY_handle",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "track_enemy",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "track_enemy",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "track_gun_sight",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "track_gun_sight",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_overlay",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "init_overlay",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "overlay_beacons",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "overlay_beacons",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "add_damage_value",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "add_damage_value",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "add_damage_text",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "add_damage_text",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "add_damage_value_thing",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "add_damage_value_thing",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "arrow_object",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "arrow_object",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "arrow_pos",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "arrow_pos",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "should_i_add_message",
+      "file": "new/ui/hud/overlay.h",
+      "orig_name": "should_i_add_message",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVERLAY_draw_gun_sights",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "OVERLAY_draw_gun_sights",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVERLAY_draw_enemy_health",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "OVERLAY_draw_enemy_health",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVERLAY_draw_tracked_enemies",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "OVERLAY_draw_tracked_enemies",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "show_help_text",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "show_help_text",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TrackEnemy",
+      "file": "new/ui/hud/overlay_globals.h",
+      "orig_name": "TrackEnemy",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "panel_enemy",
+      "file": "new/ui/hud/overlay_globals.h",
+      "orig_name": "panel_enemy",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "panel_gun_sight",
+      "file": "new/ui/hud/overlay_globals.h",
+      "orig_name": "panel_gun_sight",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "track_count",
+      "file": "new/ui/hud/overlay_globals.h",
+      "orig_name": "track_count",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "timer_prev",
+      "file": "new/ui/hud/overlay_globals.h",
+      "orig_name": "timer_prev",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "help_text",
+      "file": "new/ui/hud/overlay_globals.h",
+      "orig_name": "help_text",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "help_xlat",
+      "file": "new/ui/hud/overlay_globals.h",
+      "orig_name": "help_xlat",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_TRACK",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "MAX_TRACK",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STATE_TRACKING",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "STATE_TRACKING",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STATE_UNUSED",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "STATE_UNUSED",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "INFO_NUMBER",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "INFO_NUMBER",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "INFO_TEXT",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "INFO_TEXT",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "USE_CAR",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "USE_CAR",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "USE_CABLE",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "USE_CABLE",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "USE_LADDER",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "USE_LADDER",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PICKUP_ITEM",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "PICKUP_ITEM",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "USE_MOTORBIKE",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "USE_MOTORBIKE",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TALK",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "TALK",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HELP_MAX_COL",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "HELP_MAX_COL",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HELP_GRAB_CABLE",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "HELP_GRAB_CABLE",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HELP_PICKUP_ITEM",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "HELP_PICKUP_ITEM",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HELP_USE_CAR",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "HELP_USE_CAR",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HELP_USE_BIKE",
+      "file": "new/ui/hud/overlay.cpp",
+      "orig_name": "HELP_USE_BIKE",
+      "orig_file": "fallen/Source/overlay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CNET_configure",
+      "file": "new/ui/menus/cnet.h",
+      "orig_name": "CNET_configure",
+      "orig_file": "fallen/Source/cnet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CNET_display_error",
+      "file": "new/ui/menus/cnet.cpp",
+      "orig_name": "CNET_display_error",
+      "orig_file": "fallen/Source/cnet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CNET_network_game",
+      "file": "new/ui/menus/cnet_globals.h",
+      "orig_name": "CNET_network_game",
+      "orig_file": "fallen/Source/cnet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CNET_i_am_host",
+      "file": "new/ui/menus/cnet_globals.h",
+      "orig_name": "CNET_i_am_host",
+      "orig_file": "fallen/Source/cnet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CNET_player_id",
+      "file": "new/ui/menus/cnet_globals.h",
+      "orig_name": "CNET_player_id",
+      "orig_file": "fallen/Source/cnet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CNET_num_players",
+      "file": "new/ui/menus/cnet_globals.h",
+      "orig_name": "CNET_num_players",
+      "orig_file": "fallen/Source/cnet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CNET_connected",
+      "file": "new/ui/menus/cnet_globals.h",
+      "orig_name": "CNET_connected",
+      "orig_file": "fallen/Source/cnet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
