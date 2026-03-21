@@ -19899,6 +19899,606 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "SHADOW_do",
+      "file": "new/engine/lighting/shadow.h",
+      "orig_name": "SHADOW_do",
+      "orig_file": "fallen/Source/shadow.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHADOW_in",
+      "file": "new/engine/lighting/shadow.h",
+      "orig_name": "SHADOW_in",
+      "orig_file": "fallen/Source/shadow.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "shadow_dist",
+      "file": "new/engine/lighting/shadow_globals.h",
+      "orig_name": "shadow_dist",
+      "orig_file": "fallen/Source/shadow.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHADOW_DIR_X",
+      "file": "new/engine/lighting/shadow.cpp",
+      "orig_name": "SHADOW_DIR_X",
+      "orig_file": "fallen/Source/shadow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHADOW_DIR_Y",
+      "file": "new/engine/lighting/shadow.cpp",
+      "orig_name": "SHADOW_DIR_Y",
+      "orig_file": "fallen/Source/shadow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHADOW_DIR_Z",
+      "file": "new/engine/lighting/shadow.cpp",
+      "orig_name": "SHADOW_DIR_Z",
+      "orig_file": "fallen/Source/shadow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SHADOW_DIST",
+      "file": "new/engine/lighting/shadow.cpp",
+      "orig_name": "SHADOW_DIST",
+      "orig_file": "fallen/Source/shadow.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_TYPE_TRANS1",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_TYPE_TRANS1",
+      "orig_file": "fallen/Headers/fog.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_TYPE_TRANS2",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_TYPE_TRANS2",
+      "orig_file": "fallen/Headers/fog.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_TYPE_TRANS3",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_TYPE_TRANS3",
+      "orig_file": "fallen/Headers/fog.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_TYPE_TRANS4",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_TYPE_TRANS4",
+      "orig_file": "fallen/Headers/fog.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_TYPE_NO_MORE",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_TYPE_NO_MORE",
+      "orig_file": "fallen/Headers/fog.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_TYPE_UNUSED",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_TYPE_UNUSED",
+      "orig_file": "fallen/Headers/fog.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_Info",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_Info",
+      "orig_file": "fallen/Headers/fog.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_init",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_init",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_set_focus",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_set_focus",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_gust",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_gust",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_process",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_process",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_get_start",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_get_start",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_get_info",
+      "file": "new/effects/fog.h",
+      "orig_name": "FOG_get_info",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_MAX_FOG",
+      "file": "new/effects/fog_globals.h",
+      "orig_name": "FOG_MAX_FOG",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_Fog",
+      "file": "new/effects/fog_globals.h",
+      "orig_name": "FOG_Fog",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_fog",
+      "file": "new/effects/fog_globals.h",
+      "orig_name": "FOG_fog",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_focus_x",
+      "file": "new/effects/fog_globals.h",
+      "orig_name": "FOG_focus_x",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_focus_z",
+      "file": "new/effects/fog_globals.h",
+      "orig_name": "FOG_focus_z",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_focus_radius",
+      "file": "new/effects/fog_globals.h",
+      "orig_name": "FOG_focus_radius",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_get_upto",
+      "file": "new/effects/fog_globals.h",
+      "orig_name": "FOG_get_upto",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_get_dyaw",
+      "file": "new/effects/fog.cpp",
+      "orig_name": "FOG_get_dyaw",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FOG_create",
+      "file": "new/effects/fog.cpp",
+      "orig_name": "FOG_create",
+      "orig_file": "fallen/Source/fog.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RMAX_DRAW_TWEENS",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "RMAX_DRAW_TWEENS",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RMAX_DRAW_MESHES",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "RMAX_DRAW_MESHES",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_DRAW_TWEENS",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "MAX_DRAW_TWEENS",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_DRAW_MESHES",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "MAX_DRAW_MESHES",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_NONE",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_NONE",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_BUILDING",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_BUILDING",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_PRIM",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_PRIM",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_MULTI_PRIM",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_MULTI_PRIM",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_ROT_MULTI",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_ROT_MULTI",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_EFFECT",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_EFFECT",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_MESH",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_MESH",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_TWEEN",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_TWEEN",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_SPRITE",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_SPRITE",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_VEHICLE",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_VEHICLE",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_ANIM_PRIM",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_ANIM_PRIM",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_CHOPPER",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_CHOPPER",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_PYRO",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_PYRO",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_ANIMAL_PRIM",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_ANIMAL_PRIM",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_TRACK",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_TRACK",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_BIKE",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_BIKE",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_FLAG_UNUSED",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_FLAG_UNUSED",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DT_FLAG_GUNFLASH",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DT_FLAG_GUNFLASH",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DrawTween",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DrawTween",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DrawMesh",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "DrawMesh",
+      "orig_file": "fallen/Headers/drawtype.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_draw_tweens",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "init_draw_tweens",
+      "orig_file": "fallen/Source/drawtype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_draw_tween",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "alloc_draw_tween",
+      "orig_file": "fallen/Source/drawtype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_draw_tween",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "free_draw_tween",
+      "orig_file": "fallen/Source/drawtype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_draw_meshes",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "init_draw_meshes",
+      "orig_file": "fallen/Source/drawtype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_draw_mesh",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "alloc_draw_mesh",
+      "orig_file": "fallen/Source/drawtype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_draw_mesh",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "free_draw_mesh",
+      "orig_file": "fallen/Source/drawtype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DRAW_MESH_NULL_ANGLE",
+      "file": "new/actors/core/drawtype.cpp",
+      "orig_name": "DRAW_MESH_NULL_ANGLE",
+      "orig_file": "fallen/Source/drawtype.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

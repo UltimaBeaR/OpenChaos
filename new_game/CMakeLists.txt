@@ -142,6 +142,11 @@ set(SOURCES_NEW
     src/new/ui/hud/planmap_globals.cpp
     src/new/engine/graphics/graphics_api/dd_manager.cpp
     src/new/engine/graphics/graphics_api/dd_manager_globals.cpp
+    src/new/engine/lighting/shadow.cpp
+    src/new/engine/lighting/shadow_globals.cpp
+    src/new/effects/fog.cpp
+    src/new/effects/fog_globals.cpp
+    src/new/actors/core/drawtype.cpp
 )
 
 set(SOURCES_DDENGINE

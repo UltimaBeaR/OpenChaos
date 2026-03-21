@@ -298,3 +298,15 @@ Entity mapping обновлён (33 записи — file path).
 - Закомментированный overload `DDDriverManager::FindDriver(DDCAPS*, ...)` (~110 строк) не перенесён — полностью мёртвый код в `/* */` блоке
 
 ---
+
+## Итерация 30 — engine/lighting/shadow + effects/fog + actors/core/drawtype (2026-03-21)
+
+- Создана первая директория `actors/core/` — первая итерация с `actors/` слоем
+- `drawtype.h` новый: `MAX_DRAW_TWEENS`/`MAX_DRAW_MESHES` оставлены как макросы через `save_table` (как в оригинале); разрешаются при использовании когда `Game.h` уже включён
+- `count_draw_tween` не перенесён — мёртвый код, нигде не вызывается
+- `drawtype.h` содержит temporary `#include "fallen/Headers/cache.h"` — `CACHE_Index` нужен для `DrawMesh`, cache не мигрирован
+- `fog.cpp` — `calc_height_at` — forward declaration присутствует как в оригинале; фактически не вызывается (вместо него `PAP_calc_height_at`)
+- `shadow_1`/`shadow_2` в `SHADOW_do` — declared-but-unused переменные из оригинала, перенесены 1:1
+- `shadow.cpp` не включает `fallen/Headers/shadow.h` (сам является реализацией; включение было бы циклическим через redirect)
+
+---
