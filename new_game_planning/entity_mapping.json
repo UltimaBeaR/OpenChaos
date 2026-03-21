@@ -26829,6 +26829,526 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_Point",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_Point",
+      "orig_file": "fallen/Headers/balloon.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_POINTS_PER_BALLOON",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_POINTS_PER_BALLOON",
+      "orig_file": "fallen/Headers/balloon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_TYPE_UNUSED",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_TYPE_UNUSED",
+      "orig_file": "fallen/Headers/balloon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_TYPE_YELLOW",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_TYPE_YELLOW",
+      "orig_file": "fallen/Headers/balloon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_TYPE_RED",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_TYPE_RED",
+      "orig_file": "fallen/Headers/balloon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_TYPE_NUMBER",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_TYPE_NUMBER",
+      "orig_file": "fallen/Headers/balloon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_MAX_BALLOONS",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_MAX_BALLOONS",
+      "orig_file": "fallen/Headers/balloon.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_Balloon",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_Balloon",
+      "orig_file": "fallen/Headers/balloon.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_init",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_init",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_create",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_create",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_release",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_release",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_find_grab",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_find_grab",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_process",
+      "file": "new/actors/items/balloon.h",
+      "orig_name": "BALLOON_process",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_POINT_DIST",
+      "file": "new/actors/items/balloon.cpp",
+      "orig_name": "BALLOON_POINT_DIST",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_get_attached_point",
+      "file": "new/actors/items/balloon.cpp",
+      "orig_name": "BALLOON_get_attached_point",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_RADIUS",
+      "file": "new/actors/items/balloon.cpp",
+      "orig_name": "BALLOON_RADIUS",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_BOUNCE",
+      "file": "new/actors/items/balloon.cpp",
+      "orig_name": "BALLOON_BOUNCE",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_GRAB_DIST",
+      "file": "new/actors/items/balloon.cpp",
+      "orig_name": "BALLOON_GRAB_DIST",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_balloon",
+      "file": "new/actors/items/balloon_globals.cpp",
+      "orig_name": "BALLOON_balloon",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BALLOON_balloon_upto",
+      "file": "new/actors/items/balloon_globals.cpp",
+      "orig_name": "BALLOON_balloon_upto",
+      "orig_file": "fallen/Source/balloon.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Grenade",
+      "file": "new/actors/items/grenade_globals.h",
+      "orig_name": "Grenade",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_GRENADES",
+      "file": "new/actors/items/grenade_globals.h",
+      "orig_name": "MAX_GRENADES",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GrenadeArray",
+      "file": "new/actors/items/grenade_globals.cpp",
+      "orig_name": "GrenadeArray",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "global_g",
+      "file": "new/actors/items/grenade_globals.cpp",
+      "orig_name": "global_g",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "InitGrenades",
+      "file": "new/actors/items/grenade.h",
+      "orig_name": "InitGrenades",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CreateGrenade",
+      "file": "new/actors/items/grenade.h",
+      "orig_name": "CreateGrenade",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CreateGrenadeFromPerson",
+      "file": "new/actors/items/grenade.h",
+      "orig_name": "CreateGrenadeFromPerson",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DrawGrenades",
+      "file": "new/actors/items/grenade.h",
+      "orig_name": "DrawGrenades",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ProcessGrenades",
+      "file": "new/actors/items/grenade.h",
+      "orig_name": "ProcessGrenades",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CreateGrenadeExplosion",
+      "file": "new/actors/items/grenade.h",
+      "orig_name": "CreateGrenadeExplosion",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "show_grenade_path",
+      "file": "new/actors/items/grenade.h",
+      "orig_name": "show_grenade_path",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ProcessGrenade",
+      "file": "new/actors/items/grenade.cpp",
+      "orig_name": "ProcessGrenade",
+      "orig_file": "fallen/Source/grenade.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_CONTROL_ACCEL",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_CONTROL_ACCEL",
+      "orig_file": "fallen/Headers/dike.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_CONTROL_LEFT",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_CONTROL_LEFT",
+      "orig_file": "fallen/Headers/dike.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_CONTROL_RIGHT",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_CONTROL_RIGHT",
+      "orig_file": "fallen/Headers/dike.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_CONTROL_BRAKE",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_CONTROL_BRAKE",
+      "orig_file": "fallen/Headers/dike.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_CONTORL_WHEELIE",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_CONTORL_WHEELIE",
+      "orig_file": "fallen/Headers/dike.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_FLAG_ON_GROUND_FRONT",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_FLAG_ON_GROUND_FRONT",
+      "orig_file": "fallen/Headers/dike.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_FLAG_ON_GROUND_BACK",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_FLAG_ON_GROUND_BACK",
+      "orig_file": "fallen/Headers/dike.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_MAX_DIKES",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_MAX_DIKES",
+      "orig_file": "fallen/Headers/dike.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_Dike",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_Dike",
+      "orig_file": "fallen/Headers/dike.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_init",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_init",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_create",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_create",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_process",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_process",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_draw",
+      "file": "new/actors/items/dike.h",
+      "orig_name": "DIKE_draw",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_dike",
+      "file": "new/actors/items/dike_globals.cpp",
+      "orig_name": "DIKE_dike",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_dike_upto",
+      "file": "new/actors/items/dike_globals.cpp",
+      "orig_name": "DIKE_dike_upto",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_WHEEL_APART",
+      "file": "new/actors/items/dike.cpp",
+      "orig_name": "DIKE_WHEEL_APART",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_WHEEL_RADIUS",
+      "file": "new/actors/items/dike.cpp",
+      "orig_name": "DIKE_WHEEL_RADIUS",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_GRAVITY",
+      "file": "new/actors/items/dike.cpp",
+      "orig_name": "DIKE_GRAVITY",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_DIST_SHIFT",
+      "file": "new/actors/items/dike.cpp",
+      "orig_name": "DIKE_DIST_SHIFT",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DIKE_get_grip",
+      "file": "new/actors/items/dike.cpp",
+      "orig_name": "DIKE_get_grip",
+      "orig_file": "fallen/Source/dike.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

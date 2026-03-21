@@ -416,3 +416,14 @@ Entity mapping обновлён (33 записи — file path).
 - Строки 1026–1167 оригинального `Darci.cpp` — большой `/* */`-комментарий, не мигрировался
 
 ---
+
+## Итерация 42 — actors/items/balloon + grenade + dike (2026-03-21)
+
+- Создана директория `actors/items/` (первая итерация с items-слоем)
+- `GrenadeArray` (статический в оригинале) и `global_g` — вынесены в `grenade_globals`; `Grenade` struct определён в `grenade_globals.h` (нужен для extern объявления массива)
+- `ProcessGrenade` — file-private static, не объявлен в `grenade.h`; `if (gp->dy > 0x400)` оригинала содержал только закомментированные строки → упрощён до `if (gp->dy <= 0x400)` без изменения поведения
+- `overdist` в `dike.cpp` — dead variable в оригинале (объявлен, не используется) → не перенесён
+- `DIKE_get_grip` — file-private static, не объявлена в оригинальном `dike.h`
+- `BALLOON_get_attached_point` — file-private static, не объявлена в оригинальном `balloon.h`
+
+---

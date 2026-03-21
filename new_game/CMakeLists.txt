@@ -199,6 +199,12 @@ set(SOURCES_NEW
     src/new/actors/vehicles/chopper_globals.cpp
     src/new/assets/startscr.cpp
     src/new/assets/startscr_globals.cpp
+    src/new/actors/items/balloon.cpp
+    src/new/actors/items/balloon_globals.cpp
+    src/new/actors/items/grenade.cpp
+    src/new/actors/items/grenade_globals.cpp
+    src/new/actors/items/dike.cpp
+    src/new/actors/items/dike_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -236,7 +242,6 @@ set(SOURCES_OUTRO
 set(SOURCES_GAME
     src/old/fallen/Source/Anim.cpp
     src/old/fallen/Source/Attract.cpp
-    src/old/fallen/Source/balloon.cpp
     src/old/fallen/Source/barrel.cpp
     src/old/fallen/Source/bat.cpp
     src/old/fallen/Source/building.cpp
@@ -245,7 +250,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/collide.cpp
     src/old/fallen/Source/combat.cpp
     src/old/fallen/Source/Controls.cpp
-    src/old/fallen/Source/dike.cpp
     src/old/fallen/Source/dirt.cpp
     src/new/world/environment/door.cpp
     src/new/world/environment/door_globals.cpp
@@ -260,7 +264,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/frontend.cpp
     src/old/fallen/Source/Game.cpp
     src/old/fallen/Source/gamemenu.cpp
-    src/old/fallen/Source/grenade.cpp
     src/old/fallen/Source/guns.cpp
     src/old/fallen/Source/hm.cpp
     src/old/fallen/Source/hook.cpp
