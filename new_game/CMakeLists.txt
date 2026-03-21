@@ -116,6 +116,12 @@ set(SOURCES_NEW
     src/new/world/environment/outline.cpp
     src/new/engine/lighting/crinkle.cpp
     src/new/engine/effects/flamengine.cpp
+    src/new/engine/io/env.cpp
+    src/new/engine/io/env_globals.cpp
+    src/new/engine/graphics/pipeline/wibble.cpp
+    src/new/engine/graphics/pipeline/wibble_globals.cpp
+    src/new/engine/graphics/resources/truetype.cpp
+    src/new/engine/graphics/resources/truetype_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -139,8 +145,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/smap.cpp
     src/old/fallen/DDEngine/Source/superfacet.cpp
     src/old/fallen/DDEngine/Source/texture.cpp
-    src/old/fallen/DDEngine/Source/truetype.cpp
-    src/old/fallen/DDEngine/Source/wibble.cpp
 )
 
 set(SOURCES_DDLIBRARY
@@ -187,7 +191,7 @@ set(SOURCES_GAME
     src/old/fallen/Source/Effect.cpp
     src/old/fallen/Source/elev.cpp
     src/old/fallen/Source/Enemy.cpp
-    src/old/fallen/Source/env2.cpp
+
     src/old/fallen/Source/eway.cpp
     src/old/fallen/Source/fc.cpp
     src/old/fallen/Source/fire.cpp

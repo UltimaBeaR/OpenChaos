@@ -1,96 +1,55 @@
-// truetype.cpp
-//
-// TrueType font drawing code
-
-// This module handles drawing text to the screen in any given TrueType font
-// It draws text to a 1280x64 bitmap, then scales it down and antialiases it into a texture
-// A list is maintained of all the text draw calls (with wrapping parameters, etc.) made in the last frame,
-// the single lines of text these map to and where they are stored in the texture cache
-//
-// At the beginning of a frame, all text draw calls are marked Pending
-// Every call to DrawTextTT is stored; if it already was in the list, it is marked Active.  If not, it is measured and
-// placed into the list.
-// At the end of a frame, the process goes:
-//
-// 1. Remove from the draw list any text no longer required; free its cachelines etc.
-// 2. If any drawing is required:
-// 2a. Create the DC and set it up
-// 2b. Measure the text and break it into lines
-// 2c. Draw each line of text onto the shadow screen
-// 2d. Close the memory DC and lock the shadow surface
-// 2e. Blit from the shadow surface to the texture surfaces
-// 2f. Unlock everything
-// 3. Draw polygons to blit the text to the screen
-
 #include <DDLib.h>
-#include "texture.h"
-#include <mbctype.h> // MBCS crap
-#include <mbstring.h> // more MBCS crap
+#include <mbctype.h>
+#include <mbstring.h>
+#include "engine/graphics/resources/truetype.h"
+#include "engine/graphics/resources/truetype_globals.h"
+#include "engine/graphics/pipeline/polypoint.h"
+#include "engine/io/env.h"
 
-#include "truetype.h"
-#include "polypoint.h"
-#include "env.h"
+// Convenience aliases matching the original names.
+// These map to the renamed globals in truetype_globals.h.
+#define FontHeight   tt_FontHeight
+#define pShadowSurface tt_pShadowSurface
+#define pShadowPalette tt_pShadowPalette
+#define hFont        tt_hFont
+#define hMidFont     tt_hMidFont
+#define hSmallFont   tt_hSmallFont
+#define hOldFont     tt_hOldFont
+#define Texture      tt_Texture
+#define Cache        tt_Cache
+#define NumCacheLines tt_NumCacheLines
+#define PixMapping   tt_PixMapping
+#define Commands     tt_Commands
+#define AA_SIZE      TT_AA_SIZE
+#define NUM_TT_PAGES TT_NUM_PAGES
+#define MIN_TT_HEIGHT TT_MIN_HEIGHT
+#define MAX_TT_HEIGHT TT_MAX_HEIGHT
+#define MAX_LINES_PER_PAGE TT_MAX_LINES_PER_PAGE
+#define MAX_CACHELINES TT_MAX_CACHELINES
+#define MAX_TEXTCOMMANDS TT_MAX_TEXTCOMMANDS
+#define TYPEFACE NULL
 
-#define AA_SIZE 2 // ANTIALIAS_BY_HAND = 1 always
-#define NUM_TT_PAGES 4 // number of 256x256 texture pages to allocate
-#define MIN_TT_HEIGHT 8 // minimum height of a line of text
-#define MAX_TT_HEIGHT 64 // maximum height of a line of text
-#define MAX_LINES_PER_PAGE (256 / MIN_TT_HEIGHT) // maximum number of cachelines per texture page
-#define MAX_CACHELINES (MAX_LINES_PER_PAGE * NUM_TT_PAGES) // maximum number of cachelines
-#define MAX_TEXTCOMMANDS 32 // maximum number of current & pending text commands
-#define TYPEFACE NULL // typeface name
-
-static int FontHeight; // height of font
-
-static IDirectDrawSurface4* pShadowSurface; // drawing surface
-static IDirectDrawPalette* pShadowPalette; // palette for surface
-static HFONT hFont; // font for DC
-static HFONT hMidFont; // 3/4 font
-static HFONT hSmallFont; // 1/2 font
-static HFONT hOldFont; // old font for DC
-
-static D3DTexture Texture[NUM_TT_PAGES]; // texture pages
-static CacheLine Cache[MAX_CACHELINES]; // cache lines
-static int NumCacheLines; // actual number of cache lines
-static UWORD PixMapping[256]; // maps 8bpp greyscale to texture format
-
-static TextCommand Commands[MAX_TEXTCOMMANDS]; // text commands
-
-// measure a TextCommand
+// Forward declarations for internal helpers.
+// uc_orig: MeasureTextCommand (fallen/DDEngine/Source/truetype.cpp)
 static void MeasureTextCommand(TextCommand* tcmd);
-
-// run a TextCommand
+// uc_orig: DoTextCommand (fallen/DDEngine/Source/truetype.cpp)
 static void DoTextCommand(TextCommand* tcmd);
-
-// draw and cache a single line of text
+// uc_orig: CreateTextLine (fallen/DDEngine/Source/truetype.cpp)
 static void CreateTextLine(char* string, int nchars, int width, int x, int y, TextCommand* owner);
-
-// allocate a new cache line
+// uc_orig: NewCacheLine (fallen/DDEngine/Source/truetype.cpp)
 static int NewCacheLine();
-
-// copy from 8bpp to texture
+// uc_orig: CopyToCache (fallen/DDEngine/Source/truetype.cpp)
 static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width);
-
-// blit text across
+// uc_orig: BlitText (fallen/DDEngine/Source/truetype.cpp)
 static void BlitText();
-
-// draw the textures to the screen
+// uc_orig: ShowTextures (fallen/DDEngine/Source/truetype.cpp)
 static void ShowTextures();
-
-// blit an area of the current texture to the screen
+// uc_orig: TexBlit (fallen/DDEngine/Source/truetype.cpp)
 static void TexBlit(int x1, int y1, int x2, int y2, int dx, int dy, ULONG rgb, ULONG scale);
-
-// copy the shadow buffer & textures to the screen
+// uc_orig: ShowDebug (fallen/DDEngine/Source/truetype.cpp)
 static void ShowDebug();
 
-// TT_Init
-//
-// create:
-//
-// a drawing surface
-// the Shift-JIS font
-// the texture pages
-
+// uc_orig: TT_Init (fallen/DDEngine/Source/truetype.cpp)
 void TT_Init()
 {
     int ii;
@@ -217,10 +176,7 @@ void TT_Init()
     ASSERT(!FAILED(hres));
 }
 
-// TT_Term
-//
-// release the resources
-
+// uc_orig: TT_Term (fallen/DDEngine/Source/truetype.cpp)
 void TT_Term()
 {
     if (!pShadowSurface)
@@ -255,10 +211,7 @@ void TT_Term()
     }
 }
 
-// DrawTextTT
-//
-// exported function to draw formatted text
-
+// uc_orig: DrawTextTT (fallen/DDEngine/Source/truetype.cpp)
 int DrawTextTT(char* string, int x, int y, int rx, int scale, ULONG rgb, int command, long* width)
 {
     int nbytes;
@@ -321,19 +274,13 @@ int DrawTextTT(char* string, int x, int y, int rx, int scale, ULONG rgb, int com
     return y + best->lines * FontHeight * scale / 256;
 }
 
-// GetTextHeightTT
-//
-// get height of TT text
-
+// uc_orig: GetTextHeightTT (fallen/DDEngine/Source/truetype.cpp)
 int GetTextHeightTT()
 {
     return FontHeight;
 }
 
-// PreFlipTT
-//
-// end a frame
-
+// uc_orig: PreFlipTT (fallen/DDEngine/Source/truetype.cpp)
 void PreFlipTT()
 {
     if (!pShadowSurface)
@@ -379,10 +326,7 @@ void PreFlipTT()
     BlitText();
 }
 
-// MeasureTextCommand
-//
-// count how many lines is in a text command, and the maximum width
-
+// uc_orig: MeasureTextCommand (fallen/DDEngine/Source/truetype.cpp)
 static void MeasureTextCommand(TextCommand* tcmd)
 {
     char* string = tcmd->data;
@@ -418,10 +362,7 @@ static void MeasureTextCommand(TextCommand* tcmd)
     ASSERT(!FAILED(res));
 }
 
-// DoTextCommand
-//
-// run a text command - split into lines, draw and cache them
-
+// uc_orig: DoTextCommand (fallen/DDEngine/Source/truetype.cpp)
 static void DoTextCommand(TextCommand* tcmd)
 {
     char* string = tcmd->data;
@@ -483,10 +424,7 @@ static void DoTextCommand(TextCommand* tcmd)
     }
 }
 
-// CreateTextLine
-//
-// create a TextLine and draw it into the DC
-
+// uc_orig: CreateTextLine (fallen/DDEngine/Source/truetype.cpp)
 static void CreateTextLine(char* string, int nchars, int width, int x, int y, TextCommand* owner)
 {
     ASSERT(width <= 640);
@@ -554,10 +492,7 @@ static void CreateTextLine(char* string, int nchars, int width, int x, int y, Te
     ASSERT(!FAILED(res));
 }
 
-// NewCacheLine
-//
-// allocate a new cache line, and return its index
-
+// uc_orig: NewCacheLine (fallen/DDEngine/Source/truetype.cpp)
 static int NewCacheLine()
 {
     for (int ii = 0; ii < NumCacheLines; ii++) {
@@ -567,10 +502,7 @@ static int NewCacheLine()
     return -1;
 }
 
-// CopyToCache
-//
-// copy from the shadow surface to a texture
-
+// uc_orig: CopyToCache (fallen/DDEngine/Source/truetype.cpp)
 static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width)
 {
     if (width > 256)
@@ -601,10 +533,7 @@ static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width)
     cptr->width = width;
 }
 
-// BlitText
-//
-// blit all the text on
-
+// uc_orig: BlitText (fallen/DDEngine/Source/truetype.cpp)
 static void BlitText()
 {
     int ii;
@@ -646,10 +575,7 @@ static void BlitText()
     }
 }
 
-// ShowTextures
-//
-// draw to screen
-
+// uc_orig: ShowTextures (fallen/DDEngine/Source/truetype.cpp)
 static void ShowTextures()
 {
     BEGIN_SCENE;
@@ -670,10 +596,7 @@ static void ShowTextures()
     END_SCENE;
 }
 
-// TexBlit
-//
-// "blit" from texture to screen
-
+// uc_orig: TexBlit (fallen/DDEngine/Source/truetype.cpp)
 static void TexBlit(int x1, int y1, int x2, int y2, int dx, int dy, ULONG rgb, ULONG scale)
 {
     PolyPoint2D vert[4], *vp = vert;

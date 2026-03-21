@@ -16549,6 +16549,526 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "ENV_load",
+      "file": "new/engine/io/env.h",
+      "orig_name": "ENV_load",
+      "orig_file": "fallen/Headers/env.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ENV_get_value_string",
+      "file": "new/engine/io/env.h",
+      "orig_name": "ENV_get_value_string",
+      "orig_file": "fallen/Headers/env.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ENV_get_value_number",
+      "file": "new/engine/io/env.h",
+      "orig_name": "ENV_get_value_number",
+      "orig_file": "fallen/Headers/env.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ENV_set_value_string",
+      "file": "new/engine/io/env.h",
+      "orig_name": "ENV_set_value_string",
+      "orig_file": "fallen/Headers/env.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ENV_set_value_number",
+      "file": "new/engine/io/env.h",
+      "orig_name": "ENV_set_value_number",
+      "orig_file": "fallen/Headers/env.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "env_inifile",
+      "file": "new/engine/io/env_globals.h",
+      "orig_name": "inifile",
+      "orig_file": "fallen/Source/env2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "env_strbuf",
+      "file": "new/engine/io/env_globals.h",
+      "orig_name": "strbuf",
+      "orig_file": "fallen/Source/env2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIBBLE_simple",
+      "file": "new/engine/graphics/pipeline/wibble.h",
+      "orig_name": "WIBBLE_simple",
+      "orig_file": "fallen/DDEngine/Headers/wibble.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "wibble_mul_y1",
+      "file": "new/engine/graphics/pipeline/wibble_globals.h",
+      "orig_name": "mul_y1",
+      "orig_file": "fallen/DDEngine/Source/wibble.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "wibble_mul_y2",
+      "file": "new/engine/graphics/pipeline/wibble_globals.h",
+      "orig_name": "mul_y2",
+      "orig_file": "fallen/DDEngine/Source/wibble.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "wibble_mul_g1",
+      "file": "new/engine/graphics/pipeline/wibble_globals.h",
+      "orig_name": "mul_g1",
+      "orig_file": "fallen/DDEngine/Source/wibble.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "wibble_mul_g2",
+      "file": "new/engine/graphics/pipeline/wibble_globals.h",
+      "orig_name": "mul_g2",
+      "orig_file": "fallen/DDEngine/Source/wibble.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "wibble_shift1",
+      "file": "new/engine/graphics/pipeline/wibble_globals.h",
+      "orig_name": "shift1",
+      "orig_file": "fallen/DDEngine/Source/wibble.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "wibble_shift2",
+      "file": "new/engine/graphics/pipeline/wibble_globals.h",
+      "orig_name": "shift2",
+      "orig_file": "fallen/DDEngine/Source/wibble.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TextCommand",
+      "file": "new/engine/graphics/resources/truetype.h",
+      "orig_name": "TextCommand",
+      "orig_file": "fallen/DDEngine/Headers/truetype.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TextCommands",
+      "file": "new/engine/graphics/resources/truetype.h",
+      "orig_name": "TextCommands",
+      "orig_file": "fallen/DDEngine/Headers/truetype.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Validity",
+      "file": "new/engine/graphics/resources/truetype.h",
+      "orig_name": "Validity",
+      "orig_file": "fallen/DDEngine/Headers/truetype.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CacheLine",
+      "file": "new/engine/graphics/resources/truetype.h",
+      "orig_name": "CacheLine",
+      "orig_file": "fallen/DDEngine/Headers/truetype.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_TT_TEXT",
+      "file": "new/engine/graphics/resources/truetype.h",
+      "orig_name": "MAX_TT_TEXT",
+      "orig_file": "fallen/DDEngine/Headers/truetype.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TT_Init",
+      "file": "new/engine/graphics/resources/truetype.h",
+      "orig_name": "TT_Init",
+      "orig_file": "fallen/DDEngine/Headers/truetype.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TT_Term",
+      "file": "new/engine/graphics/resources/truetype.h",
+      "orig_name": "TT_Term",
+      "orig_file": "fallen/DDEngine/Headers/truetype.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PreFlipTT",
+      "file": "new/engine/graphics/resources/truetype.h",
+      "orig_name": "PreFlipTT",
+      "orig_file": "fallen/DDEngine/Headers/truetype.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DrawTextTT",
+      "file": "new/engine/graphics/resources/truetype.h",
+      "orig_name": "DrawTextTT",
+      "orig_file": "fallen/DDEngine/Headers/truetype.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GetTextHeightTT",
+      "file": "new/engine/graphics/resources/truetype.h",
+      "orig_name": "GetTextHeightTT",
+      "orig_file": "fallen/DDEngine/Headers/truetype.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TT_AA_SIZE",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "AA_SIZE",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TT_NUM_PAGES",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "NUM_TT_PAGES",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TT_MIN_HEIGHT",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "MIN_TT_HEIGHT",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TT_MAX_HEIGHT",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "MAX_TT_HEIGHT",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TT_MAX_LINES_PER_PAGE",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "MAX_LINES_PER_PAGE",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TT_MAX_CACHELINES",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "MAX_CACHELINES",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TT_MAX_TEXTCOMMANDS",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "MAX_TEXTCOMMANDS",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_FontHeight",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "FontHeight",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_pShadowSurface",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "pShadowSurface",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_pShadowPalette",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "pShadowPalette",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_hFont",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "hFont",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_hMidFont",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "hMidFont",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_hSmallFont",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "hSmallFont",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_hOldFont",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "hOldFont",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_Texture",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "Texture",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_Cache",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "Cache",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_NumCacheLines",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "NumCacheLines",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_PixMapping",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "PixMapping",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tt_Commands",
+      "file": "new/engine/graphics/resources/truetype_globals.h",
+      "orig_name": "Commands",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MeasureTextCommand",
+      "file": "new/engine/graphics/resources/truetype.cpp",
+      "orig_name": "MeasureTextCommand",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DoTextCommand",
+      "file": "new/engine/graphics/resources/truetype.cpp",
+      "orig_name": "DoTextCommand",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CreateTextLine",
+      "file": "new/engine/graphics/resources/truetype.cpp",
+      "orig_name": "CreateTextLine",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NewCacheLine",
+      "file": "new/engine/graphics/resources/truetype.cpp",
+      "orig_name": "NewCacheLine",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CopyToCache",
+      "file": "new/engine/graphics/resources/truetype.cpp",
+      "orig_name": "CopyToCache",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BlitText",
+      "file": "new/engine/graphics/resources/truetype.cpp",
+      "orig_name": "BlitText",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShowTextures",
+      "file": "new/engine/graphics/resources/truetype.cpp",
+      "orig_name": "ShowTextures",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TexBlit",
+      "file": "new/engine/graphics/resources/truetype.cpp",
+      "orig_name": "TexBlit",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ShowDebug",
+      "file": "new/engine/graphics/resources/truetype.cpp",
+      "orig_name": "ShowDebug",
+      "orig_file": "fallen/DDEngine/Source/truetype.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

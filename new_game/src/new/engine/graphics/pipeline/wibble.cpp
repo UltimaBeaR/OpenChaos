@@ -1,14 +1,14 @@
-#include "game.h"
-#include <ddlib.h>
+// Include Game.h first to avoid macro conflicts: Game.h -> MFStdLib.h declares
+// `extern SLONG DisplayWidth/DisplayHeight` which must precede gd_display.h's
+// `#define DisplayWidth 640` / `#define DisplayHeight 480`.
+// Temporary: remove when game.h is migrated.
+#include "fallen/Headers/Game.h"
+#include "engine/graphics/pipeline/wibble.h"
+#include "engine/graphics/pipeline/wibble_globals.h"
+#include "engine/graphics/graphics_api/gd_display.h"
+#include "core/math.h"
 
-SLONG mul_y1;
-SLONG mul_y2;
-SLONG mul_g1;
-SLONG mul_g2;
-
-SLONG shift1;
-SLONG shift2;
-
+// uc_orig: WIBBLE_simple (fallen/DDEngine/Source/wibble.cpp)
 void WIBBLE_simple(
     SLONG x1, SLONG y1,
     SLONG x2, SLONG y2,

@@ -249,3 +249,13 @@ Entity mapping обновлён (33 записи — file path).
 - `engine/net/net.cpp` — полный stub; `NET_get_player_name` возвращает `"Unknown"` как `CBYTE*` (pre-existing warning из оригинала)
 
 ---
+
+## Итерация 25 — engine/io/env + engine/graphics/pipeline/wibble + engine/graphics/resources/truetype (2026-03-21)
+
+- `env2.cpp` — мёртвые инклуды `game.h`, `Interfac.h`, `menufont.h` не перенесены (не использовались в теле)
+- `wibble.cpp` — 6 файл-скоп глобалов (`mul_y1/2`, `mul_g1/2`, `shift1/2`) объявлены в оригинале но не используются в `WIBBLE_simple` — перенесены в `_globals` по правилу, dead
+- `wibble.cpp` — `fallen/Headers/Game.h` включается ПЕРВЫМ перед `gd_display.h`: `Game.h → MFStdLib.h` объявляет `extern SLONG DisplayWidth/DisplayHeight`, а `gd_display.h` переопределяет их как `#define 640/480`; если порядок обратный — синтаксическая ошибка
+- `truetype.cpp` — все локальные static-переменные переименованы через `tt_` префикс + переданы через `_globals`; в `.cpp` сделаны `#define`-алиасы обратно на оригинальные имена для читаемости
+- `truetype.cpp` — `ShowDebug` — объявлена как static forward declaration, реализации нет ни в оригинале ни в новом файле (dead declaration в пре-релизной версии)
+
+---
