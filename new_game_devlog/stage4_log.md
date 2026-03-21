@@ -373,6 +373,18 @@ Entity mapping обновлён (33 записи — file path).
 
 ---
 
+## Итерация 39 — world/navigation/inside2 + world/environment/build2 (2026-03-21)
+
+- `stair_teleport_bodge` — объявлена в оригинальном `inside2.h`, но реализация полностью закомментирована и нигде не вызывается → не перенесена (мёртвый код)
+- `find_stair_in` — файл-приватный хелпер, не объявлен в оригинальном хедере → `static` в новом `.cpp`
+- `set_nogo_pap_flags` в `build2.cpp` — тело функции полностью закомментировано блоком `/* ... */` в оригинале → не перенесена (мёртвый код)
+- `calc_ladder_ends` сделана публичной (не `static`): вызывается из `Building.cpp` через extern-declaration — статическая линковка её не найдёт; добавлена в `build2.h`
+- Компиляция: SVector incomplete type в `fastprim.cpp` при включении `building.h` через `memory.h` — причина: новый redirect `inside2.h` не тянет `structs.h` транзитивно; фикс: добавлен `#include "structs.h"` в `old/fallen/Headers/memory.h` перед `building.h`
+- PSX-специфика в оригинальном `supermap.cpp` (TIM-файлы, палитры) — отложена; `calc_inside_for_xyz` тоже в `supermap.cpp` и зависит от `find_inside_room` — кандидат на следующую итерацию
+- Entity mapping: 29 новых записей (публичные функции, приватные static хелперы, structs, макросы, globals)
+
+---
+
 ## Итерация 38 — engine/graphics/pipeline/poly_render + engine/lighting/smap (2026-03-21)
 
 - `RenderStates_OK` — `static bool` в оригинале, оставлен в `poly_render.cpp` (не в _globals): единственное исключение из правила globals — это implementation state, не покидает файл, так сохраняет исходную инкапсуляцию

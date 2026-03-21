@@ -24749,6 +24749,386 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "InsideStorey",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "InsideStorey",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Staircase",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "Staircase",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_INSIDE_RECT",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "MAX_INSIDE_RECT",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_INSIDE_MEM",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "MAX_INSIDE_MEM",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_INSIDE_STAIRS",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "MAX_INSIDE_STAIRS",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "START_PAGE_FOR_FLOOR",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "START_PAGE_FOR_FLOOR",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAG_DOOR_LEFT",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "FLAG_DOOR_LEFT",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAG_DOOR_UP",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "FLAG_DOOR_UP",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAG_INSIDE_STAIR_UP",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "FLAG_INSIDE_STAIR_UP",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAG_INSIDE_STAIR_DOWN",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "FLAG_INSIDE_STAIR_DOWN",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAG_INSIDE_STAIR",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "FLAG_INSIDE_STAIR",
+      "orig_file": "fallen/Headers/inside2.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_inside_alt",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "get_inside_alt",
+      "orig_file": "fallen/Source/inside2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_inside_room",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "find_inside_room",
+      "orig_file": "fallen/Source/inside2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_inside_flags",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "find_inside_flags",
+      "orig_file": "fallen/Source/inside2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "person_slide_inside",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "person_slide_inside",
+      "orig_file": "fallen/Source/inside2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_stair_y",
+      "file": "new/world/navigation/inside2.h",
+      "orig_name": "find_stair_y",
+      "orig_file": "fallen/Source/inside2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_inside_storey",
+      "file": "new/world/navigation/inside2_globals.h",
+      "orig_name": "next_inside_storey",
+      "orig_file": "fallen/Source/inside2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_inside_stair",
+      "file": "new/world/navigation/inside2_globals.h",
+      "orig_name": "next_inside_stair",
+      "orig_file": "fallen/Source/inside2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_inside_block",
+      "file": "new/world/navigation/inside2_globals.h",
+      "orig_name": "next_inside_block",
+      "orig_file": "fallen/Source/inside2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "slide_inside_stair",
+      "file": "new/world/navigation/inside2_globals.h",
+      "orig_name": "slide_inside_stair",
+      "orig_file": "fallen/Source/inside2.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_ladder_ends",
+      "file": "new/world/environment/build2.h",
+      "orig_name": "calc_ladder_ends",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "build_quick_city",
+      "file": "new/world/environment/build2.h",
+      "orig_name": "build_quick_city",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "attach_walkable_to_map",
+      "file": "new/world/environment/build2.h",
+      "orig_name": "attach_walkable_to_map",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "remove_walkable_from_map",
+      "file": "new/world/environment/build2.h",
+      "orig_name": "remove_walkable_from_map",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "add_facet_to_map",
+      "file": "new/world/environment/build2.h",
+      "orig_name": "add_facet_to_map",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUILD_car_facets",
+      "file": "new/world/environment/build2.h",
+      "orig_name": "BUILD_car_facets",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_empty_facet_block",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "find_empty_facet_block",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "garbage_collection",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "garbage_collection",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "create_extra_facet",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "create_extra_facet",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "link_facet_to_mapwho",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "link_facet_to_mapwho",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "process_facet",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "process_facet",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "process_building",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "process_building",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "clear_colvects",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "clear_colvects",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "clear_facet_links",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "clear_facet_links",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "facet_is_solid",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "facet_is_solid",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "compare_facets",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "compare_facets",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "mark_naughty_facets",
+      "file": "new/world/environment/build2.cpp",
+      "orig_name": "mark_naughty_facets",
+      "orig_file": "fallen/Source/build2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_stair_in",
+      "file": "new/world/navigation/inside2.cpp",
+      "orig_name": "find_stair_in",
+      "orig_file": "fallen/Source/inside2.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

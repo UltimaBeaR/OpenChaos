@@ -1,6 +1,7 @@
 #ifndef FALLEN_HEADERS_MEMORY_H
 #define FALLEN_HEADERS_MEMORY_H
 
+#include "structs.h"
 #include "supermap.h"
 #include "inside2.h"
 #include "building.h"

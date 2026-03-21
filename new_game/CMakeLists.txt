@@ -173,6 +173,9 @@ set(SOURCES_NEW
     src/new/engine/graphics/pipeline/poly_render_globals.cpp
     src/new/engine/lighting/smap.cpp
     src/new/engine/lighting/smap_globals.cpp
+    src/new/world/navigation/inside2.cpp
+    src/new/world/navigation/inside2_globals.cpp
+    src/new/world/environment/build2.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -214,7 +217,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/balloon.cpp
     src/old/fallen/Source/barrel.cpp
     src/old/fallen/Source/bat.cpp
-    src/old/fallen/Source/build2.cpp
     src/old/fallen/Source/building.cpp
     src/old/fallen/Source/canid.cpp
     src/old/fallen/Source/chopper.cpp
@@ -244,7 +246,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/Hierarchy.cpp
     src/old/fallen/Source/hm.cpp
     src/old/fallen/Source/hook.cpp
-    src/old/fallen/Source/inside2.cpp
     src/old/fallen/Source/interact.cpp
     src/old/fallen/Source/interfac.cpp
     src/old/fallen/Source/io.cpp
