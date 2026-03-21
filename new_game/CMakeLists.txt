@@ -215,6 +215,8 @@ set(SOURCES_NEW
     src/new/actors/items/hook_globals.cpp
     src/new/effects/pow.cpp
     src/new/effects/pow_globals.cpp
+    src/new/engine/graphics/geometry/superfacet.cpp
+    src/new/engine/graphics/geometry/superfacet_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -227,7 +229,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/panel.cpp
     src/old/fallen/DDEngine/Source/poly.cpp
     src/old/fallen/DDEngine/Source/shape.cpp
-    src/old/fallen/DDEngine/Source/superfacet.cpp
     src/old/fallen/DDEngine/Source/texture.cpp
 )
 

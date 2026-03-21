@@ -38509,6 +38509,416 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_CALL_FLAG_USED",
+      "file": "new/engine/graphics/geometry/superfacet_globals.h",
+      "orig_name": "SUPERFACET_CALL_FLAG_USED",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_CALL_FLAG_2PASS",
+      "file": "new/engine/graphics/geometry/superfacet_globals.h",
+      "orig_name": "SUPERFACET_CALL_FLAG_2PASS",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_MAX_CALLS",
+      "file": "new/engine/graphics/geometry/superfacet_globals.h",
+      "orig_name": "SUPERFACET_MAX_CALLS",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_QUEUE_SIZE",
+      "file": "new/engine/graphics/geometry/superfacet_globals.h",
+      "orig_name": "SUPERFACET_QUEUE_SIZE",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_Call",
+      "file": "new/engine/graphics/geometry/superfacet_globals.h",
+      "orig_name": "SUPERFACET_Call",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_Facet",
+      "file": "new/engine/graphics/geometry/superfacet_globals.h",
+      "orig_name": "SUPERFACET_Facet",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_max_lverts",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_max_lverts",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_lvert_buffer",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_lvert_buffer",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_lvert",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_lvert",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_lvert_upto",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_lvert_upto",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_max_indices",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_max_indices",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_index",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_index",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_index_upto",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_index_upto",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_free_range_start",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_free_range_start",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_free_range_end",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_free_range_end",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_call",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_call",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_call_upto",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_call_upto",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_max_facets",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_max_facets",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_facet",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_facet",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_queue",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_queue",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_queue_start",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_queue_start",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_queue_end",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_queue_end",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_matrix_buffer",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_matrix_buffer",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_matrix",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_matrix",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_direction_matrix",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_direction_matrix",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_colour_base",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "SUPERFACET_colour_base",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "m_iFacetDirection",
+      "file": "new/engine/graphics/geometry/superfacet_globals.cpp",
+      "orig_name": "m_iFacetDirection",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_free_end_of_queue",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_free_end_of_queue",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_convert_texture",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_convert_texture",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_make_facet_points",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_make_facet_points",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_create_points",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_create_points",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_fill_facet_points",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_fill_facet_points",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_build_call",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_build_call",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_create_calls",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_create_calls",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_convert_facet",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_convert_facet",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_redo_lighting",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_redo_lighting",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_init",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_init",
+      "orig_file": "fallen/DDEngine/Headers/superfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_start_frame",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_start_frame",
+      "orig_file": "fallen/DDEngine/Headers/superfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_draw",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_draw",
+      "orig_file": "fallen/DDEngine/Headers/superfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_fini",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "SUPERFACET_fini",
+      "orig_file": "fallen/DDEngine/Headers/superfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "POLY_set_local_rotation_none",
+      "file": "new/engine/graphics/geometry/superfacet.cpp",
+      "orig_name": "POLY_set_local_rotation_none",
+      "orig_file": "fallen/DDEngine/Source/superfacet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -1,136 +1,49 @@
-//
-// Converts facets to draw indexed primitive calls...
-//
+#include <MFStdLib.h>
+#include <DDLib.h>
 
-#include "game.h"
-#include "ddlib.h"
-#include "poly.h"
-#include "polypoint.h"
-#include "polypage.h"
-#include "night.h"
-#include "supermap.h"
-#include "memory.h"
-#include "interfac.h"
-#include "matrix.h"
+#include "fallen/Headers/game.h"
+#include "fallen/DDEngine/Headers/poly.h"
+#include "fallen/DDEngine/Headers/polypoint.h"
+#include "engine/graphics/pipeline/polypage.h"
+#include "fallen/Headers/Night.h"
+#include "fallen/Headers/supermap.h"
+#include "fallen/Headers/memory.h"
+#include "fallen/Headers/interfac.h"
+#include "core/matrix.h"
+#include "engine/input/keyboard.h"
+#include "engine/input/keyboard_globals.h"
+#include "engine/graphics/geometry/superfacet.h"
+#include "engine/graphics/geometry/superfacet_globals.h"
 
+// POLY_set_local_rotation_none is defined as a no-op for the PC code path.
+// On Dreamcast, this reset the local rotation matrix before DrawIndexedPrimitive.
+// uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Source/superfacet.cpp)
 #define POLY_set_local_rotation_none() \
     {                                  \
     }
 
-// A hack to test the speed of theoretical crinkles.
-#undef TESSELATE_DEGREE
-// #define TESSELATE_DEGREE 1
+// Defines for array bounds using the runtime-determined sizes (set in SUPERFACET_init).
+#define SUPERFACET_MAX_LVERTS   (SUPERFACET_max_lverts)
+#define SUPERFACET_MAX_INDICES  (SUPERFACET_max_indices)
+#define SUPERFACET_MAX_FACETS   SUPERFACET_max_facets
 
-//
-// The verts....
-//
-
-SLONG SUPERFACET_max_lverts;
-
-#define SUPERFACET_MAX_LVERTS (SUPERFACET_max_lverts)
-
-UBYTE* SUPERFACET_lvert_buffer;
-D3DLVERTEX* SUPERFACET_lvert;
-SLONG SUPERFACET_lvert_upto;
-
-//
-// The indices....
-//
-
-SLONG SUPERFACET_max_indices;
-
-#define SUPERFACET_MAX_INDICES (SUPERFACET_max_indices)
-
-UWORD* SUPERFACET_index;
-SLONG SUPERFACET_index_upto;
-
-//
-// The lvert buffer has an unused range. The beginning
-// of the range is where we allocate new data.  When
-// we free data the end of the range is moved on forwards.
-//
-
-SLONG SUPERFACET_free_range_start;
-SLONG SUPERFACET_free_range_end;
-
-#define SUPERFACET_CALL_FLAG_USED (1 << 0)
-#define SUPERFACET_CALL_FLAG_2PASS (1 << 1)
-
-typedef struct
-{
-    UBYTE flag; // TRUE => this call is in use.
-    UBYTE dir; // The direction of the facet...
-    UWORD quads; // The number of quads this call draws.
-    UWORD lvert;
-    UWORD lvertcount;
-    UWORD index;
-    UWORD indexcount;
-    UWORD index2; // For the 2-pass textures...
-
-    LPDIRECT3DTEXTURE2 texture;
-    LPDIRECT3DTEXTURE2 texture_2pass; // For the 2-pass textures...
-
-} SUPERFACET_Call;
-
-#define SUPERFACET_MAX_CALLS 2048
-
-SUPERFACET_Call SUPERFACET_call[SUPERFACET_MAX_CALLS];
-SLONG SUPERFACET_call_upto;
-
-//
-// Incides into the calllist array.
-//
-
-SLONG SUPERFACET_max_facets;
-
-#define SUPERFACET_MAX_FACETS SUPERFACET_max_facets
-
-typedef struct
-{
-    UWORD call; // Index into the SUPERFACET_call[] array
-    UWORD num;
-
-} SUPERFACET_Facet;
-
-SUPERFACET_Facet* SUPERFACET_facet;
-
-//
-// A circular queue of facets. It remembers the order the
-// facets were cached so they can be uncached in the same
-// order.
-//
-
-#define SUPERFACET_QUEUE_SIZE 512 // Power of 2 please...
-
-UWORD SUPERFACET_queue[SUPERFACET_QUEUE_SIZE];
-SLONG SUPERFACET_queue_start;
-SLONG SUPERFACET_queue_end;
-
-//
-// A 32-byte aligned matrix.
-//
-
-UBYTE SUPERFACET_matrix_buffer[sizeof(D3DMATRIX) + 32];
-D3DMATRIX* SUPERFACET_matrix;
-
-//
-// The direction matrices for each direction of facet.
-//
-
-float SUPERFACET_direction_matrix[4][9];
-
-//
-// From facet.cpp
-//
-
+// Forward declarations from facet.cpp (not yet migrated).
+// uc_orig: facet_rand (fallen/DDEngine/Source/facet.cpp)
 extern ULONG facet_rand(void);
+// uc_orig: set_facet_seed (fallen/DDEngine/Source/facet.cpp)
 extern void set_facet_seed(SLONG seed);
+// uc_orig: texture_quad (fallen/DDEngine/Source/facet.cpp)
 extern SLONG texture_quad(POLY_Point* quad[4], SLONG texture_style, SLONG pos, SLONG count, SLONG flipx = 0);
 
-//
-// Frees up the memory for the facet at the end of a queue.
-//
+// uc_orig: FacetRows (fallen/DDEngine/Source/facet.cpp)
+// Row start indices in POLY_buffer[] for each horizontal row of facet geometry.
+extern SWORD FacetRows[100];
+// uc_orig: FacetDiffY (fallen/DDEngine/Source/facet.cpp)
+// Per-vertex foundation height deltas for foundation=2 walls.
+extern float FacetDiffY[128];
 
+// uc_orig: SUPERFACET_free_end_of_queue (fallen/DDEngine/Source/superfacet.cpp)
+// Frees the oldest facet in the circular queue, releasing its vertex memory range.
 void SUPERFACET_free_end_of_queue(void)
 {
     SLONG i;
@@ -147,10 +60,7 @@ void SUPERFACET_free_end_of_queue(void)
 
     sf = &SUPERFACET_facet[facet];
 
-    //
-    // Free up all the call structures.
-    //
-
+    // Free all the call structures belonging to this facet.
     for (i = 0; i < sf->num; i++) {
         ASSERT(WITHIN(sf->call + i, 0, SUPERFACET_MAX_CALLS - 1));
 
@@ -161,19 +71,13 @@ void SUPERFACET_free_end_of_queue(void)
         sc->flag = 0;
     }
 
-    //
-    // Upto the end of the last call structure is now free.
-    //
-
+    // Everything up to the end of the last call's vertex range is now free.
     SUPERFACET_free_range_end = sc->lvert + sc->lvertcount;
 
     ASSERT(WITHIN(SUPERFACET_free_range_end, 0, SUPERFACET_MAX_LVERTS));
 
-    //
-    // If the next call structure is used and is at the beginning of the
-    // array then all the memory to the end of the lvert array is free.
-    //
-
+    // If the next call is used and starts at the beginning of the lvert array,
+    // all memory to the end of the array is free (the buffer has wrapped around).
     ASSERT(WITHIN(sf->call + sf->num, 0, SUPERFACET_MAX_CALLS - 1));
 
     sc = &SUPERFACET_call[sf->call + sf->num];
@@ -184,37 +88,26 @@ void SUPERFACET_free_end_of_queue(void)
         }
     }
 
-    //
     // Pop the facet off the end of the queue.
-    //
-
     SUPERFACET_queue_end += 1;
 
-    //
     // Mark as unused.
-    //
-
     sf->call = 0;
     sf->num = 0;
 }
 
-//
-// Returns the actual page used, and converts the texture
-// coordinates in the quad.
-//
-
+// uc_orig: SUPERFACET_convert_texture (fallen/DDEngine/Source/superfacet.cpp)
+// Converts UV coordinates from normalised [0,1] to atlas-page space and
+// returns the D3D texture pointer for the given page number.
 LPDIRECT3DTEXTURE2 SUPERFACET_convert_texture(SLONG page, POLY_Point* quad[4])
 {
     SLONG i;
 
-    ASSERT(WITHIN(page, 0, 511)); // Special subset of pages just for facets...
+    ASSERT(WITHIN(page, 0, 511));
 
     PolyPage* pp = &POLY_Page[page];
 
-    //
-    // Convert texture coordinates.
-    //
-
+    // Convert texture coordinates from normalised to atlas space.
     for (i = 0; i < 4; i++) {
         quad[i]->u = quad[i]->u * pp->m_UScale + pp->m_UOffset;
         quad[i]->v = quad[i]->v * pp->m_VScale + pp->m_VOffset;
@@ -223,22 +116,10 @@ LPDIRECT3DTEXTURE2 SUPERFACET_convert_texture(SLONG page, POLY_Point* quad[4])
     return pp->RS.GetTexture();
 }
 
-//
-// The start of the NIGHT_Colour[] array for this facet.
-// So we can work out the index into the NIGHT_Colour[] array
-// for each point.
-//
-
-NIGHT_Colour* SUPERFACET_colour_base;
-
-//
-// Stolen from facet.cpp. Fills in POLY_buffer[] with the points
-// of the facet.
-//
-
-extern SWORD FacetRows[100];
-extern float FacetDiffY[128];
-
+// uc_orig: SUPERFACET_make_facet_points (fallen/DDEngine/Source/superfacet.cpp)
+// Fills POLY_buffer[] with the untransformed world-space points of a wall facet.
+// One point per (column, row) intersection; rows are separated by block_height units.
+// Foundation=2 rows hug the terrain height from PAP_2HI.
 void SUPERFACET_make_facet_points(
     float sx,
     float sy,
@@ -254,7 +135,7 @@ void SUPERFACET_make_facet_points(
 {
     SLONG hf = 0;
 
-    POLY_buffer_upto = 0; // or else FacetDiffY is accessed wrongly
+    POLY_buffer_upto = 0;
 
     ASSERT(WITHIN(block_height, 32.0F, 256.0F));
 
@@ -287,10 +168,7 @@ void SUPERFACET_make_facet_points(
             pp->y = ty;
             pp->z = z;
 
-            //
-            // The index into the dfcache array for this facet.
-            //
-
+            // Index into the NIGHT_Colour[] array for this vertex (used by SUPERFACET_redo_lighting).
             pp->user = col - SUPERFACET_colour_base;
 
             NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
@@ -308,19 +186,12 @@ void SUPERFACET_make_facet_points(
     FacetRows[hf] = POLY_buffer_upto;
 }
 
-//
-// Generates the points for for the facet.
-//
-
-int m_iFacetDirection;
-
+// uc_orig: SUPERFACET_create_points (fallen/DDEngine/Source/superfacet.cpp)
+// Generates the geometry points for the given facet index into POLY_buffer[].
 void SUPERFACET_create_points(SLONG facet)
 {
-    SLONG i;
-    SLONG j;
     SLONG dx;
     SLONG dz;
-    SLONG hf;
     SLONG height;
     SLONG count;
     SLONG foundation;
@@ -330,28 +201,15 @@ void SUPERFACET_create_points(SLONG facet)
     float sz;
     float block_height;
 
-    LPDIRECT3DTEXTURE2 texture;
     DFacet* df;
-    SUPERFACET_Facet* sf;
-    SUPERFACET_Call* sc;
-    POLY_Point* quad[4];
     NIGHT_Colour* col;
 
     ASSERT(WITHIN(facet, 0, next_dfacet - 1));
     ASSERT(WITHIN(facet, 0, SUPERFACET_MAX_FACETS - 1));
 
     df = &dfacets[facet];
-    sf = &SUPERFACET_facet[facet];
-
-    //
-    // Set the seed for the random facet texture system.
-    //
 
     set_facet_seed(df->x[0] * df->z[0] + df->Y[0]);
-
-    //
-    // How long is the wall? No diagonal walls allowed.
-    //
 
     ASSERT(WITHIN(df->Dfcache, 1, NIGHT_MAX_DFCACHES - 1));
 
@@ -372,7 +230,7 @@ void SUPERFACET_create_points(SLONG facet)
         count = abs(dz) >> 8;
     }
 
-    count++; // Count is the number of points, not the number of texture squares...
+    count++;
 
     if (df->FHeight) {
         foundation = 2;
@@ -395,6 +253,9 @@ void SUPERFACET_create_points(SLONG facet)
         df->FacetFlags & FACET_FLAG_HUG_FLOOR);
 }
 
+// uc_orig: SUPERFACET_fill_facet_points (fallen/DDEngine/Source/superfacet.cpp)
+// Fills one row of quads from POLY_buffer[] into the vertex/index arrays for a given call.
+// Only quads that use sc->texture are appended.
 void SUPERFACET_fill_facet_points(
     SLONG count,
     ULONG base_row,
@@ -418,10 +279,6 @@ void SUPERFACET_fill_facet_points(
     ASSERT(row2 - row1 == count);
 
     for (i = 0; i < row2 - row1 - 1; i++) {
-        //
-        // The four points of this quad.
-        //
-
         quad[0] = &POLY_buffer[row2 + i + 1];
         quad[1] = &POLY_buffer[row2 + i];
         quad[2] = &POLY_buffer[row1 + i + 1];
@@ -429,11 +286,8 @@ void SUPERFACET_fill_facet_points(
 
         page = texture_quad(quad, dstyles[style_index], i, count);
 
-        //
-        // Scale for block height.
-        //
-
-        // MASSIVE FUDGE.
+        // Scale UV V-coordinate by block height.
+        // MASSIVE FUDGE: clamp wrapping UV to 0.
         if (quad[0]->v >= 0.9999f) {
             quad[0]->v = 0.0f;
         }
@@ -448,11 +302,7 @@ void SUPERFACET_fill_facet_points(
             quad[3]->v = FacetDiffY[i];
             quad[2]->v = FacetDiffY[i + 1];
 
-            //
-            // OH MY GOD! FACET FOUNDATION TEXTURES WRAP!!!
-            //
-
-            // As a panic measure which might sort-of work, clamp the coords to 1.
+            // Foundation texture V can exceed 1 due to terrain height variation — clamp.
             if (quad[3]->v > 1.0f) {
                 quad[3]->v = 1.0f;
             }
@@ -461,19 +311,10 @@ void SUPERFACET_fill_facet_points(
             }
         }
 
-        //
-        // Is this texture used in our call?
-        //
-
         texture = SUPERFACET_convert_texture(page, quad);
 
         if (texture == sc->texture) {
-            //
-            // Add this quad to the call structure. First four points.
-            //
-
-            // ASSERT(abs(quad[0]->y - quad[2]->y) <= 257);
-
+            // Append four vertices for this quad.
             for (j = 0; j < 4; j++) {
                 ASSERT(WITHIN(SUPERFACET_lvert_upto, 0, SUPERFACET_MAX_LVERTS - 1));
 
@@ -489,16 +330,13 @@ void SUPERFACET_fill_facet_points(
                 }
                 lv->tu = quad[j]->u;
                 lv->tv = quad[j]->v;
+                // Store the lighting index (into NIGHT_Colour[]) in the high 16 bits.
                 lv->dwReserved = quad[j]->user << 16;
             }
 
-            //
-            // Now six indices.
-            //
-
+            // Append six indices for two triangles covering the quad.
             ASSERT(WITHIN(SUPERFACET_index_upto + 4, 0, SUPERFACET_MAX_INDICES - 1));
 
-            // Lists
             SUPERFACET_index[SUPERFACET_index_upto + 0] = SUPERFACET_lvert_upto - sc->lvert + 0;
             SUPERFACET_index[SUPERFACET_index_upto + 1] = SUPERFACET_lvert_upto - sc->lvert + 2;
             SUPERFACET_index[SUPERFACET_index_upto + 2] = SUPERFACET_lvert_upto - sc->lvert + 1;
@@ -517,20 +355,16 @@ void SUPERFACET_fill_facet_points(
         }
     }
 
-    //	for (;i < count; i++)
+    // Advance the RNG state for any skipped quads (to maintain parity with facet.cpp).
     {
         facet_rand();
     }
 }
 
-//
-// Builds the 'call'th call structure for the given facet.
-//
-
+// uc_orig: SUPERFACET_build_call (fallen/DDEngine/Source/superfacet.cpp)
+// Populates vertex/index data for the 'call'th texture call of the given facet.
 void SUPERFACET_build_call(SLONG facet, SLONG call)
 {
-    SLONG i;
-    SLONG j;
     SLONG dx;
     SLONG dz;
     SLONG hf;
@@ -542,11 +376,9 @@ void SUPERFACET_build_call(SLONG facet, SLONG call)
 
     float block_height;
 
-    LPDIRECT3DTEXTURE2 texture;
     DFacet* df;
     SUPERFACET_Facet* sf;
     SUPERFACET_Call* sc;
-    POLY_Point* quad[4];
 
     ASSERT(WITHIN(facet, 0, next_dfacet - 1));
     ASSERT(WITHIN(facet, 0, SUPERFACET_MAX_FACETS - 1));
@@ -559,24 +391,12 @@ void SUPERFACET_build_call(SLONG facet, SLONG call)
 
     sc = &SUPERFACET_call[sf->call + call];
 
-    //
-    // Initialise this call. This texture should already be setup.
-    //
-
     sc->index = SUPERFACET_index_upto;
     sc->lvert = SUPERFACET_lvert_upto;
     sc->indexcount = 0;
     sc->lvertcount = 0;
 
-    //
-    // Set the seed for the random facet texture system.
-    //
-
     set_facet_seed(df->x[0] * df->z[0] + df->Y[0]);
-
-    //
-    // How long is the wall? No diagonal walls allowed.
-    //
 
     dx = (df->x[1] - df->x[0]) << 8;
     dz = (df->z[1] - df->z[0]) << 8;
@@ -589,11 +409,7 @@ void SUPERFACET_build_call(SLONG facet, SLONG call)
         count = abs(dz) >> 8;
     }
 
-    count++; // Count is the number of points, not the number of texture squares...
-
-    //
-    // Set up the styles...
-    //
+    count++;
 
     style_index = df->StyleIndex;
 
@@ -607,21 +423,12 @@ void SUPERFACET_build_call(SLONG facet, SLONG call)
         style_index_step = 1;
     }
 
-    //
-    // Do we have a foundation?
-    //
-
     if (df->FHeight) {
         foundation = 2;
     }
 
     block_height = float(df->BlockHeight << 4);
     height = df->Height;
-
-    //
-    // Go through the facet and find all the quads that use
-    // this call's texture.
-    //
 
     hf = 0;
 
@@ -644,26 +451,14 @@ void SUPERFACET_build_call(SLONG facet, SLONG call)
 
     ASSERT(sc->lvertcount == sc->quads * 4);
 
-    /*
-
-    #ifndef TARGET_DC
-
-    ASSERT(sc->indexcount);
-    ASSERT(sc->lvertcount);
-
-    #endif
-
-    */
-
     SUPERFACET_free_range_start = sc->lvert + sc->lvertcount;
 
     return;
 }
 
-//
-// Create a call for each new texture page.
-//
-
+// uc_orig: SUPERFACET_create_calls (fallen/DDEngine/Source/superfacet.cpp)
+// Scans all quads of a facet and creates one SUPERFACET_Call per unique D3D texture.
+// Counts quads per call so vertex memory can be pre-allocated.
 void SUPERFACET_create_calls(SLONG facet, SLONG direction)
 {
     SLONG i;
@@ -689,15 +484,7 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
     df = &dfacets[facet];
     sf = &SUPERFACET_facet[facet];
 
-    //
-    // Set the seed for the random facet texture system.
-    //
-
     set_facet_seed(df->x[0] * df->z[0] + df->Y[0]);
-
-    //
-    // How long is the wall? No diagonal walls allowed.
-    //
 
     dx = (df->x[1] - df->x[0]) << 8;
     dz = (df->z[1] - df->z[0]) << 8;
@@ -710,11 +497,7 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
         count = abs(dz) >> 8;
     }
 
-    count++; // Count is the number of points, not the number of texture squares...
-
-    //
-    // Set up the styles...
-    //
+    count++;
 
     style_index = df->StyleIndex;
 
@@ -728,10 +511,7 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
         style_index_step = 1;
     }
 
-    //
-    // Make 'quad' point to a junk bit of memory.
-    //
-
+    // Use a dummy POLY_Point array for texture lookup (coordinates don't matter here).
     POLY_Point pp[4];
 
     memset(pp, 0, sizeof(pp));
@@ -741,11 +521,6 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    //
-    // Go through the facet and find all the textures used by the
-    // facet.
-    //
-
     hf = 0;
     height = df->Height;
 
@@ -754,39 +529,21 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
             for (i = 0; i < count - 1; i++) {
                 page = texture_quad(quad, dstyles[style_index - 1], i, count);
 
-                //
-                // Find the actual d3d texture used.
-                //
-
                 texture = SUPERFACET_convert_texture(page, quad);
 
-                // Some textures are indeed NULL, if they are missing.
-                // ASSERT ( texture != NULL );
-
-                //
-                // Do we already have this texture?
-                //
-
+                // Check if we already have a call for this texture.
                 for (j = 0; j < sf->num; j++) {
                     ASSERT(WITHIN(sf->call + j, 0, SUPERFACET_MAX_CALLS - 1));
 
                     sc = &SUPERFACET_call[sf->call + j];
 
                     if (sc->texture == texture) {
-                        //
-                        // Already have a SUPERFACET_Call for this texture.
-                        //
-
                         sc->quads += 1;
-
                         goto already_got_a_call;
                     }
                 }
 
-                //
-                // Create a new call structure for this facet.
-                //
-
+                // No existing call — create a new one.
                 ASSERT(WITHIN(SUPERFACET_call_upto, 0, SUPERFACET_MAX_CALLS - 1));
                 ASSERT(SUPERFACET_call_upto == sf->call + sf->num);
 
@@ -796,7 +553,7 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
 
                 sc->flag = SUPERFACET_CALL_FLAG_USED;
                 sc->texture = texture;
-                sc->quads = 1; // Just to be sure...
+                sc->quads = 1;
                 sc->dir = direction;
 
                 if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
@@ -820,6 +577,9 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
     return;
 }
 
+// uc_orig: SUPERFACET_convert_facet (fallen/DDEngine/Source/superfacet.cpp)
+// Caches the rendering data for a facet: creates calls, allocates vertex memory,
+// builds geometry, and adds the facet to the circular eviction queue.
 void SUPERFACET_convert_facet(SLONG facet)
 {
     SLONG i;
@@ -836,19 +596,11 @@ void SUPERFACET_convert_facet(SLONG facet)
     df = &dfacets[facet];
 
     if (df->Dfcache == NULL) {
-        //
-        // Create cached lighting for the facet.
-        //
-
         df->Dfcache = NIGHT_dfcache_create(facet);
-
         ASSERT(df->Dfcache);
     }
 
-    //
-    // What direction does this facet point in?
-    //
-
+    // Determine facing direction (0=+X, 1=+Z, 2=-X, 3=-Z).
     if (df->z[0] == df->z[1]) {
         if (df->x[0] < df->x[1]) {
             direction = 0;
@@ -863,20 +615,10 @@ void SUPERFACET_convert_facet(SLONG facet)
         }
     }
 
-    //
-    // Make sure there'll be enough call structures... On RTA
-    // there was a max of 12 call structures per facet- use
-    // 32 just in case.
-    //
-
+    // Make sure there are enough call slots (leave 32 as safety margin).
     if (SUPERFACET_call_upto > SUPERFACET_MAX_CALLS - 32) {
         SUPERFACET_call_upto = 0;
     }
-
-    //
-    // Find all the texture pages used by the facet and
-    // create a SUPERFACET_call for each one of them.
-    //
 
     ASSERT(WITHIN(facet, 0, SUPERFACET_MAX_FACETS - 1));
 
@@ -887,10 +629,7 @@ void SUPERFACET_convert_facet(SLONG facet)
 
     SUPERFACET_create_calls(facet, direction);
 
-    //
-    // How much lvert/index memory do we need?
-    //
-
+    // Calculate how many lvert slots we need for this facet.
     memory = 0;
 
     for (i = 0; i < sf->num; i++) {
@@ -898,15 +637,10 @@ void SUPERFACET_convert_facet(SLONG facet)
 
         sc = &SUPERFACET_call[sf->call + i];
 
-        memory += sc->quads * 4; // 4 verts per quad.
+        memory += sc->quads * 4;
     }
 
-    //	ASSERT(memory < 200 * 4);
-
-    //
-    // Free up old facets until we have enough room.
-    //
-
+    // Evict old facets until there is enough free vertex memory.
     while (1) {
         if (SUPERFACET_free_range_start <= SUPERFACET_free_range_end) {
             room = SUPERFACET_free_range_end - SUPERFACET_free_range_start;
@@ -919,10 +653,7 @@ void SUPERFACET_convert_facet(SLONG facet)
         }
 
         if (SUPERFACET_free_range_start > SUPERFACET_free_range_end) {
-            //
-            // We've looped around...
-            //
-
+            // Buffer has wrapped: reset write pointer to the beginning.
             SUPERFACET_free_range_start = 0;
             SUPERFACET_lvert_upto = 0;
             SUPERFACET_index_upto = 0;
@@ -931,32 +662,17 @@ void SUPERFACET_convert_facet(SLONG facet)
         SUPERFACET_free_end_of_queue();
     }
 
-    //
-    // Build the points.
-    //
-
     SUPERFACET_create_points(facet);
-
-    //
-    // Create each call.
-    //
 
     for (i = 0; i < sf->num; i++) {
         SUPERFACET_build_call(facet, i);
     }
 
-    //
-    // Get rid of the cached lighting.
-    //
-
     NIGHT_dfcache_destroy(df->Dfcache);
 
     df->Dfcache = NULL;
 
-    //
-    // Add to the queue of facets.
-    //
-
+    // Push this facet onto the circular eviction queue.
     ASSERT(SUPERFACET_queue_start < SUPERFACET_queue_end + SUPERFACET_QUEUE_SIZE);
 
     SUPERFACET_queue[SUPERFACET_queue_start & (SUPERFACET_QUEUE_SIZE - 1)] = facet;
@@ -964,22 +680,13 @@ void SUPERFACET_convert_facet(SLONG facet)
     SUPERFACET_queue_start++;
 }
 
+// uc_orig: SUPERFACET_init (fallen/DDEngine/Headers/superfacet.h)
+// Allocates and initialises the supefacet batch buffers. Call after all assets are loaded.
 void SUPERFACET_init()
 {
-
-    //
-    // How big should our arrays be?
-    //
-
     SUPERFACET_max_facets = next_dfacet;
     SUPERFACET_max_lverts = 8192;
-
-    // For lists
     SUPERFACET_max_indices = SUPERFACET_max_lverts * 6 / 4;
-
-    //
-    // Allocate memory.
-    //
 
     SUPERFACET_lvert_buffer = (UBYTE*)MemAlloc(sizeof(D3DLVERTEX) * SUPERFACET_MAX_LVERTS + 32);
     ASSERT(SUPERFACET_lvert_buffer != NULL);
@@ -987,10 +694,6 @@ void SUPERFACET_init()
     ASSERT(SUPERFACET_index != NULL);
     SUPERFACET_facet = (SUPERFACET_Facet*)MemAlloc(sizeof(SUPERFACET_Facet) * SUPERFACET_MAX_FACETS);
     ASSERT(SUPERFACET_facet != NULL);
-
-    //
-    // Initialise data.
-    //
 
     memset(SUPERFACET_lvert_buffer, 0, sizeof(D3DLVERTEX) * SUPERFACET_MAX_LVERTS + 32);
     memset(SUPERFACET_index, 0, sizeof(UWORD) * SUPERFACET_MAX_INDICES);
@@ -1004,6 +707,7 @@ void SUPERFACET_init()
     SUPERFACET_free_range_start = 0;
     SUPERFACET_free_range_end = SUPERFACET_MAX_LVERTS;
 
+    // Align the lvert pointer to a 32-byte boundary for SIMD-friendly access.
     SUPERFACET_lvert = (D3DLVERTEX*)((SLONG(SUPERFACET_lvert_buffer) + 31) & ~0x1f);
 
     SUPERFACET_lvert_upto = 0;
@@ -1014,10 +718,7 @@ void SUPERFACET_init()
 
     SUPERFACET_matrix = (D3DMATRIX*)((SLONG(SUPERFACET_matrix_buffer) + 31) & ~0x1f);
 
-    //
-    // Build the direction matrices.
-    //
-
+    // Build the four cardinal direction matrices (0°, 90°, 180°, 270°).
     SLONG i;
 
     for (i = 0; i < 4; i++) {
@@ -1027,12 +728,11 @@ void SUPERFACET_init()
             0.0F,
             0.0F);
     }
-
-    //
-    // This bit of code pre-converts all the suitable facets...
-    //
 }
 
+// uc_orig: SUPERFACET_redo_lighting (fallen/DDEngine/Source/superfacet.cpp)
+// Updates the vertex colours of a cached facet after dynamic lighting changes.
+// Currently always ASSERTs (not used in practice).
 void SUPERFACET_redo_lighting(SLONG facet)
 {
     SLONG i;
@@ -1048,18 +748,9 @@ void SUPERFACET_redo_lighting(SLONG facet)
 
     ASSERT(0);
     if (df->Dfcache == NULL) {
-        //
-        // Create cached lighting for the facet.
-        //
-
         df->Dfcache = NIGHT_dfcache_create(facet);
-
         ASSERT(df->Dfcache);
     }
-
-    //
-    // Go through each call structure
-    //
 
     NIGHT_Colour* col = NIGHT_dfcache[df->Dfcache].colour;
 
@@ -1070,92 +761,57 @@ void SUPERFACET_redo_lighting(SLONG facet)
 
         ASSERT(sc->flag & SUPERFACET_CALL_FLAG_USED);
 
-        //
-        // Go through all this SUPERFACET's points and change their lighting.
-        //
-
         for (j = 0; j < sc->lvertcount; j++) {
             lv = &SUPERFACET_lvert[sc->lvert + j];
 
-            ASSERT(WITHIN(lv->dwReserved >> 16, 0, 2048)); // Sensible number of vertices???
+            ASSERT(WITHIN(lv->dwReserved >> 16, 0, 2048));
 
             NIGHT_get_d3d_colour(col[lv->dwReserved >> 16], &lv->color, &lv->specular);
         }
     }
 }
 
+// uc_orig: SUPERFACET_start_frame (fallen/DDEngine/Headers/superfacet.h)
+// Clears the frame's batch buffers. Call once per frame before drawing.
 void SUPERFACET_start_frame()
 {
-    //
-    // Initialise Tom's doberries...
-    //
-
-    // #ifdef TARGET_DC
-    // extern void POLY_set_local_rotation_none ( void );
-    //	POLY_set_local_rotation_none();
-    //	//POLY_flush_local_rot();
-    // #endif
-
-    //
-    // We are using DrawIndexedPrimitive so must call this...
-    //
-
     POLY_set_local_rotation_none();
-
     POLY_flush_local_rot();
 }
 
+// uc_orig: SUPERFACET_draw (fallen/DDEngine/Headers/superfacet.h)
+// Attempts to render the given facet using the batched DrawIndexedPrimitive path.
+// Returns FALSE if the facet cannot be handled (R key override or no data).
 SLONG SUPERFACET_draw(SLONG facet)
 {
     SLONG i;
-    SLONG j;
 
     SUPERFACET_Facet* sf;
     SUPERFACET_Call* sc;
 
     D3DMULTIMATRIX d3dmm;
 
-    //
-    // Not on the PC!
-    //
-
+    // R key disables superfacet rendering (debug toggle).
     if (Keys[KB_R]) {
         return FALSE;
     }
-
-    //
-    // Do we have any pre-calculated info for this facet?
-    //
 
     ASSERT(WITHIN(facet, 0, SUPERFACET_MAX_FACETS - 1));
 
     sf = &SUPERFACET_facet[facet];
 
     if (sf->num == 0) {
-        //
-        // No cached info, create it!
-        //
-
         SUPERFACET_convert_facet(facet);
     }
 
     if (dfacets[facet].FacetFlags & FACET_FLAG_DLIT) {
-        //
-        // We must re-create the lighting for this facet. :(
-        //
-
         SUPERFACET_redo_lighting(facet);
     }
 
     POLY_set_local_rotation_none();
     POLY_flush_local_rot();
 
-    //
-    // Do a drawindexprim call per 'call'
-    //
-
-    // Some default settings, for later.
-    // Should do this properly.
+    // Set up render states for opaque lit geometry.
     the_display.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
     the_display.SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
     the_display.SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
@@ -1167,14 +823,9 @@ SLONG SUPERFACET_draw(SLONG facet)
     the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
     the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
     the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-
     the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, 0);
-
     the_display.lp_D3D_Device->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
     the_display.lp_D3D_Device->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
-
-    // Using DrawIndPrim all the time, not MM.
-    // Means we don't have to clip.
 
     for (i = 0; i < sf->num; i++) {
         ASSERT(WITHIN(sf->call + i, 0, SUPERFACET_MAX_CALLS - 1));
@@ -1184,20 +835,10 @@ SLONG SUPERFACET_draw(SLONG facet)
         ASSERT(sc->flag & SUPERFACET_CALL_FLAG_USED);
 
         if (!sc->indexcount) {
-            //
-            // Oh dear...
-            //
-
             continue;
         }
 
-        //
-        // Setup renderstates...?
-        //
-
         the_display.lp_D3D_Device->SetTexture(0, sc->texture);
-
-        // ASSERT ( sc->texture != NULL );
 
         the_display.lp_D3D_Device->DrawIndexedPrimitive(
             D3DPT_TRIANGLELIST,
@@ -1208,16 +849,8 @@ SLONG SUPERFACET_draw(SLONG facet)
             sc->indexcount,
             0);
 
-        //
-        // What about those 2-pass texture pages???
-        //
-
+        // 2-pass texture pages require a second draw with alpha blending enabled.
         if (sc->flag & SUPERFACET_CALL_FLAG_2PASS) {
-            //
-            // Create a 2pass index list from this index list.
-            //
-
-            // Switch the modes for the windows.
             the_display.lp_D3D_Device->SetTexture(0, sc->texture_2pass);
             the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
             the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_FOGENABLE, FALSE);
@@ -1232,7 +865,6 @@ SLONG SUPERFACET_draw(SLONG facet)
                 sc->indexcount,
                 0);
 
-            // And go back to sanity.
             the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
             the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_FOGENABLE, TRUE);
             the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
@@ -1242,12 +874,10 @@ SLONG SUPERFACET_draw(SLONG facet)
     return TRUE;
 }
 
+// uc_orig: SUPERFACET_fini (fallen/DDEngine/Headers/superfacet.h)
+// Frees supefacet batch memory. Call at program shutdown.
 void SUPERFACET_fini()
 {
-    //
-    // Free memory.
-    //
-
     MemFree(SUPERFACET_lvert_buffer);
     MemFree(SUPERFACET_index);
     MemFree(SUPERFACET_facet);

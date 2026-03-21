@@ -580,3 +580,12 @@ Entity mapping обновлён (33 записи — file path).
 - `InkeyToAscii`/`InkeyToAsciiShift` — extern forward declarations (defined in Controls.cpp, not yet migrated)
 - `hDDLibWindow` — local `extern` inside `FORM_Process` as in the original
 
+---
+
+## Итерация 58 — engine/graphics/geometry/superfacet (2026-03-21)
+
+- `FacetRows`/`FacetDiffY` declared as `extern` (defined in `facet.cpp`, not yet migrated)
+- `facet_rand`/`set_facet_seed`/`texture_quad` also extern from `facet.cpp`
+- `SUPERFACET_build_call`: `foundation` uninitialized when `df->FHeight == 0` — pre-existing bug in original (no else clause at line 615 of original); preserved 1:1
+- `SUPERFACET_create_points`: `foundation` has proper `else { foundation = 0; }` — confirmed from git history
+
