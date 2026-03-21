@@ -437,3 +437,12 @@ Entity mapping обновлён (33 записи — file path).
 - `sizeof(POW_mapwho)` заменено на `PAP_SIZE_LO * sizeof(POW_mapwho[0])` — extern incomplete array не допускает sizeof
 
 ---
+
+## Итерация 44 — world/environment/id.h (header-only) + stair + plat (2026-03-21)
+
+- `id.h` → header-only `world/environment/id.h`; нет зависимостей кроме `core/types.h`; `id.cpp` отсутствует в `old/` (удалён на этапе 2)
+- `stair.cpp`: `STAIR_FLAG_UP/DOWN` из `building.h` — не включать `building.h` напрямую (требует `Structs.h` для `SVector`); скопированы как `#ifndef STAIR_FLAG_UP` блок с `// Temporary:` комментарием; `DIV64` из `core/fixed_math.h` — добавлен include
+- `plat.cpp` включает `game.h` + unmigrated headers через короткие пути (DDEngine/Headers в include path); `PLAT_plat`/`PLAT_plat_upto` удалены из `plat.h` (дублировались с `plat_globals.h`)
+- `STAIR_srand/grand/rand/set_bit/get_bit/get_bit_from_square/check_edge/add_to_storey/is_door` — static file-private helpers; `STAIR_EDGE` — file-private macro
+
+---

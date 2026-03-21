@@ -28199,6 +28199,1156 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "ID_FLOOR_SIZE",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_FLOOR_SIZE",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_PLAN_SIZE",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_PLAN_SIZE",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_clear_floorplan",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_clear_floorplan",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_set_outline",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_set_outline",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_BLOCK_TYPE_WALL",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_BLOCK_TYPE_WALL",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_BLOCK_TYPE_WINDOW",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_BLOCK_TYPE_WINDOW",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_BLOCK_TYPE_DOOR",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_BLOCK_TYPE_DOOR",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_set_get_type_func",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_set_get_type_func",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_STAIR_TYPE_BOTTOM",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_STAIR_TYPE_BOTTOM",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_STAIR_TYPE_MIDDLE",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_STAIR_TYPE_MIDDLE",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_STAIR_TYPE_TOP",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_STAIR_TYPE_TOP",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_Stair",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_Stair",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_STOREY_TYPE_HOUSE_GROUND",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_STOREY_TYPE_HOUSE_GROUND",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_STOREY_TYPE_HOUSE_UPPER",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_STOREY_TYPE_HOUSE_UPPER",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_STOREY_TYPE_OFFICE_GROUND",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_STOREY_TYPE_OFFICE_GROUND",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_STOREY_TYPE_OFFICE_UPPER",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_STOREY_TYPE_OFFICE_UPPER",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_STOREY_TYPE_WAREHOUSE",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_STOREY_TYPE_WAREHOUSE",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_STOREY_TYPE_APARTEMENT_GROUND",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_STOREY_TYPE_APARTEMENT_GROUND",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_STOREY_TYPE_APARTEMENT_UPPER",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_STOREY_TYPE_APARTEMENT_UPPER",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_generate_floorplan",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_generate_floorplan",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_wall_colvects_insert",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_wall_colvects_insert",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_wall_colvects_remove",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_wall_colvects_remove",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_remove_inside_things",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_remove_inside_things",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_mapsquare_room",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_mapsquare_room",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_room_camera",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_room_camera",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_change_floor",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_change_floor",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_floorplan_bounding_box",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_floorplan_bounding_box",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_am_i_completely_outside",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_am_i_completely_outside",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_should_i_draw_mapsquare",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_should_i_draw_mapsquare",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_mapsquare_texture",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_mapsquare_texture",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_this_is_where_i_am",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_this_is_where_i_am",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_should_i_draw",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_should_i_draw",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_first_face",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_first_face",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_is_face_a_quad",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_is_face_a_quad",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_next_face",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_next_face",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_face_texture",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_face_texture",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_Finfo",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_Finfo",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_num_furn",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_num_furn",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_furn",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_furn",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_clear_indices",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_clear_indices",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_is_point_a_mapsquare",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_is_point_a_mapsquare",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_point_mapsquare",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_point_mapsquare",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_point_position",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_point_position",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_get_point_index",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_get_point_index",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_set_point_index",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_set_point_index",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_collide_3d",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_collide_3d",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_calc_height_at",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_calc_height_at",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_collide_2d",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_collide_2d",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_Wallinfo",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_Wallinfo",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_Roominfo",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_Roominfo",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_Stairinfo",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_Stairinfo",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_editor_start_get_rooms",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_editor_start_get_rooms",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_editor_start_get_walls",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_editor_start_get_walls",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_editor_start_get_stairs",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_editor_start_get_stairs",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_editor_get_room",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_editor_get_room",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_editor_get_wall",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_editor_get_wall",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ID_editor_get_stair",
+      "file": "new/world/environment/id.h",
+      "orig_name": "ID_editor_get_stair",
+      "orig_file": "fallen/Headers/id.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_MAX_SIZE",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_MAX_SIZE",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_MAX_STAIRS",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_MAX_STAIRS",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_MAX_PER_STOREY",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_MAX_PER_STOREY",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_MAX_STOREYS",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_MAX_STOREYS",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_MAX_LINKS",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_MAX_LINKS",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_LINK_T_ENTER",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_LINK_T_ENTER",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_LINK_T_LEAVE",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_LINK_T_LEAVE",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_Stair",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_Stair",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_Storey",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_Storey",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_Link",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_Link",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_x1",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_x1",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_z1",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_z1",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_x2",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_x2",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_z2",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_z2",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_roof_height",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_roof_height",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_stair",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_stair",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_stair_upto",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_stair_upto",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_storey",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_storey",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_storey_upto",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_storey_upto",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_link",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_link",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_link_upto",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_link_upto",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_edge",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_edge",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_rand_seed",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_rand_seed",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_id_stair",
+      "file": "new/world/environment/stair_globals.h",
+      "orig_name": "STAIR_id_stair",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_init",
+      "file": "new/world/environment/stair.h",
+      "orig_name": "STAIR_init",
+      "orig_file": "fallen/Headers/Stair.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_set_bounding_box",
+      "file": "new/world/environment/stair.h",
+      "orig_name": "STAIR_set_bounding_box",
+      "orig_file": "fallen/Headers/Stair.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_storey_new",
+      "file": "new/world/environment/stair.h",
+      "orig_name": "STAIR_storey_new",
+      "orig_file": "fallen/Headers/Stair.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_storey_wall",
+      "file": "new/world/environment/stair.h",
+      "orig_name": "STAIR_storey_wall",
+      "orig_file": "fallen/Headers/Stair.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_storey_finish",
+      "file": "new/world/environment/stair.h",
+      "orig_name": "STAIR_storey_finish",
+      "orig_file": "fallen/Headers/Stair.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_calculate",
+      "file": "new/world/environment/stair.h",
+      "orig_name": "STAIR_calculate",
+      "orig_file": "fallen/Headers/Stair.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_get",
+      "file": "new/world/environment/stair.h",
+      "orig_name": "STAIR_get",
+      "orig_file": "fallen/Headers/Stair.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Plat",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "Plat",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RPLAT_MAX_PLATS",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "RPLAT_MAX_PLATS",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_MAX_PLATS",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_MAX_PLATS",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TO_PLAT",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "TO_PLAT",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_NUMBER",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_NUMBER",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_MOVE_STILL",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_MOVE_STILL",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_MOVE_PATROL",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_MOVE_PATROL",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_MOVE_PATROL_RAND",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_MOVE_PATROL_RAND",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_FLAG_LOCK_MOVE",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_FLAG_LOCK_MOVE",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_FLAG_LOCK_ROT",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_FLAG_LOCK_ROT",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_FLAG_BODGE_ROCKET",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_FLAG_BODGE_ROCKET",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PlatPtr",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PlatPtr",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_plat",
+      "file": "new/world/environment/plat_globals.h",
+      "orig_name": "PLAT_plat",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_plat_upto",
+      "file": "new/world/environment/plat_globals.h",
+      "orig_name": "PLAT_plat_upto",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_init",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_init",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_process",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_process",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_create",
+      "file": "new/world/environment/plat.h",
+      "orig_name": "PLAT_create",
+      "orig_file": "fallen/Headers/Plat.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STAIR_EDGE",
+      "file": "new/world/environment/stair.cpp",
+      "orig_name": "STAIR_EDGE",
+      "orig_file": "fallen/Source/Stair.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_STATE_NONE",
+      "file": "new/world/environment/plat.cpp",
+      "orig_name": "PLAT_STATE_NONE",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_STATE_GOTO",
+      "file": "new/world/environment/plat.cpp",
+      "orig_name": "PLAT_STATE_GOTO",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_STATE_PAUSE",
+      "file": "new/world/environment/plat.cpp",
+      "orig_name": "PLAT_STATE_PAUSE",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_STATE_STOP",
+      "file": "new/world/environment/plat.cpp",
+      "orig_name": "PLAT_STATE_STOP",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_FLAG_LOCK_X",
+      "file": "new/world/environment/plat.cpp",
+      "orig_name": "PLAT_FLAG_LOCK_X",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_FLAG_LOCK_Y",
+      "file": "new/world/environment/plat.cpp",
+      "orig_name": "PLAT_FLAG_LOCK_Y",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_FLAG_LOCK_Z",
+      "file": "new/world/environment/plat.cpp",
+      "orig_name": "PLAT_FLAG_LOCK_Z",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_MAX_FIND",
+      "file": "new/world/environment/plat.cpp",
+      "orig_name": "PLAT_MAX_FIND",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAT_LOOK",
+      "file": "new/world/environment/plat.cpp",
+      "orig_name": "PLAT_LOOK",
+      "orig_file": "fallen/Source/plat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -1,46 +1,39 @@
-// claude-ai: MOVING PLATFORMS — dynamic mesh prims following waypoint paths
-// claude-ai: States: NONE/GOTO/PAUSE/STOP; GOTO = vector to waypoint + accel/decel smooth
-// claude-ai: Arrival: overshoot correction; delay 10s = "stop forever"
-// claude-ai: PLAT_FLAG_LOCK_X/Y/Z = axis locking; collision: PLAT_MAX_FIND=8 nearby persons bbox check
-// claude-ai: Rocket exhaust particles in GOTO state (PC only, #ifndef PSX)
-// claude-ai: For new_game: ПЕРЕНОСИТЬ — active gameplay mechanic (elevators, moving platforms)
-//
-// Platforms are moving prims.  You can walk on the bounding box of the
-// walkable faces of the prim.
-//
-
-#include "game.h"
+// Temporary includes — these modules are not yet migrated.
+// game.h pulls in the core game types (Thing, GameCoord, TICK_RATIO, etc.)
+#include <MFStdLib.h>
+#include "fallen/Headers/Game.h"
 #include "eway.h"
 #include "ob.h"
-#include "plat.h"
 #include "statedef.h"
 #include "wmove.h"
 #include "animate.h"
 #include "psystem.h"
 #include "panel.h"
 #include "poly.h"
-#include "drawxtra.h"
+#include "DrawXtra.h"
 
-Plat* PLAT_plat; //[PLAT_MAX_PLATS];
-SLONG PLAT_plat_upto;
+#include "world/environment/plat.h"
+#include "world/environment/plat_globals.h"
 
-//
-// The different states a plat can be in.
-//
+// Private state values for Plat.state.
+// uc_orig: PLAT_STATE_NONE (fallen/Source/plat.cpp)
+#define PLAT_STATE_NONE  0
+// uc_orig: PLAT_STATE_GOTO (fallen/Source/plat.cpp)
+#define PLAT_STATE_GOTO  1  // Moving toward a waypoint
+// uc_orig: PLAT_STATE_PAUSE (fallen/Source/plat.cpp)
+#define PLAT_STATE_PAUSE 2  // Waiting at a waypoint
+// uc_orig: PLAT_STATE_STOP (fallen/Source/plat.cpp)
+#define PLAT_STATE_STOP  3  // Permanently stopped
 
-#define PLAT_STATE_NONE 0
-#define PLAT_STATE_GOTO 1 // Heading towards a waypoint.
-#define PLAT_STATE_PAUSE 2 // Waiting at a waypoint.
-#define PLAT_STATE_STOP 3 // Never move again.
-
-//
-// Private flags for a plat.
-//
-
+// Private axis-lock flags stored in Plat.flag (bits 5-7, not exposed in public header).
+// uc_orig: PLAT_FLAG_LOCK_X (fallen/Source/plat.cpp)
 #define PLAT_FLAG_LOCK_X (1 << 5)
+// uc_orig: PLAT_FLAG_LOCK_Y (fallen/Source/plat.cpp)
 #define PLAT_FLAG_LOCK_Y (1 << 6)
+// uc_orig: PLAT_FLAG_LOCK_Z (fallen/Source/plat.cpp)
 #define PLAT_FLAG_LOCK_Z (1 << 7)
 
+// uc_orig: PLAT_init (fallen/Source/plat.cpp)
 void PLAT_init()
 {
     memset(PLAT_plat, 0, sizeof(Plat) * PLAT_MAX_PLATS);
@@ -48,6 +41,9 @@ void PLAT_init()
     PLAT_plat_upto = 1;
 }
 
+// Per-frame update for a CLASS_PLAT thing.
+// Handles acceleration/deceleration toward the current waypoint, person collision, and rocket fx.
+// uc_orig: PLAT_process (fallen/Source/plat.cpp)
 void PLAT_process(Thing* p_thing)
 {
     SLONG dx;
@@ -70,10 +66,6 @@ void PLAT_process(Thing* p_thing)
 
     GameCoord newpos;
 
-    //
-    // How many millisecs this frame?
-    //
-
     millisecs = 50 * TICK_RATIO >> TICK_SHIFT;
     ticks = 5 * TICK_RATIO >> TICK_SHIFT;
 
@@ -85,26 +77,12 @@ void PLAT_process(Thing* p_thing)
     switch (plat->state) {
     case PLAT_STATE_NONE:
 
-        //
-        // What should we be doing?
-        //
-
         switch (plat->move) {
         case PLAT_MOVE_STILL:
-
-            //
-            // We are doing nothing- but that is what we are meant to be doing.
-            //
-
             break;
 
         case PLAT_MOVE_PATROL:
         case PLAT_MOVE_PATROL_RAND:
-
-            //
-            // Wait for a while.
-            //
-
             plat->waypoint = NULL;
             plat->state = PLAT_STATE_PAUSE;
             plat->counter = 1 * 1000;
@@ -120,9 +98,7 @@ void PLAT_process(Thing* p_thing)
 
     case PLAT_STATE_GOTO:
 
-        //
-        // Bodge rocket-exhaust in here
-        //
+        // Rocket exhaust particles (PC only).
         if (plat->flag & PLAT_FLAG_BODGE_ROCKET) {
             PARTICLE_Add(p_thing->WorldPos.X + (((Random() & 0xff) - 0x7f) << 7), p_thing->WorldPos.Y, p_thing->WorldPos.Z + (((Random() & 0xff) - 0x7f) << 7),
                 ((Random() & 0xff) - 0x7f) << 2, 0, ((Random() & 0xff) - 0x7f) << 2,
@@ -137,10 +113,6 @@ void PLAT_process(Thing* p_thing)
             BLOOM_draw(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Y >> 8, p_thing->WorldPos.Z >> 8,
                 0, -0xff, 0, 0x00ffffff, BLOOM_BEAM | BLOOM_LENSFLARE);
         }
-
-        //
-        // What direction should we be going in?
-        //
 
         if (ControlFlag) {
             waypoint = 0;
@@ -169,26 +141,15 @@ void PLAT_process(Thing* p_thing)
 
         len = QDIST3(abs(dx), abs(dy), abs(dz)) + 1;
 
-        //
-        // Accelerate to our desired speed.
-        //
-
+        // Smooth deceleration near the waypoint.
         wspeed = plat->wspeed;
         speed = plat->speed;
 
-        if (len < 0x100) {
-            wspeed >>= 2;
-        }
-        if (len < 0x80) {
-            wspeed >>= 2;
-        }
-        if (len < 0x40) {
-            wspeed >>= 2;
-        }
+        if (len < 0x100) { wspeed >>= 2; }
+        if (len < 0x80)  { wspeed >>= 2; }
+        if (len < 0x40)  { wspeed >>= 2; }
 
-        if (wspeed < 3) {
-            wspeed = 3;
-        }
+        if (wspeed < 3) { wspeed = 3; }
 
         if (abs(speed - wspeed) < ticks) {
             speed = wspeed;
@@ -202,29 +163,15 @@ void PLAT_process(Thing* p_thing)
 
         plat->speed = speed;
 
-        //
-        // How far should we move this gameturn?
-        //
-
         move = speed * TICK_RATIO >> TICK_SHIFT;
 
-        //
-        // Have we arrived?
-        //
-
         if (len <= ((move >> 8) + 4)) {
-            //
-            // We have arrived. Wait for a while before moving onto the next waypoint.
-            //
-
+            // Arrived at waypoint.
             plat->state = PLAT_STATE_PAUSE;
             plat->counter = EWAY_get_delay(plat->waypoint, 2 * 1000);
 
             if (plat->counter == 10000) {
-                //
-                // This amount of time (10 seconds) actually means wait here forever!
-                //
-
+                // 10 seconds means stop forever.
                 plat->state = PLAT_STATE_STOP;
             }
         } else {
@@ -245,11 +192,9 @@ void PLAT_process(Thing* p_thing)
 
             move_thing_on_map(p_thing, &newpos);
 
-            //
-            // Look for people to push out of the way.
-            //
-
+            // Check for people in the platform's bounding box and push/crush them.
             {
+// uc_orig: PLAT_MAX_FIND (fallen/Source/plat.cpp)
 #define PLAT_MAX_FIND 8
 
                 SLONG i;
@@ -282,11 +227,6 @@ void PLAT_process(Thing* p_thing)
                     }
 
                     if (WITHIN(p_person->WorldPos.Y >> 8, y_bot - 0x100, y_top + 0x100)) {
-                        //
-                        // Check for collision with this person by pretending they are
-                        // moving- not the prim.
-                        //
-
                         SLONG x1, y1, z1;
                         SLONG x2, y2, z2;
 
@@ -314,16 +254,10 @@ void PLAT_process(Thing* p_thing)
                                     p_person->WorldPos.Y = p_thing->WorldPos.Y + (pi->maxy << 8);
                                 }
                             } else {
-                                //
-                                // If this person is underneath the prim.
-                                //
-
                                 y_top = y_bot - 0x40;
                                 y_bot = y_bot - 0x80;
 
                                 if (WITHIN(p_person->WorldPos.Y >> 8, y_bot, y_top)) {
-                                    // PANEL_new_text(NULL, 1000, "Die Die Die!");
-
                                     set_face_thing(p_person, p_thing);
 
                                     p_person->Genus.Person->Health = 0;
@@ -347,33 +281,16 @@ void PLAT_process(Thing* p_thing)
     case PLAT_STATE_PAUSE:
 
         if (plat->counter <= millisecs) {
-            //
-            // Finished pausing...
-            //
-
             plat->counter = 0;
-
-            //
-            // What now?
-            //
 
             switch (plat->state) {
             case PLAT_MOVE_STILL:
-
-                //
-                // We are doing nothing- but that is what we are meant to be doing.
-                //
-
                 break;
 
             case PLAT_MOVE_PATROL:
             case PLAT_MOVE_PATROL_RAND:
 
                 if (plat->waypoint == NULL) {
-                    //
-                    // Look for the nearest waypoint of our colour and group.
-                    //
-
                     plat->waypoint = EWAY_find_nearest_waypoint(
                         p_thing->WorldPos.X >> 8,
                         p_thing->WorldPos.Y >> 8,
@@ -390,18 +307,10 @@ void PLAT_process(Thing* p_thing)
                     TRUE);
 
                 if (waypoint == EWAY_NO_MATCH) {
-                    //
-                    // Couldn't find a waypoint! Wait a while before trying again.
-                    //
-
                     plat->waypoint = NULL;
                     plat->state = PLAT_STATE_PAUSE;
                     plat->counter = 2 * 1000;
                 } else {
-                    //
-                    // Start going to this waypoint.
-                    //
-
                     plat->waypoint = waypoint;
                     plat->state = PLAT_STATE_GOTO;
                     plat->speed = 0;
@@ -415,10 +324,6 @@ void PLAT_process(Thing* p_thing)
                     plat->flag &= ~(PLAT_FLAG_LOCK_X | PLAT_FLAG_LOCK_Y | PLAT_FLAG_LOCK_Z);
 
                     if (plat->flag & PLAT_FLAG_LOCK_MOVE) {
-                        //
-                        // Which direction shall we lock?
-                        //
-
                         dx = abs((p_thing->WorldPos.X >> 8) - way_x);
                         dy = abs((p_thing->WorldPos.Y >> 8) - way_y);
                         dz = abs((p_thing->WorldPos.Z >> 8) - way_z);
@@ -454,6 +359,9 @@ void PLAT_process(Thing* p_thing)
     }
 }
 
+// Finds the nearest static ob to (world_x, world_y, world_z), removes it, and creates a moving
+// platform Thing in its place. Returns the THING_NUMBER or NULL on failure.
+// uc_orig: PLAT_create (fallen/Source/plat.cpp)
 UWORD PLAT_create(
     UBYTE colour,
     UBYTE group,
@@ -488,17 +396,11 @@ UWORD PLAT_create(
     DrawMesh* dm;
 
     if (!WITHIN(PLAT_plat_upto, 1, PLAT_MAX_PLATS - 1)) {
-        //
-        // No more plats left.
-        //
-
         return NULL;
     }
 
-    //
-    // How far we look for obs.
-    //
-
+    // Search radius around the spawn position.
+// uc_orig: PLAT_LOOK (fallen/Source/plat.cpp)
 #define PLAT_LOOK (0x300)
 
     x1 = world_x - PLAT_LOOK >> PAP_SHIFT_LO;
@@ -513,10 +415,7 @@ UWORD PLAT_create(
     SATURATE(x2, 0, PAP_SIZE_LO - 1);
     SATURATE(z2, 0, PAP_SIZE_LO - 1);
 
-    //
-    // Search for the best ob.
-    //
-
+    // Find the closest static ob (by Manhattan distance, with Y weighted less).
     best_score = INFINITY;
 
     for (mx = x1; mx <= x2; mx++)
@@ -536,44 +435,23 @@ UWORD PLAT_create(
         }
 
     if (best_score == INFINITY) {
-        //
-        // Couldn't find a nearby ob.
-        //
-
         return NULL;
     }
-
-    //
-    // Create a new PLAT thing.
-    //
 
     dm = alloc_draw_mesh();
 
     if (dm == NULL) {
-        //
-        // No more draw mesh structures.
-        //
         ASSERT(0);
-
         return NULL;
     }
 
     p_thing = alloc_thing(CLASS_PLAT);
 
     if (p_thing == NULL) {
-        //
-        // No more things left!
-        //
-
         return NULL;
     }
 
     plat = &PLAT_plat[PLAT_plat_upto++];
-
-    //
-    // Now we have our separate places where we need to put data :(, we can
-    // start filling out the values.
-    //
 
     p_thing->Class = CLASS_PLAT;
     p_thing->WorldPos.X = best_oi.x << 8;
@@ -604,21 +482,9 @@ UWORD PLAT_create(
     plat->wspeed = speed;
     plat->flag = flag;
 
-    //
-    // Put down on the mapwho.
-    //
-
     add_thing_to_map(p_thing);
 
-    //
-    // Remove this ob.
-    //
-
     OB_remove(&best_oi);
-
-    //
-    // Create a movable walkable face for this moving platform.
-    //
 
     WMOVE_create(p_thing);
 

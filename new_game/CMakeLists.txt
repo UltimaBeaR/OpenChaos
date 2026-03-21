@@ -285,7 +285,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/pcom.cpp
     src/old/fallen/Source/Person.cpp
     src/old/fallen/Source/Pjectile.cpp
-    src/old/fallen/Source/plat.cpp
+    src/new/world/environment/plat.cpp
+    src/new/world/environment/plat_globals.cpp
     src/old/fallen/Source/playcuts.cpp
     src/old/fallen/Source/Prim.cpp
     src/old/fallen/Source/puddle.cpp
@@ -299,7 +300,8 @@ set(SOURCES_GAME
     src/new/engine/physics/sm_globals.cpp
     src/old/fallen/Source/Sound.cpp
     src/old/fallen/Source/Special.cpp
-    src/old/fallen/Source/stair.cpp
+    src/new/world/environment/stair.cpp
+    src/new/world/environment/stair_globals.cpp
     src/old/fallen/Source/supermap.cpp
     src/old/fallen/Source/Thing.cpp
     src/old/fallen/Source/trip.cpp
