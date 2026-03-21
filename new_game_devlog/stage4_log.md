@@ -225,3 +225,14 @@ Entity mapping обновлён (33 записи — file path).
 - `PANEL_new_text` / `PANEL_draw_quad` / `PANEL_GetNextDepthBodge` — forward declarations в `console.cpp` / `font2d.cpp`; panel.cpp ещё зависит от `game.h`
 
 ---
+
+## Итерация 23 — core/heap + assets/anim_tmap + engine/animation/morph + engine/net + world/environment/outline (2026-03-21)
+
+- `MORPH_filename` — в оригинале `CBYTE*` (= `char*`), в новом `const char*` (строковые литералы); семантически корректнее, поведение идентично
+- `morph.cpp` — sscanf format `%d` vs `SLONG*` (long*): pre-existing warning из оригинала, перенесён 1:1
+- `OUTLINE_insert_link` — баг оригинала сохранён 1:1: `if (ol->x == OUTLINE_LINK_TYPE_END)` вместо `ol->type`
+- `OUTLINE_intersects` — переменная `mz2` (была в оригинале, но не использовалась) удалена как dead variable; логика не изменена
+- `outline.cpp` — no globals, нет `_globals` файлов: все данные heap-allocated, на стеке или локальные
+- `engine/net/net.cpp` — полный stub; `NET_get_player_name` возвращает `"Unknown"` как `CBYTE*` (pre-existing warning из оригинала)
+
+---

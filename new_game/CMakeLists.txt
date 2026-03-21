@@ -105,6 +105,15 @@ set(SOURCES_NEW
     src/new/engine/graphics/resources/font2d_globals.cpp
     src/new/engine/graphics/resources/console.cpp
     src/new/engine/graphics/resources/console_globals.cpp
+    src/new/core/heap.cpp
+    src/new/core/heap_globals.cpp
+    src/new/assets/anim_tmap.cpp
+    src/new/assets/anim_tmap_globals.cpp
+    src/new/engine/animation/morph.cpp
+    src/new/engine/animation/morph_globals.cpp
+    src/new/engine/net/net.cpp
+    src/new/engine/net/net_globals.cpp
+    src/new/world/environment/outline.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -137,7 +146,6 @@ set(SOURCES_DDENGINE
 set(SOURCES_DDLIBRARY
     src/old/fallen/DDLibrary/Source/DDManager.cpp
     src/old/fallen/DDLibrary/Source/GDisplay.cpp
-    src/old/fallen/DDLibrary/Source/net.cpp
 )
 
 set(SOURCES_OUTRO
@@ -157,7 +165,6 @@ set(SOURCES_OUTRO
 set(SOURCES_GAME
     src/old/fallen/Source/Anim.cpp
     src/old/fallen/Source/animal.cpp
-    src/old/fallen/Source/animtmap.cpp
     src/old/fallen/Source/Attract.cpp
     src/old/fallen/Source/balloon.cpp
     src/old/fallen/Source/barrel.cpp
@@ -191,7 +198,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/glitter.cpp
     src/old/fallen/Source/grenade.cpp
     src/old/fallen/Source/guns.cpp
-    src/old/fallen/Source/heap.cpp
     src/old/fallen/Source/Hierarchy.cpp
     src/old/fallen/Source/hm.cpp
     src/old/fallen/Source/hook.cpp
@@ -204,12 +210,10 @@ set(SOURCES_GAME
     src/old/fallen/Source/mav.cpp
     src/old/fallen/Source/memory.cpp
     src/old/fallen/Source/mist.cpp
-    src/old/fallen/Source/morph.cpp
     src/old/fallen/Source/music.cpp
     src/old/fallen/Source/night.cpp
     src/old/fallen/Source/ns.cpp
     src/old/fallen/Source/ob.cpp
-    src/old/fallen/Source/outline.cpp
     src/old/fallen/Source/overlay.cpp
     src/old/fallen/Source/pap.cpp
     src/old/fallen/Source/pause.cpp

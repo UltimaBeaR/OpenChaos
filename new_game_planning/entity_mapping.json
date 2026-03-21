@@ -15159,6 +15159,826 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_PAD_SIZE",
+      "file": "new/core/heap.h",
+      "orig_name": "HEAP_PAD_SIZE",
+      "orig_file": "fallen/Headers/heap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_pad",
+      "file": "new/core/heap_globals.h",
+      "orig_name": "HEAP_pad",
+      "orig_file": "fallen/Headers/heap.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_SIZE",
+      "file": "new/core/heap.h",
+      "orig_name": "HEAP_SIZE",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_heap",
+      "file": "new/core/heap_globals.h",
+      "orig_name": "HEAP_heap",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_free",
+      "file": "new/core/heap_globals.h",
+      "orig_name": "HEAP_free",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_QUANTISE",
+      "file": "new/core/heap.cpp",
+      "orig_name": "HEAP_QUANTISE",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_Free",
+      "file": "new/core/heap.cpp",
+      "orig_name": "HEAP_Free",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_check",
+      "file": "new/core/heap.cpp",
+      "orig_name": "HEAP_check",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_init",
+      "file": "new/core/heap.h",
+      "orig_name": "HEAP_init",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_add_to_free",
+      "file": "new/core/heap.cpp",
+      "orig_name": "HEAP_add_to_free",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_get",
+      "file": "new/core/heap.h",
+      "orig_name": "HEAP_get",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_max_free",
+      "file": "new/core/heap.h",
+      "orig_name": "HEAP_max_free",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HEAP_give",
+      "file": "new/core/heap.h",
+      "orig_name": "HEAP_give",
+      "orig_file": "fallen/Source/heap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_TMAP_FRAMES",
+      "file": "new/assets/anim_tmap.h",
+      "orig_name": "MAX_TMAP_FRAMES",
+      "orig_file": "fallen/Headers/animtmap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_ANIM_TMAPS",
+      "file": "new/assets/anim_tmap.h",
+      "orig_name": "MAX_ANIM_TMAPS",
+      "orig_file": "fallen/Headers/animtmap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AnimTmap",
+      "file": "new/assets/anim_tmap.h",
+      "orig_name": "AnimTmap",
+      "orig_file": "fallen/Headers/animtmap.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "anim_tmaps",
+      "file": "new/assets/anim_tmap_globals.h",
+      "orig_name": "anim_tmaps",
+      "orig_file": "fallen/Headers/animtmap.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "sync_animtmaps",
+      "file": "new/assets/anim_tmap.h",
+      "orig_name": "sync_animtmaps",
+      "orig_file": "fallen/Source/animtmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "animate_texture_maps",
+      "file": "new/assets/anim_tmap.h",
+      "orig_name": "animate_texture_maps",
+      "orig_file": "fallen/Source/animtmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "load_animtmaps",
+      "file": "new/assets/anim_tmap.h",
+      "orig_name": "load_animtmaps",
+      "orig_file": "fallen/Source/animtmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "save_animtmaps",
+      "file": "new/assets/anim_tmap.h",
+      "orig_name": "save_animtmaps",
+      "orig_file": "fallen/Source/animtmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_PIGEON_WALK1",
+      "file": "new/engine/animation/morph.h",
+      "orig_name": "MORPH_PIGEON_WALK1",
+      "orig_file": "fallen/Headers/morph.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_PIGEON_WALK2",
+      "file": "new/engine/animation/morph.h",
+      "orig_name": "MORPH_PIGEON_WALK2",
+      "orig_file": "fallen/Headers/morph.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_PIGEON_STAND",
+      "file": "new/engine/animation/morph.h",
+      "orig_name": "MORPH_PIGEON_STAND",
+      "orig_file": "fallen/Headers/morph.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_PIGEON_PECK",
+      "file": "new/engine/animation/morph.h",
+      "orig_name": "MORPH_PIGEON_PECK",
+      "orig_file": "fallen/Headers/morph.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_PIGEON_HEADCOCK",
+      "file": "new/engine/animation/morph.h",
+      "orig_name": "MORPH_PIGEON_HEADCOCK",
+      "orig_file": "fallen/Headers/morph.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_NUMBER",
+      "file": "new/engine/animation/morph.h",
+      "orig_name": "MORPH_NUMBER",
+      "orig_file": "fallen/Headers/morph.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_Point",
+      "file": "new/engine/animation/morph.h",
+      "orig_name": "MORPH_Point",
+      "orig_file": "fallen/Headers/morph.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_MAX_POINTS",
+      "file": "new/engine/animation/morph_globals.h",
+      "orig_name": "MORPH_MAX_POINTS",
+      "orig_file": "fallen/Source/morph.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_point",
+      "file": "new/engine/animation/morph_globals.h",
+      "orig_name": "MORPH_point",
+      "orig_file": "fallen/Source/morph.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_point_upto",
+      "file": "new/engine/animation/morph_globals.h",
+      "orig_name": "MORPH_point_upto",
+      "orig_file": "fallen/Source/morph.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_filename",
+      "file": "new/engine/animation/morph_globals.h",
+      "orig_name": "MORPH_filename",
+      "orig_file": "fallen/Source/morph.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_Morph",
+      "file": "new/engine/animation/morph_globals.h",
+      "orig_name": "MORPH_Morph",
+      "orig_file": "fallen/Source/morph.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_morph",
+      "file": "new/engine/animation/morph_globals.h",
+      "orig_name": "MORPH_morph",
+      "orig_file": "fallen/Source/morph.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_load",
+      "file": "new/engine/animation/morph.h",
+      "orig_name": "MORPH_load",
+      "orig_file": "fallen/Source/morph.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_get_points",
+      "file": "new/engine/animation/morph.h",
+      "orig_name": "MORPH_get_points",
+      "orig_file": "fallen/Source/morph.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MORPH_get_num_points",
+      "file": "new/engine/animation/morph.h",
+      "orig_name": "MORPH_get_num_points",
+      "orig_file": "fallen/Source/morph.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_PLAYER_NONE",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_PLAYER_NONE",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_PLAYER_ALL",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_PLAYER_ALL",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_PLAYER_SYSTEM",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_PLAYER_SYSTEM",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_NAME_LENGTH",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_NAME_LENGTH",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_MESSAGE_LENGTH",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_MESSAGE_LENGTH",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_SYSMESS_NOP",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_SYSMESS_NOP",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_SYSMESS_START_GAME",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_SYSMESS_START_GAME",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_SYSMESS_LOST_CONNECTION",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_SYSMESS_LOST_CONNECTION",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_SYSMESS_HOST_QUIT_OUT",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_SYSMESS_HOST_QUIT_OUT",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_Sinfo",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_Sinfo",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_Message",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_Message",
+      "orig_file": "fallen/DDLibrary/Headers/net.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_MAX_PLAYERS",
+      "file": "new/engine/net/net_globals.h",
+      "orig_name": "NET_MAX_PLAYERS",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_Player",
+      "file": "new/engine/net/net_globals.h",
+      "orig_name": "NET_Player",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_player",
+      "file": "new/engine/net/net_globals.h",
+      "orig_name": "NET_player",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_i_am_host",
+      "file": "new/engine/net/net_globals.h",
+      "orig_name": "NET_i_am_host",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_local_player",
+      "file": "new/engine/net/net_globals.h",
+      "orig_name": "NET_local_player",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_buffer",
+      "file": "new/engine/net/net_globals.h",
+      "orig_name": "NET_buffer",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "net_init_done",
+      "file": "new/engine/net/net_globals.h",
+      "orig_name": "net_init_done",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_init",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_init",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_kill",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_kill",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_get_connection_number",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_get_connection_number",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_get_connection_name",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_get_connection_name",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_connection_make",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_connection_make",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_create_session",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_create_session",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_get_session_number",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_get_session_number",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_get_session_info",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_get_session_info",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_join_session",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_join_session",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_leave_session",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_leave_session",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_start_game",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_start_game",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_get_num_players",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_get_num_players",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_get_player_name",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_get_player_name",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_message_send",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_message_send",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_message_waiting",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_message_waiting",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_message_get",
+      "file": "new/engine/net/net.h",
+      "orig_name": "NET_message_get",
+      "orig_file": "fallen/DDLibrary/Source/net.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_Outline",
+      "file": "new/world/environment/outline.h",
+      "orig_name": "OUTLINE_Outline",
+      "orig_file": "fallen/Editor/Headers/outline.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_create",
+      "file": "new/world/environment/outline.h",
+      "orig_name": "OUTLINE_create",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_add_line",
+      "file": "new/world/environment/outline.h",
+      "orig_name": "OUTLINE_add_line",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_free",
+      "file": "new/world/environment/outline.h",
+      "orig_name": "OUTLINE_free",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_overlap",
+      "file": "new/world/environment/outline.h",
+      "orig_name": "OUTLINE_overlap",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_intersects",
+      "file": "new/world/environment/outline.h",
+      "orig_name": "OUTLINE_intersects",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_LINK_TYPE_START",
+      "file": "new/world/environment/outline.cpp",
+      "orig_name": "OUTLINE_LINK_TYPE_START",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_LINK_TYPE_END",
+      "file": "new/world/environment/outline.cpp",
+      "orig_name": "OUTLINE_LINK_TYPE_END",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_Link",
+      "file": "new/world/environment/outline.cpp",
+      "orig_name": "outline_link",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_insert_link",
+      "file": "new/world/environment/outline.cpp",
+      "orig_name": "OUTLINE_insert_link",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OUTLINE_inside",
+      "file": "new/world/environment/outline.cpp",
+      "orig_name": "OUTLINE_inside",
+      "orig_file": "fallen/Editor/Source/outline.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
