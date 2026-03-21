@@ -147,6 +147,10 @@ set(SOURCES_NEW
     src/new/effects/fog.cpp
     src/new/effects/fog_globals.cpp
     src/new/actors/core/drawtype.cpp
+    src/new/world/map/pap.cpp
+    src/new/world/map/pap_globals.cpp
+    src/new/world/navigation/walkable.cpp
+    src/new/world/navigation/walkable_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -236,7 +240,7 @@ set(SOURCES_GAME
     src/old/fallen/Source/ns.cpp
     src/old/fallen/Source/ob.cpp
     src/old/fallen/Source/overlay.cpp
-    src/old/fallen/Source/pap.cpp
+
     src/old/fallen/Source/pause.cpp
     src/old/fallen/Source/pcom.cpp
     src/old/fallen/Source/Person.cpp
@@ -270,7 +274,7 @@ set(SOURCES_GAME
     src/old/fallen/Source/tracks.cpp
     src/old/fallen/Source/trip.cpp
     src/old/fallen/Source/vehicle.cpp
-    src/old/fallen/Source/walkable.cpp
+
     src/old/fallen/Source/wand.cpp
     src/old/fallen/Source/ware.cpp
     src/old/fallen/Source/widget.cpp

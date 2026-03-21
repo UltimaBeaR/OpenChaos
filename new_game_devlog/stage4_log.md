@@ -310,3 +310,12 @@ Entity mapping обновлён (33 записи — file path).
 - `shadow.cpp` не включает `fallen/Headers/shadow.h` (сам является реализацией; включение было бы циклическим через redirect)
 
 ---
+## Итерация 31 — world/map/pap + world/navigation/walkable (2026-03-21)
+
+- `pap.cpp` включает `Game.h` + `mav.h` + `ware.h` (temporary) — нужны `GAME_FLAGS/GF_NO_FLOOR`, `MAVHEIGHT`, `WARE_calc_height_at`, `FLAG_PERSON_WAREHOUSE`
+- `PAP_assert_if_off_map_lo/hi` — static (в оригинале non-static, но нигде не объявлены в хедерах и не вызываются снаружи)
+- `inside2.h` и `ns.h` из оригинального pap.cpp — не используются в перенесённых функциях, не включены
+- `gh_vx/vy/vz` — в оригинале file-scope non-static; вынесены в `walkable_globals` по правилу
+- `PAP_FLATTISH_SAMPLES` — `#define` внутри тела функции, не file-scope; маппинг не нужен
+
+---

@@ -20499,6 +20499,696 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_lo",
+      "file": "new/world/map/pap_globals.h",
+      "orig_name": "PAP_lo",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_hi",
+      "file": "new/world/map/pap_globals.h",
+      "orig_name": "PAP_hi",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_SIZE_HI",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_SIZE_HI",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_SIZE_LO",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_SIZE_LO",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_BLOCKS",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_BLOCKS",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_SHADOW_1",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_SHADOW_1",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_SHADOW_2",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_SHADOW_2",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_SHADOW_3",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_SHADOW_3",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_REFLECTIVE",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_REFLECTIVE",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_HIDDEN",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_HIDDEN",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_SINK_SQUARE",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_SINK_SQUARE",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_SINK_POINT",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_SINK_POINT",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_NOUPPER",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_NOUPPER",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_NOGO",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_NOGO",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_ANIM_TMAP",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_ANIM_TMAP",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_ROOF_EXISTS",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_ROOF_EXISTS",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_ZONE1",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_ZONE1",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_ZONE2",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_ZONE2",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_ZONE3",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_ZONE3",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_ZONE4",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_ZONE4",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_WANDER",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_WANDER",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_FLAT_ROOF",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_FLAT_ROOF",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_FLAG_WATER",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_FLAG_WATER",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROOF_HIDDEN_INDEX",
+      "file": "new/world/map/pap.h",
+      "orig_name": "ROOF_HIDDEN_INDEX",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "IS_ROOF_HIDDEN_FACE",
+      "file": "new/world/map/pap.h",
+      "orig_name": "IS_ROOF_HIDDEN_FACE",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROOF_HIDDEN_X",
+      "file": "new/world/map/pap.h",
+      "orig_name": "ROOF_HIDDEN_X",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROOF_HIDDEN_Z",
+      "file": "new/world/map/pap.h",
+      "orig_name": "ROOF_HIDDEN_Z",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ROOF_HIDDEN_GET_FACE",
+      "file": "new/world/map/pap.h",
+      "orig_name": "ROOF_HIDDEN_GET_FACE",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_ALT_SHIFT",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_ALT_SHIFT",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_LO_NO_WATER",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_LO_NO_WATER",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_LO_FLAG_WAREHOUSE",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_LO_FLAG_WAREHOUSE",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_SHIFT_LO",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_SHIFT_LO",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_SHIFT_HI",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_SHIFT_HI",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_2LO",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_2LO",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_2HI",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_2HI",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ON_PAP_LO",
+      "file": "new/world/map/pap.h",
+      "orig_name": "ON_PAP_LO",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_Lo",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_Lo",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_Hi",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_Hi",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEM_PAP_Lo",
+      "file": "new/world/map/pap.h",
+      "orig_name": "MEM_PAP_Lo",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MEM_PAP_Hi",
+      "file": "new/world/map/pap.h",
+      "orig_name": "MEM_PAP_Hi",
+      "orig_file": "fallen/Headers/pap.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_on_map_lo",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_on_map_lo",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_on_map_hi",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_on_map_hi",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_clear",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_clear",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_calc_height_at_point",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_calc_height_at_point",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_calc_height_at",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_calc_height_at",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_calc_height_at_thing",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_calc_height_at_thing",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_calc_map_height_at",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_calc_map_height_at",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_is_flattish",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_is_flattish",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_calc_height_noroads",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_calc_height_noroads",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_calc_map_height_near",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_calc_map_height_near",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_on_slope",
+      "file": "new/world/map/pap.h",
+      "orig_name": "PAP_on_slope",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_ANYFACE",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "FIND_ANYFACE",
+      "orig_file": "fallen/Headers/walkable.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_FACE_BELOW",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "FIND_FACE_BELOW",
+      "orig_file": "fallen/Headers/walkable.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_FACE_NEAR_BELOW",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "FIND_FACE_NEAR_BELOW",
+      "orig_file": "fallen/Headers/walkable.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_height_on_face",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "calc_height_on_face",
+      "orig_file": "fallen/Headers/walkable.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "point_in_quad",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "point_in_quad",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_height_on_face_quad64_at",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "get_height_on_face_quad64_at",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_height_for_this_pos",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "find_height_for_this_pos",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "is_thing_on_this_quad",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "is_thing_on_this_quad",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "calc_height_on_rface",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "calc_height_on_rface",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_face_for_this_pos",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "find_face_for_this_pos",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RFACE_on_slope",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "RFACE_on_slope",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WALKABLE_remove_rface",
+      "file": "new/world/navigation/walkable.h",
+      "orig_name": "WALKABLE_remove_rface",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "gh_vx",
+      "file": "new/world/navigation/walkable_globals.h",
+      "orig_name": "gh_vx",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "gh_vy",
+      "file": "new/world/navigation/walkable_globals.h",
+      "orig_name": "gh_vy",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "gh_vz",
+      "file": "new/world/navigation/walkable_globals.h",
+      "orig_name": "gh_vz",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "clock",
+      "file": "new/world/navigation/walkable.cpp",
+      "orig_name": "clock",
+      "orig_file": "fallen/Source/walkable.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_assert_if_off_map_lo",
+      "file": "new/world/map/pap.cpp",
+      "orig_name": "PAP_assert_if_off_map_lo",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PAP_assert_if_off_map_hi",
+      "file": "new/world/map/pap.cpp",
+      "orig_name": "PAP_assert_if_off_map_hi",
+      "orig_file": "fallen/Source/pap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

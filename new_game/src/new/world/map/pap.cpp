@@ -1,35 +1,15 @@
-//
-// A lower memory map: 100k
-//
+// Two-tier heightfield map (PAP).
+// Provides terrain height queries and map bounds checks used throughout game, AI, and collision code.
 
 #include <MFStdLib.h>
-#include "pap.h"
-#include "game.h"
-#include "mav.h"
-#include "..\ddengine\headers\aeng.h"
-#include "inside2.h"
-#include "ns.h"
-#include "ware.h"
+#include "world/map/pap.h"
+#include "world/map/pap_globals.h"
+// Temporary: game.h for GAME_FLAGS/GF_NO_FLOOR, Thing struct, WARE_calc_height_at, etc.
+#include "fallen/Headers/Game.h"
+#include "fallen/Headers/mav.h"
+#include "fallen/Headers/ware.h"
 
-#include "memory.h"
-
-//
-// The maps.
-//
-
-MEM_PAP_Lo* PAP_lo; //[PAP_SIZE_LO][PAP_SIZE_LO];
-MEM_PAP_Hi* PAP_hi; //[PAP_SIZE_HI][PAP_SIZE_HI];
-
-void PAP_clear(void)
-{
-    memset((UBYTE*)&PAP_lo[0][0], 0, sizeof(PAP_Lo) * PAP_SIZE_LO * PAP_SIZE_LO);
-    memset((UBYTE*)&PAP_hi[0][0], 0, sizeof(PAP_Hi) * PAP_SIZE_HI * PAP_SIZE_HI);
-}
-
-//
-// A couple of debug functions.
-//
-
+// uc_orig: PAP_on_map_lo (fallen/Source/pap.cpp)
 SLONG PAP_on_map_lo(SLONG x, SLONG z)
 {
     if (WITHIN(x, 0, PAP_SIZE_LO - 1) && WITHIN(z, 0, PAP_SIZE_LO - 1)) {
@@ -39,6 +19,7 @@ SLONG PAP_on_map_lo(SLONG x, SLONG z)
     }
 }
 
+// uc_orig: PAP_on_map_hi (fallen/Source/pap.cpp)
 SLONG PAP_on_map_hi(SLONG x, SLONG z)
 {
     if (WITHIN(x, 0, PAP_SIZE_HI - 1) && WITHIN(z, 0, PAP_SIZE_HI - 1)) {
@@ -48,16 +29,26 @@ SLONG PAP_on_map_hi(SLONG x, SLONG z)
     }
 }
 
-void PAP_assert_if_off_map_lo(SLONG x, SLONG z)
+// uc_orig: PAP_assert_if_off_map_lo (fallen/Source/pap.cpp)
+static void PAP_assert_if_off_map_lo(SLONG x, SLONG z)
 {
     ASSERT(PAP_on_map_lo(x, z));
 }
 
-void PAP_assert_if_off_map_hi(SLONG x, SLONG z)
+// uc_orig: PAP_assert_if_off_map_hi (fallen/Source/pap.cpp)
+static void PAP_assert_if_off_map_hi(SLONG x, SLONG z)
 {
     ASSERT(PAP_on_map_hi(x, z));
 }
 
+// uc_orig: PAP_clear (fallen/Source/pap.cpp)
+void PAP_clear(void)
+{
+    memset((UBYTE*)&PAP_lo[0][0], 0, sizeof(PAP_Lo) * PAP_SIZE_LO * PAP_SIZE_LO);
+    memset((UBYTE*)&PAP_hi[0][0], 0, sizeof(PAP_Hi) * PAP_SIZE_HI * PAP_SIZE_HI);
+}
+
+// uc_orig: PAP_calc_height_at_point (fallen/Source/pap.cpp)
 SLONG PAP_calc_height_at_point(SLONG map_x, SLONG map_z)
 {
     if (!WITHIN(map_x, 0, PAP_SIZE_HI - 1) || !WITHIN(map_z, 0, PAP_SIZE_HI - 1)) {
@@ -67,16 +58,10 @@ SLONG PAP_calc_height_at_point(SLONG map_x, SLONG map_z)
     }
 }
 
-// claude-ai: PAP_calc_height_at() — билинейная интерполяция высоты рельефа в произвольной точке.
-// claude-ai: Аргументы: x, z — мировые координаты (юниты, не ячейки).
-// claude-ai: Алгоритм:
-// claude-ai:   1. Ячейка: mx = x >> PAP_SHIFT_HI(8), mz = z >> 8
-// claude-ai:   2. Читает 4 угловых высоты h0..h3 из PAP_Hi (Alt << PAP_ALT_SHIFT=3)
-// claude-ai:   3. Если все 4 угла равны — возвращает h0 << 3 без интерполяции (быстрый путь)
-// claude-ai:   4. Иначе: xfrac = x & 0xFF, zfrac = z & 0xFF
-// claude-ai:      Треугольник 1 (xfrac+zfrac < 256): h0 + (h2-h0)*xfrac/256 + (h1-h0)*zfrac/256
-// claude-ai:      Треугольник 2 (xfrac+zfrac >= 256): h3 + (h1-h3)*(256-xfrac)/256 + (h2-h3)*(256-zfrac)/256
-// claude-ai: Возвращает -32767 если GF_NO_FLOOR, 0 если за пределами карты.
+// Bilinear interpolation over the hi-res grid. The grid uses two triangles per quad:
+//   triangle 1 (xfrac+zfrac < 256): uses corners h0, h1, h2
+//   triangle 2 (xfrac+zfrac >= 256): uses corner h3
+// uc_orig: PAP_calc_height_at (fallen/Source/pap.cpp)
 SLONG PAP_calc_height_at(SLONG x, SLONG z)
 {
     SLONG h0;
@@ -104,19 +89,12 @@ SLONG PAP_calc_height_at(SLONG x, SLONG z)
 
     ph = &PAP_2HI(mx, mz);
 
-    //	if(ph->Flags&PAP_FLAG_ROOF_EXISTS)
-    //		return(MAVHEIGHT(mx,mz)<<6);
-
     h0 = ph[0].Alt;
     h1 = ph[1].Alt;
     h2 = ph[PAP_SIZE_HI + 0].Alt;
     h3 = ph[PAP_SIZE_HI + 1].Alt;
 
     if (h0 == h1 && h1 == h2 && h2 == h3) {
-        //
-        // No need to do any interpolation.
-        //
-
         answer = h0 << PAP_ALT_SHIFT;
     } else {
         h0 <<= PAP_ALT_SHIFT;
@@ -138,10 +116,6 @@ SLONG PAP_calc_height_at(SLONG x, SLONG z)
         }
     }
 
-    //
-    // Modifiers.
-    //
-
     if (ph->Flags & PAP_FLAG_SINK_SQUARE) {
         answer -= KERB_HEIGHTI;
     }
@@ -149,9 +123,7 @@ SLONG PAP_calc_height_at(SLONG x, SLONG z)
     return answer;
 }
 
-//
-// Things sometimes like to think the map is at a strange height
-//
+// uc_orig: PAP_calc_height_at_thing (fallen/Source/pap.cpp)
 SLONG PAP_calc_height_at_thing(Thing* p_thing, SLONG x, SLONG z)
 {
     switch (p_thing->Class) {
@@ -168,6 +140,7 @@ SLONG PAP_calc_height_at_thing(Thing* p_thing, SLONG x, SLONG z)
     return (PAP_calc_map_height_at(x, z));
 }
 
+// uc_orig: PAP_calc_map_height_at (fallen/Source/pap.cpp)
 SLONG PAP_calc_map_height_at(SLONG x, SLONG z)
 {
     SLONG h0;
@@ -209,10 +182,6 @@ SLONG PAP_calc_map_height_at(SLONG x, SLONG z)
     h3 = ph[PAP_SIZE_HI + 1].Alt;
 
     if (h0 == h1 && h1 == h2 && h2 == h3) {
-        //
-        // No need to do any interpolation.
-        //
-
         answer = h0 << PAP_ALT_SHIFT;
     } else {
         h0 <<= PAP_ALT_SHIFT;
@@ -234,10 +203,6 @@ SLONG PAP_calc_map_height_at(SLONG x, SLONG z)
         }
     }
 
-    //
-    // Modifiers.
-    //
-
     if (ph->Flags & PAP_FLAG_SINK_SQUARE) {
         answer -= KERB_HEIGHTI;
     }
@@ -245,6 +210,7 @@ SLONG PAP_calc_map_height_at(SLONG x, SLONG z)
     return answer;
 }
 
+// uc_orig: PAP_is_flattish (fallen/Source/pap.cpp)
 SLONG PAP_is_flattish(
     SLONG x1, SLONG z1,
     SLONG x2, SLONG z2)
@@ -291,6 +257,7 @@ SLONG PAP_is_flattish(
     return TRUE;
 }
 
+// uc_orig: PAP_calc_height_noroads (fallen/Source/pap.cpp)
 SLONG PAP_calc_height_noroads(SLONG x, SLONG z)
 {
     SLONG h0;
@@ -320,10 +287,6 @@ SLONG PAP_calc_height_noroads(SLONG x, SLONG z)
     h3 = ph[PAP_SIZE_HI + 1].Alt;
 
     if (h0 == h1 && h1 == h2 && h2 == h3) {
-        //
-        // No need to do any interpolation.
-        //
-
         answer = h0 << PAP_ALT_SHIFT;
     } else {
         h0 <<= PAP_ALT_SHIFT;
@@ -345,13 +308,10 @@ SLONG PAP_calc_height_noroads(SLONG x, SLONG z)
         }
     }
 
-    //
-    // Modifiers.
-    //
-
     return answer;
 }
 
+// uc_orig: PAP_calc_map_height_near (fallen/Source/pap.cpp)
 SLONG PAP_calc_map_height_near(SLONG x, SLONG z)
 {
     SLONG i;
@@ -376,6 +336,9 @@ SLONG PAP_calc_map_height_near(SLONG x, SLONG z)
     return max;
 }
 
+// Returns slope steepness (0 = flat) and fills *angle with the downslope direction.
+// Uses cross-product of two edge vectors in the triangle containing (x,z).
+// uc_orig: PAP_on_slope (fallen/Source/pap.cpp)
 SLONG PAP_on_slope(SLONG x, SLONG z, SLONG* angle)
 {
     SLONG h0;
@@ -400,12 +363,6 @@ SLONG PAP_on_slope(SLONG x, SLONG z, SLONG* angle)
     ph = &PAP_2HI(mx, mz);
 
     if (ph->Flags & PAP_FLAG_HIDDEN) {
-        //
-        // We should be calling RFACE_on_slope here really!
-        //
-
-        // ASSERT(0);
-
         return 0;
     }
 
@@ -415,16 +372,13 @@ SLONG PAP_on_slope(SLONG x, SLONG z, SLONG* angle)
     h3 = ph[PAP_SIZE_HI + 1].Alt;
 
     if (h0 == h1 && h1 == h2 && h2 == h3) {
-        //
-        // No need to do any interpolation.
-        //
         return (0);
 
     } else {
 
         //  h0   h2
         //
-        //	h1   h3
+        //  h1   h3
 
         h0 <<= PAP_ALT_SHIFT;
         h1 <<= PAP_ALT_SHIFT;
@@ -448,9 +402,9 @@ SLONG PAP_on_slope(SLONG x, SLONG z, SLONG* angle)
             wy = h1 - h0;
             wz = -256;
 
-            rx = (vy * wz); //-vz*wy;
-            ry = 65536; // vz*wx-vx*wz; dont care about this
-            rz = (vx * wy); //-vy*wx;
+            rx = (vy * wz);
+            ry = 65536;
+            rz = (vx * wy);
 
             if (rx == 0 && rz == 0)
                 return (0);
@@ -479,9 +433,9 @@ SLONG PAP_on_slope(SLONG x, SLONG z, SLONG* angle)
             wy = h2 - h3;
             wz = -256;
 
-            rx = (vy * wz); //-vz*wy;
-            ry = 65536; // vz*wx-vx*wz; dont care about this
-            rz = (vx * wy); //-vy*wx;
+            rx = (vy * wz);
+            ry = 65536;
+            rz = (vx * wy);
 
             if (rx == 0 && rz == 0)
                 return (0);

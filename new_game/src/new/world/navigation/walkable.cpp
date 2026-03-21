@@ -1,34 +1,23 @@
-// claude-ai: WALKABLE SURFACES — Управление проходимыми поверхностями (984 строки)
-// claude-ai: Проходимые поверхности = DFacet (геометрия зданий, крыш, лестниц)
-// claude-ai: + terrain (PAP_Hi heightmap) — НЕ путать с коллизионными векторами из collide.cpp.
-// claude-ai:
-// claude-ai: Ключевые функции:
-// claude-ai:   find_face_for_this_pos(x,y,z,ret_y,ignore_bld,flag) — главный поиск поверхности (~line 485)
-// claude-ai:     Возвращает: face index (>0=DFacet, <0=roof), GRAB_FLOOR (= MAX_PRIM_FACES4+1), или NULL
-// claude-ai:     Режимы: 0=closest (порог 0xa0=160ед), FIND_ANYFACE=1, FIND_FACE_NEAR_BELOW=3 (порог 30ед)
-// claude-ai:     Зона поиска: ±0x200 координатных единиц = ±2 lo-res mapsquare
-// claude-ai:   point_in_quad(px,pz,x,y,z,face) — проверка входит ли точка в face (~line 25)
-// claude-ai:   is_thing_on_this_quad(x,z,face) — упрощённая 2D-проверка для поиска (~line 329)
-// claude-ai:   calc_height_on_face(x,z,face,ret_y) — высота на face в точке (x,z) (~line 315)
-// claude-ai:
-// claude-ai: Отрицательный face index = roof face (roof_faces4[]), положительный = DFacet (prim_faces4[]).
-// claude-ai: Walkable faces обрабатываются как на 10% больше реального размера (для коллизий).
-#include "game.h"
-#include "pap.h"
-#include "walkable.h"
-#include "memory.h"
-#include "mav.h"
+// Walkable surface system: finding and measuring surfaces that characters can stand on.
+// Surfaces are DFacets (positive index in prim_faces4[]) or RoofFace4 (negative index).
+// The PAP heightfield is the fallback when no explicit face is found.
+// All quads are treated as 10% larger than actual geometry for collision tolerance.
 
+// Temporary: game.h for prim_faces4, roof_faces4, GRAB_FLOOR, prim_points, etc.
+#include "fallen/Headers/Game.h"
+#include "world/map/pap.h"
+#include "world/map/pap_globals.h"
+#include "world/navigation/walkable.h"
+#include "world/navigation/walkable_globals.h"
+#include "fallen/Headers/memory.h"
+#include "fallen/Headers/mav.h"
+
+// Forward declaration for highlighting (defined in aeng.cpp, not yet migrated).
 extern void highlight_rface(SLONG rface);
-//
-// code to do with walkable faces
-//
 
-//
-// this whole module has been changed to treat walkable faces as 10% (more in terms of area) bigger for collision.
-//
-
-SLONG clock(const SLONG dx, const SLONG dz, const SLONG dx1, const SLONG dz1)
+// Helper: returns 1 if the cross product (dx,dz) x (dx1,dz1) is positive (clockwise turn).
+// uc_orig: clock (fallen/Source/walkable.cpp)
+static SLONG clock(const SLONG dx, const SLONG dz, const SLONG dx1, const SLONG dz1)
 {
     if ((dx * dz1 - dz * dx1) <= 0)
         return (0);
@@ -36,6 +25,7 @@ SLONG clock(const SLONG dx, const SLONG dz, const SLONG dx1, const SLONG dz1)
         return (1);
 }
 
+// uc_orig: point_in_quad (fallen/Source/walkable.cpp)
 SLONG point_in_quad(SLONG px, SLONG pz, SLONG x, SLONG y, SLONG z, SWORD face)
 {
     SLONG c0;
@@ -52,17 +42,16 @@ SLONG point_in_quad(SLONG px, SLONG pz, SLONG x, SLONG y, SLONG z, SWORD face)
         mz += vz[c0];
     }
 
-    //	mx=0;
     mx >>= 2;
-    //	mz/=mx;
     mz >>= 2;
+
+    // Expand each vertex by ~5% from the centroid (268/256 ≈ 1.047).
     for (c0 = 0; c0 < 4; c0++) {
         vx[c0] = (((vx[c0] - mx) * 268) >> 8) + mx;
         vz[c0] = (((vz[c0] - mz) * 268) >> 8) + mz;
     }
 
-    if (clock(vx[1] - vx[0], vz[1] - vz[0], px - vx[0], pz - vz[0])) // x2-x1,z2-z1,px-x1,pz-z1))
-    {
+    if (clock(vx[1] - vx[0], vz[1] - vz[0], px - vx[0], pz - vz[0])) {
         if (clock(vx[3] - vx[1], vz[3] - vz[1], px - vx[1], pz - vz[1])) {
             if (clock(vx[2] - vx[3], vz[2] - vz[3], px - vx[3], pz - vz[3])) {
                 if (clock(vx[0] - vx[2], vz[0] - vz[2], px - vx[2], pz - vz[2])) {
@@ -74,14 +63,9 @@ SLONG point_in_quad(SLONG px, SLONG pz, SLONG x, SLONG y, SLONG z, SWORD face)
     return (0);
 }
 
-//
-// returns true if on face
-//   *height always trys to have the height
-
-SLONG gh_vx[4], gh_vy[4], gh_vz[4]; // out of stack space (on PSX) so words
+// uc_orig: get_height_on_face_quad64_at (fallen/Source/walkable.cpp)
 SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height)
 {
-    //	SLONG 	ux,uy,uz,vx,vy,vz,wx,wy,wz;
     struct PrimFace4* this_face4;
     SLONG ax, ay, az, bx, by, bz;
 
@@ -102,7 +86,6 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
         gh_vz[c0] = prim_points[this_face4->Points[c0]].Z;
 
         mx += gh_vx[c0];
-        //		my+=gh_vy[c0];
         mz += gh_vz[c0];
     }
 
@@ -112,31 +95,13 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
     }
 
     mx >>= 2;
-    //	my>>=2;
     mz >>= 2;
 
+    // Expand each vertex by ~5% from the centroid.
     for (c0 = 0; c0 < 4; c0++) {
         gh_vx[c0] = (((gh_vx[c0] - mx) * 268) >> 8) + mx;
-        //		gh_vy[c0]=( ( (gh_vy[c0]-my)*268)>>8 )+my;
         gh_vz[c0] = (((gh_vz[c0] - mz) * 268) >> 8) + mz;
     }
-
-    /*
-            ux=	obj_x+prim_points[this_face4->Points[0]].X;
-            uy=	obj_y+prim_points[this_face4->Points[0]].Y;
-            uz=	obj_z+prim_points[this_face4->Points[0]].Z;
-
-            vx=	obj_x+prim_points[this_face4->Points[1]].X;
-            vy=	obj_y+prim_points[this_face4->Points[1]].Y;
-            vz=	obj_z+prim_points[this_face4->Points[1]].Z;
-
-            wx=	obj_x+prim_points[this_face4->Points[2]].X;
-            wy=	obj_y+prim_points[this_face4->Points[2]].Y;
-            wz=	obj_z+prim_points[this_face4->Points[2]].Z;
-
-            if(uy==vy && vy==wy)
-                    return(uy);
-    */
 
     ax = (gh_vx[1] - gh_vx[0]) << 8;
     ay = (gh_vy[1] - gh_vy[0]) << 8;
@@ -149,11 +114,7 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
     x = (rx << 8) - (gh_vx[0] << 8);
     z = (rz << 8) - (gh_vz[0] << 8);
 
-    // printf("face =%d a=(%d,%d,%d) b =(%d,%d,%d) xz=(%d,%d)\n",face,ax,ay,az,bx,by,bz,x,z);
-
-    // Work out alpha and beta such that x = alpha*ax + beta*bx and y = alhpa*ay + beta*by
-
-    // First alpha...
+    // Solve: x = alpha*ax + beta*bx, z = alpha*az + beta*bz.
 
     top = MUL64(x, bz) - MUL64(z, bx);
     bot = MUL64(bz, ax) - MUL64(bx, az);
@@ -164,48 +125,20 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
 
     alpha = DIV64(top, bot);
 
-    // Now beta...
-
     top = MUL64(z, ax) - MUL64(x, az);
     if (bot < 3) {
         *height = gh_vy[0];
-
         return (1);
     }
     beta = DIV64(top, bot);
 
-    if (alpha < 0) {
-        alpha = 0;
-        on_face = 0;
-    }
-    if (beta < 0) {
-        beta = 0;
-        on_face = 0;
-    }
-    if (alpha > 0x10000) {
-        alpha = 0x10000;
-        on_face = 0;
-    }
-    if (beta > 0x10000) {
-        beta = 0x10000;
-        on_face = 0;
-    }
+    if (alpha < 0) { alpha = 0; on_face = 0; }
+    if (beta < 0) { beta = 0; on_face = 0; }
+    if (alpha > 0x10000) { alpha = 0x10000; on_face = 0; }
+    if (beta > 0x10000) { beta = 0x10000; on_face = 0; }
 
-    /*
-            if (alpha < 0 || alpha > 0x10000 || beta < 0 || beta > 0x10000)
-            {
-                    return 1000000;
-            }
-    */
-    //	else
     if (alpha + beta > 0x10000) {
-        // 0   1	      3	   2
-        //
-        // 2			  1	   0
-        //       3
-        //
-        // other triangular half of quad
-        //
+        // Other triangular half of the quad.
 
         ax = (gh_vx[2] - gh_vx[3]) << 8;
         ay = (gh_vy[2] - gh_vy[3]) << 8;
@@ -218,12 +151,6 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
         x = (rx << 8) - (gh_vx[3] << 8);
         z = (rz << 8) - (gh_vz[3] << 8);
 
-        // printf("face =%d a=(%d,%d,%d) b =(%d,%d,%d) xz=(%d,%d)\n",face,ax,ay,az,bx,by,bz,x,z);
-
-        // Work out alpha and beta such that x = alpha*ax + beta*bx and y = alhpa*ay + beta*by
-
-        // First alpha...
-
         top = MUL64(x, bz) - MUL64(z, bx);
         bot = MUL64(bz, ax) - MUL64(bx, az);
 
@@ -233,39 +160,20 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
 
         alpha = DIV64(top, bot);
 
-        // Now beta...
-
         top = MUL64(z, ax) - MUL64(x, az);
         if (bot < 3) {
             *height = gh_vy[3];
             return (on_face);
         }
         beta = DIV64(top, bot);
-        /*
-                        if (alpha < 0 || alpha > 0x10000 || beta < 0 || beta > 0x10000)
-                        {
 
-                        }
-                        else
-        */
-        if (alpha < 0) {
-            alpha = 0;
-            on_face = 0;
-        }
-        if (beta < 0) {
-            beta = 0;
-            on_face = 0;
-        }
-        if (alpha > 0x10000) {
-            alpha = 0x10000;
-            on_face = 0;
-        }
-        if (beta > 0x10000) {
-            beta = 0x10000;
-            on_face = 0;
-        }
+        if (alpha < 0) { alpha = 0; on_face = 0; }
+        if (beta < 0) { beta = 0; on_face = 0; }
+        if (alpha > 0x10000) { alpha = 0x10000; on_face = 0; }
+        if (beta > 0x10000) { beta = 0x10000; on_face = 0; }
+
         if (alpha + beta > 0x10000) {
-            // This is benign - happens very very occasionally - don't worry about it.
+            // Benign degenerate case; very rare.
             ASSERT(0);
             *height = gh_vy[1];
             return (0);
@@ -278,7 +186,6 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
         }
 
     } else {
-        //		LogText(" get height on face=%d alpha %x beta %x  uy %d vy %d wy %d\n",y>>8,face,alpha,beta),uy,vy,wy;
         y = gh_vy[0] << 8;
         y += MUL64(alpha, ay);
         y += MUL64(beta, by);
@@ -287,28 +194,11 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
     }
 }
 
-//
-// returns 0 or 1 (on face false/true) new_y is alt on face
-//
-/*
-SLONG	calc_height_on_face(SLONG x,SLONG z,SLONG face,SLONG *new_y)
-{
-
-        if (face > 0)
-        {
-                        return(get_height_on_face_quad64_at(x,z,face,new_y));
-        }
-        ASSERT(0);
-//	return(1000000);
-//	return(-100);
-}
-*/
-
+// uc_orig: is_thing_on_this_quad (fallen/Source/walkable.cpp)
 SLONG is_thing_on_this_quad(SLONG x, SLONG z, SLONG face)
 {
     if (face < 0) {
         struct RoofFace4* rf;
-        //		highlight_rface(-face);
 
         if (IS_ROOF_HIDDEN_FACE(face)) {
             if ((x >> 8) == ROOF_HIDDEN_X(face) && (z >> 8) == ROOF_HIDDEN_Z(face))
@@ -334,6 +224,7 @@ SLONG is_thing_on_this_quad(SLONG x, SLONG z, SLONG face)
     }
 }
 
+// uc_orig: calc_height_on_rface (fallen/Source/walkable.cpp)
 SLONG calc_height_on_rface(SLONG x, SLONG z, SWORD face, SLONG* ret_y)
 {
     SLONG h0;
@@ -361,8 +252,6 @@ SLONG calc_height_on_rface(SLONG x, SLONG z, SWORD face, SLONG* ret_y)
         } else
             return (0);
     }
-
-    //	highlight_rface(face);
 
     rf = &roof_faces4[face];
 
@@ -413,28 +302,9 @@ SLONG calc_height_on_rface(SLONG x, SLONG z, SWORD face, SLONG* ret_y)
     return (face);
 }
 
-//
-// Finds a face to be stood on (checks height is not out of range)
-//
-
-// claude-ai: find_face_for_this_pos() — поиск проходимой поверхности под позицией (x,y,z).
-// claude-ai: ВХОДИТ x,y,z в координатных единицах (>> 8 от WorldPos).
-// claude-ai: АЛГОРИТМ:
-// claude-ai:   1. Быстрый путь для крыш: если PAP_FLAG_ROOF_EXISTS → проверить roof face сначала
-// claude-ai:   2. Перебрать lo-res ячейки в диапазоне ±0x200 (±2 ячейки), идти по linked list Walkable
-// claude-ai:   3. Для каждого face: is_thing_on_this_quad(x,z,face) → если попадает → calc_height_on_face()
-// claude-ai:   4. dy = facey - y (+ = face выше игрока, - = face ниже игрока)
-// claude-ai:   5. Критерий кандидата: dy <= 0xa0 (160 единиц). Выбирается face с минимальным |dy|.
-// claude-ai:   6. Если face не найден: fallback на PAP_calc_height_at(). Порог GRAB_FLOOR: |dy| < 0x50 (80 ед.)
-// claude-ai: ВОЗВРАТ:
-// claude-ai:   > 0      — DFacet index (prim_faces4[])
-// claude-ai:   < 0      — Roof face index (-index в roof_faces4[])
-// claude-ai:   GRAB_FLOOR (MAX_PRIM_FACES4+1) — стоит на terrain (PAP heightmap)
-// claude-ai:   NULL (0) — ничего нет, падение (или PAP_FLAG_HIDDEN = запрещённая зона)
-// claude-ai: РЕЖИМЫ (ignore_height_flag):
-// claude-ai:   0                  — стандартный (порог кандидата 160ед, выбор ближайшего)
-// claude-ai:   FIND_ANYFACE=1     — вернуть первый найденный face немедленно
-// claude-ai:   FIND_FACE_NEAR_BELOW=3 — вернуть если face в пределах 30 единиц выше позиции
+// Searches lo-res cells in a ±0x200 world-unit radius around (x,z) for a surface to stand on.
+// Roof cells are prioritized. Returns GRAB_FLOOR if the PAP heightfield is the best option.
+// uc_orig: find_face_for_this_pos (fallen/Source/walkable.cpp)
 SLONG find_face_for_this_pos(
     SLONG x,
     SLONG y,
@@ -465,6 +335,7 @@ SLONG find_face_for_this_pos(
     SATURATE(mx2, 0, PAP_SIZE_LO - 1);
     SATURATE(mz2, 0, PAP_SIZE_LO - 1);
 
+    // Quick path for hidden-roof squares (single flat roof at MAV height).
     if (PAP_hi[x >> 8][z >> 8].Flags & PAP_FLAG_ROOF_EXISTS) {
         best_face = ROOF_HIDDEN_GET_FACE(x >> 8, z >> 8);
 
@@ -476,7 +347,6 @@ SLONG find_face_for_this_pos(
         best_dy = best_facey - y;
         if (best_dy < 30 && ignore_height_flag == FIND_FACE_NEAR_BELOW) {
             *ret_y = best_facey;
-
             return best_face;
         }
         if (best_dy < 0xa0) {
@@ -490,18 +360,9 @@ SLONG find_face_for_this_pos(
             index = PAP_2LO(mx, mz).Walkable;
 
             while (index) {
-                //			ASSERT(index >= 0);
-                //			ASSERT(WITHIN(index, 1, next_prim_face4 - 1));
-
                 if (is_thing_on_this_quad(x, z, index)) {
-                    //
-                    // We've found a face to stand on. But at what height?
-                    // we are on this face so use clipped alpha and beta in calc height on face
-                    //
-
                     if (index < 0) {
                         calc_height_on_rface(x, z, -index, &facey);
-
                     } else {
                         calc_height_on_face(x, z, index, &facey);
                     }
@@ -510,30 +371,20 @@ SLONG find_face_for_this_pos(
 
                     if (ignore_height_flag == FIND_ANYFACE) {
                         *ret_y = facey;
-
                         return index;
                     }
 
                     if (dy < 30 && ignore_height_flag == FIND_FACE_NEAR_BELOW) {
                         *ret_y = facey;
-
                         return index;
                     }
 
                     if (dy <= 0xa0) {
-                        //
-                        // This is a candidate face.
-                        //
-
                         if (abs(dy) < best_dy) {
                             best_dy = abs(dy);
                             best_face = index;
                             best_facey = facey;
                         }
-                    } else {
-                        //
-                        // Too much difference in y. Ignore this face.
-                        //
                     }
                 }
 
@@ -546,31 +397,29 @@ SLONG find_face_for_this_pos(
         }
 
     if (best_face == NULL) {
-        //
-        // Could not find a face to stand on. How about the ground?
-        //
+        // No face found; try the terrain heightfield.
 
         if (PAP_2HI(x >> PAP_SHIFT_HI, z >> PAP_SHIFT_HI).Flags & PAP_FLAG_HIDDEN) {
             return (0);
         }
 
-        groundy = PAP_calc_height_at(x, z); //+5
+        groundy = PAP_calc_height_at(x, z);
         *ret_y = groundy;
 
         dy = y - groundy;
 
         if (abs(dy) < 0x50) {
-            return GRAB_FLOOR; // step onto floor
+            return GRAB_FLOOR;
         }
     } else {
         *ret_y = best_facey;
-
         return best_face;
     }
 
     return NULL;
 }
 
+// uc_orig: find_height_for_this_pos (fallen/Source/walkable.cpp)
 SLONG find_height_for_this_pos(SLONG x, SLONG z, SLONG* ret_face)
 {
     UBYTE mx;
@@ -602,27 +451,14 @@ SLONG find_height_for_this_pos(SLONG x, SLONG z, SLONG* ret_face)
             index = PAP_2LO(mx, mz).Walkable;
 
             while (index) {
-                //			ASSERT(index >= 0);
-                //			ASSERT(WITHIN(index, 1, next_prim_face4 - 1));
-
                 if (is_thing_on_this_quad(x, z, index)) {
-                    //
-                    // We've found a face to stand on. But at what height?
-                    //
-
-                    //
-                    // use result no matter what as we are on the face
-                    //
                     if (index < 0) {
                         calc_height_on_rface(x, z, -index, &facey);
-
                     } else {
                         calc_height_on_face(x, z, index, &facey);
                     }
                     {
-
                         *ret_face = index;
-
                         return facey;
                     }
                 }
@@ -635,19 +471,19 @@ SLONG find_height_for_this_pos(SLONG x, SLONG z, SLONG* ret_face)
             }
         }
 
-    //
-    // How about the ground?
-    //
+    // Fall back to terrain.
 
     if (PAP_2HI(x >> PAP_SHIFT_HI, z >> PAP_SHIFT_HI).Flags & PAP_FLAG_HIDDEN)
         return (0);
 
-    groundy = PAP_calc_height_at(x, z); //+5
+    groundy = PAP_calc_height_at(x, z);
 
     *ret_face = 0;
-    return groundy; // step onto floor
+    return groundy;
 }
 
+// Returns the slope steepness of a RoofFace4 and fills *angle with the downslope direction.
+// uc_orig: RFACE_on_slope (fallen/Source/walkable.cpp)
 SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
 {
     SLONG h0;
@@ -680,16 +516,9 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
     h3 = h0 + (rf->DY[1] << ROOF_SHIFT);
 
     if (h0 == h1 && h1 == h2 && h2 == h3) {
-        //
-        // No need to do any interpolation.
-        //
         return (0);
 
     } else {
-
-        //  h0   h2
-        //
-        //	h1   h3
 
         h0 <<= PAP_ALT_SHIFT;
         h1 <<= PAP_ALT_SHIFT;
@@ -714,9 +543,9 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
                 wy = h0 - h1;
                 wz = 256;
 
-                rx = (vy * wz); //-vz*wy;
-                ry = 65536; // vz*wx-vx*wz; dont care about this
-                rz = (vx * wy); //-vy*wx;
+                rx = (vy * wz);
+                ry = 65536;
+                rz = (vx * wy);
 
                 if (rx == 0 && rz == 0)
                     return (0);
@@ -745,9 +574,9 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
                 wy = h3 - h2;
                 wz = 256;
 
-                rx = (vy * wz); //-vz*wy;
-                ry = 65536; // vz*wx-vx*wz; dont care about this
-                rz = (vx * wy); //-vy*wx;
+                rx = (vy * wz);
+                ry = 65536;
+                rz = (vx * wy);
 
                 if (rx == 0 && rz == 0)
                     return (0);
@@ -778,9 +607,9 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
                 wy = h1 - h0;
                 wz = -256;
 
-                rx = (vy * wz); //-vz*wy;
-                ry = 65536; // vz*wx-vx*wz; dont care about this
-                rz = (vx * wy); //-vy*wx;
+                rx = (vy * wz);
+                ry = 65536;
+                rz = (vx * wy);
 
                 if (rx == 0 && rz == 0)
                     return (0);
@@ -809,9 +638,9 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
                 wy = h2 - h3;
                 wz = -256;
 
-                rx = (vy * wz); //-vz*wy;
-                ry = 65536; // vz*wx-vx*wz; dont care about this
-                rz = (vx * wy); //-vy*wx;
+                rx = (vy * wz);
+                ry = 65536;
+                rz = (vx * wy);
 
                 if (rx == 0 && rz == 0)
                     return (0);
@@ -830,6 +659,7 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
     }
 }
 
+// uc_orig: WALKABLE_remove_rface (fallen/Source/walkable.cpp)
 void WALKABLE_remove_rface(UBYTE map_x, UBYTE map_z)
 {
     SWORD next;
@@ -853,37 +683,20 @@ void WALKABLE_remove_rface(UBYTE map_x, UBYTE map_z)
             rf = &roof_faces4[-next];
 
             if ((rf->RX & 127) == map_x && (rf->RZ & 127) == map_z) {
-                //
-                // We have found the face to get rid of.  Take it out of the linked list
-                // for this square.
-                //
-
+                // Remove from linked list and mark as no-draw.
                 *prev = rf->Next;
-
-                //
-                // Instead of deleting this face proper, we mark it as no-draw for now.
-                //
-
                 rf->DrawFlags |= RFACE_FLAG_NODRAW;
-
                 return;
             }
 
             prev = &rf->Next;
             next = rf->Next;
         } else {
-            //
-            // This is a normal walkable face.
-            //
-
             prev = &prim_faces4[next].WALKABLE;
             next = prim_faces4[next].WALKABLE;
         }
     }
 
-    //
-    // Make this mapsquare be HIDDEN.
-    //
-
+    // Square had no roof face; mark it as hidden.
     PAP_2HI(map_x, map_z).Flags |= PAP_FLAG_HIDDEN;
 }
