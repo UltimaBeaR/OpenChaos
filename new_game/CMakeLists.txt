@@ -167,6 +167,8 @@ set(SOURCES_NEW
     src/new/engine/graphics/geometry/farfacet_globals.cpp
     src/new/engine/graphics/pipeline/sky.cpp
     src/new/engine/graphics/pipeline/sky_globals.cpp
+    src/new/engine/graphics/geometry/fastprim.cpp
+    src/new/engine/graphics/geometry/fastprim_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -174,7 +176,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/drawxtra.cpp
     src/old/fallen/DDEngine/Source/engineMap.cpp
     src/old/fallen/DDEngine/Source/facet.cpp
-    src/old/fallen/DDEngine/Source/fastprim.cpp
     src/old/fallen/DDEngine/Source/figure.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
     src/old/fallen/DDEngine/Source/panel.cpp

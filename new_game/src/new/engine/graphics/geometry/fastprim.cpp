@@ -1,121 +1,32 @@
-//
-// Draws prims super-fast!
-//
+// Fast prim renderer: caches D3D vertex and index buffers per-prim to avoid rebuilding geometry
+// each frame. Uses DrawIndPrimMM for opaque/tinted prims, DrawIndexedPrimitive for alpha and
+// environment-mapped ones.
 
-#include "game.h"
-#include "ddlib.h"
-#include "poly.h"
-#include "polypoint.h"
-#include "polypage.h"
-#include "fastprim.h"
-#include "memory.h"
-#include "texture.h"
-#include "matrix.h"
+#include <MFStdLib.h>
+#include "engine/graphics/geometry/fastprim.h"
+#include "engine/graphics/geometry/fastprim_globals.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/pipeline/aeng.h"
+#include "engine/graphics/graphics_api/gd_display.h"
+#include "core/matrix.h"
+#include "assets/texture.h"          // Temporary: engine/ -> assets/ DAG violation; needed for FACE_PAGE_OFFSET
+#include "fallen/Headers/prim.h"
+#include "fallen/Headers/memory.h"
+#include "fallen/Headers/building.h"
+#include "fallen/Headers/Night.h"
 
-//
-// The D3D vertices and indices passed to DrawIndexedPrimitive
-//
-
-D3DLVERTEX* FASTPRIM_lvert_buffer;
-D3DLVERTEX* FASTPRIM_lvert;
-SLONG FASTPRIM_lvert_max;
-SLONG FASTPRIM_lvert_upto;
-SLONG FASTPRIM_lvert_free_end; // The end of the free range of lverts.
-SLONG FASTPRIM_lvert_free_unused; // From this lvert to the end of the array is unused.
-
-UWORD* FASTPRIM_index;
-SLONG FASTPRIM_index_max;
-SLONG FASTPRIM_index_upto;
-SLONG FASTPRIM_index_free_end; // The end of the free range of indices
-SLONG FASTPRIM_index_free_unused; // From this index to the end of the array is unused.
-
-//
-// A 32-byte aligned matrix.
-//
-
-UBYTE FASTPRIM_matrix_buffer[sizeof(D3DMATRIX) + 32];
-D3DMATRIX* FASTPRIM_matrix;
-
-//
-// Each DrawIndexedPrim call has one of these structures.
-//
-
-#define FASTPRIM_CALL_TYPE_NORMAL 0 // Uses DrawIndMM - no alpha, no MESH_colour_and, no envmapping...
-#define FASTPRIM_CALL_TYPE_COLOURAND 1 // Uses DrawIndMM. The colours for this call should be AND'ed with MESH_colour_and
-#define FASTPRIM_CALL_TYPE_INDEXED 2 // Uses DrawIndexedPrimitive and the texture is an alpha texture
-#define FASTPRIM_CALL_TYPE_ENVMAP 3 // This is an an environment mapping call - uses DrawIndexedPrimitive and the (u,v) must be set each frame.
-
-#define FASTPRIM_CALL_FLAG_SELF_ILLUM (1 << 0)
-
-typedef struct
-{
-    UWORD flag;
-    UWORD type;
-
-    UWORD lvert;
-    UWORD lvertcount;
-    UWORD index;
-    UWORD indexcount;
-
-    LPDIRECT3DTEXTURE2 texture;
-
-} FASTPRIM_Call;
-
-#define FASTPRIM_MAX_CALLS 512
-
-FASTPRIM_Call FASTPRIM_call[FASTPRIM_MAX_CALLS];
-SLONG FASTPRIM_call_upto;
-
-//
-// Each prim...
-//
-
-#define FASTPRIM_PRIM_FLAG_CACHED (1 << 0)
-#define FASTPRIM_PRIM_FLAG_INVALID (1 << 1) // This prim cannot be converted for some reason.
-
-typedef struct
-{
-    UWORD flag;
-    UWORD call_index;
-    UWORD call_count;
-
-} FASTPRIM_Prim;
-
-#define FASTPRIM_MAX_PRIMS 256
-
-FASTPRIM_Prim FASTPRIM_prim[FASTPRIM_MAX_PRIMS];
-
-//
-// Circular queue of prims we have cached.
-//
-
-#define FASTPRIM_MAX_QUEUE 128
-
-UBYTE FASTPRIM_queue[FASTPRIM_MAX_QUEUE];
-SLONG FASTPRIM_queue_start;
-SLONG FASTPRIM_queue_end;
-
-//
-// Returns the actual page used.
-//
-
+// uc_orig: FASTPRIM_find_texture_from_page (fallen/DDEngine/Source/fastprim.cpp)
 LPDIRECT3DTEXTURE2 FASTPRIM_find_texture_from_page(SLONG page)
 {
-    SLONG i;
-
     PolyPage* pp = &POLY_Page[page];
-
     return pp->RS.GetTexture();
 }
 
+// uc_orig: FASTPRIM_init (fallen/DDEngine/Source/fastprim.cpp)
 void FASTPRIM_init()
 {
-    //
-    // Allocate memory.
-    //
-
     FASTPRIM_lvert_max = 4096;
-    // FASTPRIM_lvert_max         = 256;
 
     FASTPRIM_lvert_buffer = (D3DLVERTEX*)MemAlloc(sizeof(D3DLVERTEX) * FASTPRIM_lvert_max + 31);
     FASTPRIM_lvert = (D3DLVERTEX*)((((SLONG)FASTPRIM_lvert_buffer) + 31) & ~0x1f);
@@ -123,7 +34,7 @@ void FASTPRIM_init()
     FASTPRIM_lvert_free_end = FASTPRIM_lvert_max;
     FASTPRIM_lvert_free_unused = FASTPRIM_lvert_max;
 
-    FASTPRIM_index_max = FASTPRIM_lvert_max * 3; // Not * 5 / 4 because we may have some extra sharing...
+    FASTPRIM_index_max = FASTPRIM_lvert_max * 3;
     FASTPRIM_index = (UWORD*)MemAlloc(sizeof(UWORD) * FASTPRIM_index_max);
     FASTPRIM_index_upto = 0;
     FASTPRIM_index_free_end = FASTPRIM_index_max;
@@ -142,17 +53,12 @@ void FASTPRIM_init()
 
     FASTPRIM_matrix = (D3DMATRIX*)((SLONG(FASTPRIM_matrix_buffer) + 31) & ~0x1f);
 
-    //
-    // Don't convert car wheels because their texture coordinates rotate!
-    //
-
+    // Car wheels have rotating texture coordinates and cannot be cached.
     FASTPRIM_prim[PRIM_OBJ_CAR_WHEEL].flag = FASTPRIM_PRIM_FLAG_INVALID;
 }
 
-//
-// Frees up the given cached prim.
-//
-
+// Releases the vertex/index space used by a cached prim, updating the free-range cursors.
+// uc_orig: FASTPRIM_free_cached_prim (fallen/DDEngine/Source/fastprim.cpp)
 void FASTPRIM_free_cached_prim(SLONG prim)
 {
     SLONG i;
@@ -168,10 +74,6 @@ void FASTPRIM_free_cached_prim(SLONG prim)
         ASSERT(WITHIN(fp->call_index, 0, FASTPRIM_MAX_CALLS - 1));
 
         fc = &FASTPRIM_call[fp->call_index + i];
-
-        //
-        // Free up the verts and indices used by this call.
-        //
 
         FASTPRIM_lvert_free_end = fc->lvert + fc->lvertcount;
         FASTPRIM_index_free_end = fc->index + fc->indexcount;
@@ -192,11 +94,9 @@ void FASTPRIM_free_cached_prim(SLONG prim)
     fp->call_index = 0;
 }
 
-//
-// Frees up the oldest cached prim to make room for the given call
-// to grow. It may move all the data in the call!
-//
-
+// Evicts oldest cached prims from the LRU queue until there is room for fc's data.
+// May relocate fc's vertex/index data to the beginning of the arrays if they wrapped.
+// uc_orig: FASTPRIM_free_queue_for_call (fallen/DDEngine/Source/fastprim.cpp)
 void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
 {
     SLONG duplicates = 0;
@@ -210,20 +110,12 @@ void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
         old_lvert_free_end = FASTPRIM_lvert_free_end;
         old_index_free_end = FASTPRIM_index_free_end;
 
-        //
-        // Free up the last cached prim.
-        //
-
         ASSERT(FASTPRIM_queue_end < FASTPRIM_queue_start);
 
         FASTPRIM_free_cached_prim(FASTPRIM_queue[FASTPRIM_queue_end++ & (FASTPRIM_MAX_QUEUE - 1)]);
 
         if (FASTPRIM_lvert_free_end < old_lvert_free_end || FASTPRIM_index_free_end < old_index_free_end) {
-            //
-            // The lverts have wrapped around. We must copy all the lverts
-            // in the call to the beginning of the array (when we have enough room).
-            //
-
+            // The buffer wrapped around; copy the current call's data to the beginning.
             FASTPRIM_lvert_upto = fc->lvertcount;
             FASTPRIM_index_upto = fc->indexcount;
 
@@ -231,11 +123,6 @@ void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
         }
 
         if (FASTPRIM_index_upto + 16 < FASTPRIM_index_free_end && FASTPRIM_lvert_upto + 16 < FASTPRIM_lvert_free_end) {
-            //
-            // Enough room! Do we have to copy the lverts or indices to the
-            // beginning of the array?
-            //
-
             if (copy_to_beginning) {
                 memcpy(FASTPRIM_lvert, FASTPRIM_lvert + fc->lvert, sizeof(D3DLVERTEX) * fc->lvertcount);
                 memcpy(FASTPRIM_index, FASTPRIM_index + fc->index, sizeof(UWORD) * fc->indexcount);
@@ -254,20 +141,14 @@ void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
     }
 }
 
-//
-// Makes sure the given FASTPRIM_Prim has a call structure for
-// the given texture.
-//
-
+// Ensures the call list contains a slot for the given texture/type pair.
+// No-op if a matching slot already exists.
+// uc_orig: FASTPRIM_create_call (fallen/DDEngine/Source/fastprim.cpp)
 void FASTPRIM_create_call(FASTPRIM_Prim* fp, LPDIRECT3DTEXTURE2 texture, UWORD type)
 {
     SLONG i;
 
     FASTPRIM_Call* fc;
-
-    //
-    // Do we already have a call structure for this texture?
-    //
 
     for (i = 0; i < fp->call_count; i++) {
         ASSERT(WITHIN(fp->call_index + i, 0, FASTPRIM_call_upto - 1));
@@ -278,10 +159,6 @@ void FASTPRIM_create_call(FASTPRIM_Prim* fp, LPDIRECT3DTEXTURE2 texture, UWORD t
             return;
         }
     }
-
-    //
-    // Create a new call structure.
-    //
 
     ASSERT(WITHIN(FASTPRIM_call_upto, 0, FASTPRIM_MAX_CALLS - 1));
     ASSERT(fp->call_index + fp->call_count == FASTPRIM_call_upto);
@@ -301,11 +178,9 @@ void FASTPRIM_create_call(FASTPRIM_Prim* fp, LPDIRECT3DTEXTURE2 texture, UWORD t
     return;
 }
 
-//
-// Adds a point to the given call structure. If the point already
-// exists then it returns the old point.
-//
-
+// Adds a vertex to the call's vertex buffer, reusing an existing entry if the vertex matches.
+// Returns the within-call vertex index.
+// uc_orig: FASTPRIM_add_point_to_call (fallen/DDEngine/Source/fastprim.cpp)
 UWORD FASTPRIM_add_point_to_call(
     FASTPRIM_Call* fc,
     float x,
@@ -320,10 +195,6 @@ UWORD FASTPRIM_add_point_to_call(
 
     D3DLVERTEX* lv;
 
-    //
-    // Does this point already exist?
-    //
-
     for (i = fc->lvertcount - 1; i >= 0; i--) {
         ASSERT(WITHIN(fc->lvert + i, 0, FASTPRIM_lvert_max - 1));
 
@@ -334,15 +205,7 @@ UWORD FASTPRIM_add_point_to_call(
         }
     }
 
-    //
-    // Create a new point.
-    //
-
     if (FASTPRIM_lvert_upto >= FASTPRIM_lvert_free_end) {
-        //
-        // Need more room!
-        //
-
         FASTPRIM_free_queue_for_call(fc);
     }
 
@@ -364,6 +227,8 @@ UWORD FASTPRIM_add_point_to_call(
     return fc->lvertcount++;
 }
 
+// Ensures the index buffer has room for at least 8 more indices, evicting if necessary.
+// uc_orig: FASTPRIM_ensure_room_for_indices (fallen/DDEngine/Source/fastprim.cpp)
 void FASTPRIM_ensure_room_for_indices(FASTPRIM_Call* fc)
 {
     if (FASTPRIM_index_upto + 8 >= FASTPRIM_index_free_end) {
@@ -372,6 +237,7 @@ void FASTPRIM_ensure_room_for_indices(FASTPRIM_Call* fc)
     }
 }
 
+// uc_orig: FASTPRIM_draw (fallen/DDEngine/Source/fastprim.cpp)
 SLONG FASTPRIM_draw(
     SLONG prim,
     float x,
@@ -412,11 +278,7 @@ SLONG FASTPRIM_draw(
 
     ASSERT(WITHIN(prim, 0, FASTPRIM_MAX_PRIMS - 1));
 
-    //
-    // Is this prim too close to the camera in (x,z)? Ignore y
-    // because lamposts and trees have a huge y!
-    //
-
+    // Skip prims that are too close to the camera (drawn the old way instead).
     {
         PrimInfo* pi = get_prim_info(prim);
 
@@ -430,10 +292,6 @@ SLONG FASTPRIM_draw(
         float radius = float(MAX(pi->maxx - pi->minx, pi->maxz - pi->minz)) + 16.0f;
 
         if (dist < radius * radius) {
-            //
-            // Less than 1 mapsquare distant... drawn the old way!
-            //
-
             return FALSE;
         }
     }
@@ -445,27 +303,16 @@ SLONG FASTPRIM_draw(
     }
 
     if (!(fp->flag & FASTPRIM_PRIM_FLAG_CACHED)) {
-        //
-        // We've come across a new prim.
-        //
+        // First time seeing this prim: build and cache its vertex/index data.
 
         if (FASTPRIM_call_upto + 32 >= FASTPRIM_MAX_CALLS) {
-            //
-            // Assume max of 32 calls per prim? And pray to god
-            // that there is enough room!
-            //
-
             FASTPRIM_call_upto = 0;
         }
 
         fp->call_count = 0;
         fp->call_index = FASTPRIM_call_upto;
 
-        //
-        // Go through all the faces and create a new call
-        // structure for each new texture/type we come across.
-        //
-
+        // Pass 1: create call slots for each unique texture/type combination.
         po = &prim_objects[prim];
 
         for (i = po->StartFace3; i < po->EndFace3; i++) {
@@ -514,11 +361,7 @@ SLONG FASTPRIM_draw(
             FASTPRIM_create_call(fp, texture, type);
         }
 
-        //
-        // Now go through each texture and add the faces
-        // that use that texture.
-        //
-
+        // Pass 2: for each call slot, fill in vertex and index data.
         for (i = 0; i < fp->call_count; i++) {
             ASSERT(WITHIN(fp->call_index + i, 0, FASTPRIM_call_upto - 1));
 
@@ -553,10 +396,6 @@ SLONG FASTPRIM_draw(
                 }
 
                 if (texture == fc->texture && type == fc->type) {
-                    //
-                    // Add the three points of this face.
-                    //
-
                     pp = &POLY_Page[page];
 
                     for (k = 0; k < 3; k++) {
@@ -578,10 +417,6 @@ SLONG FASTPRIM_draw(
                                 &pcolour,
                                 &pspecular);
                         } else {
-                            //
-                            // Light this point badly...
-                            //
-
                             pcolour = NIGHT_amb_d3d_colour;
                             pspecular = NIGHT_amb_d3d_specular;
                         }
@@ -596,29 +431,19 @@ SLONG FASTPRIM_draw(
                         index[k] = FASTPRIM_add_point_to_call(fc, px, py, pz, pu, pv, pcolour, pspecular);
 
                         if (type == FASTPRIM_CALL_TYPE_COLOURAND) {
-                            //
-                            // Put the 'y' component of the normal into the
-                            // top byte of dwReserved- we cheekily use just this
-                            // value to do the lighting...
-                            //
-
+                            // Store the normal Y component in the top byte of dwReserved for
+                            // per-call relighting.
                             ASSERT(WITHIN(fc->lvert + index[k], 0, FASTPRIM_lvert_max - 1));
 
                             FASTPRIM_lvert[fc->lvert + index[k]].dwReserved = prim_normal[f3->Points[k]].Y << 24;
                         } else {
-                            //
-                            // Put the point index into the top UWORD of the dwReserved field.
-                            //
-
+                            // Store the point index in the top UWORD of dwReserved for
+                            // per-vertex relighting (NORMAL and ENVMAP cases).
                             ASSERT(WITHIN(fc->lvert + index[k], 0, FASTPRIM_lvert_max - 1));
 
                             FASTPRIM_lvert[fc->lvert + index[k]].dwReserved = (f3->Points[k] - po->StartPoint) << 16;
                         }
                     }
-
-                    //
-                    // Now add the face.
-                    //
 
                     FASTPRIM_ensure_room_for_indices(fc);
 
@@ -663,10 +488,6 @@ SLONG FASTPRIM_draw(
                 }
 
                 if (texture == fc->texture && type == fc->type) {
-                    //
-                    // Add the four points of this face.
-                    //
-
                     pp = &POLY_Page[page];
 
                     for (k = 0; k < 4; k++) {
@@ -688,10 +509,6 @@ SLONG FASTPRIM_draw(
                                 &pcolour,
                                 &pspecular);
                         } else {
-                            //
-                            // Light this point badly...
-                            //
-
                             pcolour = NIGHT_amb_d3d_colour;
                             pspecular = NIGHT_amb_d3d_specular;
                         }
@@ -704,29 +521,15 @@ SLONG FASTPRIM_draw(
                         index[k] = FASTPRIM_add_point_to_call(fc, px, py, pz, pu, pv, pcolour, pspecular);
 
                         if (type == FASTPRIM_CALL_TYPE_COLOURAND) {
-                            //
-                            // Put the 'y' component of the normal into the
-                            // top byte of dwReserved- we cheekily use just this
-                            // value to do the lighting...
-                            //
-
                             ASSERT(WITHIN(fc->lvert + index[k], 0, FASTPRIM_lvert_max - 1));
 
                             FASTPRIM_lvert[fc->lvert + index[k]].dwReserved = prim_normal[f4->Points[k]].Y << 24;
                         } else {
-                            //
-                            // Put the point index into the top UWORD of the dwReserved field.
-                            //
-
                             ASSERT(WITHIN(fc->lvert + index[k], 0, FASTPRIM_lvert_max - 1));
 
                             FASTPRIM_lvert[fc->lvert + index[k]].dwReserved = (f4->Points[k] - po->StartPoint) << 16;
                         }
                     }
-
-                    //
-                    // Now add the face.
-                    //
 
                     FASTPRIM_ensure_room_for_indices(fc);
 
@@ -757,17 +560,11 @@ SLONG FASTPRIM_draw(
         }
 
         if (po->flag & PRIM_FLAG_ENVMAPPED) {
-            //
-            // Create another call for the environment mapped faces.
-            //
+            // Build the environment-mapped call: one pass for faces marked FACE_FLAG_ENVMAP.
 
             LPDIRECT3DTEXTURE2 envtexture = FASTPRIM_find_texture_from_page(POLY_PAGE_ENVMAP);
 
             FASTPRIM_create_call(fp, envtexture, FASTPRIM_CALL_TYPE_ENVMAP);
-
-            //
-            // Find the newly-created call structure- should be the last one in the array.
-            //
 
             ASSERT(WITHIN(fp->call_index + fp->call_count - 1, 0, FASTPRIM_call_upto - 1));
 
@@ -782,10 +579,6 @@ SLONG FASTPRIM_draw(
 
             fc->lvertcount = 0;
             fc->indexcount = 0;
-
-            //
-            // Add all the environment mapped faces.
-            //
 
             for (i = po->StartFace3; i < po->EndFace3; i++) {
                 ASSERT(WITHIN(i, 0, next_prim_face3 - 1));
@@ -808,19 +601,11 @@ SLONG FASTPRIM_draw(
 
                         index[j] = FASTPRIM_add_point_to_call(fc, px, py, pz, pu, pv, pcolour, pspecular);
 
-                        //
-                        // Put the point index into the top UWORD of 'dwReserved' so we know
-                        // which normal to use.
-                        //
-
+                        // Store the absolute point index for normal lookup during env-map update.
                         ASSERT(WITHIN(fc->lvert + index[j], 0, FASTPRIM_lvert_max - 1));
 
                         FASTPRIM_lvert[fc->lvert + index[j]].dwReserved = f3->Points[j] << 16;
                     }
-
-                    //
-                    // Now add the face.
-                    //
 
                     FASTPRIM_ensure_room_for_indices(fc);
 
@@ -856,19 +641,10 @@ SLONG FASTPRIM_draw(
 
                         index[j] = FASTPRIM_add_point_to_call(fc, px, py, pz, pu, pv, pcolour, pspecular);
 
-                        //
-                        // Put the point index into the top UWORD of 'dwReserved' so we know
-                        // which normal to use.
-                        //
-
                         ASSERT(WITHIN(fc->lvert + index[j], 0, FASTPRIM_lvert_max - 1));
 
                         FASTPRIM_lvert[fc->lvert + index[j]].dwReserved = f4->Points[j] << 16;
                     }
-
-                    //
-                    // Now add the face.
-                    //
 
                     FASTPRIM_ensure_room_for_indices(fc);
 
@@ -888,19 +664,12 @@ SLONG FASTPRIM_draw(
             }
         }
 
-        //
-        // We've cached it now!
-        //
-
         fp->flag |= FASTPRIM_PRIM_FLAG_CACHED;
 
         FASTPRIM_queue[FASTPRIM_queue_start++ & (FASTPRIM_MAX_QUEUE - 1)] = prim;
     }
 
-    //
-    // Are we strinking this prim?
-    //
-
+    // kludge_shrink: duplicated block in the original source — preserved 1:1.
     extern UBYTE kludge_shrink;
 
     if (kludge_shrink) {
@@ -921,10 +690,7 @@ SLONG FASTPRIM_draw(
         matrix[8] *= fstretch;
     }
 
-    //
-    // Are we strinking this prim?
-    //
-
+    // kludge_shrink: second identical block — duplicate from the original, preserved 1:1.
     extern UBYTE kludge_shrink;
 
     if (kludge_shrink) {
@@ -945,10 +711,7 @@ SLONG FASTPRIM_draw(
         matrix[8] *= fstretch;
     }
 
-    //
-    // Draw the cached version. Set up the matrix for this object's rotation.
-    //
-
+    // Set the object's position and rotation, then render each call.
     POLY_set_local_rotation(
         x, y, z,
         matrix);
@@ -965,11 +728,7 @@ SLONG FASTPRIM_draw(
         fc = &FASTPRIM_call[fp->call_index + i];
 
         if (fc->type == FASTPRIM_CALL_TYPE_ENVMAP) {
-            //
-            // Work out the environment mapping. Calculate the rotation
-            // matrix combined with the camera.
-            //
-
+            // Recompute environment-map UV coordinates each frame based on camera orientation.
             float nx;
             float ny;
             float nz;
@@ -1019,10 +778,6 @@ SLONG FASTPRIM_draw(
 
             default_colour &= MESH_colour_and;
 
-            //
-            // Relight then AND out the colours...
-            //
-
             D3DLVERTEX* lv;
 
             for (j = 0; j < fc->lvertcount; j++) {
@@ -1035,10 +790,7 @@ SLONG FASTPRIM_draw(
             }
         } else if (fc->type == FASTPRIM_CALL_TYPE_NORMAL) {
             if (lpc) {
-                //
-                // Relight from the cached lighting.
-                //
-
+                // Relight each vertex from the cached per-point light colours.
                 D3DLVERTEX* lv;
 
                 for (j = 0; j < fc->lvertcount; j++) {
@@ -1052,10 +804,7 @@ SLONG FASTPRIM_draw(
                         &lv->specular);
                 }
             } else {
-                //
-                // Relight using local light...
-                //
-
+                // Relight all vertices to the local ambient.
                 ULONG default_colour;
                 ULONG default_specular;
 
@@ -1078,23 +827,14 @@ SLONG FASTPRIM_draw(
         }
 
         if (fc->type == FASTPRIM_CALL_TYPE_INDEXED || fc->type == FASTPRIM_CALL_TYPE_ENVMAP) {
-            //
-            // Standard D3D DrawIndexedPrimitive() call...
-            //
+            // Standard DrawIndexedPrimitive path (alpha-blended or environment-mapped).
 
             if (fc->type == FASTPRIM_CALL_TYPE_INDEXED) {
-                //
-                // Setup alphablend renderstates...
-                //
-
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
             } else {
-                //
-                // Setup additive renderstates...
-                //
-
+                // Additive blend for environment maps.
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
@@ -1113,10 +853,7 @@ SLONG FASTPRIM_draw(
 
             the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
         } else {
-            //
-            // Tom's DrawIndMM() call...
-            //
-
+            // DrawIndPrimMM path for opaque/colour-and prims (Tom's custom batch call).
             D3DMULTIMATRIX d3dmm = {
                 FASTPRIM_lvert + fc->lvert,
                 FASTPRIM_matrix,
@@ -1130,7 +867,6 @@ SLONG FASTPRIM_draw(
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_DECAL);
             }
 
-            // TRACE ( "S3" );
             DrawIndPrimMM(
                 the_display.lp_D3D_Device,
                 D3DFVF_LVERTEX,
@@ -1138,7 +874,6 @@ SLONG FASTPRIM_draw(
                 fc->lvertcount,
                 FASTPRIM_index + fc->index,
                 fc->indexcount);
-            // TRACE ( "F3" );
 
             if (fc->flag & FASTPRIM_CALL_FLAG_SELF_ILLUM) {
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
@@ -1149,9 +884,9 @@ SLONG FASTPRIM_draw(
     return TRUE;
 }
 
+// uc_orig: FASTPRIM_fini (fallen/DDEngine/Source/fastprim.cpp)
 void FASTPRIM_fini()
 {
-
     MemFree(FASTPRIM_lvert_buffer);
     MemFree(FASTPRIM_index);
 

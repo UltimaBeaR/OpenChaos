@@ -23819,6 +23819,406 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_lvert_buffer",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_lvert_buffer",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_lvert",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_lvert",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_lvert_max",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_lvert_max",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_lvert_upto",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_lvert_upto",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_lvert_free_end",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_lvert_free_end",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_lvert_free_unused",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_lvert_free_unused",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_index",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_index",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_index_max",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_index_max",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_index_upto",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_index_upto",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_index_free_end",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_index_free_end",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_index_free_unused",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_index_free_unused",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_matrix_buffer",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_matrix_buffer",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_matrix",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_matrix",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_Call",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_Call",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_MAX_CALLS",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_MAX_CALLS",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_call",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_call",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_call_upto",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_call_upto",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_Prim",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_Prim",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_MAX_PRIMS",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_MAX_PRIMS",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_prim",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_prim",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_MAX_QUEUE",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_MAX_QUEUE",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_queue",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_queue",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_queue_start",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_queue_start",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_queue_end",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_queue_end",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_CALL_TYPE_NORMAL",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_CALL_TYPE_NORMAL",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_CALL_TYPE_COLOURAND",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_CALL_TYPE_COLOURAND",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_CALL_TYPE_INDEXED",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_CALL_TYPE_INDEXED",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_CALL_TYPE_ENVMAP",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_CALL_TYPE_ENVMAP",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_CALL_FLAG_SELF_ILLUM",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_CALL_FLAG_SELF_ILLUM",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_PRIM_FLAG_CACHED",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_PRIM_FLAG_CACHED",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_PRIM_FLAG_INVALID",
+      "file": "new/engine/graphics/geometry/fastprim_globals.h",
+      "orig_name": "FASTPRIM_PRIM_FLAG_INVALID",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_find_texture_from_page",
+      "file": "new/engine/graphics/geometry/fastprim.cpp",
+      "orig_name": "FASTPRIM_find_texture_from_page",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_init",
+      "file": "new/engine/graphics/geometry/fastprim.h",
+      "orig_name": "FASTPRIM_init",
+      "orig_file": "fallen/DDEngine/Headers/fastprim.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_free_cached_prim",
+      "file": "new/engine/graphics/geometry/fastprim.cpp",
+      "orig_name": "FASTPRIM_free_cached_prim",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_free_queue_for_call",
+      "file": "new/engine/graphics/geometry/fastprim.cpp",
+      "orig_name": "FASTPRIM_free_queue_for_call",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_create_call",
+      "file": "new/engine/graphics/geometry/fastprim.cpp",
+      "orig_name": "FASTPRIM_create_call",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_add_point_to_call",
+      "file": "new/engine/graphics/geometry/fastprim.cpp",
+      "orig_name": "FASTPRIM_add_point_to_call",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_ensure_room_for_indices",
+      "file": "new/engine/graphics/geometry/fastprim.cpp",
+      "orig_name": "FASTPRIM_ensure_room_for_indices",
+      "orig_file": "fallen/DDEngine/Source/fastprim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_draw",
+      "file": "new/engine/graphics/geometry/fastprim.h",
+      "orig_name": "FASTPRIM_draw",
+      "orig_file": "fallen/DDEngine/Headers/fastprim.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FASTPRIM_fini",
+      "file": "new/engine/graphics/geometry/fastprim.h",
+      "orig_name": "FASTPRIM_fini",
+      "orig_file": "fallen/DDEngine/Headers/fastprim.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
