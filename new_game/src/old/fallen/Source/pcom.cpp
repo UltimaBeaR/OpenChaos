@@ -6507,6 +6507,8 @@ void PCOM_process_wander(Thing* p_person)
 
 extern ULONG timer_bored;
 
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 86)
+
 //
 // The AI for combat.
 //
@@ -7994,6 +7996,8 @@ void PCOM_process_navtokill(Thing* p_person)
 
     p_person->Genus.Person->pcom_ai_counter += PCOM_TICKS_PER_TURN * TICK_RATIO >> TICK_SHIFT;
 }
+
+#endif // MIGRATED to src/new/ai/pcom.cpp (iteration 86)
 
 // claude-ai: PCOM_process_findcar - car-entry AI: navigates to nearest car door (FINDCAR substate), then gets in via get_person_in_car(); transition to DRIVER state once seated
 void PCOM_process_findcar(Thing* p_person)

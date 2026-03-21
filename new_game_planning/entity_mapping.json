@@ -55199,6 +55199,86 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_killing",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_killing",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_fleeing",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_fleeing",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_investigating",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_investigating",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_follow_speed",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_follow_speed",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_following",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_following",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_find_mib_appear_pos",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_find_mib_appear_pos",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "draw_view_line",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "draw_view_line",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PCOM_process_navtokill",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_process_navtokill",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

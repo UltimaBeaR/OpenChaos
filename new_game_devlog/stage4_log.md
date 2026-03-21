@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 86 — ai/pcom (шестой чанк: PCOM_process_killing..PCOM_process_navtokill) (2026-03-22)
+
+- `timer_bored` и `IsEnglish` — добавлены как file-scope `extern` в `new/ai/pcom.cpp` (ранее объявлялись как inline-extern внутри тел функций в old).
+- Добавлены `// Temporary:` includes: `fallen/DDEngine/Headers/aeng.h` (для `AENG_world_line` в `draw_view_line`) и `actors/core/interact.h` (для `calc_sub_objects_position` в `draw_view_line`).
+- `PCOM_find_mib_appear_pos` — пустая функция в оригинале (тело не реализовано); перенесена как есть (empty stub).
+- `quick_kick = 0` в `PCOM_process_killing` — объявлена но не используется в оригинале; сохранена 1:1.
+
+---
+
 ## Итерация 85 — ai/pcom (пятый чанк: PCOM_create_player..PCOM_process_wander) (2026-03-22)
 
 - `arrest_me[100]` + `next_arrest` — глобалы → `pcom_globals.cpp/h`; `MAX_ARREST_ME` макрос туда же.

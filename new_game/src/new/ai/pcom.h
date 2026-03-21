@@ -780,5 +780,25 @@ void PCOM_process_patrol(Thing* p_person);
 // uc_orig: PCOM_process_wander (fallen/Source/pcom.cpp)
 void PCOM_process_wander(Thing* p_person);
 
+// uc_orig: PCOM_process_killing (fallen/Source/pcom.cpp)
+void PCOM_process_killing(Thing* p_person);
+
+// uc_orig: PCOM_process_fleeing (fallen/Source/pcom.cpp)
+void PCOM_process_fleeing(Thing* p_person);
+
+// uc_orig: PCOM_process_investigating (fallen/Source/pcom.cpp)
+void PCOM_process_investigating(Thing* p_person);
+
+// uc_orig: PCOM_process_following (fallen/Source/pcom.cpp)
+void PCOM_process_following(Thing* p_person);
+
+// uc_orig: PCOM_find_mib_appear_pos (fallen/Source/pcom.cpp)
+void PCOM_find_mib_appear_pos(Thing* p_mib, Thing* p_target, SLONG* appear_x, SLONG* appear_z);
+
+// uc_orig: draw_view_line (fallen/Source/pcom.cpp)
+void draw_view_line(Thing* p_person, Thing* p_target);
+
+// uc_orig: PCOM_process_navtokill (fallen/Source/pcom.cpp)
+void PCOM_process_navtokill(Thing* p_person);
 
 #endif // AI_PCOM_H
