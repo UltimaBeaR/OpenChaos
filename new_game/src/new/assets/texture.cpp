@@ -22,6 +22,10 @@
 #include "assets/tga.h"
 #include "fallen/Headers/memory.h"
 #include "fallen/Headers/io.h" // Temporary: TEXTURE_WORLD_DIR declared here until io.cpp is migrated
+#include "fallen/Headers/building.h" // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED, dx_textures_xy
+#include "world/map/supermap_globals.h" // next_dfacet
+#include "world/environment/ware_globals.h" // WARE_rooftex, WARE_rooftex_upto
+#include "world/map/map.h" // MAP_WIDTH, MAP_HEIGHT
 
 // Internal page-count constants.
 // uc_orig: TEXTURE_NORM_SIZE (fallen/DDEngine/Source/texture.cpp)
@@ -717,6 +721,171 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         TEXTURE_texture[TEXTURE_page_people3 + 28].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMBAK2.tga", TEXTURE_page_people3 + 28);
         TEXTURE_texture[TEXTURE_page_people3 + 29].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMBAK3.tga", TEXTURE_page_people3 + 29);
         LOADED_THIS_MANY_TEXTURES(3);
+    }
+
+    // Load warehouse roof textures.
+    {
+        for (i = 0; i < WARE_rooftex_upto; i++) {
+            TEXTURE_get_minitexturebits_uvs(
+                WARE_rooftex[i],
+                &page,
+                u + 0,
+                v + 0,
+                u + 1,
+                v + 1,
+                u + 2,
+                v + 2,
+                u + 3,
+                v + 3);
+
+            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                TEXTURE_load_page(page);
+                LOADED_THIS_MANY_TEXTURES(1);
+            }
+        }
+
+        // Load all map tile textures.
+        for (x = 0; x < MAP_WIDTH - 1; x++)
+            for (z = 0; z < MAP_HEIGHT - 1; z++) {
+                TEXTURE_get_minitexturebits_uvs(
+                    PAP_2HI(x, z).Texture,
+                    &page,
+                    u + 0,
+                    v + 0,
+                    u + 1,
+                    v + 1,
+                    u + 2,
+                    v + 2,
+                    u + 3,
+                    v + 3);
+
+                ASSERT(WITHIN(page, 0, TEXTURE_page_num_standard - 1));
+
+                if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                    TEXTURE_load_page(page);
+                    LOADED_THIS_MANY_TEXTURES(1);
+                }
+            }
+
+        // Touch AnimTmap page references (no actual loading needed — loaded on demand).
+        for (i = 1; i < MAX_ANIM_TMAPS; i++) {
+            struct AnimTmap* p_a;
+            p_a = &anim_tmaps[i];
+            for (k = 0; k < MAX_TMAP_FRAMES; k++) {
+                page = p_a->UV[k][0][0] & 0xc0;
+                page <<= 2;
+                page |= p_a->Page[k];
+            }
+        }
+
+        // Force jacket alternative pages to be loaded (thugs).
+        TEXTURE_load_page(18 * 64 + 2);
+        TEXTURE_load_page(18 * 64 + 32);
+        TEXTURE_load_page(18 * 64 + 3);
+        TEXTURE_load_page(18 * 64 + 33);
+        LOADED_THIS_MANY_TEXTURES(4);
+        TEXTURE_load_page(18 * 64 + 4);
+        TEXTURE_load_page(18 * 64 + 36);
+        TEXTURE_load_page(18 * 64 + 5);
+        TEXTURE_load_page(18 * 64 + 37);
+        LOADED_THIS_MANY_TEXTURES(4);
+
+        // Load prim face3 textures.
+        for (i = 1; i < next_prim_face3; i++) {
+            f3 = &prim_faces3[i];
+            page = f3->UV[0][0] & 0xc0;
+            page <<= 2;
+            page |= f3->TexturePage;
+            page += FACE_PAGE_OFFSET;
+            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                TEXTURE_load_page(page);
+                LOADED_THIS_MANY_TEXTURES(1);
+            }
+        }
+
+        // Load prim face4 textures.
+        for (i = 1; i < next_prim_face4; i++) {
+            f4 = &prim_faces4[i];
+            page = f4->UV[0][0] & 0xc0;
+            page <<= 2;
+            page |= f4->TexturePage;
+            page += FACE_PAGE_OFFSET;
+            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                TEXTURE_load_page(page);
+                LOADED_THIS_MANY_TEXTURES(1);
+            }
+        }
+
+        TEXTURE_load_page(156);
+
+        // Load building facade textures.
+        for (i = 1; i < next_dfacet; i++) {
+            SLONG c0, c1;
+            SLONG style, dstyle;
+
+            if (dfacets[i].FacetType == STOREY_TYPE_NORMAL
+                || dfacets[i].FacetType == STOREY_TYPE_INSIDE
+                || dfacets[i].FacetType == STOREY_TYPE_OINSIDE
+                || dfacets[i].FacetType == STOREY_TYPE_FENCE
+                || dfacets[i].FacetType == STOREY_TYPE_FENCE_FLAT
+                || dfacets[i].FacetType == STOREY_TYPE_LADDER
+                || dfacets[i].FacetType == STOREY_TYPE_DOOR
+                || dfacets[i].FacetType == STOREY_TYPE_OUTSIDE_DOOR
+                || dfacets[i].FacetType == STOREY_TYPE_INSIDE_DOOR
+                || dfacets[i].FacetType == STOREY_TYPE_FENCE_BRICK) {
+                style = dfacets[i].StyleIndex;
+                dstyle = dstyles[style];
+
+                for (c0 = 0; c0 < ((dfacets[i].Height + 3) >> 2) * ((dfacets[i].FacetFlags & FACET_FLAG_2SIDED) ? 2 : 1); c0++) {
+                    dstyle = dstyles[style + c0];
+
+                    if (dstyle > 0) {
+                        for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
+                            page = dx_textures_xy[dstyle][c1].Page;
+                            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                                TEXTURE_load_page(page);
+                                LOADED_THIS_MANY_TEXTURES(1);
+                            }
+                        }
+                    } else {
+                        struct DStorey* p_storey;
+                        SLONG pos;
+
+                        p_storey = &dstoreys[-dstyle];
+
+                        for (pos = 0; pos < p_storey->Count; pos++) {
+                            page = paint_mem[p_storey->Index + pos];
+                            if (page)
+                                if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                                    TEXTURE_load_page(page);
+                                    LOADED_THIS_MANY_TEXTURES(1);
+                                }
+                        }
+                        dstyle = p_storey->Style;
+                        if (dstyle > 0) {
+                            for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
+                                page = dx_textures_xy[dstyle][c1].Page;
+                                if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                                    TEXTURE_load_page(page);
+                                    LOADED_THIS_MANY_TEXTURES(1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (dfacets[i].FacetType == STOREY_TYPE_LADDER) {
+                dstyle = dstyles[dfacets[i].StyleIndex];
+                if (dstyle > 0)
+                    for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
+                        page = dx_textures_xy[dstyle][c1].Page;
+                        if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                            TEXTURE_load_page(page);
+                            LOADED_THIS_MANY_TEXTURES(1);
+                        }
+                    }
+            }
+        }
     }
 
     CloseTGAClump();

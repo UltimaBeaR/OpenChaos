@@ -92,6 +92,9 @@ Breaking order = depending on something not yet migrated. If that happens: eithe
 - Renaming entities (sole exception: name conflicts, see below)
 - Changing function signatures
 - Merging or splitting functions
+- **Omitting any part of a function body because its dependencies are not yet migrated**
+  → Add a temporary `#include "fallen/Headers/Foo.h"` (marked `// Temporary:`) and keep the code.
+  → See "NEVER SKIP CODE" rule below.
 
 ## Name Conflicts
 
@@ -412,6 +415,43 @@ A dependency from outside `engine/` directly into `engine/graphics/` is a visibl
    requested by the user, after any edits. Not just before commits. The user commits manually
    and may not commit at all — review is still mandatory.
 3. **Do NOT start next iteration** without user's command.
+
+---
+
+# NEVER SKIP CODE — THE #1 MIGRATION BUG
+
+**A function body is moved 100% or not at all. No exceptions.**
+
+The most dangerous migration mistake: dropping a block of code from the middle or end of a
+function because it references symbols from unmigrated systems.
+
+The failure mode:
+1. A function has code at the end that calls `WARE_something()`, `MAP_get()`, etc.
+2. Those headers aren't in `new/` yet, so the compiler would complain.
+3. You silently drop that block "until those systems are migrated".
+4. The code compiles. The game runs. But that block never executes — silent data corruption.
+
+**This is unacceptable.** The game looks fine until you accidentally trigger the affected path.
+
+### The only valid solution: temporary includes
+
+```cpp
+#include "fallen/Headers/ware.h"    // Temporary: until ware is migrated
+#include "fallen/Headers/building.h" // Temporary: TEXTURE_PIECE_NUMBER, dx_textures_xy
+```
+
+Keep ALL the code. Add the `// Temporary:` includes. The dependency is a compile-time
+problem to solve now — not a runtime problem to defer silently.
+
+### The only valid reason to omit code: proven dead code
+
+Dead code = guarded by an **inactive** `#ifdef` (e.g., `#ifdef PSX`, `#ifdef EDITOR` when
+those flags are not defined in the PC build, per `preprocessor_flags.md`).
+
+**Everything else — including commented-out blocks with `//` that were originally active,
+"looks unused" code, or "I don't understand what this does" code — stays in.**
+
+When in doubt: keep it. Keeping dead code is harmless. Dropping live code is a silent bug.
 
 ---
 
