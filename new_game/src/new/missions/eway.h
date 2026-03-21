@@ -180,19 +180,22 @@ CBYTE* EWAY_get_fake_wander_message(SLONG type);
 // uc_orig: EWAY_created_last_waypoint (fallen/Source/eway.cpp)
 void EWAY_created_last_waypoint(void);
 
-// ====================================================
-// Not-yet-migrated function declarations (still in old/fallen/Source/eway.cpp)
-// ====================================================
-
+// Evaluates a single condition struct. Returns TRUE if satisfied. EWAY_sub_condition_of_a_boolean=TRUE
+// skips post-evaluation guards (called from BOOL_AND/OR recursion).
 // uc_orig: EWAY_evaluate_condition (fallen/Source/eway.cpp)
-// Default argument (= FALSE) is declared in the definition in old/eway.cpp.
-SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condition_of_a_boolean);
+SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condition_of_a_boolean = FALSE);
 
+// Initialises the scripted cut-scene camera from a CAMERA_CREATE waypoint.
 // uc_orig: EWAY_create_camera (fallen/Source/eway.cpp)
 void EWAY_create_camera(SLONG waypoint);
 
+// Advances the scripted cut-scene camera one tick.
 // uc_orig: EWAY_process_camera (fallen/Source/eway.cpp)
 void EWAY_process_camera(void);
+
+// ====================================================
+// Not-yet-migrated function declarations (still in old/fallen/Source/eway.cpp)
+// ====================================================
 
 // uc_orig: EWAY_finish_conversation (fallen/Source/eway.cpp)
 void EWAY_finish_conversation(void);

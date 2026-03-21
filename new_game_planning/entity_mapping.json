@@ -50189,6 +50189,56 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_evaluate_condition",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_evaluate_condition",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_create_camera",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_create_camera",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_process_camera",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_process_camera",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_MAX_SAME",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_MAX_SAME",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_CAM_ACCEL_SPEED",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_CAM_ACCEL_SPEED",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

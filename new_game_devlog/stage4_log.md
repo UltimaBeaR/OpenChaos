@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 78 — missions/eway (второй чанк: EWAY_evaluate_condition + EWAY_create_camera + EWAY_process_camera) (2026-03-21)
+
+- `old/fallen/Source/eway.cpp`: перенесены `EWAY_evaluate_condition` (1121 строк), `EWAY_create_camera` (59 строк), `EWAY_process_camera` (479 строк). Остаток (`EWAY_finish_conversation`..`EWAY_deduct_time_penalty`) — в `old/`, итерация следующая.
+- `EWAY_evaluate_condition` default arg (`= FALSE`) теперь в `eway.h` (без дефолта в определении). `interfac.cpp` имел дублирующий `extern` с дефолтом → убран дефолт из extern в `interfac.cpp` (дефолт из `eway.h` применяется).
+- `fallen/Headers/collide.h` добавлен в includes eway.cpp (`// Temporary:`): нужен `there_is_a_los` для EWAY_COND_A_SEE_B и финальной проверки CONVERSATION.
+- `timer_bored` и `person_ok_for_conversation` были extern-объявлены прямо в старом eway.cpp (перед функциями) — при удалении блока пропали → восстановлены как extern в оставшейся части `old/eway.cpp` (всё ещё нужны EWAY_finish_conversation и пр.).
+- `PersonIsMIB`, `is_person_dead`, `is_semtex`, `EWAY_set_active` — inline-`extern` forward declarations внутри тела функции, воспроизведены как в оригинале.
+
+---
+
 ## Итерация 77 — missions/eway (первый чанк: globals + get_level_word..EWAY_created_last_waypoint) (2026-03-21)
 
 - `old/fallen/Source/eway.cpp` (6503 строки): перенесён первый чанк — все глобальные переменные и функции от `get_level_word` до `EWAY_created_last_waypoint` (~1930 строк). Остаток (`EWAY_evaluate_condition`..`EWAY_deduct_time_penalty`) — в `old/`, итерация следующая.

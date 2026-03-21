@@ -107,7 +107,8 @@ extern UWORD find_corpse(Thing* p_person);
 
 extern EWAY_Way* EWAY_magic_radius_flag;
 extern void EWAY_set_active(EWAY_Way* ew);
-extern SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condition_of_a_boolean = FALSE);
+// Default arg is in the declaration in eway.h; can't redeclare it here (C++ rule).
+extern SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condition_of_a_boolean);
 extern SLONG is_person_dead(Thing* p_person);
 extern SLONG is_person_ko(Thing* p_person);
 extern void person_pick_best_target(Thing* p_person, SLONG dir);
