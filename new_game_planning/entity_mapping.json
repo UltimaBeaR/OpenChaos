@@ -15979,6 +15979,576 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_Handle",
+      "file": "new/engine/lighting/crinkle.h",
+      "orig_name": "CRINKLE_Handle",
+      "orig_file": "fallen/DDEngine/Headers/crinkle.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_init",
+      "file": "new/engine/lighting/crinkle.h",
+      "orig_name": "CRINKLE_init",
+      "orig_file": "fallen/DDEngine/Headers/crinkle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_load",
+      "file": "new/engine/lighting/crinkle.h",
+      "orig_name": "CRINKLE_load",
+      "orig_file": "fallen/DDEngine/Headers/crinkle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_read_bin",
+      "file": "new/engine/lighting/crinkle.h",
+      "orig_name": "CRINKLE_read_bin",
+      "orig_file": "fallen/DDEngine/Headers/crinkle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_write_bin",
+      "file": "new/engine/lighting/crinkle.h",
+      "orig_name": "CRINKLE_write_bin",
+      "orig_file": "fallen/DDEngine/Headers/crinkle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_light",
+      "file": "new/engine/lighting/crinkle.h",
+      "orig_name": "CRINKLE_light",
+      "orig_file": "fallen/DDEngine/Headers/crinkle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_skew",
+      "file": "new/engine/lighting/crinkle.h",
+      "orig_name": "CRINKLE_skew",
+      "orig_file": "fallen/DDEngine/Headers/crinkle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_do",
+      "file": "new/engine/lighting/crinkle.h",
+      "orig_name": "CRINKLE_do",
+      "orig_file": "fallen/DDEngine/Headers/crinkle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_project",
+      "file": "new/engine/lighting/crinkle.h",
+      "orig_name": "CRINKLE_project",
+      "orig_file": "fallen/DDEngine/Headers/crinkle.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_Point",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_Point",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_Face",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_Face",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_Crinkle",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_Crinkle",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_pp",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_pp",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_point",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_point",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_point_upto",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_point_upto",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_face",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_face",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_face_upto",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_face_upto",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_crinkle",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_crinkle",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_crinkle_upto",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_crinkle_upto",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_light_x",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_light_x",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_light_y",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_light_y",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_light_z",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_light_z",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_mul_x",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_mul_x",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_mul_y",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_mul_y",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_mul_recip_x",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_mul_recip_x",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_mul_recip_y",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_mul_recip_y",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DontDoAnythingWithThis",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "DontDoAnythingWithThis",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FlameXY2",
+      "file": "new/engine/effects/flamengine.h",
+      "orig_name": "FlameXY2",
+      "orig_file": "fallen/DDEngine/Headers/flamengine.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FlameXY",
+      "file": "new/engine/effects/flamengine.h",
+      "orig_name": "FlameXY",
+      "orig_file": "fallen/DDEngine/Headers/flamengine.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FlameParticle",
+      "file": "new/engine/effects/flamengine.h",
+      "orig_name": "FlameParticle",
+      "orig_file": "fallen/DDEngine/Headers/flamengine.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FlameParams",
+      "file": "new/engine/effects/flamengine.h",
+      "orig_name": "FlameParams",
+      "orig_file": "fallen/DDEngine/Headers/flamengine.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Flamengine",
+      "file": "new/engine/effects/flamengine.h",
+      "orig_name": "Flamengine",
+      "orig_file": "fallen/DDEngine/Headers/flamengine.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DarkZones",
+      "file": "new/engine/effects/flamengine.cpp",
+      "orig_name": "DarkZones",
+      "orig_file": "fallen/DDEngine/Source/flamengine.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FlameRand",
+      "file": "new/engine/effects/flamengine.cpp",
+      "orig_name": "FlameRand",
+      "orig_file": "fallen/DDEngine/Source/flamengine.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_flame_lock",
+      "file": "new/engine/effects/flamengine.cpp",
+      "orig_name": "TEXTURE_flame_lock",
+      "orig_file": "fallen/DDEngine/Source/flamengine.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_flame_unlock",
+      "file": "new/engine/effects/flamengine.cpp",
+      "orig_name": "TEXTURE_flame_unlock",
+      "orig_file": "fallen/DDEngine/Source/flamengine.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_flame_update",
+      "file": "new/engine/effects/flamengine.cpp",
+      "orig_name": "TEXTURE_flame_update",
+      "orig_file": "fallen/DDEngine/Source/flamengine.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SVector_F",
+      "file": "new/engine/graphics/pipeline/aeng.h",
+      "orig_name": "SVector_F",
+      "orig_file": "fallen/DDEngine/Headers/aeng.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AENG_dx_prim_points",
+      "file": "new/engine/graphics/pipeline/aeng.h",
+      "orig_name": "AENG_dx_prim_points",
+      "orig_file": "fallen/DDEngine/Headers/aeng.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "KERB_HEIGHT",
+      "file": "new/engine/graphics/pipeline/aeng.h",
+      "orig_name": "KERB_HEIGHT",
+      "orig_file": "fallen/DDEngine/Headers/aeng.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "KERB_HEIGHTI",
+      "file": "new/engine/graphics/pipeline/aeng.h",
+      "orig_name": "KERB_HEIGHTI",
+      "orig_file": "fallen/DDEngine/Headers/aeng.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_SHADOW_SIZE",
+      "file": "new/assets/texture.h",
+      "orig_name": "TEXTURE_SHADOW_SIZE",
+      "orig_file": "fallen/DDEngine/Headers/texture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_VIDEO_SIZE",
+      "file": "new/assets/texture.h",
+      "orig_name": "TEXTURE_VIDEO_SIZE",
+      "orig_file": "fallen/DDEngine/Headers/texture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FACE_PAGE_OFFSET",
+      "file": "new/assets/texture.h",
+      "orig_name": "FACE_PAGE_OFFSET",
+      "orig_file": "fallen/DDEngine/Headers/texture.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_crinkle",
+      "file": "new/assets/texture.h",
+      "orig_name": "TEXTURE_crinkle",
+      "orig_file": "fallen/DDEngine/Headers/texture.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_bitmap",
+      "file": "new/assets/texture.h",
+      "orig_name": "TEXTURE_shadow_bitmap",
+      "orig_file": "fallen/DDEngine/Headers/texture.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_num_textures",
+      "file": "new/assets/texture.h",
+      "orig_name": "TEXTURE_num_textures",
+      "orig_file": "fallen/DDEngine/Headers/texture.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_init",
+      "file": "new/engine/graphics/geometry/superfacet.h",
+      "orig_name": "SUPERFACET_init",
+      "orig_file": "fallen/DDEngine/Headers/superfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_start_frame",
+      "file": "new/engine/graphics/geometry/superfacet.h",
+      "orig_name": "SUPERFACET_start_frame",
+      "orig_file": "fallen/DDEngine/Headers/superfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_draw",
+      "file": "new/engine/graphics/geometry/superfacet.h",
+      "orig_name": "SUPERFACET_draw",
+      "orig_file": "fallen/DDEngine/Headers/superfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SUPERFACET_fini",
+      "file": "new/engine/graphics/geometry/superfacet.h",
+      "orig_name": "SUPERFACET_fini",
+      "orig_file": "fallen/DDEngine/Headers/superfacet.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_MAX_POINTS_PER_CRINKLE",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_MAX_POINTS_PER_CRINKLE",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_MAX_POINTS",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_MAX_POINTS",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_MAX_FACES",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_MAX_FACES",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_MAX_CRINKLES",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_MAX_CRINKLES",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CRINKLE_MAX_LINE",
+      "file": "new/engine/lighting/crinkle.cpp",
+      "orig_name": "CRINKLE_MAX_LINE",
+      "orig_file": "fallen/DDEngine/Source/Crinkle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ZONES",
+      "file": "new/engine/effects/flamengine.cpp",
+      "orig_name": "ZONES",
+      "orig_file": "fallen/DDEngine/Source/flamengine.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -226,6 +226,19 @@ Entity mapping обновлён (33 записи — file path).
 
 ---
 
+## Итерация 24 — engine/lighting/crinkle + engine/effects/flamengine + header-only: aeng.h, crinkle.h, texture.h, superfacet.h (2026-03-21)
+
+- `aeng.h` → header-only `engine/graphics/pipeline/aeng.h`; содержит `SVector_F` (typedef struct, ранее только в aeng.h); TEXTURE_* функции сохранены в обоих headers (aeng.h и texture.h) как было в оригинале — дублирование корректно, определения одни
+- `texture.h` → header-only `assets/texture.h`; `TEXTURE_fix_prim_textures` — оригинальный `texture.h` объявлял `(SLONG flag)`, реализация `()` — исправлено на `void` согласно реализации
+- `crinkle.h` → header-only `engine/lighting/crinkle.h`; полная реализация в `crinkle.cpp` — старый `Crinkle.cpp` включал `game.h` но ничего из него не использовал
+- `flamengine.cpp` — статические lock/unlock helper'ы `TEXTURE_flame_lock/unlock/update` остались file-private (static); класс `Flamengine::Feedback()` использует `the_display` из `gd_display.h`
+- `crinkle.cpp` добавлен `<MFStdLib.h>` для `ASSERT/WITHIN/SATURATE/SWAP_FL/MF_Fopen/MF_Fclose`
+- `flamengine.cpp` — заменён `#include "assets/texture.h"` на прямые `extern` декларации (DAG: `engine/` не должен включать `assets/`); паттерн такой же как в `text.cpp` (итерация 20)
+- `crinkle.h` включает `assets/file_clump.h` — pre-existing coupling из оригинала (FileClump в публичном API), tech debt
+- В entity_mapping: 5 макросов `CRINKLE_MAX_*` и `ZONES` добавлены после review (были пропущены при первоначальном добавлении)
+
+---
+
 ## Итерация 23 — core/heap + assets/anim_tmap + engine/animation/morph + engine/net + world/environment/outline (2026-03-21)
 
 - `MORPH_filename` — в оригинале `CBYTE*` (= `char*`), в новом `const char*` (строковые литералы); семантически корректнее, поведение идентично

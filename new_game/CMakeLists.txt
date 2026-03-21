@@ -114,20 +114,20 @@ set(SOURCES_NEW
     src/new/engine/net/net.cpp
     src/new/engine/net/net_globals.cpp
     src/new/world/environment/outline.cpp
+    src/new/engine/lighting/crinkle.cpp
+    src/new/engine/effects/flamengine.cpp
 )
 
 set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/aeng.cpp
     src/old/fallen/DDEngine/Source/build.cpp
     src/old/fallen/DDEngine/Source/cone.cpp
-    src/old/fallen/DDEngine/Source/Crinkle.cpp
     src/old/fallen/DDEngine/Source/drawxtra.cpp
     src/old/fallen/DDEngine/Source/engineMap.cpp
     src/old/fallen/DDEngine/Source/facet.cpp
     src/old/fallen/DDEngine/Source/farfacet.cpp
     src/old/fallen/DDEngine/Source/fastprim.cpp
     src/old/fallen/DDEngine/Source/figure.cpp
-    src/old/fallen/DDEngine/Source/flamengine.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
     src/old/fallen/DDEngine/Source/oval.cpp
     src/old/fallen/DDEngine/Source/panel.cpp
