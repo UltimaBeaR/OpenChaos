@@ -78,4 +78,13 @@ extern UBYTE sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim;
 // uc_orig: VEH_collide_line_ignore_walls (fallen/Source/Vehicle.cpp)
 extern SLONG VEH_collide_line_ignore_walls;
 
+// Bitmask set by CollideCar each frame to communicate hit-side results to VEH_driving.
+// uc_orig: car_hit_flags (fallen/Source/Vehicle.cpp)
+extern SLONG car_hit_flags;
+
+// Per-type wheel query state (set by vehicle_wheel_pos_init, used by vehicle_wheel_pos_get).
+// uc_orig: vehicle_wheel_pos_info (fallen/Source/Vehicle.cpp)
+struct VehInfo;
+extern struct VehInfo* vehicle_wheel_pos_info;
+
 #endif // ACTORS_VEHICLES_VEHICLE_GLOBALS_H

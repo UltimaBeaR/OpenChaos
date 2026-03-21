@@ -56899,6 +56899,346 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_col",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "VEH_col",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_col_upto",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "VEH_col_upto",
+      "orig_file": "fallen/Headers/Vehicle.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "car_hit_flags",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "car_hit_flags",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "find_closest_car_point",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "find_closest_car_point",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DoDamage",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "DoDamage",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CollideCar",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "CollideCar",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CollideWithKerb",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "CollideWithKerb",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLL_NONE",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "COLL_NONE",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLL_FL",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "COLL_FL",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLL_FR",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "COLL_FR",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLL_BR",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "COLL_BR",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLL_BL",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "COLL_BL",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLL_FRONT",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "COLL_FRONT",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLL_BACK",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "COLL_BACK",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLL_LEFT",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "COLL_LEFT",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLL_RIGHT",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "COLL_RIGHT",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLL_ALL",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "COLL_ALL",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "KERB_TURN",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "KERB_TURN",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "siren",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "siren",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "pedals",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "pedals",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "do_car_input",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "do_car_input",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "apply_thrust_to_suspension",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "apply_thrust_to_suspension",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "expand_suspension",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "expand_suspension",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "process_car",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "process_car",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "do_car_fall_and_tilt",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "do_car_fall_and_tilt",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fast_root",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "fast_root",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_tilt_n_roll_with_matrix",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "calc_tilt_n_roll_with_matrix",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_tilt_and_roll",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "calc_tilt_and_roll",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "vehicle_wheel_pos_vehicle",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "vehicle_wheel_pos_vehicle",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "vehicle_wheel_pos_info",
+      "file": "new/actors/vehicles/vehicle_globals.cpp",
+      "orig_name": "vehicle_wheel_pos_info",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_FWD_ACCEL",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "VEH_FWD_ACCEL",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_FWD_DECEL",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "VEH_FWD_DECEL",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_REV_ACCEL",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "VEH_REV_ACCEL",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VEH_REV_DECEL",
+      "file": "new/actors/vehicles/vehicle.cpp",
+      "orig_name": "VEH_REV_DECEL",
+      "orig_file": "fallen/Source/Vehicle.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

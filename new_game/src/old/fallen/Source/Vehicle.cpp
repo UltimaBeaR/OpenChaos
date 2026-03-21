@@ -1409,9 +1409,12 @@ extern SLONG there_is_a_los_car(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2
 extern SLONG should_i_collide_against_this_anim_prim(Thing* p_animprim);
 
 #endif // MIGRATED to src/new/actors/vehicles/vehicle.cpp (iteration 90) [vehicle_random..draw_car]
+#if 0 // MIGRATED to src/new/actors/vehicles/vehicle_globals.cpp (iteration 91) [VEH_col, VEH_col_upto]
 VEH_Col VEH_col[VEH_MAX_COL];
 SLONG VEH_col_upto;
+#endif // MIGRATED (VEH_col, VEH_col_upto)
 
+#if 0 // MIGRATED to src/new/actors/vehicles/vehicle.cpp (iteration 91) [VEH_collide_find_things..VEH_driving]
 // claude-ai: VEH_collide_find_things(): populates VEH_col[0..VEH_col_upto] with collision candidates.
 // claude-ai: radius: search sphere size (scaled by vehicle speed for fast-moving vehicles).
 // claude-ai: ignore: THING_NUMBER of the querying vehicle (to skip self-collision).
@@ -2977,7 +2980,9 @@ void VEH_driving(Thing* p_thing)
             p_thing->WorldPos.Z + dz >> 8);
     }
 }
+#endif // MIGRATED to src/new/actors/vehicles/vehicle.cpp (iteration 91) [VEH_collide_find_things..VEH_driving]
 
+#if 0 // MIGRATED to src/new/actors/vehicles/vehicle.cpp (iteration 91) [steering_wheel..vehicle_wheel_pos_get]
 //===============================================================
 //
 // Handle input from car
@@ -4299,8 +4304,8 @@ void VEH_reduce_health(
 // claude-ai: vehicle_wheel_pos_get(which, &wx, &wy, &wz): returns world position of wheel 'which' (0-3)
 // claude-ai: including suspension compression offset (Spring[which].Compression → visual height).
 // claude-ai: Wheel Y formula: 51 - ((128<<8) - Compression) >> 8 = rest height minus spring extension.
-Thing* vehicle_wheel_pos_vehicle;
-VehInfo* vehicle_wheel_pos_info;
+// Definitions migrated to vehicle_globals.cpp (iteration 91)
+// vehicle_wheel_pos_vehicle and vehicle_wheel_pos_info
 
 void vehicle_wheel_pos_init(Thing* p_vehicle)
 {
@@ -4334,3 +4339,4 @@ void vehicle_wheel_pos_get(
     *wy = wheel_y + (vehicle_wheel_pos_vehicle->WorldPos.Y >> 8);
     *wz = wheel_z + (vehicle_wheel_pos_vehicle->WorldPos.Z >> 8);
 }
+#endif // MIGRATED to src/new/actors/vehicles/vehicle.cpp (iteration 91) [steering_wheel..vehicle_wheel_pos_get]

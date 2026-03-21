@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 91 — actors/vehicles/vehicle (чанки 2+3: collision..wheel query API) (2026-03-22)
+
+- Завершена миграция Vehicle.cpp: чанки 2 (~1540 строк) + 3 (~900 строк) в одной итерации — принудительно, т.к. `siren`, `do_car_input`, `process_car` — static, нужны VEH_driving/CollideCar.
+- `VEH_reduce_health` signature исправлена: chunk 1 ошибочно поместил 5-параметровую версию — фактически 3 параметра: `(Thing* p_car, Thing* p_person, SLONG damage)`.
+- Forward declarations в новом vehicle.cpp: `siren`, `GetCarPoints`, `init_arctans`, `process_car`, `CollideCar`, `CollideWithKerb`, `do_car_input`.
+- `VEH_col[VEH_MAX_COL]`, `VEH_col_upto`, `car_hit_flags`, `vehicle_wheel_pos_vehicle`, `vehicle_wheel_pos_info` → vehicle_globals.cpp/h.
+- `VEH_FWD_ACCEL/DECEL/REV_ACCEL/DECEL` — определены внутри `do_car_input` как в оригинале (`#define`/`#undef` внутри функции).
+- old/Vehicle.cpp: всё тело файла теперь в `#if 0 // MIGRATED` блоках. Активны только includes, extern declarations (строки 1–147).
+
+---
+
 ## Итерация 90 — actors/vehicles/vehicle (чанк 1: VehInfo..draw_car) (2026-03-22)
 
 - Чанк 1 (~1140 строк) из 3 чанков Vehicle.cpp: VehInfo table, statefunctions, helpers матриц, alloc/dealloc, draw_car, VEH_on_road, VEH_add_damage/bounce, init/create.

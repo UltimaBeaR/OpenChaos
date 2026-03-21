@@ -48,8 +48,23 @@ UBYTE vehicle_random[] = {
     VEH_TYPE_TAXI, VEH_TYPE_VAN, VEH_TYPE_CAR, VEH_TYPE_TAXI
 };
 
-// NOTE: VEH_col[], VEH_col_upto, vehicle_wheel_pos_vehicle are still defined in
-// old/Vehicle.cpp (chunks 2+3 not yet migrated). They will move here in future iterations.
+// Collision candidate list, filled by VEH_collide_find_things each tick.
+// uc_orig: VEH_col (fallen/Headers/Vehicle.h)
+VEH_Col VEH_col[VEH_MAX_COL];
+
+// Number of valid entries in VEH_col[].
+// uc_orig: VEH_col_upto (fallen/Headers/Vehicle.h)
+SLONG VEH_col_upto;
+
+// Bitmask set by CollideCar each frame; communicates hit-side results to VEH_driving.
+// uc_orig: car_hit_flags (fallen/Source/Vehicle.cpp)
+SLONG car_hit_flags;
+
+// Wheel position query state — set by vehicle_wheel_pos_init, used by vehicle_wheel_pos_get.
+// uc_orig: vehicle_wheel_pos_vehicle (fallen/Source/Vehicle.cpp)
+Thing* vehicle_wheel_pos_vehicle;
+// uc_orig: vehicle_wheel_pos_info (fallen/Source/Vehicle.cpp)
+VehInfo* vehicle_wheel_pos_info;
 
 // 3x3 rotation matrix computed from vehicle yaw/tilt/roll each frame.
 // uc_orig: car_matrix (fallen/Source/Vehicle.cpp)

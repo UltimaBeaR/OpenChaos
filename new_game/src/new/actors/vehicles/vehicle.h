@@ -268,13 +268,12 @@ void VEH_shake_fences(SLONG mx, SLONG mz);
 void VEH_co_damage(Thing* v1, Thing* v2);
 
 // Reduce vehicle health; triggers explosion at 0.
+// Causer is the person who inflicted the damage (for murder/red-mark tracking), or NULL.
 // uc_orig: VEH_reduce_health (fallen/Source/Vehicle.cpp)
 void VEH_reduce_health(
-    Thing* p_thing,
-    SLONG amount,
-    Thing* p_causer,
-    SLONG col_x,
-    SLONG col_z);
+    Thing* p_car,
+    Thing* p_person,
+    SLONG damage);
 
 // Returns TRUE if all 4 corners of the vehicle are on road tiles.
 // uc_orig: VEH_on_road (fallen/Source/Vehicle.cpp)
@@ -295,10 +294,5 @@ void nudge_car(Thing* p_car, SLONG flags, SLONG* x, SLONG* z, SLONG neg);
 // Draw the vehicle body and wheels for the current frame.
 // uc_orig: draw_car (fallen/Source/Vehicle.cpp)
 void draw_car(Thing* p_car);
-
-// car_hit_flags: set during CollideCar to communicate hit results back to VEH_driving.
-// Defined in old/Vehicle.cpp (chunk 2/3), will move to vehicle_globals when that chunk migrates.
-// uc_orig: car_hit_flags (fallen/Source/Vehicle.cpp)
-extern SLONG car_hit_flags;
 
 #endif // ACTORS_VEHICLES_VEHICLE_H
