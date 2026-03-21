@@ -98,6 +98,9 @@ set(SOURCES_NEW
     src/new/world/map/qmap_globals.cpp
     src/new/engine/graphics/pipeline/text.cpp
     src/new/engine/graphics/pipeline/text_globals.cpp
+    src/new/assets/xlat_str.cpp
+    src/new/assets/xlat_str_globals.cpp
+    src/new/assets/sound_id_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -230,7 +233,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/snipe.cpp
     src/old/fallen/Source/Sound.cpp
     src/old/fallen/Source/soundenv.cpp
-    src/old/fallen/Source/sound_id.cpp
     src/old/fallen/Source/spark.cpp
     src/old/fallen/Source/Special.cpp
     src/old/fallen/Source/stair.cpp
@@ -248,7 +250,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/ware.cpp
     src/old/fallen/Source/widget.cpp
     src/old/fallen/Source/wmove.cpp
-    src/old/fallen/Source/xlat_str.cpp
 )
 
 # ---------------------------------------------------------------------------

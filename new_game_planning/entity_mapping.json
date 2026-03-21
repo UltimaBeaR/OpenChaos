@@ -12659,6 +12659,2106 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_STRING_SPACE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "MAX_STRING_SPACE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_STRINGS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "MAX_STRINGS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_JUMP",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_JUMP",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_PUNCH",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_PUNCH",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_KICK",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_KICK",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_ACTION",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_ACTION",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_LEFT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_LEFT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_RIGHT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_RIGHT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_START",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_START",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_SELECT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_SELECT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_SPACE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_SPACE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_ENTER",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_ENTER",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_CAM_FIRST",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_CAM_FIRST",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_RUN",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_RUN",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_CAM_HIGH",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_CAM_HIGH",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_CAM_LOW",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_CAM_LOW",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_CAM_ESC",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_CAM_ESC",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XCTL_CAM_CONTINUE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "XCTL_CAM_CONTINUE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_THIS_LANGUAGE_IS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_THIS_LANGUAGE_IS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_PRESS_TO_CONTINUE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_PRESS_TO_CONTINUE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GAME_OVER",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GAME_OVER",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CAR_LOCKED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CAR_LOCKED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_AMMO",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_AMMO",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GUN",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GUN",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_HEALTH",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_HEALTH",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_FUSE_SET",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_FUSE_SET",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_ENTER_VEHICLE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_ENTER_VEHICLE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_USE_BIKE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_USE_BIKE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_PICK_UP",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_PICK_UP",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GRAB_CABLE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GRAB_CABLE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SEARCHING",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SEARCHING",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_COMPLETE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_COMPLETE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_QUIT_TO_MAIN_MENU",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_QUIT_TO_MAIN_MENU",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_RESTART_AUTOSAVE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_RESTART_AUTOSAVE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_LEVEL_COMPLETE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_LEVEL_COMPLETE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_START",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_START",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_LOAD_GAME",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_LOAD_GAME",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SAVE_GAME",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SAVE_GAME",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_OPTIONS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_OPTIONS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GRAPHICS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GRAPHICS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SOUND",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SOUND",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_MUSIC",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_MUSIC",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_QUALITY",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_QUALITY",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_VOLUME",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_VOLUME",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_STEREO",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_STEREO",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_MONO",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_MONO",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_REVERSE_STEREO",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_REVERSE_STEREO",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_DRIVERS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_DRIVERS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_RESOLUTION",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_RESOLUTION",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_REFLECTIONS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_REFLECTIONS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_DRAW_DISTANCE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_DRAW_DISTANCE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SHADOWS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SHADOWS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_DETAIL",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_DETAIL",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_HIGH",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_HIGH",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_MEDIUM",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_MEDIUM",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_LOW",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_LOW",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_EXIT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_EXIT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_OKAY",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_OKAY",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CANCEL",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CANCEL",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CONTROLS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CONTROLS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_KEYPAD",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_KEYPAD",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_KEYBOARD",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_KEYBOARD",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_JOYSTICK",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_JOYSTICK",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_JOYPAD",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_JOYPAD",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SPACE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SPACE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_ENTER",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_ENTER",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_JUMP",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_JUMP",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_KICK",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_KICK",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_PUNCH",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_PUNCH",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_ACTION",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_ACTION",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_LEFT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_LEFT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_RIGHT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_RIGHT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_FORWARDS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_FORWARDS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_BACKWARDS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_BACKWARDS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SELECT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SELECT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_LOOK_AROUND",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_LOOK_AROUND",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_RUN",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_RUN",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CAMERA",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CAMERA",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_BADGE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_BADGE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_COLLECTED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_COLLECTED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_COMPLETED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_COMPLETED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_FAILED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_FAILED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SCORE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SCORE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_PRIMARY",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_PRIMARY",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SECONDARY",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SECONDARY",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_OBJECTIVES",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_OBJECTIVES",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_MAP",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_MAP",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WEAPONS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WEAPONS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SHOTGUN",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SHOTGUN",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_AK",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_AK",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GRENADE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GRENADE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_EXPLOSIVES",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_EXPLOSIVES",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_KNIFE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_KNIFE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_BASEBALL_BAT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_BASEBALL_BAT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_BOMB",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_BOMB",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_KEYCARD",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_KEYCARD",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_FILE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_FILE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_FLOPPY_DISK",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_FLOPPY_DISK",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CROWBAR",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CROWBAR",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GAS_MASK",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GAS_MASK",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WRENCH",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WRENCH",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_VIDEO",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_VIDEO",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GLOVES",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GLOVES",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WEED_AWAY",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WEED_AWAY",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_RED_CAR_KEYS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_RED_CAR_KEYS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_BLUE_CAR_KEYS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_BLUE_CAR_KEYS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GREEN_CAR_KEYS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GREEN_CAR_KEYS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_BLACK_CAR_KEYS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_BLACK_CAR_KEYS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WHITE_CAR_KEYS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WHITE_CAR_KEYS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WIRECUTTERS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WIRECUTTERS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_ARE_YOU_SURE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_ARE_YOU_SURE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CRIME_RATE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CRIME_RATE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_ARRESTED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_ARRESTED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_COMPANY",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_COMPANY",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_COPYING_GLOBAL_MEDIA",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_COPYING_GLOBAL_MEDIA",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_COPYING_LOCAL_MEDIA",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_COPYING_LOCAL_MEDIA",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_COPYING_PROGRAM",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_COPYING_PROGRAM",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_REQUIRES_WINDOWS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_REQUIRES_WINDOWS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_COMPONENT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_COMPONENT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_INST_FILE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_INST_FILE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_FILE_GROUP",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_FILE_GROUP",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_ERROR_OCCURRED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_ERROR_OCCURRED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_REQUIRES_DIRECTX",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_REQUIRES_DIRECTX",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_FAILED_TO_INITIALIZE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_FAILED_TO_INITIALIZE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_REQUIRES_VGA",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_REQUIRES_VGA",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_URBAN_CHAOS_SETUP",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_URBAN_CHAOS_SETUP",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_EDITOR",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_EDITOR",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_AMBIENT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_AMBIENT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_STARS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_STARS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_MOON",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_MOON",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_PEOPLE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_PEOPLE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_PUDDLES",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_PUDDLES",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_DIRT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_DIRT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_MIST",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_MIST",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_RAIN",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_RAIN",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SKYLINE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SKYLINE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CON_INCREASED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CON_INCREASED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_STR_INCREASED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_STR_INCREASED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_STA_INCREASED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_STA_INCREASED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_REF_INCREASED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_REF_INCREASED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_LOAD_UCM",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_LOAD_UCM",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SCANNER",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SCANNER",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_TRACK",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_TRACK",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CHARACTER",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CHARACTER",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GAMMA",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GAMMA",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_RESET_DEFAULT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_RESET_DEFAULT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_STR",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_STR",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CON",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CON",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_DEX",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_DEX",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_STA",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_STA",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_NO_CONES_HIT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_NO_CONES_HIT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_NUM_CONES_HIT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_NUM_CONES_HIT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_RESUME_LEVEL",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_RESUME_LEVEL",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_RESTART_LEVEL",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_RESTART_LEVEL",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_ABANDON_GAME",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_ABANDON_GAME",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_TEXTURE_MAP",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_TEXTURE_MAP",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_PERSPECTIVE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_PERSPECTIVE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_BILINEAR",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_BILINEAR",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_TIME_PENALTY",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_TIME_PENALTY",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_LEVEL_LOST",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_LEVEL_LOST",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GAME_PAUSED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GAME_PAUSED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GET_DOWN",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GET_DOWN",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CANT_SHOOT_COP",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CANT_SHOOT_COP",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_HEY_WHY_HITTING",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_HEY_WHY_HITTING",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CANT_SHOOT_UNARMED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CANT_SHOOT_UNARMED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CRIME_RATE_REDUCED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CRIME_RATE_REDUCED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_GAME_SAVED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_GAME_SAVED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CRINKLES",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CRINKLES",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_COLOUR_DEPTH",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_COLOUR_DEPTH",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CIVSDEAD_WARNING_1",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CIVSDEAD_WARNING_1",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CIVSDEAD_WARNING_2",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CIVSDEAD_WARNING_2",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CIVSDEAD_WARNING_3",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CIVSDEAD_WARNING_3",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CIVSDEAD_WARNING_4",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CIVSDEAD_WARNING_4",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WON_KILLED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WON_KILLED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WON_ARRESTED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WON_ARRESTED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WON_AT_LARGE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WON_AT_LARGE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WON_BONUS_FOUND",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WON_BONUS_FOUND",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WON_BONUS_MISSED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WON_BONUS_MISSED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WON_TIMETAKEN",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WON_TIMETAKEN",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WON_BESTTIME",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WON_BESTTIME",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_WON_MUCKYTIME",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_WON_MUCKYTIME",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_YES",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_YES",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_NO",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_NO",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_EMPTY",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_EMPTY",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_3DCARD",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_3DCARD",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_USE_PRIMARY",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_USE_PRIMARY",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_USE_SECONDARY",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_USE_SECONDARY",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_USE_SOFTWARE",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_USE_SOFTWARE",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_NUM_COLOURS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_NUM_COLOURS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_16BIT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_16BIT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_24BIT",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_24BIT",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_DO_NOT_SHOW",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_DO_NOT_SHOW",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_MILES_SETUP",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_MILES_SETUP",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_SELECT_SOUND",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_SELECT_SOUND",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_BUTTON",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_BUTTON",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_CREDITS",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_CREDITS",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_BONUS_MISSION_UNLOCKED",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_BONUS_MISSION_UNLOCKED",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "X_JUMP_CAM",
+      "file": "new/assets/xlat_str.h",
+      "orig_name": "X_JUMP_CAM",
+      "orig_file": "fallen/Headers/xlat_str.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XLAT_str",
+      "file": "new/assets/xlat_str.cpp",
+      "orig_name": "XLAT_str",
+      "orig_file": "fallen/Source/xlat_str.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XLAT_str_ptr",
+      "file": "new/assets/xlat_str.cpp",
+      "orig_name": "XLAT_str_ptr",
+      "orig_file": "fallen/Source/xlat_str.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XLAT_load",
+      "file": "new/assets/xlat_str.cpp",
+      "orig_name": "XLAT_load",
+      "orig_file": "fallen/Source/xlat_str.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "XLAT_init",
+      "file": "new/assets/xlat_str.cpp",
+      "orig_name": "XLAT_init",
+      "orig_file": "fallen/Source/xlat_str.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xlat_buffer",
+      "file": "new/assets/xlat_str_globals.cpp",
+      "orig_name": "xlat_buffer",
+      "orig_file": "fallen/Source/xlat_str.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xlat_set",
+      "file": "new/assets/xlat_str_globals.cpp",
+      "orig_name": "xlat_set",
+      "orig_file": "fallen/Source/xlat_str.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xlat_ptr",
+      "file": "new/assets/xlat_str_globals.cpp",
+      "orig_name": "xlat_ptr",
+      "orig_file": "fallen/Source/xlat_str.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "xlat_upto",
+      "file": "new/assets/xlat_str_globals.cpp",
+      "orig_name": "xlat_upto",
+      "orig_file": "fallen/Source/xlat_str.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "sound_list",
+      "file": "new/assets/sound_id_globals.cpp",
+      "orig_name": "sound_list",
+      "orig_file": "fallen/Source/sound_id.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Waves",
+      "file": "new/assets/sound_id.h",
+      "orig_name": "Waves",
+      "orig_file": "fallen/Headers/sound_id.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "REMAP_OFFSET",
+      "file": "new/assets/xlat_str.cpp",
+      "orig_name": "REMAP_OFFSET",
+      "orig_file": "fallen/Source/xlat_str.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "previous_byte",
+      "file": "new/assets/xlat_str_globals.cpp",
+      "orig_name": "previous_byte",
+      "orig_file": "fallen/Source/xlat_str.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

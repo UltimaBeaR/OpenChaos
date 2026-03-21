@@ -199,6 +199,13 @@ Entity mapping обновлён (33 записи — file path).
 
 ---
 
+## Итерация 21 — assets/xlat_str + assets/sound_id (2026-03-21)
+
+- `previous_byte` (static file-scope) перемещён в `xlat_str_globals` по требованию правила — в `xlat_str.cpp` глобальных переменных не осталось
+- `sound_id.cpp` (new/) — near-empty stub; единственный смысловой файл `sound_id_globals.cpp`
+
+---
+
 ## Итерация 20 — world/map/qmap (header+globals) + pipeline/qeng + pipeline/text (2026-03-21)
 
 - `qmap.h` — только header+globals; `qmap.cpp` остаётся в `old/` (включает `game.h`); глобалы вынесены из `qmap.cpp` в `qmap_globals.cpp`
