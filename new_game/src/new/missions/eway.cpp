@@ -40,6 +40,9 @@
 #include "fallen/Headers/prim.h"       // Temporary: find_anim_prim, PrimInfo
 #include "fallen/Headers/vehicle.h"    // Temporary: VEH_create, Vehicle not migrated
 #include "fallen/Headers/collide.h"    // Temporary: there_is_a_los
+#include "effects/pyro.h"              // Temporary: PYRO_create, PYRO_construct, IRONICWATERFALL_state_function
+#include "fallen/Headers/barrel.h"     // Temporary: BARREL_alloc, BARREL_dissapear
+#include "fallen/Headers/plat.h"       // Temporary: PLAT_create
 
 // Forward declaration not in any header.
 // uc_orig: person_ok_for_conversation (fallen/Source/eway.cpp)
@@ -2926,5 +2929,1193 @@ void EWAY_process_camera(void)
             EWAY_cam_yaw += dyaw >> 1;
             EWAY_cam_pitch += dpitch >> 1;
         }
+    }
+}
+
+// Ends the current two-person scripted conversation: clears EWAY_conv_active, marks the
+// waypoint FINISHED, and stops both participants from talking to each other.
+// Also relinquishes camera control for non-ambient conversations.
+// uc_orig: EWAY_finish_conversation (fallen/Source/eway.cpp)
+void EWAY_finish_conversation(void)
+{
+    EWAY_conv_active = FALSE;
+
+    if (!EWAY_conv_ambient) {
+        EWAY_cam_relinquish();
+    }
+
+    ASSERT(WITHIN(EWAY_conv_waypoint, 1, EWAY_way_upto - 1));
+
+    EWAY_way[EWAY_conv_waypoint].flag |= EWAY_FLAG_FINISHED;
+
+    PCOM_stop_people_talking_to_eachother(
+        TO_THING(EWAY_conv_person_a),
+        TO_THING(EWAY_conv_person_b));
+
+    // No header for these; declared inline in original source.
+    extern THING_INDEX PANEL_wide_top_person;
+    extern THING_INDEX PANEL_wide_bot_person;
+
+    PANEL_wide_top_person = NULL;
+    PANEL_wide_bot_person = NULL;
+}
+
+// Advances the active two-person scripted conversation one tick.
+// Handles player-skip input, timer countdown, voice playback, subtitle display,
+// and conversation abort when either participant's state changes unexpectedly.
+// uc_orig: EWAY_process_conversation (fallen/Source/eway.cpp)
+void EWAY_process_conversation(void)
+{
+    CBYTE* ch;
+    CBYTE* str;
+
+    check_eway_talk(0);
+    if (!EWAY_conv_active) {
+        return;
+    }
+    timer_bored = 0;
+
+    EWAY_conv_timer -= EWAY_tick;
+    EWAY_conv_skip -= EWAY_tick;
+
+    if (EWAY_conv_skip <= 0) {
+        if (!EWAY_conv_ambient) {
+            if (NET_PLAYER(0)->Genus.Player->Pressed & (INPUT_MASK_JUMP | INPUT_MASK_KICK | INPUT_MASK_ACTION | INPUT_MASK_PUNCH)) {
+                // Cut off the voice-overs immediately.
+                MFX_QUICK_stop();
+
+                EWAY_conv_timer = 0;
+            }
+        }
+    } else {
+        if (!EWAY_conv_ambient)
+            if (NET_PLAYER(0)->Genus.Player->Pressed & (INPUT_MASK_JUMP | INPUT_MASK_KICK | INPUT_MASK_ACTION | INPUT_MASK_PUNCH)) {
+                // Two presses in a row skips.
+                EWAY_conv_skip = 0;
+            }
+    }
+
+    if (EWAY_conv_timer <= 0 || (EWAY_conv_talk && MFX_QUICK_still_playing() == 0)) {
+        str = &EWAY_mess_buffer[EWAY_conv_str];
+
+        // Reached the end of the conversation?
+        if (*str == 0) {
+            EWAY_finish_conversation();
+
+            return;
+        }
+
+        EWAY_talk_conv((EWAY_way[EWAY_conv_waypoint].yaw << 8) + (EWAY_way[EWAY_conv_waypoint].index), EWAY_conv_str_count);
+
+        // Build a null-terminated substring from the pipe-delimited message buffer.
+        // Each '|' separator marks the next speaker's line. Timer scales with string length.
+        for (ch = str, EWAY_conv_timer = 200; *ch != '\000' && *ch != '|'; ch++, EWAY_conv_str += 1, EWAY_conv_timer += 4)
+            ;
+
+        if (ch[0] == '|') {
+            EWAY_conv_str += 1;
+            EWAY_conv_str_count++;
+
+            ch[0] = '\000';
+        }
+
+        EWAY_conv_skip = 50;
+
+        PANEL_new_text(
+            TO_THING(EWAY_conv_person_a),
+            EWAY_conv_timer * 10 - 500,
+            str);
+
+        // Make our two people face and gesture at each other.
+        PCOM_make_people_talk_to_eachother(
+            TO_THING(EWAY_conv_person_a),
+            TO_THING(EWAY_conv_person_b),
+            ch[-1] == '?' || ch[-2] == '?',
+            TRUE);
+
+        if (!EWAY_conv_ambient) {
+            // Cut-scene camera follows the active speaker.
+            EWAY_cam_converse(TO_THING(EWAY_conv_person_a), TO_THING(EWAY_conv_person_b));
+        }
+
+        // Swap who's talking for next line.
+        SWAP(EWAY_conv_person_a, EWAY_conv_person_b);
+        EWAY_cam_jumped = 10;
+    }
+
+    // If either person gets attacked, knocked over, or otherwise disrupted, abort.
+    {
+        Thing* p_person_a = TO_THING(EWAY_conv_person_a);
+        Thing* p_person_b = TO_THING(EWAY_conv_person_b);
+
+        if ((p_person_a->SubState != SUB_STATE_SIMPLE_ANIM && p_person_a->SubState != SUB_STATE_SIMPLE_ANIM_OVER && p_person_a->State != STATE_IDLE) || (p_person_b->SubState != SUB_STATE_SIMPLE_ANIM && p_person_b->SubState != SUB_STATE_SIMPLE_ANIM_OVER && p_person_b->State != STATE_IDLE)) {
+            EWAY_finish_conversation();
+
+            return;
+        }
+    }
+}
+
+// Emits steam particles from an active EWAY_DO_EMIT_STEAM waypoint each game tick.
+// Direction (forward/up/down) is controlled by the waypoint subtype; speed, steps,
+// and range are packed into ed.arg2. Choreography bitmask selects which steps fire.
+// uc_orig: EWAY_process_emit_steam (fallen/Source/eway.cpp)
+void EWAY_process_emit_steam(EWAY_Way* ew)
+{
+    SLONG tick;
+
+    SLONG speed;
+    SLONG steps;
+    SLONG range;
+    SLONG choreography;
+
+    ASSERT(ew->flag & EWAY_FLAG_ACTIVE);
+    ASSERT(ew->ed.type == EWAY_DO_EMIT_STEAM);
+
+    speed = (ew->ed.arg2 >> 10) & 0x3f;
+    steps = (ew->ed.arg2 >> 6) & 0x0f;
+    range = (ew->ed.arg2 >> 0) & 0x3f;
+
+    tick = EWAY_time * speed >> 7;
+    tick %= steps;
+
+    choreography = ew->ed.arg1;
+
+    if (choreography & (1 << tick)) {
+        SLONG dx;
+        SLONG dy;
+        SLONG dz;
+
+        switch (ew->ed.subtype) {
+        case EWAY_SUBTYPE_STEAM_FORWARD:
+            dx = -SIN(ew->yaw << 3) * range >> 8;
+            dy = 0;
+            dz = -COS(ew->yaw << 3) * range >> 8;
+            break;
+
+        case EWAY_SUBTYPE_STEAM_UP:
+            dx = 0;
+            dy = range << 8;
+            dz = 0;
+            break;
+
+        case EWAY_SUBTYPE_STEAM_DOWN:
+            dx = 0;
+            dy = -range << 8;
+            dz = 0;
+            break;
+
+        default:
+            ASSERT(0);
+            break;
+        }
+
+        dx += (Random() & 0xff) - 0x7f;
+        dy += (Random() & 0xff) - 0x7f;
+        dz += (Random() & 0xff) - 0x7f;
+
+        PARTICLE_Add(
+            ew->x + (Random() & 0x7) - 0x3 << 8,
+            ew->y + (Random() & 0x7) - 0x3 << 8,
+            ew->z + (Random() & 0x7) - 0x3 << 8,
+            dx,
+            dy,
+            dz,
+            POLY_PAGE_SMOKECLOUD2,
+            2 + ((Random() & 0x3) << 2),
+            0x7fe8ffd0,
+            PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_HURTPEOPLE,
+            100,
+            40,
+            1,
+            1,
+            1);
+    }
+}
+
+// Fires a waypoint's EWAY_DO_* action when its condition becomes true.
+// Sets EWAY_FLAG_ACTIVE, dispatches on ed.type for all mission script actions
+// (entity spawning, doors, explosions, messages, nav beacons, group control, etc.),
+// then configures the EWAY_STAY_* timer/lifetime behaviour.
+// uc_orig: EWAY_set_active (fallen/Source/eway.cpp)
+void EWAY_set_active(EWAY_Way* ew)
+{
+    SLONG has;
+
+    ew->flag |= EWAY_FLAG_ACTIVE;
+
+    switch (ew->ed.type) {
+    case EWAY_DO_NOTHING:
+        break;
+
+    case EWAY_DO_CREATE_PLAYER:
+
+        has = (ew->ed.subtype & 8) ? 0 : PCOM_HAS_GUN;
+
+        ew->ed.arg1 = EWAY_create_player(
+            ew->ed.subtype,
+            ew->yaw,
+            has,
+            ew->x,
+            ew->y,
+            ew->z);
+        break;
+
+    case EWAY_DO_CREATE_ANIMAL:
+        ew->ed.arg1 = EWAY_create_animal(
+            ew->ed.subtype,
+            ew->yaw,
+            ew->x,
+            ew->y,
+            ew->z);
+        break;
+
+    case EWAY_DO_CREATE_ENEMY:
+        {
+            EWAY_Edef* ee;
+
+            ASSERT(WITHIN(ew->index, 1, EWAY_edef_upto - 1));
+
+            ee = &EWAY_edef[ew->index];
+
+            ew->ed.arg1 = EWAY_create_enemy(
+                ew->ed.subtype,
+                ew->yaw,
+                ew->colour,
+                ew->group,
+                ee->pcom_ai,
+                ee->pcom_bent,
+                ee->pcom_move,
+                ee->drop,
+                ee->zone,
+                ee->ai_skill,
+                ee->follow,
+                ee->ai_other,
+                ee->pcom_has,
+                ew->x,
+                ew->y,
+                ew->z,
+                ew - EWAY_way);
+        }
+        break;
+
+    case EWAY_DO_CREATE_ITEM:
+
+        // Not in any header; declared inline in original source.
+        extern void find_nice_place_near_person(
+            Thing * p_person,
+            SLONG * nice_x, // 8-bits per mapsquare
+            SLONG * nice_y,
+            SLONG * nice_z);
+
+        if ((ew->ed.arg1 & EWAY_ARG_ITEM_FOLLOW_PERSON) && ((ew->ec.type == EWAY_COND_KILLED_NOT_ARRESTED) || (ew->ec.type == EWAY_COND_PERSON_ARRESTED) || (ew->ec.type == EWAY_COND_PERSON_DEAD) || (ew->ec.type == EWAY_COND_HALF_DEAD) || (ew->ec.type = EWAY_COND_PERSON_USED))) {
+            ASSERT(ew->ec.arg1);
+
+            if (ew->ec.arg1) {
+                SLONG person = EWAY_get_person(ew->ec.arg1);
+
+                ASSERT(person);
+
+                if (person) {
+                    SLONG item_x;
+                    SLONG item_y;
+                    SLONG item_z;
+
+                    Thing* p_bloke = TO_THING(person);
+
+                    find_nice_place_near_person(
+                        p_bloke,
+                        &item_x,
+                        &item_y,
+                        &item_z);
+
+                    ew->x = item_x;
+                    ew->y = item_y;
+                    ew->z = item_z;
+                }
+            }
+        }
+
+        ew->ed.arg2 = EWAY_create_item(
+            ew->ed.subtype,
+            ew->x,
+            ew->y,
+            ew->z,
+            ew);
+
+        break;
+
+    case EWAY_DO_CREATE_VEHICLE:
+        ew->ed.arg1 = EWAY_create_vehicle(
+            ew->ed.subtype,
+            ew->ed.arg1,
+            ew->ed.arg2,
+            ew->x,
+            ew->y,
+            ew->z,
+            ((ew->yaw << 3) + 1024) & 2047);
+
+        break;
+    case EWAY_DO_SOUND_ALARM:
+
+        MFX_play_xyz(0, S_KICK_CAN, MFX_OVERLAP, ew->x << 8, ew->y << 8, ew->z << 8);
+
+        PCOM_oscillate_tympanum(
+            PCOM_SOUND_ALARM,
+            NULL,
+            ew->x,
+            ew->y,
+            ew->z);
+
+        break;
+
+    case EWAY_DO_SOUND_EFFECT:
+        play_glue_wave(ew->ed.subtype, ew->ed.arg1, ew->x << 8, ew->y << 8, ew->z << 8);
+        break;
+
+    case EWAY_DO_CONTROL_DOOR:
+
+        DOOR_open(
+            ew->x,
+            ew->z);
+
+        break;
+
+    case EWAY_DO_EXPLODE:
+
+        {
+            GameCoord posn;
+
+            posn.X = ew->x << 8;
+            posn.Y = ew->y << 8;
+            posn.Z = ew->z << 8;
+
+            PYRO_construct(
+                posn,
+                ew->ed.subtype,
+                ew->ed.arg1);
+        }
+
+        if (ew->ed.subtype = !16) {
+
+            // 16 is fire on its own...
+
+            create_shockwave(
+                ew->x,
+                ew->y,
+                ew->z,
+                0x400,
+                100,
+                NULL);
+        }
+
+        break;
+
+    case EWAY_DO_SPOT_FX:
+
+        // water and similar stuff
+        GameCoord posn;
+        Thing* pyro;
+
+        posn.X = ew->x << 8;
+        posn.Y = ew->y << 8;
+        posn.Z = ew->z << 8;
+        pyro = PYRO_create(posn, PYRO_IRONICWATERFALL);
+        if (pyro) {
+            IRONICWATERFALL_state_function[STATE_INIT].StateFn(pyro);
+            pyro->Genus.Pyro->radius = ew->ed.subtype;
+            pyro->Genus.Pyro->scale = ew->ed.arg1;
+        }
+        break;
+
+    case EWAY_DO_MESSAGE:
+
+        {
+            if (!WITHIN(ew->ed.arg1, 0, EWAY_MAX_MESSES - 1)) {
+                CONSOLE_text("Too many messages for the waypoint system! Tell Mark!", 8000);
+            } else {
+                SLONG time = ew->ed.subtype;
+
+                if (time) {
+                    time *= 1000;
+                } else {
+                    time = 8000;
+                }
+
+                if (EWAY_mess[ew->ed.arg1] == NULL) {
+                } else {
+                    if (EWAY_used_thing) {
+
+                        talk_thing = TO_THING(EWAY_used_thing);
+                        EWAY_talk((ew->yaw << 8) + ew->index);
+
+                        PANEL_new_text(
+                            TO_THING(EWAY_used_thing),
+                            time,
+                            EWAY_mess[ew->ed.arg1]);
+
+                        if (person_ok_for_conversation(TO_THING(EWAY_used_thing))) {
+                            PCOM_make_people_talk_to_eachother(
+                                TO_THING(EWAY_used_thing),
+                                NET_PERSON(0),
+                                FALSE,
+                                FALSE);
+                        }
+                    } else {
+                        if (ew->ed.arg2 == EWAY_MESSAGE_WHO_STREETNAME) {
+                            PANEL_new_help_message(EWAY_mess[ew->ed.arg1]);
+                        } else if (ew->ed.arg2 == EWAY_MESSAGE_WHO_TUTORIAL) {
+                            EWAY_tutorial_string = EWAY_mess[ew->ed.arg1];
+                            EWAY_tutorial_counter = 0;
+
+                            MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SEARCH_END);
+                            MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SLIDE_START);
+
+                            LastKey = 0;
+                        } else {
+                            Thing* who_says = NULL;
+
+                            if (ew->ed.arg2) {
+                                SLONG who = EWAY_get_person(ew->ed.arg2);
+
+                                if (who) {
+                                    who_says = TO_THING(who);
+                                }
+                            }
+
+                            if (who_says && who_says->State == STATE_DEAD) {
+                                // Dead people can't talk.
+                            } else {
+                                talk_thing = who_says;
+                                EWAY_talk((ew->yaw << 8) + ew->index);
+
+                                PANEL_new_text(
+                                    who_says,
+                                    time,
+                                    EWAY_mess[ew->ed.arg1]);
+
+                                if (who_says && who_says != NET_PERSON(0)) {
+                                    if (person_ok_for_conversation(who_says)) {
+                                        PCOM_make_people_talk_to_eachother(
+                                            who_says,
+                                            NET_PERSON(0),
+                                            FALSE,
+                                            FALSE,
+                                            FALSE);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (ew->flag & EWAY_FLAG_WHY_LOST) {
+                        // This is a message that comes up when you've lost the level.
+                        GAMEMENU_set_level_lost_reason(EWAY_mess[ew->ed.arg1]);
+                    }
+                }
+            }
+        }
+
+        break;
+
+    case EWAY_DO_NAV_BEACON:
+
+        {
+            CBYTE* str;
+            UWORD track_thing = NULL;
+
+            if (!WITHIN(ew->ed.arg1, 0, EWAY_MAX_MESSES - 1)) {
+                CONSOLE_text("Too many navbeacon messages for the waypoint system! Tell Mark!");
+            } else {
+                str = EWAY_mess[ew->ed.arg1];
+            }
+
+            track_thing = EWAY_get_person(ew->ed.arg2);
+
+            if (ew->ed.arg2 && track_thing == 0) {
+                // Person not created yet — try again next frame.
+                ew->flag &= ~EWAY_FLAG_ACTIVE;
+
+                return;
+
+            } else {
+
+                ew->ed.subtype = MAP_beacon_create(ew->x, ew->z, ew->ed.arg1, track_thing);
+                ASSERT(ew->ed.subtype);
+
+                if (GAME_TURN < 16) {
+                    MFX_play_stereo(0, S_MENU_END, MFX_REPLACE);
+                }
+            }
+        }
+
+        break;
+
+    case EWAY_DO_ELECTRIFY_FENCE:
+
+        if (ew->ed.arg1) {
+            set_electric_fence_state(ew->ed.arg1, TRUE);
+        }
+
+        break;
+
+    case EWAY_DO_CAMERA_CREATE:
+        EWAY_create_camera(ew - EWAY_way);
+        if (EWAY_cam_freeze)
+            MFX_play_stereo(0, S_CUTSCENE_STING, 0);
+        break;
+
+    case EWAY_DO_CAMERA_WAYPOINT:
+        break;
+
+    case EWAY_DO_CAMERA_TARGET:
+        break;
+
+    case EWAY_DO_MISSION_FAIL:
+        if (GAME_STATE != GS_LEVEL_WON) {
+            GAME_STATE = GS_LEVEL_LOST;
+        }
+        break;
+
+    case EWAY_DO_MISSION_COMPLETE:
+        if (GAME_STATE != GS_LEVEL_LOST) {
+            // Make sure Darci doesn't die before the win screen shows.
+            NET_PERSON(0)->Genus.Person->Flags2 |= FLAG2_PERSON_INVULNERABLE;
+
+            GAME_STATE = GS_LEVEL_WON;
+            // Not in any header; declared inline in original source.
+            extern void set_stats(void);
+            set_stats();
+        }
+        break;
+
+    case EWAY_DO_CHANGE_ENEMY:
+
+        ASSERT(WITHIN(ew->index, 1, EWAY_edef_upto - 1));
+
+        {
+            EWAY_Edef* ee = &EWAY_edef[ew->index];
+
+            SLONG change = EWAY_get_person(ew->ed.arg1);
+
+            if (change == NULL) {
+            } else {
+                Thing* p_change = TO_THING(change);
+
+                PCOM_change_person_attributes(
+                    p_change,
+                    ew->colour,
+                    ew->group,
+                    ee->pcom_ai,
+                    ee->ai_other,
+                    ee->pcom_move,
+                    ee->follow,
+                    ee->pcom_bent,
+                    ew->yaw << 3);
+            }
+        }
+
+        break;
+
+    case EWAY_DO_CHANGE_ENEMY_FLG: {
+        SLONG change = EWAY_get_person(ew->ed.arg1);
+
+        if (change == NULL) {
+        } else {
+            Thing* p_change = TO_THING(change);
+
+            p_change->Genus.Person->pcom_bent = ew->ed.arg2;
+            p_change->Genus.Person->pcom_zone = ew->ed.arg2 >> 8;
+            // Not in any header; declared inline in original source.
+            extern void PCOM_set_person_ai_normal(Thing * p_person);
+            PCOM_set_person_ai_normal(p_change);
+        }
+    } break;
+
+    case EWAY_DO_CREATE_PLATFORM:
+        ew->ed.arg1 = PLAT_create(
+            ew->colour,
+            ew->group,
+            PLAT_MOVE_PATROL,
+            ew->ed.arg2,
+            ew->ed.arg1,
+            ew->x,
+            ew->y,
+            ew->z);
+        break;
+    case EWAY_DO_CREATE_BOMB:
+
+        // The 'special' bomb monitors the waypoint that created it and
+        // explodes when the waypoint goes active. Nothing to do at activation time.
+
+        break;
+
+    case EWAY_DO_WATER_SPOUT:
+
+        // This waypoint spouts out water while active.
+        // Particle emission is handled inside EWAY_process() per tick.
+
+        break;
+
+    case EWAY_DO_KILL_WAYPOINT:
+
+        if (!(WITHIN(ew->ed.arg1, 1, EWAY_way_upto - 1))) {
+        } else {
+            EWAY_Way* ewk = &EWAY_way[ew->ed.arg1];
+
+            ewk->flag |= EWAY_FLAG_DEAD;
+
+            if (ewk->ec.type == EWAY_COND_COUNTDOWN_SEE) {
+                music_mode_override = 0;
+            }
+
+            if (ewk->ed.type == EWAY_DO_CREATE_ENEMY) {
+                if (ewk->ed.arg1) {
+                    Thing* p_person = TO_THING(ewk->ed.arg1);
+
+                    ASSERT(p_person->Class == CLASS_PERSON);
+
+                    // Teleport the person out of the world ("holiday in another dimension").
+                    p_person->Genus.Person->pcom_ai = PCOM_AI_NONE;
+                    p_person->Genus.Person->pcom_bent = PCOM_BENT_ROBOT;
+
+                    remove_thing_from_map(p_person);
+
+                    p_person->WorldPos.X = 0x8000;
+                    p_person->WorldPos.Z = 0x8000;
+
+                    p_person->WorldPos.Y = PAP_calc_map_height_at(0x80, 0x80);
+
+                    set_person_idle(p_person);
+
+                    // As if this person has never been created.
+                    ewk->ed.arg1 = NULL;
+                }
+            } else if (ewk->ed.type == EWAY_DO_CREATE_VEHICLE) {
+                if (ewk->ed.arg1) {
+                    Thing* p_vehicle = TO_THING(ewk->ed.arg1);
+
+                    if (p_vehicle->Class == CLASS_VEHICLE) {
+                        // Make the vehicle blow up.
+                        // Not in any header; declared inline in original source.
+                        extern void VEH_reduce_health(Thing * p_car, Thing * p_person, SLONG damage);
+
+                        VEH_reduce_health(
+                            p_vehicle,
+                            NULL,
+                            1050);
+                        extern UBYTE hit_player;
+                        hit_player = 1;
+                        create_shockwave(
+                            p_vehicle->WorldPos.X >> 8,
+                            p_vehicle->WorldPos.Y >> 8,
+                            p_vehicle->WorldPos.Z >> 8,
+                            0x300,
+                            350,
+                            NULL, 1);
+                        hit_player = 0;
+
+                        // As if this vehicle has never been created.
+                        ewk->ed.arg1 = NULL;
+                    }
+                }
+            } else if (ewk->ed.type == EWAY_DO_NAV_BEACON) {
+                if (ewk->ed.subtype) {
+                    MAP_beacon_remove(ewk->ed.subtype);
+
+                    ewk->ed.subtype = NULL;
+                }
+            } else if (ewk->ed.type == EWAY_DO_ELECTRIFY_FENCE) {
+                // Turn off the electric fence.
+                if (ew->ed.arg1) {
+                    set_electric_fence_state(ew->ed.arg1, FALSE);
+                }
+            } else if (ewk->ed.type == EWAY_DO_MAKE_PERSON_PEE) {
+                SLONG person = EWAY_get_person(ewk->ed.arg1);
+
+                if (person) {
+                    Thing* p_person = TO_THING(person);
+
+                    ASSERT(p_person->Class == CLASS_PERSON);
+
+                    p_person->Genus.Person->Flags &= ~FLAG_PERSON_PEEING;
+                }
+            } else if (ewk->ec.type == EWAY_COND_TRIPWIRE) {
+                if (ewk->ec.arg1) {
+                    TRIP_deactivate(ewk->ec.arg1);
+                }
+            } else if (ewk->ed.type == EWAY_DO_CREATE_BARREL) {
+                // Make the barrel disappear.
+                if (ewk->ed.arg1) {
+                    Thing* p_barrel = TO_THING(ewk->ed.arg1);
+
+                    if (p_barrel->Class == CLASS_BARREL) {
+                        // Not in any header; declared inline in original source.
+                        void BARREL_dissapear(Thing * p_barrel);
+
+                        BARREL_dissapear(p_barrel);
+                    }
+
+                    ewk->ed.arg1 = 0;
+                }
+            }
+        }
+
+        break;
+
+    case EWAY_DO_OBJECTIVE:
+        // CRIME_RATE reduction. arg2 = points/10 from editor.
+        // NOTE: Never actually reached at runtime — WPT_BONUS_POINTS is translated
+        // to EWAY_DO_MESSAGE via a dead if(0) block in elev.cpp. Legacy code.
+        {
+            UWORD mess = ew->ed.arg1;
+            SLONG percent = ew->ed.arg2 * CRIME_RATE_SCORE_MUL >> 8;
+
+            CBYTE* str;
+
+            if (!WITHIN(mess, 0, EWAY_MAX_MESSES - 1)) {
+                str = "Too many messages for the waypoint system! Tell Mark!";
+            } else {
+                if (EWAY_mess[mess] == NULL) {
+                    str = "No objective message";
+                } else {
+                    str = EWAY_mess[mess];
+                }
+            }
+
+            CRIME_RATE -= percent;
+
+            SATURATE(CRIME_RATE, 0, 100);
+        }
+
+        break;
+
+    case EWAY_DO_GROUP_LIFE:
+        // Clears EWAY_FLAG_DEAD on all waypoints sharing same colour AND group.
+        // Revives previously killed script branches. GROUP_LIFE/GROUP_DEATH waypoints are immune.
+        {
+            SLONG i;
+
+            for (i = 1; i < EWAY_way_upto; i++) {
+                if (EWAY_way[i].group == ew->group && EWAY_way[i].colour == ew->colour) {
+                    if (EWAY_way[i].ed.type == EWAY_DO_GROUP_LIFE || EWAY_way[i].ed.type == EWAY_DO_GROUP_DEATH) {
+                        // These waypoints are immune.
+                    } else {
+                        EWAY_way[i].flag &= ~EWAY_FLAG_DEAD;
+                    }
+                }
+            }
+        }
+
+        break;
+
+    case EWAY_DO_GROUP_DEATH:
+        // Sets EWAY_FLAG_DEAD on all waypoints sharing same colour AND group.
+        // Permanently disables the branch until a GROUP_LIFE revives it. GROUP_LIFE/DEATH immune.
+        {
+            SLONG i;
+
+            for (i = 1; i < EWAY_way_upto; i++) {
+                if (EWAY_way[i].group == ew->group && EWAY_way[i].colour == ew->colour) {
+                    if (EWAY_way[i].ed.type == EWAY_DO_GROUP_LIFE || EWAY_way[i].ed.type == EWAY_DO_GROUP_DEATH) {
+                        // These waypoints are immune.
+                    } else {
+                        EWAY_way[i].flag |= EWAY_FLAG_DEAD;
+                    }
+                }
+            }
+        }
+
+        break;
+
+    case EWAY_DO_CONVERSATION:
+    case EWAY_DO_AMBIENT_CONV:
+
+    {
+        UWORD person_a = EWAY_get_person(ew->ed.arg1);
+        UWORD person_b = EWAY_get_person(ew->ed.arg2);
+
+        if (person_a && person_b) {
+            if (person_ok_for_conversation(TO_THING(person_a)) && person_ok_for_conversation(TO_THING(person_b))) {
+                if (EWAY_conv_active) {
+                    // End the current conversation before starting a new one.
+                    EWAY_finish_conversation();
+                }
+
+                // Make sure the people aren't too close together before they start talking.
+                {
+                    Thing* p_person_a = TO_THING(person_a);
+                    Thing* p_person_b = TO_THING(person_b);
+
+                    // Not in any header; declared inline in original source.
+                    extern void push_people_apart(Thing * p_person, Thing * p_avoid);
+
+                    push_people_apart(
+                        p_person_a,
+                        p_person_b);
+                }
+
+                // Start the conversation.
+                EWAY_conv_active = TRUE;
+                EWAY_conv_waypoint = ew - EWAY_way;
+                EWAY_conv_person_a = person_a;
+                EWAY_conv_person_b = person_b;
+                EWAY_conv_timer = 0;
+                EWAY_conv_str_count = 0;
+                EWAY_conv_skip = 100;
+                EWAY_conv_ambient = (ew->ed.type == EWAY_DO_AMBIENT_CONV);
+
+                if (!WITHIN(ew->ed.subtype, 0, EWAY_MAX_MESSES - 1)) {
+                    CONSOLE_text("Too many messages for the waypoint system! Tell Mark!", 8000);
+                } else {
+                    if (EWAY_mess[ew->ed.subtype] == NULL) {
+                        EWAY_conv_str = 0;
+                    } else {
+                        EWAY_conv_str = EWAY_mess[ew->ed.subtype] - EWAY_mess_buffer;
+                    }
+                }
+            }
+        }
+    }
+
+    break;
+
+    case EWAY_DO_INCREASE_COUNTER:
+        // Increments EWAY_counter[subtype] by 1. EWAY_COND_COUNTER_GTEQ checks >=.
+        ASSERT(WITHIN(ew->ed.subtype, 0, EWAY_MAX_COUNTERS - 1));
+
+        EWAY_counter[ew->ed.subtype] += 1;
+
+        break;
+
+    case EWAY_DO_EMIT_STEAM:
+
+        // Steam emission is handled per-tick in EWAY_process_emit_steam() while active.
+
+        break;
+
+    case EWAY_DO_TRANSFER_PLAYER:
+
+    {
+        THING_INDEX i_player = EWAY_get_person(ew->ed.arg1);
+
+        if (i_player == NULL) {
+        } else {
+            Thing* p_person = TO_THING(i_player);
+
+            // Stop the old player being a player.
+            NET_PERSON(0)->Genus.Person->PlayerID = 0;
+            NET_PERSON(0)->Genus.Person->pcom_ai = PCOM_AI_CIV;
+            NET_PERSON(0)->Genus.Person->pcom_bent = PCOM_BENT_ROBOT | PCOM_BENT_FIGHT_BACK;
+            NET_PERSON(0)->Genus.Person->Flags2 |= FLAG2_PERSON_INVULNERABLE;
+            NET_PERSON(0)->Genus.Person->HomeX = NET_PERSON(0)->WorldPos.X >> 8;
+            NET_PERSON(0)->Genus.Person->HomeZ = NET_PERSON(0)->WorldPos.Z >> 8;
+            NET_PERSON(0)->Genus.Person->HomeYaw = NET_PERSON(0)->Draw.Tweened->Angle >> 3;
+
+            SET_SKILL(NET_PERSON(0), 15);
+
+            set_person_idle(NET_PERSON(0));
+
+            // Make the new person become the player.
+            NET_PERSON(0) = p_person;
+            p_person->Genus.Person->PlayerID = 1;
+            NET_PLAYER(0)->Genus.Player->PlayerPerson = p_person;
+            NET_PERSON(0)->Genus.Person->pcom_ai = PCOM_AI_NONE;
+            NET_PERSON(0)->Genus.Person->Flags2 &= ~FLAG2_PERSON_INVULNERABLE;
+            NET_PERSON(0)->Genus.Person->pcom_bent &= ~PCOM_BENT_PLAYERKILL;
+
+            SET_SKILL(NET_PERSON(0), 0);
+
+            FC_look_at(0, i_player);
+            FC_setup_initial_camera(0);
+
+            if (NET_PERSON(0)->State == STATE_MOVEING) {
+                if (NET_PERSON(0)->SubState == SUB_STATE_SIMPLE_ANIM || NET_PERSON(0)->SubState == SUB_STATE_SIMPLE_ANIM_OVER) {
+                    set_person_idle(NET_PERSON(0));
+                }
+            }
+        }
+    } break;
+
+    case EWAY_DO_AUTOSAVE: {
+
+        // Autosave placeholder — not implemented in this codebase.
+
+    } break;
+
+    case EWAY_DO_CREATE_BARREL:
+
+        ew->ed.arg1 = BARREL_alloc(
+            ew->ed.subtype,
+            ew->ed.arg2,
+            ew->x,
+            ew->z,
+            ew - EWAY_way);
+
+        break;
+
+    case EWAY_DO_LOCK_VEHICLE:
+
+    {
+        Thing* p_vehicle;
+
+        if (!WITHIN(ew->ed.arg1, 1, EWAY_way_upto - 1)) {
+        } else {
+            EWAY_Way* ewv = &EWAY_way[ew->ed.arg1];
+
+            if (ewv->ed.arg1) {
+                Thing* p_vehicle = TO_THING(ewv->ed.arg1);
+
+                if (p_vehicle->Class != CLASS_VEHICLE) {
+                } else {
+                    switch (ew->ed.subtype) {
+                    case EWAY_SUBTYPE_VEHICLE_LOCK:
+                        p_vehicle->Genus.Vehicle->key = SPECIAL_NUM_TYPES; // Non-existent special.
+                        break;
+
+                    case EWAY_SUBTYPE_VEHICLE_UNLOCK:
+                        p_vehicle->Genus.Vehicle->key = SPECIAL_NONE;
+                        break;
+
+                    default:
+                        ASSERT(0);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    break;
+
+    case EWAY_DO_CUTSCENE:
+        PLAYCUTS_Play(PLAYCUTS_cutscenes + ew->ed.arg1);
+        break;
+
+    case EWAY_DO_GROUP_RESET:
+
+    {
+        SLONG i;
+
+        EWAY_Way* ewr;
+
+        for (i = 1; i < EWAY_way_upto; i++) {
+            ewr = &EWAY_way[i];
+
+            if (ewr->colour == ew->colour && ewr->group == ew->group) {
+                if (ewr->ed.type == EWAY_DO_GROUP_RESET) {
+                    // Immune!
+                } else {
+                    if (ewr->flag & EWAY_FLAG_ACTIVE) {
+                        // Forward decl needed here — EWAY_set_inactive is defined below in the same TU.
+                        void EWAY_set_inactive(EWAY_Way * ew);
+
+                        EWAY_set_inactive(ewr);
+                    }
+
+                    ewr->flag &= ~(EWAY_FLAG_ACTIVE | EWAY_FLAG_DEAD | EWAY_FLAG_FINISHED);
+                }
+            }
+        }
+    }
+
+    break;
+
+    case EWAY_DO_VISIBLE_COUNT_UP:
+
+        // Timer for a visible on-screen count-up. The increment is in EWAY_process() while active.
+        EWAY_count_up = 0;
+        EWAY_count_up_add_penalties = FALSE;
+        EWAY_count_up_num_penalties = 0;
+        EWAY_count_up_penalty_timer = 0;
+        EWAY_counter[3] = 0;
+
+        break;
+
+    case EWAY_DO_RESET_COUNTER:
+
+        if (ew->ed.subtype == 0) {
+            UBYTE i;
+
+            for (i = 0; i < EWAY_MAX_COUNTERS; i++) {
+                EWAY_counter[i] = 0;
+            }
+        } else {
+            ASSERT(WITHIN(ew->ed.subtype, 0, EWAY_MAX_COUNTERS - 1));
+
+            EWAY_counter[ew->ed.subtype] = 0;
+        }
+
+        break;
+
+    case EWAY_DO_CREATE_MIST: {
+        static SLONG last_detail = 17;
+        static SLONG last_height = 84;
+
+#define MIST_SIZE 0x800
+
+        SLONG x1 = (ew->x) - MIST_SIZE;
+        SLONG z1 = (ew->z) - MIST_SIZE;
+        SLONG x2 = (ew->x) + MIST_SIZE;
+        SLONG z2 = (ew->z) + MIST_SIZE;
+
+        MIST_create(
+            last_detail,
+            last_height,
+            x1, z1,
+            x2, z2);
+
+        last_height += (last_height & 0x1) ? -11 : +11;
+    } break;
+
+    case EWAY_DO_STALL_CAR:
+
+    {
+        UWORD veh = EWAY_get_person(ew->ed.arg1);
+
+        if (veh) {
+            Thing* p_vehicle = TO_THING(veh);
+
+            ASSERT(p_vehicle->Class == CLASS_VEHICLE);
+
+            p_vehicle->Genus.Vehicle->Flags |= FLAG_VEH_STALLED;
+        }
+    }
+
+    break;
+
+    case EWAY_DO_EXTEND_COUNTDOWN:
+
+        if (WITHIN(ew->ed.arg1, 1, EWAY_way_upto - 1)) {
+            EWAY_Way* ew_other = &EWAY_way[ew->ed.arg1];
+
+            if (ew_other->ec.type == EWAY_COND_COUNTDOWN_SEE || ew_other->ec.type == EWAY_COND_COUNTDOWN) {
+                ew_other->ec.arg2 += ew->ed.arg2 * 100;
+            }
+        }
+
+        break;
+
+    case EWAY_DO_MOVE_THING:
+
+    {
+        UWORD i_thing = EWAY_get_person(ew->ed.arg1);
+
+        if (i_thing) {
+            Thing* p_thing = TO_THING(i_thing);
+
+            if (p_thing->State == STATE_DEAD) {
+                // Ignore — dead things don't move.
+            } else {
+                GameCoord newpos;
+
+                newpos.X = ew->x << 8;
+                newpos.Y = ew->y << 8;
+                newpos.Z = ew->z << 8;
+
+                if (p_thing->Flags & FLAGS_ON_MAPWHO) {
+                    move_thing_on_map(p_thing, &newpos);
+                } else {
+                    p_thing->WorldPos = newpos;
+                }
+
+                if (p_thing->Class == CLASS_PERSON) {
+                    plant_feet(p_thing);
+                    p_thing->Draw.Tweened->Angle = ew->yaw << 3;
+                    p_thing->Genus.Person->HomeX = ew->x;
+                    p_thing->Genus.Person->HomeZ = ew->z;
+                    p_thing->Genus.Person->HomeYaw = ew->yaw;
+                }
+            }
+        }
+    }
+
+    break;
+
+    case EWAY_DO_MAKE_PERSON_PEE:
+
+    {
+        SLONG person = EWAY_get_person(ew->ed.arg1);
+
+        if (person) {
+            Thing* p_person = TO_THING(person);
+
+            ASSERT(p_person->Class == CLASS_PERSON);
+
+            p_person->Genus.Person->Flags |= FLAG_PERSON_PEEING;
+        }
+    }
+
+    break;
+
+    case EWAY_DO_CONE_PENALTIES:
+        GAME_FLAGS |= GF_CONE_PENALTIES;
+        break;
+
+    case EWAY_DO_SIGN:
+        PANEL_flash_sign(ew->ed.arg1, ew->ed.arg2);
+        break;
+
+    case EWAY_DO_WAREFX: {
+        SLONG ware = WARE_which_contains(ew->x >> 8, ew->z >> 8);
+        if (ware)
+            WARE_ware[ware].ambience = ew->ed.arg1;
+    } break;
+
+    case EWAY_DO_NO_FLOOR:
+        GAME_FLAGS |= GF_NO_FLOOR;
+        break;
+
+    case EWAY_DO_SHAKE_CAMERA:
+        break;
+
+    case EWAY_DO_END_OF_WORLD:
+        PYRO_create(NET_PERSON(0)->WorldPos, PYRO_GAMEOVER);
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+
+    switch (ew->es.type) {
+    case EWAY_STAY_TIME:
+
+        // Start the countdown to going inactive.
+        {
+            UBYTE i;
+
+            for (i = 0; i < EWAY_MAX_TIMERS; i++) {
+                if (EWAY_timer[i] == 0) {
+                    EWAY_timer[i] = ew->es.arg * 10; // ew->es.arg is in tenths of a second.
+                    ew->timer = i;
+                    ew->flag |= EWAY_FLAG_COUNTDOWN;
+
+                    break;
+                }
+            }
+            if (i >= EWAY_MAX_TIMERS) {
+                ASSERT(0);
+            }
+        }
+
+        break;
+
+    case EWAY_STAY_ALWAYS:
+
+        // Waypoint fires once and never needs to be evaluated again.
+        ew->flag |= EWAY_FLAG_DEAD;
+
+        break;
+
+    case EWAY_STAY_DIE:
+
+        // Waypoint fires once, then goes inactive and is never re-evaluated.
+        ew->flag |= EWAY_FLAG_DEAD;
+        ew->flag &= ~EWAY_FLAG_ACTIVE;
+
+        break;
+
+    default:
+        break;
     }
 }

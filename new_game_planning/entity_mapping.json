@@ -50239,6 +50239,86 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_finish_conversation",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_finish_conversation",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_finish_conversation",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_finish_conversation",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_process_conversation",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_process_conversation",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_process_conversation",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_process_conversation",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_process_emit_steam",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_process_emit_steam",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_process_emit_steam",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_process_emit_steam",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_set_active",
+      "file": "new/missions/eway.h",
+      "orig_name": "EWAY_set_active",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_set_active",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_set_active",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

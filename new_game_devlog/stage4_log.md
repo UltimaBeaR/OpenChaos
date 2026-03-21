@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 79 — missions/eway (третий чанк: EWAY_finish_conversation + EWAY_process_conversation + EWAY_process_emit_steam + EWAY_set_active) (2026-03-21)
+
+- `old/fallen/Source/eway.cpp`: перенесены 4 функции (~1430 строк) через `#if 0 // MIGRATED` блок. Остаток (`EWAY_set_inactive`..`EWAY_deduct_time_penalty`) — следующая итерация.
+- Новые Temporary includes в `new/missions/eway.cpp`: `effects/pyro.h`, `fallen/Headers/barrel.h`, `fallen/Headers/plat.h`.
+- `find_nice_place_near_person`, `push_people_apart`, `set_stats`, `VEH_reduce_health`, `hit_player`, `PCOM_set_person_ai_normal`, `BARREL_dissapear` — нет в заголовках, воспроизведены как inline-`extern` в теле функции (паттерн оригинала).
+- `PANEL_wide_top_person` / `PANEL_wide_bot_person` — нет в заголовках, объявлены inline-`extern` внутри `EWAY_finish_conversation`.
+- `EWAY_set_inactive` в `EWAY_DO_GROUP_RESET`: forward decl внутри switch-case (нужен, т.к. `EWAY_set_inactive` определён позже в том же TU — теперь в `new/` он окажется после `EWAY_set_active` в другой итерации; пока объявлен как forward decl внутри тела функции).
+
+---
+
 ## Итерация 78 — missions/eway (второй чанк: EWAY_evaluate_condition + EWAY_create_camera + EWAY_process_camera) (2026-03-21)
 
 - `old/fallen/Source/eway.cpp`: перенесены `EWAY_evaluate_condition` (1121 строк), `EWAY_create_camera` (59 строк), `EWAY_process_camera` (479 строк). Остаток (`EWAY_finish_conversation`..`EWAY_deduct_time_penalty`) — в `old/`, итерация следующая.

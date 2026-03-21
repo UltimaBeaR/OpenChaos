@@ -42,17 +42,14 @@
 #include "gamemenu.h"
 #include "..\headers\env.h"
 
-// Migrated to new/missions/eway.cpp: EWAY_evaluate_condition, EWAY_create_camera, EWAY_process_camera
+// Migrated to new/missions/eway.cpp: EWAY_evaluate_condition, EWAY_create_camera, EWAY_process_camera,
+//   EWAY_finish_conversation, EWAY_process_conversation, EWAY_process_emit_steam, EWAY_set_active
 
 // Still needed by remaining functions in this file.
 extern SLONG person_ok_for_conversation(Thing* p_person);
 extern ULONG timer_bored;
 
-
-//
-// Finishes a conversation.
-//
-
+#if 0 // MIGRATED — see new/missions/eway.cpp
 void EWAY_finish_conversation(void)
 {
     EWAY_conv_active = FALSE;
@@ -1484,6 +1481,7 @@ extern	SLONG	SAVE_ingame(CBYTE *fname);
         break;
     }
 }
+#endif // MIGRATED
 
 //
 // Does what has to be done when a waypoint goes inactive.

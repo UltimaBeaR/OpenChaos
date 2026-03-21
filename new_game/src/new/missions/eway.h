@@ -193,21 +193,25 @@ void EWAY_create_camera(SLONG waypoint);
 // uc_orig: EWAY_process_camera (fallen/Source/eway.cpp)
 void EWAY_process_camera(void);
 
-// ====================================================
-// Not-yet-migrated function declarations (still in old/fallen/Source/eway.cpp)
-// ====================================================
-
+// Ends the current two-person scripted conversation.
 // uc_orig: EWAY_finish_conversation (fallen/Source/eway.cpp)
 void EWAY_finish_conversation(void);
 
+// Advances the active scripted conversation one tick.
 // uc_orig: EWAY_process_conversation (fallen/Source/eway.cpp)
 void EWAY_process_conversation(void);
 
+// Emits steam particles from an active EWAY_DO_EMIT_STEAM waypoint.
 // uc_orig: EWAY_process_emit_steam (fallen/Source/eway.cpp)
 void EWAY_process_emit_steam(EWAY_Way* ew);
 
+// Fires a waypoint's action when its condition becomes true.
 // uc_orig: EWAY_set_active (fallen/Source/eway.cpp)
 void EWAY_set_active(EWAY_Way* ew);
+
+// ====================================================
+// Not-yet-migrated function declarations (still in old/fallen/Source/eway.cpp)
+// ====================================================
 
 // uc_orig: EWAY_set_inactive (fallen/Source/eway.cpp)
 void EWAY_set_inactive(EWAY_Way* ew);
