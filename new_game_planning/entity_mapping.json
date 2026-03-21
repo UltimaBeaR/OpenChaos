@@ -35599,6 +35599,926 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_Point",
+      "file": "new/world/navigation/wmove.h",
+      "orig_name": "WMOVE_Point",
+      "orig_file": "fallen/Headers/wmove.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_Face",
+      "file": "new/world/navigation/wmove.h",
+      "orig_name": "WMOVE_Face",
+      "orig_file": "fallen/Headers/wmove.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "RWMOVE_MAX_FACES",
+      "file": "new/world/navigation/wmove.h",
+      "orig_name": "RWMOVE_MAX_FACES",
+      "orig_file": "fallen/Headers/wmove.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_MAX_FACES",
+      "file": "new/world/navigation/wmove.h",
+      "orig_name": "WMOVE_MAX_FACES",
+      "orig_file": "fallen/Headers/wmove.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_face",
+      "file": "new/world/navigation/wmove_globals.h",
+      "orig_name": "WMOVE_face",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_face_upto",
+      "file": "new/world/navigation/wmove_globals.h",
+      "orig_name": "WMOVE_face_upto",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_matrix",
+      "file": "new/world/navigation/wmove_globals.h",
+      "orig_name": "WMOVE_matrix",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_matrix_thing",
+      "file": "new/world/navigation/wmove_globals.h",
+      "orig_name": "WMOVE_matrix_thing",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_matrix_turn",
+      "file": "new/world/navigation/wmove_globals.h",
+      "orig_name": "WMOVE_matrix_turn",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_init",
+      "file": "new/world/navigation/wmove.h",
+      "orig_name": "WMOVE_init",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_create",
+      "file": "new/world/navigation/wmove.h",
+      "orig_name": "WMOVE_create",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_process",
+      "file": "new/world/navigation/wmove.h",
+      "orig_name": "WMOVE_process",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_relative_pos",
+      "file": "new/world/navigation/wmove.h",
+      "orig_name": "WMOVE_relative_pos",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_draw",
+      "file": "new/world/navigation/wmove.h",
+      "orig_name": "WMOVE_draw",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_get_num_faces",
+      "file": "new/world/navigation/wmove.cpp",
+      "orig_name": "WMOVE_get_num_faces",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WMOVE_get_pos",
+      "file": "new/world/navigation/wmove.cpp",
+      "orig_name": "WMOVE_get_pos",
+      "orig_file": "fallen/Source/wmove.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_focus_x",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_focus_x",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_focus_y",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_focus_y",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_focus_z",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_focus_z",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_cam_yaw",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_cam_yaw",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_cam_pitch",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_cam_pitch",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_cam_roll",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_cam_roll",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_cam_zoom",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_cam_zoom",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_cam_x",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_cam_x",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_cam_y",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_cam_y",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_cam_z",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_cam_z",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_cam_matrix",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_cam_matrix",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_qmap_draw",
+      "file": "new/world/map/qedit_globals.h",
+      "orig_name": "QEDIT_qmap_draw",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_loop",
+      "file": "new/world/map/qedit.h",
+      "orig_name": "QEDIT_loop",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_draw_wireframe",
+      "file": "new/world/map/qedit.cpp",
+      "orig_name": "QEDIT_draw_wireframe",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_draw_mapsquare",
+      "file": "new/world/map/qedit.cpp",
+      "orig_name": "QEDIT_draw_mapsquare",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_init",
+      "file": "new/world/map/qedit.cpp",
+      "orig_name": "QEDIT_init",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_control",
+      "file": "new/world/map/qedit.cpp",
+      "orig_name": "QEDIT_control",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QEDIT_draw",
+      "file": "new/world/map/qedit.cpp",
+      "orig_name": "QEDIT_draw",
+      "orig_file": "fallen/Source/qedit.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_CUTSCENES",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "MAX_CUTSCENES",
+      "orig_file": "fallen/Headers/playcuts.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_CUTSCENE_TRACKS",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "MAX_CUTSCENE_TRACKS",
+      "orig_file": "fallen/Headers/playcuts.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_CUTSCENE_PACKETS",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "MAX_CUTSCENE_PACKETS",
+      "orig_file": "fallen/Headers/playcuts.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_CUTSCENE_TEXT",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "MAX_CUTSCENE_TEXT",
+      "orig_file": "fallen/Headers/playcuts.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CPData",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "CPData",
+      "orig_file": "fallen/Headers/playcuts.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CPChannel",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "CPChannel",
+      "orig_file": "fallen/Headers/playcuts.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CPPacket",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "CPPacket",
+      "orig_file": "fallen/Headers/playcuts.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_Read",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "PLAYCUTS_Read",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_Free",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "PLAYCUTS_Free",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_Play",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "PLAYCUTS_Play",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_Reset",
+      "file": "new/ui/cutscenes/playcuts.h",
+      "orig_name": "PLAYCUTS_Reset",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "text_disp",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "text_disp",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_fade_level",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_fade_level",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_slomo",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_slomo",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_playing",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_playing",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_slomo_ctr",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_slomo_ctr",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "no_more_packets",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "no_more_packets",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_text_data",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_text_data",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_text_ptr",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_text_ptr",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_cutscenes",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_cutscenes",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_packets",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_packets",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_tracks",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_tracks",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_cutscene_ctr",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_cutscene_ctr",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_packet_ctr",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_packet_ctr",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_track_ctr",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_track_ctr",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_text_ctr",
+      "file": "new/ui/cutscenes/playcuts_globals.h",
+      "orig_name": "PLAYCUTS_text_ctr",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SLOMO_RATE",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "SLOMO_RATE",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LERP_SHIFT",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "LERP_SHIFT",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CT_CHAR",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "CT_CHAR",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CT_CAM",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "CT_CAM",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CT_WAVE",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "CT_WAVE",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CT_TEXT",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "CT_TEXT",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PT_ANIM",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PT_ANIM",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PT_WAVE",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PT_WAVE",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PT_CAM",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PT_CAM",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PT_TEXT",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PT_TEXT",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_BACKWARDS",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_BACKWARDS",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_SECURICAM",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_SECURICAM",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_INTERPOLATE_MOVE",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_INTERPOLATE_MOVE",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_SMOOTH_MOVE_IN",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_SMOOTH_MOVE_IN",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_SMOOTH_MOVE_OUT",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_SMOOTH_MOVE_OUT",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_SMOOTH_MOVE_BOTH",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_SMOOTH_MOVE_BOTH",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_INTERPOLATE_ROT",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_INTERPOLATE_ROT",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_SMOOTH_ROT_IN",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_SMOOTH_ROT_IN",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_SMOOTH_ROT_OUT",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_SMOOTH_ROT_OUT",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_SMOOTH_ROT_BOTH",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_SMOOTH_ROT_BOTH",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PF_SLOMO",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PF_SLOMO",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "screen_flip",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "screen_flip",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LERPValue",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "LERPValue",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LERPAngle",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "LERPAngle",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_Read_Packet",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PLAYCUTS_Read_Packet",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_Read_Channel",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PLAYCUTS_Read_Channel",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_Free_Chan",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PLAYCUTS_Free_Chan",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_Get_Packet",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PLAYCUTS_Get_Packet",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_find_surrounding_packets",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PLAYCUTS_find_surrounding_packets",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LERPAnim",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "LERPAnim",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LERPCamera",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "LERPCamera",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYCUTS_Update",
+      "file": "new/ui/cutscenes/playcuts.cpp",
+      "orig_name": "PLAYCUTS_Update",
+      "orig_file": "fallen/Source/playcuts.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

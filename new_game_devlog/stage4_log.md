@@ -550,3 +550,16 @@ Entity mapping обновлён (33 записи — file path).
 - `find_grab_face_in_sewers` использует локальные `best_*` переменные вместо глобальных — в оригинале тоже локальные; globals используются только в `find_grab_face`
 
 ---
+
+## Итерация 55 — world/navigation/wmove + world/map/qedit + ui/cutscenes/playcuts (2026-03-21)
+
+- `wmove.cpp` включает `fallen/Headers/Vehicle.h` (Temporary) — `get_vehicle_body_offset/prim` не перенесены; `fallen/Headers/memory.h + prim.h` — `prim_points/prim_faces4/prim_objects/next_prim_*` и типы PrimPoint/PrimFace4/PrimObject/PrimInfo
+- `WMOVE_get_pos` и `WMOVE_get_num_faces` — file-private static (не объявлены в оригинальном wmove.h, нигде не вызываются снаружи)
+- `wmove.cpp` включает `statedef.h` для `STATE_DEAD` (по прецеденту из pyro.cpp)
+- `playcuts.cpp` включает `fallen/Headers/fc.h` (Temporary) — `FC_cam` не мигрирован; `fallen/DDEngine/Headers/DrawXtra.h` (Temporary) — `DRAW2D_Box` не мигрирован; `fallen/Headers/dirt.h` (Temporary) — dirt.cpp не мигрирован
+- `playcuts.h` включает `<MFStdLib.h>` для `MFFileHandle`; `playcuts_globals.h` включает `<windows.h>` для `BOOL`
+- `playcuts.cpp` включает `engine/audio/sound.h` для `MUSIC_REF`
+- `PLAYCUTS_Free_Chan` — no-op (комментарии с причиной); `PLAYCUTS_Free` — no-op пул
+- `qedit.cpp` — все функции static (file-private); зависит от `engine/graphics/pipeline/qeng.h` (DAG: world → engine — допустимо)
+
+---

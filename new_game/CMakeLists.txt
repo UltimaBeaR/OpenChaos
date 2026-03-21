@@ -297,13 +297,15 @@ set(SOURCES_GAME
     src/new/actors/items/projectile.cpp
     src/new/world/environment/plat.cpp
     src/new/world/environment/plat_globals.cpp
-    src/old/fallen/Source/playcuts.cpp
+    src/new/ui/cutscenes/playcuts.cpp
+    src/new/ui/cutscenes/playcuts_globals.cpp
     src/old/fallen/Source/Prim.cpp
     src/new/world/environment/puddle.cpp
     src/new/world/environment/puddle_globals.cpp
     src/new/effects/pyro.cpp
     src/new/effects/pyro_globals.cpp
-    src/old/fallen/Source/qedit.cpp
+    src/new/world/map/qedit.cpp
+    src/new/world/map/qedit_globals.cpp
     src/old/fallen/Source/qmap.cpp
     src/new/world/map/road.cpp
     src/new/world/map/road_globals.cpp
@@ -326,7 +328,8 @@ set(SOURCES_GAME
     src/new/world/environment/ware.cpp
     src/new/world/environment/ware_globals.cpp
     src/old/fallen/Source/widget.cpp
-    src/old/fallen/Source/wmove.cpp
+    src/new/world/navigation/wmove.cpp
+    src/new/world/navigation/wmove_globals.cpp
 )
 
 # ---------------------------------------------------------------------------
