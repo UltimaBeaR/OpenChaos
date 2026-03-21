@@ -4119,3 +4119,1183 @@ void EWAY_set_active(EWAY_Way* ew)
         break;
     }
 }
+
+// Deactivates a waypoint: clears ACTIVE flag and runs any teardown actions
+// (close door, turn off electric fence, remove nav beacon).
+// uc_orig: EWAY_set_inactive (fallen/Source/eway.cpp)
+void EWAY_set_inactive(EWAY_Way* ew)
+{
+    ew->flag &= ~EWAY_FLAG_ACTIVE;
+
+    if (ew->ed.type == EWAY_DO_CONTROL_DOOR) {
+        DOOR_shut(
+            ew->x,
+            ew->z);
+    }
+
+    if (ew->ed.type == EWAY_DO_ELECTRIFY_FENCE) {
+        if (ew->ed.arg1) {
+            set_electric_fence_state(ew->ed.arg1, FALSE);
+        }
+    }
+
+    /*
+
+    if (ew->ed.type == EWAY_DO_VISIBLE_COUNT_UP)
+    {
+            EWAY_count_up_add_penalties = TRUE;
+            EWAY_count_up_penalty_timer = 0;
+
+            SLONG secs = (EWAY_count_up + (EWAY_count_up_num_penalties * 500)) / 1000;
+
+            if (secs > 255)
+            {
+                    secs = 255;
+            }
+
+            EWAY_counter[3] = secs;
+    }
+
+    */
+
+    if (ew->ed.type == EWAY_DO_NAV_BEACON) {
+        MAP_beacon_remove(ew->ed.subtype);
+    }
+}
+
+// Returns non-zero if the player's movement should be frozen
+// (scripted camera is active and freezing, or a cut scene is playing).
+// uc_orig: EWAY_stop_player_moving (fallen/Source/eway.cpp)
+SLONG EWAY_stop_player_moving(void)
+{
+    return (EWAY_cam_active && EWAY_cam_freeze) || GAME_cut_scene;
+}
+
+// Animates the on-screen cone-penalty count-up after a driving mission timer goes inactive.
+// Renders the accumulated time and increments it by one penalty per tick until all penalties added.
+// uc_orig: EWAY_process_penalties (fallen/Source/eway.cpp)
+void EWAY_process_penalties()
+{
+    if (!EWAY_count_up_add_penalties) {
+        return;
+    }
+
+    EWAY_count_up_penalty_timer += EWAY_tick;
+
+    PANEL_draw_timer(EWAY_count_up / 10, 320, 50);
+
+    if (EWAY_count_up_penalty_timer > 100) {
+        CBYTE str[64];
+
+        if (EWAY_count_up_num_penalties == 0) {
+            strcpy(str, XLAT_str(X_NO_CONES_HIT));
+        } else {
+            sprintf(str, "%s = %d", XLAT_str(X_NUM_CONES_HIT), (EWAY_count_up_num_penalties > 0) ? EWAY_count_up_num_penalties : 0);
+        }
+
+        FONT2D_DrawStringCentred(
+            str,
+            320,
+            100,
+            0x00ff00);
+
+        if (EWAY_count_up_penalty_timer >= 150) {
+            if (EWAY_count_up_num_penalties == 0) {
+                if (EWAY_count_up_penalty_timer >= 400) {
+                    EWAY_count_up_add_penalties = FALSE;
+                }
+            } else if (EWAY_count_up_num_penalties == -1) // -1 => We've finished adding up penalties
+            {
+                if (EWAY_count_up_penalty_timer >= 400) {
+                    EWAY_count_up_add_penalties = FALSE;
+                }
+            } else {
+                while (EWAY_count_up_penalty_timer >= 200) {
+                    EWAY_count_up_penalty_timer -= 10;
+                    EWAY_count_up_num_penalties -= 1;
+                    EWAY_count_up += 500; // 500 milliseconds per penalty.
+
+                    if (EWAY_count_up_num_penalties == 0) {
+                        EWAY_count_up_num_penalties = -1; // -1 => Finished adding up the penalties.
+                    }
+                }
+            }
+        }
+    }
+}
+
+// extern forward declaration: defined in Person.cpp, used here to count NPC spawn types.
+// uc_orig: people_types (fallen/Source/Person.cpp)
+extern SWORD people_types[50];
+
+// Counts how many CREATE_ENEMY waypoints of each subtype exist.
+// Starts with an early return — body is dead code but preserved from original.
+// uc_orig: count_people_types (fallen/Source/eway.cpp)
+void count_people_types(void)
+{
+    return;
+
+    EWAY_Way* ew;
+    SLONG i;
+
+    for (i = 1; i < EWAY_way_upto; i++) {
+        ew = &EWAY_way[i];
+        if (ew->ed.type == EWAY_DO_CREATE_ENEMY) {
+            people_types[ew->ed.subtype]++;
+        }
+    }
+}
+
+// Main mission update tick. Evaluates every waypoint each frame:
+// activates waypoints whose conditions are met, deactivates timed/conditional ones.
+// Also ticks the active conversation, driving penalty display, and scripted camera.
+// uc_orig: EWAY_process (fallen/Source/eway.cpp)
+void EWAY_process()
+{
+    SLONG i;
+    SLONG on;
+    SLONG timer;
+
+    EWAY_Way* ew;
+    SLONG offset, step;
+    SLONG eway_max = EWAY_way_upto;
+
+    step = 1;
+    offset = 0;
+
+    EWAY_count_up_visible = FALSE;
+
+    EWAY_time_accurate += 80 * TICK_RATIO >> TICK_SHIFT;
+    EWAY_time = EWAY_time_accurate >> 4;
+    EWAY_tick = 5 * TICK_RATIO >> TICK_SHIFT;
+
+    if (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) {
+        // Don't process waypoints after the game is lost or won.
+    } else {
+        for (i = 1 + (offset); i < eway_max; i += step) {
+
+            ew = &EWAY_way[i];
+
+            if (ew->flag & EWAY_FLAG_DEAD) {
+                continue;
+            }
+
+            if (ew->flag & EWAY_FLAG_ACTIVE) {
+                if (ew->ed.type == EWAY_DO_EMIT_STEAM) {
+                    EWAY_process_emit_steam(ew);
+                } else if (ew->ed.type == EWAY_DO_SHAKE_CAMERA) {
+                    if (FC_cam[0].shake < 100) {
+                        FC_cam[0].shake += 3;
+                    }
+                } else if (ew->ed.type == EWAY_DO_VISIBLE_COUNT_UP) {
+                    EWAY_count_up += (50 * TICK_RATIO >> TICK_SHIFT) * step; // 50 * 20 ticks/sec = 1000 units/sec
+
+                    PANEL_draw_timer(EWAY_count_up / 10, 320, 50);
+
+                    EWAY_count_up_visible = TRUE;
+
+                    {
+                        SLONG secs = EWAY_count_up / 1000;
+
+                        if (secs > 255) {
+                            secs = 255;
+                        }
+
+                        EWAY_counter[3] = secs;
+                    }
+                }
+
+                if (ew->flag & EWAY_FLAG_COUNTDOWN) {
+                    timer = EWAY_timer[ew->timer];
+                    timer -= EWAY_tick * step;
+
+                    if (timer <= 0) {
+                        timer = 0;
+
+                        EWAY_set_inactive(ew);
+                    }
+
+                    EWAY_timer[ew->timer] = timer;
+                } else {
+                    switch (ew->es.type) {
+                    case EWAY_STAY_ALWAYS:
+
+                        ew->flag |= EWAY_FLAG_DEAD;
+
+                        break;
+
+                    case EWAY_STAY_WHILE:
+
+                        on = EWAY_evaluate_condition(ew, &ew->ec);
+
+                        if (!on) {
+                            EWAY_set_inactive(ew);
+                        }
+
+                        break;
+
+                    case EWAY_STAY_WHILE_TIME:
+
+                        on = EWAY_evaluate_condition(ew, &ew->ec);
+
+                        if (!on) {
+                            // Start the countdown timer before going inactive.
+                            ew->timer = ew->es.arg;
+                            ew->flag |= EWAY_FLAG_COUNTDOWN;
+                        }
+
+                        break;
+
+                        // There is no case for EWAY_STAY_TIME because ew->timer
+                        // should always be set in that case.
+
+                    default:
+                        ASSERT(0);
+                        break;
+                    }
+                }
+
+                if (ew->ed.type == EWAY_DO_WATER_SPOUT) {
+                    DIRT_new_water(ew->x + 2, ew->y, ew->z, -1, 28, 0);
+                    DIRT_new_water(ew->x, ew->y, ew->z + 2, 0, 29, -1);
+                    DIRT_new_water(ew->x, ew->y, ew->z - 2, 0, 28, +1);
+                    DIRT_new_water(ew->x - 2, ew->y, ew->z, +1, 29, 0);
+                }
+            } else {
+                on = EWAY_evaluate_condition(ew, &ew->ec);
+
+                if (on) {
+                    EWAY_set_active(ew);
+                }
+            }
+        }
+    }
+
+    EWAY_process_conversation();
+
+    EWAY_process_penalties();
+
+    EWAY_process_camera();
+}
+
+// Returns world-space position of a waypoint by index.
+// uc_orig: EWAY_get_position (fallen/Source/eway.cpp)
+void EWAY_get_position(
+    SLONG waypoint,
+    SLONG* world_x,
+    SLONG* world_y,
+    SLONG* world_z)
+{
+    ASSERT(WITHIN(waypoint, 1, EWAY_way_upto - 1));
+
+    *world_x = EWAY_way[waypoint].x;
+    *world_y = EWAY_way[waypoint].y;
+    *world_z = EWAY_way[waypoint].z;
+}
+
+// Returns the facing angle (yaw << 3) of a waypoint.
+// uc_orig: EWAY_get_angle (fallen/Source/eway.cpp)
+UWORD EWAY_get_angle(SLONG waypoint)
+{
+    UWORD ans;
+
+    ASSERT(WITHIN(waypoint, 1, EWAY_way_upto - 1));
+
+    ans = EWAY_way[waypoint].yaw << 3;
+
+    return ans;
+}
+
+// Returns the Thing index of the entity spawned by this waypoint (CREATE_ENEMY/PLAYER/VEHICLE/ANIMAL).
+// Returns NULL if the waypoint hasn't fired yet or doesn't spawn a Thing.
+// uc_orig: EWAY_get_person (fallen/Source/eway.cpp)
+UWORD EWAY_get_person(SLONG waypoint)
+{
+    UWORD ans;
+
+    if (waypoint == NULL) {
+        return NULL;
+    }
+
+    ASSERT(WITHIN(waypoint, 1, EWAY_way_upto - 1));
+
+    EWAY_Way* ew;
+
+    ew = &EWAY_way[waypoint];
+
+    if (ew->ed.type == EWAY_DO_CREATE_ENEMY || ew->ed.type == EWAY_DO_CREATE_PLAYER || ew->ed.type == EWAY_DO_CREATE_VEHICLE || ew->ed.type == EWAY_DO_CREATE_ANIMAL) {
+        ans = ew->ed.arg1;
+    } else {
+        ans = NULL;
+    }
+
+    return ans;
+}
+
+// Searches EWAY_way[] circularly from 'index' for a waypoint matching type/colour/group.
+// Pass EWAY_DONT_CARE for any field to match any value. Returns index or EWAY_NO_MATCH.
+// uc_orig: EWAY_find_waypoint (fallen/Source/eway.cpp)
+SLONG EWAY_find_waypoint(
+    SLONG index,
+    SLONG whatdo,
+    SLONG colour,
+    SLONG group,
+    UBYTE only_active)
+{
+    SLONG i;
+
+    EWAY_Way* ew;
+
+    for (i = 1; i < EWAY_way_upto; i++) {
+        if (index >= EWAY_way_upto) {
+            index = 1;
+        }
+
+        ASSERT(WITHIN(index, 0, EWAY_way_upto - 1));
+
+        ew = &EWAY_way[index];
+
+        if ((colour == EWAY_DONT_CARE || colour == ew->colour) && (group == EWAY_DONT_CARE || group == ew->group) && (whatdo == EWAY_DONT_CARE || whatdo == ew->ed.type)) {
+            if (!only_active || (ew->flag & EWAY_FLAG_ACTIVE)) {
+                return index;
+            }
+        }
+
+        index += 1;
+    }
+
+    return EWAY_NO_MATCH;
+}
+
+// Picks a random waypoint matching colour/group, excluding 'not_this_index'.
+// Samples up to EWAY_FIND_RAND_MAX candidates. Returns index or EWAY_NO_MATCH.
+// uc_orig: EWAY_find_waypoint_rand (fallen/Source/eway.cpp)
+SLONG EWAY_find_waypoint_rand(
+    SLONG not_this_index,
+    SLONG colour,
+    SLONG group,
+    UBYTE only_active)
+{
+    SLONG i;
+    SLONG ans;
+
+    EWAY_Way* ew;
+
+// uc_orig: EWAY_FIND_RAND_MAX (fallen/Source/eway.cpp)
+#define EWAY_FIND_RAND_MAX 32
+
+    UWORD choice[EWAY_FIND_RAND_MAX];
+    SLONG choice_upto = 0;
+
+    for (i = 1; i < EWAY_way_upto; i++) {
+        if (i == not_this_index) {
+            continue;
+        }
+
+        ew = &EWAY_way[i];
+
+        if ((colour == EWAY_DONT_CARE || colour == ew->colour) && (group == EWAY_DONT_CARE || group == ew->group)) {
+            ASSERT(WITHIN(choice_upto, 0, EWAY_FIND_RAND_MAX - 1));
+
+            if (!only_active || (ew->flag & EWAY_FLAG_ACTIVE)) {
+                choice[choice_upto++] = i;
+
+                if (choice_upto >= EWAY_FIND_RAND_MAX) {
+                    break;
+                }
+            }
+        }
+    }
+
+    if (choice_upto == 0) {
+        ans = EWAY_NO_MATCH;
+    } else {
+        ans = choice[Random() % choice_upto];
+    }
+
+    return ans;
+}
+
+// Returns the index of the nearest active waypoint matching colour/group to the given world position.
+// uc_orig: EWAY_find_nearest_waypoint (fallen/Source/eway.cpp)
+SLONG EWAY_find_nearest_waypoint(
+    SLONG x,
+    SLONG y,
+    SLONG z,
+    SLONG colour,
+    SLONG group)
+{
+    SLONG i;
+
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+    SLONG dist;
+
+    SLONG best_dist = INFINITY;
+    SLONG best_waypoint = EWAY_NO_MATCH;
+
+    EWAY_Way* ew;
+
+    for (i = 1; i < EWAY_way_upto; i++) {
+        ew = &EWAY_way[i];
+
+        if ((colour == EWAY_DONT_CARE || colour == ew->colour) && (group == EWAY_DONT_CARE || group == ew->group)) {
+            if (ew->flag & EWAY_FLAG_ACTIVE) {
+                dx = abs(ew->x - x);
+                dy = abs(ew->y - y);
+                dz = abs(ew->z - z);
+
+                dist = QDIST3(dx, dy, dz);
+
+                if (dist < best_dist) {
+                    best_dist = dist;
+                    best_waypoint = i;
+                }
+            }
+        }
+    }
+
+    return best_waypoint;
+}
+
+// Returns the current scripted camera's position/orientation for the renderer.
+// If analogue controls are active and the player is still moving, camera grab is suppressed.
+// uc_orig: EWAY_grab_camera (fallen/Source/eway.cpp)
+SLONG EWAY_grab_camera(
+    SLONG* cam_x,
+    SLONG* cam_y,
+    SLONG* cam_z,
+    SLONG* cam_yaw,
+    SLONG* cam_pitch,
+    SLONG* cam_roll,
+    SLONG* cam_lens)
+{
+    if (EWAY_cam_active) {
+        // If there is analogue control and the player is still moving
+        // then we can't grab the camera because it'll confuse the player control.
+        extern SLONG analogue;
+
+        if (analogue && !EWAY_stop_player_moving()) {
+            return FALSE;
+        } else {
+            *cam_x = EWAY_cam_x;
+            *cam_y = EWAY_cam_y;
+            *cam_z = EWAY_cam_z;
+            *cam_yaw = EWAY_cam_yaw;
+            *cam_pitch = EWAY_cam_pitch;
+            *cam_roll = 1024 << 8;
+            *cam_lens = EWAY_cam_lens;
+        }
+    }
+
+    return EWAY_cam_active;
+}
+
+// Returns the warehouse byte for the active scripted camera.
+// During a conversation, returns the speaker's warehouse instead.
+// uc_orig: EWAY_camera_warehouse (fallen/Source/eway.cpp)
+UBYTE EWAY_camera_warehouse()
+{
+    if (EWAY_cam_active) {
+        if (EWAY_conv_active) {
+            if (EWAY_conv_person_a) {
+                ASSERT(TO_THING(EWAY_conv_person_a)->Class == CLASS_PERSON);
+
+                return TO_THING(EWAY_conv_person_a)->Genus.Person->Ware;
+            }
+        } else {
+            return EWAY_cam_warehouse;
+        }
+    }
+
+    return NULL;
+}
+
+// Flags a CREATE_ITEM waypoint as collected (sets EWAY_FLAG_GOTITEM).
+// Called when the player picks up the item this waypoint spawned.
+// uc_orig: EWAY_item_pickedup (fallen/Source/eway.cpp)
+void EWAY_item_pickedup(SLONG waypoint)
+{
+    EWAY_Way* ew;
+
+    ASSERT(WITHIN(waypoint, 1, EWAY_way_upto - 1));
+
+    ew = &EWAY_way[waypoint];
+
+    ASSERT(ew->ed.type == EWAY_DO_CREATE_ITEM);
+
+    ew->flag |= EWAY_FLAG_GOTITEM;
+}
+
+// Returns the delay (in ms) defined by a EWAY_DO_NOTHING waypoint, or default_delay if not applicable.
+// uc_orig: EWAY_get_delay (fallen/Source/eway.cpp)
+SLONG EWAY_get_delay(SLONG waypoint, SLONG default_delay)
+{
+    EWAY_Way* ew;
+
+    if (waypoint == 0) {
+        return default_delay;
+    }
+
+    ASSERT(WITHIN(waypoint, 1, EWAY_way_upto - 1));
+
+    ew = &EWAY_way[waypoint];
+
+    switch (ew->ed.type) {
+    case EWAY_DO_NOTHING:
+        return ew->ed.arg1 * 100;
+        break;
+
+    default:
+        return default_delay;
+        break;
+    }
+}
+
+// Returns TRUE if the given waypoint is currently active.
+// uc_orig: EWAY_is_active (fallen/Source/eway.cpp)
+SLONG EWAY_is_active(SLONG waypoint)
+{
+    EWAY_Way* ew;
+
+    ASSERT(WITHIN(waypoint, 1, EWAY_way_upto - 1));
+
+    ew = &EWAY_way[waypoint];
+
+    if (ew->flag & EWAY_FLAG_ACTIVE) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+// Searches for a COND_PERSON_USED waypoint referencing the given Thing,
+// fires it if found, and clears FLAG_PERSON_USEABLE on that Thing.
+// Returns TRUE if a MESSAGE waypoint was triggered.
+// uc_orig: EWAY_used_person (fallen/Source/eway.cpp)
+SLONG EWAY_used_person(UWORD t_index)
+{
+    UWORD i;
+    SLONG ans = FALSE;
+
+    EWAY_Way* ew;
+
+    for (i = 1; i < EWAY_way_upto; i++) {
+        ew = &EWAY_way[i];
+
+        if (ew->flag & EWAY_FLAG_DEAD) {
+            continue;
+        }
+
+        if (ew->ec.type == EWAY_COND_PERSON_USED) {
+            ASSERT(WITHIN(ew->ec.arg1, 1, EWAY_way_upto - 1));
+
+            if (EWAY_way[ew->ec.arg1].ed.type == EWAY_DO_CREATE_ENEMY) {
+                EWAY_Way* ew2 = &EWAY_way[ew->ec.arg1];
+
+                if (ew2->ed.arg1 == t_index) {
+                    EWAY_used_thing = t_index;
+
+                    EWAY_set_active(ew);
+
+                    EWAY_used_thing = NULL;
+
+                    ASSERT(TO_THING(t_index)->Class == CLASS_PERSON);
+
+                    TO_THING(t_index)->Genus.Person->Flags &= ~FLAG_PERSON_USEABLE;
+
+                    if (ew->ed.type == EWAY_DO_MESSAGE) {
+                        ans = TRUE;
+                    }
+                }
+            }
+        }
+    }
+
+    return ans;
+}
+
+// Returns the warehouse byte for a waypoint (set by EWAY_work_out_which_ones_are_in_warehouses).
+// uc_orig: EWAY_get_warehouse (fallen/Source/eway.cpp)
+UBYTE EWAY_get_warehouse(SLONG waypoint)
+{
+    UBYTE ans;
+
+    ASSERT(WITHIN(waypoint, 1, EWAY_way_upto - 1));
+
+    ans = EWAY_way[waypoint].ware;
+
+    return ans;
+}
+
+// Scans all waypoints and tags those located inside hidden buildings
+// (warehouses) with the containing warehouse index (ew->ware).
+// uc_orig: EWAY_work_out_which_ones_are_in_warehouses (fallen/Source/eway.cpp)
+void EWAY_work_out_which_ones_are_in_warehouses()
+{
+    SLONG i;
+
+    EWAY_Way* ew;
+
+    for (i = 1; i < EWAY_way_upto; i++) {
+        ew = &EWAY_way[i];
+
+        if (PAP_2HI(ew->x >> 8, ew->z >> 8).Flags & PAP_FLAG_HIDDEN) {
+            SLONG ware_top;
+
+            ware_top = PAP_calc_map_height_at(
+                ew->x,
+                ew->z);
+
+            if (ew->y < ware_top - 0x80) {
+                ew->ware = WARE_which_contains(
+                    ew->x >> 8,
+                    ew->z >> 8);
+            }
+        }
+    }
+}
+
+// Number of discrete viewing angles sampled when placing the EWAY cinematic camera.
+// Must be a power of 2.
+// uc_orig: EWAY_CAM_VIEW_ANGLES (fallen/Source/eway.cpp)
+#define EWAY_CAM_VIEW_ANGLES 16
+
+// Computes a camera world position at 'angle' steps around a Thing,
+// at a fixed lateral distance and elevation.
+// uc_orig: EWAY_cam_get_position_for_angle (fallen/Source/eway.cpp)
+void EWAY_cam_get_position_for_angle(
+    Thing* p_thing,
+    SLONG angle,
+    SLONG* vx,
+    SLONG* vy,
+    SLONG* vz)
+{
+    SLONG dx;
+    SLONG dz;
+
+    ASSERT(WITHIN(angle, 0, EWAY_CAM_VIEW_ANGLES - 1));
+
+    angle = angle * (2048 / EWAY_CAM_VIEW_ANGLES) + 100;
+    angle &= 2047;
+
+    dx = SIN(angle);
+    dz = COS(angle);
+
+    *vx = p_thing->WorldPos.X >> 8;
+    *vy = p_thing->WorldPos.Y >> 8;
+    *vz = p_thing->WorldPos.Z >> 8;
+
+    *vx += dx >> 7;
+    *vz += dz >> 7;
+    *vy += 0x140;
+}
+
+// Number of angles sampled when finding the best conversation camera position.
+// Must be a power of 2.
+// uc_orig: EWAY_CONVERSE_ANGLES (fallen/Source/eway.cpp)
+#define EWAY_CONVERSE_ANGLES 16
+
+// Positions the scripted camera for a two-person conversation.
+// Scores candidate positions based on LOS to both speakers, angle separation, and prim collision.
+// uc_orig: EWAY_cam_converse (fallen/Source/eway.cpp)
+void EWAY_cam_converse(Thing* p_thing, Thing* p_listener)
+{
+    SLONG i;
+    SLONG j;
+
+    SLONG x;
+    SLONG y;
+    SLONG z;
+
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+    SLONG dist;
+
+    SLONG cam_dist;
+
+    SLONG best_angle;
+    SLONG best_score;
+
+    SLONG side1;
+    SLONG side2;
+
+    SLONG angle1;
+    SLONG angle2;
+    SLONG dangle;
+
+    UBYTE score[EWAY_CONVERSE_ANGLES];
+
+    EWAY_cam_thing = THING_NUMBER(p_thing);
+    EWAY_cam_waypoint = NULL;
+    EWAY_cam_lens = 0x28000;
+    EWAY_cam_freeze = TRUE;
+    EWAY_cam_lock = FALSE;
+    EWAY_cam_goinactive = FALSE;
+
+    // If the current camera can see both speakers, don't move it needlessly.
+    if (EWAY_cam_active) {
+        x = EWAY_cam_x;
+        y = EWAY_cam_y;
+        z = EWAY_cam_z;
+    } else {
+        x = FC_cam[0].x;
+        y = FC_cam[0].y;
+        z = FC_cam[0].z;
+    }
+
+    dx = abs(p_thing->WorldPos.X - x);
+    dy = abs(p_thing->WorldPos.Y - y);
+    dz = abs(p_thing->WorldPos.Z - z);
+
+    dist = QDIST3(dx, dy, dz) >> 8;
+
+    if (WITHIN(dist, 0x180, 0x700) && 0) {
+        dx = abs(p_listener->WorldPos.X - x);
+        dy = abs(p_listener->WorldPos.Y - y);
+        dz = abs(p_listener->WorldPos.Z - z);
+
+        dist = QDIST3(dx, dy, dz) >> 8;
+
+        if (WITHIN(dist, 0x200, 0x700)) {
+            x >>= 8;
+            y >>= 8;
+            z >>= 8;
+
+            if (there_is_a_los(
+                    x, y, z,
+                    p_thing->WorldPos.X >> 8,
+                    p_thing->WorldPos.Y + 0x6000 >> 8,
+                    p_thing->WorldPos.Z >> 8,
+                    LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
+                if (there_is_a_los(
+                        x, y, z,
+                        p_listener->WorldPos.X >> 8,
+                        p_listener->WorldPos.Y + 0x6000 >> 8,
+                        p_listener->WorldPos.Z >> 8,
+                        LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
+                    EWAY_cam_x = x << 8;
+                    EWAY_cam_y = y << 8;
+                    EWAY_cam_z = z << 8;
+
+                    EWAY_cam_active = TRUE;
+
+                    return;
+                }
+            }
+        }
+    }
+
+    // Distance between speakers determines how far back the camera sits.
+    dx = p_listener->WorldPos.X - p_thing->WorldPos.X >> 8;
+    dz = p_listener->WorldPos.Z - p_thing->WorldPos.Z >> 8;
+
+    cam_dist = QDIST2(abs(dx), abs(dz));
+
+    SATURATE(cam_dist, 0x180, 0x300);
+
+    for (i = 0; i < EWAY_CONVERSE_ANGLES; i++) {
+        score[i] = 0;
+
+        dx = SIN(i * (2048 / EWAY_CONVERSE_ANGLES)) * cam_dist >> 16;
+        dz = COS(i * (2048 / EWAY_CONVERSE_ANGLES)) * cam_dist >> 16;
+
+        x = (p_thing->WorldPos.X >> 8) + dx;
+        y = (p_thing->WorldPos.Y >> 8) + 0x100;
+        z = (p_thing->WorldPos.Z >> 8) + dz;
+
+        if (!there_is_a_los(
+                x, y, z,
+                p_thing->WorldPos.X >> 8,
+                p_thing->WorldPos.Y + 0x6000 >> 8,
+                p_thing->WorldPos.Z >> 8,
+                LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG | LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
+            // Camera can't see the speaker — skip this angle.
+            continue;
+        }
+
+        score[i] += 40;
+
+        if (!there_is_a_los(
+                x, y, z,
+                p_thing->WorldPos.X >> 8,
+                p_thing->WorldPos.Y + 0x6000 >> 8,
+                p_thing->WorldPos.Z >> 8,
+                LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG | LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
+            // Camera can also see the listener — good.
+            score[i] += 25;
+        }
+
+        // Penalise angles where listener occludes speaker.
+        dx = (p_thing->WorldPos.X >> 8) - x;
+        dz = (p_thing->WorldPos.Z >> 8) - z;
+
+        angle1 = calc_angle(dx, dz);
+
+        dx = (p_listener->WorldPos.X >> 8) - x;
+        dz = (p_listener->WorldPos.Z >> 8) - z;
+
+        angle2 = calc_angle(dx, dz);
+
+        dangle = angle2 - angle1;
+
+        if (dangle < -1024) {
+            dangle += 2048;
+        }
+        if (dangle > +1024) {
+            dangle -= 2048;
+        }
+
+        if (abs(dangle) > 100) {
+            // Speakers are visually separated — good.
+            score[i] += 15;
+        }
+
+        // Bonus for seeing the speaker's face.
+        dangle = angle1 - p_thing->Draw.Tweened->Angle;
+
+        if (dangle < -1024) {
+            dangle += 2048;
+        }
+        if (dangle > +1024) {
+            dangle -= 2048;
+        }
+
+        if (abs(dangle) < 400) {
+            score[i] += 10;
+        }
+
+        // Penalise positions that intersect primitives along the camera path.
+        dx = (p_thing->WorldPos.X >> 8) - x >> 3;
+        dy = (p_thing->WorldPos.Y >> 8) - y >> 3;
+        dz = (p_thing->WorldPos.Z >> 8) - z >> 3;
+
+        for (j = 0; j < 8; j++) {
+            if (OB_inside_prim(x, y, z)) {
+                score[i] -= 5;
+            }
+
+            x += dx;
+            y += dy;
+            z += dz;
+        }
+    }
+
+    // Halve score for angles adjacent to 0 (avoids camera near walls).
+    for (i = 0; i < EWAY_CONVERSE_ANGLES; i++) {
+        side1 = (i - 1) & (EWAY_CONVERSE_ANGLES - 1);
+        side2 = (i + 1) & (EWAY_CONVERSE_ANGLES - 1);
+
+        if (side1 == 0 || side2 == 0) {
+            score[i] >>= 1;
+        }
+    }
+
+    best_angle = -1;
+    best_score = 0;
+
+    for (i = 0; i < EWAY_CONVERSE_ANGLES; i++) {
+        if (score[i] > best_score) {
+            best_score = score[i];
+            best_angle = i;
+        }
+    }
+
+    if (best_score == 0) {
+        // Emergency fallback: place camera midway between speakers.
+        EWAY_cam_x = p_thing->WorldPos.X + p_listener->WorldPos.X >> 1;
+        EWAY_cam_y = p_thing->WorldPos.Y + p_listener->WorldPos.Y >> 1;
+        EWAY_cam_z = p_thing->WorldPos.Z + p_listener->WorldPos.Z >> 1;
+
+        EWAY_cam_y += 0x30000;
+    } else {
+        SLONG division = 2048 / EWAY_CONVERSE_ANGLES;
+        SLONG angle = best_angle * division;
+
+        // Modulate angle randomly within the winning sector.
+        angle += (Random() & (division - 1)) - (division / 2);
+        angle &= 2047;
+
+        dx = SIN(angle) * cam_dist >> 8;
+        dz = COS(angle) * cam_dist >> 8;
+
+        // Interpolate target point 0–50% from speaker toward listener.
+        SLONG rnd = Random() & 127;
+
+        x = ((p_listener->WorldPos.X >> 8) - (p_thing->WorldPos.X >> 8)) * rnd;
+        y = ((p_listener->WorldPos.Y >> 8) - (p_thing->WorldPos.Y >> 8)) * rnd;
+        z = ((p_listener->WorldPos.Z >> 8) - (p_thing->WorldPos.Z >> 8)) * rnd;
+
+        x += p_thing->WorldPos.X;
+        y += p_thing->WorldPos.Y;
+        z += p_thing->WorldPos.Z;
+
+        EWAY_cam_targx = x;
+        EWAY_cam_targy = y + 0xA000;
+        EWAY_cam_targz = z;
+
+        EWAY_cam_x = x + dx;
+        EWAY_cam_y = y + 0x10000;
+        EWAY_cam_z = z + dz;
+
+        EWAY_cam_target = 0;
+        EWAY_cam_thing = 0;
+    }
+
+    EWAY_cam_active = TRUE;
+}
+
+// Positions the scripted camera to look at a single Thing (used for scripted cut-scenes).
+// Scores EWAY_CAM_VIEW_ANGLES candidate positions by LOS and facing; picks best.
+// uc_orig: EWAY_cam_look_at (fallen/Source/eway.cpp)
+void EWAY_cam_look_at(Thing* p_thing)
+{
+    SLONG i;
+
+    SLONG dx;
+    SLONG dz;
+
+    SLONG cx;
+    SLONG cz;
+
+    SLONG dprod;
+
+    SLONG vx;
+    SLONG vy;
+    SLONG vz;
+
+    SLONG score;
+
+    SLONG best_angle;
+    SLONG best_score;
+
+    UWORD thing_yaw;
+    UWORD angle;
+
+    SLONG view[EWAY_CAM_VIEW_ANGLES];
+
+    // Get the facing direction of the target.
+    switch (p_thing->Class) {
+    case CLASS_PERSON:
+        thing_yaw = p_thing->Draw.Tweened->Angle;
+        break;
+
+    case CLASS_VEHICLE:
+        thing_yaw = p_thing->Genus.Vehicle->Angle;
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+
+    dx = -SIN(thing_yaw);
+    dz = -COS(thing_yaw);
+
+    // Score each candidate angle: positive dot product (camera behind target) + LOS.
+    for (i = 0; i < EWAY_CAM_VIEW_ANGLES; i++) {
+        EWAY_cam_get_position_for_angle(
+            p_thing,
+            i,
+            &vx,
+            &vy,
+            &vz);
+
+        if (there_is_a_los(
+                vx, vy, vz,
+                (p_thing->WorldPos.X >> 8),
+                (p_thing->WorldPos.Y >> 8) + 0x80,
+                (p_thing->WorldPos.Z >> 8),
+                0)) {
+            cx = vx - (p_thing->WorldPos.X >> 8);
+            cz = vz - (p_thing->WorldPos.Z >> 8);
+
+            dprod = dx * cx + dz * cz;
+
+            if (dprod < 1000) {
+                dprod = 1000;
+            }
+
+            view[i] = dprod;
+        } else {
+            view[i] = FALSE;
+        }
+    }
+
+    best_score = 0;
+
+    // Use a deterministic-but-varied seed based on Thing position.
+    ULONG seed = p_thing->WorldPos.X ^ p_thing->WorldPos.Z;
+
+    for (i = 0; i < EWAY_CAM_VIEW_ANGLES; i++) {
+        seed *= 69069;
+        seed += 1;
+
+        if (!view[i]) {
+            continue;
+        }
+
+        score = seed & 0x3ffff;
+        score += 1; // In case (seed & 0xfff) is zero.
+        score += view[i];
+
+        if (view[(i - 1) & (EWAY_CAM_VIEW_ANGLES - 1)]) {
+            score += seed & 0x3ffff;
+        }
+        if (view[(i + 1) & (EWAY_CAM_VIEW_ANGLES - 1)]) {
+            score += seed & 0x3ffff;
+        }
+
+        if (score > best_score) {
+            EWAY_cam_get_position_for_angle(
+                p_thing,
+                i,
+                &vx,
+                &vy,
+                &vz);
+
+            best_score = score;
+            best_angle = i;
+        }
+    }
+
+    if (best_score) {
+        EWAY_cam_get_position_for_angle(
+            p_thing,
+            best_angle,
+            &EWAY_cam_x,
+            &EWAY_cam_y,
+            &EWAY_cam_z);
+    } else {
+        // Fallback: place camera slightly behind the Thing.
+        EWAY_cam_x = p_thing->WorldPos.X >> 8;
+        EWAY_cam_y = p_thing->WorldPos.Y >> 8;
+        EWAY_cam_z = p_thing->WorldPos.Z >> 8;
+
+        EWAY_cam_x -= dx >> 8;
+        EWAY_cam_y += 0x140;
+        EWAY_cam_z -= dz >> 8;
+    }
+
+    EWAY_cam_active = TRUE;
+    EWAY_cam_thing = THING_NUMBER(p_thing);
+    EWAY_cam_waypoint = NULL;
+    EWAY_cam_freeze = TRUE;
+
+    EWAY_cam_x <<= 8;
+    EWAY_cam_y <<= 8;
+    EWAY_cam_z <<= 8;
+}
+
+// Begins the fade-out transition back from the scripted camera to the player camera.
+// Sets goinactive=2 so the camera fades over two ticks before releasing.
+// uc_orig: EWAY_cam_relinquish (fallen/Source/eway.cpp)
+void EWAY_cam_relinquish()
+{
+    EWAY_cam_goinactive = 2;
+
+    /*
+
+    EWAY_cam_jumped=1;
+    EWAY_cam_active   = FALSE;
+    EWAY_cam_thing    = NULL;
+    EWAY_cam_waypoint = NULL;
+    EWAY_cam_freeze   = FALSE;
+
+    */
+}
+
+// Finds the waypoint that spawned a given person, or creates a dummy waypoint for it.
+// Used to associate pre-existing Things (e.g. the player) with the EWAY system.
+// uc_orig: EWAY_find_or_create_waypoint_that_created_person (fallen/Source/eway.cpp)
+SLONG EWAY_find_or_create_waypoint_that_created_person(Thing* p_person)
+{
+    SLONG i;
+
+    EWAY_Way* ew;
+
+    for (i = 1; i < EWAY_way_upto; i++) {
+        ew = &EWAY_way[i];
+
+        if (EWAY_get_person(i) == THING_NUMBER(p_person)) {
+            return i;
+        }
+    }
+
+    ASSERT(WITHIN(EWAY_way_upto, 1, EWAY_MAX_WAYS - 1));
+
+    ew = &EWAY_way[EWAY_way_upto];
+
+    ew->flag = EWAY_FLAG_ACTIVE | EWAY_FLAG_DEAD;
+    ew->ed.type = EWAY_DO_CREATE_ENEMY;
+    ew->ed.arg1 = THING_NUMBER(p_person);
+
+    return EWAY_way_upto++;
+}
+
+// Returns TRUE if a scripted conversation is currently playing,
+// and fills person_a/person_b with the Thing indices of the two speakers.
+// uc_orig: EWAY_conversation_happening (fallen/Source/eway.cpp)
+SLONG EWAY_conversation_happening(
+    THING_INDEX* person_a,
+    THING_INDEX* person_b)
+{
+    if (EWAY_conv_active) {
+        *person_a = EWAY_conv_person_a;
+        *person_b = EWAY_conv_person_b;
+
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+// Called when a prim (interactive object) is activated by the player.
+// Sets EWAY_FLAG_TRIGGERED on any waypoint waiting for that prim's activation.
+// uc_orig: EWAY_prim_activated (fallen/Source/eway.cpp)
+void EWAY_prim_activated(SLONG ob_index)
+{
+    SLONG i;
+
+    EWAY_Way* ew;
+
+    for (i = 1; i < EWAY_way_upto; i++) {
+        ew = &EWAY_way[i];
+
+        if (ew->ec.type == EWAY_COND_PRIM_ACTIVATED && ew->ec.arg1 == ob_index) {
+            ew->flag |= EWAY_FLAG_TRIGGERED;
+
+            return;
+        }
+    }
+}
+
+// Deducts a time penalty (in hundredths of a second) from all active COUNTDOWN_SEE timers.
+// Used for driving missions: hitting a cone deducts time from the player's countdown.
+// uc_orig: EWAY_deduct_time_penalty (fallen/Source/eway.cpp)
+void EWAY_deduct_time_penalty(SLONG time_to_deduct_in_hundreths_of_a_second)
+{
+    SLONG i;
+
+    EWAY_Way* ew;
+
+    for (i = 0; i < EWAY_MAX_WAYS; i++) {
+        ew = &EWAY_way[i];
+
+        if (ew->ec.type == EWAY_COND_COUNTDOWN_SEE) {
+            SLONG depend = ew->ec.arg1;
+
+            ASSERT(depend == 0 || WITHIN(depend, 1, EWAY_way_upto - 1));
+
+            if (!depend || (EWAY_way[depend].flag & EWAY_FLAG_ACTIVE)) {
+                if (ew->ec.arg2 < time_to_deduct_in_hundreths_of_a_second) {
+                    ew->ec.arg2 = 0;
+                } else {
+                    ew->ec.arg2 -= time_to_deduct_in_hundreths_of_a_second;
+                }
+            }
+        }
+    }
+}

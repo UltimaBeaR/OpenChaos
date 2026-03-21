@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 80 — missions/eway (четвёртый чанк, финальный: EWAY_set_inactive..EWAY_deduct_time_penalty) (2026-03-21)
+
+- `old/fallen/Source/eway.cpp` заменён redirect-заглушкой. `new/missions/eway.cpp` теперь полный.
+- `analogue` — inline-`extern` внутри `EWAY_grab_camera`, как в оригинале; объявлен в `Game.h` → отдельный forward decl не нужен.
+- `timer` в `EWAY_deduct_time_penalty` — объявлен но не использован в оригинале (`SLONG timer = ew->ec.arg2`); удалён чтобы избежать предупреждения, логика не затронута.
+- `SLONG id` в `EWAY_work_out_which_ones_are_in_warehouses` — аналогично, удалён (unused).
+- `people_types` extern — уже в entity mapping (supermap_globals); дублирующую запись не добавляли.
+
+---
+
 ## Итерация 79 — missions/eway (третий чанк: EWAY_finish_conversation + EWAY_process_conversation + EWAY_process_emit_steam + EWAY_set_active) (2026-03-21)
 
 - `old/fallen/Source/eway.cpp`: перенесены 4 функции (~1430 строк) через `#if 0 // MIGRATED` блок. Остаток (`EWAY_set_inactive`..`EWAY_deduct_time_penalty`) — следующая итерация.

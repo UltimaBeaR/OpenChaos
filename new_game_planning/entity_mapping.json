@@ -50319,6 +50319,306 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_set_inactive",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_set_inactive",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_stop_player_moving",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_stop_player_moving",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_process_penalties",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_process_penalties",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "count_people_types",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "count_people_types",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_process",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_process",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_get_position",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_get_position",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_get_angle",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_get_angle",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_get_person",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_get_person",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_find_waypoint",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_find_waypoint",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_find_waypoint_rand",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_find_waypoint_rand",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_find_nearest_waypoint",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_find_nearest_waypoint",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_grab_camera",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_grab_camera",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_camera_warehouse",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_camera_warehouse",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_item_pickedup",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_item_pickedup",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_get_delay",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_get_delay",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_is_active",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_is_active",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_used_person",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_used_person",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_get_warehouse",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_get_warehouse",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_work_out_which_ones_are_in_warehouses",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_work_out_which_ones_are_in_warehouses",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_get_position_for_angle",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_cam_get_position_for_angle",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_converse",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_cam_converse",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_look_at",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_cam_look_at",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_cam_relinquish",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_cam_relinquish",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_find_or_create_waypoint_that_created_person",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_find_or_create_waypoint_that_created_person",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_conversation_happening",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_conversation_happening",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_prim_activated",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_prim_activated",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_deduct_time_penalty",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_deduct_time_penalty",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_CAM_VIEW_ANGLES",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_CAM_VIEW_ANGLES",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_CONVERSE_ANGLES",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_CONVERSE_ANGLES",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EWAY_FIND_RAND_MAX",
+      "file": "new/missions/eway.cpp",
+      "orig_name": "EWAY_FIND_RAND_MAX",
+      "orig_file": "fallen/Source/eway.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -209,25 +209,27 @@ void EWAY_process_emit_steam(EWAY_Way* ew);
 // uc_orig: EWAY_set_active (fallen/Source/eway.cpp)
 void EWAY_set_active(EWAY_Way* ew);
 
-// ====================================================
-// Not-yet-migrated function declarations (still in old/fallen/Source/eway.cpp)
-// ====================================================
-
+// Deactivates a waypoint and runs its teardown actions (close door, fence off, beacon remove).
 // uc_orig: EWAY_set_inactive (fallen/Source/eway.cpp)
 void EWAY_set_inactive(EWAY_Way* ew);
 
+// Returns non-zero if player movement should be frozen (scripted camera active + freeze, or cut scene).
 // uc_orig: EWAY_stop_player_moving (fallen/Source/eway.cpp)
 SLONG EWAY_stop_player_moving(void);
 
+// Animates the cone-penalty count-up display after a driving mission timer expires.
 // uc_orig: EWAY_process_penalties (fallen/Source/eway.cpp)
 void EWAY_process_penalties(void);
 
+// Counts CREATE_ENEMY waypoints per subtype into people_types[]. Starts with early return (dead code preserved).
 // uc_orig: count_people_types (fallen/Source/eway.cpp)
 void count_people_types(void);
 
+// Main mission update: evaluates all waypoints each frame, ticks conversation/penalties/camera.
 // uc_orig: EWAY_process (fallen/Source/eway.cpp)
 void EWAY_process(void);
 
+// Returns world-space position of a waypoint.
 // uc_orig: EWAY_get_position (fallen/Source/eway.cpp)
 void EWAY_get_position(
     SLONG waypoint,
@@ -235,15 +237,19 @@ void EWAY_get_position(
     SLONG* world_y,
     SLONG* world_z);
 
+// Returns waypoint facing angle (yaw << 3).
 // uc_orig: EWAY_get_angle (fallen/Source/eway.cpp)
 UWORD EWAY_get_angle(SLONG waypoint);
 
+// Returns Thing index spawned by a CREATE_ENEMY/PLAYER/VEHICLE/ANIMAL waypoint, or NULL.
 // uc_orig: EWAY_get_person (fallen/Source/eway.cpp)
 UWORD EWAY_get_person(SLONG waypoint);
 
+// Returns warehouse index for a waypoint (0 if not inside a hidden building).
 // uc_orig: EWAY_get_warehouse (fallen/Source/eway.cpp)
 UBYTE EWAY_get_warehouse(SLONG waypoint);
 
+// Circular search for a waypoint matching type/colour/group. Returns index or EWAY_NO_MATCH.
 // uc_orig: EWAY_find_waypoint (fallen/Source/eway.cpp)
 SLONG EWAY_find_waypoint(
     SLONG index,
@@ -252,6 +258,7 @@ SLONG EWAY_find_waypoint(
     SLONG group,
     UBYTE only_active);
 
+// Picks a random waypoint matching colour/group (excluding not_this_index). Returns index or EWAY_NO_MATCH.
 // uc_orig: EWAY_find_waypoint_rand (fallen/Source/eway.cpp)
 SLONG EWAY_find_waypoint_rand(
     SLONG not_this_index,
@@ -259,6 +266,7 @@ SLONG EWAY_find_waypoint_rand(
     SLONG group,
     UBYTE only_active);
 
+// Returns index of nearest active waypoint matching colour/group to (x,y,z), or EWAY_NO_MATCH.
 // uc_orig: EWAY_find_nearest_waypoint (fallen/Source/eway.cpp)
 SLONG EWAY_find_nearest_waypoint(
     SLONG x,
@@ -267,6 +275,7 @@ SLONG EWAY_find_nearest_waypoint(
     SLONG colour,
     SLONG group);
 
+// Fills camera pose from the active scripted camera. Returns FALSE if suppressed by analogue controls.
 // uc_orig: EWAY_grab_camera (fallen/Source/eway.cpp)
 SLONG EWAY_grab_camera(
     SLONG* cam_x,
@@ -277,24 +286,31 @@ SLONG EWAY_grab_camera(
     SLONG* cam_roll,
     SLONG* cam_lens);
 
+// Returns warehouse index for the active scripted camera (or speaker's warehouse during conversation).
 // uc_orig: EWAY_camera_warehouse (fallen/Source/eway.cpp)
 UBYTE EWAY_camera_warehouse(void);
 
+// Flags a CREATE_ITEM waypoint as collected (player picked up the spawned item).
 // uc_orig: EWAY_item_pickedup (fallen/Source/eway.cpp)
 void EWAY_item_pickedup(SLONG waypoint);
 
+// Returns delay in ms from a EWAY_DO_NOTHING waypoint, or default_delay if not applicable.
 // uc_orig: EWAY_get_delay (fallen/Source/eway.cpp)
 SLONG EWAY_get_delay(SLONG waypoint, SLONG default_delay);
 
+// Returns TRUE if the given waypoint is currently active.
 // uc_orig: EWAY_is_active (fallen/Source/eway.cpp)
 SLONG EWAY_is_active(SLONG waypoint);
 
+// Triggers COND_PERSON_USED waypoints for the given Thing; clears FLAG_PERSON_USEABLE.
 // uc_orig: EWAY_used_person (fallen/Source/eway.cpp)
 SLONG EWAY_used_person(UWORD t_index);
 
+// Tags all waypoints inside hidden buildings with the containing warehouse index.
 // uc_orig: EWAY_work_out_which_ones_are_in_warehouses (fallen/Source/eway.cpp)
 void EWAY_work_out_which_ones_are_in_warehouses(void);
 
+// Computes a candidate camera world position at discrete angle 'angle' around a Thing.
 // uc_orig: EWAY_cam_get_position_for_angle (fallen/Source/eway.cpp)
 void EWAY_cam_get_position_for_angle(
     Thing* p_thing,
@@ -303,26 +319,33 @@ void EWAY_cam_get_position_for_angle(
     SLONG* vy,
     SLONG* vz);
 
+// Positions the scripted camera for a two-person conversation using scored LOS sampling.
 // uc_orig: EWAY_cam_converse (fallen/Source/eway.cpp)
 void EWAY_cam_converse(Thing* p_thing, Thing* p_listener);
 
+// Positions the scripted camera to look at a single Thing, picking best angle by LOS+facing score.
 // uc_orig: EWAY_cam_look_at (fallen/Source/eway.cpp)
 void EWAY_cam_look_at(Thing* p_thing);
 
+// Begins the fade-out back from scripted camera to player camera (sets goinactive=2).
 // uc_orig: EWAY_cam_relinquish (fallen/Source/eway.cpp)
 void EWAY_cam_relinquish(void);
 
+// Returns waypoint index that spawned p_person; creates a dummy waypoint if not found.
 // uc_orig: EWAY_find_or_create_waypoint_that_created_person (fallen/Source/eway.cpp)
 SLONG EWAY_find_or_create_waypoint_that_created_person(Thing* p_person);
 
+// Returns TRUE if a scripted conversation is active; fills person_a/person_b with speaker indices.
 // uc_orig: EWAY_conversation_happening (fallen/Source/eway.cpp)
 SLONG EWAY_conversation_happening(
     THING_INDEX* person_a,
     THING_INDEX* person_b);
 
+// Sets EWAY_FLAG_TRIGGERED on any waypoint waiting for ob_index's prim activation.
 // uc_orig: EWAY_prim_activated (fallen/Source/eway.cpp)
 void EWAY_prim_activated(SLONG ob_index);
 
+// Deducts time_to_deduct (hundredths/sec) from all active COUNTDOWN_SEE timers (driving penalty).
 // uc_orig: EWAY_deduct_time_penalty (fallen/Source/eway.cpp)
 void EWAY_deduct_time_penalty(SLONG time_to_deduct_in_hundreths_of_a_second);
 
