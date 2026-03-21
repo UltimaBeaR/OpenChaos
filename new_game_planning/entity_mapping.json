@@ -34319,6 +34319,876 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "init_projectiles",
+      "file": "new/actors/items/projectile.cpp",
+      "orig_name": "init_projectiles",
+      "orig_file": "fallen/Source/Pjectile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_projectile",
+      "file": "new/actors/items/projectile.cpp",
+      "orig_name": "alloc_projectile",
+      "orig_file": "fallen/Source/Pjectile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_projectile",
+      "file": "new/actors/items/projectile.cpp",
+      "orig_name": "free_projectile",
+      "orig_file": "fallen/Source/Pjectile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_PROJECTILES",
+      "file": "new/actors/items/projectile.h",
+      "orig_name": "MAX_PROJECTILES",
+      "orig_file": "fallen/Headers/Pjectile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PROJECTILE_NONE",
+      "file": "new/actors/items/projectile.h",
+      "orig_name": "PROJECTILE_NONE",
+      "orig_file": "fallen/Headers/Pjectile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PROJECTILE_TEST",
+      "file": "new/actors/items/projectile.h",
+      "orig_name": "PROJECTILE_TEST",
+      "orig_file": "fallen/Headers/Pjectile.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Projectile",
+      "file": "new/actors/items/projectile.h",
+      "orig_name": "Projectile",
+      "orig_file": "fallen/Headers/Pjectile.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ProjectilePtr",
+      "file": "new/actors/items/projectile.h",
+      "orig_name": "ProjectilePtr",
+      "orig_file": "fallen/Headers/Pjectile.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUND_FXMapping",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "SOUND_FXMapping",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUND_FXGroups",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "SOUND_FXGroups",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "world_type",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "world_type",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "music_id",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "music_id",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "creature_time",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "creature_time",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "siren_time",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "siren_time",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "in_sewer_time",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "in_sewer_time",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "thunder_time",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "thunder_time",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "wind_id",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "wind_id",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tick_tock",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "tick_tock",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "indoors_id",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "indoors_id",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "outdoors_id",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "outdoors_id",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "rain_id",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "rain_id",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "rain_id2",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "rain_id2",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "thunder_id",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "thunder_id",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "indoors_vol",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "indoors_vol",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "outdoors_vol",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "outdoors_vol",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "weather_vol",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "weather_vol",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "music_vol",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "music_vol",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_music",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "next_music",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUNDFXG",
+      "file": "new/engine/audio/sound_globals.h",
+      "orig_name": "SOUNDFXG",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAVE_PLAY_INTERRUPT",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "WAVE_PLAY_INTERRUPT",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAVE_PLAY_NO_INTERRUPT",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "WAVE_PLAY_NO_INTERRUPT",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WAVE_PLAY_INTERRUPT_LOOPS",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "WAVE_PLAY_INTERRUPT_LOOPS",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WORLD_TYPE_CITY_POP",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "WORLD_TYPE_CITY_POP",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WORLD_TYPE_CITY_UNPOP",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "WORLD_TYPE_CITY_UNPOP",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WORLD_TYPE_FOREST",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "WORLD_TYPE_FOREST",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WORLD_TYPE_SNOW",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "WORLD_TYPE_SNOW",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WORLD_TYPE_DESERT",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "WORLD_TYPE_DESERT",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WIND_REF",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "WIND_REF",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WEATHER_REF",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "WEATHER_REF",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THUNDER_REF",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "THUNDER_REF",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SIREN_REF",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "SIREN_REF",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "AMBIENT_EFFECT_REF",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "AMBIENT_EFFECT_REF",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MUSIC_REF",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "MUSIC_REF",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUND_Range",
+      "file": "new/engine/audio/sound.h",
+      "orig_name": "SOUND_Range",
+      "orig_file": "fallen/Headers/Sound.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_ambient",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "init_ambient",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SND_BeginAmbient",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "SND_BeginAmbient",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "process_ambient_effects",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "process_ambient_effects",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "process_weather",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "process_weather",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUND_reset",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "SOUND_reset",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUND_Gender",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "SOUND_Gender",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUND_Curious",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "SOUND_Curious",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DieSound",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "DieSound",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PainSound",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "PainSound",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EffortSound",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "EffortSound",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MinorEffortSound",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "MinorEffortSound",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ScreamFallSound",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "ScreamFallSound",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "StopScreamFallSound",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "StopScreamFallSound",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUND_InitFXGroups",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "SOUND_InitFXGroups",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "play_ambient_wave",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "play_ambient_wave",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "play_glue_wave",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "play_glue_wave",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "play_music",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "play_music",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SOUND_SewerPrecalc",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "SOUND_SewerPrecalc",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SewerSoundProcess",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "SewerSoundProcess",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "WorldType",
+      "file": "new/engine/audio/sound_globals.h",
+      "orig_name": "WorldType",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HeightType",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "HeightType",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "wtype",
+      "file": "new/engine/audio/sound_globals.cpp",
+      "orig_name": "wtype",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "go_into_game",
+      "file": "new/ui/attract_globals.cpp",
+      "orig_name": "go_into_game",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "auto_advance",
+      "file": "new/ui/attract_globals.cpp",
+      "orig_name": "auto_advance",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "current_playback",
+      "file": "new/ui/attract_globals.cpp",
+      "orig_name": "current_playback",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "playbacks",
+      "file": "new/ui/attract_globals.cpp",
+      "orig_name": "playbacks",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_PLAYBACKS",
+      "file": "new/ui/attract.h",
+      "orig_name": "MAX_PLAYBACKS",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "any_button_pressed",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "any_button_pressed",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "game_attract_mode",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "game_attract_mode",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ScoresDraw",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "ScoresDraw",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ATTRACT_loadscreen_init",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "ATTRACT_loadscreen_init",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ATTRACT_loadscreen_draw",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "ATTRACT_loadscreen_draw",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "level_won",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "level_won",
+      "orig_file": "fallen/Headers/attract.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "level_lost",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "level_lost",
+      "orig_file": "fallen/Headers/attract.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "demo_text",
+      "file": "new/ui/attract_globals.cpp",
+      "orig_name": "demo_text",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NEW_FRONTEND",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "NEW_FRONTEND",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SCORE_SPACER",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "SCORE_SPACER",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "printf2d",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "printf2d",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Mime",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "Mime",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "mucky_times",
+      "file": "new/ui/attract.cpp",
+      "orig_name": "mucky_times",
+      "orig_file": "fallen/Source/Attract.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PlayAmbient3D",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "PlayAmbient3D",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "new_outdoors_effects",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "new_outdoors_effects",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "indoors_waves",
+      "file": "new/engine/audio/sound.cpp",
+      "orig_name": "indoors_waves",
+      "orig_file": "fallen/Source/Sound.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

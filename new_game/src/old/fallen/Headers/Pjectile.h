@@ -1,32 +1,7 @@
-// Pjectile.h
-// Guy Simmons, 4th January 1998.
-
+// Pjectile.h — redirect to new location
 #ifndef FALLEN_HEADERS_PJECTILE_H
 #define FALLEN_HEADERS_PJECTILE_H
 
-//---------------------------------------------------------------
-
-#define MAX_PROJECTILES 10
-
-#define PROJECTILE_NONE 0
-#define PROJECTILE_TEST 1
-
-//---------------------------------------------------------------
-
-typedef struct
-{
-    COMMON(ProjectileType)
-
-} Projectile;
-
-typedef Projectile* ProjectilePtr;
-
-//---------------------------------------------------------------
-
-void init_projectiles(void);
-Thing* alloc_projectile(UBYTE type);
-void free_projectile(Thing* proj_thing);
-
-//---------------------------------------------------------------
+#include "actors/items/projectile.h"
 
 #endif // FALLEN_HEADERS_PJECTILE_H

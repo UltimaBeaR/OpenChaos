@@ -527,3 +527,15 @@ Entity mapping обновлён (33 записи — file path).
 - `guns.cpp`: dead code `calc_target_score` + `find_target` (old gun targeting в `/* */` в оригинале) — не перенесён
 
 ---
+
+## Итерация 53 — actors/items/projectile + engine/audio/sound + ui/attract (2026-03-21)
+
+- `wtype` (`static WorldType wtype`) — в оригинале file-private в `sound.cpp`; вынесен в `sound_globals` по правилу; `WorldType` enum тоже в `sound_globals.h`
+- `world_type` init в `sound_globals.cpp` = литерал `1` (не `WORLD_TYPE_CITY_POP`) — circular include: `sound_globals.cpp` не может включать `sound.h`
+- `process_weather` вызывает `PAP_calc_map_height_at` → `sound.cpp` включает `world/map/pap.h`; отмечено `// Temporary:` (DAG нарушение `engine/audio/` → `world/map/`)
+- `SOUND_SewerPrecalc` / `SewerSoundProcess` — тела закомментированы в оригинале; перенесены как пустые стабы
+- `demo_text` — в оригинале `static CBYTE demo_text[]` в `Attract.cpp`; вынесен в `attract_globals` по правилу
+- `attract.cpp` include fix: оригинал использовал относительный путь `"..\Headers\ddlib.h"` — не существует в иерархии `src/old/`; заменён на `"fallen/DDLibrary/Headers/DDlib.h"`
+- `playbacks[]` в attract_globals.cpp — строки с `\\` (Windows path сепаратор); оставлены 1:1, это data assets
+
+---

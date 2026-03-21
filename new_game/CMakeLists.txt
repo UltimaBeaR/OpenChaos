@@ -247,7 +247,8 @@ set(SOURCES_OUTRO
 
 set(SOURCES_GAME
     src/old/fallen/Source/Anim.cpp
-    src/old/fallen/Source/Attract.cpp
+    src/new/ui/attract.cpp
+    src/new/ui/attract_globals.cpp
     src/new/actors/items/barrel.cpp
     src/new/actors/items/barrel_globals.cpp
     src/old/fallen/Source/bat.cpp
@@ -291,7 +292,7 @@ set(SOURCES_GAME
     src/new/ui/pause.cpp
     src/old/fallen/Source/pcom.cpp
     src/old/fallen/Source/Person.cpp
-    src/old/fallen/Source/Pjectile.cpp
+    src/new/actors/items/projectile.cpp
     src/new/world/environment/plat.cpp
     src/new/world/environment/plat_globals.cpp
     src/old/fallen/Source/playcuts.cpp
@@ -309,7 +310,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/shadow.cpp
     src/new/engine/physics/sm.cpp
     src/new/engine/physics/sm_globals.cpp
-    src/old/fallen/Source/Sound.cpp
+    src/new/engine/audio/sound.cpp
+    src/new/engine/audio/sound_globals.cpp
     src/old/fallen/Source/Special.cpp
     src/new/world/environment/stair.cpp
     src/new/world/environment/stair_globals.cpp
