@@ -50619,6 +50619,736 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_HISTORY",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "MAX_HISTORY",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_MOVES",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "MAX_MOVES",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COMBAT_NONE",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "COMBAT_NONE",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COMBAT_PUNCH",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "COMBAT_PUNCH",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COMBAT_KICK",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "COMBAT_KICK",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COMBAT_KNIFE",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "COMBAT_KNIFE",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GangAttack",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "GangAttack",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FightTree",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "FightTree",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Grapples",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "Grapples",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIGHT_TREE_DAMAGE",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "FIGHT_TREE_DAMAGE",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIGHT_TREE_HIT_TYPE",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "FIGHT_TREE_HIT_TYPE",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fight_tree",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "fight_tree",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "take_hit",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "take_hit",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "punches",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "punches",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "kicks",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "kicks",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "grapples",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "grapples",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "grapple",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "grapple",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "found",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "found",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "gang_attacks",
+      "file": "new/ai/combat_globals.h",
+      "orig_name": "gang_attacks",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_GUN_SHOT_H",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_GUN_SHOT_H",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_GUN_SHOT_M",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_GUN_SHOT_M",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_GUN_SHOT_L",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_GUN_SHOT_L",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_PUNCH_H",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_PUNCH_H",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_PUNCH_M",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_PUNCH_M",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_PUNCH_L",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_PUNCH_L",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_KICK_H",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_KICK_H",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_KICK_M",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_KICK_M",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_KICK_L",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_KICK_L",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_GUN_SHOT_PISTOL",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_GUN_SHOT_PISTOL",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_GUN_SHOT_SHOTGUN",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_GUN_SHOT_SHOTGUN",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIT_TYPE_GUN_SHOT_AK47",
+      "file": "new/ai/combat.h",
+      "orig_name": "HIT_TYPE_GUN_SHOT_AK47",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_DIR_FRONT",
+      "file": "new/ai/combat.h",
+      "orig_name": "FIND_DIR_FRONT",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_DIR_BACK",
+      "file": "new/ai/combat.h",
+      "orig_name": "FIND_DIR_BACK",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_DIR_LEFT",
+      "file": "new/ai/combat.h",
+      "orig_name": "FIND_DIR_LEFT",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_DIR_RIGHT",
+      "file": "new/ai/combat.h",
+      "orig_name": "FIND_DIR_RIGHT",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_DIR_TURN_LEFT",
+      "file": "new/ai/combat.h",
+      "orig_name": "FIND_DIR_TURN_LEFT",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_DIR_TURN_RIGHT",
+      "file": "new/ai/combat.h",
+      "orig_name": "FIND_DIR_TURN_RIGHT",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_DIR_MASK",
+      "file": "new/ai/combat.h",
+      "orig_name": "FIND_DIR_MASK",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_DIR_DONT_TURN",
+      "file": "new/ai/combat.h",
+      "orig_name": "FIND_DIR_DONT_TURN",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FIND_BEST_USE_DEFAULT",
+      "file": "new/ai/combat.h",
+      "orig_name": "FIND_BEST_USE_DEFAULT",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_combat_type_for_node",
+      "file": "new/ai/combat.h",
+      "orig_name": "get_combat_type_for_node",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_anim_and_node_for_action",
+      "file": "new/ai/combat.h",
+      "orig_name": "get_anim_and_node_for_action",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_gangattack",
+      "file": "new/ai/combat.h",
+      "orig_name": "init_gangattack",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_gangattack",
+      "file": "new/ai/combat.h",
+      "orig_name": "get_gangattack",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "people_allowed_to_hit_each_other",
+      "file": "new/ai/combat.h",
+      "orig_name": "people_allowed_to_hit_each_other",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "should_i_block",
+      "file": "new/ai/combat.h",
+      "orig_name": "should_i_block",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "apply_violence",
+      "file": "new/ai/combat.h",
+      "orig_name": "apply_violence",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "apply_hit_to_person",
+      "file": "new/ai/combat.h",
+      "orig_name": "apply_hit_to_person",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_attack_stance",
+      "file": "new/ai/combat.h",
+      "orig_name": "find_attack_stance",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "turn_to_target",
+      "file": "new/ai/combat.h",
+      "orig_name": "turn_to_target",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "turn_to_direction_and_find_target",
+      "file": "new/ai/combat.h",
+      "orig_name": "turn_to_direction_and_find_target",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "turn_to_target_and_punch",
+      "file": "new/ai/combat.h",
+      "orig_name": "turn_to_target_and_punch",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "turn_to_target_and_kick",
+      "file": "new/ai/combat.h",
+      "orig_name": "turn_to_target_and_kick",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_best_grapple",
+      "file": "new/ai/combat.h",
+      "orig_name": "find_best_grapple",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "is_person_under_attack_low_level",
+      "file": "new/ai/combat.h",
+      "orig_name": "is_person_under_attack_low_level",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "is_person_under_attack",
+      "file": "new/ai/combat.h",
+      "orig_name": "is_person_under_attack",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "is_anyone_nearby_alive",
+      "file": "new/ai/combat.h",
+      "orig_name": "is_anyone_nearby_alive",
+      "orig_file": "fallen/Headers/combat.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_possible_combat_target",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "find_possible_combat_target",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_possible_grapple_target",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "find_possible_grapple_target",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_hit_value",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "find_hit_value",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_grapple_value",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "find_grapple_value",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_grapple_pos",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "set_grapple_pos",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_grapple",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "set_grapple",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_anim_fight_height",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "find_anim_fight_height",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "show_fight_range",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "show_fight_range",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_combat_hit_with_person",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "check_combat_hit_with_person",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_combat_grapple_with_person",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "check_combat_grapple_with_person",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_hit_from_behind",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "check_hit_from_behind",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "is_combo_anim",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "is_combo_anim",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "find_combat_target",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "find_combat_target",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COMBAT_HIT_DIST_LEEWAY",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "COMBAT_HIT_DIST_LEEWAY",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STANCE_DIST_LEEWAY",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "STANCE_DIST_LEEWAY",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STANCE_DANGLE_IMPORTANCE",
+      "file": "new/ai/combat.cpp",
+      "orig_name": "STANCE_DANGLE_IMPORTANCE",
+      "orig_file": "fallen/Source/Combat.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

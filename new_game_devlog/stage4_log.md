@@ -1,4 +1,15 @@
-# Лог Этапа 4 — Реструктуризация кодовой базы
+# Лог Этапа 4 — Реструктуризация кодовая базы
+
+## Итерация 81 — ai/combat (fallen/Source/Combat.cpp, 2957 строк) (2026-03-21)
+
+- `find_attack_stance` в оригинальном `combat.h` объявлена с 6 параметрами, но реализация (и все вызывающие) использует 7 (плюс `attack_range`). Новый заголовок использует правильную 7-параметровую сигнатуру.
+- `found[16]` — file-scope глобал без `static`, использовался как буфер во всех функциях одного TU → по правилам переехал в `_globals`.
+- `is_anyone_nearby_alive` — объявлена в старом `combat.h`, но нигде не определена. Оставлена как мёртвое объявление в `new/ai/combat.h` для совместимости.
+- `func(void)` — пустая функция-заглушка (только закомментированный printf). Удалена как мёртвый код.
+- Зависимости вверх по DAG: `ui/hud/overlay.h` (track_enemy) и `missions/eway.h` (EWAY_get_person, check_eway_talk) — tech debt оригинала, воспроизведён 1:1.
+- 3 inline-`#define` внутри функций (COMBAT_HIT_DIST_LEEWAY, STANCE_DIST_LEEWAY, STANCE_DANGLE_IMPORTANCE) — найдены при review без uc_orig; исправлено.
+
+---
 
 ## Итерация 80 — missions/eway (четвёртый чанк, финальный: EWAY_set_inactive..EWAY_deduct_time_penalty) (2026-03-21)
 

@@ -275,7 +275,8 @@ set(SOURCES_GAME
     src/new/ui/menus/cnet.cpp
     src/new/ui/menus/cnet_globals.cpp
     src/old/fallen/Source/collide.cpp
-    src/old/fallen/Source/combat.cpp
+    src/new/ai/combat.cpp
+    src/new/ai/combat_globals.cpp
     src/old/fallen/Source/Controls.cpp
     src/old/fallen/Source/dirt.cpp
     src/new/world/environment/door.cpp
