@@ -40869,6 +40869,1496 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_NUM_STANDARD",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_NUM_STANDARD",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_MAX_TEXTURES",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_MAX_TEXTURES",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_DC_Pack",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_DC_Pack",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_texture",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_texture",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_crinkle",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_crinkle",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_dontexist",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_dontexist",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_needed",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_needed",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_set",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_set",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_fiddled",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_fiddled",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_bitmap",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shadow_bitmap",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_pitch",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shadow_pitch",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_mask_red",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shadow_mask_red",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_mask_green",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shadow_mask_green",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_mask_blue",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shadow_mask_blue",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_mask_alpha",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shadow_mask_alpha",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_shift_red",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shadow_shift_red",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_shift_green",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shadow_shift_green",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_shift_blue",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shadow_shift_blue",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_shift_alpha",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shadow_shift_alpha",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shared_dir",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shared_dir",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_world_dir",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_world_dir",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_fx_inifile",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_fx_inifile",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shared_fx_inifile",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_shared_fx_inifile",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_prims_dir",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_prims_dir",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_inside_dir",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_inside_dir",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_people_dir",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_people_dir",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_people_dir2",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_people_dir2",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_num_textures",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_num_textures",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_num_standard",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_num_standard",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_snowflake",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_snowflake",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_sparkle",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_sparkle",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_explode2",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_explode2",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_explode1",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_explode1",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_bigbang",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_bigbang",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_face1",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_face1",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_face2",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_face2",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_face3",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_face3",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_face4",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_face4",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_face5",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_face5",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_face6",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_face6",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_fog",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_fog",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_moon",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_moon",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_clouds",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_clouds",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_water",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_water",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_puddle",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_puddle",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_drip",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_drip",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_shadow",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_shadow",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_bang",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_bang",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_font",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_font",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_logo",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_logo",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_sky",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_sky",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_flames",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_flames",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_smoke",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_smoke",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_flame2",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_flame2",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_steam",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_steam",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_menuflame",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_menuflame",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_barbwire",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_barbwire",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_font2d",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_font2d",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_dustwave",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_dustwave",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_flames3",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_flames3",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_bloodsplat",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_bloodsplat",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_bloom1",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_bloom1",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_bloom2",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_bloom2",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_hitspang",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_hitspang",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_lensflare",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_lensflare",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_tyretrack",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_tyretrack",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_envmap",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_envmap",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_winmap",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_winmap",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_leaf",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_leaf",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_raindrop",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_raindrop",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_footprint",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_footprint",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_angel",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_angel",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_devil",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_devil",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_smoker",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_smoker",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_target",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_target",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_newfont",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_newfont",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_droplet",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_droplet",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_press1",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_press1",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_press2",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_press2",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_ic",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_ic",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_ic2",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_ic2",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_lcdfont",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_lcdfont",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_smokecloud",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_smokecloud",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_menulogo",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_menulogo",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_polaroid",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_polaroid",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_bigbutton",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_bigbutton",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_bigleaf",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_bigleaf",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_bigrain",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_bigrain",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_finalglow",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_finalglow",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_tinybutt",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_tinybutt",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_lcdfont_alpha",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_lcdfont_alpha",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_flames_alpha",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_flames_alpha",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_tyretrack_alpha",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_tyretrack_alpha",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_people3",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_people3",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_ladder",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_ladder",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_fadecat",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_fadecat",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_fade_MF",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_fade_MF",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_shadowoval",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_shadowoval",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_rubbish",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_rubbish",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_lastpanel",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_lastpanel",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_lastpanel2",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_lastpanel2",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_sign",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_sign",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_pcflamer",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_pcflamer",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_shadowsquare",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_shadowsquare",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_litebolt",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_litebolt",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_ladshad",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_ladshad",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_meteor",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_meteor",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_page_splash",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_page_splash",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_liney",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_liney",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_av_r",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_av_r",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_av_g",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_av_g",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_av_b",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_av_b",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_create_clump",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_create_clump",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alt_texture",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "alt_texture",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_DC_pack",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_DC_pack",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_DC_pack_page_upto",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_DC_pack_page_upto",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_DC_pack_page_pos",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_DC_pack_page_pos",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_DC_pack_normal_upto",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "TEXTURE_DC_pack_normal_upto",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "IndividualTextures",
+      "file": "new/assets/texture_globals.h",
+      "orig_name": "IndividualTextures",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_DC_pack_init",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_DC_pack_init",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_DC_pack_load_page",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_DC_pack_load_page",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_choose_set",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_choose_set",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_load_page",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_load_page",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_initialise_clumping",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_initialise_clumping",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_load_needed",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_load_needed",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_load_needed_object",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_load_needed_object",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_free",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_free",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_free_unneeded",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_free_unneeded",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_get_handle",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_get_handle",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_get_D3DTexture",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_get_D3DTexture",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_get_minitexturebits_uvs",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_get_minitexturebits_uvs",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_fix_texture_styles",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_fix_texture_styles",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_fix_prim_textures",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_fix_prim_textures",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_set_colour_key",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_set_colour_key",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_lock",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_shadow_lock",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_unlock",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_shadow_unlock",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_shadow_update",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_shadow_update",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_set_greyscale",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_set_greyscale",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_86_lock",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_86_lock",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_86_unlock",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_86_unlock",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_86_update",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_86_update",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_set_tga",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_set_tga",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_looks_like",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_looks_like",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_get_fiddled_position",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_get_fiddled_position",
+      "orig_file": "fallen/Glide Engine/Source/gltexture.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_NORM_SIZE",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_NORM_SIZE",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_NORM_SQUARES",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_NORM_SQUARES",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_ENABLE_DC_PACKING",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_ENABLE_DC_PACKING",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_DC_PACK_POS_WHOLE_PAGE",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_DC_PACK_POS_WHOLE_PAGE",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_DC_NORMAL_START",
+      "file": "new/assets/texture.cpp",
+      "orig_name": "TEXTURE_DC_NORMAL_START",
+      "orig_file": "fallen/DDEngine/Source/texture.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

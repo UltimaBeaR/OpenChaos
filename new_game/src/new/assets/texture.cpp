@@ -1,286 +1,53 @@
-// claude-ai: OVERVIEW — texture.cpp
-// claude-ai: Texture loading, caching and management for the Direct3D renderer.
-// claude-ai: Textures are organised into PAGES — integer indices into TEXTURE_texture[].
-// claude-ai: The page index is the primary key used throughout the renderer to identify a texture.
-// claude-ai:
-// claude-ai: TEXTURE PAGE LAYOUT (max TEXTURE_MAX_TEXTURES = 22*64 + 160 = 1568 slots):
-// claude-ai:   Pages 0   .. 4*64-1  : world textures (tex000.tga .. tex255.tga in TEXTURE_world_dir)
-// claude-ai:   Pages 4*64.. 8*64-1  : shared textures (in TEXTURE_shared_dir)
-// claude-ai:   Pages 8*64.. 9*64-1  : inside textures (in TEXTURE_inside_dir)
-// claude-ai:   Pages 9*64..11*64-1  : people textures (in TEXTURE_people_dir)
-// claude-ai:   Pages 11*64..18*64-1 : prims textures (in TEXTURE_prims_dir)
-// claude-ai:   Pages 18*64..21*64-1 : people2 textures (in TEXTURE_people_dir2)
-// claude-ai:   Pages 22*64..+159    : special effect textures (snowflake, explode, face, fog, etc.)
-// claude-ai:   Add FACE_PAGE_OFFSET to mesh UV page values to get the actual TEXTURE_texture[] index.
-// claude-ai:
-// claude-ai: TEXTURE FILE FORMATS:
-// claude-ai:   .tga files  — TGA 24-bit RGB images. Individual tiles, not atlases.
-// claude-ai:   tex%03d.tga    — 32x32 low-res version
-// claude-ai:   tex%03dhi.tga  — 64x64 high-res version (preferred on PC)
-// claude-ai:   tex%03dto.tga  — 128x128 super-res version
-// claude-ai:   .txc files  — clump file: multiple TGA pages bundled into one file for faster loading.
-// claude-ai:                  See TEXTURE_initialise_clumping() — on PC, textures are loaded from the .txc clump.
-// claude-ai:                  Located in clumps/ subdirectory, named after the level file (e.g. level1.txc).
-// claude-ai:
-// claude-ai: TEXTURE_NORM_SIZE = 32 — the base tile size in pixels.
-// claude-ai: TEXTURE_NORM_SQUARES = 8 — not used for atlas, just a grouping constant.
-// claude-ai:
-// claude-ai: KEY FUNCTIONS:
-// claude-ai:   TEXTURE_choose_set(n)    — sets directories for world n, frees old world textures, loads flags.
-// claude-ai:   TEXTURE_load_page(page)  — loads one TGA into TEXTURE_texture[page] via D3DTexture::LoadTextureTGA().
-// claude-ai:   TEXTURE_get_page(page)   — lazy-loads a page if not yet loaded (demand loading).
-// claude-ai:   TEXTURE_initialise_clumping() — sets up the .txc bundle file system for fast texture load.
-// claude-ai:
-// claude-ai: CLUMPING (PC optimization):
-// claude-ai:   On PC, all texture pages for a level are pre-bundled into a .txc file (see clumps/ directory).
-// claude-ai:   Clump file = sequential TGA data. OpenTGAClump() opens it, then LoadTextureTGA() reads from it.
-// claude-ai:   IndividualTextures=false means "use clump", true means "load individual TGA files".
-// claude-ai:
-// claude-ai: CRINKLE DATA:
-// claude-ai:   Each world/shared texture page can have a .sex file (CRINKLE_load) with normal-map like data
-// claude-ai:   used for bump-mapped specular highlights on the Crinkle system (special lighting effect).
-// claude-ai:   TEXTURE_crinkle[page] stores the loaded crinkle handle. NOT related to bumpmapping in new game.
-// claude-ai:
-// claude-ai: 2-PASS TEXTURES (masked self-illuminating):
-// claude-ai:   If POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS: this page is drawn in two passes.
-// claude-ai:   Pass 1: page itself; Pass 2: page+1 (the illumination mask).
-// claude-ai:   Used for neon signs, lit windows. Loading page auto-loads page+1.
-// claude-ai:   NEW GAME: implement with blending or alpha channel instead of two passes.
-// claude-ai:
-// claude-ai: TEXTURE_shadow_bitmap:
-// claude-ai:   A raw 16bpp pixel buffer for the shadow texture page, directly written by the shadow renderer.
-// claude-ai:   Separate from the normal TGA pipeline.
-// claude-ai:
-// claude-ai: D3D TEXTURE OBJECT:
-// claude-ai:   D3DTexture wraps an IDirectDrawSurface7 (the D3D texture surface).
-// claude-ai:   Methods: LoadTextureTGA(), Destroy(), LockUser(), UnlockUser().
-// claude-ai:   NEW GAME: replace with GLuint texture handle + glTexImage2D from the TGA pixel data.
-// claude-ai:
-// claude-ai: NEW GAME NOTES:
-// claude-ai:   - Keep the page numbering system and TEXTURE_texture[] array concept (just change type to GLuint)
-// claude-ai:   - Keep TEXTURE_choose_set() structure (set active texture set, free old, lazy-load new)
-// claude-ai:   - Replace .txc bundle with a similar streaming system or just load individual TGAs
-// claude-ai:   - Textures can be loaded on demand: TEXTURE_get_page() pattern is fine
-// claude-ai:   - For animated textures (FACE_FLAG_ANIMATE): keep anim_tmap system, just update UV per frame
+#include <MFStdLib.h>
+#include <string.h>
+#include <stdlib.h>
+#include "fallen/Headers/Game.h"
+#include "assets/texture.h"
+#include "assets/texture_globals.h"
+#include "fallen/DDEngine/Headers/aeng.h"
+#include "assets/anim_tmap.h"
+#include "fallen/Headers/supermap.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "world/map/pap.h"
+#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/resources/d3d_texture.h"
+#include "engine/lighting/crinkle.h"
+#include "engine/graphics/pipeline/message.h"
+#include "engine/audio/sound.h"
+#include "world/environment/ware.h"
+#include "engine/graphics/resources/truetype.h"
+#include "engine/graphics/resources/font2d.h"
+#include "engine/io/env.h"
+#include "engine/io/drive.h"
+#include "assets/tga.h"
+#include "fallen/Headers/memory.h"
+#include "fallen/Headers/io.h" // Temporary: TEXTURE_WORLD_DIR declared here until io.cpp is migrated
 
-//
-// Texture handling.
-//
-
-#include "game.h"
-#include <DDLib.h>
-#include "..\ddlibrary\headers\tga.h"
-#include "texture.h"
-#include "..\headers\animtmap.h"
-#include "..\headers\supermap.h"
-#include "poly.h"
-#include "pap.h"
-#include "ns.h"
-#include "memory.h"
-#include "..\headers\io.h"
-#include "..\headers\inside2.h"
-#include "sound.h"
-#include "ware.h"
-#include "truetype.h"
-#include "font2d.h"
-#include "env.h"
-#include "drive.h"
-#include "..\headers\attract.h"
-#include "crinkle.h"
-int TEXTURE_create_clump = 0;
-
-//
-// The current texture set and the current texture directory
-// for first four texture pages.
-//
-
-CBYTE TEXTURE_shared_dir[_MAX_PATH];
-CBYTE TEXTURE_world_dir[_MAX_PATH];
-CBYTE TEXTURE_fx_inifile[_MAX_PATH];
-CBYTE TEXTURE_shared_fx_inifile[_MAX_PATH];
-CBYTE TEXTURE_prims_dir[_MAX_PATH];
-CBYTE TEXTURE_inside_dir[_MAX_PATH];
-CBYTE TEXTURE_people_dir[_MAX_PATH];
-CBYTE TEXTURE_people_dir2[_MAX_PATH];
-SLONG TEXTURE_set;
-
-//
-// Are we using normal or fiddled pages?
-//
-
-SLONG TEXTURE_fiddled;
-
-UWORD* TEXTURE_shadow_bitmap;
-SLONG TEXTURE_shadow_pitch; // In bytes!
-SLONG TEXTURE_shadow_mask_red;
-SLONG TEXTURE_shadow_mask_green;
-SLONG TEXTURE_shadow_mask_blue;
-SLONG TEXTURE_shadow_mask_alpha;
-SLONG TEXTURE_shadow_shift_red;
-SLONG TEXTURE_shadow_shift_green;
-SLONG TEXTURE_shadow_shift_blue;
-SLONG TEXTURE_shadow_shift_alpha;
-
-//
-// Hmm...
-//
-
-extern UWORD floor_texture_sizes[];
-
-#define TEXTURE_NUM_STANDARD (22 * 64)
-#define TEXTURE_MAX_TEXTURES (TEXTURE_NUM_STANDARD + 160)
-#define TEXTURE_NORM_SIZE 32
+// Internal page-count constants.
+// uc_orig: TEXTURE_NORM_SIZE (fallen/DDEngine/Source/texture.cpp)
+#define TEXTURE_NORM_SIZE    32
+// uc_orig: TEXTURE_NORM_SQUARES (fallen/DDEngine/Source/texture.cpp)
 #define TEXTURE_NORM_SQUARES 8
-#define PEOPLE3_ALT 21 * 64
 
-//
-// Texutre pages that don't exist.
-//
-
-UBYTE TEXTURE_dontexist[TEXTURE_MAX_TEXTURES];
-
-// Texture pages that are "needed", i.e. used by the frontend.
-UBYTE TEXTURE_needed[TEXTURE_MAX_TEXTURES];
-
-//
-// The texture pages.
-//
-
-// claude-ai: Direct3D API — replace with: GLuint TEXTURE_texture[TEXTURE_MAX_TEXTURES];
-// claude-ai: Each slot holds the OpenGL texture name for that page (0 = not loaded yet).
-D3DTexture TEXTURE_texture[TEXTURE_MAX_TEXTURES];
-
-//
-// The crinkle for each standard texture page.
-//
-
-CRINKLE_Handle TEXTURE_crinkle[22 * 64];
-
-//
-// The textures.
-//
-
-SLONG TEXTURE_page_num_standard;
-
-SLONG TEXTURE_page_snowflake;
-SLONG TEXTURE_page_sparkle;
-SLONG TEXTURE_page_explode2;
-SLONG TEXTURE_page_explode1;
-SLONG TEXTURE_page_bigbang;
-SLONG TEXTURE_page_face1;
-SLONG TEXTURE_page_face2;
-SLONG TEXTURE_page_face3;
-SLONG TEXTURE_page_face4;
-SLONG TEXTURE_page_face5;
-SLONG TEXTURE_page_face6;
-SLONG TEXTURE_page_fog;
-SLONG TEXTURE_page_moon;
-SLONG TEXTURE_page_clouds;
-SLONG TEXTURE_page_water;
-SLONG TEXTURE_page_puddle;
-SLONG TEXTURE_page_drip;
-SLONG TEXTURE_page_shadow;
-SLONG TEXTURE_page_bang;
-SLONG TEXTURE_page_font;
-SLONG TEXTURE_page_logo;
-SLONG TEXTURE_page_sky;
-SLONG TEXTURE_page_flames;
-SLONG TEXTURE_page_smoke;
-SLONG TEXTURE_page_flame2;
-SLONG TEXTURE_page_steam;
-SLONG TEXTURE_page_menuflame;
-SLONG TEXTURE_page_barbwire;
-SLONG TEXTURE_page_font2d;
-SLONG TEXTURE_page_dustwave;
-SLONG TEXTURE_page_flames3;
-SLONG TEXTURE_page_bloodsplat;
-SLONG TEXTURE_page_bloom1;
-SLONG TEXTURE_page_bloom2;
-SLONG TEXTURE_page_hitspang;
-SLONG TEXTURE_page_lensflare;
-SLONG TEXTURE_page_envmap;
-SLONG TEXTURE_page_tyretrack;
-SLONG TEXTURE_page_winmap;
-SLONG TEXTURE_page_leaf;
-SLONG TEXTURE_page_raindrop;
-SLONG TEXTURE_page_footprint;
-SLONG TEXTURE_page_angel;
-SLONG TEXTURE_page_devil;
-SLONG TEXTURE_page_smoker;
-SLONG TEXTURE_page_target;
-SLONG TEXTURE_page_newfont;
-SLONG TEXTURE_page_droplet;
-SLONG TEXTURE_page_press1;
-SLONG TEXTURE_page_press2;
-SLONG TEXTURE_page_ic;
-SLONG TEXTURE_page_ic2;
-SLONG TEXTURE_page_lcdfont;
-SLONG TEXTURE_page_smokecloud;
-SLONG TEXTURE_page_menulogo;
-SLONG TEXTURE_page_polaroid;
-SLONG TEXTURE_page_bigbutton;
-SLONG TEXTURE_page_bigleaf;
-SLONG TEXTURE_page_bigrain;
-SLONG TEXTURE_page_finalglow;
-SLONG TEXTURE_page_tinybutt;
-SLONG TEXTURE_page_tyretrack_alpha;
-SLONG TEXTURE_page_people3;
-SLONG TEXTURE_page_ladder;
-SLONG TEXTURE_page_fadecat;
-SLONG TEXTURE_page_fade_MF;
-SLONG TEXTURE_page_shadowoval;
-SLONG TEXTURE_page_rubbish;
-SLONG TEXTURE_page_lastpanel;
-SLONG TEXTURE_page_lastpanel2;
-SLONG TEXTURE_page_sign;
-SLONG TEXTURE_page_pcflamer;
-SLONG TEXTURE_page_shadowsquare;
-SLONG TEXTURE_page_litebolt;
-SLONG TEXTURE_page_ladshad;
-SLONG TEXTURE_page_meteor;
-SLONG TEXTURE_page_splash;
-
-// ========================================================
-//
-// THE DC PAGING SYSTEM
-//
-
-#define TEXTURE_ENABLE_DC_PACKING 0
+// DC packing system state (Dreamcast feature, disabled on PC).
+// uc_orig: TEXTURE_ENABLE_DC_PACKING (fallen/DDEngine/Source/texture.cpp)
+#define TEXTURE_ENABLE_DC_PACKING      0
+// uc_orig: TEXTURE_DC_PACK_POS_WHOLE_PAGE (fallen/DDEngine/Source/texture.cpp)
 #define TEXTURE_DC_PACK_POS_WHOLE_PAGE 42
+// uc_orig: TEXTURE_DC_NORMAL_START (fallen/DDEngine/Source/texture.cpp)
+#define TEXTURE_DC_NORMAL_START        128
 
-typedef struct
-{
-    UBYTE page;
-    UBYTE pos; // 0 - 8 or TEXTURE_DC_PACK_POS_WHOLE_PAGE
-
-} TEXTURE_DC_Pack;
-
-TEXTURE_DC_Pack TEXTURE_DC_pack[256];
-
-SLONG TEXTURE_DC_pack_page_upto; // Which page we are packing into
-SLONG TEXTURE_DC_pack_page_pos; // The position on the pack page that is free (0 - 8)
-SLONG TEXTURE_DC_pack_normal_upto; // Goes up in increments of 2 so we have a gap after each page.
-
-//
-// Where normal textures start from.
-//
-
-#define TEXTURE_DC_NORMAL_START 128
-
-//
-// Initialise the packing.
-//
-
-void TEXTURE_DC_pack_init(void)
+// uc_orig: TEXTURE_DC_pack_init (fallen/DDEngine/Source/texture.cpp)
+static void TEXTURE_DC_pack_init(void)
 {
     memset(TEXTURE_DC_pack, 0, sizeof(TEXTURE_DC_pack));
-
     TEXTURE_DC_pack_page_upto = 0;
     TEXTURE_DC_pack_page_pos = 0;
     TEXTURE_DC_pack_normal_upto = TEXTURE_DC_NORMAL_START;
 }
 
-void TEXTURE_DC_pack_load_page(SLONG page)
+// uc_orig: TEXTURE_DC_pack_load_page (fallen/DDEngine/Source/texture.cpp)
+static void TEXTURE_DC_pack_load_page(SLONG page)
 {
     SLONG i;
     SLONG actual_page;
@@ -288,36 +55,13 @@ void TEXTURE_DC_pack_load_page(SLONG page)
 
     sprintf(name_res64, "%stex%03dhi.tga", TEXTURE_world_dir, page);
 
-    //
-    // The packing only works for the world textures.
-    //
-
     ASSERT(WITHIN(page, 0, 255));
 
-    //
-    // Does this page get packed or does it become a normal page?
-    //
-
     if (POLY_page_flag[page]) {
-        //
-        // This is a normal page because it is drawn in a strange way. If
-        // this page is drawn as the second pass of a 2-pass texture, then
-        // it must be the actual_page after the preceeding page....
-        //
-
         if (page > 0 && (POLY_page_flag[page - 1] & POLY_PAGE_FLAG_2PASS)) {
-            //
-            // Find the preceeding page.
-            //
-
             ASSERT(TEXTURE_DC_pack[page - 1].pos == TEXTURE_DC_PACK_POS_WHOLE_PAGE);
-
             actual_page = TEXTURE_DC_pack[page - 1].page + 1;
         } else {
-            //
-            // Use the next normal gap.
-            //
-
             page = TEXTURE_DC_pack_normal_upto;
             TEXTURE_DC_pack_normal_upto += 2;
         }
@@ -325,7 +69,6 @@ void TEXTURE_DC_pack_load_page(SLONG page)
         ASSERT(WITHIN(actual_page, 0, 255));
 
         TEXTURE_texture[actual_page].LoadTextureTGA(name_res64, actual_page);
-
         TEXTURE_DC_pack[page].page = actual_page;
         TEXTURE_DC_pack[page].pos = TEXTURE_DC_PACK_POS_WHOLE_PAGE;
     } else {
@@ -335,21 +78,9 @@ void TEXTURE_DC_pack_load_page(SLONG page)
 
         tt = &TEXTURE_texture[TEXTURE_DC_pack_page_upto];
 
-        //
-        // We can pack this texture.
-        //
-
         if (TEXTURE_DC_pack_page_pos == 0) {
-            //
-            // Create a new 256x256 texture.
-            //
-
             tt->CreateUserPage(256, FALSE);
         }
-
-        //
-        // Load the TGA.
-        //
 
         TGA_Pixel* tga = (TGA_Pixel*)malloc(sizeof(TGA_Pixel) * 64 * 64);
         TGA_Info ti = TGA_load(name_res64, 64, 64, tga, 0, FALSE);
@@ -358,51 +89,30 @@ void TEXTURE_DC_pack_load_page(SLONG page)
             UWORD* bitmap;
             SLONG pitch;
 
-            //
-            // Lock the texture and copy over the data into the texture.
-            //
-
             tt->LockUser(&bitmap, &pitch);
 
             if (bitmap) {
                 SLONG x;
                 SLONG y;
-
                 SLONG fx;
                 SLONG fy;
-
                 SLONG tx;
                 SLONG ty;
-
                 SLONG base_x;
                 SLONG base_y;
-
                 SLONG pixel;
-
-                //
-                // What is the base (x,y) for this pos?
-                //
 
                 ASSERT(WITHIN(TEXTURE_DC_pack_page_pos, 0, 8));
 
                 base_x = (TEXTURE_DC_pack_page_pos % 3) * 64 + 32;
                 base_y = (TEXTURE_DC_pack_page_pos / 3) * 64 + 32;
 
-                //
-                // The pitch is returned in bytes!
-                //
-
                 pitch >>= 1;
-
-                //
-                // Copy over the texture.
-                //
 
                 for (x = 0; x < 64; x++)
                     for (y = 0; y < 64; y++) {
                         fx = x;
                         fy = y;
-
                         tx = base_x + x;
                         ty = base_y + y;
 
@@ -414,150 +124,64 @@ void TEXTURE_DC_pack_load_page(SLONG page)
                         bitmap[tx + ty * pitch] = pixel;
                     }
 
-                //
-                // Now do the edges...
-                //
-
+                // Edge padding: top, bottom, left, right
                 for (i = 0; i < 64; i++) {
-                    //
-                    // Top...
-                    //
-
-                    fx = i;
-                    fy = 0;
-
-                    tx = base_x + i;
-                    ty = base_y - 1;
-
+                    fx = i; fy = 0; tx = base_x + i; ty = base_y - 1;
                     pixel = 0;
                     pixel |= (tga[fx + fy * 64].red >> tt->mask_red) << tt->mask_red;
                     pixel |= (tga[fx + fy * 64].green >> tt->mask_red) << tt->mask_green;
                     pixel |= (tga[fx + fy * 64].blue >> tt->mask_red) << tt->mask_blue;
-
                     bitmap[tx + ty * pitch] = pixel;
 
-                    //
-                    // Bottom...
-                    //
-
-                    fx = i;
-                    fy = 63;
-
-                    tx = base_x + i;
-                    ty = base_y + 64;
-
+                    fx = i; fy = 63; tx = base_x + i; ty = base_y + 64;
                     pixel = 0;
                     pixel |= (tga[fx + fy * 64].red >> tt->mask_red) << tt->mask_red;
                     pixel |= (tga[fx + fy * 64].green >> tt->mask_red) << tt->mask_green;
                     pixel |= (tga[fx + fy * 64].blue >> tt->mask_red) << tt->mask_blue;
-
                     bitmap[tx + ty * pitch] = pixel;
 
-                    //
-                    // Left...
-                    //
-
-                    fx = 0;
-                    fy = i;
-
-                    tx = base_x - 1;
-                    ty = base_y + i;
-
+                    fx = 0; fy = i; tx = base_x - 1; ty = base_y + i;
                     pixel = 0;
                     pixel |= (tga[fx + fy * 64].red >> tt->mask_red) << tt->mask_red;
                     pixel |= (tga[fx + fy * 64].green >> tt->mask_red) << tt->mask_green;
                     pixel |= (tga[fx + fy * 64].blue >> tt->mask_red) << tt->mask_blue;
-
                     bitmap[tx + ty * pitch] = pixel;
 
-                    //
-                    // Right...
-                    //
-
-                    fx = 63;
-                    fy = i;
-
-                    tx = base_x + 64;
-                    ty = base_y + i;
-
+                    fx = 63; fy = i; tx = base_x + 64; ty = base_y + i;
                     pixel = 0;
                     pixel |= (tga[fx + fy * 64].red >> tt->mask_red) << tt->mask_red;
                     pixel |= (tga[fx + fy * 64].green >> tt->mask_red) << tt->mask_green;
                     pixel |= (tga[fx + fy * 64].blue >> tt->mask_red) << tt->mask_blue;
-
                     bitmap[tx + ty * pitch] = pixel;
                 }
 
-                //
-                // Now do the corners.
-                //
-
-                //
-                // Top left...
-                //
-
-                fx = 0;
-                fy = 0;
-
-                tx = base_x - 1;
-                ty = base_y - 1;
-
+                // Corner padding
+                fx = 0; fy = 0; tx = base_x - 1; ty = base_y - 1;
                 pixel = 0;
                 pixel |= (tga[fx + fy * 64].red >> tt->mask_red) << tt->mask_red;
                 pixel |= (tga[fx + fy * 64].green >> tt->mask_red) << tt->mask_green;
                 pixel |= (tga[fx + fy * 64].blue >> tt->mask_red) << tt->mask_blue;
-
                 bitmap[tx + ty * pitch] = pixel;
 
-                //
-                // Bottom right...
-                //
-
-                fx = 63;
-                fy = 63;
-
-                tx = base_x + 64;
-                ty = base_y + 64;
-
+                fx = 63; fy = 63; tx = base_x + 64; ty = base_y + 64;
                 pixel = 0;
                 pixel |= (tga[fx + fy * 64].red >> tt->mask_red) << tt->mask_red;
                 pixel |= (tga[fx + fy * 64].green >> tt->mask_red) << tt->mask_green;
                 pixel |= (tga[fx + fy * 64].blue >> tt->mask_red) << tt->mask_blue;
-
                 bitmap[tx + ty * pitch] = pixel;
 
-                //
-                // Top right...
-                //
-
-                fx = 63;
-                fy = 0;
-
-                tx = base_x + 64;
-                ty = base_y - 1;
-
+                fx = 63; fy = 0; tx = base_x + 64; ty = base_y - 1;
                 pixel = 0;
                 pixel |= (tga[fx + fy * 64].red >> tt->mask_red) << tt->mask_red;
                 pixel |= (tga[fx + fy * 64].green >> tt->mask_red) << tt->mask_green;
                 pixel |= (tga[fx + fy * 64].blue >> tt->mask_red) << tt->mask_blue;
-
                 bitmap[tx + ty * pitch] = pixel;
 
-                //
-                // Bottom left...
-                //
-
-                fx = 0;
-                fy = 63;
-
-                tx = base_x - 1;
-                ty = base_y + 64;
-
+                fx = 0; fy = 63; tx = base_x - 1; ty = base_y + 64;
                 pixel = 0;
                 pixel |= (tga[fx + fy * 64].red >> tt->mask_red) << tt->mask_red;
                 pixel |= (tga[fx + fy * 64].green >> tt->mask_red) << tt->mask_green;
                 pixel |= (tga[fx + fy * 64].blue >> tt->mask_red) << tt->mask_blue;
-
                 bitmap[tx + ty * pitch] = pixel;
 
                 tt->UnlockUser();
@@ -566,41 +190,22 @@ void TEXTURE_DC_pack_load_page(SLONG page)
 
         free(tga);
 
-        //
-        // Remember where we've put this page.
-        //
-
         TEXTURE_DC_pack[page].page = TEXTURE_DC_pack_page_upto;
         TEXTURE_DC_pack[page].pos = TEXTURE_DC_pack_page_pos;
-
-        //
-        // Go onto the next hole...
-        //
 
         TEXTURE_DC_pack_page_pos += 1;
 
         if (TEXTURE_DC_pack_page_pos >= 9) {
             TEXTURE_DC_pack_page_pos = 0;
             TEXTURE_DC_pack_page_upto += 1;
-
             ASSERT(WITHIN(TEXTURE_DC_pack_page_upto, 0, TEXTURE_DC_NORMAL_START - 1));
         }
     }
 }
 
-//
-// The number of textures.
-//
-
-SLONG TEXTURE_num_textures;
-
-// claude-ai: TEXTURE_choose_set — switches the active texture set (world number).
-// claude-ai: Frees all previously loaded world textures (pages 0..4*64-1) via Destroy().
-// claude-ai: Sets directory paths for world_dir, shared_dir, people_dir, prims_dir, inside_dir.
-// claude-ai: Reloads texture type flags from textype.txt files (which pages are 2-pass, alpha, etc.).
-// claude-ai: Loads texture style definitions (for animated/scrolling textures).
-// claude-ai: Direct3D API: TEXTURE_texture[i].Destroy() frees the D3D surface.
-// claude-ai: NEW GAME: equivalent = glDeleteTextures() for all world pages, then reset and lazy-reload.
+// uc_orig: TEXTURE_choose_set (fallen/DDEngine/Source/texture.cpp)
+// Switches the active texture set (world n). Frees previously loaded world textures,
+// updates directory paths, reloads texture flags and style definitions.
 void TEXTURE_choose_set(SLONG number)
 {
     SLONG i;
@@ -609,10 +214,6 @@ void TEXTURE_choose_set(SLONG number)
     if (FileExists("psx.txt")) {
         sprintf(textures, "gary16");
     }
-
-    //
-    // Set the directories.
-    //
 
     sprintf(TEXTURE_inside_dir, "server\\%s\\world%d\\insides\\", textures, number);
     sprintf(TEXTURE_prims_dir, "server\\%s\\shared\\prims\\", textures);
@@ -626,38 +227,17 @@ void TEXTURE_choose_set(SLONG number)
     SOUND_InitFXGroups(TEXTURE_shared_fx_inifile);
 
     if (number != TEXTURE_set) {
-        //
-        // Initialise all the crinkles.
-        //
-
         CRINKLE_init();
-
-        //
-        // Free up all the world textures we have loaded so far.
-        //
 
         for (i = 0; i < 64 * 4; i++) {
             if (TEXTURE_texture[i].Type != D3DTEXTURE_TYPE_UNUSED) {
-                //
-                // Free this texture.
-                //
-
                 TEXTURE_texture[i].Destroy();
-
-                //
-                // Mark as unused.
-                //
-
                 TEXTURE_texture[i].Type = D3DTEXTURE_TYPE_UNUSED;
             }
         }
 
         memset(TEXTURE_dontexist, 0, sizeof(TEXTURE_dontexist));
         memset(TEXTURE_crinkle, 0, sizeof(TEXTURE_crinkle));
-
-        //
-        // Load the new poly-page flags.
-        //
 
         {
             CBYTE world_texture_flags[256];
@@ -672,10 +252,7 @@ void TEXTURE_choose_set(SLONG number)
             POLY_load_texture_flags("server\\textures\\shared\\prims\\textype.txt", 11 * 64);
         }
 
-        //
-        // Load in the style defs.
-        //
-
+        extern void load_texture_styles(UBYTE editor, UBYTE world);
         load_texture_styles(FALSE, number);
         extern void load_texture_instyles(UBYTE editor, UBYTE world);
         load_texture_instyles(FALSE, number);
@@ -685,20 +262,12 @@ void TEXTURE_choose_set(SLONG number)
     TEXTURE_set = number;
 }
 
-//
-// Loads the highest res version of the given page that it can find.
-//
-
-bool IndividualTextures = false;
-
-// claude-ai: TEXTURE_load_page — loads one texture page from disk into TEXTURE_texture[page].
-// claude-ai: Searches for the highest resolution TGA available: 128x128 > 64x64 > 32x32.
-// claude-ai: Sets TEXTURE_dontexist[page]=TRUE if no file found (suppresses future load attempts).
-// claude-ai: Also loads crinkle data from .sex file for world/shared pages (pages 0..8*64-1).
-// claude-ai: If page is POLY_PAGE_FLAG_2PASS, auto-loads page+1 (the illumination mask).
-// claude-ai: On PC with clumping: reads from the .txc bundle via the clump file system.
-// claude-ai: Direct3D API: calls TEXTURE_texture[page].LoadTextureTGA() to upload pixels to D3D surface.
-// claude-ai: NEW GAME: replace LoadTextureTGA() with: glGenTextures, glBindTexture, glTexImage2D.
+// uc_orig: TEXTURE_load_page (fallen/DDEngine/Source/texture.cpp)
+// Loads one texture page from disk into TEXTURE_texture[page].
+// Searches for highest-res TGA available (128 > 64 > 32 pixels).
+// Sets TEXTURE_dontexist[page] if no file found.
+// Also loads crinkle bump data (.sex file) for world/shared pages.
+// If the page is masked-self-illuminating (2PASS), auto-loads page+1 as the mask.
 static void TEXTURE_load_page(SLONG page)
 {
     CBYTE name_res32[64];
@@ -722,15 +291,10 @@ static void TEXTURE_load_page(SLONG page)
     }
 
     if (page < 64 * 4) {
-        //
-        // This is a world texture.
-        //
-
         sprintf(name_res32, "%stex%03d.tga", TEXTURE_world_dir, page);
         sprintf(name_res64, "%stex%03dhi.tga", TEXTURE_world_dir, page);
         sprintf(name_res128, "%stex%03dto.tga", TEXTURE_world_dir, page);
         sprintf(name_sex, "%ssex%03dhi.sex", TEXTURE_world_dir, page);
-
         sprintf(shortname_res32, "tex%03d.tga", page);
         sprintf(shortname_res64, "tex%03dhi.tga", page);
         sprintf(shortname_res128, "tex%03dto.tga", page);
@@ -742,13 +306,8 @@ static void TEXTURE_load_page(SLONG page)
 
         if (SOUND_FXMapping != NULL) {
             SOUND_FXMapping[page] = fxref;
-        };
-
+        }
     } else if (page < 64 * 8) {
-        //
-        // This is a shared texture.
-        //
-
         sprintf(name_res32, "%stex%03d.tga", TEXTURE_shared_dir, page);
         sprintf(name_res64, "%stex%03dhi.tga", TEXTURE_shared_dir, page);
         sprintf(name_res128, "%stex%03dto.tga", TEXTURE_shared_dir, page);
@@ -766,17 +325,6 @@ static void TEXTURE_load_page(SLONG page)
             SOUND_FXMapping[page] = fxref;
         }
     } else if (page < 64 * 9) {
-        /*
-        //
-        // people2 has been promoted to 18+
-        //
-                        if(page>=64*8+32)
-                        {
-                                sprintf(name_res32, "%stex%03d.tga",   TEXTURE_people_dir2, page-64*8);
-                                sprintf(name_res64, "%stex%03dhi.tga", TEXTURE_people_dir2, page-64*8);
-                        }
-                        else
-        */
         {
             sprintf(name_res32, "%stex%03d.tga", TEXTURE_inside_dir, page - 64 * 8);
             sprintf(name_res64, "%stex%03dhi.tga", TEXTURE_inside_dir, page - 64 * 8);
@@ -799,36 +347,26 @@ static void TEXTURE_load_page(SLONG page)
     }
 
     if (IndividualTextures || TEXTURE_create_clump) {
-
         exists128 = MF_Fopen(name_res128, "rb");
         if (exists128) {
             MF_Fclose(exists128);
             TEXTURE_texture[page].LoadTextureTGA(name_res128, page);
         } else {
             exists64 = MF_Fopen(name_res64, "rb");
-
             if (exists64) {
                 MF_Fclose(exists64);
-
                 TEXTURE_texture[page].LoadTextureTGA(name_res64, page);
             } else {
                 exists32 = MF_Fopen(name_res32, "rb");
-
                 if (exists32) {
                     MF_Fclose(exists32);
-
                     TEXTURE_texture[page].LoadTextureTGA(name_res32, page);
                 } else {
-                    //
-                    // This texture doesn't exist	!
-                    //
-
                     TEXTURE_dontexist[page] = TRUE;
                 }
             }
         }
     } else {
-
         if (DoesTGAExist(name_res64, page)) {
             TEXTURE_texture[page].LoadTextureTGA(name_res64, page);
         } else if (DoesTGAExist(name_res32, page)) {
@@ -838,8 +376,7 @@ static void TEXTURE_load_page(SLONG page)
         }
     }
 
-    // crinkles
-
+    // Load crinkle (bump) data for world and shared texture pages.
     if (page < 64 * 8) {
         if (IndividualTextures || TEXTURE_create_clump) {
             TEXTURE_crinkle[page] = CRINKLE_load(name_sex);
@@ -862,20 +399,19 @@ static void TEXTURE_load_page(SLONG page)
     }
 }
 
+// uc_orig: TEXTURE_initialise_clumping (fallen/DDEngine/Source/texture.cpp)
+// Sets up the .txc texture bundle for fast level loading.
+// On PC, all textures for a level are pre-bundled into a single .txc file.
 void TEXTURE_initialise_clumping(CBYTE* fname_level)
 {
-
     int clumping = 1;
 
-    extern void SetLastClumpfile(char* file, size_t size); // in GDisplay.cpp, horrible bodge
+    extern void SetLastClumpfile(char* file, size_t size);
 
     if (!clumping) {
-        // load textures directly
         IndividualTextures = true;
         SetLastClumpfile("", 0);
     } else {
-
-        // load textures from the clump
         char filename[256];
         char* leafname;
 
@@ -885,7 +421,6 @@ void TEXTURE_initialise_clumping(CBYTE* fname_level)
                 fname_level++;
         } while (*fname_level++ == '\\');
 
-        // write out
         sprintf(filename, "%sclumps\\", GetTexturePath());
         char* fptr = filename + strlen(filename);
         while (*leafname != '.')
@@ -898,6 +433,10 @@ void TEXTURE_initialise_clumping(CBYTE* fname_level)
     }
 }
 
+// uc_orig: TEXTURE_load_needed (fallen/DDEngine/Source/texture.cpp)
+// Loads all textures needed for the given level file.
+// Loads special effect textures (fog, sky, fire, etc.) then world textures
+// referenced by the map, buildings, and prims. Shows a loading bar during load.
 void TEXTURE_load_needed(CBYTE* fname_level,
     int iStartCompletionBar,
     int iEndCompletionBar,
@@ -918,7 +457,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
     MapElement* me;
 
-    extern UBYTE loading_screen_active; // !
+    extern UBYTE loading_screen_active;
 
 #define HOW_MANY_UPDATES 20
     int iNumTexturesLoaded = 0;
@@ -942,10 +481,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_initialise_clumping(fname_level);
 
     TEXTURE_load_page(1);
-
-    //
-    // Load all the unusual pages.
-    //
 
     TEXTURE_page_num_standard = TEXTURE_NUM_STANDARD + 0;
 
@@ -1028,24 +563,11 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
     TEXTURE_num_textures = TEXTURE_NUM_STANDARD + 90 + 20;
 
-    //
-    // Where we load the extra textures from.
-    //
-
 #define TEXTURE_EXTRA_DIR "server\\textures\\extras\\"
 #define TEXTURE_PEOPLE3_DIR "server\\textures\\shared\\people3\\"
 
-    //
-    // Tell the font page its a font page.
-    //
-
     TEXTURE_texture[TEXTURE_page_font].FontOn();
     TEXTURE_needed[TEXTURE_page_font] = 1;
-
-    //
-    // Tell the NEWFONT page it's a font page mark 2
-    // (to remove red borders)
-    //
 
     TEXTURE_texture[TEXTURE_page_lcdfont].Font2On();
     TEXTURE_needed[TEXTURE_page_lcdfont] = 1;
@@ -1062,20 +584,14 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_texture[TEXTURE_page_font].LoadTextureTGA(TEXTURE_EXTRA_DIR "font.tga", TEXTURE_page_font, FALSE);
     TEXTURE_needed[TEXTURE_page_font] = 1;
     LOADED_THIS_MANY_TEXTURES(5);
-    // TEXTURE_texture[TEXTURE_page_logo      ].LoadTextureTGA(TEXTURE_EXTRA_DIR"logo3.tga", TEXTURE_page_logo);
     {
         CBYTE str[100];
-        //		sprintf(str,TEXTURE_EXTRA_DIR"sky%d.tga",Random()&3);
         sprintf(str, "%ssky.tga", TEXTURE_world_dir);
-
-        // Until the VQ quality improves, don't VQ the sky - it looks pretty grim.
         TEXTURE_texture[TEXTURE_page_sky].LoadTextureTGA(str, TEXTURE_page_sky, FALSE);
     }
-    //	TEXTURE_texture[TEXTURE_page_sky       ].LoadTextureTGA(TEXTURE_EXTRA_DIR"sky2.tga", TEXTURE_page_sky);
 
     TEXTURE_texture[TEXTURE_page_flames].LoadTextureTGA(TEXTURE_EXTRA_DIR "flame1.tga", TEXTURE_page_flames);
     TEXTURE_texture[TEXTURE_page_smoke].LoadTextureTGA(TEXTURE_EXTRA_DIR "smoke1.tga", TEXTURE_page_smoke);
-    //	TEXTURE_texture[TEXTURE_page_flame2    ].LoadTextureTGA(TEXTURE_EXTRA_DIR"flame2.tga", TEXTURE_page_flame2);
     TEXTURE_texture[TEXTURE_page_flame2].LoadTextureTGA(TEXTURE_EXTRA_DIR "explode4.tga", TEXTURE_page_flame2);
     TEXTURE_texture[TEXTURE_page_steam].LoadTextureTGA(TEXTURE_EXTRA_DIR "fog_na.tga", TEXTURE_page_steam);
     TEXTURE_texture[TEXTURE_page_barbwire].LoadTextureTGA(TEXTURE_EXTRA_DIR "barbed.tga", TEXTURE_page_barbwire);
@@ -1084,28 +600,20 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_texture[TEXTURE_page_font2d].LoadTextureTGA(TEXTURE_EXTRA_DIR "multifontPC.tga", TEXTURE_page_font2d, FALSE);
     TEXTURE_needed[TEXTURE_page_font2d] = 1;
 
-    //	TEXTURE_texture[TEXTURE_page_lcdfont   ].LoadTextureTGA(TEXTURE_EXTRA_DIR"font3.tga", TEXTURE_page_
     TEXTURE_texture[TEXTURE_page_lcdfont].LoadTextureTGA(TEXTURE_EXTRA_DIR "olyfont2.tga", TEXTURE_page_lcdfont, FALSE);
     TEXTURE_needed[TEXTURE_page_lcdfont] = 1;
 
     TEXTURE_texture[TEXTURE_page_lastpanel].LoadTextureTGA(TEXTURE_EXTRA_DIR "PCdisplay.tga", TEXTURE_page_lastpanel, FALSE);
     TEXTURE_needed[TEXTURE_page_lastpanel] = 1;
 
-    FONT2D_init(TEXTURE_page_font2d); // do it now so it's still in the CD-ROM cache
+    FONT2D_init(TEXTURE_page_font2d);
     TEXTURE_texture[TEXTURE_page_face1].LoadTextureTGA(TEXTURE_EXTRA_DIR "face1.tga", TEXTURE_page_face1);
     TEXTURE_texture[TEXTURE_page_face2].LoadTextureTGA(TEXTURE_EXTRA_DIR "face2.tga", TEXTURE_page_face2);
     LOADED_THIS_MANY_TEXTURES(5);
-    // TEXTURE_texture[TEXTURE_page_face3     ].LoadTextureTGA(TEXTURE_EXTRA_DIR"face3.tga", TEXTURE_page_face3);
-    // TEXTURE_texture[TEXTURE_page_face4     ].LoadTextureTGA(TEXTURE_EXTRA_DIR"face4.tga", TEXTURE_page_face4);
-    // TEXTURE_texture[TEXTURE_page_face5     ].LoadTextureTGA(TEXTURE_EXTRA_DIR"face5.tga", TEXTURE_page_face5);
-    // TEXTURE_texture[TEXTURE_page_face6     ].LoadTextureTGA(TEXTURE_EXTRA_DIR"face6.tga", TEXTURE_page_face6);
     TEXTURE_texture[TEXTURE_page_bigbang].LoadTextureTGA(TEXTURE_EXTRA_DIR "exp_gunk.tga", TEXTURE_page_bigbang);
-    //	TEXTURE_texture[TEXTURE_page_dustwave  ].LoadTextureTGA(TEXTURE_EXTRA_DIR"dustwave.tga", TEXTURE_page_dustwave);
     TEXTURE_texture[TEXTURE_page_dustwave].LoadTextureTGA(TEXTURE_EXTRA_DIR "shockwave.tga", TEXTURE_page_dustwave);
     TEXTURE_texture[TEXTURE_page_flames3].LoadTextureTGA(TEXTURE_EXTRA_DIR "flame3.tga", TEXTURE_page_flames3);
     TEXTURE_texture[TEXTURE_page_bloodsplat].LoadTextureTGA(TEXTURE_EXTRA_DIR "bludsplt.tga", TEXTURE_page_bloodsplat);
-    //	TEXTURE_texture[TEXTURE_page_bloom1    ].LoadTextureTGA(TEXTURE_EXTRA_DIR"bloom1.tga", TEXTURE_page_bloom1);
-    //	TEXTURE_texture[TEXTURE_page_bloom1    ].LoadTextureTGA(TEXTURE_EXTRA_DIR"bloom3.tga", TEXTURE_page_bloom1);
     TEXTURE_texture[TEXTURE_page_bloom1].LoadTextureTGA(TEXTURE_EXTRA_DIR "bloom4.tga", TEXTURE_page_bloom1);
     LOADED_THIS_MANY_TEXTURES(5);
     TEXTURE_texture[TEXTURE_page_bloom2].LoadTextureTGA(TEXTURE_EXTRA_DIR "bloom2.tga", TEXTURE_page_bloom2);
@@ -1118,31 +626,23 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_texture[TEXTURE_page_leaf].LoadTextureTGA(TEXTURE_EXTRA_DIR "leaf.tga", TEXTURE_page_leaf);
     TEXTURE_texture[TEXTURE_page_raindrop].LoadTextureTGA(TEXTURE_EXTRA_DIR "raindrop.tga", TEXTURE_page_raindrop);
     TEXTURE_texture[TEXTURE_page_footprint].LoadTextureTGA(TEXTURE_EXTRA_DIR "footprint.tga", TEXTURE_page_footprint);
-    // TEXTURE_texture[TEXTURE_page_angel     ].LoadTextureTGA(TEXTURE_EXTRA_DIR"angel.tga", TEXTURE_page_angel);
-    // TEXTURE_texture[TEXTURE_page_devil     ].LoadTextureTGA(TEXTURE_EXTRA_DIR"devil.tga", TEXTURE_page_devil);
     TEXTURE_texture[TEXTURE_page_smoker].LoadTextureTGA(TEXTURE_EXTRA_DIR "smoker2.tga", TEXTURE_page_smoker);
     TEXTURE_texture[TEXTURE_page_target].LoadTextureTGA(TEXTURE_EXTRA_DIR "targ1.tga", TEXTURE_page_target);
-    // TEXTURE_texture[TEXTURE_page_newfont   ].LoadTextureTGA(TEXTURE_EXTRA_DIR"multifontPC.tga", TEXTURE_page_newfont);
     TEXTURE_texture[TEXTURE_page_droplet].LoadTextureTGA(TEXTURE_EXTRA_DIR "droplet.tga", TEXTURE_page_droplet);
     LOADED_THIS_MANY_TEXTURES(7);
-    // TEXTURE_texture[TEXTURE_page_press1    ].LoadTextureTGA(TEXTURE_EXTRA_DIR"press1.tga", TEXTURE_page_press1);
-    // TEXTURE_texture[TEXTURE_page_press2    ].LoadTextureTGA(TEXTURE_EXTRA_DIR"press2.tga", TEXTURE_page_press2);
-    // TEXTURE_texture[TEXTURE_page_ic        ].LoadTextureTGA(TEXTURE_EXTRA_DIR"ic5.tga", TEXTURE_page_ic);
-    // TEXTURE_texture[TEXTURE_page_ic2       ].LoadTextureTGA(TEXTURE_EXTRA_DIR"ic2_6.tga", TEXTURE_page_ic2);
     TEXTURE_texture[TEXTURE_page_explode1].LoadTextureTGA(TEXTURE_EXTRA_DIR "explode1.tga", TEXTURE_page_explode1);
     TEXTURE_texture[TEXTURE_page_explode2].LoadTextureTGA(TEXTURE_EXTRA_DIR "explode2.tga", TEXTURE_page_explode2);
     TEXTURE_texture[TEXTURE_page_smokecloud].LoadTextureTGA(TEXTURE_EXTRA_DIR "explode3.tga", TEXTURE_page_smokecloud);
     TEXTURE_texture[TEXTURE_page_menulogo].LoadTextureTGA(TEXTURE_EXTRA_DIR "menulogo.tga", TEXTURE_page_menulogo);
     TEXTURE_needed[TEXTURE_page_menulogo] = 1;
     LOADED_THIS_MANY_TEXTURES(4);
-    // TEXTURE_texture[TEXTURE_page_polaroid  ].LoadTextureTGA(TEXTURE_EXTRA_DIR"photos\\police1.tga", TEXTURE_page_polaroid);
     TEXTURE_texture[TEXTURE_page_sparkle].LoadTextureTGA(TEXTURE_EXTRA_DIR "sparkle.tga", TEXTURE_page_sparkle);
     TEXTURE_texture[TEXTURE_page_pcflamer].LoadTextureTGA(TEXTURE_EXTRA_DIR "PCflamer.tga", TEXTURE_page_pcflamer);
     TEXTURE_texture[TEXTURE_page_litebolt].LoadTextureTGA(TEXTURE_EXTRA_DIR "litebolt2.tga", TEXTURE_page_litebolt);
     TEXTURE_texture[TEXTURE_page_splash].LoadTextureTGA(TEXTURE_EXTRA_DIR "splashALL.tga", TEXTURE_page_splash);
     LOADED_THIS_MANY_TEXTURES(4);
 
-    // frontend stuff...
+    // Frontend/UI textures
     TEXTURE_texture[TEXTURE_page_bigbutton].LoadTextureTGA(TEXTURE_EXTRA_DIR "bigbutt.tga", TEXTURE_page_bigbutton, FALSE);
     TEXTURE_needed[TEXTURE_page_bigbutton] = 1;
     TEXTURE_texture[TEXTURE_page_bigleaf].LoadTextureTGA(TEXTURE_EXTRA_DIR "bigleaf.tga", TEXTURE_page_bigleaf);
@@ -1157,38 +657,27 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_texture[TEXTURE_page_finalglow].LoadTextureTGA(TEXTURE_EXTRA_DIR "finalglow.tga", TEXTURE_page_finalglow);
     TEXTURE_needed[TEXTURE_page_finalglow] = 1;
 
-    // Used for the screensaver. Don't use the MVQ - it doesn't get 100% black.
     TEXTURE_texture[TEXTURE_page_fade_MF].LoadTextureTGA(TEXTURE_EXTRA_DIR "fade_MF.tga", TEXTURE_page_fade_MF, FALSE);
     TEXTURE_needed[TEXTURE_page_fade_MF] = 1;
 
     LOADED_THIS_MANY_TEXTURES(7);
 
     {
-
         TEXTURE_texture[TEXTURE_page_fadecat].LoadTextureTGA(TEXTURE_EXTRA_DIR "fadecat.tga", TEXTURE_page_fadecat, FALSE);
-
         TEXTURE_texture[TEXTURE_page_tyretrack_alpha].LoadTextureTGA(TEXTURE_EXTRA_DIR "tyremark_alpha.tga", TEXTURE_page_tyretrack_alpha);
-
         TEXTURE_texture[TEXTURE_page_ladder].LoadTextureTGA(TEXTURE_EXTRA_DIR "secret.tga", TEXTURE_page_ladder);
         TEXTURE_texture[TEXTURE_page_shadowoval].LoadTextureTGA(TEXTURE_EXTRA_DIR "shadow.tga", TEXTURE_page_shadowoval);
         TEXTURE_texture[TEXTURE_page_rubbish].LoadTextureTGA(TEXTURE_EXTRA_DIR "rubbish.tga", TEXTURE_page_rubbish);
-
         LOADED_THIS_MANY_TEXTURES(5);
 
-        // Done above.
-        // TEXTURE_texture[TEXTURE_page_lastpanel   ].LoadTextureTGA(TEXTURE_EXTRA_DIR"PCdisplay.tga",    TEXTURE_page_lastpanel, FALSE);
         TEXTURE_texture[TEXTURE_page_lastpanel2].LoadTextureTGA(TEXTURE_EXTRA_DIR "PCdisplay01.tga", TEXTURE_page_lastpanel2, FALSE);
-
         TEXTURE_texture[TEXTURE_page_sign].LoadTextureTGA(TEXTURE_EXTRA_DIR "signs.tga", TEXTURE_page_sign);
         TEXTURE_texture[TEXTURE_page_shadowsquare].LoadTextureTGA(TEXTURE_EXTRA_DIR "shadowsquare.tga", TEXTURE_page_shadowsquare);
         TEXTURE_texture[TEXTURE_page_ladshad].LoadTextureTGA(TEXTURE_EXTRA_DIR "ladshad.tga", TEXTURE_page_ladshad);
         TEXTURE_texture[TEXTURE_page_meteor].LoadTextureTGA(TEXTURE_EXTRA_DIR "meteorALL.tga", TEXTURE_page_meteor);
-
         LOADED_THIS_MANY_TEXTURES(5);
 
-        //
-        // Male civs
-        //
+        // Male civilian body part textures (people3)
         TEXTURE_page_people3 = 21 * 64;
         TEXTURE_texture[TEXTURE_page_people3 + 0].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "crotch1.tga", TEXTURE_page_people3 + 0);
         TEXTURE_texture[TEXTURE_page_people3 + 1].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "crotch2.tga", TEXTURE_page_people3 + 1);
@@ -1209,13 +698,10 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         TEXTURE_texture[TEXTURE_page_people3 + 14].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "leg3.tga", TEXTURE_page_people3 + 14);
         LOADED_THIS_MANY_TEXTURES(4);
 
-        //
-        // Female Civs
-        //
+        // Female civilian body part textures (people3 female)
         TEXTURE_texture[TEXTURE_page_people3 + 15].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMARSE1.tga", TEXTURE_page_people3 + 15);
         TEXTURE_texture[TEXTURE_page_people3 + 16].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMARSE2.tga", TEXTURE_page_people3 + 16);
         TEXTURE_texture[TEXTURE_page_people3 + 17].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMARSE3.tga", TEXTURE_page_people3 + 17);
-
         TEXTURE_texture[TEXTURE_page_people3 + 18].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMCHEST1.tga", TEXTURE_page_people3 + 18);
         TEXTURE_texture[TEXTURE_page_people3 + 19].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMCHEST2.tga", TEXTURE_page_people3 + 19);
         TEXTURE_texture[TEXTURE_page_people3 + 20].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMCHEST3.tga", TEXTURE_page_people3 + 20);
@@ -1223,319 +709,28 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         TEXTURE_texture[TEXTURE_page_people3 + 21].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "SEAM1.tga", TEXTURE_page_people3 + 21);
         TEXTURE_texture[TEXTURE_page_people3 + 22].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "SEAM2.tga", TEXTURE_page_people3 + 22);
         TEXTURE_texture[TEXTURE_page_people3 + 23].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "SEAM3.tga", TEXTURE_page_people3 + 23);
-
         TEXTURE_texture[TEXTURE_page_people3 + 24].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMSHOO1.tga", TEXTURE_page_people3 + 24);
         TEXTURE_texture[TEXTURE_page_people3 + 25].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMSHOO2.tga", TEXTURE_page_people3 + 25);
         TEXTURE_texture[TEXTURE_page_people3 + 26].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMSHOO3.tga", TEXTURE_page_people3 + 26);
         LOADED_THIS_MANY_TEXTURES(6);
-
         TEXTURE_texture[TEXTURE_page_people3 + 27].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMBAK1.tga", TEXTURE_page_people3 + 27);
         TEXTURE_texture[TEXTURE_page_people3 + 28].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMBAK2.tga", TEXTURE_page_people3 + 28);
         TEXTURE_texture[TEXTURE_page_people3 + 29].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMBAK3.tga", TEXTURE_page_people3 + 29);
         LOADED_THIS_MANY_TEXTURES(3);
     }
 
-    //
-    // The video page.
-    //
-
-    // not used anymore?	TEXTURE_texture[86].CreateUserPage(TEXTURE_VIDEO_SIZE, FALSE);
-
-    //
-    // The flames on the main menu
-    //
-
-    // not used anymore?    TEXTURE_texture[TEXTURE_page_menuflame].CreateUserPage(256,FALSE);
-
-    //
-    // The leaves!
-    //
-    // Fins' glows above the traffic cones...
-    // The water droplets and the sparkles, the sewer water and the raindrops.
-    // The man on the moon!
-    // And the muckyfootprints
-    // Texture 560 is one component of the digital timer.
-    //
-
-    //
-    // The warehouse textures.
-    //
-    {
-
-        for (i = 0; i < WARE_rooftex_upto; i++) {
-            TEXTURE_get_minitexturebits_uvs(
-                WARE_rooftex[i],
-                &page,
-                u + 0,
-                v + 0,
-                u + 1,
-                v + 1,
-                u + 2,
-                v + 2,
-                u + 3,
-                v + 3);
-
-            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-                //
-                // We must load this texture.
-                //
-
-                TEXTURE_load_page(page);
-                LOADED_THIS_MANY_TEXTURES(1);
-            }
-        }
-
-        /*
-
-        //
-        // do all the inside styles for now
-        //
-
-        for(c0=0;c0<64;c0++)
-        {
-                for(c1=0;c1<16;c1++)
-                {
-                        page=inside_tex[c0][c1]+START_PAGE_FOR_FLOOR*64;
-
-                        if(page<8*64)
-                        if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED)
-                        {
-                                TEXTURE_load_page(page);
-
-                        }
-                }
-        }
-
-        */
-
-        //
-        // Load the individual pages that we need.
-        //
-
-        for (x = 0; x < MAP_WIDTH - 1; x++)
-            for (z = 0; z < MAP_HEIGHT - 1; z++) {
-                TEXTURE_get_minitexturebits_uvs(
-                    PAP_2HI(x, z).Texture,
-                    &page,
-                    u + 0,
-                    v + 0,
-                    u + 1,
-                    v + 1,
-                    u + 2,
-                    v + 2,
-                    u + 3,
-                    v + 3);
-
-                ASSERT(WITHIN(page, 0, TEXTURE_page_num_standard - 1));
-
-                if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-                    //
-                    // We must load this texture.
-                    //
-
-                    TEXTURE_load_page(page);
-                    LOADED_THIS_MANY_TEXTURES(1);
-                }
-            }
-        //	TEXTURE_load_page(156);
-        //	TEXTURE_load_page(157);
-
-        for (i = 1; i < MAX_ANIM_TMAPS; i++) {
-            struct AnimTmap* p_a;
-
-            p_a = &anim_tmaps[i];
-
-            for (k = 0; k < MAX_TMAP_FRAMES; k++) {
-                page = p_a->UV[k][0][0] & 0xc0;
-                page <<= 2;
-                page |= p_a->Page[k];
-            }
-        }
-
-        //
-        // force jacket alternatives to be loaded thugs
-        //
-
-        TEXTURE_load_page(18 * 64 + 2);
-        TEXTURE_load_page(18 * 64 + 32);
-
-        TEXTURE_load_page(18 * 64 + 3);
-        TEXTURE_load_page(18 * 64 + 33);
-        LOADED_THIS_MANY_TEXTURES(4);
-
-        TEXTURE_load_page(18 * 64 + 4);
-        TEXTURE_load_page(18 * 64 + 36);
-
-        TEXTURE_load_page(18 * 64 + 5);
-        TEXTURE_load_page(18 * 64 + 37);
-        LOADED_THIS_MANY_TEXTURES(4);
-
-        for (i = 1; i < next_prim_face3; i++) {
-            f3 = &prim_faces3[i];
-
-            page = f3->UV[0][0] & 0xc0;
-            page <<= 2;
-            page |= f3->TexturePage;
-            page += FACE_PAGE_OFFSET;
-
-            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-                //
-                // We must load this texture.
-                //
-
-                TEXTURE_load_page(page);
-                LOADED_THIS_MANY_TEXTURES(1);
-            }
-        }
-
-        for (i = 1; i < next_prim_face4; i++) {
-            f4 = &prim_faces4[i];
-
-            page = f4->UV[0][0] & 0xc0;
-            page <<= 2;
-            page |= f4->TexturePage;
-            page += FACE_PAGE_OFFSET;
-
-            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-                //
-                // We must load this texture.
-                //
-
-                TEXTURE_load_page(page);
-                LOADED_THIS_MANY_TEXTURES(1);
-            }
-        }
-
-        TEXTURE_load_page(156);
-
-        for (i = 1; i < next_dfacet; i++) {
-            SLONG c0, c1, c2;
-            SLONG style, dstyle;
-
-            // ASSERT(dfacets[i].FacetType != STOREY_TYPE_OUTSIDE_DOOR);
-            if (dfacets[i].FacetType == STOREY_TYPE_NORMAL || dfacets[i].FacetType == STOREY_TYPE_INSIDE || dfacets[i].FacetType == STOREY_TYPE_OINSIDE || dfacets[i].FacetType == STOREY_TYPE_FENCE || dfacets[i].FacetType == STOREY_TYPE_FENCE_FLAT || dfacets[i].FacetType == STOREY_TYPE_LADDER || dfacets[i].FacetType == STOREY_TYPE_DOOR || dfacets[i].FacetType == STOREY_TYPE_OUTSIDE_DOOR || dfacets[i].FacetType == STOREY_TYPE_INSIDE_DOOR || dfacets[i].FacetType == STOREY_TYPE_FENCE_BRICK) {
-                style = dfacets[i].StyleIndex;
-
-                dstyle = dstyles[style];
-
-                for (c0 = 0; c0 < ((dfacets[i].Height + 3) >> 2) * ((dfacets[i].FacetFlags & FACET_FLAG_2SIDED) ? 2 : 1); c0++) {
-                    SLONG dstyle;
-                    dstyle = dstyles[style + c0];
-
-                    if (dstyle > 0) {
-                        for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
-                            page = dx_textures_xy[dstyle][c1].Page;
-                            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-                                //
-                                // We must load this texture.
-                                //
-
-                                TEXTURE_load_page(page);
-                                LOADED_THIS_MANY_TEXTURES(1);
-                            }
-                        }
-                    } else {
-                        struct DStorey* p_storey;
-                        SLONG pos;
-
-                        p_storey = &dstoreys[-dstyle];
-
-                        for (pos = 0; pos < p_storey->Count; pos++) {
-                            page = paint_mem[p_storey->Index + pos];
-                            if (page)
-                                if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-                                    //
-                                    // We must load this texture.
-                                    //
-
-                                    TEXTURE_load_page(page);
-                                    LOADED_THIS_MANY_TEXTURES(1);
-                                }
-                        }
-                        dstyle = p_storey->Style;
-                        if (dstyle > 0) {
-                            for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
-                                page = dx_textures_xy[dstyle][c1].Page;
-                                if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-                                    //
-                                    // We must load this texture.
-                                    //
-
-                                    TEXTURE_load_page(page);
-                                    LOADED_THIS_MANY_TEXTURES(1);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if (dfacets[i].FacetType == STOREY_TYPE_LADDER) {
-                SLONG dstyle;
-                dstyle = dstyles[dfacets[i].StyleIndex];
-                if (dstyle > 0)
-                    for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
-                        page = dx_textures_xy[dstyle][c1].Page;
-                        if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-                            //
-                            // We must load this texture.
-                            //
-
-                            TEXTURE_load_page(page);
-                            LOADED_THIS_MANY_TEXTURES(1);
-                        }
-                    }
-            }
-        }
-
-        /*
-
-        //
-        // The sewer pages.
-        //
-
-        for (i = 0; i < NS_PAGE_NUMBER; i++) {
-            page = NS_page[i].page;
-
-            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-                TEXTURE_load_page(page);
-            }
-        }
-
-
-        for(c0=0;c0<64;c0++)
-        {
-                for(c1=0;c1<16;c1++)
-                {
-                        SLONG	page;
-                        page=inside_tex[c0][c1]+START_PAGE_FOR_FLOOR*64;
-
-                        if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED)
-                        {
-                                TEXTURE_load_page(page);
-                        }
-                }
-        }
-
-        */
-    }
-
     CloseTGAClump();
 
-    // this is a good point to estimate the
-    // graphics card's capabilities
     extern void AENG_guess_detail_levels();
-
     AENG_guess_detail_levels();
 
-    // Guess what this does.
     NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit();
 
-    // Start a new frame, so that the new textures get set up and sorted.
-    // Yes, it is crufty why starting a new frame does this. But it's historical.
-    // Just trust me, OK?
     POLY_frame_init(FALSE, FALSE);
 }
 
+// uc_orig: TEXTURE_load_needed_object (fallen/DDEngine/Source/texture.cpp)
+// Loads textures needed for a specific prim object (used for on-demand prim texture loading).
 void TEXTURE_load_needed_object(SLONG prim)
 {
     SLONG i;
@@ -1549,44 +744,30 @@ void TEXTURE_load_needed_object(SLONG prim)
 
     for (i = po->StartFace3; i < po->EndFace3; i++) {
         f3 = &prim_faces3[i];
-
         page = f3->UV[0][0] & 0xc0;
         page <<= 2;
         page |= f3->TexturePage;
-
         if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-            //
-            // We must load this texture.
-            //
-
             TEXTURE_load_page(page);
         }
     }
 
     for (i = po->StartFace4; i < po->EndFace4; i++) {
         f4 = &prim_faces4[i];
-
         page = f4->UV[0][0] & 0xc0;
         page <<= 2;
         page |= f4->TexturePage;
-
         if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
-            //
-            // We must load this texture.
-            //
-
             TEXTURE_load_page(page);
         }
     }
 }
 
+// uc_orig: TEXTURE_free (fallen/DDEngine/Source/texture.cpp)
+// Frees all loaded textures and resets the texture system state.
 void TEXTURE_free()
 {
     SLONG i;
-
-    //
-    // Initialise all the crinkles.
-    //
 
     CRINKLE_init();
 
@@ -1605,33 +786,29 @@ void TEXTURE_free()
     TEXTURE_DC_pack_init();
 }
 
-// Destroys all the non-needed (i.e. non-frontend) textures.
+// uc_orig: TEXTURE_free_unneeded (fallen/DDEngine/Source/texture.cpp)
+// Frees all non-frontend textures (called at level unload).
+// Frontend textures marked in TEXTURE_needed[] are preserved.
 void TEXTURE_free_unneeded(void)
 {
     SLONG i;
 
-    //
-    // Initialise all the crinkles.
-    //
-
     CRINKLE_init();
 
     for (i = 0; i < TEXTURE_num_textures; i++) {
-        // if ( !TEXTURE_needed[i] )
-        {
-            TEXTURE_texture[i].Destroy();
-            TEXTURE_texture[i].Type = D3DTEXTURE_TYPE_UNUSED;
-            TEXTURE_dontexist[i] = 0;
-        }
+        TEXTURE_texture[i].Destroy();
+        TEXTURE_texture[i].Type = D3DTEXTURE_TYPE_UNUSED;
+        TEXTURE_dontexist[i] = 0;
     }
 
-    // Now free all the texture pages.
     extern void FreeAllD3DPages(void);
     FreeAllD3DPages();
 
     POLY_reset_render_states();
 }
 
+// uc_orig: TEXTURE_get_handle (fallen/DDEngine/Source/texture.cpp)
+// Returns the Direct3D texture interface for the given page. Returns NULL for page -1.
 LPDIRECT3DTEXTURE2 TEXTURE_get_handle(SLONG page)
 {
     if (page == -1) {
@@ -1640,11 +817,16 @@ LPDIRECT3DTEXTURE2 TEXTURE_get_handle(SLONG page)
     return TEXTURE_texture[page].GetD3DTexture();
 }
 
+// uc_orig: TEXTURE_get_D3DTexture (fallen/DDEngine/Source/texture.cpp)
+// Returns a pointer to the D3DTexture object for the given page.
 D3DTexture* TEXTURE_get_D3DTexture(SLONG page)
 {
     return &(TEXTURE_texture[page]);
 }
 
+// uc_orig: TEXTURE_get_minitexturebits_uvs (fallen/DDEngine/Source/texture.cpp)
+// Decodes a packed MiniTextureBits texture descriptor into page index and UV corners.
+// The 16-bit value encodes: page (bits 0-9), rotation (bits 10-11), flip (bits 12-13), size (bits 14-15).
 void TEXTURE_get_minitexturebits_uvs(
     UWORD texture,
     SLONG* page,
@@ -1657,83 +839,45 @@ void TEXTURE_get_minitexturebits_uvs(
     float* u3,
     float* v3)
 {
-    SLONG tx;
-    SLONG ty;
-    SLONG tpage;
     SLONG trot;
-    SLONG tflip;
-    SLONG tsize;
-
     SLONG num;
 
     static const float base_u = 0.0F;
     static const float base_v = 0.0F;
-
     static const float base_size = 1.0F;
 
     num = texture & 0x3ff;
-
     trot = (texture >> 0xa) & 0x3;
-    tflip = (texture >> 0xc) & 0x3;
-    tsize = (texture >> 0xe) & 0x3;
-
-    //
-    // The page is easy!
-    //
 
     *page = num;
-
     if (*page >= TEXTURE_page_num_standard) {
         *page = 0;
     }
 
-    //
-    // The texture coordinates depend of the rotation.
-    //
-
     switch (trot) {
     case 0:
-        *u0 = base_u;
-        *v0 = base_v;
-        *u1 = base_u + base_size;
-        *v1 = base_v;
-        *u2 = base_u;
-        *v2 = base_v + base_size;
-        *u3 = base_u + base_size;
-        *v3 = base_v + base_size;
+        *u0 = base_u;            *v0 = base_v;
+        *u1 = base_u + base_size; *v1 = base_v;
+        *u2 = base_u;            *v2 = base_v + base_size;
+        *u3 = base_u + base_size; *v3 = base_v + base_size;
         break;
-
     case 1:
-        *u2 = base_u;
-        *v2 = base_v;
-        *u0 = base_u + base_size;
-        *v0 = base_v;
-        *u3 = base_u;
-        *v3 = base_v + base_size;
-        *u1 = base_u + base_size;
-        *v1 = base_v + base_size;
+        *u2 = base_u;            *v2 = base_v;
+        *u0 = base_u + base_size; *v0 = base_v;
+        *u3 = base_u;            *v3 = base_v + base_size;
+        *u1 = base_u + base_size; *v1 = base_v + base_size;
         break;
-
     case 2:
-        *u3 = base_u;
-        *v3 = base_v;
-        *u2 = base_u + base_size;
-        *v2 = base_v;
-        *u1 = base_u;
-        *v1 = base_v + base_size;
-        *u0 = base_u + base_size;
-        *v0 = base_v + base_size;
+        *u3 = base_u;            *v3 = base_v;
+        *u2 = base_u + base_size; *v2 = base_v;
+        *u1 = base_u;            *v1 = base_v + base_size;
+        *u0 = base_u + base_size; *v0 = base_v + base_size;
         break;
-
     case 3:
-        *u1 = base_u;
-        *v1 = base_v;
-        *u3 = base_u + base_size;
-        *v3 = base_v;
-        *u0 = base_u;
-        *v0 = base_v + base_size;
-        *u2 = base_u + base_size;
-        *v2 = base_v + base_size;
+        *u1 = base_u;            *v1 = base_v;
+        *u3 = base_u + base_size; *v3 = base_v;
+        *u0 = base_u;            *v0 = base_v + base_size;
+        *u2 = base_u + base_size; *v2 = base_v + base_size;
         break;
     }
 }
@@ -1741,15 +885,15 @@ void TEXTURE_get_minitexturebits_uvs(
 extern UWORD local_next_prim_face3;
 extern UWORD local_next_prim_face4;
 
+// uc_orig: TEXTURE_fix_texture_styles (fallen/DDEngine/Source/texture.cpp)
+// Converts texture style UV coordinates from PSX-style absolute pixel coords
+// to Direct3D page indices (stored in dx_textures_xy[]).
 void TEXTURE_fix_texture_styles(void)
 {
     SLONG style, piece;
-
     SLONG page;
-
     SLONG av_u;
     SLONG av_v;
-
     SLONG base_u;
     SLONG base_v;
 
@@ -1768,6 +912,9 @@ void TEXTURE_fix_texture_styles(void)
     }
 }
 
+// uc_orig: TEXTURE_fix_prim_textures (fallen/DDEngine/Source/texture.cpp)
+// Converts prim face UV coordinates from raw PSX format to normalised D3D format.
+// Also resolves thug jacket texture variants (people vs people2 pages).
 void TEXTURE_fix_prim_textures()
 {
     SLONG i;
@@ -1779,12 +926,10 @@ void TEXTURE_fix_prim_textures()
     struct AnimTmap* p_a;
 
     SLONG page;
-
     SLONG av_u;
     SLONG av_v;
     SLONG u;
     SLONG v;
-
     SLONG base_u;
     SLONG base_v;
 
@@ -1801,27 +946,15 @@ void TEXTURE_fix_prim_textures()
             base_u = av_u * TEXTURE_NORM_SIZE;
             base_v = av_v * TEXTURE_NORM_SIZE;
 
-            //
-            // All coordinates relative to the base now...
-            //
-
             for (j = 0; j < 3; j++) {
                 u = f3->UV[j][0];
                 v = f3->UV[j][1];
-
                 u -= base_u;
                 v -= base_v;
-
                 SATURATE(u, 0, 32);
                 SATURATE(v, 0, 32);
-
-                if (u == 31) {
-                    u = 32;
-                }
-                if (v == 31) {
-                    v = 32;
-                }
-
+                if (u == 31) { u = 32; }
+                if (v == 31) { v = 32; }
                 f3->UV[j][0] = u;
                 f3->UV[j][1] = v;
             }
@@ -1830,32 +963,24 @@ void TEXTURE_fix_prim_textures()
             f3->FaceFlags &= ~FACE_FLAG_THUG_JACKET;
 
             switch (page) {
-            //
-            // pages 9, 10 , 11 are people
-            //
             case 9 * 64 + 21:
             case 18 * 64 + 2:
             case 18 * 64 + 32:
-                //					ASSERT(0);
                 f3->FaceFlags |= FACE_FLAG_THUG_JACKET;
                 page = 9 * 64 + 21;
-
                 break;
-
             case 9 * 64 + 22:
             case 18 * 64 + 3:
             case 18 * 64 + 33:
                 f3->FaceFlags |= FACE_FLAG_THUG_JACKET;
                 page = 9 * 64 + 22;
                 break;
-
             case 9 * 64 + 24:
             case 18 * 64 + 4:
             case 18 * 64 + 36:
                 f3->FaceFlags |= FACE_FLAG_THUG_JACKET;
                 page = 9 * 64 + 24;
                 break;
-
             case 9 * 64 + 25:
             case 18 * 64 + 5:
             case 18 * 64 + 37:
@@ -1864,22 +989,9 @@ void TEXTURE_fix_prim_textures()
                 break;
             }
             page -= FACE_PAGE_OFFSET;
-
-            //			DebugText(" saturate prim page tri page %d  \n",page);
             SATURATE(page, 0, 64 * 14);
-            //			ASSERT(page<64*8);
-
-            //
-            // The 9th and 10th bits of page go in the top two bits of UV[0][0]!
-            //
-
             f3->UV[0][0] |= (page >> 2) & 0xc0;
             f3->TexturePage = (page >> 0) & 0xff;
-
-            //
-            // Mark as fixed.
-            //
-
             f3->FaceFlags |= FACE_FLAG_FIXED;
         }
     }
@@ -1898,27 +1010,15 @@ void TEXTURE_fix_prim_textures()
                 base_u = av_u * TEXTURE_NORM_SIZE;
                 base_v = av_v * TEXTURE_NORM_SIZE;
 
-                //
-                // All coordinates relative to the base now...
-                //
-
                 for (j = 0; j < 4; j++) {
                     u = f4->UV[j][0];
                     v = f4->UV[j][1];
-
                     u -= base_u;
                     v -= base_v;
-
                     SATURATE(u, 0, 32);
                     SATURATE(v, 0, 32);
-
-                    if (u == 31) {
-                        u = 32;
-                    }
-                    if (v == 31) {
-                        v = 32;
-                    }
-
+                    if (u == 31) { u = 32; }
+                    if (v == 31) { v = 32; }
                     f4->UV[j][0] = u;
                     f4->UV[j][1] = v;
                 }
@@ -1926,31 +1026,24 @@ void TEXTURE_fix_prim_textures()
                 page = av_u + av_v * TEXTURE_NORM_SQUARES + f4->TexturePage * TEXTURE_NORM_SQUARES * TEXTURE_NORM_SQUARES;
                 f4->FaceFlags &= ~FACE_FLAG_THUG_JACKET;
                 switch (page) {
-                //
-                // pages 9, 10 , 11 are people
-                //
                 case 9 * 64 + 21:
                 case 18 * 64 + 2:
                 case 18 * 64 + 32:
                     f4->FaceFlags |= FACE_FLAG_THUG_JACKET;
                     page = 9 * 64 + 21;
-
                     break;
-
                 case 9 * 64 + 22:
                 case 18 * 64 + 3:
                 case 18 * 64 + 33:
                     f4->FaceFlags |= FACE_FLAG_THUG_JACKET;
                     page = 9 * 64 + 22;
                     break;
-
                 case 9 * 64 + 24:
                 case 18 * 64 + 4:
                 case 18 * 64 + 36:
                     f4->FaceFlags |= FACE_FLAG_THUG_JACKET;
                     page = 9 * 64 + 24;
                     break;
-
                 case 9 * 64 + 25:
                 case 18 * 64 + 5:
                 case 18 * 64 + 37:
@@ -1959,23 +1052,10 @@ void TEXTURE_fix_prim_textures()
                     break;
                 }
                 page -= FACE_PAGE_OFFSET;
-
                 SATURATE(page, 0, 14 * 64);
-
-                //
-                // The 9th and 10th bits of page go in the top two bits of UV[0][0]!
-                //
-
                 f4->UV[0][0] |= (page >> 2) & 0xc0;
                 f4->TexturePage = (page >> 0) & 0xff;
-
-                //
-                // Mark as fixed.
-                //
-
                 f4->FaceFlags |= FACE_FLAG_FIXED;
-            } else {
-                //				ASSERT(0);
             }
         }
     }
@@ -1993,39 +1073,25 @@ void TEXTURE_fix_prim_textures()
             base_u = av_u * TEXTURE_NORM_SIZE;
             base_v = av_v * TEXTURE_NORM_SIZE;
 
-            //
-            // All coordinates relative to the base now...
-            //
-
             for (j = 0; j < 4; j++) {
                 p_a->UV[k][j][0] -= base_u;
                 p_a->UV[k][j][1] -= base_v;
-
                 SATURATE(p_a->UV[k][j][0], 0, 32);
                 SATURATE(p_a->UV[k][j][1], 0, 32);
-
-                if (p_a->UV[k][j][0] == 31) {
-                    p_a->UV[k][j][0] = 32;
-                }
-                if (p_a->UV[k][j][1] == 31) {
-                    p_a->UV[k][j][1] = 32;
-                }
+                if (p_a->UV[k][j][0] == 31) { p_a->UV[k][j][0] = 32; }
+                if (p_a->UV[k][j][1] == 31) { p_a->UV[k][j][1] = 32; }
             }
 
             page = av_u + av_v * TEXTURE_NORM_SQUARES + p_a->Page[k] * TEXTURE_NORM_SQUARES * TEXTURE_NORM_SQUARES;
-
             SATURATE(page, 0, 575);
-
-            //
-            // The 9th and 10th bits of page go in the top two bits of UV[0][0]!
-            //
-
             p_a->UV[k][0][0] |= (page >> 2) & 0xc0;
             p_a->Page[k] = (page >> 0) & 0xff;
         }
     }
 }
 
+// uc_orig: TEXTURE_set_colour_key (fallen/DDEngine/Source/texture.cpp)
+// Attempts to set a colour key on a texture page (returns immediately — was never used on D3D path).
 void TEXTURE_set_colour_key(SLONG page)
 {
     DDCOLORKEY ck;
@@ -2035,10 +1101,6 @@ void TEXTURE_set_colour_key(SLONG page)
     ASSERT(WITHIN(page, 0, TEXTURE_num_textures - 1));
 
     if (TEXTURE_fiddled) {
-        //
-        // Ranges don't work :o(
-        //
-
         ck.dwColorSpaceLowValue = 0x00000000;
         ck.dwColorSpaceHighValue = 0x00000000;
     } else {
@@ -2049,6 +1111,9 @@ void TEXTURE_set_colour_key(SLONG page)
     TEXTURE_texture[page].SetColorKey(DDCKEY_SRCBLT, &ck);
 }
 
+// uc_orig: TEXTURE_shadow_lock (fallen/DDEngine/Source/texture.cpp)
+// Locks the shadow texture for CPU write. Returns TRUE if successful.
+// Sets TEXTURE_shadow_bitmap/pitch/mask/shift globals on success.
 SLONG TEXTURE_shadow_lock(void)
 {
     HRESULT res;
@@ -2060,7 +1125,6 @@ SLONG TEXTURE_shadow_lock(void)
     if (FAILED(res)) {
         TEXTURE_shadow_bitmap = NULL;
         TEXTURE_shadow_pitch = 0;
-
         return FALSE;
     } else {
         TEXTURE_shadow_mask_red = TEXTURE_texture[TEXTURE_page_shadow].mask_red;
@@ -2071,29 +1135,34 @@ SLONG TEXTURE_shadow_lock(void)
         TEXTURE_shadow_shift_green = TEXTURE_texture[TEXTURE_page_shadow].shift_green;
         TEXTURE_shadow_shift_blue = TEXTURE_texture[TEXTURE_page_shadow].shift_blue;
         TEXTURE_shadow_shift_alpha = TEXTURE_texture[TEXTURE_page_shadow].shift_alpha;
-
         return TRUE;
     }
 }
 
+// uc_orig: TEXTURE_shadow_unlock (fallen/DDEngine/Source/texture.cpp)
 void TEXTURE_shadow_unlock()
 {
     TEXTURE_texture[TEXTURE_page_shadow].UnlockUser();
 }
 
+// uc_orig: TEXTURE_shadow_update (fallen/DDEngine/Source/texture.cpp)
+// No-op stub — shadow texture update is handled by D3D internally.
 void TEXTURE_shadow_update(void)
 {
 }
 
+// uc_orig: TEXTURE_set_greyscale (fallen/DDEngine/Source/texture.cpp)
+// Sets all texture pages to greyscale or colour mode (used for some visual effect).
 void TEXTURE_set_greyscale(SLONG is_greyscale)
 {
     SLONG i;
-
     for (i = 0; i < TEXTURE_MAX_TEXTURES; i++) {
         TEXTURE_texture[i].set_greyscale(is_greyscale);
     }
 }
 
+// uc_orig: TEXTURE_86_lock (fallen/DDEngine/Source/texture.cpp)
+// Locks texture page 86 (the video/screensaver page) for CPU write.
 SLONG TEXTURE_86_lock()
 {
     HRESULT res;
@@ -2105,7 +1174,6 @@ SLONG TEXTURE_86_lock()
     if (FAILED(res)) {
         TEXTURE_shadow_bitmap = NULL;
         TEXTURE_shadow_pitch = 0;
-
         return FALSE;
     } else {
         TEXTURE_shadow_mask_red = TEXTURE_texture[86].mask_red;
@@ -2116,20 +1184,24 @@ SLONG TEXTURE_86_lock()
         TEXTURE_shadow_shift_green = TEXTURE_texture[86].shift_green;
         TEXTURE_shadow_shift_blue = TEXTURE_texture[86].shift_blue;
         TEXTURE_shadow_shift_alpha = TEXTURE_texture[86].shift_alpha;
-
         return TRUE;
     }
 }
 
+// uc_orig: TEXTURE_86_unlock (fallen/DDEngine/Source/texture.cpp)
 void TEXTURE_86_unlock()
 {
     TEXTURE_texture[86].UnlockUser();
 }
 
+// uc_orig: TEXTURE_86_update (fallen/DDEngine/Source/texture.cpp)
+// No-op stub — video texture update handled by D3D.
 void TEXTURE_86_update()
 {
 }
 
+// uc_orig: TEXTURE_set_tga (fallen/DDEngine/Source/texture.cpp)
+// Replaces a specific texture page with a different TGA file from the extras dir.
 void TEXTURE_set_tga(SLONG page, CBYTE* fn)
 {
     CBYTE fn2[_MAX_PATH];
@@ -2144,68 +1216,49 @@ void TEXTURE_set_tga(SLONG page, CBYTE* fn)
     }
 }
 
-SLONG TEXTURE_liney;
-SLONG TEXTURE_av_r;
-SLONG TEXTURE_av_g;
-SLONG TEXTURE_av_b;
-
+// uc_orig: TEXTURE_looks_like (fallen/DDEngine/Source/texture.cpp)
+// Analyses a texture page's pixel data to classify it as road, grass, dirt, or slippery.
+// Sets TEXTURE_liney, TEXTURE_av_r/g/b as side effects.
 SLONG TEXTURE_looks_like(SLONG page)
 {
     SLONG i;
     SLONG j;
-
     SLONG px;
     SLONG py;
-
     SLONG dx;
     SLONG dy;
-
     SLONG px1;
     SLONG py1;
-
     SLONG px2;
     SLONG py2;
-
     UWORD* bitmap;
     SLONG pitch;
-
     UWORD pixel;
-
     SLONG r;
     SLONG g;
     SLONG b;
-
     SLONG r1;
     SLONG g1;
     SLONG b1;
-
     SLONG r2;
     SLONG g2;
     SLONG b2;
-
     SLONG av_r;
     SLONG av_g;
     SLONG av_b;
-
     SLONG diff_r;
     SLONG diff_g;
     SLONG diff_b;
-
     SLONG dir;
-
     SLONG diff;
-
     SLONG pdiff_r;
     SLONG pdiff_g;
     SLONG pdiff_b;
-
     SLONG diff_along;
     SLONG diff_left;
     SLONG diff_right;
-
     SLONG ddiff_l;
     SLONG ddiff_r;
-
     SLONG lines;
 
     ASSERT(WITHIN(page, 0, 511));
@@ -2217,15 +1270,7 @@ SLONG TEXTURE_looks_like(SLONG page)
     TEXTURE_av_g = 0;
     TEXTURE_av_b = 0;
 
-    //
-    // Try to lock the page.
-    //
-
     if (SUCCEEDED(dt->LockUser(&bitmap, &pitch))) {
-        //
-        // Work out the average colour of the texture.
-        //
-
         av_r = 0;
         av_g = 0;
         av_b = 0;
@@ -2233,11 +1278,9 @@ SLONG TEXTURE_looks_like(SLONG page)
         for (px = 0; px < TEXTURE_texture[page].size; px++)
             for (py = 0; py < TEXTURE_texture[page].size; py++) {
                 pixel = bitmap[px + py * pitch];
-
                 r = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
                 g = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
                 b = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
-
                 av_r += r;
                 av_g += g;
                 av_b += b;
@@ -2251,31 +1294,15 @@ SLONG TEXTURE_looks_like(SLONG page)
         TEXTURE_av_g = av_g;
         TEXTURE_av_b = av_b;
 
-        //
-        // Is the texture green?
-        //
-
         if (av_g > av_r && av_g > av_b) {
-            SLONG rb;
-
-            rb = av_r + av_b;
+            SLONG rb = av_r + av_b;
             rb >>= 1;
             rb += rb >> 1;
-
             if (av_g > rb) {
-                //
-                // This is a green texture- assume it is grass.
-                //
-
                 dt->UnlockUser();
-
                 return TEXTURE_LOOK_GRASS;
             }
         }
-
-        //
-        // Get a number of the random variation inherent in the texture.
-        //
 
         diff_r = 0;
         diff_g = 0;
@@ -2287,9 +1314,7 @@ SLONG TEXTURE_looks_like(SLONG page)
         for (i = 0; i < TEXTURE_SAMPLE_DIFF1; i++) {
             px1 = rand() & (dt->size - 1);
             py1 = rand() & (dt->size - 1);
-
             pixel = bitmap[px1 + py1 * pitch];
-
             r1 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
             g1 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
             b1 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
@@ -2297,20 +1322,12 @@ SLONG TEXTURE_looks_like(SLONG page)
             for (j = 0; j < TEXTURE_SAMPLE_DIFF2; j++) {
                 px2 = px1 + (rand() & 0x7) - 0x3;
                 py2 = py1 + (rand() & 0x7) - 0x3;
-
                 px2 &= dt->size - 1;
                 py2 &= dt->size - 1;
-
                 pixel = bitmap[px2 + py2 * pitch];
-
                 r2 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
                 g2 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
                 b2 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
-
-                //
-                // The difference in colour between the two pixels.
-                //
-
                 diff_r += abs(r2 - r1);
                 diff_g += abs(g2 - g1);
                 diff_b += abs(b2 - b1);
@@ -2322,20 +1339,14 @@ SLONG TEXTURE_looks_like(SLONG page)
         diff_b /= TEXTURE_SAMPLE_DIFF1 * TEXTURE_SAMPLE_DIFF2;
         diff = diff_r + diff_g + diff_b;
 
-        //
-        // Find out how many straight lines there are in the texture.
-        //
-
         lines = 0;
 
 #define TEXTURE_SAMPLE_STRAIGHT1 2048
 #define TEXTURE_SAMPLE_STRAIGHT2 16
 
-        static struct
-        {
+        static struct {
             SBYTE dx;
             SBYTE dy;
-
         } offset[4] = {
             { -1, 0 },
             { +1, 0 },
@@ -2351,151 +1362,65 @@ SLONG TEXTURE_looks_like(SLONG page)
                 py1 = py & (dt->size - 1);
 
                 pixel = bitmap[px1 + py1 * pitch];
-
                 r1 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
                 g1 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
                 b1 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
-
-                //
-                // Work out the average difference in colour to the left/right/along the line.
-                //
 
                 diff_left = 0;
                 diff_right = 0;
                 diff_along = 0;
 
-                //
-                // What direction do we scan for a straight line?
-                //
-
                 dx = offset[dir & 0x3].dx;
                 dy = offset[dir & 0x3].dy;
-
                 dir += 1;
 
                 for (j = 0; j < TEXTURE_SAMPLE_STRAIGHT2; j++) {
-                    //
-                    // The difference in colour to the left...
-                    //
-
-                    px2 = px1 - (dy * 4);
-                    py2 = py1 + (dx * 4);
-
-                    px2 &= dt->size - 1;
-                    py2 &= dt->size - 1;
-
+                    px2 = px1 - (dy * 4); py2 = py1 + (dx * 4);
+                    px2 &= dt->size - 1; py2 &= dt->size - 1;
                     pixel = bitmap[px2 + py2 * pitch];
-
                     r2 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
                     g2 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
                     b2 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
-
-                    pdiff_r = abs(r2 - r1);
-                    pdiff_g = abs(g2 - g1);
-                    pdiff_b = abs(b2 - b1);
-
+                    pdiff_r = abs(r2 - r1); pdiff_g = abs(g2 - g1); pdiff_b = abs(b2 - b1);
                     diff_left += pdiff_r + pdiff_g + pdiff_b;
 
-                    //
-                    // The difference in colour to the right...
-                    //
-
-                    px2 = px1 + (dy * 4);
-                    py2 = py1 - (dx * 4);
-
-                    px2 &= dt->size - 1;
-                    py2 &= dt->size - 1;
-
+                    px2 = px1 + (dy * 4); py2 = py1 - (dx * 4);
+                    px2 &= dt->size - 1; py2 &= dt->size - 1;
                     pixel = bitmap[px2 + py2 * pitch];
-
                     r2 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
                     g2 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
                     b2 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
-
-                    pdiff_r = abs(r2 - r1);
-                    pdiff_g = abs(g2 - g1);
-                    pdiff_b = abs(b2 - b1);
-
+                    pdiff_r = abs(r2 - r1); pdiff_g = abs(g2 - g1); pdiff_b = abs(b2 - b1);
                     diff_right += pdiff_r + pdiff_g + pdiff_b;
 
-                    //
-                    // The difference in colour along the line.
-                    //
-
-                    px2 = px1 + dx;
-                    py2 = py1 + dy;
-
-                    px2 &= dt->size - 1;
-                    py2 &= dt->size - 1;
-
+                    px2 = px1 + dx; py2 = py1 + dy;
+                    px2 &= dt->size - 1; py2 &= dt->size - 1;
                     pixel = bitmap[px2 + py2 * pitch];
-
                     r2 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
                     g2 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
                     b2 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
-
-                    pdiff_r = abs(r2 - r1);
-                    pdiff_g = abs(g2 - g1);
-                    pdiff_b = abs(b2 - b1);
-
+                    pdiff_r = abs(r2 - r1); pdiff_g = abs(g2 - g1); pdiff_b = abs(b2 - b1);
                     diff_along += pdiff_r + pdiff_g + pdiff_b;
 
-                    //
-                    // The next pixel along the line...
-                    //
-
-                    px1 = px2;
-                    py1 = py2;
-
-                    r1 = r2;
-                    g1 = g2;
-                    b1 = b2;
+                    px1 = px2; py1 = py2;
+                    r1 = r2; g1 = g2; b1 = b2;
                 }
 
                 diff_along /= TEXTURE_SAMPLE_STRAIGHT2;
                 diff_left /= TEXTURE_SAMPLE_STRAIGHT2;
                 diff_right /= TEXTURE_SAMPLE_STRAIGHT2;
 
-                //
-                // A line to the left.
-                //
-
-                if (diff_left > 0x60 && diff_along < 0x10) {
-                    lines += 1;
-                }
-
-                //
-                // A line to the right.
-                //
-
-                if (diff_right > 0x60 && diff_along < 0x10) {
-                    lines += 1;
-                }
+                if (diff_left > 0x60 && diff_along < 0x10) { lines += 1; }
+                if (diff_right > 0x60 && diff_along < 0x10) { lines += 1; }
             }
 
         TEXTURE_liney = lines;
 
         dt->UnlockUser();
 
-        //
-        // Is the texture brown?
-        //
-
         if (av_r > av_g && av_g > av_b) {
-            //
-            // Colours are in the right order... Make sure they aren't too similar.
-            //
-
             if (av_r > (av_b + (av_b >> 1))) {
-                //
-                // This is a brown texture. How liney is it?
-                //
-
                 if (lines > 30) {
-                    //
-                    // It has some lines...
-                    //
-
                     return TEXTURE_LOOK_ROAD;
                 } else {
                     return TEXTURE_LOOK_DIRT;
@@ -2503,33 +1428,13 @@ SLONG TEXTURE_looks_like(SLONG page)
             }
         }
 
-        //
-        // Is the texture white?
-        //
-
         if (av_r > 215 && av_g > 215 && av_b > 215) {
-            //
-            // White.
-            //
-
             if (lines > 30) {
-                //
-                // Too liney.
-                //
-
                 return TEXTURE_LOOK_ROAD;
             } else {
-                //
-                // Must be ice.
-                //
-
                 return TEXTURE_LOOK_SLIPPERY;
             }
         }
-
-        //
-        // Assume it is road!
-        //
 
         return TEXTURE_LOOK_ROAD;
     }
@@ -2537,371 +1442,16 @@ SLONG TEXTURE_looks_like(SLONG page)
     return TEXTURE_LOOK_ROAD;
 }
 
-#define PEOPLE3_CROTCH 0
-#define PEOPLE3_FRONT 3
-#define PEOPLE3_HAT_SIDE 6
-#define PEOPLE3_HAT_FRONT 9
-#define PEOPLE3_LEG 12
-
-#define PEOPLE3_F_ARSE 15
-#define PEOPLE3_F_SEAM 21
-#define PEOPLE3_F_BACK 27
-#define PEOPLE3_F_CHEST 18
-#define PEOPLE3_F_SHOE 24
-
-UWORD alt_texture[] = {
-    /*
-            0,0,0,0,0,0,0,0,  //0
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-
-            0,0,0,0,0,0,0,0,   //64
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-
-            0,0,0,0,0,0,0,0,   //128
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-            0,0,0,0,0,0,0,0,
-    */
-
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, // 0
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, // 64
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, // 72
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, // 80
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, // 88
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, // 96
-    0,
-    0,
-    0,
-    0,
-    PEOPLE3_ALT + PEOPLE3_LEG,
-    PEOPLE3_ALT + PEOPLE3_CROTCH,
-    0,
-    PEOPLE3_ALT + PEOPLE3_FRONT, // 104
-    PEOPLE3_ALT + PEOPLE3_HAT_SIDE,
-    PEOPLE3_ALT + PEOPLE3_HAT_FRONT,
-    PEOPLE3_ALT + PEOPLE3_F_ARSE,
-    PEOPLE3_ALT + PEOPLE3_F_SEAM,
-    PEOPLE3_ALT + PEOPLE3_F_SHOE,
-    PEOPLE3_ALT + PEOPLE3_F_CHEST,
-    PEOPLE3_ALT + PEOPLE3_F_BACK,
-    0, // 112
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, // 120
-
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0, // 128
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-
-};
+// uc_orig: TEXTURE_get_fiddled_position (fallen/Glide Engine/Source/gltexture.cpp)
+// Glide engine function (not used in D3D build). Stub to satisfy declaration in texture.h.
+SLONG TEXTURE_get_fiddled_position(
+    SLONG square_u,
+    SLONG square_v,
+    SLONG page,
+    float* u,
+    float* v)
+{
+    // Not implemented in the D3D build — Glide-only feature.
+    (void)square_u; (void)square_v; (void)u; (void)v;
+    return page;
+}

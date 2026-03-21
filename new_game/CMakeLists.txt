@@ -231,7 +231,8 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/poly.cpp
     src/new/engine/graphics/geometry/shape.cpp
     src/new/engine/graphics/geometry/shape_globals.cpp
-    src/old/fallen/DDEngine/Source/texture.cpp
+    src/new/assets/texture.cpp
+    src/new/assets/texture_globals.cpp
 )
 
 set(SOURCES_DDLIBRARY

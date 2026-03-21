@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 64 — assets/texture (2026-03-21)
+
+- `TEXTURE_get_fiddled_position` существует только в Glide-версии (`fallen/Glide Engine/Source/gltexture.cpp`); добавлен stub возвращающий `page` как есть — функция объявлена в `texture.h` и вызывается из `aeng.cpp`, но в D3D-билде не используется по смыслу.
+- `TEXTURE_WORLD_DIR` объявлен в `fallen/Headers/io.h` (определён в `io.cpp`, ещё не мигрирован); добавлен `#include "fallen/Headers/io.h"` в `texture.cpp` как временный include.
+- DC pack (`TEXTURE_DC_pack[]`, `TEXTURE_DC_pack_load_page`, `TEXTURE_DC_pack_init`) — Dreamcast-специфичный код, `TEXTURE_ENABLE_DC_PACKING=0` на PC; оставлен в файле как static (не в globals) поскольку снаружи не используется.
+- `IndividualTextures` — file-internal bool, оставлен static в `texture.cpp`.
+
+---
+
 ## Итерация 0 — Подготовка (2026-03-20)
 
 **Создано:**
