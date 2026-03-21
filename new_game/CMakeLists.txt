@@ -116,6 +116,8 @@ set(SOURCES_NEW
     src/new/world/environment/outline.cpp
     src/new/engine/lighting/crinkle.cpp
     src/new/engine/effects/flamengine.cpp
+    src/new/engine/effects/psystem.cpp
+    src/new/engine/effects/psystem_globals.cpp
     src/new/engine/io/env.cpp
     src/new/engine/io/env_globals.cpp
     src/new/engine/graphics/pipeline/wibble.cpp
@@ -257,7 +259,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/Player.cpp
     src/old/fallen/Source/pow.cpp
     src/old/fallen/Source/Prim.cpp
-    src/old/fallen/Source/psystem.cpp
     src/old/fallen/Source/puddle.cpp
     src/old/fallen/Source/pyro.cpp
     src/old/fallen/Source/qedit.cpp

@@ -338,3 +338,11 @@ Entity mapping обновлён (33 записи — file path).
 - Приватные structs `SM_Sphere`, `SM_Link`, `SM_Object` из `sm.cpp` вынесены в `sm_globals.h` (нужны для объявления extern-массивов)
 
 ---
+
+## Итерация 34 — engine/effects/psystem (2026-03-21)
+
+- `PARTICLE_Draw` — реализован в `drawxtra.cpp` (DDEngine), не в psystem.cpp; остался в redirect `PSystem.h` как самостоятельная декларация
+- `set_person_dead` — в forward declaration использовал `BOOL b1, BOOL b2` вместо `SLONG behind, SLONG height`; компиляция прошла но линкер не нашёл символ; исправлено до `SLONG`
+- `engine/effects/psystem.cpp` включает `world/map/pap.h` — DAG нарушение (`engine/` → `world/`), аналогично sm.cpp из итерации 33; pre-existing coupling из оригинала, перенесён 1:1; tech debt
+
+---

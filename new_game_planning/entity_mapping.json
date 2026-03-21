@@ -22569,6 +22569,366 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "PSYSTEM_MAX_PARTICLES",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PSYSTEM_MAX_PARTICLES",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_GRAVITY",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_GRAVITY",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_BOUYANT",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_BOUYANT",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_FADE",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_FADE",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_FIRE",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_FIRE",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_COLLIDE",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_COLLIDE",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_BOUNCE",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_BOUNCE",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_RESIZE",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_RESIZE",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_WANDER",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_WANDER",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_DRIFT",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_DRIFT",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_SPRITEANI",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_SPRITEANI",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_INVALPHA",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_INVALPHA",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_RESIZE2",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_RESIZE2",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_SPRITELOOP",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_SPRITELOOP",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_FADE2",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_FADE2",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_DAMPING",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_DAMPING",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_HURTPEOPLE",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_HURTPEOPLE",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_EXPLODE_ON_IMPACT",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_EXPLODE_ON_IMPACT",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAG_LEAVE_TRAIL",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAG_LEAVE_TRAIL",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAGS_SMOKE",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAGS_SMOKE",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PFLAGS_BUBBLE",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PFLAGS_BUBBLE",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Particle",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "Particle",
+      "orig_file": "fallen/Headers/PSystem.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PARTICLE_Run",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PARTICLE_Run",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PARTICLE_Reset",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PARTICLE_Reset",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PARTICLE_AddParticle",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PARTICLE_AddParticle",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PARTICLE_Add",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PARTICLE_Add",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PARTICLE_Exhaust",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PARTICLE_Exhaust",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PARTICLE_Exhaust2",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PARTICLE_Exhaust2",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PARTICLE_Steam",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PARTICLE_Steam",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PARTICLE_SGrenade",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PARTICLE_SGrenade",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "particles",
+      "file": "new/engine/effects/psystem_globals.h",
+      "orig_name": "particles",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_free",
+      "file": "new/engine/effects/psystem_globals.h",
+      "orig_name": "next_free",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "next_used",
+      "file": "new/engine/effects/psystem_globals.h",
+      "orig_name": "next_used",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "particle_count",
+      "file": "new/engine/effects/psystem_globals.h",
+      "orig_name": "particle_count",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "prev_tick",
+      "file": "new/engine/effects/psystem_globals.h",
+      "orig_name": "prev_tick",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "first_pass",
+      "file": "new/engine/effects/psystem_globals.h",
+      "orig_name": "first_pass",
+      "orig_file": "fallen/Source/psystem.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
