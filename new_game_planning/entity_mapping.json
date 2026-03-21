@@ -47279,6 +47279,16 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "there_is_a_los_mav",
+      "file": "new/actors/animals/bat.cpp",
+      "orig_name": "there_is_a_los_mav",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

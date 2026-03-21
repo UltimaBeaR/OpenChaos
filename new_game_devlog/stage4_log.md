@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовой базы
 
+## Итерация 74 — actors/animals/bat (второй чанк: BAT_normal + BAT_create + BAT_apply_hit) (2026-03-21)
+
+- `old/fallen/Source/bat.cpp` заменён redirect-заглушкой. `new/actors/animals/bat.cpp` теперь полный.
+- `there_is_a_los_mav` — не объявлена ни в одном заголовке (только inline-`extern` в оригинальном `bat.cpp`); воспроизведён паттерн, добавлен `uc_orig`.
+- `fallen/Headers/pyro.h` — уже redirect-заглушка (`effects/pyro.h`); include исправлен на прямой.
+- `fallen/Headers/collide.h` — `// Temporary:` (содержит `there_is_a_los`, `create_shockwave`).
+- `assets/level_loader.h` — `load_anim_prim_object` (нужен для `BAT_create`).
+- CMakeLists: `src/old/fallen/Source/bat.cpp` заменён на `src/new/actors/animals/bat.cpp` + `src/new/actors/animals/bat_globals.cpp`.
+
+---
+
 ## Итерация 73 — actors/animals/bat (первый чанк: globals + BAT_find_summon_people..BAT_balrog_slide_along) (2026-03-21)
 
 - `old/fallen/Source/bat.cpp` (2908 строк) разбит: первый чанк (1342 строки) → `new/actors/animals/bat.cpp`.

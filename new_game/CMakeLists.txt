@@ -267,7 +267,8 @@ set(SOURCES_GAME
     src/new/ui/attract_globals.cpp
     src/new/actors/items/barrel.cpp
     src/new/actors/items/barrel_globals.cpp
-    src/old/fallen/Source/bat.cpp
+    src/new/actors/animals/bat.cpp
+    src/new/actors/animals/bat_globals.cpp
     src/old/fallen/Source/building.cpp
     src/new/actors/animals/canid.cpp
     src/new/actors/animals/canid_globals.cpp
