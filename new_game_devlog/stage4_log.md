@@ -394,3 +394,15 @@ Entity mapping обновлён (33 записи — file path).
 - `smap.h` включает `engine/graphics/pipeline/aeng.h` для `SVector_F` в публичном API — DAG нарушение `engine/lighting` → `engine/graphics`, помечено `// Temporary:`
 
 ---
+
+## Итерация 40 — actors/core/state + switch + hierarchy + player + actors/characters/cop + roper + thug + snipe + assets/startscr (2026-03-21)
+
+- `switch_functions`, `cop_states`, `roper_states`, `thug_states` — исходно внутри `.cpp` файлов (switch как `static`, остальные как non-static); по правилу ALL globals → `_globals`; созданы `switch_globals`, `cop_globals`, `roper_globals`, `thug_globals` файлы
+- `darci_states` — не перенесён (Darci.cpp ещё не мигрирован); объявлен через `extern StateFunction darci_states[]` в `player_globals.cpp` с пометкой
+- Redirect-заголовки `old/Cop.h`, `old/Roper.h` дополнены `#include "*_globals.h"` — `Person.cpp` использует `cop_states`/`roper_states`
+- `snipe.h` (new): SNIPE_* extern-переменные убраны из публичного хедера → только в `snipe_globals.h`; redirect `old/snipe.h` дополнен `#include "snipe_globals.h"`
+- `startscr.h` (new) содержала только extern `STARTSCR_mission` — убрана (variables only in _globals); `.h` остался как пустой placeholder для будущего содержимого
+- `fn_cop_fight` — объявлена как `extern` forward decl и одновременно определена в `cop.cpp` → дублирование убрано
+- Ошибки компиляции при циклических include через `Game.h` → `Player.h`/`Switch.h`: решено по паттерну из предыдущих итераций (`#ifndef THING_INDEX + Structs.h` вместо `Game.h` в `.h` файлах)
+
+---

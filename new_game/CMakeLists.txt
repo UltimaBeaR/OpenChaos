@@ -176,6 +176,23 @@ set(SOURCES_NEW
     src/new/world/navigation/inside2.cpp
     src/new/world/navigation/inside2_globals.cpp
     src/new/world/environment/build2.cpp
+    src/new/actors/core/state.cpp
+    src/new/actors/core/switch.cpp
+    src/new/actors/core/switch_globals.cpp
+    src/new/actors/core/hierarchy.cpp
+    src/new/actors/core/hierarchy_globals.cpp
+    src/new/actors/core/player.cpp
+    src/new/actors/core/player_globals.cpp
+    src/new/actors/characters/cop.cpp
+    src/new/actors/characters/cop_globals.cpp
+    src/new/actors/characters/roper.cpp
+    src/new/actors/characters/roper_globals.cpp
+    src/new/actors/characters/thug.cpp
+    src/new/actors/characters/thug_globals.cpp
+    src/new/actors/characters/snipe.cpp
+    src/new/actors/characters/snipe_globals.cpp
+    src/new/assets/startscr.cpp
+    src/new/assets/startscr_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -224,7 +241,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/collide.cpp
     src/old/fallen/Source/combat.cpp
     src/old/fallen/Source/Controls.cpp
-    src/old/fallen/Source/Cop.cpp
     src/old/fallen/Source/Darci.cpp
     src/old/fallen/Source/dike.cpp
     src/old/fallen/Source/dirt.cpp
@@ -243,7 +259,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/gamemenu.cpp
     src/old/fallen/Source/grenade.cpp
     src/old/fallen/Source/guns.cpp
-    src/old/fallen/Source/Hierarchy.cpp
     src/old/fallen/Source/hm.cpp
     src/old/fallen/Source/hook.cpp
     src/old/fallen/Source/interact.cpp
@@ -263,7 +278,6 @@ set(SOURCES_GAME
     src/old/fallen/Source/Pjectile.cpp
     src/old/fallen/Source/plat.cpp
     src/old/fallen/Source/playcuts.cpp
-    src/old/fallen/Source/Player.cpp
     src/old/fallen/Source/pow.cpp
     src/old/fallen/Source/Prim.cpp
     src/old/fallen/Source/puddle.cpp
@@ -271,21 +285,15 @@ set(SOURCES_GAME
     src/old/fallen/Source/qedit.cpp
     src/old/fallen/Source/qmap.cpp
     src/old/fallen/Source/road.cpp
-    src/old/fallen/Source/Roper.cpp
     src/old/fallen/Source/save.cpp
     src/old/fallen/Source/shadow.cpp
     src/new/engine/physics/sm.cpp
     src/new/engine/physics/sm_globals.cpp
-    src/old/fallen/Source/snipe.cpp
     src/old/fallen/Source/Sound.cpp
     src/old/fallen/Source/Special.cpp
     src/old/fallen/Source/stair.cpp
-    src/old/fallen/Source/startscr.cpp
-    src/old/fallen/Source/State.cpp
     src/old/fallen/Source/supermap.cpp
-    src/old/fallen/Source/Switch.cpp
     src/old/fallen/Source/Thing.cpp
-    src/old/fallen/Source/Thug.cpp
     src/old/fallen/Source/trip.cpp
     src/old/fallen/Source/vehicle.cpp
 

@@ -25129,6 +25129,946 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "StateFunction",
+      "file": "new/actors/core/state.h",
+      "orig_name": "StateFunction",
+      "orig_file": "fallen/Headers/State.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GenusFunctions",
+      "file": "new/actors/core/state.h",
+      "orig_name": "GenusFunctions",
+      "orig_file": "fallen/Headers/State.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_state_function",
+      "file": "new/actors/core/state.h",
+      "orig_name": "set_state_function",
+      "orig_file": "fallen/Source/State.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_generic_person_state_function",
+      "file": "new/actors/core/state.h",
+      "orig_name": "set_generic_person_state_function",
+      "orig_file": "fallen/Source/State.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_generic_person_just_function",
+      "file": "new/actors/core/state.h",
+      "orig_name": "set_generic_person_just_function",
+      "orig_file": "fallen/Source/State.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "cop_states",
+      "file": "new/actors/characters/cop_globals.cpp",
+      "orig_name": "cop_states",
+      "orig_file": "fallen/Source/Cop.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_cop_init",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "fn_cop_init",
+      "orig_file": "fallen/Source/Cop.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_cop_normal",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "fn_cop_normal",
+      "orig_file": "fallen/Source/Cop.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_cop_fight",
+      "file": "new/actors/characters/cop.cpp",
+      "orig_name": "fn_cop_fight",
+      "orig_file": "fallen/Source/Cop.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_WALK",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_WALK",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_STAND",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_STAND",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_HIT",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_HIT",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_IDLE",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_IDLE",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_KICK",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_KICK",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_DIE_KNECK",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_DIE_KNECK",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "roper_states",
+      "file": "new/actors/characters/roper_globals.cpp",
+      "orig_name": "roper_states",
+      "orig_file": "fallen/Source/Roper.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_roper_init",
+      "file": "new/actors/characters/roper.h",
+      "orig_name": "fn_roper_init",
+      "orig_file": "fallen/Source/Roper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_roper_normal",
+      "file": "new/actors/characters/roper.h",
+      "orig_name": "fn_roper_normal",
+      "orig_file": "fallen/Source/Roper.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "thug_states",
+      "file": "new/actors/characters/thug_globals.cpp",
+      "orig_name": "thug_states",
+      "orig_file": "fallen/Source/Thug.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_thug_init",
+      "file": "new/actors/characters/thug.h",
+      "orig_name": "fn_thug_init",
+      "orig_file": "fallen/Source/Thug.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_thug_normal",
+      "file": "new/actors/characters/thug.h",
+      "orig_name": "fn_thug_normal",
+      "orig_file": "fallen/Source/Thug.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Switch",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "Switch",
+      "orig_file": "fallen/Headers/Switch.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SwitchPtr",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "SwitchPtr",
+      "orig_file": "fallen/Headers/Switch.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_SWITCHES",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "MAX_SWITCHES",
+      "orig_file": "fallen/Headers/Switch.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SWITCH_NONE",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "SWITCH_NONE",
+      "orig_file": "fallen/Headers/Switch.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SWITCH_FLAGS_TRIGGERED",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "SWITCH_FLAGS_TRIGGERED",
+      "orig_file": "fallen/Headers/Switch.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SWITCH_FLAGS_RESET",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "SWITCH_FLAGS_RESET",
+      "orig_file": "fallen/Headers/Switch.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_switches",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "init_switches",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_switch",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "alloc_switch",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_switch",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "free_switch",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "create_switch",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "create_switch",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_switch_player",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "fn_switch_player",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_switch_thing",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "fn_switch_thing",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_switch_group",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "fn_switch_group",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "fn_switch_class",
+      "file": "new/actors/core/switch.h",
+      "orig_name": "fn_switch_class",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "process_switch_sphere",
+      "file": "new/actors/core/switch.cpp",
+      "orig_name": "process_switch_sphere",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "switch_functions",
+      "file": "new/actors/core/switch_globals.cpp",
+      "orig_name": "switch_functions",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "body_part_parent",
+      "file": "new/actors/core/hierarchy_globals.cpp",
+      "orig_name": "body_part_parent",
+      "orig_file": "fallen/Source/Hierarchy.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "body_part_parent_numbers",
+      "file": "new/actors/core/hierarchy_globals.cpp",
+      "orig_name": "body_part_parent_numbers",
+      "orig_file": "fallen/Source/Hierarchy.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "body_part_children",
+      "file": "new/actors/core/hierarchy_globals.cpp",
+      "orig_name": "body_part_children",
+      "orig_file": "fallen/Source/Hierarchy.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "uncompress_matrix",
+      "file": "new/actors/core/hierarchy.cpp",
+      "orig_name": "uncompress_matrix",
+      "orig_file": "fallen/Source/Hierarchy.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "HIERARCHY_Get_Body_Part_Offset",
+      "file": "new/actors/core/hierarchy.h",
+      "orig_name": "HIERARCHY_Get_Body_Part_Offset",
+      "orig_file": "fallen/Source/Hierarchy.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Player",
+      "file": "new/actors/core/player.h",
+      "orig_name": "Player",
+      "orig_file": "fallen/Headers/Player.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PlayerPtr",
+      "file": "new/actors/core/player.h",
+      "orig_name": "PlayerPtr",
+      "orig_file": "fallen/Headers/Player.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_PLAYERS",
+      "file": "new/actors/core/player.h",
+      "orig_name": "MAX_PLAYERS",
+      "orig_file": "fallen/Headers/Player.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYER_NONE",
+      "file": "new/actors/core/player.h",
+      "orig_name": "PLAYER_NONE",
+      "orig_file": "fallen/Headers/Player.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYER_DARCI",
+      "file": "new/actors/core/player.h",
+      "orig_name": "PLAYER_DARCI",
+      "orig_file": "fallen/Headers/Player.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYER_ROPER",
+      "file": "new/actors/core/player.h",
+      "orig_name": "PLAYER_ROPER",
+      "orig_file": "fallen/Headers/Player.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "player_functions",
+      "file": "new/actors/core/player_globals.cpp",
+      "orig_name": "player_functions",
+      "orig_file": "fallen/Source/Player.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "player_pos",
+      "file": "new/actors/core/player_globals.cpp",
+      "orig_name": "player_pos",
+      "orig_file": "fallen/Source/Player.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_players",
+      "file": "new/actors/core/player.h",
+      "orig_name": "init_players",
+      "orig_file": "fallen/Source/Player.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_player",
+      "file": "new/actors/core/player.h",
+      "orig_name": "alloc_player",
+      "orig_file": "fallen/Source/Player.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_player",
+      "file": "new/actors/core/player.h",
+      "orig_name": "free_player",
+      "orig_file": "fallen/Source/Player.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "create_player",
+      "file": "new/actors/core/player.h",
+      "orig_name": "create_player",
+      "orig_file": "fallen/Source/Player.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PLAYER_redmark",
+      "file": "new/actors/core/player.h",
+      "orig_name": "PLAYER_redmark",
+      "orig_file": "fallen/Source/Player.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "store_player_pos",
+      "file": "new/actors/core/player.h",
+      "orig_name": "store_player_pos",
+      "orig_file": "fallen/Source/Player.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_on",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_on",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_yaw",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_yaw",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_pitch",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_pitch",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_cam_x",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_cam_x",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_cam_y",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_cam_y",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_cam_z",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_cam_z",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_cam_yaw",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_cam_yaw",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_cam_pitch",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_cam_pitch",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_cam_lens",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_cam_lens",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_dyaw",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_dyaw",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_dpitch",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_dpitch",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_dlens",
+      "file": "new/actors/characters/snipe_globals.cpp",
+      "orig_name": "SNIPE_dlens",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_mode_on",
+      "file": "new/actors/characters/snipe.h",
+      "orig_name": "SNIPE_mode_on",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_mode_off",
+      "file": "new/actors/characters/snipe.h",
+      "orig_name": "SNIPE_mode_off",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_turn",
+      "file": "new/actors/characters/snipe.h",
+      "orig_name": "SNIPE_turn",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_process",
+      "file": "new/actors/characters/snipe.h",
+      "orig_name": "SNIPE_process",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_shoot",
+      "file": "new/actors/characters/snipe.h",
+      "orig_name": "SNIPE_shoot",
+      "orig_file": "fallen/Source/snipe.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_TURN_LEFT",
+      "file": "new/actors/characters/snipe.h",
+      "orig_name": "SNIPE_TURN_LEFT",
+      "orig_file": "fallen/Headers/snipe.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_TURN_RIGHT",
+      "file": "new/actors/characters/snipe.h",
+      "orig_name": "SNIPE_TURN_RIGHT",
+      "orig_file": "fallen/Headers/snipe.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_TURN_UP",
+      "file": "new/actors/characters/snipe.h",
+      "orig_name": "SNIPE_TURN_UP",
+      "orig_file": "fallen/Headers/snipe.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SNIPE_TURN_DOWN",
+      "file": "new/actors/characters/snipe.h",
+      "orig_name": "SNIPE_TURN_DOWN",
+      "orig_file": "fallen/Headers/snipe.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "STARTSCR_mission",
+      "file": "new/assets/startscr_globals.cpp",
+      "orig_name": "STARTSCR_mission",
+      "orig_file": "fallen/Source/startscr.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_HEAD_HIT_SMALL",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_HEAD_HIT_SMALL",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_GUT_HIT_SMALL",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_GUT_HIT_SMALL",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_GUT_DEATH",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_GUT_DEATH",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_DEATH",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_DEATH",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_JAB",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_JAB",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_BLOCK",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_BLOCK",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_JUMP_UP_GRAB",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_JUMP_UP_GRAB",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_PULL_UP",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_PULL_UP",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_JAB2",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_JAB2",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_IDLE2",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_IDLE2",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_IDLE3",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_IDLE3",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "COP_ANIM_BREATHE",
+      "file": "new/actors/characters/cop.h",
+      "orig_name": "COP_ANIM_BREATHE",
+      "orig_file": "fallen/Headers/Cop.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "switch_functions",
+      "file": "new/actors/core/switch_globals.h",
+      "orig_name": "switch_functions",
+      "orig_file": "fallen/Source/Switch.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "cop_states",
+      "file": "new/actors/characters/cop_globals.h",
+      "orig_name": "cop_states",
+      "orig_file": "fallen/Source/Cop.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "roper_states",
+      "file": "new/actors/characters/roper_globals.h",
+      "orig_name": "roper_states",
+      "orig_file": "fallen/Source/Roper.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "thug_states",
+      "file": "new/actors/characters/thug_globals.h",
+      "orig_name": "thug_states",
+      "orig_file": "fallen/Source/Thug.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
