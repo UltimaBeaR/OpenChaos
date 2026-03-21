@@ -1,36 +1,15 @@
-//
-// Simple ovals underneath people, barrels etc...
-//
-
-#include "game.h"
-#include "ddlib.h"
-#include "mav.h"
-#include "poly.h"
-#include "oval.h"
-
 #include <math.h>
+// Temporary: game.h needed for PAP_2HI, PAP_FLAG_*, PAP_ALT_SHIFT, PAP_SHIFT_HI macros
+#include "game.h"
+// Temporary: mav.h needed for MAVHEIGHT macro
+#include "mav.h"
+#include "engine/graphics/geometry/oval.h"
+#include "engine/graphics/geometry/oval_globals.h"
+#include "engine/graphics/pipeline/poly.h"
 
-//
-// The current oval.
-//
-
-float OVAL_mid_x;
-float OVAL_mid_y;
-float OVAL_mid_z;
-float OVAL_dudx;
-float OVAL_dvdx;
-float OVAL_dudz;
-float OVAL_dvdz;
-
-//
-// Returns the oval (u,v) at the given position.
-//
-
-void OVAL_get_uv(
-    float world_x,
-    float world_z,
-    float* u,
-    float* v)
+// Returns the oval (u,v) at the given world position using the current oval gradient.
+// uc_orig: OVAL_get_uv (fallen/DDEngine/Source/oval.cpp)
+static void OVAL_get_uv(float world_x, float world_z, float* u, float* v)
 {
     float dx;
     float dz;
@@ -54,38 +33,24 @@ void OVAL_get_uv(
     *v = ans_v;
 }
 
-//
-// Projects the oval onto the given mapsquare and adds it
-// to the POLY stuff.
-//
-
-void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
+// Projects the oval onto a single map square, computing heights at corners and adding a quad.
+// Skips squares that are too far above the oval center, have roofs, or are hidden.
+// uc_orig: OVAL_project_onto_mapsquare (fallen/DDEngine/Source/oval.cpp)
+static void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
 {
     SLONG i;
 
     PAP_Hi* ph = &PAP_2HI(map_x, map_z);
 
     if (!WITHIN(map_x, 1, 126) || !WITHIN(map_z, 1, 126)) {
-        //
-        // Out of bounds...
-        //
-
         return;
     }
-
-    //
-    // Work out the height at the four corners of this square.
-    //
 
     float world_y[4];
 
     if (ph->Flags & PAP_FLAG_ROOF_EXISTS) {
         world_y[0] = world_y[1] = world_y[2] = world_y[3] = MAVHEIGHT(map_x, map_z) << 6;
     } else if (ph->Flags & PAP_FLAG_HIDDEN) {
-        //
-        // Damn... this'll be annoying!
-        //
-
         return;
     } else {
         world_y[0] = ph[0].Alt << PAP_ALT_SHIFT;
@@ -101,10 +66,6 @@ void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
         }
     }
 
-    //
-    // The average y coordinate...
-    //
-
     float av_y;
 
     av_y = world_y[0];
@@ -114,39 +75,24 @@ void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
 
     av_y *= 0.25F;
 
-    //
-    // How dark we make the shadow.
-    //
-
+    // Fade the shadow with height above the ground.
     float dy = OVAL_mid_y - av_y;
 
     if (dy < -48.0F) {
-        //
-        // This oval is above the person causing the shadow!
-        //
-
         return;
     }
 
     float dark;
 
     if (dy < 128.0F) {
-        dark = 1.0F; // Maximum darkness...
+        dark = 1.0F;
     } else {
         dark = 1.0F - (dy - 128) * (1.0F / 128.0F);
     }
 
     if (dark <= 0.0F) {
-        //
-        // Too faded out.
-        //
-
         return;
     }
-
-    //
-    // Convert the darkness into a colour.
-    //
 
     SLONG colour;
 
@@ -154,14 +100,9 @@ void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
     colour |= colour << 8;
     colour |= colour << 16;
 
-    //
-    // Create the quad.
-    //
-
     POLY_Point pp[4];
     POLY_Point* quad[4];
 
-    // The old order, that doesn't match the landscape.
     quad[0] = &pp[0];
     quad[1] = &pp[1];
     quad[2] = &pp[2];
@@ -177,10 +118,6 @@ void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
     }
 
     if (POLY_valid_quad(quad)) {
-        //
-        // Add in the uv coords and colour.
-        //
-
         for (i = 0; i < 4; i++) {
             OVAL_get_uv(
                 float(map_x + (i & 1) << 8),
@@ -192,7 +129,7 @@ void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
             pp[i].specular = 0xff000000;
         }
 
-        // A reordering that matches the way the land is drawn, and avoids Z-fights.
+        // Reorder to match landscape winding order and avoid Z-fights.
         quad[0] = &pp[1];
         quad[1] = &pp[3];
         quad[2] = &pp[0];
@@ -202,14 +139,8 @@ void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
     }
 }
 
-void OVAL_add(
-    SLONG x, // 8 bits per mapsquare
-    SLONG y,
-    SLONG z,
-    SLONG size,
-    float elongate,
-    float angle,
-    SLONG type)
+// uc_orig: OVAL_add (fallen/DDEngine/Source/oval.cpp)
+void OVAL_add(SLONG x, SLONG y, SLONG z, SLONG size, float elongate, float angle, SLONG type)
 {
     SLONG mx;
     SLONG mz;
@@ -218,10 +149,6 @@ void OVAL_add(
     SLONG mz1;
     SLONG mx2;
     SLONG mz2;
-
-    //
-    // Work out roughly the bounding box we need to project the oval into/
-    //
 
     SLONG msize = ftol(float(size) * elongate + 8.0F);
 
@@ -236,10 +163,6 @@ void OVAL_add(
     SATURATE(mx2, 1, 126);
     SATURATE(mz2, 1, 126);
 
-    //
-    // Work out the oval mapping.
-    //
-
     OVAL_mid_x = float(x);
     OVAL_mid_y = float(y);
     OVAL_mid_z = float(z);
@@ -250,10 +173,6 @@ void OVAL_add(
     OVAL_dudz = (sin(angle + PI / 2) / float(size)) / elongate;
     OVAL_dvdz = (cos(angle + PI / 2) / float(size));
 
-    //
-    // Which page are we using?
-    //
-
     SLONG page;
 
     switch (type) {
@@ -263,15 +182,10 @@ void OVAL_add(
     case OVAL_TYPE_SQUARE:
         page = POLY_PAGE_SHADOW_SQUARE;
         break;
-
     default:
         ASSERT(0);
         break;
     }
-
-    //
-    // Project the oval onto these squares.
-    //
 
     for (mx = mx1; mx <= mx2; mx++)
         for (mz = mz1; mz <= mz2; mz++) {

@@ -280,3 +280,12 @@ Entity mapping обновлён (33 записи — file path).
 - `static SLONG type_cycle` в `MIST_create` — static local (функциональная), не file-scope глобал; остаётся в .cpp
 
 ---
+
+## Итерация 28 — engine/graphics/geometry/oval + world/environment/build + ui/hud/planmap (2026-03-21)
+
+- `LIGHT_building_point` и `LIGHT_amb_colour` определены в оригинальном `build.cpp` (не в light.cpp), `light.h` лишь объявляет их как `extern`; вынесены в `build_globals`
+- `build_globals.h` включает `game.h` (temporary) перед `light.h` — `light.h` требует `THING_INDEX`, `GameCoord` которые приходят через `game.h`; без этого `light.h` не компилируется в изоляции
+- Первая итерация с созданием директории `ui/hud/` (ранее не существовала)
+- `planmap.cpp` — `EDGE_LEFT/TOP/RIGHT/BOTTOM` — file-private `#define`s в `.cpp`, добавлены `uc_orig` + записи в mapping
+
+---

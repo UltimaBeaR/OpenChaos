@@ -18799,6 +18799,456 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_TYPE_OVAL",
+      "file": "new/engine/graphics/geometry/oval.h",
+      "orig_name": "OVAL_TYPE_OVAL",
+      "orig_file": "fallen/DDEngine/Headers/oval.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_TYPE_SQUARE",
+      "file": "new/engine/graphics/geometry/oval.h",
+      "orig_name": "OVAL_TYPE_SQUARE",
+      "orig_file": "fallen/DDEngine/Headers/oval.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_add",
+      "file": "new/engine/graphics/geometry/oval.h",
+      "orig_name": "OVAL_add",
+      "orig_file": "fallen/DDEngine/Headers/oval.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_get_uv",
+      "file": "new/engine/graphics/geometry/oval.cpp",
+      "orig_name": "OVAL_get_uv",
+      "orig_file": "fallen/DDEngine/Source/oval.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_project_onto_mapsquare",
+      "file": "new/engine/graphics/geometry/oval.cpp",
+      "orig_name": "OVAL_project_onto_mapsquare",
+      "orig_file": "fallen/DDEngine/Source/oval.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_add",
+      "file": "new/engine/graphics/geometry/oval.cpp",
+      "orig_name": "OVAL_add",
+      "orig_file": "fallen/DDEngine/Source/oval.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_mid_x",
+      "file": "new/engine/graphics/geometry/oval_globals.h",
+      "orig_name": "OVAL_mid_x",
+      "orig_file": "fallen/DDEngine/Source/oval.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_mid_y",
+      "file": "new/engine/graphics/geometry/oval_globals.h",
+      "orig_name": "OVAL_mid_y",
+      "orig_file": "fallen/DDEngine/Source/oval.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_mid_z",
+      "file": "new/engine/graphics/geometry/oval_globals.h",
+      "orig_name": "OVAL_mid_z",
+      "orig_file": "fallen/DDEngine/Source/oval.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_dudx",
+      "file": "new/engine/graphics/geometry/oval_globals.h",
+      "orig_name": "OVAL_dudx",
+      "orig_file": "fallen/DDEngine/Source/oval.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_dvdx",
+      "file": "new/engine/graphics/geometry/oval_globals.h",
+      "orig_name": "OVAL_dvdx",
+      "orig_file": "fallen/DDEngine/Source/oval.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_dudz",
+      "file": "new/engine/graphics/geometry/oval_globals.h",
+      "orig_name": "OVAL_dudz",
+      "orig_file": "fallen/DDEngine/Source/oval.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "OVAL_dvdz",
+      "file": "new/engine/graphics/geometry/oval_globals.h",
+      "orig_name": "OVAL_dvdz",
+      "orig_file": "fallen/DDEngine/Source/oval.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUILD_draw",
+      "file": "new/world/environment/build.h",
+      "orig_name": "BUILD_draw",
+      "orig_file": "fallen/DDEngine/Headers/build.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUILD_draw_inside",
+      "file": "new/world/environment/build.h",
+      "orig_name": "BUILD_draw_inside",
+      "orig_file": "fallen/DDEngine/Headers/build.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUILD_draw",
+      "file": "new/world/environment/build.cpp",
+      "orig_name": "BUILD_draw",
+      "orig_file": "fallen/DDEngine/Source/build.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BUILD_draw_inside",
+      "file": "new/world/environment/build.cpp",
+      "orig_name": "BUILD_draw_inside",
+      "orig_file": "fallen/DDEngine/Source/build.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LIGHT_building_point",
+      "file": "new/world/environment/build_globals.h",
+      "orig_name": "LIGHT_building_point",
+      "orig_file": "fallen/DDEngine/Source/build.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "LIGHT_amb_colour",
+      "file": "new/world/environment/build_globals.h",
+      "orig_name": "LIGHT_amb_colour",
+      "orig_file": "fallen/DDEngine/Source/build.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BEACON_FLAG_BEACON",
+      "file": "new/ui/hud/planmap.h",
+      "orig_name": "BEACON_FLAG_BEACON",
+      "orig_file": "fallen/DDEngine/Headers/planmap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BEACON_FLAG_POINTY",
+      "file": "new/ui/hud/planmap.h",
+      "orig_name": "BEACON_FLAG_POINTY",
+      "orig_file": "fallen/DDEngine/Headers/planmap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "plan_view_shot",
+      "file": "new/ui/hud/planmap.h",
+      "orig_name": "plan_view_shot",
+      "orig_file": "fallen/DDEngine/Headers/planmap.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "map_beacon_draw",
+      "file": "new/ui/hud/planmap.h",
+      "orig_name": "map_beacon_draw",
+      "orig_file": "fallen/DDEngine/Headers/planmap.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "draw_quick_rect",
+      "file": "new/ui/hud/planmap.cpp",
+      "orig_name": "draw_quick_rect",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "draw_shadow_rect",
+      "file": "new/ui/hud/planmap.cpp",
+      "orig_name": "draw_shadow_rect",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_screen_xy",
+      "file": "new/ui/hud/planmap.cpp",
+      "orig_name": "get_screen_xy",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "map_beacon_draw",
+      "file": "new/ui/hud/planmap.cpp",
+      "orig_name": "map_beacon_draw",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "plan_view_shot",
+      "file": "new/ui/hud/planmap.cpp",
+      "orig_name": "plan_view_shot",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "screenmem",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "screenmem",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "clip_left",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "clip_left",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "clip_right",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "clip_right",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "clip_top",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "clip_top",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "clip_bot",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "clip_bot",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "screen_x",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "screen_x",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "screen_y",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "screen_y",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "screen_width",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "screen_width",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "screen_height",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "screen_height",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "block_size",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "block_size",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "screen_mx",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "screen_mx",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "screen_mz",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "screen_mz",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "screen_pitch",
+      "file": "new/ui/hud/planmap_globals.h",
+      "orig_name": "screen_pitch",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EDGE_LEFT",
+      "file": "new/ui/hud/planmap.cpp",
+      "orig_name": "EDGE_LEFT",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EDGE_TOP",
+      "file": "new/ui/hud/planmap.cpp",
+      "orig_name": "EDGE_TOP",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EDGE_RIGHT",
+      "file": "new/ui/hud/planmap.cpp",
+      "orig_name": "EDGE_RIGHT",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "EDGE_BOTTOM",
+      "file": "new/ui/hud/planmap.cpp",
+      "orig_name": "EDGE_BOTTOM",
+      "orig_file": "fallen/DDEngine/Source/planmap.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

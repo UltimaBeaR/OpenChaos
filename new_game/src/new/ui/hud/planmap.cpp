@@ -1,23 +1,30 @@
-#include <MFStdLib.h>
-#include <DDLib.h>
-#include <math.h>
-#include "aeng.h"
+// Temporary: game.h needed for PAP_2HI, PAP_FLAG_HIDDEN, GAME_TURN and related macros
 #include "game.h"
-#include "..\headers\pap.h"
-#include "..\headers\road.h"
-#include "planmap.h"
+// Temporary: pap.h needed for PAP_2HI, PAP_Hi struct and PAP_FLAG_ defines
+#include "pap.h"
+// Temporary: road.h needed for ROAD_is_road
+#include "fallen/Headers/road.h"
+#include "ui/hud/planmap.h"
+#include "ui/hud/planmap_globals.h"
 
-#define EDGE_LEFT (1 << 0)
-#define EDGE_TOP (1 << 1)
-#define EDGE_RIGHT (1 << 2)
-#define EDGE_BOTTOM (1 << 3)
-
+// player_visited tracks which map squares the player has explored (bit per X, indexed by Z).
+// Defined in Person.cpp.
 extern UBYTE player_visited[16][128];
 
-UBYTE* screenmem;
-SLONG clip_left, clip_right, clip_top, clip_bot;
+// Local edge flags for draw_shadow_rect border rendering.
+// uc_orig: EDGE_LEFT (fallen/DDEngine/Source/planmap.cpp)
+#define EDGE_LEFT   (1 << 0)
+// uc_orig: EDGE_TOP (fallen/DDEngine/Source/planmap.cpp)
+#define EDGE_TOP    (1 << 1)
+// uc_orig: EDGE_RIGHT (fallen/DDEngine/Source/planmap.cpp)
+#define EDGE_RIGHT  (1 << 2)
+// uc_orig: EDGE_BOTTOM (fallen/DDEngine/Source/planmap.cpp)
+#define EDGE_BOTTOM (1 << 3)
 
-void draw_quick_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green, SLONG blue)
+// Fills a pixelw x pixelw block at (csx, csy) in screenmem with the given RGB colour.
+// Clips against the current clip rectangle.
+// uc_orig: draw_quick_rect (fallen/DDEngine/Source/planmap.cpp)
+static void draw_quick_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green, SLONG blue)
 {
     SLONG right, bot;
     SLONG dx, dy;
@@ -49,7 +56,6 @@ void draw_quick_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green,
     mem = &screenmem[csx * 3 + csy * 640 * 3];
 
     for (dy = csy; dy < bot; dy++) {
-
         for (dx = csx; dx < right; dx++) {
             *mem++ = red;
             *mem++ = green;
@@ -59,15 +65,14 @@ void draw_quick_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green,
     }
 }
 
-void draw_shadow_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green, SLONG blue, SLONG shadow, SLONG edge)
+// Like draw_quick_rect but can darken half the block to simulate directional shadows,
+// and can draw a black border on specified edges.
+// uc_orig: draw_shadow_rect (fallen/DDEngine/Source/planmap.cpp)
+static void draw_shadow_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green, SLONG blue, SLONG shadow, SLONG edge)
 {
     SLONG dx, dy, px, py;
     SLONG r, g, b;
     UBYTE clipped = 1;
-
-    //
-    // Optimise later
-    //
 
     if (shadow == 0 && edge == 0) {
         draw_quick_rect(csx, csy, pixelw, red, green, blue);
@@ -78,7 +83,6 @@ void draw_shadow_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green
         clipped = 0;
 
     for (dx = 0; dx < pixelw; dx++) {
-
         for (dy = 0; dy < pixelw; dy++) {
             r = red;
             g = green;
@@ -97,59 +101,31 @@ void draw_shadow_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green
                 g = 0;
                 b = 0;
             }
-            /*
-                                    if(dx==pixelw-1&& (edge&EDGE_RIGHT))
-                                    {
-                                            r=0;
-                                            g=0;
-                                            b=0;
-                                    }
-            */
             if (dy == 0 && (edge & EDGE_TOP)) {
                 r = 0;
                 g = 0;
                 b = 0;
             }
-            /*
-                                    if(dy==pixelw-1&& (edge&EDGE_BOTTOM))
-                                    {
-                                            r=0;
-                                            g=0;
-                                            b=0;
-                                    }
-            */
 
             switch (shadow) {
             case 0:
                 break;
             case 1:
-                //   ..X
-                //	 .oX
-                //	 ,oX
-
                 if (dx + dy < pixelw && dx < (pixelw >> 1)) {
                     r >>= 1;
                     g >>= 1;
                     b >>= 1;
                 }
                 break;
-
             case 6:
             case 2:
-                //   ,ox
-                //	 ,ox
-                //	 ,ox
                 if (dx < (pixelw >> 1)) {
                     r >>= 1;
                     g >>= 1;
                     b >>= 1;
                 }
-
                 break;
             case 3:
-                //   ,ox
-                //	 ,oo
-                //	 .,,
                 if (dx < (pixelw >> 1) && dy > (pixelw >> 1)) {
                     r >>= 1;
                     g >>= 1;
@@ -157,9 +133,6 @@ void draw_shadow_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green
                 }
                 break;
             case 4:
-                //   xxx
-                //	 ooo
-                //	 ,,,
                 if (dy > (pixelw >> 1)) {
                     r >>= 1;
                     g >>= 1;
@@ -167,9 +140,6 @@ void draw_shadow_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green
                 }
                 break;
             case 5:
-                //   ...
-                //	 ..
-                //	 ...
                 if (dx < (pixelw >> 1) || dy > (pixelw >> 1)) {
                     r >>= 1;
                     g >>= 1;
@@ -177,9 +147,6 @@ void draw_shadow_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green
                 }
                 break;
             case 7:
-                //   ...
-                //	 ...
-                //	 ...
                 if (dx + dy > pixelw && dy > (pixelw >> 1)) {
                     r >>= 1;
                     g >>= 1;
@@ -195,10 +162,9 @@ void draw_shadow_rect(SLONG csx, SLONG csy, SLONG pixelw, SLONG red, SLONG green
     }
 }
 
-UWORD screen_x, screen_y, screen_width, screen_height, block_size, screen_mx, screen_mz;
-SLONG screen_pitch;
-
-void get_screen_xy(SLONG* x, SLONG* z)
+// Converts world coordinates to planmap screen coordinates using current screen parameters.
+// uc_orig: get_screen_xy (fallen/DDEngine/Source/planmap.cpp)
+static void get_screen_xy(SLONG* x, SLONG* z)
 {
     SLONG rx, rz;
 
@@ -212,7 +178,7 @@ void get_screen_xy(SLONG* x, SLONG* z)
     rx += screen_x + (screen_width >> 1);
 
     rz -= screen_mz;
-    rz *= block_size; // screen_pitch;
+    rz *= block_size;
     rz >>= 8;
 
     rz += screen_y + (screen_height >> 1);
@@ -221,6 +187,7 @@ void get_screen_xy(SLONG* x, SLONG* z)
     *z = rz;
 }
 
+// uc_orig: map_beacon_draw (fallen/DDEngine/Source/planmap.cpp)
 void map_beacon_draw(SLONG x, SLONG z, ULONG col, ULONG flag, UWORD dir)
 {
     UBYTE radius;
@@ -231,15 +198,9 @@ void map_beacon_draw(SLONG x, SLONG z, ULONG col, ULONG flag, UWORD dir)
     mx = x >> 8;
     mz = z >> 8;
 
-    //
-    // how many pixels per mapwho
-    //
-
     if (!(player_visited[mx >> 3][mz] & (1 << (mx & 7)))) {
         if (flag & BEACON_FLAG_BEACON) {
-            //
-            // Always draw beacons.
-            //
+            // Always draw beacons even in unexplored areas.
         } else {
             return;
         }
@@ -280,6 +241,7 @@ void map_beacon_draw(SLONG x, SLONG z, ULONG col, ULONG flag, UWORD dir)
     }
 }
 
+// uc_orig: plan_view_shot (fallen/DDEngine/Source/planmap.cpp)
 void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG w, SLONG h, UBYTE* mem)
 {
     SLONG minx, maxx, minz, maxz;
@@ -293,9 +255,9 @@ void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG 
     SLONG height;
     UBYTE* image;
 
+    // image_mem: defined in GDisplay.cpp, holds a captured screenshot of the background.
     extern UBYTE* image_mem;
     memcpy(mem, image_mem, 640 * 480 * 3);
-    // yay for disk caches :-p
 
     screen_width = w;
     screen_height = h;
@@ -307,13 +269,6 @@ void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG 
     block_size = pixelw;
 
     m = mem;
-
-    /*	for(c0=0;c0<640*480;c0++)
-            {
-                    *m++=244;
-                    *m++=231;
-                    *m++=177;
-            }*/
 
     clip_left = sx;
     clip_right = sx + w;
@@ -329,11 +284,6 @@ void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG 
 
     minz = (wz >> 8) - (h / (pixelw << 1)) - 1;
     maxz = (wz >> 8) + (h / (pixelw << 1)) + 1;
-
-    //	SATURATE(minx,0,127);
-    //	SATURATE(minz,0,127);
-    //	SATURATE(maxx,0,127);
-    //	SATURATE(maxz,0,127);
 
     for (z = minz; z < maxz; z++) {
         for (x = minx; x < maxx; x++) {
@@ -358,10 +308,6 @@ void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG 
                     }
 
                     if ((PAP_2HI(x, z).Flags & PAP_FLAG_HIDDEN) == 0) {
-                        //
-                        // draw the floor
-                        //
-
                         if (ROAD_is_road(x, z)) {
                             r = 100;
                             g = 100;
@@ -379,22 +325,17 @@ void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG 
                                 draw_shadow_rect(csx, csy, pixelw, r, g, b, shadow, edge);
                             }
                         }
-
                     } else {
                         r = ((PAP_2HI(x, z).Height)) + 140;
                         if (r > 255)
                             r = 255;
                         g = r;
                         b = r;
-                        if (player_visited[x >> 3][z] & (1 << (x & 7))) {
-                            //						r=255;
-                        }
 
                         shadow = PAP_2HI(x, z).Flags & 0x7;
                         draw_shadow_rect(csx, csy, pixelw, r, g, b, shadow, edge);
                     }
-                } else
-                    ; //	draw_quick_rect(csx,csy,pixelw,0,0,0);
+                }
             }
             csx += pixelw;
         }

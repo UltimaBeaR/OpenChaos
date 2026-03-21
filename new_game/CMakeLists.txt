@@ -134,11 +134,16 @@ set(SOURCES_NEW
     src/new/effects/ribbon_globals.cpp
     src/new/effects/drip.cpp
     src/new/effects/drip_globals.cpp
+    src/new/engine/graphics/geometry/oval.cpp
+    src/new/engine/graphics/geometry/oval_globals.cpp
+    src/new/world/environment/build.cpp
+    src/new/world/environment/build_globals.cpp
+    src/new/ui/hud/planmap.cpp
+    src/new/ui/hud/planmap_globals.cpp
 )
 
 set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/aeng.cpp
-    src/old/fallen/DDEngine/Source/build.cpp
     src/old/fallen/DDEngine/Source/cone.cpp
     src/old/fallen/DDEngine/Source/drawxtra.cpp
     src/old/fallen/DDEngine/Source/engineMap.cpp
@@ -147,9 +152,7 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/fastprim.cpp
     src/old/fallen/DDEngine/Source/figure.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
-    src/old/fallen/DDEngine/Source/oval.cpp
     src/old/fallen/DDEngine/Source/panel.cpp
-    src/old/fallen/DDEngine/Source/planmap.cpp
     src/old/fallen/DDEngine/Source/poly.cpp
     src/old/fallen/DDEngine/Source/polyrenderstate.cpp
     src/old/fallen/DDEngine/Source/shape.cpp
