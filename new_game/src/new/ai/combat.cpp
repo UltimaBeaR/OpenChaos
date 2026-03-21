@@ -58,8 +58,9 @@ extern void set_person_dead(Thing* p_thing, Thing* p_aggressor, SLONG death_type
 extern SLONG person_is_lying_on_what(Thing* p_person);
 // uc_orig: there_is_a_los_things (fallen/Source/collide.cpp)
 extern SLONG there_is_a_los_things(Thing* p_a, Thing* p_b, SLONG flags);
-// uc_orig: PersonIsMIB (fallen/Source/Person.cpp)
-extern SLONG PersonIsMIB(Thing* p_person);
+// uc_orig: PersonIsMIB (fallen/Source/pcom.cpp)
+// return type is BOOL (not SLONG) — matches pcom.h declaration
+extern BOOL PersonIsMIB(Thing* p_person);
 // uc_orig: check_eway_talk (fallen/Source/eway.cpp) -- also in eway.h already
 extern void check_eway_talk(SLONG stop);
 // uc_orig: sweep_feet (fallen/Source/Person.cpp)

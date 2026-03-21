@@ -110,6 +110,7 @@
 #include "panel.h"
 
 #include "memory.h"
+#include "ai/pcom_globals.h"
 extern UBYTE stealth_debug;
 extern BOOL allow_debug_keys;
 
@@ -121,6 +122,7 @@ extern UBYTE combo_display;
 void push_into_attack_group_at_angle(Thing* p_person, SLONG gang, SLONG reqd_angle);
 SLONG remove_from_gang_attack(Thing* p_person, Thing* p_target);
 void PCOM_set_person_ai_flee_person(Thing* p_person, Thing* p_scary);
+SLONG person_holding_2handed(Thing* p_person);
 
 void DriveCar(Thing* p_person);
 void ParkCar(Thing* p_person);
@@ -147,6 +149,8 @@ extern UBYTE vehicle_random[];
 extern SLONG there_is_a_los_mav( // From collide.cpp
     SLONG x1, SLONG y1, SLONG z1,
     SLONG x2, SLONG y2, SLONG z2);
+
+#if 0 // MIGRATED to src/new/ai/pcom.cpp + pcom_globals.cpp (iteration 82)
 
 CBYTE* PCOM_ai_state_name[PCOM_AI_STATE_NUMBER] = {
     "Player",
@@ -261,6 +265,8 @@ CBYTE* PCOM_move_name[PCOM_MOVE_NUMBER] = {
     "TIED_UP",
 };
 
+#endif // MIGRATED (string arrays part 1)
+
 //
 // The movement states a person can be in.
 //
@@ -292,6 +298,7 @@ CBYTE* PCOM_move_name[PCOM_MOVE_NUMBER] = {
 #define PCOM_MOVE_SPEED_YOMP PERSON_SPEED_YOMP
 #define PCOM_MOVE_SPEED_SPRINT PERSON_SPEED_SPRINT
 
+#if 0 // MIGRATED (PCOM_move_state_name to new/ai/pcom_globals.cpp — iteration 82)
 CBYTE* PCOM_move_state_name[] = {
     "Player",
     "Still",
@@ -316,6 +323,7 @@ CBYTE* PCOM_move_state_name[] = {
     "Unused",
     "Unused"
 };
+#endif // MIGRATED (PCOM_move_state_name)
 
 //
 // While mavigating, a person is either running/walking to a point or
@@ -369,6 +377,8 @@ CBYTE* PCOM_move_state_name[] = {
 //
 
 #define PCOM_MAX_GANG_PEOPLE 64
+
+#if 0 // MIGRATED to src/new/ai/pcom.cpp + pcom_globals.cpp (iteration 82)
 
 THING_INDEX PCOM_gang_person[PCOM_MAX_GANG_PEOPLE];
 SLONG PCOM_gang_person_upto;
@@ -1705,7 +1715,7 @@ void PCOM_alert_my_gang_to_a_fight(Thing* p_person, Thing* p_target)
 }
 SLONG am_i_a_thug(Thing* p_person);
 
-// claude-ai: PCOM_alert_my_gang_to_flee - signals all same-colour gang members to flee from p_target; called when gang leader decides to run
+// PCOM_alert_my_gang_to_flee - signals all same-colour gang members to flee from p_target
 void PCOM_alert_my_gang_to_flee(Thing* p_person, Thing* p_target)
 {
     SLONG i;
@@ -1735,6 +1745,8 @@ void PCOM_alert_my_gang_to_flee(Thing* p_person, Thing* p_target)
                 }
     }
 }
+
+#endif // MIGRATED to src/new/ai/pcom.cpp + pcom_globals.cpp
 
 // ========================================================
 //

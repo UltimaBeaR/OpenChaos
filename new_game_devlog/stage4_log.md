@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 82 — ai/pcom (первый чанк: globals + утилиты + запросы, PCOM_init..PCOM_alert_my_gang_to_flee) (2026-03-21)
+
+- `old/fallen/Headers/pcom.h` заменён redirect-заглушкой; новый `new/ai/pcom.h` содержит полный публичный API.
+- Заголовок `new/ai/pcom.h` содержит объявления ещё не перенесённых функций (из остатка pcom.cpp) — чтобы компиляция всего кода, ссылающегося на pcom.h, не сломалась.
+- Макросы `PCOM_MOVE_STATE_*`, `PCOM_MOVE_SUBSTATE_*`, `PCOM_MOVE_SPEED_*`, `PCOM_MOVE_FLAG_*`, `PCOM_EXCAR_*`, `PCOM_ARRIVE_DIST` — file-local в оригинале (определены в pcom.cpp), воспроизведены в `new/ai/pcom.cpp`; оставлены в active-зоне `old/pcom.cpp` (нужны не перенесённым функциям).
+- `PCOM_TICKS_PER_TURN`, `PCOM_TICKS_PER_SEC` перемещены в pcom.h перед inline-функциями (иначе PCOM_get_duration не компилируется).
+- `PersonIsMIB` — конфликт типов возврата с combat.cpp (был `SLONG`, должен `BOOL`); исправлено в combat.cpp.
+- `PCOM_move_state_name` — потребовалось три отдельных `#if 0 // MIGRATED` блока в old/pcom.cpp: строковые массивы до макросов, PCOM_move_state_name между макросами, глобалы+функции после макросов; иначе макросы оказывались внутри #if 0.
+
+---
+
 ## Итерация 81 — ai/combat (fallen/Source/Combat.cpp, 2957 строк) (2026-03-21)
 
 - `find_attack_stance` в оригинальном `combat.h` объявлена с 6 параметрами, но реализация (и все вызывающие) использует 7 (плюс `attack_range`). Новый заголовок использует правильную 7-параметровую сигнатуру.

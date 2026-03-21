@@ -51349,6 +51349,3186 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_ai_state_name",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_ai_state_name",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_ai_substate_name",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_ai_substate_name",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_ai_name",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_ai_name",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_bent_name",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_bent_name",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_move_name",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_move_name",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_move_state_name",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_move_state_name",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_gang_person",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_gang_person",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_gang_person_upto",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_gang_person_upto",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_Gang",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_Gang",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_gang",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_gang",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_found",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_found",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_found_num",
+      "file": "new/ai/pcom_globals.h",
+      "orig_name": "PCOM_found_num",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_init",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_init",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_add_gang_member",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_add_gang_member",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_should_fake_person_attack_darci",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_should_fake_person_attack_darci",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_rate_of_fire",
+      "file": "new/ai/pcom.h",
+      "orig_name": "get_rate_of_fire",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "person_has_gun_or_grenade_out",
+      "file": "new/ai/pcom.h",
+      "orig_name": "person_has_gun_or_grenade_out",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_duration",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_duration",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_duration100",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_duration100",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_random_duration",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_random_duration",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_angle_for_dir",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_angle_for_dir",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_dx_dz_for_dir",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_dx_dz_for_dir",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_dist_between",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_dist_between",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_dist_from_home",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_dist_from_home",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_should_i_try_to_los_mav_to_person",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_should_i_try_to_los_mav_to_person",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_person_navsquare",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_person_navsquare",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_vehicle_navsquare",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_vehicle_navsquare",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_position_person_to_sit_on_prim",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_position_person_to_sit_on_prim",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_flee_from_pos",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_flee_from_pos",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_person_dest",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_person_dest",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_mav_action_pos",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_mav_action_pos",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_person_has_any_sort_of_gun",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_person_has_any_sort_of_gun",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_person_has_any_sort_of_h2h",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_person_has_any_sort_of_h2h",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_person_has_any_sort_of_gun_with_ammo",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_person_has_any_sort_of_gun_with_ammo",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_are_there_people_who_want_to_enter",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_are_there_people_who_want_to_enter",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_person_doing_nothing_important",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_person_doing_nothing_important",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_person_has_gun_in_hand",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_person_has_gun_in_hand",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_target_could_shoot_me",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_target_could_shoot_me",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_person_dist_from",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_person_dist_from",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_find_hiding_place",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_find_hiding_place",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_player_is_doing_something_naughty",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_player_is_doing_something_naughty",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_alert_my_gang_to_a_fight",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_alert_my_gang_to_a_fight",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_alert_my_gang_to_flee",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_alert_my_gang_to_flee",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MAX_GANG_PEOPLE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MAX_GANG_PEOPLE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MAX_GANGS",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MAX_GANGS",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MAX_FIND",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MAX_FIND",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_TICKS_PER_TURN",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_TICKS_PER_TURN",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_TICKS_PER_SEC",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_TICKS_PER_SEC",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_PLAYER",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_PLAYER",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_STILL",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_STILL",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_GOTO_XZ",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_GOTO_XZ",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_GOTO_WAYPOINT",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_GOTO_WAYPOINT",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_GOTO_THING",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_GOTO_THING",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_PAUSE",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_PAUSE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_ANIMATION",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_ANIMATION",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_CIRCLE",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_CIRCLE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_DRIVETO",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_DRIVETO",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_FOLLOW",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_FOLLOW",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_PARK_CAR",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_PARK_CAR",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_DRIVE_DOWN",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_DRIVE_DOWN",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_BIKETO",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_BIKETO",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_PARK_BIKE",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_PARK_BIKE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_BIKE_DOWN",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_BIKE_DOWN",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_GRAPPLE",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_GRAPPLE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_GOTO_THING_SLIDE",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_GOTO_THING_SLIDE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_WAIT_CIRCLE",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_WAIT_CIRCLE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_PARK_CAR_ON_ROAD",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_PARK_CAR_ON_ROAD",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STATE_NUMBER",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_STATE_NUMBER",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SPEED_WALK",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SPEED_WALK",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SPEED_RUN",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SPEED_RUN",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SPEED_SNEAK",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SPEED_SNEAK",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SPEED_YOMP",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SPEED_YOMP",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SPEED_SPRINT",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SPEED_SPRINT",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_NONE",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_NONE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_GOTO",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_GOTO",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_ACTION",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_ACTION",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_GUNAWAY",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_GUNAWAY",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_GUNOUT",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_GUNOUT",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_PUNCH",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_PUNCH",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_KICK",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_KICK",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_SHOOT",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_SHOOT",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_ANIM",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_ANIM",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_GETINCAR",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_GETINCAR",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_3PTURN",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_3PTURN",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_WAIT",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_WAIT",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_LEAVECAR",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_LEAVECAR",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_ARREST",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_ARREST",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_SUBSTATE_LOSMAV",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_SUBSTATE_LOSMAV",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_FLAG_AVOID_LEFT",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_FLAG_AVOID_LEFT",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_FLAG_AVOID_RIGHT",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_MOVE_FLAG_AVOID_RIGHT",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_EXCAR_NORMAL",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_EXCAR_NORMAL",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_EXCAR_FLEE_PERSON",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_EXCAR_FLEE_PERSON",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_EXCAR_ARREST_PERSON",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_EXCAR_ARREST_PERSON",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_EXCAR_NAVTOKILL",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_EXCAR_NAVTOKILL",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_ARRIVE_DIST",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_ARRIVE_DIST",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SHOOTME_DANGLE",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "PCOM_SHOOTME_DANGLE",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_NONE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_NONE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_CIV",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_CIV",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_GUARD",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_GUARD",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_ASSASIN",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_ASSASIN",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_BOSS",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_BOSS",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_COP",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_COP",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_GANG",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_GANG",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_DOORMAN",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_DOORMAN",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_BODYGUARD",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_BODYGUARD",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_DRIVER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_DRIVER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_BDISPOSER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_BDISPOSER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_BIKER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_BIKER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_FIGHT_TEST",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_FIGHT_TEST",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_BULLY",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_BULLY",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_COP_DRIVER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_COP_DRIVER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUICIDE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUICIDE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_FLEE_PLAYER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_FLEE_PLAYER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_KILL_COLOUR",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_KILL_COLOUR",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_MIB",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_MIB",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_BANE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_BANE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_HYPOCHONDRIA",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_HYPOCHONDRIA",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SHOOT_DEAD",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SHOOT_DEAD",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_NUMBER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_NUMBER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_STILL",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_STILL",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_PATROL",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_PATROL",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_PATROL_RAND",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_PATROL_RAND",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_WANDER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_WANDER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_FOLLOW",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_FOLLOW",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_WARM_HANDS",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_WARM_HANDS",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_FOLLOW_ON_SEE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_FOLLOW_ON_SEE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_DANCE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_DANCE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_HANDS_UP",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_HANDS_UP",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_TIED_UP",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_TIED_UP",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_MOVE_NUMBER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_MOVE_NUMBER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_BENT_LAZY",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_BENT_LAZY",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_BENT_DILIGENT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_BENT_DILIGENT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_BENT_GANG",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_BENT_GANG",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_BENT_FIGHT_BACK",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_BENT_FIGHT_BACK",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_BENT_ONLY_KILL_PLAYER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_BENT_ONLY_KILL_PLAYER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_BENT_ROBOT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_BENT_ROBOT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_BENT_RESTRICTED",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_BENT_RESTRICTED",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_BENT_PLAYERKILL",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_BENT_PLAYERKILL",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_BENT_NUMBER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_BENT_NUMBER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_PLAYER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_PLAYER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_NORMAL",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_NORMAL",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_INVESTIGATING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_INVESTIGATING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_SEARCHING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_SEARCHING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_KILLING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_KILLING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_SLEEPING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_SLEEPING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_FLEE_PLACE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_FLEE_PLACE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_FLEE_PERSON",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_FLEE_PERSON",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_FOLLOWING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_FOLLOWING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_NAVTOKILL",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_NAVTOKILL",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_HOMESICK",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_HOMESICK",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_LOOKAROUND",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_LOOKAROUND",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_FINDCAR",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_FINDCAR",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_BDEACTIVATE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_BDEACTIVATE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_LEAVECAR",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_LEAVECAR",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_SNIPE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_SNIPE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_WARM_HANDS",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_WARM_HANDS",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_FINDBIKE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_FINDBIKE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_KNOCKEDOUT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_KNOCKEDOUT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_TAUNT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_TAUNT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_ARREST",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_ARREST",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_TALK",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_TALK",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_GRAPPLED",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_GRAPPLED",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_HITCH",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_HITCH",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_AIMLESS",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_AIMLESS",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_HANDS_UP",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_HANDS_UP",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_SUMMON",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_SUMMON",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_GETITEM",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_GETITEM",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_STATE_NUMBER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_STATE_NUMBER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_NONE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_NONE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_SUPRISED",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_SUPRISED",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_WALKOVER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_WALKOVER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_LOOK",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_LOOK",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_PUNCHING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_PUNCHING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_KICKING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_KICKING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_LEGIT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_LEGIT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_HUNTING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_HUNTING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_AIMING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_AIMING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_NOMOREAMMO",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_NOMOREAMMO",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_GOTOCAR",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_GOTOCAR",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_GETINCAR",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_GETINCAR",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_GOTOBOMB",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_GOTOBOMB",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_CUTWIRES",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_CUTWIRES",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_PARKCAR",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_PARKCAR",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_LEAVECAR",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_LEAVECAR",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_GOTOFIRE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_GOTOFIRE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_WARMUP",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_WARMUP",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_GOTOBIKE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_GOTOBIKE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_HUNTING_SLIDE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_HUNTING_SLIDE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_TALK_ASK",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_TALK_ASK",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_TALK_TELL",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_TALK_TELL",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_TALK_LISTEN",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_TALK_LISTEN",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_HITCHING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_HITCHING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_SUMMON_START",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_SUMMON_START",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_SUMMON_FLOAT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_SUMMON_FLOAT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_DRAW_H2H",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_DRAW_H2H",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_CANTFIND",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_CANTFIND",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_WAITING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_WAITING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_AI_SUBSTATE_NUMBER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_AI_SUBSTATE_NUMBER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_HAS_GUN",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_HAS_GUN",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_HAS_BALLOON",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_HAS_BALLOON",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_HAS_SHOTGUN",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_HAS_SHOTGUN",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_HAS_BASEBALLBAT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_HAS_BASEBALLBAT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_HAS_KNIFE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_HAS_KNIFE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_HAS_AK47",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_HAS_AK47",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_HAS_GRENADE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_HAS_GRENADE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_LOOKAT_NOTHING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_LOOKAT_NOTHING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_LOOKAT_THING",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_LOOKAT_THING",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_LOOKAT_WAYPOINT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_LOOKAT_WAYPOINT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_LOOKAT_DIRT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_LOOKAT_DIRT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_COMBAT_SLIDE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_COMBAT_SLIDE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_COMBAT_COMBO_PPP",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_COMBAT_COMBO_PPP",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_COMBAT_COMBO_KKK",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_COMBAT_COMBO_KKK",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_COMBAT_COMBO_ANY",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_COMBAT_COMBO_ANY",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_COMBAT_GRAPPLE_ATTACK",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_COMBAT_GRAPPLE_ATTACK",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_COMBAT_SIDE_KICK",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_COMBAT_SIDE_KICK",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_COMBAT_BACK_KICK",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_COMBAT_BACK_KICK",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_FOOTSTEP",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_FOOTSTEP",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_UNUSUAL",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_UNUSUAL",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_HEY",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_HEY",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_ALARM",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_ALARM",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_FIGHT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_FIGHT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_GUNSHOT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_GUNSHOT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_DROP",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_DROP",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_DROP_MED",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_DROP_MED",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_DROP_BIG",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_DROP_BIG",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_VAN",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_VAN",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_BANG",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_BANG",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_MINE",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_MINE",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_LOOKINGATME",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_LOOKINGATME",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_WANKER",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_WANKER",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_DRAW_GUN",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_DRAW_GUN",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_GRENADE_FLY",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_GRENADE_FLY",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_SOUND_GRENADE_HIT",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_SOUND_GRENADE_HIT",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_create_person",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_create_person",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_create_player",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_create_player",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_change_person_attributes",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_change_person_attributes",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_oscillate_tympanum",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_oscillate_tympanum",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_knockdown_happened",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_knockdown_happened",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_attack_happened",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_attack_happened",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_attack_happened_but_missed",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_attack_happened_but_missed",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_youre_being_grappled",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_youre_being_grappled",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_process_person",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_process_person",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_jumping_navigating_person_continue_moving",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_jumping_navigating_person_continue_moving",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_person_state_debug",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_person_state_debug",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_make_people_talk_to_eachother",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_make_people_talk_to_eachother",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_stop_people_talking_to_eachother",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_stop_people_talking_to_eachother",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_person_a_hates_b",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_person_a_hates_b",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_person_wants_to_kill",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_person_wants_to_kill",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_cop_aiming_at_you",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_cop_aiming_at_you",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_make_driver_run_away",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_make_driver_run_away",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_talk_to",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_talk_to",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_if_i_wanted_to_jump_how_fast_should_i_do_it",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_if_i_wanted_to_jump_how_fast_should_i_do_it",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_call_cop_to_arrest_me",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_call_cop_to_arrest_me",
+      "orig_file": "fallen/Headers/pcom.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_normal",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_normal",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_still",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_still",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_mav_to_xz",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_mav_to_xz",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_mav_to_thing",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_mav_to_thing",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_mav_to_waypoint",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_mav_to_waypoint",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_renav",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_renav",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_finished_nav",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_finished_nav",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_pause",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_pause",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_animation",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_animation",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_punch",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_punch",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_kick",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_kick",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_pickup_special",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_pickup_special",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_arrest",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_arrest",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_draw_gun",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_draw_gun",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_draw_h2h",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_draw_h2h",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_gun_away",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_gun_away",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_shoot",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_shoot",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_substate_goto_or_3pturn",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_substate_goto_or_3pturn",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_substate_goto",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_substate_goto",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_driveto",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_driveto",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_park_car",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_park_car",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_drive_down",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_drive_down",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_park_car_on_road",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_park_car_on_road",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_goto_thing_slide",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_goto_thing_slide",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_circle",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_circle",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_getincar",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_getincar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_move_leavecar",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_move_leavecar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_homesick",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_homesick",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_flee_person",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_flee_person",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_flee_place",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_flee_place",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_kill_person",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_kill_person",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_aimless",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_aimless",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_navtokill_shoot",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_navtokill_shoot",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_navtokill",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_navtokill",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_follow",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_follow",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_findcar",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_findcar",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_bdeactivate",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_bdeactivate",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_snipe",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_snipe",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_warm_hands",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_warm_hands",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_hands_up",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_hands_up",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_hitch",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_hitch",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_taunt",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_taunt",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_summon",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_summon",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_set_person_ai_getitem",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_set_person_ai_getitem",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_new_gang_attack",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_new_gang_attack",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PersonIsMIB",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PersonIsMIB",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_zone_for_position",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_zone_for_position",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_can_i_see_person_to_attack",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_can_i_see_person_to_attack",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_can_i_see_person_to_bully",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_can_i_see_person_to_bully",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_can_i_see_person_to_arrest",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_can_i_see_person_to_arrest",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_can_i_see_person_to_taunt",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_can_i_see_person_to_taunt",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_get_next_patrol_waypoint",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_get_next_patrol_waypoint",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_target_sprinting_towards_me",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_target_sprinting_towards_me",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_do_regen",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_do_regen",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_alert_nearby_mib_to_attack",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_alert_nearby_mib_to_attack",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_find_bodyguard_victim",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_find_bodyguard_victim",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_find_runover_thing",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_find_runover_thing",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_find_bomb",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_find_bomb",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_is_there_an_item_i_should_get",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_is_there_an_item_i_should_get",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_follow_speed",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_follow_speed",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_teleport_home",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_teleport_home",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_process_default",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_process_default",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_process_state_change",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_process_state_change",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "PCOM_process_movement",
+      "file": "new/ai/pcom.h",
+      "orig_name": "PCOM_process_movement",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "get_car_enter_xz",
+      "file": "new/ai/pcom.cpp",
+      "orig_name": "get_car_enter_xz",
+      "orig_file": "fallen/Source/pcom.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

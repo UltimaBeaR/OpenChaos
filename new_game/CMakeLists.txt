@@ -313,6 +313,8 @@ set(SOURCES_GAME
     src/new/ui/hud/overlay_globals.cpp
 
     src/new/ui/pause.cpp
+    src/new/ai/pcom.cpp
+    src/new/ai/pcom_globals.cpp
     src/old/fallen/Source/pcom.cpp
     src/old/fallen/Source/Person.cpp
     src/new/actors/items/projectile.cpp
