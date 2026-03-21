@@ -19249,6 +19249,656 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "DriverEnumCallback",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DriverEnumCallback",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ModeEnumCallback",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "ModeEnumCallback",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DeviceEnumCallback",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DeviceEnumCallback",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TextureFormatEnumCallback",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "TextureFormatEnumCallback",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ZFormatEnumCallback",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "ZFormatEnumCallback",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FlagsToBitDepth",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "FlagsToBitDepth",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FlagsToMask",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "FlagsToMask",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "BitDepthToFlags",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "BitDepthToFlags",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "IsPalettized",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "IsPalettized",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GetDesktopMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "GetDesktopMode",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "GetFullscreenMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "GetFullscreenMode",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ValidateDriver",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "ValidateDriver",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ValidateDevice",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "ValidateDevice",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "ValidateMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "ValidateMode",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDModeInfo::DDModeInfo",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDModeInfo::DDModeInfo",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDModeInfo::~DDModeInfo",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDModeInfo::~DDModeInfo",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDModeInfo::GetWidth",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDModeInfo::GetWidth",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDModeInfo::GetHeight",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDModeInfo::GetHeight",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDModeInfo::GetBPP",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDModeInfo::GetBPP",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDModeInfo::GetMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDModeInfo::GetMode",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDModeInfo::ModeSupported",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDModeInfo::ModeSupported",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDModeInfo::Match_whbpp",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDModeInfo::Match",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDModeInfo::Match_bpp",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDModeInfo::Match",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::D3DDeviceInfo",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::D3DDeviceInfo",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::~D3DDeviceInfo",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::~D3DDeviceInfo",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::Create",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::Create",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::Destroy",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::Destroy",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::CheckCaps",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::CheckCaps",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::LoadFormats",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::LoadFormats",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::FindOpaqueTexFmt",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::FindOpaqueTexFmt",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::FindAlphaTexFmt",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::FindAlphaTexFmt",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::LoadZFormats",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::LoadZFormats",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::DestroyFormats",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::DestroyFormats",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::AddFormat",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::AddFormat",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::DelFormat",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::DelFormat",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::IsHardware",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::IsHardware",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::Match",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::Match",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "D3DDeviceInfo::FindFormat",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "D3DDeviceInfo::FindFormat",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::DDDriverInfo",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::DDDriverInfo",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::~DDDriverInfo",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::~DDDriverInfo",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::Create",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::Create",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::Destroy",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::Destroy",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::Match",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::Match",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::LoadModes",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::LoadModes",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::DestroyModes",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::DestroyModes",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::AddMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::AddMode",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::DeleteMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::DeleteMode",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::FindMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::FindMode",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::LoadDevices",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::LoadDevices",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::DestroyDevices",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::DestroyDevices",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::AddDevice",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::AddDevice",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::DeleteDevice",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::DeleteDevice",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::FindDevice",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::FindDevice",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::FindDeviceSupportsMode",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::FindDeviceSupportsMode",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::FindModeSupportsDevice",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::FindModeSupportsDevice",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverInfo::GetGuid",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverInfo::GetGuid",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverManager::DDDriverManager",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverManager::DDDriverManager",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverManager::~DDDriverManager",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverManager::~DDDriverManager",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverManager::Init",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverManager::Init",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverManager::Fini",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverManager::Fini",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverManager::LoadDrivers",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverManager::LoadDrivers",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverManager::DestroyDrivers",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverManager::DestroyDrivers",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverManager::AddDriver",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverManager::AddDriver",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "DDDriverManager::FindDriver",
+      "file": "new/engine/graphics/graphics_api/dd_manager.cpp",
+      "orig_name": "DDDriverManager::FindDriver",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "the_manager",
+      "file": "new/engine/graphics/graphics_api/dd_manager_globals.cpp",
+      "orig_name": "the_manager",
+      "orig_file": "fallen/DDLibrary/Source/DDManager.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -289,3 +289,12 @@ Entity mapping обновлён (33 записи — file path).
 - `planmap.cpp` — `EDGE_LEFT/TOP/RIGHT/BOTTOM` — file-private `#define`s в `.cpp`, добавлены `uc_orig` + записи в mapping
 
 ---
+
+## Итерация 29 — engine/graphics/graphics_api/dd_manager (2026-03-21)
+
+- `DDManager.cpp` включал `game.h` и `env.h` но использовал только `ENV_get_value_number/set` — оба инклуда в `new/` заменены на нужные (`engine/io/env.h`, `core/memory.h`)
+- `OS_calculate_mask_and_shift` (из `D3DTexture.cpp`) вызывается через `extern` forward declaration — чтобы не тянуть `resources/` include в `graphics_api/` (DAG нарушение)
+- `CanDoAdamiLighting` и `CanDoForsythLighting` инициализируются в конструкторе `= false`; в оригинале они не инициализировались (только `CanDoModulateAlpha`/`CanDoDestInvSourceColour` инициализированы явно) — безопасно
+- Закомментированный overload `DDDriverManager::FindDriver(DDCAPS*, ...)` (~110 строк) не перенесён — полностью мёртвый код в `/* */` блоке
+
+---
