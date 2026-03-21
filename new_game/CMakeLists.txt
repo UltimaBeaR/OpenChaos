@@ -275,7 +275,8 @@ set(SOURCES_GAME
     src/new/actors/characters/enemy.cpp
 
     src/old/fallen/Source/eway.cpp
-    src/old/fallen/Source/fc.cpp
+    src/new/ui/camera/fc.cpp
+    src/new/ui/camera/fc_globals.cpp
     src/old/fallen/Source/fog.cpp
     src/old/fallen/Source/frontend.cpp
     src/old/fallen/Source/Game.cpp

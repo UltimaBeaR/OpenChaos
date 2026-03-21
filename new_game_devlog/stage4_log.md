@@ -612,3 +612,14 @@ Entity mapping обновлён (33 записи — file path).
 - `supermap_globals.cpp` включает `fallen/Headers/Game.h` (Temporary) для PERSON_* констант в `levels[]`
 
 ---
+
+## Итерация 61 — ui/camera/fc (2026-03-21)
+
+- `fc.h` включает `fallen/Headers/Game.h` (Temporary) — `FC_Cam.focus` = `Thing*`, требует полного типа; `FC_process` использует CLASS_*, FLAG_PERSON_*, STATE_*, ACTION_*, GF_*
+- `fc.cpp` дополнительно включает `fallen/Headers/animate.h` — ACTION_* и SUB_OBJECT_* не транзитивно доступны через `Game.h` (не включён в цепочку `Game.h → Structs.h → anim.h`)
+- `EWAY_grab_camera` уже объявлена в `eway.h` с типом `SLONG`; extern-декларация с `void` убрана — конфликт типа
+- `UBYTE cap` в `FC_alter_for_pos` — dead variable из оригинала, перенесена 1:1
+- `font2d.h` не включён — в оригинале был, но использовался только в закомментированном блоке `/* */`
+- Новая директория `ui/camera/` создана
+
+---

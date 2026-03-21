@@ -39899,6 +39899,416 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "FC_Cam",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_Cam",
+      "orig_file": "fallen/Headers/fc.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_MAX_CAMS",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_MAX_CAMS",
+      "orig_file": "fallen/Headers/fc.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_cam",
+      "file": "new/ui/camera/fc_globals.h",
+      "orig_name": "FC_cam",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_init",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_init",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_change_camera_type",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_change_camera_type",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_must_move_up_and_around",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_must_move_up_and_around",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_look_at",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_look_at",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_move_to",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_move_to",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_focus_above",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_focus_above",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_get_person_body_part_target",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_get_person_body_part_target",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_calc_focus",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_calc_focus",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_look_at_focus",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_look_at_focus",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_force_camera_behind",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_force_camera_behind",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_setup_initial_camera",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_setup_initial_camera",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_allowed_to_rotate",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_allowed_to_rotate",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_rotate_left",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_rotate_left",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_rotate_right",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_rotate_right",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_setup_camera_for_warehouse",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_setup_camera_for_warehouse",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_process",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_process",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_can_see_point",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_can_see_point",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_can_see_person",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_can_see_person",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_position_for_lookaround",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_position_for_lookaround",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_explosion",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_explosion",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_kill_player_cam",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_kill_player_cam",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_unkill_player_cam",
+      "file": "new/ui/camera/fc.h",
+      "orig_name": "FC_unkill_player_cam",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_alter_for_pos",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_alter_for_pos",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CAM_MORE_IN",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "CAM_MORE_IN",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CAM_AT_HEAD",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "CAM_AT_HEAD",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CAM_AT_WORLD_POS",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "CAM_AT_WORLD_POS",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CAM_AT_FEET",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "CAM_AT_FEET",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_ROTATE_DIR_LEFT",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_ROTATE_DIR_LEFT",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_ROTATE_DIR_RIGHT",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_ROTATE_DIR_RIGHT",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_PUSH_XS",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_PUSH_XS",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_PUSH_XL",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_PUSH_XL",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_PUSH_ZS",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_PUSH_ZS",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_PUSH_ZL",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_PUSH_ZL",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_CSP_HEIGHT",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_CSP_HEIGHT",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_CSP_RADIUS",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_CSP_RADIUS",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_ROTATE_NEAR",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_ROTATE_NEAR",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_DIST_MIN",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_DIST_MIN",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FC_DIST_MAX",
+      "file": "new/ui/camera/fc.cpp",
+      "orig_name": "FC_DIST_MAX",
+      "orig_file": "fallen/Source/fc.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }
