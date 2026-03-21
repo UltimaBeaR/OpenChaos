@@ -312,7 +312,7 @@ set(SOURCES_GAME
     src/new/effects/pyro_globals.cpp
     src/new/world/map/qedit.cpp
     src/new/world/map/qedit_globals.cpp
-    src/old/fallen/Source/qmap.cpp
+    src/new/world/map/qmap.cpp
     src/new/world/map/road.cpp
     src/new/world/map/road_globals.cpp
     src/new/missions/save.cpp

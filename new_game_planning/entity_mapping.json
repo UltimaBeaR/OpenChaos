@@ -40729,6 +40729,146 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_compress_all",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_compress_all",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_make_room_at_the_end_of_the_all_array",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_make_room_at_the_end_of_the_all_array",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_compress_prim_array",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_compress_prim_array",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_get_style_texture",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_get_style_texture",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_create_cube",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_create_cube",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_init",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_init",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_add_road",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_add_road",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_add_cube",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_add_cube",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_add_prim",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_add_prim",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_calc_height_at",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_calc_height_at",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_get_cube_coords",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_get_cube_coords",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_draw_init",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_draw_init",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_create",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_create",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "QMAP_free",
+      "file": "new/world/map/qmap.cpp",
+      "orig_name": "QMAP_free",
+      "orig_file": "fallen/Source/qmap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

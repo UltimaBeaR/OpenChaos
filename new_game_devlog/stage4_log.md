@@ -633,3 +633,10 @@ Entity mapping обновлён (33 записи — file path).
 - `FC_cam` — объявлен в `fc_globals.h`, не в `fc.h`; добавлен include `fc_globals.h`
 
 ---
+
+## Итерация 63 — world/map/qmap (2026-03-21)
+
+- `QMAP_compress_all`, `QMAP_make_room_at_the_end_of_the_all_array`, `QMAP_compress_prim_array`, `QMAP_get_style_texture`, `QMAP_create_cube` — file-private в оригинале (нет декларации в `qmap.h`, нигде не вызываются снаружи) → помечены `static`
+- `qmap.cpp` не включает `game.h` — `MSG_add` идёт через `engine/graphics/pipeline/message.h`, `MemAlloc`/`MemFree` через `core/memory.h`; macros `ASSERT`/`WITHIN`/`SATURATE`/`SWAP`/`MAX`/`MIN` — через `<MFStdLib.h>` (→ Always.h)
+
+---
