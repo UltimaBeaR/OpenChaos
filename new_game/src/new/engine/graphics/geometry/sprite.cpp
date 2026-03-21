@@ -1,7 +1,8 @@
 #include <MFStdLib.h>
-#include "poly.h"
-#include "sprite.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/geometry/sprite.h"
 
+// uc_orig: SPRITE_draw_tex_distorted (fallen/DDEngine/Source/sprite.cpp)
 void SPRITE_draw_tex_distorted(
     float world_x,
     float world_y,
@@ -14,7 +15,6 @@ void SPRITE_draw_tex_distorted(
     float wx1, float wy1, float wx2, float wy2, float wx3, float wy3, float wx4, float wy4,
     SLONG sort)
 {
-
     float screen_size;
 
     POLY_Point mid;
@@ -31,9 +31,7 @@ void SPRITE_draw_tex_distorted(
         screen_size = POLY_world_length_to_screen(world_size) * mid.Z;
 
         if (mid.X + screen_size < 0 || mid.X - screen_size > POLY_screen_width || mid.Y + screen_size < 0 || mid.Y - screen_size > POLY_screen_height) {
-            //
             // Off screen.
-            //
         } else {
             pp[0].X = mid.X - screen_size + wx1;
             pp[0].Y = mid.Y - screen_size + wy1;
@@ -100,6 +98,7 @@ void SPRITE_draw_tex_distorted(
     }
 }
 
+// uc_orig: SPRITE_draw (fallen/DDEngine/Source/sprite.cpp)
 void SPRITE_draw(
     float world_x,
     float world_y,
@@ -126,9 +125,7 @@ void SPRITE_draw(
         screen_size = POLY_world_length_to_screen(world_size) * mid.Z;
 
         if (mid.X + screen_size < 0 || mid.X - screen_size > POLY_screen_width || mid.Y + screen_size < 0 || mid.Y - screen_size > POLY_screen_height) {
-            //
             // Off screen.
-            //
         } else {
             pp[0].X = mid.X - screen_size;
             pp[0].Y = mid.Y - screen_size;
@@ -195,6 +192,7 @@ void SPRITE_draw(
     }
 }
 
+// uc_orig: SPRITE_draw_tex (fallen/DDEngine/Source/sprite.cpp)
 void SPRITE_draw_tex(
     float world_x,
     float world_y,
@@ -223,9 +221,7 @@ void SPRITE_draw_tex(
         screen_size = POLY_world_length_to_screen(world_size) * mid.Z;
 
         if (mid.X + screen_size < 0 || mid.X - screen_size > POLY_screen_width || mid.Y + screen_size < 0 || mid.Y - screen_size > POLY_screen_height) {
-            //
             // Off screen.
-            //
         } else {
             pp[0].X = mid.X - screen_size;
             pp[0].Y = mid.Y - screen_size;

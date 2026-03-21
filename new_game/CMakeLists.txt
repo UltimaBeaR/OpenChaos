@@ -90,6 +90,9 @@ set(SOURCES_NEW
     src/new/engine/graphics/pipeline/polypage_globals.cpp
     src/new/engine/graphics/resources/font.cpp
     src/new/engine/graphics/resources/font_globals.cpp
+    src/new/engine/graphics/geometry/sprite.cpp
+    src/new/engine/graphics/resources/menufont.cpp
+    src/new/engine/graphics/resources/menufont_globals.cpp
 )
 
 set(SOURCES_DDENGINE
@@ -106,7 +109,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/figure.cpp
     src/old/fallen/DDEngine/Source/flamengine.cpp
     src/old/fallen/DDEngine/Source/font2d.cpp
-    src/old/fallen/DDEngine/Source/menufont.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
     src/old/fallen/DDEngine/Source/oval.cpp
     src/old/fallen/DDEngine/Source/panel.cpp
@@ -117,7 +119,6 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/shape.cpp
     src/old/fallen/DDEngine/Source/sky.cpp
     src/old/fallen/DDEngine/Source/smap.cpp
-    src/old/fallen/DDEngine/Source/sprite.cpp
     src/old/fallen/DDEngine/Source/superfacet.cpp
     src/old/fallen/DDEngine/Source/Text.cpp
     src/old/fallen/DDEngine/Source/texture.cpp

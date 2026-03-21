@@ -11459,6 +11459,456 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "SPRITE_SORT_NORMAL",
+      "file": "new/engine/graphics/geometry/sprite.h",
+      "orig_name": "SPRITE_SORT_NORMAL",
+      "orig_file": "fallen/DDEngine/Headers/sprite.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPRITE_SORT_FRONT",
+      "file": "new/engine/graphics/geometry/sprite.h",
+      "orig_name": "SPRITE_SORT_FRONT",
+      "orig_file": "fallen/DDEngine/Headers/sprite.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPRITE_draw",
+      "file": "new/engine/graphics/geometry/sprite.h",
+      "orig_name": "SPRITE_draw",
+      "orig_file": "fallen/DDEngine/Source/sprite.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPRITE_draw_tex",
+      "file": "new/engine/graphics/geometry/sprite.h",
+      "orig_name": "SPRITE_draw_tex",
+      "orig_file": "fallen/DDEngine/Source/sprite.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SPRITE_draw_tex_distorted",
+      "file": "new/engine/graphics/geometry/sprite.h",
+      "orig_name": "SPRITE_draw_tex_distorted",
+      "orig_file": "fallen/DDEngine/Source/sprite.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_FUTZING",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_FUTZING",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_HALOED",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_HALOED",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_GLIMMER",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_GLIMMER",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_CENTRED",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_CENTRED",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_FLANGED",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_FLANGED",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_SINED",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_SINED",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_ONLY",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_ONLY",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_RIGHTALIGN",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_RIGHTALIGN",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_HSCALEONLY",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_HSCALEONLY",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_SUPER_YCTR",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_SUPER_YCTR",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_SHAKE",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_SHAKE",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CharData",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "CharData",
+      "orig_file": "fallen/DDEngine/Headers/menufont.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FontInfo",
+      "file": "new/engine/graphics/resources/menufont_globals.h",
+      "orig_name": "FontInfo",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FontName",
+      "file": "new/engine/graphics/resources/menufont_globals.h",
+      "orig_name": "FontName",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FontPage",
+      "file": "new/engine/graphics/resources/menufont_globals.h",
+      "orig_name": "FontPage",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FONT_TICK",
+      "file": "new/engine/graphics/resources/menufont_globals.h",
+      "orig_name": "FONT_TICK",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_fadein_x",
+      "file": "new/engine/graphics/resources/menufont_globals.h",
+      "orig_name": "MENUFONT_fadein_x",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_Load",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_Load",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_Page",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_Page",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_Draw",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_Draw",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_Draw_floats",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_Draw_floats",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_Free",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_Free",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_Dimensions",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_Dimensions",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_CharFit",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_CharFit",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_CharWidth",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_CharWidth",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_MergeLower",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_MergeLower",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_fadein_init",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_fadein_init",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_fadein_line",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_fadein_line",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_fadein_draw",
+      "file": "new/engine/graphics/resources/menufont.h",
+      "orig_name": "MENUFONT_fadein_draw",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Red",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "Red",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Bloo",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "Bloo",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Mata",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "Mata",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "TEXTURE_EXTRA_DIR",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "TEXTURE_EXTRA_DIR",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "SC",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "SC",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "CC",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "CC",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_fadein_char",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "MENUFONT_fadein_char",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_FADEIN_LEFT",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "MENUFONT_FADEIN_LEFT",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_FADEIN_RIGHT",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "MENUFONT_FADEIN_RIGHT",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_FADEIN_SEGMENTS",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "MENUFONT_FADEIN_SEGMENTS",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MENUFONT_FADEIN_MAX_EXPAND",
+      "file": "new/engine/graphics/resources/menufont.cpp",
+      "orig_name": "MENUFONT_FADEIN_MAX_EXPAND",
+      "orig_file": "fallen/DDEngine/Source/menufont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

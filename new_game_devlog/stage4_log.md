@@ -189,3 +189,12 @@ Entity mapping обновлён (33 записи — file path).
 - Разблокирует миграцию файлов зависящих от `poly.h` (crinkle, facet, mesh, console, Text, aeng и др.)
 
 ---
+
+## Итерация 19 — engine/graphics/geometry/sprite + engine/graphics/resources/menufont (2026-03-21)
+
+- `MENUFONT_DrawFlanged` и `MENUFONT_DrawFutzed` не перенесены — мёртвый код: ASSERT в `MENUFONT_Draw` подтверждает, что эти флаги никогда не передаются
+- `MENUFONT_MergeLower` отсутствовал в оригинальном `menufont.h`, но вызывается снаружи (`frontend.cpp` l.4106–4107 через forward declaration) — добавлен в `menufont.h`
+- `MENUFONT_fadein_char` — file-private, помечен `static`
+- `PANEL_draw_quad` — forward declaration в `menufont.cpp` (panel.cpp ещё не мигрирован, зависит от `game.h`)
+
+---
