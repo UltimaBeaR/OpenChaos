@@ -467,3 +467,13 @@ Entity mapping обновлён (33 записи — file path).
 - `STAIR_srand/grand/rand/set_bit/get_bit/get_bit_from_square/check_edge/add_to_storey/is_door` — static file-private helpers; `STAIR_EDGE` — file-private macro
 
 ---
+
+## Итерация 47 — actors/core/thing (2026-03-21)
+
+- `nearest_class` (объявлена в оригинальном `thing.h`, тело в `/* */` в Thing.cpp) — не перенесена; была удалена при миграции `switch.cpp` (Switch.cpp вызывал её, но новый switch.cpp обходится без неё)
+- `thing.cpp` включает `world/map/pap.h` — DAG нарушение (`actors/` → `world/`); pre-existing coupling из оригинала (map management функции используют PAP_2LO); помечено `// Temporary:`
+- `thing_globals.h` дублирует объявление `THING_array`/`THING_ARRAY_SIZE` с `thing.h` — оба файла включаются через redirect; дублирование безвредно (одинаковые значения/extern)
+- `GAMEMENU_is_paused` — в оригинальном `gamemenu.h` возвращает `SLONG`, не `BOOL`; исправлено после первой ошибки компиляции
+- `slow_mo` — в оригинале `static` file-scope; перенесён в `_globals` по правилу
+
+---

@@ -30739,6 +30739,806 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_PRIMARY_THINGS",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "MAX_PRIMARY_THINGS",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_SECONDARY_THINGS",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "MAX_SECONDARY_THINGS",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "MAX_THINGS",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "MAX_THINGS",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_ON_MAPWHO",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_ON_MAPWHO",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_IN_VIEW",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_IN_VIEW",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_TWEEN_TO_QUEUED_FRAME",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_TWEEN_TO_QUEUED_FRAME",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_PROJECTILE_MOVEMENT",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_PROJECTILE_MOVEMENT",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_LOCKED_ANIM",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_LOCKED_ANIM",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_IN_BUILDING",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_IN_BUILDING",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_INDOORS_GENERATED",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_INDOORS_GENERATED",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_LOCKED",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_LOCKED",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_CABLE_BUILDING",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_CABLE_BUILDING",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_COLLIDED",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_COLLIDED",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_IN_SEWERS",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_IN_SEWERS",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_SWITCHED_ON",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_SWITCHED_ON",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_PLAYED_FOOTSTEP",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_PLAYED_FOOTSTEP",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_HAS_GUN",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_HAS_GUN",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_BURNING",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_BURNING",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_HAS_ATTACHED_SOUND",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_HAS_ATTACHED_SOUND",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_PERSON_BEEN_SHOT",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_PERSON_BEEN_SHOT",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAGS_PERSON_AIM_AND_RUN",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAGS_PERSON_AIM_AND_RUN",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAG_EDIT_PRIM_ON_FLOOR",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAG_EDIT_PRIM_ON_FLOOR",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAG_EDIT_PRIM_JUST_FLOOR",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAG_EDIT_PRIM_JUST_FLOOR",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAG_EDIT_PRIM_INSIDE",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAG_EDIT_PRIM_INSIDE",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAG_SPECIAL_UNTOUCHED",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAG_SPECIAL_UNTOUCHED",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "FLAG_SPECIAL_HIDDEN",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "FLAG_SPECIAL_HIDDEN",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "Thing",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "Thing",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_ARRAY_SIZE",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_ARRAY_SIZE",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_FIND_EVERYTHING",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_FIND_EVERYTHING",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_FIND_PEOPLE",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_FIND_PEOPLE",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_FIND_LIVING",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_FIND_LIVING",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_FIND_MOVING",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_FIND_MOVING",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_thing_pos",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "set_thing_pos",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "init_things",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "init_things",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_primary_thing",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "alloc_primary_thing",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_primary_thing",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "free_primary_thing",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_secondary_thing",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "alloc_secondary_thing",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_secondary_thing",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "free_secondary_thing",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "add_thing_to_map",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "add_thing_to_map",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "remove_thing_from_map",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "remove_thing_from_map",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "move_thing_on_map",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "move_thing_on_map",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "move_thing_on_map_dxdydz",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "move_thing_on_map_dxdydz",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "process_things",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "process_things",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "process_things_tick",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "process_things_tick",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "log_primary_used_list",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "log_primary_used_list",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "log_primary_unused_list",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "log_primary_unused_list",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "log_secondary_used_list",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "log_secondary_used_list",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "log_secondary_unused_list",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "log_secondary_unused_list",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "alloc_thing",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "alloc_thing",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "free_thing",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "free_thing",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_dist_between",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_dist_between",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_kill",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_kill",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_find_sphere",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_find_sphere",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_find_box",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_find_box",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_find_nearest",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_find_nearest",
+      "orig_file": "fallen/Headers/Thing.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_find_nearest_person",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "THING_find_nearest_person",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "wait_ticks",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "wait_ticks",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "do_packets",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "do_packets",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "set_slow_motion",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "set_slow_motion",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "copy_important_thing_bits",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "copy_important_thing_bits",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "store_thing",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "store_thing",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_thing",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "check_thing",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "for_things",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "for_things",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "store_thing_data",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "store_thing_data",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "check_thing_data",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "check_thing_data",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "is_class_primary",
+      "file": "new/actors/core/thing.cpp",
+      "orig_name": "is_class_primary",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_find_nearest_xyz_p",
+      "file": "new/actors/core/thing.cpp",
+      "orig_name": "THING_find_nearest_xyz_p",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "thing_class_head",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "thing_class_head",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "THING_array",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "THING_array",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "tick_tock_unclipped",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "tick_tock_unclipped",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "class_priority",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "class_priority",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "class_check",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "class_check",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "playback_file",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "playback_file",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "verifier_file",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "verifier_file",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "input_type",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "input_type",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "slow_mo",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "slow_mo",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "REAL_TICK_RATIO",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "REAL_TICK_RATIO",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "hit_player",
+      "file": "new/actors/core/thing_globals.h",
+      "orig_name": "hit_player",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NET_packet",
+      "file": "new/actors/core/thing.cpp",
+      "orig_name": "NET_packet",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
+    },
+    {
+      "name": "NORMAL_TICK_TOCK",
+      "file": "new/actors/core/thing.cpp",
+      "orig_name": "NORMAL_TICK_TOCK",
+      "orig_file": "fallen/Source/Thing.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-21"
     }
   ]
 }

@@ -183,6 +183,8 @@ set(SOURCES_NEW
     src/new/actors/core/hierarchy_globals.cpp
     src/new/actors/core/player.cpp
     src/new/actors/core/player_globals.cpp
+    src/new/actors/core/thing.cpp
+    src/new/actors/core/thing_globals.cpp
     src/new/actors/characters/cop.cpp
     src/new/actors/characters/cop_globals.cpp
     src/new/actors/characters/roper.cpp
@@ -306,7 +308,6 @@ set(SOURCES_GAME
     src/new/world/environment/stair.cpp
     src/new/world/environment/stair_globals.cpp
     src/old/fallen/Source/supermap.cpp
-    src/old/fallen/Source/Thing.cpp
     src/new/world/environment/tripwire.cpp
     src/new/world/environment/tripwire_globals.cpp
     src/old/fallen/Source/vehicle.cpp
