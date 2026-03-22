@@ -74709,6 +74709,226 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_draw_morph",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_draw_morph",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_Point",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_Point",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_Face",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_Face",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_Reflection",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_Reflection",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_MAX_REFLECTIONS",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_MAX_REFLECTIONS",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_reflection",
+      "file": "new/engine/graphics/geometry/mesh_globals.cpp",
+      "orig_name": "MESH_reflection",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_Add",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_Add",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_MAX_ADD",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_MAX_ADD",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_add",
+      "file": "new/engine/graphics/geometry/mesh_globals.cpp",
+      "orig_name": "MESH_add",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_add_upto",
+      "file": "new/engine/graphics/geometry/mesh_globals.cpp",
+      "orig_name": "MESH_add_upto",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_init_reflections",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_init_reflections",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_grow_points",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_grow_points",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_grow_faces",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_grow_faces",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_add_point",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_add_point",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_add_face",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_add_face",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_add_poly",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_add_poly",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_create_reflection",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_create_reflection",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_draw_reflection",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_draw_reflection",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_MAX_DY",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_MAX_DY",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_255_DIVIDED_BY_MAX_DY",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_255_DIVIDED_BY_MAX_DY",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_NEXT_CLOCK",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_NEXT_CLOCK",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_NEXT_ANTI",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_NEXT_ANTI",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

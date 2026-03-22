@@ -1523,6 +1523,8 @@ NIGHT_Colour *MESH_draw_poly(
 
 #endif // MIGRATED to src/new/engine/graphics/geometry/mesh.cpp + mesh_globals.cpp (iteration 137)
 
+#if 0 // MIGRATED to src/new/engine/graphics/geometry/mesh.cpp + mesh_globals.cpp (iteration 138) [MESH_draw_morph + reflection system]
+
 void MESH_draw_morph(
     SLONG prim,
     UBYTE morph1,
@@ -2453,3 +2455,5 @@ void MESH_draw_reflection(
         }
     }
 }
+
+#endif // MIGRATED to src/new/engine/graphics/geometry/mesh.cpp + mesh_globals.cpp (iteration 138)

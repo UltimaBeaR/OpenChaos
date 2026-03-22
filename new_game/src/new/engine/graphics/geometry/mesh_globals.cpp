@@ -347,3 +347,12 @@ MESH_Crumple2 MESH_car_crumples[MESH_NUM_CRUMPLES][MESH_NUM_CRUMPVALS][6] = {
         },
     },
 };
+
+// uc_orig: MESH_reflection (fallen/DDEngine/Source/mesh.cpp)
+MESH_Reflection MESH_reflection[MESH_MAX_REFLECTIONS];
+
+// uc_orig: MESH_add (fallen/DDEngine/Source/mesh.cpp)
+MESH_Add MESH_add[MESH_MAX_ADD];
+
+// uc_orig: MESH_add_upto (fallen/DDEngine/Source/mesh.cpp)
+SLONG MESH_add_upto = 0;

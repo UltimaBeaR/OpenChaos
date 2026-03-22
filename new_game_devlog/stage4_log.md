@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 138 — mesh.cpp chunk 2: draw_morph + reflection system (2026-03-23)
+
+- `MESH_Point`, `MESH_Face`, `MESH_Reflection`, `MESH_Add` structs + `MESH_MAX_REFLECTIONS/ADD` macros → `mesh_globals.h`; `MESH_reflection[]`, `MESH_add[]`, `MESH_add_upto` → `mesh_globals.cpp`.
+- `MESH_draw_morph`, `MESH_init_reflections`, `MESH_create_reflection`, `MESH_draw_reflection` → `mesh.cpp` (public). `MESH_grow_points/faces`, `MESH_add_point/face/poly` → `static` (file-private).
+- `MESH_MAX_DY/255_DIVIDED_BY_MAX_DY`, `MESH_NEXT_CLOCK/ANTI` — file-scope macros; kept in `mesh.cpp` (not in globals header — they're implementation details of the tessellator, not extern state).
+- `realloc` used in `MESH_grow_points/faces` — required `stdlib.h` include; added alongside existing `math.h`.
+- `anim_tmaps[]` / `AnimTmap` used in `MESH_draw_morph` (FACE_FLAG_ANIMATE path) — added `assets/anim_tmap.h` include (Temporary).
+- `ep` in `MESH_draw_morph` — declared and assigned but not used (pre-existing dead variable from original); preserved 1:1.
+- `old/mesh.cpp` is now fully wrapped in `#if 0 // MIGRATED` blocks (two chunks: iteration 137 + 138).
+- Review fix: `MESH_MAX_DY`, `MESH_255_DIVIDED_BY_MAX_DY`, `MESH_NEXT_CLOCK`, `MESH_NEXT_ANTI` initially missing `uc_orig` — added during CHECK A.
+
+---
+
 ## Итерация 137 — mesh.cpp chunk 1: crumple types + init + draw_guts + draw_poly (2026-03-23)
 
 - `MESH_Crumple`, `MESH_Crumple2`, `MESH_NUM_CRUMPLES/VALS`, `MESH_crumple[]`, `MESH_car_crumples[]`, `car_crumples`, `car_assign` → `mesh_globals.cpp/.h`.
