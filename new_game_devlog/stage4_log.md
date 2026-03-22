@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 100 — actors/characters/person (чанк 9: fn_person_dangling..fn_person_moveing) (2026-03-22)
+
+- Person.cpp чанк 9: lines 12330–13977. 11 функций + 1 макрос: fn_person_dangling, set_person_running_stop, should_person_automatically_land_on_fence, FENCE_DA, process_a_vaulting_person, set_person_sit_down, set_person_unsit, person_holding_2handed, person_holding_special, person_holding_bat, get_yomp_anim, fn_person_moveing.
+- `person_holding_bat` — в оригинале inline-определение в active zone old/Person.cpp (line 240). Убрано из old/Person.cpp (заменено комментарием), определено в person.cpp (chunk 9).
+- `get_yomp_anim` — ранее был `extern` в person.cpp (chunk 8 использовал как forward decl). Extern убран, теперь определена в файле.
+- `person_holding_2handed` — ранее был `extern` в person.cpp. Убран, теперь определена.
+- Новые externs: `mount_ladder` (collide.cpp), `player_running_aim_gun` (Person.cpp later), `continue_firing` (interfac.cpp), `set_person_do_a_simple_anim` (Person.cpp later), `trickle_velocity_to` (used in SUB_STATE_STOPPING_OT active code).
+- `SUB_STATE_STOPPING` дублирующий `break; break;` (баг оригинала) — перенесён с комментарием.
+- `SUB_STATE_SLIPPING` / `SUB_STATE_SLIPPING_END` — два `break;` в конце (один после SLIPPING_END fallthrough, один после SLIPPING) — как в оригинале.
+
+---
+
 ## Итерация 99 — actors/characters/person (чанк 8: grab_ledge..do_person_on_cable) (2026-03-22)
 
 - Person.cpp чанк 8: lines 10702–12325. 14 функций + 5 макросов: grab_ledge, set_tween_for_dy, set_tween_for_height, over_nogo, fn_person_jumping, position_person_at_ladder_top, position_person_at_ladder_bot, check_limb_pos_on_ladder, check_limb_pos_on_fence, check_limb_pos_on_fence_sideways, fn_person_laddering, fn_person_climbing, set_cable_angle, do_person_on_cable. Макросы PERSON_LIMB_ON_LADDER/TOP_BLOCK/BOT_BLOCK/OFF_TOP/OFF_BOT.

@@ -236,8 +236,7 @@ SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col);
 SLONG check_near_facet(Thing* p_person, SLONG max_dist, SLONG max_end_dist, SLONG px, SLONG pz);
 
 SLONG find_idle_fight_stance(Thing* p_person);
-SLONG person_holding_special(Thing* p_person, UBYTE special);
-SLONG person_holding_bat(Thing* p_person) { return person_holding_special(p_person, SPECIAL_BASEBALLBAT); }
+// person_holding_special, person_holding_bat: now defined in src/new/actors/characters/person.cpp (iteration 100)
 void set_person_running(Thing* p_person);
 
 void fn_person_moveing(Thing* p_person);
@@ -12328,6 +12327,8 @@ void do_person_on_cable(Thing* p_person)
 
 #endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 99) [grab_ledge..do_person_on_cable]
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 100) [fn_person_dangling..fn_person_moveing]
+
 // claude-ai: fn_person_dangling() — STATE_DANGLING: висение, падение, зипвайр, приземление.
 // claude-ai: Ключевые субсостояния:
 // claude-ai:   GRAB_TO_DANGLE      — переходная анимация: хватается за уступ → SUB_STATE_DANGLING
@@ -13975,6 +13976,8 @@ void fn_person_moveing(Thing* p_person)
         break;
     }
 }
+
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 100) [fn_person_dangling..fn_person_moveing]
 
 void set_person_ko_recoil(Thing* p_person, SLONG anim, UBYTE flags)
 {

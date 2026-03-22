@@ -768,4 +768,51 @@ void set_cable_angle(Thing* p_person);
 // uc_orig: do_person_on_cable (fallen/Source/Person.cpp)
 void do_person_on_cable(Thing* p_person);
 
+// --- chunk 9 ---
+
+// STATE_DANGLING state machine: hanging, falling from ledge/cable, zip-wire, landing.
+// uc_orig: fn_person_dangling (fallen/Source/Person.cpp)
+void fn_person_dangling(Thing* p_person);
+
+// Initiates a stopping animation after a run (leg=0 left, leg=1 right).
+// uc_orig: set_person_running_stop (fallen/Source/Person.cpp)
+void set_person_running_stop(Thing* p_person, SLONG leg);
+
+// Returns TRUE if a player running into this fence facet should automatically begin climbing it.
+// uc_orig: should_person_automatically_land_on_fence (fallen/Source/Person.cpp)
+SLONG should_person_automatically_land_on_fence(Thing* p_person, SLONG facet);
+
+// Advances a vault animation; if person overshoots the fence, drops them into free-fall.
+// uc_orig: process_a_vaulting_person (fallen/Source/Person.cpp)
+void process_a_vaulting_person(Thing* p_person);
+
+// Transitions person into STATE_MOVEING/SUB_STATE_SIMPLE_ANIM with sit-down animation.
+// uc_orig: set_person_sit_down (fallen/Source/Person.cpp)
+void set_person_sit_down(Thing* p_person);
+
+// Transitions person out of sitting state (plays sit-to-stand animation).
+// uc_orig: set_person_unsit (fallen/Source/Person.cpp)
+void set_person_unsit(Thing* p_person);
+
+// Returns non-zero if person is holding a two-handed weapon (shotgun or AK47).
+// uc_orig: person_holding_2handed (fallen/Source/Person.cpp)
+SLONG person_holding_2handed(Thing* p_person);
+
+// Returns non-zero if person's active special item matches the given special type.
+// uc_orig: person_holding_special (fallen/Source/Person.cpp)
+SLONG person_holding_special(Thing* p_person, UBYTE special);
+
+// Returns non-zero if person is holding a baseball bat.
+// Thin wrapper around person_holding_special.
+// uc_orig: person_holding_bat (fallen/Source/Person.cpp)
+SLONG person_holding_bat(Thing* p_person);
+
+// Returns the appropriate running/jogging animation index for this person given their weapon state.
+// uc_orig: get_yomp_anim (fallen/Source/Person.cpp)
+SLONG get_yomp_anim(Thing* p_person);
+
+// STATE_MOVEING state machine: walking, running, vehicles, sliding, vaulting, bike.
+// uc_orig: fn_person_moveing (fallen/Source/Person.cpp)
+void fn_person_moveing(Thing* p_person);
+
 #endif // ACTORS_CHARACTERS_PERSON_H

@@ -59829,6 +59829,126 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_dangling",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "fn_person_dangling",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_running_stop",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_running_stop",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "should_person_automatically_land_on_fence",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "should_person_automatically_land_on_fence",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "process_a_vaulting_person",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "process_a_vaulting_person",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_sit_down",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_sit_down",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_unsit",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_unsit",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_holding_2handed",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "person_holding_2handed",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_holding_special",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "person_holding_special",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_holding_bat",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "person_holding_bat",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_yomp_anim",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "get_yomp_anim",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_moveing",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "fn_person_moveing",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FENCE_DA",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "FENCE_DA",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }
