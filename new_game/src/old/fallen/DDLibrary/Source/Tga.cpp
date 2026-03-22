@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/assets/tga.cpp
 //
 // Loads in 32-bit RGBA uncompressed TGAs.
 //
@@ -875,3 +876,5 @@ void TGA_save(
 
     MF_Fclose(handle);
 }
+
+#endif // MIGRATED

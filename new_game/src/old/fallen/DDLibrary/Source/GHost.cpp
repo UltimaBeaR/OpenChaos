@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/engine/graphics/graphics_api/host.cpp
 // GHost.cpp
 // Guy Simmons, 20th November 1997.
 
@@ -389,3 +390,5 @@ int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, in
 }
 
 //---------------------------------------------------------------
+
+#endif // MIGRATED

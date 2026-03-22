@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/assets/file_clump.cpp
 // FileClump.cpp
 //
 // metafile class
@@ -133,3 +134,5 @@ bool FileClump::Write(void* buffer, size_t nbytes, ULONG id)
 
     return true;
 }
+
+#endif // MIGRATED

@@ -154,6 +154,8 @@ set(SOURCES_NEW
     src/new/ui/hud/eng_map_globals.cpp
     src/new/engine/graphics/graphics_api/dd_manager.cpp
     src/new/engine/graphics/graphics_api/dd_manager_globals.cpp
+    src/new/engine/graphics/graphics_api/display.cpp
+    src/new/engine/graphics/graphics_api/display_globals.cpp
     src/new/engine/lighting/shadow.cpp
     src/new/engine/lighting/shadow_globals.cpp
     src/new/effects/fog.cpp

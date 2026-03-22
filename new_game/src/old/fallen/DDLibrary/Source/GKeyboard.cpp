@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/engine/input/keyboard.cpp
 // Keyboard.cpp
 // Guy Simmons, 11th February 1997.
 
@@ -146,3 +147,5 @@ void ClearLatchedKeys()
 
     SetFlagsFromKeyArray();
 }
+
+#endif // MIGRATED

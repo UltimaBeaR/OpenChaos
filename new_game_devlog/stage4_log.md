@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 128 — engine/graphics/graphics_api/display (GDisplay.cpp → display.cpp + display_globals) (2026-03-22)
+
+- `GDisplay.cpp` (2200 lines) → `display.cpp` + `display_globals.cpp` + `display_globals.h`.
+- Также очищены 11 старых файлов, уже перенесённых ранее: `GKeyboard.cpp`, `GMouse.cpp`, `WindProcs.cpp`, `GHost.cpp`, `DIManager.cpp`, `FileClump.cpp`, `AsyncFile2.cpp`, `Quaternion.cpp`, `Matrix.cpp`, `Tga.cpp`, `D3DTexture.cpp`.
+- Включение `<MFStdLib.h>` должно идти перед `gd_display.h` — иначе `#define DisplayWidth 640` превращает `extern SLONG DisplayWidth` в `extern SLONG 640` (syntax error).
+- DirectShow streaming headers (`<mmstream.h>`, `<amstream.h>`, `<ddstream.h>`) нужны явно — они не тянутся транзитивно через `gd_display.h`.
+- `panel.h` использует `Thing*` — добавлен forward-declare `struct Thing` перед include.
+- Включение `fallen/Headers/interfac.h` было внутри тела функции (в оригинале так) — перемещено в начало файла как Temporary include.
+
+---
+
 ## Итерация 127 — ui/interfac chunk 2 (find_best_action_from_tree + movement system → new/ui/interfac.cpp) (2026-03-22)
 
 - `interfac.cpp` chunk 2 (lines 1673–3180): `find_best_action_from_tree`, `get_camera_angle`, `player_stop_move`, `get_analogue_dxdz`, `player_interface_move`, `init_user_interface`, `lock_to_compass`, `get_joy_angle`, `player_turn_left_right_analogue`, `process_analogue_movement`, `player_turn_left_right`, `player_apply_move`, `person_enter_fight_mode` → `new/ui/interfac.cpp`.

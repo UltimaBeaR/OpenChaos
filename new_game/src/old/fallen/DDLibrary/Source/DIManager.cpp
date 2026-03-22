@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/engine/input/joystick.cpp
 // DIManager.cpp
 // Guy Simmons, 19th February 1998
 
@@ -171,3 +172,5 @@ BOOL ReadInputDevice()
 {
     return OS_joy_poll();
 }
+
+#endif // MIGRATED

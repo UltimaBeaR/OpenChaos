@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/engine/io/async_file.cpp
 // AsyncFile2
 //
 // asynchronous file loading
@@ -284,3 +285,5 @@ static void CompleteLink(AsyncFile* file)
     file->next->prev = file;
     file->prev->next = file;
 }
+
+#endif // MIGRATED

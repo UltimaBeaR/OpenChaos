@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/engine/graphics/graphics_api/wind_procs.cpp
 // WindProcs.cpp
 // Guy Simmons, 14th November 1997.
 
@@ -90,3 +91,5 @@ LRESULT CALLBACK DDLibShellProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
     }
     return 0;
 }
+
+#endif // MIGRATED

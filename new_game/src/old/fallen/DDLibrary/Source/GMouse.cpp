@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/engine/input/mouse.cpp
 // GMouse.cpp
 // Guy Simmons, 11th December 1997.
 
@@ -108,3 +109,5 @@ void RecenterMouse(void)
 }
 
 //---------------------------------------------------------------
+
+#endif // MIGRATED

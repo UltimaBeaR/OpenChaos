@@ -1,55 +1,87 @@
-#if 0 // MIGRATED to src/new/engine/graphics/graphics_api/display.cpp
-// Display.cpp
-// Guy Simmons, 13th November 1997.
+// Display class implementation and related standalone functions.
+// Manages the DirectDraw/Direct3D device lifecycle, surfaces, viewport,
+// mode changes, and pixel-level framebuffer access.
 
-#include "DDLib.h"
-#include "..\headers\interfac.h"
-#include "BinkClient.h"
-#include "..\headers\env.h"
-#include "..\headers\xlat_str.h"
+#include <windows.h>
+#include <string.h>
+#include <stdio.h>
+// MFStdLib before gd_display.h: MFStdLib.h declares 'extern SLONG DisplayWidth/Height'
+// which would conflict with '#define DisplayWidth 640' from gd_display.h.
+#include <MFStdLib.h>                  // ASSERT, InitStruct
+#include <mmstream.h>  // IMultiMediaStream, IMediaStream
+#include <amstream.h>  // IAMMultiMediaStream, CLSID_AMMultiMediaStream
+#include <ddstream.h>  // IDirectDrawMediaStream, IDirectDrawStreamSample
 
-#include "poly.h"
-#include "vertexbuffer.h"
-#include "polypoint.h"
-#include "renderstate.h"
-#include "polypage.h"
-#include "gdisplay.h"
-#include "panel.h"
-#include "..\headers\game.h"
+#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_api/display_globals.h"
+#include "engine/graphics/graphics_api/dd_manager.h"
+#include "engine/graphics/graphics_api/dd_manager_globals.h"
+#include "engine/io/env.h"             // ENV_get_value_number, ENV_set_value_number
+#include "assets/tga.h"                // OpenTGAClump, CloseTGAClump
+#include "assets/bink_client.h"        // BinkPlay, BinkMessage
+#include "core/memory.h"               // MemAlloc, MemFree
+#include "engine/io/file.h"            // FileOpen, FileRead, FileSeek, FileClose
 
-//
-// From mfx_miles.h...
-//
+// Temporary: vertex buffer init/term lives in DDLibrary (not yet migrated).
+#include "fallen/DDEngine/Headers/vertexbuffer.h"
+// Temporary: TheVPool (vertex pool) and its Create method.
+#include "fallen/DDEngine/Headers/poly.h"
+// Temporary: PolyPage::SetScaling lives in polypage (not yet migrated).
+#include "fallen/DDEngine/Headers/polypage.h"
+// Temporary: PANEL_screensaver_draw and PANEL_ResetDepthBodge (panel.cpp not yet migrated).
+// panel.h uses Thing* — forward-declare Thing so panel.h can compile without the full Thing header.
+struct Thing;
+#include "fallen/DDEngine/Headers/panel.h"
+// Temporary: get_hardware_input/INPUT_* declared in interfac.h (not yet migrated).
+#include "fallen/Headers/interfac.h"
 
-SLONG RealDisplayWidth;
-SLONG RealDisplayHeight;
-SLONG DisplayBPP;
-Display the_display;
-volatile SLONG hDDLibStyle = NULL,
-               hDDLibStyleEx = NULL;
-volatile HWND hDDLibWindow = NULL;
-volatile HMENU hDDLibMenu = NULL;
+extern CBYTE DATA_DIR[];
 
-int VideoRes = -1; // 0 = 320x240, 1 = 512x384, 2= 640x480, 3 = 800x600, 4 = 1024x768, -1 = unknown
+// Forward declarations of DirectShow streaming helpers (defined below, used only in GDisplay).
+// uc_orig: RenderStreamToSurface (fallen/DDLibrary/Source/GDisplay.cpp)
+static void RenderStreamToSurface(IDirectDrawSurface* pSurface, IMultiMediaStream* pMMStream, IDirectDrawSurface* back_surface);
+// uc_orig: RenderFileToMMStream (fallen/DDLibrary/Source/GDisplay.cpp)
+static void RenderFileToMMStream(const char* szFileName, IMultiMediaStream** ppMMStream, IDirectDraw* pDD);
+// uc_orig: calculate_mask_and_shift (fallen/DDLibrary/Source/GDisplay.cpp)
+static void calculate_mask_and_shift(ULONG bitmask, SLONG* mask, SLONG* shift);
+// uc_orig: quick_flipper (fallen/DDLibrary/Source/GDisplay.cpp)
+static bool quick_flipper();
 
-enumDisplayType eDisplayType;
+// Forward declarations of panel/poly functions accessed by Flip.
+extern void PreFlipTT();
 
-//---------------------------------------------------------------
-UBYTE *image_mem = NULL, *image = NULL;
+// Movie filename patterns for the intro sequence and in-game cutscenes.
+// uc_orig: FMV1a (fallen/DDLibrary/Source/GDisplay.cpp)
+#define FMV1a "eidos"
+// uc_orig: FMV1b (fallen/DDLibrary/Source/GDisplay.cpp)
+#define FMV1b "logo24"
+// uc_orig: FMV2 (fallen/DDLibrary/Source/GDisplay.cpp)
+#define FMV2 "pcintro_withsound"
+// uc_orig: FMV3 (fallen/DDLibrary/Source/GDisplay.cpp)
+#define FMV3 "new_pccutscene%d_300"
 
-// ========================================================
-//
-// MOVIE STUFF!
-//
-// ========================================================
+// RGB 5-6-5 and 5-5-5 pixel format structs used by LoadBackImage.
+// uc_orig: RGB_565 (fallen/DDLibrary/Source/GDisplay.cpp)
+struct RGB_565 {
+    UWORD R : 5,
+        G : 6,
+        B : 5;
+};
+// uc_orig: RGB_555 (fallen/DDLibrary/Source/GDisplay.cpp)
+struct RGB_555 {
+    UWORD R : 5,
+        G : 5,
+        B : 5;
+};
 
-#include "mmstream.h" // Multimedia stream interfaces
-#include "amstream.h" // DirectShow multimedia stream interfaces
-#include "ddstream.h" // DirectDraw multimedia stream interfaces
+// ---------------------------------------------------------------------------
+// DirectShow helpers (old multimedia streaming path — kept for completeness)
+// ---------------------------------------------------------------------------
 
-// extern ULONG get_hardware_input(UWORD type);
-
-void RenderStreamToSurface(IDirectDrawSurface* pSurface, IMultiMediaStream* pMMStream, IDirectDrawSurface* back_surface)
+// uc_orig: RenderStreamToSurface (fallen/DDLibrary/Source/GDisplay.cpp)
+// Reads frames from a DirectShow multimedia stream and blits each frame to pSurface.
+// Breaks on keypress or joystick action.
+static void RenderStreamToSurface(IDirectDrawSurface* pSurface, IMultiMediaStream* pMMStream, IDirectDrawSurface* back_surface)
 {
     IMediaStream* pPrimaryVidStream;
     IDirectDrawMediaStream* pDDStream;
@@ -104,14 +136,10 @@ void RenderStreamToSurface(IDirectDrawSurface* pSurface, IMultiMediaStream* pMMS
                 WM_KEYDOWN,
                 WM_KEYDOWN,
                 PM_REMOVE)) {
-            //
-            // User has pressed a key.
-            //
-
             break;
         }
 
-        ULONG input = get_hardware_input(INPUT_TYPE_JOY); // 1 << 1 ==> INPUT_TYPE_JOY
+        ULONG input = get_hardware_input(INPUT_TYPE_JOY);
 
         if (input & (INPUT_MASK_JUMP | INPUT_MASK_START | INPUT_MASK_SELECT | INPUT_MASK_KICK | INPUT_MASK_PUNCH | INPUT_MASK_ACTION)) {
             break;
@@ -129,12 +157,9 @@ void RenderStreamToSurface(IDirectDrawSurface* pSurface, IMultiMediaStream* pMMS
     ASSERT(i == 0);
 }
 
-#include "ddraw.h" // DirectDraw interfaces
-#include "mmstream.h" // Multimedia stream interfaces
-#include "amstream.h" // DirectShow multimedia stream interfaces
-#include "ddstream.h" // DirectDraw multimedia stream interfaces
-
-void RenderFileToMMStream(const char* szFileName, IMultiMediaStream** ppMMStream, IDirectDraw* pDD)
+// uc_orig: RenderFileToMMStream (fallen/DDLibrary/Source/GDisplay.cpp)
+// Opens a video file as a DirectShow multimedia stream and initialises audio/video streams.
+static void RenderFileToMMStream(const char* szFileName, IMultiMediaStream** ppMMStream, IDirectDraw* pDD)
 {
     IAMMultiMediaStream* pAMStream = NULL;
 
@@ -147,7 +172,7 @@ void RenderFileToMMStream(const char* szFileName, IMultiMediaStream** ppMMStream
         IID_IAMMultiMediaStream,
         (void**)&pAMStream);
 
-    WCHAR wPath[MAX_PATH]; // Wide (32-bit) string name
+    WCHAR wPath[MAX_PATH];
 
     MultiByteToWideChar(
         CP_ACP,
@@ -184,8 +209,12 @@ void RenderFileToMMStream(const char* szFileName, IMultiMediaStream** ppMMStream
     *ppMMStream = pAMStream;
 }
 
-extern CBYTE DATA_DIR[];
+// ---------------------------------------------------------------------------
+// Standalone display helper functions
+// ---------------------------------------------------------------------------
 
+// uc_orig: InitBackImage (fallen/DDLibrary/Source/GDisplay.cpp)
+// Loads a 640x480x24 background image from the data directory and uploads it to the display.
 void InitBackImage(CBYTE* name)
 {
     MFFileHandle image_file;
@@ -212,13 +241,13 @@ void InitBackImage(CBYTE* name)
     }
 }
 
+// uc_orig: UseBackSurface (fallen/DDLibrary/Source/GDisplay.cpp)
 void UseBackSurface(LPDIRECTDRAWSURFACE4 use)
 {
     the_display.use_this_background_surface(use);
 }
 
-LPDIRECTDRAWSURFACE4 m_lpLastBackground = NULL;
-
+// uc_orig: ResetBackImage (fallen/DDLibrary/Source/GDisplay.cpp)
 void ResetBackImage(void)
 {
     the_display.destroy_background_surface();
@@ -228,11 +257,15 @@ void ResetBackImage(void)
     }
 }
 
+// uc_orig: ShowBackImage (fallen/DDLibrary/Source/GDisplay.cpp)
 void ShowBackImage(bool b3DInFrame)
 {
     the_display.blit_background_surface(b3DInFrame);
 }
 
+// uc_orig: OpenDisplay (fallen/DDLibrary/Source/GDisplay.cpp)
+// Opens DirectDraw/D3D, chooses the display mode based on VideoRes from the .env file,
+// and calls SetDisplay to bring up the chosen resolution.
 SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
 {
     HRESULT result;
@@ -270,7 +303,6 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
         width = 1024;
         height = 768;
         break;
-        // case 5:		width = 1920; height = 1080; break;		// TODO: Investigate modern screen resolutions
     }
 
     if (flags & FLAGS_USE_3D)
@@ -286,6 +318,7 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     return result;
 }
 
+// uc_orig: CloseDisplay (fallen/DDLibrary/Source/GDisplay.cpp)
 SLONG CloseDisplay(void)
 {
     the_display.Fini();
@@ -294,6 +327,8 @@ SLONG CloseDisplay(void)
     return 1;
 }
 
+// uc_orig: SetDisplay (fallen/DDLibrary/Source/GDisplay.cpp)
+// Changes the display mode and notifies the polygon engine of the new scaling factors.
 SLONG SetDisplay(ULONG width, ULONG height, ULONG depth)
 {
     HRESULT result;
@@ -305,12 +340,12 @@ SLONG SetDisplay(ULONG width, ULONG height, ULONG depth)
     if (FAILED(result))
         return -1;
 
-    // tell the polygon engine
     PolyPage::SetScaling(float(width) / float(DisplayWidth), float(height) / float(DisplayHeight));
 
     return 0;
 }
 
+// uc_orig: ClearDisplay (fallen/DDLibrary/Source/GDisplay.cpp)
 SLONG ClearDisplay(UBYTE r, UBYTE g, UBYTE b)
 {
     DDBLTFX dd_bltfx;
@@ -323,18 +358,8 @@ SLONG ClearDisplay(UBYTE r, UBYTE g, UBYTE b)
     return 0;
 }
 
-struct RGB_565 {
-    UWORD R : 5,
-        G : 6,
-        B : 5;
-};
-
-struct RGB_555 {
-    UWORD R : 5,
-        G : 5,
-        B : 5;
-};
-
+// uc_orig: LoadBackImage (fallen/DDLibrary/Source/GDisplay.cpp)
+// Copies image_data (raw 16-bit RGB) into the back buffer (asserts and aborts immediately).
 void LoadBackImage(UBYTE* image_data)
 {
     ASSERT(0);
@@ -393,317 +418,8 @@ void LoadBackImage(UBYTE* image_data)
     }
 }
 
-Display::Display()
-{
-    DisplayFlags = 0;
-    CurrDevice = NULL;
-    CurrDriver = NULL;
-    CurrMode = NULL;
-
-    CreateZBufferOn();
-
-    lp_DD_FrontSurface = NULL;
-    lp_DD_BackSurface = NULL;
-    lp_DD_WorkSurface = NULL;
-    lp_DD_ZBuffer = NULL;
-    lp_D3D_Black = NULL;
-    lp_D3D_White = NULL;
-    lp_D3D_User = NULL;
-    lp_DD_GammaControl = NULL;
-
-    BackColour = BK_COL_BLACK;
-    TextureList = NULL;
-}
-
-Display::~Display()
-{
-    Fini();
-}
-
-HRESULT Display::Init(void)
-{
-    HRESULT result;
-    static bool run_fmv = false;
-
-    if (!IsInitialised()) {
-        if ((!hDDLibWindow) || (!IsWindow(hDDLibWindow))) {
-            result = DDERR_GENERIC;
-            // Output error.
-            return result;
-        }
-
-        // Create DD/D3D Interface objects.
-        result = InitInterfaces();
-        if (FAILED(result))
-            goto cleanup;
-
-        // Attach the window to the DD interface.
-        result = InitWindow();
-        if (FAILED(result))
-            goto cleanup;
-
-        // Set the Mode.
-        result = InitFullscreenMode();
-        if (FAILED(result))
-            goto cleanup;
-
-        // Create Front Surface.
-        result = InitFront();
-        if (FAILED(result))
-            goto cleanup;
-
-        // Create Back surface & D3D device.
-        result = InitBack();
-        if (FAILED(result))
-            goto cleanup;
-
-        if (background_image_mem) {
-            create_background_surface(background_image_mem);
-        } else {
-        }
-
-        InitOn();
-
-        // run the FMV
-        if (!run_fmv) {
-            RunFMV();
-            run_fmv = true;
-        }
-
-        return DD_OK;
-
-    cleanup:
-        Fini();
-        return DDERR_GENERIC;
-    }
-    return DD_OK;
-}
-
-//---------------------------------------------------------------
-
-HRESULT Display::Fini(void)
-{
-    // Cleanup
-    toGDI();
-
-    if (lp_DD_Background) {
-        lp_DD_Background->Release();
-        lp_DD_Background = NULL;
-    }
-    FiniBack();
-    FiniFront();
-    FiniFullscreenMode();
-    FiniWindow();
-    FiniInterfaces();
-
-    InitOff();
-    return DD_OK;
-}
-
-HRESULT Display::GenerateDefaults(void)
-{
-    D3DDeviceInfo* new_device;
-    DDDriverInfo* new_driver;
-    DDModeInfo* new_mode;
-    HRESULT result;
-
-    new_driver = ValidateDriver(NULL);
-    if (!new_driver) {
-        // Error, invalid DD Guid
-        result = DDERR_GENERIC;
-        ;
-        // Output error.
-        return result;
-    }
-
-    if (IsFullScreen()) {
-        // Get D3D device and compatible mode
-        if (
-            !GetFullscreenMode(
-                new_driver,
-                NULL,
-                DEFAULT_WIDTH,
-                DEFAULT_HEIGHT,
-                DEFAULT_DEPTH,
-                0,
-                &new_mode,
-                &new_device)) {
-            result = DDERR_GENERIC;
-            return result;
-        }
-    } else {
-        // Get Desktop mode and compatible D3D device
-        if (
-            !GetDesktopMode(
-                new_driver,
-                NULL,
-                &new_mode,
-                &new_device)) {
-            result = DDERR_GENERIC;
-            return result;
-        }
-    }
-
-    // Return results
-    CurrDriver = new_driver;
-    CurrMode = new_mode;
-    CurrDevice = new_device;
-
-    // Success.
-    return DD_OK;
-}
-
-HRESULT Display::InitInterfaces(void)
-{
-    GUID* the_guid;
-    HRESULT result;
-
-    // Do we have a current DD Driver
-    if (!CurrDriver) {
-        // So, Grab the Primary DD driver.
-        CurrDriver = ValidateDriver(NULL);
-        if (!CurrDriver) {
-            // Error, No current Driver
-            result = DDERR_GENERIC;
-            // Output error.
-            return result;
-        }
-    }
-
-    // Get DD Guid.
-    the_guid = CurrDriver->GetGuid();
-
-    // Create DD interface
-    result = DirectDrawCreate(the_guid, &lp_DD, NULL);
-    if (FAILED(result)) {
-        // Error
-        // Output error.
-        goto cleanup;
-    }
-
-    // Get DD4 interface
-    result = lp_DD->QueryInterface((REFIID)IID_IDirectDraw4, (void**)&lp_DD4);
-    if (FAILED(result)) {
-        // Error
-        // Output error.
-
-        // Inform User that they Need DX 6.0 installed
-        MessageBox(hDDLibWindow, TEXT("Need DirectX 6.0 or greater to run"), TEXT("Error"), MB_OK);
-        goto cleanup;
-    }
-
-    // Get D3D interface
-    result = lp_DD4->QueryInterface((REFIID)IID_IDirect3D3, (void**)&lp_D3D);
-    if (FAILED(result)) {
-        // Error
-        // Output error.
-        goto cleanup;
-    }
-
-    // Mark this stage as done
-    TurnValidInterfaceOn();
-
-    // Success
-    return DD_OK;
-
-cleanup:
-    // Failure
-    FiniInterfaces();
-
-    return result;
-}
-
-//---------------------------------------------------------------
-
-HRESULT Display::FiniInterfaces(void)
-{
-    // Mark this stage as invalid
-    TurnValidInterfaceOff();
-
-    // Release Direct3D Interface
-    if (lp_D3D) {
-        lp_D3D->Release();
-        lp_D3D = NULL;
-    }
-
-    // Release DirectDraw4 Interface
-    if (lp_DD4) {
-        lp_DD4->Release();
-        lp_DD4 = NULL;
-    }
-
-    // Release DirectDraw Interface
-    if (lp_DD) {
-        lp_DD->Release();
-        lp_DD = NULL;
-    }
-
-    // Success
-    return DD_OK;
-}
-
-HRESULT Display::InitWindow(void)
-{
-    HRESULT result;
-    SLONG flags;
-
-    // Check Initialization
-    if ((!hDDLibWindow) || (!IsWindow(hDDLibWindow))) {
-        // Error, we need a valid window to continue
-        result = DDERR_GENERIC;
-        // Output error.
-        return result;
-    }
-
-    // Get Cooperative Flags
-    if (IsFullScreen()) {
-        flags = DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN | DDSCL_FPUSETUP;
-    } else {
-        flags = DDSCL_NORMAL | DDSCL_FPUSETUP;
-    }
-
-    // Set Cooperative Level
-    result = lp_DD4->SetCooperativeLevel(hDDLibWindow, flags);
-    if (FAILED(result)) {
-        // Error
-        // Output error.
-        return result;
-    }
-
-    // init VB
-    VB_Init();
-    TheVPool->Create(lp_D3D, !CurrDevice->IsHardware());
-
-    // Success
-    return DD_OK;
-}
-
-HRESULT Display::FiniWindow(void)
-{
-    HRESULT result;
-
-    VB_Term();
-
-    if (lp_DD4) {
-        result = lp_DD4->SetCooperativeLevel(hDDLibWindow, DDSCL_NORMAL | DDSCL_FPUSETUP);
-        if (FAILED(result)) {
-            // Error
-            // Output error.
-            return result;
-        }
-    }
-
-    // Success
-    return DD_OK;
-}
-
-#define FMV1a "eidos"
-#define FMV1b "logo24"
-#define FMV2 "pcintro_withsound"
-#define FMV3 "new_pccutscene%d_300"
-
-LPDIRECTDRAWSURFACE4 mirror;
-
+// uc_orig: quick_flipper (fallen/DDLibrary/Source/GDisplay.cpp)
+// Bink callback: blits the decoded frame from the system-memory mirror surface to the front buffer.
 static bool quick_flipper()
 {
     the_display.lp_DD_FrontSurface->Blt(&the_display.DisplayRect, mirror, NULL, DDBLT_WAIT, NULL);
@@ -711,23 +427,18 @@ static bool quick_flipper()
     return true;
 }
 
+// uc_orig: PlayQuickMovie (fallen/DDLibrary/Source/GDisplay.cpp)
+// Creates a system-memory mirror of the back surface and uses Bink to play a video into it,
+// flipping to the front buffer for each frame via quick_flipper.
+// type=0 plays the intro sequence; type>0 plays in-game cutscene #type.
 void PlayQuickMovie(SLONG type, SLONG language_ignored, bool bIgnored)
 {
     DDSURFACEDESC2 back;
     DDSURFACEDESC2 mine;
 
-    //
-    // Must create a 640x480 surface with the same pixel format as the
-    // primary surface.
-    //
-
     InitStruct(back);
 
     the_display.lp_DD_BackSurface->GetSurfaceDesc(&back);
-
-    //
-    // Create the mirror surface in system memory.
-    //
 
     InitStruct(mine);
 
@@ -756,25 +467,301 @@ void PlayQuickMovie(SLONG type, SLONG language_ignored, bool bIgnored)
     mirror->Release();
 }
 
+// ---------------------------------------------------------------------------
+// Display class constructor / destructor
+// ---------------------------------------------------------------------------
+
+// uc_orig: Display::Display (fallen/DDLibrary/Source/GDisplay.cpp)
+Display::Display()
+{
+    DisplayFlags = 0;
+    CurrDevice = NULL;
+    CurrDriver = NULL;
+    CurrMode = NULL;
+
+    CreateZBufferOn();
+
+    lp_DD_FrontSurface = NULL;
+    lp_DD_BackSurface = NULL;
+    lp_DD_WorkSurface = NULL;
+    lp_DD_ZBuffer = NULL;
+    lp_D3D_Black = NULL;
+    lp_D3D_White = NULL;
+    lp_D3D_User = NULL;
+    lp_DD_GammaControl = NULL;
+
+    BackColour = BK_COL_BLACK;
+    TextureList = NULL;
+}
+
+// uc_orig: Display::~Display (fallen/DDLibrary/Source/GDisplay.cpp)
+Display::~Display()
+{
+    Fini();
+}
+
+// ---------------------------------------------------------------------------
+// Initialisation / finalisation
+// ---------------------------------------------------------------------------
+
+// uc_orig: Display::Init (fallen/DDLibrary/Source/GDisplay.cpp)
+// Creates the full DirectDraw/D3D surface chain. Safe to call multiple times — skips
+// if already initialised. Plays the intro FMV on first call.
+HRESULT Display::Init(void)
+{
+    HRESULT result;
+    static bool run_fmv = false;
+
+    if (!IsInitialised()) {
+        if ((!hDDLibWindow) || (!IsWindow(hDDLibWindow))) {
+            result = DDERR_GENERIC;
+            return result;
+        }
+
+        result = InitInterfaces();
+        if (FAILED(result))
+            goto cleanup;
+
+        result = InitWindow();
+        if (FAILED(result))
+            goto cleanup;
+
+        result = InitFullscreenMode();
+        if (FAILED(result))
+            goto cleanup;
+
+        result = InitFront();
+        if (FAILED(result))
+            goto cleanup;
+
+        result = InitBack();
+        if (FAILED(result))
+            goto cleanup;
+
+        if (background_image_mem) {
+            create_background_surface(background_image_mem);
+        }
+
+        InitOn();
+
+        if (!run_fmv) {
+            RunFMV();
+            run_fmv = true;
+        }
+
+        return DD_OK;
+
+    cleanup:
+        Fini();
+        return DDERR_GENERIC;
+    }
+    return DD_OK;
+}
+
+// uc_orig: Display::Fini (fallen/DDLibrary/Source/GDisplay.cpp)
+HRESULT Display::Fini(void)
+{
+    toGDI();
+
+    if (lp_DD_Background) {
+        lp_DD_Background->Release();
+        lp_DD_Background = NULL;
+    }
+    FiniBack();
+    FiniFront();
+    FiniFullscreenMode();
+    FiniWindow();
+    FiniInterfaces();
+
+    InitOff();
+    return DD_OK;
+}
+
+// uc_orig: Display::GenerateDefaults (fallen/DDLibrary/Source/GDisplay.cpp)
+// Picks a default driver/mode/device. Prefers the requested resolution;
+// falls back to 640x480 if no driver validates the current mode.
+HRESULT Display::GenerateDefaults(void)
+{
+    D3DDeviceInfo* new_device;
+    DDDriverInfo* new_driver;
+    DDModeInfo* new_mode;
+    HRESULT result;
+
+    new_driver = ValidateDriver(NULL);
+    if (!new_driver) {
+        result = DDERR_GENERIC;
+        return result;
+    }
+
+    if (IsFullScreen()) {
+        if (
+            !GetFullscreenMode(
+                new_driver,
+                NULL,
+                DEFAULT_WIDTH,
+                DEFAULT_HEIGHT,
+                DEFAULT_DEPTH,
+                0,
+                &new_mode,
+                &new_device)) {
+            result = DDERR_GENERIC;
+            return result;
+        }
+    } else {
+        if (
+            !GetDesktopMode(
+                new_driver,
+                NULL,
+                &new_mode,
+                &new_device)) {
+            result = DDERR_GENERIC;
+            return result;
+        }
+    }
+
+    CurrDriver = new_driver;
+    CurrMode = new_mode;
+    CurrDevice = new_device;
+
+    return DD_OK;
+}
+
+// uc_orig: Display::InitInterfaces (fallen/DDLibrary/Source/GDisplay.cpp)
+// Creates the IDirectDraw, IDirectDraw4, and IDirect3D3 COM interfaces.
+// Displays an error box if DirectX 6.0 or later is not installed.
+HRESULT Display::InitInterfaces(void)
+{
+    GUID* the_guid;
+    HRESULT result;
+
+    if (!CurrDriver) {
+        CurrDriver = ValidateDriver(NULL);
+        if (!CurrDriver) {
+            result = DDERR_GENERIC;
+            return result;
+        }
+    }
+
+    the_guid = CurrDriver->GetGuid();
+
+    result = DirectDrawCreate(the_guid, &lp_DD, NULL);
+    if (FAILED(result)) {
+        goto cleanup;
+    }
+
+    result = lp_DD->QueryInterface((REFIID)IID_IDirectDraw4, (void**)&lp_DD4);
+    if (FAILED(result)) {
+        MessageBox(hDDLibWindow, TEXT("Need DirectX 6.0 or greater to run"), TEXT("Error"), MB_OK);
+        goto cleanup;
+    }
+
+    result = lp_DD4->QueryInterface((REFIID)IID_IDirect3D3, (void**)&lp_D3D);
+    if (FAILED(result)) {
+        goto cleanup;
+    }
+
+    TurnValidInterfaceOn();
+
+    return DD_OK;
+
+cleanup:
+    FiniInterfaces();
+
+    return result;
+}
+
+// uc_orig: Display::FiniInterfaces (fallen/DDLibrary/Source/GDisplay.cpp)
+HRESULT Display::FiniInterfaces(void)
+{
+    TurnValidInterfaceOff();
+
+    if (lp_D3D) {
+        lp_D3D->Release();
+        lp_D3D = NULL;
+    }
+
+    if (lp_DD4) {
+        lp_DD4->Release();
+        lp_DD4 = NULL;
+    }
+
+    if (lp_DD) {
+        lp_DD->Release();
+        lp_DD = NULL;
+    }
+
+    return DD_OK;
+}
+
+// uc_orig: Display::InitWindow (fallen/DDLibrary/Source/GDisplay.cpp)
+// Sets DirectDraw cooperative level (exclusive fullscreen or normal windowed),
+// then initialises the vertex buffer pool.
+HRESULT Display::InitWindow(void)
+{
+    HRESULT result;
+    SLONG flags;
+
+    if ((!hDDLibWindow) || (!IsWindow(hDDLibWindow))) {
+        result = DDERR_GENERIC;
+        return result;
+    }
+
+    if (IsFullScreen()) {
+        flags = DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN | DDSCL_FPUSETUP;
+    } else {
+        flags = DDSCL_NORMAL | DDSCL_FPUSETUP;
+    }
+
+    result = lp_DD4->SetCooperativeLevel(hDDLibWindow, flags);
+    if (FAILED(result)) {
+        return result;
+    }
+
+    VB_Init();
+    TheVPool->Create(lp_D3D, !CurrDevice->IsHardware());
+
+    return DD_OK;
+}
+
+// uc_orig: Display::FiniWindow (fallen/DDLibrary/Source/GDisplay.cpp)
+HRESULT Display::FiniWindow(void)
+{
+    HRESULT result;
+
+    VB_Term();
+
+    if (lp_DD4) {
+        result = lp_DD4->SetCooperativeLevel(hDDLibWindow, DDSCL_NORMAL | DDSCL_FPUSETUP);
+        if (FAILED(result)) {
+            return result;
+        }
+    }
+
+    return DD_OK;
+}
+
+// uc_orig: Display::RunFMV (fallen/DDLibrary/Source/GDisplay.cpp)
+// Plays the intro FMV sequence unless suppressed by the "play_movie" env key.
 void Display::RunFMV()
 {
     if (!hDDLibWindow)
         return;
 
-    // should we run it?
     if (!ENV_get_value_number("play_movie", 1, "Movie"))
         return;
 
     PlayQuickMovie(0, 0, UC_TRUE);
 }
 
+// uc_orig: Display::RunCutscene (fallen/DDLibrary/Source/GDisplay.cpp)
 void Display::RunCutscene(int which, int language, bool bAllowButtonsToExit)
 {
     PlayQuickMovie(which, language, bAllowButtonsToExit);
 }
 
-//---------------------------------------------------------------
-
+// uc_orig: Display::InitFullscreenMode (fallen/DDLibrary/Source/GDisplay.cpp)
+// Sets the display mode. In windowed mode it resizes the window; in fullscreen mode
+// it calls SetDisplayMode and falls back to 640x480x16 if the requested mode fails.
 HRESULT Display::InitFullscreenMode(void)
 {
     SLONG flags = 0,
@@ -782,22 +769,17 @@ HRESULT Display::InitFullscreenMode(void)
           w, h, bpp, refresh;
     HRESULT result;
 
-    // Check Initialization
     if ((!CurrMode) || (!lp_DD4)) {
-        // Error, we need a valid mode and DirectDraw 2 interface to proceed
         result = DDERR_GENERIC;
         return result;
     }
 
-    // Do window mode setup.
     if (!IsFullScreen()) {
-        // Set window style.
         style = GetWindowStyle(hDDLibWindow);
         style &= ~WS_POPUP;
         style |= WS_OVERLAPPED | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX;
         SetWindowLong(hDDLibWindow, GWL_STYLE, style);
 
-        // Save Surface Rectangle.
         DisplayRect.left = 0;
         DisplayRect.top = 0;
         DisplayRect.right = RealDisplayWidth;
@@ -820,41 +802,31 @@ HRESULT Display::InitFullscreenMode(void)
         ClientToScreen(hDDLibWindow, (LPPOINT)&the_display.DisplayRect);
         ClientToScreen(hDDLibWindow, (LPPOINT)&the_display.DisplayRect + 1);
 
-        // Success
         TurnValidFullscreenOn();
         return DD_OK;
     }
 
-    // Get the shell menu & window style.
     hDDLibMenu = GetMenu(hDDLibWindow);
     hDDLibStyle = GetWindowLong(hDDLibWindow, GWL_STYLE);
     hDDLibStyleEx = GetWindowLong(hDDLibWindow, GWL_EXSTYLE);
 
-    // Calculate Mode info
     CurrMode->GetMode(&w, &h, &bpp, &refresh);
 
-    // Special check for mode 320 x 200 x 8
     if ((w == 320) && (h == 200) && (bpp == 8)) {
-        // Make sure we use Mode 13 instead of Mode X
         flags = DDSDM_STANDARDVGAMODE;
     }
 
-    // Set Requested Fullscreen mode
     result = lp_DD4->SetDisplayMode(w, h, bpp, refresh, flags);
     if (SUCCEEDED(result)) {
-        // Save Surface Rectangle
         DisplayRect.left = 0;
         DisplayRect.top = 0;
         DisplayRect.right = w;
         DisplayRect.bottom = h;
 
-        // Success
         TurnValidFullscreenOn();
         return result;
     }
 
-    // Don't give up!
-    // Try 640 x 480 x bpp mode instead
     if ((w != DEFAULT_WIDTH || h != DEFAULT_HEIGHT)) {
         w = DEFAULT_WIDTH;
         h = DEFAULT_HEIGHT;
@@ -863,21 +835,17 @@ HRESULT Display::InitFullscreenMode(void)
         if (CurrMode) {
             result = lp_DD4->SetDisplayMode(w, h, bpp, 0, 0);
             if (SUCCEEDED(result)) {
-                // Save Surface Rectangle
                 DisplayRect.left = 0;
                 DisplayRect.top = 0;
                 DisplayRect.right = w;
                 DisplayRect.bottom = h;
 
-                // Success
                 TurnValidFullscreenOn();
                 return result;
             }
         }
     }
 
-    // Keep trying
-    // Try 640 x 480 x 16 mode instead
     if (bpp != DEFAULT_DEPTH) {
         bpp = DEFAULT_DEPTH;
 
@@ -885,46 +853,35 @@ HRESULT Display::InitFullscreenMode(void)
         if (CurrMode) {
             result = lp_DD4->SetDisplayMode(w, h, bpp, 0, 0);
             if (SUCCEEDED(result)) {
-                // Save Surface Rectangle
                 DisplayRect.left = 0;
                 DisplayRect.top = 0;
                 DisplayRect.right = w;
                 DisplayRect.bottom = h;
 
-                // Success
                 TurnValidFullscreenOn();
                 return result;
             }
         }
     }
-    // Failure
-    // Output error.
+
     return result;
 }
 
+// uc_orig: Display::FiniFullscreenMode (fallen/DDLibrary/Source/GDisplay.cpp)
 HRESULT Display::FiniFullscreenMode(void)
 {
     TurnValidFullscreenOff();
 
-    // Restore original desktop mode
     if (lp_DD4)
         lp_DD4->RestoreDisplayMode();
 
-    // Success
     return DD_OK;
 }
 
-//
-// Given the bitmask for a colour in a pixel format, it calculates the mask and
-// shift so that you can construct a pixel in pixel format given its RGB values.
-// The formula is...
-//
-//	PIXEL(r,g,b) = ((r >> mask) << shift) | ((g >> mask) << shift) | ((b >> mask) << shift);
-//
-// THIS ASSUMES that r,g,b are 8-bit values.
-//
-
-void calculate_mask_and_shift(
+// uc_orig: calculate_mask_and_shift (fallen/DDLibrary/Source/GDisplay.cpp)
+// Given a colour bitmask, computes the right-shift (mask) and left-shift (shift) needed
+// to pack an 8-bit component into that position. Formula: pixel = ((c >> mask) << shift).
+static void calculate_mask_and_shift(
     ULONG bitmask,
     SLONG* mask,
     SLONG* shift)
@@ -939,20 +896,12 @@ void calculate_mask_and_shift(
             num_bits += 1;
 
             if (first_bit == -1) {
-                //
-                // We have found the first bit.
-                //
-
                 first_bit = i;
             }
         }
     }
 
     if (first_bit == -1 || num_bits == 0) {
-        //
-        // This is bad!
-        //
-
         *mask = 0;
         *shift = 0;
 
@@ -963,121 +912,86 @@ void calculate_mask_and_shift(
     *shift = first_bit;
 
     if (*mask < 0) {
-        //
-        // More than 8 bits per colour component? May
-        // as well support it!
-        //
-
         *shift -= *mask;
         *mask = 0;
     }
 }
 
+// uc_orig: Display::InitFront (fallen/DDLibrary/Source/GDisplay.cpp)
+// Creates the primary surface (with back buffer in fullscreen hardware mode).
+// Also sets up gamma correction and reads the pixel format masks/shifts.
 HRESULT Display::InitFront(void)
 {
     DDSURFACEDESC2 dd_sd;
     HRESULT result;
 
-    // Check Initialization
     if ((!CurrMode) || (!lp_DD4)) {
-        // Error, Need a valid mode and DD interface to proceed
         result = DDERR_GENERIC;
-        // Output error.
         return result;
     }
 
-    // Note:  There is no need to fill in width, height, bpp, etc.
-    //        This was taken care of in the SetDisplayMode call.
-
-    // Setup Surfaces caps for a front buffer and back buffer
     InitStruct(dd_sd);
 
     if (IsFullScreen() && CurrDevice->IsHardware()) {
-        //
-        // Fullscreen harware.
-        //
-
         dd_sd.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
         dd_sd.ddsCaps.dwCaps = DDSCAPS_COMPLEX | DDSCAPS_FLIP | DDSCAPS_PRIMARYSURFACE | DDSCAPS_3DDEVICE;
         dd_sd.dwBackBufferCount = 1;
     } else {
-        //
-        // In a window or software mode.
-        //
-
         dd_sd.dwFlags = DDSD_CAPS;
         dd_sd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
     }
 
-    // Create Primary surface
     result = lp_DD4->CreateSurface(&dd_sd, &lp_DD_FrontSurface, NULL);
     if (FAILED(result)) {
-        // Error
         return result;
     }
 
-    // create gamma control
     result = lp_DD_FrontSurface->QueryInterface(IID_IDirectDrawGammaControl, (void**)&lp_DD_GammaControl);
     if (FAILED(result)) {
         lp_DD_GammaControl = NULL;
     } else {
-
         int black, white;
 
         GetGamma(&black, &white);
         SetGamma(black, white);
     }
 
-    // Mark as Valid
     TurnValidFrontOn();
-
-    //
-    // We need to work out the pixel format of the front buffer.
-    //
 
     InitStruct(dd_sd);
 
     lp_DD_FrontSurface->GetSurfaceDesc(&dd_sd);
 
-    //
-    // It must be an RGB mode!
-    //
-
     ASSERT(dd_sd.ddpfPixelFormat.dwFlags & DDPF_RGB);
-
-    //
-    // Work out the masks and shifts for each colour component.
-    //
 
     calculate_mask_and_shift(dd_sd.ddpfPixelFormat.dwRBitMask, &mask_red, &shift_red);
     calculate_mask_and_shift(dd_sd.ddpfPixelFormat.dwGBitMask, &mask_green, &shift_green);
     calculate_mask_and_shift(dd_sd.ddpfPixelFormat.dwBBitMask, &mask_blue, &shift_blue);
 
-    // Success
     return DD_OK;
 }
 
+// uc_orig: Display::FiniFront (fallen/DDLibrary/Source/GDisplay.cpp)
 HRESULT Display::FiniFront(void)
 {
-    // Mark as Invalid
     TurnValidFrontOff();
 
-    // release gamma control
     if (lp_DD_GammaControl) {
         lp_DD_GammaControl->Release();
         lp_DD_GammaControl = NULL;
     }
 
-    // Release Front Surface Object
     if (lp_DD_FrontSurface) {
         lp_DD_FrontSurface->Release();
         lp_DD_FrontSurface = NULL;
     }
 
-    // Success
     return DD_OK;
 }
 
+// uc_orig: Display::InitBack (fallen/DDLibrary/Source/GDisplay.cpp)
+// Creates back buffer, Z-buffer, D3D device, viewport, and work screen.
+// In hardware fullscreen the back buffer is fetched from the flip chain.
 HRESULT Display::InitBack(void)
 {
     SLONG mem_type,
@@ -1087,20 +1001,16 @@ HRESULT Display::InitBack(void)
     HRESULT result;
     LPD3DDEVICEDESC device_desc;
 
-    // Check Initialization
     if (
         (!hDDLibWindow) || (!IsWindow(hDDLibWindow)) || (!CurrDevice) || (!CurrMode) || (!lp_DD4) || (!lp_D3D) || (!lp_DD_FrontSurface)) {
-        // Error, Not initialized properly before calling this method
         result = DDERR_GENERIC;
         return result;
     }
 
-    // Calculate the width & height.  This is useful for windowed mode & the z buffer.
     w = abs(DisplayRect.right - DisplayRect.left);
     h = abs(DisplayRect.bottom - DisplayRect.top);
 
     if (IsFullScreen() && CurrDevice->IsHardware()) {
-        // Get the back surface from the front surface.
         memset(&dd_scaps, 0, sizeof(dd_scaps));
         dd_scaps.dwCaps = DDSCAPS_BACKBUFFER;
         result = lp_DD_FrontSurface->GetAttachedSurface(&dd_scaps, &lp_DD_BackSurface);
@@ -1108,7 +1018,6 @@ HRESULT Display::InitBack(void)
             return result;
         }
     } else {
-        // Create the back surface.
         InitStruct(dd_sd);
         dd_sd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH;
         dd_sd.dwWidth = w;
@@ -1126,29 +1035,19 @@ HRESULT Display::InitBack(void)
     }
 
     if (IsUse3D()) {
-        // Create and attach Z-buffer (optional)
-
-        // Get D3D Device description
         if (CurrDevice->IsHardware()) {
-            // Hardware device - Z buffer on video ram.
             device_desc = &(CurrDevice->d3dHalDesc);
             mem_type = DDSCAPS_VIDEOMEMORY;
         } else {
-            // Software device - Z buffer in system ram.
             device_desc = &(CurrDevice->d3dHelDesc);
             mem_type = DDSCAPS_SYSTEMMEMORY;
         }
 
-        // Enumerate all Z formats associated with this D3D device
         result = CurrDevice->LoadZFormats(lp_D3D);
         if (FAILED(result)) {
-            // Error, no texture formats
-            // Hope we can run OK without textures
         }
 
-        // Can we create a Z buffer?
         if (IsCreateZBuffer() && device_desc && device_desc->dwDeviceZBufferBitDepth) {
-            // Create the z-buffer.
             InitStruct(dd_sd);
             dd_sd.dwFlags = DDSD_CAPS | DDSD_WIDTH | DDSD_HEIGHT | DDSD_PIXELFORMAT;
             dd_sd.ddsCaps.dwCaps = DDSCAPS_ZBUFFER | mem_type;
@@ -1158,11 +1057,7 @@ HRESULT Display::InitBack(void)
             result = lp_DD4->CreateSurface(&dd_sd, &lp_DD_ZBuffer, NULL);
             if (FAILED(result)) {
                 dd_error(result);
-
-                // Note: we may be able to continue without a z buffer
-                // So don't exit
             } else {
-                // Attach Z buffer to back surface.
                 result = lp_DD_BackSurface->AddAttachedSurface(lp_DD_ZBuffer);
                 if (FAILED(result)) {
 
@@ -1170,52 +1065,36 @@ HRESULT Display::InitBack(void)
                         lp_DD_ZBuffer->Release();
                         lp_DD_ZBuffer = NULL;
                     }
-
-                    // Note: we may be able to continue without a z buffer
-                    // So don't exit
                 }
             }
         }
 
-        //	Create the D3D device interface
         result = lp_D3D->CreateDevice(CurrDevice->guid, lp_DD_BackSurface, &lp_D3D_Device, NULL);
         if (FAILED(result)) {
             d3d_error(result);
             return result;
         }
 
-        // Enumerate all Texture formats associated with this D3D device
         result = CurrDevice->LoadFormats(lp_D3D_Device);
         if (FAILED(result)) {
-            // Error, no texture formats
-            // Hope we can run OK without textures
         }
 
-        //	Create the viewport
         result = InitViewport();
         if (FAILED(result)) {
             return result;
         }
 
-        // check the device caps
         CurrDevice->CheckCaps(lp_D3D_Device);
     }
 
     if (IsUseWork()) {
-        // Create a work screen for user access.
-
-        // Get D3D Device description.  We want a system ram surface regardless of the device type.
         if (CurrDevice->IsHardware()) {
-            // Hardware device - Z buffer on video ram.
             device_desc = &(CurrDevice->d3dHalDesc);
         } else {
-            // Software device - Z buffer in system ram.
             device_desc = &(CurrDevice->d3dHelDesc);
         }
 
-        // Can we create the surface?
         if (device_desc) {
-            // Create the z-buffer.
             InitStruct(dd_sd);
             dd_sd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH;
             dd_sd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
@@ -1232,91 +1111,74 @@ HRESULT Display::InitBack(void)
         }
     }
 
-    // Mark as valid
     TurnValidBackOn();
 
-    // Success
     return DD_OK;
 }
 
+// uc_orig: Display::FiniBack (fallen/DDLibrary/Source/GDisplay.cpp)
 HRESULT Display::FiniBack(void)
 {
-    // Mark as invalid
     TurnValidBackOff();
 
-    // Clean up the work screen stuff.
     if (IsUseWork()) {
-        // Release the work surface.
         if (lp_DD_WorkSurface) {
             lp_DD_WorkSurface->Release();
             lp_DD_WorkSurface = NULL;
         }
     }
 
-    // Clean up the D3D stuff.
     if (IsUse3D()) {
-        // Cleanup viewport
         FiniViewport();
 
-        // Release D3D Device
         if (lp_D3D_Device) {
             lp_D3D_Device->Release();
             lp_D3D_Device = NULL;
         }
 
-        // Release Z Buffer
         if (lp_DD_ZBuffer) {
-            // Detach Z-Buffer from back buffer
             if (lp_DD_BackSurface)
                 lp_DD_BackSurface->DeleteAttachedSurface(0L, lp_DD_ZBuffer);
 
-            // Release Z-Buffer
             lp_DD_ZBuffer->Release();
             lp_DD_ZBuffer = NULL;
         }
     }
 
-    // Release back surface.
     if (lp_DD_BackSurface) {
         lp_DD_BackSurface->Release();
         lp_DD_BackSurface = NULL;
     }
 
-    // Success
     return DD_OK;
 }
 
+// uc_orig: Display::InitViewport (fallen/DDLibrary/Source/GDisplay.cpp)
+// Creates the D3D viewport and attaches it to the device.
+// Creates black, white, and user background materials.
 HRESULT Display::InitViewport(void)
 {
     D3DMATERIAL material;
     HRESULT result;
 
-    // Check Initialization
     if ((!lp_D3D) || (!lp_D3D_Device)) {
-        // Error, Not properly initialized before calling this method
         result = DDERR_GENERIC;
-        // Output error.
         return result;
     }
 
-    // Create Viewport
     result = lp_D3D->CreateViewport(&lp_D3D_Viewport, NULL);
     if (FAILED(result)) {
-        // Output error.
         return result;
     }
 
-    // Attach viewport to D3D device
     result = lp_D3D_Device->AddViewport(lp_D3D_Viewport);
     if (FAILED(result)) {
         lp_D3D_Viewport->Release();
         lp_D3D_Viewport = NULL;
 
-        // Output error.
         return result;
     }
 
-    // Black material.
     result = lp_D3D->CreateMaterial(&lp_D3D_Black, NULL);
     if (FAILED(result)) {
         return result;
@@ -1345,7 +1207,6 @@ HRESULT Display::InitViewport(void)
         return result;
     }
 
-    // White material.
     result = lp_D3D->CreateMaterial(&lp_D3D_White, NULL);
     if (FAILED(result)) {
         return result;
@@ -1372,13 +1233,8 @@ HRESULT Display::InitViewport(void)
         return result;
     }
 
-    //
-    // User material.
-    //
-
     SetUserColour(255, 150, 255);
 
-    // Set up Initial Viewport parameters
     result = UpdateViewport();
     if (FAILED(result)) {
         lp_D3D_Device->DeleteViewport(lp_D3D_Viewport);
@@ -1388,13 +1244,13 @@ HRESULT Display::InitViewport(void)
         return result;
     }
 
-    // Mark as valid
     TurnValidViewportOn();
 
-    /// Success
     return DD_OK;
 }
 
+// uc_orig: Display::SetUserColour (fallen/DDLibrary/Source/GDisplay.cpp)
+// Creates (or recreates) the user-defined D3D background material with the given RGB colour.
 void Display::SetUserColour(UBYTE red, UBYTE green, UBYTE blue)
 {
     D3DMATERIAL material;
@@ -1433,15 +1289,13 @@ void Display::SetUserColour(UBYTE red, UBYTE green, UBYTE blue)
     ASSERT(!FAILED(result));
 }
 
+// uc_orig: Display::FiniViewport (fallen/DDLibrary/Source/GDisplay.cpp)
 HRESULT Display::FiniViewport(void)
 {
-    // Mark as invalid
     TurnValidViewportOff();
 
-    // Get rid of any loaded texture maps.
     FreeLoadedTextures();
 
-    // Release materials.
     if (lp_D3D_Black) {
         lp_D3D_Black->Release();
         lp_D3D_Black = NULL;
@@ -1460,36 +1314,31 @@ HRESULT Display::FiniViewport(void)
         user_handle = NULL;
     }
 
-    // Release D3D viewport
     if (lp_D3D_Viewport) {
         lp_D3D_Device->DeleteViewport(lp_D3D_Viewport);
         lp_D3D_Viewport->Release();
         lp_D3D_Viewport = NULL;
     }
 
-    // Success
     return DD_OK;
 }
 
+// uc_orig: Display::UpdateViewport (fallen/DDLibrary/Source/GDisplay.cpp)
+// Resizes the D3D viewport to match DisplayRect, reloads textures, and sets the background colour.
 HRESULT Display::UpdateViewport(void)
 {
     SLONG s_w, s_h;
     HRESULT result;
     D3DVIEWPORT2 d3d_viewport;
 
-    // Check Parameters
     if ((!lp_D3D_Device) || (!lp_D3D_Viewport)) {
-        // Not properly initialized before calling this method
         result = DDERR_GENERIC;
-        // Output error.
         return result;
     }
 
-    // Get Surface Width and Height
     s_w = abs(DisplayRect.right - DisplayRect.left);
     s_h = abs(DisplayRect.bottom - DisplayRect.top);
 
-    // Update Viewport
     InitStruct(d3d_viewport);
     d3d_viewport.dwX = 0;
     d3d_viewport.dwY = 0;
@@ -1502,30 +1351,23 @@ HRESULT Display::UpdateViewport(void)
     d3d_viewport.dvMinZ = 1.0f;
     d3d_viewport.dvMaxZ = 0.0f;
 
-    // Update Viewport
     result = lp_D3D_Viewport->SetViewport2(&d3d_viewport);
     if (FAILED(result)) {
-        // Output error.
         return result;
     }
 
-    // Update D3D device to use this viewport
     result = lp_D3D_Device->SetCurrentViewport(lp_D3D_Viewport);
     if (FAILED(result)) {
-        // Output error.
         return result;
     }
 
-    // Reload any pre-loaded textures.
     ReloadTextures();
 
-    // Set the view port rect.
     ViewportRect.x1 = 0;
     ViewportRect.y1 = 0;
     ViewportRect.x2 = s_w;
     ViewportRect.y2 = s_h;
 
-    // Set the background colour.
     switch (the_display.BackColour) {
     case BK_COL_NONE:
         break;
@@ -1537,10 +1379,12 @@ HRESULT Display::UpdateViewport(void)
         return the_display.SetUserBackground();
     }
 
-    // Success
     return DD_OK;
 }
 
+// uc_orig: Display::ChangeMode (fallen/DDLibrary/Source/GDisplay.cpp)
+// Changes to a new display resolution. Destroys the back/front surfaces and recreates them
+// at the new size. On failure, attempts to restore the previous mode.
 HRESULT Display::ChangeMode(
     SLONG w,
     SLONG h,
@@ -1555,7 +1399,6 @@ HRESULT Display::ChangeMode(
         *next_best_device,
         *old_device;
 
-    // Check Initialization
     if ((!hDDLibWindow) || (!IsWindow(hDDLibWindow))) {
         result = DDERR_GENERIC;
         return result;
@@ -1565,14 +1408,12 @@ HRESULT Display::ChangeMode(
         result = GenerateDefaults();
         if (FAILED(result)) {
             result = DDERR_GENERIC;
-            // Output error.
             return result;
         }
 
         result = Init();
         if (FAILED(result)) {
             result = DDERR_GENERIC;
-            // Output error.
             return result;
         }
     }
@@ -1581,26 +1422,18 @@ HRESULT Display::ChangeMode(
     old_mode = CurrMode;
     old_device = CurrDevice;
 
-    //
-    // Step 1. Get New Mode
-    //
-    // Find new mode corresponding to w, h, bpp
     new_mode = old_driver->FindMode(w, h, bpp, 0, NULL);
     if (!new_mode) {
         result = DDERR_GENERIC;
         return result;
     }
 
-    //
-    // Step 2.   Check if Device needs to be changed as well
-    //
     if (new_mode->ModeSupported(old_device)) {
         new_device = NULL;
     } else {
         new_device = old_driver->FindDeviceSupportsMode(&old_device->guid, new_mode, &next_best_device);
         if (!new_device) {
             if (!next_best_device) {
-                // No D3D device is compatible with this new mode
                 result = DDERR_GENERIC;
                 return result;
             }
@@ -1608,30 +1441,20 @@ HRESULT Display::ChangeMode(
         }
     }
 
-    //
-    // Step 3.	Destroy current Mode
-    //
     FiniBack();
     FiniFront();
-    //  FiniFullscreenMode ();		// Don't do this => unnecessary mode switch
 
-    //
-    // Step 4.  Create new mode
-    //
     CurrMode = new_mode;
     if (new_device)
         CurrDevice = new_device;
 
-    // Change Mode
     result = InitFullscreenMode();
     if (FAILED(result))
         return result;
 
-    // Create Primary Surface
     result = InitFront();
     if (FAILED(result)) {
 
-        // Try to restore old mode
         CurrMode = old_mode;
         CurrDevice = old_device;
 
@@ -1642,13 +1465,11 @@ HRESULT Display::ChangeMode(
         return result;
     }
 
-    // Create Render surface
     result = InitBack();
     if (FAILED(result)) {
 
         FiniFront();
 
-        // Try to restore old mode
         CurrMode = old_mode;
         CurrDevice = old_device;
 
@@ -1659,32 +1480,26 @@ HRESULT Display::ChangeMode(
         return result;
     }
 
-    //
-    // Reload the background image.
-    //
-
     if (background_image_mem) {
         create_background_surface(background_image_mem);
     }
 
-    // Notify a display change.
     DisplayChangedOn();
 
-    // Success
     return DD_OK;
 }
 
+// uc_orig: Display::Restore (fallen/DDLibrary/Source/GDisplay.cpp)
+// Restores any lost DirectDraw surfaces (called after an alt-tab or mode change).
 HRESULT Display::Restore(void)
 {
     HRESULT result;
 
-    // Check Initialization
     if (!IsValid()) {
         result = DDERR_GENERIC;
         return result;
     }
 
-    // Restore Primary Surface
     if (lp_DD_FrontSurface) {
         result = lp_DD_FrontSurface->IsLost();
         if (FAILED(result)) {
@@ -1694,7 +1509,6 @@ HRESULT Display::Restore(void)
         }
     }
 
-    // Restore Z Buffer
     if (lp_DD_ZBuffer) {
         result = lp_DD_ZBuffer->IsLost();
         if (FAILED(result)) {
@@ -1704,7 +1518,6 @@ HRESULT Display::Restore(void)
         }
     }
 
-    // Restore Rendering surface
     if (lp_DD_BackSurface) {
         result = lp_DD_BackSurface->IsLost();
         if (FAILED(result)) {
@@ -1714,26 +1527,30 @@ HRESULT Display::Restore(void)
         }
     }
 
-    // Success
     return DD_OK;
 }
 
-//---------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Texture list management
+// ---------------------------------------------------------------------------
 
+// uc_orig: Display::AddLoadedTexture (fallen/DDLibrary/Source/GDisplay.cpp)
 HRESULT Display::AddLoadedTexture(D3DTexture* the_texture)
 {
-
     the_texture->NextTexture = TextureList;
     TextureList = the_texture;
 
     return DD_OK;
 }
 
+// uc_orig: Display::RemoveAllLoadedTextures (fallen/DDLibrary/Source/GDisplay.cpp)
 void Display::RemoveAllLoadedTextures(void)
 {
     TextureList = NULL;
 }
 
+// uc_orig: Display::FreeLoadedTextures (fallen/DDLibrary/Source/GDisplay.cpp)
+// Destroys all D3DTexture objects in the TextureList. Bounded to prevent infinite loops.
 HRESULT Display::FreeLoadedTextures(void)
 {
     D3DTexture* current_texture;
@@ -1747,7 +1564,6 @@ HRESULT Display::FreeLoadedTextures(void)
         current_texture = next_texture;
         iCountdown--;
         if (iCountdown == 0) {
-            // Oh dear - not good.
             ASSERT(UC_FALSE);
             break;
         }
@@ -1756,15 +1572,16 @@ HRESULT Display::FreeLoadedTextures(void)
     return DD_OK;
 }
 
-static char clumpfile[MAX_PATH] = "";
-static size_t clumpsize = 0;
-
+// uc_orig: SetLastClumpfile (fallen/DDLibrary/Source/GDisplay.cpp)
+// Saves the TGA clump filename so ReloadTextures() can reopen it after a device reset.
 void SetLastClumpfile(char* file, size_t size)
 {
     strcpy(clumpfile, file);
     clumpsize = size;
 }
 
+// uc_orig: Display::ReloadTextures (fallen/DDLibrary/Source/GDisplay.cpp)
+// Reopens the TGA clump (if any) and calls Reload() on every tracked texture.
 HRESULT Display::ReloadTextures(void)
 {
     D3DTexture* current_texture;
@@ -1787,47 +1604,49 @@ HRESULT Display::ReloadTextures(void)
     return DD_OK;
 }
 
+// ---------------------------------------------------------------------------
+// GDI / screen lock / pixel access
+// ---------------------------------------------------------------------------
+
+// uc_orig: Display::toGDI (fallen/DDLibrary/Source/GDisplay.cpp)
 HRESULT Display::toGDI(void)
 {
     HRESULT result;
 
-    // Flip to GDI Surface
     if (lp_DD4) {
         result = lp_DD4->FlipToGDISurface();
         if (FAILED(result)) {
-            // Output error.
             return result;
         }
     }
 
-    // Force window to redraw itself (on GDI surface).
     if ((hDDLibWindow) && (IsWindow(hDDLibWindow))) {
         DrawMenuBar(hDDLibWindow);
         RedrawWindow(hDDLibWindow, NULL, NULL, RDW_FRAME);
     }
 
-    // Success
     return DD_OK;
 }
 
+// uc_orig: Display::fromGDI (fallen/DDLibrary/Source/GDisplay.cpp)
 HRESULT Display::fromGDI(void)
 {
-    // Success
     return DD_OK;
 }
 
+// uc_orig: Display::ShowWorkScreen (fallen/DDLibrary/Source/GDisplay.cpp)
 HRESULT Display::ShowWorkScreen(void)
 {
     return lp_DD_FrontSurface->Blt(&DisplayRect, lp_DD_WorkSurface, NULL, DDBLT_WAIT, NULL);
 }
 
+// uc_orig: Display::screen_lock (fallen/DDLibrary/Source/GDisplay.cpp)
+// Locks the back surface for direct pixel access. Sets screen, screen_width/height/pitch/bbp.
+// Returns NULL if the lock fails or the screen is already locked.
 void* Display::screen_lock(void)
 {
     if (DisplayFlags & DISPLAY_LOCKED) {
-        //
-        // Don't do anything if you try to lock the screen twice in a row.
-        //
-
+        // Already locked — don't lock twice.
     } else {
         DDSURFACEDESC2 ddsdesc;
         HRESULT ret;
@@ -1854,6 +1673,7 @@ void* Display::screen_lock(void)
     return screen;
 }
 
+// uc_orig: Display::screen_unlock (fallen/DDLibrary/Source/GDisplay.cpp)
 void Display::screen_unlock(void)
 {
     if (DisplayFlags & DISPLAY_LOCKED) {
@@ -1864,6 +1684,8 @@ void Display::screen_unlock(void)
     DisplayFlags &= ~DISPLAY_LOCKED;
 }
 
+// uc_orig: Display::PlotPixel (fallen/DDLibrary/Source/GDisplay.cpp)
+// Writes a pixel to (x, y) in the locked back buffer. No-op if the screen is not locked.
 void Display::PlotPixel(SLONG x, SLONG y, UBYTE red, UBYTE green, UBYTE blue)
 {
     if (DisplayFlags & DISPLAY_LOCKED) {
@@ -1885,13 +1707,11 @@ void Display::PlotPixel(SLONG x, SLONG y, UBYTE red, UBYTE green, UBYTE blue)
                 dest[0] = pixel;
             }
         }
-    } else {
-        //
-        // Do nothing if the screen is not locked.
-        //
     }
 }
 
+// uc_orig: Display::PlotFormattedPixel (fallen/DDLibrary/Source/GDisplay.cpp)
+// Same as PlotPixel but takes an already-packed pixel value.
 void Display::PlotFormattedPixel(SLONG x, SLONG y, ULONG colour)
 {
     if (DisplayFlags & DISPLAY_LOCKED) {
@@ -1909,13 +1729,11 @@ void Display::PlotFormattedPixel(SLONG x, SLONG y, ULONG colour)
                 dest[0] = colour;
             }
         }
-    } else {
-        //
-        // Do nothing if the screen is not locked.
-        //
     }
 }
 
+// uc_orig: Display::GetPixel (fallen/DDLibrary/Source/GDisplay.cpp)
+// Reads back a pixel from the locked back buffer.
 void Display::GetPixel(SLONG x, SLONG y, UBYTE* red, UBYTE* green, UBYTE* blue)
 {
     SLONG index;
@@ -1948,6 +1766,8 @@ void Display::GetPixel(SLONG x, SLONG y, UBYTE* red, UBYTE* green, UBYTE* blue)
     }
 }
 
+// uc_orig: Display::blit_back_buffer (fallen/DDLibrary/Source/GDisplay.cpp)
+// Blits the back buffer to the front surface. In windowed mode, maps client coords to screen.
 void Display::blit_back_buffer()
 {
     POINT clientpos;
@@ -1982,6 +1802,9 @@ void Display::blit_back_buffer()
     }
 }
 
+// uc_orig: CopyBackground32 (fallen/DDLibrary/Source/GDisplay.cpp)
+// Copies a 640x480x24 source image into a DirectDraw surface, scaling to fit.
+// Uses bilinear-style nearest-neighbour line repetition to avoid redundant row copies.
 void CopyBackground32(UBYTE* image_data, IDirectDrawSurface4* surface)
 {
     DDSURFACEDESC2 mine;
@@ -1997,8 +1820,6 @@ void CopyBackground32(UBYTE* image_data, IDirectDrawSurface4* surface)
     SLONG width;
     SLONG height;
 
-    // stretch the image
-
     SLONG sdx = 65536 * 640 / mine.dwWidth;
     SLONG sdy = 65536 * 480 / mine.dwHeight;
 
@@ -2010,7 +1831,6 @@ void CopyBackground32(UBYTE* image_data, IDirectDrawSurface4* surface)
         UBYTE* src = image_data + 640 * 3 * (sy >> 16);
 
         if ((sy >> 16) == lsy) {
-            // repeat line
             memcpy(mem, lmem, mine.dwWidth * 4);
         } else {
             SLONG sx = 0;
@@ -2034,22 +1854,21 @@ void CopyBackground32(UBYTE* image_data, IDirectDrawSurface4* surface)
     surface->Unlock(NULL);
 }
 
+// uc_orig: CopyBackground (fallen/DDLibrary/Source/GDisplay.cpp)
 void CopyBackground(UBYTE* image_data, IDirectDrawSurface4* surface)
 {
     CopyBackground32(image_data, surface);
 }
 
-void PANEL_ResetDepthBodge(void);
-
+// uc_orig: Display::Flip (fallen/DDLibrary/Source/GDisplay.cpp)
+// End-of-frame: runs pre-flip hooks, draws the screensaver, then flips (hardware) or blits (windowed).
 HRESULT Display::Flip(LPDIRECTDRAWSURFACE4 alt, SLONG flags)
 {
     extern void PreFlipTT();
     PreFlipTT();
 
-    // Make sure panels and text work.
     PANEL_ResetDepthBodge();
 
-    // Draw the screensaver (if any).
     PANEL_screensaver_draw();
 
     if (IsFullScreen() && CurrDevice->IsHardware()) {
@@ -2059,25 +1878,20 @@ HRESULT Display::Flip(LPDIRECTDRAWSURFACE4 alt, SLONG flags)
     }
 }
 
+// uc_orig: Display::use_this_background_surface (fallen/DDLibrary/Source/GDisplay.cpp)
 void Display::use_this_background_surface(LPDIRECTDRAWSURFACE4 this_one)
 {
     lp_DD_Background_use_instead = this_one;
 }
 
+// uc_orig: Display::create_background_surface (fallen/DDLibrary/Source/GDisplay.cpp)
+// Allocates a system-memory surface matching the back buffer pixel format and copies image_data into it.
 void Display::create_background_surface(UBYTE* image_data)
 {
     DDSURFACEDESC2 back;
     DDSURFACEDESC2 mine;
 
-    //
-    // Remember this if we have to reload.
-    //
-
     background_image_mem = image_data;
-
-    //
-    // Incase we already have one!
-    //
 
     if (lp_DD_Background) {
         lp_DD_Background->Release();
@@ -2086,17 +1900,9 @@ void Display::create_background_surface(UBYTE* image_data)
 
     lp_DD_Background_use_instead = NULL;
 
-    //
-    // Create a mirror surface to the back buffer.
-    //
-
     InitStruct(back);
 
     lp_DD_BackSurface->GetSurfaceDesc(&back);
-
-    //
-    // Create the mirror surface in system memory.
-    //
 
     InitStruct(mine);
 
@@ -2114,15 +1920,13 @@ void Display::create_background_surface(UBYTE* image_data)
         return;
     }
 
-    //
-    // Copy the image into the surface...
-    //
-
     CopyBackground(image_data, lp_DD_Background);
 
     return;
 }
 
+// uc_orig: Display::blit_background_surface (fallen/DDLibrary/Source/GDisplay.cpp)
+// Blits the saved background surface (or the override surface) into the back buffer.
 void Display::blit_background_surface(bool b3DInFrame)
 {
     LPDIRECTDRAWSURFACE4 lpBG = NULL;
@@ -2146,6 +1950,7 @@ void Display::blit_background_surface(bool b3DInFrame)
     }
 }
 
+// uc_orig: Display::destroy_background_surface (fallen/DDLibrary/Source/GDisplay.cpp)
 void Display::destroy_background_surface()
 {
     if (lp_DD_Background) {
@@ -2156,13 +1961,19 @@ void Display::destroy_background_surface()
     background_image_mem = NULL;
 }
 
+// ---------------------------------------------------------------------------
+// Gamma control
+// ---------------------------------------------------------------------------
+
+// uc_orig: Display::IsGammaAvailable (fallen/DDLibrary/Source/GDisplay.cpp)
 bool Display::IsGammaAvailable()
 {
     return (lp_DD_GammaControl != NULL);
 }
 
-// note: 0,256 is normal - white is *exclusive*
-
+// uc_orig: Display::SetGamma (fallen/DDLibrary/Source/GDisplay.cpp)
+// Sets the hardware gamma ramp. black=0, white=256 is the default identity ramp.
+// Clamps and persists the settings to the Gamma env section.
 void Display::SetGamma(int black, int white)
 {
     if (!lp_DD_GammaControl)
@@ -2194,10 +2005,9 @@ void Display::SetGamma(int black, int white)
     lp_DD_GammaControl->SetGammaRamp(0, &ramp);
 }
 
+// uc_orig: Display::GetGamma (fallen/DDLibrary/Source/GDisplay.cpp)
 void Display::GetGamma(int* black, int* white)
 {
     *black = ENV_get_value_number("BlackPoint", 0, "Gamma");
     *white = ENV_get_value_number("WhitePoint", 256, "Gamma");
 }
-
-#endif // MIGRATED

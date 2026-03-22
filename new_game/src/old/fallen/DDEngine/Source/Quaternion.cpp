@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/core/quaternion.cpp
 #include <math.h>
 
 #include "game.h"
@@ -607,3 +608,5 @@ void QUATERNION_BuildTweenInteger(struct Matrix33* dest, struct CMatrix33* cm1, 
 
 //***************************************************************************************************
 //***************************************************************************************************
+
+#endif // MIGRATED

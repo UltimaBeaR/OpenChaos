@@ -70589,6 +70589,726 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "VideoRes",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "VideoRes",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "image_mem",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "image_mem",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SetLastClumpfile",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "SetLastClumpfile",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CopyBackground",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "CopyBackground",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CopyBackground32",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "CopyBackground32",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PlayQuickMovie",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "PlayQuickMovie",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "RenderStreamToSurface",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "RenderStreamToSurface",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "RenderFileToMMStream",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "RenderFileToMMStream",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calculate_mask_and_shift",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "calculate_mask_and_shift",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "quick_flipper",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "quick_flipper",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FMV1a",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "FMV1a",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FMV1b",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "FMV1b",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FMV2",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "FMV2",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FMV3",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "FMV3",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "RGB_565",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "RGB_565",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "RGB_555",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "RGB_555",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "InitBackImage",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "InitBackImage",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "UseBackSurface",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "UseBackSurface",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ResetBackImage",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "ResetBackImage",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ShowBackImage",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "ShowBackImage",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SetDisplay",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "SetDisplay",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ClearDisplay",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "ClearDisplay",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "LoadBackImage",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "LoadBackImage",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::Display",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::Display",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::~Display",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::~Display",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::Init",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::Init",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::Fini",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::Fini",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::GenerateDefaults",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::GenerateDefaults",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::InitInterfaces",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::InitInterfaces",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::FiniInterfaces",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::FiniInterfaces",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::InitWindow",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::InitWindow",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::FiniWindow",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::FiniWindow",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::RunFMV",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::RunFMV",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::RunCutscene",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::RunCutscene",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::InitFullscreenMode",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::InitFullscreenMode",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::FiniFullscreenMode",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::FiniFullscreenMode",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::InitFront",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::InitFront",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::FiniFront",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::FiniFront",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::InitBack",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::InitBack",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::FiniBack",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::FiniBack",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::InitViewport",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::InitViewport",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::SetUserColour",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::SetUserColour",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::FiniViewport",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::FiniViewport",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::UpdateViewport",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::UpdateViewport",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::ChangeMode",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::ChangeMode",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::Restore",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::Restore",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::AddLoadedTexture",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::AddLoadedTexture",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::RemoveAllLoadedTextures",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::RemoveAllLoadedTextures",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::FreeLoadedTextures",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::FreeLoadedTextures",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::ReloadTextures",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::ReloadTextures",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::toGDI",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::toGDI",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::fromGDI",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::fromGDI",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::ShowWorkScreen",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::ShowWorkScreen",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::screen_lock",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::screen_lock",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::screen_unlock",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::screen_unlock",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::PlotPixel",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::PlotPixel",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::PlotFormattedPixel",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::PlotFormattedPixel",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::GetPixel",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::GetPixel",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::blit_back_buffer",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::blit_back_buffer",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::Flip",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::Flip",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::use_this_background_surface",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::use_this_background_surface",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::create_background_surface",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::create_background_surface",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::blit_background_surface",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::blit_background_surface",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::destroy_background_surface",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::destroy_background_surface",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::IsGammaAvailable",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::IsGammaAvailable",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::SetGamma",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::SetGamma",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Display::GetGamma",
+      "file": "new/engine/graphics/graphics_api/display.cpp",
+      "orig_name": "Display::GetGamma",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "image",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "image",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mirror",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "mirror",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "m_lpLastBackground",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "m_lpLastBackground",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "clumpfile",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "clumpfile",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "clumpsize",
+      "file": "new/engine/graphics/graphics_api/display_globals.h",
+      "orig_name": "clumpsize",
+      "orig_file": "fallen/DDLibrary/Source/GDisplay.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

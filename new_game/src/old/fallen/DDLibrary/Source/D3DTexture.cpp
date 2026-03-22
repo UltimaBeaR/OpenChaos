@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/engine/graphics/resources/d3d_texture.cpp
 // D3DTexture.cpp
 // Guy Simmons, 29th November 1997.
 
@@ -997,3 +998,5 @@ void D3DTexture::set_greyscale(BOOL is_greyscale)
         }
     }
 }
+
+#endif // MIGRATED

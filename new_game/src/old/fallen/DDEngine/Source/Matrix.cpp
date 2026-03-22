@@ -1,3 +1,4 @@
+#if 0 // MIGRATED to src/new/core/matrix.cpp
 #include <MFStdLib.h>
 #include "..\ddengine\headers\matrix.h"
 
@@ -325,3 +326,5 @@ Direction MATRIX_find_angles(float matrix[9])
 
     return ans;
 }
+
+#endif // MIGRATED
