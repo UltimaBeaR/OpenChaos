@@ -65549,6 +65549,1006 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_UNUSED",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_UNUSED",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_LEAF",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_LEAF",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_CAN",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_CAN",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_PIGEON",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_PIGEON",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_WATER",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_WATER",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_HELDCAN",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_HELDCAN",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_THROWCAN",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_THROWCAN",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_HEAD",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_HEAD",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_HELDHEAD",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_HELDHEAD",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_THROWHEAD",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_THROWHEAD",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_BRASS",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_BRASS",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_MINE",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_MINE",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_URINE",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_URINE",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_SPARKS",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_SPARKS",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_BLOOD",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_BLOOD",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_SNOW",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_SNOW",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_TYPE_NUMBER",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_TYPE_NUMBER",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_Dirt",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_Dirt",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_MAX_DIRT",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_MAX_DIRT",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_INFO_TYPE_UNUSED",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_INFO_TYPE_UNUSED",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_INFO_TYPE_LEAF",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_INFO_TYPE_LEAF",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_INFO_TYPE_PRIM",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_INFO_TYPE_PRIM",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_INFO_TYPE_MORPH",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_INFO_TYPE_MORPH",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_INFO_TYPE_WATER",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_INFO_TYPE_WATER",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_INFO_TYPE_URINE",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_INFO_TYPE_URINE",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_INFO_TYPE_SPARKS",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_INFO_TYPE_SPARKS",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_INFO_TYPE_BLOOD",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_INFO_TYPE_BLOOD",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_INFO_TYPE_SNOW",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_INFO_TYPE_SNOW",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_FLAG_STILL",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_FLAG_STILL",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_FLAG_HIT_FLOOR",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_FLAG_HIT_FLOOR",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_FLAG_DELETE_OK",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_FLAG_DELETE_OK",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_Info",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_Info",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_MARK_AS_OFFSCREEN_QUICK",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_MARK_AS_OFFSCREEN_QUICK",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_init",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_init",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_set_focus",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_set_focus",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_gust",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_gust",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_gale",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_gale",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_new_water",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_new_water",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_process",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_process",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_get_nearest_can_or_head_dist",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_get_nearest_can_or_head_dist",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pick_up_can_or_head",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_pick_up_can_or_head",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_release_can_or_head",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_release_can_or_head",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_behead_person",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_behead_person",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_create_grenade",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_create_grenade",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_create_mine",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_create_mine",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_destroy_mine",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_destroy_mine",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_shoot",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_shoot",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_create_papers",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_create_papers",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_create_cans",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_create_cans",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_get_info",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_get_info",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_mark_as_offscreen",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_mark_as_offscreen",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_new_sparks",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_new_sparks",
+      "orig_file": "fallen/Headers/dirt.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_create_brass",
+      "file": "new/effects/dirt.h",
+      "orig_name": "DIRT_create_brass",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_Tree",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_Tree",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_MAX_TREES",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_MAX_TREES",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_tree",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_tree",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_tree_upto",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_tree_upto",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_prob_leaf",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_prob_leaf",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_prob_can",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_prob_can",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_prob_pigeon",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_prob_pigeon",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_map_x1",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_pigeon_map_x1",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_map_z1",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_pigeon_map_z1",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_map_x2",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_pigeon_map_x2",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_map_z2",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_pigeon_map_z2",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_focus_x",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_focus_x",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_focus_z",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_focus_z",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_focus_radius",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_focus_radius",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_focus_first",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_focus_first",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_dirt",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_dirt",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_check",
+      "file": "new/effects/dirt_globals.h",
+      "orig_name": "DIRT_check",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_get_new_type",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_get_new_type",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_find_useless",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_find_useless",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_init_wait",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_init_wait",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_init_peck",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_init_peck",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_init_walk",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_init_walk",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_init_hop",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_init_hop",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_init_flee",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_init_flee",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_process_wait",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_process_wait",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_process_peck",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_process_peck",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_process_walkrun",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_process_walkrun",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_process_hop",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_process_hop",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_start_doing_something_new",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_start_doing_something_new",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_pigeon_process",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_pigeon_process",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_spark_shower",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_spark_shower",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_WAIT",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_WAIT",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_PECK",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_PECK",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_WALK",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_WALK",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_HOP",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_HOP",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_COURT",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_COURT",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_RUN",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_RUN",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_TAKEOFF",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_TAKEOFF",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_FLY",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_FLY",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_LAND",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_LAND",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_PERCHED",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_PERCHED",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_SIDLE",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_SIDLE",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_NUM_STATES",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_NUM_STATES",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_HOPUP",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_HOPUP",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_PIGEON_HOPDOWN",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_PIGEON_HOPDOWN",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DIRT_LEAVES_PER_TREE",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "DIRT_LEAVES_PER_TREE",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "TICK_SHIFT_LOWRES",
+      "file": "new/effects/dirt.cpp",
+      "orig_name": "TICK_SHIFT_LOWRES",
+      "orig_file": "fallen/Source/dirt.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

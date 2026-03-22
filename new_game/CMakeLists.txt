@@ -130,6 +130,8 @@ set(SOURCES_NEW
     src/new/engine/graphics/resources/truetype_globals.cpp
     src/new/effects/fire.cpp
     src/new/effects/fire_globals.cpp
+    src/new/effects/dirt.cpp
+    src/new/effects/dirt_globals.cpp
     src/new/effects/mist.cpp
     src/new/effects/mist_globals.cpp
     src/new/effects/glitter.cpp

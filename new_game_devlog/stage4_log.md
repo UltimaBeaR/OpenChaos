@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 116 — effects/dirt (dirt.cpp → redirect) (2026-03-22)
+
+- `fallen/Source/dirt.cpp` (2828 строк) → `new/effects/dirt.cpp` + `dirt.h` + `dirt_globals.cpp` + `dirt_globals.h`.
+- `DIRT_gale_height` и `DIRT_gale` в оригинале в `/* */` (мёртвый код); `DIRT_gale` — добавлена stub-реализация (объявлена в заголовке).
+- `DIRT_Tree` тип — локальная struct из dirt.cpp; вынесена в `dirt_globals.h`.
+- `TICK_SHIFT_LOWRES` — локальный макрос, оставлен в `dirt.cpp`.
+- `DIRT_create_brass` — не был объявлен в оригинальном `dirt.h`; добавлен в `new/effects/dirt.h` (Person.cpp ссылался через `extern`).
+- `static int tick` внутри `DIRT_process` — local static, остался на месте (не глобал).
+- Temporary includes: `Game.h` (GAME_FLAGS, calc_angle, NET_PERSON), `mav.h` (MAV_SPARE), `prim.h` (PRIM_FLAG_TREE, PRIM_OBJ_CAN), `sample.h` (S_KICK_CAN), `Sound.h` (world_type), `poly.h` (POLY_PAGE_EXPLODE*), `animate.h` (SUB_OBJECT_*).
+
+---
+
 ## Итерация 115 — world/environment/prim (Prim.cpp → redirect) (2026-03-22)
 
 - `fallen/Source/Prim.cpp` (2595 строк) → `new/world/environment/prim.cpp` + `prim.h` + `prim_globals.cpp` + `prim_globals.h`.
