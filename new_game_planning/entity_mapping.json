@@ -62759,6 +62759,616 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "the_game",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "the_game",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VIOLENCE",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "VIOLENCE",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CAM_cur_x",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "CAM_cur_x",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CAM_cur_y",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "CAM_cur_y",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CAM_cur_z",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "CAM_cur_z",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CAM_cur_yaw",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "CAM_cur_yaw",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CAM_cur_pitch",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "CAM_cur_pitch",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CAM_cur_roll",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "CAM_cur_roll",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "pause_menu",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "pause_menu",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "game_paused_key",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "game_paused_key",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "game_paused_highlight",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "game_paused_highlight",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "bullet_point",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "bullet_point",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "bullet_upto",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "bullet_upto",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "bullet_counter",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "bullet_counter",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "screen_mem",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "screen_mem",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "already_warned_about_leaving_map",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "already_warned_about_leaving_map",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "draw_map_screen",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "draw_map_screen",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "single_step",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "single_step",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "form_leave_map",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "form_leave_map",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "form_left_map",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "form_left_map",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_fudge_message",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "last_fudge_message",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_fudge_camera",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "last_fudge_camera",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "the_end",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "the_end",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "env_frame_rate",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "env_frame_rate",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "playback_name",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "playback_name",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "verifier_name",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "verifier_name",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "tick_ratios",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "tick_ratios",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "wptr",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "wptr",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "number",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "number",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "sum",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "sum",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "stop_all_fx_and_music",
+      "file": "new/missions/game.h",
+      "orig_name": "stop_all_fx_and_music",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "global_load",
+      "file": "new/missions/game.h",
+      "orig_name": "global_load",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "game_startup",
+      "file": "new/missions/game.h",
+      "orig_name": "game_startup",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "game_shutdown",
+      "file": "new/missions/game.h",
+      "orig_name": "game_shutdown",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "make_texture_clumps",
+      "file": "new/missions/game.h",
+      "orig_name": "make_texture_clumps",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "game_init",
+      "file": "new/missions/game.h",
+      "orig_name": "game_init",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "game_fini",
+      "file": "new/missions/game.h",
+      "orig_name": "game_fini",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "game",
+      "file": "new/missions/game.h",
+      "orig_name": "game",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "GAME_map_draw_old",
+      "file": "new/missions/game.h",
+      "orig_name": "GAME_map_draw_old",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "GAME_map_draw",
+      "file": "new/missions/game.h",
+      "orig_name": "GAME_map_draw",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "leave_map_form_proc",
+      "file": "new/missions/game.h",
+      "orig_name": "leave_map_form_proc",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "process_bullet_points",
+      "file": "new/missions/game.h",
+      "orig_name": "process_bullet_points",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "lock_frame_rate",
+      "file": "new/missions/game.h",
+      "orig_name": "lock_frame_rate",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "demo_timeout",
+      "file": "new/missions/game.h",
+      "orig_name": "demo_timeout",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "do_leave_map_form",
+      "file": "new/missions/game.h",
+      "orig_name": "do_leave_map_form",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "screen_flip",
+      "file": "new/missions/game.h",
+      "orig_name": "screen_flip",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "playback_game_keys",
+      "file": "new/missions/game.h",
+      "orig_name": "playback_game_keys",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "special_keys",
+      "file": "new/missions/game.h",
+      "orig_name": "special_keys",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "handle_sfx",
+      "file": "new/missions/game.h",
+      "orig_name": "handle_sfx",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "should_i_process_game",
+      "file": "new/missions/game.h",
+      "orig_name": "should_i_process_game",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "draw_screen",
+      "file": "new/missions/game.h",
+      "orig_name": "draw_screen",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "hardware_input_replay",
+      "file": "new/missions/game.h",
+      "orig_name": "hardware_input_replay",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "hardware_input_continue",
+      "file": "new/missions/game.h",
+      "orig_name": "hardware_input_continue",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "game_loop",
+      "file": "new/missions/game.h",
+      "orig_name": "game_loop",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ResetSmoothTicks",
+      "file": "new/missions/game.h",
+      "orig_name": "ResetSmoothTicks",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SmoothTicks",
+      "file": "new/missions/game.h",
+      "orig_name": "SmoothTicks",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "TAB_MAP_MIN_X",
+      "file": "new/missions/game.cpp",
+      "orig_name": "TAB_MAP_MIN_X",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "TAB_MAP_MIN_Z",
+      "file": "new/missions/game.cpp",
+      "orig_name": "TAB_MAP_MIN_Z",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "TAB_MAP_SIZE",
+      "file": "new/missions/game.cpp",
+      "orig_name": "TAB_MAP_SIZE",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NUM_BULLETS",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "NUM_BULLETS",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PAUSE_MENU_SIZE",
+      "file": "new/missions/game_globals.h",
+      "orig_name": "PAUSE_MENU_SIZE",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

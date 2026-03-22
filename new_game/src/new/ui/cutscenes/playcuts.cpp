@@ -76,9 +76,9 @@
 #define PF_SLOMO (128)
 
 // Forward declarations for functions still in old/ code.
-// uc_orig: hardware_input_continue (fallen/Source/playcuts.cpp)
+// uc_orig: hardware_input_continue (fallen/Source/Game.cpp)
 extern SLONG hardware_input_continue(void);
-// uc_orig: lock_frame_rate (fallen/Source/playcuts.cpp)
+// uc_orig: lock_frame_rate (fallen/Source/Game.cpp)
 extern void lock_frame_rate(SLONG fps);
 // uc_orig: person_normal_animate (fallen/Source/playcuts.cpp)
 extern SLONG person_normal_animate(Thing* p_person);

@@ -27,7 +27,7 @@ extern void show_grenade_path(Thing* p_person);
 extern BOOL PersonIsMIB(Thing* p_person);
 // uc_orig: health (fallen/Source/Person.cpp)
 extern SWORD health[];
-// uc_orig: draw_map_screen (fallen/Source/interfac.cpp)
+// uc_orig: draw_map_screen (fallen/Source/Game.cpp)
 extern UBYTE draw_map_screen;
 // uc_orig: cheat (fallen/Source/Controls.cpp)
 extern UBYTE cheat;

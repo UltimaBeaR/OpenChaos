@@ -1,5 +1,21 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 112 — missions/game (Game.cpp → redirect) (2026-03-22)
+
+- `fallen/Source/Game.cpp` (1531 строк) → `new/missions/game.cpp` + `game.h` + `game_globals.cpp` + `game_globals.h`.
+- `the_game` и `VIOLENCE` — определены в `game_globals.cpp`; уже объявлены как extern в `old/fallen/Headers/Game.h`.
+- `playback_file`/`verifier_file` — определены в `actors/core/thing_globals.cpp` (мигрированы ранее с неверным origin `Thing.cpp` вместо верного).
+- `player_pos` — дублировать нельзя; уже определён в `actors/core/player_globals.cpp`.
+- `tick_ratios/wptr/number/sum` — в оригинале file-scope statics Game.cpp, перенесены в `game_globals` по правилу.
+- `plan_view_shot` (многопараметровая версия из Game.cpp) — extern-декларация в game.cpp; Controls.cpp имеет другую (no-param) версию.
+- `ShowBackImage/InitBackImage/ResetBackImage` — объявлены в `engine/graphics/graphics_api/gd_display.h`.
+- `overlay.cpp`: исправлен неверный uc_orig для `draw_map_screen` (`interfac.cpp` → `Game.cpp`).
+- `playcuts.cpp`: исправлены uc_orig для `hardware_input_continue` и `lock_frame_rate` (`playcuts.cpp` → `Game.cpp`).
+- `thing.cpp`: исправлен uc_orig для `SmoothTicks` (`Headers/Game.h` → `Source/Game.cpp`).
+- `old/fallen/Source/Game.cpp` заменён redirect-заглушкой (3 строки).
+
+---
+
 ## Итерация 111 — engine/physics/collide (чанк 5b: финальный, old/collide.cpp → redirect) (2026-03-22)
 
 - `fallen/Source/collide.cpp` чанк 5b: lines 7481–9155 → `new/engine/physics/collide.cpp` + `collide_globals.cpp/h`.

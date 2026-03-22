@@ -298,6 +298,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/fog.cpp
     src/old/fallen/Source/frontend.cpp
     src/old/fallen/Source/Game.cpp
+    src/new/missions/game.cpp
+    src/new/missions/game_globals.cpp
     src/new/ui/menus/gamemenu.cpp
     src/new/ui/menus/gamemenu_globals.cpp
     src/new/actors/items/guns.cpp

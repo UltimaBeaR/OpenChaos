@@ -29,7 +29,7 @@ void general_process_person(Thing* p_person);
 void PCOM_process_person(Thing* p_person);
 // uc_orig: allow_debug_keys (fallen/Source/Game.cpp)
 extern BOOL allow_debug_keys;
-// uc_orig: SmoothTicks (fallen/Headers/Game.h)
+// uc_orig: SmoothTicks (fallen/Source/Game.cpp)
 extern SLONG SmoothTicks(SLONG raw_ticks);
 // uc_orig: GAMEMENU_is_paused (fallen/Source/gamemenu.cpp)
 SLONG GAMEMENU_is_paused(void);
