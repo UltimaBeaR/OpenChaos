@@ -1477,6 +1477,8 @@ void set_danger_level()
 
 #endif // MIGRATED to src/new/ui/controls.cpp + controls_globals.cpp (iteration 124) [globals..set_danger_level]
 
+#if 0 // MIGRATED to src/new/ui/controls.cpp (iteration 125) [process_controls]
+
 void process_controls(void)
 {
     SLONG i;
@@ -3996,7 +3998,9 @@ extern	SLONG	FC_cam_height;
     //	Get user game input.
 }
 
-// claude-ai: ============================================================
+#endif // MIGRATED to src/new/ui/controls.cpp (iteration 125) [process_controls]
+
+// PSX-version note (not migrated — PSX branch, PC build only):
 // claude-ai: SECTION: PSX-версия (#else ветка, то есть #ifdef PSX)
 // claude-ai: Содержит: PSX-специфичные globals инвентаря + PSX-версии функций инвентаря
 // claude-ai:           + PSX-версию process_controls().

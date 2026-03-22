@@ -69689,6 +69689,16 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "process_controls",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "process_controls",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 125 — ui/controls chunk 2 (process_controls → new/ui/controls.cpp) (2026-03-22)
+
+- `Controls.cpp` chunk 2: `process_controls` (2500 строк) → `new/ui/controls.cpp`.
+- `old/Controls.cpp` теперь полностью в `#if 0 MIGRATED` блоках — всё мигрировано.
+- Добавлены include-ы: `effects/dirt.h`, `effects/mist.h`, `effects/spark.h`, `effects/glitter.h`, `effects/ribbon.h`, `actors/items/hook.h`, `actors/characters/snipe.h`, `actors/items/barrel.h`, `actors/vehicles/vehicle.h`, `actors/vehicles/chopper.h`, `world/navigation/wmove.h`, `world/navigation/wand.h`, `world/map/ob.h`, `engine/effects/psystem.h`, `engine/physics/collide.h`, `engine/input/mouse.h`, `engine/graphics/pipeline/poly_render.h`, `engine/graphics/graphics_api/host.h`, `ai/mav.h`, `missions/save.h`, `assets/anim_tmap.h`, `fallen/DDEngine/Headers/panel.h`, `ui/camera/fc_globals.h`, `fallen/Headers/animate.h`, `fallen/Headers/interfac.h`.
+- `mouse_input` и `aeng_draw_cloud_flag` добавлены как `extern` (определены в `interfac.cpp` и `aeng.cpp` соответственно).
+- `FC_cam[]` недоступен через `fc.h` — нужен отдельный `fc_globals.h`.
+
+---
+
 ## Итерация 124 — ui/controls chunk 1 (globals + helpers → new/ui/controls.cpp/.h, controls_globals.cpp/.h) + Vehicle.cpp redirect stub (2026-03-22)
 
 - `Controls.cpp` chunk 1 (globals + 14 functions through `set_danger_level`) → `new/ui/controls.cpp` + `new/ui/controls_globals.cpp`.
