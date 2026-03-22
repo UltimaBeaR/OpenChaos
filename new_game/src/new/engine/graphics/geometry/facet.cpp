@@ -2,8 +2,10 @@
 #include <DDLib.h>
 #include <math.h>
 
+#include "core/macros.h"                      // UC_INFINITY, QDIST2, WITHIN, ASSERT
+#include "core/matrix.h"                     // MATRIX_calc
 #include "fallen/Headers/game.h"             // Temporary: GAME_TURN, INDOORS_INDEX, the_game
-#include "engine/graphics/pipeline/aeng.h"   // Temporary: AENG_detail_crinkles (defined in aeng.cpp)
+#include "engine/graphics/pipeline/aeng.h"   // Temporary: AENG_detail_crinkles, AENG_world_line
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
@@ -13,17 +15,22 @@
 #include "engine/graphics/geometry/mesh.h"
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"   // NIGHT_dfcache
 #include "engine/lighting/crinkle.h"
-#include "engine/input/keyboard_globals.h"   // ControlFlag
+#include "engine/input/keyboard_globals.h"   // ControlFlag, Keys, ShiftFlag
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"           // PAP_hi
+#include "world/map/supermap_globals.h"      // next_dfacet, next_dbuilding
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"
 #include "world/environment/building.h"      // Temporary: DFacet, TEXTURE_PIECE_*, building types
-#include "world/environment/building_globals.h" // dx_textures_xy
+#include "world/environment/building_globals.h" // dx_textures_xy, dbuildings, dwalkables, roof_faces4
 #include "missions/memory_globals.h"         // dstyles, dstoreys, paint_mem, inside_storeys, inside_stairs
-#include "assets/texture.h"                  // Temporary: TEXTURE_crinkle
+#include "assets/texture.h"                  // Temporary: TEXTURE_crinkle, TEXTURE_get_minitexturebits_uvs
+#include "world/environment/ware.h"          // WARE_Ware struct
+#include "world/environment/ware_globals.h"  // WARE_ware, WARE_rooftex, WARE_ware_upto
 #include "ui/controls_globals.h"             // allow_debug_keys
+#include "ui/camera/fc_globals.h"            // FC_cam
 
 // POLY_set_local_rotation_none is a no-op on PC. On Dreamcast it reset the local
 // rotation matrix before DrawIndexedPrimitive. Defined as a macro here to match
@@ -1269,4 +1276,732 @@ void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation, SLONG 
     for (; c0 < count; c0++) {
         facet_rand();
     }
+}
+
+// uc_orig: FACET_draw_quick (fallen/DDEngine/Source/facet.cpp)
+// LOD (level-of-detail) renderer for distant buildings. Renders the entire facet
+// as a single flat-coloured untextured quad pushed to z=0.99999 (back of depth buffer).
+// Acts as a silhouette fill for buildings beyond the full-detail threshold.
+// Only handles STOREY_TYPE_NORMAL, STOREY_TYPE_FENCE, and STOREY_TYPE_FENCE_FLAT.
+// D3D-specific: the z=0.99999 trick is not portable to OpenGL/Vulkan.
+void FACET_draw_quick(SLONG facet, UBYTE alpha)
+{
+    POLY_Point* pp;
+    POLY_Point* quad[4];
+    float fx1, fx2, fz1, fz2, fy1, fy2, height;
+    ULONG col = 0xff000000;
+    struct DFacet* p_facet;
+
+    p_facet = &dfacets[facet];
+    if (allow_debug_keys)
+        if (Keys[KB_P1]) {
+            col = 0xFF200000;
+        }
+
+    switch (p_facet->FacetType) {
+    case STOREY_TYPE_FENCE:
+    case STOREY_TYPE_FENCE_FLAT:
+    case STOREY_TYPE_NORMAL:
+
+        fx1 = p_facet->x[0] << 8;
+        fx2 = p_facet->x[1] << 8;
+        fz1 = p_facet->z[0] << 8;
+        fz2 = p_facet->z[1] << 8;
+
+        fy1 = p_facet->Y[0];
+        fy2 = fy1 + p_facet->Height * p_facet->BlockHeight * 4;
+
+        POLY_buffer_upto = 0;
+        pp = &POLY_buffer[POLY_buffer_upto];
+
+        POLY_transform(fx2, fy2, fz2, pp);
+        if (pp->clip & POLY_CLIP_NEAR)
+            return;
+        if (pp->MaybeValid()) {
+            pp->colour = col;
+            pp->specular = 0;
+            pp->z = 0.99999f;
+            pp->Z = 0.00001f;
+            pp->u = 0.5f;
+            pp->v = 0.5f;
+        }
+        pp++;
+        POLY_transform(fx1, fy2, fz1, pp);
+        if (pp->clip & POLY_CLIP_NEAR)
+            return;
+        if (pp->MaybeValid()) {
+            pp->colour = col;
+            pp->specular = 0;
+            pp->z = 0.99999f;
+            pp->Z = 0.00001f;
+            pp->u = 0.5f;
+            pp->v = 0.5f;
+        }
+        pp++;
+        POLY_transform(fx2, fy1, fz2, pp);
+        if (pp->clip & POLY_CLIP_NEAR)
+            return;
+        if (pp->MaybeValid()) {
+            pp->colour = col;
+            pp->specular = 0;
+            pp->z = 0.99999f;
+            pp->Z = 0.00001f;
+            pp->u = 0.5f;
+            pp->v = 0.5f;
+        }
+        pp++;
+        POLY_transform(fx1, fy1, fz1, pp);
+        if (pp->clip & POLY_CLIP_NEAR)
+            return;
+        if (pp->MaybeValid()) {
+            pp->colour = col;
+            pp->specular = 0;
+            pp->z = 0.99999f;
+            pp->Z = 0.00001f;
+            pp->u = 0.5f;
+            pp->v = 0.5f;
+        }
+        pp++;
+
+        quad[0] = &POLY_buffer[0];
+        quad[1] = &POLY_buffer[1];
+        quad[2] = &POLY_buffer[2];
+        quad[3] = &POLY_buffer[3];
+
+        // No back-face cull and no clip flag re-generation:
+        // clip flags are already correct, and back-face culling breaks building
+        // tops which have no plotted geometry.
+        if (POLY_valid_quad(quad))
+            POLY_add_quad(quad, POLY_PAGE_COLOUR_WITH_FOG, 0, 0);
+        break;
+    }
+}
+
+// uc_orig: FACET_draw_rare (fallen/DDEngine/Source/facet.cpp)
+// Slow-path renderer for all non-plain-wall facet types. Called by FACET_draw
+// when any of the following conditions hold:
+//   - Player is indoors (INDOORS_INDEX != 0)
+//   - FACET_FLAG_BARB_TOP, FACET_FLAG_2SIDED, or FACET_FLAG_INSIDE are set
+//   - FacetType != STOREY_TYPE_NORMAL (fence, door, cable, inside-wall, ladder)
+// Dispatches to cable_draw() for cables, DRAW_door() for inside doors,
+// MakeFacetPoints/FillFacetPoints for fences/inside walls, DRAW_ladder for ladders.
+void FACET_draw_rare(SLONG facet, UBYTE alpha)
+{
+    struct DFacet* p_facet;
+    static SWORD rows[100];
+    SLONG c0, count;
+    SLONG dx, dz;
+    float x, y, z, sx, sy, sz, fdx, fdz;
+    SLONG height;
+    POLY_Point* pp;
+    SLONG hf;
+    POLY_Point* quad[4];
+    SLONG style_index;
+    NIGHT_Colour* col;
+    SLONG max_height;
+    SLONG foundation = 0;
+    static float diff_y[128];
+    float block_height = 256.0;
+
+    SLONG diag = 0;
+    SLONG facet_backwards = 0;
+    ULONG fade_alpha = alpha << 24;
+    SLONG inside_clip = 0;
+    SLONG reverse_textures = 0;
+    SLONG style_index_offset = 1;
+    SLONG style_index_step = 2;
+    SLONG flipx = 0;
+
+// uc_orig: MAX_SHAKE (fallen/DDEngine/Source/facet.cpp)
+#define MAX_SHAKE 32
+
+    POLY_set_local_rotation_none();
+    POLY_flush_local_rot();
+
+    // Shake displacement table used for electrified/damaged fence vibration.
+    // uc_orig: shake (fallen/DDEngine/Source/facet.cpp)
+    static float shake[MAX_SHAKE] = {
+        0,  0,  0,  0,
+        +1, -2, +1, -1,
+        +3, -3, +2, -2,
+        +4, -3, +2, -4,
+        +5, -5, +5, -4,
+        +6, -4, +7, -6,
+        +7, -6, +8, -9,
+        +9, -7, +8, -9,
+    };
+
+    ASSERT(facet > 0 && facet < next_dfacet);
+    p_facet = &dfacets[facet];
+
+    if (p_facet->FacetFlags & FACET_FLAG_INVISIBLE) {
+        return;
+    }
+
+    if (INDOORS_DBUILDING == p_facet->Building && INDOORS_INDEX)
+        inside_clip = 1;
+
+    // Cable facets use their own self-contained draw path.
+    switch (p_facet->FacetType) {
+    case STOREY_TYPE_CABLE:
+        cable_draw(p_facet);
+        return;
+        break;
+    }
+
+    // Double-sided and symmetrical facet types cannot be back-face culled.
+    if ((p_facet->FacetType == STOREY_TYPE_FENCE || p_facet->FacetType == STOREY_TYPE_FENCE_FLAT || p_facet->FacetType == STOREY_TYPE_FENCE_BRICK || p_facet->FacetType == STOREY_TYPE_INSIDE ||
+            p_facet->FacetType == STOREY_TYPE_INSIDE_DOOR || p_facet->FacetType == STOREY_TYPE_OUTSIDE_DOOR || p_facet->FacetType == STOREY_TYPE_LADDER)
+        && !(p_facet->FacetFlags & FACET_FLAG_2SIDED)) {
+        // These are inherently double-sided.
+    } else if (p_facet->FacetType == STOREY_TYPE_JUST_COLLISION) {
+        return;
+    } else {
+        // 2D cross-product back-face cull.
+        float x1, z1;
+        float x2, z2;
+        float vec1x, vec1z;
+        float vec2x, vec2z;
+        float cprod;
+
+        x1 = float(p_facet->x[0] << 8);
+        z1 = float(p_facet->z[0] << 8);
+        x2 = float(p_facet->x[1] << 8);
+        z2 = float(p_facet->z[1] << 8);
+
+        vec1x = x2 - x1;
+        vec1z = z2 - z1;
+        vec2x = POLY_cam_x - x1;
+        vec2z = POLY_cam_z - z1;
+
+        cprod = vec1x * vec2z - vec1z * vec2x;
+
+        if (cprod >= 0) {
+            if ((p_facet->FacetFlags & FACET_FLAG_2SIDED) || p_facet->FacetType == STOREY_TYPE_OINSIDE) {
+                facet_backwards = 1;
+            } else {
+                if (p_facet->FacetFlags & FACET_FLAG_BARB_TOP)
+                    FACET_barbedwire_top(p_facet);
+                return;
+            }
+        } else {
+            if (p_facet->FacetType == STOREY_TYPE_OINSIDE) {
+                draw_wall_thickness(p_facet, fade_alpha);
+                return;
+            }
+        }
+    }
+
+    // AABB frustum rejection (skipped for OUTSIDE_DOOR which may be rotated open).
+    if (p_facet->FacetType == STOREY_TYPE_OUTSIDE_DOOR) {
+        // Can't reject: door rotation changes the AABB.
+    } else {
+        SLONG i;
+        ULONG clip, clip_and, clip_or;
+        POLY_Point bound;
+        float x, y, z;
+
+        float x1 = float(p_facet->x[0] << 8);
+        float y1 = float(p_facet->Y[0]);
+        float z1 = float(p_facet->z[0] << 8);
+        float x2 = float(p_facet->x[1] << 8);
+        float y2 = float(p_facet->Y[1]) + float(p_facet->Height * 64);
+        float z2 = float(p_facet->z[1] << 8);
+
+        clip_or = 0x00000000;
+        clip_and = 0xffffffff;
+
+        for (i = 0; i < 4; i++) {
+            x = (i & 0x1) ? x1 : x2;
+            y = (i & 0x2) ? y1 : y2;
+            z = (i & 0x1) ? z1 : z2;
+
+            POLY_transform_c_saturate_z(x, y, z, &bound);
+
+            clip = bound.clip;
+
+            if ((clip & POLY_CLIP_TRANSFORMED) && !(clip & POLY_CLIP_OFFSCREEN)) {
+                goto draw_the_facet;
+            }
+
+            clip_and &= clip;
+            clip_or |= clip;
+        }
+
+        if (clip_and & POLY_CLIP_OFFSCREEN) {
+            return;
+        }
+
+        if (!(clip_or & POLY_CLIP_TRANSFORMED)) {
+            if (clip_and & (POLY_CLIP_NEAR | POLY_CLIP_FAR)) {
+                return;
+            }
+        }
+
+    draw_the_facet:;
+    }
+
+    dfacets_drawn_this_gameturn += 1;
+
+    if (p_facet->FacetType == STOREY_TYPE_LADDER) {
+        POLY_flush_local_rot();
+        DRAW_ladder(p_facet);
+        return;
+    }
+
+    POLY_buffer_upto = 0;
+
+    style_index = p_facet->StyleIndex;
+
+    set_facet_seed(p_facet->x[0] * p_facet->z[0] + p_facet->Y[0]);
+
+    if (GAME_FLAGS & GF_INDOORS) {
+        max_height = INDOORS_HEIGHT_CEILING;
+    } else {
+        max_height = UC_INFINITY;
+    }
+
+    // Create per-facet lighting cache on first use.
+    if (p_facet->Dfcache == 0) {
+        p_facet->Dfcache = NIGHT_dfcache_create(facet);
+        if (p_facet->Dfcache == NULL) {
+            return;
+        }
+    }
+
+    ASSERT(WITHIN(p_facet->Dfcache, 1, NIGHT_MAX_DFCACHES - 1));
+
+    col = NIGHT_dfcache[p_facet->Dfcache].colour;
+
+    dx = (p_facet->x[1] - p_facet->x[0]) << 8;
+    dz = (p_facet->z[1] - p_facet->z[0]) << 8;
+
+    sx = float(p_facet->x[0] << 8);
+    sy = float(p_facet->Y[0]);
+    sz = float(p_facet->z[0] << 8);
+
+    height = p_facet->Height;
+
+    if (dx && dz) {
+        // Diagonal facet: compute approximate length and step per unit.
+        if (p_facet->FacetType == STOREY_TYPE_NORMAL) {
+            ASSERT(0);
+        }
+
+        {
+            SLONG len;
+            SLONG adx, adz;
+
+            adx = abs(dx);
+            adz = abs(dz);
+            len = QDIST2(adx, adz);
+            count = len >> 8;
+            if (count == 0)
+                count = 1;
+
+            fdx = (float)dx / (float)count;
+            fdz = (float)dz / (float)count;
+
+            diag = 0;
+        }
+    } else {
+        // Axis-aligned: normalize step to +/-256 world units.
+        if (dx) {
+            count = abs(dx) >> 8;
+            if (dx > 0)
+                dx = 256;
+            else
+                dx = -256;
+        } else {
+            count = abs(dz) >> 8;
+            if (dz > 0)
+                dz = 256;
+            else
+                dz = -256;
+        }
+
+        fdx = (float)dx;
+        fdz = (float)dz;
+
+        // Rotate direction for open doors.
+        if (p_facet->Open) {
+            float rdx, rdz;
+            float angle = float(p_facet->Open) * (PI / 256.0F);
+
+            rdx = cos(angle) * fdx + sin(angle) * fdz;
+            rdz = -sin(angle) * fdx + cos(angle) * fdz;
+
+            fdx = rdx;
+            fdz = rdz;
+        }
+    }
+
+    count++;
+
+    // Pre-compute per-column terrain height offsets for ground-hugging fence types.
+    switch (p_facet->FacetType) {
+    case STOREY_TYPE_FENCE:
+    case STOREY_TYPE_FENCE_FLAT:
+    case STOREY_TYPE_FENCE_BRICK:
+    case STOREY_TYPE_OUTSIDE_DOOR:
+    {
+        float* p_diffy;
+        float dy;
+
+        p_diffy = diff_y;
+
+        x = sx;
+        y = sy;
+        z = sz;
+        c0 = count;
+        while (c0-- > 0) {
+            if (p_facet->FacetFlags & FACET_FLAG_ONBUILDING) {
+                *p_diffy++ = p_facet->Y[0];
+            } else {
+                if (diag) {
+                    dy = (float)PAP_calc_height_noroads((SLONG)x, (SLONG)z);
+                } else {
+                    dy = grid_height_at_world(x, z);
+                }
+                *p_diffy = dy;
+                p_diffy++;
+                x += fdx;
+                z += fdz;
+            }
+        }
+    } break;
+    }
+
+    switch (p_facet->FacetType) {
+    case STOREY_TYPE_CABLE:
+        cable_draw(p_facet);
+        break;
+
+    case STOREY_TYPE_INSIDE_DOOR:
+        if (facet_backwards && (p_facet->FacetFlags & FACET_FLAG_2SIDED))
+            style_index++;
+        if (facet_backwards) {
+            DRAW_door(sx, sy, sz, fdx, 256.0, fdz, block_height, count, fade_alpha, dstyles[style_index], 1);
+        } else {
+            DRAW_door(sx, sy, sz, fdx, 256.0, fdz, block_height, count, fade_alpha, dstyles[style_index], 0);
+        }
+        break;
+
+    case STOREY_TYPE_OINSIDE:
+        style_index--;
+        // FALLTHROUGH to STOREY_TYPE_INSIDE
+
+    case STOREY_TYPE_INSIDE:
+        draw_wall_thickness(p_facet, fade_alpha);
+        if (facet_backwards) {
+            flipx = 1;
+            if (!ShiftFlag)
+                style_index++;
+        }
+
+        hf = 0;
+        while (height >= 0) {
+            x = sx;
+            y = sy;
+            z = sz;
+            rows[hf] = POLY_buffer_upto;
+            c0 = count;
+            while (c0-- > 0) {
+                ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
+
+                pp = &POLY_buffer[POLY_buffer_upto++];
+                POLY_transform(x, y, z, pp);
+
+                if (pp->MaybeValid()) {
+                    NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
+                    pp->colour |= fade_alpha;
+                }
+
+                x += fdx;
+                z += fdz;
+                col += 1;
+            }
+
+            if (hf > 0) {
+                SLONG row1, row2;
+                row1 = rows[hf - 1];
+                row2 = rows[hf];
+
+                c0 = 0;
+                while (c0 < count - 1) {
+                    quad[0] = &POLY_buffer[row2 + c0 + 1];
+                    quad[1] = &POLY_buffer[row2 + c0];
+                    quad[2] = &POLY_buffer[row1 + c0 + 1];
+                    quad[3] = &POLY_buffer[row1 + c0];
+
+                    if (POLY_valid_quad(quad)) {
+                        SLONG page;
+                        page = texture_quad(quad, dstyles[style_index], c0, count, flipx);
+
+                        if (foundation == 1) {
+                            quad[3]->v = diff_y[c0] / 256.0f;
+                            quad[2]->v = diff_y[c0 + 1] / 256.0f;
+                        }
+
+                        POLY_add_quad(quad, page, UC_FALSE);
+                    } else {
+                        facet_rand();
+                    }
+
+                    c0++;
+                }
+            }
+
+            foundation--;
+            sy += block_height;
+            height -= 4;
+            hf += 1;
+
+            if (sy > max_height) {
+                break;
+            }
+        }
+        break;
+
+    case STOREY_TYPE_TRENCH:
+    case STOREY_TYPE_NORMAL:
+    case STOREY_TYPE_DOOR:
+
+        if (p_facet->FacetFlags & FACET_FLAG_BARB_TOP)
+            FACET_barbedwire_top(p_facet);
+
+        // Warehouses can be double-sided STOREY_TYPE_NORMAL.
+        if (facet_backwards && !(p_facet->FacetFlags & FACET_FLAG_HUG_FLOOR)) {
+            style_index++;
+        }
+
+        block_height = p_facet->BlockHeight << 4;
+
+        if (inside_clip) {
+            SLONG top;
+            top = block_height;
+            top = (top * height) >> 2;
+            top += sy;
+            if (top >= (inside_storeys[INDOORS_INDEX].StoreyY + 256)) {
+                {
+                    height -= ((top + 4) - (inside_storeys[INDOORS_INDEX].StoreyY + 256)) / (p_facet->BlockHeight << 2);
+                }
+            }
+        }
+
+        if (p_facet->FHeight)
+            foundation = 2;
+
+        MakeFacetPoints(sx, sy, sz, fdx, fdz, block_height, height, max_height, col, foundation, count, p_facet->FacetFlags & (FACET_FLAG_INVISIBLE), p_facet->FacetFlags & FACET_FLAG_HUG_FLOOR);
+
+        if (p_facet->FacetFlags & (FACET_FLAG_INSIDE)) {
+            reverse_textures = 1;
+            style_index--;
+        } else if (p_facet->FacetFlags & (FACET_FLAG_2TEXTURED)) {
+            style_index--;
+        }
+
+        if (!(p_facet->FacetFlags & FACET_FLAG_HUG_FLOOR) && (p_facet->FacetFlags & (FACET_FLAG_2TEXTURED | FACET_FLAG_2SIDED))) {
+            style_index_offset = 1;
+            style_index_step = 2;
+        } else {
+            style_index_offset = 1;
+            style_index_step = 1;
+        }
+
+        hf = 0;
+        while (height >= 0) {
+            if (hf) {
+                FillFacetPoints(count, hf - 1, foundation + 1, facet_backwards, style_index - style_index_offset, block_height, reverse_textures);
+            }
+
+            foundation--;
+            sy += block_height;
+            height -= 4;
+            hf++;
+            style_index += style_index_step;
+
+            if (sy > max_height) {
+                break;
+            }
+        }
+        break;
+
+    case STOREY_TYPE_FENCE_BRICK:
+        // Hardwire height for barbwire pass, then fall through to FENCE.
+        p_facet->Height += 1;
+        FACET_barbedwire_top(p_facet);
+        p_facet->Height -= 1;
+        // FALLTHROUGH
+
+    case STOREY_TYPE_FENCE:
+        POLY_set_local_rotation_none();
+
+        if (p_facet->FacetType == STOREY_TYPE_FENCE) {
+            // Build the angled cap quad at the top of the wire fence.
+            float dx, dz, nx, nz;
+            float tsx, tsy, tsz;
+            sy = 0;
+            build_fence_poles(sx, sy, sz, fdx, fdz, count, &dx, &dz, style_index);
+
+            tsx = sx;
+            tsy = sy;
+            tsz = sz;
+
+            nx = dz;
+            nz = -dx;
+
+            sx += nx * 10.0f;
+            sz += nz * 10.0f;
+            sy += 210.0f;
+
+            hf = 0;
+            while (hf <= 1) {
+                float* p_diffy = diff_y;
+                x = sx;
+                y = sy;
+                z = sz;
+                rows[hf] = POLY_buffer_upto;
+                c0 = count;
+                while (c0-- > 0) {
+                    float dy = 0;
+
+                    ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
+
+                    pp = &POLY_buffer[POLY_buffer_upto++];
+
+                    dy = *p_diffy++;
+
+                    POLY_transform_c_saturate_z(x, y + dy, z, pp);
+
+                    if (pp->MaybeValid()) {
+                        NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
+                    }
+
+                    pp->colour |= fade_alpha;
+                    x += fdx;
+                    z += fdz;
+                }
+                sy += 40.0f;
+                sx += nx * 50.0f;
+                sz += nz * 50.0f;
+                hf++;
+            }
+
+            {
+                SLONG row1, row2;
+                row1 = rows[0];
+                row2 = rows[1];
+
+                c0 = 0;
+                while (c0 < count - 1) {
+                    quad[0] = &POLY_buffer[row2 + c0 + 1];
+                    quad[1] = &POLY_buffer[row2 + c0];
+                    quad[2] = &POLY_buffer[row1 + c0 + 1];
+                    quad[3] = &POLY_buffer[row1 + c0];
+
+                    if (POLY_valid_quad(quad)) {
+                        SLONG page;
+                        page = texture_quad(quad, dstyles[style_index], c0, count);
+                        POLY_add_quad(quad, page, 0);
+                    } else {
+                        facet_rand();
+                    }
+
+                    c0++;
+                }
+            }
+
+            sx = tsx;
+            sy = tsy;
+            sz = tsz;
+
+            height = 3; // fence body is 3/4 of full height
+        }
+
+        // Proceed to draw the fence body panels.
+
+    case STOREY_TYPE_OUTSIDE_DOOR:
+    case STOREY_TYPE_FENCE_FLAT:
+
+        hf = 0;
+
+        if (p_facet->Shake) {
+            p_facet->Shake -= p_facet->Shake >> 2;
+            p_facet->Shake -= 1;
+        }
+
+        // Fences start at y=0 and ride terrain via diff_y[].
+        sy = 0;
+        y = sy;
+
+        while (hf <= 1) {
+            float* p_diffy = diff_y;
+            x = sx;
+            z = sz;
+            rows[hf] = POLY_buffer_upto;
+            c0 = count;
+            while (c0-- > 0) {
+                float dy = 0;
+
+                ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
+
+                pp = &POLY_buffer[POLY_buffer_upto++];
+
+                dy = *p_diffy++;
+
+                POLY_transform_c_saturate_z(
+                    x + shake[(Random() & 3) + ((p_facet->Shake >> 3) & ~0x3)],
+                    y + dy,
+                    z + shake[(Random() & 3) + ((p_facet->Shake >> 3) & ~0x3)],
+                    pp);
+
+                if (pp->MaybeValid()) {
+                    NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
+                    pp->colour |= fade_alpha;
+                }
+
+                x += fdx;
+                z += fdz;
+                col += 1;
+            }
+            if (height == 2)
+                y += 102; // 256.0 / 3.0
+            else
+                y += height * BLOCK_SIZE;
+
+            hf++;
+        }
+
+        {
+            SLONG row1, row2;
+            row1 = rows[0];
+            row2 = rows[1];
+
+            c0 = 0;
+            while (c0 < count - 1) {
+                quad[0] = &POLY_buffer[row2 + c0 + 1];
+                quad[1] = &POLY_buffer[row2 + c0];
+                quad[2] = &POLY_buffer[row1 + c0 + 1];
+                quad[3] = &POLY_buffer[row1 + c0];
+
+                {
+                    if (POLY_valid_quad(quad)) {
+                        SLONG page;
+                        page = texture_quad(quad, dstyles[style_index], c0, count);
+                        POLY_add_quad(quad, page, 0);
+                    } else {
+                        facet_rand();
+                    }
+                }
+
+                c0++;
+            }
+        }
+
+        break;
+
+        break;
+    }
+    return;
 }

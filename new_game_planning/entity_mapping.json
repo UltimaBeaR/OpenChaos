@@ -76689,6 +76689,46 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_draw_quick",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "FACET_draw_quick",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_draw_rare",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "FACET_draw_rare",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_SHAKE",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "MAX_SHAKE",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "shake",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "shake",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 143 — facet.cpp chunk 2a: FACET_draw_quick + FACET_draw_rare (2026-03-23)
+
+- Добавлены новые includes: `core/macros.h`, `core/matrix.h`, `engine/lighting/night_globals.h`, `world/map/supermap_globals.h`, `world/environment/ware.h/.h_globals`, `ui/camera/fc_globals.h`.
+- `MAX_SHAKE` и `shake[]` — локальный `#define` и локальный `static` внутри `FACET_draw_rare`, перенесены в function-scope (не в globals).
+- CHECK A fix: добавлены `uc_orig` для `MAX_SHAKE` и `shake` после первичной проверки.
+
+---
+
 ## Итерация 142 — facet.cpp chunk 1: texture helpers + fence/cable/door/stairs/MakeFacetPoints (2026-03-23)
 
 - Chunk 1 — строки 1–1554 оригинального facet.cpp (4494 строк). Chunk 2+ остаётся в `old/`.

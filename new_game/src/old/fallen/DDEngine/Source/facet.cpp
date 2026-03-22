@@ -1579,6 +1579,8 @@ extern int AENG_detail_crinkles;
 extern UBYTE AENG_transparent_warehouses;
 extern UWORD fade_black;
 
+#if 0 // MIGRATED to src/new/engine/graphics/geometry/facet.cpp (iteration 143) [chunk 2a: FACET_draw_quick, FACET_draw_rare]
+
 // claude-ai: FACET_draw_quick — LOD (level-of-detail) renderer for DISTANT buildings.
 // claude-ai: Renders the facet as a single untextured flat-coloured quad (no per-column detail).
 // claude-ai: Uses pp->z = 0.99999f to push pixels to the back of the depth buffer (always behind
@@ -2750,6 +2752,8 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
     }
     return;
 }
+
+#endif // MIGRATED to src/new/engine/graphics/geometry/facet.cpp (iteration 143) [chunk 2a]
 
 // Like FACET_draw_rare, but for the most common class.
 // claude-ai: FACET_draw — FAST-PATH renderer for plain STOREY_TYPE_NORMAL exterior walls.
