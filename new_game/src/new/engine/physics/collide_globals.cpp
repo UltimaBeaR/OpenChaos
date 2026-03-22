@@ -56,3 +56,70 @@ UWORD fence_colvect = 0;
 
 // uc_orig: col_with_things (fallen/Source/collide.cpp)
 THING_INDEX col_with_things[MAX_COL_WITH];
+
+// ========================================================================
+// LOS (Line of Sight) globals (chunk 5)
+// ========================================================================
+
+// uc_orig: save_stack (fallen/Source/collide.cpp)
+SaveStack save_stack;
+
+// uc_orig: los_failure_x (fallen/Source/collide.cpp)
+SLONG los_failure_x = 0;
+
+// uc_orig: los_failure_y (fallen/Source/collide.cpp)
+SLONG los_failure_y = 0;
+
+// uc_orig: los_failure_z (fallen/Source/collide.cpp)
+SLONG los_failure_z = 0;
+
+// uc_orig: los_failure_dfacet (fallen/Source/collide.cpp)
+SLONG los_failure_dfacet = 0;
+
+// uc_orig: los_done (fallen/Source/collide.cpp)
+SLONG los_done[4] = { 0, 0, 0, 0 };
+
+// uc_orig: los_wptr (fallen/Source/collide.cpp)
+SLONG los_wptr = 0;
+
+// uc_orig: los_v_x (fallen/Source/collide.cpp)
+SLONG los_v_x = 0;
+
+// uc_orig: los_v_y (fallen/Source/collide.cpp)
+SLONG los_v_y = 0;
+
+// uc_orig: los_v_z (fallen/Source/collide.cpp)
+SLONG los_v_z = 0;
+
+// uc_orig: los_v_dx (fallen/Source/collide.cpp)
+SLONG los_v_dx = 0;
+
+// uc_orig: los_v_dy (fallen/Source/collide.cpp)
+SLONG los_v_dy = 0;
+
+// uc_orig: los_v_dz (fallen/Source/collide.cpp)
+SLONG los_v_dz = 0;
+
+// uc_orig: los_v_mx (fallen/Source/collide.cpp)
+SLONG los_v_mx = 0;
+
+// uc_orig: los_v_mz (fallen/Source/collide.cpp)
+SLONG los_v_mz = 0;
+
+// uc_orig: los_v_end_mx (fallen/Source/collide.cpp)
+SLONG los_v_end_mx = 0;
+
+// uc_orig: los_v_end_mz (fallen/Source/collide.cpp)
+SLONG los_v_end_mz = 0;
+
+// uc_orig: last_mav_square_x (fallen/Source/collide.cpp)
+UBYTE last_mav_square_x = 0;
+
+// uc_orig: last_mav_square_z (fallen/Source/collide.cpp)
+UBYTE last_mav_square_z = 0;
+
+// uc_orig: last_mav_dx (fallen/Source/collide.cpp)
+SBYTE last_mav_dx = 0;
+
+// uc_orig: last_mav_dz (fallen/Source/collide.cpp)
+SBYTE last_mav_dz = 0;

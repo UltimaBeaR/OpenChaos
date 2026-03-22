@@ -62209,6 +62209,286 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "los_failure_x",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_failure_x",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_failure_y",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_failure_y",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_failure_z",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_failure_z",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_failure_dfacet",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_failure_dfacet",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_done",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_done",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_wptr",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_wptr",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_v_x",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_v_x",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_v_y",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_v_y",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_v_z",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_v_z",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_v_dx",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_v_dx",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_v_dy",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_v_dy",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_v_dz",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_v_dz",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_v_mx",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_v_mx",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_v_mz",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_v_mz",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_v_end_mx",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_v_end_mx",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "los_v_end_mz",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "los_v_end_mz",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_mav_square_x",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "last_mav_square_x",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_mav_square_z",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "last_mav_square_z",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_mav_dx",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "last_mav_dx",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_mav_dz",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "last_mav_dz",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "save_stack",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "save_stack",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "start_checking_against_a_new_vector",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "start_checking_against_a_new_vector",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "check_vector_against_mapsquare",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "check_vector_against_mapsquare",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "check_vector_against_mapsquare_objects",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "check_vector_against_mapsquare_objects",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "there_is_a_los_things",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "there_is_a_los_things",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "there_is_a_los",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "there_is_a_los",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "there_is_a_los_mav",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "there_is_a_los_mav",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "there_is_a_los_car",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "there_is_a_los_car",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

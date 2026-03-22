@@ -5957,6 +5957,8 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
 }
 #endif // migrated: move_thing_quick, collide_against_objects, collide_against_things, drop_on_heads, move_thing
 
+#if 0 // migrated: los_failure globals, los_done/wptr, save_stack, start_checking_against_a_new_vector, check_vector_against_mapsquare, check_vector_against_mapsquare_objects, there_is_a_los_things, there_is_a_los, there_is_a_los_mav, there_is_a_los_car
+
 //
 // Set when check_vector_against_mapsquare() returns TRUE.
 //
@@ -7211,6 +7213,8 @@ SLONG there_is_a_los_car(
         }
     }
 }
+
+#endif // migrated: los_failure globals, los_done/wptr, save_stack, start_checking_against_a_new_vector, check_vector_against_mapsquare, check_vector_against_mapsquare_objects, there_is_a_los_things, there_is_a_los, there_is_a_los_mav, there_is_a_los_car
 
 /*
 

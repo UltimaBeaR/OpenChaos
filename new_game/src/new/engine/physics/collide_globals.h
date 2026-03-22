@@ -97,6 +97,106 @@ extern UWORD fence_colvect;
 extern THING_INDEX col_with_things[MAX_COL_WITH];
 
 // ========================================================================
+// LOS (Line of Sight) globals (chunk 5)
+// ========================================================================
+
+// uc_orig: save_stack (fallen/Source/collide.cpp)
+// Shared LOS ray endpoints: set by there_is_a_los, read by check_vector_against_mapsquare
+// and check_vector_against_mapsquare_objects during cell traversal.
+// Named struct type extracted from the original anonymous struct for extern linkage.
+struct SaveStack
+{
+    SLONG x1;
+    SLONG my_y1;
+    SLONG z1;
+
+    SLONG x2;
+    SLONG y2;
+    SLONG z2;
+};
+extern SaveStack save_stack;
+
+// uc_orig: los_failure_x (fallen/Source/collide.cpp)
+// World X coordinate of the last LOS failure point (where sight was blocked).
+extern SLONG los_failure_x;
+
+// uc_orig: los_failure_y (fallen/Source/collide.cpp)
+// World Y coordinate of the last LOS failure point.
+extern SLONG los_failure_y;
+
+// uc_orig: los_failure_z (fallen/Source/collide.cpp)
+// World Z coordinate of the last LOS failure point.
+extern SLONG los_failure_z;
+
+// uc_orig: los_failure_dfacet (fallen/Source/collide.cpp)
+// DFacet index that blocked the last LOS check (NULL if blocked by terrain).
+extern SLONG los_failure_dfacet;
+
+// uc_orig: los_done (fallen/Source/collide.cpp)
+// Ring buffer of the last 4 dfacet indices checked — avoids re-testing the same facet twice per cell.
+extern SLONG los_done[4];
+
+// uc_orig: los_wptr (fallen/Source/collide.cpp)
+// Write pointer into los_done[]; incremented mod 4.
+extern SLONG los_wptr;
+
+// uc_orig: los_v_x (fallen/Source/collide.cpp)
+// Scratch X position used in there_is_a_los underground check.
+extern SLONG los_v_x;
+
+// uc_orig: los_v_y (fallen/Source/collide.cpp)
+// Scratch Y position used in there_is_a_los underground check.
+extern SLONG los_v_y;
+
+// uc_orig: los_v_z (fallen/Source/collide.cpp)
+// Scratch Z position used in there_is_a_los underground check.
+extern SLONG los_v_z;
+
+// uc_orig: los_v_dx (fallen/Source/collide.cpp)
+// Total X delta for the current LOS ray.
+extern SLONG los_v_dx;
+
+// uc_orig: los_v_dy (fallen/Source/collide.cpp)
+// Total Y delta for the current LOS ray.
+extern SLONG los_v_dy;
+
+// uc_orig: los_v_dz (fallen/Source/collide.cpp)
+// Total Z delta for the current LOS ray.
+extern SLONG los_v_dz;
+
+// uc_orig: los_v_mx (fallen/Source/collide.cpp)
+// Current map X cell during LOS ray traversal.
+extern SLONG los_v_mx;
+
+// uc_orig: los_v_mz (fallen/Source/collide.cpp)
+// Current map Z cell during LOS ray traversal.
+extern SLONG los_v_mz;
+
+// uc_orig: los_v_end_mx (fallen/Source/collide.cpp)
+// Target map X cell for the LOS ray.
+extern SLONG los_v_end_mx;
+
+// uc_orig: los_v_end_mz (fallen/Source/collide.cpp)
+// Target map Z cell for the LOS ray.
+extern SLONG los_v_end_mz;
+
+// uc_orig: last_mav_square_x (fallen/Source/collide.cpp)
+// Map X cell of the last MAV cell traversed by there_is_a_los_mav / there_is_a_los_car.
+extern UBYTE last_mav_square_x;
+
+// uc_orig: last_mav_square_z (fallen/Source/collide.cpp)
+// Map Z cell of the last MAV cell traversed.
+extern UBYTE last_mav_square_z;
+
+// uc_orig: last_mav_dx (fallen/Source/collide.cpp)
+// Direction X of the wall hit by there_is_a_los_car (-1, 0, or 1).
+extern SBYTE last_mav_dx;
+
+// uc_orig: last_mav_dz (fallen/Source/collide.cpp)
+// Direction Z of the wall hit by there_is_a_los_car (-1, 0, or 1).
+extern SBYTE last_mav_dz;
+
+// ========================================================================
 // Fall-off flags (chunk 4)
 // ========================================================================
 

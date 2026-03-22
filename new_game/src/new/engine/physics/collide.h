@@ -277,4 +277,32 @@ void drop_on_heads(Thing* p_thing);
 // Things, OB objects, wall slide, edge slide, face tracking, and fall-off detection.
 ULONG move_thing(SLONG dx, SLONG dy, SLONG dz, Thing* p_thing);
 
+// ========================================================================
+// LOS (Line of Sight) — chunk 5
+// ========================================================================
+
+// uc_orig: start_checking_against_a_new_vector (fallen/Source/collide.cpp)
+// Resets the los_done ring buffer before a new LOS ray is traced. Call once per new ray.
+void start_checking_against_a_new_vector(void);
+
+// uc_orig: check_vector_against_mapsquare (fallen/Source/collide.cpp)
+// Returns TRUE if the current save_stack ray intersects a DFacet above map cell (map_x, map_z).
+// Fills los_failure_* with the intersection point.
+SLONG check_vector_against_mapsquare(SLONG map_x, SLONG map_z, SLONG los_flags);
+
+// uc_orig: check_vector_against_mapsquare_objects (fallen/Source/collide.cpp)
+// Returns TRUE if the current save_stack ray intersects an OB-placed object or a large vehicle
+// above map cell (map_x, map_z). include_cars: also test all vehicles (not just vans/ambulances).
+SLONG check_vector_against_mapsquare_objects(SLONG map_x, SLONG map_z, SLONG include_cars);
+
+// uc_orig: there_is_a_los_mav (fallen/Source/collide.cpp)
+// Checks LOS at MAV (high-res navigation) grid resolution: 0=clear, 1=X-wall, 2=Z-wall.
+// Uses MAV_CAPS_GOTO to test wall penetration rather than DFacets.
+SLONG there_is_a_los_mav(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
+
+// uc_orig: there_is_a_los_car (fallen/Source/collide.cpp)
+// Like there_is_a_los_mav but uses MAV_CAR_GOTO — the car navigation grid.
+// Returns 0=clear, 1=X-wall, 2=Z-wall. Sets last_mav_square_* and last_mav_d* on hit.
+SLONG there_is_a_los_car(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
+
 #endif // ENGINE_PHYSICS_COLLIDE_H

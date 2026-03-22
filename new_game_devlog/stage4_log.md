@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 110 — engine/physics/collide (чанк 5a: LOS functions) (2026-03-22)
+
+- `fallen/Source/collide.cpp` чанк 5a: lines 5960–7213 → `new/engine/physics/collide.cpp` + `collide_globals.cpp/h`.
+- Lines 7215–7475 (old `there_is_a_los` в `/* */`) — мёртвый код, пропущен.
+- Мигрированы: `save_stack`, `los_done[]`, `los_wptr`, `los_v_*`, `last_mav_square_x/z`, `last_mav_dx/dz`, `los_failure_x/y/z/dfacet` → `collide_globals.cpp/h`.
+- Функции: `start_checking_against_a_new_vector`, `check_vector_against_mapsquare`, `check_vector_against_mapsquare_objects`, `there_is_a_los_things`, `there_is_a_los`, `there_is_a_los_mav`, `there_is_a_los_car`.
+- `save_stack` — оригинал anonymous struct static, сделан `SaveStack` (named) + extern в `_globals` (нужна extern-linkage, имя не конфликтует).
+- `there_is_a_los_mav` и `there_is_a_los_car` ранее ошибочно были в entity_map с неверными файлами (bat.cpp, Vehicle.cpp) — пересозданы с правильным путём `new/engine/physics/collide.h`.
+- Новые Temporary includes: `ai/mav_globals.h` (MAV_opt), `ui/camera/fc.h` (FC_explosion, для chunk 5b), `actors/animals/bat.h` (BAT_apply_hit, для chunk 5b).
+
+---
+
 ## Итерация 109 — engine/physics/collide (чанк 4: move_thing_quick/collide_against_objects/collide_against_things/drop_on_heads/move_thing) (2026-03-22)
 
 - `fallen/Source/collide.cpp` чанк 4: lines 4514–5957 → `new/engine/physics/collide.cpp`.

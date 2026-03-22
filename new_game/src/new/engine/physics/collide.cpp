@@ -71,6 +71,12 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 #include "effects/mist.h"
 // Temporary: dirt.h for DIRT_gust (not yet migrated to new/)
 #include "fallen/Headers/dirt.h"
+// Temporary: ai/mav_globals.h for MAV_opt (used in there_is_a_los_mav, there_is_a_los_car)
+#include "ai/mav_globals.h"
+// Temporary: ui/camera/fc.h for FC_explosion (camera shake on shockwave)
+#include "ui/camera/fc.h"
+// Temporary: actors/animals/bat.h for BAT_apply_hit
+#include "actors/animals/bat.h"
 
 // uc_orig: BLOCK_SIZE (fallen/Source/collide.cpp)
 // Undefs any prior definition and sets it to 64, the height increment per storey level.
@@ -3626,4 +3632,961 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
             }
 
     return 0;
+}
+
+// ========================================================================
+// LOS (Line of Sight) — chunk 5
+// ========================================================================
+
+// uc_orig: start_checking_against_a_new_vector (fallen/Source/collide.cpp)
+void start_checking_against_a_new_vector(void)
+{
+    los_wptr = 0;
+    los_done[0] = -INFINITY;
+    los_done[1] = -INFINITY;
+    los_done[2] = -INFINITY;
+    los_done[3] = -INFINITY;
+}
+
+// uc_orig: check_vector_against_mapsquare (fallen/Source/collide.cpp)
+// Returns TRUE if the current save_stack ray intersects a DFacet wall above map cell (map_x, map_z).
+// Uses the los_done ring buffer to avoid re-checking the same facet within one ray sweep.
+SLONG check_vector_against_mapsquare(
+    SLONG map_x,
+    SLONG map_z,
+    SLONG los_flags)
+{
+    SLONG ix;
+    SLONG iy;
+    SLONG iz;
+    SLONG along;
+    SLONG f_list;
+    SLONG i_dfacet;
+    SLONG exit;
+
+    SLONG xmin;
+    SLONG xmax;
+    SLONG ymin;
+    SLONG ymax;
+    SLONG zmin;
+    SLONG zmax;
+
+    DFacet* df;
+    PAP_Lo* pl;
+
+    ASSERT(WITHIN(map_x, 0, PAP_SIZE_LO - 1));
+    ASSERT(WITHIN(map_z, 0, PAP_SIZE_LO - 1));
+
+    pl = &PAP_2LO(map_x, map_z);
+
+    f_list = pl->ColVectHead;
+
+    if (f_list == NULL) {
+        return FALSE;
+    }
+
+    SLONG dlx = save_stack.x2 - save_stack.x1;
+    SLONG dly = save_stack.y2 - save_stack.my_y1;
+    SLONG dlz = save_stack.z2 - save_stack.z1;
+
+    exit = FALSE;
+
+    while (1) {
+        ASSERT(WITHIN(f_list, 1, next_facet_link - 1));
+
+        i_dfacet = facet_links[f_list];
+
+        if (i_dfacet == 0) {
+            ASSERT(0);
+            return FALSE;
+        }
+
+        if (i_dfacet < 0) {
+            // Last facet in the list for this cell.
+            exit = TRUE;
+            i_dfacet = -i_dfacet;
+        }
+
+        // Skip if we already checked this facet for this ray.
+        if (i_dfacet == los_done[0] || i_dfacet == los_done[1] || i_dfacet == los_done[2] || i_dfacet == los_done[3]) {
+            // Already tested.
+        } else {
+            // Record this facet in the ring buffer.
+            los_done[los_wptr] = i_dfacet;
+            los_wptr = (los_wptr + 1) & 3;
+
+            ASSERT(WITHIN(i_dfacet, 1, next_dfacet - 1));
+
+            df = &dfacets[i_dfacet];
+
+            if (!(los_flags & LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG) && (df->FacetFlags & FACET_FLAG_SEETHROUGH)) {
+                // See-through fence — no LOS block.
+            } else {
+                ASSERT(df->FacetType != STOREY_TYPE_PARTITION);
+
+                if (df->FacetType == STOREY_TYPE_NORMAL || df->FacetType == STOREY_TYPE_FENCE || df->FacetType == STOREY_TYPE_FENCE_FLAT || df->FacetType == STOREY_TYPE_FENCE_BRICK || df->FacetType == STOREY_TYPE_OUTSIDE_DOOR || df->FacetType == STOREY_TYPE_DOOR || df->FacetType == STOREY_TYPE_NORMAL_FOUNDATION) {
+                    if (df->x[0] == df->x[1]) {
+                        if ((save_stack.x1 <= (df->x[0] << 8) && save_stack.x2 > (df->x[0] << 8)) || (save_stack.x1 >= (df->x[0] << 8) && save_stack.x2 < (df->x[0] << 8))) {
+                            // Find how far along the ray the X-aligned wall is crossed.
+                            along = ((df->x[0] << 8) - save_stack.x1 << 8) / (save_stack.x2 - save_stack.x1);
+
+                            iy = save_stack.my_y1 + (along * dly >> 8);
+
+                            ymin = df->Y[0];
+                            ymax = df->Y[0] + (df->Height * df->BlockHeight << 2);
+
+                            if (WITHIN(iy, ymin, ymax)) {
+                                iz = save_stack.z1 + (along * dlz >> 8);
+
+                                zmin = df->z[0] << 8;
+                                zmax = df->z[1] << 8;
+
+                                if (zmin > zmax) {
+                                    SWAP(zmin, zmax);
+                                }
+
+                                if (WITHIN(iz, zmin, zmax)) {
+                                    los_failure_x = df->x[0] << 8;
+                                    los_failure_y = iy;
+                                    los_failure_z = iz;
+                                    los_failure_dfacet = i_dfacet;
+
+                                    return TRUE;
+                                }
+                            }
+                        }
+                    } else if (df->z[0] == df->z[1]) {
+                        if ((save_stack.z1 <= (df->z[0] << 8) && save_stack.z2 > (df->z[0] << 8)) || (save_stack.z1 >= (df->z[0] << 8) && save_stack.z2 < (df->z[0] << 8))) {
+                            // Find how far along the ray the Z-aligned wall is crossed.
+                            along = ((df->z[0] << 8) - save_stack.z1 << 8) / (save_stack.z2 - save_stack.z1);
+
+                            iy = save_stack.my_y1 + (along * dly >> 8);
+
+                            ymin = df->Y[0];
+                            ymax = df->Y[0] + (df->Height * df->BlockHeight << 2);
+
+                            if (WITHIN(iy, ymin, ymax)) {
+                                ix = save_stack.x1 + (along * dlx >> 8);
+
+                                xmin = df->x[0] << 8;
+                                xmax = df->x[1] << 8;
+
+                                if (xmin > xmax) {
+                                    SWAP(xmin, xmax);
+                                }
+
+                                if (WITHIN(ix, xmin, xmax)) {
+                                    los_failure_x = ix;
+                                    los_failure_y = iy;
+                                    los_failure_z = df->z[0] << 8;
+                                    los_failure_dfacet = i_dfacet;
+
+                                    return TRUE;
+                                }
+                            }
+                        }
+                    } else {
+                        // No diagonal DFacets allowed.
+                        if (df->FacetType == STOREY_TYPE_NORMAL)
+                            ASSERT(1);
+                    }
+                }
+            }
+        }
+
+        if (exit) {
+            return FALSE;
+        }
+
+        f_list += 1;
+    }
+}
+
+// uc_orig: check_vector_against_mapsquare_objects (fallen/Source/collide.cpp)
+// Returns TRUE if the current save_stack ray intersects any OB-placed object tagged
+// PRIM_DAMAGE_NOLOS, or a vehicle (vans/ambulances always; others only if include_cars).
+SLONG check_vector_against_mapsquare_objects(
+    SLONG map_x,
+    SLONG map_z,
+    SLONG include_cars)
+{
+    SLONG y;
+    SLONG dx;
+    SLONG dz;
+    SLONG along;
+
+    {
+        OB_Info* oi;
+        PrimInfo* pi;
+
+        for (oi = OB_find(map_x, map_z); oi->prim; oi++) {
+            if (prim_objects[oi->prim].damage & PRIM_DAMAGE_NOLOS) {
+                pi = get_prim_info(oi->prim);
+
+                {
+                    dx = save_stack.x2 - save_stack.x1;
+                    dz = save_stack.z2 - save_stack.z1;
+
+                    if (abs(dx) > abs(dz)) {
+                        along = (oi->x - save_stack.x1 << 8) / (dx + 1);
+                    } else {
+                        along = (oi->z - save_stack.z1 << 8) / (dz + 1);
+                    }
+
+                    y = save_stack.my_y1 + ((save_stack.y2 - save_stack.my_y1) * along >> 8);
+
+                    if (WITHIN(y, oi->y + pi->miny, oi->y + pi->maxy)) {
+                        if (collide_box_with_line(
+                                oi->x,
+                                oi->z,
+                                pi->minx,
+                                pi->minz,
+                                pi->maxx,
+                                pi->maxz,
+                                oi->yaw,
+                                save_stack.x1, save_stack.z1,
+                                save_stack.x2, save_stack.z2)) {
+                            return TRUE;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Check large vehicles for LOS blocking.
+    {
+        SLONG t_index;
+        Thing* p_thing;
+
+        t_index = PAP_2LO(map_x, map_z).MapWho;
+
+        while (t_index) {
+            p_thing = TO_THING(t_index);
+
+            if (p_thing->Class == CLASS_VEHICLE) {
+                if (include_cars || p_thing->Genus.Vehicle->Type == VEH_TYPE_VAN || p_thing->Genus.Vehicle->Type == VEH_TYPE_AMBULANCE || p_thing->Genus.Vehicle->Type == VEH_TYPE_WILDCATVAN) {
+                    {
+                        dx = save_stack.x2 - save_stack.x1;
+                        dz = save_stack.z2 - save_stack.z1;
+
+                        if (abs(dx) > abs(dz)) {
+                            along = ((p_thing->WorldPos.X >> 8) - save_stack.x1 << 8) / (dx + 1);
+                        } else {
+                            along = ((p_thing->WorldPos.Z >> 8) - save_stack.z1 << 8) / (dz + 1);
+                        }
+
+                        y = save_stack.my_y1 + ((save_stack.y2 - save_stack.my_y1) * along >> 8);
+
+                        if (y < (p_thing->WorldPos.Y >> 8) + 0xc0) {
+                            if (collide_box_with_line(
+                                    p_thing->WorldPos.X >> 8,
+                                    p_thing->WorldPos.Z >> 8,
+                                    -110, -200,
+                                    110, 256,
+                                    p_thing->Genus.Vehicle->Angle,
+                                    save_stack.x1, save_stack.z1,
+                                    save_stack.x2, save_stack.z2)) {
+                                return TRUE;
+                            }
+                        }
+                    }
+                }
+            }
+
+            t_index = p_thing->Child;
+        }
+    }
+
+    return FALSE;
+}
+
+// uc_orig: there_is_a_los_things (fallen/Source/collide.cpp)
+// Convenience wrapper: checks LOS between two Things at eye height (+100 units).
+SLONG there_is_a_los_things(Thing* p_person_a, Thing* p_person_b, SLONG los_flags)
+{
+    return (there_is_a_los(
+        (p_person_a->WorldPos.X >> 8),
+        (p_person_a->WorldPos.Y >> 8) + 100,
+        (p_person_a->WorldPos.Z >> 8),
+        (p_person_b->WorldPos.X >> 8),
+        (p_person_b->WorldPos.Y >> 8) + 100,
+        (p_person_b->WorldPos.Z >> 8),
+        los_flags));
+}
+
+// uc_orig: there_is_a_los (fallen/Source/collide.cpp)
+// Bresenham-style LOS ray cast from (x1,my_y1,z1) to (x2,y2,z2).
+// Traverses DFacet-indexed PAP LO-res cells; also optionally checks prim objects.
+// Returns TRUE if the ray is unobstructed. Fills los_failure_* on failure.
+SLONG there_is_a_los(
+    SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG x2, SLONG y2, SLONG z2,
+    SLONG los_flags)
+{
+    SLONG frac;
+
+    SLONG xfrac;
+    SLONG zfrac;
+
+    save_stack.x1 = x1;
+    save_stack.my_y1 = my_y1;
+    save_stack.z1 = z1;
+
+    save_stack.x2 = x2;
+    save_stack.y2 = y2;
+    save_stack.z2 = z2;
+
+    los_v_dx = x2 - x1;
+    los_v_dy = y2 - my_y1;
+    los_v_dz = z2 - z1;
+
+    los_failure_dfacet = NULL; // might help
+
+    if (abs(los_v_dx) + abs(los_v_dz) < 16) {
+        // Nearly vertical ray — treat as unobstructed.
+        return TRUE;
+    }
+
+    // Underground check: step along the ray and verify no point dips below terrain.
+    if (!(los_flags & LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
+        SLONG i;
+        SLONG dist = QDIST3(abs(los_v_dx), abs(los_v_dy), abs(los_v_dz));
+        SLONG steps = (dist >> 9) + 1;
+        SLONG cdx = los_v_dx / steps;
+        SLONG cdy = los_v_dy / steps;
+        SLONG cdz = los_v_dz / steps;
+
+        los_v_x = x1 + cdx;
+        los_v_y = my_y1 + cdy;
+        los_v_z = z1 + cdz;
+
+        for (i = 0; i < steps; i++) {
+            if (los_v_y <= PAP_calc_map_height_at(los_v_x, los_v_z)) {
+                los_failure_x = los_v_x;
+                los_failure_y = los_v_y;
+                los_failure_z = los_v_z;
+                los_failure_dfacet = NULL;
+
+                return FALSE;
+            }
+
+            los_v_x += cdx;
+            los_v_y += cdy;
+            los_v_z += cdz;
+        }
+    }
+
+    start_checking_against_a_new_vector();
+
+    los_v_mx = x1 >> PAP_SHIFT_LO;
+    los_v_mz = z1 >> PAP_SHIFT_LO;
+    los_v_end_mx = x2 >> PAP_SHIFT_LO;
+    los_v_end_mz = z2 >> PAP_SHIFT_LO;
+
+    xfrac = x1 & ((1 << PAP_SHIFT_LO) - 1);
+    zfrac = z1 & ((1 << PAP_SHIFT_LO) - 1);
+
+    if (abs(los_v_dx) > abs(los_v_dz)) {
+        frac = (los_v_dz << PAP_SHIFT_LO) / los_v_dx;
+
+        if (los_v_dx > 0) {
+            los_v_z = z1;
+            los_v_z -= frac * xfrac >> PAP_SHIFT_LO;
+        } else {
+            los_v_z = z1;
+            los_v_z += frac * ((1 << PAP_SHIFT_LO) - xfrac) >> PAP_SHIFT_LO;
+        }
+
+        while (1) {
+
+            if (WITHIN(los_v_mx, 0, PAP_SIZE_LO - 1) && WITHIN(los_v_mz, 0, PAP_SIZE_LO - 1)) {
+                if (check_vector_against_mapsquare(
+                        los_v_mx, los_v_mz,
+                        los_flags)) {
+                    return FALSE;
+                }
+
+                if (!(los_flags & LOS_FLAG_IGNORE_PRIMS)) {
+                    if (check_vector_against_mapsquare_objects(
+                            los_v_mx, los_v_mz,
+                            los_flags & LOS_FLAG_INCLUDE_CARS)) {
+                        return FALSE;
+                    }
+                }
+            }
+
+            if (los_v_mx == los_v_end_mx && los_v_mz == los_v_end_mz) {
+                return TRUE;
+            }
+
+            if (los_v_dx > 0) {
+                los_v_z += frac;
+            } else {
+                los_v_z -= frac;
+            }
+
+            if ((los_v_z >> PAP_SHIFT_LO) != los_v_mz) {
+                // Crossed a Z cell boundary — check the new cell too.
+                los_v_mz = los_v_z >> PAP_SHIFT_LO;
+
+                if (WITHIN(los_v_mx, 0, PAP_SIZE_LO - 1) && WITHIN(los_v_mz, 0, PAP_SIZE_LO - 1)) {
+                    if (check_vector_against_mapsquare(
+                            los_v_mx, los_v_mz,
+                            los_flags)) {
+                        return FALSE;
+                    }
+
+                    if (!(los_flags & LOS_FLAG_IGNORE_PRIMS)) {
+                        if (check_vector_against_mapsquare_objects(
+                                los_v_mx, los_v_mz,
+                                los_flags & LOS_FLAG_INCLUDE_CARS)) {
+                            return FALSE;
+                        }
+                    }
+                }
+            }
+
+            if (los_v_dx > 0) {
+                los_v_mx += 1;
+
+                if (los_v_mx > los_v_end_mx) {
+                    return TRUE;
+                }
+            } else {
+                los_v_mx -= 1;
+
+                if (los_v_mx < los_v_end_mx) {
+                    return TRUE;
+                }
+            }
+        }
+    } else {
+        frac = (los_v_dx << PAP_SHIFT_LO) / los_v_dz;
+
+        if (los_v_dz > 0) {
+            los_v_x = x1;
+            los_v_x -= frac * zfrac >> PAP_SHIFT_LO;
+        } else {
+            los_v_x = x1;
+            los_v_x += frac * ((1 << PAP_SHIFT_LO) - zfrac) >> PAP_SHIFT_LO;
+        }
+
+        while (1) {
+
+            if (WITHIN(los_v_mx, 0, PAP_SIZE_LO - 1) && WITHIN(los_v_mz, 0, PAP_SIZE_LO - 1)) {
+                if (check_vector_against_mapsquare(
+                        los_v_mx, los_v_mz,
+                        los_flags)) {
+                    return FALSE;
+                }
+
+                if (!(los_flags & LOS_FLAG_IGNORE_PRIMS)) {
+                    if (check_vector_against_mapsquare_objects(
+                            los_v_mx, los_v_mz,
+                            los_flags & LOS_FLAG_INCLUDE_CARS)) {
+                        return FALSE;
+                    }
+                }
+            }
+
+            if (los_v_mx == los_v_end_mx && los_v_mz == los_v_end_mz) {
+                return TRUE;
+            }
+
+            if (los_v_dz > 0) {
+                los_v_x += frac;
+            } else {
+                los_v_x -= frac;
+            }
+
+            if ((los_v_x >> PAP_SHIFT_LO) != los_v_mx) {
+                // Crossed an X cell boundary — check the new cell too.
+                los_v_mx = los_v_x >> PAP_SHIFT_LO;
+
+                if (WITHIN(los_v_mx, 0, PAP_SIZE_LO - 1) && WITHIN(los_v_mz, 0, PAP_SIZE_LO - 1)) {
+                    if (check_vector_against_mapsquare(
+                            los_v_mx, los_v_mz,
+                            los_flags)) {
+                        return FALSE;
+                    }
+
+                    if (!(los_flags & LOS_FLAG_IGNORE_PRIMS)) {
+                        if (check_vector_against_mapsquare_objects(
+                                los_v_mx, los_v_mz,
+                                los_flags & LOS_FLAG_INCLUDE_CARS)) {
+                            return FALSE;
+                        }
+                    }
+                }
+            }
+
+            if (los_v_dz > 0) {
+                los_v_mz += 1;
+
+                if (los_v_mz > los_v_end_mz) {
+                    return TRUE;
+                }
+            } else {
+                los_v_mz -= 1;
+
+                if (los_v_mz < los_v_end_mz) {
+                    return TRUE;
+                }
+            }
+        }
+    }
+}
+
+// uc_orig: there_is_a_los_mav (fallen/Source/collide.cpp)
+// LOS check at MAV high-res navigation grid resolution.
+// Returns 0=clear, 1=blocked by X-wall, 2=blocked by Z-wall.
+// Does NOT fill los_failure_*; used for NPC navigation decisions.
+SLONG there_is_a_los_mav(
+    SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG x2, SLONG y2, SLONG z2)
+{
+    SLONG x;
+    SLONG z;
+
+    SLONG dx;
+    SLONG dz;
+
+    SLONG mx;
+    SLONG mz;
+
+    SLONG end_mx;
+    SLONG end_mz;
+
+    SLONG sdx;
+    SLONG sdz;
+
+    SLONG frac;
+
+    SLONG xfrac;
+    SLONG zfrac;
+
+    MAV_Opt* mo;
+
+    dx = x2 - x1;
+    dz = z2 - z1;
+
+    SLONG adx = abs(dx);
+    SLONG adz = abs(dz);
+
+    sdx = SIGN(dx);
+    sdz = SIGN(dz);
+
+    mx = x1 >> PAP_SHIFT_HI;
+    mz = z1 >> PAP_SHIFT_HI;
+    end_mx = x2 >> PAP_SHIFT_HI;
+    end_mz = z2 >> PAP_SHIFT_HI;
+
+    if (mx == end_mx && mz == end_mz) {
+        // Movement entirely within one MAV cell.
+        return (0);
+    }
+
+    xfrac = x1 & ((1 << PAP_SHIFT_HI) - 1);
+    zfrac = z1 & ((1 << PAP_SHIFT_HI) - 1);
+
+    if (adx > adz) {
+        frac = (dz << PAP_SHIFT_HI) / dx;
+
+        if (dx > 0) {
+            z = z1;
+            z -= frac * xfrac >> PAP_SHIFT_HI;
+        } else {
+            z = z1;
+            z += frac * ((1 << PAP_SHIFT_HI) - xfrac) >> PAP_SHIFT_HI;
+        }
+
+        while (1) {
+
+            if (mx == end_mx && mz == end_mz) {
+                return 0;
+            }
+
+            if (dx > 0) {
+                z += frac;
+            } else {
+                z -= frac;
+            }
+
+            if (WITHIN(mx, 1, PAP_SIZE_HI - 2) && WITHIN(mz, 1, PAP_SIZE_HI - 2)) {
+            } else {
+                // Off the map edge — assume clear.
+                return 0;
+            }
+
+            mo = &MAV_opt[MAV_NAV(mx, mz)];
+
+            last_mav_square_x = mx;
+            last_mav_square_z = mz;
+
+            if ((z >> PAP_SHIFT_HI) != mz) {
+                SLONG direction;
+
+                if ((z >> PAP_SHIFT_HI) > mz) {
+                    direction = MAV_DIR_ZL;
+                } else {
+                    direction = MAV_DIR_ZS;
+                }
+
+                if (!(mo->opt[direction] & MAV_CAPS_GOTO)) {
+                    SLONG x1, z1, x2, z2;
+                    x1 = mx;
+                    x2 = mx + (dx > 0) ? 1 : -1;
+                    if (direction == MAV_DIR_ZL) {
+                        z1 = mz + 1;
+                        z2 = z1;
+                    } else {
+                        z1 = mz;
+                        z2 = z1;
+                    }
+
+                    return (2);
+                }
+
+                mz = z >> PAP_SHIFT_HI;
+            }
+
+            mo = &MAV_opt[MAV_NAV(mx, mz)];
+
+            if (dx > 0) {
+                if (mx + 1 > end_mx) {
+                    return 0;
+                }
+                if (!(mo->opt[MAV_DIR_XL] & MAV_CAPS_GOTO)) {
+                    SLONG x1, z1, x2, z2;
+                    x1 = mx + 1;
+                    x2 = mx + 1;
+                    z1 = mz;
+                    z2 = z1 + 1;
+
+                    return (1);
+                }
+                mx += 1;
+
+            } else {
+
+                if (mx - 1 < end_mx) {
+                    return 0;
+                }
+                if (!(mo->opt[MAV_DIR_XS] & MAV_CAPS_GOTO)) {
+                    SLONG x1, z1, x2, z2;
+                    x1 = mx;
+                    x2 = mx;
+                    z1 = mz;
+                    z2 = z1 + 1;
+
+                    return (1);
+                }
+                mx -= 1;
+            }
+        }
+    } else {
+        frac = (dx << PAP_SHIFT_HI) / dz;
+
+        if (dz > 0) {
+            x = x1;
+            x -= frac * zfrac >> PAP_SHIFT_HI;
+        } else {
+            x = x1;
+            x += frac * ((1 << PAP_SHIFT_HI) - zfrac) >> PAP_SHIFT_HI;
+        }
+
+        while (1) {
+
+            if (mx == end_mx && mz == end_mz) {
+                return 0;
+            }
+
+            if (dz > 0) {
+                x += frac;
+            } else {
+                x -= frac;
+            }
+
+            if (WITHIN(mx, 1, PAP_SIZE_HI - 2) && WITHIN(mz, 1, PAP_SIZE_HI - 2)) {
+            } else {
+                return 0;
+            }
+
+            last_mav_square_x = mx;
+            last_mav_square_z = mz;
+
+            if ((x >> PAP_SHIFT_HI) != mx) {
+                SLONG direction;
+
+                if ((x >> PAP_SHIFT_HI) > mx) {
+                    direction = MAV_DIR_XL;
+                } else {
+                    direction = MAV_DIR_XS;
+                }
+
+                mo = &MAV_opt[MAV_NAV(mx, mz)];
+
+                if (!(mo->opt[direction] & MAV_CAPS_GOTO)) {
+                    SLONG x1, z1, x2, z2;
+                    if (direction = MAV_DIR_XL) {
+                        x1 = mx + 1;
+                        x2 = mx + 1;
+                    } else {
+                        x1 = mx;
+                        x2 = mx;
+                    }
+                    z1 = mz;
+                    z2 = z1 + 1;
+
+                    return (1);
+                }
+
+                mx = x >> PAP_SHIFT_HI;
+            }
+
+            mo = &MAV_opt[MAV_NAV(mx, mz)];
+
+            if (dz > 0) {
+                if (mz + 1 > end_mz) {
+                    return 0;
+                }
+                if (!(mo->opt[MAV_DIR_ZL] & MAV_CAPS_GOTO)) {
+                    SLONG x1, z1, x2, z2;
+
+                    x1 = mx;
+                    x2 = mx + 1;
+                    z1 = (mz + 1);
+                    z2 = z1 + 1;
+
+                    return (2);
+                }
+
+                mz += 1;
+
+            } else {
+                if (mz - 1 < end_mz) {
+                    return 0;
+                }
+                if (!(mo->opt[MAV_DIR_ZS] & MAV_CAPS_GOTO)) {
+                    SLONG x1, z1, x2, z2;
+
+                    x1 = mx;
+                    x2 = mx + 1;
+                    z1 = (mz);
+                    z2 = z1;
+
+                    return (2);
+                }
+
+                mz -= 1;
+            }
+        }
+    }
+}
+
+// uc_orig: there_is_a_los_car (fallen/Source/collide.cpp)
+// LOS check using the car navigation grid (MAV_CAR_GOTO), not the person grid.
+// Returns 0=clear, 1=blocked by X-wall, 2=blocked by Z-wall.
+// Sets last_mav_square_* and last_mav_d* to identify the blocking wall.
+SLONG there_is_a_los_car(
+    SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG x2, SLONG y2, SLONG z2)
+{
+    SLONG x;
+    SLONG z;
+
+    SLONG dx;
+    SLONG dz;
+
+    SLONG mx;
+    SLONG mz;
+
+    SLONG end_mx;
+    SLONG end_mz;
+
+    SLONG sdx;
+    SLONG sdz;
+
+    SLONG frac;
+
+    SLONG xfrac;
+    SLONG zfrac;
+
+    dx = x2 - x1;
+    dz = z2 - z1;
+
+    SLONG adx = abs(dx);
+    SLONG adz = abs(dz);
+
+    sdx = SIGN(dx);
+    sdz = SIGN(dz);
+
+    mx = x1 >> PAP_SHIFT_HI;
+    mz = z1 >> PAP_SHIFT_HI;
+    end_mx = x2 >> PAP_SHIFT_HI;
+    end_mz = z2 >> PAP_SHIFT_HI;
+
+    if (mx == end_mx && mz == end_mz) {
+        return (0);
+    }
+
+    xfrac = x1 & ((1 << PAP_SHIFT_HI) - 1);
+    zfrac = z1 & ((1 << PAP_SHIFT_HI) - 1);
+
+    if (adx > adz) {
+        frac = (dz << PAP_SHIFT_HI) / dx;
+
+        if (dx > 0) {
+            z = z1;
+            z -= frac * xfrac >> PAP_SHIFT_HI;
+        } else {
+            z = z1;
+            z += frac * ((1 << PAP_SHIFT_HI) - xfrac) >> PAP_SHIFT_HI;
+        }
+
+        while (1) {
+
+            if (mx == end_mx && mz == end_mz) {
+                return 0;
+            }
+
+            if (dx > 0) {
+                z += frac;
+            } else {
+                z -= frac;
+            }
+
+            if (WITHIN(mx, 1, PAP_SIZE_HI - 2) && WITHIN(mz, 1, PAP_SIZE_HI - 2)) {
+            } else {
+                return 0;
+            }
+
+            if ((z >> PAP_SHIFT_HI) != mz) {
+                SLONG direction;
+
+                if ((z >> PAP_SHIFT_HI) > mz) {
+                    direction = MAV_DIR_ZL;
+                } else {
+                    direction = MAV_DIR_ZS;
+                }
+
+                if (!MAV_CAR_GOTO(mx, mz, direction)) {
+                    last_mav_square_x = mx;
+                    last_mav_square_z = mz;
+                    last_mav_dx = 0;
+                    last_mav_dz = (direction == MAV_DIR_ZL) ? 1 : -1;
+                    return (2);
+                }
+
+                mz = z >> PAP_SHIFT_HI;
+            }
+
+            if (dx > 0) {
+                if (mx + 1 > end_mx) {
+                    return 0;
+                }
+                if (!MAV_CAR_GOTO(mx, mz, MAV_DIR_XL)) {
+                    last_mav_square_x = mx;
+                    last_mav_square_z = mz;
+                    last_mav_dx = 1;
+                    last_mav_dz = 0;
+                    return (1);
+                }
+                mx += 1;
+
+            } else {
+
+                if (mx - 1 < end_mx) {
+                    return 0;
+                }
+                if (!MAV_CAR_GOTO(mx, mz, MAV_DIR_XS)) {
+                    last_mav_square_x = mx;
+                    last_mav_square_z = mz;
+                    last_mav_dx = -1;
+                    last_mav_dz = 0;
+                    return (1);
+                }
+                mx -= 1;
+            }
+        }
+    } else {
+        frac = (dx << PAP_SHIFT_HI) / dz;
+
+        if (dz > 0) {
+            x = x1;
+            x -= frac * zfrac >> PAP_SHIFT_HI;
+        } else {
+            x = x1;
+            x += frac * ((1 << PAP_SHIFT_HI) - zfrac) >> PAP_SHIFT_HI;
+        }
+
+        while (1) {
+
+            if (mx == end_mx && mz == end_mz) {
+                return 0;
+            }
+
+            if (dz > 0) {
+                x += frac;
+            } else {
+                x -= frac;
+            }
+
+            if (WITHIN(mx, 1, PAP_SIZE_HI - 2) && WITHIN(mz, 1, PAP_SIZE_HI - 2)) {
+            } else {
+                return 0;
+            }
+
+            if ((x >> PAP_SHIFT_HI) != mx) {
+                SLONG direction;
+
+                if ((x >> PAP_SHIFT_HI) > mx) {
+                    direction = MAV_DIR_XL;
+                } else {
+                    direction = MAV_DIR_XS;
+                }
+
+                if (!MAV_CAR_GOTO(mx, mz, direction)) {
+                    last_mav_square_x = mx;
+                    last_mav_square_z = mz;
+                    last_mav_dx = (direction == MAV_DIR_XL) ? 1 : -1;
+                    last_mav_dz = 0;
+                    return (1);
+                }
+
+                mx = x >> PAP_SHIFT_HI;
+            }
+
+            if (dz > 0) {
+                if (mz + 1 > end_mz) {
+                    return 0;
+                }
+                if (!MAV_CAR_GOTO(mx, mz, MAV_DIR_ZL)) {
+                    last_mav_square_x = mx;
+                    last_mav_square_z = mz;
+                    last_mav_dx = 0;
+                    last_mav_dz = 1;
+                    return (2);
+                }
+
+                mz += 1;
+
+            } else {
+                if (mz - 1 < end_mz) {
+                    return 0;
+                }
+                last_mav_dz = -1;
+                if (!MAV_CAR_GOTO(mx, mz, MAV_DIR_ZS)) {
+                    last_mav_square_x = mx;
+                    last_mav_square_z = mz;
+                    last_mav_dx = 0;
+                    last_mav_dz = -1;
+                    return (2);
+                }
+
+                mz -= 1;
+            }
+        }
+    }
 }
