@@ -2186,3 +2186,943 @@ void do_look_for_enemies(Thing* p_person)
     }
 }
 
+// --- chunk 3: lines 3202–4739 of original Person.cpp ---
+
+// get_person_radius() is defined in collide.cpp but not declared in any header.
+extern SLONG get_person_radius(SLONG type);
+// calc_sub_objects_position_fix8 is declared in Person.cpp at line 4425 (extern inline).
+extern void calc_sub_objects_position_fix8(Thing* p_mthing, SLONG tween, UWORD object, SLONG* x, SLONG* y, SLONG* z);
+
+// Per-frame player-specific updates: fight-mode correction, gang tracking, boredom timer,
+// and camera roll damping during running.
+// uc_orig: general_process_player (fallen/Source/Person.cpp)
+void general_process_player(Thing* p_person)
+{
+    DrawTween* dt;
+
+    if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
+        if (p_person->State == STATE_MOVEING && p_person->SubState == SUB_STATE_RUNNING) {
+            p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+        }
+    }
+
+    if (p_person->Genus.Person->GangAttack) {
+        extern void check_players_gang(Thing * p_target);
+        check_players_gang(p_person);
+    }
+
+    if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
+
+        if (p_person->Genus.Person->Target) {
+            Thing* p_target;
+
+            p_target = TO_THING(p_person->Genus.Person->Target);
+
+            if (is_person_dead(p_target)) {
+                fight_any_gang_attacker(p_person);
+            }
+        } else if (count_gang(p_person)) {
+            fight_any_gang_attacker(p_person);
+        }
+
+        timer_bored = 0;
+    } else {
+        if (!EWAY_stop_player_moving())
+            timer_bored += TICK_TOCK;
+    }
+
+    dt = p_person->Draw.Tweened;
+    if (p_person->SubState == SUB_STATE_RUNNING) {
+        if (dt->Roll || dt->DRoll) {
+            if (dt->DRoll) {
+                if (abs(dt->Roll) < 70)
+                    dt->Roll -= dt->DRoll;
+
+                if (dt->Roll > 0 && dt->DRoll > 0)
+                    dt->Roll = 0;
+                else if (dt->Roll < 0 && dt->DRoll < 0)
+                    dt->Roll = 0;
+                dt->DRoll = 0;
+
+            } else {
+                // uses 2's complement maths shift feature
+                if (dt->Roll < 0)
+                    dt->Roll -= (dt->Roll >> 1);
+                if (dt->Roll > 0)
+                    dt->Roll += (-dt->Roll) >> 1;
+            }
+        }
+        if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
+            TO_THING(p_person->Genus.Person->Target)->Draw.Tweened->Roll = (2048 - dt->Roll) & 2047;
+        }
+
+    } else {
+        if (p_person->SubState == SUB_STATE_WALKING) {
+            // (sneak-mode detection commented out in original)
+        }
+
+        if (p_person->SubState != SUB_STATE_RIDING_BIKE) {
+            if (dt->Roll < 0)
+                dt->Roll -= (dt->Roll >> 2);
+            if (dt->Roll > 0)
+                dt->Roll += (-dt->Roll) >> 2;
+        }
+    }
+}
+
+// Selects the best attack target for the player from nearby persons who want to kill them.
+// dir=1 cycles forward (next higher thing index), dir=-1 cycles backward.
+// uc_orig: person_pick_best_target (fallen/Source/Person.cpp)
+void person_pick_best_target(Thing* p_person, SLONG dir)
+{
+    SLONG i;
+
+    SLONG dx;
+    SLONG dz;
+    SLONG dist;
+    SLONG best_dist = INFINITY;
+
+    UWORD lowest_person = 0xffff;
+    UWORD highest_person = 0;
+    UWORD next_person = 0xffff;
+    UWORD prev_person = 0;
+
+    SLONG num_found = THING_find_sphere(
+        p_person->WorldPos.X >> 8,
+        p_person->WorldPos.Y >> 8,
+        p_person->WorldPos.Z >> 8,
+        0x300,
+        THING_array,
+        THING_ARRAY_SIZE,
+        1 << CLASS_PERSON);
+
+    for (i = 0; i < num_found; i++) {
+        Thing* p_found = TO_THING(THING_array[i]);
+
+        if (p_found == p_person) {
+            continue;
+        }
+
+        if (p_found->State == STATE_DEAD) {
+            continue;
+        }
+
+        if (PCOM_person_wants_to_kill(p_found) == THING_NUMBER(p_person)) {
+            if (p_person->Genus.Person->Target == NULL) {
+                dx = abs(p_found->WorldPos.X - p_person->WorldPos.X);
+                dz = abs(p_found->WorldPos.Z - p_person->WorldPos.Z);
+
+                dist = QDIST2(dx, dz);
+
+                if (dist < best_dist) {
+                    best_dist = dist;
+                    next_person = THING_array[i];
+                }
+            } else {
+                if (THING_array[i] < lowest_person) {
+                    lowest_person = THING_array[i];
+                }
+                if (THING_array[i] > highest_person) {
+                    highest_person = THING_array[i];
+                }
+
+                if (THING_array[i] > p_person->Genus.Person->Target) {
+                    if (THING_array[i] < next_person) {
+                        next_person = THING_array[i];
+                    }
+                } else if (THING_array[i] < p_person->Genus.Person->Target) {
+                    if (THING_array[i] > prev_person) {
+                        prev_person = THING_array[i];
+                    }
+                }
+            }
+        }
+    }
+
+    if (dir == 1) {
+        if (next_person != 0xffff) {
+            p_person->Genus.Person->Target = next_person;
+        } else if (lowest_person != 0xffff) {
+            p_person->Genus.Person->Target = lowest_person;
+        }
+    } else {
+        if (prev_person != 0xffff) {
+            p_person->Genus.Person->Target = prev_person;
+        } else if (highest_person != 0xffff) {
+            p_person->Genus.Person->Target = highest_person;
+        }
+    }
+
+    if (p_person->Genus.Person->Target) {
+        turn_to_face_thing(p_person, TO_THING(p_person->Genus.Person->Target), 0);
+    }
+}
+
+// Per-frame person update called after the state function.
+// Handles: moving platforms (WMOVE), death/dying exit, falling off map (GF_NO_FLOOR),
+// stamina recovery, burning (fire damage + immolate pyro), residual burn damage (BurnIndex),
+// urination particle effect, bleeding, grappling hook positioning, and player-specific update.
+// uc_orig: general_process_person (fallen/Source/Person.cpp)
+void general_process_person(Thing* p_person)
+{
+    // every 64 turns clear the been-shot flag (which grants enhanced vision range)
+    if ((PTIME(p_person) & 63) == 0) {
+        p_person->Flags &= ~FLAGS_PERSON_BEEN_SHOT;
+    }
+
+    if (p_person->OnFace > 0) {
+        ASSERT(WITHIN(p_person->OnFace, 1, next_prim_face4 - 1));
+
+        PrimFace4* f4 = &prim_faces4[p_person->OnFace];
+
+        ASSERT(f4->FaceFlags & FACE_FLAG_WALKABLE);
+
+        if (f4->FaceFlags & FACE_FLAG_WMOVE) {
+            SLONG now_x;
+            SLONG now_y;
+            SLONG now_z;
+            SLONG now_dangle;
+            SLONG wmove_index;
+
+            wmove_index = f4->ThingIndex;
+            ASSERT(WITHIN(wmove_index, 1, WMOVE_face_upto - 1));
+
+            WMOVE_relative_pos(
+                f4->ThingIndex,
+                p_person->WorldPos.X,
+                p_person->WorldPos.Y,
+                p_person->WorldPos.Z,
+                &now_x,
+                &now_y,
+                &now_z,
+                &now_dangle);
+
+            p_person->Draw.Tweened->Angle += now_dangle;
+            p_person->Draw.Tweened->Angle &= 2047;
+
+            GameCoord newpos;
+
+            newpos.X = now_x;
+            newpos.Y = now_y;
+            newpos.Z = now_z;
+
+            if (WITHIN(newpos.X, 2 << 16, (PAP_SIZE_HI - 3) << 16) && WITHIN(newpos.Z, 2 << 16, (PAP_SIZE_HI - 3) << 16)) {
+
+                move_thing_on_map(p_person, &newpos);
+            } else {
+                // Too close to the edge of the map; fall off
+                p_person->OnFace = 0;
+
+                set_person_dead(
+                    p_person,
+                    NULL,
+                    PERSON_DEATH_TYPE_STAY_ALIVE,
+                    0,
+                    0);
+            }
+        }
+    }
+
+    if (p_person->State == STATE_DEAD || p_person->State == STATE_DYING) {
+        return;
+    }
+
+    if (GAME_FLAGS & GF_NO_FLOOR) {
+        if (p_person->WorldPos.Y < -0x180000) {
+            p_person->Genus.Person->Health = 0;
+
+            set_person_dead(p_person, NULL, PERSON_DEATH_TYPE_PRONE, 0, 0);
+
+            remove_thing_from_map(p_person);
+
+            return;
+        }
+    }
+
+    {
+        UWORD max_stamina = 128;
+        if (p_person->Genus.Person->PlayerID) {
+            max_stamina += NET_PLAYER(p_person->Genus.Person->PlayerID - 1)->Genus.Player->Stamina;
+            if (!continue_pressing_action(p_person)) {
+                if (p_person->Genus.Person->Stamina < max_stamina) {
+                    p_person->Genus.Person->Stamina++;
+
+                    if (p_person->Genus.Person->Stamina == 5) {
+                        p_person->Genus.Person->Stamina = 20;
+                    }
+                }
+            }
+        } else if (p_person->Genus.Person->Stamina < max_stamina) {
+            p_person->Genus.Person->Stamina++;
+        }
+    }
+
+    SLONG get_person_radius(SLONG type);
+
+    if (p_person->Flags & FLAGS_BURNING) {
+        SLONG x2, y2, z2, ndx;
+        Thing* thing;
+        Pyro* pyro;
+
+        ndx = p_person->Genus.Person->BurnIndex;
+        if ((!ndx) || ((pyro = TO_PYRO(ndx - 1))->PyroType == PYRO_NONE)) {
+            thing = PYRO_create(p_person->WorldPos, PYRO_IMMOLATE);
+            if (thing) {
+                pyro = thing->Genus.Pyro;
+                pyro->victim = p_person;
+                pyro->Flags = PYRO_FLAGS_FLICKER;
+                p_person->Genus.Person->BurnIndex = PYRO_NUMBER(pyro) + 1;
+                thing->StateFn(thing);
+            }
+        } else {
+            // person is in water — accelerate pyro death so fire goes out
+            if (PAP_2HI(p_person->WorldPos.X >> 16, p_person->WorldPos.Z >> 16).Flags & PAP_FLAG_WATER) {
+                if (pyro->PyroType == PYRO_IMMOLATE) {
+                    pyro->Dummy = 2;
+                    pyro->radius = 290;
+                }
+            }
+        }
+
+        if (p_person->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL) {
+            // Only the player can hurt this person — burning does nothing
+        } else if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) {
+            // Invulnerable — burning does nothing
+        } else {
+            p_person->Genus.Person->Health -= 30;
+        }
+
+        if (p_person->Genus.Person->Health <= 0) {
+            p_person->Genus.Person->Health = 0;
+
+            set_person_dead(
+                p_person,
+                NULL,
+                PERSON_DEATH_TYPE_OTHER,
+                FALSE,
+                0);
+
+        } else {
+
+            p_person->Flags &= ~FLAGS_BURNING;
+            collide_against_things(
+                p_person,
+                get_person_radius(p_person->Genus.Person->PersonType),
+                p_person->WorldPos.X, p_person->WorldPos.Y, p_person->WorldPos.Z,
+                &x2, &y2, &z2);
+        }
+    }
+
+    // Residual burn damage from immolate pyro (1 HP per tick until person is healthy or dead).
+    if (p_person->Genus.Person->BurnIndex && (p_person->Genus.Person->Health > 0))
+        p_person->Genus.Person->Health--;
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_PEEING) {
+        if (p_person->Flags & FLAGS_IN_VIEW) {
+            SLONG penis_x;
+            SLONG penis_y;
+            SLONG penis_z;
+
+            SLONG dx;
+            SLONG dz;
+
+            calc_sub_objects_position(
+                p_person,
+                p_person->Draw.Tweened->AnimTween,
+                SUB_OBJECT_PELVIS,
+                &penis_x,
+                &penis_y,
+                &penis_z);
+
+            penis_x += p_person->WorldPos.X >> 8;
+            penis_y += p_person->WorldPos.Y >> 8;
+            penis_z += p_person->WorldPos.Z >> 8;
+
+            penis_y -= 0x10;
+
+            dx = -SIN(p_person->Draw.Tweened->Angle) >> 13;
+            dz = -COS(p_person->Draw.Tweened->Angle) >> 13;
+
+            DIRT_new_water(
+                penis_x,
+                penis_y,
+                penis_z,
+                dx, -2, dz,
+                DIRT_TYPE_URINE);
+        }
+    }
+
+    // Bleeding: persons below 25% health randomly leave blood trails.
+    if (p_person->Genus.Person->Health < health[p_person->Genus.Person->PersonType] >> 2) {
+        if (p_person->Genus.Person->Stamina > 50)
+            p_person->Genus.Person->Stamina -= 1;
+
+        if (!p_person->Genus.Person->InCar) {
+            if (((Random() & 0x7f) > p_person->Genus.Person->Health) && (Random() & 1))
+                TRACKS_Bleed(p_person);
+        }
+    }
+
+    // Grappling hook: update hook position to follow Darci's right hand.
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GRAPPLING) {
+        SLONG percent;
+        SLONG pitch;
+
+        if (p_person->State == STATE_GRAPPLING && p_person->SubState == SUB_STATE_GRAPPLING_WINDUP) {
+            percent = p_person->Draw.Tweened->FrameIndex << 8;
+            percent |= p_person->Draw.Tweened->AnimTween;
+            pitch = (-percent * 2048) / 0x500;
+            pitch &= 2047;
+        } else {
+            pitch = 1536;
+        }
+
+        SLONG px;
+        SLONG py;
+        SLONG pz;
+
+        calc_sub_objects_position(
+            p_person,
+            p_person->Draw.Tweened->AnimTween,
+            SUB_OBJECT_RIGHT_HAND,
+            &px,
+            &py,
+            &pz);
+
+        px += p_person->WorldPos.X >> 8;
+        py += p_person->WorldPos.Y >> 8;
+        pz += p_person->WorldPos.Z >> 8;
+
+        HOOK_spin(
+            px,
+            py,
+            pz,
+            p_person->Draw.Tweened->Angle,
+            -pitch);
+    }
+
+    // Clear request-kick flag unless person is running-jumping, fighting, or grappling.
+    if ((p_person->Genus.Person->Action != ACTION_RUN_JUMP) && (p_person->Genus.Person->Action != ACTION_FIGHT_PUNCH) && (p_person->Genus.Person->Action != ACTION_GRAPPLE)) {
+        p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_KICK;
+    }
+
+    if (p_person->Genus.Person->PlayerID) {
+        general_process_player(p_person);
+    }
+}
+
+// Returns non-zero if person is on a slope steep enough to cause sliding (> 50 units).
+// If slipping, redirects the person downhill along the slope normal.
+// Also teleports stuck-in-NOGO persons to the nearest safe tile.
+// uc_orig: check_on_slippy_slope (fallen/Source/Person.cpp)
+SLONG check_on_slippy_slope(Thing* p_person)
+{
+    SLONG slope, angle;
+    SLONG size = 50;
+
+    if (p_person->Genus.Person->InsideIndex) {
+        slope = 0;
+    } else {
+        if (p_person->OnFace < 0) {
+            slope = RFACE_on_slope(-p_person->OnFace, p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle);
+        } else {
+
+            slope = PAP_on_slope(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle) >> 1;
+        }
+    }
+
+    if (slope > size) {
+        switch (p_person->SubState) {
+        default:
+        case SUB_STATE_RUNNING_JUMP:
+        case SUB_STATE_RUNNING_JUMP_LAND_FAST:
+        case SUB_STATE_RUNNING_JUMP_LAND:
+            set_generic_person_state_function(p_person, STATE_MOVEING);
+        case SUB_STATE_RUNNING:
+        case SUB_STATE_WALKING:
+        case SUB_STATE_WALKING_BACKWARDS:
+        case SUB_STATE_FLIPING:
+        case SUB_STATE_RUNNING_SKID_STOP:
+
+            set_anim(p_person, ANIM_FALLING);
+
+        case SUB_STATE_SLIPPING:
+            p_person->SubState = SUB_STATE_SLIPPING;
+            p_person->Draw.Tweened->AngleTo = angle;
+
+            slope = MIN(slope - size, 10);
+            slope = MAX(slope, size);
+
+            change_velocity_to(p_person, slope);
+
+            break;
+        }
+
+        if (p_person->OnFace == 0 && p_person->Genus.Person->Ware == 0)
+            if (PAP_2HI((p_person->WorldPos.X >> 16) & 127, (p_person->WorldPos.Z >> 16) & 127).Flags & PAP_FLAG_NOGO) {
+                // Teleport person to nearest non-NOGO tile that isn't too steep.
+                SLONG angle, step;
+                for (step = 64; step < 512; step += 64) {
+                    for (angle = 0; angle < 2048; angle += 256) {
+                        SLONG dx, dz;
+                        dx = (COS(angle) * step) >> 8;
+                        dz = (SIN(angle) * step) >> 8;
+                        if (!(PAP_2HI(((p_person->WorldPos.X + dx) >> 16) & 127, ((p_person->WorldPos.Z + dz) >> 16) & 127).Flags & PAP_FLAG_NOGO)) {
+                            GameCoord newpos;
+
+                            slope = PAP_on_slope((p_person->WorldPos.X + dx) >> 8, (p_person->WorldPos.Z + dz) >> 8, &angle) >> 1;
+                            if (slope < 40) {
+
+                                newpos.X = p_person->WorldPos.X + dx;
+                                newpos.Z = p_person->WorldPos.Z + dz;
+                                newpos.Y = PAP_calc_map_height_at(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8);
+
+                                move_thing_on_map(p_person, &newpos);
+
+                                step = 50000;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+        return (1);
+    } else if (p_person->SubState == SUB_STATE_SLIPPING) {
+        p_person->SubState = SUB_STATE_SLIPPING_END;
+    }
+    return (0);
+}
+
+// Temporarily moves person dist units forward and checks for a slippy slope ahead.
+// Used to pre-check whether moving forward would put person on a slide.
+// uc_orig: slope_ahead (fallen/Source/Person.cpp)
+SLONG slope_ahead(Thing* p_person, SLONG dist)
+{
+    SLONG dx;
+    SLONG dz;
+    SLONG slippy;
+
+    dx = -(SIN(p_person->Draw.Tweened->Angle) * dist) >> 8;
+    dz = -(COS(p_person->Draw.Tweened->Angle) * dist) >> 8;
+
+    p_person->WorldPos.X += dx;
+    p_person->WorldPos.Z += dz;
+
+    slippy = check_on_slippy_slope(p_person);
+
+    p_person->WorldPos.X -= dx;
+    p_person->WorldPos.Z -= dz;
+
+    return (slippy);
+}
+
+// Moves person by (dx, dz) with height-tracking and collision (via move_thing).
+// Respects animation-locked movement, turning penalty, step-down detection,
+// and slope-slip checks. Called by person_normal_move and person_normal_move_check.
+// uc_orig: person_normal_move_dxdz (fallen/Source/Person.cpp)
+void person_normal_move_dxdz(Thing* p_person, SLONG dx, SLONG dz)
+{
+    SLONG dy;
+    SLONG new_y;
+    SLONG on_face;
+
+    slide_ladder = 0;
+
+    if (p_person->Draw.Tweened->Locked) {
+        // The movement is part of the animation.
+        return;
+    }
+
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_HIT_WALL;
+
+    dy = 0;
+
+    // Move the person slower if they are at the wrong angle.
+    SLONG dangle = p_person->Draw.Tweened->AngleTo - p_person->Draw.Tweened->Angle;
+    SLONG dspeed = 300 - abs(dangle);
+
+    SATURATE(dspeed, 0, 256);
+
+    SLONG ratio = TICK_RATIO * dspeed >> 8;
+
+    // Don't apply turn-speed penalty (disabled in original).
+    ratio = TICK_RATIO;
+
+    dx = dx * ratio >> TICK_SHIFT;
+    dz = dz * ratio >> TICK_SHIFT;
+
+    if (allow_debug_keys)
+        if (ShiftFlag && Keys[KB_Q]) {
+            dx <<= 2;
+            dz <<= 2;
+        }
+
+    // Work out the new y-position based on terrain or face height.
+    if (p_person->OnFace) {
+        if (p_person->OnFace > 0) {
+            on_face = calc_height_on_face(
+                (p_person->WorldPos.X + dx) >> 8,
+                (p_person->WorldPos.Z + dz) >> 8,
+                p_person->OnFace,
+                &new_y);
+        } else {
+            on_face = calc_height_on_rface(
+                (p_person->WorldPos.X + dx) >> 8,
+                (p_person->WorldPos.Z + dz) >> 8,
+                -p_person->OnFace,
+                &new_y);
+        }
+
+        if (!on_face) {
+            // Walked off the current face — let move_thing sort out what happens.
+            new_y = p_person->WorldPos.Y;
+        } else {
+            MSG_add("normal move height %d \n", new_y);
+            new_y = (new_y) << 8;
+        }
+    } else {
+        {
+            SLONG mx, mz;
+
+            mx = (p_person->WorldPos.X + dx) >> 16;
+            mz = (p_person->WorldPos.Z + dz) >> 16;
+            mx &= 127;
+            mz &= 127;
+
+            if (PAP_2HI(mx, mz).Flags & PAP_FLAG_HIDDEN)
+                new_y = PAP_calc_height_at_thing(p_person, (p_person->WorldPos.X + 0 * dx) >> 8, (p_person->WorldPos.Z + 0 * dz) >> 8) << 8;
+            else
+                new_y = PAP_calc_height_at_thing(p_person, (p_person->WorldPos.X + dx) >> 8, (p_person->WorldPos.Z + dz) >> 8) << 8;
+        }
+    }
+
+    dy = new_y - p_person->WorldPos.Y;
+
+    if (p_person->SubState != SUB_STATE_SLIPPING)
+        if (dy < -60 << 8) {
+            set_person_drop_down(p_person, PERSON_DROP_DOWN_KEEP_VEL);
+            return;
+        }
+
+    if (dx || dz) {
+        move_thing(dx, dy, dz, p_person);
+    }
+
+    if (dy || p_person->Genus.Person->PlayerID) {
+        check_on_slippy_slope(p_person);
+
+    } else {
+        if (p_person->SubState == SUB_STATE_SLIPPING) {
+            SLONG slope, angle;
+            if (p_person->Genus.Person->InsideIndex) {
+                slope = 0;
+            } else {
+
+                if (p_person->OnFace < 0) {
+                    slope = RFACE_on_slope(-p_person->OnFace, p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle);
+                } else {
+
+                    slope = PAP_on_slope(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle) >> 1;
+                }
+            }
+
+            if (slope <= 50)
+                p_person->SubState = SUB_STATE_SLIPPING_END;
+        }
+    }
+}
+
+// Moves person forward along their current facing angle by their Velocity.
+// uc_orig: person_normal_move (fallen/Source/Person.cpp)
+void person_normal_move(Thing* p_person)
+{
+    SLONG dx;
+    SLONG dz;
+
+    dx = -(SIN(p_person->Draw.Tweened->Angle) * p_person->Velocity) >> 8;
+    dz = -(COS(p_person->Draw.Tweened->Angle) * p_person->Velocity) >> 8;
+    person_normal_move_dxdz(p_person, dx, dz);
+}
+
+// Like person_normal_move, but skips movement if target position is outside map bounds.
+// uc_orig: person_normal_move_check (fallen/Source/Person.cpp)
+void person_normal_move_check(Thing* p_person)
+{
+    SLONG dx;
+    SLONG dz;
+    SLONG x, z;
+
+    dx = -(SIN(p_person->Draw.Tweened->Angle) * p_person->Velocity) >> 8;
+    dz = -(COS(p_person->Draw.Tweened->Angle) * p_person->Velocity) >> 8;
+    x = dx + p_person->WorldPos.X;
+    z = dz + p_person->WorldPos.Z;
+
+    if (x < 0 || z < 0 || x >= (128 << 16) || z >= (128 << 16))
+        return;
+
+    person_normal_move_dxdz(p_person, dx, dz);
+}
+
+// Advances one keyframe in the animation, handling queued frames and looping.
+// Returns 1 if animation has ended (looped or stopped), 2 if a queued frame was loaded.
+// uc_orig: advance_keyframe (fallen/Source/Person.cpp)
+SLONG advance_keyframe(DrawTween* draw_info)
+{
+    SLONG ret = 0;
+    draw_info->CurrentFrame = draw_info->NextFrame;
+    if (draw_info->QueuedFrame) {
+        draw_info->NextFrame = draw_info->QueuedFrame;
+        draw_info->QueuedFrame = 0;
+        draw_info->FrameIndex = 0;
+        ret = 2; // anim has ended
+        ASSERT(draw_info->CurrentFrame->FirstElement);
+        ASSERT(draw_info->NextFrame->FirstElement);
+
+    } else {
+        if (draw_info->NextFrame->NextFrame) {
+            draw_info->NextFrame = draw_info->NextFrame->NextFrame;
+            if (draw_info->CurrentFrame->Flags & ANIM_FLAG_LAST_FRAME)
+                ret = 1; // hopefully escape funny lock out situations by saying a looped anim has ended
+
+        } else
+            ret = 1; // anim has ended
+    }
+    return (ret);
+}
+
+// Retreats one keyframe in the animation (for backwards playback).
+// Returns 1 if the start of the animation has been reached.
+// uc_orig: retreat_keyframe (fallen/Source/Person.cpp)
+SLONG retreat_keyframe(DrawTween* draw_info)
+{
+    SLONG ret = 0;
+    draw_info->NextFrame = draw_info->CurrentFrame;
+    if (draw_info->QueuedFrame) {
+        // queued-frame retreat not implemented in original
+    } else {
+        if (draw_info->CurrentFrame->PrevFrame) {
+            draw_info->CurrentFrame = draw_info->CurrentFrame->PrevFrame;
+        } else {
+            ret = 1; // anim has ended
+        }
+    }
+    return (ret);
+}
+
+// Adjusts person world position to keep a locked limb stationary between two tween values.
+// t1=tween at start of frame, t2=tween at end of frame. Uses fix8 (256-scale) positions.
+// uc_orig: move_locked_tween (fallen/Source/Person.cpp)
+void move_locked_tween(Thing* p_person, DrawTween* dt, SLONG t1, SLONG t2)
+{
+    SLONG x1, y1, z1;
+    SLONG x2, y2, z2;
+    SLONG dx, dy, dz;
+
+    calc_sub_objects_position_fix8(p_person, t1, abs(dt->Locked), &x1, &y1, &z1);
+    calc_sub_objects_position_fix8(p_person, t2, abs(dt->Locked), &x2, &y2, &z2);
+
+    dx = (x1 - x2);
+    dy = (y1 - y2);
+    dz = (z1 - z2);
+
+    if (abs(dy) > 600 << 8) {
+        ASSERT(0);
+        calc_sub_objects_position_fix8(p_person, t1, abs(dt->Locked), &x1, &y1, &z1);
+        calc_sub_objects_position_fix8(p_person, t2, abs(dt->Locked), &x2, &y2, &z2);
+    }
+    if (p_person->State == STATE_DANGLING) {
+        move_thing_quick(dx, dy, dz, p_person);
+        MSG_add(" mtq dx %d dy %d dz %d \n", dx, dy, dz);
+    } else {
+        move_thing(dx, dy, dz, p_person);
+        MSG_add(" mt dx %d dy %d dz %d \n", dx, dy, dz);
+    }
+}
+
+// Animates person forward at the given speed (256=normal). Advances tween and keyframes,
+// applies locked-limb movement, handles fight-frame violence and barrel knockover.
+// Returns 0=still running, 1=anim ended, 2=queued anim loaded.
+// uc_orig: person_normal_animate_speed (fallen/Source/Person.cpp)
+SLONG person_normal_animate_speed(Thing* p_person, SLONG speed)
+{
+    SLONG ret = 0;
+    DrawTween* draw_info;
+    SLONG old_tween;
+    SLONG dx, dy, dz;
+    SLONG tween1, tween2;
+
+    draw_info = p_person->Draw.Tweened;
+
+    if (draw_info->CurrentFrame == 0 || draw_info->NextFrame == 0) {
+        MSG_add(" !!!!!!!!!!!!!!!!!!!!!!error2 animate 0 frames \n");
+        return (1);
+    }
+    old_tween = draw_info->AnimTween;
+
+    {
+        SLONG tween_step = draw_info->CurrentFrame->TweenStep << 1;
+
+        tween1 = draw_info->AnimTween;
+        tween_step = (tween_step * TICK_RATIO) >> TICK_SHIFT;
+        if (tween_step <= 0)
+            tween_step = 1;
+        draw_info->AnimTween += tween_step;
+        tween2 = draw_info->AnimTween;
+        if (draw_info->Locked && draw_info->AnimTween < 256) {
+            move_locked_tween(p_person, draw_info, tween1, tween2);
+        }
+    }
+
+    while (tween2 >= 256) {
+        SLONG lock_x1, lock_y1, lock_z1, lock_x2, lock_y2, lock_z2;
+
+        tween2 -= 256;
+
+        if (draw_info->NextFrame)
+            tween2 = (tween2 * draw_info->NextFrame->TweenStep) / draw_info->CurrentFrame->TweenStep;
+        draw_info->AnimTween = tween2;
+
+        if (draw_info->CurrentFrame->Flags & ANIM_FLAG_LAST_FRAME) {
+            draw_info->FrameIndex = 0;
+        } else {
+            draw_info->FrameIndex++;
+        }
+
+        if (draw_info->Locked) {
+            GameCoord temp_pos;
+            SLONG locked;
+
+            locked = abs(draw_info->Locked);
+
+            calc_sub_objects_position_fix8(p_person, tween1, locked, &lock_x1, &lock_y1, &lock_z1);
+            ret |= advance_keyframe(draw_info);
+            calc_sub_objects_position_fix8(p_person, tween2, draw_info->Locked, &lock_x2, &lock_y2, &lock_z2);
+
+            dx = (+lock_x1 - lock_x2);
+            dy = (+lock_x1 - lock_x2); // NOTE: original uses lock_x1 for all axes (apparent copy-paste bug in original)
+            dz = (+lock_x1 - lock_x2);
+
+            if (p_person->State == STATE_DANGLING) {
+                MSG_add("MOVE THING QUICK dx %d dy %d dz %d \n", dx, dy, dz);
+                move_thing_quick(dx, dy, dz, p_person);
+            } else {
+                move_thing(dx, dy, dz, p_person);
+                MSG_add("MOVE THING dx %d dy %d dz %d \n", dx, dy, dz);
+            }
+
+        } else {
+            ret |= advance_keyframe(draw_info);
+        }
+
+        if (draw_info->CurrentFrame->Fight) {
+            if (apply_violence(p_person) == 0) {
+                extern BOOL PLAYCUTS_playing;
+                if (!PLAYCUTS_playing)
+                    MFX_play_thing(THING_NUMBER(p_person), S_KNIFE_START + (Random() & 1), 0, p_person);
+            }
+
+            // Knock over barrels within reach during fight frames.
+            BARREL_hit_with_sphere(
+                p_person->WorldPos.X >> 8,
+                p_person->WorldPos.Y >> 8,
+                p_person->WorldPos.Z >> 8,
+                0xa0);
+        }
+    }
+
+    if (ret == 1) {
+    }
+
+    return (ret);
+}
+
+// Animates person forward at normal speed (tween step from animation data).
+// uc_orig: person_normal_animate (fallen/Source/Person.cpp)
+SLONG person_normal_animate(Thing* p_person)
+{
+    return (person_normal_animate_speed(p_person, 256));
+}
+
+// Animates person backward (retreats keyframes). Handles locked-limb repositioning.
+// Returns 1 when start of animation is reached.
+// uc_orig: person_backwards_animate (fallen/Source/Person.cpp)
+SLONG person_backwards_animate(Thing* p_person)
+{
+    SLONG ret = 0;
+    DrawTween* draw_info;
+    SLONG old_tween;
+    SLONG tween_step;
+
+    draw_info = p_person->Draw.Tweened;
+
+    if (draw_info->CurrentFrame == NULL) {
+        MSG_add(" backwards anim crash");
+        return (1);
+    }
+    tween_step = draw_info->CurrentFrame->TweenStep << 1;
+
+    tween_step = (tween_step * TICK_RATIO) >> TICK_SHIFT;
+
+    old_tween = draw_info->AnimTween;
+
+    draw_info->AnimTween -= tween_step;
+
+    while (draw_info->AnimTween < 0) {
+        SLONG lock_x1, lock_y1, lock_z1, lock_x2, lock_y2, lock_z2;
+
+        draw_info->AnimTween += 256;
+
+        if (draw_info->CurrentFrame->Flags & ANIM_FLAG_LAST_FRAME) {
+            draw_info->FrameIndex = 0;
+        } else {
+            draw_info->FrameIndex++;
+        }
+
+        if (draw_info->Locked) {
+            GameCoord temp_pos;
+            SLONG locked;
+
+            locked = abs(draw_info->Locked);
+
+            calc_sub_objects_position(p_person, 0, locked, &lock_x1, &lock_y1, &lock_z1);
+            calc_sub_objects_position(p_person, 256, locked, &lock_x2, &lock_y2, &lock_z2);
+            ret = retreat_keyframe(draw_info);
+
+            // Difference in lock coordinate is the amount to move to maintain the same limb position.
+            temp_pos.X = ((+lock_x1 - lock_x2) << 8) + p_person->WorldPos.X;
+            temp_pos.Y = ((+lock_y1 - lock_y2) << 8) + p_person->WorldPos.Y;
+            temp_pos.Z = ((+lock_z1 - lock_z2) << 8) + p_person->WorldPos.Z;
+
+            move_thing_on_map(p_person, &temp_pos);
+        } else
+            ret = retreat_keyframe(draw_info);
+
+        if (draw_info->CurrentFrame->Fight) {
+            apply_violence(p_person);
+        }
+    }
+    return (ret);
+}
+
+// Camera helpers — all bodies were removed (commented out) in the original before shipping.
+// The camera system was moved to a separate camera module.
+
+// uc_orig: camera_shoot (fallen/Source/Person.cpp)
+void camera_shoot(void)
+{
+    // Camera mode adjustments removed from Person.cpp before shipping.
+}
+
+// uc_orig: camera_fight (fallen/Source/Person.cpp)
+void camera_fight(void)
+{
+    // Camera mode adjustments removed from Person.cpp before shipping.
+}
+
+// uc_orig: camera_normal (fallen/Source/Person.cpp)
+void camera_normal(void)
+{
+    // Camera mode adjustments removed from Person.cpp before shipping.
+}
+

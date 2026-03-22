@@ -204,4 +204,56 @@ void general_process_person(Thing* p_person);
 // uc_orig: sweep_feet (fallen/Source/Person.cpp)
 void sweep_feet(Thing* p_person, Thing* p_aggressor, SLONG death_type);
 
+// Returns non-zero if the person is on a slope steep enough to cause sliding.
+// uc_orig: check_on_slippy_slope (fallen/Source/Person.cpp)
+SLONG check_on_slippy_slope(Thing* p_person);
+
+// Temporarily moves person dist units forward and checks if slope ahead would cause sliding.
+// uc_orig: slope_ahead (fallen/Source/Person.cpp)
+SLONG slope_ahead(Thing* p_person, SLONG dist);
+
+// Moves person by (dx, dz) with height-tracking, tick scaling, and collision.
+// uc_orig: person_normal_move_dxdz (fallen/Source/Person.cpp)
+void person_normal_move_dxdz(Thing* p_person, SLONG dx, SLONG dz);
+
+// Moves person forward along their facing angle by their Velocity.
+// uc_orig: person_normal_move (fallen/Source/Person.cpp)
+void person_normal_move(Thing* p_person);
+
+// Like person_normal_move, but skips if target position would be outside map bounds.
+// uc_orig: person_normal_move_check (fallen/Source/Person.cpp)
+void person_normal_move_check(Thing* p_person);
+
+// Advances one animation keyframe, returns 1=ended, 2=queued anim loaded.
+// uc_orig: advance_keyframe (fallen/Source/Person.cpp)
+SLONG advance_keyframe(DrawTween* draw_info);
+
+// Retreats one animation keyframe for backwards playback. Returns 1 when start reached.
+// uc_orig: retreat_keyframe (fallen/Source/Person.cpp)
+SLONG retreat_keyframe(DrawTween* draw_info);
+
+// Adjusts world position to keep a locked limb stationary between two tween values.
+// uc_orig: move_locked_tween (fallen/Source/Person.cpp)
+void move_locked_tween(Thing* p_person, DrawTween* dt, SLONG t1, SLONG t2);
+
+// Animates person forward at given speed. Handles fight frames (apply_violence), barrel hits.
+// uc_orig: person_normal_animate_speed (fallen/Source/Person.cpp)
+SLONG person_normal_animate_speed(Thing* p_person, SLONG speed);
+
+// Animates person forward at normal speed.
+// uc_orig: person_normal_animate (fallen/Source/Person.cpp)
+SLONG person_normal_animate(Thing* p_person);
+
+// Animates person backward (retreating keyframes).
+// uc_orig: person_backwards_animate (fallen/Source/Person.cpp)
+SLONG person_backwards_animate(Thing* p_person);
+
+// Camera helpers — bodies removed before shipping in the original.
+// uc_orig: camera_shoot (fallen/Source/Person.cpp)
+void camera_shoot(void);
+// uc_orig: camera_fight (fallen/Source/Person.cpp)
+void camera_fight(void);
+// uc_orig: camera_normal (fallen/Source/Person.cpp)
+void camera_normal(void);
+
 #endif // ACTORS_CHARACTERS_PERSON_H

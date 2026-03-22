@@ -3199,6 +3199,7 @@ extern void play_music(UWORD id, UBYTE track);
 #if 0 // MIGRATED to src/new/actors/characters/person_globals.cpp (iteration 92) [timer_bored]
 ULONG timer_bored = 0;
 #endif // MIGRATED
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 94) [general_process_player..camera_normal]
 // claude-ai: general_process_player() — дополнительная обработка для ИГРОКА (не NPC).
 // claude-ai: Вызывается из general_process_person() если PlayerID != 0.
 // claude-ai: Делает: коррекция FIGHT mode (→RUN если бегом), PSX dlight, gang tracking,
@@ -4736,6 +4737,7 @@ void camera_normal(void)
     #endif
     */
 }
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 94) [general_process_player..camera_normal]
 
 void set_person_aim(Thing* p_person, SLONG locked = 0)
 {

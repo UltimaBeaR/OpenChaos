@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 94 — actors/characters/person (чанк 3: general_process_player..camera_normal) (2026-03-22)
+
+- Person.cpp чанк 3: lines 3202–4739. Функции: general_process_player, person_pick_best_target, general_process_person, check_on_slippy_slope, slope_ahead, person_normal_move_dxdz, person_normal_move, person_normal_move_check, advance_keyframe, retreat_keyframe, move_locked_tween, person_normal_animate_speed, person_normal_animate, person_backwards_animate, camera_shoot, camera_fight, camera_normal.
+- `get_person_radius` не объявлена ни в одном заголовке — добавлен `extern` в person.cpp (определение в collide.cpp).
+- `calc_sub_objects_position_fix8` — inline extern в старом Person.cpp (line 4425, активная зона) — добавлен дублирующий extern в new/person.cpp.
+- `dx/dy/dz` в `person_normal_animate_speed` при Locked: оригинал использует lock_x1 для всех трёх осей (copy-paste баг), перенесён 1:1.
+- camera_shoot/camera_fight/camera_normal: все тела в оригинале закомментированы — перенесены как пустые функции (dead code).
+- Дублирующие декларации general_process_player/person_pick_best_target/general_process_person в person.h обнаружены и исправлены (были добавлены и в секцию chunk 2, и в секцию chunk 3).
+
+---
+
 ## Итерация 93 — actors/characters/person (чанк 2: sweep_feet..do_look_for_enemies) (2026-03-22)
 
 - Person.cpp чанк 2: lines 1769–3193. Функции: sweep_feet, is_there_room_behind_person, get_along_facet, set_person_dead, is_person_guilty, person_on_floor, really_on_floor, is_person_dead, is_person_ko, is_person_ko_and_lay_down, knock_person_down, person_bodge_forward, los_between_heads, oscilate_tinpanum, dist_to_target, dist_to_target_pelvis, is_person_crouching, can_a_see_b, can_i_see_place, set_person_sliding_tackle, set_person_vault, set_person_climb_half, can_i_see_player, do_look_for_enemies.
