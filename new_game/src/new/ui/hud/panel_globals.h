@@ -237,4 +237,24 @@ extern char PANEL_info_message[512];
 // uc_orig: PANEL_info_time (fallen/DDEngine/Source/panel.cpp)
 extern unsigned long PANEL_info_time;
 
+// Screensaver state (bouncing logo overlay when the game is idle).
+// uc_orig: bScreensaverEnabled (fallen/DDEngine/Source/panel.cpp)
+extern bool bScreensaverEnabled;
+// uc_orig: iScreenSaverDarkness (fallen/DDEngine/Source/panel.cpp)
+extern int iScreenSaverDarkness;
+// uc_orig: iScreensaverXPos (fallen/DDEngine/Source/panel.cpp)
+extern int iScreensaverXPos;
+// uc_orig: iScreensaverYPos (fallen/DDEngine/Source/panel.cpp)
+extern int iScreensaverYPos;
+// uc_orig: iScreensaverXInc (fallen/DDEngine/Source/panel.cpp)
+extern int iScreensaverXInc;
+// uc_orig: iScreensaverYInc (fallen/DDEngine/Source/panel.cpp)
+extern int iScreensaverYInc;
+// uc_orig: iScreensaverAngle (fallen/DDEngine/Source/panel.cpp)
+extern int iScreensaverAngle;
+// uc_orig: iScreensaverAngleInc (fallen/DDEngine/Source/panel.cpp)
+extern int iScreensaverAngleInc;
+// uc_orig: dwPseudorandomSeed (fallen/DDEngine/Source/panel.cpp)
+extern unsigned long dwPseudorandomSeed;
+
 #endif // UI_HUD_PANEL_GLOBALS_H

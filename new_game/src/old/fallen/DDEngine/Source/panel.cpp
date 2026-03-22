@@ -2642,6 +2642,7 @@ void PANEL_inventory(Thing* darci, Thing* player)
 
 #endif // MIGRATED to src/new/ui/hud/panel.cpp + panel_globals.cpp (iteration 140) [PANEL_new_text..PANEL_inventory]
 
+#if 0 // MIGRATED to src/new/ui/hud/panel.cpp + panel_globals.cpp (iteration 141) [PANEL_last..PANEL_screensaver_draw]
 void PANEL_last()
 {
 
@@ -4053,3 +4054,5 @@ void PANEL_screensaver_draw(void)
 
     POLY_frame_draw(UC_FALSE, UC_FALSE);
 }
+
+#endif // MIGRATED to src/new/ui/hud/panel.cpp + panel_globals.cpp (iteration 141) [PANEL_last..PANEL_screensaver_draw]

@@ -247,7 +247,6 @@ set(SOURCES_DDENGINE
     src/new/engine/graphics/geometry/mesh.cpp
     src/new/engine/graphics/geometry/mesh_globals.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
-    src/old/fallen/DDEngine/Source/panel.cpp
     src/new/engine/graphics/pipeline/poly.cpp
     src/new/engine/graphics/pipeline/poly_globals.cpp
     src/new/engine/graphics/geometry/shape.cpp

@@ -204,3 +204,23 @@ PANEL_Lsprite PANEL_lsprite[PANEL_LSPRITE_NUMBER] = {
     PLS(POLY_PAGE_LASTPANEL_ALPHA, 141, 62, 212, 84),    // knife
 };
 #undef PLS
+
+// Screensaver state — bouncing logo overlay shown when the game is left idle.
+// uc_orig: bScreensaverEnabled (fallen/DDEngine/Source/panel.cpp)
+bool bScreensaverEnabled = false;
+// uc_orig: iScreenSaverDarkness (fallen/DDEngine/Source/panel.cpp)
+int iScreenSaverDarkness = 0;
+// uc_orig: iScreensaverXPos (fallen/DDEngine/Source/panel.cpp)
+int iScreensaverXPos = 320;
+// uc_orig: iScreensaverYPos (fallen/DDEngine/Source/panel.cpp)
+int iScreensaverYPos = 240;
+// uc_orig: iScreensaverXInc (fallen/DDEngine/Source/panel.cpp)
+int iScreensaverXInc = 4;
+// uc_orig: iScreensaverYInc (fallen/DDEngine/Source/panel.cpp)
+int iScreensaverYInc = 4;
+// uc_orig: iScreensaverAngle (fallen/DDEngine/Source/panel.cpp)
+int iScreensaverAngle = 0;
+// uc_orig: iScreensaverAngleInc (fallen/DDEngine/Source/panel.cpp)
+int iScreensaverAngleInc = 0x2ff;
+// uc_orig: dwPseudorandomSeed (fallen/DDEngine/Source/panel.cpp)
+unsigned long dwPseudorandomSeed = 0;

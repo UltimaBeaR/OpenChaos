@@ -76219,6 +76219,156 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_last",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_last",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_draw_completion_bar",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_draw_completion_bar",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "dwGetRandomishNumber",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "dwGetRandomishNumber",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_enable_screensaver",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_enable_screensaver",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_disable_screensaver",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_disable_screensaver",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_screensaver_draw",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_screensaver_draw",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "bScreensaverEnabled",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "bScreensaverEnabled",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "iScreenSaverDarkness",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "iScreenSaverDarkness",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "iScreensaverXPos",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "iScreensaverXPos",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "iScreensaverYPos",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "iScreensaverYPos",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "iScreensaverXInc",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "iScreensaverXInc",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "iScreensaverYInc",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "iScreensaverYInc",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "iScreensaverAngle",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "iScreensaverAngle",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "iScreensaverAngleInc",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "iScreensaverAngleInc",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "dwPseudorandomSeed",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "dwPseudorandomSeed",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

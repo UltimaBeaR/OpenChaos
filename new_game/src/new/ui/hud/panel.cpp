@@ -31,6 +31,36 @@
 // Temporary: NET_PERSON macro (network player access)
 #include "fallen/Headers/cnet.h"
 
+// FC_cam[] for compass bearing calculation in PANEL_last
+#include "ui/camera/fc.h"
+#include "ui/camera/fc_globals.h"
+
+// Temporary: PCOM_person_wants_to_kill for scanner threat detection
+// (DAG violation: ui/ → ai/, pre-existing coupling from original)
+#include "ai/pcom.h"
+
+// Temporary: THING_find_sphere, THING_array, THING_ARRAY_SIZE for scanner
+// (DAG violation: ui/ → actors/, pre-existing coupling from original)
+#include "actors/core/thing.h"
+#include "actors/core/thing_globals.h"
+
+// Temporary: MAP_beacon, MAP_Beacon, MAP_MAX_BEACONS for navigation beacons
+// (DAG violation: ui/ → missions/, pre-existing coupling from original)
+#include "missions/memory_globals.h"
+
+// XLAT_str, X_COMPLETE, X_SEARCHING for search-mode text
+#include "assets/xlat_str.h"
+
+// Keys[], KB_V for version number display
+#include "engine/input/keyboard.h"
+#include "engine/input/keyboard_globals.h"
+
+// ENV_get_value_number for PSX-mode check
+#include "engine/io/env.h"
+
+// STATE_DEAD, STATE_SEARCH, SUB_STATE_DEAD_INJURED for beacon/scanner logic
+#include "fallen/Headers/statedef.h"
+
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
@@ -1695,3 +1725,1153 @@ void PANEL_inventory(Thing* darci, Thing* player)
 #undef PANEL_ADDWEAPON
 #undef ITEM_SEPERATION
 }
+
+// uc_orig: PANEL_last (fallen/DDEngine/Source/panel.cpp)
+void PANEL_last(void)
+{
+    bool bPanelIsAtBottomOfScreen = (m_iPanelYPos > 300);
+
+    if (EWAY_tutorial_string) {
+        PANEL_darken_screen(640);
+
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+        POLY_frame_init(UC_FALSE, UC_FALSE);
+
+#define PANEL_TUT_X 16
+#define PANEL_TUT_Y 16
+
+        SLONG height = FONT2D_DrawStringWrap(
+            EWAY_tutorial_string,
+            PANEL_TUT_X,
+            PANEL_TUT_Y,
+            0xffffff);
+
+        PANEL_last_bubble(
+            PANEL_TUT_X - 6,
+            PANEL_TUT_Y - 4,
+            float(FONT2D_rightmost_x) + 6.0F,
+            PANEL_TUT_Y + height + 4);
+
+        return;
+    }
+
+    Thing* darci = NET_PERSON(0);
+
+    if (darci == NULL) {
+        return;
+    }
+
+    if (EWAY_stop_player_moving()) {
+        PANEL_new_widescreen();
+
+        return;
+    } else {
+        PANEL_wide_top_person = NULL;
+        PANEL_wide_bot_person = NULL;
+        PANEL_wide_top_is_talking = UC_FALSE;
+        PANEL_wide_text[0] = '\000';
+    }
+
+    // Draw the panel background sprite.
+    PANEL_draw_quad(
+        (float)(m_iPanelXPos + 0),
+        (float)(m_iPanelYPos - 165),
+        (float)(m_iPanelXPos + 212),
+        (float)(m_iPanelYPos - 0),
+        POLY_PAGE_LASTPANEL_ALPHA,
+        0xffffffff,
+        0.0F,
+        90.0F / 256.0F,
+        212.0F / 256.0F,
+        1.0F);
+
+    // Determine current weapon/item sprite and ammo text.
+    SLONG sprite = -1;
+    CBYTE text[64];
+    text[0] = '\000';
+
+    int iGrenadeCountdown = -1;
+
+    if (darci->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
+        Thing* p_vehicle = TO_THING(darci->Genus.Person->InCar);
+        sprite = PANEL_LSPRITE_LOW_GEAR;
+    } else {
+        if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+            sprite = PANEL_LSPRITE_PISTOL;
+            if (darci->Genus.Person->ammo_packs_pistol) {
+                sprintf(text, "%d\\%d", darci->Genus.Person->Ammo, darci->Genus.Person->ammo_packs_pistol / 15);
+            } else {
+                sprintf(text, "%d", darci->Genus.Person->Ammo);
+            }
+        } else if (darci->Genus.Person->SpecialUse) {
+            Thing* p_special = TO_THING(darci->Genus.Person->SpecialUse);
+
+            switch (p_special->Genus.Special->SpecialType) {
+            case SPECIAL_SHOTGUN:
+                sprite = PANEL_LSPRITE_SHOTGUN;
+                if (darci->Genus.Person->ammo_packs_shotgun) {
+                    sprintf(text, "%d\\%d", p_special->Genus.Special->ammo, darci->Genus.Person->ammo_packs_shotgun / SPECIAL_AMMO_IN_A_SHOTGUN);
+                } else {
+                    sprintf(text, "%d", p_special->Genus.Special->ammo);
+                }
+                break;
+
+            case SPECIAL_AK47:
+                sprite = PANEL_LSPRITE_AK47;
+                if (darci->Genus.Person->ammo_packs_ak47) {
+                    sprintf(text, "%d\\%d", p_special->Genus.Special->ammo, darci->Genus.Person->ammo_packs_ak47 / SPECIAL_AMMO_IN_A_AK47);
+                } else {
+                    sprintf(text, "%d", p_special->Genus.Special->ammo);
+                }
+                break;
+
+            case SPECIAL_EXPLOSIVES:
+                sprite = PANEL_LSPRITE_EXPLOSIVES;
+                sprintf(text, "%d", p_special->Genus.Special->ammo);
+                break;
+
+            case SPECIAL_GRENADE:
+                sprite = PANEL_LSPRITE_GRENADE;
+                // If pin is pulled, show countdown.
+                if (p_special->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
+                    SLONG secsleft;
+                    secsleft = p_special->Genus.Special->timer / (16 * 20) + 1;
+                    SATURATE(secsleft, 0, 6);
+
+                    ULONG colour, colours[] = { 0xff3300, 0xff8800, 0x88ff00, 0x888888 };
+                    if (secsleft < 1)
+                        colour = *colours;
+                    else if (secsleft > 3)
+                        colour = colours[3];
+                    else
+                        colour = colours[secsleft];
+
+                    itoa(secsleft, text, 10);
+
+                    FONT2D_DrawString(
+                        text,
+                        m_iPanelXPos + 141,
+                        m_iPanelYPos - 53,
+                        colour,
+                        256);
+                }
+                itoa(p_special->Genus.Special->ammo, text, 10);
+                break;
+
+            case SPECIAL_KNIFE:
+                sprite = PANEL_LSPRITE_KNIFE;
+                break;
+
+            case SPECIAL_BASEBALLBAT:
+                sprite = PANEL_LSPRITE_BBB;
+                break;
+
+            default:
+                sprite = PANEL_LSPRITE_QMARK;
+                break;
+            }
+        } else {
+            sprite = PANEL_LSPRITE_FIST;
+        }
+    }
+
+    // Draw the weapon/item icon centred in the panel.
+    {
+        ASSERT(WITHIN(sprite, 0, PANEL_LSPRITE_NUMBER - 1));
+
+        PANEL_Lsprite* pls = &PANEL_lsprite[sprite];
+
+        float uwidth = (pls->u2 - pls->u1) * 256.0F;
+        float vwidth = (pls->v2 - pls->v1) * 256.0F;
+
+        float x1 = (float)(m_iPanelXPos + 170) - uwidth * 0.5F;
+        float y1 = (float)(m_iPanelYPos - 63) - vwidth * 0.5F;
+        float x2 = (float)(m_iPanelXPos + 170) + uwidth * 0.5F;
+        float y2 = (float)(m_iPanelYPos - 63) + vwidth * 0.5F;
+
+        if (ftol(uwidth) & 0x1) {
+            x1 -= 0.5F;
+            x2 -= 0.5F;
+        }
+        if (ftol(vwidth) & 0x1) {
+            y1 -= 0.5F;
+            y2 -= 0.5F;
+        }
+        // Move the AK47 icon up a bit so it doesn't overlap ammo count.
+        if (sprite == PANEL_LSPRITE_AK47) {
+            y1 -= 8.0F;
+            y2 -= 8.0F;
+        }
+
+        PANEL_draw_quad(
+            x1, y1,
+            x2, y2,
+            BodgePageIntoAdd(pls->page),
+            0xFFffffff,
+            pls->u1, pls->v1,
+            pls->u2, pls->v2);
+    }
+
+    // Draw the ammo count text.
+    if (text) {
+        FONT2D_DrawStringRightJustify(
+            text,
+            m_iPanelXPos + 215,
+            m_iPanelYPos - 50,
+            0xffffff,
+            256 + 64);
+    }
+
+    // Draw crime rate if the HUD flag is set.
+    if (GAME_FLAGS & GF_SHOW_CRIMERATE) {
+        CBYTE crimerate[64];
+        sprintf(crimerate, "%d%%", CRIME_RATE);
+
+        if (CRIME_RATE >= 95) {
+            static UWORD pulse = 0;
+            SLONG colour;
+            pulse += (TICK_RATIO * 80) >> TICK_SHIFT;
+            colour = (SIN(pulse & 2047) >> 9) + 128;
+            colour = colour | (colour << 8);
+            FONT2D_DrawStringCentred(
+                crimerate,
+                m_iPanelXPos + 170,
+                m_iPanelYPos - 116,
+                0xff0000 | colour);
+        } else {
+            FONT2D_DrawStringCentred(
+                crimerate,
+                m_iPanelXPos + 170,
+                m_iPanelYPos - 116,
+                0xffffff);
+        }
+    }
+
+    {
+        CBYTE timing[256];
+        float strip;
+        SLONG c;
+    }
+
+    // Draw the circular health/stamina arc for the player.
+    {
+        SLONG i;
+
+        float angle;
+
+        float du;
+        float dv;
+
+        float u1;
+        float v1;
+        float u2;
+        float v2;
+
+        float last_u1;
+        float last_v1;
+        float last_u2;
+        float last_v2;
+
+        POLY_Point pp[4];
+        POLY_Point* quad[4];
+        POLY_Point* tri[3];
+
+        quad[0] = &pp[0];
+        quad[1] = &pp[1];
+        quad[2] = &pp[2];
+        quad[3] = &pp[3];
+
+        tri[0] = &pp[0];
+        tri[1] = &pp[1];
+        tri[2] = &pp[2];
+
+        static float blah1 = (-43 * 2.0F * PI / 360.0F);
+        static float blah2 = (-227 * 2.0F * PI / 360.0F);
+        UBYTE is_in_car = darci->Genus.Person->InCar ? 1 : 0;
+        float car_offset = is_in_car ? 130.0F : 0.0F;
+
+        Thing* the_car = is_in_car ? TO_THING(darci->Genus.Person->InCar) : 0;
+
+#define PLH_MID_U (71.0F + car_offset)
+#define PLH_MID_V (71.0F)
+#define PLH_RADIUS (66.0F)
+#define PLH_WIDTH (10.0F)
+#define PLH_ANGLE1 blah1
+#define PLH_ANGLE2 blah2
+#define PLH_SEGS (8)
+#define PLH_MID_X ((float)(m_iPanelXPos + 74))
+#define PLH_MID_Y ((float)(m_iPanelYPos - (256 - 166)))
+
+        angle = PLH_ANGLE1;
+
+        float dangle;
+        float fraction;
+
+        dangle = (PLH_ANGLE2 - PLH_ANGLE1) / PLH_SEGS;
+
+        // Fraction of health remaining (different scale for vehicles/Roper).
+        fraction = is_in_car ? float(the_car->Genus.Vehicle->Health) * (1.0F / 300.0F) : float(darci->Genus.Person->Health) * ((darci->Genus.Person->PersonType == PERSON_ROPER) ? (1.0F / 400.0F) : (1.0F / 200.0F));
+
+        SATURATE(fraction, 0.0F, 1.0F);
+
+        dangle *= fraction;
+
+        for (i = 0; i <= PLH_SEGS; i++) {
+            du = sin(angle);
+            dv = cos(angle);
+
+            u1 = (PLH_MID_U + du * (PLH_RADIUS + PLH_WIDTH));
+            v1 = (PLH_MID_V + dv * (PLH_RADIUS + PLH_WIDTH));
+
+            u2 = (PLH_MID_U + du * (PLH_RADIUS - PLH_WIDTH));
+            v2 = (PLH_MID_V + dv * (PLH_RADIUS - PLH_WIDTH));
+
+            if (i > 0) {
+                float fWDepthBodge = PANEL_GetNextDepthBodge();
+                float fZDepthBodge = 1.0f - fWDepthBodge;
+
+                pp[0].X = PLH_MID_X + (u1 - PLH_MID_U);
+                pp[0].Y = PLH_MID_Y + (v1 - PLH_MID_V);
+                pp[0].z = fZDepthBodge;
+                pp[0].Z = fWDepthBodge;
+                pp[0].x = 0.0F;
+                pp[0].y = 0.0F;
+                pp[0].u = u1 * (1.0F / 256.0F);
+                pp[0].v = v1 * (1.0F / 256.0F);
+                pp[0].colour = 0xffffffff;
+                pp[0].specular = 0xff000000;
+
+                pp[1].X = PLH_MID_X + (u2 - PLH_MID_U);
+                pp[1].Y = PLH_MID_Y + (v2 - PLH_MID_V);
+                pp[1].z = fZDepthBodge;
+                pp[1].Z = fWDepthBodge;
+                pp[1].x = 0.0F;
+                pp[1].y = 0.0F;
+                pp[1].u = u2 * (1.0F / 256.0F);
+                pp[1].v = v2 * (1.0F / 256.0F);
+                pp[1].colour = 0xffffffff;
+                pp[1].specular = 0xff000000;
+
+                pp[2].X = PLH_MID_X + (last_u1 - PLH_MID_U);
+                pp[2].Y = PLH_MID_Y + (last_v1 - PLH_MID_V);
+                pp[2].z = fZDepthBodge;
+                pp[2].Z = fWDepthBodge;
+                pp[2].x = 0.0F;
+                pp[2].y = 0.0F;
+                pp[2].u = last_u1 * (1.0F / 256.0F);
+                pp[2].v = last_v1 * (1.0F / 256.0F);
+                pp[2].colour = 0xffffffff;
+                pp[2].specular = 0xff000000;
+
+                pp[3].X = PLH_MID_X + (last_u2 - PLH_MID_U);
+                pp[3].Y = PLH_MID_Y + (last_v2 - PLH_MID_V);
+                pp[3].z = fZDepthBodge;
+                pp[3].Z = fWDepthBodge;
+                pp[3].x = 0.0F;
+                pp[3].y = 0.0F;
+                pp[3].u = last_u2 * (1.0F / 256.0F);
+                pp[3].v = last_v2 * (1.0F / 256.0F);
+                pp[3].colour = 0xffffffff;
+                pp[3].specular = 0xff000000;
+
+                POLY_add_quad(quad, POLY_PAGE_LASTPANEL2_ALPHA, UC_FALSE, UC_TRUE);
+            }
+
+            last_u1 = u1;
+            last_v1 = v1;
+            last_u2 = u2;
+            last_v2 = v2;
+
+            angle += dangle;
+        }
+    }
+
+    // Draw the stamina pip marks (coloured squares).
+    {
+        UBYTE i, stamina = darci->Genus.Person->Stamina / 25;
+        SLONG x = m_iPanelXPos + 107;
+        SLONG y = m_iPanelYPos - 36;
+        SLONG rgb[] = { 0x00FF0000, 0x00C04000, 0x00808000, 0x0040C000, 0x0000ff00 };
+
+        SATURATE(stamina, 0, 5);
+
+        for (i = 0; i < stamina; i++) {
+            PANEL_draw_quad(
+                x, y - 10,
+                x + 10, y,
+                POLY_PAGE_LASTPANEL_ADD,
+                rgb[i],
+                (243.0 / 256.0),
+                (198.0 / 256.0),
+                (253.0 / 256.0),
+                (208.0 / 256.0));
+            x += 3;
+            y -= 3;
+        }
+    }
+
+    // Draw navigation beacons on the mini-map scanner.
+    {
+        SLONG i;
+
+        float dx;
+        float dz;
+        float dist;
+        float dangle;
+        float score;
+
+        float x;
+        float y;
+
+        BOOL thugly;
+
+        POLY_Point pp[3];
+        POLY_Point* tri[3];
+
+        MAP_Beacon* mb;
+
+        ULONG colour;
+
+        SLONG best_beacon = NULL;
+        float best_score = float(UC_INFINITY);
+
+        for (i = 1; i < MAP_MAX_BEACONS; i++) {
+            mb = &MAP_beacon[i];
+
+            if (!mb->used) {
+                continue;
+            }
+
+            thugly = UC_FALSE;
+
+            if (mb->track_thing) {
+                Thing* p_track = TO_THING(mb->track_thing);
+
+                mb->wx = p_track->WorldPos.X >> 8;
+                mb->wz = p_track->WorldPos.Z >> 8;
+
+                extern SLONG is_person_dead(Thing * p_person);
+
+                if (p_track->Class == CLASS_PERSON) {
+                    switch (p_track->Genus.Person->PersonType) {
+                    case PERSON_THUG_RASTA:
+                    case PERSON_THUG_GREY:
+                    case PERSON_THUG_RED:
+                    case PERSON_MIB1:
+                    case PERSON_MIB2:
+                    case PERSON_MIB3:
+                        thugly = UC_TRUE;
+                    }
+                    if (p_track->State == STATE_DEAD) {
+                        if (p_track->SubState == SUB_STATE_DEAD_INJURED) {
+                            if (p_track->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST) {
+                                continue;
+                            }
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            colour = PANEL_beacon_colour[i % PANEL_MAX_BEACON_COLOURS] | (0xff000000);
+
+            dx = float(mb->wx - (darci->WorldPos.X >> 8));
+            dz = float(mb->wz - (darci->WorldPos.Z >> 8));
+
+            dist = sqrt(dx * dx + dz * dz);
+
+            {
+                UBYTE is_dot = 0;
+
+                if (PANEL_scanner_poo)
+                    dangle = atan2(dx, dz) - float(darci->Draw.Tweened->Angle) * (2.0F * PI / 2048.0F);
+                else
+                    dangle = atan2(dx, dz) - float(FC_cam[0].yaw >> 8) * (2.0F * PI / 2048.0F);
+                score = (float)fmod(dangle, 2.0F * PI) - PI;
+
+                if (score > +PI) {
+                    score -= 2.0F * PI;
+                }
+                if (score < -PI) {
+                    score += 2.0F * PI;
+                }
+
+                dist /= 16.0F * 256.0F;
+
+                if (dist < 1.0F)
+                    is_dot = 1;
+
+                SATURATE(dist, 0.0F, 1.0F);
+
+#define PLS_MID_X PLH_MID_X
+#define PLS_MID_Y PLH_MID_Y
+#define PLS_RADIUS 50.0F
+
+                {
+                    x = PLS_MID_X + (float)sin(dangle) * PLS_RADIUS * dist;
+                    y = PLS_MID_Y + (float)cos(dangle) * PLS_RADIUS * dist;
+
+                    float size = (mb->pad && !is_dot) ? 9.0F : 6.0F;
+
+                    SLONG alive = GetTickCount() - mb->ticks;
+
+                    if (alive < 4096) {
+                        alive &= 0x100;
+
+                        SATURATE(alive, 0, 255);
+
+                        colour &= 0x00ffffff;
+                        colour |= alive << 24;
+                    }
+
+                    PANEL_last_arrow(x, y, dangle, size, colour, is_dot);
+                }
+            }
+
+            if (fabs(score) < best_score) {
+                best_score = fabs(score);
+                best_beacon = i;
+            }
+
+            mb->pad = UC_FALSE;
+        }
+
+        if (PANEL_info_time > GetTickCount() - 2000) {
+            SLONG x_right;
+
+            SLONG colour_main;
+            SLONG colour_shad;
+
+            DWORD now = GetTickCount();
+            DWORD onfor = now - PANEL_info_time;
+
+            if (onfor < 255) {
+                colour_main = onfor;
+                colour_shad = onfor;
+            } else if (onfor < 768) {
+                colour_main = 0xff;
+                colour_shad = 255 - (onfor - 256 >> 1);
+            } else {
+                colour_main = 0xff;
+                colour_shad = 0x00;
+            }
+
+            x_right = onfor >> 1;
+
+            SATURATE(colour_main, 0, 255);
+            SATURATE(colour_shad, 0, 255);
+            SATURATE(x_right, 16, 205);
+
+            x_right += m_iPanelXPos;
+
+            colour_main = colour_main | (colour_main << 8) | (colour_main << 16);
+            colour_shad = colour_shad | (colour_shad << 8) | (colour_shad << 16);
+
+            {
+                FONT2D_DrawStringRightJustifyNoWrap(
+                    PANEL_info_message,
+                    x_right + 2,
+                    m_iPanelYPos - 23 + 2,
+                    colour_shad,
+                    256);
+
+                FONT2D_DrawStringRightJustifyNoWrap(
+                    PANEL_info_message,
+                    x_right,
+                    m_iPanelYPos - 23,
+                    colour_main,
+                    256);
+            }
+        } else {
+            if (best_beacon) {
+                ASSERT(WITHIN(best_beacon, 1, MAP_MAX_BEACONS - 1));
+
+                mb = &MAP_beacon[best_beacon];
+
+                extern CBYTE* EWAY_get_mess(SLONG index);
+
+                FONT2D_DrawString(
+                    EWAY_get_mess(mb->index),
+                    m_iPanelXPos + 12 + 2,
+                    m_iPanelYPos - 23 + 2,
+                    0x00000000,
+                    256);
+
+                FONT2D_DrawString(
+                    EWAY_get_mess(mb->index),
+                    m_iPanelXPos + 12,
+                    m_iPanelYPos - 23,
+                    PANEL_beacon_colour[best_beacon % PANEL_MAX_BEACON_COLOURS],
+                    256);
+
+                mb->pad = UC_TRUE;
+            }
+        }
+    }
+
+    // Draw hostile NPCs on the mini-map scanner dot.
+    {
+        SLONG i;
+
+        float x;
+        float y;
+        float dx;
+        float dz;
+        float dist;
+        float dangle;
+        float size;
+        float flash = fabs(sin(float(GAME_TURN) * 0.2F));
+        SLONG display;
+        ULONG colour;
+
+        PANEL_Lsprite* pls = &PANEL_lsprite[PANEL_LSPRITE_DOT];
+
+        SLONG num_found = THING_find_sphere(
+            darci->WorldPos.X >> 8,
+            darci->WorldPos.Y >> 8,
+            darci->WorldPos.Z >> 8,
+            0x1000,
+            THING_array,
+            THING_ARRAY_SIZE,
+            1 << CLASS_PERSON);
+
+        Thing* p_found;
+
+        for (i = 0; i < num_found; i++) {
+            p_found = TO_THING(THING_array[i]);
+
+            if (p_found == darci) {
+                continue;
+            }
+
+            if (p_found->State == STATE_DEAD) {
+                continue;
+            }
+
+            display = UC_FALSE;
+
+            switch (p_found->Genus.Person->PersonType) {
+            case PERSON_THUG_RASTA:
+            case PERSON_THUG_GREY:
+            case PERSON_THUG_RED:
+                display = UC_TRUE;
+                size = 0.5F;
+                colour = 0xdd2222;
+                break;
+
+            case PERSON_MIB1:
+            case PERSON_MIB2:
+            case PERSON_MIB3:
+                display = UC_TRUE;
+                size = 0.5F;
+                colour = 0xdddddd;
+                break;
+
+            default:
+                break;
+            }
+
+            if (PCOM_person_wants_to_kill(p_found) == THING_NUMBER(darci)) {
+                display = UC_TRUE;
+                size = flash;
+            }
+
+            if (display) {
+                dx = float(p_found->WorldPos.X - darci->WorldPos.X >> 8);
+                dz = float(p_found->WorldPos.Z - darci->WorldPos.Z >> 8);
+
+                dist = sqrt(dx * dx + dz * dz);
+                dist *= 1.0F / (16.0F * 256.0F);
+
+                if (dist < 1.0F) {
+                    if (PANEL_scanner_poo) {
+                        dangle = atan2(dx, dz) - float(darci->Draw.Tweened->Angle) * (2.0F * PI / 2048.0F);
+                    } else {
+                        dangle = atan2(dx, dz) - float(FC_cam[0].yaw >> 8) * (2.0F * PI / 2048.0F);
+                    }
+
+                    x = PLS_MID_X + (float)sin(dangle) * PLS_RADIUS * dist;
+                    y = PLS_MID_Y + (float)cos(dangle) * PLS_RADIUS * dist;
+
+                    size += 0.5F;
+                    size *= 2.0F;
+
+                    PANEL_draw_quad(
+                        x - size, y - size,
+                        x + size, y + size,
+                        POLY_PAGE_LASTPANEL_ADD,
+                        colour,
+                        pls->u1, pls->v1,
+                        pls->u2, pls->v2);
+                }
+            }
+        }
+    }
+
+#undef PLH_MID_U
+#undef PLH_MID_V
+#undef PLH_RADIUS
+#undef PLH_WIDTH
+#undef PLH_ANGLE1
+#undef PLH_ANGLE2
+#undef PLH_SEGS
+#undef PLH_MID_X
+#undef PLH_MID_Y
+
+    // Draw floating text messages from NPCs and radio chatter.
+    PANEL_new_text_process();
+
+    {
+#define PLT_X 214
+#define PLT_Y 360
+
+        SLONG i;
+        SLONG ybase;
+        SLONG y = m_iPanelYPos - (480 - PLT_Y);
+        SLONG x1 = (m_iPanelXPos < 260) ? (m_iPanelXPos + PLT_X) : (32);
+        SLONG x2 = (m_iPanelXPos < 260) ? (640 - 32) : (m_iPanelXPos - 16);
+        SLONG height;
+
+        PANEL_Text* pt;
+
+        // If the circular text buffer has wrapped past its maximum depth, advance the
+        // head to discard stale entries (matches PSX behaviour).
+        if ((PANEL_text_tail - PANEL_text_head) > PANEL_MAX_TEXTS) {
+            PANEL_text_head = PANEL_text_tail - (PANEL_MAX_TEXTS - 1);
+        }
+
+        for (i = PANEL_text_head; i < PANEL_text_tail; i++) {
+            pt = &PANEL_text[i & (PANEL_MAX_TEXTS - 1)];
+
+            if (i == PANEL_text_head) {
+                if (pt->delay == 0) {
+                    PANEL_text_head += 1;
+                }
+            }
+
+            if (pt->delay != 0) {
+                ybase = y;
+
+                PANEL_new_face(
+                    pt->who,
+                    x1,
+                    ybase - 2,
+                    PANEL_FACE_SMALL);
+
+                height = FONT2D_DrawStringWrapTo(pt->text,
+                             x1 + 36 + 6,
+                             y + 2,
+                             0xffffff,
+                             256,
+                             POLY_PAGE_FONT2D,
+                             0,
+                             x2)
+                    - y;
+                height += 20;
+
+                PANEL_last_bubble(
+                    x1 + 36,
+                    ybase - 4,
+                    float(FONT2D_rightmost_x) + 6.0F,
+                    ybase - 2 + height);
+
+                if (height < 34) {
+                    height = 34;
+                }
+
+                y += height;
+            }
+        }
+
+#undef PLT_X
+#undef PLT_Y
+    }
+
+    // Draw road sign flashes.
+    DWORD dtime = GetTickCount() - PANEL_sign_time;
+
+    if (dtime < 3000) {
+        dtime %= 600;
+
+        if (dtime < 400) {
+            float du;
+            float dv;
+
+            float u_mid;
+            float v_mid;
+
+            u_mid = (PANEL_sign_which & 1) ? 0.75F : 0.25F;
+            v_mid = (PANEL_sign_which & 2) ? 0.75F : 0.25F;
+
+            du = (PANEL_sign_flip & PANEL_SIGN_FLIP_LEFT_AND_RIGHT) ? -0.25F : +0.25F;
+            dv = (PANEL_sign_flip & PANEL_SIGN_FLIP_TOP_AND_BOTTOM) ? -0.25F : +0.25F;
+
+#define PANEL_SIGN_X 320
+            int iYPos;
+            if (bPanelIsAtBottomOfScreen) {
+                iYPos = 100;
+            } else {
+                iYPos = 480 - 100;
+            }
+
+            PANEL_draw_quad(
+                PANEL_SIGN_X - 64,
+                iYPos - 64,
+                PANEL_SIGN_X + 64,
+                iYPos + 64,
+                POLY_PAGE_SIGN,
+                0xffffffff,
+                u_mid - du,
+                v_mid - dv,
+                u_mid + du,
+                v_mid + dv);
+#undef PANEL_SIGN_X
+        }
+    }
+
+    // Draw a progress bar when the player is in search mode.
+    {
+        Thing* darci = NET_PERSON(0);
+
+        if (darci) {
+            if (darci->State == STATE_SEARCH) {
+                float percent;
+
+                percent = darci->Genus.Person->Timer1 * (1.0F / (100.0F * 256.0F));
+
+                SATURATE(percent, 0.0F, 1.0F);
+
+                PANEL_last_bubble(
+                    320 - 80,
+                    220 - 16,
+                    320 + 80,
+                    220 + 16);
+
+                PANEL_draw_quad(
+                    320 - 75,
+                    220 - 12,
+                    320 - 75 + 151 * percent,
+                    220 + 13,
+                    POLY_PAGE_COLOUR,
+                    0x7788bb);
+
+                if ((darci->Genus.Person->Timer1 & 0xfff) < 3000 || percent == 1.0F) {
+                    CBYTE* text;
+
+                    if (percent == 1.0F) {
+                        text = XLAT_str(X_COMPLETE);
+                    } else {
+                        text = XLAT_str(X_SEARCHING);
+                    }
+
+                    FONT2D_DrawStringCentred(text, 320, 220 - 8, 0xffffff);
+                }
+            }
+        }
+    }
+
+    {
+        int iYPos = bPanelIsAtBottomOfScreen ? 0 : 360;
+    }
+
+    // PSX-mode debug indicator (activated by iamapsx env var).
+    static SLONG i_know = 0;
+    static SLONG the_answer = 0;
+
+    if (!i_know) {
+        the_answer = ENV_get_value_number("iamapsx", UC_FALSE);
+        i_know = UC_TRUE;
+    }
+
+    if (the_answer) {
+        FONT2D_DrawString("PSX mode", 7, 17, 0x000000);
+        FONT2D_DrawString("PSX mode", 5, 15, 0xff2288);
+    }
+
+    // Show version number overlay when V key is held.
+    {
+        static ULONG timestamp_colour = 0;
+        static CBYTE version_number[128];
+
+        if (Keys[KB_V]) {
+            timestamp_colour = 0xf0f0f0f0;
+        }
+
+        if (timestamp_colour) {
+            if (!version_number[0]) {
+                CBYTE ts[256];
+                float vn;
+
+                sprintf(ts, __DATE__);
+
+                CBYTE* month[12] = {
+                    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+                };
+
+                SLONG i;
+
+                vn = 0.0F;
+
+                for (i = 0; i < 12; i++) {
+                    if (toupper(ts[0]) == toupper(month[i][0]) && toupper(ts[1]) == toupper(month[i][1]) && toupper(ts[2]) == toupper(month[i][2])) {
+                        vn = i - 8.0F;
+                    }
+                }
+
+                SLONG day = atoi(ts + 4);
+                vn += day * 0.03F;
+
+                SLONG year = atoi(ts + 7);
+                vn += (year - 1999) * 12;
+
+                sprintf(version_number, "Version number %.2f : Compiled %s", vn, __DATE__);
+            }
+
+            timestamp_colour -= 0x10101010;
+
+            FONT2D_DrawString(
+                version_number,
+                22,
+                22,
+                0x00000000);
+
+            FONT2D_DrawString(
+                version_number,
+                20,
+                20,
+                timestamp_colour);
+        }
+    }
+}
+
+// uc_orig: PANEL_draw_completion_bar (fallen/DDEngine/Source/panel.cpp)
+void PANEL_draw_completion_bar(SLONG completion)
+{
+#define START_R 50
+#define START_G 59
+#define START_B 80
+#define END_R 210
+#define END_G 216
+#define END_B 208
+
+    SLONG along;
+    SLONG r;
+    SLONG g;
+    SLONG b;
+
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+
+    SLONG i;
+    SLONG colour;
+
+    for (i = 0; i < (completion >> 3); i += 1) {
+        r = START_R + (END_R - START_R) * i >> 5;
+        g = START_G + (END_G - START_G) * i >> 5;
+        b = START_B + (END_B - START_B) * i >> 5;
+
+        colour = (r << 16) | (g << 8) | (b << 0);
+
+        PANEL_draw_quad(
+            5 + i * 20, 455,
+            23 + i * 20, 475,
+            POLY_PAGE_COLOUR,
+            colour);
+    }
+
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
+
+#undef START_R
+#undef START_G
+#undef START_B
+#undef END_R
+#undef END_G
+#undef END_B
+}
+
+// Random number generator for screensaver bounce direction changes.
+// uc_orig: dwGetRandomishNumber (fallen/DDEngine/Source/panel.cpp)
+static DWORD dwGetRandomishNumber(void)
+{
+    dwPseudorandomSeed *= 51929;
+    dwPseudorandomSeed ^= dwPseudorandomSeed >> 3;
+    dwPseudorandomSeed ^= dwPseudorandomSeed << 8;
+    dwPseudorandomSeed += 31415;
+
+    return (dwPseudorandomSeed >> 8);
+}
+
+#define SCREENSAVER_SIZE 128
+
+// uc_orig: PANEL_enable_screensaver (fallen/DDEngine/Source/panel.cpp)
+void PANEL_enable_screensaver(void)
+{
+    if (!bScreensaverEnabled) {
+        bScreensaverEnabled = UC_TRUE;
+        iScreensaverXPos = 320;
+        iScreensaverYPos = 240;
+        iScreensaverXInc = 4;
+        iScreensaverYInc = 4;
+    }
+}
+
+// uc_orig: PANEL_disable_screensaver (fallen/DDEngine/Source/panel.cpp)
+void PANEL_disable_screensaver(bool bImmediately)
+{
+    bScreensaverEnabled = UC_FALSE;
+    if (bImmediately) {
+        iScreenSaverDarkness = 0;
+    }
+}
+
+// uc_orig: PANEL_screensaver_draw (fallen/DDEngine/Source/panel.cpp)
+void PANEL_screensaver_draw(void)
+{
+    if (bScreensaverEnabled) {
+        iScreenSaverDarkness += 100;
+        if (iScreenSaverDarkness > 0xffff) {
+            iScreenSaverDarkness = 0xffff;
+        }
+    } else {
+        iScreenSaverDarkness -= 10000;
+        if (iScreenSaverDarkness < 0) {
+            iScreenSaverDarkness = 0;
+        }
+    }
+
+    if (iScreenSaverDarkness == 0) {
+        return;
+    }
+
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+
+    // Advance screensaver position and bounce off screen edges.
+    iScreensaverXPos += iScreensaverXInc;
+    iScreensaverYPos += iScreensaverYInc;
+    iScreensaverAngle += iScreensaverAngleInc;
+    if (iScreensaverXPos > 640 - SCREENSAVER_SIZE) {
+        iScreensaverXPos = 640 - SCREENSAVER_SIZE;
+        iScreensaverXInc = -((signed)(dwGetRandomishNumber() & 0x3) + 2);
+        iScreensaverAngleInc = ((signed)(dwGetRandomishNumber() & 0xfff) - 0x7ff);
+    } else if (iScreensaverXPos < 0) {
+        iScreensaverXPos = 0;
+        iScreensaverXInc = ((signed)(dwGetRandomishNumber() & 0x3) + 2);
+        iScreensaverAngleInc = ((signed)(dwGetRandomishNumber() & 0xfff) - 0x7ff);
+    }
+
+    if (iScreensaverYPos > 480 - SCREENSAVER_SIZE) {
+        iScreensaverYPos = 480 - SCREENSAVER_SIZE;
+        iScreensaverYInc = -((signed)(dwGetRandomishNumber() & 0x3) + 2);
+        iScreensaverAngleInc = ((signed)(dwGetRandomishNumber() & 0xfff) - 0x7ff);
+    } else if (iScreensaverYPos < 0) {
+        iScreensaverYPos = 0;
+        iScreensaverYInc = ((signed)(dwGetRandomishNumber() & 0x3) + 2);
+        iScreensaverAngleInc = ((signed)(dwGetRandomishNumber() & 0xfff) - 0x7ff);
+    }
+
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
+
+    DWORD dwColour = ((iScreenSaverDarkness & 0xff00) << 16);
+
+    float fSinAngle, fCosAngle;
+    float fAngle = (float)(iScreensaverAngle & 0xffff) * (2.0f * 3.1415927f / 65536.0f);
+    fSinAngle = sinf(fAngle);
+    fCosAngle = cosf(fAngle);
+    fSinAngle *= 0.65f;
+    fCosAngle *= 0.65f;
+
+    // Draw the rotating UC logo sprite.
+    pp[0].X = (float)iScreensaverXPos;
+    pp[0].Y = (float)iScreensaverYPos;
+    pp[0].z = 0.0f;
+    pp[0].Z = 0.99999f;
+    pp[0].u = 0.5f + fSinAngle;
+    pp[0].v = 0.5f + fCosAngle;
+    pp[0].colour = dwColour;
+    pp[0].specular = 0xff000000;
+
+    pp[1].X = (float)iScreensaverXPos + SCREENSAVER_SIZE;
+    pp[1].Y = (float)iScreensaverYPos;
+    pp[1].z = 0.0f;
+    pp[1].Z = 0.99999f;
+    pp[1].u = 0.5f - fCosAngle;
+    pp[1].v = 0.5f + fSinAngle;
+    pp[1].colour = dwColour;
+    pp[1].specular = 0xff000000;
+
+    pp[2].X = (float)iScreensaverXPos;
+    pp[2].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
+    pp[2].z = 0.0f;
+    pp[2].Z = 0.99999f;
+    pp[2].u = 0.5f + fCosAngle;
+    pp[2].v = 0.5f - fSinAngle;
+    pp[2].colour = dwColour;
+    pp[2].specular = 0xff000000;
+
+    pp[3].X = (float)iScreensaverXPos + SCREENSAVER_SIZE;
+    pp[3].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
+    pp[3].z = 0.0f;
+    pp[3].Z = 0.99999f;
+    pp[3].u = 0.5f - fSinAngle;
+    pp[3].v = 0.5f - fCosAngle;
+    pp[3].colour = dwColour;
+    pp[3].specular = 0xff000000;
+
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
+
+    POLY_add_quad(quad, POLY_PAGE_FADE_MF, UC_FALSE, UC_TRUE);
+
+    // Draw black bars around the logo.
+    // Top block.
+    pp[0].X = 0.0f;
+    pp[0].Y = 0.0f;
+    pp[1].X = 640.0f;
+    pp[1].Y = 0.0f;
+    pp[2].X = 0.0f;
+    pp[2].Y = (float)iScreensaverYPos;
+    pp[3].X = 640.0f;
+    pp[3].Y = (float)iScreensaverYPos;
+    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, UC_FALSE, UC_TRUE);
+
+    // Bottom block.
+    pp[0].X = 0.0f;
+    pp[0].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
+    pp[1].X = 640.0f;
+    pp[1].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
+    pp[2].X = 0.0f;
+    pp[2].Y = 480.0f;
+    pp[3].X = 640.0f;
+    pp[3].Y = 480.0f;
+    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, UC_FALSE, UC_TRUE);
+
+    // Left block.
+    pp[0].X = 0.0f;
+    pp[0].Y = (float)iScreensaverYPos;
+    pp[1].X = (float)iScreensaverXPos;
+    pp[1].Y = (float)iScreensaverYPos;
+    pp[2].X = 0.0f;
+    pp[2].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
+    pp[3].X = (float)iScreensaverXPos;
+    pp[3].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
+    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, UC_FALSE, UC_TRUE);
+
+    // Right block.
+    pp[0].X = (float)iScreensaverXPos + SCREENSAVER_SIZE;
+    pp[0].Y = (float)iScreensaverYPos;
+    pp[1].X = 640.0f;
+    pp[1].Y = (float)iScreensaverYPos;
+    pp[2].X = (float)iScreensaverXPos + SCREENSAVER_SIZE;
+    pp[2].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
+    pp[3].X = 640.0f;
+    pp[3].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
+    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, UC_FALSE, UC_TRUE);
+
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
+}
+
+#undef SCREENSAVER_SIZE

@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 141 — panel.cpp chunk 3: PANEL_last + PANEL_draw_completion_bar + screensaver (2026-03-23)
+
+- `bScreensaverEnabled`, `iScreenSaverDarkness`, `iScreensaverXPos/Y/Inc`, `iScreensaverAngle/Inc`, `dwPseudorandomSeed` → `panel_globals.cpp/.h`
+- `dwGetRandomishNumber` — static file-private (не объявлена в оригинальном `panel.h`); вызывается только из `PANEL_screensaver_draw`
+- `PANEL_last` добавлены Temporary includes: `ai/pcom.h` (DAG: ui → ai), `actors/core/thing.h/.h_globals` (DAG: ui → actors), `missions/memory_globals.h` (DAG: ui → missions); `fallen/Headers/statedef.h` (STATE_DEAD/SEARCH/SUB_STATE_DEAD_INJURED не транзитивны через Thing.h)
+- `old/fallen/DDEngine/Source/panel.cpp` удалён из CMakeLists.txt — всё содержимое мигрировано (3 блока `#if 0`)
+- `PANEL_last_arrow`, `PANEL_last_bubble`, `PANEL_new_widescreen`, `PANEL_new_text_process` — были non-static для chunk 3; теперь chunk 3 мигрирован, могут стать static (tech debt, не критично)
+- `iGrenadeCountdown` — declared-but-unused переменная из оригинала, перенесена 1:1
+
+---
+
 ## Итерация 140 — panel.cpp chunk 2: PANEL_new_text..PANEL_inventory (2026-03-23)
 
 - `PANEL_help_message`, `PANEL_help_timer`, `PANEL_wide_*`, `PANEL_beacon_colour[]`, `PANEL_fadeout_time`, `angle_mul`, `zoom_mul`, `PANEL_sign_*`, `PANEL_info_message`, `PANEL_info_time` → `panel_globals.cpp/.h`.
