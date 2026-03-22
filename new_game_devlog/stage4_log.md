@@ -1,5 +1,19 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 117 — world/environment/building (Building.cpp чанк 1: helpers, edge scanner → new/) (2026-03-22)
+
+- `fallen/Source/Building.cpp` (9878 строк) — чанк 1 (lines 1-1520) → `new/world/environment/building.cpp` + `building.h` + `building_globals.cpp` + `building_globals.h`.
+- `insert_collision_vect` — в пре-релизной кодовой базе stub-заглушка (тело пустое, return 0); сохранено 1:1.
+- `add_tri_to_walkable_list` — тело закомментировано ("wrong wrong wrong") в оригинале; сохранено 1:1.
+- `INSIDE`/`ON_EDGE`/`OUTSIDE` → `BUILDING_INSIDE`/`BUILDING_ON_EDGE`/`BUILDING_OUTSIDE` (конфликт имён с системными/оконными макросами).
+- `end_prim_point` и `end_prim_face4` инициализированы в 0 (оригинал: `MAX_PRIM_POINTS - 2` / `MAX_PRIM_FACES4 - 2`), т.к. это runtime-выражения через `save_table[]`, не линк-тайм константы.
+- `texture_xy2[]` — чисто локальная для чанка 2 lookup-таблица, оставлена в `old/Building.cpp`.
+- Сигнатура `place_building_at` исправлена в `old/fallen/Headers/building.h` (4-param → 5-param).
+- Temporary includes: `game.h`, `fallen/Headers/pap.h`, `fallen/Headers/supermap.h`, `fallen/Headers/memory.h`, `pap.h`, `fallen/Headers/collide.h`, `engine/graphics/pipeline/aeng.h`.
+- `old/Building.cpp` оставлен (chunk 2+, lines 1521-9878), redirect-заголовки добавлены в начало.
+
+---
+
 ## Итерация 116 — effects/dirt (dirt.cpp → redirect) (2026-03-22)
 
 - `fallen/Source/dirt.cpp` (2828 строк) → `new/effects/dirt.cpp` + `dirt.h` + `dirt_globals.cpp` + `dirt_globals.h`.

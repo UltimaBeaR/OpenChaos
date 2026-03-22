@@ -425,7 +425,7 @@ extern SLONG next_inside;
 
 // functions
 
-extern SLONG place_building_at(UWORD prim, SLONG x, SLONG y, SLONG z);
+extern SLONG place_building_at(UWORD building, UWORD prim, SLONG x, SLONG y, SLONG z);
 extern void offset_buildings(SLONG x, SLONG y, SLONG z);
 // extern	void	calc_buildings_world_box(UWORD	prim,SLONG x,SLONG y,SLONG z,EdRect *rect);
 // extern	void	calc_buildings_screen_box(UWORD	prim,SLONG x,SLONG y,SLONG z,EdRect *rect);

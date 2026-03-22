@@ -66549,6 +66549,1046 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "insert_collision_vect",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "insert_collision_vect",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "add_page_countxy",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "add_page_countxy",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "add_bound_box",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "add_bound_box",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_map_walkable",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "get_map_walkable",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_map_walkable",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "set_map_walkable",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_map_texture",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "get_map_texture",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_map_texture",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "set_map_texture",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_map_height",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "get_map_height",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_roof_height",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "get_roof_height",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_map_flag",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "set_map_flag",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mask_map_flag",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "mask_map_flag",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_map_flags",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "get_map_flags",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_map_height",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "set_map_height",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "in_map_range",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "in_map_range",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "place_thing_on_map",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "place_thing_on_map",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_vect_floor_height",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "set_vect_floor_height",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_rand",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_rand",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_build_seed",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "set_build_seed",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "add_walk_face_to_map",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "add_walk_face_to_map",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "scan_walk_triangle",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "scan_walk_triangle",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "add_quad_to_walkable_list",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "add_quad_to_walkable_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "add_tri_to_walkable_list",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "add_tri_to_walkable_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "place_building_at",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "place_building_at",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "add_point",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "add_point",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_row_wall_points_at_y",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_row_wall_points_at_y",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_row_wall_points_at_floor_alt",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_row_wall_points_at_floor_alt",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_row_wall_only_points_at_y",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_row_wall_only_points_at_y",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_row_wall_only_points_at_floor_alt",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_row_wall_only_points_at_floor_alt",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_row_window_depth_points_at_y",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_row_window_depth_points_at_y",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_cut_blocks",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "set_cut_blocks",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_cut_blocks_z",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "set_cut_blocks_z",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "scan_line_z",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "scan_line_z",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "scan_line",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "scan_line",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "insert_point",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "insert_point",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_edge_list",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_edge_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_more_edge_list",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_more_edge_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "scan_bottom_line",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "scan_bottom_line",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_bottom_edge_list",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_bottom_edge_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "bin_edge_list",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "bin_edge_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "dump_edge_list",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "dump_edge_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "edit_map",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "edit_map",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "tex_map",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "tex_map",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "edit_map_roof_height",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "edit_map_roof_height",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "start_point",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "start_point",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "next_roof_bound",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "next_roof_bound",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "background_prim",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "background_prim",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "end_prim_point",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "end_prim_point",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "end_prim_face4",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "end_prim_face4",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "end_prim_face3",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "end_prim_face3",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "end_prim_object",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "end_prim_object",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "end_prim_multi_object",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "end_prim_multi_object",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "next_building_object",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "next_building_object",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "end_building_object",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "end_building_object",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "next_building_facet",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "next_building_facet",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "end_building_facet",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "end_building_facet",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "diff_page_count1",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "diff_page_count1",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "diff_page_count2",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "diff_page_count2",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "page_count",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "page_count",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "window_list",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "window_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "wall_list",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "wall_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "storey_list",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "storey_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_list",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "building_list",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_facets",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "building_facets",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_objects",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "building_objects",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_mode",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "build_mode",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "room_ids",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "room_ids",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "next_inside",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "next_inside",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "floor_texture_sizes",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "floor_texture_sizes",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "textures_xy",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "textures_xy",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "dx_textures_xy",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "dx_textures_xy",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "textures_flags",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "textures_flags",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "WindowCount",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "WindowCount",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "block_min_x",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "block_min_x",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "block_max_x",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "block_max_x",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "edge_pool_ptr",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "edge_pool_ptr",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_x",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "build_x",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_y",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "build_y",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_z",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "build_z",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_min_y",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "build_min_y",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_max_y",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "build_max_y",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "edge_heads_ptr",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "edge_heads_ptr",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "next_edge",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "next_edge",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "edge_min_z",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "edge_min_z",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "flag_blocks",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "flag_blocks",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "flag_blocks2",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "flag_blocks2",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "cut_blocks",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "cut_blocks",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "global_y",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "global_y",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_seed",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "build_seed",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Edge",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "Edge",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FLOOR_LADDER",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "FLOOR_LADDER",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAX_BOUND_SIZE",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "MAX_BOUND_SIZE",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SORT_LEVEL_LONG_LEDGE",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "SORT_LEVEL_LONG_LEDGE",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SORT_LEVEL_FIRE_ESCAPE",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "SORT_LEVEL_FIRE_ESCAPE",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ALT_SHIFT",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "ALT_SHIFT",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SIDEWAY_EDGE",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "SIDEWAY_EDGE",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NORMAL_EDGE",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "NORMAL_EDGE",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CUT_BLOCK_TOP",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "CUT_BLOCK_TOP",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CUT_BLOCK_BOTTOM",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "CUT_BLOCK_BOTTOM",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CUT_BLOCK_LEFT",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "CUT_BLOCK_LEFT",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CUT_BLOCK_RIGHT",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "CUT_BLOCK_RIGHT",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "BUILDING_INSIDE",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "INSIDE",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "BUILDING_ON_EDGE",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "ON_EDGE",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "BUILDING_OUTSIDE",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "OUTSIDE",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "BOUNDS",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "BOUNDS",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

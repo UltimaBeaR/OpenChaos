@@ -146,6 +146,8 @@ set(SOURCES_NEW
     src/new/engine/graphics/geometry/oval_globals.cpp
     src/new/world/environment/build.cpp
     src/new/world/environment/build_globals.cpp
+    src/new/world/environment/building.cpp
+    src/new/world/environment/building_globals.cpp
     src/new/ui/hud/planmap.cpp
     src/new/ui/hud/planmap_globals.cpp
     src/new/ui/hud/eng_map.cpp
