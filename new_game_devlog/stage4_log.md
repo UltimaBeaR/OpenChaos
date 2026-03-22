@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 111 — engine/physics/collide (чанк 5b: финальный, old/collide.cpp → redirect) (2026-03-22)
+
+- `fallen/Source/collide.cpp` чанк 5b: lines 7481–9155 → `new/engine/physics/collide.cpp` + `collide_globals.cpp/h`.
+- Lines 7480–7479 (find_intersected_colvect в `/* */`) — мёртвый код, пропущен.
+- `box_circle_early_out` — в оригинале только forward declaration без тела; добавлена stub-реализация в new/.
+- `collide_box_with_line` — баг оригинала сохранён 1:1: в последнем `COL_CLIP_ZL` блоке `WITHIN(iz, ...)` вместо `WITHIN(ix, ...)`.
+- `COLLIDE_fastnav` — новая глобальная переменная (тип `COLLIDE_Fastnavrow*`); тип и макрос `COLLIDE_can_i_fastnav` остались в `fallen/Headers/collide.h` (дублировать в `collide_globals.h` нельзя).
+- Новые Temporary includes: `engine/graphics/pipeline/aeng.h` (AENG_world_line), `world/environment/build2.h` (add_facet_to_map), `world/map/pap.h` (PAP_calc_map_height_at).
+- `old/fallen/Source/collide.cpp` заменён redirect-заглушкой (3 строки).
+
+---
+
 ## Итерация 110 — engine/physics/collide (чанк 5a: LOS functions) (2026-03-22)
 
 - `fallen/Source/collide.cpp` чанк 5a: lines 5960–7213 → `new/engine/physics/collide.cpp` + `collide_globals.cpp/h`.

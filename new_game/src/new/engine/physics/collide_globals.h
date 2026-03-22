@@ -197,6 +197,36 @@ extern SBYTE last_mav_dx;
 extern SBYTE last_mav_dz;
 
 // ========================================================================
+// slide_around_box scratch globals (chunk 5b)
+// ========================================================================
+
+// uc_orig: tried (fallen/Source/collide.cpp)
+// Bitmask tracking which slide directions have already been attempted
+// in slide_around_box. Avoids re-checking directions that lead to NOGO squares.
+// Comment in original: "should be locals but stack overflow".
+extern SLONG tried;
+
+// uc_orig: used_this_go (fallen/Source/collide.cpp)
+// Records which slide direction was chosen in the current slide_around_box iteration.
+extern SLONG used_this_go;
+
+// uc_orig: failed (fallen/Source/collide.cpp)
+// Loop flag: non-zero while slide_around_box still needs to retry a new direction.
+extern SLONG failed;
+
+// ========================================================================
+// COLLIDE_fastnav — fastnav bits array (chunk 5b)
+// ========================================================================
+
+// uc_orig: COLLIDE_fastnav (fallen/Source/collide.cpp)
+// Bit array: one bit per PAP_HI map cell. 1 = fastnav allowed (no nearby DFacets).
+// Allocated externally (see COLLIDE_calc_fastnav_bits). PAP_SIZE_HI rows,
+// each row is a (PAP_SIZE_HI >> 3) byte array packed as UBYTE.
+// Note: COLLIDE_Fastnavrow typedef and COLLIDE_can_i_fastnav macro come from
+// fallen/Headers/collide.h (included via engine/physics/collide.h).
+extern COLLIDE_Fastnavrow* COLLIDE_fastnav;
+
+// ========================================================================
 // Fall-off flags (chunk 4)
 // ========================================================================
 

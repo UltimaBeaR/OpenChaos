@@ -305,4 +305,40 @@ SLONG there_is_a_los_mav(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, SL
 // Returns 0=clear, 1=X-wall, 2=Z-wall. Sets last_mav_square_* and last_mav_d* on hit.
 SLONG there_is_a_los_car(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 
+// ========================================================================
+// Circle / sausage / box collision — chunk 5b
+// ========================================================================
+// Note: most chunk 5b declarations come from the included fallen/Headers/collide.h.
+// Only the functions NOT in that header are declared here.
+
+// uc_orig: collide_with_circle (fallen/Source/collide.cpp)
+// Returns TRUE if (*x2, *z2) is strictly inside the circle. Does not push out.
+SLONG collide_with_circle(SLONG cx, SLONG cz, SLONG cradius, SLONG* x2, SLONG* z2);
+
+// uc_orig: stop_movement_between (fallen/Source/collide.cpp)
+// Returns TRUE if movement between two adjacent hi-res map cells should be blocked
+// (water edge; used by insert_collision_facets).
+SLONG stop_movement_between(SLONG mx1, SLONG mz1, SLONG mx2, SLONG mz2);
+
+// uc_orig: create_just_collision_facet (fallen/Source/collide.cpp)
+// Allocates a STOREY_TYPE_JUST_COLLISION DFacet for a water/sewer edge.
+void create_just_collision_facet(SLONG x1, SLONG z1, SLONG x2, SLONG z2);
+
+// uc_orig: slide_around_box_lowstack (fallen/Source/collide.cpp)
+// Simplified slide_around_box without NOGO retry. Used where stack depth matters.
+inline SLONG slide_around_box_lowstack(
+    SLONG box_mid_x, SLONG box_mid_z,
+    SLONG box_min_x, SLONG box_min_z,
+    SLONG box_max_x, SLONG box_max_z,
+    SLONG box_yaw, SLONG radius,
+    SLONG x1, SLONG z1, SLONG* x2, SLONG* z2);
+
+// uc_orig: box_circle_early_out (fallen/Source/collide.cpp)
+// Stub — only declared (no definition) in the original. Body added here for completeness.
+void box_circle_early_out(
+    SLONG box1_mid_x, SLONG box1_mid_z,
+    SLONG box1_min_x, SLONG box1_min_z, SLONG box1_max_x, SLONG box1_max_z,
+    SLONG box1_yaw,
+    SLONG cx, SLONG cz, SLONG cradius);
+
 #endif // ENGINE_PHYSICS_COLLIDE_H

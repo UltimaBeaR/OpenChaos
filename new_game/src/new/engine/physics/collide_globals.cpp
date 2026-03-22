@@ -123,3 +123,19 @@ SBYTE last_mav_dx = 0;
 
 // uc_orig: last_mav_dz (fallen/Source/collide.cpp)
 SBYTE last_mav_dz = 0;
+
+// ========================================================================
+// slide_around_box scratch globals (chunk 5b)
+// ========================================================================
+
+// uc_orig: tried (fallen/Source/collide.cpp)
+SLONG tried = 0;
+
+// uc_orig: used_this_go (fallen/Source/collide.cpp)
+SLONG used_this_go = 0;
+
+// uc_orig: failed (fallen/Source/collide.cpp)
+SLONG failed = 0;
+
+// uc_orig: COLLIDE_fastnav (fallen/Source/collide.cpp)
+COLLIDE_Fastnavrow* COLLIDE_fastnav = nullptr;

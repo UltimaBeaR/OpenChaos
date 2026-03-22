@@ -62489,6 +62489,276 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "slide_around_circle",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "slide_around_circle",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "collide_with_circle",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "collide_with_circle",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "in_my_fov",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "in_my_fov",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_map_height_at",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "calc_map_height_at",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "collide_against_sausage",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "collide_against_sausage",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "slide_around_sausage",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "slide_around_sausage",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "stop_movement_between",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "stop_movement_between",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "create_just_collision_facet",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "create_just_collision_facet",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "insert_collision_facets",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "insert_collision_facets",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "slide_around_box",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "slide_around_box",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "slide_around_box_lowstack",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "slide_around_box_lowstack",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "collide_box_with_line",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "collide_box_with_line",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "create_shockwave",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "create_shockwave",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLLIDE_find_seethrough_fences",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "COLLIDE_find_seethrough_fences",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLLIDE_calc_fastnav_bits",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "COLLIDE_calc_fastnav_bits",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLLIDE_debug_fastnav",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "COLLIDE_debug_fastnav",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "box_box_early_out",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "box_box_early_out",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "box_circle_early_out",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "box_circle_early_out",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "tried",
+      "file": "new/engine/physics/collide_globals.cpp",
+      "orig_name": "tried",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "used_this_go",
+      "file": "new/engine/physics/collide_globals.cpp",
+      "orig_name": "used_this_go",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "failed",
+      "file": "new/engine/physics/collide_globals.cpp",
+      "orig_name": "failed",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COLLIDE_fastnav",
+      "file": "new/engine/physics/collide_globals.cpp",
+      "orig_name": "COLLIDE_fastnav",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SHOCKWAVE_FIND",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "SHOCKWAVE_FIND",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COL_CLIP_XS",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "COL_CLIP_XS",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COL_CLIP_XL",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "COL_CLIP_XL",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COL_CLIP_ZS",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "COL_CLIP_ZS",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COL_CLIP_ZL",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "COL_CLIP_ZL",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }
