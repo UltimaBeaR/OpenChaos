@@ -297,3 +297,49 @@ LPDIRECTDRAWSURFACE4 screenfull = NULL;
 
 // uc_orig: lpFRONTEND_show_xition_LastBlit (fallen/Source/frontend.cpp)
 LPDIRECTDRAWSURFACE4 lpFRONTEND_show_xition_LastBlit = NULL;
+
+// ---- Savegame helpers -------------------------------------------------------
+
+// uc_orig: best_found (fallen/Source/frontend.cpp)
+UBYTE best_found[50][4];
+
+// ---- Mission briefing audio -------------------------------------------------
+
+// uc_orig: brief_wav (fallen/Source/frontend.cpp)
+CBYTE* brief_wav[] = {
+    "none", // 0
+    "none", // 1
+    "none", // 2
+    "none", // 3
+    "none", // 4
+    "none", // 5
+    "policem1.wav", // 6
+    "policem.wav", // 7
+    "policem.wav", // 8
+    "policem2.wav", // 9
+    "none", // 10
+    "none", // 11
+    "policem3.wav", // 12
+    "none", // 13
+    "policem4.wav", // 14
+    "policem5.wav", // 15
+    "policem6.wav", // 16
+    "policem7.wav", // 17
+    "policem8.wav", // 18
+    "policem9.wav", // 19
+    "policem10.wav", // 20
+    "policem11.wav", // 21
+    "policem12.wav", // 22
+    "policem13.wav", // 23
+    "policem14.wav", // 24
+    "policem15.wav", // 25
+    "policem16.wav", // 26
+    "policem17.wav", // 27
+    "policem18.wav", // 28
+    "roperm19.wav", // 29
+    "roperm20.wav", // 30
+    "roperm21.wav", // 31
+    "roperm23.wav", // 33 (index 32; original skipped 32)
+    "roperm24.wav", // 34
+    ""
+};

@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 131 — ui/frontend chunk 2 (kibble_process + savegame + mission hierarchy + menu helpers + mode → new/ui/frontend.cpp) (2026-03-22)
+
+- `frontend.cpp` chunk 2 (lines 1592–3107): `FRONTEND_kibble_process`, `FRONTEND_fetch_title_from_id`, `init_best_found`, `FRONTEND_save_savegame`, `FRONTEND_load_savegame`, `FRONTEND_find_savegames`, `FRONTEND_MissionFilename`, `FRONTEND_MissionHierarchy`, `FRONTEND_MissionBrief`, `FRONTEND_MissionList`, `FRONTEND_CacheMissionList`, `FRONTEND_districts`, `FRONTEND_gettitle`, `FRONTEND_easy`, `LabelToIndex`, `FRONTEND_restore_video_data`, `FRONTEND_store_video_data`, `FRONTEND_do_drivers`, `FRONTEND_gamma_update`, `FRONTEND_do_gamma`, `FRONTEND_mode` → `new/ui/frontend.cpp`.
+- Globals `best_found[50][4]` and `brief_wav[]` → `frontend_globals.cpp/.h`.
+- Chunk 2 adds includes mid-file (after line 913): `drive.h`, `mfx.h`, `sound_id.h`, `dd_manager.h`, `dd_manager_globals.h`, `wind_procs.h`, `gd_display.h`, `aeng.h`, `env.h` — all marked Temporary.
+- `S_TUNE_BONUS`/`MFX_play_stereo` include added speculatively (needed by chunk 3's `FRONTEND_draw_districts`).
+- `brief_wav` comment about index 32 skipped in original: array index 32 maps to "roperm23.wav" (original had `//32` commented out).
+
+---
+
 ## Итерация 130 — ui/frontend chunk 1 (globals + screen helpers + draw helpers + kibble → new/ui/frontend.cpp) (2026-03-22)
 
 - `frontend.cpp` chunk 1 (lines 1–1579): structs (MissionData, RawMenuData, MenuData, MenuStack, MenuState, Kibble, MissionCache), all globals, `CacheScriptInMemory`, `FileOpenScript`, `LoadStringScript`, `FileCloseScript`, `FRONTEND_scr_*`, `FRONTEND_ParseMissionData`, `FRONTEND_LoadString`, `FRONTEND_SaveString`, `FRONTEND_AlterAlpha`, `FRONTEND_recenter_menu`, `FRONTEND_fix_rgb`, `FRONTEND_draw_title`, `FRONTEND_init_xition`, `FRONTEND_show_xition`, `FRONTEND_stop_xition`, `FRONTEND_draw_button`, `FRONTEND_kibble_draw`, `FRONTEND_DrawSlider`, `FRONTEND_DrawMulti`, `FRONTEND_DrawKey`, `FRONTEND_DrawPad`, `FRONTEND_kibble_init_one`, `FRONTEND_kibble_init`, `FRONTEND_kibble_flurry` → `new/ui/frontend.cpp` + `new/ui/frontend_globals.cpp`.

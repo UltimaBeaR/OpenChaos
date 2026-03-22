@@ -165,4 +165,17 @@ extern LPDIRECTDRAWSURFACE4 screenfull;
 // uc_orig: lpFRONTEND_show_xition_LastBlit (fallen/Source/frontend.cpp)
 extern LPDIRECTDRAWSURFACE4 lpFRONTEND_show_xition_LastBlit;
 
+// ---- Savegame helpers -------------------------------------------------------
+
+// uc_orig: best_found (fallen/Source/frontend.cpp)
+// Per-mission best score array: [mission_id][4] bytes of score data.
+extern UBYTE best_found[50][4];
+
+// ---- Mission briefing audio -------------------------------------------------
+
+// uc_orig: brief_wav (fallen/Source/frontend.cpp)
+// Per-mission speech .wav filenames played during the mission briefing screen.
+// Index = mission ObjID; "none" means no speech for that mission.
+extern CBYTE* brief_wav[];
+
 #endif // UI_FRONTEND_GLOBALS_H

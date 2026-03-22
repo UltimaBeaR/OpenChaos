@@ -239,4 +239,45 @@ void FRONTEND_kibble_flurry();
 // uc_orig: FRONTEND_kibble_process (fallen/Source/frontend.cpp)
 void FRONTEND_kibble_process();
 
+// uc_orig: FRONTEND_fetch_title_from_id (fallen/Source/frontend.cpp)
+void FRONTEND_fetch_title_from_id(CBYTE* script, CBYTE* ttl, UBYTE id);
+// uc_orig: init_best_found (fallen/Source/frontend.cpp)
+void init_best_found(void);
+// uc_orig: FRONTEND_save_savegame (fallen/Source/frontend.cpp)
+bool FRONTEND_save_savegame(CBYTE* mission_name, UBYTE slot);
+// uc_orig: FRONTEND_load_savegame (fallen/Source/frontend.cpp)
+bool FRONTEND_load_savegame(UBYTE slot);
+// uc_orig: FRONTEND_find_savegames (fallen/Source/frontend.cpp)
+void FRONTEND_find_savegames(bool bGreyOutEmpties = UC_FALSE, bool bCheckSaveSpace = UC_FALSE);
+// uc_orig: FRONTEND_MissionFilename (fallen/Source/frontend.cpp)
+CBYTE* FRONTEND_MissionFilename(CBYTE* script, UBYTE i);
+// uc_orig: FRONTEND_MissionHierarchy (fallen/Source/frontend.cpp)
+void FRONTEND_MissionHierarchy(CBYTE* script);
+// uc_orig: FRONTEND_MissionBrief (fallen/Source/frontend.cpp)
+void FRONTEND_MissionBrief(CBYTE* script, UBYTE i);
+// uc_orig: FRONTEND_MissionList (fallen/Source/frontend.cpp)
+void FRONTEND_MissionList(CBYTE* script, UBYTE district);
+// uc_orig: FRONTEND_CacheMissionList (fallen/Source/frontend.cpp)
+void FRONTEND_CacheMissionList(CBYTE* script);
+// uc_orig: FRONTEND_districts (fallen/Source/frontend.cpp)
+void FRONTEND_districts(CBYTE* script);
+// uc_orig: FRONTEND_gettitle (fallen/Source/frontend.cpp)
+CBYTE* FRONTEND_gettitle(UBYTE mode, UBYTE selection);
+// uc_orig: FRONTEND_easy (fallen/Source/frontend.cpp)
+void FRONTEND_easy(UBYTE mode);
+// uc_orig: LabelToIndex (fallen/Source/frontend.cpp)
+UBYTE LabelToIndex(SLONG label);
+// uc_orig: FRONTEND_restore_video_data (fallen/Source/frontend.cpp)
+void FRONTEND_restore_video_data();
+// uc_orig: FRONTEND_store_video_data (fallen/Source/frontend.cpp)
+void FRONTEND_store_video_data();
+// uc_orig: FRONTEND_do_drivers (fallen/Source/frontend.cpp)
+void FRONTEND_do_drivers();
+// uc_orig: FRONTEND_gamma_update (fallen/Source/frontend.cpp)
+void FRONTEND_gamma_update();
+// uc_orig: FRONTEND_do_gamma (fallen/Source/frontend.cpp)
+void FRONTEND_do_gamma();
+// uc_orig: FRONTEND_mode (fallen/Source/frontend.cpp)
+void FRONTEND_mode(SBYTE mode, bool bDoTransition = UC_TRUE);
+
 #endif // UI_FRONTEND_H

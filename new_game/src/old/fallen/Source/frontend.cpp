@@ -1589,6 +1589,8 @@ void FRONTEND_kibble_flurry()
 
 #endif // MIGRATED to src/new/ui/frontend.cpp + frontend_globals.cpp (iteration 130) [globals..FRONTEND_kibble_flurry]
 
+#if 0 // MIGRATED to src/new/ui/frontend.cpp + frontend_globals.cpp (iteration 131) [FRONTEND_kibble_process..FRONTEND_mode]
+
 void FRONTEND_kibble_process()
 {
     SLONG c0;
@@ -3104,6 +3106,8 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition = UC_TRUE)
 
     FRONTEND_recenter_menu();
 }
+
+#endif // MIGRATED to src/new/ui/frontend.cpp + frontend_globals.cpp (iteration 131) [FRONTEND_kibble_process..FRONTEND_mode]
 
 void FRONTEND_draw_districts()
 {

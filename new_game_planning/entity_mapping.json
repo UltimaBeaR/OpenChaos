@@ -72989,6 +72989,236 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_kibble_process",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_kibble_process",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_fetch_title_from_id",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_fetch_title_from_id",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_best_found",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "init_best_found",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "best_found",
+      "file": "new/ui/frontend_globals.cpp",
+      "orig_name": "best_found",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_save_savegame",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_save_savegame",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_load_savegame",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_load_savegame",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_find_savegames",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_find_savegames",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_MissionFilename",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_MissionFilename",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_MissionHierarchy",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_MissionHierarchy",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "brief_wav",
+      "file": "new/ui/frontend_globals.cpp",
+      "orig_name": "brief_wav",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_MissionBrief",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_MissionBrief",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_MissionList",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_MissionList",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_CacheMissionList",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_CacheMissionList",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_districts",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_districts",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_gettitle",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_gettitle",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_easy",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_easy",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "LabelToIndex",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "LabelToIndex",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_restore_video_data",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_restore_video_data",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_store_video_data",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_store_video_data",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_do_drivers",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_do_drivers",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_gamma_update",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_gamma_update",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_do_gamma",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_do_gamma",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_mode",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_mode",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }
