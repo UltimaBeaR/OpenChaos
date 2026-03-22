@@ -205,6 +205,8 @@ set(SOURCES_NEW
     src/new/actors/characters/snipe_globals.cpp
     src/new/actors/characters/darci.cpp
     src/new/actors/characters/darci_globals.cpp
+    src/new/actors/characters/person.cpp
+    src/new/actors/characters/person_globals.cpp
     src/new/actors/animals/animal.cpp
     src/new/actors/animals/animal_globals.cpp
     src/new/actors/animals/bat.cpp

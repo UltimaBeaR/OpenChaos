@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 92 — actors/characters/person (чанк 1: dispatch tables..death_slide) (2026-03-22)
+
+- Person.cpp — самый большой файл (~19K строк), мигрируется чанками. Чанк 1: ~lines 300–1762.
+- `people_functions[]`, `generic_people_functions[]`, `PERSON_mode_name[]`, `health[]` → person_globals.cpp (правило: все глобалы в _globals).
+- Circular dependency при попытке сделать redirect из old/Person.h: `person.h → thing.h → Game.h → Person.h(old) → person.h`. Решение: new/person.h включает `fallen/Headers/Game.h` (Temporary) вместо thing.h и не переопределяет Person struct — всё берётся из old/Person.h через Game.h.
+- old/Person.h не переключён в redirect — останется с оригинальным содержимым до полной миграции Person.cpp.
+- `get_fence_bottom`, `get_fence_top`, `MagicFrameCheck` — убран `static`/`static inline`, т.к. используются из немигрированных частей old/Person.cpp.
+- `generic_people_functions[]` ссылается на `fn_person_*` из old/Person.cpp — forward declarations в person_globals.cpp.
+- `player_dlight` (line 225 old/Person.cpp) и `timer_bored` (line 3195) были вне MIGRATED block — добавлены `#if 0 // MIGRATED` обёртки.
+- `ShowAnimNumber` — пустая inline-заглушка (в оригинале тоже пустая debug-функция).
+
+---
+
 ## Итерация 91 — actors/vehicles/vehicle (чанки 2+3: collision..wheel query API) (2026-03-22)
 
 - Завершена миграция Vehicle.cpp: чанки 2 (~1540 строк) + 3 (~900 строк) в одной итерации — принудительно, т.к. `siren`, `do_car_input`, `process_car` — static, нужны VEH_driving/CollideCar.

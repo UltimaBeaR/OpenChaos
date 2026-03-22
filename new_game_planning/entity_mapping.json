@@ -57239,6 +57239,516 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "people_functions",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "people_functions",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "generic_people_functions",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "generic_people_functions",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PERSON_mode_name",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "PERSON_mode_name",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "health",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "health",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "anim_type",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "anim_type",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mesh_type",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "mesh_type",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "stat_killed_thug",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "stat_killed_thug",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "stat_killed_innocent",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "stat_killed_innocent",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "stat_arrested_thug",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "stat_arrested_thug",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "stat_arrested_innocent",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "stat_arrested_innocent",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "stat_count_bonus",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "stat_count_bonus",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "stat_start_time",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "stat_start_time",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "stat_game_time",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "stat_game_time",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_visited",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "player_visited",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "global_person",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "global_person",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_dlight",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "player_dlight",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "timer_bored",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "timer_bored",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_stats",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_stats",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_stats",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "init_stats",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_player_visited",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_player_visited",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MagicFrameCheck",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "MagicFrameCheck",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PersonIsMIB",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "PersonIsMIB",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SlideSoundCheck",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "SlideSoundCheck",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_persons",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "init_persons",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "alloc_person",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "alloc_person",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "free_person",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "free_person",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "create_person",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "create_person",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "is_there_room_in_front_of_me",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "is_there_room_in_front_of_me",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "find_searchable_person",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "find_searchable_person",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_search",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_search",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_search_corpse",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_search_corpse",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "release_searched_item",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "release_searched_item",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "find_nice_place_near_person",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "find_nice_place_near_person",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_dying",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_dying",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_is_lying_on_what",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "person_is_lying_on_what",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "footstep_wave",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "footstep_wave",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_dangle",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "get_dangle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_fence_bottom",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "get_fence_bottom",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_fence_top",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "get_fence_top",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_splash",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "person_splash",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_persons_personid",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_persons_personid",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ShowAnimNumber",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "ShowAnimNumber",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "queue_anim",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "queue_anim",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "tween_to_anim",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "tween_to_anim",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_anim",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_anim",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_anim_of_type",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_anim_of_type",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_locked_anim",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_locked_anim",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_locked_anim_angle",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_locked_anim_angle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_locked_anim_of_type",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_locked_anim_of_type",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_cable_sdist_from_end",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "get_cable_sdist_from_end",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_death_slide",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "person_death_slide",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

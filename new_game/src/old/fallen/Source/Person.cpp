@@ -76,8 +76,12 @@
 #include "frontend.h"
 #include "aeng.h"
 #include "panel.h"
+#include "actors/characters/person.h"
+#include "actors/characters/person_globals.h"
 
+#if 0 // MIGRATED to src/new/actors/characters/person_globals.cpp (iteration 92) [player_visited, global_person, player_dlight, timer_bored, stat_*, anim_type, mesh_type]
 UBYTE player_visited[16][128];
+#endif // MIGRATED
 
 #define MAX_COL_WITH 16
 
@@ -218,7 +222,9 @@ extern SLONG slide_ladder;
 extern SLONG yomp_speed;
 extern SLONG sprint_speed;
 
+#if 0 // MIGRATED to src/new/actors/characters/person_globals.cpp (iteration 92) [player_dlight]
 UWORD player_dlight = 0;
+#endif // MIGRATED
 
 void aim_at_victim(Thing* p_person, SLONG count = 1);
 void set_anim_idle(Thing* p_person);
@@ -293,6 +299,7 @@ extern void move_thing_on_map_dxdydz(Thing* t_thing, SLONG dx, SLONG dy, SLONG d
 
 SLONG person_is_on_sewer(Thing* p_person);
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp + person_globals.cpp (iteration 92) [people_functions..person_death_slide]
 // claude-ai: Таблица диспетчеризации: PERSON_TYPE → таблица состояний (STATE_INIT, STATE_NORMAL и т.д.)
 // claude-ai: Все NPC кроме Darci и Roper используют cop_states.
 GenusFunctions people_functions[] = {
@@ -1754,6 +1761,7 @@ void	set_person_dead_land(Thing *p_thing)
 }
 
 */
+#endif // MIGRATED to src/new/actors/characters/person.cpp + person_globals.cpp (iteration 92) [people_functions..person_death_slide]
 
 void emergency_uncarry(Thing* p_person);
 SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
@@ -3186,7 +3194,9 @@ void do_look_for_enemies(Thing* p_person)
 
 extern void play_music(UWORD id, UBYTE track);
 
+#if 0 // MIGRATED to src/new/actors/characters/person_globals.cpp (iteration 92) [timer_bored]
 ULONG timer_bored = 0;
+#endif // MIGRATED
 // claude-ai: general_process_player() — дополнительная обработка для ИГРОКА (не NPC).
 // claude-ai: Вызывается из general_process_person() если PlayerID != 0.
 // claude-ai: Делает: коррекция FIGHT mode (→RUN если бегом), PSX dlight, gang tracking,
