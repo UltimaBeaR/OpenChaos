@@ -4739,6 +4739,7 @@ void camera_normal(void)
 }
 #endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 94) [general_process_player..camera_normal]
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 95) [set_person_aim..drop_all_items]
 void set_person_aim(Thing* p_person, SLONG locked = 0)
 {
     SLONG anim;
@@ -6138,6 +6139,7 @@ void drop_all_items(Thing* p_person, UBYTE is_being_searched)
     if (is_being_searched && found_something)
         MFX_play_ambient(THING_NUMBER(p_person), S_ITEM_REVEALED, 0);
 }
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 95) [set_person_aim..drop_all_items]
 
 void set_person_idle_uncroutch(Thing* p_person)
 {

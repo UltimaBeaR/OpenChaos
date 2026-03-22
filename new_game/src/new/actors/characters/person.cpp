@@ -55,6 +55,12 @@
 #include "actors/characters/person.h"
 #include "actors/characters/person_globals.h"
 #include "effects/pyro_globals.h"   // Temporary: col_with[] array (shared collision buffer)
+#include "actors/items/guns.h"      // Temporary: find_target_new
+#include "actors/items/special.h"   // Temporary: alloc_special, special_drop, person_has_special
+#include "ai/combat.h"              // Temporary: apply_hit_to_person
+#include "effects/pyro.h"           // Temporary: PYRO_hitspang
+#include "actors/animals/bat.h"     // Temporary: BAT_apply_hit
+#include "actors/items/barrel.h"    // Temporary: BARREL_shoot
 
 // External helpers declared in their own files (not yet migrated or in old headers).
 extern BOOL allow_debug_keys;
@@ -94,6 +100,13 @@ extern void locked_anim_change(Thing* p_person, UWORD locked_object, UWORD anim,
 extern SLONG get_cable_along(SLONG facet, SLONG ax, SLONG az);
 extern SWORD people_types[50];
 extern void do_person_on_cable(Thing* p_person);
+// chunk 4 additional externs (Person.cpp later chunks or other files not yet migrated)
+extern Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG radius);
+extern SLONG might_i_be_a_villain(Thing* p_person);
+extern void set_anim_running(Thing* p_person);
+extern void set_anim_idle(Thing* p_person);
+extern void set_person_sneaking(Thing* p_person);
+extern SLONG person_holding_bat(Thing* p_person);
 
 // Local collision query buffer (shares the global col_with pool; MAX_COL_WITH = 16).
 #define MAX_COL_WITH 16
@@ -3124,5 +3137,1030 @@ void camera_fight(void)
 void camera_normal(void)
 {
     // Camera mode adjustments removed from Person.cpp before shipping.
+}
+
+// ============================================================
+// Chunk 4: set_person_aim..drop_all_items (original lines 4742-6140)
+// ============================================================
+
+// Sets person into gun-aim stance.
+// locked != 0 forces a locked-anim transition at (locked-1) blend.
+// uc_orig: set_person_aim (fallen/Source/Person.cpp)
+void set_person_aim(Thing* p_person, SLONG locked)
+{
+    SLONG anim;
+    Thing* p_special;
+
+    if (p_person->Genus.Person->SpecialUse) {
+        // Two-handed shotgun weapon — use shotgun aim.
+        anim = ANIM_SHOTGUN_AIM;
+    } else {
+        anim = ANIM_PISTOL_AIM_AHEAD;
+    }
+
+    set_generic_person_state_function(p_person, STATE_GUN);
+    if (locked)
+        set_locked_anim(p_person, anim, locked - 1);
+    else
+        set_anim(p_person, anim);
+
+    p_person->Genus.Person->Action = ACTION_AIM_GUN;
+    p_person->SubState = SUB_STATE_AIM_GUN;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+}
+
+// Returns an effective distance scaled for accuracy based on the weapon type.
+// Negative distances are returned as-is (point-blank bonus).
+// uc_orig: weapon_accuracy_at_dist (fallen/Source/Person.cpp)
+static inline SLONG weapon_accuracy_at_dist(Thing* p_person, SLONG dist)
+{
+    if (dist < 0)
+        return (dist);
+
+    if (p_person->Genus.Person->SpecialUse) {
+        Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+        switch (p_special->Genus.Special->SpecialType) {
+        case SPECIAL_AK47:
+            if (!p_person->Genus.Person->PlayerID) {
+                // AI needs high skill to use AK47 accurately.
+                return ((dist * (280 - (GET_SKILL(p_person) << 2))) >> 8);
+            } else {
+                return ((dist * 200) >> 8);
+            }
+            break;
+
+        case SPECIAL_SHOTGUN:
+            return (dist >> 2);
+            break;
+
+        default:
+            ASSERT(0);
+            return 0;
+        }
+
+    } else {
+        // Pistol — accuracy unmodified.
+        return (dist);
+    }
+}
+
+// Returns TRUE if the given vehicle is driven or occupied by any MIB agent.
+// uc_orig: VehicleBelongsToMIB (fallen/Source/Person.cpp)
+UBYTE VehicleBelongsToMIB(Thing* p_target)
+{
+    Vehicle* veh = p_target->Genus.Vehicle;
+    Thing* thing;
+    SWORD passenger;
+
+    if ((p_target->Class != CLASS_VEHICLE) || !veh)
+        return 0;
+
+    if (veh->Driver) {
+        thing = TO_THING(veh->Driver);
+        if (PersonIsMIB(thing))
+            return 1;
+    }
+    passenger = veh->Passenger;
+    while (passenger) {
+        thing = TO_THING(passenger);
+        if (PersonIsMIB(thing))
+            return 1;
+        passenger = thing->Genus.Person->Passenger;
+    }
+    return 0;
+}
+
+// Computes shot damage from p_person to p_target.
+// Returns 0 on miss. Sets *gun_type to HIT_TYPE_GUN_SHOT_*.
+// Hit chance depends on target type, movement, attacker skill, and distance.
+// uc_orig: get_shoot_damage (fallen/Source/Person.cpp)
+SLONG get_shoot_damage(Thing* p_person, Thing* p_target, SLONG* gun_type)
+{
+    SLONG damage;
+
+    SLONG dx = abs(p_target->WorldPos.X - p_person->WorldPos.X >> 8);
+    SLONG dz = abs(p_target->WorldPos.Z - p_person->WorldPos.Z >> 8);
+    SLONG dist = QDIST2(dx, dz);
+
+    {
+        SLONG chance; // 0 => never hit, >= 256 => guaranteed hit
+
+        if (p_target->Class == CLASS_VEHICLE) {
+            // Vehicles are too big to miss.
+            chance = 256;
+        } else if (p_target->Class == CLASS_BAT) {
+            // Bats are tricky — but we want them easy to kill for fun.
+            chance = 200;
+        } else if (p_target->Class == CLASS_BARREL) {
+            // Barrels don't move.
+            chance = 200;
+        } else if (p_target->Class == CLASS_SPECIAL) {
+            // Mines are small, but the player takes a long time aiming.
+            chance = 250;
+        } else if (p_target->Class == CLASS_PERSON) {
+            // Turning target is harder to hit; roll maxes at ~100.
+            chance = 230 - (abs(p_target->Draw.Tweened->Roll) >> 1);
+            // Moving target is harder to hit.
+            chance -= p_target->Velocity;
+
+            if (!p_person->Genus.Person->PlayerID) {
+                if (p_target->Genus.Person->PlayerID) {
+                    chance -= 64; // enemies are less accurate against player
+                } else {
+                    chance += 100; // AI vs AI: very accurate
+                }
+                chance += GET_SKILL(p_person) << 3;
+            } else {
+                chance += 64; // player is better than default
+            }
+            if (p_target->SubState == SUB_STATE_FLIPING) {
+                chance -= 96;
+            }
+        } else {
+            // Invalid target (e.g. freed barrel or mine): clear it.
+            p_person->Genus.Person->Target = NULL;
+            return 0;
+        }
+
+        // Distance penalty/bonus.
+        if (p_target->Genus.Person->PlayerID) {
+            dist -= 0x2a0;
+        } else {
+            dist -= 0x400;
+        }
+        if (dist < 0) {
+            dist >>= 2;
+        } else {
+            dist >>= 3;
+        }
+
+        {
+            SLONG dchance;
+            dchance = chance;
+            chance -= weapon_accuracy_at_dist(p_person, dist);
+        }
+
+        if (p_target->State == STATE_MOVEING && p_target->SubState == SUB_STATE_FLIPING) {
+            chance >>= 1;
+        }
+
+        SATURATE(chance, 20, 256);
+
+        if (chance < (Random() & 0xff)) {
+            return 0; // missed
+        }
+    }
+
+    if (p_target->Genus.Player->PlayerID) {
+        dist -= (300 >> 3);
+    }
+
+    // Hit — determine damage by weapon type.
+    if (PersonIsMIB(p_person)) {
+        // MIB always carry AK47s.
+        *gun_type = HIT_TYPE_GUN_SHOT_AK47;
+        damage = 40;
+    } else if (p_person->Genus.Person->SpecialUse) {
+        Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+        switch (p_special->Genus.Special->SpecialType) {
+        case SPECIAL_AK47:
+            *gun_type = HIT_TYPE_GUN_SHOT_AK47;
+            if (p_person->Genus.Person->PlayerID) {
+                damage = 100;
+            } else {
+                damage = 40;
+            }
+            break;
+
+        case SPECIAL_SHOTGUN:
+            *gun_type = HIT_TYPE_GUN_SHOT_SHOTGUN;
+            // Shotgun is lethal up close, weak at range.
+            if (p_target->Genus.Player->PlayerID || p_person->Genus.Person->PlayerID) {
+                dist <<= 2;
+            }
+            damage = 300 - (dist);
+            SATURATE(damage, 0, 250);
+            break;
+
+        default:
+            ASSERT(0);
+            return 0;
+        }
+
+    } else {
+        ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT);
+        *gun_type = HIT_TYPE_GUN_SHOT_PISTOL;
+        damage = 70; // three shots kill
+    }
+
+    if (p_target->Genus.Person->PlayerID) {
+        damage >>= 1;
+    }
+
+    return damage;
+}
+
+// Sentinels returned by shoot_get_ammo_sound_anim_time.
+// uc_orig: NOT_A_GUN_YOU_SHOOT (fallen/Source/Person.cpp)
+#define NOT_A_GUN_YOU_SHOOT (-1)
+// uc_orig: HAD_TO_CHANGE_CLIP (fallen/Source/Person.cpp)
+#define HAD_TO_CHANGE_CLIP  (-2)
+
+// Consumes ammo and fills in sound/anim/time for a shot.
+// Returns ammo count, NOT_A_GUN_YOU_SHOOT (non-shootable special), or HAD_TO_CHANGE_CLIP.
+// uc_orig: shoot_get_ammo_sound_anim_time (fallen/Source/Person.cpp)
+SLONG shoot_get_ammo_sound_anim_time(Thing* p_person, SLONG* sound, SLONG* anim, SLONG* time)
+{
+    SLONG ammo = FALSE;
+    SLONG ammo_in_clip;
+
+    if (PersonIsMIB(p_person)) {
+        // MIB have AK47s with unlimited ammo.
+        *anim = ANIM_AK_FIRE;
+        ammo = 50;
+        *time = 64;
+        *sound = S_MIB_GUN_WDOWN;
+        return ammo;
+    }
+
+    if (p_person->Genus.Person->SpecialUse) {
+        Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+        *sound = S_SHOTGUN_SHOT;
+
+        switch (p_special->Genus.Special->SpecialType) {
+        case SPECIAL_AK47:
+            if (p_person->Genus.Person->PlayerID == 0) {
+                // Enemies never run out of AK ammo.
+                p_special->Genus.Special->ammo++;
+            }
+            *anim = ANIM_AK_FIRE;
+            *time = 64;
+            *sound = S_AK47_BURST;
+            break;
+
+        case SPECIAL_SHOTGUN:
+            *anim = ANIM_SHOTGUN_FIRE;
+            *time = 400;
+            DIRT_new_sparks(p_person->Genus.Person->GunMuzzle.X >> 8, p_person->Genus.Person->GunMuzzle.Y >> 8, p_person->Genus.Person->GunMuzzle.Z >> 8, 2 | 32);
+            break;
+
+        case SPECIAL_GRENADE:
+            // Non-player grenade throw path.
+            SPECIAL_prime_grenade(p_special);
+            set_person_can_release(p_person, 128);
+            return NOT_A_GUN_YOU_SHOOT;
+
+        default:
+            // Not a shootable weapon.
+            return NOT_A_GUN_YOU_SHOOT;
+        }
+
+        if (p_special->Genus.Special->ammo) {
+            p_special->Genus.Special->ammo -= 1;
+            ammo = TRUE;
+        } else {
+            // Try to reload from carried ammo packs.
+            switch (p_special->Genus.Special->SpecialType) {
+            case SPECIAL_AK47:
+                if (p_person->Genus.Person->ammo_packs_ak47) {
+                    ammo_in_clip = p_person->Genus.Person->ammo_packs_ak47;
+                    ammo_in_clip -= SPECIAL_AMMO_IN_A_AK47;
+                    if (ammo_in_clip < 0) {
+                        p_special->Genus.Special->ammo = p_person->Genus.Person->ammo_packs_ak47;
+                        p_person->Genus.Person->ammo_packs_ak47 = 0;
+                    } else {
+                        p_special->Genus.Special->ammo = SPECIAL_AMMO_IN_A_AK47;
+                        p_person->Genus.Person->ammo_packs_ak47 = ammo_in_clip;
+                    }
+                    ammo = HAD_TO_CHANGE_CLIP;
+                }
+                break;
+            case SPECIAL_SHOTGUN:
+                if (p_person->Genus.Person->ammo_packs_shotgun) {
+                    ammo_in_clip = p_person->Genus.Person->ammo_packs_shotgun;
+                    ammo_in_clip -= SPECIAL_AMMO_IN_A_SHOTGUN;
+                    if (ammo_in_clip < 0) {
+                        p_special->Genus.Special->ammo = p_person->Genus.Person->ammo_packs_shotgun;
+                        p_person->Genus.Person->ammo_packs_shotgun = 0;
+                    } else {
+                        p_special->Genus.Special->ammo = SPECIAL_AMMO_IN_A_SHOTGUN;
+                        p_person->Genus.Person->ammo_packs_shotgun = ammo_in_clip;
+                    }
+                    ammo = HAD_TO_CHANGE_CLIP;
+                }
+                break;
+            }
+        }
+    } else {
+        // Pistol.
+        *sound = SOUND_Range(S_PISTOL_SHOT, S_PISTOL_SHOT_END);
+        *time = 140;
+
+        if (p_person->Genus.Person->Ammo) {
+            p_person->Genus.Person->Ammo--;
+            ammo = TRUE;
+            *anim = ANIM_PISTOL_SHOOT;
+        } else {
+            if (p_person->Genus.Person->ammo_packs_pistol) {
+                ammo_in_clip = p_person->Genus.Person->ammo_packs_pistol;
+                ammo_in_clip -= SPECIAL_AMMO_IN_A_PISTOL;
+                if (ammo_in_clip < 0) {
+                    p_person->Genus.Person->Ammo = p_person->Genus.Person->ammo_packs_pistol;
+                    p_person->Genus.Person->ammo_packs_pistol = 0;
+                } else {
+                    p_person->Genus.Person->Ammo = SPECIAL_AMMO_IN_A_PISTOL;
+                    p_person->Genus.Person->ammo_packs_pistol = ammo_in_clip;
+                }
+                ammo = HAD_TO_CHANGE_CLIP;
+            }
+        }
+    }
+
+    return ammo;
+}
+
+// Fires the gun: muzzle flash dynamic light, brass eject, hit or ricochet effects.
+// uc_orig: actually_fire_gun (fallen/Source/Person.cpp)
+void actually_fire_gun(Thing* p_person)
+{
+    SLONG rico_id;
+
+    GameCoord shotPosition = p_person->WorldPos;
+
+    PCOM_oscillate_tympanum(
+        PCOM_SOUND_GUNSHOT,
+        p_person,
+        p_person->WorldPos.X >> 8,
+        p_person->WorldPos.Y >> 8,
+        p_person->WorldPos.Z >> 8);
+
+    if (p_person->Genus.Person->PlayerID) {
+        GAME_FLAGS |= GF_PLAYER_FIRED_GUN;
+        if (p_person->Genus.Person->Target)
+            timer_bored = 0;
+    }
+
+    {
+        // Single-frame muzzle flash dynamic light.
+        UBYTE dlight;
+
+        dlight = NIGHT_dlight_create(
+            (p_person->WorldPos.X >> 8) - (SIN(p_person->Draw.Tweened->Angle) >> 9),
+            (p_person->WorldPos.Y >> 8) + 0x60,
+            (p_person->WorldPos.Z >> 8) - (COS(p_person->Draw.Tweened->Angle) >> 9),
+            100,
+            30,
+            25,
+            5);
+
+        if (dlight) {
+            NIGHT_dlight[dlight].flag |= NIGHT_DLIGHT_FLAG_REMOVE;
+        }
+    }
+
+    extern void DIRT_create_brass(SLONG x, SLONG y, SLONG z, SLONG angle);
+
+    {
+        GameCoord vec;
+
+        calc_sub_objects_position(
+            p_person,
+            p_person->Draw.Tweened->AnimTween,
+            SUB_OBJECT_LEFT_HAND,
+            &vec.X,
+            &vec.Y,
+            &vec.Z);
+        vec.X += p_person->WorldPos.X >> 8;
+        vec.Y += p_person->WorldPos.Y >> 8;
+        vec.Z += p_person->WorldPos.Z >> 8;
+        DIRT_create_brass(vec.X, vec.Y, vec.Z, (p_person->Draw.Tweened->Angle + 512) & 2047);
+        if (p_person->Genus.Person->SpecialUse || PersonIsMIB(p_person)) {
+            Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+            if ((!p_person->Genus.Person->SpecialUse) || (p_special->Genus.Special->SpecialType == SPECIAL_AK47)) {
+                // AK47 ejects extra brass casings.
+                DIRT_create_brass(vec.X, vec.Y, vec.Z, (p_person->Draw.Tweened->Angle + 512) & 2047);
+                DIRT_create_brass(vec.X, vec.Y, vec.Z, (p_person->Draw.Tweened->Angle + 512) & 2047);
+            }
+        }
+    }
+
+    if (p_person->Genus.Person->Target) {
+        SLONG damage;
+        Thing* p_target = TO_THING(p_person->Genus.Person->Target);
+        GameCoord vec;
+        SLONG gun_type;
+
+        if (p_target->Class == CLASS_PERSON && (p_target->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_PASSENGER))) {
+            // Shoot the car this person is in rather than the person.
+            p_person->Genus.Person->Target = p_target->Genus.Person->InCar;
+            p_target = TO_THING(p_target->Genus.Person->InCar);
+        }
+
+        damage = get_shoot_damage(p_person, p_target, &gun_type);
+
+        if (damage) {
+            PYRO_hitspang(p_person, p_target);
+            timer_bored = 0;
+
+            if (p_target->Class == CLASS_PERSON) {
+                if (!p_target->Genus.Person->PlayerID) {
+
+                    if (p_target->Genus.Person->Health > 0 && !is_person_ko(p_target)) {
+                        SLONG skill = GET_SKILL(p_target);
+
+                        if (PersonIsMIB(p_person)) {
+                            // MIB are expert bullet dodgers.
+                            skill += 5;
+                        }
+
+                        // High-skill NPCs can dodge bullets.
+                        if (skill >= 7) {
+                            skill -= 5;
+
+                            if (p_person->Genus.Person->SpecialUse) {
+                                Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+                                if (p_special->Genus.Special->SpecialType == SPECIAL_SHOTGUN) {
+                                    skill -= 5; // shotgun spread is harder to dodge
+                                }
+                            }
+
+                            if ((Random() & 0x1f) < skill) {
+                                PCOM_attack_happened(p_target, p_person);
+                                set_person_flip(p_target, Random() & 0x1);
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                // Blood splat on hit.
+                if (VIOLENCE) {
+                    calc_sub_objects_position(
+                        p_target,
+                        p_target->Draw.Tweened->AnimTween,
+                        SUB_OBJECT_LEFT_HAND,
+                        &vec.X,
+                        &vec.Y,
+                        &vec.Z);
+                    vec.X += (Random() & 0x1f);
+                    vec.Y += (Random() & 0x1f);
+                    vec.Z += (Random() & 0x1f);
+                    vec.X <<= 8;
+                    vec.Y <<= 8;
+                    vec.Z <<= 8;
+                    vec.X += p_target->WorldPos.X;
+                    vec.Y += p_target->WorldPos.Y;
+                    vec.Z += p_target->WorldPos.Z;
+                    PARTICLE_Add(vec.X, vec.Y, vec.Z, 0, 0, 0,
+                        POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2), 0x7FFF0000,
+                        PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE, 10, 75, 1, 20, 5);
+                }
+                apply_hit_to_person(
+                    p_target,
+                    0,
+                    gun_type,
+                    damage,
+                    p_person,
+                    NULL);
+
+                if (p_person->Genus.Person->PlayerID) {
+                    // Clear target once killed.
+                    if (p_target->Genus.Person->Health <= 0) {
+                        p_person->Genus.Person->Target = 0;
+                    }
+                }
+            } else if (p_target->Class == CLASS_BAT) {
+                BAT_apply_hit(
+                    p_target,
+                    p_person,
+                    damage);
+            } else if (p_target->Class == CLASS_VEHICLE) {
+                extern void VEH_reduce_health(Thing * p_car, Thing * p_person, SLONG damage);
+
+                VEH_reduce_health(
+                    p_target,
+                    p_person,
+                    damage);
+
+                p_target->Genus.Vehicle->Flags |= FLAG_VEH_SHOT_AT;
+            } else if (p_target->Class == CLASS_SPECIAL) {
+                // Must be a mine.
+                void special_activate_mine(Thing * p_mine);
+                special_activate_mine(p_target);
+            } else {
+                ASSERT(p_target->Class == CLASS_BARREL);
+                BARREL_shoot(
+                    p_target,
+                    p_person);
+            }
+        } else {
+            // Miss — play ricochet sound and spark effect.
+            shotPosition.X -= (SIN(p_person->Draw.Tweened->Angle) * 1024) >> 8;
+            shotPosition.Z -= (COS(p_person->Draw.Tweened->Angle) * 1024) >> 8;
+
+            rico_id = ((Random() * (S_RICOCHET_END - S_RICOCHET_START)) >> 16) + S_RICOCHET_START;
+
+            MFX_play_xyz(0, rico_id, 0, shotPosition.X, shotPosition.Y, shotPosition.Z);
+
+            // Find the impact point on a missed shot.
+            SLONG hitx;
+            SLONG hity;
+            SLONG hitz;
+
+            SLONG b_index = THING_find_nearest(
+                p_target->WorldPos.X >> 8,
+                p_target->WorldPos.Y >> 8,
+                p_target->WorldPos.Z >> 8,
+                0xa0,
+                1 << CLASS_BARREL);
+
+            if (b_index) {
+                Thing* p_barrel = TO_THING(b_index);
+
+                hitx = p_barrel->WorldPos.X >> 8;
+                hity = p_barrel->WorldPos.Y >> 8;
+                hitz = p_barrel->WorldPos.Z >> 8;
+
+                BARREL_shoot(
+                    p_barrel,
+                    p_person);
+            } else {
+                hitx = p_target->WorldPos.X + (Random() & 0x1fff) - 0xfff;
+                hitz = p_target->WorldPos.Z + (Random() & 0x1fff) - 0xfff;
+                hity = PAP_calc_map_height_at(hitx >> 8, hitz >> 8) + 0x1000;
+            }
+
+            PYRO_hitspang(
+                p_person,
+                hitx,
+                hity,
+                hitz);
+        }
+    } else {
+        // No target — try to shoot a coke can or spark off the environment.
+        if (DIRT_shoot(p_person)) {
+            shotPosition.X -= (SIN(p_person->Draw.Tweened->Angle) * 1024) >> 8;
+            shotPosition.Z -= (COS(p_person->Draw.Tweened->Angle) * 1024) >> 8;
+            MFX_play_xyz(0, S_PISTOL_SHOT, 0, shotPosition.X, shotPosition.Y, shotPosition.Z);
+        } else {
+            shotPosition.X -= (SIN(p_person->Draw.Tweened->Angle) * 1024) >> 8;
+            shotPosition.Z -= (COS(p_person->Draw.Tweened->Angle) * 1024) >> 8;
+
+            rico_id = ((Random() * (S_RICOCHET_END - S_RICOCHET_START)) >> 16) + S_RICOCHET_START;
+            MFX_play_xyz(0, rico_id, 0, shotPosition.X, shotPosition.Y, shotPosition.Z);
+
+            // Trace line-of-sight to find where the stray shot hit the world.
+            {
+                SLONG endx = p_person->WorldPos.X - (SIN(p_person->Draw.Tweened->Angle) << 2) >> 8;
+                SLONG endy = p_person->WorldPos.Y + 0x6000 >> 8;
+                SLONG endz = p_person->WorldPos.Z - (COS(p_person->Draw.Tweened->Angle) << 2) >> 8;
+
+                if (there_is_a_los(
+                        p_person->WorldPos.X >> 8,
+                        p_person->WorldPos.Y >> 8,
+                        p_person->WorldPos.Z >> 8,
+                        endx,
+                        endy,
+                        endz,
+                        0)) {
+                    PYRO_hitspang(
+                        p_person,
+                        endx << 8,
+                        endy << 8,
+                        endz << 8);
+                } else {
+                    PYRO_hitspang(
+                        p_person,
+                        los_failure_x << 8,
+                        los_failure_y << 8,
+                        los_failure_z << 8);
+                }
+            }
+        }
+    }
+}
+
+// Fires weapon while running, enforcing per-weapon cooldown timer.
+// uc_orig: set_person_running_shoot (fallen/Source/Person.cpp)
+void set_person_running_shoot(Thing* p_person)
+{
+    SLONG ammo, sound, anim, time;
+
+    if (p_person->Genus.Person->Timer1) {
+        // Still cooling down from last shot.
+        return;
+    }
+
+    ammo = shoot_get_ammo_sound_anim_time(p_person, &sound, &anim, &time);
+
+    if (ammo == NOT_A_GUN_YOU_SHOOT) {
+        return;
+    }
+
+    if (!ammo || ammo == HAD_TO_CHANGE_CLIP) {
+        MFX_play_thing(THING_NUMBER(p_person), S_PISTOL_DRY, MFX_REPLACE, p_person);
+        return;
+    }
+
+    MFX_play_thing(THING_NUMBER(p_person), sound, MFX_REPLACE, p_person);
+    actually_fire_gun(p_person);
+
+    p_person->Genus.Person->Timer1 = time;
+}
+
+// Returns the best weapon type (with ammo) from the person's inventory.
+// Priority: AK47 > shotgun > gun > bat > knife.
+// Returns SPECIAL_NONE if no viable weapon found.
+// uc_orig: get_persons_best_weapon_with_ammo (fallen/Source/Person.cpp)
+SLONG get_persons_best_weapon_with_ammo(Thing* p_person)
+{
+    Thing* p_special;
+
+    static UBYTE weapon_order[5] = {
+        SPECIAL_AK47,
+        SPECIAL_SHOTGUN,
+        SPECIAL_GUN,
+        SPECIAL_BASEBALLBAT,
+        SPECIAL_KNIFE
+    };
+
+    SLONG i;
+
+    for (i = 0; i < 5; i++) {
+        if (i == 2) {
+            if (p_person->Flags & FLAGS_HAS_GUN) {
+                if (p_person->Genus.Person->Ammo) {
+                    return SPECIAL_GUN;
+                }
+            }
+        } else {
+            if (p_special = person_has_special(p_person, weapon_order[i])) {
+                if (i < 2) {
+                    if (p_special->Genus.Special->ammo) {
+                        return weapon_order[i];
+                    }
+                } else {
+                    return weapon_order[i];
+                }
+            }
+        }
+    }
+
+    return SPECIAL_NONE;
+}
+
+// Returns TRUE if a cutscene is in progress and the NPC should not shoot p_target.
+// uc_orig: dont_hurt_target_during_cutscene (fallen/Source/Person.cpp)
+SLONG dont_hurt_target_during_cutscene(Thing* p_person, Thing* p_target)
+{
+    if (!p_person->Genus.Person->PlayerID) {
+        if (p_target->Class == CLASS_PERSON) {
+            SLONG dont_shoot_in_a_cutscene = FALSE;
+
+            if (p_target->Genus.Person->PlayerID) {
+                dont_shoot_in_a_cutscene = TRUE;
+            } else if (p_target->Genus.Person->pcom_move == PCOM_MOVE_FOLLOW) {
+                // Don't shoot people following the player during a cutscene.
+                UWORD i_follow = EWAY_get_person(p_person->Genus.Person->pcom_move_follow);
+
+                if (i_follow) {
+                    Thing* p_follow = TO_THING(i_follow);
+
+                    if (p_follow->Class == CLASS_PERSON && p_follow->Genus.Person->PlayerID) {
+                        dont_shoot_in_a_cutscene = TRUE;
+                    }
+                }
+            }
+
+            if (dont_shoot_in_a_cutscene && EWAY_stop_player_moving()) {
+                return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+// Full shoot action: handles ammo check, target acquisition, weapon-swap on empty,
+// guard reactions, and cutscene suppression.
+// uc_orig: set_person_shoot (fallen/Source/Person.cpp)
+void set_person_shoot(Thing* p_person, UWORD shoot_target)
+{
+    SLONG dx, dz;
+    SLONG anim = ANIM_PISTOL_SHOOT;
+    SLONG ammo = FALSE;
+    SLONG sound;
+    SLONG time;
+
+    if (p_person->State == STATE_CARRY) {
+        // Can't shoot while carrying someone.
+        return;
+    }
+
+    if (might_i_be_a_villain(p_person)) {
+        // Shooting in public attracts cop attention.
+        PCOM_call_cop_to_arrest_me(p_person, 1);
+    }
+
+    if (p_person->SubState == SUB_STATE_RUNNING) {
+        set_person_running_shoot(p_person);
+        return;
+    }
+
+    p_person->Genus.Person->Timer1 = 0;
+
+    if (p_person->Genus.Person->PlayerID) {
+        // Player-specific pre-shot checks.
+        if (p_person->Genus.Person->Target) {
+            Thing* p_target;
+            p_target = TO_THING(p_person->Genus.Person->Target);
+
+            if (p_target->Class == CLASS_PERSON) {
+                if (p_person->Genus.Person->PersonType == PERSON_DARCI) {
+                    if (p_target->Draw.Tweened->CurrentAnim == ANIM_HANDS_UP || p_target->Draw.Tweened->CurrentAnim == ANIM_HANDS_UP_LOOP) {
+                        PANEL_new_text(p_person, 8000, XLAT_str(X_GET_DOWN));
+                        set_person_dead(p_target, p_person, PERSON_DEATH_TYPE_GET_DOWN, 0, 0);
+                        p_person->Genus.Person->Target = NULL;
+                        return;
+                    }
+                    if (p_target->Genus.Person->PersonType == PERSON_COP && !(p_target->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)) {
+                        PANEL_new_text(p_person, 8000, XLAT_str(X_CANT_SHOOT_COP));
+                        return;
+                    }
+                }
+            }
+        }
+    } else {
+        // NPC-specific pre-shot checks.
+        if (p_person->Genus.Person->Target) {
+            Thing* p_target;
+            p_target = TO_THING(p_person->Genus.Person->Target);
+
+            if (p_target->Class == CLASS_VEHICLE) {
+                if (p_target->State == STATE_DEAD) {
+                    p_person->Genus.Person->Target = NULL;
+                }
+            } else {
+                if (dont_hurt_target_during_cutscene(p_person, p_target)) {
+                    return;
+                }
+            }
+        }
+    }
+
+    ammo = shoot_get_ammo_sound_anim_time(p_person, &sound, &anim, &time);
+
+    if (ammo == NOT_A_GUN_YOU_SHOOT) {
+        return;
+    }
+
+    if (!ammo || ammo == HAD_TO_CHANGE_CLIP) {
+        MFX_play_thing(THING_NUMBER(p_person), S_PISTOL_DRY, MFX_REPLACE, p_person);
+
+        if (p_person->Genus.Person->PlayerID && ammo != HAD_TO_CHANGE_CLIP) {
+            // Auto-switch to best available weapon.
+            SLONG special = get_persons_best_weapon_with_ammo(p_person);
+
+            if (special) {
+                if (special == SPECIAL_GUN) {
+                    set_person_draw_gun(p_person);
+                } else {
+                    set_person_draw_item(p_person, special);
+                }
+            } else {
+                if (p_person->Genus.Person->SpecialUse) {
+                    set_person_item_away(p_person);
+                } else {
+                    set_person_gun_away(p_person);
+                }
+            }
+        }
+
+        return;
+    }
+
+    set_anim(p_person, anim);
+    p_person->Genus.Person->Action = ACTION_SHOOT;
+    set_generic_person_state_function(p_person, STATE_GUN);
+    p_person->SubState = SUB_STATE_SHOOT_GUN;
+    p_person->Genus.Person->Flags |= (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+    p_person->Draw.Tweened->Flags |= DT_FLAG_GUNFLASH;
+
+    {
+        if (!shoot_target || p_person->Genus.Person->Target == 0) {
+            // Find someone to shoot.
+            p_person->Genus.Person->Target = find_target_new(p_person);
+
+            if (p_person->Genus.Person->Target) {
+                Thing* p_target;
+                p_target = TO_THING(p_person->Genus.Person->Target);
+
+                set_face_thing(p_person, p_target);
+
+                if (p_target->Class == CLASS_PERSON) {
+                    if (p_person->Genus.Person->PersonType == PERSON_DARCI) {
+                        if (p_target->Draw.Tweened->CurrentAnim == ANIM_HANDS_UP || p_target->Draw.Tweened->CurrentAnim == ANIM_HANDS_UP_LOOP) {
+                            PANEL_new_text(p_person, 8000, XLAT_str(X_GET_DOWN));
+                            set_person_dead(p_target, p_person, PERSON_DEATH_TYPE_GET_DOWN, 0, 0);
+                            return;
+                        }
+
+                        if (p_target->Draw.Tweened->CurrentAnim == ANIM_HANDS_UP_LIE) {
+                            // Can't shoot civs while they're getting down.
+                            return;
+                        }
+
+                        if (p_target->Genus.Person->PersonType == PERSON_COP && !(p_target->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)) {
+                            PANEL_new_text(p_person, 8000, XLAT_str(X_CANT_SHOOT_COP));
+                            return;
+                        }
+                    }
+
+                    if (p_target->Genus.Person->PlayerID) {
+                        if (EWAY_stop_player_moving()) {
+                            // Cutscene active — don't shoot.
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        MFX_play_thing(THING_NUMBER(p_person), sound, MFX_REPLACE, p_person);
+
+        ASSERT(p_person->Genus.Person->Target != THING_NUMBER(p_person));
+
+        actually_fire_gun(p_person);
+    }
+}
+
+// Starts grappling hook windup animation.
+// uc_orig: set_person_grapple_windup (fallen/Source/Person.cpp)
+void set_person_grapple_windup(Thing* p_person)
+{
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_GRAPPLING);
+    set_anim(p_person, ANIM_GRAPPLING_HOOK_WINDUP);
+    set_generic_person_state_function(p_person, STATE_GRAPPLING);
+    p_person->SubState = SUB_STATE_GRAPPLING_WINDUP;
+}
+
+// Starts grappling hook release animation.
+// uc_orig: set_person_grappling_hook_release (fallen/Source/Person.cpp)
+void set_person_grappling_hook_release(Thing* p_person)
+{
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_GRAPPLING);
+    set_anim(p_person, ANIM_GRAPPLING_HOOK_RELEASE);
+    set_generic_person_state_function(p_person, STATE_GRAPPLING);
+    p_person->SubState = SUB_STATE_GRAPPLING_RELEASE;
+}
+
+// Returns SPECIAL_TYPE if person has a gun-type weapon out, else FALSE.
+// uc_orig: person_has_gun_out (fallen/Source/Person.cpp)
+SLONG person_has_gun_out(Thing* p_person)
+{
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+        return (SPECIAL_GUN);
+    }
+
+    if (!p_person->Genus.Person->SpecialUse) {
+        return FALSE;
+    }
+
+    {
+        Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+        if (p_special->Genus.Special->SpecialType == SPECIAL_SHOTGUN || p_special->Genus.Special->SpecialType == SPECIAL_AK47) {
+            return (p_special->Genus.Special->SpecialType);
+        }
+    }
+
+    return FALSE;
+}
+
+// Drops the currently equipped gun or special weapon to the ground.
+// If change_anim is set, transitions to idle after dropping a special.
+// uc_orig: drop_current_gun (fallen/Source/Person.cpp)
+void drop_current_gun(Thing* p_person, SLONG change_anim)
+{
+    SLONG gx;
+    SLONG gy;
+    SLONG gz;
+
+    Thing* p_special;
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+        Thing* p_gun;
+
+        find_nice_place_near_person(
+            p_person,
+            &gx,
+            &gy,
+            &gz);
+
+        p_gun = alloc_special(
+            SPECIAL_GUN,
+            SPECIAL_SUBSTATE_NONE,
+            gx,
+            gy,
+            gz,
+            NULL);
+
+        if (p_gun) {
+            if (p_person->Genus.Person->PlayerID) {
+                p_gun->Genus.Special->ammo = p_person->Genus.Person->Ammo;
+            } else {
+                p_gun->Genus.Special->ammo = (Random() & 0x3) + 3;
+            }
+        }
+
+        p_person->Draw.Tweened->PersonID &= ~0xe0;
+        p_person->Genus.Person->Flags &= ~FLAG_PERSON_GUN_OUT;
+        p_person->Flags &= ~FLAGS_HAS_GUN;
+    } else if (p_person->Genus.Person->SpecialUse) {
+        p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+        special_drop(p_special, p_person);
+
+        p_person->Genus.Person->SpecialUse = NULL;
+        p_person->Draw.Tweened->PersonID &= ~0xe0;
+
+        if (change_anim)
+            set_person_idle(p_person);
+    }
+}
+
+// Drops all items the person is carrying: gun, all specials, and bounty drop.
+// If is_being_searched and something was found, plays the item-revealed sound.
+// uc_orig: drop_all_items (fallen/Source/Person.cpp)
+void drop_all_items(Thing* p_person, UBYTE is_being_searched)
+{
+    SLONG gx;
+    SLONG gy;
+    SLONG gz;
+    UBYTE found_something = 0;
+
+    if (p_person->Flags & FLAGS_HAS_GUN) {
+        find_nice_place_near_person(
+            p_person,
+            &gx,
+            &gy,
+            &gz);
+
+        {
+            Thing* p_gun = alloc_special(
+                SPECIAL_GUN,
+                SPECIAL_SUBSTATE_NONE,
+                gx,
+                gy,
+                gz,
+                NULL);
+
+            if (p_gun) {
+                if (p_person->Genus.Person->PlayerID) {
+                    p_gun->Genus.Special->ammo = p_person->Genus.Person->Ammo;
+                } else {
+                    p_gun->Genus.Special->ammo = (Random() & 0x3) + 3;
+                }
+                found_something = 1;
+            }
+        }
+
+        p_person->Flags &= ~FLAGS_HAS_GUN;
+    }
+
+    while (p_person->Genus.Person->SpecialList) {
+        Thing* p_special = TO_THING(p_person->Genus.Person->SpecialList);
+
+        if (p_person->Genus.Person->drop == p_special->Genus.Special->SpecialType) {
+            // Already dropping his bounty via SpecialList — clear the separate drop field.
+            p_person->Genus.Person->drop = NULL;
+        }
+
+        special_drop(p_special, p_person);
+        found_something = 1;
+    }
+
+    if (p_person->Genus.Person->drop) {
+        find_nice_place_near_person(
+            p_person,
+            &gx,
+            &gy,
+            &gz);
+
+        alloc_special(
+            p_person->Genus.Person->drop,
+            SPECIAL_SUBSTATE_NONE,
+            gx,
+            gy,
+            gz,
+            NULL);
+
+        p_person->Genus.Person->drop = NULL;
+        found_something = 1;
+    }
+    if (is_being_searched && found_something)
+        MFX_play_ambient(THING_NUMBER(p_person), S_ITEM_REVEALED, 0);
 }
 

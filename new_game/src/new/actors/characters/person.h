@@ -256,4 +256,65 @@ void camera_fight(void);
 // uc_orig: camera_normal (fallen/Source/Person.cpp)
 void camera_normal(void);
 
+// --- chunk 4: set_person_aim..drop_all_items ---
+
+// Sets person into aiming stance using their current weapon.
+// uc_orig: set_person_aim (fallen/Source/Person.cpp)
+void set_person_aim(Thing* p_person, SLONG locked = 0);
+
+// Checks if the vehicle is driven or occupied by a MIB agent.
+// uc_orig: VehicleBelongsToMIB (fallen/Source/Person.cpp)
+UBYTE VehicleBelongsToMIB(Thing* p_target);
+
+// Computes damage dealt to p_target when p_person shoots.
+// Returns 0 on miss. Sets *gun_type to one of HIT_TYPE_GUN_SHOT_*.
+// uc_orig: get_shoot_damage (fallen/Source/Person.cpp)
+SLONG get_shoot_damage(Thing* p_person, Thing* p_target, SLONG* gun_type);
+
+// Determines ammo, sound, animation and cooldown time for a shot.
+// Returns ammo count, NOT_A_GUN_YOU_SHOOT, or HAD_TO_CHANGE_CLIP.
+// uc_orig: shoot_get_ammo_sound_anim_time (fallen/Source/Person.cpp)
+SLONG shoot_get_ammo_sound_anim_time(Thing* p_person, SLONG* sound, SLONG* anim, SLONG* time);
+
+// Fires the gun: dynamic light, brass eject, applies hit or ricochet.
+// uc_orig: actually_fire_gun (fallen/Source/Person.cpp)
+void actually_fire_gun(Thing* p_person);
+
+// Fires the gun if person is running (respects cooldown timer).
+// uc_orig: set_person_running_shoot (fallen/Source/Person.cpp)
+void set_person_running_shoot(Thing* p_person);
+
+// Returns the best special weapon type with ammo the person is carrying.
+// Returns SPECIAL_NONE if no viable weapon found.
+// uc_orig: get_persons_best_weapon_with_ammo (fallen/Source/Person.cpp)
+SLONG get_persons_best_weapon_with_ammo(Thing* p_person);
+
+// Returns true if NPC should hold fire due to an active cutscene.
+// uc_orig: dont_hurt_target_during_cutscene (fallen/Source/Person.cpp)
+SLONG dont_hurt_target_during_cutscene(Thing* p_person, Thing* p_target);
+
+// Main shoot action: handles ammo, targeting, fire, weapon-switch on empty.
+// uc_orig: set_person_shoot (fallen/Source/Person.cpp)
+void set_person_shoot(Thing* p_person, UWORD shoot_target);
+
+// Starts the grappling hook windup animation.
+// uc_orig: set_person_grapple_windup (fallen/Source/Person.cpp)
+void set_person_grapple_windup(Thing* p_person);
+
+// Starts the grappling hook release animation.
+// uc_orig: set_person_grappling_hook_release (fallen/Source/Person.cpp)
+void set_person_grappling_hook_release(Thing* p_person);
+
+// Returns SPECIAL_TYPE if person has a gun-type weapon drawn, else FALSE.
+// uc_orig: person_has_gun_out (fallen/Source/Person.cpp)
+SLONG person_has_gun_out(Thing* p_person);
+
+// Drops the currently held gun or special weapon to the ground.
+// uc_orig: drop_current_gun (fallen/Source/Person.cpp)
+void drop_current_gun(Thing* p_person, SLONG change_anim);
+
+// Drops all items (gun, specials, bounty) the person is carrying.
+// uc_orig: drop_all_items (fallen/Source/Person.cpp)
+void drop_all_items(Thing* p_person, UBYTE is_being_searched);
+
 #endif // ACTORS_CHARACTERS_PERSON_H

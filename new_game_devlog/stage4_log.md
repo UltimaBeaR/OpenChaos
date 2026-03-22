@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 95 — actors/characters/person (чанк 4: set_person_aim..drop_all_items) (2026-03-22)
+
+- Person.cpp чанк 4: lines 4742–6140. Функции: set_person_aim, weapon_accuracy_at_dist, VehicleBelongsToMIB, get_shoot_damage, shoot_get_ammo_sound_anim_time, actually_fire_gun, set_person_running_shoot, get_persons_best_weapon_with_ammo, dont_hurt_target_during_cutscene, set_person_shoot, set_person_grapple_windup, set_person_grappling_hook_release, person_has_gun_out, drop_current_gun, drop_all_items.
+- Добавлены 6 новых Temporary include в person.cpp: actors/items/guns.h, actors/items/special.h, ai/combat.h, effects/pyro.h, actors/animals/bat.h, actors/items/barrel.h.
+- `weapon_accuracy_at_dist` в оригинале `inline` — перенесена как `static inline` (файл-локальная).
+
+---
+
 ## Итерация 94 — actors/characters/person (чанк 3: general_process_player..camera_normal) (2026-03-22)
 
 - Person.cpp чанк 3: lines 3202–4739. Функции: general_process_player, person_pick_best_target, general_process_person, check_on_slippy_slope, slope_ahead, person_normal_move_dxdz, person_normal_move, person_normal_move_check, advance_keyframe, retreat_keyframe, move_locked_tween, person_normal_animate_speed, person_normal_animate, person_backwards_animate, camera_shoot, camera_fight, camera_normal.

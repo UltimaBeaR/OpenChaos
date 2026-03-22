@@ -58379,6 +58379,316 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_aim",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_aim",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "weapon_accuracy_at_dist",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "weapon_accuracy_at_dist",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VehicleBelongsToMIB",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "VehicleBelongsToMIB",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_shoot_damage",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "get_shoot_damage",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NOT_A_GUN_YOU_SHOOT",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "NOT_A_GUN_YOU_SHOOT",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HAD_TO_CHANGE_CLIP",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "HAD_TO_CHANGE_CLIP",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "shoot_get_ammo_sound_anim_time",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "shoot_get_ammo_sound_anim_time",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "actually_fire_gun",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "actually_fire_gun",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_running_shoot",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_running_shoot",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_persons_best_weapon_with_ammo",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "get_persons_best_weapon_with_ammo",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "dont_hurt_target_during_cutscene",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "dont_hurt_target_during_cutscene",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_shoot",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_shoot",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_grapple_windup",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_grapple_windup",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_grappling_hook_release",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_grappling_hook_release",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_has_gun_out",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "person_has_gun_out",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "drop_current_gun",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "drop_current_gun",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "drop_all_items",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "drop_all_items",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_aim",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_aim",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "VehicleBelongsToMIB",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "VehicleBelongsToMIB",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_shoot_damage",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "get_shoot_damage",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "shoot_get_ammo_sound_anim_time",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "shoot_get_ammo_sound_anim_time",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "actually_fire_gun",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "actually_fire_gun",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_running_shoot",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_running_shoot",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_persons_best_weapon_with_ammo",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "get_persons_best_weapon_with_ammo",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "dont_hurt_target_during_cutscene",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "dont_hurt_target_during_cutscene",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_shoot",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_shoot",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_grapple_windup",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_grapple_windup",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_grappling_hook_release",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_grappling_hook_release",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_has_gun_out",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "person_has_gun_out",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "drop_current_gun",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "drop_current_gun",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "drop_all_items",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "drop_all_items",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }
