@@ -332,6 +332,8 @@ set(SOURCES_GAME
     src/new/world/map/ob_globals.cpp
     src/new/ui/hud/overlay.cpp
     src/new/ui/hud/overlay_globals.cpp
+    src/new/ui/hud/panel.cpp
+    src/new/ui/hud/panel_globals.cpp
 
     src/new/ui/pause.cpp
     src/new/ai/pcom.cpp

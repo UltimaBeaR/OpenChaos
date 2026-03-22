@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 139 — panel.cpp chunk 1: core drawing utils + icon tables + beat/toss/face/text init (2026-03-23)
+
+- Chunk-1 globals (PANEL_Store, PANEL_Ic, PANEL_Beat, PANEL_Ammo, PANEL_Toss, PANEL_Text structs; ic/page/ammo/beat/toss/text arrays; m_iPanelXPos/YPos) → `panel_globals.h/.cpp`.
+- Chunk-2+ globals (PANEL_help_timer, PANEL_wide_top_is_talking, PANEL_beacon_colour, PANEL_fadeout_time, PANEL_sign_*, PANEL_info_time, screensaver vars, angle_mul, zoom_mul) still in `old/panel.cpp` — will move when chunk 2 is migrated.
+- `PANEL_FACE_LARGE/SMALL` originally local `#define/#undef` inside `PANEL_new_face` — moved to `panel_globals.h` because used by unmigrated chunk-2 code at lines 1810, 1822, 3591.
+- `old/panel.cpp` wrapped `#if 0 // MIGRATED` for lines 24–1471 (up to and including `PANEL_new_text_init`).
+- `estate` extern reference in `panel.cpp` — not a migrated entity; referenced from global scope in `old/`.
+- Review fix: 4 HEALTH_BAR_* file-scope macros initially missing `uc_orig` and entity mapping entries — added during CHECK A.
+
+---
+
 ## Итерация 138 — mesh.cpp chunk 2: draw_morph + reflection system (2026-03-23)
 
 - `MESH_Point`, `MESH_Face`, `MESH_Reflection`, `MESH_Add` structs + `MESH_MAX_REFLECTIONS/ADD` macros → `mesh_globals.h`; `MESH_reflection[]`, `MESH_add[]`, `MESH_add_upto` → `mesh_globals.cpp`.

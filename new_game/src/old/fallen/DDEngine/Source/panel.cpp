@@ -21,6 +21,8 @@
 #include "pcom.h"
 #include "env.h"
 
+#if 0 // MIGRATED to src/new/ui/hud/panel.cpp + panel_globals.cpp (iteration 139) [chunk 1: core drawing utils + IC tables + beat/toss/face + PANEL_new_text_init]
+
 #define HEALTH_BAR_WIDTH 100
 #define HEALTH_BAR_HEIGHT 10
 #define HEALTH_BAR_VERT_GAP 2
@@ -1465,6 +1467,8 @@ void PANEL_new_text_init(void)
     PANEL_text_tail = 0;
     PANEL_text_tick = 0;
 }
+
+#endif // MIGRATED to src/new/ui/hud/panel.cpp + panel_globals.cpp (iteration 139)
 
 void PANEL_new_text(Thing* who, SLONG delay, CBYTE* fmt, ...)
 {
