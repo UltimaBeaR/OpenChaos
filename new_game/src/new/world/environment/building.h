@@ -150,4 +150,34 @@ void bin_edge_list(void);
 // uc_orig: dump_edge_list (fallen/Source/Building.cpp)
 void dump_edge_list(UWORD size);
 
+// UV texture mapping for free-standing (non-wall) triangle and quad geometry.
+// Both use the texture at map tile (mx, mz) and apply rotation.
+// uc_orig: build_free_tri_texture_info (fallen/Source/Building.cpp)
+void build_free_tri_texture_info(struct PrimFace3* p_f3, SLONG mx, SLONG mz);
+
+// uc_orig: build_free_quad_texture_info (fallen/Source/Building.cpp)
+void build_free_quad_texture_info(struct PrimFace4* p_f4, SLONG mx, SLONG mz);
+
+// Creates triangle faces along a 45-degree diagonal section of a roof.
+// uc_orig: scan_45 (fallen/Source/Building.cpp)
+void scan_45(SLONG x1, SLONG z1, SLONG dx, SLONG dz);
+
+// Builds a decorative parapet/rim at the top of a storey roof.
+// Returns the new Y after the ledge is built.
+// uc_orig: build_storey_lip (fallen/Source/Building.cpp)
+SLONG build_storey_lip(SLONG storey, SLONG y);
+
+// Registers a rectangular roof or ledge as a walkable platform.
+// uc_orig: create_walkable_structure (fallen/Source/Building.cpp)
+void create_walkable_structure(SLONG left, SLONG right, SLONG top, SLONG bottom, SLONG y, SLONG sp, SLONG sf4, SLONG dy);
+
+// Sets FACE_FLAG_OTHER_SPLIT on a quad if it is non-planar (vertices at different heights).
+// uc_orig: calc_face_split (fallen/Source/Building.cpp)
+void calc_face_split(struct PrimFace4* p_f4);
+
+// Builds flat or gently sloped roof geometry using the scanline edge list.
+// Returns a bounding box handle, or 0 if no valid roof tiles were found.
+// uc_orig: build_easy_roof (fallen/Source/Building.cpp)
+SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, SLONG y, SLONG face_wall, SLONG flag);
+
 #endif // WORLD_ENVIRONMENT_BUILDING_H

@@ -67589,6 +67589,136 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "build_free_tri_texture_info",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_free_tri_texture_info",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_free_quad_texture_info",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_free_quad_texture_info",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "scan_45",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "scan_45",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_storey_lip",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_storey_lip",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "current_building",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "current_building",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "create_walkable_structure",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "create_walkable_structure",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_face_split",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "calc_face_split",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_easy_roof",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_easy_roof",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "lookup_roof",
+      "file": "new/world/environment/building_globals.cpp",
+      "orig_name": "lookup_roof",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ROT1",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "ROT1",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ROT2",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "ROT2",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ROT3",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "ROT3",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_UV4",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "set_UV4",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

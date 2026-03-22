@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 118 — world/environment/building (Building.cpp чанк 2: texture UV, roof geometry → new/) (2026-03-22)
+
+- `fallen/Source/Building.cpp` lines 67–1929 → `new/world/environment/building.cpp` (chunk 2).
+- `set_UV4` — файл-локальный макро в `building.cpp`; `ROT1/ROT2/ROT3` и `lookup_roof[256]` → `building_globals.h/.cpp`.
+- `current_building` → `building_globals.cpp` (был file-scope в оригинале).
+- `lookup_roof[256]` — все 256 значений верифицированы скриптом против `original_game/`.
+- Форвард-декларации `create_a_quad`, `build_face_texture_info`, `create_a_tri`, `build_ledge2` добавлены в `building.cpp` (chunk 3+ ещё в old/).
+- `create_walkable_structure`: для-цикл с пустым телом — как в пре-релизе (LogText удалён в препроцессинге); сохранено 1:1.
+
+---
+
 ## Итерация 117 — world/environment/building (Building.cpp чанк 1: helpers, edge scanner → new/) (2026-03-22)
 
 - `fallen/Source/Building.cpp` (9878 строк) — чанк 1 (lines 1-1520) → `new/world/environment/building.cpp` + `building.h` + `building_globals.cpp` + `building_globals.h`.

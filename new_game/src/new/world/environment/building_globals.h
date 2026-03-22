@@ -221,4 +221,24 @@ extern SLONG build_max_y;
     if (z > max_z)     \
         max_z = z;
 
+// Rotation encoding packed into high bits of lookup_roof[] entries.
+// uc_orig: ROT1 (fallen/Source/Building.cpp)
+#define ROT1 (3 << 8)
+
+// uc_orig: ROT2 (fallen/Source/Building.cpp)
+#define ROT2 (2 << 8)
+
+// uc_orig: ROT3 (fallen/Source/Building.cpp)
+#define ROT3 (1 << 8)
+
+// Roof tile auto-tiling lookup table.
+// Indexed by a bitmask of 8 surrounding tile occupancy (256 entries).
+// Low 8 bits = texture atlas index; high 2 bits = rotation (see ROT1/ROT2/ROT3).
+// uc_orig: lookup_roof (fallen/Source/Building.cpp)
+extern UWORD lookup_roof[256];
+
+// Index of the building currently being processed during geometry construction.
+// uc_orig: current_building (fallen/Source/Building.cpp)
+extern SLONG current_building;
+
 #endif // WORLD_ENVIRONMENT_BUILDING_GLOBALS_H

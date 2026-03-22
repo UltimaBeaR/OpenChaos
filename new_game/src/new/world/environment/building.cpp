@@ -30,6 +30,19 @@ void fn_building_normal(Thing* b_thing);
 // uc_orig: get_map_height (fallen/Source/Building.cpp) — forward for use in build_bottom_edge_list
 SLONG get_map_height(SLONG x, SLONG z);
 
+// Forward declarations for chunk 3+ functions (still in old/Building.cpp) used by chunk 2 code.
+// uc_orig: create_a_quad (fallen/Source/Building.cpp)
+struct PrimFace4* create_a_quad(UWORD p1, UWORD p0, UWORD p3, UWORD p2, SWORD texture_style, SWORD texture_piece, SLONG flipx = 0);
+
+// uc_orig: build_face_texture_info (fallen/Source/Building.cpp)
+void build_face_texture_info(struct PrimFace4* p_f4, UWORD texture);
+
+// uc_orig: create_a_tri (fallen/Source/Building.cpp)
+struct PrimFace3* create_a_tri(UWORD p2, UWORD p1, UWORD p0, SWORD texture_id, SWORD texture_piece);
+
+// uc_orig: build_ledge2 (fallen/Source/Building.cpp)
+SLONG build_ledge2(SLONG y, SLONG storey, SLONG out, SLONG height, SLONG dip);
+
 // uc_orig: insert_collision_vect (fallen/Source/Building.cpp)
 // Stub: in this pre-release codebase does nothing — the full game version registers a wall/ramp/ladder
 // collision vector into the physics system. prim_type = STOREY_TYPE_* constant.
@@ -1147,4 +1160,525 @@ void dump_edge_list(UWORD size)
             edge = edge_pool_ptr[edge].Next;
         }
     }
+}
+
+// Macro to set four UV coordinates at once into a local UV[4][2] array.
+// Parameter order: (x0,y0) = corner 0, (x1,y1) = corner 1, (x2,y2) = corner 2, (x3,y3) = corner 3.
+// Note: UV[2] and UV[3] are swapped relative to parameter order (x3,y3→[2], x2,y2→[3]).
+// uc_orig: set_UV4 (fallen/Source/Building.cpp)
+#define set_UV4(x0, y0, x1, y1, x2, y2, x3, y3) \
+    UV[0][0] = (x0);                              \
+    UV[0][1] = (y0);                              \
+    UV[1][0] = (x1);                              \
+    UV[1][1] = (y1);                              \
+    UV[2][0] = (x3);                              \
+    UV[2][1] = (y3);                              \
+    UV[3][0] = (x2);                              \
+    UV[3][1] = (y2);
+
+// uc_orig: build_free_tri_texture_info (fallen/Source/Building.cpp)
+// Sets UV coordinates on a free-standing (non-wall) triangle face based on the texture
+// at map tile (mx, mz). Bilinearly interpolates UVs across the triangle vertices
+// using the tile's texture rotation.
+void build_free_tri_texture_info(struct PrimFace3* p_f3, SLONG mx, SLONG mz)
+{
+    UBYTE tx, ty, page;
+    SLONG tsize;
+    SLONG rot;
+    UBYTE UV[4][2];
+    UWORD texture, p;
+
+    SLONG dtx_down, dty_down;
+    SLONG dtx_down_r, dty_down_r;
+
+    texture = get_map_texture(mx, mz);
+
+    tx = ((struct MiniTextureBits*)(&texture))->X << 5;
+    ty = ((struct MiniTextureBits*)(&texture))->Y << 5;
+    page = (UBYTE)(((struct MiniTextureBits*)(&texture))->Page);
+    tsize = 31;
+    rot = ((struct MiniTextureBits*)(&texture))->Rot;
+    switch (rot) {
+    case 0:
+        set_UV4(tx, ty, tx + tsize, ty, tx, ty + tsize, tx + tsize, ty + tsize);
+        break;
+    case 1:
+        set_UV4(tx + tsize, ty, tx + tsize, ty + tsize, tx, ty, tx, ty + tsize);
+        break;
+    case 2:
+        set_UV4(tx + tsize, ty + tsize, tx, ty + tsize, tx + tsize, ty, tx, ty);
+        break;
+    case 3:
+        set_UV4(tx, ty + tsize, tx, ty, tx + tsize, ty + tsize, tx + tsize, ty);
+        break;
+    }
+
+    dtx_down = UV[3][0] - UV[0][0];
+    dty_down = UV[3][1] - UV[0][1];
+
+    dtx_down_r = UV[2][0] - UV[1][0];
+    dty_down_r = UV[2][1] - UV[1][1];
+
+    p_f3->TexturePage = page;
+
+    for (p = 0; p < 3; p++) {
+        SLONG x1, z1;
+        SLONG lx, ly;
+        SLONG rx, ry;
+
+        x1 = prim_points[p_f3->Points[p]].X - (mx << ELE_SHIFT);
+        z1 = prim_points[p_f3->Points[p]].Z - (mz << ELE_SHIFT);
+
+        lx = (z1 * dtx_down) >> 8;
+        ly = (z1 * dty_down) >> 8;
+        lx += UV[0][0];
+        ly += UV[0][1];
+
+        rx = (z1 * dtx_down_r) >> 8;
+        ry = (z1 * dty_down_r) >> 8;
+
+        rx += UV[1][0];
+        ry += UV[1][1];
+
+        p_f3->UV[p][0] = lx + (((rx - lx) * x1) >> 8);
+        p_f3->UV[p][1] = ly + (((ry - ly) * x1) >> 8);
+    }
+}
+
+// uc_orig: build_free_quad_texture_info (fallen/Source/Building.cpp)
+// Sets UV coordinates on a free-standing quad face based on the texture at map tile (mx, mz).
+// Bilinearly interpolates UVs across all four quad vertices using the tile's texture rotation.
+void build_free_quad_texture_info(struct PrimFace4* p_f4, SLONG mx, SLONG mz)
+{
+    UBYTE tx, ty, page;
+    SLONG tsize;
+    SLONG rot;
+    UBYTE UV[4][2];
+    UWORD texture, p;
+
+    SLONG dtx_down, dty_down;
+    SLONG dtx_down_r, dty_down_r;
+    SLONG dtx_across, dty_across;
+
+    texture = get_map_texture(mx, mz);
+
+    tx = ((struct MiniTextureBits*)(&texture))->X << 5;
+    ty = ((struct MiniTextureBits*)(&texture))->Y << 5;
+    page = (UBYTE)(((struct MiniTextureBits*)(&texture))->Page);
+    tsize = 31;
+    rot = ((struct MiniTextureBits*)(&texture))->Rot;
+    switch (rot) {
+    case 0:
+        set_UV4(tx, ty, tx + tsize, ty, tx, ty + tsize, tx + tsize, ty + tsize);
+        break;
+    case 1:
+        set_UV4(tx + tsize, ty, tx + tsize, ty + tsize, tx, ty, tx, ty + tsize);
+        break;
+    case 2:
+        set_UV4(tx + tsize, ty + tsize, tx, ty + tsize, tx + tsize, ty, tx, ty);
+        break;
+    case 3:
+        set_UV4(tx, ty + tsize, tx, ty, tx + tsize, ty + tsize, tx + tsize, ty);
+        break;
+    }
+
+    dtx_down = UV[3][0] - UV[0][0];
+    dty_down = UV[3][1] - UV[0][1];
+
+    dtx_down_r = UV[2][0] - UV[1][0];
+    dty_down_r = UV[2][1] - UV[1][1];
+
+    p_f4->TexturePage = page;
+
+    for (p = 0; p < 4; p++) {
+        SLONG x1, z1;
+        SLONG lx, ly;
+        SLONG rx, ry;
+
+        x1 = prim_points[p_f4->Points[p]].X - (mx << ELE_SHIFT);
+        z1 = prim_points[p_f4->Points[p]].Z - (mz << ELE_SHIFT);
+
+        lx = (z1 * dtx_down) >> 8;
+        ly = (z1 * dty_down) >> 8;
+        lx += UV[0][0];
+        ly += UV[0][1];
+
+        rx = (z1 * dtx_down_r) >> 8;
+        ry = (z1 * dty_down_r) >> 8;
+
+        rx += UV[1][0];
+        ry += UV[1][1];
+
+        p_f4->UV[p][0] = lx + (((rx - lx) * x1) >> 8);
+        p_f4->UV[p][1] = ly + (((ry - ly) * x1) >> 8);
+    }
+}
+
+// uc_orig: scan_45 (fallen/Source/Building.cpp)
+// Creates triangle faces along a 45-degree diagonal line in the building footprint.
+// Used for angled roof sections. dx/dz define the diagonal direction (±1 per tile).
+// flag_blocks[] must be pre-populated with point indices for each tile corner.
+void scan_45(SLONG x1, SLONG z1, SLONG dx, SLONG dz)
+{
+    UBYTE type = 0;
+    SLONG count;
+    SLONG pp, p0, p1, p2, p3;
+    struct PrimFace3* p_f3;
+
+    count = abs(dx) >> ELE_SHIFT;
+    x1 = x1 >> ELE_SHIFT;
+    z1 = z1 >> ELE_SHIFT;
+
+    if (dx < 0) {
+        dx = -1;
+        type |= 1;
+    } else {
+        dx = 1;
+    }
+
+    if (dz < 0) {
+        type |= 2;
+        dz = -1;
+    } else {
+        dz = 1;
+    }
+
+    pp = flag_blocks[(x1) + z1 * MAX_BOUND_SIZE];
+    while (count) {
+        x1 += dx;
+        z1 += dz;
+
+        p1 = flag_blocks[(x1) + z1 * MAX_BOUND_SIZE];
+        p2 = flag_blocks[(x1 - dx) + z1 * MAX_BOUND_SIZE];
+        p3 = flag_blocks[(x1) + (z1 - dz) * MAX_BOUND_SIZE];
+        switch (type) {
+        case 0: // SE
+            p_f3 = create_a_tri(p2, p1, pp, 0, 0);
+            build_free_tri_texture_info(p_f3, x1 - dx, z1 - dz + (edge_min_z >> ELE_SHIFT));
+            break;
+        case 1: // SW
+            p_f3 = create_a_tri(p1, pp, p3, 0, 0);
+            build_free_tri_texture_info(p_f3, x1, z1 - dz + (edge_min_z >> ELE_SHIFT));
+            break;
+        case 2: // NE
+            p_f3 = create_a_tri(pp, p3, p1, 0, 0);
+            build_free_tri_texture_info(p_f3, x1 - dx, z1 + (edge_min_z >> ELE_SHIFT));
+            break;
+        case 3: // NW
+            p_f3 = create_a_tri(p1, pp, p2, 0, 0);
+            build_free_tri_texture_info(p_f3, x1, z1 + (edge_min_z >> ELE_SHIFT));
+            break;
+        }
+
+        pp = p1;
+        count--;
+    }
+}
+
+// uc_orig: build_storey_lip (fallen/Source/Building.cpp)
+// Builds a decorative roof rim / parapet edge at height y for the given storey.
+// The lip style (out, height, dip) is determined by FLAG_STOREY_ROOF_RIM / ROOF_RIM2 flags.
+// Returns the new top y after the ledge is built.
+SLONG build_storey_lip(SLONG storey, SLONG y)
+{
+    SLONG flag = 0;
+    SLONG out, height, dip;
+
+    if (storey_list[storey].StoreyFlags & (FLAG_STOREY_ROOF_RIM))
+        flag |= 1;
+    if (storey_list[storey].StoreyFlags & (FLAG_STOREY_ROOF_RIM2))
+        flag |= 2;
+
+    switch (flag) {
+    case 0:
+        break;
+    case 1:
+        out = BLOCK_SIZE;
+        height = BLOCK_SIZE + (BLOCK_SIZE >> 1);
+        dip = 20;
+        break;
+    case 2:
+        out = BLOCK_SIZE >> 1;
+        height = (BLOCK_SIZE >> 1);
+        dip = 0;
+        break;
+    case 3:
+        out = BLOCK_SIZE;
+        height = (BLOCK_SIZE);
+        dip = 0;
+        break;
+    }
+
+    y = build_ledge2(y, storey, out, height, dip);
+
+    return (y);
+}
+
+// uc_orig: create_walkable_structure (fallen/Source/Building.cpp)
+// Registers a rectangular roof/ledge region as a walkable area in the DWalkable array.
+// Records the point and face ranges so the renderer can identify which geometry belongs
+// to each walkable platform.
+void create_walkable_structure(SLONG left, SLONG right, SLONG top, SLONG bottom, SLONG y, SLONG sp, SLONG sf4, SLONG dy)
+{
+    struct DWalkable* p_w;
+
+    if (next_dwalkable > MAX_DWALKABLES - 5)
+        ASSERT(0);
+
+    p_w = &dwalkables[next_dwalkable];
+
+    p_w->X1 = left;
+    p_w->X2 = right;
+    p_w->Z1 = top;
+    p_w->Z2 = bottom;
+
+    if (y < 0)
+        y = 0;
+
+    p_w->Y = y >> 5;
+    ASSERT(p_w->Y != 255);
+    p_w->StoreyY = dy;
+
+    p_w->StartPoint = sp;
+    p_w->EndPoint = next_prim_point;
+
+    p_w->StartFace4 = sf4;
+    p_w->EndFace4 = next_prim_face4;
+
+    p_w->Next = building_list[current_building].Walkable;
+    p_w->Building = current_building;
+    building_list[current_building].Walkable = next_dwalkable;
+
+    {
+        SLONG c0;
+        for (c0 = sf4; c0 < next_prim_face4; c0++) {
+        }
+    }
+
+    next_dwalkable++;
+}
+
+// uc_orig: calc_face_split (fallen/Source/Building.cpp)
+// Sets FACE_FLAG_OTHER_SPLIT on a quad if its four Y coordinates are not all equal,
+// indicating the quad needs to be split for correct rendering.
+void calc_face_split(struct PrimFace4* p_f4)
+{
+    SLONG y0, y1, y2, y3;
+
+    y0 = prim_points[p_f4->Points[0]].Y;
+    y1 = prim_points[p_f4->Points[1]].Y;
+    y2 = prim_points[p_f4->Points[2]].Y;
+    y3 = prim_points[p_f4->Points[3]].Y;
+
+    if (y1 == y2 && y2 == y3 && y0 != y1) {
+        p_f4->FaceFlags |= FACE_FLAG_OTHER_SPLIT;
+        return;
+    }
+    if (y0 == y1 && y1 == y2 && y3 != y1) {
+        p_f4->FaceFlags |= FACE_FLAG_OTHER_SPLIT;
+        return;
+    }
+}
+
+// uc_orig: build_easy_roof (fallen/Source/Building.cpp)
+// Builds flat or gently sloped roof geometry for a building storey.
+// Uses the scanline edge list (built by build_edge_list) to determine which map tiles
+// are inside the building footprint. For each inside tile, creates a roof quad using
+// four corner points from flag_blocks[]. If flag==0, per-tile roof height from the
+// map is used (sloped); if flag==1, all tiles are at the same height.
+// After geometry creation, applies lookup_roof[] to set the correct auto-tiled roof
+// texture for each tile based on its 8 surrounding neighbours.
+// Registers the result as a walkable structure and returns a bounding box handle.
+SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, SLONG y, SLONG face_wall, SLONG flag)
+{
+    SLONG x, z;
+    SLONG valid_roof = 0;
+    struct PrimFace4* p_f4;
+    SLONG small_dy = 9999999;
+    SLONG lmin_x = 9999999, lmax_x = -9999999, lmin_z = 9999999, lmax_z = -9999999;
+    SLONG flatten = 0;
+    SLONG maxy = -9999;
+
+    SLONG sp, ep, sf4, ef4;
+
+    sp = next_prim_point;
+    sf4 = next_prim_face4;
+
+    for (z = 0; z < depth; z++) {
+        SLONG polarity = 0;
+        SLONG edge;
+        SLONG dy = 0;
+        SLONG prev_x_in = 0;
+        edge = edge_heads_ptr[z];
+
+        for (x = min_x - 256 + 128; x < max_x + 256 && edge; x += ELE_SIZE) {
+
+            if ((x) > edge_pool_ptr[edge].X) {
+                polarity += edge_pool_ptr[edge].Count;
+                edge = edge_pool_ptr[edge].Next;
+            }
+
+            if (polarity & 1) {
+                SLONG tl, tr, bl, br;
+                SLONG texture;
+
+                if (x < lmin_x)
+                    lmin_x = x;
+
+                if (z < lmin_z)
+                    lmin_z = z;
+
+                if (x > lmax_x)
+                    lmax_x = x;
+
+                if (z > lmax_z)
+                    lmax_z = z;
+                valid_roof = 1;
+
+                tl = flag_blocks[(x >> ELE_SHIFT) + z * MAX_BOUND_SIZE];
+                if (!tl) {
+                    if (flag == 0)
+                        dy = (get_roof_height((x >> ELE_SHIFT), z + (edge_min_z >> ELE_SHIFT)) << FLOOR_HEIGHT_SHIFT);
+
+                    if (y + dy > maxy)
+                        maxy = y + dy;
+
+                    add_point(x - 128, y + dy, (z << ELE_SHIFT) + edge_min_z);
+                    flag_blocks[(x >> ELE_SHIFT) + z * MAX_BOUND_SIZE] = next_prim_point - 1;
+                    tl = next_prim_point - 1;
+                }
+
+                tr = flag_blocks[(x >> ELE_SHIFT) + 1 + z * MAX_BOUND_SIZE];
+                if (!tr) {
+                    if (flag == 0)
+                        dy = (get_roof_height((x >> ELE_SHIFT) + 1, z + (edge_min_z >> ELE_SHIFT)) << FLOOR_HEIGHT_SHIFT);
+
+                    if (y + dy > maxy)
+                        maxy = y + dy;
+
+                    add_point(x - 128 + ELE_SIZE, y + dy, (z << ELE_SHIFT) + edge_min_z);
+                    flag_blocks[(x >> ELE_SHIFT) + 1 + z * MAX_BOUND_SIZE] = next_prim_point - 1;
+                    tr = next_prim_point - 1;
+                }
+
+                bl = flag_blocks[(x >> ELE_SHIFT) + (z + 1) * MAX_BOUND_SIZE];
+                if (!bl) {
+                    if (flag == 0)
+                        dy = (get_roof_height((x >> ELE_SHIFT), z + 1 + (edge_min_z >> ELE_SHIFT)) << FLOOR_HEIGHT_SHIFT);
+
+                    if (y + dy > maxy)
+                        maxy = y + dy;
+                    add_point(x - 128, y + dy, (z << ELE_SHIFT) + edge_min_z + ELE_SIZE);
+                    flag_blocks[(x >> ELE_SHIFT) + (z + 1) * MAX_BOUND_SIZE] = next_prim_point - 1;
+                    bl = next_prim_point - 1;
+                }
+                br = flag_blocks[(x >> ELE_SHIFT) + 1 + (z + 1) * MAX_BOUND_SIZE];
+                if (!br) {
+                    if (flag == 0)
+                        dy = (get_roof_height((x >> ELE_SHIFT) + 1, z + 1 + (edge_min_z >> ELE_SHIFT)) << FLOOR_HEIGHT_SHIFT);
+                    if (y + dy > maxy)
+                        maxy = y + dy;
+
+                    add_point(x - 128 + 256, y + dy, (z << ELE_SHIFT) + edge_min_z + ELE_SIZE);
+                    flag_blocks[(x >> ELE_SHIFT) + 1 + (z + 1) * MAX_BOUND_SIZE] = next_prim_point - 1;
+                    br = next_prim_point - 1;
+                }
+                if (dy < small_dy)
+                    small_dy = dy;
+
+                if (bl < 0)
+                    bl = -bl;
+
+                if (tl < 0)
+                    tl = -tl;
+
+                if (br < 0)
+                    br = -br;
+
+                if (tr < 0)
+                    tr = -tr;
+
+                p_f4 = create_a_quad(tr, tl, br, bl, 0, 0);
+
+                if (p_f4) {
+                    p_f4->ThingIndex = face_wall;
+                    if (p_f4->FaceFlags & FACE_FLAG_NON_PLANAR)
+                        calc_face_split(p_f4);
+                    add_quad_to_walkable_list(next_prim_face4 - 1);
+
+                    texture = get_map_texture(x >> ELE_SHIFT, z + (edge_min_z >> ELE_SHIFT));
+                    ((struct MiniTextureBits*)(&texture))->Rot += 1;
+                    build_face_texture_info(p_f4, texture);
+                }
+
+            } else {
+                if (flag_blocks[(x >> ELE_SHIFT) + z * MAX_BOUND_SIZE])
+                    flag_blocks[(x >> ELE_SHIFT) + z * MAX_BOUND_SIZE] = -flag_blocks[(x >> ELE_SHIFT) + z * MAX_BOUND_SIZE];
+            }
+        }
+    }
+    lmax_x += 256;
+    lmax_z++;
+
+    if (valid_roof) {
+        SLONG t_min_x, t_max_x;
+        SLONG dx, dz;
+        SLONG oz = (edge_min_z >> ELE_SHIFT);
+
+        t_min_x = lmin_x >> 8;
+        t_max_x = lmax_x >> 8;
+
+        for (z = lmin_z; z < lmax_z; z++) {
+            for (x = t_min_x; x <= t_max_x; x++) {
+                SLONG point;
+
+                point = flag_blocks[x + z * MAX_BOUND_SIZE];
+                if (point > 0) {
+                    SLONG bits = 0;
+                    SLONG count = 0, data;
+
+                    if ((edit_map[x][z + oz].Texture & 0x3ff) == 0) {
+                        for (dz = -1; dz < 2; dz++)
+                            for (dx = -1; dx < 2; dx++) {
+                                if (dx || dz) {
+                                    SLONG mx, mz;
+                                    mx = x + dx;
+                                    mz = z + dz + oz;
+
+                                    if (mx < 0 || mx >= 128 || mz < 0 || mz > 128 || mx < t_min_x || mx > t_max_x || mz < oz || mz >= lmax_z + oz) {
+                                    } else {
+                                        if (flag_blocks[mx + (mz - oz) * MAX_BOUND_SIZE] > 0) {
+                                            bits |= 1 << count;
+                                        }
+                                    }
+                                    count++;
+                                }
+                            }
+                        ASSERT(bits < 256);
+
+                        if (data = lookup_roof[bits]) {
+                            if (data) {
+                                edit_map[x][z + oz].Texture = (data & 0xff) + 6 * 64;
+                                edit_map[x][z + oz].Texture |= (data >> 8) << 0xa;
+                                edit_map[x][z + oz].Texture |= 1 << 0xe;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        {
+            SLONG left, top, right, bottom;
+
+            left = lmin_x >> 8;
+            right = lmax_x >> 8;
+            top = lmin_z + (edge_min_z >> 8);
+            bottom = lmax_z + (edge_min_z >> 8);
+            create_walkable_structure(left, right, top, bottom, y + small_dy, sp, sf4, storey_list[wall_list[-face_wall].StoreyHead].DY >> 6);
+
+            return (add_bound_box(left, right, top, bottom, y + small_dy));
+        }
+    } else
+        return (0);
 }
