@@ -98,58 +98,80 @@ SLONG best_dist = ((float)(1e+300));   // float +inf → SLONG = undefined behav
 
 ### Методика
 
-1. Вытащили все `#define ИМЕНА` из `original_game/` через `grep` — **18091** уникальных имён.
+1. Вытащили все `#define ИМЕНА` из `original_game/` через `grep` — **8806** уникальных имён.
    Из поиска исключены vendored хедеры (`original_game/fallen/vcpkg_installed/`) —
    они являются частью сторонних библиотек (SDL2 и т.п.), а не кодом проекта.
    Без этого исключения в список попадали ложные пересечения,
    которые определены в SDL2 хедерах и естественно совпадают со стандартом.
-
-**Отдельно проверены исключённые vcpkg-макросы** — используются ли они в коде игры:
-- `NULL` — используется ~3956 раз, но значение везде одинаковое (`0` / `((void*)0)`).
-  SDL2 его не меняет. Безопасно.
-- `APIENTRY` — используется в 4 местах: `WinMain()`, `DllMain()`, `UninstInitialize()`,
-  `UninstUnInitialize()`. Всё это чисто Windows-специфичный код (entry points,
-  деинсталлятор). SDL2 переопределяет `APIENTRY` для OpenGL на не-Windows платформах
-  (`GLAPIENTRY`), но это не затронет игру: при переходе на мультиплатформу эти 4 функции
-  будут полностью заменены (SDL2 берёт entry point через `SDL_main`). В самом игровом
-  коде (рендерер, логика, физика) `APIENTRY` не используется нигде. Безопасно.
-- Пересечение `#define` между vcpkg и собственным кодом игры: только `WIN32_LEAN_AND_MEAN`
-  (одинаковый флаг) и `main` (SDL2 `#define main SDL_main` — стандартный SDL2 трюк).
-  Ничего опасного.
+   Исключённые vcpkg-макросы проверены отдельно → Группа D ниже.
 2. Вытащили все макросы из стандартных хедеров через `clang++ -dM -E` (включили
    `<math.h>`, `<stdlib.h>`, `<stdio.h>`, `<limits.h>`, `<float.h>`, `<errno.h>`,
    `<stdint.h>`, `<stddef.h>`, `<stdbool.h>`, `<signal.h>`, `<time.h>`, `<locale.h>`,
    `<setjmp.h>`, `<stdarg.h>`, `<wchar.h>`, `<wctype.h>`, `<windows.h>` и C++
    обёртки `<cmath>`, `<cstdlib>` и т.д.) — **35092** имени.
-3. Пересекли два списка — **23 совпадения** (ниже).
+3. Пересекли два списка — **18 совпадений** (ниже).
 
-### Полный список пересечений
+### Полный список пересечений (18 шт.)
+
+#### Группа A — Значение отличается от стандарта/SDK (потенциально опасные)
 
 | # | Макрос | Где в `original_game/` | Значение в проекте | Источник в стандарте/SDK |
 |---|--------|----------------------|-------------------|------------------------|
-| 1 | `ERROR` | `fallen/Source/Wallhug.cpp` | Function-like: `ERROR(err)` — отладочный макрос | `<wingdi.h>` (значение `0`) |
+| 1 | `INFINITY` | `MFStdLib.h`, `Always.h` | **`0x7fffffff`** (стандарт: `((float)(1e+300))`) | `<math.h>` |
 | 2 | `EXIT_SUCCESS` | `fallen/Source/Main.cpp` | **`1`** (стандарт определяет `0`) | `<stdlib.h>` |
 | 3 | `FAILED` | `fallen/DDLibrary/Headers/DDlib.h` | `((signed)(f)<0)` — другая логика | `<winerror.h>` |
-| 4 | `FALSE` | `MFStdLib.h`, `font3d.h`, `Always.h`, PSX хедеры | `0` (совпадает) | `<windef.h>` |
-| 5 | `HIWORD` | `fallen/PSXENG/headers/psxeng.h` | `((l)>>16)` — PSX-версия | `<windef.h>` |
-| 6 | `INFINITY` | `MFStdLib.h`, `Always.h` | **`0x7fffffff`** (стандарт: `((float)(1e+300))`) | `<math.h>` |
-| 7 | `LOWORD` | `fallen/PSXENG/headers/psxeng.h` | `((l)&0xffff)` — PSX-версия | `<windef.h>` |
-| 8 | `MAX_PATH` | PSX-код | `128` (Windows SDK: `260`) | `<windef.h>` |
-| 9 | `SM_CMONITORS` | `d3denum.cpp` (MuckyBasic, thrust) | Пустой define (флаг) | `<WinUser.h>` |
-| 10 | `STRICT` | `d3denum.cpp`, `d3dframe.cpp` и др. | Пустой define (флаг) | `<windows.h>` |
-| 11 | `SUCCEEDED` | `fallen/DDLibrary/Headers/DDlib.h` | `((signed)(f)>=0)` — другая логика | `<winerror.h>` |
-| 12 | `TRUE` | `MFStdLib.h`, `font3d.h`, `Always.h`, PSX хедеры | `1` (совпадает) | `<windef.h>` |
-| 13 | `WIN32` | `MFStdLib.h`, `MFHeader.h` | Пустой define (флаг, совпадает) | Compiler/SDK |
-| 14 | `ZeroMemory` | `fallen/Source/elev.cpp`, `Level.cpp` | `memset` обёртка | `<winbase.h>` |
-| 15 | `_MAX_PATH` | `fallen/Headers/Game.h`, `xlat_str.cpp` | `260` / `256` | MSVC runtime |
-| 16 | `max` | `MFStdLib.h`, PSX хедеры | `(((a)>(b)) ? (a) : (b))` | `<windef.h>` (если `NOMINMAX` не определён) |
-| 17 | `min` | `MFStdLib.h`, PSX хедеры | `(((a)<(b)) ? (a) : (b))` | `<windef.h>` (если `NOMINMAX` не определён) |
-| 18 | `_UINTPTR_T_DEFINED` | Compiler/vendor internals | Флаг | MSVC internal |
-| 19 | `_WIN32` | Compiler/vendor internals | Флаг | Compiler-defined |
-| 20 | `__MMX__` | Compiler/vendor internals | Флаг | Compiler-defined |
-| 21 | `__PRFCHWINTRIN_H` | Compiler/vendor internals | Include guard | Compiler-defined |
-| 22 | `__SSE2__` | Compiler/vendor internals | Флаг | Compiler-defined |
-| 23 | `__SSE__` | Compiler/vendor internals | Флаг | Compiler-defined |
+| 4 | `SUCCEEDED` | `fallen/DDLibrary/Headers/DDlib.h` | `((signed)(f)>=0)` — другая логика | `<winerror.h>` |
+| 5 | `ERROR` | `fallen/Source/Wallhug.cpp` | Function-like: `ERROR(err)` — отладочный макрос | `<wingdi.h>` (значение `0`) |
+
+#### Группа B — Значение совпадает с SDK (низкий риск)
+
+| # | Макрос | Где в `original_game/` | Значение в проекте | Источник в стандарте/SDK |
+|---|--------|----------------------|-------------------|------------------------|
+| 6 | `TRUE` | `MFStdLib.h`, `font3d.h`, `Always.h`, PSX хедеры | `1` (совпадает) | `<windef.h>` |
+| 7 | `FALSE` | `MFStdLib.h`, `font3d.h`, `Always.h`, PSX хедеры | `0` (совпадает) | `<windef.h>` |
+| 8 | `WIN32` | `MFStdLib.h`, `MFHeader.h` | Пустой define (флаг, совпадает) | Compiler/SDK |
+| 9 | `STRICT` | `d3denum.cpp`, `d3dframe.cpp` и др. | Пустой define (флаг, совпадает) | `<windows.h>` |
+| 10 | `SM_CMONITORS` | `d3denum.cpp` (MuckyBasic, thrust) | Пустой define (флаг, совпадает) | `<WinUser.h>` |
+| 11 | `ZeroMemory` | `fallen/Source/elev.cpp`, `Level.cpp` | `memset` обёртка (совпадает) | `<winbase.h>` |
+| 12 | `_MAX_PATH` | `fallen/Headers/Game.h`, `xlat_str.cpp` | `260` / `256` (почти совпадает) | MSVC runtime |
+| 13 | `min` | `MFStdLib.h`, PSX хедеры | `(((a)<(b)) ? (a) : (b))` (совпадает) | `<windef.h>` (если `NOMINMAX` не определён) |
+| 14 | `max` | `MFStdLib.h`, PSX хедеры | `(((a)>(b)) ? (a) : (b))` (совпадает) | `<windef.h>` (если `NOMINMAX` не определён) |
+
+#### Группа C — `#define` только в PSX-хедерах (но макросы используются и в PC-коде)
+
+`#define` этих макросов стоит только в PSX-хедерах (`PSXENG/`, `psxlib1/`), потому что
+на PSX нет Windows SDK. PC-код получает эти макросы из Windows SDK (`<windef.h>` и т.п.).
+Значения совпадают с SDK (кроме `MAX_PATH`: PSX определяет `128`, SDK — `260`).
+Сами макросы активно используются в PC-коде: `HIWORD`/`LOWORD` — в GMouse, DIManager;
+`MAX_PATH` — в AutoRun, Director, io.cpp и др.
+
+| # | Макрос | `#define` в | Значение в проекте | Источник в стандарте/SDK |
+|---|--------|------------|-------------------|------------------------|
+| 15 | `HIWORD` | `fallen/PSXENG/headers/psxeng.h` | `((l)>>16)` (совпадает с SDK) | `<windef.h>` |
+| 16 | `LOWORD` | `fallen/PSXENG/headers/psxeng.h` | `((l)&0xffff)` (совпадает с SDK) | `<windef.h>` |
+| 17 | `MAX_PATH` | PSX-код (4 файла) | `128` (SDK: `260`) | `<windef.h>` |
+| 18 | `_WIN32` | `MFStdLib.h`, `MFHeader.h` (PSX-хедеры) | Пустой define (флаг, совпадает) | Compiler-defined |
+
+#### Группа D — vcpkg/SDL2 (исключены из основного поиска, проверены отдельно)
+
+Эти макросы определяются в vendored SDL2 хедерах (`original_game/fallen/vcpkg_installed/`),
+а не в коде проекта. Исключены из основного списка. Проверено, используются ли в коде игры:
+
+| Макрос | Используется в игре? | Примечание |
+|--------|---------------------|-----------|
+| `NULL` | Да, ~3956 раз | Значение везде одинаковое (`0` / `((void*)0)`). SDL2 не меняет. Безопасно. |
+| `APIENTRY` | Да, 4 места: `WinMain()`, `DllMain()`, `UninstInitialize()`, `UninstUnInitialize()` | Всё Windows-специфичный код (entry points, деинсталлятор). SDL2 переопределяет `APIENTRY` для OpenGL на не-Windows платформах (`GLAPIENTRY`), но при переходе на мультиплатформу эти функции будут полностью заменены (SDL2 берёт entry point через `SDL_main`). В игровом коде (рендерер, логика, физика) `APIENTRY` не используется. Безопасно. |
+
+Также проверено пересечение `#define` между vcpkg и собственным кодом игры — нашлись только
+`WIN32_LEAN_AND_MEAN` (одинаковый флаг) и `main` (SDL2 `#define main SDL_main` —
+стандартный SDL2 трюк). Ничего опасного.
+
+#### Группа E — Compiler internals (определяются компилятором, не кодом проекта)
+
+При поиске по `original_game/` без исключения vcpkg попадались макросы определяемые
+компилятором (`__MMX__`, `__SSE__`, `__SSE2__`, `__PRFCHWINTRIN_H`, `_UINTPTR_T_DEFINED`).
+Все они оказались из vendored vcpkg хедеров — собственный код проекта их не определяет,
+только читает через `#ifdef` (проверка CPU capabilities и т.п.). Трогать нечего.
 
 ---
 
