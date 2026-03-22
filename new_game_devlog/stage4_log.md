@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 105 — engine/physics/hm (Hypermatter physics) (2026-03-22)
+
+- `fallen/Source/hm.cpp` (3119 строк) → `new/engine/physics/hm.cpp` + `hm.h` + `hm_globals.cpp` + `hm_globals.h`.
+- Все внутренние типы (HM_Point, HM_Edge, HM_Index, HM_Mesh, HM_Bump, HM_Col, HM_Object, HM_Primgrid) перенесены в `hm.h` — иначе `hm_globals.h` не может объявить `extern HM_Object HM_object[]`.
+- Временные includes в hm.cpp: Game.h, Prim.h, maths.h, pap.h, Matrix.h, `missions/memory_globals.h` (prim_objects/prim_points/prim_faces4), `assets/anim_globals.h` (next_prim_object).
+- Три forward decl в hm.cpp: `e_draw_3d_line`, `e_draw_3d_line_col_sorted`, `calc_height_at` — не мигрированы, используются внутри.
+- Баг оригинала сохранён 1:1: в `HM_collide_all()` внутренний цикл проверяет `HM_object[i].used` вместо `[j]`.
+- Фикс сборки: первоначально не было includes для prim_objects, prim_points, prim_faces4 — добавлены через `missions/memory_globals.h`.
+
+---
+
 ## Итерация 104 — old/Person.cpp → redirect stub (2026-03-22)
 
 - old/fallen/Source/Person.cpp заменён 3-строчной redirect-заглушкой (паттерн как у Cop.cpp, Anim.cpp и др.).

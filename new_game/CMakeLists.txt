@@ -345,6 +345,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/shadow.cpp
     src/new/engine/physics/sm.cpp
     src/new/engine/physics/sm_globals.cpp
+    src/new/engine/physics/hm.cpp
+    src/new/engine/physics/hm_globals.cpp
     src/new/engine/audio/sound.cpp
     src/new/engine/audio/sound_globals.cpp
     src/new/actors/items/special.cpp

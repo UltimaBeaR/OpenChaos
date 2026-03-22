@@ -60799,6 +60799,526 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "HM_Header",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_Header",
+      "orig_file": "fallen/Headers/hm.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_MAX_RES",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_MAX_RES",
+      "orig_file": "fallen/Headers/hm.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_Primgrid",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_Primgrid",
+      "orig_file": "fallen/Headers/hm.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_NO_MORE_OBJECTS",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_NO_MORE_OBJECTS",
+      "orig_file": "fallen/Headers/hm.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_Point",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_Point",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_Edge",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_Edge",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_Index",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_Index",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_Mesh",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_Mesh",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_NUM_OPP_POINTS",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_NUM_OPP_POINTS",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_Bump",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_Bump",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_Col",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_Col",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_MAX_SIZES",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_MAX_SIZES",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_COLS_PER_OBJECT",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_COLS_PER_OBJECT",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_MAX_OBJECTS",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_MAX_OBJECTS",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_MAX_PRIMGRIDS",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_MAX_PRIMGRIDS",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_Object",
+      "file": "new/engine/physics/hm.h",
+      "orig_name": "HM_Object",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_object",
+      "file": "new/engine/physics/hm_globals.h",
+      "orig_name": "HM_object",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_object_upto",
+      "file": "new/engine/physics/hm_globals.h",
+      "orig_name": "HM_object_upto",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_primgrid",
+      "file": "new/engine/physics/hm_globals.h",
+      "orig_name": "HM_primgrid",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_primgrid_upto",
+      "file": "new/engine/physics/hm_globals.h",
+      "orig_name": "HM_primgrid_upto",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_default_primgrid",
+      "file": "new/engine/physics/hm_globals.h",
+      "orig_name": "HM_default_primgrid",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "qdist",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "qdist",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_index",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_index",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_init",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_init",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_load",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_load",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_get_primgrid",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_get_primgrid",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_find_point_inside_cube",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_find_point_inside_cube",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_create",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_create",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_destroy",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_destroy",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_find_cog",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_find_cog",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_colvect_clear",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_colvect_clear",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_colvect_add",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_colvect_add",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_height_at",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_height_at",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_find_mesh_point",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_find_mesh_point",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_cube_exists",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_cube_exists",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_is_point_in_cube",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_is_point_in_cube",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_last_point_in_last_cube",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_last_point_in_last_cube",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_collide_all",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_collide_all",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_rel_cube_to_world",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_rel_cube_to_world",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_process_bump",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_process_bump",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_bump_dead",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_bump_dead",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_ALREADY_BYTES",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_ALREADY_BYTES",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "e_draw_3d_line",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "e_draw_3d_line",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "e_draw_3d_line_col_sorted",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "e_draw_3d_line_col_sorted",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_height_at",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "calc_height_at",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_collide",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_collide",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_GRAVITY",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_GRAVITY",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_process",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_process",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_draw",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_draw",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_find_mesh_pos",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_find_mesh_pos",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_stationary",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_stationary",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "HM_shockwave",
+      "file": "new/engine/physics/hm.cpp",
+      "orig_name": "HM_shockwave",
+      "orig_file": "fallen/Source/hm.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

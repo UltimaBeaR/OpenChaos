@@ -1,3 +1,5 @@
+#if 0 // MIGRATED to src/new/engine/physics/hm.cpp (iteration 105) [HM_init..HM_shockwave]
+
 //
 // Hypermatter!
 //
@@ -3117,3 +3119,5 @@ void HM_shockwave(
         }
     }
 }
+
+#endif // MIGRATED to src/new/engine/physics/hm.cpp (iteration 105) [HM_init..HM_shockwave]
