@@ -20,6 +20,8 @@
 // claude-ai: Гравитация:
 // claude-ai:   Персонажи: mostly animation-driven but has explicit GRAVITY in jumping/projectile states (Darci.cpp)
 // claude-ai:   Транспорт: GRAVITY = -(128*10*256)/(80*80) = -51 юн/тик² (явная физика, integer division)
+#include "engine/physics/collide.h"
+#include "engine/physics/collide_globals.h"
 #include "Game.h"
 // #include	"..\editor\headers\collide.hpp"
 #include "..\headers\edmap.h"
@@ -79,24 +81,8 @@ inline SLONG slide_around_box_lowstack(SLONG box_mid_x, SLONG box_mid_z, SLONG b
 SLONG get_fence_bottom(SLONG x, SLONG z, SLONG col);
 SLONG get_fence_top(SLONG x, SLONG z, SLONG col);
 
-UWORD next_col_vect = 1;
-UWORD next_col_vect_link = 1;
-
-///////////////////////////
-//
-//	   		 o
-//      xox	oxx
-//		xooo ox
-//		 xo
-//		  xx   x
-
-// claude-ai: Пул WalkLink — связный список проходимых поверхностей (face-based навигация).
-// claude-ai: PC: 30000 записей × 4 байт = 120KB. Активен всегда (не только в редакторе).
-// #ifdef	EDITOR
-struct WalkLink walk_links[MAX_WALK_POOL]; // 120K
-
-UWORD next_walk_link = 1;
-// #endif
+// Migrated to new/engine/physics/collide_globals.cpp:
+// next_col_vect, next_col_vect_link, walk_links[], next_walk_link
 
 // extern	SLONG	do_move_collide(SLONG x,SLONG y,SLONG z,SLONG dx,SLONG dy,SLONG dz,SLONG cell_dx,SLONG cell_dz,SLONG	scale_move);
 // extern	SLONG	do_move_collide_circle(SLONG x,SLONG y,SLONG z,SLONG len,SLONG cell_dx,SLONG cell_dz);
@@ -118,6 +104,8 @@ extern void e_draw_3d_mapwho_y(SLONG x1, SLONG my_y1, SLONG z1);
 
 #define SAME_SIGNS(a, b) (((SLONG)((ULONG)a ^ (ULONG)b)) >= 0)
 
+// Migrated to new/engine/physics/collide.cpp (chunk 1)
+#if 0
 UBYTE two4_line_intersection(SLONG x1, SLONG my_y1, SLONG x2, SLONG y2, SLONG x3, SLONG y3, SLONG x4, SLONG y4)
 {
     SLONG ax, bx, cx, ay, by, cy, d, e, f; //,offset;
@@ -373,8 +361,7 @@ SLONG point_in_quad_old(SLONG px, SLONG pz, SLONG x, SLONG y, SLONG z, SWORD fac
 // dest and along are returned in fixed point 8.
 //
 
-SLONG dprod;
-SLONG cprod;
+// Migrated to new/engine/physics/collide_globals.cpp: dprod, cprod
 SLONG dist_to_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b)
 {
     SLONG dx, dz;
@@ -851,8 +838,7 @@ void nearest_point_on_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLON
     return;
 }
 
-SLONG global_on = 0;
-
+// Migrated to new/engine/physics/collide_globals.cpp: global_on
 SLONG nearest_point_on_line_and_dist(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b, SLONG* ret_x, SLONG* ret_z)
 {
     SLONG dx, dz;
@@ -1524,6 +1510,7 @@ SLONG vect_intersect_wall(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, S
 
     return (0);
 }
+#endif // migrated to new/engine/physics/collide.cpp (chunk 1)
 
 /*
 #define	PERSON_RADIUS	(50)

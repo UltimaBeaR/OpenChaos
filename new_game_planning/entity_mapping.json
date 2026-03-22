@@ -61319,6 +61319,326 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "two4_line_intersection",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "two4_line_intersection",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "clear_all_col_info",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "clear_all_col_info",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_height_along_vect",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "get_height_along_vect",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_height_along_facet",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "get_height_along_facet",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "check_big_point_triangle_col",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "check_big_point_triangle_col",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "point_in_quad_old",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "point_in_quad_old",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "dist_to_line",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "dist_to_line",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "which_side",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "which_side",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_along_vect",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "calc_along_vect",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "signed_dist_to_line_with_normal",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "signed_dist_to_line_with_normal",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "signed_dist_to_line_with_normal_mark",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "signed_dist_to_line_with_normal_mark",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "nearest_point_on_line",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "nearest_point_on_line",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "nearest_point_on_line_and_dist",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "nearest_point_on_line_and_dist",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "nearest_point_on_line_and_dist_calc_y",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "nearest_point_on_line_and_dist_calc_y",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "distance_to_line",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "distance_to_line",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "nearest_point_on_line_and_dist_and_along",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "nearest_point_on_line_and_dist_and_along",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_height_at",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "calc_height_at",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "collision_storey",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "collision_storey",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "highlight_face",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "highlight_face",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "highlight_rface",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "highlight_rface",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "highlight_quad",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "highlight_quad",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "vect_intersect_wall",
+      "file": "new/engine/physics/collide.h",
+      "orig_name": "vect_intersect_wall",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "dprod",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "dprod",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "cprod",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "cprod",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "global_on",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "global_on",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "next_col_vect",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "next_col_vect",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "next_col_vect_link",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "next_col_vect_link",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "walk_links",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "walk_links",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "next_walk_link",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "next_walk_link",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "BLOCK_SIZE",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "BLOCK_SIZE",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SAME_SIGNS",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "SAME_SIGNS",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "TSHIFT",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "TSHIFT",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

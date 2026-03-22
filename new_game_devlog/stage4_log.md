@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 106 — engine/physics/collide (чанк 1: геометрические хелперы) (2026-03-22)
+
+- `fallen/Source/collide.cpp` (9183 строк) начинает миграцию. Чанк 1: lines 107–1510 → `new/engine/physics/collide.cpp` + `collide.h` + `collide_globals.cpp` + `collide_globals.h`.
+- Мигрированы: `two4_line_intersection`, `clear_all_col_info`, `get_height_along_vect`, `get_height_along_facet`, `check_big_point_triangle_col`, `point_in_quad_old`, `dist_to_line`, `which_side`, `calc_along_vect`, `signed_dist_to_line_with_normal`, `signed_dist_to_line_with_normal_mark`, `nearest_point_on_line`, `nearest_point_on_line_and_dist`, `nearest_point_on_line_and_dist_calc_y`, `distance_to_line`, `nearest_point_on_line_and_dist_and_along`, `calc_height_at`, `collision_storey`, `highlight_face`, `highlight_rface`, `highlight_quad`, `vect_intersect_wall`. Макросы: `BLOCK_SIZE`, `SAME_SIGNS`, `TSHIFT`.
+- Глобальные переменные: `dprod`, `cprod`, `global_on`, `next_col_vect`, `next_col_vect_link`, `walk_links[]`, `next_walk_link` → `collide_globals.cpp/h`.
+- `which_side` — в оригинале `SLONG cprod;` локальная переменная (shadowing global). Сохранено с комментарием.
+- Фикс сборки: `fallen/Headers/collide.h` использует `THING_INDEX` без включения `Game.h`; добавлен `#include "Game.h"` перед `collide.h` в `collide_globals.h` и `collide.h`.
+- `col_vects[]` и `col_vects_links[]` — в оригинале определены в collide.cpp, в old/ отсутствуют (удалены на Stage 2); объявлены как extern в collide.h — сборка проходит, используются только в оставшихся чанках.
+
+---
+
 ## Итерация 105 — engine/physics/hm (Hypermatter physics) (2026-03-22)
 
 - `fallen/Source/hm.cpp` (3119 строк) → `new/engine/physics/hm.cpp` + `hm.h` + `hm_globals.cpp` + `hm_globals.h`.

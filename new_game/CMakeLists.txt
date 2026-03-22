@@ -347,6 +347,8 @@ set(SOURCES_GAME
     src/new/engine/physics/sm_globals.cpp
     src/new/engine/physics/hm.cpp
     src/new/engine/physics/hm_globals.cpp
+    src/new/engine/physics/collide.cpp
+    src/new/engine/physics/collide_globals.cpp
     src/new/engine/audio/sound.cpp
     src/new/engine/audio/sound_globals.cpp
     src/new/actors/items/special.cpp
