@@ -53,6 +53,55 @@
 #include "ddlib.h"
 #include "poly.h"
 
+#include "ui/interfac.h"
+#include "ui/interfac_globals.h"
+
+// These macros and declarations are still needed by remaining (unmigrated) functions below.
+// uc_orig: GET_JOYX (fallen/Source/interfac.cpp)
+#define GET_JOYX(input) (((input >> 17) & 0xfe) - 128)
+// uc_orig: GET_JOYY (fallen/Source/interfac.cpp)
+#define GET_JOYY(input) (((input >> 24) & 0xfe) - 128)
+// uc_orig: ANALOGUE_MIN_VELOCITY (fallen/Source/interfac.cpp)
+#define ANALOGUE_MIN_VELOCITY 8
+// uc_orig: INPUT_KEYS (fallen/Source/interfac.cpp)
+#define INPUT_KEYS 0
+// uc_orig: INPUT_JOYPAD (fallen/Source/interfac.cpp)
+#define INPUT_JOYPAD 1
+// uc_orig: INPUT_MOVEMENT_MASK (fallen/Source/interfac.cpp)
+#define INPUT_MOVEMENT_MASK ((0x3f) | INPUT_MASK_MOVE)
+// uc_orig: INPUT_ACTION_MASK (fallen/Source/interfac.cpp)
+#define INPUT_ACTION_MASK (~0x3f)
+
+extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
+extern void person_normal_move(Thing* p_person);
+SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input);
+extern SLONG is_person_crouching(Thing* p_person);
+extern SLONG person_has_gun_out(Thing* p_person);
+extern void set_person_hug_wall_dir(Thing* p_person, SLONG dir);
+extern void set_person_arrest(Thing* p_person, SLONG index);
+extern void set_person_draw_special(Thing* p_person);
+extern SLONG set_person_kick_dir(Thing* p_person, SLONG dir);
+extern void set_person_fight_idle(Thing* p_person);
+extern void set_person_fight_anim(Thing* p_person, SLONG anim);
+extern void reset_gang_attack(Thing* p_target);
+extern SLONG turn_to_direction_and_find_target(Thing* p_person, SLONG find_dir);
+extern SLONG set_person_cut_fence(Thing* p_person);
+extern SLONG find_searchable_person(Thing* p_person);
+extern SLONG set_person_search(Thing* p_person, SLONG ob_index, SLONG ox, SLONG oy, SLONG oz);
+extern SLONG set_person_search_corpse(Thing* p_person, Thing* p_personb);
+extern void set_person_carry(Thing* p_person, SLONG s_index);
+extern UWORD find_corpse(Thing* p_person);
+extern SLONG is_person_dead(Thing* p_person);
+extern SLONG is_person_ko(Thing* p_person);
+extern void person_pick_best_target(Thing* p_person, SLONG dir);
+extern void set_person_walk_backwards(Thing* p_person);
+
+// Forward declarations for functions in chunk 1 (now in new/ui/interfac.cpp) needed below.
+extern void player_apply_move(Thing* p_thing, ULONG input);
+extern void player_apply_move_analgue(Thing* p_thing, ULONG input);
+
+#if 0 // MIGRATED to src/new/ui/interfac.cpp + interfac_globals.cpp (iteration 126) [globals..do_an_action]
+
 UBYTE player_relative;
 
 extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
@@ -1611,6 +1660,8 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
     return (0); // INPUT_MASK_ACTION);
 }
+
+#endif // MIGRATED to src/new/ui/interfac.cpp + interfac_globals.cpp (iteration 126) [globals..do_an_action]
 
 extern void set_person_hop_back(Thing* p_person);
 

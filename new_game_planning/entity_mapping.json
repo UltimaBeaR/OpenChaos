@@ -69699,6 +69699,606 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "player_relative",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "player_relative",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "cheat",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "cheat",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "g_bPunishMePleaseICheatedOnThisLevel",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "g_bPunishMePleaseICheatedOnThisLevel",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "input_mode",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "input_mode",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mouse_input",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "mouse_input",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "analogue",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "analogue",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "g_bEngineVibrations",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "g_bEngineVibrations",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "m_bForceWalk",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "m_bForceWalk",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "g_iCheatNumber",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "g_iCheatNumber",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "joypad_button_use",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "joypad_button_use",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "keybrd_button_use",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "keybrd_button_use",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ActionInfo",
+      "file": "new/ui/interfac.h",
+      "orig_name": "ActionInfo",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_tree",
+      "file": "new/ui/interfac.h",
+      "orig_name": "action_tree",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_idle",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_idle",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_walk",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_walk",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_run",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_run",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_fight",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_fight",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_joypad_config",
+      "file": "new/ui/interfac.h",
+      "orig_name": "init_joypad_config",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_activate_in_hand",
+      "file": "new/ui/interfac.h",
+      "orig_name": "player_activate_in_hand",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_player_shoot",
+      "file": "new/ui/interfac.h",
+      "orig_name": "set_player_shoot",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_player_punch",
+      "file": "new/ui/interfac.h",
+      "orig_name": "set_player_punch",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "should_i_jump",
+      "file": "new/ui/interfac.h",
+      "orig_name": "should_i_jump",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "should_person_backflip",
+      "file": "new/ui/interfac.h",
+      "orig_name": "should_person_backflip",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "bad_place_for_car",
+      "file": "new/ui/interfac.h",
+      "orig_name": "bad_place_for_car",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_car_enter_xz",
+      "file": "new/ui/interfac.h",
+      "orig_name": "get_car_enter_xz",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "in_right_place_for_car",
+      "file": "new/ui/interfac.h",
+      "orig_name": "in_right_place_for_car",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_get_in_specific_car",
+      "file": "new/ui/interfac.h",
+      "orig_name": "person_get_in_specific_car",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_get_in_car",
+      "file": "new/ui/interfac.h",
+      "orig_name": "person_get_in_car",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "do_an_action",
+      "file": "new/ui/interfac.h",
+      "orig_name": "do_an_action",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "GET_JOYX",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "GET_JOYX",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "GET_JOYY",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "GET_JOYY",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ANALOGUE_MIN_VELOCITY",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "ANALOGUE_MIN_VELOCITY",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "INPUT_KEYS",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "INPUT_KEYS",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "INPUT_JOYPAD",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "INPUT_JOYPAD",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "INPUT_MOVEMENT_MASK",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "INPUT_MOVEMENT_MASK",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "INPUT_ACTION_MASK",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "INPUT_ACTION_MASK",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "find_best_action_from_tree",
+      "file": "new/ui/interfac.h",
+      "orig_name": "find_best_action_from_tree",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_walk_back",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_walk_back",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_standing_jump",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_standing_jump",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_standing_jump_grab",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_standing_jump_grab",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_running_jump",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_running_jump",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_dangling",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_dangling",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_climbing",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_climbing",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_cable",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_cable",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_aim_gun",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_aim_gun",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_shoot",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_shoot",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_pull_up",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_pull_up",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_grabbing_ledge",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_grabbing_ledge",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_death_slide",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_death_slide",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_run_jump",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_run_jump",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_dying",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_dying",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_grapple",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_grapple",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_grapplee",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_grapplee",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_stand_relax",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_stand_relax",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_ladder",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_ladder",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_dead",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_dead",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_flip_left",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_flip_left",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_flip_right",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_flip_right",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_hug_wall",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_hug_wall",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "action_sit",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "action_sit",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

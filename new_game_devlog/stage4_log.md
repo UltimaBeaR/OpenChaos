@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 126 — ui/interfac chunk 1 (globals + action tables + car entry + do_an_action → new/ui/interfac.cpp) (2026-03-22)
+
+- `interfac.cpp` chunk 1 (строки 56–1613): globals, action_* таблицы, `action_tree`, `init_joypad_config`, `player_activate_in_hand`, `set_player_shoot`, `set_player_punch`, `should_i_jump`, `should_person_backflip`, `bad_place_for_car`, `get_car_enter_xz`, `in_right_place_for_car`, `person_get_in_specific_car`, `person_get_in_car`, `do_an_action` → `new/ui/interfac.cpp` + `new/ui/interfac_globals.cpp`.
+- `old/interfac.h` → redirect stub.
+- Ключевые проблемы: `ActionInfo` struct и `action_tree` extern нужны в `.h` (используются `find_best_action_from_tree` в оставшемся old/ коде). Макросы (`GET_JOYX`, `INPUT_KEYS` и др.) были внутри `#if 0` — извлечены наружу.
+- `should_i_jump` в `old/` использует `WARE_which_contains(x, z)` (2 аргумента, x/z >> 8), а не версию из `original_game/` (4 аргумента с Y). Портировано по pre-release коду.
+- `is_semtex` — extern объявлен прямо в теле `do_an_action` (так в оригинале); добавлен `// Temporary:` комментарий.
+
+---
+
 ## Итерация 125 — ui/controls chunk 2 (process_controls → new/ui/controls.cpp) (2026-03-22)
 
 - `Controls.cpp` chunk 2: `process_controls` (2500 строк) → `new/ui/controls.cpp`.
