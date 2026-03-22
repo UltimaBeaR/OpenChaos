@@ -1,125 +1,61 @@
-#if 0 // MIGRATED to src/new/engine/graphics/pipeline/poly.cpp (iteration 133)
-// claude-ai: OVERVIEW — poly.cpp
-// claude-ai: This is the core polygon submission module for the Direct3D renderer.
-// claude-ai: It handles the full pipeline from world-space coordinates to batched D3D draw calls.
-// claude-ai:
-// claude-ai: PIPELINE FLOW:
-// claude-ai:   1. POLY_camera_set() — sets up camera matrix, projection, viewport each frame
-// claude-ai:   2. POLY_set_local_rotation() — concatenates object-world matrix with camera matrix
-// claude-ai:   3. POLY_transform_using_local_rotation() — transforms a single vertex into view space
-// claude-ai:   4. POLY_perspective() — projects view-space point to screen coords, sets clip flags
-// claude-ai:   5. POLY_add_quad() / POLY_add_triangle() — clip and batch poly into PolyPage[page]
-// claude-ai:   6. PolyPage::Render() — flushes each page's vertex buffer to D3D (sort by texture)
-// claude-ai:
-// claude-ai: KEY DATA STRUCTURES:
-// claude-ai:   POLY_Point  — one vertex: view coords (x,y,z), screen coords (X,Y,Z=1/z), u,v, colour, clip flags
-// claude-ai:   POLY_buffer[] — temporary array of transformed POLY_Points for current mesh being drawn
-// claude-ai:   PolyPage[POLY_NUM_PAGES] — one bucket per texture page; accumulates tris/quads per frame
-// claude-ai:   POLY_cam_matrix[9] — 3x3 rotation matrix from camera yaw/pitch/roll (float, row-major)
-// claude-ai:
-// claude-ai: CLIPPING:
-// claude-ai:   Near-plane clipping is done in software (NewTweenVertex3D interpolates clipped verts).
-// claude-ai:   Screen-edge clipping is done via clip flags + NewTweenVertex2D_X/Y functions.
-// claude-ai:   Each POLY_Point carries a clip bitmask: NEAR, FAR, LEFT, RIGHT, TOP, BOTTOM.
-// claude-ai:
-// claude-ai: TEXTURE PAGE SYSTEM:
-// claude-ai:   Polygons are sorted by texture page (integer index) into PolyPage buckets.
-// claude-ai:   This batches draw calls per texture — one SetTexture + DrawPrimitive per page.
-// claude-ai:   POLY_NUM_PAGES covers world textures, shared textures, special pages (shadow, colour, etc.)
-// claude-ai:   POLY_page_flag[] contains flags like POLY_PAGE_FLAG_2PASS for masked self-illuminating textures.
-// claude-ai:
-// claude-ai: VERTEX COLOUR / LIGHTING:
-// claude-ai:   No per-pixel shading. Each vertex carries a D3D colour (ARGB) baked from the NIGHT/LIGHT system.
-// claude-ai:   Colour is set by NIGHT_get_d3d_colour() before POLY_add_* calls.
-// claude-ai:   Specular is used for fog/distance fade, not real specularity.
-// claude-ai:
-// claude-ai: WIBBLE:
-// claude-ai:   Sinusoidal screen-space vertex offset applied during perspective projection.
-// claude-ai:   Used for water surfaces, heat shimmer effects.
-// claude-ai:
-// claude-ai: NEW GAME NOTES:
-// claude-ai:   Do NOT port this file directly. Replace with:
-// claude-ai:     - VAO/VBO per texture atlas (batching equivalent to PolyPage)
-// claude-ai:     - GPU-side vertex shader handles transform + projection (no software transform needed)
-// claude-ai:     - Clip is handled by OpenGL; software near-clipping not needed
-// claude-ai:     - Vertex colour lighting replaced by proper per-fragment lighting in fragment shader
-// claude-ai:     - Camera = glm::lookAt() + glm::perspective(), uploaded as UBO
-
-//
-// Drawing polygons with D3D
-//
+// Core software polygon renderer: camera transform, clipping, and D3D submission.
+// All functions here operate on POLY_Point vertices and PolyPage buckets.
+// In the new renderer this whole file will be replaced by a GPU pipeline.
 
 #include <MFStdLib.h>
 #include <DDLib.h>
 #include <math.h>
-#include "Game.h" //	Guy	-	4 DEMO
-#include "matrix.h"
-#include "poly.h"
-#include "texture.h"
-#include "message.h"
-#include "night.h"
-#include "vertexbuffer.h"
-#include "polypoint.h"
-#include "renderstate.h"
-#include "polypage.h"
-#include "eway.h"
-#include "font2d.h"
-#include "crinkle.h"
-#include "night.h"
-#include "BreakTimer.h"
-#include "superfacet.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/poly_globals.h"
+#include "engine/graphics/pipeline/poly_render.h"
+#include "engine/graphics/pipeline/poly_render_globals.h"
+#include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/pipeline/render_state.h"
+#include "engine/graphics/pipeline/vertex_buffer.h"
+#include "engine/graphics/geometry/superfacet.h"
+#include "engine/lighting/crinkle.h"
+#include "core/matrix.h"
+#include "assets/texture.h"          // Temporary: assets/ dependency from engine/
+#include "fallen/Headers/Game.h"     // Temporary: GAME_FLAGS, GF_SEWERS, GF_INDOORS
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"    // Temporary: NIGHT_sky_colour, NIGHT_amb_norm_*
+#include "missions/eway.h"                   // Temporary: EWAY_stop_player_moving
+#include "fallen/DDEngine/Headers/BreakTimer.h" // Temporary: BEGIN_SCENE, END_SCENE
 
-// claude-ai: Direct3D API — replace with OpenGL: use GLuint texture handles stored in equivalent array
-extern D3DTexture TEXTURE_texture[];
-
-int iPolyNumPagesRender = 0;
-
-#define COMBO_FALSE 0
-#define COMBO_TRUE 1
-#define COMBO_DIRTY 2
-int m_iCurrentCombo = COMBO_DIRTY;
-
-//
-// position of near clipping plane
-//
-
-#define POLY_Z_NEARPLANE POLY_ZCLIP_PLANE
-
-static UBYTE s_ClipMask; // the clip bits we care about
-
-#define STD_CLIPMASK (POLY_CLIP_LEFT | POLY_CLIP_RIGHT | POLY_CLIP_TOP | POLY_CLIP_BOTTOM | POLY_CLIP_NEAR)
-
-//
-// Flags for each standard texture page.
-//
-
-UWORD POLY_page_flag[POLY_NUM_PAGES];
-
-//
-// some extern from somewhere which someone should put in a header file
-//
-
+// draw_3d is defined in aeng.cpp (not yet migrated).
+// uc_orig: draw_3d (fallen/DDEngine/Headers/poly.h)
 extern SLONG draw_3d;
 
-//
-// The handy buffer
-//
+// fade_black is defined in controls.cpp.
+// uc_orig: fade_black (fallen/DDEngine/Source/poly.cpp)
+extern UWORD fade_black;
 
-POLY_Point POLY_buffer[POLY_BUFFER_SIZE];
-SLONG POLY_buffer_upto;
+// (globals moved to poly_globals.cpp)
 
-POLY_Point POLY_shadow[POLY_SHADOW_SIZE];
-SLONG POLY_shadow_upto;
+// COMBO_* constants control the Direct3D vertex buffer combo state.
+// uc_orig: COMBO_FALSE (fallen/DDEngine/Source/poly.cpp)
+#define COMBO_FALSE 0
+// uc_orig: COMBO_TRUE (fallen/DDEngine/Source/poly.cpp)
+#define COMBO_TRUE 1
+// uc_orig: COMBO_DIRTY (fallen/DDEngine/Source/poly.cpp)
+#define COMBO_DIRTY 2
+// uc_orig: m_iCurrentCombo (fallen/DDEngine/Source/poly.cpp)
+// Tracks whether a D3D vertex buffer combo (lock) is currently active.
+static int m_iCurrentCombo = COMBO_DIRTY;
 
-//
-// The vertex buffers for each texture page.
-//
+// Near-clip plane distance used throughout all clipping functions.
+// uc_orig: POLY_Z_NEARPLANE (fallen/DDEngine/Source/poly.cpp)
+#define POLY_Z_NEARPLANE POLY_ZCLIP_PLANE
 
-RenderState DefRenderState;
-PolyPage POLY_Page[POLY_NUM_PAGES];
+// Current clip-plane bitmask (STD or STD|TOP/BOTTOM for splitscreen).
+// uc_orig: s_ClipMask (fallen/DDEngine/Source/poly.cpp)
+static UBYTE s_ClipMask;
 
-// utility
+// uc_orig: STD_CLIPMASK (fallen/DDEngine/Source/poly.cpp)
+#define STD_CLIPMASK (POLY_CLIP_LEFT | POLY_CLIP_RIGHT | POLY_CLIP_TOP | POLY_CLIP_BOTTOM | POLY_CLIP_NEAR)
 
+// uc_orig: POLY_SWAP (fallen/DDEngine/Source/poly.cpp)
+// Swaps two POLY_Point pointers.
 #define POLY_SWAP(pp1, pp2)   \
     {                         \
         POLY_Point* pp_spare; \
@@ -128,56 +64,25 @@ PolyPage POLY_Page[POLY_NUM_PAGES];
         (pp2) = pp_spare;     \
     }
 
-//
-// The camera and the screen.
-//
-
-float POLY_cam_x;
-float POLY_cam_y;
-float POLY_cam_z;
-float POLY_cam_aspect;
-float POLY_cam_lens;
-float POLY_cam_view_dist;
-float POLY_cam_over_view_dist;
-float POLY_cam_matrix[9];
-
-float POLY_screen_width;
-float POLY_screen_height;
-float POLY_screen_mid_x;
-float POLY_screen_mid_y;
-float POLY_screen_mul_x;
-float POLY_screen_mul_y;
-
-float POLY_screen_clip_left = 0; // these default values
-float POLY_screen_clip_right = 640;
-float POLY_screen_clip_bottom = 480;
-float POLY_screen_clip_top = 0;
-
-SLONG POLY_splitscreen;
-ULONG POLY_colour_restrict;
-ULONG POLY_force_additive_alpha;
-
+// uc_orig: fade_point_more (fallen/DDEngine/Headers/poly.h)
+// Extended fade calculation using Y component. Not the normal fog path.
 SLONG fade_point_more(POLY_Point* pp)
 {
     SLONG fade;
 
     fade = (((SLONG)(pp->y)) >> 0);
 
-    // fade=2000;
-    //	fade=-fade;
-
     return (fade);
 }
 
-// POLY_init
-//
-// init engine
-
+// uc_orig: POLY_init (fallen/DDEngine/Headers/poly.h)
+// One-time init for the polygon renderer. No-op on PC — all state initialised via camera_set.
 void POLY_init(void)
 {
 }
 
-// Clears all poly pages.
+// uc_orig: POLY_ClearAllPages (fallen/DDEngine/Source/poly.cpp)
+// Clears all polygon page vertex/index buffers.
 void POLY_ClearAllPages(void)
 {
     for (int i = 0; i < POLY_NUM_PAGES; i++) {
@@ -185,16 +90,11 @@ void POLY_ClearAllPages(void)
     }
 }
 
-SLONG POLY_wibble_y1;
-SLONG POLY_wibble_y2;
-SLONG POLY_wibble_g1;
-SLONG POLY_wibble_g2;
-SLONG POLY_wibble_s1;
-SLONG POLY_wibble_s2;
-SLONG POLY_wibble_turn;
-SLONG POLY_wibble_dangle1;
-SLONG POLY_wibble_dangle2;
+// uc_orig: POLY_wibble_y1 (fallen/DDEngine/Source/poly.cpp)
+// — globals now in poly_globals.cpp, but wibble values are set here:
 
+// uc_orig: POLY_set_wibble (fallen/DDEngine/Headers/poly.h)
+// Sets wibble (sinusoidal water-shimmer) parameters and advances the phase accumulator.
 void POLY_set_wibble(
     UBYTE wibble_y1,
     UBYTE wibble_y2,
@@ -216,6 +116,8 @@ void POLY_set_wibble(
     POLY_wibble_dangle2 = POLY_wibble_turn * POLY_wibble_g2 >> 9;
 }
 
+// uc_orig: POLY_page_is_masked_self_illuminating (fallen/DDEngine/Headers/poly.h)
+// Returns UC_TRUE if the texture page uses 2-pass masked self-illumination rendering.
 SLONG POLY_page_is_masked_self_illuminating(SLONG page)
 {
     if (WITHIN(page, 0, POLY_NUM_PAGES - 1) && (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS)) {
@@ -225,23 +127,11 @@ SLONG POLY_page_is_masked_self_illuminating(SLONG page)
     }
 }
 
-D3DMATRIX g_matProjection;
-D3DVIEWPORT2 g_viewData;
-// Used to hack in letterbox mode.
-DWORD g_dw3DStuffHeight;
-DWORD g_dw3DStuffY;
-
-float POLY_cam_matrix_comb[9];
-float POLY_cam_off_x;
-float POLY_cam_off_y;
-float POLY_cam_off_z;
-
-// claude-ai: POLY_camera_set — called once per frame to set up the camera for the whole scene.
-// claude-ai: Computes POLY_cam_matrix (3x3 rotation) from yaw/pitch/roll, then calls MATRIX_skew()
-// claude-ai: to bake view_dist and aspect ratio into the matrix so Z maps to 0..1 range.
-// claude-ai: Also sets D3D viewport/projection via SetTransform(D3DTRANSFORMSTATE_PROJECTION).
-// claude-ai: NEW GAME: replace with glm::perspective() + glm::lookAt() uploaded to a UBO.
-// claude-ai: The letterbox logic (wideify) reduces screen height by 80px during cutscenes — preserve this.
+// uc_orig: POLY_camera_set (fallen/DDEngine/Headers/poly.h)
+// Sets up camera projection and viewport for the current frame.
+// Computes the 3x3 rotation matrix from yaw/pitch/roll, scales it by view_dist and aspect,
+// and uploads view/projection/viewport to Direct3D.
+// lens: FOV multiplier (higher = more zoom). splitscreen: POLY_SPLITSCREEN_NONE/TOP/BOTTOM.
 void POLY_camera_set(
     float x,
     float y,
@@ -253,7 +143,6 @@ void POLY_camera_set(
     float lens,
     SLONG splitscreen)
 {
-
     POLY_splitscreen = splitscreen;
 
     POLY_screen_width = float(DisplayWidth);
@@ -270,6 +159,8 @@ void POLY_camera_set(
         POLY_screen_clip_bottom = POLY_screen_height - 00.0;
 
         {
+            // Letterbox effect: narrow the viewport vertically during cutscenes.
+            // Commented-out smooth version is intentionally kept (matches original).
             static float wideify = 0.0f;
 
             /*
@@ -334,11 +225,6 @@ void POLY_camera_set(
         break;
     }
 
-    //	POLY_screen_clip_left += 32;
-    //	POLY_screen_clip_right -= 32;
-    //	POLY_screen_clip_top += 32;
-    //	POLY_screen_clip_bottom -= 32;
-
     POLY_cam_x = x;
     POLY_cam_y = y;
     POLY_cam_z = z;
@@ -355,10 +241,7 @@ void POLY_camera_set(
         roll);
 
     {
-        //
-        // Tell the crinkle code about the view-space light vector.
-        //
-
+        // Inform the crinkle (bump-mapping) system about the current light direction in view space.
         float dx = float(NIGHT_amb_norm_x) * (1.0F / 256.0F);
         float dy = float(NIGHT_amb_norm_y) * (1.0F / 256.0F);
         float dz = float(NIGHT_amb_norm_z) * (1.0F / 256.0F);
@@ -367,25 +250,22 @@ void POLY_camera_set(
     }
 
     {
-        //
-        // Tell the crinkle module about the view space skewing.
-        //
-
+        // Inform the crinkle module about the view-space aspect/FOV skewing.
         CRINKLE_skew(
             POLY_cam_aspect,
             POLY_cam_lens);
     }
 
+    // Bake view_dist and aspect into the camera matrix so that Z maps to 0..1 range.
     MATRIX_skew(
         POLY_cam_matrix,
         POLY_cam_aspect,
         POLY_cam_lens,
-        POLY_cam_over_view_dist); // Shrink the matrix down so the furthest point has a view distance z of 1.0F
+        POLY_cam_over_view_dist);
 
     HRESULT hres;
 
-    // View matrix is just unit - we concatenate everything
-    // into the world matrix.
+    // View matrix is identity — all transforms are concatenated into the world matrix.
     D3DMATRIX matTemp;
     matTemp._11 = 1.0f;
     matTemp._21 = 0.0f;
@@ -403,10 +283,9 @@ void POLY_camera_set(
     matTemp._24 = 0.0f;
     matTemp._34 = 0.0f;
     matTemp._44 = 1.0f;
-    // claude-ai: Direct3D API — replace with OpenGL: upload view matrix to shader UBO
     hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_VIEW, &matTemp);
 
-    // Set up the projection matrix - should be done infrequently enough not to matter.
+    // Projection matrix: identity-ish, with Z shifted by POLY_ZCLIP_PLANE.
     g_matProjection._11 = -1.0f;
     g_matProjection._21 = 0.0f;
     g_matProjection._31 = 0.0f;
@@ -424,10 +303,9 @@ void POLY_camera_set(
     g_matProjection._34 = 1.0f;
     g_matProjection._44 = 0.0f;
 
-    // claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for projection matrix
     hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_PROJECTION, &g_matProjection);
 
-    // And set up the viewport.
+    // Viewport: maps clip-space [-1,1] to pixel coordinates.
     memset(&g_viewData, 0, sizeof(D3DVIEWPORT2));
     g_viewData.dwSize = sizeof(D3DVIEWPORT2);
     float fMyMulX = POLY_screen_mul_x * POLY_ZCLIP_PLANE;
@@ -445,17 +323,14 @@ void POLY_camera_set(
     g_viewData.dvMinZ = 0.0f;
     g_viewData.dvMaxZ = 1.0f;
 
-    // claude-ai: Direct3D API — replace with OpenGL: glViewport(x, y, width, height)
     hres = (the_display.lp_D3D_Viewport)->SetViewport2(&g_viewData);
 
     SUPERFACET_start_frame();
 }
 
-//
-// set clipping flags assuming point is not near- or far-clipped
-// --- DON'T just set pt->clip to TRANSFORMED! ---
-//
-
+// uc_orig: POLY_setclip (fallen/DDEngine/Headers/poly.h)
+// Sets clip flags on an already-projected POLY_Point.
+// Must NOT just set clip = TRANSFORMED — must preserve existing near/far bits.
 extern inline void POLY_setclip(POLY_Point* pt)
 {
     pt->clip = POLY_CLIP_TRANSFORMED;
@@ -471,16 +346,9 @@ extern inline void POLY_setclip(POLY_Point* pt)
         pt->clip |= POLY_CLIP_BOTTOM;
 }
 
-//
-// project camera coords onto screen
-//
-
-// claude-ai: POLY_perspective — software perspective projection for one vertex.
-// claude-ai: Input: pt->x,y,z in view space (z > 0 = in front of camera).
-// claude-ai: Output: pt->X,Y = screen pixel coords; pt->Z = POLY_ZCLIP_PLANE/z (used as 1/z for sorting).
-// claude-ai: The formula: X = mid_x - mul_x * x * (ZCLIP/z), same for Y.
-// claude-ai: Note the negation of x: the camera looks down +Z with X increasing to the left.
-// claude-ai: NEW GAME: not needed — GPU vertex shader handles projection via the projection matrix.
+// uc_orig: POLY_perspective (fallen/DDEngine/Headers/poly.h)
+// Perspective-projects a view-space POLY_Point: fills X, Y (screen pixels), Z (1/z), and clip flags.
+// wibble_key: non-zero applies sinusoidal horizontal shimmer (water effect).
 inline void POLY_perspective(POLY_Point* pt, UBYTE wibble_key)
 {
     if (pt->z < POLY_Z_NEARPLANE) {
@@ -488,18 +356,10 @@ inline void POLY_perspective(POLY_Point* pt, UBYTE wibble_key)
     } else if (pt->z > 1.0F) {
         pt->clip = POLY_CLIP_FAR;
     } else {
-        //
-        // The z-range of the point is okay.
-        //
-
         pt->Z = POLY_ZCLIP_PLANE / pt->z;
 
         pt->X = POLY_screen_mid_x - POLY_screen_mul_x * pt->x * pt->Z;
         pt->Y = POLY_screen_mid_y - POLY_screen_mul_y * pt->y * pt->Z;
-
-        //
-        // Wibble!
-        //
 
         if (wibble_key) {
             SLONG offset;
@@ -520,21 +380,19 @@ inline void POLY_perspective(POLY_Point* pt, UBYTE wibble_key)
             pt->X += offset;
         }
 
-        //
-        // Set the clipping flags.
-        //
-
         POLY_setclip(pt);
     }
 }
 
+// uc_orig: POLY_transform_c_saturate_z (fallen/DDEngine/Headers/poly.h)
+// Like POLY_transform but clamps Z to the near plane rather than discarding the point.
+// Used for objects that must always render even when partly behind the camera.
 void POLY_transform_c_saturate_z(
     float world_x,
     float world_y,
     float world_z,
     POLY_Point* pt)
 {
-
     pt->x = world_x - POLY_cam_x;
     pt->y = world_y - POLY_cam_y;
     pt->z = world_z - POLY_cam_z;
@@ -548,19 +406,11 @@ void POLY_transform_c_saturate_z(
     if (pt->z < POLY_Z_NEARPLANE) {
         pt->clip = POLY_CLIP_NEAR;
     } else {
-
-        //
-        // The z-range of the point is okay.
-        //
-
         pt->Z = POLY_ZCLIP_PLANE / pt->z;
 
         pt->X = POLY_screen_mid_x - POLY_screen_mul_x * pt->x * pt->Z;
         pt->Y = POLY_screen_mid_y - POLY_screen_mul_y * pt->y * pt->Z;
 
-        //
-        // Set the clipping flags.
-        //
         pt->clip = POLY_CLIP_TRANSFORMED;
 
         if (pt->X < POLY_screen_clip_left)
@@ -575,23 +425,17 @@ void POLY_transform_c_saturate_z(
     }
 }
 
+// uc_orig: POLY_transform_from_view_space (fallen/DDEngine/Headers/poly.h)
+// Projects a point that is already in camera/view space (x,y,z already set by caller).
 void POLY_transform_from_view_space(POLY_Point* pt)
 {
     if (pt->z < POLY_Z_NEARPLANE) {
         pt->clip = POLY_CLIP_NEAR;
     } else {
-        //
-        // The z-range of the point is okay.
-        //
-
         pt->Z = POLY_ZCLIP_PLANE / pt->z;
 
         pt->X = POLY_screen_mid_x - POLY_screen_mul_x * pt->x * pt->Z;
         pt->Y = POLY_screen_mid_y - POLY_screen_mul_y * pt->y * pt->Z;
-
-        //
-        // Set the clipping flags.
-        //
 
         pt->clip = POLY_CLIP_TRANSFORMED;
 
@@ -609,15 +453,18 @@ void POLY_transform_from_view_space(POLY_Point* pt)
     }
 }
 
+// uc_orig: POLY_transform_abs (fallen/DDEngine/Headers/poly.h)
+// Transforms a world-space point without subtracting the camera origin.
+// Used for objects already positioned relative to the camera.
 void POLY_transform_abs(
     float world_x,
     float world_y,
     float world_z,
     POLY_Point* pt)
 {
-    pt->x = world_x; //- POLY_cam_x;
-    pt->y = world_y; //- POLY_cam_y;
-    pt->z = world_z; //- POLY_cam_z;
+    pt->x = world_x;
+    pt->y = world_y;
+    pt->z = world_z;
 
     MATRIX_MUL(
         POLY_cam_matrix,
@@ -628,6 +475,9 @@ void POLY_transform_abs(
     POLY_perspective(pt);
 }
 
+// uc_orig: POLY_get_screen_pos (fallen/DDEngine/Headers/poly.h)
+// Projects a world-space point directly to screen coordinates without creating a POLY_Point.
+// Returns UC_TRUE if the point is in front of the camera (z > near plane).
 SLONG POLY_get_screen_pos(
     float world_x,
     float world_y,
@@ -657,26 +507,16 @@ SLONG POLY_get_screen_pos(
     }
 }
 
-//
-// The combined rotation matrix.
-//
-
-D3DMATRIX g_matWorld;
-
-// claude-ai: POLY_set_local_rotation — sets up the combined camera+object transform for the next mesh.
-// claude-ai: Call this before transforming each mesh's vertices.
-// claude-ai: Computes POLY_cam_matrix_comb = POLY_cam_matrix * object_matrix (3x3 rotation combined).
-// claude-ai: Also computes POLY_cam_off_{x,y,z} = object_origin rotated into camera space.
-// claude-ai: This means POLY_transform_using_local_rotation only does one matrix multiply per vertex.
-// claude-ai: Direct3D path (USE_TOMS_ENGINE): also uploads world matrix via SetTransform(D3DTRANSFORMSTATE_WORLD).
-// claude-ai: NEW GAME: not needed — GPU handles this with the model matrix uniform in the UBO.
+// uc_orig: POLY_set_local_rotation (fallen/DDEngine/Headers/poly.h)
+// Precomputes the combined camera+object transform for a mesh.
+// Call once per mesh, before transforming its vertices with POLY_transform_using_local_rotation.
+// off_x/y/z: object world position. matrix[9]: object's 3x3 rotation (row-major).
 void POLY_set_local_rotation(
     float off_x,
     float off_y,
     float off_z,
     float matrix[9])
 {
-
     POLY_cam_off_x = off_x - POLY_cam_x;
     POLY_cam_off_y = off_y - POLY_cam_y;
     POLY_cam_off_z = off_z - POLY_cam_z;
@@ -692,7 +532,7 @@ void POLY_set_local_rotation(
         POLY_cam_matrix,
         matrix);
 
-    // Dump into the WORLD matrix.
+    // Upload the combined world transform to Direct3D.
     g_matWorld._11 = POLY_cam_matrix_comb[0];
     g_matWorld._21 = POLY_cam_matrix_comb[1];
     g_matWorld._31 = POLY_cam_matrix_comb[2];
@@ -709,15 +549,13 @@ void POLY_set_local_rotation(
     g_matWorld._24 = 0.0f;
     g_matWorld._34 = 0.0f;
     g_matWorld._44 = 1.0f;
-    // claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for model matrix
     HRESULT hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
 }
 
-// Sets up a null local rotation, i.e. none.
-// Only useful for setting the current camera rotation into the D3D ones.
+// uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Headers/poly.h)
+// Uploads the camera-only transform to D3D. Equivalent to POLY_set_local_rotation with identity object matrix.
 void POLY_set_local_rotation_none(void)
 {
-
     POLY_cam_off_x = -POLY_cam_x;
     POLY_cam_off_y = -POLY_cam_y;
     POLY_cam_off_z = -POLY_cam_z;
@@ -728,7 +566,6 @@ void POLY_set_local_rotation_none(void)
         POLY_cam_off_y,
         POLY_cam_off_z);
 
-    // Dump into the WORLD matrix.
     g_matWorld._11 = POLY_cam_matrix[0];
     g_matWorld._21 = POLY_cam_matrix[1];
     g_matWorld._31 = POLY_cam_matrix[2];
@@ -745,10 +582,11 @@ void POLY_set_local_rotation_none(void)
     g_matWorld._24 = 0.0f;
     g_matWorld._34 = 0.0f;
     g_matWorld._44 = 1.0f;
-    // claude-ai: Direct3D API — replace with OpenGL: glUniformMatrix4fv() for model matrix
     HRESULT hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
 }
 
+// uc_orig: POLY_transform_using_local_rotation_and_wibble (fallen/DDEngine/Headers/poly.h)
+// Transforms a local-space vertex through the combined local+camera matrix, then applies wibble.
 void POLY_transform_using_local_rotation_and_wibble(
     float local_x,
     float local_y,
@@ -773,6 +611,9 @@ void POLY_transform_using_local_rotation_and_wibble(
     POLY_perspective(pt, wibble_key);
 }
 
+// uc_orig: POLY_sphere_visible (fallen/DDEngine/Headers/poly.h)
+// Frustum cull: returns UC_TRUE if the sphere is (possibly) visible.
+// radius is the sphere radius divided by view_dist (fractional, not world units).
 SLONG POLY_sphere_visible(
     float world_x,
     float world_y,
@@ -782,10 +623,6 @@ SLONG POLY_sphere_visible(
     float view_x;
     float view_y;
     float view_z;
-
-    //
-    // Rotate into viewspace.
-    //
 
     view_x = world_x - POLY_cam_x;
     view_y = world_y - POLY_cam_y;
@@ -798,10 +635,7 @@ SLONG POLY_sphere_visible(
         view_z);
 
     if (view_z + radius <= POLY_Z_NEARPLANE) {
-        //
         // Behind the view pyramid.
-        //
-
         return UC_FALSE;
     }
 
@@ -816,6 +650,8 @@ SLONG POLY_sphere_visible(
     return UC_TRUE;
 }
 
+// uc_orig: POLY_fadeout_buffer (fallen/DDEngine/Headers/poly.h)
+// Applies distance fog to all vertices in POLY_buffer[0..POLY_buffer_upto].
 void POLY_fadeout_buffer()
 {
     SLONG i;
@@ -825,38 +661,24 @@ void POLY_fadeout_buffer()
     }
 }
 
-extern UWORD fade_black;
-
-// claude-ai: POLY_frame_init — called at the start of each frame to clear all polygon batches.
-// claude-ai: Clears all PolyPage buckets (vertex/index buffers reset to empty).
-// claude-ai: keep_shadow_page and keep_text_page allow retaining shadow/text geometry across frames (used for UI).
-// claude-ai: Also calls DefRenderState.InitScene() to set fog colour from NIGHT_sky_colour.
-// claude-ai: NEW GAME: equivalent = clear render buckets, set fog uniform in UBO from sky colour.
+// uc_orig: POLY_frame_init (fallen/DDEngine/Headers/poly.h)
+// Clears all polygon page buckets for the new frame and sets the default D3D fog colour.
+// keep_shadow_page/keep_text_page: if UC_TRUE, preserves those pages' geometry from last frame.
 void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
 {
     SLONG i;
-    //	TRACE("poly frame init\n");
 
-    // This is going to cost serious performance - it bins all the VBs and IBs that we allocate,
-    // so they all need allocating again. Madness.
     for (i = 0; i < POLY_NUM_PAGES; i++) {
         if (keep_shadow_page && i == POLY_PAGE_SHADOW) {
-            //
             // Keep this stuff...
-            //
         } else if (keep_text_page && i == POLY_PAGE_TEXT) {
-            //
             // Keep this stuff...
-            //
         } else {
             POLY_Page[i].Clear();
         }
     }
-    //	TRACE("poly frame init EXIT\n");
 
-    // SPONG
-    // Start the frame - we may draw polys at any time.
-    // TRACE("Dodgy one!\n");
+    // Initialise render states and begin scene.
     POLY_init_render_states();
 
     ULONG fog_colour;
@@ -880,14 +702,14 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
 
     // set default render state
     DefRenderState.InitScene(fog_colour);
-    //	BreakTime("FRAMEDRAW init scene");
 
     BEGIN_SCENE;
 }
 
+// uc_orig: POLY_valid_triangle (fallen/DDEngine/Headers/poly.h)
+// Returns UC_TRUE if the triangle's vertices are valid (transformed) and not all off-screen.
 SLONG POLY_valid_triangle(POLY_Point* pp[3])
 {
-    // all points must be either near-clipped or fully transformed
     if (!pp[0]->MaybeValid())
         return UC_FALSE;
     if (!pp[1]->MaybeValid())
@@ -895,7 +717,6 @@ SLONG POLY_valid_triangle(POLY_Point* pp[3])
     if (!pp[2]->MaybeValid())
         return UC_FALSE;
 
-    // if all points are clipped in one direction, polygon is invalid
     if ((pp[0]->clip & pp[1]->clip & pp[2]->clip) & POLY_CLIP_OFFSCREEN) {
         return UC_FALSE;
     }
@@ -903,9 +724,9 @@ SLONG POLY_valid_triangle(POLY_Point* pp[3])
     return UC_TRUE;
 }
 
+// uc_orig: POLY_valid_quad (fallen/DDEngine/Headers/poly.h)
 SLONG POLY_valid_quad(POLY_Point* pp[4])
 {
-    // all points must be either near-clipped or fully transformed
     if (!pp[0]->MaybeValid())
         return UC_FALSE;
     if (!pp[1]->MaybeValid())
@@ -915,7 +736,6 @@ SLONG POLY_valid_quad(POLY_Point* pp[4])
     if (!pp[3]->MaybeValid())
         return UC_FALSE;
 
-    // if all points are clipped in one direction, polygon is invalid
     if ((pp[0]->clip & pp[1]->clip & pp[2]->clip & pp[3]->clip) & POLY_CLIP_OFFSCREEN) {
         return UC_FALSE;
     }
@@ -923,16 +743,14 @@ SLONG POLY_valid_quad(POLY_Point* pp[4])
     return UC_TRUE;
 }
 
+// uc_orig: POLY_valid_line (fallen/DDEngine/Headers/poly.h)
 SLONG POLY_valid_line(POLY_Point* p1, POLY_Point* p2)
 {
-    // all points must be either near-clipped or fully transformed
     if (!p1->IsValid())
         return UC_FALSE;
     if (!p2->IsValid())
         return UC_FALSE;
 
-    // if all points are clipped in one direction, line is invalid
-    // (wrong: line thickness might revalidate it; but we don't care too much)
     if ((p1->clip & p2->clip) & POLY_CLIP_OFFSCREEN) {
         return UC_FALSE;
     }
@@ -940,55 +758,42 @@ SLONG POLY_valid_line(POLY_Point* p1, POLY_Point* p2)
     return UC_TRUE;
 }
 
-// POLY_tri_backfacing
-//
-// returns true if triangle is backfacing
-
-// claude-ai: POLY_tri_backfacing — software backface culling in view space.
-// claude-ai: Computes cross product of two edges, then dots with the eye vector (first vertex position).
-// claude-ai: Returns true if facing away from camera (negative dot product).
-// claude-ai: NEW GAME: use GL_CULL_FACE + glFrontFace(GL_CCW) to let GPU cull backfaces.
+// uc_orig: POLY_tri_backfacing (fallen/DDEngine/Source/poly.cpp)
+// Returns true if the triangle (in view space) is back-facing relative to the camera.
+// Computes cross product of two edges, dots with the eye vector at vertex 1.
 inline bool POLY_tri_backfacing(POLY_Point* pp1, POLY_Point* pp2, POLY_Point* pp3)
 {
-    float x12, y12, z12; // 1->2 vector
-    float x13, y13, z13; // 1->3 vector
-    float cx, cy, cz; // normal vector (not normalized)
-    float dp; // dot product
+    float x12, y12, z12;
+    float x13, y13, z13;
+    float cx, cy, cz;
+    float dp;
 
     ASSERT(pp1->MaybeValid());
     ASSERT(pp2->MaybeValid());
     ASSERT(pp3->MaybeValid());
 
-    // get 1->2 vector
     x12 = pp2->x - pp1->x;
     y12 = pp2->y - pp1->y;
     z12 = pp2->z - pp1->z;
 
-    // get 1->3 vector
     x13 = pp3->x - pp1->x;
     y13 = pp3->y - pp1->y;
     z13 = pp3->z - pp1->z;
 
-    // get cross product
     cx = y12 * z13 - z12 * y13;
     cy = z12 * x13 - x12 * z13;
     cz = x12 * y13 - y12 * x13;
 
-    // dot with eye vector
     dp = cx * pp1->x + cy * pp1->y + cz * pp1->z;
 
     return (dp < 0);
 }
 
-// TweenD3DColour
-//
-// create a new tweened colour from two given colours
-//
-// (supercedes POLY_interpolate_colour - bugs fixed and speed increased)
-
+// uc_orig: TweenD3DColour (fallen/DDEngine/Source/poly.cpp)
+// Linearly interpolates two ARGB D3D colours at 8-bit fraction lambda8 (0=c1, 256=c2).
+// Processes R/B and A/G channel pairs together to reduce multiplications.
 static inline ULONG TweenD3DColour(ULONG c1, ULONG c2, ULONG lambda8)
 {
-    // quick check
     if (c1 == c2)
         return c1;
     if (lambda8 == 0)
@@ -1021,29 +826,20 @@ static inline ULONG TweenD3DColour(ULONG c1, ULONG c2, ULONG lambda8)
     return rb1 + (ag1 << 8);
 }
 
-//
-// add a polygon (defined by a string of vertices)
-// no backface culling is performed here, but nearplane and splitscreen clipping is
-//
-
-// claude-ai: s_PointBuffer — scratch buffer for newly generated clip vertices during near-plane clipping.
-// claude-ai: NewTweenVertex3D() interpolates a new vertex at z=POLY_Z_NEARPLANE when a polygon straddles the near plane.
-// claude-ai: This is Sutherland-Hodgman clipping, one plane at a time (near, then screen edges).
-// claude-ai: NEW GAME: GPU clips automatically; remove all this software clipping.
+// Near-plane clip buffer: newly generated vertices from Sutherland-Hodgman clipping go here.
+// uc_orig: s_PointBuffer (fallen/DDEngine/Source/poly.cpp)
 static POLY_Point s_PointBuffer[32];
+// uc_orig: s_PointBufferOffset (fallen/DDEngine/Source/poly.cpp)
 static ULONG s_PointBufferOffset;
 
-// NewTweenVertex3D
-//
-// create and project a new vertex between two others
-
+// uc_orig: NewTweenVertex3D (fallen/DDEngine/Source/poly.cpp)
+// Creates a new vertex interpolated between p1 and p2 at the near clip plane (z = POLY_Z_NEARPLANE).
+// Used during near-plane Sutherland-Hodgman clipping.
 POLY_Point* NewTweenVertex3D(POLY_Point* p1, POLY_Point* p2, float lambda)
 {
     ULONG lambda8;
 
-    // extract 8-bit modulation index using fast float cast
-    // note: lambda *must* be between 0.0F and 1.0F inclusive
-    // mapping to 0 and 256 inclusive
+    // Fast float->8-bit fraction via bit manipulation.
     *(float*)&lambda8 = lambda + 32768.0F;
     lambda8 &= 0x1FF;
 
@@ -1051,8 +847,7 @@ POLY_Point* NewTweenVertex3D(POLY_Point* p1, POLY_Point* p2, float lambda)
 
     np->x = p1->x + lambda * (p2->x - p1->x);
     np->y = p1->y + lambda * (p2->y - p1->y);
-    //	np->z = p1->z + lambda * (p2->z - p1->z);
-    np->z = POLY_Z_NEARPLANE;
+    np->z = POLY_Z_NEARPLANE; // clamp to near plane
 
     np->u = p1->u + lambda * (p2->u - p1->u);
     np->v = p1->v + lambda * (p2->v - p1->v);
@@ -1060,24 +855,18 @@ POLY_Point* NewTweenVertex3D(POLY_Point* p1, POLY_Point* p2, float lambda)
     np->colour = TweenD3DColour(p1->colour, p2->colour, lambda8);
     np->specular = TweenD3DColour(p1->specular, p2->specular, lambda8);
 
-    // project
     POLY_perspective(np);
     ASSERT(np->IsValid());
 
     return np;
 }
 
-// NewTweenVertex2D_X
-//
-// create a new vertex between two others
-
+// uc_orig: NewTweenVertex2D_X (fallen/DDEngine/Source/poly.cpp)
+// Creates a new screen-space vertex clipped to a vertical screen edge (constant X).
 POLY_Point* NewTweenVertex2D_X(POLY_Point* p1, POLY_Point* p2, float lambda, float xcoord)
 {
     ULONG lambda8;
 
-    // extract 8-bit modulation index using fast float cast
-    // note: lambda *must* be between 0.0F and 1.0F inclusive
-    // mapping to 0 and 256 inclusive
     *(float*)&lambda8 = lambda + 32768.0F;
     lambda8 &= 0x1FF;
 
@@ -1087,7 +876,7 @@ POLY_Point* NewTweenVertex2D_X(POLY_Point* p1, POLY_Point* p2, float lambda, flo
     np->Y = p1->Y + lambda * (p2->Y - p1->Y);
     np->Z = p1->Z + lambda * (p2->Z - p1->Z);
 
-    // do u,v perspective correct
+    // Perspective-correct UV interpolation.
     float u1 = p1->u * p1->Z;
     float v1 = p1->v * p1->Z;
     float u2 = p2->u * p2->Z;
@@ -1100,23 +889,17 @@ POLY_Point* NewTweenVertex2D_X(POLY_Point* p1, POLY_Point* p2, float lambda, flo
     np->colour = TweenD3DColour(p1->colour, p2->colour, lambda8);
     np->specular = TweenD3DColour(p1->specular, p2->specular, lambda8);
 
-    // set clip flags
     POLY_setclip(np);
 
     return np;
 }
 
-// NewTweenVertex2D_Y
-//
-// create a new vertex between two others
-
+// uc_orig: NewTweenVertex2D_Y (fallen/DDEngine/Source/poly.cpp)
+// Creates a new screen-space vertex clipped to a horizontal screen edge (constant Y).
 POLY_Point* NewTweenVertex2D_Y(POLY_Point* p1, POLY_Point* p2, float lambda, float ycoord)
 {
     ULONG lambda8;
 
-    // extract 8-bit modulation index using fast float cast
-    // note: lambda *must* be between 0.0F and 1.0F inclusive
-    // mapping to 0 and 256 inclusive
     *(float*)&lambda8 = lambda + 32768.0F;
     lambda8 &= 0x1FF;
 
@@ -1126,7 +909,7 @@ POLY_Point* NewTweenVertex2D_Y(POLY_Point* p1, POLY_Point* p2, float lambda, flo
     np->Y = ycoord;
     np->Z = p1->Z + lambda * (p2->Z - p1->Z);
 
-    // do u,v perspective correct
+    // Perspective-correct UV interpolation.
     float u1 = p1->u * p1->Z;
     float v1 = p1->v * p1->Z;
     float u2 = p2->u * p2->Z;
@@ -1139,16 +922,14 @@ POLY_Point* NewTweenVertex2D_Y(POLY_Point* p1, POLY_Point* p2, float lambda, flo
     np->colour = TweenD3DColour(p1->colour, p2->colour, lambda8);
     np->specular = TweenD3DColour(p1->specular, p2->specular, lambda8);
 
-    // set clip flags
     POLY_setclip(np);
 
     return np;
 }
 
-// POLY_clip_against_nearplane
-//
-// clip poly against near clipping plane
-
+// uc_orig: POLY_clip_against_nearplane (fallen/DDEngine/Headers/poly.h)
+// Sutherland-Hodgman clip against the near plane. rptr/dptr: input polygon and distances.
+// Outputs to wbuf. Returns the number of output vertices.
 SLONG POLY_clip_against_nearplane(POLY_Point** rptr, float* dptr, SLONG count, POLY_Point** wbuf)
 {
     POLY_Point** wptr = wbuf;
@@ -1162,15 +943,12 @@ SLONG POLY_clip_against_nearplane(POLY_Point** rptr, float* dptr, SLONG count, P
         p2 = rptr[ii + 1];
 
         if (dptr[ii] >= 0) {
-            // good side
             *wptr++ = p1;
             if (dptr[ii + 1] >= 0) {
-                // also on good side
                 continue;
             }
         } else {
             if (dptr[ii + 1] < 0) {
-                // also on bad side
                 continue;
             }
         }
@@ -1195,10 +973,8 @@ SLONG POLY_clip_against_nearplane(POLY_Point** rptr, float* dptr, SLONG count, P
     return wptr - wbuf;
 }
 
-// POLY_clip_against_side_X
-//
-// clip poly against a side (left or right)
-
+// uc_orig: POLY_clip_against_side_X (fallen/DDEngine/Headers/poly.h)
+// Sutherland-Hodgman clip against a left or right screen edge (constant X).
 SLONG POLY_clip_against_side_X(POLY_Point** rptr, float* dptr, SLONG count, POLY_Point** wbuf, float xcoord)
 {
     POLY_Point** wptr = wbuf;
@@ -1212,15 +988,12 @@ SLONG POLY_clip_against_side_X(POLY_Point** rptr, float* dptr, SLONG count, POLY
         p2 = rptr[ii + 1];
 
         if (dptr[ii] >= 0) {
-            // good side
             *wptr++ = p1;
             if (dptr[ii + 1] >= 0) {
-                // also on good side
                 continue;
             }
         } else {
             if (dptr[ii + 1] < 0) {
-                // also on bad side
                 continue;
             }
         }
@@ -1245,10 +1018,8 @@ SLONG POLY_clip_against_side_X(POLY_Point** rptr, float* dptr, SLONG count, POLY
     return wptr - wbuf;
 }
 
-// POLY_clip_against_side_Y
-//
-// clip poly against a side (top or bottom)
-
+// uc_orig: POLY_clip_against_side_Y (fallen/DDEngine/Headers/poly.h)
+// Sutherland-Hodgman clip against a top or bottom screen edge (constant Y).
 SLONG POLY_clip_against_side_Y(POLY_Point** rptr, float* dptr, SLONG count, POLY_Point** wbuf, float ycoord)
 {
     POLY_Point** wptr = wbuf;
@@ -1262,15 +1033,12 @@ SLONG POLY_clip_against_side_Y(POLY_Point** rptr, float* dptr, SLONG count, POLY
         p2 = rptr[ii + 1];
 
         if (dptr[ii] >= 0) {
-            // good side
             *wptr++ = p1;
             if (dptr[ii + 1] >= 0) {
-                // also on good side
                 continue;
             }
         } else {
             if (dptr[ii + 1] < 0) {
-                // also on bad side
                 continue;
             }
         }
@@ -1295,17 +1063,17 @@ SLONG POLY_clip_against_side_Y(POLY_Point** rptr, float* dptr, SLONG count, POLY
     return wptr - wbuf;
 }
 
+// Scratch distance/pointer buffers for clipping.
+// uc_orig: s_DistBuffer (fallen/DDEngine/Source/poly.cpp)
 static float s_DistBuffer[128];
+// uc_orig: s_PtrBuffer (fallen/DDEngine/Source/poly.cpp)
 static POLY_Point* s_PtrBuffer[128];
 
-// POLY_add_poly no longer works - system's been changed.
-
+// uc_orig: POLY_add_nearclipped_triangle (fallen/DDEngine/Source/poly.cpp)
+// Submits a triangle that straddles the near clip plane.
+// Clips against the near plane using Sutherland-Hodgman, then fans the result into PolyPage.
 void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface_cull)
 {
-    //
-    // initialize state for clipping
-    //
-
     POLY_Point** rptr = pt;
     POLY_Point** wptr = s_PtrBuffer;
 
@@ -1315,7 +1083,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
         SLONG i;
         SLONG j;
         SLONG laura;
-
         SLONG poly_points;
 
         s_DistBuffer[0] = rptr[0]->z - POLY_Z_NEARPLANE;
@@ -1330,10 +1097,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 
         rptr = wptr;
 
-        //
-        // refresh clip flags
-        //
-
         SLONG clip_and = 0xffffffff;
 
         for (i = 0; i < poly_points; i++) {
@@ -1347,19 +1110,15 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
         }
 
         if (backface_cull && POLY_tri_backfacing(rptr[0], rptr[1], rptr[2])) {
-            //
-            // This triangle is backface culled.
-            //
-
             return;
         }
 
     second_page:;
 
         PolyPage* pp = &POLY_Page[page];
-        // Do the indirection to the real poly page.
         PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
+        // Fan-triangulate the clipped polygon: allocate 3 + (poly_points-3)*3 verts.
         PolyPoint2D* pv = ppDrawn->PointAlloc(3 + (poly_points - 3) * 3);
 
         POLY_Point* ppt;
@@ -1416,9 +1175,11 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
     return;
 }
 
+// uc_orig: POLY_add_triangle_fast (fallen/DDEngine/Source/poly.cpp)
+// Submits a triangle to the given texture page bucket.
+// Skips offscreen triangles. Near-clips if necessary. Optionally backface-culls.
 void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
-
     if (generate_clip_flags) {
         POLY_setclip(pt[0]);
         POLY_setclip(pt[1]);
@@ -1426,35 +1187,21 @@ void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, 
     }
 
     if (pt[0]->clip & pt[1]->clip & pt[2]->clip & POLY_CLIP_OFFSCREEN) {
-        //
-        // Offscreen.
-        //
-
         return;
     }
 
     if ((pt[0]->clip | pt[1]->clip | pt[2]->clip) & POLY_CLIP_NEAR) {
-        //
-        // Needs near-clipping...
-        //
-
         POLY_add_nearclipped_triangle(pt, page, backface_cull);
-
         return;
     }
 
     if (backface_cull && POLY_tri_backfacing(pt[0], pt[1], pt[2])) {
-        //
-        // This triangle is backface culled.
-        //
-
         return;
     }
 
 second_page:;
 
     PolyPage* pp = &POLY_Page[page];
-    // Do the indirection to the real poly page.
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
     PolyPoint2D* pv = ppDrawn->PointAlloc(3);
@@ -1500,9 +1247,11 @@ second_page:;
     }
 }
 
+// uc_orig: POLY_add_quad_fast (fallen/DDEngine/Source/poly.cpp)
+// Submits a quad (as two triangles) to the given texture page bucket.
+// Near-clips if necessary. Handles backface cull per triangle.
 void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
-
     if (generate_clip_flags) {
         POLY_setclip(pt[0]);
         POLY_setclip(pt[1]);
@@ -1511,20 +1260,13 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
     }
 
     if (pt[0]->clip & pt[1]->clip & pt[2]->clip & pt[3]->clip & POLY_CLIP_OFFSCREEN) {
-        //
-        // Offscreen.
-        //
-
         return;
     }
 
     if ((pt[0]->clip | pt[1]->clip | pt[2]->clip | pt[3]->clip) & POLY_CLIP_NEAR) {
         POLY_Point* pt2[3] = { pt[1], pt[3], pt[2] };
 
-        //
-        // Needs near-clipping...
-        //
-
+        // Split quad into two triangles for near clipping.
         POLY_add_triangle(pt, page, backface_cull, UC_FALSE);
         POLY_add_triangle(pt2, page, backface_cull, UC_FALSE);
 
@@ -1544,30 +1286,16 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
         }
 
         if (cull == 0) {
-            //
             // Draw the whole quad.
-            //
         } else if (cull == 3) {
-            //
-            // Backface cull the whole quad.
-            //
-
             return;
         } else if (cull == 1) {
-            //
-            // Draw just the second triangle.
-            //
-
+            // First triangle culled; draw only the second.
             POLY_add_triangle(pt + 1, page, UC_FALSE, UC_FALSE);
-
             return;
         } else if (cull == 2) {
-            //
-            // Draw just the first triangle.
-            //
-
+            // Second triangle culled; draw only the first.
             POLY_add_triangle(pt, page, UC_FALSE, UC_FALSE);
-
             return;
         }
     }
@@ -1575,7 +1303,6 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
 second_page:;
 
     PolyPage* pp = &POLY_Page[page];
-    // Do the indirection to the real poly page.
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
     PolyPoint2D* pv = ppDrawn->PointAlloc(6);
@@ -1637,6 +1364,7 @@ second_page:;
     }
 }
 
+// uc_orig: POLY_add_quad (fallen/DDEngine/Headers/poly.h)
 void POLY_add_quad(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
     {
@@ -1644,6 +1372,7 @@ void POLY_add_quad(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG gen
     }
 }
 
+// uc_orig: POLY_add_triangle (fallen/DDEngine/Headers/poly.h)
 void POLY_add_triangle(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG generate_clip_flags)
 {
     {
@@ -1651,6 +1380,8 @@ void POLY_add_triangle(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG
     }
 }
 
+// uc_orig: POLY_world_length_to_screen (fallen/DDEngine/Headers/poly.h)
+// Converts a world-space length to approximate screen-space pixels at the current view distance.
 float POLY_world_length_to_screen(float world_length)
 {
     float view_length = world_length * POLY_cam_over_view_dist;
@@ -1659,34 +1390,26 @@ float POLY_world_length_to_screen(float world_length)
     return screen_length;
 }
 
+// uc_orig: POLY_approx_len (fallen/DDEngine/Headers/poly.h)
+// Octagonal approximation of 2D vector length (faster than sqrt).
 float POLY_approx_len(float dx, float dy)
 {
-    //
-    // Hmm... I guess that .414F is better than 0.500F
-    //
-
     return (fabsf(dx) > fabsf(dy)) ? fabsf(dx) + 0.414F * fabsf(dy) : fabsf(dy) + 0.414F * fabsf(dx);
 }
 
-//
-// create 4 points for a cylinder; only X,Y,Z, colour & specular are set up
-//
-
+// uc_orig: POLY_create_cylinder_points (fallen/DDEngine/Headers/poly.h)
+// Expands a screen-space line segment into 4 billboard quad vertices with given half-widths.
 void POLY_create_cylinder_points(POLY_Point* p1, POLY_Point* p2, float width, POLY_Point* pout)
 {
-    float dx, dy; // screen normal vector for line
-    float len, overlen; // line length/reciprocal
-    float dx1, dy1; // perturbation vector for p1
-    float dx2, dy2; // perturbation vector for p2
+    float dx, dy;
+    float len, overlen;
+    float dx1, dy1;
+    float dx2, dy2;
 
     ASSERT(p1->IsValid());
     ASSERT(p2->IsValid());
 
-    width *= POLY_cam_over_view_dist; // move to view space
-
-    //
-    // get normalized vector along the line
-    //
+    width *= POLY_cam_over_view_dist;
 
     dx = p2->X - p1->X;
     dy = p2->Y - p1->Y;
@@ -1697,19 +1420,11 @@ void POLY_create_cylinder_points(POLY_Point* p1, POLY_Point* p2, float width, PO
     dx *= overlen;
     dy *= overlen;
 
-    //
-    // get perturbation vectors
-    //
-
     dx1 = -dy * width * p1->Z;
     dy1 = dx * width * p1->Z;
 
     dx2 = -dy * width * p2->Z;
     dy2 = dx * width * p2->Z;
-
-    //
-    // copy and shift points
-    //
 
     pout[0] = *p1;
     pout[0].X += dx1;
@@ -1728,6 +1443,8 @@ void POLY_create_cylinder_points(POLY_Point* p1, POLY_Point* p2, float width, PO
     pout[3].Y -= dy2;
 }
 
+// uc_orig: POLY_add_line_tex_uv (fallen/DDEngine/Headers/poly.h)
+// Submits a 3D billboard line with full UV coordinates from the input POLY_Points.
 void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front)
 {
     float dx;
@@ -1748,10 +1465,6 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
     float len;
     float overlen;
 
-    //
-    // Both points must be transformed
-    //
-
     if (p1->NearClip() || p2->NearClip())
         return;
 
@@ -1764,26 +1477,14 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
     dx = p2->X - p1->X;
     dy = p2->Y - p1->Y;
 
-    //
-    // Hmm... I guess that .414F is better than 0.500F
-    //
-
     len = (fabsf(dx) > fabsf(dy)) ? fabsf(dx) + 0.414F * fabsf(dy) : fabsf(dy) + 0.414F * fabsf(dx);
     overlen = 1.0F / len;
 
     dx *= overlen;
     dy *= overlen;
 
-    //
-    // Convert widths in the world to widths in view space.
-    //
-
     vw1 = width1 * POLY_cam_over_view_dist;
     vw2 = width2 * POLY_cam_over_view_dist;
-
-    //
-    // Convert widths in view space to widths on screen.
-    //
 
     sw1 = POLY_screen_mul_x * vw1 * p1->Z;
     sw2 = POLY_screen_mul_x * vw2 * p2->Z;
@@ -1801,10 +1502,6 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
         p2->Z = 1.0F;
         p2->z = 0.0F;
     }
-
-    //
-    // Create the four points.
-    //
 
     pt[0] = *p1;
     pt[1] = *p1;
@@ -1836,6 +1533,8 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
     POLY_add_quad(ppt, page, UC_FALSE, UC_TRUE);
 }
 
+// uc_orig: POLY_add_line_tex (fallen/DDEngine/Headers/poly.h)
+// Submits a 3D billboard line, setting UV to (0,0)-(1,1).
 void POLY_add_line_tex(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front)
 {
     p1->u = p1->v = 0;
@@ -1844,6 +1543,8 @@ void POLY_add_line_tex(POLY_Point* p1, POLY_Point* p2, float width1, float width
     POLY_add_line_tex_uv(p1, p2, width1, width2, page, sort_to_front);
 }
 
+// uc_orig: POLY_add_line (fallen/DDEngine/Headers/poly.h)
+// Submits a 3D billboard line without UV (uses POLY_PAGE_COLOUR or similar solid page).
 void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front)
 {
     float dx;
@@ -1864,10 +1565,6 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
     float len;
     float overlen;
 
-    //
-    // Both points must be transformed
-    //
-
     if (p1->NearClip() || p2->NearClip())
         return;
 
@@ -1879,26 +1576,14 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
     dx = p2->X - p1->X;
     dy = p2->Y - p1->Y;
 
-    //
-    // Hmm... I guess that .414F is better than 0.500F
-    //
-
     len = (fabsf(dx) > fabsf(dy)) ? fabsf(dx) + 0.414F * fabsf(dy) : fabsf(dy) + 0.414F * fabsf(dx);
     overlen = 1.0F / len;
 
     dx *= overlen;
     dy *= overlen;
 
-    //
-    // Convert widths in the world to widths in view space.
-    //
-
     vw1 = width1 * POLY_cam_over_view_dist;
     vw2 = width2 * POLY_cam_over_view_dist;
-
-    //
-    // Convert widths in view space to widths on screen.
-    //
 
     sw1 = POLY_screen_mul_x * vw1 * p1->Z;
     sw2 = POLY_screen_mul_x * vw2 * p2->Z;
@@ -1916,10 +1601,6 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
         p2->Z = 1.0F;
         p2->z = 0.0F;
     }
-
-    //
-    // Create the four points.
-    //
 
     pt[0] = *p1;
     pt[1] = *p1;
@@ -1949,16 +1630,10 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
     POLY_add_quad(ppt, page, UC_FALSE, UC_TRUE);
 }
 
-//
-// p1 is top left
-//
+// uc_orig: POLY_add_rect (fallen/DDEngine/Source/poly.cpp)
+// Submits a screen-space aligned rectangle centred on p1 (top-left corner).
 void POLY_add_rect(POLY_Point* p1, SLONG width, SLONG height, SLONG page, UBYTE sort_to_front)
 {
-
-    //
-    // Both points must be transformed
-    //
-
     if (p1->NearClip())
         return;
 
@@ -1971,10 +1646,6 @@ void POLY_add_rect(POLY_Point* p1, SLONG width, SLONG height, SLONG page, UBYTE 
         p1->Z = 1.0F;
         p1->z = 0.0F;
     }
-
-    //
-    // Create the four points.
-    //
 
     pt[0] = *p1;
     pt[1] = *p1;
@@ -1999,6 +1670,8 @@ void POLY_add_rect(POLY_Point* p1, SLONG width, SLONG height, SLONG page, UBYTE 
     POLY_add_quad(ppt, page, UC_FALSE, UC_TRUE);
 }
 
+// uc_orig: POLY_add_line_2d (fallen/DDEngine/Headers/poly.h)
+// Draws a screen-space (2D) line as a thin billboard quad to POLY_PAGE_COLOUR.
 void POLY_add_line_2d(float sx1, float sy1, float sx2, float sy2, ULONG colour)
 {
     float dx;
@@ -2013,19 +1686,11 @@ void POLY_add_line_2d(float sx1, float sy1, float sx2, float sy2, ULONG colour)
     dx = sx2 - sx1;
     dy = sy2 - sy1;
 
-    //
-    // Hmm... I guess that .414F is better than 0.500F
-    //
-
     len = (fabsf(dx) > fabsf(dy)) ? fabsf(dx) + 0.414F * fabsf(dy) : fabsf(dy) + 0.414F * fabsf(dx);
     overlen = 0.5F / len;
 
     dx *= overlen;
     dy *= overlen;
-
-    //
-    // Create the four points.
-    //
 
     for (int ii = 0; ii < 4; ii++) {
         pt[ii].u = 0;
@@ -2051,11 +1716,8 @@ void POLY_add_line_2d(float sx1, float sy1, float sx2, float sy2, ULONG colour)
     POLY_add_quad(ppt, POLY_PAGE_COLOUR, UC_FALSE, UC_TRUE);
 }
 
-float POLY_clip_left;
-float POLY_clip_right;
-float POLY_clip_top;
-float POLY_clip_bottom;
-
+// uc_orig: POLY_clip_line_box (fallen/DDEngine/Headers/poly.h)
+// Sets the 2D rectangular clip box used by POLY_clip_line_add.
 void POLY_clip_line_box(float sx1, float sy1, float sx2, float sy2)
 {
     POLY_clip_left = sx1;
@@ -2064,6 +1726,9 @@ void POLY_clip_line_box(float sx1, float sy1, float sx2, float sy2)
     POLY_clip_bottom = sy2;
 }
 
+// uc_orig: POLY_clip_line_add (fallen/DDEngine/Headers/poly.h)
+// Draws a 2D line clipped to the current POLY_clip_line_box rectangle.
+// Uses Cohen-Sutherland clipping.
 void POLY_clip_line_add(float sx1, float sy1, float sx2, float sy2, ULONG colour)
 {
     UBYTE clip1 = 0;
@@ -2103,10 +1768,6 @@ void POLY_clip_line_add(float sx1, float sy1, float sx2, float sy2, ULONG colour
     clip_xor = clip1 ^ clip2;
 
     if (clip_and) {
-        //
-        // Reject the line.
-        //
-
         return;
     }
 
@@ -2118,10 +1779,6 @@ void POLY_clip_line_add(float sx1, float sy1, float sx2, float sy2, ULONG colour
     }
 
     if (clip_or) {
-        //
-        // The line needs clipping.
-        //
-
         if (clip_xor & POLY_CLIP_LEFT) {
             if (clip2 & POLY_CLIP_LEFT) {
                 SWAP_FL(sx1, sx2);
@@ -2227,19 +1884,12 @@ void POLY_clip_line_add(float sx1, float sy1, float sx2, float sy2, ULONG colour
         return;
     }
 
-    //
-    // Phew! Add the clipped line.
-    //
-
     POLY_add_line_2d(sx1, sy1, sx2, sy2, colour);
 }
 
-// POLY_frame_draw
-//
-// draw all the poly pages
-
-extern SLONG PageOrder[POLY_NUM_PAGES];
-
+// uc_orig: POLY_frame_draw (fallen/DDEngine/Headers/poly.h)
+// Flushes all polygon buckets to Direct3D for the current frame.
+// draw_shadow_page/draw_text_page: UC_FALSE to suppress those pages.
 void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 {
     SLONG i;
@@ -2250,41 +1900,21 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
     static int iPageNumberToClear = 0;
 
-    // SPONG
-
-    // These will have been done in POLY_frame_init().
-    // POLY_init_render_states();
-    // #ifndef TARGET_DC
-    // BEGIN_SCENE;
-    // #endif
-
-    //
-    // Draw the sky first...
-    //
-
+    // Draw sky page first (always rendered at the back).
     pa = &POLY_Page[POLY_PAGE_SKY];
 
     if (pa->NeedsRendering()) {
         pa->RS.SetChanged();
         pa->Render(the_display.lp_D3D_Device);
     }
-    //	BreakTime("FRAMEDRAW done sky");
-
-    // DC sorts for us.
 
     if (PolyPage::AlphaSortEnabled()) {
-        //
-        // Draw opaque polygon pages
-        //
-        //		BreakTime("FRAMEDRAW start alphasort");
+        // Alpha-sort path: draw opaque pages first, then sort and draw alpha pages by depth.
 
-        for (i = 0; i <= iPolyNumPagesRender; i++) // <= because we skip POLY_PAGE_COLOUR...
-        {
+        for (i = 0; i <= iPolyNumPagesRender; i++) {
             k = PageOrder[i];
-            //
-            // Do POLY_PAGE_COLOUR first!
-            //
 
+            // Draw POLY_PAGE_COLOUR first (needed for correct order).
             if (i == 0) {
                 k = POLY_PAGE_COLOUR;
             } else {
@@ -2302,15 +1932,10 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             }
 
             if (k == POLY_PAGE_TEXT && !draw_text_page) {
-                //
-                // Ignore the text page.
-                //
-
                 continue;
             }
 
             if (!pa->RS.NeedsSorting() || (k == POLY_PAGE_PUDDLE)) {
-                // set render state
                 pa->RS.SetChanged();
 
                 if (POLY_force_additive_alpha) {
@@ -2334,24 +1959,11 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                                                 }
                 */
 
-                //
-                // and render the polygons
-                //
-
                 pa->Render(the_display.lp_D3D_Device);
             }
         }
-        //		BreakTime("FRAMEDRAW end alphasort");
 
-        //
-        // now draw the alpha polygons
-        //
-
-        //
-        // generate the buckets
-        //
-
-        //		BreakTime("FRAMEDRAW start buckets");
+        // Alpha-sort phase: bucket polys by depth and render front-to-back.
         PolyPoly* buckets[2048];
 
         for (i = 0; i < 2048; i++)
@@ -2371,11 +1983,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
             pa->AddToBuckets(buckets, 2048);
         }
-        //		BreakTime("FRAMEDRAW mid buckets");
-
-        //
-        // render the buckets
-        //
 
         for (i = 0; i < 2048; i++) {
             PolyPoly* p = buckets[i];
@@ -2393,14 +2000,9 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             if (pa->RS.NeedsSorting())
                 pa->RS.ResetTempTransparent();
         }
-        //		BreakTime("FRAMEDRAW end buckets");
 
     } else {
-        //
-        // draw all the polygons at once
-        //
-        //		BreakTime("FRAMEDRAW start all polys at once");
-
+        // Non-sorted path: draw all pages in PageOrder sequence.
         for (i = 0; i < iPolyNumPagesRender; i++) {
             k = PageOrder[i];
 
@@ -2410,26 +2012,15 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 continue;
             }
 
-            //			ASSERT ( draw_text_page );
-            //			ASSERT ( draw_shadow_page );
-
-            // set render state
             pa->RS.SetChanged();
-
-            //
-            // render the polygons
-            //
 
             pa->Render(the_display.lp_D3D_Device);
         }
-        //		BreakTime("FRAMEDRAW end all polys at once");
     }
 
     END_SCENE;
 
-    // And clear out a few pages' VBs and IBs.
-    // This stops a page that was drawing a lot a while ago from
-    // hogging all the memory when it goes out of scene.
+    // Incrementally clear a few pages' VBs/IBs per frame to reclaim memory from inactive pages.
     for (i = 0; i < 3; i++) {
         iPageNumberToClear++;
         if (iPageNumberToClear >= POLY_NUM_PAGES) {
@@ -2459,9 +2050,11 @@ extern void	show_text(void);
     }
 
     */
-    //	TRACE("poly frame draw EXIT\n");
 }
 
+// uc_orig: POLY_frame_draw_odd (fallen/DDEngine/Source/poly.cpp)
+// Draws only the standard texture pages with MODULATEALPHA blend and no depth test.
+// Used for the attract-mode 3D scene overlay.
 void POLY_frame_draw_odd()
 {
     SLONG i;
@@ -2469,13 +2062,9 @@ void POLY_frame_draw_odd()
 
     PolyPage* pa;
 
-    //
-    // Start the scene.
-    //
-
     BEGIN_SCENE;
 
-    // Sets the actual hardware RS, and also keeps the cache informed.
+// Sets the actual hardware RS, and also keeps the cache informed.
 #define FORCE_SET_RENDER_STATE(t, s)           \
     RenderState::s_State.SetRenderState(t, s); \
     REALLY_SET_RENDER_STATE(t, s)
@@ -2488,11 +2077,11 @@ void POLY_frame_draw_odd()
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ZFUNC, D3DCMP_LESSEQUAL);
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE); // ALPHA);
+    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_CLAMP);
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE); // SRCALPHA);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE); // INVSRCALPHA);
+    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
+    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
 
     for (i = 0; i < TEXTURE_page_num_standard; i++) {
         ASSERT(WITHIN(i, 0, POLY_NUM_PAGES - 1));
@@ -2503,15 +2092,7 @@ void POLY_frame_draw_odd()
             continue;
         }
 
-        //
-        // The is one of the TEXTURE modules pages...
-        //
-
         FORCE_SET_TEXTURE(TEXTURE_get_handle(i));
-
-        //
-        // Do the actual draw primitive call.
-        //
 
         pa->Render(the_display.lp_D3D_Device);
     }
@@ -2533,22 +2114,17 @@ void POLY_frame_draw_odd()
     END_SCENE;
 }
 
+// uc_orig: POLY_frame_draw_puddles (fallen/DDEngine/Source/poly.cpp)
+// Draws only the puddle reflection texture page with its own render state.
 void POLY_frame_draw_puddles()
 {
-
     PolyPage* pp = &POLY_Page[POLY_PAGE_PUDDLE];
-    // Do the indirection to the real poly page.
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
     if (pp->NeedsRendering()) {
         BEGIN_SCENE;
 
-        // state in polyrenderstate.cpp
         pp->RS.InitScene(0);
-
-        //
-        // Do the actual draw primitive call.
-        //
 
         pp->Render(the_display.lp_D3D_Device);
 
@@ -2556,8 +2132,9 @@ void POLY_frame_draw_puddles()
     }
 }
 
-// No sewers - just here for error-checking.
-
+// uc_orig: POLY_get_sphere_circle (fallen/DDEngine/Headers/poly.h)
+// Projects a world-space sphere to screen space, returning its approximate screen circle.
+// Returns UC_FALSE if the sphere centre is behind the camera.
 SLONG POLY_get_sphere_circle(
     float world_x,
     float world_y,
@@ -2579,10 +2156,6 @@ SLONG POLY_get_sphere_circle(
         &pp);
 
     if (pp.IsValid()) {
-        //
-        // Find the screen width for this world width.
-        //
-
         vw = world_radius * POLY_cam_over_view_dist;
         width = vw * pp.Z * POLY_screen_mul_x;
 
@@ -2596,6 +2169,9 @@ SLONG POLY_get_sphere_circle(
     }
 }
 
+// uc_orig: POLY_inside_quad (fallen/DDEngine/Headers/poly.h)
+// Returns UC_TRUE if the 2D screen point lies inside the parallelogram defined by quad[0..2].
+// along_01 and along_02 receive the parametric coordinates along the two edge vectors.
 SLONG POLY_inside_quad(
     float screen_x,
     float screen_y,
@@ -2634,8 +2210,9 @@ SLONG POLY_inside_quad(
     }
 }
 
-// from the Intel compiler:
-
+// uc_orig: POLY_transform (fallen/DDEngine/Headers/poly.h)
+// Transforms a world-space point into view space and projects it.
+// bUnused parameter is present for Intel compiler compatibility only.
 void POLY_transform(
     float world_x,
     float world_y,
@@ -2656,6 +2233,8 @@ void POLY_transform(
     POLY_perspective(pt);
 }
 
+// uc_orig: POLY_transform_using_local_rotation (fallen/DDEngine/Headers/poly.h)
+// Transforms a local-space point through the combined local+camera matrix.
 void POLY_transform_using_local_rotation(
     float local_x,
     float local_y,
@@ -2678,5 +2257,3 @@ void POLY_transform_using_local_rotation(
 
     POLY_perspective(pt);
 }
-
-#endif

@@ -73389,6 +73389,646 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_ClearAllPages",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "POLY_ClearAllPages",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_tri_backfacing",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "POLY_tri_backfacing",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_add_nearclipped_triangle",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "POLY_add_nearclipped_triangle",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_add_triangle_fast",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "POLY_add_triangle_fast",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_add_quad_fast",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "POLY_add_quad_fast",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_add_rect",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "POLY_add_rect",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_frame_draw_odd",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "POLY_frame_draw_odd",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_frame_draw_puddles",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "POLY_frame_draw_puddles",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "TweenD3DColour",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "TweenD3DColour",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NewTweenVertex3D",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "NewTweenVertex3D",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NewTweenVertex2D_X",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "NewTweenVertex2D_X",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NewTweenVertex2D_Y",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "NewTweenVertex2D_Y",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fade_point_more",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "fade_point_more",
+      "orig_file": "fallen/DDEngine/Headers/poly.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "m_iCurrentCombo",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "m_iCurrentCombo",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "s_ClipMask",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "s_ClipMask",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "s_PointBuffer",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "s_PointBuffer",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "s_PointBufferOffset",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "s_PointBufferOffset",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "s_DistBuffer",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "s_DistBuffer",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "s_PtrBuffer",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "s_PtrBuffer",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fade_black",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "fade_black",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COMBO_FALSE",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "COMBO_FALSE",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COMBO_TRUE",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "COMBO_TRUE",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "COMBO_DIRTY",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "COMBO_DIRTY",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_Z_NEARPLANE",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "POLY_Z_NEARPLANE",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "STD_CLIPMASK",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "STD_CLIPMASK",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_SWAP",
+      "file": "new/engine/graphics/pipeline/poly.cpp",
+      "orig_name": "POLY_SWAP",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "iPolyNumPagesRender",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "iPolyNumPagesRender",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_cam_aspect",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_cam_aspect",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_cam_lens",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_cam_lens",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_cam_view_dist",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_cam_view_dist",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_cam_over_view_dist",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_cam_over_view_dist",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_cam_matrix_comb",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_cam_matrix_comb",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_cam_off_x",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_cam_off_x",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_cam_off_y",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_cam_off_y",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_cam_off_z",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_cam_off_z",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_screen_mid_x",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_screen_mid_x",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_screen_mid_y",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_screen_mid_y",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_screen_mul_x",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_screen_mul_x",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_screen_mul_y",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_screen_mul_y",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_screen_clip_left",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_screen_clip_left",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_screen_clip_right",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_screen_clip_right",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_screen_clip_bottom",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_screen_clip_bottom",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_screen_clip_top",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_screen_clip_top",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_splitscreen",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_splitscreen",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_wibble_y1",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_wibble_y1",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_wibble_y2",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_wibble_y2",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_wibble_g1",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_wibble_g1",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_wibble_g2",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_wibble_g2",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_wibble_s1",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_wibble_s1",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_wibble_s2",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_wibble_s2",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_wibble_turn",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_wibble_turn",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_wibble_dangle1",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_wibble_dangle1",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_wibble_dangle2",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_wibble_dangle2",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DefRenderState",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "DefRenderState",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_Page",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_Page",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "g_matProjection",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "g_matProjection",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "g_viewData",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "g_viewData",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "g_dw3DStuffHeight",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "g_dw3DStuffHeight",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "g_dw3DStuffY",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "g_dw3DStuffY",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "g_matWorld",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "g_matWorld",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_clip_left",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_clip_left",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_clip_right",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_clip_right",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_clip_top",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_clip_top",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_clip_bottom",
+      "file": "new/engine/graphics/pipeline/poly_globals.cpp",
+      "orig_name": "POLY_clip_bottom",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

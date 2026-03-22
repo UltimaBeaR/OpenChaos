@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 133 — engine/graphics/pipeline/poly.cpp (2026-03-22)
+
+- `fallen/DDEngine/Source/poly.cpp` (2679 lines) → `new/engine/graphics/pipeline/poly.cpp` + `poly_globals.cpp/.h`.
+- Globals split: variables already declared extern in `poly.h` (`POLY_page_flag`, `POLY_buffer`, `POLY_cam_x/y/z`, etc.) defined in `poly.cpp`; new globals not in `poly.h` (`POLY_cam_aspect`, `POLY_cam_matrix_comb`, wibble state, `DefRenderState`, `POLY_Page`, D3D matrices, clip box) go to `poly_globals.cpp/.h`.
+- Temporary includes: `engine/lighting/night_globals.h` (NIGHT_sky_colour, NIGHT_amb_norm_*), `missions/eway.h` (EWAY_stop_player_moving), `fallen/DDEngine/Headers/BreakTimer.h` (BEGIN_SCENE/END_SCENE), `fallen/Headers/Game.h` (GAME_FLAGS), `assets/texture.h`.
+- Fix: original include path `fallen/DDEngine/Headers/night.h` → `engine/lighting/night_globals.h` (symbols are in globals header, not the type header).
+- Fix (review): globals that were declared extern in `poly.h` but defined in `poly.cpp` moved to `poly_globals.cpp` per CHECK B (all file-scope variables must be in `_globals` files, regardless of where their externs are).
+
+---
+
 ## Итерация 132 — ui/frontend chunk 3 (draw_districts + display + input + init + loop → new/ui/frontend.cpp) (2026-03-22)
 
 - `frontend.cpp` lines 3112–4606: `FRONTEND_draw_districts`, `FRONTEND_shadowed_text`, `FRONTEND_display`, `FRONTEND_storedata`, `FRONTEND_ValidMission`, `FRONTEND_input`, `FRONTEND_init`, `FRONTEND_level_lost`, `FRONTEND_level_won`, `FRONTEND_playambient3d`, `FRONTEND_sound`, `FRONTEND_diddle_stats`, `FRONTEND_diddle_music`, `FRONTEND_loop` → `new/ui/frontend.cpp`.
