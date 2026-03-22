@@ -495,4 +495,64 @@ void insert_recessed_wall_vect(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2,
 // uc_orig: create_suspended_light (fallen/Source/Building.cpp)
 SLONG create_suspended_light(SLONG x, SLONG y, SLONG z, SLONG flags);
 
+// Builds floor/roof geometry for a storey using build_easy_roof.
+// uc_orig: build_storey_floor (fallen/Source/Building.cpp)
+SLONG build_storey_floor(SLONG storey, SLONG y, SLONG flag);
+
+// Builds geometry and collision vectors for a trench storey.
+// uc_orig: build_trench (fallen/Source/Building.cpp)
+SLONG build_trench(SLONG prev_facet, SLONG storey);
+
+// Main building geometry builder: iterates all storeys, builds prims, facets, collision vects.
+// uc_orig: create_building_prim (fallen/Source/Building.cpp)
+SLONG create_building_prim(UWORD building, SLONG* small_y);
+
+// Stub: was intended to copy editor map to game map.
+// uc_orig: copy_to_game_map (fallen/Source/Building.cpp)
+void copy_to_game_map(void);
+
+// Resets all building/prim/map counters and zeroes prim arrays for a fresh city rebuild.
+// uc_orig: clear_map2 (fallen/Source/Building.cpp)
+void clear_map2(void);
+
+// Stub: was intended to clear ladder floor flags.
+// uc_orig: clear_floor_ladder (fallen/Source/Building.cpp)
+void clear_floor_ladder(void);
+
+// Debug/editor: animates floor heights with sin/cos. Always returns immediately.
+// uc_orig: wibble_floor (fallen/Source/Building.cpp)
+void wibble_floor(void);
+
+// Adjusts building prim point Y values upward to avoid clipping below terrain.
+// uc_orig: clip_building_prim (fallen/Source/Building.cpp)
+void clip_building_prim(SLONG prim, SLONG x, SLONG y, SLONG z);
+
+// Snaps all furniture Things to terrain height.
+// uc_orig: fix_furniture (fallen/Source/Building.cpp)
+void fix_furniture(void);
+
+// Tallies texture page usage across the 128x128 floor map.
+// uc_orig: count_floor (fallen/Source/Building.cpp)
+void count_floor(void);
+
+// Main city build pass: calls create_building_prim for every building, calculates normals.
+// uc_orig: create_city (fallen/Source/Building.cpp)
+void create_city(UBYTE mode);
+
+// Shifts all storey and wall positions by (x,y,z). Editor tool for moving buildings.
+// uc_orig: offset_buildings (fallen/Source/Building.cpp)
+void offset_buildings(SLONG x, SLONG y, SLONG z);
+
+// Returns 1 if screen-projected triangle (p0,p1,p2) is clockwise, 0 otherwise.
+// uc_orig: is_it_clockwise (fallen/Source/Building.cpp)
+UWORD is_it_clockwise(SLONG p0, SLONG p1, SLONG p2);
+
+// Computes per-vertex normals for all building objects by averaging face normals.
+// uc_orig: calc_building_normals (fallen/Source/Building.cpp)
+void calc_building_normals(void);
+
+// Per-frame state function for building Things. Currently a no-op.
+// uc_orig: fn_building_normal (fallen/Source/Building.cpp)
+void fn_building_normal(Thing* b_thing);
+
 #endif // WORLD_ENVIRONMENT_BUILDING_H

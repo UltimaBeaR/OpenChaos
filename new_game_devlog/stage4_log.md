@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 123 — world/environment/building (Building.cpp чанк 7: финал — build_storey_floor → fn_building_normal → new/) (2026-03-22)
+
+- `fallen/Source/Building.cpp` полностью мигрирован. `old/Building.cpp` → redirect stub.
+- `wall_for_fe[100]` и `wall_for_ladder[100]` — `static` file-private массивы, перенесены в `building.cpp` (не в `_globals`, т.к. static).
+- `wall_for_ladder` → `wall_for_ladder_local` (conflict rename: параметр `wall_for_ladder` у `setup_storey_data` конфликтует с именем глобального массива).
+- `calc_win`, `calc_prob` — `static` (file-private), не экспортируются.
+- DAG: `missions/memory_globals.h` включён для `prim_normal[]` — нарушение DAG (world зависит от missions). Помечен `// Temporary:`. `prim_normal` требует переклассификации в будущем.
+
+---
+
 ## Итерация 122 — world/environment/building (Building.cpp чанк 6: cable, fence, brick wall, storey setup → new/) (2026-03-22)
 
 - `fallen/Source/Building.cpp` (old chunk 6+) lines 36–1351 → `new/world/environment/building.cpp` (chunk 6): `make_cable_taut_along`, `make_cable_flabby`, `create_suspended_light`, `build_cable`, `build_cable_old`, `build_cables`, `build_fence_points_and_faces`, `build_high_chain_fence`, `build_height_fence`, `build_thick_wall_polys`, `build_brick_wall`, `build_fence`, `build_whole_fence`, `process_external_pieces`, `mark_map_with_ladder`, `setup_storey_data`, `find_connect_wall`, `insert_recessed_wall_vect`.
