@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 140 — panel.cpp chunk 2: PANEL_new_text..PANEL_inventory (2026-03-23)
+
+- `PANEL_help_message`, `PANEL_help_timer`, `PANEL_wide_*`, `PANEL_beacon_colour[]`, `PANEL_fadeout_time`, `angle_mul`, `zoom_mul`, `PANEL_sign_*`, `PANEL_info_message`, `PANEL_info_time` → `panel_globals.cpp/.h`.
+- `PANEL_lsprite[]` — global array; initially landed in `panel.cpp`, moved to `panel_globals.cpp` during CHECK B. `panel_globals.cpp` includes `panel.h` to resolve the `PANEL_Lsprite` type.
+- `PANEL_Lsprite` typedef and `PANEL_LSPRITE_*` macros moved to `panel.h` (not `panel_globals.h`) because `PANEL_last()` in unmigrated `old/panel.cpp` references them directly after the `#if 0` boundary.
+- `PANEL_last_arrow`, `PANEL_last_bubble`, `BodgePageIntoAddAlpha/Add/Sub`, `PANEL_new_text_process`, `PANEL_help_message_do`, `PANEL_new_widescreen` — declared public in `panel.h` (non-static) because `PANEL_last()` (chunk 3, still in old/) calls them. Will be made file-private after chunk 3 migration.
+- `PANEL_inv_weapon` — static helper (only called from `PANEL_inventory`), kept file-private; declared with `uc_orig` in `panel.cpp`.
+- Added `#include "engine/audio/mfx.h"` and `#include "assets/sound_id.h"` for `MFX_play_ambient` + `S_RADIO_MESSAGE`. Also `fallen/Headers/Special.h`, `fallen/Headers/eway.h`, `fallen/Headers/cnet.h` as Temporary includes.
+- `old/panel.cpp` wrapped `#if 0 // MIGRATED` for lines 1473–2640 (through `PANEL_inventory`). `PANEL_last()` (line 2641+) still active.
+
+---
+
 ## Итерация 139 — panel.cpp chunk 1: core drawing utils + icon tables + beat/toss/face/text init (2026-03-23)
 
 - Chunk-1 globals (PANEL_Store, PANEL_Ic, PANEL_Beat, PANEL_Ammo, PANEL_Toss, PANEL_Text structs; ic/page/ammo/beat/toss/text arrays; m_iPanelXPos/YPos) → `panel_globals.h/.cpp`.

@@ -75649,6 +75649,576 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_new_text",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_new_text",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_new_text_process",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_new_text_process",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_new_help_message",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_new_help_message",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_help_message_do",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_help_message_do",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_new_widescreen",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_new_widescreen",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_start",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_start",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_finish",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_finish",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_fadeout_init",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_fadeout_init",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_fadeout_start",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_fadeout_start",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_fadeout_draw",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_fadeout_draw",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_fadeout_finished",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_fadeout_finished",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_last_arrow",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_last_arrow",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_last_bubble",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_last_bubble",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_flash_sign",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_flash_sign",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_new_info_message",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_new_info_message",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_darken_screen",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_darken_screen",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BodgePageIntoAddAlpha",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "BodgePageIntoAddAlpha",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BodgePageIntoAdd",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "BodgePageIntoAdd",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BodgePageIntoSub",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "BodgePageIntoSub",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_inv_weapon",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_inv_weapon",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_inventory",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_inventory",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_help_message",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_help_message",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_help_timer",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_help_timer",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_wide_top_person",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_wide_top_person",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_wide_bot_person",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_wide_bot_person",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_wide_top_is_talking",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_wide_top_is_talking",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_wide_text",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_wide_text",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_beacon_colour",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_beacon_colour",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_fadeout_time",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_fadeout_time",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "angle_mul",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "angle_mul",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "zoom_mul",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "zoom_mul",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_sign_which",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_sign_which",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_sign_flip",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_sign_flip",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_sign_time",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_sign_time",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_info_message",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_info_message",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_info_time",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_info_time",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_lsprite",
+      "file": "new/ui/hud/panel_globals.cpp",
+      "orig_name": "PANEL_lsprite",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_Lsprite",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_Lsprite",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_BACKGROUND",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_BACKGROUND",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_AK47",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_AK47",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_SHOTGUN",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_SHOTGUN",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_LOW_GEAR",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_LOW_GEAR",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_HIGH_GEAR",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_HIGH_GEAR",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_GRENADE",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_GRENADE",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_ARROW",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_ARROW",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_QMARK",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_QMARK",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_DOT",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_DOT",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_PISTOL",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_PISTOL",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_TEXT_BOX",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_TEXT_BOX",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_BBB",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_BBB",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_FIST",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_FIST",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_EXPLOSIVES",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_EXPLOSIVES",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_KNIFE",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_KNIFE",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_LSPRITE_NUMBER",
+      "file": "new/ui/hud/panel.h",
+      "orig_name": "PANEL_LSPRITE_NUMBER",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_MAX_BEACON_COLOURS",
+      "file": "new/ui/hud/panel_globals.h",
+      "orig_name": "PANEL_MAX_BEACON_COLOURS",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_WHO_DARCI",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_WHO_DARCI",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PANEL_WHO_ROPER",
+      "file": "new/ui/hud/panel.cpp",
+      "orig_name": "PANEL_WHO_ROPER",
+      "orig_file": "fallen/DDEngine/Source/panel.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

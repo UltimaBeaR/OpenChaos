@@ -1470,6 +1470,8 @@ void PANEL_new_text_init(void)
 
 #endif // MIGRATED to src/new/ui/hud/panel.cpp + panel_globals.cpp (iteration 139)
 
+#if 0 // MIGRATED to src/new/ui/hud/panel.cpp + panel_globals.cpp (iteration 140) [PANEL_new_text..PANEL_inventory]
+
 void PANEL_new_text(Thing* who, SLONG delay, CBYTE* fmt, ...)
 {
     CBYTE* ch;
@@ -2637,6 +2639,8 @@ void PANEL_inventory(Thing* darci, Thing* player)
 #define SCANNER_LAST_CTR_Y (480 - PANEL_LAST_HEIGHT + 74)
 #define SCANNER_LAST_CTR_U 74
 #define SCANNER_LAST_CTR_V 74
+
+#endif // MIGRATED to src/new/ui/hud/panel.cpp + panel_globals.cpp (iteration 140) [PANEL_new_text..PANEL_inventory]
 
 void PANEL_last()
 {

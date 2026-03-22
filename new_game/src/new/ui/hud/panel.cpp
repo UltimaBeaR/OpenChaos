@@ -15,9 +15,21 @@
 // Temporary: AENG functions defined in aeng.cpp (not yet migrated)
 #include "fallen/DDEngine/Headers/aeng.h"
 
-// Temporary: Thing, Class constants, person types
+// Temporary: Thing, Class constants, person types, special items
 #include "fallen/Headers/Thing.h"
 #include "fallen/Headers/Person.h"
+#include "fallen/Headers/Special.h"
+
+// MFX sound playback (MFX_play_ambient)
+#include "engine/audio/mfx.h"
+// S_RADIO_MESSAGE sound ID
+#include "assets/sound_id.h"
+
+// Temporary: EWAY cut-scene/tutorial functions
+#include "fallen/Headers/eway.h"
+
+// Temporary: NET_PERSON macro (network player access)
+#include "fallen/Headers/cnet.h"
 
 #include <math.h>
 #include <string.h>
@@ -909,4 +921,777 @@ void PANEL_new_text_init(void)
     PANEL_text_head = 0;
     PANEL_text_tail = 0;
     PANEL_text_tick = 0;
+}
+
+// Queues a floating speech text message above the given thing (NULL = radio message).
+// Plays a radio sound for NULL-thing messages. Deduplicates identical messages.
+// uc_orig: PANEL_new_text (fallen/DDEngine/Source/panel.cpp)
+void PANEL_new_text(Thing* who, SLONG delay, CBYTE* fmt, ...)
+{
+    CBYTE* ch;
+    PANEL_Text* pt;
+
+    if (fmt == NULL) {
+        return;
+    }
+
+    for (ch = fmt; *ch; ch++) {
+        if (!isspace(*ch)) {
+            goto found_non_white_space;
+        }
+    }
+
+    return;
+
+found_non_white_space:;
+
+    CBYTE message[1024];
+    va_list ap;
+
+    va_start(ap, fmt);
+    vsprintf(message, fmt, ap);
+    va_end(ap);
+
+    if (strlen(message) >= PANEL_TEXT_MAX_LENGTH) {
+        ASSERT(0);
+        return;
+    }
+
+    /*
+    for (ch = message; *ch; *ch++ = toupper(*ch));
+    */
+
+    SLONG i;
+
+    for (i = 0; i < PANEL_MAX_TEXTS; i++) {
+        pt = &PANEL_text[i];
+
+        if (pt->delay) {
+            if (pt->who == who) {
+                if (strcmp(pt->text, message) == 0) {
+                    pt->delay = delay;
+                    return;
+                }
+            }
+        }
+    }
+
+    pt = &PANEL_text[PANEL_text_tail & (PANEL_MAX_TEXTS - 1)];
+
+    pt->who = who;
+    pt->delay = delay;
+    pt->turns = 0;
+
+    strcpy(pt->text, message);
+
+    PANEL_text_tail += 1;
+
+    if (!who)
+        MFX_play_ambient(0, S_RADIO_MESSAGE, 0);
+}
+
+// Advances the decay timer for all active text messages and increments turn counters.
+// Called once per frame from PANEL_last(). Processes at 10 Hz but caps catch-up at 4 frames.
+// uc_orig: PANEL_new_text_process (fallen/DDEngine/Source/panel.cpp)
+void PANEL_new_text_process(void)
+{
+    SLONG i;
+    PANEL_Text* pt;
+    ULONG now = GetTickCount();
+
+    if (PANEL_text_tick < now - (1000 / 10) * 4) {
+        PANEL_text_tick = (now - (1000 / 10) * 4);
+    }
+
+    while (PANEL_text_tick < now) {
+        PANEL_text_tick += 1000 / 10;
+
+        for (i = 0; i < PANEL_MAX_TEXTS; i++) {
+            pt = &PANEL_text[i];
+
+            if (pt->delay) {
+                pt->delay -= 1000 / 10;
+
+                if (pt->delay < 0) {
+                    pt->delay = 0;
+                }
+            }
+        }
+    }
+
+    for (i = 0; i < PANEL_MAX_TEXTS; i++) {
+        pt = &PANEL_text[i];
+        pt->turns += 1;
+    }
+}
+
+// Sets a tutorial/help text string that displays for 5 seconds in a speech bubble.
+// uc_orig: PANEL_new_help_message (fallen/DDEngine/Source/panel.cpp)
+void PANEL_new_help_message(CBYTE* fmt, ...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    vsprintf(PANEL_help_message, fmt, ap);
+    va_end(ap);
+
+    PANEL_help_timer = 160 * 20 * 5; // 5 seconds
+}
+
+// Draws the help message in a speech bubble at the top-left of the screen
+// and decrements the timer. No-op when timer reaches zero.
+// uc_orig: PANEL_help_message_do (fallen/DDEngine/Source/panel.cpp)
+void PANEL_help_message_do(void)
+{
+    PANEL_help_timer -= 160 * TICK_RATIO >> TICK_SHIFT;
+
+    if (PANEL_help_timer <= 0) {
+        PANEL_help_timer = 0;
+    } else {
+        SLONG height;
+
+#define PANEL_IC_HELPX 10
+#define PANEL_IC_HELPY 10
+
+        height = FONT2D_DrawStringWrap(PANEL_help_message, PANEL_IC_HELPX + 18, PANEL_IC_HELPY, 0x00ff00) - PANEL_IC_HELPY;
+        height += 25;
+
+        PANEL_funky_quad(
+            PANEL_IC_BUBBLE_START,
+            PANEL_IC_HELPX,
+            PANEL_IC_HELPY - 3,
+            PANEL_PAGE_ALPHA,
+            0xffffffff,
+            18.0F,
+            height);
+
+        PANEL_funky_quad(
+            PANEL_IC_BUBBLE_MIDDLE,
+            PANEL_IC_HELPX + 18,
+            PANEL_IC_HELPY - 3,
+            PANEL_PAGE_ALPHA,
+            0xffffffff,
+            float(FONT2D_rightmost_x) - (PANEL_IC_HELPX + 18),
+            height);
+
+        PANEL_funky_quad(
+            PANEL_IC_BUBBLE_END,
+            float(FONT2D_rightmost_x),
+            PANEL_IC_HELPY - 3,
+            PANEL_PAGE_ALPHA,
+            0xffffffff,
+            -1.0F,
+            height);
+    }
+}
+
+// Draws the widescreen letterbox bars and conversation text during cut-scene dialogue.
+// Scans the text queue for new messages and assigns them to top/bottom speaker slots.
+// uc_orig: PANEL_new_widescreen (fallen/DDEngine/Source/panel.cpp)
+void PANEL_new_widescreen(void)
+{
+    extern float POLY_screen_clip_top;
+    extern float POLY_screen_clip_bottom;
+
+    POLY_screen_clip_top = 0.0F;
+    POLY_screen_clip_bottom = float(DisplayHeight);
+
+    // Clear the widescreen borders to black.
+    PANEL_draw_quad(
+        0.0F,
+        0.0F,
+        float(DisplayWidth),
+        80.0F,
+        POLY_PAGE_COLOUR,
+        0x00000000);
+
+    PANEL_draw_quad(
+        0.0F,
+        float(DisplayHeight) - 80.0F,
+        float(DisplayWidth),
+        float(DisplayHeight),
+        POLY_PAGE_COLOUR,
+        0x00000000);
+
+    if (EWAY_conversation_happening(
+            &PANEL_wide_top_person,
+            &PANEL_wide_bot_person)) {
+        if (PANEL_wide_top_person > PANEL_wide_bot_person) {
+            SWAP(PANEL_wide_top_person, PANEL_wide_bot_person);
+        }
+    }
+
+    SLONG i;
+    PANEL_Text* pt;
+
+    for (i = 0; i < PANEL_MAX_TEXTS; i++) {
+        pt = &PANEL_text[i];
+
+        if (pt->delay && pt->turns <= 1) {
+            if (pt->who == NULL) {
+                strcpy(PANEL_wide_text, pt->text);
+                PANEL_wide_top_is_talking = UC_FALSE;
+                pt->delay = 0;
+            } else {
+                if (THING_NUMBER(pt->who) == PANEL_wide_top_person) {
+                    strcpy(PANEL_wide_text, pt->text);
+                    PANEL_wide_top_is_talking = UC_TRUE;
+                    pt->delay = 0;
+                } else {
+                    strcpy(PANEL_wide_text, pt->text);
+                    PANEL_wide_top_is_talking = UC_FALSE;
+                    PANEL_wide_bot_person = THING_NUMBER(pt->who);
+                    pt->delay = 0;
+                }
+            }
+        }
+    }
+
+    if (PANEL_wide_top_person != NULL) {
+        PANEL_new_face(
+            TO_THING(PANEL_wide_top_person),
+            float(DisplayWidth) - 72.0F,
+            8.0F,
+            PANEL_FACE_LARGE);
+    }
+
+    if (PANEL_wide_text[0]) {
+        PANEL_new_face(
+            (PANEL_wide_bot_person) ? TO_THING(PANEL_wide_bot_person) : NULL,
+            8.0F,
+            float(DisplayHeight) - 72.0F,
+            PANEL_FACE_LARGE);
+
+        if (PANEL_wide_top_is_talking) {
+            SLONG iYpos = FONT2D_DrawStringRightJustify(
+                PANEL_wide_text,
+                DisplayWidth - 80,
+                0,
+                0xff0ffff,
+                256,
+                POLY_PAGE_FONT2D,
+                0,
+                UC_TRUE);
+            iYpos = 75 - iYpos;
+            FONT2D_DrawStringRightJustify(
+                PANEL_wide_text,
+                DisplayWidth - 80,
+                iYpos,
+                0xff0ffff,
+                256,
+                POLY_PAGE_FONT2D,
+                0,
+                UC_FALSE);
+        } else {
+            FONT2D_DrawStringWrap(
+                PANEL_wide_text,
+                80,
+                DisplayHeight - 80 + 5,
+                0xffffff);
+        }
+    }
+}
+
+// Initialises the poly frame for a new HUD render pass.
+// uc_orig: PANEL_start (fallen/DDEngine/Source/panel.cpp)
+void PANEL_start(void)
+{
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+}
+
+// Flushes and draws the HUD poly frame (with depth sorting and clearing).
+// uc_orig: PANEL_finish (fallen/DDEngine/Source/panel.cpp)
+void PANEL_finish(void)
+{
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
+}
+
+// Resets the fadeout timer. Call once before starting a level.
+// uc_orig: PANEL_fadeout_init (fallen/DDEngine/Source/panel.cpp)
+void PANEL_fadeout_init(void)
+{
+    PANEL_fadeout_time = 0;
+}
+
+// Arms the fadeout: records the timestamp. No-op if already running.
+// uc_orig: PANEL_fadeout_start (fallen/DDEngine/Source/panel.cpp)
+void PANEL_fadeout_start(void)
+{
+    if (!PANEL_fadeout_time) {
+        PANEL_fadeout_time = GetTickCount();
+    }
+}
+
+// Draws a spinning/zooming full-screen texture fade-out effect.
+// After 768ms adds a black vignette in the centre that expands.
+// uc_orig: PANEL_fadeout_draw (fallen/DDEngine/Source/panel.cpp)
+void PANEL_fadeout_draw(void)
+{
+    if (PANEL_fadeout_time) {
+        POLY_frame_init(UC_FALSE, UC_FALSE);
+
+        float angle = float(GetTickCount() - PANEL_fadeout_time) * angle_mul;
+        float zoom = angle * zoom_mul;
+
+        float xdu = -(float)cos(angle) * zoom * 1.33F;
+        float xdv = (float)sin(angle) * zoom * 1.33F;
+
+        float ydu = (float)sin(angle) * zoom;
+        float ydv = (float)cos(angle) * zoom;
+
+        SLONG colour;
+
+        colour = 0xffffffff;
+
+        POLY_Point pp[4];
+        POLY_Point* quad[4];
+
+        float fWDepthBodge = PANEL_GetNextDepthBodge();
+        float fZDepthBodge = 1.0f - fWDepthBodge;
+
+        pp[0].X = 0.0F;
+        pp[0].Y = 0.0F;
+        pp[0].z = fZDepthBodge;
+        pp[0].Z = fWDepthBodge;
+        pp[0].u = 0.5F - xdu - ydu;
+        pp[0].v = 0.5F - xdv - ydv;
+        pp[0].colour = colour;
+        pp[0].specular = 0xff000000;
+
+        pp[1].X = 640.0F;
+        pp[1].Y = 0.0F;
+        pp[1].z = fZDepthBodge;
+        pp[1].Z = fWDepthBodge;
+        pp[1].u = 0.5F + xdu - ydu;
+        pp[1].v = 0.5F + xdv - ydv;
+        pp[1].colour = colour;
+        pp[1].specular = 0xff000000;
+
+        pp[2].X = 0.0F;
+        pp[2].Y = 480.0F;
+        pp[2].z = fZDepthBodge;
+        pp[2].Z = fWDepthBodge;
+        pp[2].u = 0.5F - xdu + ydu;
+        pp[2].v = 0.5F - xdv + ydv;
+        pp[2].colour = colour;
+        pp[2].specular = 0xff000000;
+
+        pp[3].X = 640.0F;
+        pp[3].Y = 480.0F;
+        pp[3].z = fZDepthBodge;
+        pp[3].Z = fWDepthBodge;
+        pp[3].u = 0.5F + xdu + ydu;
+        pp[3].v = 0.5F + xdv + ydv;
+        pp[3].colour = colour;
+        pp[3].specular = 0xff000000;
+
+        quad[0] = &pp[0];
+        quad[1] = &pp[1];
+        quad[2] = &pp[2];
+        quad[3] = &pp[3];
+
+        POLY_add_quad(quad, POLY_PAGE_FADECAT, UC_FALSE, UC_TRUE);
+
+        if (GetTickCount() > (unsigned)PANEL_fadeout_time + 768) {
+            SLONG bright;
+
+            bright = GetTickCount() - (PANEL_fadeout_time + 768);
+
+            SATURATE(bright, 0, 255);
+
+            colour = bright << 24;
+
+#define PANEL_BLACKEN_WIDTH 70
+
+            PANEL_draw_quad(
+                320.0F - PANEL_BLACKEN_WIDTH,
+                240.0F - PANEL_BLACKEN_WIDTH,
+                320.0F + PANEL_BLACKEN_WIDTH,
+                240.0F + PANEL_BLACKEN_WIDTH,
+                POLY_PAGE_ALPHA,
+                colour);
+        }
+
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+    }
+}
+
+// Returns UC_TRUE once the fade-out effect has been active for more than 1024ms.
+// uc_orig: PANEL_fadeout_finished (fallen/DDEngine/Source/panel.cpp)
+SLONG PANEL_fadeout_finished(void)
+{
+    if (PANEL_fadeout_time) {
+        if (GetTickCount() > (unsigned)PANEL_fadeout_time + 1024) {
+            return UC_TRUE;
+        }
+    }
+
+    return UC_FALSE;
+}
+
+// PANEL_lsprite defined in panel_globals.cpp — see panel.h for extern declaration.
+
+// Draws a rotated arrow or dot icon on the HUD scanner.
+// angle: camera-relative bearing in radians; size: display scale.
+// uc_orig: PANEL_last_arrow (fallen/DDEngine/Source/panel.cpp)
+void PANEL_last_arrow(float x, float y, float angle, float size, ULONG colour, UBYTE is_dot)
+{
+    PANEL_Lsprite* pls;
+    if (is_dot)
+        pls = &PANEL_lsprite[PANEL_LSPRITE_DOT];
+    else
+        pls = &PANEL_lsprite[PANEL_LSPRITE_ARROW];
+
+    float dx = sin(angle) * size;
+    float dy = cos(angle) * size;
+
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
+
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
+
+    float fWDepthBodge = PANEL_GetNextDepthBodge();
+    float fZDepthBodge = 1.0f - fWDepthBodge;
+
+    pp[0].X = x + dx + (-dy);
+    pp[0].Y = y + dy + (+dx);
+    pp[0].z = fZDepthBodge;
+    pp[0].Z = fWDepthBodge;
+    pp[0].x = 0.0F;
+    pp[0].y = 0.0F;
+    pp[0].u = pls->u1;
+    pp[0].v = pls->v1;
+    pp[0].colour = colour;
+    pp[0].specular = 0xff000000;
+
+    pp[1].X = x + dx - (-dy);
+    pp[1].Y = y + dy - (+dx);
+    pp[1].z = fZDepthBodge;
+    pp[1].Z = fWDepthBodge;
+    pp[1].x = 0.0F;
+    pp[1].y = 0.0F;
+    pp[1].u = pls->u2;
+    pp[1].v = pls->v1;
+    pp[1].colour = colour;
+    pp[1].specular = 0xff000000;
+
+    pp[2].X = x - dx + (-dy);
+    pp[2].Y = y - dy + (+dx);
+    pp[2].z = fZDepthBodge;
+    pp[2].Z = fWDepthBodge;
+    pp[2].x = 0.0F;
+    pp[2].y = 0.0F;
+    pp[2].u = pls->u1;
+    pp[2].v = pls->v2;
+    pp[2].colour = colour;
+    pp[2].specular = 0xff000000;
+
+    pp[3].X = x - dx - (-dy);
+    pp[3].Y = y - dy - (+dx);
+    pp[3].z = fZDepthBodge;
+    pp[3].Z = fWDepthBodge;
+    pp[3].x = 0.0F;
+    pp[3].y = 0.0F;
+    pp[3].u = pls->u2;
+    pp[3].v = pls->v2;
+    pp[3].colour = colour;
+    pp[3].specular = 0xff000000;
+
+    POLY_add_quad(quad, pls->page, UC_FALSE, UC_TRUE);
+}
+
+// Draws a 9-piece resizable speech bubble frame from (x1,y1) to (x2,y2).
+// Uses the PANEL_LSPRITE_TEXT_BOX atlas region with 8-pixel corner pieces.
+// uc_orig: PANEL_last_bubble (fallen/DDEngine/Source/panel.cpp)
+void PANEL_last_bubble(float x1, float y1, float x2, float y2)
+{
+    POLY_Point pp[16];
+
+#define SET_PP(qn, qx, qy, qu, qv)    \
+    {                                 \
+        pp[qn].x = 0.0F;              \
+        pp[qn].y = 0.0F;              \
+        pp[qn].X = qx;                \
+        pp[qn].Y = qy;                \
+        pp[qn].z = fZDepthBodge;      \
+        pp[qn].Z = fWDepthBodge;      \
+        pp[qn].u = qu;                \
+        pp[qn].v = qv;                \
+        pp[qn].colour = 0xffffffff;   \
+        pp[qn].specular = 0xff000000; \
+    }
+
+    float fWDepthBodge = PANEL_GetNextDepthBodge();
+    float fZDepthBodge = 1.0f - fWDepthBodge;
+
+    PANEL_Lsprite* pls = &PANEL_lsprite[PANEL_LSPRITE_TEXT_BOX];
+
+    SET_PP(0, x1, y1, pls->u1, pls->v1);
+    SET_PP(1, x1 + 8.0F, y1, pls->u1 + (8.0F / 256.0F), pls->v1);
+    SET_PP(2, x2 - 8.0F, y1, pls->u2 - (8.0F / 256.0F), pls->v1);
+    SET_PP(3, x2, y1, pls->u2, pls->v1);
+
+    SET_PP(4, x2, y1 + 8.0F, pls->u2, pls->v1 + (8.0F / 256.0F));
+    SET_PP(5, x2, y2 - 8.0F, pls->u2, pls->v2 - (8.0F / 256.0F));
+
+    SET_PP(6, x2, y2, pls->u2, pls->v2);
+    SET_PP(7, x2 - 8.0F, y2, pls->u2 - (8.0F / 256.0F), pls->v2);
+    SET_PP(8, x1 + 8.0F, y2, pls->u1 + (8.0F / 256.0F), pls->v2);
+    SET_PP(9, x1, y2, pls->u1, pls->v2);
+
+    SET_PP(10, x1, y2 - 8.0F, pls->u1, pls->v2 - (8.0F / 256.0F));
+    SET_PP(11, x1, y1 + 8.0F, pls->u1, pls->v1 + (8.0F / 256.0F));
+
+    SET_PP(12, x1 + 8.0F, y1 + 8.0F, pls->u1 + (8.0F / 256.0F), pls->v1 + (8.0F / 256.0F));
+    SET_PP(13, x2 - 8.0F, y1 + 8.0F, pls->u2 - (8.0F / 256.0F), pls->v1 + (8.0F / 256.0F));
+    SET_PP(14, x2 - 8.0F, y2 - 8.0F, pls->u2 - (8.0F / 256.0F), pls->v2 - (8.0F / 256.0F));
+    SET_PP(15, x1 + 8.0F, y2 - 8.0F, pls->u1 + (8.0F / 256.0F), pls->v2 - (8.0F / 256.0F));
+
+    SLONG i;
+    SLONG p1;
+    SLONG p2;
+
+    POLY_Point* quad[4];
+
+    struct
+    {
+        UBYTE p1;
+        UBYTE p2;
+        UBYTE p3;
+        UBYTE p4;
+    } blah[9] = {
+        { 0, 1, 11, 12 },
+        { 1, 2, 12, 13 },
+        { 2, 3, 13, 4 },
+        { 11, 12, 10, 15 },
+        { 12, 13, 15, 14 },
+        { 13, 4, 14, 5 },
+        { 10, 15, 9, 8 },
+        { 15, 14, 8, 7 },
+        { 14, 5, 7, 6 }
+    };
+
+    for (i = 0; i < 9; i++) {
+        quad[0] = &pp[blah[i].p1];
+        quad[1] = &pp[blah[i].p2];
+        quad[2] = &pp[blah[i].p3];
+        quad[3] = &pp[blah[i].p4];
+
+        POLY_add_quad(quad, pls->page, UC_FALSE, UC_TRUE);
+    }
+}
+
+// Triggers a road-sign flash animation for 3 seconds (5 blinks per second).
+// uc_orig: PANEL_flash_sign (fallen/DDEngine/Source/panel.cpp)
+void PANEL_flash_sign(SLONG sign, SLONG flip)
+{
+    PANEL_sign_time = GetTickCount();
+    PANEL_sign_flip = flip;
+    PANEL_sign_which = sign;
+}
+
+// Displays a short info message at the bottom of the HUD panel for 2 seconds.
+// uc_orig: PANEL_new_info_message (fallen/DDEngine/Source/panel.cpp)
+void PANEL_new_info_message(CBYTE* fmt, ...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    vsprintf(PANEL_info_message, fmt, ap);
+    va_end(ap);
+
+    PANEL_info_time = GetTickCount();
+}
+
+// Draws a dark transparent overlay at the right edge of the screen, x pixels wide.
+// Used to indicate restricted zone boundary.
+// uc_orig: PANEL_darken_screen (fallen/DDEngine/Source/panel.cpp)
+void PANEL_darken_screen(SLONG x)
+{
+    PANEL_draw_quad(640.0F - float(x), 0.0F, 640.0F, 480.0F, POLY_PAGE_ALPHA_OVERLAY, 0x88000000);
+}
+
+// Converts a LASTPANEL_ALPHA page index to its ADDALPHA equivalent.
+// uc_orig: BodgePageIntoAddAlpha (fallen/DDEngine/Source/panel.cpp)
+SLONG BodgePageIntoAddAlpha(SLONG oldpage)
+{
+    if (oldpage == POLY_PAGE_LASTPANEL_ALPHA)
+        return POLY_PAGE_LASTPANEL_ADDALPHA;
+    return POLY_PAGE_LASTPANEL2_ADDALPHA;
+}
+
+// Converts a LASTPANEL_ALPHA page index to its ADD equivalent.
+// uc_orig: BodgePageIntoAdd (fallen/DDEngine/Source/panel.cpp)
+SLONG BodgePageIntoAdd(SLONG oldpage)
+{
+    if (oldpage == POLY_PAGE_LASTPANEL_ALPHA)
+        return POLY_PAGE_LASTPANEL_ADD;
+    return POLY_PAGE_LASTPANEL2_ADD;
+}
+
+// Converts a LASTPANEL_ALPHA page index to its SUB equivalent.
+// uc_orig: BodgePageIntoSub (fallen/DDEngine/Source/panel.cpp)
+SLONG BodgePageIntoSub(SLONG oldpage)
+{
+    if (oldpage == POLY_PAGE_LASTPANEL_ALPHA)
+        return POLY_PAGE_LASTPANEL_SUB;
+    return POLY_PAGE_LASTPANEL2_SUB;
+}
+
+// Draws a single weapon sprite at (x,y) in the pop-up inventory bar.
+// sel != 0 = currently selected (full brightness); sel == 0 = faded.
+// uc_orig: PANEL_inv_weapon (fallen/DDEngine/Source/panel.cpp)
+void PANEL_inv_weapon(SLONG x, SLONG y, SLONG item, UBYTE who, SLONG rgb, UBYTE sel)
+{
+    SLONG sprite = -1, faded;
+
+    switch (item) {
+    case SPECIAL_GUN:
+        sprite = PANEL_LSPRITE_PISTOL;
+        break;
+    case SPECIAL_SHOTGUN:
+        sprite = PANEL_LSPRITE_SHOTGUN;
+        break;
+    case SPECIAL_AK47:
+        sprite = PANEL_LSPRITE_AK47;
+        break;
+    case SPECIAL_EXPLOSIVES:
+        sprite = PANEL_LSPRITE_EXPLOSIVES;
+        break;
+    case SPECIAL_GRENADE:
+        sprite = PANEL_LSPRITE_GRENADE;
+        break;
+    case SPECIAL_KNIFE:
+        sprite = PANEL_LSPRITE_KNIFE;
+        break;
+    case SPECIAL_BASEBALLBAT:
+        sprite = PANEL_LSPRITE_BBB;
+        break;
+    default:
+        sprite = PANEL_LSPRITE_FIST;
+        break;
+    }
+
+    ASSERT(WITHIN(sprite, 0, PANEL_LSPRITE_NUMBER - 1));
+
+    PANEL_Lsprite* pls = &PANEL_lsprite[sprite];
+
+    float uwidth = (pls->u2 - pls->u1) * 256.0F;
+    float vwidth = (pls->v2 - pls->v1) * 256.0F;
+
+    faded = (rgb & 0xff) >> 1;
+    faded |= (faded << 8) | (faded << 16) | (faded << 24);
+    if (!sel)
+        rgb = faded;
+
+    PANEL_draw_quad(
+        (float)x - uwidth * 0.25F,
+        (float)y - vwidth * 0.25F,
+        (float)x + uwidth * 0.25F,
+        (float)y + vwidth * 0.25F,
+        BodgePageIntoAdd(pls->page),
+        rgb,
+        pls->u1,
+        pls->v1,
+        pls->u2,
+        pls->v2);
+}
+
+// Draws the pop-up weapon inventory panel to the right of the HUD widget.
+// Only shown when the player has the inventory visible (PopupFade != 0)
+// and is not driving. Highlights the currently selected weapon.
+// uc_orig: PANEL_inventory (fallen/DDEngine/Source/panel.cpp)
+void PANEL_inventory(Thing* darci, Thing* player)
+{
+#define PANEL_ADDWEAPON(item)         \
+    {                                 \
+        draw_list[draw_count] = item; \
+        draw_count++;                 \
+    }
+#define ITEM_SEPERATION (150)
+
+    SLONG rgb, rgb2;
+    CBYTE draw_list[10];
+    UBYTE draw_count = 0;
+    Thing* p_special = NULL;
+    SLONG x, c0;
+    UBYTE current_item = 0;
+    SLONG sel;
+
+    UWORD CONTROLS_inv_fade = player->Genus.Player->PopupFade;
+
+    if (!CONTROLS_inv_fade)
+        return;
+    if (darci->Genus.Person->Flags & FLAG_PERSON_DRIVING)
+        return;
+
+    if (EWAY_stop_player_moving()) {
+        return;
+    }
+
+    PANEL_ADDWEAPON(0);
+
+    sel = darci->Genus.Person->SpecialUse;
+
+    if (darci->Genus.Person->SpecialList) {
+        p_special = TO_THING(darci->Genus.Person->SpecialList);
+
+        while (p_special) {
+            ASSERT(p_special->Class == CLASS_SPECIAL);
+            if (SPECIAL_info[p_special->Genus.Special->SpecialType].group == SPECIAL_GROUP_ONEHANDED_WEAPON || SPECIAL_info[p_special->Genus.Special->SpecialType].group == SPECIAL_GROUP_TWOHANDED_WEAPON || p_special->Genus.Special->SpecialType == SPECIAL_EXPLOSIVES || p_special->Genus.Special->SpecialType == SPECIAL_WIRE_CUTTER) {
+                if (THING_NUMBER(p_special) == darci->Genus.Person->SpecialUse) {
+                    current_item = draw_count;
+                    sel = p_special->Genus.Special->SpecialType;
+                }
+                PANEL_ADDWEAPON(p_special->Genus.Special->SpecialType);
+            }
+            if (p_special->Genus.Special->NextSpecial)
+                p_special = TO_THING(p_special->Genus.Special->NextSpecial);
+            else
+                p_special = NULL;
+        }
+    }
+
+    if (darci->Flags & FLAGS_HAS_GUN) {
+        if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+            current_item = draw_count;
+            sel = SPECIAL_GUN;
+        }
+        PANEL_ADDWEAPON(SPECIAL_GUN);
+    }
+
+    current_item = player->Genus.Player->ItemFocus;
+
+    if (current_item == -1)
+        return;
+
+    if (draw_list[current_item] && !sel)
+        sel = draw_list[current_item];
+
+    int iYPos, iYInc;
+    if (m_iPanelYPos > 300) {
+        iYPos = m_iPanelYPos - 150;
+        iYInc = -35;
+    } else {
+        iYPos = m_iPanelYPos + 20;
+        iYInc = 35;
+    }
+
+    rgb = CONTROLS_inv_fade - 1;
+    rgb2 = rgb | (rgb << 8) | (rgb << 24);
+    rgb |= (rgb << 8) | (rgb << 16) | (rgb << 24);
+    for (c0 = 0; c0 < draw_count; c0++) {
+        if (draw_list[c0] != sel) {
+            PANEL_inv_weapon(m_iPanelXPos + 170, iYPos, draw_list[c0], 0, rgb, 0);
+        } else {
+            PANEL_inv_weapon(m_iPanelXPos + 170, iYPos, draw_list[c0], 0, rgb, 1);
+        }
+        iYPos += iYInc;
+    }
+
+#undef PANEL_ADDWEAPON
+#undef ITEM_SEPERATION
 }

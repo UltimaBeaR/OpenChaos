@@ -128,4 +128,79 @@ void PANEL_do_tosses(void);
 // uc_orig: PANEL_new_face (fallen/DDEngine/Source/panel.cpp)
 void PANEL_new_face(struct Thing* who, float x, float y, long size);
 
+// ============================================================
+// Chunk 2 helpers: used by PANEL_last() (chunk 3, still in old/).
+// Made non-static to allow old/ code to reference them.
+// Will be made static once PANEL_last() is migrated (iteration 141).
+// ============================================================
+
+// uc_orig: PANEL_new_text_process (fallen/DDEngine/Source/panel.cpp)
+void PANEL_new_text_process(void);
+
+// uc_orig: PANEL_help_message_do (fallen/DDEngine/Source/panel.cpp)
+void PANEL_help_message_do(void);
+
+// uc_orig: PANEL_new_widescreen (fallen/DDEngine/Source/panel.cpp)
+void PANEL_new_widescreen(void);
+
+// Lsprite type and table (needed by PANEL_last in old/).
+// uc_orig: PANEL_LSPRITE_BACKGROUND (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_BACKGROUND 0
+// uc_orig: PANEL_LSPRITE_AK47 (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_AK47 1
+// uc_orig: PANEL_LSPRITE_SHOTGUN (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_SHOTGUN 2
+// uc_orig: PANEL_LSPRITE_LOW_GEAR (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_LOW_GEAR 3
+// uc_orig: PANEL_LSPRITE_HIGH_GEAR (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_HIGH_GEAR 4
+// uc_orig: PANEL_LSPRITE_GRENADE (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_GRENADE 5
+// uc_orig: PANEL_LSPRITE_ARROW (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_ARROW 6
+// uc_orig: PANEL_LSPRITE_QMARK (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_QMARK 7
+// uc_orig: PANEL_LSPRITE_DOT (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_DOT 8
+// uc_orig: PANEL_LSPRITE_PISTOL (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_PISTOL 9
+// uc_orig: PANEL_LSPRITE_TEXT_BOX (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_TEXT_BOX 10
+// uc_orig: PANEL_LSPRITE_BBB (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_BBB 11
+// uc_orig: PANEL_LSPRITE_FIST (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_FIST 12
+// uc_orig: PANEL_LSPRITE_EXPLOSIVES (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_EXPLOSIVES 13
+// uc_orig: PANEL_LSPRITE_KNIFE (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_KNIFE 14
+// uc_orig: PANEL_LSPRITE_NUMBER (fallen/DDEngine/Source/panel.cpp)
+#define PANEL_LSPRITE_NUMBER 15
+
+// uc_orig: PANEL_Lsprite (fallen/DDEngine/Source/panel.cpp)
+typedef struct
+{
+    long page;
+    float u1;
+    float v1;
+    float u2;
+    float v2;
+} PANEL_Lsprite;
+
+// uc_orig: PANEL_lsprite (fallen/DDEngine/Source/panel.cpp)
+extern PANEL_Lsprite PANEL_lsprite[PANEL_LSPRITE_NUMBER];
+
+// uc_orig: PANEL_last_arrow (fallen/DDEngine/Source/panel.cpp)
+void PANEL_last_arrow(float x, float y, float angle, float size, unsigned long colour, unsigned char is_dot);
+
+// uc_orig: PANEL_last_bubble (fallen/DDEngine/Source/panel.cpp)
+void PANEL_last_bubble(float x1, float y1, float x2, float y2);
+
+// uc_orig: BodgePageIntoAddAlpha (fallen/DDEngine/Source/panel.cpp)
+long BodgePageIntoAddAlpha(long oldpage);
+// uc_orig: BodgePageIntoAdd (fallen/DDEngine/Source/panel.cpp)
+long BodgePageIntoAdd(long oldpage);
+// uc_orig: BodgePageIntoSub (fallen/DDEngine/Source/panel.cpp)
+long BodgePageIntoSub(long oldpage);
+
 #endif // UI_HUD_PANEL_H
