@@ -219,5 +219,32 @@ extern void get_car_enter_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz)
 extern SLONG in_right_place_for_car(Thing* p_person, Thing* p_vehicle, SLONG* door);
 // uc_orig: find_best_action_from_tree (fallen/Source/interfac.cpp)
 extern SLONG find_best_action_from_tree(SLONG action, ULONG input, ULONG* input_used);
+// uc_orig: get_camera_angle (fallen/Source/interfac.cpp)
+extern SLONG get_camera_angle(void);
+// uc_orig: player_stop_move (fallen/Source/interfac.cpp)
+extern void player_stop_move(Thing* p_thing, ULONG input);
+// uc_orig: get_analogue_dxdz (fallen/Source/interfac.cpp)
+extern void get_analogue_dxdz(SLONG in_dx, SLONG in_dz, SLONG* dx, SLONG* dz);
+// uc_orig: player_interface_move (fallen/Source/interfac.cpp)
+extern void player_interface_move(Thing* p_thing, ULONG input);
+// uc_orig: lock_to_compass (fallen/Source/interfac.cpp)
+extern void lock_to_compass(Thing* p_thing);
+// Flag for get_joy_angle: adjust the returned angle relative to the camera yaw.
+// uc_orig: JOY_REL_CAMERA (fallen/Source/interfac.cpp)
+#define JOY_REL_CAMERA (1 << 0)
+// uc_orig: get_joy_angle (fallen/Source/interfac.cpp)
+extern SLONG get_joy_angle(ULONG input, UWORD flags);
+// uc_orig: player_turn_left_right_analogue (fallen/Source/interfac.cpp)
+extern SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input);
+// uc_orig: process_analogue_movement (fallen/Source/interfac.cpp)
+extern void process_analogue_movement(Thing* p_thing, SLONG input);
+// uc_orig: player_turn_left_right (fallen/Source/interfac.cpp)
+extern SLONG player_turn_left_right(Thing* p_thing, SLONG input);
+// uc_orig: player_apply_move (fallen/Source/interfac.cpp)
+extern void player_apply_move(Thing* p_thing, ULONG input);
+// uc_orig: player_apply_move_analgue (fallen/Source/interfac.cpp)
+extern void player_apply_move_analgue(Thing* p_thing, ULONG input);
+// uc_orig: person_enter_fight_mode (fallen/Source/interfac.cpp)
+extern void person_enter_fight_mode(Thing* p_person);
 
 #endif // UI_INTERFAC_H

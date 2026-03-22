@@ -1665,6 +1665,8 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
 extern void set_person_hop_back(Thing* p_person);
 
+#if 0 // MIGRATED to src/new/ui/interfac.cpp (iteration 127) [find_best_action_from_tree..person_enter_fight_mode]
+
 //
 // Given your input button mask, finds the best available option, if any.
 // Currently returns the first it finds
@@ -3178,6 +3180,8 @@ void person_enter_fight_mode(Thing* p_person)
 {
     p_person->Genus.Person->Mode = PERSON_MODE_FIGHT;
 }
+
+#endif // MIGRATED to src/new/ui/interfac.cpp (iteration 127) [find_best_action_from_tree..person_enter_fight_mode]
 
 //
 // This Function interprets the user action, with the characters status

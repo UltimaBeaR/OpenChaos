@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 127 — ui/interfac chunk 2 (find_best_action_from_tree + movement system → new/ui/interfac.cpp) (2026-03-22)
+
+- `interfac.cpp` chunk 2 (lines 1673–3180): `find_best_action_from_tree`, `get_camera_angle`, `player_stop_move`, `get_analogue_dxdz`, `player_interface_move`, `init_user_interface`, `lock_to_compass`, `get_joy_angle`, `player_turn_left_right_analogue`, `process_analogue_movement`, `player_turn_left_right`, `player_apply_move`, `person_enter_fight_mode` → `new/ui/interfac.cpp`.
+- `JOY_REL_CAMERA` — macro used by unmigrated code at line 5717 (outside the migrated block); moved to `interfac.h` to keep it accessible.
+- `eway_globals.h` and `fc_globals.h` added as includes for `EWAY_cam_jumped` and `FC_cam[]`.
+- Compile fix: `JOY_REL_CAMERA` undeclared in old chunk 3+ code — fixed by moving macro to `.h`.
+
+---
+
 ## Итерация 126 — ui/interfac chunk 1 (globals + action tables + car entry + do_an_action → new/ui/interfac.cpp) (2026-03-22)
 
 - `interfac.cpp` chunk 1 (строки 56–1613): globals, action_* таблицы, `action_tree`, `init_joypad_config`, `player_activate_in_hand`, `set_player_shoot`, `set_player_punch`, `should_i_jump`, `should_person_backflip`, `bad_place_for_car`, `get_car_enter_xz`, `in_right_place_for_car`, `person_get_in_specific_car`, `person_get_in_car`, `do_an_action` → `new/ui/interfac.cpp` + `new/ui/interfac_globals.cpp`.

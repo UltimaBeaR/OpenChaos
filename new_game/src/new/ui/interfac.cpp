@@ -23,7 +23,9 @@
 #include "ai/mav.h"
 #include "ai/pcom.h"
 #include "missions/eway.h"
+#include "missions/eway_globals.h"
 #include "ui/camera/fc.h"
+#include "ui/camera/fc_globals.h"
 #include "effects/dirt.h"
 
 // Temporary: functions not yet migrated to new/
@@ -1403,4 +1405,968 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
     }
 
     return (0); // INPUT_MASK_ACTION);
+}
+
+// ============================================================
+// Chunk 2: find_best_action_from_tree, movement system
+// ============================================================
+
+// uc_orig: find_best_action_from_tree (fallen/Source/interfac.cpp)
+// Searches action_tree[action] for the first entry whose Input matches the current input.
+// Logic==0: any bit set triggers; Logic!=0: all bits must be set.
+SLONG find_best_action_from_tree(SLONG action, ULONG input, ULONG* input_used)
+{
+    struct ActionInfo* action_options;
+
+    action_options = action_tree[action];
+
+    if (action_options) {
+        while (action_options->Action) {
+            if (action_options->Input) {
+                if (action_options->Logic == 0) {
+                    if (input & action_options->Input) {
+                        *input_used = action_options->Input;
+                        return (action_options->Action);
+                    }
+                } else {
+                    if ((input & action_options->Input) == action_options->Input) {
+                        *input_used = action_options->Input;
+                        return (action_options->Action);
+                    }
+                }
+            }
+            action_options++;
+        }
+    }
+    return (0);
+}
+
+// uc_orig: get_camera_angle (fallen/Source/interfac.cpp)
+// Returns the current camera yaw angle (0-2047). Uses EWAY cutscene camera if active,
+// otherwise reads FC_cam[0].yaw.
+SLONG get_camera_angle(void)
+{
+    SLONG ca;
+    SLONG cam_x, cam_y, cam_z, cam_yaw, cam_pitch, cam_roll, cam_lens;
+
+    if (EWAY_grab_camera(&cam_x, &cam_y, &cam_z, &cam_yaw, &cam_pitch, &cam_roll, &cam_lens)) {
+        ca = cam_yaw >> 8;
+    } else {
+        ca = FC_cam[0].yaw >> 8;
+    }
+
+    return (ca);
+}
+
+// uc_orig: player_stop_move (fallen/Source/interfac.cpp)
+// Transitions the player from a moving state into the stopping sub-state.
+// Has no effect when already in non-moving states (fighting, grappling, etc.).
+void player_stop_move(Thing* p_thing, ULONG input)
+{
+    if (p_thing->State == STATE_GRAPPLING || p_thing->State == STATE_CANNING || p_thing->State == STATE_FIGHTING) {
+        return;
+    }
+    if (p_thing->SubState == SUB_STATE_RUNNING_SKID_STOP)
+        return;
+
+    if (p_thing->SubState == SUB_STATE_BLOCK)
+        ASSERT(0);
+    if (p_thing->SubState != SUB_STATE_STOPPING && p_thing->SubState != SUB_STATE_STOPPING_DEAD && p_thing->SubState != SUB_STATE_RUN_STOP && p_thing->SubState != SUB_STATE_STOPPING_OT && p_thing->SubState != SUB_STATE_SLIPPING && p_thing->SubState != SUB_STATE_SLIPPING_END && p_thing->SubState != SUB_STATE_RUNNING_VAULT && p_thing->SubState != SUB_STATE_RUNNING_HIT_WALL) {
+
+        if (1) {
+            p_thing->SubState = SUB_STATE_STOPPING;
+
+        }
+
+        else
+
+        {
+            set_anim(p_thing, ANIM_STOP_RUN);
+            p_thing->SubState = SUB_STATE_RUN_STOP;
+        }
+    }
+}
+
+// uc_orig: get_analogue_dxdz (fallen/Source/interfac.cpp)
+// Converts raw analog stick (dx, dz) from stick-relative to world-relative coordinates,
+// accounting for camera angle. Output saturated to -128..+127.
+void get_analogue_dxdz(SLONG in_dx, SLONG in_dz, SLONG* dx, SLONG* dz)
+{
+    SLONG angle;
+    SLONG ca;
+
+    SLONG dist;
+
+    dist = Root(in_dx * in_dx + in_dz * in_dz);
+
+    angle = Arctan(-in_dx, in_dz);
+
+    ca = get_camera_angle();
+
+    angle += ca;
+    angle -= 512;
+    angle = (angle + 2048) & 2047;
+
+    in_dx = -COS(angle) >> 8;
+    in_dz = SIN(angle) >> 8;
+
+    in_dx = (in_dx * dist) >> 8;
+    in_dz = (in_dz * dist) >> 8;
+
+    SATURATE(in_dx, -128, 127);
+    SATURATE(in_dz, -128, 127);
+
+    *dx = in_dx;
+    *dz = in_dz;
+}
+
+// uc_orig: player_interface_move (fallen/Source/interfac.cpp)
+// Dispatches to the active movement handler. USER_INTERFACE==0 is the only active path.
+// Filters simultaneous left+right input (clears both bits).
+void player_interface_move(Thing* p_thing, ULONG input)
+{
+    if ((input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT)) == (INPUT_MASK_LEFT | INPUT_MASK_RIGHT))
+        input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT);
+
+    switch (USER_INTERFACE) {
+    case 0:
+        if (!CONTROLS_inventory_mode)
+            player_apply_move(p_thing, input);
+
+        break;
+    case 1:
+        // Old test mode for movement in pressed direction — unused.
+        // player_apply_move_analogue(p_thing, input);
+        break;
+    }
+}
+
+// uc_orig: init_user_interface (fallen/Source/interfac.cpp)
+// Initialises the input system: sets USER_INTERFACE mode and reads scanner config.
+void init_user_interface(void)
+{
+    USER_INTERFACE = 0;
+    PANEL_scanner_poo = ENV_get_value_number("scanner_follows", UC_TRUE, "Game");
+}
+
+// Snapping threshold for lock_to_compass: angles within ±DLOCK of a cardinal direction snap to it.
+// uc_orig: DLOCK (fallen/Source/interfac.cpp)
+#define DLOCK 32
+
+// uc_orig: lock_to_compass (fallen/Source/interfac.cpp)
+// Snaps the thing's facing angle to the nearest 90-degree compass direction
+// if it is within DLOCK units (32) of that direction.
+void lock_to_compass(Thing* p_thing)
+{
+    SLONG angle;
+
+    angle = p_thing->Draw.Tweened->Angle;
+
+    if (angle < DLOCK || angle > 2048 - DLOCK) {
+        angle = 0;
+    } else if (angle > 512 - DLOCK && angle < 512 + DLOCK) {
+        angle = 512;
+    } else if (angle > 1024 - DLOCK && angle < 1024 + DLOCK) {
+        angle = 1024;
+    } else if (angle > 1536 - DLOCK && angle < 1536 + DLOCK) {
+        angle = 1536;
+    }
+    p_thing->Draw.Tweened->Angle = angle;
+}
+
+// Maximum turn speed per frame when rotating (controls animation frame advance rate).
+// uc_orig: TURN_TIMER (fallen/Source/interfac.cpp)
+#define TURN_TIMER 512
+
+// uc_orig: get_joy_angle (fallen/Source/interfac.cpp)
+// Returns the world-space angle indicated by the analog stick.
+// If JOY_REL_CAMERA is set in flags, the angle is adjusted by the current camera yaw.
+SLONG get_joy_angle(ULONG input, UWORD flags)
+{
+    SLONG dx = 0, dz = 0;
+    SLONG angle = -1;
+
+    dx = GET_JOYX(input);
+    dz = GET_JOYY(input);
+
+    angle = Arctan(-dx, dz);
+
+    if (flags & JOY_REL_CAMERA) {
+        SLONG ca;
+
+        ca = get_camera_angle();
+
+        angle += ca;
+        angle = (angle + 2048) & 2047;
+    }
+    return (angle);
+}
+
+// uc_orig: player_turn_left_right_analogue (fallen/Source/interfac.cpp)
+// Legacy analog-stick rotation system (used on PSX/DC). On PC, player_turn_left_right() is used instead.
+// Reads GET_JOYX/GET_JOYY from input, computes angle via Arctan(-dx, dz) relative to camera.
+// Applies visual Roll lean proportional to velocity * stick X deflection.
+// Suppresses turning for 8 frames after an EWAY camera jump (cutscene transition).
+SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
+{
+    static UBYTE reduce_turn = 0;
+
+    if (EWAY_cam_jumped > 0) {
+        EWAY_cam_jumped -= 1;
+    }
+
+    if (EWAY_cam_jumped) {
+        reduce_turn = 8;
+    }
+    if (reduce_turn) {
+        --reduce_turn;
+    }
+
+    if (p_thing->State == STATE_SEARCH) {
+    } else if (p_thing->Genus.Person->Action == ACTION_SIDE_STEP) {
+        return 1;
+    } else if (p_thing->SubState == SUB_STATE_RUNNING_HIT_WALL) {
+    } else if (p_thing->SubState == SUB_STATE_SIDLE) {
+        if (input & INPUT_MASK_LEFT) {
+            set_person_step_right(p_thing);
+            return 1;
+        } else if (input & INPUT_MASK_RIGHT) {
+            set_person_step_left(p_thing);
+            return 1;
+        }
+
+    } else {
+        SLONG dx = 0, dz = 0;
+        SLONG angle = -1;
+        SLONG velocity;
+
+        dx = GET_JOYX(input);
+        dz = GET_JOYY(input);
+
+        velocity = QDIST2(abs(dx), abs(dz));
+
+        if (velocity > ANALOGUE_MIN_VELOCITY)
+            angle = Arctan(-dx, dz);
+
+        if (p_thing->Velocity > 10 && p_thing->SubState == SUB_STATE_RUNNING) {
+            p_thing->Draw.Tweened->Roll = ((((p_thing->Velocity - 9) * dx)) >> 5);
+            p_thing->Draw.Tweened->DRoll = 0;
+        }
+
+        if (angle >= 0) {
+            SLONG ca;
+            SLONG max_angle = 128;
+            SLONG dangle;
+
+            ca = get_camera_angle();
+
+            if (player_relative) {
+                ca = p_thing->Draw.Tweened->Angle;
+            }
+
+            angle += ca;
+            if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
+                angle += 1024;
+            }
+            angle = (angle + 2048) & 2047;
+
+            if (p_thing->State == STATE_JUMPING || p_thing->SubState == SUB_STATE_RUNNING_SKID_STOP)
+                max_angle = 16;
+            if (p_thing->SubState == SUB_STATE_CRAWLING)
+                max_angle = 64;
+
+            if (player_relative) {
+                max_angle >>= 1;
+            }
+
+            if (!player_relative) {
+                if (p_thing->State == STATE_IDLE || (p_thing->SubState == SUB_STATE_AIM_GUN))
+                    max_angle = 1024;
+            }
+
+            if (reduce_turn) {
+                max_angle -= (reduce_turn << 5);
+                if (max_angle <= 0)
+                    return (0);
+            }
+
+            {
+                dangle = -p_thing->Draw.Tweened->Angle + angle;
+                dangle &= 2047;
+                if (dangle >= 1024)
+                    dangle = -(2048 - dangle);
+
+                if (p_thing->Velocity > 8) {
+
+                    dangle /= (p_thing->Velocity) >> 3;
+                }
+
+                if (player_relative) {
+                    if (p_thing->State == STATE_IDLE) {
+                        if (abs(dangle) > 1024 - 400) {
+                            set_person_walk_backwards(p_thing);
+                            return (0);
+                        }
+
+                    } else if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
+                        if (abs(dangle) > 600) {
+                            set_person_running(p_thing);
+                            return (0);
+                        }
+                    }
+                }
+
+                if (dangle < -max_angle)
+                    dangle = -max_angle;
+                else if (dangle > max_angle)
+                    dangle = max_angle;
+
+                p_thing->Draw.Tweened->Angle += dangle;
+
+                p_thing->Draw.Tweened->Angle &= 2047;
+            }
+        }
+    }
+    return (0);
+}
+
+// uc_orig: process_analogue_movement (fallen/Source/interfac.cpp)
+// Analog-stick movement handler: moves the character in the camera-relative direction
+// indicated by the stick. Handles all movement states (idle, running, climbing, dangling...).
+void process_analogue_movement(Thing* p_thing, SLONG input)
+{
+    SLONG dx, dz, velocity;
+    SLONG angle = -1;
+    SLONG rel_x, rel_y;
+    SLONG ca;
+
+    dx = GET_JOYX(input);
+    dz = GET_JOYY(input);
+
+    velocity = QDIST2(abs(dx), abs(dz));
+
+    angle = Arctan(-dx, dz);
+    ca = get_camera_angle();
+
+    angle += ca;
+    angle = (angle + 2048) & 2047;
+
+    rel_x = COS(angle);
+    rel_y = -SIN(angle);
+
+    SLONG dangle = (ca & 2047) - (p_thing->Draw.Tweened->Angle & 20247);
+
+    dangle &= 2047;
+
+    if (dangle > 1024) {
+        dangle -= 2048;
+    }
+    if (dangle < -1024) {
+        dangle += 2048;
+    }
+
+    SLONG facing_camera;
+
+    if (abs(dangle) > 512) {
+        facing_camera = UC_TRUE;
+    } else {
+        facing_camera = UC_FALSE;
+    }
+
+    if (velocity > ANALOGUE_MIN_VELOCITY) {
+        switch (p_thing->State) {
+        case STATE_CARRY:
+            if (p_thing->SubState != SUB_STATE_STAND_CARRY)
+                return;
+        case STATE_IDLE:
+        case STATE_HUG_WALL:
+            if (p_thing->SubState == SUB_STATE_HUG_WALL_TURN)
+                return;
+
+        case STATE_HIT_RECOIL:
+        case STATE_GUN:
+            switch (p_thing->SubState) {
+            case 0:
+            case SUB_STATE_SIDLE:
+            default:
+                set_person_running(p_thing);
+                break;
+            case SUB_STATE_IDLE_CROUTCHING:
+                set_person_crawling(p_thing);
+                break;
+            case SUB_STATE_IDLE_CROUTCH:
+                if (p_thing->Draw.Tweened->FrameIndex > 3)
+                    return;
+                else
+                    set_person_running(p_thing);
+                break;
+            }
+            break;
+
+            break;
+
+        case STATE_MOVEING:
+            switch (p_thing->SubState) {
+            case SUB_STATE_RUNNING:
+                if (p_thing->Genus.Person->Mode != PERSON_MODE_SPRINT) {
+                    if (p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
+                        p_thing->Velocity = (velocity * 60) >> 8;
+                    } else {
+                        p_thing->Velocity = (velocity * 51) >> 8;
+                    }
+
+                    if ((p_thing->Velocity < 20 || m_bForceWalk) && p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
+                        if (!(p_thing->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING)) {
+                            if (p_thing->Velocity > 20)
+                                p_thing->Velocity = 20;
+
+                            set_person_walking(p_thing);
+                            p_thing->Genus.Person->Mode = PERSON_MODE_WALK;
+                        }
+                    }
+                }
+                break;
+            case SUB_STATE_STOP_CRAWL:
+                p_thing->SubState = SUB_STATE_CRAWLING;
+                break;
+            case SUB_STATE_CRAWLING:
+                break;
+            case SUB_STATE_WALKING:
+                if (p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
+                    p_thing->Velocity = (velocity * 60) >> 8;
+                } else {
+                    p_thing->Velocity = (velocity * 51) >> 8;
+                }
+                if ((p_thing->Velocity > 24 || p_thing->Genus.Person->AnimType == ANIM_TYPE_ROPER) && !m_bForceWalk) {
+                    set_person_running(p_thing);
+                    p_thing->Genus.Person->Mode = PERSON_MODE_RUN;
+                } else {
+                    if (p_thing->Velocity > 24)
+                        p_thing->Velocity = 24;
+                }
+                break;
+            case SUB_STATE_STEP_LEFT:
+            case SUB_STATE_STEP_RIGHT:
+                set_person_running(p_thing);
+                break;
+            }
+            break;
+        case STATE_CLIMB_LADDER:
+            if (dz < -MAX(abs(dx), 8)) {
+                switch (p_thing->SubState) {
+                case SUB_STATE_MOUNT_LADDER:
+                    break;
+                case SUB_STATE_STOPPING:
+                case SUB_STATE_ON_LADDER:
+                    p_thing->SubState = SUB_STATE_CLIMB_UP_LADDER;
+                    break;
+                }
+            }
+            break;
+        case STATE_CLIMBING:
+            if (dz < 0 - MAX(abs(dx), 8)) {
+                switch (p_thing->SubState) {
+                case SUB_STATE_STOPPING:
+                case SUB_STATE_CLIMB_AROUND_WALL:
+
+                    if (facing_camera) {
+                        p_thing->SubState = SUB_STATE_CLIMB_DOWN_WALL;
+                    } else {
+                        p_thing->SubState = SUB_STATE_CLIMB_UP_WALL;
+                    }
+
+                    break;
+                }
+            }
+            break;
+        case STATE_DANGLING:
+            if (dz < -MAX(abs(dx), 8)) {
+                switch (p_thing->SubState) {
+                case SUB_STATE_STOPPING:
+                case SUB_STATE_DANGLING_CABLE_FORWARD:
+                case SUB_STATE_DANGLING_CABLE_BACKWARD:
+                case SUB_STATE_DANGLING_CABLE:
+                    if (p_thing->Flags & FLAG_PERSON_ON_CABLE)
+                        p_thing->SubState = SUB_STATE_DANGLING_CABLE_FORWARD;
+                    else
+                        ASSERT(0);
+                    break;
+                }
+            }
+            break;
+
+        case STATE_CANNING:
+            break;
+        }
+    } else {
+        switch (p_thing->State) {
+
+        case STATE_MOVEING:
+            switch (p_thing->SubState) {
+            case SUB_STATE_CRAWLING:
+                set_person_idle_croutch(p_thing);
+                break;
+            case SUB_STATE_RUNNING:
+            case SUB_STATE_WALKING:
+            case SUB_STATE_SIDLE:
+                player_stop_move(p_thing, input);
+                break;
+            }
+            break;
+        }
+    }
+
+    if (dz > MAX(dx, 8)) {
+        switch (p_thing->State) {
+
+        case STATE_HUG_WALL:
+            if (p_thing->SubState == SUB_STATE_HUG_WALL_TURN)
+                return;
+        case STATE_IDLE:
+        case STATE_GUN:
+            break;
+        case STATE_MOVEING:
+            break;
+        case STATE_CLIMB_LADDER:
+            switch (p_thing->SubState) {
+            case SUB_STATE_MOUNT_LADDER:
+                break;
+            case SUB_STATE_STOPPING:
+            case SUB_STATE_ON_LADDER:
+                p_thing->SubState = SUB_STATE_CLIMB_DOWN_LADDER;
+                break;
+            }
+            break;
+        case STATE_CLIMBING:
+            switch (p_thing->SubState) {
+            case SUB_STATE_STOPPING:
+            case SUB_STATE_CLIMB_AROUND_WALL:
+
+                if (facing_camera) {
+                    p_thing->SubState = SUB_STATE_CLIMB_UP_WALL;
+                } else {
+                    p_thing->SubState = SUB_STATE_CLIMB_DOWN_WALL;
+                }
+                break;
+            }
+        case STATE_DANGLING:
+            switch (p_thing->SubState) {
+            case SUB_STATE_STOPPING:
+            case SUB_STATE_DANGLING_CABLE_FORWARD:
+            case SUB_STATE_DANGLING_CABLE_BACKWARD:
+            case SUB_STATE_DANGLING_CABLE:
+                if (p_thing->Flags & FLAG_PERSON_ON_CABLE)
+                    p_thing->SubState = SUB_STATE_DANGLING_CABLE_FORWARD;
+                else
+                    ASSERT(0);
+                break;
+            }
+            break;
+
+        case STATE_CANNING:
+            break;
+        }
+    }
+}
+
+// Maximum lean (roll) change per frame for the visual tilt during turning.
+// uc_orig: MAX_LEAN_DELTA (fallen/Source/interfac.cpp)
+#define MAX_LEAN_DELTA 50
+
+// uc_orig: player_turn_left_right (fallen/Source/interfac.cpp)
+// Primary (PC) rotation handler. Turns the player based on keyboard or analog input.
+// Keyboard: cumulative turn speed builds up 16 units/frame to a max of ±128.
+// Joystick: turn is proportional to wJoyX * wMaxTurn.
+// Turn speed is capped and reduced while running fast, jumping, or skidding.
+// Also animates lean (Roll) for visual effect when turning at speed.
+SLONG player_turn_left_right(Thing* p_thing, SLONG input)
+{
+    if (p_thing->SubState == SUB_STATE_RUNNING_HIT_WALL) {
+        return (1);
+    }
+
+    if (p_thing->Genus.Person->Action == ACTION_SIDE_STEP) {
+        return 1;
+    }
+
+    if (p_thing->SubState == SUB_STATE_SIDLE) {
+        if (input & INPUT_MASK_LEFT) {
+            set_person_step_right(p_thing);
+        } else if (input & INPUT_MASK_RIGHT) {
+            set_person_step_left(p_thing);
+        }
+        return 1;
+    }
+
+    SWORD wMaxTurn = 94;
+
+    if (p_thing->State == STATE_JUMPING) {
+        wMaxTurn = 12;
+    }
+
+    if (p_thing->State == STATE_SEARCH) {
+        wMaxTurn = 0;
+    }
+
+    if ((p_thing->SubState == SUB_STATE_RUNNING) || (p_thing->SubState == SUB_STATE_RUNNING_SKID_STOP)) {
+        SWORD wRunningMaxTurn = 70 - (p_thing->Velocity);
+        ASSERT(wRunningMaxTurn > 0);
+        if (wMaxTurn > wRunningMaxTurn) {
+            wMaxTurn = wRunningMaxTurn;
+        }
+    }
+    if (p_thing->SubState == SUB_STATE_CRAWLING || p_thing->SubState == SUB_STATE_RUNNING_SKID_STOP) {
+        wMaxTurn >>= 1;
+    }
+
+    SWORD wJoyX = GET_JOYX(input);
+    SWORD wTurn;
+    if ((input & INPUT_MASK_LEFT) || (input & INPUT_MASK_RIGHT)) {
+        // Keyboard detection: if the analog bits (18-31) are all zero while a direction bit is set,
+        // input is from keyboard, so use cumulative turning.
+        if ((input & 0xfffc0000) == 0) {
+            static SWORD wLastTurn = 0;
+            if (input & INPUT_MASK_LEFT) {
+                if (wLastTurn > 0) {
+                    wLastTurn = 0;
+                }
+                wLastTurn -= 16;
+                if (wLastTurn < -128) {
+                    wLastTurn = -128;
+                }
+            } else {
+                ASSERT(input & INPUT_MASK_RIGHT);
+                if (wLastTurn < 0) {
+                    wLastTurn = 0;
+                }
+                wLastTurn += 16;
+                if (wLastTurn > 128) {
+                    wLastTurn = 128;
+                }
+            }
+
+            wTurn = wLastTurn;
+
+            SATURATE(wTurn, -wMaxTurn, +wMaxTurn);
+        } else {
+            wTurn = (wJoyX * wMaxTurn) >> 7;
+        }
+    } else {
+        wTurn = 0;
+    }
+
+    SWORD wFrameTurn = (wTurn * TICK_RATIO) >> TICK_SHIFT;
+
+    p_thing->Draw.Tweened->Angle = (p_thing->Draw.Tweened->Angle - wFrameTurn) & 2047;
+
+    SWORD wDesiredRoll = (wTurn * p_thing->Velocity) >> 2;
+
+    if ((p_thing->SubState == SUB_STATE_WALKING_BACKWARDS)
+        || (p_thing->Velocity <= 12)
+        || (p_thing->State == STATE_JUMPING)) {
+        wDesiredRoll = 0;
+    }
+
+    SWORD wCurrentRoll = p_thing->Draw.Tweened->Roll;
+    if (wCurrentRoll > wDesiredRoll) {
+        wCurrentRoll -= MAX_LEAN_DELTA;
+        if (wCurrentRoll < wDesiredRoll) {
+            wCurrentRoll = wDesiredRoll;
+        }
+    } else {
+        wCurrentRoll += MAX_LEAN_DELTA;
+        if (wCurrentRoll > wDesiredRoll) {
+            wCurrentRoll = wDesiredRoll;
+        }
+    }
+    p_thing->Draw.Tweened->Roll = wCurrentRoll;
+
+    if (p_thing->State == STATE_IDLE && !is_person_crouching(p_thing)) {
+        p_thing->Draw.Tweened->DRoll = -1;
+        if (p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
+            if ((input & INPUT_MASK_LEFT) != 0) {
+                if (p_thing->Draw.Tweened->CurrentAnim != ANIM_ROTATE_L) {
+                    set_anim(p_thing, ANIM_ROTATE_L);
+                    p_thing->Genus.Person->pcom_ai_counter = 0;
+                } else {
+                    ASSERT(wFrameTurn <= 0);
+                    p_thing->Genus.Person->pcom_ai_counter -= wFrameTurn;
+                    if (p_thing->Genus.Person->pcom_ai_counter > TURN_TIMER) {
+                        p_thing->Draw.Tweened->DRoll = 0;
+                    }
+                }
+            } else if ((input & INPUT_MASK_RIGHT) != 0) {
+                if (p_thing->Draw.Tweened->CurrentAnim != ANIM_ROTATE_R) {
+                    set_anim(p_thing, ANIM_ROTATE_R);
+                    p_thing->Genus.Person->pcom_ai_counter = 0;
+                } else {
+                    ASSERT(wFrameTurn >= 0);
+                    p_thing->Genus.Person->pcom_ai_counter += wFrameTurn;
+                    if (p_thing->Genus.Person->pcom_ai_counter > TURN_TIMER) {
+                        p_thing->Draw.Tweened->DRoll = 0;
+                    }
+                }
+            } else {
+                p_thing->Genus.Person->pcom_ai_counter = 0;
+                p_thing->Draw.Tweened->DRoll = 0;
+            }
+        }
+    }
+
+    return 0;
+}
+
+// uc_orig: player_apply_move (fallen/Source/interfac.cpp)
+// Core movement state machine: routes movement input to the correct handler based on
+// the player's current state (idle, running, climbing, dangling, etc.).
+// Dispatches to player_turn_left_right[_analogue] for rotation, then processes
+// MOVE/FORWARDS/BACKWARDS inputs to set SubState transitions.
+void player_apply_move(Thing* p_thing, ULONG input)
+{
+    switch (p_thing->State) {
+    case STATE_CLIMBING:
+        switch (p_thing->SubState) {
+        case SUB_STATE_STOPPING:
+            void locked_anim_change(Thing * p_person, UWORD locked_object, UWORD anim, SLONG dangle = 0);
+            break;
+        }
+        break;
+
+    case STATE_CARRY:
+        if (p_thing->SubState != SUB_STATE_STAND_CARRY)
+            return;
+
+    case STATE_IDLE:
+
+    case STATE_JUMPING:
+    case STATE_MOVEING:
+    case STATE_GUN:
+    case STATE_GRAPPLING:
+
+        if (analogue) {
+            if (player_turn_left_right_analogue(p_thing, input))
+                return;
+        } else {
+            if (player_turn_left_right(p_thing, input))
+                return;
+        }
+
+        break;
+
+        break;
+    }
+
+    switch (p_thing->State) {
+    case STATE_JUMPING:
+        return;
+    }
+
+    if (analogue) {
+        process_analogue_movement(p_thing, input);
+    } else {
+        if (input & INPUT_MASK_MOVE) {
+            switch (p_thing->State) {
+
+            case STATE_HUG_WALL:
+                if (p_thing->SubState == SUB_STATE_HUG_WALL_TURN)
+                    return;
+                p_thing->Velocity = 40;
+                person_normal_move(p_thing);
+
+                if (p_thing->SubState != SUB_STATE_HUG_WALL_TURN)
+                    set_person_running(p_thing);
+                break;
+            case STATE_CARRY:
+                if (p_thing->SubState != SUB_STATE_STAND_CARRY)
+                    return;
+            case STATE_IDLE:
+            case STATE_HIT_RECOIL:
+
+            case STATE_GUN:
+                switch (p_thing->SubState) {
+                case 0:
+                case SUB_STATE_SIDLE:
+                default:
+                    set_person_running(p_thing);
+                    break;
+                case SUB_STATE_IDLE_CROUTCHING:
+                    set_person_crawling(p_thing);
+                    break;
+                case SUB_STATE_IDLE_CROUTCH:
+                    if (p_thing->Draw.Tweened->FrameIndex > 3)
+                        return;
+                    else
+                        set_person_running(p_thing);
+                    break;
+                }
+                break;
+
+                break;
+
+            case STATE_MOVEING:
+                switch (p_thing->SubState) {
+                case SUB_STATE_RUNNING:
+                    break;
+                case SUB_STATE_STOP_CRAWL:
+                    p_thing->SubState = SUB_STATE_CRAWLING;
+                    break;
+                case SUB_STATE_CRAWLING:
+                    break;
+                case SUB_STATE_WALKING_BACKWARDS:
+                    player_stop_move(p_thing, input);
+
+                    break;
+                case SUB_STATE_WALKING:
+                    set_person_running(p_thing);
+                    break;
+                case SUB_STATE_STEP_LEFT:
+                case SUB_STATE_STEP_RIGHT:
+                    set_person_running(p_thing);
+                    break;
+                }
+                break;
+            case STATE_CLIMB_LADDER:
+                switch (p_thing->SubState) {
+                case SUB_STATE_MOUNT_LADDER:
+                    break;
+                case SUB_STATE_STOPPING:
+                case SUB_STATE_ON_LADDER:
+                    p_thing->SubState = SUB_STATE_CLIMB_UP_LADDER;
+                    break;
+                }
+                break;
+            case STATE_CLIMBING:
+                switch (p_thing->SubState) {
+                case SUB_STATE_STOPPING:
+                case SUB_STATE_CLIMB_AROUND_WALL:
+                    p_thing->SubState = SUB_STATE_CLIMB_UP_WALL;
+                    break;
+                }
+                break;
+            case STATE_DANGLING:
+                switch (p_thing->SubState) {
+                case SUB_STATE_STOPPING:
+                case SUB_STATE_DANGLING_CABLE_FORWARD:
+                case SUB_STATE_DANGLING_CABLE_BACKWARD:
+                case SUB_STATE_DANGLING_CABLE:
+                    if (p_thing->Flags & FLAG_PERSON_ON_CABLE)
+                        p_thing->SubState = SUB_STATE_DANGLING_CABLE_FORWARD;
+                    else
+                        ASSERT(0);
+                    break;
+                }
+                break;
+
+            case STATE_GRAPPLING:
+                if (p_thing->SubState == SUB_STATE_GRAPPLING_WINDUP) {
+                    set_person_running(p_thing);
+                }
+
+                break;
+
+            case STATE_CANNING:
+                break;
+            }
+        } else {
+            switch (p_thing->State) {
+
+            case STATE_MOVEING:
+                switch (p_thing->SubState) {
+                case SUB_STATE_CRAWLING:
+                    set_person_idle_croutch(p_thing);
+                    break;
+                case SUB_STATE_WALKING:
+                    if (!(input & INPUT_MASK_FORWARDS))
+                        player_stop_move(p_thing, input);
+                    break;
+
+                case SUB_STATE_RUNNING:
+                    if (input & INPUT_MASK_FORWARDS) {
+                        set_person_walking(p_thing);
+                    } else {
+                        player_stop_move(p_thing, input);
+                    }
+
+                    break;
+
+                case SUB_STATE_SIDLE:
+                    player_stop_move(p_thing, input);
+                    break;
+                }
+                break;
+            }
+        }
+
+        if ((input & INPUT_MASK_FORWARDS) && !(input & INPUT_MASK_MOVE)) {
+            switch (p_thing->State) {
+
+            case STATE_IDLE:
+            case STATE_GUN:
+                set_person_walking(p_thing);
+                break;
+            }
+        }
+
+        if (input & INPUT_MASK_BACKWARDS) {
+            switch (p_thing->State) {
+
+            case STATE_HUG_WALL:
+                if (p_thing->SubState == SUB_STATE_HUG_WALL_TURN)
+                    break;
+            case STATE_IDLE:
+            case STATE_GUN:
+                set_person_walk_backwards(p_thing);
+                break;
+            case STATE_MOVEING:
+                break;
+            case STATE_CLIMB_LADDER:
+                switch (p_thing->SubState) {
+                case SUB_STATE_MOUNT_LADDER:
+                    break;
+                case SUB_STATE_STOPPING:
+                case SUB_STATE_ON_LADDER:
+                    p_thing->SubState = SUB_STATE_CLIMB_DOWN_LADDER;
+                    break;
+                }
+                break;
+            case STATE_CLIMBING:
+                switch (p_thing->SubState) {
+                case SUB_STATE_STOPPING:
+                case SUB_STATE_CLIMB_AROUND_WALL:
+                    p_thing->SubState = SUB_STATE_CLIMB_DOWN_WALL;
+                    break;
+                }
+            case STATE_DANGLING:
+                switch (p_thing->SubState) {
+                case SUB_STATE_STOPPING:
+                case SUB_STATE_DANGLING_CABLE_FORWARD:
+                case SUB_STATE_DANGLING_CABLE_BACKWARD:
+                case SUB_STATE_DANGLING_CABLE:
+                    if (p_thing->Flags & FLAG_PERSON_ON_CABLE)
+                        p_thing->SubState = SUB_STATE_DANGLING_CABLE_FORWARD;
+                    else
+                        ASSERT(0);
+                    break;
+                }
+                break;
+
+            case STATE_GRAPPLING:
+                if (p_thing->SubState == SUB_STATE_GRAPPLING_WINDUP) {
+                    set_person_walk_backwards(p_thing);
+                }
+
+                break;
+
+            case STATE_CANNING:
+                break;
+            }
+        }
+    }
+}
+
+// uc_orig: person_enter_fight_mode (fallen/Source/interfac.cpp)
+// Sets the person to fight mode.
+void person_enter_fight_mode(Thing* p_person)
+{
+    p_person->Genus.Person->Mode = PERSON_MODE_FIGHT;
 }

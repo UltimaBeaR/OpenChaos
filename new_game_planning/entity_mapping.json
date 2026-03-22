@@ -70299,6 +70299,296 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "get_camera_angle",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "get_camera_angle",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_stop_move",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "player_stop_move",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_analogue_dxdz",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "get_analogue_dxdz",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_interface_move",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "player_interface_move",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_user_interface",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "init_user_interface",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "lock_to_compass",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "lock_to_compass",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_joy_angle",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "get_joy_angle",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_turn_left_right_analogue",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "player_turn_left_right_analogue",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "process_analogue_movement",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "process_analogue_movement",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_turn_left_right",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "player_turn_left_right",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_apply_move",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "player_apply_move",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_enter_fight_mode",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "person_enter_fight_mode",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DLOCK",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "DLOCK",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "TURN_TIMER",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "TURN_TIMER",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAX_LEAN_DELTA",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "MAX_LEAN_DELTA",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "JOY_REL_CAMERA",
+      "file": "new/ui/interfac.h",
+      "orig_name": "JOY_REL_CAMERA",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_camera_angle",
+      "file": "new/ui/interfac.h",
+      "orig_name": "get_camera_angle",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_stop_move",
+      "file": "new/ui/interfac.h",
+      "orig_name": "player_stop_move",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_analogue_dxdz",
+      "file": "new/ui/interfac.h",
+      "orig_name": "get_analogue_dxdz",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_interface_move",
+      "file": "new/ui/interfac.h",
+      "orig_name": "player_interface_move",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "lock_to_compass",
+      "file": "new/ui/interfac.h",
+      "orig_name": "lock_to_compass",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_joy_angle",
+      "file": "new/ui/interfac.h",
+      "orig_name": "get_joy_angle",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_turn_left_right_analogue",
+      "file": "new/ui/interfac.h",
+      "orig_name": "player_turn_left_right_analogue",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "process_analogue_movement",
+      "file": "new/ui/interfac.h",
+      "orig_name": "process_analogue_movement",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_turn_left_right",
+      "file": "new/ui/interfac.h",
+      "orig_name": "player_turn_left_right",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_apply_move",
+      "file": "new/ui/interfac.h",
+      "orig_name": "player_apply_move",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_enter_fight_mode",
+      "file": "new/ui/interfac.h",
+      "orig_name": "person_enter_fight_mode",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_user_interface",
+      "file": "new/ui/interfac.h",
+      "orig_name": "init_user_interface",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_apply_move_analgue",
+      "file": "new/ui/interfac.h",
+      "orig_name": "player_apply_move_analgue",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }
