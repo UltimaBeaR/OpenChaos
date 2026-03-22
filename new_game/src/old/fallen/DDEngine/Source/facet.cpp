@@ -1,3 +1,31 @@
+// Includes needed for chunk 2+ (below the #if 0 MIGRATED block).
+#include <MFStdLib.h>
+#include <DDLib.h>
+#include "game.h"
+#include "aeng.h"
+#include "mesh.h"
+#include "math.h"
+#include "poly.h"
+#include "..\headers\supermap.h"
+#include "..\headers\inside2.h"
+#include "night.h"
+#include "..\headers\pap.h"
+#include "math.h"
+#include "ns.h"
+#include "memory.h"
+#include "texture.h"
+#include "polypage.h"
+#include "ware.h"
+#include "fc.h"
+#include "font2d.h"
+#include "smap.h"
+#include "superfacet.h"
+#include "matrix.h"
+#include "sprite.h"
+#include "engine/graphics/geometry/facet.h"
+#include "engine/graphics/geometry/facet_globals.h"
+
+#if 0 // MIGRATED to src/new/engine/graphics/geometry/facet.cpp + facet_globals.cpp (iteration 142) [chunk 1: helpers, texture helpers, cable, stairs, door, barbedwire, MakeFacetPoints, FillFacetPoints]
 // claude-ai: facet.cpp — exterior building wall/roof face renderer (PC/Dreamcast, NOT PSX).
 // claude-ai: "Facet" = one exterior wall segment of a building, stored as a DFacet struct.
 // claude-ai: Each DFacet spans from (x[0],z[0]) to (x[1],z[1]) and is 'Height' blocks tall.
@@ -1544,6 +1572,11 @@ inline void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation,
     }
 }
 
+#endif // MIGRATED to src/new/engine/graphics/geometry/facet.cpp + facet_globals.cpp (iteration 142) [chunk 1]
+
+// AENG_detail_crinkles, AENG_transparent_warehouses, fade_black — defined in aeng.cpp (not yet migrated).
+extern int AENG_detail_crinkles;
+extern UBYTE AENG_transparent_warehouses;
 extern UWORD fade_black;
 
 // claude-ai: FACET_draw_quick — LOD (level-of-detail) renderer for DISTANT buildings.

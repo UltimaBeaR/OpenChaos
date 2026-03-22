@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 142 — facet.cpp chunk 1: texture helpers + fence/cable/door/stairs/MakeFacetPoints (2026-03-23)
+
+- Chunk 1 — строки 1–1554 оригинального facet.cpp (4494 строк). Chunk 2+ остаётся в `old/`.
+- `POLY_set_local_rotation_none` — на PC является no-op; оформлен как макрос, не функция.
+- `get_fence_hole`, `get_fence_hole_next` — определены в `collide.cpp`; forward-declared как extern в `new/facet.cpp` (collide.h их не экспортирует).
+- `AENG_detail_crinkles`, `AENG_transparent_warehouses`, `fade_black`, `AENG_drawing_a_warehouse` — в `aeng.cpp` (old/, не мигрируется — D3D renderer заменяется); forward-declared как extern.
+- `grid_height_at` — inline helper, остался file-private (не нужен снаружи).
+- `apply_cloud` — stub (cloud drawing удалён из этого пути), оставлен 1:1.
+- `MakeFacetPoints`, `FillFacetPoints`, `MakeFacetPointsCommon`, `FillFacetPointsCommon` — были static/inline в оригинале, сделаны public потому что chunk 2+ в `old/facet.cpp` вызывает их напрямую.
+- CHECK B fix: extern-объявления globals были дублированы в `facet.h` и `facet_globals.h`; удалены из `facet.h`, добавлен `#include "facet_globals.h"`.
+
+---
+
 ## Итерация 141 — panel.cpp chunk 3: PANEL_last + PANEL_draw_completion_bar + screensaver (2026-03-23)
 
 - `bScreensaverEnabled`, `iScreenSaverDarkness`, `iScreensaverXPos/Y/Inc`, `iScreensaverAngle/Inc`, `dwPseudorandomSeed` → `panel_globals.cpp/.h`

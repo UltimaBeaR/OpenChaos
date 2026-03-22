@@ -27,20 +27,9 @@
 #define SUPERFACET_MAX_INDICES  (SUPERFACET_max_indices)
 #define SUPERFACET_MAX_FACETS   SUPERFACET_max_facets
 
-// Forward declarations from facet.cpp (not yet migrated).
-// uc_orig: facet_rand (fallen/DDEngine/Source/facet.cpp)
-extern ULONG facet_rand(void);
-// uc_orig: set_facet_seed (fallen/DDEngine/Source/facet.cpp)
-extern void set_facet_seed(SLONG seed);
-// uc_orig: texture_quad (fallen/DDEngine/Source/facet.cpp)
-extern SLONG texture_quad(POLY_Point* quad[4], SLONG texture_style, SLONG pos, SLONG count, SLONG flipx = 0);
-
-// uc_orig: FacetRows (fallen/DDEngine/Source/facet.cpp)
-// Row start indices in POLY_buffer[] for each horizontal row of facet geometry.
-extern SWORD FacetRows[100];
-// uc_orig: FacetDiffY (fallen/DDEngine/Source/facet.cpp)
-// Per-vertex foundation height deltas for foundation=2 walls.
-extern float FacetDiffY[128];
+// facet.cpp entities used by superfacet rendering.
+#include "engine/graphics/geometry/facet.h"
+#include "engine/graphics/geometry/facet_globals.h"
 
 // uc_orig: SUPERFACET_free_end_of_queue (fallen/DDEngine/Source/superfacet.cpp)
 // Frees the oldest facet in the circular queue, releasing its vertex memory range.

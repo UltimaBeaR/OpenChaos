@@ -177,6 +177,8 @@ set(SOURCES_NEW
     src/new/engine/graphics/geometry/cone_globals.cpp
     src/new/engine/graphics/geometry/farfacet.cpp
     src/new/engine/graphics/geometry/farfacet_globals.cpp
+    src/new/engine/graphics/geometry/facet.cpp
+    src/new/engine/graphics/geometry/facet_globals.cpp
     src/new/engine/graphics/pipeline/sky.cpp
     src/new/engine/graphics/pipeline/sky_globals.cpp
     src/new/engine/graphics/geometry/fastprim.cpp

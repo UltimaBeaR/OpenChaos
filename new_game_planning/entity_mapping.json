@@ -76369,6 +76369,326 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_set_local_rotation_none",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "POLY_set_local_rotation_none",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAP_HEIGHT",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "GAP_HEIGHT",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAP_WIDTH_PERC",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "GAP_WIDTH_PERC",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "grid_height_at",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "grid_height_at",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "grid_height_at_world",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "grid_height_at_world",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "apply_cloud",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "apply_cloud",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "facet_rand",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "facet_rand",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "set_facet_seed",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "set_facet_seed",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "texture_quad",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "texture_quad",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "get_texture_page",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "get_texture_page",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "texture_quad2",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "texture_quad2",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "texture_tri2",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "texture_tri2",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "build_fence_poles",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "build_fence_poles",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "cable_draw",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "cable_draw",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_stairs",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "DRAW_stairs",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "draw_insides",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "draw_insides",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_door",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "DRAW_door",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "draw_wall_thickness",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "draw_wall_thickness",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_barbedwire_top",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "FACET_barbedwire_top",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MakeFacetPoints",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "MakeFacetPoints",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FillFacetPoints",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "FillFacetPoints",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MakeFacetPointsCommon",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "MakeFacetPointsCommon",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FillFacetPointsCommon",
+      "file": "new/engine/graphics/geometry/facet.h",
+      "orig_name": "FillFacetPointsCommon",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_direction_matrix",
+      "file": "new/engine/graphics/geometry/facet_globals.h",
+      "orig_name": "FACET_direction_matrix",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "dfacets_drawn_this_gameturn",
+      "file": "new/engine/graphics/geometry/facet_globals.h",
+      "orig_name": "dfacets_drawn_this_gameturn",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "iNumFacets",
+      "file": "new/engine/graphics/geometry/facet_globals.h",
+      "orig_name": "iNumFacets",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "iNumFacetTextures",
+      "file": "new/engine/graphics/geometry/facet_globals.h",
+      "orig_name": "iNumFacetTextures",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "facet_seed",
+      "file": "new/engine/graphics/geometry/facet_globals.h",
+      "orig_name": "facet_seed",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "flip",
+      "file": "new/engine/graphics/geometry/facet_globals.h",
+      "orig_name": "flip",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "door_poly",
+      "file": "new/engine/graphics/geometry/facet_globals.h",
+      "orig_name": "door_poly",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FacetRows",
+      "file": "new/engine/graphics/geometry/facet_globals.h",
+      "orig_name": "FacetRows",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FacetDiffY",
+      "file": "new/engine/graphics/geometry/facet_globals.h",
+      "orig_name": "FacetDiffY",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
