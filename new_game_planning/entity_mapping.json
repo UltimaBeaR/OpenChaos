@@ -68869,6 +68869,216 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "make_cable_taut_along",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "make_cable_taut_along",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "make_cable_flabby",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "make_cable_flabby",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "create_suspended_light",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "create_suspended_light",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_cable",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_cable",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_cable_old",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_cable_old",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_cables",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_cables",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_fence_points_and_faces",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_fence_points_and_faces",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_high_chain_fence",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_high_chain_fence",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_height_fence",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_height_fence",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_thick_wall_polys",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_thick_wall_polys",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_brick_wall",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_brick_wall",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_fence",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_fence",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_whole_fence",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_whole_fence",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "process_external_pieces",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "process_external_pieces",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mark_map_with_ladder",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "mark_map_with_ladder",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "setup_storey_data",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "setup_storey_data",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "find_connect_wall",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "find_connect_wall",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "insert_recessed_wall_vect",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "insert_recessed_wall_vect",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "LIGHT_SIZE",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "LIGHT_SIZE",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CONE_MULT",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "CONE_MULT",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "WALL_WIDTH",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "WALL_WIDTH",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

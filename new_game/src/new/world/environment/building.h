@@ -426,4 +426,73 @@ void build_staircase(SLONG storey);
 // uc_orig: get_wall_start_and_end (fallen/Source/Building.cpp)
 void get_wall_start_and_end(SLONG want_wall, SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2);
 
+// =====================================================================
+// Chunk 6: cable, fence, brick wall, storey setup
+// =====================================================================
+
+// Builds the geometry for a single rope/cable segment as a sagging quad-strip.
+// uc_orig: build_cable (fallen/Source/Building.cpp)
+void build_cable(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SWORD wall, SWORD type, SLONG saggysize);
+
+// Older cable builder using symmetric cosine sag arc.
+// uc_orig: build_cable_old (fallen/Source/Building.cpp)
+void build_cable_old(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SWORD wall, SWORD type);
+
+// Builds all cable segments for a STOREY_TYPE_CABLE storey.
+// uc_orig: build_cables (fallen/Source/Building.cpp)
+SLONG build_cables(SWORD storey, SLONG prev_facet);
+
+// Builds a chain-link fence between two endpoints as a post-and-rail quad-strip.
+// uc_orig: build_fence_points_and_faces (fallen/Source/Building.cpp)
+void build_fence_points_and_faces(SLONG y1, SLONG y2, SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG wall, UBYTE posts);
+
+// Builds a two-panel high chain-link fence (two rows of fence quads).
+// uc_orig: build_high_chain_fence (fallen/Source/Building.cpp)
+void build_high_chain_fence(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height, UBYTE alt_mode);
+
+// Builds a single-panel fence of the given height with per-segment textures.
+// uc_orig: build_height_fence (fallen/Source/Building.cpp)
+void build_height_fence(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height, SLONG alt_mode);
+
+// Builds a thick brick wall section given 4 corner XZ positions.
+// uc_orig: build_thick_wall_polys (fallen/Source/Building.cpp)
+void build_thick_wall_polys(SLONG* x, SLONG* z, SLONG y, SLONG height, SLONG flag, SLONG storey, SLONG wall);
+
+// Builds a multi-segment thick brick wall for a storey with mitered corners.
+// uc_orig: build_brick_wall (fallen/Source/Building.cpp)
+SLONG build_brick_wall(SLONG storey);
+
+// Dispatches to the correct fence builder for one wall segment.
+// uc_orig: build_fence (fallen/Source/Building.cpp)
+void build_fence(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height);
+
+// Builds all fence segments for a storey into one non-sorted facet.
+// uc_orig: build_whole_fence (fallen/Source/Building.cpp)
+SLONG build_whole_fence(SLONG storey);
+
+// Processes all non-normal (cable/fence) storeys for a building as a pre-pass.
+// uc_orig: process_external_pieces (fallen/Source/Building.cpp)
+SLONG process_external_pieces(UWORD building);
+
+// Sets the FLOOR_LADDER map flag at the approach tile for a ladder storey.
+// uc_orig: mark_map_with_ladder (fallen/Source/Building.cpp)
+void mark_map_with_ladder(SLONG storey);
+
+// Pre-pass: clears facet flags and records wall-to-ladder/fire-escape mappings.
+// uc_orig: setup_storey_data (fallen/Source/Building.cpp)
+void setup_storey_data(UWORD building, SWORD* wall_for_ladder);
+
+// Finds the wall in the next normal storey that matches (x1,z1)→(x2,z2).
+// uc_orig: find_connect_wall (fallen/Source/Building.cpp)
+SLONG find_connect_wall(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG* connect_storey, SLONG storey, UBYTE** ret_tex, UWORD* ret_tcount);
+
+// Registers four collision vectors around the recess of a recessed window wall.
+// uc_orig: insert_recessed_wall_vect (fallen/Source/Building.cpp)
+void insert_recessed_wall_vect(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2,
+                                UBYTE storey_type, UBYTE height, SLONG wall);
+
+// Creates a small suspended light fitting geometry at the given position.
+// uc_orig: create_suspended_light (fallen/Source/Building.cpp)
+SLONG create_suspended_light(SLONG x, SLONG y, SLONG z, SLONG flags);
+
 #endif // WORLD_ENVIRONMENT_BUILDING_H

@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 122 — world/environment/building (Building.cpp чанк 6: cable, fence, brick wall, storey setup → new/) (2026-03-22)
+
+- `fallen/Source/Building.cpp` (old chunk 6+) lines 36–1351 → `new/world/environment/building.cpp` (chunk 6): `make_cable_taut_along`, `make_cable_flabby`, `create_suspended_light`, `build_cable`, `build_cable_old`, `build_cables`, `build_fence_points_and_faces`, `build_high_chain_fence`, `build_height_fence`, `build_thick_wall_polys`, `build_brick_wall`, `build_fence`, `build_whole_fence`, `process_external_pieces`, `mark_map_with_ladder`, `setup_storey_data`, `find_connect_wall`, `insert_recessed_wall_vect`.
+- `LIGHT_SIZE`, `CONE_MULT`, `WALL_WIDTH` — файл-локальные `#define`, перенесены в `building.cpp`.
+- Dead code (`find_previous_wall` в `/* */`, `build_link_table` в `/* */`, `StoreyLink` struct) — не мигрировано.
+- `old/Building.cpp` теперь содержит только chunk 7+ (1241 строка): `build_storey_floor`, `build_trench`, `create_building_prim`, `copy_to_game_map`, `clear_map2`, `clear_floor_ladder`, `wibble_floor`, `clip_building_prim`, `calc_win`, `calc_prob`, `fix_furniture`, `count_floor`, `create_city`, `offset_buildings`, `calc_building_normals`, `fn_building_normal`.
+
+---
+
 ## Итерация 121 — world/environment/building (Building.cpp чанк 5: recessed walls, scan_triangle, roof, staircase → new/) (2026-03-22)
 
 - `fallen/Source/Building.cpp` lines ~32–1498 → `new/world/environment/building.cpp` (chunk 5): `append_recessed_wall_prim`, `append_foundation_wall`, `append_wall_prim`, `find_near_prim_point`, `create_recessed_storey_points`, `scan_triangle`, `flag_floor_tiles_for_quad/tri`, `build_roof`, `area_of_quad`, `create_split_quad_into_4/16/48`, `build_roof_quad`, `center_object[_about_xz]`, `build_facet`, `build_building[2]`, `build_prim_object`, `find_next_last_coord`, `build_single_ledge`, `dist_between_vertex_and_vector`, `find_wall_for_fe`, `build_staircase`, `get_wall_start_and_end`.

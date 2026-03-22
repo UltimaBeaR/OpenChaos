@@ -5004,3 +5004,979 @@ void get_wall_start_and_end(SLONG want_wall, SLONG* x1, SLONG* z1, SLONG* x2, SL
     // The wall wasn't found in its own storey — data corruption
     ASSERT(0);
 }
+
+// ============================================================
+// Chunk 6: cable, fence, brick wall, storey setup
+// ============================================================
+
+// uc_orig: make_cable_taut_along (fallen/Source/Building.cpp)
+// Deforms a cable building's point array into a taut triangle shape as if someone
+// is hanging at 'along' (0–256) percent of the straight-line distance.
+// Returns the world-space hanging point in (x_middle, y_middle, z_middle).
+void make_cable_taut_along(SLONG along, SLONG building, SLONG* x_middle, SLONG* y_middle, SLONG* z_middle)
+{
+    SLONG i;
+    SLONG x, y, z;
+    SLONG dx, dy, dz;
+    SLONG h;
+    SLONG V, v1, v2;
+    SLONG L, l1, l2;
+    SLONG x1, y1, z1;
+    SLONG x2, y2, z2;
+    SLONG xm, ym, zm;
+    SLONG middle;
+    SLONG num_points;
+    SLONG pstart, pend;
+    SLONG p1, p2;
+    BuildingFacet* bf;
+
+    bf = &building_facets[building_objects[building].FacetHead];
+
+    if (!(bf->FacetFlags & FACET_FLAG_CABLE))
+        return;
+
+    pstart = bf->StartPoint;
+    pend = bf->EndPoint - 2;
+
+    x1 = prim_points[pstart].X;
+    y1 = prim_points[pstart].Y;
+    z1 = prim_points[pstart].Z;
+
+    x2 = prim_points[pend].X;
+    y2 = prim_points[pend].Y;
+    z2 = prim_points[pend].Z;
+
+    L = 0;
+    for (i = bf->StartPoint; i + 2 < bf->EndPoint; i += 2) {
+        p1 = i;
+        p2 = i + 2;
+        dx = abs(prim_points[p2].X - prim_points[p1].X);
+        dy = abs(prim_points[p2].Y - prim_points[p1].Y);
+        dz = abs(prim_points[p2].Z - prim_points[p1].Z);
+        L += QDIST3(dx, dy, dz);
+    }
+    L -= L >> 2;
+
+    ASSERT(L > 0);
+
+    dx = abs(x2 - x1);
+    dy = abs(y2 - y1);
+    dz = abs(z2 - z1);
+    V = QDIST3(dx, dy, dz);
+    L = V + 50;
+
+    v1 = V * along >> 8;
+    v2 = V - v1;
+    l1 = (L * L + v1 * v1 - v2 * v2) / (2 * L);
+    h = Root(l1 * l1 - v1 * v1);
+
+    num_points = bf->EndPoint - bf->StartPoint >> 1;
+    ASSERT(num_points >= 3);
+
+    xm = x1 + ((x2 - x1) * along >> 8);
+    ym = y1 + ((y2 - y1) * along >> 8);
+    zm = z1 + ((z2 - z1) * along >> 8);
+    ym -= h;
+
+    middle = num_points * along >> 8;
+    if (middle == 0)
+        middle = 1;
+    if (middle == num_points - 1)
+        middle -= 1;
+
+    dx = (xm - x1) / middle;
+    dy = (ym - y1) / middle;
+    dz = (zm - z1) / middle;
+
+    x = x1;
+    y = y1;
+    z = z1;
+
+    for (i = 0; i < num_points; i++) {
+        if (i == middle) {
+            dx = (x2 - xm) / (num_points - middle - 1);
+            dy = (y2 - ym) / (num_points - middle - 1);
+            dz = (z2 - zm) / (num_points - middle - 1);
+            x = xm;
+            y = ym;
+            z = zm;
+        }
+        AENG_dx_prim_points[bf->StartPoint + (i * 2) + 0].X = x;
+        AENG_dx_prim_points[bf->StartPoint + (i * 2) + 0].Y = y;
+        AENG_dx_prim_points[bf->StartPoint + (i * 2) + 0].Z = z;
+        AENG_dx_prim_points[bf->StartPoint + (i * 2) + 1].X = x;
+        AENG_dx_prim_points[bf->StartPoint + (i * 2) + 1].Y = y + 8;
+        AENG_dx_prim_points[bf->StartPoint + (i * 2) + 1].Z = z;
+        x += dx;
+        y += dy;
+        z += dz;
+    }
+
+    *x_middle = xm;
+    *y_middle = ym;
+    *z_middle = zm;
+}
+
+// uc_orig: make_cable_flabby (fallen/Source/Building.cpp)
+// Restores a cable building's float point buffer (AENG_dx_prim_points) from the
+// integer ground-truth (prim_points), undoing any taut deformation.
+void make_cable_flabby(SLONG building)
+{
+    SLONG i;
+    BuildingFacet* bf = &building_facets[building_objects[building].FacetHead];
+
+    for (i = bf->StartPoint; i < bf->EndPoint; i++) {
+        AENG_dx_prim_points[i].X = float(prim_points[i].X);
+        AENG_dx_prim_points[i].Y = float(prim_points[i].Y);
+        AENG_dx_prim_points[i].Z = float(prim_points[i].Z);
+    }
+}
+
+// File-local macros for create_suspended_light.
+// uc_orig: LIGHT_SIZE (fallen/Source/Building.cpp)
+#define LIGHT_SIZE BLOCK_SIZE
+// uc_orig: CONE_MULT (fallen/Source/Building.cpp)
+#define CONE_MULT 5
+
+// uc_orig: create_suspended_light (fallen/Source/Building.cpp)
+// Builds a tiny pyramidal prim object for a hanging light fitting.
+// The larger cone geometry is commented out in the original (unfinished feature).
+SLONG create_suspended_light(SLONG x, SLONG y, SLONG z, SLONG flags)
+{
+    SLONG p1;
+    struct PrimFace3* p_f3;
+
+    flags = flags;
+    p1 = next_prim_point;
+    add_point(x, y, z);
+    add_point(x - LIGHT_SIZE, y - LIGHT_SIZE, z - LIGHT_SIZE);
+    add_point(x + LIGHT_SIZE, y - LIGHT_SIZE, z - LIGHT_SIZE);
+    add_point(x + LIGHT_SIZE, y - LIGHT_SIZE, z + LIGHT_SIZE);
+    add_point(x - LIGHT_SIZE, y - LIGHT_SIZE, z + LIGHT_SIZE);
+
+    p_f3 = create_a_tri(p1 + 2, p1 + 1, p1 + 0, 0, 0);
+    p_f3->DrawFlags = 0;
+    p_f3 = create_a_tri(p1 + 3, p1 + 2, p1 + 0, 0, 0);
+    p_f3->DrawFlags = 0;
+    p_f3 = create_a_tri(p1 + 4, p1 + 3, p1 + 0, 0, 0);
+    p_f3->DrawFlags = 0;
+    p_f3 = create_a_tri(p1 + 1, p1 + 4, p1 + 0, 0, 0);
+    p_f3->DrawFlags = 0;
+
+    return (0);
+}
+
+// uc_orig: build_cable (fallen/Source/Building.cpp)
+// Builds a sagging cable between two world points as a quad-strip in the prim buffer.
+// 'saggysize' controls the depth of the sag arc; 'wall' is recorded on each face.
+void build_cable(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SWORD wall, SWORD type, SLONG saggysize)
+{
+    SLONG p1;
+    UWORD start_point;
+    UWORD start_face3, start_face4;
+    struct PrimFace4* p_f4;
+    SLONG prim;
+    SLONG len, dx, dy, dz, count;
+    SLONG px, py, pz;
+    SLONG c0;
+    SLONG light_x, light_y, light_z;
+    SLONG step_angle1, step_angle2, angle;
+
+    wall = wall;
+    type = type;
+    start_point = next_prim_point;
+    start_face3 = next_prim_face3;
+    start_face4 = next_prim_face4;
+
+    dx = abs(x2 - x1);
+    dy = abs(y2 - y1);
+    dz = abs(z2 - z1);
+    len = QDIST3(dx, dy, dz);
+    count = (len << 1) / ELE_SIZE;
+    dx = (x2 - x1);
+    dy = (y2 - y1);
+    dz = (z2 - z1);
+
+    px = x1;
+    py = y1;
+    pz = z1;
+    add_point(px, py, pz);
+    add_point(px, py + 8, pz);
+
+    if (dy == 0) {
+        step_angle1 = 1024 / count;
+        step_angle2 = -step_angle1;
+    } else {
+        SLONG c1, c2;
+        SLONG m;
+        SLONG d1, d2;
+        if (len == 0)
+            len = 1;
+        m = (abs(dy) * 190) / len;
+        c1 = 128;
+        c2 = 128;
+        if (dy < 0) {
+            c1 = c1 + m;
+            c2 = c2 - m;
+        } else {
+            c1 = c1 - m;
+            c2 = c2 + m;
+        }
+        if (c1 < 0) c1 = 0;
+        if (c1 > 256) c1 = 256;
+        if (c2 < 0) c2 = 0;
+        if (c2 > 256) c2 = 256;
+        d1 = ((count * c1) >> 8);
+        d2 = ((count * c2) >> 8);
+        if (d1 == 0) d1 = 1;
+        if (d2 == 0) d2 = 1;
+        step_angle1 = 512 / d1;
+        step_angle2 = -512 / d2;
+    }
+    angle = -512;
+    for (c0 = 1; c0 <= count; c0++) {
+        SLONG ex, ey, ez;
+        angle += step_angle1;
+        if (angle >= -30) {
+            step_angle1 = step_angle2;
+        }
+        ex = x1 + (c0 * dx) / count;
+        ey = y1 + (c0 * dy) / count;
+        ey -= (COS((angle + 2048) & 2047) * saggysize) >> 16;
+        ez = z1 + (c0 * dz) / count;
+        if (c0 == (count >> 1)) {
+            light_x = ex;
+            light_y = ey;
+            light_z = ez;
+        }
+        p1 = next_prim_point;
+        add_point(ex, ey, ez);
+        add_point(ex, ey + 8, ez);
+        p_f4 = create_a_quad(p1 - 1, p1 + 1, p1 - 2, p1, 0, 0);
+        p_f4->DrawFlags = POLY_FLAG_DOUBLESIDED;
+        p_f4->Type = FACE_TYPE_CABLE;
+        p_f4->ThingIndex = -wall;
+        add_quad_to_walkable_list(next_prim_face4 - 1);
+        p_f4->FaceFlags &= ~FACE_FLAG_WALKABLE;
+        px = ex;
+        py = ey;
+        pz = ez;
+    }
+}
+
+// uc_orig: build_cable_old (fallen/Source/Building.cpp)
+// Older cable builder using a symmetric cosine sag (simpler than build_cable).
+// No saggysize parameter; sag depth is hardcoded from cos curve.
+void build_cable_old(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SWORD wall, SWORD type)
+{
+    SLONG p1;
+    UWORD start_point;
+    UWORD start_face3, start_face4;
+    struct PrimFace4* p_f4;
+    SLONG prim;
+    SLONG len, dx, dy, dz, count;
+    SLONG px, py, pz;
+    SLONG c0;
+    SLONG light_x, light_y, light_z;
+
+    wall = wall;
+    type = type;
+    start_point = next_prim_point;
+    start_face3 = next_prim_face3;
+    start_face4 = next_prim_face4;
+
+    dx = abs(x2 - x1);
+    dy = abs(y2 - y1);
+    dz = abs(z2 - z1);
+    len = QDIST3(dx, dy, dz);
+    count = (len << 1) / ELE_SIZE;
+    dx = (x2 - x1);
+    dy = (y2 - y1);
+    dz = (z2 - z1);
+
+    px = x1;
+    py = y1;
+    pz = z1;
+    add_point(px, py, pz);
+    add_point(px, py + 8, pz);
+
+    for (c0 = 1; c0 <= count; c0++) {
+        SLONG ex, ey, ez;
+        SLONG angle;
+        ex = x1 + (c0 * dx) / count;
+        ey = y1 + (c0 * dy) / count;
+        angle = ((c0 - (count >> 1)) * 1024) / count;
+        angle = (angle + 2048) & 2047;
+        ey -= COS(angle) >> 9;
+        ez = z1 + (c0 * dz) / count;
+        if (c0 == (count >> 1)) {
+            light_x = ex;
+            light_y = ey;
+            light_z = ez;
+        }
+        p1 = next_prim_point;
+        add_point(ex, ey, ez);
+        add_point(ex, ey + 8, ez);
+        p_f4 = create_a_quad(p1 - 1, p1 + 1, p1 - 2, p1, 0, 0);
+        p_f4->DrawFlags = POLY_FLAG_DOUBLESIDED;
+        p_f4->Type = FACE_TYPE_CABLE;
+        p_f4->ThingIndex = -wall;
+        add_quad_to_walkable_list(next_prim_face4 - 1);
+        px = ex;
+        py = ey;
+        pz = ez;
+    }
+}
+
+// uc_orig: build_cables (fallen/Source/Building.cpp)
+// Iterates the wall list of a STOREY_TYPE_CABLE storey to build all cable segments.
+// Creates one BuildingObject per segment and registers a sky-height collision vector.
+SLONG build_cables(SWORD storey, SLONG prev_facet)
+{
+    SLONG wall;
+    SLONG x1, y1, z1, x2, y2, z2;
+    SLONG start_point, start_face3, start_face4;
+    SLONG prim;
+    SLONG building;
+
+    wall = storey_list[storey].WallHead;
+    x1 = storey_list[storey].DX;
+    y1 = storey_list[storey].DY;
+    z1 = storey_list[storey].DZ;
+    y1 += PAP_calc_height_at(x1, z1);
+
+    while (wall) {
+        x2 = wall_list[wall].DX;
+        y2 = wall_list[wall].DY;
+        z2 = wall_list[wall].DZ;
+        y2 += PAP_calc_height_at(x2, z2);
+
+        start_point = next_prim_point;
+        start_face3 = next_prim_face3;
+        start_face4 = next_prim_face4;
+
+        build_cable(x1, y1, z1, x2, y2, z2, wall, 0, wall_list[wall].TextureStyle2 * 64);
+        prev_facet = build_facet(start_point, next_prim_point, start_face3, start_face4, next_prim_face4, 0, FACET_FLAG_CABLE, 0);
+        prim = build_building2(start_point, start_face3, start_face4, prev_facet, storey_list[storey].DX, storey_list[storey].DZ);
+        building = storey_list[storey].BuildingHead;
+
+        storey_list[storey].Info1 = prim;
+        THING_INDEX new_thing = place_building_at(building, prim, build_x, 0, build_z);
+        insert_collision_vect(x1, y1 + 5000, z1, x2, y2 + 5000, z2, STOREY_TYPE_CABLE, 1, new_thing);
+
+        if (new_thing) {
+            TO_THING(new_thing)->Flags |= FLAGS_CABLE_BUILDING;
+        }
+
+        wall = wall_list[wall].Next;
+        x1 = x2;
+        y1 = y2;
+        z1 = z2;
+    }
+    return (0);
+}
+
+// uc_orig: build_fence_points_and_faces (fallen/Source/Building.cpp)
+// Builds a chain-link fence quad-strip between two endpoints.
+// 'posts' controls whether post geometry is included (unused — always 1 in callers).
+void build_fence_points_and_faces(SLONG y1, SLONG y2, SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG wall, UBYTE posts)
+{
+    SLONG wcount, wwidth, dx, dz, dist;
+    SLONG start_point;
+    SLONG texture, texture_style;
+    struct PrimFace4* p_f4;
+    SLONG px, pz;
+    SLONG ya, yb;
+
+    ya = PAP_calc_height_at(x1, z1);
+    yb = PAP_calc_height_at(x2, z2);
+
+    insert_collision_vect(x1, ya, z1, x2, yb, z2, STOREY_TYPE_FENCE, 4, -wall);
+    insert_collision_vect(x2, yb, z2, x1, ya, z1, STOREY_TYPE_FENCE, 4, -wall);
+
+    texture_style = wall_list[wall].TextureStyle;
+    texture = TEXTURE_PIECE_MIDDLE;
+    start_point = next_prim_point;
+
+    dx = abs(x2 - x1);
+    dz = abs(z2 - z1);
+    dist = Root(SDIST2(dx, dz));
+    if (dist == 0)
+        return;
+
+    wcount = (dist / (BLOCK_SIZE * 4));
+    if (wcount == 0)
+        wcount = 1;
+    wwidth = dist / (wcount);
+
+    dx = (x2 - x1);
+    dz = (z2 - z1);
+    dx = (dx << 10) / dist;
+    dz = (dz << 10) / dist;
+    px = ((dz * (10)) >> 10);
+    pz = -((dx * (10)) >> 10);
+
+    while (wcount) {
+        SLONG p, p1, p2;
+        SLONG floor_1, floor_2;
+        p = next_prim_point;
+        floor_1 = PAP_calc_height_at(x1, z1);
+        add_point(x1, y2 + floor_1, z1);
+        add_point(x1, y1 + floor_1, z1);
+        add_point(x1 + px * 5, y2 + 45 + floor_1, z1 + pz * 5);
+        add_point(x1 + px * 1, y2 + 10 + floor_1, z1 + pz * 1);
+        x1 = x1 + ((dx * (wwidth - 20)) >> 10);
+        z1 = z1 + ((dz * (wwidth - 20)) >> 10);
+        floor_2 = PAP_calc_height_at(x1, z1);
+        p1 = next_prim_point;
+        add_point(x1, y2 + floor_2, z1);
+        add_point(x1, y1 + floor_2, z1);
+        add_point(x1 + px * 4, y2 + 45 + floor_2, z1 + pz * 4);
+        add_point(x1 + px * 1, y2 + 10 + floor_2, z1 + pz * 1);
+        p_f4 = create_a_quad(p, p1 + 0, p + 1, p1 + 1, texture_style, texture);
+        p_f4->ThingIndex = -wall;
+        p_f4->DrawFlags |= (POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED);
+        p_f4 = create_a_quad(p + 2, p1 + 2, p + 3, p1 + 3, texture_style, texture);
+        p_f4->ThingIndex = -wall;
+        p_f4->DrawFlags |= (POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED);
+
+        p = next_prim_point;
+        add_point(x1 + px, y2 + floor_2, z1 + pz);
+        add_point(x1 + px, y1 + floor_2, z1 + pz);
+        add_point(x1 - px, y2 + floor_2, z1 - pz);
+        add_point(x1 - px, y1 + floor_2, z1 - pz);
+        add_point(x1 + px * 6, y2 + 50 + floor_2, z1 + pz * 6);
+        add_point(x1 + px * 4, y2 + 50 + floor_2, z1 + pz * 4);
+
+        x1 = x1 + ((dx * (20)) >> 10);
+        z1 = z1 + ((dz * (20)) >> 10);
+
+        p1 = next_prim_point;
+        add_point(x1 + px, y2 + floor_2, z1 + pz);
+        add_point(x1 + px, y1 + floor_2, z1 + pz);
+        add_point(x1 - px, y2 + floor_2, z1 - pz);
+        add_point(x1 - px, y1 + floor_2, z1 - pz);
+        add_point(x1 + px * 6, y2 + 50 + floor_2, z1 + pz * 6);
+        add_point(x1 + px * 4, y2 + 50 + floor_2, z1 + pz * 4);
+
+        p_f4 = create_a_quad(p, p1, p + 1, p1 + 1, texture_style, TEXTURE_PIECE_LEFT);
+        p_f4->ThingIndex = -wall;
+        p_f4 = create_a_quad(p1 + 2, p + 2, p1 + 3, p + 3, texture_style, TEXTURE_PIECE_LEFT);
+        p_f4->ThingIndex = -wall;
+        p_f4 = create_a_quad(p + 2, p + 0, p + 3, p + 1, texture_style, TEXTURE_PIECE_LEFT);
+        p_f4->ThingIndex = -wall;
+        p_f4 = create_a_quad(p1, p1 + 2, p1 + 1, p1 + 3, texture_style, TEXTURE_PIECE_LEFT);
+        p_f4->ThingIndex = -wall;
+        p_f4 = create_a_quad(p + 4, p1 + 4, p, p1, texture_style, TEXTURE_PIECE_LEFT);
+        p_f4->ThingIndex = -wall;
+        p_f4 = create_a_quad(p1 + 5, p + 5, p1 + 2, p + 2, texture_style, TEXTURE_PIECE_LEFT);
+        p_f4->ThingIndex = -wall;
+        p_f4 = create_a_quad(p1 + 4, p1 + 5, p1, p1 + 2, texture_style, TEXTURE_PIECE_LEFT);
+        p_f4->ThingIndex = -wall;
+        p_f4 = create_a_quad(p + 5, p + 4, p + 2, p, texture_style, TEXTURE_PIECE_LEFT);
+        p_f4->ThingIndex = -wall;
+        p_f4 = create_a_quad(p + 4, p + 5, p1 + 4, p1 + 5, texture_style, TEXTURE_PIECE_LEFT);
+        p_f4->ThingIndex = -wall;
+
+        wcount--;
+    }
+}
+
+// uc_orig: build_high_chain_fence (fallen/Source/Building.cpp)
+// Builds a two-panel high chain-link fence (two rows of fence quads) with collision vectors.
+void build_high_chain_fence(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height, UBYTE alt_mode)
+{
+    SLONG c0;
+    SLONG sp[10];
+    SLONG texture, texture_style;
+    struct PrimFace4* p_f4;
+
+    texture_style = wall_list[wall].TextureStyle;
+    if (texture_style == 0)
+        texture_style = 1;
+
+    if (alt_mode == 1) {
+        sp[0] = build_row_wall_only_points_at_floor_alt(height * 2, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+        sp[1] = build_row_wall_only_points_at_floor_alt(height, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+        sp[2] = build_row_wall_only_points_at_floor_alt(0, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+    } else {
+        sp[0] = build_row_wall_only_points_at_y(y + height * 2, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+        sp[1] = build_row_wall_only_points_at_y(y + height, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+        sp[2] = build_row_wall_only_points_at_y(y, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+    }
+
+    for (c0 = 0; c0 < WindowCount; c0++) {
+        texture = TEXTURE_PIECE_MIDDLE;
+        if (c0 == 0) {
+            texture = TEXTURE_PIECE_RIGHT;
+        } else if (c0 == WindowCount - 1) {
+            texture = TEXTURE_PIECE_LEFT;
+        } else {
+            texture = TEXTURE_PIECE_MIDDLE;
+        }
+        p_f4 = create_a_quad(sp[0] + c0, sp[0] + c0 + 1, sp[1] + c0, sp[1] + c0 + 1, texture_style, texture);
+        p_f4->ThingIndex = -wall;
+        p_f4->DrawFlags |= (POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED);
+        p_f4->Type = FACE_TYPE_FENCE;
+        p_f4 = create_a_quad(sp[1] + c0, sp[1] + c0 + 1, sp[2] + c0, sp[2] + c0 + 1, texture_style, texture);
+        p_f4->ThingIndex = -wall;
+        p_f4->DrawFlags |= (POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED);
+        p_f4->Type = FACE_TYPE_FENCE;
+    }
+    {
+        SLONG ya, yb;
+        ya = PAP_calc_height_at(x, z);
+        yb = PAP_calc_height_at(wall_list[wall].DX, wall_list[wall].DZ);
+        insert_collision_vect(x, ya, z, wall_list[wall].DX, yb, wall_list[wall].DZ, STOREY_TYPE_FENCE_FLAT, 8, -wall);
+        insert_collision_vect(wall_list[wall].DX, yb, wall_list[wall].DZ, x, ya, z, STOREY_TYPE_FENCE_FLAT, 8, -wall);
+    }
+}
+
+// uc_orig: build_height_fence (fallen/Source/Building.cpp)
+// Builds a single-panel height fence with per-segment texture lookup.
+void build_height_fence(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height, SLONG alt_mode)
+{
+    SLONG c0;
+    SLONG sp[10];
+    SLONG texture, texture_style;
+    struct PrimFace4* p_f4;
+    UBYTE* ptexture1;
+    SLONG tcount1;
+    UBYTE* ptexture2;
+    SLONG tcount2;
+    SLONG count;
+
+    texture_style = wall_list[wall].TextureStyle;
+    if (texture_style == 0)
+        texture_style = 1;
+
+    ptexture1 = wall_list[wall].Textures;
+    tcount1 = wall_list[wall].Tcount;
+    ptexture2 = wall_list[wall].Textures2;
+    tcount2 = wall_list[wall].Tcount2;
+
+    if (alt_mode == 1) {
+        sp[0] = build_row_wall_only_points_at_floor_alt(height, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+        sp[1] = build_row_wall_only_points_at_floor_alt(0, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+    } else {
+        sp[0] = build_row_wall_only_points_at_y(y + height, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+        sp[1] = build_row_wall_only_points_at_y(y, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+    }
+
+    count = 0;
+    for (c0 = 0; c0 < WindowCount; c0++) {
+        texture = TEXTURE_PIECE_MIDDLE;
+        if (c0 == 0) {
+            texture = TEXTURE_PIECE_RIGHT;
+        } else if (c0 == WindowCount - 1) {
+            texture = TEXTURE_PIECE_LEFT;
+        } else {
+            texture = TEXTURE_PIECE_MIDDLE;
+        }
+        if (ptexture1 && (count < tcount1) && ptexture1[count]) {
+            p_f4 = create_a_quad_tex(sp[0] + c0, sp[0] + c0 + 1, sp[1] + c0, sp[1] + c0 + 1, ptexture1[count]);
+        } else {
+            p_f4 = create_a_quad(sp[0] + c0, sp[0] + c0 + 1, sp[1] + c0, sp[1] + c0 + 1, texture_style, texture);
+        }
+        p_f4->ThingIndex = -wall;
+        p_f4->DrawFlags |= (POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED);
+        p_f4->Type = FACE_TYPE_FENCE;
+        count++;
+    }
+    {
+        SLONG ya, yb;
+        ya = PAP_calc_height_at(x, z);
+        yb = PAP_calc_height_at(wall_list[wall].DX, wall_list[wall].DZ);
+        insert_collision_vect(x, ya, z, wall_list[wall].DX, yb, wall_list[wall].DZ, STOREY_TYPE_FENCE_FLAT, height / 64, -wall);
+        insert_collision_vect(wall_list[wall].DX, yb, wall_list[wall].DZ, x, ya, z, STOREY_TYPE_FENCE_FLAT, height / 64, -wall);
+    }
+}
+
+// File-local macro for thick brick wall width.
+// uc_orig: WALL_WIDTH (fallen/Source/Building.cpp)
+#define WALL_WIDTH (60)
+
+// uc_orig: build_thick_wall_polys (fallen/Source/Building.cpp)
+// Builds a thick wall section (3 quads: two faces + top) given 4 corner XZ positions.
+// 'flag' == 1 adds a closing face on the left end; flag == 2 on the right end.
+void build_thick_wall_polys(SLONG* x, SLONG* z, SLONG y, SLONG height, SLONG flag, SLONG storey, SLONG wall)
+{
+    SLONG sp[8];
+    SLONG c0;
+    struct PrimFace4* p_f4;
+    SLONG texture, texture_style;
+
+    insert_collision_vect(x[1], y, z[1], x[0], y, z[0], STOREY_TYPE_NORMAL, 1, -wall);
+    insert_collision_vect(x[2], y, z[2], x[3], y, z[3], STOREY_TYPE_NORMAL, 1, -wall);
+
+    texture_style = wall_list[wall].TextureStyle;
+    if (texture_style == 0)
+        texture_style = 1;
+
+    sp[0] = build_row_wall_only_points_at_y(y + height, x[0], z[0], x[1], z[1], wall);
+    sp[1] = build_row_wall_only_points_at_y(y, x[0], z[0], x[1], z[1], wall);
+    sp[2] = build_row_wall_only_points_at_y(y + height, x[2], z[2], x[3], z[3], wall);
+    sp[3] = build_row_wall_only_points_at_y(y, x[2], z[2], x[3], z[3], wall);
+    sp[4] = next_prim_point;
+
+    for (c0 = 0; c0 < WindowCount; c0++) {
+        texture = TEXTURE_PIECE_MIDDLE;
+        p_f4 = create_a_quad(sp[0] + c0 + 1, sp[0] + c0, sp[1] + c0 + 1, sp[1] + c0, texture_style, texture);
+        p_f4->ThingIndex = -wall;
+        p_f4 = create_a_quad(sp[2] + c0, sp[2] + c0 + 1, sp[3] + c0, sp[3] + c0 + 1, texture_style, texture);
+        p_f4->ThingIndex = -wall;
+        p_f4 = create_a_quad(sp[0] + c0, sp[0] + c0 + 1, sp[2] + c0, sp[2] + c0 + 1, texture_style, texture);
+        p_f4->ThingIndex = -wall;
+        add_quad_to_walkable_list(next_prim_face4 - 1);
+    }
+    if (flag == 1) {
+        p_f4 = create_a_quad(sp[0], sp[2], sp[1], sp[3], texture_style, texture);
+        p_f4->ThingIndex = -wall;
+        insert_collision_vect(x[0], y, z[0], x[2], y, z[2], STOREY_TYPE_FENCE_BRICK, 4, -wall);
+    }
+    if (flag == 2) {
+        p_f4 = create_a_quad(sp[3] - 1, sp[1] - 1, sp[4] - 1, sp[2] - 1, texture_style, texture);
+        p_f4->ThingIndex = -wall;
+        insert_collision_vect(x[1], y, z[1], x[3], y, z[3], STOREY_TYPE_FENCE_BRICK, 4, -wall);
+    }
+}
+
+// uc_orig: build_brick_wall (fallen/Source/Building.cpp)
+// Builds a thick brick wall storey by iterating corner-miter segments.
+// Each wall section is built by build_thick_wall_polys with mitered corners.
+SLONG build_brick_wall(SLONG storey)
+{
+    SLONG x[4], z[4];
+    SLONG wall, nwall;
+    SLONG dx, dz, len;
+    SLONG y, height;
+    SLONG start_point, start_face3, start_face4;
+    SLONG prev_facet;
+    SLONG prim;
+    SLONG building;
+
+    start_point = next_prim_point;
+    start_face3 = next_prim_face3;
+    start_face4 = next_prim_face4;
+
+    y = storey_list[storey].DY;
+    height = storey_list[storey].Height;
+
+    x[0] = storey_list[storey].DX;
+    z[0] = storey_list[storey].DZ;
+
+    wall = storey_list[storey].WallHead;
+    nwall = wall_list[wall].Next;
+
+    x[1] = wall_list[wall].DX;
+    z[1] = wall_list[wall].DZ;
+
+    dz = -(x[1] - x[0]);
+    dx = (z[1] - z[0]);
+    len = Root(dx * dx + dz * dz);
+    if (len == 0) len = 1;
+    dx = (dx * WALL_WIDTH) / len;
+    dz = (dz * WALL_WIDTH) / len;
+
+    x[2] = x[0] + dx;
+    z[2] = z[0] + dz;
+    calc_new_corner_point(x[0], z[0], x[1], z[1], wall_list[nwall].DX, wall_list[nwall].DZ, WALL_WIDTH, &x[3], &z[3]);
+
+    build_thick_wall_polys(&x[0], &z[0], y, height, 1, storey, wall);
+    wall = nwall;
+    nwall = wall_list[wall].Next;
+
+    while (wall && nwall) {
+        x[0] = x[1];
+        x[2] = x[3];
+        z[0] = z[1];
+        z[2] = z[3];
+        x[1] = wall_list[wall].DX;
+        z[1] = wall_list[wall].DZ;
+        calc_new_corner_point(x[0], z[0], x[1], z[1], wall_list[nwall].DX, wall_list[nwall].DZ, WALL_WIDTH, &x[3], &z[3]);
+        build_thick_wall_polys(&x[0], &z[0], y, height, 0, storey, wall);
+        wall = nwall;
+        nwall = wall_list[wall].Next;
+    }
+
+    // Last segment.
+    x[0] = x[1];
+    x[2] = x[3];
+    z[0] = z[1];
+    z[2] = z[3];
+    x[1] = wall_list[wall].DX;
+    z[1] = wall_list[wall].DZ;
+    dz = -(x[1] - x[0]);
+    dx = (z[1] - z[0]);
+    len = Root(dx * dx + dz * dz);
+    if (len == 0) len = 1;
+    dx = (dx * WALL_WIDTH) / len;
+    dz = (dz * WALL_WIDTH) / len;
+    x[3] = x[1] + dx;
+    z[3] = z[1] + dz;
+    build_thick_wall_polys(&x[0], &z[0], y, height, 2, storey, wall);
+
+    prev_facet = build_facet(start_point, next_prim_point, start_face3, start_face4, next_prim_face4, 0, FACET_FLAG_NON_SORT, 0);
+    prim = build_building(start_point, start_face3, start_face4, prev_facet);
+    building = storey_list[storey].BuildingHead;
+    place_building_at(building, prim, build_x, 0, build_z);
+
+    return (prev_facet);
+}
+
+// uc_orig: build_fence (fallen/Source/Building.cpp)
+// Dispatches to the correct fence builder based on storey type and height.
+// Also clears WindowCount after building.
+void build_fence(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height)
+{
+    SLONG alt_mode = 1; // Stick to floor by default.
+
+    if (storey_list[storey].ExtraFlags & FLAG_STOREY_EXTRA_ONBUILDING) {
+        alt_mode = 0;
+    }
+
+    switch (storey_list[storey].StoreyType) {
+    case STOREY_TYPE_FENCE:
+        build_fence_points_and_faces(y, y + ((height * 3) >> 2) + 2, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall, 1);
+        break;
+    case STOREY_TYPE_FENCE_BRICK:
+        build_height_fence(x, y, z, wall, storey, height, alt_mode);
+        break;
+    case STOREY_TYPE_FENCE_FLAT:
+    case STOREY_TYPE_OUTSIDE_DOOR:
+        if (height == 512)
+            build_high_chain_fence(x, y, z, wall, storey, BLOCK_SIZE * 4, alt_mode);
+        else
+            build_height_fence(x, y, z, wall, storey, height, alt_mode);
+        break;
+    }
+    WindowCount = 0;
+}
+
+// uc_orig: build_whole_fence (fallen/Source/Building.cpp)
+// Builds all fence segments for a storey into a single non-sorted facet/building object.
+SLONG build_whole_fence(SLONG storey)
+{
+    SLONG wall, px, pz;
+    SLONG height, y;
+    SLONG prev_facet;
+    SLONG prim;
+    SLONG building;
+    SLONG start_point, start_face3, start_face4;
+
+    start_point = next_prim_point;
+    start_face3 = next_prim_face3;
+    start_face4 = next_prim_face4;
+
+    height = storey_list[storey].Height;
+    y = storey_list[storey].DY;
+    px = storey_list[storey].DX;
+    pz = storey_list[storey].DZ;
+
+    wall = storey_list[storey].WallHead;
+    while (wall) {
+        build_fence(px, y, pz, wall, storey, height);
+        px = wall_list[wall].DX;
+        pz = wall_list[wall].DZ;
+        wall = wall_list[wall].Next;
+    }
+
+    prev_facet = build_facet(start_point, next_prim_point, start_face3, start_face4, next_prim_face4, 0, FACET_FLAG_NON_SORT, 0);
+    prim = build_building(start_point, start_face3, start_face4, prev_facet);
+    building = storey_list[storey].BuildingHead;
+    place_building_at(building, prim, build_x, 0, build_z);
+    return (prev_facet);
+}
+
+// uc_orig: process_external_pieces (fallen/Source/Building.cpp)
+// Processes all non-normal storeys (cables, fences) for a building before the main storey loop.
+// Also tracks the Y range across ground-level normal storeys for offset calculations.
+SLONG process_external_pieces(UWORD building)
+{
+    SLONG storey, c0 = 0;
+    SLONG prev_facet = 0;
+
+    storey = building_list[building].StoreyHead;
+    while (storey && c0 < 400) {
+        switch (storey_list[storey].StoreyType) {
+        case STOREY_TYPE_CABLE:
+            prev_facet = build_cables(storey, prev_facet);
+            break;
+        case STOREY_TYPE_FENCE:
+        case STOREY_TYPE_FENCE_FLAT:
+        case STOREY_TYPE_OUTSIDE_DOOR:
+            if (storey_list[storey].DY == 0)
+                prev_facet = build_whole_fence(storey);
+            break;
+        case STOREY_TYPE_FENCE_BRICK:
+            if (storey_list[storey].DY == 0)
+                prev_facet = build_whole_fence(storey);
+            break;
+        case STOREY_TYPE_NORMAL:
+            if (storey_list[storey].DY == 0) {
+                SLONG wall;
+                SLONG x, y, z;
+                wall = storey_list[storey].WallHead;
+                x = storey_list[storey].DX;
+                z = storey_list[storey].DZ;
+                y = PAP_calc_height_at(x, z);
+                if (y < build_min_y)
+                    build_min_y = y;
+                if (y > build_max_y)
+                    build_max_y = y;
+                while (wall) {
+                    x = wall_list[wall].DX;
+                    z = wall_list[wall].DZ;
+                    y = PAP_calc_height_at(x, z);
+                    if (y < build_min_y)
+                        build_min_y = y;
+                    if (y > build_max_y)
+                        build_max_y = y;
+                    wall = wall_list[wall].Next;
+                }
+            }
+        }
+        storey = storey_list[storey].Next;
+        c0++;
+    }
+    if (build_max_y != build_min_y) {
+        build_max_y += (ELE_SIZE >> 2) - 1;
+        build_max_y &= ~63;
+    }
+    return (prev_facet);
+}
+
+// uc_orig: mark_map_with_ladder (fallen/Source/Building.cpp)
+// Sets the FLOOR_LADDER flag on the map tile at the 1/3 point along the first wall
+// of a ladder storey, offset slightly to the side of the wall.
+void mark_map_with_ladder(SLONG storey)
+{
+    SLONG x1, z1, x2, z2;
+    SLONG dx, dz;
+    SLONG wall;
+
+    x1 = storey_list[storey].DX;
+    z1 = storey_list[storey].DZ;
+    wall = storey_list[storey].WallHead;
+    x2 = wall_list[wall].DX;
+    z2 = wall_list[wall].DZ;
+
+    dx = x2 - x1;
+    dz = z2 - z1;
+    x1 += dx / 3;
+    z1 += dz / 3;
+    x1 += dz >> 3;
+    z1 -= dx >> 3;
+
+    set_map_flag(x1 >> ELE_SHIFT, z1 >> ELE_SHIFT, FLOOR_LADDER);
+}
+
+// uc_orig: setup_storey_data (fallen/Source/Building.cpp)
+// Pre-pass: clears facet-linked flags on all normal/fence storeys and their walls,
+// and records the wall index for any ladder/fire-escape storeys.
+void setup_storey_data(UWORD building, SWORD* wall_for_ladder)
+{
+    SLONG wall, storey;
+
+    storey = building_list[building].StoreyHead;
+    while (storey) {
+        storey_list[storey].StoreyFlags &= ~FLAG_STOREY_FACET_LINKED;
+        switch (storey_list[storey].StoreyType) {
+        case STOREY_TYPE_NORMAL:
+        case STOREY_TYPE_FENCE:
+        case STOREY_TYPE_FENCE_FLAT:
+        case STOREY_TYPE_FENCE_BRICK:
+        case STOREY_TYPE_OUTSIDE_DOOR:
+            wall = storey_list[storey].WallHead;
+            while (wall) {
+                wall_list[wall].WallFlags &= ~FLAG_WALL_FACET_LINKED;
+                wall = wall_list[wall].Next;
+            }
+            break;
+        case STOREY_TYPE_LADDER:
+            wall = find_wall_for_fe(storey_list[storey].DX, storey_list[storey].DZ, building_list[building].StoreyHead);
+            if (wall >= 0)
+                wall_for_ladder[wall] = storey;
+            mark_map_with_ladder(storey);
+            break;
+        }
+        storey = storey_list[storey].Next;
+    }
+}
+
+// uc_orig: find_connect_wall (fallen/Source/Building.cpp)
+// Searches the next STOREY_TYPE_NORMAL storey above 'storey' for a wall that matches
+// the given (x1,z1)→(x2,z2) segment. Returns that wall index, or 0 if not found.
+// Used to connect recessed-window geometry to the storey above.
+SLONG find_connect_wall(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG* connect_storey, SLONG storey, UBYTE** ret_tex, UWORD* ret_tcount)
+{
+    SLONG found = 0;
+    SLONG wall;
+    SLONG fx1, fz1, fx2, fz2;
+
+    storey = storey_list[storey].Next;
+    while (storey && !found) {
+        switch (storey_list[storey].StoreyType) {
+        case STOREY_TYPE_NORMAL:
+            found = 1;
+            break;
+        default:
+            storey = storey_list[storey].Next;
+        }
+    }
+    if (found) {
+        fx1 = storey_list[storey].DX;
+        fz1 = storey_list[storey].DZ;
+        wall = storey_list[storey].WallHead;
+        while (wall) {
+            fx2 = wall_list[wall].DX;
+            fz2 = wall_list[wall].DZ;
+            if (fx1 == x1 && fz1 == z1 && fx2 == x2 && fz2 == z2) {
+                *connect_storey = storey;
+                *ret_tex = wall_list[wall].Textures;
+                *ret_tcount = wall_list[wall].Tcount;
+                return (wall);
+            }
+            fx1 = fx2;
+            fz1 = fz2;
+            wall = wall_list[wall].Next;
+        }
+    } else
+        return (0);
+
+    return (0);
+}
+
+// uc_orig: insert_recessed_wall_vect (fallen/Source/Building.cpp)
+// Registers four collision vectors around the inward recess of a recessed window:
+// the main wall face plus two short side returns at RECESS_SIZE depth.
+void insert_recessed_wall_vect(
+    SLONG x1, SLONG y1, SLONG z1,
+    SLONG x2, SLONG y2, SLONG z2,
+    UBYTE storey_type,
+    UBYTE height,
+    SLONG wall)
+{
+    SLONG x1o, z1o;
+    SLONG x2o, z2o;
+    SLONG dx, dz;
+    SLONG len;
+
+    dx = x2 - x1;
+    dz = z2 - z1;
+    len = Root(dx * dx + dz * dz);
+    if (len == 0)
+        len = 1;
+    dx = (dx * RECESS_SIZE) / len;
+    dz = (dz * RECESS_SIZE) / len;
+
+    x1o = x1 + dz + (dx >> 1);
+    z1o = z1 - dx + (dz >> 1);
+    x2o = x2 + dz - (dx >> 1);
+    z2o = z2 - dx - (dz >> 1);
+
+    insert_collision_vect(x1, y1, z1, x2, y2, z2, storey_type, height * 4, wall);
+    insert_collision_vect(x1, y1, z1, x1o, y1, z1o, storey_type, height * 4, wall);
+    insert_collision_vect(x1o, y1, z1o, x2o, y2, z2o, storey_type, height * 4, wall);
+    insert_collision_vect(x2o, y2, z2o, x2, y2, z2, storey_type, height * 4, wall);
+}
