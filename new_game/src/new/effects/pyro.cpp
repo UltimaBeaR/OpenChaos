@@ -1091,8 +1091,8 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
 #include "fallen/Headers/id.h"
 // Temporary: needed for PAP_calc_map_height_at (PYRO_draw_armageddon)
 #include "world/map/pap.h"
-// Temporary: BLOOM_flare_draw, RIBBON_draw_ribbon still in drawxtra.cpp (chunk 2b not yet migrated)
-#include "fallen/DDEngine/Headers/DrawXtra.h"
+// BLOOM_flare_draw migrated to bloom.h (iteration 136); RIBBON_draw_ribbon already in ribbon.h.
+#include "engine/graphics/geometry/bloom.h"
 
 // Forward declarations for draw functions defined later in this file.
 // uc_orig: PYRO_draw_explosion (fallen/DDEngine/Source/drawxtra.cpp)

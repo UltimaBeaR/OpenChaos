@@ -228,4 +228,9 @@ void special_pickup(Thing* p_special, Thing* p_person);
 // uc_orig: special_activate_mine (fallen/Source/Special.cpp)
 void special_activate_mine(Thing* p_mine);
 
+// Draws extra visual effects for a Special Thing (bloom for mines and explosives).
+// Called from the render loop after drawing the Thing mesh.
+// uc_orig: DRAWXTRA_Special (fallen/DDEngine/Source/drawxtra.cpp)
+void DRAWXTRA_Special(Thing* p_thing);
+
 #endif // ACTORS_ITEMS_SPECIAL_H

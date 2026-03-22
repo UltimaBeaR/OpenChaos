@@ -346,6 +346,10 @@ set(SOURCES_GAME
     src/new/world/environment/puddle_globals.cpp
     src/new/effects/pyro.cpp
     src/new/effects/pyro_globals.cpp
+    src/new/effects/glow.cpp
+    src/new/engine/graphics/geometry/bloom.cpp
+    src/new/engine/graphics/geometry/bloom_globals.cpp
+    src/new/engine/graphics/pipeline/draw2d.cpp
     src/new/world/map/qedit.cpp
     src/new/world/map/qedit_globals.cpp
     src/new/world/map/qmap.cpp

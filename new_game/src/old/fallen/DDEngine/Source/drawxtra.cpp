@@ -2565,6 +2565,8 @@ void SPRITE_draw_rotated(
 }
 #endif // MIGRATED to src/new/engine/graphics/geometry/sprite.cpp (iteration 135)
 
+#if 0 // MIGRATED to src/new/engine/graphics/geometry/bloom.cpp (iteration 136) [flare_table, BLOOM_flare_draw, BLOOM_draw]
+
 extern SLONG AENG_cur_fc_cam;
 
 const UBYTE flare_table[7][3] = {
@@ -2800,12 +2802,15 @@ void BLOOM_draw(SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz, SLONG c
     }
 }
 
+#endif // MIGRATED to src/new/engine/graphics/geometry/bloom.cpp (iteration 136)
+
 /*************************************************************
  *
  *   "Specials" that have their own extra draw stuff
  *
  */
 
+#if 0 // MIGRATED to src/new/actors/items/special.cpp (iteration 136) [DRAWXTRA_Special]
 void DRAWXTRA_Special(Thing* p_thing)
 {
     SLONG dx, dz, c0, flags = 0;
@@ -2846,6 +2851,8 @@ void DRAWXTRA_Special(Thing* p_thing)
     }
 }
 
+#endif // MIGRATED to src/new/actors/items/special.cpp (iteration 136)
+
 /*************************************************************
  *
  *   DRAW2D -- some utils for the Widgets library
@@ -2853,6 +2860,7 @@ void DRAWXTRA_Special(Thing* p_thing)
  *
  */
 
+#if 0 // MIGRATED to src/new/engine/graphics/pipeline/draw2d.cpp (iteration 136) [DRAW2D_Box, DRAW2D_Box_Page, DRAW2D_Tri, DRAW2D_Sprite]
 void DRAW2D_Box(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG rgb, UBYTE flag, UBYTE depth)
 {
     POLY_Point pp[4];
@@ -2956,6 +2964,8 @@ void DRAW2D_Sprite(SLONG x, SLONG y, SLONG ox, SLONG oy, float u, float v, float
     POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
 }
 
+#endif // MIGRATED to src/new/engine/graphics/pipeline/draw2d.cpp (iteration 136)
+
 /*************************************************************
  *
  *   MIBS
@@ -2963,6 +2973,7 @@ void DRAW2D_Sprite(SLONG x, SLONG y, SLONG ox, SLONG oy, float u, float v, float
  *
  */
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 136) [DRAWXTRA_MIB_destruct]
 void DRAWXTRA_MIB_destruct(Thing* p_thing)
 {
     UBYTE i;
@@ -3082,6 +3093,8 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
     }
 }
 
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 136)
+
 /*************************************************************
  *
  *   final_glow is the fx Mark did for the final level,
@@ -3100,6 +3113,7 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
  *   I noticed.
  */
 
+#if 0 // MIGRATED to src/new/effects/glow.cpp (iteration 136) [DRAWXTRA_final_glow]
 void DRAWXTRA_final_glow(SLONG x, SLONG y, SLONG z, UBYTE fade)
 {
     static SLONG rotation = 0;
@@ -3234,3 +3248,5 @@ void DRAWXTRA_final_glow(SLONG x, SLONG y, SLONG z, UBYTE fade)
         POLY_add_quad(quad, POLY_PAGE_FINALGLOW, UC_FALSE, UC_TRUE);
     }
 }
+
+#endif // MIGRATED to src/new/effects/glow.cpp (iteration 136)

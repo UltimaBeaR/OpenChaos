@@ -22,6 +22,7 @@
 #include "fallen/Headers/ob.h"
 #include "fallen/Headers/night.h"
 #include "fallen/DDEngine/Headers/DrawXtra.h"
+#include "engine/graphics/geometry/bloom.h"
 #include "fallen/DDEngine/Headers/aeng.h"
 #include "fallen/DDEngine/Headers/mesh.h"
 #include "fallen/Headers/pow.h"

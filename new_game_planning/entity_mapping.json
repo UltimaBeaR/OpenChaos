@@ -74339,6 +74339,196 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "BLOOM_GLOW_ALWAYS",
+      "file": "new/engine/graphics/geometry/bloom.h",
+      "orig_name": "BLOOM_GLOW_ALWAYS",
+      "orig_file": "fallen/DDEngine/Headers/DrawXtra.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BLOOM_LENSFLARE",
+      "file": "new/engine/graphics/geometry/bloom.h",
+      "orig_name": "BLOOM_LENSFLARE",
+      "orig_file": "fallen/DDEngine/Headers/DrawXtra.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BLOOM_BEAM",
+      "file": "new/engine/graphics/geometry/bloom.h",
+      "orig_name": "BLOOM_BEAM",
+      "orig_file": "fallen/DDEngine/Headers/DrawXtra.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BLOOM_FAINT",
+      "file": "new/engine/graphics/geometry/bloom.h",
+      "orig_name": "BLOOM_FAINT",
+      "orig_file": "fallen/DDEngine/Headers/DrawXtra.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BLOOM_NOGLOW",
+      "file": "new/engine/graphics/geometry/bloom.h",
+      "orig_name": "BLOOM_NOGLOW",
+      "orig_file": "fallen/DDEngine/Headers/DrawXtra.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BLOOM_RAISE_LOS",
+      "file": "new/engine/graphics/geometry/bloom.h",
+      "orig_name": "BLOOM_RAISE_LOS",
+      "orig_file": "fallen/DDEngine/Headers/DrawXtra.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BLOOM_FLENSFLARE",
+      "file": "new/engine/graphics/geometry/bloom.h",
+      "orig_name": "BLOOM_FLENSFLARE",
+      "orig_file": "fallen/DDEngine/Headers/DrawXtra.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "flare_table",
+      "file": "new/engine/graphics/geometry/bloom_globals.cpp",
+      "orig_name": "flare_table",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BLOOM_flare_draw",
+      "file": "new/engine/graphics/geometry/bloom.h",
+      "orig_name": "BLOOM_flare_draw",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BLOOM_draw",
+      "file": "new/engine/graphics/geometry/bloom.h",
+      "orig_name": "BLOOM_draw",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_cur_fc_cam",
+      "file": "new/engine/graphics/geometry/bloom.cpp",
+      "orig_name": "AENG_cur_fc_cam",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_cam_vec",
+      "file": "new/engine/graphics/geometry/bloom.cpp",
+      "orig_name": "AENG_cam_vec",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW2D_Box",
+      "file": "new/engine/graphics/pipeline/draw2d.h",
+      "orig_name": "DRAW2D_Box",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW2D_Box_Page",
+      "file": "new/engine/graphics/pipeline/draw2d.h",
+      "orig_name": "DRAW2D_Box_Page",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW2D_Tri",
+      "file": "new/engine/graphics/pipeline/draw2d.h",
+      "orig_name": "DRAW2D_Tri",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW2D_Sprite",
+      "file": "new/engine/graphics/pipeline/draw2d.h",
+      "orig_name": "DRAW2D_Sprite",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAWXTRA_Special",
+      "file": "new/actors/items/special.h",
+      "orig_name": "DRAWXTRA_Special",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAWXTRA_MIB_destruct",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "DRAWXTRA_MIB_destruct",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAWXTRA_final_glow",
+      "file": "new/effects/glow.h",
+      "orig_name": "DRAWXTRA_final_glow",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

@@ -1141,4 +1141,9 @@ void set_person_injured(Thing* p_person);
 // uc_orig: push_people_apart (fallen/Source/Person.cpp)
 void push_people_apart(Thing* p_person, Thing* p_avoid);
 
+// Render-time logic for the MIB self-destruct sequence: bobbing, lightning bolt,
+// dynamic light flash, and spark emission. Called every frame during the death state.
+// uc_orig: DRAWXTRA_MIB_destruct (fallen/DDEngine/Source/drawxtra.cpp)
+void DRAWXTRA_MIB_destruct(Thing* p_thing);
+
 #endif // ACTORS_CHARACTERS_PERSON_H

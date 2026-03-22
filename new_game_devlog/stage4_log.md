@@ -1,5 +1,19 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 136 — drawxtra.cpp chunk 2b: bloom, draw2d, DRAWXTRA functions (2026-03-23)
+
+- `flare_table` + `BLOOM_flare_draw` + `BLOOM_draw` + BLOOM_* macros → `new/engine/graphics/geometry/bloom.h` + `bloom.cpp` + `bloom_globals.cpp/.h`.
+- `DRAW2D_Box`, `DRAW2D_Box_Page`, `DRAW2D_Tri`, `DRAW2D_Sprite` → `new/engine/graphics/pipeline/draw2d.h` + `draw2d.cpp`.
+- `DRAWXTRA_Special` → `new/actors/items/special.cpp/.h`.
+- `DRAWXTRA_MIB_destruct` → `new/actors/characters/person.cpp/.h`.
+- `DRAWXTRA_final_glow` → `new/effects/glow.h` + `glow.cpp` (final boss Guardian of Baalrog rotating overlay).
+- `DrawXtra.h` converted to full redirect — now includes all new headers; `ANIMAL_draw` already in `animal.h`.
+- Callers (`pyro.cpp`, `playcuts.cpp`, `frontend.cpp`, `widget.cpp`, `grenade.cpp`, `vehicle.cpp`) updated to include new headers directly; `// Temporary:` comments updated.
+- `AENG_cur_fc_cam` / `AENG_cam_vec` referenced via `extern` in `bloom.cpp` (defined in aeng.cpp, not yet migrated).
+- `drawxtra.cpp` is now fully wrapped in `#if 0 // MIGRATED` blocks.
+
+---
+
 ## Итерация 135 — drawxtra.cpp chunk 2a: pyro draw functions (2026-03-23)
 
 - `PYRO_draw_explosion`, `PYRO_draw_dustwave`, `PYRO_draw_explosion2`, `PYRO_draw_newdome`, `PYRO_alpha_line`, `PYRO_draw_twanger`, `PYRO_draw_streambit`, `PYRO_draw_streamer`, `PYRO_draw_blob`, `PYRO_draw_armageddon` → `new/effects/pyro.cpp` (static, file-private).

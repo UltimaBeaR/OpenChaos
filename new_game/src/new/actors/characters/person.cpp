@@ -14724,3 +14724,125 @@ void push_people_apart(Thing* p_person, Thing* p_avoid)
         // Bugger it! Doesn't have to work all the time...
     }
 }
+
+// Render-time logic for the MIB (Men In Black) self-destruct sequence.
+// Called every frame while a MIB is in their electrocution death state.
+// Bobbing: oscillates WorldPos.Y using a sine wave based on Timer1.
+// Lightning bolt: draws a line-texture from pelvis to ground once Timer1 exceeds threshold.
+// Dynamic light: creates a per-frame flash dlight that auto-removes.
+// Sparks: emits SPARK_create sparks between pelvis and a ground point every other frame.
+// uc_orig: DRAWXTRA_MIB_destruct (fallen/DDEngine/Source/drawxtra.cpp)
+void DRAWXTRA_MIB_destruct(Thing* p_thing)
+{
+    UBYTE i;
+    SLONG ctr = p_thing->Genus.Person->Timer1;
+    GameCoord posn;
+    Thing* thing;
+    SLONG j;
+
+    p_thing->WorldPos.Y += SIN(ctr >> 2) >> 7;
+
+    calc_sub_objects_position(
+        p_thing,
+        p_thing->Draw.Tweened->AnimTween,
+        SUB_OBJECT_PELVIS,
+        &posn.X,
+        &posn.Y,
+        &posn.Z);
+
+    posn.X <<= 8;
+    posn.Y <<= 8;
+    posn.Z <<= 8;
+    posn.X += p_thing->WorldPos.X;
+    posn.Y += p_thing->WorldPos.Y;
+    posn.Z += p_thing->WorldPos.Z;
+
+    if (ctr > 32 * 20 * 5) {
+        POLY_Point pt1, pt2;
+
+        POLY_transform(posn.X >> 8, (posn.Y >> 8) + 1000, posn.Z >> 8, &pt1);
+        POLY_transform(posn.X >> 8, PAP_calc_map_height_at(posn.X >> 8, posn.Z >> 8), posn.Z >> 8, &pt2);
+
+        pt1.colour = pt2.colour = 0xFFFFFFFF;
+        pt1.specular = pt2.specular = 0xFF000000;
+        pt1.u = 0;
+        pt1.v = 0;
+        pt2.u = 1.0;
+        pt2.v = 0.25;
+        if (POLY_valid_line(&pt1, &pt2))
+            POLY_add_line_tex_uv(&pt1, &pt2, 142, 142, POLY_PAGE_LITE_BOLT, 0);
+    }
+
+    if (ctr > 1200 + p_thing->Genus.Person->ammo_packs_pistol) {
+
+        // A single-frame dynamic light flash for the lightning effect.
+        UBYTE dlight;
+
+        dlight = NIGHT_dlight_create(
+            (posn.X >> 8),
+            (posn.Y >> 8) + 0x80,
+            (posn.Z >> 8),
+            90 + (Random() & 0x1f),
+            5,
+            25,
+            30);
+
+        if (dlight) {
+            NIGHT_dlight[dlight].flag |= NIGHT_DLIGHT_FLAG_REMOVE;
+        }
+
+        p_thing->Genus.Person->ammo_packs_pistol = (3200 - ctr) >> 3;
+        thing = PYRO_create(posn, PYRO_TWANGER);
+        if (thing) {
+            thing->StateFn(thing);
+            if (Random() & 0xf) {
+                thing->Genus.Pyro->tints[0] = 0x0000FFFF;
+                thing->Genus.Pyro->tints[1] = 0x000000FF;
+            } else {
+                thing->Genus.Pyro->tints[0] = 0x00FFFFFF;
+                thing->Genus.Pyro->tints[1] = 0x0000FFFF;
+            }
+            j = ctr - 1199;
+            if (j > 400)
+                j = 400;
+            thing->Genus.Pyro->scale = j;
+        }
+    } else
+        p_thing->Genus.Person->ammo_packs_pistol = 0;
+
+    if (GAME_TURN & 1) {
+
+        SPARK_Pinfo p1;
+        SPARK_Pinfo p2;
+
+        UBYTE limbs[] = { SUB_OBJECT_LEFT_HAND, SUB_OBJECT_RIGHT_HAND, SUB_OBJECT_LEFT_FOOT, SUB_OBJECT_RIGHT_FOOT };
+
+        p1.type = SPARK_TYPE_GROUND;
+        p1.flag = 0;
+        p1.person = THING_NUMBER(p_thing);
+        p1.dist = SPARK_TYPE_GROUND;
+        p1.x = posn.X >> 8;
+        p1.y = posn.Y >> 8;
+        p1.z = posn.Z >> 8;
+        if (ctr < 400) {
+            p1.x += (Random() & 0xff) - 0x7f;
+            p1.z += (Random() & 0xff) - 0x7f;
+        } else if (ctr < 800) {
+            p1.x += (Random() & 0x1ff) - 0xff;
+            p1.z += (Random() & 0x1ff) - 0xff;
+        } else {
+            p1.x += (Random() & 0x3ff) - 0x1ff;
+            p1.z += (Random() & 0x3ff) - 0x1ff;
+        }
+
+        p2.type = SPARK_TYPE_LIMB;
+        p2.flag = 0;
+        p2.person = THING_NUMBER(p_thing);
+        p2.limb = SUB_OBJECT_PELVIS;
+
+        SPARK_create(
+            &p1,
+            &p2,
+            25);
+    }
+}

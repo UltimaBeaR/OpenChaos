@@ -8,7 +8,8 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "mesh.h"                    // Temporary: MESH_draw_poly
 #include "fallen/Headers/statedef.h" // Temporary: STATE_IDLE
-#include "DrawXtra.h"                // Temporary: AENG_world_line_nondebug, BLOOM_draw
+#include "DrawXtra.h"                // Temporary: AENG_world_line_nondebug
+#include "engine/graphics/geometry/bloom.h"
 #include "actors/items/grenade.h"
 #include "actors/items/grenade_globals.h"
 
@@ -203,8 +204,6 @@ void DrawGrenades()
 
             SLONG dx = SIN(angle) >> 8;
             SLONG dz = COS(angle) >> 8;
-
-            extern void BLOOM_draw(SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz, SLONG col, UBYTE opts);
 
             BLOOM_draw(
                 (gp->x >> 8),

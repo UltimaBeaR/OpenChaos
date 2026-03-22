@@ -46,6 +46,7 @@
 // Temporary: cnet.h for CNET_num_players (used via NO_PLAYERS macro from Game.h)
 #include "fallen/Headers/cnet.h"
 #include "engine/audio/sound.h"
+#include "engine/graphics/geometry/bloom.h"
 
 // Prototype: free_special is used before its definition in this file.
 // uc_orig: free_special (fallen/Source/Special.cpp)
@@ -1182,5 +1183,49 @@ void SPECIAL_set_explosives(Thing* p_person)
         p_special->Genus.Special->OwnerThing = THING_NUMBER(p_person);
 
         PANEL_new_info_message(XLAT_str(X_FUSE_SET));
+    }
+}
+
+// Draws any extra visual effects for a Special Thing, based on its SpecialType.
+// Called from the aeng render loop alongside the standard Thing draw pass.
+// Currently handles: SPECIAL_MINE (rotating bloom) and SPECIAL_EXPLOSIVES (beam bloom on countdown).
+// uc_orig: DRAWXTRA_Special (fallen/DDEngine/Source/drawxtra.cpp)
+void DRAWXTRA_Special(Thing* p_thing)
+{
+    SLONG dx, dz, c0, flags = 0;
+
+    switch (p_thing->Genus.Special->SpecialType) {
+
+    case SPECIAL_MINE:
+        if (p_thing->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
+            c0 = (p_thing->Genus.Special->counter >> 1) & 2047;
+            dx = SIN(c0) >> 8;
+            dz = COS(c0) >> 8;
+            BLOOM_draw(p_thing->WorldPos.X >> 8, (p_thing->WorldPos.Y >> 8) + 25, p_thing->WorldPos.Z >> 8,
+                dx, 0, dz, 0x7F0000, BLOOM_BEAM);
+        } else {
+            c0 = 3 + (THING_NUMBER(p_thing) & 7);
+            c0 = (((GAME_TURN * c0) + (THING_NUMBER(p_thing) * 9)) << 4) & 2047;
+            dx = SIN(c0) >> 8;
+            dz = COS(c0) >> 8;
+            BLOOM_draw(p_thing->WorldPos.X >> 8, (p_thing->WorldPos.Y >> 8) + 15, p_thing->WorldPos.Z >> 8,
+                dx, 0, dz, 0x7F0000, 0);
+        }
+        break;
+    case SPECIAL_EXPLOSIVES:
+        flags = BLOOM_BEAM;
+        // FALL THRU
+        // case SPECIAL_GRENADE:
+        if (p_thing->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
+            c0 = p_thing->Genus.Special->timer;
+            c0 = (c0 << 3) & 2047;
+            dx = SIN(c0) >> 8;
+            dz = COS(c0) >> 8;
+            BLOOM_draw(p_thing->WorldPos.X >> 8, (p_thing->WorldPos.Y >> 8) + 25, p_thing->WorldPos.Z >> 8,
+                dx, 0, dz, 0x007F5D, flags);
+        }
+        break;
+
+        //  no default -- not all specials have extra stuff.
     }
 }

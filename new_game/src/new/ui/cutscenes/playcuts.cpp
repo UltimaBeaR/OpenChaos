@@ -21,8 +21,8 @@
 
 // Temporary: FC_cam (fc.h) not yet migrated.
 #include "fallen/Headers/fc.h"
-// Temporary: DRAW2D_Box declared in DrawXtra.h (drawxtra.cpp not yet migrated).
-#include "fallen/DDEngine/Headers/DrawXtra.h"
+// DRAW2D_Box migrated to draw2d.h (iteration 136).
+#include "engine/graphics/pipeline/draw2d.h"
 
 // Lerp rate for slow-motion cutscenes (frames per cutscene tick in slomo mode).
 // uc_orig: SLOMO_RATE (fallen/Source/playcuts.cpp)
