@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 107 — engine/physics/collide (чанк 2: face/ladder/plant_feet/slide globals) (2026-03-22)
+
+- `fallen/Source/collide.cpp` чанк 2: lines 1581–3174 → `new/engine/physics/collide.cpp` + `collide_globals.cpp/h`.
+- Функции: `find_face_near_y`, `find_alt_for_this_pos`, `correct_pos_for_ladder`, `ok_to_mount_ladder`, `mount_ladder`, `set_person_climb_down_onto_ladder`, `find_nearby_ladder_colvect_radius`, `find_nearby_ladder_colvect`, `set_feet_to_y`, `height_above_anything`, `plant_feet`, `get_person_radius`, `get_person_radius2`, `get_fence_height`, `step_back_along_vect`.
+- Глобалы → `collide_globals`: `already[]`, `max_facet_find`, `last_slide_colvect`, `last_slide_dist`, `actual_sliding`, `slide_door`, `slide_ladder`, `slide_into_warehouse`, `slide_outof_warehouse`, `slid_along_fence`, `fence_colvect`.
+- Макросы `EXTRA_RADIUS`, `VEC_SHIFT`, `VEC_LENGTH` перенесены в `collide.cpp`; `MAX_ALREADY` — в `collide_globals.h` (во избежание circular include через collide.h→collide_globals.h).
+- Макросы `EXTRA_RADIUS/VEC_SHIFT/VEC_LENGTH/MAX_ALREADY` сохранены в `old/collide.cpp` вне `#if 0` — нужны `slide_along()` в следующих чанках.
+- `MAVHEIGHT` — в `fallen/Headers/mav.h`, не `pap.h`; `calc_height_on_face` — макрос-алиас в `world/navigation/walkable.h`.
+- `slide_along_old` (lines 2392–3168) — уже в `/*...*/`, мёртвый код, не мигрировался.
+- `bump_someone` — в `/*...*/`, помечен obsolete самим автором, не мигрировался.
+
+---
+
 ## Итерация 106 — engine/physics/collide (чанк 1: геометрические хелперы) (2026-03-22)
 
 - `fallen/Source/collide.cpp` (9183 строк) начинает миграцию. Чанк 1: lines 107–1510 → `new/engine/physics/collide.cpp` + `collide.h` + `collide_globals.cpp` + `collide_globals.h`.

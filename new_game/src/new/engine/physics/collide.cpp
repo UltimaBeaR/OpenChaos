@@ -21,12 +21,26 @@ extern BOOL allow_debug_keys;
 // Temporary: is_thing_on_this_quad (not yet migrated)
 extern SLONG is_thing_on_this_quad(SLONG x, SLONG z, SLONG face);
 
-// Temporary: calc_height_on_face / calc_height_on_rface (not yet migrated)
-extern void calc_height_on_face(SLONG x, SLONG z, SLONG face, SLONG* ret_y);
-extern void calc_height_on_rface(SLONG x, SLONG z, SLONG face, SLONG* ret_y);
+// Temporary: walkable.h provides calc_height_on_face (macro alias to get_height_on_face_quad64_at),
+// calc_height_on_rface, find_face_for_this_pos, FIND_ANYFACE, FIND_FACE_NEAR_BELOW, GRAB_FLOOR.
+#include "world/navigation/walkable.h"
 
 // Temporary: set_tween_for_dy (actors/characters/person.cpp, already migrated)
 extern void set_tween_for_dy(Thing* p_person, SLONG dy);
+
+// Temporary: person-related headers for chunk 2 ladder/feet functions
+#include "fallen/Headers/mav.h"         // MAVHEIGHT macro
+#include "fallen/Headers/animate.h"     // SUB_OBJECT_LEFT_FOOT, COP_ROPER_ANIM_LADDER_END_L, ANIM_OFF_LADDER_TOP, ACTION_CLIMBING
+#include "actors/core/interact.h"       // calc_sub_objects_position
+#include "actors/core/state.h"          // set_generic_person_state_function, STATE_CLIMB_LADDER
+#include "actors/core/thing.h"          // move_thing_on_map
+#include "actors/characters/person.h"   // person_splash, set_person_climb_ladder, set_person_drop_down, locked_anim_change_end_type
+#include "world/map/pap.h"              // PAP_calc_height_at, PAP_calc_height_at_thing
+#include "engine/graphics/resources/console.h"  // CONSOLE_text
+#include "engine/input/keyboard_globals.h"      // ControlFlag
+
+// Temporary: add_debug_line (aeng.cpp, not yet migrated)
+extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG colour);
 
 // uc_orig: BLOCK_SIZE (fallen/Source/collide.cpp)
 // Undefs any prior definition and sets it to 64, the height increment per storey level.
@@ -981,3 +995,611 @@ SLONG vect_intersect_wall(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, S
 {
     return (0);
 }
+
+// ========================================================================
+// Face / walkable surface queries
+// ========================================================================
+
+// uc_orig: find_face_near_y (fallen/Source/collide.cpp)
+// Searches the LO-res PAP cells around (x,z) for a walkable face whose
+// height is within [neg_dy, pos_dy] of y.  Also checks a roof face if one
+// is flagged for that cell.  Returns the face index (negative = roof face)
+// and writes the surface height into *ret_y.  Returns 0 if none found.
+SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_this_building, Thing* p_person, SLONG neg_dy, SLONG pos_dy, SLONG* ret_y)
+{
+    SLONG mx, mz;
+    SLONG index;
+    SLONG check_face;
+    SLONG new_y, dy;
+
+    SLONG mx1 = (x - 0x200) >> PAP_SHIFT_LO;
+    SLONG mz1 = (z - 0x200) >> PAP_SHIFT_LO;
+
+    SLONG mx2 = (x + 0x200) >> PAP_SHIFT_LO;
+    SLONG mz2 = (z + 0x200) >> PAP_SHIFT_LO;
+
+    SATURATE(mx1, 0, PAP_SIZE_LO - 1);
+    SATURATE(mz1, 0, PAP_SIZE_LO - 1);
+
+    SATURATE(mx2, 0, PAP_SIZE_LO - 1);
+    SATURATE(mz2, 0, PAP_SIZE_LO - 1);
+
+    if (PAP_hi[x >> 8][z >> 8].Flags & PAP_FLAG_ROOF_EXISTS) {
+
+        check_face = ROOF_HIDDEN_GET_FACE(x >> 8, z >> 8);
+        new_y = MAVHEIGHT(x >> 8, z >> 8) << 6;
+        dy = y - new_y;
+
+        if (dy > neg_dy - 100 && dy < pos_dy) {
+            *ret_y = new_y;
+
+            return (check_face);
+        } else if (dy > -128) {
+            if (p_person->SubState == SUB_STATE_RUNNING_JUMP_FLY) {
+                set_tween_for_dy(p_person, y - new_y);
+            }
+        }
+    }
+
+    for (mx = mx1; mx <= mx2; mx++)
+        for (mz = mz1; mz <= mz2; mz++) {
+            index = PAP_2LO(mx, mz).Walkable;
+
+            while (index) {
+                SLONG offset_y;
+                check_face = index;
+
+                {
+                    if (check_face > 0 && prim_faces4[check_face].ThingIndex == ignore_faces_of_this_building) {
+                        // Skip — don't collide with this building's own face.
+                    } else {
+                        if (is_thing_on_this_quad(x, z, check_face)) {
+                            if (check_face < 0) {
+                                calc_height_on_rface(x, z, -check_face, &new_y);
+                                offset_y = 100;
+                            } else {
+                                calc_height_on_face(x, z, check_face, &new_y);
+                                offset_y = 0;
+                            }
+
+                            dy = y - new_y;
+
+                            if (ControlFlag && allow_debug_keys) {
+                                CBYTE str[100];
+                                sprintf(str, " land on walkable dy %d >%d  <%d \n", dy, neg_dy, pos_dy);
+                                CONSOLE_text(str, 10000);
+                            }
+                            if (dy > neg_dy - offset_y && dy < pos_dy) {
+                                *ret_y = new_y;
+
+                                return (check_face);
+                            } else
+                                if (dy > -128) {
+                                    if (p_person->SubState == SUB_STATE_RUNNING_JUMP_FLY) {
+                                        set_tween_for_dy(p_person, y - new_y);
+                                    }
+                                    MSG_add(" LAND on face y  %d peep y %d miss dy=%d ", new_y, y, y - new_y);
+                                }
+                        }
+                    }
+
+                    if (index < 0)
+                        index = roof_faces4[-index].Next;
+                    else
+                        index = prim_faces4[index].WALKABLE;
+                }
+            }
+        }
+    *ret_y = 0;
+    return (0);
+}
+
+// uc_orig: find_alt_for_this_pos (fallen/Source/collide.cpp)
+// Returns the ground height (in world units) at position (x,z).
+// Checks a 2x2 region of LO-res PAP cells for a walkable face; if none
+// found falls back to terrain height from PAP_calc_height_at.
+SLONG find_alt_for_this_pos(SLONG x, SLONG z)
+{
+    SLONG mx;
+    SLONG mz;
+    SLONG facey;
+    SLONG index;
+    SLONG groundy;
+    SLONG count;
+
+    SLONG mx1 = x - 0x200 >> PAP_SHIFT_LO;
+    SLONG mz1 = z - 0x200 >> PAP_SHIFT_LO;
+
+    SLONG mx2 = x + 0x200 >> PAP_SHIFT_LO;
+    SLONG mz2 = z + 0x200 >> PAP_SHIFT_LO;
+
+    SATURATE(mx1, 0, PAP_SIZE_LO - 1);
+    SATURATE(mz1, 0, PAP_SIZE_LO - 1);
+
+    SATURATE(mx2, 0, PAP_SIZE_LO - 1);
+    SATURATE(mz2, 0, PAP_SIZE_LO - 1);
+
+    if (PAP_hi[x >> 8][z >> 8].Flags & PAP_FLAG_ROOF_EXISTS) {
+        return (MAVHEIGHT(x >> 8, z >> 8) << 6);
+    }
+
+    for (mx = mx1; mx <= mx2; mx++)
+        for (mz = mz1; mz <= mz2; mz++) {
+            index = PAP_2LO(mx, mz).Walkable;
+            count = 0;
+
+            while (index && count++ < 1000) {
+                ASSERT(index >= 0);
+
+                if (is_thing_on_this_quad(x, z, index)) {
+                    if (index < 0) {
+                        calc_height_on_rface(x, z, -index, &facey);
+                    } else {
+                        calc_height_on_face(x, z, index, &facey);
+                    }
+
+                    return facey;
+                }
+
+                if (index < 0) {
+                    index = roof_faces4[-index].Next;
+
+                } else {
+                    index = prim_faces4[index].WALKABLE;
+                }
+                ASSERT(count < 800);
+            }
+        }
+
+    groundy = PAP_calc_height_at(x, z) + 5;
+
+    return groundy;
+}
+
+// ========================================================================
+// Ladder helpers
+// ========================================================================
+
+// uc_orig: correct_pos_for_ladder (fallen/Source/collide.cpp)
+// Computes the world position and approach angle for a ladder facet.
+// The midpoint of the facet's two endpoints is the snap position; the
+// angle is perpendicular to the facet edge, offset so the person faces
+// into the ladder.  scale shifts the snap point along the ladder normal.
+void correct_pos_for_ladder(struct DFacet* p_facet, SLONG* px, SLONG* pz, SLONG* angle, SLONG scale)
+{
+    SLONG x1, z1, x2, z2, dx, dz;
+
+    x1 = p_facet->x[0] << 8;
+    z1 = p_facet->z[0] << 8;
+
+    x2 = p_facet->x[1] << 8;
+    z2 = p_facet->z[1] << 8;
+
+    *px = (x1 + x2) >> 1;
+    *pz = (z1 + z2) >> 1;
+
+    dx = x2 - x1;
+    dz = z2 - z1;
+
+    {
+        *angle = Arctan(-dx, dz) + 1024 + 512;
+        if (*angle < 0)
+            *angle = 2048 + *angle;
+        *angle = *angle & 2047;
+    }
+
+    *px += (dz * scale) >> 10;
+    *pz -= (dx * scale) >> 10;
+}
+
+// uc_orig: ok_to_mount_ladder (fallen/Source/collide.cpp)
+// Returns 1 if the thing is within QDIST2 < 75 of the ladder's midpoint.
+SLONG ok_to_mount_ladder(struct Thing* p_thing, struct DFacet* p_facet)
+{
+    SLONG dx, dz, px, pz, angle;
+
+    correct_pos_for_ladder(p_facet, &px, &pz, &angle, 256);
+
+    dx = abs(px - (p_thing->WorldPos.X >> 8));
+    dz = abs(pz - (p_thing->WorldPos.Z >> 8));
+
+    if (QDIST2(dx, dz) < 75) {
+        return (1);
+    } else {
+        return (0);
+    }
+}
+
+// uc_orig: mount_ladder (fallen/Source/collide.cpp)
+// Tries to put p_thing onto the ladder at facet index.  Returns TRUE on
+// success.  Note: the call path from interfac.cpp is commented out in the
+// pre-release source, so players cannot grab ladders from below; AI uses
+// set_person_climb_ladder directly.
+SLONG mount_ladder(Thing* p_thing, SLONG facet)
+{
+    if (ok_to_mount_ladder(p_thing, &dfacets[facet])) {
+        set_person_climb_ladder(p_thing, facet);
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+// uc_orig: set_person_climb_down_onto_ladder (fallen/Source/collide.cpp)
+// Snaps the person to the ladder midpoint and starts the climb-down-onto-
+// ladder animation.  Used when the player steps off the edge of a roof.
+// Returns 1 on success, 0 if too far from the ladder.
+SLONG set_person_climb_down_onto_ladder(Thing* p_person, SLONG colvect)
+{
+    SLONG x, z, dx, dz, angle;
+    SLONG dist = 64;
+    GameCoord new_position;
+
+    if (p_person->Genus.Person->PersonType == PERSON_ROPER)
+        dist = -64;
+
+    correct_pos_for_ladder(&dfacets[colvect], &x, &z, &angle, dist);
+
+    dx = abs(x - (p_person->WorldPos.X >> 8));
+    dz = abs(z - (p_person->WorldPos.Z >> 8));
+
+    if (QDIST2(dx, dz) > 75) {
+        return (0);
+    }
+
+    new_position.X = x << 8;
+    new_position.Y = p_person->WorldPos.Y;
+    new_position.Z = z << 8;
+
+    p_person->Draw.Tweened->Angle = angle;
+
+    move_thing_on_map(p_person, &new_position);
+
+    set_generic_person_state_function(p_person, STATE_CLIMB_LADDER);
+
+    if (p_person->Genus.Person->PersonType == PERSON_ROPER)
+        locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_FOOT, COP_ROPER_ANIM_LADDER_END_L, ANIM_TYPE_ROPER);
+    else if (p_person->Genus.Person->PersonType == PERSON_COP || p_person->Genus.Person->PersonType == PERSON_THUG_GREY || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED)
+        locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_FOOT, COP_ROPER_ANIM_LADDER_END_L, ANIM_TYPE_ROPER);
+    else
+
+        locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_FOOT, ANIM_OFF_LADDER_TOP, p_person->Genus.Person->AnimType);
+
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_CLIMBING;
+    p_person->SubState = SUB_STATE_CLIMB_DOWN_ONTO_LADDER;
+    p_person->Genus.Person->OnFacet = colvect;
+    p_person->OnFace = 0;
+
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
+    return (1);
+}
+
+// uc_orig: find_nearby_ladder_colvect_radius (fallen/Source/collide.cpp)
+// Scans LO-res PAP cells within radius of (mid_x,mid_z) looking for a
+// STOREY_TYPE_LADDER facet.  Returns the index of the closest one found,
+// or 0 if none.
+SLONG find_nearby_ladder_colvect_radius(
+    SLONG mid_x,
+    SLONG mid_z,
+    SLONG radius)
+{
+    SLONG mx;
+    SLONG mz;
+
+    SLONG dx;
+    SLONG dz;
+
+    SLONG dist;
+
+    SLONG minx;
+    SLONG minz;
+
+    SLONG maxx;
+    SLONG maxz;
+
+    SLONG v_list;
+    SLONG i_vect;
+
+    SLONG best_dist = INFINITY;
+    SLONG best_vect = NULL;
+
+    struct DFacet* p_vect;
+
+    minx = mid_x - radius >> PAP_SHIFT_LO;
+    minz = mid_z - radius >> PAP_SHIFT_LO;
+
+    maxx = mid_x + radius >> PAP_SHIFT_LO;
+    maxz = mid_z + radius >> PAP_SHIFT_LO;
+
+    for (mx = minx; mx <= maxx; mx++)
+        for (mz = minz; mz <= maxz; mz++) {
+            if (WITHIN(mx, 0, PAP_SIZE_LO - 1) && WITHIN(mz, 0, PAP_SIZE_LO - 1)) {
+                SLONG exit = 0;
+                v_list = PAP_2LO(mx, mz).ColVectHead;
+
+                if (v_list)
+                    while (!exit) {
+                        i_vect = facet_links[v_list];
+                        if (i_vect < 0) {
+                            i_vect = -i_vect;
+                            exit = 1;
+                        }
+                        p_vect = &dfacets[i_vect];
+
+                        if (p_vect->FacetType == STOREY_TYPE_LADDER) {
+                            dx = (p_vect->x[0] + p_vect->x[1] << 7) - mid_x;
+                            dz = (p_vect->z[0] + p_vect->z[1] << 7) - mid_z;
+
+                            dist = abs(dx) + abs(dz);
+
+                            if (dist < best_dist) {
+                                best_dist = dist;
+                                best_vect = i_vect;
+                            }
+                        }
+
+                        v_list++;
+                    }
+            }
+        }
+
+    return best_vect;
+}
+
+// uc_orig: LADDER_NEARBY_RADIUS (fallen/Source/collide.cpp)
+// Search radius for find_nearby_ladder_colvect (in block-level coordinates).
+#define LADDER_NEARBY_RADIUS 100
+
+// uc_orig: find_nearby_ladder_colvect (fallen/Source/collide.cpp)
+// Wrapper: finds the nearest ladder facet within LADDER_NEARBY_RADIUS (100)
+// units of the thing's current position.
+SLONG find_nearby_ladder_colvect(Thing* p_thing)
+{
+    SLONG mid_x;
+    SLONG mid_z;
+
+    SLONG ladder;
+
+    mid_x = p_thing->WorldPos.X >> 8;
+    mid_z = p_thing->WorldPos.Z >> 8;
+
+    ladder = find_nearby_ladder_colvect_radius(mid_x, mid_z, LADDER_NEARBY_RADIUS);
+
+    return ladder;
+}
+
+// ========================================================================
+// Person foot / height utilities
+// ========================================================================
+
+// uc_orig: set_feet_to_y (fallen/Source/collide.cpp)
+// Repositions the person's WorldPos.Y so that the left foot sub-object
+// lands at new_y world units.
+void set_feet_to_y(Thing* p_person, SLONG new_y)
+{
+    SLONG x, y, z;
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, SUB_OBJECT_LEFT_FOOT, &x, &y, &z);
+    MSG_add(" set feet to y %d, foot y %d \n", new_y, y);
+
+    new_y -= y;
+
+    p_person->WorldPos.Y = (new_y) << 8;
+}
+
+// uc_orig: height_above_anything (fallen/Source/collide.cpp)
+// Returns how far the given body part (sub-object index) is above the
+// nearest surface.  Positive = above, negative = below / clipped through.
+// Returns 0 immediately if the person is inside a building.
+// Note: the FIND_ANYFACE branch is unreachable due to the hardcoded if(1).
+SLONG height_above_anything(Thing* p_person, SLONG body_part, SWORD* onface)
+{
+    SLONG on_face;
+    SLONG fx, fy, fz, new_y;
+
+    *onface = 0;
+
+    if (p_person->Genus.Person->InsideIndex)
+        return (0);
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, body_part, &fx, &fy, &fz);
+
+    fx += p_person->WorldPos.X >> 8;
+    fy += p_person->WorldPos.Y >> 8;
+    fz += p_person->WorldPos.Z >> 8;
+
+    // FIND_ANYFACE branch is dead code — the condition is always true.
+    if (1 || p_person->Genus.Person->Ware)
+        on_face = find_face_for_this_pos(fx, fy, fz, &new_y, 0, FIND_FACE_NEAR_BELOW);
+    else
+        on_face = find_face_for_this_pos(fx, fy, fz, &new_y, 0, FIND_ANYFACE);
+
+    if (on_face) {
+        *onface = on_face;
+        return (fy - new_y);
+    } else {
+        new_y = PAP_calc_height_at_thing(p_person, fx, fz);
+        *onface = 0;
+        return (fy - new_y);
+    }
+}
+
+// uc_orig: plant_feet (fallen/Source/collide.cpp)
+// Snaps the person's feet to the nearest surface after movement.
+// Foot XZ is zeroed (matches predict_collision_with_face's coordinate
+// convention), only foot Y from the animation is used.
+// Returns:  1 = snapped to a prim face,
+//           0 = dropping (surface too far below),
+//          -1 = snapped to terrain floor.
+SLONG plant_feet(Thing* p_person)
+{
+    SLONG on_face;
+    SLONG fx, fy, fz, new_y;
+
+    if (p_person->Genus.Person->InsideIndex)
+        return (0);
+
+    person_splash(p_person, -1);
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, SUB_OBJECT_LEFT_FOOT, &fx, &fy, &fz);
+
+    // Keep XZ the same as predict_collision_with_face to avoid disagreement.
+    fx = 0;
+    fz = 0;
+
+    fx += p_person->WorldPos.X >> 8;
+    fy += p_person->WorldPos.Y >> 8;
+    fz += p_person->WorldPos.Z >> 8;
+
+    on_face = find_face_for_this_pos(fx, fy, fz, &new_y, 0, 0);
+
+    if (on_face == GRAB_FLOOR) {
+        MSG_add(" PLANT FEET  on grab floor \n");
+        set_feet_to_y(p_person, new_y);
+        p_person->OnFace = 0;
+        return (-1);
+    } else if (on_face) {
+        MSG_add(" PLANT FEETa  on face at %d old y %d\n", new_y, p_person->WorldPos.Y >> 8);
+        if (new_y < fy - 60) {
+            MSG_add(" big drop so fall2 \n");
+            p_person->OnFace = 0;
+            set_person_drop_down(p_person, PERSON_DROP_DOWN_KEEP_VEL);
+
+            return (0);
+        }
+
+        set_feet_to_y(p_person, new_y);
+        p_person->OnFace = on_face;
+        return (1);
+    } else {
+        new_y = PAP_calc_height_at_thing(p_person, fx, fz);
+
+        MSG_add(" PLANT FEET  at y %d old y %d %d\n", new_y, p_person->WorldPos.Y >> 8, fy);
+
+        if (new_y < fy - 30) {
+            MSG_add(" big drop so fall \n");
+            p_person->OnFace = 0;
+            set_person_drop_down(p_person, PERSON_DROP_DOWN_KEEP_VEL);
+
+            return (0);
+        }
+
+        if (fy > new_y + 20) {
+            // Have height so must fall — no-op in this branch.
+        } else {
+            MSG_add(" small drop so teleport to alt \n");
+            p_person->OnFace = 0;
+            set_feet_to_y(p_person, new_y);
+            return (-1);
+        }
+    }
+
+    return (0);
+}
+
+// ========================================================================
+// Character radius queries
+// ========================================================================
+
+// uc_orig: get_person_radius (fallen/Source/collide.cpp)
+// Returns the collision radius for a person type (for wall sliding).
+SLONG get_person_radius(SLONG type)
+{
+    switch (type) {
+    case PERSON_COP:
+        return (40);
+    case PERSON_DARCI:
+        return (30);
+    }
+
+    return (50);
+}
+
+// uc_orig: get_person_radius2 (fallen/Source/collide.cpp)
+// Returns a secondary (tighter) collision radius for a person type.
+SLONG get_person_radius2(SLONG type)
+{
+    switch (type) {
+    case PERSON_COP:
+        return (40);
+    case PERSON_DARCI:
+        return (30);
+    }
+
+    return (35);
+}
+
+// ========================================================================
+// Fence height helper
+// ========================================================================
+
+// uc_orig: get_fence_height (fallen/Source/collide.cpp)
+// Converts a packed fence height field to world units.
+// h==2 is a special case that maps to 85 instead of the formula h*64.
+SLONG get_fence_height(SLONG h)
+{
+    if (h == 2)
+        return (85);
+    else
+        return (h * 64);
+}
+
+// ========================================================================
+// slide_along support
+// ========================================================================
+
+// uc_orig: step_back_along_vect (fallen/Source/collide.cpp)
+// Walks (x2,z2) backwards along its delta from (x1,z1) until it crosses
+// to the required side of the wall segment (vx1,vz1)-(vx2,vz2).
+// side_required: 1 = this side (positive cross product), 0 = other side.
+void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2, SLONG vx1, SLONG vz1, SLONG vx2, SLONG vz2, SLONG side_required)
+{
+    SLONG dx, dz;
+    SLONG side;
+
+    dx = *x2 - x1;
+    dz = *z2 - z1;
+
+    dx >>= 2;
+    dz >>= 2;
+
+    dx += SIGN(*x2 - x1);
+    dz += SIGN(*z2 - z1);
+
+    while (1) {
+        *x2 -= dx;
+        *z2 -= dz;
+        side = which_side(vx1, vz1, vx2, vz2, *x2, *z2);
+
+        if ((side <= 0 && side_required == 1) || (side >= 0 && side_required == 0) || (side == 0)) {
+            // Still on the wrong side — keep stepping.
+        } else {
+            SLONG norm_x, norm_z, dist, on;
+            // Now on the correct side.
+            signed_dist_to_line_with_normal_mark(vx1, vz1, vx2, vz2, *x2, *z2, &dist, &norm_x, &norm_z, &on);
+
+            if (side_required == 1) {
+                ASSERT(dist >= 0);
+            } else {
+                ASSERT(dist <= 0);
+            }
+
+            return;
+        }
+    }
+}
+
+// uc_orig: EXTRA_RADIUS (fallen/Source/collide.cpp)
+// Extra radius added at facet endpoints to avoid corner-clipping.
+#define EXTRA_RADIUS 10
+
+// uc_orig: VEC_SHIFT (fallen/Source/collide.cpp)
+// Fixed-point shift for normalised wall-normal vectors in slide_along.
+#define VEC_SHIFT (17)
+
+// uc_orig: VEC_LENGTH (fallen/Source/collide.cpp)
+// Length of normalised vector at VEC_SHIFT precision.
+#define VEC_LENGTH (1 << VEC_SHIFT)
+
+// uc_orig: MAX_ALREADY — defined in collide_globals.h to avoid circular include.

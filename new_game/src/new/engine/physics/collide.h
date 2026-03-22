@@ -119,4 +119,92 @@ void highlight_quad(SLONG face, SLONG face_x, SLONG face_y, SLONG face_z);
 // Stub — was intended to find walls intersecting a vector. Returns 0.
 SLONG vect_intersect_wall(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 
+// ========================================================================
+// Face / walkable surface queries
+// ========================================================================
+
+// uc_orig: find_face_near_y (fallen/Source/collide.cpp)
+// Searches PAP LO-res cells near (x,z) for a walkable face within [neg_dy,pos_dy]
+// of y.  Returns face index (negative = roof face); writes height to *ret_y.
+SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_this_building, Thing* p_person, SLONG neg_dy, SLONG pos_dy, SLONG* ret_y);
+
+// uc_orig: find_alt_for_this_pos (fallen/Source/collide.cpp)
+// Returns the walkable floor height at (x,z), falling back to terrain height.
+SLONG find_alt_for_this_pos(SLONG x, SLONG z);
+
+// ========================================================================
+// Ladder helpers
+// ========================================================================
+
+// uc_orig: correct_pos_for_ladder (fallen/Source/collide.cpp)
+// Computes snap position and approach angle for the given ladder DFacet.
+void correct_pos_for_ladder(struct DFacet* p_facet, SLONG* px, SLONG* pz, SLONG* angle, SLONG scale);
+
+// uc_orig: ok_to_mount_ladder (fallen/Source/collide.cpp)
+// Returns 1 if the thing is close enough (QDIST2 < 75) to mount the ladder facet.
+SLONG ok_to_mount_ladder(struct Thing* p_thing, struct DFacet* p_facet);
+
+// uc_orig: mount_ladder (fallen/Source/collide.cpp)
+// Attempts to put p_thing onto the ladder at the given facet index.
+SLONG mount_ladder(Thing* p_thing, SLONG facet);
+
+// uc_orig: set_person_climb_down_onto_ladder (fallen/Source/collide.cpp)
+// Snaps person to ladder and starts the climb-down-onto animation.
+SLONG set_person_climb_down_onto_ladder(Thing* p_person, SLONG colvect);
+
+// uc_orig: find_nearby_ladder_colvect_radius (fallen/Source/collide.cpp)
+// Returns the nearest STOREY_TYPE_LADDER facet within radius of (mid_x,mid_z).
+SLONG find_nearby_ladder_colvect_radius(SLONG mid_x, SLONG mid_z, SLONG radius);
+
+// uc_orig: find_nearby_ladder_colvect (fallen/Source/collide.cpp)
+// Returns the nearest ladder facet within LADDER_NEARBY_RADIUS of p_thing.
+SLONG find_nearby_ladder_colvect(Thing* p_thing);
+
+// ========================================================================
+// Person foot / height utilities
+// ========================================================================
+
+// uc_orig: set_feet_to_y (fallen/Source/collide.cpp)
+// Adjusts WorldPos.Y so the left-foot sub-object lands at new_y.
+void set_feet_to_y(Thing* p_person, SLONG new_y);
+
+// uc_orig: height_above_anything (fallen/Source/collide.cpp)
+// Returns the height of body_part above the nearest surface; negative = clipped through.
+SLONG height_above_anything(Thing* p_person, SLONG body_part, SWORD* onface);
+
+// uc_orig: plant_feet (fallen/Source/collide.cpp)
+// Snaps the person's feet to the nearest surface after movement.
+// Returns 1=on face, 0=dropping, -1=on terrain floor.
+SLONG plant_feet(Thing* p_person);
+
+// ========================================================================
+// Character radius queries
+// ========================================================================
+
+// uc_orig: get_person_radius (fallen/Source/collide.cpp)
+// Returns the primary collision radius for the given person type.
+SLONG get_person_radius(SLONG type);
+
+// uc_orig: get_person_radius2 (fallen/Source/collide.cpp)
+// Returns the secondary (tighter) collision radius for the given person type.
+SLONG get_person_radius2(SLONG type);
+
+// ========================================================================
+// Fence height
+// ========================================================================
+
+// uc_orig: get_fence_height (fallen/Source/collide.cpp)
+// Converts packed fence height to world units. h==2 maps to 85, otherwise h*64.
+SLONG get_fence_height(SLONG h);
+
+// ========================================================================
+// Slide-along support
+// ========================================================================
+
+// uc_orig: step_back_along_vect (fallen/Source/collide.cpp)
+// Walks (x2,z2) back along its delta until it crosses to the required side
+// of wall segment (vx1,vz1)-(vx2,vz2).  side_required: 1=this side, 0=other.
+void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2,
+    SLONG vx1, SLONG vz1, SLONG vx2, SLONG vz2, SLONG side_required);
+
 #endif // ENGINE_PHYSICS_COLLIDE_H

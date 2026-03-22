@@ -1578,6 +1578,8 @@ SLONG	check_vect_circle(SLONG m_dx,SLONG m_dy,SLONG m_dz,Thing *p_thing,SLONG ra
 }
 */
 
+// Migrated to new/engine/physics/collide.cpp (chunk 2)
+#if 0
 extern void set_tween_for_dy(Thing* p_person, SLONG dy);
 
 SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_this_building, Thing* p_person, SLONG neg_dy, SLONG pos_dy, SLONG* ret_y)
@@ -2199,6 +2201,7 @@ SLONG get_person_radius2(SLONG type)
 
     return (35); // an average person
 }
+#endif // migrated to new/engine/physics/collide.cpp (chunk 2)
 
 /*
 
@@ -2280,6 +2283,8 @@ SLONG	bump_someone(Thing *p_thing,MAPCO24 mdx,MAPCO24 mdy,MAPCO24 mdz)
 
 */
 
+// Migrated to new/engine/physics/collide.cpp (chunk 2)
+#if 0
 SLONG get_fence_height(SLONG h)
 {
     if (h == 2)
@@ -2336,44 +2341,27 @@ void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2, SLONG vx1, S
     }
 }
 
-#define EXTRA_RADIUS 10
-//
-// The length of our normalised vector.
-//
+#endif // migrated to new/engine/physics/collide.cpp (chunk 2)
 
+// Macros kept here — still needed by slide_along() in this file.
+// Migrated as #defines to new/engine/physics/collide.cpp and collide_globals.h.
+#define EXTRA_RADIUS 10
 #define VEC_SHIFT (17)
 #define VEC_LENGTH (1 << VEC_SHIFT)
-
-//
-// Remember colvect we have already done, and dont do them twice.
-//
-
 #define MAX_ALREADY 50
 
+// Migrated to new/engine/physics/collide_globals.cpp (chunk 2)
+#if 0
 UWORD already[MAX_ALREADY];
-
-//
-// Given a movement vector, this function changes it to slide
-// along any col-vects it may encounter. If it find a colvect
-// onto a walkable face, then it doesn't slide, it just returns
-// that col-vect.
-//
-
 UWORD max_facet_find = 0;
-
-// claude-ai: Глобальное состояние последнего вызова slide_along() / move_thing().
-// claude-ai:   last_slide_colvect — индекс последнего facet/colvect о который скользили (или fence_colvect если был забор)
-// claude-ai:   last_slide_dist    — пройденное расстояние вдоль стены
-// claude-ai:   actual_sliding     — TRUE если скольжение реально произошло (персонаж упёрся в стену)
-// claude-ai:   slide_door         — скользили вдоль двери
-// claude-ai:   slide_ladder       — скользили вдоль лестницы
 SLONG last_slide_colvect;
 SLONG last_slide_dist;
 SLONG actual_sliding;
 SLONG slide_door;
 SLONG slide_ladder;
-SLONG slide_into_warehouse; // NULL if you have not gone into a warehouse or the index of the warehouse if you have.
+SLONG slide_into_warehouse;
 SLONG slide_outof_warehouse;
+#endif // migrated to new/engine/physics/collide_globals.cpp (chunk 2)
 
 /*
 
@@ -3167,11 +3155,11 @@ SLONG slide_along_old(
 }
 */
 
-// claude-ai: Локальные-глобальные флаги для slide_along() — сбрасываются в начале каждого вызова.
-// claude-ai:   slid_along_fence — персонаж скользил вдоль забора в текущем кадре
-// claude-ai:   fence_colvect    — индекс facet забора (переопределяет last_slide_colvect)
+// Migrated to new/engine/physics/collide_globals.cpp (chunk 2)
+#if 0
 UBYTE slid_along_fence = 0;
 UWORD fence_colvect = 0;
+#endif // migrated
 // SLONG	slide_nogo;
 
 // claude-ai: slide_along() — скольжение вектора движения вдоль поверхностей без отскока (restitution=0).
