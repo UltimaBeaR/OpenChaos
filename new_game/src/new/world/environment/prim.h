@@ -131,7 +131,7 @@ void get_rotated_point_world_pos(
     SLONG prim_yaw, SLONG prim_pitch, SLONG prim_roll,
     SLONG* px, SLONG* py, SLONG* pz);
 
-// Slide movement vector around the prim's bounding box. Returns TRUE if collision.
+// Slide movement vector around the prim's bounding box. Returns UC_TRUE if collision.
 // uc_orig: slide_along_prim (fallen/Source/Prim.cpp)
 SLONG slide_along_prim(
     SLONG prim,
@@ -148,7 +148,7 @@ UBYTE prim_get_collision_model(SLONG prim);
 // uc_orig: prim_get_shadow_type (fallen/Source/Prim.cpp)
 UBYTE prim_get_shadow_type(SLONG prim);
 
-// Returns TRUE if a fence lies along the given orthogonal world-space line.
+// Returns UC_TRUE if a fence lies along the given orthogonal world-space line.
 // uc_orig: does_fence_lie_along_line (fallen/Source/Prim.cpp)
 SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2);
 

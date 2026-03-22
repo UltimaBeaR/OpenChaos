@@ -452,12 +452,12 @@ void OB_load_needed_prims()
 
         // Centre the specials.
         {
-            SLONG min_x = +INFINITY;
-            SLONG min_y = +INFINITY;
-            SLONG min_z = +INFINITY;
-            SLONG max_x = -INFINITY;
-            SLONG max_y = -INFINITY;
-            SLONG max_z = -INFINITY;
+            SLONG min_x = +UC_INFINITY;
+            SLONG min_y = +UC_INFINITY;
+            SLONG min_z = +UC_INFINITY;
+            SLONG max_x = -UC_INFINITY;
+            SLONG max_y = -UC_INFINITY;
+            SLONG max_z = -UC_INFINITY;
             SLONG mid_x, mid_y, mid_z;
             PrimObject* po = &prim_objects[SPECIAL_info[i].prim];
 
@@ -704,15 +704,15 @@ static SLONG special_object_flag(OB_Info* ob, SLONG flags)
 {
     if (flags & FIND_OB_TRIPWIRE) {
         if (ob->prim == PRIM_OBJ_TRIPWIRE)
-            return TRUE;
+            return UC_TRUE;
     }
     if (flags & FIND_OB_SWITCH_OR_VALVE) {
         if (ob->prim == PRIM_OBJ_VALVE)
-            return TRUE;
+            return UC_TRUE;
         if (ob->prim == PRIM_OBJ_SWITCH_OFF)
-            return TRUE;
+            return UC_TRUE;
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: OB_find_type (fallen/Source/ob.cpp)
@@ -726,7 +726,7 @@ SLONG OB_find_type(
     SLONG mx1, mz1, mx2, mz2;
     SLONG dx, dy, dz;
     SLONG dist;
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
     SLONG best_x, best_y, best_z, best_yaw, best_prim, best_index;
     OB_Info* oi;
 
@@ -763,8 +763,8 @@ SLONG OB_find_type(
             }
         }
 
-    if (best_dist == INFINITY)
-        return FALSE;
+    if (best_dist == UC_INFINITY)
+        return UC_FALSE;
 
     *ob_x = best_x;
     *ob_y = best_y;
@@ -772,7 +772,7 @@ SLONG OB_find_type(
     *ob_yaw = best_yaw;
     *ob_prim = best_prim;
     *ob_index = best_index;
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: OB_find_index (fallen/Source/ob.cpp)
@@ -783,7 +783,7 @@ OB_Info* OB_find_index(SLONG mid_x, SLONG mid_y, SLONG mid_z, SLONG max_range,
     SLONG mx1, mz1, mx2, mz2;
     SLONG dx, dy, dz;
     SLONG dist;
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
     OB_Info *oi, *best_ob = 0;
 
     mx1 = mid_x - max_range >> PAP_SHIFT_LO;
@@ -955,12 +955,12 @@ SLONG OB_inside_prim(SLONG x, SLONG y, SLONG z)
                 if (dy < 0x300) {
                     dist = QDIST2(abs(dx), abs(dz));
                     if (dist < 0x100)
-                        return TRUE;
+                        return UC_TRUE;
                 }
             }
         }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: OB_make_all_the_switches_be_at_the_proper_height (fallen/Source/ob.cpp)

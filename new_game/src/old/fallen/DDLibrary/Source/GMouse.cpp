@@ -86,7 +86,7 @@ LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam)
     case WM_MBUTTONDBLCLK:
         break;
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 void RecenterMouse(void)

@@ -354,7 +354,7 @@ void CONE_clip(
         along_p[i].along_w = (px * wx + py * wy + pz * wz) * overlen_w;
     }
 
-    point_info_then->failed_side = TRUE;
+    point_info_then->failed_side = UC_TRUE;
 
     for (i = 0; i < CONE_point_upto; i++) {
         cp = &CONE_point[i];
@@ -366,9 +366,9 @@ void CONE_clip(
         dpc = px * nx + py * ny + pz * nz;
 
         if (dpc <= 0.0F) {
-            point_info_now->failed_side = TRUE;
+            point_info_now->failed_side = UC_TRUE;
         } else {
-            point_info_now->failed_side = FALSE;
+            point_info_now->failed_side = UC_FALSE;
 
             // Find intersection of the cone ray with the polygon plane.
             along = dpo / (dpo - dpc);
@@ -415,7 +415,7 @@ void CONE_clip(
                     // Intersection is outside the polygon.
                     point_info_now->failed_dprod = j;
 
-                    if (point_info_then->failed_side == FALSE && point_info_then->failed_dprod == num_points) {
+                    if (point_info_then->failed_side == UC_FALSE && point_info_then->failed_dprod == num_points) {
                         // Previous ray was inside the polygon, so insert a boundary point.
                         along = point_info_then->dprod[j] / (point_info_then->dprod[j] - dprod);
 
@@ -474,7 +474,7 @@ void CONE_clip(
             cp->z = iz;
             cp->colour = icolour;
 
-            if (point_info_then->failed_side == FALSE && point_info_then->failed_dprod < num_points) {
+            if (point_info_then->failed_side == UC_FALSE && point_info_then->failed_dprod < num_points) {
                 // Previous ray was outside the polygon: insert boundary entry point.
                 along = point_info_then->dprod[point_info_then->failed_dprod] / (point_info_then->dprod[point_info_then->failed_dprod] - point_info_now->dprod[point_info_then->failed_dprod]);
 
@@ -558,7 +558,7 @@ static void CONE_intersect_square(
     f_list = pl->ColVectHead;
 
     if (f_list) {
-        exit = FALSE;
+        exit = UC_FALSE;
 
         while (!exit) {
             facet = facet_links[f_list];
@@ -567,7 +567,7 @@ static void CONE_intersect_square(
 
             if (facet < 0) {
                 facet = -facet;
-                exit = TRUE;
+                exit = UC_TRUE;
             }
 
             // Deduplicate: skip facets we already processed this cone-map traversal.
@@ -781,7 +781,7 @@ void CONE_draw()
         tri[2] = &CONE_point[p2].pp;
 
         if (POLY_valid_triangle(tri)) {
-            POLY_add_triangle(tri, POLY_PAGE_ADDITIVE, FALSE);
+            POLY_add_triangle(tri, POLY_PAGE_ADDITIVE, UC_FALSE);
         }
     }
 }

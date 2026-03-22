@@ -103,7 +103,7 @@ CBYTE* XLAT_str(SLONG string_id, CBYTE* xlat_dest)
     buff = xlat_dest;
 
     if ((xlat_upto == xlat_set) || (!xlat_upto) || !xlated) {
-        ASSERT(FALSE);
+        ASSERT(UC_FALSE);
         return "missing language file. get t:\\lang-english.txt and stick it in your fallen\\text directory";
     }
 
@@ -209,7 +209,7 @@ void XLAT_load(CBYTE* fn)
     ZeroMemory(xlat_set, sizeof(xlat_set));
 
     if (!FileExists(fn)) {
-        ASSERT(FALSE);
+        ASSERT(UC_FALSE);
         return;
     }
 

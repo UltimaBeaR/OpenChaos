@@ -334,7 +334,7 @@ void HM_init()
     SLONG i;
 
     for (i = 0; i < HM_MAX_OBJECTS; i++) {
-        HM_object[i].used = FALSE;
+        HM_object[i].used = UC_FALSE;
     }
 }
 
@@ -655,7 +655,7 @@ UBYTE HM_create(
 
 found_unused_hm_object:;
 
-    ho->used = TRUE;
+    ho->used = UC_TRUE;
     ho->prim = prim;
     ho->x_res = x_res;
     ho->y_res = y_res;
@@ -712,7 +712,7 @@ found_unused_hm_object:;
     for (x = 0; x < x_res - 1; x++)
         for (y = 0; y < y_res - 1; y++)
             for (z = 0; z < z_res - 1; z++) {
-                empty[x][y][z] = TRUE;
+                empty[x][y][z] = UC_TRUE;
             }
 
     //
@@ -735,7 +735,7 @@ found_unused_hm_object:;
 
                 for (z = 0; z < z_res - 1; z++) {
                     if (WITHIN(pp->Z, cubez[z], cubez[z + 1])) {
-                        empty[x][y][z] = FALSE;
+                        empty[x][y][z] = UC_FALSE;
 
                         goto do_next_point;
                     }
@@ -1047,7 +1047,7 @@ found_unused_hm_object:;
     // position and orientation of the original prim.
     //
 
-    float best_score = float(INFINITY);
+    float best_score = float(UC_INFINITY);
     SLONG best_origin = -1;
     SLONG best_x = -1;
     SLONG best_y = -1;
@@ -1094,7 +1094,7 @@ found_unused_hm_object:;
                 }
             }
 
-    if (best_score >= INFINITY) {
+    if (best_score >= UC_INFINITY) {
         //
         // Oh hell! We couldn't find and decent vectors.
         //
@@ -1181,7 +1181,7 @@ found_unused_hm_object:;
 // claude-ai: HM_destroy() — frees all MemAlloc'd arrays for an HM slot and marks it unused.
 // claude-ai: Note: does NOT free pending HM_Bump nodes on ho->bump linked list — potential memory leak
 // claude-ai: if any HM-vs-HM collision bumps are active at the time of destruction.
-// claude-ai: Called by Furn.cpp when a furniture item comes to rest (HM_stationary() returns TRUE)
+// claude-ai: Called by Furn.cpp when a furniture item comes to rest (HM_stationary() returns UC_TRUE)
 // claude-ai: or when the item leaves the world (falls off level edge, etc.).
 void HM_destroy(UBYTE hm_index)
 {
@@ -1190,7 +1190,7 @@ void HM_destroy(UBYTE hm_index)
     HM_Object* ho = &HM_object[hm_index];
 
     if (ho->used) {
-        ho->used = FALSE;
+        ho->used = UC_FALSE;
 
         //
         // Free up MemAlloc'ed memory.
@@ -1421,10 +1421,10 @@ void HM_find_mesh_point(
 // claude-ai: HM_cube_exists() — checks whether all 8 corner-points of a lattice cube are active.
 // claude-ai: A cube is "solid" only if all 8 surrounding lattice nodes exist (sparse grid can have gaps).
 // claude-ai: Used by HM_collide() to determine which cube faces are boundary faces (for entry-point detection).
-// claude-ai: Returns FALSE for out-of-bounds coordinates (boundary cubes at lattice edges always return FALSE).
+// claude-ai: Returns UC_FALSE for out-of-bounds coordinates (boundary cubes at lattice edges always return UC_FALSE).
 //
 // Returnstrue if the cube of the hypermatter object exists. If you pass
-// an out-of-bounds cube, then it just returns FALSE.
+// an out-of-bounds cube, then it just returns UC_FALSE.
 //
 
 SLONG HM_cube_exists(
@@ -1446,7 +1446,7 @@ SLONG HM_cube_exists(
     SLONG index;
 
     if (!WITHIN(x_cube, 0, ho->x_res - 2) || !WITHIN(y_cube, 0, ho->y_res - 2) || !WITHIN(z_cube, 0, ho->z_res - 2)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     for (i = 0; i < 8; i++) {
@@ -1459,7 +1459,7 @@ SLONG HM_cube_exists(
         pz = z_cube + dz;
 
         if (!WITHIN(px, 0, ho->x_res - 1) || !WITHIN(py, 0, ho->y_res - 1) || !WITHIN(pz, 0, ho->z_res - 1)) {
-            return FALSE;
+            return UC_FALSE;
         }
 
         index = HM_index(ho, px, py, pz);
@@ -1469,18 +1469,18 @@ SLONG HM_cube_exists(
             // No point here.
             //
 
-            return FALSE;
+            return UC_FALSE;
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // claude-ai: HM_is_point_in_cube() — GJK-like OBB containment test for HM-vs-HM collision detection.
 // claude-ai: Transforms world-space point 'p' into the local space of the lattice cube using the cube's
 // claude-ai: deformed axis vectors (from corner points hp_o, hp_x, hp_y, hp_z).
 // claude-ai: Normalises each axis vector by 1/len² (not 1/len!) to map cube extent to [0,1] range.
-// claude-ai: Returns TRUE if all three local coords are within [0,1] — i.e. point is inside the cube.
+// claude-ai: Returns UC_TRUE if all three local coords are within [0,1] — i.e. point is inside the cube.
 // claude-ai: Note: assumes the cube is still roughly orthogonal (ASSUME THAT THE CUBE IS IN A RIGID SHAPE).
 // claude-ai: Under heavy deformation the spring lattice may become non-orthogonal, causing false positives.
 // claude-ai: PORT NOTE → Replace with proper GJK/SAT convex hull penetration test in new game.
@@ -1526,7 +1526,7 @@ SLONG HM_is_point_in_cube(
     //
 
     if (!HM_cube_exists(ho, x_cube, y_cube, z_cube)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     //
@@ -1613,10 +1613,10 @@ SLONG HM_is_point_in_cube(
         *rel_y = ry;
         *rel_z = rz;
 
-        return TRUE;
+        return UC_TRUE;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // claude-ai: HM_last_point_in_last_cube() — reconstructs where a point WAS last frame, in last-frame cube space.
@@ -1970,11 +1970,11 @@ void HM_process_bump(HM_Object* ho, HM_Bump* hb)
 
 // claude-ai: HM_bump_dead() — checks whether a tracked penetration is over (point has exited the other object).
 // claude-ai: Optimisation: checks the original entry cube first before scanning all cubes (usually sufficient).
-// claude-ai: If the point is still inside ANY cube of object2, returns FALSE (keep the bump record alive).
-// claude-ai: If the point is in no cube, returns TRUE (the bump record will be freed from the list).
+// claude-ai: If the point is still inside ANY cube of object2, returns UC_FALSE (keep the bump record alive).
+// claude-ai: If the point is in no cube, returns UC_TRUE (the bump record will be freed from the list).
 // claude-ai: This is called every frame from HM_process() after applying bump forces.
 //
-// Returns TRUE if the given bump structure is no longer relavent- i.e.
+// Returns UC_TRUE if the given bump structure is no longer relavent- i.e.
 // the bumping point is no longer bumping.
 //
 
@@ -2008,7 +2008,7 @@ SLONG HM_bump_dead(HM_Object* ho, HM_Bump* hb)
             &rel_x,
             &rel_y,
             &rel_z)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     for (sx = 0; sx < ho2->x_res - 1; sx++)
@@ -2028,7 +2028,7 @@ SLONG HM_bump_dead(HM_Object* ho, HM_Bump* hb)
                             &rel_x,
                             &rel_y,
                             &rel_z)) {
-                        return FALSE;
+                        return UC_FALSE;
                     }
                 }
             }
@@ -2037,7 +2037,7 @@ SLONG HM_bump_dead(HM_Object* ho, HM_Bump* hb)
     // The point is not inside the object... don't collide any more.
     //
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // claude-ai: HM_collide() — narrow-phase HM-vs-HM collision detection (one direction: obj1 points vs obj2 cubes).
@@ -2197,9 +2197,9 @@ void HM_collide(UBYTE hm_index1, UBYTE hm_index2)
                         // So where did the point enter the cube?
                         //
 
-                        along_x = float(INFINITY);
-                        along_y = float(INFINITY);
-                        along_z = float(INFINITY);
+                        along_x = float(UC_INFINITY);
+                        along_y = float(UC_INFINITY);
+                        along_z = float(UC_INFINITY);
 
                         //
                         // Along one of the x-edges?
@@ -2231,7 +2231,7 @@ void HM_collide(UBYTE hm_index1, UBYTE hm_index2)
                             along_z = (0.0F - last_rel_z) / (rel_z - last_rel_z);
                         }
 
-                        along_enter = float(INFINITY);
+                        along_enter = float(UC_INFINITY);
 
                         if (along_x < along_enter) {
                             along_enter = along_x;
@@ -3041,7 +3041,7 @@ void HM_find_mesh_pos(
 
 // claude-ai: HM_stationary() — checks if an HM object has come to rest (ready to be destroyed/converted back).
 // claude-ai: Computes the average absolute velocity across all lattice points.
-// claude-ai: Returns TRUE if average |dx|+|dy|+|dz| < 0.25 (combined, not per-axis).
+// claude-ai: Returns UC_TRUE if average |dx|+|dy|+|dz| < 0.25 (combined, not per-axis).
 // claude-ai: Called by Furn.cpp after each physics tick. When stationary, Furn.cpp calls HM_destroy()
 // claude-ai: and places a static prim back at the position given by HM_find_mesh_pos().
 // claude-ai: The threshold 0.25 is relatively generous — object may still visibly rock at this speed.
@@ -3069,9 +3069,9 @@ SLONG HM_stationary(UBYTE hm_index)
     dz /= ho->num_points;
 
     if (dx + dy + dz < 0.25F) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

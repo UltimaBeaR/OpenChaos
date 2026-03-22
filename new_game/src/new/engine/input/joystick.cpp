@@ -65,10 +65,10 @@ SLONG OS_joy_poll(void)
     if (OS_joy_direct_input == NULL || OS_joy_input_device == NULL || OS_joy_input_device2 == NULL) {
         memset(&the_state, 0, sizeof(the_state));
 
-        return FALSE;
+        return UC_FALSE;
     }
 
-    SLONG acquired_already = FALSE;
+    SLONG acquired_already = UC_FALSE;
 
 try_again_after_acquiring:;
 
@@ -81,24 +81,24 @@ try_again_after_acquiring:;
             if (acquired_already) {
                 memset(&the_state, 0, sizeof(the_state));
 
-                return FALSE;
+                return UC_FALSE;
             } else {
                 hr = OS_joy_input_device->Acquire();
 
                 if (hr == DI_OK) {
-                    acquired_already = TRUE;
+                    acquired_already = UC_TRUE;
 
                     goto try_again_after_acquiring;
                 } else {
                     memset(&the_state, 0, sizeof(the_state));
 
-                    return FALSE;
+                    return UC_FALSE;
                 }
             }
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: GetInputDevice (fallen/DDLibrary/Source/DIManager.cpp)
@@ -111,9 +111,9 @@ BOOL GetInputDevice(UBYTE type, UBYTE sub_type, bool bActuallyGetOne)
     }
 
     if (OS_joy_input_device && OS_joy_input_device2) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

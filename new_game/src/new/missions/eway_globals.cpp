@@ -233,7 +233,7 @@ SLONG EWAY_conv_timer;
 // uc_orig: EWAY_conv_skip (fallen/Source/eway.cpp)
 SLONG EWAY_conv_skip;
 
-// TRUE => ambient conversation: no camera takeover, no widescreen.
+// UC_TRUE => ambient conversation: no camera takeover, no widescreen.
 // uc_orig: EWAY_conv_ambient (fallen/Source/eway.cpp)
 SLONG EWAY_conv_ambient;
 

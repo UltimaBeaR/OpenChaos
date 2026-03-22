@@ -165,7 +165,7 @@ public:
     DDModeInfo* FindFormat(SLONG bpp, DDModeInfo** next_best_format, DDModeInfo* start = NULL);
 
     inline SLONG CountFormats(void)       { return FormatCount; }
-    inline BOOL  FormatsLoaded(void)      { return ((D3DFlags & D3D_DEVICE_F_LOADED) ? TRUE : FALSE); }
+    inline BOOL  FormatsLoaded(void)      { return ((D3DFlags & D3D_DEVICE_F_LOADED) ? UC_TRUE : UC_FALSE); }
     inline void  TurnFormatsLoadedOn(void)  { D3DFlags |= D3D_DEVICE_F_LOADED; }
     inline void  TurnFormatsLoadedOff(void) { D3DFlags &= ~D3D_DEVICE_F_LOADED; }
 
@@ -229,7 +229,7 @@ public:
     DDModeInfo* FindMode(SLONG w, SLONG h, SLONG bpp, SLONG refresh, DDModeInfo** next_best = NULL, DDModeInfo* start_mode = NULL);
 
     inline SLONG CountModes(void)       { return ModeCount; }
-    inline BOOL  ModesLoaded(void)      { return ((DriverFlags & DD_DRIVER_M_LOADED) ? TRUE : FALSE); }
+    inline BOOL  ModesLoaded(void)      { return ((DriverFlags & DD_DRIVER_M_LOADED) ? UC_TRUE : UC_FALSE); }
     inline void  TurnModesLoadedOn(void)  { DriverFlags |= DD_DRIVER_M_LOADED; }
     inline void  TurnModesLoadedOff(void) { DriverFlags &= ~DD_DRIVER_M_LOADED; }
 
@@ -242,7 +242,7 @@ public:
     DDModeInfo*    FindModeSupportsDevice(SLONG w, SLONG h, SLONG bpp, SLONG refresh, D3DDeviceInfo* the_device, DDModeInfo** next_best, DDModeInfo* start_device = NULL);
 
     inline SLONG CountDevices(void)        { return DeviceCount; }
-    inline BOOL  DevicesLoaded(void)       { return ((DriverFlags & DD_DRIVER_D_LOADED) ? TRUE : FALSE); }
+    inline BOOL  DevicesLoaded(void)       { return ((DriverFlags & DD_DRIVER_D_LOADED) ? UC_TRUE : UC_FALSE); }
     inline void  TurnDevicesLoadedOn(void)  { DriverFlags |= DD_DRIVER_D_LOADED; }
     inline void  TurnDevicesLoadedOff(void) { DriverFlags &= ~DD_DRIVER_D_LOADED; }
 };

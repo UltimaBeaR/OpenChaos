@@ -176,7 +176,7 @@ void game_startup(void)
     init_joypad_config();
     ANIM_init();
 
-    GetInputDevice(JOYSTICK, 0, TRUE);
+    GetInputDevice(JOYSTICK, 0, UC_TRUE);
 
     MORPH_load();
 
@@ -279,7 +279,7 @@ BOOL game_init(void)
     extern int m_iPanelYPos;
 
     if (GAME_STATE & GS_RECORD) {
-        playback_file = FileCreate(playback_name, TRUE);
+        playback_file = FileCreate(playback_name, UC_TRUE);
         verifier_file = NULL;
     } else if (GAME_STATE & GS_PLAYBACK) {
         playback_file = FileOpen(playback_name);
@@ -311,13 +311,13 @@ BOOL game_init(void)
         extern CBYTE ELEV_fname_level[];
         extern SLONG quick_load;
 
-        quick_load = TRUE;
+        quick_load = UC_TRUE;
 
         ANIM_init();
 
         ELEV_load_name(ELEV_fname_level);
 
-        quick_load = FALSE;
+        quick_load = UC_FALSE;
 
         ret = 1;
 
@@ -406,7 +406,7 @@ void GAME_map_draw_old(void)
 
     SLONG x, z, dx, dz, ndx, ndz, angle;
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
     ShowBackImage();
     the_display.lp_D3D_Viewport->Clear(1, &the_display.ViewportRect, D3DCLEAR_ZBUFFER);
 
@@ -432,7 +432,7 @@ void GAME_map_draw_old(void)
     z += TAB_MAP_MIN_Z;
     AENG_draw_col_tri(x + ndx, z + ndz, 0xff0000, x + dx, z + dz, 0xff0000, x - ndx, z - ndz, 0xff0000, 0);
 
-    POLY_frame_draw(FALSE, TRUE);
+    POLY_frame_draw(UC_FALSE, UC_TRUE);
 }
 
 // uc_orig: GAME_map_draw (fallen/Source/Game.cpp)
@@ -453,9 +453,9 @@ BOOL leave_map_form_proc(Form* form, Widget* widget, SLONG message)
     if (widget && widget->methods == &BUTTON_Methods && message == WBN_PUSH) {
         form->returncode = widget->tag;
 
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
@@ -476,7 +476,7 @@ void process_bullet_points(void)
         bright = 255;
     }
 
-    text_fudge = FALSE;
+    text_fudge = UC_FALSE;
     text_colour = bright * 0x00010101;
 
     draw_centre_text_at(10, 420, bullet_point[bullet_upto], 0, 0);
@@ -514,7 +514,7 @@ void do_leave_map_form(void)
 
     form_left_map = 15;
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     ret = FORM_Process(form_leave_map);
 
@@ -544,7 +544,7 @@ void do_leave_map_form(void)
     } else {
         FORM_Draw(form_leave_map);
 
-        POLY_frame_draw(FALSE, FALSE);
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
     }
 }
 
@@ -648,14 +648,14 @@ void handle_sfx(void)
 SLONG should_i_process_game(void)
 {
     if (EWAY_tutorial_string) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (GAMEMENU_is_paused()) {
-        return FALSE;
+        return UC_FALSE;
     }
 
-    return TRUE;
+    return UC_TRUE;
 
     // Dead code below: original had more conditions that were commented out.
     if (!(GAME_FLAGS & (GF_PAUSED | (GF_SHOW_MAP * 0))) && !form_leave_map)
@@ -717,7 +717,7 @@ round_again:;
     if (game_init()) {
 
         already_warned_about_leaving_map = GetTickCount();
-        draw_map_screen = FALSE;
+        draw_map_screen = UC_FALSE;
         form_leave_map = NULL;
         form_left_map = 0;
         LastKey = 0;
@@ -731,7 +731,7 @@ round_again:;
 
         if (GAME_STATE & GS_PLAYBACK)
             BreakStart();
-        SLONG exit_game_loop = FALSE;
+        SLONG exit_game_loop = UC_FALSE;
 
         SUPERFACET_init();
 
@@ -855,7 +855,7 @@ round_again:;
 
             OVERLAY_handle();
 
-            SLONG i_want_to_exit = FALSE;
+            SLONG i_want_to_exit = UC_FALSE;
 
             if (!(GAME_FLAGS & GF_PAUSED))
                 CONSOLE_draw();
@@ -905,11 +905,11 @@ round_again:;
 
                 extern void OS_hack(void);
 
-                the_end = TRUE;
+                the_end = UC_TRUE;
 
                 OS_hack();
 
-                the_end = FALSE;
+                the_end = UC_FALSE;
             } else
 
                 // Warn the player if they killed too many civilians (RedMarks > 1).
@@ -927,7 +927,7 @@ round_again:;
 
                         while (SHELL_ACTIVE) {
                             ShowBackImage();
-                            POLY_frame_init(FALSE, FALSE);
+                            POLY_frame_init(UC_FALSE, UC_FALSE);
 
                             switch (the_game.DarciDeadCivWarnings) {
                             case 0:
@@ -959,7 +959,7 @@ round_again:;
                             FONT2D_DrawStringWrapTo(mess, 32, 82, 0x000000, 256, POLY_PAGE_FONT2D, 0, 352);
                             FONT2D_DrawStringWrapTo(mess, 30, 80, 0xffffff, 256, POLY_PAGE_FONT2D, 0, 350);
 
-                            POLY_frame_draw(TRUE, TRUE);
+                            POLY_frame_draw(UC_TRUE, UC_TRUE);
                             AENG_flip();
 
                             if (Keys[KB_ESC] || Keys[KB_SPACE] || Keys[KB_ENTER] || Keys[KB_PENTER]) {

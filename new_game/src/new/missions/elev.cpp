@@ -91,7 +91,7 @@ void ELEV_load_level(CBYTE* fname_level)
     SLONG tz;
     SLONG angle;
     SLONG version;
-    SLONG load_ok = FALSE;
+    SLONG load_ok = UC_FALSE;
     SLONG flag;
 
     SLONG ew_id;
@@ -137,18 +137,18 @@ void ELEV_load_level(CBYTE* fname_level)
 
     EWAY_init();
 
-    iamapsx = ENV_get_value_number("iamapsx", FALSE);
+    iamapsx = ENV_get_value_number("iamapsx", UC_FALSE);
 
     if (!CNET_network_game)
         NO_PLAYERS = 0;
 
-    load_ok = TRUE;
+    load_ok = UC_TRUE;
 
     if (fname_level != NULL) {
         handle = FileOpen(fname_level);
 
         if (handle == FILE_OPEN_ERROR) {
-            load_ok = FALSE;
+            load_ok = UC_FALSE;
         } else {
             if (FileRead(handle, &version, sizeof(SLONG)) == FILE_READ_ERROR)
                 goto file_error; // Version
@@ -336,11 +336,11 @@ void ELEV_load_level(CBYTE* fname_level)
                         // Boolean conditions always reference other waypoints (dependency-based).
                         ecd1.type = EWAY_COND_DEPENDENT;
                         ecd1.arg1 = event_point.EPRef;
-                        ecd1.negate = FALSE;
+                        ecd1.negate = UC_FALSE;
 
                         ecd2.type = EWAY_COND_DEPENDENT;
                         ecd2.arg1 = event_point.EPRefBool;
-                        ecd2.negate = FALSE;
+                        ecd2.negate = UC_FALSE;
 
                         ecd.type = EWAY_COND_BOOL_AND;
                         ecd.bool_arg1 = &ecd1;
@@ -351,11 +351,11 @@ void ELEV_load_level(CBYTE* fname_level)
                     case TT_BOOLEANOR:
                         ecd1.type = EWAY_COND_DEPENDENT;
                         ecd1.arg1 = event_point.EPRef;
-                        ecd1.negate = FALSE;
+                        ecd1.negate = UC_FALSE;
 
                         ecd2.type = EWAY_COND_DEPENDENT;
                         ecd2.arg1 = event_point.EPRefBool;
-                        ecd2.negate = FALSE;
+                        ecd2.negate = UC_FALSE;
 
                         ecd.type = EWAY_COND_BOOL_OR;
                         ecd.bool_arg1 = &ecd1;
@@ -998,7 +998,7 @@ void ELEV_load_level(CBYTE* fname_level)
                         ecd.type = EWAY_COND_CAMERA_AT;
                         ecd.arg1 = NULL;
                         ecd.arg2 = NULL;
-                        ecd.negate = FALSE;
+                        ecd.negate = UC_FALSE;
 
                         break;
 
@@ -1283,7 +1283,7 @@ void ELEV_load_level(CBYTE* fname_level)
                                 ew_world_y,
                                 ew_world_z,
                                 0x100,
-                                FALSE);
+                                UC_FALSE);
 
                             if (oi) {
                                 OB_ob[oi->index].flags |= OB_FLAG_SEARCHABLE;
@@ -1701,10 +1701,10 @@ void ELEV_load_level(CBYTE* fname_level)
                     }
             }
     } else {
-    // Any failed FileRead() jumps here: set load_ok = FALSE and close the file.
+    // Any failed FileRead() jumps here: set load_ok = UC_FALSE and close the file.
     file_error:;
 
-        load_ok = FALSE;
+        load_ok = UC_FALSE;
 
         if (handle) {
             FileClose(handle);
@@ -1753,7 +1753,7 @@ void ELEV_game_init_common(
 // Full game world initialisation: loads map, lighting, entities, nav data.
 // Called both from ELEV_load_name (via .ucm) and directly from ELEV_load_user
 // (when individual map/lighting/citsez files are selected separately).
-// Returns TRUE on success.
+// Returns UC_TRUE on success.
 // uc_orig: ELEV_game_init (fallen/Source/elev.cpp)
 SLONG ELEV_game_init(
     CBYTE* fname_map,
@@ -1878,7 +1878,7 @@ SLONG ELEV_game_init(
 
     // what? function call? i din... oh, _that_ function call
 
-    DIRT_init(100, 1, 0, INFINITY, INFINITY, INFINITY, INFINITY);
+    DIRT_init(100, 1, 0, UC_INFINITY, UC_INFINITY, UC_INFINITY, UC_INFINITY);
 
     OB_convert_dustbins_to_barrels();
     ROAD_sink();
@@ -1927,7 +1927,7 @@ SLONG ELEV_game_init(
     calc_prim_normals();
     find_anim_prim_bboxes();
 
-    loading_screen_active = TRUE;
+    loading_screen_active = UC_TRUE;
 
     if (!quick_load) {
         TEXTURE_load_needed(fname_level, 0, 256, 400);
@@ -1937,7 +1937,7 @@ SLONG ELEV_game_init(
         // PACK_do();
     }
 
-    loading_screen_active = FALSE;
+    loading_screen_active = UC_FALSE;
 
     EWAY_process(); // pre process map, stick it here Or we get stack overflow
     //	MUSIC_WORLD=(Random()%6)+1;
@@ -2008,7 +2008,7 @@ SLONG ELEV_game_init(
 
     ATTRACT_loadscreen_draw(100 * 256 / 100);
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Strips the directory prefix from src, copies the filename (without extension)
@@ -2057,7 +2057,7 @@ void ELEV_create_similar_name(
 
 // Reads map/lighting/citsez paths from the .ucm header, then calls ELEV_game_init.
 // Also handles the Finale1 cutscene trigger before loading the final level.
-// Returns TRUE on success, FALSE if file is missing or unreadable.
+// Returns UC_TRUE on success, UC_FALSE if file is missing or unreadable.
 // uc_orig: ELEV_load_name (fallen/Source/elev.cpp)
 SLONG ELEV_load_name(CBYTE* fname_level)
 {
@@ -2086,14 +2086,14 @@ SLONG ELEV_load_name(CBYTE* fname_level)
     }
 
     if (fname_level == NULL) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     handle = FileOpen(fname_level);
 
     if (handle == FILE_OPEN_ERROR) {
-        ASSERT(FALSE);
-        return FALSE;
+        ASSERT(UC_FALSE);
+        return UC_FALSE;
     }
 
     strcpy(ELEV_fname_level, fname_level); // I hope this is OK
@@ -2134,7 +2134,7 @@ file_error:;
 
     FileClose(handle);
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Handles level selection from game startup: supports replay playback, mission name
@@ -2273,7 +2273,7 @@ try_again:;
         ofn.lpTemplateName = NULL;
 
         if (!GetOpenFileName(&ofn)) {
-            return FALSE;
+            return UC_FALSE;
         }
 
         SetCurrentDirectory(curr_directory);
@@ -2441,10 +2441,10 @@ try_again:;
             fname_level);
 
     case IDCANCEL:
-        return FALSE;
+        return UC_FALSE;
 
     default:
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

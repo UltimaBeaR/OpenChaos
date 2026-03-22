@@ -131,7 +131,7 @@ extern SLONG am_i_a_thug(Thing* p_person);
 extern void drop_current_gun(Thing* p_person, SLONG change_anim);
 extern SLONG analogue;
 
-SLONG NIGHT_specular_enable = FALSE;
+SLONG NIGHT_specular_enable = UC_FALSE;
 
 SLONG draw_3d;
 extern SLONG mouse_input;
@@ -268,7 +268,7 @@ EWAY_Way* eway_find_near(GameCoord pos)
 
 BOOL allow_debug_keys = 0;
 
-// claude-ai: VARIABLE: dkeys_have_been_used — TRUE если отладочные клавиши использовались
+// claude-ai: VARIABLE: dkeys_have_been_used — UC_TRUE если отладочные клавиши использовались
 // claude-ai: (флаг для отслеживания факта переключения allow_debug_keys через консоль).
 BOOL dkeys_have_been_used;
 
@@ -387,7 +387,7 @@ void parse_console(CBYTE* str)
                 else
                     CONSOLE_text("debug mode off");
 
-                dkeys_have_been_used = TRUE;
+                dkeys_have_been_used = UC_TRUE;
 
                 break;
 
@@ -580,7 +580,7 @@ found_file:;
         640,
         480,
         &tga[0][0],
-        FALSE);
+        UC_FALSE);
 }
 
 // claude-ai: plan_view_shot() — рисует карту города сверху и сохраняет в TGA.
@@ -791,7 +791,7 @@ void plan_view_shot()
 
         switch (ew->ed.type) {
         case EWAY_DO_CREATE_PLAYER:
-            dot_do = TRUE;
+            dot_do = UC_TRUE;
             red = 0;
             green = 0;
             blue = 0;
@@ -799,7 +799,7 @@ void plan_view_shot()
             break;
 
         case EWAY_DO_CREATE_ITEM:
-            dot_do = TRUE;
+            dot_do = UC_TRUE;
             red = 210;
             green = 210;
             blue = 40;
@@ -811,7 +811,7 @@ void plan_view_shot()
             case PERSON_DARCI:
             case PERSON_ROPER:
 
-                dot_do = TRUE;
+                dot_do = UC_TRUE;
                 red = 55;
                 green = 255;
                 blue = 55;
@@ -836,9 +836,9 @@ void plan_view_shot()
                 ee = &EWAY_edef[ew->index];
 
                 if (ee->pcom_move != PCOM_MOVE_WANDER) {
-                    dot_do = TRUE;
+                    dot_do = UC_TRUE;
                 } else {
-                    dot_do = FALSE;
+                    dot_do = UC_FALSE;
                 }
 
                 red = 255;
@@ -849,7 +849,7 @@ void plan_view_shot()
 
             case PERSON_COP:
 
-                dot_do = TRUE;
+                dot_do = UC_TRUE;
                 red = 55;
                 green = 55;
                 blue = 255;
@@ -864,7 +864,7 @@ void plan_view_shot()
             case PERSON_MIB2:
             case PERSON_MIB3:
 
-                dot_do = TRUE;
+                dot_do = UC_TRUE;
 
                 red = 255;
                 green = 55;
@@ -876,7 +876,7 @@ void plan_view_shot()
             break;
 
         default:
-            dot_do = FALSE;
+            dot_do = UC_FALSE;
             break;
         }
 
@@ -953,7 +953,7 @@ void plan_view_shot()
             128 * 3,
             128 * 3,
             &tga[0][0],
-            FALSE);
+            UC_FALSE);
     }
 }
 
@@ -967,15 +967,15 @@ SLONG sprint_speed = 70;
 
 extern UBYTE aeng_draw_cloud_flag;
 // claude-ai: can_i_draw_this_special() — проверяет, может ли предмет быть «экипирован» (показан в руке).
-// claude-ai: Возвращает TRUE только для: одноручного оружия, двуручного оружия,
+// claude-ai: Возвращает UC_TRUE только для: одноручного оружия, двуручного оружия,
 // claude-ai: взрывчатки (SPECIAL_EXPLOSIVES) и кусачек (SPECIAL_WIRE_CUTTER).
 // claude-ai: Используется в CONTROLS_set/get_inventory для фильтрации инвентаря.
 SLONG can_i_draw_this_special(Thing* p_special)
 {
     if (SPECIAL_info[p_special->Genus.Special->SpecialType].group == SPECIAL_GROUP_ONEHANDED_WEAPON || SPECIAL_info[p_special->Genus.Special->SpecialType].group == SPECIAL_GROUP_TWOHANDED_WEAPON || p_special->Genus.Special->SpecialType == SPECIAL_EXPLOSIVES || p_special->Genus.Special->SpecialType == SPECIAL_WIRE_CUTTER) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
@@ -1049,7 +1049,7 @@ void CONTROLS_set_inventory(Thing* darci, Thing* player, SLONG count)
 
 // claude-ai: --- PC-specific inventory & form helpers ---
 // claude-ai: form_proc() — callback для диалоговых форм (Widget-система).
-// claude-ai: Нажатие любой BUTTON → form->returncode = TRUE → закрыть форму.
+// claude-ai: Нажатие любой BUTTON → form->returncode = UC_TRUE → закрыть форму.
 
 Form* test_form;
 Widget* widget_text;
@@ -1058,11 +1058,11 @@ Widget* widget_ok;
 BOOL form_proc(Form* form, Widget* widget, SLONG message)
 {
     if (widget && widget->methods == &BUTTON_Methods && message == WBN_PUSH) {
-        form->returncode = TRUE;
+        form->returncode = UC_TRUE;
 
-        return TRUE; // Exit
+        return UC_TRUE; // Exit
     } else {
-        return FALSE; // Don't exit
+        return UC_FALSE; // Don't exit
     }
 }
 
@@ -1415,7 +1415,7 @@ void context_music(void)
 
 // claude-ai: FUNCTION: set_danger_level() — обновляет Player->Danger (0..3) для каждого игрока.
 // claude-ai: Алгоритм: THING_find_sphere() радиус 0xC00 вокруг Дарси → перебрать найденных.
-// claude-ai:   Если am_i_a_thug(found) == TRUE: вычислить QDIST3 расстояние.
+// claude-ai:   Если am_i_a_thug(found) == UC_TRUE: вычислить QDIST3 расстояние.
 // claude-ai:   Danger = best_dist / 0x400 + 1, зажать в [1,3].
 // claude-ai:   Если никто не найден: Danger = 0.
 // claude-ai: Вызывается каждые 16 кадров: (GAME_TURN & 0x0f)==0.
@@ -1426,7 +1426,7 @@ void set_danger_level()
     SLONG i, j;
 
     SLONG dist;
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
     SLONG best_person = NULL;
 
     Thing* p_found;
@@ -1549,11 +1549,11 @@ void process_controls(void)
 
     /*
     {
-            static werwer = FALSE;
+            static werwer = UC_FALSE;
 
             if (!werwer)
             {
-                    werwer = TRUE;
+                    werwer = UC_TRUE;
 
                     extern void DCLL_looping_sample_conversion(void);
 
@@ -1606,7 +1606,7 @@ void process_controls(void)
 
         SLONG is_there_room_behind_person(Thing * p_person, SLONG hit_from_behind);
 
-        if (is_there_room_behind_person(darci, FALSE)) {
+        if (is_there_room_behind_person(darci, UC_FALSE)) {
             PANEL_new_text(NULL, 400, "There is room behind Darci");
         }
 
@@ -1826,7 +1826,7 @@ void process_controls(void)
                             darci->WorldPos.Z >> 8,
                             0,
                             0x111111,
-                            TRUE);
+                            UC_TRUE);
             }
     */
     // this stuff shouldn't even _be_ in process_controls.
@@ -1879,7 +1879,7 @@ void process_controls(void)
             strcpy(input_text, "] ");
         } else {
 
-            POLY_frame_init(FALSE, FALSE);
+            POLY_frame_init(UC_FALSE, UC_FALSE);
 
             if (LastKey) {
                 UWORD len = strlen(input_text);
@@ -1898,7 +1898,7 @@ void process_controls(void)
             }
 
             CONSOLE_status(input_text);
-            POLY_frame_draw(FALSE, FALSE);
+            POLY_frame_draw(UC_FALSE, UC_FALSE);
         }
         return;
     } else {
@@ -1916,7 +1916,7 @@ void process_controls(void)
     extern SLONG can_darci_change_weapon(Thing * p_person);
 
     // claude-ai: SECTION: инвентарь — обработка INPUT_MASK_SELECT (Tab/геймпад Select).
-    // claude-ai: Условие активации: не на паузе, нет формы leave_map, can_darci_change_weapon()==TRUE.
+    // claude-ai: Условие активации: не на паузе, нет формы leave_map, can_darci_change_weapon()==UC_TRUE.
     // claude-ai: INPUT_MASK_SELECT нажат → CONTROLS_new_inventory() (открыть/fade-in панель).
     // claude-ai:   Если Дарси безоружна (SpecialUse==0, GUN_OUT==0, ItemFocus==0):
     // claude-ai:     CONTROLS_get_best_item() → авто-выбрать лучшее оружие.
@@ -2128,7 +2128,7 @@ void process_controls(void)
                             darci->WorldPos.Y + 0x8000 >> 8,
                             darci->WorldPos.Z          >> 8,
                             0, 0xffffff,
-                            TRUE);
+                            UC_TRUE);
             }
     }
 
@@ -2143,7 +2143,7 @@ void process_controls(void)
                     darci->WorldPos.Y + 0x8000 >> 8,
                     darci->WorldPos.Z          >> 8,
                     0, 0xff0000,
-                    TRUE);
+                    UC_TRUE);
     }
 
     */
@@ -2407,7 +2407,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
             Keys[KB_B] = 0;
 
                     extern SLONG NIGHT_specular_enable;
-                    NIGHT_specular_enable ^= TRUE;
+                    NIGHT_specular_enable ^= UC_TRUE;
     }
 
     */
@@ -2423,7 +2423,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                     {
                             GAME_FLAGS |= GF_SEWERS;
 
-                            DIRT_init(0, 0, 0, INFINITY, INFINITY, INFINITY, INFINITY);
+                            DIRT_init(0, 0, 0, UC_INFINITY, UC_INFINITY, UC_INFINITY, UC_INFINITY);
                             NIGHT_destroy_all_cached_info();
                             NS_cache_init();
                     }
@@ -2435,7 +2435,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                             GAME_FLAGS &= ~GF_SEWERS;
 
                             NS_cache_fini();
-                            DIRT_init(100, 3, 3, INFINITY, INFINITY, INFINITY, INFINITY);
+                            DIRT_init(100, 3, 3, UC_INFINITY, UC_INFINITY, UC_INFINITY, UC_INFINITY);
 
                             //
                             // Reposition the camera at a decent place to watch Darci exit the sewers.
@@ -2538,7 +2538,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                 // Enter the building on a new floor.
                 //
 
-                if (ENTER_setup(INDOORS_BUILDING, new_storey, TRUE))
+                if (ENTER_setup(INDOORS_BUILDING, new_storey, UC_TRUE))
                 {
                         GameCoord newpos;
 
@@ -2587,20 +2587,20 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                     {
                             startx     = darci->WorldPos.X >> 8;
                             startz     = darci->WorldPos.Z >> 8;
-                            startvalid = TRUE;
+                            startvalid = UC_TRUE;
                     }
                     else
                     if (!endvalid)
                     {
                             endx     = darci->WorldPos.X >> 8;
                             endz     = darci->WorldPos.Z >> 8;
-                            endvalid = TRUE;
+                            endvalid = UC_TRUE;
                     }
 
                     if (startvalid && endvalid)
                     {
-                            startvalid = FALSE;
-                            endvalid   = FALSE;
+                            startvalid = UC_FALSE;
+                            endvalid   = UC_FALSE;
 
                             TRIP_create(
                                     darci->WorldPos.Y + 0x4000 >> 8,
@@ -3022,7 +3022,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
             AENG_world_line(
                 x1, y1, z1, 32, 0x00ffff00,
                 x2, y2, z2, 0, 0x000000ff,
-                TRUE);
+                UC_TRUE);
         }
     }
 
@@ -3146,7 +3146,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                                 nav_x = darci->WorldPos.X >> 16;
                                 nav_z = darci->WorldPos.Z >> 16;
 
-                                ma_valid = FALSE;
+                                ma_valid = UC_FALSE;
                         }
 
                         if (Keys[KB_X])
@@ -3156,7 +3156,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         void	set_person_mav_to_xz(Thing *p_person,SLONG x,SLONG z);
                                 set_person_mav_to_xz(darci,nav_x<<8,nav_z<<8);
 
-                                ma_valid = TRUE;
+                                ma_valid = UC_TRUE;
 
                         }
         */
@@ -3567,7 +3567,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
 
                                                 if (WITHIN(darci->WorldPos.Y >> 8, bot - 0x40, bot + 0x40))
                                                 {
-                                                        if (ENTER_setup(eo.dbuilding, bot, TRUE, FALSE))
+                                                        if (ENTER_setup(eo.dbuilding, bot, UC_TRUE, UC_FALSE))
                                                         {
                                                                 //
                                                                 // Remember where Darci is.

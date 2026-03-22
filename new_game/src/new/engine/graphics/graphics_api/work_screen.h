@@ -41,18 +41,18 @@ inline void SetWorkWindow(void) { WorkWindow = (WorkScreen + WorkWindowRect.Left
 inline BOOL XYInRect(SLONG x, SLONG y, MFRect* the_rect)
 {
     if (x >= the_rect->Left && y >= the_rect->Top && x <= the_rect->Right && y <= the_rect->Bottom)
-        return TRUE;
+        return UC_TRUE;
     else
-        return FALSE;
+        return UC_FALSE;
 }
 
 // uc_orig: PointInRect (fallen/DDLibrary/Headers/GWorkScreen.h)
 inline BOOL PointInRect(MFPoint* the_point, MFRect* the_rect)
 {
     if (the_point->X >= the_rect->Left && the_point->Y >= the_rect->Top && the_point->X <= the_rect->Right && the_point->Y <= the_rect->Bottom)
-        return TRUE;
+        return UC_TRUE;
     else
-        return FALSE;
+        return UC_FALSE;
 }
 
 #endif // ENGINE_GRAPHICS_GRAPHICS_API_WORK_SCREEN_H

@@ -606,7 +606,7 @@ void PYRO_fn_normal(Thing* thing)
                                 pyro->victim,
                                 NULL,
                                 PERSON_DEATH_TYPE_OTHER,
-                                FALSE,
+                                UC_FALSE,
                                 0);
                         }
                     }

@@ -184,13 +184,13 @@ CRINKLE_Handle CRINKLE_load(CBYTE* asc_filename)
 
     MF_Fclose(handle);
 
-    float minx = +float(INFINITY);
-    float miny = +float(INFINITY);
-    float minz = +float(INFINITY);
+    float minx = +float(UC_INFINITY);
+    float miny = +float(UC_INFINITY);
+    float minz = +float(UC_INFINITY);
 
-    float maxx = -float(INFINITY);
-    float maxy = -float(INFINITY);
-    float maxz = -float(INFINITY);
+    float maxx = -float(UC_INFINITY);
+    float maxy = -float(UC_INFINITY);
+    float maxz = -float(UC_INFINITY);
 
     for (i = 0; i < cc->num_points; i++) {
         if (cc->point[i].vec1 < minx) { minx = cc->point[i].vec1; }
@@ -558,14 +558,14 @@ void CRINKLE_do(
                 SATURATE(r, 0, 255); SATURATE(g, 0, 255); SATURATE(b, 0, 255); SATURATE(a, 0, 255);
                 tri[2]->colour = (a << 24) | (r << 16) | (g << 8) | (b << 0);
 
-                POLY_add_triangle(tri, page, TRUE);
+                POLY_add_triangle(tri, page, UC_TRUE);
 
                 // Restore original colours.
                 tri[0]->colour = c0;
                 tri[1]->colour = c1;
                 tri[2]->colour = c2;
             } else {
-                POLY_add_triangle(tri, page, TRUE);
+                POLY_add_triangle(tri, page, UC_TRUE);
             }
         }
     }
@@ -587,7 +587,7 @@ void CRINKLE_project(
     cc = &CRINKLE_crinkle[crinkle];
 
     if (Keys[KB_RSHIFT]) {
-        flip = TRUE;
+        flip = UC_TRUE;
     }
 
     if (flip) {
@@ -651,14 +651,14 @@ void CRINKLE_project(
         AENG_world_line(
             tri[0]->x, tri[0]->y, tri[0]->z, 4, 0xffffff,
             tri[1]->x, tri[1]->y, tri[1]->z, 3, 0xffffff,
-            TRUE);
+            UC_TRUE);
         AENG_world_line(
             tri[1]->x, tri[1]->y, tri[1]->z, 4, 0xffffff,
             tri[2]->x, tri[2]->y, tri[2]->z, 3, 0xffffff,
-            TRUE);
+            UC_TRUE);
         AENG_world_line(
             tri[2]->x, tri[2]->y, tri[2]->z, 4, 0xffffff,
             tri[0]->x, tri[0]->y, tri[0]->z, 3, 0xffffff,
-            TRUE);
+            UC_TRUE);
     }
 }

@@ -80,7 +80,7 @@ void HM_init()
     SLONG i;
 
     for (i = 0; i < HM_MAX_OBJECTS; i++) {
-        HM_object[i].used = FALSE;
+        HM_object[i].used = UC_FALSE;
     }
 }
 
@@ -259,7 +259,7 @@ UBYTE HM_create(
 
 found_unused_hm_object:;
 
-    ho->used = TRUE;
+    ho->used = UC_TRUE;
     ho->prim = prim;
     ho->x_res = x_res;
     ho->y_res = y_res;
@@ -303,7 +303,7 @@ found_unused_hm_object:;
     for (x = 0; x < x_res - 1; x++)
         for (y = 0; y < y_res - 1; y++)
             for (z = 0; z < z_res - 1; z++) {
-                empty[x][y][z] = TRUE;
+                empty[x][y][z] = UC_TRUE;
             }
 
     // Mark cubes that contain at least one prim vertex as non-empty.
@@ -322,7 +322,7 @@ found_unused_hm_object:;
 
                 for (z = 0; z < z_res - 1; z++) {
                     if (WITHIN(pp->Z, cubez[z], cubez[z + 1])) {
-                        empty[x][y][z] = FALSE;
+                        empty[x][y][z] = UC_FALSE;
                         goto do_next_point;
                     }
                 }
@@ -562,7 +562,7 @@ found_unused_hm_object:;
     // Find the 4 reference lattice points closest to the prim COG.
     // These are used by HM_find_mesh_pos() to extract position and orientation.
     {
-        float best_score = float(INFINITY);
+        float best_score = float(UC_INFINITY);
         SLONG best_origin = -1, best_x = -1, best_y = -1, best_z = -1;
         SLONG index_o, index_x, index_y, index_z;
         float score;
@@ -596,7 +596,7 @@ found_unused_hm_object:;
                     }
                 }
 
-        if (best_score >= INFINITY) {
+        if (best_score >= UC_INFINITY) {
             // Could not find valid reference points — free everything.
             MemFree(ho->index);
             MemFree(ho->point);
@@ -669,7 +669,7 @@ void HM_destroy(UBYTE hm_index)
     HM_Object* ho = &HM_object[hm_index];
 
     if (ho->used) {
-        ho->used = FALSE;
+        ho->used = UC_FALSE;
 
         MemFree(ho->index);
         MemFree(ho->point);
@@ -825,14 +825,14 @@ void HM_find_mesh_point(UBYTE hm_index, SLONG point, float* x, float* y, float* 
 }
 
 // uc_orig: HM_cube_exists (fallen/Source/hm.cpp)
-// Returns TRUE if all 8 corner-points of a lattice cube are active.
+// Returns UC_TRUE if all 8 corner-points of a lattice cube are active.
 // Used by HM_collide() to detect boundary faces.
 static SLONG HM_cube_exists(HM_Object* ho, SLONG x_cube, SLONG y_cube, SLONG z_cube)
 {
     SLONG i, dx, dy, dz, px, py, pz, index;
 
     if (!WITHIN(x_cube, 0, ho->x_res - 2) || !WITHIN(y_cube, 0, ho->y_res - 2) || !WITHIN(z_cube, 0, ho->z_res - 2)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     for (i = 0; i < 8; i++) {
@@ -845,23 +845,23 @@ static SLONG HM_cube_exists(HM_Object* ho, SLONG x_cube, SLONG y_cube, SLONG z_c
         pz = z_cube + dz;
 
         if (!WITHIN(px, 0, ho->x_res - 1) || !WITHIN(py, 0, ho->y_res - 1) || !WITHIN(pz, 0, ho->z_res - 1)) {
-            return FALSE;
+            return UC_FALSE;
         }
 
         index = HM_index(ho, px, py, pz);
 
         if (ho->index[index] == NULL) {
-            return FALSE;
+            return UC_FALSE;
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: HM_is_point_in_cube (fallen/Source/hm.cpp)
 // Tests whether world-space point 'p' is inside the deformed lattice cube.
 // Transforms p into cube-local space using the deformed axis vectors.
-// Returns TRUE if all three local coordinates are within [0,1].
+// Returns UC_TRUE if all three local coordinates are within [0,1].
 static SLONG HM_is_point_in_cube(
     HM_Object* ho,
     HM_Point* p,
@@ -877,7 +877,7 @@ static SLONG HM_is_point_in_cube(
     ASSERT(WITHIN(z_cube, 0, ho->z_res - 2));
 
     if (!HM_cube_exists(ho, x_cube, y_cube, z_cube)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     index_o = HM_index(ho, x_cube + 0, y_cube + 0, z_cube + 0);
@@ -928,10 +928,10 @@ static SLONG HM_is_point_in_cube(
         *rel_x = rx;
         *rel_y = ry;
         *rel_z = rz;
-        return TRUE;
+        return UC_TRUE;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: HM_last_point_in_last_cube (fallen/Source/hm.cpp)
@@ -1135,7 +1135,7 @@ static void HM_process_bump(HM_Object* ho, HM_Bump* hb)
 }
 
 // uc_orig: HM_bump_dead (fallen/Source/hm.cpp)
-// Returns TRUE if a tracked penetration is over (point has exited the other object).
+// Returns UC_TRUE if a tracked penetration is over (point has exited the other object).
 // Checks the original entry cube first, then scans all cubes if needed.
 static SLONG HM_bump_dead(HM_Object* ho, HM_Bump* hb)
 {
@@ -1150,7 +1150,7 @@ static SLONG HM_bump_dead(HM_Object* ho, HM_Bump* hb)
 
     // Fast path: check original entry cube first.
     if (HM_is_point_in_cube(ho2, hp, hb->cube_x, hb->cube_y, hb->cube_z, &rel_x, &rel_y, &rel_z)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     // Slow path: scan all cubes.
@@ -1161,12 +1161,12 @@ static SLONG HM_bump_dead(HM_Object* ho, HM_Bump* hb)
                     // Already checked above.
                 } else {
                     if (HM_is_point_in_cube(ho2, hp, sx, sy, sz, &rel_x, &rel_y, &rel_z)) {
-                        return FALSE;
+                        return UC_FALSE;
                     }
                 }
             }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: HM_collide (fallen/Source/hm.cpp)
@@ -1237,9 +1237,9 @@ void HM_collide(UBYTE hm_index1, UBYTE hm_index2)
                         HM_last_point_in_last_cube(ho2, hp, sx, sy, sz, &last_rel_x, &last_rel_y, &last_rel_z);
 
                         // Find which face the point entered through (swept CCD).
-                        along_x = float(INFINITY);
-                        along_y = float(INFINITY);
-                        along_z = float(INFINITY);
+                        along_x = float(UC_INFINITY);
+                        along_y = float(UC_INFINITY);
+                        along_z = float(UC_INFINITY);
 
                         if (last_rel_x > 1.0F && rel_x <= 1.0F && !HM_cube_exists(ho2, sx + 1, sy, sz)) {
                             along_x = (1.0F - last_rel_x) / (rel_x - last_rel_x);
@@ -1259,7 +1259,7 @@ void HM_collide(UBYTE hm_index1, UBYTE hm_index2)
                             along_z = (0.0F - last_rel_z) / (rel_z - last_rel_z);
                         }
 
-                        along_enter = float(INFINITY);
+                        along_enter = float(UC_INFINITY);
                         if (along_x < along_enter) along_enter = along_x;
                         if (along_y < along_enter) along_enter = along_y;
                         if (along_z < along_enter) along_enter = along_z;
@@ -1744,7 +1744,7 @@ void HM_find_mesh_pos(
 }
 
 // uc_orig: HM_stationary (fallen/Source/hm.cpp)
-// Returns TRUE if average |dx|+|dy|+|dz| < 0.25 (object has come to rest).
+// Returns UC_TRUE if average |dx|+|dy|+|dz| < 0.25 (object has come to rest).
 SLONG HM_stationary(UBYTE hm_index)
 {
     SLONG i;
@@ -1765,9 +1765,9 @@ SLONG HM_stationary(UBYTE hm_index)
     dz /= ho->num_points;
 
     if (dx + dy + dz < 0.25F) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

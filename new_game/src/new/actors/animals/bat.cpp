@@ -301,10 +301,10 @@ void BAT_set_anim(Thing* p_thing, SLONG anim)
 // uc_orig: BAT_animate (fallen/Source/bat.cpp)
 // Advances the DrawTween animation by TICK_RATIO-scaled steps.
 // TweenStep from the current keyframe is doubled then scaled.
-// Returns TRUE if the animation has reached its last frame.
+// Returns UC_TRUE if the animation has reached its last frame.
 SLONG BAT_animate(Thing* p_thing)
 {
-    SLONG ret = FALSE;
+    SLONG ret = UC_FALSE;
     SLONG tween_step;
 
     DrawTween* dt = p_thing->Draw.Tweened;
@@ -532,7 +532,7 @@ void BAT_change_state(Thing* p_thing)
         SLONG dist;
         SLONG score;
 
-        SLONG best_score = INFINITY;
+        SLONG best_score = UC_INFINITY;
         SLONG best_dist = 0;
         SLONG best_index = NULL;
 
@@ -1584,8 +1584,8 @@ void BAT_normal(Thing* p_thing)
                                 p_target,
                                 NULL,
                                 PERSON_DEATH_TYPE_OTHER,
-                                FALSE,
-                                FALSE);
+                                UC_FALSE,
+                                UC_FALSE);
                         }
 
                         p_bat->flag |= BAT_FLAG_ATTACKED; // Don't do this until the next swoop.
@@ -1719,7 +1719,7 @@ void BAT_normal(Thing* p_thing)
             break;
         }
 
-        end = FALSE;
+        end = UC_FALSE;
 
         break;
     case BAT_STATE_DEAD:
@@ -1771,7 +1771,7 @@ void BAT_normal(Thing* p_thing)
             break;
         }
 
-        end = FALSE;
+        end = UC_FALSE;
         p_bat->timer = 0;
 
         break;
@@ -1811,13 +1811,13 @@ void BAT_normal(Thing* p_thing)
 
         if (end) {
             if (p_bat->substate == BAT_SUBSTATE_YOMP_START) {
-                end = FALSE;
+                end = UC_FALSE;
 
                 BAT_set_anim(p_thing, BAT_ANIM_BALROG_YOMP);
 
                 p_bat->substate = BAT_SUBSTATE_YOMP_MIDDLE;
             } else if (p_bat->substate == BAT_SUBSTATE_YOMP_MIDDLE) {
-                end = FALSE;
+                end = UC_FALSE;
 
                 if (p_bat->timer == 0) {
                     BAT_set_anim(p_thing, BAT_ANIM_BALROG_YOMP_END);
@@ -1840,7 +1840,7 @@ void BAT_normal(Thing* p_thing)
 
     {
         if (!p_bat->target) {
-            end = TRUE;
+            end = UC_TRUE;
             p_bat->timer = 0;
         } else {
             ASSERT(p_bat->target); // triggered
@@ -1896,13 +1896,13 @@ void BAT_normal(Thing* p_thing)
 
             if (end) {
                 if (p_bat->substate == BAT_SUBSTATE_YOMP_START) {
-                    end = FALSE;
+                    end = UC_FALSE;
 
                     BAT_set_anim(p_thing, BAT_ANIM_BALROG_YOMP);
 
                     p_bat->substate = BAT_SUBSTATE_YOMP_MIDDLE;
                 } else if (p_bat->substate == BAT_SUBSTATE_YOMP_MIDDLE) {
-                    end = FALSE;
+                    end = UC_FALSE;
 
                     if (p_bat->timer == 0) {
                         BAT_set_anim(p_thing, BAT_ANIM_BALROG_YOMP_END);
@@ -2071,7 +2071,7 @@ void BAT_normal(Thing* p_thing)
                                     darci,
                                     NULL,
                                     PERSON_DEATH_TYPE_OTHER,
-                                    FALSE,
+                                    UC_FALSE,
                                     0);
                             } else {
                                 set_person_recoil(

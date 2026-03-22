@@ -109,27 +109,27 @@ SLONG MATHS_seg_intersect(
     // Bounding box pre-check in X.
     if (vx1 < vx2) {
         if (wx1 < vx1 && wx2 < vx1)
-            return FALSE;
+            return UC_FALSE;
         if (wx1 > vx2 && wx2 > vx2)
-            return FALSE;
+            return UC_FALSE;
     } else {
         if (wx1 > vx1 && wx2 > vx1)
-            return FALSE;
+            return UC_FALSE;
         if (wx1 < vx2 && wx2 < vx2)
-            return FALSE;
+            return UC_FALSE;
     }
 
     // Bounding box pre-check in Z.
     if (vz1 < vz2) {
         if (wz1 < vz1 && wz2 < vz1)
-            return FALSE;
+            return UC_FALSE;
         if (wz1 > vz2 && wz2 > vz2)
-            return FALSE;
+            return UC_FALSE;
     } else {
         if (wz1 > vz1 && wz2 > vz1)
-            return FALSE;
+            return UC_FALSE;
         if (wz1 < vz2 && wz2 < vz2)
-            return FALSE;
+            return UC_FALSE;
     }
 
     // Vectors: a = V, b = v1→w1, d = W.
@@ -145,19 +145,19 @@ SLONG MATHS_seg_intersect(
     dcrossb = dx * bz - dz * bx;
 
     if (MATH_DIFFERENT_SIGN(dcrossb, dcrossa))
-        return FALSE;
+        return UC_FALSE;
     if (abs(dcrossb) > abs(dcrossa))
-        return FALSE;
+        return UC_FALSE;
 
     // q = acrossb / dcrossa must be in [0,1].
     acrossb = ax * bz - az * bx;
 
     if (MATH_DIFFERENT_SIGN(acrossb, dcrossa))
-        return FALSE;
+        return UC_FALSE;
     if (abs(acrossb) > abs(dcrossa))
-        return FALSE;
+        return UC_FALSE;
 
-    return TRUE;
+    return UC_TRUE;
 
 #undef MATH_DIFFERENT_SIGN
 }

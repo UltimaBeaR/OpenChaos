@@ -43,7 +43,7 @@ static UWORD DOOR_find(
     SATURATE(mx2, 0, PAP_SIZE_LO - 1);
     SATURATE(mz2, 0, PAP_SIZE_LO - 1);
 
-    SLONG best_score = INFINITY;
+    SLONG best_score = UC_INFINITY;
     SLONG best_facet = NULL;
 
     for (mx = mx1; mx <= mx2; mx++)
@@ -51,14 +51,14 @@ static UWORD DOOR_find(
             f_list = PAP_2LO(mx, mz).ColVectHead;
 
             if (f_list) {
-                exit = FALSE;
+                exit = UC_FALSE;
 
                 while (1) {
                     i_facet = facet_links[f_list];
 
                     if (i_facet < 0) {
                         i_facet = -i_facet;
-                        exit = TRUE;
+                        exit = UC_TRUE;
                     }
 
                     df = &dfacets[i_facet];

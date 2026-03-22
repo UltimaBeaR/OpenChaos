@@ -14,16 +14,16 @@
 extern void PANEL_new_text(struct Thing* who, SLONG delay, CBYTE* fmt, ...);
 
 
-// Returns TRUE when there are no active positioned messages to display.
+// Returns UC_TRUE when there are no active positioned messages to display.
 // uc_orig: CONSOLE_no_text (fallen/DDEngine/Source/console.cpp)
 static SLONG CONSOLE_no_text(void)
 {
     for (SLONG i = 0; i < CONSOLE_MAX_MESSES; i++) {
         if (CONSOLE_mess[i].delay) {
-            return FALSE;
+            return UC_FALSE;
         }
     }
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: CONSOLE_font (fallen/DDEngine/Headers/console.h)
@@ -45,14 +45,14 @@ void CONSOLE_draw(void)
 
     if (CONSOLE_no_text() && !console_Data[0].Age) {
         if (*console_status_text) {
-            POLY_frame_init(FALSE, FALSE);
+            POLY_frame_init(UC_FALSE, UC_FALSE);
             FONT2D_DrawString(console_status_text, 10, 10, 0x7f00ff00, 256, POLY_PAGE_FONT2D);
-            POLY_frame_draw(FALSE, TRUE);
+            POLY_frame_draw(UC_FALSE, UC_TRUE);
         }
         return;
     }
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     if (*console_status_text) {
         FONT2D_DrawString(console_status_text, 10, 10, 0x7f00ff00, 256, POLY_PAGE_FONT2D);
@@ -75,7 +75,7 @@ void CONSOLE_draw(void)
         }
     }
 
-    POLY_frame_draw(FALSE, TRUE);
+    POLY_frame_draw(UC_FALSE, UC_TRUE);
 
     if (!console_Data[0].Age) {
         CONSOLE_scroll();

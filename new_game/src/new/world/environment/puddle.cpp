@@ -168,7 +168,7 @@ void PUDDLE_create(UWORD x, SWORD y, UWORD z)
     if (rand() & 0x1) { SWAP(x1, x2); }
     if (rand() & 0x1) { SWAP(z1, z2); }
 
-    PUDDLE_create_do(x1, z1, x2, z2, y, PUDDLE_TYPE_WHOLE, FALSE);
+    PUDDLE_create_do(x1, z1, x2, z2, y, PUDDLE_TYPE_WHOLE, UC_FALSE);
 }
 
 // uc_orig: PUDDLE_precalculate (fallen/Source/puddle.cpp)
@@ -217,7 +217,7 @@ void PUDDLE_precalculate()
                         px2 = midx + dx * size;
                         pz2 = midz + dz * size;
                         py = PAP_calc_height_at(px2, pz2) + 0x8;
-                        PUDDLE_create_do(px1, pz1, px2, pz2, py, PUDDLE_TYPE_CORNER, FALSE);
+                        PUDDLE_create_do(px1, pz1, px2, pz2, py, PUDDLE_TYPE_CORNER, UC_FALSE);
                     }
 
                 not_a_corner_of_a_building:;
@@ -251,7 +251,7 @@ void PUDDLE_precalculate()
                         px2 = midx + dx * size;
                         pz2 = midz + dz * size;
                         py = PAP_calc_height_at(px2, pz2) + 0x2;
-                        PUDDLE_create_do(px1, pz1, px2, pz2, py, PUDDLE_TYPE_CORNER, FALSE);
+                        PUDDLE_create_do(px1, pz1, px2, pz2, py, PUDDLE_TYPE_CORNER, UC_FALSE);
                     }
 
                 not_a_corner_of_a_road:;
@@ -350,11 +350,11 @@ SLONG PUDDLE_in(SLONG x, SLONG z)
     SLONG mz = z >> 8;
 
     if (!WITHIN(mx, 0, MAP_WIDTH - 1) || !WITHIN(mz, 0, MAP_HEIGHT - 1)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (MAV_SPARE(mx, mz) & MAV_SPARE_FLAG_WATER) {
-        return TRUE;
+        return UC_TRUE;
     }
 
     if (PAP_2HI(mx, mz).Flags & PAP_FLAG_REFLECTIVE) {
@@ -373,14 +373,14 @@ SLONG PUDDLE_in(SLONG x, SLONG z)
                     if (pz1 > pz2) { SWAP(pz1, pz2); }
 
                     if (WITHIN(x, px1, px2) && WITHIN(z, pz1, pz2)) {
-                        return TRUE;
+                        return UC_TRUE;
                     }
                 }
             }
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: PUDDLE_splash (fallen/Source/puddle.cpp)

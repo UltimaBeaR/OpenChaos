@@ -58,10 +58,10 @@ static void WARE_bounding_box(SLONG dbuilding, SLONG* bx1, SLONG* bz1, SLONG* bx
     DBuilding* db;
     DFacet* df;
 
-    x1 = +INFINITY;
-    z1 = +INFINITY;
-    x2 = -INFINITY;
-    z2 = -INFINITY;
+    x1 = +UC_INFINITY;
+    z1 = +UC_INFINITY;
+    x2 = -UC_INFINITY;
+    z2 = -UC_INFINITY;
 
     ASSERT(WITHIN(dbuilding, 1, next_dbuilding - 1));
 
@@ -149,7 +149,7 @@ void WARE_init()
 
     WARE_in = NULL;
 
-    MAV_calc_height_array(TRUE);
+    MAV_calc_height_array(UC_TRUE);
 
     memset(WARE_ware, 0, sizeof(WARE_Ware) * WARE_MAX_WARES);
     WARE_ware_upto = 1;
@@ -271,7 +271,7 @@ void WARE_init()
     for (i = 1; i < OB_ob_upto; i++)
         OB_ob[i].flags &= ~OB_FLAG_WAREHOUSE;
 
-    MAV_calc_height_array(FALSE);
+    MAV_calc_height_array(UC_FALSE);
 
     for (i = 1; i < WARE_ware_upto; i++) {
         ww = &WARE_ware[i];
@@ -550,10 +550,10 @@ SLONG WARE_in_floorplan(UBYTE ware, UBYTE x, UBYTE z)
 
     if (WITHIN(x, ww->minx, ww->maxx) && WITHIN(z, ww->minz, ww->maxz)) {
         if (PAP_2HI(x, z).Flags & PAP_FLAG_HIDDEN)
-            return TRUE;
+            return UC_TRUE;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: WARE_debug (fallen/Source/ware.cpp)
@@ -579,7 +579,7 @@ void WARE_debug(void)
             y1 = PAP_calc_height_at(x1, z1);
             y2 = PAP_calc_height_at(x2, z2);
 
-            AENG_world_line(x1, y1, z1, 00, 0xffffff, x2, y2, z2, 16, 0x00ff00, TRUE);
+            AENG_world_line(x1, y1, z1, 00, 0xffffff, x2, y2, z2, 16, 0x00ff00, UC_TRUE);
         }
 
         // Draw MAV navigation arrows for each warehouse cell.
@@ -610,8 +610,8 @@ void WARE_debug(void)
 
                     y1 = y2 = WARE_calc_height_at(i, (x << 8) + 0x80, (z << 8) + 0x80);
 
-                    AENG_world_line(x1, y1, z1, 4, 0x00000077, x2, y2, z2, 4, 0x00000077, TRUE);
-                    AENG_world_line(x2, y1, z1, 4, 0x00000077, x1, y2, z2, 4, 0x00000077, TRUE);
+                    AENG_world_line(x1, y1, z1, 4, 0x00000077, x2, y2, z2, 4, 0x00000077, UC_TRUE);
+                    AENG_world_line(x2, y1, z1, 4, 0x00000077, x1, y2, z2, 4, 0x00000077, UC_TRUE);
 
                     index = (x - ww->minx) * ww->nav_pitch + (z - ww->minz);
 
@@ -634,7 +634,7 @@ void WARE_debug(void)
 
                         for (k = 0; k < 8; k++) {
                             if (mo->opt[j] & (1 << k))
-                                AENG_world_line(mx, y1, mz, 0, 0, lx, y2, lz, 9, colour[k], TRUE);
+                                AENG_world_line(mx, y1, mz, 0, 0, lx, y2, lz, 9, colour[k], UC_TRUE);
 
                             lx += -dz * 16;
                             lz += +dx * 16;
@@ -661,7 +661,7 @@ SLONG WARE_inside(UBYTE ware, SLONG x, SLONG y, SLONG z)
     z >>= 8;
 
     if (!WITHIN(x, ww->minx, ww->maxx) || !WITHIN(z, ww->minz, ww->maxz) || !(PAP_2HI(x, z).Flags & PAP_FLAG_HIDDEN))
-        return TRUE; // Outside the building floor plan.
+        return UC_TRUE; // Outside the building floor plan.
 
     x -= ww->minx;
     z -= ww->minz;

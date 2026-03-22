@@ -73,7 +73,7 @@ IC_Packet IC_pack(
     SLONG dist;
     SLONG best_dist;
     SLONG best_bit;
-    SLONG best_error = INFINITY;
+    SLONG best_error = UC_INFINITY;
     IC_Packet best_ans;
 
     for (i = 1; i < 16; i++)
@@ -132,7 +132,7 @@ IC_Packet IC_pack(
 
                 tp = &tga[x + y * tga_width];
 
-                best_dist = INFINITY;
+                best_dist = UC_INFINITY;
                 best_bit = 0;
 
                 for (l = 0; l < 4; l++) {
@@ -161,7 +161,7 @@ IC_Packet IC_pack(
             }
         }
 
-    if (best_error == INFINITY) {
+    if (best_error == UC_INFINITY) {
         // All 16 pixels are the same colour; no valid line exists.
         tp = &tga[px + py * tga_width];
 
@@ -268,5 +268,5 @@ void IC_test()
                 y);
         }
 
-    TGA_save("testcomp.tga", ti.width, ti.height, test, FALSE);
+    TGA_save("testcomp.tga", ti.width, ti.height, test, UC_FALSE);
 }

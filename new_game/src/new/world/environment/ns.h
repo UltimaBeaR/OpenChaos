@@ -276,7 +276,7 @@ void NS_slide_along(
     SLONG* x2, SLONG* y2, SLONG* z2,
     SLONG radius);
 
-// Returns TRUE if (x,y,z) is inside the sewer system.
+// Returns UC_TRUE if (x,y,z) is inside the sewer system.
 // uc_orig: NS_inside (fallen/Source/ns.cpp)
 SLONG NS_inside(SLONG x, SLONG y, SLONG z);
 
@@ -287,7 +287,7 @@ extern SLONG NS_los_fail_y;
 // uc_orig: NS_los_fail_z (fallen/Source/ns.cpp)
 extern SLONG NS_los_fail_z;
 
-// Returns TRUE if the line from (x1,y1,z1) to (x2,y2,z2) has clear line-of-sight through sewers.
+// Returns UC_TRUE if the line from (x1,y1,z1) to (x2,y2,z2) has clear line-of-sight through sewers.
 // uc_orig: NS_there_is_a_los (fallen/Source/ns.cpp)
 SLONG NS_there_is_a_los(
     SLONG x1, SLONG y1, SLONG z1,

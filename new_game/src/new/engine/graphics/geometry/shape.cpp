@@ -240,7 +240,7 @@ void SHAPE_semisphere(
                 tri[1] = &POLY_buffer[(i + 0) * c_points + p2];
 
                 if (POLY_valid_triangle(tri)) {
-                    POLY_add_triangle(tri, page, TRUE);
+                    POLY_add_triangle(tri, page, UC_TRUE);
                 }
             }
         } else {
@@ -259,7 +259,7 @@ void SHAPE_semisphere(
                 quad[3] = &POLY_buffer[(i + 1) * c_points + p2];
 
                 if (POLY_valid_quad(quad)) {
-                    POLY_add_quad(quad, page, TRUE);
+                    POLY_add_quad(quad, page, UC_TRUE);
                 }
             }
         }
@@ -451,7 +451,7 @@ void SHAPE_semisphere_textured(
                 tri[1] = &POLY_buffer[(i + 0) * c_points + p2];
 
                 if (POLY_valid_triangle(tri)) {
-                    POLY_add_triangle(tri, page, TRUE);
+                    POLY_add_triangle(tri, page, UC_TRUE);
                 }
             }
         } else {
@@ -470,7 +470,7 @@ void SHAPE_semisphere_textured(
                 quad[3] = &POLY_buffer[(i + 1) * c_points + p2];
 
                 if (POLY_valid_quad(quad)) {
-                    POLY_add_quad(quad, page, TRUE);
+                    POLY_add_quad(quad, page, UC_TRUE);
                 }
             }
         }
@@ -605,7 +605,7 @@ void SHAPE_sphere(
         tri[2] = &POLY_buffer[index2];
 
         if (POLY_valid_triangle(tri)) {
-            POLY_add_triangle(tri, POLY_PAGE_COLOUR, FALSE);
+            POLY_add_triangle(tri, POLY_PAGE_COLOUR, UC_FALSE);
         }
 
         index1 = p1 + SHAPE_SPHERE_NUM_AROUND * (SHAPE_SPHERE_NUM_UPDOWN - 2);
@@ -616,7 +616,7 @@ void SHAPE_sphere(
         tri[2] = &POLY_buffer[index2];
 
         if (POLY_valid_triangle(tri)) {
-            POLY_add_triangle(tri, POLY_PAGE_COLOUR, FALSE);
+            POLY_add_triangle(tri, POLY_PAGE_COLOUR, UC_FALSE);
         }
     }
 
@@ -639,7 +639,7 @@ void SHAPE_sphere(
             quad[3] = &POLY_buffer[line2 + p2];
 
             if (POLY_valid_quad(quad)) {
-                POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE);
+                POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE);
             }
         }
     }
@@ -711,8 +711,8 @@ void SHAPE_sparky_line(
             p1 = i - 1;
             p2 = i + 1;
 
-            n1_valid = FALSE;
-            n2_valid = FALSE;
+            n1_valid = UC_FALSE;
+            n2_valid = UC_FALSE;
 
             if (p1 > 0 && pp[p1].IsValid()) {
                 dx = pp[i].X - pp[p1].X;
@@ -728,7 +728,7 @@ void SHAPE_sparky_line(
                 pnx = -dy;
                 pny = dx;
 
-                n1_valid = TRUE;
+                n1_valid = UC_TRUE;
             }
 
             if (p2 < num_points && pp[p2].IsValid()) {
@@ -756,7 +756,7 @@ void SHAPE_sparky_line(
                     pny = dx;
                 }
 
-                n2_valid = TRUE;
+                n2_valid = UC_TRUE;
             }
 
             nx[i] = pnx;
@@ -802,7 +802,7 @@ void SHAPE_sparky_line(
             pp2.u = 2.0f;
             pp2.v = which_v + 0.25f;
 
-            POLY_add_quad(quad, POLY_PAGE_LITE_BOLT, FALSE, true);
+            POLY_add_quad(quad, POLY_PAGE_LITE_BOLT, UC_FALSE, true);
         }
     }
 }
@@ -908,7 +908,7 @@ void SHAPE_glitter(
         bot.u = 0.0F;
         bot.v = 1.0F;
 
-        POLY_add_triangle(tri, POLY_PAGE_SPARKLE, FALSE, true);
+        POLY_add_triangle(tri, POLY_PAGE_SPARKLE, UC_FALSE, true);
     }
 }
 
@@ -1058,7 +1058,7 @@ void SHAPE_tripwire(
             &pp[2].u, &pp[2].v,
             &pp[3].u, &pp[3].v);
 
-        POLY_add_quad(quad, POLY_PAGE_FOG, FALSE);
+        POLY_add_quad(quad, POLY_PAGE_FOG, UC_FALSE);
 
         // Second overlapping layer with reversed counter for a shimmer effect
         SHAPE_tripwire_uvs(
@@ -1068,7 +1068,7 @@ void SHAPE_tripwire(
             &pp[2].u, &pp[2].v,
             &pp[3].u, &pp[3].v);
 
-        POLY_add_quad(quad, POLY_PAGE_FOG, FALSE);
+        POLY_add_quad(quad, POLY_PAGE_FOG, UC_FALSE);
     }
 }
 
@@ -1151,7 +1151,7 @@ void SHAPE_waterfall(
     quad[3] = &pp[1];
 
     if (POLY_valid_quad(quad)) {
-        POLY_add_quad(quad, POLY_PAGE_SEWATER, TRUE);
+        POLY_add_quad(quad, POLY_PAGE_SEWATER, UC_TRUE);
     }
 
     quad[0] = &pp[4];
@@ -1160,7 +1160,7 @@ void SHAPE_waterfall(
     quad[3] = &pp[2];
 
     if (POLY_valid_quad(quad)) {
-        POLY_add_quad(quad, POLY_PAGE_SEWATER, TRUE);
+        POLY_add_quad(quad, POLY_PAGE_SEWATER, UC_TRUE);
     }
 }
 
@@ -1263,7 +1263,7 @@ void SHAPE_droplet(
         bot.u = 0.0F;
         bot.v = 1.0F;
 
-        POLY_add_triangle(tri, page, FALSE, TRUE);
+        POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
     }
 }
 
@@ -1280,7 +1280,7 @@ static void SHADOW_cylindrical_shadow(float px, float py, float pz, float radius
         py + 2.0F,
         pz - radius * -0.707F,
         &pp[0],
-        TRUE);
+        UC_TRUE);
 
     if (!pp[0].IsValid()) {
         return;
@@ -1346,7 +1346,7 @@ static void SHADOW_cylindrical_shadow(float px, float py, float pz, float radius
         pp[3].v = 0.0F;
         pp[3].Z += DC_SHADOW_Z_ADJUST;
 
-        POLY_add_quad(quad, POLY_PAGE_ALPHA, FALSE);
+        POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE);
     }
 }
 
@@ -1431,7 +1431,7 @@ void SHAPE_prim_shadow(OB_Info* oi)
                 py,
                 world[i].z,
                 &pp[i],
-                TRUE);
+                UC_TRUE);
 
             if (!pp[i].MaybeValid()) {
                 return;
@@ -1450,7 +1450,7 @@ void SHAPE_prim_shadow(OB_Info* oi)
         quad[3] = &pp[3];
 
         if (POLY_valid_quad(quad)) {
-            POLY_add_quad(quad, POLY_PAGE_ALPHA, FALSE);
+            POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE);
         }
 
         // FALLTHROUGH to PRIM_SHADOW_BOXEDGE for the edge quads
@@ -1520,7 +1520,7 @@ void SHAPE_prim_shadow(OB_Info* oi)
                 py + 2.0F,
                 world[order[i]].z,
                 pp_upto,
-                TRUE);
+                UC_TRUE);
 
             if (!pp_upto->MaybeValid()) {
                 return;
@@ -1559,7 +1559,7 @@ void SHAPE_prim_shadow(OB_Info* oi)
         quad[3] = &pp[3];
 
         if (POLY_valid_quad(quad)) {
-            POLY_add_quad(quad, POLY_PAGE_ALPHA, FALSE);
+            POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE);
         }
 
         quad[0] = &pp[2];
@@ -1568,7 +1568,7 @@ void SHAPE_prim_shadow(OB_Info* oi)
         quad[3] = &pp[5];
 
         if (POLY_valid_quad(quad)) {
-            POLY_add_quad(quad, POLY_PAGE_ALPHA, FALSE);
+            POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE);
         }
 
         break;
@@ -1745,7 +1745,7 @@ void SHAPE_alpha_sphere(
         tri[2] = &POLY_buffer[index2];
 
         if (POLY_valid_triangle(tri)) {
-            POLY_add_triangle(tri, POLY_PAGE_ALPHA, FALSE);
+            POLY_add_triangle(tri, POLY_PAGE_ALPHA, UC_FALSE);
         }
 
         index1 = p1 + SHAPE_SPHERE_NUM_AROUND * (SHAPE_SPHERE_NUM_UPDOWN - 2);
@@ -1756,7 +1756,7 @@ void SHAPE_alpha_sphere(
         tri[2] = &POLY_buffer[index2];
 
         if (POLY_valid_triangle(tri)) {
-            POLY_add_triangle(tri, POLY_PAGE_ALPHA, FALSE);
+            POLY_add_triangle(tri, POLY_PAGE_ALPHA, UC_FALSE);
         }
     }
 
@@ -1778,7 +1778,7 @@ void SHAPE_alpha_sphere(
             quad[3] = &POLY_buffer[line2 + p2];
 
             if (POLY_valid_quad(quad)) {
-                POLY_add_quad(quad, POLY_PAGE_ALPHA, FALSE);
+                POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE);
             }
         }
     }
@@ -1808,7 +1808,7 @@ void SHAPE_draw_balloon(SLONG balloon)
             bb->bp[i + 1].y >> 8,
             bb->bp[i + 1].z >> 8,
             4, 0x558845,
-            FALSE);
+            UC_FALSE);
     }
 
     // Choose colour by balloon index (cycles through 4 colours)

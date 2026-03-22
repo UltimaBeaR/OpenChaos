@@ -337,77 +337,77 @@ static void MAP_sprite(
             tri[0] = &ps[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             tri[0] = quad[1];
             tri[1] = quad[3];
             tri[2] = quad[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             break;
 
         case 2:
             tri[0] = &ps[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             tri[0] = quad[1];
             tri[1] = quad[3];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             break;
 
         case 3:
             tri[0] = quad[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             tri[0] = quad[1];
             tri[1] = quad[3];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             break;
 
         case 4:
             tri[0] = quad[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             tri[0] = quad[1];
             tri[1] = &ps[3];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             break;
 
         case 5:
             tri[0] = &ps[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             tri[0] = quad[1];
             tri[1] = &ps[3];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             break;
 
         case 6:
             tri[0] = &ps[0];
             tri[1] = quad[1];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             tri[0] = quad[1];
             tri[1] = quad[3];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             break;
 
         case 7:
             tri[0] = quad[0];
             tri[1] = quad[1];
             tri[2] = quad[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             tri[0] = quad[1];
             tri[1] = &ps[3];
             tri[2] = &ps[2];
-            POLY_add_triangle(tri, page, FALSE, TRUE);
+            POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
             break;
 
         default:
@@ -415,7 +415,7 @@ static void MAP_sprite(
             break;
         }
     } else {
-        POLY_add_quad(quad, page, FALSE, TRUE);
+        POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
     }
 }
 
@@ -494,7 +494,7 @@ static void MAP_draw_line(float x1, float y1, float x2, float y2, ULONG colour)
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE, UC_TRUE);
 }
 
 // Draws a small triangle sprite for a person/vehicle dot, oriented by angle.
@@ -569,7 +569,7 @@ static void MAP_draw_dot(float x, float y, float size, float angle, ULONG colour
     tri[1] = &pp[1];
     tri[2] = &pp[2];
 
-    POLY_add_triangle(tri, POLY_PAGE_IC2_ALPHA, FALSE, TRUE);
+    POLY_add_triangle(tri, POLY_PAGE_IC2_ALPHA, UC_FALSE, UC_TRUE);
 }
 
 // --- pulse system ---
@@ -587,8 +587,8 @@ void MAP_pulse_init()
 static void MAP_pulse_create(float wx, float wz, ULONG colour)
 {
     SLONG i;
-    SLONG best_life = INFINITY;
-    SLONG best_pulse = INFINITY;
+    SLONG best_life = UC_INFINITY;
+    SLONG best_pulse = UC_INFINITY;
 
     for (i = 0; i < MAP_MAX_PULSES; i++) {
         if (best_life > MAP_pulse[i].life) {
@@ -691,7 +691,7 @@ static void MAP_pulse_draw(float wx, float wz, float radius, ULONG colour, UBYTE
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, UC_FALSE, UC_TRUE);
 }
 
 // Draws all active pulses.
@@ -816,7 +816,7 @@ static void MAP_draw_arrow(float angle, ULONG colour)
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, UC_FALSE, UC_TRUE);
 }
 
 // Draws a perspective-projected 3D arrow for a beacon that is off-screen.
@@ -898,7 +898,7 @@ static void MAP_draw_3d_arrow(float angle, ULONG colour)
         pp[i].Y = 240.0F - (vy * pp[i].Z * width);
     }
 
-    POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, UC_FALSE, UC_TRUE);
 }
 
 // --- beacon system ---
@@ -922,7 +922,7 @@ UBYTE MAP_beacon_create(SLONG x, SLONG z, SLONG index, UWORD track_thing)
         mb = &MAP_beacon[i];
 
         if (!mb->used) {
-            mb->used        = TRUE;
+            mb->used        = UC_TRUE;
             mb->counter     = 0;
             mb->track_thing = track_thing;
             mb->index       = index;
@@ -1097,7 +1097,7 @@ static void MAP_beacon_draw_all()
             quad[2] = &pp[2];
             quad[3] = &pp[3];
 
-            POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, FALSE, TRUE);
+            POLY_add_quad(quad, POLY_PAGE_IC2_ALPHA_END, UC_FALSE, UC_TRUE);
 
             MENUFONT_Draw(
                 SLONG(0.3F * MAP_screen_size_x),
@@ -1116,7 +1116,7 @@ static void MAP_beacon_draw_all()
 void MAP_beacon_remove(UBYTE beacon)
 {
     ASSERT(WITHIN(beacon, 0, MAP_MAX_BEACONS - 1));
-    MAP_beacon[beacon].used = FALSE;
+    MAP_beacon[beacon].used = UC_FALSE;
 }
 
 // Draws items and specials carried by a person as rotating prim models on the side of the map.
@@ -1210,7 +1210,7 @@ void MAP_draw()
 
     AENG_clear_screen();
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     MAP_screen_size_x = float(DisplayWidth);
     MAP_screen_size_y = float(DisplayHeight);
@@ -1417,7 +1417,7 @@ void MAP_draw()
 
     MAP_draw_weapons(darci);
 
-    POLY_frame_draw(FALSE, FALSE);
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
 }
 
 // uc_orig: MAP_process (fallen/DDEngine/Source/engineMap.cpp)

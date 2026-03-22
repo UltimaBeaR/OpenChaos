@@ -46,13 +46,13 @@ void NGAMUT_init(void)
     SLONG i;
 
     for (i = 0; i < NGAMUT_SIZE; i++) {
-        NGAMUT_gamut[i].xmin = INFINITY;
-        NGAMUT_gamut[i].xmax = -INFINITY;
+        NGAMUT_gamut[i].xmin = UC_INFINITY;
+        NGAMUT_gamut[i].xmax = -UC_INFINITY;
     }
 
-    NGAMUT_xmin = INFINITY;
-    NGAMUT_zmin = INFINITY;
-    NGAMUT_zmax = -INFINITY;
+    NGAMUT_xmin = UC_INFINITY;
+    NGAMUT_zmin = UC_INFINITY;
+    NGAMUT_zmax = -UC_INFINITY;
 }
 
 // uc_orig: NGAMUT_add_line (fallen/DDEngine/Source/NGamut.cpp)
@@ -142,8 +142,8 @@ void NGAMUT_view_square(float mid_x, float mid_z, float radius)
     NGAMUT_xmin = xmin;
 
     for (i = 0; i < NGAMUT_SIZE; i++) {
-        NGAMUT_gamut[i].xmin = INFINITY;
-        NGAMUT_gamut[i].xmax = -INFINITY;
+        NGAMUT_gamut[i].xmin = UC_INFINITY;
+        NGAMUT_gamut[i].xmax = -UC_INFINITY;
     }
 
     for (z = zmin; z <= zmax; z++) {
@@ -239,8 +239,8 @@ void NGAMUT_calculate_lo_gamut()
     SATURATE(NGAMUT_lo_zmax, 0, NGAMUT_SIZE_LO - 1);
 
     for (i = NGAMUT_lo_zmin; i <= NGAMUT_lo_zmax; i++) {
-        xmin = +INFINITY;
-        xmax = -INFINITY;
+        xmin = +UC_INFINITY;
+        xmax = -UC_INFINITY;
 
         for (j = 0; j < (NGAMUT_SIZE / NGAMUT_SIZE_LO); j++) {
             z = i * (NGAMUT_SIZE / NGAMUT_SIZE_LO);

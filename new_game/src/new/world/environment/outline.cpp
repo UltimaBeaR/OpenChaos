@@ -51,15 +51,15 @@ static void OUTLINE_insert_link(OUTLINE_Outline* oo, OUTLINE_Link* ol, SLONG lin
     next = oo->link[link_z];
 
     while (1) {
-        SLONG here = FALSE;
+        SLONG here = UC_FALSE;
 
         if (next == NULL) {
-            here = TRUE;
+            here = UC_TRUE;
         } else if (next->x > ol->x) {
-            here = TRUE;
+            here = UC_TRUE;
         } else if (next->x == ol->x) {
             if (ol->x == OUTLINE_LINK_TYPE_END) {
-                here = TRUE;
+                here = UC_TRUE;
             }
         }
 
@@ -128,8 +128,8 @@ void OUTLINE_free(OUTLINE_Outline* oo)
 // uc_orig: OUTLINE_overlap (fallen/Editor/Source/outline.cpp) [inner overload]
 static SLONG OUTLINE_overlap(OUTLINE_Link* ol1, OUTLINE_Link* ol2)
 {
-    SLONG on1 = FALSE;
-    SLONG on2 = FALSE;
+    SLONG on1 = UC_FALSE;
+    SLONG on2 = UC_FALSE;
 
     while (1) {
         if (ol1 == NULL || ol2 == NULL) {
@@ -139,7 +139,7 @@ static SLONG OUTLINE_overlap(OUTLINE_Link* ol1, OUTLINE_Link* ol2)
             if (ol2 == NULL) {
                 ASSERT(!on2);
             }
-            return FALSE;
+            return UC_FALSE;
         }
 
         if ((ol1->x < ol2->x) || (ol1->x == ol2->x && ol1->type == OUTLINE_LINK_TYPE_END)) {
@@ -149,7 +149,7 @@ static SLONG OUTLINE_overlap(OUTLINE_Link* ol1, OUTLINE_Link* ol2)
             ASSERT(
                 (!on1 && ol1->type == OUTLINE_LINK_TYPE_START) || (on1 && ol1->type == OUTLINE_LINK_TYPE_END));
             ol1 = ol1->next;
-            on1 ^= TRUE;
+            on1 ^= UC_TRUE;
         } else if (ol2->x < ol1->x || (ol1->x == ol2->x && ol2->type == OUTLINE_LINK_TYPE_END)) {
             if ((!on2 && ol2->type == OUTLINE_LINK_TYPE_START) || (on2 && ol2->type == OUTLINE_LINK_TYPE_END)) {
             } else {
@@ -158,16 +158,16 @@ static SLONG OUTLINE_overlap(OUTLINE_Link* ol1, OUTLINE_Link* ol2)
             ASSERT(
                 (!on2 && ol2->type == OUTLINE_LINK_TYPE_START) || (on2 && ol2->type == OUTLINE_LINK_TYPE_END));
             ol2 = ol2->next;
-            on2 ^= TRUE;
+            on2 ^= UC_TRUE;
         } else if (ol1->x == ol2->x) {
             ASSERT(ol1->type == OUTLINE_LINK_TYPE_START);
             ASSERT(ol2->type == OUTLINE_LINK_TYPE_START);
             // Both outlines are starting a span at the same x — they overlap.
-            return TRUE;
+            return UC_TRUE;
         }
 
         if (on1 && on2) {
-            return TRUE;
+            return UC_TRUE;
         }
     }
 }
@@ -180,31 +180,31 @@ SLONG OUTLINE_overlap(OUTLINE_Outline* oo1, OUTLINE_Outline* oo2)
 
     for (z = 0; z < minz; z++) {
         if (OUTLINE_overlap(oo1->link[z], oo2->link[z])) {
-            return TRUE;
+            return UC_TRUE;
         }
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
-// Returns TRUE if the point (x, z) is inside the outline.
+// Returns UC_TRUE if the point (x, z) is inside the outline.
 // uc_orig: OUTLINE_inside (fallen/Editor/Source/outline.cpp)
 static SLONG OUTLINE_inside(OUTLINE_Outline* oo, SLONG x, SLONG z)
 {
     OUTLINE_Link* ol;
 
     if (!WITHIN(z, 0, oo->max_z - 1)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     ol = oo->link[z];
 
     while (1) {
         if (ol == NULL || ol->next == NULL) {
-            return FALSE;
+            return UC_FALSE;
         }
         if (ol->type == OUTLINE_LINK_TYPE_START && ol->next->type == OUTLINE_LINK_TYPE_END) {
             if (WITHIN(x, ol->x, ol->next->x - 1)) {
-                return TRUE;
+                return UC_TRUE;
             }
         }
         ol = ol->next;
@@ -246,12 +246,12 @@ SLONG OUTLINE_intersects(
         mx2 = x + (dz << 7) >> 8;
 
         if (OUTLINE_inside(oo, mx1, mz1) || OUTLINE_inside(oo, mx2, mz1)) {
-            return TRUE;
+            return UC_TRUE;
         }
 
         x += dx << 8;
         z += dz << 8;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }

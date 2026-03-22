@@ -146,25 +146,25 @@ extern SLONG find_empty_special(void);
 extern void free_special(Thing* s_thing);
 extern void reload_level(void);
 
-// Writes bytes to SAVE_handle; returns FALSE on I/O error.
+// Writes bytes to SAVE_handle; returns UC_FALSE on I/O error.
 // uc_orig: SAVE_out_data (fallen/Source/save.cpp)
 static SLONG SAVE_out_data(void* data, ULONG num_bytes)
 {
     if (fwrite(data, 1, num_bytes, SAVE_handle) != num_bytes) {
-        return FALSE;
+        return UC_FALSE;
     } else {
-        return TRUE;
+        return UC_TRUE;
     }
 }
 
-// Reads bytes from SAVE_handle; returns FALSE on I/O error.
+// Reads bytes from SAVE_handle; returns UC_FALSE on I/O error.
 // uc_orig: LOAD_in_data (fallen/Source/save.cpp)
 static SLONG LOAD_in_data(void* data, ULONG num_bytes)
 {
     if (fread(data, 1, num_bytes, SAVE_handle) != num_bytes) {
-        return FALSE;
+        return UC_FALSE;
     } else {
-        return TRUE;
+        return UC_TRUE;
     }
 }
 
@@ -301,7 +301,7 @@ static SLONG SAVE_person(Thing* p_person)
         sp.onface = p_person->OnFace;
 
         if (!SAVE_out_data(&sp, sizeof(SAVE_Person))) {
-            return FALSE;
+            return UC_FALSE;
         }
     } else {
         SAVE_Person_extra extra;
@@ -318,9 +318,9 @@ static SLONG SAVE_person(Thing* p_person)
         ret &= SAVE_out_data(p_person->Genus.Person, sizeof(Person));
         ret &= SAVE_out_data(p_person, sizeof(Thing));
         if (ret == 0)
-            return (FALSE);
+            return (UC_FALSE);
     }
-    return (TRUE);
+    return (UC_TRUE);
 }
 
 // Iterates all thing slots and serializes each according to its class.
@@ -336,17 +336,17 @@ static SLONG SAVE_things(void)
         switch (p_thing->Class) {
         case CLASS_PERSON:
             if (!SAVE_person(p_thing)) {
-                return (FALSE);
+                return (UC_FALSE);
             }
             break;
         case CLASS_SPECIAL:
             if (!SAVE_special(p_thing)) {
-                return (FALSE);
+                return (UC_FALSE);
             }
             break;
         case CLASS_VEHICLE:
             if (!SAVE_vehicle(p_thing)) {
-                return (FALSE);
+                return (UC_FALSE);
             }
             break;
         case CLASS_NONE:
@@ -370,7 +370,7 @@ static SLONG SAVE_eways(void)
     EWAY_Way* ew;
 
     if (!SAVE_out_data(&marker, sizeof(marker))) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     for (c0 = 0; c0 < EWAY_way_upto; c0++) {
@@ -384,10 +384,10 @@ static SLONG SAVE_eways(void)
         }
 
         if (!res)
-            return (FALSE);
+            return (UC_FALSE);
     }
     res &= SAVE_out_data(EWAY_timer, sizeof(UWORD) * EWAY_MAX_TIMERS);
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: SAVE_ingame (fallen/Source/save.cpp)
@@ -401,7 +401,7 @@ SLONG SAVE_ingame(CBYTE* fname)
     ret &= SAVE_eways();
 
     MF_Fclose(SAVE_handle);
-    return (TRUE);
+    return (UC_TRUE);
 }
 
 // Restores EWAY flags, countdown timers, and the timer array from the save stream.
@@ -419,7 +419,7 @@ static SLONG LOAD_eways(void)
             res &= LOAD_in_data(&ew->timer, sizeof(ew->timer));
         }
         if (!res)
-            return (FALSE);
+            return (UC_FALSE);
     }
     res &= LOAD_in_data(EWAY_timer, sizeof(UWORD) * EWAY_MAX_TIMERS);
     return (res);
@@ -729,5 +729,5 @@ SLONG LOAD_ingame(CBYTE* fname)
 
     fix_thing_lists();
 
-    return (TRUE);
+    return (UC_TRUE);
 }

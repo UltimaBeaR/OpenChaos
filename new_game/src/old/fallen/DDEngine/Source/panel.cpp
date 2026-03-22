@@ -102,7 +102,7 @@ void PANEL_draw_quad(
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_add_quad(quad, page, FALSE, TRUE);
+    POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
 }
 
 void PANEL_crap_text(int x, int y, char* string)
@@ -293,7 +293,7 @@ void PANEL_draw_number(float x, float y, UBYTE digit) // 0 <= digit <= 9... Not 
         pp[3].colour = colour;
         pp[3].specular = 0xff000000;
 
-        POLY_add_quad(quad, POLY_PAGE_ALPHA, FALSE, TRUE);
+        POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE, UC_TRUE);
     }
 }
 
@@ -858,7 +858,7 @@ void PANEL_funky_quad(
         quad[2] = &pp[2];
         quad[3] = &pp[3];
 
-        POLY_add_quad(quad, page, FALSE, TRUE);
+        POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
     } else {
         left = float(x);
         top = float(y);
@@ -1010,7 +1010,7 @@ void PANEL_new_toss(
     pt = &PANEL_toss[PANEL_toss_last];
     pa = &PANEL_ammo[type];
 
-    pt->used = TRUE;
+    pt->used = UC_TRUE;
     pt->type = type;
     pt->x = sx + pa->width * 0.5F;
     pt->y = sy + pa->height * 0.5F;
@@ -1056,7 +1056,7 @@ void PANEL_do_tosses(void)
                 pt->dy += 1.5F;
 
                 if (pt->y > 490.0F) {
-                    pt->used = FALSE;
+                    pt->used = UC_FALSE;
                 }
             }
         }
@@ -1145,7 +1145,7 @@ void PANEL_do_tosses(void)
 
                 page = PANEL_page[PANEL_ic[pa->page_one].page][PANEL_PAGE_ALPHA_END];
 
-                POLY_add_quad(quad, page, FALSE, TRUE);
+                POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
             }
         }
     }
@@ -1694,7 +1694,7 @@ void PANEL_help_message_do()
 
 THING_INDEX PANEL_wide_top_person;
 THING_INDEX PANEL_wide_bot_person;
-SLONG PANEL_wide_top_is_talking; // TRUE/FALSE for who is talking now
+SLONG PANEL_wide_top_is_talking; // UC_TRUE/UC_FALSE for who is talking now
 CBYTE PANEL_wide_text[256];
 
 void PANEL_new_widescreen()
@@ -1764,7 +1764,7 @@ void PANEL_new_widescreen()
 
                 strcpy(PANEL_wide_text, pt->text);
 
-                PANEL_wide_top_is_talking = FALSE;
+                PANEL_wide_top_is_talking = UC_FALSE;
 
                 pt->delay = 0;
             } else {
@@ -1775,7 +1775,7 @@ void PANEL_new_widescreen()
 
                     strcpy(PANEL_wide_text, pt->text);
 
-                    PANEL_wide_top_is_talking = TRUE;
+                    PANEL_wide_top_is_talking = UC_TRUE;
 
                     pt->delay = 0;
                 } else {
@@ -1785,7 +1785,7 @@ void PANEL_new_widescreen()
 
                     strcpy(PANEL_wide_text, pt->text);
 
-                    PANEL_wide_top_is_talking = FALSE;
+                    PANEL_wide_top_is_talking = UC_FALSE;
                     PANEL_wide_bot_person = THING_NUMBER(pt->who);
 
                     pt->delay = 0;
@@ -1830,7 +1830,7 @@ void PANEL_new_widescreen()
                 256,
                 POLY_PAGE_FONT2D,
                 0,
-                TRUE);
+                UC_TRUE);
             iYpos = 75 - iYpos;
             FONT2D_DrawStringRightJustify(
                 PANEL_wide_text,
@@ -1840,7 +1840,7 @@ void PANEL_new_widescreen()
                 256,
                 POLY_PAGE_FONT2D,
                 0,
-                FALSE);
+                UC_FALSE);
         } else {
             FONT2D_DrawStringWrap(
                 PANEL_wide_text,
@@ -1873,12 +1873,12 @@ ULONG PANEL_beacon_colour[PANEL_MAX_BEACON_COLOURS] = {
 
 void PANEL_start(void)
 {
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 }
 
 void PANEL_finish(void)
 {
-    POLY_frame_draw(TRUE, TRUE);
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
 }
 
 // ========================================================
@@ -1907,7 +1907,7 @@ float zoom_mul = 0.500F;
 void PANEL_fadeout_draw()
 {
     if (PANEL_fadeout_time) {
-        POLY_frame_init(FALSE, FALSE);
+        POLY_frame_init(UC_FALSE, UC_FALSE);
 
         //
         // Make the fadeout zoom in and turn.
@@ -1977,7 +1977,7 @@ void PANEL_fadeout_draw()
         quad[2] = &pp[2];
         quad[3] = &pp[3];
 
-        POLY_add_quad(quad, POLY_PAGE_FADECAT, FALSE, TRUE);
+        POLY_add_quad(quad, POLY_PAGE_FADECAT, UC_FALSE, UC_TRUE);
 
         //
         // Darken the screen at the end.
@@ -2007,7 +2007,7 @@ void PANEL_fadeout_draw()
                 colour);
         }
 
-        POLY_frame_draw(FALSE, FALSE);
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
     }
 }
 
@@ -2015,11 +2015,11 @@ SLONG PANEL_fadeout_finished()
 {
     if (PANEL_fadeout_time) {
         if (GetTickCount() > (unsigned)PANEL_fadeout_time + 1024) {
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 //
@@ -2214,7 +2214,7 @@ void PANEL_last_arrow(float x, float y, float angle, float size, ULONG colour, U
     pp[3].colour = colour;
     pp[3].specular = 0xff000000;
 
-    POLY_add_quad(quad, pls->page, FALSE, TRUE);
+    POLY_add_quad(quad, pls->page, UC_FALSE, UC_TRUE);
 }
 
 void PANEL_last_bubble(float x1, float y1, float x2, float y2)
@@ -2293,7 +2293,7 @@ void PANEL_last_bubble(float x1, float y1, float x2, float y2)
         quad[2] = &pp[blah[i].p3];
         quad[3] = &pp[blah[i].p4];
 
-        POLY_add_quad(quad, pls->page, FALSE, TRUE);
+        POLY_add_quad(quad, pls->page, UC_FALSE, UC_TRUE);
     }
 }
 
@@ -2648,8 +2648,8 @@ void PANEL_last()
 
         PANEL_darken_screen(640);
 
-        POLY_frame_draw(FALSE, FALSE);
-        POLY_frame_init(FALSE, FALSE);
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+        POLY_frame_init(UC_FALSE, UC_FALSE);
 
         //
         // Draw a speech bubble in the top left of the screen.
@@ -2690,7 +2690,7 @@ void PANEL_last()
     } else {
         PANEL_wide_top_person = NULL;
         PANEL_wide_bot_person = NULL;
-        PANEL_wide_top_is_talking = FALSE;
+        PANEL_wide_top_is_talking = UC_FALSE;
         PANEL_wide_text[0] = '\000';
     }
 
@@ -3128,7 +3128,7 @@ void PANEL_last()
                 pp[3].colour = 0xffffffff;
                 pp[3].specular = 0xff000000;
 
-                POLY_add_quad(quad, POLY_PAGE_LASTPANEL2_ALPHA, FALSE, TRUE);
+                POLY_add_quad(quad, POLY_PAGE_LASTPANEL2_ALPHA, UC_FALSE, UC_TRUE);
             }
 
             last_u1 = u1;
@@ -3195,7 +3195,7 @@ void PANEL_last()
         ULONG colour;
 
         SLONG best_beacon = NULL;
-        float best_score = float(INFINITY);
+        float best_score = float(UC_INFINITY);
 
         for (i = 1; i < MAP_MAX_BEACONS; i++) {
             mb = &MAP_beacon[i];
@@ -3204,7 +3204,7 @@ void PANEL_last()
                 continue;
             }
 
-            thugly = FALSE;
+            thugly = UC_FALSE;
 
             if (mb->track_thing) {
                 Thing* p_track = TO_THING(mb->track_thing);
@@ -3222,7 +3222,7 @@ void PANEL_last()
                     case PERSON_MIB1:
                     case PERSON_MIB2:
                     case PERSON_MIB3:
-                        thugly = TRUE;
+                        thugly = UC_TRUE;
                     }
                     if (p_track->State == STATE_DEAD) {
 
@@ -3345,7 +3345,7 @@ void PANEL_last()
                 best_beacon = i;
             }
 
-            mb->pad = FALSE;
+            mb->pad = UC_FALSE;
         }
 
         if (PANEL_info_time > GetTickCount() - 2000) {
@@ -3420,7 +3420,7 @@ void PANEL_last()
                     PANEL_beacon_colour[best_beacon % PANEL_MAX_BEACON_COLOURS],
                     256);
 
-                mb->pad = TRUE;
+                mb->pad = UC_TRUE;
             }
         }
     }
@@ -3467,13 +3467,13 @@ void PANEL_last()
                 continue;
             }
 
-            display = FALSE;
+            display = UC_FALSE;
 
             switch (p_found->Genus.Person->PersonType) {
             case PERSON_THUG_RASTA:
             case PERSON_THUG_GREY:
             case PERSON_THUG_RED:
-                display = TRUE;
+                display = UC_TRUE;
                 size = 0.5F;
                 colour = 0xdd2222;
                 break;
@@ -3481,7 +3481,7 @@ void PANEL_last()
             case PERSON_MIB1:
             case PERSON_MIB2:
             case PERSON_MIB3:
-                display = TRUE;
+                display = UC_TRUE;
                 size = 0.5F;
                 colour = 0xdddddd;
                 break;
@@ -3491,7 +3491,7 @@ void PANEL_last()
             }
 
             if (PCOM_person_wants_to_kill(p_found) == THING_NUMBER(darci)) {
-                display = TRUE;
+                display = UC_TRUE;
                 size = flash;
             }
 
@@ -3730,8 +3730,8 @@ void PANEL_last()
     static SLONG the_answer = 0;
 
     if (!i_know) {
-        the_answer = ENV_get_value_number("iamapsx", FALSE);
-        i_know = TRUE;
+        the_answer = ENV_get_value_number("iamapsx", UC_FALSE);
+        i_know = UC_TRUE;
     }
 
     if (the_answer) {
@@ -3829,7 +3829,7 @@ void PANEL_draw_completion_bar(SLONG completion)
     SLONG g;
     SLONG b;
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     SLONG i;
 
@@ -3849,10 +3849,10 @@ void PANEL_draw_completion_bar(SLONG completion)
             colour);
     }
 
-    POLY_frame_draw(FALSE, FALSE);
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
 }
 
-bool bScreensaverEnabled = FALSE;
+bool bScreensaverEnabled = UC_FALSE;
 // Darkness of screensaver, from 0(off)->0xffff(full on)
 int iScreenSaverDarkness = 0;
 
@@ -3880,7 +3880,7 @@ DWORD dwGetRandomishNumber(void)
 void PANEL_enable_screensaver(void)
 {
     if (!bScreensaverEnabled) {
-        bScreensaverEnabled = TRUE;
+        bScreensaverEnabled = UC_TRUE;
         iScreensaverXPos = 320;
         iScreensaverYPos = 240;
         iScreensaverXInc = 4;
@@ -3890,7 +3890,7 @@ void PANEL_enable_screensaver(void)
 
 void PANEL_disable_screensaver(bool bImmediately)
 {
-    bScreensaverEnabled = FALSE;
+    bScreensaverEnabled = UC_FALSE;
     if (bImmediately) {
         // Bin the fade in.
         iScreenSaverDarkness = 0;
@@ -3916,7 +3916,7 @@ void PANEL_screensaver_draw(void)
         return;
     }
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     // Bounce around the screen.
     iScreensaverXPos += iScreensaverXInc;
@@ -3996,7 +3996,7 @@ void PANEL_screensaver_draw(void)
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_add_quad(quad, POLY_PAGE_FADE_MF, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_FADE_MF, UC_FALSE, UC_TRUE);
 
     // Now draw the darkener around it.
     // Top block.
@@ -4008,7 +4008,7 @@ void PANEL_screensaver_draw(void)
     pp[2].Y = (float)iScreensaverYPos;
     pp[3].X = 640.0f;
     pp[3].Y = (float)iScreensaverYPos;
-    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, UC_FALSE, UC_TRUE);
 
     // Bottom block.
     pp[0].X = 0.0f;
@@ -4019,7 +4019,7 @@ void PANEL_screensaver_draw(void)
     pp[2].Y = 480.0f;
     pp[3].X = 640.0f;
     pp[3].Y = 480.0f;
-    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, UC_FALSE, UC_TRUE);
 
     // Left block.
     pp[0].X = 0.0f;
@@ -4030,7 +4030,7 @@ void PANEL_screensaver_draw(void)
     pp[2].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
     pp[3].X = (float)iScreensaverXPos;
     pp[3].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
-    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, UC_FALSE, UC_TRUE);
 
     // Right block.
     pp[0].X = (float)iScreensaverXPos + SCREENSAVER_SIZE;
@@ -4041,7 +4041,7 @@ void PANEL_screensaver_draw(void)
     pp[2].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
     pp[3].X = 640.0f;
     pp[3].Y = (float)iScreensaverYPos + SCREENSAVER_SIZE;
-    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_COLOUR_ALPHA, UC_FALSE, UC_TRUE);
 
-    POLY_frame_draw(FALSE, FALSE);
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
 }

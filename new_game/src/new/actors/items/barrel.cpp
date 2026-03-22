@@ -82,7 +82,7 @@ void BARREL_init()
     BARREL_sphere_last = 2;
 
     for (i = 0; i < BARREL_MAX_SPHERES; i++) {
-        BARREL_sphere[i].x = -INFINITY;
+        BARREL_sphere[i].x = -UC_INFINITY;
     }
     BARREL_fx_rate = 0;
 }
@@ -96,7 +96,7 @@ static SLONG BARREL_spheres_get(void)
     for (i = 0; i < BARREL_MAX_SPHERES / 2; i++) {
         ASSERT(WITHIN(BARREL_sphere_last, 2, BARREL_MAX_SPHERES - 2));
 
-        if (BARREL_sphere[BARREL_sphere_last].x == -INFINITY) {
+        if (BARREL_sphere[BARREL_sphere_last].x == -UC_INFINITY) {
             return BARREL_sphere_last;
         }
 
@@ -117,8 +117,8 @@ static void BARREL_spheres_give(SLONG bs)
     ASSERT(WITHIN(bs + 0, 2, BARREL_MAX_SPHERES - 2));
     ASSERT(WITHIN(bs + 1, 3, BARREL_MAX_SPHERES - 1));
 
-    BARREL_sphere[bs + 0].x = -INFINITY;
-    BARREL_sphere[bs + 1].x = -INFINITY;
+    BARREL_sphere[bs + 0].x = -UC_INFINITY;
+    BARREL_sphere[bs + 1].x = -UC_INFINITY;
 }
 
 // uc_orig: BARREL_stacked_sphere (fallen/Source/barrel.cpp)
@@ -908,7 +908,7 @@ void BARREL_process_normal(Thing* p_barrel)
         }
     }
 
-    BARREL_push_apart(bs1, bs2, TRUE);
+    BARREL_push_apart(bs1, bs2, UC_TRUE);
 
     // Position barrel at midpoint of its two spheres.
     newpos.X = bs1->x + bs2->x >> 1;
@@ -979,7 +979,7 @@ void BARREL_process_normal(Thing* p_barrel)
             bs2->z >> 8,
             8,
             0x00ff4444,
-            TRUE);
+            UC_TRUE);
     }
 }
 
@@ -1250,9 +1250,9 @@ void BARREL_shoot(
     SWORD wave;
 
     if ((p_barrel->Genus.Barrel->flag & BARREL_FLAG_STILL) && !(p_barrel->Genus.Barrel->flag & BARREL_FLAG_STACKED)) {
-        in_the_air = FALSE;
+        in_the_air = UC_FALSE;
     } else {
-        in_the_air = TRUE;
+        in_the_air = UC_TRUE;
     }
 
     GameCoord barrelpos = p_barrel->WorldPos;

@@ -88,11 +88,11 @@ static SLONG FONT2D_found_data(SLONG x, SLONG y)
         SLONG py = y + dy;
         if (WITHIN(py, 0, 255)) {
             if (((*FONT2D_DATA)[py][x]).alpha) {
-                return TRUE;
+                return UC_TRUE;
             }
         }
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: FONT2D_init (fallen/DDEngine/Headers/font2d.h)
@@ -109,7 +109,7 @@ void FONT2D_init(SLONG font_id)
 
     sprintf(fname, "%s%s", TEXTURE_EXTRA_DIR, "multifontPC.tga");
 
-    ti = TGA_load(fname, 256, 256, &((*FONT2D_DATA)[0][0]), font_id, FALSE);
+    ti = TGA_load(fname, 256, 256, &((*FONT2D_DATA)[0][0]), font_id, UC_FALSE);
 
     ASSERT(ti.valid);
     ASSERT(ti.width == 256);
@@ -389,7 +389,7 @@ SLONG FONT2D_DrawStringRightJustify(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLO
             SLONG xlook;
             if (str[i] == '\000') {
                 // End of string — always draw this last line.
-                xlook = (SLONG)-INFINITY;
+                xlook = (SLONG)-UC_INFINITY;
             } else {
                 // Look ahead to check if the next word fits.
                 CBYTE* ch = &str[i + 1];
@@ -551,5 +551,5 @@ void FONT2D_DrawStrikethrough(SLONG x1, SLONG x2, SLONG y, ULONG rgb, SLONG scal
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_add_quad(quad, page, FALSE, TRUE);
+    POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
 }

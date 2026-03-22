@@ -37,7 +37,7 @@ void InitAsyncFile(void)
 
     InitializeCriticalSection(&csLock);
 
-    hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    hEvent = CreateEvent(NULL, UC_FALSE, UC_FALSE, NULL);
 
     KillThread = 0;
     CancelKey = 0;

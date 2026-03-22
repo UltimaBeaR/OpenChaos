@@ -138,7 +138,7 @@ void NIGHT_slight_init(void)
 }
 
 // uc_orig: NIGHT_slight_create (fallen/Source/night.cpp)
-// Returns FALSE if no space available.
+// Returns UC_FALSE if no space available.
 SLONG NIGHT_slight_create(SLONG x, SLONG y, SLONG z, UBYTE radius, SBYTE red, SBYTE green, SBYTE blue)
 {
     NIGHT_Smap* ns;
@@ -159,7 +159,7 @@ SLONG NIGHT_slight_create(SLONG x, SLONG y, SLONG z, UBYTE radius, SBYTE red, SB
             NIGHT_slight_compress();
 
             if (NIGHT_slight_upto + ns->number + 1 > NIGHT_MAX_SLIGHTS) {
-                return FALSE;
+                return UC_FALSE;
             }
         }
 
@@ -201,7 +201,7 @@ SLONG NIGHT_slight_create(SLONG x, SLONG y, SLONG z, UBYTE radius, SBYTE red, SB
     ns->number += 1;
     NIGHT_slight_upto += 1;
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: NIGHT_slight_delete (fallen/Source/night.cpp)
@@ -278,7 +278,7 @@ void NIGHT_light_mapsquare(SLONG lo_map_x, SLONG lo_map_z, NIGHT_Colour* colour,
 
     if (WARE_in) {
         // Inside a warehouse: only consider inside lights.
-        inside = TRUE;
+        inside = UC_TRUE;
     }
 
     // Allocate precalc scratch from heap pad.
@@ -632,9 +632,9 @@ void NIGHT_light_prim(SLONG prim, SLONG prim_x, SLONG prim_y, SLONG prim_z, SLON
 
     // Many prims have no rotation.
     if (prim_yaw == 0 && prim_pitch == 0 && prim_roll == 0) {
-        rotate = FALSE;
+        rotate = UC_FALSE;
     } else {
-        rotate = TRUE;
+        rotate = UC_TRUE;
         FMATRIX_calc(matrix, prim_yaw, prim_pitch, prim_roll);
     }
 
@@ -1045,14 +1045,14 @@ static void NIGHT_dlight_squares_do(SLONG subtract)
 
                     // Light facets on this square.
                     flist = PAP_2LO(mx, mz).ColVectHead;
-                    exit_flag = FALSE;
+                    exit_flag = UC_FALSE;
                     if (flist) {
                         while (!exit_flag) {
                             facet = facet_links[flist++];
 
                             if (facet < 0) {
                                 facet = -facet;
-                                exit_flag = TRUE;
+                                exit_flag = UC_TRUE;
                             }
 
                             ASSERT(WITHIN(facet, 1, next_dfacet - 1));
@@ -1139,7 +1139,7 @@ static void NIGHT_dlight_squares_do(SLONG subtract)
 // uc_orig: NIGHT_dlight_squares_up (fallen/Source/night.cpp)
 void NIGHT_dlight_squares_up(void)
 {
-    NIGHT_dlight_squares_do(FALSE);
+    NIGHT_dlight_squares_do(UC_FALSE);
 }
 
 // uc_orig: NIGHT_dlight_squares_down (fallen/Source/night.cpp)
@@ -1149,7 +1149,7 @@ void NIGHT_dlight_squares_down(void)
     SLONG next;
     NIGHT_Dlight* ndl;
 
-    NIGHT_dlight_squares_do(TRUE);
+    NIGHT_dlight_squares_do(UC_TRUE);
 
 destroy_again:;
 
@@ -1204,7 +1204,7 @@ void NIGHT_cache_recalc(void)
 
 // uc_orig: NIGHT_cache_create (fallen/Source/night.cpp)
 // Build the lighting cache for one lo-res map square.
-// If ware=TRUE, use dimmer indoor ambient and only warehouse prims.
+// If ware=UC_TRUE, use dimmer indoor ambient and only warehouse prims.
 void NIGHT_cache_create(UBYTE lo_map_x, UBYTE lo_map_z, UBYTE ware)
 {
     SLONG num_points;
@@ -2630,7 +2630,7 @@ void NIGHT_destroy_all_cached_info()
 
 // uc_orig: NIGHT_load_ed_file (fallen/Source/night.cpp)
 // Loads a .ed (editor) lighting file: slights, ambient colour, lampost settings, sky colour.
-// Returns TRUE on success, FALSE on file error or version mismatch.
+// Returns UC_TRUE on success, UC_FALSE on file error or version mismatch.
 SLONG NIGHT_load_ed_file(CBYTE* name)
 {
     SLONG i;
@@ -2651,7 +2651,7 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
     handle = FileOpen(name);
 
     if ((!handle) || (handle == FILE_OPEN_ERROR)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (FileRead(handle, &sizeof_ed_light, sizeof(SLONG)) < 0)
@@ -2667,7 +2667,7 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
     if (sizeof_ed_light != sizeof(ED_Light) || sizeof_night_colour != sizeof(NIGHT_Colour)) {
         FileClose(handle);
 
-        return FALSE;
+        return UC_FALSE;
     }
 
     for (i = 0; i < ed_max_lights; i++) {
@@ -2745,11 +2745,11 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
 
     FileClose(handle);
 
-    return TRUE;
+    return UC_TRUE;
 
 file_error:;
 
     FileClose(handle);
 
-    return FALSE;
+    return UC_FALSE;
 }

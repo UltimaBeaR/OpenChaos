@@ -53,7 +53,7 @@ void MUSIC_mode_process();
 // uc_orig: MUSIC_reset (fallen/Headers/music.h)
 void MUSIC_reset();
 
-// Returns TRUE if the most recently started quick-play track is still playing.
+// Returns UC_TRUE if the most recently started quick-play track is still playing.
 // uc_orig: MUSIC_is_playing (fallen/Headers/music.h)
 extern SLONG MUSIC_is_playing(void);
 

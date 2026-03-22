@@ -332,7 +332,7 @@ void SKY_draw_poly_clouds(
             pp[3].v = st->v2;
         }
 
-        POLY_add_quad(quad, POLY_PAGE_CLOUDS, FALSE, TRUE);
+        POLY_add_quad(quad, POLY_PAGE_CLOUDS, UC_FALSE, UC_TRUE);
     }
 
     return;
@@ -437,7 +437,7 @@ void SKY_draw_poly_moon(
                 pp[j].v = moon_uv[j].v;
             }
 
-            POLY_add_quad(quad, POLY_PAGE_MOON, FALSE, TRUE);
+            POLY_add_quad(quad, POLY_PAGE_MOON, UC_FALSE, UC_TRUE);
 
             on_screen_for += 1;
         }
@@ -522,10 +522,10 @@ SLONG SKY_draw_moon_reflection(
         &mid);
 
     if (!mid.IsValid()) {
-        return FALSE;
+        return UC_FALSE;
     } else {
         if (mid.X + SKY_MOON_RADIUS < 8 || mid.X - SKY_MOON_RADIUS > screen_width + 8 || mid.Y + SKY_MOON_RADIUS < 8 || mid.Y - SKY_MOON_RADIUS > screen_height + 8) {
-            return FALSE;
+            return UC_FALSE;
         } else {
             mid.Z = SKY_VERY_FAR_AWAY;
             mid.colour = 0xffaaaa88;
@@ -588,7 +588,7 @@ SLONG SKY_draw_moon_reflection(
                     }
                 }
 
-                POLY_add_quad(quad, POLY_PAGE_MOON, FALSE, TRUE);
+                POLY_add_quad(quad, POLY_PAGE_MOON, UC_FALSE, UC_TRUE);
 
                 if (i == 0) {
                     *moon_x1 = pp[0].X;
@@ -606,7 +606,7 @@ SLONG SKY_draw_moon_reflection(
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: SKY_draw_poly_sky (fallen/DDEngine/Source/sky.cpp)
@@ -690,7 +690,7 @@ void SKY_draw_poly_sky(
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_SKY, UC_FALSE, UC_TRUE);
 
     // Top gradient band (fades from bot_colour to top_colour).
     pp[0].X = 0.0F;
@@ -734,7 +734,7 @@ void SKY_draw_poly_sky(
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_SKY, UC_FALSE, UC_TRUE);
 }
 
 //  0  1
@@ -846,7 +846,7 @@ void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float wor
                 quad[2]->v = 1.0F;
                 quad[3]->v = 1.0F;
 
-                POLY_add_quad(quad, POLY_PAGE_SKY, FALSE, 1);
+                POLY_add_quad(quad, POLY_PAGE_SKY, UC_FALSE, 1);
             }
     }
 }

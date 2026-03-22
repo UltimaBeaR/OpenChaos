@@ -191,7 +191,7 @@ SLONG find_electric_fence_dbuilding(
     SLONG world_x, SLONG world_y, SLONG world_z, SLONG range)
 {
     SLONG dist;
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
     SLONG best_facet = NULL;
     SLONG mx, mz;
     SLONG mx1, mx2, mz1, mz2;
@@ -214,7 +214,7 @@ SLONG find_electric_fence_dbuilding(
             f_list = PAP_2LO(mx, mz).ColVectHead;
 
             if (f_list) {
-                exit = FALSE;
+                exit = UC_FALSE;
 
                 while (!exit) {
                     facet = facet_links[f_list];
@@ -223,7 +223,7 @@ SLONG find_electric_fence_dbuilding(
                     if (facet < 0) {
                         // Negative index = last facet in this mapsquare's chain.
                         facet = -facet;
-                        exit = TRUE;
+                        exit = UC_TRUE;
                     }
 
                     dist = distance_to_line(

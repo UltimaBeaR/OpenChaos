@@ -108,10 +108,10 @@ public:
         wPageNum = -1;
         bPagePos = 0;
         bPageType = D3DPAGE_NONE;
-        GreyScale = FALSE;
-        UserWantsAlpha = FALSE;
+        GreyScale = UC_FALSE;
+        UserWantsAlpha = UC_FALSE;
         ID = -1;
-        bCanShrink = FALSE;
+        bCanShrink = UC_FALSE;
     }
 
     // Pixel format masks and shifts for packing RGB(A) components into the surface pixel format.
@@ -130,7 +130,7 @@ public:
     SLONG ContainsAlpha;
 
     // Load a TGA file as a managed texture. texid is the file-clump ID (-1 if none).
-    HRESULT LoadTextureTGA(CBYTE* tga_file, ULONG texid, BOOL bCanShrink = TRUE);
+    HRESULT LoadTextureTGA(CBYTE* tga_file, ULONG texid, BOOL bCanShrink = UC_TRUE);
 
     // Replace the current TGA texture with a different file, reloading immediately.
     HRESULT ChangeTextureTGA(CBYTE* tga_file);

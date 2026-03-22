@@ -27,7 +27,7 @@ void MSG_clear(void)
 // uc_orig: MSG_add (fallen/DDEngine/Source/Message.cpp)
 void MSG_add(char* fmt, ...)
 {
-    SLONG oldest = 0, oldtimer = INFINITY;
+    SLONG oldest = 0, oldtimer = UC_INFINITY;
 
     if (!allow_debug_keys)
         return;

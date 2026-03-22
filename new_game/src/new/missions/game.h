@@ -48,7 +48,7 @@ void GAME_map_draw_old(void);
 // uc_orig: GAME_map_draw (fallen/Source/Game.cpp)
 void GAME_map_draw(void);
 
-// Widget callback for the "Leave map?" dialog. Returns TRUE when a button is pushed.
+// Widget callback for the "Leave map?" dialog. Returns UC_TRUE when a button is pushed.
 // uc_orig: leave_map_form_proc (fallen/Source/Game.cpp)
 BOOL leave_map_form_proc(Form* form, Widget* widget, SLONG message);
 
@@ -85,7 +85,7 @@ SLONG special_keys(void);
 // uc_orig: handle_sfx (fallen/Source/Game.cpp)
 void handle_sfx(void);
 
-// Returns FALSE if the simulation should pause this frame (tutorial, pause menu, etc.).
+// Returns UC_FALSE if the simulation should pause this frame (tutorial, pause menu, etc.).
 // uc_orig: should_i_process_game (fallen/Source/Game.cpp)
 SLONG should_i_process_game(void);
 

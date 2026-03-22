@@ -265,18 +265,18 @@ SLONG BitDepthToFlags(SLONG bpp)
 }
 
 // uc_orig: IsPalettized (fallen/DDLibrary/Source/DDManager.cpp)
-// Returns TRUE if the given pixel format uses a palette index.
+// Returns UC_TRUE if the given pixel format uses a palette index.
 BOOL IsPalettized(LPDDPIXELFORMAT lp_dd_pf)
 {
     if (!lp_dd_pf)
-        return FALSE;
+        return UC_FALSE;
 
-    if (lp_dd_pf->dwFlags & DDPF_PALETTEINDEXED1) return TRUE;
-    if (lp_dd_pf->dwFlags & DDPF_PALETTEINDEXED2) return TRUE;
-    if (lp_dd_pf->dwFlags & DDPF_PALETTEINDEXED4) return TRUE;
-    if (lp_dd_pf->dwFlags & DDPF_PALETTEINDEXED8) return TRUE;
+    if (lp_dd_pf->dwFlags & DDPF_PALETTEINDEXED1) return UC_TRUE;
+    if (lp_dd_pf->dwFlags & DDPF_PALETTEINDEXED2) return UC_TRUE;
+    if (lp_dd_pf->dwFlags & DDPF_PALETTEINDEXED4) return UC_TRUE;
+    if (lp_dd_pf->dwFlags & DDPF_PALETTEINDEXED8) return UC_TRUE;
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // ---------------------------------------------------------------------------
@@ -299,7 +299,7 @@ BOOL GetDesktopMode(
     D3DDeviceInfo* next_best_device;
 
     if (!the_driver || !the_mode || !the_device)
-        return FALSE;
+        return UC_FALSE;
 
     hDesktop = GetDesktopWindow();
     hdc      = GetDC(hDesktop);
@@ -312,19 +312,19 @@ BOOL GetDesktopMode(
 
     new_mode = the_driver->FindMode(w, h, bpp, 0, NULL);
     if (!new_mode)
-        return FALSE;
+        return UC_FALSE;
 
     new_device = the_driver->FindDeviceSupportsMode(D3D_guid, new_mode, &next_best_device);
     if (!new_device) {
         if (!next_best_device)
-            return FALSE;
+            return UC_FALSE;
         new_device = next_best_device;
     }
 
     *the_mode   = new_mode;
     *the_device = new_device;
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: GetFullscreenMode (fallen/DDLibrary/Source/DDManager.cpp)
@@ -343,12 +343,12 @@ BOOL GetFullscreenMode(
     DDModeInfo*    next_best_mode;
 
     if (!the_driver || !the_mode || !the_device)
-        return FALSE;
+        return UC_FALSE;
 
     new_device = the_driver->FindDevice(D3D_guid, &next_best_device);
     if (!new_device) {
         if (!next_best_device)
-            return FALSE;
+            return UC_FALSE;
         new_device = next_best_device;
     }
 
@@ -361,14 +361,14 @@ BOOL GetFullscreenMode(
     new_mode = the_driver->FindModeSupportsDevice(w, h, bpp, refresh, new_device, &next_best_mode);
     if (!new_mode) {
         if (!next_best_mode)
-            return FALSE;
+            return UC_FALSE;
         new_mode = next_best_mode;
     }
 
     *the_mode   = new_mode;
     *the_device = new_device;
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // ---------------------------------------------------------------------------
@@ -400,7 +400,7 @@ D3DDeviceInfo* ValidateDevice(
     D3DDeviceInfo* next_best_device;
 
     if (!the_driver)
-        return FALSE;
+        return UC_FALSE;
 
     if (!the_filter) {
         new_device = the_driver->FindDevice(D3D_guid, &next_best_device);
@@ -426,7 +426,7 @@ DDModeInfo* ValidateMode(
     DDModeInfo* next_best_mode;
 
     if (!the_driver)
-        return FALSE;
+        return UC_FALSE;
 
     if (!the_filter)
         new_mode = the_driver->FindMode(w, h, bpp, refresh, &next_best_mode);
@@ -514,13 +514,13 @@ HRESULT DDModeInfo::GetMode(SLONG* w, SLONG* h, SLONG* bpp, SLONG* refresh)
 }
 
 // uc_orig: DDModeInfo::ModeSupported (fallen/DDLibrary/Source/DDManager.cpp)
-// Returns TRUE if the_device can render at this mode's bit depth.
+// Returns UC_TRUE if the_device can render at this mode's bit depth.
 BOOL DDModeInfo::ModeSupported(D3DDeviceInfo* the_device)
 {
     SLONG bpp, depths, depth_flags;
 
     if (!the_device)
-        return FALSE;
+        return UC_FALSE;
 
     bpp         = GetBPP();
     depth_flags = BitDepthToFlags(bpp);
@@ -531,11 +531,11 @@ BOOL DDModeInfo::ModeSupported(D3DDeviceInfo* the_device)
     else
         depths = the_device->d3dHelDesc.dwDeviceRenderBitDepth;
 
-    return (depths & depth_flags) ? TRUE : FALSE;
+    return (depths & depth_flags) ? UC_TRUE : UC_FALSE;
 }
 
 // uc_orig: DDModeInfo::Match (fallen/DDLibrary/Source/DDManager.cpp)
-// Returns TRUE if this mode matches the given width, height, and bits-per-pixel.
+// Returns UC_TRUE if this mode matches the given width, height, and bits-per-pixel.
 BOOL DDModeInfo::Match(SLONG w, SLONG h, SLONG bpp)
 {
     ASSERT(ddSurfDesc.dwSize == sizeof(ddSurfDesc));
@@ -544,25 +544,25 @@ BOOL DDModeInfo::Match(SLONG w, SLONG h, SLONG bpp)
         (ddSurfDesc.dwHeight == (DWORD)h)) {
         if (ddSurfDesc.ddpfPixelFormat.dwRGBBitCount == (DWORD)bpp) {
             if (bpp <= 8 && !IsPalettized(&ddSurfDesc.ddpfPixelFormat))
-                return FALSE;
-            return TRUE;
+                return UC_FALSE;
+            return UC_TRUE;
         }
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: DDModeInfo::Match (fallen/DDLibrary/Source/DDManager.cpp)
-// Returns TRUE if this mode's bits-per-pixel matches bpp (overload — no w/h check).
+// Returns UC_TRUE if this mode's bits-per-pixel matches bpp (overload — no w/h check).
 BOOL DDModeInfo::Match(SLONG bpp)
 {
     ASSERT(ddSurfDesc.dwSize == sizeof(ddSurfDesc));
 
     if (ddSurfDesc.ddpfPixelFormat.dwRGBBitCount == (DWORD)bpp) {
         if (bpp <= 8 && !IsPalettized(&ddSurfDesc.ddpfPixelFormat))
-            return FALSE;
-        return TRUE;
+            return UC_FALSE;
+        return UC_TRUE;
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 // ---------------------------------------------------------------------------
@@ -698,7 +698,7 @@ HRESULT D3DDeviceInfo::LoadFormats(LPDIRECT3DDEVICE3 the_d3d_device)
         if (!the_d3d_device)
             return DDERR_GENERIC;
 
-        callback_info.Result = TRUE;
+        callback_info.Result = UC_TRUE;
         callback_info.Count  = 0L;
         callback_info.Extra  = (void*)this;
 
@@ -792,7 +792,7 @@ HRESULT D3DDeviceInfo::LoadZFormats(LPDIRECT3D3 d3d)
     CallbackInfo callback_info;
     HRESULT result;
 
-    callback_info.Result = TRUE;
+    callback_info.Result = UC_TRUE;
     callback_info.Count  = 0;
     callback_info.Extra  = (void*)this;
 
@@ -857,19 +857,19 @@ HRESULT D3DDeviceInfo::DelFormat(DDModeInfo* the_format)
 }
 
 // uc_orig: D3DDeviceInfo::IsHardware (fallen/DDLibrary/Source/DDManager.cpp)
-// Returns TRUE if this device is a hardware (HAL) device rather than software (HEL/MMX/RGB).
+// Returns UC_TRUE if this device is a hardware (HAL) device rather than software (HEL/MMX/RGB).
 BOOL D3DDeviceInfo::IsHardware(void)
 {
-    return d3dHalDesc.dcmColorModel ? TRUE : FALSE;
+    return d3dHalDesc.dcmColorModel ? UC_TRUE : UC_FALSE;
 }
 
 // uc_orig: D3DDeviceInfo::Match (fallen/DDLibrary/Source/DDManager.cpp)
 BOOL D3DDeviceInfo::Match(GUID* the_guid)
 {
-    if (!the_guid) return FALSE;
-    if (!IsValid()) return FALSE;
-    if (*the_guid != guid) return FALSE;
-    return TRUE;
+    if (!the_guid) return UC_FALSE;
+    if (!IsValid()) return UC_FALSE;
+    if (*the_guid != guid) return UC_FALSE;
+    return UC_TRUE;
 }
 
 // uc_orig: D3DDeviceInfo::FindFormat (fallen/DDLibrary/Source/DDManager.cpp)
@@ -938,7 +938,7 @@ HRESULT DDDriverInfo::Create(
     LPTSTR szTemp;
 
     if (IsValid())
-        return FALSE;
+        return UC_FALSE;
 
     if (!lpGuid)
         PrimaryOn();
@@ -1020,18 +1020,18 @@ void DDDriverInfo::Destroy(void)
 }
 
 // uc_orig: DDDriverInfo::Match (fallen/DDLibrary/Source/DDManager.cpp)
-// Returns TRUE if this driver matches the_guid (or is the primary driver when the_guid is NULL).
+// Returns UC_TRUE if this driver matches the_guid (or is the primary driver when the_guid is NULL).
 BOOL DDDriverInfo::Match(GUID* the_guid)
 {
-    if (!IsValid()) return FALSE;
+    if (!IsValid()) return UC_FALSE;
 
     if (!the_guid) {
-        if (IsPrimary()) return TRUE;
+        if (IsPrimary()) return UC_TRUE;
     } else {
-        if (*the_guid == guid) return TRUE;
+        if (*the_guid == guid) return UC_TRUE;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: DDDriverInfo::LoadModes (fallen/DDLibrary/Source/DDManager.cpp)
@@ -1045,7 +1045,7 @@ HRESULT DDDriverInfo::LoadModes(LPDIRECTDRAW4 lpDD4)
         if (!lpDD4)
             return DDERR_GENERIC;
 
-        callback_info.Result = TRUE;
+        callback_info.Result = UC_TRUE;
         callback_info.Count  = 0L;
         callback_info.Extra  = (void*)this;
 
@@ -1154,7 +1154,7 @@ HRESULT DDDriverInfo::LoadDevices(LPDIRECT3D3 lpD3D3)
         if (!lpD3D3)
             return DDERR_GENERIC;
 
-        callback_info.Result = TRUE;
+        callback_info.Result = UC_TRUE;
         callback_info.Count  = 0L;
         callback_info.Extra  = (void*)this;
 
@@ -1394,7 +1394,7 @@ HRESULT DDDriverManager::LoadDrivers(void)
     CallbackInfo callback_info;
     HRESULT result;
 
-    callback_info.Result = TRUE;
+    callback_info.Result = UC_TRUE;
     callback_info.Count  = 0L;
     callback_info.Extra  = NULL;
 

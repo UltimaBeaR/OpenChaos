@@ -23,7 +23,7 @@
 #define ENABLE_REMAPPING 0
 
 // uc_orig: GetInputDevice (fallen/DDLibrary/Source/DIManager.cpp)
-BOOL GetInputDevice(UBYTE type, UBYTE sub_type, bool bActuallyGetOne = TRUE);
+BOOL GetInputDevice(UBYTE type, UBYTE sub_type, bool bActuallyGetOne = UC_TRUE);
 // uc_orig: ReadInputDevice (fallen/DDLibrary/Source/DIManager.cpp)
 BOOL ReadInputDevice(void);
 

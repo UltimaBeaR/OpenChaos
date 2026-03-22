@@ -279,7 +279,7 @@ void TRACKS_DrawTrack(Thing* p_thing)
     pp[0].colour = pp[1].colour = pp[2].colour = pp[3].colour = (fade << 24) + (walk->colour & 0x00ffffff);
 
     if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid() && pp[3].MaybeValid()) {
-        POLY_add_quad(quad, walk->page, FALSE);
+        POLY_add_quad(quad, walk->page, UC_FALSE);
     }
 }
 
@@ -512,7 +512,7 @@ void SPRITE_draw_tex2(
             quad[2] = &pp[2];
             quad[3] = &pp[3];
 
-            POLY_add_quad(quad, page, FALSE, TRUE);
+            POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
         }
     }
 }
@@ -728,7 +728,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                     pp[2].clip = temppnt.clip;
                     pp[2].z = temppnt.z;
                     if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-                        POLY_add_triangle(tri, POLY_PAGE_FLAMES, FALSE, TRUE);
+                        POLY_add_triangle(tri, POLY_PAGE_FLAMES, UC_FALSE, UC_TRUE);
                     }
                 }
             }
@@ -1364,7 +1364,7 @@ void PYRO_draw_explosion(Pyrex* pyro)
         pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + (pyro->thing->Genus.Pyro->Timer1 << 24);
         pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
         if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, FALSE);
+            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
         }
 
         POLY_transform(points[i].x + cx,
@@ -1388,7 +1388,7 @@ void PYRO_draw_explosion(Pyrex* pyro)
         pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + (pyro->thing->Genus.Pyro->Timer1 << 24);
         pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
         if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, FALSE);
+            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
         }
     }
 
@@ -1418,7 +1418,7 @@ void PYRO_draw_explosion(Pyrex* pyro)
         pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + (pyro->thing->Genus.Pyro->Timer1 << 24);
         pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
         if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, FALSE);
+            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
         }
     }
 }
@@ -1518,7 +1518,7 @@ void PYRO_draw_dustwave(Pyro *pyro) {
                         pp[0].specular=pp[1].specular=pp[2].specular=0xFF000000;
                         if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid())
                         {
-                                POLY_add_triangle(tri,POLY_PAGE_DUSTWAVE,FALSE);
+                                POLY_add_triangle(tri,POLY_PAGE_DUSTWAVE,UC_FALSE);
                         }
 
                         if ((pass<sections-1)||(pass==2)) {
@@ -1528,7 +1528,7 @@ void PYRO_draw_dustwave(Pyro *pyro) {
                                 pp[0].specular=pp[1].specular=pp[2].specular=0xFF000000;
                                 if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid())
                                 {
-                                        POLY_add_triangle(tri,POLY_PAGE_DUSTWAVE,FALSE);
+                                        POLY_add_triangle(tri,POLY_PAGE_DUSTWAVE,UC_FALSE);
                                 }
                         }
                 }
@@ -1645,7 +1645,7 @@ void PYRO_draw_dustwave(Pyro* pyro)
             pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000;
             ok = pp[0].clip & pp[1].clip & pp[2].clip;
             if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-                POLY_add_triangle(tri, POLY_PAGE_DUSTWAVE, FALSE);
+                POLY_add_triangle(tri, POLY_PAGE_DUSTWAVE, UC_FALSE);
             }
 
             if ((pass < sections - 1) || (pass == 2)) {
@@ -1656,7 +1656,7 @@ void PYRO_draw_dustwave(Pyro* pyro)
                 pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + fade;
                 pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000;
                 if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-                    POLY_add_triangle(tri, POLY_PAGE_DUSTWAVE, FALSE);
+                    POLY_add_triangle(tri, POLY_PAGE_DUSTWAVE, UC_FALSE);
                 }
             }
         }
@@ -1814,7 +1814,7 @@ void PYRO_draw_explosion2(Pyro* pyro)
             pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
             ok = pp[0].clip & pp[1].clip & pp[2].clip;
             if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, FALSE);
+                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
             }
 
             /*			POLY_transform(	points[i].x+cx,
@@ -1840,7 +1840,7 @@ void PYRO_draw_explosion2(Pyro* pyro)
             pp[1].colour = 0xFFFFFF + fade[k];
             pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
             if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, FALSE);
+                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
             }
         }
     }
@@ -1875,7 +1875,7 @@ void PYRO_draw_explosion2(Pyro* pyro)
         pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + fade[3];
         pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
         if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, FALSE);
+            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
         }
     }
 }
@@ -2024,7 +2024,7 @@ void PYRO_draw_newdome(Pyro* pyro)
             pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
             ok = pp[0].clip & pp[1].clip & pp[2].clip;
             if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, FALSE);
+                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
             }
 
             if (Random() & 3) {
@@ -2048,7 +2048,7 @@ void PYRO_draw_newdome(Pyro* pyro)
             pp[1].colour = 0xFFFFFF + fade[k];
             pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
             if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, FALSE);
+                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
             }
         }
     }
@@ -2082,7 +2082,7 @@ void PYRO_draw_newdome(Pyro* pyro)
         pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + fade[3];
         pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
         if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, FALSE);
+            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
         }
     }
 
@@ -2345,7 +2345,7 @@ void RIBBON_draw_ribbon(Ribbon* ribbon)
             p = 0;
         if (ctr > 2) {
             if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
-                POLY_add_triangle(tri, ribbon->Page, FALSE);
+                POLY_add_triangle(tri, ribbon->Page, UC_FALSE);
             }
         }
         ASSERT(ctr < MAX_RIBBON_SIZE);
@@ -2528,7 +2528,7 @@ void SPRITE_draw_rotated(
             quad[2] = &pp[2];
             quad[3] = &pp[3];
 
-            POLY_add_quad(quad, page, FALSE, TRUE);
+            POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
         }
     }
 }
@@ -2681,7 +2681,7 @@ void BLOOM_flare_draw(SLONG x, SLONG y, SLONG z, SLONG str)
                               ((flare_table[(i>>2)+4][2] * scale >> 8) << 16);*/
 
             if (POLY_valid_quad(quad))
-                POLY_add_quad(quad, POLY_PAGE_LENSFLARE, FALSE, true);
+                POLY_add_quad(quad, POLY_PAGE_LENSFLARE, UC_FALSE, true);
         }
 }
 
@@ -2844,7 +2844,7 @@ void DRAW2D_Box(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG rgb, UBYTE flag, UBY
     pp[3].X = ox;
     pp[3].Y = oy;
 
-    POLY_add_quad(quad, page, FALSE, TRUE);
+    POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
 }
 
 void DRAW2D_Box_Page(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG rgb, SLONG page, UBYTE depth)
@@ -2868,7 +2868,7 @@ void DRAW2D_Box_Page(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG rgb, SLONG page
     pp[3].X = ox;
     pp[3].Y = oy;
 
-    POLY_add_quad(quad, page, FALSE, TRUE);
+    POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
 }
 
 void DRAW2D_Tri(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG tx, SLONG ty, SLONG rgb, UBYTE flag)
@@ -2890,7 +2890,7 @@ void DRAW2D_Tri(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG tx, SLONG ty, SLONG 
     pp[2].X = tx;
     pp[2].Y = ty;
 
-    POLY_add_triangle(tri, page, FALSE, TRUE);
+    POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
 }
 
 void DRAW2D_Sprite(SLONG x, SLONG y, SLONG ox, SLONG oy, float u, float v, float ou, float ov, SLONG page, SLONG rgb)
@@ -2921,7 +2921,7 @@ void DRAW2D_Sprite(SLONG x, SLONG y, SLONG ox, SLONG oy, float u, float v, float
     pp[3].u = ou;
     pp[3].v = ov;
 
-    POLY_add_quad(quad, page, FALSE, TRUE);
+    POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
 }
 
 /*************************************************************
@@ -3199,6 +3199,6 @@ void DRAWXTRA_final_glow(SLONG x, SLONG y, SLONG z, UBYTE fade)
             }
         }
 
-        POLY_add_quad(quad, POLY_PAGE_FINALGLOW, FALSE, TRUE);
+        POLY_add_quad(quad, POLY_PAGE_FINALGLOW, UC_FALSE, UC_TRUE);
     }
 }

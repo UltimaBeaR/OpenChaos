@@ -15,9 +15,9 @@ BOOL SetupMemory(void)
         MFHeap = HeapCreate(0, INITIAL_HEAP_SIZE, MAXIMUM_HEAP_SIZE);
     }
     if (MFHeap)
-        return TRUE;
+        return UC_TRUE;
     else
-        return FALSE;
+        return UC_FALSE;
 }
 
 // uc_orig: ResetMemory (MFStdLib/Source/StdLib/StdMem.cpp)

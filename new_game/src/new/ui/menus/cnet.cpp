@@ -31,7 +31,7 @@ static void CNET_display_error(CBYTE* error)
 
 // Interactive menu loop for configuring a DirectPlay network session:
 // choose connection → choose/host session → wait for host to start.
-// Returns FALSE on ESC/failure, FALSE when game is started (CNET_network_game is set to TRUE).
+// Returns UC_FALSE on ESC/failure, UC_FALSE when game is started (CNET_network_game is set to UC_TRUE).
 // uc_orig: CNET_configure (fallen/Source/cnet.cpp)
 SLONG CNET_configure()
 {
@@ -89,14 +89,14 @@ SLONG CNET_configure()
 
     my_name = name[rand() % NUM_NAMES];
 
-    CNET_network_game = FALSE;
-    CNET_i_am_host = FALSE;
+    CNET_network_game = UC_FALSE;
+    CNET_i_am_host = UC_FALSE;
     CNET_num_players = 1;
     CNET_player_id = 0;
     if (!CNET_connected) {
         if (Keys[KB_ESC]) {
             Keys[KB_ESC] = 0;
-            return FALSE;
+            return UC_FALSE;
         }
 
     choose_connection:;
@@ -117,7 +117,7 @@ SLONG CNET_configure()
             AENG_unlock();
             AENG_flip();
         } else {
-            return FALSE;
+            return UC_FALSE;
         }
 
         while (1) {
@@ -125,7 +125,7 @@ SLONG CNET_configure()
 
             if (Keys[KB_ESC]) {
                 Keys[KB_ESC] = 0;
-                return FALSE;
+                return UC_FALSE;
             }
 
             for (i = 0; i < num_connections; i++) {
@@ -133,7 +133,7 @@ SLONG CNET_configure()
                     Keys[KB_1 + i] = 0;
 
                     if (NET_connection_make(i)) {
-                        CNET_connected = TRUE;
+                        CNET_connected = UC_TRUE;
                         goto choose_session;
                     } else {
                         CNET_display_error("Failed to make a connection");
@@ -151,7 +151,7 @@ choose_session:;
 
         if (Keys[KB_ESC]) {
             Keys[KB_ESC] = 0;
-            return FALSE;
+            return UC_FALSE;
         }
 
         num_sessions = NET_get_session_number();
@@ -191,7 +191,7 @@ choose_session:;
             _snprintf(session_name, NET_NAME_LENGTH, "%s %s", word[word1], word[word2]);
 
             if (NET_create_session(session_name, 4, my_name)) {
-                CNET_i_am_host = TRUE;
+                CNET_i_am_host = UC_TRUE;
                 goto joined_session;
             } else {
                 CNET_display_error("Could not create sessions");
@@ -219,7 +219,7 @@ joined_session:;
         if (Keys[KB_ESC]) {
             Keys[KB_ESC] = 0;
             NET_leave_session();
-            return FALSE;
+            return UC_FALSE;
         }
 
         num_players = NET_get_num_players();
@@ -251,9 +251,9 @@ joined_session:;
                 CNET_player_id = NET_start_game();
 
                 if (CNET_player_id != NET_PLAYER_NONE) {
-                    CNET_network_game = TRUE;
+                    CNET_network_game = UC_TRUE;
                     CNET_num_players = num_players;
-                    return FALSE;
+                    return UC_FALSE;
                 }
             }
         }
@@ -265,8 +265,8 @@ joined_session:;
                 if (mess.system.sysmess == NET_SYSMESS_START_GAME) {
                     CNET_player_id = mess.system.player_id;
                     CNET_num_players = num_players;
-                    CNET_network_game = TRUE;
-                    return FALSE;
+                    CNET_network_game = UC_TRUE;
+                    return UC_FALSE;
                 }
 
                 if (mess.system.sysmess == NET_SYSMESS_LOST_CONNECTION || mess.system.sysmess == NET_SYSMESS_HOST_QUIT_OUT) {

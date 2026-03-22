@@ -18,7 +18,7 @@ void WAND_get_next_place(
     SLONG* wand_world_z);
 
 // uc_orig: WAND_square_is_wander (fallen/Headers/wand.h)
-// Returns TRUE if the given hi-res map square has PAP_FLAG_WANDER set.
+// Returns UC_TRUE if the given hi-res map square has PAP_FLAG_WANDER set.
 SLONG WAND_square_is_wander(SLONG map_x, SLONG map_z);
 
 // uc_orig: WAND_draw (fallen/Headers/wand.h)

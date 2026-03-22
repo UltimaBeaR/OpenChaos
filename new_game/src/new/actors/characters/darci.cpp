@@ -218,18 +218,18 @@ SLONG col_is_fence(SLONG col)
 }
 
 // uc_orig: MagicFrameCheck (fallen/Source/Darci.cpp)
-// Returns TRUE once when FrameIndex first reaches frameindex; resets when it drops back.
+// Returns UC_TRUE once when FrameIndex first reaches frameindex; resets when it drops back.
 static inline BOOL MagicFrameCheck(Thing* p_person, UBYTE frameindex)
 {
     if (p_person->Draw.Tweened->FrameIndex >= frameindex) {
         if (!(p_person->Genus.Person->Flags2 & FLAG2_SYNC_SOUNDFX)) {
             p_person->Genus.Person->Flags2 |= FLAG2_SYNC_SOUNDFX;
-            return TRUE;
+            return UC_TRUE;
         }
     } else {
         p_person->Genus.Person->Flags2 &= ~FLAG2_SYNC_SOUNDFX;
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: set_person_in_building_through_roof (fallen/Source/Darci.cpp)
@@ -294,7 +294,7 @@ SLONG damage_person_on_land(Thing* p_thing)
                 p_thing,
                 NULL,
                 PERSON_DEATH_TYPE_LAND,
-                FALSE,
+                UC_FALSE,
                 0);
 
             return (1);
@@ -409,7 +409,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                         MSG_add(" extra wall height %d y1 %d y2 %d\n", extra_wall_height, y1, y2);
 
                         if (flag & 8) {
-                            just_started_falling_off_backwards = TRUE;
+                            just_started_falling_off_backwards = UC_TRUE;
                         }
 
                         slide_along(
@@ -418,7 +418,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
                             extra_wall_height,
                             50, SLIDE_ALONG_FLAG_JUMPING);
 
-                        just_started_falling_off_backwards = FALSE;
+                        just_started_falling_off_backwards = UC_FALSE;
 
                         if (slide_into_warehouse) {
                             p_thing->Genus.Person->Flags |= FLAG_PERSON_WAREHOUSE;

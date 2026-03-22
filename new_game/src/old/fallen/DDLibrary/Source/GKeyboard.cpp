@@ -42,10 +42,10 @@ BOOL SetupKeyboard(void)
             if(KeyboardHook==NULL)
             {
                     // Unable to set up keyboard.
-                    return	FALSE;
+                    return	UC_FALSE;
             }
     */
-    return TRUE;
+    return UC_TRUE;
 }
 
 //---------------------------------------------------------------
@@ -126,7 +126,7 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 
     SetFlagsFromKeyArray();
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 //

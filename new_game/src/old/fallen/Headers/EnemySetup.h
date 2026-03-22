@@ -8,7 +8,7 @@
 
 //---------------------------------------------------------------
 
-void do_enemy_setup(EventPoint* the_ep, BOOL do_adjust = FALSE);
+void do_enemy_setup(EventPoint* the_ep, BOOL do_adjust = UC_FALSE);
 CBYTE* get_enemy_message(EventPoint* ep, CBYTE* msg);
 
 //---------------------------------------------------------------

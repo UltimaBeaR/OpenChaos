@@ -65,7 +65,7 @@ inline void* FastLoadFileSomewhere(MFFileHandle handle, DWORD dwSize)
     return (pvData);
 }
 
-static bool m_bTexturePagesInitialised = FALSE;
+static bool m_bTexturePagesInitialised = UC_FALSE;
 
 void FreeAllD3DPages(void)
 {
@@ -75,7 +75,7 @@ void FreeAllD3DPages(void)
 
 void D3DTexture::BeginLoading()
 {
-    SLONG first_time = TRUE;
+    SLONG first_time = UC_TRUE;
 
     EmbedSource = NULL;
     EmbedSurface = NULL;
@@ -97,7 +97,7 @@ void D3DPage::EnsureLoaded(void)
     this->pTex = MFnew<D3DTexture>();
     ASSERT(this->pTex != NULL);
 
-    HRESULT hres = this->pTex->LoadTextureTGA(this->pcFilename, -1, TRUE);
+    HRESULT hres = this->pTex->LoadTextureTGA(this->pcFilename, -1, UC_TRUE);
     if (FAILED(hres)) {
         this->pTex = NULL;
     }
@@ -142,7 +142,7 @@ void D3DTexture::GetTexOffsetAndScale(float* pfUScale, float* pfUOffset, float* 
         *pfVOffset = 0.25f * (float)(bPagePos >> 2);
         break;
     default:
-        ASSERT(FALSE);
+        ASSERT(UC_FALSE);
         break;
     }
 }
@@ -334,7 +334,7 @@ HRESULT D3DTexture::Reload_TGA(void)
         // Invalid tga.
         //
 
-        // ASSERT ( FALSE );
+        // ASSERT ( UC_FALSE );
         MemFree(tga);
         return DDERR_GENERIC;
     }
@@ -870,13 +870,13 @@ BOOL scan_for_baseline(TGA_Pixel** line_ptr, TGA_Pixel* underline, TGA_Info* inf
             //	Got the baseline so drop to the next line.
             *y_ptr += 1;
             *line_ptr += info->width;
-            return TRUE;
+            return UC_TRUE;
         }
 
         *y_ptr += 1;
         *line_ptr += info->width;
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 HRESULT D3DTexture::CreateFonts(TGA_Info* tga_info, TGA_Pixel* tga_data)

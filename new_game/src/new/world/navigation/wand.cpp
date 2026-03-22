@@ -80,14 +80,14 @@ void WAND_init(void)
 SLONG WAND_square_is_wander(SLONG mx, SLONG mz)
 {
     if ((PAP_2HI(mx, mz).Flags & PAP_FLAG_WANDER) && (PAP_2HI(mx, mz).Flags & PAP_FLAG_HIDDEN) == 0) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
 // uc_orig: WAND_square_for_person (fallen/Source/wand.cpp)
-// Returns TRUE if p_person is allowed to wander on square (mx,mz).
+// Returns UC_TRUE if p_person is allowed to wander on square (mx,mz).
 // Respects pcom_zone restrictions for PERSON class; BAT class also accepts road squares.
 static SLONG WAND_square_for_person(Thing* p_person, SLONG mx, SLONG mz)
 {
@@ -137,7 +137,7 @@ void WAND_get_next_place(
     dx = -SIN(p_person->Draw.Tweened->Angle) >> 7;
     dz = -COS(p_person->Draw.Tweened->Angle) >> 7;
 
-    best_score = -INFINITY;
+    best_score = -UC_INFINITY;
     best_x = (p_person->WorldPos.X >> 8) + dx >> 8;
     best_z = (p_person->WorldPos.Z >> 8) + dz >> 8;
 
@@ -171,8 +171,8 @@ void WAND_get_next_place(
     }
 
     // Extended random search if no candidate found nearby.
-    if (best_score == -INFINITY) {
-        best_score = INFINITY;
+    if (best_score == -UC_INFINITY) {
+        best_score = UC_INFINITY;
 
         for (i = 0; i < 16; i++) {
             off_x = (Random() & 0x1f) - 0xf;
@@ -218,8 +218,8 @@ void WAND_draw(SLONG map_x, SLONG map_z)
                     z2 = mz + 1 << 8;
                     y = PAP_calc_map_height_at(x1 + x2 << 7, z1 + z2 << 7);
 
-                    AENG_world_line(x1, y, z1, 32, 0xffffff, x2, y, z2, 32, 0xffffff, TRUE);
-                    AENG_world_line(x1, y, z2, 32, 0xffffff, x2, y, z1, 32, 0xffffff, TRUE);
+                    AENG_world_line(x1, y, z1, 32, 0xffffff, x2, y, z2, 32, 0xffffff, UC_TRUE);
+                    AENG_world_line(x1, y, z2, 32, 0xffffff, x2, y, z1, 32, 0xffffff, UC_TRUE);
                 }
             }
         }

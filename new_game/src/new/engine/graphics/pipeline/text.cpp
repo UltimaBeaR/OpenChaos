@@ -186,7 +186,7 @@ void draw_text_at(float x, float y, CBYTE* message, SLONG font_id)
                     pp[3].colour = b_colour;
                     pp[3].specular = 0;
 
-                    POLY_add_quad(quad, POLY_PAGE_TEXT, FALSE, TRUE);
+                    POLY_add_quad(quad, POLY_PAGE_TEXT, UC_FALSE, UC_TRUE);
 
                     offset_x += the_char->Width + 1.0f;
                 }

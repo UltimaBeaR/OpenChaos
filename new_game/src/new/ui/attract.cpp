@@ -66,21 +66,21 @@ void game_attract_mode(void)
     NIGHT_init();
 
     if (auto_advance) {
-        go_into_game = TRUE;
+        go_into_game = UC_TRUE;
         auto_advance = 0;
         GAME_STATE &= ~GS_ATTRACT_MODE;
         GAME_STATE |= GS_PLAY_GAME;
     } else
-        go_into_game = FALSE;
+        go_into_game = UC_FALSE;
 
     MFX_load_wave_list();
 
-    bool bReinitBecauseOfLanguageChange = FALSE;
+    bool bReinitBecauseOfLanguageChange = UC_FALSE;
 reinit_because_of_language_change:
 
     FRONTEND_init(bReinitBecauseOfLanguageChange);
 
-    bReinitBecauseOfLanguageChange = FALSE;
+    bReinitBecauseOfLanguageChange = UC_FALSE;
 
     LPDIRECT3DDEVICE3 dev = the_display.lp_D3D_Device;
     HRESULT hres;
@@ -100,17 +100,17 @@ reinit_because_of_language_change:
     hres = the_display.lp_D3D_Viewport->SetViewport2(&vp);
 
     dev->SetRenderState(D3DRENDERSTATE_FILLMODE, D3DFILL_SOLID);
-    dev->SetRenderState(D3DRENDERSTATE_STIPPLEDALPHA, FALSE);
+    dev->SetRenderState(D3DRENDERSTATE_STIPPLEDALPHA, UC_FALSE);
     dev->SetRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
-    dev->SetRenderState(D3DRENDERSTATE_TEXTUREPERSPECTIVE, TRUE);
-    dev->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, FALSE);
-    dev->SetRenderState(D3DRENDERSTATE_SUBPIXEL, TRUE);
-    dev->SetRenderState(D3DRENDERSTATE_ZENABLE, TRUE);
+    dev->SetRenderState(D3DRENDERSTATE_TEXTUREPERSPECTIVE, UC_TRUE);
+    dev->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
+    dev->SetRenderState(D3DRENDERSTATE_SUBPIXEL, UC_TRUE);
+    dev->SetRenderState(D3DRENDERSTATE_ZENABLE, UC_TRUE);
     dev->SetRenderState(D3DRENDERSTATE_ZFUNC, D3DCMP_LESSEQUAL);
-    dev->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE, TRUE);
+    dev->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE, UC_TRUE);
     dev->SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
-    dev->SetRenderState(D3DRENDERSTATE_FOGENABLE, FALSE);
-    dev->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, FALSE);
+    dev->SetRenderState(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+    dev->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, UC_FALSE);
     dev->SetRenderState(D3DRENDERSTATE_ALPHAFUNC, D3DCMP_ALWAYS);
     dev->SetRenderState(D3DRENDERSTATE_ANTIALIAS, D3DANTIALIAS_NONE);
     dev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
@@ -131,7 +131,7 @@ reinit_because_of_language_change:
     dev->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
     dev->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-    dev->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
+    dev->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
     dev->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
     dev->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ZERO);
 
@@ -150,7 +150,7 @@ reinit_because_of_language_change:
             AENG_clear_screen();
         }
 
-        text_fudge = TRUE;
+        text_fudge = UC_TRUE;
 
         if (Keys[KB_LEFT] || Keys[KB_RIGHT] || Keys[KB_UP] || Keys[KB_DOWN] || Keys[KB_SPACE] || Keys[KB_ENTER])
             y = 500;
@@ -168,7 +168,7 @@ reinit_because_of_language_change:
                     {
                         GAME_STATE &= ~GS_ATTRACT_MODE;
                         GAME_STATE |= GS_PLAY_GAME;
-                        go_into_game = TRUE;
+                        go_into_game = UC_TRUE;
 
                         ATTRACT_loadscreen_init();
 
@@ -182,7 +182,7 @@ reinit_because_of_language_change:
                     GAME_STATE &= ~GS_ATTRACT_MODE;
                     GAME_STATE |= GS_PLAY_GAME;
                     GAME_STATE |= GS_PLAYBACK;
-                    go_into_game = TRUE;
+                    go_into_game = UC_TRUE;
                     break;
                 case STARTS_EDITOR:
                     GAME_STATE = GS_EDITOR;
@@ -201,7 +201,7 @@ reinit_because_of_language_change:
                     break;
                 case STARTS_LANGUAGE_CHANGE:
                     ATTRACT_loadscreen_init();
-                    bReinitBecauseOfLanguageChange = TRUE;
+                    bReinitBecauseOfLanguageChange = UC_TRUE;
                     break;
                 }
             }
@@ -229,14 +229,14 @@ reinit_because_of_language_change:
 
     if (GAME_STATE & GS_PLAY_GAME) {
         if (go_into_game) {
-            ShowBackImage(FALSE);
+            ShowBackImage(UC_FALSE);
             AENG_flip();
         } else {
             SLONG c0;
         }
     }
 
-    text_fudge = FALSE;
+    text_fudge = UC_FALSE;
     ResetBackImage();
 }
 
@@ -473,13 +473,13 @@ void ScoresDraw(void)
 // uc_orig: ATTRACT_loadscreen_init (fallen/Source/Attract.cpp)
 void ATTRACT_loadscreen_init(void)
 {
-    PANEL_disable_screensaver(TRUE);
+    PANEL_disable_screensaver(UC_TRUE);
 
     InitBackImage("e3load.tga");
-    ShowBackImage(FALSE);
+    ShowBackImage(UC_FALSE);
     AENG_flip();
     InitBackImage("e3load.tga");
-    ShowBackImage(FALSE);
+    ShowBackImage(UC_FALSE);
     AENG_flip();
 }
 
@@ -487,7 +487,7 @@ void ATTRACT_loadscreen_init(void)
 // uc_orig: ATTRACT_loadscreen_draw (fallen/Source/Attract.cpp)
 void ATTRACT_loadscreen_draw(SLONG completion)
 {
-    ShowBackImage(FALSE);
+    ShowBackImage(UC_FALSE);
     PANEL_draw_completion_bar(completion);
     AENG_flip();
 }

@@ -218,9 +218,9 @@ void POLY_set_wibble(
 SLONG POLY_page_is_masked_self_illuminating(SLONG page)
 {
     if (WITHIN(page, 0, POLY_NUM_PAGES - 1) && (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS)) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
@@ -645,14 +645,14 @@ SLONG POLY_get_screen_pos(
         vz);
 
     if (vz < POLY_Z_NEARPLANE) {
-        return FALSE;
+        return UC_FALSE;
     } else {
         float Z = POLY_ZCLIP_PLANE / vz;
 
         *screen_x = POLY_screen_mid_x - POLY_screen_mul_x * vx * Z;
         *screen_y = POLY_screen_mid_y - POLY_screen_mul_y * vy * Z;
 
-        return TRUE;
+        return UC_TRUE;
     }
 }
 
@@ -801,18 +801,18 @@ SLONG POLY_sphere_visible(
         // Behind the view pyramid.
         //
 
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (view_x + radius < -view_z || view_x - radius > +view_z) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (view_y + radius * 1.4F < -view_z || view_y - radius * 1.4F > +view_z) {
-        return FALSE;
+        return UC_FALSE;
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 void POLY_fadeout_buffer()
@@ -888,55 +888,55 @@ SLONG POLY_valid_triangle(POLY_Point* pp[3])
 {
     // all points must be either near-clipped or fully transformed
     if (!pp[0]->MaybeValid())
-        return FALSE;
+        return UC_FALSE;
     if (!pp[1]->MaybeValid())
-        return FALSE;
+        return UC_FALSE;
     if (!pp[2]->MaybeValid())
-        return FALSE;
+        return UC_FALSE;
 
     // if all points are clipped in one direction, polygon is invalid
     if ((pp[0]->clip & pp[1]->clip & pp[2]->clip) & POLY_CLIP_OFFSCREEN) {
-        return FALSE;
+        return UC_FALSE;
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 SLONG POLY_valid_quad(POLY_Point* pp[4])
 {
     // all points must be either near-clipped or fully transformed
     if (!pp[0]->MaybeValid())
-        return FALSE;
+        return UC_FALSE;
     if (!pp[1]->MaybeValid())
-        return FALSE;
+        return UC_FALSE;
     if (!pp[2]->MaybeValid())
-        return FALSE;
+        return UC_FALSE;
     if (!pp[3]->MaybeValid())
-        return FALSE;
+        return UC_FALSE;
 
     // if all points are clipped in one direction, polygon is invalid
     if ((pp[0]->clip & pp[1]->clip & pp[2]->clip & pp[3]->clip) & POLY_CLIP_OFFSCREEN) {
-        return FALSE;
+        return UC_FALSE;
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 SLONG POLY_valid_line(POLY_Point* p1, POLY_Point* p2)
 {
     // all points must be either near-clipped or fully transformed
     if (!p1->IsValid())
-        return FALSE;
+        return UC_FALSE;
     if (!p2->IsValid())
-        return FALSE;
+        return UC_FALSE;
 
     // if all points are clipped in one direction, line is invalid
     // (wrong: line thickness might revalidate it; but we don't care too much)
     if ((p1->clip & p2->clip) & POLY_CLIP_OFFSCREEN) {
-        return FALSE;
+        return UC_FALSE;
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // POLY_tri_backfacing
@@ -1524,8 +1524,8 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
         // Needs near-clipping...
         //
 
-        POLY_add_triangle(pt, page, backface_cull, FALSE);
-        POLY_add_triangle(pt2, page, backface_cull, FALSE);
+        POLY_add_triangle(pt, page, backface_cull, UC_FALSE);
+        POLY_add_triangle(pt2, page, backface_cull, UC_FALSE);
 
         return;
     }
@@ -1557,7 +1557,7 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
             // Draw just the second triangle.
             //
 
-            POLY_add_triangle(pt + 1, page, FALSE, FALSE);
+            POLY_add_triangle(pt + 1, page, UC_FALSE, UC_FALSE);
 
             return;
         } else if (cull == 2) {
@@ -1565,7 +1565,7 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
             // Draw just the first triangle.
             //
 
-            POLY_add_triangle(pt, page, FALSE, FALSE);
+            POLY_add_triangle(pt, page, UC_FALSE, UC_FALSE);
 
             return;
         }
@@ -1832,7 +1832,7 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
 
-    POLY_add_quad(ppt, page, FALSE, TRUE);
+    POLY_add_quad(ppt, page, UC_FALSE, UC_TRUE);
 }
 
 void POLY_add_line_tex(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front)
@@ -1945,7 +1945,7 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
 
-    POLY_add_quad(ppt, page, FALSE, TRUE);
+    POLY_add_quad(ppt, page, UC_FALSE, UC_TRUE);
 }
 
 //
@@ -1995,7 +1995,7 @@ void POLY_add_rect(POLY_Point* p1, SLONG width, SLONG height, SLONG page, UBYTE 
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
 
-    POLY_add_quad(ppt, page, FALSE, TRUE);
+    POLY_add_quad(ppt, page, UC_FALSE, UC_TRUE);
 }
 
 void POLY_add_line_2d(float sx1, float sy1, float sx2, float sy2, ULONG colour)
@@ -2047,7 +2047,7 @@ void POLY_add_line_2d(float sx1, float sy1, float sx2, float sy2, ULONG colour)
     ppt[2] = &pt[3];
     ppt[3] = &pt[2];
 
-    POLY_add_quad(ppt, POLY_PAGE_COLOUR, FALSE, TRUE);
+    POLY_add_quad(ppt, POLY_PAGE_COLOUR, UC_FALSE, UC_TRUE);
 }
 
 float POLY_clip_left;
@@ -2315,7 +2315,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 if (POLY_force_additive_alpha) {
                     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
                     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
                     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZBIAS, 2);
                 }
                 /*
@@ -2328,8 +2328,8 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                                                         SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND,D3DTBLEND_MODULATEALPHA);
                                                         SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND,D3DBLEND_SRCALPHA);
                                                         SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND,D3DBLEND_INVSRCALPHA);
-                                                        SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE,TRUE);
-                                                        SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE,FALSE);
+                                                        SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE,UC_TRUE);
+                                                        SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE,UC_FALSE);
                                                 }
                 */
 
@@ -2449,7 +2449,7 @@ extern	void	draw_text_at(float x,float y,CBYTE *message,SLONG font_id);
     extern BOOL  text_fudge;
     extern ULONG text_colour;
 
-            text_fudge  = FALSE;
+            text_fudge  = UC_FALSE;
             text_colour = 0x00ffffff;
             draw_text_at(200,150,"Press Anything To Play",0);
 
@@ -2482,14 +2482,14 @@ void POLY_frame_draw_odd()
     RenderState::s_State.SetTexture(s); \
     REALLY_SET_TEXTURE(s)
 
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SPECULARENABLE, TRUE);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
+    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ZFUNC, D3DCMP_LESSEQUAL);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
+    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE); // ALPHA);
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_CLAMP);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE); // SRCALPHA);
     FORCE_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE); // INVSRCALPHA);
 
@@ -2516,14 +2516,14 @@ void POLY_frame_draw_odd()
     }
 
     if (POLY_Page[POLY_PAGE_SKY].NeedsRendering()) {
-        FORCE_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
+        FORCE_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
         FORCE_SET_TEXTURE(TEXTURE_get_handle(TEXTURE_page_sky));
 
         POLY_Page[POLY_PAGE_SKY].Render(the_display.lp_D3D_Device);
     }
 
     if (POLY_Page[POLY_PAGE_MOON].NeedsRendering()) {
-        FORCE_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, FALSE);
+        FORCE_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
         FORCE_SET_TEXTURE(TEXTURE_get_handle(TEXTURE_page_moon));
 
         POLY_Page[POLY_PAGE_MOON].Render(the_display.lp_D3D_Device);
@@ -2589,9 +2589,9 @@ SLONG POLY_get_sphere_circle(
         *screen_y = SLONG(pp.Y);
         *screen_radius = SLONG(width);
 
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
@@ -2624,12 +2624,12 @@ SLONG POLY_inside_quad(
         *along_01 = alonga;
         *along_02 = alongb;
 
-        return TRUE;
+        return UC_TRUE;
     } else {
         *along_01 = alonga;
         *along_02 = alongb;
 
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

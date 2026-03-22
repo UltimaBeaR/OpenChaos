@@ -44,9 +44,9 @@
    ---------------------------------
 */
 
-#ifndef TRUE
-#define TRUE 1
-#define FALSE 0
+#ifndef UC_TRUE
+#define UC_TRUE 1
+#define UC_FALSE 0
 typedef int BOOL;
 typedef unsigned long DWORD;
 #endif /* ifndef TRUE */

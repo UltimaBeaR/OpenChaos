@@ -18,7 +18,7 @@ extern SLONG REAL_TICK_RATIO;
 // uc_orig: MUSIC_play_the_mode (fallen/Source/music.cpp)
 static void MUSIC_play_the_mode(UBYTE mode)
 {
-    just_asked_for_mode_now = TRUE;
+    just_asked_for_mode_now = UC_TRUE;
     just_asked_for_mode_number = mode;
 
     if (!mode)
@@ -154,8 +154,8 @@ SLONG MUSIC_is_playing(void)
     SLONG MFX_QUICK_play_id = last_MFX_QUICK_play_id;
 
     if (MFX_QUICK_play_id == last_MFX_QUICK_play_id && MFX_QUICK_still_playing()) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }

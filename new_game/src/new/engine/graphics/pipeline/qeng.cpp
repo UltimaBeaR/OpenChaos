@@ -20,7 +20,7 @@ void QENG_set_camera(float x, float y, float z, float yaw, float pitch, float ro
     QENG_cam_z = SLONG(z);
 
     POLY_camera_set(x, y, z, yaw, pitch, roll, 128.0F * 256.0F, 8.0F);
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 }
 
 // uc_orig: QENG_world_line (fallen/DDEngine/Source/qeng.cpp)
@@ -32,7 +32,7 @@ void QENG_world_line(
     POLY_Point pp1;
     POLY_Point pp2;
 
-    QENG_mouse_over = FALSE;
+    QENG_mouse_over = UC_FALSE;
 
     POLY_transform(float(x1), float(y1), float(z1), &pp1);
 
@@ -123,7 +123,7 @@ void QENG_draw(QMAP_Draw* qd)
         }
 
         if (POLY_valid_quad(quad)) {
-            POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE);
+            POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE);
         }
 
     abandon_this_face:;
@@ -133,7 +133,7 @@ void QENG_draw(QMAP_Draw* qd)
 // uc_orig: QENG_render (fallen/DDEngine/Source/qeng.cpp)
 void QENG_render()
 {
-    POLY_frame_draw(TRUE, TRUE);
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
 }
 
 // uc_orig: QENG_flip (fallen/DDEngine/Source/qeng.cpp)

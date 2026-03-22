@@ -405,7 +405,7 @@ void NIGHT_dlight_squares_down(void);
 // uc_orig: NIGHT_cache_recalc (fallen/Headers/Night.h)
 void NIGHT_cache_recalc(void);
 // uc_orig: NIGHT_cache_create (fallen/Headers/Night.h)
-void NIGHT_cache_create(UBYTE lo_map_x, UBYTE lo_map_z, UBYTE inside_warehouse = FALSE);
+void NIGHT_cache_create(UBYTE lo_map_x, UBYTE lo_map_z, UBYTE inside_warehouse = UC_FALSE);
 // uc_orig: NIGHT_cache_create_inside (fallen/Headers/Night.h)
 void NIGHT_cache_create_inside(UBYTE lo_map_x, UBYTE lo_map_z, SLONG floor_y);
 // uc_orig: NIGHT_cache_destroy (fallen/Headers/Night.h)

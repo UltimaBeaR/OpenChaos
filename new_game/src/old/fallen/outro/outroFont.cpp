@@ -87,7 +87,7 @@ float FONT_end_x;
 float FONT_end_y;
 
 //
-// Returns TRUE if it finds pixel data at (x,y)
+// Returns UC_TRUE if it finds pixel data at (x,y)
 //
 
 SLONG FONT_found_data(SLONG x, SLONG y)
@@ -105,12 +105,12 @@ SLONG FONT_found_data(SLONG x, SLONG y)
 
         if (WITHIN(py, 0, 255)) {
             if (FONT_data[255 - py][px].alpha > 32) {
-                return TRUE;
+                return UC_TRUE;
             }
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 void FONT_init()
@@ -238,9 +238,9 @@ SLONG FONT_get_index(CBYTE chr)
 SLONG FONT_char_is_valid(CBYTE ch)
 {
     if (FONT_get_index(ch) == FONT_PUNCT_QMARK && ch != '?') {
-        return FALSE;
+        return UC_FALSE;
     } else {
-        return TRUE;
+        return UC_TRUE;
     }
 }
 
@@ -267,7 +267,7 @@ float FONT_draw_letter(
     ULONG colour = 0xffffffff,
     float scale = 1.0F,
     float shimmer = 0.0F,
-    SLONG italic = FALSE)
+    SLONG italic = UC_FALSE)
 {
     SLONG letter;
     float width;

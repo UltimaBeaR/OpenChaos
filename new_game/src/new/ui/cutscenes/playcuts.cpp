@@ -515,18 +515,18 @@ void PLAYCUTS_Play(CPData* cutscene)
 
         MFX_set_listener(FC_cam[0].x, FC_cam[0].y, FC_cam[0].z, -(FC_cam[0].yaw >> 8), -(1024), -(FC_cam[0].pitch >> 8));
 
-        AENG_draw(FALSE);
+        AENG_draw(UC_FALSE);
 
         if (text_disp) {
-            POLY_frame_init(FALSE, FALSE);
+            POLY_frame_init(UC_FALSE, UC_FALSE);
             FONT2D_DrawStringCentred(text_disp, 320, 400, 0x7fffffff, 256, POLY_PAGE_FONT2D);
-            POLY_frame_draw(FALSE, FALSE);
+            POLY_frame_draw(UC_FALSE, UC_FALSE);
         }
 
         if (PLAYCUTS_fade_level < 255) {
-            POLY_frame_init(FALSE, FALSE);
+            POLY_frame_init(UC_FALSE, UC_FALSE);
             DRAW2D_Box(0, 0, 640, 480, (255 - PLAYCUTS_fade_level) << 24, 1, 255);
-            POLY_frame_draw(FALSE, FALSE);
+            POLY_frame_draw(UC_FALSE, UC_FALSE);
         }
 
         MFX_update();

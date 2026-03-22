@@ -9,7 +9,7 @@
 extern SLONG app_inactive;
 
 // uc_orig: restore_surfaces (fallen/DDLibrary/Source/WindProcs.cpp)
-// Set to TRUE when the app regains focus and DirectDraw surfaces need to be restored.
+// Set to UC_TRUE when the app regains focus and DirectDraw surfaces need to be restored.
 extern SLONG restore_surfaces;
 
 #endif // ENGINE_GRAPHICS_GRAPHICS_API_WIND_PROCS_GLOBALS_H

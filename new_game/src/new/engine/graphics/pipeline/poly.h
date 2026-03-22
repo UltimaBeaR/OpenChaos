@@ -145,7 +145,7 @@ void POLY_transform(
     float world_y,
     float world_z,
     POLY_Point* pt,
-    bool bUnused = FALSE);
+    bool bUnused = UC_FALSE);
 
 // uc_orig: POLY_transform_c (fallen/DDEngine/Headers/poly.h)
 // Same as POLY_transform but applies cloud/fog colour during transform.
@@ -154,7 +154,7 @@ void POLY_transform_c(
     float world_y,
     float world_z,
     POLY_Point* pt,
-    bool bUnused = FALSE);
+    bool bUnused = UC_FALSE);
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Headers/poly.h)
 // Disables the local rotation matrix (reverts to camera-only transform).
@@ -182,7 +182,7 @@ void POLY_transform_c_saturate_z(
 void POLY_transform_from_view_space(POLY_Point* pt);
 
 // uc_orig: POLY_get_screen_pos (fallen/DDEngine/Headers/poly.h)
-// Projects a world-space point to screen coordinates. Returns TRUE if the point
+// Projects a world-space point to screen coordinates. Returns UC_TRUE if the point
 // is in front of the near plane (z > 0). Does not enforce the far-plane range.
 SLONG POLY_get_screen_pos(
     float world_x,
@@ -209,7 +209,7 @@ float POLY_world_length_to_screen(float world_length);
 float POLY_approx_len(float dx, float dy);
 
 // uc_orig: POLY_get_sphere_circle (fallen/DDEngine/Headers/poly.h)
-// Projects a world-space sphere to screen circle. Returns FALSE if the sphere is behind the camera.
+// Projects a world-space sphere to screen circle. Returns UC_FALSE if the sphere is behind the camera.
 // screen_radius is approximate (based on screen-space projection of world_radius).
 SLONG POLY_get_sphere_circle(
     float world_x,
@@ -257,7 +257,7 @@ void POLY_transform_using_local_rotation_and_wibble(
     UBYTE wibble_key);
 
 // uc_orig: POLY_sphere_visible (fallen/DDEngine/Headers/poly.h)
-// Returns TRUE if the world-space sphere is visible within the view frustum.
+// Returns UC_TRUE if the world-space sphere is visible within the view frustum.
 // radius should be world_radius / view_dist (fraction of view distance, not world units).
 SLONG POLY_sphere_visible(
     float world_x,
@@ -266,7 +266,7 @@ SLONG POLY_sphere_visible(
     float radius);
 
 // uc_orig: POLY_page_is_masked_self_illuminating (fallen/DDEngine/Headers/poly.h)
-// Returns TRUE if the texture page is drawn two-pass with the next page as a mask.
+// Returns UC_TRUE if the texture page is drawn two-pass with the next page as a mask.
 SLONG POLY_page_is_masked_self_illuminating(SLONG page);
 
 // uc_orig: POLY_BUFFER_SIZE (fallen/DDEngine/Headers/poly.h)
@@ -551,20 +551,20 @@ void POLY_fadeout_buffer(void);
 #define POLY_PAGE_TEST_SHADOWMAP   (POLY_NUM_PAGES - 2)
 
 // uc_orig: POLY_frame_init (fallen/DDEngine/Headers/poly.h)
-// Clears polygon buffers for a new frame. keep_shadow_page/keep_text_page = TRUE to preserve
+// Clears polygon buffers for a new frame. keep_shadow_page/keep_text_page = UC_TRUE to preserve
 // previously submitted shadow/text polygons across frames.
 void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page);
 
 // uc_orig: POLY_valid_triangle (fallen/DDEngine/Headers/poly.h)
-// Returns TRUE if the triangle passes backface culling and all vertices are on-screen.
+// Returns UC_TRUE if the triangle passes backface culling and all vertices are on-screen.
 SLONG POLY_valid_triangle(POLY_Point* p[3]);
 
 // uc_orig: POLY_valid_quad (fallen/DDEngine/Headers/poly.h)
-// Returns TRUE if the quad passes backface culling and all vertices are on-screen.
+// Returns UC_TRUE if the quad passes backface culling and all vertices are on-screen.
 SLONG POLY_valid_quad(POLY_Point* p[4]);
 
 // uc_orig: POLY_valid_line (fallen/DDEngine/Headers/poly.h)
-// Returns TRUE if the line endpoints are not both off-screen in the same direction.
+// Returns UC_TRUE if the line endpoints are not both off-screen in the same direction.
 SLONG POLY_valid_line(POLY_Point* p1, POLY_Point* p2);
 
 // uc_orig: POLY_add_poly (fallen/DDEngine/Headers/poly.h)
@@ -573,11 +573,11 @@ void POLY_add_poly(POLY_Point** poly, SLONG poly_points, SLONG page);
 
 // uc_orig: POLY_add_triangle (fallen/DDEngine/Headers/poly.h)
 // Submits a triangle to a texture page bucket, with optional backface cull and clip-flag generation.
-void POLY_add_triangle(POLY_Point* p[3], SLONG page, SLONG shall_i_backface_cull, SLONG generate_clip_flags = FALSE);
+void POLY_add_triangle(POLY_Point* p[3], SLONG page, SLONG shall_i_backface_cull, SLONG generate_clip_flags = UC_FALSE);
 
 // uc_orig: POLY_add_quad (fallen/DDEngine/Headers/poly.h)
 // Submits a quad to a texture page bucket, with optional backface cull and clip-flag generation.
-void POLY_add_quad(POLY_Point* p[4], SLONG page, SLONG shall_i_backface_cull, SLONG generate_clip_flags = FALSE);
+void POLY_add_quad(POLY_Point* p[4], SLONG page, SLONG shall_i_backface_cull, SLONG generate_clip_flags = UC_FALSE);
 
 // uc_orig: POLY_add_quad_split2 (fallen/DDEngine/Headers/poly.h)
 // Submits a quad split into two triangles to handle non-planar quads correctly.
@@ -610,7 +610,7 @@ void POLY_clip_line_box(float sx1, float sy1, float sx2, float sy2);
 void POLY_clip_line_add(float sx1, float sy1, float sx2, float sy2, ULONG colour);
 
 // uc_orig: POLY_frame_draw (fallen/DDEngine/Headers/poly.h)
-// Flushes all buffered polygons to D3D. draw_shadow_page/draw_text_page = FALSE to skip those buckets.
+// Flushes all buffered polygons to D3D. draw_shadow_page/draw_text_page = UC_FALSE to skip those buckets.
 void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page);
 
 // uc_orig: POLY_sort_sewater_page (fallen/DDEngine/Headers/poly.h)
@@ -652,7 +652,7 @@ void POLY_add_shared_point(POLY_Point* pp);
 void POLY_add_shared_tri(UWORD p1, UWORD p2, UWORD p3);
 
 // uc_orig: POLY_inside_quad (fallen/DDEngine/Headers/poly.h)
-// Returns TRUE if the 2D screen point is inside the given parallelogram quad.
+// Returns UC_TRUE if the 2D screen point is inside the given parallelogram quad.
 // along_01 and along_02 receive the barycentric coordinates along the two edge vectors.
 SLONG POLY_inside_quad(
     float screen_x,

@@ -132,7 +132,7 @@ static void FARFACET_create_square(SLONG square_x, SLONG square_z)
     // Mark all facets as not yet processed.
     for (i = 1; i < next_dfacet; i++) {
         df = &dfacets[i];
-        df->Counter[0] = FALSE;
+        df->Counter[0] = UC_FALSE;
     }
 
     SLONG lo_min_x;
@@ -162,14 +162,14 @@ static void FARFACET_create_square(SLONG square_x, SLONG square_z)
             f_list = PAP_2LO(lo_x, lo_z).ColVectHead;
 
             if (f_list) {
-                exit = FALSE;
+                exit = UC_FALSE;
 
                 while (!exit) {
                     facet = facet_links[f_list];
 
                     if (facet < 0) {
                         facet = -facet;
-                        exit = TRUE;
+                        exit = UC_TRUE;
                     }
 
                     ASSERT(WITHIN(facet, 1, next_dfacet - 1));
@@ -180,7 +180,7 @@ static void FARFACET_create_square(SLONG square_x, SLONG square_z)
                         goto abort_facet;
                     }
 
-                    df->Counter[0] = TRUE;
+                    df->Counter[0] = UC_TRUE;
 
                     // Only draw normal walls and doors; skip foundations and inside-only walls.
                     if (df->FacetType != STOREY_TYPE_NORMAL && df->FacetType != STOREY_TYPE_DOOR) {
@@ -410,7 +410,7 @@ void FARFACET_init()
 
     free(FARFACET_outline);
 
-    FARFACET_renderstate.SetRenderState(D3DRENDERSTATE_FOGENABLE, TRUE);
+    FARFACET_renderstate.SetRenderState(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
     FARFACET_renderstate.SetTexture(NULL);
 }
 
@@ -491,11 +491,11 @@ void FARFACET_draw(
     cone[3].x = cone[3].x - width * matrix[0];
     cone[3].z = cone[3].z - width * matrix[2];
 
-    SLONG square_min_x = +INFINITY;
-    SLONG square_min_z = +INFINITY;
+    SLONG square_min_x = +UC_INFINITY;
+    SLONG square_min_z = +UC_INFINITY;
 
-    SLONG square_max_x = -INFINITY;
-    SLONG square_max_z = -INFINITY;
+    SLONG square_max_x = -UC_INFINITY;
+    SLONG square_max_z = -UC_INFINITY;
 
     SLONG i;
 

@@ -305,7 +305,7 @@ void set_person_grapple_windup(Thing* p_person);
 // uc_orig: set_person_grappling_hook_release (fallen/Source/Person.cpp)
 void set_person_grappling_hook_release(Thing* p_person);
 
-// Returns SPECIAL_TYPE if person has a gun-type weapon drawn, else FALSE.
+// Returns SPECIAL_TYPE if person has a gun-type weapon drawn, else UC_FALSE.
 // uc_orig: person_has_gun_out (fallen/Source/Person.cpp)
 SLONG person_has_gun_out(Thing* p_person);
 
@@ -744,11 +744,11 @@ void position_person_at_ladder_bot(Thing* p_person, SLONG limb);
 // uc_orig: check_limb_pos_on_ladder (fallen/Source/Person.cpp)
 ULONG check_limb_pos_on_ladder(Thing* p_person, SLONG sub_part, SLONG i_am_going_down);
 
-// Returns TRUE if the sub_part limb is within the height range of the fence (not near bottom).
+// Returns UC_TRUE if the sub_part limb is within the height range of the fence (not near bottom).
 // uc_orig: check_limb_pos_on_fence (fallen/Source/Person.cpp)
 SLONG check_limb_pos_on_fence(Thing* p_person, SLONG sub_part);
 
-// Returns TRUE if the sub_part limb is along (not off the end of) the fence facet.
+// Returns UC_TRUE if the sub_part limb is along (not off the end of) the fence facet.
 // uc_orig: check_limb_pos_on_fence_sideways (fallen/Source/Person.cpp)
 SLONG check_limb_pos_on_fence_sideways(Thing* p_person, SLONG sub_part);
 
@@ -778,7 +778,7 @@ void fn_person_dangling(Thing* p_person);
 // uc_orig: set_person_running_stop (fallen/Source/Person.cpp)
 void set_person_running_stop(Thing* p_person, SLONG leg);
 
-// Returns TRUE if a player running into this fence facet should automatically begin climbing it.
+// Returns UC_TRUE if a player running into this fence facet should automatically begin climbing it.
 // uc_orig: should_person_automatically_land_on_fence (fallen/Source/Person.cpp)
 SLONG should_person_automatically_land_on_fence(Thing* p_person, SLONG facet);
 

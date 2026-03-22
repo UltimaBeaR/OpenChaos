@@ -174,7 +174,7 @@ SLONG should_person_get_item(Thing* p_person, Thing* p_special)
     Thing* p_has;
 
     if (p_person->State == STATE_MOVEING && p_person->SubState == SUB_STATE_RUNNING_SKID_STOP) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     switch (p_special->Genus.Special->SpecialType) {
@@ -183,7 +183,7 @@ SLONG should_person_get_item(Thing* p_person, Thing* p_special)
         if (p_person->Flags & FLAGS_HAS_GUN) {
             return (p_person->Genus.Person->ammo_packs_pistol < (255 - SPECIAL_AMMO_IN_A_PISTOL));
         } else {
-            return TRUE;
+            return UC_TRUE;
         }
 
     case SPECIAL_HEALTH:
@@ -192,7 +192,7 @@ SLONG should_person_get_item(Thing* p_person, Thing* p_special)
 
     case SPECIAL_BOMB:
 
-        return FALSE;
+        return UC_FALSE;
 
     case SPECIAL_SHOTGUN:
 
@@ -201,7 +201,7 @@ SLONG should_person_get_item(Thing* p_person, Thing* p_special)
         if (p_has) {
             return (p_person->Genus.Person->ammo_packs_shotgun < (255 - SPECIAL_AMMO_IN_A_SHOTGUN));
         } else {
-            return TRUE;
+            return UC_TRUE;
         }
 
     case SPECIAL_AK47:
@@ -211,7 +211,7 @@ SLONG should_person_get_item(Thing* p_person, Thing* p_special)
         if (p_has) {
             return (p_person->Genus.Person->ammo_packs_ak47 < (255 - SPECIAL_AMMO_IN_A_AK47));
         } else {
-            return TRUE;
+            return UC_TRUE;
         }
 
     case SPECIAL_KNIFE:
@@ -224,7 +224,7 @@ SLONG should_person_get_item(Thing* p_person, Thing* p_special)
 
     case SPECIAL_CROWBAR:
 
-        return TRUE;
+        return UC_TRUE;
 
     case SPECIAL_EXPLOSIVES:
 
@@ -233,7 +233,7 @@ SLONG should_person_get_item(Thing* p_person, Thing* p_special)
         if (p_explosives) {
             return (p_explosives->Genus.Special->ammo < 4);
         } else {
-            return TRUE;
+            return UC_TRUE;
         }
 
     case SPECIAL_GRENADE:
@@ -243,7 +243,7 @@ SLONG should_person_get_item(Thing* p_person, Thing* p_special)
         if (p_grenade) {
             return (p_grenade->Genus.Special->ammo < 8);
         } else {
-            return TRUE;
+            return UC_TRUE;
         }
 
     case SPECIAL_AMMO_SHOTGUN:
@@ -260,11 +260,11 @@ SLONG should_person_get_item(Thing* p_person, Thing* p_special)
 
     case SPECIAL_MINE:
 
-        return FALSE;
+        return UC_FALSE;
 
     default:
 
-        return TRUE;
+        return UC_TRUE;
     }
 }
 
@@ -277,7 +277,7 @@ void person_get_item(Thing* p_person, Thing* p_special)
 {
     Thing* p_gun;
 
-    SLONG keep = FALSE;
+    SLONG keep = UC_FALSE;
     SLONG x_message = 0;
     SLONG overflow = 0;
 
@@ -364,7 +364,7 @@ void person_get_item(Thing* p_person, Thing* p_special)
             special_pickup(p_special, p_person);
 
             remove_thing_from_map(p_special);
-            keep = TRUE;
+            keep = UC_TRUE;
 
             x_message = X_SHOTGUN;
 
@@ -392,7 +392,7 @@ void person_get_item(Thing* p_person, Thing* p_special)
             special_pickup(p_special, p_person);
 
             remove_thing_from_map(p_special);
-            keep = TRUE;
+            keep = UC_TRUE;
 
             x_message = X_AK;
 
@@ -411,7 +411,7 @@ void person_get_item(Thing* p_person, Thing* p_special)
             special_pickup(p_special, p_person);
 
             remove_thing_from_map(p_special);
-            keep = TRUE;
+            keep = UC_TRUE;
         }
 
         if (p_special->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
@@ -441,7 +441,7 @@ void person_get_item(Thing* p_person, Thing* p_special)
             special_pickup(p_special, p_person);
 
             remove_thing_from_map(p_special);
-            keep = TRUE;
+            keep = UC_TRUE;
 
             x_message = X_GRENADE;
 
@@ -461,7 +461,7 @@ void person_get_item(Thing* p_person, Thing* p_special)
         special_pickup(p_special, p_person);
 
         remove_thing_from_map(p_special);
-        keep = TRUE;
+        keep = UC_TRUE;
 
         break;
     }

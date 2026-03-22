@@ -39,7 +39,7 @@ void SKY_draw_poly_moon(
     float max_dist);
 
 // Draw the moon reflection (wavy) via the poly pipeline.
-// Returns FALSE if the moon is off-screen.
+// Returns UC_FALSE if the moon is off-screen.
 // Also outputs the bounding box of the drawn reflection.
 // uc_orig: SKY_draw_moon_reflection (fallen/DDEngine/Source/sky.cpp)
 SLONG SKY_draw_moon_reflection(

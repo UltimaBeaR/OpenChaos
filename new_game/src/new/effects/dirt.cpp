@@ -188,7 +188,7 @@ void DIRT_init(
                         if (WITHIN(DIRT_tree_upto, 0, DIRT_MAX_TREES - 1)) {
                             DIRT_tree[DIRT_tree_upto].x = oi->x;
                             DIRT_tree[DIRT_tree_upto].z = oi->z;
-                            DIRT_tree[DIRT_tree_upto].inrange = FALSE;
+                            DIRT_tree[DIRT_tree_upto].inrange = UC_FALSE;
 
                             DIRT_tree_upto += 1;
                         }
@@ -300,7 +300,7 @@ void DIRT_set_focus(
                     }
                 }
 
-                DIRT_tree[i].inrange = FALSE;
+                DIRT_tree[i].inrange = UC_FALSE;
             }
         } else {
             if (!DIRT_tree[i].inrange) {
@@ -358,7 +358,7 @@ void DIRT_set_focus(
                     }
                 }
 
-                DIRT_tree[i].inrange = TRUE;
+                DIRT_tree[i].inrange = UC_TRUE;
             }
         }
     }
@@ -1258,14 +1258,14 @@ void DIRT_process(void)
             mx = dd->x >> 8;
             mz = dd->z >> 8;
 
-            collided = FALSE;
+            collided = UC_FALSE;
 
             if (PAP_on_map_hi(mx, mz)) {
                 {
                     collided = (PAP_2HI(mx, mz).Flags & PAP_FLAG_HIDDEN);
                 }
             } else {
-                collided = TRUE;
+                collided = UC_TRUE;
             }
 
             if (collided) {
@@ -1635,7 +1635,7 @@ SLONG DIRT_get_nearest_can_or_head_dist(SLONG x, SLONG y, SLONG z)
     SLONG dz;
 
     SLONG dist;
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
 
     DIRT_Dirt* dd;
 
@@ -1670,7 +1670,7 @@ void DIRT_pick_up_can_or_head(Thing* p_person)
     SLONG dist;
 
     SLONG best_can = NULL;
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
 
     DIRT_Dirt* dd;
 
@@ -1750,7 +1750,7 @@ void DIRT_release_can_or_head(Thing* p_person, SLONG power)
 SLONG DIRT_get_info(SLONG which, DIRT_Info* ans)
 {
     if (GAME_FLAGS & GF_NO_FLOOR) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     DIRT_Dirt* dd;
@@ -1814,7 +1814,7 @@ SLONG DIRT_get_info(SLONG which, DIRT_Info* ans)
     case DIRT_TYPE_THROWCAN:
         ans->type = DIRT_INFO_TYPE_PRIM;
         ans->prim = PRIM_OBJ_CAN;
-        ans->held = FALSE;
+        ans->held = UC_FALSE;
         ans->yaw = dd->yaw;
         ans->pitch = dd->pitch;
         ans->roll = dd->roll;
@@ -1831,7 +1831,7 @@ SLONG DIRT_get_info(SLONG which, DIRT_Info* ans)
 
         ans->type = DIRT_INFO_TYPE_PRIM;
         ans->prim = PRIM_OBJ_CAN;
-        ans->held = TRUE;
+        ans->held = UC_TRUE;
         ans->yaw = dd->yaw;
         ans->pitch = dd->pitch;
         ans->roll = dd->roll;
@@ -1866,7 +1866,7 @@ SLONG DIRT_get_info(SLONG which, DIRT_Info* ans)
     case DIRT_TYPE_BRASS:
         ans->type = DIRT_INFO_TYPE_PRIM;
         ans->prim = dd->UU.Head.prim;
-        ans->held = FALSE;
+        ans->held = UC_FALSE;
         ans->yaw = dd->yaw;
         ans->pitch = dd->pitch;
         ans->roll = dd->roll;
@@ -1909,7 +1909,7 @@ void DIRT_mark_as_offscreen(SLONG which)
     }
 }
 
-// Raycast from p_person's facing direction, returns TRUE if a thrown can/head was hit.
+// Raycast from p_person's facing direction, returns UC_TRUE if a thrown can/head was hit.
 // Hit can/head gets deflected with a random velocity + PYRO_hitspang + sound.
 // uc_orig: DIRT_shoot (fallen/Source/dirt.cpp)
 SLONG DIRT_shoot(Thing* p_person)
@@ -1923,12 +1923,12 @@ SLONG DIRT_shoot(Thing* p_person)
 
     SLONG score;
     SLONG best_dirt;
-    SLONG best_score = -INFINITY;
+    SLONG best_score = -UC_INFINITY;
 
     DIRT_Dirt* dd;
 
     if (GAME_FLAGS & GF_NO_FLOOR) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     for (i = 0; i < DIRT_MAX_DIRT; i++) {
@@ -1953,7 +1953,7 @@ SLONG DIRT_shoot(Thing* p_person)
             }
 
             if (WITHIN(dangle, -200, +200) && dist < 256 * 5) {
-                score = INFINITY - (dangle << 8) - (dist << 4);
+                score = UC_INFINITY - (dangle << 8) - (dist << 4);
 
                 if (score > best_score) {
                     best_score = score;
@@ -1963,7 +1963,7 @@ SLONG DIRT_shoot(Thing* p_person)
         }
     }
 
-    if (best_score > -INFINITY) {
+    if (best_score > -UC_INFINITY) {
         ASSERT(WITHIN(best_dirt, 0, DIRT_MAX_DIRT - 1));
 
         dd = &DIRT_dirt[best_dirt];
@@ -1993,9 +1993,9 @@ SLONG DIRT_shoot(Thing* p_person)
             break;
         }
 
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

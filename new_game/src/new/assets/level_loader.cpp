@@ -461,7 +461,7 @@ SLONG load_prim_object(SLONG prim)
     po = &prim_objects[prim];
 
     if (po->StartPoint || prim == 238) {
-        return TRUE;
+        return UC_TRUE;
     }
 
     sprintf(fname, "%s\\nprim%03d.prm", PRIM_DIR, prim);
@@ -479,7 +479,7 @@ SLONG load_prim_object(SLONG prim)
             po->EndFace3 = 0;
             po->StartFace4 = 0;
             po->EndFace4 = 0;
-            return FALSE;
+            return UC_FALSE;
         }
         file_type = 0;
     }
@@ -522,7 +522,7 @@ SLONG load_prim_object(SLONG prim)
         po->StartFace4 = po->EndFace4 = 0;
         ASSERT(0);
 
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (save_type - PRIM_START_SAVE_TYPE == 1) {
@@ -585,11 +585,11 @@ SLONG load_prim_object(SLONG prim)
         break;
     }
 
-    return TRUE;
+    return UC_TRUE;
 
 file_error:;
     FileClose(handle);
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Editor-mode: clear prim database and force-load all 265 static + 255 animated prims.

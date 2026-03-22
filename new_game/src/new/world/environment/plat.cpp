@@ -245,8 +245,8 @@ void PLAT_process(Thing* p_thing)
                                 &y2,
                                 &z2,
                                 10,
-                                FALSE,
-                                FALSE)) {
+                                UC_FALSE,
+                                UC_FALSE)) {
 
                             extern SLONG playing_level(const CBYTE* name); // eway.cpp
                             if (playing_level("botanicc.ucm") && (p_person->SubState == SUB_STATE_STANDING_JUMP_FORWARDS || p_person->SubState == SUB_STATE_STANDING_JUMP_BACKWARDS || p_person->SubState == SUB_STATE_STANDING_JUMP || p_person->SubState == SUB_STATE_RUNNING_JUMP)) {
@@ -266,7 +266,7 @@ void PLAT_process(Thing* p_thing)
                                         p_person,
                                         NULL,
                                         PERSON_DEATH_TYPE_OTHER,
-                                        FALSE,
+                                        UC_FALSE,
                                         0);
                                 }
                             }
@@ -304,7 +304,7 @@ void PLAT_process(Thing* p_thing)
                     EWAY_DONT_CARE,
                     plat->colour,
                     plat->group,
-                    TRUE);
+                    UC_TRUE);
 
                 if (waypoint == EWAY_NO_MATCH) {
                     plat->waypoint = NULL;
@@ -416,7 +416,7 @@ UWORD PLAT_create(
     SATURATE(z2, 0, PAP_SIZE_LO - 1);
 
     // Find the closest static ob (by Manhattan distance, with Y weighted less).
-    best_score = INFINITY;
+    best_score = UC_INFINITY;
 
     for (mx = x1; mx <= x2; mx++)
         for (mz = z1; mz <= z2; mz++) {
@@ -434,7 +434,7 @@ UWORD PLAT_create(
             }
         }
 
-    if (best_score == INFINITY) {
+    if (best_score == UC_INFINITY) {
         return NULL;
     }
 
@@ -471,7 +471,7 @@ UWORD PLAT_create(
     dm->Cache = 0;
     dm->Hm = 0;
 
-    plat->used = TRUE;
+    plat->used = UC_TRUE;
     plat->colour = colour;
     plat->group = group;
     plat->move = move;

@@ -64,7 +64,7 @@ void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist)
     ASSERT(temp != NULL);
     strcpy(tmp, TEXTURE_EXTRA_DIR);
     strcat(tmp, fn);
-    TGA_load(tmp, 256, 256, temp, -1, FALSE);
+    TGA_load(tmp, 256, 256, temp, -1, UC_FALSE);
 
     pt = (UBYTE*)fontlist;
 
@@ -186,7 +186,7 @@ void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD f
                     pp[3].X = x + width;
                     pp[3].Y = y + height;
 
-                    POLY_add_quad(quad, FontPage, FALSE, TRUE);
+                    POLY_add_quad(quad, FontPage, UC_FALSE, UC_TRUE);
                 }
             }
 
@@ -271,7 +271,7 @@ void MENUFONT_Draw_floats(float x, float y, UWORD scale, CBYTE* msg, SLONG rgb, 
                 pp[3].X = x + width;
                 pp[3].Y = y + height;
 
-                POLY_add_quad(quad, FontPage, FALSE, TRUE);
+                POLY_add_quad(quad, FontPage, UC_FALSE, UC_TRUE);
             }
         }
 

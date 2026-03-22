@@ -20,7 +20,7 @@ void ELEV_game_init_common(
     CBYTE* fname_level);
 
 // Full game world initialisation: loads map, lighting, entities, nav data.
-// Returns TRUE on success.
+// Returns UC_TRUE on success.
 // uc_orig: ELEV_game_init (fallen/Source/elev.cpp)
 SLONG ELEV_game_init(
     CBYTE* fname_map,
@@ -34,7 +34,7 @@ SLONG ELEV_game_init(
 void ELEV_create_similar_name(CBYTE* dest, CBYTE* src, CBYTE* ext);
 
 // Reads map/lighting/citsez paths from the .ucm header, then calls ELEV_game_init.
-// Returns TRUE on success.
+// Returns UC_TRUE on success.
 // uc_orig: ELEV_load_name (fallen/Source/elev.cpp)
 SLONG ELEV_load_name(CBYTE* fname_level);
 

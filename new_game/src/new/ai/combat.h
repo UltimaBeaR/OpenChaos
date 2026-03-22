@@ -133,7 +133,7 @@ SLONG turn_to_target_and_kick(Thing* p_person);
 SLONG find_best_grapple(Thing* p_person);
 
 // Scans nearby people with KILLING ai_state targeting p_person.
-// any_state must be FALSE. radius controls search area.
+// any_state must be UC_FALSE. radius controls search area.
 // uc_orig: is_person_under_attack_low_level (fallen/Source/Combat.cpp)
 Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG radius);
 

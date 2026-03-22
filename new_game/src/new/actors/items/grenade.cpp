@@ -315,7 +315,7 @@ void show_grenade_path(Thing* p_person)
                             x1, y1, z1,
                             3,
                             0x8000af00,
-                            TRUE);
+                            UC_TRUE);
                     }
 
                     count++;

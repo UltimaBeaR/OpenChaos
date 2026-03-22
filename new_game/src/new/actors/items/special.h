@@ -188,11 +188,11 @@ void special_drop(Thing* p_special, Thing* p_person);
 // uc_orig: person_has_special (fallen/Headers/Special.h)
 Thing* person_has_special(Thing* p_person, SLONG special_type);
 
-// Returns TRUE if the person is carrying any two-handed weapon.
+// Returns UC_TRUE if the person is carrying any two-handed weapon.
 // uc_orig: person_has_twohanded_weapon (fallen/Source/Special.cpp)
 SLONG person_has_twohanded_weapon(Thing* p_person);
 
-// Returns TRUE if p_person can and should pick up p_special (ignores distance).
+// Returns UC_TRUE if p_person can and should pick up p_special (ignores distance).
 // uc_orig: should_person_get_item (fallen/Headers/Special.h)
 SLONG should_person_get_item(Thing* p_person, Thing* p_special);
 

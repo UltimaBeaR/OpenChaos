@@ -192,8 +192,8 @@ static void AA_draw_do(UBYTE* bitmap, UBYTE x_res, UBYTE y_res, SLONG pitch, SLO
     miny >>= AA_FIX; maxy -= 1; maxy >>= AA_FIX;
 
     for (i = miny; i <= maxy; i++) {
-        AA_span[i].lhs_min = +INFINITY; AA_span[i].lhs_max = -INFINITY;
-        AA_span[i].rhs_min = +INFINITY; AA_span[i].rhs_max = -INFINITY;
+        AA_span[i].lhs_min = +UC_INFINITY; AA_span[i].lhs_max = -UC_INFINITY;
+        AA_span[i].rhs_min = +UC_INFINITY; AA_span[i].rhs_max = -UC_INFINITY;
     }
 
     p1 = 0;

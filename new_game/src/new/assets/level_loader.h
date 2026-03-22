@@ -80,7 +80,7 @@ void load_game_map(CBYTE* name);
 SLONG load_all_prims(CBYTE* name);
 
 // Load a single static prim (.prm file) by prim ID into the global prim database.
-// Returns TRUE on success. Short-circuits if already loaded.
+// Returns UC_TRUE on success. Short-circuits if already loaded.
 // uc_orig: load_prim_object (fallen/Source/io.cpp)
 SLONG load_prim_object(SLONG prim);
 

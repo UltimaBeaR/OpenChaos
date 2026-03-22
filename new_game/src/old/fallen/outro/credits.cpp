@@ -489,20 +489,20 @@ void CREDITS_draw()
     for (i = 0; cs->line[i] == NULL || cs->line[i][0] != '!'; i++) {
         flag = FONT_FLAG_JUSTIFY_LEFT;
         scale = 0.6F;
-        dont_draw = FALSE;
+        dont_draw = UC_FALSE;
 
         if (cs->line[i] == NULL) {
             //
             // Blank line.
             //
 
-            dont_draw = TRUE;
+            dont_draw = UC_TRUE;
         } else if (y < 0.10F) {
             //
             // Dont draw...
             //
 
-            dont_draw = TRUE;
+            dont_draw = UC_TRUE;
         } else if (y < 0.30F) {
             shimmer = 1.0F - (y - 0.10F) * (1.0F / 0.2F);
         } else if (y < 0.75F) {
@@ -514,7 +514,7 @@ void CREDITS_draw()
             // Don't draw...
             //
 
-            dont_draw = TRUE;
+            dont_draw = UC_TRUE;
         }
 
         if (cs->line[i]) {

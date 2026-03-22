@@ -764,7 +764,7 @@ void Display::RunFMV()
     if (!ENV_get_value_number("play_movie", 1, "Movie"))
         return;
 
-    PlayQuickMovie(0, 0, TRUE);
+    PlayQuickMovie(0, 0, UC_TRUE);
 }
 
 void Display::RunCutscene(int which, int language, bool bAllowButtonsToExit)
@@ -1747,7 +1747,7 @@ HRESULT Display::FreeLoadedTextures(void)
         iCountdown--;
         if (iCountdown == 0) {
             // Oh dear - not good.
-            ASSERT(FALSE);
+            ASSERT(UC_FALSE);
             break;
         }
     }

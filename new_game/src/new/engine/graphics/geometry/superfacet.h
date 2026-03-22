@@ -17,7 +17,7 @@ void SUPERFACET_start_frame(void);
 
 // uc_orig: SUPERFACET_draw (fallen/DDEngine/Headers/superfacet.h)
 // Attempts to batch the given facet index into the super-fast path.
-// Returns FALSE if the facet cannot be handled (falls back to normal FACET_draw).
+// Returns UC_FALSE if the facet cannot be handled (falls back to normal FACET_draw).
 SLONG SUPERFACET_draw(SLONG facet);
 
 // uc_orig: SUPERFACET_fini (fallen/DDEngine/Headers/superfacet.h)

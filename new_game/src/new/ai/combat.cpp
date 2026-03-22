@@ -433,19 +433,19 @@ SLONG find_best_grapple(Thing* p_person)
     if (best >= 0) {
         if (best_target && (best_target->Genus.Person->AnimType != ANIM_TYPE_ROPER)) {
             if (best_target->Genus.Person->PersonType == PERSON_MIB1 || best_target->Genus.Person->PersonType == PERSON_MIB2 || best_target->Genus.Person->PersonType == PERSON_MIB3) {
-                return FALSE;
+                return UC_FALSE;
             }
 
             if (grapples[best].Anim == ANIM_PISTOL_WHIP) {
                 if (best_target->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST) {
-                    return FALSE;
+                    return UC_FALSE;
                 }
             }
 
             if (grapples[best].Anim == ANIM_STRANGLE || grapples[best].Anim == ANIM_HEADBUTT) {
                 // These grapples throw the victim forward; avoid near walls.
                 if (!is_there_room_in_front_of_me(p_person, 150)) {
-                    return FALSE;
+                    return UC_FALSE;
                 }
             }
 
@@ -623,10 +623,10 @@ SLONG check_combat_hit_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MAPCO1
             dist = QDIST2(dx, dz);
 
             if (dist < 0x53) {
-                return TRUE;
+                return UC_TRUE;
             }
         }
-        return FALSE;
+        return UC_FALSE;
     }
 
     dist = QDIST2(adx, adz);
@@ -742,7 +742,7 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
     }
 }
 
-// Returns TRUE if p_him is behind p_me (based on facing dot product).
+// Returns UC_TRUE if p_him is behind p_me (based on facing dot product).
 // uc_orig: check_hit_from_behind (fallen/Source/Combat.cpp)
 SLONG check_hit_from_behind(Thing* p_me, Thing* p_him)
 {
@@ -771,9 +771,9 @@ SLONG check_hit_from_behind(Thing* p_me, Thing* p_him)
     dprod = dx * vx + dz * vz;
 
     if (dprod < 0) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
@@ -837,7 +837,7 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
 
         // Per-animation damage bonuses on top of fight_tree[node][DAMAGE]:
         // KICK_NAD: +50 to males, +10 to females, taunt_prob->75%.
-        // BAT/FLYKICK/KICK_BEHIND: +20; KICK_R/L: +30; combo finishers: ko=TRUE.
+        // BAT/FLYKICK/KICK_BEHIND: +20; KICK_R/L: +30; combo finishers: ko=UC_TRUE.
         // FIGHT_STOMP: +50. KICK_NEAR: fixed 40. KNIFE_ATTACK*: 30/50/70.
         switch (hit_anim) {
         case ANIM_KICK_NAD:
@@ -874,13 +874,13 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
             } else if (p_thing->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) {
                 // Invulnerable people can't be knocked out
             } else {
-                ko = TRUE;
+                ko = UC_TRUE;
             }
 
             if (p_thing->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST) {
                 // Training dummies die from special moves even if invulnerable
                 if (((p_thing->Genus.Person->pcom_ai_other & PCOM_COMBAT_COMBO_PPP) && (hit_anim == ANIM_PUNCH_COMBO3)) || ((p_thing->Genus.Person->pcom_ai_other & PCOM_COMBAT_COMBO_KKK) && (hit_anim == ANIM_KICK_COMBO3)) || ((p_thing->Genus.Person->pcom_ai_other & PCOM_COMBAT_COMBO_ANY) && is_combo_anim(hit_anim)) || ((p_thing->Genus.Person->pcom_ai_other & PCOM_COMBAT_SIDE_KICK) && (hit_anim == ANIM_KICK_RIGHT || hit_anim == ANIM_KICK_LEFT)) || ((p_thing->Genus.Person->pcom_ai_other & PCOM_COMBAT_BACK_KICK) && (hit_anim == ANIM_KICK_BEHIND))) {
-                    ko = TRUE;
+                    ko = UC_TRUE;
                     p_thing->Genus.Person->Health = 0;
                 }
             }
@@ -1292,13 +1292,13 @@ SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor)
         UWORD i_client = EWAY_get_person(p_agressor->Genus.Person->pcom_ai_other);
 
         if (i_client == THING_NUMBER(p_victim)) {
-            return FALSE;
+            return UC_FALSE;
         }
     }
 
     if (p_victim->Genus.Person->pcom_bent & p_agressor->Genus.Person->pcom_bent & PCOM_BENT_GANG) {
         if (p_victim->Genus.Person->pcom_colour == p_agressor->Genus.Person->pcom_colour) {
-            return FALSE;
+            return UC_FALSE;
         }
     }
 
@@ -1500,7 +1500,7 @@ SLONG find_attack_stance(
     best_dx = 0;
     best_dz = 0;
     best_angle = p_person->Draw.Tweened->Angle;
-    best_score = -INFINITY;
+    best_score = -UC_INFINITY;
 
 // uc_orig: STANCE_DIST_LEEWAY (fallen/Source/Combat.cpp)
 #define STANCE_DIST_LEEWAY 0x60
@@ -1571,7 +1571,7 @@ SLONG find_attack_stance(
         case FIND_DIR_LEFT:
         case FIND_DIR_RIGHT:
             if (abs(dangle) > 300) {
-                score = -INFINITY;
+                score = -UC_INFINITY;
             } else {
                 score = 0;
                 score -= dist;
@@ -1581,7 +1581,7 @@ SLONG find_attack_stance(
 
         case FIND_DIR_TURN_LEFT:
             if (0 && !WITHIN(dangle, -512, 256)) {
-                score = -INFINITY;
+                score = -UC_INFINITY;
             } else {
                 score = 0;
                 score -= dist;
@@ -1591,7 +1591,7 @@ SLONG find_attack_stance(
 
         case FIND_DIR_TURN_RIGHT:
             if (0 && !WITHIN(dangle, -256, +512)) {
-                score = -INFINITY;
+                score = -UC_INFINITY;
             } else {
                 score = 0;
                 score -= dist;
@@ -1797,7 +1797,7 @@ SLONG turn_to_target_and_kick(Thing* p_person)
 }
 
 // Finds the nearest person actively targeting p_person with KILLING or NAVTOKILL ai_state.
-// any_state must be FALSE (legacy parameter, always ignored). radius controls search area.
+// any_state must be UC_FALSE (legacy parameter, always ignored). radius controls search area.
 // uc_orig: is_person_under_attack_low_level (fallen/Source/Combat.cpp)
 Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG radius)
 {
@@ -1805,10 +1805,10 @@ Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG 
     SLONG num;
     Thing* p_found;
     SLONG dx, dz, dist;
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
     Thing* best_person = NULL;
 
-    ASSERT(any_state == FALSE);
+    ASSERT(any_state == UC_FALSE);
 
     num = THING_find_sphere(
         p_person->WorldPos.X >> 8,

@@ -668,9 +668,9 @@ void calc_prim_info()
         if (obj->StartPoint == NULL)
             continue;
 
-        inf->minx = +INFINITY; inf->miny = +INFINITY; inf->minz = +INFINITY;
-        inf->maxx = -INFINITY; inf->maxy = -INFINITY; inf->maxz = -INFINITY;
-        inf->radius = -INFINITY;
+        inf->minx = +UC_INFINITY; inf->miny = +UC_INFINITY; inf->minz = +UC_INFINITY;
+        inf->maxx = -UC_INFINITY; inf->maxy = -UC_INFINITY; inf->maxz = -UC_INFINITY;
+        inf->radius = -UC_INFINITY;
 
         for (j = obj->StartPoint; j < obj->EndPoint; j++) {
             pt = &prim_points[j];
@@ -1039,8 +1039,8 @@ void calc_slide_edges()
         if (!(f->FaceFlags & FACE_FLAG_WALKABLE)) continue;
         if (f->FaceFlags & FACE_FLAG_WMOVE) continue;
 
-        x1 = +INFINITY; z1 = +INFINITY;
-        x2 = -INFINITY; z2 = -INFINITY;
+        x1 = +UC_INFINITY; z1 = +UC_INFINITY;
+        x2 = -UC_INFINITY; z2 = -UC_INFINITY;
 
         for (p = 0; p < 4; p++) {
             px = prim_points[f->Points[p]].X;
@@ -1203,8 +1203,8 @@ void get_rotated_point_world_pos(
 
 // Test movement vector (x1,y1,z1)→(x2,y2,z2) against prim bounding box.
 // Positions are in <<8 fixed-point; they are divided by 256 internally.
-// Returns TRUE if collision occurred and x2/z2 were slid to the nearest edge.
-// dont_slide: if TRUE, return TRUE on collision without modifying x2/z2.
+// Returns UC_TRUE if collision occurred and x2/z2 were slid to the nearest edge.
+// dont_slide: if UC_TRUE, return UC_TRUE on collision without modifying x2/z2.
 // shrink: reduce radius by 0x30 and compress Y range (tight-space traversal).
 // uc_orig: slide_along_prim (fallen/Source/Prim.cpp)
 SLONG slide_along_prim(
@@ -1245,7 +1245,7 @@ SLONG slide_along_prim(
             *x2 <<= 8;
             *y2 <<= 8;
             *z2 <<= 8;
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
@@ -1253,7 +1253,7 @@ SLONG slide_along_prim(
     *y2 = old_y2;
     *z2 = old_z2;
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: prim_get_collision_model (fallen/Source/Prim.cpp)
@@ -1528,8 +1528,8 @@ void find_anim_prim_bboxes()
     for (i = 1; i < MAX_ANIM_CHUNKS; i++) {
         pmb = &anim_prim_bbox[i];
 
-        pmb->minx = +INFINITY; pmb->miny = +INFINITY; pmb->minz = +INFINITY;
-        pmb->maxx = -INFINITY; pmb->maxy = -INFINITY; pmb->maxz = -INFINITY;
+        pmb->minx = +UC_INFINITY; pmb->miny = +UC_INFINITY; pmb->minz = +UC_INFINITY;
+        pmb->maxx = -UC_INFINITY; pmb->maxy = -UC_INFINITY; pmb->maxz = -UC_INFINITY;
 
         if (anim_chunk[i].MultiObject[0] == 0)
             continue;
@@ -1587,7 +1587,7 @@ void re_center_prim(SLONG prim, SLONG dx, SLONG dy, SLONG dz)
     }
 }
 
-// Returns TRUE if a fence (of any fence type or barb-top facet) lies entirely
+// Returns UC_TRUE if a fence (of any fence type or barb-top facet) lies entirely
 // along the given orthogonal world-space line.
 // Only orthogonal lines (vertical or horizontal) are supported.
 // Coordinates are integer world units (one unit = one mapsquare / 256).
@@ -1620,12 +1620,12 @@ SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
         for (mz = mz1; mz <= mz2; mz++) {
             f_list = PAP_2LO(mx, mz).ColVectHead;
             if (f_list) {
-                exit = FALSE;
+                exit = UC_FALSE;
                 do {
                     facet = facet_links[f_list++];
                     if (facet < 0) {
                         facet = -facet;
-                        exit = TRUE;
+                        exit = UC_TRUE;
                     }
 
                     df = &dfacets[facet];
@@ -1640,7 +1640,7 @@ SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
                                 maxz = df->z[1] << 8;
                                 if (minz > maxz) SWAP(minz, maxz);
                                 if (WITHIN(z1, minz, maxz) && WITHIN(z2, minz, maxz))
-                                    return TRUE;
+                                    return UC_TRUE;
                             }
                         } else {
                             if ((df->z[0] << 8) == z1) {
@@ -1648,7 +1648,7 @@ SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
                                 maxx = df->x[1] << 8;
                                 if (minx > maxx) SWAP(minx, maxx);
                                 if (WITHIN(x1, minx, maxx) && WITHIN(x2, minx, maxx))
-                                    return TRUE;
+                                    return UC_TRUE;
                             }
                         }
                     }
@@ -1656,7 +1656,7 @@ SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
             }
         }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Clear FACE_FLAG_WMOVE from all prim face3 and face4 pools.

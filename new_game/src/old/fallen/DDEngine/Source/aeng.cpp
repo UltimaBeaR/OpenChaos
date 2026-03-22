@@ -692,7 +692,7 @@ void AENG_init(void)
     AENG_movie_init();
     TEXTURE_choose_set(1);
     INDOORS_INDEX_FADE = 255;
-    // POLY_frame_init(FALSE, FALSE);
+    // POLY_frame_init(UC_FALSE, UC_FALSE);
 
     //
     // Load the fade palette for the bonfires
@@ -1701,7 +1701,7 @@ void AENG_add_projected_shadow_poly(SMAP_Link* sl)
         tri[2] = &POLY_buffer[i + 1];
 
         if (POLY_valid_triangle(tri)) {
-            POLY_add_triangle(tri, POLY_PAGE_SHADOW, TRUE);
+            POLY_add_triangle(tri, POLY_PAGE_SHADOW, UC_TRUE);
         }
     }
 }
@@ -1783,7 +1783,7 @@ void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl)
         tri[2] = &POLY_buffer[i + 1];
 
         if (POLY_valid_triangle(tri)) {
-            POLY_add_triangle(tri, POLY_PAGE_SHADOW, TRUE);
+            POLY_add_triangle(tri, POLY_PAGE_SHADOW, UC_TRUE);
         }
     }
 }
@@ -1871,7 +1871,7 @@ void AENG_add_projected_lit_shadow_poly(SMAP_Link* sl)
         tri[2] = &POLY_buffer[i + 1];
 
         if (POLY_valid_triangle(tri)) {
-            POLY_add_triangle(tri, POLY_PAGE_SHADOW, TRUE);
+            POLY_add_triangle(tri, POLY_PAGE_SHADOW, UC_TRUE);
         }
     }
 }
@@ -1955,7 +1955,7 @@ void AENG_draw_rain_old(float angle)
         pp[2].Z = Z;
         pp[2].z = z;
 
-        POLY_add_triangle(tri, POLY_PAGE_ALPHA, FALSE, TRUE);
+        POLY_add_triangle(tri, POLY_PAGE_ALPHA, UC_FALSE, UC_TRUE);
     }
 }
 
@@ -2167,7 +2167,7 @@ void AENG_draw_drips(UBYTE puddles_only)
             pp[2].colour = colour;
             pp[3].colour = colour;
 
-            POLY_add_quad(quad, POLY_PAGE_DRIP, FALSE);
+            POLY_add_quad(quad, POLY_PAGE_DRIP, UC_FALSE);
         }
     }
 }
@@ -2333,7 +2333,7 @@ void AENG_draw_hook(void)
         AENG_world_line(
             x1, y1, z1, 0x8, colour1,
             x2, y2, z2, 0x6, colour2,
-            FALSE);
+            UC_FALSE);
     }
 }
 
@@ -2483,7 +2483,7 @@ void AENG_draw_dirt()
             AENG_dirt_uvlookup[i].v = AENG_dirt_uvlookup[i].v * pp->m_VScale + pp->m_VOffset;
         }
 
-        AENG_dirt_uvlookup_valid = TRUE;
+        AENG_dirt_uvlookup_valid = UC_TRUE;
         AENG_dirt_uvlookup_world_type = world_type;
     }
 
@@ -2923,7 +2923,7 @@ void AENG_draw_dirt()
 
             extern UBYTE kludge_shrink;
 
-            kludge_shrink = TRUE;
+            kludge_shrink = UC_TRUE;
 
             MESH_draw_poly(
                 PRIM_OBJ_ITEM_AMMO_SHOTGUN,
@@ -2935,7 +2935,7 @@ void AENG_draw_dirt()
                 dd->roll,
                 NULL, 0, 0);
 
-            kludge_shrink = FALSE;
+            kludge_shrink = UC_FALSE;
 
             break;
 
@@ -3204,7 +3204,7 @@ void AENG_draw_pows(void)
                 ppt[2].z = ap->sz;
                 ppt[3].z = ap->sz;
 
-                POLY_add_quad(quad, POLY_PAGE_EXPLODE1, FALSE, TRUE);
+                POLY_add_quad(quad, POLY_PAGE_EXPLODE1, UC_FALSE, UC_TRUE);
             }
         }
     }
@@ -3252,8 +3252,8 @@ POLY_Point AENG_lower[MAP_WIDTH / 2 + MAP_SIZE_TWEAK * 2][MAP_HEIGHT / 2 + MAP_S
 #define AENG_SKY_TYPE_NIGHT 0
 #define AENG_SKY_TYPE_DAY 1
 
-SLONG AENG_torch_on = FALSE;
-SLONG AENG_shadows_on = TRUE;
+SLONG AENG_torch_on = UC_FALSE;
+SLONG AENG_shadows_on = UC_TRUE;
 SLONG AENG_sky_type = AENG_SKY_TYPE_DAY;
 ULONG AENG_sky_colour_bot = 0x008890ee;
 ULONG AENG_sky_colour_top = 0x006670cc;
@@ -3372,7 +3372,7 @@ void AENG_draw_rect(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, 
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_add_quad(quad, page, FALSE, TRUE);
+    POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
 }
 
 void AENG_draw_col_tri(SLONG x0, SLONG y0, SLONG col0, SLONG x1, SLONG y1, SLONG col1, SLONG x2, SLONG y2, SLONG col2, SLONG layer)
@@ -3435,7 +3435,7 @@ void AENG_draw_col_tri(SLONG x0, SLONG y0, SLONG col0, SLONG x1, SLONG y1, SLONG
             quad[2] = &pp[2];
             quad[3] = &pp[3];
 
-            POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE, TRUE);
+            POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE, UC_TRUE);
     */
 
 #define AENG_BACKGROUND_COLOUR 0x55888800
@@ -3475,7 +3475,7 @@ void AENG_draw_col_tri(SLONG x0, SLONG y0, SLONG col0, SLONG x1, SLONG y1, SLONG
     tri[1] = &pp[1];
     tri[2] = &pp[2];
 
-    POLY_add_triangle(tri, POLY_PAGE_COLOUR, FALSE, TRUE);
+    POLY_add_triangle(tri, POLY_PAGE_COLOUR, UC_FALSE, UC_TRUE);
 }
 
 void show_gamut_lo(SLONG x, SLONG z)
@@ -3536,7 +3536,7 @@ void AENG_draw_people_messages()
                                 200,
                                 180,
                                 50,
-                                TRUE,
+                                UC_TRUE,
                                 str);
                             //									PCOM_person_state_debug(p_thing));
                         }
@@ -3785,7 +3785,7 @@ void AENG_draw_warehouse_floor_near_door(DFacet *df)
                                            &quad[3]->u,
                                            &quad[3]->v);
 
-                                POLY_add_quad(quad, page, TRUE);
+                                POLY_add_quad(quad, page, UC_TRUE);
                         }
                 }
         }
@@ -3904,14 +3904,14 @@ float AENG_draw_some_polys(bool large, bool blend)
     BEGIN_SCENE;
 
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, FALSE);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
     if (blend) {
         REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
         REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
     } else {
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
+        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
     }
 
     if (large) {
@@ -4287,7 +4287,7 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
                     // Too close the camera!
                     //
 
-                    return FALSE;
+                    return UC_FALSE;
                 }
             }
         }
@@ -4315,7 +4315,7 @@ inline SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG 
         *p_indicies++ = 0xffff;
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 inline void draw_i_prim(LPDIRECT3DTEXTURE2 page, D3DLVERTEX* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor)
@@ -4511,11 +4511,11 @@ void draw_quick_floor(SLONG warehouse)
 
     /*
             REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND,D3DTBLEND_MODULATE);
-            REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE,TRUE);
-            REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE,TRUE);
+            REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE,UC_TRUE);
+            REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE,UC_TRUE);
             REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZBIAS,0);
-            REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE,FALSE);
-            REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE,FALSE);
+            REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE,UC_FALSE);
+            REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE,UC_FALSE);
             REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS,D3DTADDRESS_CLAMP);
     */
 
@@ -5216,16 +5216,16 @@ void AENG_draw_city()
     }
 
     if (INDOORS_INDEX) {
-        POLY_frame_draw(TRUE, TRUE);
-        POLY_frame_init(TRUE, TRUE);
+        POLY_frame_draw(UC_TRUE, UC_TRUE);
+        POLY_frame_init(UC_TRUE, UC_TRUE);
         if (INDOORS_INDEX_NEXT)
             AENG_draw_inside_floor(INDOORS_INDEX_NEXT, INDOORS_ROOM_NEXT, 0);
 
-        //		POLY_frame_draw(TRUE,TRUE);
+        //		POLY_frame_draw(UC_TRUE,UC_TRUE);
         if (INDOORS_INDEX)
             AENG_draw_inside_floor(INDOORS_INDEX, INDOORS_ROOM, INDOORS_INDEX_FADE);
-        POLY_frame_draw(TRUE, TRUE);
-        POLY_frame_init(TRUE, TRUE);
+        POLY_frame_draw(UC_TRUE, UC_TRUE);
+        POLY_frame_init(UC_TRUE, UC_TRUE);
         //		return;
     }
 
@@ -5256,7 +5256,7 @@ void AENG_draw_city()
                 world_y = ph->Alt * float(1 << ALT_SHIFT);
                 world_z = z * 256.0F;
 
-                worked_out_colour = FALSE;
+                worked_out_colour = UC_FALSE;
 
                 if (!(ph->Flags & PAP_FLAG_NOUPPER)) {
                     pp = &AENG_upper[x & 63][z & 63];
@@ -5307,7 +5307,7 @@ void AENG_draw_city()
                         colour = pp->colour;
                         specular = pp->specular;
 
-                        worked_out_colour = TRUE;
+                        worked_out_colour = UC_TRUE;
                     }
                 }
 
@@ -5428,7 +5428,7 @@ void AENG_draw_city()
         // How many people do we generate shadows for?
         //
 
-        SLONG shadow_person_worst_dist = -INFINITY;
+        SLONG shadow_person_worst_dist = -UC_INFINITY;
         SLONG shadow_person_worst_person;
 
         for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
@@ -5482,7 +5482,7 @@ void AENG_draw_city()
                                     // Find the worst person
                                     //
 
-                                    shadow_person_worst_dist = -INFINITY;
+                                    shadow_person_worst_dist = -UC_INFINITY;
 
                                     for (i = 0; i < AENG_NUM_SHADOWS; i++) {
                                         if (shadow_person[i].dist > shadow_person_worst_dist) {
@@ -5588,7 +5588,7 @@ void AENG_draw_city()
                 SLONG mz1;
                 SLONG mx2;
                 SLONG mz2;
-                SLONG exit = FALSE;
+                SLONG exit = UC_FALSE;
 
                 SLONG mx_lo;
                 SLONG mz_lo;
@@ -5732,7 +5732,7 @@ void AENG_draw_city()
                         v_list = PAP_2LO(mx_lo, mz_lo).ColVectHead;
 
                         if (v_list) {
-                            exit = FALSE;
+                            exit = UC_FALSE;
 
                             while (!exit) {
                                 i_vect = facet_links[v_list];
@@ -5740,7 +5740,7 @@ void AENG_draw_city()
                                 if (i_vect < 0) {
                                     i_vect = -i_vect;
 
-                                    exit = TRUE;
+                                    exit = UC_TRUE;
                                 }
 
                                 df = &dfacets[i_vect];
@@ -5945,7 +5945,7 @@ void AENG_draw_city()
             bbox[0].x2 = MIN((SLONG)moon_x2 + AENG_BBOX_PUSH_OUT, DisplayWidth  - AENG_BBOX_PUSH_IN);
             bbox[0].y2 = MIN((SLONG)moon_y2, DisplayHeight);
 
-            bbox[0].water_box = FALSE;
+            bbox[0].water_box = UC_FALSE;
 
             bbox_upto = 1;
 
@@ -6107,8 +6107,8 @@ void AENG_draw_city()
         // Draw the reflections and drips.  Clear the poly lists.
         //
 
-        POLY_frame_draw(FALSE, FALSE);
-        POLY_frame_init(TRUE, TRUE);
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+        POLY_frame_init(UC_TRUE, UC_TRUE);
         BreakTime("Done first poly flush");
     }
 
@@ -6236,7 +6236,7 @@ void AENG_draw_city()
                         SWAP_FL(pp[3].v, pp[2].v);
                     }
 
-                    POLY_add_quad(quad, POLY_PAGE_PUDDLE, FALSE);
+                    POLY_add_quad(quad, POLY_PAGE_PUDDLE, UC_FALSE);
 
                     if (pi->puddle_s1 | pi->puddle_s2) {
                         //
@@ -6245,10 +6245,10 @@ void AENG_draw_city()
 
                         SLONG px;
                         SLONG py;
-                        SLONG px1 = +INFINITY;
-                        SLONG py1 = +INFINITY;
-                        SLONG px2 = -INFINITY;
-                        SLONG py2 = -INFINITY;
+                        SLONG px1 = +UC_INFINITY;
+                        SLONG py1 = +UC_INFINITY;
+                        SLONG px2 = -UC_INFINITY;
+                        SLONG py2 = -UC_INFINITY;
 
                         for (i = 0; i < 4; i++) {
                             px = SLONG(pp[i].X);
@@ -6412,7 +6412,7 @@ void AENG_draw_city()
                             &quad[3]->v);
                     }
 
-                    POLY_add_quad(quad, page, FALSE);
+                    POLY_add_quad(quad, page, UC_FALSE);
 
                     //
                     // Restore old colour info.
@@ -6560,7 +6560,7 @@ void AENG_draw_city()
 
                                                     if (POLY_valid_quad(quad))
                                                     {
-                                                            POLY_add_quad(quad, POLY_PAGE_SEWATER, FALSE);
+                                                            POLY_add_quad(quad, POLY_PAGE_SEWATER, UC_FALSE);
                                                     }
                                             }
 
@@ -6610,7 +6610,7 @@ void AENG_draw_city()
         POLY_frame_draw_odd();
         POLY_frame_draw_puddles();
 
-        POLY_frame_init(TRUE, TRUE);
+        POLY_frame_init(UC_TRUE, UC_TRUE);
     }
     BreakTime("Done second polygon flush");
 
@@ -6895,13 +6895,13 @@ void AENG_draw_city()
                                         tri[1] = quad[1];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         tri[0] = quad[1];
                                         tri[1] = quad[3];
                                         tri[2] = quad[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         break;
 
@@ -6911,13 +6911,13 @@ void AENG_draw_city()
                                         tri[1] = quad[1];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         tri[0] = quad[1];
                                         tri[1] = quad[3];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         break;
 
@@ -6929,13 +6929,13 @@ void AENG_draw_city()
                                         tri[1] = quad[1];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         tri[0] = quad[1];
                                         tri[1] = quad[3];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         break;
 
@@ -6945,13 +6945,13 @@ void AENG_draw_city()
                                         tri[1] = quad[1];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         tri[0] = quad[1];
                                         tri[1] = &ps[3];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         break;
 
@@ -6961,13 +6961,13 @@ void AENG_draw_city()
                                         tri[1] = quad[1];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         tri[0] = quad[1];
                                         tri[1] = &ps[3];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         break;
 
@@ -6977,13 +6977,13 @@ void AENG_draw_city()
                                         tri[1] = quad[1];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         tri[0] = quad[1];
                                         tri[1] = quad[3];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         break;
 
@@ -6993,13 +6993,13 @@ void AENG_draw_city()
                                         tri[1] = quad[1];
                                         tri[2] = quad[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         tri[0] = quad[1];
                                         tri[1] = &ps[3];
                                         tri[2] = &ps[2];
 
-                                        POLY_add_triangle(tri, page, TRUE);
+                                        POLY_add_triangle(tri, page, UC_TRUE);
 
                                         break;
 
@@ -7010,7 +7010,7 @@ void AENG_draw_city()
                                 } else {
 
                                     {
-                                        POLY_add_quad(quad, page, FALSE);
+                                        POLY_add_quad(quad, page, UC_FALSE);
                                     }
                                 }
                             }
@@ -7071,7 +7071,7 @@ void AENG_draw_city()
                                         // Add the poly.
                                         //
 
-                                        POLY_add_quad(quad, page, TRUE);
+                                        POLY_add_quad(quad, page, UC_TRUE);
                                     }
                                 }
                             }
@@ -7082,8 +7082,8 @@ void AENG_draw_city()
     }
     BreakTime("Drawn floors");
 
-    //	POLY_frame_draw(FALSE,FALSE);
-    //	POLY_frame_init(TRUE,TRUE);
+    //	POLY_frame_draw(UC_FALSE,UC_FALSE);
+    //	POLY_frame_init(UC_TRUE,UC_TRUE);
     //	BreakTime("Done another flush");
 
     //
@@ -7184,8 +7184,8 @@ void AENG_draw_city()
         }
 
         BreakTime("Drawn prims");
-        //		POLY_frame_draw(FALSE,FALSE);
-        //		POLY_frame_init(TRUE,TRUE);
+        //		POLY_frame_draw(UC_FALSE,UC_FALSE);
+        //		POLY_frame_init(UC_TRUE,UC_TRUE);
         //		BreakTime("Flushed prims");
 
         POLY_set_local_rotation_none();
@@ -7207,7 +7207,7 @@ void AENG_draw_city()
                     SLONG f_list;
                     SLONG facet;
                     SLONG build;
-                    SLONG exit = FALSE;
+                    SLONG exit = UC_FALSE;
 
                     f_list = PAP_2LO(x, z).ColVectHead;
 
@@ -7238,7 +7238,7 @@ void AENG_draw_city()
                                 //
 
                                 facet = -facet;
-                                exit = TRUE;
+                                exit = UC_TRUE;
                             }
 
                             if (dfacets[facet].Counter[AENG_cur_fc_cam] != SUPERMAP_counter[AENG_cur_fc_cam]) {
@@ -7267,7 +7267,7 @@ void AENG_draw_city()
                                     // the facet.
                                     //
 
-                                    AENG_draw_box_around_recessed_door(&dfacets[facet], FALSE);
+                                    AENG_draw_box_around_recessed_door(&dfacets[facet], UC_FALSE);
                                 } else {
                                     //
                                     // Draw the facet.
@@ -7313,8 +7313,8 @@ void AENG_draw_city()
 
         BreakFacets(dfacets_drawn_this_gameturn);
         BreakTime("Drawn facets");
-        //		POLY_frame_draw(FALSE,FALSE);
-        //		POLY_frame_init(TRUE,TRUE);
+        //		POLY_frame_draw(UC_FALSE,UC_FALSE);
+        //		POLY_frame_init(UC_TRUE,UC_TRUE);
         //		BreakTime("Flushed facets");
 
         for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
@@ -7444,7 +7444,7 @@ void AENG_draw_city()
                                         200,
                                         180,
                                         50,
-                                        TRUE,
+                                        UC_TRUE,
                                         PCOM_person_state_debug(p_thing));
                                 }
                             }
@@ -7577,7 +7577,7 @@ void AENG_draw_city()
 
                                 AENG_world_line(
                                     p_thing->WorldPos.X >> 8, p_thing->WorldPos.Y >> 8, p_thing->WorldPos.Z >> 8, 64, 0x00ffffff,
-                                    ix, p_thing->WorldPos.Y >> 8, iz, 0, 0x0000ff00, TRUE);
+                                    ix, p_thing->WorldPos.Y >> 8, iz, 0, 0x0000ff00, UC_TRUE);
                             }
 
                             break;
@@ -7611,8 +7611,8 @@ void AENG_draw_city()
 
     BreakTime("Drawn things");
 
-    //	POLY_frame_draw(FALSE,FALSE);
-    //	POLY_frame_init(TRUE,TRUE);
+    //	POLY_frame_draw(UC_FALSE,UC_FALSE);
+    //	POLY_frame_init(UC_TRUE,UC_TRUE);
     //	BreakTime("Flushed things");
 
     //
@@ -7798,7 +7798,7 @@ void AENG_draw_city()
                         quad[3] = &mist_pp[sx + 1][sz + 1];
 
                         if (POLY_valid_quad(quad)) {
-                            POLY_add_quad(quad, POLY_PAGE_FOG, FALSE);
+                            POLY_add_quad(quad, POLY_PAGE_FOG, UC_FALSE);
                         }
                     }
             }
@@ -7875,7 +7875,7 @@ void AENG_draw_city()
                   }
   */
 
-    //	if (Keys[KB_RBRACE] && !ShiftFlag) {Keys[KB_RBRACE] = 0; AENG_torch_on ^= TRUE;}
+    //	if (Keys[KB_RBRACE] && !ShiftFlag) {Keys[KB_RBRACE] = 0; AENG_torch_on ^= UC_TRUE;}
 
     //
     // Draw a torch out of darci...
@@ -8074,11 +8074,11 @@ void AENG_draw_city()
 
     /*
 
-    POLY_frame_draw(TRUE,TRUE);
+    POLY_frame_draw(UC_TRUE,UC_TRUE);
     if(INDOORS_INDEX_NEXT)
             AENG_draw_inside_floor(INDOORS_INDEX_NEXT,INDOORS_ROOM_NEXT,255); //downtairs non transparent
 
-    POLY_frame_draw(TRUE,TRUE);
+    POLY_frame_draw(UC_TRUE,UC_TRUE);
     if(INDOORS_INDEX)
     {
             AENG_draw_inside_floor(INDOORS_INDEX,INDOORS_ROOM,INDOORS_INDEX_FADE);
@@ -8089,7 +8089,7 @@ void AENG_draw_city()
 
     BreakTime("Drawn other crap");
 
-    POLY_frame_draw(TRUE, TRUE);
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
 
     BreakTime("Done final polygon flush");
 
@@ -8177,7 +8177,7 @@ void AENG_draw_far_facets(void)
                 SLONG f_list;
                 SLONG facet;
                 SLONG build;
-                SLONG exit = FALSE;
+                SLONG exit = UC_FALSE;
 
                 f_list = PAP_2LO(x, z).ColVectHead;
 
@@ -8198,7 +8198,7 @@ void AENG_draw_far_facets(void)
                             //
 
                             facet = -facet;
-                            exit = TRUE;
+                            exit = UC_TRUE;
                         }
 
                         if (dfacets[facet].Counter[AENG_cur_fc_cam] != SUPERMAP_counter[AENG_cur_fc_cam]) {
@@ -8295,9 +8295,9 @@ void AENG_draw_warehouse()
     //
 
     SLONG old_aeng_draw_cloud_flag = aeng_draw_cloud_flag;
-    FALSE;
+    UC_FALSE;
 
-    aeng_draw_cloud_flag = FALSE;
+    aeng_draw_cloud_flag = UC_FALSE;
 
     Thing* p_thing;
     OB_Info* oi;
@@ -8310,9 +8310,9 @@ void AENG_draw_warehouse()
     // BALLOON_Balloon *bb;
     POLY_Point* quad[4];
 
-    // POLY_frame_init(FALSE,FALSE);
+    // POLY_frame_init(UC_FALSE,UC_FALSE);
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     //
     // Work out which things are in view.
@@ -8447,7 +8447,7 @@ void AENG_draw_warehouse()
 
         } shadow_person[AENG_NUM_SHADOWS];
         SLONG shadow_person_upto = 0;
-        SLONG shadow_person_worst_dist = -INFINITY;
+        SLONG shadow_person_worst_dist = -UC_INFINITY;
         SLONG shadow_person_worst_person;
 
         for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
@@ -8501,7 +8501,7 @@ void AENG_draw_warehouse()
                                     // Find the worst person
                                     //
 
-                                    shadow_person_worst_dist = -INFINITY;
+                                    shadow_person_worst_dist = -UC_INFINITY;
 
                                     for (i = 0; i < AENG_NUM_SHADOWS; i++) {
                                         if (shadow_person[i].dist > shadow_person_worst_dist) {
@@ -8598,7 +8598,7 @@ void AENG_draw_warehouse()
                 SLONG mz1;
                 SLONG mx2;
                 SLONG mz2;
-                SLONG exit = FALSE;
+                SLONG exit = UC_FALSE;
 
                 SLONG mx_lo;
                 SLONG mz_lo;
@@ -8900,7 +8900,7 @@ void AENG_draw_warehouse()
                     &quad[3]->u,
                     &quad[3]->v);
 
-                POLY_add_quad(quad, page, TRUE);
+                POLY_add_quad(quad, page, UC_TRUE);
             }
         }
     }
@@ -8988,7 +8988,7 @@ void AENG_draw_warehouse()
             f_list = PAP_2LO(x, z).ColVectHead;
 
             if (f_list) {
-                exit = FALSE;
+                exit = UC_FALSE;
 
                 while (!exit) {
                     facet = facet_links[f_list];
@@ -9001,7 +9001,7 @@ void AENG_draw_warehouse()
                         //
 
                         facet = -facet;
-                        exit = TRUE;
+                        exit = UC_TRUE;
                     }
 
                     df = &dfacets[facet];
@@ -9028,7 +9028,7 @@ void AENG_draw_warehouse()
                                     // Draw the outside around this facet but don't draw
                                     //
 
-                                    AENG_draw_box_around_recessed_door(&dfacets[facet], TRUE);
+                                    AENG_draw_box_around_recessed_door(&dfacets[facet], UC_TRUE);
                                 } else
                                 // if (df->FacetType == STOREY_TYPE_NORMAL) Why only draw normal facets?
                                 {
@@ -9132,7 +9132,7 @@ void AENG_draw_warehouse()
                                 200,
                                 180,
                                 50,
-                                TRUE,
+                                UC_TRUE,
                                 PCOM_person_state_debug(p_thing));
                         }
 
@@ -9220,7 +9220,7 @@ void AENG_draw_warehouse()
     // Now actually draw everything!
     //
 
-    POLY_frame_draw(TRUE, TRUE);
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
 
     //
     // Restore cloud to default value.
@@ -9267,7 +9267,7 @@ void AENG_draw_power(SLONG x, SLONG y, SLONG w, SLONG h, SLONG val, SLONG max)
             x+w,
             y+h);
 
-    POLY_frame_init(FALSE,FALSE);
+    POLY_frame_init(UC_FALSE,UC_FALSE);
 
     //
     // Draw an outline.
@@ -9324,9 +9324,9 @@ void AENG_draw_power(SLONG x, SLONG y, SLONG w, SLONG h, SLONG val, SLONG max)
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE, UC_TRUE);
 
-    POLY_frame_draw(TRUE,TRUE);
+    POLY_frame_draw(UC_TRUE,UC_TRUE);
 
     */
 }
@@ -9499,7 +9499,7 @@ void AENG_fade_out(UBYTE amount)
 #define AENG_LOGO_MID_Y (240.0F)
 #define AENG_LOGO_SIZE (128.0F)
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     pp[0].X = AENG_LOGO_MID_X - AENG_LOGO_SIZE;
     pp[0].Y = AENG_LOGO_MID_Y - AENG_LOGO_SIZE;
@@ -9537,10 +9537,10 @@ void AENG_fade_out(UBYTE amount)
     pp[3].colour = logo_colour_bot;
     pp[3].specular = 0x00000000;
 
-    POLY_add_quad(quad, POLY_PAGE_LOGO, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_LOGO, UC_FALSE, UC_TRUE);
 
-    POLY_frame_draw(TRUE, TRUE);
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     pp[0].X = 0.0F;
     pp[0].Y = 0.0F;
@@ -9578,9 +9578,9 @@ void AENG_fade_out(UBYTE amount)
     pp[3].colour = back_colour_bot;
     pp[3].specular = 0x00000000;
 
-    POLY_add_quad(quad, POLY_PAGE_ALPHA, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE, UC_TRUE);
 
-    POLY_frame_draw(TRUE, TRUE);
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
 }
 
 void AENG_fade_in(UBYTE amount)
@@ -9609,7 +9609,7 @@ void AENG_fade_in(UBYTE amount)
     quad[2] = &pp[2];
     quad[3] = &pp[3];
 
-    POLY_frame_init(TRUE, TRUE);
+    POLY_frame_init(UC_TRUE, UC_TRUE);
 
     pp[0].X = AENG_LOGO_MID_X - AENG_LOGO_SIZE;
     pp[0].Y = AENG_LOGO_MID_Y - AENG_LOGO_SIZE;
@@ -9647,9 +9647,9 @@ void AENG_fade_in(UBYTE amount)
     pp[3].colour = logo_colour_bot;
     pp[3].specular = 0xff000000;
 
-    POLY_add_quad(quad, POLY_PAGE_LOGO, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_LOGO, UC_FALSE, UC_TRUE);
 
-    POLY_frame_draw(TRUE, TRUE);
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
 
     pp[0].X = 0.0F;
     pp[0].Y = 0.0F;
@@ -9687,10 +9687,10 @@ void AENG_fade_in(UBYTE amount)
     pp[3].colour = back_colour_bot;
     pp[3].specular = 0xff000000;
 
-    POLY_add_quad(quad, POLY_PAGE_ALPHA, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE, UC_TRUE);
 
-    POLY_frame_draw(TRUE, TRUE);
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 }
 
 void AENG_clear_screen()
@@ -9725,7 +9725,7 @@ void AENG_e_draw_3d_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG
     AENG_world_line(
         x1, y1, z1, 8, 0x00ffffff,
         x2, y2, z2, 8, 0x00ffffff,
-        TRUE);
+        UC_TRUE);
 }
 
 void AENG_e_draw_3d_line_dir(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2)
@@ -9733,7 +9733,7 @@ void AENG_e_draw_3d_line_dir(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, S
     AENG_world_line(
         x1, y1, z1, 32, 0x00ffffff,
         x2, y2, z2, 0, 0x00553311,
-        TRUE);
+        UC_TRUE);
 }
 
 void AENG_e_draw_3d_line_col(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG r, SLONG g, SLONG b)
@@ -9747,7 +9747,7 @@ void AENG_e_draw_3d_line_col(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, S
     AENG_world_line(
         x1, y1, z1, 8, colour,
         x2, y2, z2, 8, colour,
-        TRUE);
+        UC_TRUE);
 }
 
 void AENG_e_draw_3d_line_col_sorted(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG r, SLONG g, SLONG b)
@@ -9761,7 +9761,7 @@ void AENG_e_draw_3d_line_col_sorted(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLON
     AENG_world_line(
         x1, y1, z1, 8, colour,
         x2, y2, z2, 8, colour,
-        FALSE);
+        UC_FALSE);
 }
 
 void AENG_e_draw_3d_mapwho(SLONG x1, SLONG z1)
@@ -9794,17 +9794,17 @@ void AENG_demo_attract(SLONG x, SLONG y, CBYTE* text)
 
     static flash = 0;
 
-    POLY_frame_init(FALSE,FALSE);
+    POLY_frame_init(UC_FALSE,UC_FALSE);
 
 
-    text_fudge = TRUE;
+    text_fudge = UC_TRUE;
 
 
     draw_centre_text_at(x,y,text,1,1);
 
     //if (flash++ & 0x10)	Do it all the time!
     {
-            text_fudge  = FALSE;
+            text_fudge  = UC_FALSE;
             text_colour = 0x00eeeeff;
 
             draw_centre_text_at(
@@ -9813,7 +9813,7 @@ void AENG_demo_attract(SLONG x, SLONG y, CBYTE* text)
                     0,0);
     }
 
-    POLY_frame_draw(FALSE,TRUE);
+    POLY_frame_draw(UC_FALSE,UC_TRUE);
 
     */
 }
@@ -9915,7 +9915,7 @@ SLONG AENG_raytraced_position(
         if (NS_there_is_a_los(
                 x1, y1, z1,
                 x2, y2, z2)) {
-            return FALSE;
+            return UC_FALSE;
         }
 
         *world_x = NS_los_fail_x;
@@ -9923,9 +9923,9 @@ SLONG AENG_raytraced_position(
         *world_z = NS_los_fail_z;
 
         if (!WITHIN(*world_x, 0, (PAP_SIZE_HI << 8) - 1) || !WITHIN(*world_z, 0, (PAP_SIZE_HI << 8) - 1)) {
-            return FALSE;
+            return UC_FALSE;
         } else {
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
@@ -9954,9 +9954,9 @@ SLONG AENG_raytraced_position(
             *world_z = wz;
 
             if (!WITHIN(*world_x, 0, (PAP_SIZE_HI << 8) - 1) || !WITHIN(*world_z, 0, (PAP_SIZE_HI << 8) - 1)) {
-                return FALSE;
+                return UC_FALSE;
             } else {
-                return TRUE;
+                return UC_TRUE;
             }
         }
 
@@ -9965,7 +9965,7 @@ SLONG AENG_raytraced_position(
         rz += dz;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 ULONG AENG_light_draw(
@@ -9982,7 +9982,7 @@ ULONG AENG_light_draw(
     SLONG h1 = PAP_calc_map_height_at(lx, lz);
     SLONG h2 = ly;
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     //
     // Draw a couple of sphere connected by a line.
@@ -10006,9 +10006,9 @@ ULONG AENG_light_draw(
     AENG_world_line(
         lx, h1, lz, 32, 0xffffff,
         lx, h2, lz, 0, colour,
-        FALSE);
+        UC_FALSE);
 
-    POLY_frame_draw(FALSE, FALSE);
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
 
     //
     // Was either over the mouse?
@@ -10130,7 +10130,7 @@ ULONG AENG_waypoint_draw(
     //	SLONG h1 = PAP_calc_map_height_at(lx, lz);
     SLONG h2 = ly;
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     //
     // Draw a single sphere.
@@ -10152,7 +10152,7 @@ ULONG AENG_waypoint_draw(
             30 + (highlight >> 4),
             colour);
 
-    POLY_frame_draw(FALSE, FALSE);
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
 
     //
     // Was it over the mouse?
@@ -10204,7 +10204,7 @@ ULONG AENG_rad_trigger_draw(
     SLONG h1 = PAP_calc_map_height_at(lx, lz);
     SLONG h2 = ly;
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     //
     // Draw a single sphere.
@@ -10226,7 +10226,7 @@ ULONG AENG_rad_trigger_draw(
         colour,
         0x88000000);
 
-    POLY_frame_draw(FALSE, FALSE);
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
 
     //
     // Was it over the mouse?
@@ -10297,14 +10297,14 @@ void AENG_groundsquare_draw(
     pp[0].colour = pp[1].colour = pp[2].colour = pp[3].colour = colour;
 
     if (polyinit & 1)
-        POLY_frame_init(FALSE, FALSE);
+        POLY_frame_init(UC_FALSE, UC_FALSE);
 
     if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid() && pp[3].MaybeValid()) {
-        POLY_add_quad(quad, POLY_PAGE_ALPHA, FALSE);
+        POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE);
     }
 
     if (polyinit & 2)
-        POLY_frame_draw(FALSE, FALSE);
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
 }
 
 //---------------------------------------------------------------
@@ -10400,7 +10400,7 @@ void AENG_draw(SLONG draw_3d)
             }
     */
 
-    AENG_drawing_a_warehouse = FALSE;
+    AENG_drawing_a_warehouse = UC_FALSE;
 
     //
     // Update stuff.
@@ -10425,7 +10425,7 @@ void AENG_draw(SLONG draw_3d)
     NIGHT_dlight_squares_up();
 
     POLY_colour_restrict = 0;
-    POLY_force_additive_alpha = FALSE;
+    POLY_force_additive_alpha = UC_FALSE;
 
     //
     // Mark all NIGHT cache squares for deletion.
@@ -10458,16 +10458,16 @@ void AENG_draw(SLONG draw_3d)
             AENG_cur_fc_cam = i;
 
             if (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Ware) {
-                AENG_ensure_appropriate_caching(TRUE);
+                AENG_ensure_appropriate_caching(UC_TRUE);
                 AENG_draw_warehouse();
             } else {
-                AENG_ensure_appropriate_caching(FALSE);
+                AENG_ensure_appropriate_caching(UC_FALSE);
                 AENG_draw_city();
             }
         }
 
         AENG_get_rid_of_deleteme_squares();
-        AENG_get_rid_of_unused_dfcache_lighting(TRUE);
+        AENG_get_rid_of_unused_dfcache_lighting(UC_TRUE);
     } else {
         fc = &FC_cam[0];
 
@@ -10547,25 +10547,25 @@ void AENG_draw(SLONG draw_3d)
         AENG_cur_fc_cam = 0;
 
         if (warehouse) {
-            AENG_drawing_a_warehouse = TRUE;
+            AENG_drawing_a_warehouse = UC_TRUE;
 
-            AENG_ensure_appropriate_caching(TRUE);
+            AENG_ensure_appropriate_caching(UC_TRUE);
             AENG_draw_warehouse();
         } else {
-            AENG_ensure_appropriate_caching(FALSE);
+            AENG_ensure_appropriate_caching(UC_FALSE);
             //			if(ShiftFlag)
             AENG_draw_city();
 
             if (AENG_transparent_warehouses) {
                 SUPERMAP_counter_increase(0);
 
-                AENG_ensure_appropriate_caching(TRUE);
+                AENG_ensure_appropriate_caching(UC_TRUE);
                 AENG_draw_warehouse();
             }
         }
 
         AENG_get_rid_of_deleteme_squares();
-        AENG_get_rid_of_unused_dfcache_lighting(FALSE);
+        AENG_get_rid_of_unused_dfcache_lighting(UC_FALSE);
 
         //
         // Restore the old camera.
@@ -10631,7 +10631,7 @@ void AENG_draw(SLONG draw_3d)
                             cam_roll);
 
                     POLY_colour_restrict      = 0x0000ffff;		// No green or blue
-                    POLY_force_additive_alpha = FALSE;
+                    POLY_force_additive_alpha = UC_FALSE;
 
                     AENG_draw_city();
 
@@ -10659,7 +10659,7 @@ void AENG_draw(SLONG draw_3d)
                             cam_roll);
 
                     POLY_colour_restrict      = 0x00ff0000;		// No red
-                    POLY_force_additive_alpha = TRUE;
+                    POLY_force_additive_alpha = UC_TRUE;
 
                     GAME_TURN += 1;		// So the buildings are drawn again...
 
@@ -10697,7 +10697,7 @@ void AENG_draw(SLONG draw_3d)
     NIGHT_dlight_squares_down();
 
     POLY_colour_restrict = 0;
-    POLY_force_additive_alpha = FALSE;
+    POLY_force_additive_alpha = UC_FALSE;
 
     // SPONG
     // #if !USE_TOMS_ENGINE_PLEASE_BOB
@@ -10705,7 +10705,7 @@ void AENG_draw(SLONG draw_3d)
     //  Do it here so that AENG_world_line works during the game.
     //
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
     // #endif
 }
 
@@ -10907,7 +10907,7 @@ void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
                 &quad[3]->u,
                 &quad[3]->v);
 
-            POLY_add_quad(quad, page, FALSE);
+            POLY_add_quad(quad, page, UC_FALSE);
         }
 
         //
@@ -10920,7 +10920,7 @@ void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
         quad[3] = &upper[i + 1][1];
 
         if (POLY_valid_quad(quad)) {
-            POLY_add_quad(quad, col_page, FALSE);
+            POLY_add_quad(quad, col_page, UC_FALSE);
         }
 
         //
@@ -10933,7 +10933,7 @@ void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
         quad[3] = &upper[i + 1][1];
 
         if (POLY_valid_quad(quad)) {
-            POLY_add_quad(quad, col_page, FALSE);
+            POLY_add_quad(quad, col_page, UC_FALSE);
         }
 
         x += dx;
@@ -10957,7 +10957,7 @@ void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
             quad[1]->specular = 0xff000000;
         }
 
-        POLY_add_quad(quad, col_page, TRUE);
+        POLY_add_quad(quad, col_page, UC_TRUE);
     }
 
     quad[0] = &upper[upto - 1][0];
@@ -10973,7 +10973,7 @@ void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
             quad[2]->specular = 0xff000000;
         }
 
-        POLY_add_quad(quad, col_page, TRUE);
+        POLY_add_quad(quad, col_page, UC_TRUE);
     }
 
     if (inside_out) {
@@ -10986,7 +10986,7 @@ void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
 // Get rid of any unused dfcache lighting.
 //
 
-void AENG_get_rid_of_unused_dfcache_lighting(SLONG splitscreen) // Splitscreen = TRUE or FALSE
+void AENG_get_rid_of_unused_dfcache_lighting(SLONG splitscreen) // Splitscreen = UC_TRUE or UC_FALSE
 {
     SLONG dfcache;
     SLONG next;
@@ -11260,7 +11260,7 @@ void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade)
                             pp[2].colour = col;
                             pp[3].colour = col;
                             page = inside_tex[floor_type][room_id - 1] + START_PAGE_FOR_FLOOR * 64; // temp
-                            POLY_add_quad(quad, page, FALSE);
+                            POLY_add_quad(quad, page, UC_FALSE);
                         }
                     }
                 }

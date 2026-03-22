@@ -48,12 +48,12 @@ DWORD DDLibThread(LPVOID param)
     ShowWindow(hDDLibWindow, iGlobalWinMode);
     UpdateWindow(hDDLibWindow);
 
-    ShellActive = TRUE;
+    ShellActive = UC_TRUE;
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-    ShellActive = FALSE;
+    ShellActive = UC_FALSE;
 
     return 0;
 }
@@ -67,12 +67,12 @@ BOOL SetupHost(ULONG flags)
 {
     DWORD id;
 
-    ShellActive = FALSE;
+    ShellActive = UC_FALSE;
 
     if (!SetupMemory())
-        return FALSE;
+        return UC_FALSE;
     if (!SetupKeyboard())
-        return FALSE;
+        return UC_FALSE;
 
     // Create the shell window.
     // Create & register the window class.
@@ -114,7 +114,7 @@ BOOL SetupHost(ULONG flags)
         //		ShowWindow(hDDLibWindow,iGlobalWinMode);
         //		UpdateWindow(hDDLibWindow);
 
-        ShellActive = TRUE;
+        ShellActive = UC_TRUE;
     }
 
     the_game.DarciStrength = 0;
@@ -262,7 +262,7 @@ BOOL LibShellActive(void)
                     DispatchMessage(&msg);
                 }
             } else {
-                ShellActive = FALSE;
+                ShellActive = UC_FALSE;
             }
         }
 
@@ -282,7 +282,7 @@ BOOL LibShellActive(void)
             FRONTEND_restore_screenfull_surfaces();
         }
 
-        restore_surfaces = FALSE;
+        restore_surfaces = UC_FALSE;
     }
 
     return ShellActive;
@@ -294,9 +294,9 @@ BOOL LibShellChanged(void)
 {
     if (the_display.IsDisplayChanged()) {
         the_display.DisplayChangedOff();
-        return TRUE;
+        return UC_TRUE;
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 //---------------------------------------------------------------
@@ -317,7 +317,7 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
     strcat(buff2, "\n\nAbort=Kill Application, Retry=Debug, Ignore=Continue");
     flag = MB_ABORTRETRYIGNORE | MB_ICONSTOP | MB_DEFBUTTON3;
 
-    result = FALSE;
+    result = UC_FALSE;
     the_display.toGDI();
     switch (MessageBox(hDDLibWindow, buff2, "Mucky Foot Message", flag)) {
     case IDABORT:
@@ -380,7 +380,7 @@ int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, in
     // if event existed before (still succeeds) and ERROR_ALREADY_EXISTS is returned, so die
     // note the event is automatically deleted by the system when the app exits (even if it crashes)
 
-    HANDLE hEvent = CreateEventA(NULL, FALSE, FALSE, "UrbanChaosExclusionZone");
+    HANDLE hEvent = CreateEventA(NULL, UC_FALSE, UC_FALSE, "UrbanChaosExclusionZone");
     if (GetLastError() != ERROR_ALREADY_EXISTS) {
         return MF_main(argc, argv);
     }

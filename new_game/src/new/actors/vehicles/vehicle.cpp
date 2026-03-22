@@ -236,7 +236,7 @@ SLONG VEH_find_runover_things(Thing* p_vehicle, UWORD thing_index[], SLONG max_n
             cz,
             0,
             0xff0000,
-            TRUE);
+            UC_TRUE);
     }
 
     num = THING_find_sphere(
@@ -338,7 +338,7 @@ void VEH_find_door(Thing* p_vehicle, SLONG i_am_a_passenger, SLONG* door_x, SLON
     *door_z = iz;
 }
 
-// Returns TRUE if all 4 edges of the vehicle (7 sample points each) lie on road tiles.
+// Returns UC_TRUE if all 4 edges of the vehicle (7 sample points each) lie on road tiles.
 // step parameter selects current (0) or predicted (TICK_RATIO) position.
 // uc_orig: VEH_on_road (fallen/Source/Vehicle.cpp)
 SLONG VEH_on_road(Thing* p_vehicle, SLONG step)
@@ -364,7 +364,7 @@ SLONG VEH_on_road(Thing* p_vehicle, SLONG step)
 
         for (int j = 0; j < 7; j++) {
             if (!ROAD_is_road(cx >> 8, cz >> 8)) {
-                return FALSE;
+                return UC_FALSE;
             }
 
             cx += dx;
@@ -372,7 +372,7 @@ SLONG VEH_on_road(Thing* p_vehicle, SLONG step)
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Applies hp damage to one of 6 crumple zones (area 0-5).
@@ -1299,7 +1299,7 @@ void VEH_shake_fences(SLONG mx, SLONG mz)
     f_list = PAP_2LO(mx >> 2, mz >> 2).ColVectHead;
 
     if (f_list) {
-        exit = FALSE;
+        exit = UC_FALSE;
 
         while (1) {
             ASSERT(WITHIN(f_list, 1, next_facet_link - 1));
@@ -1308,7 +1308,7 @@ void VEH_shake_fences(SLONG mx, SLONG mz)
 
             if (facet < 0) {
                 facet = -facet;
-                exit = TRUE;
+                exit = UC_TRUE;
             }
 
             ASSERT(WITHIN(facet, 1, next_dfacet - 1));
@@ -2138,7 +2138,7 @@ void VEH_driving(Thing* p_thing)
     SLONG ignore_prims;
 
     if (GAME_FLAGS & GF_CARS_WITH_ROAD_PRIMS) {
-        ignore_prims = FALSE;
+        ignore_prims = UC_FALSE;
     } else {
         ignore_prims = VEH_collide_line_ignore_walls;
     }
@@ -2189,7 +2189,7 @@ void VEH_driving(Thing* p_thing)
         UWORD people[MAX_RUNOVER];
         SLONG num;
 
-        SLONG box_valid = FALSE;
+        SLONG box_valid = UC_FALSE;
         SLONG miny;
         SLONG maxy;
         SLONG prim;
@@ -2245,7 +2245,7 @@ void VEH_driving(Thing* p_thing)
                     matrix[2] = -sin_yaw;
                     matrix[3] = cos_yaw;
 
-                    box_valid = TRUE;
+                    box_valid = UC_TRUE;
                 }
 
                 // Rotate person into vehicle local space.

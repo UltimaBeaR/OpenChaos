@@ -83,7 +83,7 @@ void FreeAllD3DPages(void)
 // Clears the per-session embed state and resets polygon render states before a new load batch.
 void D3DTexture::BeginLoading()
 {
-    SLONG first_time = TRUE;
+    SLONG first_time = UC_TRUE;
 
     EmbedSource = NULL;
     EmbedSurface = NULL;
@@ -106,7 +106,7 @@ void D3DPage::EnsureLoaded(void)
     this->pTex = MFnew<D3DTexture>();
     ASSERT(this->pTex != NULL);
 
-    HRESULT hres = this->pTex->LoadTextureTGA(this->pcFilename, -1, TRUE);
+    HRESULT hres = this->pTex->LoadTextureTGA(this->pcFilename, -1, UC_TRUE);
     if (FAILED(hres)) {
         this->pTex = NULL;
     }
@@ -157,7 +157,7 @@ void D3DTexture::GetTexOffsetAndScale(float* pfUScale, float* pfUOffset, float* 
         *pfVOffset = 0.25f * (float)(bPagePos >> 2);
         break;
     default:
-        ASSERT(FALSE);
+        ASSERT(UC_FALSE);
         break;
     }
 }
@@ -356,7 +356,7 @@ HRESULT D3DTexture::Reload_TGA(void)
         // Invalid tga.
         //
 
-        // ASSERT ( FALSE );
+        // ASSERT ( UC_FALSE );
         MemFree(tga);
         return DDERR_GENERIC;
     }
@@ -898,7 +898,7 @@ HRESULT D3DTexture::Destroy(void)
 
 // uc_orig: scan_for_baseline (fallen/DDLibrary/Source/D3DTexture.cpp)
 // Advances line_ptr and y_ptr through the TGA data until a row whose first pixel matches
-// underline is found. Returns TRUE and positions line_ptr/y_ptr on the row after the baseline.
+// underline is found. Returns UC_TRUE and positions line_ptr/y_ptr on the row after the baseline.
 static BOOL scan_for_baseline(TGA_Pixel** line_ptr, TGA_Pixel* underline, TGA_Info* info, SLONG* y_ptr)
 {
     while (*y_ptr < info->height) {
@@ -906,13 +906,13 @@ static BOOL scan_for_baseline(TGA_Pixel** line_ptr, TGA_Pixel* underline, TGA_In
             //	Got the baseline so drop to the next line.
             *y_ptr += 1;
             *line_ptr += info->width;
-            return TRUE;
+            return UC_TRUE;
         }
 
         *y_ptr += 1;
         *line_ptr += info->width;
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: D3DTexture::CreateFonts (fallen/DDLibrary/Source/D3DTexture.cpp)

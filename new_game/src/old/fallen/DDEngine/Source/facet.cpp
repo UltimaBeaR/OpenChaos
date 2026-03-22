@@ -974,7 +974,7 @@ void DRAW_door(float sx, float sy, float sz, float fx, float fy, float fz, float
             ;
         }
         if (POLY_valid_quad(quad)) {
-            POLY_add_quad(quad, page, FALSE); // TRUE means perform a backface cull
+            POLY_add_quad(quad, page, UC_FALSE); // UC_TRUE means perform a backface cull
         }
     }
 }
@@ -1055,7 +1055,7 @@ void draw_wall_thickness(struct DFacet* p_facet, ULONG fade_alpha)
     // draw the quad
 
     if (POLY_valid_quad(quad)) {
-        POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE); // TRUE means perform a backface cull
+        POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE); // UC_TRUE means perform a backface cull
     }
 }
 
@@ -1333,7 +1333,7 @@ static void FillFacetPoints(SLONG count, ULONG base_row, SLONG foundation, SLONG
                 }
             }
 
-            POLY_add_quad(quad, page, TRUE); // TRUE means perform a backface cull
+            POLY_add_quad(quad, page, UC_TRUE); // UC_TRUE means perform a backface cull
 
         added_crinkle:;
         } else {
@@ -1526,8 +1526,8 @@ inline void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation,
             }
 
             // I don't think we need to backface cull - should already have been done for the whole facet.
-            // POLY_add_quad(quad, page, TRUE); // TRUE means perform a backface cull
-            POLY_add_quad(quad, page, FALSE);
+            // POLY_add_quad(quad, page, UC_TRUE); // UC_TRUE means perform a backface cull
+            POLY_add_quad(quad, page, UC_FALSE);
 
         added_crinkle_common:;
         } else {
@@ -1954,7 +1954,7 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
     if (GAME_FLAGS & GF_INDOORS) {
         max_height = INDOORS_HEIGHT_CEILING;
     } else {
-        max_height = INFINITY;
+        max_height = UC_INFINITY;
     }
 
     //
@@ -2202,7 +2202,7 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
                             quad[2]->v = diff_y[c0 + 1] / 256.0f;
                         }
 
-                        POLY_add_quad(quad, page, FALSE); // TRUE means perform a backface cull
+                        POLY_add_quad(quad, page, UC_FALSE); // UC_TRUE means perform a backface cull
                     } else {
                         //
                         // Even though we don't draw the quad, we must
@@ -2945,7 +2945,7 @@ void FACET_draw(SLONG facet, UBYTE alpha)
 
     ASSERT((GAME_FLAGS & GF_INDOORS) == 0);
 
-    max_height = INFINITY;
+    max_height = UC_INFINITY;
 
     //
     // If there is no cached lighting for this facet, then we
@@ -3288,7 +3288,7 @@ void FACET_draw_walkable(SLONG build)
                             quad[3]->colour = 0x00000000;
                             quad[3]->specular = 0xff000000;
 
-                            POLY_add_quad(quad, POLY_PAGE_COLOUR, FALSE);
+                            POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE);
 
                             continue;
                         } else {
@@ -3705,13 +3705,13 @@ void FACET_draw_walkable_old(SLONG build)
                                 tri[1] = quad[1];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 tri[0] = quad[1];
                                 tri[1] = quad[3];
                                 tri[2] = quad[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 break;
 
@@ -3721,13 +3721,13 @@ void FACET_draw_walkable_old(SLONG build)
                                 tri[1] = quad[1];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 tri[0] = quad[1];
                                 tri[1] = quad[3];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 break;
 
@@ -3739,13 +3739,13 @@ void FACET_draw_walkable_old(SLONG build)
                                 tri[1] = quad[1];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 tri[0] = quad[1];
                                 tri[1] = quad[3];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 break;
 
@@ -3755,13 +3755,13 @@ void FACET_draw_walkable_old(SLONG build)
                                 tri[1] = quad[1];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 tri[0] = quad[1];
                                 tri[1] = &ps[3];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 break;
 
@@ -3771,13 +3771,13 @@ void FACET_draw_walkable_old(SLONG build)
                                 tri[1] = quad[1];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 tri[0] = quad[1];
                                 tri[1] = &ps[3];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 break;
 
@@ -3787,13 +3787,13 @@ void FACET_draw_walkable_old(SLONG build)
                                 tri[1] = quad[1];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 tri[0] = quad[1];
                                 tri[1] = quad[3];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 break;
 
@@ -3803,13 +3803,13 @@ void FACET_draw_walkable_old(SLONG build)
                                 tri[1] = quad[1];
                                 tri[2] = quad[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 tri[0] = quad[1];
                                 tri[1] = &ps[3];
                                 tri[2] = &ps[2];
 
-                                POLY_add_triangle(tri, page, TRUE);
+                                POLY_add_triangle(tri, page, UC_TRUE);
 
                                 break;
 
@@ -3818,7 +3818,7 @@ void FACET_draw_walkable_old(SLONG build)
                                 break;
                             }
                         } else {
-                            POLY_add_quad(quad, page, TRUE);
+                            POLY_add_quad(quad, page, UC_TRUE);
                         }
                     } else {
                         POLY_add_quad(quad, POLY_PAGE_COLOUR, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
@@ -3909,7 +3909,7 @@ void DRAW_ladder_rungs(float x1, float z1, float x2, float z2, struct DFacet* p_
 
             page = POLY_PAGE_LADDER;
 
-            POLY_add_quad(quad, page, FALSE); // TRUE means perform a backface cull
+            POLY_add_quad(quad, page, UC_FALSE); // UC_TRUE means perform a backface cull
         }
     }
 }
@@ -4241,7 +4241,7 @@ void DRAW_ladder(struct DFacet* p_facet)
             pp[3].u = 1.0F;
             pp[3].v = top_v;
 
-            POLY_add_quad(quad, POLY_PAGE_LADSHAD, TRUE);
+            POLY_add_quad(quad, POLY_PAGE_LADSHAD, UC_TRUE);
         }
     }
 }
@@ -4286,7 +4286,7 @@ void FACET_project_crinkled_shadow(SLONG facet)
 
     float block_height = float(p_facet->BlockHeight << 4);
     SLONG height = p_facet->Height;
-    SLONG max_height = INFINITY;
+    SLONG max_height = UC_INFINITY;
 
     NIGHT_Colour* col = NULL; // No cached lighting needed!
 

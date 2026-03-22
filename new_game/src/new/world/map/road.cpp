@@ -140,7 +140,7 @@ found_1_from_2:;
 
 // uc_orig: ROAD_intersect (fallen/Source/road.cpp)
 // Finds a road segment that crosses the segment from (x1,z1) to (x2,z2).
-// Returns TRUE and fills *in1, *in2, *ix, *iz if an intersection was found.
+// Returns UC_TRUE and fills *in1, *in2, *ix, *iz if an intersection was found.
 // Roads must be axis-aligned (either x1==x2 or z1==z2).
 static SLONG ROAD_intersect(
     SLONG x1, SLONG z1,
@@ -207,7 +207,7 @@ static SLONG ROAD_intersect(
                                 *ix = x1;
                                 *iz = rn->z;
 
-                                return TRUE;
+                                return UC_TRUE;
                             }
                         }
                     }
@@ -238,7 +238,7 @@ static SLONG ROAD_intersect(
                                 *ix = rn->x;
                                 *iz = z1;
 
-                                return TRUE;
+                                return UC_TRUE;
                             }
                         }
                     }
@@ -247,7 +247,7 @@ static SLONG ROAD_intersect(
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: ROAD_split (fallen/Source/road.cpp)
@@ -313,7 +313,7 @@ static void ROAD_add(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
 }
 
 // uc_orig: ROAD_is_middle (fallen/Source/road.cpp)
-// Returns TRUE if the given square is surrounded by road squares in a 5x5 area
+// Returns UC_TRUE if the given square is surrounded by road squares in a 5x5 area
 // (i.e. it lies along the centre-line of a road, not at the edge).
 static SLONG ROAD_is_middle(SLONG map_x, SLONG map_z)
 {
@@ -324,15 +324,15 @@ static SLONG ROAD_is_middle(SLONG map_x, SLONG map_z)
     SLONG mz;
 
     if (!WITHIN(map_x, 2, PAP_SIZE_HI - 3) || !WITHIN(map_z, 2, PAP_SIZE_HI - 3)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (!ROAD_is_road(map_x, map_z)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (!ROAD_is_road(map_x + 2, map_z + 2)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     for (dx = -2; dx <= +2; dx++)
@@ -341,11 +341,11 @@ static SLONG ROAD_is_middle(SLONG map_x, SLONG map_z)
             mz = map_z + dz;
 
             if (!ROAD_is_road(mx, mz)) {
-                return FALSE;
+                return UC_FALSE;
             }
         }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // ============================================================
@@ -523,22 +523,22 @@ SLONG ROAD_is_road(SLONG map_x, SLONG map_z)
     SLONG num;
 
     if (!WITHIN(map_x, 0, PAP_SIZE_HI - 1) || !WITHIN(map_z, 0, PAP_SIZE_HI - 1)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     ph = &PAP_2HI(map_x, map_z);
 
     if (ph->Flags & PAP_FLAG_HIDDEN) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     num = ph->Texture & 0x3ff;
 
     if (WITHIN(num, 323, 356) || ((TEXTURE_set == 7 || TEXTURE_set == 8) && (num == 35 || num == 36 || num == 39))) {
-        return TRUE;
+        return UC_TRUE;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: ROAD_is_zebra (fallen/Source/road.cpp)
@@ -548,7 +548,7 @@ SLONG ROAD_is_zebra(SLONG map_x, SLONG map_z)
     SLONG num;
 
     if (!WITHIN(map_x, 0, PAP_SIZE_HI - 1) || !WITHIN(map_z, 0, PAP_SIZE_HI - 1)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     ph = &PAP_2HI(map_x, map_z);
@@ -556,9 +556,9 @@ SLONG ROAD_is_zebra(SLONG map_x, SLONG map_z)
     num = ph->Texture & 0x3ff;
 
     if (num == 333 || num == 334) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
@@ -573,11 +573,11 @@ SLONG ROAD_is_end_of_the_line(SLONG n)
 
     if (rn->c[0] && rn->c[1] == NULL) {
         if (rn->x == 0 || rn->z == 0 || rn->x == PAP_SIZE_HI - 1 || rn->z == PAP_SIZE_HI - 1) {
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: ROAD_wander_calc (fallen/Source/road.cpp)
@@ -606,16 +606,16 @@ void ROAD_wander_calc()
 
     // Find all roads parallel to the z-axis.
     for (x = 2; x < PAP_SIZE_HI - 2; x++) {
-        p1valid = FALSE;
-        p2valid = FALSE;
+        p1valid = UC_FALSE;
+        p2valid = UC_FALSE;
 
         for (z = 1; z < PAP_SIZE_HI - 1; z++) {
             if (ROAD_is_middle(x, z)) {
                 if (!p1valid) {
-                    p1valid = TRUE;
+                    p1valid = UC_TRUE;
                     p1 = z;
                 } else {
-                    p2valid = TRUE;
+                    p2valid = UC_TRUE;
                     p2 = z;
                 }
             } else {
@@ -625,24 +625,24 @@ void ROAD_wander_calc()
                     }
                 }
 
-                p1valid = FALSE;
-                p2valid = FALSE;
+                p1valid = UC_FALSE;
+                p2valid = UC_FALSE;
             }
         }
     }
 
     // Find all roads parallel to the x-axis.
     for (z = 2; z < PAP_SIZE_HI - 2; z++) {
-        p1valid = FALSE;
-        p2valid = FALSE;
+        p1valid = UC_FALSE;
+        p2valid = UC_FALSE;
 
         for (x = 1; x < PAP_SIZE_HI - 1; x++) {
             if (ROAD_is_middle(x, z)) {
                 if (!p1valid) {
-                    p1valid = TRUE;
+                    p1valid = UC_TRUE;
                     p1 = x;
                 } else {
-                    p2valid = TRUE;
+                    p2valid = UC_TRUE;
                     p2 = x;
                 }
             } else {
@@ -652,8 +652,8 @@ void ROAD_wander_calc()
                     }
                 }
 
-                p1valid = FALSE;
-                p2valid = FALSE;
+                p1valid = UC_FALSE;
+                p2valid = UC_FALSE;
             }
         }
     }
@@ -663,24 +663,24 @@ void ROAD_wander_calc()
         rn = &ROAD_node[i];
 
         if (rn->c[0] && rn->c[1] == NULL) {
-            onedge = FALSE;
+            onedge = UC_FALSE;
 
             if (rn->x == 2) {
                 rn->x = 0;
-                onedge = TRUE;
+                onedge = UC_TRUE;
             }
             if (rn->z == 2) {
                 rn->z = 0;
-                onedge = TRUE;
+                onedge = UC_TRUE;
             }
 
             if (rn->x == PAP_SIZE_HI - 3) {
                 rn->x = PAP_SIZE_HI - 1;
-                onedge = TRUE;
+                onedge = UC_TRUE;
             }
             if (rn->z == PAP_SIZE_HI - 3) {
                 rn->z = PAP_SIZE_HI - 1;
-                onedge = TRUE;
+                onedge = UC_TRUE;
             }
 
             if (onedge) {
@@ -818,7 +818,7 @@ void ROAD_debug()
             nx, ny + 0x60, nz,
             0,
             0x000000,
-            FALSE);
+            UC_FALSE);
 
         for (j = 0; j < 4; j++) {
             if (rn->c[j]) {
@@ -833,7 +833,7 @@ void ROAD_debug()
                     mx, my + 0x10, mz,
                     0,
                     0x008800,
-                    FALSE);
+                    UC_FALSE);
             }
         }
     }
@@ -905,7 +905,7 @@ void ROAD_find(
 
     SLONG dist;
 
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
     SLONG best_n1 = NULL;
     SLONG best_n2 = NULL;
 
@@ -1035,7 +1035,7 @@ void ROAD_calc_mapsquare_type()
             }
 
             if (!done[page]) {
-                done[page] = TRUE;
+                done[page] = UC_TRUE;
 
                 if (ROAD_is_road(mx, mz)) {
                     look = TEXTURE_LOOK_ROAD;

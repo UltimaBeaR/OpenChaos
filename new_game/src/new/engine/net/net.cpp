@@ -26,13 +26,13 @@ CBYTE* NET_get_connection_name(SLONG connection)
 // uc_orig: NET_connection_make (fallen/DDLibrary/Source/net.cpp)
 SLONG NET_connection_make(SLONG connection)
 {
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: NET_create_session (fallen/DDLibrary/Source/net.cpp)
 SLONG NET_create_session(CBYTE* session_name, SLONG max_players, CBYTE* my_player_name)
 {
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: NET_get_session_number (fallen/DDLibrary/Source/net.cpp)
@@ -51,7 +51,7 @@ NET_Sinfo NET_get_session_info(SLONG session)
 // uc_orig: NET_join_session (fallen/DDLibrary/Source/net.cpp)
 SLONG NET_join_session(SLONG session, CBYTE* my_player_name)
 {
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: NET_start_game (fallen/DDLibrary/Source/net.cpp)

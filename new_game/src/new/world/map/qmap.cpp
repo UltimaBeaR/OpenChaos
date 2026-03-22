@@ -50,21 +50,21 @@ static void QMAP_compress_all(void)
 }
 
 // Ensures there is enough room at the end of the all array for 'elements' more entries.
-// Returns TRUE on success, FALSE if there is no room even after compression.
+// Returns UC_TRUE on success, UC_FALSE if there is no room even after compression.
 // uc_orig: QMAP_make_room_at_the_end_of_the_all_array (fallen/Source/qmap.cpp)
 static SLONG QMAP_make_room_at_the_end_of_the_all_array(SLONG elements)
 {
     if (QMAP_all_upto + elements <= QMAP_MAX_ALL) {
-        return TRUE;
+        return UC_TRUE;
     }
 
     QMAP_compress_all();
 
     if (QMAP_all_upto + elements <= QMAP_MAX_ALL) {
-        return TRUE;
+        return UC_TRUE;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: QMAP_compress_prim_array (fallen/Source/qmap.cpp)

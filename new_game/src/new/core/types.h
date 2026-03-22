@@ -25,14 +25,10 @@ typedef unsigned long ULONG;
 typedef signed long SLONG;
 
 // uc_orig: TRUE (MFStdLib/Headers/MFStdLib.h)
-#ifndef TRUE
-#define TRUE 1
-#endif
+#define UC_TRUE 1
 
 // uc_orig: FALSE (MFStdLib/Headers/MFStdLib.h)
-#ifndef FALSE
-#define FALSE 0
-#endif
+#define UC_FALSE 0
 
 // 2D point with integer coordinates.
 // uc_orig: MFPoint (MFStdLib/Headers/MFStdLib.h)

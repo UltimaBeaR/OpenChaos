@@ -20,7 +20,7 @@ typedef struct
     UBYTE x;
     UBYTE y;
     UBYTE num;
-    UBYTE last; // TRUE => there are no more update structures.
+    UBYTE last; // UC_TRUE => there are no more update structures.
     IC_Packet ip[];
 
 } COMP_Update;
@@ -71,7 +71,7 @@ SLONG COMP_load(CBYTE* filename, COMP_Frame* cf)
         COMP_tga_data, -1);
 
     if (!COMP_tga_info.valid) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     // Downsample the TGA to fit into a COMP_SIZE x COMP_SIZE frame
@@ -105,7 +105,7 @@ SLONG COMP_load(CBYTE* filename, COMP_Frame* cf)
             cf->p[py][px].blue = b;
         }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Returns the sum of absolute per-channel differences between two same-sized
@@ -246,7 +246,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
             sx2 = sx * COMP_SSIZE;
             sy2 = sy * COMP_SSIZE;
 
-            best_error = INFINITY;
+            best_error = UC_INFINITY;
             best_dx = 0;
             best_dy = 0;
 
@@ -333,7 +333,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
 
     cu = (COMP_Update*)(cp + 1);
     ip = (IC_Packet*)(cp + 1);
-    cu_valid = FALSE;
+    cu_valid = UC_FALSE;
     cu_num = 0;
 
     for (sx = 0; sx < COMP_SIZE; sx += 4)
@@ -341,7 +341,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
             pan_index = (sx / COMP_SSIZE) * COMP_SNUM + (sy / COMP_SSIZE);
 
             if (pan[pan_index] == 255) {
-                error = INFINITY;
+                error = UC_INFINITY;
             } else {
                 error = COMP_square_error(
                     f1, sx, sy,
@@ -363,7 +363,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
                     cu->num += 1;
 
                     if (cu->num == 255) {
-                        cu_valid = FALSE;
+                        cu_valid = UC_FALSE;
                     }
                 } else {
                     cu = (COMP_Update*)ip;
@@ -371,7 +371,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
                     cu->x = sx;
                     cu->y = sy;
                     cu->num = 1;
-                    cu->last = FALSE;
+                    cu->last = UC_FALSE;
                     ip = cu->ip;
 
                     *ip = IC_pack(
@@ -381,7 +381,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
                         sx,
                         sy);
 
-                    cu_valid = TRUE;
+                    cu_valid = UC_TRUE;
                 }
 
                 IC_unpack(
@@ -394,7 +394,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
 
                 ip += 1;
             } else {
-                cu_valid = FALSE;
+                cu_valid = UC_FALSE;
             }
         }
 
@@ -406,7 +406,7 @@ COMP_Delta* COMP_calc(COMP_Frame* f1, COMP_Frame* f2, COMP_Frame* ans)
         cu->last = 1;
         ip = cu->ip;
     } else {
-        cu->last = TRUE;
+        cu->last = UC_TRUE;
     }
 
     UBYTE* data_start = COMP_data.data;

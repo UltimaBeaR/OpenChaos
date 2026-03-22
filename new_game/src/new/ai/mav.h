@@ -18,7 +18,7 @@ void MAV_init(void);
 
 // Builds the per-cell height map used by MAV_precalculate.
 // Heights in units of 0x40 game-units (1 unit = 64 Y-coords).
-// Pass ignore_warehouses=TRUE to skip warehouse interior height adjustments.
+// Pass ignore_warehouses=UC_TRUE to skip warehouse interior height adjustments.
 // uc_orig: MAV_calc_height_array (fallen/Source/mav.cpp)
 void MAV_calc_height_array(SLONG ignore_warehouses);
 
@@ -59,7 +59,7 @@ void MAV_precalculate(void);
 // uc_orig: MAV_draw (fallen/Source/mav.cpp)
 void MAV_draw(SLONG sx1, SLONG sz1, SLONG sx2, SLONG sz2);
 
-// Returns TRUE if you can walk in a straight line (GOTO-only) from (ax,az) to (bx,bz).
+// Returns UC_TRUE if you can walk in a straight line (GOTO-only) from (ax,az) to (bx,bz).
 // On failure, MAV_last_mx/mz is the last reachable cell and MAV_dmx/dmz the blocked direction.
 // uc_orig: MAV_can_i_walk (fallen/Source/mav.cpp)
 SLONG MAV_can_i_walk(UBYTE ax, UBYTE az, UBYTE bx, UBYTE bz);
@@ -86,12 +86,12 @@ void MAV_create_nodelist_from_pos(UBYTE end_x, UBYTE end_z);
 // uc_orig: MAV_do (fallen/Source/mav.cpp)
 MAV_Action MAV_do(SLONG me_x, SLONG me_z, SLONG dest_x, SLONG dest_z, UBYTE caps);
 
-// Returns TRUE if world-space point (x,y,z) is below the MAVHEIGHT terrain surface.
+// Returns UC_TRUE if world-space point (x,y,z) is below the MAVHEIGHT terrain surface.
 // uc_orig: MAV_inside (fallen/Source/mav.cpp)
 SLONG MAV_inside(SLONG x, SLONG y, SLONG z);
 
 // Fast terrain LOS using the MAVHEIGHT grid (~1 cell step resolution).
-// Returns FALSE if any step is underground. Failure point saved in MAV_height_los_fail_*.
+// Returns UC_FALSE if any step is underground. Failure point saved in MAV_height_los_fail_*.
 // uc_orig: MAV_height_los_fast (fallen/Source/mav.cpp)
 SLONG MAV_height_los_fast(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 

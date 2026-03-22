@@ -119,7 +119,7 @@ PolyPoint2D* PolyPage::PointAlloc(ULONG num_points)
         m_VBLogSize = m_VertexBuffer->GetLogSize();
 
         if (m_VBUsed + num_points > GetVBSize()) {
-            ASSERT(FALSE);
+            ASSERT(UC_FALSE);
             return NULL;
         }
     }
@@ -576,14 +576,14 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
     D3DLVERTEX* pLVert = (D3DLVERTEX*)d3dmm->lpvVertices;
 
     WORD* pwCurIndex = pwIndices;
-    while (TRUE) {
+    while (UC_TRUE) {
         WORD wIndex[3];
         wIndex[1] = *pwCurIndex++;
         wIndex[2] = *pwCurIndex++;
         ASSERT(dwNumIndices > 1);
         dwNumIndices -= 2;
-        bool bEven = TRUE;
-        while (TRUE) {
+        bool bEven = UC_TRUE;
+        while (UC_TRUE) {
             bEven = !bEven;
             wIndex[0] = wIndex[1];
             wIndex[1] = wIndex[2];

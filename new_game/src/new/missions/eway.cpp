@@ -74,7 +74,7 @@ void get_level_word(CBYTE* str)
     str[c1] = 0;
 }
 
-// Returns TRUE if the current level is one of the combat tutorial levels.
+// Returns UC_TRUE if the current level is one of the combat tutorial levels.
 // uc_orig: playing_combat_tutorial (fallen/Source/eway.cpp)
 SLONG playing_combat_tutorial(void)
 {
@@ -100,7 +100,7 @@ SLONG playing_combat_tutorial(void)
     }
 }
 
-// Returns TRUE if the currently loaded level filename matches 'name'.
+// Returns UC_TRUE if the currently loaded level filename matches 'name'.
 // uc_orig: playing_level (fallen/Source/eway.cpp)
 SLONG playing_level(const CBYTE* name)
 {
@@ -121,7 +121,7 @@ SLONG playing_level(const CBYTE* name)
     }
 }
 
-// Returns TRUE if the current level is a real scored mission (not tutorial/fight/drive).
+// Returns UC_TRUE if the current level is a real scored mission (not tutorial/fight/drive).
 // uc_orig: playing_real_mission (fallen/Source/eway.cpp)
 SLONG playing_real_mission(void)
 {
@@ -242,8 +242,8 @@ void EWAY_init()
 
     memset((UBYTE*)EWAY_timer, 0, sizeof(UWORD) * EWAY_MAX_TIMERS);
 
-    EWAY_cam_active = FALSE;
-    EWAY_conv_active = FALSE;
+    EWAY_cam_active = UC_FALSE;
+    EWAY_conv_active = UC_FALSE;
 
     memset(EWAY_counter, 0, sizeof(UBYTE) * EWAY_MAX_COUNTERS);
 }
@@ -505,7 +505,7 @@ UWORD EWAY_create_item(
         if (ew->ed.arg1 & EWAY_ARG_ITEM_STASHED_IN_PRIM) {
             SLONG ob_index_local;
             OB_Info* oi;
-            oi = OB_find_index(world_x, world_y, world_z, 2048, FALSE);
+            oi = OB_find_index(world_x, world_y, world_z, 2048, UC_FALSE);
             if (oi) {
                 ob_index_local = oi->index;
 
@@ -1009,7 +1009,7 @@ void EWAY_create(
 }
 
 // Stores a message string into the EWAY message buffer at index 'number'.
-// Returns TRUE on success; FALSE if out-of-range or buffer full.
+// Returns UC_TRUE on success; UC_FALSE if out-of-range or buffer full.
 // uc_orig: EWAY_set_message (fallen/Source/eway.cpp)
 SLONG EWAY_set_message(
     UBYTE number,
@@ -1140,7 +1140,7 @@ void EWAY_fix_edef(EWAY_Edef* ee)
 
 // Loads a numbered text file of mission messages into the EWAY message buffer.
 // Format: "1. Message text" per line.
-// Returns TRUE if the file was found.
+// Returns UC_TRUE if the file was found.
 // uc_orig: EWAY_load_message_file (fallen/Source/eway.cpp)
 SLONG EWAY_load_message_file(CBYTE* fname, UWORD* index, UWORD* number)
 {
@@ -1181,10 +1181,10 @@ SLONG EWAY_load_message_file(CBYTE* fname, UWORD* index, UWORD* number)
 
         MF_Fclose(handle);
 
-        return TRUE;
+        return UC_TRUE;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Loads ambient NPC dialogue pools from text files. Handles localisation.
@@ -1290,7 +1290,7 @@ CBYTE* EWAY_get_fake_wander_message(SLONG type)
     ASSERT(index + number <= EWAY_mess_upto);
 
     if (number == 0) {
-        ASSERT(FALSE);
+        ASSERT(UC_FALSE);
         return 0;
     } else {
         SLONG which = Random() % number;
@@ -1471,20 +1471,20 @@ void EWAY_created_last_waypoint()
 }
 
 // Evaluates a single condition struct against runtime game state.
-// Returns TRUE if the condition is satisfied. ec->negate inverts the result.
-// EWAY_sub_condition_of_a_boolean=TRUE skips post-evaluation guards (caller is a BOOL_AND/OR).
+// Returns UC_TRUE if the condition is satisfied. ec->negate inverts the result.
+// EWAY_sub_condition_of_a_boolean=UC_TRUE skips post-evaluation guards (caller is a BOOL_AND/OR).
 // uc_orig: EWAY_evaluate_condition (fallen/Source/eway.cpp)
 SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condition_of_a_boolean)
 {
-    SLONG ans = FALSE;
+    SLONG ans = UC_FALSE;
 
     switch (ec->type) {
     case EWAY_COND_FALSE:
-        ans = FALSE;
+        ans = UC_FALSE;
         break;
 
     case EWAY_COND_TRUE:
-        ans = TRUE;
+        ans = UC_TRUE;
         break;
 
     case EWAY_COND_PROXIMITY:
@@ -1503,7 +1503,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                 ans = (dist < ec->arg1);
             }
         } else {
-            ans = FALSE;
+            ans = UC_FALSE;
         }
     }
 
@@ -1514,11 +1514,11 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
         break;
 
     case EWAY_COND_PRESSURE:
-        ans = FALSE; // Pressure plates never fire in this codebase (always FALSE).
+        ans = UC_FALSE; // Pressure plates never fire in this codebase (always UC_FALSE).
         break;
 
     case EWAY_COND_CAMERA:
-        ans = FALSE; // Always FALSE here; camera-at condition is satisfied externally
+        ans = UC_FALSE; // Always UC_FALSE here; camera-at condition is satisfied externally
                      // via EWAY_FLAG_ACTIVE in EWAY_process_camera().
         break;
 
@@ -1536,7 +1536,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
             sprintf(EWAY_message, "Waypoint %d has a NULL dependency", ew->id);
 
             CONSOLE_text(EWAY_message, 8000);
-            ans = FALSE;
+            ans = UC_FALSE;
 
             // Don't print the message again.
             ec->type = EWAY_COND_FALSE;
@@ -1554,7 +1554,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
         EWAY_Cond* ec1 = &EWAY_cond[ec->arg1];
         EWAY_Cond* ec2 = &EWAY_cond[ec->arg2];
 
-        ans = EWAY_evaluate_condition(ew, ec1, TRUE) && EWAY_evaluate_condition(ew, ec2, TRUE);
+        ans = EWAY_evaluate_condition(ew, ec1, UC_TRUE) && EWAY_evaluate_condition(ew, ec2, UC_TRUE);
     }
 
     break;
@@ -1565,7 +1565,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
         EWAY_Cond* ec1 = &EWAY_cond[ec->arg1];
         EWAY_Cond* ec2 = &EWAY_cond[ec->arg2];
 
-        ans = EWAY_evaluate_condition(ew, ec1, TRUE) || EWAY_evaluate_condition(ew, ec2, TRUE);
+        ans = EWAY_evaluate_condition(ew, ec1, UC_TRUE) || EWAY_evaluate_condition(ew, ec2, UC_TRUE);
     }
 
     break;
@@ -1590,10 +1590,10 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                     // Tick down the timer.
                     if (ec->arg2 <= EWAY_tick) {
                         ec->arg2 = 0;
-                        ans = TRUE;
+                        ans = UC_TRUE;
                     } else {
                         ec->arg2 -= EWAY_tick;
-                        ans = FALSE;
+                        ans = UC_FALSE;
                     }
                 }
 
@@ -1617,7 +1617,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                 }
             } else {
                 // Not counting down.
-                ans = FALSE;
+                ans = UC_FALSE;
             }
         }
 
@@ -1625,7 +1625,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     case EWAY_COND_PERSON_DEAD:
 
-        ans = FALSE; // By default.
+        ans = UC_FALSE; // By default.
 
         {
             SLONG waypoint;
@@ -1666,7 +1666,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
                         if (p_thing->Class == CLASS_PERSON && PersonIsMIB(p_thing)) {
                             if (p_thing->Flags & FLAGS_ON_MAPWHO) {
-                                ans = FALSE;
+                                ans = UC_FALSE;
                             }
                         }
                     }
@@ -1680,12 +1680,12 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                 case EWAY_DO_CREATE_BARREL:
 
                 {
-                    ans = FALSE;
+                    ans = UC_FALSE;
 
                     if (ew_dead->flag & EWAY_FLAG_ACTIVE) {
                         if (ew_dead->ed.arg1 == NULL) {
                             // The barrel has been created and destroyed.
-                            ans = TRUE;
+                            ans = UC_TRUE;
                         }
                     }
                 }
@@ -1746,7 +1746,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
                 ans = dist < radius;
             } else {
-                ans = FALSE; // Person hasn't been created yet.
+                ans = UC_FALSE; // Person hasn't been created yet.
             }
         }
     }
@@ -1756,7 +1756,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
     case EWAY_COND_CAMERA_AT:
 
         // This condition is perversely set in EWAY_process_camera().
-        ans = FALSE;
+        ans = UC_FALSE;
 
         break;
 
@@ -1765,7 +1765,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
     {
         Thing* darci = NET_PERSON(0);
 
-        ans = FALSE; // By default...
+        ans = UC_FALSE; // By default...
 
         if (darci) {
             SLONG dx = ec->arg1;
@@ -1779,7 +1779,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
             if (darci->WorldPos.Y < maxy) {
                 if (WITHIN(darci->WorldPos.X >> 8, minx, maxx) && WITHIN(darci->WorldPos.Z >> 8, minz, maxz)) {
-                    ans = TRUE;
+                    ans = UC_TRUE;
                 }
             }
         }
@@ -1789,7 +1789,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     case EWAY_COND_A_SEE_B:
 
-        ans = FALSE; // by default...
+        ans = UC_FALSE; // by default...
 
         {
             SLONG i_a = ec->arg1;
@@ -1812,7 +1812,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
     case EWAY_COND_GROUP_DEAD:
 
         // Boy, this is slow!
-        ans = FALSE;
+        ans = UC_FALSE;
 
         {
             SLONG i;
@@ -1834,12 +1834,12 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
                             if (!is_person_dead(TO_THING(ew2->ed.arg1))) {
                                 // Found someone alive.
-                                ans = FALSE;
+                                ans = UC_FALSE;
 
                                 break;
                             } else {
-                                // Found at least one dead person -- make the default TRUE.
-                                ans = TRUE;
+                                // Found at least one dead person -- make the default UC_TRUE.
+                                ans = UC_TRUE;
                             }
                         }
                     }
@@ -1852,7 +1852,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     case EWAY_COND_HALF_DEAD:
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         {
             SLONG i_person = EWAY_get_person(ec->arg1);
@@ -1862,7 +1862,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
                 // Is this person half dead?
                 if (WITHIN(p_person->Genus.Person->Health, 10, 100)) {
-                    ans = TRUE;
+                    ans = UC_TRUE;
                 }
             }
         }
@@ -1871,18 +1871,18 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     case EWAY_COND_ITEM_HELD:
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         // Is the player carrying our item?
         if (ec->arg1 == SPECIAL_GUN) {
             if (NET_PERSON(0)->Flags & FLAGS_HAS_GUN) {
-                ans = TRUE;
+                ans = UC_TRUE;
             }
         } else {
             if (person_has_special(
                     NET_PERSON(0),
                     ec->arg1)) {
-                ans = TRUE;
+                ans = UC_TRUE;
             }
         }
 
@@ -1906,7 +1906,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
             }
         }
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         if (ew->es.type == EWAY_STAY_ALWAYS) {
             ans = !!(ew->flag & EWAY_FLAG_ACTIVE);
@@ -1930,22 +1930,22 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                 EWAY_magic_radius_flag = ew;
         }
 
-        // Always return FALSE; this waypoint will be set active in
+        // Always return UC_FALSE; this waypoint will be set active in
         // do_an_action() in interfac.cpp.
-        ans = FALSE;
+        ans = UC_FALSE;
     }
 
     break;
 
     case EWAY_COND_PRIM_DAMAGED:
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         if (ec->arg1) {
             ASSERT(WITHIN(ec->arg1, 1, OB_ob_upto - 1));
 
             if (OB_ob[ec->arg1].flags & OB_FLAG_DAMAGED) {
-                ans = TRUE;
+                ans = UC_TRUE;
             }
         }
 
@@ -1955,10 +1955,10 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
         ASSERT(WITHIN(ec->arg1, 1, EWAY_way_upto - 1));
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         if (EWAY_way[ec->arg1].flag & EWAY_FLAG_FINISHED) {
-            ans = TRUE;
+            ans = UC_TRUE;
         }
 
         break;
@@ -1967,10 +1967,10 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
         ASSERT(WITHIN(ec->arg1, 0, EWAY_MAX_COUNTERS - 1));
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         if (EWAY_counter[ec->arg1] >= ec->arg2) {
-            ans = TRUE;
+            ans = UC_TRUE;
         }
 
         break;
@@ -1979,7 +1979,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
     // grappling). Requires FLAG_PERSON_ARRESTED AND SubState == SUB_STATE_DEAD_ARRESTED.
     case EWAY_COND_PERSON_ARRESTED:
 
-        ans = FALSE; // By default.
+        ans = UC_FALSE; // By default.
 
         if (ec->arg1 == 0) {
             // Person waypoint not set.
@@ -2007,7 +2007,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
         // Level-specific hack: skip this cuboid check on the semtex mission (waypoint 124).
         extern UBYTE is_semtex;
         if ((ew - EWAY_way) == 124 && is_semtex) // miked remove wetback part for PC/Dreamcast
-            ans = FALSE;
+            ans = UC_FALSE;
         else
 
         {
@@ -2030,9 +2030,9 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                 z2 = ew->z + dz;
 
                 if (WITHIN(darci->WorldPos.X >> 8, x1, x2) && WITHIN(darci->WorldPos.Z >> 8, z1, z2)) {
-                    ans = TRUE;
+                    ans = UC_TRUE;
                 } else {
-                    ans = FALSE;
+                    ans = UC_FALSE;
                 }
             }
         }
@@ -2041,7 +2041,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     case EWAY_COND_KILLED_NOT_ARRESTED:
 
-        ans = FALSE; // By default.
+        ans = UC_FALSE; // By default.
 
         {
             SLONG waypoint;
@@ -2076,7 +2076,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                         if (p_thing->State == STATE_DEAD) {
                             // Not if they're arrested.
                             if (!(p_thing->Genus.Person->Flags & FLAG_PERSON_ARRESTED)) {
-                                ans = TRUE;
+                                ans = UC_TRUE;
                             }
                         }
                     }
@@ -2112,7 +2112,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
     case EWAY_COND_IS_MURDERER:
 
     {
-        ans = FALSE;
+        ans = UC_FALSE;
 
         UWORD person = EWAY_get_person(ec->arg1);
 
@@ -2120,7 +2120,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
             Thing* p_person = TO_THING(person);
 
             if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_IS_MURDERER) {
-                ans = TRUE;
+                ans = UC_TRUE;
             }
         }
     }
@@ -2129,7 +2129,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     case EWAY_COND_PERSON_IN_VEHICLE:
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         {
             UWORD person;
@@ -2149,10 +2149,10 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                         ASSERT(EWAY_way[ec->arg2].ed.type == EWAY_DO_CREATE_VEHICLE);
 
                         if (p_person->Genus.Person->InCar == EWAY_way[ec->arg2].ed.arg1) {
-                            ans = TRUE;
+                            ans = UC_TRUE;
                         }
                     } else {
-                        ans = TRUE;
+                        ans = UC_TRUE;
                     }
                 }
             }
@@ -2166,7 +2166,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
     case EWAY_COND_THING_RADIUS_DIR:
     case EWAY_COND_MOVE_RADIUS_DIR:
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         {
             UWORD thing = EWAY_get_person(ec->arg1);
@@ -2215,7 +2215,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
                         if (WITHIN(dangle, -128, +128)) {
                             // Angle near enough too...
-                            ans = TRUE;
+                            ans = UC_TRUE;
                         }
                     }
                 }
@@ -2226,7 +2226,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     case EWAY_COND_SPECIFIC_ITEM_HELD:
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         {
             EWAY_Way* ew_other;
@@ -2240,7 +2240,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
             if (ew_other->ed.arg2) {
                 // Has this special been picked up by Darci?
                 if (ew_other->flag & EWAY_FLAG_GOTITEM) {
-                    ans = TRUE;
+                    ans = UC_TRUE;
                 }
             }
         }
@@ -2292,7 +2292,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
         }
     }
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         break;
 
@@ -2310,7 +2310,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     case EWAY_COND_PUNCHED_AND_KICKED:
 
-        ans = FALSE;
+        ans = UC_FALSE;
 
         if (ec->arg1 == NULL) {
         } else {
@@ -2331,7 +2331,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                     }
 
                     if ((ec->arg2 & 0xff) >= 2 && (ec->arg2 >> 8) >= 2) {
-                        ans = TRUE;
+                        ans = UC_TRUE;
                     }
                 } else {
                     // The first process where this waypoint has gone active.
@@ -2365,7 +2365,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     if (ew->ed.type == EWAY_DO_CONVERSATION || ew->ed.type == EWAY_DO_AMBIENT_CONV || ew->ed.type == EWAY_DO_MESSAGE) {
         if (GAME_TURN < 1) {
-            ans = FALSE;
+            ans = UC_FALSE;
         }
     }
 
@@ -2381,7 +2381,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                         MFX_QUICK_stop();
                         MFX_QUICK_wait();
                     } else {
-                        ans = FALSE;
+                        ans = UC_FALSE;
                     }
                 }
             }
@@ -2409,7 +2409,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                         MFX_QUICK_stop();
                         MFX_QUICK_wait();
                     } else {
-                        ans = FALSE;
+                        ans = UC_FALSE;
                     }
                 }
             }
@@ -2418,7 +2418,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
     if (ew->ed.type == EWAY_DO_CAMERA_CREATE && ans) {
         if (EWAY_stop_player_moving() && !EWAY_cam_goinactive) {
-            ans = FALSE;
+            ans = UC_FALSE;
         }
     }
 
@@ -2427,7 +2427,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
         // Make sure that Darci isn't jumping or falling through the air!
         if (!person_ok_for_conversation(darci)) {
-            ans = FALSE;
+            ans = UC_FALSE;
         }
 
         // Make sure each person in the conversation is okay...
@@ -2435,13 +2435,13 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
         UWORD person2 = EWAY_get_person(ew->ed.arg2);
 
         if (person1 == NULL || person2 == NULL) {
-            ans = FALSE;
+            ans = UC_FALSE;
         } else {
             Thing* p_person1 = TO_THING(person1);
             Thing* p_person2 = TO_THING(person2);
 
             if (!person_ok_for_conversation(p_person1) || !person_ok_for_conversation(p_person2)) {
-                ans = FALSE;
+                ans = UC_FALSE;
             } else {
                 // If there isn't a line of sight between the two people...
                 SLONG x1 = (p_person1->WorldPos.X >> 8);
@@ -2456,7 +2456,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                         x1, y1, z1,
                         x2, y2, z2,
                         LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
-                    ans = FALSE;
+                    ans = UC_FALSE;
                 }
             }
         }
@@ -2466,7 +2466,7 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 }
 
 // Initialises the scripted cut-scene camera from a CAMERA_CREATE waypoint.
-// Sets EWAY_cam_active=TRUE and populates all EWAY_cam_* globals.
+// Sets EWAY_cam_active=UC_TRUE and populates all EWAY_cam_* globals.
 // The camera starts at the waypoint position and looks for the first CAMERA_TARGET waypoint
 // with the same colour/group. Movement is processed each tick by EWAY_process_camera().
 // uc_orig: EWAY_create_camera (fallen/Source/eway.cpp)
@@ -2481,8 +2481,8 @@ void EWAY_create_camera(SLONG waypoint)
 
     ew = &EWAY_way[waypoint];
 
-    EWAY_cam_active = TRUE;
-    EWAY_cam_goinactive = FALSE;
+    EWAY_cam_active = UC_TRUE;
+    EWAY_cam_goinactive = UC_FALSE;
     EWAY_cam_x = ew->x << 8;
     EWAY_cam_y = ew->y << 8;
     EWAY_cam_z = ew->z << 8;
@@ -2511,13 +2511,13 @@ void EWAY_create_camera(SLONG waypoint)
     EWAY_conv_ambient = 0;
 
     // Find the lowest numbered camera-target waypoint.
-    EWAY_cam_target = EWAY_find_waypoint(1, EWAY_DO_CAMERA_TARGET, ew->colour, ew->group, FALSE);
+    EWAY_cam_target = EWAY_find_waypoint(1, EWAY_DO_CAMERA_TARGET, ew->colour, ew->group, UC_FALSE);
 
     if (EWAY_cam_target == EWAY_NO_MATCH) {
         // There is nothing for the camera to look at!
         CONSOLE_text("No target for camera", 8000);
 
-        EWAY_cam_active = FALSE;
+        EWAY_cam_active = UC_FALSE;
     }
 
     MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SEARCH_END);
@@ -2528,9 +2528,9 @@ void EWAY_create_camera(SLONG waypoint)
 // Reads EWAY_cam_* globals set by EWAY_create_camera() and moves the camera through
 // CAMERA_WAYPOINT nodes (waypoints with the same colour/group as the CAMERA_CREATE waypoint).
 // Camera looks at a CAMERA_TARGET waypoint - can be a fixed position or track a Thing.
-// When EWAY_cam_goinactive counts down to 0, sets EWAY_cam_active=FALSE (end of cut-scene).
+// When EWAY_cam_goinactive counts down to 0, sets EWAY_cam_active=UC_FALSE (end of cut-scene).
 // Sets EWAY_FLAG_ACTIVE on CAMERA_AT conditions when the camera reaches each node.
-// EWAY_cam_freeze=TRUE locks player movement while the camera is running.
+// EWAY_cam_freeze=UC_TRUE locks player movement while the camera is running.
 // Outputs final camera position/angles to FC_cam[] for the rendering system.
 // uc_orig: EWAY_process_camera (fallen/Source/eway.cpp)
 void EWAY_process_camera(void)
@@ -2544,7 +2544,7 @@ void EWAY_process_camera(void)
     SLONG speed;
     SLONG wspeed;
 
-    SLONG target_stationary = FALSE;
+    SLONG target_stationary = UC_FALSE;
 
     SLONG look_x;
     SLONG look_y;
@@ -2565,8 +2565,8 @@ void EWAY_process_camera(void)
         EWAY_cam_goinactive--;
         if (EWAY_cam_goinactive == 0) {
             EWAY_cam_jumped = 10;
-            EWAY_cam_active = FALSE;
-            EWAY_cam_goinactive = FALSE;
+            EWAY_cam_active = UC_FALSE;
+            EWAY_cam_goinactive = UC_FALSE;
         }
         return;
     }
@@ -2586,13 +2586,13 @@ void EWAY_process_camera(void)
             EWAY_cam_warehouse = p_thing->Genus.Person->Ware;
 
             if (p_thing->State == STATE_IDLE) {
-                target_stationary = TRUE;
+                target_stationary = UC_TRUE;
             }
             if (p_thing->State == STATE_MOVEING) {
                 if (p_thing->SubState == SUB_STATE_SIMPLE_ANIM || p_thing->SubState == SUB_STATE_SIMPLE_ANIM_OVER)
 
                 {
-                    target_stationary = TRUE;
+                    target_stationary = UC_TRUE;
                 }
             }
         }
@@ -2616,7 +2616,7 @@ void EWAY_process_camera(void)
 
         switch (ew_look->ed.subtype) {
         case EWAY_SUBTYPE_CAMERA_TARGET_PLACE:
-            target_stationary = TRUE;
+            target_stationary = UC_TRUE;
             break;
 
         case EWAY_SUBTYPE_CAMERA_TARGET_THING:
@@ -2641,13 +2641,13 @@ void EWAY_process_camera(void)
                         EWAY_cam_warehouse = p_thing->Genus.Person->Ware;
 
                         if (p_thing->State == STATE_IDLE) {
-                            target_stationary = TRUE;
+                            target_stationary = UC_TRUE;
                         }
                         if (p_thing->State == STATE_MOVEING) {
                             if (p_thing->SubState == SUB_STATE_SIMPLE_ANIM || p_thing->SubState == SUB_STATE_SIMPLE_ANIM_OVER)
 
                             {
-                                target_stationary = TRUE;
+                                target_stationary = UC_TRUE;
                             }
                         }
                     }
@@ -2678,13 +2678,13 @@ void EWAY_process_camera(void)
                         EWAY_cam_warehouse = p_look->Genus.Person->Ware;
 
                         if (p_look->State == STATE_IDLE) {
-                            target_stationary = TRUE;
+                            target_stationary = UC_TRUE;
                         }
                         if (p_look->State == STATE_MOVEING) {
                             if (p_look->SubState == SUB_STATE_SIMPLE_ANIM || p_look->SubState == SUB_STATE_SIMPLE_ANIM_OVER)
 
                             {
-                                target_stationary = TRUE;
+                                target_stationary = UC_TRUE;
                             }
                         }
                     }
@@ -2694,7 +2694,7 @@ void EWAY_process_camera(void)
                     look_y = ew_look->y;
                     look_z = ew_look->z;
                     look_yaw = ew_look->yaw << 11;
-                    target_stationary = TRUE;
+                    target_stationary = UC_TRUE;
                 }
             }
 
@@ -2728,12 +2728,12 @@ void EWAY_process_camera(void)
                                 ew_go->flag |= EWAY_FLAG_ACTIVE | EWAY_FLAG_DEAD;
                             }
 
-                            next = EWAY_find_waypoint(EWAY_cam_waypoint + 1, EWAY_DO_CAMERA_WAYPOINT, ew_go->colour, ew_go->group, FALSE);
+                            next = EWAY_find_waypoint(EWAY_cam_waypoint + 1, EWAY_DO_CAMERA_WAYPOINT, ew_go->colour, ew_go->group, UC_FALSE);
 
                             if (next == EWAY_NO_MATCH || next <= EWAY_cam_waypoint) {
                                 // The search wrapped -- there are no more waypoints for
                                 // the camera to use. Go inactive NEXT GAME TURN!
-                                EWAY_cam_goinactive = 2; // TRUE;
+                                EWAY_cam_goinactive = 2; // UC_TRUE;
 
                                 return;
                             }
@@ -2787,12 +2787,12 @@ void EWAY_process_camera(void)
                     }
 
                     // Move onto the next waypoint.
-                    next = EWAY_find_waypoint(EWAY_cam_waypoint + 1, EWAY_DO_CAMERA_WAYPOINT, ew_go->colour, ew_go->group, FALSE);
+                    next = EWAY_find_waypoint(EWAY_cam_waypoint + 1, EWAY_DO_CAMERA_WAYPOINT, ew_go->colour, ew_go->group, UC_FALSE);
 
                     if (next == EWAY_NO_MATCH || next <= EWAY_cam_waypoint) {
                         // The search wrapped -- there are no more waypoints for
                         // the camera to use. Go inactive NEXT GAME TURN!
-                        EWAY_cam_goinactive = 2; // TRUE;
+                        EWAY_cam_goinactive = 2; // UC_TRUE;
 
                         // Make the camera look at Darci properly.
                         return;
@@ -2874,10 +2874,10 @@ void EWAY_process_camera(void)
     }
 
     if (EWAY_cam_lock) {
-        if (EWAY_cam_lock != INFINITY) {
+        if (EWAY_cam_lock != UC_INFINITY) {
             EWAY_cam_pitch = EWAY_cam_want_pitch;
 
-            EWAY_cam_lock = INFINITY;
+            EWAY_cam_lock = UC_INFINITY;
         }
 
         dyaw = look_yaw - EWAY_cam_yaw;
@@ -2938,7 +2938,7 @@ void EWAY_process_camera(void)
 // uc_orig: EWAY_finish_conversation (fallen/Source/eway.cpp)
 void EWAY_finish_conversation(void)
 {
-    EWAY_conv_active = FALSE;
+    EWAY_conv_active = UC_FALSE;
 
     if (!EWAY_conv_ambient) {
         EWAY_cam_relinquish();
@@ -3031,7 +3031,7 @@ void EWAY_process_conversation(void)
             TO_THING(EWAY_conv_person_a),
             TO_THING(EWAY_conv_person_b),
             ch[-1] == '?' || ch[-2] == '?',
-            TRUE);
+            UC_TRUE);
 
         if (!EWAY_conv_ambient) {
             // Cut-scene camera follows the active speaker.
@@ -3358,8 +3358,8 @@ void EWAY_set_active(EWAY_Way* ew)
                             PCOM_make_people_talk_to_eachother(
                                 TO_THING(EWAY_used_thing),
                                 NET_PERSON(0),
-                                FALSE,
-                                FALSE);
+                                UC_FALSE,
+                                UC_FALSE);
                         }
                     } else {
                         if (ew->ed.arg2 == EWAY_MESSAGE_WHO_STREETNAME) {
@@ -3399,9 +3399,9 @@ void EWAY_set_active(EWAY_Way* ew)
                                         PCOM_make_people_talk_to_eachother(
                                             who_says,
                                             NET_PERSON(0),
-                                            FALSE,
-                                            FALSE,
-                                            FALSE);
+                                            UC_FALSE,
+                                            UC_FALSE,
+                                            UC_FALSE);
                                     }
                                 }
                             }
@@ -3453,7 +3453,7 @@ void EWAY_set_active(EWAY_Way* ew)
     case EWAY_DO_ELECTRIFY_FENCE:
 
         if (ew->ed.arg1) {
-            set_electric_fence_state(ew->ed.arg1, TRUE);
+            set_electric_fence_state(ew->ed.arg1, UC_TRUE);
         }
 
         break;
@@ -3627,7 +3627,7 @@ void EWAY_set_active(EWAY_Way* ew)
             } else if (ewk->ed.type == EWAY_DO_ELECTRIFY_FENCE) {
                 // Turn off the electric fence.
                 if (ew->ed.arg1) {
-                    set_electric_fence_state(ew->ed.arg1, FALSE);
+                    set_electric_fence_state(ew->ed.arg1, UC_FALSE);
                 }
             } else if (ewk->ed.type == EWAY_DO_MAKE_PERSON_PEE) {
                 SLONG person = EWAY_get_person(ewk->ed.arg1);
@@ -3755,7 +3755,7 @@ void EWAY_set_active(EWAY_Way* ew)
                 }
 
                 // Start the conversation.
-                EWAY_conv_active = TRUE;
+                EWAY_conv_active = UC_TRUE;
                 EWAY_conv_waypoint = ew - EWAY_way;
                 EWAY_conv_person_a = person_a;
                 EWAY_conv_person_b = person_b;
@@ -3924,7 +3924,7 @@ void EWAY_set_active(EWAY_Way* ew)
 
         // Timer for a visible on-screen count-up. The increment is in EWAY_process() while active.
         EWAY_count_up = 0;
-        EWAY_count_up_add_penalties = FALSE;
+        EWAY_count_up_add_penalties = UC_FALSE;
         EWAY_count_up_num_penalties = 0;
         EWAY_count_up_penalty_timer = 0;
         EWAY_counter[3] = 0;
@@ -4135,7 +4135,7 @@ void EWAY_set_inactive(EWAY_Way* ew)
 
     if (ew->ed.type == EWAY_DO_ELECTRIFY_FENCE) {
         if (ew->ed.arg1) {
-            set_electric_fence_state(ew->ed.arg1, FALSE);
+            set_electric_fence_state(ew->ed.arg1, UC_FALSE);
         }
     }
 
@@ -4143,7 +4143,7 @@ void EWAY_set_inactive(EWAY_Way* ew)
 
     if (ew->ed.type == EWAY_DO_VISIBLE_COUNT_UP)
     {
-            EWAY_count_up_add_penalties = TRUE;
+            EWAY_count_up_add_penalties = UC_TRUE;
             EWAY_count_up_penalty_timer = 0;
 
             SLONG secs = (EWAY_count_up + (EWAY_count_up_num_penalties * 500)) / 1000;
@@ -4202,12 +4202,12 @@ void EWAY_process_penalties()
         if (EWAY_count_up_penalty_timer >= 150) {
             if (EWAY_count_up_num_penalties == 0) {
                 if (EWAY_count_up_penalty_timer >= 400) {
-                    EWAY_count_up_add_penalties = FALSE;
+                    EWAY_count_up_add_penalties = UC_FALSE;
                 }
             } else if (EWAY_count_up_num_penalties == -1) // -1 => We've finished adding up penalties
             {
                 if (EWAY_count_up_penalty_timer >= 400) {
-                    EWAY_count_up_add_penalties = FALSE;
+                    EWAY_count_up_add_penalties = UC_FALSE;
                 }
             } else {
                 while (EWAY_count_up_penalty_timer >= 200) {
@@ -4263,7 +4263,7 @@ void EWAY_process()
     step = 1;
     offset = 0;
 
-    EWAY_count_up_visible = FALSE;
+    EWAY_count_up_visible = UC_FALSE;
 
     EWAY_time_accurate += 80 * TICK_RATIO >> TICK_SHIFT;
     EWAY_time = EWAY_time_accurate >> 4;
@@ -4292,7 +4292,7 @@ void EWAY_process()
 
                     PANEL_draw_timer(EWAY_count_up / 10, 320, 50);
 
-                    EWAY_count_up_visible = TRUE;
+                    EWAY_count_up_visible = UC_TRUE;
 
                     {
                         SLONG secs = EWAY_count_up / 1000;
@@ -4532,7 +4532,7 @@ SLONG EWAY_find_nearest_waypoint(
     SLONG dz;
     SLONG dist;
 
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
     SLONG best_waypoint = EWAY_NO_MATCH;
 
     EWAY_Way* ew;
@@ -4577,7 +4577,7 @@ SLONG EWAY_grab_camera(
         extern SLONG analogue;
 
         if (analogue && !EWAY_stop_player_moving()) {
-            return FALSE;
+            return UC_FALSE;
         } else {
             *cam_x = EWAY_cam_x;
             *cam_y = EWAY_cam_y;
@@ -4653,7 +4653,7 @@ SLONG EWAY_get_delay(SLONG waypoint, SLONG default_delay)
     }
 }
 
-// Returns TRUE if the given waypoint is currently active.
+// Returns UC_TRUE if the given waypoint is currently active.
 // uc_orig: EWAY_is_active (fallen/Source/eway.cpp)
 SLONG EWAY_is_active(SLONG waypoint)
 {
@@ -4664,20 +4664,20 @@ SLONG EWAY_is_active(SLONG waypoint)
     ew = &EWAY_way[waypoint];
 
     if (ew->flag & EWAY_FLAG_ACTIVE) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
 // Searches for a COND_PERSON_USED waypoint referencing the given Thing,
 // fires it if found, and clears FLAG_PERSON_USEABLE on that Thing.
-// Returns TRUE if a MESSAGE waypoint was triggered.
+// Returns UC_TRUE if a MESSAGE waypoint was triggered.
 // uc_orig: EWAY_used_person (fallen/Source/eway.cpp)
 SLONG EWAY_used_person(UWORD t_index)
 {
     UWORD i;
-    SLONG ans = FALSE;
+    SLONG ans = UC_FALSE;
 
     EWAY_Way* ew;
 
@@ -4706,7 +4706,7 @@ SLONG EWAY_used_person(UWORD t_index)
                     TO_THING(t_index)->Genus.Person->Flags &= ~FLAG_PERSON_USEABLE;
 
                     if (ew->ed.type == EWAY_DO_MESSAGE) {
-                        ans = TRUE;
+                        ans = UC_TRUE;
                     }
                 }
             }
@@ -4831,9 +4831,9 @@ void EWAY_cam_converse(Thing* p_thing, Thing* p_listener)
     EWAY_cam_thing = THING_NUMBER(p_thing);
     EWAY_cam_waypoint = NULL;
     EWAY_cam_lens = 0x28000;
-    EWAY_cam_freeze = TRUE;
-    EWAY_cam_lock = FALSE;
-    EWAY_cam_goinactive = FALSE;
+    EWAY_cam_freeze = UC_TRUE;
+    EWAY_cam_lock = UC_FALSE;
+    EWAY_cam_goinactive = UC_FALSE;
 
     // If the current camera can see both speakers, don't move it needlessly.
     if (EWAY_cam_active) {
@@ -4880,7 +4880,7 @@ void EWAY_cam_converse(Thing* p_thing, Thing* p_listener)
                     EWAY_cam_y = y << 8;
                     EWAY_cam_z = z << 8;
 
-                    EWAY_cam_active = TRUE;
+                    EWAY_cam_active = UC_TRUE;
 
                     return;
                 }
@@ -5044,7 +5044,7 @@ void EWAY_cam_converse(Thing* p_thing, Thing* p_listener)
         EWAY_cam_thing = 0;
     }
 
-    EWAY_cam_active = TRUE;
+    EWAY_cam_active = UC_TRUE;
 }
 
 // Positions the scripted camera to look at a single Thing (used for scripted cut-scenes).
@@ -5120,7 +5120,7 @@ void EWAY_cam_look_at(Thing* p_thing)
 
             view[i] = dprod;
         } else {
-            view[i] = FALSE;
+            view[i] = UC_FALSE;
         }
     }
 
@@ -5179,10 +5179,10 @@ void EWAY_cam_look_at(Thing* p_thing)
         EWAY_cam_z -= dz >> 8;
     }
 
-    EWAY_cam_active = TRUE;
+    EWAY_cam_active = UC_TRUE;
     EWAY_cam_thing = THING_NUMBER(p_thing);
     EWAY_cam_waypoint = NULL;
-    EWAY_cam_freeze = TRUE;
+    EWAY_cam_freeze = UC_TRUE;
 
     EWAY_cam_x <<= 8;
     EWAY_cam_y <<= 8;
@@ -5199,10 +5199,10 @@ void EWAY_cam_relinquish()
     /*
 
     EWAY_cam_jumped=1;
-    EWAY_cam_active   = FALSE;
+    EWAY_cam_active   = UC_FALSE;
     EWAY_cam_thing    = NULL;
     EWAY_cam_waypoint = NULL;
-    EWAY_cam_freeze   = FALSE;
+    EWAY_cam_freeze   = UC_FALSE;
 
     */
 }
@@ -5235,7 +5235,7 @@ SLONG EWAY_find_or_create_waypoint_that_created_person(Thing* p_person)
     return EWAY_way_upto++;
 }
 
-// Returns TRUE if a scripted conversation is currently playing,
+// Returns UC_TRUE if a scripted conversation is currently playing,
 // and fills person_a/person_b with the Thing indices of the two speakers.
 // uc_orig: EWAY_conversation_happening (fallen/Source/eway.cpp)
 SLONG EWAY_conversation_happening(
@@ -5246,9 +5246,9 @@ SLONG EWAY_conversation_happening(
         *person_a = EWAY_conv_person_a;
         *person_b = EWAY_conv_person_b;
 
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

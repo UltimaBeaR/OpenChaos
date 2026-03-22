@@ -88,29 +88,29 @@ static void QEDIT_draw_wireframe(SLONG world_x, SLONG world_z)
 #define QEDIT_CUBE_COLOUR 0x00880022
 
                 QENG_world_line(x1, y1, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x2, y1, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x2, y1, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x2, y1, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x2, y1, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x2, y1, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x2, y1, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x1, y1, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x1, y1, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x1, y1, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x1, y1, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x1, y1, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x1, y1, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x1, y2, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x1, y2, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x2, y1, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x2, y2, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x2, y2, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x1, y1, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x1, y2, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x1, y2, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x2, y1, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x2, y2, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x2, y2, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x1, y2, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x2, y2, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x2, y2, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x2, y2, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x2, y2, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x2, y2, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x2, y2, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x1, y2, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x1, y2, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
                 QENG_world_line(x1, y2, z2, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR,
-                    x1, y2, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, FALSE);
+                    x1, y2, z1, QEDIT_CUBE_RADIUS, QEDIT_CUBE_COLOUR, UC_FALSE);
             }
         }
 
@@ -138,7 +138,7 @@ static void QEDIT_draw_wireframe(SLONG world_x, SLONG world_z)
             QENG_world_line(
                 x1, y1, z1, QEDIT_GROUND_RADIUS, (x & 0x1f) ? QEDIT_GROUND_COLOUR : QEDIT_GROUND_COLOUR * 2,
                 x2, y2, z2, QEDIT_GROUND_RADIUS, (x & 0x1f) ? QEDIT_GROUND_COLOUR : QEDIT_GROUND_COLOUR * 2,
-                FALSE);
+                UC_FALSE);
         }
 
     for (z = bz1; z <= bz2; z++)
@@ -158,7 +158,7 @@ static void QEDIT_draw_wireframe(SLONG world_x, SLONG world_z)
             QENG_world_line(
                 x1, y1, z1, QEDIT_GROUND_RADIUS, (z & 0x1f) ? QEDIT_GROUND_COLOUR : QEDIT_GROUND_COLOUR * 2,
                 x2, y2, z2, QEDIT_GROUND_RADIUS, (z & 0x1f) ? QEDIT_GROUND_COLOUR : QEDIT_GROUND_COLOUR * 2,
-                FALSE);
+                UC_FALSE);
         }
 }
 
@@ -310,7 +310,7 @@ static void QEDIT_draw(void)
         QEDIT_focus_x >> 13,
         QEDIT_focus_z >> 13);
 
-    text_fudge = FALSE;
+    text_fudge = UC_FALSE;
     text_colour = 0x00ffeeee;
     draw_text_at(20, 20, "Hello", 0);
 
@@ -322,7 +322,7 @@ static void QEDIT_draw(void)
 // uc_orig: QEDIT_loop (fallen/Source/qedit.cpp)
 void QEDIT_loop()
 {
-    SLONG quit = FALSE;
+    SLONG quit = UC_FALSE;
 
     if (OpenDisplay(640, 480, 16, FLAGS_USE_3D | FLAGS_USE_WORKSCREEN) != 0) {
         return;
@@ -337,7 +337,7 @@ void QEDIT_loop()
 
         if (Keys[KB_Q] && ControlFlag) {
             Keys[KB_Q] = 0;
-            quit = TRUE;
+            quit = UC_TRUE;
         }
     }
 

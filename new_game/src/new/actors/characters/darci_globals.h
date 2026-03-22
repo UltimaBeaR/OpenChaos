@@ -26,7 +26,7 @@ extern THING_INDEX history_thing[100];
 extern SWORD history;
 
 // uc_orig: just_started_falling_off_backwards (fallen/Source/Darci.cpp)
-// Set to TRUE for one tick when Darci begins a backwards fall-off animation.
+// Set to UC_TRUE for one tick when Darci begins a backwards fall-off animation.
 // Read by slide_along during projectile_move_thing.
 extern UBYTE just_started_falling_off_backwards;
 

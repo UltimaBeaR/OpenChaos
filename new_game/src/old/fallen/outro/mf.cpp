@@ -32,8 +32,8 @@ void MF_load_textures(IMP_Mesh* im)
         //
 
         if (it->has_bumpmap) {
-            it->ot_bpos = OS_texture_create(it->bname, FALSE);
-            it->ot_bneg = OS_texture_create(it->bname, TRUE);
+            it->ot_bpos = OS_texture_create(it->bname, UC_FALSE);
+            it->ot_bneg = OS_texture_create(it->bname, UC_TRUE);
         } else {
             it->ot_bpos = NULL;
             it->ot_bneg = NULL;

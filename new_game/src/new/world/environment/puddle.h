@@ -20,7 +20,7 @@ void PUDDLE_precalculate(void);
 void PUDDLE_splash(SLONG x, SLONG y, SLONG z);
 
 // uc_orig: PUDDLE_in (fallen/Headers/puddle.h)
-// Returns TRUE if (x,z) is inside any puddle or water square.
+// Returns UC_TRUE if (x,z) is inside any puddle or water square.
 SLONG PUDDLE_in(SLONG x, SLONG z);
 
 // uc_orig: PUDDLE_process (fallen/Headers/puddle.h)

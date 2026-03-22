@@ -20,7 +20,7 @@ BOOL SetupKeyboard(void)
     memset((char*)&key_turn[0], 0, 256);
 
     KeyboardHook = NULL;
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: ResetKeyboard (fallen/DDLibrary/Source/GKeyboard.cpp)
@@ -86,7 +86,7 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 
     SetFlagsFromKeyArray();
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: ClearLatchedKeys (fallen/DDLibrary/Source/GKeyboard.cpp)

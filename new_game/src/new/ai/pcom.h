@@ -407,7 +407,7 @@ void PCOM_make_people_talk_to_eachother(
     Thing* p_person_b,
     UBYTE is_a_asking_a_question,
     UBYTE stay_looking_at_eachother,
-    UBYTE make_the_person_talked_at_listen = TRUE);
+    UBYTE make_the_person_talked_at_listen = UC_TRUE);
 
 // uc_orig: PCOM_stop_people_talking_to_eachother (fallen/Headers/pcom.h)
 void PCOM_stop_people_talking_to_eachother(Thing* p_person_a, Thing* p_person_b);
@@ -551,7 +551,7 @@ void PCOM_set_person_ai_flee_person(Thing* p_person, Thing* p_scary);
 void PCOM_set_person_ai_flee_place(Thing* p_person, SLONG x, SLONG z);
 
 // uc_orig: PCOM_set_person_ai_kill_person (fallen/Source/pcom.cpp)
-void PCOM_set_person_ai_kill_person(Thing* p_person, Thing* p_target, SLONG alert_gang = TRUE);
+void PCOM_set_person_ai_kill_person(Thing* p_person, Thing* p_target, SLONG alert_gang = UC_TRUE);
 
 // uc_orig: PCOM_set_person_ai_aimless (fallen/Source/pcom.cpp)
 void PCOM_set_person_ai_aimless(Thing* p_person);

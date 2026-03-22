@@ -5,7 +5,7 @@
 
 // Forward declarations.
 // uc_orig: TGA_load_from_file (fallen/DDLibrary/Source/Tga.cpp)
-TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixel* data, BOOL bCanShrink = TRUE);
+TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixel* data, BOOL bCanShrink = UC_TRUE);
 
 // uc_orig: TGA_make_conversion_tables (fallen/DDLibrary/Source/Tga.cpp)
 static void TGA_make_conversion_tables(void);
@@ -663,7 +663,7 @@ file_error:;
 }
 
 // Write pixel data to a TGA file. Rows are written bottom-up as required by the TGA spec.
-// Pass contains_alpha=FALSE to save as 24-bit RGB (no alpha channel).
+// Pass contains_alpha=UC_FALSE to save as 24-bit RGB (no alpha channel).
 // uc_orig: TGA_save (fallen/DDLibrary/Source/Tga.cpp)
 void TGA_save(
     const CBYTE* file,

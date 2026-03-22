@@ -123,8 +123,8 @@ SLONG GAMEMENU_process()
         extern SLONG EWAY_cam_freeze;
         extern UBYTE GAME_cut_scene;
 
-        EWAY_cam_freeze = FALSE;
-        GAME_cut_scene = FALSE;
+        EWAY_cam_freeze = UC_FALSE;
+        GAME_cut_scene = UC_FALSE;
     }
 
     if (Keys[KB_ESC]) {
@@ -289,16 +289,16 @@ void GAMEMENU_draw()
     }
 
     // Darken the screen behind the menu.
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
     PANEL_darken_screen(GAMEMENU_background);
-    POLY_frame_draw(FALSE, FALSE);
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     MENUFONT_fadein_line(GAMEMENU_fadein_x);
     MENUFONT_fadein_draw(320, 100, 255, XLAT_str(GAMEMENU_menu[GAMEMENU_menu_type].word[0]));
 
-    bool bDrawMainPartOfMenu = TRUE;
+    bool bDrawMainPartOfMenu = UC_TRUE;
 
     if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_LOST) {
         if (GAMEMENU_level_lost_reason) {
@@ -322,5 +322,5 @@ void GAMEMENU_draw()
         }
     }
 
-    POLY_frame_draw(FALSE, FALSE);
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
 }

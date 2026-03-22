@@ -167,12 +167,12 @@ BOOL MagicFrameCheck(Thing* p_person, UBYTE frameindex)
     if (p_person->Draw.Tweened->FrameIndex >= frameindex) {
         if (!(p_person->Genus.Person->Flags2 & FLAG2_SYNC_SOUNDFX)) {
             p_person->Genus.Person->Flags2 |= FLAG2_SYNC_SOUNDFX;
-            return TRUE;
+            return UC_TRUE;
         }
     } else {
         p_person->Genus.Person->Flags2 &= ~FLAG2_SYNC_SOUNDFX;
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: PersonIsMIB (fallen/Source/Person.cpp)
@@ -382,17 +382,17 @@ SLONG is_there_room_in_front_of_me(Thing* p_person, SLONG how_much_room)
 
     if (abs(y1 - y2) > 0x40) {
         // Too much height difference — no room.
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (!there_is_a_los(
             x1, y1, z1,
             x2, y2, z2,
             LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Finds the nearest dead (unsearched) person within search range.
@@ -404,7 +404,7 @@ SLONG find_searchable_person(Thing* p_person)
     SLONG collide_types = (1 << CLASS_PERSON);
     Thing* col_thing;
     SLONG i;
-    SLONG best_dist = INFINITY, best_index = 0, dist;
+    SLONG best_dist = UC_INFINITY, best_index = 0, dist;
 
     col_with_upto = THING_find_sphere(
         p_person->WorldPos.X >> 8,
@@ -1308,7 +1308,7 @@ SLONG is_there_room_behind_person(Thing* p_person, SLONG hit_from_behind)
         p_person->WorldPos.Z + dz >> 8);
 
     if (abs(h2 - h1) > 0x40) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     los_flag = LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG | LOS_FLAG_INCLUDE_CARS;
@@ -1327,10 +1327,10 @@ SLONG is_there_room_behind_person(Thing* p_person, SLONG hit_from_behind)
             (p_person->WorldPos.Z + dz >> 8),
             los_flag))
     {
-        return FALSE;
+        return UC_FALSE;
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Returns the fractional position along collision facet colvect at world position (x,z).
@@ -1371,8 +1371,8 @@ void set_person_dead(
     DrawTween* draw_info;
     SLONG anim;
     SLONG substate;
-    SLONG quick = FALSE;
-    SLONG locked = FALSE;
+    SLONG quick = UC_FALSE;
+    SLONG locked = UC_FALSE;
 
     ASSERT(p_thing->Class == CLASS_PERSON);
     p_thing->Draw.Tweened->Roll = 0;
@@ -1475,14 +1475,14 @@ void set_person_dead(
         // Already on floor, finish them off quietly.
         substate = SUB_STATE_DYING_ACTUALLY_DIE;
         p_thing->Genus.Person->Flags &= ~(FLAG_PERSON_KO | FLAG_PERSON_HELPLESS);
-        quick = TRUE;
+        quick = UC_TRUE;
         break;
 
     case PERSON_DEATH_TYPE_COMBAT_PRONE:
         // Person already lying down — play a stomp animation.
         substate = SUB_STATE_DYING_FINAL_ANI;
         p_thing->Genus.Person->Flags &= ~(FLAG_PERSON_KO | FLAG_PERSON_HELPLESS);
-        locked = TRUE;
+        locked = UC_TRUE;
 
         switch (person_is_lying_on_what(p_thing)) {
         case PERSON_ON_HIS_FRONT:
@@ -1545,7 +1545,7 @@ void set_person_dead(
         }
 
         StopScreamFallSound(p_thing);
-        locked = TRUE;
+        locked = UC_TRUE;
         substate = SUB_STATE_DYING_FINAL_ANI;
         break;
 
@@ -1572,14 +1572,14 @@ void set_person_dead(
         p_thing->Genus.Person->Flags |= FLAG_PERSON_KO | FLAG_PERSON_HELPLESS;
         substate = SUB_STATE_DYING_KNOCK_DOWN;
         p_thing->Genus.Person->Timer1 = 0;
-        quick = TRUE;
+        quick = UC_TRUE;
         break;
 
     case PERSON_DEATH_TYPE_STAY_ALIVE_PRONE:
         p_thing->Genus.Person->Flags |= FLAG_PERSON_KO | FLAG_PERSON_HELPLESS;
         substate = SUB_STATE_DYING_KNOCK_DOWN;
         p_thing->Genus.Person->Timer1 = 0;
-        quick = TRUE;
+        quick = UC_TRUE;
         break;
 
     case PERSON_DEATH_TYPE_STAY_ALIVE:
@@ -1728,11 +1728,11 @@ SLONG is_person_ko(Thing* p_person)
         switch (p_person->SubState) {
         case SUB_STATE_DYING_KNOCK_DOWN_WAIT:
         case SUB_STATE_DYING_KNOCK_DOWN:
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Returns true if person is knocked out and has finished the fall animation (lying flat).
@@ -1742,11 +1742,11 @@ SLONG is_person_ko_and_lay_down(Thing* p_person)
     if (p_person->State == STATE_DYING) {
         switch (p_person->SubState) {
         case SUB_STATE_DYING_KNOCK_DOWN_WAIT:
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Deals hitpoints damage from position (origin_x, origin_z) and knocks person to ground.
@@ -1775,7 +1775,7 @@ void knock_person_down(
         origin_x,
         origin_z);
 
-    behind = FALSE;
+    behind = UC_FALSE;
 
     if ((p_person->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL) && (!p_aggressor || !p_aggressor->Genus.Person->PlayerID)) {
         // Only player can hurt this person.
@@ -1964,17 +1964,17 @@ SLONG can_a_see_b(
 
     if (p_person_a->Genus.Person->Ware != p_person_b->Genus.Person->Ware) {
         // One person is in a warehouse, the other isn't — can't see each other.
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (range == 0) {
         range = 8 << 8;
     }
 
-    p_person_b_moving = TRUE;
+    p_person_b_moving = UC_TRUE;
 
     if (p_person_b->State == STATE_IDLE || (p_person_b->State == STATE_GUN && p_person_b->SubState == SUB_STATE_AIM_GUN)) {
-        p_person_b_moving = FALSE;
+        p_person_b_moving = UC_FALSE;
     }
 
     dx = p_person_b->WorldPos.X - p_person_a->WorldPos.X;
@@ -2022,7 +2022,7 @@ SLONG can_a_see_b(
     }
 
     if (dist > view) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     {
@@ -2034,9 +2034,9 @@ SLONG can_a_see_b(
         if (dist < 0xc0) {
             // Very close — use a wide FOV of ~123 degrees.
             if (dangle < 700 || dangle > 2048 - 700) {
-                return TRUE;
+                return UC_TRUE;
             } else {
-                return FALSE;
+                return UC_FALSE;
             }
         }
 
@@ -2050,7 +2050,7 @@ SLONG can_a_see_b(
                 if (WITHIN(dangle, CORNER_OF_EYE_FOV, 2048 - CORNER_OF_EYE_FOV)) {
                     if (dist > (view >> 1)) {
                         // Stationary target at edge of vision — too far to notice.
-                        return FALSE;
+                        return UC_FALSE;
                     }
                 }
             }
@@ -2059,7 +2059,7 @@ SLONG can_a_see_b(
             UBYTE bhead = (is_person_crouching(p_person_b)) ? 0x20 : 0x60;
 
             if (no_los)
-                return (TRUE);
+                return (UC_TRUE);
 
             if (p_person_b->Genus.Person->Ware) {
                 // In warehouse: use LOS but skip underground geometry check.
@@ -2071,7 +2071,7 @@ SLONG can_a_see_b(
                         (p_person_b->WorldPos.Y >> 8) + bhead,
                         (p_person_b->WorldPos.Z >> 8),
                         LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
-                    return TRUE;
+                    return UC_TRUE;
                 }
             } else {
                 if (there_is_a_los(
@@ -2082,13 +2082,13 @@ SLONG can_a_see_b(
                         (p_person_b->WorldPos.Y >> 8) + bhead,
                         (p_person_b->WorldPos.Z >> 8),
                         0)) {
-                    return TRUE;
+                    return UC_TRUE;
                 }
             }
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 #undef PEOPLE_FOV
@@ -2115,11 +2115,11 @@ SLONG can_i_see_place(Thing* p_person, SLONG x, SLONG y, SLONG z)
     dist = QDIST2(abs(dx), abs(dz));
 
     if (dist > 0x600) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (abs(dy) > abs(dist >> 1)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     angle = Arctan(dx, -dz) + 1024;
@@ -2141,11 +2141,11 @@ SLONG can_i_see_place(Thing* p_person, SLONG x, SLONG y, SLONG z)
                 y + 0x20,
                 z,
                 0)) {
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 #undef PEOPLE_FOV
@@ -2173,10 +2173,10 @@ SLONG set_person_vault(Thing* p_person, SLONG facet)
 
         set_generic_person_state_function(p_person, STATE_MOVEING);
 
-        return TRUE;
+        return UC_TRUE;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Attempts to step up a half-height obstacle at facet. Returns true if climb was started.
@@ -2190,10 +2190,10 @@ SLONG set_person_climb_half(Thing* p_person, SLONG facet)
 
         set_generic_person_state_function(p_person, STATE_MOVEING);
 
-        return TRUE;
+        return UC_TRUE;
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Returns true if person can see player 0.
@@ -2311,7 +2311,7 @@ void person_pick_best_target(Thing* p_person, SLONG dir)
     SLONG dx;
     SLONG dz;
     SLONG dist;
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
 
     UWORD lowest_person = 0xffff;
     UWORD highest_person = 0;
@@ -2530,7 +2530,7 @@ void general_process_person(Thing* p_person)
                 p_person,
                 NULL,
                 PERSON_DEATH_TYPE_OTHER,
-                FALSE,
+                UC_FALSE,
                 0);
 
         } else {
@@ -3223,7 +3223,7 @@ static inline SLONG weapon_accuracy_at_dist(Thing* p_person, SLONG dist)
     }
 }
 
-// Returns TRUE if the given vehicle is driven or occupied by any MIB agent.
+// Returns UC_TRUE if the given vehicle is driven or occupied by any MIB agent.
 // uc_orig: VehicleBelongsToMIB (fallen/Source/Person.cpp)
 UBYTE VehicleBelongsToMIB(Thing* p_target)
 {
@@ -3391,7 +3391,7 @@ SLONG get_shoot_damage(Thing* p_person, Thing* p_target, SLONG* gun_type)
 // uc_orig: shoot_get_ammo_sound_anim_time (fallen/Source/Person.cpp)
 SLONG shoot_get_ammo_sound_anim_time(Thing* p_person, SLONG* sound, SLONG* anim, SLONG* time)
 {
-    SLONG ammo = FALSE;
+    SLONG ammo = UC_FALSE;
     SLONG ammo_in_clip;
 
     if (PersonIsMIB(p_person)) {
@@ -3438,7 +3438,7 @@ SLONG shoot_get_ammo_sound_anim_time(Thing* p_person, SLONG* sound, SLONG* anim,
 
         if (p_special->Genus.Special->ammo) {
             p_special->Genus.Special->ammo -= 1;
-            ammo = TRUE;
+            ammo = UC_TRUE;
         } else {
             // Try to reload from carried ammo packs.
             switch (p_special->Genus.Special->SpecialType) {
@@ -3479,7 +3479,7 @@ SLONG shoot_get_ammo_sound_anim_time(Thing* p_person, SLONG* sound, SLONG* anim,
 
         if (p_person->Genus.Person->Ammo) {
             p_person->Genus.Person->Ammo--;
-            ammo = TRUE;
+            ammo = UC_TRUE;
             *anim = ANIM_PISTOL_SHOOT;
         } else {
             if (p_person->Genus.Person->ammo_packs_pistol) {
@@ -3830,16 +3830,16 @@ SLONG get_persons_best_weapon_with_ammo(Thing* p_person)
     return SPECIAL_NONE;
 }
 
-// Returns TRUE if a cutscene is in progress and the NPC should not shoot p_target.
+// Returns UC_TRUE if a cutscene is in progress and the NPC should not shoot p_target.
 // uc_orig: dont_hurt_target_during_cutscene (fallen/Source/Person.cpp)
 SLONG dont_hurt_target_during_cutscene(Thing* p_person, Thing* p_target)
 {
     if (!p_person->Genus.Person->PlayerID) {
         if (p_target->Class == CLASS_PERSON) {
-            SLONG dont_shoot_in_a_cutscene = FALSE;
+            SLONG dont_shoot_in_a_cutscene = UC_FALSE;
 
             if (p_target->Genus.Person->PlayerID) {
-                dont_shoot_in_a_cutscene = TRUE;
+                dont_shoot_in_a_cutscene = UC_TRUE;
             } else if (p_target->Genus.Person->pcom_move == PCOM_MOVE_FOLLOW) {
                 // Don't shoot people following the player during a cutscene.
                 UWORD i_follow = EWAY_get_person(p_person->Genus.Person->pcom_move_follow);
@@ -3848,18 +3848,18 @@ SLONG dont_hurt_target_during_cutscene(Thing* p_person, Thing* p_target)
                     Thing* p_follow = TO_THING(i_follow);
 
                     if (p_follow->Class == CLASS_PERSON && p_follow->Genus.Person->PlayerID) {
-                        dont_shoot_in_a_cutscene = TRUE;
+                        dont_shoot_in_a_cutscene = UC_TRUE;
                     }
                 }
             }
 
             if (dont_shoot_in_a_cutscene && EWAY_stop_player_moving()) {
-                return TRUE;
+                return UC_TRUE;
             }
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Full shoot action: handles ammo check, target acquisition, weapon-swap on empty,
@@ -3869,7 +3869,7 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
 {
     SLONG dx, dz;
     SLONG anim = ANIM_PISTOL_SHOOT;
-    SLONG ammo = FALSE;
+    SLONG ammo = UC_FALSE;
     SLONG sound;
     SLONG time;
 
@@ -4035,7 +4035,7 @@ void set_person_grappling_hook_release(Thing* p_person)
     p_person->SubState = SUB_STATE_GRAPPLING_RELEASE;
 }
 
-// Returns SPECIAL_TYPE if person has a gun-type weapon out, else FALSE.
+// Returns SPECIAL_TYPE if person has a gun-type weapon out, else UC_FALSE.
 // uc_orig: person_has_gun_out (fallen/Source/Person.cpp)
 SLONG person_has_gun_out(Thing* p_person)
 {
@@ -4044,7 +4044,7 @@ SLONG person_has_gun_out(Thing* p_person)
     }
 
     if (!p_person->Genus.Person->SpecialUse) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     {
@@ -4055,7 +4055,7 @@ SLONG person_has_gun_out(Thing* p_person)
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Drops the currently equipped gun or special weapon to the ground.
@@ -4323,7 +4323,7 @@ void set_person_idle(Thing* p_person)
 
     if (p_person->Genus.Person->PlayerID) {
         if (p_person->Genus.Person->PlayerID && !person_has_gun_out(p_person)) {
-            Thing* p_attacker = is_person_under_attack_low_level(p_person, FALSE, 0x200);
+            Thing* p_attacker = is_person_under_attack_low_level(p_person, UC_FALSE, 0x200);
 
             if (p_attacker) {
                 SLONG anim;
@@ -4784,11 +4784,11 @@ void set_person_enter_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
     {
         // Temporarily enables special offset mode in get_car_door_offsets() (vehicle.cpp)
         // so that position_person_for_vehicle() places the person at the right entry point.
-        sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim = TRUE;
+        sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim = UC_TRUE;
 
         position_person_for_vehicle(p_person, p_vehicle, door);
 
-        sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim = FALSE;
+        sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim = UC_FALSE;
     }
 
     set_locked_anim(p_person, (door) ? ANIM_ENTER_TAXI : ANIM_ENTER_CAR, SUB_OBJECT_LEFT_FOOT);
@@ -4875,7 +4875,7 @@ void set_person_exit_vehicle(Thing* p_person)
     SLONG door_y;
     SLONG door_z;
     SLONG side;
-    SLONG otherside = FALSE;
+    SLONG otherside = UC_FALSE;
     SLONG dx, dz;
 
     GameCoord newpos;
@@ -4901,7 +4901,7 @@ try_again:;
     if (abs(door_y - (p_person->WorldPos.Y >> 8)) > 150 || (PAP_2HI(mx, mz).Flags & PAP_FLAG_NOGO) || !there_is_a_los(p_vehicle->WorldPos.X >> 8, p_vehicle->WorldPos.Y + 0x6000 >> 8, p_vehicle->WorldPos.Z >> 8, door_x + dx, door_y + 0x60, door_z + dz, LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG | LOS_FLAG_IGNORE_PRIMS | LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
         if (!otherside) {
             side = !side;
-            otherside = TRUE;
+            otherside = UC_TRUE;
 
             goto try_again;
         } else {
@@ -5162,7 +5162,7 @@ void set_person_fight_idle(Thing* p_person)
     p_person->Genus.Person->Flags &= ~FLAG_PERSON_KO;
 
     if (p_person->Genus.Person->PlayerID) {
-        Thing* p_attacker = is_person_under_attack_low_level(p_person, FALSE, 0x200);
+        Thing* p_attacker = is_person_under_attack_low_level(p_person, UC_FALSE, 0x200);
 
         if (p_attacker == NULL) {
             p_person->Genus.Person->Agression = 0;
@@ -6236,18 +6236,18 @@ SLONG traverse_pos(Thing* p_person, SLONG right)
                 cz = z + dz;
 
                 if (!WITHIN(cx >> 8, 0, PAP_SIZE_HI - 1) || !WITHIN(cz >> 8, 0, PAP_SIZE_HI - 1)) {
-                    return FALSE;
+                    return UC_FALSE;
                 }
 
                 if (PAP_calc_map_height_at(cx, cz) > y + 0x30) {
-                    return FALSE;
+                    return UC_FALSE;
                 }
 
                 cx >>= 8;
                 cz >>= 8;
 
                 if (PAP_2HI(cx, cz).Flags & PAP_FLAG_NOGO) {
-                    return FALSE;
+                    return UC_FALSE;
                 }
             }
     }
@@ -6590,7 +6590,7 @@ SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col)
     top = get_fence_top(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, col);
 
     if (!WITHIN(p_person->WorldPos.Y >> 8, bot - 30, top)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     p_facet = &dfacets[col];
@@ -6906,7 +6906,7 @@ SLONG set_person_pos_for_half_step(Thing* p_person, SLONG col)
             if (does_fence_lie_along_line(
                     ax1, az1,
                     ax2, az2)) {
-                return FALSE;
+                return UC_FALSE;
             }
         }
 
@@ -7338,7 +7338,7 @@ void fn_person_idle(Thing* p_person)
                     turn_to_face_thing(p_person, TO_THING(p_person->Genus.Person->Target), 0);
 
             {
-                Thing* p_attacker = is_person_under_attack_low_level(p_person, FALSE, 0x200);
+                Thing* p_attacker = is_person_under_attack_low_level(p_person, UC_FALSE, 0x200);
 
                 if (p_attacker == NULL) {
                     // Nobody to fight — exit fight mode.
@@ -7372,7 +7372,7 @@ void fn_person_idle(Thing* p_person)
 
         if (p_person->Genus.Person->PlayerID && p_person->Genus.Person->Mode != PERSON_MODE_FIGHT && !person_has_gun_out(p_person)) {
             if (p_person->SubState != SUB_STATE_IDLE_CROUTCH_ARREST) {
-                Thing* p_attacker = is_person_under_attack_low_level(p_person, FALSE, 0x100);
+                Thing* p_attacker = is_person_under_attack_low_level(p_person, UC_FALSE, 0x100);
 
                 if (p_person->Genus.Person->pcom_colour) {
                     p_person->Genus.Person->pcom_colour--;
@@ -7938,7 +7938,7 @@ SLONG grab_ledge(Thing* p_person)
             &grab_z,
             &grab_angle,
             ignore_building,
-            FALSE, &type,
+            UC_FALSE, &type,
             p_person);
     }
 
@@ -8623,7 +8623,7 @@ ULONG check_limb_pos_on_ladder(Thing* p_person, SLONG sub_part, SLONG i_am_going
     return ans;
 }
 
-// Returns TRUE if the sub_part limb is within the height range of the fence facet.
+// Returns UC_TRUE if the sub_part limb is within the height range of the fence facet.
 // Limbs too close to the bottom do not count as "on the fence".
 // uc_orig: check_limb_pos_on_fence (fallen/Source/Person.cpp)
 SLONG check_limb_pos_on_fence(Thing* p_person, SLONG sub_part)
@@ -8645,13 +8645,13 @@ SLONG check_limb_pos_on_fence(Thing* p_person, SLONG sub_part)
     y1 += p_person->WorldPos.Y >> 8;
 
     if (WITHIN(y1, bottom + 20, top)) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
-// Returns TRUE if the sub_part limb is within the sideways extent of the fence facet
+// Returns UC_TRUE if the sub_part limb is within the sideways extent of the fence facet
 // (not off either end). Uses calc_along_vect to determine position along the fence.
 // uc_orig: check_limb_pos_on_fence_sideways (fallen/Source/Person.cpp)
 SLONG check_limb_pos_on_fence_sideways(Thing* p_person, SLONG sub_part)
@@ -8684,7 +8684,7 @@ SLONG check_limb_pos_on_fence_sideways(Thing* p_person, SLONG sub_part)
 // uc_orig: fn_person_laddering (fallen/Source/Person.cpp)
 void fn_person_laddering(Thing* p_person)
 {
-    BOOL play_it = FALSE;
+    BOOL play_it = UC_FALSE;
     UBYTE last_frame;
     SLONG end = 0, hit,
           foot_step_wave;
@@ -8695,7 +8695,7 @@ void fn_person_laddering(Thing* p_person)
         last_frame = p_person->Draw.Tweened->FrameIndex;
         end = person_normal_animate(p_person);
         if (p_person->Draw.Tweened->FrameIndex != last_frame && p_person->Draw.Tweened->FrameIndex == 3)
-            play_it = TRUE;
+            play_it = UC_TRUE;
 
         if (end == 1) {
             set_person_on_ladder(p_person);
@@ -8706,14 +8706,14 @@ void fn_person_laddering(Thing* p_person)
         break;
     case SUB_STATE_CLIMB_UP_LADDER:
 
-        on_ladder_left = check_limb_pos_on_ladder(p_person, SUB_OBJECT_LEFT_HAND, FALSE);
-        on_ladder_right = check_limb_pos_on_ladder(p_person, SUB_OBJECT_RIGHT_HAND, FALSE);
+        on_ladder_left = check_limb_pos_on_ladder(p_person, SUB_OBJECT_LEFT_HAND, UC_FALSE);
+        on_ladder_right = check_limb_pos_on_ladder(p_person, SUB_OBJECT_RIGHT_HAND, UC_FALSE);
 
         if ((on_ladder_left & on_ladder_right) & PERSON_LIMB_ON_LADDER) {
             last_frame = p_person->Draw.Tweened->FrameIndex;
             end = person_normal_animate(p_person);
             if (p_person->Draw.Tweened->FrameIndex != last_frame && ((p_person->Draw.Tweened->FrameIndex % 3 == 0) || (p_person->Draw.Tweened->FrameIndex % 6 == 0)))
-                play_it = TRUE;
+                play_it = UC_TRUE;
 
             if (end == 1) {
                 if (p_person->Genus.Person->PersonType == PERSON_ROPER)
@@ -8772,14 +8772,14 @@ void fn_person_laddering(Thing* p_person)
         break;
     case SUB_STATE_CLIMB_DOWN_LADDER:
 
-        on_ladder_left = check_limb_pos_on_ladder(p_person, SUB_OBJECT_LEFT_FOOT, TRUE);
-        on_ladder_right = check_limb_pos_on_ladder(p_person, SUB_OBJECT_RIGHT_FOOT, TRUE);
+        on_ladder_left = check_limb_pos_on_ladder(p_person, SUB_OBJECT_LEFT_FOOT, UC_TRUE);
+        on_ladder_right = check_limb_pos_on_ladder(p_person, SUB_OBJECT_RIGHT_FOOT, UC_TRUE);
 
         if ((on_ladder_left & on_ladder_right) & PERSON_LIMB_ON_LADDER) {
             last_frame = p_person->Draw.Tweened->FrameIndex;
             end = person_backwards_animate(p_person);
             if (p_person->Draw.Tweened->FrameIndex != last_frame && ((p_person->Draw.Tweened->FrameIndex % 3 == 0) || (p_person->Draw.Tweened->FrameIndex % 6 == 0)))
-                play_it = TRUE;
+                play_it = UC_TRUE;
 
             if (end == 1) {
                 MSG_add(" LOCKED CHANGE END \n");
@@ -8838,7 +8838,7 @@ void fn_person_laddering(Thing* p_person)
         last_frame = p_person->Draw.Tweened->FrameIndex;
         end = person_normal_animate(p_person);
         if (p_person->Draw.Tweened->FrameIndex != last_frame && (p_person->Draw.Tweened->FrameIndex == 1 || p_person->Draw.Tweened->FrameIndex == 3))
-            play_it = TRUE;
+            play_it = UC_TRUE;
 
         if (end == 1) {
             person_bodge_forward(p_person, 40);
@@ -9278,7 +9278,7 @@ void fn_person_dangling(Thing* p_person)
 
         if (p_person->SubState == SUB_STATE_DROP_DOWN_OFF_FACE) {
             // Don't grab faces when falling backwards off a face.
-            grab = FALSE;
+            grab = UC_FALSE;
         } else {
             grab = grab_ledge(p_person);
         }
@@ -9531,7 +9531,7 @@ void set_person_running_stop(Thing* p_person, SLONG leg)
     p_person->SubState = SUB_STATE_STOPPING;
 }
 
-// Returns TRUE if a player running into this facet should automatically begin climbing it.
+// Returns UC_TRUE if a player running into this facet should automatically begin climbing it.
 // Only checks climbable fence types; checks that the player is roughly facing the fence.
 // Wire-cutters in hand suppresses auto-climb (player may want to cut the fence instead).
 // uc_orig: should_person_automatically_land_on_fence (fallen/Source/Person.cpp)
@@ -9550,7 +9550,7 @@ SLONG should_person_automatically_land_on_fence(Thing* p_person, SLONG facet)
 
     // Only players auto-climb.
     if (p_person->Genus.Person->PlayerID == 0) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (p_person->Genus.Person->SpecialUse) {
@@ -9558,7 +9558,7 @@ SLONG should_person_automatically_land_on_fence(Thing* p_person, SLONG facet)
 
         if (p_special->Genus.Special->SpecialType == SPECIAL_WIRE_CUTTER) {
             // While holding wire cutters don't auto climb fences.
-            return (FALSE);
+            return (UC_FALSE);
         }
     }
 
@@ -9578,9 +9578,9 @@ SLONG should_person_automatically_land_on_fence(Thing* p_person, SLONG facet)
 #define FENCE_DA 128
 
             if ((da > FENCE_DA && da < 1024 - FENCE_DA) || (da > FENCE_DA + 1024 && da < 2048 - FENCE_DA)) {
-                return FALSE;
+                return UC_FALSE;
             } else {
-                return TRUE;
+                return UC_TRUE;
             }
         }
     }
@@ -9595,7 +9595,7 @@ SLONG should_person_automatically_land_on_fence(Thing* p_person, SLONG facet)
 
     */
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 #undef FENCE_DA
@@ -11662,7 +11662,7 @@ void fn_person_gun(Thing* p_person)
                         if (continue_firing(p_person)) {
                             p_person->Genus.Person->Timer1 = 0;
 
-                            set_person_shoot(p_person, TRUE);
+                            set_person_shoot(p_person, UC_TRUE);
 
                             return;
                         }
@@ -11758,23 +11758,23 @@ void fn_person_gun(Thing* p_person)
         }
 
         if (end == 1) {
-            SLONG firing_an_ak = FALSE;
+            SLONG firing_an_ak = UC_FALSE;
             SLONG fire_length = 4;
 
             if (!p_person->Genus.Person->PlayerID && p_person->Genus.Person->SpecialUse && TO_THING(p_person->Genus.Person->SpecialUse)->Genus.Special->SpecialType == SPECIAL_AK47) {
                 // NPC firing the AK47 — burst fire mode.
-                firing_an_ak = TRUE;
+                firing_an_ak = UC_TRUE;
             }
 
             if (PersonIsMIB(p_person)) {
-                firing_an_ak = TRUE;
+                firing_an_ak = UC_TRUE;
                 fire_length = 6;
             }
 
             if (firing_an_ak && p_person->Genus.Person->Timer1 < fire_length) {
                 SLONG old_timer = p_person->Genus.Person->Timer1;
 
-                set_person_shoot(p_person, TRUE);
+                set_person_shoot(p_person, UC_TRUE);
 
                 p_person->Genus.Person->Timer1 = old_timer + 1;
 
@@ -13718,7 +13718,7 @@ SLONG check_near_facet(Thing* p_person, SLONG max_dist, SLONG max_end_dist, SLON
                                             pz,
                                             0,
                                             0x00123456,
-                                            TRUE);
+                                            UC_TRUE);
       */
 
     {
@@ -13752,7 +13752,7 @@ SLONG check_near_facet(Thing* p_person, SLONG max_dist, SLONG max_end_dist, SLON
             break;
         }
         loop--;
-        exit = FALSE;
+        exit = UC_FALSE;
         if (mx >= 0 && mz >= 0 && mx < 32 && mz < 32) {
             f_list = PAP_2LO(mx, mz).ColVectHead;
 
@@ -13767,7 +13767,7 @@ SLONG check_near_facet(Thing* p_person, SLONG max_dist, SLONG max_end_dist, SLON
 
                 if (i_facet < 0) {
                     i_facet = -i_facet;
-                    exit = TRUE;
+                    exit = UC_TRUE;
                 }
 
                 df = &dfacets[i_facet];

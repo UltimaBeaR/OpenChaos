@@ -64,8 +64,8 @@ UBYTE cheat = 0;
 #define GET_JOYX(input) (((input >> 17) & 0xfe) - 128)
 #define GET_JOYY(input) (((input >> 24) & 0xfe) - 128)
 
-bool g_bPunishMePleaseICheatedOnThisLevel = FALSE;
-// bool m_bDontMoveIfBothTriggersDown = FALSE;
+bool g_bPunishMePleaseICheatedOnThisLevel = UC_FALSE;
+// bool m_bDontMoveIfBothTriggersDown = UC_FALSE;
 
 // claude-ai: ANALOGUE_MIN_VELOCITY — минимальная величина analog stick velocity, ниже которой
 // claude-ai: движение игнорируется (дополнительная мёртвая зона на уровне игровой логики).
@@ -81,7 +81,7 @@ SLONG input_mode = 0;
 SLONG mouse_input = 0;
 SLONG analogue = 0;
 
-bool g_bEngineVibrations = TRUE;
+bool g_bEngineVibrations = UC_TRUE;
 
 // on PC controls_inventory_mode has no effect on your ability to move, its purely a graphical effect on top of screen while you cycle through weapons
 #define CONTROLS_inventory_mode 0
@@ -150,7 +150,7 @@ void player_apply_move_analgue(Thing* p_thing, ULONG input);
 UBYTE joypad_button_use[16];
 UBYTE keybrd_button_use[16];
 
-bool m_bForceWalk = FALSE;
+bool m_bForceWalk = UC_FALSE;
 
 int g_iCheatNumber = -1;
 
@@ -560,13 +560,13 @@ void set_player_punch(Thing* p_person)
 }
 
 //
-// Returns TRUE if a person can safely jump. Returns
-// FALSE if they are in the doorway to a warehouse.
+// Returns UC_TRUE if a person can safely jump. Returns
+// UC_FALSE if they are in the doorway to a warehouse.
 //
 
 // claude-ai: should_i_jump() — проверяет, стоит ли Darci на границе склада (WARE_which_contains).
 // claude-ai: Если все 4 контрольные точки вокруг персонажа принадлежат тому же складскому сектору
-// claude-ai: (или вообще нет склада) — прыжок разрешён. Иначе FALSE (стоит в проёме склада — нельзя прыгать).
+// claude-ai: (или вообще нет склада) — прыжок разрешён. Иначе UC_FALSE (стоит в проёме склада — нельзя прыгать).
 // claude-ai: ВНИМАНИЕ: dx/dz захардкожены как 0x10000>>11 / 0 — не зависят от угла персонажа (баг/упрощение).
 SLONG should_i_jump(Thing* darci)
 {
@@ -608,14 +608,14 @@ SLONG should_i_jump(Thing* darci)
     z4 >>= 8;
 
     if (x1 == x2 && z1 == z2 && x1 == x3 && z1 == z3 && x1 == x4 && z1 == z4) {
-        return TRUE;
+        return UC_TRUE;
     } else {
         return WARE_which_contains(x1, z1) == WARE_which_contains(x2, z2) && WARE_which_contains(x3, z3) == WARE_which_contains(x4, z4);
     }
 }
 
 //
-// Returns TRUE if a person can safely backflip.
+// Returns UC_TRUE if a person can safely backflip.
 //
 
 SLONG should_person_backflip(Thing* darci)
@@ -693,7 +693,7 @@ SLONG bad_place_for_car(Thing* p_person, Thing* p_vehicle)
                     jx,0,jz,
                     16,
                     0x0000ff,
-                    TRUE);
+                    UC_TRUE);
     */
 
     signed_dist_to_line_with_normal(ix, iz, jx, jz,
@@ -712,7 +712,7 @@ SLONG bad_place_for_car(Thing* p_person, Thing* p_vehicle)
 }
 
 //
-// Returns TRUE if a person can get into a particular car.
+// Returns UC_TRUE if a person can get into a particular car.
 //
 extern void get_car_door_offsets(SLONG type, SLONG door, SLONG* dx, SLONG* dz);
 
@@ -791,12 +791,12 @@ SLONG in_right_place_for_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
 
                 ASSERT(*door == 0 || *door == 1);
 
-                return TRUE;
+                return UC_TRUE;
             }
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 SLONG person_get_in_specific_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
@@ -806,7 +806,7 @@ SLONG person_get_in_specific_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
         // This vehicle is already occupied.
         //
 
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (p_vehicle->State == STATE_DEAD) {
@@ -814,7 +814,7 @@ SLONG person_get_in_specific_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
         // Broken car!
         //
 
-        return FALSE;
+        return UC_FALSE;
     }
 
     //
@@ -825,7 +825,7 @@ SLONG person_get_in_specific_car(Thing* p_person, Thing* p_vehicle, SLONG* door)
 }
 
 //
-// Returns TRUE if the person can get into a car. Sets the person BUMP_CAR flag and
+// Returns UC_TRUE if the person can get into a car. Sets the person BUMP_CAR flag and
 // their InCar field to be the index of the car they can get into and sets *door
 // to be 0 or 1 depending on which door they are getting into.
 //
@@ -858,11 +858,11 @@ SLONG person_get_in_car(Thing* p_thing, SLONG* door)
         if (person_get_in_specific_car(p_thing, col_thing, door)) {
             p_thing->Genus.Person->InCar = THING_NUMBER(col_thing);
 
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 //
@@ -1350,7 +1350,7 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
                 extern SLONG OB_find_type(SLONG mid_x, SLONG mid_y, SLONG mid_z, SLONG max_range, ULONG prim_flags, SLONG * ob_x, SLONG * ob_y, SLONG * ob_z, SLONG * ob_yaw, SLONG * ob_prim, SLONG * ob_index);
 
                 //				if(OB_find_type(p_thing->WorldPos.X>>8,p_thing->WorldPos.Y>>8,p_thing->WorldPos.Z>>8,256,0xff,&ob_x,&ob_y,&ob_z,&ob_yaw,&ob_prim))
-                if (oi = OB_find_index(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Y >> 8, p_thing->WorldPos.Z >> 8, 256, TRUE)) {
+                if (oi = OB_find_index(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Y >> 8, p_thing->WorldPos.Z >> 8, 256, UC_TRUE)) {
                     if (oi)
                         if (set_person_search(p_thing, oi->index, oi->x, oi->y, oi->z)) {
                             // PANEL_new_text(NULL,4000,"ACTION search prim");
@@ -1417,8 +1417,8 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
                             PCOM_make_people_talk_to_eachother(
                                 TO_THING(use),
                                 p_thing,
-                                FALSE,
-                                FALSE);
+                                UC_FALSE,
+                                UC_FALSE);
                             // PANEL_new_text(NULL,4000,"ACTION use person");
                             return INPUT_MASK_ACTION;
                         }
@@ -1441,8 +1441,8 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
                             PCOM_make_people_talk_to_eachother(
                                 TO_THING(use),
                                 p_thing,
-                                FALSE,
-                                FALSE);
+                                UC_FALSE,
+                                UC_FALSE);
 
                             if (TO_THING(use)->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY) {
                                 message_type = EWAY_FAKE_MESSAGE_GUILTY;
@@ -1462,8 +1462,8 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
                                 PCOM_make_people_talk_to_eachother(
                                     TO_THING(use),
                                     p_thing,
-                                    FALSE,
-                                    FALSE);
+                                    UC_FALSE,
+                                    UC_FALSE);
                             }
                         }
                 }
@@ -1953,7 +1953,7 @@ void player_interface_move(Thing* p_thing, ULONG input)
 void init_user_interface(void)
 {
     USER_INTERFACE = 0;
-    PANEL_scanner_poo = ENV_get_value_number("scanner_follows", TRUE, "Game");
+    PANEL_scanner_poo = ENV_get_value_number("scanner_follows", UC_TRUE, "Game");
 }
 
 //
@@ -2207,9 +2207,9 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
     SLONG facing_camera;
 
     if (abs(dangle) > 512) {
-        facing_camera = TRUE;
+        facing_camera = UC_TRUE;
     } else {
-        facing_camera = FALSE;
+        facing_camera = UC_FALSE;
     }
 
     if (velocity > ANALOGUE_MIN_VELOCITY) {
@@ -4025,7 +4025,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
     {
         if (pl->Pressed & (INPUT_MASK_ACTION | INPUT_MASK_PUNCH | INPUT_MASK_KICK | INPUT_MASK_JUMP)) {
             p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_BLOCK;
-            pl->DoneSomething = TRUE;
+            pl->DoneSomething = UC_TRUE;
             // PANEL_new_text(NULL,4000,"grapple");
             return (pl->Pressed & (INPUT_MASK_ACTION | INPUT_MASK_PUNCH | INPUT_MASK_KICK | INPUT_MASK_JUMP));
         }
@@ -4045,7 +4045,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
                 // PANEL_new_text(NULL,4000,"COMBAT find arrest");
                 if (p_person->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_person))) {
                     set_person_arrest(p_person, index);
-                    pl->DoneSomething = TRUE;
+                    pl->DoneSomething = UC_TRUE;
                     // PANEL_new_text(NULL,4000,"combat DO arrest");
                     return INPUT_MASK_ACTION;
                 }
@@ -4073,7 +4073,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
                 }
 
                 person_pick_best_target(p_person, 1);
-                pl->DoneSomething = TRUE;
+                pl->DoneSomething = UC_TRUE;
                 return INPUT_MASK_ACTION;
             }
     }
@@ -4219,7 +4219,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
                 //	WAVE_PLAY_INTERUPT);
             }
 
-            pl->DoneSomething = TRUE;
+            pl->DoneSomething = UC_TRUE;
         } else if (pl->Pressed & INPUT_MASK_KICK) {
             if (p_person->Genus.Person->Timer1 < 5 || (input & (INPUT_MASK_DIR))) {
                 if ((input & INPUT_MASK_LEFT) || dir == 4) {
@@ -4334,7 +4334,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
             // So we can differentiate a left-release from a left-punch-release
             //
 
-            pl->DoneSomething = TRUE;
+            pl->DoneSomething = UC_TRUE;
         } else if (pl->Pressed & INPUT_MASK_ACTION) {
             //
             // action in fight is block
@@ -4343,7 +4343,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
             set_person_idle(p_person);
 
             // set_person_block(p_person);
-            pl->DoneSomething = TRUE;
+            pl->DoneSomething = UC_TRUE;
             // PANEL_new_text(NULL,4000,"action in fight is block");
             return (INPUT_MASK_ACTION);
         }
@@ -4554,7 +4554,7 @@ ULONG get_hardware_input(UWORD type)
     SLONG dist;
     UWORD c0;
 
-    static bool bLastInputWasntAnInputCozThereWasNoController = TRUE;
+    static bool bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
 
     //
     //	Temporary joystick stuff.
@@ -4617,9 +4617,9 @@ ULONG get_hardware_input(UWORD type)
 
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_MOVE]])) {
                     // Force walk
-                    m_bForceWalk = TRUE;
+                    m_bForceWalk = UC_TRUE;
                 } else {
-                    m_bForceWalk = FALSE;
+                    m_bForceWalk = UC_FALSE;
                 }
 
                 // claude-ai: Упаковка аналоговых осей в старшие биты ULONG input (PC путь, не Dreamcast).
@@ -4734,7 +4734,7 @@ ULONG get_hardware_input(UWORD type)
                 if (bLastInputWasntAnInputCozThereWasNoController) {
                     // There wasn't a last input, so ignore any buttons pressed when the controller is inserted/recognised.
                     m_PreviousInput = m_CurrentInput;
-                    bLastInputWasntAnInputCozThereWasNoController = FALSE;
+                    bLastInputWasntAnInputCozThereWasNoController = UC_FALSE;
                 }
 
                 m_CurrentGoneDownInput = (m_CurrentInput & ~(m_PreviousInput)) & INPUT_MASK_ALL_BUTTONS;
@@ -4747,7 +4747,7 @@ ULONG get_hardware_input(UWORD type)
             }
         } else {
             // No controller.
-            bLastInputWasntAnInputCozThereWasNoController = TRUE;
+            bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
         }
     }
 
@@ -4935,12 +4935,12 @@ ULONG pre_process_input(SLONG mode, ULONG input)
     */
 }
 
-SLONG FirstPersonMode = FALSE;
+SLONG FirstPersonMode = UC_FALSE;
 
 ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG input, ULONG* processed)
 {
-    static SLONG look_ami = FALSE;
-    SLONG fpm = FALSE;
+    static SLONG look_ami = UC_FALSE;
+    SLONG fpm = UC_FALSE;
     SLONG gun = 0;
 
     *processed = 0;
@@ -4955,11 +4955,11 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
     extern DIJOYSTATE the_state;
 
     if ((Keys[keybrd_button_use[JOYPAD_BUTTON_1STPERSON]]) || the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_1STPERSON]]) {
-        fpm = TRUE;
+        fpm = UC_TRUE;
     }
 
     if (p_person->State != STATE_IDLE && p_person->State != STATE_GUN && p_person->State != STATE_NORMAL && p_person->State != STATE_HIT_RECOIL) {
-        fpm = FALSE;
+        fpm = UC_FALSE;
     }
 
     /*
@@ -4967,7 +4967,7 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
     if (p_person->Genus.Person->Action == ACTION_AIM_GUN ||
             p_person->Genus.Person->Action == ACTION_SHOOT)
     {
-            fpm = TRUE;
+            fpm = UC_TRUE;
             gun=1;
     }
     else
@@ -4979,7 +4979,7 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
                     // Drawing the pistol.
                     //
 
-                    fpm = TRUE;
+                    fpm = UC_TRUE;
             }
             else
             {
@@ -4993,7 +4993,7 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
                     {
                             case SPECIAL_AK47:
                             case SPECIAL_SHOTGUN:
-                                    fpm = TRUE;
+                                    fpm = UC_TRUE;
                                     break;
                     }
             }
@@ -5008,7 +5008,7 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             //
 
             p_person->Genus.Person->Flags2 |= FLAG2_PERSON_LOOK;
-            look_ami = TRUE;
+            look_ami = UC_TRUE;
             look_pitch = -FC_cam[p_person->Genus.Person->PlayerID - 1].pitch >> 8;
             look_pitch &= 2047;
 
@@ -5106,7 +5106,7 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             } else
                 FC_force_camera_behind(p_person->Genus.Person->PlayerID - 1);
 
-            look_ami = FALSE;
+            look_ami = UC_FALSE;
             look_pitch = 0;
         }
     }
@@ -5118,34 +5118,34 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 SLONG can_darci_change_weapon(Thing* p_person)
 {
     if (EWAY_stop_player_moving()) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (p_person->State == STATE_IDLE) {
-        return TRUE;
+        return UC_TRUE;
     }
 
     if (p_person->State == STATE_MOVEING) {
         if (p_person->SubState == SUB_STATE_RUNNING || p_person->SubState == SUB_STATE_WALKING) {
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
     if (p_person->State == STATE_GUN) {
         if (p_person->SubState == SUB_STATE_AIM_GUN) {
-            return TRUE;
+            return UC_TRUE;
         }
     }
     if (p_person->SubState == SUB_STATE_ITEM_AWAY)
-        return TRUE;
+        return UC_TRUE;
 
     if (p_person->SubState == SUB_STATE_DRAW_ITEM)
-        return TRUE;
+        return UC_TRUE;
 
     if (p_person->SubState == SUB_STATE_DRAW_GUN)
-        return TRUE;
+        return UC_TRUE;
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 //
@@ -5281,7 +5281,7 @@ void process_hardware_level_input_for_player(Thing* p_player)
     */
 
     if (pl->Pressed) {
-        pl->DoneSomething = FALSE;
+        pl->DoneSomething = UC_FALSE;
     }
 
     //
@@ -5319,7 +5319,7 @@ void process_hardware_level_input_for_player(Thing* p_player)
         MSG_add(" still action");
     }
 
-    SLONG no_control = FALSE;
+    SLONG no_control = UC_FALSE;
 
     extern Form* form_leave_map;
     extern SLONG form_left_map;
@@ -5602,7 +5602,7 @@ SLONG continue_firing(Thing* p_person)
 
         if (p_special->Genus.Special->SpecialType == SPECIAL_AK47) {
             if (p_special->Genus.Special->ammo == 0) {
-                return FALSE;
+                return UC_FALSE;
             }
         }
     }
@@ -5612,9 +5612,9 @@ SLONG continue_firing(Thing* p_person)
         input = PACKET_DATA(p_player->Genus.Player->PlayerID);
 
         if (input & INPUT_MASK_PUNCH) {
-            return TRUE;
+            return UC_TRUE;
         } else {
-            return FALSE;
+            return UC_FALSE;
         }
     } else {
         Thing* p_target;
@@ -5630,13 +5630,13 @@ SLONG continue_firing(Thing* p_person)
             p_target = TO_THING(i_target);
 
             if (p_target->State == STATE_DEAD) {
-                return FALSE;
+                return UC_FALSE;
             } else {
-                return TRUE;
+                return UC_TRUE;
             }
         }
 
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

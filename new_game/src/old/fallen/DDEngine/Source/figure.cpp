@@ -153,7 +153,7 @@ void DeadAndBuried(DWORD dwColour)
     res = the_display.lp_DD_FrontSurface->Unlock(NULL);
 }
 
-// Returns TRUE if this chunk is not near-Z clipped, FALSE if it is.
+// Returns UC_TRUE if this chunk is not near-Z clipped, UC_FALSE if it is.
 bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     int iMatrixNum,
     SLONG prim,
@@ -185,7 +185,7 @@ ALIGNED_STATIC_ARRAY(static D3DVERTEX*, MM_Vertex, 4, D3DVERTEX, 32);
 ALIGNED_STATIC_ARRAY(static float*, MM_pNormal, 4, float, 8);
 
 D3DVECTOR MM_vLightDir;
-bool MM_bLightTableAlreadySetUp = FALSE;
+bool MM_bLightTableAlreadySetUp = UC_FALSE;
 
 // claude-ai: BuildMMLightingTable — pre-compute a 128-entry D3DCOLOR lookup table used
 // claude-ai: by the D3D MultiMatrix extension for per-body-part lighting.
@@ -669,7 +669,7 @@ BOOL MSOptimizeIndexedList(WORD* pwIndices, int nTriangles)
 {
 
     if (!mesh.SetSize(nTriangles))
-        return FALSE;
+        return UC_FALSE;
 
     mesh.Clear();
 
@@ -681,7 +681,7 @@ BOOL MSOptimizeIndexedList(WORD* pwIndices, int nTriangles)
     }
 
     if (mesh.NumVertices() == 0)
-        return FALSE;
+        return UC_FALSE;
 
     int nLength = nTriangles;
     int nTotal = 0;
@@ -692,7 +692,7 @@ BOOL MSOptimizeIndexedList(WORD* pwIndices, int nTriangles)
         nTotal += nLength;
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // claude-ai: get_steam_rand — cheap LCG pseudo-random for steam/fire particle positions.
@@ -1157,7 +1157,7 @@ float m_fObjectBoundingSphereRadius[MAX_NUMBER_D3D_PRIMS];
 TomsPrimObject D3DPeopleObj[MAX_NUMBER_D3D_PEOPLE];
 
 // iFaceNum: the face number
-// bTri: TRUE if it's a tri, FALSE if it's a quad.
+// bTri: UC_TRUE if it's a tri, UC_FALSE if it's a quad.
 // claude-ai: FIGURE_find_face_D3D_texture_page — resolves which texture page to use for
 // claude-ai: a given face (tri or quad). Returns a UWORD with bit flags:
 // claude-ai:   bits [0..11] = TEXTURE_PAGE_MASK (0x0fff): base page index
@@ -1222,7 +1222,7 @@ UWORD FIGURE_find_face_D3D_texture_page(int iFaceNum, bool bTri)
                 // page=jacket_lookup[3][GET_SKILL(p_thing)>>2];
                 break;
             default:
-                ASSERT(FALSE);
+                ASSERT(UC_FALSE);
                 break;
             }
             // page+=FACE_PAGE_OFFSET;
@@ -1415,7 +1415,7 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
             // In this case, just find the first that is occupied and clean it instead.
             if (ptpoLRUQueue[iOldestSlot] == NULL) {
                 // Warn me.
-                ASSERT(FALSE);
+                ASSERT(UC_FALSE);
 
                 // And recover gracefully...
 
@@ -1634,7 +1634,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
         ASSERT(pOuterObj != NULL);
 
-        bool bOuterTris = FALSE;
+        bool bOuterTris = UC_FALSE;
         do {
             int iOuterFaceNum;
             int iOuterFaceEnd;
@@ -1738,7 +1738,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                             // Just scan this object from where the outer one is.
                             bInnerTris = bOuterTris;
                         } else {
-                            bInnerTris = FALSE;
+                            bInnerTris = UC_FALSE;
                         }
 
                         do {
@@ -1758,7 +1758,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         // If the outer loop was scanning tris,
                                         // it did so after scanning all quads,
                                         // so why are we scanning quads in the inner loop?
-                                        ASSERT(FALSE);
+                                        ASSERT(UC_FALSE);
                                         iInnerFaceNum = pInnerObj->StartFace4;
                                     } else {
                                         iInnerFaceNum = iOuterFaceNum;
@@ -1779,11 +1779,11 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                             for (; iInnerFaceNum < iInnerFaceEnd; iInnerFaceNum++) {
                                 UWORD wTexturePage = FIGURE_find_face_D3D_texture_page(iInnerFaceNum, bInnerTris);
 
-                                bool bSamePage = FALSE;
+                                bool bSamePage = UC_FALSE;
 
                                 if (pMaterial->wTexturePage == wTexturePage) {
                                     // Exactly the same page.
-                                    bSamePage = TRUE;
+                                    bSamePage = UC_TRUE;
                                 } else if (pRenderedPage != NULL) {
                                     // if ( ( ( pMaterial->wTexturePage & ~TEXTURE_PAGE_MASK ) == 0 ) &&
                                     //	 ( ( wTexturePage & ~TEXTURE_PAGE_MASK ) == 0 )
@@ -1791,7 +1791,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                         // Nothing special about either page.
                                         if (pRenderedPage == (POLY_Page[wTexturePage & TEXTURE_PAGE_MASK].pTheRealPolyPage)) {
                                             // The textures match!
-                                            bSamePage = TRUE;
+                                            bSamePage = UC_TRUE;
                                         }
                                     }
                                 }
@@ -2007,8 +2007,8 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                     // Previous edge.
                     WORD wIndex0 = -1;
                     WORD wIndex1 = -1;
-                    bool bOdd = FALSE;
-                    bool bFirst = TRUE;
+                    bool bOdd = UC_FALSE;
+                    bool bFirst = UC_TRUE;
                     for (int i = pMaterial->wNumListIndices / 3; i > 0; i--) {
                         // Can we continue the list?
                         WORD wNextIndex = -1;
@@ -2049,7 +2049,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
                                 }
 
                             } else {
-                                bFirst = FALSE;
+                                bFirst = UC_FALSE;
                             }
                             *TPO_pCurStripIndex++ = pSrcIndex[0];
                             *TPO_pCurStripIndex++ = pSrcIndex[1];
@@ -2064,7 +2064,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 
                             wIndex0 = pSrcIndex[2];
                             wIndex1 = pSrcIndex[1];
-                            bOdd = FALSE;
+                            bOdd = UC_FALSE;
                         }
                         pSrcIndex += 3;
                     }
@@ -2682,7 +2682,7 @@ no_muzzle_calcs:
     // The wonderful NEW system!
 
     // The MM stuff doesn't like specular to be enabled.
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, FALSE);
+    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
 
     // For now, just calculate as-and-when.
     TomsPrimObject* pPrimObj = &(D3DObj[prim]);
@@ -2752,7 +2752,7 @@ no_muzzle_calcs:
 
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
+            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
             pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             pa->RS.SetChanged();
 
@@ -2795,7 +2795,7 @@ no_muzzle_calcs:
     }
 
     // The MM stuff doesn't like specular to be enabled.
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
+    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
 
     // Not done yet.
 
@@ -3410,8 +3410,8 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     // Gets pre-incremented to 0 before use.
     int iTPOPartNumber = -1;
-    bool bWholePersonVisible = TRUE;
-    bool bBitsOfPersonVisible = FALSE;
+    bool bWholePersonVisible = UC_TRUE;
+    bool bBitsOfPersonVisible = UC_FALSE;
 
     recurse_level = 0;
     while (recurse_level >= 0) {
@@ -3464,22 +3464,22 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                         if (iPartNumber == hand) {
                             if (p_person->Draw.Tweened->Flags & DT_FLAG_GUNFLASH) {
                                 SLONG prim;
-                                bool bDrawMuzzleFlash = FALSE;
+                                bool bDrawMuzzleFlash = UC_FALSE;
                                 p_person->Draw.Tweened->Flags &= ~DT_FLAG_GUNFLASH;
                                 switch (p_person->Draw.Tweened->PersonID >> 5) {
                                 case 1: // Pistol
                                     prim = 261;
-                                    bDrawMuzzleFlash = TRUE;
+                                    bDrawMuzzleFlash = UC_TRUE;
                                     break;
 
                                 case 3: // Shotgun
                                     prim = 262;
-                                    bDrawMuzzleFlash = TRUE;
+                                    bDrawMuzzleFlash = UC_TRUE;
                                     break;
 
                                 case 5: // AK
                                     prim = 263;
-                                    bDrawMuzzleFlash = TRUE;
+                                    bDrawMuzzleFlash = UC_TRUE;
                                     break;
 
                                 default:
@@ -3603,7 +3603,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     // The wonderful NEW system!
 
     // The MM stuff doesn't like specular to be enabled.
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, FALSE);
+    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
 
     // Tell the LRU cache we used this one.
     FIGURE_touch_LRU_of_object(pPrimObj);
@@ -3662,7 +3662,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
+            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
             pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             pa->RS.SetChanged();
 
@@ -3694,7 +3694,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     }
 
     // The MM stuff doesn't like specular to be enabled.
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
+    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
 
     // No environment mapping.
     ASSERT(p_person && (p_person->Class != CLASS_VEHICLE));
@@ -3789,22 +3789,22 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
                         if (iPartNumber == hand) {
                             if (p_person->Draw.Tweened->Flags & DT_FLAG_GUNFLASH) {
                                 SLONG prim;
-                                bool bDrawMuzzleFlash = FALSE;
+                                bool bDrawMuzzleFlash = UC_FALSE;
                                 p_person->Draw.Tweened->Flags &= ~DT_FLAG_GUNFLASH;
                                 switch (p_person->Draw.Tweened->PersonID >> 5) {
                                 case 1: // Pistol
                                     prim = 261;
-                                    bDrawMuzzleFlash = TRUE;
+                                    bDrawMuzzleFlash = UC_TRUE;
                                     break;
 
                                 case 3: // Shotgun
                                     prim = 262;
-                                    bDrawMuzzleFlash = TRUE;
+                                    bDrawMuzzleFlash = UC_TRUE;
                                     break;
 
                                 case 5: // AK
                                     prim = 263;
-                                    bDrawMuzzleFlash = TRUE;
+                                    bDrawMuzzleFlash = UC_TRUE;
                                     break;
 
                                 default:
@@ -4104,7 +4104,7 @@ void FIGURE_draw(Thing* p_thing)
 
     BuildMMLightingTable(p, 0);
 
-    MM_bLightTableAlreadySetUp = TRUE;
+    MM_bLightTableAlreadySetUp = UC_TRUE;
 
     //
     // Draw each body part.
@@ -4185,7 +4185,7 @@ void FIGURE_draw(Thing* p_thing)
 
     // Clean up after ourselves.
     ASSERT(MM_bLightTableAlreadySetUp);
-    MM_bLightTableAlreadySetUp = FALSE;
+    MM_bLightTableAlreadySetUp = UC_FALSE;
 
     //
     // In case this thing ain't a person...
@@ -4217,7 +4217,7 @@ void FIGURE_draw(Thing* p_thing)
             py += p_person->WorldPos.Y >> 8;
             pz += p_person->WorldPos.Z >> 8;
 
-            kludge_shrink = TRUE;
+            kludge_shrink = UC_TRUE;
 
             MESH_draw_poly(
                 PRIM_OBJ_ITEM_GRENADE,
@@ -4227,7 +4227,7 @@ void FIGURE_draw(Thing* p_thing)
                 0, 0, 0,
                 NULL, 0xff);
 
-            kludge_shrink = FALSE;
+            kludge_shrink = UC_FALSE;
         }
     }
     p_thing->Flags &= ~FLAGS_PERSON_AIM_AND_RUN;
@@ -4284,7 +4284,7 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
                     apb->maxz + (p_thing->WorldPos.Z >> 8),
                     0x16,
                     0x000ccccff,
-                    TRUE);
+                    UC_TRUE);
     }
 
     */
@@ -4833,9 +4833,9 @@ void FIGURE_draw_prim_tween_reflection(
                 page += FACE_PAGE_OFFSET;
 
                 if (the_display.GetDeviceInfo()->AdamiLightingSupported()) {
-                    POLY_add_quad(quad, POLY_PAGE_COLOUR, TRUE);
+                    POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_TRUE);
                 }
-                POLY_add_quad(quad, page, TRUE);
+                POLY_add_quad(quad, page, UC_TRUE);
             } else {
                 /*
 
@@ -4858,7 +4858,7 @@ void FIGURE_draw_prim_tween_reflection(
                 quad[2]->colour = face_colour;
                 quad[3]->colour = face_colour;
 
-                POLY_add_quad(quad, POLY_PAGE_COLOUR, TRUE);
+                POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_TRUE);
 
                 quad[0]->colour = colour;
                 quad[1]->colour = colour;
@@ -4910,9 +4910,9 @@ void FIGURE_draw_prim_tween_reflection(
                 page += FACE_PAGE_OFFSET;
 
                 if (the_display.GetDeviceInfo()->AdamiLightingSupported()) {
-                    POLY_add_triangle(tri, POLY_PAGE_COLOUR, TRUE);
+                    POLY_add_triangle(tri, POLY_PAGE_COLOUR, UC_TRUE);
                 }
-                POLY_add_triangle(tri, page, TRUE);
+                POLY_add_triangle(tri, page, UC_TRUE);
             } else {
                 /*
 
@@ -4934,7 +4934,7 @@ void FIGURE_draw_prim_tween_reflection(
                 tri[1]->colour = face_colour;
                 tri[2]->colour = face_colour;
 
-                POLY_add_triangle(tri, POLY_PAGE_COLOUR, TRUE);
+                POLY_add_triangle(tri, POLY_PAGE_COLOUR, UC_TRUE);
 
                 tri[0]->colour = colour;
                 tri[1]->colour = colour;
@@ -5047,10 +5047,10 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     // Initialise the bounding box.
     //
 
-    FIGURE_reflect_x1 = +INFINITY;
-    FIGURE_reflect_y1 = +INFINITY;
-    FIGURE_reflect_x2 = -INFINITY;
-    FIGURE_reflect_y2 = -INFINITY;
+    FIGURE_reflect_x1 = +UC_INFINITY;
+    FIGURE_reflect_y1 = +UC_INFINITY;
+    FIGURE_reflect_x2 = -UC_INFINITY;
+    FIGURE_reflect_y2 = -UC_INFINITY;
 
     //
     // The height of the plane the body-parts are clipped against.
@@ -5146,12 +5146,12 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
 // claude-ai: Also computes the surface normal direction for that matrix slot (for lighting).
 // claude-ai: Does NOT emit any geometry — that comes in a single DrawIndPrimMM call afterwards.
 // claude-ai: [INTERP: lerp of OffsetX/Y/Z; slerp of rotation via CQuaternion::BuildTween]
-// claude-ai: Returns FALSE if the body part is entirely behind the near-Z clip plane (skip it).
+// claude-ai: Returns UC_FALSE if the body part is entirely behind the near-Z clip plane (skip it).
 // Like FIGURE_draw_prim_tween, but optimised for the person-only case.
 // Also assumes the lighting has been set up, etc.
 // This just sets up the matrix and light vector it's asked to - it doesn't
 // do anything else.
-// Return value is TRUE if this body part is not clipped by the near-Z.
+// Return value is UC_TRUE if this body part is not clipped by the near-Z.
 bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     int iMatrixNum,
     SLONG prim,
@@ -5348,11 +5348,11 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     ASSERT((character_scalef < 1.2f) && (character_scalef > 0.8f));
     // ASSERT ( !pa->RS.NeedsSorting() && ( FIGURE_alpha == 255 ) );
     //  claude-ai: Near-Z bounding sphere cull per body part: if the part's closest point
-    //  claude-ai: is behind POLY_ZCLIP_PLANE, skip matrix setup and return FALSE (not drawn).
+    //  claude-ai: is behind POLY_ZCLIP_PLANE, skip matrix setup and return UC_FALSE (not drawn).
     //  claude-ai: m_fObjectBoundingSphereRadius[prim] was computed during FIGURE_TPO_finish_3d_object.
     if ((((g_matWorld._43 * 32768.0f) - ((m_fObjectBoundingSphereRadius[prim]) * character_scalef)) < (POLY_ZCLIP_PLANE * 32768.0f))) {
         // Clipped by Z-plane. Don't set this matrix up, just return.
-        return FALSE;
+        return UC_FALSE;
     }
 
     //
@@ -5495,7 +5495,7 @@ no_muzzle_calcs:
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // claude-ai: FIGURE_draw_prim_tween_person_only — full software-renderer fallback for one
@@ -5948,7 +5948,7 @@ no_muzzle_calcs:
     // The wonderful NEW system!
 
     // The MM stuff doesn't like specular to be enabled.
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, FALSE);
+    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
 
     // For now, just calculate as-and-when.
     TomsPrimObject* pPrimObj = &(D3DObj[prim]);
@@ -6019,7 +6019,7 @@ no_muzzle_calcs:
 
             // Fast as lightning.
             pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
+            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
             pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             pa->RS.SetChanged();
 
@@ -6062,7 +6062,7 @@ no_muzzle_calcs:
     }
 
     // The MM stuff doesn't like specular to be enabled.
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
+    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
 
     // No environment mapping.
     ASSERT(p_thing && (p_thing->Class != CLASS_VEHICLE));

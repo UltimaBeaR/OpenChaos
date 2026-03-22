@@ -26,7 +26,7 @@ extern D3DTexture TEXTURE_texture[TEXTURE_MAX_TEXTURES];
 extern CRINKLE_Handle TEXTURE_crinkle[22 * 64];
 
 // uc_orig: TEXTURE_dontexist (fallen/DDEngine/Source/texture.cpp)
-// Flags set to TRUE for pages where the TGA file does not exist.
+// Flags set to UC_TRUE for pages where the TGA file does not exist.
 extern UBYTE TEXTURE_dontexist[TEXTURE_MAX_TEXTURES];
 
 // uc_orig: TEXTURE_needed (fallen/DDEngine/Source/texture.cpp)

@@ -274,7 +274,7 @@ void DIKE_draw(DIKE_Dike* dd)
         dd->bz >> 8,
         32,
         0xffffff,
-        FALSE);
+        UC_FALSE);
 
     FMATRIX_vector(steer, (dd->yaw + (dd->steer << 2)) & 2047, dd->pitch);
 
@@ -293,5 +293,5 @@ void DIKE_draw(DIKE_Dike* dd)
         dd->fz - steer[2] >> 8,
         16,
         0xffffff,
-        FALSE);
+        UC_FALSE);
 }

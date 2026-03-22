@@ -9,7 +9,7 @@ OUTRO_TGA_Info OUTRO_TGA_FileLoad_Error(OUTRO_TGA_Info& ans, FILE*& handle, cons
 {
 
     fclose(handle);
-    ans.valid = FALSE;
+    ans.valid = UC_FALSE;
     return ans;
 }
 
@@ -46,7 +46,7 @@ OUTRO_TGA_Info OUTRO_TGA_load(
     handle = fopen(file, "rb");
 
     if (handle == NULL) {
-        ans.valid = FALSE;
+        ans.valid = UC_FALSE;
         return ans;
     }
 
@@ -71,7 +71,7 @@ OUTRO_TGA_Info OUTRO_TGA_load(
     // Is this a valid tga file?
     //
 
-    ans.valid = FALSE;
+    ans.valid = UC_FALSE;
     ans.width = tga_width;
     ans.height = tga_height;
     ans.flag = 0;
@@ -95,7 +95,7 @@ OUTRO_TGA_Info OUTRO_TGA_load(
     // The tga file is valid...
     //
 
-    ans.valid = TRUE;
+    ans.valid = UC_TRUE;
 
     //
     // Skip past the image identification field.
@@ -114,7 +114,7 @@ OUTRO_TGA_Info OUTRO_TGA_load(
         if (fread(data, sizeof(OUTRO_TGA_Pixel), tga_width * tga_height, handle) != tga_width * tga_height)
             return OUTRO_TGA_FileLoad_Error(ans, handle, file);
 
-        no_alpha = FALSE;
+        no_alpha = UC_FALSE;
     } else {
         //
         // We have to load a pixel in at a time to add the NULL alpha channel.
@@ -134,7 +134,7 @@ OUTRO_TGA_Info OUTRO_TGA_load(
             data[i].alpha = 255;
         }
 
-        no_alpha = TRUE;
+        no_alpha = UC_TRUE;
     }
 
     fclose(handle);

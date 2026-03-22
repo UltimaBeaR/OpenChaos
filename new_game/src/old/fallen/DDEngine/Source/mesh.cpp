@@ -1022,7 +1022,7 @@ NIGHT_Colour* MESH_draw_guts(
                         quad[2]->specular |= (0x00888888 & ~POLY_colour_restrict);
                         quad[3]->specular |= (0x00888888 & ~POLY_colour_restrict);
 
-                        POLY_add_quad(quad, 86, TRUE);
+                        POLY_add_quad(quad, 86, UC_TRUE);
                     }
                 }
             }
@@ -1826,7 +1826,7 @@ void MESH_init_reflections()
         mr = &MESH_reflection[i];
 
         if (mr->calculated) {
-            mr->calculated = FALSE;
+            mr->calculated = UC_FALSE;
 
             MemFree(mr->mp);
             MemFree(mr->mf);
@@ -2062,7 +2062,7 @@ void MESH_add_poly(MESH_Reflection* mr, MESH_Add poly[], SLONG num_points, SLONG
             ma->u = u;
             ma->v = v;
             ma->fade = fade;
-            ma->index = INFINITY; // Mark as not having an index.
+            ma->index = UC_INFINITY; // Mark as not having an index.
         }
     }
 
@@ -2142,13 +2142,13 @@ void MESH_add_poly(MESH_Reflection* mr, MESH_Add poly[], SLONG num_points, SLONG
         // Make sure each of the points has been added to the object.
         //
 
-        if (mp1->index == INFINITY) {
+        if (mp1->index == UC_INFINITY) {
             mp1->index = MESH_add_point(mr, mp1->x, mp1->y, mp1->z, mp1->fade);
         }
-        if (mp2->index == INFINITY) {
+        if (mp2->index == UC_INFINITY) {
             mp2->index = MESH_add_point(mr, mp2->x, mp2->y, mp2->z, mp2->fade);
         }
-        if (mpl->index == INFINITY) {
+        if (mpl->index == UC_INFINITY) {
             mpl->index = MESH_add_point(mr, mpl->x, mpl->y, mpl->z, mpl->fade);
         }
 
@@ -2310,7 +2310,7 @@ void MESH_create_reflection(SLONG prim)
         }
     }
 
-    mr->calculated = TRUE;
+    mr->calculated = UC_TRUE;
 }
 
 void MESH_draw_reflection(
@@ -2444,7 +2444,7 @@ void MESH_draw_reflection(
             tri[2]->u = mf->u[2];
             tri[2]->v = mf->v[2];
 
-            POLY_add_triangle(tri, mf->page, TRUE);
+            POLY_add_triangle(tri, mf->page, UC_TRUE);
         }
     }
 }

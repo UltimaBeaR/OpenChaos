@@ -37,8 +37,7 @@
 #endif
 
 // uc_orig: INFINITY (MFStdLib/Headers/MFStdLib.h)
-#undef INFINITY
-#define INFINITY 0x7fffffff
+#define UC_INFINITY 0x7fffffff
 
 // uc_orig: PI (MFStdLib/Headers/MFStdLib.h)
 #define PI (3.14159265F)

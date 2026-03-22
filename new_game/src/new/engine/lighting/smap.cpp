@@ -75,7 +75,7 @@ void SMAP_init(
     SMAP_plane_vy = SMAP_plane_nz * SMAP_plane_ux - SMAP_plane_nx * SMAP_plane_uz;
     SMAP_plane_vz = SMAP_plane_nx * SMAP_plane_uy - SMAP_plane_ny * SMAP_plane_ux;
 
-#define FINFINITY ((float)INFINITY)
+#define FINFINITY ((float)UC_INFINITY)
 
     SMAP_point_upto = 0;
 
@@ -546,7 +546,7 @@ void SMAP_person(
 #define SMAP_CLIP_V_MORE (1 << 3)
 
 // uc_orig: SMAP_wrong_side (fallen/DDEngine/Source/smap.cpp)
-// Returns TRUE if the polygon is on the "bright" side of the shadow map (nearer to the light).
+// Returns UC_TRUE if the polygon is on the "bright" side of the shadow map (nearer to the light).
 static SLONG SMAP_wrong_side(SMAP_Link* sl)
 {
     float order = 0.0F;
@@ -577,9 +577,9 @@ static SLONG SMAP_wrong_side(SMAP_Link* sl)
     av_n = av_wx * SMAP_plane_nx + av_wy * SMAP_plane_ny + av_wz * SMAP_plane_nz;
 
     if (av_n >= SMAP_n_min + (SMAP_n_max - SMAP_n_min) * 0.75F) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

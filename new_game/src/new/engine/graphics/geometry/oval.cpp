@@ -114,7 +114,7 @@ static void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
             world_y[i],
             float(map_z + (i >> 1) << 8),
             quad[i],
-            TRUE);
+            UC_TRUE);
     }
 
     if (POLY_valid_quad(quad)) {
@@ -135,7 +135,7 @@ static void OVAL_project_onto_mapsquare(UBYTE map_x, UBYTE map_z, SLONG page)
         quad[2] = &pp[0];
         quad[3] = &pp[2];
 
-        POLY_add_quad(quad, page, FALSE);
+        POLY_add_quad(quad, page, UC_FALSE);
     }
 }
 

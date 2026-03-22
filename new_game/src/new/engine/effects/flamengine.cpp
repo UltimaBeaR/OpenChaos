@@ -50,7 +50,7 @@ static SLONG TEXTURE_flame_lock()
     if (FAILED(res)) {
         TEXTURE_shadow_bitmap = NULL;
         TEXTURE_shadow_pitch = 0;
-        return FALSE;
+        return UC_FALSE;
     } else {
         TEXTURE_shadow_mask_red   = TEXTURE_texture[TEXTURE_page_menuflame].mask_red;
         TEXTURE_shadow_mask_green = TEXTURE_texture[TEXTURE_page_menuflame].mask_green;
@@ -60,7 +60,7 @@ static SLONG TEXTURE_flame_lock()
         TEXTURE_shadow_shift_green = TEXTURE_texture[TEXTURE_page_menuflame].shift_green;
         TEXTURE_shadow_shift_blue  = TEXTURE_texture[TEXTURE_page_menuflame].shift_blue;
         TEXTURE_shadow_shift_alpha = TEXTURE_texture[TEXTURE_page_menuflame].shift_alpha;
-        return TRUE;
+        return UC_TRUE;
     }
 }
 
@@ -418,7 +418,7 @@ void Flamengine::Blit()
 
     for (int i = 0; i < 4; i++) { pp[i].colour = 0xffffff; pp[i].specular = 0xff000000; }
 
-    POLY_add_quad(quad, POLY_PAGE_MENUFLAME, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_MENUFLAME, UC_FALSE, UC_TRUE);
 }
 
 // uc_orig: Flamengine::BlitHalf (fallen/DDEngine/Source/flamengine.cpp)
@@ -442,7 +442,7 @@ void Flamengine::BlitHalf(CBYTE side)
 
     for (int i = 0; i < 4; i++) { pp[i].colour = 0xffffff; pp[i].specular = 0xff000000; }
 
-    POLY_add_quad(quad, POLY_PAGE_MENUFLAME, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_MENUFLAME, UC_FALSE, UC_TRUE);
 }
 
 // uc_orig: Flamengine::BlitOffset (fallen/DDEngine/Source/flamengine.cpp)
@@ -460,7 +460,7 @@ void Flamengine::BlitOffset()
 
     for (int i = 0; i < 4; i++) { pp[i].colour = 0xffffff; pp[i].specular = 0xff000000; }
 
-    POLY_add_quad(quad, POLY_PAGE_MENUFLAME, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_MENUFLAME, UC_FALSE, UC_TRUE);
 
     pp[0].u = 0.1f; pp[0].v = 0.2f;
     pp[1].u = 0.9f; pp[1].v = 0.2f;
@@ -468,7 +468,7 @@ void Flamengine::BlitOffset()
     pp[3].u = 0.9f; pp[3].v = 1.0f;
     for (int i = 0; i < 4; i++) { pp[i].colour = 0xafafaf; }
 
-    POLY_add_quad(quad, POLY_PAGE_MENUFLAME, FALSE, TRUE);
+    POLY_add_quad(quad, POLY_PAGE_MENUFLAME, UC_FALSE, UC_TRUE);
 }
 
 // uc_orig: Flamengine::Feedback (fallen/DDEngine/Source/flamengine.cpp)
@@ -480,9 +480,9 @@ void Flamengine::Feedback()
 
     the_display.lp_D3D_Viewport->Clear(1, &the_display.ViewportRect, D3DCLEAR_TARGET);
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
     BlitOffset();
-    POLY_frame_draw(FALSE, TRUE);
+    POLY_frame_draw(UC_FALSE, UC_TRUE);
 
     rcSource.top    = 0;
     rcSource.left   = 0;

@@ -15,7 +15,7 @@ void SPARK_init()
     SLONG i;
 
     for (i = 0; i < SPARK_MAX_SPARKS; i++) {
-        SPARK_spark[i].used = FALSE;
+        SPARK_spark[i].used = UC_FALSE;
     }
 
     SPARK_spark_last = 1;
@@ -255,7 +255,7 @@ void SPARK_create(
 
 found_spare_spark:;
 
-    ss->used = TRUE;
+    ss->used = UC_TRUE;
     ss->die = rand() % max_life;
     ss->die += 8;
     ss->glitter = NULL;
@@ -310,7 +310,7 @@ found_spare_spark:;
         ss->glitter = GLITTER_create(0, mx, mz, 0x005566ff);
     }
 
-    SPARK_create_auxillary(ss, TRUE, TRUE);
+    SPARK_create_auxillary(ss, UC_TRUE, UC_TRUE);
 }
 
 // uc_orig: SPARK_process (fallen/Source/spark.cpp)
@@ -333,7 +333,7 @@ void SPARK_process()
         }
 
         if (ss->die == 0) {
-            ss->used = FALSE;
+            ss->used = UC_FALSE;
 
             GLITTER_destroy(ss->glitter);
 

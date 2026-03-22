@@ -247,10 +247,10 @@ BOOL is_unit(float a, float b, float c)
 
 BOOL check_isonormal(FloatMatrix& m)
 {
-    BOOL r = TRUE;
+    BOOL r = UC_TRUE;
 
     if ((m.M[0][0] == 0) && (m.M[0][1] == 0) && (m.M[0][2] == 0))
-        return TRUE; // void matrix
+        return UC_TRUE; // void matrix
 
     // check handedness
     float x = m.M[0][1] * m.M[1][2] - m.M[0][2] * m.M[1][1];
@@ -258,9 +258,9 @@ BOOL check_isonormal(FloatMatrix& m)
     float z = m.M[0][0] * m.M[1][1] - m.M[0][1] * m.M[1][0];
 
     if ((fabs(x - m.M[2][0]) > 0.03) || (fabs(y - m.M[2][1]) > 0.03) || (fabs(z - m.M[2][2]) > 0.03))
-        return FALSE;
+        return UC_FALSE;
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 void build_tween_matrix(struct Matrix33* mat, struct CMatrix33* cmat1, struct CMatrix33* cmat2, SLONG tween);
@@ -428,7 +428,7 @@ void QuatToMatrixInteger(QuatInt* quat, Matrix33* m)
 //! er.. this should be loaded in....
 
 SWORD acos_table[1025]; // only half of it!
-BOOL acos_table_init = FALSE;
+BOOL acos_table_init = UC_FALSE;
 
 void BuildACosTable()
 {
@@ -438,7 +438,7 @@ void BuildACosTable()
         acos_table[c0] = SLONG(acos(float(c0) / 1025.f) / (2 * 3.1415926) * 2047);
     }
 
-    acos_table_init = TRUE;
+    acos_table_init = UC_TRUE;
 }
 
 //***************************************************************************************************
@@ -546,9 +546,9 @@ BOOL check_isonormal_integer(Matrix33& m)
     SLONG z = (m.M[0][0] * m.M[1][1] - m.M[0][1] * m.M[1][0]) >> 15;
 
     if ((abs(x - m.M[2][0]) > 1000) || (abs(y - m.M[2][1]) > 1000) || (abs(z - m.M[2][2]) > 1000))
-        return FALSE;
+        return UC_FALSE;
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 //***************************************************************************************************

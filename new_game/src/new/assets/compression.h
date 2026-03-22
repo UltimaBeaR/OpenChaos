@@ -41,7 +41,7 @@ typedef struct
 
 } COMP_DataBuffer;
 
-// Loads a frame from a .TGA file. Returns TRUE on success.
+// Loads a frame from a .TGA file. Returns UC_TRUE on success.
 // uc_orig: COMP_load (fallen/DDEngine/Headers/comp.h)
 SLONG COMP_load(CBYTE* filename, COMP_Frame* cf);
 

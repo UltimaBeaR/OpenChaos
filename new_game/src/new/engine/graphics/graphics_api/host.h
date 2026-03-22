@@ -6,7 +6,7 @@
 
 // uc_orig: SetupHost (fallen/DDLibrary/Source/GHost.cpp)
 // Registers the window class, creates the main window, initialises memory and keyboard,
-// and starts the sound manager. Returns TRUE on success.
+// and starts the sound manager. Returns UC_TRUE on success.
 BOOL SetupHost(ULONG flags);
 
 // uc_orig: ResetHost (fallen/DDLibrary/Source/GHost.cpp)
@@ -30,11 +30,11 @@ void ShellPauseOff(void);
 // uc_orig: LibShellActive (fallen/DDLibrary/Source/GHost.cpp)
 // Pumps the Windows message queue and yields CPU while the app is inactive and in
 // fullscreen. Also restores DirectDraw surfaces when restore_surfaces is set.
-// Returns TRUE while the shell window is alive.
+// Returns UC_TRUE while the shell window is alive.
 BOOL LibShellActive(void);
 
 // uc_orig: LibShellChanged (fallen/DDLibrary/Source/GHost.cpp)
-// Returns TRUE (and clears the flag) if the display settings changed since the last call.
+// Returns UC_TRUE (and clears the flag) if the display settings changed since the last call.
 BOOL LibShellChanged(void);
 
 // uc_orig: LibShellMessage (fallen/DDLibrary/Source/GHost.cpp)

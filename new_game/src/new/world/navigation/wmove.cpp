@@ -675,21 +675,21 @@ void WMOVE_draw()
         AENG_world_line(
             pp0->X, pp0->Y, pp0->Z, 0x6, colour,
             pp1->X, pp1->Y, pp1->Z, 0x6, colour,
-            TRUE);
+            UC_TRUE);
 
         AENG_world_line(
             pp1->X, pp1->Y, pp1->Z, 0x6, colour,
             pp3->X, pp3->Y, pp3->Z, 0x6, colour,
-            TRUE);
+            UC_TRUE);
 
         AENG_world_line(
             pp3->X, pp3->Y, pp3->Z, 0x6, colour,
             pp2->X, pp2->Y, pp2->Z, 0x6, colour,
-            TRUE);
+            UC_TRUE);
 
         AENG_world_line(
             pp2->X, pp2->Y, pp2->Z, 0x6, colour,
             pp0->X, pp0->Y, pp0->Z, 0x6, colour,
-            TRUE);
+            UC_TRUE);
     }
 }

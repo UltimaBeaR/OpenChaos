@@ -92,7 +92,7 @@ void PANEL_ResetDepthBodge(void);
 
 // Screensaver stuff.
 void PANEL_enable_screensaver(void);
-void PANEL_disable_screensaver(bool bImmediately = FALSE);
+void PANEL_disable_screensaver(bool bImmediately = UC_FALSE);
 void PANEL_screensaver_draw(void);
 
 void PANEL_draw_quad(

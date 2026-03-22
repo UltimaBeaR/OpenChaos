@@ -490,14 +490,14 @@ HRESULT CALLBACK OS_texture_enumerate_pixel_formats(
                     // Must be 1555
                     //
 
-                    OS_tformat[OS_TEXTURE_FORMAT_1555].valid = TRUE;
+                    OS_tformat[OS_TEXTURE_FORMAT_1555].valid = UC_TRUE;
                     OS_tformat[OS_TEXTURE_FORMAT_1555].ddpf = *lpddpf;
                 } else if (alphabits == 4) {
                     //
                     // Must be 4444
                     //
 
-                    OS_tformat[OS_TEXTURE_FORMAT_4444].valid = TRUE;
+                    OS_tformat[OS_TEXTURE_FORMAT_4444].valid = UC_TRUE;
                     OS_tformat[OS_TEXTURE_FORMAT_4444].ddpf = *lpddpf;
                 }
             } else {
@@ -505,7 +505,7 @@ HRESULT CALLBACK OS_texture_enumerate_pixel_formats(
                 // This is a good RGB pixel format.
                 //
 
-                OS_tformat[OS_TEXTURE_FORMAT_RGB].valid = TRUE;
+                OS_tformat[OS_TEXTURE_FORMAT_RGB].valid = UC_TRUE;
                 OS_tformat[OS_TEXTURE_FORMAT_RGB].ddpf = *lpddpf;
             }
         }
@@ -528,7 +528,7 @@ HRESULT CALLBACK OS_texture_enumerate_pixel_formats(
                             // This is what we want. An 8-bit luminance format.
                             //
 
-                            OS_tformat[OS_TEXTURE_FORMAT_8].valid =  TRUE;
+                            OS_tformat[OS_TEXTURE_FORMAT_8].valid =  UC_TRUE;
                             OS_tformat[OS_TEXTURE_FORMAT_8].ddpf  = *lpddpf;
                     }
             }
@@ -1166,15 +1166,15 @@ void OS_init_renderstates()
     //
 
     d3d->SetRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
-    d3d->SetRenderState(D3DRENDERSTATE_TEXTUREPERSPECTIVE, TRUE);
-    d3d->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, TRUE);
-    d3d->SetRenderState(D3DRENDERSTATE_ZENABLE, TRUE);
+    d3d->SetRenderState(D3DRENDERSTATE_TEXTUREPERSPECTIVE, UC_TRUE);
+    d3d->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
+    d3d->SetRenderState(D3DRENDERSTATE_ZENABLE, UC_TRUE);
     d3d->SetRenderState(D3DRENDERSTATE_ZFUNC, D3DCMP_LESSEQUAL);
-    d3d->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE, TRUE);
+    d3d->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE, UC_TRUE);
     d3d->SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-    d3d->SetRenderState(D3DRENDERSTATE_FOGENABLE, FALSE);
-    d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
-    d3d->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, FALSE);
+    d3d->SetRenderState(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+    d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
+    d3d->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, UC_FALSE);
 
     if (KEY_on[KEY_A]) {
         d3d->SetRenderState(D3DRENDERSTATE_ANTIALIAS, D3DANTIALIAS_SORTINDEPENDENT);
@@ -1310,19 +1310,19 @@ void OS_change_renderstate_for_type(ULONG draw)
     LPDIRECT3DDEVICE3 d3d = OS_frame.GetD3DDevice();
 
     if (draw & OS_DRAW_ADD) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
         d3d->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
         d3d->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
     }
 
     if (draw & OS_DRAW_MULTIPLY) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
         d3d->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_DESTCOLOR);
         d3d->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_SRCCOLOR);
     }
 
     if (draw & OS_DRAW_MULBYONE) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
         d3d->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_DESTCOLOR);
         d3d->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ZERO);
     }
@@ -1336,7 +1336,7 @@ void OS_change_renderstate_for_type(ULONG draw)
     }
 
     if (draw & OS_DRAW_TRANSPARENT) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
         d3d->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ZERO);
         d3d->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
     }
@@ -1346,12 +1346,12 @@ void OS_change_renderstate_for_type(ULONG draw)
     }
 
     if (draw & OS_DRAW_NOZWRITE) {
-        d3d->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE, FALSE);
+        d3d->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
     }
 
     if (draw & OS_DRAW_ALPHAREF) {
         d3d->SetRenderState(D3DRENDERSTATE_ALPHAFUNC, D3DCMP_NOTEQUAL);
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, TRUE);
+        d3d->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, UC_TRUE);
 
         //
         // Make sure the alpha from the texture gets through.
@@ -1374,7 +1374,7 @@ void OS_change_renderstate_for_type(ULONG draw)
     }
 
     if (draw & OS_DRAW_ALPHABLEND) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
         d3d->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
         d3d->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
@@ -1464,11 +1464,11 @@ void OS_undo_renderstate_type_changes(void)
 
     d3d->SetTextureStageState(0, D3DTSS_ADDRESS, D3DTADDRESS_WRAP);
 
-    d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
+    d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
     d3d->SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-    d3d->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE, TRUE);
+    d3d->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE, UC_TRUE);
     d3d->SetRenderState(D3DRENDERSTATE_ZFUNC, D3DCMP_LESSEQUAL);
-    d3d->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, FALSE);
+    d3d->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, UC_FALSE);
 
     d3d->SetTextureStageState(0, D3DTSS_MINFILTER, D3DTFG_LINEAR);
     d3d->SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTFG_LINEAR);
@@ -1540,7 +1540,7 @@ SLONG OS_process_messages()
     if (Keys[KB_ESC]) {
         Keys[KB_ESC] = 0;
 
-        KEY_on[KEY_ESCAPE] = TRUE;
+        KEY_on[KEY_ESCAPE] = UC_TRUE;
     }
 
     return OS_CARRY_ON;
@@ -2694,7 +2694,7 @@ void OS_sound_start(void)
 {
         if (OS_module)
         {
-                OS_module_handle = MIDASplayModule(OS_module,FALSE);
+                OS_module_handle = MIDASplayModule(OS_module,UC_FALSE);
         }
 }
 

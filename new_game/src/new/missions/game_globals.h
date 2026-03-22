@@ -59,11 +59,11 @@ extern UBYTE screen_mem[640 * 3][480];
 // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
 extern DWORD already_warned_about_leaving_map;
 
-// When TRUE, the overhead map is shown instead of the 3D view.
+// When UC_TRUE, the overhead map is shown instead of the 3D view.
 // uc_orig: draw_map_screen (fallen/Source/Game.cpp)
 extern UBYTE draw_map_screen;
 
-// When TRUE, the game advances one tick per comma-key press.
+// When UC_TRUE, the game advances one tick per comma-key press.
 // uc_orig: single_step (fallen/Source/Game.cpp)
 extern UBYTE single_step;
 
@@ -82,7 +82,7 @@ extern UWORD last_fudge_message;
 // uc_orig: last_fudge_camera (fallen/Source/Game.cpp)
 extern UWORD last_fudge_camera;
 
-// Set to TRUE during the credits/outro sequence after completing the final mission.
+// Set to UC_TRUE during the credits/outro sequence after completing the final mission.
 // uc_orig: the_end (fallen/Source/Game.cpp)
 extern UBYTE the_end;
 

@@ -31,10 +31,10 @@ LRESULT CALLBACK DDLibShellProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 
         if (!wParam) {
             // Lost focus — mark app as inactive so the main loop can yield CPU.
-            app_inactive = TRUE;
+            app_inactive = UC_TRUE;
         } else {
-            app_inactive = FALSE;
-            restore_surfaces = TRUE;
+            app_inactive = UC_FALSE;
+            restore_surfaces = UC_TRUE;
         }
 
         break;

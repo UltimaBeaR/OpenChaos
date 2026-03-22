@@ -13,9 +13,9 @@
 SLONG PAP_on_map_lo(SLONG x, SLONG z)
 {
     if (WITHIN(x, 0, PAP_SIZE_LO - 1) && WITHIN(z, 0, PAP_SIZE_LO - 1)) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
@@ -23,9 +23,9 @@ SLONG PAP_on_map_lo(SLONG x, SLONG z)
 SLONG PAP_on_map_hi(SLONG x, SLONG z)
 {
     if (WITHIN(x, 0, PAP_SIZE_HI - 1) && WITHIN(z, 0, PAP_SIZE_HI - 1)) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
@@ -217,8 +217,8 @@ SLONG PAP_is_flattish(
 {
     SLONG i;
 
-    SLONG max = -INFINITY;
-    SLONG min = +INFINITY;
+    SLONG max = -UC_INFINITY;
+    SLONG min = +UC_INFINITY;
 
     SLONG alongx;
     SLONG alongz;
@@ -250,11 +250,11 @@ SLONG PAP_is_flattish(
         }
 
         if (abs(max - min) > 0x10) {
-            return FALSE;
+            return UC_FALSE;
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: PAP_calc_height_noroads (fallen/Source/pap.cpp)
@@ -320,7 +320,7 @@ SLONG PAP_calc_map_height_near(SLONG x, SLONG z)
     SLONG dz;
 
     SLONG height;
-    SLONG max = -INFINITY;
+    SLONG max = -UC_INFINITY;
 
     for (i = 0; i < 4; i++) {
         dx = (i & 1) ? -8 : +8;

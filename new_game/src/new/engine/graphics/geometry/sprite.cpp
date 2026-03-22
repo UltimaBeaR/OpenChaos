@@ -93,7 +93,7 @@ void SPRITE_draw_tex_distorted(
             quad[2] = &pp[2];
             quad[3] = &pp[3];
 
-            POLY_add_quad(quad, page, FALSE, TRUE);
+            POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
         }
     }
 }
@@ -187,7 +187,7 @@ void SPRITE_draw(
             quad[2] = &pp[2];
             quad[3] = &pp[3];
 
-            POLY_add_quad(quad, page, FALSE, TRUE);
+            POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
         }
     }
 }
@@ -215,7 +215,7 @@ void SPRITE_draw_tex(
         world_y,
         world_z,
         &mid,
-        TRUE);
+        UC_TRUE);
 
     if (mid.IsValid()) {
         screen_size = POLY_world_length_to_screen(world_size) * mid.Z;
@@ -283,7 +283,7 @@ void SPRITE_draw_tex(
             quad[2] = &pp[2];
             quad[3] = &pp[3];
 
-            POLY_add_quad(quad, page, FALSE, TRUE);
+            POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
         }
     }
 }

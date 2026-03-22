@@ -56,7 +56,7 @@ extern SLONG last_slide_colvect;
 extern SLONG last_slide_dist;
 
 // uc_orig: actual_sliding (fallen/Source/collide.cpp)
-// Set to TRUE inside slide_along when the movement vector was actually
+// Set to UC_TRUE inside slide_along when the movement vector was actually
 // deflected (i.e. the person hit a wall).
 extern SLONG actual_sliding;
 
@@ -77,7 +77,7 @@ extern SLONG slide_into_warehouse;
 extern SLONG slide_outof_warehouse;
 
 // uc_orig: slid_along_fence (fallen/Source/collide.cpp)
-// TRUE if the current slide_along call deflected off a fence facet.
+// UC_TRUE if the current slide_along call deflected off a fence facet.
 extern UBYTE slid_along_fence;
 
 // uc_orig: fence_colvect (fallen/Source/collide.cpp)

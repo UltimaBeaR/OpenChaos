@@ -10,7 +10,7 @@ static FileClump* tclump = NULL;
 static bool writing;
 static bool init_convert = false;
 
-TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixel* data, BOOL bCanShrink = TRUE);
+TGA_Info TGA_load_from_file(const CBYTE* file, SLONG max_width, SLONG max_height, TGA_Pixel* data, BOOL bCanShrink = UC_TRUE);
 
 static void TGA_make_conversion_tables(void);
 static void TGA_write_compressed(const TGA_Info& ti, TGA_Pixel* data, ULONG id);

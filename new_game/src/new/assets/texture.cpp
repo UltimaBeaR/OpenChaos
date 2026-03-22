@@ -83,11 +83,11 @@ static void TEXTURE_DC_pack_load_page(SLONG page)
         tt = &TEXTURE_texture[TEXTURE_DC_pack_page_upto];
 
         if (TEXTURE_DC_pack_page_pos == 0) {
-            tt->CreateUserPage(256, FALSE);
+            tt->CreateUserPage(256, UC_FALSE);
         }
 
         TGA_Pixel* tga = (TGA_Pixel*)malloc(sizeof(TGA_Pixel) * 64 * 64);
-        TGA_Info ti = TGA_load(name_res64, 64, 64, tga, 0, FALSE);
+        TGA_Info ti = TGA_load(name_res64, 64, 64, tga, 0, UC_FALSE);
 
         if (ti.valid) {
             UWORD* bitmap;
@@ -257,9 +257,9 @@ void TEXTURE_choose_set(SLONG number)
         }
 
         extern void load_texture_styles(UBYTE editor, UBYTE world);
-        load_texture_styles(FALSE, number);
+        load_texture_styles(UC_FALSE, number);
         extern void load_texture_instyles(UBYTE editor, UBYTE world);
-        load_texture_instyles(FALSE, number);
+        load_texture_instyles(UC_FALSE, number);
         TEXTURE_fix_texture_styles();
     }
 
@@ -366,7 +366,7 @@ static void TEXTURE_load_page(SLONG page)
                     MF_Fclose(exists32);
                     TEXTURE_texture[page].LoadTextureTGA(name_res32, page);
                 } else {
-                    TEXTURE_dontexist[page] = TRUE;
+                    TEXTURE_dontexist[page] = UC_TRUE;
                 }
             }
         }
@@ -376,7 +376,7 @@ static void TEXTURE_load_page(SLONG page)
         } else if (DoesTGAExist(name_res32, page)) {
             TEXTURE_texture[page].LoadTextureTGA(name_res32, page);
         } else {
-            TEXTURE_dontexist[page] = TRUE;
+            TEXTURE_dontexist[page] = UC_TRUE;
         }
     }
 
@@ -583,15 +583,15 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_texture[TEXTURE_page_puddle].LoadTextureTGA(TEXTURE_EXTRA_DIR "puddle01.tga", TEXTURE_page_puddle);
     LOADED_THIS_MANY_TEXTURES(5);
     TEXTURE_texture[TEXTURE_page_drip].LoadTextureTGA(TEXTURE_EXTRA_DIR "drip.tga", TEXTURE_page_drip);
-    TEXTURE_texture[TEXTURE_page_shadow].CreateUserPage(TEXTURE_SHADOW_SIZE, the_display.GetDeviceInfo()->DestInvSourceColourSupported() ? FALSE : TRUE);
+    TEXTURE_texture[TEXTURE_page_shadow].CreateUserPage(TEXTURE_SHADOW_SIZE, the_display.GetDeviceInfo()->DestInvSourceColourSupported() ? UC_FALSE : UC_TRUE);
     TEXTURE_texture[TEXTURE_page_bang].LoadTextureTGA(TEXTURE_EXTRA_DIR "fireball.tga", TEXTURE_page_bang);
-    TEXTURE_texture[TEXTURE_page_font].LoadTextureTGA(TEXTURE_EXTRA_DIR "font.tga", TEXTURE_page_font, FALSE);
+    TEXTURE_texture[TEXTURE_page_font].LoadTextureTGA(TEXTURE_EXTRA_DIR "font.tga", TEXTURE_page_font, UC_FALSE);
     TEXTURE_needed[TEXTURE_page_font] = 1;
     LOADED_THIS_MANY_TEXTURES(5);
     {
         CBYTE str[100];
         sprintf(str, "%ssky.tga", TEXTURE_world_dir);
-        TEXTURE_texture[TEXTURE_page_sky].LoadTextureTGA(str, TEXTURE_page_sky, FALSE);
+        TEXTURE_texture[TEXTURE_page_sky].LoadTextureTGA(str, TEXTURE_page_sky, UC_FALSE);
     }
 
     TEXTURE_texture[TEXTURE_page_flames].LoadTextureTGA(TEXTURE_EXTRA_DIR "flame1.tga", TEXTURE_page_flames);
@@ -601,13 +601,13 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_texture[TEXTURE_page_barbwire].LoadTextureTGA(TEXTURE_EXTRA_DIR "barbed.tga", TEXTURE_page_barbwire);
     LOADED_THIS_MANY_TEXTURES(6);
 
-    TEXTURE_texture[TEXTURE_page_font2d].LoadTextureTGA(TEXTURE_EXTRA_DIR "multifontPC.tga", TEXTURE_page_font2d, FALSE);
+    TEXTURE_texture[TEXTURE_page_font2d].LoadTextureTGA(TEXTURE_EXTRA_DIR "multifontPC.tga", TEXTURE_page_font2d, UC_FALSE);
     TEXTURE_needed[TEXTURE_page_font2d] = 1;
 
-    TEXTURE_texture[TEXTURE_page_lcdfont].LoadTextureTGA(TEXTURE_EXTRA_DIR "olyfont2.tga", TEXTURE_page_lcdfont, FALSE);
+    TEXTURE_texture[TEXTURE_page_lcdfont].LoadTextureTGA(TEXTURE_EXTRA_DIR "olyfont2.tga", TEXTURE_page_lcdfont, UC_FALSE);
     TEXTURE_needed[TEXTURE_page_lcdfont] = 1;
 
-    TEXTURE_texture[TEXTURE_page_lastpanel].LoadTextureTGA(TEXTURE_EXTRA_DIR "PCdisplay.tga", TEXTURE_page_lastpanel, FALSE);
+    TEXTURE_texture[TEXTURE_page_lastpanel].LoadTextureTGA(TEXTURE_EXTRA_DIR "PCdisplay.tga", TEXTURE_page_lastpanel, UC_FALSE);
     TEXTURE_needed[TEXTURE_page_lastpanel] = 1;
 
     FONT2D_init(TEXTURE_page_font2d);
@@ -647,13 +647,13 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     LOADED_THIS_MANY_TEXTURES(4);
 
     // Frontend/UI textures
-    TEXTURE_texture[TEXTURE_page_bigbutton].LoadTextureTGA(TEXTURE_EXTRA_DIR "bigbutt.tga", TEXTURE_page_bigbutton, FALSE);
+    TEXTURE_texture[TEXTURE_page_bigbutton].LoadTextureTGA(TEXTURE_EXTRA_DIR "bigbutt.tga", TEXTURE_page_bigbutton, UC_FALSE);
     TEXTURE_needed[TEXTURE_page_bigbutton] = 1;
     TEXTURE_texture[TEXTURE_page_bigleaf].LoadTextureTGA(TEXTURE_EXTRA_DIR "bigleaf.tga", TEXTURE_page_bigleaf);
     TEXTURE_needed[TEXTURE_page_bigleaf] = 1;
     TEXTURE_texture[TEXTURE_page_bigrain].LoadTextureTGA(TEXTURE_EXTRA_DIR "raindrop2.tga", TEXTURE_page_bigrain);
     TEXTURE_needed[TEXTURE_page_bigrain] = 1;
-    TEXTURE_texture[TEXTURE_page_tinybutt].LoadTextureTGA(TEXTURE_EXTRA_DIR "tinybutt.tga", TEXTURE_page_tinybutt, FALSE);
+    TEXTURE_texture[TEXTURE_page_tinybutt].LoadTextureTGA(TEXTURE_EXTRA_DIR "tinybutt.tga", TEXTURE_page_tinybutt, UC_FALSE);
     TEXTURE_needed[TEXTURE_page_tinybutt] = 1;
     TEXTURE_texture[TEXTURE_page_snowflake].LoadTextureTGA(TEXTURE_EXTRA_DIR "snowflake.tga", TEXTURE_page_snowflake);
     TEXTURE_needed[TEXTURE_page_snowflake] = 1;
@@ -661,20 +661,20 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_texture[TEXTURE_page_finalglow].LoadTextureTGA(TEXTURE_EXTRA_DIR "finalglow.tga", TEXTURE_page_finalglow);
     TEXTURE_needed[TEXTURE_page_finalglow] = 1;
 
-    TEXTURE_texture[TEXTURE_page_fade_MF].LoadTextureTGA(TEXTURE_EXTRA_DIR "fade_MF.tga", TEXTURE_page_fade_MF, FALSE);
+    TEXTURE_texture[TEXTURE_page_fade_MF].LoadTextureTGA(TEXTURE_EXTRA_DIR "fade_MF.tga", TEXTURE_page_fade_MF, UC_FALSE);
     TEXTURE_needed[TEXTURE_page_fade_MF] = 1;
 
     LOADED_THIS_MANY_TEXTURES(7);
 
     {
-        TEXTURE_texture[TEXTURE_page_fadecat].LoadTextureTGA(TEXTURE_EXTRA_DIR "fadecat.tga", TEXTURE_page_fadecat, FALSE);
+        TEXTURE_texture[TEXTURE_page_fadecat].LoadTextureTGA(TEXTURE_EXTRA_DIR "fadecat.tga", TEXTURE_page_fadecat, UC_FALSE);
         TEXTURE_texture[TEXTURE_page_tyretrack_alpha].LoadTextureTGA(TEXTURE_EXTRA_DIR "tyremark_alpha.tga", TEXTURE_page_tyretrack_alpha);
         TEXTURE_texture[TEXTURE_page_ladder].LoadTextureTGA(TEXTURE_EXTRA_DIR "secret.tga", TEXTURE_page_ladder);
         TEXTURE_texture[TEXTURE_page_shadowoval].LoadTextureTGA(TEXTURE_EXTRA_DIR "shadow.tga", TEXTURE_page_shadowoval);
         TEXTURE_texture[TEXTURE_page_rubbish].LoadTextureTGA(TEXTURE_EXTRA_DIR "rubbish.tga", TEXTURE_page_rubbish);
         LOADED_THIS_MANY_TEXTURES(5);
 
-        TEXTURE_texture[TEXTURE_page_lastpanel2].LoadTextureTGA(TEXTURE_EXTRA_DIR "PCdisplay01.tga", TEXTURE_page_lastpanel2, FALSE);
+        TEXTURE_texture[TEXTURE_page_lastpanel2].LoadTextureTGA(TEXTURE_EXTRA_DIR "PCdisplay01.tga", TEXTURE_page_lastpanel2, UC_FALSE);
         TEXTURE_texture[TEXTURE_page_sign].LoadTextureTGA(TEXTURE_EXTRA_DIR "signs.tga", TEXTURE_page_sign);
         TEXTURE_texture[TEXTURE_page_shadowsquare].LoadTextureTGA(TEXTURE_EXTRA_DIR "shadowsquare.tga", TEXTURE_page_shadowsquare);
         TEXTURE_texture[TEXTURE_page_ladshad].LoadTextureTGA(TEXTURE_EXTRA_DIR "ladshad.tga", TEXTURE_page_ladshad);
@@ -895,7 +895,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
     NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit();
 
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 }
 
 // uc_orig: TEXTURE_load_needed_object (fallen/DDEngine/Source/texture.cpp)
@@ -1281,7 +1281,7 @@ void TEXTURE_set_colour_key(SLONG page)
 }
 
 // uc_orig: TEXTURE_shadow_lock (fallen/DDEngine/Source/texture.cpp)
-// Locks the shadow texture for CPU write. Returns TRUE if successful.
+// Locks the shadow texture for CPU write. Returns UC_TRUE if successful.
 // Sets TEXTURE_shadow_bitmap/pitch/mask/shift globals on success.
 SLONG TEXTURE_shadow_lock(void)
 {
@@ -1294,7 +1294,7 @@ SLONG TEXTURE_shadow_lock(void)
     if (FAILED(res)) {
         TEXTURE_shadow_bitmap = NULL;
         TEXTURE_shadow_pitch = 0;
-        return FALSE;
+        return UC_FALSE;
     } else {
         TEXTURE_shadow_mask_red = TEXTURE_texture[TEXTURE_page_shadow].mask_red;
         TEXTURE_shadow_mask_green = TEXTURE_texture[TEXTURE_page_shadow].mask_green;
@@ -1304,7 +1304,7 @@ SLONG TEXTURE_shadow_lock(void)
         TEXTURE_shadow_shift_green = TEXTURE_texture[TEXTURE_page_shadow].shift_green;
         TEXTURE_shadow_shift_blue = TEXTURE_texture[TEXTURE_page_shadow].shift_blue;
         TEXTURE_shadow_shift_alpha = TEXTURE_texture[TEXTURE_page_shadow].shift_alpha;
-        return TRUE;
+        return UC_TRUE;
     }
 }
 
@@ -1343,7 +1343,7 @@ SLONG TEXTURE_86_lock()
     if (FAILED(res)) {
         TEXTURE_shadow_bitmap = NULL;
         TEXTURE_shadow_pitch = 0;
-        return FALSE;
+        return UC_FALSE;
     } else {
         TEXTURE_shadow_mask_red = TEXTURE_texture[86].mask_red;
         TEXTURE_shadow_mask_green = TEXTURE_texture[86].mask_green;
@@ -1353,7 +1353,7 @@ SLONG TEXTURE_86_lock()
         TEXTURE_shadow_shift_green = TEXTURE_texture[86].shift_green;
         TEXTURE_shadow_shift_blue = TEXTURE_texture[86].shift_blue;
         TEXTURE_shadow_shift_alpha = TEXTURE_texture[86].shift_alpha;
-        return TRUE;
+        return UC_TRUE;
     }
 }
 

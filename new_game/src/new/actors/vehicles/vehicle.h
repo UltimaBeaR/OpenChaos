@@ -241,7 +241,7 @@ void VEH_collide_find_things(
     SLONG x, SLONG y, SLONG z,
     SLONG radius,
     SLONG ignore_thing_index,
-    SLONG ignore_prims = FALSE);
+    SLONG ignore_prims = UC_FALSE);
 
 // Apply damage to a crumple zone (area 0-5, hp 0-2).
 // uc_orig: VEH_add_damage (fallen/Source/Vehicle.cpp)
@@ -275,7 +275,7 @@ void VEH_reduce_health(
     Thing* p_person,
     SLONG damage);
 
-// Returns TRUE if all 4 corners of the vehicle are on road tiles.
+// Returns UC_TRUE if all 4 corners of the vehicle are on road tiles.
 // uc_orig: VEH_on_road (fallen/Source/Vehicle.cpp)
 SLONG VEH_on_road(Thing* p_vehicle, SLONG step);
 

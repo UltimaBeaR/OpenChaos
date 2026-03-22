@@ -66,7 +66,7 @@ extern UBYTE MAV_flag[MAP_HEIGHT][MAP_WIDTH / 2];
 // uc_orig: MAV_dir (fallen/Source/mav.cpp)
 extern UBYTE MAV_dir[MAP_HEIGHT][MAP_WIDTH / 4];
 
-// Set to TRUE by MAV_do if the exact destination was reached during search.
+// Set to UC_TRUE by MAV_do if the exact destination was reached during search.
 // uc_orig: MAV_do_found_dest (fallen/Source/mav.cpp)
 extern UBYTE MAV_do_found_dest;
 

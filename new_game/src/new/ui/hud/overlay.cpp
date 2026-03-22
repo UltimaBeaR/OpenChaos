@@ -87,9 +87,9 @@ SLONG should_i_add_message(SLONG type)
 
     if (last_message[type] > GAME_TURN || last_message[type] <= GAME_TURN - 100) {
         last_message[type] = GAME_TURN;
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

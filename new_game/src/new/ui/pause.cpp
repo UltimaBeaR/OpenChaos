@@ -45,7 +45,7 @@ SLONG PAUSE_handler()
 {
     SLONG i, text_colour, input, temp;
     static SLONG lastinput = 0;
-    SLONG ans = FALSE;
+    SLONG ans = UC_FALSE;
 
     input = 0;
 
@@ -78,7 +78,7 @@ SLONG PAUSE_handler()
     }
 
     if (!(GAME_FLAGS & GF_PAUSED))
-        return FALSE;
+        return UC_FALSE;
 
     if (Keys[KB_UP]) {
         Keys[KB_UP] = 0;
@@ -113,19 +113,19 @@ SLONG PAUSE_handler()
         case PAUSE_MENU_RESTART:
             GAME_FLAGS &= ~GF_PAUSED;
             GAME_STATE = GS_REPLAY;
-            ans = TRUE;
+            ans = UC_TRUE;
             break;
 
         case PAUSE_MENU_EXIT:
             GAME_FLAGS &= ~GF_PAUSED;
             GAME_STATE = 0;
-            ans = TRUE;
+            ans = UC_TRUE;
             break;
         }
     }
 
     // Draw semi-transparent background panel behind the menu items.
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     PANEL_draw_quad(
         320 - 170,
@@ -135,8 +135,8 @@ SLONG PAUSE_handler()
         POLY_PAGE_ALPHA_OVERLAY,
         0x88000000);
 
-    POLY_frame_draw(FALSE, TRUE);
-    POLY_frame_init(FALSE, FALSE);
+    POLY_frame_draw(UC_FALSE, UC_TRUE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     SLONG offset;
     SLONG text_size;
@@ -164,7 +164,7 @@ SLONG PAUSE_handler()
             text_size);
     }
 
-    POLY_frame_draw(FALSE, TRUE);
+    POLY_frame_draw(UC_FALSE, UC_TRUE);
 
     return ans;
 }

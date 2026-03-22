@@ -55,7 +55,7 @@ typedef struct os_texture OS_Texture;
 #define OS_TEXTURE_FORMAT_8 3 // Grayscale
 #define OS_TEXTURE_FORMAT_NUMBER 4
 
-OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert = FALSE);
+OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert = UC_FALSE);
 OS_Texture* OS_texture_create(SLONG size, SLONG format);
 
 //

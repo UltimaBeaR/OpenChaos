@@ -21,7 +21,7 @@ void init_best_found(void);
 
 // uc_orig: DDLibThread (fallen/DDLibrary/Source/GHost.cpp)
 // Shell thread entry point. Creates the main window, runs the Win32 message loop,
-// and sets ShellActive to FALSE when the loop exits.
+// and sets ShellActive to UC_FALSE when the loop exits.
 static DWORD DDLibThread(LPVOID param)
 {
     MSG msg;
@@ -43,29 +43,29 @@ static DWORD DDLibThread(LPVOID param)
     ShowWindow(hDDLibWindow, iGlobalWinMode);
     UpdateWindow(hDDLibWindow);
 
-    ShellActive = TRUE;
+    ShellActive = UC_TRUE;
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-    ShellActive = FALSE;
+    ShellActive = UC_FALSE;
 
     return 0;
 }
 
 // uc_orig: SetupHost (fallen/DDLibrary/Source/GHost.cpp)
 // Registers the window class, creates the main window, and initialises memory,
-// keyboard and sound. Returns TRUE if the window was created successfully.
+// keyboard and sound. Returns UC_TRUE if the window was created successfully.
 BOOL SetupHost(ULONG flags)
 {
     DWORD id;
 
-    ShellActive = FALSE;
+    ShellActive = UC_FALSE;
 
     if (!SetupMemory())
-        return FALSE;
+        return UC_FALSE;
     if (!SetupKeyboard())
-        return FALSE;
+        return UC_FALSE;
 
     // Register the window class and create the shell window.
     DDLibClass.hInstance = hGlobalThisInst;
@@ -102,7 +102,7 @@ BOOL SetupHost(ULONG flags)
         // Keyboard accelerators removed (DDlib.rc deleted).
         hDDLibAccel = NULL;
 
-        ShellActive = TRUE;
+        ShellActive = UC_TRUE;
     }
 
     the_game.DarciStrength = 0;
@@ -210,7 +210,7 @@ void ShellPauseOff(void)
 // Pumps the Windows message queue, processing all pending messages. While the app is
 // inactive and in fullscreen, sleeps 100 ms per iteration to yield CPU. Restores all
 // DirectDraw surfaces (including frontend fullscreen surfaces) when restore_surfaces is
-// set after the window regains focus. Returns TRUE while the shell window is alive.
+// set after the window regains focus. Returns UC_TRUE while the shell window is alive.
 BOOL LibShellActive(void)
 {
     SLONG result;
@@ -228,7 +228,7 @@ BOOL LibShellActive(void)
                     DispatchMessage(&msg);
                 }
             } else {
-                ShellActive = FALSE;
+                ShellActive = UC_FALSE;
             }
         }
 
@@ -248,22 +248,22 @@ BOOL LibShellActive(void)
             FRONTEND_restore_screenfull_surfaces();
         }
 
-        restore_surfaces = FALSE;
+        restore_surfaces = UC_FALSE;
     }
 
     return ShellActive;
 }
 
 // uc_orig: LibShellChanged (fallen/DDLibrary/Source/GHost.cpp)
-// Returns TRUE if the display configuration changed since the last call and clears the
-// changed flag so subsequent calls return FALSE until the next change.
+// Returns UC_TRUE if the display configuration changed since the last call and clears the
+// changed flag so subsequent calls return UC_FALSE until the next change.
 BOOL LibShellChanged(void)
 {
     if (the_display.IsDisplayChanged()) {
         the_display.DisplayChangedOff();
-        return TRUE;
+        return UC_TRUE;
     }
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: LibShellMessage (fallen/DDLibrary/Source/GHost.cpp)
@@ -285,7 +285,7 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
     strcat(buff2, "\n\nAbort=Kill Application, Retry=Debug, Ignore=Continue");
     flag = MB_ABORTRETRYIGNORE | MB_ICONSTOP | MB_DEFBUTTON3;
 
-    result = FALSE;
+    result = UC_FALSE;
     the_display.toGDI();
     switch (MessageBox(hDDLibWindow, buff2, "Mucky Foot Message", flag)) {
     case IDABORT:
@@ -341,7 +341,7 @@ int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, in
     // CreateEventA always succeeds; if the event already existed ERROR_ALREADY_EXISTS
     // is set, meaning another instance is running — bail out.
     // The event is automatically destroyed when the process exits.
-    HANDLE hEvent = CreateEventA(NULL, FALSE, FALSE, "UrbanChaosExclusionZone");
+    HANDLE hEvent = CreateEventA(NULL, UC_FALSE, UC_FALSE, "UrbanChaosExclusionZone");
     if (GetLastError() != ERROR_ALREADY_EXISTS) {
         return MF_main(argc, argv);
     }

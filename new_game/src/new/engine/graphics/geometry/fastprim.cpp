@@ -104,7 +104,7 @@ void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
     SLONG old_lvert_free_end;
     SLONG old_index_free_end;
 
-    SLONG copy_to_beginning = FALSE;
+    SLONG copy_to_beginning = UC_FALSE;
 
     while (1) {
         old_lvert_free_end = FASTPRIM_lvert_free_end;
@@ -119,7 +119,7 @@ void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
             FASTPRIM_lvert_upto = fc->lvertcount;
             FASTPRIM_index_upto = fc->indexcount;
 
-            copy_to_beginning = TRUE;
+            copy_to_beginning = UC_TRUE;
         }
 
         if (FASTPRIM_index_upto + 16 < FASTPRIM_index_free_end && FASTPRIM_lvert_upto + 16 < FASTPRIM_lvert_free_end) {
@@ -248,7 +248,7 @@ SLONG FASTPRIM_draw(
 {
 
     if (!Keys[KB_R]) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     SLONG i;
@@ -292,14 +292,14 @@ SLONG FASTPRIM_draw(
         float radius = float(MAX(pi->maxx - pi->minx, pi->maxz - pi->minz)) + 16.0f;
 
         if (dist < radius * radius) {
-            return FALSE;
+            return UC_FALSE;
         }
     }
 
     fp = &FASTPRIM_prim[prim];
 
     if (!Keys[KB_R]) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     if (!(fp->flag & FASTPRIM_PRIM_FLAG_CACHED)) {
@@ -832,12 +832,12 @@ SLONG FASTPRIM_draw(
             if (fc->type == FASTPRIM_CALL_TYPE_INDEXED) {
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
             } else {
                 // Additive blend for environment maps.
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
                 the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
             }
 
             the_display.lp_D3D_Device->SetTexture(0, fc->texture);
@@ -851,7 +851,7 @@ SLONG FASTPRIM_draw(
                 fc->indexcount,
                 0);
 
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, FALSE);
+            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
         } else {
             // DrawIndPrimMM path for opaque/colour-and prims (Tom's custom batch call).
             D3DMULTIMATRIX d3dmm = {
@@ -881,7 +881,7 @@ SLONG FASTPRIM_draw(
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: FASTPRIM_fini (fallen/DDEngine/Source/fastprim.cpp)

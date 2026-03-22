@@ -245,24 +245,24 @@ BOOL is_unit(float a, float b, float c)
 }
 
 // Check whether the matrix rows form a right-handed orthonormal basis.
-// Returns TRUE if the cross product of rows 0 and 1 matches row 2 within tolerance.
-// A zero first row is treated as a void (identity) matrix and returns TRUE.
+// Returns UC_TRUE if the cross product of rows 0 and 1 matches row 2 within tolerance.
+// A zero first row is treated as a void (identity) matrix and returns UC_TRUE.
 // uc_orig: check_isonormal (fallen/DDEngine/Source/Quaternion.cpp)
 BOOL check_isonormal(FloatMatrix& m)
 {
-    BOOL r = TRUE;
+    BOOL r = UC_TRUE;
 
     if ((m.M[0][0] == 0) && (m.M[0][1] == 0) && (m.M[0][2] == 0))
-        return TRUE;
+        return UC_TRUE;
 
     float x = m.M[0][1] * m.M[1][2] - m.M[0][2] * m.M[1][1];
     float y = m.M[0][2] * m.M[1][0] - m.M[0][0] * m.M[1][2];
     float z = m.M[0][0] * m.M[1][1] - m.M[0][1] * m.M[1][0];
 
     if ((fabs(x - m.M[2][0]) > 0.03) || (fabs(y - m.M[2][1]) > 0.03) || (fabs(z - m.M[2][2]) > 0.03))
-        return FALSE;
+        return UC_FALSE;
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Quaternion SLERP via floating-point path.
@@ -396,7 +396,7 @@ void BuildACosTable()
         acos_table[c0] = SLONG(acos(float(c0) / 1025.f) / (2 * 3.1415926) * 2047);
     }
 
-    acos_table_init = TRUE;
+    acos_table_init = UC_TRUE;
 }
 
 // Threshold for switching from integer SLERP to linear interpolation (32768 = 1.0).
@@ -493,7 +493,7 @@ void cmat_to_mat(CMatrix33* cm, Matrix33* m)
 }
 
 // Check whether integer matrix rows form a right-handed orthonormal basis.
-// Returns FALSE if cross product of rows 0 and 1 deviates from row 2 by more than 1000.
+// Returns UC_FALSE if cross product of rows 0 and 1 deviates from row 2 by more than 1000.
 // uc_orig: check_isonormal_integer (fallen/DDEngine/Source/Quaternion.cpp)
 BOOL check_isonormal_integer(Matrix33& m)
 {
@@ -502,9 +502,9 @@ BOOL check_isonormal_integer(Matrix33& m)
     SLONG z = (m.M[0][0] * m.M[1][1] - m.M[0][1] * m.M[1][0]) >> 15;
 
     if ((abs(x - m.M[2][0]) > 1000) || (abs(y - m.M[2][1]) > 1000) || (abs(z - m.M[2][2]) > 1000))
-        return FALSE;
+        return UC_FALSE;
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Integer SLERP path for quaternion matrix interpolation.

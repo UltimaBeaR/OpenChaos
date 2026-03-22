@@ -224,12 +224,12 @@ void FC_change_camera_type(SLONG cam, SLONG cam_type)
     }
 }
 
-// Returns TRUE if the camera needs to move up and around to the front of the player.
-// Always returns FALSE in this codebase (stub for future use or PSX variant).
+// Returns UC_TRUE if the camera needs to move up and around to the front of the player.
+// Always returns UC_FALSE in this codebase (stub for future use or PSX variant).
 // uc_orig: FC_must_move_up_and_around (fallen/Source/fc.cpp)
 SLONG FC_must_move_up_and_around(SLONG cam)
 {
-    return FALSE;
+    return UC_FALSE;
 }
 
 // uc_orig: FC_look_at (fallen/Source/fc.cpp)
@@ -597,7 +597,7 @@ void FC_look_at_focus(FC_Cam* fc)
 
 // Immediately snaps want_x/y/z to behind the focus character, running collision avoidance.
 // If the ideal behind-position is blocked, tries 4 rotated alternatives.
-// Sets toonear=TRUE with saved pre-collision state if all alternatives fail (emergency mode).
+// Sets toonear=UC_TRUE with saved pre-collision state if all alternatives fail (emergency mode).
 // uc_orig: FC_force_camera_behind (fallen/Source/fc.cpp)
 void FC_force_camera_behind(SLONG cam)
 {
@@ -615,7 +615,7 @@ void FC_force_camera_behind(SLONG cam)
     goz = fc->focus_z + (COS(fc->focus_yaw) * fc->cam_dist >> 8);
     goy = fc->focus_y + FC_focus_above(fc);
 
-    fc->toonear = FALSE;
+    fc->toonear = UC_FALSE;
 
     if (!MAV_height_los_slow(
             fc->focus_in_warehouse,
@@ -667,7 +667,7 @@ void FC_force_camera_behind(SLONG cam)
         dx = abs(gox - fc->focus_x);
         dz = abs(goz - fc->focus_z);
 
-        fc->toonear = TRUE;
+        fc->toonear = UC_TRUE;
         fc->toonear_dist = QDIST2(dx, dz);
         fc->toonear_x = fc->want_x;
         fc->toonear_y = fc->want_y;
@@ -724,10 +724,10 @@ void FC_setup_initial_camera(SLONG cam)
     fc->pitch = fc->want_pitch;
     fc->roll = fc->want_roll;
 
-    fc->toonear = FALSE;
+    fc->toonear = UC_FALSE;
 }
 
-// Returns TRUE if the camera can rotate in the given direction without clipping into geometry.
+// Returns UC_TRUE if the camera can rotate in the given direction without clipping into geometry.
 // Checks 4 corners of the rotated camera position against MAV_inside (or warehouse bounds).
 // uc_orig: FC_allowed_to_rotate (fallen/Source/fc.cpp)
 SLONG FC_allowed_to_rotate(FC_Cam* fc, SLONG rotate_dir)
@@ -773,16 +773,16 @@ SLONG FC_allowed_to_rotate(FC_Cam* fc, SLONG rotate_dir)
 
         if (fc->focus_in_warehouse) {
             if (!MAV_inside(cx, cy, cz)) {
-                return FALSE;
+                return UC_FALSE;
             }
         } else {
             if (MAV_inside(cx, cy, cz)) {
-                return FALSE;
+                return UC_FALSE;
             }
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: FC_rotate_left (fallen/Source/fc.cpp)
@@ -821,7 +821,7 @@ void FC_setup_camera_for_warehouse(SLONG cam)
     SLONG i;
     SLONG dx, dz;
     SLONG dist;
-    SLONG best_dist = INFINITY;
+    SLONG best_dist = UC_INFINITY;
     SLONG best_door = -1;
 
     WARE_Ware* ww;
@@ -862,7 +862,7 @@ void FC_setup_camera_for_warehouse(SLONG cam)
     fc->pitch = fc->want_pitch;
     fc->roll = fc->want_roll;
 
-    fc->toonear = FALSE;
+    fc->toonear = UC_FALSE;
 }
 
 // Main camera update called once per frame. Processes each active camera in FC_cam[].
@@ -981,14 +981,14 @@ void FC_process()
                 if (dangle > +1024) { dangle -= 2048; }
 
                 if (abs(dangle) > 200) {
-                    fc->toonear = FALSE;
+                    fc->toonear = UC_FALSE;
                     fc->x = fc->want_x = fc->toonear_x;
                     fc->y = fc->want_y = fc->toonear_y;
                     fc->z = fc->want_z = fc->toonear_z;
                     fc->yaw = fc->want_yaw = fc->toonear_yaw;
                     fc->pitch = fc->want_pitch = fc->toonear_pitch;
                     fc->roll = fc->want_roll = fc->toonear_roll;
-                    fc->smooth_transition = TRUE;
+                    fc->smooth_transition = UC_TRUE;
                 }
             }
         }
@@ -1253,7 +1253,7 @@ void FC_process()
             fc->want_x += ((ddist >> 4) * dx / dist) << 4;
             fc->want_z += ((ddist >> 4) * dz / dist) << 4;
 
-            fc->toonear = FALSE;
+            fc->toonear = UC_FALSE;
         }
 
         // Smooth position: want → actual.
@@ -1269,7 +1269,7 @@ void FC_process()
             fc->want_x = fc->x;
             fc->want_y = fc->y;
             fc->want_z = fc->z;
-            fc->smooth_transition = FALSE;
+            fc->smooth_transition = UC_FALSE;
         }
 
         FC_look_at_focus(fc);
@@ -1317,7 +1317,7 @@ void FC_process()
 }
 
 // Fast LOS reject: traces from camera to a point through 5 steps.
-// Returns TRUE if the path is clear (none of the steps are inside geometry).
+// Returns UC_TRUE if the path is clear (none of the steps are inside geometry).
 // uc_orig: FC_can_see_point (fallen/Source/fc.cpp)
 SLONG FC_can_see_point(
     SLONG cam,
@@ -1341,16 +1341,16 @@ SLONG FC_can_see_point(
         z += dz;
 
         if (MAV_inside(x, y, z)) {
-            return FALSE;
+            return UC_FALSE;
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
-// Returns TRUE if the camera can see the given person.
-// Handles cut-scene camera position. Always returns TRUE for climbers/danglers.
-// Checks head, torso, and 4 shoulder points; FALSE only if all 6 are obscured.
+// Returns UC_TRUE if the camera can see the given person.
+// Handles cut-scene camera position. Always returns UC_TRUE for climbers/danglers.
+// Checks head, torso, and 4 shoulder points; UC_FALSE only if all 6 are obscured.
 // uc_orig: FC_can_see_person (fallen/Source/fc.cpp)
 SLONG FC_can_see_person(SLONG cam, Thing* p_person)
 {
@@ -1365,7 +1365,7 @@ SLONG FC_can_see_person(SLONG cam, Thing* p_person)
     SLONG junk;
 
     if (p_person->State == STATE_CLIMB_LADDER || p_person->State == STATE_DANGLING || p_person->State == STATE_CLIMBING) {
-        return TRUE;
+        return UC_TRUE;
     }
 
     // Get cut-scene camera position if active.
@@ -1383,7 +1383,7 @@ SLONG FC_can_see_person(SLONG cam, Thing* p_person)
         fc->x = old_fc_x;
         fc->y = old_fc_y;
         fc->z = old_fc_z;
-        return TRUE;
+        return UC_TRUE;
     }
 
     x = p_person->WorldPos.X >> 8;
@@ -1395,7 +1395,7 @@ SLONG FC_can_see_person(SLONG cam, Thing* p_person)
             fc->x = old_fc_x;
             fc->y = old_fc_y;
             fc->z = old_fc_z;
-            return FALSE;
+            return UC_FALSE;
         }
     }
 
@@ -1403,7 +1403,7 @@ SLONG FC_can_see_person(SLONG cam, Thing* p_person)
     fc->y = old_fc_y;
     fc->z = old_fc_z;
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Sets up an over-the-shoulder view at the given pitch, entering toonear/first-person mode.
@@ -1422,7 +1422,7 @@ void FC_position_for_lookaround(SLONG cam, SLONG pitch)
     fc->want_y = fc->focus_y + 0xb000 + (vector[1] * 3 >> 2);
     fc->want_z = fc->focus_z + (vector[2] * 3 >> 2);
 
-    fc->toonear = TRUE;
+    fc->toonear = UC_TRUE;
     fc->toonear_dist = 0x90000;
 }
 

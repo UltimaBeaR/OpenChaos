@@ -1331,7 +1331,7 @@ void MEMORY_quick_init()
 {
     FileDelete(MEMORY_QUICK_FNAME);
 
-    MEMORY_quick_avaliable = FALSE;
+    MEMORY_quick_avaliable = UC_FALSE;
 }
 
 // Write the full game state to the quick save file using stdio.
@@ -1470,7 +1470,7 @@ void MEMORY_quick_save()
 
     MF_Fclose(handle);
 
-    MEMORY_quick_avaliable = TRUE;
+    MEMORY_quick_avaliable = UC_TRUE;
 
     return;
 
@@ -1480,7 +1480,7 @@ file_error:;
 
     FileDelete(MEMORY_QUICK_FNAME);
 
-    MEMORY_quick_avaliable = FALSE;
+    MEMORY_quick_avaliable = UC_FALSE;
 
     return;
 }
@@ -1494,7 +1494,7 @@ SLONG MEMORY_quick_load_available(void)
 
 // Load game state from the quick save file.
 // Restores all save_table entries and all scalar game state,
-// then recalculates lighting caches. Returns TRUE on success.
+// then recalculates lighting caches. Returns UC_TRUE on success.
 // uc_orig: MEMORY_quick_load (fallen/Source/memory.cpp)
 SLONG MEMORY_quick_load()
 {
@@ -1506,7 +1506,7 @@ SLONG MEMORY_quick_load()
     FILE* handle = MF_Fopen(MEMORY_QUICK_FNAME, "rb");
 
     if (!handle) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     SLONG version;
@@ -1637,13 +1637,13 @@ SLONG MEMORY_quick_load()
     NIGHT_dfcache_recalc();
     NIGHT_generate_walkable_lighting();
 
-    return TRUE;
+    return UC_TRUE;
 
 file_error:;
 
     MF_Fclose(handle);
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Write game state in Dreamcast .dad format (used for DC target only).

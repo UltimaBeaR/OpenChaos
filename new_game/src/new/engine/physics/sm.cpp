@@ -334,7 +334,7 @@ void SM_get_start()
             AENG_world_line(
                 ss1->x >> 8, ss1->y >> 8, ss1->z >> 8, 16, 0x00ff0000,
                 ss2->x >> 8, ss2->y >> 8, ss2->z >> 8, 1, 0x0000ff00,
-                TRUE);
+                UC_TRUE);
         }
     }
 }

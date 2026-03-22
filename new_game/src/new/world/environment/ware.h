@@ -49,7 +49,7 @@ typedef struct {
 // uc_orig: WARE_init (fallen/Source/ware.cpp)
 void WARE_init(void);
 
-// Returns TRUE if mapsquare (x, z) is inside warehouse ware's floor plan.
+// Returns UC_TRUE if mapsquare (x, z) is inside warehouse ware's floor plan.
 // uc_orig: WARE_in_floorplan (fallen/Source/ware.cpp)
 SLONG WARE_in_floorplan(UBYTE ware, UBYTE x, UBYTE z);
 
@@ -57,8 +57,8 @@ SLONG WARE_in_floorplan(UBYTE ware, UBYTE x, UBYTE z);
 // uc_orig: WARE_which_contains (fallen/Source/ware.cpp)
 SLONG WARE_which_contains(UBYTE x, UBYTE z);
 
-// Returns TRUE if world-space point (x, y, z) is below the warehouse floor/ceiling
-// (i.e. underground inside crates). Returns TRUE if outside the warehouse entirely.
+// Returns UC_TRUE if world-space point (x, y, z) is below the warehouse floor/ceiling
+// (i.e. underground inside crates). Returns UC_TRUE if outside the warehouse entirely.
 // uc_orig: WARE_inside (fallen/Source/ware.cpp)
 SLONG WARE_inside(UBYTE ware, SLONG x, SLONG y, SLONG z);
 

@@ -37,7 +37,7 @@ extern LPSTR lpszGlobalArgs;
 extern WNDCLASS DDLibClass;
 
 // uc_orig: ShellActive (fallen/DDLibrary/Source/GHost.cpp)
-// TRUE while the shell message loop is running. Written from the thread proc and read
+// UC_TRUE while the shell message loop is running. Written from the thread proc and read
 // from the main loop, so declared volatile.
 extern volatile BOOL ShellActive;
 

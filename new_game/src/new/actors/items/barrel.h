@@ -28,7 +28,7 @@ struct Thing;
 // One physics sphere (each barrel uses two, one per end).
 typedef struct
 {
-    SLONG x;       // -INFINITY means unused
+    SLONG x;       // -UC_INFINITY means unused
     SLONG y;
     SLONG z;
     SLONG dx;

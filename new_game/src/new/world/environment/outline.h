@@ -28,13 +28,13 @@ void OUTLINE_add_line(
 // uc_orig: OUTLINE_free (fallen/Editor/Source/outline.cpp)
 void OUTLINE_free(OUTLINE_Outline* oo);
 
-// Returns TRUE if the two closed outlines overlap (share interior area).
+// Returns UC_TRUE if the two closed outlines overlap (share interior area).
 // uc_orig: OUTLINE_overlap (fallen/Editor/Source/outline.cpp)
 SLONG OUTLINE_overlap(
     OUTLINE_Outline* oo1,
     OUTLINE_Outline* oo2);
 
-// Returns TRUE if the given orthogonal line segment crosses the outline boundary.
+// Returns UC_TRUE if the given orthogonal line segment crosses the outline boundary.
 // uc_orig: OUTLINE_intersects (fallen/Editor/Source/outline.cpp)
 SLONG OUTLINE_intersects(
     OUTLINE_Outline* oo,

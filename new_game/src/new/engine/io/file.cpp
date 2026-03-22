@@ -18,9 +18,9 @@ BOOL FileExists(CBYTE* file_name)
     file_name = MakeFullPathName(file_name);
 
     if (GetFileAttributes(file_name) == 0xffffffff)
-        return FALSE;
+        return UC_FALSE;
     else
-        return TRUE;
+        return UC_TRUE;
 }
 
 // uc_orig: FileOpen (MFStdLib/Source/StdLib/StdFile.cpp)
@@ -103,7 +103,7 @@ SLONG FileRead(MFFileHandle file_handle, void* buffer, ULONG size)
 {
     SLONG bytes_read;
 
-    if (ReadFile(file_handle, buffer, size, (LPDWORD)&bytes_read, NULL) == FALSE)
+    if (ReadFile(file_handle, buffer, size, (LPDWORD)&bytes_read, NULL) == UC_FALSE)
         return FILE_READ_ERROR;
     else
         return bytes_read;
@@ -114,7 +114,7 @@ SLONG FileWrite(MFFileHandle file_handle, void* buffer, ULONG size)
 {
     SLONG bytes_written;
 
-    if (WriteFile(file_handle, buffer, size, (LPDWORD)&bytes_written, NULL) == FALSE)
+    if (WriteFile(file_handle, buffer, size, (LPDWORD)&bytes_written, NULL) == UC_FALSE)
         return FILE_WRITE_ERROR;
     else
         return bytes_written;

@@ -425,7 +425,7 @@ void MAV_precalculate()
 
     UBYTE opt[4];
 
-    MAV_calc_height_array(FALSE);
+    MAV_calc_height_array(UC_FALSE);
 
     // Adjust MAVHEIGHT under staircase prims (prim 41) using the prim's actual Y position.
     for (x = 0; x < PAP_SIZE_LO; x++)
@@ -498,9 +498,9 @@ void MAV_precalculate()
 
                 if (WITHIN(tx, 0, PAP_SIZE_HI - 1) && WITHIN(tz, 0, PAP_SIZE_HI - 1)) {
                     if (!(PAP_2HI(x, z).Flags & PAP_FLAG_HIDDEN) && !(PAP_2HI(tx, tz).Flags & PAP_FLAG_HIDDEN)) {
-                        both_ground = TRUE;
+                        both_ground = UC_TRUE;
                     } else {
-                        both_ground = FALSE;
+                        both_ground = UC_FALSE;
                     }
 
                     // Height difference threshold: ground cells ±2, building-top cells ±1.
@@ -970,12 +970,12 @@ void MAV_draw(
         AENG_world_line(
             x1, y1, z1, 4, 0x00000077,
             x2, y2, z2, 4, 0x00000077,
-            TRUE);
+            UC_TRUE);
 
         AENG_world_line(
             x2, y1, z1, 4, 0x00000077,
             x1, y2, z2, 4, 0x00000077,
-            TRUE);
+            UC_TRUE);
 
         // Draw options for leaving this square.
         if (!ControlFlag) {
@@ -1001,7 +1001,7 @@ void MAV_draw(
                         AENG_world_line(
                             mx, y1, mz, 0, 0,
                             lx, y2, lz, 9, colour[j],
-                            TRUE);
+                            UC_TRUE);
                     }
 
                     lx += -dz * 16;
@@ -1023,7 +1023,7 @@ void MAV_draw(
                     AENG_world_line(
                         mx, y1, mz, 0, 0,
                         lx, y2, lz, 9, colour[0],
-                        TRUE);
+                        UC_TRUE);
                 }
             }
         }
@@ -1032,9 +1032,9 @@ void MAV_draw(
     TRACE("MAV_opts_upto = %d\n", MAV_opt_upto);
 }
 
-// Returns TRUE if you can walk in a straight line (plain-walk only) from (ax,az) to (bx,bz).
+// Returns UC_TRUE if you can walk in a straight line (plain-walk only) from (ax,az) to (bx,bz).
 // Steps along the normalised direction vector, checking MAV_CAPS_GOTO on each cell boundary.
-// On FALSE: MAV_last_mx/mz = last reachable cell; MAV_dmx/dmz = blocked direction delta.
+// On UC_FALSE: MAV_last_mx/mz = last reachable cell; MAV_dmx/dmz = blocked direction delta.
 // uc_orig: MAV_can_i_walk (fallen/Source/mav.cpp)
 SLONG MAV_can_i_walk(
     UBYTE ax, UBYTE az,
@@ -1066,7 +1066,7 @@ SLONG MAV_can_i_walk(
     dist = QDIST2(abs(dx), abs(dz));
 
     if (dist == 0) {
-        return TRUE;
+        return UC_TRUE;
     } else {
         // Normalise (dx,dz) to length 0x40 ish
         overdist = 0x4000 / dist;
@@ -1100,17 +1100,17 @@ SLONG MAV_can_i_walk(
             mo = &MAV_opt[MAV_NAV(MAV_last_mx, MAV_last_mz)];
 
             if (MAV_dmx == -1 && !(mo->opt[MAV_DIR_XS] & MAV_CAPS_GOTO)) {
-                return FALSE;
+                return UC_FALSE;
             }
             if (MAV_dmx == +1 && !(mo->opt[MAV_DIR_XL] & MAV_CAPS_GOTO)) {
-                return FALSE;
+                return UC_FALSE;
             }
 
             if (MAV_dmz == -1 && !(mo->opt[MAV_DIR_ZS] & MAV_CAPS_GOTO)) {
-                return FALSE;
+                return UC_FALSE;
             }
             if (MAV_dmz == +1 && !(mo->opt[MAV_DIR_ZL] & MAV_CAPS_GOTO)) {
-                return FALSE;
+                return UC_FALSE;
             }
 
             if (MAV_dmx && MAV_dmz) {
@@ -1118,24 +1118,24 @@ SLONG MAV_can_i_walk(
                 mo = &MAV_opt[MAV_NAV(mx, MAV_last_mz)];
 
                 if (MAV_dmz == -1 && !(mo->opt[MAV_DIR_ZS] & MAV_CAPS_GOTO)) {
-                    return FALSE;
+                    return UC_FALSE;
                 }
                 if (MAV_dmz == +1 && !(mo->opt[MAV_DIR_ZL] & MAV_CAPS_GOTO)) {
-                    return FALSE;
+                    return UC_FALSE;
                 }
 
                 mo = &MAV_opt[MAV_NAV(MAV_last_mx, mz)];
 
                 if (MAV_dmx == -1 && !(mo->opt[MAV_DIR_XS] & MAV_CAPS_GOTO)) {
-                    return FALSE;
+                    return UC_FALSE;
                 }
                 if (MAV_dmx == +1 && !(mo->opt[MAV_DIR_XL] & MAV_CAPS_GOTO)) {
-                    return FALSE;
+                    return UC_FALSE;
                 }
             }
 
             if (mx == bx && mz == bz) {
-                return TRUE;
+                return UC_TRUE;
             }
 
             MAV_last_mx = mx;
@@ -1305,7 +1305,7 @@ typedef struct
 // uc_orig: PQ_HEAP_MAX_SIZE (fallen/Source/mav.cpp)
 #define PQ_HEAP_MAX_SIZE 256
 
-// Comparison: returns TRUE if node a is better (lower score) than b.
+// Comparison: returns UC_TRUE if node a is better (lower score) than b.
 // uc_orig: PQ_better (fallen/Source/mav.cpp)
 SLONG PQ_better(PQ_Type* a, PQ_Type* b)
 {
@@ -1393,7 +1393,7 @@ MAV_Action MAV_do(
     MAV_dest_x = dest_x;
     MAV_dest_z = dest_z;
 
-    MAV_do_found_dest = FALSE;
+    MAV_do_found_dest = UC_FALSE;
 
     // Clear only the ±MAV_LOOKAHEAD box around the agent (not the full 128x128 map).
     MAV_clear_bbox(
@@ -1418,7 +1418,7 @@ MAV_Action MAV_do(
 #define MAV_MAX_OVERFLOWS 8
 
     overflows = 0;
-    best_score = INFINITY;
+    best_score = UC_INFINITY;
     ans.action = MAV_ACTION_GOTO;
     ans.dir = 0;
     ans.dest_x = me_x;
@@ -1450,7 +1450,7 @@ MAV_Action MAV_do(
         }
 
         if (best.x == MAV_dest_x && best.z == MAV_dest_z) {
-            MAV_do_found_dest = TRUE;
+            MAV_do_found_dest = UC_TRUE;
 
             MAV_create_nodelist_from_pos(best.x, best.z);
             ans = MAV_get_first_action_from_nodelist();
@@ -1586,7 +1586,7 @@ MAV_Action MAV_do(
     return ans;
 }
 
-// Returns TRUE if world-space point (x,y,z) is below the MAVHEIGHT terrain surface.
+// Returns UC_TRUE if world-space point (x,y,z) is below the MAVHEIGHT terrain surface.
 // x/z in game units (>>8 → grid cell), y in game units (>>6 → MAVHEIGHT units).
 // uc_orig: MAV_inside (fallen/Source/mav.cpp)
 SLONG MAV_inside(
@@ -1600,22 +1600,22 @@ SLONG MAV_inside(
 
     if (WITHIN(x, 0, MAP_WIDTH - 1) && WITHIN(z, 0, MAP_HEIGHT - 1)) {
         if (y < -127) {
-            return TRUE;
+            return UC_TRUE;
         }
         if (y > +127) {
-            return FALSE;
+            return UC_FALSE;
         }
 
         if (y < MAVHEIGHT(x, z)) {
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 // Fast terrain LOS using the MAVHEIGHT grid. Steps ~1 cell at a time.
-// Returns FALSE if any step is underground; failure point saved in MAV_height_los_fail_*.
+// Returns UC_FALSE if any step is underground; failure point saved in MAV_height_los_fail_*.
 // uc_orig: MAV_height_los_fast (fallen/Source/mav.cpp)
 SLONG MAV_height_los_fast(
     SLONG x1, SLONG y1, SLONG z1,
@@ -1642,7 +1642,7 @@ SLONG MAV_height_los_fast(
             MAV_height_los_fail_y = y - (dy >> 0);
             MAV_height_los_fail_z = z - (dz >> 0);
 
-            return FALSE;
+            return UC_FALSE;
         }
 
         x += dx;
@@ -1650,7 +1650,7 @@ SLONG MAV_height_los_fast(
         z += dz;
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Slow terrain LOS — like MAV_height_los_fast but uses WARE_inside() when ware != 0.
@@ -1690,7 +1690,7 @@ SLONG MAV_height_los_slow(
             MAV_height_los_fail_y = y;
             MAV_height_los_fail_z = z;
 
-            return FALSE;
+            return UC_FALSE;
         }
 
         x += dx;
@@ -1698,7 +1698,7 @@ SLONG MAV_height_los_slow(
         z += dz;
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Builds the navigation grid for a single warehouse interior.

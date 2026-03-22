@@ -24,7 +24,7 @@ void BACK_init()
     BACK_ot_mib = OS_texture_create("ThreeAmigos4.tga");
     BACK_ot_line = OS_texture_create("Bumpyline.tga");
 
-    done = TRUE;
+    done = UC_TRUE;
 }
 
 void BACK_draw()

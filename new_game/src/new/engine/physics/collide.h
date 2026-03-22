@@ -213,7 +213,7 @@ void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2,
 
 // uc_orig: slide_along (fallen/Source/collide.cpp)
 // Slides endpoint (*x2,*y2,*z2) against DFacets and NOGO grid within radius.
-// Writes collision results to slide_* globals. Returns FALSE always.
+// Writes collision results to slide_* globals. Returns UC_FALSE always.
 SLONG slide_along(SLONG x1, SLONG my_y1, SLONG z1,
     SLONG* x2, SLONG* y2, SLONG* z2,
     SLONG extra_wall_height, SLONG radius, ULONG flags);
@@ -254,7 +254,7 @@ ULONG move_thing_quick(SLONG dx, SLONG dy, SLONG dz, Thing* p_thing);
 
 // uc_orig: collide_against_objects (fallen/Source/collide.cpp)
 // Slides (x2,y2,z2) against all OB-placed objects (street furniture: lamps, bins, etc.)
-// within a 3-cell radius of x2/z2. Returns TRUE if any collision occurred.
+// within a 3-cell radius of x2/z2. Returns UC_TRUE if any collision occurred.
 SLONG collide_against_objects(
     Thing* p_thing, SLONG radius,
     SLONG x1, SLONG my_y1, SLONG z1,
@@ -262,7 +262,7 @@ SLONG collide_against_objects(
 
 // uc_orig: collide_against_things (fallen/Source/collide.cpp)
 // Slides (x2,y2,z2) against nearby Things (persons, vehicles, furniture, pyro, bats).
-// Returns TRUE if any collision occurred.
+// Returns UC_TRUE if any collision occurred.
 SLONG collide_against_things(
     Thing* p_thing, SLONG radius,
     SLONG x1, SLONG my_y1, SLONG z1,
@@ -286,12 +286,12 @@ ULONG move_thing(SLONG dx, SLONG dy, SLONG dz, Thing* p_thing);
 void start_checking_against_a_new_vector(void);
 
 // uc_orig: check_vector_against_mapsquare (fallen/Source/collide.cpp)
-// Returns TRUE if the current save_stack ray intersects a DFacet above map cell (map_x, map_z).
+// Returns UC_TRUE if the current save_stack ray intersects a DFacet above map cell (map_x, map_z).
 // Fills los_failure_* with the intersection point.
 SLONG check_vector_against_mapsquare(SLONG map_x, SLONG map_z, SLONG los_flags);
 
 // uc_orig: check_vector_against_mapsquare_objects (fallen/Source/collide.cpp)
-// Returns TRUE if the current save_stack ray intersects an OB-placed object or a large vehicle
+// Returns UC_TRUE if the current save_stack ray intersects an OB-placed object or a large vehicle
 // above map cell (map_x, map_z). include_cars: also test all vehicles (not just vans/ambulances).
 SLONG check_vector_against_mapsquare_objects(SLONG map_x, SLONG map_z, SLONG include_cars);
 
@@ -312,11 +312,11 @@ SLONG there_is_a_los_car(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, SL
 // Only the functions NOT in that header are declared here.
 
 // uc_orig: collide_with_circle (fallen/Source/collide.cpp)
-// Returns TRUE if (*x2, *z2) is strictly inside the circle. Does not push out.
+// Returns UC_TRUE if (*x2, *z2) is strictly inside the circle. Does not push out.
 SLONG collide_with_circle(SLONG cx, SLONG cz, SLONG cradius, SLONG* x2, SLONG* z2);
 
 // uc_orig: stop_movement_between (fallen/Source/collide.cpp)
-// Returns TRUE if movement between two adjacent hi-res map cells should be blocked
+// Returns UC_TRUE if movement between two adjacent hi-res map cells should be blocked
 // (water edge; used by insert_collision_facets).
 SLONG stop_movement_between(SLONG mx1, SLONG mz1, SLONG mx2, SLONG mz2);
 
@@ -327,7 +327,7 @@ void create_just_collision_facet(SLONG x1, SLONG z1, SLONG x2, SLONG z2);
 // uc_orig: slide_around_box (fallen/Source/collide.cpp)
 // Slide (*x2, *z2) to the nearest edge of an OBB (oriented bounding box) expanded by radius.
 // Retries if the chosen slide direction lands in a NOGO cell.
-// Returns TRUE if a collision occurred and x2/z2 were modified.
+// Returns UC_TRUE if a collision occurred and x2/z2 were modified.
 SLONG slide_around_box(
     SLONG box_mid_x, SLONG box_mid_z,
     SLONG box_min_x, SLONG box_min_z,
@@ -354,7 +354,7 @@ void box_circle_early_out(
 
 // uc_orig: slide_around_sausage (fallen/Source/collide.cpp)
 // Slides (*x2, *z2) around the outside of a sausage (capsule) shape defined by
-// segment (sx1,sz1)-(sx2,sz2) with radius sradius. Returns TRUE on collision.
+// segment (sx1,sz1)-(sx2,sz2) with radius sradius. Returns UC_TRUE on collision.
 SLONG slide_around_sausage(
     SLONG sx1, SLONG sz1,
     SLONG sx2, SLONG sz2,

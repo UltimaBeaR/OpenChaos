@@ -325,7 +325,7 @@ void NS_cache_init()
     // Build the cache free list (entries 1..NS_MAX_CACHES-1).
     NS_cache_free = 1;
     for (i = 1; i < NS_MAX_CACHES - 1; i++) {
-        NS_cache[i].used = FALSE;
+        NS_cache[i].used = UC_FALSE;
         NS_cache[i].next = i + 1;
     }
     NS_cache[NS_MAX_CACHES - 1].next = NULL;
@@ -690,9 +690,9 @@ void NS_cache_create_wallstrip(
         bot = MIN(ty1, ty2);
         bot -= 24;
         bot &= ~7;
-        darken_bottom = TRUE;
+        darken_bottom = UC_TRUE;
     } else {
-        darken_bottom = FALSE;
+        darken_bottom = UC_FALSE;
     }
 
     NS_search_start = shared;
@@ -712,7 +712,7 @@ void NS_cache_create_wallstrip(
 
         if (darken_bottom) {
             usenorm = NS_NORM_GREY;
-            darken_bottom = FALSE;
+            darken_bottom = UC_FALSE;
         } else {
             usenorm = norm;
         }
@@ -1622,7 +1622,7 @@ void NS_cache_create_grates(UBYTE mx, UBYTE mz)
 }
 
 // Builds the full geometry cache for lo-res mapsquare (mx,mz). Allocates from the HEAP.
-// Returns TRUE on success, FALSE if the square is at the map edge (cannot generate geometry there).
+// Returns UC_TRUE on success, UC_FALSE if the square is at the map edge (cannot generate geometry there).
 // uc_orig: NS_cache_create (fallen/Source/ns.cpp)
 SLONG NS_cache_create(UBYTE mx, UBYTE mz)
 {
@@ -1641,7 +1641,7 @@ SLONG NS_cache_create(UBYTE mx, UBYTE mz)
     ASSERT(NS_cache_free != NULL);
 
     if (mx == PAP_SIZE_LO - 1 || mz == PAP_SIZE_LO - 1 || mx == 0 || mz == 0) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     NS_scratch_point_upto = 0;
@@ -1679,7 +1679,7 @@ SLONG NS_cache_create(UBYTE mx, UBYTE mz)
     NS_cache_create_grates(mx, mz);
 
     nc->next = NULL;
-    nc->used = TRUE;
+    nc->used = UC_TRUE;
     nc->map_x = mx;
     nc->map_z = mz;
     nc->num_points = NS_scratch_point_upto;
@@ -1699,7 +1699,7 @@ SLONG NS_cache_create(UBYTE mx, UBYTE mz)
     NS_cache_create_falls(mx, mz, nc);
 
     NS_lo[mx][mz].cache = c_index;
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Frees the geometry cache for slot 'cache': returns HEAP memory, frees waterfalls, unlinks
@@ -1734,7 +1734,7 @@ void NS_cache_destroy(UBYTE cache)
         fall = next;
     }
 
-    nc->used = FALSE;
+    nc->used = UC_FALSE;
     nc->next = NS_cache_free;
     NS_cache_free = cache;
 
@@ -1812,7 +1812,7 @@ void NS_slide_along(
 {
     SLONG i;
     SLONG height;
-    SLONG collided = FALSE;
+    SLONG collided = UC_FALSE;
     SLONG mx;
     SLONG mz;
     SLONG dx;
@@ -1863,16 +1863,16 @@ void NS_slide_along(
         case NS_HI_TYPE_ROCK:
         case NS_HI_TYPE_CURVE:
         case NS_HI_TYPE_NOTHING:
-            collide = TRUE;
+            collide = UC_TRUE;
             break;
 
         default:
             height = (nh->bot << (5 + 8)) + (-32 * 0x100 * 0x100);
             // Allow stepping up a quarter of a block.
             if (*y2 + 0x4000 < height) {
-                collide = TRUE;
+                collide = UC_TRUE;
             } else {
-                collide = FALSE;
+                collide = UC_FALSE;
             }
             break;
         }
@@ -1902,14 +1902,14 @@ void NS_slide_along(
     }
 }
 
-// Returns TRUE if (x,y,z) is below the sewer floor — i.e., inside the rock.
+// Returns UC_TRUE if (x,y,z) is below the sewer floor — i.e., inside the rock.
 // uc_orig: NS_inside (fallen/Source/ns.cpp)
 SLONG NS_inside(SLONG x, SLONG y, SLONG z)
 {
     return y < NS_calc_height_at(x, z);
 }
 
-// Returns TRUE if the line segment from (x1,y1,z1) to (x2,y2,z2) has clear line-of-sight
+// Returns UC_TRUE if the line segment from (x1,y1,z1) to (x2,y2,z2) has clear line-of-sight
 // through the sewer (no rock intersections). Sets NS_los_fail_* to the last clear point on failure.
 // uc_orig: NS_there_is_a_los (fallen/Source/ns.cpp)
 SLONG NS_there_is_a_los(
@@ -1929,7 +1929,7 @@ SLONG NS_there_is_a_los(
     SLONG steps = len >> 5;
 
     if (len == 0) {
-        return TRUE;
+        return UC_TRUE;
     }
 
     dx = (dx << 5) / len;
@@ -1945,11 +1945,11 @@ SLONG NS_there_is_a_los(
             NS_los_fail_x = x - dx;
             NS_los_fail_y = y - dy;
             NS_los_fail_z = z - dz;
-            return FALSE;
+            return UC_FALSE;
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Finds a free NS_St slot by random search. Returns the slot index, or NULL if the pool is full.

@@ -559,7 +559,7 @@ void process_things_tick(SLONG frame_rate_independant)
     DWORD cur_tick;
 
     SLONG tick_diff;
-    static BOOL first_pass = TRUE;
+    static BOOL first_pass = UC_TRUE;
 
     cur_tick = GetTickCount();
     tick_diff = cur_tick - prev_tick;
@@ -567,7 +567,7 @@ void process_things_tick(SLONG frame_rate_independant)
 
     if (first_pass) {
         tick_diff = NORMAL_TICK_TOCK;
-        first_pass = FALSE;
+        first_pass = UC_FALSE;
     }
 
     if (CNET_network_game) {
@@ -702,7 +702,7 @@ void process_things(SLONG frame_rate_independant)
     do_arrests();
 }
 
-// Returns TRUE if the thing class is primary (lives in the primary pool).
+// Returns UC_TRUE if the thing class is primary (lives in the primary pool).
 // uc_orig: is_class_primary (fallen/Source/Thing.cpp)
 inline BOOL is_class_primary(SBYTE classification)
 {
@@ -711,7 +711,7 @@ inline BOOL is_class_primary(SBYTE classification)
     case CLASS_CAMERA:
     case CLASS_SWITCH:
     case CLASS_TRACK:
-        return FALSE;
+        return UC_FALSE;
     case CLASS_PLAYER:
     case CLASS_PROJECTILE:
     case CLASS_BUILDING:
@@ -724,10 +724,10 @@ inline BOOL is_class_primary(SBYTE classification)
     case CLASS_BARREL:
     case CLASS_BIKE:
     case CLASS_BAT:
-        return TRUE;
+        return UC_TRUE;
     default:
         ASSERT(0);
-        return FALSE;
+        return UC_FALSE;
     }
 }
 

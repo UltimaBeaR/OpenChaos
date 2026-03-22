@@ -43,8 +43,8 @@ extern void UseBackSurface(LPDIRECTDRAWSURFACE4 use);
 extern void ResetBackImage(void);
 // uc_orig: ShowBackImage (fallen/DDLibrary/Headers/GDisplay.h)
 // Blits the current background image to the back buffer.
-// b3DInFrame=FALSE allows DC-level blits when no 3D rendering is active.
-extern void ShowBackImage(bool b3DInFrame = TRUE);
+// b3DInFrame=UC_FALSE allows DC-level blits when no 3D rendering is active.
+extern void ShowBackImage(bool b3DInFrame = UC_TRUE);
 
 // uc_orig: OpenDisplay (fallen/DDLibrary/Headers/GDisplay.h)
 // Opens the display with the requested resolution/depth/flags. Returns non-zero on success.
@@ -128,13 +128,13 @@ protected:
     inline void TurnValidViewportOn(void)    { ValidFlags |= DWF_VALID_VIEWPORT; }
     inline void TurnValidViewportOff(void)   { ValidFlags &= ~DWF_VALID_VIEWPORT; }
 
-    inline BOOL IsValidDefaults(void)   { return ((CurrDriver && CurrMode && CurrDevice) ? TRUE : FALSE); }
-    inline BOOL IsValidInterface(void)  { return ((ValidFlags & DWF_VALID_INTERFACE)  ? TRUE : FALSE); }
-    inline BOOL IsValidFullscreen(void) { return ((ValidFlags & DWF_VALID_FULLSCREEN) ? TRUE : FALSE); }
-    inline BOOL IsValidFront(void)      { return ((ValidFlags & DWF_VALID_FRONT)      ? TRUE : FALSE); }
-    inline BOOL IsValidBack(void)       { return ((ValidFlags & DWF_VALID_BACK)       ? TRUE : FALSE); }
-    inline BOOL IsValidWork(void)       { return ((ValidFlags & DWF_VALID_WORK)       ? TRUE : FALSE); }
-    inline BOOL IsValidViewport(void)   { return ((ValidFlags & DWF_VALID_VIEWPORT)   ? TRUE : FALSE); }
+    inline BOOL IsValidDefaults(void)   { return ((CurrDriver && CurrMode && CurrDevice) ? UC_TRUE : UC_FALSE); }
+    inline BOOL IsValidInterface(void)  { return ((ValidFlags & DWF_VALID_INTERFACE)  ? UC_TRUE : UC_FALSE); }
+    inline BOOL IsValidFullscreen(void) { return ((ValidFlags & DWF_VALID_FULLSCREEN) ? UC_TRUE : UC_FALSE); }
+    inline BOOL IsValidFront(void)      { return ((ValidFlags & DWF_VALID_FRONT)      ? UC_TRUE : UC_FALSE); }
+    inline BOOL IsValidBack(void)       { return ((ValidFlags & DWF_VALID_BACK)       ? UC_TRUE : UC_FALSE); }
+    inline BOOL IsValidWork(void)       { return ((ValidFlags & DWF_VALID_WORK)       ? UC_TRUE : UC_FALSE); }
+    inline BOOL IsValidViewport(void)   { return ((ValidFlags & DWF_VALID_VIEWPORT)   ? UC_TRUE : UC_FALSE); }
 
     UBYTE* background_image_mem;
 
@@ -197,7 +197,7 @@ public:
     HRESULT FiniWork(void);
 
     void RunFMV();
-    void RunCutscene(int which, int language = 0, bool bAllowButtonsToExit = TRUE);
+    void RunCutscene(int which, int language = 0, bool bAllowButtonsToExit = UC_TRUE);
 
     HRESULT ChangeMode(SLONG w, SLONG h, SLONG bpp, SLONG refresh);
 
@@ -262,14 +262,14 @@ public:
     }
 
     inline BOOL IsValid(void) {
-        return (((ValidFlags & DWF_VALID) == DWF_VALID) ? TRUE : FALSE);
+        return (((ValidFlags & DWF_VALID) == DWF_VALID) ? UC_TRUE : UC_FALSE);
     }
 
-    inline BOOL IsDisplayChanged(void)   { return (((AttribFlags & DWF_DISPLAY_CHANGED)  == DWF_DISPLAY_CHANGED)  ? TRUE : FALSE); }
+    inline BOOL IsDisplayChanged(void)   { return (((AttribFlags & DWF_DISPLAY_CHANGED)  == DWF_DISPLAY_CHANGED)  ? UC_TRUE : UC_FALSE); }
     inline void DisplayChangedOn(void)   { AttribFlags |= DWF_DISPLAY_CHANGED; }
     inline void DisplayChangedOff(void)  { AttribFlags &= ~DWF_DISPLAY_CHANGED; }
 
-    inline BOOL IsTexturesInvalid(void)   { return (((AttribFlags & DWF_TEXTURES_INVALID) == DWF_TEXTURES_INVALID) ? TRUE : FALSE); }
+    inline BOOL IsTexturesInvalid(void)   { return (((AttribFlags & DWF_TEXTURES_INVALID) == DWF_TEXTURES_INVALID) ? UC_TRUE : UC_FALSE); }
     inline void TexturesInvalidOn(void)   { AttribFlags |= DWF_TEXTURES_INVALID; }
     inline void TexturesInvalidOff(void)  { AttribFlags &= ~DWF_TEXTURES_INVALID; }
 
@@ -310,7 +310,7 @@ public:
     // Background surface management.
     void create_background_surface(UBYTE* image_data);
     void use_this_background_surface(LPDIRECTDRAWSURFACE4 this_one);
-    void blit_background_surface(bool b3DInFrame = TRUE);
+    void blit_background_surface(bool b3DInFrame = UC_TRUE);
     void destroy_background_surface(void);
 };
 

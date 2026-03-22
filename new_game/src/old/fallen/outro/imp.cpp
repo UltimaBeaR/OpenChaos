@@ -6,7 +6,7 @@
 #include "imp.h"
 
 //
-// Returns TRUE if the normals are similar enough.
+// Returns UC_TRUE if the normals are similar enough.
 //
 
 SLONG IMP_norm_similar(
@@ -22,9 +22,9 @@ SLONG IMP_norm_similar(
     dprod = nx1 * nx2 + ny1 * ny2 + nz1 * nz2;
 
     if (dprod > 0.999F) {
-        return TRUE;
+        return UC_TRUE;
     } else {
-        return FALSE;
+        return UC_FALSE;
     }
 }
 
@@ -53,7 +53,7 @@ void IMP_normalise_vector(
 }
 
 //
-// Adds a line between the two vertices. Returns FALSE on failure to
+// Adds a line between the two vertices. Returns UC_FALSE on failure to
 // allocate memory. (Yeah right!)
 //
 
@@ -71,7 +71,7 @@ SLONG IMP_add_line(IMP_Mesh* im, SLONG* max_lines, UWORD v1, UWORD v2)
             // No need to add the line twice.
             //
 
-            return TRUE;
+            return UC_TRUE;
         }
     }
 
@@ -85,7 +85,7 @@ SLONG IMP_add_line(IMP_Mesh* im, SLONG* max_lines, UWORD v1, UWORD v2)
         im->line = (IMP_Line*)realloc(im->line, sizeof(IMP_Line) * *max_lines);
 
         if (im->line == NULL) {
-            return FALSE;
+            return UC_FALSE;
         }
     }
 
@@ -94,7 +94,7 @@ SLONG IMP_add_line(IMP_Mesh* im, SLONG* max_lines, UWORD v1, UWORD v2)
 
     im->num_lines += 1;
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 IMP_Mesh IMP_load(CBYTE* fname, float scale)
@@ -150,7 +150,7 @@ IMP_Mesh IMP_load(CBYTE* fname, float scale)
     float pivot_x;
     float pivot_y;
     float pivot_z;
-    SLONG pivot_valid = FALSE;
+    SLONG pivot_valid = UC_FALSE;
 
     SLONG offset_vert;
     SLONG offset_tvert;
@@ -267,7 +267,7 @@ IMP_Mesh IMP_load(CBYTE* fname, float scale)
                 pivot_y = y;
                 pivot_z = z;
 
-                pivot_valid = TRUE;
+                pivot_valid = UC_TRUE;
             } else {
                 //
                 // Only use the first pivot.
@@ -1002,12 +1002,12 @@ IMP_Mesh IMP_load(CBYTE* fname, float scale)
     // Work out the bounding box and sphere of the mesh.
     //
 
-    ans.min_x = float(+INFINITY);
-    ans.min_y = float(+INFINITY);
-    ans.min_z = float(+INFINITY);
-    ans.max_x = float(-INFINITY);
-    ans.max_y = float(-INFINITY);
-    ans.max_z = float(-INFINITY);
+    ans.min_x = float(+UC_INFINITY);
+    ans.min_y = float(+UC_INFINITY);
+    ans.min_z = float(+UC_INFINITY);
+    ans.max_x = float(-UC_INFINITY);
+    ans.max_y = float(-UC_INFINITY);
+    ans.max_z = float(-UC_INFINITY);
     ans.radius = 0.0F;
 
     for (i = 0; i < ans.num_verts; i++) {
@@ -1046,7 +1046,7 @@ IMP_Mesh IMP_load(CBYTE* fname, float scale)
     // All done...
     //
 
-    ans.valid = TRUE;
+    ans.valid = UC_TRUE;
 
     return ans;
 
@@ -1064,7 +1064,7 @@ file_error:;
 
     memset(&ans, 0, sizeof(ans));
 
-    ans.valid = FALSE;
+    ans.valid = UC_FALSE;
 
     return ans;
 }
@@ -1110,7 +1110,7 @@ SLONG IMP_binary_save(CBYTE* fname, IMP_Mesh* im)
     FILE* handle = fopen(fname, "wb");
 
     if (!handle) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     //
@@ -1147,13 +1147,13 @@ SLONG IMP_binary_save(CBYTE* fname, IMP_Mesh* im)
 
     fclose(handle);
 
-    return TRUE;
+    return UC_TRUE;
 
 file_error:;
 
     fclose(handle);
 
-    return FALSE;
+    return UC_FALSE;
 }
 
 IMP_Mesh IMP_binary_load(CBYTE* fname)

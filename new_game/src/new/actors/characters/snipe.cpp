@@ -12,7 +12,7 @@ void SNIPE_mode_on(SLONG x, SLONG y, SLONG z, SLONG initial_yaw)
 #define SNIPE_LENS_START (20 << 16)
 #define SNIPE_LENS_END (30 << 16)
 
-    SNIPE_on = TRUE;
+    SNIPE_on = UC_TRUE;
     SNIPE_yaw = initial_yaw << 16;
     SNIPE_pitch = -SNIPE_INITIAL_PITCH << 16;
 
@@ -32,7 +32,7 @@ void SNIPE_mode_on(SLONG x, SLONG y, SLONG z, SLONG initial_yaw)
 // uc_orig: SNIPE_mode_off (fallen/Source/snipe.cpp)
 void SNIPE_mode_off()
 {
-    SNIPE_on = FALSE;
+    SNIPE_on = UC_FALSE;
 }
 
 // uc_orig: SNIPE_turn (fallen/Source/snipe.cpp)

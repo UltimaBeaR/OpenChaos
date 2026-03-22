@@ -358,18 +358,18 @@ static SLONG SetupVoiceTalk(MFX_Voice* vptr, char* filename)
     vptr->gain = 1.0;
 
     if (!Volumes[SMP_Effect]) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     LoadTalkFile(filename);
     if (!TalkSample.handle) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     vptr->smp = &TalkSample;
     FinishLoading(vptr);
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // uc_orig: SetupVoice (fallen/DDLibrary/Source/MFX.cpp)
@@ -696,7 +696,7 @@ static UBYTE PlayTalk(char* filename, SLONG x, SLONG y, SLONG z)
     vptr->z = z;
 
     if (!SetupVoiceTalk(vptr, filename)) {
-        return FALSE;
+        return UC_FALSE;
     }
 
     MoveVoice(vptr);

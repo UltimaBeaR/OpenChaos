@@ -32,8 +32,7 @@ typedef char CBYTE;
 //
 
 #define PI (3.14159265F)
-#undef INFINITY
-#define INFINITY (0x7fffffff)
+#define UC_INFINITY (0x7fffffff)
 
 //
 // Useful defines.
@@ -131,12 +130,12 @@ typedef char CBYTE;
 // #define SHOW_X(a)			{TRACE(#a" = 0x%x\n", (a));}
 // #define SHOW_FL(a)		{TRACE(#a" = %f\n", (a));}
 
-#ifndef FALSE
-#define FALSE 0
+#ifndef UC_FALSE
+#define UC_FALSE 0
 #endif
 
-#ifndef TRUE
-#define TRUE 1
+#ifndef UC_TRUE
+#define UC_TRUE 1
 #endif
 
 //

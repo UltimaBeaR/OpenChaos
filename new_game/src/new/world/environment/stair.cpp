@@ -238,7 +238,7 @@ void STAIR_storey_new(SLONG handle, UBYTE height)
 }
 
 // Feed one wall segment into the scanline edge lists for the current storey.
-// If opposite is TRUE, records this wall as the "preferred opposite" wall for stair scoring.
+// If opposite is UC_TRUE, records this wall as the "preferred opposite" wall for stair scoring.
 // Horizontal walls (z1==z2) are skipped — they don't cross any z-scanlines.
 // Uses a sorted linked list per z-row to record x-intercepts (16.16 fixed-point arithmetic).
 // uc_orig: STAIR_storey_wall (fallen/Source/Stair.cpp)
@@ -365,7 +365,7 @@ void STAIR_storey_wall(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2, SLONG opposite)
 
 // Completes the scanline fill for the current storey.
 // Reads sorted ENTER/LEAVE link pairs per z-row and marks all interior tiles via STAIR_set_bit.
-// Returns TRUE if the storey polygon is valid (all rows have exactly one ENTER/LEAVE pair).
+// Returns UC_TRUE if the storey polygon is valid (all rows have exactly one ENTER/LEAVE pair).
 // uc_orig: STAIR_storey_finish (fallen/Source/Stair.cpp)
 SLONG STAIR_storey_finish()
 {
@@ -399,7 +399,7 @@ SLONG STAIR_storey_finish()
         next2 = STAIR_link[next].next;
 
         if (next1 == NULL || next2 == NULL) {
-            return FALSE;
+            return UC_FALSE;
         }
 
         ASSERT(WITHIN(next1, 1, STAIR_link_upto - 1));
@@ -413,7 +413,7 @@ SLONG STAIR_storey_finish()
         }
     }
 
-    return TRUE;
+    return UC_TRUE;
 }
 
 // Main stair placement algorithm. Call after all storeys have been registered.
@@ -624,7 +624,7 @@ void STAIR_calculate(UWORD seed)
 
                 // No existing stair to reuse — find the best new placement.
                 // Score all adjacent tile pairs in 4 orientations.
-                best_score = -INFINITY;
+                best_score = -UC_INFINITY;
 
                 for (x = STAIR_x1; x < STAIR_x2; x++)
                     for (z = STAIR_z1; z < STAIR_z2; z++) {
@@ -684,7 +684,7 @@ void STAIR_calculate(UWORD seed)
                                         outside += 1;
 
                                         if (STAIR_is_door(i, ox, oz)) {
-                                            score = -INFINITY;
+                                            score = -UC_INFINITY;
                                         }
                                     }
                                 }
@@ -801,7 +801,7 @@ void STAIR_calculate(UWORD seed)
 }
 
 // Returns the stairs for the given floor handle.
-// On success: fills *stair with pointer to STAIR_id_stair[], sets *num_stairs, returns TRUE.
+// On success: fills *stair with pointer to STAIR_id_stair[], sets *num_stairs, returns UC_TRUE.
 // uc_orig: STAIR_get (fallen/Source/Stair.cpp)
 SLONG STAIR_get(SLONG handle, ID_Stair** stair, SLONG* num_stairs)
 {
@@ -820,7 +820,7 @@ SLONG STAIR_get(SLONG handle, ID_Stair** stair, SLONG* num_stairs)
         }
     }
 
-    return FALSE;
+    return UC_FALSE;
 
 found_storey_handle:
 
@@ -869,5 +869,5 @@ found_storey_handle:
 
     *stair = STAIR_id_stair;
 
-    return TRUE;
+    return UC_TRUE;
 }

@@ -333,8 +333,8 @@ void PARTICLE_Run()
                                             p_hurt,
                                             NULL,
                                             PERSON_DEATH_TYPE_OTHER,
-                                            FALSE,
-                                            FALSE);
+                                            UC_FALSE,
+                                            UC_FALSE);
                                     }
                                 }
                             }

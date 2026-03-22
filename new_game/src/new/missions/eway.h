@@ -15,15 +15,15 @@
 // uc_orig: get_level_word (fallen/Source/eway.cpp)
 void get_level_word(CBYTE* str);
 
-// Returns TRUE if the currently loaded mission is a combat tutorial level.
+// Returns UC_TRUE if the currently loaded mission is a combat tutorial level.
 // uc_orig: playing_combat_tutorial (fallen/Source/eway.cpp)
 SLONG playing_combat_tutorial(void);
 
-// Returns TRUE if the currently loaded level filename matches the given name.
+// Returns UC_TRUE if the currently loaded level filename matches the given name.
 // uc_orig: playing_level (fallen/Source/eway.cpp)
 SLONG playing_level(const CBYTE* name);
 
-// Returns TRUE if the current level counts as a real mission (not a tutorial/fight/drive test).
+// Returns UC_TRUE if the current level counts as a real mission (not a tutorial/fight/drive test).
 // uc_orig: playing_real_mission (fallen/Source/eway.cpp)
 SLONG playing_real_mission(void);
 
@@ -137,7 +137,7 @@ void EWAY_create(
     UWORD magic_index);
 
 // Stores the message string for message index 'number' into the EWAY message buffer.
-// Returns TRUE on success, FALSE if buffer is full or index out of range.
+// Returns UC_TRUE on success, UC_FALSE if buffer is full or index out of range.
 // uc_orig: EWAY_set_message (fallen/Source/eway.cpp)
 SLONG EWAY_set_message(
     UBYTE number,
@@ -160,7 +160,7 @@ void EWAY_fix_do(EWAY_Do* ed, EWAY_Way* ew);
 void EWAY_fix_edef(EWAY_Edef* ee);
 
 // Loads a numbered text file of mission messages into the EWAY message buffer.
-// Returns TRUE if the file was found and loaded.
+// Returns UC_TRUE if the file was found and loaded.
 // uc_orig: EWAY_load_message_file (fallen/Source/eway.cpp)
 SLONG EWAY_load_message_file(CBYTE* fname, UWORD* index, UWORD* number);
 
@@ -180,10 +180,10 @@ CBYTE* EWAY_get_fake_wander_message(SLONG type);
 // uc_orig: EWAY_created_last_waypoint (fallen/Source/eway.cpp)
 void EWAY_created_last_waypoint(void);
 
-// Evaluates a single condition struct. Returns TRUE if satisfied. EWAY_sub_condition_of_a_boolean=TRUE
+// Evaluates a single condition struct. Returns UC_TRUE if satisfied. EWAY_sub_condition_of_a_boolean=UC_TRUE
 // skips post-evaluation guards (called from BOOL_AND/OR recursion).
 // uc_orig: EWAY_evaluate_condition (fallen/Source/eway.cpp)
-SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condition_of_a_boolean = FALSE);
+SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condition_of_a_boolean = UC_FALSE);
 
 // Initialises the scripted cut-scene camera from a CAMERA_CREATE waypoint.
 // uc_orig: EWAY_create_camera (fallen/Source/eway.cpp)
@@ -275,7 +275,7 @@ SLONG EWAY_find_nearest_waypoint(
     SLONG colour,
     SLONG group);
 
-// Fills camera pose from the active scripted camera. Returns FALSE if suppressed by analogue controls.
+// Fills camera pose from the active scripted camera. Returns UC_FALSE if suppressed by analogue controls.
 // uc_orig: EWAY_grab_camera (fallen/Source/eway.cpp)
 SLONG EWAY_grab_camera(
     SLONG* cam_x,
@@ -298,7 +298,7 @@ void EWAY_item_pickedup(SLONG waypoint);
 // uc_orig: EWAY_get_delay (fallen/Source/eway.cpp)
 SLONG EWAY_get_delay(SLONG waypoint, SLONG default_delay);
 
-// Returns TRUE if the given waypoint is currently active.
+// Returns UC_TRUE if the given waypoint is currently active.
 // uc_orig: EWAY_is_active (fallen/Source/eway.cpp)
 SLONG EWAY_is_active(SLONG waypoint);
 
@@ -335,7 +335,7 @@ void EWAY_cam_relinquish(void);
 // uc_orig: EWAY_find_or_create_waypoint_that_created_person (fallen/Source/eway.cpp)
 SLONG EWAY_find_or_create_waypoint_that_created_person(Thing* p_person);
 
-// Returns TRUE if a scripted conversation is active; fills person_a/person_b with speaker indices.
+// Returns UC_TRUE if a scripted conversation is active; fills person_a/person_b with speaker indices.
 // uc_orig: EWAY_conversation_happening (fallen/Source/eway.cpp)
 SLONG EWAY_conversation_happening(
     THING_INDEX* person_a,
