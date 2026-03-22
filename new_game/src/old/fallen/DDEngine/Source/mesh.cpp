@@ -91,6 +91,8 @@
 #include "polypoint.h"
 #include "fastprim.h"
 
+#if 0 // MIGRATED to src/new/engine/graphics/geometry/mesh.cpp + mesh_globals.cpp (iteration 137) [MESH_Crumple types, MESH_init, MESH_set_crumple, MESH_colour_and, MESH_draw_guts, MESH_draw_poly, MESH_draw_poly_inv_matrix]
+
 #define POLY_FLAG_GOURAD (1 << 0)
 #define POLY_FLAG_TEXTURED (1 << 1)
 #define POLY_FLAG_MASKED (1 << 2)
@@ -1518,6 +1520,9 @@ NIGHT_Colour *MESH_draw_poly(
 // claude-ai:     vec3 pos = mix(posA, posB, uTween);
 // claude-ai:     gl_Position = uProj * uView * uModel * vec4(pos, 1.0);
 // claude-ai:   UV and index buffer stay constant for the whole animation.
+
+#endif // MIGRATED to src/new/engine/graphics/geometry/mesh.cpp + mesh_globals.cpp (iteration 137)
+
 void MESH_draw_morph(
     SLONG prim,
     UBYTE morph1,

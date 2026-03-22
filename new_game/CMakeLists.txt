@@ -244,6 +244,8 @@ set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/drawxtra.cpp
     src/old/fallen/DDEngine/Source/facet.cpp
     src/old/fallen/DDEngine/Source/figure.cpp
+    src/new/engine/graphics/geometry/mesh.cpp
+    src/new/engine/graphics/geometry/mesh_globals.cpp
     src/old/fallen/DDEngine/Source/mesh.cpp
     src/old/fallen/DDEngine/Source/panel.cpp
     src/new/engine/graphics/pipeline/poly.cpp

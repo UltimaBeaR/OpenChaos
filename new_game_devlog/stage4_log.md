@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 137 — mesh.cpp chunk 1: crumple types + init + draw_guts + draw_poly (2026-03-23)
+
+- `MESH_Crumple`, `MESH_Crumple2`, `MESH_NUM_CRUMPLES/VALS`, `MESH_crumple[]`, `MESH_car_crumples[]`, `car_crumples`, `car_assign` → `mesh_globals.cpp/.h`.
+- `MESH_colour_and`, `MESH_init`, `MESH_set_crumple`, `MESH_draw_poly`, `MESH_draw_poly_inv_matrix`, `MESH_init_reflections`, `MESH_draw_reflection`, `MESH_draw_morph` → `mesh.h` (declarations only for reflection/morph/envmap — chunk 2 deferred).
+- `frand` (static helper), `MESH_draw_guts` (static worker), `MESH_draw_poly`, `MESH_draw_poly_inv_matrix` implementation → `mesh.cpp`.
+- `AENG_cam_yaw/pitch/roll` and `kludge_shrink` referenced via `extern` (defined in `aeng.cpp`, not yet migrated).
+- `MESH_draw_morph` does NOT call `MESH_draw_guts` — it has its own vertex loop; no cross-chunk dependency.
+- Dead `if(0) if(prim==122)` block kept as-is (compiled but never executed).
+
+---
+
 ## Итерация 136 — drawxtra.cpp chunk 2b: bloom, draw2d, DRAWXTRA functions (2026-03-23)
 
 - `flare_table` + `BLOOM_flare_draw` + `BLOOM_draw` + BLOOM_* macros → `new/engine/graphics/geometry/bloom.h` + `bloom.cpp` + `bloom_globals.cpp/.h`.

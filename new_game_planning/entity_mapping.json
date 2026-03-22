@@ -74529,6 +74529,186 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_Crumple",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_Crumple",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_Crumple2",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_Crumple2",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_NUM_CRUMPLES",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_NUM_CRUMPLES",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_NUM_CRUMPVALS",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_NUM_CRUMPVALS",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_crumple",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_crumple",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_car_crumples",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "MESH_car_crumples",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "car_crumples",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "car_crumples",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "car_assign",
+      "file": "new/engine/graphics/geometry/mesh_globals.h",
+      "orig_name": "car_assign",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_colour_and",
+      "file": "new/engine/graphics/geometry/mesh.h",
+      "orig_name": "MESH_colour_and",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_init",
+      "file": "new/engine/graphics/geometry/mesh.h",
+      "orig_name": "MESH_init",
+      "orig_file": "fallen/DDEngine/Headers/mesh.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_set_crumple",
+      "file": "new/engine/graphics/geometry/mesh.h",
+      "orig_name": "MESH_set_crumple",
+      "orig_file": "fallen/DDEngine/Headers/mesh.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_draw_poly",
+      "file": "new/engine/graphics/geometry/mesh.h",
+      "orig_name": "MESH_draw_poly",
+      "orig_file": "fallen/DDEngine/Headers/mesh.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_draw_poly_inv_matrix",
+      "file": "new/engine/graphics/geometry/mesh.h",
+      "orig_name": "MESH_draw_poly_inv_matrix",
+      "orig_file": "fallen/DDEngine/Headers/mesh.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_init_reflections",
+      "file": "new/engine/graphics/geometry/mesh.h",
+      "orig_name": "MESH_init_reflections",
+      "orig_file": "fallen/DDEngine/Headers/mesh.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_draw_reflection",
+      "file": "new/engine/graphics/geometry/mesh.h",
+      "orig_name": "MESH_draw_reflection",
+      "orig_file": "fallen/DDEngine/Headers/mesh.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_draw_morph",
+      "file": "new/engine/graphics/geometry/mesh.h",
+      "orig_name": "MESH_draw_morph",
+      "orig_file": "fallen/DDEngine/Headers/mesh.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "frand",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "frand",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MESH_draw_guts",
+      "file": "new/engine/graphics/geometry/mesh.cpp",
+      "orig_name": "MESH_draw_guts",
+      "orig_file": "fallen/DDEngine/Source/mesh.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
