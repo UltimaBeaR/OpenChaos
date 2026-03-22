@@ -42,6 +42,15 @@ extern void set_tween_for_dy(Thing* p_person, SLONG dy);
 // Temporary: add_debug_line (aeng.cpp, not yet migrated)
 extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG colour);
 
+// Temporary: darci_globals.h for just_started_falling_off_backwards
+#include "actors/characters/darci_globals.h"
+// Temporary: supermap.h for SUPERMAP_counter_increase, SUPERMAP_counter
+#include "world/map/supermap.h"
+// Temporary: supermap_globals.h for next_dfacet
+#include "world/map/supermap_globals.h"
+// Temporary: anim_globals.h for next_prim_face4
+#include "assets/anim_globals.h"
+
 // uc_orig: BLOCK_SIZE (fallen/Source/collide.cpp)
 // Undefs any prior definition and sets it to 64, the height increment per storey level.
 #undef BLOCK_SIZE
@@ -1603,3 +1612,891 @@ void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2, SLONG vx1, S
 #define VEC_LENGTH (1 << VEC_SHIFT)
 
 // uc_orig: MAX_ALREADY — defined in collide_globals.h to avoid circular include.
+
+// ========================================================================
+// NOGO grid collision macros — local to slide_along.
+// ========================================================================
+
+// uc_orig: NOGO_COLLIDE_XS (fallen/Source/collide.cpp)
+#define NOGO_COLLIDE_XS (1 << 0)
+// uc_orig: NOGO_COLLIDE_XL (fallen/Source/collide.cpp)
+#define NOGO_COLLIDE_XL (1 << 1)
+// uc_orig: NOGO_COLLIDE_ZS (fallen/Source/collide.cpp)
+#define NOGO_COLLIDE_ZS (1 << 2)
+// uc_orig: NOGO_COLLIDE_ZL (fallen/Source/collide.cpp)
+#define NOGO_COLLIDE_ZL (1 << 3)
+// uc_orig: NOGO_COLLIDE_SS (fallen/Source/collide.cpp)
+#define NOGO_COLLIDE_SS (1 << 4)
+// uc_orig: NOGO_COLLIDE_LS (fallen/Source/collide.cpp)
+#define NOGO_COLLIDE_LS (1 << 5)
+// uc_orig: NOGO_COLLIDE_SL (fallen/Source/collide.cpp)
+#define NOGO_COLLIDE_SL (1 << 6)
+// uc_orig: NOGO_COLLIDE_LL (fallen/Source/collide.cpp)
+#define NOGO_COLLIDE_LL (1 << 7)
+// uc_orig: NOGO_COLLIDE_WIDTH (fallen/Source/collide.cpp)
+// Sub-mapsquare distance from a NOGO border at which sliding kicks in.
+#define NOGO_COLLIDE_WIDTH (0x5800)
+
+// uc_orig: slide_along (fallen/Source/collide.cpp)
+// Main wall-sliding function: moves the endpoint (*x2,*y2,*z2) to slide against
+// nearby DFacets within radius.  Also applies NOGO-grid repulsion.
+// Returns FALSE; collision state is written to the slide_* globals.
+SLONG slide_along(
+    SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG* x2, SLONG* y2, SLONG* z2,
+    SLONG extra_wall_height,
+    SLONG radius,
+    ULONG flags)
+{
+    SWORD minx;
+    SWORD minz;
+    SWORD maxx;
+    SWORD maxz;
+
+    SWORD y_top;
+    SWORD y_bot;
+
+    SWORD mx;
+    SWORD mz;
+
+    SLONG fx1;
+    SLONG fz1;
+    SLONG fx2;
+    SLONG fz2;
+
+    SLONG dx;
+    SLONG dz;
+    SLONG dist;
+
+    SWORD f_list;
+    SWORD i_facet;
+
+    UWORD last_slide;
+
+    DFacet* df;
+    UBYTE exit;
+    UBYTE fence = 0;
+    UBYTE reverse;
+
+    slid_along_fence = 0;
+    fence_colvect = 0;
+
+    extern UBYTE just_started_falling_off_backwards;
+
+    if (just_started_falling_off_backwards) {
+        radius += radius >> 1;
+    }
+
+    last_slide = 0;
+    last_slide_colvect = NULL;
+    slide_door = 0;
+    slide_ladder = 0;
+    actual_sliding = FALSE;
+    slide_into_warehouse = 0;
+    slide_outof_warehouse = FALSE;
+
+    // Slide along NOGO-flagged hi-res grid squares.
+    {
+        UBYTE collide = 0;
+
+        mx = *x2 >> 16;
+        mz = *z2 >> 16;
+
+        if (WITHIN(mx, 1, PAP_SIZE_HI - 2) && WITHIN(mz, 1, PAP_SIZE_HI - 2)) {
+            if (PAP_2HI(mx - 1, mz).Flags & PAP_FLAG_NOGO) {
+                collide |= NOGO_COLLIDE_XS;
+            }
+            if (PAP_2HI(mx + 1, mz).Flags & PAP_FLAG_NOGO) {
+                collide |= NOGO_COLLIDE_XL;
+            }
+            if (PAP_2HI(mx, mz - 1).Flags & PAP_FLAG_NOGO) {
+                collide |= NOGO_COLLIDE_ZS;
+            }
+            if (PAP_2HI(mx, mz + 1).Flags & PAP_FLAG_NOGO) {
+                collide |= NOGO_COLLIDE_ZL;
+            }
+
+            if (PAP_2HI(mx - 1, mz - 1).Flags & PAP_FLAG_NOGO) {
+                collide |= NOGO_COLLIDE_SS;
+            }
+            if (PAP_2HI(mx + 1, mz - 1).Flags & PAP_FLAG_NOGO) {
+                collide |= NOGO_COLLIDE_LS;
+            }
+            if (PAP_2HI(mx - 1, mz + 1).Flags & PAP_FLAG_NOGO) {
+                collide |= NOGO_COLLIDE_SL;
+            }
+            if (PAP_2HI(mx + 1, mz + 1).Flags & PAP_FLAG_NOGO) {
+                collide |= NOGO_COLLIDE_LL;
+            }
+
+            if (flags & SLIDE_ALONG_FLAG_CARRYING) {
+                // Don't go up/down even quarter-height blocks.
+                if (MAVHEIGHT(mx, mz) != MAVHEIGHT(mx - 1, mz)) {
+                    collide |= NOGO_COLLIDE_XS;
+                }
+                if (MAVHEIGHT(mx, mz) != MAVHEIGHT(mx + 1, mz)) {
+                    collide |= NOGO_COLLIDE_XL;
+                }
+                if (MAVHEIGHT(mx, mz) != MAVHEIGHT(mx, mz - 1)) {
+                    collide |= NOGO_COLLIDE_ZS;
+                }
+                if (MAVHEIGHT(mx, mz) != MAVHEIGHT(mx, mz + 1)) {
+                    collide |= NOGO_COLLIDE_ZL;
+                }
+
+                if (MAVHEIGHT(mx, mz) != MAVHEIGHT(mx - 1, mz - 1)) {
+                    collide |= NOGO_COLLIDE_SS;
+                }
+                if (MAVHEIGHT(mx, mz) != MAVHEIGHT(mx + 1, mz - 1)) {
+                    collide |= NOGO_COLLIDE_LS;
+                }
+                if (MAVHEIGHT(mx, mz) != MAVHEIGHT(mx - 1, mz + 1)) {
+                    collide |= NOGO_COLLIDE_SL;
+                }
+                if (MAVHEIGHT(mx, mz) != MAVHEIGHT(mx + 1, mz + 1)) {
+                    collide |= NOGO_COLLIDE_LL;
+                }
+            }
+
+            if (collide & NOGO_COLLIDE_XS) {
+                if ((*x2 & 0xffff) < NOGO_COLLIDE_WIDTH) {
+                    *x2 &= ~0xffff;
+                    *x2 |= NOGO_COLLIDE_WIDTH;
+                }
+            }
+
+            if (collide & NOGO_COLLIDE_XL) {
+                if ((*x2 & 0xffff) > 0x10000 - NOGO_COLLIDE_WIDTH) {
+                    *x2 &= ~0xffff;
+                    *x2 |= 0x10000 - NOGO_COLLIDE_WIDTH;
+                }
+            }
+
+            if (collide & NOGO_COLLIDE_ZS) {
+                if ((*z2 & 0xffff) < NOGO_COLLIDE_WIDTH) {
+                    *z2 &= ~0xffff;
+                    *z2 |= NOGO_COLLIDE_WIDTH;
+                }
+            }
+
+            if (collide & NOGO_COLLIDE_ZL) {
+                if ((*z2 & 0xffff) > 0x10000 - NOGO_COLLIDE_WIDTH) {
+                    *z2 &= ~0xffff;
+                    *z2 |= 0x10000 - NOGO_COLLIDE_WIDTH;
+                }
+            }
+
+            if (collide & (NOGO_COLLIDE_SS | NOGO_COLLIDE_LS | NOGO_COLLIDE_SL | NOGO_COLLIDE_LL)) {
+                dx = *x2 & 0xffff;
+                dz = *z2 & 0xffff;
+
+                if (collide & (NOGO_COLLIDE_LS | NOGO_COLLIDE_LL)) {
+                    dx = 0x10000 - dx;
+                }
+                if (collide & (NOGO_COLLIDE_SL | NOGO_COLLIDE_LL)) {
+                    dz = 0x10000 - dz;
+                }
+
+                dist = QDIST2(dx, dz) + 1;
+
+                if (dist < NOGO_COLLIDE_WIDTH) {
+                    dx = dx * NOGO_COLLIDE_WIDTH / dist;
+                    dz = dz * NOGO_COLLIDE_WIDTH / dist;
+
+                    *x2 &= ~0xffff;
+                    *z2 &= ~0xffff;
+
+                    if (collide & (NOGO_COLLIDE_LS | NOGO_COLLIDE_LL)) {
+                        dx = 0x10000 - dx;
+                    }
+                    if (collide & (NOGO_COLLIDE_SL | NOGO_COLLIDE_LL)) {
+                        dz = 0x10000 - dz;
+                    }
+
+                    *x2 |= dx;
+                    *z2 |= dz;
+                }
+            }
+        }
+    }
+
+    if (COLLIDE_can_i_fastnav(x1 >> 16, z1 >> 16) && COLLIDE_can_i_fastnav(*x2 >> 16, *z2 >> 16)) {
+        // Both squares are fastnav — no colvects nearby, skip everything.
+        return FALSE;
+    }
+
+    // Build the lo-res cell bounding box to search for DFacets.
+    radius <<= 1; // Search in twice the radius.
+
+    minx = ((*x2 >> 8)) - radius >> PAP_SHIFT_LO;
+    minz = ((*z2 >> 8)) - radius >> PAP_SHIFT_LO;
+
+    maxx = ((*x2 >> 8)) + radius >> PAP_SHIFT_LO;
+    maxz = ((*z2 >> 8)) + radius >> PAP_SHIFT_LO;
+
+    radius <<= 7; // Convert radius to 16-bits-per-mapsquare units.
+
+    // Use frame counter to avoid processing the same DFacet twice.
+    SUPERMAP_counter_increase(0);
+
+    SATURATE(minx, 0, PAP_SIZE_LO - 1);
+    SATURATE(minz, 0, PAP_SIZE_LO - 1);
+    SATURATE(maxx, 0, PAP_SIZE_LO - 1);
+    SATURATE(maxz, 0, PAP_SIZE_LO - 1);
+
+    for (mx = minx; mx <= maxx; mx++)
+        for (mz = minz; mz <= maxz; mz++) {
+
+            exit = FALSE;
+            f_list = PAP_2LO(mx, mz).ColVectHead;
+
+            if (!f_list) {
+                continue;
+            }
+
+            while (!exit) {
+
+                i_facet = facet_links[f_list++];
+                ASSERT(i_facet < next_dfacet);
+
+                if (i_facet < 0) {
+                    i_facet = -i_facet;
+                    exit = TRUE;
+                }
+
+                df = &dfacets[i_facet];
+
+                if (df->Counter[0] == SUPERMAP_counter[0]) {
+                    // Already visited this DFacet this frame.
+                    continue;
+                }
+
+                df->Counter[0] = SUPERMAP_counter[0];
+
+                if (df->FacetType == STOREY_TYPE_CABLE) {
+                    continue;
+                }
+
+                if (df->FacetType == STOREY_TYPE_OUTSIDE_DOOR && (df->FacetFlags & FACET_FLAG_OPEN)) {
+                    continue;
+                }
+
+                // Determine the Y range this facet blocks.
+                if (df->FacetType == STOREY_TYPE_FENCE_FLAT || df->FacetType == STOREY_TYPE_FENCE || df->FacetType == STOREY_TYPE_FENCE_BRICK || df->FacetType == STOREY_TYPE_OUTSIDE_DOOR) {
+                    y_top = get_fence_top(x1 >> 8, z1 >> 8, i_facet);
+                    y_bot = get_fence_bottom(x1 >> 8, z1 >> 8, i_facet) - 0x48;
+
+                    fence = TRUE;
+                } else {
+                    fence = 0;
+                    y_bot = df->Y[0] - 64;
+                    y_top = df->Y[0] + (df->Height * df->BlockHeight << 2);
+
+                    if (df->FHeight || df->FacetFlags & FACET_FLAG_HUG_FLOOR) {
+                        // Foundations extend all the way to the bottom — can never walk under them.
+                        y_bot = -0x7fff;
+                    }
+                }
+
+                SLONG ignore_this_facet = FALSE;
+
+                if (just_started_falling_off_backwards) {
+                    // Only collide with tall normal facets when falling off backwards.
+                    ignore_this_facet = TRUE;
+
+                    if (df->FacetType == STOREY_TYPE_NORMAL) {
+                        if (y_top > ((my_y1 >> 8) + 0x80)) {
+                            ignore_this_facet = FALSE;
+                            y_bot -= 0x100;
+                        }
+                    }
+                }
+
+                // Extra height kludge: lets the player step over low walls.
+                y_top += extra_wall_height;
+
+                if (WITHIN(my_y1 >> 8, y_bot, y_top) && !ignore_this_facet) {
+
+                    fx1 = df->x[0] << 16;
+                    fz1 = df->z[0] << 16;
+                    fx2 = df->x[1] << 16;
+                    fz2 = df->z[1] << 16;
+
+                    if (fx1 == fx2) {
+                        // Vertical (Z-axis-aligned) facet.
+                        reverse = FALSE;
+
+                        if (fz1 > fz2) {
+                            SWAP(fz1, fz2);
+                            reverse = TRUE;
+                        }
+
+                        if (WITHIN(*z2, fz1 - radius, fz2 + radius) && (WITHIN(*x2, fx1 - radius, fx2 + radius) || (x1 < fx1 && *x2 > fx1) || (x1 > fx1 && *x2 < fx1))) {
+                            if (*z2 < fz1 && z1 < fz1) {
+                                // Near the fz1 endpoint — push away from it.
+                                dx = *x2 - fx1;
+                                dz = *z2 - fz1;
+
+                                dist = QDIST2(abs(dx), abs(dz));
+
+                                if (dist < radius) {
+                                    *x2 = fx1 + dx * (radius >> 8) / ((dist >> 8) + 1);
+                                    *z2 = fz1 + dz * (radius >> 8) / ((dist >> 8) + 1);
+                                }
+                            } else if (*z2 > fz2 && z1 > fz2) {
+                                // Near the fz2 endpoint — push away from it.
+                                dx = *x2 - fx2;
+                                dz = *z2 - fz2;
+
+                                dist = QDIST2(abs(dx), abs(dz));
+
+                                if (dist < radius) {
+                                    *x2 = fx2 + dx * (radius >> 8) / ((dist >> 8) + 1);
+                                    *z2 = fz2 + dz * (radius >> 8) / ((dist >> 8) + 1);
+                                }
+                            } else {
+                                if (df->FacetType == STOREY_TYPE_DOOR && !(flags & SLIDE_ALONG_FLAG_JUMPING)) {
+                                    // Walking through a door: update the appropriate warehouse/door globals
+                                    // and return immediately (no slide).
+                                    if (reverse) {
+                                        if (*x2 > fx1) {
+                                            if (dbuildings[df->Building].Type == BUILDING_TYPE_WAREHOUSE) {
+                                                slide_into_warehouse = df->Building;
+                                            } else {
+                                                slide_door = df->DStorey;
+                                            }
+                                        } else {
+                                            if (dbuildings[df->Building].Type == BUILDING_TYPE_WAREHOUSE) {
+                                                slide_outof_warehouse = TRUE;
+                                            }
+                                        }
+                                    } else {
+                                        if (*x2 < fx1) {
+                                            if (dbuildings[df->Building].Type == BUILDING_TYPE_WAREHOUSE) {
+                                                slide_into_warehouse = df->Building;
+                                            } else {
+                                                slide_door = df->DStorey;
+                                            }
+                                        } else {
+                                            if (dbuildings[df->Building].Type == BUILDING_TYPE_WAREHOUSE) {
+                                                slide_outof_warehouse = TRUE;
+                                            }
+                                        }
+                                    }
+
+                                    return FALSE;
+                                }
+
+                                if (x1 < fx1) {
+                                    *x2 = fx1 - radius;
+                                } else {
+                                    *x2 = fx1 + radius;
+                                }
+                            }
+
+                            actual_sliding = TRUE;
+                            last_slide_colvect = i_facet;
+
+                            if (fence) {
+                                slid_along_fence = TRUE;
+                                fence_colvect = i_facet;
+                            }
+
+                            if (df->FacetType == STOREY_TYPE_LADDER) {
+                                slide_ladder = i_facet;
+                            }
+                        }
+                    } else {
+                        ASSERT(fz1 == fz2);
+
+                        // Horizontal (X-axis-aligned) facet.
+                        reverse = FALSE;
+
+                        if (fx1 > fx2) {
+                            SWAP(fx1, fx2);
+                            reverse = TRUE;
+                        }
+
+                        if (WITHIN(*x2, fx1 - radius, fx2 + radius) && (WITHIN(*z2, fz1 - radius, fz2 + radius) || (z1 < fz1 && *z2 > fz1) || (z1 > fz1 && *z2 < fz1))) {
+                            if (*x2 < fx1 && x1 < fx1) {
+                                // Near the fx1 endpoint — push away from it.
+                                dx = *x2 - fx1;
+                                dz = *z2 - fz1;
+
+                                dist = QDIST2(abs(dx), abs(dz));
+
+                                if (dist < radius) {
+                                    *x2 = fx1 + dx * (radius >> 8) / ((dist >> 8) + 1);
+                                    *z2 = fz1 + dz * (radius >> 8) / ((dist >> 8) + 1);
+                                }
+                            } else if (*x2 > fx2 && x1 > fx2) {
+                                // Near the fx2 endpoint — push away from it.
+                                dx = *x2 - fx2;
+                                dz = *z2 - fz2;
+
+                                dist = QDIST2(abs(dx), abs(dz));
+
+                                if (dist < radius) {
+                                    *x2 = fx2 + dx * (radius >> 8) / ((dist >> 8) + 1);
+                                    *z2 = fz2 + dz * (radius >> 8) / ((dist >> 8) + 1);
+                                }
+                            } else {
+                                if (df->FacetType == STOREY_TYPE_DOOR && !(flags & SLIDE_ALONG_FLAG_JUMPING)) {
+                                    if (reverse) {
+                                        if (*z2 < fz1) {
+                                            if (dbuildings[df->Building].Type == BUILDING_TYPE_WAREHOUSE) {
+                                                slide_into_warehouse = df->Building;
+                                            } else {
+                                                slide_door = df->DStorey;
+                                            }
+                                        } else {
+                                            if (dbuildings[df->Building].Type == BUILDING_TYPE_WAREHOUSE) {
+                                                slide_outof_warehouse = TRUE;
+                                            }
+                                        }
+                                    } else {
+                                        if (*z2 > fz1) {
+                                            if (dbuildings[df->Building].Type == BUILDING_TYPE_WAREHOUSE) {
+                                                slide_into_warehouse = df->Building;
+                                            } else {
+                                                slide_door = df->DStorey;
+                                            }
+                                        } else {
+                                            if (dbuildings[df->Building].Type == BUILDING_TYPE_WAREHOUSE) {
+                                                slide_outof_warehouse = TRUE;
+                                            }
+                                        }
+                                    }
+
+                                    return FALSE;
+                                }
+
+                                if (z1 < fz1) {
+                                    *z2 = fz1 - radius;
+                                } else {
+                                    *z2 = fz1 + radius;
+                                }
+                            }
+
+                            actual_sliding = TRUE;
+                            last_slide_colvect = i_facet;
+
+                            if (fence) {
+                                slid_along_fence = TRUE;
+                                fence_colvect = i_facet;
+                            }
+
+                            if (df->FacetType == STOREY_TYPE_LADDER) {
+                                slide_ladder = i_facet;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    if (slid_along_fence) {
+        // Always report fence as the last collider so the fence-climbing code triggers.
+        last_slide_colvect = fence_colvect;
+    }
+
+    return FALSE;
+}
+
+// uc_orig: cross_door (fallen/Source/collide.cpp)
+// Tests whether a movement from (x1,y1,z1) to (x2,y2,z2) crosses a door facet:
+//   returns -1 = blocked inside, 0 = no crossing, 1 = exited building.
+SLONG cross_door(SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG x2, SLONG y2, SLONG z2, SLONG radius)
+{
+    SLONG i;
+
+    SLONG minx;
+    SLONG minz;
+    SLONG maxx;
+    SLONG maxz;
+
+    SLONG y_top;
+    SLONG y_bot;
+
+    SLONG mx;
+    SLONG mz;
+
+    SLONG dist;
+    SLONG norm_x;
+    SLONG norm_z;
+    SLONG on;
+
+    SLONG v_list;
+    SLONG i_vect;
+
+    SLONG num_slides;
+    SLONG last_slide;
+
+    DFacet* p_vect;
+
+    SLONG already_upto = 0;
+
+    x1 >>= 8;
+    z1 >>= 8;
+    my_y1 >>= 8;
+
+    x2 = (x2) >> 8;
+    y2 = (y2) >> 8;
+    z2 = (z2) >> 8;
+
+    minx = ((x2)) - radius >> PAP_SHIFT_LO;
+    minz = ((z2)) - radius >> PAP_SHIFT_LO;
+
+    maxx = ((x2)) + radius >> PAP_SHIFT_LO;
+    maxz = ((z2)) + radius >> PAP_SHIFT_LO;
+
+    num_slides = 0;
+    last_slide = 0;
+    last_slide_colvect = NULL;
+    slide_door = 0;
+    actual_sliding = FALSE;
+
+    for (mx = minx; mx <= maxx; mx++)
+        for (mz = minz; mz <= maxz; mz++) {
+            SLONG fence = 0;
+            if (WITHIN(mx, 0, PAP_SIZE_LO - 1) && WITHIN(mz, 0, PAP_SIZE_LO - 1)) {
+                SLONG exit = 0;
+
+                v_list = PAP_2LO(mx, mz).ColVectHead;
+
+                if (v_list)
+                    while (!exit) {
+                        i_vect = facet_links[v_list];
+                        if (i_vect < 0) {
+                            i_vect = -i_vect;
+                            exit = 1;
+                        }
+                        p_vect = &dfacets[i_vect];
+
+                        if (p_vect->FacetType == STOREY_TYPE_DOOR) {
+                            for (i = already_upto - 1; i >= 0; i--) {
+                                if (already[i] == i_vect) {
+                                    goto next_colvect;
+                                }
+                            }
+
+                            if (already_upto < MAX_ALREADY) {
+                                ASSERT(WITHIN(already_upto, 0, MAX_ALREADY - 1));
+
+                                already[already_upto++] = i_vect;
+                            }
+
+                            {
+                                SLONG vect_y;
+
+                                {
+                                    {
+                                        SLONG height;
+
+                                        height = (p_vect->Height * p_vect->BlockHeight) << 2;
+                                        fence = 0;
+                                        vect_y = p_vect->Y[0];
+
+                                        y_bot = vect_y - 64;
+                                        y_top = vect_y + height;
+
+                                        if (p_vect->FacetType != STOREY_TYPE_CABLE)
+                                            if (p_vect->FHeight) {
+                                                y_bot = -INFINITY;
+                                            }
+                                    }
+                                }
+                            }
+
+                            if (WITHIN(my_y1, y_bot, y_top)) {
+                                SLONG side;
+                                SLONG start_index = 0, end_index = 1;
+
+                                signed_dist_to_line_with_normal_mark(
+                                    p_vect->x[start_index] << 8, p_vect->z[start_index] << 8,
+                                    p_vect->x[end_index] << 8, p_vect->z[end_index] << 8,
+                                    x2, z2,
+                                    &dist,
+                                    &norm_x,
+                                    &norm_z,
+                                    &on);
+
+                                {
+                                    if (!on) {
+
+                                    } else {
+                                        side = which_side(
+                                            p_vect->x[start_index] << 8, p_vect->z[start_index] << 8,
+                                            p_vect->x[end_index] << 8, p_vect->z[end_index] << 8,
+                                            x1, z1);
+
+                                        if (dist < 0 && dist > -60 && side < 0) {
+                                            return (-1);
+                                        }
+                                        if (dist < 0 && side > 0) {
+                                            ASSERT(0);
+                                            return (-1);
+                                        } else if (dist > 0 && side < 0) {
+                                            return (1);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    next_colvect:;
+
+                        v_list++;
+                    }
+            }
+        }
+
+    return 0;
+}
+
+// uc_orig: bump_person (fallen/Source/collide.cpp)
+// Pushes (*x2,*y2,*z2) back to start when two people's radii would overlap,
+// and sets p_person->InWay to the blocking thing index.
+SLONG bump_person(Thing* p_person, THING_INDEX index, SLONG x1, SLONG my_y1, SLONG z1, SLONG* x2, SLONG* y2, SLONG* z2)
+{
+    SLONG bump_radius, my_radius;
+    Thing* p_bumped;
+
+    SLONG ddx, ddy, ddz, dist;
+
+    SLONG ex, ey, ez;
+
+    ex = *x2 >> 8;
+    ey = *y2 >> 8;
+    ez = *z2 >> 8;
+
+    p_bumped = TO_THING(index);
+
+    bump_radius = get_person_radius(p_bumped->Genus.Person->PersonType);
+    my_radius = get_person_radius(p_person->Genus.Person->PersonType);
+
+    x1 >>= 8;
+    my_y1 >>= 8;
+    z1 >>= 8;
+
+    *x2 >>= 8;
+    *y2 >>= 8;
+    *z2 >>= 8;
+
+    ddx = abs(ex - (p_bumped->WorldPos.X >> 8));
+    ddy = abs(ey - (p_bumped->WorldPos.Y >> 8));
+    ddz = abs(ez - (p_bumped->WorldPos.Z >> 8));
+
+    dist = QDIST2(ddx, ddz);
+
+    if (dist < (bump_radius + my_radius) && ddy < 150) {
+        SLONG dist2;
+        SLONG odx, odz;
+
+        odx = abs((x1) - (p_bumped->WorldPos.X >> 8));
+        odz = abs((z1) - (p_bumped->WorldPos.Z >> 8));
+
+        dist2 = QDIST2(odx, odz);
+
+        if (dist < dist2) {
+            SLONG angle;
+
+            angle = Arctan(-ddx, ddz) + 1024;
+
+            *x2 = x1;
+            *z2 = z1;
+
+            p_person->Genus.Person->InWay = index;
+
+            *x2 <<= 8;
+            *y2 <<= 8;
+            *z2 <<= 8;
+
+            return (0);
+        }
+    }
+
+    *x2 <<= 8;
+    *y2 <<= 8;
+    *z2 <<= 8;
+
+    return (0);
+}
+
+// uc_orig: EDGE_WIDTH (fallen/Source/collide.cpp)
+// Sub-mapsquare half-width margin used by slide_along_redges.
+#define EDGE_WIDTH 0x4000
+
+// uc_orig: slide_along_edges (fallen/Source/collide.cpp)
+// Constrains (*x2,*z2) to stay inside the walkable prim quad face4 by
+// sliding against each edge flagged FACE_FLAG_SLIDE_EDGE.
+void slide_along_edges(
+    SLONG face4,
+    SLONG x1, SLONG z1,
+    SLONG* x2, SLONG* z2)
+{
+    SLONG i;
+    SLONG p1;
+    SLONG p2;
+
+    SLONG ex1, ez1;
+    SLONG ex2, ez2;
+
+    SLONG dex;
+    SLONG dez;
+
+    SLONG elen;
+
+    SLONG vecx;
+    SLONG vecz;
+
+    SLONG ox;
+    SLONG oz;
+
+    UBYTE point_order[4] = { 0, 1, 3, 2 };
+
+    ASSERT(WITHIN(face4, 1, next_prim_face4));
+
+    PrimFace4* f4 = &prim_faces4[face4];
+
+    ox = 0;
+    oz = 0;
+
+    for (i = 0; i < 4; i++) {
+        if (f4->FaceFlags & (FACE_FLAG_SLIDE_EDGE << i)) {
+            p1 = f4->Points[point_order[(i + 0) & 0x3]];
+            p2 = f4->Points[point_order[(i + 1) & 0x3]];
+
+            ex1 = prim_points[p1].X + ox;
+            ez1 = prim_points[p1].Z + oz;
+
+            ex2 = prim_points[p2].X + ox;
+            ez2 = prim_points[p2].Z + oz;
+
+            dex = ex2 - ex1;
+            dez = ez2 - ez1;
+
+            vecx = (*x2 >> 8) - ex1;
+            vecz = (*z2 >> 8) - ez1;
+
+            cprod = dex * vecz - dez * vecx;
+
+            if (cprod < 0) {
+                // Endpoint is outside this edge; project it back onto the face.
+                elen = QDIST2(abs(dex), abs(dez));
+                cprod = (cprod * 256) / (elen * elen);
+
+                *x2 += dez * cprod;
+                *z2 -= dex * cprod;
+
+                // Move slightly away from the edge to prevent sticking.
+                *x2 -= SIGN(dez) << (3 + 8);
+                *z2 += SIGN(dex) << (3 + 8);
+            }
+        }
+    }
+}
+
+// uc_orig: slide_along_redges (fallen/Source/collide.cpp)
+// Constrains (*x2,*z2) to stay inside a roof quad face by clamping against
+// each edge marked RFACE_FLAG_SLIDE_EDGE, or against MAV height transitions
+// for hidden (flat-terrain) roof faces.
+void slide_along_redges(
+    SLONG face4,
+    SLONG x1, SLONG z1,
+    SLONG* x2, SLONG* z2)
+{
+    SLONG i;
+
+    SLONG mx;
+    SLONG mz;
+
+    SLONG height1;
+    SLONG height2;
+
+    SLONG hard_edge;
+
+    RoofFace4* f4;
+
+    if (IS_ROOF_HIDDEN_FACE(-face4)) {
+        f4 = NULL;
+        mx = ROOF_HIDDEN_X(-face4);
+        mz = ROOF_HIDDEN_Z(-face4);
+
+        mx = *x2 >> 16;
+        mz = *z2 >> 16;
+
+        height1 = MAVHEIGHT(mx, mz);
+    } else {
+        f4 = &roof_faces4[face4];
+        mx = f4->RX & 127;
+        mz = f4->RZ & 127;
+        height1 = 0;
+    }
+
+    for (i = 0; i < 4; i++) {
+
+        hard_edge = FALSE;
+
+        if (f4) {
+            hard_edge = f4->DrawFlags & (RFACE_FLAG_SLIDE_EDGE << i);
+        } else {
+            const struct
+            {
+                SBYTE dx;
+                SBYTE dz;
+
+            } dir[4] = {
+                { 0, -1 },
+                { 1, 0 },
+                { 0, 1 },
+                { -1, 0 }
+            };
+
+            if (WITHIN(mx + dir[i].dx, 0, PAP_SIZE_HI - 1) && WITHIN(mz + dir[i].dz, 0, PAP_SIZE_HI - 1)) {
+                height2 = MAVHEIGHT(mx + dir[i].dx, mz + dir[i].dz);
+
+                if (abs(height1 - height2) > 1) {
+                    hard_edge = TRUE;
+                }
+            }
+        }
+
+        if (hard_edge) {
+            switch (i) {
+            case 0: // ZS
+                if ((*z2 & 0xffff) < EDGE_WIDTH) {
+                    *z2 &= ~0xffff;
+                    *z2 |= EDGE_WIDTH;
+                }
+                break;
+
+            case 1: // XL
+                if ((*x2 & 0xffff) > 0x10000 - EDGE_WIDTH) {
+                    *x2 &= ~0xffff;
+                    *x2 |= 0x10000 - EDGE_WIDTH;
+                }
+                break;
+
+            case 2: // ZL
+                if ((*z2 & 0xffff) > 0x10000 - EDGE_WIDTH) {
+                    *z2 &= ~0xffff;
+                    *z2 |= 0x10000 - EDGE_WIDTH;
+                }
+                break;
+
+            case 3: // XS
+                if ((*x2 & 0xffff) < EDGE_WIDTH) {
+                    *x2 &= ~0xffff;
+                    *x2 |= EDGE_WIDTH;
+                }
+                break;
+
+            default:
+                ASSERT(0);
+                break;
+            }
+        }
+    }
+}

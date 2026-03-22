@@ -3162,15 +3162,8 @@ UWORD fence_colvect = 0;
 #endif // migrated
 // SLONG	slide_nogo;
 
-// claude-ai: slide_along() — скольжение вектора движения вдоль поверхностей без отскока (restitution=0).
-// claude-ai: Параметры:
-// claude-ai:   (x1,y1,z1)        — начальная позиция (не меняется)
-// claude-ai:   (x2,y2,z2)        — конечная позиция (выход: скорректированная)
-// claude-ai:   extra_wall_height — дополнительная высота барьера (для прыжков через заборы)
-// claude-ai:   radius            — радиус капсулы персонажа
-// claude-ai:   flags             — SLIDE_FLAG_* (пропускать двери, лестницы и т.д.)
-// claude-ai: Алгоритм: итеративно проверяет все facets в затронутых лорез-ячейках,
-// claude-ai: при пересечении проецирует вектор движения на плоскость барьера (без отскока).
+// Migrated to new/engine/physics/collide.cpp (chunk 3)
+#if 0
 SLONG slide_along(
     SLONG x1, SLONG my_y1, SLONG z1,
     SLONG* x2, SLONG* y2, SLONG* z2,
@@ -4368,6 +4361,7 @@ void slide_along_redges(
         }
     }
 }
+#endif // migrated: slide_along, cross_door, bump_person, slide_along_edges, slide_along_redges
 
 /*
 

@@ -61949,6 +61949,156 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "slide_along",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "slide_along",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "cross_door",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "cross_door",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "bump_person",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "bump_person",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "slide_along_edges",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "slide_along_edges",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "slide_along_redges",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "slide_along_redges",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NOGO_COLLIDE_XS",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "NOGO_COLLIDE_XS",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NOGO_COLLIDE_XL",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "NOGO_COLLIDE_XL",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NOGO_COLLIDE_ZS",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "NOGO_COLLIDE_ZS",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NOGO_COLLIDE_ZL",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "NOGO_COLLIDE_ZL",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NOGO_COLLIDE_SS",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "NOGO_COLLIDE_SS",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NOGO_COLLIDE_LS",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "NOGO_COLLIDE_LS",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NOGO_COLLIDE_SL",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "NOGO_COLLIDE_SL",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NOGO_COLLIDE_LL",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "NOGO_COLLIDE_LL",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NOGO_COLLIDE_WIDTH",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "NOGO_COLLIDE_WIDTH",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "EDGE_WIDTH",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "EDGE_WIDTH",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

@@ -207,4 +207,40 @@ SLONG get_fence_height(SLONG h);
 void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2,
     SLONG vx1, SLONG vz1, SLONG vx2, SLONG vz2, SLONG side_required);
 
+// ========================================================================
+// Main slide collision
+// ========================================================================
+
+// uc_orig: slide_along (fallen/Source/collide.cpp)
+// Slides endpoint (*x2,*y2,*z2) against DFacets and NOGO grid within radius.
+// Writes collision results to slide_* globals. Returns FALSE always.
+SLONG slide_along(SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG* x2, SLONG* y2, SLONG* z2,
+    SLONG extra_wall_height, SLONG radius, ULONG flags);
+
+// uc_orig: cross_door (fallen/Source/collide.cpp)
+// Tests if movement (x1,y1,z1)->(x2,y2,z2) crosses a door DFacet.
+// Returns -1=blocked inside, 0=no crossing, 1=exited building.
+SLONG cross_door(SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG x2, SLONG y2, SLONG z2, SLONG radius);
+
+// uc_orig: bump_person (fallen/Source/collide.cpp)
+// Cancels movement if it would bring p_person's radius inside Thing 'index'.
+// Sets p_person->InWay on collision. Returns 0.
+SLONG bump_person(Thing* p_person, THING_INDEX index,
+    SLONG x1, SLONG my_y1, SLONG z1, SLONG* x2, SLONG* y2, SLONG* z2);
+
+// ========================================================================
+// Roof/walkable-face edge sliding
+// ========================================================================
+
+// uc_orig: slide_along_edges (fallen/Source/collide.cpp)
+// Constrains (*x2,*z2) inside prim-quad face4 along FACE_FLAG_SLIDE_EDGE edges.
+void slide_along_edges(SLONG face4, SLONG x1, SLONG z1, SLONG* x2, SLONG* z2);
+
+// uc_orig: slide_along_redges (fallen/Source/collide.cpp)
+// Constrains (*x2,*z2) inside a roof face by RFACE_FLAG_SLIDE_EDGE edges or
+// MAV height transitions (for hidden flat-terrain roof faces).
+void slide_along_redges(SLONG face4, SLONG x1, SLONG z1, SLONG* x2, SLONG* z2);
+
 #endif // ENGINE_PHYSICS_COLLIDE_H

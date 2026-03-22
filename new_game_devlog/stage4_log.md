@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 108 — engine/physics/collide (чанк 3: slide_along/cross_door/bump_person/slide_along_edges/redges) (2026-03-22)
+
+- `fallen/Source/collide.cpp` чанк 3: lines 3174–4370 → `new/engine/physics/collide.cpp`.
+- Новые временные includes: `darci_globals.h` (`just_started_falling_off_backwards`), `world/map/supermap.h` (`SUPERMAP_counter_increase`/`SUPERMAP_counter`), `world/map/supermap_globals.h` (`next_dfacet`), `assets/anim_globals.h` (`next_prim_face4`).
+- `slide_along_old` (lines 2392–3168 в оригинале) — уже в `/*...*/`, мёртвый код, пропущен.
+
+---
+
 ## Итерация 107 — engine/physics/collide (чанк 2: face/ladder/plant_feet/slide globals) (2026-03-22)
 
 - `fallen/Source/collide.cpp` чанк 2: lines 1581–3174 → `new/engine/physics/collide.cpp` + `collide_globals.cpp/h`.
