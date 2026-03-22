@@ -1,5 +1,12 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 104 — old/Person.cpp → redirect stub (2026-03-22)
+
+- old/fallen/Source/Person.cpp заменён 3-строчной redirect-заглушкой (паттерн как у Cop.cpp, Anim.cpp и др.).
+- Вся функциональность была уже в #if 0 блоках (итерации 92–103); активный код (lines 1–298) содержал только extern-декларации и forward-декларации, которые теперь покрываются через person.h/person_globals.h.
+
+---
+
 ## Итерация 103 — actors/characters/person (чанк 12: person_mav_again..push_people_apart) (2026-03-22)
 
 - Person.cpp чанк 12: lines 17272–19165 (финальный). 35 сущностей: person_mav_again, dir_to_angle[], get_dx_dz_for_dir, init_new_mav, fn_person_mavigate_action, fn_person_mavigate, set_person_grappling_hook_pickup, fn_person_grapple, set_person_mav_to_xz, set_person_mav_to_thing, person_is_on_sewer, person_is_on, set_person_can_pickup, set_person_can_release, set_person_special_pickup, fn_person_can, set_person_do_a_simple_anim, set_person_recircle, set_person_circle, set_person_hug_wall_leap_out, set_person_hug_wall_stand, check_near_facet, can_i_hug_wall, move_ok, fn_person_hug_wall, fn_person_circle, fn_person_circle_old, person_get_scale, how_long_is_anim, person_ok_for_conversation, set_person_float_up, set_person_float_down, fn_person_float, set_person_injured, push_people_apart.
