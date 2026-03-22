@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 113 — world/environment/ns (ns.cpp чанк 1: init, floors, wallstrip helpers) (2026-03-22)
+
+- `fallen/Source/ns.cpp` (3544 строк) начинает миграцию. Чанк 1: lines 1–1178 → `new/world/environment/ns.cpp` + `ns.h` + `ns_globals.cpp` + `ns_globals.h`.
+- `ns.h` (старый) → redirect-stub. Старый `ns.cpp` заменён chunk 2+ с includes на new/.
+- Внутренние макросы (`NS_HI_CURVE_*`, `NS_TEXTURE_*`, `NS_NORM_*`, `NS_MAX_SCRATCH_*`) вынесены в `ns_globals.h` — shared между chunk 1 (new/) и chunk 2+ (old/).
+- `NS_Slight` — тип, определённый только в старом cpp; вынесен в `ns_globals.h` (нужен extern для `NS_slight[]`).
+- `NS_los_fail_x/y/z` — дублировались: удалены из old/ns.cpp (были на lines 2187–2189 оставшегося файла), определения в `ns_globals.cpp`.
+- `NS_TEXTURE_NUMBER` — в ns_globals.h (shared constant); локальный `#define` в ns_globals.cpp удалён.
+- Временные includes: `game.h` в `new/ns.cpp` и `old/ns.cpp` (ASSERT, WITHIN, NULL, rand, memset).
+
+---
+
 ## Итерация 112 — missions/game (Game.cpp → redirect) (2026-03-22)
 
 - `fallen/Source/Game.cpp` (1531 строк) → `new/missions/game.cpp` + `game.h` + `game_globals.cpp` + `game_globals.h`.

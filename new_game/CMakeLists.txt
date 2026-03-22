@@ -312,6 +312,8 @@ set(SOURCES_GAME
     src/old/fallen/Source/mav.cpp
     src/old/fallen/Source/memory.cpp
     src/old/fallen/Source/night.cpp
+    src/new/world/environment/ns.cpp
+    src/new/world/environment/ns_globals.cpp
     src/old/fallen/Source/ns.cpp
     src/new/world/map/ob.cpp
     src/new/world/map/ob_globals.cpp
