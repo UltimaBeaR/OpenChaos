@@ -72,4 +72,14 @@ extern DrawTween dead_tween;
 // uc_orig: combo_display (fallen/Source/Person.cpp)
 extern UBYTE combo_display;
 
+// The facet index found by check_near_facet() — shared with can_i_hug_wall() and fn_person_hug_wall().
+// Set as a side effect of check_near_facet().
+// uc_orig: near_facet (fallen/Source/Person.cpp)
+extern UWORD near_facet;
+
+// Alternating punch/kick selector for fn_person_circle() AI combat decisions.
+// Incremented each time the circle AI decides to attack; odd=punch, even=kick.
+// uc_orig: kick_or_punch (fallen/Source/Person.cpp)
+extern SLONG kick_or_punch;
+
 #endif // ACTORS_CHARACTERS_PERSON_GLOBALS_H

@@ -199,3 +199,9 @@ DrawTween dead_tween;
 
 // uc_orig: combo_display (fallen/Source/Person.cpp)
 UBYTE combo_display = 0;
+
+// uc_orig: near_facet (fallen/Source/Person.cpp)
+UWORD near_facet = 0;
+
+// uc_orig: kick_or_punch (fallen/Source/Person.cpp)
+SLONG kick_or_punch = 0;

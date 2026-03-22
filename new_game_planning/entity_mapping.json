@@ -60219,6 +60219,236 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "COMBO_ACCURACY",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "COMBO_ACCURACY",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "person_new_combat_node",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "person_new_combat_node",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "aim_at_victim",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "aim_at_victim",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_fighting",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "fn_person_fighting",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_wait",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "fn_person_wait",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "turn_to_face_thing",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "turn_to_face_thing",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "turn_to_face_thing_quick",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "turn_to_face_thing_quick",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_pitch_to_thing_quick",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "get_pitch_to_thing_quick",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_draw_item",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_draw_item",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_item_away",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_item_away",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_face_pos",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_face_pos",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_face_thing",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_face_thing",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "turn_towards_thing",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "turn_towards_thing",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_stand_up",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "fn_person_stand_up",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_fight",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "fn_person_fight",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_goto_xz",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_goto_xz",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_goto",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "fn_person_goto",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "process_person_goto_xz",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "process_person_goto_xz",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_navigate",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "fn_person_navigate",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_person_command",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "init_person_command",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mav_arrived",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "mav_arrived",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "near_facet",
+      "file": "new/actors/characters/person_globals.h",
+      "orig_name": "near_facet",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "kick_or_punch",
+      "file": "new/actors/characters/person_globals.h",
+      "orig_name": "kick_or_punch",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

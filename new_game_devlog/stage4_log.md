@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 102 — actors/characters/person (чанк 11: person_new_combat_node..mav_arrived) (2026-03-22)
+
+- Person.cpp чанк 11: lines 15734–17267. 21 сущность: COMBO_ACCURACY, person_new_combat_node, aim_at_victim, fn_person_fighting, fn_person_wait, turn_to_face_thing, turn_to_face_thing_quick, get_pitch_to_thing_quick, set_person_draw_item, set_person_item_away, set_face_pos, set_face_thing, turn_towards_thing, fn_person_stand_up, fn_person_fight, set_person_goto_xz, fn_person_goto, process_person_goto_xz, fn_person_navigate, init_person_command, mav_arrived.
+- Globals: `near_facet` (UWORD) и `kick_or_punch` (SLONG) перенесены в person_globals. Оба были в active zone old/Person.cpp — удалены явно (комментарии).
+- Новые временные includes в person.cpp: `ai/pcom.h` (PCOM_set_person_move_punch/kick/arrest, PCOM_call_cop_to_arrest_me, PCOM_attack_happened), `ui/hud/overlay.h` (track_enemy).
+- Extern `continue_blocking` (interfac.cpp) добавлен явно — не объявлен ни в одном мигрированном заголовке.
+- Redeclaration `Thing* p_target` внутри `case SUB_STATE_PUNCH:` в fn_person_fighting — скопирована 1:1 из оригинала (баг оригинала, компилируется через расширение GCC/MSVC).
+- `goto skip_animate` внутри fn_person_fighting — скопирован 1:1 (прыжок через инициализацию, оригинальный стиль).
+- Сборка: fix — `aim_at_victim` forward decl с default argument в active zone old/Person.cpp конфликтовала с объявлением в person.h (redefinition of default argument). Удалена.
+
+---
+
 ## Итерация 101 — actors/characters/person (чанк 10: set_person_ko_recoil..fn_person_gun) (2026-03-22)
 
 - Person.cpp чанк 10: lines 13982–15728. 18 функций + 3 макроса: set_person_ko_recoil, set_person_recoil, fn_person_recoil, find_anim_fall_dir, move_away_from_wall, generate_bonus_item, part_bad, fn_person_dying, init_dead_tween, fn_person_dead, dist_from_a_to_b, player_aim_at_new_person, get_angle_to_target, player_running_aim_gun, twist_darci_body_to_angle, might_i_be_a_villain, am_i_a_thug, calc_dist_benefit_to_gun, highlight_gun_target, fn_person_gun. Макросы: FALL_DIR_STRANGE_LAND, FALL_DIR_LAND_ON_FRONT, FALL_DIR_LAND_ON_BACK.

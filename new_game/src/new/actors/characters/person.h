@@ -908,4 +908,94 @@ void highlight_gun_target(Thing* p_person, Thing* p_target);
 // uc_orig: fn_person_gun (fallen/Source/Person.cpp)
 void fn_person_gun(Thing* p_person);
 
+// --- chunk 11: person_new_combat_node..mav_arrived ---
+
+// Combo accuracy threshold: number of game ticks allowed between combo inputs.
+// uc_orig: COMBO_ACCURACY (fallen/Source/Person.cpp)
+#define COMBO_ACCURACY 300
+
+// Selects and queues the next combo animation node after the current attack completes.
+// Returns 1 if a follow-on combo exists, 0 if the combo chain ends.
+// uc_orig: person_new_combat_node (fallen/Source/Person.cpp)
+SLONG person_new_combat_node(Thing* p_person);
+
+// Turns person toward their fighting target if not in certain combo anims.
+// count limits the gang size threshold for turning (use 1000 to always turn).
+// uc_orig: aim_at_victim (fallen/Source/Person.cpp)
+void aim_at_victim(Thing* p_person, SLONG count = 1);
+
+// STATE_FIGHTING state machine: punch, kick, grapple, block, wall-kick, etc.
+// uc_orig: fn_person_fighting (fallen/Source/Person.cpp)
+void fn_person_fighting(Thing* p_person);
+
+// STATE_WAIT state machine — body fully commented out in original (no-op).
+// uc_orig: fn_person_wait (fallen/Source/Person.cpp)
+void fn_person_wait(Thing* p_person);
+
+// Gradually turns person toward p_target using sub-object pelvis positions.
+// slow=0: instant; slow=1: half-speed. Returns distance between pelvis points.
+// uc_orig: turn_to_face_thing (fallen/Source/Person.cpp)
+SLONG turn_to_face_thing(Thing* p_person, Thing* p_target, SLONG slow);
+
+// Instantly snaps person's angle to face p_target (no speed-limiting).
+// uc_orig: turn_to_face_thing_quick (fallen/Source/Person.cpp)
+void turn_to_face_thing_quick(Thing* p_person, Thing* p_target);
+
+// Returns the vertical pitch angle (0-2047) from person to p_target.
+// uc_orig: get_pitch_to_thing_quick (fallen/Source/Person.cpp)
+SLONG get_pitch_to_thing_quick(Thing* p_person, Thing* p_target);
+
+// Starts the weapon draw animation for special_type and enters STATE_GUN/draw sub-state.
+// uc_orig: set_person_draw_item (fallen/Source/Person.cpp)
+void set_person_draw_item(Thing* p_person, SLONG special_type);
+
+// Holsters the currently drawn special item and transitions to idle.
+// uc_orig: set_person_item_away (fallen/Source/Person.cpp)
+void set_person_item_away(Thing* p_person);
+
+// Instantly sets person's angle to face world-space position (world_x, world_z).
+// uc_orig: set_face_pos (fallen/Source/Person.cpp)
+void set_face_pos(Thing* p_person, SLONG world_x, SLONG world_z);
+
+// Instantly sets person's angle to face p_target. Returns distance between them.
+// uc_orig: set_face_thing (fallen/Source/Person.cpp)
+SLONG set_face_thing(Thing* p_person, Thing* p_target);
+
+// Gradually turns person toward p_target by at most 32 angle units per frame.
+// uc_orig: turn_towards_thing (fallen/Source/Person.cpp)
+void turn_towards_thing(Thing* p_person, Thing* p_target);
+
+// STATE_STAND_UP placeholder — fully commented out in original (no-op).
+// uc_orig: fn_person_stand_up (fallen/Source/Person.cpp)
+void fn_person_stand_up(Thing* p_person);
+
+// Old STATE_FIGHT handler — body mostly commented out; asserts immediately.
+// uc_orig: fn_person_fight (fallen/Source/Person.cpp)
+void fn_person_fight(Thing* p_person);
+
+// Starts a GoTo sequence: sets animation, velocity and enters STATE_GOTOING.
+// speed is one of PERSON_SPEED_* constants.
+// uc_orig: set_person_goto_xz (fallen/Source/Person.cpp)
+void set_person_goto_xz(Thing* p_person, SLONG x, SLONG z, SLONG speed);
+
+// STATE_GOTOING state machine: aims person at GotoX/GotoZ and moves them there.
+// uc_orig: fn_person_goto (fallen/Source/Person.cpp)
+void fn_person_goto(Thing* p_person);
+
+// Checks if person has reached (x,z) within dist. Always asserts (dead code in original).
+// uc_orig: process_person_goto_xz (fallen/Source/Person.cpp)
+SLONG process_person_goto_xz(Thing* p_person, SLONG x, SLONG z, SLONG dist);
+
+// STATE_NAVIGATING placeholder — always asserts (disabled in original).
+// uc_orig: fn_person_navigate (fallen/Source/Person.cpp)
+void fn_person_navigate(Thing* p_person);
+
+// Initialises person command queue — always asserts (disabled in original).
+// uc_orig: init_person_command (fallen/Source/Person.cpp)
+void init_person_command(Thing* p_person);
+
+// Returns true if person has arrived at MAV target — always asserts (disabled).
+// uc_orig: mav_arrived (fallen/Source/Person.cpp)
+SLONG mav_arrived(Thing* p_person);
+
 #endif // ACTORS_CHARACTERS_PERSON_H

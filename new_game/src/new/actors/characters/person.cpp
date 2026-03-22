@@ -65,6 +65,8 @@
 #include "actors/items/barrel.h"    // Temporary: BARREL_shoot
 #include "actors/core/interact.h"   // Temporary: find_grab_face (chunk 6)
 #include "fallen/Headers/prim.h"    // Temporary: which_side, two4_line_intersection, signed_dist_to_line_with_normal, does_fence_lie_along_line (chunk 6)
+#include "ai/pcom.h"                // Temporary: PCOM_set_person_move_punch/kick/arrest, PCOM_call_cop_to_arrest_me, PCOM_attack_happened (chunk 11)
+#include "ui/hud/overlay.h"         // Temporary: track_enemy (chunk 11)
 
 // External helpers declared in their own files (not yet migrated or in old headers).
 extern BOOL allow_debug_keys;
@@ -118,8 +120,12 @@ extern SLONG mount_ladder(Thing* p_thing, SLONG facet); // collide.cpp
 extern SLONG continue_firing(Thing* p_person); // interfac.cpp
 extern void set_person_do_a_simple_anim(Thing* p_person, SLONG anim); // Person.cpp (not yet migrated)
 // chunk 10 additional externs (Person.cpp not yet migrated)
-extern SLONG get_pitch_to_thing_quick(Thing* p_person, Thing* p_target); // Person.cpp
-extern void turn_to_face_thing_quick(Thing* p_person, Thing* p_target); // Person.cpp
+// get_pitch_to_thing_quick: now defined in this file (chunk 11 below)
+// turn_to_face_thing_quick: now defined in this file (chunk 11 below)
+
+// chunk 11 externs
+// should_i_block: declared via ai/combat.h (already included)
+extern SLONG continue_blocking(Thing* p_person); // interfac.cpp
 
 // Local collision query buffer (shares the global col_with pool; MAX_COL_WITH = 16).
 #define MAX_COL_WITH 16
@@ -11848,4 +11854,1207 @@ void fn_person_gun(Thing* p_person)
         set_person_idle(p_person);
         break;
     }
+}
+
+
+// =============================================================================
+// chunk 11: person_new_combat_node .. mav_arrived (lines 15734-17267 of Person.cpp)
+// =============================================================================
+
+// uc_orig: person_new_combat_node (fallen/Source/Person.cpp)
+SLONG person_new_combat_node(Thing* p_person)
+{
+    SBYTE node = 0;
+    UBYTE new_node = 0;
+    UWORD anim;
+    MSG_add(" new node  y %d \n", p_person->WorldPos.Y >> 8);
+
+    node = p_person->Genus.Person->CombatNode;
+
+    if (node > 0)
+        if (get_combat_type_for_node(node) != COMBAT_NONE)
+            if (p_person->Genus.Person->PlayerID) {
+                if (p_person->Genus.Person->pcom_ai_counter > COMBO_ACCURACY) {
+                    // Too slow -- break the combo chain.
+                    p_person->Genus.Person->CombatNode = -p_person->Genus.Person->CombatNode;
+                    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH);
+                }
+
+                p_person->Genus.Person->pcom_ai_counter = 0;
+            }
+
+    if (node) {
+        if (node > 0) {
+            if (!p_person->Genus.Person->PlayerID) {
+                // NPCs randomly decide whether to continue the combo based on skill.
+                if ((Random() & 255) < GET_SKILL(p_person) * 10) {
+                    switch (node) {
+                    case 1:
+                    case 3:
+                    case 5:
+                        p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_PUNCH;
+                        break;
+                    case 6:
+                    case 8:
+                    case 9:
+                        p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_KICK;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ((p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK)) && node > 0) {
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH) {
+                new_node = get_anim_and_node_for_action(node, 2, &anim);
+                p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_PUNCH;
+            }
+
+            if (!new_node) {
+                if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_KICK) {
+                    p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_KICK;
+                    new_node = get_anim_and_node_for_action(node, 4, &anim);
+                }
+            }
+        } else {
+            // Negative node means missed -- cannot continue the combo.
+            new_node = get_anim_and_node_for_action(abs(node), 1, &anim);
+        }
+
+        if (new_node && anim) {
+            p_person->Genus.Person->CombatNode = new_node;
+            queue_anim(p_person, anim);
+            person_normal_animate(p_person);
+            MSG_add(" new node  && anim y %d \n", p_person->WorldPos.Y >> 8);
+            return (1);
+        }
+    }
+    return (0);
+}
+
+// Turns person toward their fighting target if not executing special combo anims.
+// count: max gang size for which turning is allowed (use 1000 to always turn).
+// uc_orig: aim_at_victim (fallen/Source/Person.cpp)
+void aim_at_victim(Thing* p_person, SLONG count)
+{
+    if (p_person->Draw.Tweened->CurrentAnim != ANIM_KICK_COMBO3b)
+        if (p_person->Draw.Tweened->CurrentAnim != ANIM_FIGHT_STOMP)
+            if (p_person->Genus.Person->Target) {
+                Thing* p_target;
+
+                p_target = TO_THING(p_person->Genus.Person->Target);
+
+                if (p_person->Genus.Person->PlayerID) {
+
+                    if (count_gang(p_person) <= count) {
+                        turn_to_face_thing(p_person, p_target, 0);
+                    }
+                }
+            }
+}
+
+// STATE_FIGHTING state machine: handles punch, kick, grapple, block, wall-kick sub-states.
+// uc_orig: fn_person_fighting (fallen/Source/Person.cpp)
+void fn_person_fighting(Thing* p_person)
+{
+    Thing* p_target;
+    SLONG end = 0;
+
+    SlideSoundCheck(p_person);
+
+    switch (p_person->SubState) {
+    case SUB_STATE_WALL_KICK:
+        end = person_normal_animate(p_person);
+        if (end == 1) {
+            p_person->Draw.Tweened->Angle += 1024;
+            p_person->Draw.Tweened->Angle &= 2047;
+
+            set_person_fight_idle(p_person);
+        }
+        break;
+
+    case SUB_STATE_BLOCK:
+
+        if (p_person->Draw.Tweened->FrameIndex == 2) {
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_KICK) {
+                p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_KICK;
+                set_person_leg_sweep(p_person);
+                return;
+            }
+
+            if (p_person->Genus.Person->PlayerID) {
+                if (continue_blocking(p_person)) {
+                    goto skip_animate;
+                }
+            }
+        }
+        end = person_normal_animate(p_person);
+    skip_animate:
+        if (end == 1) {
+            {
+                set_person_fight_idle(p_person);
+            }
+        }
+
+        break;
+
+    case SUB_STATE_PUNCH:
+        // Redeclare p_target locally as in the original (shadows outer declaration).
+        Thing* p_target;
+        if (p_person->Genus.Person->Target) {
+
+            p_target = TO_THING(p_person->Genus.Person->Target);
+            aim_at_victim(p_person);
+
+            if (p_target->Class == CLASS_PERSON)
+                if (p_target->Genus.Person->PlayerID) {
+                    // Continuously offer the player a block window during this punch.
+                    if (should_i_block(p_target, p_person, 0))
+                        p_target->Genus.Person->Flags |= FLAG_PERSON_REQUEST_BLOCK;
+                }
+        }
+
+        switch (p_person->Draw.Tweened->CurrentAnim) {
+        case ANIM_PUNCH_COMBO2:
+            if (p_person->Draw.Tweened->FrameIndex < 2) {
+                p_person->Velocity = 6;
+                person_normal_move(p_person);
+            }
+
+            break;
+        }
+        if (p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK)) {
+            if (p_person->Genus.Person->PlayerID) {
+                p_person->Genus.Person->pcom_ai_counter += TICK_TOCK;
+            }
+        }
+        end = person_normal_animate(p_person);
+
+        // Dead combo display code -- guarded by if(0) in original, kept as-is.
+        if (0)
+            if (p_person->Genus.Person->PlayerID) {
+                SLONG index1 = 0, index2;
+                switch (p_person->Draw.Tweened->CurrentAnim) {
+                case ANIM_PUNCH_COMBO1:
+                    index1 = 3;
+                    index2 = 4;
+                    break;
+                case ANIM_PUNCH_COMBO2:
+                    index1 = 3;
+                    index2 = 4;
+                    break;
+                }
+
+                if (index1)
+                    if (p_person->Draw.Tweened->FrameIndex >= index1 && p_person->Draw.Tweened->FrameIndex <= index2) {
+                        combo_display = 1;
+                    }
+            }
+        if (end == 1) {
+            if (person_new_combat_node(p_person)) {
+            } else {
+                MSG_add(" finish punch");
+                set_person_fight_idle(p_person);
+            }
+        }
+
+        break;
+    case SUB_STATE_KICK:
+
+        if (p_person->Genus.Person->Target) {
+            aim_at_victim(p_person);
+            p_target = TO_THING(p_person->Genus.Person->Target);
+            if (p_target->Class == CLASS_PERSON)
+                if (p_target->Genus.Person->PlayerID) {
+                    // Continuously offer the player a block window during this kick.
+                    if (should_i_block(p_target, p_person, 0))
+                        p_target->Genus.Person->Flags |= FLAG_PERSON_REQUEST_BLOCK;
+                }
+        }
+
+        if (p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH)) {
+            if (p_person->Genus.Person->PlayerID) {
+                p_person->Genus.Person->pcom_ai_counter += TICK_TOCK;
+            }
+        }
+        end = person_normal_animate(p_person);
+
+        // Dead combo display code -- guarded by if(0) in original, kept as-is.
+        if (0)
+            if (p_person->Genus.Person->PlayerID) {
+                SLONG index1 = 0, index2;
+                switch (p_person->Draw.Tweened->CurrentAnim) {
+                case ANIM_KICK_COMBO1:
+                    index1 = 3;
+                    index2 = 4;
+                    break;
+                case ANIM_KICK_COMBO2:
+                    index1 = 1;
+                    index2 = 4;
+                    break;
+                }
+
+                if (index1)
+                    if (p_person->Draw.Tweened->FrameIndex >= index1 && p_person->Draw.Tweened->FrameIndex <= index2) {
+                        combo_display = 2;
+                    }
+            }
+
+        if (end == 1) {
+            if (person_new_combat_node(p_person)) {
+            } else {
+                set_person_fight_idle(p_person);
+            }
+        }
+        break;
+    case SUB_STATE_STRANGLE:
+    case SUB_STATE_HEADBUTT:
+
+    {
+        // last_frame tracks the animation frame so damage is applied once per new frame.
+        static UBYTE last_frame = 0;
+
+        end = person_normal_animate_speed(p_person, 256);
+
+        if (last_frame != p_person->Draw.Tweened->FrameIndex) {
+            last_frame = p_person->Draw.Tweened->FrameIndex;
+
+            Thing* p_target = TO_THING(p_person->Genus.Person->Target);
+
+            ASSERT(p_target->Class == CLASS_PERSON);
+
+            if ((p_target->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL) && !p_person->Genus.Person->PlayerID) {
+                // Only the player can hurt this person.
+            } else if (p_target->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) {
+                // Nothing hurts this person.
+            } else {
+                if (p_person->SubState == SUB_STATE_STRANGLE) {
+                    if (last_frame == 27 || ((last_frame & 1) == 0 && last_frame >= 14 && last_frame <= 24)) {
+                        SLONG damage;
+
+                        damage = 40 - GET_SKILL(p_target) >> 3;
+                        damage += 1;
+
+                        p_target->Genus.Person->Health -= damage;
+                    }
+                } else {
+                    if (last_frame == 11) {
+                        // Headbutt impact frame.
+                        Thing* p_target = TO_THING(p_person->Genus.Person->Target);
+                        SWORD hit_wave;
+
+                        ASSERT(p_target->Class == CLASS_PERSON);
+
+                        p_target->Genus.Person->Health -= 40 - GET_SKILL(p_target);
+
+                        if (SOUND_Gender(p_target) == 1)
+                            hit_wave = SOUND_Range(S_BAT_MALE_START, S_BAT_MALE_END);
+                        else
+                            hit_wave = SOUND_Range(S_BAT_FEMALE_START, S_BAT_FEMALE_END);
+                        MFX_play_thing(THING_NUMBER(p_target), hit_wave, 0, p_target);
+                    }
+                }
+            }
+        }
+
+        if (end) {
+            set_person_fight_idle(p_person);
+        }
+    }
+
+    break;
+    case SUB_STATE_HEADBUTTV:
+    case SUB_STATE_STRANGLEV:
+
+        end = person_normal_animate_speed(p_person, 256);
+
+        if (end) {
+            if (p_person->Genus.Person->Health <= 0) {
+                // Died during the strangle/headbutt -- use normal dying path.
+                remove_from_gang_attack(p_person, TO_THING(p_person->Genus.Person->Target));
+
+                set_generic_person_state_function(p_person, STATE_DYING);
+
+                p_person->SubState = SUB_STATE_DYING_ACTUALLY_DIE;
+            } else {
+                // Survived -- lay prone.
+                set_person_dead(
+                    p_person,
+                    0,
+                    PERSON_DEATH_TYPE_STAY_ALIVE_PRONE,
+                    0,
+                    0);
+            }
+        }
+        break;
+
+    case SUB_STATE_GRAPPLE:
+        end = person_normal_animate_speed(p_person, 256);
+        if ((p_person->Draw.Tweened->FrameIndex == 8) && (p_person->Draw.Tweened->CurrentAnim == ANIM_NECK_SNAP))
+            MFX_play_thing(THING_NUMBER(p_person), S_NECK_BREAK, 0, p_person);
+
+        if (end == 1) {
+            switch (p_person->Draw.Tweened->CurrentAnim) {
+            case ANIM_GRAB_ARM:
+            case ANIM_GRAB_ARM_KNEE1:
+                p_person->SubState = SUB_STATE_GRAPPLE_HOLD;
+                break;
+            default:
+                set_person_fight_idle(p_person);
+                break;
+            }
+        }
+
+        break;
+    case SUB_STATE_GRAPPLEE:
+        if ((p_person->Draw.Tweened->CurrentAnim == ANIM_PISTOL_WHIP_TAKE)
+            && (MagicFrameCheck(p_person, 4)))
+            MFX_play_thing(THING_NUMBER(p_person), S_JUDO_CHOP, 0, p_person);
+        end = person_normal_animate_speed(p_person, 256);
+        if (end == 1) {
+            switch (p_person->Draw.Tweened->CurrentAnim) {
+            case ANIM_GRAB_ARMV:
+                p_person->SubState = SUB_STATE_GRAPPLE_HELD;
+                break;
+            case ANIM_PISTOL_WHIP_TAKE:
+                set_person_dead(p_person, TO_THING(p_person->Genus.Person->Target), PERSON_DEATH_TYPE_STAY_ALIVE_PRONE, 0, 0);
+                break;
+            default:
+                // Knee-to-death or neck-snap outcome.
+                set_person_dead(p_person, TO_THING(p_person->Genus.Person->Target), PERSON_DEATH_TYPE_PRONE, 0, 0);
+                break;
+            }
+        }
+        break;
+    case SUB_STATE_GRAPPLE_ATTACK:
+        end = person_normal_animate(p_person);
+        if (end == 1) {
+            switch (p_person->Draw.Tweened->CurrentAnim) {
+            case ANIM_GRAB_ARM_THROW:
+            case ANIM_GRAB_ARM_KNEE2:
+                set_person_fight_idle(p_person);
+                break;
+            default:
+                p_person->SubState = SUB_STATE_GRAPPLE_HOLD;
+                break;
+            }
+        }
+        break;
+
+    case SUB_STATE_GRAPPLE_HOLD:
+
+    {
+        ASSERT(p_person->Genus.Person->Target);
+
+        Thing* p_target = TO_THING(p_person->Genus.Person->Target);
+
+        ASSERT(p_target->Class == CLASS_PERSON);
+
+        if (p_person->Genus.Person->PlayerID) {
+            track_enemy(TO_THING(p_person->Genus.Person->Target));
+        }
+
+        if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_KICK) {
+            p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_KICK;
+
+            if ((p_target->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL) && !p_person->Genus.Person->PlayerID) {
+                // Only the player can hurt this person.
+            } else if (p_target->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST && (p_target->Genus.Person->pcom_ai_other & PCOM_COMBAT_GRAPPLE_ATTACK)) {
+                // Fight-test dummies die through grapple even if invulnerable.
+                p_target->Genus.Person->Health = 0;
+            } else if (p_target->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) {
+                // Nothing hurts this person.
+            } else {
+                p_target->Genus.Person->Health -= 45 - GET_SKILL(p_target) >> 1;
+            }
+
+            if (p_target->Genus.Person->Health <= 0) {
+                p_target->Genus.Person->Health = 0;
+                set_anim(p_person, ANIM_GRAB_ARM_KNEE2);
+                set_anim(p_target, ANIM_GRAB_ARM_KNEE2V);
+
+                if (p_person) {
+                    p_person->Genus.Person->Flags2 |= FLAG2_PERSON_IS_MURDERER;
+                }
+            } else {
+                set_anim(p_person, ANIM_GRAB_ARM_KNEE1);
+                set_anim(p_target, ANIM_GRAB_ARM_KNEE1V);
+            }
+            p_person->SubState = SUB_STATE_GRAPPLE_ATTACK;
+
+        } else if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH) {
+            p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_PUNCH;
+
+            set_anim(p_person, ANIM_GRAB_ARM_THROW);
+            set_anim(TO_THING(p_person->Genus.Person->Target), ANIM_GRAB_ARM_THROWV);
+
+            p_person->SubState = SUB_STATE_GRAPPLE_ATTACK;
+        }
+    }
+
+    break;
+    case SUB_STATE_GRAPPLE_HELD:
+
+    {
+        Thing* p_attacker = TO_THING(p_person->Genus.Person->Target);
+
+        if ((p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_BLOCK | FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH)) || (PTIME(p_person) & 3) == 0) {
+            p_person->Genus.Person->Escape++;
+            p_person->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_BLOCK | FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH);
+        }
+
+        if (p_attacker->SubState != SUB_STATE_GRAPPLE_ATTACK) {
+            SLONG escape_count = 23;
+
+            if (p_person->Genus.Person->PlayerID) {
+                escape_count = 15;
+            } else if (p_person->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST && !(p_person->Genus.Person->pcom_ai_other & PCOM_COMBAT_GRAPPLE_ATTACK)) {
+                escape_count = 0;
+            } else {
+                escape_count -= (GET_SKILL(p_person) >> 1);
+            }
+
+            if (p_attacker->SubState != SUB_STATE_GRAPPLE && p_attacker->SubState != SUB_STATE_GRAPPLE_HOLD && p_attacker->SubState != SUB_STATE_GRAPPLE_ATTACK) {
+                // Attacker is no longer grappling -- escape automatically.
+                p_person->Genus.Person->Escape = 0;
+                p_person->SubState = SUB_STATE_ESCAPE;
+                set_anim(p_person, ANIM_GRAB_ARM_ESCAPEV);
+
+                return;
+            } else if (p_person->Genus.Person->Escape > escape_count) {
+                p_person->Genus.Person->Escape = 0;
+                set_anim(p_person, ANIM_GRAB_ARM_ESCAPEV);
+                p_person->SubState = SUB_STATE_ESCAPE;
+                set_anim(p_attacker, ANIM_GRAB_ARM_ESCAPE);
+                p_attacker->SubState = SUB_STATE_ESCAPE;
+                return;
+            }
+        }
+    }
+
+        end = person_normal_animate(p_person);
+        switch (p_person->Draw.Tweened->CurrentAnim) {
+
+        case ANIM_GRAB_ARM_THROWV:
+
+            if (end) {
+                if (p_person->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST && (p_person->Genus.Person->pcom_ai_other & PCOM_COMBAT_GRAPPLE_ATTACK)) {
+                    // Fight-test dummy dies through grapple.
+                    p_person->Genus.Person->Health = 0;
+
+                    set_person_dead(p_person, TO_THING(p_person->Genus.Person->Target), PERSON_DEATH_TYPE_PRONE, 0, 0);
+                } else {
+                    // Just knocked out.
+                    set_person_dead(p_person, TO_THING(p_person->Genus.Person->Target), PERSON_DEATH_TYPE_STAY_ALIVE_PRONE, 0, 0);
+                }
+            }
+
+            if (MagicFrameCheck(p_person, 8)) {
+                if (SOUND_Gender(p_person) == 2)
+                    MFX_play_thing(THING_NUMBER(p_person), S_FEMALE_DIE_2, 0, p_person);
+                else
+                    MFX_play_thing(THING_NUMBER(p_person), S_MALE_DIE_2, 0, p_person);
+            }
+
+            break;
+        case ANIM_GRAB_ARM_KNEE1V:
+            if (MagicFrameCheck(p_person, 2)) {
+                MFX_play_thing(THING_NUMBER(p_person), S_PUNCH_START + (GAME_TURN & 3), 0, p_person);
+                PainSound(p_person);
+            }
+            break;
+        case ANIM_GRAB_ARM_KNEE2V:
+            if (MagicFrameCheck(p_person, 2)) {
+                MFX_play_thing(THING_NUMBER(p_person), S_PUNCH_START + (GAME_TURN & 3), 0, p_person);
+                PainSound(p_person);
+            }
+            if (end) {
+                set_person_dead(p_person, TO_THING(p_person->Genus.Person->Target), PERSON_DEATH_TYPE_PRONE, 0, 0);
+            }
+            break;
+
+        default:
+            break;
+        }
+        break;
+    case SUB_STATE_ESCAPE:
+        end = person_normal_animate(p_person);
+        if (end) {
+            set_person_idle(p_person);
+            if (!p_person->Genus.Person->PlayerID) {
+                PCOM_attack_happened(p_person, TO_THING(p_person->Genus.Person->Target));
+            }
+
+            p_person->Genus.Person->Flags &= ~FLAG_PERSON_HELPLESS;
+        }
+        break;
+
+    case SUB_STATE_STEP:
+        end = person_normal_animate(p_person);
+        plant_feet(p_person);
+        if (p_person->State == STATE_DANGLING)
+            return;
+
+        if (end == 1) {
+            set_person_fight_idle(p_person);
+        }
+
+        break;
+    case SUB_STATE_STEP_FORWARD:
+
+        p_person->Genus.Person->Timer1++;
+        if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_BLOCK) {
+            if (p_person->Draw.Tweened->CurrentAnim == ANIM_FIGHT_STEP_S) {
+                p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_BLOCK;
+                set_person_block(p_person);
+                return;
+            }
+        }
+        p_person->Velocity = 30;
+        if (p_person->Draw.Tweened->FrameIndex < 2) {
+            SLONG old_angle;
+            old_angle = p_person->Draw.Tweened->Angle;
+            switch (p_person->Draw.Tweened->CurrentAnim) {
+            case ANIM_FIGHT_STEP_N:
+            case ANIM_FIGHT_STEP_N_BAT:
+                break;
+            case ANIM_FIGHT_STEP_E:
+            case ANIM_FIGHT_STEP_E_BAT:
+                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - 512) & 2047;
+
+                break;
+            case ANIM_FIGHT_STEP_W:
+            case ANIM_FIGHT_STEP_W_BAT:
+                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + 512) & 2047;
+                break;
+            case ANIM_FIGHT_STEP_S:
+            case ANIM_FIGHT_STEP_S_BAT:
+                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + 1024) & 2047;
+                break;
+            }
+            person_normal_move(p_person);
+            p_person->Draw.Tweened->Angle = old_angle;
+        }
+        switch (p_person->Draw.Tweened->CurrentAnim) {
+        case ANIM_FIGHT_STEP_N:
+        case ANIM_FIGHT_STEP_N_BAT:
+        case ANIM_FIGHT_STEP_S:
+        case ANIM_FIGHT_STEP_S_BAT:
+            aim_at_victim(p_person, 1000);
+            break;
+        default:
+            aim_at_victim(p_person, 1);
+            break;
+        }
+        end = person_normal_animate(p_person);
+
+        if (end) {
+            reset_gang_attack(p_person);
+
+            set_person_fight_idle(p_person);
+        }
+        break;
+
+    default:
+        MSG_add("FIGHTING unknow substate %d \n", p_person->SubState);
+        break;
+    }
+}
+
+// fn_person_wait -- body was fully commented out in the original (no-op placeholder).
+// uc_orig: fn_person_wait (fallen/Source/Person.cpp)
+void fn_person_wait(Thing* p_person)
+{
+}
+
+// Turns person toward p_target using pelvis sub-object positions for accuracy.
+// slow=0: immediate snap; slow=1: half-speed per frame.
+// Returns pelvis-to-pelvis XZ distance.
+// uc_orig: turn_to_face_thing (fallen/Source/Person.cpp)
+SLONG turn_to_face_thing(Thing* p_person, Thing* p_target, SLONG slow)
+{
+    SLONG dx, dz;
+    SLONG angle, pangle;
+    SLONG angle_diff;
+    SLONG dist;
+    SLONG ax, ay, az, bx, by, bz;
+
+    ASSERT(p_person->Genus.Person->Target);
+    if (p_target->Class != CLASS_PERSON)
+        return (200);
+    ASSERT(p_target->Class == CLASS_PERSON);
+    ASSERT(p_target->Draw.Tweened);
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS, &ax, &ay, &az);
+    ax += p_person->WorldPos.X >> 8;
+    ay += p_person->WorldPos.Y >> 8;
+    az += p_person->WorldPos.Z >> 8;
+    calc_sub_objects_position(p_target, p_target->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS, &bx, &by, &bz);
+    bx += p_target->WorldPos.X >> 8;
+    by += p_target->WorldPos.Y >> 8;
+    bz += p_target->WorldPos.Z >> 8;
+
+    dx = bx - ax;
+    dz = bz - az;
+
+    dist = QDIST2(abs(dx), abs(dz));
+
+    if (dist > 0x30) {
+        angle = (Arctan(dx, -dz) + 1024 + 2048) & 2047;
+
+        pangle = p_person->Draw.Tweened->Angle;
+        angle_diff = angle - pangle;
+
+        if (angle_diff > 1024)
+            angle_diff -= 2048;
+        if (angle_diff < -1024)
+            angle_diff += 2048;
+
+        angle_diff >>= slow;
+
+        angle = (pangle + angle_diff + 2048) & 2047;
+
+        p_person->Draw.Tweened->Angle = angle;
+    }
+
+    return (dist);
+}
+
+// Instantly snaps person's angle to face p_target using raw world positions.
+// uc_orig: turn_to_face_thing_quick (fallen/Source/Person.cpp)
+void turn_to_face_thing_quick(Thing* p_person, Thing* p_target)
+{
+    SLONG dx, dz;
+    SLONG angle, pangle;
+    SLONG angle_diff;
+    SLONG dist;
+    SLONG ax, ay, az, bx, by, bz;
+
+    ASSERT(p_target->Class == CLASS_PERSON);
+    ASSERT(p_target->Draw.Tweened);
+    ax = p_person->WorldPos.X >> 8;
+    ay = p_person->WorldPos.Y >> 8;
+    az = p_person->WorldPos.Z >> 8;
+
+    bx = p_target->WorldPos.X >> 8;
+    by = p_target->WorldPos.Y >> 8;
+    bz = p_target->WorldPos.Z >> 8;
+
+    dx = bx - ax;
+    dz = bz - az;
+    dist = QDIST2(abs(dx), abs(dz));
+
+    if (dist > 0x30) {
+        angle = (Arctan(dx, -dz) + 1024 + 2048) & 2047;
+
+        p_person->Draw.Tweened->Angle = angle;
+    }
+}
+
+// Returns the vertical pitch angle (0-2047) from person toward p_target.
+// uc_orig: get_pitch_to_thing_quick (fallen/Source/Person.cpp)
+SLONG get_pitch_to_thing_quick(Thing* p_person, Thing* p_target)
+{
+    SLONG dx, dy, dz, dxz;
+    SLONG angle, pangle;
+    SLONG angle_diff;
+    SLONG dist;
+    SLONG ax, ay, az, bx, by, bz;
+
+    ASSERT(p_target->Class == CLASS_PERSON);
+    ASSERT(p_target->Draw.Tweened);
+    ax = p_person->WorldPos.X >> 8;
+    ay = p_person->WorldPos.Y >> 8;
+    az = p_person->WorldPos.Z >> 8;
+
+    bx = p_target->WorldPos.X >> 8;
+    by = p_target->WorldPos.Y >> 8;
+    bz = p_target->WorldPos.Z >> 8;
+
+    dx = abs(bx - ax);
+    dy = (by - ay);
+    dz = abs(bz - az);
+
+    dxz = QDIST2(dx, dz);
+
+    angle = Arctan(dy, dxz);
+
+    return (angle & 2047);
+}
+
+// Starts the draw animation for the given special weapon type and enters STATE_GUN/draw sub-state.
+// uc_orig: set_person_draw_item (fallen/Source/Person.cpp)
+void set_person_draw_item(Thing* p_person, SLONG special_type)
+{
+    SLONG anim;
+    Thing* p_special;
+
+    if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
+        return;
+    }
+
+    // Does this person have an item of that type?
+    p_special = person_has_special(p_person, special_type);
+
+    if (p_special == NULL) {
+        return;
+    }
+
+    // Clear old weapon state.
+    p_person->Genus.Person->SpecialUse = 0;
+    p_person->Draw.Tweened->PersonID &= 0x1f;
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_GUN_OUT;
+
+    set_persons_personid(p_person);
+
+    anim = ANIM_PISTOL_DRAW;
+    switch (special_type) {
+    case SPECIAL_SHOTGUN:
+        anim = ANIM_SHOTGUN_DRAW;
+        p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+        break;
+    case SPECIAL_KNIFE:
+        anim = ANIM_KNIFE_DRAW;
+        break;
+    case SPECIAL_BASEBALLBAT:
+        anim = ANIM_BAT_DRAW;
+        break;
+    case SPECIAL_AK47:
+        p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+        anim = ANIM_SHOTGUN_DRAW;
+        break;
+    }
+
+    set_anim(p_person, anim);
+    set_thing_velocity(p_person, 0);
+    set_generic_person_state_function(p_person, STATE_GUN);
+
+    p_person->SubState = SUB_STATE_DRAW_ITEM;
+    p_person->Genus.Person->SpecialDraw = THING_NUMBER(p_special);
+    p_person->Genus.Person->Action = ACTION_DRAW_SPECIAL;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_C | FLAG_PERSON_NON_INT_M;
+}
+
+// Holsters the currently drawn special item and transitions to idle.
+// uc_orig: set_person_item_away (fallen/Source/Person.cpp)
+void set_person_item_away(Thing* p_person)
+{
+    p_person->Genus.Person->SpecialUse = NULL;
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_GUN_OUT;
+
+    set_persons_personid(p_person);
+    set_person_idle(p_person);
+}
+
+// Instantly sets person's angle to face world-space position (world_x, world_z).
+// People walk backwards relative to their model facing, so the angle is corrected by +1024.
+// uc_orig: set_face_pos (fallen/Source/Person.cpp)
+void set_face_pos(
+    Thing* p_person,
+    SLONG world_x,
+    SLONG world_z)
+{
+    SLONG dx = world_x - (p_person->WorldPos.X >> 8);
+    SLONG dz = world_z - (p_person->WorldPos.Z >> 8);
+
+    SLONG angle;
+
+    angle = calc_angle(dx, dz);
+    angle += 1024;
+    angle &= 2047;
+
+    p_person->Draw.Tweened->Angle = angle;
+
+    return;
+}
+
+// Instantly snaps person to face p_target. Returns XZ distance (world/256 units).
+// uc_orig: set_face_thing (fallen/Source/Person.cpp)
+SLONG set_face_thing(Thing* p_person, Thing* p_target)
+{
+    SLONG dx, dz;
+    SLONG angle, pangle;
+    SLONG angle_diff;
+    SLONG dist;
+
+    dx = (p_target->WorldPos.X - p_person->WorldPos.X) >> 8;
+    dz = (p_target->WorldPos.Z - p_person->WorldPos.Z) >> 8;
+    angle = (Arctan(dx, -dz) + 1024 + 2048) & 2047;
+
+    p_person->Draw.Tweened->Angle = angle;
+
+    dist = QDIST2(abs(dx), abs(dz));
+
+    return (dist);
+}
+
+// Gradually tracks person to face p_target, advancing at most 32 angle units per frame.
+// uc_orig: turn_towards_thing (fallen/Source/Person.cpp)
+void turn_towards_thing(Thing* p_person, Thing* p_target)
+{
+    SLONG dx, dz;
+    SLONG angle, dangle;
+    SLONG angle_diff;
+    SLONG dist;
+
+    dx = (p_target->WorldPos.X - p_person->WorldPos.X) >> 8;
+    dz = (p_target->WorldPos.Z - p_person->WorldPos.Z) >> 8;
+    angle = (Arctan(dx, -dz) + 1024 + 2048) & 2047;
+
+    dangle = p_person->Draw.Tweened->Angle - angle;
+
+    if (dangle < -1024)
+        dangle += 2048;
+    if (dangle > 1024)
+        dangle -= 2048;
+    if (dangle < -32)
+        p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + 32) & 2047;
+    else if (dangle > 32)
+        p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - 32) & 2047;
+}
+
+// fn_person_stand_up -- body was fully commented out in the original (no-op placeholder).
+// uc_orig: fn_person_stand_up (fallen/Source/Person.cpp)
+void fn_person_stand_up(Thing* p_person)
+{
+}
+
+// fn_person_fight -- old state handler; body mostly commented out, asserts immediately.
+// Left as an assert trap to detect accidental transitions to STATE_FIGHT.
+// uc_orig: fn_person_fight (fallen/Source/Person.cpp)
+void fn_person_fight(Thing* p_person)
+{
+    Thing* p_target;
+    SLONG dist;
+    SLONG end;
+
+    p_target = TO_THING(p_person->Genus.Person->Target);
+    ASSERT(0);
+
+    SlideSoundCheck(p_person);
+
+    switch (p_person->Draw.Tweened->CurrentAnim) {
+    case ANIM_PUNCH1:
+    case ANIM_PUNCH2:
+    case ANIM_KICK_ROUND1:
+    case ANIM_KICK2:
+        dist = turn_to_face_thing(p_person, p_target, 0);
+        if (dist > 170) {
+            set_anim(p_person, ANIM_WALK);
+        } else {
+            end = person_normal_animate(p_person);
+            if (end == 1) {
+                queue_anim(p_person, ANIM_WALK);
+            }
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+// Configures person to walk/run/sneak/yomp toward (x,z) and enters STATE_GOTOING.
+// speed is one of the PERSON_SPEED_* constants.
+// uc_orig: set_person_goto_xz (fallen/Source/Person.cpp)
+void set_person_goto_xz(Thing* p_person, SLONG x, SLONG z, SLONG speed)
+{
+    SLONG velocity;
+
+    if (p_person->SubState == SUB_STATE_SLIPPING) {
+        // Wait until the person reaches the bottom of the slope.
+        return;
+    }
+
+    if (PersonIsMIB(p_person)) {
+        // MIB are too cool to run anywhere.
+        speed = PERSON_SPEED_WALK;
+    }
+
+    // Remember where we are going.
+    p_person->Genus.Person->GotoSpeed = speed;
+    p_person->Genus.Person->GotoX = x;
+    p_person->Genus.Person->GotoZ = z;
+
+    SLONG dx = abs(x - (p_person->WorldPos.X >> 8));
+    SLONG dz = abs(z - (p_person->WorldPos.Z >> 8));
+
+    if (QDIST2(dx, dz) < 0x40) {
+        // Already close enough -- just idle.
+        if (p_person->State != STATE_IDLE && p_person->State != STATE_GUN) {
+            set_person_idle(p_person);
+        }
+
+        return;
+    }
+
+    switch (speed) {
+    case PERSON_SPEED_WALK:
+
+        if (p_person->SubState != SUB_STATE_WALKING) {
+            set_anim_walking(p_person);
+
+            p_person->SubState = SUB_STATE_WALKING;
+            p_person->Genus.Person->Action = ACTION_WALK;
+        }
+
+        break;
+
+    default:
+
+        // Unrecognised speed -- treat as run.
+        speed = PERSON_SPEED_RUN;
+
+        p_person->Genus.Person->GotoSpeed = speed;
+
+        // FALLTHROUGH!
+
+    case PERSON_SPEED_SPRINT:
+    case PERSON_SPEED_RUN:
+
+        if (p_person->SubState != SUB_STATE_RUNNING) {
+            set_anim_running(p_person);
+
+            p_person->SubState = SUB_STATE_RUNNING;
+            p_person->Genus.Person->Action = ACTION_RUN;
+        }
+
+        break;
+
+    case PERSON_SPEED_SNEAK:
+
+        if (p_person->SubState != SUB_STATE_SNEAKING) {
+            set_anim(p_person, ANIM_SNEAK);
+
+            p_person->SubState = SUB_STATE_SNEAKING;
+            p_person->Genus.Person->Action = ACTION_WALK;
+        }
+
+        break;
+
+    case PERSON_SPEED_YOMP:
+
+        if (p_person->SubState != SUB_STATE_RUNNING) {
+            if (person_has_special(p_person, SPECIAL_BASEBALLBAT)) {
+                set_anim(p_person, ANIM_YOMP_START_BAT);
+
+            } else if (person_holding_2handed(p_person)) {
+                set_anim(p_person, ANIM_YOMP_START_AK);
+
+            } else {
+                if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+                    set_anim(p_person, ANIM_YOMP_START_PISTOL);
+
+                } else
+                    set_anim(p_person, ANIM_YOMP_START);
+            }
+
+            p_person->SubState = SUB_STATE_RUNNING;
+            p_person->Genus.Person->Action = ACTION_RUN;
+        }
+
+        break;
+
+    case PERSON_SPEED_CRAWL:
+
+        if (p_person->SubState != SUB_STATE_CRAWLING) {
+            locked_anim_change(
+                p_person,
+                SUB_OBJECT_LEFT_FOOT,
+                ANIM_CRAWL);
+
+            p_person->SubState = SUB_STATE_CRAWLING;
+            p_person->Genus.Person->Action = ACTION_CRAWLING;
+        }
+
+        break;
+    }
+
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+
+    velocity = 50;
+
+    switch (speed) {
+    case PERSON_SPEED_WALK:
+        if (p_person->Genus.Person->PersonType == PERSON_CIV) {
+            if (!(p_person->Draw.Tweened->MeshID & 1))
+                velocity = 14;
+            else
+                velocity = 10;
+        } else
+            velocity = 16;
+        break;
+
+    case PERSON_SPEED_SNEAK:
+    case PERSON_SPEED_CRAWL:
+        velocity = 13;
+
+        break;
+
+    case PERSON_SPEED_YOMP:
+        if (p_person->Genus.Person->PersonType == PERSON_THUG_RASTA) {
+            // Rastas don't get the yomp speed bonus (they can out-sprint though).
+        } else
+            velocity -= velocity >> 2;
+        break;
+
+    case PERSON_SPEED_RUN:
+    case PERSON_SPEED_SPRINT:
+
+        if (p_person->Genus.Person->pcom_ai == PCOM_AI_CIV || p_person->Genus.Person->pcom_ai_state != PCOM_AI_STATE_FOLLOWING) {
+            // Civs run slower.
+            velocity = 30;
+        } else if (p_person->Genus.Person->PersonType == PERSON_THUG_RASTA) {
+            // Rastas run slightly faster.
+            velocity += 10;
+        }
+
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+
+    set_thing_velocity(p_person, velocity);
+
+    set_generic_person_state_function(p_person, STATE_GOTOING);
+}
+
+// STATE_GOTOING state machine: orients and moves person toward their GotoX/GotoZ target.
+// uc_orig: fn_person_goto (fallen/Source/Person.cpp)
+void fn_person_goto(Thing* p_person)
+{
+    SLONG end;
+
+    SLONG dx;
+    SLONG dz;
+    SLONG dist;
+
+    SLONG cangle;
+    SLONG wangle;
+    SLONG dangle;
+
+    if (p_person->SubState == SUB_STATE_RUNNING_VAULT) {
+        process_a_vaulting_person(p_person);
+
+        return;
+    }
+
+    end = person_normal_animate(p_person);
+
+    if (end == 1) {
+        switch (p_person->Draw.Tweened->CurrentAnim) {
+        case ANIM_HIT_WALL:
+        case ANIM_YOMP_START:
+        case ANIM_YOMP_START_PISTOL:
+        case ANIM_YOMP_START_AK:
+        case ANIM_YOMP_START_BAT:
+
+        {
+            UWORD anim;
+
+            anim = get_yomp_anim(p_person);
+            if (anim == COP_ROPER_ANIM_RUN) {
+                set_anim_of_type(p_person, anim, ANIM_TYPE_ROPER);
+            } else
+                set_anim(p_person, anim);
+        }
+
+        break;
+        }
+    }
+
+    // Orient person toward their destination.
+    dx = p_person->Genus.Person->GotoX - (p_person->WorldPos.X >> 8);
+    dz = p_person->Genus.Person->GotoZ - (p_person->WorldPos.Z >> 8);
+
+    cangle = p_person->Draw.Tweened->Angle;
+    wangle = Arctan(dx, -dz) - 1024;
+    wangle &= 2047;
+    dangle = wangle - cangle;
+    dist = abs(dx) + abs(dz);
+
+    if (dist < 0x100) {
+        p_person->Draw.Tweened->Angle = wangle;
+    } else {
+        if (dangle > 1024) {
+            dangle -= 2048;
+        }
+        if (dangle < -1024) {
+            dangle += 2048;
+        }
+
+        if (dangle > 500) {
+            dangle = 500;
+        }
+        if (dangle < -500) {
+            dangle = -500;
+        }
+
+        p_person->Draw.Tweened->AngleTo = wangle;
+        p_person->Draw.Tweened->Angle = cangle + (dangle >> 1);
+        p_person->Draw.Tweened->Angle &= 2047;
+    }
+
+    person_normal_move_check(p_person);
+
+    if (p_person->SubState == SUB_STATE_SLIPPING) {
+        set_generic_person_state_function(p_person, STATE_MOVEING);
+
+        return;
+    }
+
+    // Allow navigating people to vault small fences that the nav mesh ignores.
+    if (last_slide_colvect && is_facet_vaultable(last_slide_colvect)) {
+        set_person_vault(
+            p_person,
+            last_slide_colvect);
+
+        return;
+    }
+
+    if (p_person->SubState == SUB_STATE_RUNNING_THEN_JUMP) {
+        switch (p_person->Draw.Tweened->FrameIndex) {
+        case 0:
+        case 1:
+            set_person_running_jump_lr(p_person, 1);
+            break;
+        case 3:
+        case 4:
+            set_person_running_jump_lr(p_person, 0);
+            break;
+        }
+    }
+}
+
+// Dead code -- always asserts. Left as a stub to preserve link compatibility.
+// uc_orig: process_person_goto_xz (fallen/Source/Person.cpp)
+SLONG process_person_goto_xz(Thing* p_person, SLONG x, SLONG z, SLONG dist)
+{
+    ASSERT(0);
+
+    return 0;
+}
+
+// Dead code -- always asserts. Left as a stub to preserve link compatibility.
+// uc_orig: fn_person_navigate (fallen/Source/Person.cpp)
+void fn_person_navigate(Thing* p_person)
+{
+    ASSERT(0);
+}
+
+// Dead code -- always asserts. Left as a stub to preserve link compatibility.
+// uc_orig: init_person_command (fallen/Source/Person.cpp)
+void init_person_command(Thing* p_person)
+{
+    ASSERT(0);
+}
+
+// Dead code -- always asserts. Left as a stub to preserve link compatibility.
+// uc_orig: mav_arrived (fallen/Source/Person.cpp)
+SLONG mav_arrived(Thing* p_person)
+{
+    ASSERT(0);
+
+    return 0;
 }

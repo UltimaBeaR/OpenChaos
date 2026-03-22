@@ -226,7 +226,7 @@ extern SLONG sprint_speed;
 UWORD player_dlight = 0;
 #endif // MIGRATED
 
-void aim_at_victim(Thing* p_person, SLONG count = 1);
+// aim_at_victim: now in person.h (chunk 11)
 void set_anim_idle(Thing* p_person);
 SLONG dist_to_target_pelvis(Thing* p_person_a, Thing* p_person_b);
 UWORD find_arrestee(Thing* p_person);
@@ -245,18 +245,18 @@ void fn_person_jumping(Thing* p_person);
 void fn_person_dangling(Thing* p_person);
 void fn_person_laddering(Thing* p_person);
 void fn_person_climbing(Thing* p_person);
-void fn_person_fighting(Thing* p_person);
+// fn_person_fighting: now in person.h (chunk 11)
 // fn_person_recoil: now in person.h (chunk 10)
 // fn_person_dying: now in person.h (chunk 10)
 // fn_person_dead: now in person.h (chunk 10)
 // fn_person_gun: now in person.h (chunk 10)
-void fn_person_wait(Thing* p_person);
-void fn_person_navigate(Thing* p_person);
-void fn_person_fight(Thing* p_person);
-void fn_person_stand_up(Thing* p_person);
+// fn_person_wait: now in person.h (chunk 11)
+// fn_person_navigate: now in person.h (chunk 11)
+// fn_person_fight: now in person.h (chunk 11)
+// fn_person_stand_up: now in person.h (chunk 11)
 void fn_person_mavigate(Thing* p_person);
 void fn_person_grapple(Thing* p_person);
-void fn_person_goto(Thing* p_person);
+// fn_person_goto: now in person.h (chunk 11)
 void fn_person_can(Thing* p_person);
 void fn_person_circle(Thing* p_person);
 void fn_person_hug_wall(Thing* p_person);
@@ -276,11 +276,11 @@ extern SLONG find_best_grapple(Thing* p_person);
 // set_person_pos_for_half_step: now in person.h (chunk 7)
 void set_person_sneaking(Thing* p_person);
 void set_person_mav_to_xz(Thing* p_person, SLONG x, SLONG z);
-SLONG turn_to_face_thing(Thing* p_person, Thing* p_target, SLONG slow);
-SLONG set_face_thing(Thing* p_person, Thing* p_target);
+// turn_to_face_thing: now in person.h (chunk 11)
+// set_face_thing: now in person.h (chunk 11)
 void set_person_mav_to_thing(Thing* p_person, Thing* p_target);
-SLONG get_pitch_to_thing_quick(Thing* p_person, Thing* p_target);
-void turn_to_face_thing_quick(Thing* p_person, Thing* p_target);
+// get_pitch_to_thing_quick: now in person.h (chunk 11)
+// turn_to_face_thing_quick: now in person.h (chunk 11)
 SLONG get_yomp_anim(Thing* p_person);
 SLONG person_holding_2handed(Thing* p_person);
 void drop_all_items(Thing* p_person, UBYTE is_being_searched);
@@ -15731,6 +15731,8 @@ void fn_person_gun(Thing* p_person)
 
 #endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 101) [set_person_ko_recoil..fn_person_gun]
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 102) [person_new_combat_node..mav_arrived]
+
 #define COMBO_ACCURACY 300 // Was 190
 
 SLONG person_new_combat_node(Thing* p_person)
@@ -17266,6 +17268,8 @@ SLONG mav_arrived(Thing* p_person)
     return 0;
 }
 
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 102) [person_new_combat_node..mav_arrived]
+
 SLONG person_mav_again(Thing* p_person)
 {
     ASSERT(0);
@@ -18010,7 +18014,7 @@ void set_person_hug_wall_stand(Thing* p_person, SLONG dangle = 0, SLONG locked =
 // returns true if person is within max_dist of a facet
 //
 extern SLONG global_on;
-UWORD near_facet = 0;
+// near_facet: migrated to person_globals.cpp (iteration 102)
 SLONG check_near_facet(Thing* p_person, SLONG max_dist, SLONG max_end_dist, SLONG px, SLONG pz)
 {
     SLONG loop = 4;
@@ -18429,7 +18433,7 @@ void fn_person_hug_wall(Thing* p_person)
     }
 }
 
-SLONG kick_or_punch = 0;
+// kick_or_punch: migrated to person_globals.cpp (iteration 102)
 
 void fn_person_circle(Thing* p_person)
 {
