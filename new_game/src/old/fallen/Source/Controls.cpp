@@ -1,60 +1,9 @@
 // Control.cpp
-// Guy Simmons, 4th November 1997.
+// Chunk 2+ (process_controls): remaining in old/ pending next migration iteration.
+// Chunk 1 (globals + helpers up to set_danger_level): MIGRATED to src/new/ui/controls.cpp (iteration 124).
 
-// claude-ai: ============================================================
-// claude-ai: Controls.cpp — per-frame subsystem dispatcher (PC + PSX)
-// claude-ai: ============================================================
-// claude-ai:
-// claude-ai: РОЛЬ В АРХИТЕКТУРЕ:
-// claude-ai:   Содержит process_controls() — функцию, вызываемую каждый кадр
-// claude-ai:   из game_loop() в Game.cpp (строка ~2503). Это НЕ внешний game-loop
-// claude-ai:   (он в Game.cpp), а «внутренний» — per-frame диспетчер игровой логики.
-// claude-ai:
-// claude-ai: ВАЖНО: в файле ДВЕ версии process_controls():
-// claude-ai:   - PC-версия  (строка ~1934): #ifndef PSX — основная, с отладочными клавишами
-// claude-ai:   - PSX-версия (строка ~5265): #ifdef  PSX — урезанная, без debug-кода
-// claude-ai:
-// claude-ai: ЧТО ДЕЛАЕТ process_controls() (PC-версия), ПОРЯДОК ВЫЗОВОВ:
-// claude-ai:   1.  Каждые 16 кадров (GAME_TURN & 0x0f)==0:
-// claude-ai:         set_danger_level()      — вычисляет Danger-уровень игрока (0..3)
-// claude-ai:                                   по ближайшим врагам в радиусе 0xC00
-// claude-ai:   2.  context_music()          — выбирает фоновую музыку по состоянию
-// claude-ai:                                   Дарси (идёт, дерётся, едет, ползёт)
-// claude-ai:   3.  Проверка смерти игрока  → GAME_STATE = GS_LEVEL_LOST
-// claude-ai:   4.  Блок отладочных клавиш (только allow_debug_keys, #ifndef TARGET_DC):
-// claude-ai:         [ ] / { }  — циклически смотреть на NPC-персонажей через камеру 1
-// claude-ai:   5.  DIRT_set_focus()        — обновить центр системы частиц-грязи/воды
-// claude-ai:   6.  MIST/SPARK/GLITTER/HOOK/SNIPE — обновить подсистемы эффектов
-// claude-ai:   7.  Консольный ввод (F9)   — parse_console(), ранний return пока открыта
-// claude-ai:   8.  Инвентарь (INPUT_MASK_SELECT → CONTROLS_new/rot/set_inventory)
-// claude-ai:   9.  Блок debug-клавиш (если allow_debug_keys): Ctrl/Shift+hotkeys
-// claude-ai:  10.  animate_texture_maps()  — анимация текстур (#ifndef PSX, в конце функции)
-// claude-ai:
-// claude-ai: ВАЖНЫЕ ЗАМЕЧАНИЯ:
-// claude-ai:   - WATER_process(), BANG_process(), LIGHT_process() закомментированы —
-// claude-ai:     вызываются в другом месте (Game.cpp) или выпилены в этой ветке кода.
-// claude-ai:   - Основные системы PCOM (AI), FC (камера), EWAY (миссии), INTERFAC (ввод),
-// claude-ai:     PSYSTEM (частицы), WMOVE (транспорт) — НЕ вызываются здесь,
-// claude-ai:     они вызываются напрямую из game_loop() в Game.cpp.
-// claude-ai:   - process_controls() — это «остаток» старой монолитной функции управления.
-// claude-ai:     Комментарий в коде (строка ~2422) прямо говорит:
-// claude-ai:     "this stuff shouldn't even _be_ in process_controls."
-// claude-ai:   - DIRT_set_focus() устанавливает радиус-фокус: PSX = 0x800, PC = 0xC00
-// claude-ai:
-// claude-ai: ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ В ФАЙЛЕ (не в process_controls):
-// claude-ai:   - set_danger_level()             — расчёт опасности для UI/музыки
-// claude-ai:   - context_music()                — переключение музыки по контексту
-// claude-ai:   - CONTROLS_set_inventory()       — применить выбранный предмет
-// claude-ai:   - CONTROLS_rot_inventory()       — прокрутить список предметов
-// claude-ai:   - CONTROLS_new_inventory()       — открыть/обновить UI инвентаря
-// claude-ai:   - CONTROLS_get_selected_item()   — найти текущий активный предмет
-// claude-ai:   - CONTROLS_get_best_item()       — авто-выбрать лучшее оружие
-// claude-ai:   - parse_console()                — парсер отладочной консоли (F9)
-// claude-ai:   - can_i_draw_this_special()      — фильтр: можно ли показать предмет
-// claude-ai:   - plan_view_shot()               — сохранить TGA-скриншот карты сверху
-// claude-ai:   - tga_dump()                     — захват кадра в TGA-файл
-// claude-ai:   - eway_find() / eway_find_near() — поиск waypoint по id / позиции
-// claude-ai: ============================================================
+#include "ui/controls.h"
+#include "ui/controls_globals.h"
 
 #include "Game.h"
 #include "enter.h"
@@ -130,6 +79,13 @@
 extern SLONG am_i_a_thug(Thing* p_person);
 extern void drop_current_gun(Thing* p_person, SLONG change_anim);
 extern SLONG analogue;
+extern SLONG mouse_input;
+extern UBYTE aeng_draw_cloud_flag;
+
+// Used by process_controls (inventory panel fade speed).
+#define INVENTORY_FADE_SPEED (32)
+
+#if 0 // MIGRATED to src/new/ui/controls.cpp + controls_globals.cpp (iteration 124) [globals..set_danger_level]
 
 SLONG NIGHT_specular_enable = UC_FALSE;
 
@@ -1519,12 +1475,8 @@ void set_danger_level()
     }
 }
 
-// claude-ai: FUNCTION: process_controls() [PC-версия, #ifndef PSX] — per-frame диспетчер.
-// claude-ai: Вызывается из game_loop() в Game.cpp каждый кадр.
-// claude-ai: Несмотря на название "controls", это NOT обработка ввода игрока —
-// claude-ai: ввод обрабатывается в INTERFAC через INPUT_process() (вызывается отдельно).
-// claude-ai: Здесь: опасность, музыка, смерть, инвентарь, частицы, консоль, debug-клавиши.
-// claude-ai: darci = NET_PERSON(0) — Thing игрока (PLAYER_ID=0).
+#endif // MIGRATED to src/new/ui/controls.cpp + controls_globals.cpp (iteration 124) [globals..set_danger_level]
+
 void process_controls(void)
 {
     SLONG i;

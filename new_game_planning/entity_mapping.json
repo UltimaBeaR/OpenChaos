@@ -69279,6 +69279,416 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "NIGHT_specular_enable",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "NIGHT_specular_enable",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "draw_3d",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "draw_3d",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "amb_choice",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "amb_choice",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "amb_colour",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "amb_colour",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "amb_choice_cur",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "amb_choice_cur",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "controls",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "controls",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "stealth_debug",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "stealth_debug",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CONTROLS_inventory_mode",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "CONTROLS_inventory_mode",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "InkeyToAscii",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "InkeyToAscii",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "InkeyToAsciiShift",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "InkeyToAsciiShift",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "cmd_list",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "cmd_list",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "allow_debug_keys",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "allow_debug_keys",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "dkeys_have_been_used",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "dkeys_have_been_used",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "yomp_speed",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "yomp_speed",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "sprint_speed",
+      "file": "new/ui/controls_globals.h",
+      "orig_name": "sprint_speed",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "eway_find",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "eway_find",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "eway_find_near",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "eway_find_near",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "parse_console",
+      "file": "new/ui/controls.h",
+      "orig_name": "parse_console",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "tga_dump",
+      "file": "new/ui/controls.h",
+      "orig_name": "tga_dump",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "plan_view_shot",
+      "file": "new/ui/controls.h",
+      "orig_name": "plan_view_shot",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "can_i_draw_this_special",
+      "file": "new/ui/controls.h",
+      "orig_name": "can_i_draw_this_special",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CONTROLS_set_inventory",
+      "file": "new/ui/controls.h",
+      "orig_name": "CONTROLS_set_inventory",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "form_proc",
+      "file": "new/ui/controls.h",
+      "orig_name": "form_proc",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CONTROLS_get_selected_item",
+      "file": "new/ui/controls.h",
+      "orig_name": "CONTROLS_get_selected_item",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CONTROLS_get_best_item",
+      "file": "new/ui/controls.h",
+      "orig_name": "CONTROLS_get_best_item",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CONTROLS_new_inventory",
+      "file": "new/ui/controls.h",
+      "orig_name": "CONTROLS_new_inventory",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CONTROLS_rot_inventory",
+      "file": "new/ui/controls.h",
+      "orig_name": "CONTROLS_rot_inventory",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "context_music",
+      "file": "new/ui/controls.h",
+      "orig_name": "context_music",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_danger_level",
+      "file": "new/ui/controls.h",
+      "orig_name": "set_danger_level",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "AMB_NUM_CHOICES",
+      "file": "new/ui/controls_globals.cpp",
+      "orig_name": "AMB_NUM_CHOICES",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "INVENTORY_FADE_SPEED",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "INVENTORY_FADE_SPEED",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "AK47_SCORE",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "AK47_SCORE",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SHOTGUN_SCORE",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "SHOTGUN_SCORE",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PISTOL_SCORE",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "PISTOL_SCORE",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "KNIFE_SCORE",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "KNIFE_SCORE",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "BAT_SCORE",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "BAT_SCORE",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "GRENADE_SCORE",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "GRENADE_SCORE",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "tga",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "tga",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "test_form",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "test_form",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "widget_text",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "widget_text",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "widget_ok",
+      "file": "new/ui/controls.cpp",
+      "orig_name": "widget_ok",
+      "orig_file": "fallen/Source/Controls.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 124 — ui/controls chunk 1 (globals + helpers → new/ui/controls.cpp/.h, controls_globals.cpp/.h) + Vehicle.cpp redirect stub (2026-03-22)
+
+- `Controls.cpp` chunk 1 (globals + 14 functions through `set_danger_level`) → `new/ui/controls.cpp` + `new/ui/controls_globals.cpp`.
+- `Vehicle.cpp` (итерации 90-91 уже всё мигрировали) → redirect stub с `#include "Game.h"` перед vehicle headers.
+- Circular include fix: `controls.h` исключает `Game.h` и `missions/eway.h`; `struct Thing;` forward decl. Цикл: `eway_globals.h → Game.h → Controls.h → controls.h → missions/eway.h → eway_globals.h (GUARDED)` — сломан убрав includes из controls.h.
+- `eway_find` и `eway_find_near` убраны из публичного `controls.h` — используются только внутри `controls.cpp`.
+- `INVENTORY_FADE_SPEED (#define)` и `extern UBYTE aeng_draw_cloud_flag` добавлены вне `#if 0 MIGRATED` блока (нужны `process_controls`).
+- `controls.cpp` добавлен в CMakeLists.txt (был пропущен).
+- Путь `fallen/MFStdLib/Headers/StdFile.h` → `MFStdLib/Headers/StdFile.h` (нет `fallen/` prefix).
+- Добавлен `#include "ui/menus/cnet_globals.h"` для `CNET_player_id`/`CNET_num_players` (макросы `PLAYER_ID`/`NO_PLAYERS` из Game.h).
+
+---
+
 ## Итерация 123 — world/environment/building (Building.cpp чанк 7: финал — build_storey_floor → fn_building_normal → new/) (2026-03-22)
 
 - `fallen/Source/Building.cpp` полностью мигрирован. `old/Building.cpp` → redirect stub.

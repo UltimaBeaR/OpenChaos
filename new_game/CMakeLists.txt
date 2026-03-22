@@ -374,6 +374,8 @@ set(SOURCES_GAME
     src/new/world/navigation/wand.cpp
     src/new/world/environment/ware.cpp
     src/new/world/environment/ware_globals.cpp
+    src/new/ui/controls.cpp
+    src/new/ui/controls_globals.cpp
     src/new/ui/menus/widget.cpp
     src/new/ui/menus/widget_globals.cpp
     src/new/world/navigation/wmove.cpp

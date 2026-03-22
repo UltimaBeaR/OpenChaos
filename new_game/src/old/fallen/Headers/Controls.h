@@ -1,13 +1,8 @@
-// Controls.h
-// Guy Simmons, 4th November 1997.
-
+// Controls.h — redirect to new/ (migrated in iteration 124)
 #ifndef FALLEN_HEADERS_CONTROLS_H
 #define FALLEN_HEADERS_CONTROLS_H
 
-//---------------------------------------------------------------
-
-void process_controls(void);
-
-//---------------------------------------------------------------
+#include "ui/controls.h"
+#include "ui/controls_globals.h"
 
 #endif // FALLEN_HEADERS_CONTROLS_H
