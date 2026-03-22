@@ -1,21 +1,8 @@
-//
-// frontend.h
-//
-// matthew rosenfeld 8 july 99
-//
-// this is our new front end thingy to replace the hideous startscr.cpp
-//
-
+// Redirect stub — all content migrated to src/new/ui/frontend.h (iteration 130).
 #ifndef FALLEN_HEADERS_FRONTEND_H
 #define FALLEN_HEADERS_FRONTEND_H
 
-#include "MFStdLib.h"
-
-void FRONTEND_init(bool bGoToTitleScreen = UC_FALSE);
-SBYTE FRONTEND_loop();
-void FRONTEND_level_won();
-void FRONTEND_level_lost();
-
-extern UBYTE IsEnglish;
+#include "ui/frontend.h"
+#include "ui/frontend_globals.h"
 
 #endif // FALLEN_HEADERS_FRONTEND_H

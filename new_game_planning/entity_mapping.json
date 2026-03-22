@@ -71639,6 +71639,1356 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "MissionData",
+      "file": "new/ui/frontend.h",
+      "orig_name": "MissionData",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "RawMenuData",
+      "file": "new/ui/frontend.h",
+      "orig_name": "RawMenuData",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MenuData",
+      "file": "new/ui/frontend.h",
+      "orig_name": "MenuData",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MenuStack",
+      "file": "new/ui/frontend.h",
+      "orig_name": "MenuStack",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MenuState",
+      "file": "new/ui/frontend.h",
+      "orig_name": "MenuState",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Kibble",
+      "file": "new/ui/frontend.h",
+      "orig_name": "Kibble",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MissionCache",
+      "file": "new/ui/frontend.h",
+      "orig_name": "MissionCache",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_MAINMENU",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_MAINMENU",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_MAPSCREEN",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_MAPSCREEN",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_MISSIONSELECT",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_MISSIONSELECT",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_MISSIONBRIEFING",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_MISSIONBRIEFING",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_LOADSCREEN",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_LOADSCREEN",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_SAVESCREEN",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_SAVESCREEN",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_CONFIG",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_CONFIG",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_CONFIG_VIDEO",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_CONFIG_VIDEO",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_CONFIG_AUDIO",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_CONFIG_AUDIO",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_CONFIG_INPUT_KB",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_CONFIG_INPUT_KB",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_CONFIG_INPUT_JP",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_CONFIG_INPUT_JP",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_CONFIG_OPTIONS",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_CONFIG_OPTIONS",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_QUIT",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_QUIT",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_SAVE_CONFIRM",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_SAVE_CONFIRM",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_NO_REALLY_QUIT",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_NO_REALLY_QUIT",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_BACK",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_BACK",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_START",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_START",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_EDITOR",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_EDITOR",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FE_CREDITS",
+      "file": "new/ui/frontend.h",
+      "orig_name": "FE_CREDITS",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "OT_BUTTON",
+      "file": "new/ui/frontend.h",
+      "orig_name": "OT_BUTTON",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "OT_BUTTON_L",
+      "file": "new/ui/frontend.h",
+      "orig_name": "OT_BUTTON_L",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "OT_SLIDER",
+      "file": "new/ui/frontend.h",
+      "orig_name": "OT_SLIDER",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "OT_MULTI",
+      "file": "new/ui/frontend.h",
+      "orig_name": "OT_MULTI",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "OT_KEYPRESS",
+      "file": "new/ui/frontend.h",
+      "orig_name": "OT_KEYPRESS",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "OT_LABEL",
+      "file": "new/ui/frontend.h",
+      "orig_name": "OT_LABEL",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "OT_PADPRESS",
+      "file": "new/ui/frontend.h",
+      "orig_name": "OT_PADPRESS",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "OT_RESET",
+      "file": "new/ui/frontend.h",
+      "orig_name": "OT_RESET",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "OT_PADMOVE",
+      "file": "new/ui/frontend.h",
+      "orig_name": "OT_PADMOVE",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MC_YN",
+      "file": "new/ui/frontend.h",
+      "orig_name": "MC_YN",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MC_SCANNER",
+      "file": "new/ui/frontend.h",
+      "orig_name": "MC_SCANNER",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "BIG_FONT_SCALE",
+      "file": "new/ui/frontend.h",
+      "orig_name": "BIG_FONT_SCALE",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "BIG_FONT_SCALE_FRENCH",
+      "file": "new/ui/frontend.h",
+      "orig_name": "BIG_FONT_SCALE_FRENCH",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SMALL_FONT_SCALE",
+      "file": "new/ui/frontend.h",
+      "orig_name": "SMALL_FONT_SCALE",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "AUTOPLAY_FMV_DELAY",
+      "file": "new/ui/frontend.h",
+      "orig_name": "AUTOPLAY_FMV_DELAY",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SCRIPT_MEMORY",
+      "file": "new/ui/frontend.h",
+      "orig_name": "SCRIPT_MEMORY",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "KIBBLE_Z",
+      "file": "new/ui/frontend.h",
+      "orig_name": "KIBBLE_Z",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MISSION_SCRIPT",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "MISSION_SCRIPT",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "loaded_in_script",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "loaded_in_script",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "loaded_in_script_read_upto",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "loaded_in_script_read_upto",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "suggest_order",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "suggest_order",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "raw_menu_data",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "raw_menu_data",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_choice_yesno",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_choice_yesno",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_choice_scanner",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_choice_scanner",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_back_names",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_back_names",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_map_names",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_map_names",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_brief_names",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_brief_names",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_config_names",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_config_names",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "frontend_fonttable",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "frontend_fonttable",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_leaf_colours",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "FRONTEND_leaf_colours",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_data",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_data",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_state",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_state",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_buffer",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_buffer",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "grabbing_key",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "grabbing_key",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "grabbing_pad",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "grabbing_pad",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "m_bMovingPanel",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "m_bMovingPanel",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "kibble",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "kibble",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "kibble_off",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "kibble_off",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fade_state",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "fade_state",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fade_mode",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "fade_mode",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fade_rgb",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "fade_rgb",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_mode_queued",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_mode_queued",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_theme",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_theme",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "menu_thrash",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "menu_thrash",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "districts",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "districts",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "district_count",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "district_count",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "district_selected",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "district_selected",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "district_flash",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "district_flash",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "district_valid",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "district_valid",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mission_count",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "mission_count",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mission_selected",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "mission_selected",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mission_hierarchy",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "mission_hierarchy",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mission_cache",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "mission_cache",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "complete_point",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "complete_point",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mission_launch",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "mission_launch",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "previous_mission_launch",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "previous_mission_launch",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "cheating",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "cheating",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MidX",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "MidX",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MidY",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "MidY",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ScaleX",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "ScaleX",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ScaleY",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "ScaleY",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "AllowSave",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "AllowSave",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CurrentVidMode",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "CurrentVidMode",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CurrentBitDepth",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "CurrentBitDepth",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "save_slot",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "save_slot",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "bonus_this_turn",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "bonus_this_turn",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "bonus_state",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "bonus_state",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "the_script_file",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "the_script_file",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "IsEnglish",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "IsEnglish",
+      "orig_file": "fallen/Headers/frontend.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "pcSpeechLanguageDir",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "pcSpeechLanguageDir",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "dwAutoPlayFMVTimeout",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "dwAutoPlayFMVTimeout",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "GammaIndex",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "GammaIndex",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "m_bGoIntoSaveScreen",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "m_bGoIntoSaveScreen",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "bCanChangeJoypadButtons",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "bCanChangeJoypadButtons",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "screenfull_back",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "screenfull_back",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "screenfull_map",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "screenfull_map",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "screenfull_config",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "screenfull_config",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "screenfull_brief",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "screenfull_brief",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "screenfull",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "screenfull",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "lpFRONTEND_show_xition_LastBlit",
+      "file": "new/ui/frontend_globals.h",
+      "orig_name": "lpFRONTEND_show_xition_LastBlit",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "CacheScriptInMemory",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "CacheScriptInMemory",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FileOpenScript",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FileOpenScript",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "LoadStringScript",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "LoadStringScript",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FileCloseScript",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FileCloseScript",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_scr_add",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_scr_add",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_scr_img_load_into_screenfull",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_scr_img_load_into_screenfull",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_scr_unload_theme",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_scr_unload_theme",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_scr_new_theme",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_scr_new_theme",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_restore_screenfull_surfaces",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_restore_screenfull_surfaces",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_ParseMissionData",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_ParseMissionData",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_LoadString",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_LoadString",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_SaveString",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_SaveString",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_AlterAlpha",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_AlterAlpha",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_recenter_menu",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_recenter_menu",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_fix_rgb",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_fix_rgb",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_draw_title",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_draw_title",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_init_xition",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_init_xition",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_show_xition",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_show_xition",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_stop_xition",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_stop_xition",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_draw_button",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_draw_button",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_kibble_draw",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_kibble_draw",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_DrawSlider",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_DrawSlider",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_DrawMulti",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_DrawMulti",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_DrawKey",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_DrawKey",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_DrawPad",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_DrawPad",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_kibble_init_one",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_kibble_init_one",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_kibble_init",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_kibble_init",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_kibble_flurry",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_kibble_flurry",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "RandStream",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "RandStream",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

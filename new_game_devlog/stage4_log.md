@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 130 — ui/frontend chunk 1 (globals + screen helpers + draw helpers + kibble → new/ui/frontend.cpp) (2026-03-22)
+
+- `frontend.cpp` chunk 1 (lines 1–1579): structs (MissionData, RawMenuData, MenuData, MenuStack, MenuState, Kibble, MissionCache), all globals, `CacheScriptInMemory`, `FileOpenScript`, `LoadStringScript`, `FileCloseScript`, `FRONTEND_scr_*`, `FRONTEND_ParseMissionData`, `FRONTEND_LoadString`, `FRONTEND_SaveString`, `FRONTEND_AlterAlpha`, `FRONTEND_recenter_menu`, `FRONTEND_fix_rgb`, `FRONTEND_draw_title`, `FRONTEND_init_xition`, `FRONTEND_show_xition`, `FRONTEND_stop_xition`, `FRONTEND_draw_button`, `FRONTEND_kibble_draw`, `FRONTEND_DrawSlider`, `FRONTEND_DrawMulti`, `FRONTEND_DrawKey`, `FRONTEND_DrawPad`, `FRONTEND_kibble_init_one`, `FRONTEND_kibble_init`, `FRONTEND_kibble_flurry` → `new/ui/frontend.cpp` + `new/ui/frontend_globals.cpp`.
+- `old/fallen/Headers/frontend.h` → redirect stub.
+- `MISSION_SCRIPT` macro moved to `frontend_globals.h` so non-migrated functions in `old/frontend.cpp` can use it.
+- `startscr.h`, `FontPage`, `InkeyToAscii*`, `STARTSCR_mission`, `the_state` externs added outside `#if 0` block (needed by non-migrated chunk 2+).
+- `LoadStringScript` logic bug caught in review: my version incorrectly added `\r` check and changed early-return logic. Fixed to match original exactly (break on `\n`, then `*(++ptr)=0`).
+- `FRONTEND_stop_xition` review bug: I added `case FE_CONFIG_OPTIONS:` which isn't in the original. Removed.
+- `frontend_fonttable` special chars are UTF-8 replacement chars (`\xef\xbf\xbd`×10) — match `old/` encoding (original Windows-1252 chars were lost during copy).
+
+---
+
 ## Итерация 129 — ui/interfac chunk 3 (apply_button_input + hardware input + input helpers → new/ui/interfac.cpp) (2026-03-22)
 
 - `interfac.cpp` chunk 3 (lines 3185–5784): `apply_button_input`, `apply_button_input_fight`, `apply_button_input_car`, `apply_button_input_first_person`, `get_last_input`, `get_hardware_input`, `pre_process_input`, `set_look_pitch`, `allow_input_autorepeat`, `can_darci_change_weapon`, `process_hardware_level_input_for_player`, `continue_action`, `continue_pressing_action`, `set_action_used`, `continue_dir`, `continue_firing`, `continue_moveing`, `continue_blocking`, `remove_action_used` → `new/ui/interfac.cpp`.

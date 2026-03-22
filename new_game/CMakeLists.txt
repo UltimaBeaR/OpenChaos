@@ -303,6 +303,8 @@ set(SOURCES_GAME
     src/new/ui/camera/fc_globals.cpp
     src/old/fallen/Source/fog.cpp
     src/old/fallen/Source/frontend.cpp
+    src/new/ui/frontend.cpp
+    src/new/ui/frontend_globals.cpp
     src/old/fallen/Source/Game.cpp
     src/new/missions/game.cpp
     src/new/missions/game_globals.cpp

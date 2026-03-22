@@ -10,7 +10,7 @@
 // #define BIN_BACKGROUNDS_PLEASE_BOB I have been defined
 
 #include "DDLib.h"
-#include "frontend.h"
+#include "frontend.h"      // now redirects to ui/frontend.h + ui/frontend_globals.h
 #include "xlat_str.h"
 #include "menufont.h"
 #include "font2d.h"
@@ -32,6 +32,16 @@
 
 #include "interfac.h"
 extern BOOL allow_debug_keys;
+
+// These are needed by non-migrated functions below.
+#include "startscr.h"
+extern SLONG FontPage;
+extern UBYTE InkeyToAscii[];
+extern UBYTE InkeyToAsciiShift[];
+extern CBYTE STARTSCR_mission[_MAX_PATH];
+extern DIJOYSTATE the_state;
+
+#if 0 // MIGRATED to src/new/ui/frontend.cpp + frontend_globals.cpp (iteration 130) [globals..FRONTEND_kibble_flurry]
 
 //----------------------------------------------------------------------------
 // EXTERNS
@@ -1576,6 +1586,8 @@ void FRONTEND_kibble_flurry()
             }
         }
 }
+
+#endif // MIGRATED to src/new/ui/frontend.cpp + frontend_globals.cpp (iteration 130) [globals..FRONTEND_kibble_flurry]
 
 void FRONTEND_kibble_process()
 {
