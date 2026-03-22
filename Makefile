@@ -7,7 +7,8 @@ CMAKE      := "/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE
 
 .PHONY: build build-release build-debug build-increment-release build-increment-debug \
         run-release run-debug configure reconfigure \
-        copy-resources-debug copy-resources-release copy-resources
+        copy-resources-debug copy-resources-release copy-resources \
+        r d
 
 # ---------------------------------------------------------------------------
 # Configure (run once on first clone, re-run after CMakeLists.txt changes).
@@ -71,3 +72,11 @@ run-debug:
 
 run-release:
 	$(POWERSHELL) -Command "Start-Process -FilePath '$(BUILD_DIR)/Release/Fallen.exe' -WorkingDirectory (Resolve-Path '$(BUILD_DIR)/Release')"
+
+# ---------------------------------------------------------------------------
+# Build + Run shortcuts
+# ---------------------------------------------------------------------------
+
+r: build-release run-release
+
+d: build-debug run-debug

@@ -97,6 +97,8 @@ make run-debug
 | `make copy-resources-release` | Copy resources into Release only |
 | `make run-debug` | Launch Debug build |
 | `make run-release` | Launch Release build |
+| `make r` | Build Release + launch (stops if build fails) |
+| `make d` | Build Debug + launch (stops if build fails) |
 
 ---
 
