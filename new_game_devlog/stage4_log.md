@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 121 — world/environment/building (Building.cpp чанк 5: recessed walls, scan_triangle, roof, staircase → new/) (2026-03-22)
+
+- `fallen/Source/Building.cpp` lines ~32–1498 → `new/world/environment/building.cpp` (chunk 5): `append_recessed_wall_prim`, `append_foundation_wall`, `append_wall_prim`, `find_near_prim_point`, `create_recessed_storey_points`, `scan_triangle`, `flag_floor_tiles_for_quad/tri`, `build_roof`, `area_of_quad`, `create_split_quad_into_4/16/48`, `build_roof_quad`, `center_object[_about_xz]`, `build_facet`, `build_building[2]`, `build_prim_object`, `find_next_last_coord`, `build_single_ledge`, `dist_between_vertex_and_vector`, `find_wall_for_fe`, `build_staircase`, `get_wall_start_and_end`.
+- `sp_stairs[300]` → `building_globals.cpp` (был file-scope перед `build_staircase`).
+- `RECESS_SIZE (32)` — файл-локальный `#define`; в `old/Building.cpp` оставлен, т.к. используется в chunk 6+ функции `insert_recessed_wall_vect`.
+- `scan_triangle`: в pre-release `DepthStrip` имеет поле `.Y` (не `.Height`), а `MapElement` не имеет поля высоты. Ветка MAP2 (DX mode) закомментирована с объяснением.
+- Compile error (2x): `no member named 'Height'` — исправлено `me->Y` для DepthStrip; MAP2 branch закомментирован.
+- Compile error (2x): `undeclared identifier 'RECESS_SIZE'` — `#define RECESS_SIZE (32)` возвращён в old/Building.cpp (нужен chunk 6+).
+
+---
+
 ## Итерация 120 — world/environment/building (Building.cpp чанк 4: skylight, ladder, ledge geometry → new/) (2026-03-22)
 
 - `fallen/Source/Building.cpp` lines ~48–893 → `new/world/environment/building.cpp` (chunk 4).

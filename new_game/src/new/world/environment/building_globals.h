@@ -291,4 +291,9 @@ extern UWORD id_offset[];
 // uc_orig: FACE_TYPE_FIRE_ESCAPE (fallen/Source/Building.cpp)
 #define FACE_TYPE_FIRE_ESCAPE (1 << 0)
 
+// Scratch buffer of prim_point row start indices for staircase geometry.
+// Entry [99] holds the start of the staircase side-overlay points.
+// uc_orig: sp_stairs (fallen/Source/Building.cpp)
+extern SLONG sp_stairs[300];
+
 #endif // WORLD_ENVIRONMENT_BUILDING_GLOBALS_H

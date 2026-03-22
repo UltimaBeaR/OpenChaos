@@ -311,4 +311,119 @@ SLONG ladder_on_block(SLONG p0, SLONG p1, SLONG p2, SLONG p3);
 // uc_orig: build_ledge2 (fallen/Source/Building.cpp)
 SLONG build_ledge2(SLONG y, SLONG storey, SLONG out, SLONG height, SLONG dip);
 
+// Builds the recessed-window version of a wall face.
+// uc_orig: append_recessed_wall_prim (fallen/Source/Building.cpp)
+void append_recessed_wall_prim(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height);
+
+// Builds the foundation (ground-level) wall face geometry.
+// uc_orig: append_foundation_wall (fallen/Source/Building.cpp)
+void append_foundation_wall(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height);
+
+// Builds the standard flat wall face geometry (double-sided for warehouses/inside storeys).
+// uc_orig: append_wall_prim (fallen/Source/Building.cpp)
+void append_wall_prim(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height);
+
+// Returns the index of the nearest prim point in [sp, ep) to (x, z).
+// uc_orig: find_near_prim_point (fallen/Source/Building.cpp)
+SLONG find_near_prim_point(SLONG x, SLONG z, SLONG sp, SLONG ep);
+
+// Generates a ring of corner-miter offset points for a storey at height y.
+// uc_orig: create_recessed_storey_points (fallen/Source/Building.cpp)
+void create_recessed_storey_points(SLONG y, SLONG storey, SLONG count, SLONG size);
+
+// Rasterizes a triangle into the depth-strip map to flag floor tiles.
+// uc_orig: scan_triangle (fallen/Source/Building.cpp)
+void scan_triangle(SLONG x0, SLONG y0, SLONG z0,
+                   SLONG x1, SLONG y1, SLONG z1,
+                   SLONG x2, SLONG y2, SLONG z2, SLONG flag);
+
+// Flags all floor tiles beneath a quad by rasterizing its two triangles.
+// uc_orig: flag_floor_tiles_for_quad (fallen/Source/Building.cpp)
+void flag_floor_tiles_for_quad(SLONG p0, SLONG p1, SLONG p2, SLONG p3);
+
+// Flags all floor tiles beneath a triangle.
+// uc_orig: flag_floor_tiles_for_tri (fallen/Source/Building.cpp)
+void flag_floor_tiles_for_tri(SLONG p0, SLONG p1, SLONG p2);
+
+// Builds roof geometry for a storey (rim + grid). Returns a bounding-box handle.
+// uc_orig: build_roof (fallen/Source/Building.cpp)
+SLONG build_roof(UWORD storey, SLONG y, SLONG flat_flag);
+
+// Returns width*depth area of a quad using its four prim-point indices.
+// uc_orig: area_of_quad (fallen/Source/Building.cpp)
+SLONG area_of_quad(SLONG p0, SLONG p1, SLONG p2, SLONG p3);
+
+// Subdivides a flat quad into 4 walkable quads.
+// uc_orig: create_split_quad_into_4 (fallen/Source/Building.cpp)
+void create_split_quad_into_4(SLONG p0, SLONG p1, SLONG p2, SLONG p3, SLONG wall, SLONG y);
+
+// Subdivides a flat quad into 16 walkable quads (recursive 4-way twice).
+// uc_orig: create_split_quad_into_16 (fallen/Source/Building.cpp)
+void create_split_quad_into_16(SLONG p0, SLONG p1, SLONG p2, SLONG p3, SLONG wall, SLONG y);
+
+// Subdivides a flat quad into 48 walkable quads (recursive 4-way three times).
+// uc_orig: create_split_quad_into_48 (fallen/Source/Building.cpp)
+void create_split_quad_into_48(SLONG p0, SLONG p1, SLONG p2, SLONG p3, SLONG wall, SLONG y);
+
+// Builds a single flat roof quad, optionally subdivided based on area.
+// uc_orig: build_roof_quad (fallen/Source/Building.cpp)
+void build_roof_quad(UWORD storey, SLONG y);
+
+// Computes and stores the centroid of prim_points[sp..ep) in build_x, build_z.
+// uc_orig: center_object (fallen/Source/Building.cpp)
+void center_object(SLONG sp, SLONG ep);
+
+// Stores a given (x,z) as the object centre in build_x, build_z.
+// uc_orig: center_object_about_xz (fallen/Source/Building.cpp)
+void center_object_about_xz(SLONG sp, SLONG ep, SLONG x, SLONG z);
+
+// Allocates and fills a BuildingFacet entry from the current prim state.
+// uc_orig: build_facet (fallen/Source/Building.cpp)
+SLONG build_facet(SLONG sp, SLONG mp, SLONG sf3, SLONG sf4, SLONG mf4, SLONG prev_facet, UWORD flags, UWORD col_vect);
+
+// Allocates and fills a BuildingObject entry; computes centroid via center_object.
+// uc_orig: build_building (fallen/Source/Building.cpp)
+SLONG build_building(SLONG sp, SLONG sf3, SLONG sf4, SLONG prev_facet);
+
+// Allocates and fills a BuildingObject entry; uses explicit (cx,cz) centroid.
+// uc_orig: build_building2 (fallen/Source/Building.cpp)
+SLONG build_building2(SLONG sp, SLONG sf3, SLONG sf4, SLONG prev_facet, SLONG cx, SLONG cz);
+
+// Allocates and fills a PrimObject entry; computes centroid via center_object.
+// uc_orig: build_prim_object (fallen/Source/Building.cpp)
+SLONG build_prim_object(SLONG sp, SLONG sf3, SLONG sf4);
+
+// Walks the wall list from 'wall' and writes the second-to-last wall's endpoint to (*x, *z).
+// uc_orig: find_next_last_coord (fallen/Source/Building.cpp)
+void find_next_last_coord(SWORD wall, SLONG* x, SLONG* z);
+
+// LedgeInfo: specifies a single ledge segment: two corner vertices and the four surrounding context points.
+// uc_orig: LedgeInfo (fallen/Source/Building.cpp)
+struct LedgeInfo {
+    SWORD Storey, Wall;
+    SWORD Y;
+    SLONG X1, Z1, X2, Z2, X3, Z3, X4, Z4;
+};
+
+// Builds geometry for a single corner ledge segment described by p_ledge.
+// uc_orig: build_single_ledge (fallen/Source/Building.cpp)
+void build_single_ledge(struct LedgeInfo* p_ledge);
+
+// Returns the approximate distance between the midpoint of (x1,y1)-(x2,y2) and point (px,py).
+// uc_orig: dist_between_vertex_and_vector (fallen/Source/Building.cpp)
+SLONG dist_between_vertex_and_vector(SLONG x1, SLONG y1, SLONG x2, SLONG y2, SLONG px, SLONG py);
+
+// Returns the 0-based wall index within storey that is closest to world position (fe_x, fe_y).
+// Skips ladder/fire-escape/staircase storeys first.
+// uc_orig: find_wall_for_fe (fallen/Source/Building.cpp)
+SLONG find_wall_for_fe(SLONG fe_x, SLONG fe_y, SLONG storey);
+
+// Builds staircase geometry for the given storey.
+// uc_orig: build_staircase (fallen/Source/Building.cpp)
+void build_staircase(SLONG storey);
+
+// Returns the start and end XZ coordinates for a given wall index in world space.
+// uc_orig: get_wall_start_and_end (fallen/Source/Building.cpp)
+void get_wall_start_and_end(SLONG want_wall, SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2);
+
 #endif // WORLD_ENVIRONMENT_BUILDING_H

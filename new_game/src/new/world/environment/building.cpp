@@ -3713,3 +3713,1294 @@ SLONG build_ledge2(SLONG y, SLONG storey, SLONG out, SLONG height, SLONG dip)
     }
     return y + height - dip;
 }
+
+// uc_orig: append_recessed_wall_prim (fallen/Source/Building.cpp)
+// Builds a recessed-window wall face: one set of wall-only points is offset inward by RECESS_SIZE,
+// then quads are created between the outer and inner point rows on each side and the face itself.
+#define RECESS_SIZE (32)
+void append_recessed_wall_prim(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height)
+{
+    SLONG x2, y2, z2;
+    SLONG dx, dz, len;
+    SLONG texture, texture_style;
+    SLONG texture_style2;
+    struct PrimFace4* p_f4;
+    SLONG c0;
+    UBYTE* ptexture1;
+    SLONG tcount1;
+    UBYTE* ptexture2;
+    SLONG tcount2;
+
+    ptexture1 = wall_list[wall].Textures;
+    tcount1 = wall_list[wall].Tcount;
+    ptexture2 = wall_list[wall].Textures2;
+    tcount2 = wall_list[wall].Tcount2;
+
+    texture_style = wall_list[wall].TextureStyle;
+    texture_style2 = wall_list[wall].TextureStyle2;
+    if (texture_style == 0)
+        texture_style = 1;
+    if (texture_style2 == 0)
+        texture_style2 = 1;
+
+    x2 = wall_list[wall].DX;
+    z2 = wall_list[wall].DZ;
+
+    dx = x2 - x;
+    dz = z2 - z;
+
+    len = Root(dx * dx + dz * dz);
+    if (len == 0)
+        len = 1;
+
+    dx = (dx * RECESS_SIZE) / len;
+    dz = (dz * RECESS_SIZE) / len;
+
+    start_point[0] = next_prim_point;
+    add_point(x, y, z);
+    add_point(x, y + height, z);
+
+    add_point(x + dz, y, z - dx);
+    add_point(x + dz, y + height, z - dx);
+
+    start_point[1] = next_prim_point;
+    add_point(x2, y, z2);
+    add_point(x2, y + height, z2);
+
+    add_point(x2 + dz, y, z2 - dx);
+    add_point(x2 + dz, y + height, z2 - dx);
+
+    texture = TEXTURE_PIECE_LEFT;
+
+    texture_style = wall_list[wall].TextureStyle;
+
+    if (texture_style == 0)
+        texture_style = 1;
+
+    p_f4 = create_a_quad(start_point[0] + 1, start_point[0] + 3, start_point[0] + 0, start_point[0] + 2, texture_style, texture); // left
+    p_f4->ThingIndex = -wall;
+
+    texture = TEXTURE_PIECE_RIGHT;
+    p_f4 = create_a_quad(start_point[1] + 3, start_point[1] + 1, start_point[1] + 2, start_point[1] + 0, texture_style, texture); // right
+    p_f4->ThingIndex = -wall;
+
+    texture = TEXTURE_PIECE_MIDDLE2;
+    p_f4 = create_a_quad(start_point[0], start_point[0] + 2, start_point[1] + 0, start_point[1] + 2, texture_style, texture); // floor
+    p_f4->ThingIndex = -wall;
+
+    texture = TEXTURE_PIECE_MIDDLE1;
+    p_f4 = create_a_quad(start_point[0] + 3, start_point[0] + 1, start_point[1] + 3, start_point[1] + 1, texture_style, texture); // roof
+    p_f4->ThingIndex = -wall;
+
+    x += dz;
+    z += -dx;
+
+    x2 += dz;
+    z2 += -dx;
+
+    start_point[0] = build_row_wall_only_points_at_y(y + height + 2, x, z, x2, z2, wall);
+    start_point[1] = build_row_wall_only_points_at_y(y, x, z, x2, z2, wall);
+    for (c0 = 0; c0 < WindowCount; c0++) {
+        texture = TEXTURE_PIECE_MIDDLE;
+        if (c0 == 0) {
+            texture = TEXTURE_PIECE_RIGHT;
+        } else if (c0 == WindowCount - 1) {
+
+            texture = TEXTURE_PIECE_LEFT;
+        } else {
+            texture = TEXTURE_PIECE_MIDDLE;
+        }
+
+        if (ptexture1 && (c0 < WindowCount) && ptexture1[c0]) {
+            p_f4 = create_a_quad_tex(start_point[0] + c0, start_point[0] + c0 + 1, start_point[1] + c0, start_point[1] + c0 + 1, ptexture1[c0]);
+            p_f4->ThingIndex = -wall;
+        } else {
+            {
+                p_f4 = create_a_quad(start_point[0] + c0, start_point[0] + c0 + 1, start_point[1] + c0, start_point[1] + c0 + 1, texture_style, texture);
+                p_f4->ThingIndex = -wall;
+            }
+        }
+        {
+            if (ptexture2 && (c0 < tcount2) && ptexture2[c0]) {
+                p_f4 = create_a_quad_tex(start_point[0] + c0 + 1, start_point[0] + c0, start_point[1] + c0 + 1, start_point[1] + c0, ptexture2[c0]);
+                p_f4->ThingIndex = -wall;
+            } else {
+                p_f4 = create_a_quad(start_point[0] + c0 + 1, start_point[0] + c0, start_point[1] + c0 + 1, start_point[1] + c0, texture_style2, texture);
+                p_f4->ThingIndex = -wall;
+            }
+            p_f4->FaceFlags |= FACE_FLAG_TEX2;
+        }
+    }
+}
+
+// uc_orig: append_foundation_wall (fallen/Source/Building.cpp)
+// Builds the ground-level (foundation) wall face between y=0 and y+2. Uses only
+// wall-only points (no window depth offset). The inner window loop body is intentionally
+// dead in the current code (WindowCount is 0 before this is called).
+void append_foundation_wall(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height)
+{
+    SLONG c0;
+    SLONG start_point_local[10];
+    SLONG texture, texture_style;
+    struct PrimFace4* p_f4;
+    UBYTE* ptexture;
+    SLONG tcount, count;
+
+    /*
+            if(wall_list[wall].WallFlags&FLAG_WALL_RECESSED)
+            {
+                    append_recessed_wall_prim(x,y,z, wall,storey,height);
+                    return;
+
+            }
+    */
+    ptexture = wall_list[wall].Textures;
+    tcount = wall_list[wall].Tcount;
+
+    set_build_seed(x * z + y);
+
+    texture_style = wall_list[wall].TextureStyle;
+    if (texture_style == 0)
+        texture_style = 1;
+
+    if (!(wall_list[wall].WallFlags & FLAG_WALL_AUTO_WINDOWS) && WindowCount == 0) {
+        start_point_local[0] = build_row_wall_only_points_at_y(y + 2, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+        start_point_local[1] = build_row_wall_only_points_at_floor_alt(0, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+        count = 0;
+        for (c0 = 0; c0 < WindowCount; c0++) {
+            texture = TEXTURE_PIECE_MIDDLE;
+            if (c0 == 0) {
+                texture = TEXTURE_PIECE_RIGHT;
+            } else if (c0 == WindowCount - 1) {
+
+                texture = TEXTURE_PIECE_LEFT;
+            } else {
+                texture = TEXTURE_PIECE_MIDDLE;
+            }
+            if (ptexture && (count < tcount) && ptexture[count]) {
+                p_f4 = create_a_quad_tex(start_point_local[0] + c0, start_point_local[0] + c0 + 1, start_point_local[1] + c0, start_point_local[1] + c0 + 1, ptexture[count]);
+                p_f4->ThingIndex = -wall;
+            } else {
+                p_f4 = create_a_quad(start_point_local[0] + c0, start_point_local[0] + c0 + 1, start_point_local[1] + c0, start_point_local[1] + c0 + 1, texture_style, texture);
+                p_f4->ThingIndex = -wall;
+            }
+            // Fix texture V extents to match actual wall height
+            {
+                SLONG dy;
+                dy = prim_points[start_point_local[0] + c0 + 1].Y - prim_points[start_point_local[1] + c0 + 1].Y;
+                if (dy > 256)
+                    dy = 256;
+                dy = (31 * dy) >> 8;
+                p_f4->UV[2][1] = p_f4->UV[0][1] + dy;
+
+                dy = prim_points[start_point_local[0] + c0].Y - prim_points[start_point_local[1] + c0].Y;
+                if (dy > 256)
+                    dy = 256;
+                dy = (31 * dy) >> 8;
+                p_f4->UV[3][1] = p_f4->UV[1][1] + dy;
+            }
+            count++;
+        }
+        WindowCount = 0;
+    }
+}
+
+// uc_orig: append_wall_prim (fallen/Source/Building.cpp)
+// Builds the standard wall face for a storey wall segment. Handles single-sided (exterior) and
+// double-sided (warehouse / interior-partition) variants. At heights < 256 the UV extents are
+// adjusted to avoid texture stretching.
+void append_wall_prim(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height)
+{
+    SLONG c0;
+    SLONG start_point_local[10];
+    SLONG texture, texture_style, texture_style2;
+    SLONG count;
+    struct PrimFace4* p_f4;
+    UBYTE* ptexture1;
+    SLONG tcount1;
+    UBYTE* ptexture2;
+    SLONG tcount2;
+    SLONG no_draw = 0;
+    SLONG circular;
+
+    circular = is_storey_circular(storey);
+
+    if (next_prim_point > 50000)
+        no_draw = 1;
+
+    if (wall_list[wall].WallFlags & FLAG_WALL_RECESSED) {
+        append_recessed_wall_prim(x, y, z, wall, storey, height);
+        return;
+    }
+    WindowCount = 0;
+
+    ptexture1 = wall_list[wall].Textures;
+    tcount1 = wall_list[wall].Tcount;
+    ptexture2 = wall_list[wall].Textures2;
+    tcount2 = wall_list[wall].Tcount2;
+
+    set_build_seed(x * z + y);
+
+    texture_style = wall_list[wall].TextureStyle;
+    texture_style2 = wall_list[wall].TextureStyle2;
+    if (texture_style == 0)
+        texture_style = 1;
+    if (texture_style2 == 0)
+        texture_style2 = 1;
+
+    if (!(wall_list[wall].WallFlags & FLAG_WALL_AUTO_WINDOWS) && WindowCount == 0) {
+        if (!no_draw) {
+            if (!circular) {
+                start_point_local[0] = build_row_wall_only_points_at_floor_alt(y + height + 2, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+                start_point_local[1] = build_row_wall_only_points_at_floor_alt(y, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+            } else {
+                start_point_local[0] = build_row_wall_only_points_at_y(y + height + 2, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+                start_point_local[1] = build_row_wall_only_points_at_y(y, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
+            }
+        } else {
+            start_point_local[0] = 0;
+            start_point_local[1] = 0;
+        }
+        count = 0;
+        for (c0 = 0; c0 < WindowCount; c0++) {
+            texture = TEXTURE_PIECE_MIDDLE;
+            if (c0 == 0) {
+                texture = TEXTURE_PIECE_RIGHT;
+            } else if (c0 == WindowCount - 1) {
+
+                texture = TEXTURE_PIECE_LEFT;
+            } else {
+                texture = TEXTURE_PIECE_MIDDLE;
+            }
+
+            {
+
+                if (ptexture1 && (count < tcount1) && ptexture1[count]) {
+                    p_f4 = create_a_quad_tex(start_point_local[0] + c0, start_point_local[0] + c0 + 1, start_point_local[1] + c0, start_point_local[1] + c0 + 1, ptexture1[count]);
+                    if (p_f4)
+                        p_f4->ThingIndex = -wall;
+                } else {
+                    p_f4 = create_a_quad(start_point_local[0] + c0, start_point_local[0] + c0 + 1, start_point_local[1] + c0, start_point_local[1] + c0 + 1, texture_style, texture);
+                    if (p_f4)
+                        p_f4->ThingIndex = -wall;
+                }
+                if (no_draw)
+                    next_prim_face4--;
+
+                if (!circular) {
+                    p_f4->DrawFlags |= POLY_FLAG_DOUBLESIDED;
+                }
+
+                // All warehouses and inside-storey walls are drawn two-sided
+                if (building_list[storey_list[storey].BuildingHead].BuildingType == BUILDING_TYPE_WAREHOUSE || storey_list[storey].InsideIDIndex || storey_list[storey].InsideStorey || storey_list[storey].StoreyType == STOREY_TYPE_PARTITION) {
+                    if (ptexture2 && (count < tcount2) && ptexture2[count]) {
+                        p_f4 = create_a_quad_tex(start_point_local[0] + c0 + 1, start_point_local[0] + c0, start_point_local[1] + c0 + 1, start_point_local[1] + c0, ptexture2[count]);
+                        if (p_f4)
+                            p_f4->ThingIndex = -wall;
+                    } else {
+                        p_f4 = create_a_quad(start_point_local[0] + c0 + 1, start_point_local[0] + c0, start_point_local[1] + c0 + 1, start_point_local[1] + c0, texture_style2, texture, 1);
+                        if (p_f4)
+                            p_f4->ThingIndex = -wall;
+                    }
+                    if (p_f4)
+                        p_f4->FaceFlags |= FACE_FLAG_TEX2;
+                    if (no_draw)
+                        next_prim_face4--;
+                }
+
+                // Adjust UV extents for short walls to avoid texture stretching
+                if (p_f4)
+                    if (height < 256) {
+                        if (height == 64) {
+                            p_f4->UV[2][1] -= 24;
+                            p_f4->UV[3][1] -= 24;
+                        } else if (height == 128) {
+                            p_f4->UV[2][1] -= 16;
+                            p_f4->UV[3][1] -= 16;
+                        } else if (height == 128 + 64) {
+                            p_f4->UV[2][1] -= 8;
+                            p_f4->UV[3][1] -= 8;
+                        }
+                    }
+            }
+
+            count++;
+        }
+        WindowCount = 0;
+    } else {
+
+        /*
+                        start_point[0]=build_row_wall_points_at_y(y+height      ,x,z,wall_list[wall].DX,wall_list[wall].DZ,wall);
+                        start_point[1]=build_row_wall_points_at_y(y+(height*2)/3,x,z,wall_list[wall].DX,wall_list[wall].DZ,wall);
+                        start_point[2]=build_row_wall_points_at_y(y+(height*1)/3,x,z,wall_list[wall].DX,wall_list[wall].DZ,wall);
+                        start_point[3]=build_row_wall_points_at_y(y             ,x,z,wall_list[wall].DX,wall_list[wall].DZ,wall);
+
+                        start_point[4]=build_row_window_depth_points_at_y(y+(height*2)/3,x,z,wall_list[wall].DX,wall_list[wall].DZ,wall);
+                        start_point[5]=build_row_window_depth_points_at_y(y+(height*1)/3,x,z,wall_list[wall].DX,wall_list[wall].DZ,wall);
+
+                        for(c0=0;c0<WindowCount*2+1;c0++)
+                        {
+                                p_f4=create_a_quad(start_point[0]+c0,start_point[0]+c0+1,start_point[1]+c0,start_point[1]+c0+1,0,0);
+                                if(p_f4)
+                                        p_f4->ThingIndex=-wall;
+                                p_f4=create_a_quad(start_point[2]+c0,start_point[2]+c0+1,start_point[3]+c0,start_point[3]+c0+1,0,0);
+                                if(p_f4)
+                                        p_f4->ThingIndex=-wall;
+                                if(!(c0&1))
+                                {
+                                        p_f4=create_a_quad(start_point[1]+c0,start_point[1]+c0+1,start_point[2]+c0,start_point[2]+c0+1,0,0);
+                                        p_f4->ThingIndex=-wall;
+                                }
+
+                        }
+                        for(c0=0;c0<WindowCount;c0++)
+                        {
+                                p_f4=create_a_quad(start_point[1]+c0*2+1,start_point[1]+c0*2+2,start_point[4]+c0*2,start_point[4]+c0*2+1,0,0);  //lid
+                                p_f4->ThingIndex=-wall;
+                                p_f4=create_a_quad(start_point[1]+c0*2+1,start_point[4]+c0*2,start_point[2]+c0*2+1,start_point[5]+c0*2,0,0);  //side1
+                                p_f4->ThingIndex=-wall;
+                                p_f4=create_a_quad(start_point[4]+c0*2+1,start_point[1]+c0*2+2,start_point[5]+c0*2+1,start_point[2]+c0*2+2,0,0);  //side2
+                                p_f4->ThingIndex=-wall;
+                                p_f4=create_a_quad(start_point[5]+c0*2,start_point[5]+c0*2+1,start_point[2]+c0*2+1,start_point[2]+c0*2+2,0,0);  //base
+                                p_f4->ThingIndex=-wall;
+                        }
+        */
+    }
+}
+
+// uc_orig: find_near_prim_point (fallen/Source/Building.cpp)
+// Linear search for the prim_point in [sp, ep) whose (X,Z) is closest to (x,z).
+SLONG find_near_prim_point(SLONG x, SLONG z, SLONG sp, SLONG ep)
+{
+    SLONG best, best_dist = 0x7fffffff, dx, dz, dist, c0;
+
+    for (c0 = sp; c0 < ep; c0++) {
+        dx = (prim_points[c0].X - x);
+        dz = (prim_points[c0].Z - z);
+        dist = SDIST2(dx, dz);
+        if (dist < best_dist) {
+            best_dist = dist;
+            best = c0;
+        }
+    }
+
+    return (best);
+}
+
+// uc_orig: create_recessed_storey_points (fallen/Source/Building.cpp)
+// Walks the wall list for a storey and emits a corner-miter offset ring of prim_points at height y.
+// 'size' is the inward/outward offset: positive = outward, negative = inward.
+void create_recessed_storey_points(SLONG y, SLONG storey, SLONG count, SLONG size)
+{
+
+    SLONG px, pz, index, dx, dz;
+    SLONG rx, rz;
+    SLONG wall;
+    SLONG sp;
+
+    count = count;
+    sp = next_prim_point;
+
+    px = storey_list[storey].DX;
+    pz = storey_list[storey].DZ;
+    add_point(px, y, pz); // this gets replaced later
+    index = storey_list[storey].WallHead;
+    wall = index;
+
+    while (index) {
+        SLONG next;
+        dx = wall_list[index].DX;
+        dz = wall_list[index].DZ;
+        next = wall_list[index].Next;
+        if (next) {
+            calc_new_corner_point(px, pz, dx, dz, wall_list[next].DX, wall_list[next].DZ, size, &rx, &rz);
+            add_point(rx, y, rz);
+        } else {
+            calc_new_corner_point(px, pz, dx, dz, wall_list[wall].DX, wall_list[wall].DZ, size, &rx, &rz);
+            add_point(rx, y, rz);
+            // Fix up the placeholder point added at the start
+            prim_points[sp].X = rx;
+            prim_points[sp].Z = rz;
+        }
+
+        px = dx;
+        pz = dz;
+        index = wall_list[index].Next;
+    }
+}
+
+// uc_orig: scan_triangle (fallen/Source/Building.cpp)
+// Rasterizes a triangle (x0,y0,z0)-(x1,y1,z1)-(x2,y2,z2) into the depth-strip tile map
+// by sampling at regular intervals along two edge vectors.
+void scan_triangle(SLONG x0, SLONG y0, SLONG z0, SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG flag)
+{
+
+    SLONG px, py, pz;
+    SLONG face_x, face_y, face_z;
+    SLONG c0;
+    SLONG s, t, step_s, step_t;
+    SLONG vx, vy, vz, wx, wy, wz;
+    struct DepthStrip* me;
+    SLONG quad;
+    SLONG len;
+    UBYTE info = 0;
+
+    face_x = x0;
+    face_y = y0;
+    face_z = z0;
+
+    vx = x1 - x0;
+    vy = y1 - y0; // vector from point 0 to point 1
+    vz = z1 - z0;
+
+    wx = x2 - x0; // vector from point 1 to point 2
+    wy = y2 - y0;
+    wz = z2 - z0;
+
+    len = (Root(vx * vx + vy * vy + vz * vz) >> 7);
+    if (len < 2)
+        len = 2;
+    step_s = (1 << 7) / len;
+    len = (Root(wx * wx + wy * wy + wz * wz) >> 7);
+    if (len < 2)
+        len = 2;
+    step_t = (1 << 7) / len;
+
+    if (step_s == 0)
+        step_s = 256;
+    if (step_t == 0)
+        step_t = 256;
+
+    for (s = 0; s <= (1 << 7); s += step_s) {
+        for (t = 0; t <= (1 << 7) - s; t += step_t) {
+            px = face_x + (vx * s >> 7) + (wx * t >> 7);
+            py = face_y + (vy * s >> 7) + (wy * t >> 7);
+            pz = face_z + (vz * s >> 7) + (wz * t >> 7);
+
+            quad = MAP_INDEX(px >> ELE_SHIFT, pz >> ELE_SHIFT);
+
+            if (WITHIN(px >> ELE_SHIFT, 0, MAP_WIDTH - 1) && WITHIN(pz >> ELE_SHIFT, 0, MAP_WIDTH - 1)) {
+                if (build_mode == BUILD_MODE_EDITOR) {
+                    me = &edit_map[px >> ELE_SHIFT][pz >> ELE_SHIFT];
+                    // DepthStrip.Y is the height field (SBYTE); was .Height in an earlier pre-release struct layout.
+                    if (me->Y < py) {
+                        me->Y = (SBYTE)py;
+                    }
+                } else {
+                    // MapElement no longer has a Height field in this pre-release build (was Alt, then removed).
+                    // Height tracking via MAP2 is unavailable; floor heights are managed via the PAP supermap instead.
+                    // Original pre-release would have written to MapElement.Height here.
+                }
+            }
+        }
+    }
+}
+
+// uc_orig: flag_floor_tiles_for_quad (fallen/Source/Building.cpp)
+// Flags the floor tiles under the quad formed by prim_points[p0..p3] by rasterizing as two tris.
+void flag_floor_tiles_for_quad(SLONG p0, SLONG p1, SLONG p2, SLONG p3)
+{
+    SLONG x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3;
+
+    x0 = prim_points[p0].X;
+    y0 = prim_points[p0].Y;
+    z0 = prim_points[p0].Z;
+
+    x1 = prim_points[p1].X;
+    y1 = prim_points[p1].Y;
+    z1 = prim_points[p1].Z;
+
+    x2 = prim_points[p2].X;
+    y2 = prim_points[p2].Y;
+    z2 = prim_points[p2].Z;
+
+    x3 = prim_points[p3].X;
+    y3 = prim_points[p3].Y;
+    z3 = prim_points[p3].Z;
+
+    scan_triangle(x0, y0, z0, x1, y1, z1, x2, y2, z2, 0);
+    scan_triangle(x1, y1, z1, x3, y3, z3, x2, y2, z2, 0);
+}
+
+// uc_orig: flag_floor_tiles_for_tri (fallen/Source/Building.cpp)
+// Flags the floor tiles under the triangle formed by prim_points[p0..p2].
+void flag_floor_tiles_for_tri(SLONG p0, SLONG p1, SLONG p2)
+{
+    SLONG x0, y0, z0, x1, y1, z1, x2, y2, z2;
+
+    x0 = prim_points[p0].X;
+    y0 = prim_points[p0].Y;
+    z0 = prim_points[p0].Z;
+
+    x1 = prim_points[p1].X;
+    y1 = prim_points[p1].Y;
+    z1 = prim_points[p1].Z;
+
+    x2 = prim_points[p2].X;
+    y2 = prim_points[p2].Y;
+    z2 = prim_points[p2].Z;
+
+    scan_triangle(x0, y0, z0, x1, y1, z1, x2, y2, z2, 0);
+}
+
+// uc_orig: build_roof (fallen/Source/Building.cpp)
+// Builds the roof geometry for a storey. The FLAG_STOREY_ROOF_RIM branch is locked out
+// by "&&0" so it is dead in both pre-release and final. Falls through to build_roof_grid().
+SLONG build_roof(UWORD storey, SLONG y, SLONG flat_flag)
+{
+    SLONG wall;
+    SLONG roof;
+    SLONG p0, p1, p2, p3;
+    SLONG count;
+    SLONG roof_height = BLOCK_SIZE * 3;
+    SLONG c0;
+    SLONG overlap;
+
+    SLONG roof_flags;
+    SLONG roof_rim;
+    SLONG overlap_height = BLOCK_SIZE >> 1;
+
+    SLONG poox, pooz;
+
+    overlap = BLOCK_SIZE >> 1;
+    /*
+            roof=storey_list[storey].Roof;
+            roof_flags=storey_list[roof].StoreyFlags;
+
+            if(roof_flags&FLAG_ROOF_WALLED)
+                    overlap_height=BLOCK_SIZE;
+
+            if(roof_flags&FLAG_ROOF_FLAT)
+                    roof_height=0;
+
+            overlap=BLOCK_SIZE>>1;
+
+            if(roof_flags&FLAG_ROOF_OVERLAP_SMALL)
+                    overlap=BLOCK_SIZE>>1;
+            else
+            if(roof_flags&FLAG_ROOF_OVERLAP_MEDIUM)
+                    overlap=BLOCK_SIZE;
+    */
+
+    if ((storey_list[storey].StoreyFlags & FLAG_STOREY_ROOF_RIM) && 0) {
+
+        if (storey_list[storey].WallHead)
+        {
+
+            start_point[0] = next_prim_point;
+            add_point(storey_list[storey].DX, y + 2, storey_list[storey].DZ);
+            wall = storey_list[storey].WallHead;
+            count = 0;
+            while (wall) {
+
+                add_point(wall_list[wall].DX, y + 2, wall_list[wall].DZ);
+                wall = wall_list[wall].Next;
+                count++;
+            }
+
+            start_point[1] = next_prim_point;
+            create_recessed_storey_points(y, storey, count, overlap);
+
+            start_point[2] = next_prim_point;
+            roof_rim = next_prim_point;
+            for (c0 = 0; c0 < start_point[2] - start_point[1]; c0++) {
+                SLONG x, z;
+                x = prim_points[c0 + start_point[1]].X;
+                z = prim_points[c0 + start_point[1]].Z;
+
+                add_point(x, y + (overlap_height), z);
+            }
+
+            start_point[4] = next_prim_point;
+
+            start_point[5] = next_prim_point;
+            roof_rim = next_prim_point;
+            create_recessed_storey_points(y + overlap_height, storey, count, -3);
+
+            for (c0 = 0; c0 <= count; c0++) {
+                create_a_quad(start_point[1] + c0, start_point[1] + c0 + 1, start_point[0] + c0, start_point[0] + c0 + 1, 0, 23);
+                create_a_quad(start_point[2] + c0, start_point[2] + c0 + 1, start_point[1] + c0, start_point[1] + c0 + 1, 0, 23);
+                create_a_quad(start_point[5] + c0, start_point[5] + c0 + 1, start_point[2] + c0, start_point[2] + c0 + 1, 0, 23);
+            }
+
+            /* //forget walled for now
+                            if(roof_flags&FLAG_ROOF_WALLED)
+                            {
+                                    for(c0=0;c0<=count;c0++)
+                                    {
+                                            create_a_quad(start_point[4]+c0,start_point[4]+c0+1,start_point[2]+c0,start_point[2]+c0+1,0,23);
+                                            create_a_quad(start_point[5]+c0,start_point[5]+c0+1,start_point[4]+c0,start_point[4]+c0+1,0,23);
+                                    }
+
+                            }
+                            if( (roof_flags&(FLAG_ROOF_WALLED|FLAG_ROOF_FLAT)) ==(FLAG_ROOF_WALLED)) //ANGLED ROOF WITH WALL
+                            {
+                                    for(c0=0;c0<=count;c0++)
+                                            create_a_quad(start_point[6]+c0,start_point[6]+c0+1,start_point[5]+c0,start_point[5]+c0+1,0,23);
+                            }
+            */
+        }
+    } else
+        overlap_height = 0;
+    return (build_roof_grid(storey, y + overlap_height, flat_flag));
+}
+
+// uc_orig: area_of_quad (fallen/Source/Building.cpp)
+// Returns width * depth of the quad's axis-aligned bounding box (X spread * Z spread).
+SLONG area_of_quad(SLONG p0, SLONG p1, SLONG p2, SLONG p3)
+{
+
+    SLONG dx, dz;
+    dx = abs(prim_points[p0].X - prim_points[p1].X);
+    dz = abs(prim_points[p0].Z - prim_points[p2].Z);
+    return (dx * dz);
+}
+
+// uc_orig: create_split_quad_into_4 (fallen/Source/Building.cpp)
+// Subdivides a flat quad into a 2x2 grid of 4 quads, each added to the walkable list.
+void create_split_quad_into_4(SLONG p0, SLONG p1, SLONG p2, SLONG p3, SLONG wall, SLONG y)
+{
+
+    SLONG p01, p13, p32, p20, p03;
+    SLONG x, z;
+    struct PrimFace4* p_f4;
+
+    SWORD texture_style;
+    texture_style = wall_list[wall].TextureStyle;
+
+    p01 = next_prim_point;
+    x = (prim_points[p1].X + prim_points[p0].X) >> 1;
+    z = (prim_points[p1].Z + prim_points[p0].Z) >> 1;
+    add_point(x, y, z);
+
+    p13 = next_prim_point;
+    x = (prim_points[p1].X + prim_points[p3].X) >> 1;
+    z = (prim_points[p1].Z + prim_points[p3].Z) >> 1;
+    add_point(x, y, z);
+
+    p32 = next_prim_point;
+    x = (prim_points[p3].X + prim_points[p2].X) >> 1;
+    z = (prim_points[p3].Z + prim_points[p2].Z) >> 1;
+    add_point(x, y, z);
+
+    p20 = next_prim_point;
+    x = (prim_points[p0].X + prim_points[p2].X) >> 1;
+    z = (prim_points[p0].Z + prim_points[p2].Z) >> 1;
+    add_point(x, y, z);
+
+    p03 = next_prim_point;
+    x = (prim_points[p0].X + prim_points[p1].X + prim_points[p2].X + prim_points[p3].X) >> 2;
+    z = (prim_points[p0].Z + prim_points[p1].Z + prim_points[p2].Z + prim_points[p3].Z) >> 2;
+    add_point(x, y, z);
+
+    p_f4 = create_a_quad(p0, p01, p20, p03, texture_style, 0);
+    add_quad_to_walkable_list(next_prim_face4 - 1);
+    p_f4->ThingIndex = -wall;
+
+    p_f4 = create_a_quad(p20, p03, p2, p32, texture_style, 0);
+    add_quad_to_walkable_list(next_prim_face4 - 1);
+    p_f4->ThingIndex = -wall;
+
+    p_f4 = create_a_quad(p01, p1, p03, p13, texture_style, 0);
+    add_quad_to_walkable_list(next_prim_face4 - 1);
+    p_f4->ThingIndex = -wall;
+
+    p_f4 = create_a_quad(p03, p13, p32, p3, texture_style, 0);
+    add_quad_to_walkable_list(next_prim_face4 - 1);
+    p_f4->ThingIndex = -wall;
+}
+
+// uc_orig: create_split_quad_into_16 (fallen/Source/Building.cpp)
+// Subdivides a flat quad into 16 quads by recursively applying create_split_quad_into_4.
+void create_split_quad_into_16(SLONG p0, SLONG p1, SLONG p2, SLONG p3, SLONG wall, SLONG y)
+{
+    SLONG p01, p13, p32, p20, p03;
+    SLONG x, z;
+    struct PrimFace4* p_f4;
+
+    p01 = next_prim_point;
+    x = (prim_points[p1].X + prim_points[p0].X) >> 1;
+    z = (prim_points[p1].Z + prim_points[p0].Z) >> 1;
+    add_point(x, y, z);
+
+    p13 = next_prim_point;
+    x = (prim_points[p1].X + prim_points[p3].X) >> 1;
+    z = (prim_points[p1].Z + prim_points[p3].Z) >> 1;
+    add_point(x, y, z);
+
+    p32 = next_prim_point;
+    x = (prim_points[p3].X + prim_points[p2].X) >> 1;
+    z = (prim_points[p3].Z + prim_points[p2].Z) >> 1;
+    add_point(x, y, z);
+
+    p20 = next_prim_point;
+    x = (prim_points[p0].X + prim_points[p2].X) >> 1;
+    z = (prim_points[p0].Z + prim_points[p2].Z) >> 1;
+    add_point(x, y, z);
+
+    p03 = next_prim_point;
+    x = (prim_points[p0].X + prim_points[p1].X + prim_points[p2].X + prim_points[p3].X) >> 2;
+    z = (prim_points[p0].Z + prim_points[p1].Z + prim_points[p2].Z + prim_points[p3].Z) >> 2;
+    add_point(x, y, z);
+
+    create_split_quad_into_4(p0, p01, p20, p03, wall, y);
+    create_split_quad_into_4(p20, p03, p2, p32, wall, y);
+    create_split_quad_into_4(p01, p1, p03, p13, wall, y);
+    create_split_quad_into_4(p03, p13, p32, p3, wall, y);
+}
+
+// uc_orig: create_split_quad_into_48 (fallen/Source/Building.cpp)
+// Subdivides a flat quad into 48 quads by recursively applying create_split_quad_into_16.
+void create_split_quad_into_48(SLONG p0, SLONG p1, SLONG p2, SLONG p3, SLONG wall, SLONG y)
+{
+    SLONG p01, p13, p32, p20, p03;
+    SLONG x, z;
+    struct PrimFace4* p_f4;
+
+    p01 = next_prim_point;
+    x = (prim_points[p1].X + prim_points[p0].X) >> 1;
+    z = (prim_points[p1].Z + prim_points[p0].Z) >> 1;
+    add_point(x, y, z);
+
+    p13 = next_prim_point;
+    x = (prim_points[p1].X + prim_points[p3].X) >> 1;
+    z = (prim_points[p1].Z + prim_points[p3].Z) >> 1;
+    add_point(x, y, z);
+
+    p32 = next_prim_point;
+    x = (prim_points[p3].X + prim_points[p2].X) >> 1;
+    z = (prim_points[p3].Z + prim_points[p2].Z) >> 1;
+    add_point(x, y, z);
+
+    p20 = next_prim_point;
+    x = (prim_points[p0].X + prim_points[p2].X) >> 1;
+    z = (prim_points[p0].Z + prim_points[p2].Z) >> 1;
+    add_point(x, y, z);
+
+    p03 = next_prim_point;
+    x = (prim_points[p0].X + prim_points[p1].X + prim_points[p2].X + prim_points[p3].X) >> 2;
+    z = (prim_points[p0].Z + prim_points[p1].Z + prim_points[p2].Z + prim_points[p3].Z) >> 2;
+    add_point(x, y, z);
+
+    create_split_quad_into_16(p0, p01, p20, p03, wall, y);
+    create_split_quad_into_16(p20, p03, p2, p32, wall, y);
+    create_split_quad_into_16(p01, p1, p03, p13, wall, y);
+    create_split_quad_into_16(p03, p13, p32, p3, wall, y);
+}
+
+// uc_orig: build_roof_quad (fallen/Source/Building.cpp)
+// Builds a single flat-top quad (or subdivided quad) for a storey's roof.
+// The main roof-building branch (storey_list[storey].WallHead && 0) is dead in the original.
+void build_roof_quad(UWORD storey, SLONG y)
+{
+    SLONG wall;
+    SLONG roof;
+    SLONG p0, p1, p2, p3;
+    SLONG count = 0;
+    SLONG roof_height = 0;
+    struct PrimFace4* p_f4;
+    SWORD texture_style;
+
+    if (storey_list[storey].WallHead && 0)
+        ;
+    {
+        SLONG area;
+        SLONG npp;
+
+        npp = next_prim_point;
+
+        roof = 0;
+        start_point[0] = next_prim_point;
+        wall = storey_list[roof].WallHead;
+        if (wall_list[wall].WallFlags & FLAG_ROOF_FLAT)
+            roof_height = 0;
+
+        if (wall)
+            add_point(storey_list[roof].DX, y - roof_height, storey_list[roof].DZ);
+        while (wall && count < 3) {
+
+            add_point(wall_list[wall].DX, y - roof_height, wall_list[wall].DZ);
+            wall = wall_list[wall].Next;
+            count++;
+        }
+
+        if (count < 3) {
+            next_prim_point = npp;
+            return;
+        }
+
+        wall = storey_list[roof].WallHead;
+        texture_style = wall_list[wall].TextureStyle;
+        p0 = start_point[0] + 3;
+        p1 = start_point[0] + 2;
+        p2 = start_point[0] + 0;
+        p3 = start_point[0] + 1;
+        area = area_of_quad(p0, p1, p2, p3);
+        if (area > 8 * 256 * 8 * 256)
+            create_split_quad_into_48(p0, p1, p2, p3, wall, y + roof_height);
+        else if (area > 4 * 256 * 4 * 256)
+            create_split_quad_into_16(p0, p1, p2, p3, wall, y + roof_height);
+        else if (area > 2 * 256 * 2 * 256)
+            create_split_quad_into_4(p0, p1, p2, p3, wall, y + roof_height);
+        else {
+            p_f4 = create_a_quad(p0, p1, p2, p3, texture_style, 0);
+            add_quad_to_walkable_list(next_prim_face4 - 1);
+            p_f4->ThingIndex = -wall;
+        }
+    }
+}
+
+// uc_orig: center_object (fallen/Source/Building.cpp)
+// Computes the centroid of prim_points[sp..ep) and stores it in build_x, build_z.
+void center_object(SLONG sp, SLONG ep)
+{
+    SLONG c0;
+    SLONG az = 0, ax = 0;
+    if (ep - sp < 0) {
+        return;
+    }
+    if ((ep - sp) == 0) {
+        return;
+    }
+
+    for (c0 = sp; c0 < ep; c0++) {
+        ax += prim_points[c0].X;
+        az += prim_points[c0].Z;
+    }
+
+    ax /= (ep - sp);
+    az /= (ep - sp);
+    build_x = ax;
+    build_z = az;
+    build_y = 0;
+}
+
+// uc_orig: center_object_about_xz (fallen/Source/Building.cpp)
+// Stores the explicit (x,z) as the current building centroid.
+void center_object_about_xz(SLONG sp, SLONG ep, SLONG x, SLONG z)
+{
+    SLONG c0;
+    if (ep - sp < 0) {
+        return;
+    }
+    if ((ep - sp) == 0) {
+        return;
+    }
+
+    build_x = x;
+    build_z = z;
+    build_y = 0;
+}
+
+// uc_orig: build_facet (fallen/Source/Building.cpp)
+// Fills in the next building_facets[] slot with the current prim state.
+// Verifies that all face4 point indices are valid before recording.
+SLONG build_facet(SLONG sp, SLONG mp, SLONG sf3, SLONG sf4, SLONG mf4, SLONG prev_facet, UWORD flags, UWORD col_vect)
+{
+    struct BuildingFacet* p_obj;
+    p_obj = &building_facets[next_building_facet];
+    next_building_facet++;
+
+    SLONG c0;
+    for (c0 = sf4; c0 < next_prim_face4; c0++) {
+        ASSERT(prim_faces4[c0].Points[0] < next_prim_point);
+        ASSERT(prim_faces4[c0].Points[1] < next_prim_point);
+        ASSERT(prim_faces4[c0].Points[2] < next_prim_point);
+        ASSERT(prim_faces4[c0].Points[3] < next_prim_point);
+    }
+
+    p_obj->StartPoint = sp;
+    p_obj->MidPoint = mp;
+    p_obj->EndPoint = next_prim_point;
+
+    ASSERT(sf4 >= 0);
+    ASSERT(sf4 <= 65535);
+    p_obj->StartFace4 = sf4;
+    p_obj->MidFace4 = mf4;
+    p_obj->EndFace4 = next_prim_face4;
+    p_obj->StartFace3 = sf3;
+    p_obj->EndFace3 = next_prim_face3;
+    p_obj->NextFacet = prev_facet;
+    p_obj->FacetFlags = flags;
+    p_obj->ColVect = col_vect;
+
+    ASSERT(p_obj->StartFace4 >= 0);
+    ASSERT(p_obj->StartFace3 >= 0);
+    ASSERT(p_obj->EndFace4 >= 0);
+    ASSERT(p_obj->EndFace3 >= 0);
+
+    return (next_building_facet - 1);
+}
+
+// uc_orig: build_building (fallen/Source/Building.cpp)
+// Fills in the next building_objects[] slot from the current prim state.
+// The centroid is computed from the point range via center_object().
+SLONG build_building(SLONG sp, SLONG sf3, SLONG sf4, SLONG prev_facet)
+{
+    struct BuildingObject* p_bobj;
+    p_bobj = &building_objects[next_building_object];
+    next_building_object++;
+
+    p_bobj->StartPoint = sp;
+    p_bobj->EndPoint = next_prim_point;
+
+    p_bobj->StartFace4 = sf4;
+    p_bobj->EndFace4 = next_prim_face4;
+
+    p_bobj->StartFace3 = sf3;
+    p_bobj->EndFace3 = next_prim_face3;
+    p_bobj->FacetHead = prev_facet;
+    center_object(p_bobj->StartPoint, p_bobj->EndPoint);
+
+    return (next_building_object - 1);
+}
+
+// uc_orig: build_building2 (fallen/Source/Building.cpp)
+// Fills in the next building_objects[] slot; uses explicit (cx, cz) centroid.
+SLONG build_building2(SLONG sp, SLONG sf3, SLONG sf4, SLONG prev_facet, SLONG cx, SLONG cz)
+{
+    struct BuildingObject* p_bobj;
+    p_bobj = &building_objects[next_building_object];
+    next_building_object++;
+
+    p_bobj->StartPoint = sp;
+    p_bobj->EndPoint = next_prim_point;
+
+    p_bobj->StartFace4 = sf4;
+    p_bobj->EndFace4 = next_prim_face4;
+
+    p_bobj->StartFace3 = sf3;
+    p_bobj->EndFace3 = next_prim_face3;
+    p_bobj->FacetHead = prev_facet;
+    center_object_about_xz(p_bobj->StartPoint, p_bobj->EndPoint, cx, cz);
+
+    return (next_building_object - 1);
+}
+
+// uc_orig: build_prim_object (fallen/Source/Building.cpp)
+// Fills in the next prim_objects[] slot from the current prim state.
+SLONG build_prim_object(SLONG sp, SLONG sf3, SLONG sf4)
+{
+    struct PrimObject* p_obj;
+    p_obj = &prim_objects[next_prim_object];
+    next_prim_object++;
+
+    p_obj->StartPoint = sp;
+    p_obj->EndPoint = next_prim_point;
+
+    p_obj->StartFace4 = sf4;
+    p_obj->EndFace4 = next_prim_face4;
+
+    p_obj->StartFace3 = sf3;
+    p_obj->EndFace3 = next_prim_face3;
+    center_object(p_obj->StartPoint, p_obj->EndPoint);
+    return (next_prim_object - 1);
+}
+
+// uc_orig: find_next_last_coord (fallen/Source/Building.cpp)
+// Walks the wall chain and writes the endpoint of the second-to-last wall to (*x, *z).
+void find_next_last_coord(SWORD wall, SLONG* x, SLONG* z)
+{
+    SLONG next_wall;
+    while (wall) {
+        next_wall = wall_list[wall].Next;
+        if (wall_list[next_wall].Next == 0) {
+            *x = wall_list[wall].DX;
+            *z = wall_list[wall].DZ;
+            return;
+        }
+        wall = next_wall;
+    }
+}
+
+// uc_orig: build_single_ledge (fallen/Source/Building.cpp)
+// Emits three quad faces that form a single ledge strip between corners X2/Z2 and X3/Z3.
+void build_single_ledge(struct LedgeInfo* p_ledge)
+{
+
+    SLONG sp[4], count = 0;
+    SLONG rx, rz, rx2, rz2;
+
+    SLONG y, height;
+    struct PrimFace4* p4;
+
+    height = BLOCK_SIZE >> 1;
+    y = p_ledge->Y;
+
+    sp[0] = next_prim_point;
+    add_point(p_ledge->X2, y + 2, p_ledge->Z2);
+    add_point(p_ledge->X3, y + 2, p_ledge->Z3);
+    calc_new_corner_point(p_ledge->X1, p_ledge->Z1, p_ledge->X2, p_ledge->Z2, p_ledge->X3, p_ledge->Z3, BLOCK_SIZE, &rx, &rz);
+    calc_new_corner_point(p_ledge->X2, p_ledge->Z2, p_ledge->X3, p_ledge->Z3, p_ledge->X4, p_ledge->Z4, BLOCK_SIZE, &rx2, &rz2);
+    sp[1] = next_prim_point;
+    add_point(rx, y + 2, rz);
+    add_point(rx2, y + 2, rz2);
+
+    y += height;
+    sp[2] = next_prim_point;
+    add_point(rx, y + 2, rz);
+    add_point(rx2, y + 2, rz2);
+
+    sp[3] = next_prim_point;
+    add_point(p_ledge->X2, y + 2, p_ledge->Z2);
+    add_point(p_ledge->X3, y + 2, p_ledge->Z3);
+
+    p4 = create_a_quad(sp[1], sp[1] + 1, sp[0], sp[0] + 1, 0, 18);
+    OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_LONG_LEDGE);
+    p4 = create_a_quad(sp[2], sp[2] + 1, sp[1], sp[1] + 1, 0, 18);
+    OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_LONG_LEDGE);
+    p4 = create_a_quad(sp[3], sp[3] + 1, sp[2], sp[2] + 1, 0, 18);
+    OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_LONG_LEDGE);
+}
+
+// uc_orig: dist_between_vertex_and_vector (fallen/Source/Building.cpp)
+// Computes approximate distance from the midpoint of edge (x1,y1)-(x2,y2) to point (px,py).
+SLONG dist_between_vertex_and_vector(SLONG x1, SLONG y1, SLONG x2, SLONG y2, SLONG px, SLONG py)
+{
+    SLONG dist, dx, dy;
+
+    x1 = (x1 + x2) >> 1;
+    y1 = (y1 + y2) >> 1;
+
+    dx = abs(x1 - px);
+    dy = abs(y1 - py);
+
+    dist = QDIST2(dx, dy);
+    return (dist);
+}
+
+// uc_orig: find_wall_for_fe (fallen/Source/Building.cpp)
+// Finds the 0-based wall index closest to (fe_x, fe_y) in the storey's wall list.
+// Skips ladder/fire-escape/staircase/fence/outside-door storeys to reach a building storey.
+SLONG find_wall_for_fe(SLONG fe_x, SLONG fe_y, SLONG storey)
+{
+    SLONG wall = 0;
+    SLONG px, pz, x1, z1;
+    SLONG best_wall = -1, best_dist = 0x7fffffff, dist;
+    SLONG wall_count = 0;
+
+    while (storey_list[storey].StoreyType == STOREY_TYPE_LADDER || storey_list[storey].StoreyType == STOREY_TYPE_FIRE_ESCAPE || storey_list[storey].StoreyType == STOREY_TYPE_STAIRCASE || storey_list[storey].StoreyType == STOREY_TYPE_FENCE_BRICK || storey_list[storey].StoreyType == STOREY_TYPE_FENCE_FLAT || storey_list[storey].StoreyType == STOREY_TYPE_OUTSIDE_DOOR || storey_list[storey].StoreyType == STOREY_TYPE_FENCE) {
+        storey = storey_list[storey].Next;
+    }
+    wall = storey_list[storey].WallHead;
+    px = storey_list[storey].DX;
+    pz = storey_list[storey].DZ;
+    while (wall) {
+        x1 = wall_list[wall].DX;
+        z1 = wall_list[wall].DZ;
+
+        dist = dist_between_vertex_and_vector(px, pz, x1, z1, fe_x, fe_y);
+        if (dist < best_dist) {
+            best_wall = wall_count;
+            best_dist = dist;
+        }
+
+        wall_count++;
+        wall = wall_list[wall].Next;
+        px = x1;
+        pz = z1;
+    }
+    return (best_wall);
+}
+
+// uc_orig: build_staircase (fallen/Source/Building.cpp)
+// Generates staircase geometry for the given storey. Emits step treads, risers, and side panels.
+// The staircase direction is determined from the wall vectors: the first (wall_count/2) walls define
+// one edge, the second half define the opposite edge in reverse.
+void build_staircase(SLONG storey)
+{
+    SLONG wall;
+    SLONG wall_count = 0;
+    SLONG count;
+    SLONG step_count, step_size, step_height, len, step_y, step_pos, step_length;
+    SLONG row = 0;
+    SLONG c0, c1;
+    SLONG y, start_y = 0;
+    struct PrimFace4* p4;
+    SLONG step_pos_old;
+    SLONG last;
+    SLONG x1, z1;
+
+    struct StairVect {
+        SLONG X1, Z1, X2, Z2;
+    };
+
+    struct StairVect s_vects[50];
+
+    wall = storey_list[storey].WallHead;
+    x1 = storey_list[storey].DX;
+    z1 = storey_list[storey].DZ;
+    while (wall) {
+        SLONG x2, z2;
+        wall_count++;
+        x2 = wall_list[wall].DX;
+        z2 = wall_list[wall].DZ;
+        insert_collision_vect(x1, start_y, z1, x2, start_y, z2, STOREY_TYPE_STAIRCASE, 0, -wall);
+        set_vect_floor_height(x1, z1, x2, z2, (start_y + build_min_y) >> ALT_SHIFT);
+        wall = wall_list[wall].Next;
+        x1 = x2;
+        z1 = z2;
+    }
+
+    start_y += build_min_y;
+
+    if ((wall_count < 4) || (wall_count & 1))
+        return;
+
+    count = 1;
+    wall = storey_list[storey].WallHead;
+    while (wall) {
+        if (count <= (wall_count >> 1)) {
+            s_vects[count - 1].X1 = wall_list[wall].DX;
+            s_vects[count - 1].Z1 = wall_list[wall].DZ;
+
+        } else {
+            SLONG pos;
+            pos = (wall_count) - (count) + 1;
+
+            s_vects[pos - 1].X2 = wall_list[wall].DX;
+            s_vects[pos - 1].Z2 = wall_list[wall].DZ;
+        }
+
+        count++;
+        wall = wall_list[wall].Next;
+    }
+
+    {
+        SLONG dx, dz;
+
+        dx = abs(s_vects[0].X1 - s_vects[0].X2);
+        dz = abs(s_vects[0].Z1 - s_vects[0].Z2);
+        len = QDIST2(dx, dz);
+    }
+
+    if (len == 0)
+        return;
+
+    step_height = BLOCK_SIZE >> 1;
+    step_length = BLOCK_SIZE >> 1;
+    step_count = len / step_length;
+    if (step_count == 0)
+        return;
+    step_size = (len << 8) / step_count;
+    step_y = storey_list[storey].DY;
+
+    step_pos = len << 8;
+    y = start_y;
+
+    step_pos_old = step_pos;
+    sp_stairs[99] = next_prim_point;
+    while (step_pos >= 0) {
+        SLONG x, z;
+        if (storey_list[storey].Info1 && step_pos < storey_list[storey].Info1 * step_size) {
+            step_pos = 0;
+        }
+        last = (wall_count >> 1) - 1;
+        x = s_vects[0].X1 + ((s_vects[0].X2 - s_vects[0].X1) * step_pos) / (len << 8);
+        z = s_vects[0].Z1 + ((s_vects[0].Z2 - s_vects[0].Z1) * step_pos) / (len << 8);
+        add_point(x, start_y, z);
+        x = s_vects[last].X1 + ((s_vects[last].X2 - s_vects[last].X1) * step_pos) / (len << 8);
+        z = s_vects[last].Z1 + ((s_vects[last].Z2 - s_vects[last].Z1) * step_pos) / (len << 8);
+        add_point(x, start_y, z);
+        step_pos -= step_size;
+    }
+    step_pos = step_pos_old;
+
+    while (step_pos >= 0) {
+
+        if (storey_list[storey].Info1 && step_pos < storey_list[storey].Info1 * step_size) {
+            step_pos = 0;
+            /*
+                                    sp_stairs[row]=next_prim_point;
+                                    for(c0=0;c0<(wall_count>>1);c0++)
+                                    {
+                                            SLONG	x,z;
+
+                                            x=s_vects[c0].X1;
+                                            z=s_vects[c0].Z1;
+
+                                            add_point(x,y,z);
+                                    }
+                                    row++;
+                                    step_pos=-1;
+            */
+        }
+        {
+
+            sp_stairs[row] = next_prim_point;
+            for (c0 = 0; c0 < (wall_count >> 1); c0++) {
+                SLONG x, z;
+                x = s_vects[c0].X1 + ((s_vects[c0].X2 - s_vects[c0].X1) * step_pos) / (len << 8);
+                z = s_vects[c0].Z1 + ((s_vects[c0].Z2 - s_vects[c0].Z1) * step_pos) / (len << 8);
+                add_point(x, y, z);
+            }
+            sp_stairs[row + 1] = next_prim_point;
+            step_pos -= step_size;
+            if (step_pos >= 0) {
+                for (c0 = sp_stairs[row]; c0 < sp_stairs[row] + (wall_count >> 1); c0++) {
+                    add_point(prim_points[c0].X, y + step_height, prim_points[c0].Z);
+                }
+
+                y += step_height;
+                row += 2;
+            } else {
+
+                y += step_height;
+                row += 1;
+            }
+        }
+    }
+
+    wall = storey_list[storey].WallHead;
+
+    for (c1 = 0; c1 < (row - 1); c1++) {
+        for (c0 = 0; c0 < ((wall_count >> 1) - 1); c0++) {
+            p4 = create_a_quad(sp_stairs[c1 + 1] + 1 + c0, sp_stairs[c1 + 1] + c0, sp_stairs[c1] + 1 + c0, sp_stairs[c1] + c0, 0, 18 + ((c1 & 1) ? 5 : 0));
+            p4->ThingIndex = -wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+            add_quad_to_walkable_list(next_prim_face4 - 1);
+        }
+        if (c1 & 1) {
+            p4 = create_a_quad(sp_stairs[c1], sp_stairs[c1 + 1], sp_stairs[99] + ((c1 - 1) & 0xfffe), sp_stairs[99] + 2 + ((c1 - 1) & 0xfffe), 0, 23);
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+            p4 = create_a_quad(sp_stairs[c1 + 1] + last, sp_stairs[c1] + last, sp_stairs[99] + 3 + ((c1 - 1) & 0xfffe), sp_stairs[99] + 1 + ((c1 - 1) & 0xfffe), 0, 23);
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+        }
+    }
+}
+
+// uc_orig: get_wall_start_and_end (fallen/Source/Building.cpp)
+// Walks the wall list of the storey owning 'want_wall' and returns the XZ start and end coordinates.
+void get_wall_start_and_end(SLONG want_wall, SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2)
+{
+    SLONG wall;
+
+    FWall* p_wall;
+    FStorey* p_storey;
+
+    p_storey = &storey_list[wall_list[want_wall].StoreyHead];
+
+    *x1 = p_storey->DX;
+    *z1 = p_storey->DZ;
+
+    wall = p_storey->WallHead;
+
+    while (wall) {
+        p_wall = &wall_list[wall];
+
+        *x2 = p_wall->DX;
+        *z2 = p_wall->DZ;
+
+        if (wall == want_wall) {
+            return;
+        }
+
+        *x1 = *x2;
+        *z1 = *z2;
+
+        wall = p_wall->Next;
+    }
+
+    // The wall wasn't found in its own storey — data corruption
+    ASSERT(0);
+}

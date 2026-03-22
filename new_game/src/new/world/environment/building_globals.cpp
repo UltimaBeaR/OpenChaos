@@ -758,3 +758,8 @@ SWORD face_offsets[] = {
 UWORD id_offset[] = {
     0, 1, 3, 6, 9, 12
 };
+
+// uc_orig: sp_stairs (fallen/Source/Building.cpp)
+// Scratch buffer holding prim_point start indices for each staircase step row/column.
+// Entry [99] = start of the tread-side overlay points.
+SLONG sp_stairs[300];
