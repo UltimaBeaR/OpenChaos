@@ -1,0 +1,133 @@
+# GetTickCount() overflow — SLONG переполнение (OC-TICK-OVERFLOW)
+
+Все исправления помечены комментарием `claude-ai: BUGFIX-OC-TICK-OVERFLOW` — найти через:
+```
+grep -r "BUGFIX-OC-TICK-OVERFLOW" new_game/src
+```
+
+## Контекст: как обнаружили
+
+Игра перестала запускаться — показывала экран загрузки уровня (со звуком главного меню) и
+зависала. Проблема воспроизводилась на всех коммитах включая заведомо рабочие, в обоих Release
+и Debug билдах. После исключения ресурсов и конфигов как причин подключили VS дебаггер и нашли
+что главный поток намертво крутится в `lock_frame_rate()`.
+
+---
+
+## Баг 1: lock_frame_rate — вечный spin-loop (игра не запускается)
+
+**Файл:** `new_game/src/new/missions/game.cpp` — `lock_frame_rate()`
+
+**Суть:** Функция ограничивает FPS через busy-wait на `GetTickCount()`:
+
+```cpp
+static SLONG tick1 = 0;
+SLONG tick2;
+SLONG timet;
+
+while (1) {
+    tick2 = GetTickCount();
+    timet = tick2 - tick1;
+    if (timet > (1000 / fps)) break;
+}
+tick1 = tick2;
+```
+
+`GetTickCount()` возвращает `DWORD` (unsigned 32-bit, миллисекунды с загрузки системы).
+При записи в `SLONG` (signed 32-bit) значение переполняется в отрицательное когда счётчик
+превышает 2^31 ≈ 2 147 483 648 мс ≈ **24.8 дня**.
+
+При первом вызове `tick1 = 0`. Если `GetTickCount()` уже за порогом 24.8 дней:
+- `tick2` = большое отрицательное число (например, −2 141 133 921)
+- `timet = tick2 − tick1` = −2 141 133 921 − 0 = −2 141 133 921
+- Условие `timet > 16` → FALSE → цикл никогда не выходит
+
+**Фикс:**
+```cpp
+static DWORD tick1 = 0;
+DWORD tick2;
+DWORD timet;
+```
+DWORD-арифметика корректно обрабатывает и переполнение, и wraparound через 49.7 дней.
+
+---
+
+## Баг 2: PANEL_sign_time — знак разворота всегда на экране
+
+**Файл:** `new_game/src/old/fallen/DDEngine/Source/panel.cpp`
+
+**Суть:** `PANEL_sign_time` — глобальная переменная, хранит момент вызова `PANEL_flash_sign()`
+(показать знак направления, знак разворота и т.п.). По умолчанию = 0 (глобал, zero-init).
+
+Код рисовки:
+```cpp
+SLONG dtime = GetTickCount() - PANEL_sign_time;
+if (dtime < 3000) {  // показывать знак 3 секунды
+    // рисуем знак
+}
+```
+
+Если `PANEL_flash_sign()` не вызывался: `PANEL_sign_time = 0`.
+При `GetTickCount()` > 24.8 дней: `dtime = (отрицательное) − 0 = большое отрицательное`.
+`dtime < 3000` → TRUE → знак рисуется постоянно с момента загрузки любого уровня.
+
+**Фикс:** `SLONG PANEL_sign_time` → `DWORD PANEL_sign_time`,
+`SLONG dtime` → `DWORD dtime`.
+
+---
+
+## Про "24.8 дня": нюанс с гибернацией Windows
+
+Пользователь перезагружал систему ~2 дня назад, но GetTickCount() показывал ~25 дней.
+
+Причина: **Windows Fast Startup (быстрый запуск)** — режим по умолчанию с Windows 8+.
+При "выключении" ПК Windows не делает полную перезагрузку: сохраняет состояние ядра
+в hiberfil.sys (по сути гибернация сессии ядра). При следующем включении ядро
+**восстанавливается** из hibernation, и `GetTickCount()` продолжает отсчёт с момента
+предыдущей загрузки, **не сбрасывается**.
+
+Сон (Sleep/Hibernate вручную) тоже не сбрасывает счётчик.
+Сбросить `GetTickCount()` можно только полным выключением с отключённым Fast Startup
+или через "Перезагрузка" (а не "Завершение работы").
+
+Итог: реальный аптайм GetTickCount() может сильно расходиться с тем что показывает
+Task Manager в поле "Время работы" — который считает время с последнего resume, а не
+с последнего реального сброса счётчика.
+
+**Практически это означает:** баг может проявиться у любого пользователя с Fast Startup
+уже через ~25 дней с момента последней полной перезагрузки. Для разработчика — ещё раньше,
+т.к. девмашина обычно работает дольше без полной перезагрузки.
+
+---
+
+## Все места с GetTickCount() в кодовой базе — статус проверки
+
+Полный список на 2026-03-22. **Жирным** — подтверждённо проблемные (SLONG).
+
+### Пофикшено (все помечены `claude-ai: BUGFIX-OC-TICK-OVERFLOW`):
+- ✅ `new/missions/game.cpp` — `lock_frame_rate()` (tick1, tick2, timet)
+- ✅ `old/DDEngine/Source/panel.cpp` — `PANEL_sign_time`, `dtime`, `now`, `onfor`
+- ✅ `old/fallen/Source/interfac.cpp` — `tick` + `Player::LastReleased[16]` в `new/actors/core/player.h`
+- ✅ `new/engine/effects/psystem.cpp` + `psystem_globals` — `prev_tick`, `cur_tick`
+- ✅ `new/actors/core/thing.cpp` — `prev_tick`, `cur_tick`
+- ✅ `new/engine/graphics/resources/console_globals` — `console_last_tick`, `console_this_tick`
+- ✅ `new/ui/menus/gamemenu.cpp` — `tick_last`, `tick_now`
+- ✅ `new/ui/hud/eng_map.cpp` — `now`, `last` (MAP_process_pulses + MAP_process_beacons)
+- ✅ `new/missions/game_globals` — `already_warned_about_leaving_map`
+- ✅ `new/actors/characters/person_globals` + `new/ui/attract.cpp` (extern) — `stat_start_time`, `stat_game_time`
+
+- ✅ `new/engine/graphics/graphics_api/host.cpp` — `timeout` (3 места, dead code но пофикшено)
+- ✅ `old/MFStdLib/Headers/MFStdLib.h` — `MFTime::Ticks` + `new/actors/core/thing.cpp` — `tick_reqd`
+- ✅ `old/fallen/outro/os.cpp` — `OS_game_start_tick_count`
+- ✅ `old/fallen/DDLibrary/Source/GHost.cpp` — `timeout` (3 места, dead code но пофикшено)
+- ✅ `old/fallen/Source/frontend.cpp` — `now`, `last` (2 функции)
+
+### Точно безопасные (не хранятся в signed, или только битовые операции):
+- `old/DDEngine/Source/panel.cpp:1035,1580` — `ULONG now` (unsigned)
+- `old/DDEngine/Source/panel.cpp:2325` — `PANEL_info_time` (тип `ULONG`)
+- `old/DDEngine/Source/panel.cpp:3353` — сравнение через ULONG, ок
+- `old/DDEngine/Source/mesh.cpp:603` — `float(GetTickCount())`, float-анимация, ок
+- `old/fallen/Source/frontend.cpp:1173,1355,1433` — только битовые операции `& 0x200`, ок
+- `new/ui/hud/eng_map.cpp:764,1127` — float-анимация через sin/yaw, ок
+- `old/fallen/Source/frontend.cpp:706` — `dwAutoPlayFMVTimeout` уже `DWORD`
+- `old/fallen/Source/frontend.cpp:2893,4044` — `timeGetTime()` присваивается в `DWORD`, ок
