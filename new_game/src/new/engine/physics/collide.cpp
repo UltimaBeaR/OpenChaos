@@ -51,6 +51,27 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 // Temporary: anim_globals.h for next_prim_face4
 #include "assets/anim_globals.h"
 
+// Temporary: prim.h for slide_along_prim, prim_get_collision_model, get_prim_info,
+// PRIM_OBJ_SPIKE, PRIM_COLLIDE_*, FACE_FLAG_FIRE_ESCAPE, FACE_FLAG_WMOVE, FACE_FLAG_PRIM
+#include "fallen/Headers/prim.h"
+// Temporary: ob.h for OB_find, OB_avoid, OB_Info, OB_ob, OB_ob_upto
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
+// Temporary: vehicle.h for get_vehicle_body_prim, get_vehicle_body_offset, get_vehicle_driver
+#include "actors/vehicles/vehicle.h"
+// Temporary: pcom.h for PCOM_person_a_hates_b, PCOM_attack_happened, PCOM_set_person_ai_flee_place
+#include "ai/pcom.h"
+// Temporary: combat.h for people_allowed_to_hit_each_other
+#include "ai/combat.h"
+// Temporary: inside2.h for find_inside_room
+#include "world/navigation/inside2.h"
+// Temporary: barrel.h for BARREL_hit_with_sphere
+#include "actors/items/barrel.h"
+// Temporary: mist.h for MIST_gust
+#include "effects/mist.h"
+// Temporary: dirt.h for DIRT_gust (not yet migrated to new/)
+#include "fallen/Headers/dirt.h"
+
 // uc_orig: BLOCK_SIZE (fallen/Source/collide.cpp)
 // Undefs any prior definition and sets it to 64, the height increment per storey level.
 #undef BLOCK_SIZE
@@ -2499,4 +2520,1110 @@ void slide_along_redges(
             }
         }
     }
+}
+
+// ============================================================================
+// Chunk 4: move_thing_quick, collide_against_objects, collide_against_things,
+//          drop_on_heads, move_thing
+// ============================================================================
+
+// Temporary: forward declarations for functions not yet migrated to new/
+// collide_with_circle is defined in old/fallen/Source/collide.cpp (chunk 6+)
+SLONG collide_with_circle(SLONG cx, SLONG cz, SLONG cradius, SLONG* x2, SLONG* z2);
+
+// uc_orig: move_thing_quick (fallen/Source/collide.cpp)
+// Moves a thing by (dx,dy,dz) without any collision detection.
+// Simply adds the delta to WorldPos and updates MapWho lists.
+ULONG move_thing_quick(SLONG dx, SLONG dy, SLONG dz, Thing* p_thing)
+{
+    GameCoord new_position;
+
+    new_position.X = p_thing->WorldPos.X + dx;
+    new_position.Y = p_thing->WorldPos.Y + dy;
+    new_position.Z = p_thing->WorldPos.Z + dz;
+
+    move_thing_on_map(p_thing, &new_position);
+    return (0);
+}
+
+// uc_orig: collide_against_objects (fallen/Source/collide.cpp)
+// Slides (x2,y2,z2) against all OB-placed objects (street furniture: lamps, bins, etc.)
+// near the destination point. Returns TRUE if any collision occurred.
+// Ignores the OB object whose prim face the thing is currently standing on.
+SLONG collide_against_objects(
+    Thing* p_thing,
+    SLONG radius,
+    SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG* x2, SLONG* y2, SLONG* z2)
+{
+    OB_Info* oi;
+
+    SLONG old_x2;
+    SLONG old_y2;
+    SLONG old_z2;
+
+    SLONG mx;
+    SLONG mz;
+
+    SLONG y_top;
+
+    SLONG xmin, zmin;
+    SLONG xmax, zmax;
+
+    SLONG ans;
+
+    PrimInfo* pi;
+
+    ans = FALSE;
+
+    xmin = (*x2 >> 8) - 0x180 >> PAP_SHIFT_LO;
+    zmin = (*z2 >> 8) - 0x180 >> PAP_SHIFT_LO;
+
+    xmax = (*x2 >> 8) + 0x180 >> PAP_SHIFT_LO;
+    zmax = (*z2 >> 8) + 0x180 >> PAP_SHIFT_LO;
+
+    SATURATE(xmin, 0, PAP_SIZE_LO - 1);
+    SATURATE(zmin, 0, PAP_SIZE_LO - 1);
+
+    SATURATE(xmax, 0, PAP_SIZE_LO - 1);
+    SATURATE(zmax, 0, PAP_SIZE_LO - 1);
+
+    // If standing on a prim face, don't collide with that prim.
+    SLONG ignore_prim = NULL;
+
+    if (p_thing->OnFace > 0) {
+        if (prim_faces4[p_thing->OnFace].FaceFlags & FACE_FLAG_PRIM) {
+            // ThingIndex in this case holds -(ob_index).
+            ignore_prim = -prim_faces4[p_thing->OnFace].ThingIndex;
+        }
+    }
+
+    for (mx = xmin; mx <= xmax; mx++)
+        for (mz = zmin; mz <= zmax; mz++) {
+            for (oi = OB_find(mx, mz); oi->prim; oi++) {
+                if (oi->index == ignore_prim) {
+                    continue;
+                }
+
+                switch (prim_get_collision_model(oi->prim)) {
+                case PRIM_COLLIDE_BOX:
+                case PRIM_COLLIDE_SMALLBOX:
+
+                    old_x2 = *x2;
+                    old_y2 = *y2;
+                    old_z2 = *z2;
+
+                    if (slide_along_prim(
+                            oi->prim,
+                            oi->x,
+                            oi->y,
+                            oi->z,
+                            oi->yaw,
+                            x1, my_y1, z1,
+                            x2, y2, z2,
+                            radius,
+                            prim_get_collision_model(oi->prim) == PRIM_COLLIDE_SMALLBOX,
+                            FALSE)) {
+                        ans = TRUE;
+
+                        if (p_thing) {
+                            if (p_thing->Class == CLASS_PERSON) {
+                                if (p_thing->Genus.Person->PlayerID) {
+                                    // Player walking backwards: check if they can sit on this prim.
+                                    if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
+                                        if (oi->prim == 105 || oi->prim == 101 || oi->prim == 110 || oi->prim == 89 || oi->prim == 126 || oi->prim == 95 || oi->prim == 102) {
+                                            SLONG dangle = oi->yaw - p_thing->Draw.Tweened->Angle;
+
+                                            dangle &= 2047;
+
+                                            if (dangle > 1024) {
+                                                dangle -= 2048;
+                                            }
+
+                                            if (abs(dangle) < 220) {
+                                                set_person_sit_down(p_thing);
+                                                return ans;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // NPC: steer away from the prim.
+                                    SLONG angle;
+                                    SLONG dangle;
+
+                                    angle = p_thing->Draw.Tweened->Angle;
+                                    dangle = OB_avoid(
+                                        oi->x,
+                                        oi->y,
+                                        oi->z,
+                                        oi->yaw,
+                                        oi->prim,
+                                        x1, z1,
+                                        *x2, *z2);
+
+                                    angle += dangle * 256;
+                                    angle &= 2047;
+
+                                    p_thing->Draw.Tweened->Angle = angle;
+                                }
+                            }
+                        }
+                    }
+
+                    break;
+
+                case PRIM_COLLIDE_NONE:
+                    break;
+
+                case PRIM_COLLIDE_CYLINDER:
+
+                    pi = get_prim_info(oi->prim);
+
+                    y_top = oi->y + pi->maxy;
+
+                    if (oi->prim == PRIM_OBJ_SPIKE) {
+                        y_top = 0xc0;
+                    }
+
+                    if ((my_y1 >> 8) < y_top) {
+                        if (slide_around_circle(
+                                oi->x << 8,
+                                oi->z << 8,
+                                radius + 0x40 << 8,
+                                x1, z1, x2, z2)) {
+                            ans = TRUE;
+
+                            if (p_thing) {
+                                if (p_thing->Class == CLASS_PERSON) {
+                                    if (oi->prim == PRIM_OBJ_SPIKE) {
+                                        set_person_dead(
+                                            p_thing,
+                                            NULL,
+                                            PERSON_DEATH_TYPE_OTHER,
+                                            FALSE,
+                                            0);
+                                    }
+
+                                    if (p_thing->Genus.Person->PlayerID) {
+                                        // Player walking backwards: check if they can sit.
+                                        if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
+                                            if (oi->prim == 70 || oi->prim == 30 || oi->prim == 208 || oi->prim == 215 || oi->prim == 250 || oi->prim == 251 || oi->prim == 252) {
+                                                SLONG dx = oi->x - (p_thing->WorldPos.X >> 8);
+                                                SLONG dz = oi->z - (p_thing->WorldPos.Z >> 8);
+
+                                                SLONG lx = SIN(p_thing->Draw.Tweened->Angle) >> 8;
+                                                SLONG lz = COS(p_thing->Draw.Tweened->Angle) >> 8;
+
+                                                SLONG len = QDIST2(abs(dx), abs(dz)) + 1;
+
+                                                dx = dx * 256 / len;
+                                                dz = dz * 256 / len;
+
+                                                SLONG dprod = lx * dx + dz * lz >> 8;
+
+                                                if (dprod > 200) {
+                                                    set_person_sit_down(p_thing);
+                                                    return ans;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    break;
+
+                default:
+                    ASSERT(0);
+                    break;
+                }
+            }
+        }
+
+    return ans;
+}
+
+// uc_orig: collide_against_things (fallen/Source/collide.cpp)
+// Slides (x2,y2,z2) against nearby Things: persons, vehicles, furniture, pyro, bats.
+// Returns TRUE if any collision occurred.
+SLONG collide_against_things(
+    Thing* p_thing,
+    SLONG radius,
+    SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG* x2, SLONG* y2, SLONG* z2)
+{
+    UBYTE i;
+    UBYTE col_with_upto;
+    Thing* col_thing;
+    ULONG collide_types;
+    SLONG ans;
+
+    SLONG on;
+
+    ans = FALSE;
+
+    on = person_is_on(p_thing);
+
+    if (on == PERSON_ON_PRIM || on == PERSON_ON_METAL) {
+        // On a prim/metal surface: only collide with other persons.
+        collide_types = (1 << CLASS_PERSON);
+    } else {
+        collide_types = (1 << CLASS_PERSON) | (1 << CLASS_FURNITURE) | (1 << CLASS_VEHICLE) | (1 << CLASS_ANIM_PRIM) | (1 << CLASS_PYRO) | (1 << CLASS_PLAT) | (1 << CLASS_BAT) | (1 << CLASS_BIKE);
+    }
+
+    col_with_upto = THING_find_sphere(
+        p_thing->WorldPos.X >> 8,
+        p_thing->WorldPos.Y >> 8,
+        p_thing->WorldPos.Z >> 8,
+        radius + 0x1a0,
+        col_with_things,
+        MAX_COL_WITH,
+        collide_types);
+
+    ASSERT(col_with_upto <= MAX_COL_WITH);
+
+    for (i = 0; i < col_with_upto; i++) {
+        col_thing = TO_THING(col_with_things[i]);
+
+        if (col_thing->State == STATE_DEAD || col_thing->State == STATE_DYING) {
+            if (col_thing->Class == CLASS_VEHICLE) {
+                // Dead cars still block movement.
+            } else {
+                continue;
+            }
+        }
+
+        switch (col_thing->Class) {
+        case CLASS_PERSON:
+
+            if (col_thing != p_thing) {
+                if (p_thing->SubState == SUB_STATE_RUNNING_SKID_STOP) {
+                    SLONG tx2, tz2;
+                    SLONG radius;
+
+                    if (p_thing->Genus.Person->PlayerID)
+                        radius = 66 << 8;
+                    else
+                        radius = 50 << 8;
+                    /*
+                                                    {
+                                                            SLONG	cx,cz,cy,r,ang,x1,z1,x2,z2;
+                                                            cx=col_thing->WorldPos.X>>8;
+                                                            cy=col_thing->WorldPos.Y>>8;
+                                                            cz=col_thing->WorldPos.Z>>8;
+                                                            r=radius>>8;
+
+                                                            x1=cx+(r*COS(0)>>16);
+                                                            z1=cz+(r*SIN(0)>>16);
+                                                            for(ang=0;ang<2048;ang+=128)
+                                                            {
+                                                                    x2=cx+(r*COS(ang)>>16);
+                                                                    z2=cz+(r*SIN(ang)>>16);
+
+                                                                    add_debug_line(x1,cy+10,z1,x2,cy+10,z2,0xffffff);
+                                                                    x1=x2;
+                                                                    z1=z2;
+
+                                                            }
+                                                    }
+
+                                                    add_debug_line(x1,10,z1,col_thing->WorldPos.X>>8,10,col_thing->WorldPos.Z>>8,0xff00ff);
+                    */
+
+                    tx2 = *x2;
+                    tz2 = *z2;
+                    {
+                        if (slide_around_circle(
+                                col_thing->WorldPos.X,
+                                col_thing->WorldPos.Z,
+                                radius,
+                                x1, z1, &tx2, &tz2)) {
+                            sweep_feet(col_thing, p_thing, 0);
+                            ans = TRUE;
+                        }
+                    }
+                } else if (p_thing->SubState == SUB_STATE_STEP_FORWARD) {
+                    // During step-forward (attack), stop completely instead of sliding.
+                    if (collide_with_circle(
+                            col_thing->WorldPos.X,
+                            col_thing->WorldPos.Z,
+                            50 << 8,
+                            x2, z2)) {
+                        *x2 = x1;
+                        *z2 = z1;
+                        ans = TRUE;
+                    }
+                } else {
+                    if (p_thing->Genus.Person->pcom_ai == PCOM_AI_CIV && col_thing->Genus.Person->pcom_ai == PCOM_AI_CIV && col_thing < p_thing) {
+                        // Ordering on civs to prevent deadlock at lamp-posts.
+                    } else if (col_thing->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FOLLOWING && col_thing->Genus.Person->pcom_ai_arg == THING_NUMBER(p_thing)) {
+                        // Don't collide with followers.
+                    } else {
+                        if (slide_around_circle(
+                                col_thing->WorldPos.X,
+                                col_thing->WorldPos.Z,
+                                50 << 8,
+                                x1, z1, x2, z2)) {
+                            ans = TRUE;
+                        }
+                    }
+                }
+            }
+
+            break;
+
+        case CLASS_PLAT:
+
+            if (slide_along_prim(
+                    col_thing->Draw.Mesh->ObjectId,
+                    col_thing->WorldPos.X >> 8,
+                    col_thing->WorldPos.Y >> 8,
+                    col_thing->WorldPos.Z >> 8,
+                    col_thing->Draw.Mesh->Angle,
+                    x1, my_y1, z1,
+                    x2, y2, z2,
+                    radius,
+                    FALSE,
+                    FALSE)) {
+                ans = TRUE;
+            }
+
+            break;
+
+        case CLASS_VEHICLE:
+
+        {
+            SLONG prim;
+
+            if (p_thing->Genus.Person->InCar == THING_NUMBER(col_thing)) {
+                // Already in this car, skip.
+            } else {
+                prim = get_vehicle_body_prim(col_thing->Genus.Vehicle->Type);
+
+                if (slide_along_prim(
+                        prim,
+                        col_thing->WorldPos.X >> 8,
+                        col_thing->WorldPos.Y - get_vehicle_body_offset(col_thing->Genus.Vehicle->Type) >> 8,
+                        col_thing->WorldPos.Z >> 8,
+                        col_thing->Genus.Vehicle->Angle,
+                        x1, my_y1, z1,
+                        x2, y2, z2,
+                        radius,
+                        FALSE,
+                        FALSE)) {
+                    ans = TRUE;
+
+                    if (p_thing && p_thing->Class == CLASS_PERSON) {
+                        if (col_thing->Velocity > 200) {
+                            /*
+
+                            Thing *p_driver = get_vehicle_driver(col_thing);
+
+                            knock_person_down(
+                                    p_thing,
+                                    100 + (col_thing->Velocity >> 4),
+                                    col_thing->WorldPos.X >> 8,
+                                    col_thing->WorldPos.Z >> 8,
+                                    p_driver);
+
+                            MFX_play_thing(THING_NUMBER(p_thing),S_THUMP_SQUISH,MFX_REPLACE,p_thing);
+
+                            return;
+
+                            */
+
+                        } else {
+                            if (!p_thing->Genus.Person->PlayerID) {
+                                // NPC: steer away from vehicle.
+                                SLONG angle;
+                                SLONG dangle;
+
+                                angle = p_thing->Draw.Tweened->Angle;
+                                dangle = OB_avoid(
+                                    col_thing->WorldPos.X >> 8,
+                                    col_thing->WorldPos.Y >> 8,
+                                    col_thing->WorldPos.Z >> 8,
+                                    col_thing->Genus.Vehicle->Angle,
+                                    prim,
+                                    x1, z1,
+                                    *x2, *z2);
+
+                                angle += dangle * 160;
+                                angle &= 2047;
+
+                                p_thing->Draw.Tweened->Angle = angle;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        break;
+        case CLASS_PYRO:
+            switch (col_thing->Genus.Pyro->PyroType) {
+            case PYRO_BONFIRE:
+            case PYRO_FLICKER:
+                if (p_thing->Class == CLASS_PERSON) {
+                    if ((p_thing->Genus.Person->Flags & FLAG2_PERSON_INVULNERABLE) || (p_thing->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL)) {
+                        // Invulnerable or marked for player-kill: don't catch fire.
+                    } else {
+                        SLONG dist2;
+                        SLONG odx, ody, odz;
+
+                        {
+                            odx = abs((p_thing->WorldPos.X >> 8) - (col_thing->WorldPos.X >> 8));
+                            odz = abs((p_thing->WorldPos.Z >> 8) - (col_thing->WorldPos.Z >> 8));
+
+                            dist2 = QDIST2(odx, odz);
+
+                            if (p_thing->Genus.Person->pcom_ai == PCOM_AI_CIV || p_thing->Genus.Person->pcom_move == PCOM_MOVE_WANDER) {
+                                if (dist2 < 200) {
+                                    // Wandering civs flee instead of catching fire.
+                                    PCOM_set_person_ai_flee_place(
+                                        p_thing,
+                                        col_thing->WorldPos.X >> 8,
+                                        col_thing->WorldPos.Z >> 8);
+
+                                    return ans;
+                                }
+                            }
+
+                            if (dist2 < 100) {
+                                SLONG fx;
+                                SLONG fy;
+                                SLONG fz;
+
+                                calc_sub_objects_position(
+                                    p_thing,
+                                    p_thing->Draw.Tweened->AnimTween,
+                                    SUB_OBJECT_LEFT_FOOT,
+                                    &fx,
+                                    &fy,
+                                    &fz);
+
+                                fy += p_thing->WorldPos.Y >> 8;
+
+                                ody = abs(fy - (col_thing->WorldPos.Y >> 8));
+
+                                if (ody < 0x50) {
+                                    p_thing->Flags |= FLAGS_BURNING;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+
+        case CLASS_BAT:
+
+            if (col_thing->Genus.Bat->type == BAT_TYPE_BALROG) {
+                SLONG dy = col_thing->WorldPos.Y - my_y1 >> 8;
+
+                if (abs(dy) < 0x180) {
+                    SLONG dx = abs(col_thing->WorldPos.X - x1 >> 8);
+                    SLONG dz = abs(col_thing->WorldPos.Z - z1 >> 8);
+
+                    if (QDIST2(dx, dz) < 0x100) {
+                        if (p_thing->State != STATE_JUMPING && p_thing->State != STATE_DANGLING) {
+                            knock_person_down(
+                                p_thing,
+                                50,
+                                col_thing->WorldPos.X >> 8,
+                                col_thing->WorldPos.Z >> 8,
+                                col_thing);
+                        }
+                    }
+                }
+            }
+
+            break;
+
+        default:
+            ASSERT(0);
+            break;
+        }
+    }
+
+    return ans;
+}
+
+// uc_orig: drop_on_heads (fallen/Source/collide.cpp)
+// If p_thing is falling fast (DY < -15000), check if their left foot lands on
+// someone's head and kill that person.
+void drop_on_heads(Thing* p_thing)
+{
+    UBYTE i;
+    UBYTE col_with_upto;
+    UBYTE collide_or_not;
+    Thing* col_thing;
+    ULONG collide_types;
+    SLONG fx, fy, fz, hx, hy, hz;
+
+    if (p_thing->DY > -15000)
+        return;
+
+    collide_types = (1 << CLASS_PERSON);
+
+    calc_sub_objects_position(p_thing, p_thing->Draw.Tweened->AnimTween, SUB_OBJECT_LEFT_FOOT, &fx, &fy, &fz);
+    fx += p_thing->WorldPos.X >> 8;
+    fy += p_thing->WorldPos.Y >> 8;
+    fz += p_thing->WorldPos.Z >> 8;
+
+    col_with_upto = THING_find_sphere(
+        fx,
+        fy,
+        fz,
+        200,
+        col_with_things,
+        MAX_COL_WITH,
+        collide_types | (1 << 31));
+
+    ASSERT(col_with_upto <= MAX_COL_WITH);
+
+    for (i = 0; i < col_with_upto; i++) {
+        SLONG dx, dy, dz;
+        col_thing = TO_THING(col_with_things[i]);
+
+        ASSERT(col_thing->Class == CLASS_PERSON);
+
+        if (col_thing->State == STATE_DEAD || col_thing->State == STATE_DYING) {
+            continue;
+        }
+
+        if (col_thing != p_thing) {
+            if (col_thing->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) {
+                // Don't knock out invulnerable people.
+            } else {
+                if (people_allowed_to_hit_each_other(col_thing, p_thing))
+                    if (PCOM_person_a_hates_b(p_thing, col_thing)) {
+                        calc_sub_objects_position(col_thing, col_thing->Draw.Tweened->AnimTween, SUB_OBJECT_HEAD, &hx, &hy, &hz);
+                        hx += col_thing->WorldPos.X >> 8;
+                        hy += col_thing->WorldPos.Y >> 8;
+                        hz += col_thing->WorldPos.Z >> 8;
+
+                        dx = abs(fx - hx);
+                        dz = abs(fz - hz);
+
+                        if (QDIST2(dx, dz) < 100) {
+                            SLONG miny, maxy;
+
+                            miny = hy - (MAX(abs(p_thing->DY >> 8), 100) + 10);
+                            maxy = hy + MAX(abs(p_thing->DY >> 9), 100);
+
+                            if (fy > miny && fy < maxy) {
+                                if (col_thing->Genus.Person->PersonType == PERSON_MIB1 || col_thing->Genus.Person->PersonType == PERSON_MIB2 || col_thing->Genus.Person->PersonType == PERSON_MIB3) {
+                                    // MIBs are immune to head stomps: only notify AI.
+                                    PCOM_attack_happened(col_thing, p_thing);
+                                } else {
+                                    PCOM_attack_happened(col_thing, p_thing);
+
+                                    SLONG behind = (Random() & 0x1);
+
+                                    if (!is_there_room_behind_person(col_thing, behind)) {
+                                        behind = !behind;
+                                    }
+
+                                    set_person_dead(col_thing, p_thing, PERSON_DEATH_TYPE_STAY_ALIVE, behind, 3);
+                                }
+                            }
+                        }
+                    }
+            }
+        }
+    }
+}
+
+// uc_orig: move_thing (fallen/Source/collide.cpp)
+// Full physics move for a CLASS_PERSON thing. Applies collision against other things,
+// OB objects, wall slides, edge slides, face tracking, and fall-off detection.
+ULONG move_thing(
+    SLONG dx,
+    SLONG dy,
+    SLONG dz,
+    Thing* p_thing)
+{
+    SLONG col;
+    SLONG radius;
+    SLONG new_y;
+    SLONG new_face;
+    SLONG slid_odd;
+    SLONG fall_off_flag = 0;
+
+    extern SLONG yomp_speed;
+    extern SLONG sprint_speed;
+
+    GameCoord new_position;
+
+    ASSERT(abs(dx) >> 16 < 2);
+    ASSERT(abs(dz) >> 16 < 2);
+
+    if (!p_thing) {
+        MSG_add("ERROR: move_slidey_thing(NULL!)");
+        return 0;
+    }
+
+    ASSERT(WITHIN(p_thing, TO_THING(1), TO_THING(MAX_THINGS - 1)));
+    ASSERT(p_thing->Class == CLASS_PERSON);
+
+// uc_orig: THING_RADIUS (fallen/Source/collide.cpp)
+#define THING_RADIUS 128
+
+    radius = get_person_radius2(p_thing->Genus.Person->PersonType);
+
+    // HUG_WALL state uses a tighter radius to get closer to walls.
+    if (p_thing->State == STATE_HUG_WALL)
+        radius >>= 2;
+
+    // In the original, x1/y1/z1/x2/y2/z2 are file-scope globals; here made local.
+    SLONG x1 = p_thing->WorldPos.X;
+    SLONG my_y1 = p_thing->WorldPos.Y;
+    SLONG z1 = p_thing->WorldPos.Z;
+
+    SLONG x2 = x1 + dx;
+    SLONG y2 = my_y1 + dy;
+    SLONG z2 = z1 + dz;
+
+    if (x2 < 0 || x2 >= 128 << 16 || z2 < 0 || z2 >= 128 << 16) {
+        // Don't move off the edge of the map.
+        return (0);
+    }
+
+    /*
+    if(p_thing->Class==CLASS_PERSON)
+    {
+            if(p_thing->Genus.Person->PlayerID)
+            {
+extern	void	set_player_visited(UBYTE x,UBYTE z);
+                    set_player_visited(x2>>16,z2>>16);
+
+            }
+    }
+    */
+
+    if (x2 < 0 || z2 < 0 || (x2 >> 16) >= MAP_WIDTH || (z2 >> 16 >= MAP_WIDTH)) {
+        return (0);
+    }
+
+    slid_odd = FALSE;
+
+    // Collide with other things (persons, vehicles, furniture, etc.)
+    slid_odd |= collide_against_things(
+        p_thing,
+        radius,
+        x1, my_y1, z1,
+        &x2, &y2, &z2);
+    ASSERT(abs(x2 - x1) >> 16 < 2);
+    ASSERT(abs(z2 - z1) >> 16 < 2);
+
+    if (p_thing->State == STATE_DYING) {
+        // Died during thing collision (e.g. hit spike).
+        return 0;
+    }
+
+    // Collide with OB street objects (lamp-posts, bins, etc.)
+    slid_odd |= collide_against_objects(
+        p_thing,
+        radius,
+        x1, my_y1, z1,
+        &x2, &y2, &z2);
+    ASSERT(abs(x2 - x1) >> 16 < 2);
+    ASSERT(abs(z2 - z1) >> 16 < 2);
+
+    if (slid_odd) {
+        p_thing->Genus.Person->SlideOdd += 1;
+    } else {
+        p_thing->Genus.Person->SlideOdd = 0;
+    }
+
+    if (p_thing->OnFace) {
+
+        if (p_thing->OnFace > 0) {
+            if (prim_faces4[p_thing->OnFace].FaceFlags & FACE_FLAG_FIRE_ESCAPE) {
+                fall_off_flag |= FALL_OFF_FLAG_FIRE_ESCAPE;
+            }
+        }
+
+        {
+            SLONG saflag = 0;
+            if (p_thing->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
+                saflag |= SLIDE_ALONG_FLAG_CARRYING;
+            }
+
+            slide_along(
+                x1, my_y1, z1,
+                &x2, &y2, &z2,
+                SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT,
+                radius + 20,
+                saflag);
+        }
+
+        ASSERT(abs(x2 - x1) >> 16 < 2);
+        ASSERT(abs(z2 - z1) >> 16 < 2);
+
+        if (actual_sliding && p_thing->Velocity > yomp_speed) {
+            p_thing->Velocity = yomp_speed;
+            p_thing->Genus.Person->Mode = PERSON_MODE_RUN;
+        }
+
+        void slide_along_edges(SLONG face4, SLONG x1, SLONG z1, SLONG * x2, SLONG * z2);
+        void slide_along_edgesr(SLONG face4, SLONG x1, SLONG z1, SLONG * x2, SLONG * z2);
+
+        // Slide along face edges only in combat, for the player walking, or on fire escapes.
+        if (p_thing->State == STATE_CIRCLING || p_thing->SubState == SUB_STATE_STEP_FORWARD || ((p_thing->SubState == SUB_STATE_WALKING) && p_thing->Genus.Person->PlayerID) || (fall_off_flag & FALL_OFF_FLAG_FIRE_ESCAPE))
+        //		if(p_thing->State==STATE_CIRCLING || (p_thing->SubState==SUB_STATE_WALKING&&p_thing->Genus.Person->PlayerID)||(fall_off_flag&FALL_OFF_FLAG_FIRE_ESCAPE))
+        {
+            /*
+                                    if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS)
+                                    {
+                                            //
+                                            // But never when walking backwards...
+                                            //
+                                    }
+                                    else
+            */
+            {
+                if (p_thing->OnFace > 0) {
+                    slide_along_edges(p_thing->OnFace, x1, z1, &x2, &z2);
+                    ASSERT(abs(x2 - x1) >> 16 < 2);
+                    ASSERT(abs(z2 - z1) >> 16 < 2);
+                } else {
+                    slide_along_redges(-p_thing->OnFace, x1, z1, &x2, &z2);
+                    ASSERT(abs(x2 - x1) >> 16 < 2);
+                    ASSERT(abs(z2 - z1) >> 16 < 2);
+                }
+            }
+        }
+
+        if (is_thing_on_this_quad(x2 >> 8, z2 >> 8, p_thing->OnFace)) {
+            MSG_add(" still on same quad ");
+
+            if (actual_sliding) {
+                p_thing->Genus.Person->Flags |= FLAG_PERSON_HIT_WALL;
+            }
+        } else {
+            MSG_add(" NOT on same quad ");
+
+            new_face = find_face_for_this_pos(x2 >> 8, y2 >> 8, z2 >> 8, &new_y, 0, 0);
+
+            if (new_face == NULL) {
+                // Walked off a face.
+                fall_off_flag |= FALL_OFF_FLAG_TRUE;
+
+                if (p_thing->OnFace > 0 && (prim_faces4[p_thing->OnFace].FaceFlags & (FACE_FLAG_WMOVE | FACE_FLAG_PRIM))) {
+                    // Don't do this to crates.
+                    if (prim_faces4[p_thing->OnFace].FaceFlags & FACE_FLAG_PRIM) {
+                        SLONG ob_index = -prim_faces4[p_thing->OnFace].ThingIndex;
+
+                        ASSERT(WITHIN(ob_index, 1, OB_ob_upto - 1));
+
+                        if (OB_ob[ob_index].prim == 129) {
+                            // Don't pull up from this prim type.
+                            goto do_grab;
+                        }
+                    }
+
+                    fall_off_flag |= FALL_OFF_FLAG_DONT_GRAB;
+
+                do_grab:;
+                }
+
+                p_thing->OnFace = 0;
+            } else if (new_face == GRAB_FLOOR) {
+                // Stepped off face onto the ground floor.
+                p_thing->OnFace = 0;
+                fall_off_flag &= ~FALL_OFF_FLAG_TRUE;
+                y2 = new_y << 8;
+            } else {
+                if (actual_sliding) {
+                    p_thing->Genus.Person->Flags |= FLAG_PERSON_HIT_WALL;
+                }
+
+                if ((y2 >> 8) - new_y > 0x50) {
+                    // Long drop to the new face level.
+                    fall_off_flag |= FALL_OFF_FLAG_TRUE;
+
+                    if (p_thing->OnFace > 0 && prim_faces4[p_thing->OnFace].FaceFlags & FACE_FLAG_WMOVE) {
+                        fall_off_flag |= FALL_OFF_FLAG_DONT_GRAB;
+                    }
+                } else {
+                    // Short drop or small step up.
+                    y2 = new_y << 8;
+                }
+
+                p_thing->OnFace = new_face;
+            }
+        }
+    } else {
+        UWORD person_inside = 0, look_for_face = 0;
+        SLONG cd = 0;
+
+        /*
+
+        if(person_inside==0 || look_for_face)
+        {
+                new_face = find_face_for_this_pos(x2>>8, y2>>8, z2>>8, &new_y, 0,0); //ignore,0);
+        }
+        else
+        {
+                new_face=0;
+        }
+
+        if (new_face && (new_face!=GRAB_FLOOR))
+        {
+                ASSERT(abs(new_y - (y2 >> 8)) < 0x100);
+
+                p_thing->OnFace = new_face;
+
+                if( (y2>>8)-new_y > 0x50)
+                {
+                        // long drop
+                        fall_off_flag        |= FALL_OFF_FLAG_TRUE;
+                }
+                else
+                {
+                        // short drop or small step up
+                        y2=(new_y)<<8;  //+4?
+                }
+        }
+        else
+
+        */
+        {
+            SLONG ox2, oy2, oz2;
+
+            ox2 = x2;
+            oy2 = y2;
+            oz2 = z2;
+
+            {
+
+                SLONG saflag = 0;
+                if (p_thing->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
+                    saflag |= SLIDE_ALONG_FLAG_CARRYING;
+                }
+                /* this code is never true, as jumping people call slide along from projectile_move in darci.cpp.
+                                                if(p_thing->Genus.Person->PlayerID)
+                                                {
+                                                        if (p_thing->SubState               == SUB_STATE_RUNNING_JUMP||
+                                                                p_thing->SubState               == SUB_STATE_RUNNING_JUMP_FLY||
+                                                                p_thing->SubState               == SUB_STATE_FLYING_KICK||
+                                                                p_thing->SubState               == SUB_STATE_FLYING_KICK_FALL)
+                                                        {
+                                                                saflag |= SLIDE_ALONG_FLAG_JUMPING;
+                                                        }
+                                                }
+                */
+
+                col = slide_along(
+                    x1, my_y1, z1,
+                    &x2, &y2, &z2,
+                    SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT,
+                    radius + 20,
+                    saflag);
+
+                if (actual_sliding && p_thing->Velocity > yomp_speed) {
+                    p_thing->Velocity = yomp_speed;
+                    p_thing->Genus.Person->Mode = PERSON_MODE_RUN;
+                }
+
+                new_face = find_face_for_this_pos(x2 >> 8, y2 >> 8, z2 >> 8, &new_y, 0, 0);
+
+                if (new_face && (new_face != GRAB_FLOOR)) {
+                    p_thing->OnFace = new_face;
+
+                    if ((y2 >> 8) - new_y > 0x50) {
+                        // Long drop to the new face level.
+                        fall_off_flag |= FALL_OFF_FLAG_TRUE;
+                    } else {
+                        // Short drop or small step up.
+                        y2 = (new_y) << 8;
+                    }
+                }
+
+                /*
+
+
+                if(actual_sliding)
+                {
+                        SLONG	dx,dy,dz;
+                        SLONG	ax,ay,az;
+                        SLONG	len,r;
+
+                        dx=(ox2-x1)>>8;
+                        dy=(oy2-my_y1)>>8;
+                        dz=(oz2-z1)>>8;
+
+                        len=Root(dx*dx+dz*dz);
+                        if(len==0)
+                                len=1;
+
+                        r=last_slide_dist+15;
+
+
+                        radius+=25;
+
+                        dx=(dx*radius)/len;
+                        dz=(dz*radius)/len;
+
+                        ax=x2+(dx<<8);
+                        ay=y2; //+(dy<<8);
+                        az=z2+(dz<<8);
+
+                        new_face = find_face_for_this_pos(ax>>8, ay>>8, az>>8, &new_y, ignore_building);
+
+                        if(new_face && (new_face!=GRAB_FLOOR))
+                        {
+                                x2=ox2;
+                                y2=oy2;
+                                z2=oz2;
+                        }
+                        else
+                        {
+
+                                p_thing->Genus.Person->Flags|=FLAG_PERSON_HIT_WALL;
+
+                                if(col)
+                                {
+                                        slide_along(
+                                                x1,
+                                                my_y1,
+                                                z1,
+                                           &x2,
+                                           &y2,
+                                           &z2,
+                                            SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT,
+                                                radius+20);
+                                }
+                        }
+                }
+
+                */
+            }
+        }
+    }
+
+    if (fall_off_flag & FALL_OFF_FLAG_TRUE) {
+        // Workaround for fall-through-the-roof bug: add a fraction of original movement.
+        x2 += dx >> 2;
+        y2 += dy >> 2;
+        z2 += dz >> 2;
+    }
+
+    new_position.X = x2;
+    new_position.Y = y2;
+    new_position.Z = z2;
+
+    // Rustle up some leaves / debris.
+    DIRT_gust(
+        p_thing,
+        p_thing->WorldPos.X >> 8,
+        p_thing->WorldPos.Z >> 8,
+        new_position.X >> 8,
+        new_position.Z >> 8);
+
+    // Swirl the mist.
+    MIST_gust(
+        p_thing->WorldPos.X >> 8,
+        p_thing->WorldPos.Z >> 8,
+        new_position.X >> 8,
+        new_position.Z >> 8);
+
+    // Hit some barrels.
+    BARREL_hit_with_sphere(
+        p_thing->WorldPos.X >> 8,
+        p_thing->WorldPos.Y >> 8,
+        p_thing->WorldPos.Z >> 8,
+        0x50);
+
+    move_thing_on_map(p_thing, &new_position);
+
+    /*
+
+    if(slide_door)
+    {
+            if(slide_door<0)
+            {
+                    if(p_thing->Genus.Person->PlayerID)
+                    {
+                            INDOORS_INDEX=0;
+                            INDOORS_DBUILDING=0;
+                    }
+                    p_thing->Genus.Person->InsideIndex=0;
+                    p_thing->Genus.Person->InsideRoom=0;
+                    p_thing->OnFace=0;
+            }
+            else
+            {
+                    p_thing->Genus.Person->InsideIndex=slide_door;
+                    p_thing->Genus.Person->InsideRoom=find_inside_room(slide_door,new_position.X>>16,new_position.Z>>16);
+                    p_thing->OnFace=0;
+                    fall_off=0;
+                    if(p_thing->Genus.Person->PlayerID)
+                    {
+                            INDOORS_INDEX=slide_door;
+                            INDOORS_DBUILDING=inside_storeys[slide_door].Building;
+                            INDOORS_ROOM=p_thing->Genus.Person->InsideRoom&0xf;
+                    }
+            }
+    }
+
+    */
+
+    if (slide_into_warehouse) {
+        p_thing->Genus.Person->Flags |= FLAG_PERSON_WAREHOUSE;
+        p_thing->Genus.Person->Ware = dbuildings[slide_into_warehouse].Ware;
+
+        /*
+
+        if (p_thing->Genus.Person->PlayerID && !WARE_in)
+        {
+                WARE_enter(slide_into_warehouse);
+        }
+
+        */
+    }
+
+    if (slide_outof_warehouse) {
+        p_thing->Genus.Person->Flags &= ~FLAG_PERSON_WAREHOUSE;
+        p_thing->Genus.Person->Ware = 0;
+
+        /*
+
+        if (p_thing->Genus.Person->PlayerID && WARE_in)
+        {
+                WARE_exit();
+        }
+
+        */
+    }
+
+    // Update the person's inside-room index after movement.
+    if (p_thing->Genus.Person->InsideIndex) {
+        p_thing->Genus.Person->InsideRoom = find_inside_room(p_thing->Genus.Person->InsideIndex, new_position.X >> 16, new_position.Z >> 16);
+
+        if (p_thing->Genus.Person->PlayerID)
+            INDOORS_ROOM = p_thing->Genus.Person->InsideRoom;
+    }
+
+    if (p_thing->SubState != SUB_STATE_WALKING || p_thing->Genus.Person->PlayerID == 0)
+        if (p_thing->SubState != SUB_STATE_SLIPPING)
+            if (fall_off_flag & FALL_OFF_FLAG_TRUE) {
+                MSG_add(" fall off \n");
+
+                {
+                    SLONG flag = PERSON_DROP_DOWN_KEEP_VEL;
+
+                    if (fall_off_flag & FALL_OFF_FLAG_DONT_GRAB) {
+                        flag |= PERSON_DROP_DOWN_OFF_FACE;
+                    }
+
+                    set_person_drop_down(p_thing, flag);
+                }
+            }
+
+    return 0;
 }

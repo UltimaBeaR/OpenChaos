@@ -4511,6 +4511,8 @@ void slide_along_redges(
 
 */
 
+// Migrated to new/engine/physics/collide.cpp (chunk 4)
+#if 0
 // claude-ai: move_thing_quick() — телепортация объекта без коллизий.
 // claude-ai: Просто сдвигает WorldPos и обновляет позицию в MapWho-списках через move_thing_on_map().
 // claude-ai: Используется для ragdoll, катсцен, принудительного позиционирования.
@@ -5953,6 +5955,7 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
 
     return 0;
 }
+#endif // migrated: move_thing_quick, collide_against_objects, collide_against_things, drop_on_heads, move_thing
 
 //
 // Set when check_vector_against_mapsquare() returns TRUE.

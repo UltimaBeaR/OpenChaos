@@ -62099,6 +62099,116 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "move_thing_quick",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "move_thing_quick",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "collide_against_objects",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "collide_against_objects",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "collide_against_things",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "collide_against_things",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "drop_on_heads",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "drop_on_heads",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "move_thing",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "move_thing",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "col_with_things",
+      "file": "new/engine/physics/collide_globals.cpp",
+      "orig_name": "col_with_things",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAX_COL_WITH",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "MAX_COL_WITH",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FALL_OFF_FLAG_TRUE",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "FALL_OFF_FLAG_TRUE",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FALL_OFF_FLAG_FIRE_ESCAPE",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "FALL_OFF_FLAG_FIRE_ESCAPE",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FALL_OFF_FLAG_DONT_GRAB",
+      "file": "new/engine/physics/collide_globals.h",
+      "orig_name": "FALL_OFF_FLAG_DONT_GRAB",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "THING_RADIUS",
+      "file": "new/engine/physics/collide.cpp",
+      "orig_name": "THING_RADIUS",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

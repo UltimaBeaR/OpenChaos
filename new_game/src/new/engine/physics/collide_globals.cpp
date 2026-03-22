@@ -53,3 +53,6 @@ UBYTE slid_along_fence = 0;
 
 // uc_orig: fence_colvect (fallen/Source/collide.cpp)
 UWORD fence_colvect = 0;
+
+// uc_orig: col_with_things (fallen/Source/collide.cpp)
+THING_INDEX col_with_things[MAX_COL_WITH];

@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 109 — engine/physics/collide (чанк 4: move_thing_quick/collide_against_objects/collide_against_things/drop_on_heads/move_thing) (2026-03-22)
+
+- `fallen/Source/collide.cpp` чанк 4: lines 4514–5957 → `new/engine/physics/collide.cpp`.
+- Lines 4366–4512 (`slide_along_redges` v2) — в `/* */`, мёртвый код, пропущен.
+- Новые временные includes: `prim.h` (slide_along_prim, prim_get_collision_model, get_prim_info, PRIM_OBJ_SPIKE, PRIM_COLLIDE_*, FACE_FLAG_*), `world/map/ob.h` + `ob_globals.h` (OB_find, OB_avoid, OB_ob, OB_ob_upto), `actors/vehicles/vehicle.h`, `ai/pcom.h` + `combat.h`, `world/navigation/inside2.h`, `actors/items/barrel.h`, `effects/mist.h`, `fallen/Headers/dirt.h`.
+- Глобальный `x1, my_y1, z1, x2, y2, z2` из old collide.cpp (line 5273–5274) — стали локальными переменными в `move_thing` (так же работает, т.к. используются только в move_thing).
+- `col_with_things[]` + `MAX_COL_WITH` → collide_globals; `FALL_OFF_FLAG_*` → collide_globals.h (нужны снаружи).
+- `collide_with_circle` — forward decl в collide.cpp, определение в old/collide.cpp (chunk 6+).
+
+---
+
 ## Итерация 108 — engine/physics/collide (чанк 3: slide_along/cross_door/bump_person/slide_along_edges/redges) (2026-03-22)
 
 - `fallen/Source/collide.cpp` чанк 3: lines 3174–4370 → `new/engine/physics/collide.cpp`.

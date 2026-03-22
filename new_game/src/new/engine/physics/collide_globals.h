@@ -84,4 +84,32 @@ extern UBYTE slid_along_fence;
 // Index of the fence facet that was last slid along.
 extern UWORD fence_colvect;
 
+// ========================================================================
+// collide_against_things scratch buffer (chunk 4)
+// ========================================================================
+
+// uc_orig: MAX_COL_WITH (fallen/Source/collide.cpp)
+// Maximum number of Things that collide_against_things inspects per frame.
+#define MAX_COL_WITH 16
+
+// uc_orig: col_with_things (fallen/Source/collide.cpp)
+// Scratch buffer for THING_find_sphere results in collide_against_things / drop_on_heads.
+extern THING_INDEX col_with_things[MAX_COL_WITH];
+
+// ========================================================================
+// Fall-off flags (chunk 4)
+// ========================================================================
+
+// uc_orig: FALL_OFF_FLAG_TRUE (fallen/Source/collide.cpp)
+// Set when move_thing determines the person has walked off a face edge.
+#define FALL_OFF_FLAG_TRUE      (1 << 0)
+
+// uc_orig: FALL_OFF_FLAG_FIRE_ESCAPE (fallen/Source/collide.cpp)
+// Set when the person is walking on a fire-escape face (affects fall-off behaviour).
+#define FALL_OFF_FLAG_FIRE_ESCAPE (1 << 1)
+
+// uc_orig: FALL_OFF_FLAG_DONT_GRAB (fallen/Source/collide.cpp)
+// Suppresses ledge-grab when falling off a WMOVE or special prim face.
+#define FALL_OFF_FLAG_DONT_GRAB (1 << 2)
+
 #endif // ENGINE_PHYSICS_COLLIDE_GLOBALS_H

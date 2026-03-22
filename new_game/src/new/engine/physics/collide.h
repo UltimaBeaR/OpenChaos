@@ -243,4 +243,38 @@ void slide_along_edges(SLONG face4, SLONG x1, SLONG z1, SLONG* x2, SLONG* z2);
 // MAV height transitions (for hidden flat-terrain roof faces).
 void slide_along_redges(SLONG face4, SLONG x1, SLONG z1, SLONG* x2, SLONG* z2);
 
+// ========================================================================
+// High-level movement functions (chunk 4)
+// ========================================================================
+
+// uc_orig: move_thing_quick (fallen/Source/collide.cpp)
+// Teleports a thing by (dx,dy,dz) without any collision detection.
+// Updates MapWho lists via move_thing_on_map. Used for ragdoll and cutscenes.
+ULONG move_thing_quick(SLONG dx, SLONG dy, SLONG dz, Thing* p_thing);
+
+// uc_orig: collide_against_objects (fallen/Source/collide.cpp)
+// Slides (x2,y2,z2) against all OB-placed objects (street furniture: lamps, bins, etc.)
+// within a 3-cell radius of x2/z2. Returns TRUE if any collision occurred.
+SLONG collide_against_objects(
+    Thing* p_thing, SLONG radius,
+    SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG* x2, SLONG* y2, SLONG* z2);
+
+// uc_orig: collide_against_things (fallen/Source/collide.cpp)
+// Slides (x2,y2,z2) against nearby Things (persons, vehicles, furniture, pyro, bats).
+// Returns TRUE if any collision occurred.
+SLONG collide_against_things(
+    Thing* p_thing, SLONG radius,
+    SLONG x1, SLONG my_y1, SLONG z1,
+    SLONG* x2, SLONG* y2, SLONG* z2);
+
+// uc_orig: drop_on_heads (fallen/Source/collide.cpp)
+// Checks if p_thing is falling fast enough onto another person's head and kills them.
+void drop_on_heads(Thing* p_thing);
+
+// uc_orig: move_thing (fallen/Source/collide.cpp)
+// Moves a CLASS_PERSON thing by (dx,dy,dz) with full collision detection:
+// Things, OB objects, wall slide, edge slide, face tracking, and fall-off detection.
+ULONG move_thing(SLONG dx, SLONG dy, SLONG dz, Thing* p_thing);
+
 #endif // ENGINE_PHYSICS_COLLIDE_H
