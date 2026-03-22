@@ -591,4 +591,107 @@ SLONG along_middle_of_facet(Thing* p_person, SLONG col);
 // uc_orig: set_person_pos_for_fence_vault (fallen/Source/Person.cpp)
 SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col);
 
+// --- chunk 7 declarations ---
+
+// Positions person relative to a fence facet at standoff req_dist.
+// Returns 0 on success, 1 if not possible.
+// uc_orig: set_person_pos_for_fence (fallen/Source/Person.cpp)
+SLONG set_person_pos_for_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG req_dist);
+
+// Positions person against a half-step facet; returns 1 on success, 0 otherwise.
+// uc_orig: set_person_pos_for_half_step (fallen/Source/Person.cpp)
+SLONG set_person_pos_for_half_step(Thing* p_person, SLONG col);
+
+// Returns true if facet is a short (height==2, blockheight==16) vaultable fence.
+// uc_orig: is_facet_vaultable (fallen/Source/Person.cpp)
+SLONG is_facet_vaultable(SLONG facet);
+
+// Returns true if facet is a short normal-type step (height*blockheight*4 == 128).
+// uc_orig: is_facet_half_step (fallen/Source/Person.cpp)
+SLONG is_facet_half_step(SLONG facet);
+
+// Attempts to land person on a fence facet (vault or grab).
+// uc_orig: set_person_land_on_fence (fallen/Source/Person.cpp)
+SLONG set_person_land_on_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG while_walking);
+
+// Positions person against wall for a wall-kick attack.
+// uc_orig: set_person_kick_off_wall (fallen/Source/Person.cpp)
+SLONG set_person_kick_off_wall(Thing* p_person, SLONG col, SLONG set_pos);
+
+// Switches person to fight mode against their gang attacker if any.
+// uc_orig: fight_any_gang_attacker (fallen/Source/Person.cpp)
+SLONG fight_any_gang_attacker(Thing* p_person);
+
+// Finds the best KO'd arrest candidate within 0x280 units.
+// uc_orig: find_arrestee (fallen/Source/Person.cpp)
+UWORD find_arrestee(Thing* p_person);
+
+// Finds the nearest dead person within 256 units.
+// uc_orig: find_corpse (fallen/Source/Person.cpp)
+UWORD find_corpse(Thing* p_person);
+
+// Arrests s_index and shows the HUD message.
+// uc_orig: perform_arrest (fallen/Source/Person.cpp)
+UWORD perform_arrest(Thing* p_person, UWORD s_index);
+
+// STATE_SEARCH state machine (prim search / corpse looting).
+// uc_orig: fn_person_search (fallen/Source/Person.cpp)
+void fn_person_search(Thing* p_person);
+
+// Picks a random idle animation appropriate for the person's type.
+// uc_orig: set_person_random_idle (fallen/Source/Person.cpp)
+void set_person_random_idle(Thing* p_person);
+
+// STATE_IDLE state machine.
+// uc_orig: fn_person_idle (fallen/Source/Person.cpp)
+void fn_person_idle(Thing* p_person);
+
+// Puts person in the driver's seat of a car.
+// uc_orig: set_person_in_vehicle (fallen/Source/Person.cpp)
+void set_person_in_vehicle(Thing* p_person, Thing* p_car);
+
+// Removes person from their current vehicle.
+// uc_orig: set_person_out_of_vehicle (fallen/Source/Person.cpp)
+void set_person_out_of_vehicle(Thing* p_person);
+
+// Switches animation keeping a limb locked in world-space position.
+// uc_orig: locked_anim_change (fallen/Source/Person.cpp)
+void locked_anim_change(Thing* p_person, UWORD locked_object, UWORD anim, SLONG dangle = 0);
+
+// Variant of locked_anim_change using a specific animation type bank.
+// uc_orig: locked_anim_change_of_type (fallen/Source/Person.cpp)
+void locked_anim_change_of_type(Thing* p_person, UWORD locked_object, UWORD anim, SLONG type);
+
+// Variant of locked_anim_change_of_type that only adjusts Y (height).
+// uc_orig: locked_anim_change_height_type (fallen/Source/Person.cpp)
+void locked_anim_change_height_type(Thing* p_person, UWORD locked_object, UWORD anim, SLONG type);
+
+// Adjusts person Y so that limb obj is at world height y.
+// uc_orig: set_limb_to_y (fallen/Source/Person.cpp)
+SLONG set_limb_to_y(Thing* p_person, SLONG obj, SLONG y);
+
+// Switches to queued_frame while locking a limb in world-space.
+// uc_orig: locked_next_anim_change (fallen/Source/Person.cpp)
+void locked_next_anim_change(Thing* p_person, UWORD locked_object, GameKeyFrame* queued_frame);
+
+// Jumps to the last frame of an animation (typed bank) while locking a limb.
+// uc_orig: locked_anim_change_end_type (fallen/Source/Person.cpp)
+void locked_anim_change_end_type(Thing* p_person, UWORD locked_object, UWORD anim, SLONG type);
+
+// Jumps to the last frame of an animation (own AnimType) while locking a limb.
+// uc_orig: locked_anim_change_end (fallen/Source/Person.cpp)
+void locked_anim_change_end(Thing* p_person, UWORD locked_object, UWORD anim);
+
+// Returns the downhill slope ratio of a cable facet (dy/len * 256).
+// uc_orig: steep_cable (fallen/Source/Person.cpp)
+SLONG steep_cable(SLONG facet);
+
+// Sets person's angle to face downhill along a cable.
+// uc_orig: face_down_cable (fallen/Source/Person.cpp)
+void face_down_cable(Thing* p_person, SLONG facet);
+
+// Returns the cable's angle closest to person's current facing (0-2047).
+// uc_orig: find_best_cable_angle (fallen/Source/Person.cpp)
+SLONG find_best_cable_angle(Thing* p_person, SLONG facet);
+
 #endif // ACTORS_CHARACTERS_PERSON_H

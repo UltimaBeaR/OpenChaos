@@ -97,7 +97,7 @@ extern SLONG sprint_speed;
 // find_face_for_this_pos declared via fallen/Headers/walkable.h above
 extern void add_thing_to_map(Thing* p_thing);
 extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
-extern void locked_anim_change(Thing* p_person, UWORD locked_object, UWORD anim, SLONG dangle);
+// locked_anim_change / locked_anim_change_of_type: now defined in person.cpp chunk 7 (below)
 extern SLONG get_cable_along(SLONG facet, SLONG ax, SLONG az);
 extern SWORD people_types[50];
 extern void do_person_on_cable(Thing* p_person);
@@ -107,7 +107,6 @@ extern SLONG might_i_be_a_villain(Thing* p_person);
 extern SLONG person_holding_bat(Thing* p_person);
 // chunk 5 additional externs (Person.cpp later chunks or other files not yet migrated)
 extern void get_car_enter_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz);
-extern void locked_anim_change_of_type(Thing* p_person, UWORD locked_object, UWORD anim, SLONG type);
 extern SLONG find_best_grapple(Thing* p_person);
 extern UWORD PCOM_person_wants_to_kill(Thing* p_person);
 extern SLONG continue_moveing(Thing* p_person); // interfac.cpp
@@ -1177,9 +1176,8 @@ void person_death_slide(Thing* p_person)
 
 // External helpers not yet migrated or declared in other new/ headers.
 // emergency_uncarry is defined in chunk 5 (below)
-extern SLONG fight_any_gang_attacker(Thing* p_person);                           // Person.cpp (later chunk)
-extern SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col);         // Person.cpp (later chunk)
-extern SLONG set_person_pos_for_half_step(Thing* p_person, SLONG col);           // Person.cpp (later chunk)
+// fight_any_gang_attacker / set_person_pos_for_fence_vault / set_person_pos_for_half_step:
+// now defined in person.cpp chunk 7 (below); declared in person.h
 extern SLONG remove_from_gang_attack(Thing* p_person, Thing* p_target);          // pcom.cpp (migrated)
 extern UWORD count_gang(Thing* p_target);                                         // pcom.cpp (migrated)
 extern UWORD find_target_from_gang(Thing* p_target);                             // pcom.cpp (migrated)
@@ -6690,5 +6688,1170 @@ SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col)
     }
 
     return (1);
+}
+
+// --- chunk 7: set_person_pos_for_fence..find_best_cable_angle ---
+
+// Positions person relative to a fence facet at the specified standoff distance.
+// Checks facing, nogo zone in front, and hand height vs fence bounds.
+// Returns 0 on success (person repositioned), 1 if not possible.
+// uc_orig: set_person_pos_for_fence (fallen/Source/Person.cpp)
+SLONG set_person_pos_for_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG req_dist)
+{
+    SLONG mdx, mdz, dx, dz, len, dist;
+    SLONG near_x, near_z;
+    SLONG wx, wy, wz;
+    SLONG angle;
+    GameCoord new_position;
+    SLONG on, norm_x, norm_z;
+    struct DFacet* p_facet;
+
+    p_facet = &dfacets[col];
+
+    dx = p_facet->x[1] - p_facet->x[0] << 8;
+    dz = p_facet->z[1] - p_facet->z[0] << 8;
+
+    mdx = abs(dx);
+    mdz = abs(dz);
+
+    {
+        angle = Arctan(-mdx, mdz) + 1024 + 512;
+        if (angle < 0)
+            angle = 2048 + angle;
+        angle = angle & 2047;
+
+        SLONG da = angle - p_person->Draw.Tweened->Angle;
+
+        if ((abs(da) > 112 && abs(da) < 1024 - 112) || (abs(da) > 1024 + 112 && abs(da) < 2048 - 112))
+            return (1);
+
+        if (abs(da) > 512 && abs(da) < 2048 - 512) {
+            angle += 1024;
+            angle &= 2047;
+        }
+
+        MSG_add(" SET LAND ON FENCE angle %d person angle %d  \n", angle, p_person->Draw.Tweened->Angle);
+    }
+
+    // Check that there is no nogo zone in front of the person.
+    {
+        SLONG dax = -SIN(angle);
+        SLONG daz = -COS(angle);
+
+        SLONG mx = p_person->WorldPos.X + dax >> 16;
+        SLONG mz = p_person->WorldPos.Z + daz >> 16;
+
+        if (!WITHIN(mx, 0, PAP_SIZE_HI - 1) || !WITHIN(mz, 0, PAP_SIZE_HI - 1)) {
+            return 1;
+        }
+
+        if (PAP_2HI(mx, mz).Flags & PAP_FLAG_NOGO) {
+            return 1;
+        }
+    }
+
+    // Check if person can actually grab the fence (their hands must be in range).
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, 0, &wx, &wy, &wz);
+
+    wx += p_person->WorldPos.X >> 8;
+    wy += p_person->WorldPos.Y >> 8;
+    wz += p_person->WorldPos.Z >> 8;
+
+    {
+        SLONG fence_top = get_fence_top(wx, wz, col);
+        SLONG fence_bottom = get_fence_bottom(wx, wz, col);
+
+        if (WITHIN(wy, fence_bottom + 64, fence_top - 64)) {
+            // Okay to grab.
+        } else {
+            // Wrong y-position to grab fence.
+            return 1;
+        }
+    }
+
+    // Check the person is positioned along the middle of the fence facet.
+    signed_dist_to_line_with_normal(
+        p_facet->x[0] << 8, p_facet->z[0] << 8,
+        p_facet->x[1] << 8, p_facet->z[1] << 8,
+        wx, wz,
+        &dist,
+        &norm_x,
+        &norm_z,
+        &on);
+
+    if (!on)
+        return (1);
+
+    // Commit angle and position.
+    p_person->Draw.Tweened->Angle = angle;
+
+    {
+        SLONG len;
+        SLONG adx, adz;
+        if (dist < 0) {
+            norm_x = -norm_x;
+            norm_z = -norm_z;
+        }
+        dist = abs(dist);
+
+        adx = abs(norm_x);
+        adz = abs(norm_z);
+
+        len = QDIST2(adx, adz);
+        if (len == 0)
+            len = 1;
+
+        mdx = ((norm_x * (req_dist - dist)) << 8) / len;
+        mdz = ((norm_z * (req_dist - dist)) << 8) / len;
+
+        new_position.X = p_person->WorldPos.X + (mdx);
+        new_position.Z = p_person->WorldPos.Z + (mdz);
+
+        new_position.Y = p_person->WorldPos.Y;
+        move_thing_on_map(p_person, &new_position);
+    }
+
+    return (0);
+}
+
+// Positions person against a short wall step (half-step facet) using the signed
+// distance to that facet's line. Returns 1 if repositioning succeeded, 0 otherwise.
+// uc_orig: set_person_pos_for_half_step (fallen/Source/Person.cpp)
+SLONG set_person_pos_for_half_step(Thing* p_person, SLONG col)
+{
+    SLONG dx, dz;
+    SLONG wall_angle;
+    struct DFacet* p_facet;
+    p_facet = &dfacets[col];
+    SLONG on, norm_x, norm_z;
+
+    SLONG wx, wy, wz;
+
+    if (am_i_facing_wall(p_person, col, &wall_angle)) {
+        SLONG dist, angle, wy;
+        SLONG mx, my, mz;
+
+        wx = p_person->WorldPos.X >> 8;
+        wy = p_person->WorldPos.Y >> 8;
+        wz = p_person->WorldPos.Z >> 8;
+
+        dx = -(SIN(wall_angle)) >> 9;
+        dz = -(COS(wall_angle)) >> 9;
+
+        mx = (wx + dx) >> 8;
+        mz = (wz + dz) >> 8;
+
+        if (p_person->Genus.Person->Ware) {
+            // Would this take Darci out of her warehouse?
+            if (!WARE_in_floorplan(p_person->Genus.Person->Ware, mx, mz)) {
+                return 0;
+            }
+
+            my = WARE_calc_height_at(p_person->Genus.Person->Ware, (mx << 8) + 0x80, (mz << 8) + 0x80);
+        } else {
+            my = MAVHEIGHT(mx, mz) << 6;
+        }
+
+        if (wy < my - 196 || wy > my - 64)
+            return (0);
+
+        signed_dist_to_line_with_normal(
+            p_facet->x[0] << 8, p_facet->z[0] << 8,
+            p_facet->x[1] << 8, p_facet->z[1] << 8,
+            wx, wz,
+            &dist,
+            &norm_x,
+            &norm_z,
+            &on);
+
+        if (!on)
+            return (0);
+
+        {
+            SLONG ax1;
+            SLONG az1;
+            SLONG ax2;
+            SLONG az2;
+
+            if (p_facet->x[0] == p_facet->x[1]) {
+                ax1 = p_facet->x[0] << 8;
+                ax2 = p_facet->x[0] << 8;
+
+                az1 = wz & ~0xff;
+                az2 = az1 + 256;
+            } else {
+                ax1 = wx & ~0xff;
+                ax2 = ax1 + 256;
+
+                az1 = p_facet->z[0] << 8;
+                az2 = p_facet->z[0] << 8;
+            }
+
+            // If there is a fence lying along this facet, can't step up through it.
+            if (does_fence_lie_along_line(
+                    ax1, az1,
+                    ax2, az2)) {
+                return FALSE;
+            }
+        }
+
+        if (abs(dist) < 60) {
+            dist = abs(dist);
+            p_person->Draw.Tweened->Angle = wall_angle;
+            angle = (p_person->Draw.Tweened->Angle) & 2047;
+
+            dx = (SIN(angle) * (40 - dist)) >> 8;
+            dz = (COS(angle) * (40 - dist)) >> 8;
+            person_normal_move_dxdz(p_person, dx, dz);
+            return (1);
+        }
+    }
+    return (0);
+}
+
+// Returns true if the given facet is a short (height==2, blockheight==16) vaultable fence.
+// Original was declared inline; made non-inline so it can be forward-declared in old/Person.cpp.
+// uc_orig: is_facet_vaultable (fallen/Source/Person.cpp)
+SLONG is_facet_vaultable(SLONG facet)
+{
+    struct DFacet* p_facet;
+
+    p_facet = &dfacets[facet];
+    if (p_facet->FacetType == STOREY_TYPE_FENCE || p_facet->FacetType == STOREY_TYPE_FENCE_FLAT)
+        if (p_facet->Height == 2)
+            if (p_facet->BlockHeight == 16) {
+                return (1);
+            }
+
+    return (0);
+}
+
+// Returns true if the given facet is a short normal-type step (height*blockheight*4 == 128).
+// Original was declared inline; made non-inline so it can be forward-declared in old/Person.cpp.
+// uc_orig: is_facet_half_step (fallen/Source/Person.cpp)
+SLONG is_facet_half_step(SLONG facet)
+{
+    struct DFacet* p_facet;
+
+    p_facet = &dfacets[facet];
+
+    if (p_facet->FacetType == STOREY_TYPE_NORMAL)
+        if ((p_facet->Height * p_facet->BlockHeight << 2) == 128) {
+            return (1);
+        }
+
+    return (0);
+}
+
+// Attempts to land the person onto a fence at facet col.
+// If the fence is vaultable and while_walking==0, tries a vault first.
+// Returns 1 on success (person attached to fence), 0 if not possible.
+// uc_orig: set_person_land_on_fence (fallen/Source/Person.cpp)
+SLONG set_person_land_on_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG while_walking)
+{
+    SLONG ret;
+    SLONG dist = 45;
+
+    SLONG wall_angle;
+
+    if (!am_i_facing_wall(p_person, col, &wall_angle, 256)) {
+        return (0);
+    }
+
+    if (p_person->Genus.Person->PersonType == PERSON_ROPER)
+        dist = 60;
+
+    MSG_add(" set person land on fence");
+
+    if (while_walking == 0)
+        if (is_facet_vaultable(col)) {
+            if (set_person_vault(p_person, col)) {
+                return 1;
+            }
+        }
+
+    // Leave fight mode when grabbing a fence.
+    p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+
+    if (ret = set_person_pos_for_fence(p_person, col, set_pos, dist)) {
+        switch (ret) {
+        case 1:
+            // Hands above fence — can't grab. Original has unreachable code after return here.
+            return (0);
+            if (while_walking == 0)
+                set_person_drop_down(p_person, PERSON_DROP_DOWN_KEEP_VEL | PERSON_DROP_DOWN_KEEP_DY);
+            p_person->Velocity = 1;
+            break;
+        }
+        return (1);
+    }
+    set_generic_person_state_function(p_person, STATE_CLIMBING);
+    p_person->SubState = SUB_STATE_CLIMB_LANDING;
+    queue_anim(p_person, ANIM_LAND_ON_FENCE);
+    p_person->Genus.Person->Action = ACTION_CLIMBING;
+    p_person->Draw.Tweened->Locked = 0;
+    p_person->Velocity = 0;
+    p_person->DeltaVelocity = -2;
+    p_person->DY = 0;
+    p_person->Genus.Person->OnFacet = col;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
+    return (1);
+}
+
+// Positions person for a wall kick (pressing against wall col at dist=100/110 for Roper).
+// Returns 1 on success, 0 if not possible.
+// uc_orig: set_person_kick_off_wall (fallen/Source/Person.cpp)
+SLONG set_person_kick_off_wall(Thing* p_person, SLONG col, SLONG set_pos)
+{
+    SLONG dist = 100;
+    MSG_add(" set person land on fence");
+    if (p_person->Genus.Person->PersonType == PERSON_ROPER)
+        dist = 110;
+
+    if (set_person_pos_for_fence(p_person, col, set_pos, dist) == -1)
+        return (0);
+    set_generic_person_state_function(p_person, STATE_FIGHTING);
+    p_person->SubState = SUB_STATE_WALL_KICK;
+    queue_anim(p_person, ANIM_WALL_KICK);
+
+    p_person->Genus.Person->Action = ACTION_FIGHT_KICK;
+    p_person->Draw.Tweened->Locked = 0;
+    p_person->Velocity = 0;
+    p_person->DeltaVelocity = 0;
+    p_person->DY = 0;
+    return (1);
+}
+
+// If this person has a gang attacker, switches them to fight mode targeting that attacker.
+// uc_orig: fight_any_gang_attacker (fallen/Source/Person.cpp)
+SLONG fight_any_gang_attacker(Thing* p_person)
+{
+    if (p_person->SubState != SUB_STATE_IDLE_CROUTCH_ARREST)
+        if (p_person->Genus.Person->GangAttack) {
+            UWORD attacker;
+            if (attacker = get_any_gang_member(p_person)) {
+                ASSERT(TO_THING(attacker)->Class == CLASS_PERSON);
+                ASSERT(TO_THING(attacker)->State != STATE_DEAD);
+                p_person->Genus.Person->Target = attacker;
+                if (p_person->Genus.Person->Mode != PERSON_MODE_FIGHT) {
+                    person_enter_fight_mode(p_person);
+                    set_anim(p_person, ANIM_FIGHT_READY);
+                }
+            }
+        }
+
+    return (0);
+}
+
+// Finds a knocked-out target within 0x280 units suitable for arrest.
+// Scores candidates by distance/type; returns thing index or 0 if none.
+// uc_orig: find_arrestee (fallen/Source/Person.cpp)
+UWORD find_arrestee(Thing* p_person)
+{
+    SLONG i;
+    SLONG dist;
+    SLONG score;
+    SLONG best_score;
+    SLONG best_answer;
+
+    best_score = 0;
+    best_answer = NULL;
+
+    extern THING_INDEX col_with[];
+
+    SLONG col_with_upto = THING_find_sphere(
+        p_person->WorldPos.X >> 8,
+        p_person->WorldPos.Y >> 8,
+        p_person->WorldPos.Z >> 8,
+        0x280,
+        col_with,
+        MAX_COL_WITH,
+        1 << CLASS_PERSON);
+
+    for (i = 0; i < col_with_upto; i++) {
+        Thing* p_found = TO_THING(col_with[i]);
+
+        if (p_found->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) {
+            // You can't arrest invulnerable people, except FIGHT_TEST dummies.
+            if (p_found->Genus.Person->pcom_ai != PCOM_AI_FIGHT_TEST) {
+                continue;
+            }
+        }
+
+        dist = dist_to_target_pelvis(p_person, p_found);
+        score = 0;
+
+        if (dist < 128) {
+            if (is_person_ko_and_lay_down(p_found)) {
+                score = 500 - dist;
+
+                if (p_found->Genus.Person->PersonType == PERSON_MIB1 || p_found->Genus.Person->PersonType == PERSON_MIB2 || p_found->Genus.Person->PersonType == PERSON_MIB3) {
+                    score = 0;
+                }
+
+                if (p_found->Genus.Person->PersonType == PERSON_COP) {
+                    if (!(p_found->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)) {
+                        // Can't arrest innocent cops.
+                        score = 0;
+                    }
+                }
+
+                if (p_found->Genus.Person->PersonType == PERSON_ROPER || p_found->Genus.Person->PersonType == PERSON_HOSTAGE) {
+                    score -= 250;
+                }
+
+                if (p_found->Genus.Person->pcom_ai == PCOM_AI_BODYGUARD && EWAY_get_person(p_found->Genus.Person->pcom_ai_other) == THING_NUMBER(p_person)) {
+                    // Don't arrest your own bodyguards!
+                    score = 0;
+                }
+
+            } else if (p_found->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST) {
+                if (p_found->State == STATE_DEAD && p_found->SubState == SUB_STATE_DEAD_INJURED) {
+                    score = 500 - dist;
+                }
+            }
+        }
+
+        if (score > 0) {
+            if (best_score < score) {
+                best_score = score;
+                best_answer = col_with[i];
+            }
+        }
+    }
+
+    return best_answer;
+}
+
+// Finds the nearest dead (STATE_DEAD, SUB_STATE_DEAD_INJURED) person within 256 units.
+// uc_orig: find_corpse (fallen/Source/Person.cpp)
+UWORD find_corpse(Thing* p_person)
+{
+    UWORD s_index;
+    Thing* p_target;
+    extern SLONG THING_find_nearest_person(Thing * p_person, SLONG radius, ULONG classes);
+    s_index = THING_find_nearest_person(p_person, 256, 1 << CLASS_PERSON);
+
+    if (s_index) {
+        p_target = TO_THING(s_index);
+
+        if (dist_to_target_pelvis(p_person, p_target) < 128 && p_target->State == STATE_DEAD && p_target->SubState == SUB_STATE_DEAD_INJURED)
+        {
+            return (s_index);
+        }
+    }
+
+    return (0);
+}
+
+// Executes the arrest of s_index; displays the arrested HUD message.
+// Returns 1 on success.
+// uc_orig: perform_arrest (fallen/Source/Person.cpp)
+UWORD perform_arrest(Thing* p_person, UWORD s_index)
+{
+    Thing* p_target;
+
+    p_target = TO_THING(s_index);
+
+    if (s_index) {
+        PANEL_new_info_message(XLAT_str(X_ARRESTED));
+
+        return (1);
+    }
+    return (0);
+}
+
+// Forward decl — defined in interfac.cpp, only referenced in a commented-out block below.
+void lock_to_compass(Thing* p_thing);
+
+// STATE_SEARCH state machine: handles prim search and corpse looting animations.
+// uc_orig: fn_person_search (fallen/Source/Person.cpp)
+void fn_person_search(Thing* p_person)
+{
+    UWORD last_timer;
+
+    switch (p_person->SubState) {
+    case SUB_STATE_SEARCH_PRIM:
+    case SUB_STATE_SEARCH_CORPSE:
+
+        person_normal_animate(p_person);
+
+        if (!continue_pressing_action(p_person)) {
+            MFX_stop(THING_NUMBER(p_person), S_SEARCH_END);
+
+            if (p_person->SubState == SUB_STATE_SEARCH_CORPSE) {
+                set_anim(p_person, ANIM_CROUTCH_GETUP);
+                p_person->SubState = SUB_STATE_SEARCH_GETUP;
+            } else {
+                set_person_idle(p_person);
+            }
+
+            return;
+        }
+
+        last_timer = p_person->Genus.Person->Timer1;
+
+        p_person->Genus.Person->Timer1 += 400 * TICK_RATIO >> TICK_SHIFT;
+
+        if (p_person->Genus.Person->Timer1 >= (125 << 8)) // Stays at 100 for a while!
+        {
+            set_action_used(p_person);
+            set_person_idle(p_person);
+
+            return;
+        }
+
+        if (last_timer < (100 << 8) && p_person->Genus.Person->Timer1 >= (100 << 8)) {
+            release_searched_item(p_person);
+
+            if (p_person->SubState == SUB_STATE_SEARCH_CORPSE) {
+                set_anim(p_person, ANIM_CROUTCH_GETUP);
+                p_person->SubState = SUB_STATE_SEARCH_GETUP;
+                p_person->Genus.Person->Target = 0;
+            }
+        }
+
+        break;
+
+    case SUB_STATE_SEARCH_GETUP:
+
+    {
+        SLONG end = person_normal_animate(p_person);
+
+        if (end) {
+            set_action_used(p_person);
+            set_person_idle(p_person);
+        }
+    }
+
+    break;
+    }
+}
+
+// Picks a random idle animation for the person based on their type,
+// and resets Timer1 to a random delay before the next idle.
+// uc_orig: set_person_random_idle (fallen/Source/Person.cpp)
+void set_person_random_idle(Thing* p_person)
+{
+    SLONG anim = Random();
+
+    if (person_holding_2handed(p_person)) {
+        queue_anim(p_person, anim);
+    }
+
+    p_person->Genus.Person->Timer1 = (Random() & 0xff) + 400;
+
+    switch (p_person->Genus.Person->PersonType) {
+    case PERSON_ROPER:
+        queue_anim(p_person, anim & 1 ? ANIM_BREATHE : ANIM_IDLE_SCRATCH1);
+        break;
+
+    case PERSON_COP: {
+        switch (anim & 3) {
+        case 0:
+            anim = COP_ROPER_ANIM_IDLE1;
+            break;
+        case 1:
+            anim = COP_ROPER_ANIM_IDLE2;
+            break;
+        case 2:
+            anim = COP_ROPER_ANIM_IDLE3;
+            break;
+        case 3:
+            anim = COP_ROPER_ANIM_IDLE4;
+            break;
+        }
+        p_person->Draw.Tweened->QueuedFrame = game_chunk[ANIM_TYPE_ROPER].AnimList[anim];
+        p_person->Genus.Person->Flags2 &= ~FLAG2_SYNC_SOUNDFX;
+        p_person->Draw.Tweened->CurrentAnim = anim;
+        p_person->Draw.Tweened->FrameIndex = 0;
+    }
+
+    break;
+
+    default:
+        switch (anim % 3) {
+        case 0:
+            anim = ANIM_IDLE_SCRATCH1;
+            break;
+        case 1:
+            anim = ANIM_IDLE_SCRATCH2;
+            break;
+        case 2:
+            anim = ANIM_BREATHE;
+            break;
+        }
+
+        queue_anim(p_person, anim);
+        break;
+    }
+}
+
+// STATE_IDLE state machine — handles idle, crouch-arrest, slope-slip, and fight-mode idle logic.
+// Also manages breath-cloud particles in snow world and the Roper's magic bottle item ID hack.
+// uc_orig: fn_person_idle (fallen/Source/Person.cpp)
+void fn_person_idle(Thing* p_person)
+{
+    SLONG end;
+
+    if ((world_type == WORLD_TYPE_SNOW) && !PersonIsMIB(p_person)) {
+        // Breath cloud puff from the head in snowy levels.
+        if (MagicFrameCheck(p_person, 5)) {
+            SLONG x, y, z;
+            calc_sub_objects_position(
+                p_person, p_person->Draw.Tweened->AnimTween,
+                SUB_OBJECT_HEAD,
+                &x, &y, &z);
+            x <<= 8;
+            y <<= 8;
+            z <<= 8;
+            x += p_person->WorldPos.X;
+            y += p_person->WorldPos.Y;
+            z += p_person->WorldPos.Z;
+            PARTICLE_Add(x, y, z, 256, 10, 256, POLY_PAGE_SMOKECLOUD2,
+                2 + ((Random() & 3) << 2), 0x7FFFFFFF, PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE,
+                30, 30, 1, 10, 1);
+        }
+    }
+
+    SlideSoundCheck(p_person);
+
+    if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
+        if (p_person->SubState != SUB_STATE_IDLE_CROUTCH_ARREST) {
+            if (p_person->Genus.Person->Target)
+                if (TO_THING(p_person->Genus.Person->Target)->State != STATE_DEAD)
+                    turn_to_face_thing(p_person, TO_THING(p_person->Genus.Person->Target), 0);
+
+            {
+                Thing* p_attacker = is_person_under_attack_low_level(p_person, FALSE, 0x200);
+
+                if (p_attacker == NULL) {
+                    // Nobody to fight — exit fight mode.
+                    {
+                        p_person->Genus.Person->Agression = 0;
+                        p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+                        p_person->Genus.Person->Target = 0;
+                        set_person_idle(p_person);
+                        if (p_person->State == STATE_IDLE)
+                            set_anim(p_person, ANIM_UNFIGHT);
+                    }
+                } else {
+                    if (p_person->Genus.Person->Target == NULL) {
+                        p_person->Genus.Person->Target = THING_NUMBER(p_attacker);
+                    }
+                }
+            }
+        }
+
+    } else {
+
+        if (p_person->OnFace > 0) {
+            ASSERT(WITHIN(p_person->OnFace, 1, next_prim_face4 - 1));
+
+            PrimFace4* f4 = &prim_faces4[p_person->OnFace];
+
+            ASSERT(f4->FaceFlags & FACE_FLAG_WALKABLE);
+
+            // Surfing is disabled for now.
+        }
+
+        if (p_person->Genus.Person->PlayerID && p_person->Genus.Person->Mode != PERSON_MODE_FIGHT && !person_has_gun_out(p_person)) {
+            if (p_person->SubState != SUB_STATE_IDLE_CROUTCH_ARREST) {
+                Thing* p_attacker = is_person_under_attack_low_level(p_person, FALSE, 0x100);
+
+                if (p_person->Genus.Person->pcom_colour) {
+                    p_person->Genus.Person->pcom_colour--;
+
+                } else if (p_attacker) {
+                    SLONG anim;
+
+                    ASSERT(p_attacker->Class == CLASS_PERSON);
+
+                    p_person->Genus.Person->Target = THING_NUMBER(p_attacker);
+                    person_enter_fight_mode(p_person);
+                    anim = find_idle_fight_stance(p_person);
+                    set_anim(p_person, anim);
+                }
+            }
+        }
+    }
+
+    switch (p_person->SubState) {
+    case 0:
+        // Check if the person should slip down the slope they're idle on.
+        {
+            SLONG slope, angle;
+            if (p_person->Genus.Person->InsideIndex) {
+                slope = 0;
+            } else {
+
+                if (p_person->OnFace < 0) {
+                    slope = RFACE_on_slope(-p_person->OnFace, p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle);
+                } else {
+
+                    slope = PAP_on_slope(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle) >> 1;
+                }
+
+                if (slope > 50) {
+                    set_anim(p_person, ANIM_FALLING);
+                    set_generic_person_state_function(p_person, STATE_MOVEING);
+                    p_person->SubState = SUB_STATE_SLIPPING;
+                    p_person->Draw.Tweened->AngleTo = angle;
+                    slope = MIN(slope - 50, 10);
+                    slope = MAX(slope, 50);
+                    change_velocity_to(p_person, slope);
+
+                    return;
+                }
+            }
+        }
+
+        if (p_person->Draw.Tweened->DRoll && p_person->Draw.Tweened->FrameIndex == 2) {
+            end = 0;
+        } else {
+            end = person_normal_animate(p_person);
+        }
+        p_person->Draw.Tweened->DRoll = 0;
+
+        if (end && (p_person->Draw.Tweened->CurrentAnim != ANIM_IDLE_SCRATCH1)) {
+            p_person->Draw.Tweened->CurrentAnim = ANIM_STAND_READY;
+        }
+
+        if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
+            if (end == 1) {
+                SLONG anim;
+                anim = find_idle_fight_stance(p_person);
+
+                queue_anim(p_person, anim);
+            }
+        } else {
+            if (p_person->Genus.Person->SpecialUse) {
+
+            } else {
+
+                if (p_person->Genus.Person->Timer1-- == 0) {
+                    set_person_random_idle(p_person);
+                }
+
+                // Roper's magic bottle PersonID hack: show bottle in frames 3-16,
+                // hide in frame 17+.  Original dev comment: "It says here that
+                // 'Drinky Winky' of the teletubbies is obviously an abusive drunk
+                // because of the bottle of booze he carries..."
+                if ((p_person->Genus.Person->PersonType == PERSON_ROPER) && (p_person->Draw.Tweened->CurrentAnim == ANIM_IDLE_SCRATCH1)) {
+                    if (p_person->Draw.Tweened->FrameIndex >= 3) {
+                        if (p_person->Draw.Tweened->FrameIndex >= 17)
+                            p_person->Draw.Tweened->PersonID &= ~0xe0;
+                        else {
+                            p_person->Draw.Tweened->PersonID &= ~0xe0;
+                            p_person->Draw.Tweened->PersonID |= 7 << 5; // roper's magic bottle
+                        }
+                    }
+                }
+            }
+        }
+
+        break;
+
+    case SUB_STATE_IDLE_CROUTCH:
+        end = person_normal_animate(p_person);
+
+        if (end == 1) {
+            p_person->SubState = SUB_STATE_IDLE_CROUTCHING;
+            p_person->Genus.Person->Flags &= ~FLAG_PERSON_NON_INT_M;
+        }
+        break;
+    case SUB_STATE_IDLE_CROUTCH_ARREST:
+        end = person_normal_animate(p_person);
+
+        if (end == 1) {
+            p_person->Genus.Person->Flags &= ~FLAG_PERSON_NON_INT_M;
+            perform_arrest(p_person, p_person->Genus.Person->Target);
+
+            set_person_idle(p_person);
+        }
+        break;
+    case SUB_STATE_IDLE_CROUTCHING:
+        break;
+
+    case SUB_STATE_IDLE_UNCROUCH:
+
+        end = person_normal_animate(p_person);
+
+        if (p_person->Genus.Person->PersonType == PERSON_ROPER) {
+            if (p_person->Draw.Tweened->FrameIndex > 1)
+                end = 1;
+        }
+
+        if (end) {
+            set_person_idle(p_person);
+        }
+
+        break;
+    }
+}
+
+// Forward decls for AI functions in pcom.cpp (not yet migrated).
+void PCOM_set_person_ai_flee_person(Thing* p_person, Thing* p_scary);
+void PCOM_make_driver_run_away(Thing* p_driver, Thing* p_scary);
+
+// Puts p_person in the driver's seat of p_car.
+// Handles the case where the car already has a driver (player vs NPC priority).
+// Plays engine start and idle sounds (play calls currently commented out in original).
+// uc_orig: set_person_in_vehicle (fallen/Source/Person.cpp)
+void set_person_in_vehicle(Thing* p_person, Thing* p_car)
+{
+    SLONG sample;
+
+    if (p_car->Genus.Vehicle->Driver) {
+        Thing* other_driver;
+
+        // Both tried to get in at the same time.
+        other_driver = TO_THING(p_car->Genus.Vehicle->Driver);
+
+        if (other_driver->Genus.Person->PlayerID) {
+            // Player already in the car — AI must run away.
+            p_person->Genus.Person->InCar = 0;
+            PCOM_set_person_ai_flee_person(p_person, other_driver);
+        } else if (p_person->Genus.Person->PlayerID) {
+            // Player taking a car with an AI driver — stop car and eject driver.
+            p_car->Velocity = 0;
+            PCOM_make_driver_run_away(other_driver, p_person);
+        }
+    }
+
+    ASSERT(p_car->Class == CLASS_VEHICLE);
+    p_person->Genus.Person->Flags |= FLAG_PERSON_DRIVING;
+    p_person->Genus.Person->InCar = THING_NUMBER(p_car);
+    p_person->SubState = SUB_STATE_INSIDE_VEHICLE;
+    remove_thing_from_map(p_person);
+    p_car->Genus.Vehicle->Flags |= FLAG_FURN_DRIVING;
+    p_car->Genus.Vehicle->Flags &= ~FLAG_VEH_ANIMATING;
+    p_car->Genus.Vehicle->Driver = THING_NUMBER(p_person);
+    set_state_function(p_car, STATE_FDRIVING);
+
+    switch (p_car->Genus.Vehicle->Type) {
+    case VEH_TYPE_AMBULANCE:
+    case VEH_TYPE_VAN:
+    case VEH_TYPE_JEEP:
+    case VEH_TYPE_MEATWAGON:
+    case VEH_TYPE_WILDCATVAN:
+        sample = S_VAN_START;
+        break;
+
+    case VEH_TYPE_CAR:
+    case VEH_TYPE_TAXI:
+    case VEH_TYPE_POLICE:
+    case VEH_TYPE_SEDAN:
+        sample = S_CAR_START;
+        break;
+
+    default:
+        ASSERT(0);
+    }
+
+    switch (p_car->Genus.Vehicle->Type) {
+    case VEH_TYPE_AMBULANCE:
+    case VEH_TYPE_VAN:
+    case VEH_TYPE_JEEP:
+    case VEH_TYPE_MEATWAGON:
+    case VEH_TYPE_WILDCATVAN:
+        sample = S_VAN_IDLE;
+        break;
+
+    case VEH_TYPE_CAR:
+    case VEH_TYPE_TAXI:
+    case VEH_TYPE_POLICE:
+    case VEH_TYPE_SEDAN:
+        sample = S_CAR_IDLE;
+        break;
+
+    default:
+        ASSERT(0);
+    }
+}
+
+// Removes p_person from their current vehicle.
+// uc_orig: set_person_out_of_vehicle (fallen/Source/Person.cpp)
+void set_person_out_of_vehicle(Thing* p_person)
+{
+    Thing* p_car;
+
+    ASSERT(p_person->Genus.Person->InCar);
+
+    p_car = TO_THING(p_person->Genus.Person->InCar);
+
+    ASSERT(p_car->Class == CLASS_VEHICLE);
+
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_DRIVING | FLAG_PERSON_PASSENGER);
+    p_person->Genus.Person->InCar = 0;
+    set_person_locked_idle_ready(p_person);
+    plant_feet(p_person);
+    p_car->Genus.Vehicle->Flags &= ~FLAG_FURN_DRIVING;
+}
+
+// Changes to a fresh animation while keeping a specific limb locked in world-space.
+// Computes the delta between the limb's old and new positions and moves the person accordingly.
+// dangle: optional rotation offset applied before computing the new limb position.
+// uc_orig: locked_anim_change (fallen/Source/Person.cpp)
+void locked_anim_change(Thing* p_person, UWORD locked_object, UWORD anim, SLONG dangle)
+{
+    SLONG lock_x1, lock_y1, lock_z1;
+    SLONG lock_x2, lock_y2, lock_z2;
+    DrawTween* draw_info;
+    GameCoord temp_pos;
+
+    ASSERT(anim);
+
+    ASSERT(global_anim_array[p_person->Genus.Person->AnimType][anim]);
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, locked_object, &lock_x1, &lock_y1, &lock_z1);
+
+    draw_info = p_person->Draw.Tweened;
+    draw_info->CurrentFrame = global_anim_array[p_person->Genus.Person->AnimType][anim];
+    draw_info->QueuedFrame = 0;
+    draw_info->NextFrame = draw_info->CurrentFrame->NextFrame;
+    draw_info->AnimTween = 0;
+    draw_info->CurrentAnim = anim;
+    draw_info->FrameIndex = 0;
+
+    draw_info->Angle += dangle;
+    draw_info->Angle &= 2047;
+
+    calc_sub_objects_position(p_person, 0, locked_object, &lock_x2, &lock_y2, &lock_z2);
+
+    temp_pos.X = ((+lock_x1 - lock_x2) << 8) + p_person->WorldPos.X;
+    temp_pos.Y = ((+lock_y1 - lock_y2) << 8) + p_person->WorldPos.Y;
+    temp_pos.Z = ((+lock_z1 - lock_z2) << 8) + p_person->WorldPos.Z;
+
+    move_thing_on_map(p_person, &temp_pos);
+}
+
+// Like locked_anim_change but plays an animation from a specific animation type
+// (e.g. ANIM_TYPE_ROPER) rather than the person's own AnimType.
+// uc_orig: locked_anim_change_of_type (fallen/Source/Person.cpp)
+void locked_anim_change_of_type(Thing* p_person, UWORD locked_object, UWORD anim, SLONG type)
+{
+    SLONG lock_x1, lock_y1, lock_z1;
+    SLONG lock_x2, lock_y2, lock_z2;
+    DrawTween* draw_info;
+    GameCoord temp_pos;
+
+    ASSERT(anim);
+
+    ASSERT(global_anim_array[type][anim]);
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, locked_object, &lock_x1, &lock_y1, &lock_z1);
+
+    draw_info = p_person->Draw.Tweened;
+    draw_info->CurrentFrame = game_chunk[type].AnimList[anim];
+    draw_info->QueuedFrame = 0;
+    draw_info->NextFrame = draw_info->CurrentFrame->NextFrame;
+    draw_info->AnimTween = 0;
+    draw_info->CurrentAnim = anim;
+
+    calc_sub_objects_position(p_person, 0, locked_object, &lock_x2, &lock_y2, &lock_z2);
+
+    temp_pos.X = ((+lock_x1 - lock_x2) << 8) + p_person->WorldPos.X;
+    temp_pos.Y = ((+lock_y1 - lock_y2) << 8) + p_person->WorldPos.Y;
+    temp_pos.Z = ((+lock_z1 - lock_z2) << 8) + p_person->WorldPos.Z;
+
+    move_thing_on_map(p_person, &temp_pos);
+}
+
+// Like locked_anim_change_of_type but only adjusts Y (height), not X/Z.
+// Used for ladder animation transitions where horizontal position stays fixed.
+// uc_orig: locked_anim_change_height_type (fallen/Source/Person.cpp)
+void locked_anim_change_height_type(Thing* p_person, UWORD locked_object, UWORD anim, SLONG type)
+{
+    SLONG lock_x1, lock_y1, lock_z1;
+    SLONG lock_x2, lock_y2, lock_z2;
+    DrawTween* draw_info;
+    GameCoord temp_pos;
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, locked_object, &lock_x1, &lock_y1, &lock_z1);
+
+    draw_info = p_person->Draw.Tweened;
+    draw_info->CurrentFrame = game_chunk[type].AnimList[anim];
+    draw_info->QueuedFrame = 0;
+    draw_info->NextFrame = draw_info->CurrentFrame->NextFrame;
+    draw_info->AnimTween = 0;
+    draw_info->CurrentAnim = anim;
+
+    calc_sub_objects_position(p_person, 0, locked_object, &lock_x2, &lock_y2, &lock_z2);
+
+    temp_pos.X = p_person->WorldPos.X;
+    temp_pos.Y = ((+lock_y1 - lock_y2) << 8) + p_person->WorldPos.Y;
+    temp_pos.Z = p_person->WorldPos.Z;
+
+    move_thing_on_map(p_person, &temp_pos);
+}
+
+// Adjusts person's Y so that limb obj is at world-space height y.
+// uc_orig: set_limb_to_y (fallen/Source/Person.cpp)
+SLONG set_limb_to_y(Thing* p_person, SLONG obj, SLONG y)
+{
+    SLONG x1, y1, z1;
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, obj, &x1, &y1, &z1);
+    y1 += (p_person->WorldPos.Y >> 8);
+
+    y -= y1;
+
+    p_person->WorldPos.Y += y << 8;
+    return (0);
+}
+
+// Switches to a queued frame while keeping the given locked limb in the same world position.
+// uc_orig: locked_next_anim_change (fallen/Source/Person.cpp)
+void locked_next_anim_change(Thing* p_person, UWORD locked_object, GameKeyFrame* queued_frame)
+{
+    SLONG lock_x1, lock_y1, lock_z1;
+    SLONG lock_x2, lock_y2, lock_z2;
+    DrawTween* draw_info;
+    GameCoord temp_pos;
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, locked_object, &lock_x1, &lock_y1, &lock_z1);
+
+    draw_info = p_person->Draw.Tweened;
+    draw_info->NextFrame = queued_frame;
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, locked_object, &lock_x2, &lock_y2, &lock_z2);
+
+    temp_pos.X = ((+lock_x1 - lock_x2) << 8) + p_person->WorldPos.X;
+    temp_pos.Y = ((+lock_y1 - lock_y2) << 8) + p_person->WorldPos.Y;
+    temp_pos.Z = ((+lock_z1 - lock_z2) << 8) + p_person->WorldPos.Z;
+
+    move_thing_on_map(p_person, &temp_pos);
+}
+
+// Like locked_anim_change_of_type but jumps to the last frame of the animation.
+// Used for smooth reverse-climb transitions on ladders.
+// uc_orig: locked_anim_change_end_type (fallen/Source/Person.cpp)
+void locked_anim_change_end_type(Thing* p_person, UWORD locked_object, UWORD anim, SLONG type)
+{
+    SLONG lock_x1, lock_y1, lock_z1;
+    SLONG lock_x2, lock_y2, lock_z2;
+    DrawTween* draw_info;
+    GameCoord temp_pos;
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, locked_object, &lock_x1, &lock_y1, &lock_z1);
+
+    draw_info = p_person->Draw.Tweened;
+    draw_info->CurrentFrame = game_chunk[type].AnimList[anim];
+    draw_info->QueuedFrame = 0;
+    draw_info->NextFrame = draw_info->CurrentFrame->NextFrame;
+
+    while (draw_info->NextFrame->NextFrame) {
+        draw_info->CurrentFrame = draw_info->NextFrame;
+        draw_info->NextFrame = draw_info->NextFrame->NextFrame;
+    }
+    draw_info->AnimTween = 255;
+    draw_info->CurrentAnim = anim;
+
+    calc_sub_objects_position(p_person, draw_info->AnimTween, locked_object, &lock_x2, &lock_y2, &lock_z2);
+
+    temp_pos.X = ((+lock_x1 - lock_x2) << 8) + p_person->WorldPos.X;
+    temp_pos.Y = ((+lock_y1 - lock_y2) << 8) + p_person->WorldPos.Y;
+    temp_pos.Z = ((+lock_z1 - lock_z2) << 8) + p_person->WorldPos.Z;
+
+    move_thing_on_map(p_person, &temp_pos);
+}
+
+// Like locked_anim_change but jumps to the last frame using the person's own AnimType.
+// uc_orig: locked_anim_change_end (fallen/Source/Person.cpp)
+void locked_anim_change_end(Thing* p_person, UWORD locked_object, UWORD anim)
+{
+    SLONG lock_x1, lock_y1, lock_z1;
+    SLONG lock_x2, lock_y2, lock_z2;
+    DrawTween* draw_info;
+    GameCoord temp_pos;
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, locked_object, &lock_x1, &lock_y1, &lock_z1);
+
+    draw_info = p_person->Draw.Tweened;
+    draw_info->CurrentFrame = global_anim_array[p_person->Genus.Person->AnimType][anim];
+    draw_info->QueuedFrame = 0;
+    draw_info->NextFrame = draw_info->CurrentFrame->NextFrame;
+
+    while (draw_info->NextFrame->NextFrame) {
+        draw_info->CurrentFrame = draw_info->NextFrame;
+        draw_info->NextFrame = draw_info->NextFrame->NextFrame;
+    }
+    draw_info->AnimTween = 255;
+    draw_info->CurrentAnim = anim;
+
+    calc_sub_objects_position(p_person, draw_info->AnimTween, locked_object, &lock_x2, &lock_y2, &lock_z2);
+
+    temp_pos.X = ((+lock_x1 - lock_x2) << 8) + p_person->WorldPos.X;
+    temp_pos.Y = ((+lock_y1 - lock_y2) << 8) + p_person->WorldPos.Y;
+    temp_pos.Z = ((+lock_z1 - lock_z2) << 8) + p_person->WorldPos.Z;
+
+    move_thing_on_map(p_person, &temp_pos);
+}
+
+// Returns the slope (dy/horiz_length * 256) of a cable facet.
+// Used to decide whether a cable is steep enough for a death-slide.
+// uc_orig: steep_cable (fallen/Source/Person.cpp)
+SLONG steep_cable(SLONG facet)
+{
+    struct DFacet* p_facet;
+    SLONG dx, dy, dz, len, m;
+    p_facet = &dfacets[facet];
+
+    dx = abs(p_facet->x[1] - p_facet->x[0] << 8);
+    dz = abs(p_facet->z[1] - p_facet->z[0] << 8);
+
+    len = QDIST2(dx, dz);
+
+    dy = p_facet->Y[1] - p_facet->Y[0];
+
+    if (len == 0)
+        len = 1;
+
+    m = (dy << 8) / len;
+
+    return (m);
+}
+
+// Sets the person's angle to face downhill along a cable facet.
+// uc_orig: face_down_cable (fallen/Source/Person.cpp)
+void face_down_cable(Thing* p_person, SLONG facet)
+{
+    struct DFacet* p_facet;
+    SLONG dx, dy, dz, len, m;
+    p_facet = &dfacets[facet];
+
+    dx = (p_facet->x[1] - p_facet->x[0] << 8);
+    dy = (p_facet->Y[1] - p_facet->Y[0]);
+    dz = (p_facet->z[1] - p_facet->z[0] << 8);
+
+    if (dy > 0) {
+        p_person->Draw.Tweened->Angle = calc_angle(dx, dz);
+    } else {
+        p_person->Draw.Tweened->Angle = calc_angle(-dx, -dz);
+    }
+}
+
+// Returns the cable angle (0-2047) that is closest to the person's current facing.
+// Flips by 1024 if the person is facing the opposite end of the cable.
+// uc_orig: find_best_cable_angle (fallen/Source/Person.cpp)
+SLONG find_best_cable_angle(Thing* p_person, SLONG facet)
+{
+    struct DFacet* p_facet;
+    SLONG dx, dy, dz, len, m;
+    SLONG dangle, cable_angle;
+
+    p_facet = &dfacets[facet];
+
+    dx = (p_facet->x[1] - p_facet->x[0]) << 8;
+    dz = (p_facet->z[1] - p_facet->z[0]) << 8;
+
+    cable_angle = calc_angle(dx, dz);
+
+    dangle = p_person->Draw.Tweened->Angle - cable_angle;
+
+    if (abs(dangle) > 1024)
+        return ((cable_angle + 1024) & 2047);
+    else
+        return (cable_angle);
 }
 

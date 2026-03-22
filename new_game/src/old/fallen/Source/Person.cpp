@@ -267,16 +267,14 @@ void fn_person_float(Thing* p_person);
 
 SLONG find_anim_fall_dir(SLONG anim);
 
-SLONG set_person_pos_for_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG req_dist);
-void locked_anim_change(Thing* p_person, UWORD locked_object, UWORD anim, SLONG dangle = 0);
+// set_person_pos_for_fence / locked_anim_change / fight_any_gang_attacker: now in person.h (chunk 7)
 void do_person_on_cable(Thing* p_person);
-SLONG fight_any_gang_attacker(Thing* p_person);
 
 extern SLONG projectile_move_thing(Thing* p_thing, SLONG flag);
 extern SLONG calc_height_at(SLONG x, SLONG z);
 extern SLONG find_best_grapple(Thing* p_person);
 
-SLONG set_person_pos_for_half_step(Thing* p_person, SLONG col);
+// set_person_pos_for_half_step: now in person.h (chunk 7)
 void set_person_sneaking(Thing* p_person);
 void set_person_mav_to_xz(Thing* p_person, SLONG x, SLONG z);
 SLONG turn_to_face_thing(Thing* p_person, Thing* p_target, SLONG slow);
@@ -9238,6 +9236,7 @@ SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col)
 }
 #endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 97) [set_person_uncarry..set_person_pos_for_fence_vault]
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 98) [set_person_pos_for_fence..find_best_cable_angle]
 SLONG set_person_pos_for_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG req_dist)
 {
     SLONG mdx, mdz, dx, dz, len, dist;
@@ -10699,6 +10698,9 @@ SLONG find_best_cable_angle(Thing* p_person, SLONG facet)
     else
         return (cable_angle);
 }
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 98) [set_person_pos_for_fence..find_best_cable_angle]
+
+// is_facet_vaultable / is_facet_half_step: now declared in person.h (chunk 7)
 
 //
 // see if persons hands are near to grabbing a ledge

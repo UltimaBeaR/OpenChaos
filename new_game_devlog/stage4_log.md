@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 98 — actors/characters/person (чанк 7: set_person_pos_for_fence..find_best_cable_angle) (2026-03-22)
+
+- Person.cpp чанк 7: lines 9241–10701. 25 функций: set_person_pos_for_fence, set_person_pos_for_half_step, is_facet_vaultable, is_facet_half_step, set_person_land_on_fence, set_person_kick_off_wall, fight_any_gang_attacker, find_arrestee, find_corpse, perform_arrest, fn_person_search, set_person_random_idle, fn_person_idle, set_person_in_vehicle, set_person_out_of_vehicle, locked_anim_change, locked_anim_change_of_type, locked_anim_change_height_type, set_limb_to_y, locked_next_anim_change, locked_anim_change_end_type, locked_anim_change_end, steep_cable, face_down_cable, find_best_cable_angle.
+- `is_facet_vaultable` / `is_facet_half_step` — были `inline` в оригинале; сделаны non-inline, потому что ещё используются в немигрированных частях old/Person.cpp (требуется external linkage). Добавлены в person.h.
+- Old/Person.cpp: удалены дублирующие forward decls `locked_anim_change` (с `dangle=0`), `fight_any_gang_attacker`, `set_person_pos_for_fence`, `set_person_pos_for_half_step` — они конфликтовали с person.h (redefinition of default argument / ambiguity). Теперь все берутся из person.h.
+- `set_person_in_vehicle` — два switch-блока с присвоением `sample` (S_VAN_START и S_VAN_IDLE) сохранены 1:1, хотя переменная dead (все play-вызовы закомментированы в оригинале).
+- PCOM_set_person_ai_flee_person / PCOM_make_driver_run_away — объявлены как forward decl в person.cpp (не в pcom.h, не в person.h), т.к. нужны только для set_person_in_vehicle.
+
+---
+
 ## Итерация 97 — actors/characters/person (чанк 6: set_person_uncarry..set_person_pos_for_fence_vault) (2026-03-22)
 
 - Person.cpp чанк 6: lines 7651–9237. 32 функции: set_person_uncarry, set_person_stand_carry, fn_person_carry, set_person_arrest, set_person_croutch, set_person_crawling, set_person_leg_sweep, set_person_punch, set_person_kick_dir, set_person_fight_anim, set_person_kick, set_person_kick_near, set_person_stomp, set_person_position_for_ladder, play_jump_sound, set_person_climb_ladder, set_person_on_ladder, set_person_on_fence, set_person_standing_jump, set_person_standing_jump_forwards, set_person_standing_jump_backwards, set_person_running_jump, set_person_running_jump_lr, traverse_pos, set_person_traverse, set_person_pulling_up, set_person_drop_down, set_person_locked_drop_down, is_wall_good_for_bump_and_turn, am_i_facing_wall, along_middle_of_facet, set_person_pos_for_fence_vault.
