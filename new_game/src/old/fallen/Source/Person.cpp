@@ -1766,6 +1766,7 @@ void	set_person_dead_land(Thing *p_thing)
 void emergency_uncarry(Thing* p_person);
 SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 93) [sweep_feet..do_look_for_enemies]
 void sweep_feet(Thing* p_person, Thing* p_aggressor, SLONG death_type)
 {
     SlideSoundCheck(p_person, 1);
@@ -3191,6 +3192,7 @@ void do_look_for_enemies(Thing* p_person)
         set_person_mav_to_thing(p_person, NET_PERSON(0));
     }
 }
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 93) [sweep_feet..do_look_for_enemies]
 
 extern void play_music(UWORD id, UBYTE track);
 

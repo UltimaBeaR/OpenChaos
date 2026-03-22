@@ -1153,3 +1153,1036 @@ void person_death_slide(Thing* p_person)
 
 #undef CABLE_START
 #undef CABLE_END
+
+// ---- Chunk 2: sweep_feet, death helpers, visibility, vault/climb, player AI ----
+// (lines ~1769-3193 of original Person.cpp)
+
+// External helpers not yet migrated or declared in other new/ headers.
+extern void emergency_uncarry(Thing* p_person);                                  // Person.cpp (later chunk)
+extern SLONG fight_any_gang_attacker(Thing* p_person);                           // Person.cpp (later chunk)
+extern SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col);         // Person.cpp (later chunk)
+extern SLONG set_person_pos_for_half_step(Thing* p_person, SLONG col);           // Person.cpp (later chunk)
+extern SLONG remove_from_gang_attack(Thing* p_person, Thing* p_target);          // pcom.cpp (migrated)
+extern UWORD count_gang(Thing* p_target);                                         // pcom.cpp (migrated)
+extern UWORD find_target_from_gang(Thing* p_target);                             // pcom.cpp (migrated)
+extern void check_players_gang(Thing* p_target);                                 // pcom.cpp (migrated)
+extern SLONG turn_to_face_thing(Thing* p_person, Thing* p_target, SLONG slow);   // Person.cpp (later chunk)
+extern void set_fence_hole(struct DFacet* p_facet, SLONG pos);                   // Person.cpp (later chunk)
+extern SLONG slide_along(SLONG x1, SLONG y1, SLONG z1, SLONG* x2, SLONG* y2, SLONG* z2, SLONG extra_wall_height, SLONG radius, ULONG flags); // collide.cpp
+extern void set_person_mav_to_thing(Thing* p_person, Thing* p_target);            // Person.cpp (later chunk)
+
+// uc_orig: sweep_feet (fallen/Source/Person.cpp)
+void sweep_feet(Thing* p_person, Thing* p_aggressor, SLONG death_type)
+{
+    SlideSoundCheck(p_person, 1);
+
+    if (p_person->State == STATE_JUMPING) {
+        return;
+    }
+
+    if (p_person->State == STATE_DANGLING) {
+        if (p_person->SubState == SUB_STATE_DROP_DOWN) {
+            return;
+        }
+    }
+
+    if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
+        emergency_uncarry(p_person);
+    }
+
+    if (!people_allowed_to_hit_each_other(p_person, p_aggressor)) {
+        // Friendly fire: target jumps to avoid instead of getting hurt.
+        set_person_standing_jump(p_person);
+        return;
+    }
+
+    if (PersonIsMIB(p_person)) {
+        // MIB ninjas jump to avoid the sweep.
+        set_person_standing_jump(p_person);
+        return;
+    }
+
+    if (PersonIsMIB(p_person)) {
+        // Redundant check (original code has it twice).
+    }
+
+    if (p_person->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST && (p_person->Genus.Person->pcom_ai_other & PCOM_COMBAT_SLIDE)) {
+        // Fight-test dummies configured to die on sweep override invulnerability.
+        p_person->Genus.Person->Health = 0;
+    } else if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) {
+        // Invulnerable people jump instead of getting swept.
+        set_person_standing_jump(p_person);
+        return;
+    }
+
+    {
+        SLONG r, prob;
+        prob = 40 + (GET_SKILL(p_person) << 3);
+        if ((r = (Random() % 160)) < prob) {
+            // Person saw the attack coming: tell AI, jump away.
+            if (can_a_see_b(p_person, p_aggressor, -1, 1)) {
+                PCOM_attack_happened(p_person, p_aggressor);
+                set_person_standing_jump(p_person);
+                return;
+            }
+        }
+    }
+
+    if ((p_person->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL) && !p_aggressor->Genus.Person->PlayerID) {
+        // Only player can hurt this person — no damage.
+    } else if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) {
+        // Nothing hurts this person.
+    } else {
+        if (!p_person->Genus.Person->PlayerID)
+            p_person->Genus.Person->Health -= 49;
+    }
+
+    if (p_person->Genus.Person->Health <= 0) {
+        p_person->Genus.Person->Health = 0;
+        death_type = PERSON_DEATH_TYPE_OTHER;
+
+        if (p_aggressor) {
+            p_aggressor->Genus.Person->Flags2 |= FLAG2_PERSON_IS_MURDERER;
+        }
+    } else {
+        death_type = PERSON_DEATH_TYPE_LEG_SWEEP;
+    }
+
+    PCOM_attack_happened(p_person, p_aggressor);
+
+    set_person_dead(p_person, p_aggressor, death_type, 0, 0);
+}
+
+// Returns true if there is room behind the person (in the death-fall direction)
+// for them to fall without hitting geometry. hit_from_behind=1 reverses the direction.
+// uc_orig: is_there_room_behind_person (fallen/Source/Person.cpp)
+SLONG is_there_room_behind_person(Thing* p_person, SLONG hit_from_behind)
+{
+    ULONG los_flag;
+
+    SLONG dx = SIN(p_person->Draw.Tweened->Angle);
+    SLONG dz = COS(p_person->Draw.Tweened->Angle);
+
+    if (hit_from_behind) {
+        dx = -dx;
+        dz = -dz;
+    }
+
+    SLONG h1 = PAP_calc_map_height_at(
+        p_person->WorldPos.X >> 8,
+        p_person->WorldPos.Z >> 8);
+
+    SLONG h2 = PAP_calc_map_height_at(
+        p_person->WorldPos.X + dx >> 8,
+        p_person->WorldPos.Z + dz >> 8);
+
+    if (abs(h2 - h1) > 0x40) {
+        return FALSE;
+    }
+
+    los_flag = LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG | LOS_FLAG_INCLUDE_CARS;
+
+    if (p_person->Genus.Person->Ware) {
+        // Skip underground check for people inside warehouses.
+        los_flag |= LOS_FLAG_IGNORE_UNDERGROUND_CHECK;
+    }
+
+    if (!there_is_a_los(
+            (p_person->WorldPos.X >> 8),
+            (p_person->WorldPos.Y + 0x3000 >> 8),
+            (p_person->WorldPos.Z >> 8),
+            (p_person->WorldPos.X + dx >> 8),
+            (p_person->WorldPos.Y + 0x3000 >> 8),
+            (p_person->WorldPos.Z + dz >> 8),
+            los_flag))
+    {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+// Returns the fractional position along collision facet colvect at world position (x,z).
+// Result is in [0,1] range where 0=start vertex, 1=end vertex.
+// uc_orig: get_along_facet (fallen/Source/Person.cpp)
+SLONG get_along_facet(SLONG x, SLONG z, SLONG colvect)
+{
+    DFacet* p_facet;
+    SLONG dx, dz;
+    SLONG along;
+
+    p_facet = &dfacets[colvect];
+
+    dx = p_facet->x[1] - p_facet->x[0];
+    dz = p_facet->z[1] - p_facet->z[0];
+
+    if (dx) {
+        along = x - (p_facet->x[0] << 8);
+        along = along / dx;
+    } else {
+        along = z - (p_facet->z[0] << 8);
+        along = along / dz;
+    }
+
+    return (along);
+}
+
+// Transitions person into a dying/knockdown state based on death_type.
+// Handles animation selection, sound, gang-attack bookkeeping, and score.
+// uc_orig: set_person_dead (fallen/Source/Person.cpp)
+void set_person_dead(
+    Thing* p_thing,
+    Thing* p_aggressor,
+    SLONG death_type,
+    SLONG behind,
+    SLONG height)
+{
+    DrawTween* draw_info;
+    SLONG anim;
+    SLONG substate;
+    SLONG quick = FALSE;
+    SLONG locked = FALSE;
+
+    ASSERT(p_thing->Class == CLASS_PERSON);
+    p_thing->Draw.Tweened->Roll = 0;
+    p_thing->Draw.Tweened->DRoll = 0;
+
+    p_thing->Genus.Person->InsideRoom = 0;
+
+    if (p_thing->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
+        emergency_uncarry(p_thing);
+    }
+
+    if (p_thing->Genus.Person->PlayerID == 0) {
+        PCOM_knockdown_happened(p_thing);
+    }
+
+    if (p_aggressor && p_aggressor->Genus.Person->PlayerID) {
+        if (death_type != PERSON_DEATH_TYPE_LEG_SWEEP && death_type != PERSON_DEATH_TYPE_STAY_ALIVE && death_type != PERSON_DEATH_TYPE_GET_DOWN && death_type != PERSON_DEATH_TYPE_STAY_ALIVE_PRONE) {
+            // Player caused the death — update kill stats.
+            switch (p_thing->Genus.Person->PersonType) {
+            case PERSON_THUG_RASTA:
+            case PERSON_THUG_GREY:
+            case PERSON_THUG_RED:
+            case PERSON_MIB1:
+            case PERSON_MIB2:
+            case PERSON_MIB3:
+                stat_killed_thug++;
+                break;
+            default:
+                stat_killed_innocent++;
+                break;
+            }
+
+            if ((p_thing->Genus.Person->pcom_ai == PCOM_AI_CIV && p_thing->Genus.Person->pcom_move == PCOM_MOVE_WANDER) || (p_thing->Genus.Person->PersonType == PERSON_COP)) {
+                if (!(p_thing->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)) {
+                    // Player killed an innocent — add a red mark.
+                    NET_PLAYER(0)->Genus.Player->RedMarks += 1;
+                }
+            }
+        }
+    }
+
+    if (p_thing->SubState == SUB_STATE_GRAPPLE_HELD) {
+        // Release the person holding us if they aren't mid-attack.
+        if (TO_THING(p_thing->Genus.Person->Target)->SubState != SUB_STATE_GRAPPLE_ATTACK) {
+            set_person_fight_idle(TO_THING(p_thing->Genus.Person->Target));
+        }
+    }
+
+    if (death_type != PERSON_DEATH_TYPE_STAY_ALIVE && death_type != PERSON_DEATH_TYPE_STAY_ALIVE_PRONE && death_type != PERSON_DEATH_TYPE_LEG_SWEEP) {
+        if (p_thing->Genus.Person->Target) {
+            remove_from_gang_attack(p_thing, TO_THING(p_thing->Genus.Person->Target));
+        }
+        if (p_aggressor) {
+            remove_from_gang_attack(p_thing, p_aggressor);
+            if (p_aggressor->Genus.Person->Target == THING_NUMBER(p_thing)) {
+                extern UWORD find_target_from_gang(Thing * p_target);
+                p_aggressor->Genus.Person->Target = find_target_from_gang(p_aggressor);
+                if (p_aggressor->Genus.Person->PlayerID)
+                    if (p_aggressor->Genus.Person->Target == 0) {
+                        // Nobody is attacking player any more — leave fight mode.
+                        p_aggressor->Genus.Person->Mode = PERSON_MODE_RUN;
+                    }
+            }
+        }
+    }
+
+    if (p_thing->SubState == SUB_STATE_GRAPPLE_HOLD || p_thing->SubState == SUB_STATE_GRAPPLE_ATTACK) {
+        // Dying while grappling — release the grapple target.
+        set_person_fight_idle(TO_THING(p_thing->Genus.Person->Target));
+    }
+
+// uc_orig: MAX_KNOCK_DOWN (fallen/Source/Person.cpp)
+#define MAX_KNOCK_DOWN 6
+
+    // uc_orig: knock_down (fallen/Source/Person.cpp)
+    static UBYTE knock_down[MAX_KNOCK_DOWN] = {
+        ANIM_KD_FRONT_LOW,
+        ANIM_KD_FRONT_MID,
+        ANIM_KD_FRONT_HI,
+        ANIM_KD_BACK_LOW,
+        ANIM_KD_BACK_MID,
+        ANIM_KD_BACK_HI
+    };
+
+    ASSERT(p_thing->Class == CLASS_PERSON);
+
+    if (death_type != PERSON_DEATH_TYPE_PRONE && death_type != PERSON_DEATH_TYPE_COMBAT_PRONE) {
+        if (p_thing->State == STATE_DEAD || p_thing->State == STATE_DYING) {
+            return;
+        }
+    }
+
+    if (p_thing->State == STATE_DYING && p_thing->SubState == SUB_STATE_DYING_FINAL_ANI) {
+        // Already playing final death anim — consider them dead.
+        return;
+    }
+
+    switch (death_type) {
+    case PERSON_DEATH_TYPE_PRONE:
+        // Already on floor, finish them off quietly.
+        substate = SUB_STATE_DYING_ACTUALLY_DIE;
+        p_thing->Genus.Person->Flags &= ~(FLAG_PERSON_KO | FLAG_PERSON_HELPLESS);
+        quick = TRUE;
+        break;
+
+    case PERSON_DEATH_TYPE_COMBAT_PRONE:
+        // Person already lying down — play a stomp animation.
+        substate = SUB_STATE_DYING_FINAL_ANI;
+        p_thing->Genus.Person->Flags &= ~(FLAG_PERSON_KO | FLAG_PERSON_HELPLESS);
+        locked = TRUE;
+
+        switch (person_is_lying_on_what(p_thing)) {
+        case PERSON_ON_HIS_FRONT:
+            anim = ANIM_FIGHT_STOMPED_BACK;
+            break;
+
+        case PERSON_ON_HIS_BACK:
+            anim = ANIM_FIGHT_STOMPED_FRONT;
+            break;
+
+        default:
+            ASSERT(0);
+            break;
+        }
+
+        break;
+
+    case PERSON_DEATH_TYPE_SHOT_PISTOL:
+    case PERSON_DEATH_TYPE_SHOT_SHOTGUN:
+    case PERSON_DEATH_TYPE_SHOT_AK47:
+    {
+        // uc_orig: shoot_dead_anim (fallen/Source/Person.cpp)
+        static UWORD shoot_dead_anim[3] = {
+            ANIM_SHOT_DEAD_HEAD,
+            ANIM_SHOT_DEAD_GUT,
+            ANIM_SHOT_DEAD_CHEST,
+        };
+        if (!behind) {
+            anim = ANIM_SHOT_DEAD_BACK;
+        } else {
+            anim = shoot_dead_anim[Random() % 3];
+        }
+
+        substate = SUB_STATE_DYING_FINAL_ANI;
+        p_thing->Genus.Person->Flags &= ~FLAG_PERSON_KO;
+    }
+    break;
+
+    case PERSON_DEATH_TYPE_COMBAT:
+        ASSERT(WITHIN(behind, 0, 1));
+        ASSERT(WITHIN(height, 0, 2));
+        ASSERT(WITHIN(behind * 3 + height, 0, MAX_KNOCK_DOWN - 1));
+
+        anim = knock_down[behind * 3 + height];
+        substate = SUB_STATE_DYING_INITIAL_ANI;
+        break;
+
+    case PERSON_DEATH_TYPE_LAND:
+        switch (p_thing->Draw.Tweened->CurrentAnim) {
+        case ANIM_PLUNGE_START:
+        case ANIM_PLUNGE_FORWARDS:
+            anim = ANIM_PLUNGE_FRONT_SLAM;
+            if (VIOLENCE)
+                PYRO_create(p_thing->WorldPos, PYRO_SPLATTERY);
+            break;
+
+        default:
+            anim = ANIM_BIGLAND_DIE;
+            break;
+        }
+
+        StopScreamFallSound(p_thing);
+        locked = TRUE;
+        substate = SUB_STATE_DYING_FINAL_ANI;
+        break;
+
+    case PERSON_DEATH_TYPE_OTHER:
+    {
+        SLONG ground;
+        SLONG dy;
+
+        ground = PAP_calc_height_at_thing(p_thing, p_thing->WorldPos.X >> 8, p_thing->WorldPos.Z >> 8);
+        dy = (p_thing->WorldPos.Y >> 8) - ground;
+
+        if (dy < 0x20) {
+            anim = (behind) ? ANIM_KO_BEHIND_BIG : ANIM_KO_BACK;
+            substate = SUB_STATE_DYING_FINAL_ANI;
+        } else {
+            anim = ANIM_KD_FRONT_HI;
+            substate = SUB_STATE_DYING_INITIAL_ANI;
+        }
+    }
+    break;
+
+    case PERSON_DEATH_TYPE_GET_DOWN:
+        set_anim(p_thing, ANIM_HANDS_UP_LIE);
+        p_thing->Genus.Person->Flags |= FLAG_PERSON_KO | FLAG_PERSON_HELPLESS;
+        substate = SUB_STATE_DYING_KNOCK_DOWN;
+        p_thing->Genus.Person->Timer1 = 0;
+        quick = TRUE;
+        break;
+
+    case PERSON_DEATH_TYPE_STAY_ALIVE_PRONE:
+        p_thing->Genus.Person->Flags |= FLAG_PERSON_KO | FLAG_PERSON_HELPLESS;
+        substate = SUB_STATE_DYING_KNOCK_DOWN;
+        p_thing->Genus.Person->Timer1 = 0;
+        quick = TRUE;
+        break;
+
+    case PERSON_DEATH_TYPE_STAY_ALIVE:
+    {
+        SLONG ground;
+        SLONG dy;
+
+        ground = PAP_calc_height_at_thing(p_thing, p_thing->WorldPos.X >> 8, p_thing->WorldPos.Z >> 8);
+        dy = (p_thing->WorldPos.Y >> 8) - ground;
+
+        p_thing->Genus.Person->Flags |= FLAG_PERSON_KO | FLAG_PERSON_HELPLESS;
+
+        if (dy < 0x20) {
+            substate = SUB_STATE_DYING_KNOCK_DOWN;
+            anim = (behind) ? ANIM_KO_BEHIND_BIG : ANIM_KO_BACK;
+        } else {
+            anim = ANIM_KD_FRONT_HI;
+            substate = SUB_STATE_DYING_INITIAL_ANI;
+        }
+    }
+    break;
+
+    case PERSON_DEATH_TYPE_LEG_SWEEP:
+        anim = ANIM_KD_BACK_LOW;
+        substate = SUB_STATE_DYING_INITIAL_ANI;
+        p_thing->Genus.Person->Flags |= FLAG_PERSON_KO | FLAG_PERSON_HELPLESS;
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+
+    if (!quick) {
+        if (locked) {
+            set_locked_anim(p_thing, anim, 0);
+        } else {
+            set_anim(p_thing, anim);
+        }
+
+        switch (p_thing->Genus.Person->PersonType) {
+        case PERSON_COP:
+            MFX_play_xyz(0, S_MALE_DIE_2, 0, p_thing->WorldPos.X, p_thing->WorldPos.Y, p_thing->WorldPos.Z);
+            break;
+        case PERSON_DARCI:
+            switch (death_type) {
+            case HIT_TYPE_GUN_SHOT_H:
+            case HIT_TYPE_GUN_SHOT_M:
+            case HIT_TYPE_GUN_SHOT_L:
+            default:
+                MFX_play_xyz(0, S_FEMALE_DIE_2, 0, p_thing->WorldPos.X, p_thing->WorldPos.Y, p_thing->WorldPos.Z);
+                break;
+            }
+            break;
+        }
+    }
+
+    set_person_dying(p_thing, substate);
+
+    if (p_aggressor) {
+        p_aggressor->Genus.Person->InWay = NULL;
+
+        if (p_aggressor->Genus.Person->PlayerID) {
+            GAME_SCORE(p_aggressor->Genus.Person->PlayerID - 1) += 50;
+        }
+    }
+}
+
+#undef MAX_KNOCK_DOWN
+
+// Returns guilt level: 0=innocent, 1=guilty/gang, 2=thug, 3=MIB.
+// uc_orig: is_person_guilty (fallen/Source/Person.cpp)
+SLONG is_person_guilty(Thing* p_person)
+{
+    if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)
+        return (1);
+
+    if (p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED ||
+        p_person->Genus.Person->PersonType == PERSON_THUG_GREY) {
+        return (2);
+    }
+
+    if (PersonIsMIB(p_person))
+        return 3;
+
+    if (p_person->Genus.Person->pcom_ai == PCOM_AI_GUARD || p_person->Genus.Person->pcom_ai == PCOM_AI_GANG) {
+        return 1;
+    }
+
+    return (0);
+}
+
+// Returns true if person's state is a ground-contact running/walking/idle state.
+// uc_orig: person_on_floor (fallen/Source/Person.cpp)
+SLONG person_on_floor(Thing* p_person)
+{
+    if (p_person->SubState == SUB_STATE_RUNNING || p_person->SubState == SUB_STATE_WALKING || p_person->State == STATE_IDLE || p_person->State == STATE_CIRCLING || p_person->State == STATE_GUN || p_person->State == STATE_HIT_RECOIL) {
+        return (1);
+    } else {
+        return (0);
+    }
+}
+
+// Returns true if the person's left foot bone is at or near ground height.
+// uc_orig: really_on_floor (fallen/Source/Person.cpp)
+SLONG really_on_floor(Thing* p_person)
+{
+    SLONG foot_x;
+    SLONG foot_y;
+    SLONG foot_z;
+
+    calc_sub_objects_position(
+        p_person,
+        p_person->Draw.Tweened->AnimTween,
+        SUB_OBJECT_LEFT_FOOT,
+        &foot_x,
+        &foot_y,
+        &foot_z);
+
+    foot_x += p_person->WorldPos.X >> 8;
+    foot_y += p_person->WorldPos.Y >> 8;
+    foot_z += p_person->WorldPos.Z >> 8;
+
+    SLONG ground = PAP_calc_map_height_at(foot_x, foot_z);
+
+    if (foot_y > ground + 32)
+        return (0);
+    else
+        return (1);
+}
+
+// uc_orig: is_person_dead (fallen/Source/Person.cpp)
+SLONG is_person_dead(Thing* p_person)
+{
+    if (p_person->State == STATE_DEAD || (p_person->State == STATE_DYING && (p_person->Genus.Person->Flags & FLAG_PERSON_KO) == 0))
+        return (1);
+    else
+        return (0);
+}
+
+// Returns true if person is knocked out (lying on ground, not yet dead).
+// uc_orig: is_person_ko (fallen/Source/Person.cpp)
+SLONG is_person_ko(Thing* p_person)
+{
+    if (p_person->State == STATE_DYING) {
+        switch (p_person->SubState) {
+        case SUB_STATE_DYING_KNOCK_DOWN_WAIT:
+        case SUB_STATE_DYING_KNOCK_DOWN:
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+// Returns true if person is knocked out and has finished the fall animation (lying flat).
+// uc_orig: is_person_ko_and_lay_down (fallen/Source/Person.cpp)
+SLONG is_person_ko_and_lay_down(Thing* p_person)
+{
+    if (p_person->State == STATE_DYING) {
+        switch (p_person->SubState) {
+        case SUB_STATE_DYING_KNOCK_DOWN_WAIT:
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+// Deals hitpoints damage from position (origin_x, origin_z) and knocks person to ground.
+// uc_orig: knock_person_down (fallen/Source/Person.cpp)
+void knock_person_down(
+    Thing* p_person,
+    SLONG hitpoints,
+    SLONG origin_x,
+    SLONG origin_z,
+    Thing* p_aggressor)
+{
+    SLONG death_type;
+    SLONG behind;
+
+    // Non-person aggressors (e.g. Balrog) are ignored for attribution.
+    if (p_aggressor && p_aggressor->Class != CLASS_PERSON) {
+        p_aggressor = NULL;
+    }
+
+    if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
+        emergency_uncarry(p_person);
+    }
+
+    set_face_pos(
+        p_person,
+        origin_x,
+        origin_z);
+
+    behind = FALSE;
+
+    if ((p_person->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL) && (!p_aggressor || !p_aggressor->Genus.Person->PlayerID)) {
+        // Only player can hurt this person.
+    } else if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE) {
+        // Nothing hurts this person.
+    } else {
+        p_person->Genus.Person->Health -= hitpoints;
+    }
+
+    if (p_person->Genus.Person->Health <= 0) {
+        p_person->Genus.Person->Health = 0;
+        death_type = PERSON_DEATH_TYPE_OTHER;
+
+        if (p_aggressor) {
+            p_aggressor->Genus.Person->Flags2 |= FLAG2_PERSON_IS_MURDERER;
+        }
+    } else {
+        death_type = PERSON_DEATH_TYPE_STAY_ALIVE;
+    }
+
+    if (!is_there_room_behind_person(p_person, behind)) {
+        behind = !behind;
+    }
+
+    set_person_dead(
+        p_person,
+        p_aggressor,
+        death_type,
+        behind,
+        0);
+}
+
+// Pushes person forward along their facing by dist world units (fixed-point).
+// Used to add separation after punch impacts.
+// uc_orig: person_bodge_forward (fallen/Source/Person.cpp)
+void person_bodge_forward(Thing* p_person, SLONG dist)
+{
+    SLONG dx, dy = 0, dz;
+    GameCoord new_position = p_person->WorldPos;
+
+    dx = -(SIN(p_person->Draw.Tweened->Angle) * dist) >> 8;
+    dz = -(COS(p_person->Draw.Tweened->Angle) * dist) >> 8;
+
+    new_position.X += dx;
+    new_position.Z += dz;
+
+    move_thing_on_map(p_person, &new_position);
+}
+
+// Returns true if there is a clear sight line between the two persons' head positions.
+// uc_orig: los_between_heads (fallen/Source/Person.cpp)
+SLONG los_between_heads(
+    Thing* person_1,
+    Thing* person_2)
+{
+    SLONG x1 = person_1->WorldPos.X >> 8;
+    SLONG y1 = person_1->WorldPos.Y >> 8;
+    SLONG z1 = person_1->WorldPos.Z >> 8;
+
+    SLONG x2 = person_2->WorldPos.X >> 8;
+    SLONG y2 = person_2->WorldPos.Y >> 8;
+    SLONG z2 = person_2->WorldPos.Z >> 8;
+
+    y1 += 0x70;
+    y2 += 0x70;
+
+    return there_is_a_los(
+        x1, y1, z1,
+        x2, y2, z2,
+        0);
+}
+
+// Plays a tin-pan sound at (x,y,z) and makes nearby idle NPCs look toward p_thing.
+// NPCs with p_thing as their current target are skipped.
+// uc_orig: oscilate_tinpanum (fallen/Source/Person.cpp)
+void oscilate_tinpanum(SLONG x, SLONG y, SLONG z, Thing* p_thing, SLONG vol)
+{
+    SLONG col_with_upto;
+    SLONG collide_types = (1 << CLASS_PERSON);
+    Thing* col_thing;
+    SLONG i;
+
+    col_with_upto = THING_find_sphere(
+        x,
+        y,
+        z,
+        5 * 256,
+        col_with,
+        MAX_COL_WITH,
+        collide_types);
+
+    for (i = 0; i < col_with_upto; i++) {
+        col_thing = TO_THING(col_with[i]);
+
+        if (col_thing->State == STATE_DEAD || col_thing->State == STATE_DYING) {
+            continue;
+        }
+
+        switch (col_thing->Class) {
+        case CLASS_PERSON:
+            if (col_thing == p_thing) {
+                // Don't influence the source person.
+            } else {
+                if ((col_thing->Genus.Person->Target != THING_NUMBER(p_thing)) && (col_thing->Genus.Person->PlayerID == 0)) {
+                    if (col_thing->State == STATE_IDLE) {
+                        // Only idle NPCs react.
+                        if (los_between_heads(col_thing, p_thing)) {
+                            set_face_thing(col_thing, p_thing);
+                        } else {
+                            turn_to_face_thing(col_thing, p_thing, 2);
+                        }
+                    }
+                }
+            }
+            break;
+        }
+    }
+}
+
+// Returns the 2D approximate distance between two persons' feet.
+// uc_orig: dist_to_target (fallen/Source/Person.cpp)
+SLONG dist_to_target(Thing* p_person_a, Thing* p_person_b)
+{
+    SLONG dx, dz;
+
+    dx = abs(p_person_a->WorldPos.X - p_person_b->WorldPos.X) >> 8;
+    dz = abs(p_person_a->WorldPos.Z - p_person_b->WorldPos.Z) >> 8;
+    return (QDIST2(dx, dz));
+}
+
+// Returns the 2D approximate distance between two persons' pelvis bones.
+// uc_orig: dist_to_target_pelvis (fallen/Source/Person.cpp)
+SLONG dist_to_target_pelvis(Thing* p_person_a, Thing* p_person_b)
+{
+    SLONG dx, dz;
+    SLONG ax, ay, az;
+    SLONG bx, by, bz;
+
+    calc_sub_objects_position(p_person_a, p_person_a->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS, &ax, &ay, &az);
+    calc_sub_objects_position(p_person_b, p_person_b->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS, &bx, &by, &bz);
+
+    dx = (p_person_a->WorldPos.X - p_person_b->WorldPos.X) >> 8;
+    dz = (p_person_a->WorldPos.Z - p_person_b->WorldPos.Z) >> 8;
+
+    dx += ax - bx;
+    dz += az - bz;
+
+    dx = abs(dx);
+    dz = abs(dz);
+
+    return (QDIST2(dx, dz));
+}
+
+// Returns true if person's current substate is a crouching animation.
+// uc_orig: is_person_crouching (fallen/Source/Person.cpp)
+SLONG is_person_crouching(Thing* p_person)
+{
+    ASSERT(p_person->Class == CLASS_PERSON);
+
+    return p_person->SubState == SUB_STATE_CRAWLING || p_person->SubState == SUB_STATE_STOP_CRAWL || p_person->SubState == SUB_STATE_IDLE_CROUTCH || p_person->SubState == SUB_STATE_IDLE_CROUTCHING;
+}
+
+// Returns true if person_a can see person_b.
+// range=0: use default 8<<8 units. range<0: override view conditions with abs(range).
+// range>0: clip computed view distance to this value.
+// no_los=1: skip geometric line-of-sight check (FOV and range only).
+// Visibility is reduced in darkness and when the target is crouching.
+// uc_orig: can_a_see_b (fallen/Source/Person.cpp)
+SLONG can_a_see_b(
+    Thing* p_person_a,
+    Thing* p_person_b, SLONG range, SLONG no_los)
+{
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+
+    SLONG view;
+    SLONG dist;
+    SLONG angle;
+    SLONG dangle;
+    SLONG p_person_b_moving;
+
+    if (p_person_a->Flags & FLAGS_PERSON_BEEN_SHOT) {
+        range = -(9 << 8);
+    }
+
+    if (p_person_a->Genus.Person->Ware != p_person_b->Genus.Person->Ware) {
+        // One person is in a warehouse, the other isn't — can't see each other.
+        return FALSE;
+    }
+
+    if (range == 0) {
+        range = 8 << 8;
+    }
+
+    p_person_b_moving = TRUE;
+
+    if (p_person_b->State == STATE_IDLE || (p_person_b->State == STATE_GUN && p_person_b->SubState == SUB_STATE_AIM_GUN)) {
+        p_person_b_moving = FALSE;
+    }
+
+    dx = p_person_b->WorldPos.X - p_person_a->WorldPos.X;
+    dy = p_person_b->WorldPos.Y - p_person_a->WorldPos.Y;
+    dz = p_person_b->WorldPos.Z - p_person_a->WorldPos.Z;
+
+    dx >>= 8;
+    dy >>= 8;
+    dz >>= 8;
+
+    dist = QDIST2(abs(dx), abs(dz));
+
+    if (range < 0) {
+        // Negative range: ignore ambient conditions, use abs value as max view.
+        view = -range;
+    } else {
+        if (p_person_a->Genus.Person->PlayerID) {
+            view = 256 << 8;
+        } else {
+            NIGHT_Colour col;
+
+            col = NIGHT_get_light_at(
+                p_person_b->WorldPos.X >> 8,
+                p_person_b->WorldPos.Y >> 8,
+                p_person_b->WorldPos.Z >> 8);
+
+            // Brighter light = see further.
+            view = col.red + col.green + col.blue;
+            view += view << 3;
+            view += view >> 2;
+            view += 256;
+        }
+
+        if (is_person_crouching(p_person_b)) {
+            view >>= 1;
+        }
+
+        if (p_person_b_moving) {
+            view += 256;
+        }
+
+        if (view > range) {
+            view = range;
+        }
+    }
+
+    if (dist > view) {
+        return FALSE;
+    }
+
+    {
+        angle = Arctan(dx, -dz) + 1024;
+        angle &= 2047;
+        dangle = angle - p_person_a->Draw.Tweened->Angle;
+        dangle &= 2047;
+
+        if (dist < 0xc0) {
+            // Very close — use a wide FOV of ~123 degrees.
+            if (dangle < 700 || dangle > 2048 - 700) {
+                return TRUE;
+            } else {
+                return FALSE;
+            }
+        }
+
+// uc_orig: PEOPLE_FOV (fallen/Source/Person.cpp)
+#define PEOPLE_FOV 420
+
+        if (dangle < PEOPLE_FOV || dangle > 2048 - PEOPLE_FOV) {
+            if (!p_person_b_moving) {
+// uc_orig: CORNER_OF_EYE_FOV (fallen/Source/Person.cpp)
+#define CORNER_OF_EYE_FOV 250
+                if (WITHIN(dangle, CORNER_OF_EYE_FOV, 2048 - CORNER_OF_EYE_FOV)) {
+                    if (dist > (view >> 1)) {
+                        // Stationary target at edge of vision — too far to notice.
+                        return FALSE;
+                    }
+                }
+            }
+
+            UBYTE ahead = (is_person_crouching(p_person_a)) ? 0x20 : 0x60;
+            UBYTE bhead = (is_person_crouching(p_person_b)) ? 0x20 : 0x60;
+
+            if (no_los)
+                return (TRUE);
+
+            if (p_person_b->Genus.Person->Ware) {
+                // In warehouse: use LOS but skip underground geometry check.
+                if (there_is_a_los(
+                        (p_person_a->WorldPos.X >> 8),
+                        (p_person_a->WorldPos.Y >> 8) + ahead,
+                        (p_person_a->WorldPos.Z >> 8),
+                        (p_person_b->WorldPos.X >> 8),
+                        (p_person_b->WorldPos.Y >> 8) + bhead,
+                        (p_person_b->WorldPos.Z >> 8),
+                        LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
+                    return TRUE;
+                }
+            } else {
+                if (there_is_a_los(
+                        (p_person_a->WorldPos.X >> 8),
+                        (p_person_a->WorldPos.Y >> 8) + ahead,
+                        (p_person_a->WorldPos.Z >> 8),
+                        (p_person_b->WorldPos.X >> 8),
+                        (p_person_b->WorldPos.Y >> 8) + bhead,
+                        (p_person_b->WorldPos.Z >> 8),
+                        0)) {
+                    return TRUE;
+                }
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+#undef PEOPLE_FOV
+#undef CORNER_OF_EYE_FOV
+
+// Returns true if person can see the given world-space point within their FOV and LOS.
+// Uses a fixed range of 0x600 units (no light-based adjustment).
+// uc_orig: can_i_see_place (fallen/Source/Person.cpp)
+SLONG can_i_see_place(Thing* p_person, SLONG x, SLONG y, SLONG z)
+{
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+
+    SLONG view;
+    SLONG dist;
+    SLONG angle;
+    SLONG dangle;
+
+    dx = x - (p_person->WorldPos.X >> 8);
+    dy = y - (p_person->WorldPos.Y >> 8);
+    dz = z - (p_person->WorldPos.Z >> 8);
+
+    dist = QDIST2(abs(dx), abs(dz));
+
+    if (dist > 0x600) {
+        return FALSE;
+    }
+
+    if (abs(dy) > abs(dist >> 1)) {
+        return FALSE;
+    }
+
+    angle = Arctan(dx, -dz) + 1024;
+    angle &= 2047;
+    dangle = angle - p_person->Draw.Tweened->Angle;
+    dangle &= 2047;
+
+// uc_orig: PEOPLE_FOV (fallen/Source/Person.cpp)
+#define PEOPLE_FOV 420
+
+    if (dangle < PEOPLE_FOV || dangle > 2048 - PEOPLE_FOV) {
+        UBYTE ahead = (is_person_crouching(p_person)) ? 0x20 : 0x60;
+
+        if (there_is_a_los(
+                (p_person->WorldPos.X >> 8),
+                (p_person->WorldPos.Y >> 8) + ahead,
+                (p_person->WorldPos.Z >> 8),
+                x,
+                y + 0x20,
+                z,
+                0)) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+#undef PEOPLE_FOV
+
+// Enters the sliding tackle state toward p_target. No-ops if already sliding.
+// uc_orig: set_person_sliding_tackle (fallen/Source/Person.cpp)
+void set_person_sliding_tackle(Thing* p_person, Thing* p_target)
+{
+    if (p_person->SubState != SUB_STATE_RUNNING_SKID_STOP) {
+        set_face_thing(p_person, p_target);
+        set_generic_person_state_function(p_person, STATE_MOVEING);
+        set_anim(p_person, ANIM_SLIDER_START);
+        p_person->SubState = SUB_STATE_RUNNING_SKID_STOP;
+    }
+}
+
+// Attempts to vault over the fence at facet. Returns true if vault was started.
+// uc_orig: set_person_vault (fallen/Source/Person.cpp)
+SLONG set_person_vault(Thing* p_person, SLONG facet)
+{
+    if (set_person_pos_for_fence_vault(p_person, facet)) {
+        set_anim(p_person, ANIM_VAULT);
+        p_person->SubState = SUB_STATE_RUNNING_VAULT;
+        p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
+
+        set_generic_person_state_function(p_person, STATE_MOVEING);
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+// Attempts to step up a half-height obstacle at facet. Returns true if climb was started.
+// uc_orig: set_person_climb_half (fallen/Source/Person.cpp)
+SLONG set_person_climb_half(Thing* p_person, SLONG facet)
+{
+    if (set_person_pos_for_half_step(p_person, facet)) {
+        set_anim(p_person, ANIM_GET_UP_HALF_BLOCK);
+        p_person->SubState = SUB_STATE_RUNNING_HALF_BLOCK;
+        p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
+
+        set_generic_person_state_function(p_person, STATE_MOVEING);
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+// Returns true if person can see player 0.
+// uc_orig: can_i_see_player (fallen/Source/Person.cpp)
+SLONG can_i_see_player(Thing* p_person)
+{
+    return can_a_see_b(p_person, NET_PERSON(0));
+}
+
+// If person can see player 0, sets them as target and starts navigation toward them.
+// uc_orig: do_look_for_enemies (fallen/Source/Person.cpp)
+void do_look_for_enemies(Thing* p_person)
+{
+    if (can_i_see_player(p_person)) {
+        p_person->Genus.Person->Target = THING_NUMBER(NET_PERSON(0));
+        ASSERT(p_person->Genus.Person->Target != THING_NUMBER(p_person));
+        ASSERT(TO_THING(p_person->Genus.Person->Target)->Class == CLASS_PERSON);
+        p_person->Genus.Person->Flags |= FLAG_PERSON_NAV_TO_KILL;
+
+        set_person_mav_to_thing(p_person, NET_PERSON(0));
+    }
+}
+

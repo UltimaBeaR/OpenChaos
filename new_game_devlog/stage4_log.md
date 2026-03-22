@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 93 — actors/characters/person (чанк 2: sweep_feet..do_look_for_enemies) (2026-03-22)
+
+- Person.cpp чанк 2: lines 1769–3193. Функции: sweep_feet, is_there_room_behind_person, get_along_facet, set_person_dead, is_person_guilty, person_on_floor, really_on_floor, is_person_dead, is_person_ko, is_person_ko_and_lay_down, knock_person_down, person_bodge_forward, los_between_heads, oscilate_tinpanum, dist_to_target, dist_to_target_pelvis, is_person_crouching, can_a_see_b, can_i_see_place, set_person_sliding_tackle, set_person_vault, set_person_climb_half, can_i_see_player, do_look_for_enemies.
+- `can_a_see_b` уже объявлена в old Person.h с default args — в new person.h добавлена ссылка-комментарий без декларации (избежание `redefinition of default argument`).
+- `set_person_mav_to_thing` объявлена только как forward decl в old Person.cpp (line 284, активная зона) — добавлен extern в person.cpp.
+
+---
+
 ## Итерация 92 — actors/characters/person (чанк 1: dispatch tables..death_slide) (2026-03-22)
 
 - Person.cpp — самый большой файл (~19K строк), мигрируется чанками. Чанк 1: ~lines 300–1762.

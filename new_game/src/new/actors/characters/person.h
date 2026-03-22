@@ -127,4 +127,81 @@ SLONG really_on_floor(Thing* p_person);
 // uc_orig: footstep_wave (fallen/Source/Person.cpp)
 SLONG footstep_wave(Thing* p_person);
 
+// Returns true if there is room behind the person to die in the given direction.
+// hit_from_behind=1 means the attacker was behind them.
+// uc_orig: is_there_room_behind_person (fallen/Source/Person.cpp)
+SLONG is_there_room_behind_person(Thing* p_person, SLONG hit_from_behind);
+
+// Returns the fractional position along a collision facet at (x,z).
+// uc_orig: get_along_facet (fallen/Source/Person.cpp)
+SLONG get_along_facet(SLONG x, SLONG z, SLONG colvect);
+
+// Sets person into a death/knockdown state appropriate for death_type and aggressor.
+// uc_orig: set_person_dead (fallen/Source/Person.cpp)
+void set_person_dead(Thing* p_thing, Thing* p_aggressor, SLONG death_type, SLONG behind, SLONG height);
+
+// Deals hitpoints damage and knocks the person to the ground.
+// uc_orig: knock_person_down (fallen/Source/Person.cpp)
+void knock_person_down(Thing* p_person, SLONG hitpoints, SLONG origin_x, SLONG origin_z, Thing* p_aggressor);
+
+// Moves person forward by dist units along their facing angle (for punch-push effects).
+// uc_orig: person_bodge_forward (fallen/Source/Person.cpp)
+void person_bodge_forward(Thing* p_person, SLONG dist);
+
+// Returns true if there is a clear line-of-sight between the two persons' heads.
+// uc_orig: los_between_heads (fallen/Source/Person.cpp)
+SLONG los_between_heads(Thing* person_1, Thing* person_2);
+
+// Plays a tin-pan sound and turns nearby idle NPCs to look at (x,y,z).
+// uc_orig: oscilate_tinpanum (fallen/Source/Person.cpp)
+void oscilate_tinpanum(SLONG x, SLONG y, SLONG z, Thing* p_thing, SLONG vol);
+
+// Returns true if person_a can see person_b.
+// range=0 uses default (8<<8); range<0 ignores view conditions; range>0 clips view.
+// no_los=1 skips geometric LOS check (FOV only).
+// NOTE: Also declared in fallen/Headers/Person.h (accessible via Game.h) with default args.
+// uc_orig: can_a_see_b (fallen/Source/Person.cpp)
+// (declaration omitted here — provided by fallen/Headers/Person.h via Game.h)
+
+// Returns true if person can see the world-space point (x,y,z).
+// NOTE: Also declared in fallen/Headers/Person.h (accessible via Game.h).
+// uc_orig: can_i_see_place (fallen/Source/Person.cpp)
+// (declaration omitted here — provided by fallen/Headers/Person.h via Game.h)
+
+// Enters the sliding-tackle state toward p_target if not already sliding.
+// uc_orig: set_person_sliding_tackle (fallen/Source/Person.cpp)
+void set_person_sliding_tackle(Thing* p_person, Thing* p_target);
+
+// Attempts a fence vault over facet; returns true if vault was initiated.
+// uc_orig: set_person_vault (fallen/Source/Person.cpp)
+SLONG set_person_vault(Thing* p_person, SLONG facet);
+
+// Attempts a half-block step up over facet; returns true if climb was initiated.
+// uc_orig: set_person_climb_half (fallen/Source/Person.cpp)
+SLONG set_person_climb_half(Thing* p_person, SLONG facet);
+
+// Returns true if person can see player 0.
+// uc_orig: can_i_see_player (fallen/Source/Person.cpp)
+SLONG can_i_see_player(Thing* p_person);
+
+// Checks if person can see any enemies and starts pursuit if so.
+// uc_orig: do_look_for_enemies (fallen/Source/Person.cpp)
+void do_look_for_enemies(Thing* p_person);
+
+// Per-frame player-specific updates: fight mode, boredom timer, camera roll.
+// uc_orig: general_process_player (fallen/Source/Person.cpp)
+void general_process_player(Thing* p_person);
+
+// Cycles person's current target through nearby attackers (dir=1 forward, dir=-1 back).
+// uc_orig: person_pick_best_target (fallen/Source/Person.cpp)
+void person_pick_best_target(Thing* p_person, SLONG dir);
+
+// Per-frame person processing: moving platforms, stamina, burning, bleeding, hooks.
+// uc_orig: general_process_person (fallen/Source/Person.cpp)
+void general_process_person(Thing* p_person);
+
+// Sweeps person's feet, potentially knocking them down or dead.
+// uc_orig: sweep_feet (fallen/Source/Person.cpp)
+void sweep_feet(Thing* p_person, Thing* p_aggressor, SLONG death_type);
+
 #endif // ACTORS_CHARACTERS_PERSON_H
