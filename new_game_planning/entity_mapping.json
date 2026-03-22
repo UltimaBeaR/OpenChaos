@@ -64819,6 +64819,206 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_create_wallstrip",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_create_wallstrip",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_create_extra_bit_left",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_create_extra_bit_left",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_create_extra_bit_right",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_create_extra_bit_right",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_create_walls",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_create_walls",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_create_curve_sewer",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_create_curve_sewer",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_create_curve_top",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_create_curve_top",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_create_curves",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_create_curves",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_create_falls",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_create_falls",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_create_grates",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_create_grates",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_create",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_create",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_destroy",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_destroy",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_cache_fini",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_cache_fini",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_calc_height_at",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_calc_height_at",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_calc_splash_height_at",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_calc_splash_height_at",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_slide_along",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_slide_along",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_inside",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_inside",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_there_is_a_los",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_there_is_a_los",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_get_unused_st",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_get_unused_st",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_add_ladder",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_add_ladder",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "NS_add_prim",
+      "file": "new/world/environment/ns.cpp",
+      "orig_name": "NS_add_prim",
+      "orig_file": "fallen/Source/ns.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

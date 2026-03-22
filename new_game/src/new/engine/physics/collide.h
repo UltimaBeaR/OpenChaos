@@ -341,4 +341,14 @@ void box_circle_early_out(
     SLONG box1_yaw,
     SLONG cx, SLONG cz, SLONG cradius);
 
+// uc_orig: slide_around_sausage (fallen/Source/collide.cpp)
+// Slides (*x2, *z2) around the outside of a sausage (capsule) shape defined by
+// segment (sx1,sz1)-(sx2,sz2) with radius sradius. Returns TRUE on collision.
+SLONG slide_around_sausage(
+    SLONG sx1, SLONG sz1,
+    SLONG sx2, SLONG sz2,
+    SLONG sradius,
+    SLONG x1, SLONG z1,
+    SLONG* x2, SLONG* z2);
+
 #endif // ENGINE_PHYSICS_COLLIDE_H

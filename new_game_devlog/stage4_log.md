@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 114 — world/environment/ns (ns.cpp чанк 2: walls, curves, cache, queries → old/ns.cpp redirect) (2026-03-22)
+
+- `fallen/Source/ns.cpp` завершён: lines 1179–2373 → `new/world/environment/ns.cpp`.
+- Мигрированы: `NS_cache_create_wallstrip`, `NS_cache_create_extra_bit_left/right`, `NS_cache_create_walls`, `NS_cache_create_curve_sewer`, `NS_cache_create_curve_top`, `NS_cache_create_curves`, `NS_cache_create_falls`, `NS_cache_create_grates`, `NS_cache_create`, `NS_cache_destroy`, `NS_cache_fini`, `NS_calc_height_at`, `NS_calc_splash_height_at`, `NS_slide_along`, `NS_inside`, `NS_there_is_a_los`, `NS_get_unused_st`, `NS_add_ladder`, `NS_add_prim`.
+- `NS_slide_along` использует `slide_around_sausage` (new/engine/physics/collide.h) — добавлен include + добавлена декларация в collide.h.
+- `NS_there_is_a_los` — цикл без инкремента x/y/z в теле (баг оригинала, сохранён 1:1).
+- `fall` в `NS_cache_create_grates` — объявлен, не используется (баг оригинала, сохранён 1:1).
+- `old/fallen/Source/ns.cpp` → redirect-заглушка (3 строки).
+
+---
+
 ## Итерация 113 — world/environment/ns (ns.cpp чанк 1: init, floors, wallstrip helpers) (2026-03-22)
 
 - `fallen/Source/ns.cpp` (3544 строк) начинает миграцию. Чанк 1: lines 1–1178 → `new/world/environment/ns.cpp` + `ns.h` + `ns_globals.cpp` + `ns_globals.h`.
