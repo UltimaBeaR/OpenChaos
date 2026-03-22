@@ -54,6 +54,8 @@
 
 #include "actors/characters/person.h"
 #include "actors/characters/person_globals.h"
+#include "actors/vehicles/vehicle.h"         // Temporary: VEH_find_door
+#include "actors/vehicles/vehicle_globals.h" // Temporary: sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim
 #include "effects/pyro_globals.h"   // Temporary: col_with[] array (shared collision buffer)
 #include "actors/items/guns.h"      // Temporary: find_target_new
 #include "actors/items/special.h"   // Temporary: alloc_special, special_drop, person_has_special
@@ -78,23 +80,20 @@ extern UWORD count_gang(Thing* p_target);
 extern void person_enter_fight_mode(Thing* p_person);
 extern UWORD get_any_gang_member(Thing* p_target);
 extern void add_damage_value_thing(Thing* p_thing, SLONG value);
-extern void set_person_locked_idle_ready(Thing* p_person);
+// chunk 5 functions are now defined in this file (below) — no extern needed for:
+//   set_person_locked_idle_ready, carry_running, set_person_stand_carry,
+//   set_person_sidle, emergency_uncarry, set_anim_running, set_anim_idle, set_person_sneaking
 extern SLONG remove_from_gang_attack(Thing* p_person, Thing* p_target);
 extern SLONG continue_pressing_action(Thing* p_person);
 extern void set_action_used(Thing* p_person);
-extern void carry_running(Thing* p_person);
-extern void set_person_stand_carry(Thing* p_person);
 extern UBYTE stealth_debug;
 extern SLONG plant_feet(Thing* p_person);
 extern SLONG calc_angle(SLONG dx, SLONG dz);
-extern SLONG set_person_sidle(struct Thing* p_person);
 extern SLONG slide_ladder;
 extern SLONG yomp_speed;
 extern SLONG sprint_speed;
 // find_face_for_this_pos declared via fallen/Headers/walkable.h above
-extern void drop_all_items(Thing* p_person, UBYTE is_being_searched);
 extern void add_thing_to_map(Thing* p_thing);
-extern void emergency_uncarry(Thing* p_person);
 extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
 extern void locked_anim_change(Thing* p_person, UWORD locked_object, UWORD anim, SLONG dangle);
 extern SLONG get_cable_along(SLONG facet, SLONG ax, SLONG az);
@@ -103,10 +102,13 @@ extern void do_person_on_cable(Thing* p_person);
 // chunk 4 additional externs (Person.cpp later chunks or other files not yet migrated)
 extern Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG radius);
 extern SLONG might_i_be_a_villain(Thing* p_person);
-extern void set_anim_running(Thing* p_person);
-extern void set_anim_idle(Thing* p_person);
-extern void set_person_sneaking(Thing* p_person);
 extern SLONG person_holding_bat(Thing* p_person);
+// chunk 5 additional externs (Person.cpp later chunks or other files not yet migrated)
+extern void get_car_enter_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz);
+extern void locked_anim_change_of_type(Thing* p_person, UWORD locked_object, UWORD anim, SLONG type);
+extern SLONG find_best_grapple(Thing* p_person);
+extern UWORD PCOM_person_wants_to_kill(Thing* p_person);
+extern SLONG continue_moveing(Thing* p_person); // interfac.cpp
 
 // Local collision query buffer (shares the global col_with pool; MAX_COL_WITH = 16).
 #define MAX_COL_WITH 16
@@ -1171,7 +1173,7 @@ void person_death_slide(Thing* p_person)
 // (lines ~1769-3193 of original Person.cpp)
 
 // External helpers not yet migrated or declared in other new/ headers.
-extern void emergency_uncarry(Thing* p_person);                                  // Person.cpp (later chunk)
+// emergency_uncarry is defined in chunk 5 (below)
 extern SLONG fight_any_gang_attacker(Thing* p_person);                           // Person.cpp (later chunk)
 extern SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col);         // Person.cpp (later chunk)
 extern SLONG set_person_pos_for_half_step(Thing* p_person, SLONG col);           // Person.cpp (later chunk)
@@ -4162,5 +4164,1211 @@ void drop_all_items(Thing* p_person, UBYTE is_being_searched)
     }
     if (is_being_searched && found_something)
         MFX_play_ambient(THING_NUMBER(p_person), S_ITEM_REVEALED, 0);
+}
+
+// ---- Chunk 5: set_person_idle_uncroutch..set_person_carry ----
+// (lines ~6144-7647 of original Person.cpp)
+
+// Forward declarations for chunk 5 internal cross-references
+// (set_person_idle calls set_person_stand_carry which is defined later in this chunk)
+// uc_orig: set_person_stand_carry (fallen/Source/Person.cpp)
+void set_person_stand_carry(Thing* p_person);
+
+// Transitions person from crouching-idle back to standing idle with uncrouch animation.
+// uc_orig: set_person_idle_uncroutch (fallen/Source/Person.cpp)
+void set_person_idle_uncroutch(Thing* p_person)
+{
+    SLONG anim;
+    set_generic_person_state_function(p_person, STATE_IDLE);
+    p_person->Genus.Person->Action = ACTION_IDLE;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
+    p_person->SubState = SUB_STATE_IDLE_UNCROUCH;
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+        anim = ANIM_UNCROUTCH_PISTOL;
+    } else if (person_holding_2handed(p_person)) {
+        anim = ANIM_UNCROUTCH_AK;
+    } else {
+        anim = ANIM_CROUTCH_GETUP;
+    }
+
+    set_anim(p_person, anim);
+
+    return;
+}
+
+// Starts the turn-to-face-wall animation (entering hug-wall mode from front).
+// uc_orig: set_person_turn_to_hug_wall (fallen/Source/Person.cpp)
+void set_person_turn_to_hug_wall(Thing* p_person)
+{
+    SLONG anim;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+        anim = ANIM_PRESS_WALL_TURN_PISTOL;
+    } else if (person_holding_2handed(p_person)) {
+        anim = ANIM_PRESS_WALL_TURN_AK;
+    } else {
+        anim = ANIM_PRESS_WALL_TURN;
+    }
+    set_generic_person_state_function(p_person, STATE_HUG_WALL);
+    p_person->SubState = SUB_STATE_HUG_WALL_TURN;
+    set_anim(p_person, anim);
+    p_person->Genus.Person->Action = ACTION_HUG_WALL;
+}
+
+// Starts sidling along wall in the given direction (1=left, 0=right) while hugging wall.
+// uc_orig: set_person_hug_wall_dir (fallen/Source/Person.cpp)
+void set_person_hug_wall_dir(Thing* p_person, SLONG dir)
+{
+    SLONG gun;
+    SLONG anim;
+
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
+        gun = 2;
+    else
+        gun = person_holding_2handed(p_person);
+    if (dir == 1) {
+        if (gun == 2)
+            anim = ANIM_PRESS_WALL_SIDLE_R_PISTOL;
+        else if (gun == 1)
+            anim = ANIM_PRESS_WALL_SIDLE_R_AK;
+        else
+            anim = ANIM_PRESS_WALL_SIDLE_R;
+
+        set_anim(p_person, anim);
+        p_person->SubState = SUB_STATE_HUG_WALL_STEP_LEFT;
+    } else {
+        if (gun == 2)
+            anim = ANIM_PRESS_WALL_SIDLE_L_PISTOL;
+        else if (gun == 1)
+            anim = ANIM_PRESS_WALL_SIDLE_L_AK;
+        else
+            anim = ANIM_PRESS_WALL_SIDLE_L;
+
+        set_anim(p_person, anim);
+        p_person->SubState = SUB_STATE_HUG_WALL_STEP_RIGHT;
+    }
+}
+
+// Starts the peek-around-wall animation in the given direction while hugging wall.
+// dir=1 peeks left, dir=0 peeks right.
+// uc_orig: set_person_hug_wall_look (fallen/Source/Person.cpp)
+void set_person_hug_wall_look(Thing* p_person, SLONG dir)
+{
+    SLONG gun;
+    SLONG anim;
+
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+    p_person->Genus.Person->InsideRoom = 0;
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
+        gun = 2;
+    else
+        gun = person_holding_2handed(p_person);
+    if (dir == 1) {
+        if (gun == 2)
+            anim = ANIM_PRESS_WALL_LOOK_L_PISTOL;
+        else if (gun == 1)
+            anim = ANIM_PRESS_WALL_LOOK_L_AK;
+        else
+            anim = ANIM_PRESS_WALL_LOOK_L;
+
+        set_anim(p_person, anim);
+        p_person->SubState = SUB_STATE_HUG_WALL_LOOK_L;
+    } else {
+        if (gun == 2)
+            anim = ANIM_PRESS_WALL_LOOK_R_PISTOL;
+        else if (gun == 1)
+            anim = ANIM_PRESS_WALL_LOOK_R_AK;
+        else
+            anim = ANIM_PRESS_WALL_LOOK_R;
+
+        set_anim(p_person, anim);
+        p_person->SubState = SUB_STATE_HUG_WALL_LOOK_R;
+    }
+}
+
+// Transitions person to standing idle, choosing appropriate animation and state based on
+// current mode, weapon, combat state, and whether they are carrying someone.
+// uc_orig: set_person_idle (fallen/Source/Person.cpp)
+void set_person_idle(Thing* p_person)
+{
+    SLONG anim;
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_KO;
+
+    if (check_on_slippy_slope(p_person))
+        return;
+
+    if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
+        set_person_stand_carry(p_person);
+        return;
+    }
+
+    if (p_person->Genus.Person->PlayerID) {
+        if (p_person->Genus.Person->PlayerID && !person_has_gun_out(p_person)) {
+            Thing* p_attacker = is_person_under_attack_low_level(p_person, FALSE, 0x200);
+
+            if (p_attacker) {
+                SLONG anim;
+
+                ASSERT(p_attacker->Class == CLASS_PERSON);
+
+                p_person->Genus.Person->Target = THING_NUMBER(p_attacker);
+                person_enter_fight_mode(p_person);
+                set_person_fight_idle(p_person);
+                return;
+            } else {
+                p_person->Genus.Person->Target = 0;
+                p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+                p_person->Genus.Person->Agression = 0;
+            }
+            GAME_FLAGS &= ~GF_SIDE_ON_COMBAT;
+        }
+
+        if (p_person->Genus.Person->Mode != PERSON_MODE_FIGHT)
+        {
+            if (continue_moveing(p_person)) {
+                set_person_running(p_person);
+                return;
+            }
+        }
+    }
+
+    p_person->SubState = 0;
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_HELPLESS;
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GRAPPLING) {
+        set_person_grapple_windup(p_person);
+
+        return;
+    }
+    if (person_has_gun_out(p_person)) {
+        set_person_aim(p_person);
+
+        return;
+    }
+
+    p_person->Genus.Person->Timer1 = (Random() & 0x1ff) + 400;
+    set_generic_person_state_function(p_person, STATE_IDLE);
+    p_person->Genus.Person->Action = ACTION_IDLE;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+
+    p_person->Velocity = 0;
+
+    set_anim_idle(p_person);
+
+    set_person_sidle(p_person);
+}
+
+// Sets person into a locked idle ready stance (respects gun/weapon state).
+// Called e.g. when a locked animation finishes and person needs to return to idle.
+// uc_orig: set_person_locked_idle_ready (fallen/Source/Person.cpp)
+void set_person_locked_idle_ready(Thing* p_person)
+{
+    SLONG anim = ANIM_STAND_READY;
+
+    if (p_person->Genus.Person->SpecialUse) {
+        Thing* p_special;
+
+        p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+        switch (p_special->Genus.Special->SpecialType) {
+        case SPECIAL_GUN:
+            anim = ANIM_PISTOL_AIM_AHEAD;
+            break;
+
+        case SPECIAL_BASEBALLBAT:
+            anim = ANIM_BAT_IDLE;
+            break;
+        case SPECIAL_SHOTGUN:
+        case SPECIAL_AK47:
+            anim = ANIM_SHOTGUN_STAND;
+            break;
+        }
+    }
+
+    p_person->SubState = 0;
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GRAPPLING) {
+        set_person_grapple_windup(p_person);
+
+        return;
+    }
+
+    p_person->Genus.Person->Timer1 = (Random() & 0x1ff) + 400;
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+        if (p_person->Genus.Person->PlayerID) {
+            camera_shoot();
+        }
+
+        locked_anim_change(p_person, 0, anim, 0);
+        set_person_aim(p_person);
+        return;
+    }
+    if (p_person->Genus.Person->PlayerID) {
+        camera_normal();
+    }
+
+    p_person->SubState = 0;
+    set_generic_person_state_function(p_person, STATE_IDLE);
+    p_person->SubState = 0;
+
+    set_locked_anim(p_person, anim, 0);
+
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_IDLE;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+
+    if (person_has_gun_out(p_person)) {
+        set_person_aim(p_person);
+
+        return;
+    }
+
+    set_person_sidle(p_person);
+}
+
+// Checks if the person's back is against a wall and sets sidle (wall-hug) sub-state.
+// Returns 1 if sidling is now active, 0 otherwise. Body is disabled in the original
+// (the implementation is commented out — only early return remains).
+// uc_orig: set_person_sidle (fallen/Source/Person.cpp)
+SLONG set_person_sidle(struct Thing* p_person)
+{
+    SLONG dx, dz;
+    SLONG index, facet;
+    SLONG dist;
+    SLONG px, pz, mx, mz;
+    SLONG angle;
+    SLONG ret_x, ret_z;
+    SLONG mdx, mdz;
+    return (0);
+    /*
+    (original body disabled in the prerelease source — returns 0 always)
+    */
+}
+
+// Starts a flip animation in the given direction (0=left, 1=right).
+// uc_orig: set_person_flip (fallen/Source/Person.cpp)
+void set_person_flip(Thing* p_person, SLONG dir)
+{
+    MSG_add(" start flipping");
+    switch (dir) {
+    case 0:
+        set_anim(p_person, ANIM_FLIP_LEFT);
+        p_person->Genus.Person->Action = ACTION_FLIP_LEFT;
+        break;
+
+    case 1:
+        set_anim(p_person, ANIM_FLIP_RIGHT);
+        p_person->Genus.Person->Action = ACTION_FLIP_RIGHT;
+        break;
+    }
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+    p_person->SubState = SUB_STATE_FLIPING;
+    p_person->Genus.Person->Flags |= (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+}
+
+// Sets person into running state, choosing run/walk/sprint/sneak based on Mode.
+// Handles carry-mode running and yomp-start animations.
+// uc_orig: set_person_running (fallen/Source/Person.cpp)
+void set_person_running(Thing* p_person)
+{
+    p_person->Draw.Tweened->Locked = 0;
+    p_person->Genus.Person->Timer1 = 0;
+
+    if (p_person->Genus.Person->PlayerID) {
+        camera_normal();
+    }
+
+    if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
+        Thing* p_target;
+        p_target = TO_THING(p_person->Genus.Person->Target);
+
+        set_anim(p_person, ANIM_START_WALK_CARRY);
+        set_anim(p_target, ANIM_START_WALK_CARRY_V);
+        p_target->SubState = SUB_STATE_CARRY_MOVE_V;
+
+        goto run;
+    }
+
+    switch (p_person->Genus.Person->Mode) {
+    case PERSON_MODE_WALK:
+        set_person_walking(p_person);
+        break;
+    case PERSON_MODE_SPRINT:
+        if (p_person->Genus.Person->PersonType == PERSON_ROPER)
+            goto yomp;
+
+        set_anim_running(p_person);
+        goto run;
+    case PERSON_MODE_RUN:
+    case PERSON_MODE_FIGHT:
+    yomp:;
+        if (person_holding_bat(p_person)) {
+            set_anim(p_person, ANIM_YOMP_START_BAT);
+
+        } else if (person_holding_2handed(p_person)) {
+            set_anim(p_person, ANIM_YOMP_START_AK);
+
+        } else {
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+                set_anim(p_person, ANIM_YOMP_START_PISTOL);
+
+            } else
+                set_anim(p_person, ANIM_YOMP_START);
+        }
+        if (p_person->Genus.Person->PlayerID)
+            p_person->Genus.Person->Target = 0;
+    run:;
+        set_generic_person_state_function(p_person, STATE_MOVEING);
+        p_person->SubState = SUB_STATE_RUNNING;
+        if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING)
+            p_person->Genus.Person->Action = ACTION_NONE;
+        else
+            p_person->Genus.Person->Action = ACTION_RUN;
+        p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+        p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+        break;
+    case PERSON_MODE_SNEAK:
+        set_person_sneaking(p_person);
+        break;
+    default:
+        ASSERT(0);
+    }
+}
+
+// Sets person into running state starting from a specific animation frame index.
+// Only supports Mode==0 (run), Mode==1 (walk), Mode==2 (sneak).
+// uc_orig: set_person_running_frame (fallen/Source/Person.cpp)
+void set_person_running_frame(Thing* p_person, SLONG frame)
+{
+    switch (p_person->Genus.Person->Mode) {
+    case 0:
+        MSG_add(" start running");
+        queue_anim(p_person, ANIM_RUN);
+
+        set_generic_person_state_function(p_person, STATE_MOVEING);
+        p_person->SubState = SUB_STATE_RUNNING;
+        p_person->Genus.Person->Action = ACTION_RUN;
+        p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+        while (frame) {
+            p_person->Draw.Tweened->QueuedFrame = p_person->Draw.Tweened->QueuedFrame->NextFrame;
+            frame--;
+        }
+        break;
+    case 1:
+        set_person_walking(p_person);
+        break;
+    case 2:
+        set_person_sneaking(p_person);
+        break;
+    }
+}
+
+// Cycles through the person's carried specials and switches to the next one.
+// Plays a draw-gun sound to alert nearby NPCs.
+// uc_orig: set_person_draw_special (fallen/Source/Person.cpp)
+void set_person_draw_special(Thing* p_person)
+{
+    Thing* p_special = NULL;
+    {
+        if (p_person->Genus.Person->SpecialUse == NULL) {
+            if (p_person->Genus.Person->SpecialList) {
+                p_special = TO_THING(p_person->Genus.Person->SpecialList);
+            }
+        } else {
+            p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+            if (p_special->Genus.Special->NextSpecial) {
+                p_special = TO_THING(p_special->Genus.Special->NextSpecial);
+            } else {
+                p_special = NULL;
+            }
+        }
+
+        if (p_special) {
+            set_person_draw_item(p_person, p_special->Genus.Special->SpecialType);
+        }
+    }
+
+    PCOM_oscillate_tympanum(
+        PCOM_SOUND_DRAW_GUN,
+        p_person,
+        p_person->WorldPos.X >> 8,
+        p_person->WorldPos.Y >> 8,
+        p_person->WorldPos.Z >> 8);
+}
+
+// Draws the pistol: plays draw animation, sets mode to run (exits fight mode), alerts NPCs.
+// Does nothing if the person has no gun or is currently carrying someone.
+// uc_orig: set_person_draw_gun (fallen/Source/Person.cpp)
+void set_person_draw_gun(Thing* p_person)
+{
+    if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
+        return;
+    }
+
+    if (!(p_person->Flags & FLAGS_HAS_GUN)) {
+        return;
+    }
+
+    MSG_add(" start draw gun");
+    p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+    set_anim(p_person, ANIM_PISTOL_DRAW);
+    set_thing_velocity(p_person, 0);
+    set_generic_person_state_function(p_person, STATE_GUN);
+
+    p_person->SubState = SUB_STATE_DRAW_GUN;
+    p_person->Genus.Person->Action = ACTION_DRAW_SPECIAL;
+    p_person->Genus.Person->SpecialDraw = NULL;
+    p_person->Genus.Person->SpecialUse = NULL;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_C | FLAG_PERSON_NON_INT_M;
+    p_person->Genus.Person->Target = NULL;
+
+    if (p_person->Genus.Person->PlayerID) {
+        camera_shoot();
+    }
+
+    if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
+        p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+    }
+
+    PCOM_oscillate_tympanum(
+        PCOM_SOUND_DRAW_GUN,
+        p_person,
+        p_person->WorldPos.X >> 8,
+        p_person->WorldPos.Y >> 8,
+        p_person->WorldPos.Z >> 8);
+}
+
+// Holsters the gun: clears GUN_OUT flag and transitions to idle.
+// uc_orig: set_person_gun_away (fallen/Source/Person.cpp)
+void set_person_gun_away(Thing* p_person)
+{
+    p_person->Genus.Person->SpecialUse = NULL;
+    p_person->Draw.Tweened->PersonID &= ~0xe0;
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_GUN_OUT;
+    set_person_idle(p_person);
+
+    if (p_person->Genus.Person->PlayerID) {
+        camera_normal();
+    }
+}
+
+// Starts a sidestep-left animation.
+// uc_orig: set_person_step_left (fallen/Source/Person.cpp)
+void set_person_step_left(Thing* p_person)
+{
+    MSG_add(" start step_left");
+    if (p_person->SubState == SUB_STATE_STEP_LEFT)
+        return;
+    set_anim(p_person, ANIM_STEP_LEFT);
+    set_thing_velocity(p_person, 0);
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+    p_person->SubState = SUB_STATE_STEP_LEFT;
+    p_person->Genus.Person->Action = ACTION_SIDE_STEP;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+}
+
+// Starts a sidestep-right animation.
+// uc_orig: set_person_step_right (fallen/Source/Person.cpp)
+void set_person_step_right(Thing* p_person)
+{
+    MSG_add(" start step_left");
+    if (p_person->SubState == SUB_STATE_STEP_RIGHT)
+        return;
+    set_anim(p_person, ANIM_STEP_RIGHT);
+    set_thing_velocity(p_person, 0);
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+    p_person->SubState = SUB_STATE_STEP_RIGHT;
+    p_person->Genus.Person->Action = ACTION_SIDE_STEP;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+}
+
+// Stub for setting a vehicle animation. Always asserts — left unimplemented in the original.
+// uc_orig: set_vehicle_anim (fallen/Source/Person.cpp)
+void set_vehicle_anim(Thing* p_vehicle, SLONG anim)
+{
+    // 1 is still, 2 is open/close
+    ASSERT(0);
+    return;
+    p_vehicle->Genus.Vehicle->Draw.CurrentFrame = game_chunk[5].AnimList[anim];
+    p_vehicle->Genus.Vehicle->Draw.AnimTween = 0;
+
+    if (anim == 2) {
+        p_vehicle->Genus.Vehicle->Draw.NextFrame = p_vehicle->Genus.Vehicle->Draw.CurrentFrame->NextFrame;
+    } else {
+        p_vehicle->Genus.Vehicle->Draw.NextFrame = p_vehicle->Genus.Vehicle->Draw.CurrentFrame;
+    }
+}
+
+// Positions person at the correct entry point for the given vehicle door (0=driver, 1=passenger).
+// Sets person angle to match vehicle, with a 512-unit offset based on door side.
+// uc_orig: position_person_for_vehicle (fallen/Source/Person.cpp)
+void position_person_for_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
+{
+    SLONG ix, iz;
+    GameCoord new_position;
+
+    ASSERT(door == 0 || door == 1);
+
+    get_car_enter_xz(p_vehicle, door, &ix, &iz);
+
+    new_position.X = ix << 8;
+    new_position.Z = iz << 8;
+
+    new_position.Y = p_person->WorldPos.Y;
+    move_thing_on_map(p_person, &new_position);
+
+    p_person->Draw.Tweened->Angle = p_vehicle->Genus.Vehicle->Angle;
+
+    if (door) {
+        p_person->Draw.Tweened->Angle += 512;
+    } else {
+        p_person->Draw.Tweened->Angle -= 512;
+    }
+
+    p_person->Draw.Tweened->Angle &= 2047;
+}
+
+// Starts person entering a vehicle: checks key, checks occupancy, plays enter animation.
+// door=0 for driver side, door=1 for passenger side.
+// uc_orig: set_person_enter_vehicle (fallen/Source/Person.cpp)
+void set_person_enter_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
+{
+    ASSERT(door == 0 || door == 1);
+
+    if (p_vehicle->Genus.Vehicle->Driver) {
+        p_person->Genus.Person->InCar = 0;
+        return;
+    }
+
+    if (p_vehicle->State == STATE_DEAD) {
+        return;
+    }
+
+    if (p_vehicle->Genus.Vehicle->key != SPECIAL_NONE) {
+        if (!person_has_special(p_person, p_vehicle->Genus.Vehicle->key)) {
+
+            if (p_person->Genus.Person->PlayerID) {
+                PANEL_new_info_message(XLAT_str(X_CAR_LOCKED));
+            }
+
+            p_person->Genus.Person->InCar = 0;
+            return;
+        }
+    }
+
+    set_thing_velocity(p_person, 0);
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+    p_person->SubState = SUB_STATE_ENTERING_VEHICLE;
+    p_person->Genus.Person->Action = ACTION_ENTER_VEHICLE;
+    p_person->Genus.Person->Flags |= (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+
+    {
+        // Temporarily enables special offset mode in get_car_door_offsets() (vehicle.cpp)
+        // so that position_person_for_vehicle() places the person at the right entry point.
+        sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim = TRUE;
+
+        position_person_for_vehicle(p_person, p_vehicle, door);
+
+        sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim = FALSE;
+    }
+
+    set_locked_anim(p_person, (door) ? ANIM_ENTER_TAXI : ANIM_ENTER_CAR, SUB_OBJECT_LEFT_FOOT);
+    p_person->Genus.Person->InCar = THING_NUMBER(p_vehicle);
+    p_vehicle->Genus.Vehicle->Flags |= FLAG_VEH_ANIMATING;
+
+    MFX_play_thing(THING_NUMBER(p_vehicle), S_CAR_DOOR, 0, p_vehicle);
+}
+
+// Appends person to the head of the vehicle's passenger linked list.
+// uc_orig: add_person_to_passenger_list (fallen/Source/Person.cpp)
+void add_person_to_passenger_list(Thing* p_person, Thing* p_vehicle)
+{
+    ASSERT(p_person->Class == CLASS_PERSON);
+    ASSERT(p_vehicle->Class == CLASS_VEHICLE);
+
+    p_person->Genus.Person->Passenger = p_vehicle->Genus.Vehicle->Passenger;
+    p_vehicle->Genus.Vehicle->Passenger = THING_NUMBER(p_person);
+}
+
+// Removes person from the vehicle's passenger linked list (asserts if not found).
+// uc_orig: remove_person_from_passenger_list (fallen/Source/Person.cpp)
+void remove_person_from_passenger_list(Thing* p_person, Thing* p_vehicle)
+{
+    Thing* p_passenger;
+
+    ASSERT(p_person->Class == CLASS_PERSON);
+    ASSERT(p_vehicle->Class == CLASS_VEHICLE);
+
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_PASSENGER);
+
+    UWORD next;
+    UWORD* prev;
+
+    prev = &p_vehicle->Genus.Vehicle->Passenger;
+    next = p_vehicle->Genus.Vehicle->Passenger;
+
+    while (1) {
+        if (next == NULL) {
+            ASSERT(0);
+            return;
+        }
+
+        p_passenger = TO_THING(next);
+
+        ASSERT(p_passenger->Class == CLASS_PERSON);
+
+        if (p_passenger == p_person) {
+            *prev = p_person->Genus.Person->Passenger;
+
+            return;
+        }
+
+        prev = &p_passenger->Genus.Person->Passenger;
+        next = p_passenger->Genus.Person->Passenger;
+    }
+}
+
+// Instantly places person inside vehicle as a passenger (no entry animation).
+// uc_orig: set_person_passenger_in_vehicle (fallen/Source/Person.cpp)
+void set_person_passenger_in_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door)
+{
+    set_thing_velocity(p_person, 0);
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+    remove_thing_from_map(p_person);
+    add_person_to_passenger_list(p_person, p_vehicle);
+
+    p_person->SubState = SUB_STATE_INSIDE_VEHICLE;
+    p_person->Genus.Person->Action = ACTION_INSIDE_VEHICLE;
+    p_person->Genus.Person->Flags |= (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C | FLAG_PERSON_PASSENGER);
+    p_person->Genus.Person->InCar = THING_NUMBER(p_vehicle);
+}
+
+// Exits person from vehicle: finds a door (tries both sides), repositions on map,
+// removes from driver/passenger lists, stops engine sounds.
+// uc_orig: set_person_exit_vehicle (fallen/Source/Person.cpp)
+void set_person_exit_vehicle(Thing* p_person)
+{
+    Thing* p_vehicle;
+
+    p_vehicle = TO_THING(p_person->Genus.Person->InCar);
+
+    SLONG door_x;
+    SLONG door_y;
+    SLONG door_z;
+    SLONG side;
+    SLONG otherside = FALSE;
+    SLONG dx, dz;
+
+    GameCoord newpos;
+
+    side = (p_person->Genus.Person->Flags & FLAG_PERSON_PASSENGER);
+
+try_again:;
+
+    VEH_find_door(
+        p_vehicle,
+        side,
+        &door_x,
+        &door_z);
+
+    dx = 0;
+    dz = 0;
+
+    SLONG mx = door_x + dx >> 8;
+    SLONG mz = door_z + dz >> 8;
+
+    door_y = PAP_calc_map_height_at(door_x + dx, door_z + dz);
+
+    if (abs(door_y - (p_person->WorldPos.Y >> 8)) > 150 || (PAP_2HI(mx, mz).Flags & PAP_FLAG_NOGO) || !there_is_a_los(p_vehicle->WorldPos.X >> 8, p_vehicle->WorldPos.Y + 0x6000 >> 8, p_vehicle->WorldPos.Z >> 8, door_x + dx, door_y + 0x60, door_z + dz, LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG | LOS_FLAG_IGNORE_PRIMS | LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
+        if (!otherside) {
+            side = !side;
+            otherside = TRUE;
+
+            goto try_again;
+        } else {
+            // Both doors blocked — exit inside the vehicle footprint.
+            door_x = p_vehicle->WorldPos.X >> 8;
+            door_z = p_vehicle->WorldPos.Z >> 8;
+        }
+    }
+
+    newpos.X = door_x << 8;
+    newpos.Y = PAP_calc_map_height_at(door_x, door_z);
+    newpos.Z = door_z << 8;
+
+    move_thing_on_map(p_person, &newpos);
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_PASSENGER) {
+        remove_person_from_passenger_list(p_person, p_vehicle);
+
+        p_person->Genus.Person->Flags &= ~(FLAG_PERSON_PASSENGER | FLAG_PERSON_DRIVING);
+        p_person->Genus.Person->InCar = NULL;
+        p_person->Genus.Person->Passenger = NULL;
+    } else {
+        p_person->Genus.Person->Flags &= ~(FLAG_PERSON_PASSENGER | FLAG_PERSON_DRIVING);
+        p_person->Genus.Person->InCar = NULL;
+        p_vehicle->Genus.Vehicle->Flags &= ~FLAG_FURN_DRIVING;
+        p_vehicle->Genus.Vehicle->Driver = NULL;
+
+        MFX_stop(THING_NUMBER(p_vehicle), S_CARX_START);
+        MFX_stop(THING_NUMBER(p_vehicle), S_CARX_CRUISE);
+        MFX_stop(THING_NUMBER(p_vehicle), S_CARX_IDLE);
+        if (p_vehicle->Genus.Vehicle->Flags & FLAG_VEH_FX_STATE) {
+            p_vehicle->Genus.Vehicle->Flags &= ~FLAG_VEH_FX_STATE;
+        }
+        MFX_stop(THING_NUMBER(p_vehicle), MFX_WAVE_ALL);
+        MFX_play_thing(THING_NUMBER(p_vehicle), S_CARX_END, 0, p_vehicle);
+    }
+
+    add_thing_to_map(p_person);
+    set_person_idle(p_person);
+    plant_feet(p_person);
+}
+
+// Selects and plays the correct walk animation for person type and equipped weapon.
+// uc_orig: set_anim_walking (fallen/Source/Person.cpp)
+void set_anim_walking(Thing* p_person)
+{
+    SLONG anim;
+
+    if (person_holding_2handed(p_person)) {
+        if (p_person->Genus.Person->PersonType != PERSON_DARCI && p_person->Genus.Person->PersonType != PERSON_ROPER) {
+            set_anim(p_person, ANIM_THUG_WALK_SHOTGUN);
+            return;
+        }
+    }
+    if (p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED || p_person->Genus.Person->PersonType == PERSON_THUG_GREY) {
+        set_anim(p_person, ANIM_THUG_WALK);
+    } else
+
+        if (p_person->Genus.Person->PersonType == PERSON_COP) {
+        SLONG old;
+        old = p_person->Genus.Person->AnimType;
+        set_anim_of_type(p_person, COP_ROPER_ANIM_WALK, ANIM_TYPE_ROPER);
+        p_person->Genus.Person->AnimType = old;
+    } else if (p_person->Genus.Person->PersonType == PERSON_CIV) {
+        switch (p_person->Draw.Tweened->MeshID) {
+        case 7:
+        case 8:
+            set_anim_of_type(p_person, CIV_M_ANIM_WALK, ANIM_TYPE_CIV);
+            break;
+        case 9:
+            set_anim_of_type(p_person, CIV_F_ANIM_WALK, ANIM_TYPE_CIV);
+            break;
+        default:
+            ASSERT(0);
+            break;
+        }
+    } else {
+
+        set_anim(p_person, ANIM_WALK);
+    }
+}
+
+// Selects and plays the correct run animation for person type.
+// uc_orig: set_anim_running (fallen/Source/Person.cpp)
+void set_anim_running(Thing* p_person)
+{
+    SLONG anim;
+
+    if (p_person->Genus.Person->PersonType == PERSON_ROPER) {
+        set_anim(p_person, ANIM_YOMP);
+    } else if (p_person->Genus.Person->PersonType == PERSON_COP) {
+        SLONG old;
+        old = p_person->Genus.Person->AnimType;
+        set_anim_of_type(p_person, COP_ROPER_ANIM_RUN, ANIM_TYPE_ROPER);
+        p_person->Genus.Person->AnimType = old;
+    } else if (p_person->Genus.Person->PersonType == PERSON_CIV) {
+        SLONG old;
+        switch (p_person->Draw.Tweened->MeshID) {
+        case 7:
+        case 8:
+            set_anim_of_type(p_person, CIV_M_ANIM_RUN, ANIM_TYPE_CIV);
+            break;
+        case 9:
+            set_anim_of_type(p_person, CIV_F_ANIM_RUN, ANIM_TYPE_CIV);
+            break;
+        default:
+            ASSERT(0);
+            break;
+        }
+    } else {
+
+        if (person_has_gun_out(p_person)) {
+            set_anim(p_person, ANIM_AK_JOG);
+        } else {
+            set_anim(p_person, ANIM_RUN);
+        }
+    }
+}
+
+// Selects and plays the correct idle animation based on person type, mode, and weapon.
+// uc_orig: set_anim_idle (fallen/Source/Person.cpp)
+void set_anim_idle(Thing* p_person)
+{
+    SLONG anim;
+
+    if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
+        anim = find_idle_fight_stance(p_person);
+
+    } else {
+        if (person_holding_2handed(p_person) && p_person->Genus.Person->PersonType != PERSON_ROPER) {
+            anim = ANIM_SHOTGUN_IDLE;
+            set_anim(p_person, anim);
+        } else {
+
+            switch (p_person->Genus.Person->PersonType) {
+            case PERSON_SLAG_TART:
+            case PERSON_SLAG_FATUGLY:
+                set_anim(p_person, ANIM_STAND_HIP);
+                break;
+            case PERSON_CIV:
+                switch (p_person->Draw.Tweened->MeshID) {
+                case 7:
+                case 8:
+                    set_anim_of_type(p_person, CIV_M_ANIM_STAND, ANIM_TYPE_CIV);
+                    break;
+                case 9:
+                    set_anim(p_person, ANIM_STAND_HIP);
+
+                    break;
+                default:
+                    ASSERT(0);
+                    break;
+                }
+                break;
+            case PERSON_COP:
+                set_anim_of_type(p_person, COP_ROPER_ANIM_READY, ANIM_TYPE_ROPER);
+                break;
+            default:
+                anim = ANIM_STAND_READY;
+                set_anim(p_person, anim);
+                break;
+            }
+        }
+    }
+}
+
+// Starts walking at velocity 5 with the appropriate walk animation.
+// uc_orig: set_person_walking (fallen/Source/Person.cpp)
+void set_person_walking(Thing* p_person)
+{
+    set_anim_walking(p_person);
+
+    set_thing_velocity(p_person, 5);
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+    p_person->SubState = SUB_STATE_WALKING;
+    p_person->Genus.Person->Action = ACTION_WALK;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+}
+
+// Starts walking backwards at velocity -5.
+// uc_orig: set_person_walk_backwards (fallen/Source/Person.cpp)
+void set_person_walk_backwards(Thing* p_person)
+{
+    if (person_holding_2handed(p_person)) {
+        set_anim(p_person, ANIM_BACK_WALK_AK);
+    } else {
+        set_anim(p_person, ANIM_BACK_WALK);
+    }
+
+    set_thing_velocity(p_person, -5);
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+    p_person->SubState = SUB_STATE_WALKING_BACKWARDS;
+    p_person->Genus.Person->Action = ACTION_WALK;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+}
+
+// Starts sneaking (slow walk with sneak animation).
+// uc_orig: set_person_sneaking (fallen/Source/Person.cpp)
+void set_person_sneaking(Thing* p_person)
+{
+    set_anim(p_person, ANIM_SNEAK);
+
+    set_thing_velocity(p_person, 5);
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+    p_person->SubState = SUB_STATE_WALKING;
+    p_person->Genus.Person->Action = ACTION_WALK;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+}
+
+// Starts a backward hop (short backward jump, used in fight responses).
+// uc_orig: set_person_hop_back (fallen/Source/Person.cpp)
+void set_person_hop_back(Thing* p_person)
+{
+    set_thing_velocity(p_person, 0);
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+    p_person->SubState = SUB_STATE_HOP_BACK;
+    p_person->Genus.Person->Action = ACTION_HOP_BACK;
+    p_person->Genus.Person->Timer1 = 3;
+    p_person->Genus.Person->Flags |= (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+    set_anim(p_person, ANIM_BACK_HOP);
+}
+
+// Returns the best fight-idle animation for the person given their current weapon.
+// uc_orig: find_idle_fight_stance (fallen/Source/Person.cpp)
+SLONG find_idle_fight_stance(Thing* p_person)
+{
+    SLONG anim = ANIM_FIGHT;
+
+    if (p_person->Genus.Person->SpecialUse) {
+        Thing* p_special;
+
+        p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+        switch (p_special->Genus.Special->SpecialType) {
+        case SPECIAL_KNIFE:
+            anim = ANIM_KNIFE_FIGHT_READY;
+            break;
+
+        case SPECIAL_BASEBALLBAT:
+            anim = ANIM_BAT_IDLE;
+
+            break;
+        case SPECIAL_SHOTGUN:
+        case SPECIAL_AK47:
+            break;
+        }
+    }
+    return (anim);
+}
+
+// Transitions person to fight idle: if player has no attacker, exits fight mode.
+// Plays the idle fight animation locking on foot or floor as appropriate.
+// uc_orig: set_person_fight_idle (fallen/Source/Person.cpp)
+void set_person_fight_idle(Thing* p_person)
+{
+    SLONG anim;
+
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_KO;
+
+    if (p_person->Genus.Person->PlayerID) {
+        Thing* p_attacker = is_person_under_attack_low_level(p_person, FALSE, 0x200);
+
+        if (p_attacker == NULL) {
+            p_person->Genus.Person->Agression = 0;
+            p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+            p_person->Genus.Person->Target = 0;
+            set_person_idle(p_person);
+            if (p_person->State == STATE_IDLE)
+                set_anim(p_person, ANIM_UNFIGHT);
+            GAME_FLAGS &= ~GF_SIDE_ON_COMBAT;
+            return;
+        }
+    }
+
+    person_enter_fight_mode(p_person);
+
+    set_generic_person_state_function(p_person, STATE_IDLE);
+
+    anim = find_idle_fight_stance(p_person);
+    if (person_on_floor(p_person)) {
+        set_anim(p_person, anim);
+    } else {
+        locked_anim_change(p_person, SUB_OBJECT_RIGHT_FOOT, anim, 0);
+    }
+
+    p_person->Draw.Tweened->AnimTween = 0;
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_IDLE;
+    p_person->SubState = 0;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+
+    plant_feet(p_person);
+}
+
+// Starts a fight step in one of four cardinal directions (0=N, 1=E, 2=S, 3=W).
+// Uses bat-specific anims if person holds a bat.
+// uc_orig: set_person_fight_step (fallen/Source/Person.cpp)
+void set_person_fight_step(Thing* p_person, SLONG dir)
+{
+    SLONG anim;
+    p_person->Genus.Person->Timer1 = 0;
+    if (person_holding_bat(p_person)) {
+        switch (dir) {
+        case 0:
+            anim = ANIM_FIGHT_STEP_N_BAT;
+            break;
+        case 1:
+            anim = ANIM_FIGHT_STEP_E_BAT;
+            break;
+        case 2:
+            anim = ANIM_FIGHT_STEP_S_BAT;
+            break;
+        case 3:
+            anim = ANIM_FIGHT_STEP_W_BAT;
+            break;
+        }
+    } else {
+        switch (dir) {
+        case 0:
+            anim = ANIM_FIGHT_STEP_N;
+            break;
+        case 1:
+            anim = ANIM_FIGHT_STEP_E;
+            break;
+        case 2:
+            anim = ANIM_FIGHT_STEP_S;
+            break;
+        case 3:
+            anim = ANIM_FIGHT_STEP_W;
+            break;
+        }
+    }
+    if (anim == p_person->Draw.Tweened->CurrentAnim)
+        return;
+    set_locked_anim(p_person, anim, SUB_OBJECT_LEFT_FOOT);
+    set_generic_person_state_function(p_person, STATE_FIGHTING);
+    p_person->SubState = SUB_STATE_STEP_FORWARD;
+    p_person->Velocity = (p_person->Genus.Person->AnimType == ANIM_TYPE_ROPER) ? 10 : 20;
+    p_person->Genus.Person->Timer1 = 0;
+}
+
+// Starts a fight step forward if not already in that animation.
+// uc_orig: set_person_fight_step_forward (fallen/Source/Person.cpp)
+void set_person_fight_step_forward(Thing* p_person)
+{
+    if (p_person->Draw.Tweened->CurrentAnim != ANIM_FIGHT_STEP_N) {
+        set_anim(p_person, ANIM_FIGHT_STEP_N);
+        set_generic_person_state_function(p_person, STATE_FIGHTING);
+        p_person->SubState = SUB_STATE_STEP_FORWARD;
+        p_person->Velocity = 10;
+    }
+}
+
+// Plays the block animation for the current weapon (bat, shotgun, or fist).
+// uc_orig: set_person_block (fallen/Source/Person.cpp)
+void set_person_block(Thing* p_person)
+{
+    SLONG anim = ANIM_BLOCK_HIGH;
+
+    set_generic_person_state_function(p_person, STATE_FIGHTING);
+
+    if (p_person->Genus.Person->SpecialUse) {
+        Thing* p_special;
+
+        p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+        switch (p_special->Genus.Special->SpecialType) {
+        case SPECIAL_BASEBALLBAT:
+            anim = ANIM_BAT_BLOCK;
+            break;
+        case SPECIAL_SHOTGUN:
+            anim = ANIM_SHOTGUN_BLOCK;
+            break;
+        }
+    }
+
+    if (anim) {
+        p_person->Draw.Tweened->Locked = 0;
+        locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, anim, 0);
+        p_person->Genus.Person->CombatNode = 0;
+        p_person->Velocity = 0;
+        p_person->Genus.Person->Action = ACTION_FIGHT_PUNCH;
+        p_person->SubState = SUB_STATE_BLOCK;
+        p_person->Draw.Tweened->Locked = 0;
+        p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
+    }
+}
+
+// Transitions to crouching idle state with the appropriate duck animation.
+// uc_orig: set_person_idle_croutch (fallen/Source/Person.cpp)
+void set_person_idle_croutch(Thing* p_person)
+{
+    SLONG anim;
+    set_generic_person_state_function(p_person, STATE_IDLE);
+    anim = ANIM_IDLE_CROUTCH;
+
+    if (anim) {
+        p_person->Draw.Tweened->Locked = 0;
+        set_anim(p_person, anim);
+
+        p_person->Genus.Person->CombatNode = 0;
+        p_person->Velocity = 0;
+        p_person->Genus.Person->Action = ACTION_CROUTCH;
+        p_person->SubState = SUB_STATE_IDLE_CROUTCHING;
+
+        p_person->Draw.Tweened->Locked = 0;
+    }
+}
+
+// Forcibly releases person being carried when carrier is hit or shot.
+// Sets carried person into a plunge-forward death animation.
+// uc_orig: emergency_uncarry (fallen/Source/Person.cpp)
+void emergency_uncarry(Thing* p_person)
+{
+    ASSERT(p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING);
+
+    Thing* p_target = TO_THING(p_person->Genus.Person->Target);
+
+    p_target->DY = -(4 << 8);
+    p_target->OnFace = 0;
+    p_target->SubState = SUB_STATE_DYING_PRONE;
+
+    set_generic_person_state_function(p_target, STATE_DYING);
+
+    locked_anim_change(p_target, 0, ANIM_PLUNGE_FORWARD, 0);
+
+    p_person->Genus.Person->Flags2 &= ~FLAG2_PERSON_CARRYING;
+}
+
+// Updates the carried person's world position to stay 90 units in front of carrier.
+// Called each frame during carry-running state.
+// uc_orig: carry_running (fallen/Source/Person.cpp)
+void carry_running(Thing* p_person)
+{
+    Thing* p_target;
+
+    SLONG dx;
+    SLONG dz;
+    GameCoord new_position = p_person->WorldPos;
+    p_target = TO_THING(p_person->Genus.Person->Target);
+
+    dx = -(SIN(p_person->Draw.Tweened->Angle) * 90) >> 8;
+    dz = -(COS(p_person->Draw.Tweened->Angle) * 90) >> 8;
+    new_position.X += dx;
+    new_position.Z += dz;
+
+    move_thing_on_map(p_target, &new_position);
+    p_target->Draw.Tweened->Angle = p_person->Draw.Tweened->Angle + 1024;
+    p_target->Draw.Tweened->Angle &= 2047;
+}
+
+// Begins carrying another person: sets carry state, pickup animations, and positions victim.
+// s_index is the thing-number of the victim to carry.
+// uc_orig: set_person_carry (fallen/Source/Person.cpp)
+void set_person_carry(Thing* p_person, SLONG s_index)
+{
+    Thing* p_target;
+    SLONG dx;
+    SLONG dz;
+    GameCoord new_position = p_person->WorldPos;
+
+    p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+    p_person->Genus.Person->Flags2 |= FLAG2_PERSON_CARRYING;
+
+    dx = -(SIN(p_person->Draw.Tweened->Angle) * 90) >> 8;
+    dz = -(COS(p_person->Draw.Tweened->Angle) * 90) >> 8;
+    new_position.X += dx;
+    new_position.Z += dz;
+
+    p_person->Genus.Person->Target = s_index;
+    p_target = TO_THING(s_index);
+    set_generic_person_state_function(p_person, STATE_CARRY);
+    set_anim(p_person, ANIM_PICKUP_CARRY);
+    p_person->SubState = SUB_STATE_PICKUP_CARRY;
+
+    set_anim(p_target, ANIM_PICKUP_CARRY_V);
+    p_target->SubState = SUB_STATE_PICKUP_CARRY_V;
+
+    move_thing_on_map(p_target, &new_position);
+    p_target->Draw.Tweened->Angle = p_person->Draw.Tweened->Angle + 1024;
+    p_target->Draw.Tweened->Angle &= 2047;
+    if (p_target->Genus.Person->Target) {
+        remove_from_gang_attack(p_target, TO_THING(p_target->Genus.Person->Target));
+    }
 }
 

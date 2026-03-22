@@ -317,4 +317,148 @@ void drop_current_gun(Thing* p_person, SLONG change_anim);
 // uc_orig: drop_all_items (fallen/Source/Person.cpp)
 void drop_all_items(Thing* p_person, UBYTE is_being_searched);
 
+// --- chunk 5: set_person_idle_uncroutch..set_person_carry ---
+
+// Transitions from crouching-idle back to standing idle with uncrouch animation.
+// uc_orig: set_person_idle_uncroutch (fallen/Source/Person.cpp)
+void set_person_idle_uncroutch(Thing* p_person);
+
+// Starts the turn-to-face-wall animation (entering hug-wall mode from front).
+// uc_orig: set_person_turn_to_hug_wall (fallen/Source/Person.cpp)
+void set_person_turn_to_hug_wall(Thing* p_person);
+
+// Starts sidling along wall in the given direction while hugging wall (1=left, 0=right).
+// uc_orig: set_person_hug_wall_dir (fallen/Source/Person.cpp)
+void set_person_hug_wall_dir(Thing* p_person, SLONG dir);
+
+// Starts the peek-around-wall animation in the given direction while hugging wall.
+// uc_orig: set_person_hug_wall_look (fallen/Source/Person.cpp)
+void set_person_hug_wall_look(Thing* p_person, SLONG dir);
+
+// Transitions person to standing idle based on mode, weapon, and combat state.
+// uc_orig: set_person_idle (fallen/Source/Person.cpp)
+void set_person_idle(Thing* p_person);
+
+// Sets person into a locked idle ready stance (respects gun/weapon state).
+// uc_orig: set_person_locked_idle_ready (fallen/Source/Person.cpp)
+void set_person_locked_idle_ready(Thing* p_person);
+
+// Checks if person's back is against a wall and sets sidle sub-state. Returns 1 if active.
+// uc_orig: set_person_sidle (fallen/Source/Person.cpp)
+SLONG set_person_sidle(struct Thing* p_person);
+
+// Starts a flip animation (0=left, 1=right).
+// uc_orig: set_person_flip (fallen/Source/Person.cpp)
+void set_person_flip(Thing* p_person, SLONG dir);
+
+// Sets person into running/walking/sneaking/sprint based on current Mode.
+// uc_orig: set_person_running (fallen/Source/Person.cpp)
+void set_person_running(Thing* p_person);
+
+// Sets person running starting from a specific animation frame.
+// uc_orig: set_person_running_frame (fallen/Source/Person.cpp)
+void set_person_running_frame(Thing* p_person, SLONG frame);
+
+// Cycles to the next carried special item and plays the draw sound.
+// uc_orig: set_person_draw_special (fallen/Source/Person.cpp)
+void set_person_draw_special(Thing* p_person);
+
+// Starts gun-draw animation and alerts nearby NPCs.
+// uc_orig: set_person_draw_gun (fallen/Source/Person.cpp)
+void set_person_draw_gun(Thing* p_person);
+
+// Holsters the gun and transitions to idle.
+// uc_orig: set_person_gun_away (fallen/Source/Person.cpp)
+void set_person_gun_away(Thing* p_person);
+
+// Positions person at the correct entry point for the given vehicle door (0=driver, 1=passenger).
+// uc_orig: position_person_for_vehicle (fallen/Source/Person.cpp)
+void position_person_for_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door);
+
+// Starts person entering a vehicle (key check, occupancy check, plays enter animation).
+// uc_orig: set_person_enter_vehicle (fallen/Source/Person.cpp)
+void set_person_enter_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door);
+
+// Appends person to the head of the vehicle's passenger linked list.
+// uc_orig: add_person_to_passenger_list (fallen/Source/Person.cpp)
+void add_person_to_passenger_list(Thing* p_person, Thing* p_vehicle);
+
+// Removes person from the vehicle's passenger linked list.
+// uc_orig: remove_person_from_passenger_list (fallen/Source/Person.cpp)
+void remove_person_from_passenger_list(Thing* p_person, Thing* p_vehicle);
+
+// Instantly places person inside vehicle as a passenger (no entry animation).
+// uc_orig: set_person_passenger_in_vehicle (fallen/Source/Person.cpp)
+void set_person_passenger_in_vehicle(Thing* p_person, Thing* p_vehicle, SLONG door);
+
+// Exits person from vehicle: tries both doors, repositions, removes from driver/passenger lists.
+// uc_orig: set_person_exit_vehicle (fallen/Source/Person.cpp)
+void set_person_exit_vehicle(Thing* p_person);
+
+// Selects the correct walk animation for person type and equipped weapon.
+// uc_orig: set_anim_walking (fallen/Source/Person.cpp)
+void set_anim_walking(Thing* p_person);
+
+// Selects the correct run animation for person type.
+// uc_orig: set_anim_running (fallen/Source/Person.cpp)
+void set_anim_running(Thing* p_person);
+
+// Selects the correct idle animation based on person type, mode, and weapon.
+// uc_orig: set_anim_idle (fallen/Source/Person.cpp)
+void set_anim_idle(Thing* p_person);
+
+// Starts walking at velocity 5 with the appropriate walk animation.
+// uc_orig: set_person_walking (fallen/Source/Person.cpp)
+void set_person_walking(Thing* p_person);
+
+// Starts walking backwards at velocity -5.
+// uc_orig: set_person_walk_backwards (fallen/Source/Person.cpp)
+void set_person_walk_backwards(Thing* p_person);
+
+// Starts sneaking (slow walk with sneak animation).
+// uc_orig: set_person_sneaking (fallen/Source/Person.cpp)
+void set_person_sneaking(Thing* p_person);
+
+// Starts a short backward hop (used in fight responses).
+// uc_orig: set_person_hop_back (fallen/Source/Person.cpp)
+void set_person_hop_back(Thing* p_person);
+
+// Returns the best fight-idle animation for the person given their current weapon.
+// uc_orig: find_idle_fight_stance (fallen/Source/Person.cpp)
+SLONG find_idle_fight_stance(Thing* p_person);
+
+// set_person_fight_idle already declared above (chunk 4 section, line ~96)
+
+// Starts a fight step in the given cardinal direction (0=N, 1=E, 2=S, 3=W).
+// uc_orig: set_person_fight_step (fallen/Source/Person.cpp)
+void set_person_fight_step(Thing* p_person, SLONG dir);
+
+// Starts a fight step forward if not already in that animation.
+// uc_orig: set_person_fight_step_forward (fallen/Source/Person.cpp)
+void set_person_fight_step_forward(Thing* p_person);
+
+// Plays the block animation for the current weapon.
+// uc_orig: set_person_block (fallen/Source/Person.cpp)
+void set_person_block(Thing* p_person);
+
+// Transitions to crouching idle state.
+// uc_orig: set_person_idle_croutch (fallen/Source/Person.cpp)
+void set_person_idle_croutch(Thing* p_person);
+
+// Forcibly releases the person being carried when carrier is hit.
+// uc_orig: emergency_uncarry (fallen/Source/Person.cpp)
+void emergency_uncarry(Thing* p_person);
+
+// Updates carried person's world position each frame during carry-running.
+// uc_orig: carry_running (fallen/Source/Person.cpp)
+void carry_running(Thing* p_person);
+
+// Begins carrying another person: sets carry state, pickup animations, positions victim.
+// uc_orig: set_person_carry (fallen/Source/Person.cpp)
+void set_person_carry(Thing* p_person, SLONG s_index);
+
+// Stub for setting a vehicle animation (always asserts — disabled in original).
+// uc_orig: set_vehicle_anim (fallen/Source/Person.cpp)
+void set_vehicle_anim(Thing* p_vehicle, SLONG anim);
+
 #endif // ACTORS_CHARACTERS_PERSON_H

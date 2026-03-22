@@ -6141,6 +6141,7 @@ void drop_all_items(Thing* p_person, UBYTE is_being_searched)
 }
 #endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 95) [set_person_aim..drop_all_items]
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 96) [set_person_idle_uncroutch..set_person_carry]
 void set_person_idle_uncroutch(Thing* p_person)
 {
     SLONG anim;
@@ -7645,6 +7646,7 @@ void set_person_carry(Thing* p_person, SLONG s_index)
         remove_from_gang_attack(p_target, TO_THING(p_target->Genus.Person->Target));
     }
 }
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 96) [set_person_idle_uncroutch..set_person_carry]
 
 void set_person_uncarry(Thing* p_person)
 {

@@ -58689,6 +58689,386 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_idle_uncroutch",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_idle_uncroutch",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_turn_to_hug_wall",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_turn_to_hug_wall",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_hug_wall_dir",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_hug_wall_dir",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_hug_wall_look",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_hug_wall_look",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_idle",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_idle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_locked_idle_ready",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_locked_idle_ready",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_sidle",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_sidle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_flip",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_flip",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_running",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_running",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_running_frame",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_running_frame",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_draw_special",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_draw_special",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_draw_gun",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_draw_gun",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_gun_away",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_gun_away",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_step_left",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_step_left",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_step_right",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_step_right",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_vehicle_anim",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_vehicle_anim",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "position_person_for_vehicle",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "position_person_for_vehicle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_enter_vehicle",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_enter_vehicle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "add_person_to_passenger_list",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "add_person_to_passenger_list",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "remove_person_from_passenger_list",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "remove_person_from_passenger_list",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_passenger_in_vehicle",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_passenger_in_vehicle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_exit_vehicle",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_exit_vehicle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_anim_walking",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_anim_walking",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_anim_running",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_anim_running",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_anim_idle",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_anim_idle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_walking",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_walking",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_walk_backwards",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_walk_backwards",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_sneaking",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_sneaking",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_hop_back",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_hop_back",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "find_idle_fight_stance",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "find_idle_fight_stance",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_fight_idle",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_fight_idle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_fight_step",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_fight_step",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_fight_step_forward",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_fight_step_forward",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_block",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_block",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_idle_croutch",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_idle_croutch",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "emergency_uncarry",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "emergency_uncarry",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "carry_running",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "carry_running",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_carry",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_person_carry",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

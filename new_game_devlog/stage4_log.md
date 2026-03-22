@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 96 — actors/characters/person (чанк 5: set_person_idle_uncroutch..set_person_carry) (2026-03-22)
+
+- Person.cpp чанк 5: lines 6144–7647. Функции: set_person_idle_uncroutch, set_person_turn_to_hug_wall, set_person_hug_wall_dir, set_person_hug_wall_look, set_person_idle, set_person_locked_idle_ready, set_person_sidle, set_person_flip, set_person_running, set_person_running_frame, set_person_draw_special, set_person_draw_gun, set_person_gun_away, set_person_step_left, set_person_step_right, set_vehicle_anim, position_person_for_vehicle, set_person_enter_vehicle, add_person_to_passenger_list, remove_person_from_passenger_list, set_person_passenger_in_vehicle, set_person_exit_vehicle, set_anim_walking, set_anim_running, set_anim_idle, set_person_walking, set_person_walk_backwards, set_person_sneaking, set_person_hop_back, find_idle_fight_stance, set_person_fight_idle, set_person_fight_step, set_person_fight_step_forward, set_person_block, set_person_idle_croutch, emergency_uncarry, carry_running, set_person_carry.
+- Добавлены Temporary includes: actors/vehicles/vehicle.h (VEH_find_door), actors/vehicles/vehicle_globals.h (sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim). Добавлен extern: continue_moveing (interfac.cpp).
+- `set_person_sidle` — тело полностью закомментировано в оригинале (только `return 0`), перенесена с пустым телом.
+- `set_person_fight_idle` была объявлена в chunk 4 секции person.h — дубль из chunk 5 убран.
+- Forward decl `set_person_stand_carry` в person.cpp (chunk 5 вызывает её раньше определения).
+
+---
+
 ## Итерация 95 — actors/characters/person (чанк 4: set_person_aim..drop_all_items) (2026-03-22)
 
 - Person.cpp чанк 4: lines 4742–6140. Функции: set_person_aim, weapon_accuracy_at_dist, VehicleBelongsToMIB, get_shoot_damage, shoot_get_ammo_sound_anim_time, actually_fire_gun, set_person_running_shoot, get_persons_best_weapon_with_ammo, dont_hurt_target_during_cutscene, set_person_shoot, set_person_grapple_windup, set_person_grappling_hook_release, person_has_gun_out, drop_current_gun, drop_all_items.
