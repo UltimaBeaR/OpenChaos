@@ -96,7 +96,8 @@ struct MFTime {
         Day,
         Month, //	1 - 12;		January		=	1
         Year;
-    SLONG Ticks; // Number of ticks(milliseconds) since windows started.
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    DWORD Ticks; // Number of ticks(milliseconds) since windows started.
 };
 
 SLONG main(UWORD argc, TCHAR** argv);

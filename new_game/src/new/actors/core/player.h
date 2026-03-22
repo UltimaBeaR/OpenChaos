@@ -45,7 +45,8 @@ typedef struct
     ULONG Pressed;
     ULONG Released;
     ULONG DoneSomething;
-    SLONG LastReleased[16];
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD (stores GetTickCount())
+    DWORD LastReleased[16];
     UBYTE DoubleClick[16];
 
     UBYTE Strength;

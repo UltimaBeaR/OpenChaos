@@ -485,10 +485,7 @@ void process_bullet_points(void)
 // uc_orig: lock_frame_rate (fallen/Source/Game.cpp)
 void lock_frame_rate(SLONG fps)
 {
-    // BUGFIX: tick1/tick2 must be DWORD (same type as GetTickCount return value).
-    // If uptime > ~24.8 days, GetTickCount() exceeds INT_MAX, making SLONG negative.
-    // timet = (negative) - 0 = large negative → condition never true → infinite loop.
-    // DWORD subtraction handles wraparound correctly via unsigned arithmetic.
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
     static DWORD tick1 = 0;
     DWORD tick2;
     DWORD timet;

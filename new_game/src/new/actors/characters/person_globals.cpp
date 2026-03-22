@@ -159,9 +159,11 @@ SLONG stat_arrested_innocent;
 // uc_orig: stat_count_bonus (fallen/Source/Person.cpp)
 SLONG stat_count_bonus;
 // uc_orig: stat_start_time (fallen/Source/Person.cpp)
-SLONG stat_start_time;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+DWORD stat_start_time;
 // uc_orig: stat_game_time (fallen/Source/Person.cpp)
-SLONG stat_game_time;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+DWORD stat_game_time;
 
 // uc_orig: player_visited (fallen/Source/Person.cpp)
 UBYTE player_visited[16][128];

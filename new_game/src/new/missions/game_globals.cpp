@@ -70,7 +70,8 @@ SLONG bullet_counter = 0;
 UBYTE screen_mem[640 * 3][480];
 
 // uc_orig: already_warned_about_leaving_map (fallen/Source/Game.cpp)
-SLONG already_warned_about_leaving_map = 0;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+DWORD already_warned_about_leaving_map = 0;
 
 // uc_orig: draw_map_screen (fallen/Source/Game.cpp)
 UBYTE draw_map_screen = 0;

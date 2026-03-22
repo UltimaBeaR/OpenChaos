@@ -42,9 +42,11 @@ extern SLONG stat_arrested_innocent;
 // uc_orig: stat_count_bonus (fallen/Source/Person.cpp)
 extern SLONG stat_count_bonus;
 // uc_orig: stat_start_time (fallen/Source/Person.cpp)
-extern SLONG stat_start_time;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+extern DWORD stat_start_time;
 // uc_orig: stat_game_time (fallen/Source/Person.cpp)
-extern SLONG stat_game_time;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+extern DWORD stat_game_time;
 
 // Tracks which map tiles the player has visited (for fog-of-war / minimap).
 // 16 bytes wide * 128 entries = 16*128 bit array.

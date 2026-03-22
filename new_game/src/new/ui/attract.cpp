@@ -268,7 +268,8 @@ void ScoresDraw(void)
     extern SLONG stat_arrested_thug;
     extern SLONG stat_arrested_innocent;
     extern SLONG stat_count_bonus;
-    extern SLONG stat_start_time, stat_game_time;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    extern DWORD stat_start_time, stat_game_time;
 
     SLONG y = 35;
     SLONG count = 0, count_bonus = 0, count_bonus_left = 0, c0;

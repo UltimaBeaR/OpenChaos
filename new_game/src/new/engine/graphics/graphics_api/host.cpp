@@ -133,7 +133,8 @@ void ShellPaused(void)
 {
     return;
 
-    SLONG timeout;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    DWORD timeout;
 
     if (PauseFlags & PAUSE) {
         PauseFlags |= PAUSE_ACK;
@@ -157,7 +158,8 @@ void ShellPauseOn(void)
     the_display.toGDI();
     return;
 
-    SLONG timeout;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    DWORD timeout;
 
     PauseCount++;
     if (PauseCount == 1) {
@@ -182,7 +184,8 @@ void ShellPauseOff(void)
 {
     return;
 
-    SLONG timeout;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    DWORD timeout;
 
     if (PauseCount == 0)
         return;

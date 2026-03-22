@@ -45,8 +45,10 @@ extern CBYTE console_status_text[_MAX_PATH];
 
 // Frame timestamps for per-frame elapsed time calculation.
 // uc_orig: last_tick (fallen/DDEngine/Source/console.cpp)
-extern SLONG console_last_tick;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+extern DWORD console_last_tick;
 // uc_orig: this_tick (fallen/DDEngine/Source/console.cpp)
-extern SLONG console_this_tick;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+extern DWORD console_this_tick;
 
 #endif // ENGINE_GRAPHICS_RESOURCES_CONSOLE_GLOBALS_H

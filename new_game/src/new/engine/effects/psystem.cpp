@@ -68,10 +68,12 @@ void PARTICLE_Run()
     // local_ratio: fixed-point elapsed-time ratio. 1<<TICK_SHIFT = one normal tick elapsed.
     // ULONG avoids a negative ratio on very fast frames (signed overflow in original).
     ULONG local_ratio, local_shift;
-    SLONG cur_tick, tick_diff;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    DWORD cur_tick;
+    SLONG tick_diff;
 
     cur_tick = GetTickCount();
-    tick_diff = cur_tick - prev_tick;
+    tick_diff = (SLONG)(cur_tick - prev_tick);
 
     if (first_pass) {
         tick_diff = NORMAL_TICK_TOCK; // pretend exactly one tick elapsed on first call

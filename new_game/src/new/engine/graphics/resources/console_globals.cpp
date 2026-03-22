@@ -11,6 +11,8 @@ ConsoleText console_Data[CONSOLE_LINES];
 CBYTE console_status_text[_MAX_PATH];
 
 // uc_orig: last_tick (fallen/DDEngine/Source/console.cpp)
-SLONG console_last_tick;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+DWORD console_last_tick;
 // uc_orig: this_tick (fallen/DDEngine/Source/console.cpp)
-SLONG console_this_tick;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+DWORD console_this_tick;

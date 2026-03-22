@@ -719,8 +719,9 @@ static void MAP_process_pulses()
     SLONG i;
     MAP_Pulse* mp;
 
-    static SLONG now = 0;
-    static SLONG last = 0;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    static DWORD now = 0;
+    static DWORD last = 0;
 
     now = GetTickCount();
 
@@ -943,8 +944,9 @@ static void MAP_process_beacons()
     SLONG i;
     MAP_Beacon* mb;
 
-    static SLONG now  = 0;
-    static SLONG last = 0;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    static DWORD now  = 0;
+    static DWORD last = 0;
 
     now = GetTickCount();
 

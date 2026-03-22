@@ -5175,7 +5175,8 @@ void process_hardware_level_input_for_player(Thing* p_player)
     ULONG input;
     ULONG last;
     ULONG processed = 0;
-    SLONG tick = GetTickCount();
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    DWORD tick = GetTickCount();
 
     Thing* p_person;
     p_person = p_player->Genus.Player->PlayerPerson;

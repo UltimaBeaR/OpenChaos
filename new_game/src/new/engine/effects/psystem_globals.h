@@ -24,7 +24,8 @@ extern SLONG particle_count;
 
 // Timestamp (GetTickCount) of the last PARTICLE_Run call — used to compute dt.
 // uc_orig: prev_tick (fallen/Source/psystem.cpp)
-extern SLONG prev_tick;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+extern DWORD prev_tick;
 
 // True on the very first PARTICLE_Run call — forces dt = one normal tick to avoid a huge initial delta.
 // uc_orig: first_pass (fallen/Source/psystem.cpp)

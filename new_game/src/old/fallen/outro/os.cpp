@@ -1499,7 +1499,8 @@ void OS_string(CBYTE* fmt, ...)
     OutputDebugString(message);
 }
 
-SLONG OS_game_start_tick_count;
+// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+DWORD OS_game_start_tick_count;
 
 SLONG OS_ticks(void)
 {

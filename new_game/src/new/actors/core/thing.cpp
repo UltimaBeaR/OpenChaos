@@ -356,7 +356,8 @@ void wait_ticks(SLONG wait)
 {
     struct MFTime the_time;
 
-    SLONG tick_reqd;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    DWORD tick_reqd;
     Time(&the_time);
     tick_reqd = the_time.Ticks + wait;
     while (the_time.Ticks < tick_reqd) {
@@ -553,8 +554,9 @@ void check_thing_data()
 // uc_orig: process_things_tick (fallen/Source/Thing.cpp)
 void process_things_tick(SLONG frame_rate_independant)
 {
-    static SLONG prev_tick = 0;
-    SLONG cur_tick;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    static DWORD prev_tick = 0;
+    DWORD cur_tick;
 
     SLONG tick_diff;
     static BOOL first_pass = TRUE;

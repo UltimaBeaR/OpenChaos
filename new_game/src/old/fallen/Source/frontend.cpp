@@ -1582,8 +1582,9 @@ void FRONTEND_kibble_process()
     SLONG c0;
     Kibble* k;
 
-    static SLONG last = 0;
-    static SLONG now = 0;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    static DWORD last = 0;
+    static DWORD now = 0;
 
     ASSERT(kibble != NULL);
 
@@ -4335,8 +4336,9 @@ SBYTE FRONTEND_loop()
 {
     SBYTE res;
 
-    static SLONG last = 0;
-    static SLONG now = 0;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    static DWORD last = 0;
+    static DWORD now = 0;
 
     SLONG millisecs;
 

@@ -77,8 +77,9 @@ SLONG GAMEMENU_process()
 
     SLONG millisecs;
 
-    static SLONG tick_last = 0;
-    static SLONG tick_now = 0;
+    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
+    static DWORD tick_last = 0;
+    static DWORD tick_now = 0;
 
     tick_now = GetTickCount();
 
