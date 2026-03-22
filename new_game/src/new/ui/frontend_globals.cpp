@@ -343,3 +343,12 @@ CBYTE* brief_wav[] = {
     "roperm24.wav", // 34
     ""
 };
+
+// ---- Mission-specific flags set by FRONTEND_loop ---------------------------
+
+// uc_orig: this_level_has_the_balrog (fallen/Source/frontend.cpp)
+UBYTE this_level_has_the_balrog = 0;
+// uc_orig: this_level_has_bane (fallen/Source/frontend.cpp)
+UBYTE this_level_has_bane = 0;
+// uc_orig: is_semtex (fallen/Source/frontend.cpp)
+UBYTE is_semtex = 0;

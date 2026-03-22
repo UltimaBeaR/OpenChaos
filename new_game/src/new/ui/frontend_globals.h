@@ -178,4 +178,16 @@ extern UBYTE best_found[50][4];
 // Index = mission ObjID; "none" means no speech for that mission.
 extern CBYTE* brief_wav[];
 
+// ---- Mission-specific flags set by FRONTEND_loop ---------------------------
+
+// uc_orig: this_level_has_the_balrog (fallen/Source/frontend.cpp)
+// Set to UC_TRUE only for Baalrog3.ucm (the boss level).
+extern UBYTE this_level_has_the_balrog;
+// uc_orig: this_level_has_bane (fallen/Source/frontend.cpp)
+// Set to UC_TRUE only for Finale1.ucm.
+extern UBYTE this_level_has_bane;
+// uc_orig: is_semtex (fallen/Source/frontend.cpp)
+// Set to 1 for skymiss2.ucm.
+extern UBYTE is_semtex;
+
 #endif // UI_FRONTEND_GLOBALS_H

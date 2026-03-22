@@ -1,6 +1,5 @@
-// Chunk 1: globals, script helpers, screen management, draw helpers,
-// kibble particle system (lines 1-1579 of original frontend.cpp).
-// Remaining: FRONTEND_kibble_process, FRONTEND_fetch_title_from_id,
+// Chunks 1-3: globals, script helpers, screen management, draw helpers,
+// kibble particle system, FRONTEND_kibble_process, FRONTEND_fetch_title_from_id,
 // FRONTEND_display, FRONTEND_init, FRONTEND_loop, etc.
 
 #include "DDLib.h"
@@ -35,6 +34,24 @@
 #include "fallen/Headers/Game.h"
 // Temporary: dclowlevel.h for DCL types used in some inline display code
 #include "fallen/DDLibrary/Headers/DCLowLevel.h"
+
+// Additional headers for chunks 2-3 (FRONTEND_display, FRONTEND_input, FRONTEND_init, FRONTEND_loop)
+#include "engine/audio/music.h"               // MUSIC_gain, MUSIC_reset, MUSIC_mode_process, MUSIC_bodge_code
+#include "engine/audio/mfx.h"                 // MFX_play_stereo, MFX_stop, MFX_set_volumes, etc.
+#include "engine/audio/sound.h"               // WEATHER_REF, SIREN_REF
+#include "assets/sound_id.h"                  // S_TUNE_BONUS, S_MENU_CLICK_START, etc.
+#include "engine/input/keyboard_globals.h"    // Keys[], LastKey, ControlFlag, ShiftFlag
+#include "engine/input/joystick_globals.h"    // the_state (DIJOYSTATE)
+#include "engine/graphics/resources/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
+#include "engine/graphics/resources/menufont_globals.h" // FontPage
+#include "engine/graphics/graphics_api/gd_display.h"  // eDisplayType, DT_NTSC, ShowBackImage
+#include "ui/interfac.h"                       // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
+#include "ui/interfac_globals.h"              // g_bPunishMePleaseICheatedOnThisLevel
+#include "assets/startscr_globals.h"          // STARTSCR_mission
+#include "assets/startscr.h"                  // STARTS_START, STARTS_EXIT, STARTS_EDITOR
+#include "world/map/supermap_globals.h"       // DONT_load
+#include "ui/controls_globals.h"              // allow_debug_keys
+#include "missions/game_globals.h"            // VIOLENCE
 
 extern void CopyBackground(UBYTE* image_data, IDirectDrawSurface4* surface);
 
@@ -2192,4 +2209,1336 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
     }
 
     FRONTEND_recenter_menu();
+}
+
+
+// ---- Chunk 3: district/mission display, input, init, main loop -------------
+
+// Forward declarations for internal helpers used before their definitions.
+// uc_orig: FRONTEND_draw_districts (fallen/Source/frontend.cpp)
+static void FRONTEND_draw_districts(void);
+// uc_orig: FRONTEND_shadowed_text (fallen/Source/frontend.cpp)
+static void FRONTEND_shadowed_text(char* pcString, int iX, int iY, DWORD dwColour);
+// uc_orig: FRONTEND_input (fallen/Source/frontend.cpp)
+static UBYTE FRONTEND_input(void);
+// uc_orig: FRONTEND_storedata (fallen/Source/frontend.cpp)
+static void FRONTEND_storedata(void);
+// uc_orig: FRONTEND_ValidMission (fallen/Source/frontend.cpp)
+static BOOL FRONTEND_ValidMission(SWORD sel);
+// uc_orig: FRONTEND_playambient3d (fallen/Source/frontend.cpp)
+static void FRONTEND_playambient3d(SLONG channel, SLONG wave_id, SLONG flags, UBYTE height = 0);
+// uc_orig: FRONTEND_sound (fallen/Source/frontend.cpp)
+static void FRONTEND_sound(void);
+// uc_orig: FRONTEND_diddle_stats (fallen/Source/frontend.cpp)
+static void FRONTEND_diddle_stats(void);
+// uc_orig: FRONTEND_diddle_music (fallen/Source/frontend.cpp)
+static void FRONTEND_diddle_music(void);
+
+// uc_orig: FRONTEND_draw_districts (fallen/Source/frontend.cpp)
+// Draws the district buttons and mission list on the map screen.
+// For the selected district: lists missions with strikethrough for completed ones.
+static void FRONTEND_draw_districts(void)
+{
+    UBYTE i, j, id;
+    SWORD x, y;
+    CBYTE* str;
+    UWORD fade;
+    ULONG rgb;
+
+    if (bonus_this_turn) {
+        if (bonus_this_turn == 1) {
+            bonus_this_turn++;
+            MFX_play_stereo(0, S_TUNE_BONUS, 0);
+        }
+        fade = (64 - fade_state) << 2;
+        if (IsEnglish) {
+            str = "Bonus mission unlocked!"; // XLAT_str(X_BONUS_MISSION_UNLOCKED)
+            FONT2D_DrawStringCentred(str, 322, 10, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
+            FONT2D_DrawStringCentred(str, 320, 8, 0xffffff, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
+        }
+    }
+
+    fade = (64 - fade_state) << 2;
+
+    {
+        CBYTE str2[200];
+        sprintf(str2, "%s: %03d  %s: %03d  %s: %03d  %s: %03d\n", XLAT_str_ptr(X_CON_INCREASED), the_game.DarciConstitution, XLAT_str_ptr(X_STA_INCREASED), the_game.DarciStamina, XLAT_str_ptr(X_STR_INCREASED), the_game.DarciStrength, XLAT_str_ptr(X_REF_INCREASED), the_game.DarciSkill);
+        int iYpos;
+        if (eDisplayType == DT_NTSC) {
+            // Move it further up so it's on screen for the yanks.
+            iYpos = 434;
+        } else {
+            iYpos = 454;
+        }
+        FONT2D_DrawStringCentred(str2, 320 + 2, iYpos + 2, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
+        FONT2D_DrawStringCentred(str2, 320, iYpos, 0xffffff, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
+    }
+
+    for (i = 0; i < district_count; i++) {
+        switch (district_valid[i]) {
+        case 1:
+            FRONTEND_draw_button(districts[i][0], districts[i][1], (UBYTE)(i == district_selected) | 4, i == district_flash);
+            break;
+        case 2:
+        case 3:
+            FRONTEND_draw_button(districts[i][0], districts[i][1], (i == district_selected) ? 5 : 6, i == district_flash);
+            break;
+        }
+
+        if (i == district_selected) {
+            y = districts[i][1];
+            x = districts[i][0];
+
+            str = menu_buffer;
+
+            for (j = 0; j < mission_count; j++) {
+                id = *str++;
+
+                // What colour do we draw this bit of text?
+                if (j == mission_selected) {
+                    rgb = 0xffffff;
+                } else {
+                    rgb = 0x667788;
+                }
+
+                fade = (64 - fade_state) << 2;
+
+                if (fade > 255)
+                    fade = 255;
+
+                if (mission_hierarchy[id] & 4) // 4 => available.
+                {
+                    if (x > 320) {
+                        FONT2D_DrawStringRightJustify(str, x + 18 + 2, y + 2, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
+                        FONT2D_DrawStringRightJustify(str, x + 18, y, rgb, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
+
+// These are just tweaked values - dunno why they work/don't work. Just accept it.
+#define STRIKETHROUGH_HANGOVER_L 5
+#define STRIKETHROUGH_HANGOVER_R 25
+
+                        if (mission_hierarchy[id] & 2) // 2 => complete
+                        {
+                            FONT2D_DrawStrikethrough(
+                                FONT2D_leftmost_x + 2 - STRIKETHROUGH_HANGOVER_L,
+                                x + 2 + STRIKETHROUGH_HANGOVER_R,
+                                y + 2,
+                                0x000000,
+                                256,
+                                POLY_PAGE_FONT2D,
+                                fade, UC_FALSE);
+
+                            FONT2D_DrawStrikethrough(
+                                FONT2D_leftmost_x + 0 - STRIKETHROUGH_HANGOVER_L,
+                                x + 0 + STRIKETHROUGH_HANGOVER_R,
+                                y,
+                                rgb,
+                                256,
+                                POLY_PAGE_FONT2D,
+                                fade, UC_TRUE);
+                        }
+                    } else {
+                        FONT2D_DrawString(str, x + 32 + 2, y + 2, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
+                        FONT2D_DrawString(str, x + 32, y, rgb, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, fade);
+
+#undef STRIKETHROUGH_HANGOVER_L
+#undef STRIKETHROUGH_HANGOVER_R
+// These are just tweaked values - dunno why they work/don't work. Just accept it.
+#define STRIKETHROUGH_HANGOVER_L (-15)
+#define STRIKETHROUGH_HANGOVER_R 30
+
+                        if (mission_hierarchy[id] & 2) // 2 => complete
+                        {
+                            FONT2D_DrawStrikethrough(
+                                x + 2 - STRIKETHROUGH_HANGOVER_L,
+                                FONT2D_rightmost_x + 2 + STRIKETHROUGH_HANGOVER_R,
+                                y + 2,
+                                0x000000,
+                                256,
+                                POLY_PAGE_FONT2D,
+                                fade, UC_FALSE);
+
+                            FONT2D_DrawStrikethrough(
+                                x - STRIKETHROUGH_HANGOVER_L,
+                                FONT2D_rightmost_x + STRIKETHROUGH_HANGOVER_R,
+                                y,
+                                rgb,
+                                256,
+                                POLY_PAGE_FONT2D,
+                                fade, UC_TRUE);
+                        }
+                    }
+                }
+
+                str += strlen(str) + 1;
+                y += 20;
+            }
+        }
+    }
+}
+
+// uc_orig: FRONTEND_shadowed_text (fallen/Source/frontend.cpp)
+// Draws text with a drop shadow effect (black shadow at +2, half-bright at +1, full colour at origin).
+static void FRONTEND_shadowed_text(char* pcString, int iX, int iY, DWORD dwColour)
+{
+    FONT2D_DrawString(pcString, iX + 2, iY + 2, 0, 256, POLY_PAGE_FONT2D, 0);
+    FONT2D_DrawString(pcString, iX - 1, iY - 1, 0, 256, POLY_PAGE_FONT2D, 0);
+    FONT2D_DrawString(pcString, iX + 1, iY + 1, (dwColour & 0xfefefefe) >> 1, 256, POLY_PAGE_FONT2D, 0);
+    FONT2D_DrawString(pcString, iX, iY, dwColour, 256, POLY_PAGE_FONT2D, 0);
+}
+
+// uc_orig: FRONTEND_display (fallen/Source/frontend.cpp)
+// Main per-frame frontend render: clear viewport, background, kibble particles,
+// menu items (with scrolling, strikethrough, widget rendering), title wibble,
+// district map and briefing text overlays.
+void FRONTEND_display()
+{
+    UBYTE i;
+    SLONG rgb, x, x2, y;
+    MenuData* md = menu_data;
+    UBYTE whichmap[] = { 2, 0, 1, 3 };
+    UBYTE arrow = 0;
+
+    LPDIRECT3DDEVICE3 dev = the_display.lp_D3D_Device;
+    HRESULT hres;
+
+    D3DVIEWPORT2 vp;
+    vp.dwSize = sizeof(vp);
+    vp.dwX = the_display.ViewportRect.x1;
+    vp.dwY = the_display.ViewportRect.y1;
+    vp.dwWidth = the_display.ViewportRect.x2 - the_display.ViewportRect.x1;
+    vp.dwHeight = the_display.ViewportRect.y2 - the_display.ViewportRect.y1;
+    vp.dvClipX = (float)vp.dwX;
+    vp.dvClipY = (float)vp.dwY;
+    vp.dvClipWidth = (float)vp.dwWidth;
+    vp.dvClipHeight = (float)vp.dwHeight;
+    vp.dvMinZ = 0.0f;
+    vp.dvMaxZ = 1.0f;
+    hres = the_display.lp_D3D_Viewport->SetViewport2(&vp);
+
+    the_display.lp_D3D_Viewport->Clear(1, &the_display.ViewportRect, D3DCLEAR_ZBUFFER | D3DCLEAR_TARGET);
+
+    ShowBackImage();
+    if ((fade_mode & 3) == 1)
+        FRONTEND_show_xition();
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+    FRONTEND_kibble_draw();
+
+    int iBigFontScale = BIG_FONT_SCALE;
+    if (!IsEnglish) {
+        if ((menu_state.mode == FE_SAVESCREEN) || (menu_state.mode == FE_LOADSCREEN) || (menu_state.mode == FE_SAVE_CONFIRM)) {
+            // Reduce it a bit to fit long French words on screen.
+            iBigFontScale = BIG_FONT_SCALE_FRENCH;
+        }
+    }
+
+    for (i = 0; i < menu_state.items; i++, md++) {
+        y = md->Y + menu_state.base - menu_state.scroll;
+        if ((y >= 100) && (y <= 400)) {
+            rgb = FRONTEND_fix_rgb(fade_rgb, i == menu_state.selected);
+            if ((md->Type == OT_BUTTON) && (md->Choices == (CBYTE*)1)) // 'greyed out'
+            {
+                SLONG rgbtemp = rgb & 0xff000000;
+                rgb = (rgb & 0xff) >> 1;
+                rgb |= (rgb << 8) | (rgb << 16);
+                rgb |= rgbtemp;
+            }
+
+            MENUFONT_Draw(md->X, y, iBigFontScale, md->Label, rgb, 0);
+
+            switch (md->Type) {
+            case OT_SLIDER:
+                FRONTEND_DrawSlider(md);
+                break;
+            case OT_MULTI:
+                FRONTEND_DrawMulti(md, rgb);
+                break;
+            case OT_KEYPRESS:
+                FRONTEND_DrawKey(md);
+                break;
+            case OT_PADPRESS:
+                FRONTEND_DrawPad(md);
+                break;
+            }
+        } else {
+            if (i == menu_state.selected) { // better do some scrolling
+                if (y < 100)
+                    menu_state.scroll -= 10;
+                if (y > 400)
+                    menu_state.scroll += 10;
+            }
+            if (y < 100)
+                arrow |= 1;
+            if (y > 400)
+                arrow |= 2;
+        }
+    }
+    if (arrow & 1) // draw a "more..." arrow at the top of the screen
+    {
+        DRAW2D_Tri(320, 50, 335, 65, 305, 65, fade_rgb, 0);
+    }
+    if (arrow & 2) // draw a "more..." arrow at the bottom of the screen
+    {
+        DRAW2D_Tri(320, 430, 335, 415, 305, 415, fade_rgb, 0);
+    }
+    if (menu_state.title && (menu_state.mode != FE_MAINMENU)) {
+        BOOL dir;
+        x2 = SIN(fade_state << 3) >> 10;
+        switch (menu_state.mode) {
+        case FE_MAPSCREEN:
+            MENUFONT_Dimensions(menu_state.title, x, y, -1, BIG_FONT_SCALE);
+            x = 560 - x;
+            x2 = (x2 * 10) - 63;
+            dir = 0;
+            break;
+        default:
+            x = 80;
+            x2 = 642 - (x2 * 10);
+            dir = 1;
+            break;
+        }
+        FontPage = POLY_PAGE_NEWFONT;
+        FRONTEND_draw_title(x + 2, 44, x2, menu_state.title, 0, dir);
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+        POLY_frame_init(UC_FALSE, UC_FALSE);
+        FontPage = POLY_PAGE_NEWFONT_INVERSE;
+        FRONTEND_draw_title(x, 40, x2, menu_state.title, 1, dir);
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+        POLY_frame_init(UC_FALSE, UC_FALSE);
+        FRONTEND_draw_button(x2, 8, whichmap[menu_theme]);
+    }
+    if ((menu_state.mode == FE_MAPSCREEN) && ((fade_mode == 2) || (fade_state == 63)))
+        FRONTEND_draw_districts();
+    if ((menu_state.mode >= 100) && *menu_buffer) {
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+        POLY_frame_init(UC_FALSE, UC_FALSE);
+        x = SIN(fade_state << 3) >> 10;
+        FRONTEND_draw_button(642 - (x * 10), 8, whichmap[menu_theme]);
+        FONT2D_DrawStringWrapTo(menu_buffer, 20 + 2, 100 + 2, 0x000000, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, 255 - (fade_state << 2), 402);
+        FONT2D_DrawStringWrapTo(menu_buffer, 20, 100, fade_rgb, SMALL_FONT_SCALE, POLY_PAGE_FONT2D, 255 - (fade_state << 2), 400);
+    }
+
+    if (m_bMovingPanel) {
+        // Display the panel at the current position.
+        // REMEMBER THAT THESE NUMBERS ARE DIVIDED BY 4!
+        int iXPos = ENV_get_value_number("panel_x", 32 / 4, "");
+        int iYPos = ENV_get_value_number("panel_y", (480 - 32) / 4, "");
+
+        extern void PANEL_draw_quad(float left, float top, float right, float bottom, SLONG page, ULONG colour,
+            float u1, float v1, float u2, float v2);
+
+        PANEL_draw_quad(
+            (float)(iXPos * 4 + 0),
+            (float)(iYPos * 4 - 165),
+            (float)(iXPos * 4 + 212),
+            (float)(iYPos * 4 - 0),
+            POLY_PAGE_LASTPANEL_ALPHA,
+            0xffffffff,
+            0.0F,
+            90.0F / 256.0F,
+            212.0F / 256.0F,
+            1.0F);
+    }
+
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
+}
+
+// uc_orig: FRONTEND_storedata (fallen/Source/frontend.cpp)
+// Saves current menu screen's settings back to ENV (video, audio, keyboard, joypad, options).
+static void FRONTEND_storedata(void)
+{
+    switch (menu_state.mode) {
+    case FE_CONFIG_VIDEO:
+        FRONTEND_store_video_data();
+        break;
+    case FE_CONFIG_AUDIO:
+        MFX_stop(WEATHER_REF, MFX_WAVE_ALL);
+        MFX_set_volumes(menu_data[0].Data >> 1, menu_data[1].Data >> 1, menu_data[2].Data >> 1);
+        break;
+
+    case FE_CONFIG_INPUT_KB:
+        ENV_set_value_number("keyboard_left", menu_data[0].Data, "Keyboard");
+        ENV_set_value_number("keyboard_right", menu_data[1].Data, "Keyboard");
+        ENV_set_value_number("keyboard_forward", menu_data[2].Data, "Keyboard");
+        ENV_set_value_number("keyboard_back", menu_data[3].Data, "Keyboard");
+        ENV_set_value_number("keyboard_punch", menu_data[4].Data, "Keyboard");
+        ENV_set_value_number("keyboard_kick", menu_data[5].Data, "Keyboard");
+        ENV_set_value_number("keyboard_action", menu_data[6].Data, "Keyboard");
+        ENV_set_value_number("keyboard_jump", menu_data[7].Data, "Keyboard");
+        ENV_set_value_number("keyboard_start", menu_data[8].Data, "Keyboard");
+        ENV_set_value_number("keyboard_select", menu_data[9].Data, "Keyboard");
+        // gap for label
+        ENV_set_value_number("keyboard_camera", menu_data[11].Data, "Keyboard");
+        ENV_set_value_number("keyboard_cam_left", menu_data[12].Data, "Keyboard");
+        ENV_set_value_number("keyboard_cam_right", menu_data[13].Data, "Keyboard");
+        ENV_set_value_number("keyboard_1stperson", menu_data[14].Data, "Keyboard");
+        break;
+
+    case FE_CONFIG_INPUT_JP:
+        ENV_set_value_number("joypad_kick", menu_data[0].Data, "Joypad");
+        ENV_set_value_number("joypad_punch", menu_data[1].Data, "Joypad");
+        ENV_set_value_number("joypad_jump", menu_data[2].Data, "Joypad");
+        ENV_set_value_number("joypad_action", menu_data[3].Data, "Joypad");
+        ENV_set_value_number("joypad_move", menu_data[4].Data, "Joypad");
+        ENV_set_value_number("joypad_start", menu_data[5].Data, "Joypad");
+        ENV_set_value_number("joypad_select", menu_data[6].Data, "Joypad");
+        // gap for label
+        ENV_set_value_number("joypad_camera", menu_data[8].Data, "Joypad");
+        ENV_set_value_number("joypad_cam_left", menu_data[9].Data, "Joypad");
+        ENV_set_value_number("joypad_cam_right", menu_data[10].Data, "Joypad");
+        ENV_set_value_number("joypad_1stperson", menu_data[11].Data, "Joypad");
+        break;
+
+    case FE_CONFIG_OPTIONS:
+        ENV_set_value_number("scanner_follows", menu_data[1].Data & 1, "Game");
+        break;
+    }
+}
+
+// uc_orig: FRONTEND_ValidMission (fallen/Source/frontend.cpp)
+// Returns UC_TRUE if the mission at position sel in menu_buffer is available (hierarchy bit 4 set).
+static BOOL FRONTEND_ValidMission(SWORD sel)
+{
+    CBYTE* str = menu_buffer;
+    UBYTE id = *str;
+
+    while (sel) {
+        sel--;
+        str++;
+        str += strlen(str) + 1;
+        id = *str;
+    }
+    return (BOOL)(mission_hierarchy[id] & 4);
+}
+
+// uc_orig: FRONTEND_input (fallen/Source/frontend.cpp)
+// Polls keyboard and joypad state, processes navigation keys (up/down/left/right/enter/esc),
+// handles key/pad rebinding modes, and returns 0 normally or a FE_* exit code.
+static UBYTE FRONTEND_input(void)
+{
+    UBYTE scan, any_button = 0;
+    static SLONG last_input = 0;
+    static UBYTE last_button = 0;
+    static UBYTE first_pad = 1;
+
+    SLONG input = 0;
+
+    if (grabbing_pad && !last_input) {
+        UBYTE i, j;
+        MenuData* item = menu_data + menu_state.selected;
+        ReadInputDevice();
+        if (Keys[KB_ESC] || (input & INPUT_MASK_CANCEL)) {
+            Keys[KB_ESC] = 0;
+            grabbing_pad = 0;
+        } else {
+            for (i = 0; i < 32; i++) {
+                if (the_state.rgbButtons[i] & 0x80) {
+                    for (j = 0; j < menu_state.items; j++) {
+                        if (menu_data[j].Data == i) {
+                            menu_data[j].Data = 31;
+                        }
+                    }
+                    item->Data = i;
+                    last_button = 1;
+                    grabbing_pad = 0;
+                    break;
+                }
+            }
+        }
+        return 0;
+    } else {
+        // Use a looser dead zone for the menu than the in-game one in interfac.cpp.
+#define AXIS_CENTRE 32768
+#define NOISE_TOLERANCE 4096
+#define AXIS_MIN (AXIS_CENTRE - NOISE_TOLERANCE)
+#define AXIS_MAX (AXIS_CENTRE + NOISE_TOLERANCE)
+
+        input = get_hardware_input(INPUT_TYPE_JOY);
+
+        input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS);
+        if (the_state.lX > AXIS_MAX) {
+            input |= INPUT_MASK_RIGHT;
+        } else if (the_state.lX < AXIS_MIN) {
+            input |= INPUT_MASK_LEFT;
+        }
+
+        // Do not allow diagonals in the menu.
+        if (the_state.lY > AXIS_MAX) {
+            input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT);
+            input |= INPUT_MASK_BACKWARDS;
+        } else if (the_state.lY < AXIS_MIN) {
+            input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT);
+            input |= INPUT_MASK_FORWARDS;
+        }
+
+        if (input == last_input) {
+            input = 0;
+            any_button = 0;
+        } else {
+            last_input = input;
+            for (scan = 0; scan < 8; scan++)
+                any_button |= the_state.rgbButtons[scan];
+            // Suppress very first movement: PC joysticks have a strange habit of doing
+            // one spurious movement on boot-up for some reason.
+            if (first_pad) {
+                if (any_button)
+                    first_pad = 0;
+                else if (input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS)) {
+                    first_pad = 0;
+                    input = 0;
+                }
+            }
+            if (last_button) {
+                if (!any_button)
+                    last_button = 0;
+                else
+                    any_button = 0;
+            }
+        }
+    }
+
+    if (grabbing_key && LastKey) {
+        MenuData* item = menu_data + menu_state.selected;
+        if (LastKey != KB_ESC) {
+            UBYTE j;
+            for (j = 0; j < menu_state.items; j++)
+                if (menu_data[j].Data == LastKey)
+                    menu_data[j].Data = 0;
+            item->Data = LastKey;
+        }
+        Keys[LastKey] = 0;
+        grabbing_key = 0;
+        return 0;
+    }
+    if (allow_debug_keys) {
+        if (Keys[KB_1] || Keys[KB_2] || Keys[KB_3] || Keys[KB_4]) {
+            if (Keys[KB_1]) {
+                Keys[KB_1] = 0;
+                menu_theme = 0;
+            }
+            if (Keys[KB_2]) {
+                Keys[KB_2] = 0;
+                menu_theme = 1;
+            }
+            if (Keys[KB_3]) {
+                Keys[KB_3] = 0;
+                menu_theme = 2;
+            }
+            if (Keys[KB_4]) {
+                Keys[KB_4] = 0;
+                menu_theme = 3;
+            }
+            UseBackSurface(screenfull_back);
+            FRONTEND_kibble_init();
+        }
+    }
+
+    if (Keys[KB_END]) {
+        Keys[KB_END] = 0;
+        MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
+        menu_state.selected = menu_state.items - 1;
+        if (menu_state.mode == FE_MAPSCREEN)
+            mission_selected = mission_count - 1;
+        while (((menu_data + menu_state.selected)->Type == OT_LABEL) || (((menu_data + menu_state.selected)->Type == OT_BUTTON) && ((menu_data + menu_state.selected)->Choices == (CBYTE*)1)))
+            menu_state.selected--;
+    }
+    if (Keys[KB_HOME]) {
+        Keys[KB_HOME] = 0;
+        MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
+        menu_state.selected = 0;
+        if (menu_state.mode == FE_MAPSCREEN)
+            mission_selected = 0;
+        while (((menu_data + menu_state.selected)->Type == OT_LABEL) || (((menu_data + menu_state.selected)->Type == OT_BUTTON) && ((menu_data + menu_state.selected)->Choices == (CBYTE*)1)))
+            menu_state.selected++;
+    }
+    if (Keys[KB_UP] || (input & INPUT_MASK_FORWARDS)) {
+        Keys[KB_UP] = 0;
+        MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
+        if (menu_state.selected > 0)
+            menu_state.selected--;
+        else
+            menu_state.selected = menu_state.items - 1;
+        while (((menu_data + menu_state.selected)->Type == OT_LABEL) || (((menu_data + menu_state.selected)->Type == OT_BUTTON) && ((menu_data + menu_state.selected)->Choices == (CBYTE*)1))) {
+            if (menu_state.selected > 0)
+                menu_state.selected--;
+            else
+                menu_state.selected = menu_state.items - 1;
+        }
+        if ((menu_state.mode == FE_MAPSCREEN) && mission_selected)
+            mission_selected--;
+    }
+    if (Keys[KB_DOWN] || (input & INPUT_MASK_BACKWARDS)) {
+        Keys[KB_DOWN] = 0;
+        MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
+        if (menu_state.selected < menu_state.items - 1)
+            menu_state.selected++;
+        else
+            menu_state.selected = 0;
+        while (((menu_data + menu_state.selected)->Type == OT_LABEL) || (((menu_data + menu_state.selected)->Type == OT_BUTTON) && ((menu_data + menu_state.selected)->Choices == (CBYTE*)1))) {
+            if (menu_state.selected < menu_state.items - 1)
+                menu_state.selected++;
+            else
+                menu_state.selected--;
+        }
+        if ((menu_state.mode == FE_MAPSCREEN) && (mission_selected < mission_count - 1) && (FRONTEND_ValidMission(mission_selected + 1)))
+            mission_selected++;
+    }
+
+    if (Keys[KB_ENTER] || Keys[KB_SPACE] || Keys[KB_PENTER] || any_button) {
+        Keys[KB_ENTER] = 0;
+        Keys[KB_SPACE] = 0;
+        Keys[KB_PENTER] = 0;
+        MenuData* item = menu_data + menu_state.selected;
+
+        if (fade_mode != 2)
+            MFX_play_stereo(0, S_MENU_CLICK_END, MFX_REPLACE);
+        FRONTEND_stop_xition();
+
+        if ((menu_state.mode == FE_SAVESCREEN) && (item->Data != FE_BACK)) {
+            // save_slot is 1-based (1,2,3); menu_state.selected is 0-based.
+            save_slot = menu_state.selected + 1;
+        }
+
+        if ((menu_state.mode == FE_SAVESCREEN) && (item->Data == FE_MAPSCREEN)) {
+            menu_mode_queued = FE_MAPSCREEN;
+            menu_state.stackpos = 0;
+            menu_thrash = FE_MAINMENU;
+        }
+
+        if ((menu_state.mode == FE_SAVE_CONFIRM) && (item->Data == FE_MAPSCREEN)) {
+            if (item->LabelID == X_CANCEL) {
+                // Cancel was pressed - just exit.
+                menu_mode_queued = FE_MAPSCREEN;
+                fade_mode = 2;
+                FRONTEND_kibble_flurry();
+                menu_state.stackpos = 0;
+                menu_thrash = FE_MAINMENU;
+                return 0;
+            }
+
+            CBYTE ttl[_MAX_PATH];
+            FRONTEND_fetch_title_from_id(MISSION_SCRIPT, ttl, mission_launch);
+            bool bSuccess = FRONTEND_save_savegame(ttl, save_slot);
+
+            if (bSuccess) {
+                menu_mode_queued = FE_MAPSCREEN;
+                fade_mode = 2;
+                FRONTEND_kibble_flurry();
+                menu_state.stackpos = 0;
+                menu_thrash = FE_MAINMENU;
+                return 0;
+            } else {
+                // Failed save: buzz and return to the main menu.
+                MFX_play_stereo(0, S_MENU_CLICK_END, MFX_REPLACE);
+                menu_mode_queued = FE_MAPSCREEN;
+                fade_mode = 2;
+                FRONTEND_kibble_flurry();
+                menu_state.stackpos = 0;
+                menu_thrash = FE_MAINMENU;
+                return 0;
+            }
+        }
+        if (menu_state.mode == FE_MAPSCREEN) {
+            if (mission_count > 0) {
+                menu_mode_queued = 100 + mission_selected;
+                fade_mode = 2;
+                FRONTEND_kibble_flurry();
+            }
+            return 0;
+        }
+
+        if (menu_state.mode >= 100) {
+            // Starting a mission: stop any briefing audio.
+            MFX_QUICK_stop();
+            return FE_START;
+        }
+        if ((menu_state.mode == FE_LOADSCREEN) && (item->Data == FE_SAVE_CONFIRM)) {
+            bool bSuccess = FRONTEND_load_savegame(menu_state.selected + 1);
+            if (bSuccess) {
+                FRONTEND_MissionHierarchy(MISSION_SCRIPT);
+                menu_mode_queued = FE_MAPSCREEN;
+                fade_mode = 2;
+                FRONTEND_kibble_flurry();
+                return 0;
+            } else {
+                // Failed load: buzz and quit to the main menu.
+                MFX_play_stereo(0, S_MENU_CLICK_END, MFX_REPLACE);
+                menu_mode_queued = FE_MAINMENU;
+                fade_mode = 2;
+                FRONTEND_kibble_flurry();
+                return 0;
+            }
+        }
+        switch (item->Type) {
+        case OT_MULTI:
+            // Cycle through all options.
+            item->Data = (item->Data & ~0xff) | ((item->Data & 0xff) + 1);
+            if ((item->Data & 0xff) >= (item->Data >> 8)) {
+                item->Data &= ~0xff;
+            }
+            break;
+        case OT_KEYPRESS:
+            grabbing_key = 1;
+            LastKey = 0;
+            break;
+        case OT_PADPRESS:
+            if (bCanChangeJoypadButtons) {
+                grabbing_pad = 1;
+                last_input = 0;
+            } else {
+                // Can't change button - using a predefined setup.
+                MFX_play_stereo(0, S_MENU_CLICK_END, MFX_REPLACE);
+            }
+            break;
+        case OT_PADMOVE:
+            // Enter pad-move mode.
+            m_bMovingPanel = UC_TRUE;
+            break;
+        case OT_BUTTON:
+        case OT_BUTTON_L:
+            if (menu_state.mode == FE_START)
+                return FE_LOADSCREEN;
+            if (item->Data == FE_NO_REALLY_QUIT)
+                return -1;
+            if (item->Data == FE_BACK)
+                FRONTEND_storedata();
+            if (item->Data == FE_START)
+                return FE_LOADSCREEN;
+            if (item->Data == FE_EDITOR)
+                return FE_EDITOR;
+            if (item->Data == FE_CREDITS)
+                return FE_CREDITS;
+
+            FRONTEND_kibble_flurry();
+
+            menu_mode_queued = item->Data;
+            fade_mode = 2 | ((item->Data == FE_BACK) ? 4 : 0);
+            break;
+        case OT_RESET:
+            switch (menu_state.mode) {
+            case FE_CONFIG_INPUT_KB:
+                menu_data[0].Data = 203;
+                menu_data[1].Data = 205;
+                menu_data[2].Data = 200;
+                menu_data[3].Data = 208;
+                menu_data[4].Data = 44;
+                menu_data[5].Data = 45;
+                menu_data[6].Data = 46;
+                menu_data[7].Data = 57;
+                menu_data[8].Data = 15;
+                menu_data[9].Data = 28;
+                // gap for label
+                menu_data[11].Data = 207;
+                menu_data[12].Data = 211;
+                menu_data[13].Data = 209;
+                menu_data[14].Data = 30;
+                break;
+            case FE_CONFIG_INPUT_JP:
+                menu_data[0].Data = 4;
+                menu_data[1].Data = 3;
+                menu_data[2].Data = 0;
+                menu_data[3].Data = 1;
+                menu_data[4].Data = 7;
+                menu_data[5].Data = 8;
+                menu_data[6].Data = 2;
+                // gap for label
+                menu_data[8].Data = 6;
+                menu_data[9].Data = 9;
+                menu_data[10].Data = 10;
+                menu_data[11].Data = 5;
+                break;
+            }
+            break;
+        }
+    }
+    if (Keys[KB_LEFT] || (input & INPUT_MASK_LEFT)) {
+        Keys[KB_LEFT] = 0;
+        MenuData* item = menu_data + menu_state.selected;
+        if ((item->Type == OT_SLIDER) && (item->Data > 0)) {
+            item->Data--;
+            if (item->Data > 0) {
+                item->Data--;
+            }
+        }
+
+        if ((menu_state.mode == FE_MAPSCREEN) && district_selected) {
+            scan = district_selected - 1;
+            while ((scan > 0) && !district_valid[scan])
+                scan--;
+            if (district_valid[scan]) {
+                district_selected = scan;
+                FRONTEND_MissionList(MISSION_SCRIPT, districts[district_selected][2]);
+                MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
+            }
+        }
+
+        if ((item->Type == OT_MULTI) && ((item->Data & 0xff) > 0)) {
+            item->Data--;
+            MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
+        }
+
+        if (menu_state.mode == FE_CONFIG_VIDEO)
+            FRONTEND_gamma_update();
+        if ((menu_state.mode == FE_CONFIG_AUDIO) && !menu_state.selected) {
+            MFX_play_stereo(1, S_TRAFFIC_CONE, 0);
+        }
+    }
+    if (Keys[KB_RIGHT] || (input & INPUT_MASK_RIGHT)) {
+        Keys[KB_RIGHT] = 0;
+        MenuData* item = menu_data + menu_state.selected;
+        if ((item->Type == OT_SLIDER) && (item->Data < 255)) {
+            item->Data++;
+            if (item->Data < 255) {
+                item->Data++;
+            }
+        }
+
+        if ((menu_state.mode == FE_MAPSCREEN) && (district_selected < district_count - 1)) {
+            scan = district_selected + 1;
+            while ((scan < district_count - 1) && !district_valid[scan])
+                scan++;
+            if (district_valid[scan]) {
+                district_selected = scan;
+                FRONTEND_MissionList(MISSION_SCRIPT, districts[district_selected][2]);
+                MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
+            }
+        }
+
+        if ((item->Type == OT_MULTI) && ((item->Data & 0xff) < (item->Data >> 8) - 1)) {
+            item->Data++;
+            MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
+        }
+
+        if (menu_state.mode == FE_CONFIG_VIDEO)
+            FRONTEND_gamma_update();
+        if ((menu_state.mode == FE_CONFIG_AUDIO) && !menu_state.selected) {
+            MFX_play_stereo(1, S_TRAFFIC_CONE, 0);
+        }
+    }
+    if (Keys[KB_ESC] || (input & INPUT_MASK_CANCEL)) {
+        Keys[KB_ESC] = 0;
+        if (fade_mode != 6)
+            MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
+        if (fade_mode == 2) // cancel a transition
+        {
+            fade_mode = 1;
+            menu_mode_queued = menu_state.mode;
+            return 0;
+        }
+        if (menu_state.stackpos) {
+            switch (menu_state.mode) {
+            case FE_CONFIG_VIDEO: // eidos want ESC to store opts
+                FRONTEND_store_video_data();
+                break;
+            case FE_CONFIG_AUDIO:
+                MFX_stop(WEATHER_REF, MFX_WAVE_ALL);
+                MFX_set_volumes(menu_data[0].Data >> 1, menu_data[1].Data >> 1, menu_data[2].Data >> 1);
+                break;
+            }
+
+            // Store any options settings.
+            FRONTEND_storedata();
+
+            menu_mode_queued = FE_BACK;
+        } else {
+            menu_mode_queued = FE_QUIT;
+        }
+
+        if ((menu_state.mode == FE_SAVESCREEN) && !menu_state.stackpos) {
+            menu_thrash = FE_MAINMENU;
+            menu_mode_queued = FE_MAPSCREEN;
+        }
+        fade_mode = 6;
+
+        FRONTEND_kibble_flurry();
+    }
+
+    return 0;
+}
+
+// uc_orig: FRONTEND_init (fallen/Headers/frontend.h)
+// Initialises frontend system: language, mission script, fonts, themes, music, kibble.
+// Called on first entry and on re-entry after a mission ends.
+void FRONTEND_init(bool bGoToTitleScreen)
+{
+    static bool bFirstTime = UC_TRUE;
+
+    dwAutoPlayFMVTimeout = timeGetTime() + AUTOPLAY_FMV_DELAY;
+
+    // Stop the music while loading stuff.
+    stop_all_fx_and_music();
+
+    // These two are so that when a mission ends with a camera still active, the music
+    // stuff actually works properly.
+    extern UBYTE EWAY_conv_active;
+    extern SLONG EWAY_cam_active;
+    EWAY_conv_active = UC_FALSE;
+    EWAY_cam_active = UC_FALSE;
+
+    TICK_RATIO = (1 << TICK_SHIFT);
+
+    // Set up the current language.
+    switch (0) {
+    case 0:
+        pcSpeechLanguageDir = "talk2\\";
+        break;
+    case 1:
+        pcSpeechLanguageDir = "talk2_french\\";
+        break;
+    default:
+        ASSERT(UC_FALSE);
+        break;
+    }
+
+    // Reset the transition buffer's contents.
+    lpFRONTEND_show_xition_LastBlit = NULL;
+
+    CBYTE *str, *lang = ENV_get_value_string("language");
+
+    if (!lang)
+        lang = "text\\lang_english.txt";
+    XLAT_load(lang);
+    XLAT_init();
+
+    IsEnglish = !stricmp(XLAT_str(X_THIS_LANGUAGE_IS), "English");
+
+    str = menu_choice_yesno;
+    strcpy(str, XLAT_str(X_NO));
+    str += strlen(str) + 1;
+    strcpy(str, XLAT_str(X_YES));
+
+    strcpy(MISSION_SCRIPT, "data\\");
+    lang = XLAT_str(X_THIS_LANGUAGE_IS);
+    if (strcmp(lang, "English") == 0)
+        strcat(MISSION_SCRIPT, "urban");
+    else
+        strcat(MISSION_SCRIPT, lang);
+    strcat(MISSION_SCRIPT, ".sty");
+
+    // Load the mission script into memory so we don't have to scan a file all the time!
+    CacheScriptInMemory(MISSION_SCRIPT);
+
+    MENUFONT_Load("olyfont2.tga", POLY_PAGE_NEWFONT_INVERSE, frontend_fonttable);
+
+    void MENUFONT_MergeLower(void);
+    MENUFONT_MergeLower();
+
+    menu_theme = 0;
+
+    UseBackSurface(screenfull_back);
+
+    ZeroMemory(kibble, sizeof(kibble));
+    ZeroMemory(&menu_state, sizeof(menu_state));
+    if (!complete_point)
+        ZeroMemory(mission_hierarchy, 60);
+    menu_state.mode = -1;
+
+    FRONTEND_CacheMissionList(MISSION_SCRIPT);
+
+    the_display.lp_D3D_Viewport->Clear(1, &the_display.ViewportRect, D3DCLEAR_ZBUFFER);
+
+    ZeroMemory(menu_choice_scanner, 255);
+    XLAT_str(X_CAMERA, menu_choice_scanner);
+    lang = menu_choice_scanner + strlen(menu_choice_scanner) + 1;
+    XLAT_str(X_CHARACTER, lang);
+
+    MUSIC_mode(MUSIC_MODE_FRONTEND);
+
+    FRONTEND_scr_new_theme(
+        menu_back_names[menu_theme],
+        menu_map_names[menu_theme],
+        menu_brief_names[menu_theme],
+        menu_config_names[menu_theme]);
+
+    if (!bFirstTime) {
+        UseBackSurface(screenfull_back);
+    }
+
+    SLONG fx, amb, mus;
+    MFX_get_volumes(&fx, &amb, &mus);
+    MUSIC_gain(mus);
+
+    FRONTEND_districts(MISSION_SCRIPT);
+    FRONTEND_MissionHierarchy(MISSION_SCRIPT);
+    FRONTEND_kibble_init();
+
+    if (m_bGoIntoSaveScreen) {
+        // Just won a mission - going into save game.
+        FRONTEND_mode(FE_SAVESCREEN);
+        m_bGoIntoSaveScreen = UC_FALSE;
+    } else {
+        // Frontend menu.
+        FRONTEND_mode(FE_MAINMENU);
+    }
+
+    // Stop all the music - about to start it again, properly.
+    stop_all_fx_and_music();
+    MUSIC_reset();
+    MUSIC_mode(0);
+    MUSIC_mode_process();
+    MUSIC_mode(MUSIC_MODE_FRONTEND);
+
+    if (mission_launch) {
+        // Just won a mission - going into save game.
+        return;
+    }
+
+    bFirstTime = UC_FALSE;
+}
+
+// uc_orig: FRONTEND_level_lost (fallen/Headers/frontend.h)
+// Called by Game.cpp after GS_LEVEL_LOST exit. Restores mission_launch to pre-launch value,
+// resets menu state and goes to main menu (no save screen).
+void FRONTEND_level_lost()
+{
+    mission_launch = previous_mission_launch;
+    // Start up the kibble again.
+    FRONTEND_kibble_init();
+    ZeroMemory(&menu_state, sizeof(menu_state));
+    menu_state.mode = -1;
+    FRONTEND_mode(FE_MAINMENU);
+}
+
+// uc_orig: FRONTEND_level_won (fallen/Headers/frontend.h)
+// Called by Game.cpp after GS_LEVEL_WON exit. Marks mission as complete, accumulates
+// stat deltas (Constitution/Strength/Stamina/Skill) via anti-farm best_found[] system,
+// then triggers the save screen.
+void FRONTEND_level_won()
+{
+    ASSERT(mission_launch < 50);
+
+    // update hierarchy data.
+    mission_hierarchy[mission_launch] |= 2; // complete
+
+    if (!g_bPunishMePleaseICheatedOnThisLevel) {
+        // Update Darci's stats: only credit deltas that exceed previous-best per mission slot.
+        if (1) // NET_PERSON(0)->Genus.Person->PersonType==PERSON_DARCI)
+        {
+            SLONG found;
+            found = NET_PLAYER(0)->Genus.Player->Constitution - the_game.DarciConstitution;
+            ASSERT(found >= 0);
+
+            if (found > best_found[mission_launch][0]) {
+                the_game.DarciConstitution += found - best_found[mission_launch][0];
+                best_found[mission_launch][0] = found;
+            }
+
+            found = NET_PLAYER(0)->Genus.Player->Strength - the_game.DarciStrength;
+            ASSERT(found >= 0);
+
+            if (found > best_found[mission_launch][1]) {
+                the_game.DarciStrength += found - best_found[mission_launch][1];
+                best_found[mission_launch][1] = found;
+            }
+
+            found = NET_PLAYER(0)->Genus.Player->Stamina - the_game.DarciStamina;
+            ASSERT(found >= 0);
+
+            if (found > best_found[mission_launch][2]) {
+                the_game.DarciStamina += found - best_found[mission_launch][2];
+                best_found[mission_launch][2] = found;
+            }
+
+            found = NET_PLAYER(0)->Genus.Player->Skill - the_game.DarciSkill;
+            ASSERT(found >= 0);
+
+            if (found > best_found[mission_launch][3]) {
+                the_game.DarciSkill += found - best_found[mission_launch][3];
+                best_found[mission_launch][3] = found;
+            }
+        } else {
+            the_game.RoperConstitution = NET_PLAYER(0)->Genus.Player->Constitution;
+            the_game.RoperStrength = NET_PLAYER(0)->Genus.Player->Strength;
+            the_game.RoperStamina = NET_PLAYER(0)->Genus.Player->Stamina;
+            the_game.RoperSkill = NET_PLAYER(0)->Genus.Player->Skill;
+        }
+    }
+
+    // Start up the kibble again.
+    FRONTEND_kibble_init();
+    ZeroMemory(&menu_state, sizeof(menu_state));
+    menu_state.mode = -1;
+    if (complete_point < mission_launch)
+        complete_point = mission_launch;
+    FRONTEND_MissionHierarchy(MISSION_SCRIPT);
+    FRONTEND_mode(FE_SAVESCREEN);
+    m_bGoIntoSaveScreen = UC_TRUE;
+}
+
+// uc_orig: FRONTEND_playambient3d (fallen/Source/frontend.cpp)
+// Plays a sound at a random angle around the listener.
+// height==1: also randomises vertical position (aerial sounds like sirens).
+static void FRONTEND_playambient3d(SLONG channel, SLONG wave_id, SLONG flags, UBYTE height)
+{
+    SLONG angle = Random() & 2047;
+
+    SLONG x = (COS(angle) << 4);
+    SLONG y = 0;
+    SLONG z = (SIN(angle) << 4);
+
+    if (height == 1)
+        y += (512 + (Random() & 1023)) << 8;
+
+    MFX_play_xyz(channel, wave_id, 0, x, y, z);
+}
+
+// uc_orig: FRONTEND_sound (fallen/Source/frontend.cpp)
+// Per-frame frontend audio: plays looped ambient wind, periodically spawns a random siren
+// from a random direction, and keeps the music volume in sync with the audio config slider.
+static void FRONTEND_sound(void)
+{
+    static SLONG siren_time = 100;
+    SLONG wave_id;
+
+    MFX_play_ambient(WEATHER_REF, S_WIND_START, MFX_LOOPED | MFX_QUEUED);
+    MFX_set_gain(WEATHER_REF, S_AMBIENCE_END, 255);
+    MUSIC_gain(menu_data[2].Data >> 1);
+    MFX_set_volumes(menu_data[0].Data >> 1, menu_data[1].Data >> 1, menu_data[2].Data >> 1);
+
+    siren_time--;
+    if (siren_time < 0) {
+        wave_id = S_SIREN_START + (Random() % 4);
+        siren_time = 300 + ((Random() & 0xFFFF) >> 5);
+        FRONTEND_playambient3d(SIREN_REF, wave_id, 0, 1);
+    }
+    MFX_set_listener(0, 0, 0, 0, 0, 0);
+    MFX_update();
+}
+
+// uc_orig: FRONTEND_diddle_stats (fallen/Source/frontend.cpp)
+// No-op � originally planned to adjust player stats when cheating.
+static void FRONTEND_diddle_stats(void)
+{
+}
+
+// uc_orig: FRONTEND_diddle_music (fallen/Source/frontend.cpp)
+// Sets MUSIC_bodge_code based on mission filename to trigger mission-specific music variants.
+// Code 1=fight/FTutor, 2=Assault, 3=testdrive, 4=Finale1.
+static void FRONTEND_diddle_music(void)
+{
+    MUSIC_bodge_code = 0;
+    if (strstr(STARTSCR_mission, "levels\\fight") || strstr(STARTSCR_mission, "levels\\FTutor"))
+        MUSIC_bodge_code = 1;
+    else if (strstr(STARTSCR_mission, "levels\\Assault"))
+        MUSIC_bodge_code = 2;
+    else if (strstr(STARTSCR_mission, "levels\\testdrive"))
+        MUSIC_bodge_code = 3;
+    else if (strstr(STARTSCR_mission, "levels\\Finale1"))
+        MUSIC_bodge_code = 4;
+}
+
+// uc_orig: FRONTEND_loop (fallen/Headers/frontend.h)
+// Main frontend per-frame logic: advance fade state, kibble, render, audio, input.
+// Returns: 0 (continue), STARTS_EXIT (quit), STARTS_EDITOR, STARTS_START (launch mission).
+SBYTE FRONTEND_loop()
+{
+    SBYTE res;
+
+    // BUGFIX-OC-TICK-OVERFLOW: was SLONG, overflows after ~25 days uptime.
+    static DWORD last = 0;
+    static DWORD now = 0;
+
+    SLONG millisecs;
+
+    now = GetTickCount();
+
+    if (last < now - 250) {
+        last = now - 250;
+    }
+
+    millisecs = now - last;
+    last = now;
+
+    // How fast should the fade state fade?
+    SLONG fade_speed = (millisecs >> 3);
+
+    if (fade_speed < 1) {
+        fade_speed = 1;
+    }
+
+    switch (fade_mode & 3) {
+    case 1:
+        if (fade_state < 63) {
+            fade_state += fade_speed;
+
+            if (fade_state > 63) {
+                fade_state = 63;
+            }
+        } else {
+            FRONTEND_stop_xition();
+
+            fade_mode = 0;
+        }
+        break;
+
+    case 2:
+        if (fade_state > 0) {
+            fade_state -= fade_speed;
+
+            if (fade_state < 0) {
+                fade_state = 0;
+            }
+        } else {
+            FRONTEND_mode(menu_mode_queued);
+        }
+        break;
+    }
+    fade_rgb = (((SLONG)fade_state * 2) << 24) | 0xFFFFFF;
+
+    {
+        FRONTEND_kibble_process();
+    }
+
+    PolyPage::DisableAlphaSort();
+    FRONTEND_display();
+    if ((menu_state.mode == FE_CONFIG_AUDIO) && (fade_mode == 0)) {
+        FRONTEND_sound();
+    } else {
+        MFX_set_listener(0, 0, 0, 0, 0, 0);
+        MFX_update();
+    }
+    PolyPage::EnableAlphaSort();
+    res = FRONTEND_input();
+    MUSIC_mode_process();
+
+    // Debug cheat shortcuts: Ctrl+Shift+Numpad+/Numpad* advance complete_point.
+    if (ControlFlag && ShiftFlag) {
+        if (Keys[KB_PPLUS]) {
+            Keys[KB_PPLUS] = 0;
+            complete_point++;
+            FRONTEND_MissionHierarchy(MISSION_SCRIPT);
+            cheating = 1;
+        }
+        if (Keys[KB_ASTERISK]) {
+            Keys[KB_ASTERISK] = 0;
+            complete_point = 40;
+            FRONTEND_MissionHierarchy(MISSION_SCRIPT);
+            cheating = 1;
+        }
+    }
+
+    if (res == FE_NO_REALLY_QUIT)
+        return STARTS_EXIT;
+    if (res == FE_EDITOR)
+        return STARTS_EDITOR;
+    if (res == FE_LOADSCREEN)
+        return STARTS_START;
+
+    // Mission selected (mode >= 100, ENTER pressed): look up per-mission data and start loading.
+    // whattoload[] = per-mission table: {filename, dontload_bitmask, has_balrog}.
+    // DONT_load is always forced to 0 (load everything); the mask is preserved for documentation.
+    // this_level_has_the_balrog / this_level_has_bane / is_semtex are read by level setup code.
+    if (res == FE_START) {
+        struct
+        {
+            CBYTE* mission;
+            SLONG dontload;
+            SLONG has_balrog;
+
+        } whattoload[] = {
+            { "testdrive1a.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "FTutor1.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "Assault1.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "police1.ucm", (1 << PERSON_MIB1) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "police2.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "Bankbomb1.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "police3.ucm", (1 << PERSON_MIB1) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "Gangorder2.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "police4.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "bball2.ucm", (1 << PERSON_MIB1) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "wstores1.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "e3.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | 0, UC_FALSE },
+            { "westcrime1.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "carbomb1.ucm", (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "botanicc.ucm", (1 << PERSON_MIB1) | 0, UC_FALSE },
+            { "Semtex.ucm", (1 << PERSON_MIB1) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "AWOL1.ucm", (1 << PERSON_MIB1) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "mission2.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "park2.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "MIB.ucm", (1 << PERSON_TRAMP) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "skymiss2.ucm", (1 << PERSON_MIB1) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "factory1.ucm", (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "estate2.ucm", (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "Stealtst1.ucm", (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "snow2.ucm", (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "Gordout1.ucm", (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "Baalrog3.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_TRUE },
+            { "Finale1.ucm", (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "Gangorder1.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "FreeCD1.ucm", (1 << PERSON_MIB1) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "jung3.ucm", (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | 0, UC_FALSE },
+            { "fight1.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "fight2.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "testdrive2.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "testdrive3.ucm", (1 << PERSON_MIB1) | (1 << PERSON_TRAMP) | (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+            { "Album1.ucm", (1 << PERSON_SLAG_TART) | (1 << PERSON_SLAG_FATUGLY) | (1 << PERSON_HOSTAGE) | (1 << PERSON_MECHANIC) | 0, UC_FALSE },
+
+            { "!" }
+        };
+
+        SLONG index_into_the_whattoload_array;
+
+        previous_mission_launch = mission_launch;
+        strcpy(STARTSCR_mission, "levels\\");
+        strcat(STARTSCR_mission, FRONTEND_MissionFilename(MISSION_SCRIPT, menu_state.mode - 100));
+
+        index_into_the_whattoload_array = -1;
+
+        SLONG i;
+
+        for (i = 0; whattoload[i].mission[0] != '!'; i++) {
+            if (strcmp(FRONTEND_MissionFilename(MISSION_SCRIPT, menu_state.mode - 100), whattoload[i].mission) == 0) {
+                ASSERT(index_into_the_whattoload_array == -1);
+
+                index_into_the_whattoload_array = i;
+            }
+        }
+
+        ASSERT(index_into_the_whattoload_array != -1);
+
+        ASSERT(WITHIN(index_into_the_whattoload_array, 0, 35));
+
+        this_level_has_the_balrog = whattoload[index_into_the_whattoload_array].has_balrog;
+        this_level_has_bane = (index_into_the_whattoload_array == 27); // Just in the finale...
+        DONT_load = whattoload[index_into_the_whattoload_array].dontload;
+
+        // Override: load all people regardless of the per-mission mask.
+        DONT_load = 0;
+
+        // If doing all levels, don't use DONT_load. The two don't mix.
+        ASSERT(!DONT_load);
+
+        if (index_into_the_whattoload_array == 20) // skymiss2.ucm
+        {
+            is_semtex = 1;
+        } else {
+            is_semtex = 0;
+        }
+
+        if (index_into_the_whattoload_array == 31 || index_into_the_whattoload_array == 32 || index_into_the_whattoload_array == 1) {
+            // No violence for Album1, Gangorder1, FTutor1.
+            VIOLENCE = UC_FALSE;
+        } else {
+            // Default violence.
+            VIOLENCE = UC_TRUE;
+        }
+
+        if (cheating)
+            FRONTEND_diddle_stats();
+
+        FRONTEND_diddle_music();
+        menu_state.stackpos = 0;
+        menu_thrash = 0;
+        return STARTS_START;
+    }
+
+    if (res == FE_CREDITS) {
+        {
+            extern void OS_hack(void);
+            OS_hack();
+            MUSIC_mode(MUSIC_MODE_FRONTEND);
+            FRONTEND_kibble_init();
+        }
+    }
+
+    return 0;
 }

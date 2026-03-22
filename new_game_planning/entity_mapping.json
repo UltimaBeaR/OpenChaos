@@ -73219,6 +73219,176 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_draw_districts",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_draw_districts",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_shadowed_text",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_shadowed_text",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_display",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_display",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_storedata",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_storedata",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_ValidMission",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_ValidMission",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_input",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_input",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_init",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_init",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_level_lost",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_level_lost",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_level_won",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_level_won",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_playambient3d",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_playambient3d",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_sound",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_sound",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_diddle_stats",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_diddle_stats",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_diddle_music",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_diddle_music",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FRONTEND_loop",
+      "file": "new/ui/frontend.cpp",
+      "orig_name": "FRONTEND_loop",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "this_level_has_the_balrog",
+      "file": "new/ui/frontend_globals.cpp",
+      "orig_name": "this_level_has_the_balrog",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "this_level_has_bane",
+      "file": "new/ui/frontend_globals.cpp",
+      "orig_name": "this_level_has_bane",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "is_semtex",
+      "file": "new/ui/frontend_globals.cpp",
+      "orig_name": "is_semtex",
+      "orig_file": "fallen/Source/frontend.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

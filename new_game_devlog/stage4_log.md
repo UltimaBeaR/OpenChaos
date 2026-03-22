@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 132 — ui/frontend chunk 3 (draw_districts + display + input + init + loop → new/ui/frontend.cpp) (2026-03-22)
+
+- `frontend.cpp` lines 3112–4606: `FRONTEND_draw_districts`, `FRONTEND_shadowed_text`, `FRONTEND_display`, `FRONTEND_storedata`, `FRONTEND_ValidMission`, `FRONTEND_input`, `FRONTEND_init`, `FRONTEND_level_lost`, `FRONTEND_level_won`, `FRONTEND_playambient3d`, `FRONTEND_sound`, `FRONTEND_diddle_stats`, `FRONTEND_diddle_music`, `FRONTEND_loop` → `new/ui/frontend.cpp`.
+- Globals `this_level_has_the_balrog`, `this_level_has_bane`, `is_semtex` → `frontend_globals.cpp/.h`.
+- `FRONTEND_draw_districts`, `FRONTEND_shadowed_text`, `FRONTEND_storedata`, `FRONTEND_ValidMission`, `FRONTEND_input`, `FRONTEND_playambient3d`, `FRONTEND_sound`, `FRONTEND_diddle_stats`, `FRONTEND_diddle_music` are file-private → declared `static` with forward declarations.
+- `frontend.cpp` in `old/` is now fully migrated (entire file wrapped in `#if 0 // MIGRATED` blocks).
+
+---
+
 ## Итерация 131 — ui/frontend chunk 2 (kibble_process + savegame + mission hierarchy + menu helpers + mode → new/ui/frontend.cpp) (2026-03-22)
 
 - `frontend.cpp` chunk 2 (lines 1592–3107): `FRONTEND_kibble_process`, `FRONTEND_fetch_title_from_id`, `init_best_found`, `FRONTEND_save_savegame`, `FRONTEND_load_savegame`, `FRONTEND_find_savegames`, `FRONTEND_MissionFilename`, `FRONTEND_MissionHierarchy`, `FRONTEND_MissionBrief`, `FRONTEND_MissionList`, `FRONTEND_CacheMissionList`, `FRONTEND_districts`, `FRONTEND_gettitle`, `FRONTEND_easy`, `LabelToIndex`, `FRONTEND_restore_video_data`, `FRONTEND_store_video_data`, `FRONTEND_do_drivers`, `FRONTEND_gamma_update`, `FRONTEND_do_gamma`, `FRONTEND_mode` → `new/ui/frontend.cpp`.

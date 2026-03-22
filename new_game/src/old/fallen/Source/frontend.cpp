@@ -3109,6 +3109,8 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition = UC_TRUE)
 
 #endif // MIGRATED to src/new/ui/frontend.cpp + frontend_globals.cpp (iteration 131) [FRONTEND_kibble_process..FRONTEND_mode]
 
+#if 0 // MIGRATED to src/new/ui/frontend.cpp + frontend_globals.cpp (iteration 132) [FRONTEND_draw_districts..FRONTEND_loop]
+
 void FRONTEND_draw_districts()
 {
     UBYTE i, j, id;
@@ -4604,3 +4606,5 @@ SBYTE FRONTEND_loop()
 
     return 0;
 }
+
+#endif // MIGRATED to src/new/ui/frontend.cpp + frontend_globals.cpp (iteration 132) [FRONTEND_draw_districts..FRONTEND_loop]
