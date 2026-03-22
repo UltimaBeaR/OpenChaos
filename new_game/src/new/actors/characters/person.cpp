@@ -100,7 +100,8 @@ extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor
 // locked_anim_change / locked_anim_change_of_type: now defined in person.cpp chunk 7 (below)
 extern SLONG get_cable_along(SLONG facet, SLONG ax, SLONG az);
 extern SWORD people_types[50];
-extern void do_person_on_cable(Thing* p_person);
+// do_person_on_cable is defined below in chunk 8 (no extern needed)
+extern SLONG get_yomp_anim(Thing* p_person); // defined later in Person.cpp (not yet migrated)
 // chunk 4 additional externs (Person.cpp later chunks or other files not yet migrated)
 extern Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG radius);
 extern SLONG might_i_be_a_villain(Thing* p_person);
@@ -7853,5 +7854,1250 @@ SLONG find_best_cable_angle(Thing* p_person, SLONG facet)
         return ((cable_angle + 1024) & 2047);
     else
         return (cable_angle);
+}
+
+// =============================================================================
+// chunk 8: grab_ledge..do_person_on_cable (original lines ~10702-12291)
+// =============================================================================
+
+// uc_orig: grab_ledge (fallen/Source/Person.cpp)
+SLONG grab_ledge(Thing* p_person)
+{
+    SLONG x, y, z;
+    SLONG grab_x, grab_y, grab_z, type;
+    SLONG grab_angle;
+    SLONG face;
+
+    SLONG ignore_building;
+
+    if (p_person->Genus.Person->InsideIndex)
+        return (0);
+
+    // While grabbing a ledge, also try grabbing a balloon.
+    BALLOON_find_grab(THING_NUMBER(p_person));
+
+    if (p_person->Flags & FLAGS_IN_BUILDING) {
+        ignore_building = INDOORS_DBUILDING;
+    } else {
+        ignore_building = 0;
+    }
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, SUB_OBJECT_LEFT_HAND, &x, &y, &z);
+
+    {
+        SLONG rx, ry, rz;
+
+        calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, SUB_OBJECT_RIGHT_HAND, &rx, &ry, &rz);
+
+        x += rx;
+        y += ry;
+        z += rz;
+
+        x >>= 1;
+        y >>= 1;
+        z >>= 1;
+    }
+    x += p_person->WorldPos.X >> 8;
+    y += p_person->WorldPos.Y >> 8;
+    z += p_person->WorldPos.Z >> 8;
+
+    // In sewers, grab the sewer floor instead of a normal face.
+    if (p_person->Flags & FLAGS_IN_SEWERS) {
+        face = find_grab_face_in_sewers(
+            x, y, z,
+            50, 40,
+            p_person->Draw.Tweened->Angle,
+            &grab_x,
+            &grab_y,
+            &grab_z,
+            &grab_angle);
+    } else {
+        SLONG radius = 80;
+        if (p_person->State == STATE_CLIMBING)
+            radius = 100;
+        face = find_grab_face(
+            x, y, z,
+            radius, 40,
+            p_person->Draw.Tweened->Angle,
+            &grab_x,
+            &grab_y,
+            &grab_z,
+            &grab_angle,
+            ignore_building,
+            FALSE, &type,
+            p_person);
+    }
+
+    if (face) {
+        // Leave fight mode when you grab something.
+        p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+
+        SLONG new_x, new_y, new_z, old_substate;
+        GameCoord temp_pos;
+        DrawTween* draw_info;
+
+        if (type == 2) {
+            if (p_person->SubState != SUB_STATE_RUNNING_JUMP_FLY && p_person->SubState != SUB_STATE_DROP_DOWN)
+                return (0);
+            if (p_person->DY > 0)
+                return (0);
+
+            // grab_ladder: position person at the ladder XZ and switch to STATE_CLIMB_LADDER.
+            temp_pos.X = grab_x << 8;
+            temp_pos.Y = p_person->WorldPos.Y;
+            temp_pos.Z = grab_z << 8;
+
+            move_thing_on_map(p_person, &temp_pos);
+            p_person->Genus.Person->OnFacet = face;
+            p_person->Draw.Tweened->Angle = grab_angle;
+            set_generic_person_state_function(p_person, STATE_CLIMB_LADDER);
+
+            set_person_on_ladder(p_person);
+            return (1);
+        }
+
+        draw_info = p_person->Draw.Tweened;
+
+        draw_info->AnimTween = 0;
+        p_person->Genus.Person->Action = ACTION_GRABBING_LEDGE;
+        set_generic_person_state_function(p_person, STATE_DANGLING);
+        old_substate = p_person->SubState;
+        p_person->SubState = SUB_STATE_GRAB_TO_DANGLE;
+
+        if (type == 1) {
+            SLONG grad;
+            // Grabbed a cable — enter death-slide if steep enough.
+            p_person->Genus.Person->Flags |= FLAG_PERSON_ON_CABLE;
+            set_anim(p_person, ANIM_DEATH_SLIDE);
+
+            MinorEffortSound(p_person);
+
+            grad = steep_cable(face);
+            if (abs(grad) > 10) {
+                p_person->SubState = SUB_STATE_DEATH_SLIDE;
+                p_person->Velocity = 0;
+                grad >>= 6;
+                if (grad > 16)
+                    grad = 16;
+                if (grad < 2)
+                    grad = 2;
+
+                p_person->DeltaVelocity = abs(grad);
+                face_down_cable(p_person, face);
+                p_person->Genus.Person->Action = ACTION_DEATH_SLIDE;
+                p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+            }
+        } else {
+            // Grabbed a ledge — play the appropriate grab sound based on previous sub-state.
+            switch (old_substate) {
+            case SUB_STATE_STANDING_JUMP:
+                MinorEffortSound(p_person);
+                break;
+            case SUB_STATE_RUNNING_JUMP:
+                MinorEffortSound(p_person);
+                break;
+            case SUB_STATE_DROP_DOWN:
+                StopScreamFallSound(p_person);
+                if (p_person->Genus.Person->PersonType == PERSON_ROPER)
+                    MFX_play_thing(THING_NUMBER(p_person), S_ROPER_HIT_END - 1, 0, p_person);
+                else
+                    MinorEffortSound(p_person);
+                break;
+            case SUB_STATE_RUNNING_JUMP_FLY:
+                switch (p_person->Genus.Person->PersonType) {
+                case PERSON_DARCI:
+                    MFX_play_thing(THING_NUMBER(p_person), S_DARCI_HIT_END, 0, p_person);
+                    break;
+                case PERSON_ROPER:
+                    MFX_play_thing(THING_NUMBER(p_person), S_ROPER_HIT_END - 1, 0, p_person);
+                    break;
+                }
+                break;
+            }
+
+            set_anim(p_person, ANIM_FLY_GRABBING_LEDGE);
+            p_person->Draw.Tweened->Angle = grab_angle;
+        }
+
+        // Reposition person so that their hand midpoint aligns with the grabbed point.
+        {
+            SLONG lx;
+            SLONG ly;
+            SLONG lz;
+
+            calc_sub_objects_position(p_person, 0, SUB_OBJECT_LEFT_HAND, &lx, &ly, &lz);
+
+            SLONG rx;
+            SLONG ry;
+            SLONG rz;
+
+            calc_sub_objects_position(p_person, 0, SUB_OBJECT_RIGHT_HAND, &rx, &ry, &rz);
+
+            new_x = lx + rx >> 1;
+            new_y = ly + ry >> 1;
+            new_z = lz + rz >> 1;
+        }
+
+        new_x += p_person->WorldPos.X >> 8;
+        new_y += p_person->WorldPos.Y >> 8;
+        new_z += p_person->WorldPos.Z >> 8;
+
+        MSG_add(" left hand y %d grab_y %d tween %d\n", new_y, grab_y, draw_info->AnimTween);
+
+        temp_pos.X = ((grab_x - new_x) << 8) + p_person->WorldPos.X;
+        temp_pos.Y = ((grab_y - new_y) << 8) + p_person->WorldPos.Y;
+        temp_pos.Z = ((grab_z - new_z) << 8) + p_person->WorldPos.Z;
+
+        if (face > 0 && (prim_faces4[face].FaceFlags & (FACE_FLAG_WMOVE | FACE_FLAG_PRIM))) {
+            // For moving/primitive faces, nudge person slightly away from the face
+            // to avoid falling through when pulled up.
+            temp_pos.X += -SIN(p_person->Draw.Tweened->Angle) >> 5;
+            temp_pos.Z += -COS(p_person->Draw.Tweened->Angle) >> 5;
+        }
+
+        move_thing_on_map(p_person, &temp_pos);
+
+        draw_info->Locked = SUB_OBJECT_LEFT_HAND;
+        if (face == GRAB_FLOOR || face == GRAB_SEWERS) {
+            MSG_add("grab floor or sewers\n");
+            p_person->OnFace = 0;
+        } else {
+            if (type == 1) {
+                p_person->Genus.Person->OnFacet = face;
+                p_person->OnFace = 0;
+            } else {
+                p_person->OnFace = face;
+            }
+        }
+
+        // Automatically pull up if grabbing a moving/primitive walkable face.
+        if (face > 0 && (prim_faces4[face].FaceFlags & (FACE_FLAG_WMOVE | FACE_FLAG_PRIM))) {
+            // Don't auto-pull-up on crates (prim == 129).
+            if (prim_faces4[face].FaceFlags & FACE_FLAG_PRIM) {
+                SLONG ob_index = -prim_faces4[face].ThingIndex;
+
+                ASSERT(WITHIN(ob_index, 1, OB_ob_upto - 1));
+
+                if (OB_ob[ob_index].prim == 129) {
+                    goto dont_pull_up;
+                }
+            }
+
+            set_person_pulling_up(p_person);
+
+        dont_pull_up:;
+        }
+
+        return (1);
+    }
+
+    return (0);
+}
+
+// uc_orig: set_tween_for_dy (fallen/Source/Person.cpp)
+void set_tween_for_dy(Thing* p_person, SLONG dy)
+{
+    MSG_add(" tween dy %d \n", dy);
+
+    dy -= 28;
+
+    if (dy > 128)
+        dy = 0;
+    else if (dy < 0)
+        dy = 255;
+    else
+        dy = (128 - dy) << 1;
+
+    p_person->Draw.Tweened->AnimTween = dy;
+}
+
+// uc_orig: set_tween_for_height (fallen/Source/Person.cpp)
+void set_tween_for_height(Thing* p_person)
+{
+    SLONG x, y, z;
+    SLONG floor_y, dy;
+
+    if (p_person->DY > 0)
+        return;
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, 3, &x, &y, &z);
+    y += (p_person->WorldPos.Y) >> 8;
+
+    if (p_person->Flags & FLAGS_IN_SEWERS) {
+        floor_y = NS_calc_height_at(x, z);
+    } else {
+        floor_y = PAP_calc_height_at_thing(p_person, x, z);
+    }
+
+    dy = y - floor_y;
+    set_tween_for_dy(p_person, 256 + (p_person->DY >> 5));
+}
+
+// uc_orig: over_nogo (fallen/Source/Person.cpp)
+SLONG over_nogo(Thing* p_person)
+{
+    SLONG mx, mz;
+
+    if (p_person->Genus.Person->Ware)
+        return (0);
+    mx = p_person->WorldPos.X >> 16;
+    mz = p_person->WorldPos.Z >> 16;
+    if (mx >= 0 && mx < 128 && mz >= 0 && mz <= 128) {
+        if (PAP_2HI((mx) & 127, (mz) & 127).Flags & PAP_FLAG_NOGO) {
+            return 1;
+        }
+    }
+    return (0);
+}
+
+// STATE_JUMPING state machine. Key sub-states:
+//   SUB_STATE_STANDING_JUMP_FORWARDS/BACKWARDS: short forward/backward jump arc.
+//   SUB_STATE_STANDING_JUMP: standing jump — grab check, sound at frame 4.
+//   SUB_STATE_RUNNING_JUMP: running jump phase 1; clamps velocity [37..45] for player.
+//   SUB_STATE_RUNNING_JUMP_FLY: main air phase; grab check; landing triggers land anims.
+//   SUB_STATE_RUNNING_JUMP_LAND_FAST: sliding landing into run.
+//   SUB_STATE_FLYING_KICK: aerial kick sequence.
+// plant_feet() is intentionally commented out everywhere in this function (original).
+// uc_orig: fn_person_jumping (fallen/Source/Person.cpp)
+void fn_person_jumping(Thing* p_person)
+{
+    SLONG end = 0,
+          grab = 0,
+          wave_id1,
+          wave_id2;
+    GameCoord new_position;
+    SLONG old_frame, frame;
+
+    SlideSoundCheck(p_person);
+
+    switch (p_person->SubState) {
+    case SUB_STATE_STANDING_JUMP_FORWARDS:
+        change_velocity_to(p_person, 32);
+
+        if (over_nogo(p_person))
+            p_person->Velocity = 0;
+
+        p_person->DeltaVelocity = 0;
+        p_person->DY = 0;
+        end = projectile_move_thing(p_person, 1);
+        if (end == 100) {
+            return;
+        }
+
+        if (!end) {
+            end = person_normal_animate(p_person);
+            if (end) {
+                p_person->DeltaVelocity = 0;
+                p_person->DY = 10 << 8;
+                p_person->SubState = SUB_STATE_RUNNING_JUMP_FLY;
+                p_person->Genus.Person->Action = ACTION_RUN_JUMP;
+                if (person_has_gun_out(p_person)) {
+                    set_locked_anim(p_person, ANIM_MID_AIR_TWEEN_LEFT_AK, 0);
+                } else {
+                    set_locked_anim(p_person, ANIM_MID_AIR_TWEEN_LEFT, 0);
+                }
+                p_person->Draw.Tweened->NextFrame = global_anim_array[p_person->Genus.Person->AnimType][ANIM_MID_AIR_TWEEN_LEFT];
+            }
+        }
+
+        grab = grab_ledge(p_person);
+
+        break;
+    case SUB_STATE_STANDING_JUMP_BACKWARDS:
+        change_velocity_to(p_person, -32);
+        if (over_nogo(p_person))
+            p_person->Velocity = 0;
+
+        p_person->DeltaVelocity = 0;
+        p_person->DY = 0;
+        if (p_person->Draw.Tweened->FrameIndex > 2) {
+            if (p_person->Draw.Tweened->FrameIndex > 4)
+                end = projectile_move_thing(p_person, 3);
+            else
+                end = projectile_move_thing(p_person, 1);
+            if (end == 100) {
+                return;
+            }
+            if (end == 1) {
+                set_person_idle(p_person);
+                return;
+            } else if (end == 2) {
+                set_person_drop_down(p_person, 0);
+                p_person->Velocity = 0;
+                return;
+            }
+        } else {
+            end = 0;
+        }
+
+        if (!end)
+            end = person_normal_animate(p_person);
+
+        if (end == 1) {
+            set_person_drop_down(p_person, 0);
+            p_person->DY = -20 << 8;
+        }
+
+        break;
+
+    case SUB_STATE_STANDING_JUMP:
+        MSG_add(" standing jump ");
+        end = person_normal_animate(p_person);
+        grab = grab_ledge(p_person);
+        SLONG pinnacle_frame;
+
+        switch (p_person->Genus.Person->AnimType) {
+        case ANIM_TYPE_ROPER:
+            pinnacle_frame = 5;
+            break;
+        default:
+            pinnacle_frame = 3;
+        }
+        if (end && !grab) {
+            set_person_drop_down(p_person, PERSON_DROP_DOWN_KEEP_VEL | PERSON_DROP_DOWN_QUEUED);
+        } else {
+            if (end == 1) {
+                MSG_add("end standing jump anim");
+            }
+            if (grab) {
+                MSG_add("grab standing jump");
+            }
+
+            if ((end == 1) && !grab) {
+                set_person_idle(p_person);
+                person_splash(p_person, -1);
+            }
+
+            if (p_person->Draw.Tweened->FrameIndex == 4) {
+                wave_id1 = footstep_wave(p_person);
+                wave_id2 = footstep_wave(p_person);
+                MFX_play_thing(THING_NUMBER(p_person), wave_id1, MFX_REPLACE, p_person);
+                MFX_play_thing(THING_NUMBER(p_person), wave_id2, MFX_REPLACE, p_person);
+            }
+        }
+
+        break;
+    case SUB_STATE_RUNNING_JUMP:
+        if (p_person->Genus.Person->PlayerID) {
+            // Clamp velocity to [37..45] for running jumps (player only).
+            SLONG reqd_vel = (50 * 15) / 20;
+            if (p_person->Velocity < (50 * 15) / 20)
+                p_person->Velocity = (50 * 15) / 20;
+            else if (p_person->Velocity > (60 * 15) / 20)
+                p_person->Velocity = (60 * 15) / 20;
+        }
+        if (over_nogo(p_person))
+            p_person->Velocity = 0;
+
+        p_person->DeltaVelocity = 0;
+        end = projectile_move_thing(p_person, 1);
+        if (end == 100) {
+            return;
+        }
+
+        old_frame = p_person->Draw.Tweened->FrameIndex;
+
+        if (old_frame < 3) {
+            if (check_on_slippy_slope(p_person))
+                return;
+        }
+        if (!end)
+            end = person_normal_animate(p_person);
+        frame = p_person->Draw.Tweened->FrameIndex;
+
+        p_person->DY = 0;
+
+        grab = grab_ledge(p_person);
+        if (grab) {
+            MSG_add(" running jump grabbed 1\n");
+        }
+        if (!grab) {
+            if (end == 1) {
+                p_person->Draw.Tweened->Locked = 0;
+
+                p_person->Flags |= FLAGS_PROJECTILE_MOVEMENT;
+                p_person->DeltaVelocity = 0;
+                p_person->DY = 10 << 8;
+                p_person->SubState = SUB_STATE_RUNNING_JUMP_FLY;
+                p_person->Genus.Person->Action = ACTION_RUN_JUMP;
+                if (person_has_gun_out(p_person)) {
+                    p_person->Draw.Tweened->NextFrame = global_anim_array[p_person->Genus.Person->AnimType][ANIM_MID_AIR_TWEEN_LEFT_AK];
+                } else {
+                    p_person->Draw.Tweened->NextFrame = global_anim_array[p_person->Genus.Person->AnimType][ANIM_MID_AIR_TWEEN_LEFT];
+                }
+
+                p_person->Draw.Tweened->AnimTween = 0;
+            }
+        }
+        break;
+    case SUB_STATE_RUNNING_JUMP_FLY_STOP:
+        change_velocity_to(p_person, 0);
+        goto jump_fly;
+
+    case SUB_STATE_RUNNING_JUMP_FLY:
+        if (continue_moveing(p_person) && !over_nogo(p_person)) {
+            // keep going
+        } else {
+            set_person_drop_down(p_person, PERSON_DROP_DOWN_KEEP_VEL | PERSON_DROP_DOWN_KEEP_DY | PERSON_DROP_DOWN_QUEUED);
+            p_person->Velocity >>= 1;
+            return;
+        }
+
+    jump_fly:;
+
+        if (p_person->Draw.Tweened->CurrentAnim == ANIM_PLUNGE_START || p_person->Draw.Tweened->CurrentAnim == ANIM_PLUNGE_FORWARDS) {
+            end = person_normal_animate(p_person);
+
+            if (end == 1) {
+                if (p_person->Draw.Tweened->CurrentAnim == ANIM_PLUNGE_START) {
+                    locked_anim_change(p_person, SUB_OBJECT_PELVIS, ANIM_PLUNGE_FORWARDS);
+                }
+            }
+        } else {
+            set_tween_for_height(p_person);
+        }
+
+        end = projectile_move_thing(p_person, 3);
+
+        if (end == 100) {
+            return;
+        }
+
+        grab = grab_ledge(p_person);
+        if (grab) {
+            MSG_add("grab face in running jump fly \n");
+            if (end == 2) {
+                MSG_add(" hit fence, but grabbed something as well");
+            }
+        } else if (end == 1) {
+            p_person->Genus.Person->Action = ACTION_LANDING;
+            person_splash(p_person, -1);
+
+            DrawTween* draw_info;
+
+            draw_info = p_person->Draw.Tweened;
+            if (continue_moveing(p_person)) {
+                // Player wants to land and keep running.
+                if (person_has_gun_out(p_person)) {
+                    set_locked_anim(p_person, ANIM_LAND_RIGHT_AK, SUB_OBJECT_RIGHT_FOOT);
+                } else {
+                    set_locked_anim(p_person, ANIM_LAND_RIGHT, SUB_OBJECT_RIGHT_FOOT);
+                }
+
+                if (p_person->OnFace == 0) {
+                    // already set by projectile_move_thing
+                } else {
+                }
+
+                p_person->SubState = SUB_STATE_RUNNING_JUMP_LAND_FAST;
+                p_person->Genus.Person->Action = ACTION_RUN;
+
+            } else {
+                // Player stopped pressing forward — land and stand idle.
+                set_locked_anim(p_person, ANIM_LAND_STAND, 0);
+
+                if (p_person->OnFace == 0) {
+                    // already set
+                } else {
+
+                    SLONG new_y, face;
+                    face = find_face_for_this_pos(p_person->WorldPos.X >> 8, p_person->WorldPos.Y >> 8, p_person->WorldPos.Z >> 8, &new_y, 0, 0);
+                    {
+                        ASSERT(face);
+                        p_person->OnFace = face;
+                    }
+                }
+
+                set_person_idle(p_person);
+            }
+
+            draw_info->AnimTween = 0;
+        } else if (end == 2) {
+            MSG_add(" hit fence, so hold on");
+        } else {
+            // Check for flying kick request during air phase.
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_KICK) {
+                p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_KICK;
+                set_anim(p_person, ANIM_FLYKICK_START);
+                p_person->SubState = SUB_STATE_FLYING_KICK;
+            }
+        }
+        break;
+    case SUB_STATE_FLYING_KICK:
+        end = person_normal_animate(p_person);
+        if (end) {
+            queue_anim(p_person, ANIM_FLYKICK_FALL);
+            p_person->SubState = SUB_STATE_FLYING_KICK_FALL;
+        }
+        // fall through into next case
+    case SUB_STATE_FLYING_KICK_FALL:
+        end = person_normal_animate(p_person);
+        if (over_nogo(p_person))
+            p_person->Velocity = 0;
+        end = projectile_move_thing(p_person, 3);
+        if (end == 100) {
+            return;
+        } else if (end == 1) {
+            p_person->Genus.Person->Action = ACTION_LANDING;
+            person_splash(p_person, -1);
+
+            DrawTween* draw_info;
+
+            draw_info = p_person->Draw.Tweened;
+            {
+                set_locked_anim(p_person, ANIM_FLYKICK_LAND, SUB_OBJECT_RIGHT_FOOT);
+
+                if (p_person->OnFace == 0) {
+                    p_person->WorldPos.Y = PAP_calc_height_at_thing(p_person, p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8) << 8;
+                } else {
+                }
+
+                p_person->SubState = SUB_STATE_RUNNING_JUMP_LAND_FAST;
+            }
+
+            draw_info->AnimTween = 0;
+        }
+        break;
+
+        break; // unreachable duplicate break (original bug, kept 1:1)
+    case SUB_STATE_RUNNING_JUMP_LAND:
+        MSG_add("RJ        LANDING ");
+        change_velocity_to(p_person, yomp_speed);
+        if (over_nogo(p_person))
+            p_person->Velocity = 0;
+        end = projectile_move_thing(p_person, 3);
+        if (end == 100) {
+            return;
+        }
+        if (end) {
+            set_person_idle(p_person);
+        }
+        break;
+    case SUB_STATE_RUNNING_JUMP_LAND_FAST:
+        MSG_add("RJ        LANDING FAST");
+        change_velocity_to(p_person, yomp_speed);
+        if (over_nogo(p_person))
+            p_person->Velocity = 0;
+        person_normal_move(p_person);
+
+        if (p_person->SubState != SUB_STATE_RUNNING_JUMP_LAND_FAST) {
+            p_person->DY = -4001;
+            return;
+        }
+        end = person_normal_animate(p_person);
+
+        if (end || !continue_moveing(p_person)) {
+            SLONG anim;
+
+            anim = get_yomp_anim(p_person);
+
+            set_anim(p_person, anim);
+            set_generic_person_state_function(p_person, STATE_MOVEING);
+            p_person->SubState = SUB_STATE_RUNNING;
+            p_person->Genus.Person->Action = ACTION_RUN;
+            p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+
+            wave_id1 = footstep_wave(p_person);
+            wave_id2 = footstep_wave(p_person);
+            MFX_play_thing(THING_NUMBER(p_person), wave_id1, MFX_REPLACE, p_person);
+            MFX_play_thing(THING_NUMBER(p_person), wave_id2, MFX_REPLACE, p_person);
+        }
+        break;
+    default:
+        MSG_add("JUMPING unknow substate %d \n", p_person->SubState);
+        break;
+    }
+}
+
+// uc_orig: position_person_at_ladder_top (fallen/Source/Person.cpp)
+void position_person_at_ladder_top(Thing* p_person, SLONG limb)
+{
+    SLONG x1, y1, z1;
+    SLONG x[2], z[2], y, wall;
+    struct DFacet* p_facet;
+    SLONG top;
+
+    p_facet = &dfacets[p_person->Genus.Person->OnFacet];
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, limb, &x1, &y1, &z1);
+
+    y1 += p_person->WorldPos.Y >> 8;
+
+    top = p_facet->Y[0] + p_facet->Height * 64;
+    y1 -= top - 20;
+
+    // y1 is the difference between the limb position and the ladder top.
+    p_person->WorldPos.Y -= y1 << 8;
+}
+
+// uc_orig: position_person_at_ladder_bot (fallen/Source/Person.cpp)
+void position_person_at_ladder_bot(Thing* p_person, SLONG limb)
+{
+    SLONG x1, y1, z1;
+    SLONG x[2], z[2], y, wall;
+    struct DFacet* p_facet;
+    SLONG bot;
+
+    p_facet = &dfacets[p_person->Genus.Person->OnFacet];
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, limb, &x1, &y1, &z1);
+
+    y1 += p_person->WorldPos.Y >> 8;
+
+    bot = p_facet->Y[0];
+    y1 -= bot;
+
+    // y1 is the difference between the limb position and the ladder bottom.
+    p_person->WorldPos.Y = bot << 8;
+}
+
+// Returns a bitmask of PERSON_LIMB_* flags indicating where the sub_part limb
+// is relative to the ladder facet (on/off top/bottom).
+// i_am_going_down adds tolerance at the bottom for stepping off.
+// uc_orig: check_limb_pos_on_ladder (fallen/Source/Person.cpp)
+ULONG check_limb_pos_on_ladder(Thing* p_person, SLONG sub_part, SLONG i_am_going_down)
+{
+    SLONG x1, y1, z1;
+    UWORD facet;
+    SLONG x[2], z[2], y, wall;
+    SLONG top;
+    SLONG bot;
+    ULONG ans;
+
+    struct DFacet* p_facet;
+
+    facet = p_person->Genus.Person->OnFacet;
+
+    p_facet = &dfacets[facet];
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, sub_part, &x1, &y1, &z1);
+
+    x1 += p_person->WorldPos.X >> 8;
+    y1 += p_person->WorldPos.Y >> 8;
+    z1 += p_person->WorldPos.Z >> 8;
+
+    x[0] = p_facet->x[0] << 8;
+    z[0] = p_facet->z[0] << 8;
+
+    x[1] = p_facet->x[1] << 8;
+    z[1] = p_facet->z[1] << 8;
+
+    bot = p_facet->Y[0];
+
+    top = bot + p_facet->Height * 64;
+
+    ans = 0;
+
+    if (WITHIN(y1, bot + ((i_am_going_down) ? 20 : 0), top - 20)) {
+        ans |= PERSON_LIMB_ON_LADDER;
+
+        if (y1 > top - 256) {
+            ans |= PERSON_LIMB_TOP_BLOCK;
+        }
+        if (y1 < bot + 256) {
+            ans |= PERSON_LIMB_BOT_BLOCK;
+        }
+    } else {
+        if (y1 < bot + 20) {
+            ans |= PERSON_LIMB_OFF_BOT;
+        }
+        if (y1 > top + 20) {
+            ans |= PERSON_LIMB_OFF_TOP;
+        }
+    }
+
+    return ans;
+}
+
+// Returns TRUE if the sub_part limb is within the height range of the fence facet.
+// Limbs too close to the bottom do not count as "on the fence".
+// uc_orig: check_limb_pos_on_fence (fallen/Source/Person.cpp)
+SLONG check_limb_pos_on_fence(Thing* p_person, SLONG sub_part)
+{
+    SLONG x1, y1, z1;
+    SLONG col;
+    SLONG top, bottom;
+    SLONG x, z;
+
+    x = p_person->WorldPos.X >> 8;
+    z = p_person->WorldPos.Z >> 8;
+    col = p_person->Genus.Person->OnFacet;
+
+    top = get_fence_top(x, z, col);
+    bottom = get_fence_bottom(x, z, col);
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, sub_part, &x1, &y1, &z1);
+
+    y1 += p_person->WorldPos.Y >> 8;
+
+    if (WITHIN(y1, bottom + 20, top)) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+// Returns TRUE if the sub_part limb is within the sideways extent of the fence facet
+// (not off either end). Uses calc_along_vect to determine position along the fence.
+// uc_orig: check_limb_pos_on_fence_sideways (fallen/Source/Person.cpp)
+SLONG check_limb_pos_on_fence_sideways(Thing* p_person, SLONG sub_part)
+{
+    SLONG x1, y1, z1;
+    SLONG col;
+    SLONG along;
+
+    col = p_person->Genus.Person->OnFacet;
+
+    // calc_along_vect is a file-local function in collide.cpp; forward declared inline here.
+    SLONG calc_along_vect(SLONG ax, SLONG az, struct DFacet * p_vect);
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, sub_part, &x1, &y1, &z1);
+
+    x1 += p_person->WorldPos.X >> 8;
+    z1 += p_person->WorldPos.Z >> 8;
+
+    along = calc_along_vect(x1, z1, &dfacets[col]);
+
+    if (along <= 0 || along >= 255) {
+        return (0);
+    } else {
+        return (1);
+    }
+}
+
+// STATE_CLIMB_LADDER state machine. Handles mounting, climbing up/down, and
+// stepping off the top or bottom of ladders. Plays rung sounds on each stride.
+// uc_orig: fn_person_laddering (fallen/Source/Person.cpp)
+void fn_person_laddering(Thing* p_person)
+{
+    BOOL play_it = FALSE;
+    UBYTE last_frame;
+    SLONG end = 0, hit,
+          foot_step_wave;
+    ULONG on_ladder, on_ladder_left, on_ladder_right;
+
+    switch (p_person->SubState) {
+    case SUB_STATE_MOUNT_LADDER:
+        last_frame = p_person->Draw.Tweened->FrameIndex;
+        end = person_normal_animate(p_person);
+        if (p_person->Draw.Tweened->FrameIndex != last_frame && p_person->Draw.Tweened->FrameIndex == 3)
+            play_it = TRUE;
+
+        if (end == 1) {
+            set_person_on_ladder(p_person);
+        }
+        break;
+    case SUB_STATE_ON_LADDER:
+    case SUB_STATE_STOPPING:
+        break;
+    case SUB_STATE_CLIMB_UP_LADDER:
+
+        on_ladder_left = check_limb_pos_on_ladder(p_person, SUB_OBJECT_LEFT_HAND, FALSE);
+        on_ladder_right = check_limb_pos_on_ladder(p_person, SUB_OBJECT_RIGHT_HAND, FALSE);
+
+        if ((on_ladder_left & on_ladder_right) & PERSON_LIMB_ON_LADDER) {
+            last_frame = p_person->Draw.Tweened->FrameIndex;
+            end = person_normal_animate(p_person);
+            if (p_person->Draw.Tweened->FrameIndex != last_frame && ((p_person->Draw.Tweened->FrameIndex % 3 == 0) || (p_person->Draw.Tweened->FrameIndex % 6 == 0)))
+                play_it = TRUE;
+
+            if (end == 1) {
+                if (p_person->Genus.Person->PersonType == PERSON_ROPER)
+                    locked_anim_change_height_type(p_person, SUB_OBJECT_LEFT_HAND, COP_ROPER_ANIM_LADDER_LOOP, p_person->Genus.Person->AnimType);
+                else
+                    if (p_person->Genus.Person->PersonType == PERSON_COP || p_person->Genus.Person->PersonType == PERSON_THUG_GREY || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED)
+                        locked_anim_change_height_type(p_person, SUB_OBJECT_LEFT_HAND, COP_ROPER_ANIM_LADDER_LOOP, ANIM_TYPE_ROPER);
+                    else
+                        locked_anim_change_height_type(p_person, SUB_OBJECT_LEFT_HAND, ANIM_ON_LADDER, ANIM_TYPE_DARCI);
+
+                if (p_person->Genus.Person->PlayerID) {
+                    p_person->SubState = SUB_STATE_STOPPING;
+                }
+            }
+
+            // Commented-out sewer ladder exit code (disabled in original):
+            /*
+            if (p_person->Flags & FLAGS_IN_SEWERS) {
+                SLONG   ladder = p_person->Genus.Person->OnFacet;
+                DFacet *df;
+                ASSERT(WITHIN(ladder, 1, next_dfacet - 1));
+                ASSERT(dfacets[ladder].FacetType == STOREY_TYPE_LADDER);
+                df = &dfacets[ladder];
+                if (df->FacetFlags & FACET_FLAG_LADDER_LINK)
+                {
+                    if ((on_ladder_left|on_ladder_right) & PERSON_LIMB_TOP_BLOCK)
+                    {
+                        p_person->Flags &= ~FLAGS_IN_SEWERS;
+                    }
+                }
+            }
+            */
+        } else {
+            // Hands reached the top — climb off.
+            p_person->SubState = SUB_STATE_CLIMB_OFF_LADDER_TOP;
+            if (p_person->Genus.Person->PersonType == PERSON_ROPER)
+                set_anim_of_type(p_person, COP_ROPER_ANIM_LADDER_END_L, ANIM_TYPE_ROPER);
+            else if (p_person->Genus.Person->PersonType == PERSON_COP || p_person->Genus.Person->PersonType == PERSON_THUG_GREY || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED)
+                set_anim_of_type(p_person, COP_ROPER_ANIM_LADDER_END_L, ANIM_TYPE_ROPER);
+            else
+                set_anim(p_person, ANIM_OFF_LADDER_TOP);
+
+            if (on_ladder_left)
+                position_person_at_ladder_top(p_person, SUB_OBJECT_RIGHT_HAND);
+            else
+                position_person_at_ladder_top(p_person, SUB_OBJECT_LEFT_HAND);
+            p_person->Genus.Person->Action = ACTION_CLIMBING;
+        }
+
+        break;
+    case SUB_STATE_CLIMB_DOWN_ONTO_LADDER:
+        end = person_backwards_animate(p_person);
+        if (end == 1) {
+            set_person_on_ladder(p_person);
+        }
+        break;
+    case SUB_STATE_CLIMB_DOWN_LADDER:
+
+        on_ladder_left = check_limb_pos_on_ladder(p_person, SUB_OBJECT_LEFT_FOOT, TRUE);
+        on_ladder_right = check_limb_pos_on_ladder(p_person, SUB_OBJECT_RIGHT_FOOT, TRUE);
+
+        if ((on_ladder_left & on_ladder_right) & PERSON_LIMB_ON_LADDER) {
+            last_frame = p_person->Draw.Tweened->FrameIndex;
+            end = person_backwards_animate(p_person);
+            if (p_person->Draw.Tweened->FrameIndex != last_frame && ((p_person->Draw.Tweened->FrameIndex % 3 == 0) || (p_person->Draw.Tweened->FrameIndex % 6 == 0)))
+                play_it = TRUE;
+
+            if (end == 1) {
+                MSG_add(" LOCKED CHANGE END \n");
+                p_person->Draw.Tweened->AnimTween = 0;
+                if (p_person->Genus.Person->PersonType == PERSON_ROPER)
+                    locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_HAND, COP_ROPER_ANIM_LADDER_LOOP, p_person->Genus.Person->AnimType);
+                else
+                    if (p_person->Genus.Person->PersonType == PERSON_COP || p_person->Genus.Person->PersonType == PERSON_THUG_GREY || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED)
+                        locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_HAND, COP_ROPER_ANIM_LADDER_LOOP, ANIM_TYPE_ROPER);
+                    else
+                        locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_HAND, ANIM_ON_LADDER, p_person->Genus.Person->AnimType);
+
+                p_person->SubState = SUB_STATE_STOPPING;
+            }
+
+            // Commented-out sewer ladder entry code (disabled in original):
+            /*
+            if (p_person->Flags & FLAGS_IN_SEWERS) {
+                SLONG   ladder = p_person->Genus.Person->OnFacet;
+                DFacet *df;
+                ASSERT(WITHIN(ladder, 1, next_dfacet - 1));
+                ASSERT(dfacets[ladder].FacetType == STOREY_TYPE_LADDER);
+                df = &dfacets[ladder];
+                if (df->FacetFlags & FACET_FLAG_LADDER_LINK)
+                {
+                    if (!(on_ladder_left & PERSON_LIMB_TOP_BLOCK))
+                    {
+                        p_person->Flags |= FLAGS_IN_SEWERS;
+                    }
+                }
+            }
+            */
+        } else {
+            // Feet reached the bottom — climb off.
+            p_person->SubState = SUB_STATE_CLIMB_OFF_LADDER_BOT;
+            set_anim(p_person, ANIM_OFF_LADDER_BOT);
+            position_person_at_ladder_bot(p_person, SUB_OBJECT_LEFT_FOOT);
+
+            p_person->Genus.Person->Action = ACTION_CLIMBING;
+        }
+
+        break;
+    case SUB_STATE_CLIMB_OFF_LADDER_BOT:
+        end = person_normal_animate(p_person);
+        if (end == 1) {
+            set_person_idle(p_person);
+            p_person->Draw.Tweened->CurrentFrame = p_person->Draw.Tweened->QueuedFrame;
+            p_person->Draw.Tweened->NextFrame = p_person->Draw.Tweened->QueuedFrame;
+            p_person->Draw.Tweened->QueuedFrame = 0;
+            locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, ANIM_STAND_READY);
+            plant_feet(p_person);
+        }
+
+        break;
+    case SUB_STATE_CLIMB_OFF_LADDER_TOP:
+        last_frame = p_person->Draw.Tweened->FrameIndex;
+        end = person_normal_animate(p_person);
+        if (p_person->Draw.Tweened->FrameIndex != last_frame && (p_person->Draw.Tweened->FrameIndex == 1 || p_person->Draw.Tweened->FrameIndex == 3))
+            play_it = TRUE;
+
+        if (end == 1) {
+            person_bodge_forward(p_person, 40);
+            locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, ANIM_STAND_READY);
+            plant_feet(p_person);
+            if (p_person->State != STATE_DANGLING)
+                set_person_idle(p_person);
+        }
+
+        break;
+    default:
+        MSG_add("LADDERING unknow substate %d \n", p_person->SubState);
+        break;
+    }
+    if (play_it) {
+        foot_step_wave = ((Random() * (S_FOOTS_RUNG_END - S_FOOTS_RUNG_START)) >> 16) + S_FOOTS_RUNG_START;
+        MFX_play_thing(THING_NUMBER(p_person), foot_step_wave, MFX_OVERLAP, p_person);
+    }
+}
+
+// STATE_CLIMBING state machine. Handles fence climbing sub-states:
+// landing on fence, climbing up/down wall, climbing over fence top, and electric fence damage.
+// uc_orig: fn_person_climbing (fallen/Source/Person.cpp)
+void fn_person_climbing(Thing* p_person)
+{
+    SLONG end, hit;
+    SLONG left_foot, right_foot;
+
+    switch (p_person->SubState) {
+    case SUB_STATE_CLIMB_LANDING:
+        end = person_normal_animate(p_person);
+
+        if (end == 1) {
+            if (p_person->Genus.Person->AnimType != ANIM_TYPE_ROPER)
+                queue_anim(p_person, ANIM_LANDED_ON_FENCE);
+            p_person->SubState = SUB_STATE_CLIMB_LANDING2;
+
+            {
+                // If person touches an electric fence, spark effects and knockback.
+                if (p_person->Genus.Person->OnFacet > 0) {
+                    SLONG col = p_person->Genus.Person->OnFacet;
+
+                    if (col > 0) {
+                        if (dfacets[col].FacetFlags & FACET_FLAG_ELECTRIFIED) {
+                            SLONG i;
+
+                            SLONG px;
+                            SLONG py;
+                            SLONG pz;
+                            SPARK_Pinfo p1;
+                            SPARK_Pinfo p2;
+
+                            UBYTE limb[4] = {
+                                SUB_OBJECT_LEFT_FOOT,
+                                SUB_OBJECT_LEFT_HAND,
+                                SUB_OBJECT_RIGHT_FOOT,
+                                SUB_OBJECT_RIGHT_HAND
+                            };
+
+                            for (i = 0; i < 4; i++) {
+                                calc_sub_objects_position(
+                                    p_person,
+                                    p_person->Draw.Tweened->AnimTween,
+                                    limb[i],
+                                    &px,
+                                    &py,
+                                    &pz);
+
+                                px += p_person->WorldPos.X >> 8;
+                                py += p_person->WorldPos.Y >> 8;
+                                pz += p_person->WorldPos.Z >> 8;
+
+                                p1.type = SPARK_TYPE_LIMB;
+                                p1.flag = 0;
+                                p1.person = THING_NUMBER(p_person);
+                                p1.limb = limb[i];
+
+                                p2.type = SPARK_TYPE_POINT;
+                                p2.flag = SPARK_FLAG_STILL;
+                                p2.x = px;
+                                p2.y = py;
+                                p2.z = pz;
+
+                                SPARK_create(
+                                    &p1,
+                                    &p2,
+                                    20);
+                            }
+
+                            {
+                                SLONG origin_x = p_person->WorldPos.X - SIN(p_person->Draw.Tweened->Angle) >> 8;
+                                SLONG origin_z = p_person->WorldPos.Z - COS(p_person->Draw.Tweened->Angle) >> 8;
+
+                                knock_person_down(
+                                    p_person,
+                                    30,
+                                    origin_x,
+                                    origin_z,
+                                    NULL);
+                            }
+
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        break;
+
+    case SUB_STATE_CLIMB_LANDING2:
+        end = person_normal_animate(p_person);
+        if (end == 1) {
+            set_person_on_fence(p_person);
+        }
+        break;
+
+    case SUB_STATE_CLIMB_AROUND_WALL:
+        break;
+
+    case SUB_STATE_CLIMB_UP_WALL:
+
+        // If hand touches the top of a barbed-wire or angle-top fence, fall off.
+        if (dfacets[p_person->Genus.Person->OnFacet].FacetType == STOREY_TYPE_FENCE_BRICK || dfacets[p_person->Genus.Person->OnFacet].FacetType == STOREY_TYPE_FENCE) {
+            if (!check_limb_pos_on_fence(p_person, SUB_OBJECT_RIGHT_HAND) || !check_limb_pos_on_fence(p_person, SUB_OBJECT_LEFT_HAND)) {
+                set_person_drop_down(p_person, 0);
+
+                goto dont_check_climbing_over;
+            }
+        }
+
+        if (check_limb_pos_on_fence(p_person, SUB_OBJECT_HEAD)) {
+            end = person_normal_animate(p_person);
+            if (end == 1) {
+                locked_anim_change(p_person, SUB_OBJECT_LEFT_HAND, ANIM_CLIMB_UP_FENCE);
+
+                if (p_person->Genus.Person->PlayerID) {
+                    p_person->SubState = SUB_STATE_STOPPING;
+                }
+            }
+        } else {
+            if (dfacets[p_person->Genus.Person->OnFacet].FacetType == STOREY_TYPE_NORMAL) {
+                grab_ledge(p_person);
+            } else if (dfacets[p_person->Genus.Person->OnFacet].FacetType != STOREY_TYPE_FENCE_BRICK) {
+                // Climb off top of fence.
+                p_person->SubState = SUB_STATE_CLIMB_OVER_WALL;
+                locked_anim_change(p_person, 0, ANIM_CLIMB_OVER_FENCE);
+                set_limb_to_y(p_person, SUB_OBJECT_LEFT_HAND, get_fence_top(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, p_person->Genus.Person->OnFacet));
+            } // else: blocked from climbing by barbed wire
+        }
+
+    dont_check_climbing_over:;
+
+        break;
+
+    case SUB_STATE_CLIMB_DOWN_WALL:
+
+        left_foot = check_limb_pos_on_fence(p_person, SUB_OBJECT_LEFT_FOOT);
+        right_foot = check_limb_pos_on_fence(p_person, SUB_OBJECT_RIGHT_FOOT);
+
+        if (left_foot && right_foot) {
+            end = person_backwards_animate(p_person);
+
+            if (end == 1) {
+                locked_anim_change_end(
+                    p_person,
+                    SUB_OBJECT_LEFT_HAND,
+                    ANIM_CLIMB_UP_FENCE);
+
+                if (p_person->Genus.Person->PlayerID) {
+                    p_person->SubState = SUB_STATE_STOPPING;
+                }
+            }
+        } else {
+            // Check if the bottom of the fence is close to the ground.
+            {
+                SLONG ground_y = PAP_calc_height_at_thing(
+                    p_person,
+                    p_person->WorldPos.X >> 8,
+                    p_person->WorldPos.Z >> 8);
+
+                if ((p_person->WorldPos.Y >> 8) <= ground_y + 0x40) {
+                    // Climb off onto the ground.
+                    p_person->SubState = SUB_STATE_CLIMB_OFF_BOT_WALL;
+                    set_anim(p_person, ANIM_OFF_LADDER_BOT);
+                    set_limb_to_y(p_person, SUB_OBJECT_RIGHT_FOOT, get_fence_bottom(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, p_person->Genus.Person->OnFacet));
+                } else {
+                    // Fence is in mid-air — fall off backwards.
+                    set_person_drop_down(p_person, 0);
+                }
+            }
+        }
+
+        break;
+    case SUB_STATE_CLIMB_OFF_BOT_WALL:
+        end = person_normal_animate(p_person);
+        if (end == 1) {
+            set_person_idle(p_person);
+            p_person->Draw.Tweened->CurrentFrame = p_person->Draw.Tweened->QueuedFrame;
+            p_person->Draw.Tweened->NextFrame = p_person->Draw.Tweened->QueuedFrame;
+            p_person->Draw.Tweened->QueuedFrame = 0;
+            plant_feet(p_person);
+            if (p_person->State != STATE_DANGLING)
+                locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, ANIM_STAND_READY);
+        }
+        break;
+    case SUB_STATE_CLIMB_OVER_WALL:
+        end = person_normal_animate(p_person);
+        if (end == 1) {
+            set_person_locked_drop_down(p_person, -32);
+            p_person->WorldPos.Y += p_person->DY;
+        }
+        break;
+    case SUB_STATE_STOPPING:
+        break;
+    default:
+        MSG_add("CLIMBING unknow substate %d \n", p_person->SubState);
+        break;
+    }
+}
+
+// uc_orig: set_cable_angle (fallen/Source/Person.cpp)
+void set_cable_angle(Thing* p_person)
+{
+    SLONG dx, dz;
+    struct DFacet* p_facet;
+    SLONG angle;
+
+    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_ON_CABLE);
+    ASSERT(dfacets[p_person->Genus.Person->OnFacet].FacetType == STOREY_TYPE_CABLE);
+
+    p_facet = &dfacets[p_person->Genus.Person->OnFacet];
+
+    dx = p_facet->x[1] - p_facet->x[0] << 8;
+    dz = p_facet->z[1] - p_facet->z[0] << 8;
+
+    angle = calc_angle(dx, dz);
+
+    p_person->Draw.Tweened->Angle = angle;
+}
+
+// Tracks person Y to the cable height at their current XZ position.
+// Both hands are averaged to find the grip point along the cable.
+// uc_orig: do_person_on_cable (fallen/Source/Person.cpp)
+void do_person_on_cable(Thing* p_person)
+{
+    SLONG along;
+    SLONG mx, my, mz;
+
+    SLONG hx;
+    SLONG hy;
+    SLONG hz;
+
+    SLONG lhx, lhy, lhz;
+    SLONG rhx, rhy, rhz;
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_ON_CABLE) {
+        calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, SUB_OBJECT_LEFT_HAND, &lhx, &lhy, &lhz);
+        calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, SUB_OBJECT_LEFT_HAND, &rhx, &rhy, &rhz);
+
+        hx = lhx + rhx >> 1;
+        hy = lhy + rhy >> 1;
+        hz = lhz + rhz >> 1;
+
+        along = get_cable_along(p_person->Genus.Person->OnFacet, (p_person->WorldPos.X >> 8) + hx, (p_person->WorldPos.Z >> 8) + hz);
+
+        my = find_cable_y_along(&dfacets[p_person->Genus.Person->OnFacet], along);
+        MSG_add(" death slide along %d my %d\n", along, my);
+
+        p_person->WorldPos.Y = (my - hy) << 8;
+    } else {
+        // This should never happen — person should always be on cable here.
+        ASSERT(0);
+    }
 }
 

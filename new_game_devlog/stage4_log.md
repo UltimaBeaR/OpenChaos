@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 99 — actors/characters/person (чанк 8: grab_ledge..do_person_on_cable) (2026-03-22)
+
+- Person.cpp чанк 8: lines 10702–12325. 14 функций + 5 макросов: grab_ledge, set_tween_for_dy, set_tween_for_height, over_nogo, fn_person_jumping, position_person_at_ladder_top, position_person_at_ladder_bot, check_limb_pos_on_ladder, check_limb_pos_on_fence, check_limb_pos_on_fence_sideways, fn_person_laddering, fn_person_climbing, set_cable_angle, do_person_on_cable. Макросы PERSON_LIMB_ON_LADDER/TOP_BLOCK/BOT_BLOCK/OFF_TOP/OFF_BOT.
+- `do_person_on_cable` ранее объявлена `extern` в person.cpp — замена на `get_yomp_anim` extern (который используется в fn_person_jumping), `do_person_on_cable` теперь определена в файле.
+- `check_limb_pos_on_fence_sideways` — forward decl `calc_along_vect` внутри тела функции (как в оригинале), поскольку функция static-локальная в collide.cpp и не объявлена ни в одном заголовке.
+- `fn_person_jumping`: дублирующий `break` после `SUB_STATE_FLYING_KICK_FALL` (unreachable) перенесён 1:1 (баг оригинала).
+
+---
+
 ## Итерация 98 — actors/characters/person (чанк 7: set_person_pos_for_fence..find_best_cable_angle) (2026-03-22)
 
 - Person.cpp чанк 7: lines 9241–10701. 25 функций: set_person_pos_for_fence, set_person_pos_for_half_step, is_facet_vaultable, is_facet_half_step, set_person_land_on_fence, set_person_kick_off_wall, fight_any_gang_attacker, find_arrestee, find_corpse, perform_arrest, fn_person_search, set_person_random_idle, fn_person_idle, set_person_in_vehicle, set_person_out_of_vehicle, locked_anim_change, locked_anim_change_of_type, locked_anim_change_height_type, set_limb_to_y, locked_next_anim_change, locked_anim_change_end_type, locked_anim_change_end, steep_cable, face_down_cable, find_best_cable_angle.

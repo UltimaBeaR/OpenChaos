@@ -59639,6 +59639,196 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "grab_ledge",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "grab_ledge",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_tween_for_dy",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_tween_for_dy",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_tween_for_height",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_tween_for_height",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "over_nogo",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "over_nogo",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_jumping",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "fn_person_jumping",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "position_person_at_ladder_top",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "position_person_at_ladder_top",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "position_person_at_ladder_bot",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "position_person_at_ladder_bot",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "check_limb_pos_on_ladder",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "check_limb_pos_on_ladder",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "check_limb_pos_on_fence",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "check_limb_pos_on_fence",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "check_limb_pos_on_fence_sideways",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "check_limb_pos_on_fence_sideways",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_laddering",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "fn_person_laddering",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_climbing",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "fn_person_climbing",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_cable_angle",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_cable_angle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "do_person_on_cable",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "do_person_on_cable",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PERSON_LIMB_ON_LADDER",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "PERSON_LIMB_ON_LADDER",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PERSON_LIMB_TOP_BLOCK",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "PERSON_LIMB_TOP_BLOCK",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PERSON_LIMB_BOT_BLOCK",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "PERSON_LIMB_BOT_BLOCK",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PERSON_LIMB_OFF_TOP",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "PERSON_LIMB_OFF_TOP",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PERSON_LIMB_OFF_BOT",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "PERSON_LIMB_OFF_BOT",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

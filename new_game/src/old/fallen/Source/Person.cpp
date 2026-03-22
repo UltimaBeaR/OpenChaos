@@ -10700,6 +10700,8 @@ SLONG find_best_cable_angle(Thing* p_person, SLONG facet)
 }
 #endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 98) [set_person_pos_for_fence..find_best_cable_angle]
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 99) [grab_ledge..do_person_on_cable]
+
 // is_facet_vaultable / is_facet_half_step: now declared in person.h (chunk 7)
 
 //
@@ -12323,6 +12325,8 @@ void do_person_on_cable(Thing* p_person)
         ASSERT(0);
     }
 }
+
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 99) [grab_ledge..do_person_on_cable]
 
 // claude-ai: fn_person_dangling() — STATE_DANGLING: висение, падение, зипвайр, приземление.
 // claude-ai: Ключевые субсостояния:

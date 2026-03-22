@@ -694,4 +694,78 @@ void face_down_cable(Thing* p_person, SLONG facet);
 // uc_orig: find_best_cable_angle (fallen/Source/Person.cpp)
 SLONG find_best_cable_angle(Thing* p_person, SLONG facet);
 
+// --- chunk 8: grab_ledge..do_person_on_cable ---
+
+// Tries to grab a ledge with hands; if successful, switches to dangling or cable state.
+// Returns 1 if a ledge/cable/ladder was grabbed, 0 otherwise.
+// uc_orig: grab_ledge (fallen/Source/Person.cpp)
+SLONG grab_ledge(Thing* p_person);
+
+// Sets AnimTween based on a raw dy offset (height above floor).
+// dy is in world units, remapped to 0..255.
+// uc_orig: set_tween_for_dy (fallen/Source/Person.cpp)
+void set_tween_for_dy(Thing* p_person, SLONG dy);
+
+// Adjusts AnimTween to match the person's current height above the floor beneath them.
+// uc_orig: set_tween_for_height (fallen/Source/Person.cpp)
+void set_tween_for_height(Thing* p_person);
+
+// Returns true if person is over a nogo map tile with no Ware (indoor area).
+// uc_orig: over_nogo (fallen/Source/Person.cpp)
+SLONG over_nogo(Thing* p_person);
+
+// STATE_JUMPING state machine: handles all jump sub-states
+// (standing jump, running jump, flying kick, landing).
+// uc_orig: fn_person_jumping (fallen/Source/Person.cpp)
+void fn_person_jumping(Thing* p_person);
+
+// Bitmask constants for check_limb_pos_on_ladder results.
+// uc_orig: PERSON_LIMB_ON_LADDER (fallen/Source/Person.cpp)
+#define PERSON_LIMB_ON_LADDER  (1 << 0)
+// uc_orig: PERSON_LIMB_TOP_BLOCK (fallen/Source/Person.cpp)
+#define PERSON_LIMB_TOP_BLOCK  (1 << 1)
+// uc_orig: PERSON_LIMB_BOT_BLOCK (fallen/Source/Person.cpp)
+#define PERSON_LIMB_BOT_BLOCK  (1 << 2)
+// uc_orig: PERSON_LIMB_OFF_TOP (fallen/Source/Person.cpp)
+#define PERSON_LIMB_OFF_TOP    (1 << 3)
+// uc_orig: PERSON_LIMB_OFF_BOT (fallen/Source/Person.cpp)
+#define PERSON_LIMB_OFF_BOT    (1 << 4)
+
+// Adjusts person Y so the given limb is at the top of the ladder facet.
+// uc_orig: position_person_at_ladder_top (fallen/Source/Person.cpp)
+void position_person_at_ladder_top(Thing* p_person, SLONG limb);
+
+// Adjusts person Y so the given limb is at the bottom of the ladder facet.
+// uc_orig: position_person_at_ladder_bot (fallen/Source/Person.cpp)
+void position_person_at_ladder_bot(Thing* p_person, SLONG limb);
+
+// Returns bitmask describing where sub_part limb is relative to the ladder.
+// i_am_going_down=1 adds extra tolerance at the bottom.
+// uc_orig: check_limb_pos_on_ladder (fallen/Source/Person.cpp)
+ULONG check_limb_pos_on_ladder(Thing* p_person, SLONG sub_part, SLONG i_am_going_down);
+
+// Returns TRUE if the sub_part limb is within the height range of the fence (not near bottom).
+// uc_orig: check_limb_pos_on_fence (fallen/Source/Person.cpp)
+SLONG check_limb_pos_on_fence(Thing* p_person, SLONG sub_part);
+
+// Returns TRUE if the sub_part limb is along (not off the end of) the fence facet.
+// uc_orig: check_limb_pos_on_fence_sideways (fallen/Source/Person.cpp)
+SLONG check_limb_pos_on_fence_sideways(Thing* p_person, SLONG sub_part);
+
+// STATE_CLIMB_LADDER state machine: handles all ladder sub-states.
+// uc_orig: fn_person_laddering (fallen/Source/Person.cpp)
+void fn_person_laddering(Thing* p_person);
+
+// STATE_CLIMBING state machine: handles all fence/cable climbing sub-states.
+// uc_orig: fn_person_climbing (fallen/Source/Person.cpp)
+void fn_person_climbing(Thing* p_person);
+
+// Sets person's facing angle to be along the cable they are on.
+// uc_orig: set_cable_angle (fallen/Source/Person.cpp)
+void set_cable_angle(Thing* p_person);
+
+// Updates person Y to track the cable height at their current XZ position.
+// uc_orig: do_person_on_cable (fallen/Source/Person.cpp)
+void do_person_on_cable(Thing* p_person);
+
 #endif // ACTORS_CHARACTERS_PERSON_H
