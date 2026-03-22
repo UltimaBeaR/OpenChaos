@@ -2299,7 +2299,10 @@ void PANEL_last_bubble(float x1, float y1, float x2, float y2)
 
 SLONG PANEL_sign_which;
 SLONG PANEL_sign_flip;
-SLONG PANEL_sign_time;
+// BUGFIX: must be DWORD — same overflow as lock_frame_rate. If SLONG and uptime > ~24.8 days,
+// GetTickCount() exceeds INT_MAX → sign_time stays 0 → dtime = huge negative → dtime < 3000
+// always true → sign drawn permanently on screen even when never triggered.
+DWORD PANEL_sign_time;
 
 void PANEL_flash_sign(SLONG sign, SLONG flip)
 {
@@ -3622,7 +3625,7 @@ void PANEL_last()
     // Draw the signs.
     //
 
-    SLONG dtime = GetTickCount() - PANEL_sign_time;
+    DWORD dtime = GetTickCount() - PANEL_sign_time;
 
     if (dtime < 3000) {
         dtime %= 600;
