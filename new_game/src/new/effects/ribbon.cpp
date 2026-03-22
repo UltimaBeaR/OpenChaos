@@ -1,7 +1,7 @@
 #include "game.h"
 #include "effects/ribbon.h"
 #include "effects/ribbon_globals.h"
-#include "DrawXtra.h" // Temporary: RIBBON_draw_ribbon lives in drawxtra.cpp (not yet migrated)
+#include "engine/graphics/pipeline/poly.h" // Temporary: POLY_add_triangle, POLY_transform
 
 // Helper: constructs a GameCoord inline.
 // uc_orig: Coord (fallen/Source/ribbon.cpp)
@@ -9,6 +9,64 @@ static inline GameCoord Coord(SLONG x, SLONG y, SLONG z)
 {
     GameCoord bob = { x, y, z };
     return bob;
+}
+
+// uc_orig: RIBBON_draw_ribbon (fallen/DDEngine/Source/drawxtra.cpp)
+// Renders a single ribbon as a triangle strip using POLY_add_triangle.
+// Iterates the circular point buffer from Tail to Head, building overlapping triangles
+// with UV coordinates derived from point index and fade based on age (ctr vs FadePoint).
+void RIBBON_draw_ribbon(Ribbon* ribbon)
+{
+    POLY_Point pp[3];
+    POLY_Point* tri[3] = { &pp[0], &pp[1], &pp[2] };
+    UBYTE i, p, ctr;
+    SLONG id, spread;
+    float vo, vs;
+
+    i = ribbon->Tail;
+    p = ctr = 0;
+    vo = ribbon->Scroll;
+    vo *= 0.015625f;
+    vs = ribbon->TextureV;
+    vs = 1.0f / vs;
+    do {
+        POLY_transform(ribbon->Points[i].X, ribbon->Points[i].Y, ribbon->Points[i].Z, &pp[p]);
+        if (ribbon->Flags & RIBBON_FLAG_FADE) {
+            if (ribbon->Flags & RIBBON_FLAG_IALPHA)
+                id = ((256 * ctr) / ribbon->FadePoint);
+            else
+                id = 255 - ((256 * ctr) / ribbon->FadePoint);
+            if (id < 0)
+                id = 0;
+            if (id > 255)
+                id = 255;
+            pp[p].colour = (id << 24) | ribbon->RGB;
+        } else {
+            pp[p].colour = (((SLONG)ribbon->FadePoint) << 24) | ribbon->RGB;
+        }
+        pp[p].specular = 0xFF000000;
+        if (i & 1) {
+            pp[p].u = 0;
+        } else {
+            pp[p].u = ribbon->TextureU;
+        }
+        pp[p].v = i;
+        pp[p].v *= vs;
+        pp[p].v += vo;
+        p++;
+        i++;
+        ctr++;
+        if (i == ribbon->Size)
+            i = 0;
+        if (p == 3)
+            p = 0;
+        if (ctr > 2) {
+            if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+                POLY_add_triangle(tri, ribbon->Page, UC_FALSE);
+            }
+        }
+        ASSERT(ctr < MAX_RIBBON_SIZE);
+    } while (i != ribbon->Head);
 }
 
 // uc_orig: RIBBON_draw (fallen/Source/ribbon.cpp)

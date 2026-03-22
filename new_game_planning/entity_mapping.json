@@ -74189,6 +74189,156 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "TEXSCALE",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "TEXSCALE",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXSCALE2",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "TEXSCALE2",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_defaultpoints2",
+      "file": "new/effects/pyro_globals.cpp",
+      "orig_name": "PYRO_defaultpoints2",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_draw_explosion",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_draw_explosion",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_draw_dustwave",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_draw_dustwave",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_draw_explosion2",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_draw_explosion2",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_draw_newdome",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_draw_newdome",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_alpha_line",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_alpha_line",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_draw_twanger",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_draw_twanger",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_draw_streambit",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_draw_streambit",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_draw_streamer",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_draw_streamer",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_draw_blob",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_draw_blob",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_draw_armageddon",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "PYRO_draw_armageddon",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RIBBON_draw_ribbon",
+      "file": "new/effects/ribbon.cpp",
+      "orig_name": "RIBBON_draw_ribbon",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SPRITE_draw_rotated",
+      "file": "new/engine/graphics/geometry/sprite.cpp",
+      "orig_name": "SPRITE_draw_rotated",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

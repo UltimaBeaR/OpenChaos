@@ -24,7 +24,6 @@ void init_pyros(void)
 {
     memset((UBYTE*)PYROS, 0, sizeof(Pyro) * MAX_PYROS);
 
-    extern RadPoint PYRO_defaultpoints2[32];
     memset((UBYTE*)PYRO_defaultpoints2, 0, sizeof(RadPoint) * 32);
 
     global_spang_count = 0;
@@ -1072,8 +1071,6 @@ extern UBYTE fire_pal[768];
 // Temporary: draw_flames and draw_flame_element are defined in figure.cpp (not yet migrated).
 void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset);
 void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE rand = 1);
-// Temporary: DrawXtra.h needed for BLOOM_flare_draw (not yet migrated to new/)
-#include "fallen/DDEngine/Headers/DrawXtra.h"
 // Temporary: needed for AENG_dx_prim_points
 #include "engine/graphics/pipeline/aeng.h"
 // Temporary: needed for prim_objects (PrimObject struct)
@@ -1088,17 +1085,32 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
 #include "engine/graphics/pipeline/poly.h"
 // Temporary: needed for SPRITE_draw_tex, SPRITE_SORT_NORMAL/FRONT
 #include "engine/graphics/geometry/sprite.h"
+// Temporary: needed for SPARK_create, SPARK_Pinfo, SPARK_TYPE_*
+#include "effects/spark.h"
+// Temporary: needed for GetSeed, SetSeed
+#include "fallen/Headers/id.h"
+// Temporary: needed for PAP_calc_map_height_at (PYRO_draw_armageddon)
+#include "world/map/pap.h"
+// Temporary: BLOOM_flare_draw, RIBBON_draw_ribbon still in drawxtra.cpp (chunk 2b not yet migrated)
+#include "fallen/DDEngine/Headers/DrawXtra.h"
 
-// Forward declarations for draw functions in drawxtra.cpp not yet migrated (chunk 2).
-// Temporary:
-void PYRO_draw_explosion(Pyrex* pyro);
-void PYRO_draw_explosion2(Pyro* pyro);
-void PYRO_draw_newdome(Pyro* pyro);
-void PYRO_draw_dustwave(Pyro* pyro);
-void PYRO_draw_streamer(Pyro* pyro);
-void PYRO_draw_twanger(Pyro* pyro);
-void PYRO_draw_blob(Pyro* pyro);
-void PYRO_draw_armageddon(Pyro* pyro);
+// Forward declarations for draw functions defined later in this file.
+// uc_orig: PYRO_draw_explosion (fallen/DDEngine/Source/drawxtra.cpp)
+static void PYRO_draw_explosion(Pyrex* pyro);
+// uc_orig: PYRO_draw_explosion2 (fallen/DDEngine/Source/drawxtra.cpp)
+static void PYRO_draw_explosion2(Pyro* pyro);
+// uc_orig: PYRO_draw_newdome (fallen/DDEngine/Source/drawxtra.cpp)
+static void PYRO_draw_newdome(Pyro* pyro);
+// uc_orig: PYRO_draw_dustwave (fallen/DDEngine/Source/drawxtra.cpp)
+static void PYRO_draw_dustwave(Pyro* pyro);
+// uc_orig: PYRO_draw_streamer (fallen/DDEngine/Source/drawxtra.cpp)
+static void PYRO_draw_streamer(Pyro* pyro);
+// uc_orig: PYRO_draw_twanger (fallen/DDEngine/Source/drawxtra.cpp)
+static void PYRO_draw_twanger(Pyro* pyro);
+// uc_orig: PYRO_draw_blob (fallen/DDEngine/Source/drawxtra.cpp)
+static void PYRO_draw_blob(Pyro* pyro);
+// uc_orig: PYRO_draw_armageddon (fallen/DDEngine/Source/drawxtra.cpp)
+static void PYRO_draw_armageddon(Pyro* pyro);
 
 // uc_orig: IWouldLikeSomePyroSpritesHowManyCanIHave (fallen/DDEngine/Source/drawxtra.cpp)
 // PC build has no throttle — always grants the requested sprite count.
@@ -1325,6 +1337,10 @@ static void draw_flame_element2(SLONG x, SLONG y, SLONG z, SLONG c0)
 }
 
 // Hi-detail pyro constants.
+// uc_orig: TEXSCALE (fallen/DDEngine/Source/drawxtra.cpp)
+#define TEXSCALE 0.003f
+// uc_orig: TEXSCALE2 (fallen/DDEngine/Source/drawxtra.cpp)
+#define TEXSCALE2 0.006f
 // uc_orig: DUSTWAVE_SECTORS (fallen/DDEngine/Source/drawxtra.cpp)
 #define DUSTWAVE_SECTORS 16
 // uc_orig: FIREBOMB_SPRITES (fallen/DDEngine/Source/drawxtra.cpp)
@@ -1846,5 +1862,786 @@ void PYRO_draw_pyro(Thing* p_pyro)
 
     case PYRO_HITSPANG:
         break;
+    }
+}
+
+// ---- Pyro draw helpers (from drawxtra.cpp) ----
+
+// uc_orig: PYRO_draw_explosion (fallen/DDEngine/Source/drawxtra.cpp)
+// Draws old-style hemisphere explosion (PYRO_EXPLODE) using a Pyrex per-point radius array.
+// 8 bottom-ring quads + 8 top-ring triangles fan to a centre apex.
+static void PYRO_draw_explosion(Pyrex* pyro)
+{
+    POLY_Point pp[3];
+    POLY_Point* tri[3];
+    UBYTE i, j;
+    SLONG ok, spec;
+    SLONG cx, cy, cz;
+    RadPoint points[17];
+
+    tri[0] = &pp[0];
+    tri[1] = &pp[1];
+    tri[2] = &pp[2];
+
+    cx = pyro->thing->WorldPos.X >> 8;
+    cy = pyro->thing->WorldPos.Y >> 8;
+    cz = pyro->thing->WorldPos.Z >> 8;
+
+    for (i = 0; i < 16; i++) {
+        points[i].x = (PYRO_defaultpoints[i].x * pyro->points[i].radius) >> 16;
+        points[i].y = (PYRO_defaultpoints[i].y * pyro->points[i].radius) >> 16;
+        points[i].z = (PYRO_defaultpoints[i].z * pyro->points[i].radius) >> 16;
+    }
+    points[16].y = (65535 * pyro->points[i].radius) >> 16;
+
+    spec = (255 - (pyro->thing->Genus.Pyro->Timer1 * 4));
+    if (spec < 0)
+        spec = 0;
+    spec *= 0x010101;
+
+    DIRT_gust(pyro->thing, cx, cz, (points[0].x / 4) + cx, (points[0].z / 4) + cz);
+    DIRT_gust(pyro->thing, cx, cz, (points[4].x / 4) + cx, (points[4].z / 4) + cz);
+
+    // Draw bottom "rung"
+    for (i = 0; i < 8; i++) {
+
+        j = i + 1;
+        if (j == 8)
+            j = 0;
+        POLY_transform(points[i].x + cx,
+            points[i].y + cy,
+            points[i].z + cz,
+            &pp[0]);
+        pp[0].u = points[i].x * TEXSCALE;
+        pp[0].v = points[i].z * TEXSCALE;
+        POLY_transform(points[i + 8].x + cx,
+            points[i + 8].y + cy,
+            points[i + 8].z + cz,
+            &pp[1]);
+        pp[1].u = points[i + 8].x * TEXSCALE;
+        pp[1].v = points[i + 8].z * TEXSCALE;
+        POLY_transform(points[j + 8].x + cx,
+            points[j + 8].y + cy,
+            points[j + 8].z + cz,
+            &pp[2]);
+        pp[2].u = points[j + 8].x * TEXSCALE;
+        pp[2].v = points[j + 8].z * TEXSCALE;
+        pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + (pyro->thing->Genus.Pyro->Timer1 << 24);
+        pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
+        if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
+        }
+
+        POLY_transform(points[i].x + cx,
+            points[i].y + cy,
+            points[i].z + cz,
+            &pp[0]);
+        pp[0].u = points[i].x * TEXSCALE;
+        pp[0].v = points[i].z * TEXSCALE;
+        POLY_transform(points[j + 8].x + cx,
+            points[j + 8].y + cy,
+            points[j + 8].z + cz,
+            &pp[1]);
+        pp[1].u = points[j + 8].x * TEXSCALE;
+        pp[1].v = points[j + 8].z * TEXSCALE;
+        POLY_transform(points[j].x + cx,
+            points[j].y + cy,
+            points[j].z + cz,
+            &pp[2]);
+        pp[2].u = points[j].x * TEXSCALE;
+        pp[2].v = points[j].z * TEXSCALE;
+        pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + (pyro->thing->Genus.Pyro->Timer1 << 24);
+        pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
+        if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
+        }
+    }
+
+    // Draw top "rung"
+    for (i = 8; i < 16; i++) {
+        j = i + 1;
+        if (j == 16)
+            j = 8;
+        POLY_transform(points[i].x + cx,
+            points[i].y + cy,
+            points[i].z + cz,
+            &pp[0]);
+        pp[0].u = points[i].x * TEXSCALE;
+        pp[0].v = points[i].z * TEXSCALE;
+        POLY_transform(cx,
+            points[16].y + cy,
+            cz,
+            &pp[1]);
+        pp[1].u = 0;
+        pp[1].v = 0;
+        POLY_transform(points[j].x + cx,
+            points[j].y + cy,
+            points[j].z + cz,
+            &pp[2]);
+        pp[2].u = points[j].x * TEXSCALE;
+        pp[2].v = points[j].z * TEXSCALE;
+        pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + (pyro->thing->Genus.Pyro->Timer1 << 24);
+        pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
+        if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
+        }
+    }
+}
+
+// uc_orig: PYRO_draw_dustwave (fallen/DDEngine/Source/drawxtra.cpp)
+// Renders PYRO_DUSTWAVE as a multi-ring expanding shockwave using triangle strips.
+// iNumSectors dynamically throttled via IWouldLikeSomePyroSpritesHowManyCanIHave (min 7).
+static void PYRO_draw_dustwave(Pyro* pyro)
+{
+    POLY_Point pp[3], mid;
+    POLY_Point* tri[3] = { &pp[0], &pp[1], &pp[2] };
+    SLONG cx, cy, cz, ok, fade;
+    UBYTE sections, pass, sector, next;
+    SLONG dxs[DUSTWAVE_SECTORS], dys[DUSTWAVE_SECTORS], dists[4], heights[4];
+    float thisscale, nextscale;
+
+    cx = pyro->thing->WorldPos.X >> 8;
+    cy = pyro->thing->WorldPos.Y >> 8;
+    cz = pyro->thing->WorldPos.Z >> 8;
+    POLY_transform(cx, cy, cz, &mid);
+    mid.u = 0.5;
+    mid.v = 1.0;
+
+    sections = 3;
+
+    int iNumSectors = IWouldLikeSomePyroSpritesHowManyCanIHave(DUSTWAVE_SECTORS);
+
+    if (iNumSectors < 7) {
+        iNumSectors = 7;
+    }
+
+    int iMultiplier = 2048 / iNumSectors;
+
+    for (sector = 0; sector < iNumSectors; sector++) {
+        dxs[sector] = SIN((sector * iMultiplier)) >> 8;
+        dys[sector] = COS((sector * iMultiplier)) >> 8;
+    }
+
+    // Precalculate ring radii and heights.
+    if (pyro->counter > 1)
+        dists[0] = 512 + SIN(pyro->counter * 4) / 256;
+    else
+        dists[0] = 256 + SIN(pyro->counter * 4) / 256;
+    heights[0] = 2;
+
+    dists[1] = (dists[0] * SIN(pyro->counter * 4)) / 65536;
+    heights[1] = SIN(pyro->counter * 4) / 1024;
+
+    dists[2] = (dists[1] * SIN(pyro->counter * 4)) / 65536;
+    heights[2] = heights[1] * 0.75f;
+
+    dists[3] = (dists[2] * SIN(pyro->counter * 4)) / 65536;
+    heights[3] = 2;
+
+    fade = pyro->counter << 25;
+
+    // Draw the triangle-strip rings.
+    for (pass = 0; pass < sections; pass++) {
+        for (sector = 0; sector < iNumSectors; sector++) {
+            next = sector + 1;
+            if (next == iNumSectors)
+                next = 0;
+
+            thisscale = TEXSCALE * ((4.0f - pass) * 0.25f);
+            nextscale = TEXSCALE * ((3.0f - pass) * 0.25f);
+
+            POLY_transform(cx + ((dists[pass] * dxs[sector]) / 256), cy + heights[pass], cz + ((dists[pass] * dys[sector]) / 256), &pp[0]);
+            POLY_transform(cx + ((dists[pass] * dxs[next]) / 256), cy + heights[pass], cz + ((dists[pass] * dys[next]) / 256), &pp[1]);
+            pp[0].u = 0.0f;
+            pp[0].v = pass * 0.40f;
+            pp[1].u = 1.0f;
+            pp[1].v = pass * 0.40f;
+
+            if ((pass < sections - 1) || (pass == 2)) {
+                POLY_transform(cx + (dists[pass + 1] * dxs[sector]) / 256, cy + heights[pass + 1], cz + (dists[pass + 1] * dys[sector]) / 256, &pp[2]);
+                pp[2].u = 0.0f;
+                pp[2].v = (pass + 1) * 0.40f;
+            } else {
+                pp[2] = mid;
+            }
+            pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF | fade;
+            pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000;
+            ok = pp[0].clip & pp[1].clip & pp[2].clip;
+            if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+                POLY_add_triangle(tri, POLY_PAGE_DUSTWAVE, UC_FALSE);
+            }
+
+            if ((pass < sections - 1) || (pass == 2)) {
+                POLY_transform(cx + ((dists[pass + 1] * dxs[next]) / 256), cy + heights[pass + 1], cz + ((dists[pass + 1] * dys[next]) / 256), &pp[0]);
+                pp[0].u = 1;
+                pp[0].v = (pass + 1) * 0.40f;
+                pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + fade;
+                pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000;
+                if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+                    POLY_add_triangle(tri, POLY_PAGE_DUSTWAVE, UC_FALSE);
+                }
+            }
+        }
+    }
+
+    // Stir up ground dust from a rotating sector around the outer ring.
+    {
+        static UBYTE shock_sector = 0;
+        DIRT_gust(pyro->thing,
+            cx + ((dists[2] * dxs[shock_sector]) / 256),
+            cz + ((dists[2] * dys[shock_sector]) / 256),
+            cx + ((dists[1] * dxs[shock_sector]) / 256),
+            cz + ((dists[1] * dys[shock_sector]) / 256));
+        shock_sector++;
+        if (shock_sector == iNumSectors)
+            shock_sector = 0;
+    }
+}
+
+// uc_orig: PYRO_draw_explosion2 (fallen/DDEngine/Source/drawxtra.cpp)
+// Draws PYRO_EXPLODE2 sphere explosion with 4 rings of 8 points, throttled via iIncrement.
+// PYRO_defaultpoints2 is initialised lazily on first call (flags == 0).
+static void PYRO_draw_explosion2(Pyro* pyro)
+{
+    POLY_Point pp[3];
+    POLY_Point* tri[3];
+    UBYTE i, j, k, b;
+    SLONG ok, spec, fade[4];
+    SLONG cx, cy, cz;
+    RadPoint points[33];
+    SLONG sc_radius;
+    float subscale;
+
+    subscale = (170 - pyro->counter);
+    subscale /= 32;
+    subscale *= TEXSCALE2;
+
+    // Lazy init of the 32-point hemisphere template.
+    if (!PYRO_defaultpoints2[0].flags) {
+        SLONG height, radius;
+        RadPoint* pt;
+
+        PYRO_defaultpoints2[0].flags = 1;
+        pt = PYRO_defaultpoints2;
+        for (i = 0; i < 4; i++) {
+
+            height = SIN(i * 128);
+            radius = COS(i * 128) >> 8;
+
+            for (j = 0; j < 8; j++) {
+                pt->x = (radius * ((SLONG)SIN(j * 256))) / 256;
+                pt->z = (radius * ((SLONG)COS(j * 256))) / 256;
+                pt->y = height;
+                pt++;
+            }
+        }
+    }
+
+    tri[0] = &pp[0];
+    tri[1] = &pp[1];
+    tri[2] = &pp[2];
+
+    cx = pyro->thing->WorldPos.X >> 8;
+    cy = pyro->thing->WorldPos.Y >> 8;
+    cz = pyro->thing->WorldPos.Z >> 8;
+
+    sc_radius = (pyro->radius * pyro->scale) / 256;
+
+    // Throttle: reduce sector count if too many sprites requested.
+    int iNumFlames = IWouldLikeSomePyroSpritesHowManyCanIHave(8 * 4);
+    iNumFlames >>= 2;
+    int iIncrement = 1;
+    if (iNumFlames < 6) {
+        iIncrement = 2;
+    }
+
+    for (i = 0; i < 32; i += iIncrement) {
+        points[i].x = (PYRO_defaultpoints2[i].x * sc_radius) >> 16;
+        points[i].y = (PYRO_defaultpoints2[i].y * sc_radius) >> 16;
+        points[i].z = (PYRO_defaultpoints2[i].z * sc_radius) >> 16;
+    }
+    points[32].y = (65535 * sc_radius) >> 16;
+
+    spec = (255 - (pyro->counter * 2));
+    if (spec < 0)
+        spec = 0;
+    spec *= 0x010101;
+
+    if (pyro->counter > 170) {
+        fade[3] = SIN((pyro->counter - 170) * 6) >> 8;
+
+        fade[2] = fade[3] * 2;
+        if (fade[2] > 255)
+            fade[2] = 255;
+
+        fade[1] = fade[2] * 2;
+        if (fade[1] > 255)
+            fade[1] = 255;
+
+        fade[0] = fade[1] * 2;
+        if (fade[0] > 255)
+            fade[0] = 255;
+
+        fade[0] <<= 24;
+        fade[1] <<= 24;
+        fade[2] <<= 24;
+        fade[3] <<= 24;
+    } else
+        fade[0] = fade[1] = fade[2] = fade[3] = 0;
+
+    // Draw 3 rings of quads.
+    for (k = 0; k < 3; k++) {
+        b = k * 8;
+        for (i = b; i < b + 8; i += iIncrement) {
+            j = i + iIncrement;
+            if (j == b + 8)
+                j = b;
+            POLY_transform(points[i].x + cx,
+                points[i].y + cy,
+                points[i].z + cz,
+                &pp[0]);
+            pp[0].u = points[i].x * subscale;
+            pp[0].v = points[i].z * subscale;
+            POLY_transform(points[i + 8].x + cx,
+                points[i + 8].y + cy,
+                points[i + 8].z + cz,
+                &pp[1]);
+            pp[1].u = points[i + 8].x * subscale;
+            pp[1].v = points[i + 8].z * subscale;
+            POLY_transform(points[j + 8].x + cx,
+                points[j + 8].y + cy,
+                points[j + 8].z + cz,
+                &pp[2]);
+            pp[2].u = points[j + 8].x * subscale;
+            pp[2].v = points[j + 8].z * subscale;
+            pp[0].colour = 0xFFFFFF + fade[k];
+            pp[1].colour = pp[2].colour = 0xFFFFFF + fade[k + 1];
+            pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
+            ok = pp[0].clip & pp[1].clip & pp[2].clip;
+            if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
+            }
+
+            POLY_transform(points[j].x + cx,
+                points[j].y + cy,
+                points[j].z + cz,
+                &pp[1]);
+            pp[1].u = points[j].x * subscale;
+            pp[1].v = points[j].z * subscale;
+            pp[1].colour = 0xFFFFFF + fade[k];
+            pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
+            if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
+            }
+        }
+    }
+
+    // Draw top cap fan.
+    for (i = 24; i < 32; i += iIncrement) {
+        j = i + iIncrement;
+        if (j == 32)
+            j = 24;
+        POLY_transform(points[i].x + cx,
+            points[i].y + cy,
+            points[i].z + cz,
+            &pp[0]);
+        pp[0].u = points[i].x * subscale;
+        pp[0].v = points[i].z * subscale;
+        POLY_transform(cx,
+            points[32].y + cy,
+            cz,
+            &pp[1]);
+        pp[1].u = 0;
+        pp[1].v = 0;
+        POLY_transform(points[j].x + cx,
+            points[j].y + cy,
+            points[j].z + cz,
+            &pp[2]);
+        pp[2].u = points[j].x * subscale;
+        pp[2].v = points[j].z * subscale;
+        pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + fade[3];
+        pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
+        if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
+        }
+    }
+}
+
+// uc_orig: PYRO_draw_newdome (fallen/DDEngine/Source/drawxtra.cpp)
+// Like PYRO_draw_explosion2 but overlays animated sprite flashes via SPRITE_draw_tex,
+// and uses a deterministic random seed per pyro instance for repeatable spark patterns.
+static void PYRO_draw_newdome(Pyro* pyro)
+{
+    POLY_Point pp[3];
+    POLY_Point* tri[3];
+    UBYTE i, j, k, b;
+    SLONG ok, spec, fade[4];
+    SLONG cx, cy, cz;
+    RadPoint points[33];
+    SLONG sc_radius;
+    float subscale;
+    float u, v;
+    UBYTE iu, iv;
+    ULONG store_seed;
+
+    subscale = (170 - pyro->counter);
+    subscale /= 32;
+    subscale *= TEXSCALE2;
+
+    // Lazy init of the 32-point hemisphere template (shared with PYRO_draw_explosion2).
+    if (!PYRO_defaultpoints2[0].flags) {
+        SLONG height, radius;
+        RadPoint* pt;
+
+        PYRO_defaultpoints2[0].flags = 1;
+        pt = PYRO_defaultpoints2;
+        for (i = 0; i < 4; i++) {
+
+            height = SIN(i * 128);
+            radius = COS(i * 128) >> 8;
+
+            for (j = 0; j < 8; j++) {
+                pt->x = (radius * ((SLONG)SIN(j * 256))) / 256;
+                pt->z = (radius * ((SLONG)COS(j * 256))) / 256;
+                pt->y = height;
+                pt++;
+            }
+        }
+    }
+
+    // Save and restore random seed to get consistent per-pyro spark placement.
+    store_seed = GetSeed();
+    SetSeed((ULONG)pyro);
+
+    tri[0] = &pp[0];
+    tri[1] = &pp[1];
+    tri[2] = &pp[2];
+
+    cx = pyro->thing->WorldPos.X >> 8;
+    cy = pyro->thing->WorldPos.Y >> 8;
+    cz = pyro->thing->WorldPos.Z >> 8;
+
+    sc_radius = (pyro->radius * pyro->scale) / 256;
+
+    int iNumFlames = IWouldLikeSomePyroSpritesHowManyCanIHave(8 * 4);
+    iNumFlames >>= 2;
+    int iIncrement = 1;
+    if (iNumFlames < 6) {
+        iIncrement = 2;
+    }
+
+    for (i = 0; i < 32; i += iIncrement) {
+        points[i].x = (PYRO_defaultpoints2[i].x * sc_radius) >> 16;
+        points[i].y = (PYRO_defaultpoints2[i].y * sc_radius) >> 16;
+        points[i].z = (PYRO_defaultpoints2[i].z * sc_radius) >> 16;
+    }
+    points[32].y = (65535 * sc_radius) >> 16;
+
+    spec = (255 - (pyro->counter * 1));
+    if (spec < 0)
+        spec = 0;
+    spec *= 0x010101;
+
+    if (pyro->counter > 170) {
+        fade[3] = SIN((pyro->counter - 170) * 6) >> 8;
+
+        fade[2] = fade[3] * 2;
+        if (fade[2] > 255)
+            fade[2] = 255;
+
+        fade[1] = fade[2] * 2;
+        if (fade[1] > 255)
+            fade[1] = 255;
+
+        fade[0] = fade[1] * 2;
+        if (fade[0] > 255)
+            fade[0] = 255;
+
+        fade[0] <<= 24;
+        fade[1] <<= 24;
+        fade[2] <<= 24;
+        fade[3] <<= 24;
+    } else
+        fade[0] = fade[1] = fade[2] = fade[3] = 0;
+
+    // Animated sprite overlay (4x4 sprite sheet, 16 frames by counter).
+    iu = (pyro->counter >> 4);
+    iv = iu >> 2;
+    iu = iu & 3;
+    u = (float)iu;
+    v = (float)iv;
+    u *= 0.25f;
+    v *= 0.25f;
+    SPRITE_draw_tex(cx, cy, cz,
+        pyro->radius << 2, 0xFFFFFF | (pyro->counter << 24), 0xff000000, POLY_PAGE_EXPLODE1_ADDITIVE - (Random() & 1), u, v, 0.25, 0.25, SPRITE_SORT_NORMAL);
+    SPRITE_draw_tex(cx, cy, cz,
+        pyro->radius << 3, 0xFFFFFF | (pyro->counter << 24), 0xff000000, POLY_PAGE_EXPLODE1_ADDITIVE - (Random() & 1), u, v, 0.25, 0.25, SPRITE_SORT_NORMAL);
+
+    // Draw 3 rings of quads.
+    for (k = 0; k < 3; k++) {
+        b = k * 8;
+        for (i = b; i < b + 8; i += iIncrement) {
+            j = i + iIncrement;
+            if (j == b + 8)
+                j = b;
+            POLY_transform(points[i].x + cx,
+                points[i].y + cy,
+                points[i].z + cz,
+                &pp[0]);
+            pp[0].u = points[i].x * subscale;
+            pp[0].v = points[i].z * subscale;
+            POLY_transform(points[i + 8].x + cx,
+                points[i + 8].y + cy,
+                points[i + 8].z + cz,
+                &pp[1]);
+            pp[1].u = points[i + 8].x * subscale;
+            pp[1].v = points[i + 8].z * subscale;
+            POLY_transform(points[j + 8].x + cx,
+                points[j + 8].y + cy,
+                points[j + 8].z + cz,
+                &pp[2]);
+            pp[2].u = points[j + 8].x * subscale;
+            pp[2].v = points[j + 8].z * subscale;
+            pp[0].colour = 0xFFFFFF + fade[k];
+            pp[1].colour = pp[2].colour = 0xFFFFFF + fade[k + 1];
+            pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
+            ok = pp[0].clip & pp[1].clip & pp[2].clip;
+            if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
+            }
+
+            if (Random() & 3) {
+                iu = (pyro->counter >> 4);
+                iv = iu >> 2;
+                iu = iu & 3;
+                u = (float)iu;
+                v = (float)iv;
+                u *= 0.25f;
+                v *= 0.25f;
+                SPRITE_draw_tex(points[j].x + cx, points[j].y + cy, points[j].z + cz,
+                    pyro->radius << 1, 0xFFFFFF | (pyro->counter << 24), 0xff000000, POLY_PAGE_EXPLODE1_ADDITIVE - (Random() & 1), u, v, 0.25, 0.25, SPRITE_SORT_NORMAL);
+            }
+
+            POLY_transform(points[j].x + cx,
+                points[j].y + cy,
+                points[j].z + cz,
+                &pp[1]);
+            pp[1].u = points[j].x * subscale;
+            pp[1].v = points[j].z * subscale;
+            pp[1].colour = 0xFFFFFF + fade[k];
+            pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
+            if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+                POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
+            }
+        }
+    }
+
+    // Draw top cap fan with sprite overlays.
+    for (i = 24; i < 32; i += iIncrement) {
+        j = i + iIncrement;
+        if (j == 32)
+            j = 24;
+        if (Random() & 1)
+            SPRITE_draw_tex(points[i].x + cx, points[i].y + cy, points[i].z + cz,
+                pyro->radius << 1, 0xFFFFFF | (pyro->counter << 24), 0xff000000, POLY_PAGE_EXPLODE1_ADDITIVE, u, v, 0.25, 0.25, SPRITE_SORT_NORMAL);
+        POLY_transform(points[i].x + cx,
+            points[i].y + cy,
+            points[i].z + cz,
+            &pp[0]);
+        pp[0].u = points[i].x * subscale;
+        pp[0].v = points[i].z * subscale;
+        POLY_transform(cx,
+            points[32].y + cy,
+            cz,
+            &pp[1]);
+        pp[1].u = 0;
+        pp[1].v = 0;
+        POLY_transform(points[j].x + cx,
+            points[j].y + cy,
+            points[j].z + cz,
+            &pp[2]);
+        pp[2].u = points[j].x * subscale;
+        pp[2].v = points[j].z * subscale;
+        pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF + fade[3];
+        pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
+        if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
+            POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
+        }
+    }
+
+    SetSeed(store_seed);
+}
+
+// uc_orig: PYRO_alpha_line (fallen/DDEngine/Source/drawxtra.cpp)
+// Draws an alpha-blended world-space line segment between two points with variable width.
+static void PYRO_alpha_line(
+    SLONG x1, SLONG y1, SLONG z1, SLONG width1, ULONG colour1,
+    SLONG x2, SLONG y2, SLONG z2, SLONG width2, ULONG colour2,
+    SLONG sort_to_front)
+{
+    POLY_Point p1;
+    POLY_Point p2;
+
+    POLY_transform(float(x1), float(y1), float(z1), &p1);
+    POLY_transform(float(x2), float(y2), float(z2), &p2);
+
+    if (POLY_valid_line(&p1, &p2)) {
+        p1.colour = colour1;
+        p1.specular = 0xff000000;
+
+        p2.colour = colour2;
+        p2.specular = 0xff000000;
+
+        POLY_add_line(&p1, &p2, float(width1), float(width2), POLY_PAGE_ALPHA, sort_to_front);
+    }
+}
+
+// uc_orig: PYRO_draw_twanger (fallen/DDEngine/Source/drawxtra.cpp)
+// Draws PYRO_TWANGER as 8 alpha lines radiating from the centre, rotating over time.
+static void PYRO_draw_twanger(Pyro* pyro)
+{
+    SLONG cx, cy, cz, c;
+    SLONG dx, dy, dz, tx, ty;
+    SLONG col1, col2, dir, ang;
+    UBYTE i;
+
+    cx = pyro->thing->WorldPos.X >> 8;
+    cy = pyro->thing->WorldPos.Y >> 8;
+    cz = pyro->thing->WorldPos.Z >> 8;
+
+    int iNumFlames = IWouldLikeSomePyroSpritesHowManyCanIHave(8);
+    int iIncrement = 1;
+    if (iNumFlames < 6) {
+        iIncrement = 2;
+    }
+
+    for (i = 0; i < 8; i += iIncrement) {
+        ang = pyro->radii[i] & 0xff;
+        dir = (pyro->radii[i] >> 4);
+
+        c = ((COS(ang) >> 8) * pyro->counter) / 128;
+
+        dx = ((SIN(dir) / 256) * c) / 256;
+        dy = 0;
+        dz = ((COS(dir) / 256) * c) / 256;
+
+        dx = (dx * pyro->scale) / 256;
+        dz = (dz * pyro->scale) / 256;
+
+        if ((!pyro->tints[0]) && !pyro->tints[1]) {
+            col1 = 0x00FFFFFF + ((COS(pyro->counter * 2) & 0xFF00) << 16);
+            col2 = 0x00FFFFFF - (SIN(pyro->counter * 2) >> 8);
+        } else {
+            col1 = pyro->tints[0] + ((COS(pyro->counter * 2) & 0xFF00) << 16);
+            col2 = pyro->tints[1];
+        }
+
+        c = 256 - (COS(pyro->counter * 2) >> 8);
+
+        PYRO_alpha_line(cx, cy, cz, 2, col1, cx + dx, cy + dy, cz + dz, c, col2, 1);
+    }
+}
+
+// uc_orig: PYRO_draw_streambit (fallen/DDEngine/Source/drawxtra.cpp)
+// Emits one steam particle for a single streamer arm at the given counter value.
+static void PYRO_draw_streambit(Pyro* pyro, SLONG cx, SLONG cy, SLONG cz, SLONG c, UBYTE i)
+{
+    SLONG x, y, z, dx, dy, dir;
+
+    dir = (pyro->radii[i + 4] >> 8) * 16;
+    dx = SIN(pyro->radii[i + 4] & 0xff) / 256;
+    dy = COS(pyro->radii[i + 4] & 0xff) / 256;
+    y = ((SIN(c * 4) / 256) * dy) + cy;
+    c = (c * dx) / 128;
+    x = ((SIN(dir) * c) / 128) + cx;
+    z = ((COS(dir) * c) / 128) + cz;
+    PARTICLE_Add(x, y, z, 0, -2, 0, POLY_PAGE_STEAM, 1 + ((rand() & 3) << 2), 0x888888, PFLAG_RESIZE | PFLAG_FADE, 40 + (rand() & 0xf), 4, 1, 5, 2);
+}
+
+// uc_orig: PYRO_draw_streamer (fallen/DDEngine/Source/drawxtra.cpp)
+// Draws PYRO_STREAMER: emits two steam particles per active arm when counter is in [64, 320).
+static void PYRO_draw_streamer(Pyro* pyro)
+{
+    UBYTE i;
+    SLONG cx, cy, cz;
+
+    cx = pyro->thing->WorldPos.X;
+    cy = pyro->thing->WorldPos.Y;
+    cz = pyro->thing->WorldPos.Z;
+
+    for (i = 0; i < 4; i++)
+        if ((pyro->radii[i] > 64) && (pyro->radii[i] < 320)) {
+            PYRO_draw_streambit(pyro, cx, cy, cz, pyro->radii[i] - 64, i);
+            PYRO_draw_streambit(pyro, cx, cy, cz, pyro->radii[i] - 60, i);
+        } else if ((pyro->radii[i] > 320) && (pyro->radii[i] < 400)) {
+            pyro->radii[i] = 400;
+            pyro->counter--;
+        }
+}
+
+// uc_orig: PYRO_draw_blob (fallen/DDEngine/Source/drawxtra.cpp)
+// PYRO_BLOB draw stub — not implemented in the pre-release build.
+static void PYRO_draw_blob(Pyro* p_thing)
+{
+}
+
+// uc_orig: PYRO_draw_armageddon (fallen/DDEngine/Source/drawxtra.cpp)
+// Draws PYRO_GAMEOVER (final boss): spawns PYRO_NEWDOME and meteor particles around Darci's
+// position each frame, plus a fireball sound. Moves the pyro thing to Darci every frame.
+static void PYRO_draw_armageddon(Pyro* pyro)
+{
+    Thing* thing;
+    GameCoord pos;
+    SWORD i, j;
+
+    if (GAMEMENU_is_paused())
+        return;
+
+    move_thing_on_map(pyro->thing, &NET_PERSON(0)->WorldPos);
+
+    SLONG and_1;
+    SLONG and_2;
+
+    {
+        and_1 = 2;
+        and_2 = 3;
+    }
+
+    if (!(Random() & and_1)) {
+        pos = pyro->thing->WorldPos;
+        pos.X += ((Random() & 0xff00) - 0x7f00) << 3;
+        pos.Z += ((Random() & 0xff00) - 0x7f00) << 3;
+        pos.Y = PAP_calc_map_height_at(pos.X >> 8, pos.Z >> 8) << 8;
+        thing = PYRO_create(pos, PYRO_NEWDOME);
+        if (thing)
+            thing->Genus.Pyro->scale = (400 + Random() & 0x7f) + (pyro->counter << 1);
+    }
+    if (!(Random() & and_2)) {
+        SLONG flags = PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_EXPLODE_ON_IMPACT | PFLAG_LEAVE_TRAIL;
+        if (Random() & 1)
+            flags |= PFLAG_GRAVITY;
+        pos = pyro->thing->WorldPos;
+        pos.X += ((Random() & 0xff00) - 0x7f00) << 3;
+        pos.Z += ((Random() & 0xff00) - 0x7f00) << 3;
+        pos.Y = PAP_calc_map_height_at(pos.X >> 8, pos.Z >> 8) << 8;
+
+        PARTICLE_Add(
+            pos.X,
+            pos.Y + 0x1000,
+            pos.Z,
+            0,
+            (0xff + (Random() & 0xff) << 4),
+            0,
+            POLY_PAGE_METEOR,
+            2 + ((Random() & 0x3) << 2),
+            0xffffffff,
+            flags,
+            100,
+            160,
+            1,
+            1,
+            1);
+
+        MFX_play_xyz(THING_NUMBER(pyro->thing), S_BALROG_FIREBALL, MFX_OVERLAP, pos.X, pos.Y, pos.Z);
     }
 }

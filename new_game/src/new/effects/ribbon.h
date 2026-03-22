@@ -45,6 +45,10 @@ struct Ribbon {
     GameCoord Points[MAX_RIBBON_SIZE];
 };
 
+// Renders a single ribbon's point buffer as a textured triangle strip.
+// uc_orig: RIBBON_draw_ribbon (fallen/DDEngine/Source/drawxtra.cpp)
+void RIBBON_draw_ribbon(Ribbon* ribbon);
+
 // uc_orig: RIBBON_init (fallen/Headers/ribbon.h)
 void RIBBON_init();
 

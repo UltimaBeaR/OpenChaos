@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 135 — drawxtra.cpp chunk 2a: pyro draw functions (2026-03-23)
+
+- `PYRO_draw_explosion`, `PYRO_draw_dustwave`, `PYRO_draw_explosion2`, `PYRO_draw_newdome`, `PYRO_alpha_line`, `PYRO_draw_twanger`, `PYRO_draw_streambit`, `PYRO_draw_streamer`, `PYRO_draw_blob`, `PYRO_draw_armageddon` → `new/effects/pyro.cpp` (static, file-private).
+- `TEXSCALE`, `TEXSCALE2` macros → `new/effects/pyro.cpp`.
+- `PYRO_defaultpoints2[32]` global (was inline `extern` inside `init_pyros`) → `new/effects/pyro_globals.cpp/.h`.
+- `RIBBON_draw_ribbon` → `new/effects/ribbon.cpp` (was temporarily needed from DrawXtra.h).
+- `SPRITE_draw_rotated` → `new/engine/graphics/geometry/sprite.cpp` (generic engine function, not game-specific).
+- Dead code: commented-out old `PYRO_draw_dustwave` block (lines 1453–1577 of drawxtra.cpp, inside `/* ... */`) not migrated.
+- drawxtra.cpp chunk 2b (BLOOM/DRAW2D/DRAWXTRA functions) deferred to iteration 136.
+
+---
+
 ## Итерация 134 — drawxtra.cpp chunk 1 (2026-03-22)
 
 - `CHOPPER_draw_chopper` → `new/actors/vehicles/chopper.cpp`. Temporary includes: `mesh.h`, `cone.h`, `animate.h`.

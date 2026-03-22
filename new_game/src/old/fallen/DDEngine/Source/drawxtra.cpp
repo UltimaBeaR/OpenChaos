@@ -1324,6 +1324,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
 #endif // MIGRATED to src/new/effects/pyro.cpp (iteration 134) [pyro_seed..PYRO_draw_pyro]
 
 
+#if 0 // MIGRATED to src/new/effects/pyro.cpp + pyro_globals.cpp (iteration 135) [PYRO_draw_explosion..PYRO_draw_armageddon, TEXSCALE, TEXSCALE2, PYRO_defaultpoints2]
 extern RadPoint PYRO_defaultpoints[16];
 
 #define TEXSCALE 0.003f
@@ -2308,6 +2309,9 @@ void PYRO_draw_armageddon(Pyro* pyro)
         MFX_play_xyz(THING_NUMBER(pyro->thing), S_BALROG_FIREBALL, MFX_OVERLAP, pos.X, pos.Y, pos.Z);
     }
 }
+#endif // MIGRATED to src/new/effects/pyro.cpp + pyro_globals.cpp (iteration 135)
+
+// RIBBON_draw_ribbon migrated in iteration 135 — see ribbon section below.
 
 /*************************************************************
  *
@@ -2321,6 +2325,7 @@ void PYRO_draw_armageddon(Pyro* pyro)
  *
  */
 
+#if 0 // MIGRATED to src/new/effects/ribbon.cpp (iteration 135) [RIBBON_draw_ribbon]
 void RIBBON_draw_ribbon(Ribbon* ribbon)
 {
     POLY_Point pp[3];
@@ -2375,6 +2380,7 @@ void RIBBON_draw_ribbon(Ribbon* ribbon)
         ASSERT(ctr < MAX_RIBBON_SIZE);
     } while (i != ribbon->Head); // egad!
 }
+#endif // MIGRATED to src/new/effects/ribbon.cpp (iteration 135)
 
 /*************************************************************
  *
@@ -2433,6 +2439,7 @@ void BLOOM_draw_floats(float x, float y, float z, float dx, float dy, float dz, 
 }
 */
 
+#if 0 // MIGRATED to src/new/engine/graphics/geometry/sprite.cpp (iteration 135) [SPRITE_draw_rotated]
 void SPRITE_draw_rotated(
     float world_x,
     float world_y,
@@ -2556,6 +2563,7 @@ void SPRITE_draw_rotated(
         }
     }
 }
+#endif // MIGRATED to src/new/engine/graphics/geometry/sprite.cpp (iteration 135)
 
 extern SLONG AENG_cur_fc_cam;
 

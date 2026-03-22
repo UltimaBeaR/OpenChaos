@@ -54,4 +54,9 @@ extern GenusFunctions PYRO_functions[PYRO_RANGE];
 // uc_orig: pyro_seed (fallen/DDEngine/Source/drawxtra.cpp)
 extern SLONG pyro_seed;
 
+// Precalculated sphere vertex positions for PYRO_EXPLODE2 and PYRO_NEWDOME.
+// 4 rings of 8 points each; flags=1 when initialised (lazy init in PYRO_draw_explosion2).
+// uc_orig: PYRO_defaultpoints2 (fallen/DDEngine/Source/drawxtra.cpp)
+extern RadPoint PYRO_defaultpoints2[32];
+
 #endif // EFFECTS_PYRO_GLOBALS_H
