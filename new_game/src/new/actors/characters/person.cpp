@@ -63,6 +63,8 @@
 #include "effects/pyro.h"           // Temporary: PYRO_hitspang
 #include "actors/animals/bat.h"     // Temporary: BAT_apply_hit
 #include "actors/items/barrel.h"    // Temporary: BARREL_shoot
+#include "actors/core/interact.h"   // Temporary: find_grab_face (chunk 6)
+#include "fallen/Headers/prim.h"    // Temporary: which_side, two4_line_intersection, signed_dist_to_line_with_normal, does_fence_lie_along_line (chunk 6)
 
 // External helpers declared in their own files (not yet migrated or in old headers).
 extern BOOL allow_debug_keys;
@@ -109,6 +111,7 @@ extern void locked_anim_change_of_type(Thing* p_person, UWORD locked_object, UWO
 extern SLONG find_best_grapple(Thing* p_person);
 extern UWORD PCOM_person_wants_to_kill(Thing* p_person);
 extern SLONG continue_moveing(Thing* p_person); // interfac.cpp
+extern SLONG person_is_on_sewer(Thing* p_person); // Person.cpp (not yet migrated)
 
 // Local collision query buffer (shares the global col_with pool; MAX_COL_WITH = 16).
 #define MAX_COL_WITH 16
@@ -5370,5 +5373,1322 @@ void set_person_carry(Thing* p_person, SLONG s_index)
     if (p_target->Genus.Person->Target) {
         remove_from_gang_attack(p_target, TO_THING(p_target->Genus.Person->Target));
     }
+}
+
+// --- chunk 6: set_person_uncarry..set_person_pos_for_fence_vault ---
+
+// Starts the put-down carry animation for both carrier and victim.
+// uc_orig: set_person_uncarry (fallen/Source/Person.cpp)
+void set_person_uncarry(Thing* p_person)
+{
+    Thing* p_target;
+    GameCoord new_position = p_person->WorldPos;
+
+    p_target = TO_THING(p_person->Genus.Person->Target);
+    set_generic_person_state_function(p_person, STATE_CARRY);
+    set_anim(p_person, ANIM_PUTDOWN_CARRY);
+    p_person->SubState = SUB_STATE_DROP_CARRY;
+
+    set_anim(p_target, ANIM_PUTDOWN_CARRY_V);
+    p_target->SubState = SUB_STATE_DROP_CARRY_V;
+}
+
+// Switches to standing carry state (both carrier and victim play stand-carry anims).
+// uc_orig: set_person_stand_carry (fallen/Source/Person.cpp)
+void set_person_stand_carry(Thing* p_person)
+{
+    Thing* p_target;
+    p_target = TO_THING(p_person->Genus.Person->Target);
+
+    set_generic_person_state_function(p_person, STATE_CARRY);
+
+    set_anim(p_person, ANIM_STAND_CARRY);
+    p_person->SubState = SUB_STATE_STAND_CARRY;
+
+    set_anim(p_target, ANIM_STAND_CARRY_V);
+    p_target->SubState = SUB_STATE_STAND_CARRY_V;
+}
+
+// State handler for the carry state: handles pickup, put-down and continuous stand-carry.
+// uc_orig: fn_person_carry (fallen/Source/Person.cpp)
+void fn_person_carry(Thing* p_person)
+{
+    SLONG end;
+    Thing* p_target;
+
+    p_target = TO_THING(p_person->Genus.Person->Target);
+    switch (p_person->SubState) {
+    case SUB_STATE_PICKUP_CARRY:
+        end = person_normal_animate(p_person);
+        if (end) {
+            set_person_stand_carry(p_person);
+        }
+        break;
+    case SUB_STATE_DROP_CARRY:
+        end = person_normal_animate(p_person);
+        if (end) {
+            p_person->Genus.Person->Flags2 &= ~FLAG2_PERSON_CARRYING;
+            set_person_idle(p_person);
+        }
+        break;
+    case SUB_STATE_STAND_CARRY: {
+        SLONG dx;
+        SLONG dz;
+        GameCoord new_position = p_person->WorldPos;
+
+        dx = -(SIN(p_person->Draw.Tweened->Angle) * 90) >> 8;
+        dz = -(COS(p_person->Draw.Tweened->Angle) * 90) >> 8;
+        new_position.X += dx;
+        new_position.Z += dz;
+        move_thing_on_map(p_target, &new_position);
+        p_target->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + 1024) & 2047;
+        p_target->Draw.Tweened->Roll = (2048 - p_person->Draw.Tweened->Roll) & 2047;
+    } break;
+    }
+}
+
+// Initiates the arrest sequence: sets arresting officer into crouch-arrest idle,
+// positions and cuffs the target, plays arrest sound, and alerts nearby NPCs.
+// s_index is the thing-number of the person being arrested.
+// uc_orig: set_person_arrest (fallen/Source/Person.cpp)
+void set_person_arrest(Thing* p_person, SLONG s_index)
+{
+    SLONG anim;
+    ASSERT(s_index);
+
+    set_generic_person_state_function(p_person, STATE_IDLE);
+    anim = ANIM_ARREST_CROUTCH;
+
+    p_person->Draw.Tweened->Locked = 0;
+    locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, anim, 0);
+
+    p_person->Genus.Person->CombatNode = 0;
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_CROUTCH;
+    p_person->SubState = SUB_STATE_IDLE_CROUTCH_ARREST;
+
+    p_person->Draw.Tweened->Locked = 0;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
+    p_person->Genus.Person->Target = s_index;
+
+    if (s_index) {
+        SLONG ax, ay, az;
+        Thing* p_target;
+        SLONG dx, dz;
+        SLONG on_what_side;
+        GameCoord new_position;
+
+        p_target = TO_THING(s_index);
+        p_target->Genus.Person->Flags |= FLAG_PERSON_ARRESTED;
+
+        switch (p_target->Genus.Person->PersonType) {
+        case PERSON_THUG_RASTA:
+        case PERSON_THUG_GREY:
+        case PERSON_THUG_RED:
+        case PERSON_MIB1:
+        case PERSON_MIB2:
+        case PERSON_MIB3:
+            stat_arrested_thug++;
+            break;
+        default:
+            stat_arrested_innocent++;
+            break;
+        }
+
+        on_what_side = person_is_lying_on_what(p_target);
+
+        if (on_what_side == PERSON_ON_HIS_BACK) {
+            set_locked_anim(p_target, ANIM_ARREST_ROLL, 0);
+            p_target->SubState = SUB_STATE_DEAD_ARREST_TURN_OVER;
+        } else {
+            set_locked_anim(p_target, ANIM_ARREST_BE_CUFFED, 0);
+            p_target->SubState = SUB_STATE_DEAD_CUFFED;
+            p_target->Draw.Tweened->Angle &= 2047;
+        }
+
+        calc_sub_objects_position(p_target, p_target->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS, &ax, &ay, &az);
+
+        ax += p_target->WorldPos.X >> 8;
+        ay += p_target->WorldPos.Y >> 8;
+        az += p_target->WorldPos.Z >> 8;
+
+        dx = (SIN(p_target->Draw.Tweened->Angle) * 60) >> 16;
+        dz = (COS(p_target->Draw.Tweened->Angle) * 60) >> 16;
+
+        ax -= dx;
+        az -= dz;
+
+        dx = ((p_person->WorldPos.X >> 8) - ax) << 8;
+        dz = ((p_person->WorldPos.Z >> 8) - az) << 8;
+
+        new_position.X = p_target->WorldPos.X + dx;
+        new_position.Y = p_target->WorldPos.Y;
+        new_position.Z = p_target->WorldPos.Z + dz;
+
+        move_thing_on_map(p_target, &new_position);
+
+        p_person->Draw.Tweened->Angle = (p_target->Draw.Tweened->Angle + 1024) & 2047;
+
+        if (!remove_from_gang_attack(p_target, p_person)) {
+            Thing* p_victim;
+            if (p_target->Genus.Person->Target) {
+                p_victim = TO_THING(p_target->Genus.Person->Target);
+                if (p_victim->Class == CLASS_PERSON)
+                    remove_from_gang_attack(p_target, p_victim);
+            }
+        }
+
+        // Set arrested person to dead state so they don't cause further trouble.
+        set_generic_person_state_function(p_target, STATE_DEAD);
+        p_target->Genus.Person->Action = ACTION_DEAD;
+        p_target->Genus.Person->Timer1 = 0;
+
+        switch (p_person->Genus.Person->PersonType) {
+        case PERSON_DARCI:
+            MFX_play_thing(THING_NUMBER(p_person), SOUND_Range(S_DARCI_ARREST_START, S_DARCI_ARREST_END), MFX_MOVING | MFX_OVERLAP, p_person);
+            break;
+        case PERSON_COP:
+            MFX_play_thing(THING_NUMBER(p_person), SOUND_Range(S_COP_ARREST_START, S_COP_ARREST_END), MFX_MOVING | MFX_OVERLAP, p_person);
+            break;
+        }
+
+        PCOM_oscillate_tympanum(
+            PCOM_SOUND_HEY,
+            p_person,
+            p_person->WorldPos.X >> 8,
+            p_person->WorldPos.Y >> 8,
+            p_person->WorldPos.Z >> 8);
+    }
+}
+
+// Transitions person into crouching idle; if Darci and an arrestee is nearby, arrests them instead.
+// uc_orig: set_person_croutch (fallen/Source/Person.cpp)
+void set_person_croutch(Thing* p_person)
+{
+    SLONG anim;
+    SLONG index;
+
+    if (p_person->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_person))) {
+        set_person_arrest(p_person, index);
+        return;
+    }
+
+    set_generic_person_state_function(p_person, STATE_IDLE);
+    if (person_has_gun_out(p_person)) {
+        if (person_holding_2handed(p_person)) {
+            anim = ANIM_SHOTGUN_DUCK;
+        } else {
+            anim = ANIM_PISTOL_DUCK;
+        }
+    } else {
+        anim = ANIM_CROUTCH_DOWN;
+    }
+
+    if (anim) {
+        // locked_anim_change causes Roper to slide backwards, so plain set_anim is used here.
+        p_person->Draw.Tweened->Locked = 0;
+        set_anim(p_person, anim);
+        p_person->Genus.Person->CombatNode = 0;
+        p_person->Velocity = 0;
+        p_person->Genus.Person->Action = ACTION_CROUTCH;
+        p_person->SubState = SUB_STATE_IDLE_CROUTCH;
+        p_person->Draw.Tweened->Locked = 0;
+    }
+}
+
+// Transitions person into crawling state. Sniper uses PELVIS lock; others use LEFT_FOOT lock.
+// If the person has a gun out and is a sniper, also slides them a bit forward first.
+// uc_orig: set_person_crawling (fallen/Source/Person.cpp)
+void set_person_crawling(Thing* p_person)
+{
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+
+    if (person_has_gun_out(p_person)) {
+        SLONG x1 = p_person->WorldPos.X;
+        SLONG y1 = p_person->WorldPos.Y;
+        SLONG z1 = p_person->WorldPos.Z;
+
+        SLONG x2 = p_person->WorldPos.X;
+        SLONG y2 = p_person->WorldPos.Y;
+        SLONG z2 = p_person->WorldPos.Z;
+
+        slide_along(
+            x1, y1, z2,
+            &x2, &y2, &z2,
+            0,
+            50,
+            0);
+
+        GameCoord newpos;
+        newpos.X = x2;
+        newpos.Y = y2;
+        newpos.Z = z2;
+        move_thing_on_map(p_person, &newpos);
+
+        p_person->Draw.Tweened->Locked = 0;
+        locked_anim_change(p_person, SUB_OBJECT_PELVIS, ANIM_SNIPER_CRAWL, 0);
+    } else {
+        p_person->Draw.Tweened->Locked = 0;
+        locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, ANIM_CRAWL, 0);
+    }
+
+    p_person->Genus.Person->CombatNode = 0;
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_CRAWLING;
+    p_person->SubState = SUB_STATE_CRAWLING;
+    p_person->Draw.Tweened->Locked = 0;
+}
+
+// Initiates a leg-sweep kick attack (fight state, kick sub-state).
+// uc_orig: set_person_leg_sweep (fallen/Source/Person.cpp)
+SLONG set_person_leg_sweep(Thing* p_person)
+{
+    set_generic_person_state_function(p_person, STATE_FIGHTING);
+    set_anim(p_person, ANIM_LEG_SWEEP);
+    p_person->Genus.Person->CombatNode = 0;
+    p_person->SubState = SUB_STATE_KICK;
+    return (0);
+}
+
+// Initiates a punch attack. Checks for better grapple first.
+// Handles knife, bat, and shotgun/AK variants. Tracks Darci's punch EWAY event.
+// uc_orig: set_person_punch (fallen/Source/Person.cpp)
+SLONG set_person_punch(Thing* p_person)
+{
+    SLONG anim;
+    SLONG node = 1;
+
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_PUNCH;
+
+    if (!p_person->Genus.Person->PlayerID) {
+        // For NPC: don't punch during cutscenes (unfair to player).
+        UWORD i_target = PCOM_person_wants_to_kill(p_person);
+        if (i_target) {
+            Thing* p_target = TO_THING(i_target);
+            if (dont_hurt_target_during_cutscene(p_person, p_target)) {
+                return 0;
+            }
+        }
+    }
+
+    if (find_best_grapple(p_person)) {
+        return (0);
+    }
+
+    set_generic_person_state_function(p_person, STATE_FIGHTING);
+
+    anim = ANIM_PUNCH_COMBO1;
+
+    if (p_person->Genus.Person->SpecialUse) {
+        Thing* p_special;
+        p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+        switch (p_special->Genus.Special->SpecialType) {
+        case SPECIAL_KNIFE:
+            anim = ANIM_KNIFE_ATTACK1;
+            node = 14;
+            break;
+
+        case SPECIAL_BASEBALLBAT:
+            anim = ANIM_BAT_HIT1;
+            break;
+            node = 19; // unreachable — original copy-paste bug, kept 1:1
+            break;
+
+        case SPECIAL_SHOTGUN:
+        case SPECIAL_AK47:
+            switch ((Random() >> 4) & 1) {
+            case 0:
+                anim = ANIM_SHOTGUN_WHIP1;
+                break;
+            case 1:
+                anim = ANIM_SHOTGUN_WHIP2;
+                break;
+            }
+            break;
+        }
+    }
+
+    if (anim) {
+        if (anim == ANIM_PUNCH_COMBO1 && p_person == NET_PERSON(0)) {
+            EWAY_darci_move |= EWAY_DARCI_MOVE_PUNCH;
+        }
+
+        p_person->Draw.Tweened->Locked = 0;
+        set_anim(p_person, anim);
+        p_person->Genus.Person->CombatNode = node;
+        p_person->Velocity = 0;
+        p_person->Genus.Person->Action = ACTION_FIGHT_PUNCH;
+        p_person->SubState = SUB_STATE_PUNCH;
+        p_person->Draw.Tweened->Locked = 0;
+        p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
+    }
+
+    return (anim);
+}
+
+// Initiates a directional kick. dir: 0=N, 1=E, 2=S, 3=W.
+// uc_orig: set_person_kick_dir (fallen/Source/Person.cpp)
+SLONG set_person_kick_dir(Thing* p_person, SLONG dir)
+{
+    SLONG anim;
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_KICK;
+
+    if (p_person->Genus.Person->PlayerID) {
+        camera_fight();
+    }
+
+    set_generic_person_state_function(p_person, STATE_FIGHTING);
+
+    anim = ANIM_KICK_COMBO1;
+
+    switch (dir) {
+    case 0: // n
+        break;
+    case 1: // e
+        anim = ANIM_KICK_RIGHT;
+        break;
+    case 2: // s
+        anim = ANIM_KICK_BEHIND;
+        break;
+    case 3: // w
+        anim = ANIM_KICK_LEFT;
+        break;
+    }
+
+    if (p_person == NET_PERSON(0)) {
+        EWAY_darci_move |= EWAY_DARCI_MOVE_KICK;
+    }
+
+    if (anim) {
+        p_person->Draw.Tweened->Locked = 0;
+        locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, anim, 0);
+        p_person->Genus.Person->CombatNode = 1;
+        p_person->Velocity = 0;
+        p_person->Genus.Person->Action = ACTION_FIGHT_PUNCH;
+        p_person->SubState = SUB_STATE_KICK;
+        p_person->Draw.Tweened->Locked = 0;
+        p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
+    }
+
+    return (anim);
+}
+
+// Initiates a fight animation by anim type, entering fight state.
+// uc_orig: set_person_fight_anim (fallen/Source/Person.cpp)
+void set_person_fight_anim(Thing* p_person, SLONG anim)
+{
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_KICK;
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_PUNCH;
+
+    set_generic_person_state_function(p_person, STATE_FIGHTING);
+
+    if (anim) {
+        p_person->Draw.Tweened->Locked = 0;
+        locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, anim, 0);
+        p_person->Genus.Person->CombatNode = 1;
+        p_person->Velocity = 0;
+        p_person->Genus.Person->Action = ACTION_FIGHT_PUNCH;
+        p_person->SubState = SUB_STATE_KICK;
+        p_person->Draw.Tweened->Locked = 0;
+        p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
+    }
+}
+
+// Initiates a standard front kick (ANIM_KICK_COMBO1). Tracks Darci's kick EWAY event.
+// Checks for cutscene protection for NPC attackers.
+// uc_orig: set_person_kick (fallen/Source/Person.cpp)
+SLONG set_person_kick(Thing* p_person)
+{
+    SLONG anim;
+
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_KICK;
+
+    if (!p_person->Genus.Person->PlayerID) {
+        UWORD i_target = PCOM_person_wants_to_kill(p_person);
+        if (i_target) {
+            Thing* p_target = TO_THING(i_target);
+            if (dont_hurt_target_during_cutscene(p_person, p_target)) {
+                return 0;
+            }
+        }
+    }
+
+    if (p_person == NET_PERSON(0)) {
+        EWAY_darci_move |= EWAY_DARCI_MOVE_KICK;
+    }
+
+    set_generic_person_state_function(p_person, STATE_FIGHTING);
+
+    anim = ANIM_KICK_COMBO1;
+    p_person->Draw.Tweened->Locked = 0;
+    p_person->Genus.Person->CombatNode = 6;
+    set_anim(p_person, anim);
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_FIGHT_PUNCH;
+    p_person->SubState = SUB_STATE_KICK;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
+    return (anim);
+}
+
+// Initiates a near kick: ANIM_KICK_NAD if close + Darci + stepping forward, else ANIM_KICK_NEAR.
+// uc_orig: set_person_kick_near (fallen/Source/Person.cpp)
+SLONG set_person_kick_near(Thing* p_person, SLONG dist)
+{
+    SLONG anim;
+    SLONG not_nad = 0;
+
+    if (p_person == NET_PERSON(0)) {
+        EWAY_darci_move |= EWAY_DARCI_MOVE_KICK;
+    }
+
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_KICK;
+
+    set_generic_person_state_function(p_person, STATE_FIGHTING);
+
+    if (p_person->Genus.Person->Target) {
+        Thing* p_victim;
+        p_victim = TO_THING(p_person->Genus.Person->Target);
+
+        if (p_victim->Draw.Tweened->CurrentAnim == ANIM_KICK_NAD_TAKE
+         || p_victim->Draw.Tweened->CurrentAnim == ANIM_KICK_NAD_STUNNED
+         || p_victim->Draw.Tweened->CurrentAnim == ANIM_KICK_NAD_RECOVER)
+            not_nad = 1;
+    }
+
+    if (p_person->Genus.Person->PersonType == PERSON_DARCI && dist < 100
+     && p_person->SubState == SUB_STATE_STEP_FORWARD && !not_nad)
+        anim = ANIM_KICK_NAD;
+    else
+        anim = ANIM_KICK_NEAR;
+
+    p_person->Draw.Tweened->Locked = 0;
+    p_person->Genus.Person->CombatNode = 0;
+
+    if (p_person->SubState == SUB_STATE_STEP_FORWARD)
+        set_anim(p_person, anim);
+    else
+        locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, anim, 0);
+
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_FIGHT_PUNCH;
+    p_person->SubState = SUB_STATE_KICK;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
+    return (anim);
+}
+
+// Initiates a stomp attack (stomp on a downed opponent).
+// uc_orig: set_person_stomp (fallen/Source/Person.cpp)
+SLONG set_person_stomp(Thing* p_person)
+{
+    SLONG anim;
+
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_KICK;
+    if (p_person->Genus.Person->PlayerID) {
+        camera_fight();
+    }
+
+    set_generic_person_state_function(p_person, STATE_FIGHTING);
+
+    anim = ANIM_FIGHT_STOMP;
+    p_person->Draw.Tweened->Locked = 0;
+    p_person->Genus.Person->CombatNode = 0;
+    locked_anim_change(p_person, SUB_OBJECT_LEFT_FOOT, anim, 0);
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_FIGHT_PUNCH;
+    p_person->SubState = SUB_STATE_KICK;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
+    return (anim);
+}
+
+// Positions a person at the base of a ladder facet, facing the correct direction.
+// scale=256 for most persons; scale=320 for Roper.
+// uc_orig: set_person_position_for_ladder (fallen/Source/Person.cpp)
+void set_person_position_for_ladder(Thing* p_person, UWORD facet)
+{
+    SLONG angle, px, pz;
+    GameCoord new_position;
+    SLONG scale = 256;
+
+    if (p_person->Genus.Person->PersonType == PERSON_ROPER)
+        scale = 320;
+
+    correct_pos_for_ladder(&dfacets[facet], &px, &pz, &angle, scale);
+
+    new_position.X = px << 8;
+    new_position.Y = p_person->WorldPos.Y;
+    new_position.Z = pz << 8;
+
+    p_person->Draw.Tweened->Angle = angle;
+
+    move_thing_on_map(p_person, &new_position);
+}
+
+// Plays a terrain-appropriate sound when jumping (e.g. sewer water splash).
+// Uses a static channel so the sound can be re-used without stacking.
+// uc_orig: play_jump_sound (fallen/Source/Person.cpp)
+inline void play_jump_sound(Thing* p_person)
+{
+    static SLONG jump_chan = 0;
+    SLONG jump_snd = 0;
+    if (p_person->Flags & FLAGS_IN_SEWERS) {
+        switch (person_is_on_sewer(p_person)) {
+        case PERSON_ON_SEWATER:
+            jump_snd = S_CLIMB_SEWER;
+            break;
+        case PERSON_ON_WATER:
+            jump_snd = S_FOOTS_PUDDLE_START;
+            break;
+        }
+    }
+    if (jump_snd)
+        MFX_play_thing(THING_NUMBER(p_person), jump_snd, 0, p_person);
+}
+
+// Starts a person climbing a ladder: sets STATE_CLIMB_LADDER, positions them, plays jump sound.
+// Roper, cops, and thugs use the roper-type ladder animation.
+// uc_orig: set_person_climb_ladder (fallen/Source/Person.cpp)
+void set_person_climb_ladder(Thing* p_person, UWORD storey)
+{
+    set_generic_person_state_function(p_person, STATE_CLIMB_LADDER);
+    if (p_person->Genus.Person->PersonType == PERSON_ROPER) {
+        set_anim_of_type(p_person, COP_ROPER_ANIM_LADDER_START, ANIM_TYPE_ROPER);
+    } else if (p_person->Genus.Person->PersonType == PERSON_COP
+            || p_person->Genus.Person->PersonType == PERSON_THUG_GREY
+            || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA
+            || p_person->Genus.Person->PersonType == PERSON_THUG_RED) {
+        set_anim_of_type(p_person, COP_ROPER_ANIM_LADDER_START, ANIM_TYPE_ROPER);
+    } else {
+        set_anim(p_person, ANIM_MOUNT_LADDER);
+    }
+
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_CLIMBING;
+    p_person->SubState = SUB_STATE_MOUNT_LADDER;
+    p_person->Genus.Person->OnFacet = storey;
+    set_person_position_for_ladder(p_person, storey);
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
+
+    play_jump_sound(p_person);
+}
+
+// Switches to the looping on-ladder animation and enters the on-ladder sub-state.
+// Roper, cops, and thugs use the roper-type ladder loop animation.
+// uc_orig: set_person_on_ladder (fallen/Source/Person.cpp)
+void set_person_on_ladder(Thing* p_person)
+{
+    if (p_person->Genus.Person->PersonType == PERSON_ROPER) {
+        locked_anim_change_of_type(p_person, 0, COP_ROPER_ANIM_LADDER_LOOP, ANIM_TYPE_ROPER);
+    } else if (p_person->Genus.Person->PersonType == PERSON_COP
+            || p_person->Genus.Person->PersonType == PERSON_THUG_GREY
+            || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA
+            || p_person->Genus.Person->PersonType == PERSON_THUG_RED) {
+        locked_anim_change_of_type(p_person, 0, COP_ROPER_ANIM_LADDER_LOOP, ANIM_TYPE_ROPER);
+    } else {
+        locked_anim_change(p_person, 0, ANIM_ON_LADDER, 0);
+    }
+
+    // Ensure the person is not in fight mode while on the ladder.
+    p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+
+    p_person->Draw.Tweened->AnimTween = 0;
+    p_person->Velocity = 0;
+    p_person->SubState = SUB_STATE_ON_LADDER;
+    p_person->Genus.Person->Action = ACTION_CLIMBING;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M);
+    p_person->OnFace = NULL;
+}
+
+// Starts the climb-up-fence animation used when landing on a climbable fence.
+// uc_orig: set_person_on_fence (fallen/Source/Person.cpp)
+void set_person_on_fence(Thing* p_person)
+{
+    set_anim(p_person, ANIM_CLIMB_UP_FENCE);
+    p_person->Draw.Tweened->AnimTween = 0;
+    p_person->Velocity = 0;
+    p_person->SubState = SUB_STATE_CLIMB_AROUND_WALL;
+    p_person->Genus.Person->Action = ACTION_CLIMBING;
+    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+    p_person->OnFace = NULL;
+}
+
+// Initiates a standing (in-place) jump. Checks for a climbable fence in front first —
+// if found, climbs it instead of jumping. Skips if inside a building or slipping.
+// uc_orig: set_person_standing_jump (fallen/Source/Person.cpp)
+void set_person_standing_jump(Thing* p_person)
+{
+    SLONG anim;
+    if (p_person->Genus.Person->InsideIndex)
+        return;
+    if (p_person->SubState == SUB_STATE_SLIPPING)
+        return;
+
+    // Check for climbable fence in front of person.
+    {
+        SLONG x1;
+        SLONG y1;
+        SLONG z1;
+
+        SLONG x2;
+        SLONG y2;
+        SLONG z2;
+
+        SLONG dx = -SIN(p_person->Draw.Tweened->Angle) >> 2;
+        SLONG dz = -COS(p_person->Draw.Tweened->Angle) >> 2;
+
+        x1 = p_person->WorldPos.X >> 8;
+        y1 = p_person->WorldPos.Y + 0xa000 >> 8;
+        z1 = p_person->WorldPos.Z >> 8;
+
+        x2 = p_person->WorldPos.X + dx >> 8;
+        y2 = p_person->WorldPos.Y + 0xa000 >> 8;
+        z2 = p_person->WorldPos.Z + dz >> 8;
+
+        if (!there_is_a_los(
+                x1, y1, z1,
+                x2, y2, z2,
+                LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG | LOS_FLAG_IGNORE_PRIMS | LOS_FLAG_IGNORE_UNDERGROUND_CHECK)) {
+            if (los_failure_dfacet) {
+                DFacet* df;
+                df = &dfacets[los_failure_dfacet];
+
+                if (df->FacetType == STOREY_TYPE_FENCE
+                 || df->FacetType == STOREY_TYPE_FENCE_FLAT
+                 || df->FacetType == STOREY_TYPE_FENCE_BRICK) {
+                    if (!(df->FacetFlags & FACET_FLAG_UNCLIMBABLE)) {
+                        set_person_land_on_fence(p_person, los_failure_dfacet, 1);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    if (person_holding_2handed(p_person))
+        anim = ANIM_STANDING_JUMP_AK;
+    else
+        anim = ANIM_STANDING_JUMP;
+
+    set_generic_person_state_function(p_person, STATE_JUMPING);
+    set_anim(p_person, anim);
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_STANDING_JUMP;
+    p_person->SubState = SUB_STATE_STANDING_JUMP;
+    play_jump_sound(p_person);
+    p_person->OnFace = 0;
+}
+
+// Initiates a forward standing jump. Skips if on a steep slope or inside a building.
+// Delegates to set_person_running_jump for the actual state setup.
+// uc_orig: set_person_standing_jump_forwards (fallen/Source/Person.cpp)
+void set_person_standing_jump_forwards(Thing* p_person)
+{
+    SLONG slope;
+    SLONG angle;
+    if (p_person->OnFace < 0) {
+        slope = RFACE_on_slope(-p_person->OnFace, p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle);
+    } else {
+        slope = PAP_on_slope(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle) >> 1;
+    }
+    if (slope > 50)
+        return;
+
+    if (p_person->Genus.Person->InsideIndex)
+        return;
+    if (p_person->SubState == SUB_STATE_SLIPPING)
+        return;
+    set_person_running_jump(p_person);
+}
+
+// Initiates a backwards standing jump (back-flip). Skips if on steep slope/inside/slipping.
+// uc_orig: set_person_standing_jump_backwards (fallen/Source/Person.cpp)
+void set_person_standing_jump_backwards(Thing* p_person)
+{
+    SLONG slope;
+    SLONG angle;
+    if (p_person->OnFace < 0) {
+        slope = RFACE_on_slope(-p_person->OnFace, p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle);
+    } else {
+        slope = PAP_on_slope(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle) >> 1;
+    }
+    if (slope > 50)
+        return;
+
+    if (p_person->Genus.Person->InsideIndex)
+        return;
+    if (p_person->SubState == SUB_STATE_SLIPPING)
+        return;
+    set_person_running_jump(p_person);
+
+    set_generic_person_state_function(p_person, STATE_JUMPING);
+    set_anim(p_person, ANIM_BACK_FLIP);
+    p_person->Velocity = 0;
+    p_person->Genus.Person->Action = ACTION_STANDING_JUMP;
+    p_person->SubState = SUB_STATE_STANDING_JUMP_BACKWARDS;
+    play_jump_sound(p_person);
+    p_person->OnFace = 0;
+}
+
+// Forward declaration for set_person_running_jump_lr (used inside set_person_running_jump).
+// uc_orig: set_person_running_jump_lr (fallen/Source/Person.cpp)
+void set_person_running_jump_lr(Thing* p_person, SLONG dir);
+
+// Initiates a running jump: STATE_JUMPING + run-jump-left anim, sets initial DY.
+// Skips if on steep slope, slipping, or inside. NPC jump speed from PCOM.
+// uc_orig: set_person_running_jump (fallen/Source/Person.cpp)
+void set_person_running_jump(Thing* p_person)
+{
+    SLONG slope;
+    SLONG angle;
+    if (p_person->OnFace < 0) {
+        slope = RFACE_on_slope(-p_person->OnFace, p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle);
+    } else {
+        slope = PAP_on_slope(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, &angle) >> 1;
+    }
+    if (slope > 50)
+        return;
+
+    if (p_person->SubState == SUB_STATE_SLIPPING || p_person->Genus.Person->InsideIndex)
+        return;
+
+    set_generic_person_state_function(p_person, STATE_JUMPING);
+    if (person_has_gun_out(p_person)) {
+        set_anim(p_person, ANIM_RUN_JUMP_LEFT_AK);
+    } else {
+        set_anim(p_person, ANIM_RUN_JUMP_LEFT);
+    }
+
+    if (p_person->Genus.Person->PlayerID) {
+        if (p_person->Velocity < 16) {
+            p_person->Velocity = 16;
+        }
+    } else {
+        p_person->Velocity = PCOM_if_i_wanted_to_jump_how_fast_should_i_do_it(p_person);
+    }
+
+    p_person->DY = 0;
+    p_person->DY = 10 << 8;
+    p_person->Genus.Person->Action = ACTION_RUNNING_JUMP;
+    p_person->SubState = SUB_STATE_RUNNING_JUMP;
+    p_person->OnFace = 0;
+
+    play_jump_sound(p_person);
+}
+
+// Stub for left/right running jump variant — body was removed before shipping in original.
+// uc_orig: set_person_running_jump_lr (fallen/Source/Person.cpp)
+void set_person_running_jump_lr(Thing* p_person, SLONG dir)
+{
+}
+
+// Checks whether a traverse move is possible in the given direction (right=1, left=0)
+// by predicting hand position at the end of the traverse arc and finding a grab face.
+// Also repositions person to align with the current grab face to reduce drift.
+// Returns 1 if traverse is possible, 0 if blocked.
+// uc_orig: traverse_pos (fallen/Source/Person.cpp)
+SLONG traverse_pos(Thing* p_person, SLONG right)
+{
+    SLONG lhx, lhy, lhz;
+    SLONG angle;
+    SLONG grab_x, grab_y, grab_z, type;
+    SLONG x, y, z;
+    SLONG face, grab_angle;
+
+    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, SUB_OBJECT_LEFT_HAND, &lhx, &lhy, &lhz);
+
+    x = lhx + (p_person->WorldPos.X >> 8);
+    y = lhy + (p_person->WorldPos.Y >> 8);
+    z = lhz + (p_person->WorldPos.Z >> 8);
+
+    if (right) {
+        angle = (p_person->Draw.Tweened->Angle - 512) & 2047;
+    } else {
+        angle = (p_person->Draw.Tweened->Angle + 512) & 2047;
+    }
+
+    // Predict hand position at end of sideways movement.
+    x += -(SIN(angle) * 74) >> 16;
+    z += -(COS(angle) * 74) >> 16;
+
+    // If the destination square is too near a nogo zone or underground, abort.
+    {
+        SLONG dx;
+        SLONG dz;
+        SLONG cx;
+        SLONG cz;
+
+        for (dx = -32; dx <= 32; dx += 32)
+            for (dz = -32; dz <= 32; dz += 32) {
+                cx = x + dx;
+                cz = z + dz;
+
+                if (!WITHIN(cx >> 8, 0, PAP_SIZE_HI - 1) || !WITHIN(cz >> 8, 0, PAP_SIZE_HI - 1)) {
+                    return FALSE;
+                }
+
+                if (PAP_calc_map_height_at(cx, cz) > y + 0x30) {
+                    return FALSE;
+                }
+
+                cx >>= 8;
+                cz >>= 8;
+
+                if (PAP_2HI(cx, cz).Flags & PAP_FLAG_NOGO) {
+                    return FALSE;
+                }
+            }
+    }
+
+    // Check if there is a face the hands can grab at the predicted end position.
+    face = find_grab_face(
+        x, y, z,
+        20, 40,
+        p_person->Draw.Tweened->Angle,
+        &grab_x,
+        &grab_y,
+        &grab_z,
+        &grab_angle,
+        0,
+        0, &type,
+        p_person);
+
+    if (face == 0)
+        return (0);
+
+    if (type != 0)
+        return (0); // ladder or cable or other odd face type — can't traverse there
+
+    {
+        SLONG new_x, new_y, new_z;
+        GameCoord temp_pos;
+
+        // Revert predicted offset to get back to current hand position.
+        x -= -(SIN(angle) * 74) >> 16;
+        z -= -(COS(angle) * 74) >> 16;
+
+        // Repos against current grab face to keep person aligned on straight ledge.
+        face = find_grab_face(
+            x, y, z,
+            20, 40,
+            p_person->Draw.Tweened->Angle,
+            &grab_x,
+            &grab_y,
+            &grab_z,
+            &grab_angle,
+            0,
+            0, &type,
+            p_person);
+
+        if (face == 0) {
+            return (1); // no current face to repos against — proceed without repos
+            ASSERT(0);
+        }
+
+        calc_sub_objects_position(p_person, 0, SUB_OBJECT_LEFT_HAND, &new_x, &new_y, &new_z);
+
+        new_x += p_person->WorldPos.X >> 8;
+        new_y += p_person->WorldPos.Y >> 8;
+        new_z += p_person->WorldPos.Z >> 8;
+
+        temp_pos.X = ((grab_x - new_x) << 8) + p_person->WorldPos.X;
+        temp_pos.Y = ((grab_y - new_y) << 8) + p_person->WorldPos.Y;
+        temp_pos.Z = ((grab_z - new_z) << 8) + p_person->WorldPos.Z;
+
+        move_thing_on_map(p_person, &temp_pos);
+    }
+    return (1);
+}
+
+// Starts a traverse (sideways ledge move) in the given direction if possible.
+// right=1 for traverse right, right=0 for traverse left.
+// uc_orig: set_person_traverse (fallen/Source/Person.cpp)
+void set_person_traverse(Thing* p_person, SLONG right)
+{
+    if (traverse_pos(p_person, right) == 0)
+        return;
+
+    set_generic_person_state_function(p_person, STATE_DANGLING);
+    if (right) {
+        p_person->SubState = SUB_STATE_TRAVERSE_RIGHT;
+        p_person->Genus.Person->Action = ACTION_TRAVERSE_RIGHT;
+        set_locked_anim(p_person, ANIM_TRAVERSE_RIGHT, 0);
+    } else {
+        p_person->SubState = SUB_STATE_TRAVERSE_LEFT;
+        p_person->Genus.Person->Action = ACTION_TRAVERSE_LEFT;
+        set_locked_anim(p_person, ANIM_TRAVERSE_LEFT, 0);
+    }
+    p_person->Draw.Tweened->Locked = 0;
+}
+
+// Initiates a pull-up from a dangling position. Checks that the destination
+// square is not out of bounds or in a nogo zone before proceeding.
+// uc_orig: set_person_pulling_up (fallen/Source/Person.cpp)
+void set_person_pulling_up(Thing* p_person)
+{
+    {
+        SLONG dx = -SIN(p_person->Draw.Tweened->Angle) >> 2;
+        SLONG dz = -COS(p_person->Draw.Tweened->Angle) >> 2;
+
+        SLONG mx = p_person->WorldPos.X + dx >> 16;
+        SLONG mz = p_person->WorldPos.Z + dz >> 16;
+
+        if (!WITHIN(mx, 0, PAP_SIZE_HI - 1) || !WITHIN(mz, 0, PAP_SIZE_HI - 1)) {
+            return;
+        }
+
+        if (PAP_2HI(mx, mz).Flags & PAP_FLAG_NOGO) {
+            return;
+        }
+    }
+
+    set_generic_person_state_function(p_person, STATE_DANGLING);
+    p_person->SubState = SUB_STATE_PULL_UP;
+    set_locked_anim(p_person, ANIM_PULL_UP_NEW, 0);
+    p_person->Genus.Person->Action = ACTION_PULL_UP;
+    p_person->Draw.Tweened->Locked = 0;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
+}
+
+// Transitions person into a falling/dropping state (STATE_DANGLING + SUB_STATE_DROP_DOWN).
+// flag bits: PERSON_DROP_DOWN_KEEP_VEL = don't reset horizontal speed,
+//            PERSON_DROP_DOWN_KEEP_DY  = don't reset vertical speed,
+//            PERSON_DROP_DOWN_QUEUED   = use queued (smooth) falling anim,
+//            PERSON_DROP_DOWN_OFF_FACE = use off-face backwards substate.
+// Also clears zipwire state and slide sound.
+// uc_orig: set_person_drop_down (fallen/Source/Person.cpp)
+void set_person_drop_down(Thing* p_person, SLONG flag)
+{
+    SLONG dv = -2;
+    SLONG shotgun = 0;
+
+    SlideSoundCheck(p_person, 1);
+
+    if (person_holding_2handed(p_person))
+        shotgun = 1;
+    MSG_add(" set person drop");
+    p_person->Genus.Person->Flags &= ~FLAG_PERSON_ON_CABLE;
+    MFX_stop(THING_NUMBER(p_person), S_ZIPWIRE);
+    if (p_person->State == STATE_DANGLING
+     && (p_person->SubState == SUB_STATE_DANGLING_CABLE
+      || p_person->SubState == SUB_STATE_DANGLING_CABLE_FORWARD
+      || p_person->SubState == SUB_STATE_DANGLING_CABLE_BACKWARD)) {
+        if (p_person->OnFace) {
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_ON_CABLE) {
+                dv = 0;
+            }
+        }
+    }
+    if (p_person->SubState == SUB_STATE_SLIPPING || p_person->SubState == SUB_STATE_SLIPPING_END) {
+        p_person->Genus.Person->Flags |= FLAG_PERSON_MOVE_ANGLETO;
+    } else {
+        p_person->Genus.Person->Flags &= ~FLAG_PERSON_MOVE_ANGLETO;
+    }
+
+    set_generic_person_state_function(p_person, STATE_DANGLING);
+
+    if (flag & PERSON_DROP_DOWN_OFF_FACE) {
+        p_person->SubState = SUB_STATE_DROP_DOWN_OFF_FACE;
+    } else {
+        p_person->SubState = SUB_STATE_DROP_DOWN;
+    }
+
+    if (!(flag & PERSON_DROP_DOWN_QUEUED)) {
+        if (shotgun)
+            locked_anim_change(p_person, 0, ANIM_FALLING_AK, 0);
+        else
+            locked_anim_change(p_person, 0, ANIM_FALLING, 0);
+    } else {
+        if (shotgun)
+            queue_anim(p_person, ANIM_FALLING_QUEUED_AK);
+        else
+            queue_anim(p_person, ANIM_FALLING_QUEUED);
+    }
+    p_person->Genus.Person->Action = ACTION_DROP_DOWN;
+    p_person->Draw.Tweened->AnimTween = 0;
+    p_person->Draw.Tweened->Locked = 0;
+
+    if (!(flag & PERSON_DROP_DOWN_KEEP_VEL)) {
+        p_person->Velocity = -8;
+    } else {
+        if (abs(p_person->Velocity) < 8) {
+            if (p_person->Velocity < 0)
+                p_person->Velocity = -8;
+            else
+                p_person->Velocity = 8;
+        }
+    }
+
+    p_person->DeltaVelocity = 0;
+
+    if (!(flag & PERSON_DROP_DOWN_KEEP_DY)) {
+        p_person->DY = -(4 << 8);
+    }
+
+    p_person->OnFace = 0;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
+}
+
+// Like set_person_drop_down but uses a locked anim transition and sets DY from vely parameter.
+// uc_orig: set_person_locked_drop_down (fallen/Source/Person.cpp)
+void set_person_locked_drop_down(Thing* p_person, SLONG vely)
+{
+    MSG_add(" set person drop locked");
+    set_generic_person_state_function(p_person, STATE_DANGLING);
+    p_person->SubState = SUB_STATE_DROP_DOWN;
+    locked_anim_change(p_person, 0, ANIM_FALLING, 0);
+    p_person->Genus.Person->Action = ACTION_DROP_DOWN;
+    p_person->Draw.Tweened->Locked = 0;
+    p_person->Velocity = 0;
+    p_person->DeltaVelocity = 0;
+    p_person->DY = (vely << 8);
+    p_person->OnFace = 0;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
+}
+
+// Nearest-point extern needed for wall-bump check below.
+// uc_orig: nearest_point_on_line_and_dist (fallen/Headers/collide.h)
+extern SLONG nearest_point_on_line_and_dist(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b, SLONG* ret_x, SLONG* ret_z);
+
+// Returns true if the wall described by col facet is suitable for a bump-and-turn:
+// checks that the square ahead is well below the current height (i.e. not a ceiling).
+// uc_orig: is_wall_good_for_bump_and_turn (fallen/Source/Person.cpp)
+SLONG is_wall_good_for_bump_and_turn(Thing* p_person, SLONG col)
+{
+    SLONG dist, angle, wy, wx, wz;
+    SLONG mx, my, mz, dx, dz;
+
+    angle = p_person->Draw.Tweened->Angle;
+
+    wx = p_person->WorldPos.X >> 8;
+    wy = p_person->WorldPos.Y >> 8;
+    wz = p_person->WorldPos.Z >> 8;
+
+    dx = -(SIN(angle)) >> 9;
+    dz = -(COS(angle)) >> 9;
+
+    mx = (wx + dx) >> 8;
+    mz = (wz + dz) >> 8;
+
+    my = MAVHEIGHT(mx, mz) << 6;
+
+    if (wy > my - 196)
+        return (0);
+
+    return (1);
+}
+
+// Returns true if person is facing a wall described by col facet within vault_da angle tolerance.
+// Sets *wall_angle to the wall's normal angle. For fence facets also checks which side.
+// vault_da default: 128 (approximately +/-22.5 degrees).
+// uc_orig: am_i_facing_wall (fallen/Source/Person.cpp)
+SLONG am_i_facing_wall(Thing* p_person, SLONG col, SLONG* wall_angle, SLONG vault_da)
+{
+    SLONG mdx, mdz, dx, dz, len, dist;
+    SLONG near_x, near_z;
+    SLONG wx, wy, wz;
+    SLONG angle;
+    GameCoord new_position;
+    SLONG on, norm_x, norm_z;
+    struct DFacet* p_facet;
+    SLONG req_dist = 50;
+    SLONG side;
+
+    p_facet = &dfacets[col];
+
+    dx = p_facet->x[1] - p_facet->x[0] << 8;
+    dz = p_facet->z[1] - p_facet->z[0] << 8;
+
+    mdx = abs(dx);
+    mdz = abs(dz);
+
+    {
+        SLONG da;
+        angle = Arctan(-dx, dz) - 512;
+        if (angle < 0)
+            angle = 2048 + angle;
+        angle = angle & 2047;
+        *wall_angle = angle;
+
+        da = abs(angle - p_person->Draw.Tweened->Angle);
+
+        if (p_facet->FacetType == STOREY_TYPE_FENCE || p_facet->FacetType == STOREY_TYPE_FENCE_FLAT) {
+            extern SLONG which_side(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b);
+
+            if (which_side(p_facet->x[0] << 8, p_facet->z[0] << 8, p_facet->x[1] << 8, p_facet->z[1] << 8, p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8) < 0) {
+                da += 1024;
+            }
+        }
+        if ((da < vault_da && da > -vault_da) || (da > 2048 - vault_da && da < 2048 + vault_da))
+            return (1);
+    }
+    return (0);
+}
+
+// Returns true if person is approximately along the middle (not off the end) of the fence facet.
+// uc_orig: along_middle_of_facet (fallen/Source/Person.cpp)
+SLONG along_middle_of_facet(Thing* p_person, SLONG col)
+{
+    SLONG wx, wy, wz;
+    SLONG on, norm_x, norm_z, dist;
+    struct DFacet* p_facet;
+
+    p_facet = &dfacets[col];
+
+    wx = p_person->WorldPos.X >> 8;
+    wy = p_person->WorldPos.Y >> 8;
+    wz = p_person->WorldPos.Z >> 8;
+
+    signed_dist_to_line_with_normal(
+        p_facet->x[0] << 8, p_facet->z[0] << 8,
+        p_facet->x[1] << 8, p_facet->z[1] << 8,
+        wx, wz,
+        &dist,
+        &norm_x,
+        &norm_z,
+        &on);
+
+    if (on) {
+        return (1);
+    } else {
+        return (0);
+    }
+}
+
+// Positions person facing a fence vault: checks fence Y range, aligns angle, moves person to
+// correct stand-off distance (req_dist=50), and ensures the jump destination is not a nogo zone.
+// Returns 1 on success, 0 if vault not possible from this position.
+// uc_orig: set_person_pos_for_fence_vault (fallen/Source/Person.cpp)
+SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col)
+{
+    SLONG mdx, mdz, dx, dz, len, dist;
+    SLONG near_x, near_z;
+    SLONG wx, wy, wz;
+    SLONG angle;
+    GameCoord new_position;
+    SLONG on, norm_x, norm_z;
+    struct DFacet* p_facet;
+    SLONG req_dist = 50;
+    SLONG side;
+    SLONG bot;
+    SLONG top;
+
+    // Check that person is in the correct Y range for the fence.
+    bot = get_fence_bottom(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, col);
+    top = get_fence_top(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8, col);
+
+    if (!WITHIN(p_person->WorldPos.Y >> 8, bot - 30, top)) {
+        return FALSE;
+    }
+
+    p_facet = &dfacets[col];
+
+    dx = p_facet->x[1] - p_facet->x[0] << 8;
+    dz = p_facet->z[1] - p_facet->z[0] << 8;
+
+    mdx = abs(dx);
+    mdz = abs(dz);
+
+#undef VAULT_DA
+#define VAULT_DA (p_person->Genus.Person->PlayerID ? 128 : 256)
+
+    {
+        SLONG da;
+        angle = Arctan(-mdx, mdz) + 1024 + 512;
+        if (angle < 0)
+            angle = 2048 + angle;
+        angle = angle & 2047;
+
+        da = abs(angle - p_person->Draw.Tweened->Angle);
+
+        if ((da > VAULT_DA && da < 1024 - VAULT_DA) || (da > 1024 + VAULT_DA && da < 2048 - VAULT_DA))
+            return (0);
+
+        if (da > 512 && da < 2048 - 512) {
+            angle += 1024;
+            angle &= 2047;
+        }
+    }
+
+    wx = p_person->WorldPos.X >> 8;
+    wy = p_person->WorldPos.Y >> 8;
+    wz = p_person->WorldPos.Z >> 8;
+
+    signed_dist_to_line_with_normal(
+        p_facet->x[0] << 8, p_facet->z[0] << 8,
+        p_facet->x[1] << 8, p_facet->z[1] << 8,
+        wx, wz,
+        &dist,
+        &norm_x,
+        &norm_z,
+        &on);
+
+    if (!on)
+        return (0);
+
+    // Check person is facing the fence and not looking away from it.
+    SLONG ldx = -SIN(angle) >> 8;
+    SLONG ldz = -COS(angle) >> 8;
+
+    if (!two4_line_intersection(
+            p_facet->x[0] << 8, p_facet->z[0] << 8,
+            p_facet->x[1] << 8, p_facet->z[1] << 8,
+            wx, wz,
+            wx + ldx, wz + ldz)) {
+        return 0;
+    }
+
+    // Abort if the landing square is a nogo zone.
+    if (PAP_2HI(wx + ldx >> 8, wz + ldz >> 8).Flags & PAP_FLAG_NOGO) {
+        p_person->Velocity = 0;
+        return 0;
+    }
+
+    // Abort if vaulting into a building (landing height too high).
+    {
+        SLONG flx = wx + ldx + (-ldz >> 3) >> 8;
+        SLONG fly = wz + ldz + (+ldx >> 3) >> 8;
+
+        SLONG frx = wx + ldx - (-ldz >> 3) >> 8;
+        SLONG fry = wz + ldz - (+ldx >> 3) >> 8;
+
+        SLONG fl_height = MAVHEIGHT(flx, fly) << 6;
+        SLONG fr_height = MAVHEIGHT(frx, fry) << 6;
+
+        if (fl_height - (p_person->WorldPos.Y >> 8) > 0x50
+         || fr_height - (p_person->WorldPos.Y >> 8) > 0x50) {
+            return 0;
+        }
+    }
+
+    p_person->Draw.Tweened->Angle = angle;
+
+    // Move person to the correct stand-off distance from the fence.
+    {
+        SLONG len;
+        SLONG adx, adz;
+        SLONG odx, odz;
+        if (dist < 0) {
+            norm_x = -norm_x;
+            norm_z = -norm_z;
+        }
+        dist = abs(dist);
+
+        adx = abs(norm_x);
+        adz = abs(norm_z);
+
+        len = QDIST2(adx, adz);
+        if (len == 0)
+            len = 1;
+
+        mdx = ((norm_x * (req_dist - dist)) << 8) / len;
+        mdz = ((norm_z * (req_dist - dist)) << 8) / len;
+
+        new_position.X = p_person->WorldPos.X + (mdx);
+        new_position.Z = p_person->WorldPos.Z + (mdz);
+        new_position.Y = p_person->WorldPos.Y;
+        move_thing_on_map(p_person, &new_position);
+    }
+
+    return (1);
 }
 

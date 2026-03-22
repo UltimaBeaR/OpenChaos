@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 97 — actors/characters/person (чанк 6: set_person_uncarry..set_person_pos_for_fence_vault) (2026-03-22)
+
+- Person.cpp чанк 6: lines 7651–9237. 32 функции: set_person_uncarry, set_person_stand_carry, fn_person_carry, set_person_arrest, set_person_croutch, set_person_crawling, set_person_leg_sweep, set_person_punch, set_person_kick_dir, set_person_fight_anim, set_person_kick, set_person_kick_near, set_person_stomp, set_person_position_for_ladder, play_jump_sound, set_person_climb_ladder, set_person_on_ladder, set_person_on_fence, set_person_standing_jump, set_person_standing_jump_forwards, set_person_standing_jump_backwards, set_person_running_jump, set_person_running_jump_lr, traverse_pos, set_person_traverse, set_person_pulling_up, set_person_drop_down, set_person_locked_drop_down, is_wall_good_for_bump_and_turn, am_i_facing_wall, along_middle_of_facet, set_person_pos_for_fence_vault.
+- Добавлены Temporary includes: actors/core/interact.h (find_grab_face), fallen/Headers/prim.h (which_side, two4_line_intersection, signed_dist_to_line_with_normal, does_fence_lie_along_line). Добавлен extern: person_is_on_sewer (Person.cpp, ещё не мигрирован).
+- `set_person_punch` — unreachable `node = 19` после `break` для BASEBALLBAT — copy-paste баг оригинала, перенесён 1:1 с комментарием.
+- `play_jump_sound` — inline с static local `jump_chan`. В person.h не объявляется (файл-локальная).
+- `VAULT_DA` macro в `set_person_pos_for_fence_vault` — inline #define без финального #undef (как в оригинале), утекает в следующий чанк — будет решено при миграции chunk 7.
+- Forward decl `set_person_running_jump_lr` в person.cpp перед `set_person_running_jump` (вызывает её). Определение в том же файле ниже.
+
+---
+
 ## Итерация 96 — actors/characters/person (чанк 5: set_person_idle_uncroutch..set_person_carry) (2026-03-22)
 
 - Person.cpp чанк 5: lines 6144–7647. Функции: set_person_idle_uncroutch, set_person_turn_to_hug_wall, set_person_hug_wall_dir, set_person_hug_wall_look, set_person_idle, set_person_locked_idle_ready, set_person_sidle, set_person_flip, set_person_running, set_person_running_frame, set_person_draw_special, set_person_draw_gun, set_person_gun_away, set_person_step_left, set_person_step_right, set_vehicle_anim, position_person_for_vehicle, set_person_enter_vehicle, add_person_to_passenger_list, remove_person_from_passenger_list, set_person_passenger_in_vehicle, set_person_exit_vehicle, set_anim_walking, set_anim_running, set_anim_idle, set_person_walking, set_person_walk_backwards, set_person_sneaking, set_person_hop_back, find_idle_fight_stance, set_person_fight_idle, set_person_fight_step, set_person_fight_step_forward, set_person_block, set_person_idle_croutch, emergency_uncarry, carry_running, set_person_carry.

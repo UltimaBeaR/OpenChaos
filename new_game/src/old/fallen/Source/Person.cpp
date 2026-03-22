@@ -7648,6 +7648,7 @@ void set_person_carry(Thing* p_person, SLONG s_index)
 }
 #endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 96) [set_person_idle_uncroutch..set_person_carry]
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 97) [set_person_uncarry..set_person_pos_for_fence_vault]
 void set_person_uncarry(Thing* p_person)
 {
     Thing* p_target;
@@ -9235,6 +9236,7 @@ SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col)
 
     return (1);
 }
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 97) [set_person_uncarry..set_person_pos_for_fence_vault]
 
 SLONG set_person_pos_for_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG req_dist)
 {

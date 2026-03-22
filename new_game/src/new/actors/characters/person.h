@@ -461,4 +461,134 @@ void set_person_carry(Thing* p_person, SLONG s_index);
 // uc_orig: set_vehicle_anim (fallen/Source/Person.cpp)
 void set_vehicle_anim(Thing* p_vehicle, SLONG anim);
 
+// --- chunk 6: set_person_uncarry..set_person_pos_for_fence_vault ---
+
+// Starts the put-down carry animation for both carrier and victim.
+// uc_orig: set_person_uncarry (fallen/Source/Person.cpp)
+void set_person_uncarry(Thing* p_person);
+
+// Switches to standing-carry state (stand-carry anims for both persons).
+// uc_orig: set_person_stand_carry (fallen/Source/Person.cpp)
+void set_person_stand_carry(Thing* p_person);
+
+// State handler for the carry state.
+// uc_orig: fn_person_carry (fallen/Source/Person.cpp)
+void fn_person_carry(Thing* p_person);
+
+// Initiates an arrest sequence on s_index target.
+// uc_orig: set_person_arrest (fallen/Source/Person.cpp)
+void set_person_arrest(Thing* p_person, SLONG s_index);
+
+// Transitions person to crouching idle; if Darci with a nearby arrestee, arrests them.
+// uc_orig: set_person_croutch (fallen/Source/Person.cpp)
+void set_person_croutch(Thing* p_person);
+
+// Transitions person into crawling state.
+// uc_orig: set_person_crawling (fallen/Source/Person.cpp)
+void set_person_crawling(Thing* p_person);
+
+// Initiates a leg-sweep kick attack.
+// uc_orig: set_person_leg_sweep (fallen/Source/Person.cpp)
+SLONG set_person_leg_sweep(Thing* p_person);
+
+// Initiates a punch attack (handles knife, bat, shotgun/AK variants).
+// uc_orig: set_person_punch (fallen/Source/Person.cpp)
+SLONG set_person_punch(Thing* p_person);
+
+// Initiates a directional kick (dir: 0=N, 1=E, 2=S, 3=W).
+// uc_orig: set_person_kick_dir (fallen/Source/Person.cpp)
+SLONG set_person_kick_dir(Thing* p_person, SLONG dir);
+
+// Initiates a fight animation by anim type, entering fight state.
+// uc_orig: set_person_fight_anim (fallen/Source/Person.cpp)
+void set_person_fight_anim(Thing* p_person, SLONG anim);
+
+// Initiates a standard front kick.
+// uc_orig: set_person_kick (fallen/Source/Person.cpp)
+SLONG set_person_kick(Thing* p_person);
+
+// Initiates a near kick (ANIM_KICK_NAD if close, else ANIM_KICK_NEAR).
+// uc_orig: set_person_kick_near (fallen/Source/Person.cpp)
+SLONG set_person_kick_near(Thing* p_person, SLONG dist);
+
+// Initiates a stomp attack on a downed opponent.
+// uc_orig: set_person_stomp (fallen/Source/Person.cpp)
+SLONG set_person_stomp(Thing* p_person);
+
+// Positions person at the base of a ladder facet at the correct angle.
+// uc_orig: set_person_position_for_ladder (fallen/Source/Person.cpp)
+void set_person_position_for_ladder(Thing* p_person, UWORD facet);
+
+// Starts a person climbing a ladder.
+// uc_orig: set_person_climb_ladder (fallen/Source/Person.cpp)
+void set_person_climb_ladder(Thing* p_person, UWORD storey);
+
+// Switches to the looping on-ladder animation.
+// uc_orig: set_person_on_ladder (fallen/Source/Person.cpp)
+void set_person_on_ladder(Thing* p_person);
+
+// Starts the climb-up-fence animation.
+// uc_orig: set_person_on_fence (fallen/Source/Person.cpp)
+void set_person_on_fence(Thing* p_person);
+
+// Initiates a standing jump. Checks for climbable fence first.
+// uc_orig: set_person_standing_jump (fallen/Source/Person.cpp)
+void set_person_standing_jump(Thing* p_person);
+
+// Initiates a forward standing jump (delegates to running jump).
+// uc_orig: set_person_standing_jump_forwards (fallen/Source/Person.cpp)
+void set_person_standing_jump_forwards(Thing* p_person);
+
+// Initiates a backwards standing jump (back-flip).
+// uc_orig: set_person_standing_jump_backwards (fallen/Source/Person.cpp)
+void set_person_standing_jump_backwards(Thing* p_person);
+
+// Initiates a running jump with STATE_JUMPING + run-jump-left anim.
+// uc_orig: set_person_running_jump (fallen/Source/Person.cpp)
+void set_person_running_jump(Thing* p_person);
+
+// Stub for left/right running jump variant (body removed before shipping in original).
+// uc_orig: set_person_running_jump_lr (fallen/Source/Person.cpp)
+void set_person_running_jump_lr(Thing* p_person, SLONG dir);
+
+// Checks traverse feasibility in given direction and repositions person on ledge.
+// Returns 1 if traverse is possible, 0 if blocked.
+// uc_orig: traverse_pos (fallen/Source/Person.cpp)
+SLONG traverse_pos(Thing* p_person, SLONG right);
+
+// Starts a sideways ledge traverse if possible (right=1 / left=0).
+// uc_orig: set_person_traverse (fallen/Source/Person.cpp)
+void set_person_traverse(Thing* p_person, SLONG right);
+
+// Initiates a pull-up from dangling, checking destination for nogo.
+// uc_orig: set_person_pulling_up (fallen/Source/Person.cpp)
+void set_person_pulling_up(Thing* p_person);
+
+// Transitions person to a falling/dropping state.
+// flag: PERSON_DROP_DOWN_KEEP_VEL, PERSON_DROP_DOWN_KEEP_DY,
+//       PERSON_DROP_DOWN_QUEUED, PERSON_DROP_DOWN_OFF_FACE.
+// uc_orig: set_person_drop_down (fallen/Source/Person.cpp)
+void set_person_drop_down(Thing* p_person, SLONG flag);
+
+// Locked-anim variant of set_person_drop_down with explicit DY.
+// uc_orig: set_person_locked_drop_down (fallen/Source/Person.cpp)
+void set_person_locked_drop_down(Thing* p_person, SLONG vely);
+
+// Returns true if the col wall is suitable for a bump-and-turn maneuver.
+// uc_orig: is_wall_good_for_bump_and_turn (fallen/Source/Person.cpp)
+SLONG is_wall_good_for_bump_and_turn(Thing* p_person, SLONG col);
+
+// Returns true if person is facing within vault_da degrees of wall col's normal.
+// Sets *wall_angle. Default vault_da=128 (~22.5 degrees).
+// uc_orig: am_i_facing_wall (fallen/Source/Person.cpp)
+SLONG am_i_facing_wall(Thing* p_person, SLONG col, SLONG* wall_angle, SLONG vault_da = 128);
+
+// Returns true if person is positioned along the middle segment of facet col.
+// uc_orig: along_middle_of_facet (fallen/Source/Person.cpp)
+SLONG along_middle_of_facet(Thing* p_person, SLONG col);
+
+// Positions person to vault a fence facet; returns 1 on success, 0 if not possible.
+// uc_orig: set_person_pos_for_fence_vault (fallen/Source/Person.cpp)
+SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col);
+
 #endif // ACTORS_CHARACTERS_PERSON_H
