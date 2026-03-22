@@ -1443,7 +1443,7 @@ void POLY_create_cylinder_points(POLY_Point* p1, POLY_Point* p2, float width, PO
     pout[3].Y -= dy2;
 }
 
-// uc_orig: POLY_add_line_tex_uv (fallen/DDEngine/Headers/poly.h)
+// uc_orig: POLY_add_line_tex_uv (fallen/DDEngine/Source/poly.cpp)
 // Submits a 3D billboard line with full UV coordinates from the input POLY_Points.
 void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front)
 {

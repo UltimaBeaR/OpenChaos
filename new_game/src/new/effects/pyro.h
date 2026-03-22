@@ -191,4 +191,22 @@ void PYRO_blast_radius(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG strength);
 // uc_orig: PYRO_init_state (fallen/Headers/pyro.h)
 void PYRO_init_state(Thing* pyro_thing, UBYTE new_state);
 
+// ---- Drawing functions (from drawxtra.cpp) ----
+
+// uc_orig: IWouldLikeSomePyroSpritesHowManyCanIHave (fallen/DDEngine/Source/drawxtra.cpp)
+// Throttling stub: returns iIWantThisMany unchanged on PC (no throttle implemented).
+int IWouldLikeSomePyroSpritesHowManyCanIHave(int iIWantThisMany);
+
+// uc_orig: IHaveToHaveSomePyroSprites (fallen/DDEngine/Source/drawxtra.cpp)
+// Throttling stub: no-op on PC.
+inline void IHaveToHaveSomePyroSprites(int iINeedThisMany);
+
+// uc_orig: Pyros_EndOfFrameMarker (fallen/DDEngine/Source/drawxtra.cpp)
+// Called once per frame to reset throttle counters; no-op on PC.
+void Pyros_EndOfFrameMarker(void);
+
+// uc_orig: PYRO_draw_pyro (fallen/DDEngine/Source/drawxtra.cpp)
+// Per-frame draw dispatch for a CLASS_PYRO Thing: selects draw routine by PyroType.
+void PYRO_draw_pyro(Thing* p_pyro);
+
 #endif // EFFECTS_PYRO_H

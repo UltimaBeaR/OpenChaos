@@ -50,4 +50,8 @@ extern StateFunction PYRO_state_function[];
 // uc_orig: PYRO_functions (fallen/Source/pyro.cpp)
 extern GenusFunctions PYRO_functions[PYRO_RANGE];
 
+// LCG state for deterministic per-frame fire element placement.
+// uc_orig: pyro_seed (fallen/DDEngine/Source/drawxtra.cpp)
+extern SLONG pyro_seed;
+
 #endif // EFFECTS_PYRO_GLOBALS_H

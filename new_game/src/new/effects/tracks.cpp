@@ -327,3 +327,107 @@ void TRACKS_Bloodpool(Thing* bleeder)
     y = (PAP_calc_height_at_thing(bleeder, x >> 8, z >> 8) << 8) + 257;
     TRACKS_AddQuad(x, y, z, dx, 0, dz, POLY_PAGE_BLOODSPLAT, 0x00ffffff, sz, 0, TRACK_FLAGS_SPLUTTING);
 }
+
+// uc_orig: TRACKS_DrawTrack (fallen/DDEngine/Source/drawxtra.cpp)
+// Renders a single track decal Thing as a textured quad. Handles splutting
+// (grow-in animation) and flipable UV (left/right foot alternation).
+// Alpha fades the track out as it ages relative to the current track_head.
+void TRACKS_DrawTrack(Thing* p_thing)
+{
+    Track* walk = p_thing->Genus.Track;
+    SLONG x, y, z, id, diff;
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
+    UBYTE fade;
+    SLONG wpx, wpy, wpz;
+    SWORD sx, sz;
+
+    POLY_flush_local_rot();
+
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
+
+    diff = track_head - TRACK_NUMBER(walk);
+    if (diff < 0)
+        diff += TRACK_BUFFER_LENGTH;
+    SATURATE(diff, 0, 255);
+    diff = 255 - diff;
+    diff -= ((walk->colour >> 24) & 0xff);
+    SATURATE(diff, 0, 255);
+    fade = diff;
+    if (walk->flags & TRACK_FLAGS_INVALPHA)
+        fade = 255 - fade;
+
+    wpx = p_thing->WorldPos.X >> 8;
+    wpy = p_thing->WorldPos.Y >> 8;
+    wpz = p_thing->WorldPos.Z >> 8;
+
+    sx = walk->sx;
+    sz = walk->sz;
+    if (walk->flags & TRACK_FLAGS_SPLUTTING) {
+        walk->splut++;
+        if (walk->splut == walk->splutmax) {
+            walk->flags &= ~TRACK_FLAGS_SPLUTTING;
+        } else {
+            sx *= walk->splut;
+            sx /= walk->splutmax;
+            sz *= walk->splut;
+            sz /= walk->splutmax;
+        }
+    }
+    x = wpx + sx;
+    z = wpz + sz;
+    y = wpy;
+    POLY_transform(x, y, z, &pp[0]);
+    x = wpx - sx;
+    z = wpz - sz;
+    y = wpy;
+    POLY_transform(x, y, z, &pp[1]);
+    x = wpx + walk->dx + sx;
+    z = wpz + walk->dz + sz;
+    y = wpy + walk->dy;
+    POLY_transform(x, y, z, &pp[2]);
+    x = wpx + walk->dx - sx;
+    z = wpz + walk->dz - sz;
+    y = wpy + walk->dy;
+    POLY_transform(x, y, z, &pp[3]);
+
+    if (walk->flags & TRACK_FLAGS_FLIPABLE) {
+        if (walk->flip) {
+            pp[0].u = 0.5;
+            pp[0].v = 1;
+            pp[1].u = 0.0;
+            pp[1].v = 1;
+            pp[2].u = 0.5;
+            pp[2].v = 0;
+            pp[3].u = 0.0;
+            pp[3].v = 0;
+        } else {
+            pp[0].u = 0.0;
+            pp[0].v = 1;
+            pp[1].u = 0.5;
+            pp[1].v = 1;
+            pp[2].u = 0.0;
+            pp[2].v = 0;
+            pp[3].u = 0.5;
+            pp[3].v = 0;
+        }
+    } else {
+        pp[0].u = 1.0;
+        pp[0].v = 1.0;
+        pp[1].u = 0.0;
+        pp[1].v = 1.0;
+        pp[2].u = 1.0;
+        pp[2].v = 0.0;
+        pp[3].u = 0.0;
+        pp[3].v = 0.0;
+    }
+    pp[0].specular = pp[1].specular = pp[2].specular = pp[3].specular = 0xFF000000;
+    pp[0].colour = pp[1].colour = pp[2].colour = pp[3].colour = (fade << 24) + (walk->colour & 0x00ffffff);
+
+    if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid() && pp[3].MaybeValid()) {
+        POLY_add_quad(quad, walk->page, UC_FALSE);
+    }
+}

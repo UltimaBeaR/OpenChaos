@@ -88,6 +88,9 @@ StateFunction PYRO_state_function[] = {
     { STATE_NORMAL, PYRO_fn_normal }
 };
 
+// uc_orig: pyro_seed (fallen/DDEngine/Source/drawxtra.cpp)
+SLONG pyro_seed = 0;
+
 // Dispatch table: maps PyroType index to per-type state function array.
 // uc_orig: PYRO_functions (fallen/Source/pyro.cpp)
 GenusFunctions PYRO_functions[PYRO_RANGE] = {

@@ -650,3 +650,64 @@ UWORD PARTICLE_SGrenade(Thing* object, UBYTE time)
     }
     return res;
 }
+
+// Temporary: sprite.h needed for SPRITE_draw_tex, SPRITE_SORT_NORMAL
+#include "engine/graphics/geometry/sprite.h"
+
+// uc_orig: PARTICLE_Draw (fallen/DDEngine/Source/drawxtra.cpp)
+// Iterates the live-particle linked list (from next_used back to sentinel) and renders
+// each particle as a textured sprite. Sprite sheet indexing: sprite&3 gives the sheet
+// split mode (0=full, 1=half, 2=quarter), sprite>>2 gives the cell index within the sheet.
+void PARTICLE_Draw()
+{
+    SLONG ctr;
+    UBYTE ndx;
+    Particle* p;
+    float u, v, w, h, sz;
+
+    for (p = particles + next_used; p != particles; p = particles + p->prev) {
+        if (!p->sprite) {
+            u = 0;
+            v = 0;
+            w = 1;
+            h = 1;
+        } else {
+            ndx = p->sprite >> 2;
+            switch (p->sprite & 3) {
+            case 1: // split in half each way
+                if (p->flags & PFLAG_SPRITELOOP)
+                    ndx &= 3;
+                u = ndx & 1;
+                v = ndx >> 1;
+                u *= 0.5f;
+                v *= 0.5f;
+                w = 0.5f;
+                h = 0.5f;
+                break;
+            case 2: // split in quarters each way
+                if (p->flags & PFLAG_SPRITELOOP)
+                    ndx &= 0xf;
+                u = ndx & 3;
+                v = ndx >> 2;
+                u *= 0.25f;
+                v *= 0.25f;
+                w = 0.25f;
+                h = 0.25f;
+                break;
+            }
+        }
+        sz = float(p->size);
+        if (p->flags & PFLAG_RESIZE2)
+            sz *= 0.00390625f;
+        SPRITE_draw_tex(
+            float(p->x >> 8),
+            float(p->y >> 8),
+            float(p->z >> 8),
+            sz,
+            p->colour,
+            0xff000000,
+            p->page,
+            u, v, w, h,
+            SPRITE_SORT_NORMAL);
+    }
+}

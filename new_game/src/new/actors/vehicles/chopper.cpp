@@ -559,3 +559,145 @@ void CHOPPER_init_state(Thing* chopper_thing, UBYTE new_state)
     }
     chopper->substate = new_state;
 }
+
+// Temporary: mesh.h not yet migrated — needed for MESH_draw_poly_inv_matrix
+#include "fallen/DDEngine/Headers/mesh.h"
+// Temporary: cone.h accessed via new/ but needs the full include chain
+#include "engine/graphics/geometry/cone.h"
+// Temporary: animate.h needed for calc_sub_objects_position, SUB_OBJECT_PELVIS
+#include "fallen/Headers/animate.h"
+
+// uc_orig: CHOPPER_draw_chopper (fallen/DDEngine/Source/drawxtra.cpp)
+// Draws the chopper body and rotor meshes, then projects a CONE spotlight from the
+// underside if the searchlight is on (light != 0). The spotlight tracks Darci's pelvis.
+void CHOPPER_draw_chopper(Thing* p_chopper)
+{
+    Chopper* chopper = CHOPPER_get_chopper(p_chopper);
+    SLONG matrix[9], vector[3];
+
+    vector[0] = (chopper->dx / 64) & 2047;
+    vector[1] = (-chopper->dz / 64) & 2047;
+    vector[2] = 0;
+    p_chopper->Draw.Mesh->Roll = vector[0];
+    p_chopper->Draw.Mesh->Tilt = vector[1];
+
+    if (!(chopper->target)) {
+
+        FMATRIX_calc(matrix, p_chopper->Draw.Mesh->Angle, p_chopper->Draw.Mesh->Tilt, p_chopper->Draw.Mesh->Roll);
+
+        vector[0] = vector[2] = 0;
+        vector[1] = -1;
+
+        FMATRIX_MUL(matrix, vector[0], vector[1], vector[2]);
+
+        chopper->spotx = p_chopper->WorldPos.X;
+        chopper->spotz = p_chopper->WorldPos.Z;
+
+        chopper->spotdx = chopper->spotdz = 0;
+
+    } else {
+
+        SLONG target_x;
+        SLONG target_y;
+        SLONG target_z;
+
+        // Track Darci's pelvis as the spotlight aim point.
+        calc_sub_objects_position(
+            chopper->target,
+            chopper->target->Draw.Tweened->AnimTween,
+            SUB_OBJECT_PELVIS,
+            &target_x,
+            &target_y,
+            &target_z);
+
+        target_x <<= 8;
+        target_y <<= 8;
+        target_z <<= 8;
+
+        target_x += chopper->target->WorldPos.X;
+        target_y += chopper->target->WorldPos.Y;
+        target_z += chopper->target->WorldPos.Z;
+
+        SLONG dx, dz, dist;
+        SLONG maxspd = chopper->speed << 6;
+
+        if (chopper->spotx > target_x)
+            chopper->spotdx -= (chopper->since_takeoff >> 1);
+        if (chopper->spotz > target_z)
+            chopper->spotdz -= (chopper->since_takeoff >> 1);
+
+        if (chopper->spotx < target_x)
+            chopper->spotdx += (chopper->since_takeoff >> 1);
+        if (chopper->spotz < target_z)
+            chopper->spotdz += (chopper->since_takeoff >> 1);
+
+        if (chopper->spotdx > maxspd)
+            chopper->spotdx = maxspd;
+        if (chopper->spotdx < -maxspd)
+            chopper->spotdx = -maxspd;
+        if (chopper->spotdz > maxspd)
+            chopper->spotdz = maxspd;
+        if (chopper->spotdz < -maxspd)
+            chopper->spotdz = -maxspd;
+
+        chopper->spotx += chopper->spotdx + chopper->dx;
+        chopper->spotz += chopper->spotdz + chopper->dz;
+
+        chopper->spotx = ((chopper->spotx * 24.0f) + target_x) * 0.04f;
+        chopper->spotz = ((chopper->spotz * 24.0f) + target_z) * 0.04f;
+
+        vector[0] = chopper->spotx - p_chopper->WorldPos.X;
+
+        // If target is above the chopper, don't aim upward.
+        if (target_y > p_chopper->WorldPos.Y)
+            vector[1] = 0;
+        else
+            vector[1] = target_y - p_chopper->WorldPos.Y;
+
+        vector[2] = chopper->spotz - p_chopper->WorldPos.Z;
+    }
+
+    MESH_draw_poly_inv_matrix(
+        p_chopper->Draw.Mesh->ObjectId,
+        p_chopper->WorldPos.X >> 8,
+        p_chopper->WorldPos.Y >> 8,
+        p_chopper->WorldPos.Z >> 8,
+        -p_chopper->Draw.Mesh->Angle,
+        -p_chopper->Draw.Mesh->Tilt,
+        -p_chopper->Draw.Mesh->Roll,
+        NULL);
+    MESH_draw_poly_inv_matrix(
+        chopper->rotorprim,
+        p_chopper->WorldPos.X >> 8,
+        p_chopper->WorldPos.Y >> 8,
+        p_chopper->WorldPos.Z >> 8,
+        -(p_chopper->Draw.Mesh->Angle + chopper->rotors),
+        -(p_chopper->Draw.Mesh->Tilt),
+        -(p_chopper->Draw.Mesh->Roll),
+        NULL);
+
+    if (chopper->light) {
+        SLONG colour;
+
+        colour = (0x66 * chopper->light) / 255;
+        colour += (colour << 8);
+        colour <<= 8;
+
+        CONE_create(
+            p_chopper->WorldPos.X >> 8,
+            p_chopper->WorldPos.Y >> 8,
+            p_chopper->WorldPos.Z >> 8,
+            vector[0],
+            vector[1],
+            vector[2],
+            256.0F * 5.0F,
+            256.0F,
+            colour,
+            0x00000000,
+            50);
+
+        CONE_intersect_with_map();
+
+        CONE_draw();
+    }
+}

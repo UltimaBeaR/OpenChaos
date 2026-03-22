@@ -136,4 +136,8 @@ UBYTE CHOPPER_radius_broken(GameCoord pnt, GameCoord ctr, SLONG radius);
 // Looks ahead one step and adjusts dy to maintain the desired altitude.
 void CHOPPER_predict_altitude(Thing* thing, Chopper* chopper);
 
+// uc_orig: CHOPPER_draw_chopper (fallen/DDEngine/Source/drawxtra.cpp)
+// Draws the chopper mesh and rotor, then projects a cone spotlight if the searchlight is on.
+void CHOPPER_draw_chopper(Thing* p_chopper);
+
 #endif // ACTORS_VEHICLES_CHOPPER_H

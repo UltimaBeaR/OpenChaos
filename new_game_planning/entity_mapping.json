@@ -74029,6 +74029,166 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "CHOPPER_draw_chopper",
+      "file": "new/actors/vehicles/chopper.h",
+      "orig_name": "CHOPPER_draw_chopper",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PARTICLE_Draw",
+      "file": "new/engine/effects/psystem.h",
+      "orig_name": "PARTICLE_Draw",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "pyro_seed",
+      "file": "new/effects/pyro_globals.cpp",
+      "orig_name": "pyro_seed",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "IWouldLikeSomePyroSpritesHowManyCanIHave",
+      "file": "new/effects/pyro.h",
+      "orig_name": "IWouldLikeSomePyroSpritesHowManyCanIHave",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "IHaveToHaveSomePyroSprites",
+      "file": "new/effects/pyro.h",
+      "orig_name": "IHaveToHaveSomePyroSprites",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "Pyros_EndOfFrameMarker",
+      "file": "new/effects/pyro.h",
+      "orig_name": "Pyros_EndOfFrameMarker",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_pyro_rand",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "get_pyro_rand",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "lerp_long",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "lerp_long",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "lerp_vector",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "lerp_vector",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "SPRITE_draw_tex2",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "SPRITE_draw_tex2",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "draw_flame_element2",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "draw_flame_element2",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PYRO_draw_pyro",
+      "file": "new/effects/pyro.h",
+      "orig_name": "PYRO_draw_pyro",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DUSTWAVE_SECTORS",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "DUSTWAVE_SECTORS",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FIREBOMB_SPRITES",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "FIREBOMB_SPRITES",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "DUSTWAVE_MULTIPLY",
+      "file": "new/effects/pyro.cpp",
+      "orig_name": "DUSTWAVE_MULTIPLY",
+      "orig_file": "fallen/DDEngine/Source/drawxtra.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "POLY_add_line_tex_uv",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_add_line_tex_uv",
+      "orig_file": "fallen/DDEngine/Source/poly.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

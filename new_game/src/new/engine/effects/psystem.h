@@ -98,4 +98,8 @@ UWORD PARTICLE_Steam(SLONG x, SLONG y, SLONG z, UBYTE axis, SLONG vel, SLONG ran
 // uc_orig: PARTICLE_SGrenade (fallen/Source/psystem.cpp)
 UWORD PARTICLE_SGrenade(struct Thing* object, UBYTE time);
 
+// uc_orig: PARTICLE_Draw (fallen/DDEngine/Source/drawxtra.cpp)
+// Iterates the live-particle linked list and submits each particle as a sprite quad.
+void PARTICLE_Draw();
+
 #endif // ENGINE_EFFECTS_PSYSTEM_H

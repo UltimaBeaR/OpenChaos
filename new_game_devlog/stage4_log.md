@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 134 — drawxtra.cpp chunk 1 (2026-03-22)
+
+- `CHOPPER_draw_chopper` → `new/actors/vehicles/chopper.cpp`. Temporary includes: `mesh.h`, `cone.h`, `animate.h`.
+- `TRACKS_DrawTrack` → appended to `new/effects/tracks.cpp` (implementation was missing from prior iteration).
+- `PARTICLE_Draw` → `new/engine/effects/psystem.cpp`. Temporary include: `sprite.h`.
+- Pyro drawing helpers + `PYRO_draw_pyro` → `new/effects/pyro.cpp`: static helpers `get_pyro_rand`, `lerp_long`, `lerp_vector`, `SPRITE_draw_tex2`, `draw_flame_element2`, plus the main 600-line `PYRO_draw_pyro` dispatch. `DUSTWAVE_SECTORS`/`FIREBOMB_SPRITES`/`DUSTWAVE_MULTIPLY` macros migrated too.
+- `pyro_seed` global moved to `pyro_globals.cpp/.h` (caught by CHECK B during review).
+- `POLY_add_line_tex_uv` added to `poly.h` — was defined in `poly.cpp` but never declared in the header; needed by chunk-2 code still in `drawxtra.cpp`.
+- Forward declarations for chunk-2 draw functions (`PYRO_draw_explosion`, `PYRO_draw_dustwave`, etc.) kept in `pyro.cpp` as `// Temporary:` until chunk 2 is migrated.
+- `uc_orig` paths fixed: `POLY_add_line_tex_uv` had wrong path (`DDEngine/Headers/poly.h` → `DDEngine/Source/poly.cpp`).
+
+---
+
 ## Итерация 133 — engine/graphics/pipeline/poly.cpp (2026-03-22)
 
 - `fallen/DDEngine/Source/poly.cpp` (2679 lines) → `new/engine/graphics/pipeline/poly.cpp` + `poly_globals.cpp/.h`.

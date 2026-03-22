@@ -597,6 +597,10 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
 // Like POLY_add_line but preserves UV coordinates from the input POLY_Points.
 void POLY_add_line_tex(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front);
 
+// uc_orig: POLY_add_line_tex_uv (fallen/DDEngine/Source/poly.cpp)
+// Like POLY_add_line_tex but allows independent widths for p1 and p2 ends.
+void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front);
+
 // uc_orig: POLY_add_line_2d (fallen/DDEngine/Headers/poly.h)
 // Draws a 2D screen-space line directly (no 3D transform).
 void POLY_add_line_2d(float sx1, float sy1, float sx2, float sy2, ULONG colour);

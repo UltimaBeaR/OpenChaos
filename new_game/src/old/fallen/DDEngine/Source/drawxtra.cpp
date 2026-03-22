@@ -35,6 +35,8 @@
  *
  */
 
+#if 0 // MIGRATED to src/new/actors/vehicles/chopper.cpp (iteration 134) [CHOPPER_draw_chopper]
+
 void CHOPPER_draw_chopper(Thing* p_chopper)
 {
 
@@ -170,12 +172,16 @@ void CHOPPER_draw_chopper(Thing* p_chopper)
         CONE_draw();
     }
 }
+#endif // MIGRATED to src/new/actors/vehicles/chopper.cpp (iteration 134) [CHOPPER_draw_chopper]
+
 
 /*************************************************************
  *
  *   Tracks (footprints + tyre tracks)
  *
  */
+
+#if 0 // MIGRATED to src/new/effects/tracks.cpp (iteration 134) [TRACKS_DrawTrack]
 
 void TRACKS_DrawTrack(Thing* p_thing)
 {
@@ -282,12 +288,16 @@ void TRACKS_DrawTrack(Thing* p_thing)
         POLY_add_quad(quad, walk->page, UC_FALSE);
     }
 }
+#endif // MIGRATED to src/new/effects/tracks.cpp (iteration 134) [TRACKS_DrawTrack]
+
 
 /*************************************************************
  *
  *   Particle System
  *
  */
+
+#if 0 // MIGRATED to src/new/engine/effects/psystem.cpp (iteration 134) [PARTICLE_Draw]
 
 extern Particle particles[PSYSTEM_MAX_PARTICLES];
 extern SLONG next_free, next_used;
@@ -349,12 +359,24 @@ void PARTICLE_Draw()
             SPRITE_SORT_NORMAL);
     }
 }
+#endif // MIGRATED to src/new/engine/effects/psystem.cpp (iteration 134) [PARTICLE_Draw]
+
 
 /*************************************************************
  *
  *   Pyros (bonfire like things)
  *
  */
+
+// These macros are needed by PYRO_draw_dustwave (not yet migrated) below.
+#define DUSTWAVE_SECTORS 16
+#define FIREBOMB_SPRITES 16
+#define DUSTWAVE_MULTIPLY (2048 / DUSTWAVE_SECTORS)
+
+// Forward declaration needed by PYRO_draw_dustwave etc. (chunk 2, not yet migrated).
+void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front);
+
+#if 0 // MIGRATED to src/new/effects/pyro.cpp (iteration 134) [pyro_seed..PYRO_draw_pyro]
 
 extern UBYTE fire_pal[768];
 
@@ -1299,6 +1321,8 @@ void PYRO_draw_pyro(Thing* p_pyro)
         break;
     }
 }
+#endif // MIGRATED to src/new/effects/pyro.cpp (iteration 134) [pyro_seed..PYRO_draw_pyro]
+
 
 extern RadPoint PYRO_defaultpoints[16];
 
