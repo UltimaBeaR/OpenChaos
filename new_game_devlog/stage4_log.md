@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 120 — world/environment/building (Building.cpp чанк 4: skylight, ladder, ledge geometry → new/) (2026-03-22)
+
+- `fallen/Source/Building.cpp` lines ~48–893 → `new/world/environment/building.cpp` (chunk 4).
+- `sp[MAX_SIZE][MAX_SIZE]`, `xp[MAX_SIZE]`, `zp[MAX_SIZE]`, `sx[200]`, `sz[200]`, `numb[200]`, `sx_l2[30]`, `sz_l2[30]` → `building_globals` (все были file-scope в old/). Переименованы с префиксом `building_` во избежание конфликтов с именами параметров (`sx`/`sz` — параметры `build_outline`, `sp` — параметры `center_object` и т.п.).
+- `build_ledge_around_ladder` — dead code (всё тело в `/* */`), не мигрировано.
+- Stale forward decl `calc_ladder_ends` (с неверным путём `Building.cpp`) удалена из `new/building.cpp`; добавлен `#include "world/environment/build2.h"` (функция уже в `build2.cpp`).
+- Stale forward decl `build_ledge2` удалена из `new/building.cpp` (теперь в том же файле).
+
+---
+
 ## Итерация 119 — world/environment/building (Building.cpp чанк 3: roof scanner, fire escape, ladder → new/) (2026-03-22)
 
 - `fallen/Source/Building.cpp` lines ~1930–5760 → `new/world/environment/building.cpp` (chunk 3).

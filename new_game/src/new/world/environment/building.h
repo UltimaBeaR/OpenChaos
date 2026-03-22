@@ -254,8 +254,61 @@ void build_firescape(SLONG storey);
 void build_ladder_points(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG y, SLONG flag);
 
 // Computes position and height for a ladder from the world height map.
-// Calls calc_ladder_ends() to get endpoints; calc_ladder_ends is defined in a later chunk.
+// Calls calc_ladder_ends() to get endpoints; calc_ladder_ends is in build2.h.
 // uc_orig: calc_ladder_pos (fallen/Source/Building.cpp)
 void calc_ladder_pos(SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2, SLONG* y, SLONG* extra_height);
+
+// Fills a rectangular grid of quad faces between evenly-spaced point arrays.
+// Used for the flat top surface of a skylight rim.
+// uc_orig: flat_fill_a_quad_of_points (fallen/Source/Building.cpp)
+SLONG flat_fill_a_quad_of_points(SLONG start_point, SLONG w, SLONG h, SLONG texture_style, SLONG wall);
+
+// Builds the raised rim geometry around a STOREY_TYPE_SKYLIGHT roof hole.
+// Returns the Y height of the new elevated top surface.
+// uc_orig: build_skylight (fallen/Source/Building.cpp)
+SLONG build_skylight(SLONG storey);
+
+// Builds ladder geometry and collision vectors for a STOREY_TYPE_LADDER storey.
+// uc_orig: build_ladder (fallen/Source/Building.cpp)
+void build_ladder(SLONG storey);
+
+// Older ladder geometry builder (4-block-height segments, unused).
+// uc_orig: build_ladder_old (fallen/Source/Building.cpp)
+void build_ladder_old(SLONG storey);
+
+// Computes the sine of an angle from its cosine using fixed-point sqrt.
+// Both values in 14-bit fixed-point (1.0 = 1<<14).
+// uc_orig: calc_sin_from_cos (fallen/Source/Building.cpp)
+SLONG calc_sin_from_cos(SLONG sin);
+
+// Computes the miter/bisector point at a wall corner given three consecutive vertices.
+// Result placed in (res_x, res_z). Width = offset distance from corner.
+// uc_orig: calc_new_corner_point (fallen/Source/Building.cpp)
+void calc_new_corner_point(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG x3, SLONG z3,
+                            SLONG width, SLONG* res_x, SLONG* res_z);
+
+// Builds inward-offset ledge geometry around a storey, at 3 height bands.
+// uc_orig: build_ledge (fallen/Source/Building.cpp)
+void build_ledge(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height);
+
+// Generates evenly-spaced points along a segment, with optional subdivision count.
+// Returns the number of intervals created.
+// uc_orig: create_strip_points (fallen/Source/Building.cpp)
+SLONG create_strip_points(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2,
+                           SLONG len, SLONG numb, SLONG end_flag);
+
+// Builds the corner-miter outline polygon for a storey, offsetting walls inward/outward by 'out'.
+// Returns the number of vertices written to sx[]/sz[].
+// uc_orig: build_outline (fallen/Source/Building.cpp)
+SLONG build_outline(SLONG* sx, SLONG* sz, SLONG storey, SLONG wall, SLONG y, SLONG out);
+
+// Returns 1 if the centre of the quad formed by points p0–p3 lies on a FLOOR_LADDER tile.
+// uc_orig: ladder_on_block (fallen/Source/Building.cpp)
+SLONG ladder_on_block(SLONG p0, SLONG p1, SLONG p2, SLONG p3);
+
+// Builds an outward-projecting decorative ledge around the top of a storey.
+// Returns y + height - dip (the new effective top surface height).
+// uc_orig: build_ledge2 (fallen/Source/Building.cpp)
+SLONG build_ledge2(SLONG y, SLONG storey, SLONG out, SLONG height, SLONG dip);
 
 #endif // WORLD_ENVIRONMENT_BUILDING_H

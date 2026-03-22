@@ -251,6 +251,38 @@ extern struct TXTY texture_xy2[];
 // uc_orig: face_offsets (fallen/Source/Building.cpp)
 extern SWORD face_offsets[];
 
+// Maximum dimension for the flat-fill grid used by flat_fill_a_quad_of_points().
+// uc_orig: MAX_SIZE (fallen/Source/Building.cpp)
+#define MAX_SIZE 20
+
+// Scratch grid for quad point index mapping (MAX_SIZE x MAX_SIZE).
+// uc_orig: sp (fallen/Source/Building.cpp)
+extern SLONG building_sp[MAX_SIZE][MAX_SIZE];
+
+// Scratch X/Z coordinate arrays for the flat-fill grid rows/columns.
+// uc_orig: xp (fallen/Source/Building.cpp)
+extern SLONG building_xp[MAX_SIZE];
+
+// uc_orig: zp (fallen/Source/Building.cpp)
+extern SLONG building_zp[MAX_SIZE];
+
+// Scratch buffers for build_skylight: wall outline X/Z and strip counts.
+// uc_orig: sx (fallen/Source/Building.cpp)
+extern SLONG building_sx[200];
+
+// uc_orig: sz (fallen/Source/Building.cpp)
+extern SLONG building_sz[200];
+
+// uc_orig: numb (fallen/Source/Building.cpp)
+extern SLONG building_numb[200];
+
+// Scratch X/Z buffers for build_ledge2 outline generation.
+// uc_orig: sx_l2 (fallen/Source/Building.cpp)
+extern SLONG building_sx_l2[30];
+
+// uc_orig: sz_l2 (fallen/Source/Building.cpp)
+extern SLONG building_sz_l2[30];
+
 // Per-slot start indices into face_offsets[] for each fire escape segment ID (0–5).
 // uc_orig: id_offset (fallen/Source/Building.cpp)
 extern UWORD id_offset[];

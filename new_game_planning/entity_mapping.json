@@ -68119,6 +68119,206 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "flat_fill_a_quad_of_points",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "flat_fill_a_quad_of_points",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_skylight",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_skylight",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_ladder",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_ladder",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_ladder_old",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_ladder_old",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_sin_from_cos",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "calc_sin_from_cos",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_new_corner_point",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "calc_new_corner_point",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_ledge",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_ledge",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "create_strip_points",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "create_strip_points",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_outline",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_outline",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "ladder_on_block",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "ladder_on_block",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "build_ledge2",
+      "file": "new/world/environment/building.cpp",
+      "orig_name": "build_ledge2",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_sp",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "sp",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_xp",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "xp",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_zp",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "zp",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_sx",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "sx",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_sz",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "sz",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_numb",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "numb",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_sx_l2",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "sx_l2",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "building_sz_l2",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "sz_l2",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAX_SIZE",
+      "file": "new/world/environment/building_globals.h",
+      "orig_name": "MAX_SIZE",
+      "orig_file": "fallen/Source/Building.cpp",
+      "kind": "macro",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

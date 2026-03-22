@@ -713,6 +713,34 @@ struct TXTY texture_xy2[] = {
     { 0, 0 }
 };
 
+// uc_orig: sp (fallen/Source/Building.cpp)
+// Scratch grid for point index mapping during flat roof quad fill.
+SLONG building_sp[MAX_SIZE][MAX_SIZE];
+
+// uc_orig: xp (fallen/Source/Building.cpp)
+SLONG building_xp[MAX_SIZE];
+
+// uc_orig: zp (fallen/Source/Building.cpp)
+SLONG building_zp[MAX_SIZE];
+
+// uc_orig: sx (fallen/Source/Building.cpp)
+// Scratch X outline coordinates for build_skylight / build_ledge2.
+SLONG building_sx[200];
+
+// uc_orig: sz (fallen/Source/Building.cpp)
+SLONG building_sz[200];
+
+// uc_orig: numb (fallen/Source/Building.cpp)
+// Scratch strip subdivision counts for skylight / ledge geometry.
+SLONG building_numb[200];
+
+// uc_orig: sx_l2 (fallen/Source/Building.cpp)
+// Scratch outline X/Z arrays for build_ledge2 (max 30 wall vertices).
+SLONG building_sx_l2[30];
+
+// uc_orig: sz_l2 (fallen/Source/Building.cpp)
+SLONG building_sz_l2[30];
+
 // uc_orig: face_offsets (fallen/Source/Building.cpp)
 // Relative face index deltas for walking a fire escape face chain.
 // Indexed via id_offset[] per slot; terminated by 0.
