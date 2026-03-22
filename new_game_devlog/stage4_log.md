@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 119 — world/environment/building (Building.cpp чанк 3: roof scanner, fire escape, ladder → new/) (2026-03-22)
+
+- `fallen/Source/Building.cpp` lines ~1930–5760 → `new/world/environment/building.cpp` (chunk 3).
+- `texture_xy2[]` — перемещена в `building_globals.cpp` (в итерации 118 ошибочно оставлена как `static` в `building.cpp`; исправлено в review).
+- Forward decl `calc_ladder_ends` добавлена в `building.cpp` (chunk 4 ещё в `old/`).
+- Два compile error: `redefinition of default argument` для `create_a_quad` и `create_a_quad_tex` — форвард-декларации с default-аргументами конфликтовали с `building.h`. Исправлено: форвард-декларации удалены из `old/Building.cpp`, в `new/building.cpp` они тоже не нужны (функции уже объявлены в `building.h`).
+
+---
+
 ## Итерация 118 — world/environment/building (Building.cpp чанк 2: texture UV, roof geometry → new/) (2026-03-22)
 
 - `fallen/Source/Building.cpp` lines 67–1929 → `new/world/environment/building.cpp` (chunk 2).
@@ -18,7 +27,7 @@
 - `add_tri_to_walkable_list` — тело закомментировано ("wrong wrong wrong") в оригинале; сохранено 1:1.
 - `INSIDE`/`ON_EDGE`/`OUTSIDE` → `BUILDING_INSIDE`/`BUILDING_ON_EDGE`/`BUILDING_OUTSIDE` (конфликт имён с системными/оконными макросами).
 - `end_prim_point` и `end_prim_face4` инициализированы в 0 (оригинал: `MAX_PRIM_POINTS - 2` / `MAX_PRIM_FACES4 - 2`), т.к. это runtime-выражения через `save_table[]`, не линк-тайм константы.
-- `texture_xy2[]` — чисто локальная для чанка 2 lookup-таблица, оставлена в `old/Building.cpp`.
+- `texture_xy2[]` — перемещена в чанке 3 (итерация 119) в `building_globals.cpp`.
 - Сигнатура `place_building_at` исправлена в `old/fallen/Headers/building.h` (4-param → 5-param).
 - Temporary includes: `game.h`, `fallen/Headers/pap.h`, `fallen/Headers/supermap.h`, `fallen/Headers/memory.h`, `pap.h`, `fallen/Headers/collide.h`, `engine/graphics/pipeline/aeng.h`.
 - `old/Building.cpp` оставлен (chunk 2+, lines 1521-9878), redirect-заголовки добавлены в начало.

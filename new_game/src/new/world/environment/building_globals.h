@@ -241,4 +241,22 @@ extern UWORD lookup_roof[256];
 // uc_orig: current_building (fallen/Source/Building.cpp)
 extern SLONG current_building;
 
+// PSX-style UV coordinate lookup table for create_a_quad / create_a_tri.
+// Indexed by texture_piece when texture_style==0. Entries are (Page, Tx, Ty).
+// uc_orig: texture_xy2 (fallen/Source/Building.cpp)
+extern struct TXTY texture_xy2[];
+
+// Fire escape face connection table: relative face offsets for each face slot.
+// Indexed via id_offset[] to walk the face chain for a fire escape section.
+// uc_orig: face_offsets (fallen/Source/Building.cpp)
+extern SWORD face_offsets[];
+
+// Per-slot start indices into face_offsets[] for each fire escape segment ID (0–5).
+// uc_orig: id_offset (fallen/Source/Building.cpp)
+extern UWORD id_offset[];
+
+// Face type flag for fire escape faces — used by next_connected_face().
+// uc_orig: FACE_TYPE_FIRE_ESCAPE (fallen/Source/Building.cpp)
+#define FACE_TYPE_FIRE_ESCAPE (1 << 0)
+
 #endif // WORLD_ENVIRONMENT_BUILDING_GLOBALS_H

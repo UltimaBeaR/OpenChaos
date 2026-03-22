@@ -14,6 +14,10 @@
 #include "fallen/Headers/collide.h"
 // Temporary: aeng.h exposes AENG_dx_prim_points, SVector_F
 #include "engine/graphics/pipeline/aeng.h"
+// Temporary: prim.h exposes OR_SORT_LEVEL, FACE_FLAG_NON_PLANAR (FACE_FLAG_WALKABLE via interact chain)
+#include "fallen/Headers/prim.h"
+// Needed for OUTLINE_Outline, OUTLINE_create, OUTLINE_add_line, OUTLINE_overlap
+#include "world/environment/outline.h"
 
 #include "world/environment/building.h"
 #include "world/environment/building_globals.h"
@@ -30,16 +34,7 @@ void fn_building_normal(Thing* b_thing);
 // uc_orig: get_map_height (fallen/Source/Building.cpp) — forward for use in build_bottom_edge_list
 SLONG get_map_height(SLONG x, SLONG z);
 
-// Forward declarations for chunk 3+ functions (still in old/Building.cpp) used by chunk 2 code.
-// uc_orig: create_a_quad (fallen/Source/Building.cpp)
-struct PrimFace4* create_a_quad(UWORD p1, UWORD p0, UWORD p3, UWORD p2, SWORD texture_style, SWORD texture_piece, SLONG flipx = 0);
-
-// uc_orig: build_face_texture_info (fallen/Source/Building.cpp)
-void build_face_texture_info(struct PrimFace4* p_f4, UWORD texture);
-
-// uc_orig: create_a_tri (fallen/Source/Building.cpp)
-struct PrimFace3* create_a_tri(UWORD p2, UWORD p1, UWORD p0, SWORD texture_id, SWORD texture_piece);
-
+// Forward declarations for chunk 4+ functions (still in old/Building.cpp) used by chunk 2-3 code.
 // uc_orig: build_ledge2 (fallen/Source/Building.cpp)
 SLONG build_ledge2(SLONG y, SLONG storey, SLONG out, SLONG height, SLONG dip);
 
@@ -1681,4 +1676,1336 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
         }
     } else
         return (0);
+}
+
+// uc_orig: clear_reflective_flag (fallen/Source/Building.cpp)
+// Clears PAP_FLAG_REFLECTIVE on all tiles in the given world-coordinate bounding box.
+// Called before set_floor_hidden() to wipe the previous reflective state.
+void clear_reflective_flag(SLONG min_x, SLONG min_z, SLONG max_x, SLONG max_z)
+{
+    SLONG minx, maxx, minz, maxz;
+    SLONG x, z;
+
+    minx = min_x >> ELE_SHIFT;
+    maxx = max_x >> ELE_SHIFT;
+
+    minz = min_z >> ELE_SHIFT;
+    maxz = max_z >> ELE_SHIFT;
+
+    SATURATE(minx, 0, 127);
+    SATURATE(maxx, 0, 127);
+    SATURATE(minz, 0, 127);
+    SATURATE(maxz, 0, 127);
+
+    for (x = minx; x < maxx; x++)
+        for (z = minz; z < maxz; z++) {
+        }
+}
+
+// uc_orig: get_storey_outline (fallen/Source/Building.cpp)
+// Builds a polygon outline from a circular storey's wall list.
+// Returns NULL for non-circular storeys (fire escapes, ladders).
+OUTLINE_Outline* get_storey_outline(SLONG storey)
+{
+    OUTLINE_Outline* oo;
+
+    SLONG wall;
+    SLONG x1;
+    SLONG z1;
+    SLONG x2;
+    SLONG z2;
+
+    if (!is_storey_circular(storey)) {
+        return NULL;
+    }
+
+    oo = OUTLINE_create(128);
+
+    x1 = storey_list[storey].DX >> 8;
+    z1 = storey_list[storey].DZ >> 8;
+
+    wall = storey_list[storey].WallHead;
+
+    while (wall) {
+        x2 = wall_list[wall].DX >> 8;
+        z2 = wall_list[wall].DZ >> 8;
+
+        OUTLINE_add_line(oo, x1, z1, x2, z2);
+
+        x1 = x2;
+        z1 = z2;
+
+        wall = wall_list[wall].Next;
+    }
+
+    return oo;
+}
+
+// uc_orig: do_storeys_overlap (fallen/Source/Building.cpp)
+// Returns true if two storeys overlap in the XZ plane (used to cut roof holes for upper storeys).
+SLONG do_storeys_overlap(SLONG s1, SLONG s2)
+{
+    OUTLINE_Outline* oos;
+    OUTLINE_Outline* ool;
+    oos = get_storey_outline(s1);
+    if (oos == NULL)
+        return (0);
+    ool = get_storey_outline(s2);
+    if (ool == NULL)
+        return (0);
+
+    if (OUTLINE_overlap(oos, ool)) {
+        return (1);
+    } else {
+        return (0);
+    }
+}
+
+// uc_orig: build_roof_grid (fallen/Source/Building.cpp)
+// Top-level roof builder. Computes the storey bounding box, runs the scanline edge list,
+// then either calls build_easy_roof (for axis-aligned buildings) or does a per-tile
+// scanline fill for buildings with 45-degree walls.
+// Returns a bounding box handle (from add_bound_box), or 0 if no geometry was produced.
+SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
+{
+    SLONG min_x = 9999999, max_x = 0, min_z = 9999999, max_z = 0;
+    SLONG width, depth;
+    SLONG x, z;
+
+    SLONG wall;
+    struct PrimFace4* p_f4;
+    struct PrimFace3* p_f3;
+    SLONG face_wall;
+    SLONG angles, sstorey;
+    SLONG building;
+
+    building = storey_list[storey].BuildingHead;
+    if (storey_list[storey].StoreyFlags & (FLAG_STOREY_ROOF_RIM | FLAG_STOREY_ROOF_RIM2))
+        y = build_storey_lip(storey, y);
+    face_wall = -storey_list[storey].WallHead;
+
+    global_y = get_map_height((storey_list[storey].DX >> ELE_SHIFT), storey_list[storey].DZ >> ELE_SHIFT) << FLOOR_HEIGHT_SHIFT;
+
+    BOUNDS(storey_list[storey].DX, storey_list[storey].DZ);
+
+    sstorey = building_list[building].StoreyHead;
+    while (sstorey) {
+        wall = storey_list[sstorey].WallHead;
+        BOUNDS(storey_list[sstorey].DX, storey_list[sstorey].DZ);
+        while (wall) {
+            BOUNDS(wall_list[wall].DX, wall_list[wall].DZ);
+            wall = wall_list[wall].Next;
+        }
+        sstorey = storey_list[sstorey].Next;
+    }
+
+    block_min_x = min_x;
+    block_max_x = max_x;
+
+    min_x -= ELE_SIZE;
+    min_z -= ELE_SIZE;
+    max_x += ELE_SIZE;
+    max_z += ELE_SIZE;
+
+    width = (max_x - min_x) >> ELE_SHIFT;
+    depth = (max_z - min_z) >> ELE_SHIFT;
+
+    edge_min_z = min_z;
+
+    clear_reflective_flag(min_x, min_z, max_x, max_z);
+    set_floor_hidden(storey, 0, PAP_FLAG_REFLECTIVE);
+
+    angles = build_edge_list(storey, 0);
+
+    dump_edge_list(depth);
+    if (storey_list[storey].Next) {
+        SLONG s;
+        SLONG storey_height;
+        storey_height = storey_list[storey].Height;
+
+        s = building_list[building].StoreyHead;
+        while (s) {
+            if (do_storeys_overlap(s, storey) && (storey_list[s].DY == storey_list[storey].DY + storey_height) && (storey_list[s].StoreyType == STOREY_TYPE_SKYLIGHT || storey_list[s].StoreyType == STOREY_TYPE_NORMAL)) {
+                build_more_edge_list(min_z, max_z, s, 0);
+            }
+
+            s = storey_list[s].Next;
+        }
+    }
+
+    if (storey == 3) {
+    }
+
+    if (!angles) {
+        SLONG bound;
+        dump_edge_list(depth);
+        bound = build_easy_roof(min_x, edge_min_z, max_x, depth, y, face_wall, flat_flag);
+        bin_edge_list();
+        clear_reflective_flag(min_x, min_z, max_x, max_z);
+        return (bound);
+    }
+
+    for (z = 0; z < depth; z++) {
+        SLONG polarity = 0;
+        SLONG edge;
+        SLONG dy;
+        SLONG prev_x_in = 0;
+        edge = edge_heads_ptr[z];
+
+        for (x = min_x - 256; x < max_x; x += ELE_SIZE) {
+            SLONG done = 0;
+            while (!done && edge) {
+                if (x < edge_pool_ptr[edge].X) {
+                    if (polarity & 1) {
+                        dy = get_map_height((x >> ELE_SHIFT), z + (edge_min_z >> ELE_SHIFT)) << FLOOR_HEIGHT_SHIFT;
+                        add_point(x, y + dy, (z << ELE_SHIFT) + edge_min_z);
+
+                        flag_blocks[(x >> ELE_SHIFT) + z * MAX_BOUND_SIZE] = next_prim_point - 1;
+                    }
+                    done = 1;
+                } else if (x == edge_pool_ptr[edge].X) {
+                    polarity++;
+                    {
+                        struct DepthStrip* me;
+
+                        dy = get_map_height((x >> ELE_SHIFT), z + (edge_min_z >> ELE_SHIFT)) << FLOOR_HEIGHT_SHIFT - global_y;
+                        add_point(x, y, (z << ELE_SHIFT) + edge_min_z);
+                        flag_blocks[(x >> ELE_SHIFT) + z * MAX_BOUND_SIZE] = next_prim_point - 1;
+                    }
+
+                    edge = edge_pool_ptr[edge].Next;
+                    done = 1;
+                } else if (x > edge_pool_ptr[edge].X) {
+                    polarity++;
+                    edge = edge_pool_ptr[edge].Next;
+                    if (edge == 0) {
+                    }
+                }
+            }
+        }
+    }
+
+    build_bottom_edge_list(storey, y);
+
+    {
+        SLONG wall;
+        SLONG px, pz;
+        px = storey_list[storey].DX;
+        pz = storey_list[storey].DZ - edge_min_z;
+        wall = storey_list[storey].WallHead;
+        while (wall) {
+            SLONG x, z;
+            SLONG dx, dz;
+            x = wall_list[wall].DX;
+            z = wall_list[wall].DZ - edge_min_z;
+
+            dx = x - px;
+            dz = z - pz;
+            if (abs(dx) == abs(dz) && dx) {
+                scan_45(px, pz, dx, dz);
+            }
+            px = x;
+            pz = z;
+            wall = wall_list[wall].Next;
+        }
+    }
+
+    for (z = 0; z < depth; z++) {
+        SLONG polarity = 0;
+        SLONG edge;
+        edge = edge_heads_ptr[z];
+        for (x = min_x >> ELE_SHIFT; x < max_x >> ELE_SHIFT; x++) {
+            SLONG p0, p1, p2, p3;
+            // p0   p1
+            // p3   p2
+            p0 = flag_blocks[x + z * MAX_BOUND_SIZE];
+            p1 = flag_blocks[x + 1 + z * MAX_BOUND_SIZE];
+            p2 = flag_blocks[x + 1 + (z + 1) * MAX_BOUND_SIZE];
+            p3 = flag_blocks[x + (z + 1) * MAX_BOUND_SIZE];
+            if (p0 && p1 && p2 && p3) {
+                SLONG texture;
+                p_f4 = create_a_quad(p0, p3, p1, p2, 0, 0);
+                if (p_f4) {
+                    p_f4->ThingIndex = face_wall;
+                    add_quad_to_walkable_list(next_prim_face4 - 1);
+                    texture = get_map_texture(x, z + (edge_min_z >> ELE_SHIFT));
+                    build_face_texture_info(p_f4, texture);
+                }
+            } else if (p0 || p1 || p2 || p3) {
+                UBYTE exist_flags = 0;
+
+// uc_orig: TL (fallen/Source/Building.cpp)
+#define TL (1)
+// uc_orig: TR (fallen/Source/Building.cpp)
+#define TR (2)
+// uc_orig: BL (fallen/Source/Building.cpp)
+#define BL (4)
+// uc_orig: BR (fallen/Source/Building.cpp)
+#define BR (8)
+                if (p0)
+                    exist_flags |= TL;
+                if (p1)
+                    exist_flags |= TR;
+                if (p2)
+                    exist_flags |= BR;
+                if (p3)
+                    exist_flags |= BL;
+
+                switch (exist_flags) {
+                    SLONG xt, xb;
+                    SLONG zl, zr;
+                    SLONG pa, pb;
+
+                case (TR + BR):
+                    xt = cut_blocks[x * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_TOP];
+                    xb = cut_blocks[x * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_BOTTOM];
+
+                    if (xt && xb) {
+                        pa = next_prim_point;
+                        add_point(xt, y, (z << ELE_SHIFT) + edge_min_z);
+                        pb = next_prim_point;
+                        add_point(xb, y, ((z + 1) << ELE_SHIFT) + edge_min_z);
+                        p_f4 = create_a_quad(pa, pb, p1, p2, 0, 0);
+                        if (p_f4) {
+                            p_f4->ThingIndex = face_wall;
+                            build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                        }
+                    } else if (xt) {
+                        pa = next_prim_point;
+                        add_point(xt, y, (z << ELE_SHIFT) + edge_min_z);
+                        p_f3 = create_a_tri(p2, p1, pa, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    } else if (xb) {
+                        pa = next_prim_point;
+                        add_point(xb, y, ((z + 1) << ELE_SHIFT) + edge_min_z);
+                        p_f3 = create_a_tri(p2, p1, pa, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    }
+
+                    break;
+                case (BL + BR):
+                    zl = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_LEFT];
+                    zr = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_RIGHT];
+
+                    if (zl && zr) {
+                        pa = next_prim_point;
+                        add_point(x << ELE_SHIFT, y, zl + edge_min_z);
+                        pb = next_prim_point;
+                        add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
+                        p_f4 = create_a_quad(pa, p3, pb, p2, 0, 0);
+                        if (p_f4) {
+                            p_f4->ThingIndex = face_wall;
+                            build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                        }
+                    } else if (zl) {
+                        pa = next_prim_point;
+                        add_point(x << ELE_SHIFT, y, zl + edge_min_z);
+                        p_f3 = create_a_tri(p3, p2, pa, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    } else if (zr) {
+                        pa = next_prim_point;
+                        add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
+                        p_f3 = create_a_tri(p3, p2, pa, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    }
+                    break;
+                case (TL + BL):
+                    xt = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_TOP];
+                    xb = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_BOTTOM];
+
+                    if (xt && xb) {
+                        pa = next_prim_point;
+                        add_point(xt, y, (z << ELE_SHIFT) + edge_min_z);
+                        pb = next_prim_point;
+                        add_point(xb, y, ((z + 1) << ELE_SHIFT) + edge_min_z);
+                        p_f4 = create_a_quad(p0, p3, pa, pb, 0, 0);
+                        p_f4->ThingIndex = face_wall;
+                        build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                    } else if (xt) {
+                        pa = next_prim_point;
+                        add_point(xt, y, (z << ELE_SHIFT) + edge_min_z);
+                        p_f3 = create_a_tri(p3, pa, p0, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    } else if (xb) {
+                        pa = next_prim_point;
+                        add_point(xb, y, ((z + 1) << ELE_SHIFT) + edge_min_z);
+                        p_f3 = create_a_tri(p3, pa, p0, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    }
+                    break;
+                case (TL + TR):
+                    zl = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_LEFT];
+                    zr = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_RIGHT];
+
+                    if (zl && zr) {
+                        pa = next_prim_point;
+                        add_point(x << ELE_SHIFT, y, zl + edge_min_z);
+                        pb = next_prim_point;
+                        add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
+                        p_f4 = create_a_quad(p0, pa, p1, pb, 0, 0);
+                        p_f4->ThingIndex = face_wall;
+                        build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                    } else if (zl) {
+                        pa = next_prim_point;
+                        add_point(x << ELE_SHIFT, y, zl + edge_min_z);
+                        p_f3 = create_a_tri(pa, p1, p0, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    } else if (zr) {
+                        pa = next_prim_point;
+                        add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
+                        p_f3 = create_a_tri(pa, p1, p0, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    }
+                    break;
+
+                case (TR + BR + BL):
+                    xt = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_TOP];
+                    zl = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_LEFT];
+                    if (xt && zl) {
+                        pa = next_prim_point;
+                        add_point(xt, y, (z << ELE_SHIFT) + edge_min_z);
+                        pb = next_prim_point;
+                        add_point((x) << ELE_SHIFT, y, zl + edge_min_z);
+
+                        p_f4 = create_a_quad(pa, pb, p1, p3, 0, 0);
+                        p_f4->ThingIndex = face_wall;
+                        build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                        p_f3 = create_a_tri(p3, p2, p1, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    } else if (xt || zl) {
+                        if (xt == (x + 1) << ELE_SHIFT || xt == 0) {
+                            pb = next_prim_point;
+                            add_point((x) << ELE_SHIFT, y, zl + edge_min_z);
+                            p_f4 = create_a_quad(pb, p3, p1, p2, 0, 0);
+                            p_f4->ThingIndex = face_wall;
+                            build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+
+                        } else if (zl == (z + 1) << ELE_SHIFT || zl == 0) {
+                            pa = next_prim_point;
+                            add_point(xt, y, (z << ELE_SHIFT) + edge_min_z);
+                            p_f4 = create_a_quad(pa, p3, p1, p2, 0, 0);
+                            p_f4->ThingIndex = face_wall;
+                            build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                        }
+                    }
+
+                    break;
+                case (TL + BR + BL):
+                    xt = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_TOP];
+                    zr = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_RIGHT];
+
+                    if (xt && zr) {
+                        pa = next_prim_point;
+                        add_point(xt, y, (z << ELE_SHIFT) + edge_min_z);
+                        pb = next_prim_point;
+                        add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
+
+                        p_f4 = create_a_quad(pb, pa, p2, p0, 0, 0);
+                        p_f4->ThingIndex = face_wall;
+                        build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                        p_f3 = create_a_tri(p3, p2, p0, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    } else if (xt || zr) {
+                        if (xt == x << ELE_SHIFT || xt == 0) {
+                            pb = next_prim_point;
+                            add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
+                            p_f4 = create_a_quad(p0, p3, pb, p2, 0, 0);
+                            p_f4->ThingIndex = face_wall;
+                            build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+
+                        } else if (zr == ((z + 1) << ELE_SHIFT) || zr == 0) {
+                            pb = next_prim_point;
+                            add_point((xt), y, (z << ELE_SHIFT) + edge_min_z);
+                            p_f4 = create_a_quad(p0, p3, pa, p2, 0, 0);
+                            p_f4->ThingIndex = face_wall;
+                            build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                        }
+                    }
+
+                    break;
+                case (TL + TR + BL):
+                    xb = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_BOTTOM];
+                    zr = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_RIGHT];
+
+                    if (xb && zr) {
+                        pa = next_prim_point;
+                        add_point(xb, y, ((z + 1) << ELE_SHIFT) + edge_min_z);
+                        pb = next_prim_point;
+                        add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
+
+                        p_f4 = create_a_quad(pa, pb, p3, p1, 0, 0);
+                        p_f4->ThingIndex = face_wall;
+                        build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                        p_f3 = create_a_tri(p3, p1, p0, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    } else if (xb || zr) {
+                        if (zr == ((z + 1) << ELE_SHIFT) || zr == 0) {
+                            pa = next_prim_point;
+                            add_point((xb), y, ((z + 1) << ELE_SHIFT) + edge_min_z);
+                            p_f4 = create_a_quad(p0, p3, p1, pa, 0, 0);
+                            p_f4->ThingIndex = face_wall;
+                            build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+
+                        } else if (xb == (x << ELE_SHIFT) || xb == 0) {
+                            pb = next_prim_point;
+                            add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
+                            p_f4 = create_a_quad(p0, p3, p1, pb, 0, 0);
+                            p_f4->ThingIndex = face_wall;
+                            build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                        }
+                    }
+
+                    break;
+
+                case (TL + TR + BR):
+                    xb = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_BOTTOM];
+                    zl = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_LEFT];
+
+                    if (xb && zl) {
+                        pa = next_prim_point;
+                        add_point(xb, y, ((z + 1) << ELE_SHIFT) + edge_min_z);
+                        pb = next_prim_point;
+                        add_point((x) << ELE_SHIFT, y, zl + edge_min_z);
+
+                        p_f4 = create_a_quad(pb, pa, p0, p2, 0, 0);
+                        p_f4->ThingIndex = face_wall;
+                        build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                        p_f3 = create_a_tri(p0, p2, p1, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    } else if (xb || zl) {
+                        if (xb == (x + 1) << ELE_SHIFT || xb == 0) {
+                            pb = next_prim_point;
+                            add_point((x) << ELE_SHIFT, y, zl + edge_min_z);
+                            p_f4 = create_a_quad(p0, pb, p1, p2, 0, 0);
+                            p_f4->ThingIndex = face_wall;
+                            build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+
+                        } else if (zl == (z) << ELE_SHIFT || zl == 0) {
+                            pa = next_prim_point;
+                            add_point((xb), y, ((z + 1) << ELE_SHIFT) + edge_min_z);
+                            p_f4 = create_a_quad(p0, pb, p1, p2, 0, 0);
+                            p_f4->ThingIndex = face_wall;
+                            build_free_quad_texture_info(p_f4, x, z + (edge_min_z >> ELE_SHIFT));
+                        }
+                    }
+                    break;
+                case (TL):
+                    xt = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_TOP];
+                    zl = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_LEFT];
+
+                    if (xt && zl) {
+                        pa = next_prim_point;
+                        add_point(xt, y, ((z) << ELE_SHIFT) + edge_min_z);
+                        pb = next_prim_point;
+                        add_point((x) << ELE_SHIFT, y, zl + edge_min_z);
+
+                        p_f3 = create_a_tri(pb, pa, p0, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    }
+                    break;
+                case (TR):
+                    xt = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_TOP];
+                    zr = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_RIGHT];
+
+                    if (xt && zr) {
+                        pa = next_prim_point;
+                        add_point(xt, y, ((z) << ELE_SHIFT) + edge_min_z);
+                        pb = next_prim_point;
+                        add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
+
+                        p_f3 = create_a_tri(pa, pb, p1, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    }
+                    break;
+                case (BR):
+                    xb = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_BOTTOM];
+                    zr = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_RIGHT];
+
+                    if (xb && zr) {
+                        pa = next_prim_point;
+                        add_point(xb, y, ((z + 1) << ELE_SHIFT) + edge_min_z);
+                        pb = next_prim_point;
+                        add_point((x + 1) << ELE_SHIFT, y, zr + edge_min_z);
+
+                        p_f3 = create_a_tri(pb, pa, p2, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    }
+                    break;
+                case (BL):
+                    xb = cut_blocks[(x) * 4 + z * MAX_BOUND_SIZE * 4 + CUT_BLOCK_BOTTOM];
+                    zl = cut_blocks[(x) * 4 + (z)*MAX_BOUND_SIZE * 4 + CUT_BLOCK_LEFT];
+
+                    if (xb && zl) {
+                        pa = next_prim_point;
+                        add_point(xb, y, ((z + 1) << ELE_SHIFT) + edge_min_z);
+                        pb = next_prim_point;
+                        add_point((x) << ELE_SHIFT, y, zl + edge_min_z);
+
+                        p_f3 = create_a_tri(p3, pa, pb, 0, 0);
+                        build_free_tri_texture_info(p_f3, x, z + (edge_min_z >> ELE_SHIFT));
+                    }
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        }
+    }
+
+    bin_edge_list();
+    return (0);
+}
+
+// uc_orig: is_storey_circular (fallen/Source/Building.cpp)
+// Returns true if the storey's wall list closes back to the storey's own start point (DX,DZ).
+// Non-circular storeys (fire escapes, ladder sections) don't have roof grids or outlines.
+SLONG is_storey_circular(SLONG storey)
+{
+    SLONG sx, sz, wall;
+    sx = storey_list[storey].DX;
+    sz = storey_list[storey].DZ;
+    wall = storey_list[storey].WallHead;
+
+    while (wall) {
+        if (sx == wall_list[wall].DX && sz == wall_list[wall].DZ) {
+            return (1);
+        }
+        wall = wall_list[wall].Next;
+    }
+    return (0);
+}
+
+// uc_orig: set_floor_hidden (fallen/Source/Building.cpp)
+// Marks PAP map tiles inside a storey's footprint with the given flags.
+// Uses the edge-list scanner to fill the storey polygon. lower=0 disables the
+// lower-floor logic (dead code guarded by if(0) in the original).
+void set_floor_hidden(SLONG storey, UWORD lower, UWORD flags)
+{
+    SLONG min_x = 9999999, max_x = 0, min_z = 9999999, max_z = 0;
+    SLONG width, depth;
+    SLONG x, z;
+
+    SLONG wall;
+    if (!is_storey_circular(storey)) {
+        return;
+    }
+
+    BOUNDS(storey_list[storey].DX, storey_list[storey].DZ);
+    wall = storey_list[storey].WallHead;
+    while (wall) {
+        BOUNDS(wall_list[wall].DX, wall_list[wall].DZ);
+        wall = wall_list[wall].Next;
+    }
+
+    block_min_x = min_x;
+    block_max_x = max_x;
+
+    min_x -= ELE_SIZE;
+    min_z -= ELE_SIZE;
+    max_x += ELE_SIZE;
+    max_z += ELE_SIZE;
+
+    width = (max_x - min_x) >> ELE_SHIFT;
+    depth = (max_z - min_z) >> ELE_SHIFT;
+
+    edge_min_z = min_z;
+
+    build_edge_list(storey, 0);
+
+    for (z = 0; z < depth; z++) {
+        SLONG polarity = 0;
+        SLONG edge;
+        edge = edge_heads_ptr[z];
+        for (x = min_x; x < max_x; x += ELE_SIZE) {
+            SLONG done = 0;
+            while (!done && edge) {
+                if (x < edge_pool_ptr[edge].X) {
+                    if (polarity & 1) {
+                        struct DepthStrip* me;
+
+                        set_map_flag(
+                            x >> PAP_SHIFT_HI,
+                            z + (edge_min_z >> PAP_SHIFT_HI),
+                            flags);
+                    }
+                    done = 1;
+                } else if (x == edge_pool_ptr[edge].X) {
+                    polarity += edge_pool_ptr[edge].Count;
+                    if (polarity & 1) {
+                        struct DepthStrip* me;
+
+                        set_map_flag(
+                            x >> PAP_SHIFT_HI,
+                            z + (edge_min_z >> PAP_SHIFT_HI),
+                            flags);
+                    }
+                    edge = edge_pool_ptr[edge].Next;
+                    done = 1;
+                } else if (x > edge_pool_ptr[edge].X) {
+                    polarity += edge_pool_ptr[edge].Count;
+                    edge = edge_pool_ptr[edge].Next;
+                }
+            }
+        }
+    }
+
+    if (0) // lower
+    {
+        for (z = 0; z < depth; z++) {
+            UWORD pfu, pfl;
+            pfu = get_map_flags(min_x >> PAP_SHIFT_HI, z + (edge_min_z >> PAP_SHIFT_HI));
+            pfl = get_map_flags(min_x >> PAP_SHIFT_HI, z + (edge_min_z >> PAP_SHIFT_HI) + 1);
+
+            for (x = min_x + (1 << PAP_SHIFT_HI); x < max_x - (1 << PAP_SHIFT_HI); x += (1 << PAP_SHIFT_HI)) {
+                UWORD fu, fl;
+                fu = get_map_flags(x >> PAP_SHIFT_HI, z + (edge_min_z >> PAP_SHIFT_HI));
+                fl = get_map_flags(x >> PAP_SHIFT_HI, z + (edge_min_z >> PAP_SHIFT_HI) + 1);
+                if ((fu & fl & pfu & pfl & PAP_FLAG_HIDDEN)) {
+                    set_map_height((x >> PAP_SHIFT_HI) + 1, z + (edge_min_z >> PAP_SHIFT_HI) + 1, -256 >> 2);
+                }
+
+                pfu = fu;
+                pfl = fl;
+            }
+        }
+    }
+
+    bin_edge_list();
+}
+
+// uc_orig: build_fe_mid_points (fallen/Source/Building.cpp)
+// Adds intermediate spine points along the midline of a fire escape section at a given y.
+// flag==0 adds both endpoints; flag!=0 adds only the first (avoids duplicate at section joins).
+void build_fe_mid_points(SLONG y, SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG flag)
+{
+    SLONG dx, dz, dist;
+
+    dx = abs(x2 - x1);
+    dz = abs(z2 - z1);
+
+    dist = Root(SDIST2(dx, dz));
+
+    if (dist == 0)
+        return;
+
+    dx = (dx * BLOCK_SIZE) / dist;
+    dz = (dz * BLOCK_SIZE) / dist;
+
+    add_point(x1 + dx, y, z1 + dz);
+    if (flag == 0)
+        add_point(x2 - dx, y, z2 - dz);
+}
+
+// uc_orig: build_fire_escape_points (fallen/Source/Building.cpp)
+// Generates geometry points for a triangular fire escape landing section.
+// flag==0: emits all 10 points (full landing); flag!=0: emits only the midpoints.
+void build_fire_escape_points(UWORD storey, SLONG y, SLONG flag)
+{
+    SLONG walls[3], count = 0, wall;
+    SLONG mx, mz, mx2, mz2;
+    SLONG p0 = 0;
+    if (flag == 0) {
+        add_point(storey_list[storey].DX, y, storey_list[storey].DZ);
+    }
+    wall = storey_list[storey].WallHead;
+    while (wall && count < 3) {
+        walls[count++] = wall;
+        if (flag == 0) {
+            add_point(wall_list[wall].DX, y, wall_list[wall].DZ);
+        }
+        wall = wall_list[wall].Next;
+    }
+
+    mx = (storey_list[storey].DX + wall_list[walls[2]].DX) >> 1;
+    mz = (storey_list[storey].DZ + wall_list[walls[2]].DZ) >> 1;
+
+    mx2 = (wall_list[walls[0]].DX + wall_list[walls[1]].DX) >> 1;
+    mz2 = (wall_list[walls[0]].DZ + wall_list[walls[1]].DZ) >> 1;
+
+    if (flag == 0) {
+        add_point(mx, y, mz);
+        add_point(mx2, y, mz2);
+    }
+    build_fe_mid_points(y, mx, mz, mx2, mz2, flag);
+    build_fe_mid_points(y, wall_list[walls[2]].DX, wall_list[walls[2]].DZ, wall_list[walls[1]].DX, wall_list[walls[1]].DZ, flag);
+}
+
+// uc_orig: PsetUV4 (fallen/Source/Building.cpp)
+// Local UV-setter macro for build_face_texture_info only.
+#define PsetUV4(p_f4, x0, y0, x1, y1, x2, y2, x3, y3, page) \
+    p_f4->UV[0][0] = (x0);                                   \
+    p_f4->UV[0][1] = (y0);                                   \
+    p_f4->UV[1][0] = (x1);                                   \
+    p_f4->UV[1][1] = (y1);                                   \
+    p_f4->UV[2][0] = (x2);                                   \
+    p_f4->UV[2][1] = (y2);                                   \
+    p_f4->UV[3][0] = (x3);                                   \
+    p_f4->UV[3][1] = (y3);                                   \
+    p_f4->TexturePage = page;
+
+// uc_orig: build_face_texture_info (fallen/Source/Building.cpp)
+// Applies a MiniTextureBits-encoded texture to a quad face.
+// MiniTextureBits layout: X(3b), Y(3b), Page(4b), Rot(2b), Size(2b).
+// Rotation 0-3 maps to different UV coordinate orderings. Rot is counter-rotated (rot+3)&3.
+void build_face_texture_info(struct PrimFace4* p_f4, UWORD texture)
+{
+    UBYTE tx, ty, page;
+    SLONG tsize;
+    SLONG rot;
+
+    tx = ((struct MiniTextureBits*)(&texture))->X << 5;
+    ty = ((struct MiniTextureBits*)(&texture))->Y << 5;
+    page = (UBYTE)(((struct MiniTextureBits*)(&texture))->Page);
+    tsize = 31;
+    rot = ((struct MiniTextureBits*)(&texture))->Rot;
+    rot = (rot + 3) & 3;
+    switch (rot) {
+    case 0:
+        PsetUV4(p_f4, tx, ty, tx + tsize, ty, tx, ty + tsize, tx + tsize, ty + tsize, page);
+        break;
+    case 1:
+        PsetUV4(p_f4, tx + tsize, ty, tx + tsize, ty + tsize, tx, ty, tx, ty + tsize, page);
+        break;
+    case 2:
+        PsetUV4(p_f4, tx + tsize, ty + tsize, tx, ty + tsize, tx + tsize, ty, tx, ty, page);
+        break;
+    case 3:
+        PsetUV4(p_f4, tx, ty + tsize, tx, ty, tx + tsize, ty + tsize, tx + tsize, ty, page);
+        break;
+    }
+}
+
+// uc_orig: set_quad_planar_flag (fallen/Source/Building.cpp)
+// Computes normals for both triangles of a quad. If they differ, sets FACE_FLAG_NON_PLANAR.
+// Non-planar quads are split into two triangles during rendering (see calc_face_split).
+// Normals are normalised to length 64 to avoid integer overflow in the comparison.
+void set_quad_planar_flag(struct PrimFace4* pf4)
+{
+    SLONG p0, p1, p2, p3;
+    SLONG nx, ny, nz, mx, my, mz;
+    SLONG vx, vy, vz, wx, wy, wz;
+
+    p0 = pf4->Points[0];
+    p1 = pf4->Points[1];
+    p2 = pf4->Points[2];
+    p3 = pf4->Points[3];
+
+    vx = prim_points[p0].X - prim_points[p2].X;
+    vy = prim_points[p0].Y - prim_points[p2].Y;
+    vz = prim_points[p0].Z - prim_points[p2].Z;
+
+    wx = prim_points[p1].X - prim_points[p0].X;
+    wy = prim_points[p1].Y - prim_points[p0].Y;
+    wz = prim_points[p1].Z - prim_points[p0].Z;
+
+    nx = vy * wz - vz * wy;
+    ny = vz * wx - vx * wz;
+    nz = vx * wy - vy * wx;
+
+    {
+        SLONG len;
+
+        len = Root(nx * nx + ny * ny + nz * nz);
+        if (len == 0)
+            len = 1;
+        nx = (nx * 64) / len;
+        ny = (ny * 64) / len;
+        nz = (nz * 64) / len;
+    }
+
+    vx = prim_points[p3].X - prim_points[p1].X;
+    vy = prim_points[p3].Y - prim_points[p1].Y;
+    vz = prim_points[p3].Z - prim_points[p1].Z;
+
+    wx = prim_points[p2].X - prim_points[p3].X;
+    wy = prim_points[p2].Y - prim_points[p3].Y;
+    wz = prim_points[p2].Z - prim_points[p3].Z;
+
+    mx = vy * wz - vz * wy;
+    my = vz * wx - vx * wz;
+    mz = vx * wy - vy * wx;
+
+    {
+        SLONG len;
+
+        len = Root(mx * mx + my * my + mz * mz);
+        if (len == 0)
+            len = 1;
+        mx = (mx * 64) / len;
+        my = (my * 64) / len;
+        mz = (mz * 64) / len;
+    }
+
+    if ((nx != mx) || (ny != my) || (nz != mz)) {
+        pf4->FaceFlags |= FACE_FLAG_NON_PLANAR;
+    }
+}
+
+// uc_orig: create_a_quad (fallen/Source/Building.cpp)
+// Allocates a PrimFace4 and assigns points p0(TL), p1(TR), p2(BL), p3(BR).
+// texture_style==0: uses texture_xy2[] (simple indexed); >0: uses textures_xy[style][piece].
+// TEXTURE_PIECE_MIDDLE has a 25% chance of being replaced with MIDDLE1 or MIDDLE2 (visual variety).
+// flipx XORs the table flip flag for UV mirroring.
+struct PrimFace4* create_a_quad(UWORD p1, UWORD p0, UWORD p3, UWORD p2, SWORD texture_style, SWORD texture_piece, SLONG flipx)
+{
+    struct PrimFace4* p4;
+    SLONG tx, ty;
+    SLONG theight = 31;
+    SLONG add_page = 1;
+    SLONG page_to;
+    SLONG flip;
+
+    if (texture_style == 0)
+        add_page = 0;
+
+    p4 = &prim_faces4[next_prim_face4];
+    next_prim_face4++;
+
+    p4->Points[0] = p0;
+    p4->Points[1] = p1;
+    p4->Points[2] = p2;
+    p4->Points[3] = p3;
+
+    p4->DrawFlags = POLY_GT;
+    p4->FaceFlags = 0;
+
+    set_quad_planar_flag(p4);
+
+    if (texture_style) {
+        if (texture_piece == TEXTURE_PIECE_MIDDLE) {
+            if ((build_rand() & 3) == 0) {
+                if (build_rand() & 1)
+                    texture_piece = TEXTURE_PIECE_MIDDLE1;
+                else
+                    texture_piece = TEXTURE_PIECE_MIDDLE2;
+            }
+        }
+
+        tx = textures_xy[texture_style][texture_piece].Tx << 5;
+        ty = textures_xy[texture_style][texture_piece].Ty << 5;
+        p4->TexturePage = textures_xy[texture_style][texture_piece].Page;
+        flip = textures_xy[texture_style][texture_piece].Flip;
+
+        if (add_page)
+            add_page_countxy(tx >> 5, ty >> 5, p4->TexturePage);
+
+        p4->DrawFlags = textures_flags[texture_style][texture_piece];
+    } else {
+        tx = texture_xy2[texture_piece].Tx;
+        ty = texture_xy2[texture_piece].Ty;
+        p4->TexturePage = texture_xy2[texture_piece].Page;
+        flip = textures_xy[texture_style][texture_piece].Flip;
+        if (add_page)
+            add_page_countxy(tx >> 5, ty >> 5, p4->TexturePage);
+        ASSERT(p4->TexturePage < 15);
+    }
+
+    if (flipx)
+        flip ^= 1;
+
+    switch (flip) {
+    case 0:
+        p4->UV[0][0] = tx;
+        p4->UV[0][1] = ty;
+        p4->UV[1][0] = tx + 31;
+        p4->UV[1][1] = ty;
+        p4->UV[2][0] = tx;
+        p4->UV[2][1] = ty + theight;
+        p4->UV[3][0] = tx + 31;
+        p4->UV[3][1] = ty + 31;
+        break;
+    case 1: // flip x
+        p4->UV[0][0] = tx + 31;
+        p4->UV[0][1] = ty;
+        p4->UV[1][0] = tx;
+        p4->UV[1][1] = ty;
+        p4->UV[2][0] = tx + 31;
+        p4->UV[2][1] = ty + theight;
+        p4->UV[3][0] = tx;
+        p4->UV[3][1] = ty + theight;
+        break;
+    case 2: // flip y
+        p4->UV[0][0] = tx;
+        p4->UV[0][1] = ty + 31;
+        p4->UV[1][0] = tx + 31;
+        p4->UV[1][1] = ty + theight;
+        p4->UV[2][0] = tx;
+        p4->UV[2][1] = ty;
+        p4->UV[3][0] = tx + 31;
+        p4->UV[3][1] = ty;
+        break;
+    case 3: // flip x+y
+        p4->UV[0][0] = tx + 31;
+        p4->UV[0][1] = ty + 31;
+        p4->UV[1][0] = tx;
+        p4->UV[1][1] = ty + 31;
+        p4->UV[2][0] = tx + theight;
+        p4->UV[2][1] = ty;
+        p4->UV[3][0] = tx;
+        p4->UV[3][1] = ty;
+        break;
+    }
+
+    return (p4);
+}
+
+// uc_orig: create_a_quad_tex (fallen/Source/Building.cpp)
+// Allocates a PrimFace4 using a raw packed texture word (not the building texture table).
+// Texture format: bits 0-2=X, 3-5=Y, 6=page lsb, 7=flip.
+struct PrimFace4* create_a_quad_tex(UWORD p1, UWORD p0, UWORD p3, UWORD p2, UWORD texture, SLONG flipx)
+{
+    struct PrimFace4* p4;
+    SLONG tx, ty;
+    SLONG flip;
+    SLONG page_to;
+
+    p4 = &prim_faces4[next_prim_face4];
+    next_prim_face4++;
+
+    p4->Points[0] = p0;
+    p4->Points[1] = p1;
+    p4->Points[2] = p2;
+    p4->Points[3] = p3;
+
+    p4->DrawFlags = POLY_GT;
+    p4->FaceFlags = 0;
+
+    tx = (texture & 7) << 5;
+    ty = ((texture >> 3) & 7) << 5;
+    flip = (texture & 0x80) >> 7;
+    p4->TexturePage = (texture & 0x7f) >> 6;
+    add_page_countxy(tx >> 5, ty >> 5, p4->TexturePage);
+
+    p4->DrawFlags = POLY_GT;
+    if (flipx)
+        flip ^= 1;
+
+    if (flip) {
+        p4->UV[1][0] = tx;
+        p4->UV[1][1] = ty;
+        p4->UV[0][0] = tx + 31;
+        p4->UV[0][1] = ty;
+        p4->UV[3][0] = tx;
+        p4->UV[3][1] = ty + 31;
+        p4->UV[2][0] = tx + 31;
+        p4->UV[2][1] = ty + 31;
+
+    } else {
+        p4->UV[0][0] = tx;
+        p4->UV[0][1] = ty;
+        p4->UV[1][0] = tx + 31;
+        p4->UV[1][1] = ty;
+        p4->UV[2][0] = tx;
+        p4->UV[2][1] = ty + 31;
+        p4->UV[3][0] = tx + 31;
+        p4->UV[3][1] = ty + 31;
+    }
+    return (p4);
+}
+
+// uc_orig: create_a_tri (fallen/Source/Building.cpp)
+// Allocates a PrimFace3 from prim_faces3[] and applies texture from texture_xy2[] lookup.
+struct PrimFace3* create_a_tri(UWORD p2, UWORD p1, UWORD p0, SWORD texture_id, SWORD texture_piece)
+{
+    struct PrimFace3* p3;
+    SLONG tx, ty;
+    texture_id = texture_id;
+    p3 = &prim_faces3[next_prim_face3];
+    next_prim_face3++;
+
+    p3->Points[0] = p0;
+    p3->Points[1] = p1;
+    p3->Points[2] = p2;
+
+    p3->DrawFlags = POLY_GT;
+
+    tx = texture_xy2[texture_piece].Tx;
+    ty = texture_xy2[texture_piece].Ty;
+    p3->UV[0][0] = tx;
+    p3->UV[0][1] = ty;
+    p3->UV[1][0] = tx + 31;
+    p3->UV[1][1] = ty;
+    p3->UV[2][0] = tx;
+    p3->UV[2][1] = ty + 31;
+
+    p3->TexturePage = texture_xy2[texture_piece].Page;
+    ASSERT(p3->TexturePage < 15);
+    return (p3);
+}
+
+// uc_orig: set_texture_fe (fallen/Source/Building.cpp)
+// Applies a hardcoded fire escape texture to a quad: type 0 = grating, type 1 = metal plate.
+void set_texture_fe(struct PrimFace4* p4, SLONG xw, SLONG xh, SLONG type)
+{
+    SLONG tx, ty;
+    switch (type) {
+    case 0:
+        tx = 0;
+        ty = 6 * 32;
+        break;
+    case 1:
+        tx = 5 * 32;
+        ty = 4 * 32;
+        break;
+    }
+
+    xw = 1;
+    xh = 1;
+
+    p4->UV[0][0] = tx;
+    p4->UV[0][1] = ty;
+    p4->UV[1][0] = tx + 32 * xw;
+    p4->UV[1][1] = ty;
+    p4->UV[2][0] = tx;
+    p4->UV[2][1] = ty + 32 * xh;
+    p4->UV[3][0] = tx + 32 * xw;
+    p4->UV[3][1] = ty + 32 * xh;
+    p4->TexturePage = 1;
+}
+
+// Fire escape face ID constants (local to chunk; not exposed in header).
+// uc_orig: FE_FIRST_SLOPE (fallen/Source/Building.cpp)
+#define FE_FIRST_SLOPE 1
+// uc_orig: FE_PLINTH1 (fallen/Source/Building.cpp)
+#define FE_PLINTH1 2
+// uc_orig: FE_WALKWAY1 (fallen/Source/Building.cpp)
+#define FE_WALKWAY1 3
+// uc_orig: FE_PLINTH2 (fallen/Source/Building.cpp)
+#define FE_PLINTH2 4
+// uc_orig: FE_SLOPE2 (fallen/Source/Building.cpp)
+#define FE_SLOPE2 5
+
+// uc_orig: FE_FIRST_SLOPE_RAIL (fallen/Source/Building.cpp)
+#define FE_FIRST_SLOPE_RAIL -6
+// uc_orig: FE_PLINTH1_RAIL_A (fallen/Source/Building.cpp)
+#define FE_PLINTH1_RAIL_A -7
+// uc_orig: FE_PLINTH1_RAIL_B (fallen/Source/Building.cpp)
+#define FE_PLINTH1_RAIL_B -8
+// uc_orig: FE_WALKWAY1_RAIL (fallen/Source/Building.cpp)
+#define FE_WALKWAY1_RAIL -9
+// uc_orig: FE_PLINTH2_RAIL_A (fallen/Source/Building.cpp)
+#define FE_PLINTH2_RAIL_A -10
+// uc_orig: FE_PLINTH2_RAIL_B (fallen/Source/Building.cpp)
+#define FE_PLINTH2_RAIL_B -11
+// uc_orig: FE_SLOPE2_RAIL (fallen/Source/Building.cpp)
+#define FE_SLOPE2_RAIL -12
+
+// uc_orig: next_connected_face (fallen/Source/Building.cpp)
+// Returns the face index offset for the given (type, id, count) slot in a fire escape face chain.
+SLONG next_connected_face(SLONG type, SLONG id, SLONG count)
+{
+    switch (type) {
+    case FACE_TYPE_FIRE_ESCAPE:
+        SLONG start;
+
+        start = id_offset[id];
+        return (face_offsets[start + count]);
+        break;
+    }
+    return (0);
+}
+
+// uc_orig: build_firescape (fallen/Source/Building.cpp)
+// Builds the complete multi-storey exterior fire escape geometry for a storey.
+// Each level creates: walkway platforms, plinths, sloped ramps, and banisters (transparent rails).
+// Walkable faces are registered via add_quad_to_walkable_list().
+// SORT_LEVEL_FIRE_ESCAPE=3 controls rendering order for these transparent faces.
+void build_firescape(SLONG storey)
+{
+    SLONG y = 0;
+    SLONG count = 0;
+    struct PrimFace4* p4;
+    SLONG wall;
+
+    wall = -storey_list[storey].WallHead;
+
+    while (count < storey_list[storey].Height) {
+
+        start_point[count] = next_prim_point;
+        if (count == 0) {
+            build_fire_escape_points(storey, y, 1);
+            build_fire_escape_points(storey, y + BLOCK_SIZE, 1);
+        } else {
+            build_fire_escape_points(storey, y, 0);
+            build_fire_escape_points(storey, y + BLOCK_SIZE, 0);
+        }
+
+        if (count > 0) {
+            // banisters
+            p4 = create_a_quad(start_point[count] + 3 + 10, start_point[count] + 0 + 10, start_point[count] + 3, start_point[count] + 4, 0, 0);
+            set_texture_fe(p4, 1, 1, 0);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            p4->ThingIndex = wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+
+            p4 = create_a_quad(start_point[count] + 8 + 10, start_point[count] + 3 + 10, start_point[count] + 8, start_point[count] + 3, 0, 0);
+            set_texture_fe(p4, 1, 1, 0);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            p4->ThingIndex = wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+
+            p4 = create_a_quad(start_point[count] + 2 + 10, start_point[count] + 9 + 10, start_point[count] + 2, start_point[count] + 9, 0, 0);
+            set_texture_fe(p4, 1, 1, 0);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            p4->ThingIndex = wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+
+            p4 = create_a_quad(start_point[count] + 1 + 10, start_point[count] + 2 + 10, start_point[count] + 1, start_point[count] + 2, 0, 0);
+            set_texture_fe(p4, 1, 1, 0);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            p4->ThingIndex = wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+
+            p4 = create_a_quad(start_point[count] + 7 + 10, start_point[count] + 6 + 10, start_point[count] + 7, start_point[count] + 6, 0, 0);
+            set_texture_fe(p4, 1, 1, 1);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            p4->ThingIndex = wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+
+            // floors
+            p4 = create_a_quad(start_point[count], start_point[count] + 1, start_point[count] + 4, start_point[count] + 5, 0, 0);
+            set_texture_fe(p4, 1, 1, 1);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            p4->ThingIndex = wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+            p4->Type = FACE_TYPE_FIRE_ESCAPE;
+            p4->ID = FE_WALKWAY1;
+            add_quad_to_walkable_list(next_prim_face4 - 1);
+
+            p4 = create_a_quad(start_point[count] + 4, start_point[count] + 6, start_point[count] + 3, start_point[count] + 8, 0, 0);
+            set_texture_fe(p4, 1, 1, 1);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            p4->ThingIndex = wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+            p4->Type = FACE_TYPE_FIRE_ESCAPE;
+            p4->ID = FE_PLINTH2;
+            add_quad_to_walkable_list(next_prim_face4 - 1);
+
+            p4 = create_a_quad(start_point[count] + 7, start_point[count] + 5, start_point[count] + 9, start_point[count] + 2, 0, 0);
+            set_texture_fe(p4, 1, 1, 1);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            p4->ThingIndex = wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+            p4->Type = FACE_TYPE_FIRE_ESCAPE;
+            p4->ID = FE_PLINTH1;
+            add_quad_to_walkable_list(next_prim_face4 - 1);
+        }
+
+        if (count == 1) {
+            // first slope
+            insert_collision_vect(prim_points[start_point[count - 1]].X, prim_points[start_point[count - 1]].Y, prim_points[start_point[count - 1]].Z,
+                prim_points[start_point[count - 1] + 1].X, prim_points[start_point[count - 1] + 1].Y, prim_points[start_point[count - 1] + 1].Z, 0, 0, next_prim_face4);
+
+            p4 = create_a_quad(start_point[count - 1], start_point[count] + 7, start_point[count - 1] + 1, start_point[count] + 9, 0, 0);
+            set_texture_fe(p4, 1, 1, 1);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+            p4->ThingIndex = wall;
+            p4->FaceFlags |= FACE_FLAG_WALKABLE;
+            p4->Type = FACE_TYPE_FIRE_ESCAPE;
+            p4->ID = FE_FIRST_SLOPE;
+            add_quad_to_walkable_list(next_prim_face4 - 1);
+
+            // bannister
+            p4 = create_a_quad(start_point[count] + 9 + 10, start_point[count - 1] + 3, start_point[count] + 9, start_point[count - 1] + 1, 0, 0);
+            set_texture_fe(p4, 1, 1, 1);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            p4->ThingIndex = wall;
+            p4->Type = FACE_TYPE_FIRE_ESCAPE;
+            p4->ID = FE_FIRST_SLOPE_RAIL;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+        } else if (count > 1) {
+            // continue slope
+            p4 = create_a_quad(start_point[count - 1] + 6, start_point[count] + 7, start_point[count - 1] + 8, start_point[count] + 9, 0, 0);
+            set_texture_fe(p4, 1, 1, 1);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED;
+            p4->ThingIndex = wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+            p4->Type = FACE_TYPE_FIRE_ESCAPE;
+            p4->ID = FE_SLOPE2;
+            add_quad_to_walkable_list(next_prim_face4 - 1);
+
+            // rail
+            p4 = create_a_quad(start_point[count] + 9 + 10, start_point[count - 1] + 8 + 10, start_point[count] + 9, start_point[count - 1] + 8, 0, 0);
+            set_texture_fe(p4, 1, 1, 1);
+            p4->DrawFlags = POLY_T | POLY_FLAG_DOUBLESIDED | POLY_FLAG_MASKED;
+            p4->ThingIndex = wall;
+            OR_SORT_LEVEL(p4->FaceFlags, SORT_LEVEL_FIRE_ESCAPE);
+            p4->Type = FACE_TYPE_FIRE_ESCAPE;
+            p4->ID = FE_SLOPE2_RAIL;
+        }
+
+        count++;
+        y += BLOCK_SIZE * 4;
+    }
+}
+
+// uc_orig: LADDER_SPINE_WIDTH (fallen/Source/Building.cpp)
+#define LADDER_SPINE_WIDTH 12
+
+// uc_orig: build_ladder_points (fallen/Source/Building.cpp)
+// Generates the prim points for one ladder spine segment.
+// flag==1: emits 6 points (full cross-section); flag==0: emits 2 reduced-width points.
+void build_ladder_points(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG y, SLONG flag)
+{
+    SLONG dx, dz;
+
+    dx = x2 - x1;
+    dz = z2 - z1;
+
+    if (dx > 0)
+        dx = LADDER_SPINE_WIDTH;
+    else if (dx < 0)
+        dx = -LADDER_SPINE_WIDTH;
+
+    if (dz > 0)
+        dz = LADDER_SPINE_WIDTH;
+    else if (dz < 0)
+        dz = -LADDER_SPINE_WIDTH;
+
+    if (flag == 1) {
+        add_point(x1 - dz, y, z1 + dx);
+        add_point(x1, y, z1);
+        add_point(x1 + dx, y, z1 + dz);
+        add_point(x2 - dx, y, z2 - dz);
+        add_point(x2, y, z2);
+        add_point(x2 - dz, y, z2 + dx);
+
+    } else {
+        dx = (dx * 3) >> 2;
+        dz = (dz * 3) >> 2;
+        add_point(x1 + dx, y, z1 + dz);
+        add_point(x2 - dx, y, z2 - dz);
+    }
+}
+
+// Forward: calc_ladder_ends is defined in a later chunk (not yet migrated to new/).
+// uc_orig: calc_ladder_ends (fallen/Source/Building.cpp)
+void calc_ladder_ends(SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2);
+
+// uc_orig: calc_ladder_pos (fallen/Source/Building.cpp)
+// Computes the world position and height for a ladder by querying the terrain height map.
+// If y==0, picks the minimum terrain height across both endpoints as the base y.
+// extra_height accounts for terrain slope below the ladder.
+void calc_ladder_pos(SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2, SLONG* y, SLONG* extra_height)
+{
+    SLONG dx, dz;
+    *extra_height = 0;
+
+    calc_ladder_ends(x1, z1, x2, z2);
+
+    if (*y == 0) {
+        SLONG min_y, ty;
+
+        min_y = PAP_calc_height_at(*x1, *z1);
+        ty = PAP_calc_height_at(*x2, *z2);
+
+        if (ty < min_y)
+            min_y = ty;
+
+        *y = min_y;
+        *extra_height = abs(min_y) >> 6;
+    } else
+        *y += build_max_y;
 }

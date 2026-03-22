@@ -180,4 +180,82 @@ void calc_face_split(struct PrimFace4* p_f4);
 // uc_orig: build_easy_roof (fallen/Source/Building.cpp)
 SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, SLONG y, SLONG face_wall, SLONG flag);
 
+// Clears the PAP_FLAG_REFLECTIVE flag for all map tiles in the given bounding box.
+// uc_orig: clear_reflective_flag (fallen/Source/Building.cpp)
+void clear_reflective_flag(SLONG min_x, SLONG min_z, SLONG max_x, SLONG max_z);
+
+// Returns the polygon outline for a circular storey (one whose wall list forms a closed loop).
+// Returns NULL for non-circular storeys. Caller must free the result.
+// uc_orig: get_storey_outline (fallen/Source/Building.cpp)
+struct outline_outline* get_storey_outline(SLONG storey);
+
+// Returns true if two storeys' footprints overlap in the XZ plane.
+// uc_orig: do_storeys_overlap (fallen/Source/Building.cpp)
+SLONG do_storeys_overlap(SLONG s1, SLONG s2);
+
+// Builds the roof polygon for a storey. Returns a bounding box handle or 0.
+// Dispatches to build_easy_roof (axis-aligned) or a scanline+45-degree fill path.
+// uc_orig: build_roof_grid (fallen/Source/Building.cpp)
+SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag);
+
+// Returns true if the storey's wall list forms a closed polygon (last wall endpoint == storey start).
+// uc_orig: is_storey_circular (fallen/Source/Building.cpp)
+SLONG is_storey_circular(SLONG storey);
+
+// Marks all map tiles inside a storey's footprint with the given PAP flags.
+// Used to set PAP_FLAG_REFLECTIVE (reflective floor) and PAP_FLAG_HIDDEN.
+// uc_orig: set_floor_hidden (fallen/Source/Building.cpp)
+void set_floor_hidden(SLONG storey, UWORD lower, UWORD flags);
+
+// Adds intermediate points along the midline of a fire escape section.
+// uc_orig: build_fe_mid_points (fallen/Source/Building.cpp)
+void build_fe_mid_points(SLONG y, SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG flag);
+
+// Generates geometry points for a triangular fire escape landing section.
+// uc_orig: build_fire_escape_points (fallen/Source/Building.cpp)
+void build_fire_escape_points(UWORD storey, SLONG y, SLONG flag);
+
+// Applies a MiniTextureBits-encoded texture (page, U, V, rotation) to an existing quad face.
+// uc_orig: build_face_texture_info (fallen/Source/Building.cpp)
+void build_face_texture_info(struct PrimFace4* p_f4, UWORD texture);
+
+// Detects if a quad face is non-planar (two constituent triangles have different normals).
+// Sets FACE_FLAG_NON_PLANAR if they differ.
+// uc_orig: set_quad_planar_flag (fallen/Source/Building.cpp)
+void set_quad_planar_flag(struct PrimFace4* pf4);
+
+// Allocates and initialises a quad face (PrimFace4) in the prim buffer with texture and UV data.
+// uc_orig: create_a_quad (fallen/Source/Building.cpp)
+struct PrimFace4* create_a_quad(UWORD p1, UWORD p0, UWORD p3, UWORD p2, SWORD texture_style, SWORD texture_piece, SLONG flipx = 0);
+
+// Allocates and initialises a quad face using a raw packed texture word (not building texture system).
+// uc_orig: create_a_quad_tex (fallen/Source/Building.cpp)
+struct PrimFace4* create_a_quad_tex(UWORD p1, UWORD p0, UWORD p3, UWORD p2, UWORD texture, SLONG flipx = 0);
+
+// Allocates and initialises a triangle face (PrimFace3) in the prim buffer.
+// uc_orig: create_a_tri (fallen/Source/Building.cpp)
+struct PrimFace3* create_a_tri(UWORD p2, UWORD p1, UWORD p0, SWORD texture_id, SWORD texture_piece);
+
+// Applies a hardcoded fire escape texture (type 0=grating, 1=metal) to a quad face.
+// uc_orig: set_texture_fe (fallen/Source/Building.cpp)
+void set_texture_fe(struct PrimFace4* p4, SLONG xw, SLONG xh, SLONG type);
+
+// Returns the face offset for a given slot (type/id/count) in a fire escape face chain.
+// uc_orig: next_connected_face (fallen/Source/Building.cpp)
+SLONG next_connected_face(SLONG type, SLONG id, SLONG count);
+
+// Builds the complete multi-storey exterior fire escape geometry for a storey.
+// Creates walkway, plinth, slope, and railing quads per level.
+// uc_orig: build_firescape (fallen/Source/Building.cpp)
+void build_firescape(SLONG storey);
+
+// Generates the four (or two, if flag==0) prim points for one ladder spine segment.
+// uc_orig: build_ladder_points (fallen/Source/Building.cpp)
+void build_ladder_points(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG y, SLONG flag);
+
+// Computes position and height for a ladder from the world height map.
+// Calls calc_ladder_ends() to get endpoints; calc_ladder_ends is defined in a later chunk.
+// uc_orig: calc_ladder_pos (fallen/Source/Building.cpp)
+void calc_ladder_pos(SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2, SLONG* y, SLONG* extra_height);
+
 #endif // WORLD_ENVIRONMENT_BUILDING_H

@@ -676,3 +676,57 @@ UWORD lookup_roof[256] = {
     // Index 255: all neighbours occupied — interior tile
     37,
 };
+
+// uc_orig: texture_xy2 (fallen/Source/Building.cpp)
+// PSX-style UV coordinate lookup table for create_a_quad / create_a_tri when texture_style==0.
+// Indexed by texture_piece; each entry has (Page, Tx, Ty) in 32-pixel units.
+struct TXTY texture_xy2[] = {
+    { 0, 0, 0 },      // 0
+    { 0, 32, 0 },     // 1
+    { 0, 64, 0 },     // 2
+    { 0, 0, 32 },     // 3
+    { 0, 32, 32 },    // 4
+    { 0, 64, 32 },    // 5
+    { 0, 96, 32 },    // 6
+    { 0, 128, 32 },   // 7
+    { 0, 0, 64 },     // 8
+    { 0, 32, 64 },    // 9
+    { 0, 64, 64 },    // 10
+    { 0, 96, 64 },    // 11
+    { 0, 128, 64 },   // 12
+    { 0, 0, 96 },     // 13
+    { 0, 32, 96 },    // 14
+    { 0, 64, 96 },    // 15
+    { 0, 96, 96 },    // 16
+    { 0, 128, 96 },   // 17
+    { 0, 0, 128 },    // 18
+    { 0, 32, 128 },   // 19
+    { 0, 64, 128 },   // 20
+    { 0, 96, 128 },   // 21
+    { 0, 128, 128 },  // 22
+    { 0, 0, 160 },    // 23
+    { 0, 32, 160 },   // 24
+    { 0, 64, 160 },   // 25
+    { 0, 96, 160 },   // 26
+    { 0, 128, 160 },  // 27
+    { 3, 4 * 32, 6 * 32 }, // 28
+    { 0, 0 }
+};
+
+// uc_orig: face_offsets (fallen/Source/Building.cpp)
+// Relative face index deltas for walking a fire escape face chain.
+// Indexed via id_offset[] per slot; terminated by 0.
+SWORD face_offsets[] = {
+    0,
+    -1, 0,         // 1
+    1, -2, 0,      // 3
+    2, 1, 0,       // 6
+    -1, 12, 0,     // 9
+    -12, -1, 0     // 12
+};
+
+// uc_orig: id_offset (fallen/Source/Building.cpp)
+// Starting index in face_offsets[] for each fire escape segment ID (IDs 0–5).
+UWORD id_offset[] = {
+    0, 1, 3, 6, 9, 12
+};
