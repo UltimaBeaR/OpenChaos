@@ -71309,6 +71309,336 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "apply_button_input",
+      "file": "new/ui/interfac.h",
+      "orig_name": "apply_button_input",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "apply_button_input_fight",
+      "file": "new/ui/interfac.h",
+      "orig_name": "apply_button_input_fight",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "apply_button_input_car",
+      "file": "new/ui/interfac.h",
+      "orig_name": "apply_button_input_car",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "apply_button_input_first_person",
+      "file": "new/ui/interfac.h",
+      "orig_name": "apply_button_input_first_person",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "can_darci_change_weapon",
+      "file": "new/ui/interfac.h",
+      "orig_name": "can_darci_change_weapon",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "pre_process_input",
+      "file": "new/ui/interfac.h",
+      "orig_name": "pre_process_input",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_look_pitch",
+      "file": "new/ui/interfac.h",
+      "orig_name": "set_look_pitch",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_last_input",
+      "file": "new/ui/interfac.h",
+      "orig_name": "get_last_input",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "allow_input_autorepeat",
+      "file": "new/ui/interfac.h",
+      "orig_name": "allow_input_autorepeat",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "process_hardware_level_input_for_player",
+      "file": "new/ui/interfac.h",
+      "orig_name": "process_hardware_level_input_for_player",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "continue_action",
+      "file": "new/ui/interfac.h",
+      "orig_name": "continue_action",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "continue_pressing_action",
+      "file": "new/ui/interfac.h",
+      "orig_name": "continue_pressing_action",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_action_used",
+      "file": "new/ui/interfac.h",
+      "orig_name": "set_action_used",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "continue_dir",
+      "file": "new/ui/interfac.h",
+      "orig_name": "continue_dir",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "continue_firing",
+      "file": "new/ui/interfac.h",
+      "orig_name": "continue_firing",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "continue_moveing",
+      "file": "new/ui/interfac.h",
+      "orig_name": "continue_moveing",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "continue_blocking",
+      "file": "new/ui/interfac.h",
+      "orig_name": "continue_blocking",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "remove_action_used",
+      "file": "new/ui/interfac.h",
+      "orig_name": "remove_action_used",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "input_to_angle",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "input_to_angle",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_camera_dx",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "last_camera_dx",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_camera_dy",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "last_camera_dy",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_camera_dz",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "last_camera_dz",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_camera_yaw",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "last_camera_yaw",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "last_camera_pitch",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "last_camera_pitch",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "look_pitch",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "look_pitch",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "debug_input",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "debug_input",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "m_CurrentInput",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "m_CurrentInput",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "m_PreviousInput",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "m_PreviousInput",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "m_CurrentGoneDownInput",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "m_CurrentGoneDownInput",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "g_dwLastInputChangeTime",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "g_dwLastInputChangeTime",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FirstPersonMode",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "FirstPersonMode",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "g_iPlayerCameraMode",
+      "file": "new/ui/interfac_globals.h",
+      "orig_name": "g_iPlayerCameraMode",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "STEERING_MAX_DELTA",
+      "file": "new/ui/interfac.cpp",
+      "orig_name": "STEERING_MAX_DELTA",
+      "orig_file": "fallen/Source/interfac.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

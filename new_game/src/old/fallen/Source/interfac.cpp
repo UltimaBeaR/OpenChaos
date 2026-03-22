@@ -3183,6 +3183,8 @@ void person_enter_fight_mode(Thing* p_person)
 
 #endif // MIGRATED to src/new/ui/interfac.cpp (iteration 127) [find_best_action_from_tree..person_enter_fight_mode]
 
+#if 0 // MIGRATED to src/new/ui/interfac.cpp (iteration 129) [apply_button_input..remove_action_used]
+
 //
 // This Function interprets the user action, with the characters status
 // and responds accordingly, ie punch when holding a gun is shoot
@@ -5780,3 +5782,5 @@ void remove_action_used(Thing* p_person)
         p_player->Genus.Player->InputDone &= ~INPUT_MASK_ACTION;
     }
 }
+
+#endif // MIGRATED to src/new/ui/interfac.cpp (iteration 129) [apply_button_input..remove_action_used]

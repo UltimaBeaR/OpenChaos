@@ -38,3 +38,63 @@ UBYTE joypad_button_use[16];
 
 // uc_orig: keybrd_button_use (fallen/Source/interfac.cpp)
 UBYTE keybrd_button_use[16];
+
+// Dead camera position deltas from "look around" mode (not used in current PC code path).
+// uc_orig: last_camera_dx (fallen/Source/interfac.cpp)
+SLONG last_camera_dx = 0;
+// uc_orig: last_camera_dy (fallen/Source/interfac.cpp)
+SLONG last_camera_dy = 0;
+// uc_orig: last_camera_dz (fallen/Source/interfac.cpp)
+SLONG last_camera_dz = 0;
+// uc_orig: last_camera_yaw (fallen/Source/interfac.cpp)
+SLONG last_camera_yaw = 0;
+// uc_orig: last_camera_pitch (fallen/Source/interfac.cpp)
+SLONG last_camera_pitch = 0;
+
+// Current pitch angle for first-person look mode (0..2047).
+// uc_orig: look_pitch (fallen/Source/interfac.cpp)
+SLONG look_pitch = 0;
+
+// Raw hardware input captured last frame (debug / replay use).
+// uc_orig: debug_input (fallen/Source/interfac.cpp)
+ULONG debug_input;
+
+// Last polled input state and edge-detect buffers (used by get_last_input).
+// uc_orig: m_CurrentInput (fallen/Source/interfac.cpp)
+ULONG m_CurrentInput = 0;
+// uc_orig: m_PreviousInput (fallen/Source/interfac.cpp)
+ULONG m_PreviousInput = 0;
+// uc_orig: m_CurrentGoneDownInput (fallen/Source/interfac.cpp)
+ULONG m_CurrentGoneDownInput = 0;
+
+// Timestamp (GetTickCount ms) of the last input state change; used to detect idle/controller removal.
+// uc_orig: g_dwLastInputChangeTime (fallen/Source/interfac.cpp)
+DWORD g_dwLastInputChangeTime = 0;
+
+// Non-zero while the player is in first-person aim mode; read by the renderer (aeng.cpp).
+// uc_orig: FirstPersonMode (fallen/Source/interfac.cpp)
+SLONG FirstPersonMode = UC_FALSE;
+
+// Last camera type selected by the player (persisted across network desync recovery).
+// uc_orig: g_iPlayerCameraMode (fallen/Source/interfac.cpp)
+int g_iPlayerCameraMode = 0;
+
+// Lookup table: 4-bit direction bitmask (bits: 3=right, 2=left, 1=back, 0=forward)
+// -> 256-unit angle base for fight-step direction (shifted left 3 to get 2048-range angle).
+// uc_orig: input_to_angle (fallen/Source/interfac.cpp)
+UBYTE input_to_angle[] = {
+    0,       // 0000 - no direction
+    0,       // 0001 - forward
+    128,     // 0010 - back
+    0,       // 0011 - forward+back (cancel)
+    192,     // 0100 - left
+    192+32,  // 0101 - forward+left
+    192-32,  // 0110 - back+left
+    0,       // 0111 - (unused)
+    64,      // 1000 - right
+    32,      // 1001 - forward+right
+    96,      // 1010 - back+right
+    0,       // 1011 - (unused)
+    0,       // 1100 - (unused)
+    0,       // 1101 - (unused)
+};

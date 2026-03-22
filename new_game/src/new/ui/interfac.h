@@ -173,8 +173,11 @@ extern struct ActionInfo* action_tree[];
 // uc_orig: INPUT_TYPE_ALL (fallen/Headers/interfac.h)
 #define INPUT_TYPE_ALL (INPUT_TYPE_KEY | INPUT_TYPE_JOY)
 
+// NOTE: The original interfac.h declared apply_button_input with 2 args (Thing*, SLONG input),
+// but the actual definition in interfac.cpp has 3 args (player, person, ULONG input).
+// The 3-arg declaration below matches the definition.
 // uc_orig: apply_button_input (fallen/Headers/interfac.h)
-extern void apply_button_input(struct Thing* p_thing, SLONG input);
+extern ULONG apply_button_input(struct Thing* p_player, struct Thing* p_person, ULONG input);
 // uc_orig: process_hardware_level_input_for_player (fallen/Headers/interfac.h)
 extern void process_hardware_level_input_for_player(Thing* p_thing);
 // uc_orig: init_user_interface (fallen/Headers/interfac.h)
@@ -246,5 +249,36 @@ extern void player_apply_move(Thing* p_thing, ULONG input);
 extern void player_apply_move_analgue(Thing* p_thing, ULONG input);
 // uc_orig: person_enter_fight_mode (fallen/Source/interfac.cpp)
 extern void person_enter_fight_mode(Thing* p_person);
+
+// The two-argument form declared in the original interfac.h is different from the
+// actual three-argument definition in interfac.cpp; the declaration below matches the definition.
+// uc_orig: apply_button_input (fallen/Source/interfac.cpp)
+ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input);
+// uc_orig: apply_button_input_fight (fallen/Source/interfac.cpp)
+ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input);
+// uc_orig: apply_button_input_car (fallen/Source/interfac.cpp)
+ULONG apply_button_input_car(Thing* p_furn, ULONG input);
+// uc_orig: apply_button_input_first_person (fallen/Source/interfac.cpp)
+ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG input, ULONG* processed);
+// uc_orig: can_darci_change_weapon (fallen/Source/interfac.cpp)
+SLONG can_darci_change_weapon(Thing* p_person);
+// uc_orig: pre_process_input (fallen/Source/interfac.cpp)
+ULONG pre_process_input(SLONG mode, ULONG input);
+// uc_orig: set_look_pitch (fallen/Source/interfac.cpp)
+void set_look_pitch(SLONG p);
+// uc_orig: continue_pressing_action (fallen/Source/interfac.cpp)
+SLONG continue_pressing_action(Thing* p_person);
+// uc_orig: set_action_used (fallen/Source/interfac.cpp)
+void set_action_used(Thing* p_person);
+// uc_orig: continue_dir (fallen/Source/interfac.cpp)
+SLONG continue_dir(Thing* p_person, SLONG dir);
+// uc_orig: continue_firing (fallen/Source/interfac.cpp)
+SLONG continue_firing(Thing* p_person);
+// uc_orig: continue_moveing (fallen/Source/interfac.cpp)
+SLONG continue_moveing(Thing* p_person);
+// uc_orig: continue_blocking (fallen/Source/interfac.cpp)
+SLONG continue_blocking(Thing* p_person);
+// uc_orig: remove_action_used (fallen/Source/interfac.cpp)
+void remove_action_used(Thing* p_person);
 
 #endif // UI_INTERFAC_H

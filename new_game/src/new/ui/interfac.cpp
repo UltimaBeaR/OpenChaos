@@ -1,6 +1,5 @@
 // Player input processing: hardware input reading, action dispatch, movement.
 // Translates keyboard/gamepad state into game actions for the player character.
-// Chunk 1: globals, action tables, joypad config, car entry helpers, do_an_action.
 
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"
@@ -42,6 +41,17 @@
 #include "fallen/DDEngine/Headers/panel.h"  // Temporary: PANEL_new_text
 #include "fallen/Headers/enter.h"     // Temporary: set_person_exit_vehicle, etc.
 #include "fallen/Headers/cam.h"       // Temporary: various cam functions
+#include "fallen/Headers/cnet.h"      // Temporary: CNET_network_game, CNET_player_id (PLAYER_ID)
+#include "engine/audio/mfx.h"
+#include "assets/sound_id.h"
+#include "engine/input/keyboard_globals.h"
+#include "engine/input/mouse_globals.h"
+#include "missions/game.h"
+#include "missions/game_globals.h"
+
+// Forward declaration for gang-attack reset (defined in pcom.cpp, not yet in pcom.h).
+// uc_orig: reset_gang_attack (fallen/Source/pcom.cpp)
+extern void reset_gang_attack(Thing* p_target);
 
 // Temporary: declared only as extern in original code (not in any header)
 extern SLONG set_person_search(Thing* p_person, SLONG ob_index, SLONG ox, SLONG oy, SLONG oz);
@@ -2369,4 +2379,1760 @@ void player_apply_move(Thing* p_thing, ULONG input)
 void person_enter_fight_mode(Thing* p_person)
 {
     p_person->Genus.Person->Mode = PERSON_MODE_FIGHT;
+}
+
+// uc_orig: apply_button_input (fallen/Source/interfac.cpp)
+// Main normal-mode input handler: dispatches actions, movement, and fight/jump/skid from input mask.
+// Returns the bitmask of inputs consumed/processed this frame.
+ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
+{
+    ULONG input_used = 0;
+    ULONG processed = 0;
+
+    /*
+
+    if (p_person->Genus.Person->UnderAttack && p_person->Genus.Person->Mode != PERSON_MODE_FIGHT)
+    {
+            //
+            // Lets the player know that pressing 'MODE' with put him into
+            // fight mode.
+            //
+    }
+
+    */
+
+    if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
+        CONSOLE_text_at(400, 400, 50, "Fight mode");
+    }
+    /*
+            if(input&INPUT_MASK_MODE_CHANGE)
+            {
+                    person_change_mode(p_person);
+
+                    processed |= INPUT_MASK_MODE_CHANGE;
+            }
+    */
+
+    if (input & INPUT_MASK_ACTION) {
+        processed |= do_an_action(p_person, input);
+        input &= ~processed;
+
+    } else {
+        /*
+                        if (p_person->Genus.Person->AnimType==ANIM_TYPE_ROPER)
+                        {
+                                if (p_person->Genus.Person->Mode==PERSON_MODE_RUN)
+                                        p_person->Genus.Person->Mode=PERSON_MODE_SPRINT;
+                        }
+                        else
+        */
+        {
+            if (p_person->Genus.Person->Mode == PERSON_MODE_SPRINT)
+                p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+        }
+        /*
+                        if(p_person->Genus.Person->InsideIndex)
+                        {
+                                //
+                                // your inside so walk unless actioning
+                                //
+                                if(p_person->Genus.Person->Mode==PERSON_MODE_RUN)
+                                        p_person->Genus.Person->Mode=PERSON_MODE_WALK;
+                        }
+        */
+        if (p_person->SubState == SUB_STATE_IDLE_CROUTCHING) {
+            MSG_add("no action so stand up");
+            set_person_idle_uncroutch(p_person);
+        }
+    }
+
+    if (p_person->State == STATE_CARRY) {
+        if (p_person->SubState == SUB_STATE_PICKUP_CARRY || p_person->SubState == SUB_STATE_DROP_CARRY) {
+            return processed | input_used;
+        }
+    }
+
+    if (input && (p_person->State != STATE_CARRY)) {
+        SLONG new_action;
+
+        new_action = find_best_action_from_tree(p_person->Genus.Person->Action, input, &input_used);
+
+        switch (new_action) {
+        case ACTION_KICK_FLAG:
+            p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_KICK;
+            break;
+        case ACTION_PUNCH_FLAG:
+            p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_PUNCH;
+            break;
+        case ACTION_BLOCK_FLAG:
+            p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_BLOCK;
+            break;
+        case ACTION_JUMP_FLAG:
+            p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_JUMP;
+            break;
+        case ACTION_HUG_LEFT:
+            if (p_person->SubState != SUB_STATE_HUG_WALL_STEP_RIGHT && p_person->SubState != SUB_STATE_HUG_WALL_LOOK_L && p_person->SubState != SUB_STATE_HUG_WALL_TURN && p_person->SubState != SUB_STATE_HUG_WALL_LEAP_OUT)
+                set_person_hug_wall_dir(p_person, 0);
+            input_used = 0;
+            break;
+        case ACTION_HUG_RIGHT:
+            if (p_person->SubState != SUB_STATE_HUG_WALL_STEP_LEFT && p_person->SubState != SUB_STATE_HUG_WALL_LOOK_R && p_person->SubState != SUB_STATE_HUG_WALL_TURN && p_person->SubState != SUB_STATE_HUG_WALL_LEAP_OUT)
+                set_person_hug_wall_dir(p_person, 1);
+            input_used = 0;
+            break;
+        case ACTION_UNSIT:
+            void set_person_unsit(Thing * p_person);
+            set_person_unsit(p_person);
+            break;
+
+        case ACTION_FLIP_LEFT:
+            if (p_person->Genus.Person->Action == ACTION_STANDING_JUMP) {
+                if (p_person->Draw.Tweened->FrameIndex < 3)
+                    set_person_flip(p_person, 0);
+            } else
+                set_person_flip(p_person, 0);
+            input_used = 0;
+            break;
+        case ACTION_FLIP_RIGHT:
+            if (p_person->Genus.Person->Action == ACTION_STANDING_JUMP) {
+                if (p_person->Draw.Tweened->FrameIndex < 3)
+                    set_person_flip(p_person, 1);
+            } else
+                set_person_flip(p_person, 1);
+            input_used = 0;
+            break;
+        case ACTION_SHOOT:
+            if (p_person->Genus.Person->Action == ACTION_SHOOT) {
+                /*
+
+                //
+                // Only the pistol animation can be interrupted so you
+                // can shoot again.
+                //
+
+                if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
+                {
+                        set_player_shoot(p_person,0);
+                        processed|=input_used; //needs a clear click
+                }
+
+                */
+            } else {
+                {
+                    set_player_shoot(p_person, 0);
+
+                    processed |= input_used;
+                }
+            }
+            break;
+        case ACTION_GUN_AWAY:
+            set_person_gun_away(p_person);
+            processed |= input_used;
+            break;
+        case ACTION_RESPAWN:
+            processed |= input_used;
+            break;
+        case ACTION_DROP_DOWN:
+            if (p_person->Genus.Person->Action == ACTION_DEATH_SLIDE) {
+                MFX_stop(THING_NUMBER(p_person), S_ZIPWIRE);
+                set_person_drop_down(p_person, PERSON_DROP_DOWN_OFF_FACE);
+                p_person->Velocity = 0;
+            } else {
+                set_person_drop_down(p_person, PERSON_DROP_DOWN_OFF_FACE);
+            }
+            break;
+        }
+
+        if (!(p_person->Genus.Person->Flags & (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C))) {
+            switch (new_action) {
+
+            case ACTION_SKID:
+                if (p_person->SubState != SUB_STATE_RUNNING_SKID_STOP)
+                    if (p_person->SubState != SUB_STATE_RUNNING_JUMP_LAND_FAST)
+                        if (p_person->Velocity > 25) {
+                            set_anim(p_person, ANIM_SLIDER_START);
+                            p_person->SubState = SUB_STATE_RUNNING_SKID_STOP;
+                            if (!(p_person->Genus.Person->Flags & FLAG_PERSON_SLIDING)) {
+                                MFX_play_thing(THING_NUMBER(p_person), S_SLIDE_START, MFX_LOOPED, p_person);
+                                p_person->Genus.Person->Flags |= FLAG_PERSON_SLIDING;
+                            }
+                        }
+
+                break;
+            case ACTION_STANDING_JUMP:
+
+                if (should_i_jump(p_person)) {
+                    if (input & INPUT_MASK_FORWARDS)
+                        set_person_standing_jump_forwards(p_person);
+                    else if ((input & INPUT_MASK_BACKWARDS) && should_person_backflip(p_person))
+                        set_person_standing_jump_backwards(p_person);
+                    else if (input & INPUT_MASK_LEFT)
+                        set_person_flip(p_person, 0);
+                    else if (input & INPUT_MASK_RIGHT)
+                        set_person_flip(p_person, 1);
+                    else
+                        set_person_standing_jump(p_person);
+                } else {
+                    if (input & INPUT_MASK_LEFT)
+                        set_person_flip(p_person, 0);
+                    else if (input & INPUT_MASK_RIGHT)
+                        set_person_flip(p_person, 1);
+                }
+
+                break;
+            case ACTION_RUNNING_JUMP:
+                if (p_person->SubState == SUB_STATE_RUNNING_SKID_STOP) {
+                    p_person->Genus.Person->Flags &= ~FLAG_PERSON_SLIDING;
+                    MFX_stop(THING_NUMBER(p_person), S_SLIDE_START);
+                }
+                if (should_i_jump(p_person)) {
+                    set_person_running_jump(p_person);
+                }
+                break;
+            case ACTION_TRAVERSE_LEFT:
+                set_person_traverse(p_person, 0);
+                break;
+            case ACTION_TRAVERSE_RIGHT:
+                set_person_traverse(p_person, 1);
+                break;
+            case ACTION_PULL_UP:
+                set_person_pulling_up(p_person);
+                input_used = 0;
+                break;
+            case ACTION_FIGHT_KICK:
+                if (input & INPUT_MASK_BACKWARDS) {
+                    if (p_person->State != STATE_JUMPING) {
+                        turn_to_target(
+                            p_person,
+                            FIND_DIR_BACK | FIND_DIR_DONT_TURN);
+
+                        p_person->Genus.Person->Timer1 = 6;
+
+                        set_person_kick_dir(p_person, 2);
+
+                        person_enter_fight_mode(p_person);
+
+                        processed |= INPUT_MASK_KICK | INPUT_MASK_BACKWARDS;
+                    }
+                } else {
+                    if (p_person->State != STATE_JUMPING) {
+                        if (turn_to_target_and_kick(p_person)) {
+                            person_enter_fight_mode(p_person);
+                        }
+                    }
+                }
+
+                break;
+            case ACTION_FIGHT_PUNCH:
+                if (person_has_gun_out(p_person)) {
+                    set_person_shoot(p_person, 0);
+                } else if (!player_activate_in_hand(p_person))
+                    if (turn_to_target_and_punch(p_person))
+                    {
+                        person_enter_fight_mode(p_person);
+                    }
+
+                break;
+            case ACTION_DRAW_SPECIAL:
+                set_person_draw_special(p_person);
+                processed |= input_used;
+                break;
+            }
+        }
+    }
+    if ((input & INPUT_MOVEMENT_MASK) || (mouse_input && MouseDX)) {
+        if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)) {
+            switch (p_person->State) {
+            case STATE_HIT_RECOIL:
+            case STATE_CARRY:
+            case STATE_HUG_WALL:
+            case STATE_IDLE:
+            case STATE_MOVEING:
+            case STATE_GUN:
+            case STATE_CLIMB_LADDER:
+            case STATE_CLIMBING:
+            case STATE_DANGLING:
+            case STATE_JUMPING:
+                player_interface_move(p_person, input);
+                break;
+
+            case STATE_GRAPPLING:
+
+                if (p_person->SubState == SUB_STATE_GRAPPLING_WINDUP) {
+                    player_interface_move(p_person, input);
+                }
+
+                break;
+            default:
+                break;
+            }
+        } else {
+            if (p_person->Genus.Person->Action == ACTION_SIT_BENCH) {
+                if (input & (INPUT_MASK_FORWARDS | INPUT_MASK_MOVE)) {
+                    input_used |= INPUT_MASK_FORWARDS | INPUT_MASK_MOVE;
+
+                    set_person_idle(p_person);
+                }
+            }
+        }
+
+    } else {
+        if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M))
+            switch (p_person->State) {
+            case STATE_IDLE:
+                player_turn_left_right(p_person, 0);
+                break;
+            case STATE_MOVEING:
+                switch (p_person->SubState) {
+                case SUB_STATE_CRAWLING:
+                    set_person_idle_croutch(p_person);
+                    break;
+                default:
+                    player_stop_move(p_person, input);
+                }
+
+                break;
+                /*
+                                        case	STATE_CLIMB_LADDER:
+                                                switch(p_person->SubState)
+                                                {
+                                                        case	SUB_STATE_MOUNT_LADDER:
+                                                                break;
+                                                        case	SUB_STATE_STOPPING:
+                                                        case	SUB_STATE_ON_LADDER:
+                                                        case	SUB_STATE_CLIMB_UP_LADDER:
+                                                        case	SUB_STATE_CLIMB_DOWN_LADDER:
+                                                                player_stop_move(p_person,input);
+                                                                break;
+                                                }
+                */
+                /*
+                                                case	STATE_CLIMBING:
+                                                switch(p_person->SubState)
+                                                {
+                                                        case	SUB_STATE_STOPPING:
+                                                        case	SUB_STATE_CLIMB_UP_WALL:
+                                                        case	SUB_STATE_CLIMB_AROUND_WALL:
+                                                        case	SUB_STATE_CLIMB_DOWN_WALL:
+                                                                player_stop_move(p_person,input);
+                                                                break;
+                                                }
+                                                break;
+                */
+            case STATE_DANGLING:
+                switch (p_person->SubState) {
+                case SUB_STATE_STOPPING:
+                case SUB_STATE_DANGLING_CABLE_FORWARD:
+                case SUB_STATE_DANGLING_CABLE_BACKWARD:
+                case SUB_STATE_DANGLING_CABLE:
+                    player_stop_move(p_person, input);
+                    break;
+                }
+                break;
+            default:
+                p_player->Genus.Player->Input = input;
+                break;
+            }
+    }
+    return (processed | input_used);
+}
+
+// Forward declaration used by apply_button_input_fight.
+// uc_orig: count_gang (fallen/Source/pcom.cpp)
+extern UWORD count_gang(Thing* p_target);
+
+// uc_orig: apply_button_input_fight (fallen/Source/interfac.cpp)
+// Input handler for PERSON_MODE_FIGHT. Handles punch/kick direction combos, target selection,
+// fight stepping, flip, and exit from fight mode (MOVE without FORWARDS).
+ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
+{
+    Player* pl = p_player->Genus.Player;
+
+    if (p_person->SubState == SUB_STATE_IDLE_CROUTCH_ARREST)
+        return (0);
+
+    if (pl->Pressed & INPUT_MASK_PUNCH)
+        if (person_has_gun_out(p_person)) {
+            set_player_shoot(p_person, 0);
+            return (INPUT_MASK_PUNCH);
+        }
+
+    // Move button (without FORWARDS) exits combat mode.
+    if (!analogue) {
+        if (p_player->Genus.Player->Pressed & INPUT_MASK_MOVE && !(p_player->Genus.Player->Pressed & INPUT_MASK_FORWARDS)) {
+            if (p_person->Genus.Person->Flags & (FLAG_PERSON_HELPLESS | FLAG_PERSON_KO)) {
+                // In no fit state to run away.
+            } else {
+                p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+                set_person_running(p_person);
+                return (0);
+            }
+        }
+    }
+
+    /*
+           #ifdef MUST_DOUBLE_CLICK_FORWARDS_TO_GET_OUT_OF_FIGHT_MODE
+           ...
+           #endif
+    */
+
+    if (input) {
+        SLONG new_action;
+        ULONG input_used;
+
+        new_action = find_best_action_from_tree(p_person->Genus.Person->Action, input, &input_used);
+        switch (new_action) {
+        case ACTION_RESPAWN:
+            break;
+        }
+    }
+
+    if (p_person->SubState == SUB_STATE_STEP_FORWARD) {
+        if (p_player->Genus.Player->Pressed & INPUT_MASK_JUMP) {
+            switch (p_person->Draw.Tweened->CurrentAnim) {
+            case ANIM_FIGHT_STEP_E:
+                set_person_flip(p_person, 1);
+                return INPUT_MASK_JUMP;
+                break;
+            case ANIM_FIGHT_STEP_W:
+                set_person_flip(p_person, 0);
+                return INPUT_MASK_JUMP;
+                break;
+            }
+        }
+    }
+
+    extern SLONG get_combat_type_for_node(UBYTE current_node);
+
+    if ((pl->Pressed & INPUT_MASK_PUNCH) == 0 && (pl->Pressed & INPUT_MASK_KICK) == 0)
+        if (p_person->State == STATE_IDLE || (p_person->State == STATE_HIT_RECOIL && p_person->Draw.Tweened->FrameIndex > 2) || ((p_person->SubState == SUB_STATE_STEP_FORWARD || p_person->SubState == SUB_STATE_PUNCH || p_person->SubState == SUB_STATE_KICK)))
+            if (p_person->Draw.Tweened->CurrentAnim != ANIM_KICK_NAD)
+                if (p_person->Draw.Tweened->CurrentAnim != ANIM_LEG_SWEEP)
+                    if (p_person->Draw.Tweened->CurrentAnim != ANIM_KICK_LEFT)
+                        if (p_person->Draw.Tweened->CurrentAnim != ANIM_KICK_RIGHT)
+                            if (p_person->Draw.Tweened->CurrentAnim != ANIM_KICK_NS)
+                                if (p_person->Draw.Tweened->CurrentAnim != ANIM_KICK_BEHIND) {
+                                    if (input & INPUT_MASK_BACKWARDS) {
+
+                                        set_person_fight_step(p_person, 2);
+                                        return (0);
+                                    }
+                                    if (input & INPUT_MASK_FORWARDS) {
+                                        set_person_fight_step(p_person, 0);
+                                        return (0);
+                                    }
+                                    if (input & INPUT_MASK_RIGHT) {
+                                        set_person_fight_step(p_person, 1);
+                                        return (0);
+                                    }
+                                    if (input & INPUT_MASK_LEFT) {
+                                        set_person_fight_step(p_person, 3);
+                                        return (0);
+                                    }
+                                }
+    if ((pl->Pressed & INPUT_MASK_PUNCH) == 0 && (pl->Pressed & INPUT_MASK_KICK) == 0)
+        if (p_player->Genus.Player->Pressed & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT))
+            if (p_person->State == STATE_FIGHTING) {
+                if (p_person->SubState == SUB_STATE_KICK) {
+                    if (p_person->Draw.Tweened->CurrentAnim == ANIM_KICK_NS) {
+                        if (p_person->Draw.Tweened->FrameIndex < 2) {
+                            if (p_player->Genus.Player->Pressed & INPUT_MASK_LEFT) {
+                                set_person_flip(p_person, 0);
+                            } else if (p_player->Genus.Player->Pressed & INPUT_MASK_RIGHT) {
+                                set_person_flip(p_person, 1);
+                            }
+                        }
+                    }
+                }
+            }
+
+    if ((pl->Pressed & INPUT_MASK_PUNCH) == 0 && (pl->Pressed & INPUT_MASK_KICK) == 0)
+        if (p_person->State == STATE_IDLE) {
+            SLONG flags = 0;
+            if (p_player->Genus.Player->Pressed & INPUT_MASK_JUMP) {
+                if (p_player->Genus.Player->Pressed & INPUT_MASK_LEFT) {
+                    set_person_flip(p_person, 0);
+                } else if (p_player->Genus.Player->Pressed & INPUT_MASK_RIGHT) {
+                    set_person_flip(p_person, 1);
+                } else {
+                    set_person_fight_anim(p_person, ANIM_KICK_NS);
+                }
+
+                return (0);
+            }
+
+            if (flags) {
+                SLONG angle = input_to_angle[flags];
+                angle <<= 3;
+                angle += get_camera_angle();
+
+                angle &= 2047;
+
+                angle -= p_person->Draw.Tweened->Angle;
+                if (angle > 1024)
+                    angle -= 2048;
+                if (angle < -1024)
+                    angle += 2048;
+                angle >>= 1;
+
+                if (abs(angle) < 64) {
+                    void set_person_fight_step_forward(Thing * p_person);
+                    set_person_fight_step_forward(p_person);
+                }
+
+                p_person->Draw.Tweened->Angle += angle;
+                p_person->Draw.Tweened->Angle &= 2047;
+
+                turn_to_target(
+                    p_person,
+                    FIND_DIR_FRONT);
+            }
+        }
+
+        else if (p_person->State == STATE_FIGHTING) {
+            /*
+            ...combo/direction interrupt code (commented out in original)...
+            */
+
+            if (p_person->SubState == SUB_STATE_STEP_FORWARD) {
+                if (p_player->Genus.Player->Pressed & INPUT_MASK_JUMP) {
+                    switch (p_person->Draw.Tweened->CurrentAnim) {
+                    case ANIM_FIGHT_STEP_E:
+                        set_person_flip(p_person, 1);
+                        return INPUT_MASK_JUMP;
+                        break;
+                    case ANIM_FIGHT_STEP_W:
+                        set_person_flip(p_person, 0);
+                        return INPUT_MASK_JUMP;
+                        break;
+                    }
+                }
+
+                if (p_player->Genus.Player->Pressed & INPUT_MASK_BACKWARDS) {
+
+                    if (p_person->Draw.Tweened->CurrentAnim == ANIM_FIGHT_STEP_S) {
+                        if (p_person->Genus.Person->Timer1 < 4) {
+                            reset_gang_attack(p_person);
+                            turn_to_direction_and_find_target(p_person, FIND_DIR_BACK);
+
+                            set_person_fight_idle(p_person);
+                            return (INPUT_MASK_BACKWARDS);
+                        }
+                    }
+                }
+                if (p_player->Genus.Player->Pressed & INPUT_MASK_RIGHT) {
+                    if (p_person->Draw.Tweened->CurrentAnim == ANIM_FIGHT_STEP_E) {
+                        if (p_person->Genus.Person->Timer1 < 4) {
+                            reset_gang_attack(p_person);
+                            turn_to_direction_and_find_target(p_person, FIND_DIR_RIGHT);
+                            set_person_fight_idle(p_person);
+                            return (INPUT_MASK_RIGHT);
+                        }
+                    }
+                }
+                if (p_player->Genus.Player->Pressed & INPUT_MASK_LEFT) {
+                    if (p_person->Draw.Tweened->CurrentAnim == ANIM_FIGHT_STEP_W) {
+                        if (p_person->Genus.Person->Timer1 < 4) {
+                            reset_gang_attack(p_person);
+                            turn_to_direction_and_find_target(p_person, FIND_DIR_LEFT);
+                            set_person_fight_idle(p_person);
+                            return (INPUT_MASK_LEFT);
+                        }
+                    }
+                }
+            }
+        }
+
+    // Can only attack while idle or not mid-recoil.
+
+    if (p_person->SubState == SUB_STATE_GRAPPLE_HELD || is_person_ko(p_person)) {
+        if (pl->Pressed & (INPUT_MASK_ACTION | INPUT_MASK_PUNCH | INPUT_MASK_KICK | INPUT_MASK_JUMP)) {
+            p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_BLOCK;
+            pl->DoneSomething = UC_TRUE;
+            return (pl->Pressed & (INPUT_MASK_ACTION | INPUT_MASK_PUNCH | INPUT_MASK_KICK | INPUT_MASK_JUMP));
+        }
+        return (0);
+    }
+
+    if (pl->Pressed & INPUT_MASK_ACTION) {
+        extern UWORD find_arrestee(Thing * p_person);
+        if (p_person->SubState != SUB_STATE_GRAPPLE_HELD && p_person->SubState != SUB_STATE_GRAPPLE_HOLD)
+            if (p_person->State == STATE_IDLE || p_person->State == STATE_FIGHTING || p_person->SubState == SUB_STATE_RUN_STOP) {
+                UWORD index;
+
+                if (p_person->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_person))) {
+                    set_person_arrest(p_person, index);
+                    pl->DoneSomething = UC_TRUE;
+                    return INPUT_MASK_ACTION;
+                }
+
+                index = THING_find_nearest(
+                    p_person->WorldPos.X >> 8,
+                    p_person->WorldPos.Y >> 8,
+                    p_person->WorldPos.Z >> 8,
+                    0xa0,
+                    1 << CLASS_SPECIAL);
+
+                if (index) {
+                    Thing* special_thing = TO_THING(index);
+
+                    if (should_person_get_item(p_person, special_thing)) {
+                        set_person_special_pickup(p_person);
+
+                        return (INPUT_MASK_ACTION);
+                    }
+                }
+
+                person_pick_best_target(p_person, 1);
+                pl->DoneSomething = UC_TRUE;
+                return INPUT_MASK_ACTION;
+            }
+    }
+
+    if (p_person->State == STATE_IDLE || p_person->SubState == SUB_STATE_STEP_FORWARD) {
+        SLONG dir = 0;
+        if (p_person->SubState == SUB_STATE_STEP_FORWARD) {
+            switch (p_person->Draw.Tweened->CurrentAnim) {
+            case ANIM_FIGHT_STEP_N:
+            case ANIM_FIGHT_STEP_N_BAT:
+                dir = 1;
+                break;
+            case ANIM_FIGHT_STEP_E:
+            case ANIM_FIGHT_STEP_E_BAT:
+                dir = 2;
+                break;
+            case ANIM_FIGHT_STEP_S:
+            case ANIM_FIGHT_STEP_S_BAT:
+                dir = 3;
+                break;
+            case ANIM_FIGHT_STEP_W:
+            case ANIM_FIGHT_STEP_W_BAT:
+                dir = 4;
+                break;
+            }
+        }
+        if (pl->Pressed & INPUT_MASK_PUNCH) {
+            /*
+            ...directional punch code (commented out in original)...
+            */
+            {
+                // Forward punch.
+                set_player_punch(p_person);
+            }
+
+            pl->DoneSomething = UC_TRUE;
+        } else if (pl->Pressed & INPUT_MASK_KICK) {
+            if (p_person->Genus.Person->Timer1 < 5 || (input & (INPUT_MASK_DIR))) {
+                if ((input & INPUT_MASK_LEFT) || dir == 4) {
+                    if (p_person->State != STATE_JUMPING) {
+                        turn_to_target(
+                            p_person,
+                            FIND_DIR_LEFT | FIND_DIR_DONT_TURN);
+
+                        set_person_kick_dir(p_person, 3);
+
+                        MSG_add("Kick left");
+                        return (INPUT_MASK_KICK | INPUT_MASK_LEFT);
+                    }
+                } else if ((input & INPUT_MASK_RIGHT) || dir == 2) {
+                    if (p_person->State != STATE_JUMPING) {
+                        turn_to_target(
+                            p_person,
+                            FIND_DIR_RIGHT | FIND_DIR_DONT_TURN);
+
+                        set_person_kick_dir(p_person, 1);
+
+                        MSG_add("Kick right");
+                        return (INPUT_MASK_KICK | INPUT_MASK_RIGHT);
+                    }
+                } else if ((input & INPUT_MASK_BACKWARDS) || dir == 3) {
+                    if (p_person->State != STATE_JUMPING) {
+                        turn_to_target(
+                            p_person,
+                            FIND_DIR_BACK | FIND_DIR_DONT_TURN);
+
+                        p_person->Genus.Person->Timer1 = 6;
+
+                        set_person_kick_dir(p_person, 2);
+
+                        MSG_add("Kick back");
+                        return (INPUT_MASK_KICK | INPUT_MASK_BACKWARDS);
+                    }
+                }
+            }
+
+            if (p_person->State != STATE_JUMPING) {
+                // Forward kick.
+                turn_to_target_and_kick(p_person);
+            }
+
+            pl->DoneSomething = UC_TRUE;
+        } else if (pl->Pressed & INPUT_MASK_ACTION) {
+            // ACTION in fight mode exits to idle.
+            p_person->Genus.Person->Mode = PERSON_MODE_RUN;
+            set_person_idle(p_person);
+
+            pl->DoneSomething = UC_TRUE;
+            return (INPUT_MASK_ACTION);
+        }
+        /*
+                        if ((pl->Released & INPUT_MASK_LEFT) && !pl->DoneSomething)
+                        {
+                                turn_to_target(p_person, FIND_DIR_TURN_LEFT);
+                        }
+
+                        if ((pl->Released & INPUT_MASK_RIGHT) && !pl->DoneSomething)
+                        {
+                                turn_to_target(p_person, FIND_DIR_TURN_RIGHT);
+                        }
+        */
+    } else {
+        // Combo queuing: set REQUEST flags when buttons pressed during a fighting animation.
+        if (pl->Pressed & INPUT_MASK_PUNCH) {
+            if (!(p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH)) {
+                p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_PUNCH;
+
+                // Timer used to check if the gap between combo stages is short enough.
+                p_person->Genus.Person->pcom_ai_counter = 0;
+            }
+        }
+
+        if (pl->Pressed & INPUT_MASK_KICK) {
+            if (!(p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_KICK)) {
+                p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_KICK;
+                p_person->Genus.Person->pcom_ai_counter = 0;
+            }
+        }
+    }
+
+    return 0;
+}
+
+// uc_orig: apply_button_input_car (fallen/Source/interfac.cpp)
+// Translates the input bitmask into steering/throttle/brake for the vehicle the player is driving.
+// Analogue: uses joypad X axis with damping (STEERING_MAX_DELTA per frame).
+// Digital: steering = -1/0/+1.
+ULONG apply_button_input_car(Thing* p_furn, ULONG input)
+{
+    ULONG processed_input = 0;
+
+    ASSERT(p_furn->Class == CLASS_VEHICLE);
+
+    Vehicle* veh = p_furn->Genus.Vehicle;
+
+    if (analogue) {
+        /*
+                        SLONG	dx,vx;
+
+                        dx = GET_JOYX(input);	// -128 to 127
+                        vx = p_furn->Velocity-1000;
+                        SATURATE(vx,0,1000);
+
+                        vx = 64000-(vx*48);
+
+                        veh->IsAnalog = 1;
+
+                        dx =(((dx+31)&0xffffffe0) * vx) >> 17;	// now -64 to +63, * (290/256)
+                        SATURATE(dx,-32,32);
+
+                        veh->Steering = dx;
+        */
+
+        // Damped analogue steering.
+        static SWORD wCurrentSteering = 0;
+#define STEERING_MAX_DELTA 30
+        SWORD wSteering = (GET_JOYX(input));
+        if ((input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT)) == 0) {
+            wSteering = 0;
+        }
+
+        if (wCurrentSteering > wSteering) {
+            wCurrentSteering -= STEERING_MAX_DELTA;
+            if (wCurrentSteering < wSteering) {
+                wCurrentSteering = wSteering;
+            }
+        } else {
+            wCurrentSteering += STEERING_MAX_DELTA;
+            if (wCurrentSteering > wSteering) {
+                wCurrentSteering = wSteering;
+            }
+        }
+        veh->Steering = wCurrentSteering;
+
+        veh->IsAnalog = 1;
+
+    } else {
+        veh->IsAnalog = 0;
+        veh->Steering = 0;
+
+        if (input & INPUT_MASK_LEFT)
+            veh->Steering--;
+        if (input & INPUT_MASK_RIGHT)
+            veh->Steering++;
+    }
+
+    veh->DControl = 0;
+
+    if (input & INPUT_CAR_ACCELERATE)
+        veh->DControl |= VEH_ACCEL;
+    else if (input & INPUT_CAR_DECELERATE)
+        veh->DControl |= VEH_DECEL;
+    if (input & INPUT_CAR_GOFASTER)
+        veh->DControl |= VEH_FASTER;
+    if (input & INPUT_CAR_SIREN)
+        veh->DControl |= VEH_SIREN;
+
+    return (processed_input);
+}
+
+// uc_orig: set_look_pitch (fallen/Source/interfac.cpp)
+// Forces the first-person look pitch to a specific value (called from cutscene/EWAY code).
+void set_look_pitch(SLONG p)
+{
+    look_pitch = p;
+}
+
+// uc_orig: get_last_input (fallen/Source/interfac.cpp)
+// Returns the last polled hardware input. Pass INPUT_TYPE_GONEDOWN to get only newly-pressed buttons.
+ULONG get_last_input(UWORD type)
+{
+    if (type == INPUT_TYPE_GONEDOWN) {
+        return (m_CurrentGoneDownInput);
+    } else {
+        ASSERT(type == 0);
+        return (m_CurrentInput);
+    }
+}
+
+// uc_orig: get_hardware_input (fallen/Source/interfac.cpp)
+// Polls the DirectInput device and keyboard, packs all button states and analog axes into a ULONG.
+// Analog X axis goes to bits 18-24, Y axis to bits 25-31 (GET_JOYX/GET_JOYY unpack them).
+// Pass INPUT_TYPE_KEY | INPUT_TYPE_JOY for full input; add INPUT_TYPE_GONEDOWN for edge-only.
+ULONG get_hardware_input(UWORD type)
+{
+    ULONG input = 0;
+    ULONG padd;
+    SLONG dist;
+    UWORD c0;
+
+    static bool bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
+
+#define BUTTON_IS_PRESSED(value) (value)
+
+    // Deadzone constants for the DirectInput analogue stick (PC path: 0..65535, centre 32768).
+    // Replace with SDL_GetGamepadAxis deadzone equivalent when porting to SDL3.
+#define AXIS_CENTRE 32768
+#define NOISE_TOLERANCE 8192
+#define AXIS_MIN (AXIS_CENTRE - NOISE_TOLERANCE)
+#define AXIS_MAX (AXIS_CENTRE + NOISE_TOLERANCE)
+
+    // DirectInput state: the_state (DIJOYSTATE) is filled by ReadInputDevice() each frame.
+    // Replace with SDL_GetGamepadState() + SDL_GetGamepadAxis/Button when porting.
+    extern DIJOYSTATE the_state;
+
+    DWORD dwCurrentTime = 0;
+
+    if (type & INPUT_TYPE_JOY) {
+        if (ReadInputDevice()) {
+            DIJOYSTATE my_copy_of_the_state;
+            {
+                ULONG ulAxisMax = AXIS_MAX;
+                ULONG ulAxisMin = AXIS_MIN;
+
+                if (the_state.lX > ulAxisMax) {
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                    input |= INPUT_MASK_RIGHT;
+                } else if (the_state.lX < ulAxisMin) {
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                    input |= INPUT_MASK_LEFT;
+                }
+
+                if (the_state.lY > ulAxisMax) {
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                    input |= INPUT_MASK_BACKWARDS;
+                } else if (the_state.lY < ulAxisMin) {
+                    input |= INPUT_MASK_FORWARDS;
+                    input |= INPUT_MASK_MOVE;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_MOVE]])) {
+                    m_bForceWalk = UC_TRUE;
+                } else {
+                    m_bForceWalk = UC_FALSE;
+                }
+
+                // Pack analog axes into bits 18-24 (X) and 25-31 (Y) of the input word.
+                // DirectInput range 0-65535 >> 9 gives 0-127; GET_JOYX/GET_JOYY unpack to -128..+127.
+                if (analogue) {
+                    input |= ((the_state.lX >> 9) + 0) << 18;
+                    input |= ((the_state.lY >> 9) + 0) << 25;
+                }
+
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_JUMP]])) {
+                    input |= INPUT_MASK_JUMP;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_KICK]])) {
+                    input |= INPUT_MASK_KICK;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_PUNCH]])) {
+                    input |= INPUT_MASK_PUNCH;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_START]])) {
+                    input |= INPUT_MASK_START;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_SELECT]])) {
+                    input |= INPUT_MASK_SELECT;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_CAMERA]])) {
+                    input |= INPUT_MASK_CAMERA;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_CAM_LEFT]])) {
+                    input |= INPUT_MASK_CAM_LEFT;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT]])) {
+                    input |= INPUT_MASK_CAM_RIGHT;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_ACTION]])) {
+                    MSG_add(" action pressed \n");
+                    input |= INPUT_MASK_ACTION;
+                    g_dwLastInputChangeTime = dwCurrentTime;
+                }
+            }
+
+            if (input) {
+                input_mode = INPUT_JOYPAD;
+                m_CurrentInput = input;
+
+                if (bLastInputWasntAnInputCozThereWasNoController) {
+                    // Ignore buttons that were already held when the controller was inserted.
+                    m_PreviousInput = m_CurrentInput;
+                    bLastInputWasntAnInputCozThereWasNoController = UC_FALSE;
+                }
+
+                m_CurrentGoneDownInput = (m_CurrentInput & ~(m_PreviousInput)) & INPUT_MASK_ALL_BUTTONS;
+                m_PreviousInput = m_CurrentInput;
+                if (type & INPUT_TYPE_GONEDOWN) {
+                    return (m_CurrentGoneDownInput);
+                } else {
+                    return (m_CurrentInput);
+                }
+            }
+        } else {
+            bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
+        }
+    }
+
+    if (type & INPUT_TYPE_KEY) {
+
+        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
+            input |= INPUT_MASK_FORWARDS;
+        }
+
+        if (Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]])
+            input |= INPUT_MASK_BACKWARDS;
+
+        if (Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]]) {
+            if (ShiftFlag)
+                input |= INPUT_MASK_STEP_LEFT;
+            else
+                input |= INPUT_MASK_LEFT;
+        }
+
+        if (Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
+            if (ShiftFlag)
+                input |= INPUT_MASK_STEP_RIGHT;
+            else
+                input |= INPUT_MASK_RIGHT;
+        }
+
+        if (Keys[keybrd_button_use[JOYPAD_BUTTON_SELECT]])
+            input |= INPUT_MASK_SELECT;
+
+        if (Keys[KB_F5]) {
+            input |= INPUT_MASK_CAMERA;
+            input &= ~INPUT_MASKM_CAM_TYPE;
+            input |= INPUT_MASKM_CAM1;
+            Keys[KB_F5] = 0;
+        }
+        if (Keys[KB_F6]) {
+            input |= INPUT_MASK_CAMERA;
+            input &= ~INPUT_MASKM_CAM_TYPE;
+            input |= INPUT_MASKM_CAM2;
+            Keys[KB_F6] = 0;
+        }
+        if (Keys[KB_F7]) {
+            input |= INPUT_MASK_CAMERA;
+            input &= ~INPUT_MASKM_CAM_TYPE;
+            input |= INPUT_MASKM_CAM3;
+            Keys[KB_F7] = 0;
+        }
+
+        /*
+        if(Keys[KB_F8])
+        {
+                input|=INPUT_MASK_CAMERA;
+                input&=~INPUT_MASKM_CAM_TYPE;
+                input|=INPUT_MASKM_CAM4;
+                Keys[KB_F8]=0;
+        }
+        */
+
+        if (Keys[keybrd_button_use[JOYPAD_BUTTON_CAMERA]]) {
+            Keys[keybrd_button_use[JOYPAD_BUTTON_CAMERA]] = 0;
+            input |= INPUT_MASK_CAM_BEHIND;
+        }
+
+        if (Keys[keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT]]) {
+            Keys[JOYPAD_BUTTON_CAM_LEFT] = 0;
+            input |= INPUT_MASK_CAM_LEFT;
+        }
+        if (Keys[keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]]) {
+            Keys[keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]] = 0;
+            input |= INPUT_MASK_CAM_RIGHT;
+        }
+
+        if (Keys[keybrd_button_use[JOYPAD_BUTTON_JUMP]])
+            input |= INPUT_MASK_JUMP;
+
+        if (Keys[keybrd_button_use[JOYPAD_BUTTON_PUNCH]]) {
+            input |= INPUT_MASK_PUNCH;
+        }
+        if (Keys[keybrd_button_use[JOYPAD_BUTTON_KICK]]) {
+            MSG_add(" HARDWARE KICK");
+            input |= INPUT_MASK_KICK;
+        }
+
+        if (Keys[keybrd_button_use[JOYPAD_BUTTON_ACTION]]) {
+            input |= INPUT_MASK_ACTION;
+        }
+
+        /*
+
+        // Take out the V key?!
+
+        if(Keys[keybrd_button_use[JOYPAD_BUTTON_MOVE]])
+        {
+                input|=INPUT_MASK_MOVE;
+        }
+        */
+
+        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
+            input |= INPUT_MASK_MOVE;
+        }
+    }
+
+    /*
+
+    if (EWAY_stop_player_moving())
+    {
+        input&=INPUT_MASK_JUMP;
+    }
+
+    */
+
+    /*
+            if (SNIPE_on)
+            {
+                    ...sniper mode input (all commented out in original)...
+            }
+    */
+
+    if (input) {
+        input_mode = INPUT_KEYS;
+    }
+
+    m_CurrentInput = input;
+    m_CurrentGoneDownInput = (m_CurrentInput & ~(m_PreviousInput)) & INPUT_MASK_ALL_BUTTONS;
+    m_PreviousInput = m_CurrentInput;
+    if (type & INPUT_TYPE_GONEDOWN) {
+        return (m_CurrentGoneDownInput);
+    } else {
+        return (m_CurrentInput);
+    }
+}
+
+// uc_orig: allow_input_autorepeat (fallen/Source/interfac.cpp)
+// Clears the previous-input state so the next get_hardware_input(GONEDOWN) will return all
+// currently-held buttons as "newly pressed" (used in menus to allow held navigation).
+void allow_input_autorepeat(void)
+{
+    m_PreviousInput = 0;
+}
+
+// uc_orig: pre_process_input (fallen/Source/interfac.cpp)
+// Hook for remapping input before dispatching. Currently a pass-through (all remapping
+// code is commented out in the original).
+ULONG pre_process_input(SLONG mode, ULONG input)
+{
+    return (input);
+    /*
+            UWORD	output;
+
+            output=input;
+
+            switch(mode)
+            {
+                    case	PERSON_MODE_FIGHT:
+                            break;
+                    case	PERSON_MODE_RUN:
+                            if(input&(INPUT_MASK_SPRINT|INPUT_MASK_YOMP))
+                            {
+                                    output|=INPUT_MASK_FORWARDS;
+                            }
+                            break;
+            }
+            return(output);
+    */
+}
+
+// uc_orig: apply_button_input_first_person (fallen/Source/interfac.cpp)
+// Handles first-person look-around mode when JOYPAD_BUTTON_1STPERSON is held.
+// Rotates the camera pitch and character angle without consuming movement input.
+// Returns non-zero if first-person mode is active this frame.
+ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG input, ULONG* processed)
+{
+    static SLONG look_ami = UC_FALSE;
+    SLONG fpm = UC_FALSE;
+    SLONG gun = 0;
+
+    *processed = 0;
+
+    // DirectInput state needed directly for the 1st-person button check.
+    // Replace with SDL_GetGamepadButton when porting.
+    extern DIJOYSTATE the_state;
+
+    if ((Keys[keybrd_button_use[JOYPAD_BUTTON_1STPERSON]]) || the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_1STPERSON]]) {
+        fpm = UC_TRUE;
+    }
+
+    if (p_person->State != STATE_IDLE && p_person->State != STATE_GUN && p_person->State != STATE_NORMAL && p_person->State != STATE_HIT_RECOIL) {
+        fpm = UC_FALSE;
+    }
+
+    /*
+    else
+    if (p_person->Genus.Person->Action == ACTION_AIM_GUN || ...)
+    {
+        ...draw-gun / special aim cases (commented out in original)...
+    }
+    */
+
+    if (fpm) {
+
+        if (!look_ami) {
+            p_person->Genus.Person->Flags2 |= FLAG2_PERSON_LOOK;
+            look_ami = UC_TRUE;
+            look_pitch = -FC_cam[p_person->Genus.Person->PlayerID - 1].pitch >> 8;
+            look_pitch &= 2047;
+
+            if (look_pitch > 1024) {
+                look_pitch -= 2048;
+            }
+
+            look_pitch >>= 4;
+            look_pitch &= 2047;
+        }
+
+        if (mouse_input) {
+            if (MouseDY) {
+                look_pitch -= MouseDY;
+            }
+            if (MouseDX) {
+                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - MouseDX) & 2047;
+            }
+        }
+
+        if (input & INPUT_MASK_FORWARDS) {
+            look_pitch += 13;
+            input &= ~INPUT_MASK_MOVE;
+        }
+        if (input & INPUT_MASK_BACKWARDS) {
+            look_pitch -= 13;
+        }
+
+        if (!CONTROLS_inventory_mode) {
+            if (input & INPUT_MASK_LEFT) {
+                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + 32) & 2047;
+            }
+
+            if (input & INPUT_MASK_RIGHT) {
+                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - 32) & 2047;
+            }
+        }
+
+        if (input & INPUT_MASK_MOVE) {
+            set_person_running(p_person);
+        }
+
+        if (look_pitch > 256 && look_pitch <= 1024) {
+            look_pitch = 256;
+        }
+        if (look_pitch < 1850 && look_pitch >= 1024) {
+            look_pitch = 1850;
+        }
+
+        look_pitch &= 2047;
+
+        FC_position_for_lookaround(p_person->Genus.Person->PlayerID - 1, look_pitch);
+
+        if (person_has_gun_out(p_person)) {
+            if (input & INPUT_MASK_PUNCH) {
+                if (p_person->Genus.Person->Action == ACTION_SHOOT) {
+                    /*
+
+                    //
+                    // Only the pistol animation can be interrupted so you
+                    // can shoot again.
+                    //
+
+                    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
+                    {
+                            set_player_shoot(p_person,0);
+                            *processed|=INPUT_MASK_PUNCH; //needs a clear click
+                    }
+
+                    */
+                } else {
+                    set_player_shoot(p_person, 0);
+                    *processed |= INPUT_MASK_PUNCH;
+                }
+            }
+
+            /*
+            if(input&INPUT_MASK_SELECT)
+            {
+                    set_person_gun_away(p_person);
+                    *processed|=INPUT_MASK_SELECT;
+
+            }
+            */
+        }
+    } else {
+        if (look_ami) {
+            p_person->Genus.Person->Flags2 &= ~FLAG2_PERSON_LOOK;
+
+            if (CNET_network_game) {
+                if (p_person->Genus.Person->PlayerID - 1 == PLAYER_ID) {
+                    FC_force_camera_behind(0);
+                }
+            } else
+                FC_force_camera_behind(p_person->Genus.Person->PlayerID - 1);
+
+            look_ami = UC_FALSE;
+            look_pitch = 0;
+        }
+    }
+
+    FirstPersonMode = fpm;
+    return (fpm);
+}
+
+// uc_orig: can_darci_change_weapon (fallen/Source/interfac.cpp)
+// Returns true if the player character is in a state that allows weapon switching.
+// Blocks during reload animations, grabs, death slides, etc.
+SLONG can_darci_change_weapon(Thing* p_person)
+{
+    if (EWAY_stop_player_moving()) {
+        return UC_FALSE;
+    }
+
+    if (p_person->State == STATE_IDLE) {
+        return UC_TRUE;
+    }
+
+    if (p_person->State == STATE_MOVEING) {
+        if (p_person->SubState == SUB_STATE_RUNNING || p_person->SubState == SUB_STATE_WALKING) {
+            return UC_TRUE;
+        }
+    }
+
+    if (p_person->State == STATE_GUN) {
+        if (p_person->SubState == SUB_STATE_AIM_GUN) {
+            return UC_TRUE;
+        }
+    }
+    if (p_person->SubState == SUB_STATE_ITEM_AWAY)
+        return UC_TRUE;
+
+    if (p_person->SubState == SUB_STATE_DRAW_ITEM)
+        return UC_TRUE;
+
+    if (p_person->SubState == SUB_STATE_DRAW_GUN)
+        return UC_TRUE;
+
+    return UC_FALSE;
+}
+
+// uc_orig: process_hardware_level_input_for_player (fallen/Source/interfac.cpp)
+// Per-frame entry point for player input. Reads the packet for this player, handles camera
+// switching, applies InputDone masking, and dispatches to the appropriate input handler
+// (driving / fight / normal).
+void process_hardware_level_input_for_player(Thing* p_player)
+{
+    SLONG i;
+
+    ULONG input;
+    ULONG last;
+    ULONG processed = 0;
+    // BUGFIX-OC-TICK-OVERFLOW: original used SLONG which can go negative after ~25 days uptime.
+    DWORD tick = GetTickCount();
+
+    Thing* p_person;
+    p_person = p_player->Genus.Player->PlayerPerson;
+
+    input = PACKET_DATA(p_player->Genus.Player->PlayerID);
+
+    Player* pl = p_player->Genus.Player;
+
+    // Camera controls are processed before InputDone / cutscene blocking,
+    // so the player can still switch cameras during cutscenes.
+    if (pl->Pressed & INPUT_MASK_CAMERA) {
+        g_iPlayerCameraMode = input & INPUT_MASKM_CAM_TYPE;
+        g_iPlayerCameraMode >>= INPUT_MASKM_CAM_SHIFT;
+        input &= ~INPUT_MASKM_CAM_TYPE;
+        if (CNET_network_game) {
+            if (p_person->Genus.Person->PlayerID - 1 == PLAYER_ID) {
+                FC_change_camera_type(0, g_iPlayerCameraMode);
+                FC_force_camera_behind(0);
+            }
+        } else {
+
+            FC_change_camera_type(p_person->Genus.Person->PlayerID - 1, g_iPlayerCameraMode);
+            FC_force_camera_behind(p_person->Genus.Person->PlayerID - 1);
+        }
+    }
+
+    if (input & INPUT_MASK_CAM_BEHIND) {
+
+        if (CNET_network_game) {
+            if (p_person->Genus.Person->PlayerID - 1 == PLAYER_ID) {
+                FC_force_camera_behind(0);
+            }
+        } else {
+            FC_force_camera_behind(p_person->Genus.Person->PlayerID - 1);
+        }
+    }
+
+    if (input & INPUT_MASK_CAM_LEFT) {
+        if (CNET_network_game) {
+            if (p_person->Genus.Person->PlayerID - 1 == PLAYER_ID) {
+                FC_rotate_left(p_person->Genus.Person->PlayerID - 1);
+            }
+        } else
+            FC_rotate_left(p_person->Genus.Person->PlayerID - 1);
+    }
+
+    if (input & INPUT_MASK_CAM_RIGHT) {
+        if (CNET_network_game) {
+            if (p_person->Genus.Person->PlayerID - 1 == PLAYER_ID) {
+                FC_rotate_left(0);
+            }
+        } else
+            FC_rotate_right(p_person->Genus.Person->PlayerID - 1);
+    }
+
+    // Compute per-frame pressed/released edge states.
+    pl->LastInput = pl->ThisInput;
+    pl->ThisInput = input;
+
+    pl->Pressed = pl->ThisInput & ~pl->LastInput;
+    pl->Released = ~pl->ThisInput & pl->LastInput;
+
+    /*
+
+    if (pl->Pressed & INPUT_MASK_JUMP)
+    {
+            CBYTE str[100];
+
+            sprintf(str, "Pressed jump turn %d\n", GAME_TURN);
+
+    }
+
+    */
+
+    if (pl->Pressed) {
+        pl->DoneSomething = UC_FALSE;
+    }
+
+    // Double-click detection: DoubleClick[i] counts consecutive presses of button i within 200ms.
+    // GetTickCount() gives Windows wall-clock milliseconds.
+    // Port: replace GetTickCount() with SDL_GetTicks() or std::chrono.
+    for (i = 0; i < 16; i++) {
+        if (pl->Pressed & (1 << i)) {
+            if (pl->LastReleased[i] >= tick - 200) {
+                pl->DoubleClick[i] += 1;
+            } else {
+                pl->DoubleClick[i] = 1;
+            }
+        }
+    }
+
+    for (i = 0; i < 16; i++) {
+        if (pl->Released & (1 << i)) {
+            pl->LastReleased[i] = tick;
+        }
+    }
+
+    if (input & INPUT_MASK_ACTION) {
+        MSG_add(" still action");
+    }
+
+    SLONG no_control = UC_FALSE;
+
+    if (EWAY_stop_player_moving()) {
+        // Mid-cutscene: suppress all player input and reset map-leave timer.
+        input = 0;
+        form_left_map = 15;
+    }
+
+    if (form_leave_map) {
+        input = 0;
+    }
+
+    if (draw_map_screen) {
+        if ((input & INPUT_MASK_SELECT) && (input & INPUT_MASK_MOVE)) {
+            // SELECT + MOVE on the map screen quits the current session.
+            GAME_STATE = 0;
+        }
+
+        input = 0;
+    }
+
+    if (form_left_map) {
+        input = 0;
+        form_left_map -= 1;
+    }
+
+    // InputDone: bitmask of buttons that were already processed in a previous frame and are
+    // still held. Clear bits that have been released, then mask them out of this frame's input.
+    p_player->Genus.Player->InputDone &= (input & 0x3ffff);
+    p_player->Genus.Player->Input = input;
+
+    input &= ~(p_player->Genus.Player->InputDone);
+
+    if (!no_control) {
+        if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
+            // Can't draw weapons while driving.
+        } else {
+            // Keyboard weapon hotkeys (PC only).
+            if (can_darci_change_weapon(p_person)) {
+                if (Keys[KB_1]) {
+                    Keys[KB_1] = 0;
+
+                    if ((p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) || (p_person->Genus.Person->SpecialUse)) {
+                        set_person_gun_away(p_person);
+                    }
+                }
+
+                if (Keys[KB_2]) {
+                    Keys[KB_2] = 0;
+
+                    if (!(p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)) {
+                        if (p_person->Flags & FLAGS_HAS_GUN) {
+                            if (p_person->Genus.Person->SpecialUse) {
+                                set_person_item_away(p_person);
+                            }
+
+                            set_person_draw_gun(p_person);
+                        } else {
+                            /*
+                                                                                    add_damage_text(
+                                                                                            p_person->WorldPos.X          >> 8,
+                                                                                            p_person->WorldPos.Y + 0x6000 >> 8,
+                                                                                            p_person->WorldPos.Z          >> 8,
+                                                                                            "No Gun");
+                            */
+                        }
+                    }
+                }
+
+                SLONG special_type = SPECIAL_NONE;
+
+                if (Keys[KB_3]) {
+                    Keys[KB_3] = 0;
+                    special_type = SPECIAL_SHOTGUN;
+                }
+                if (Keys[KB_4]) {
+                    Keys[KB_4] = 0;
+                    special_type = SPECIAL_AK47;
+                }
+                if (Keys[KB_5]) {
+                    Keys[KB_5] = 0;
+                    special_type = SPECIAL_GRENADE;
+                }
+                if (Keys[KB_6]) {
+                    Keys[KB_6] = 0;
+                    special_type = SPECIAL_EXPLOSIVES;
+                }
+                if (Keys[KB_7]) {
+                    Keys[KB_7] = 0;
+                    special_type = SPECIAL_KNIFE;
+                }
+                if (Keys[KB_8]) {
+                    Keys[KB_8] = 0;
+                    special_type = SPECIAL_BASEBALLBAT;
+                }
+
+                if (special_type) {
+                    if (person_has_special(p_person, special_type)) {
+                        if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+                            set_person_gun_away(p_person);
+                        }
+
+                        set_person_draw_item(p_person, special_type);
+                    } else {
+                        /*
+                                                                        CBYTE str[40];
+
+                                                                        sprintf(str, "No %s", SPECIAL_info[special_type].name);
+
+                                                                        add_damage_text(
+                                                                                p_person->WorldPos.X >> 8,
+                                                                                p_person->WorldPos.Y + 0x6000 >> 8,
+                                                                                p_person->WorldPos.Z          >> 8,
+                                                                                str);
+                        */
+                    }
+                }
+            }
+        }
+
+        if (!apply_button_input_first_person(p_player, p_person, input, &processed)) {
+
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
+                ASSERT(p_person->Genus.Person->InCar);
+
+                processed = apply_button_input_car(TO_THING(p_person->Genus.Person->InCar), input);
+                processed |= apply_button_input(p_player, p_person, 0);
+            }
+            {
+                // Main input dispatcher: fight mode vs normal run mode.
+                // pre_process_input() can remap buttons between modes (currently pass-through).
+                if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
+                    input = pre_process_input(PERSON_MODE_FIGHT, input);
+                    processed = apply_button_input_fight(p_player, p_person, input);
+                } else {
+                    input = pre_process_input(PERSON_MODE_RUN, input);
+                    processed = apply_button_input(p_player, p_person, input);
+                }
+            }
+        }
+    }
+
+    p_player->Genus.Player->InputDone |= processed;
+}
+
+// uc_orig: continue_action (fallen/Source/interfac.cpp)
+// Returns true if the player is still holding the input that triggered the current flip action.
+SLONG continue_action(Thing* p_person)
+{
+    Thing* p_player;
+    ULONG input, input_used, new_action;
+    if (p_person->Genus.Person->PlayerID) {
+        p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
+        input = p_player->Genus.Player->Input;
+        MSG_add(" continue action %d  input %x \n", p_person->Genus.Person->Action, input);
+        switch (p_person->Genus.Person->Action) {
+        case ACTION_FLIP_LEFT:
+            new_action = find_best_action_from_tree(ACTION_IDLE, input, &input_used);
+            if (new_action == ACTION_FLIP_LEFT)
+                return (1);
+            break;
+        case ACTION_FLIP_RIGHT:
+            new_action = find_best_action_from_tree(ACTION_IDLE, input, &input_used);
+            if (new_action == ACTION_FLIP_RIGHT)
+                return (1);
+            break;
+        }
+    }
+    return (0);
+}
+
+// uc_orig: continue_pressing_action (fallen/Source/interfac.cpp)
+// Returns true if the player is still holding the ACTION button.
+SLONG continue_pressing_action(Thing* p_person)
+{
+    Thing* p_player;
+    ULONG input, input_used, new_action;
+    if (p_person->Genus.Person->PlayerID) {
+        p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
+        input = p_player->Genus.Player->Input;
+        if (input & INPUT_MASK_ACTION)
+            return (1);
+        else
+            return (0);
+    }
+    return (1);
+}
+
+// uc_orig: set_action_used (fallen/Source/interfac.cpp)
+// Marks the ACTION button as consumed for this press so it is not re-processed next frame.
+void set_action_used(Thing* p_person)
+{
+    Thing* p_player;
+    if (p_person->Genus.Person->PlayerID) {
+        p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
+        p_player->Genus.Player->InputDone |= INPUT_MASK_ACTION;
+    }
+}
+
+// uc_orig: continue_dir (fallen/Source/interfac.cpp)
+// Returns true if the player is holding the LEFT (dir==0) or RIGHT (dir==1) input.
+SLONG continue_dir(Thing* p_person, SLONG dir)
+{
+    Thing* p_player;
+    ULONG input;
+    if (p_person->Genus.Person->PlayerID) {
+        p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
+        input = p_player->Genus.Player->Input;
+        if (dir == 1) {
+            if (input & INPUT_MASK_RIGHT)
+                return (1);
+        }
+
+        if (dir == 0) {
+            if (input & INPUT_MASK_LEFT)
+                return (1);
+        }
+    }
+
+    return (0);
+}
+
+// uc_orig: continue_firing (fallen/Source/interfac.cpp)
+// Returns true if the player/NPC should keep firing (PUNCH held, AK47 has ammo, target alive).
+SLONG continue_firing(Thing* p_person)
+{
+    Thing* p_player;
+    ULONG input;
+
+    if (p_person->Genus.Person->SpecialUse) {
+        Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+        if (p_special->Genus.Special->SpecialType == SPECIAL_AK47) {
+            if (p_special->Genus.Special->ammo == 0) {
+                return UC_FALSE;
+            }
+        }
+    }
+
+    if (p_person->Genus.Person->PlayerID) {
+        p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
+        input = PACKET_DATA(p_player->Genus.Player->PlayerID);
+
+        if (input & INPUT_MASK_PUNCH) {
+            return UC_TRUE;
+        } else {
+            return UC_FALSE;
+        }
+    } else {
+        Thing* p_target;
+        UWORD i_target;
+
+        // NPC: fire until the target is dead.
+        i_target = PCOM_person_wants_to_kill(p_person);
+
+        if (i_target) {
+            p_target = TO_THING(i_target);
+
+            if (p_target->State == STATE_DEAD) {
+                return UC_FALSE;
+            } else {
+                return UC_TRUE;
+            }
+        }
+
+        return UC_FALSE;
+    }
+}
+
+// uc_orig: continue_moveing (fallen/Source/interfac.cpp)
+// Returns true if the player/NPC should keep moving. For player: checks analog stick magnitude
+// and direction vs current facing; for NPC: delegates to PCOM navigation.
+SLONG continue_moveing(Thing* p_person)
+{
+    Thing* p_player;
+    ULONG input;
+    if (p_person->Genus.Person->PlayerID) {
+        p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
+        input = p_player->Genus.Player->Input;
+        if (analogue) {
+            SLONG angle, dx, dy;
+
+            dx = llabs(GET_JOYX(input));
+            dy = llabs(GET_JOYY(input));
+            if (QDIST2(dx, dy) < ANALOGUE_MIN_VELOCITY) {
+                return (0);
+            }
+
+            if (p_person->State == STATE_JUMPING)
+                return (1);
+
+            angle = get_joy_angle(input, JOY_REL_CAMERA);
+
+            angle -= p_person->Draw.Tweened->Angle;
+
+            if (abs(angle) < 512 || angle > 2048 - 512) {
+                return (1);
+            } else {
+                return (0);
+            }
+
+        } else {
+            if (input & (INPUT_MASK_MOVE | INPUT_MASK_FORWARDS))
+                return (1);
+            else
+                return (0);
+        }
+    } else {
+        return PCOM_jumping_navigating_person_continue_moving(p_person);
+    }
+}
+
+// uc_orig: continue_blocking (fallen/Source/interfac.cpp)
+// Returns true if the player is still holding BACKWARDS (block direction) input.
+SLONG continue_blocking(Thing* p_person)
+{
+    Thing* p_player;
+    ULONG input;
+    if (p_person->Genus.Person->PlayerID) {
+        p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
+        input = p_player->Genus.Player->Input;
+        if (input & (INPUT_MASK_BACKWARDS))
+            return (1);
+        else {
+            return (0);
+        }
+    } else {
+        return 0;
+    }
+}
+
+// uc_orig: remove_action_used (fallen/Source/interfac.cpp)
+// Clears the InputDone flag for ACTION so it can fire again next frame.
+void remove_action_used(Thing* p_person)
+{
+    Thing* p_player;
+    ULONG input;
+    if (p_person->Genus.Person->PlayerID) {
+        p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
+        p_player->Genus.Player->InputDone &= ~INPUT_MASK_ACTION;
+    }
 }

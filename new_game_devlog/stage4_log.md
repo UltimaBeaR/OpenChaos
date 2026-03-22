@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 129 — ui/interfac chunk 3 (apply_button_input + hardware input + input helpers → new/ui/interfac.cpp) (2026-03-22)
+
+- `interfac.cpp` chunk 3 (lines 3185–5784): `apply_button_input`, `apply_button_input_fight`, `apply_button_input_car`, `apply_button_input_first_person`, `get_last_input`, `get_hardware_input`, `pre_process_input`, `set_look_pitch`, `allow_input_autorepeat`, `can_darci_change_weapon`, `process_hardware_level_input_for_player`, `continue_action`, `continue_pressing_action`, `set_action_used`, `continue_dir`, `continue_firing`, `continue_moveing`, `continue_blocking`, `remove_action_used` → `new/ui/interfac.cpp`.
+- Globals moved to `interfac_globals.cpp`: `last_camera_*`, `look_pitch`, `debug_input`, `m_CurrentInput/Previous/GoneDown`, `g_dwLastInputChangeTime`, `FirstPersonMode`, `g_iPlayerCameraMode`, `input_to_angle[]`. CHECK B violation fixed during self-review.
+- `apply_button_input` had 2-arg declaration in original `interfac.h` but 3-arg definition — corrected to 3-arg in new `interfac.h`.
+- `reset_gang_attack` defined in `pcom.cpp` but not declared in `pcom.h` — added `extern` forward declaration.
+- `input_to_angle[]` has only 14 entries in original (not 16) — ported exactly as-is.
+- All of `interfac.cpp` is now migrated (3 chunks across iterations 126–129). File remains in old/ as a shell with includes + externs only.
+
+---
+
 ## Итерация 128 — engine/graphics/graphics_api/display (GDisplay.cpp → display.cpp + display_globals) (2026-03-22)
 
 - `GDisplay.cpp` (2200 lines) → `display.cpp` + `display_globals.cpp` + `display_globals.h`.
