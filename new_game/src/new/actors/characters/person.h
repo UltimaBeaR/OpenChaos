@@ -998,4 +998,147 @@ void init_person_command(Thing* p_person);
 // uc_orig: mav_arrived (fallen/Source/Person.cpp)
 SLONG mav_arrived(Thing* p_person);
 
+// --- chunk 12: person_mav_again..push_people_apart ---
+
+// Always asserts — dead stub left from unfinished MAV system.
+// uc_orig: person_mav_again (fallen/Source/Person.cpp)
+SLONG person_mav_again(Thing* p_person);
+
+// Always asserts — dead stub; MAV navigation was never shipped.
+// uc_orig: get_dx_dz_for_dir (fallen/Source/Person.cpp)
+void get_dx_dz_for_dir(SLONG dir, SLONG* dx, SLONG* dz);
+
+// Always asserts — dead stub.
+// uc_orig: init_new_mav (fallen/Source/Person.cpp)
+void init_new_mav(Thing* p_person);
+
+// Always asserts — dead stub.
+// uc_orig: fn_person_mavigate_action (fallen/Source/Person.cpp)
+void fn_person_mavigate_action(Thing* p_person);
+
+// STATE_MAVIGATING state machine — always asserts (disabled in original).
+// uc_orig: fn_person_mavigate (fallen/Source/Person.cpp)
+void fn_person_mavigate(Thing* p_person);
+
+// Starts the grappling hook pickup animation and enters STATE_GRAPPLING/pickup sub-state.
+// uc_orig: set_person_grappling_hook_pickup (fallen/Source/Person.cpp)
+void set_person_grappling_hook_pickup(Thing* p_person);
+
+// STATE_GRAPPLING state machine: pickup, windup, and release sub-states for grappling hook.
+// uc_orig: fn_person_grapple (fallen/Source/Person.cpp)
+void fn_person_grapple(Thing* p_person);
+
+// Always asserts — unfinished MAV targeting by world coordinate.
+// uc_orig: set_person_mav_to_xz (fallen/Source/Person.cpp)
+void set_person_mav_to_xz(Thing* p_person, SLONG x, SLONG z);
+
+// Always asserts — unfinished MAV targeting by Thing.
+// uc_orig: set_person_mav_to_thing (fallen/Source/Person.cpp)
+void set_person_mav_to_thing(Thing* p_person, Thing* p_target);
+
+// Returns which surface type (metal, water, etc.) the person is standing on in sewers.
+// uc_orig: person_is_on_sewer (fallen/Source/Person.cpp)
+SLONG person_is_on_sewer(Thing* p_person);
+
+// Returns which surface type the person is standing on (puddle, map texture, prim, etc.).
+// Returns PERSON_ON_* constant or negative texture-mapped value.
+// uc_orig: person_is_on (fallen/Source/Person.cpp)
+SLONG person_is_on(Thing* p_person);
+
+// Starts the can-pickup animation and enters STATE_CANNING/pickup sub-state.
+// uc_orig: set_person_can_pickup (fallen/Source/Person.cpp)
+void set_person_can_pickup(Thing* p_person);
+
+// Starts the can/grenade throw animation if person has something to throw.
+// uc_orig: set_person_can_release (fallen/Source/Person.cpp)
+void set_person_can_release(Thing* p_person, SLONG power);
+
+// Starts the special-item pickup animation and enters STATE_CANNING/get-special sub-state.
+// uc_orig: set_person_special_pickup (Thing* p_person);
+void set_person_special_pickup(Thing* p_person);
+
+// STATE_CANNING state machine: pickup, throw can/grenade, get-barrel (asserts), get-special.
+// uc_orig: fn_person_can (fallen/Source/Person.cpp)
+void fn_person_can(Thing* p_person);
+
+// Starts a non-interruptible single animation and enters STATE_MOVEING/simple-anim sub-state.
+// uc_orig: set_person_do_a_simple_anim (fallen/Source/Person.cpp)
+void set_person_do_a_simple_anim(Thing* p_person, SLONG anim);
+
+// Re-enters the circling fight stance; picks block or idle based on request flags.
+// Only valid for NPCs (asserts PlayerID == 0).
+// uc_orig: set_person_recircle (fallen/Source/Person.cpp)
+void set_person_recircle(Thing* p_person);
+
+// Targets p_target for melee circling and enters STATE_CIRCLING.
+// uc_orig: set_person_circle (fallen/Source/Person.cpp)
+void set_person_circle(Thing* p_person, Thing* p_target);
+
+// Starts the wall-peek-out animation for wall-hugging (dir: 0=left, 1=right).
+// uc_orig: set_person_hug_wall_leap_out (fallen/Source/Person.cpp)
+void set_person_hug_wall_leap_out(Thing* p_person, SLONG dir);
+
+// Snaps person into the hug-wall standing pose; dangle offsets the lock angle, locked controls animation style.
+// uc_orig: set_person_hug_wall_stand (fallen/Source/Person.cpp)
+void set_person_hug_wall_stand(Thing* p_person, SLONG dangle = 0, SLONG locked = 1);
+
+// Finds the nearest wall facet within max_dist of (px,pz) at person's Y level.
+// Sets near_facet as a side effect. Returns signed distance or 0 if none found.
+// uc_orig: check_near_facet (fallen/Source/Person.cpp)
+SLONG check_near_facet(Thing* p_person, SLONG max_dist, SLONG max_end_dist, SLONG px, SLONG pz);
+
+// Returns non-zero (wall angle + 1) if person can press against a nearby normal wall, 0 otherwise.
+// uc_orig: can_i_hug_wall (fallen/Source/Person.cpp)
+SLONG can_i_hug_wall(Thing* p_person);
+
+// Returns true if moving by (dx,dz) keeps person on flat-enough ground outside NOGO.
+// uc_orig: move_ok (fallen/Source/Person.cpp)
+SLONG move_ok(Thing* p_person, SLONG dx, SLONG dz);
+
+// STATE_HUG_WALL state machine: turn, stand, sidle left/right, peek-out sub-states.
+// uc_orig: fn_person_hug_wall (fallen/Source/Person.cpp)
+void fn_person_hug_wall(Thing* p_person);
+
+// STATE_CIRCLING state machine: orbit target, maintain hit-distance, deliver punches/kicks.
+// uc_orig: fn_person_circle (fallen/Source/Person.cpp)
+void fn_person_circle(Thing* p_person);
+
+// Legacy circling function — superseded by fn_person_circle (kept for reference).
+// uc_orig: fn_person_circle_old (fallen/Source/Person.cpp)
+void fn_person_circle_old(Thing* p_person);
+
+// Returns person render scale in 8.8 fixed point (256 = normal size).
+// Called ~15 times per character per frame from the figure renderer.
+// uc_orig: person_get_scale (fallen/Source/Person.cpp)
+SLONG person_get_scale(Thing* t);
+
+// Returns how many game ticks (1/20 s each) the given animation takes to play once.
+// uc_orig: how_long_is_anim (fallen/Source/Person.cpp)
+SLONG how_long_is_anim(SLONG anim);
+
+// Returns true if the person is in a state where conversation can be triggered.
+// uc_orig: person_ok_for_conversation (fallen/Source/Person.cpp)
+SLONG person_ok_for_conversation(Thing* p_person);
+
+// Enters the STATE_FLOAT/up sub-state (person floats upward, used by Bane boss summon).
+// uc_orig: set_person_float_up (fallen/Source/Person.cpp)
+void set_person_float_up(Thing* p_person);
+
+// Transitions from floating to the downward float sub-state. Only call while already floating.
+// uc_orig: set_person_float_down (fallen/Source/Person.cpp)
+void set_person_float_down(Thing* p_person);
+
+// STATE_FLOAT state machine: float up, bob in place, float back down to ground level.
+// uc_orig: fn_person_float (fallen/Source/Person.cpp)
+void fn_person_float(Thing* p_person);
+
+// Puts person into an injured-idle loop animation (STATE_DEAD sub-state DEAD_INJURED).
+// uc_orig: set_person_injured (fallen/Source/Person.cpp)
+void set_person_injured(Thing* p_person);
+
+// Pushes p_person at least half a block away from p_avoid if they are overlapping.
+// No-ops for warehouse occupants or if already far enough apart.
+// uc_orig: push_people_apart (fallen/Source/Person.cpp)
+void push_people_apart(Thing* p_person, Thing* p_avoid);
+
 #endif // ACTORS_CHARACTERS_PERSON_H

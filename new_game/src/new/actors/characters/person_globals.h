@@ -82,4 +82,8 @@ extern UWORD near_facet;
 // uc_orig: kick_or_punch (fallen/Source/Person.cpp)
 extern SLONG kick_or_punch;
 
+// Direction index to angle lookup (0=N, 1=E, 2=W, 3=S), used by MAV navigation stubs.
+// uc_orig: dir_to_angle (fallen/Source/Person.cpp)
+extern UWORD dir_to_angle[];
+
 #endif // ACTORS_CHARACTERS_PERSON_GLOBALS_H

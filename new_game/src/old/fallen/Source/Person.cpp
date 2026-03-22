@@ -17270,6 +17270,7 @@ SLONG mav_arrived(Thing* p_person)
 
 #endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 102) [person_new_combat_node..mav_arrived]
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 103) [person_mav_again..fn_person_mavigate]
 SLONG person_mav_again(Thing* p_person)
 {
     ASSERT(0);
@@ -17303,7 +17304,9 @@ void fn_person_mavigate(Thing* p_person)
 {
     ASSERT(0);
 }
+#endif // MIGRATED
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 103) [set_person_grappling_hook_pickup..push_people_apart]
 void set_person_grappling_hook_pickup(Thing* p_person)
 {
     //
@@ -19163,3 +19166,4 @@ void push_people_apart(Thing* p_person, Thing* p_avoid)
         //
     }
 }
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 103) [set_person_grappling_hook_pickup..push_people_apart]

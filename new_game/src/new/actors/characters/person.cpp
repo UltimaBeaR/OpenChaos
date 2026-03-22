@@ -113,12 +113,12 @@ extern void get_car_enter_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz)
 extern SLONG find_best_grapple(Thing* p_person);
 extern UWORD PCOM_person_wants_to_kill(Thing* p_person);
 extern SLONG continue_moveing(Thing* p_person); // interfac.cpp
-extern SLONG person_is_on_sewer(Thing* p_person); // Person.cpp (not yet migrated)
+// person_is_on_sewer: now defined in this file (chunk 12 below)
 // chunk 9 additional externs
 extern SLONG mount_ladder(Thing* p_thing, SLONG facet); // collide.cpp
 // player_running_aim_gun: defined in this file (chunk 10 below)
 extern SLONG continue_firing(Thing* p_person); // interfac.cpp
-extern void set_person_do_a_simple_anim(Thing* p_person, SLONG anim); // Person.cpp (not yet migrated)
+// set_person_do_a_simple_anim: now defined in this file (chunk 12 below)
 // chunk 10 additional externs (Person.cpp not yet migrated)
 // get_pitch_to_thing_quick: now defined in this file (chunk 11 below)
 // turn_to_face_thing_quick: now defined in this file (chunk 11 below)
@@ -13057,4 +13057,1670 @@ SLONG mav_arrived(Thing* p_person)
     ASSERT(0);
 
     return 0;
+}
+
+// ============================================================
+// chunk 12: person_mav_again..push_people_apart
+// (lines 17272-19165 of original Person.cpp)
+// ============================================================
+
+// Dead stub — MAV movement system was not completed.
+// uc_orig: person_mav_again (fallen/Source/Person.cpp)
+SLONG person_mav_again(Thing* p_person)
+{
+    ASSERT(0);
+
+    return 0;
+}
+
+// Dead stub — direction-to-XZ helper for unfinished MAV navigation.
+// uc_orig: get_dx_dz_for_dir (fallen/Source/Person.cpp)
+void get_dx_dz_for_dir(SLONG dir, SLONG* dx, SLONG* dz)
+{
+    ASSERT(0);
+}
+
+// Dead stub — MAV initialisation never completed.
+// uc_orig: init_new_mav (fallen/Source/Person.cpp)
+void init_new_mav(Thing* p_person)
+{
+    ASSERT(0);
+}
+
+// Dead stub — MAV action handler never completed.
+// uc_orig: fn_person_mavigate_action (fallen/Source/Person.cpp)
+void fn_person_mavigate_action(Thing* p_person)
+{
+    ASSERT(0);
+}
+
+// Dead stub — STATE_MAVIGATING handler; MAV system was never shipped.
+// uc_orig: fn_person_mavigate (fallen/Source/Person.cpp)
+void fn_person_mavigate(Thing* p_person)
+{
+    ASSERT(0);
+}
+
+// Plays the grappling hook pickup animation and enters STATE_GRAPPLING pickup sub-state.
+// uc_orig: set_person_grappling_hook_pickup (fallen/Source/Person.cpp)
+void set_person_grappling_hook_pickup(Thing* p_person)
+{
+    set_anim(p_person, ANIM_GRAPPLING_HOOK_PICKUP);
+    set_generic_person_state_function(p_person, STATE_GRAPPLING);
+    p_person->SubState = SUB_STATE_GRAPPLING_PICKUP;
+}
+
+// STATE_GRAPPLING state machine.
+// SUB_STATE_GRAPPLING_PICKUP: waits for frame 2, spins hook at hand position, then windup.
+// SUB_STATE_GRAPPLING_WINDUP: plays windup at half speed.
+// SUB_STATE_GRAPPLING_RELEASE: releases hook when still spinning, then returns to idle.
+// uc_orig: fn_person_grapple (fallen/Source/Person.cpp)
+void fn_person_grapple(Thing* p_person)
+{
+    SLONG end;
+    switch (p_person->SubState) {
+    case SUB_STATE_GRAPPLING_PICKUP:
+
+        if (p_person->Draw.Tweened->FrameIndex == 2) {
+            SLONG px;
+            SLONG py;
+            SLONG pz;
+
+            calc_sub_objects_position(
+                p_person,
+                p_person->Draw.Tweened->AnimTween,
+                SUB_OBJECT_RIGHT_HAND,
+                &px,
+                &py,
+                &pz);
+
+            px += p_person->WorldPos.X >> 8;
+            py += p_person->WorldPos.Y >> 8;
+            pz += p_person->WorldPos.Z >> 8;
+
+            HOOK_spin(
+                px,
+                py,
+                pz,
+                p_person->Draw.Tweened->Angle,
+                50);
+
+            p_person->Genus.Person->Flags |= FLAG_PERSON_GRAPPLING;
+        }
+
+        end = person_normal_animate(p_person);
+
+        if (end) {
+            set_person_grapple_windup(p_person);
+        }
+
+        break;
+
+    case SUB_STATE_GRAPPLING_WINDUP:
+
+        person_normal_animate_speed(p_person, 256);
+
+        break;
+
+    case SUB_STATE_GRAPPLING_RELEASE:
+
+        if (/*p_person->Draw.Tweened->FrameIndex == 2 &&*/ HOOK_get_state() == HOOK_STATE_SPINNING) {
+            HOOK_release();
+            p_person->Genus.Person->Flags &= ~FLAG_PERSON_GRAPPLING;
+        }
+
+        end = person_normal_animate_speed(p_person, 512);
+
+        if (end) {
+            set_person_idle(p_person);
+        }
+
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+}
+
+// Dead stub — MAV navigation to world-space coordinate never implemented.
+// uc_orig: set_person_mav_to_xz (fallen/Source/Person.cpp)
+void set_person_mav_to_xz(Thing* p_person, SLONG x, SLONG z)
+{
+    ASSERT(0);
+}
+
+// Dead stub — MAV navigation to another Thing never implemented.
+// uc_orig: set_person_mav_to_thing (fallen/Source/Person.cpp)
+void set_person_mav_to_thing(Thing* p_person, Thing* p_target)
+{
+    ASSERT(0);
+}
+
+// Returns which surface type the person is standing on when inside sewers.
+// Checks NS_hi grate/water flags at the person's map-grid position.
+// uc_orig: person_is_on_sewer (fallen/Source/Person.cpp)
+SLONG person_is_on_sewer(Thing* p_person)
+{
+    NS_Hi* ns;
+    ns = &NS_hi[p_person->WorldPos.X >> (8 + PAP_SHIFT_HI)][p_person->WorldPos.Z >> (8 + PAP_SHIFT_HI)];
+    if (ns->packed & NS_HI_FLAG_GRATE)
+        return PERSON_ON_METAL;
+    if (ns->water)
+        return PERSON_ON_SEWATER;
+    return PERSON_ON_WATER;
+}
+
+// Returns which surface type the person is standing on.
+// Checks sewers first, then OnFace prim metal flag, then puddles, then texture sound mapping.
+// Returns PERSON_ON_* or a negative texture-based value. Returns 255 on fallback (comment: "SUCKS SO HARD").
+// uc_orig: person_is_on (fallen/Source/Person.cpp)
+SLONG person_is_on(Thing* p_person)
+{
+    if (GAME_FLAGS & GF_SEWERS) {
+        if (p_person->Flags & FLAGS_IN_SEWERS) {
+            return person_is_on_sewer(p_person);
+        }
+    }
+    if (p_person->OnFace) {
+        if (p_person->OnFace > 0) {
+            if (prim_faces4[p_person->OnFace].FaceFlags & FACE_FLAG_METAL) {
+                return PERSON_ON_METAL;
+            }
+            //			if (prim_faces4[p_person->OnFace].ThingIndex > 0)
+            {
+                return PERSON_ON_PRIM;
+            }
+        }
+    }
+    //	else
+    {
+        if (PUDDLE_in(
+                p_person->WorldPos.X >> 8,
+                p_person->WorldPos.Z >> 8)) {
+            return PERSON_ON_WATER;
+        }
+
+        SLONG mx = p_person->WorldPos.X >> 16;
+        SLONG mz = p_person->WorldPos.Z >> 16;
+
+        if (WITHIN(mx, 0, MAP_WIDTH - 1) && WITHIN(mz, 0, MAP_HEIGHT - 1)) {
+
+            SLONG page = PAP_2HI(mx, mz).Texture & 0x3ff;
+
+            page = SOUND_FXMapping[page];
+
+            if (page == 255)
+                page = 5;
+
+            if (page == 0)
+                return 255; // fallback: page 0 has no mapping, return sentinel
+
+            return -page;
+
+            // return -SOUND_FXMapping[page];
+
+            /*			if (page == 65 ||
+                                            page == 66 ||
+                                            page == 143)
+                                    {
+                                            return PERSON_ON_WOOD;
+                                    }
+
+                                    if (page >= 69 && page <= 74)
+                                    {
+                                            return PERSON_ON_GRASS;
+                                    }
+
+                                    if (page == 68 || (page >= 106 && page <= 111))
+                                    {
+                                            return PERSON_ON_GRAVEL;
+                                    }*/
+        }
+    }
+
+    return PERSON_ON_DUNNO;
+}
+
+// Plays the can-pickup animation and enters STATE_CANNING pickup sub-state.
+// uc_orig: set_person_can_pickup (fallen/Source/Person.cpp)
+void set_person_can_pickup(Thing* p_person)
+{
+    set_anim(p_person, ANIM_CAN_PICKUP);
+    set_generic_person_state_function(p_person, STATE_CANNING);
+    p_person->SubState = SUB_STATE_CANNING_PICKUP;
+}
+
+// Starts the throw animation if person has a can, grenade, or activated mine to throw.
+// Uses goto to share the common setup path.
+// uc_orig: set_person_can_release (fallen/Source/Person.cpp)
+void set_person_can_release(Thing* p_person, SLONG power)
+{
+    Thing* p_special;
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_CANNING) {
+        goto something_to_throw;
+    }
+
+    if (p_person->Genus.Person->SpecialUse) {
+        p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+        if (p_special->Genus.Special->SpecialType == SPECIAL_GRENADE) {
+            goto something_to_throw;
+        }
+    }
+
+    p_special = person_has_special(p_person, SPECIAL_MINE);
+
+    if (p_special->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
+        goto something_to_throw;
+    }
+
+    return;
+
+something_to_throw:;
+
+    set_anim(p_person, ANIM_CAN_RELEASE);
+    set_generic_person_state_function(p_person, STATE_CANNING);
+    p_person->SubState = SUB_STATE_CANNING_RELEASE;
+}
+
+// Plays the pickup animation and enters STATE_CANNING get-special sub-state.
+// uc_orig: set_person_special_pickup (fallen/Source/Person.cpp)
+void set_person_special_pickup(Thing* p_person)
+{
+    set_anim(p_person, ANIM_CAN_PICKUP);
+    set_generic_person_state_function(p_person, STATE_CANNING);
+    p_person->SubState = SUB_STATE_CANNING_GET_SPECIAL;
+}
+
+// STATE_CANNING state machine.
+// SUB_STATE_CANNING_PICKUP: picks up can/head at frame (3 + AnimType).
+// SUB_STATE_CANNING_RELEASE: releases can or throws grenade at frame 3.
+// SUB_STATE_CANNING_GET_BARREL: always asserts (commented out in original).
+// SUB_STATE_CANNING_GET_SPECIAL: picks up nearest special item at frame (3 + AnimType).
+// uc_orig: fn_person_can (fallen/Source/Person.cpp)
+void fn_person_can(Thing* p_person)
+{
+    SLONG end;
+
+    switch (p_person->SubState) {
+    case SUB_STATE_CANNING_PICKUP:
+
+        //			if (p_person->Draw.Tweened->FrameIndex == 4)	// i.e. if you have reached the bottom of the pickup animation
+
+        if (p_person->Draw.Tweened->FrameIndex == (3 + p_person->Genus.Person->AnimType)) {
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_CANNING) {
+                // Already got a can.
+            } else {
+                MFX_play_thing(THING_NUMBER(p_person), S_PICKUP_SWISH, 0, p_person);
+
+                SLONG px;
+                SLONG py;
+                SLONG pz;
+
+                calc_sub_objects_position(
+                    p_person,
+                    p_person->Draw.Tweened->AnimTween,
+                    SUB_OBJECT_PREFERRED_HAND,
+                    &px,
+                    &py,
+                    &pz);
+
+                px += p_person->WorldPos.X >> 8;
+                py += p_person->WorldPos.Y >> 8;
+                pz += p_person->WorldPos.Z >> 8;
+
+                DIRT_pick_up_can_or_head(p_person);
+            }
+        }
+
+        end = person_normal_animate(p_person);
+
+        if (end) {
+            set_person_idle(p_person);
+        }
+
+        break;
+
+    case SUB_STATE_CANNING_RELEASE:
+
+    {
+        // SLONG when = (p_person->Genus.Person->AnimType==ANIM_TYPE_ROPER) ? 7 : 3;
+
+        if (p_person->Draw.Tweened->FrameIndex == 3) {
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_CANNING) {
+                DIRT_release_can_or_head(p_person, 128);
+            } else {
+                Thing* p_special;
+
+                if (p_person->Genus.Person->SpecialUse && TO_THING(p_person->Genus.Person->SpecialUse)->Genus.Special->SpecialType == SPECIAL_GRENADE) {
+                    p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+
+                    if (p_special->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
+                        SPECIAL_throw_grenade(TO_THING(p_person->Genus.Person->SpecialUse));
+                    }
+                }
+                /*
+
+                //
+                // You can't throw mines any more.
+                //
+
+                else
+                {
+                        p_special = person_has_special(p_person, SPECIAL_MINE);
+
+                        if (p_special)
+                        {
+                                if (p_special->SubState == SPECIAL_SUBSTATE_ACTIVATED)
+                                {
+                                        SPECIAL_throw_mine(p_special);
+                                }
+                        }
+                }
+
+                */
+            }
+        }
+
+        end = person_normal_animate(p_person);
+
+        if (end) {
+            set_person_idle(p_person);
+        }
+    }
+
+    break;
+
+    case SUB_STATE_CANNING_GET_BARREL:
+
+        ASSERT(0);
+
+        /*
+
+        end = person_normal_animate(p_person);
+
+        if (end)
+        {
+                //
+                // Finished throwing the barrel.
+                //
+
+                set_person_idle(p_person);
+
+                return;
+        }
+
+        if (p_person->Draw.Tweened->FrameIndex == 2)
+        {
+                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_BARRELING))
+                {
+                        //
+                        // Find a barrel to pickup.
+                        //
+
+                        p_person->Genus.Person->Hold = THING_find_nearest(
+                                                                                                p_person->WorldPos.X >> 8,
+                                                                                                p_person->WorldPos.Y >> 8,
+                                                                                                p_person->WorldPos.Z >> 8,
+                                                                                                0x80,
+                                                                                                (1 << CLASS_BARREL));
+
+                        if (p_person->Genus.Person->Hold == NULL)
+                        {
+                                //
+                                // No barrel to pickup.
+                                //
+
+                                set_person_idle(p_person);
+                        }
+                        else
+                        {
+                                p_person->Genus.Person->Flags |= FLAG_PERSON_BARRELING;
+                        }
+                }
+        }
+
+        if (p_person->Genus.Person->Flags & FLAG_PERSON_BARRELING)
+
+        {
+                BARREL_position_on_hands(TO_THING(p_person->Genus.Person->Hold), p_person);
+        }
+
+        {
+                if (p_person->Draw.Tweened->FrameIndex == 9 || (p_person->Draw.Tweened->FrameIndex == 8 && p_person->Draw.Tweened->AnimTween >= 128))
+                {
+
+
+                        if (p_person->Genus.Person->Flags & FLAG_PERSON_BARRELING)
+                        {
+                                //
+                                // Release the barrel.
+                                //
+
+                                BARREL_throw(TO_THING(p_person->Genus.Person->Hold));
+
+                                p_person->Genus.Person->Flags &= ~FLAG_PERSON_BARRELING;
+                        }
+                }
+        }
+
+        */
+
+        break;
+
+    case SUB_STATE_CANNING_GET_SPECIAL:
+
+        if (p_person->Draw.Tweened->FrameIndex == (3 + p_person->Genus.Person->AnimType)) {
+            UWORD s_index;
+            Thing* s_thing;
+
+            MFX_play_thing(THING_NUMBER(p_person), S_PICKUP_SWISH, 0, p_person);
+            s_index = THING_find_nearest(
+                p_person->WorldPos.X >> 8,
+                p_person->WorldPos.Y >> 8,
+                p_person->WorldPos.Z >> 8,
+                0xa0,
+                1 << CLASS_SPECIAL);
+
+            if (s_index) {
+                s_thing = TO_THING(s_index);
+
+                if (should_person_get_item(p_person, s_thing)) {
+                    person_get_item(p_person, s_thing);
+                    p_person->SubState = SUB_STATE_CANNING_GOT_SPECIAL;
+                }
+            }
+        }
+
+        // FALLTHROUGH!
+
+    case SUB_STATE_CANNING_GOT_SPECIAL:
+
+        end = person_normal_animate(p_person);
+
+        if (end) {
+            set_person_idle(p_person);
+        }
+
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+}
+
+// Starts a single non-interruptible animation in STATE_MOVEING/simple-anim sub-state.
+// Sets NON_INT flags to prevent interruption by movement or combat commands.
+// uc_orig: set_person_do_a_simple_anim (fallen/Source/Person.cpp)
+void set_person_do_a_simple_anim(Thing* p_person, SLONG anim)
+{
+    set_anim(p_person, anim);
+    set_generic_person_state_function(p_person, STATE_MOVEING);
+    p_person->SubState = SUB_STATE_SIMPLE_ANIM;
+    p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
+}
+
+// Re-enters circling stance. Applies any queued block request, then finds idle fight stance.
+// Targets the most recently tracked kill target if none is set.
+// uc_orig: set_person_recircle (fallen/Source/Person.cpp)
+void set_person_recircle(Thing* p_person)
+{
+    SLONG anim;
+    ASSERT(p_person->Genus.Person->PlayerID == 0);
+
+    if (p_person->Genus.Person->Target == NULL) {
+        p_person->Genus.Person->Target = PCOM_person_wants_to_kill(p_person);
+    }
+
+    if (p_person->SubState == SUB_STATE_BLOCK)
+        return;
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_BLOCK) {
+        p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_BLOCK;
+        set_person_block(p_person);
+        return;
+    }
+
+    anim = find_idle_fight_stance(p_person);
+    set_anim(p_person, anim);
+    p_person->Genus.Person->Timer1 = 0;
+    set_generic_person_state_function(p_person, STATE_CIRCLING);
+    if (p_person->Genus.Person->Agression > -10)
+        p_person->SubState = SUB_STATE_CIRCLING_CIRCLE;
+    else
+        p_person->SubState = SUB_STATE_CIRCLING_BACK_OFF;
+    p_person->Genus.Person->Mode = PERSON_MODE_FIGHT;
+}
+
+// Targets p_target, sets up orbit position/aggression and enters STATE_CIRCLING back-off sub-state.
+// uc_orig: set_person_circle (fallen/Source/Person.cpp)
+void set_person_circle(Thing* p_person, Thing* p_target)
+{
+    SLONG dx, dy, dz;
+    SLONG anim;
+    ASSERT(p_person->Genus.Person->PlayerID == 0);
+
+    p_person->Genus.Person->Target = THING_NUMBER(p_target);
+    ASSERT(p_person->Genus.Person->Target != THING_NUMBER(p_person));
+    ASSERT(TO_THING(p_person->Genus.Person->Target)->Class == CLASS_PERSON);
+    p_person->Genus.Person->Timer1 = 0;
+    ASSERT(p_person->Genus.Person->Target != THING_NUMBER(p_person));
+
+    anim = find_idle_fight_stance(p_person);
+    set_anim(p_person, anim);
+
+    set_generic_person_state_function(p_person, STATE_CIRCLING);
+
+    p_person->SubState = SUB_STATE_CIRCLING_BACK_OFF;
+    //
+    // STACK  collide_against_things/sweep_feet/attack_happened/set_person_ai_kill/pcomset_move_circle
+    //
+    //	calc_sub_objects_position(p_target,p_target->Draw.Tweened->AnimTween,SUB_OBJECT_PELVIS,&dx,&dy,&dz);
+    p_person->Genus.Person->TargetX = (p_target->WorldPos.X >> 8); //+dx;
+    p_person->Genus.Person->TargetZ = (p_target->WorldPos.Z >> 8); //+dz;
+    p_person->Genus.Person->Agression = -21;
+    p_person->Genus.Person->Mode = PERSON_MODE_FIGHT;
+}
+
+// Plays the wall-peek animation for the given direction (0=left, 1=right).
+// Clears the person's current action so input processing doesn't fire again.
+// uc_orig: set_person_hug_wall_leap_out (fallen/Source/Person.cpp)
+void set_person_hug_wall_leap_out(Thing* p_person, SLONG dir)
+{
+    SLONG anim;
+    p_person->SubState = SUB_STATE_HUG_WALL_LEAP_OUT;
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+        anim = ANIM_PRESS_WALL_FREEZE_L_PISTOL;
+    } else if (person_holding_2handed(p_person)) {
+        anim = ANIM_PRESS_WALL_FREEZE_L_AK;
+    } else {
+        anim = ANIM_PRESS_WALL_FREEZE_L;
+    }
+    if (dir == 1)
+        anim++;
+    //	set_locked_anim(p_person,anim,SUB_OBJECT_LEFT_FOOT);
+    set_anim(p_person, anim);
+    p_person->Genus.Person->Action = ACTION_NONE;
+}
+
+// Sets person into wall-hug standing pose.
+// locked=1 uses set_locked_anim_angle (angle-locked to the wall); locked=0 uses set_anim.
+// dangle offsets the locked angle (e.g. 1024 = turned 180 degrees from wall normal).
+// uc_orig: set_person_hug_wall_stand (fallen/Source/Person.cpp)
+void set_person_hug_wall_stand(Thing* p_person, SLONG dangle, SLONG locked)
+{
+    SLONG anim;
+    SLONG dist, dx, dz;
+    p_person->SubState = SUB_STATE_HUG_WALL_STAND;
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+        anim = ANIM_PRESS_WALL_STAND_PISTOL;
+    } else if (person_holding_2handed(p_person)) {
+        anim = ANIM_PRESS_WALL_STAND_AK;
+    } else {
+        anim = ANIM_PRESS_WALL_STAND;
+    }
+    if (!locked) {
+        set_anim(p_person, anim);
+    } else {
+        set_locked_anim_angle(p_person, anim, SUB_OBJECT_PELVIS, dangle);
+    }
+    /*
+            if((dist=abs(check_near_facet(p_person,64,64,(p_person->WorldPos.X)>>8,(p_person->WorldPos.Z)>>8)))==0)
+            {
+                    return;
+            }
+            else
+            if(abs(32-dist)<32)
+            {
+                    SLONG	angle;
+                    angle=(p_person->Draw.Tweened->Angle)&2047;
+
+                    dx = -(SIN(angle) * (32-dist)) >> 8;
+                    dz = -(COS(angle) * (32-dist)) >> 8;
+                    person_normal_move_dxdz(p_person,dx,dz);
+
+            }
+    */
+
+    //	set_anim(p_person,anim);
+}
+
+// Scans up to 5 map cells (centre + 4 neighbours) for the nearest collision facet
+// within max_dist of (px,pz) at the person's standing height.
+// Sets the global near_facet index as a side effect.
+// Returns signed distance to the nearest facet, or 0 if none within max_dist.
+// global_on must be non-zero for the distance comparison to update near_facet.
+// uc_orig: check_near_facet (fallen/Source/Person.cpp)
+extern SLONG global_on;
+SLONG check_near_facet(Thing* p_person, SLONG max_dist, SLONG max_end_dist, SLONG px, SLONG pz)
+{
+    SLONG loop = 4;
+    SLONG mx, mz;
+    SLONG c0, exit, f_list, i_facet;
+    struct DFacet* df;
+    SLONG y_top, y_bot, pers_y;
+    SLONG best_dist = 99999;
+    SLONG person_north_south = 0;
+
+    SUPERMAP_counter_increase(0);
+    near_facet = 0;
+    /*
+                                    AENG_world_line(
+                                            (p_person->WorldPos.X >> 8),
+                                            (p_person->WorldPos.Y >> 8),
+                                            (p_person->WorldPos.Z >> 8),
+                                            3,
+                                            0x00ffffff,
+                                            px,
+                                            (p_person->WorldPos.Y)>>8,
+                                            pz,
+                                            0,
+                                            0x00123456,
+                                            TRUE);
+      */
+
+    {
+        SLONG a;
+        a = p_person->Draw.Tweened->Angle & 2047;
+        if (a < 200 || a > 2048 - 200 || (a > 1024 - 200 && a < 1024 + 200)) {
+            person_north_south = 1;
+        }
+    }
+
+    pers_y = (p_person->WorldPos.Y >> 8) + 128;
+
+    while (loop >= 0) {
+        mx = px >> 10;
+        mz = pz >> 10;
+
+        switch (loop) {
+        case 4:
+            break;
+        case 3:
+            mx++;
+            break;
+        case 2:
+            mx--;
+            break;
+        case 1:
+            mz++;
+            break;
+        case 0:
+            mz--;
+            break;
+        }
+        loop--;
+        exit = FALSE;
+        if (mx >= 0 && mz >= 0 && mx < 32 && mz < 32) {
+            f_list = PAP_2LO(mx, mz).ColVectHead;
+
+            if (!f_list) {
+                exit = 1;
+            }
+
+            while (!exit) {
+
+                i_facet = facet_links[f_list++];
+                ASSERT(i_facet < next_dfacet);
+
+                if (i_facet < 0) {
+                    i_facet = -i_facet;
+                    exit = TRUE;
+                }
+
+                df = &dfacets[i_facet];
+
+                if (df->Counter[0] == SUPERMAP_counter[0]) {
+                    continue;
+                }
+
+                df->Counter[0] = SUPERMAP_counter[0];
+
+                if (df->FacetType == STOREY_TYPE_CABLE) {
+                    continue;
+                }
+
+                if (df->FacetType == STOREY_TYPE_OUTSIDE_DOOR && (df->FacetFlags & FACET_FLAG_OPEN)) {
+                    continue;
+                }
+
+                if ((person_north_south && (df->x[0] == df->x[1])) || ((!person_north_south) && (df->z[0] == df->z[1]))) {
+                    continue;
+                }
+
+                if (df->FacetType == STOREY_TYPE_FENCE_FLAT || df->FacetType == STOREY_TYPE_FENCE || df->FacetType == STOREY_TYPE_FENCE_BRICK || df->FacetType == STOREY_TYPE_OUTSIDE_DOOR) {
+                    y_top = get_fence_top(px, pz, i_facet);
+                    y_bot = get_fence_bottom(px, pz, i_facet) - 30;
+
+                } else {
+                    y_bot = df->Y[0] - 64;
+                    y_top = df->Y[0] + (df->Height * df->BlockHeight << 2);
+
+                    if (df->FHeight) {
+                        y_bot = -0x7fff;
+                    }
+                }
+                if (WITHIN(pers_y, y_bot, y_top)) {
+                    SLONG dist;
+
+                    dist = distance_to_line(df->x[0] << 8, df->z[0] << 8, df->x[1] << 8, df->z[1] << 8, px, pz);
+                    //				df->FacetFlags|=FACET_FLAG_IN_SEWERS;
+                    if (global_on)
+                        if (abs(dist) < abs(best_dist)) {
+                            best_dist = dist;
+                            near_facet = i_facet;
+                        }
+                }
+            }
+        }
+        //		PANEL_new_text(p_person,100," best_dist %d dist %d",best_dist,max_dist);
+
+        if (abs(best_dist) < max_dist) {
+            return (best_dist);
+        }
+        /*
+                        {
+                                SLONG	angle;
+                                SLONG	dx,dz,nx,nz;
+                                angle=(p_person->Draw.Tweened->Angle+1024)&2047;
+                                dx = -(SIN(angle) * 128) >> 16;
+                                dz = -(COS(angle) * 128) >> 16;
+
+                                nx=(px+dx)>>10;
+                                nz=(pz+dz)>>10;
+
+                                if(nx==mx && nz==mz)
+                                {
+                                        if(abs(best_dist)<max_dist)
+                                        {
+                                                return(best_dist);
+                                        }
+                                        else
+                                        {
+                                                near_facet=0;
+                        PANEL_new_text(p_person,3000,"NO HUGb");
+                                                return(0);
+                                        }
+                                }
+                                else
+                                {
+                                        mx=nx;
+                                        mz=nz;
+
+                                }
+                        }
+        */
+    }
+
+    if (abs(best_dist) < max_dist) {
+        return (best_dist);
+    } else {
+        near_facet = 0;
+        //		PANEL_new_text(p_person,3000,"NO HUG");
+        return (0);
+    }
+}
+
+// Returns non-zero wall angle (+ 1) if person is adjacent to a normal-type wall they can press against.
+// Also validates that the target map height behind the wall is reachable from person's Y.
+// uc_orig: can_i_hug_wall (fallen/Source/Person.cpp)
+SLONG can_i_hug_wall(Thing* p_person)
+{
+    if (p_person->OnFace > 0) {
+        ASSERT(WITHIN(p_person->OnFace, 1, next_prim_face4 - 1));
+
+        PrimFace4* f4 = &prim_faces4[p_person->OnFace];
+
+        ASSERT(f4->FaceFlags & FACE_FLAG_WALKABLE);
+
+        if (f4->FaceFlags & FACE_FLAG_WMOVE) {
+            return (0); // not while stood on a car etc
+        }
+    }
+    if (p_person->Genus.Person->Ware == 0)
+        if (check_near_facet(p_person, 64, 64, p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8)) {
+            SLONG wall_angle, ft;
+            ft = dfacets[near_facet].FacetType;
+            if (ft == STOREY_TYPE_NORMAL)
+                if (am_i_facing_wall(p_person, near_facet, &wall_angle, 200)) {
+                    SLONG wx, wy, wz;
+                    SLONG mx, my, mz;
+                    SLONG dx, dz;
+
+                    wx = p_person->WorldPos.X >> 8;
+                    wy = p_person->WorldPos.Y >> 8;
+                    wz = p_person->WorldPos.Z >> 8;
+
+                    dx = -(SIN(wall_angle)) >> 9;
+                    dz = -(COS(wall_angle)) >> 9;
+
+                    mx = (wx + dx) >> 8;
+                    mz = (wz + dz) >> 8;
+
+                    my = MAVHEIGHT(mx, mz) << 6;
+
+                    //			if(wy<my-196 || wy>my-64)
+                    if (wy > my - 196)
+                        return (0);
+
+                    return ((wall_angle & 2047) + 1);
+                }
+        }
+    return (0);
+}
+
+// Returns true if moving the person by (dx,dz) would land them on ground within 60 units
+// of their current Y and outside a NOGO map cell.
+// uc_orig: move_ok (fallen/Source/Person.cpp)
+SLONG move_ok(Thing* p_person, SLONG dx, SLONG dz)
+{
+    SLONG y, dy;
+    SLONG nx, nz;
+
+    nx = p_person->WorldPos.X;
+    nz = p_person->WorldPos.Z;
+
+    nx += dx;
+    nz += dz;
+
+    nx >>= 8;
+    nz >>= 8;
+
+    y = MAVHEIGHT(nx >> 8, nz >> 8) << 6;
+
+    dy = y - (p_person->WorldPos.Y >> 8);
+    if (abs(dy) > 60)
+        return (0);
+
+    if (PAP_2HI(nx >> 8, nz >> 8).Flags & PAP_FLAG_NOGO) {
+        return (0);
+    }
+
+    return (1);
+}
+
+// STATE_HUG_WALL state machine.
+// SUB_STATE_HUG_WALL_TURN: plays turn anim then snaps to stand pose.
+// SUB_STATE_HUG_WALL_STAND: idle — does nothing.
+// SUB_STATE_HUG_WALL_STEP_LEFT/RIGHT: sidles along the wall, maintaining contact distance.
+// SUB_STATE_HUG_WALL_LEAP_OUT: plays peek-out anim; on end aims or returns to locked idle.
+// SUB_STATE_HUG_WALL_LOOK_L/R: increments InsideRoom counter (peek hold) and animates.
+// uc_orig: fn_person_hug_wall (fallen/Source/Person.cpp)
+void fn_person_hug_wall(Thing* p_person)
+{
+    SLONG end;
+    SLONG dx;
+    SLONG dz;
+    SLONG angle;
+    SLONG dist;
+
+    switch (p_person->SubState) {
+    case SUB_STATE_HUG_WALL_TURN:
+        end = person_normal_animate(p_person);
+        if (end) {
+            set_person_hug_wall_stand(p_person, 1024);
+            //				p_person->Draw.Tweened->Angle+=1024;
+            //				p_person->Draw.Tweened->Angle&=2047;
+        }
+        break;
+    case SUB_STATE_HUG_WALL_STAND:
+
+        break;
+    case SUB_STATE_HUG_WALL_STEP_LEFT:
+        if (!continue_dir(p_person, 1)) {
+            set_person_hug_wall_stand(p_person);
+            return;
+        }
+
+        angle = (p_person->Draw.Tweened->Angle + 512) & 2047;
+
+        dx = -(SIN(angle) * 5) >> 8;
+        dz = -(COS(angle) * 5) >> 8;
+
+        if (!move_ok(p_person, dx << 4, dz << 4)) {
+
+            set_person_hug_wall_stand(p_person, 0, 0);
+            return;
+        }
+
+        if ((dist = abs(check_near_facet(p_person, 64, 64, (p_person->WorldPos.X + dx * 8) >> 8, (p_person->WorldPos.Z + dz * 8) >> 8))) == 0) {
+            set_person_hug_wall_look(p_person, 0);
+            //				set_person_hug_wall_stand(p_person);
+            return;
+        }
+
+        if (abs(32 - dist) < 32) {
+            angle = (p_person->Draw.Tweened->Angle) & 2047;
+
+            dx += -(SIN(angle) * (32 - dist)) >> 8;
+            dz += -(COS(angle) * (32 - dist)) >> 8;
+        }
+
+        person_normal_move_dxdz(p_person, dx, dz);
+        end = person_normal_animate(p_person);
+        /*
+                                if(end)
+                                {
+                                        set_person_hug_wall_stand(p_person);
+                                }
+        */
+
+        break;
+    case SUB_STATE_HUG_WALL_LEAP_OUT:
+        end = person_normal_animate(p_person);
+        if (end) {
+            if (person_has_gun_out(p_person)) {
+                set_person_aim(p_person, SUB_OBJECT_PELVIS + 1);
+            } else {
+                set_person_locked_idle_ready(p_person);
+            }
+            p_person->Draw.Tweened->Angle += 1024;
+            p_person->Draw.Tweened->Angle &= 2047;
+
+            plant_feet(p_person);
+
+            //				set_person_idle(p_person);
+        }
+
+        break;
+    case SUB_STATE_HUG_WALL_LOOK_L:
+        // if(continue_dir(p_person,0))
+        if (++p_person->Genus.Person->InsideRoom > 16)
+            p_person->Genus.Person->InsideRoom = 16;
+
+        end = person_normal_animate(p_person);
+        /*			else
+                                {
+                                        set_person_hug_wall_stand(p_person);
+                                }
+        */
+        break;
+    case SUB_STATE_HUG_WALL_LOOK_R:
+        //			if(continue_dir(p_person,1))
+        if (++p_person->Genus.Person->InsideRoom > 16)
+            p_person->Genus.Person->InsideRoom = 16;
+        end = person_normal_animate(p_person);
+        /*
+                                else
+                                {
+                                        set_person_hug_wall_stand(p_person);
+                                }
+        */
+
+        break;
+    case SUB_STATE_HUG_WALL_STEP_RIGHT:
+        if (!continue_dir(p_person, 0)) {
+            set_person_hug_wall_stand(p_person);
+            return;
+        }
+        angle = (p_person->Draw.Tweened->Angle - 512) & 2047;
+
+        dx = -(SIN(angle) * 5) >> 8;
+        dz = -(COS(angle) * 5) >> 8;
+
+        if (!move_ok(p_person, dx << 4, dz << 4)) {
+
+            set_person_hug_wall_stand(p_person, 0, 0);
+            return;
+        }
+
+        if ((dist = abs(check_near_facet(p_person, 64, 64, (p_person->WorldPos.X + dx * 8) >> 8, (p_person->WorldPos.Z + dz * 8) >> 8))) == 0) {
+            set_person_hug_wall_look(p_person, 1);
+            //				set_person_hug_wall_stand(p_person);
+            return;
+        }
+        if (abs(32 - dist) < 32) {
+            angle = (p_person->Draw.Tweened->Angle) & 2047;
+
+            dx += -(SIN(angle) * (32 - dist)) >> 8;
+            dz += -(COS(angle) * (32 - dist)) >> 8;
+        }
+
+        person_normal_move_dxdz(p_person, dx, dz);
+        end = person_normal_animate(p_person);
+        /*
+                                if(end)
+                                {
+                                        set_person_hug_wall_stand(p_person);
+                                }
+        */
+        break;
+    }
+}
+
+// STATE_CIRCLING state machine.
+// Orbits the target at hit_distance, renaviates every renav_how_often ticks,
+// processes gang slot rotation, and delivers punch/kick/arrest commands when in range.
+// uc_orig: fn_person_circle (fallen/Source/Person.cpp)
+void fn_person_circle(Thing* p_person)
+{
+    SLONG dx = 0;
+    SLONG dy;
+    SLONG dz = 0;
+    SLONG end;
+    SLONG dist;
+    SLONG angle;
+    SLONG shove;
+    SLONG dangle;
+    SLONG random;
+    SLONG ddist;
+
+    SLONG vx = 0;
+    SLONG vz = 0;
+    UBYTE renav = 0;
+    UWORD reqd_anim = 0;
+
+    BOOL poo;
+
+    Thing* p_target = TO_THING(p_person->Genus.Person->Target);
+    SLONG hit_distance = 140;
+    SLONG bat = 0;
+    SLONG stamp = 0;
+    if (person_holding_bat(p_person))
+        bat = 1;
+
+    if (p_person->Genus.Person->Target == 0) {
+        set_person_idle(p_person);
+        return;
+    }
+
+    if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_BLOCK) {
+        p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_BLOCK;
+        set_person_block(p_person);
+        return;
+    }
+    if ((p_target->Genus.Person->PlayerID == 0) || p_person->Genus.Person->PersonType == PERSON_COP)
+        p_person->Genus.Person->Agression = 100;
+
+    ASSERT(p_target != p_person);
+
+    end = person_normal_animate(p_person);
+
+    if (is_person_ko_and_lay_down(p_target)) {
+        stamp = 4; // renav every 4 turns
+
+        hit_distance = 60;
+
+        if (!(p_target->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL)) {
+            if (p_person->Genus.Person->PersonType == PERSON_DARCI || (p_person->Genus.Person->pcom_ai == PCOM_AI_COP && p_person->Genus.Person->PersonType == PERSON_COP) || p_person->Genus.Person->pcom_ai == PCOM_AI_COP_DRIVER || (p_person->Genus.Person->pcom_ai == PCOM_AI_BODYGUARD && p_person->Genus.Person->PersonType == PERSON_COP))
+
+            //			if (p_person->Genus.Person->pcom_ai    == PCOM_AI_COP ||
+            //				p_person->Genus.Person->pcom_ai    == PCOM_AI_COP_DRIVER ||
+            //				p_person->Genus.Person->PersonType == PERSON_DARCI)
+            {
+                hit_distance = 30;
+                p_person->Genus.Person->Agression = 0;
+                stamp = 1; // renav every turn to ensure we get to a good arrest position
+            }
+        }
+
+        p_person->SubState = SUB_STATE_CIRCLING_CIRCLE;
+    }
+
+    if (end == 1) {
+
+        SLONG anim;
+        anim = find_idle_fight_stance(p_person);
+        set_anim(p_person, anim);
+    }
+
+    if (p_person->Genus.Person->Agression < -50) {
+        p_person->SubState = SUB_STATE_CIRCLING_BACK_OFF;
+    }
+
+    /*
+
+    if(p_person->Genus.Person->Agression>0)
+    {
+            hit_distance=140;
+    }
+
+    */
+
+    switch (p_person->SubState) {
+    case SUB_STATE_CIRCLING_BACK_OFF:
+        hit_distance = 280;
+        if (p_person->Genus.Person->Agression > -10) {
+            p_person->SubState = SUB_STATE_CIRCLING_CIRCLE;
+            // p_person->Genus.Person->Timer1=-5; // make sure I don't push myself
+
+            if (p_target->Genus.Person->PlayerID)
+                process_gang_attack(p_person, p_target);
+        }
+
+        // FALLTHROUGH!
+
+    case SUB_STATE_CIRCLING_CIRCLE:
+
+        if (p_target->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
+            hit_distance *= 2;
+        }
+
+        if ((PTIME(p_person) & 1) == 0) {
+            if (p_person->Genus.Person->Agression < 0)
+                p_person->Genus.Person->Agression += (GET_SKILL(p_person) >> 2) + 1;
+            else
+                p_person->Genus.Person->Agression--;
+        }
+
+        //				if(p_person->Genus.Person->Agression>=0)
+        {
+            SLONG renav_how_often;
+            renav_how_often = (40 - (GET_SKILL(p_person) << 1));
+            if (!p_target->Genus.Person->PlayerID) {
+                renav_how_often >>= 1;
+                if (p_person->Genus.Person->PersonType == PERSON_COP)
+                    renav_how_often -= 5;
+
+                if (renav_how_often < 5)
+                    renav_how_often = 5;
+            }
+            if (stamp)
+                renav_how_often = stamp;
+            if ((PTIME(p_person) % renav_how_often) == 0) {
+                if (p_target->Genus.Person->PlayerID) {
+                    track_enemy(p_person);
+                }
+
+                calc_sub_objects_position(p_target, p_target->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS, &dx, &dy, &dz);
+                p_person->Genus.Person->TargetX = (p_target->WorldPos.X >> 8) + dx;
+                p_person->Genus.Person->TargetZ = (p_target->WorldPos.Z >> 8) + dz;
+
+                if (p_person->SubState == SUB_STATE_CIRCLING_CIRCLE) {
+                    if (p_target->Genus.Person->PlayerID)
+                        process_gang_attack(p_person, p_target);
+                }
+                renav = 1;
+            }
+        }
+
+        dx = p_person->Genus.Person->TargetX - (p_person->WorldPos.X >> 8);
+        dz = p_person->Genus.Person->TargetZ - (p_person->WorldPos.Z >> 8);
+
+        dist = QDIST2(abs(dx), abs(dz)) + 1;
+        /*
+                                        {
+                                                CBYTE	str[100];
+                                                sprintf(str," combat dist %d hit_dist %d \n",dist,hit_distance);
+                                                CONSOLE_text(str);
+                                        }
+        */
+        angle = (calc_angle(dx, dz)) & 2047;
+
+        dx = 0;
+        dz = 0;
+
+        if (dist < hit_distance - 15) {
+            if (bat)
+                reqd_anim = ANIM_FIGHT_STEP_N_BAT;
+            else
+                reqd_anim = ANIM_FIGHT_STEP_N;
+            dx = -SIN(angle) >> 4;
+            dz = -COS(angle) >> 4;
+        } else if (dist > hit_distance + 15) {
+            if (bat)
+                reqd_anim = ANIM_FIGHT_STEP_S_BAT;
+            else
+                reqd_anim = ANIM_FIGHT_STEP_S;
+            dx = SIN(angle) >> 4;
+            dz = COS(angle) >> 4;
+        } else {
+            dx = 0;
+            dz = 0;
+        }
+
+        //				if(dist<hit_distance-20 || dist>hit_distance+20)
+        {
+            if (p_person->Genus.Person->Timer1++ > 10) {
+                SLONG gang;
+                void push_into_attack_group_at_angle(Thing * p_person, SLONG gang, SLONG reqd_angle);
+                gang = p_target->Genus.Person->GangAttack;
+                if (gang == 0) {
+                    // CONSOLE_text(" Circling but have no gang");
+                    set_person_idle(p_person);
+                    return;
+                }
+
+                remove_from_gang_attack(p_person, p_target);
+                push_into_attack_group_at_angle(p_person, gang, (angle + 256) >> 9);
+                p_person->Genus.Person->Timer1 = 0;
+            }
+        }
+        /*
+                                        else
+                                        if(p_person->SubState==SUB_STATE_CIRCLING_CIRCLE)
+                                        {
+
+                                                if(p_person->Genus.Person->Timer1++==15)
+                                                {
+                                                        process_gang_attack(p_person,p_target);
+                                                        p_person->Genus.Person->Timer1=0;
+                                                }
+                                        }
+        */
+
+        if (dist > 80) {
+            p_person->Draw.Tweened->Angle = (angle + 1024) & 2047;
+        }
+
+        dangle = p_person->Genus.Person->AttackAngle << 9;
+        //	ASSERT(p_person->Genus.Person->AttackAngle==0);
+
+        dangle -= angle;
+
+        if (abs(dangle) > 30) {
+            SLONG shift = 4;
+            if (dangle > 1024) {
+                dangle -= 2048;
+            }
+            if (dangle < -1024) {
+                dangle += 2048;
+            }
+
+            if (dangle > 0) {
+                if (reqd_anim == 0) {
+                    if (bat)
+                        reqd_anim = ANIM_FIGHT_STEP_E_BAT;
+                    else
+                        reqd_anim = ANIM_FIGHT_STEP_E;
+                }
+
+                angle -= 512;
+            } else {
+                if (reqd_anim == 0) {
+                    if (bat)
+                        reqd_anim = ANIM_FIGHT_STEP_W_BAT;
+                    else
+                        reqd_anim = ANIM_FIGHT_STEP_W;
+                }
+                angle += 512;
+            }
+
+            angle &= 2047;
+            if (abs(dangle) < 60)
+                shift = 5;
+            dx += SIN(angle) >> shift;
+            dz += COS(angle) >> shift;
+        }
+
+        if (dx || dz) {
+            person_normal_move_dxdz(p_person, dx, dz);
+            /*
+                                                    move_thing(
+                                                            dx ,
+                                                             0 << 8,
+                                                            dz ,
+                                                            p_person);
+            */
+
+            if (reqd_anim)
+                if (p_person->Draw.Tweened->CurrentAnim == ANIM_FIGHT || p_person->Draw.Tweened->CurrentAnim == ANIM_BAT_IDLE || p_person->Draw.Tweened->CurrentAnim == ANIM_KNIFE_FIGHT_READY)
+                    set_anim(p_person, reqd_anim);
+        } else {
+            // if(p_person->Draw.Tweened->CurrentAnim!=ANIM_FIGHT || )
+            if (p_person->Draw.Tweened->CurrentAnim != ANIM_FIGHT && p_person->Draw.Tweened->CurrentAnim != ANIM_BAT_IDLE && p_person->Draw.Tweened->CurrentAnim != ANIM_KNIFE_FIGHT_READY) {
+                SLONG anim;
+                anim = find_idle_fight_stance(p_person);
+                set_anim(p_person, anim);
+            }
+        }
+
+        if (renav) {
+            if (am_i_a_thug(p_person)) {
+                PCOM_call_cop_to_arrest_me(p_person, 1);
+            }
+
+            if (p_target->Genus.Person->PlayerID && EWAY_stop_player_moving()) {
+                // Don't attack the player while they are stationary in a cutscene.
+            } else {
+                if (p_person->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST) {
+                    // Fight test dummies never throw a punch.
+                } else {
+                    extern void PCOM_set_person_move_punch(Thing * p_person);
+                    extern void PCOM_set_person_move_kick(Thing * p_person);
+                    extern void PCOM_set_person_move_arrest(Thing * p_person);
+
+                    kick_or_punch++;
+                    //					if(p_target->Genus.Person->Flags&FLAG_PERSON_KO)
+                    if (is_person_ko_and_lay_down(p_target)) {
+                        if (!(p_target->Genus.Person->pcom_bent & PCOM_BENT_PLAYERKILL)) {
+                            if (p_person->Genus.Person->PersonType == PERSON_DARCI || (p_person->Genus.Person->pcom_ai == PCOM_AI_COP && p_person->Genus.Person->PersonType == PERSON_COP) || p_person->Genus.Person->pcom_ai == PCOM_AI_COP_DRIVER || (p_person->Genus.Person->pcom_ai == PCOM_AI_BODYGUARD && p_person->Genus.Person->PersonType == PERSON_COP)) {
+                                if (dist < 50)
+                                    PCOM_set_person_move_arrest(p_person);
+                            } else {
+                                PCOM_set_person_move_kick(p_person);
+                            }
+                        }
+                    }
+                    /*
+                    else
+                    if (p_target->SubState              == SUB_STATE_GRAPPLE_HELD &&
+                            p_person->Genus.Person->pcom_ai == PCOM_AI_COP)
+                    {
+                            //
+                            // Cops always throw their grapplee's so they can arrest them!
+                            //
+
+                            PCOM_set_person_move_punch(p_person);
+                    }
+                    */
+                    else if (dist < 160 && dist > 90) {
+
+                        if (kick_or_punch & 1) {
+                            PCOM_set_person_move_punch(p_person);
+                        } else {
+                            PCOM_set_person_move_kick(p_person);
+                        }
+
+                    } else if (dist < 90) {
+                        PCOM_set_person_move_punch(p_person);
+                    }
+                }
+            }
+        }
+        break;
+    }
+}
+
+// Legacy circling function — entirely superseded by fn_person_circle.
+// Uses a simple shove-based lateral drift rather than the gang-slot system.
+// uc_orig: fn_person_circle_old (fallen/Source/Person.cpp)
+void fn_person_circle_old(Thing* p_person)
+{
+    SLONG dx;
+    SLONG dz;
+    SLONG end;
+    SLONG dist;
+    SLONG angle;
+    SLONG shove;
+    SLONG dangle;
+    SLONG random;
+    SLONG ddist;
+
+    SLONG vx = 0;
+    SLONG vz = 0;
+
+    Thing* p_target = TO_THING(p_person->Genus.Person->Target);
+
+    end = person_normal_animate(p_person);
+
+    if (end == 1) {
+        set_anim(p_person, ANIM_FIGHT);
+    }
+
+    dx = p_target->WorldPos.X - p_person->WorldPos.X >> 8;
+    dz = p_target->WorldPos.Z - p_person->WorldPos.Z >> 8;
+
+    dist = QDIST2(abs(dx), abs(dz)) + 1;
+    angle = calc_angle(dx, dz) + 1024;
+    angle &= 2047;
+    dangle = angle_diff(angle, p_person->Draw.Tweened->Angle);
+
+    dangle += 256;
+    dangle &= 0xff;
+
+    shove = p_person->Genus.Person->Shove;
+    shove += dangle - 256 >> 4;
+
+    SATURATE(shove, -127, +127);
+
+    if (shove > 0) {
+        shove -= 16;
+    } else {
+        shove += 16;
+    }
+
+    p_person->Genus.Person->Shove = shove;
+
+    dx = ((0x10 * TICK_RATIO) * dx) / dist;
+    dz = ((0x10 * TICK_RATIO) * dz) / dist;
+
+    dx >>= TICK_SHIFT;
+    dz >>= TICK_SHIFT;
+
+    if (shove > 0) {
+        random = Random() & 0x7f;
+
+        if (shove > random) {
+            vx += -dz;
+            vz += +dx;
+        }
+    } else {
+        random = Random() & 0x7f;
+        random = -random;
+
+        if (shove < random) {
+            vx += +dz;
+            vz += -dx;
+        }
+    }
+
+    ddist = dist - 0x80;
+
+    if (ddist > 0) {
+        random = Random() & 0x3f;
+
+        if (ddist > random) {
+            vx += dx;
+            vz += dz;
+        }
+    } else {
+        random = Random() & 0x3f;
+        random = -random;
+
+        if (ddist < random) {
+            vx += -dx;
+            vz += -dz;
+        }
+    }
+
+    move_thing(
+        vx << 8,
+        0 << 8,
+        vz << 8,
+        p_person);
+}
+
+// Returns the character's render scale in 8.8 fixed point (256 = 100%).
+// Roper is slightly taller (276). All others return 256.
+// Called ~15 times per character per frame from the figure renderer — keep it fast.
+// uc_orig: person_get_scale (fallen/Source/Person.cpp)
+SLONG person_get_scale(Thing* t)
+{
+    if (t->Class == CLASS_PERSON && t->Genus.Person->PersonType == PERSON_ROPER)
+        return (276);
+    if (t->Class == CLASS_PERSON && t->Genus.Person->PlayerID) {
+        return (256);
+    } else {
+        //		if(t->Class==CLASS_BAT && t->Genus.Bat->type==BAT_TYPE_BALROG)
+        //			return(256);
+        //		else
+        //			return 256;//56;
+
+        return (256); // 250+(THING_NUMBER(t)&0x1f));
+    }
+
+    // this essentially generates random heights per person
+    // return ((SLONG(t) >> 3) & 7) * (384 / 7) + 128;
+
+    // PS - this function should be reasonably quick.  it's called 15 times per character per frame.
+}
+
+// Returns the total number of game ticks (at 1/20 s each) the given animation takes to play once.
+// Walks the keyframe chain summing 256/TweenStep per frame; treats TweenStep == 0 as 1.
+// uc_orig: how_long_is_anim (fallen/Source/Person.cpp)
+SLONG how_long_is_anim(SLONG anim)
+{
+    GameKeyFrame* frame;
+    SLONG total = 0;
+
+    frame = global_anim_array[0][anim];
+
+    while (frame) {
+        SLONG step;
+
+        step = frame->TweenStep;
+        if (!step)
+            step = 1;
+
+        total += 256 / step;
+        if (frame->Flags & ANIM_FLAG_LAST_FRAME)
+            break;
+
+        frame = frame->NextFrame;
+    }
+    return (total);
+}
+
+// Returns true if the person can enter a conversation (not KO, dead, dying, jumping, driving, or on a ladder).
+// uc_orig: person_ok_for_conversation (fallen/Source/Person.cpp)
+SLONG person_ok_for_conversation(Thing* p_person)
+{
+    if (p_person->Class != CLASS_PERSON) {
+        return 0;
+    }
+
+    if (is_person_ko(p_person))
+        return (0);
+
+    if (p_person->State == STATE_DEAD)
+        return (0);
+    if (p_person->State == STATE_DANGLING)
+        return (0);
+    if (p_person->State == STATE_DYING)
+        return (0);
+    if (p_person->State == STATE_JUMPING)
+        return (0);
+
+    if (p_person->State == STATE_CLIMB_LADDER) {
+        return 0;
+    }
+
+    if ((p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) || (p_person->Genus.Person->Flags & FLAG_PERSON_BIKING)) {
+        return 0;
+    }
+
+    return (1);
+}
+
+// Enters STATE_FLOAT with the up sub-state; person will float skyward each tick.
+// Used by Bane boss summon sequence to levitate corpses.
+// uc_orig: set_person_float_up (fallen/Source/Person.cpp)
+void set_person_float_up(Thing* p_person)
+{
+    set_generic_person_state_function(p_person, STATE_FLOAT);
+    p_person->SubState = SUB_STATE_FLOAT_UP;
+    //	set_anim(p_person, ANIM_DANCE_HEADBANG);
+}
+
+// Switches floating person from up/bob to down sub-state. Only call when already floating.
+// uc_orig: set_person_float_down (fallen/Source/Person.cpp)
+void set_person_float_down(Thing* p_person)
+{
+    ASSERT(p_person->State == STATE_FLOAT);
+    p_person->SubState = SUB_STATE_FLOAT_DOWN;
+}
+
+// STATE_FLOAT state machine.
+// SUB_STATE_FLOAT_UP: increments Y each tick; switches to BOB when 200 units above ground.
+// SUB_STATE_FLOAT_BOB: does nothing (hover).
+// SUB_STATE_FLOAT_DOWN: decrements Y each tick; returns to idle when near ground.
+// Tilt field tracks height offset above ground for renderer.
+// uc_orig: fn_person_float (fallen/Source/Person.cpp)
+void fn_person_float(Thing* p_person)
+{
+    SLONG ground;
+
+    ground = PAP_calc_map_height_at(
+        p_person->WorldPos.X >> 8,
+        p_person->WorldPos.Z >> 8);
+
+    switch (p_person->SubState) {
+    case SUB_STATE_FLOAT_UP:
+
+        p_person->WorldPos.Y += 64 * TICK_RATIO >> TICK_SHIFT;
+        p_person->Draw.Tweened->Tilt = (-p_person->WorldPos.Y >> 8) - ground;
+
+        if (p_person->Draw.Tweened->Tilt < -200) {
+            p_person->SubState = SUB_STATE_FLOAT_BOB;
+        }
+
+        break;
+
+    case SUB_STATE_FLOAT_BOB:
+
+        // Do nothing while bobbing.
+
+        break;
+
+    case SUB_STATE_FLOAT_DOWN:
+
+        p_person->WorldPos.Y -= 64 * TICK_RATIO >> TICK_SHIFT;
+        p_person->Draw.Tweened->Tilt = (-p_person->WorldPos.Y >> 8) - ground;
+
+        if (p_person->Draw.Tweened->Tilt > -4) {
+            set_person_idle(p_person);
+        }
+
+        break;
+
+    default:
+        ASSERT(0);
+        break;
+    }
+}
+
+// Puts person into an injured idle loop (STATE_DEAD / SUB_STATE_DEAD_INJURED).
+// Used when a person is incapacitated but not fully dead (e.g. mission scripting).
+// uc_orig: set_person_injured (fallen/Source/Person.cpp)
+void set_person_injured(Thing* p_person)
+{
+    set_generic_person_state_function(p_person, STATE_DEAD);
+    set_anim(p_person, ANIM_INJURED_LOOP);
+    p_person->SubState = SUB_STATE_DEAD_INJURED;
+    p_person->Genus.Person->Timer1 = 0;
+}
+
+// Pushes p_person at least 0x80 world units away from p_avoid if they are closer.
+// Moves proportionally along the displacement vector to the required separation distance.
+// No-ops for warehouse persons (Ware != 0) or if the target tile has too steep a slope.
+// uc_orig: push_people_apart (fallen/Source/Person.cpp)
+void push_people_apart(Thing* p_person, Thing* p_avoid)
+{
+    SLONG dx;
+    SLONG dz;
+    SLONG dist;
+
+    if (p_person->Genus.Person->Ware || p_avoid->Genus.Person->Ware) {
+        return;
+    }
+
+    dx = p_person->WorldPos.X - p_avoid->WorldPos.X >> 8;
+    dz = p_person->WorldPos.Z - p_avoid->WorldPos.Z >> 8;
+
+    dist = QDIST2(abs(dx), abs(dz)) + 1;
+
+    if (dist >= 0x80) {
+        return;
+    }
+
+    SLONG new_x = (p_person->WorldPos.X >> 8) + dx * (0x80 - dist) / dist;
+    SLONG new_z = (p_person->WorldPos.Z >> 8) + dz * (0x80 - dist) / dist;
+
+    SLONG old_y = PAP_calc_map_height_at(p_person->WorldPos.X >> 8, p_person->WorldPos.Z >> 8);
+    SLONG new_y = PAP_calc_map_height_at(new_x, new_z);
+
+    if (abs(old_y - new_y) < 0x50) {
+        GameCoord newpos;
+
+        newpos.X = new_x << 8;
+        newpos.Y = new_y << 8;
+        newpos.Z = new_z << 8;
+
+        move_thing_on_map(p_person, &newpos);
+    } else {
+        // Bugger it! Doesn't have to work all the time...
+    }
 }

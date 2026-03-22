@@ -7,31 +7,12 @@
 #include "fallen/Headers/Roper.h"   // Temporary: roper_states dispatch table
 #include "fallen/Headers/statedef.h" // Temporary: STATE_* constants for generic_people_functions
 
-// State functions defined in old/fallen/Source/Person.cpp (not yet migrated).
-extern void fn_person_moveing(Thing* p_person);
-extern void fn_person_idle(Thing* p_person);
-extern void fn_person_jumping(Thing* p_person);
-extern void fn_person_dangling(Thing* p_person);
-extern void fn_person_laddering(Thing* p_person);
-extern void fn_person_climbing(Thing* p_person);
-extern void fn_person_fighting(Thing* p_person);
-extern void fn_person_recoil(Thing* p_person);
-extern void fn_person_dying(Thing* p_person);
-extern void fn_person_dead(Thing* p_person);
-extern void fn_person_gun(Thing* p_person);
-extern void fn_person_wait(Thing* p_person);
-extern void fn_person_navigate(Thing* p_person);
-extern void fn_person_fight(Thing* p_person);
-extern void fn_person_stand_up(Thing* p_person);
-extern void fn_person_mavigate(Thing* p_person);
-extern void fn_person_grapple(Thing* p_person);
-extern void fn_person_goto(Thing* p_person);
-extern void fn_person_can(Thing* p_person);
-extern void fn_person_circle(Thing* p_person);
-extern void fn_person_hug_wall(Thing* p_person);
+// State functions still in old/fallen/Source/Person.cpp (not yet migrated).
+// All functions from chunks 1-12 are now defined in actors/characters/person.cpp
+// and declared in actors/characters/person.h (included above via person.h -> person_globals.h chain).
+// person.h is included at the top of this file.
 extern void fn_person_search(Thing* p_person);
 extern void fn_person_carry(Thing* p_person);
-extern void fn_person_float(Thing* p_person);
 
 // uc_orig: anim_type (fallen/Source/Person.cpp)
 UBYTE anim_type[] = {
@@ -205,3 +186,12 @@ UWORD near_facet = 0;
 
 // uc_orig: kick_or_punch (fallen/Source/Person.cpp)
 SLONG kick_or_punch = 0;
+
+// Direction index to angle lookup (0=N, 1=E, 2=W, 3=S), used by MAV navigation stubs.
+// uc_orig: dir_to_angle (fallen/Source/Person.cpp)
+UWORD dir_to_angle[] = {
+    512,
+    512 + 1024,
+    0,
+    1024
+};

@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 103 — actors/characters/person (чанк 12: person_mav_again..push_people_apart) (2026-03-22)
+
+- Person.cpp чанк 12: lines 17272–19165 (финальный). 35 сущностей: person_mav_again, dir_to_angle[], get_dx_dz_for_dir, init_new_mav, fn_person_mavigate_action, fn_person_mavigate, set_person_grappling_hook_pickup, fn_person_grapple, set_person_mav_to_xz, set_person_mav_to_thing, person_is_on_sewer, person_is_on, set_person_can_pickup, set_person_can_release, set_person_special_pickup, fn_person_can, set_person_do_a_simple_anim, set_person_recircle, set_person_circle, set_person_hug_wall_leap_out, set_person_hug_wall_stand, check_near_facet, can_i_hug_wall, move_ok, fn_person_hug_wall, fn_person_circle, fn_person_circle_old, person_get_scale, how_long_is_anim, person_ok_for_conversation, set_person_float_up, set_person_float_down, fn_person_float, set_person_injured, push_people_apart.
+- `dir_to_angle[]` (UWORD) → person_globals.cpp/h (глобальный массив).
+- `extern SLONG global_on;` объявлен локально прямо перед `check_near_facet` — использовался в этой единственной функции, не вынесен в заголовок.
+- `person_globals.cpp`: удалены extern-декларации для всех state-функций Person.cpp (теперь все из чанков 1-12 объявлены в person.h); оставлены только `fn_person_search` и `fn_person_carry`.
+- `fn_person_circle`: inline forward decl `void push_into_attack_group_at_angle(...)` внутри тела — скопирована 1:1 из оригинала.
+- `set_person_hug_wall_stand`: default arguments (dangle=0, locked=1) в person.h; в .cpp без defaults (стандартный C++).
+- Extern-декларации `person_is_on_sewer` и `set_person_do_a_simple_anim` заменены на комментарии в person.cpp (теперь определены в том же файле).
+- old/Person.cpp полностью завёрнут в `#if 0` блоки — файл фактически пуст.
+
+---
+
 ## Итерация 102 — actors/characters/person (чанк 11: person_new_combat_node..mav_arrived) (2026-03-22)
 
 - Person.cpp чанк 11: lines 15734–17267. 21 сущность: COMBO_ACCURACY, person_new_combat_node, aim_at_victim, fn_person_fighting, fn_person_wait, turn_to_face_thing, turn_to_face_thing_quick, get_pitch_to_thing_quick, set_person_draw_item, set_person_item_away, set_face_pos, set_face_thing, turn_towards_thing, fn_person_stand_up, fn_person_fight, set_person_goto_xz, fn_person_goto, process_person_goto_xz, fn_person_navigate, init_person_command, mav_arrived.
