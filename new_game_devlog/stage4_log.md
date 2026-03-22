@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 101 — actors/characters/person (чанк 10: set_person_ko_recoil..fn_person_gun) (2026-03-22)
+
+- Person.cpp чанк 10: lines 13982–15728. 18 функций + 3 макроса: set_person_ko_recoil, set_person_recoil, fn_person_recoil, find_anim_fall_dir, move_away_from_wall, generate_bonus_item, part_bad, fn_person_dying, init_dead_tween, fn_person_dead, dist_from_a_to_b, player_aim_at_new_person, get_angle_to_target, player_running_aim_gun, twist_darci_body_to_angle, might_i_be_a_villain, am_i_a_thug, calc_dist_benefit_to_gun, highlight_gun_target, fn_person_gun. Макросы: FALL_DIR_STRANGE_LAND, FALL_DIR_LAND_ON_FRONT, FALL_DIR_LAND_ON_BACK.
+- Globals: `dead_tween` (DrawTween) и `combo_display` (UBYTE) перенесены в person_globals. `combo_display` была активна в old/Person.cpp (line 15840, вне #if 0 блока) — удалена явно (комментарий).
+- Новые externs: `get_pitch_to_thing_quick`, `turn_to_face_thing_quick` (Person.cpp, ещё не мигрированы); `look_pitch` (interfac.cpp).
+- Extern declarations `might_i_be_a_villain` и `player_running_aim_gun` в person.cpp (chunk 4/9 forward decls) заменены на комментарии — теперь определены в этом же файле.
+
+---
+
 ## Итерация 100 — actors/characters/person (чанк 9: fn_person_dangling..fn_person_moveing) (2026-03-22)
 
 - Person.cpp чанк 9: lines 12330–13977. 11 функций + 1 макрос: fn_person_dangling, set_person_running_stop, should_person_automatically_land_on_fence, FENCE_DA, process_a_vaulting_person, set_person_sit_down, set_person_unsit, person_holding_2handed, person_holding_special, person_holding_bat, get_yomp_anim, fn_person_moveing.

@@ -246,10 +246,10 @@ void fn_person_dangling(Thing* p_person);
 void fn_person_laddering(Thing* p_person);
 void fn_person_climbing(Thing* p_person);
 void fn_person_fighting(Thing* p_person);
-void fn_person_recoil(Thing* p_person);
-void fn_person_dying(Thing* p_person);
-void fn_person_dead(Thing* p_person);
-void fn_person_gun(Thing* p_person);
+// fn_person_recoil: now in person.h (chunk 10)
+// fn_person_dying: now in person.h (chunk 10)
+// fn_person_dead: now in person.h (chunk 10)
+// fn_person_gun: now in person.h (chunk 10)
 void fn_person_wait(Thing* p_person);
 void fn_person_navigate(Thing* p_person);
 void fn_person_fight(Thing* p_person);
@@ -264,7 +264,7 @@ void fn_person_search(Thing* p_person);
 void fn_person_carry(Thing* p_person);
 void fn_person_float(Thing* p_person);
 
-SLONG find_anim_fall_dir(SLONG anim);
+// find_anim_fall_dir: now in person.h (chunk 10)
 
 // set_person_pos_for_fence / locked_anim_change / fight_any_gang_attacker: now in person.h (chunk 7)
 void do_person_on_cable(Thing* p_person);
@@ -286,9 +286,9 @@ SLONG person_holding_2handed(Thing* p_person);
 void drop_all_items(Thing* p_person, UBYTE is_being_searched);
 void set_person_croutch(Thing* p_person);
 void drop_current_gun(Thing* p_person, SLONG change_anim);
-SLONG player_running_aim_gun(Thing* p_person);
-SLONG might_i_be_a_villain(Thing* p_person);
-void highlight_gun_target(Thing* p_person, Thing* p_target);
+// player_running_aim_gun: now in person.h (chunk 10)
+// might_i_be_a_villain: now in person.h (chunk 10)
+// highlight_gun_target: now in person.h (chunk 10)
 void locked_anim_change_of_type(Thing* p_person, UWORD locked_object, UWORD anim, SLONG type);
 void set_anim_running(Thing* p_person);
 
@@ -13979,6 +13979,8 @@ void fn_person_moveing(Thing* p_person)
 
 #endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 100) [fn_person_dangling..fn_person_moveing]
 
+#if 0 // MIGRATED to src/new/actors/characters/person.cpp (iteration 101) [set_person_ko_recoil..fn_person_gun]
+
 void set_person_ko_recoil(Thing* p_person, SLONG anim, UBYTE flags)
 {
     if (p_person->Draw.Tweened->CurrentAnim == anim && p_person->Draw.Tweened->FrameIndex < 5) {
@@ -15727,6 +15729,8 @@ void fn_person_gun(Thing* p_person)
     }
 }
 
+#endif // MIGRATED to src/new/actors/characters/person.cpp (iteration 101) [set_person_ko_recoil..fn_person_gun]
+
 #define COMBO_ACCURACY 300 // Was 190
 
 SLONG person_new_combat_node(Thing* p_person)
@@ -15833,7 +15837,7 @@ void aim_at_victim(Thing* p_person, SLONG count)
             }
 }
 
-UBYTE combo_display = 0;
+// combo_display: migrated to person_globals.cpp (iteration 101)
 void fn_person_fighting(Thing* p_person)
 {
     Thing* p_target;

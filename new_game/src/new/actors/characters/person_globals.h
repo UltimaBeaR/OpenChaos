@@ -63,4 +63,13 @@ extern UWORD player_dlight;
 // uc_orig: timer_bored (fallen/Source/Person.cpp)
 extern ULONG timer_bored;
 
+// Dummy DrawTween used to reset dying persons on respawn.
+// uc_orig: dead_tween (fallen/Source/Person.cpp)
+extern DrawTween dead_tween;
+
+// Tracks the last combo step direction for the fight-combo display (0=none, 1=punch, 2=kick).
+// Read by pcom.cpp for the HUD combo indicator.
+// uc_orig: combo_display (fallen/Source/Person.cpp)
+extern UBYTE combo_display;
+
 #endif // ACTORS_CHARACTERS_PERSON_GLOBALS_H

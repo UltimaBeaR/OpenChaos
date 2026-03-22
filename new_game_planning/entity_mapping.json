@@ -59949,6 +59949,276 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_ko_recoil",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_ko_recoil",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_person_recoil",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "set_person_recoil",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_recoil",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "fn_person_recoil",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "find_anim_fall_dir",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "find_anim_fall_dir",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "move_away_from_wall",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "move_away_from_wall",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "generate_bonus_item",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "generate_bonus_item",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "part_bad",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "part_bad",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_dying",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "fn_person_dying",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "init_dead_tween",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "init_dead_tween",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_dead",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "fn_person_dead",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "dist_from_a_to_b",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "dist_from_a_to_b",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_aim_at_new_person",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "player_aim_at_new_person",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_angle_to_target",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "get_angle_to_target",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "player_running_aim_gun",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "player_running_aim_gun",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "twist_darci_body_to_angle",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "twist_darci_body_to_angle",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "might_i_be_a_villain",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "might_i_be_a_villain",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "am_i_a_thug",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "am_i_a_thug",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_dist_benefit_to_gun",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "calc_dist_benefit_to_gun",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "highlight_gun_target",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "highlight_gun_target",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_person_gun",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "fn_person_gun",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "dead_tween",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "dead_tween",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "combo_display",
+      "file": "new/actors/characters/person_globals.cpp",
+      "orig_name": "combo_display",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FALL_DIR_STRANGE_LAND",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "FALL_DIR_STRANGE_LAND",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FALL_DIR_LAND_ON_FRONT",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "FALL_DIR_LAND_ON_FRONT",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "FALL_DIR_LAND_ON_BACK",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "FALL_DIR_LAND_ON_BACK",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAKE_FPM_TRACK_ENEMY",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "MAKE_FPM_TRACK_ENEMY",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "TIMER_VANISH",
+      "file": "new/actors/characters/person.cpp",
+      "orig_name": "TIMER_VANISH",
+      "orig_file": "fallen/Source/Person.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

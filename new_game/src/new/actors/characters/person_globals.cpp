@@ -193,3 +193,9 @@ UWORD player_dlight = 0;
 
 // uc_orig: timer_bored (fallen/Source/Person.cpp)
 ULONG timer_bored = 0;
+
+// uc_orig: dead_tween (fallen/Source/Person.cpp)
+DrawTween dead_tween;
+
+// uc_orig: combo_display (fallen/Source/Person.cpp)
+UBYTE combo_display = 0;

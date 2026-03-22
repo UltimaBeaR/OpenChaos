@@ -815,4 +815,97 @@ SLONG get_yomp_anim(Thing* p_person);
 // uc_orig: fn_person_moveing (fallen/Source/Person.cpp)
 void fn_person_moveing(Thing* p_person);
 
+// --- chunk 10: set_person_ko_recoil..fn_person_gun ---
+
+// Transitions person dying from a KO into the waiting-to-get-up sub-state.
+// Called when hit while already playing a KO animation.
+// uc_orig: set_person_ko_recoil (fallen/Source/Person.cpp)
+void set_person_ko_recoil(Thing* p_person, SLONG anim, UBYTE flags);
+
+// Knocks person back (recoil animation) when they take a hit.
+// If dangling/biking/laddering, falls them off instead.
+// uc_orig: set_person_recoil (fallen/Source/Person.cpp)
+void set_person_recoil(Thing* p_person, SLONG anim, UBYTE flags);
+
+// STATE_HIT_RECOIL state machine: plays recoil animation, re-enables movement at frame 1.
+// uc_orig: fn_person_recoil (fallen/Source/Person.cpp)
+void fn_person_recoil(Thing* p_person);
+
+// Fall direction constants for fn_person_dying (returned by find_anim_fall_dir).
+// uc_orig: FALL_DIR_STRANGE_LAND (fallen/Source/Person.cpp)
+#define FALL_DIR_STRANGE_LAND   (-1)
+// uc_orig: FALL_DIR_LAND_ON_FRONT (fallen/Source/Person.cpp)
+#define FALL_DIR_LAND_ON_FRONT  (0)
+// uc_orig: FALL_DIR_LAND_ON_BACK (fallen/Source/Person.cpp)
+#define FALL_DIR_LAND_ON_BACK   (1)
+
+// Returns FALL_DIR_* for a dying animation (which way is the person falling?).
+// uc_orig: find_anim_fall_dir (fallen/Source/Person.cpp)
+SLONG find_anim_fall_dir(SLONG anim);
+
+// Moves person 1 unit forward — used to push them away from a wall when dying.
+// uc_orig: move_away_from_wall (fallen/Source/Person.cpp)
+void move_away_from_wall(Thing* p_person);
+
+// Spawns a random bonus item (health/ammo) near a dying person based on their skill/type.
+// uc_orig: generate_bonus_item (fallen/Source/Person.cpp)
+void generate_bonus_item(Thing* p_person);
+
+// Returns true if the given skeleton part is clipping below ground.
+// uc_orig: part_bad (fallen/Source/Person.cpp)
+SLONG part_bad(Thing* p_person, SLONG part);
+
+// STATE_DYING state machine: initial/final animation, prone falling, get-up, CRIME_RATE updates.
+// uc_orig: fn_person_dying (fallen/Source/Person.cpp)
+void fn_person_dying(Thing* p_person);
+
+// Resets dead_tween to all zeros (called at level init).
+// uc_orig: init_dead_tween (fallen/Source/Person.cpp)
+void init_dead_tween(void);
+
+// STATE_DEAD state machine: arrest sequence, arrested respawn, MIB electrocution, vanish timer.
+// uc_orig: fn_person_dead (fallen/Source/Person.cpp)
+void fn_person_dead(Thing* p_person);
+
+// Returns quick 2D scalar distance between two Things (in world/256 units).
+// uc_orig: dist_from_a_to_b (fallen/Source/Person.cpp)
+SLONG dist_from_a_to_b(Thing* a, Thing* b);
+
+// Snaps the player's look angle to face the newly selected gun target.
+// uc_orig: player_aim_at_new_person (fallen/Source/Person.cpp)
+void player_aim_at_new_person(Thing* p_person, UWORD new_target);
+
+// Returns the angle from the person toward their current Target (0-2047).
+// uc_orig: get_angle_to_target (fallen/Source/Person.cpp)
+SLONG get_angle_to_target(Thing* p_person);
+
+// Finds the best gun target while running and highlights it; returns 0.
+// uc_orig: player_running_aim_gun (fallen/Source/Person.cpp)
+SLONG player_running_aim_gun(Thing* p_person);
+
+// Blends the person's torso aiming animation left/right toward their gun target.
+// uc_orig: twist_darci_body_to_angle (fallen/Source/Person.cpp)
+void twist_darci_body_to_angle(Thing* p_person, SLONG twist);
+
+// Returns 0 if person is Darci, Roper, Cop, or Hostage; else 1 (they are a villain).
+// uc_orig: might_i_be_a_villain (fallen/Source/Person.cpp)
+SLONG might_i_be_a_villain(Thing* p_person);
+
+// Returns 1 if person is a thug (Rasta, Grey, Red, or Tramp), else 0.
+// uc_orig: am_i_a_thug (fallen/Source/Person.cpp)
+SLONG am_i_a_thug(Thing* p_person);
+
+// Returns an aim-quality benefit (in ticks) based on distance to target.
+// Closer = higher benefit. Returns 0 if negative.
+// uc_orig: calc_dist_benefit_to_gun (fallen/Source/Person.cpp)
+SLONG calc_dist_benefit_to_gun(Thing* p_person, SLONG dist);
+
+// Updates the gun-sight crosshair position and tweaks look_pitch toward the target.
+// uc_orig: highlight_gun_target (fallen/Source/Person.cpp)
+void highlight_gun_target(Thing* p_person, Thing* p_target);
+
+// STATE_GUN state machine: draw gun, aim, shoot, item draw/put-away transitions.
+// uc_orig: fn_person_gun (fallen/Source/Person.cpp)
+void fn_person_gun(Thing* p_person);
+
 #endif // ACTORS_CHARACTERS_PERSON_H
