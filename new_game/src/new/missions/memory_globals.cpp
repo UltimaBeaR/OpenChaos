@@ -178,9 +178,9 @@ struct PrimMultiObject* prim_multi_objects;
 // uc_orig: prim_normal (fallen/Source/memory.cpp)
 PrimNormal* prim_normal;
 
-// prim_info is declared in old/fallen/Headers/memory.h as extern PrimInfo* prim_info.
-// Its definition lives in Prim.cpp (not yet migrated), so this global stays there for now.
-// When Prim.cpp is migrated, prim_info definition will move here.
+// prim_info definition lives in world/environment/prim_globals.cpp (migrated from Prim.cpp).
+// extern PrimInfo* prim_info is declared in both memory_globals.h and prim_globals.h —
+// both refer to the same variable defined in prim_globals.cpp.
 
 // uc_orig: next_roof_face4 (fallen/Source/memory.cpp)
 UWORD next_roof_face4 = 1;

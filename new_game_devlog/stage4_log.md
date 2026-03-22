@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 115 — world/environment/prim (Prim.cpp → redirect) (2026-03-22)
+
+- `fallen/Source/Prim.cpp` (2595 строк) → `new/world/environment/prim.cpp` + `prim.h` + `prim_globals.cpp` + `prim_globals.h`.
+- `slide_around_box` не была объявлена в `collide.h` (только в `collide.cpp`) — добавлена декларация.
+- `prim_info` уже был extern-объявлен в `missions/memory_globals.h` (pre-emptive) — определение в `prim_globals.cpp`; комментарий в `memory_globals.cpp` обновлён.
+- `dont_slide` параметр в `slide_along_prim` присутствует в сигнатуре, но НЕ используется в теле оригинала (dead feature). Сохранён 1:1.
+- `actors/` includes (`thing.h`, `vehicle.h`, `person.h`) — cross-layer deps (world/ → actors/), помечены `// Temporary:`.
+- Локальные макросы `SLIDE_EDGE_HEIGHT`, `FURN_UNDERNEATH_BOT/TOP`, `JUST_IN_CASE`, `USED_POINT/FACE3/FACE4` — в `prim.cpp` (скопированы из тел функций оригинала, не публичные).
+- `old/fallen/Source/Prim.cpp` → redirect-заглушка.
+
+---
+
 ## Итерация 114 — world/environment/ns (ns.cpp чанк 2: walls, curves, cache, queries → old/ns.cpp redirect) (2026-03-22)
 
 - `fallen/Source/ns.cpp` завершён: lines 1179–2373 → `new/world/environment/ns.cpp`.

@@ -324,6 +324,17 @@ SLONG stop_movement_between(SLONG mx1, SLONG mz1, SLONG mx2, SLONG mz2);
 // Allocates a STOREY_TYPE_JUST_COLLISION DFacet for a water/sewer edge.
 void create_just_collision_facet(SLONG x1, SLONG z1, SLONG x2, SLONG z2);
 
+// uc_orig: slide_around_box (fallen/Source/collide.cpp)
+// Slide (*x2, *z2) to the nearest edge of an OBB (oriented bounding box) expanded by radius.
+// Retries if the chosen slide direction lands in a NOGO cell.
+// Returns TRUE if a collision occurred and x2/z2 were modified.
+SLONG slide_around_box(
+    SLONG box_mid_x, SLONG box_mid_z,
+    SLONG box_min_x, SLONG box_min_z,
+    SLONG box_max_x, SLONG box_max_z,
+    SLONG box_yaw, SLONG radius,
+    SLONG x1, SLONG z1, SLONG* x2, SLONG* z2);
+
 // uc_orig: slide_around_box_lowstack (fallen/Source/collide.cpp)
 // Simplified slide_around_box without NOGO retry. Used where stack depth matters.
 inline SLONG slide_around_box_lowstack(

@@ -65019,6 +65019,536 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-22"
+    },
+    {
+      "name": "delete_prim_points_block",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "delete_prim_points_block",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "delete_prim_faces3_block",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "delete_prim_faces3_block",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "delete_prim_faces4_block",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "delete_prim_faces4_block",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fix_faces_for_del_points",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "fix_faces_for_del_points",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fix_objects_for_del_points",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "fix_objects_for_del_points",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fix_objects_for_del_faces3",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "fix_objects_for_del_faces3",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fix_objects_for_del_faces4",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "fix_objects_for_del_faces4",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "compress_prims",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "compress_prims",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "clear_prims",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "clear_prims",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "sum_shared_brightness_prim",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "sum_shared_brightness_prim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_shared_brightness_prim",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "set_shared_brightness_prim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "smooth_a_prim",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "smooth_a_prim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "copy_prim_to_end",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "copy_prim_to_end",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "delete_prim_points",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "delete_prim_points",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "delete_prim_faces3",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "delete_prim_faces3",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "delete_prim_faces4",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "delete_prim_faces4",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "delete_prim_objects",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "delete_prim_objects",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "delete_last_prim",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "delete_last_prim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "delete_a_prim",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "delete_a_prim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_normal",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "calc_normal",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "quick_normal",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "quick_normal",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "apply_ambient_light_to_object",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "apply_ambient_light_to_object",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_prim_info",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "calc_prim_info",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_prim_normals",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "calc_prim_normals",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_prim_info",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "get_prim_info",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_slide_edges_roof",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "calc_slide_edges_roof",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "calc_slide_edges",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "calc_slide_edges",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_rotated_point_world_pos",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "get_rotated_point_world_pos",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "slide_along_prim",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "slide_along_prim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "prim_get_collision_model",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "prim_get_collision_model",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "prim_get_shadow_type",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "prim_get_shadow_type",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "does_fence_lie_along_line",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "does_fence_lie_along_line",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "clear_all_wmove_flags",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "clear_all_wmove_flags",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "fn_anim_prim_normal",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "fn_anim_prim_normal",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "create_anim_prim",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "create_anim_prim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "set_anim_prim_anim",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "set_anim_prim_anim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "get_anim_prim_type",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "get_anim_prim_type",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "find_anim_prim",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "find_anim_prim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "toggle_anim_prim_switch_state",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "toggle_anim_prim_switch_state",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "expand_anim_prim_bbox",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "expand_anim_prim_bbox",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "find_anim_prim_bboxes",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "find_anim_prim_bboxes",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "mark_prim_objects_as_unloaded",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "mark_prim_objects_as_unloaded",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "re_center_prim",
+      "file": "new/world/environment/prim.h",
+      "orig_name": "re_center_prim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "PRIM_MIN_BBOX",
+      "file": "new/world/environment/prim_globals.h",
+      "orig_name": "PRIM_MIN_BBOX",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAX_POINTS_PER_PRIM",
+      "file": "new/world/environment/prim_globals.h",
+      "orig_name": "MAX_POINTS_PER_PRIM",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "MAX_FIND_ANIM_PRIMS",
+      "file": "new/world/environment/prim_globals.h",
+      "orig_name": "MAX_FIND_ANIM_PRIMS",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "prim_info",
+      "file": "new/world/environment/prim_globals.h",
+      "orig_name": "prim_info",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "prim_names",
+      "file": "new/world/environment/prim_globals.h",
+      "orig_name": "prim_names",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "global_res",
+      "file": "new/world/environment/prim_globals.h",
+      "orig_name": "global_res",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "global_flags",
+      "file": "new/world/environment/prim_globals.h",
+      "orig_name": "global_flags",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "global_bright",
+      "file": "new/world/environment/prim_globals.h",
+      "orig_name": "global_bright",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "each_point",
+      "file": "new/world/environment/prim_globals.h",
+      "orig_name": "each_point",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
+    },
+    {
+      "name": "found_aprim",
+      "file": "new/world/environment/prim_globals.h",
+      "orig_name": "found_aprim",
+      "orig_file": "fallen/Source/Prim.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-22"
     }
   ]
 }

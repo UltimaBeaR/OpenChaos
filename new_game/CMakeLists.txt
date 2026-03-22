@@ -315,6 +315,8 @@ set(SOURCES_GAME
     src/new/world/environment/ns.cpp
     src/new/world/environment/ns_globals.cpp
     src/old/fallen/Source/ns.cpp
+    src/new/world/environment/prim.cpp
+    src/new/world/environment/prim_globals.cpp
     src/new/world/map/ob.cpp
     src/new/world/map/ob_globals.cpp
     src/new/ui/hud/overlay.cpp
