@@ -1,8 +1,6 @@
-#include "always.h"
-#include "matrix.h"
 #include "ui/cutscenes/outro/outro_matrix.h"
 
-#if 0 // MIGRATED to src/new/ui/cutscenes/outro/outro_matrix.cpp (iteration 150) [MATRIX_scale]
+// uc_orig: MATRIX_scale (fallen/outro/outroMatrix.cpp)
 void MATRIX_scale(float matrix[9], float mulby)
 {
     matrix[0] *= mulby;
@@ -15,4 +13,3 @@ void MATRIX_scale(float matrix[9], float mulby)
     matrix[7] *= mulby;
     matrix[8] *= mulby;
 }
-#endif // MIGRATED to src/new/ui/cutscenes/outro/outro_matrix.cpp (iteration 150)

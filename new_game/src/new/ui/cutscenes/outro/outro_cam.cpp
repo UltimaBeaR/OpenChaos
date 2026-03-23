@@ -1,38 +1,14 @@
-#include "always.h"
-#include "cam.h"
-#include "key.h"
-#include "matrix.h"
-#include "os.h"
 #include "ui/cutscenes/outro/outro_cam.h"
 #include "ui/cutscenes/outro/outro_cam_globals.h"
-
-#if 0 // MIGRATED to src/new/ui/cutscenes/outro/outro_cam.cpp + outro_cam_globals.cpp (iteration 150) [CAM_init, CAM_process, CAM_type, CAM_x, CAM_y, CAM_z, CAM_yaw, CAM_pitch, CAM_lens, CAM_dist, CAM_matrix, CAM_focus_x, CAM_focus_y, CAM_focus_z]
-
-//
-// The two different camera types.
-//
+#include "fallen/outro/os.h"     // Temporary: OS_* render functions
+#include "fallen/outro/key.h"    // Temporary: KEY_on[], KEY_shift, KEY_* scancodes
+#include "fallen/outro/Matrix.h" // Temporary: MATRIX_calc, MATRIX_MUL
 
 #define CAM_TYPE_LOCKED 0
 #define CAM_TYPE_FREE 1
 #define CAM_TYPE_NUMBER 2
 
-//
-// The camera.
-//
-
-SLONG CAM_type;
-float CAM_x;
-float CAM_y;
-float CAM_z;
-float CAM_yaw;
-float CAM_pitch;
-float CAM_lens;
-float CAM_dist;
-float CAM_matrix[9];
-float CAM_focus_x;
-float CAM_focus_y;
-float CAM_focus_z;
-
+// uc_orig: CAM_init (fallen/outro/cam.cpp)
 void CAM_init(void)
 {
     CAM_type = CAM_TYPE_LOCKED;
@@ -45,12 +21,10 @@ void CAM_init(void)
     CAM_process();
 }
 
+// uc_orig: CAM_process (fallen/outro/cam.cpp)
 void CAM_process(void)
 {
-    //
-    // Pressing TAB toggles between the different camera types.
-    //
-
+    // TAB toggles between locked-to-focus and free-fly camera modes.
     if (KEY_on[KEY_TAB]) {
         KEY_on[KEY_TAB] = 0;
 
@@ -171,5 +145,3 @@ void CAM_process(void)
         break;
     }
 }
-
-#endif // MIGRATED to src/new/ui/cutscenes/outro/outro_cam.cpp + outro_cam_globals.cpp (iteration 150)

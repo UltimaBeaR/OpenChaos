@@ -1,12 +1,22 @@
-#include "always.h"
-#include "key.h"
-#include "font.h"
-#include "os.h"
-#include "ui/cutscenes/outro/outro_credits.h"
 #include "ui/cutscenes/outro/outro_credits_globals.h"
 
-#if 0 // MIGRATED to src/new/ui/cutscenes/outro/outro_credits.cpp + outro_credits_globals.cpp (iteration 150) [CREDITS_init, CREDITS_draw, CREDITS_muckyfoot, CREDITS_eidos_uk, CREDITS_eidos_usa, CREDITS_eidos_france, CREDITS_eidos_germany, CREDITS_voice_production, CREDITS_bands, CREDITS_Section, CREDITS_NUM_SECTIONS, CREDITS_section, CREDITS_current_section, CREDITS_current_y, CREDITS_current_end_y, CREDITS_last, CREDITS_now]
+// uc_orig: CREDITS_current_section (fallen/outro/credits.cpp)
+SLONG CREDITS_current_section = 0;
 
+// uc_orig: CREDITS_current_y (fallen/outro/credits.cpp)
+float CREDITS_current_y = 0.0F;
+
+// uc_orig: CREDITS_current_end_y (fallen/outro/credits.cpp)
+float CREDITS_current_end_y = 0.0F;
+
+// uc_orig: CREDITS_last (fallen/outro/credits.cpp)
+SLONG CREDITS_last = 0;
+
+// uc_orig: CREDITS_now (fallen/outro/credits.cpp)
+SLONG CREDITS_now = 0;
+
+// uc_orig: CREDITS_muckyfoot (fallen/outro/credits.cpp)
+// Lines terminated by NULL (blank line) or "!" (end of section).
 CBYTE* CREDITS_muckyfoot[] = {
     "Mucky Foot are Ashley Hampton, Barry Meade, Chris Knott, Eddie",
     "Edwards, Fin McGechie, Gary Carr, Guy Simmons, James 'Dudley'",
@@ -124,6 +134,7 @@ CBYTE* CREDITS_muckyfoot[] = {
     "!"
 };
 
+// uc_orig: CREDITS_eidos_uk (fallen/outro/credits.cpp)
 CBYTE* CREDITS_eidos_uk[] = {
     "~BSenior Producer",
     "\tDarren Hedges",
@@ -185,6 +196,7 @@ CBYTE* CREDITS_eidos_uk[] = {
     "!"
 };
 
+// uc_orig: CREDITS_eidos_usa (fallen/outro/credits.cpp)
 CBYTE* CREDITS_eidos_usa[] = {
     "~BAssociate Producer",
     "\tEric Adams",
@@ -215,6 +227,7 @@ CBYTE* CREDITS_eidos_usa[] = {
     "!"
 };
 
+// uc_orig: CREDITS_eidos_france (fallen/outro/credits.cpp)
 CBYTE* CREDITS_eidos_france[] = {
     "~BChef de produit",
     "\tOlivier Salomon",
@@ -223,7 +236,7 @@ CBYTE* CREDITS_eidos_france[] = {
     "~BResponsable localisation",
     "\tSt"
     "\xe9"
-    "phan Gonizzi", // This has got an accent
+    "phan Gonizzi",
     NULL,
 
     "~BResponsable RP",
@@ -240,37 +253,12 @@ CBYTE* CREDITS_eidos_france[] = {
 
     "~BEnregistrement des voix fran"
     "\xe7"
-    "aises", // This has got an accent in it!
+    "aises",
     "\tLe Lotus Rose, Paris",
     "!"
 };
 
-/*
-
-//
-// The Translated version...
-//
-
-{
-        "~BMarketing Manager",
-        "\tOlivier Salomon",
-        NULL,
-
-        "~BLocalisation Manager",
-        "\tStéphan Gonizzi",
-        NULL,
-
-        "~BPR Manager",
-        "\tPriscille Demoly",
-        NULL,
-
-        "~BLocalisation Testing",
-        "\tGuillaume Mahouin",
-        "!"
-};
-
-*/
-
+// uc_orig: CREDITS_eidos_germany (fallen/outro/credits.cpp)
 CBYTE* CREDITS_eidos_germany[] = {
     "~BLeiter Produktentwicklung",
     "\tBeco Mulderij",
@@ -295,12 +283,12 @@ CBYTE* CREDITS_eidos_germany[] = {
     "~BQA-Manager",
     "S"
     "\xf6"
-    "ren Winterfeldt", // Accent!
+    "ren Winterfeldt",
     NULL,
 
     "~B"
     "\xdc"
-    "bersetzung", // Accent!
+    "bersetzung",
     "\tViolet Media, Isabel Sterner",
     NULL,
 
@@ -311,9 +299,9 @@ CBYTE* CREDITS_eidos_germany[] = {
     "~BTonmeister",
     "\tCedric Hopf",
     "!"
-
 };
 
+// uc_orig: CREDITS_voice_production (fallen/outro/credits.cpp)
 CBYTE* CREDITS_voice_production[] = {
     "~BCasting",
     "\tPhil Morris at AllintheGame",
@@ -347,6 +335,7 @@ CBYTE* CREDITS_voice_production[] = {
     "!"
 };
 
+// uc_orig: CREDITS_bands (fallen/outro/credits.cpp)
 CBYTE* CREDITS_bands[] = {
     "Way Out West - Urban Chaos",
     "The 3 Jays - Feeling it too",
@@ -360,15 +349,8 @@ CBYTE* CREDITS_bands[] = {
     "!"
 };
 
-typedef struct
-{
-    CBYTE* title;
-    CBYTE** line;
-
-} CREDITS_Section;
-
-#define CREDITS_NUM_SECTIONS 7
-
+// uc_orig: CREDITS_section (fallen/outro/credits.cpp)
+// All credits sections indexed for sequential display.
 CREDITS_Section CREDITS_section[CREDITS_NUM_SECTIONS] = {
     { "MUCKYFOOT",
         CREDITS_muckyfoot },
@@ -391,143 +373,3 @@ CREDITS_Section CREDITS_section[CREDITS_NUM_SECTIONS] = {
     { "ORIGINAL CD MUSIC",
         CREDITS_bands }
 };
-
-SLONG CREDITS_current_section;
-float CREDITS_current_y;
-float CREDITS_current_end_y;
-
-SLONG CREDITS_last;
-SLONG CREDITS_now;
-
-void CREDITS_init()
-{
-    CREDITS_current_section = 0;
-    CREDITS_current_y = 1.0F;
-    CREDITS_now = 0;
-    CREDITS_last = 0;
-}
-
-void CREDITS_draw()
-{
-    SLONG i;
-    SLONG dont_draw;
-    SLONG flag;
-    float x;
-    float y;
-    float shimmer;
-    float scale;
-
-    CREDITS_Section* cs;
-
-    CREDITS_now = OS_ticks();
-
-    if (CREDITS_last < CREDITS_now - 500) {
-        CREDITS_last = CREDITS_now - 500;
-    }
-
-    if (KEY_on[KEY_S]) {
-        CREDITS_last -= 200;
-    }
-
-    CREDITS_current_y -= (CREDITS_now - CREDITS_last) * 0.00005F;
-
-    ASSERT(WITHIN(CREDITS_current_section, 0, CREDITS_NUM_SECTIONS - 1));
-
-    cs = &CREDITS_section[CREDITS_current_section];
-
-    if (CREDITS_current_y > 0.6F) {
-        shimmer = 1.0F - (1.0F - CREDITS_current_y) * (1.0F / 0.4F);
-    } else if (CREDITS_current_end_y < 0.50F) {
-        shimmer = 1.0F - (CREDITS_current_end_y - 0.10F) * (1.0F / 0.4F);
-    }
-
-    SATURATE(shimmer, 0.0F, 1.0F);
-
-    FONT_draw(
-        FONT_FLAG_JUSTIFY_LEFT,
-        0.03F, 0.05F,
-        0xffffff,
-        1.5F,
-        -1,
-        shimmer,
-        cs->title);
-
-    y = CREDITS_current_y;
-
-    for (i = 0; cs->line[i] == NULL || cs->line[i][0] != '!'; i++) {
-        flag = FONT_FLAG_JUSTIFY_LEFT;
-        scale = 0.6F;
-        dont_draw = UC_FALSE;
-
-        if (cs->line[i] == NULL) {
-            dont_draw = UC_TRUE;
-        } else if (y < 0.10F) {
-            dont_draw = UC_TRUE;
-        } else if (y < 0.30F) {
-            shimmer = 1.0F - (y - 0.10F) * (1.0F / 0.2F);
-        } else if (y < 0.75F) {
-            shimmer = 0.0F;
-        } else if (y < 0.95F) {
-            shimmer = (y - 0.75F) * (1.0F / 0.2F);
-        } else {
-            dont_draw = UC_TRUE;
-        }
-
-        if (cs->line[i]) {
-            CBYTE* text = cs->line[i];
-
-            if (text[0] == '~') {
-                switch (text[1]) {
-                case 'B':
-                    scale = 1.0F;
-                    break;
-
-                case 'I':
-                    flag |= FONT_FLAG_ITALIC;
-                    break;
-
-                default:
-                    ASSERT(0);
-                    break;
-                }
-
-                text += 2;
-            }
-
-            x = 0.06F;
-
-            while (*text == '\t') {
-                text += 1;
-                x += 0.03F;
-            }
-
-            if (!dont_draw) {
-                FONT_draw(
-                    flag,
-                    x, y,
-                    0xffffff,
-                    scale,
-                    -1,
-                    shimmer,
-                    text);
-            }
-        }
-
-        y += 0.05F * scale;
-    }
-
-    CREDITS_current_end_y = y;
-
-    if (y < 0.10F) {
-        CREDITS_current_section += 1;
-        CREDITS_current_y = 1.0F;
-
-        if (CREDITS_current_section >= CREDITS_NUM_SECTIONS) {
-            CREDITS_current_section = 0;
-        }
-    }
-
-    CREDITS_last = CREDITS_now;
-}
-
-#endif // MIGRATED to src/new/ui/cutscenes/outro/outro_credits.cpp + outro_credits_globals.cpp (iteration 150)

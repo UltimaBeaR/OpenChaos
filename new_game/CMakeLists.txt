@@ -274,6 +274,14 @@ set(SOURCES_OUTRO
     src/old/fallen/outro/outroMatrix.cpp
     src/old/fallen/outro/OutroTga.cpp
     src/old/fallen/outro/wire.cpp
+    src/new/ui/cutscenes/outro/outro_tga.cpp
+    src/new/ui/cutscenes/outro/outro_matrix.cpp
+    src/new/ui/cutscenes/outro/outro_back.cpp
+    src/new/ui/cutscenes/outro/outro_back_globals.cpp
+    src/new/ui/cutscenes/outro/outro_cam.cpp
+    src/new/ui/cutscenes/outro/outro_cam_globals.cpp
+    src/new/ui/cutscenes/outro/outro_credits.cpp
+    src/new/ui/cutscenes/outro/outro_credits_globals.cpp
 )
 
 set(SOURCES_GAME

@@ -1,16 +1,9 @@
-#include "always.h"
-#include "back.h"
-#include "os.h"
 #include "ui/cutscenes/outro/outro_back.h"
 #include "ui/cutscenes/outro/outro_back_globals.h"
+#include "fallen/outro/always.h" // Temporary: outro uses its own type definitions
+#include "fallen/outro/os.h"     // Temporary: OS_Texture, OS_Buffer, OS_DRAW_*, OS_FADE_RIGHT
 
-#if 0 // MIGRATED to src/new/ui/cutscenes/outro/outro_back.cpp + outro_back_globals.cpp (iteration 150) [BACK_init, BACK_draw, BACK_ot_roper, BACK_ot_darci, BACK_ot_mib, BACK_ot_line]
-
-OS_Texture* BACK_ot_roper;
-OS_Texture* BACK_ot_darci;
-OS_Texture* BACK_ot_mib;
-OS_Texture* BACK_ot_line;
-
+// uc_orig: BACK_init (fallen/outro/back.cpp)
 void BACK_init()
 {
     static SLONG done;
@@ -27,6 +20,7 @@ void BACK_init()
     done = UC_TRUE;
 }
 
+// uc_orig: BACK_draw (fallen/outro/back.cpp)
 void BACK_draw()
 {
     ULONG colour;
@@ -41,16 +35,10 @@ void BACK_draw()
     SLONG now = OS_ticks();
 
     if (now < 2048) {
-        //
-        // Draw nothing for a while...
-        //
-
+        // Draw nothing for a while at the start.
         colour = 0;
     } else if (now < 4096) {
-        //
-        // Then fade in over the next two seconds...
-        //
-
+        // Fade in over the next two seconds.
         colour = now - 2048 >> 4;
         colour |= colour << 8;
         colour |= colour << 8;
@@ -59,6 +47,7 @@ void BACK_draw()
         colour = 0x808080;
     }
 
+    // Cycle through three background images.
     switch ((now >> 14) % 3) {
     case 0:
         ot1 = BACK_ot_roper;
@@ -82,6 +71,7 @@ void BACK_draw()
 
     now &= 0x3fff;
 
+    // Compute crossfade amount between the two current images.
     if (now < 6000) {
         between = 0.0F;
     } else if (now < 10000) {
@@ -120,6 +110,7 @@ void BACK_draw()
         OS_buffer_draw(ob, ot2, NULL, OS_DRAW_ZALWAYS);
     }
 
+    // Draw the sliding transition line with additive blending.
     if (between > 0.0F && between < 1.0F) {
         ob = OS_buffer_new();
 
@@ -136,5 +127,3 @@ void BACK_draw()
         OS_buffer_draw(ob, BACK_ot_line, NULL, OS_DRAW_ADD | OS_DRAW_NOZWRITE | OS_DRAW_ZALWAYS);
     }
 }
-
-#endif // MIGRATED to src/new/ui/cutscenes/outro/outro_back.cpp + outro_back_globals.cpp (iteration 150)

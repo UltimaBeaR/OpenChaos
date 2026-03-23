@@ -1,16 +1,14 @@
-#include "always.h"
-#include "tga.h"
+#include "ui/cutscenes/outro/outro_tga.h"
 
-#if 0 // MIGRATED to src/new/ui/cutscenes/outro/outro_tga.cpp (iteration 150) [OUTRO_TGA_FileLoad_Error, OUTRO_TGA_load]
-
+// uc_orig: OUTRO_TGA_FileLoad_Error (fallen/outro/OutroTga.cpp)
 OUTRO_TGA_Info OUTRO_TGA_FileLoad_Error(OUTRO_TGA_Info& ans, FILE*& handle, const CBYTE*& file)
 {
-
     fclose(handle);
     ans.valid = UC_FALSE;
     return ans;
 }
 
+// uc_orig: OUTRO_TGA_load (fallen/outro/OutroTga.cpp)
 OUTRO_TGA_Info OUTRO_TGA_load(
     const CBYTE* file,
     SLONG max_width,
@@ -75,6 +73,7 @@ OUTRO_TGA_Info OUTRO_TGA_load(
 
     ans.valid = UC_TRUE;
 
+    // Skip past the image identification field.
     for (i = 0; i < tga_id_length; i++) {
         if (fread(&rubbish, sizeof(UBYTE), 1, handle) != 1)
             return OUTRO_TGA_FileLoad_Error(ans, handle, file);
@@ -86,6 +85,7 @@ OUTRO_TGA_Info OUTRO_TGA_load(
 
         no_alpha = UC_FALSE;
     } else {
+        // 24-bit: load pixel-by-pixel, adding a null alpha channel.
         for (i = 0; i < tga_width * tga_height; i++) {
             if (fread(&blue, sizeof(UBYTE), 1, handle) != 1)
                 return OUTRO_TGA_FileLoad_Error(ans, handle, file);
@@ -114,7 +114,6 @@ OUTRO_TGA_Info OUTRO_TGA_load(
 
                 if (ans.flag != 0) {
                     ans.flag &= ~TGA_FLAG_ONE_BIT_ALPHA;
-
                     break;
                 }
             }
@@ -125,17 +124,15 @@ OUTRO_TGA_Info OUTRO_TGA_load(
         }
     }
 
+    // Detect grayscale: all pixels satisfy r == g == b.
     ans.flag |= TGA_FLAG_GRAYSCALE;
 
     for (i = 0; i < tga_width * tga_height; i++) {
         if (data[i].red != data[i].green || data[i].red != data[i].blue || data[i].green != data[i].blue) {
             ans.flag &= ~TGA_FLAG_GRAYSCALE;
-
             break;
         }
     }
 
     return ans;
 }
-
-#endif // MIGRATED to src/new/ui/cutscenes/outro/outro_tga.cpp (iteration 150)

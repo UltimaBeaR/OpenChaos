@@ -78139,6 +78139,406 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "OUTRO_TGA_FileLoad_Error",
+      "file": "new/ui/cutscenes/outro/outro_tga.h",
+      "orig_name": "OUTRO_TGA_FileLoad_Error",
+      "orig_file": "fallen/outro/OutroTga.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OUTRO_TGA_load",
+      "file": "new/ui/cutscenes/outro/outro_tga.h",
+      "orig_name": "OUTRO_TGA_load",
+      "orig_file": "fallen/outro/OutroTga.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MATRIX_scale",
+      "file": "new/ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_scale",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BACK_ot_roper",
+      "file": "new/ui/cutscenes/outro/outro_back_globals.h",
+      "orig_name": "BACK_ot_roper",
+      "orig_file": "fallen/outro/back.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BACK_ot_darci",
+      "file": "new/ui/cutscenes/outro/outro_back_globals.h",
+      "orig_name": "BACK_ot_darci",
+      "orig_file": "fallen/outro/back.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BACK_ot_mib",
+      "file": "new/ui/cutscenes/outro/outro_back_globals.h",
+      "orig_name": "BACK_ot_mib",
+      "orig_file": "fallen/outro/back.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BACK_ot_line",
+      "file": "new/ui/cutscenes/outro/outro_back_globals.h",
+      "orig_name": "BACK_ot_line",
+      "orig_file": "fallen/outro/back.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BACK_init",
+      "file": "new/ui/cutscenes/outro/outro_back.h",
+      "orig_name": "BACK_init",
+      "orig_file": "fallen/outro/back.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BACK_draw",
+      "file": "new/ui/cutscenes/outro/outro_back.h",
+      "orig_name": "BACK_draw",
+      "orig_file": "fallen/outro/back.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_type",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_type",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_x",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_x",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_y",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_y",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_z",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_z",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_yaw",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_yaw",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_pitch",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_pitch",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_lens",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_lens",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_dist",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_dist",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_matrix",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_matrix",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_focus_x",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_focus_x",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_focus_y",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_focus_y",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_focus_z",
+      "file": "new/ui/cutscenes/outro/outro_cam_globals.h",
+      "orig_name": "CAM_focus_z",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_init",
+      "file": "new/ui/cutscenes/outro/outro_cam.h",
+      "orig_name": "CAM_init",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_process",
+      "file": "new/ui/cutscenes/outro/outro_cam.h",
+      "orig_name": "CAM_process",
+      "orig_file": "fallen/outro/cam.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_current_section",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_current_section",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_current_y",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_current_y",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_current_end_y",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_current_end_y",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_last",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_last",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_now",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_now",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_Section",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_Section",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_NUM_SECTIONS",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_NUM_SECTIONS",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_section",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_section",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_muckyfoot",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_muckyfoot",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_eidos_uk",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_eidos_uk",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_eidos_usa",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_eidos_usa",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_eidos_france",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_eidos_france",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_eidos_germany",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_eidos_germany",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_voice_production",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_voice_production",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_bands",
+      "file": "new/ui/cutscenes/outro/outro_credits_globals.h",
+      "orig_name": "CREDITS_bands",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_init",
+      "file": "new/ui/cutscenes/outro/outro_credits.h",
+      "orig_name": "CREDITS_init",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CREDITS_draw",
+      "file": "new/ui/cutscenes/outro/outro_credits.h",
+      "orig_name": "CREDITS_draw",
+      "orig_file": "fallen/outro/credits.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 150 — outro: outroTga, outroMatrix, back, cam, credits (2026-03-23)
+
+- Начало миграции `old/fallen/outro/` — первый батч из 5 файлов.
+- `outro/always.h` и `core/types.h` нельзя включать в один TU (конфликт typedef). Все новые outro файлы используют `fallen/outro/always.h` как временный, `core/types.h` не трогают.
+- `MATRIX_scale` из `outroMatrix.cpp` — единственная функция уникальная для outro; остальные `MATRIX_*` уже живут в `core/matrix.cpp` и доступны через `fallen/outro/Matrix.h`.
+- `OUTRO_TGA_Pixel`/`OUTRO_TGA_Info` берутся из `fallen/outro/Tga.h` (без переопределения) — иначе ODR-конфликт с `outroFont.cpp`.
+- Баг при компиляции: `CREDITS_Section` typedef и `#define CREDITS_NUM_SECTIONS` попали и в `.h` и в `.cpp` — убраны из `.cpp`.
+- `old/` файлы (outroTga, outroMatrix, back, cam, credits) обёрнуты в `#if 0`.
+
+---
+
 ## Итерация 149 — figure.cpp chunk 4: reflection + person-only draw (2026-03-23)
 
 - `FIGURE_Rpoint` struct и reflection globals (`FIGURE_rpoint[]`, `FIGURE_rpoint_upto`, `FIGURE_reflect_*`) → `figure_globals.h/.cpp`.
