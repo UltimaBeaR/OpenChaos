@@ -62,7 +62,8 @@
 #include "fallen/DDEngine/Headers/panel.h" // Temporary: panel/HUD utilities
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
-#include "fallen/Headers/building.h" // Temporary: CABLE_ALONG_MAX, CABLE_ALONG_SHIFT, FACET_FLAG_*, get_cable_along
+#include "world/environment/building_types.h"  // CABLE_ALONG_MAX, CABLE_ALONG_SHIFT, FACET_FLAG_*
+#include "world/environment/building.h"        // make_cable_taut_along, make_cable_flabby, etc.
 
 #include "actors/characters/person.h"
 #include "actors/characters/person_globals.h"
@@ -75,7 +76,8 @@
 #include "actors/animals/bat.h"     // Temporary: BAT_apply_hit
 #include "actors/items/barrel.h"    // Temporary: BARREL_shoot
 #include "actors/core/interact.h"   // Temporary: find_grab_face (chunk 6)
-#include "fallen/Headers/prim.h"    // Temporary: which_side, two4_line_intersection, signed_dist_to_line_with_normal, does_fence_lie_along_line (chunk 6)
+#include "world/environment/prim_types.h" // PrimFace3/4, FACE_FLAG_*, PRIM_OBJ_*
+#include "world/environment/prim.h"       // does_fence_lie_along_line (chunk 6)
 #include "ai/pcom.h"
 #include "ui/hud/overlay.h"         // Temporary: track_enemy (chunk 11)
 
@@ -111,7 +113,7 @@ extern SLONG sprint_speed;
 extern void add_thing_to_map(Thing* p_thing);
 extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
 // locked_anim_change / locked_anim_change_of_type: now defined in person.cpp chunk 7 (below)
-extern SLONG get_cable_along(SLONG facet, SLONG ax, SLONG az);
+// get_cable_along: declared via actors/core/interact.h
 extern SWORD people_types[50];
 // do_person_on_cable is defined below in chunk 8 (no extern needed)
 // get_yomp_anim: now defined in this file (chunk 9 below)

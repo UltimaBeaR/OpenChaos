@@ -1,6 +1,6 @@
-// Temporary: game.h brings in Thing, POLY_FLAG_DOUBLESIDED, building_objects, building_facets,
-// prim_faces4/3, and many other game-level types needed here.
+// Temporary: game.h brings in Thing, POLY_FLAG_DOUBLESIDED, and many other game-level types.
 #include "game.h"
+#include "world/environment/building_globals.h" // building_objects[], building_facets[]
 #include "aeng.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/lighting/light.h"

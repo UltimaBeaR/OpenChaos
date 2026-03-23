@@ -1,4 +1,5 @@
 #include "fallen/Headers/Game.h"   // Temporary: NET_PERSON, DRAW_DIST, ASSERT, WITHIN, SATURATE, QDIST2, Random
+#include "world/environment/prim.h" // prim_get_collision_model
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
 #include "world/navigation/wand.h"

@@ -67,7 +67,8 @@
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"
 #include "world/environment/plat.h"
-#include "fallen/Headers/prim.h"        // Temporary: get_prim_info, prim object constants
+#include "world/environment/prim_types.h" // PrimObject, PrimInfo, PRIM_OBJ_*
+#include "world/environment/prim.h"       // get_prim_info
 #include "actors/core/statedef.h"
 #include "ai/mav.h"
 #include "engine/physics/collide.h"

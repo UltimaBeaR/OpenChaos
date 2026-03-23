@@ -11,8 +11,8 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "core/matrix.h"
 
-// Temporary: prim data (prim_objects, get_prim_info, etc.) not yet migrated
-#include "fallen/Headers/prim.h"
+#include "world/environment/prim_types.h"  // PrimObject, PrimInfo, PRIM_FLAG_*, FACE_FLAG_*, PRIM_OBJ_*
+#include "world/environment/prim.h"        // get_prim_info, slide_along_prim, etc.
 
 // Temporary: balloon data not yet migrated
 #include "fallen/Headers/balloon.h"

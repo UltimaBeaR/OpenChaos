@@ -23,7 +23,7 @@
 #include "world/map/supermap_globals.h"      // next_dfacet, next_dbuilding
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"
-#include "world/environment/building.h"      // Temporary: DFacet, TEXTURE_PIECE_*, building types
+#include "world/environment/building.h"         // building API
 #include "world/environment/building_globals.h" // dx_textures_xy, dbuildings, dwalkables, roof_faces4
 #include "missions/memory_globals.h"         // dstyles, dstoreys, paint_mem, inside_storeys, inside_stairs
 #include "assets/texture.h"                  // Temporary: TEXTURE_crinkle, TEXTURE_get_minitexturebits_uvs
@@ -32,7 +32,7 @@
 #include "ui/controls_globals.h"             // allow_debug_keys
 #include "ui/camera/fc_globals.h"            // FC_cam
 #include "engine/lighting/smap.h"            // SMAP_Link, SMAP_project_onto_poly
-#include "fallen/Headers/prim.h"             // Temporary: PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4
+#include "world/environment/prim_types.h"    // PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4
 
 // POLY_set_local_rotation_none is a no-op on PC. On Dreamcast it reset the local
 // rotation matrix before DrawIndexedPrimitive. Defined as a macro here to match

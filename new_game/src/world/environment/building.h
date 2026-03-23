@@ -1,15 +1,15 @@
 #ifndef WORLD_ENVIRONMENT_BUILDING_H
 #define WORLD_ENVIRONMENT_BUILDING_H
 
-#include "fallen/Headers/building.h"   // Temporary: building types (FBuilding etc.), all public building API
+#include "world/environment/prim_types.h"     // PrimFace3/4, PrimObject, PrimPoint, etc.
+#include "world/environment/building_types.h" // FBuilding, FStorey, FWall, STOREY_TYPE_*, FACET_FLAG_*, etc.
 
 // =====================================================================
 // Building geometry construction system.
 // Reads FBuilding/FStorey/FWall data and emits renderable geometry
 // (prim_points[], prim_faces4[], prim_faces3[]) and walkability data.
 //
-// Most of the public API (place_building_at, create_city, etc.) is in
-// fallen/Headers/building.h — this file adds chunk-specific helpers.
+// Types and constants are in building_types.h. This file exposes the runtime API.
 // =====================================================================
 
 // Stub: registers a collision vector into the physics system.

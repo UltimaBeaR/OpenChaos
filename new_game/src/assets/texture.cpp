@@ -25,7 +25,8 @@
 #include "assets/level_loader_globals.h"
 #include "assets/anim_loader.h"
 #include "assets/anim_loader_globals.h"
-#include "fallen/Headers/building.h" // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED, dx_textures_xy
+#include "world/environment/building_types.h"  // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED
+#include "world/environment/building_globals.h" // dx_textures_xy, building_list
 #include "world/map/supermap_globals.h" // next_dfacet
 #include "world/environment/ware_globals.h" // WARE_rooftex, WARE_rooftex_upto
 #include "world/map/map.h" // MAP_WIDTH, MAP_HEIGHT

@@ -7,9 +7,9 @@
 
 // Temporary: Vehicle.h not yet migrated; needed for get_vehicle_body_offset/prim.
 #include "fallen/Headers/Vehicle.h"
-// Temporary: prim_points/prim_faces4 etc. declared in memory.h; prim structs in prim.h.
-#include "fallen/Headers/memory.h"
-#include "fallen/Headers/prim.h"
+#include "fallen/Headers/memory.h"        // Temporary: prim_points/prim_faces4 pool pointers
+#include "world/environment/prim_types.h" // PrimFace4, PrimPoint, FACE_FLAG_*
+#include "world/environment/prim.h"       // get_prim_info, slide_along_prim
 
 // uc_orig: WMOVE_get_num_faces (fallen/Source/wmove.cpp)
 static SLONG WMOVE_get_num_faces(Thing* p_thing)

@@ -1,6 +1,5 @@
 #include "actors/items/special_globals.h"
-// Temporary: prim.h needed for PRIM_OBJ_ITEM_* constants (not yet migrated)
-#include "fallen/Headers/prim.h"
+#include "world/environment/prim_types.h" // PRIM_OBJ_ITEM_* constants
 // Temporary: dirt.h needed for DIRT_Info type used in dead global special_di
 #include "fallen/Headers/dirt.h"
 

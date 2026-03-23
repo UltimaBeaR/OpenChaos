@@ -13,7 +13,7 @@
 #include "ai/pcom.h"
 #include "fallen/Headers/Game.h"       // Temporary: GAME_FLAGS, GF_*, GAME_TURN, Thing, calc_angle, NET_PERSON
 #include "ai/mav.h"
-#include "fallen/Headers/prim.h"       // Temporary: PRIM_FLAG_TREE, PRIM_OBJ_CAN, PRIM_OBJ_ITEM_KEY
+#include "world/environment/prim_types.h" // PRIM_FLAG_TREE, PRIM_OBJ_CAN, PRIM_OBJ_ITEM_KEY
 #include "assets/sound_id.h"     // Temporary: S_KICK_CAN
 #include "engine/audio/sound.h"
 #include "engine/graphics/pipeline/poly.h"  // Temporary: POLY_PAGE_EXPLODE1_ADDITIVE, POLY_PAGE_EXPLODE2_ADDITIVE

@@ -11,9 +11,10 @@
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "core/matrix.h"
 #include "assets/texture.h"          // Temporary: engine/ -> assets/ DAG violation; needed for FACE_PAGE_OFFSET
-#include "fallen/Headers/prim.h"
+#include "world/environment/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
+#include "world/environment/prim.h"          // get_prim_info
+#include "world/environment/building_types.h" // TEXTURE_PIECE_*
 #include "fallen/Headers/memory.h"
-#include "fallen/Headers/building.h"
 #include "fallen/Headers/Night.h"
 
 // uc_orig: FASTPRIM_find_texture_from_page (fallen/DDEngine/Source/fastprim.cpp)

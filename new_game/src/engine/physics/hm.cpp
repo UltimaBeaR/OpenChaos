@@ -10,7 +10,8 @@
 #include <string.h>
 
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/Prim.h"     // Temporary: PrimObject, PrimInfo, get_prim_info, PrimFace4, PrimPoint, PrimFace3
+#include "world/environment/prim_types.h" // PrimObject, PrimInfo, PrimFace4, PrimPoint, PrimFace3
+#include "world/environment/prim.h"       // get_prim_info
 #include "core/math.h"
 #include "fallen/Headers/pap.h"      // Temporary: PAP_calc_height_at
 #include "fallen/DDEngine/Headers/Matrix.h"   // Temporary: MATRIX_calc, MATRIX_MUL, MATRIX_MUL_BY_TRANSPOSE, MATRIX_find_angles, Direction

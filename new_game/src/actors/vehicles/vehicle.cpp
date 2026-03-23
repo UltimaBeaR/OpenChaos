@@ -16,7 +16,8 @@
 #include "world/map/pap_globals.h"
 #include "core/fmatrix.h"
 #include "actors/core/statedef.h"
-#include "fallen/Headers/prim.h" // Temporary: prim types not yet migrated
+#include "world/environment/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*
+#include "world/environment/prim.h"       // slide_along_prim, get_prim_info, etc.
 #include "actors/characters/anim_ids.h"
 #include "engine/audio/sound.h"
 #include "actors/core/interact.h"

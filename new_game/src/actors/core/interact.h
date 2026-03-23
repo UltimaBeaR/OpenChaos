@@ -1,9 +1,15 @@
 #ifndef ACTORS_CORE_INTERACT_H
 #define ACTORS_CORE_INTERACT_H
 
-#include "fallen/Headers/building.h"
+#include "world/environment/building_types.h" // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
+#include "world/map/supermap.h"               // DFacet (used in function params)
 #include "fallen/Headers/Thing.h"
 #include "assets/anim_globals.h"
+
+// Returns fractional position along a cable facet for world XZ point.
+// Result in CABLE_ALONG_SHIFT fixed-point units.
+// uc_orig: get_cable_along (fallen/Source/interact.cpp)
+SLONG get_cable_along(SLONG facet, SLONG ax, SLONG az);
 
 // Returns the Y height of a cable facet at a given position along it (0..CABLE_ALONG_MAX).
 // uc_orig: find_cable_y_along (fallen/Source/interact.cpp)

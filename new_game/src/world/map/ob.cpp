@@ -12,8 +12,8 @@
 #include "fallen/Headers/dirt.h"
 // Temporary: pow.h (effects/pow.h) — for POW system (effects layer)
 #include "effects/pow.h"
-// Temporary: prim.h, memory.h — prim geometry tables not yet migrated
-#include "fallen/Headers/prim.h"
+#include "world/environment/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*
+#include "world/environment/prim.h"       // slide_along_prim, get_prim_info
 #include "fallen/Headers/memory.h"
 // Temporary: poly.h — POLY_page_flag, FACE_PAGE_OFFSET not yet in new/ pipeline
 #include "fallen/DDLibrary/Headers/DDlib.h"

@@ -2,9 +2,9 @@
 #define WORLD_ENVIRONMENT_PRIM_GLOBALS_H
 
 #include "core/types.h"
-#include "core/vector.h"              // SVector (needed before building.h which uses it for PrimNormal typedef)
-#include "fallen/Headers/structs.h"   // Temporary: base game types
-#include "fallen/Headers/building.h"  // Temporary: PrimFace3, PrimFace4, PrimObject, PrimPoint, PrimMultiObject, MAX_PRIM_OBJECTS
+#include "core/vector.h"                        // SVector
+#include "fallen/Headers/structs.h"             // Temporary: base game types
+#include "world/environment/prim_types.h"       // PrimFace3/4, PrimObject, PrimPoint, PrimMultiObject, MAX_PRIM_OBJECTS
 
 // ---- Internal constants ----
 
@@ -27,7 +27,7 @@
 // uc_orig: prim_info (fallen/Source/Prim.cpp)
 // Note: PrimInfo* prim_info is also extern-declared in missions/memory_globals.h
 // (needed by save_table[]). Both declarations refer to the same variable.
-#include "fallen/Headers/Prim.h"  // Temporary: PrimInfo
+// PrimInfo is declared in world/environment/prim_types.h (included above via prim_types.h)
 extern PrimInfo* prim_info;
 
 // Names for each prim object slot (editor labels, not used at runtime).

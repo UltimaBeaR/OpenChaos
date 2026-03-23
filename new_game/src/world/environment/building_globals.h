@@ -1,9 +1,9 @@
 #ifndef WORLD_ENVIRONMENT_BUILDING_GLOBALS_H
 #define WORLD_ENVIRONMENT_BUILDING_GLOBALS_H
 
-#include "core/types.h"                // SWORD, UWORD, SLONG, UBYTE, etc.
-#include "core/vector.h"               // SVector (needed by building.h for PrimNormal typedef)
-#include "fallen/Headers/building.h"   // Temporary: FBuilding, FStorey, FWall, FWindow, BuildingFacet, BuildingObject, BoundBox, TXTY, DXTXTY, TextureInfo, RoomID, MAX_*
+#include "core/types.h"                        // SWORD, UWORD, SLONG, UBYTE, etc.
+#include "core/vector.h"                       // SVector
+#include "world/environment/building_types.h"  // FBuilding, FStorey, FWall, FWindow, BuildingFacet, BuildingObject, BoundBox, TXTY, DXTXTY, TextureInfo, RoomID, MAX_*
 #include "world/environment/edmap.h"
 
 // uc_orig: edit_map (fallen/Source/Building.cpp)
@@ -19,7 +19,6 @@ extern SBYTE edit_map_roof_height[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];
 extern SLONG start_point[200];
 
 // uc_orig: next_roof_bound (fallen/Source/Building.cpp)
-// NOTE: already declared extern in fallen/Headers/building.h
 extern UWORD next_roof_bound;
 
 // uc_orig: background_prim (fallen/Source/Building.cpp)
@@ -62,7 +61,6 @@ extern UWORD diff_page_count2;
 extern UWORD page_count[64 * 8];
 
 // uc_orig: window_list (fallen/Source/Building.cpp)
-// NOTE: also declared extern in fallen/Headers/building.h
 extern struct FWindow window_list[MAX_WINDOWS];
 
 // uc_orig: wall_list (fallen/Source/Building.cpp)

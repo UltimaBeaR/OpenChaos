@@ -2,7 +2,7 @@
 // Global state definitions for the vehicle system.
 
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/prim.h"      // PRIM_OBJ_* constants for veh_info initializer
+#include "world/environment/prim_types.h" // PRIM_OBJ_* constants for veh_info initializer
 #include "fallen/Headers/statedef.h"  // STATE_* constants for VEH_statefunctions
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"

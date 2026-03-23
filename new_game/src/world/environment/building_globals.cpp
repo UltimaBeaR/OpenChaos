@@ -15,7 +15,6 @@ SBYTE edit_map_roof_height[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];
 SLONG start_point[200];
 
 // uc_orig: next_roof_bound (fallen/Source/Building.cpp)
-// Already declared extern in fallen/Headers/building.h; defined here.
 UWORD next_roof_bound = 1;
 
 // uc_orig: background_prim (fallen/Source/Building.cpp)

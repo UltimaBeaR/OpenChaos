@@ -2,13 +2,13 @@
 #define MISSIONS_MEMORY_GLOBALS_H
 
 #include "core/types.h"
-#include "fallen/Headers/structs.h"   // Temporary: SVector (needed by building.h for PrimNormal typedef)
+#include "fallen/Headers/structs.h"             // Temporary: SVector
 #include "world/map/supermap.h"
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"
-#include "fallen/Headers/building.h"  // Temporary: BoundBox, PrimPoint, PrimFace4, PrimFace3, PrimObject, PrimMultiObject, PrimNormal, RMAX_PRIM_POINTS, RMAX_PRIM_FACES4, MAX_PRIM_FACES3, MAX_PRIM_OBJECTS, MAX_PRIM_MOBJECTS, MAX_PRIM_POINTS, RoofFace4, MAX_ROOF_BOUND
-#include "fallen/Headers/Prim.h"      // Temporary: PrimInfo
-#include "fallen/Headers/Game.h"      // Temporary: MemTable (needed for save_table[] extern declaration)
+#include "world/environment/prim_types.h"       // BoundBox->building_types, PrimPoint, PrimFace4/3, PrimObject, PrimMultiObject, PrimNormal, PrimInfo, RMAX_PRIM_POINTS, etc.
+#include "world/environment/building_types.h"   // BoundBox, MAX_BUILDINGS, MAX_STOREYS, etc.
+#include "fallen/Headers/Game.h"                // Temporary: MemTable (needed for save_table[] extern declaration)
 
 // Types declared in old memory.h that have not yet moved to their own subsystem headers.
 

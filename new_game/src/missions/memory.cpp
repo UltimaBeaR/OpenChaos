@@ -3,6 +3,8 @@
 // First chunk: globals init, level memory table, pointer/index conversion, anim serialization.
 
 #include "fallen/Headers/Game.h"      // Temporary: Game struct, Thing system types, macro helpers
+#include "world/environment/prim.h"  // calc_prim_normals, calc_prim_info, mark_prim_objects_as_unloaded, etc.
+#include "world/environment/building_globals.h" // next_roof_bound, next_prim_point, etc.
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
 #include "ui/camera/fc.h"

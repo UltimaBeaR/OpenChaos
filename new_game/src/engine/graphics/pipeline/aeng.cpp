@@ -24,7 +24,8 @@
 #include "ui/camera/fc.h"       // Temporary: engine/graphics → ui/camera DAG violation (FC_cam camera state)
 #include "ui/camera/fc_globals.h"
 #include "fallen/Headers/Game.h"      // Temporary: large umbrella header, not yet split
-#include "fallen/Headers/building.h"  // Temporary: building types not yet migrated
+#include "world/environment/prim_types.h"    // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
+#include "world/environment/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, etc.
 #include "fallen/Headers/memory.h"    // Temporary: MemAlloc/MemFree wrappers
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"
@@ -59,7 +60,7 @@
 #include "effects/dirt_globals.h"
 #include "effects/pow.h"
 #include "actors/items/hook.h"
-#include "fallen/Headers/prim.h"  // Temporary: PRIM_OBJ_CAN, PRIM_OBJ_HOOK, PRIM_OBJ_ITEM_AMMO_SHOTGUN
+// PRIM_OBJ_CAN, PRIM_OBJ_HOOK, PRIM_OBJ_ITEM_AMMO_SHOTGUN are in world/environment/prim_types.h (included above)
 #include "actors/items/balloon_globals.h"  // Temporary: BALLOON_balloon, BALLOON_balloon_upto
 #include "core/timer.h"                    // Temporary: StartStopwatch, StopStopwatch (AENG_draw_some_polys)
 #include "engine/io/env.h"                 // Temporary: ENV_set_value_number (AENG_set/guess_detail_levels)

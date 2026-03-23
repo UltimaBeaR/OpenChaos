@@ -2,7 +2,7 @@
 #define ACTORS_CORE_INTERACT_GLOBALS_H
 
 #include <MFStdLib.h>
-#include "fallen/Headers/prim.h"
+#include "world/environment/prim_types.h" // PrimFace3/4, FACE_FLAG_*, PRIM_OBJ_*, etc.
 
 // Best-candidate grab point storage used by find_grab_face().
 // These hold coordinates/angle across loop iterations to track the best found grab point.

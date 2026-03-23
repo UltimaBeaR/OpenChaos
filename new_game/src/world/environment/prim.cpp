@@ -24,11 +24,12 @@
 
 // Anim types needed for expand_anim_prim_bbox / fn_anim_prim_normal
 #include "engine/animation/anim_types.h"  // GameKeyFrameElement, GetCMatrix, CMatrix33, Matrix33, KeyFrameChunk
-#include "fallen/Headers/building.h"    // Temporary: PrimObject, PrimFace3, PrimFace4, PrimPoint, PrimMultiObject, BoundBox, RoofFace4, RFACE_FLAG_*, end_prim_point, end_prim_face3, end_prim_face4, end_prim_object, next_prim_point, next_prim_face3, next_prim_face4, next_prim_object, next_prim_multi_object, prim_points, prim_faces3, prim_faces4, prim_objects, prim_multi_objects, MAX_ANIM_CHUNKS, prim_normal, ROOF_SHIFT
+#include "world/environment/prim_types.h"     // PrimObject, PrimFace3/4, PrimPoint, PrimMultiObject, RoofFace4, RFACE_FLAG_*, ROOF_SHIFT, PrimInfo, FACE_FLAG_*, PRIM_COLLIDE_*, PRIM_FLAG_*, PRIM_OBJ_*, PRIM_DAMAGE_*, ANIM_PRIM_TYPE_*
+#include "world/environment/building_types.h" // BoundBox, MAX_BUILDINGS, STOREY_TYPE_*, FACET_FLAG_*
 #include "world/map/supermap.h"
-#include "fallen/Headers/prim.h"        // Temporary: PrimInfo, ANIM_PRIM_TYPE_*, FACE_FLAG_*, PRIM_COLLIDE_*, PRIM_FLAG_*, PRIM_OBJ_WILDCATVAN_BODY, PRIM_DAMAGE_NOLOS, POLY_FLAG_WALKABLE, AnimPrimBbox, anim_prim_bbox, anim_chunk, PRIM_MIN_BBOX (conflicts, use local def), slide_around_prim decl
 #include "fallen/Headers/Game.h" // Temporary: FLAGS_SWITCHED_ON, TICK_RATIO, TICK_SHIFT, DT_ANIM_PRIM, DT_ROT_MULTI, alloc_draw_tween, DrawTween typedef, THING_INDEX
-#include "fallen/Headers/memory.h"      // Temporary: next_roof_face4, roof_faces4
+#include "world/environment/building_globals.h" // end_prim_point, end_prim_face4, end_prim_face3, end_prim_object, end_prim_multi_object, next_prim_*, building_list, building_facets
+#include "fallen/Headers/memory.h"      // Temporary: next_roof_face4, roof_faces4, prim_points/faces arrays
 #include "missions/memory_globals.h"    // Temporary: prim_info extern (same variable as prim_globals.cpp)
 
 // Forward declaration for advance_keyframe (defined in person.cpp / old Person.cpp).

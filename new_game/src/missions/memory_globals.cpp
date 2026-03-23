@@ -34,6 +34,7 @@
 
 #include "missions/memory_globals.h"
 #include "missions/memory.h"
+#include "world/environment/building_globals.h" // next_roof_bound, building_list, next_prim_point, end_prim_point, etc.
 
 // EWAY_counter is defined in eway.cpp (not yet migrated) and not in eway.h.
 extern UBYTE* EWAY_counter;

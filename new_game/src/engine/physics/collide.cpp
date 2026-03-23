@@ -49,9 +49,8 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 // Temporary: anim_globals.h for next_prim_face4
 #include "assets/anim_globals.h"
 
-// Temporary: prim.h for slide_along_prim, prim_get_collision_model, get_prim_info,
-// PRIM_OBJ_SPIKE, PRIM_COLLIDE_*, FACE_FLAG_FIRE_ESCAPE, FACE_FLAG_WMOVE, FACE_FLAG_PRIM
-#include "fallen/Headers/prim.h"
+#include "world/environment/prim_types.h"  // PRIM_OBJ_SPIKE, PRIM_COLLIDE_*, FACE_FLAG_FIRE_ESCAPE, FACE_FLAG_WMOVE, FACE_FLAG_PRIM
+#include "world/environment/prim.h"        // slide_along_prim, prim_get_collision_model, get_prim_info
 // Temporary: ob.h for OB_find, OB_avoid, OB_Info, OB_ob, OB_ob_upto
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"

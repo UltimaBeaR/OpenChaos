@@ -99719,6 +99719,3466 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "RMAX_PRIM_POINTS",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RMAX_PRIM_POINTS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_PRIM_FACES3",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "MAX_PRIM_FACES3",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RMAX_PRIM_FACES4",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RMAX_PRIM_FACES4",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_PRIM_OBJECTS",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "MAX_PRIM_OBJECTS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_PRIM_MOBJECTS",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "MAX_PRIM_MOBJECTS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_PRIM_POINTS",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "MAX_PRIM_POINTS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_PRIM_FACES4",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "MAX_PRIM_FACES4",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GRAB_FLOOR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "GRAB_FLOOR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GRAB_SEWERS",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "GRAB_SEWERS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_ROOF_BOUND",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "MAX_ROOF_BOUND",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_SCALE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "GAME_SCALE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_SCALE_DIV",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "GAME_SCALE_DIV",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_START_SAVE_TYPE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_START_SAVE_TYPE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_END_SAVE_TYPE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_END_SAVE_TYPE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RFACE_FLAG_SHADOW_1",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RFACE_FLAG_SHADOW_1",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RFACE_FLAG_SHADOW_2",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RFACE_FLAG_SHADOW_2",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RFACE_FLAG_SHADOW_3",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RFACE_FLAG_SHADOW_3",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RFACE_FLAG_SLIDE_EDGE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RFACE_FLAG_SLIDE_EDGE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RFACE_FLAG_SLIDE_EDGE_0",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RFACE_FLAG_SLIDE_EDGE_0",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RFACE_FLAG_SLIDE_EDGE_1",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RFACE_FLAG_SLIDE_EDGE_1",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RFACE_FLAG_SLIDE_EDGE_2",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RFACE_FLAG_SLIDE_EDGE_2",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RFACE_FLAG_SLIDE_EDGE_3",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RFACE_FLAG_SLIDE_EDGE_3",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RFACE_FLAG_SPLIT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RFACE_FLAG_SPLIT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RFACE_FLAG_NODRAW",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RFACE_FLAG_NODRAW",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_WMOVE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_WMOVE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_SMOOTH",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_SMOOTH",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_OUTLINE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_OUTLINE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_SHADOW_1",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_SHADOW_1",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_SHADOW_2",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_SHADOW_2",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_SHADOW_3",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_SHADOW_3",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_ROOF",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_ROOF",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_WALKABLE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_WALKABLE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_ENVMAP",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_ENVMAP",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_VERTICAL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_VERTICAL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_TINT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_TINT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_ANIMATE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_ANIMATE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_OTHER_SPLIT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_OTHER_SPLIT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_METAL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_METAL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_NON_PLANAR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_NON_PLANAR",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_TEX2",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_TEX2",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_FIRE_ESCAPE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_FIRE_ESCAPE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_PRIM",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_PRIM",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_THUG_JACKET",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_THUG_JACKET",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_FIXED",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_FIXED",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_SLIDE_EDGE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_SLIDE_EDGE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_SLIDE_EDGE_0",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_SLIDE_EDGE_0",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_SLIDE_EDGE_1",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_SLIDE_EDGE_1",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_SLIDE_EDGE_2",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_SLIDE_EDGE_2",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_SLIDE_EDGE_3",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_SLIDE_EDGE_3",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_SLIDE_EDGE_ALL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_SLIDE_EDGE_ALL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_EDGE_VISIBLE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_EDGE_VISIBLE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_EDGE_VISIBLE_A",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_EDGE_VISIBLE_A",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_EDGE_VISIBLE_B",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_EDGE_VISIBLE_B",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_FLAG_EDGE_VISIBLE_C",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_FLAG_EDGE_VISIBLE_C",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_TYPE_FENCE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_TYPE_FENCE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_TYPE_CABLE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_TYPE_CABLE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_TYPE_SKYLIGHT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_TYPE_SKYLIGHT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACE_TYPE_PRIM",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "FACE_TYPE_PRIM",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GET_SORT_LEVEL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "GET_SORT_LEVEL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OR_SORT_LEVEL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "OR_SORT_LEVEL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_SORT_LEVEL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "SET_SORT_LEVEL",
+      "orig_file": "u, f",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PAGE_FLAG_JACKET",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "TEXTURE_PAGE_FLAG_JACKET",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PAGE_FLAG_OFFSET",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "TEXTURE_PAGE_FLAG_OFFSET",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PAGE_FLAG_TINT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "TEXTURE_PAGE_FLAG_TINT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PAGE_FLAG_NOT_TEXTURED",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "TEXTURE_PAGE_FLAG_NOT_TEXTURED",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PAGE_MASK",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "TEXTURE_PAGE_MASK",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_LAMPPOST",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_LAMPPOST",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_TRAFFIC_LIGHT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_TRAFFIC_LIGHT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WALK_DONT_WALK",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WALK_DONT_WALK",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_PETROL_PUMP",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_PETROL_PUMP",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_DOUBLE_PETROL_PUMP",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_DOUBLE_PETROL_PUMP",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_GAS_STATION_SIGN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_GAS_STATION_SIGN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_BILLBOARD",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_BILLBOARD",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_GAS_STATION_BBOARD",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_GAS_STATION_BBOARD",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_HOTEL_SIGN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_HOTEL_SIGN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_GAS_SIGN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_GAS_SIGN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_GAS_STATION_LIGHT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_GAS_STATION_LIGHT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_FIRE_ESCAPE1",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_FIRE_ESCAPE1",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_FIRE_ESCAPE2",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_FIRE_ESCAPE2",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_FIRE_ESCAPE3",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_FIRE_ESCAPE3",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_FIRE_ESCAPE4",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_FIRE_ESCAPE4",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_FIRE_ESCAPE5",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_FIRE_ESCAPE5",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_FIRE_ESCAPE6",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_FIRE_ESCAPE6",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_TYRE_SIGN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_TYRE_SIGN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_CANOPY1",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_CANOPY1",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_CANOPY2",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_CANOPY2",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_CANOPY3",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_CANOPY3",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_CANOPY4",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_CANOPY4",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_DINER_SIGN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_DINER_SIGN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_MOTEL_SIGN1",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_MOTEL_SIGN1",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_MOTEL_SIGN2",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_MOTEL_SIGN2",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WILDCATVAN_BODY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WILDCATVAN_BODY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_INTERIOR_STAIRS2",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_INTERIOR_STAIRS2",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_INTERIOR_STAIRS3",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_INTERIOR_STAIRS3",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_RADIATOR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_RADIATOR",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_MOTORBIKE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_MOTORBIKE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_BIN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_BIN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_KEY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_KEY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_LION2",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_LION2",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_BIKE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_BIKE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_VAN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_VAN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_BOAT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_BOAT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_CAR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_CAR",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_STROBE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_STROBE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_DOOR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_DOOR",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_LAMP",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_LAMP",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_SIGN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_SIGN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_TRAFFIC_CONE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_TRAFFIC_CONE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_CAN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_CAN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_CANOPY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_CANOPY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_TREASURE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_TREASURE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_HOOK",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_HOOK",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_VAN_WHEEL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_VAN_WHEEL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_VAN_BODY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_VAN_BODY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_PARK_BENCH",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_PARK_BENCH",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_JEEP_BODY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_JEEP_BODY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_MEATWAGON_BODY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_MEATWAGON_BODY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ARMCHAIR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ARMCHAIR",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_COFFEE_TABLE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_COFFEE_TABLE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_SOFA",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_SOFA",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_CAR_BODY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_CAR_BODY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WOODEN_TABLE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WOODEN_TABLE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_AK47",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_AK47",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_MAGNUM",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_MAGNUM",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_CHAIR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_CHAIR",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_SHOTGUN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_SHOTGUN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_SEDAN_BODY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_SEDAN_BODY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_BALLOON",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_BALLOON",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_BIKE_STEER",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_BIKE_STEER",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_BIKE_BWHEEL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_BIKE_BWHEEL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_BIKE_FWHEEL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_BIKE_FWHEEL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_BIKE_FRAME",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_BIKE_FRAME",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_BARREL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_BARREL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_HEALTH",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_HEALTH",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_GUN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_GUN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_KEYCARD",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_KEYCARD",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_BOMB",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_BOMB",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_POLICE_TARGET",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_POLICE_TARGET",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_POLICE_BODY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_POLICE_BODY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_TAXI_BODY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_TAXI_BODY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_SWITCH_ON",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_SWITCH_ON",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_AMBULANCE_BODY",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_AMBULANCE_BODY",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_KNIFE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_KNIFE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_EXPLOSIVES",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_EXPLOSIVES",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_GRENADE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_GRENADE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_TRIPWIRE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_TRIPWIRE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_MINE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_MINE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_SPIKE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_SPIKE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_VALVE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_VALVE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_THERMODROID",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_THERMODROID",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_BASEBALLBAT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_BASEBALLBAT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_SWITCH_OFF",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_SWITCH_OFF",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_CAR_WHEEL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_CAR_WHEEL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_HYDRANT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_HYDRANT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_FILE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_FILE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_FLOPPY_DISK",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_FLOPPY_DISK",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_CROWBAR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_CROWBAR",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_GASMASK",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_GASMASK",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_WRENCH",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_WRENCH",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_VIDEO",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_VIDEO",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_GLOVES",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_GLOVES",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_WEEDKILLER",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_WEEDKILLER",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_AMMO_SHOTGUN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_AMMO_SHOTGUN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_AMMO_AK47",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_AMMO_AK47",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_ITEM_AMMO_PISTOL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_ITEM_AMMO_PISTOL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_NUMBER",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_NUMBER",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WEAPON_GUN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WEAPON_GUN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WEAPON_KNIFE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WEAPON_KNIFE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WEAPON_SHOTGUN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WEAPON_SHOTGUN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WEAPON_BAT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WEAPON_BAT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WEAPON_AK47",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WEAPON_AK47",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WEAPON_GUN_FLASH",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WEAPON_GUN_FLASH",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WEAPON_SHOTGUN_FLASH",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WEAPON_SHOTGUN_FLASH",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_OBJ_WEAPON_AK47_FLASH",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_OBJ_WEAPON_AK47_FLASH",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_COLLIDE_BOX",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_COLLIDE_BOX",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_COLLIDE_NONE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_COLLIDE_NONE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_COLLIDE_CYLINDER",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_COLLIDE_CYLINDER",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_COLLIDE_SMALLBOX",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_COLLIDE_SMALLBOX",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_SHADOW_NONE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_SHADOW_NONE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_SHADOW_BOXEDGE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_SHADOW_BOXEDGE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_SHADOW_CYLINDER",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_SHADOW_CYLINDER",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_SHADOW_FOURLEGS",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_SHADOW_FOURLEGS",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_SHADOW_FULLBOX",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_SHADOW_FULLBOX",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_FLAG_LAMPOST",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_FLAG_LAMPOST",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_FLAG_CONTAINS_WALKABLE_FACES",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_FLAG_CONTAINS_WALKABLE_FACES",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_FLAG_GLARE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_FLAG_GLARE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_FLAG_ITEM",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_FLAG_ITEM",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_FLAG_TREE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_FLAG_TREE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_FLAG_ENVMAPPED",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_FLAG_ENVMAPPED",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_FLAG_JUST_FLOOR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_FLAG_JUST_FLOOR",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_FLAG_ON_FLOOR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_FLAG_ON_FLOOR",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_DAMAGE_DAMAGABLE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_DAMAGE_DAMAGABLE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_DAMAGE_EXPLODES",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_DAMAGE_EXPLODES",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_DAMAGE_CRUMPLE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_DAMAGE_CRUMPLE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_DAMAGE_LEAN",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_DAMAGE_LEAN",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_DAMAGE_NOLOS",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PRIM_DAMAGE_NOLOS",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRIM_TYPE_NORMAL",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "ANIM_PRIM_TYPE_NORMAL",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRIM_TYPE_DOOR",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "ANIM_PRIM_TYPE_DOOR",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRIM_TYPE_SWITCH",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "ANIM_PRIM_TYPE_SWITCH",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROOF_SHIFT",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "ROOF_SHIFT",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WALKABLE",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "WALKABLE",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OldPrimPoint",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "OldPrimPoint",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimPoint",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimPoint",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimNormal",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimNormal",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RoofFace4",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "RoofFace4",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimFace3",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimFace3",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimFace4",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimFace4",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimFace4PSX",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimFace4PSX",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimFace3PSX",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimFace3PSX",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimObject",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimObject",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimObjectMaterial",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimObjectMaterial",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TomsPrimObject",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "TomsPrimObject",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimObjectOld",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimObjectOld",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimMultiObject",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimMultiObject",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimInfo",
+      "file": "world/environment/prim_types.h",
+      "orig_name": "PrimInfo",
+      "orig_file": "fallen/Headers/Prim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PIECE_LEFT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TEXTURE_PIECE_LEFT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PIECE_MIDDLE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TEXTURE_PIECE_MIDDLE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PIECE_RIGHT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TEXTURE_PIECE_RIGHT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PIECE_MIDDLE1",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TEXTURE_PIECE_MIDDLE1",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PIECE_MIDDLE2",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TEXTURE_PIECE_MIDDLE2",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_PIECE_NUMBER",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TEXTURE_PIECE_NUMBER",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BLOCK_SHIFT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BLOCK_SHIFT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILD_MODE_EDITOR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILD_MODE_EDITOR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILD_MODE_DX",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILD_MODE_DX",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILD_MODE_SOFT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILD_MODE_SOFT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILD_MODE_PSX",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILD_MODE_PSX",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILD_MODE_OTHER",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILD_MODE_OTHER",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILDING_TYPE_HOUSE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILDING_TYPE_HOUSE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILDING_TYPE_WAREHOUSE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILDING_TYPE_WAREHOUSE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILDING_TYPE_OFFICE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILDING_TYPE_OFFICE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILDING_TYPE_APARTEMENT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILDING_TYPE_APARTEMENT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILDING_TYPE_CRATE_IN",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILDING_TYPE_CRATE_IN",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BUILDING_TYPE_CRATE_OUT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BUILDING_TYPE_CRATE_OUT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_BUILDINGS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "MAX_BUILDINGS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_STOREYS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "MAX_STOREYS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_WALLS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "MAX_WALLS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_WINDOWS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "MAX_WINDOWS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_INSIDE_STOREYS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "MAX_INSIDE_STOREYS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_BUILDING_FACETS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "MAX_BUILDING_FACETS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_BUILDING_OBJECTS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "MAX_BUILDING_OBJECTS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_NEAR_SORT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_NEAR_SORT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_ROOF",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_ROOF",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_CABLE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_CABLE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_NON_SORT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_NON_SORT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_DONT_CULL",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_DONT_CULL",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_IN_SEWERS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_IN_SEWERS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_LADDER_LINK",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_LADDER_LINK",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_INVISIBLE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_INVISIBLE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_INSIDE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_INSIDE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_DLIT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_DLIT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_HUG_FLOOR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_HUG_FLOOR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_ELECTRIFIED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_ELECTRIFIED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_2SIDED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_2SIDED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_UNCLIMBABLE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_UNCLIMBABLE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_ONBUILDING",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_ONBUILDING",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_BARB_TOP",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_BARB_TOP",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_SEETHROUGH",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_SEETHROUGH",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_OPEN",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_OPEN",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_90DEGREE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_90DEGREE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_2TEXTURED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_2TEXTURED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_FLAG_FENCE_CUT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FACET_FLAG_FENCE_CUT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_ROOF_FLAT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_ROOF_FLAT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_ROOF_OVERLAP_SMALL",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_ROOF_OVERLAP_SMALL",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_ROOF_OVERLAP_MEDIUM",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_ROOF_OVERLAP_MEDIUM",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_ROOF_WALLED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_ROOF_WALLED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_ROOF_RECESSED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_ROOF_RECESSED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_WALL_USED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_WALL_USED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_WALL_AUTO_WINDOWS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_WALL_AUTO_WINDOWS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_WALL_FACET_LINKED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_WALL_FACET_LINKED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_WALL_FENCE_POST1",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_WALL_FENCE_POST1",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_WALL_FENCE_POST2",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_WALL_FENCE_POST2",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_WALL_RECESSED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_WALL_RECESSED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_WALL_CLIMBABLE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_WALL_CLIMBABLE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_WALL_ARCH_TOP",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_WALL_ARCH_TOP",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_WALL_BARB_TOP",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_WALL_BARB_TOP",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_USED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_USED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_FLAT_TILED_ROOF",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_FLAT_TILED_ROOF",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_LEDGE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_LEDGE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_ROOF",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_ROOF",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_FACET_LINKED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_FACET_LINKED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_TILED_ROOF",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_TILED_ROOF",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_ROOF_RIM",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_ROOF_RIM",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_ROOF_RIM2",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_ROOF_RIM2",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_UNCLIMBABLE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_UNCLIMBABLE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_ONBUILDING",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_ONBUILDING",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_EXTRA_UNCLIMBABLE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_EXTRA_UNCLIMBABLE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_EXTRA_ONBUILDING",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_EXTRA_ONBUILDING",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_STOREY_EXTRA_90DEGREE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_STOREY_EXTRA_90DEGREE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_ISTOREY_DOOR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FLAG_ISTOREY_DOOR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_NORMAL",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_NORMAL",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_ROOF",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_ROOF",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_WALL",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_WALL",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_ROOF_QUAD",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_ROOF_QUAD",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_FLOOR_POINTS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_FLOOR_POINTS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_FIRE_ESCAPE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_FIRE_ESCAPE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_STAIRCASE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_STAIRCASE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_SKYLIGHT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_SKYLIGHT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_CABLE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_CABLE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_FENCE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_FENCE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_FENCE_BRICK",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_FENCE_BRICK",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_LADDER",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_LADDER",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_FENCE_FLAT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_FENCE_FLAT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_TRENCH",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_TRENCH",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_JUST_COLLISION",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_JUST_COLLISION",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_PARTITION",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_PARTITION",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_INSIDE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_INSIDE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_DOOR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_DOOR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_INSIDE_DOOR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_INSIDE_DOOR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_OINSIDE",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_OINSIDE",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_OUTSIDE_DOOR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_OUTSIDE_DOOR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_NORMAL_FOUNDATION",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_NORMAL_FOUNDATION",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_NOT_REALLY_A_STOREY_TYPE_BUT_A_VALUE_TO_PUT_IN_THE_PRIM_TYPE_FIELD_OF_COLVECTS_GENERATED_BY_INSIDE_BUILDINGS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_NOT_REALLY_A_STOREY_TYPE_BUT_A_VALUE_TO_PUT_IN_THE_PRIM_TYPE_FIELD_OF_COLVECTS_GENERATED_BY_INSIDE_BUILDINGS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STOREY_TYPE_NOT_REALLY_A_STOREY_TYPE_AGAIN_THIS_IS_THE_VALUE_PUT_INTO_PRIMTYPE_BY_THE_SEWERS",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STOREY_TYPE_NOT_REALLY_A_STOREY_TYPE_AGAIN_THIS_IS_THE_VALUE_PUT_INTO_PRIMTYPE_BY_THE_SEWERS",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CABLE_ALONG_SHIFT",
+      "file": "world/environment/building_types.h",
+      "orig_name": "CABLE_ALONG_SHIFT",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CABLE_ALONG_MAX",
+      "file": "world/environment/building_types.h",
+      "orig_name": "CABLE_ALONG_MAX",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STAIR_FLAG_UP",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STAIR_FLAG_UP",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STAIR_FLAG_DOWN",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STAIR_FLAG_DOWN",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STAIR_FLAGS_DIR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "STAIR_FLAGS_DIR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_STAIR_DIR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "SET_STAIR_DIR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GET_STAIR_DIR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "GET_STAIR_DIR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BROWN_BRICK1",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BROWN_BRICK1",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BROWN_BRICK2",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BROWN_BRICK2",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GREY_RIM1",
+      "file": "world/environment/building_types.h",
+      "orig_name": "GREY_RIM1",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GREY_RIM2",
+      "file": "world/environment/building_types.h",
+      "orig_name": "GREY_RIM2",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RED_WINDOW",
+      "file": "world/environment/building_types.h",
+      "orig_name": "RED_WINDOW",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GREY_CORIGATED",
+      "file": "world/environment/building_types.h",
+      "orig_name": "GREY_CORIGATED",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CRATES_SMALL_BROWN",
+      "file": "world/environment/building_types.h",
+      "orig_name": "CRATES_SMALL_BROWN",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GREY_POSH",
+      "file": "world/environment/building_types.h",
+      "orig_name": "GREY_POSH",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "HOTEL_SIGN1",
+      "file": "world/environment/building_types.h",
+      "orig_name": "HOTEL_SIGN1",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "HOTEL_SIGN2",
+      "file": "world/environment/building_types.h",
+      "orig_name": "HOTEL_SIGN2",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BuildingObject",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BuildingObject",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BuildingFacet",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BuildingFacet",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BoundBox",
+      "file": "world/environment/building_types.h",
+      "orig_name": "BoundBox",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TempBuilding",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TempBuilding",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TempFacet",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TempFacet",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TempStorey",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TempStorey",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TXTY",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TXTY",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DXTXTY",
+      "file": "world/environment/building_types.h",
+      "orig_name": "DXTXTY",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TextureInfo",
+      "file": "world/environment/building_types.h",
+      "orig_name": "TextureInfo",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FWindow",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FWindow",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FWall",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FWall",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FStorey",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FStorey",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_ROOMS_PER_FLOOR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "MAX_ROOMS_PER_FLOOR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_STAIRS_PER_FLOOR",
+      "file": "world/environment/building_types.h",
+      "orig_name": "MAX_STAIRS_PER_FLOOR",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RoomID",
+      "file": "world/environment/building_types.h",
+      "orig_name": "RoomID",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FBuilding",
+      "file": "world/environment/building_types.h",
+      "orig_name": "FBuilding",
+      "orig_file": "fallen/Headers/building.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

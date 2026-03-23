@@ -13,7 +13,8 @@
 #include "ai/mav.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
-#include "fallen/Headers/building.h"
+#include "world/environment/building_types.h"  // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
+#include "world/environment/building.h"        // get_cable_along, make_cable_taut_along, etc.
 #include "fallen/Headers/barrel.h"
 #include "actors/characters/person.h"
 #include "actors/characters/darci.h"

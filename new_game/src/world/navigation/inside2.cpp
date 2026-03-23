@@ -1,7 +1,8 @@
 #include "fallen/Headers/Game.h"
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"
-#include "fallen/Headers/building.h"
+#include "world/environment/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, FStorey, FWall, STAIR_FLAG_*, etc.
+#include "world/environment/prim_types.h"     // PrimObject, PRIM_OBJ_* (used by stair logic)
 #include "fallen/Headers/memory.h"
 
 // Forward declaration of slide_door (defined in door.cpp, not yet fully migrated here).

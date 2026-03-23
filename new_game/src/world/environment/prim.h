@@ -2,10 +2,9 @@
 #define WORLD_ENVIRONMENT_PRIM_H
 
 #include "core/types.h"
-#include "core/vector.h"              // SVector (needed before building.h which uses it)
-#include "fallen/Headers/structs.h"   // Temporary: Thing and other base types
-#include "fallen/Headers/building.h"  // Temporary: PrimObject, PrimFace3, PrimFace4, PrimPoint, PrimNormal
-#include "fallen/Headers/Prim.h"      // Temporary: PrimInfo, ANIM_PRIM_TYPE_*, FACE_FLAG_*, PRIM_COLLIDE_*, PRIM_FLAG_*
+#include "core/vector.h"                        // SVector
+#include "fallen/Headers/structs.h"             // Temporary: Thing and other base types
+#include "world/environment/prim_types.h"       // PrimObject, PrimFace3/4, PrimPoint, PrimNormal, PrimInfo, FACE_FLAG_*, PRIM_OBJ_*, etc.
 
 // ---- Pool management ----
 

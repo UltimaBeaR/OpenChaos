@@ -10,6 +10,7 @@
 #include "ai/combat_globals.h"
 #include "missions/eway.h"
 #include "missions/memory_globals.h"    // Temporary: dfacets, DFacet, next_dfacet
+#include "world/environment/prim.h"    // get_prim_info
 #include "engine/physics/collide.h"
 #include "world/map/road.h"
 #include "world/map/road_globals.h"

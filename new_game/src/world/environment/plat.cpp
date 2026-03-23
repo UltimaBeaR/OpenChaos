@@ -12,6 +12,7 @@
 #include "poly.h"
 #include "DrawXtra.h"
 
+#include "world/environment/prim.h"    // get_prim_info, slide_along_prim
 #include "world/environment/plat.h"
 #include "world/environment/plat_globals.h"
 

@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 180 — fallen/Headers/prim.h + fallen/Headers/building.h → prim_types.h + building_types.h (2026-03-23)
+
+- Создан `world/environment/prim_types.h`: все константы и структуры из `Prim.h` (FACE_FLAG_*, PRIM_OBJ_*, PRIM_COLLIDE_*, PRIM_SHADOW_*, ANIM_PRIM_TYPE_*, TEXTURE_PAGE_*, RMAX/MAX_PRIM_*, сортировочные макросы, PrimPoint/PrimFace3/4/PSX/PrimObject/PrimInfo и т.д.) + структуры из `building.h` (OldPrimPoint, PrimNormal, RoofFace4, PrimMultiObject).
+- Создан `world/environment/building_types.h`: все строительные типы и константы из `building.h` (TEXTURE_PIECE_*, BUILD_MODE_*, BUILDING_TYPE_*, MAX_BUILDINGS/STOREYS/WALLS, FACET_FLAG_*, FLAG_ROOF/WALL/STOREY_*, STOREY_TYPE_* (21 тип), CABLE_ALONG_*, STAIR_FLAG_*, текстурные стили, BuildingObject/Facet/BoundBox/TempBuilding/Storey/Facet, TXTY/DXTXTY/TextureInfo, FWindow/FWall/FStorey/FBuilding, RoomID, MAX_ROOMS/STAIRS_PER_FLOOR).
+- Оба legacy-заголовка преобразованы в redirect-заглушки (не удалены — используются через Game.h цепочку).
+- `get_cable_along` в `interact.cpp` был ошибочно помечен `static` при предыдущей миграции — исправлено, добавлено объявление в `interact.h`.
+- Temporary: 483 → 445.
+
 ## Итерация 179 — Зачистка немаркированных include'ов и editor-only заголовков (2026-03-23)
 
 - Удалены editor-only (GEdit) заголовки без потребителей в CMakeLists: EnemySetup.h, ItemSetup.h, PlayerSetup.h, TriggerSetup.h, CamTargetSetup.h, CameraSetup.h — все реализации только в `fallen/GEdit/Source/`, не компилируются.

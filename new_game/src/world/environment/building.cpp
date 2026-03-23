@@ -24,8 +24,9 @@
 #include "engine/physics/collide_globals.h"
 // Temporary: aeng.h exposes AENG_dx_prim_points, SVector_F
 #include "engine/graphics/pipeline/aeng.h"
-// Temporary: prim.h exposes OR_SORT_LEVEL, FACE_FLAG_NON_PLANAR (FACE_FLAG_WALKABLE via interact chain)
-#include "fallen/Headers/prim.h"
+#include "world/environment/prim_types.h"     // OR_SORT_LEVEL, FACE_FLAG_NON_PLANAR, FACE_FLAG_WALKABLE, etc.
+#include "world/environment/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding etc.
+#include "world/environment/prim.h"           // calc_normal, get_rotated_point_world_pos, etc.
 // Needed for OUTLINE_Outline, OUTLINE_create, OUTLINE_add_line, OUTLINE_overlap
 #include "world/environment/outline.h"
 // Needed for calc_ladder_ends (used by calc_ladder_pos in this file)

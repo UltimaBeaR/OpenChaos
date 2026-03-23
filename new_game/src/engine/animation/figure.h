@@ -2,7 +2,7 @@
 #define ENGINE_ANIMATION_FIGURE_H
 
 #include "engine/animation/figure_globals.h"
-#include "fallen/Headers/prim.h" // Temporary: Matrix33, TomsPrimObject
+#include "world/environment/prim_types.h" // Matrix33 (via fmatrix.h), TomsPrimObject
 
 struct Thing;
 

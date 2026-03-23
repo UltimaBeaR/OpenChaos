@@ -44,7 +44,8 @@
 #include "fallen/Headers/mist.h"
 #include "fallen/Headers/gamemenu.h"
 #include "engine/io/env.h"
-#include "fallen/Headers/prim.h"       // Temporary: find_anim_prim, PrimInfo
+#include "world/environment/prim_types.h" // PrimInfo
+#include "world/environment/prim.h"       // find_anim_prim
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"
 #include "engine/physics/collide.h"

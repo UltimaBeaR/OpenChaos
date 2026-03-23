@@ -1,14 +1,7 @@
 #include <MFStdLib.h>
 #include "core/fixed_math.h"
 
-// Temporary: STAIR_FLAG_UP/DOWN are defined in fallen/Headers/building.h.
-// Copied here to avoid pulling in building.h which requires Structs.h.
-// Will be cleaned up when the building system is migrated.
-#ifndef STAIR_FLAG_UP
-#define STAIR_FLAG_UP   (1 << 0)
-#define STAIR_FLAG_DOWN (1 << 1)
-#endif
-
+#include "world/environment/building_types.h" // STAIR_FLAG_UP, STAIR_FLAG_DOWN
 #include "world/environment/stair.h"
 #include "world/environment/stair_globals.h"
 

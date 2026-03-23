@@ -122,7 +122,7 @@ SLONG find_cable_y_along(struct DFacet* p_facet, SLONG along)
 // Returns fractional position along a cable facet for world XZ point (ax, az).
 // Uses axis with larger extent for precision; result is in CABLE_ALONG_SHIFT fixed-point.
 // uc_orig: get_cable_along (fallen/Source/interact.cpp)
-static SLONG get_cable_along(SLONG facet, SLONG ax, SLONG az)
+SLONG get_cable_along(SLONG facet, SLONG ax, SLONG az)
 {
     SLONG dx;
     SLONG dz;

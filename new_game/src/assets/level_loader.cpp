@@ -15,6 +15,9 @@
 #include "fallen/Headers/eway.h"
 // Temporary: memory.h for psx_textures_xy, inside_tex, anim_chunk[], next_anim_chunk.
 #include "fallen/Headers/memory.h"
+#include "world/environment/building_globals.h" // textures_xy, textures_flags, building_list, etc.
+#include "world/environment/prim_globals.h"     // prim_names[]
+#include "world/environment/prim.h"             // clear_prims
 // Temporary: sound.h for world_type extern and WORLD_TYPE_* constants.
 #include "engine/audio/sound.h"
 #include "engine/audio/sound_globals.h"

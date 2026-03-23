@@ -5,7 +5,8 @@
 #include "engine/graphics/pipeline/poly.h"    // POLY_Point
 #include "engine/lighting/night.h"             // NIGHT_Colour
 #include "engine/graphics/geometry/facet_globals.h"  // all facet globals (FacetRows, FacetDiffY, flip, etc.)
-#include "fallen/Headers/building.h"           // Temporary: DFacet, TEXTURE_PIECE_*
+#include "world/map/supermap.h"                  // DFacet, DBuilding, DStorey, DWalkable
+#include "world/environment/building_types.h"   // TEXTURE_PIECE_*
 
 // =====================================================================
 // Exterior building wall/roof renderer.

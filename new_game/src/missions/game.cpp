@@ -4,6 +4,7 @@
 
 #include "missions/game.h"
 #include "fallen/Headers/Game.h"
+#include "world/environment/prim.h"    // clear_prims
 
 // Temporary: until these modules are migrated
 #include "fallen/Headers/attract.h"   // ATTRACT_loadscreen_init, ATTRACT_loadscreen_draw

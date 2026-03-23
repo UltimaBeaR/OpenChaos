@@ -1,4 +1,5 @@
 #include "fallen/Headers/game.h"
+#include "world/environment/prim.h"   // get_prim_info
 #include "ai/mav.h"
 #include "fallen/Headers/memory.h"
 #include "world/map/supermap.h"
