@@ -84019,6 +84019,1966 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_INIT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_INIT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_NORMAL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_NORMAL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_COLLISION",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_COLLISION",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_ABOUT_TO_REMOVE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_ABOUT_TO_REMOVE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_REMOVE_ME",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_REMOVE_ME",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_MOVEING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_MOVEING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_FDRIVING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_FDRIVING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_IDLE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_IDLE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_LANDING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_LANDING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_FDOOR",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_FDOOR",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_JUMPING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_JUMPING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_FIGHTING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_FIGHTING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_FALLING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_FALLING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_USE_SCENERY",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_USE_SCENERY",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_DOWN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_DOWN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_HIT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_HIT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_CHANGE_LOCATION",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_CHANGE_LOCATION",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_DYING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_DYING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_DEAD",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_DEAD",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_DANGLING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_DANGLING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_CLIMB_LADDER",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_CLIMB_LADDER",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_HIT_RECOIL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_HIT_RECOIL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_CLIMBING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_CLIMBING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_GUN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_GUN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_SHOOT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_SHOOT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_DRIVING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_DRIVING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_NAVIGATING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_NAVIGATING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_WAIT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_WAIT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_FIGHT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_FIGHT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_STAND_UP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_STAND_UP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_MAVIGATING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_MAVIGATING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_GRAPPLING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_GRAPPLING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_GOTOING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_GOTOING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_CANNING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_CANNING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_CIRCLING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_CIRCLING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_HUG_WALL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_HUG_WALL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_SEARCH",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_SEARCH",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_CARRY",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_CARRY",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STATE_FLOAT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "STATE_FLOAT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_WALKING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_WALKING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SIDELING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SIDELING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STOPPING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STOPPING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_HOP_BACK",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_HOP_BACK",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STEP_LEFT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STEP_LEFT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STEP_RIGHT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STEP_RIGHT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_FLIPING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_FLIPING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_THEN_JUMP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_THEN_JUMP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STOPPING_OT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STOPPING_OT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_WALKING_BACKWARDS",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_WALKING_BACKWARDS",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_SKID_STOP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_SKID_STOP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STOPPING_DEAD",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STOPPING_DEAD",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CRAWLING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CRAWLING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SNEAKING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SNEAKING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STOP_CRAWL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STOP_CRAWL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SLIPPING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SLIPPING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SLIPPING_END",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SLIPPING_END",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SIMPLE_ANIM",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SIMPLE_ANIM",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_VAULT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_VAULT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SIMPLE_ANIM_OVER",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SIMPLE_ANIM_OVER",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_HIT_WALL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_HIT_WALL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_HALF_BLOCK",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_HALF_BLOCK",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUN_STOP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUN_STOP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_WAITING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_WAITING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_WATCHING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_WATCHING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SCRATCHING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SCRATCHING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DROP_LAND",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DROP_LAND",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_LAND",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_LAND",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DEATH_LAND",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DEATH_LAND",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STANDING_JUMP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STANDING_JUMP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STANDING_GRAB_JUMP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STANDING_GRAB_JUMP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_JUMP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_JUMP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_JUMP_FLY",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_JUMP_FLY",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_GRAB_JUMP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_GRAB_JUMP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_JUMP_LAND",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_JUMP_LAND",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_JUMP_LAND_FAST",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_JUMP_LAND_FAST",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RUNNING_JUMP_FLY_STOP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RUNNING_JUMP_FLY_STOP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STANDING_JUMP_FORWARDS",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STANDING_JUMP_FORWARDS",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STANDING_JUMP_BACKWARDS",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STANDING_JUMP_BACKWARDS",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_FLYING_KICK",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_FLYING_KICK",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_FLYING_KICK_FALL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_FLYING_KICK_FALL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_FLOAT_UP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_FLOAT_UP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_FLOAT_BOB",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_FLOAT_BOB",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_FLOAT_DOWN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_FLOAT_DOWN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_LATCHING_ON",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_LATCHING_ON",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_LATCHING_OFF",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_LATCHING_OFF",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_VAULTING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_VAULTING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMBING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMBING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SIDLE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SIDLE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_IDLE_CROUTCH",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_IDLE_CROUTCH",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_IDLE_CROUTCHING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_IDLE_CROUTCHING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_IDLE_CROUTCH_ARREST",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_IDLE_CROUTCH_ARREST",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_IDLE_UNCROUCH",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_IDLE_UNCROUCH",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_FALLING_NORMAL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_FALLING_NORMAL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_PUNCH",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_PUNCH",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_KICK",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_KICK",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_BLOCK",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_BLOCK",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_GRAPPLE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_GRAPPLE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_GRAPPLEE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_GRAPPLEE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_WALL_KICK",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_WALL_KICK",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STEP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STEP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STEP_FORWARD",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STEP_FORWARD",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_GRAPPLE_HOLD",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_GRAPPLE_HOLD",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_GRAPPLE_HELD",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_GRAPPLE_HELD",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_ESCAPE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_ESCAPE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_GRAPPLE_ATTACK",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_GRAPPLE_ATTACK",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_HEADBUTT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_HEADBUTT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STRANGLE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STRANGLE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_HEADBUTTV",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_HEADBUTTV",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STRANGLEV",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STRANGLEV",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_PICKUP_CARRY",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_PICKUP_CARRY",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DROP_CARRY",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DROP_CARRY",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STAND_CARRY",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STAND_CARRY",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_PICKUP_CARRY_V",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_PICKUP_CARRY_V",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DROP_CARRY_V",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DROP_CARRY_V",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_STAND_CARRY_V",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_STAND_CARRY_V",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CARRY_MOVE_V",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CARRY_MOVE_V",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_ENTERING_VEHICLE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_ENTERING_VEHICLE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_INSIDE_VEHICLE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_INSIDE_VEHICLE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_EXITING_VEHICLE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_EXITING_VEHICLE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_MOUNTING_BIKE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_MOUNTING_BIKE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_RIDING_BIKE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_RIDING_BIKE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DISMOUNTING_BIKE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DISMOUNTING_BIKE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DEAD_ARREST_TURN_OVER",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DEAD_ARREST_TURN_OVER",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DEAD_CUFFED",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DEAD_CUFFED",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DEAD_ARRESTED",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DEAD_ARRESTED",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DEAD_INJURED",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DEAD_INJURED",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DEAD_RESPAWN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DEAD_RESPAWN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CIRCLING_CHANGE_POS",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CIRCLING_CHANGE_POS",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CIRCLING_ATTACK",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CIRCLING_ATTACK",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CIRCLING_CIRCLE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CIRCLING_CIRCLE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CIRCLING_HORROR",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CIRCLING_HORROR",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CIRCLING_BACK_OFF",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CIRCLING_BACK_OFF",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_HUG_WALL_TURN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_HUG_WALL_TURN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_HUG_WALL_STAND",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_HUG_WALL_STAND",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_HUG_WALL_STEP_LEFT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_HUG_WALL_STEP_LEFT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_HUG_WALL_STEP_RIGHT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_HUG_WALL_STEP_RIGHT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_HUG_WALL_LOOK_L",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_HUG_WALL_LOOK_L",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_HUG_WALL_LOOK_R",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_HUG_WALL_LOOK_R",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_HUG_WALL_LEAP_OUT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_HUG_WALL_LEAP_OUT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SEARCH_PRIM",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SEARCH_PRIM",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SEARCH_CORPSE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SEARCH_CORPSE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SEARCH_GETUP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SEARCH_GETUP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_GRAB_TO_DANGLE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_GRAB_TO_DANGLE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DANGLING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DANGLING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_PULL_UP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_PULL_UP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DROP_DOWN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DROP_DOWN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DROP_DOWN_LAND",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DROP_DOWN_LAND",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DANGLING_CABLE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DANGLING_CABLE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DANGLING_CABLE_FORWARD",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DANGLING_CABLE_FORWARD",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DANGLING_CABLE_BACKWARD",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DANGLING_CABLE_BACKWARD",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DROP_DOWN_OFF_FACE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DROP_DOWN_OFF_FACE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DEATH_SLIDE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DEATH_SLIDE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_TRAVERSE_LEFT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_TRAVERSE_LEFT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_TRAVERSE_RIGHT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_TRAVERSE_RIGHT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_MOUNT_LADDER",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_MOUNT_LADDER",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_ON_LADDER",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_ON_LADDER",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_UP_LADDER",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_UP_LADDER",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_DOWN_LADDER",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_DOWN_LADDER",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_OFF_LADDER_BOT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_OFF_LADDER_BOT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_OFF_LADDER_TOP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_OFF_LADDER_TOP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_DOWN_ONTO_LADDER",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_DOWN_ONTO_LADDER",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_LANDING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_LANDING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_AROUND_WALL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_AROUND_WALL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_UP_WALL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_UP_WALL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_DOWN_WALL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_DOWN_WALL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_OVER_WALL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_OVER_WALL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_OFF_BOT_WALL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_OFF_BOT_WALL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_LANDING2",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_LANDING2",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_LEFT_WALL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_LEFT_WALL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CLIMB_RIGHT_WALL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CLIMB_RIGHT_WALL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DRAW_GUN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DRAW_GUN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_AIM_GUN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_AIM_GUN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_SHOOT_GUN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_SHOOT_GUN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_GUN_AWAY",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_GUN_AWAY",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DRAW_ITEM",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DRAW_ITEM",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_ITEM_AWAY",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_ITEM_AWAY",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DYING_INITIAL_ANI",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DYING_INITIAL_ANI",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DYING_FINAL_ANI",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DYING_FINAL_ANI",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DYING_ACTUALLY_DIE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DYING_ACTUALLY_DIE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DYING_KNOCK_DOWN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DYING_KNOCK_DOWN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DYING_GET_UP_AGAIN",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DYING_GET_UP_AGAIN",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DYING_PRONE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DYING_PRONE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DYING_KNOCK_DOWN_WAIT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DYING_KNOCK_DOWN_WAIT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_TAKE_HIT",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_TAKE_HIT",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_ATTACKING",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_ATTACKING",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_ACROBATIC",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_ACROBATIC",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_DRIVING_ENTER_CAR",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_DRIVING_ENTER_CAR",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_GRAPPLING_PICKUP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_GRAPPLING_PICKUP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_GRAPPLING_WINDUP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_GRAPPLING_WINDUP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_GRAPPLING_RELEASE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_GRAPPLING_RELEASE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CANNING_PICKUP",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CANNING_PICKUP",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CANNING_RELEASE",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CANNING_RELEASE",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CANNING_GET_SPECIAL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CANNING_GET_SPECIAL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CANNING_GET_BARREL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CANNING_GET_BARREL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_STATE_CANNING_GOT_SPECIAL",
+      "file": "new/actors/core/statedef.h",
+      "orig_name": "SUB_STATE_CANNING_GOT_SPECIAL",
+      "orig_file": "fallen/Headers/statedef.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

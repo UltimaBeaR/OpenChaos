@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 162 — statedef.h (STATE_* + SUB_STATE_* macros) (2026-03-23)
+
+- 39 STATE_* + 157 SUB_STATE_* макросов (196 итого) → `new/actors/core/statedef.h`. `old/statedef.h` → redirect.
+- `STATE_DEF 1` в оригинале был include guard (`#ifndef STATE_DEF`), не семантическая константа — не переносится.
+- Было 48 включений `"statedef.h"` / `"fallen/Headers/statedef.h"` в new/ — все работают через redirect.
+
+---
+
 ## Итерация 161 — aeng.cpp chunk 5b (AENG_unlock..AENG_draw_inside_floor) — aeng.cpp полностью мигрирован (2026-03-23)
 
 - `AENG_transparent_warehouses`, `AENG_drawing_a_warehouse` — file-scope globals в old/aeng.cpp; перенесены в `aeng_globals`. Были extern-declared в new/facet.cpp с комментарием "not yet migrated" — redundant extern декларации оставлены (valid C++, uc_orig присутствуют).
