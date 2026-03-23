@@ -111,13 +111,10 @@
 
 #include "memory.h"
 #include "ai/pcom_globals.h"
+
+#if 0 // Redundant: all functions migrated to new/ai/pcom.cpp; externs/prototypes no longer needed
 extern UBYTE stealth_debug;
 extern BOOL allow_debug_keys;
-
-//
-// local prototypes
-//
-
 extern UBYTE combo_display;
 void push_into_attack_group_at_angle(Thing* p_person, SLONG gang, SLONG reqd_angle);
 SLONG remove_from_gang_attack(Thing* p_person, Thing* p_target);
@@ -125,15 +122,10 @@ void PCOM_set_person_ai_flee_person(Thing* p_person, Thing* p_scary);
 void PCOM_set_person_move_runaway(Thing* p_person, SLONG from_x, SLONG from_z);
 extern SLONG dist_to_target(Thing* p_person_a, Thing* p_person_b);
 SLONG person_holding_2handed(Thing* p_person);
-
 void DriveCar(Thing* p_person);
 void ParkCar(Thing* p_person);
 void DriveBike(Thing* p_person);
 void ParkBike(Thing* p_person);
-
-//
-// externs
-//
 extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
 extern SLONG am_i_a_thug(Thing* p_person);
 extern SLONG person_normal_animate(Thing* p_person);
@@ -145,12 +137,11 @@ extern SLONG is_person_dead(Thing* p_person);
 extern SLONG is_person_ko(Thing* p_person);
 extern SLONG person_has_gun_out(Thing* p_person);
 extern SLONG is_person_guilty(Thing* p_person);
-
 extern UBYTE vehicle_random[];
-
-extern SLONG there_is_a_los_mav( // From collide.cpp
+extern SLONG there_is_a_los_mav(
     SLONG x1, SLONG y1, SLONG z1,
     SLONG x2, SLONG y2, SLONG z2);
+#endif // Redundant declarations
 
 #if 0 // MIGRATED to src/new/ai/pcom.cpp + pcom_globals.cpp (iteration 82)
 

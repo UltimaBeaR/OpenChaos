@@ -56,7 +56,7 @@
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"
 
-// These macros and declarations are still needed by remaining (unmigrated) functions below.
+#if 0 // Redundant: all functions migrated to new/ui/interfac.cpp; macros/externs no longer needed here
 // uc_orig: GET_JOYX (fallen/Source/interfac.cpp)
 #define GET_JOYX(input) (((input >> 17) & 0xfe) - 128)
 // uc_orig: GET_JOYY (fallen/Source/interfac.cpp)
@@ -96,9 +96,9 @@ extern SLONG is_person_ko(Thing* p_person);
 extern void person_pick_best_target(Thing* p_person, SLONG dir);
 extern void set_person_walk_backwards(Thing* p_person);
 
-// Forward declarations for functions in chunk 1 (now in new/ui/interfac.cpp) needed below.
 extern void player_apply_move(Thing* p_thing, ULONG input);
 extern void player_apply_move_analgue(Thing* p_thing, ULONG input);
+#endif // Redundant declarations
 
 #if 0 // MIGRATED to src/new/ui/interfac.cpp + interfac_globals.cpp (iteration 126) [globals..do_an_action]
 
@@ -1663,7 +1663,9 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
 #endif // MIGRATED to src/new/ui/interfac.cpp + interfac_globals.cpp (iteration 126) [globals..do_an_action]
 
+#if 0 // Redundant: all functions migrated; extern no longer needed
 extern void set_person_hop_back(Thing* p_person);
+#endif
 
 #if 0 // MIGRATED to src/new/ui/interfac.cpp (iteration 127) [find_best_action_from_tree..person_enter_fight_mode]
 

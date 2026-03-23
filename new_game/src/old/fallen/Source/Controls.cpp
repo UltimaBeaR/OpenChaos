@@ -76,11 +76,13 @@
 #include "..\ddlibrary\headers\ddlib.h"
 #include "..\ddengine\headers\texture.h"
 
+#if 0 // Redundant: all functions migrated to new/ui/controls.cpp; externs no longer needed
 extern SLONG am_i_a_thug(Thing* p_person);
 extern void drop_current_gun(Thing* p_person, SLONG change_anim);
 extern SLONG analogue;
 extern SLONG mouse_input;
 extern UBYTE aeng_draw_cloud_flag;
+#endif
 
 #if 0 // MIGRATED to src/new/ui/controls.cpp (iteration 124) [INVENTORY_FADE_SPEED macro]
 // Used by process_controls (inventory panel fade speed).

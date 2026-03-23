@@ -31,15 +31,16 @@
 #include "panel.h"
 
 #include "interfac.h"
-extern BOOL allow_debug_keys;
 
-// These are needed by non-migrated functions below.
+#if 0 // Redundant: all functions migrated to new/ui/frontend.cpp; externs no longer needed
+extern BOOL allow_debug_keys;
 #include "startscr.h"
 extern SLONG FontPage;
 extern UBYTE InkeyToAscii[];
 extern UBYTE InkeyToAsciiShift[];
 extern CBYTE STARTSCR_mission[_MAX_PATH];
 extern DIJOYSTATE the_state;
+#endif
 
 #if 0 // MIGRATED to src/new/ui/frontend.cpp + frontend_globals.cpp (iteration 130) [globals..FRONTEND_kibble_flurry]
 

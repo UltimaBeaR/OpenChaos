@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 166 — Зачистка последних активных extern/declare в old/ (2026-03-23)
+
+- Обёрнуты в `#if 0` последние активные (вне `#if 0`) блоки в 4 файлах:
+  - `old/interfac.cpp`: macros GET_JOYX/GET_JOYY/ANALOGUE_MIN_VELOCITY/INPUT_*, extern declarations, forward decl `player_turn_left_right_analogue`, `extern set_person_hop_back`
+  - `old/Controls.cpp`: extern `am_i_a_thug`, `drop_current_gun`, `analogue`, `mouse_input`, `aeng_draw_cloud_flag`
+  - `old/frontend.cpp`: extern `allow_debug_keys`, `#include startscr.h`, extern `FontPage`, `InkeyToAscii[]`, `InkeyToAsciiShift[]`, `STARTSCR_mission`, `the_state`
+  - `old/pcom.cpp`: extern `stealth_debug`, `allow_debug_keys`, `combo_display`, forward decls (`push_into_attack_group_at_angle` etc.), externs block
+- `pq.cpp` — template-include, активный код нормален (включается в `new/ai/mav.cpp` через `#include`)
+- Все остальные old/ файлы с "активным" видом кода на самом деле полностью внутри `#if 0` блоков (Python-скрипт давал ложные срабатывания из-за вложенных `#if`/`#ifndef` внутри `#if 0`)
+
+---
+
 ## Итерация 165 — TraceText + зачистка #if 0 в pcom/drawxtra/Controls (2026-03-23)
 
 - `TraceText` → `new/engine/graphics/graphics_api/host.cpp` + `host.h`. Последняя немигрированная функция из `old/MFStdLib/Source/StdLib/StdFile.cpp`.
