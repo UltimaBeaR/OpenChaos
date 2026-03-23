@@ -2755,6 +2755,8 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
 
 #endif // MIGRATED to src/new/engine/graphics/geometry/facet.cpp (iteration 143) [chunk 2a]
 
+#if 0 // MIGRATED to src/new/engine/graphics/geometry/facet.cpp (iteration 144) [chunk 2b: FACET_draw]
+
 // Like FACET_draw_rare, but for the most common class.
 // claude-ai: FACET_draw — FAST-PATH renderer for plain STOREY_TYPE_NORMAL exterior walls.
 // claude-ai: This function only handles the most common case; anything unusual (doors, fences,
@@ -3122,6 +3124,8 @@ void FACET_draw(SLONG facet, UBYTE alpha)
 
     return;
 }
+
+#endif // MIGRATED to src/new/engine/graphics/geometry/facet.cpp (iteration 144) [chunk 2b: FACET_draw]
 
 extern SLONG AENG_drawing_a_warehouse;
 

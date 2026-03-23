@@ -1,5 +1,11 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 144 — facet.cpp chunk 2b: FACET_draw (2026-03-23)
+
+Нет нестандартных решений. Все нужные includes уже присутствовали (добавлены в chunk 2a).
+
+---
+
 ## Итерация 143 — facet.cpp chunk 2a: FACET_draw_quick + FACET_draw_rare (2026-03-23)
 
 - Добавлены новые includes: `core/macros.h`, `core/matrix.h`, `engine/lighting/night_globals.h`, `world/map/supermap_globals.h`, `world/environment/ware.h/.h_globals`, `ui/camera/fc_globals.h`.

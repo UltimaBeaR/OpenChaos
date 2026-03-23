@@ -2005,3 +2005,341 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
     }
     return;
 }
+
+// uc_orig: FACET_draw (fallen/DDEngine/Source/facet.cpp)
+// Fast-path renderer for STOREY_TYPE_NORMAL plain wall facets.
+// Skips if invisible, INDOORS, or flags require special handling (redirects to FACET_draw_rare).
+// Performs 2D backface cull + AABB frustum reject before transforming geometry.
+// Uses cached per-vertex lighting (NIGHT_dfcache), then MakeFacetPointsCommon + FillFacetPointsCommon.
+void FACET_draw(SLONG facet, UBYTE alpha)
+{
+    struct DFacet* p_facet;
+    static SWORD rows[100];
+    SLONG c0, count;
+    SLONG dx, dz;
+    float x, y, z, sx, sy, sz, fdx, fdz;
+    SLONG height;
+    POLY_Point* pp;
+    SLONG hf;
+    POLY_Point* quad[4];
+    SLONG style_index;
+    NIGHT_Colour* col;
+    SLONG max_height;
+    SLONG foundation = 0;
+    static float diff_y[128];
+    float block_height = 256.0;
+
+    SLONG diag = 0;
+    SLONG facet_backwards = 0;
+    ULONG fade_alpha = alpha << 24;
+    SLONG inside_clip = 0;
+    SLONG reverse_textures = 0;
+    // SLONG		style_index_offset=1;
+    SLONG style_index_step = 2;
+    SLONG flipx = 0;
+
+    ASSERT(facet > 0 && facet < next_dfacet);
+    p_facet = &dfacets[facet];
+
+    if (p_facet->FacetFlags & FACET_FLAG_INVISIBLE) {
+        return;
+    }
+
+    // Alpha seems to be never used, and always set to 0
+    ASSERT(alpha == 0);
+
+    // Now spot the odder forms of facet, and use the _rare routine to draw them instead.
+    if ((p_facet->FacetType != STOREY_TYPE_NORMAL) || (INDOORS_INDEX) || ((p_facet->FacetFlags & (FACET_FLAG_BARB_TOP | FACET_FLAG_2SIDED | FACET_FLAG_INSIDE)) != 0)) {
+        // Use it!
+        FACET_draw_rare(facet, alpha);
+        return;
+    }
+
+    ASSERT((p_facet->FacetType == STOREY_TYPE_NORMAL));
+    ASSERT((p_facet->FacetFlags & FACET_FLAG_INVISIBLE) == 0);
+    ASSERT((p_facet->FacetFlags & FACET_FLAG_BARB_TOP) == 0);
+    ASSERT((p_facet->FacetFlags & FACET_FLAG_2SIDED) == 0);
+    ASSERT((p_facet->FacetFlags & FACET_FLAG_INSIDE) == 0);
+    ASSERT(!INDOORS_INDEX);
+
+    //
+    // Should we bother drawing this facet?
+    //
+
+    {
+        //
+        // Backface cull the entire facet?
+        //
+
+        float x1, z1;
+        float x2, z2;
+
+        float vec1x;
+        float vec1z;
+
+        float vec2x;
+        float vec2z;
+
+        float cprod;
+
+        x1 = float(p_facet->x[0] << 8);
+        z1 = float(p_facet->z[0] << 8);
+
+        x2 = float(p_facet->x[1] << 8);
+        z2 = float(p_facet->z[1] << 8);
+
+        vec1x = x2 - x1;
+        vec1z = z2 - z1;
+
+        vec2x = POLY_cam_x - x1;
+        vec2z = POLY_cam_z - z1;
+
+        cprod = vec1x * vec2z - vec1z * vec2x;
+
+        if (cprod >= 0) {
+            //
+            // We've got rid of a whole facet :o)
+            //
+            return;
+        }
+    }
+
+    //
+    // Transform the bounding box of the facet to quickly try and reject the
+    // entire facet.
+    //
+
+    ULONG clip_or; // Used below.
+    {
+
+        SLONG i;
+
+        ULONG clip;
+        ULONG clip_and;
+
+        POLY_Point bound;
+
+        float x;
+        float y;
+        float z;
+
+        float x1 = float(p_facet->x[0] << 8);
+        float y1 = float(p_facet->Y[0]);
+        float z1 = float(p_facet->z[0] << 8);
+
+        float x2 = float(p_facet->x[1] << 8);
+        float y2 = float(p_facet->Y[1]) + float(p_facet->Height * 64);
+        float z2 = float(p_facet->z[1] << 8);
+
+        clip_or = 0x00000000;
+        clip_and = 0xffffffff;
+
+        for (i = 0; i < 4; i++) {
+            x = (i & 0x1) ? x1 : x2;
+            y = (i & 0x2) ? y1 : y2;
+            z = (i & 0x1) ? z1 : z2;
+
+            POLY_transform_c_saturate_z(x, y, z, &bound);
+
+            clip = bound.clip;
+
+            if ((clip & POLY_CLIP_TRANSFORMED) && !(clip & POLY_CLIP_OFFSCREEN)) {
+                //
+                // Draw the whole facet because this point is on-screen.
+                //
+
+                // But this frags the near-plane clip detection.
+                // Don't need it any more. Hooray!
+                goto draw_the_facet_common;
+            }
+
+            clip_and &= clip;
+            clip_or |= clip;
+        }
+
+        if (clip_and & POLY_CLIP_OFFSCREEN) {
+            //
+            // Reject the whole facet.
+            //
+
+            return;
+        }
+
+        if (!(clip_or & POLY_CLIP_TRANSFORMED)) {
+            //
+            // Reject the whole facet if all points are too far or all points are too near
+            //
+            if (clip_and & (POLY_CLIP_NEAR | POLY_CLIP_FAR)) {
+                return;
+            }
+        }
+
+    draw_the_facet_common:;
+    }
+
+    dfacets_drawn_this_gameturn += 1;
+
+    {
+        float yaw;
+
+        if (p_facet->z[0] == p_facet->z[1]) {
+            if (p_facet->x[0] < p_facet->x[1]) {
+                yaw = 0.0F;
+            } else {
+                yaw = PI;
+            }
+        } else {
+            if (p_facet->z[0] > p_facet->z[1]) {
+                yaw = 3 * PI / 2;
+            } else {
+                yaw = PI / 2;
+            }
+        }
+
+        MATRIX_calc(
+            FACET_direction_matrix,
+            yaw,
+            0.0F,
+            0.0F);
+    }
+
+    // Can't do these for release yet - no glowing windows, and the fog doesn't work.
+    // Fog works, and Mark says he's done the glowing windows. Hooray!
+    // #define DO_SUPERFACETS_PLEASE_BOB defined
+
+    //
+    // Draw the facet.
+    //
+
+    p_facet->FacetFlags &= ~FACET_FLAG_DLIT;
+
+    POLY_buffer_upto = 0;
+
+    style_index = p_facet->StyleIndex;
+
+    //
+    // Should this be passed an x,y,z to be relative to? Nah!
+    //
+
+    set_facet_seed(p_facet->x[0] * p_facet->z[0] + p_facet->Y[0]);
+
+    ASSERT((GAME_FLAGS & GF_INDOORS) == 0);
+
+    max_height = UC_INFINITY;
+
+    //
+    // If there is no cached lighting for this facet, then we
+    // must make some.
+    //
+
+    if (p_facet->Dfcache == 0) {
+        p_facet->Dfcache = NIGHT_dfcache_create(facet);
+
+        if (p_facet->Dfcache == NULL) {
+            return;
+        }
+    }
+
+    ASSERT(WITHIN(p_facet->Dfcache, 1, NIGHT_MAX_DFCACHES - 1));
+
+    col = NIGHT_dfcache[p_facet->Dfcache].colour;
+
+    dx = (p_facet->x[1] - p_facet->x[0]) << 8;
+    dz = (p_facet->z[1] - p_facet->z[0]) << 8;
+
+    sx = float(p_facet->x[0] << 8);
+    sy = float(p_facet->Y[0]);
+    sz = float(p_facet->z[0] << 8);
+
+    height = p_facet->Height;
+
+    // No diagonal walls allowed.
+    ASSERT(!(dx && dz));
+
+    {
+        if (dx) {
+            count = abs(dx) >> 8;
+            if (dx > 0)
+                dx = 256;
+            else
+                dx = -256;
+        } else {
+            count = abs(dz) >> 8;
+            if (dz > 0)
+                dz = 256;
+            else
+                dz = -256;
+        }
+
+        fdx = (float)dx;
+        fdz = (float)dz;
+
+        if (p_facet->Open) {
+            float rdx;
+            float rdz;
+            float angle = float(p_facet->Open) * (PI / 256.0F);
+
+            //
+            // Open the facet!
+            //
+
+            rdx = cos(angle) * fdx + sin(angle) * fdz;
+            rdz = -sin(angle) * fdx + cos(angle) * fdz;
+
+            fdx = rdx;
+            fdz = rdz;
+        }
+    }
+
+    count++;
+
+    ASSERT(p_facet->FacetType == STOREY_TYPE_NORMAL);
+
+    ASSERT((p_facet->FacetFlags & FACET_FLAG_BARB_TOP) == 0);
+
+    //
+    //	warehouses can be double sided and storey_type_normal
+    //
+
+    ASSERT(facet_backwards == 0);
+
+    block_height = p_facet->BlockHeight << 4;
+
+    ASSERT(inside_clip == 0);
+
+    if (p_facet->FHeight) {
+        foundation = 2;
+    }
+
+    MakeFacetPointsCommon(sx, sy, sz, fdx, fdz, block_height, height, col, foundation, count, p_facet->FacetFlags & FACET_FLAG_HUG_FLOOR);
+
+    ASSERT((p_facet->FacetFlags & (FACET_FLAG_INSIDE)) == 0);
+    if (p_facet->FacetFlags & (FACET_FLAG_2TEXTURED)) {
+        style_index--;
+    }
+
+    if (!(p_facet->FacetFlags & FACET_FLAG_HUG_FLOOR) && (p_facet->FacetFlags & (FACET_FLAG_2TEXTURED | FACET_FLAG_2SIDED))) {
+        style_index_step = 2;
+    } else {
+        style_index_step = 1;
+    }
+
+    ASSERT(reverse_textures == 0);
+
+    hf = 0;
+    while (height >= 0) {
+        if (hf) {
+            ASSERT(facet_backwards == 0);
+            ASSERT(reverse_textures == 0);
+            FillFacetPointsCommon(count, hf - 1, foundation + 1, style_index - 1, block_height);
+        }
+
+        foundation--;
+        sy += block_height;
+        height -= 4;
+        hf++;
+        style_index += style_index_step;
+    }
+
+    return;
+}

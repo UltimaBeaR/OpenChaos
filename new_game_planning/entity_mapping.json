@@ -76729,6 +76729,16 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_draw",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "FACET_draw",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
