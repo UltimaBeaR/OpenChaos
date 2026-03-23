@@ -1312,10 +1312,8 @@ SLONG PQ_better(PQ_Type* a, PQ_Type* b)
     return a->score < b->score;
 }
 
-// Include the generic heap template. Requires PQ_Type, PQ_HEAP_MAX_SIZE, PQ_better.
-// pq.h declares prototypes; pq.cpp provides the implementation as static functions.
-#include "fallen/Headers/pq.h"
-#include "fallen/Source/pq.cpp"
+// Include the generic heap template. Requires PQ_Type, PQ_HEAP_MAX_SIZE, PQ_better above.
+#include "core/pq.h"
 
 // Heuristic: straight-line QDIST2 distance from (x,z) to MAV_dest, scaled x2, capped at 255.
 // This is the sole cost — no accumulated path cost — making this greedy best-first search.

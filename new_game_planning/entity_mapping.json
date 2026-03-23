@@ -88129,6 +88129,126 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_BETTER",
+      "file": "core/pq.h",
+      "orig_name": "PQ_BETTER",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_BEST",
+      "file": "core/pq.h",
+      "orig_name": "PQ_BEST",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_SISTER",
+      "file": "core/pq.h",
+      "orig_name": "PQ_SISTER",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_MOTHER",
+      "file": "core/pq.h",
+      "orig_name": "PQ_MOTHER",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_DAUGHTER",
+      "file": "core/pq.h",
+      "orig_name": "PQ_DAUGHTER",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_heap",
+      "file": "core/pq.h",
+      "orig_name": "PQ_heap",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_heap_end",
+      "file": "core/pq.h",
+      "orig_name": "PQ_heap_end",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_init",
+      "file": "core/pq.h",
+      "orig_name": "PQ_init",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_best",
+      "file": "core/pq.h",
+      "orig_name": "PQ_best",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_empty",
+      "file": "core/pq.h",
+      "orig_name": "PQ_empty",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_add",
+      "file": "core/pq.h",
+      "orig_name": "PQ_add",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PQ_remove",
+      "file": "core/pq.h",
+      "orig_name": "PQ_remove",
+      "orig_file": "fallen/Source/pq.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
