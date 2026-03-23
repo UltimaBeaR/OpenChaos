@@ -6,7 +6,7 @@ description: >
   (dangling if/else, diff gathering, code correctness), then run this for Stage 4-specific
   checks (uc_orig, globals, entity mapping, include guards, CMake, comments, DAG order).
   Trigger after ANY code changes during Stage 4 work: after completing a migration iteration,
-  after fixes or tweaks requested by the user, after any edits to code in new/ or old/.
+  after fixes or tweaks requested by the user, after any edits to code in src/.
   This is NOT just a pre-commit step — the user commits manually and may not commit at all.
   Review is mandatory after every piece of completed work.
   If you are doing Stage 4 work, ALWAYS use both `review` AND `stage4-review` — using only one is incomplete.
@@ -44,7 +44,7 @@ Including: static helpers, internal macros, trivial definitions, obvious things.
 **A definition in `.cpp` without `uc_orig` above it is a BUG.** Fix it before proceeding.
 
 ### How to check:
-1. Open each new/changed file in `new/`
+1. Open each new/changed file in the new structure
 2. Go through EVERY LINE that defines or declares a named entity
 3. Verify `uc_orig` comment is present with correct name and path
 4. Verify the entity was added to entity mapping: `python tools/entity_map.py find --name NAME`
@@ -109,7 +109,7 @@ Check: does the guard match the actual file path from `new/`?
 ## CHECK E: Comments
 
 - All comments in **English**
-- Original comments **deleted** (they remain in `old/` and `original_game/`)
+- Original comments **deleted** (they remain in `original_game/` as reference)
 - No `// claude-ai:` prefixes
 - Comments explain "what" and "why" for non-obvious code. Obvious code is not commented.
 
@@ -122,9 +122,9 @@ Check: does the guard match the actual file path from `new/`?
 
 ---
 
-## CHECK G: Empty Files in `old/`
+## CHECK G: Empty Legacy Headers
 
-- If everything was moved out of a file — the file is deleted (or replaced with a redirect-include)
+- If everything was moved out of a legacy header — the file is deleted
 
 ---
 
@@ -134,7 +134,7 @@ Check: does the guard match the actual file path from `new/`?
   ```
   core → io → graphics_api → graphics → engine/* → world/actors → ai → missions/ui
   ```
-- Temporary `#include` to `old/` is acceptable, marked with `// Temporary:` comment
+- Temporary `#include` to `fallen/` or `MFStdLib/` is acceptable, marked with `// Temporary:` comment
 
 ---
 

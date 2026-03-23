@@ -1,7 +1,8 @@
 ---
 name: stage4-migrate
 description: >
-  Stage 4 migration iteration for OpenChaos — moving code from src/old/ to src/new/.
+  Stage 4 migration iteration for OpenChaos — moving code from legacy headers
+  (src/fallen/, src/MFStdLib/) into the new structure (src/).
   Use this skill whenever the user asks to do a migration iteration, continue porting,
   move files/functions to new structure, or says things like "давай итерацию",
   "продолжаем перенос", "следующий батч", "мигрируй", "перенеси".
@@ -11,77 +12,99 @@ description: >
 # Stage 4 — Migration Iteration Workflow
 
 You are performing a code restructuring of Urban Chaos (1999) original codebase.
-Code lives in `new_game/src/old/` (original, being emptied) and `new_game/src/new/` (new structure, being filled).
-Your job: move entities from `old/` to `new/` preserving logic 1:1, with proper tracking.
 
-## How It Works
+## Current State (Stage 4.0, final phase)
 
-Two sibling directories under `src/`:
+The bulk migration is done. `.cpp` files are already in the new structure under `src/`.
+What remains: **legacy headers** in `src/fallen/` and `src/MFStdLib/` that still contain
+types, structs, macros, constants, and function declarations. ~200 files, ~10K lines, ~290KB.
+
+These headers are referenced via `// Temporary:` includes (~684 occurrences in ~141 files).
+
 ```
 new_game/src/
-├── old/    ← all current code moved here (fallen/ + MFStdLib/)
-└── new/    ← new structure, .h/.cpp with include guards
+├── core/              ← new structure (already populated)
+├── engine/            ← new structure (already populated)
+├── world/             ← new structure (already populated)
+├── actors/            ← new structure (already populated)
+├── assets/            ← ...
+├── effects/           ← ...
+├── ai/                ← ...
+├── missions/          ← ...
+├── ui/                ← ...
+├── fallen/            ← LEGACY headers to eliminate (Headers/, DDEngine/, DDLibrary/, Source/, outro/)
+└── MFStdLib/          ← LEGACY headers to eliminate (Headers/)
 ```
 
-Entities (functions, classes, types, variables) are moved from `old/` into files in `new/`.
-`old/` includes new headers from `new/` instead of the old ones — always compilable state.
-Entry point (`Main.cpp`) stays in `old/` until the very end.
+**Goal:** move every entity from `fallen/` and `MFStdLib/` into proper headers in the new
+structure, update all `// Temporary:` includes to point to the new locations, delete the
+legacy directories. After this, `src/` contains only the new structure.
 
 **C++23 modules — not yet.** Plain `.h/.cpp` with include guards. Module conversion is a separate
 step after the structure is complete — only then will there be a meaningful DAG to convert.
 
-Both include directories are in CMakeLists.txt:
-- `src/new/` — so `old/` can write `#include "actors/core/thing.h"`
-- `src/old/` — so `new/` can include not-yet-migrated headers via `#include "fallen/Headers/Map.h"` (temporary, goes away as migration progresses)
-
 ## Before Starting
 
-1. Read `new_game_planning/stage4_rules.md` for the redirect — it points here.
-2. Check `new_game_devlog/stage4_log.md` for the last iteration number and what was done.
-3. Check current state: what's already in `src/new/`, what's left in `src/old/`.
+1. Check `new_game_devlog/stage4_log.md` for the last iteration number and what was done.
+2. Check current state: what's left in `src/fallen/` and `src/MFStdLib/`.
 
 ## Iteration Size
 
-~1200-1500 lines total per iteration (all files in the batch combined).
-Pick thematically related files. For files >2000 lines — split into ~1500 line chunks.
-Use subagents for parallel file creation on large batches.
+**~2000-3000 lines per iteration** (larger than before — this is mostly declarations, not logic).
+Pick thematically related headers. Use subagents for parallel work on large batches.
 
 ## Migration Order (bottom-up by DAG)
 
-Each layer depends only on already-migrated layers:
+Move headers in the same dependency order as before:
 
 ```
-1.  core/                    — no dependencies
-2.  engine/io/               — depends on core
-3.  engine/graphics/         — depends on core, io
-4.  engine/animation/        — depends on core, graphics
-5.  engine/lighting/         — depends on core, graphics
-6.  engine/effects/          — depends on core, graphics
-7.  engine/physics/          — depends on core
-8.  engine/audio/            — depends on core, io
-9.  engine/input/            — depends on core
-10. assets/                  — depends on engine/io/
-11. world/                   — depends on engine/*, assets
-12. actors/                  — depends on engine/*, world, assets
-13. effects/ (game level)    — depends on engine/effects/, actors
-14. ai/                      — depends on actors, world
-15. missions/                — depends on actors, world, ai, assets
-16. ui/                      — depends on actors, engine/graphics
+1.  MFStdLib/           → core/          — base types, math, file stubs
+2.  fallen/DDLibrary/   → engine/io/, engine/graphics/graphics_api/, engine/graphics/resources/
+3.  fallen/DDEngine/    → engine/graphics/, engine/animation/, engine/lighting/
+4.  fallen/Headers/     → world/, actors/, ai/, effects/, missions/, ui/, assets/
+5.  fallen/outro/       → ui/cutscenes/outro/
 ```
 
-Breaking order = depending on something not yet migrated. If that happens: either migrate the dependency first, or temporarily keep it in `old/` with a `// Temporary:` include.
+Breaking order = depending on something not yet migrated. If that happens: keep the
+`// Temporary:` include until the dependency is migrated.
 
-## Per-File Migration Flow
+## Per-Header Migration Flow
 
-1. Create `new/path/file.h` + `new/path/file.cpp` with entities and `uc_orig` comments
-2. Delete migrated entities from the `old/` file
-3. Add `#include "path/file.h"` in the corresponding `old/` header
-4. Compile (`make build-release`) — must pass
-5. Add entries via `python tools/entity_map.py add`
+1. **Read the legacy header** — identify all entities (types, structs, macros, constants,
+   function declarations, extern variables)
+2. **For each entity — decide where it goes:**
+   - Already exists in a new header (just needs the declaration added)? → add it there
+   - Belongs to an existing module that has no header for it yet? → create new header
+   - Use the placement criteria below to decide
+3. **Move entities** into the appropriate new header(s) with `uc_orig` comments
+4. **Update consumers** — find all files that had `#include "fallen/Headers/Foo.h" // Temporary:`
+   and replace with `#include "proper/path/foo.h"`. Remove the `// Temporary:` comment.
+   - **grep before replacing** — don't assume which files include what
+   - Some consumers may need multiple new includes to replace one old include
+5. **Delete the legacy header** when empty (all entities moved out)
+6. **Compile** (`make build-release`) — must pass
+7. **Add entity_map entries** via `python tools/entity_map.py add`
+
+### Important: entities may already be migrated
+
+Many entities from these headers were already moved during the main migration (they exist in
+new headers with `uc_orig` comments). In that case:
+- The legacy header just has a leftover declaration that's now redundant
+- Delete it from the legacy header
+- The `// Temporary:` include in the consumer may already be unnecessary — check and remove
+- Do NOT add a duplicate entity_map entry
+
+### Important: some legacy headers are "umbrella" includes
+
+Headers like `Game.h`, `MFStdLib.h` pull in dozens of other headers. When migrating these:
+- Don't try to create one replacement — that defeats the purpose
+- Each consumer needs only the specific new headers it actually uses
+- Replace the umbrella include with the specific includes each consumer needs
 
 ## What's Allowed
 
-- Move entities from `old/` to `new/`
+- Move entities from legacy headers to new structure headers
+- Delete entities that are already present in new headers (duplicates/redirects)
 - Delete unused entities and obvious dead code (don't migrate them)
 - Delete ALL original comments and write new ones (English, for a developer seeing the code for the first time)
 - Add `// uc_orig:` comments (mandatory on every entity — see below)
@@ -92,9 +115,6 @@ Breaking order = depending on something not yet migrated. If that happens: eithe
 - Renaming entities (sole exception: name conflicts, see below)
 - Changing function signatures
 - Merging or splitting functions
-- **Omitting any part of a function body because its dependencies are not yet migrated**
-  → Add a temporary `#include "fallen/Headers/Foo.h"` (marked `// Temporary:`) and keep the code.
-  → See "NEVER SKIP CODE" rule below.
 
 ## Name Conflicts
 
@@ -156,7 +176,7 @@ int g_thing_count = 0;
 ```
 
 **Format:** `// uc_orig: OriginalName (fallen/path/to/file.ext)`
-- Name as in `original_game/` (not `old/`)
+- Name as in `original_game/` (not in `new_game/`)
 - Path from original game root (`fallen/...`)
 - On a separate line before declaration/definition
 
@@ -199,22 +219,22 @@ This doesn't change program behavior (nobody touches it externally) but ensures 
 1. Trivial initializer (`= 0`, `= nullptr`, literal) → move freely
 2. Non-trivial initializer (function call, constructor with side effects) → move with dependencies, preserve original order
 3. Interdependent globals → same file, original order
-4. Unclear case → leave in `old/`, export via `extern`, describe the situation, ask
+4. Unclear case → describe the situation, ask
 
 ---
 
 # Include Guards
 
-Format: `PATH_FROM_NEW_UPPERCASED_H` — reflects file path from `new/` root.
+Format: `PATH_FROM_SRC_UPPERCASED_H` — reflects file path from `src/` root.
 
 ```cpp
-// File: new/core/types.h
+// File: src/core/types.h
 #ifndef CORE_TYPES_H
 #define CORE_TYPES_H
 ...
 #endif // CORE_TYPES_H
 
-// File: new/engine/graphics/pipeline/bucket.h
+// File: src/engine/graphics/pipeline/bucket.h
 #ifndef ENGINE_GRAPHICS_PIPELINE_BUCKET_H
 #define ENGINE_GRAPHICS_PIPELINE_BUCKET_H
 ...
@@ -236,14 +256,14 @@ Format: `PATH_FROM_NEW_UPPERCASED_H` — reflects file path from `new/` root.
 | kind | Meaning | `file` field | `stage` |
 |------|---------|-------------|---------|
 | `file` | File move: file in `old/` came from a different path in `original_game/` | path in `old/` | 2 |
-| `function` | Function moved from `old/` to `new/` | path in `new/` | 4 |
-| `struct` | Struct moved | path in `new/` | 4 |
-| `class` | Class moved | path in `new/` | 4 |
-| `variable` | Global variable moved | path in `new/` | 4 |
-| `type` | Typedef/type alias moved | path in `new/` | 4 |
-| `macro` | #define macro moved | path in `new/` | 4 |
+| `function` | Function moved | path in new structure | 4 |
+| `struct` | Struct moved | path in new structure | 4 |
+| `class` | Class moved | path in new structure | 4 |
+| `variable` | Global variable moved | path in new structure | 4 |
+| `type` | Typedef/type alias moved | path in new structure | 4 |
+| `macro` | #define macro moved | path in new structure | 4 |
 
-The `orig_file` field is **always a path in `original_game/`**, not in `old/` and not in `new/`.
+The `orig_file` field is **always a path in `original_game/`**, not in `new_game/`.
 Simple rule: the path must exist in `original_game/`, not in `new_game/`.
 
 ### Workflow: before each `add` — always `find` first
@@ -253,30 +273,11 @@ python tools/entity_map.py find --name ENTITY_NAME
 ```
 
 - **No results** → no entry exists. Use the path in `original_game/` as `--orig-file`.
-- **Has `kind: file` entry (stage 2)** → file in `old/` came from a different path in `original_game/`.
+- **Has `kind: file` entry (stage 2)** → file came from a different path in `original_game/`.
   Use `orig_file` from that entry as `--orig-file` for new entity entries.
   Example: `anim.h` came from `fallen/Editor/Headers/Anim.h` → all entities from it
   get `--orig-file "fallen/Editor/Headers/Anim.h"`, not `fallen/Headers/anim.h`.
 - **Has entity entry (stage 4)** → already migrated. Don't add a duplicate.
-
-### JSON format
-
-```json
-{
-  "entries": [
-    {
-      "name": "Thing_alloc",
-      "file": "new/actors/core/thing.h",
-      "orig_name": "Thing_alloc",
-      "orig_file": "fallen/Source/Thing.cpp",
-      "kind": "function",
-      "conflict": false,
-      "stage": 4,
-      "date": "2026-03-20"
-    }
-  ]
-}
-```
 
 ### Commands
 ```
@@ -289,10 +290,10 @@ python tools/entity_map.py rename --name OLD --new-name NEW   # for future renam
 
 ---
 
-# Target Structure of `new/`
+# Target Structure of `src/`
 
 ```
-new/
+src/
 ├── core/                      — math, memory, utilities. No dependencies.
 │
 ├── engine/                    — game engine (doesn't know about Urban Chaos)
@@ -368,25 +369,25 @@ A dependency from outside `engine/` directly into `engine/graphics/` is a visibl
 
 # Comments
 
-- **Language: English.** All comments in `new/` code — English only.
-- Delete all original comments — they remain in `old/` and `original_game/` as reference.
+- **Language: English.** All comments in code — English only.
+- Delete all original comments — they remain in `original_game/` as reference.
 - Write for a **regular developer** seeing the code for the first time. Not cryptic KB jargon.
 - Comment explains "what it does" and "why" if non-obvious. Don't comment obvious code.
-- No `// claude-ai:` prefixes — in `new/` all comments are written by Claude anyway.
+- No `// claude-ai:` prefixes.
 
 ---
 
 # Iteration Rules
 
-1. **Iteration size — 1200-1500 lines:**
-   Each iteration = ~1200-1500 lines total (all files in batch). Pick thematically related files,
-   combining small and medium ones. For files >2000 lines — split into ~1500 line chunks.
-   Use subagents for parallel file creation on large batches.
+1. **Iteration size — 2000-3000 lines:**
+   Each iteration = ~2000-3000 lines total (all files in batch). This phase is mostly
+   declarations/types, so larger batches are safe. Pick thematically related headers.
+   Use subagents for parallel work on large batches.
 
 2. **Compilation** — Claude compiles independently (`make build-release`) after each iteration.
    Don't bother the user — just report the result.
 
-3. **Smoke test** — user runs the game every 10-20 iterations. Claude does not ask more often.
+3. **Smoke test** — user runs the game periodically. Claude does not ask for smoke tests.
 
 4. **Self-review after ANY changes** — run `review` + `stage4-review` skills. After every iteration,
    after every fix, after every edit. Not just before commits — always.
@@ -394,7 +395,7 @@ A dependency from outside `engine/` directly into `engine/graphics/` is a visibl
 5. **Do NOT start the next iteration** without user's command.
 
 6. **Log** in `new_game_devlog/stage4_log.md` — **maximally compact**:
-   - Header: iteration number + short name (which modules)
+   - Header: iteration number + short name (which modules/headers)
    - Body: **only notes** — non-obvious decisions, found bugs, name conflicts, deleted entities with reason
    - **DO NOT write (RE-READ BEFORE EVERY LOG ENTRY):**
      - List of migrated files/entities — visible from code and mapping
@@ -418,51 +419,19 @@ A dependency from outside `engine/` directly into `engine/graphics/` is a visibl
 
 ---
 
-# NEVER SKIP CODE — THE #1 MIGRATION BUG
-
-**A function body is moved 100% or not at all. No exceptions.**
-
-The most dangerous migration mistake: dropping a block of code from the middle or end of a
-function because it references symbols from unmigrated systems.
-
-The failure mode:
-1. A function has code at the end that calls `WARE_something()`, `MAP_get()`, etc.
-2. Those headers aren't in `new/` yet, so the compiler would complain.
-3. You silently drop that block "until those systems are migrated".
-4. The code compiles. The game runs. But that block never executes — silent data corruption.
-
-**This is unacceptable.** The game looks fine until you accidentally trigger the affected path.
-
-### The only valid solution: temporary includes
-
-```cpp
-#include "fallen/Headers/ware.h"    // Temporary: until ware is migrated
-#include "fallen/Headers/building.h" // Temporary: TEXTURE_PIECE_NUMBER, dx_textures_xy
-```
-
-Keep ALL the code. Add the `// Temporary:` includes. The dependency is a compile-time
-problem to solve now — not a runtime problem to defer silently.
-
-### The only valid reason to omit code: proven dead code
-
-Dead code = guarded by an **inactive** `#ifdef` (e.g., `#ifdef PSX`, `#ifdef EDITOR` when
-those flags are not defined in the PC build, per `preprocessor_flags.md`).
-
-**Everything else — including commented-out blocks with `//` that were originally active,
-"looks unused" code, or "I don't understand what this does" code — stays in.**
-
-When in doubt: keep it. Keeping dead code is harmless. Dropping live code is a silent bug.
-
----
-
 # Warnings
 
-- **Includes in `old/` are non-linear** — before moving any entity, grep who uses it. Don't guess by filename.
-- **Dangling if/else** — when deleting a line, check it's not the sole body of an `if` without braces. If it is, delete the `if` too or add `{}` / `;`.
+- **Grep before replacing includes** — don't assume which files include what. A header may be
+  included from unexpected places.
+- **Umbrella headers** (Game.h, MFStdLib.h) — don't create a 1:1 replacement. Each consumer
+  gets only the specific new headers it needs.
+- **Dangling if/else** — when deleting a line, check it's not the sole body of an `if` without braces.
 - **`/Zp1`** (struct member alignment) — don't change, critical for binary resource formats.
 - **`-fno-inline-functions`** — don't remove until the body parts rendering bug is figured out.
-- **Empty files in `old/`** — when everything is moved out, delete the file.
+- **Empty headers** — when everything is moved out, delete the file.
 - **Don't create empty directories** — create only when the first file goes in.
+- **Already-migrated entities** — many entities in legacy headers already exist in new headers.
+  Check before creating duplicates. Use `entity_map.py find` or grep.
 
 ---
 
@@ -479,5 +448,5 @@ Don't load KB proactively — for most migrations it's not needed.
 # Future (after migration is complete)
 
 - **C++23 modules** — analyze DAG on the new fine-grained structure, then convert
-- **Namespaces** — introduce together with modules. All `new/` under `namespace oc` — discuss separately
+- **Namespaces** — introduce together with modules. All under `namespace oc` — discuss separately
 - **Globals** — consider replacing global state with explicit dependency passing
