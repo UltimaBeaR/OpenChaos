@@ -1,4 +1,3 @@
-#include "fallen/Headers/Game.h"
 #include "actors/animals/bat.h"
 #include "actors/animals/bat_globals.h"
 

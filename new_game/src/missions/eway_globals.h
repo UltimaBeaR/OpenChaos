@@ -1,7 +1,9 @@
 #ifndef MISSIONS_EWAY_GLOBALS_H
 #define MISSIONS_EWAY_GLOBALS_H
 
-#include "fallen/Headers/Game.h"
+#include "core/types.h"
+
+struct Thing;
 
 // ====================================================
 // EWAY type definitions (moved from fallen/Headers/eway.h)

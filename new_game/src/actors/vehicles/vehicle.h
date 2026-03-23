@@ -6,6 +6,7 @@
 
 #include "core/types.h"
 #include "actors/core/state.h"
+#include "actors/core/drawtype.h"
 
 struct Thing;
 

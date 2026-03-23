@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 188 — Game.h: зачистка _globals файлов + headers eway_globals/game_globals/overlay_globals (2026-03-24)
+
+- Удалён `fallen/Headers/Game.h` из 8 `_globals.cpp`: bat_globals, cop/roper/thug/player/switch_globals, vehicle_globals, prim_globals. Замена на `<MFStdLib.h>` (для NULL) или полное удаление (где не нужен).
+- `vehicle.h`: добавлен пропущенный `#include "actors/core/drawtype.h"` — Vehicle struct содержит `DrawTween Draw` на строке 66, что всегда требовало этого include; ранее работало только через транзитив Game.h.
+- `eway_globals.h`, `overlay_globals.h`: заменены на `core/types.h` + `struct Thing;`. Обнаружено: Windows case-insensitive FS приводит к тому что `#include "Game.h"` из `src/missions/*.cpp` резолвится в `src/missions/game.h` (новый файл), а не `fallen/Headers/Game.h`. После удаления Game.h из eway_globals.h это сломало `can_a_see_b`/`set_person_idle` в eway.cpp — исправлено явным `#include "actors/characters/person.h"` в eway.cpp.
+- `game_globals.h`: заменён на `<MFStdLib.h>` + `actors/core/thing.h` + `missions/game_types.h`. Прямое включение game_types.h требует чтобы pool-типы уже были определены — thing.h это обеспечивает.
+- Game.h включений осталось: 87 файлов (было ~89 до итерации 187).
+- Temporary: 360 (без изменений — очищенные файлы не имели // Temporary: маркеров).
+
 ## Итерация 187 — Game.h umbrella: замена у 9 потребителей с // Temporary: маркером (2026-03-24)
 
 - Заменены все 9 `// Temporary: fallen/Headers/Game.h` включений конкретными заголовками.

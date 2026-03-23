@@ -1,7 +1,9 @@
 #ifndef UI_HUD_OVERLAY_GLOBALS_H
 #define UI_HUD_OVERLAY_GLOBALS_H
 
-#include "fallen/Headers/Game.h"
+#include "core/types.h"
+
+struct Thing;
 
 // Internal struct — defined here because it's needed for the extern array declarations.
 // uc_orig: TrackEnemy (fallen/Source/overlay.cpp)

@@ -1,8 +1,5 @@
 // Global variable definitions for the prim (static world mesh object) system.
 
-// Include Game.h first to ensure Windows headers are pulled in with correct defines.
-#include "fallen/Headers/Game.h"
-
 #include "world/environment/prim_globals.h"
 #include "core/types.h"   // CBYTE, SLONG, UWORD
 
