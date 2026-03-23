@@ -1,5 +1,10 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 172 — bang/water/cache/Nav/az/mapthing → new structure (2026-03-23)
+
+- Попытка мигрировать `Structs.h` заблокирована циклической зависимостью: `ai/mav.h` → `fallen/Headers/mav.h` → `structs.h` → `MAV_Action`; `mav_globals.h` зависит от `fallen/Headers/mav.h` напрямую. `Structs.h` остаётся до миграции `mav.h`.
+- `MiniTextureBits` не перенесена в `texture.h` по той же причине (вызвала бы redefinition через цепочку `mav.h` → `structs.h`).
+
 ## Итерация 171 — fallen/Headers/collide.h → engine/physics/collide.h (редирект) + wmove/tracks redirects (2026-03-23)
 
 - Все сущности из legacy `collide.h` перенесены в `engine/physics/collide.h`: структуры `CollisionVectLink`, `CollisionVect`, `WalkLink`; 4 макроса SLIDE, 4 макроса LOS, `COLLIDE_Fastnavrow`, `COLLIDE_can_i_fastnav`, 6 pool-size константы; extern-декларации `col_vects_links[]`, `col_vects[]`; ~20 функций (there_is_a_los*, in_my_fov, find_nearby_person, box/circle/sausage collision, insert/remove_collision_vect, create_shockwave, COLLIDE_calc_fastnav_bits, etc.).

@@ -4,8 +4,7 @@
 
 // Temporary: game.h must come first — brings in all core type definitions and cross-module externs.
 #include "fallen/Headers/game.h"
-// Temporary: mapthing.h for MapThingPSX and MAP_THING_TYPE_* constants.
-#include "fallen/Headers/mapthing.h"
+#include "assets/mapthing.h"
 // Temporary: pap.h for PAP grid, PAP_Hi, PAP_SIZE_HI, PAP_2HI/PAP_2LO macros.
 #include "fallen/Headers/pap.h"
 // Temporary: ob.h for OB_ob[], OB_mapwho, OB_load_needed_prims, PRIM_OBJ_* constants.

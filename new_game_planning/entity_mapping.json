@@ -95279,6 +95279,616 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "BANG_BIG",
+      "file": "new/world/environment/bang.h",
+      "orig_name": "BANG_BIG",
+      "orig_file": "fallen/Headers/bang.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BANG_Info",
+      "file": "new/world/environment/bang.h",
+      "orig_name": "BANG_Info",
+      "orig_file": "fallen/Headers/bang.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BANG_init",
+      "file": "new/world/environment/bang.h",
+      "orig_name": "BANG_init",
+      "orig_file": "fallen/Headers/bang.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BANG_process",
+      "file": "new/world/environment/bang.h",
+      "orig_name": "BANG_process",
+      "orig_file": "fallen/Headers/bang.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BANG_create",
+      "file": "new/world/environment/bang.h",
+      "orig_name": "BANG_create",
+      "orig_file": "fallen/Headers/bang.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BANG_get_start",
+      "file": "new/world/environment/bang.h",
+      "orig_name": "BANG_get_start",
+      "orig_file": "fallen/Headers/bang.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BANG_get_next",
+      "file": "new/world/environment/bang.h",
+      "orig_name": "BANG_get_next",
+      "orig_file": "fallen/Headers/bang.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_init",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_init",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_add",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_add",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_gush",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_gush",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_process",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_process",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_point_index_clear_all",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_point_index_clear_all",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_point_index_get",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_point_index_get",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_point_index_set",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_point_index_set",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_get_first_face",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_get_first_face",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_get_next_face",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_get_next_face",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_get_face_points",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_get_face_points",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_get_point_pos",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_get_point_pos",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WATER_get_point_uvs",
+      "file": "new/world/environment/water.h",
+      "orig_name": "WATER_get_point_uvs",
+      "orig_file": "fallen/Headers/water.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_Index",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_Index",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_Info",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_Info",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_init",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_init",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_create",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_create",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_is_valid",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_is_valid",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_get_info",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_get_info",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_invalidate",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_invalidate",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_invalidate_all",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_invalidate_all",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_flag_clear_all",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_flag_clear_all",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_flag_set",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_flag_set",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_flag_clear",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_flag_clear",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CACHE_invalidate_unflagged",
+      "file": "new/engine/lighting/cache.h",
+      "orig_name": "CACHE_invalidate_unflagged",
+      "orig_file": "fallen/Headers/cache.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_WAYPOINT_FLAG_LAST",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_WAYPOINT_FLAG_LAST",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_WAYPOINT_FLAG_PULLUP",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_WAYPOINT_FLAG_PULLUP",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_Waypoint",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_Waypoint",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_MAX_WAYPOINTS",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_MAX_WAYPOINTS",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_waypoint",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_waypoint",
+      "orig_file": "fallen/Source/Nav.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_WAYPOINT",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_WAYPOINT",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_FLAG_PULLUP",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_FLAG_PULLUP",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_init",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_init",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_do",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_do",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_waypoint_give",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_waypoint_give",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_path_give",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_path_give",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NAV_path_draw",
+      "file": "new/world/navigation/nav.h",
+      "orig_name": "NAV_path_draw",
+      "orig_file": "fallen/Headers/Nav.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AZ_LINE_TYPE_ROAD",
+      "file": "new/world/map/az.h",
+      "orig_name": "AZ_LINE_TYPE_ROAD",
+      "orig_file": "fallen/Headers/az.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AZ_LINE_TYPE_BUILDING",
+      "file": "new/world/map/az.h",
+      "orig_name": "AZ_LINE_TYPE_BUILDING",
+      "orig_file": "fallen/Headers/az.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AZ_LINE_TYPE_FENCE",
+      "file": "new/world/map/az.h",
+      "orig_name": "AZ_LINE_TYPE_FENCE",
+      "orig_file": "fallen/Headers/az.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AZ_LINE_TYPE_NUMBER",
+      "file": "new/world/map/az.h",
+      "orig_name": "AZ_LINE_TYPE_NUMBER",
+      "orig_file": "fallen/Headers/az.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AZ_Line",
+      "file": "new/world/map/az.h",
+      "orig_name": "AZ_Line",
+      "orig_file": "fallen/Headers/az.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AZ_line",
+      "file": "new/world/map/az.h",
+      "orig_name": "AZ_line",
+      "orig_file": "fallen/Source/az.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AZ_line_upto",
+      "file": "new/world/map/az.h",
+      "orig_name": "AZ_line_upto",
+      "orig_file": "fallen/Source/az.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AZ_init",
+      "file": "new/world/map/az.h",
+      "orig_name": "AZ_init",
+      "orig_file": "fallen/Headers/az.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AZ_create_lines",
+      "file": "new/world/map/az.h",
+      "orig_name": "AZ_create_lines",
+      "orig_file": "fallen/Headers/az.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP_THING_TYPE_PRIM",
+      "file": "new/assets/mapthing.h",
+      "orig_name": "MAP_THING_TYPE_PRIM",
+      "orig_file": "fallen/Editor/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP_THING_TYPE_MULTI_PRIM",
+      "file": "new/assets/mapthing.h",
+      "orig_name": "MAP_THING_TYPE_MULTI_PRIM",
+      "orig_file": "fallen/Editor/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP_THING_TYPE_ROT_MULTI",
+      "file": "new/assets/mapthing.h",
+      "orig_name": "MAP_THING_TYPE_ROT_MULTI",
+      "orig_file": "fallen/Editor/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP_THING_TYPE_SPRITE",
+      "file": "new/assets/mapthing.h",
+      "orig_name": "MAP_THING_TYPE_SPRITE",
+      "orig_file": "fallen/Editor/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP_THING_TYPE_AGENT",
+      "file": "new/assets/mapthing.h",
+      "orig_name": "MAP_THING_TYPE_AGENT",
+      "orig_file": "fallen/Editor/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP_THING_TYPE_LIGHT",
+      "file": "new/assets/mapthing.h",
+      "orig_name": "MAP_THING_TYPE_LIGHT",
+      "orig_file": "fallen/Editor/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP_THING_TYPE_BUILDING",
+      "file": "new/assets/mapthing.h",
+      "orig_name": "MAP_THING_TYPE_BUILDING",
+      "orig_file": "fallen/Editor/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP_THING_TYPE_ANIM_PRIM",
+      "file": "new/assets/mapthing.h",
+      "orig_name": "MAP_THING_TYPE_ANIM_PRIM",
+      "orig_file": "fallen/Editor/Headers/Thing.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MapThingPSX",
+      "file": "new/assets/mapthing.h",
+      "orig_name": "MapThingPSX",
+      "orig_file": "fallen/Editor/Headers/Thing.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

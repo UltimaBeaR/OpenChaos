@@ -16,7 +16,7 @@
 #include "fallen/Headers/cnet.h"     // CNET_network_game, CNET_configure
 #include "fallen/Headers/interfac.h" // DIJOYSTATE, ReadInputDevice, get_hardware_input, process_controls, process_ambient_effects, process_weather, ControlFlag
 #include "fallen/Headers/gamemenu.h" // GAMEMENU_init, GAMEMENU_process, GAMEMENU_draw, GAMEMENU_is_paused, GAMEMENU_DO_*
-#include "fallen/Headers/bang.h"     // (transitively)
+#include "world/environment/bang.h"  // (transitively)
 #include "fallen/Headers/spark.h"    // SPARK_show_electric_fences
 #include "fallen/Headers/statedef.h" // GS_*, GF_*
 #include "fallen/Headers/ob.h"       // OB_process
@@ -75,7 +75,7 @@
 #include "fallen/Headers/dirt.h"    // DIRT_process
 #include "fallen/Headers/grenade.h" // ProcessGrenades
 #include "fallen/Headers/ribbon.h"  // (old header, if needed)
-#include "fallen/Headers/water.h"   // PUDDLE_process
+#include "world/environment/water.h"
 #include "fallen/Headers/drip.h"    // DRIP_process
 #include "fallen/Headers/xlat_str.h"// XLAT_str, X_*
 #include "fallen/DDEngine/Headers/font2d.h"  // FONT2D_DrawStringWrapTo

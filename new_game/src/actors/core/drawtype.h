@@ -6,7 +6,7 @@
 // DrawTween = vertex-morphing animated characters; DrawMesh = static oriented mesh objects.
 
 #include "core/types.h"
-#include "fallen/Headers/cache.h"
+#include "engine/lighting/cache.h"
 
 // uc_orig: RMAX_DRAW_TWEENS (fallen/Headers/drawtype.h)
 #define RMAX_DRAW_TWEENS RMAX_PEOPLE + 30
