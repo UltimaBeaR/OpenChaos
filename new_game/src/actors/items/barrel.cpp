@@ -10,7 +10,7 @@
 #include "mav.h"
 #include "pap.h"
 #include "statedef.h"
-#include "animate.h"
+#include "actors/characters/anim_ids.h"
 #include "pcom.h"
 #include "psystem.h"
 #include "poly.h"

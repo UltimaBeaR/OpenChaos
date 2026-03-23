@@ -7,8 +7,7 @@
 
 // Temporary: pap.h needed for PAP_2HI, PAP_calc_map_height_at, PAP_calc_height_at_thing
 #include "fallen/Headers/pap.h"
-// Temporary: animate.h needed for calc_sub_objects_position, SUB_OBJECT_*
-#include "fallen/Headers/animate.h"
+#include "actors/characters/anim_ids.h"
 // Temporary: puddle.h needed for PUDDLE_in
 #include "fallen/Headers/puddle.h"
 // Temporary: interact.h needed for calc_sub_objects_position declaration

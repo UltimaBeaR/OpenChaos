@@ -30,7 +30,7 @@ extern void set_tween_for_dy(Thing* p_person, SLONG dy);
 
 // Temporary: person-related headers for chunk 2 ladder/feet functions
 #include "fallen/Headers/mav.h"         // MAVHEIGHT macro
-#include "fallen/Headers/animate.h"     // SUB_OBJECT_LEFT_FOOT, COP_ROPER_ANIM_LADDER_END_L, ANIM_OFF_LADDER_TOP, ACTION_CLIMBING
+#include "actors/characters/anim_ids.h"     // SUB_OBJECT_LEFT_FOOT, COP_ROPER_ANIM_LADDER_END_L, ANIM_OFF_LADDER_TOP, ACTION_CLIMBING
 #include "actors/core/interact.h"       // calc_sub_objects_position
 #include "actors/core/state.h"          // set_generic_person_state_function, STATE_CLIMB_LADDER
 #include "actors/core/thing.h"          // move_thing_on_map

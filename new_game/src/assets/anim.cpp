@@ -5,8 +5,7 @@
 #include "fallen/Headers/game.h"
 #include "assets/anim.h"
 #include "core/memory.h"
-// Temporary: animate.h — ANIM_* action constants, CIV_M_START, CIV_F_START (not yet migrated)
-#include "fallen/Headers/animate.h"
+#include "actors/characters/anim_ids.h"
 // Temporary: Person.h — ANIM_TYPE_DARCI/ROPER/CIV/ROPER2 (not yet migrated)
 #include "fallen/Headers/Person.h"
 

@@ -15,8 +15,8 @@
 #include "fallen/Headers/wand.h"        // Temporary: PAP_*, PAP_FLAG_*
 #include "fallen/Headers/ware.h"        // Temporary: WARE_mav_enter etc
 #include "fallen/Headers/ob.h"          // Temporary: person_has_special, THING_find_sphere
-#include "fallen/Headers/statedef.h"    // Temporary: state/substate constants
-#include "fallen/Headers/animate.h"     // Temporary: SUB_OBJECT_PELVIS, ANIM_SIT_DOWN, ANIM_SIT_IDLE
+#include "actors/characters/anim_ids.h"
+#include "actors/core/statedef.h"
 #include "fallen/Headers/Person.h"      // Temporary: set_person_idle, set_person_goto_xz, set_person_circle, etc.
 #include "engine/audio/mfx.h"           // Temporary: MFX_play_thing
 #include "engine/audio/sound.h"         // Temporary: SOUND_Range

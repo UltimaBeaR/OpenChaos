@@ -2,8 +2,7 @@
 #include "fallen/Headers/sound.h"    // Temporary: S_EXPLODE_START, S_KICK_CAN
 #include "fallen/Headers/fmatrix.h"  // Temporary: FMATRIX_vector
 #include "fallen/Headers/pcom.h"     // Temporary: PCOM_oscillate_tympanum, PCOM_person_wants_to_kill
-#include "fallen/Headers/psystem.h"  // Temporary: PARTICLE_Add, IWouldLikeSomePyroSpritesHowManyCanIHave
-#include "fallen/Headers/animate.h"  // Temporary: calc_sub_objects_position, SUB_OBJECT_LEFT_HAND
+#include "actors/characters/anim_ids.h"
 #include "fallen/Headers/dirt.h"     // Temporary: DIRT_new_sparks, DIRT_gust
 #include "engine/graphics/pipeline/poly.h"
 #include "mesh.h"                    // Temporary: MESH_draw_poly

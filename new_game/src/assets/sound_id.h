@@ -355,4 +355,39 @@ enum Waves {
     S_FRONT_END_LOOP_EDIT
 };
 
+// Legacy direct sound sample IDs (separate from the Waves enum above).
+// Used in a small number of low-level sound calls (person.cpp, dirt.cpp).
+// uc_orig: SAMPLE_FLESH_HIT1 (fallen/Headers/sample.h)
+#define SAMPLE_FLESH_HIT1 2
+// uc_orig: SAMPLE_FLESH_HIT2 (fallen/Headers/sample.h)
+#define SAMPLE_FLESH_HIT2 3
+// uc_orig: SAMPLE_FLESH_HIT3 (fallen/Headers/sample.h)
+#define SAMPLE_FLESH_HIT3 4
+// uc_orig: SAMPLE_FLESH_HIT4 (fallen/Headers/sample.h)
+#define SAMPLE_FLESH_HIT4 5
+// uc_orig: SAMPLE_MAN_DIE1 (fallen/Headers/sample.h)
+#define SAMPLE_MAN_DIE1 6
+// uc_orig: SAMPLE_MAN_DIE2 (fallen/Headers/sample.h)
+#define SAMPLE_MAN_DIE2 6
+// uc_orig: SAMPLE_MAN_DIE3 (fallen/Headers/sample.h)
+#define SAMPLE_MAN_DIE3 6
+// uc_orig: SAMPLE_WOMAN_DIE1 (fallen/Headers/sample.h)
+#define SAMPLE_WOMAN_DIE1 9
+// uc_orig: SAMPLE_WOMAN_DIE2 (fallen/Headers/sample.h)
+#define SAMPLE_WOMAN_DIE2 9
+// uc_orig: SAMPLE_WOMAN_DIE3 (fallen/Headers/sample.h)
+#define SAMPLE_WOMAN_DIE3 9
+// uc_orig: SAMPLE_MAN_JUMP1 (fallen/Headers/sample.h)
+#define SAMPLE_MAN_JUMP1 8
+// uc_orig: SAMPLE_PISTOL_SHOT1 (fallen/Headers/sample.h)
+#define SAMPLE_PISTOL_SHOT1 10
+// uc_orig: SAMPLE_PISTOL_CLICK (fallen/Headers/sample.h)
+#define SAMPLE_PISTOL_CLICK 11
+// uc_orig: SAMPLE_HIT_MISS1 (fallen/Headers/sample.h)
+#define SAMPLE_HIT_MISS1 12
+// uc_orig: SAMPLE_WOMAN_JUMP1 (fallen/Headers/sample.h)
+#define SAMPLE_WOMAN_JUMP1 13
+// uc_orig: SAMPLE_WOMAN_LAND1 (fallen/Headers/sample.h)
+#define SAMPLE_WOMAN_LAND1 14
+
 #endif // ASSETS_SOUND_ID_H

@@ -1,5 +1,5 @@
 #include "ai/combat_globals.h"
-#include "fallen/Headers/animate.h"    // Temporary: ANIM_* animation constants
+#include "actors/characters/anim_ids.h"
 
 // uc_orig: fight_tree (fallen/Source/Combat.cpp)
 SWORD fight_tree[][10] = {

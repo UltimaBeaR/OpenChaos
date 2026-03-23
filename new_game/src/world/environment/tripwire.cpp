@@ -1,5 +1,6 @@
-#include "fallen/Headers/Game.h" // Temporary: NET_PERSON, ASSERT, WITHIN, QDIST2, SWAP
-#include "fallen/Headers/animate.h" // Temporary: calc_sub_objects_position, SUB_OBJECT_*
+// Temporary: game.h must be first — sets up all cross-module types
+#include "fallen/Headers/game.h"
+#include "actors/characters/anim_ids.h"
 #include "world/environment/tripwire.h"
 #include "world/environment/tripwire_globals.h"
 

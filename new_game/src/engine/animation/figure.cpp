@@ -16,7 +16,7 @@
 #include "night.h"
 #include "shadow.h"
 #include "matrix.h"
-#include "animate.h"
+#include "actors/characters/anim_ids.h"
 #include "mesh.h"
 #include "dirt.h"
 #include "texture.h"

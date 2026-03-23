@@ -10,8 +10,8 @@
 #include "fallen/Headers/Sound.h"  // Temporary: PainSound
 #include "fallen/Headers/pcom.h"   // Temporary: PCOM_BENT_PLAYERKILL
 #include "fallen/Headers/pow.h"    // Temporary: PYRO_create, PYRO_WHOOMPH, create_shockwave
-#include "fallen/Headers/fc.h"     // Temporary: FC_cam
-#include "fallen/Headers/animate.h" // Temporary: DT_MESH, DT_VEHICLE, DT_TWEEN, DT_ROT_MULTI, CLASS_BIKE
+#include "actors/characters/anim_ids.h"
+#include "fallen/Headers/fc.h"       // Temporary: FC_cam (camera state for Ware optimisation in psystem)
 #include "fallen/Headers/interact.h" // Temporary: calc_sub_objects_position, SUB_OBJECT_LEFT_FOOT, SUB_OBJECT_HEAD
 
 #include "engine/effects/psystem_globals.h"

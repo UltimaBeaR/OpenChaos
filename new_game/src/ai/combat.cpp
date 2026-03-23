@@ -6,7 +6,7 @@
 #include "engine/audio/sound.h"       // PainSound (already migrated)
 #include "engine/effects/psystem.h"   // PARTICLE_Add, PFLAG_* (already migrated)
 #include "engine/graphics/pipeline/poly.h" // POLY_PAGE_SMOKECLOUD2 (already migrated)
-#include "fallen/Headers/animate.h"   // Temporary: set_anim, set_person_punch, set_person_kick, etc.
+#include "actors/characters/anim_ids.h"
 #include "fallen/Headers/statedef.h"  // Temporary: ANIM_*, SUB_STATE_*, STATE_*, ACTION_*
 #include "fallen/Headers/pap.h"       // Temporary: PAP_calc_height_at_thing, PAP_SIZE_HI, PAP_SHIFT_HI
 #include "fallen/Headers/Sound.h"     // Temporary: SOUND_Range, SOUND_Gender, S_*

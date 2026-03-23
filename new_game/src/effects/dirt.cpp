@@ -14,12 +14,11 @@
 #include "fallen/Headers/Game.h"       // Temporary: GAME_FLAGS, GF_*, GAME_TURN, Thing, calc_angle, NET_PERSON
 #include "fallen/Headers/mav.h"        // Temporary: MAV_SPARE, MAV_SPARE_FLAG_WATER
 #include "fallen/Headers/prim.h"       // Temporary: PRIM_FLAG_TREE, PRIM_OBJ_CAN, PRIM_OBJ_ITEM_KEY
-#include "fallen/Headers/sample.h"     // Temporary: S_KICK_CAN
+#include "assets/sound_id.h"     // Temporary: S_KICK_CAN
 #include "fallen/Headers/Sound.h"      // Temporary: world_type, WORLD_TYPE_*
 #include "engine/graphics/pipeline/poly.h"  // Temporary: POLY_PAGE_EXPLODE1_ADDITIVE, POLY_PAGE_EXPLODE2_ADDITIVE
 #include "missions/memory_globals.h"   // Temporary: prim_objects
-#include "fallen/Headers/id.h"         // Temporary: id constants
-#include "fallen/Headers/animate.h"    // Temporary: SUB_OBJECT_PREFERRED_HAND, SUB_OBJECT_LEFT_HAND
+#include "actors/characters/anim_ids.h"
 
 // uc_orig: TICK_SHIFT_LOWRES (fallen/Source/dirt.cpp)
 #define TICK_SHIFT_LOWRES (TICK_SHIFT - 2)

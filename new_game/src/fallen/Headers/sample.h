@@ -1,24 +1,6 @@
+// sample.h — redirect to new location (Stage 4).
+// All SAMPLE_* constants moved to assets/sound_id.h.
 #ifndef FALLEN_HEADERS_SAMPLE_H
 #define FALLEN_HEADERS_SAMPLE_H
-
-#define SAMPLE_FLESH_HIT1 2
-#define SAMPLE_FLESH_HIT2 3
-#define SAMPLE_FLESH_HIT3 4
-#define SAMPLE_FLESH_HIT4 5
-#define SAMPLE_MAN_DIE1 6
-#define SAMPLE_MAN_DIE2 6
-#define SAMPLE_MAN_DIE3 6
-
-#define SAMPLE_WOMAN_DIE1 9
-#define SAMPLE_WOMAN_DIE2 9
-#define SAMPLE_WOMAN_DIE3 9
-
-#define SAMPLE_MAN_JUMP1 8
-
-#define SAMPLE_PISTOL_SHOT1 10
-#define SAMPLE_PISTOL_CLICK 11
-#define SAMPLE_HIT_MISS1 12
-#define SAMPLE_WOMAN_JUMP1 13
-#define SAMPLE_WOMAN_LAND1 14
-
+#include "assets/sound_id.h"
 #endif // FALLEN_HEADERS_SAMPLE_H

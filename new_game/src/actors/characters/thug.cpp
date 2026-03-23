@@ -2,7 +2,7 @@
 #include "actors/characters/thug_globals.h"
 #include "fallen/Headers/Game.h"
 #include "fallen/Headers/statedef.h"
-#include "fallen/Headers/animate.h"
+#include "actors/characters/anim_ids.h"
 #include "fallen/Headers/pap.h"
 
 // uc_orig: calc_height_at (fallen/Source/Thug.cpp)

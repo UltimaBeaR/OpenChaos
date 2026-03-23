@@ -4,7 +4,7 @@
 
 #include "fallen/Headers/Game.h"
 #include "fallen/Headers/statedef.h"
-#include "fallen/Headers/animate.h"
+#include "actors/characters/anim_ids.h"
 #include "fallen/Headers/pap.h"
 #include "fallen/Headers/pcom.h"
 #include "fallen/Headers/ns.h"

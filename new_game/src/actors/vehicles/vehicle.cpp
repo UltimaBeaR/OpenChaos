@@ -16,7 +16,7 @@
 #include "fallen/Headers/fmatrix.h"
 #include "fallen/Headers/statedef.h"
 #include "fallen/Headers/prim.h"
-#include "fallen/Headers/animate.h"
+#include "actors/characters/anim_ids.h"
 #include "fallen/Headers/sound.h"
 #include "fallen/Headers/interact.h"
 #include "fallen/Headers/ob.h"

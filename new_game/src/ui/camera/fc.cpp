@@ -1,7 +1,7 @@
 // game.h must come first: MFStdLib.h declares extern DisplayWidth/DisplayHeight,
 // and gd_display.h redefines them as #define 640/480. Reversed order = syntax error.
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/animate.h"
+#include "actors/characters/anim_ids.h"
 #include "core/fmatrix.h"
 #include "world/navigation/walkable.h"
 #include "world/navigation/walkable_globals.h"

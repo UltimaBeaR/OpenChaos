@@ -2,7 +2,7 @@
 #include "actors/characters/roper_globals.h"
 #include "fallen/Headers/Game.h"
 #include "fallen/Headers/statedef.h"
-#include "fallen/Headers/animate.h"
+#include "actors/characters/anim_ids.h"
 
 // uc_orig: calc_height_at (fallen/Source/Roper.cpp)
 extern SLONG calc_height_at(SLONG x, SLONG z);

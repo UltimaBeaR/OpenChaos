@@ -1,5 +1,6 @@
-#include "fallen/Headers/Game.h"    // Temporary: Thing, CLASS_PERSON, TO_THING, WorldPos, Person
-#include "fallen/Headers/animate.h" // Temporary: calc_sub_objects_position, SUB_OBJECT_LEFT_HAND
+// Temporary: game.h must be first — sets up all cross-module types
+#include "fallen/Headers/game.h"
+#include "actors/characters/anim_ids.h"
 #include "fallen/Headers/mav.h"     // Temporary: MAV_inside
 #include "actors/items/balloon.h"
 #include "actors/items/balloon_globals.h"

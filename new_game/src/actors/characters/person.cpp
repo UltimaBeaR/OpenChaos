@@ -10,9 +10,9 @@
 #include "fallen/Headers/Thug.h"    // Temporary: thug utilities
 #include "fallen/Headers/id.h"      // Temporary: SUB_OBJECT_PELVIS, SUB_STATE_* constants
 #include "fallen/Headers/statedef.h" // Temporary: STATE_*, ACTION_*, ANIM_* constants
-#include "fallen/Headers/animate.h" // Temporary: global_anim_array, game_chunk, DrawTween helpers
+#include "actors/characters/anim_ids.h"
 #include "fallen/Headers/combat.h"  // Temporary: fight tree, calc_sub_objects_position
-#include "fallen/Headers/sample.h"  // Temporary: sound sample IDs (S_*)
+#include "assets/sound_id.h"
 #include "fallen/Headers/guns.h"    // Temporary: gun/special types
 #include "fallen/Headers/cnet.h"    // Temporary: NETPERSON, NETPLAYERS
 #include "fallen/Headers/sewer.h"   // Temporary: sewer utilities

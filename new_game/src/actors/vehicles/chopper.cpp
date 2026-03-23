@@ -564,8 +564,7 @@ void CHOPPER_init_state(Thing* chopper_thing, UBYTE new_state)
 #include "fallen/DDEngine/Headers/mesh.h"
 // Temporary: cone.h accessed via new/ but needs the full include chain
 #include "engine/graphics/geometry/cone.h"
-// Temporary: animate.h needed for calc_sub_objects_position, SUB_OBJECT_PELVIS
-#include "fallen/Headers/animate.h"
+#include "actors/characters/anim_ids.h"
 
 // uc_orig: CHOPPER_draw_chopper (fallen/DDEngine/Source/drawxtra.cpp)
 // Draws the chopper body and rotor meshes, then projects a CONE spotlight from the

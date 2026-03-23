@@ -2,7 +2,7 @@
 
 #include "game.h"
 #include "person.h"
-#include "animate.h"
+#include "actors/characters/anim_ids.h"
 
 #include "actors/characters/enemy.h"
 

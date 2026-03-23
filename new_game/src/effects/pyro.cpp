@@ -15,7 +15,7 @@
 #include "psystem.h"
 #include "pcom.h"
 #include "gamemenu.h"
-#include "animate.h"
+#include "actors/characters/anim_ids.h"
 #include "combat.h"
 #include "engine/graphics/pipeline/poly.h"
 
@@ -1079,8 +1079,7 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
 #include "actors/items/barrel.h"
 // Temporary: needed for RIBBON_extend
 #include "effects/ribbon.h"
-// Temporary: needed for calc_sub_objects_position, SUB_OBJECT_PELVIS
-#include "fallen/Headers/animate.h"
+#include "actors/characters/anim_ids.h"
 // Temporary: needed for POLY_add_triangle, POLY_add_quad, POLY_transform
 #include "engine/graphics/pipeline/poly.h"
 // Temporary: needed for SPRITE_draw_tex, SPRITE_SORT_NORMAL/FRONT

@@ -3,6 +3,7 @@
 #define FALLEN_HEADERS_ANIM_H
 
 #include "Prim.h"
+#include <string.h>
 
 // define s
 #define MAX_CREATURE_TYPES 20

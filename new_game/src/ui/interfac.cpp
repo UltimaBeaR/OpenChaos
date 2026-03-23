@@ -32,7 +32,7 @@
 #include "fallen/Headers/memory.h"   // Temporary: dfacets (extern via memory globals)
 #include "fallen/Headers/Person.h"   // Temporary: various person functions not yet in person.h
 
-#include "fallen/Headers/animate.h"  // Temporary: calc_sub_objects_position, SUB_OBJECT_HEAD
+#include "actors/characters/anim_ids.h"
 #include "fallen/Headers/statedef.h"  // Temporary: ACTION_* constants (not yet in new/)
 #include "fallen/Headers/collide.h"   // Temporary: there_is_a_los, LOS_FLAG_*, signed_dist_to_line_with_normal
 #include "fallen/Headers/combat.h"    // Temporary: should_person_get_item

@@ -8,7 +8,7 @@
 #include "pcom.h"
 #include "statedef.h"
 #include "eway.h"
-#include "animate.h"
+#include "actors/characters/anim_ids.h"
 #include "special.h"
 #include "tracks.h"
 

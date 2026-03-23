@@ -6,7 +6,7 @@
 #include "ob.h"
 #include "statedef.h"
 #include "wmove.h"
-#include "animate.h"
+#include "actors/characters/anim_ids.h"
 #include "psystem.h"
 #include "panel.h"
 #include "poly.h"

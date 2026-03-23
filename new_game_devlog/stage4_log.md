@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 168 — animate.h → anim_ids.h, sample.h → sound_id.h (2026-03-23)
+
+- `fallen/Headers/animate.h` превращён в редирект; все ~547 макросов перенесены в `actors/characters/anim_ids.h`.
+- `fallen/Headers/sample.h` превращён в редирект; 16 `SAMPLE_*` констант добавлены в `assets/sound_id.h`.
+- 32 потребителя обновлены (batch-замена + ручные фиксы для файлов с нестандартными includes).
+- Три скрытые зависимости вскрылись при пересборке:
+  - `balloon.cpp` — потерял `game.h` (был в animate.h chain); добавлен явно.
+  - `tripwire.cpp` — аналогично.
+  - `pcom.cpp` — потерял `fallen/Headers/statedef.h`; заменён на прямой `actors/core/statedef.h`.
+- `fallen/Headers/anim.h` — добавлен `<string.h>` (нужен для inline `SetAnimName` → `strcpy`; ранее приходил транзитивно).
+
 ## Итерация 167 — Финальная зачистка + исправление check_active.py (2026-03-23)
 
 - `old/facet.cpp`: обёрнуты в `#if 0` 3 extern-декларации (`AENG_detail_crinkles`, `AENG_transparent_warehouses`, `fade_black`) — были единственным активным кодом вне `#if 0`, теперь redundant (уже в `aeng_globals.h` и `new/facet.cpp`).

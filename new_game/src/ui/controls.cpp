@@ -38,7 +38,7 @@
 #include "missions/elev_globals.h"               // Temporary: ELEV_fname_level, ELEV_fname_map
 #include "ui/camera/fc.h"                        // Temporary: FC_force_camera_behind, FC_setup_initial_camera
 #include "ui/camera/fc_globals.h"                // Temporary: FC_cam array
-#include "fallen/Headers/animate.h"              // Temporary: ANIM_DANCE_BOOGIE, ANIM_DANCE_WOOGIE, ANIM_DANCE_HEADBANG, ACTION_SIT_BENCH
+#include "actors/characters/anim_ids.h"
 #include "fallen/Headers/interfac.h"             // Temporary: INPUT_MASK_SELECT, INPUT_SELECT
 #include "ui/menus/cnet_globals.h"               // Temporary: CNET_player_id, CNET_num_players (for PLAYER_ID/NO_PLAYERS macros)
 

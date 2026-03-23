@@ -7,7 +7,7 @@
 #include "pcom.h"
 #include "memory.h"
 #include "wmove.h"
-#include "animate.h"
+#include "actors/characters/anim_ids.h"
 #include "actors/items/guns.h"
 
 // uc_orig: is_person_dead (fallen/Source/guns.cpp)

@@ -15,8 +15,7 @@
 #include "fallen/Headers/night.h"
 // Temporary: dirt.h for DIRT_gust, DIRT_Info
 #include "fallen/Headers/dirt.h"
-// Temporary: animate.h for SUB_OBJECT_LEFT_FOOT
-#include "fallen/Headers/animate.h"
+#include "actors/characters/anim_ids.h"
 // Temporary: Vehicle.h for vehicle_wheel_pos_init/get
 #include "fallen/Headers/Vehicle.h"
 

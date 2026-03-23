@@ -110,7 +110,7 @@
 #include "engine/graphics/geometry/oval.h"
 #include "ui/interfac_globals.h"
 #include "ui/controls_globals.h"
-#include "fallen/Headers/animate.h"         // Temporary: SUB_OBJECT_PELVIS
+#include "actors/characters/anim_ids.h"
 #include "assets/anim_tmap.h"               // Temporary: AnimTmap, anim_tmaps (wibble texture animation)
 #include "fallen/Headers/statedef.h"        // Temporary: STATE_DEAD
 

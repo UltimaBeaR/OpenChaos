@@ -432,6 +432,12 @@ A dependency from outside `engine/` directly into `engine/graphics/` is a visibl
 - **Don't create empty directories** — create only when the first file goes in.
 - **Already-migrated entities** — many entities in legacy headers already exist in new headers.
   Check before creating duplicates. Use `entity_map.py find` or grep.
+- **Transitive include breakage after batch replace** — when replacing a legacy header with a
+  narrower new one, some consumers may have relied on transitive includes from the legacy header.
+  Example: `balloon.cpp` got `Thing`/`ASSERT` transitively through `animate.h → game.h`; after
+  replacing `animate.h` with `anim_ids.h` (no such chain) — it broke.
+  Fix pattern: for each broken file, open the original in `original_game/` and compare includes —
+  whatever was there explicitly and is now missing, add it (as `// Temporary:` if still legacy).
 
 ---
 

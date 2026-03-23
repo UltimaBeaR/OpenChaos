@@ -88249,6 +88249,5636 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "FOOT_HEIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "FOOT_HEIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "HAND_HEIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "HAND_HEIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_RUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_RUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_STAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_STAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_IDLE_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_IDLE_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_IDLE_LOOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_IDLE_LOOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_IDLE_WATCH",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_IDLE_WATCH",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_IDLE_END",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_IDLE_END",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_SIT_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_SIT_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_SIT_LOOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_SIT_LOOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_SIT_WAIT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_SIT_WAIT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_SIT_END",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_SIT_END",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_SIT_TALK1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_SIT_TALK1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_SIT_TALK2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_SIT_TALK2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_SIT_TALK3",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_SIT_TALK3",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_HANDS_UP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_HANDS_UP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_HANDS_UP_LOOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_HANDS_UP_LOOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_HANDS_UP_LIE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_HANDS_UP_LIE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_TALK1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_TALK1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_TALK2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_TALK2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_M_ANIM_TALK3",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_M_ANIM_TALK3",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_F_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_F_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_F_ANIM_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_F_ANIM_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_F_ANIM_IDLE_BREATHE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_F_ANIM_IDLE_BREATHE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_F_ANIM_IDLE_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_F_ANIM_IDLE_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_F_ANIM_IDLE_LOOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_F_ANIM_IDLE_LOOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_F_ANIM_IDLE_LOOP2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_F_ANIM_IDLE_LOOP2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_F_ANIM_IDLE_STOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_F_ANIM_IDLE_STOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_F_ANIM_SIT_IDLE1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_F_ANIM_SIT_IDLE1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_F_ANIM_SIT_IDLE2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_F_ANIM_SIT_IDLE2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_F_ANIM_RUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_F_ANIM_RUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_RUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_RUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_READY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_READY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_IDLE1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_IDLE1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_IDLE2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_IDLE2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_IDLE3",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_IDLE3",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_IDLE4",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_IDLE4",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_LADDER_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_LADDER_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_LADDER_LOOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_LADDER_LOOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_LADDER_END_L",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_LADDER_END_L",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_LADDER_END_R",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_LADDER_END_R",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_REST",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_REST",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_FIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_FIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COP_ROPER_ANIM_LADDER_OFF_BOT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "COP_ROPER_ANIM_LADDER_OFF_BOT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_PUNCH_CLOSE1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_PUNCH_CLOSE1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_PUNCH_CLOSE2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_PUNCH_CLOSE2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_PUNCH_CLOSE3",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_PUNCH_CLOSE3",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ELBOW_CLOSE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ELBOW_CLOSE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_DRAW_GUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_DRAW_GUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_SHOOT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_SHOOT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_RUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_RUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_LAND_ON_FENCE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_LAND_ON_FENCE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_CLIMB_OVER_FENCE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_CLIMB_OVER_FENCE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_CLIMB_UP_FENCE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_CLIMB_UP_FENCE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_STANDING_JUMP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_STANDING_JUMP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_PULL_UP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_PULL_UP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_WALK_MEAN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_WALK_MEAN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_SWING",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_SWING",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ENTER_VAN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ENTER_VAN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_EXIT_VAN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_EXIT_VAN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_AIM_GUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_AIM_GUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_STAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_STAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_DANGLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_DANGLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ANIM_JUMP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ANIM_JUMP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ANIM_LAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ANIM_LAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ANIM_MID_AIR",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ANIM_MID_AIR",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ANIM_MID_AIR_TWEEN_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ANIM_MID_AIR_TWEEN_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ANIM_MID_AIR_TWEEN_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ANIM_MID_AIR_TWEEN_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_JUMP_UP_GRAB",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_JUMP_UP_GRAB",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_FLY_GRABBING_LEDGE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_FLY_GRABBING_LEDGE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_LAND_VERT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_LAND_VERT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_DEATH_SLIDE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_DEATH_SLIDE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_CRAWL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_CRAWL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_FALLING",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_FALLING",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_FIGHT_IDLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_FIGHT_IDLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_FIGHT_RECOIL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_FIGHT_RECOIL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_KICK_DOOR",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_KICK_DOOR",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_IDLE_CROUCH",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_IDLE_CROUCH",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_CROUCH_DOWN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_CROUCH_DOWN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_PICKUP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_PICKUP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_THROW_1H",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_THROW_1H",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_FOLDARMS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_FOLDARMS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ARMSFOLDED",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ARMSFOLDED",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_TO_FIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_TO_FIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_MOUNT_LADDER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_MOUNT_LADDER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ON_LADDER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ON_LADDER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_OFF_LADDER_TOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_OFF_LADDER_TOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_TRAVERSE_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_TRAVERSE_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_TRAVERSE_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_TRAVERSE_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ROTATE_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ROTATE_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_ROTATE_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_ROTATE_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_FIGHT_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_FIGHT_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_FIGHT_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_FIGHT_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_FIGHT_FORWARD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_FIGHT_FORWARD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_FIGHT_BACK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_FIGHT_BACK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_BIKE_MOUNT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_BIKE_MOUNT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_BIKE_RIDE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_BIKE_RIDE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_BIKE_LEAN_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_BIKE_LEAN_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ROPER_BIKE_LEAN_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ROPER_BIKE_LEAN_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "THUG_ANIM_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "THUG_ANIM_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "THUG_ANIM_RUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "THUG_ANIM_RUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "THUG_ANIM_IDLE1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "THUG_ANIM_IDLE1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "THUG_ANIM_IDLE2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "THUG_ANIM_IDLE2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "THUG_ANIM_FIGHT_IDLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "THUG_ANIM_FIGHT_IDLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_WANKER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_WANKER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_ENTER_TAXI",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_ENTER_TAXI",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_SIT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_SIT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_READ_PAPER1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_READ_PAPER1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_READ_PAPER2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_READ_PAPER2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_IDLE_BREATHE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_IDLE_BREATHE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_IDLE_PHONE_ANSWER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_IDLE_PHONE_ANSWER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_IDLE_PHONE_TALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_IDLE_PHONE_TALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_FIGHT_IDLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_FIGHT_IDLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_BLOCK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_BLOCK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_DANCE_BOOGIE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_DANCE_BOOGIE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_DANCE_WOOGIE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_DANCE_WOOGIE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_DANCE_HEADBANG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_DANCE_HEADBANG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_WARM_HANDS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_WARM_HANDS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_HANDS_UP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_HANDS_UP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CIV_ANIM_HANDS_UP_LOOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "CIV_ANIM_HANDS_UP_LOOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HEAD_HIT_SMALL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HEAD_HIT_SMALL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HEAD_HIT_BIG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HEAD_HIT_BIG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HEAD_HIT_BEHIND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HEAD_HIT_BEHIND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GUT_HIT_BIG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GUT_HIT_BIG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GUT_HIT_SMALL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GUT_HIT_SMALL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GUT_HIT_BIG_BEHIND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GUT_HIT_BIG_BEHIND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KO_BEHIND_BIG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KO_BEHIND_BIG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KO_BEHIND_BIG_GU",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KO_BEHIND_BIG_GU",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KO_BACK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KO_BACK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KO_BACK_GU",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KO_BACK_GU",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_RUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_RUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STAND_HIP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STAND_HIP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STAND_READY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STAND_READY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_ROUND1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_ROUND1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PULL_UP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PULL_UP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_UP_LADDER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_UP_LADDER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_VAULT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_VAULT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SIDLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SIDLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FALLING",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FALLING",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FALLING_QUEUED",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FALLING_QUEUED",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FALLING_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FALLING_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FALLING_QUEUED_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FALLING_QUEUED_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STANDING_JUMP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STANDING_JUMP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STANDING_JUMP_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STANDING_JUMP_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LAND_VERT_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LAND_VERT_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FALL_VERT_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FALL_VERT_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FLY_GRABBING_LEDGE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FLY_GRABBING_LEDGE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_JUMP_UP_GRAB",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_JUMP_UP_GRAB",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LAND_VERT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LAND_VERT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_MOUNT_LADDER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_MOUNT_LADDER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_ON_LADDER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_ON_LADDER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_OFF_LADDER_TOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_OFF_LADDER_TOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_OFF_LADDER_BOT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_OFF_LADDER_BOT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_READY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_READY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH3",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH3",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LAND_ON_FENCE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LAND_ON_FENCE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_CLIMB_UP_FENCE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_CLIMB_UP_FENCE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_CLIMB_RIGHT_FENCE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_CLIMB_RIGHT_FENCE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_CLIMB_LEFT_FENCE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_CLIMB_LEFT_FENCE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_CLIMB_OVER_FENCE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_CLIMB_OVER_FENCE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HAND_OVER_HAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HAND_OVER_HAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_DEATH_SLIDE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_DEATH_SLIDE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FALL_LONG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FALL_LONG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STEP_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STEP_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STEP_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STEP_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LANDED_ON_FENCE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LANDED_ON_FENCE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FLIP_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FLIP_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FLIP_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FLIP_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FLIP_RIGHT_CONT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FLIP_RIGHT_CONT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FLIP_LEFT_CONT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FLIP_LEFT_CONT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_IDLE_SCRATCH1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_IDLE_SCRATCH1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_IDLE_SCRATCH2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_IDLE_SCRATCH2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_NECK_SNAP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_NECK_SNAP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_ENTER_CAR",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_ENTER_CAR",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_EXIT_CAR",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_EXIT_CAR",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SNEAK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SNEAK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BSTEP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BSTEP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LAND_STAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LAND_STAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_RUN_JUMP_LEFT_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_RUN_JUMP_LEFT_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_RUN_JUMP_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_RUN_JUMP_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_RUN_JUMP_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_RUN_JUMP_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SIT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SIT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_DESPAIR",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_DESPAIR",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STAND_UP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STAND_UP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SNAP_KNECK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SNAP_KNECK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LAND_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LAND_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LAND_RIGHT_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LAND_RIGHT_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_MID_AIR_TWEEN_LEFT_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_MID_AIR_TWEEN_LEFT_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_MID_AIR_TWEEN_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_MID_AIR_TWEEN_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_MID_AIR_TWEEN_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_MID_AIR_TWEEN_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LOB2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LOB2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HOSTAGE_STAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HOSTAGE_STAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HOSTAGE_SIT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HOSTAGE_SIT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HOSTAGE_DESPAIR",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HOSTAGE_DESPAIR",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HOSTAGE_READY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HOSTAGE_READY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HOSTAGE_RELEASE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HOSTAGE_RELEASE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_DRAW",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_DRAW",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_IDLE_OLD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_IDLE_OLD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_SHOOT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_SHOOT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIN_SHOTGUN_WHIP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIN_SHOTGUN_WHIP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BACK_FLIP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BACK_FLIP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FORWARD_JUMP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FORWARD_JUMP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_WALL_KICK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_WALL_KICK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_RUN_JUMP_MLEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_RUN_JUMP_MLEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BACK_HOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BACK_HOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BREATHE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BREATHE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK3",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK3",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAPPLING_HOOK_PICKUP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAPPLING_HOOK_PICKUP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAPPLING_HOOK_WINDUP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAPPLING_HOOK_WINDUP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAPPLING_HOOK_RELEASE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAPPLING_HOOK_RELEASE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_CAN_PICKUP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_CAN_PICKUP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_CAN_RELEASE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_CAN_RELEASE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FATAL_FALL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FATAL_FALL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PLUNGE_BACKWARDS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PLUNGE_BACKWARDS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PLUNGE_FORWARDS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PLUNGE_FORWARDS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TRAVERSE_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_TRAVERSE_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TRAVERSE_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_TRAVERSE_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TURN90_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_TURN90_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TURN90_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_TURN90_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BUTTON",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BUTTON",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LEVER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LEVER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BATMAN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BATMAN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PLUNGE_BACK_SLAM",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PLUNGE_BACK_SLAM",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PLUNGE_FRONT_SLAM",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PLUNGE_FRONT_SLAM",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GET_DOWN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GET_DOWN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_CROUCH",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_CROUCH",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_CRAWL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_CRAWL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH_COMBO1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH_COMBO1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH_COMBO2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH_COMBO2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH_COMBO3",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH_COMBO3",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH_COMBO3B",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH_COMBO3B",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH_RETURN1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH_RETURN1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH_RETURN2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH_RETURN2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_COMBO1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_COMBO1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_COMBO2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_COMBO2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_COMBO3",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_COMBO3",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_RETURN1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_RETURN1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_RETURN2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_RETURN2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_NS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_NS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_NEAR",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_NEAR",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH_BEHIND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH_BEHIND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_BEHIND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_BEHIND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BLOCK_HIGH",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BLOCK_HIGH",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HIT_FRONT_HI",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HIT_FRONT_HI",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HIT_FRONT_MID",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HIT_FRONT_MID",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HIT_BACK_HI",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HIT_BACK_HI",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HIT_BACK_MID",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HIT_BACK_MID",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KD_FRONT_MID",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KD_FRONT_MID",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KD_FRONT_HI",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KD_FRONT_HI",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KD_BACK_MID",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KD_BACK_MID",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KD_BACK_HI",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KD_BACK_HI",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KD_BACK_LOW",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KD_BACK_LOW",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KD_FRONT_LOW",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KD_FRONT_LOW",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KD_FRONT_LAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KD_FRONT_LAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KD_BACK_LAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KD_BACK_LAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STEP_N",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STEP_N",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STEP_S",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STEP_S",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STEP_E",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STEP_E",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STEP_W",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STEP_W",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH_COMBO2b",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH_COMBO2b",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUNCH_COMBO3b",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUNCH_COMBO3b",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_COMBO3b",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_COMBO3b",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STOMP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STOMP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STOMPED_BACK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STOMPED_BACK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STOMPED_FRONT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STOMPED_FRONT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_IDLE_CROUTCH",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_IDLE_CROUTCH",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_CROUTCH_DOWN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_CROUTCH_DOWN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_ROTATE_L",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_ROTATE_L",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_ROTATE_R",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_ROTATE_R",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_YOMP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_YOMP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BAT_HIT1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BAT_HIT1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BAT_HIT1_RET",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BAT_HIT1_RET",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BAT_HIT2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BAT_HIT2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BAT_IDLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BAT_IDLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BAT_BLOCK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BAT_BLOCK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BAT_DRAW",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BAT_DRAW",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_WHIP1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_WHIP1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_WHIP2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_WHIP2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_FIRE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_FIRE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_WHIP3",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_WHIP3",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_STAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_STAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_BLOCK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_BLOCK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_AIM",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_AIM",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SLIDER_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SLIDER_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SLIDER_END",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SLIDER_END",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SLIDER_HOLD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SLIDER_HOLD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LEG_SWEEP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LEG_SWEEP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_SHUFFLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_SHUFFLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_DANGLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_DANGLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAB_ARM",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAB_ARM",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAB_ARMV",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAB_ARMV",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAB_ARM_THROW",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAB_ARM_THROW",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAB_ARM_THROWV",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAB_ARM_THROWV",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAB_ARM_KNEE1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAB_ARM_KNEE1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAB_ARM_KNEE1V",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAB_ARM_KNEE1V",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAB_ARM_KNEE2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAB_ARM_KNEE2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAB_ARM_KNEE2V",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAB_ARM_KNEE2V",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAB_ARM_ESCAPE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAB_ARM_ESCAPE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GRAB_ARM_ESCAPEV",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GRAB_ARM_ESCAPEV",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIG_LAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIG_LAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_YOMP_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_YOMP_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIKE_LEAN_LEFT_FOOT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIKE_LEAN_LEFT_FOOT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIKE_LEAN_RIGHT_FOOT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIKE_LEAN_RIGHT_FOOT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIKE_LEAN_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIKE_LEAN_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIKE_LEAN_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIKE_LEAN_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIKE_LEAN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIKE_LEAN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIKE_MOUNT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIKE_MOUNT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIKE_RIDE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIKE_RIDE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LEG_SWEEP_LOW",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_LEG_SWEEP_LOW",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_WIRE_SLIDE_PULLUP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_WIRE_SLIDE_PULLUP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_WIRE_SLIDE_HANG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_WIRE_SLIDE_HANG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BLOCK_LOW",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BLOCK_LOW",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_AK_AIM",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_AK_AIM",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_AK_FIRE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_AK_FIRE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_AK_JOG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_AK_JOG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PISTOL_JOG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PISTOL_JOG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SNIPE_AIM",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SNIPE_AIM",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SNIPE_FIRE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SNIPE_FIRE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SNIPE_NORM",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SNIPE_NORM",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TALK_ASK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_TALK_ASK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TALK_TELL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_TALK_TELL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TALK_LISTEN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_TALK_LISTEN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_DIE_KNECK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_DIE_KNECK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_QUICK_GET_UP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_QUICK_GET_UP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PLUNGE_FORWARD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PLUNGE_FORWARD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PLUNGE_BACKWARD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PLUNGE_BACKWARD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PLUNGE_SLAM_FORWARD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PLUNGE_SLAM_FORWARD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PLUNGE_SLAM_BACKWARD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PLUNGE_SLAM_BACKWARD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KNIFE_DRAW",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KNIFE_DRAW",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KNIFE_FIGHT_READY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KNIFE_FIGHT_READY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KNIFE_ATTACK1",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KNIFE_ATTACK1",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KNIFE_ATTACK2",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KNIFE_ATTACK2",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KNIFE_ATTACK3",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KNIFE_ATTACK3",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KNIFE_ATTACK1_RET",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KNIFE_ATTACK1_RET",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KNIFE_ATTACK2_RET",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KNIFE_ATTACK2_RET",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PLUNGE_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PLUNGE_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_CROUTCH_GETUP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_CROUTCH_GETUP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FLYKICK_START",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FLYKICK_START",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FLYKICK_FALL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FLYKICK_FALL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FLYKICK_LAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FLYKICK_LAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_ARREST_CROUTCH",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_ARREST_CROUTCH",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_ARREST_BE_CUFFED",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_ARREST_BE_CUFFED",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_ARREST_STRUGGLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_ARREST_STRUGGLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_ARREST_ROLL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_ARREST_ROLL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_POINT_GUN_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_POINT_GUN_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_POINT_GUN_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_POINT_GUN_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_POINT_SHOTGUN_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_POINT_SHOTGUN_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_POINT_SHOTGUN_AHEAD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_POINT_SHOTGUN_AHEAD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_POINT_SHOTGUN_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_POINT_SHOTGUN_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PISTOL_DRAW",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PISTOL_DRAW",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PISTOL_SHOOT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PISTOL_SHOOT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PISTOL_AIM_AHEAD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PISTOL_AIM_AHEAD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOT_DEAD_HEAD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOT_DEAD_HEAD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOT_DEAD_CHEST",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOT_DEAD_CHEST",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOT_DEAD_GUT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOT_DEAD_GUT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOT_DEAD_BACK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOT_DEAD_BACK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOT_DEAD_UZI",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOT_DEAD_UZI",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PISTOL_DUCK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PISTOL_DUCK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PISTOL_DUCK_HOLD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PISTOL_DUCK_HOLD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PISTOL_STANDUP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PISTOL_STANDUP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_DUCK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_DUCK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_DUCK_HOLD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_DUCK_HOLD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_STANDUP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_STANDUP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SNIPER_CRAWL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SNIPER_CRAWL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HIT_WALL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HIT_WALL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_DIVE_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_DIVE_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_DIVE_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_DIVE_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_YOMP_START_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_YOMP_START_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_TURN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_TURN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_STAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_STAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_SIDLE_L",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_SIDLE_L",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_SIDLE_R",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_SIDLE_R",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_TURN_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_TURN_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_STAND_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_STAND_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_SIDLE_L_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_SIDLE_L_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_SIDLE_R_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_SIDLE_R_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_GET_UP_HALF_BLOCK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_GET_UP_HALF_BLOCK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PULL_UP_NEW",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PULL_UP_NEW",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SURF",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SURF",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SURF_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SURF_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BACK_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BACK_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BACK_WALK_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BACK_WALK_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SIT_DOWN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SIT_DOWN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SIT_IDLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SIT_IDLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SIT_TO_STAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SIT_TO_STAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STOP_RUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STOP_RUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_TURN_PISTOL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_TURN_PISTOL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_STAND_PISTOL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_STAND_PISTOL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_SIDLE_L_PISTOL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_SIDLE_L_PISTOL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_SIDLE_R_PISTOL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_SIDLE_R_PISTOL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_LOOK_L_PISTOL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_LOOK_L_PISTOL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_LOOK_R_PISTOL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_LOOK_R_PISTOL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_LOOK_L_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_LOOK_L_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_LOOK_R_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_LOOK_R_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_LOOK_L",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_LOOK_L",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_LOOK_R",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_LOOK_R",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_FREEZE_L_PISTOL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_FREEZE_L_PISTOL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_FREEZE_R_PISTOL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_FREEZE_R_PISTOL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_FREEZE_L_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_FREEZE_L_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_FREEZE_R_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_FREEZE_R_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_FREEZE_L",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_FREEZE_L",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PRESS_WALL_FREEZE_R",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PRESS_WALL_FREEZE_R",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_UNFIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_UNFIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIKE_DISMOUNT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIKE_DISMOUNT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIKE_FALL_OVER_BARS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIKE_FALL_OVER_BARS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STEP_N_BAT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STEP_N_BAT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STEP_S_BAT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STEP_S_BAT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STEP_E_BAT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STEP_E_BAT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STEP_W_BAT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STEP_W_BAT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_SHUFFLE_BAT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_SHUFFLE_BAT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_YOMP_START_PISTOL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_YOMP_START_PISTOL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_YOMP_START_BAT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_YOMP_START_BAT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_YOMP_BAT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_YOMP_BAT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_SHOTGUN_IDLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_SHOTGUN_IDLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_THUG_WALK_SHOTGUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_THUG_WALK_SHOTGUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_THUG_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_THUG_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_INJURED_LOOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_INJURED_LOOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_INJURED_LOOP_STRUGGLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_INJURED_LOOP_STRUGGLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_BIGLAND_DIE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_BIGLAND_DIE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_UNCROUTCH_PISTOL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_UNCROUTCH_PISTOL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_UNCROUTCH_AK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_UNCROUTCH_AK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PISTOL_WHIP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PISTOL_WHIP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PISTOL_WHIP_TAKE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PISTOL_WHIP_TAKE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_NAD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_NAD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_NAD_TAKE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_NAD_TAKE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_NAD_STUNNED",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_NAD_STUNNED",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_KICK_NAD_RECOVER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_KICK_NAD_RECOVER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_VALVE_LOOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_VALVE_LOOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_VALVE_END",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_VALVE_END",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_END",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_END",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_EXIT_VAN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_EXIT_VAN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_ENTER_VAN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_ENTER_VAN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_WANKER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_WANKER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_RUN_TAXI",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_RUN_TAXI",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_RUN_FLEE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_RUN_FLEE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HAIL_TAXI",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HAIL_TAXI",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_ENTER_TAXI",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_ENTER_TAXI",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUTDOWN_CARRY_V",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUTDOWN_CARRY_V",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STAND_CARRY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STAND_CARRY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STAND_CARRY_V",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STAND_CARRY_V",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_IDLE_BREATH",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_IDLE_BREATH",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_IDLE_PHONE_ANSWER",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_IDLE_PHONE_ANSWER",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_IDLE_PHONE_TALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_IDLE_PHONE_TALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STANCE_WIMP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STANCE_WIMP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FIGHT_STANCE_HARD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_FIGHT_STANCE_HARD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_DANCE_BOOGIE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_DANCE_BOOGIE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_DANCE_WOOGIE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_DANCE_WOOGIE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_DANCE_HEADBANG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_DANCE_HEADBANG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_WARM_HANDS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_WARM_HANDS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HANDS_UP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HANDS_UP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STRANGLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STRANGLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_STRANGLE_VICTIM",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_STRANGLE_VICTIM",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HEADBUTT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HEADBUTT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HEADBUTT_VICTIM",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HEADBUTT_VICTIM",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HANDS_UP_LOOP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HANDS_UP_LOOP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PICKUP_CARRY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PICKUP_CARRY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_START_WALK_CARRY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_START_WALK_CARRY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_WALK_CARRY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_WALK_CARRY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_WALK_STOP_CARRY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_WALK_STOP_CARRY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PUTDOWN_CARRY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PUTDOWN_CARRY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PICKUP_CARRY_V",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_PICKUP_CARRY_V",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_START_WALK_CARRY_V",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_START_WALK_CARRY_V",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_WALK_CARRY_V",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_WALK_CARRY_V",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_WALK_STOP_CARRY_V",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_WALK_STOP_CARRY_V",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_HANDS_UP_LIE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ANIM_HANDS_UP_LIE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_IDLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_IDLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_WALK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_WALK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_RUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_RUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_STANDING_JUMP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_STANDING_JUMP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_STANDING_JUMP_GRAB",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_STANDING_JUMP_GRAB",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_RUNNING_JUMP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_RUNNING_JUMP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_DANGLING",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_DANGLING",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_PULL_UP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_PULL_UP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_STAND_RELAX",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_STAND_RELAX",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_GRABBING_LEDGE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_GRABBING_LEDGE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_NONE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_NONE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_DROP_DOWN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_DROP_DOWN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_FALLING",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_FALLING",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_LANDING",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_LANDING",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_CLIMBING",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_CLIMBING",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_FIGHT_PUNCH",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_FIGHT_PUNCH",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_FIGHT_KICK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_FIGHT_KICK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_FIGHT_IDLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_FIGHT_IDLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_DANGLING_CABLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_DANGLING_CABLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_HOP_BACK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_HOP_BACK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_SIDE_STEP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_SIDE_STEP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_DYING",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_DYING",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_DRAW_SPECIAL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_DRAW_SPECIAL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_AIM_GUN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_AIM_GUN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_SHOOT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_SHOOT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_GUN_AWAY",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_GUN_AWAY",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_RESPAWN",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_RESPAWN",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_DEAD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_DEAD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_FLIP_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_FLIP_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_FLIP_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_FLIP_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_STOPPING",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_STOPPING",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_RUN_JUMP",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_RUN_JUMP",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_KICK_FLAG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_KICK_FLAG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_JUMP_FLAG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_JUMP_FLAG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_WALK_BACK",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_WALK_BACK",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_DEATH_SLIDE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_DEATH_SLIDE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_TRAVERSE_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_TRAVERSE_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_TRAVERSE_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_TRAVERSE_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_PUNCH_FLAG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_PUNCH_FLAG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_BLOCK_FLAG",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_BLOCK_FLAG",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_CROUTCH",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_CROUTCH",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_CRAWLING",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_CRAWLING",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_SKID",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_SKID",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_GRAPPLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_GRAPPLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_GRAPPLEE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_GRAPPLEE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_ENTER_VEHICLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_ENTER_VEHICLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_INSIDE_VEHICLE",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_INSIDE_VEHICLE",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_SIT_BENCH",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_SIT_BENCH",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_HUG_WALL",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_HUG_WALL",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_HUG_LEFT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_HUG_LEFT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_HUG_RIGHT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_HUG_RIGHT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ACTION_UNSIT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "ACTION_UNSIT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_PELVIS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_PELVIS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_LEFT_FEMUR",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_LEFT_FEMUR",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_LEFT_TIBIA",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_LEFT_TIBIA",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_LEFT_FOOT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_LEFT_FOOT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_TORSO",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_TORSO",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_LEFT_HUMORUS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_LEFT_HUMORUS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_LEFT_RADIUS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_LEFT_RADIUS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_LEFT_HAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_LEFT_HAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_RIGHT_HUMORUS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_RIGHT_HUMORUS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_RIGHT_RADIUS",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_RIGHT_RADIUS",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_RIGHT_HAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_RIGHT_HAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_HEAD",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_HEAD",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_RIGHT_FEMUR",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_RIGHT_FEMUR",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_RIGHT_TIBIA",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_RIGHT_TIBIA",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_RIGHT_FOOT",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_RIGHT_FOOT",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SUB_OBJECT_PREFERRED_HAND",
+      "file": "new_game/src/actors/characters/anim_ids.h",
+      "orig_name": "SUB_OBJECT_PREFERRED_HAND",
+      "orig_file": "fallen/Headers/animate.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_FLESH_HIT1",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_FLESH_HIT1",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_FLESH_HIT2",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_FLESH_HIT2",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_FLESH_HIT3",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_FLESH_HIT3",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_FLESH_HIT4",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_FLESH_HIT4",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_MAN_DIE1",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_MAN_DIE1",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_MAN_DIE2",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_MAN_DIE2",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_MAN_DIE3",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_MAN_DIE3",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_WOMAN_DIE1",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_WOMAN_DIE1",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_WOMAN_DIE2",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_WOMAN_DIE2",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_WOMAN_DIE3",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_WOMAN_DIE3",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_MAN_JUMP1",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_MAN_JUMP1",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_PISTOL_SHOT1",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_PISTOL_SHOT1",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_PISTOL_CLICK",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_PISTOL_CLICK",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_HIT_MISS1",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_HIT_MISS1",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_WOMAN_JUMP1",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_WOMAN_JUMP1",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAMPLE_WOMAN_LAND1",
+      "file": "new_game/src/assets/sound_id.h",
+      "orig_name": "SAMPLE_WOMAN_LAND1",
+      "orig_file": "fallen/Headers/sample.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
