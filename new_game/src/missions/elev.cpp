@@ -10,7 +10,8 @@
 #include "missions/elev_globals.h"
 
 #include "fallen/Headers/eway.h"        // Temporary: until eway is migrated
-#include "fallen/Headers/mission.h"
+#include "missions/mission.h"
+#include "missions/mission_globals.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 #include "world/map/ob.h"

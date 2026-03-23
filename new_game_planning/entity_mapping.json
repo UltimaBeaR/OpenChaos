@@ -97329,6 +97329,466 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "EventPoint",
+      "file": "new/missions/mission.h",
+      "orig_name": "EventPoint",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "Mission",
+      "file": "new/missions/mission.h",
+      "orig_name": "Mission",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OldMissionB",
+      "file": "new/missions/mission.h",
+      "orig_name": "OldMissionB",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OldMission",
+      "file": "new/missions/mission.h",
+      "orig_name": "OldMission",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GameMap",
+      "file": "new/missions/mission.h",
+      "orig_name": "GameMap",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "current_ep",
+      "file": "new/missions/mission_globals.h",
+      "orig_name": "current_ep",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "mission_pool",
+      "file": "new/missions/mission_globals.h",
+      "orig_name": "mission_pool",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "current_mission",
+      "file": "new/missions/mission_globals.h",
+      "orig_name": "current_mission",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MissionZones",
+      "file": "new/missions/mission_globals.h",
+      "orig_name": "MissionZones",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "current_map",
+      "file": "new/missions/mission_globals.h",
+      "orig_name": "current_map",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "game_maps",
+      "file": "new/missions/mission_globals.h",
+      "orig_name": "game_maps",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WaypointUses",
+      "file": "new/missions/mission_globals.h",
+      "orig_name": "WaypointUses",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MISSION_init",
+      "file": "new/missions/mission.h",
+      "orig_name": "MISSION_init",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "alloc_map",
+      "file": "new/missions/mission.h",
+      "orig_name": "alloc_map",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "free_map",
+      "file": "new/missions/mission.h",
+      "orig_name": "free_map",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "alloc_mission",
+      "file": "new/missions/mission.h",
+      "orig_name": "alloc_mission",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "free_mission",
+      "file": "new/missions/mission.h",
+      "orig_name": "free_mission",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "init_mission",
+      "file": "new/missions/mission.h",
+      "orig_name": "init_mission",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "alloc_eventpoint",
+      "file": "new/missions/mission.h",
+      "orig_name": "alloc_eventpoint",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "free_eventpoint",
+      "file": "new/missions/mission.h",
+      "orig_name": "free_eventpoint",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "write_event_extra",
+      "file": "new/missions/mission.h",
+      "orig_name": "write_event_extra",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "read_event_extra",
+      "file": "new/missions/mission.h",
+      "orig_name": "read_event_extra",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "export_mission",
+      "file": "new/missions/mission.h",
+      "orig_name": "export_mission",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "import_mission",
+      "file": "new/missions/mission.h",
+      "orig_name": "import_mission",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "valid_mission",
+      "file": "new/missions/mission.h",
+      "orig_name": "valid_mission",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ResetFreepoint",
+      "file": "new/missions/mission.h",
+      "orig_name": "ResetFreepoint",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ResetUsedpoint",
+      "file": "new/missions/mission.h",
+      "orig_name": "ResetUsedpoint",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ResetFreelist",
+      "file": "new/missions/mission.h",
+      "orig_name": "ResetFreelist",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ResetUsedlist",
+      "file": "new/missions/mission.h",
+      "orig_name": "ResetUsedlist",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "HasText",
+      "file": "new/missions/mission.h",
+      "orig_name": "HasText",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GetTextID",
+      "file": "new/missions/mission.h",
+      "orig_name": "GetTextID",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GetEPTextID",
+      "file": "new/missions/mission.h",
+      "orig_name": "GetEPTextID",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SetEPTextID",
+      "file": "new/missions/mission.h",
+      "orig_name": "SetEPTextID",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GetEPText",
+      "file": "new/missions/mission.h",
+      "orig_name": "GetEPText",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WPT_NONE",
+      "file": "new/missions/mission.h",
+      "orig_name": "WPT_NONE",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TT_NONE",
+      "file": "new/missions/mission.h",
+      "orig_name": "TT_NONE",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ET_NONE",
+      "file": "new/missions/mission.h",
+      "orig_name": "ET_NONE",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "VT_NONE",
+      "file": "new/missions/mission.h",
+      "orig_name": "VT_NONE",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IT_NONE",
+      "file": "new/missions/mission.h",
+      "orig_name": "IT_NONE",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OT_NONE",
+      "file": "new/missions/mission.h",
+      "orig_name": "OT_NONE",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ZF_NONE",
+      "file": "new/missions/mission.h",
+      "orig_name": "ZF_NONE",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BT_BARREL",
+      "file": "new/missions/mission.h",
+      "orig_name": "BT_BARREL",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_EVENTPOINTS",
+      "file": "new/missions/mission.h",
+      "orig_name": "MAX_EVENTPOINTS",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_MISSIONS",
+      "file": "new/missions/mission.h",
+      "orig_name": "MAX_MISSIONS",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_MAPS",
+      "file": "new/missions/mission.h",
+      "orig_name": "MAX_MAPS",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TT_NUMBER",
+      "file": "new/missions/mission.h",
+      "orig_name": "TT_NUMBER",
+      "orig_file": "fallen/Headers/Mission.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

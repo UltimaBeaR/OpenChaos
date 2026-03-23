@@ -2,7 +2,8 @@
 #define MISSIONS_ELEV_GLOBALS_H
 
 #include "Game.h"
-#include "fallen/Headers/Mission.h"
+#include "missions/mission.h"
+#include "missions/mission_globals.h"
 
 // uc_orig: ELEV_last_map_loaded (fallen/Source/elev.cpp)
 extern CBYTE ELEV_last_map_loaded[MAX_PATH];

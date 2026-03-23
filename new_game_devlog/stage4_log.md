@@ -1,5 +1,11 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 176 — Mission.h → missions/mission.h + mission_globals.h; удалены EdStrings.h, MapView.h (2026-03-23)
+
+- `EdStrings.h` и `MapView.h` удалены: нет активных потребителей вне `fallen/` (editor-only GEdit-код).
+- `WaypointUses`, `mission_pool` и др. глобалы — только в `extern` (mission_globals.h); определений в новом коде пока нет (Mission.cpp не мигрирован, не в CMakeLists). Линковщик не жалуется т.к. никто из компилируемых TU эти символы не запрашивает.
+- Temporary: 491 → 491 (include в elev.cpp не был помечен `// Temporary:`).
+
 ## Итерация 175 — Furn.h → actors/vehicles/furn.h; Structs.h → redirect; удалены 4 editor-only headers (2026-03-23)
 
 - `Structs.h` разобран: `COMMON` → `actors/core/common.h`, `MAV_Action` → `ai/mav_action.h`, `MiniTextureBits` → `assets/texture.h`, `FLAGS_DRAW_SHADOW` → `actors/core/drawtype.h`. `Structs.h` превращён в redirect. 8 потребителей обновлены на прямые include.
