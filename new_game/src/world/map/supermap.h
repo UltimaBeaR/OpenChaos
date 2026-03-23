@@ -2,41 +2,121 @@
 #define WORLD_MAP_SUPERMAP_H
 
 #include "core/types.h"
-// Structure definitions for DFacet, DBuilding, DWalkable, DStorey, DInsideRect,
-// MAX_DFACETS etc. come from fallen/Headers/supermap.h (not redirected — structs live there).
-// Note: fallen/Headers/supermap.h does NOT include world/map/supermap.h, so no circular.
-#include "fallen/Headers/supermap.h"
 // STOREY_TYPE_*, FACET_FLAG_* constants from building.h (not yet migrated to new/).
 #include "fallen/Headers/building.h"
+// Global state: allocation cursors, level list.
+#include "world/map/supermap_globals.h"
 
 // Supermap: pre-computed spatial index of all buildings, facets, and walkables.
 // Loaded from the binary level file (.pam) via load_super_map().
 
-// ---- Globals ----
+// ---- Structures ----
 
-// uc_orig: level_index (fallen/Source/supermap.cpp)
-extern ULONG level_index;
+// uc_orig: DStorey (fallen/Headers/supermap.h)
+struct DStorey {
+    UWORD Style;    // Replacement style index
+    UWORD Index;    // Index into painted info
+    SBYTE Count;    // Positive = style, negative = (unused)
+    UBYTE BloodyPadding;
+};
 
-// Generation stamps for spatial de-duplication (one per camera/query pass).
-// When DFacet.Counter[which] == SUPERMAP_counter[which], facet was already visited this frame.
-// uc_orig: SUPERMAP_counter (fallen/Source/supermap.cpp)
-extern UBYTE SUPERMAP_counter[2];
+// uc_orig: DFacet (fallen/Headers/supermap.h)
+struct DFacet {
+    UBYTE FacetType;
+    UBYTE Height;
+    UBYTE x[2];         // Grid-based X coordinates (byte precision)
+    SWORD Y[2];
+    UBYTE z[2];         // Grid-based Z coordinates (byte precision)
+    UWORD FacetFlags;
+    UWORD StyleIndex;
+    UWORD Building;
+    UWORD DStorey;
+    UBYTE FHeight;
+    UBYTE BlockHeight;
+    UBYTE Open;         // How open/closed a STOREY_TYPE_OUTSIDE_DOOR is
+    UBYTE Dfcache;      // Index into NIGHT_dfcache[] or NULL
+    UBYTE Shake;        // Set when a fence has been hit hard by something
+    UBYTE CutHole;
+    UBYTE Counter[2];
+};
 
-// Prim array ranges occupied by walkable geometry loaded from the level file.
-// uc_orig: first_walkable_prim_point (fallen/Source/supermap.cpp)
-extern SLONG first_walkable_prim_point;
-// uc_orig: number_of_walkable_prim_points (fallen/Source/supermap.cpp)
-extern SLONG number_of_walkable_prim_points;
-// uc_orig: first_walkable_prim_face4 (fallen/Source/supermap.cpp)
-extern SLONG first_walkable_prim_face4;
-// uc_orig: number_of_walkable_prim_faces4 (fallen/Source/supermap.cpp)
-extern SLONG number_of_walkable_prim_faces4;
+// uc_orig: DBuilding (fallen/Headers/supermap.h)
+struct DBuilding {
+    SLONG X, Y, Z;
+    UWORD StartFacet;
+    UWORD EndFacet;
+    UWORD Walkable;
+    UBYTE Counter[2];
+    UWORD Padding;
+    UBYTE Ware;     // If this building is a warehouse, index into WARE_ware[]
+    UBYTE Type;
+};
 
-// Person class skip bitmask for current level (set by get_level_no()).
-// uc_orig: people_types (fallen/Source/supermap.cpp)
-extern SWORD people_types[50];
-// uc_orig: DONT_load (fallen/Source/supermap.cpp)
-extern ULONG DONT_load;
+// uc_orig: DWalkable (fallen/Headers/supermap.h)
+struct DWalkable {
+    UWORD StartPoint;   // Unused
+    UWORD EndPoint;     // Unused
+    UWORD StartFace3;   // Unused
+    UWORD EndFace3;     // Unused
+
+    UWORD StartFace4;   // Indices into the roof faces
+    UWORD EndFace4;
+
+    UBYTE X1;
+    UBYTE Z1;
+    UBYTE X2;
+    UBYTE Z2;
+    UBYTE Y;
+    UBYTE StoreyY;
+    UWORD Next;
+    UWORD Building;
+};
+
+// uc_orig: DInsideRect (fallen/Headers/supermap.h)
+struct DInsideRect {
+    UBYTE MapX;
+    UBYTE MapZ;
+    UBYTE Width;
+    UBYTE Depth;
+    UBYTE StoreyY;
+    UBYTE Flags;        // Flags; also pads the struct to a nice size
+    UWORD BitIndex;     // Index into block of data for inside buildings
+};
+
+// ---- Array limits ----
+
+// uc_orig: MAX_FACET_LINK (fallen/Headers/supermap.h)
+#define MAX_FACET_LINK 32000
+
+// uc_orig: MAX_DBUILDINGS (fallen/Headers/supermap.h)
+#define MAX_DBUILDINGS 1024
+// uc_orig: MAX_DFACETS (fallen/Headers/supermap.h)
+#define MAX_DFACETS 16384
+// uc_orig: MAX_DWALKABLES (fallen/Headers/supermap.h)
+#define MAX_DWALKABLES 2048
+// uc_orig: MAX_DSTYLES (fallen/Headers/supermap.h)
+#define MAX_DSTYLES 10000
+// uc_orig: MAX_DSTOREYS (fallen/Headers/supermap.h)
+#define MAX_DSTOREYS 10000
+// uc_orig: MAX_PAINTMEM (fallen/Headers/supermap.h)
+#define MAX_PAINTMEM 64000
+
+// ---- Inside-room bit-packing macros ----
+// Each inside ID byte packs: bits 0-3 = room ID (16 rooms), bits 4-5 = direction, bits 6-7 = type.
+
+// uc_orig: CALC_INSIDE_ID (fallen/Headers/supermap.h)
+#define CALC_INSIDE_ID(id) (id & 3)
+// uc_orig: CALC_INSIDE_DIRECTION (fallen/Headers/supermap.h)
+#define CALC_INSIDE_DIRECTION(id) ((id & 3) << 4)
+// uc_orig: CALC_INSIDE_TYPE (fallen/Headers/supermap.h)
+#define CALC_INSIDE_TYPE(id) ((id & 3) << 6)
+
+// uc_orig: GET_INSIDE_ID (fallen/Headers/supermap.h)
+#define GET_INSIDE_ID(id) (id & 3)
+// uc_orig: GET_INSIDE_DIRECTION (fallen/Headers/supermap.h)
+#define GET_INSIDE_DIRECTION(id) ((id >> 4) & 3)
+// uc_orig: GET_INSIDE_TYPE (fallen/Headers/supermap.h)
+#define GET_INSIDE_TYPE(id) ((id >> 6) & 3)
 
 // ---- Functions ----
 
@@ -69,5 +149,14 @@ UWORD calc_inside_for_xyz(SLONG x, SLONG y, SLONG z, UWORD* room);
 // Called from game_startup() when TEXTURE_create_clump mode is active.
 // uc_orig: make_all_clumps (fallen/Source/supermap.cpp)
 void make_all_clumps(void);
+
+// Serialises the current supermap to a file handle (editor only).
+// uc_orig: save_super_map (fallen/Source/supermap.cpp)
+void save_super_map(MFFileHandle handle);
+
+// Editor helper: converts a single building into the supermap DBuilding[1] slot
+// so ENTER/STAIR/ID modules can operate on editor buildings.
+// uc_orig: create_super_dbuilding (fallen/Source/supermap.cpp)
+void create_super_dbuilding(SLONG building);
 
 #endif // WORLD_MAP_SUPERMAP_H

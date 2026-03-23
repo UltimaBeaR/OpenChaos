@@ -11,7 +11,7 @@
 // Temporary: ob.h for OB_ob[], OB_mapwho, OB_load_needed_prims, PRIM_OBJ_* constants.
 #include "fallen/Headers/ob.h"
 // Temporary: supermap.h for load_super_map().
-#include "fallen/Headers/supermap.h"
+#include "world/map/supermap.h"
 // Temporary: eway.h for EWAY_way[], EWAY_way_upto, EWAY_DO_CREATE_ANIMAL, EWAY_SUBTYPE_ANIMAL_*.
 #include "fallen/Headers/eway.h"
 // Temporary: memory.h for psx_textures_xy, inside_tex, anim_chunk[], next_anim_chunk.

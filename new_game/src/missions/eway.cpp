@@ -1,7 +1,7 @@
 #include "missions/eway.h"
 
 #include "Game.h"
-#include "cam.h"
+#include "ui/camera/cam.h"
 #include "bang.h"
 #include "ob.h"
 #include "fmatrix.h"
@@ -17,7 +17,7 @@
 #include "fallen/Headers/animal.h"     // Temporary: Animal/BAT not migrated
 #include "engine/io/drive.h"           // drive.h already migrated to new/
 #include "fallen/Headers/pcom.h"       // Temporary: PCOM not migrated
-#include "fallen/Headers/supermap.h"   // Temporary: find_electric_fence_dbuilding
+#include "world/map/supermap.h"
 #include "fallen/Headers/sound.h"
 #include "fallen/Headers/statedef.h"
 #include "fallen/Headers/wmove.h"      // Temporary: WMOVE_create

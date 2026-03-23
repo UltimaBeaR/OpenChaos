@@ -23,7 +23,7 @@
 #include "fallen/Headers/drip.h"    // Temporary: drip effects
 #include "fallen/Headers/puddle.h"  // Temporary: puddle effects
 #include "fallen/Headers/pap.h"     // Temporary: PAP_2HI, PAP_FLAG_HIDDEN, PAP_calc_height_at_thing
-#include "fallen/Headers/supermap.h" // Temporary: dfacets, FACET_FLAG_*, STOREY_TYPE_*
+#include "world/map/supermap.h"
 #include "fallen/Headers/ns.h"      // Temporary: NS types
 #include "fallen/Headers/dirt.h"    // Temporary: dirt effects
 #include "fallen/Headers/hook.h"    // Temporary: grappling hook

@@ -93879,6 +93879,816 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "DStorey",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "DStorey",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DFacet",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "DFacet",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DBuilding",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "DBuilding",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DWalkable",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "DWalkable",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DInsideRect",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "DInsideRect",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_FACET_LINK",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "MAX_FACET_LINK",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_DBUILDINGS",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "MAX_DBUILDINGS",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_DFACETS",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "MAX_DFACETS",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_DWALKABLES",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "MAX_DWALKABLES",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_DSTYLES",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "MAX_DSTYLES",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_DSTOREYS",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "MAX_DSTOREYS",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_PAINTMEM",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "MAX_PAINTMEM",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CALC_INSIDE_ID",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "CALC_INSIDE_ID",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CALC_INSIDE_DIRECTION",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "CALC_INSIDE_DIRECTION",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CALC_INSIDE_TYPE",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "CALC_INSIDE_TYPE",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GET_INSIDE_ID",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "GET_INSIDE_ID",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GET_INSIDE_DIRECTION",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "GET_INSIDE_DIRECTION",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GET_INSIDE_TYPE",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "GET_INSIDE_TYPE",
+      "orig_file": "fallen/Headers/supermap.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "save_super_map",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "save_super_map",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "create_super_dbuilding",
+      "file": "new/world/map/supermap.h",
+      "orig_name": "create_super_dbuilding",
+      "orig_file": "fallen/Source/supermap.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_MODE_CRAPPY",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_MODE_CRAPPY",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_MODE_NORMAL",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_MODE_NORMAL",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_MODE_STATIONARY",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_MODE_STATIONARY",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_MODE_BEHIND",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_MODE_BEHIND",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_MODE_FIRST_PERSON",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_MODE_FIRST_PERSON",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_MODE_THIRD_PERSON",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_MODE_THIRD_PERSON",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_MODE_SHOOT_NORMAL",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_MODE_SHOOT_NORMAL",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_MODE_FIGHT_NORMAL",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_MODE_FIGHT_NORMAL",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_LENS_NORMAL",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_LENS_NORMAL",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_LENS_WIDEANGLE",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_LENS_WIDEANGLE",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_LENS_ZOOM",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_LENS_ZOOM",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_lens",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_lens",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_TYPE_STANDARD",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_TYPE_STANDARD",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_TYPE_LOWER",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_TYPE_LOWER",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_TYPE_BEHIND",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_TYPE_BEHIND",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_TYPE_WIDE",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_TYPE_WIDE",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_TYPE_ZOOM",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_TYPE_ZOOM",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_type",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_type",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_get_type",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_get_type",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_mode",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_mode",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_focus",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_focus",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_zoom",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_zoom",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_collision",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_collision",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_behind_up",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_behind_up",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_pos",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_pos",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_angle",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_angle",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_shake",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_shake",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_dangle",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_dangle",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_get_dangle",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_get_dangle",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_dpos",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_dpos",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_set_to_leave_sewers_position",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_set_to_leave_sewers_position",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_look_at_thing",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_look_at_thing",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_get_mode",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_get_mode",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_get_zoom",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_get_zoom",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_get_ryaw",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_get_ryaw",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_get",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_get",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_get_pos",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_get_pos",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_get_dpos",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_get_dpos",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_process",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_process",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_rotate_left",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_rotate_left",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_rotate_right",
+      "file": "new/ui/camera/cam.h",
+      "orig_name": "CAM_rotate_right",
+      "orig_file": "fallen/Headers/cam.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_Lead",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_Lead",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_MAX_LEADS",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_MAX_LEADS",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_lead",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_lead",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_lead_upto",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_lead_upto",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_Point",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_Point",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_MAX_POINTS",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_MAX_POINTS",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_point",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_point",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_point_upto",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_point_upto",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_LEN_SHORT",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_LEN_SHORT",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_LEN_MEDIUM",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_LEN_MEDIUM",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_LEN_LONG",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_LEN_LONG",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_init",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_init",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_create",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_create",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_attach",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_attach",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_process",
+      "file": "new/actors/animals/lead.h",
+      "orig_name": "LEAD_process",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CAM_lens",
+      "file": "new/ui/camera/cam_globals.h",
+      "orig_name": "CAM_lens",
+      "orig_file": "fallen/Source/cam.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_lead",
+      "file": "new/actors/animals/lead_globals.h",
+      "orig_name": "LEAD_lead",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_lead_upto",
+      "file": "new/actors/animals/lead_globals.h",
+      "orig_name": "LEAD_lead_upto",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_point",
+      "file": "new/actors/animals/lead_globals.h",
+      "orig_name": "LEAD_point",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAD_point_upto",
+      "file": "new/actors/animals/lead_globals.h",
+      "orig_name": "LEAD_point_upto",
+      "orig_file": "fallen/Headers/lead.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

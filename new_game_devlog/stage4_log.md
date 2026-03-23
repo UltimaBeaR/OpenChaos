@@ -1,5 +1,12 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 169 — supermap.h → world/map/supermap.h, cam.h → ui/camera/cam.h, lead.h → actors/animals/lead.h (2026-03-23)
+
+- `supermap.h`: структуры `DStorey`, `DFacet`, `DBuilding`, `DWalkable`, `DInsideRect` + все `MAX_*`, `CALC_INSIDE_*`, `GET_INSIDE_*` + `save_super_map`/`create_super_dbuilding` перенесены в `world/map/supermap.h` (который уже существовал с функциями). `supermap.h` → редирект. `supermap.h` теперь включает `supermap_globals.h` — это убрало зависимость потребителей от явного включения globals.
+- `cam.h` → `ui/camera/cam.h`. `CAM_lens` — в `cam_globals.h` (по правилу globals).
+- `lead.h` → `actors/animals/lead.h`. Массивы `LEAD_lead[]`, `LEAD_point[]` и счётчики — в `lead_globals.h`. Нет потребителей среди .cpp (заголовок не использовался до миграции).
+- Temporary: 663 → 655.
+
 ## Итерация 168 — animate.h → anim_ids.h, sample.h → sound_id.h (2026-03-23)
 
 - `fallen/Headers/animate.h` превращён в редирект; все ~547 макросов перенесены в `actors/characters/anim_ids.h`.

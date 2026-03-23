@@ -5,7 +5,7 @@
 
 // Temporary includes — not yet migrated:
 #include "fallen/Headers/Game.h"         // INFINITY, SIGN, QDIST2, SATURATE, TRUE/FALSE/NULL
-#include "fallen/Headers/supermap.h"     // DFacet, FACET_FLAG_OPEN, FACET_FLAG_90DEGREE, STOREY_TYPE_OUTSIDE_DOOR
+#include "world/map/supermap.h"
 #include "fallen/Headers/building.h"     // FACET_FLAG_* defines
 #include "fallen/Headers/memory.h"       // facet_links[], dfacets[]
 #include "fallen/Headers/mav.h"          // MAV_turn_movement_on/off, MAV_turn_car_movement_on/off, MAV_DIR_*

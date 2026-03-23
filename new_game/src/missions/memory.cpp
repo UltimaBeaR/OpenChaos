@@ -6,7 +6,7 @@
 #include "fallen/Headers/ob.h"        // Temporary: OB_ob, OB_mapwho, OB_ob_upto
 #include "fallen/Headers/fc.h"        // Temporary: FC_look_at, FC_force_camera_behind
 #include "fallen/Headers/wmove.h"     // Temporary: WMOVE_Face, WMOVE_face, WMOVE_face_upto, RWMOVE_MAX_FACES
-#include "fallen/Headers/supermap.h"  // Temporary: DBuilding/DFacet/DWalkable types and counters
+#include "world/map/supermap.h"
 #include "fallen/Headers/night.h"     // Temporary: NIGHT_slight, NIGHT_smap, NIGHT_dlight types and counts
 #include "fallen/Headers/barrel.h"    // Temporary: BARREL_sphere, BARREL_barrel, barrel types
 #include "fallen/Headers/eway.h"      // Temporary: EWAY_mess, EWAY_way, EWAY_cond, EWAY_edef, EWAY_timer

@@ -37,7 +37,7 @@
 #include "fallen/Headers/animtmap.h"
 #include "fallen/Headers/shadow.h"
 #include "fallen/Headers/attract.h"
-#include "fallen/Headers/cam.h"
+#include "ui/camera/cam.h"
 #include "fallen/Headers/psystem.h"
 #include "fallen/Headers/tracks.h"
 #include "fallen/Headers/pcom.h"

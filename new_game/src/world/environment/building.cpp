@@ -16,7 +16,7 @@
 // Temporary: pap.h needed for PAP_2HI, MAP2, MAP macros (supermap abstraction)
 #include "fallen/Headers/pap.h"
 // Temporary: supermap.h needed for MAP, MAP2 struct access patterns
-#include "fallen/Headers/supermap.h"
+#include "world/map/supermap.h"
 // Temporary: memory.h needed for MemAlloc, MemFree, prim_faces4, prim_points, AENG_dx_prim_points
 #include "fallen/Headers/memory.h"
 // Temporary: pap.h exposes PAP_calc_height_at

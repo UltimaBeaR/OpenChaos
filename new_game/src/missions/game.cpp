@@ -25,7 +25,7 @@
 #include "fallen/Headers/night.h"    // NIGHT_dlight_move (referenced in comment)
 #include "fallen/Headers/shadow.h"   // (transitively)
 #include "fallen/Headers/ns.h"       // (transitively)
-#include "fallen/Headers/supermap.h" // (transitively)
+#include "world/map/supermap.h"
 #include "fallen/Headers/build2.h"   // (transitively)
 #include "fallen/Headers/pow.h"      // POW_process, check_pows
 #include "fallen/Headers/widget.h"   // Form, Widget, FORM_Process, FORM_Free, FORM_Draw
@@ -88,7 +88,7 @@
 #include "fallen/Headers/door.h"    // DOOR_process
 #include "fallen/Headers/puddle.h"  // PUDDLE_process (if separate)
 #include "fallen/Headers/pap.h"     // plan_view_shot
-#include "fallen/Headers/cam.h"     // plan_view_shot (if here)
+#include "ui/camera/cam.h"
 
 #include "engine/audio/sound.h"     // MFX_QUICK_stop, MFX_stop, MFX_set_listener, MFX_update, MFX_free_wave_list, MFX_CHANNEL_ALL, MFX_WAVE_ALL
 

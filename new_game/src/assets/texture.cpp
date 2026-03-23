@@ -6,7 +6,7 @@
 #include "assets/texture_globals.h"
 #include "fallen/DDEngine/Headers/aeng.h"
 #include "assets/anim_tmap.h"
-#include "fallen/Headers/supermap.h"
+#include "world/map/supermap.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "world/map/pap.h"
 #include "engine/graphics/graphics_api/gd_display.h"

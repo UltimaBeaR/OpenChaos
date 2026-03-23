@@ -37,7 +37,7 @@ void add_facet_to_map(SLONG facet);
 // ---- Globals defined here ----
 
 // Supermap counter globals are in supermap_globals.cpp.
-// next_dbuilding, next_dfacet, etc. are in memory.cpp (via fallen/Headers/supermap.h extern decls).
+// next_dbuilding, next_dfacet, etc. are in memory.cpp (extern decls in world/map/supermap_globals.h).
 
 // ---- Internal state ----
 

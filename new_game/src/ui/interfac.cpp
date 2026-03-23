@@ -28,7 +28,7 @@
 #include "effects/dirt.h"
 
 // Temporary: functions not yet migrated to new/
-#include "fallen/Headers/supermap.h" // Temporary: DFacet struct, STOREY_TYPE_*, find_nearby_ladder_colvect
+#include "world/map/supermap.h"
 #include "fallen/Headers/memory.h"   // Temporary: dfacets (extern via memory globals)
 #include "fallen/Headers/Person.h"   // Temporary: various person functions not yet in person.h
 
@@ -40,7 +40,7 @@
 #include "fallen/DDEngine/Headers/Engine.h" // Temporary: SIN, COS, QDIST2, etc.
 #include "fallen/DDEngine/Headers/panel.h"  // Temporary: PANEL_new_text
 #include "fallen/Headers/enter.h"     // Temporary: set_person_exit_vehicle, etc.
-#include "fallen/Headers/cam.h"       // Temporary: various cam functions
+#include "ui/camera/cam.h"
 #include "fallen/Headers/cnet.h"      // Temporary: CNET_network_game, CNET_player_id (PLAYER_ID)
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"

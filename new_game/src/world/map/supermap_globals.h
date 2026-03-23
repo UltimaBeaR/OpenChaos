@@ -3,9 +3,7 @@
 
 #include "core/types.h"
 
-// File-scope global state for the supermap system.
-// Note: we include core/types.h only — not world/map/supermap.h — to avoid
-// pulling in fallen/Headers/supermap.h before types are defined.
+// Global state for the supermap system: allocation cursors, level list, per-frame counters.
 
 // uc_orig: level_index (fallen/Source/supermap.cpp)
 extern ULONG level_index;
@@ -28,7 +26,7 @@ extern SWORD people_types[50];
 extern ULONG DONT_load;
 
 // Allocation cursors for supermap arrays; initialised to 1 (0 = unused sentinel).
-// Declared extern in fallen/Headers/supermap.h — definitions live here.
+// Declared extern in world/map/supermap.h — definitions live here.
 // uc_orig: next_dbuilding (fallen/Source/supermap.cpp)
 extern SLONG next_dbuilding;
 // uc_orig: next_dfacet (fallen/Source/supermap.cpp)

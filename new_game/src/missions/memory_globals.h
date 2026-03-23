@@ -3,7 +3,7 @@
 
 #include "core/types.h"
 #include "fallen/Headers/structs.h"   // Temporary: SVector (needed by building.h for PrimNormal typedef)
-#include "fallen/Headers/supermap.h"  // Temporary: DBuilding, DFacet, DWalkable, DStorey, MAX_FACET_LINK
+#include "world/map/supermap.h"
 #include "fallen/Headers/inside2.h"   // Temporary: InsideStorey, Staircase, MAX_INSIDE_RECT, MAX_INSIDE_STAIRS, MAX_INSIDE_MEM
 #include "fallen/Headers/building.h"  // Temporary: BoundBox, PrimPoint, PrimFace4, PrimFace3, PrimObject, PrimMultiObject, PrimNormal, RMAX_PRIM_POINTS, RMAX_PRIM_FACES4, MAX_PRIM_FACES3, MAX_PRIM_OBJECTS, MAX_PRIM_MOBJECTS, MAX_PRIM_POINTS, RoofFace4, MAX_ROOF_BOUND
 #include "fallen/Headers/Prim.h"      // Temporary: PrimInfo
