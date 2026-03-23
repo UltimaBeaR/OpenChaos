@@ -1132,9 +1132,1094 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj)
     TPO_iNumPrims = 0;
 }
 
-// Chunk 2+ (FIGURE_TPO_add_prim_to_current_object, FIGURE_TPO_finish_3d_object,
-// FIGURE_generate_D3D_object, FIGURE_draw_prim_tween, FIGURE_draw_prim_tween_warped,
-// FIGURE_draw_hierarchical_prim_recurse, FIGURE_draw, ANIM_obj_draw,
+// uc_orig: FIGURE_TPO_add_prim_to_current_object (fallen/DDEngine/Source/figure.cpp)
+// Registers one prim into the active TomsPrimObject compilation context.
+// Must be called after FIGURE_TPO_init_3d_object and before FIGURE_TPO_finish_3d_object.
+// ubSubObjectNumber is the MultiMatrix slot index for this body part (0-based).
+void FIGURE_TPO_add_prim_to_current_object(SLONG prim, UBYTE ubSubObjectNumber)
+{
+    ASSERT(TPO_pVert != NULL);
+    ASSERT(TPO_pStripIndices != NULL);
+    ASSERT(TPO_pListIndices != NULL);
+    ASSERT(TPO_piVertexRemap != NULL);
+    ASSERT(TPO_piVertexLinks != NULL);
+    ASSERT(TPO_pCurVertex != NULL);
+    ASSERT(TPO_pCurStripIndex != NULL);
+    ASSERT(TPO_pCurListIndex != NULL);
+    ASSERT(TPO_pPrimObj != NULL);
+
+    ASSERT(prim < MAX_NUMBER_D3D_PRIMS);
+    PrimObject* p_obj = &prim_objects[prim];
+    ASSERT(p_obj != NULL);
+
+    TPO_PrimObjects[TPO_iNumPrims] = prim;
+    TPO_ubPrimObjMMIndex[TPO_iNumPrims] = ubSubObjectNumber;
+
+    // Record vertex index offset for the next prim: this prim's offset plus its vertex count.
+    TPO_iPrimObjIndexOffset[TPO_iNumPrims + 1] = TPO_iPrimObjIndexOffset[TPO_iNumPrims] + (p_obj->EndPoint - p_obj->StartPoint);
+
+    TPO_iNumPrims++;
+    ASSERT(TPO_iNumPrims <= TPO_MAX_NUMBER_PRIMS);
+}
+
+// uc_orig: FIGURE_TPO_finish_3d_object (fallen/DDEngine/Source/figure.cpp)
+// Compiles all registered prims into the TomsPrimObject pPrimObj.
+// Groups faces by texture page (material), deduplicates vertices, builds index and strip lists,
+// then copies the result into a single heap block and registers it in the LRU cache.
+// iThrashIndex: hint for LRU placement, normally 0.
+void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
+{
+    ASSERT(TPO_pVert != NULL);
+    ASSERT(TPO_pStripIndices != NULL);
+    ASSERT(TPO_pListIndices != NULL);
+    ASSERT(TPO_piVertexRemap != NULL);
+    ASSERT(TPO_piVertexLinks != NULL);
+    ASSERT(TPO_pCurVertex != NULL);
+    ASSERT(TPO_pCurStripIndex != NULL);
+    ASSERT(TPO_pCurListIndex != NULL);
+    ASSERT(TPO_pPrimObj != NULL);
+
+    ASSERT(pPrimObj == TPO_pPrimObj);
+
+    // Scan all registered prims' faces. For each face, find or create a material slot
+    // matching its texture page. Then emit vertices (deduplicating by position+normal+UV)
+    // and indices. Quads and tris are processed in alternating do-while passes.
+
+    for (int iOuterPrimNumber = 0; iOuterPrimNumber < TPO_iNumPrims; iOuterPrimNumber++) {
+        PrimObject* pOuterObj = &prim_objects[TPO_PrimObjects[iOuterPrimNumber]];
+
+        ASSERT(pOuterObj != NULL);
+
+        bool bOuterTris = UC_FALSE;
+        do {
+            int iOuterFaceNum;
+            int iOuterFaceEnd;
+            if (bOuterTris) {
+                iOuterFaceNum = pOuterObj->StartFace3;
+                iOuterFaceEnd = pOuterObj->EndFace3;
+            } else {
+                iOuterFaceNum = pOuterObj->StartFace4;
+                iOuterFaceEnd = pOuterObj->EndFace4;
+            }
+
+            for (; iOuterFaceNum < iOuterFaceEnd; iOuterFaceNum++) {
+                UWORD wTexturePage = FIGURE_find_face_D3D_texture_page(iOuterFaceNum, bOuterTris);
+
+                // Find the rendered page (allows texture paging/aliasing).
+                UWORD wRealPage = wTexturePage & TEXTURE_PAGE_MASK;
+
+                PolyPage* pRenderedPage = NULL;
+
+                if ((wTexturePage & ~TEXTURE_PAGE_MASK) != 0) {
+                    // Special page flags (jacket, offset, tint, etc.) — don't combine with others.
+                    pRenderedPage = NULL;
+                } else {
+                    pRenderedPage = POLY_Page[wTexturePage & TEXTURE_PAGE_MASK].pTheRealPolyPage;
+                }
+
+                // Find an existing material with this texture page, or create one.
+                PrimObjectMaterial* pMaterial = pPrimObj->pMaterials;
+                int iMatNum;
+                for (iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
+                    if (pRenderedPage != NULL) {
+                        if ((pMaterial->wTexturePage & ~TEXTURE_PAGE_MASK) == 0) {
+                            if (pRenderedPage == (POLY_Page[pMaterial->wTexturePage & TEXTURE_PAGE_MASK].pTheRealPolyPage)) {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (pMaterial->wTexturePage == wTexturePage) {
+                        break;
+                    }
+                    pMaterial++;
+                }
+                if (iMatNum != 0) {
+                    // Face already added to an existing material — skip.
+                } else {
+                    // New material: allocate and initialise a slot for it.
+
+                    pPrimObj->wNumMaterials++;
+                    void* pOldMats = (void*)pPrimObj->pMaterials;
+                    pPrimObj->pMaterials = (PrimObjectMaterial*)MemAlloc(pPrimObj->wNumMaterials * sizeof(*pMaterial));
+                    ASSERT(pPrimObj->pMaterials != NULL);
+                    if (pPrimObj->pMaterials == NULL) {
+                        DeadAndBuried(0x001f001f);
+                    }
+
+                    if (pOldMats != NULL) {
+                        memcpy(pPrimObj->pMaterials, pOldMats, (pPrimObj->wNumMaterials - 1) * sizeof(*pMaterial));
+                        MemFree(pOldMats);
+                    }
+
+                    pMaterial = pPrimObj->pMaterials + pPrimObj->wNumMaterials - 1;
+                    pMaterial->wNumListIndices = 0;
+                    pMaterial->wNumStripIndices = 0;
+                    pMaterial->wNumVertices = 0;
+                    pMaterial->wTexturePage = wTexturePage;
+
+                    D3DVERTEX* pFirstVertex = TPO_pCurVertex;
+
+                    WORD* pFirstListIndex = TPO_pCurListIndex;
+                    WORD* pFirstStripIndex = TPO_pCurStripIndex;
+
+                    // Reset the vertex deduplication tables for this new material.
+                    for (int i = 0; i < MAX_VERTS; i++) {
+                        TPO_piVertexRemap[i] = -1;
+                        TPO_piVertexLinks[i] = -1;
+                    }
+
+                    // Inner loop: scan all remaining prims and add faces that share this material.
+                    for (int iInnerPrimNumber = iOuterPrimNumber; iInnerPrimNumber < TPO_iNumPrims; iInnerPrimNumber++) {
+                        PrimObject* pInnerObj = &prim_objects[TPO_PrimObjects[iInnerPrimNumber]];
+
+                        float* pfBoundingSphereRadius = &(m_fObjectBoundingSphereRadius[TPO_PrimObjects[iInnerPrimNumber]]);
+                        *pfBoundingSphereRadius = 0.0f;
+
+                        ASSERT(pInnerObj != NULL);
+
+                        bool bInnerTris;
+                        if (iInnerPrimNumber == iOuterPrimNumber) {
+                            bInnerTris = bOuterTris;
+                        } else {
+                            bInnerTris = UC_FALSE;
+                        }
+
+                        do {
+                            int iInnerFaceEnd;
+                            int iInnerFaceNum;
+                            if (iInnerPrimNumber == iOuterPrimNumber) {
+                                if (bInnerTris) {
+                                    if (bOuterTris) {
+                                        iInnerFaceNum = iOuterFaceNum;
+                                    } else {
+                                        iInnerFaceNum = pInnerObj->StartFace3;
+                                    }
+                                    iInnerFaceEnd = pInnerObj->EndFace3;
+                                } else {
+                                    if (bOuterTris) {
+                                        ASSERT(UC_FALSE);
+                                        iInnerFaceNum = pInnerObj->StartFace4;
+                                    } else {
+                                        iInnerFaceNum = iOuterFaceNum;
+                                    }
+                                    iInnerFaceEnd = pInnerObj->EndFace4;
+                                }
+                            } else {
+                                if (bInnerTris) {
+                                    iInnerFaceNum = pInnerObj->StartFace3;
+                                    iInnerFaceEnd = pInnerObj->EndFace3;
+                                } else {
+                                    iInnerFaceNum = pInnerObj->StartFace4;
+                                    iInnerFaceEnd = pInnerObj->EndFace4;
+                                }
+                            }
+
+                            ASSERT(iInnerFaceNum <= iInnerFaceEnd);
+                            for (; iInnerFaceNum < iInnerFaceEnd; iInnerFaceNum++) {
+                                UWORD wTexturePage = FIGURE_find_face_D3D_texture_page(iInnerFaceNum, bInnerTris);
+
+                                bool bSamePage = UC_FALSE;
+
+                                if (pMaterial->wTexturePage == wTexturePage) {
+                                    bSamePage = UC_TRUE;
+                                } else if (pRenderedPage != NULL) {
+                                    if (((pMaterial->wTexturePage | wTexturePage) & ~TEXTURE_PAGE_MASK) == 0) {
+                                        if (pRenderedPage == (POLY_Page[wTexturePage & TEXTURE_PAGE_MASK].pTheRealPolyPage)) {
+                                            bSamePage = UC_TRUE;
+                                        }
+                                    }
+                                }
+
+                                if (bSamePage) {
+                                    // Determine actual page for UV offset/scale.
+                                    UWORD wRealPage = wTexturePage & TEXTURE_PAGE_MASK;
+                                    if (wTexturePage & TEXTURE_PAGE_FLAG_JACKET) {
+                                        wRealPage = jacket_lookup[wRealPage][0];
+                                        wRealPage += FACE_PAGE_OFFSET;
+                                    } else if (wTexturePage & TEXTURE_PAGE_FLAG_OFFSET) {
+                                        wRealPage += FACE_PAGE_OFFSET;
+                                    }
+
+                                    PolyPage* pa = &(POLY_Page[wRealPage]);
+
+                                    // Emit vertices for this face, deduplicating by (pos,normal,UV).
+                                    int iIndices[4];
+                                    PrimFace3* p_f3;
+                                    PrimFace4* p_f4;
+                                    int iVerts;
+                                    if (bInnerTris) {
+                                        p_f3 = &prim_faces3[iInnerFaceNum];
+                                        iVerts = 3;
+                                    } else {
+                                        p_f4 = &prim_faces4[iInnerFaceNum];
+                                        iVerts = 4;
+                                    }
+                                    for (int i = 0; i < iVerts; i++) {
+                                        const float fNormScale = 1.0f / 256.0f;
+
+                                        D3DVERTEX d3dvert;
+
+                                        int pt;
+                                        if (bInnerTris) {
+                                            pt = p_f3->Points[i];
+                                            d3dvert.dvTU = float(p_f3->UV[i][0] & 0x3f) * (1.0F / 32.0F);
+                                            d3dvert.dvTV = float(p_f3->UV[i][1]) * (1.0F / 32.0F);
+                                        } else {
+                                            pt = p_f4->Points[i];
+                                            d3dvert.dvTU = float(p_f4->UV[i][0] & 0x3f) * (1.0F / 32.0F);
+                                            d3dvert.dvTV = float(p_f4->UV[i][1]) * (1.0F / 32.0F);
+                                        }
+                                        // Clamp UVs to [0,1] to avoid texture border bleeding.
+                                        if (d3dvert.dvTU < 0.0f) {
+                                            d3dvert.dvTU = 0.0f;
+                                        } else if (d3dvert.dvTU > 1.0f) {
+                                            d3dvert.dvTU = 1.0f;
+                                        }
+                                        if (d3dvert.dvTV < 0.0f) {
+                                            d3dvert.dvTV = 0.0f;
+                                        } else if (d3dvert.dvTV > 1.0f) {
+                                            d3dvert.dvTV = 1.0f;
+                                        }
+
+                                        d3dvert.dvTU = d3dvert.dvTU * pa->m_UScale + pa->m_UOffset;
+                                        d3dvert.dvTV = d3dvert.dvTV * pa->m_VScale + pa->m_VOffset;
+
+                                        d3dvert.dvX = AENG_dx_prim_points[pt].X;
+                                        d3dvert.dvY = AENG_dx_prim_points[pt].Y;
+                                        d3dvert.dvZ = AENG_dx_prim_points[pt].Z;
+                                        d3dvert.dvNX = prim_normal[pt].X * fNormScale;
+                                        d3dvert.dvNY = prim_normal[pt].Y * fNormScale;
+                                        d3dvert.dvNZ = prim_normal[pt].Z * fNormScale;
+                                        // MM index must be set last — it writes into byte 12 of the vertex.
+                                        SET_MM_INDEX(d3dvert, TPO_ubPrimObjMMIndex[iInnerPrimNumber]);
+
+                                        ASSERT(pt >= pInnerObj->StartPoint);
+                                        ASSERT(pt < pInnerObj->EndPoint);
+                                        ASSERT((pt - pInnerObj->StartPoint) < MAX_VERTS);
+
+                                        if ((pt - pInnerObj->StartPoint) >= MAX_VERTS) {
+                                            DeadAndBuried(0xffffffff);
+                                        }
+
+                                        int iPtIndex = TPO_iPrimObjIndexOffset[iInnerPrimNumber] + (pt - pInnerObj->StartPoint);
+                                        int iVertIndex = TPO_piVertexRemap[iPtIndex];
+                                        if (iVertIndex == -1) {
+                                            // First reference to this point: add as new vertex.
+                                            TPO_piVertexRemap[iPtIndex] = pMaterial->wNumVertices;
+                                            TPO_piVertexLinks[pMaterial->wNumVertices] = -1;
+
+                                            iIndices[i] = pMaterial->wNumVertices;
+
+                                            *TPO_pCurVertex = d3dvert;
+                                            TPO_pCurVertex++;
+                                            pMaterial->wNumVertices++;
+                                            TPO_iNumVertices++;
+                                            ASSERT(TPO_iNumVertices < MAX_VERTS);
+
+                                            if (TPO_iNumVertices >= MAX_VERTS) {
+                                                DeadAndBuried(0xffffffff);
+                                            }
+
+                                            // Grow bounding sphere if this vertex is farther out.
+                                            float fDistSqu = (d3dvert.dvX * d3dvert.dvX) + (d3dvert.dvY * d3dvert.dvY) + (d3dvert.dvZ * d3dvert.dvZ);
+                                            if ((*pfBoundingSphereRadius * *pfBoundingSphereRadius) < fDistSqu) {
+                                                *pfBoundingSphereRadius = sqrtf(fDistSqu);
+                                            }
+                                        } else {
+                                            // Walk the UV-variant chain for this position+normal.
+                                            int iLastIndex = iVertIndex;
+                                            while (iVertIndex != -1) {
+                                                ASSERT(pFirstVertex[iVertIndex].dvX == d3dvert.dvX);
+                                                ASSERT(pFirstVertex[iVertIndex].dvY == d3dvert.dvY);
+                                                ASSERT(pFirstVertex[iVertIndex].dvZ == d3dvert.dvZ);
+                                                ASSERT(pFirstVertex[iVertIndex].dvNX == d3dvert.dvNX);
+                                                ASSERT(pFirstVertex[iVertIndex].dvNY == d3dvert.dvNY);
+                                                ASSERT(pFirstVertex[iVertIndex].dvNZ == d3dvert.dvNZ);
+// uc_orig: CLOSE_ENOUGH (fallen/DDEngine/Source/figure.cpp)
+#define CLOSE_ENOUGH(a, b) (fabsf((a) - (b)) < 0.00001f)
+                                                if (CLOSE_ENOUGH(pFirstVertex[iVertIndex].dvTU, d3dvert.dvTU) && CLOSE_ENOUGH(pFirstVertex[iVertIndex].dvTV, d3dvert.dvTV)) {
+                                                    iIndices[i] = iVertIndex;
+                                                    break;
+                                                } else {
+                                                    iLastIndex = iVertIndex;
+                                                    iVertIndex = TPO_piVertexLinks[iVertIndex];
+                                                }
+                                            }
+                                            if (iVertIndex == -1) {
+                                                // No matching UV variant — add a new one.
+                                                TPO_piVertexLinks[iLastIndex] = pMaterial->wNumVertices;
+                                                TPO_piVertexLinks[pMaterial->wNumVertices] = -1;
+
+                                                iIndices[i] = pMaterial->wNumVertices;
+
+                                                *TPO_pCurVertex = d3dvert;
+                                                TPO_pCurVertex++;
+                                                pMaterial->wNumVertices++;
+                                                TPO_iNumVertices++;
+                                                ASSERT(TPO_iNumVertices < MAX_VERTS);
+
+                                                if (TPO_iNumVertices >= MAX_VERTS) {
+                                                    DeadAndBuried(0xffffffff);
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Emit triangle indices (quads split into two tris).
+                                    if (bInnerTris) {
+                                        ASSERT((iIndices[0] >= 0) && (iIndices[0] < pMaterial->wNumVertices));
+                                        ASSERT((iIndices[1] >= 0) && (iIndices[1] < pMaterial->wNumVertices));
+                                        ASSERT((iIndices[2] >= 0) && (iIndices[2] < pMaterial->wNumVertices));
+
+                                        *TPO_pCurListIndex++ = iIndices[0];
+                                        *TPO_pCurListIndex++ = iIndices[1];
+                                        *TPO_pCurListIndex++ = iIndices[2];
+                                        TPO_iNumListIndices += 3;
+                                        pMaterial->wNumListIndices += 3;
+                                        ASSERT(TPO_iNumListIndices < MAX_INDICES);
+
+                                        if (TPO_iNumListIndices >= MAX_INDICES) {
+                                            DeadAndBuried(0x07ff07ff);
+                                        }
+                                    } else {
+                                        ASSERT((iIndices[0] >= 0) && (iIndices[0] < pMaterial->wNumVertices));
+                                        ASSERT((iIndices[1] >= 0) && (iIndices[1] < pMaterial->wNumVertices));
+                                        ASSERT((iIndices[2] >= 0) && (iIndices[2] < pMaterial->wNumVertices));
+                                        ASSERT((iIndices[3] >= 0) && (iIndices[3] < pMaterial->wNumVertices));
+
+                                        // Quad split: two CCW triangles (0,1,2) and (2,1,3).
+                                        *TPO_pCurListIndex++ = iIndices[0];
+                                        *TPO_pCurListIndex++ = iIndices[1];
+                                        *TPO_pCurListIndex++ = iIndices[2];
+                                        *TPO_pCurListIndex++ = iIndices[2];
+                                        *TPO_pCurListIndex++ = iIndices[1];
+                                        *TPO_pCurListIndex++ = iIndices[3];
+                                        TPO_iNumListIndices += 6;
+                                        pMaterial->wNumListIndices += 6;
+                                        ASSERT(TPO_iNumListIndices < MAX_INDICES);
+
+                                        if (TPO_iNumStripIndices >= MAX_INDICES) {
+                                            DeadAndBuried(0x07ff07ff);
+                                        }
+                                    }
+                                }
+                            }
+
+                            bInnerTris = !bInnerTris;
+                        } while (bInnerTris);
+                    }
+
+                    // All faces for this material collected. Run MS strip optimiser, then rebuild strip.
+                    WORD* pSrcIndex;
+
+                    int iRes = MSOptimizeIndexedList(pFirstListIndex, pMaterial->wNumListIndices / 3);
+                    ASSERT(iRes != 0);
+
+                    ASSERT(TPO_pCurStripIndex == pFirstStripIndex);
+                    pSrcIndex = pFirstListIndex;
+                    WORD wIndex0 = -1;
+                    WORD wIndex1 = -1;
+                    bool bOdd = UC_FALSE;
+                    bool bFirst = UC_TRUE;
+                    for (int i = pMaterial->wNumListIndices / 3; i > 0; i--) {
+                        WORD wNextIndex = -1;
+                        if ((wIndex0 == pSrcIndex[2]) && (wIndex1 == pSrcIndex[0])) {
+                            wNextIndex = pSrcIndex[1];
+                        } else if ((wIndex0 == pSrcIndex[0]) && (wIndex1 == pSrcIndex[1])) {
+                            wNextIndex = pSrcIndex[2];
+                        } else if ((wIndex0 == pSrcIndex[1]) && (wIndex1 == pSrcIndex[2])) {
+                            wNextIndex = pSrcIndex[0];
+                        }
+                        if (wNextIndex != (WORD)-1) {
+                            // Continue the current strip.
+                            *TPO_pCurStripIndex++ = wNextIndex;
+                            TPO_iNumStripIndices += 1;
+                            pMaterial->wNumStripIndices += 1;
+                            ASSERT(TPO_iNumStripIndices < MAX_INDICES);
+
+                            if (TPO_iNumStripIndices >= MAX_INDICES) {
+                                DeadAndBuried(0x07ff07ff);
+                            }
+
+                            if (bOdd) {
+                                wIndex0 = wNextIndex;
+                            } else {
+                                wIndex1 = wNextIndex;
+                            }
+                            bOdd = !bOdd;
+                        } else {
+                            // Start a new strip.
+                            if (!bFirst) {
+                                *TPO_pCurStripIndex++ = -1;
+                                TPO_iNumStripIndices += 1;
+                                pMaterial->wNumStripIndices += 1;
+                                ASSERT(TPO_iNumStripIndices < MAX_INDICES);
+
+                                if (TPO_iNumStripIndices >= MAX_INDICES) {
+                                    DeadAndBuried(0x07ff07ff);
+                                }
+
+                            } else {
+                                bFirst = UC_FALSE;
+                            }
+                            *TPO_pCurStripIndex++ = pSrcIndex[0];
+                            *TPO_pCurStripIndex++ = pSrcIndex[1];
+                            *TPO_pCurStripIndex++ = pSrcIndex[2];
+                            TPO_iNumStripIndices += 3;
+                            pMaterial->wNumStripIndices += 3;
+                            ASSERT(TPO_iNumStripIndices < MAX_INDICES);
+
+                            if (TPO_iNumStripIndices >= MAX_INDICES) {
+                                DeadAndBuried(0x07ff07ff);
+                            }
+
+                            wIndex0 = pSrcIndex[2];
+                            wIndex1 = pSrcIndex[1];
+                            bOdd = UC_FALSE;
+                        }
+                        pSrcIndex += 3;
+                    }
+                    // Terminate the strip sequence with -1.
+                    *TPO_pCurStripIndex++ = -1;
+                    TPO_iNumStripIndices += 1;
+                    pMaterial->wNumStripIndices += 1;
+                    ASSERT(TPO_iNumStripIndices < MAX_INDICES);
+
+                    if (TPO_iNumStripIndices >= MAX_INDICES) {
+                        DeadAndBuried(0x07ff07ff);
+                    }
+
+                    ASSERT(pMaterial->wNumStripIndices == (TPO_pCurStripIndex - pFirstStripIndex));
+                }
+            }
+
+            bOuterTris = !bOuterTris;
+        } while (bOuterTris);
+    }
+
+    pPrimObj->wTotalSizeOfObj = TPO_iNumVertices;
+
+    // Allocate one unified block for list indices, vertices (32-byte aligned), and strip indices.
+    // The extra 4 WORDs at the end prevent a page fault from the MM driver reading past the end.
+    DWORD dwTotalSize = 0;
+    dwTotalSize += TPO_iNumListIndices * sizeof(UWORD);
+    dwTotalSize += 32 + TPO_iNumVertices * sizeof(D3DVERTEX);
+    dwTotalSize += TPO_iNumStripIndices * sizeof(UWORD);
+    dwTotalSize += 4 * sizeof(WORD);
+
+    char* pcBlock = (char*)MemAlloc(dwTotalSize);
+    ASSERT(pcBlock != NULL);
+    if (pcBlock == NULL) {
+        DeadAndBuried(0xffe0ffe0);
+    }
+
+    pPrimObj->pwListIndices = (UWORD*)pcBlock;
+    memcpy(pPrimObj->pwListIndices, TPO_pListIndices, TPO_iNumListIndices * sizeof(UWORD));
+    pcBlock += TPO_iNumListIndices * sizeof(UWORD);
+
+    // Align vertices to 32-byte cache lines for the MM extension.
+    pPrimObj->pD3DVertices = (void*)(((DWORD)pcBlock + 31) & ~31);
+    memcpy(pPrimObj->pD3DVertices, TPO_pVert, TPO_iNumVertices * sizeof(D3DVERTEX));
+    pcBlock = (char*)pPrimObj->pD3DVertices + TPO_iNumVertices * sizeof(D3DVERTEX);
+
+    pPrimObj->pwStripIndices = (UWORD*)pcBlock;
+    memcpy(pPrimObj->pwStripIndices, TPO_pStripIndices, TPO_iNumStripIndices * sizeof(UWORD));
+    pcBlock += TPO_iNumStripIndices * sizeof(UWORD);
+
+    ASSERT((DWORD)pcBlock < (DWORD)pPrimObj->pwListIndices + dwTotalSize);
+
+    MemFree(TPO_piVertexLinks);
+    MemFree(TPO_piVertexRemap);
+    MemFree(TPO_pListIndices);
+    MemFree(TPO_pStripIndices);
+    MemFree(TPO_pVert);
+
+    pPrimObj->fBoundingSphereRadius = sqrtf(pPrimObj->fBoundingSphereRadius);
+
+    FIGURE_find_and_clean_prim_queue_item(pPrimObj, iThrashIndex);
+
+    // Clear all working state so the next object can start cleanly.
+    TPO_pVert = NULL;
+    TPO_pStripIndices = NULL;
+    TPO_pListIndices = NULL;
+    TPO_piVertexRemap = NULL;
+    TPO_piVertexLinks = NULL;
+    TPO_pCurVertex = NULL;
+    TPO_pCurStripIndex = NULL;
+    TPO_pCurListIndex = NULL;
+    TPO_pPrimObj = NULL;
+    TPO_iNumListIndices = 0;
+    TPO_iNumStripIndices = 0;
+    TPO_iNumVertices = 0;
+    TPO_iNumPrims = 0;
+}
+
+// uc_orig: FIGURE_generate_D3D_object (fallen/DDEngine/Source/figure.cpp)
+// Convenience wrapper: compiles a single-prim TomsPrimObject in D3DObj[prim].
+// Called lazily on first draw of each body-part prim.
+void FIGURE_generate_D3D_object(SLONG prim)
+{
+    PrimObject* p_obj = &prim_objects[prim];
+    TomsPrimObject* pPrimObj = &(D3DObj[prim]);
+
+    FIGURE_TPO_init_3d_object(pPrimObj);
+    FIGURE_TPO_add_prim_to_current_object(prim, 0);
+    FIGURE_TPO_finish_3d_object(pPrimObj);
+}
+
+// uc_orig: FIGURE_draw_prim_tween (fallen/DDEngine/Source/figure.cpp)
+// Software-path body-part renderer (used when D3D MultiMatrix is active for matrix setup
+// but the per-face submission still goes through here for the non-person-only path).
+// Interpolates keyframe A→B via lerp (offsets) and slerp (rotations), transforms all vertices
+// via the combined world matrix, then draws each face via POLY_add_quad / POLY_add_triangle
+// for the software rasteriser.  The GPU MultiMatrix path (DrawIndPrimMM) is also triggered here
+// for opaque, non-near-clipped materials.
+// part_number: which skeleton slot this prim represents (0xffffffff = unknown).
+// colour_and: multiplied into the tint fade table.
+void FIGURE_draw_prim_tween(
+    SLONG prim,
+    SLONG x,
+    SLONG y,
+    SLONG z,
+    SLONG tween,
+    struct GameKeyFrameElement* anim_info,
+    struct GameKeyFrameElement* anim_info_next,
+    struct Matrix33* rot_mat,
+    SLONG off_dx,
+    SLONG off_dy,
+    SLONG off_dz,
+    ULONG colour,
+    ULONG specular,
+    CMatrix33* parent_base_mat,
+    Matrix31* parent_base_pos,
+    Matrix33* parent_curr_mat,
+    Matrix31* parent_curr_pos,
+    Matrix33* end_mat,
+    Matrix31* end_pos,
+    Thing* p_thing,
+    SLONG part_number,
+    ULONG colour_and)
+{
+
+    SLONG i;
+    SLONG j;
+
+    SLONG sp;
+    SLONG ep;
+
+    SLONG p0;
+    SLONG p1;
+    SLONG p2;
+    SLONG p3;
+
+    SLONG nx;
+    SLONG ny;
+    SLONG nz;
+
+    SLONG red;
+    SLONG green;
+    SLONG blue;
+    SLONG dprod;
+    SLONG r;
+    SLONG g;
+    SLONG b;
+
+    SLONG dr;
+    SLONG dg;
+    SLONG db;
+
+    SLONG face_colour;
+
+    SLONG page;
+
+    Matrix31 offset;
+    Matrix33 mat2;
+    Matrix33 mat_final;
+
+    ULONG qc0;
+    ULONG qc1;
+    ULONG qc2;
+    ULONG qc3;
+
+    SVector temp;
+
+    PrimFace4* p_f4;
+    PrimFace3* p_f3;
+    PrimObject* p_obj;
+    NIGHT_Found* nf;
+
+    POLY_Point* pp;
+    POLY_Point* ps;
+
+    POLY_Point* tri[3];
+    POLY_Point* quad[4];
+    SLONG tex_page_offset;
+
+    tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
+
+    // Forward declarations of matrix helpers used below.
+    void matrix_transform(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
+    void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
+    void matrix_mult33(Matrix33 * result, Matrix33 * mat1, Matrix33 * mat2);
+
+    if (parent_base_mat) {
+        // Hierarchical body part: compute offset in parent space.
+        Matrix31 p;
+        p.M[0] = anim_info->OffsetX;
+        p.M[1] = anim_info->OffsetY;
+        p.M[2] = anim_info->OffsetZ;
+
+        HIERARCHY_Get_Body_Part_Offset(&offset, &p,
+            parent_base_mat, parent_base_pos,
+            parent_curr_mat, parent_curr_pos);
+
+        if (end_pos)
+            *end_pos = offset;
+    } else {
+        // Lerp offset between keyframe A and B.
+        offset.M[0] = (anim_info->OffsetX << 8) + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween);
+        offset.M[1] = (anim_info->OffsetY << 8) + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween);
+        offset.M[2] = (anim_info->OffsetZ << 8) + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween);
+
+        /* We don't have bikes.
+                        if (p_thing->Class == CLASS_BIKE && part_number == 3)
+                        {
+                                //offset.M[0] = 0x0;
+                                //offset.M[1] = 0x900;
+                                offset.M[2] = 0x3500;
+                        }
+        */
+        if (end_pos) {
+            *end_pos = offset;
+        }
+    }
+
+    // Convert offset to float world-space position via rot_mat (fixed-point ×32768).
+    float off_x = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[0][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[0][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[0][2]) / 32768.f);
+    float off_y = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[1][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[1][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[1][2]) / 32768.f);
+    float off_z = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[2][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[2][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[2][2]) / 32768.f);
+
+    SLONG character_scale = person_get_scale(p_thing);
+    float character_scalef = float(character_scale) / 256.f;
+
+    off_x *= character_scalef;
+    off_y *= character_scalef;
+    off_z *= character_scalef;
+
+    /*
+
+    if (p_thing->Class == CLASS_BIKE)
+    {
+            off_x = 0;
+            off_y = 0;
+            off_z = 0;
+    }
+
+    */
+
+    off_x += float(x);
+    off_y += float(y);
+    off_z += float(z);
+
+    float fmatrix[9];
+    SLONG imatrix[9];
+
+    {
+        // Slerp rotation between keyframe A and B, then combine with parent/world matrix.
+        CMatrix33 m1, m2;
+        GetCMatrix(anim_info, &m1);
+        GetCMatrix(anim_info_next, &m2);
+
+        CQuaternion::BuildTween(&mat2, &m1, &m2, tween);
+
+        if (end_mat)
+            *end_mat = mat2;
+
+        matrix_mult33(&mat_final, rot_mat, &mat2);
+
+        // Scale the combined matrix by character_scale (256-based fixed point).
+        mat_final.M[0][0] = (mat_final.M[0][0] * character_scale) / 256;
+        mat_final.M[0][1] = (mat_final.M[0][1] * character_scale) / 256;
+        mat_final.M[0][2] = (mat_final.M[0][2] * character_scale) / 256;
+        mat_final.M[1][0] = (mat_final.M[1][0] * character_scale) / 256;
+        mat_final.M[1][1] = (mat_final.M[1][1] * character_scale) / 256;
+        mat_final.M[1][2] = (mat_final.M[1][2] * character_scale) / 256;
+        mat_final.M[2][0] = (mat_final.M[2][0] * character_scale) / 256;
+        mat_final.M[2][1] = (mat_final.M[2][1] * character_scale) / 256;
+        mat_final.M[2][2] = (mat_final.M[2][2] * character_scale) / 256;
+
+        fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+        fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+        fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+        fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+        fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+        fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+        fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+        fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+        fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+
+        imatrix[0] = mat_final.M[0][0] * 2;
+        imatrix[1] = mat_final.M[0][1] * 2;
+        imatrix[2] = mat_final.M[0][2] * 2;
+        imatrix[3] = mat_final.M[1][0] * 2;
+        imatrix[4] = mat_final.M[1][1] * 2;
+        imatrix[5] = mat_final.M[1][2] * 2;
+        imatrix[6] = mat_final.M[2][0] * 2;
+        imatrix[7] = mat_final.M[2][1] * 2;
+        imatrix[8] = mat_final.M[2][2] * 2;
+    }
+
+    /*
+
+    if (part_number == SUB_OBJECT_HEAD)
+    {
+            fmatrix[0]=	+0.131534;
+            fmatrix[1]=	-0.000000;
+            fmatrix[2]=	+0.991312;
+            fmatrix[3]=	+0.00133604;
+            fmatrix[4]=	+0.999999;
+            fmatrix[5]=	-0.000177275;
+            fmatrix[6]=	-0.991311;
+            fmatrix[7]=	0.00134775;
+            fmatrix[8]=	0.131534;;
+    }
+
+    */
+
+    if (prim == 267) {
+        static int count = 0;
+
+        count += 1;
+    }
+
+    POLY_set_local_rotation(
+        off_x,
+        off_y,
+        off_z,
+        fmatrix);
+
+    p_obj = &prim_objects[prim];
+
+    sp = p_obj->StartPoint;
+    ep = p_obj->EndPoint;
+
+    POLY_buffer_upto = 0;
+
+    // Gun muzzle position extraction: vertex 0 of each gun prim is the muzzle point.
+    if (prim == 256) {
+        i = sp;
+    } else
+        if (prim == 258) {
+            i = sp + 15;
+        }
+        else if (prim == 260) {
+            i = sp + 32;
+        } else
+            goto no_muzzle_calcs;
+
+    pp = &POLY_buffer[POLY_buffer_upto]; // reused (no ++)
+    pp->x = AENG_dx_prim_points[i].X;
+    pp->y = AENG_dx_prim_points[i].Y;
+    pp->z = AENG_dx_prim_points[i].Z;
+    MATRIX_MUL(
+        fmatrix,
+        pp->x,
+        pp->y,
+        pp->z);
+
+    pp->x += off_x;
+    pp->y += off_y;
+    pp->z += off_z;
+    p_thing->Genus.Person->GunMuzzle.X = pp->x * 256;
+    p_thing->Genus.Person->GunMuzzle.Y = pp->y * 256;
+    p_thing->Genus.Person->GunMuzzle.Z = pp->z * 256;
+
+no_muzzle_calcs:
+
+    if (!MM_bLightTableAlreadySetUp) {
+    }
+
+    if (WITHIN(prim, 261, 263)) {
+        // Muzzle flash prims: no lighting, flat grey colour.
+
+        for (i = sp; i < ep; i++) {
+            ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
+
+            pp = &POLY_buffer[POLY_buffer_upto++];
+
+            POLY_transform_using_local_rotation(
+                AENG_dx_prim_points[i].X,
+                AENG_dx_prim_points[i].Y,
+                AENG_dx_prim_points[i].Z,
+                pp);
+
+            pp->colour = 0xff808080;
+            pp->specular = 0xff000000;
+        }
+
+        for (i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
+            p_f4 = &prim_faces4[i];
+
+            p0 = p_f4->Points[0] - sp;
+            p1 = p_f4->Points[1] - sp;
+            p2 = p_f4->Points[2] - sp;
+            p3 = p_f4->Points[3] - sp;
+
+            ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
+            ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
+            ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
+            ASSERT(WITHIN(p3, 0, POLY_buffer_upto - 1));
+
+            quad[0] = &POLY_buffer[p0];
+            quad[1] = &POLY_buffer[p1];
+            quad[2] = &POLY_buffer[p2];
+            quad[3] = &POLY_buffer[p3];
+
+            if (POLY_valid_quad(quad)) {
+                quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
+                quad[0]->v = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
+
+                quad[1]->u = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
+                quad[1]->v = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
+
+                quad[2]->u = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
+                quad[2]->v = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
+
+                quad[3]->u = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
+                quad[3]->v = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
+
+                page = p_f4->UV[0][0] & 0xc0;
+                page <<= 2;
+                page |= p_f4->TexturePage;
+
+                if (tex_page_offset && page > 10 * 64 && alt_texture[page - 10 * 64]) {
+                    page = alt_texture[page - 10 * 64] + tex_page_offset - 1;
+                } else
+                    page += FACE_PAGE_OFFSET;
+
+                POLY_add_quad(quad, page, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
+            }
+        }
+
+        for (i = p_obj->StartFace3; i < p_obj->EndFace3; i++) {
+            p_f3 = &prim_faces3[i];
+
+            p0 = p_f3->Points[0] - sp;
+            p1 = p_f3->Points[1] - sp;
+            p2 = p_f3->Points[2] - sp;
+
+            ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
+            ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
+            ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
+
+            tri[0] = &POLY_buffer[p0];
+            tri[1] = &POLY_buffer[p1];
+            tri[2] = &POLY_buffer[p2];
+
+            if (POLY_valid_triangle(tri)) {
+                tri[0]->u = float(p_f3->UV[0][0] & 0x3f) * (1.0F / 32.0F);
+                tri[0]->v = float(p_f3->UV[0][1]) * (1.0F / 32.0F);
+
+                tri[1]->u = float(p_f3->UV[1][0]) * (1.0F / 32.0F);
+                tri[1]->v = float(p_f3->UV[1][1]) * (1.0F / 32.0F);
+
+                tri[2]->u = float(p_f3->UV[2][0]) * (1.0F / 32.0F);
+                tri[2]->v = float(p_f3->UV[2][1]) * (1.0F / 32.0F);
+
+                page = p_f3->UV[0][0] & 0xc0;
+                page <<= 2;
+                page |= p_f3->TexturePage;
+
+                if (tex_page_offset && page > 10 * 64 && alt_texture[page - 10 * 64]) {
+                    page = alt_texture[page - 10 * 64] + tex_page_offset - 1;
+                } else
+                    page += FACE_PAGE_OFFSET;
+
+                POLY_add_triangle(tri, page, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
+            }
+        }
+
+        return;
+    } else {
+
+        if (!MM_bLightTableAlreadySetUp) {
+            // Build lighting table if not already done (lazy for this character).
+            Pyro* p = NULL;
+            if (p_thing->Class == CLASS_PERSON && p_thing->Genus.Person->BurnIndex) {
+                p = TO_PYRO(p_thing->Genus.Person->BurnIndex - 1);
+                if (p->PyroType != PYRO_IMMOLATE) {
+                    p = NULL;
+                }
+            }
+            BuildMMLightingTable(p, colour_and);
+        }
+
+        extern float POLY_cam_matrix_comb[9];
+        extern float POLY_cam_off_x;
+        extern float POLY_cam_off_y;
+        extern float POLY_cam_off_z;
+
+        extern D3DMATRIX g_matProjection;
+        extern D3DMATRIX g_matWorld;
+        extern D3DVIEWPORT2 g_viewData;
+
+        D3DMATRIX matTemp;
+
+        {
+            matTemp._11 = g_matWorld._11 * g_matProjection._11 + g_matWorld._12 * g_matProjection._21 + g_matWorld._13 * g_matProjection._31 + g_matWorld._14 * g_matProjection._41;
+            matTemp._12 = g_matWorld._11 * g_matProjection._12 + g_matWorld._12 * g_matProjection._22 + g_matWorld._13 * g_matProjection._32 + g_matWorld._14 * g_matProjection._42;
+            matTemp._13 = g_matWorld._11 * g_matProjection._13 + g_matWorld._12 * g_matProjection._23 + g_matWorld._13 * g_matProjection._33 + g_matWorld._14 * g_matProjection._43;
+            matTemp._14 = g_matWorld._11 * g_matProjection._14 + g_matWorld._12 * g_matProjection._24 + g_matWorld._13 * g_matProjection._34 + g_matWorld._14 * g_matProjection._44;
+
+            matTemp._21 = g_matWorld._21 * g_matProjection._11 + g_matWorld._22 * g_matProjection._21 + g_matWorld._23 * g_matProjection._31 + g_matWorld._24 * g_matProjection._41;
+            matTemp._22 = g_matWorld._21 * g_matProjection._12 + g_matWorld._22 * g_matProjection._22 + g_matWorld._23 * g_matProjection._32 + g_matWorld._24 * g_matProjection._42;
+            matTemp._23 = g_matWorld._21 * g_matProjection._13 + g_matWorld._22 * g_matProjection._23 + g_matWorld._23 * g_matProjection._33 + g_matWorld._24 * g_matProjection._43;
+            matTemp._24 = g_matWorld._21 * g_matProjection._14 + g_matWorld._22 * g_matProjection._24 + g_matWorld._23 * g_matProjection._34 + g_matWorld._24 * g_matProjection._44;
+
+            matTemp._31 = g_matWorld._31 * g_matProjection._11 + g_matWorld._32 * g_matProjection._21 + g_matWorld._33 * g_matProjection._31 + g_matWorld._34 * g_matProjection._41;
+            matTemp._32 = g_matWorld._31 * g_matProjection._12 + g_matWorld._32 * g_matProjection._22 + g_matWorld._33 * g_matProjection._32 + g_matWorld._34 * g_matProjection._42;
+            matTemp._33 = g_matWorld._31 * g_matProjection._13 + g_matWorld._32 * g_matProjection._23 + g_matWorld._33 * g_matProjection._33 + g_matWorld._34 * g_matProjection._43;
+            matTemp._34 = g_matWorld._31 * g_matProjection._14 + g_matWorld._32 * g_matProjection._24 + g_matWorld._33 * g_matProjection._34 + g_matWorld._34 * g_matProjection._44;
+
+            matTemp._41 = g_matWorld._41 * g_matProjection._11 + g_matWorld._42 * g_matProjection._21 + g_matWorld._43 * g_matProjection._31 + g_matWorld._44 * g_matProjection._41;
+            matTemp._42 = g_matWorld._41 * g_matProjection._12 + g_matWorld._42 * g_matProjection._22 + g_matWorld._43 * g_matProjection._32 + g_matWorld._44 * g_matProjection._42;
+            matTemp._43 = g_matWorld._41 * g_matProjection._13 + g_matWorld._42 * g_matProjection._23 + g_matWorld._43 * g_matProjection._33 + g_matWorld._44 * g_matProjection._43;
+            matTemp._44 = g_matWorld._41 * g_matProjection._14 + g_matWorld._42 * g_matProjection._24 + g_matWorld._43 * g_matProjection._34 + g_matWorld._44 * g_matProjection._44;
+        }
+
+        // Build the MM matrix from the projection*world combined matrix and viewport.
+        // Uses letterbox-mode height/Y override (g_dw3DStuffHeight / g_dw3DStuffY).
+        extern DWORD g_dw3DStuffHeight;
+        extern DWORD g_dw3DStuffY;
+        DWORD dwWidth = g_viewData.dwWidth >> 1;
+        DWORD dwHeight = g_dw3DStuffHeight >> 1;
+        DWORD dwX = g_viewData.dwX;
+        DWORD dwY = g_dw3DStuffY;
+        MM_pMatrix[0]._11 = 0.0f;
+        MM_pMatrix[0]._12 = matTemp._11 * (float)dwWidth + matTemp._14 * (float)(dwX + dwWidth);
+        MM_pMatrix[0]._13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);
+        MM_pMatrix[0]._14 = matTemp._14;
+        MM_pMatrix[0]._21 = 0.0f;
+        MM_pMatrix[0]._22 = matTemp._21 * (float)dwWidth + matTemp._24 * (float)(dwX + dwWidth);
+        MM_pMatrix[0]._23 = matTemp._22 * -(float)dwHeight + matTemp._24 * (float)(dwY + dwHeight);
+        MM_pMatrix[0]._24 = matTemp._24;
+        MM_pMatrix[0]._31 = 0.0f;
+        MM_pMatrix[0]._32 = matTemp._31 * (float)dwWidth + matTemp._34 * (float)(dwX + dwWidth);
+        MM_pMatrix[0]._33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
+        MM_pMatrix[0]._34 = matTemp._34;
+        // Validation magic number required by the MM driver.
+        unsigned long EVal = 0xe0001000;
+        MM_pMatrix[0]._41 = *(float*)&EVal;
+        MM_pMatrix[0]._42 = matTemp._41 * (float)dwWidth + matTemp._44 * (float)(dwX + dwWidth);
+        MM_pMatrix[0]._43 = matTemp._42 * -(float)dwHeight + matTemp._44 * (float)(dwY + dwHeight);
+        MM_pMatrix[0]._44 = matTemp._44;
+
+        // 251 is a magic number for the DIP call.
+        const float fNormScale = 251.0f;
+
+        // Transform light direction into object space (inverse = transpose for orthonormal matrices).
+        D3DVECTOR vTemp;
+        vTemp.x = MM_vLightDir.x * fmatrix[0] + MM_vLightDir.y * fmatrix[3] + MM_vLightDir.z * fmatrix[6];
+        vTemp.y = MM_vLightDir.x * fmatrix[1] + MM_vLightDir.y * fmatrix[4] + MM_vLightDir.z * fmatrix[7];
+        vTemp.z = MM_vLightDir.x * fmatrix[2] + MM_vLightDir.y * fmatrix[5] + MM_vLightDir.z * fmatrix[8];
+
+        MM_pNormal[0] = 0.0f;
+        MM_pNormal[1] = vTemp.x * fNormScale;
+        MM_pNormal[2] = vTemp.y * fNormScale;
+        MM_pNormal[3] = vTemp.z * fNormScale;
+    }
+
+    // Disable specular — MM extension requires it off.
+    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
+
+    // Lazy-compile the D3D representation of this prim if it hasn't been done yet.
+    TomsPrimObject* pPrimObj = &(D3DObj[prim]);
+    if (pPrimObj->wNumMaterials == 0) {
+        FIGURE_generate_D3D_object(prim);
+    }
+
+    FIGURE_touch_LRU_of_object(pPrimObj);
+
+    ASSERT(pPrimObj->pD3DVertices != NULL);
+    ASSERT(pPrimObj->pMaterials != NULL);
+    ASSERT(pPrimObj->pwListIndices != NULL);
+    ASSERT(pPrimObj->pwStripIndices != NULL);
+    ASSERT(pPrimObj->wNumMaterials != 0);
+
+    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
+
+    D3DMULTIMATRIX d3dmm;
+    d3dmm.lpd3dMatrices = MM_pMatrix;
+    d3dmm.lpvLightDirs = MM_pNormal;
+
+    D3DVERTEX* pVertex = (D3DVERTEX*)pPrimObj->pD3DVertices;
+    UWORD* pwListIndices = pPrimObj->pwListIndices;
+    UWORD* pwStripIndices = pPrimObj->pwStripIndices;
+    for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
+        UWORD wPage = pMat->wTexturePage;
+        UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
+
+        if (wPage & TEXTURE_PAGE_FLAG_JACKET) {
+            wRealPage = jacket_lookup[wRealPage][GET_SKILL(p_thing) >> 2];
+            wRealPage += FACE_PAGE_OFFSET;
+        } else if (wPage & TEXTURE_PAGE_FLAG_OFFSET) {
+            if (tex_page_offset == 0) {
+                wRealPage += FACE_PAGE_OFFSET;
+            } else {
+                wRealPage = alt_texture[wRealPage - (10 * 64)] + tex_page_offset - 1;
+            }
+        }
+
+        extern D3DMATRIX g_matWorld;
+
+        PolyPage* pa = &(POLY_Page[wRealPage]);
+        ASSERT((character_scalef < 1.2f) && (character_scalef > 0.8f));
+        if (!pa->RS.NeedsSorting() && (FIGURE_alpha == 255) && (((g_matWorld._43 * 32768.0f) - (pPrimObj->fBoundingSphereRadius * character_scalef)) > (POLY_ZCLIP_PLANE * 32768.0f))) {
+            // Opaque, not near-clipped: use fast MultiMatrix path.
+            if (wPage & TEXTURE_PAGE_FLAG_TINT) {
+                d3dmm.lpLightTable = MM_pcFadeTableTint;
+            } else {
+                d3dmm.lpLightTable = MM_pcFadeTable;
+            }
+            d3dmm.lpvVertices = pVertex;
+
+            pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
+            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
+            pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
+            pa->RS.SetChanged();
+
+            HRESULT hres;
+
+            {
+                hres = DrawIndPrimMM(
+                    (the_display.lp_D3D_Device),
+                    D3DFVF_VERTEX,
+                    &d3dmm,
+                    pMat->wNumVertices,
+                    pwStripIndices,
+                    pMat->wNumStripIndices);
+            }
+
+        } else {
+            // Alpha or near-clipped path: currently unimplemented (fast-reject instead).
+        }
+
+        pVertex += pMat->wNumVertices;
+        pwListIndices += pMat->wNumListIndices;
+        pwStripIndices += pMat->wNumStripIndices;
+
+        pMat++;
+    }
+
+    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
+
+    if (!MM_bLightTableAlreadySetUp) {
+    }
+}
+
+// Chunk 3+ (FIGURE_draw_prim_tween_warped, FIGURE_draw_hierarchical_prim_recurse,
+// part_type, mandom, local_set_seed, FIGURE_draw, ANIM_obj_draw, ANIM_obj_draw_warped,
 // FIGURE_draw_prim_tween_reflection, FIGURE_draw_reflection,
 // FIGURE_draw_prim_tween_person_only_just_set_matrix, FIGURE_draw_prim_tween_person_only)
 // — deferred to future iterations.

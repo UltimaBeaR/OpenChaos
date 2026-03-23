@@ -1596,6 +1596,8 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj /*, int iThrashIndex = 0
 
 #endif // MIGRATED to src/new/engine/animation/figure.cpp + figure_globals.cpp (iteration 146) [chunk 1]
 
+#if 0 // MIGRATED to src/new/engine/animation/figure.cpp (iteration 147) [chunk 2: FIGURE_TPO_add_prim_to_current_object, FIGURE_TPO_finish_3d_object, FIGURE_generate_D3D_object, FIGURE_draw_prim_tween]
+
 // Add a prim to this 3D object.
 // prim = the prim number to add.
 // iSubObjectNumber = sub-object number, used for multimatrix stuff.
@@ -2837,6 +2839,8 @@ no_muzzle_calcs:
     if (!MM_bLightTableAlreadySetUp) {
     }
 }
+
+#endif // MIGRATED to src/new/engine/animation/figure.cpp (iteration 147) [chunk 2]
 
 // claude-ai: FIGURE_draw_prim_tween_warped — variant of FIGURE_draw_prim_tween used for
 // claude-ai: warped/distorted character rendering (e.g., heat shimmer, teleport effect).

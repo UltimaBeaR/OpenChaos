@@ -77579,6 +77579,96 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_TPO_add_prim_to_current_object",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_TPO_add_prim_to_current_object",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_TPO_add_prim_to_current_object",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "FIGURE_TPO_add_prim_to_current_object",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_TPO_finish_3d_object",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_TPO_finish_3d_object",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_TPO_finish_3d_object",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "FIGURE_TPO_finish_3d_object",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_generate_D3D_object",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_generate_D3D_object",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_generate_D3D_object",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "FIGURE_generate_D3D_object",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_draw_prim_tween",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_draw_prim_tween",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_draw_prim_tween",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "FIGURE_draw_prim_tween",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOSE_ENOUGH",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "CLOSE_ENOUGH",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

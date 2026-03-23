@@ -1,5 +1,12 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 147 — figure.cpp chunk 2: FIGURE_TPO_add_prim_to_current_object + FIGURE_TPO_finish_3d_object + FIGURE_generate_D3D_object + FIGURE_draw_prim_tween (2026-03-23)
+
+- `CLOSE_ENOUGH` — #define внутри тела функции FIGURE_TPO_finish_3d_object; перенесён как есть (function-scope macro).
+- CHECK A fix: `CLOSE_ENOUGH` изначально без `uc_orig` — добавлен во время ревью.
+
+---
+
 ## Итерация 146 — figure.cpp chunk 1: globals + MSMesh + steam/flame + LRU cache + FIGURE_TPO_init_3d_object (2026-03-23)
 
 - Созданы `engine/animation/figure.h`, `engine/animation/figure.cpp`, `engine/animation/figure_globals.h`, `engine/animation/figure_globals.cpp`.

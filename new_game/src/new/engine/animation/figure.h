@@ -126,11 +126,48 @@ void FIGURE_touch_LRU_of_object(TomsPrimObject* pPrimObj);
 // uc_orig: FIGURE_TPO_init_3d_object (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj);
 
+// Registers one prim into the active TomsPrimObject compilation context.
+// Call between FIGURE_TPO_init_3d_object and FIGURE_TPO_finish_3d_object.
+// uc_orig: FIGURE_TPO_add_prim_to_current_object (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_TPO_add_prim_to_current_object(SLONG prim, UBYTE ubSubObjectNumber);
+
+// Finalises the TomsPrimObject pPrimObj: groups faces by material, deduplicates vertices,
+// builds index/strip lists, copies to a heap block, registers in the LRU cache.
+// uc_orig: FIGURE_TPO_finish_3d_object (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0);
+
+// Convenience wrapper: init + add + finish for a single-prim D3D object (lazy-compiles D3DObj[prim]).
+// uc_orig: FIGURE_generate_D3D_object (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_generate_D3D_object(SLONG prim);
+
+// Software-path body-part renderer with keyframe interpolation (lerp offsets, slerp rotations).
+// Also sets up the D3D MultiMatrix for the GPU hardware path on opaque non-clipped materials.
+// uc_orig: FIGURE_draw_prim_tween (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_draw_prim_tween(
+    SLONG prim,
+    SLONG x,
+    SLONG y,
+    SLONG z,
+    SLONG tween,
+    struct GameKeyFrameElement* anim_info,
+    struct GameKeyFrameElement* anim_info_next,
+    struct Matrix33* rot_mat,
+    SLONG off_dx,
+    SLONG off_dy,
+    SLONG off_dz,
+    ULONG colour,
+    ULONG specular,
+    CMatrix33* parent_base_mat,
+    Matrix31* parent_base_pos,
+    Matrix33* parent_curr_mat,
+    Matrix31* parent_curr_pos,
+    Matrix33* end_mat,
+    Matrix31* end_pos,
+    Thing* p_thing,
+    SLONG part_number = 0xffffffff,
+    ULONG colour_and = 0xffffffff);
+
 // --- The following will be added in future chunks as they are migrated ---
-// FIGURE_TPO_add_prim_to_current_object  (chunk 2)
-// FIGURE_TPO_finish_3d_object            (chunk 2)
-// FIGURE_generate_D3D_object             (chunk 2)
-// FIGURE_draw_prim_tween                 (chunk 2)
 // FIGURE_draw_prim_tween_warped          (chunk 3)
 // FIGURE_draw_hierarchical_prim_recurse  (chunk 3)
 // FIGURE_draw                            (chunk 4)
