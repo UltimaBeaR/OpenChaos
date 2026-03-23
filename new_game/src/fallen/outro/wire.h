@@ -1,20 +1,2 @@
-//
-// The wire-frame spinny objects
-//
-
-#ifndef FALLEN_OUTRO_WIRE_H
-#define FALLEN_OUTRO_WIRE_H
-
-//
-// Loads the objects and their textures.
-//
-
-void WIRE_init(void);
-
-//
-// Draws the wire framed objects...
-//
-
-void WIRE_draw(void);
-
-#endif // FALLEN_OUTRO_WIRE_H
+// Redirect header — all entities moved to ui/cutscenes/outro/outro_wire.h (Stage 4).
+#include "ui/cutscenes/outro/outro_wire.h"

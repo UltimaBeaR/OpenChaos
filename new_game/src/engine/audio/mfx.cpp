@@ -13,8 +13,7 @@
 #include "ui/camera/fc_globals.h"
 // Temporary: env.h not yet migrated
 #include "engine/io/env.h"
-// Temporary: MF_Fopen/MF_Fclose from MFStdLib (not yet migrated)
-#include <MFStdLib.h>
+#include "engine/io/file.h"
 // Temporary: sound_id.h not yet migrated
 #include "assets/sound_id.h"
 

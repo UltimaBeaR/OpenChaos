@@ -1,5 +1,12 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 186 — drive.cpp+mfx.cpp: MFStdLib→file.h; fallen/outro/ redirect stubs + удаление orphans (2026-03-24)
+
+- `drive.cpp` и `mfx.cpp` включали `<MFStdLib.h>` исключительно ради `MF_Fopen/MF_Fclose`, которые уже давно в `engine/io/file.h` — заменено, Temporary-комментарии убраны.
+- `fallen/outro/back.h`, `cam.h`, `wire.h`, `credits.h` → redirect-заглушки (контент уже в `outro_back.h` и т.д.).
+- Удалены `lmap.h`, `slap.h`, `checker.h`, `midasdll.h` — нет потребителей в новом коде, реализации (`lmap.cpp`, `slap.cpp`, `checker.cpp`) не входят в CMakeLists.
+- Temporary: 368 → 366 (−2).
+
 ## Итерация 185 — fallen/outro/: Always.h, Key.h, Matrix.h, Tga.h, os.h, font.h → outro_always.h, outro_key.h, outro_matrix.h (2026-03-24)
 
 - Outro использует собственную систему типов изолированно от main game MFStdLib — типы `SLONG/UBYTE` в `outro_always.h` не конфликтуют, они в отдельном translation unit.

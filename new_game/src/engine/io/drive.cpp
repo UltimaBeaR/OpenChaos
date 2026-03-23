@@ -2,11 +2,10 @@
 #include "engine/io/drive_globals.h"
 #include <cstdio>
 #include <cstring>
-#include "core/types.h"  // CBYTE/SLONG needed by env.h
+#include "core/types.h"
 // Temporary: env.h not yet migrated
 #include "engine/io/env.h"
-// Temporary: MF_Fopen/MF_Fclose from MFStdLib (not yet migrated)
-#include <MFStdLib.h>
+#include "engine/io/file.h"
 
 // uc_orig: LocateCDROM (fallen/DDLibrary/Source/Drive.cpp)
 void LocateCDROM(void)

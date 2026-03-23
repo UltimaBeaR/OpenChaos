@@ -1,21 +1,2 @@
-//
-// The background...
-//
-
-#ifndef FALLEN_OUTRO_BACK_H
-#define FALLEN_OUTRO_BACK_H
-
-//
-// Loads the textures.
-//
-
-void BACK_init(void);
-
-//
-// Draws the background polys- it clears both the screen and
-// the z-buffer.
-//
-
-void BACK_draw(void);
-
-#endif // FALLEN_OUTRO_BACK_H
+// Redirect header — all entities moved to ui/cutscenes/outro/outro_back.h (Stage 4).
+#include "ui/cutscenes/outro/outro_back.h"
