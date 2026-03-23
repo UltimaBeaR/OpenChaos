@@ -1,6 +1,9 @@
 #include "fallen/Headers/Game.h"
 #include "ui/camera/cam.h"
-#include "fallen/DDLibrary/Headers/DDlib.h"
+#include "engine/graphics/graphics_api/gd_display.h"   // the_display
+#include "engine/input/joystick.h"                       // ReadInputDevice
+#include "engine/input/joystick_globals.h"               // DIJOYSTATE the_state
+#include "engine/net/net.h"                              // NET_init
 #include "font2d.h"
 #include "poly.h"
 #include "panel.h"

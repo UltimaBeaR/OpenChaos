@@ -5,8 +5,7 @@
 
 #include "engine/input/mouse.h"
 
-// Temporary: hDDLibWindow lives in GDisplay (not yet migrated).
-#include "fallen/DDLibrary/Headers/DDlib.h"
+#include "engine/graphics/graphics_api/gd_display.h"   // hDDLibWindow
 
 // uc_orig: MouseProc (fallen/DDLibrary/Source/GMouse.cpp)
 LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam)

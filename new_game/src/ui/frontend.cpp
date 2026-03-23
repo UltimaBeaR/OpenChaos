@@ -2,7 +2,8 @@
 // kibble particle system, FRONTEND_kibble_process, FRONTEND_fetch_title_from_id,
 // FRONTEND_display, FRONTEND_init, FRONTEND_loop, etc.
 
-#include "DDLib.h"
+#include <MFStdLib.h>   // must come before display_macros.h (which defines DisplayWidth/Height as macros)
+#include "engine/graphics/graphics_api/display_macros.h" // the_display, LPDIRECTDRAWSURFACE4, HRESULT
 #include "ui/frontend.h"
 #include "ui/frontend_globals.h"
 
@@ -22,16 +23,12 @@
 #include "fallen/Headers/FMatrix.h"
 // DRAW2D_Box, DRAW2D_Tri migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
-// Temporary: GDisplay.h for UseBackSurface, the_display, RealDisplayWidth/Height
-#include "fallen/DDLibrary/Headers/GDisplay.h"
 // Temporary: io.h for FileOpen, FileRead, FileClose, FileSeek, FileWrite
 #include "fallen/Headers/io.h"
 // Temporary: music.h for MUSIC_mode, MUSIC_MODE_FRONTEND, stop_all_fx_and_music
 #include "fallen/Headers/music.h"
 // Temporary: game.h for MemAlloc, MemFree, Random, DATA_DIR
 #include "fallen/Headers/Game.h"
-// Temporary: dclowlevel.h for DCL types used in some inline display code
-#include "fallen/DDLibrary/Headers/DCLowLevel.h"
 
 // Additional headers for chunks 2-3 (FRONTEND_display, FRONTEND_input, FRONTEND_init, FRONTEND_loop)
 #include "engine/audio/music.h"               // MUSIC_gain, MUSIC_reset, MUSIC_mode_process, MUSIC_bodge_code
@@ -39,6 +36,7 @@
 #include "engine/audio/sound.h"               // WEATHER_REF, SIREN_REF
 #include "assets/sound_id.h"                  // S_TUNE_BONUS, S_MENU_CLICK_START, etc.
 #include "engine/input/keyboard_globals.h"    // Keys[], LastKey, ControlFlag, ShiftFlag
+#include "engine/input/joystick.h"             // ReadInputDevice
 #include "engine/input/joystick_globals.h"    // the_state (DIJOYSTATE)
 #include "engine/graphics/resources/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
 #include "engine/graphics/resources/menufont_globals.h" // FontPage

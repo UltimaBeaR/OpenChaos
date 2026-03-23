@@ -1,5 +1,5 @@
 #include <MFStdLib.h>
-#include <DDLib.h>
+
 #include "engine/graphics/pipeline/text.h"
 #include "engine/graphics/pipeline/text_globals.h"
 #include "engine/graphics/pipeline/poly.h"

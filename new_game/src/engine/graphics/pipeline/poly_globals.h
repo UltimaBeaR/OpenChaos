@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLY_GLOBALS_H
 #define ENGINE_GRAPHICS_PIPELINE_POLY_GLOBALS_H
 
-#include <DDLib.h>
+#include "engine/graphics/graphics_api/dd_manager.h"   // D3DMATRIX, D3DVIEWPORT2
 #include "core/types.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"

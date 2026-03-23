@@ -3,7 +3,7 @@
 // In the new renderer this whole file will be replaced by a GPU pipeline.
 
 #include <MFStdLib.h>
-#include <DDLib.h>
+#include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, END_SCENE, REALLY_SET_*, DRAW_INDEXED_PRIMITIVE, the_display
 #include <math.h>
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
@@ -20,7 +20,7 @@
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"    // Temporary: NIGHT_sky_colour, NIGHT_amb_norm_*
 #include "missions/eway.h"                   // Temporary: EWAY_stop_player_moving
-#include "fallen/DDEngine/Headers/BreakTimer.h" // Temporary: BEGIN_SCENE, END_SCENE
+
 
 // draw_3d is defined in aeng.cpp (not yet migrated).
 // uc_orig: draw_3d (fallen/DDEngine/Headers/poly.h)

@@ -11,7 +11,7 @@
 #include "fallen/DDEngine/Headers/Matrix.h"
 #include "fallen/DDEngine/Headers/poly.h"
 #include "fallen/DDEngine/Headers/oval.h"
-#include "fallen/DDLibrary/Headers/DDLib.h"
+
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
 #include "core/fmatrix.h"

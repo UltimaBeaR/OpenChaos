@@ -1,5 +1,5 @@
 #include <MFStdLib.h>
-#include <DDLib.h>
+#include "engine/graphics/graphics_api/display_macros.h" // FLIP, SET_BLACK_BACKGROUND, CLEAR_VIEWPORT
 #include "engine/graphics/pipeline/qeng.h"
 #include "engine/graphics/pipeline/qeng_globals.h"
 #include "engine/graphics/pipeline/poly.h"

@@ -36,7 +36,8 @@
 #include "actors/core/statedef.h"
 #include "engine/physics/collide.h"
 #include "ai/combat.h"
-#include "fallen/DDLibrary/Headers/DDLib.h" // Temporary: DIJOYSTATE
+#include "engine/input/joystick.h"             // ReadInputDevice
+#include "engine/input/joystick_globals.h"  // DIJOYSTATE, the_state
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
 #include "fallen/DDEngine/Headers/panel.h"  // Temporary: PANEL_new_text
 #include "ui/camera/cam.h"

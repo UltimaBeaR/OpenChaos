@@ -1,6 +1,7 @@
 #include "engine/graphics/graphics_api/wind_procs.h"
 #include "engine/graphics/graphics_api/wind_procs_globals.h"
-#include "fallen/DDLibrary/Headers/DDLib.h"     // Temporary: DDLib includes, the_display
+#include <MFStdLib.h>                            // must come before gd_display.h (which defines DisplayWidth macro)
+#include "engine/graphics/graphics_api/gd_display.h"     // the_display, hDDLibWindow
 #include "assets/bink_client.h"                  // BinkMessage
 #include "fallen/Headers/Game.h"                 // Temporary: GAME_STATE
 

@@ -1,4 +1,7 @@
 #include "work_screen.h"
+#include <MFStdLib.h>
+#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_api/dd_manager.h"   // InitStruct macro
 
 // uc_orig: ShowWorkScreen (fallen/DDLibrary/Source/GWorkScreen.cpp)
 void ShowWorkScreen(ULONG flags)

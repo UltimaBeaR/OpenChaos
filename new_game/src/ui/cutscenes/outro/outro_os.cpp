@@ -18,7 +18,10 @@
 #include "fallen/outro/key.h"
 #include "fallen/outro/matrix.h"        // Temporary: MATRIX_calc, MATRIX_skew, MATRIX_MUL
 #include "fallen/outro/tga.h"           // Temporary: OUTRO_TGA_load, OUTRO_TGA_Info, OUTRO_TGA_Pixel
-#include "fallen/DDLibrary/Headers/DDlib.h" // Temporary: VERIFY, ASSERT, CLEAR_VIEWPORT, FLIP, the_display, SHELL_ACTIVE, Keys, KB_ESC, KEY_ESCAPE
+#include <MFStdLib.h>   // must come before display_macros.h (which defines DisplayWidth/Height as macros)
+#include "engine/graphics/graphics_api/display_macros.h"  // CLEAR_VIEWPORT, FLIP, the_display, SHELL_ACTIVE
+#include "engine/input/keyboard_globals.h"                  // Keys
+#include "engine/input/keyboard.h"                          // KB_ESC
 #include "fallen/DDLibrary/Headers/mfx.h"   // Temporary: MFX_play_stereo, MFX_update, MFX_stop, MFX_LOOPED
 #include "engine/audio/music.h"
 #include "assets/sound_id.h"

@@ -1,7 +1,7 @@
 // uc_orig: drawxtra.cpp (fallen/DDEngine/Source/drawxtra.cpp)
 // 2D screen-space drawing utilities used by the UI widget system.
 
-#include "fallen/DDLibrary/Headers/DDLib.h"
+
 #include "fallen/DDEngine/Headers/poly.h"
 
 #include "engine/graphics/pipeline/draw2d.h"

@@ -32,7 +32,7 @@
 #include "world/map/pap.h"          // Temporary: engine → world DAG violation
 #include "world/map/pap_globals.h"  // Temporary: engine → world DAG violation
 #include "ai/mav.h"      // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
-#include "fallen/DDLibrary/Headers/DDLib.h"
+#include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, END_SCENE, CLEAR_VIEWPORT, FLIP, REALLY_SET_*, SET_BLACK_BACKGROUND, DRAW_INDEXED_PRIMITIVE
 #include "missions/memory_globals.h" // Temporary: inside_storeys
 
 #include <MFStdLib.h>

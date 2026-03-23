@@ -1,7 +1,8 @@
 #include "engine/graphics/graphics_api/host.h"
 #include "engine/graphics/graphics_api/host_globals.h"
 #include "engine/graphics/graphics_api/wind_procs_globals.h"  // app_inactive, restore_surfaces
-#include "fallen/DDLibrary/Headers/DDLib.h"   // Temporary: the_display, hDDLibWindow
+#include "engine/graphics/graphics_api/gd_display.h"   // the_display, hDDLibWindow
+#include "engine/graphics/graphics_api/wind_procs.h"    // DDLibShellProc
 #include "fallen/Headers/Game.h"               // Temporary: the_game, GAME_STATE
 #include "engine/audio/sound.h"
 #include "engine/audio/mfx.h"                  // MFX_init, MFX_term (already migrated)

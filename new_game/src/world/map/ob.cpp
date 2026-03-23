@@ -16,7 +16,7 @@
 #include "world/environment/prim.h"       // slide_along_prim, get_prim_info
 #include "fallen/Headers/memory.h"
 // Temporary: poly.h — POLY_page_flag, FACE_PAGE_OFFSET not yet in new/ pipeline
-#include "fallen/DDLibrary/Headers/DDlib.h"
+
 #include "..\ddengine\headers\poly.h"
 #include "..\ddengine\headers\texture.h"
 // Temporary: io.h — load_prim_object not yet migrated

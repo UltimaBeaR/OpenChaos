@@ -16,6 +16,7 @@
 #include "engine/graphics/graphics_api/display_globals.h"
 #include "engine/graphics/graphics_api/dd_manager.h"
 #include "engine/graphics/graphics_api/dd_manager_globals.h"
+#include "engine/graphics/graphics_api/display_macros.h"   // dd_error, d3d_error macros
 #include "engine/io/env.h"             // ENV_get_value_number, ENV_set_value_number
 #include "assets/tga.h"                // OpenTGAClump, CloseTGAClump
 #include "assets/bink_client.h"        // BinkPlay, BinkMessage

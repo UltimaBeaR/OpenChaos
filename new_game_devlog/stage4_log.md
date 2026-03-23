@@ -1,5 +1,12 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 182 — DDLib.h + Debug.h → engine/graphics/graphics_api/display_macros.h (2026-03-23)
+
+- Созданы `display_macros.h`: 14 макросов из `DDlib.h` (SET_*_BACKGROUND, BEGIN/END_SCENE, CLEAR_VIEWPORT, FLIP, DRAW_PRIMITIVE, DRAW_INDEXED_PRIMITIVE, REALLY_SET_*×4) + 3 debug-заглушки из `Debug.h` (dd_error, d3d_error, di_error).
+- `DDlib.h` и `Debug.h` преобразованы в redirect-заглушки.
+- `gd_display.h` получил `#include <MFStdLib.h>` первым — системное решение конфликта `DisplayWidth`/`DisplayHeight` (`extern SLONG` из MFStdLib vs `#define 640` в gd_display). `display_globals.cpp` получил определения-переменные с `#undef` для линкера.
+- ~35 файлов-потребителей обновлены: прямые includes `DDLib.h` заменены на конкретные заголовки. Temporary-count: 443 → 433.
+
 ## Итерация 181 — DDEngine/Headers/Engine.h + Gamut.h → engine_types.h + gamut.h; DrawXtra.h зачищен (2026-03-23)
 
 - `Engine.h` преобразован в redirect; весь контент перенесён в `engine/graphics/pipeline/engine_types.h` (M31/M33/Camera/Engine/SVECTOR_F/DDEnginePoint/EnginePointF + inline math + EF_*/MAX_VERTICES + transform_point/set_camera/render_buckets/do_map_who).

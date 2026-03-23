@@ -1,5 +1,5 @@
 #include <MFStdLib.h>
-#include <DDLib.h>
+#include "engine/graphics/graphics_api/gd_display.h"   // the_display
 
 #include "fallen/Headers/game.h"
 #include "fallen/DDEngine/Headers/poly.h"

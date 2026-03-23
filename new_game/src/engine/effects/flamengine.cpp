@@ -1,6 +1,6 @@
 #include "engine/effects/flamengine.h"
 #include "engine/graphics/pipeline/poly.h"
-#include <DDLib.h>
+#include "engine/graphics/graphics_api/gd_display.h"   // the_display
 
 // Temporary: assets/texture.h is in a higher DAG layer (assets/ depends on engine/).
 // These externs provide the texture globals flamengine needs without pulling in all of assets/texture.h.

@@ -103829,6 +103829,196 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "SET_BLACK_BACKGROUND",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "SET_BLACK_BACKGROUND",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_WHITE_BACKGROUND",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "SET_WHITE_BACKGROUND",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_BLUE_BACKGROUND",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "SET_BLUE_BACKGROUND",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_USER_BACKGROUND",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "SET_USER_BACKGROUND",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BEGIN_SCENE",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "BEGIN_SCENE",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "END_SCENE",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "END_SCENE",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLEAR_VIEWPORT",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "CLEAR_VIEWPORT",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLIP",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "FLIP",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_PRIMITIVE",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "DRAW_PRIMITIVE",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_INDEXED_PRIMITIVE",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "DRAW_INDEXED_PRIMITIVE",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "REALLY_SET_RENDER_STATE",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "REALLY_SET_RENDER_STATE",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "REALLY_SET_TEXTURE",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "REALLY_SET_TEXTURE",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "REALLY_SET_NO_TEXTURE",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "REALLY_SET_NO_TEXTURE",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "REALLY_SET_TEXTURE_STATE",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "REALLY_SET_TEXTURE_STATE",
+      "orig_file": "fallen/DDLibrary/Headers/DDlib.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "dd_error",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "dd_error",
+      "orig_file": "fallen/DDLibrary/Headers/Debug.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "d3d_error",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "d3d_error",
+      "orig_file": "fallen/DDLibrary/Headers/Debug.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "di_error",
+      "file": "engine/graphics/graphics_api/display_macros.h",
+      "orig_name": "di_error",
+      "orig_file": "fallen/DDLibrary/Headers/Debug.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DisplayWidth",
+      "file": "engine/graphics/graphics_api/display_globals.cpp",
+      "orig_name": "DisplayWidth",
+      "orig_file": "fallen/Glide Library/Source/glidelib.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DisplayHeight",
+      "file": "engine/graphics/graphics_api/display_globals.cpp",
+      "orig_name": "DisplayHeight",
+      "orig_file": "fallen/Glide Library/Source/glidelib.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

@@ -1,7 +1,8 @@
 // uc_orig: drawxtra.cpp (fallen/DDEngine/Source/drawxtra.cpp)
 // Light bloom and lens flare rendering: BLOOM_flare_draw + BLOOM_draw.
 
-#include "fallen/DDLibrary/Headers/DDLib.h"
+
+#include "engine/graphics/graphics_api/gd_display.h"   // DisplayWidth, DisplayHeight constants
 #include "fallen/DDEngine/Headers/poly.h"
 #include "engine/physics/collide.h"
 #include "ui/camera/fc.h"       // Temporary: engine/graphics → ui/camera DAG violation (FC_cam camera position)

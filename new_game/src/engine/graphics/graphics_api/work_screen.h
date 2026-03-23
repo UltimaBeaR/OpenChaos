@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GRAPHICS_API_WORK_SCREEN_H
 #define ENGINE_GRAPHICS_GRAPHICS_API_WORK_SCREEN_H
 
-#include <DDLib.h>
+#include <MFStdLib.h>
 #include "work_screen_globals.h"
 
 // uc_orig: ShowWorkScreen (fallen/DDLibrary/Headers/GWorkScreen.h)

@@ -1,5 +1,6 @@
 #include "engine/graphics/pipeline/render_state.h"
-#include <DDLib.h>
+#include <MFStdLib.h>
+#include "engine/graphics/graphics_api/display_macros.h" // REALLY_SET_*, the_display
 
 // uc_orig: RenderState::s_State (fallen/DDEngine/Source/renderstate.cpp)
 RenderState RenderState::s_State;

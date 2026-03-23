@@ -1,7 +1,7 @@
 // uc_orig: drawxtra.cpp (fallen/DDEngine/Source/drawxtra.cpp)
 // Rotating glow overlay for the Guardian of Baalrog (final boss).
 
-#include "fallen/DDLibrary/Headers/DDLib.h"
+
 #include "fallen/DDEngine/Headers/poly.h"
 #include "fallen/Headers/Game.h"    // Temporary: TICK_RATIO, TICK_SHIFT (the_game.TickRatio/TickShift)
 

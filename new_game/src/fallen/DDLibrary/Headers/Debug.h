@@ -1,15 +1,7 @@
-// Debug.h
-// Guy Simmons, 15th November 1997.
-
+// Redirect header — dd_error/d3d_error/di_error macros moved to display_macros.h.
 #ifndef FALLEN_DDLIBRARY_HEADERS_DEBUG_H
 #define FALLEN_DDLIBRARY_HEADERS_DEBUG_H
 
-//---------------------------------------------------------------
-
-#define dd_error
-#define d3d_error
-#define di_error
-
-//---------------------------------------------------------------
+#include "engine/graphics/graphics_api/display_macros.h"
 
 #endif // FALLEN_DDLIBRARY_HEADERS_DEBUG_H

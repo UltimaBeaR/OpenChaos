@@ -6,7 +6,7 @@
 
 #include "fallen/DDEngine/Headers/poly.h"
 #include "fallen/DDLibrary/Headers/D3DTexture.h"
-#include "fallen/DDLibrary/Headers/GDisplay.h"
+
 #include "fallen/DDEngine/Headers/font2d.h"
 #include "fallen/DDEngine/Headers/panel.h"
 
