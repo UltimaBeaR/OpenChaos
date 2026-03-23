@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 157 — aeng.cpp chunk 3 (balloons, sky, 2D rects/tris, bike wheel, detail levels, floor tile infra) (2026-03-23)
+
+- aeng.cpp строки 3244–4454: 19 функций, 3 структуры (RRect, FloorStore, GroupInfo), ~18 макросов, 14 переменных.
+- `cache_a_row`, `add_kerb`, `draw_i_prim`, `general_steam` были `inline`/`static` в оригинале → `inline`/`static` убраны: вызываются из ещё не мигрированного `draw_quick_floor` в old/aeng.cpp, нужна внешняя линковка.
+- `HALF_COL`, `show_facet`, `KERB_TILES/VERTS/INDICIES` переехали в `aeng_globals.h` (а не `aeng.cpp`) — нужны обоим TU (new и old/aeng.cpp).
+- `AENG_draw_warehouse_floor_near_door` — мёртвый код (block comment `/* */` в оригинале), не мигрируется.
+- BUILD FIX: `KERB_VERTS` нужен в `aeng_globals.cpp` для размера `m_vert_mem_block32` → макросы перенесены в globals.h раньше extern declaration.
+- BUILD FIX: `ENV_set_value_number` не найден в new/aeng.cpp → добавлен `#include "engine/io/env.h"`.
+
+---
+
 ## Итерация 156 — aeng.cpp chunk 2 (shadow projection, rain, bangs, cloth, fire, sparks, hook, dirt, pows) (2026-03-23)
 
 - aeng.cpp строки 1678–3239: 15 функций, 2 типа (AENG_DirtUV, AENG_Pow), 13 макросов, 13 переменных.

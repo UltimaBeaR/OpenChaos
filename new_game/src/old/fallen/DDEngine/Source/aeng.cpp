@@ -3242,6 +3242,8 @@ void AENG_draw_pows(void)
 
 #endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 156) [chunk 2]
 
+#if 0 // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 157) [chunk 3: balloons, sky, rects, people_messages, bike_wheel, detail_levels, floor_infra]
+
 void AENG_draw_released_balloons(void)
 {
     SLONG i;
@@ -4451,6 +4453,8 @@ inline void general_steam(SLONG x, SLONG z, UWORD texture, SLONG mode)
         }
     }
 }
+
+#endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 157) [chunk 3]
 
 void draw_quick_floor(SLONG warehouse)
 {

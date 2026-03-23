@@ -1,4 +1,5 @@
 #include "engine/graphics/pipeline/aeng_globals.h"
+#include "engine/graphics/pipeline/polypage.h"  // Temporary: D3DLVERTEX (m_vert_mem_block32, m_indicies)
 #include "assets/compression.h" // Temporary: COMP_Frame
 
 // RMAX_PRIM_POINTS = 65000 (from fallen/Headers/building.h)
@@ -237,3 +238,52 @@ SLONG AENG_pow_upto;
 
 // uc_orig: AENG_pow_bucket (fallen/DDEngine/Source/aeng.cpp)
 AENG_Pow* AENG_pow_bucket[AENG_POW_NUM_BUCKETS];
+
+// ---------------------------------------------------------------------------
+// Chunk 3 globals: sky, rect queue, floor tile infrastructure
+// ---------------------------------------------------------------------------
+
+// uc_orig: AENG_aa_buffer (fallen/DDEngine/Source/aeng.cpp)
+UBYTE AENG_aa_buffer[AENG_AA_BUF_SIZE][AENG_AA_BUF_SIZE];
+
+// uc_orig: AENG_upper (fallen/DDEngine/Source/aeng.cpp)
+POLY_Point AENG_upper[MAP_WIDTH / 2 + MAP_SIZE_TWEAK][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK];
+
+// uc_orig: AENG_lower (fallen/DDEngine/Source/aeng.cpp)
+POLY_Point AENG_lower[MAP_WIDTH / 2 + MAP_SIZE_TWEAK * 2][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK * 2];
+
+// uc_orig: AENG_torch_on (fallen/DDEngine/Source/aeng.cpp)
+SLONG AENG_torch_on = UC_FALSE;
+
+// uc_orig: AENG_shadows_on (fallen/DDEngine/Source/aeng.cpp)
+SLONG AENG_shadows_on = UC_TRUE;
+
+// uc_orig: AENG_sky_type (fallen/DDEngine/Source/aeng.cpp)
+SLONG AENG_sky_type = AENG_SKY_TYPE_DAY;
+
+// uc_orig: AENG_sky_colour_bot (fallen/DDEngine/Source/aeng.cpp)
+ULONG AENG_sky_colour_bot = 0x008890ee;
+
+// uc_orig: AENG_sky_colour_top (fallen/DDEngine/Source/aeng.cpp)
+ULONG AENG_sky_colour_top = 0x006670cc;
+
+// uc_orig: rrect (fallen/DDEngine/Source/aeng.cpp)
+RRect rrect[2000];
+
+// uc_orig: next_rrect (fallen/DDEngine/Source/aeng.cpp)
+SLONG next_rrect = 1;
+
+// uc_orig: m_vert_mem_block32 (fallen/DDEngine/Source/aeng.cpp)
+UBYTE m_vert_mem_block32[sizeof(D3DLVERTEX) * KERB_VERTS + sizeof(D3DLVERTEX) * MAX_VERTS_FOR_STRIPS * IPRIM_COUNT + 32];
+
+// uc_orig: m_indicies (fallen/DDEngine/Source/aeng.cpp)
+UWORD m_indicies[IPRIM_COUNT][MAX_INDICES_FOR_STRIPS + 1];
+
+// uc_orig: kerb_scaleu (fallen/DDEngine/Source/aeng.cpp)
+float kerb_scaleu;
+// uc_orig: kerb_scalev (fallen/DDEngine/Source/aeng.cpp)
+float kerb_scalev;
+// uc_orig: kerb_du (fallen/DDEngine/Source/aeng.cpp)
+float kerb_du;
+// uc_orig: kerb_dv (fallen/DDEngine/Source/aeng.cpp)
+float kerb_dv;

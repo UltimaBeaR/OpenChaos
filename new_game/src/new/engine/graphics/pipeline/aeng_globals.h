@@ -4,8 +4,10 @@
 #include "core/types.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/render_state.h" // D3DMATRIX, D3DLVERTEX
+#include "engine/graphics/pipeline/poly.h"          // POLY_Point
 #include "engine/lighting/smap.h"                  // SMAP_Link
 #include "assets/compression.h" // Temporary: COMP_Frame type used in movie playback
+#include "world/map/map.h"      // Temporary: MAP_WIDTH, MAP_HEIGHT (for AENG_upper/lower arrays)
 
 // uc_orig: StoreLine (fallen/DDEngine/Source/aeng.cpp)
 // One entry in the debug line draw list.
@@ -404,5 +406,211 @@ void AENG_draw_dirt(void);
 
 // uc_orig: AENG_draw_pows (fallen/DDEngine/Source/aeng.cpp)
 void AENG_draw_pows(void);
+
+// ---------------------------------------------------------------------------
+// Globals for chunk 3: balloons, sky, rect/tri 2D draw, people messages,
+//                      bike wheel, detail levels, floor tile infrastructure
+// ---------------------------------------------------------------------------
+
+// uc_orig: AENG_AA_LEFT (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_AA_LEFT 20
+// uc_orig: AENG_AA_TOP (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_AA_TOP 20
+// uc_orig: AENG_AA_PIX_SIZE (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_AA_PIX_SIZE 4
+// uc_orig: AENG_AA_BUF_SIZE (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_AA_BUF_SIZE 32
+
+// uc_orig: AENG_aa_buffer (fallen/DDEngine/Source/aeng.cpp)
+// Scratch buffer for the anti-aliasing test (32x32 pixel coverage grid).
+extern UBYTE AENG_aa_buffer[AENG_AA_BUF_SIZE][AENG_AA_BUF_SIZE];
+
+// uc_orig: MAP_SIZE_TWEAK (fallen/DDEngine/Source/aeng.cpp)
+// Extra padding on MAP_WIDTH/2 and MAP_HEIGHT/2 for vertex arrays.
+#define MAP_SIZE_TWEAK 0
+
+// uc_orig: AENG_upper (fallen/DDEngine/Source/aeng.cpp)
+// Per-vertex lighting/UV data for the upper (hi-res) ground tile grid.
+extern POLY_Point AENG_upper[MAP_WIDTH / 2 + MAP_SIZE_TWEAK][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK];
+
+// uc_orig: AENG_lower (fallen/DDEngine/Source/aeng.cpp)
+// Per-vertex lighting/UV data for the lower ground tile grid.
+extern POLY_Point AENG_lower[MAP_WIDTH / 2 + MAP_SIZE_TWEAK * 2][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK * 2];
+
+// uc_orig: AENG_SKY_TYPE_NIGHT (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_SKY_TYPE_NIGHT 0
+// uc_orig: AENG_SKY_TYPE_DAY (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_SKY_TYPE_DAY 1
+
+// uc_orig: AENG_torch_on (fallen/DDEngine/Source/aeng.cpp)
+// Non-zero when the player's torch/flashlight is enabled.
+extern SLONG AENG_torch_on;
+
+// uc_orig: AENG_shadows_on (fallen/DDEngine/Source/aeng.cpp)
+// Non-zero when shadow rendering is active.
+extern SLONG AENG_shadows_on;
+
+// uc_orig: AENG_sky_type (fallen/DDEngine/Source/aeng.cpp)
+// Current sky type: AENG_SKY_TYPE_DAY or AENG_SKY_TYPE_NIGHT.
+extern SLONG AENG_sky_type;
+
+// uc_orig: AENG_sky_colour_bot (fallen/DDEngine/Source/aeng.cpp)
+// Bottom horizon colour for the sky gradient (ARGB packed).
+extern ULONG AENG_sky_colour_bot;
+
+// uc_orig: AENG_sky_colour_top (fallen/DDEngine/Source/aeng.cpp)
+// Top sky colour for the sky gradient (ARGB packed).
+extern ULONG AENG_sky_colour_top;
+
+// uc_orig: RRect (fallen/DDEngine/Source/aeng.cpp)
+// Deferred screen-space rectangle entry, queued via AENG_draw_rectr, flushed by draw_all_boxes.
+struct RRect
+{
+    SLONG x;
+    SLONG y;
+    SLONG w;
+    SLONG h;
+    SLONG col;
+    SLONG layer;
+    SLONG page;
+};
+
+// uc_orig: rrect (fallen/DDEngine/Source/aeng.cpp)
+// Ring buffer of deferred rectangle draw calls.
+extern RRect rrect[2000];
+
+// uc_orig: next_rrect (fallen/DDEngine/Source/aeng.cpp)
+// Next free slot in rrect[]; starts at 1, reset to 0 after flush.
+extern SLONG next_rrect;
+
+// uc_orig: MAX_WIDTH_DRAWN (fallen/DDEngine/Source/aeng.cpp)
+#define MAX_WIDTH_DRAWN 100
+
+// uc_orig: MAX_FLOOR_TILES_FOR_STRIPS (fallen/DDEngine/Source/aeng.cpp)
+// Maximum ground tiles batched in one indexed primitive strip.
+#define MAX_FLOOR_TILES_FOR_STRIPS 16
+
+// uc_orig: MAX_VERTS_FOR_STRIPS (fallen/DDEngine/Source/aeng.cpp)
+#define MAX_VERTS_FOR_STRIPS (MAX_FLOOR_TILES_FOR_STRIPS * 4)
+
+// uc_orig: MAX_INDICES_FOR_STRIPS (fallen/DDEngine/Source/aeng.cpp)
+#define MAX_INDICES_FOR_STRIPS (MAX_FLOOR_TILES_FOR_STRIPS * 5)
+
+// uc_orig: IPRIM_COUNT (fallen/DDEngine/Source/aeng.cpp)
+// Number of parallel indexed primitive groups used during floor tile rendering.
+#define IPRIM_COUNT 5
+
+// uc_orig: MAX_DRAW_WIDTH (fallen/DDEngine/Source/aeng.cpp)
+#define MAX_DRAW_WIDTH 128
+
+// uc_orig: FloorStore (fallen/DDEngine/Source/aeng.cpp)
+// Cached per-vertex data for one map tile corner (colour, altitude, flags, texture).
+struct FloorStore
+{
+    ULONG Colour;
+    float Alt;
+    UWORD Flags;
+    UWORD Texture;
+};
+
+// uc_orig: GroupInfo (fallen/DDEngine/Source/aeng.cpp)
+// Tracks which D3D texture page is bound in each of the IPRIM_COUNT strip groups.
+struct GroupInfo
+{
+    LPDIRECT3DTEXTURE2 page;
+};
+
+// uc_orig: KERB_TILES (fallen/DDEngine/Source/aeng.cpp)
+#define KERB_TILES 16
+// uc_orig: KERB_VERTS (fallen/DDEngine/Source/aeng.cpp)
+#define KERB_VERTS (4 * KERB_TILES)
+// uc_orig: KERB_INDICIES (fallen/DDEngine/Source/aeng.cpp)
+#define KERB_INDICIES (5 * KERB_TILES)
+
+// uc_orig: m_vert_mem_block32 (fallen/DDEngine/Source/aeng.cpp)
+// Raw allocation block for kerb + floor strip vertices; sized for 32-byte alignment.
+extern UBYTE m_vert_mem_block32[sizeof(D3DLVERTEX) * KERB_VERTS + sizeof(D3DLVERTEX) * MAX_VERTS_FOR_STRIPS * IPRIM_COUNT + 32];
+
+// uc_orig: m_indicies (fallen/DDEngine/Source/aeng.cpp)
+// Index buffers for each of the IPRIM_COUNT floor strip groups.
+extern UWORD m_indicies[IPRIM_COUNT][MAX_INDICES_FOR_STRIPS + 1];
+
+// uc_orig: MAX_STEAM (fallen/DDEngine/Source/aeng.cpp)
+// Maximum number of steam sources accumulated in one frame.
+#define MAX_STEAM 20
+
+// uc_orig: kerb_scaleu (fallen/DDEngine/Source/aeng.cpp)
+extern float kerb_scaleu;
+// uc_orig: kerb_scalev (fallen/DDEngine/Source/aeng.cpp)
+extern float kerb_scalev;
+// uc_orig: kerb_du (fallen/DDEngine/Source/aeng.cpp)
+extern float kerb_du;
+// uc_orig: kerb_dv (fallen/DDEngine/Source/aeng.cpp)
+extern float kerb_dv;
+
+// uc_orig: HALF_COL (fallen/DDEngine/Source/aeng.cpp)
+// In-place halves each colour channel of a packed ARGB value.
+#define HALF_COL(col) (col) = ((col) >> 2) & 0xff3f3f3f
+
+// uc_orig: show_facet (fallen/DDEngine/Source/aeng.cpp)
+// Evaluates sizeof(thing) for side-effects only — "bin this" debug marker.
+#define show_facet(thing) sizeof(thing)
+
+// uc_orig: show_gamut_lo (fallen/DDEngine/Source/aeng.cpp)
+// Debug stub for visualising lo-res gamut cells.
+void show_gamut_lo(SLONG x, SLONG z);
+
+// uc_orig: show_gamut_hi (fallen/DDEngine/Source/aeng.cpp)
+// Debug stub for visualising hi-res gamut cells.
+void show_gamut_hi(SLONG x, SLONG z);
+
+// Forward declaration — full definition in polypage.h (Temporary).
+struct D3DMULTIMATRIX;
+
+// uc_orig: cache_a_row (fallen/DDEngine/Source/aeng.cpp)
+// Pre-fetches lighting and PAP data for a row of map tile corners.
+void cache_a_row(SLONG x, SLONG z, struct FloorStore* p2, SLONG endx);
+
+// uc_orig: add_kerb (fallen/DDEngine/Source/aeng.cpp)
+// Emits four vertices for one kerb quad; returns UC_TRUE if the quad was added.
+SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, D3DLVERTEX* pv, UWORD* p_indicies, SLONG count, ULONG c1, ULONG c2, SLONG flip);
+
+// uc_orig: draw_i_prim (fallen/DDEngine/Source/aeng.cpp)
+// Flushes one indexed primitive strip group to the GPU using DrawIndPrimMM.
+void draw_i_prim(LPDIRECT3DTEXTURE2 page, D3DLVERTEX* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor);
+
+// uc_orig: general_steam (fallen/DDEngine/Source/aeng.cpp)
+// Accumulates (mode=1), flushes (mode=2), or resets (mode=0) steam source positions.
+void general_steam(SLONG x, SLONG z, UWORD texture, SLONG mode);
+
+// uc_orig: draw_quick_floor (fallen/DDEngine/Source/aeng.cpp)
+// Renders the ground tile mesh using indexed primitive strips.
+void draw_quick_floor(SLONG warehouse);
+
+// uc_orig: AENG_draw_released_balloons (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_released_balloons(void);
+
+// uc_orig: AENG_draw_rectr (fallen/DDEngine/Source/aeng.cpp)
+// Queues a deferred 2D rectangle to be flushed later by draw_all_boxes.
+void AENG_draw_rectr(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, SLONG page);
+
+// uc_orig: draw_all_boxes (fallen/DDEngine/Source/aeng.cpp)
+// Flushes all queued AENG_draw_rectr rectangles via AENG_draw_rect.
+void draw_all_boxes(void);
+
+// uc_orig: AENG_draw_people_messages (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_people_messages(void);
+
+// uc_orig: AENG_set_bike_wheel_rotation (fallen/DDEngine/Source/aeng.cpp)
+// Updates the UV coordinates on bike wheel prim faces to animate wheel spin.
+void AENG_set_bike_wheel_rotation(UWORD rot, UBYTE prim);
+
+// uc_orig: AENG_draw_some_polys (fallen/DDEngine/Source/aeng.cpp)
+// Renders N test triangles using DrawIndexedPrimitive; returns elapsed time.
+float AENG_draw_some_polys(bool large, bool blend);
+
+// uc_orig: AENG_guess_detail_levels (fallen/DDEngine/Source/aeng.cpp)
+// Auto-selects detail settings based on GPU speed; only runs once if estimate flag is set.
+void AENG_guess_detail_levels(void);
 
 #endif // ENGINE_GRAPHICS_PIPELINE_AENG_GLOBALS_H

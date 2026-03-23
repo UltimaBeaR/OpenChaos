@@ -5,6 +5,8 @@
 #include "engine/graphics/pipeline/aeng_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
+#include "engine/graphics/pipeline/polypage.h"   // Temporary: PolyPage, D3DMULTIMATRIX, DrawIndPrimMM, SET_MM_INDEX
+#include "engine/graphics/pipeline/polypoint.h"  // Temporary: PolyPoint2D (AENG_draw_some_polys)
 #include "engine/graphics/geometry/mesh.h"
 #include "engine/lighting/ngamut.h"
 #include "engine/lighting/ngamut_globals.h"
@@ -54,6 +56,9 @@
 #include "effects/pow.h"
 #include "actors/items/hook.h"
 #include "fallen/Headers/prim.h"  // Temporary: PRIM_OBJ_CAN, PRIM_OBJ_HOOK, PRIM_OBJ_ITEM_AMMO_SHOTGUN
+#include "actors/items/balloon_globals.h"  // Temporary: BALLOON_balloon, BALLOON_balloon_upto
+#include "core/timer.h"                    // Temporary: StartStopwatch, StopStopwatch (AENG_draw_some_polys)
+#include "engine/io/env.h"                 // Temporary: ENV_set_value_number (AENG_set/guess_detail_levels)
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Source/aeng.cpp)
 #define POLY_set_local_rotation_none() \
@@ -2587,3 +2592,900 @@ void AENG_draw_pows(void)
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Chunk 3: balloons, sky, 2D rects/tris, people messages, bike wheel,
+//          detail level management, floor tile infrastructure
+// ---------------------------------------------------------------------------
+
+// uc_orig: AENG_draw_released_balloons (fallen/DDEngine/Source/aeng.cpp)
+// Draws any balloons that have been released (no longer held by a thing).
+void AENG_draw_released_balloons(void)
+{
+    SLONG i;
+
+    BALLOON_Balloon* bb;
+
+    for (i = 1; i < BALLOON_balloon_upto; i++) {
+        bb = &BALLOON_balloon[i];
+
+        if (bb->type && !bb->thing) {
+            SHAPE_draw_balloon(i);
+        }
+    }
+}
+
+// uc_orig: AENG_set_sky_nighttime (fallen/DDEngine/Source/aeng.cpp)
+void AENG_set_sky_nighttime()
+{
+    AENG_sky_type = AENG_SKY_TYPE_NIGHT;
+}
+
+// uc_orig: AENG_set_sky_daytime (fallen/DDEngine/Source/aeng.cpp)
+void AENG_set_sky_daytime(ULONG bottom_colour, ULONG top_colour)
+{
+    AENG_sky_type = AENG_SKY_TYPE_DAY;
+    AENG_sky_colour_bot = bottom_colour;
+    AENG_sky_colour_top = top_colour;
+}
+
+// uc_orig: AENG_draw_rectr (fallen/DDEngine/Source/aeng.cpp)
+// Queues a screen-space rectangle for deferred rendering (flushed by draw_all_boxes).
+void AENG_draw_rectr(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, SLONG page)
+{
+    ASSERT(next_rrect < 2000);
+    rrect[next_rrect].x = x;
+    rrect[next_rrect].y = y;
+    rrect[next_rrect].w = w;
+    rrect[next_rrect].h = h;
+    rrect[next_rrect].col = col;
+    rrect[next_rrect].layer = layer;
+    rrect[next_rrect].page = page;
+    next_rrect++;
+}
+
+// uc_orig: AENG_draw_rect (fallen/DDEngine/Source/aeng.cpp)
+// Forward declaration needed by draw_all_boxes (defined after it).
+void AENG_draw_rect(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, SLONG page);
+
+// uc_orig: draw_all_boxes (fallen/DDEngine/Source/aeng.cpp)
+// Flushes all queued rectangles to the screen and resets the queue.
+void draw_all_boxes(void)
+{
+    SLONG x, y, w, h, col, layer, page;
+    SLONG c0;
+
+    for (c0 = 1; c0 < next_rrect; c0++) {
+        x = rrect[c0].x;
+        y = rrect[c0].y;
+        w = rrect[c0].w;
+        h = rrect[c0].h;
+        col = rrect[c0].col;
+        layer = rrect[c0].layer;
+        page = rrect[c0].page;
+
+        AENG_draw_rect(x, y, w, h, col, layer, page);
+    }
+    next_rrect = 0;
+}
+
+// uc_orig: AENG_BACKGROUND_COLOUR (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_BACKGROUND_COLOUR 0x55888800
+
+// uc_orig: AENG_draw_rect (fallen/DDEngine/Source/aeng.cpp)
+// Draws a solid-colour 2D screen-space rectangle as a quad polygon.
+void AENG_draw_rect(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, SLONG page)
+{
+    float offset = 0.0;
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
+    float top, bottom, left, right;
+
+    offset = ((float)layer) * 0.0001f;
+
+    top = (float)y;
+    bottom = (float)(y + h);
+    left = (float)x;
+    right = (float)(x + w);
+
+    pp[0].X = left;
+    pp[0].Y = top;
+    pp[0].z = 0.0F + offset;
+    pp[0].Z = 1.0F - offset;
+    pp[0].u = 0.0F;
+    pp[0].v = 0.0F;
+    pp[0].colour = col;
+    pp[0].specular = 0;
+
+    pp[1].X = right;
+    pp[1].Y = top;
+    pp[1].z = 0.0F + offset;
+    pp[1].Z = 1.0F - offset;
+    pp[1].u = 0.0F;
+    pp[1].v = 0.0F;
+    pp[1].colour = col;
+    pp[1].specular = 0;
+
+    pp[2].X = left;
+    pp[2].Y = bottom;
+    pp[2].z = 0.0F + offset;
+    pp[2].Z = 1.0F - offset;
+    pp[2].u = 0.0F;
+    pp[2].v = 0.0F;
+    pp[2].colour = col;
+    pp[2].specular = 0;
+
+    pp[3].X = right;
+    pp[3].Y = bottom;
+    pp[3].z = 0.0F + offset;
+    pp[3].Z = 1.0F - offset;
+    pp[3].u = 0.0F;
+    pp[3].v = 0.0F;
+    pp[3].colour = col;
+    pp[3].specular = 0;
+
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
+
+    POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
+}
+
+// uc_orig: AENG_draw_col_tri (fallen/DDEngine/Source/aeng.cpp)
+// Draws a solid-colour 2D screen-space triangle as a poly triangle.
+void AENG_draw_col_tri(SLONG x0, SLONG y0, SLONG col0, SLONG x1, SLONG y1, SLONG col1, SLONG x2, SLONG y2, SLONG col2, SLONG layer)
+{
+    float offset = 0.0;
+    POLY_Point pp[4];
+    POLY_Point* tri[4];
+    POLY_Point* quad[4];
+
+    float left, right, top, bottom;
+
+    left = 100.0;
+    right = 200.0;
+    top = 100.0;
+    bottom = 200.0;
+
+    offset = ((float)layer) * 0.0001f;
+
+    /*
+            #define AENG_BACKGROUND_COLOUR 0x55888800
+
+            pp[0].X        = left;
+            pp[0].Y        = top;
+            pp[0].z        = 0.0F;
+            pp[0].Z        = 1.0F;
+            pp[0].u        = 0.0F;
+            pp[0].v        = 0.0F;
+            pp[0].colour   = AENG_BACKGROUND_COLOUR;
+            pp[0].specular = 0;
+
+            pp[1].X        = right;
+            pp[1].Y        = top;
+            pp[1].z        = 0.0F;
+            pp[1].Z        = 1.0F;
+            pp[1].u        = 0.0F;
+            pp[1].v        = 0.0F;
+            pp[1].colour   = AENG_BACKGROUND_COLOUR;
+            pp[1].specular = 0;
+
+            pp[2].X        = left;
+            pp[2].Y        = bottom;
+            pp[2].z        = 0.0F;
+            pp[2].Z        = 1.0F;
+            pp[2].u        = 0.0F;
+            pp[2].v        = 0.0F;
+            pp[2].colour   = AENG_BACKGROUND_COLOUR;
+            pp[2].specular = 0;
+
+            pp[3].X        = right;
+            pp[3].Y        = bottom;
+            pp[3].z        = 0.0F;
+            pp[3].Z        = 1.0F;
+            pp[3].u        = 0.0F;
+            pp[3].v        = 0.0F;
+            pp[3].colour   = AENG_BACKGROUND_COLOUR;
+            pp[3].specular = 0;
+
+            quad[0] = &pp[0];
+            quad[1] = &pp[1];
+            quad[2] = &pp[2];
+            quad[3] = &pp[3];
+
+            POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE, UC_TRUE);
+    */
+
+    pp[0].X = (float)x0;
+    pp[0].Y = (float)y0;
+    pp[0].z = 0.0F + offset;
+    pp[0].Z = 1.0F - offset;
+    pp[0].u = 0.0F;
+    pp[0].v = 0.0F;
+    pp[0].colour = col0;
+    pp[0].specular = 0;
+
+    pp[1].X = (float)x1;
+    pp[1].Y = (float)y1;
+    pp[1].z = 0.0F + offset;
+    pp[1].Z = 1.0F - offset;
+    pp[1].u = 0.0F;
+    pp[1].v = 0.0F;
+    pp[1].colour = col1;
+    pp[1].specular = 0;
+
+    pp[2].X = (float)x2;
+    pp[2].Y = (float)y2;
+    pp[2].z = 0.0F + offset;
+    pp[2].Z = 1.0F - offset;
+    pp[2].u = 0.0F;
+    pp[2].v = 0.0F;
+    pp[2].colour = col2;
+    pp[2].specular = 0;
+
+    tri[0] = &pp[0];
+    tri[1] = &pp[1];
+    tri[2] = &pp[2];
+
+    POLY_add_triangle(tri, POLY_PAGE_COLOUR, UC_FALSE, UC_TRUE);
+}
+
+// uc_orig: show_gamut_lo (fallen/DDEngine/Source/aeng.cpp)
+// Debug stub: was intended to visualise lo-res gamut cells as coloured rectangles.
+void show_gamut_lo(SLONG x, SLONG z)
+{
+    return;
+}
+
+// uc_orig: show_gamut_hi (fallen/DDEngine/Source/aeng.cpp)
+// Debug stub: was intended to visualise hi-res gamut cells as coloured pixels.
+void show_gamut_hi(SLONG x, SLONG z)
+{
+    return;
+}
+
+// show_facet is defined in aeng_globals.h
+
+// uc_orig: AENG_draw_people_messages (fallen/DDEngine/Source/aeng.cpp)
+// Debug stub: iterates visible things and overlays state text. Returns immediately (disabled).
+void AENG_draw_people_messages()
+{
+    return;
+
+    SLONG x;
+    SLONG z;
+
+    SLONG t_index;
+    Thing* p_thing;
+
+    for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+        for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+            t_index = PAP_2LO(x, z).MapWho;
+
+            while (t_index) {
+                p_thing = TO_THING(t_index);
+
+                if (p_thing->Flags & FLAGS_IN_BUILDING) {
+                    // Don't draw things inside buildings when outdoors.
+                } else {
+                    switch (p_thing->DrawType) {
+                    case DT_ROT_MULTI:
+
+                        if (POLY_sphere_visible(
+                                float(p_thing->WorldPos.X >> 8),
+                                float(p_thing->WorldPos.Y >> 8) + KERB_HEIGHT,
+                                float(p_thing->WorldPos.Z >> 8),
+                                256.0F / (AENG_DRAW_DIST * 256.0F))) {
+                            CBYTE str[100];
+
+                            sprintf(str, "%d %d", p_thing->State, p_thing->SubState);
+                            AENG_world_text(
+                                (p_thing->WorldPos.X >> 8),
+                                (p_thing->WorldPos.Y >> 8) + 0x60,
+                                (p_thing->WorldPos.Z >> 8),
+                                200,
+                                180,
+                                50,
+                                UC_TRUE,
+                                str);
+                        }
+
+                        break;
+                    }
+                }
+
+                t_index = p_thing->Child;
+            }
+        }
+    }
+}
+
+// uc_orig: AENG_set_bike_wheel_rotation (fallen/DDEngine/Source/aeng.cpp)
+// Updates UV offsets on the two bike wheel prim faces (faces 6+7) to animate rolling.
+void AENG_set_bike_wheel_rotation(UWORD rot, UBYTE prim)
+{
+    SLONG i;
+
+    PrimObject* po;
+    PrimFace4* f4;
+
+    po = &prim_objects[prim];
+
+    SLONG du1 = SIN(+rot & 2047) * 15 >> 16;
+    SLONG dv1 = COS(+rot & 2047) * 15 >> 16;
+
+    SLONG du2 = SIN(-rot & 2047) * 15 >> 16;
+    SLONG dv2 = COS(-rot & 2047) * 15 >> 16;
+
+    SLONG u;
+    SLONG v;
+
+    static SLONG order[4] = { 2, 1, 3, 0 };
+
+    f4 = &prim_faces4[po->StartFace4 + 6];
+
+    for (i = 0; i < 4; i++) {
+        switch (order[i]) {
+        case 0:
+            u = 16 + du1;
+            v = 16 + dv1;
+            break;
+        case 1:
+            u = 16 + dv1;
+            v = 16 - du1;
+            break;
+        case 2:
+            u = 16 - du1;
+            v = 16 - dv1;
+            break;
+        case 3:
+            u = 16 - dv1;
+            v = 16 + du1;
+            break;
+        }
+
+        f4[0].UV[i][0] &= ~0x3f;
+        f4[0].UV[i][1] &= ~0x3f;
+
+        f4[0].UV[i][0] |= u;
+        f4[0].UV[i][1] |= v;
+
+        switch (order[i]) {
+        case 0:
+            u = 16 + du2;
+            v = 16 + dv2;
+            break;
+        case 1:
+            u = 16 + dv2;
+            v = 16 - du2;
+            break;
+        case 2:
+            u = 16 - du2;
+            v = 16 - dv2;
+            break;
+        case 3:
+            u = 16 - dv2;
+            v = 16 + du2;
+            break;
+        }
+
+        f4[1].UV[i][0] &= ~0x3f;
+        f4[1].UV[i][1] &= ~0x3f;
+
+        f4[1].UV[i][0] |= u;
+        f4[1].UV[i][1] |= v;
+    }
+}
+
+/*
+uc_orig: AENG_draw_warehouse_floor_near_door (fallen/DDEngine/Source/aeng.cpp)
+This function was commented out in the original source (#if 0 / block comment).
+Dead code — not migrated.
+*/
+
+// uc_orig: AENG_set_detail_levels (fallen/DDEngine/Source/aeng.cpp)
+// Writes new detail level settings to the config (INI) and re-reads them.
+void AENG_set_detail_levels(int stars,
+    int shadows,
+    int moon_reflection,
+    int people_reflection,
+    int puddles,
+    int dirt,
+    int mist,
+    int rain,
+    int skyline,
+    int filter,
+    int perspective,
+    int crinkles)
+{
+    ENV_set_value_number("detail_shadows", shadows, "Render");
+    ENV_set_value_number("detail_puddles", puddles, "Render");
+    ENV_set_value_number("detail_dirt", dirt, "Render");
+    ENV_set_value_number("detail_mist", mist, "Render");
+    ENV_set_value_number("detail_rain", rain, "Render");
+    ENV_set_value_number("detail_skyline", skyline, "Render");
+    ENV_set_value_number("detail_crinkles", crinkles, "Render");
+
+    AENG_read_detail_levels();
+}
+
+// uc_orig: AENG_draw_some_polys (fallen/DDEngine/Source/aeng.cpp)
+// Benchmark helper: draws N triangles and returns elapsed time in seconds.
+float AENG_draw_some_polys(bool large, bool blend)
+{
+    PolyPoint2D *vert, *vp;
+    WORD *ind, *ip;
+
+    vert = new PolyPoint2D[large ? 300 : 30000];
+    vp = vert;
+
+    ind = new WORD[large ? 300 : 30000];
+    ip = ind;
+
+    float u = 0;
+    float v = 0;
+
+    if (large) {
+        for (int ii = 0; ii < 100; ii++) {
+            vp->SetSC(0, 0);
+            vp->SetColour(0x80FFFFFF);
+            vp->SetSpecular(0);
+            vp->SetUV(u, v);
+            vp++;
+
+            vp->SetSC(640, 0);
+            vp->SetColour(0x80FFFFFF);
+            vp->SetSpecular(0);
+            vp->SetUV(u, v);
+            vp++;
+
+            vp->SetSC(0, 480);
+            vp->SetColour(0x80FFFFFF);
+            vp->SetSpecular(0);
+            vp->SetUV(u, v);
+            vp++;
+
+            *ip++ = ii * 3;
+            *ip++ = ii * 3 + 1;
+            *ip++ = ii * 3 + 2;
+        }
+    } else {
+        for (int ii = 0; ii < 10000; ii++) {
+            int x = ii % 20;
+            int y = (ii / 20) % 15;
+
+            vp->SetSC(x * 32, y * 32);
+            vp->SetColour(0x80FFFFFF);
+            vp->SetSpecular(0);
+            vp->SetUV(u, v);
+            vp++;
+
+            vp->SetSC(x * 32 + 32, y * 32);
+            vp->SetColour(0x80FFFFFF);
+            vp->SetSpecular(0);
+            vp->SetUV(u, v);
+            vp++;
+
+            vp->SetSC(x * 32, y * 32 + 32);
+            vp->SetColour(0x80FFFFFF);
+            vp->SetSpecular(0);
+            vp->SetUV(u, v);
+            vp++;
+
+            *ip++ = ii * 3;
+            *ip++ = ii * 3 + 1;
+            *ip++ = ii * 3 + 2;
+        }
+    }
+
+    StartStopwatch();
+
+    BEGIN_SCENE;
+
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+    if (blend) {
+        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
+        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+    } else {
+        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
+    }
+
+    if (large) {
+        HRESULT res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, (D3DTLVERTEX*)vert, 300, ind, 300, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
+        ASSERT(!FAILED(res));
+    } else {
+        HRESULT res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, (D3DTLVERTEX*)vert, 30000, ind, 30000, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
+        ASSERT(!FAILED(res));
+    }
+
+    END_SCENE;
+
+    the_display.screen_lock();
+    the_display.screen_unlock();
+
+    float time = StopStopwatch();
+
+    delete[] vert;
+    delete[] ind;
+
+    return time;
+}
+
+// uc_orig: GENVAR (fallen/DDEngine/Source/aeng.cpp)
+// Returns 1 if the GPU generation is >= G, 0 otherwise. Used in AENG_guess_detail_levels.
+#define GENVAR(G) ((generation >= G) ? 1 : 0)
+
+// uc_orig: AENG_guess_detail_levels (fallen/DDEngine/Source/aeng.cpp)
+// Benchmarks the GPU and sets detail levels based on measured fill rate.
+void AENG_guess_detail_levels()
+{
+    if (!AENG_estimate_detail_levels)
+        return;
+
+    ENV_set_value_number("estimate_detail_levels", 0, "Render");
+    AENG_estimate_detail_levels = 0;
+
+    int generation;
+
+    D3DDeviceInfo* dev = the_display.GetDeviceInfo();
+
+    if (!dev->IsHardware()) {
+        generation = 0;
+    } else {
+        float tso = 10000 / AENG_draw_some_polys(false, false);
+
+        if (tso < 10000) {
+            generation = 0;
+        } else if (tso < 40000) {
+            generation = 1;
+        } else {
+            generation = 2;
+            if (dev->ModulateAlphaSupported() && dev->DestInvSourceColourSupported()) {
+                generation = 3;
+            }
+        }
+    }
+
+    int stars = GENVAR(0);
+    int shadows = GENVAR(2);
+    int moon_reflection = GENVAR(2);
+    int people_reflection = GENVAR(3);
+    int puddles = GENVAR(2);
+    int dirt = GENVAR(1);
+    int mist = GENVAR(2);
+    int rain = GENVAR(0);
+    int skyline = GENVAR(2);
+    int filter = GENVAR(1);
+    int perspective = GENVAR(1);
+    int crinkles = GENVAR(3);
+
+    AENG_set_detail_levels(stars, shadows, moon_reflection, people_reflection, puddles, dirt, mist, rain, skyline, filter, perspective, crinkles);
+}
+
+// uc_orig: AENG_get_detail_levels (fallen/DDEngine/Source/aeng.cpp)
+// Reads current detail level settings into output parameters.
+void AENG_get_detail_levels(int* stars,
+    int* shadows,
+    int* moon_reflection,
+    int* people_reflection,
+    int* puddles,
+    int* dirt,
+    int* mist,
+    int* rain,
+    int* skyline,
+    int* filter,
+    int* perspective,
+    int* crinkles)
+{
+    *shadows = AENG_detail_shadows;
+    *puddles = AENG_detail_puddles;
+    *dirt = AENG_detail_dirt;
+    *mist = AENG_detail_mist;
+    *rain = AENG_detail_rain;
+    *skyline = AENG_detail_skyline;
+    *crinkles = AENG_detail_crinkles;
+}
+
+// ---------------------------------------------------------------------------
+// Floor tile rendering infrastructure: cache_a_row, add_kerb, draw_i_prim, general_steam
+// These are used by draw_quick_floor (chunk 4).
+// ---------------------------------------------------------------------------
+
+// uc_orig: cache_a_row (fallen/DDEngine/Source/aeng.cpp)
+// Pre-fetches lighting and PAP data for a row of map tile corners into a FloorStore array.
+void cache_a_row(SLONG x, SLONG z, struct FloorStore* p2, SLONG endx)
+{
+    SLONG px, pz, dx, dz;
+    SLONG square;
+    SLONG mapz;
+    NIGHT_Square* nq;
+    PAP_Hi* ph;
+    ULONG spec;
+    SLONG y;
+
+    for (ph = &PAP_2HI(x, z); x <= endx; x++, ph += PAP_SIZE_HI) {
+        float dist;
+
+        y = ph->Alt << ALT_SHIFT;
+
+        p2->Alt = float(y);
+
+        px = x >> 2;
+        pz = z >> 2;
+
+        dx = x & 0x3;
+        dz = z & 0x3;
+
+        square = NIGHT_cache[px][pz];
+
+        ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
+        ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
+
+        nq = &NIGHT_square[square];
+
+        /*
+
+        {
+                SLONG	cdx,cdz;
+                cdx=abs(AENG_cam_x-(x<<8));
+                cdz=abs(AENG_cam_z-(z<<8));
+                mapz = QDIST2(cdx,cdz);
+                dist=((float)mapz)/(float)(AENG_DRAW_DIST<<8);
+                if(dist>1.0f)
+                        dist=1.0f;
+        }
+
+        NIGHT_get_d3d_colour_and_fade(
+                nq->colour[dx + dz * PAP_BLOCKS],
+           &p2->Colour,
+           &spec,dist);
+
+        */
+
+        {
+            NIGHT_Colour* col = &nq->colour[dx + dz * PAP_BLOCKS];
+
+            SLONG r = col->red << 2;
+            SLONG g = col->green << 2;
+            SLONG b = col->blue << 2;
+
+            if (r > 255) {
+                r = 255;
+            }
+            if (g > 255) {
+                g = 255;
+            }
+            if (b > 255) {
+                b = 255;
+            }
+
+            p2->Colour = (r << 16) | (g << 8) | b;
+        }
+
+        p2->Flags = ph->Flags;
+        p2->Texture = ph->Texture;
+
+        p2++;
+    }
+}
+
+// uc_orig: add_kerb (fallen/DDEngine/Source/aeng.cpp)
+// Emits four vertices for one kerb strip quad into the D3DLVERTEX buffer, with
+// camera-distance Z-rejection. Returns UC_TRUE if the quad was added.
+SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, D3DLVERTEX* pv, UWORD* p_indicies, SLONG count, ULONG c1, ULONG c2, SLONG flip)
+{
+    pv->x = x * 256.0F;
+    pv->z = z * 256.0F;
+    pv->y = alt1 - KERB_HEIGHT;
+
+    pv->tu = 0.0f;
+    pv->tv = 1.0f;
+
+    pv->tu = pv->tu * kerb_scaleu + kerb_du;
+    pv->tv = pv->tv * kerb_scalev + kerb_dv;
+
+    pv->color = c1;
+    pv->specular = 0xff000000;
+    SET_MM_INDEX(*pv, 0);
+    pv++;
+
+    pv->x = (x + dx) * 256.0F;
+    pv->z = (z + dz) * 256.0F;
+    pv->y = alt2 - KERB_HEIGHT;
+
+    pv->tu = 1.0f;
+    pv->tv = 1.0f;
+
+    pv->tu = pv->tu * kerb_scaleu + kerb_du;
+    pv->tv = pv->tv * kerb_scalev + kerb_dv;
+
+    pv->color = c2;
+    pv->specular = 0xff000000;
+    SET_MM_INDEX(*pv, 0);
+    pv++;
+
+    pv->x = (x + dx) * 256.0F;
+    pv->z = (z + dz) * 256.0F;
+    pv->y = alt2;
+
+    pv->tu = 1.0f;
+    pv->tv = 0.0f;
+
+    pv->tu = pv->tu * kerb_scaleu + kerb_du;
+    pv->tv = pv->tv * kerb_scalev + kerb_dv;
+
+    pv->color = c2;
+    pv->specular = 0xff000000;
+    SET_MM_INDEX(*pv, 0);
+    pv++;
+
+    pv->x = (x) * 256.0F;
+    pv->z = (z) * 256.0F;
+    pv->y = alt1;
+
+    pv->tu = 0.0f;
+    pv->tv = 0.0f;
+
+    pv->tu = pv->tu * kerb_scaleu + kerb_du;
+    pv->tv = pv->tv * kerb_scalev + kerb_dv;
+
+    pv->color = c1;
+    pv->specular = 0xff000000;
+    SET_MM_INDEX(*pv, 0);
+    pv++;
+
+    pv -= 4;
+
+    {
+        SLONG i;
+
+        float dx;
+        float dy;
+        float dz;
+
+        float dprod;
+
+        dx = pv[0].x - AENG_cam_x;
+        dy = pv[0].y - AENG_cam_y;
+        dz = pv[0].z - AENG_cam_z;
+
+        float dist;
+
+        float adx;
+        float ady;
+        float adz;
+
+        adx = fabsf(dx);
+        ady = fabsf(dy);
+        adz = fabsf(dz);
+
+        dist = adx + ady + adz;
+
+        if (dist > 768.0F) {
+            // No need to zclip!
+        } else {
+            for (i = 0; i < 4; i++) {
+                dx = pv[i].x - AENG_cam_x;
+                dy = pv[i].y - AENG_cam_y;
+                dz = pv[i].z - AENG_cam_z;
+
+                dprod = dx * AENG_cam_matrix[6] + dy * AENG_cam_matrix[7] + dz * AENG_cam_matrix[8];
+
+                if (dprod < 8.0F) {
+                    return UC_FALSE;
+                }
+            }
+        }
+    }
+
+    if (flip) {
+        *p_indicies++ = count + 0;
+        *p_indicies++ = count + 3;
+        *p_indicies++ = count + 1;
+
+        *p_indicies++ = count + 2;
+        *p_indicies++ = 0xffff;
+    } else {
+        *p_indicies++ = count;
+        *p_indicies++ = count + 1;
+        *p_indicies++ = count + 3;
+
+        *p_indicies++ = count + 2;
+        *p_indicies++ = 0xffff;
+    }
+
+    return UC_TRUE;
+}
+
+// uc_orig: draw_i_prim (fallen/DDEngine/Source/aeng.cpp)
+// Flushes one indexed primitive strip group to the GPU using DrawIndPrimMM.
+void draw_i_prim(LPDIRECT3DTEXTURE2 page, D3DLVERTEX* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor)
+{
+    HRESULT res;
+
+    mm_draw_floor->lpvVertices = verts;
+
+    indicies[*index_count] = 0x1234;
+
+    REALLY_SET_TEXTURE(page);
+
+    res = DrawIndPrimMM(the_display.lp_D3D_Device, D3DFVF_LVERTEX, mm_draw_floor, *vert_count, indicies, *index_count);
+
+    ASSERT(res == DD_OK);
+
+    *index_count = 0;
+    *vert_count = 0;
+}
+
+// HALF_COL is defined in aeng_globals.h
+
+// uc_orig: general_steam (fallen/DDEngine/Source/aeng.cpp)
+// Accumulates steam source positions during floor tile rendering (mode=1),
+// renders all of them when flushed (mode=2), or resets (mode=0).
+void general_steam(SLONG x, SLONG z, UWORD texture, SLONG mode)
+{
+    static SLONG stx[MAX_STEAM], sty[MAX_STEAM], stz[MAX_STEAM], lod[MAX_STEAM];
+    static SLONG count_steam = 0;
+
+    if (mode == 0) {
+        count_steam = 0;
+        return;
+    } else if (mode == 2) {
+        for (SLONG c0 = 0; c0 < count_steam; c0++) {
+            extern void draw_steam(SLONG x, SLONG y, SLONG z, SLONG lod);
+            draw_steam(stx[c0], sty[c0], stz[c0], lod[c0]);
+        }
+        count_steam = 0;
+        return;
+    }
+    if (count_steam >= MAX_STEAM)
+        return;
+
+    if (AENG_detail_shadows) {
+        SLONG dx, dz, dist, sx, sy, sz;
+
+        dx = abs((((SLONG)AENG_cam_x) >> 8) - (x));
+        dz = abs((((SLONG)AENG_cam_z) >> 8) - (z));
+
+        dist = QDIST2(dx, dz);
+
+        if (dist < 15) {
+            SLONG sx, sy, sz;
+            switch ((texture >> 0xa) & 0x3) {
+            case 0:
+                sx = 190;
+                sz = 128;
+                break;
+            case 1:
+                sx = 128;
+                sz = 66;
+                break;
+            case 2:
+                sx = 66;
+                sz = 128;
+                break;
+            case 3:
+                sx = 128;
+                sz = 190;
+                break;
+            default:
+                ASSERT(0);
+                break;
+            }
+            sx += x << 8;
+            sz += z << 8;
+            sy = PAP_calc_height_at(sx, sz);
+
+            stx[count_steam] = sx;
+            sty[count_steam] = sy;
+            stz[count_steam] = sz;
+            lod[count_steam] = 10 + (15 - dist) * 3;
+            count_steam++;
+        }
+    }
+}
+
