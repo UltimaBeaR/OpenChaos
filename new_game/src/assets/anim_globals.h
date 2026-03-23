@@ -3,7 +3,7 @@
 
 #include <string.h>
 #include <MFStdLib.h>
-#include "fallen/Headers/anim.h"
+#include "engine/animation/anim_types.h"
 
 // ---- Globals from Anim.cpp ----
 

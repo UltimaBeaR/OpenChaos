@@ -3,6 +3,7 @@
 
 #include "core/types.h"
 #include "actors/core/state.h"
+#include "engine/animation/anim_types.h"  // KeyFrame
 
 struct Thing;
 
@@ -61,9 +62,6 @@ void change_velocity_to_slow(Thing* p_thing, SWORD velocity);
 // Moves velocity towards target by 1 unit per tick.
 void trickle_velocity_to(Thing* p_thing, SWORD velocity);
 
-// uc_orig: set_thing_velocity (fallen/Source/Darci.cpp)
-// Sets the thing's velocity (scaled to the target FPS).
-void set_thing_velocity(Thing* t_thing, SLONG vel);
 
 // uc_orig: show_walkable (fallen/Source/Darci.cpp)
 // Debug stub: was intended to visualise the walkable grid for a map cell. No-op in current build.

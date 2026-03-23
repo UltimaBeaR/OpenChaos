@@ -15,14 +15,14 @@
 #include "engine/physics/collide_globals.h"
 #include "fallen/Headers/building.h"
 #include "fallen/Headers/barrel.h"
-#include "fallen/Headers/Person.h"
+#include "actors/characters/person.h"
 #include "actors/characters/darci.h"
 #include "actors/characters/darci_globals.h"
 
 // Forward declarations for functions not in any header (declared inline in originals).
 extern SLONG set_person_kick_off_wall(Thing* p_person, SLONG col, SLONG set_pos);
 extern void add_damage_value_thing(Thing* p_thing, SLONG value);
-extern void locked_anim_change(Thing* p_person, UWORD locked_object, UWORD anim, SLONG dangle = 0);
+// locked_anim_change declared in actors/characters/person.h
 extern void fn_person_moveing(Thing* p_person);
 extern void fn_person_idle(Thing* p_person);
 extern SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_this_building, Thing* p_person, SLONG neg_dy, SLONG pos_dy, SLONG* ret_y);
@@ -212,20 +212,7 @@ SLONG col_is_fence(SLONG col)
         return (0);
 }
 
-// uc_orig: MagicFrameCheck (fallen/Source/Darci.cpp)
-// Returns UC_TRUE once when FrameIndex first reaches frameindex; resets when it drops back.
-static inline BOOL MagicFrameCheck(Thing* p_person, UBYTE frameindex)
-{
-    if (p_person->Draw.Tweened->FrameIndex >= frameindex) {
-        if (!(p_person->Genus.Person->Flags2 & FLAG2_SYNC_SOUNDFX)) {
-            p_person->Genus.Person->Flags2 |= FLAG2_SYNC_SOUNDFX;
-            return UC_TRUE;
-        }
-    } else {
-        p_person->Genus.Person->Flags2 &= ~FLAG2_SYNC_SOUNDFX;
-    }
-    return UC_FALSE;
-}
+// MagicFrameCheck is defined in person.cpp; declared in actors/characters/person.h
 
 // uc_orig: set_person_in_building_through_roof (fallen/Source/Darci.cpp)
 void set_person_in_building_through_roof(Thing* p_person, SLONG face)

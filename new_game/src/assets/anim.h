@@ -2,7 +2,7 @@
 #define ASSETS_ANIM_H
 
 #include "assets/anim_globals.h"
-#include "fallen/Headers/anim.h"
+#include "engine/animation/anim_types.h"
 
 // Initialize all GameKeyFrameChunk pointers to null.
 // Must be called before any animation loading.

@@ -30,7 +30,7 @@
 // Temporary: functions not yet migrated to new/
 #include "world/map/supermap.h"
 #include "fallen/Headers/memory.h"   // Temporary: dfacets (extern via memory globals)
-#include "fallen/Headers/Person.h"   // Temporary: various person functions not yet in person.h
+// actors/characters/person.h already included above (line 14)
 
 #include "actors/characters/anim_ids.h"
 #include "actors/core/statedef.h"

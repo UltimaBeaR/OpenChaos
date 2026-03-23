@@ -20,7 +20,7 @@
 #include "world/map/ob_globals.h"
 #include "actors/characters/anim_ids.h"
 #include "actors/core/statedef.h"
-#include "fallen/Headers/Person.h"      // Temporary: set_person_idle, set_person_goto_xz, set_person_circle, etc.
+#include "actors/characters/person.h"   // set_person_idle, set_person_goto_xz, set_person_circle, etc.
 #include "engine/audio/mfx.h"           // Temporary: MFX_play_thing
 #include "engine/audio/sound.h"         // Temporary: SOUND_Range
 #include "assets/sound_id.h"            // Temporary: S_COP_ARREST_START, S_COP_ARREST_END, sound IDs

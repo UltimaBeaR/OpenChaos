@@ -9,8 +9,8 @@
 // pulling in function declarations (which might conflict with forward decls in .cpp files).
 #include "actors/vehicles/vehicle.h"   // Vehicle, VehiclePtr
 #include "actors/vehicles/furn.h"
-#include <string.h>                       // Person.h → Structs.h → anim.h uses strcpy
-#include "fallen/Headers/Person.h"        // Temporary: Person, PersonPtr (new/person.h adds fn decls we don't want here)
+#include <string.h>                       // anim_types.h uses strcpy in inline methods
+#include "actors/characters/person_types.h"  // Person, PersonPtr
 #include "actors/animals/animal.h"     // Animal, AnimalPtr
 #include "actors/vehicles/chopper.h"   // Chopper, ChopperPtr
 #include "effects/pyro.h"              // Pyro, PyroPtr

@@ -6,8 +6,7 @@
 #include "assets/anim.h"
 #include "core/memory.h"
 #include "actors/characters/anim_ids.h"
-// Temporary: Person.h — ANIM_TYPE_DARCI/ROPER/CIV/ROPER2 (not yet migrated)
-#include "fallen/Headers/Person.h"
+#include "actors/characters/person_types.h"  // ANIM_TYPE_DARCI/ROPER/CIV/ROPER2
 
 // File-local animation index constants for the "new Roper" animation set (roper.all).
 // These indices match the animation's position in the .all file.

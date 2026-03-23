@@ -1,7 +1,7 @@
 #include "ui/cutscenes/playcuts.h"
 #include "ui/cutscenes/playcuts_globals.h"
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/person.h"
+#include "actors/characters/person.h"
 #include "engine/effects/psystem.h"
 #include "effects/ribbon.h"
 // Temporary: dirt.cpp not yet migrated.

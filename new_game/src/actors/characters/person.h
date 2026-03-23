@@ -1,13 +1,11 @@
 #ifndef ACTORS_CHARACTERS_PERSON_H
 #define ACTORS_CHARACTERS_PERSON_H
 
-// Person subsystem: public API for the person (character) system.
-// The Person struct, type constants, flags, and macros come from the legacy header
-// (fallen/Headers/Person.h) which is still being migrated. This header adds the
-// additional function declarations from Person.cpp that were not declared there,
-// and re-exports everything via the old header include.
+// Person subsystem: Person struct, flags, type constants, and full public API.
 
-#include "fallen/Headers/Game.h"            // Temporary: pulls in Person struct/macros + all game types
+#include <MFStdLib.h>                         // BOOL, SLONG, base types (pulls in Windows headers)
+#include "actors/core/thing.h"               // Thing (needed for all function declarations)
+#include "actors/characters/person_types.h"  // Person, PersonPtr, FLAG_PERSON_*, PERSON_* constants
 #include "actors/characters/person_globals.h"
 
 // Internal helpers — defined in person.cpp, declared here because
@@ -156,17 +154,22 @@ SLONG los_between_heads(Thing* person_1, Thing* person_2);
 // uc_orig: oscilate_tinpanum (fallen/Source/Person.cpp)
 void oscilate_tinpanum(SLONG x, SLONG y, SLONG z, Thing* p_thing, SLONG vol);
 
+// Relative bearing from person to target in 256-unit circle (0 = behind, 128 = ahead).
+// uc_orig: get_dangle (fallen/Source/Person.cpp)
+SLONG get_dangle(Thing* p_person, Thing* p_target);
+
 // Returns true if person_a can see person_b.
-// range=0 uses default (8<<8); range<0 ignores view conditions; range>0 clips view.
-// no_los=1 skips geometric LOS check (FOV only).
-// NOTE: Also declared in fallen/Headers/Person.h (accessible via Game.h) with default args.
+// range=0 uses default (8<<8); no_los=1 skips geometric LOS check (FOV only).
 // uc_orig: can_a_see_b (fallen/Source/Person.cpp)
-// (declaration omitted here — provided by fallen/Headers/Person.h via Game.h)
+SLONG can_a_see_b(Thing* p_person_a, Thing* p_thing_b, SLONG range = 0, SLONG no_los = 0);
+
+// Returns true if this person can see the player character.
+// uc_orig: can_i_see_player (fallen/Source/Person.cpp)
+SLONG can_i_see_player(Thing* p_person);
 
 // Returns true if person can see the world-space point (x,y,z).
-// NOTE: Also declared in fallen/Headers/Person.h (accessible via Game.h).
 // uc_orig: can_i_see_place (fallen/Source/Person.cpp)
-// (declaration omitted here — provided by fallen/Headers/Person.h via Game.h)
+SLONG can_i_see_place(Thing* p_person, SLONG x, SLONG y, SLONG z);
 
 // Enters the sliding-tackle state toward p_target if not already sliding.
 // uc_orig: set_person_sliding_tackle (fallen/Source/Person.cpp)
@@ -412,6 +415,12 @@ void set_anim_idle(Thing* p_person);
 void set_person_walking(Thing* p_person);
 
 // Starts walking backwards at velocity -5.
+// uc_orig: set_person_step_left (fallen/Source/Person.cpp)
+void set_person_step_left(Thing* p_person);
+
+// uc_orig: set_person_step_right (fallen/Source/Person.cpp)
+void set_person_step_right(Thing* p_person);
+
 // uc_orig: set_person_walk_backwards (fallen/Source/Person.cpp)
 void set_person_walk_backwards(Thing* p_person);
 
@@ -612,7 +621,7 @@ SLONG is_facet_half_step(SLONG facet);
 
 // Attempts to land person on a fence facet (vault or grab).
 // uc_orig: set_person_land_on_fence (fallen/Source/Person.cpp)
-SLONG set_person_land_on_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG while_walking);
+SLONG set_person_land_on_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG while_walking = 0);
 
 // Positions person against wall for a wall-kick attack.
 // uc_orig: set_person_kick_off_wall (fallen/Source/Person.cpp)
@@ -1145,5 +1154,63 @@ void push_people_apart(Thing* p_person, Thing* p_avoid);
 // dynamic light flash, and spark emission. Called every frame during the death state.
 // uc_orig: DRAWXTRA_MIB_destruct (fallen/DDEngine/Source/drawxtra.cpp)
 void DRAWXTRA_MIB_destruct(Thing* p_thing);
+
+// Sets the movement velocity of any thing (person or object) in units/tick.
+// uc_orig: set_thing_velocity (fallen/Source/Person.cpp)
+void set_thing_velocity(Thing* t_thing, SLONG vel);
+
+// ---- Core animation setters ----
+
+// Set current animation for a person (immediate, no tween).
+// uc_orig: set_anim (fallen/Source/Person.cpp)
+void set_anim(Thing* p_person, SLONG anim);
+
+// Tween smoothly from current animation to the new one.
+// uc_orig: tween_to_anim (fallen/Source/Person.cpp)
+void tween_to_anim(Thing* p_person, SLONG anim);
+
+// Queue an animation to play after the current one finishes.
+// uc_orig: queue_anim (fallen/Source/Person.cpp)
+void queue_anim(Thing* p_person, SLONG anim);
+
+// ---- Person lifecycle ----
+
+// Reset all person pool slots to empty state.
+// uc_orig: init_persons (fallen/Source/Person.cpp)
+void init_persons(void);
+
+// Allocate a person Thing of the given type from the pool.
+// uc_orig: alloc_person (fallen/Source/Person.cpp)
+Thing* alloc_person(UBYTE type, UBYTE random_number);
+
+// Return a person Thing to the pool and detach from world.
+// uc_orig: free_person (fallen/Source/Person.cpp)
+void free_person(Thing* person_thing);
+
+// Spawn a new person of the given type at world position (x,y,z).
+// Returns the THING_INDEX of the created person.
+// uc_orig: create_person (fallen/Source/Person.cpp)
+THING_INDEX create_person(
+    SLONG type,
+    SLONG random_number,
+    SLONG x,
+    SLONG y,
+    SLONG z);
+
+// ---- View/perception ----
+
+// Returns the surface the person is standing on (PERSON_ON_*).
+// uc_orig: person_is_on (fallen/Source/Person.cpp)
+SLONG person_is_on(Thing* p_person);
+
+// Returns the lying orientation of a downed person (PERSON_ON_HIS_*).
+// uc_orig: person_is_lying_on_what (fallen/Source/Person.cpp)
+SLONG person_is_lying_on_what(Thing* p_person);
+
+// ---- Scale ----
+
+// Returns the render scale factor for a person (body size variant).
+// uc_orig: person_get_scale (fallen/Source/Person.cpp)
+SLONG person_get_scale(Thing* t);
 
 #endif // ACTORS_CHARACTERS_PERSON_H

@@ -15,9 +15,9 @@
 // Temporary: AENG functions defined in aeng.cpp (not yet migrated)
 #include "fallen/DDEngine/Headers/aeng.h"
 
-// Temporary: Thing, Class constants, person types, special items
+// Thing, Class constants, person types, special items
 #include "fallen/Headers/Thing.h"
-#include "fallen/Headers/Person.h"
+#include "actors/characters/person.h"
 #include "fallen/Headers/Special.h"
 
 // MFX sound playback (MFX_play_ambient)

@@ -5,7 +5,7 @@
 #include "Game.h"
 #include "fallen/Headers/building.h"   // Temporary: MAX_PRIM_OBJECTS
 #include "fallen/Headers/prim.h"        // Temporary: TomsPrimObject, Matrix33, etc.
-#include "fallen/Headers/anim.h"        // Temporary: BodyDef, GameKeyFrameElement, CMatrix33
+#include "engine/animation/anim_types.h"  // BodyDef, GameKeyFrameElement, CMatrix33, etc.
 #include "engine/graphics/pipeline/poly.h" // POLY_Point
 
 // Forward declaration: MSMesh is fully declared in figure.h (included by figure.cpp).

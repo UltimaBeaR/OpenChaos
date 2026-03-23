@@ -98119,6 +98119,1606 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "AnimItem",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "AnimItem",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PrimMultiAnim",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "PrimMultiAnim",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BodyDef",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "BodyDef",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GameKeyFrameElementCompOld",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "GameKeyFrameElementCompOld",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GameKeyFrameElementComp",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "GameKeyFrameElementComp",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GameKeyFrameElementBig",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "GameKeyFrameElementBig",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GameKeyFrameElement",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "GameKeyFrameElement",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GetCMatrix",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "GetCMatrix",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SetCMatrix",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "SetCMatrix",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GameFightCol",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "GameFightCol",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GameKeyFrame",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "GameKeyFrame",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FightCol",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "FightCol",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GameKeyFrameChunk",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "GameKeyFrameChunk",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "KeyFrameElement",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "KeyFrameElement",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "KeyFrame",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "KeyFrame",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "KeyFrameChunk",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "KeyFrameChunk",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "KeyFrameEdDefaults",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "KeyFrameEdDefaults",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "Anim",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "Anim",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "Character",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "Character",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_CREATURE_TYPES",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "MAX_CREATURE_TYPES",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_ANIMS_PER_CREATURE",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "MAX_ANIMS_PER_CREATURE",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_MATRIX_POOL",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "MAX_MATRIX_POOL",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_PEOPLE_TYPES",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "MAX_PEOPLE_TYPES",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_BODY_BITS",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "MAX_BODY_BITS",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_BODY_VARIETY",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "MAX_BODY_VARIETY",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PEOPLE_NAME_SIZE",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "PEOPLE_NAME_SIZE",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_PERSON",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "ANIM_PERSON",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_RHINO",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "ANIM_RHINO",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_APE",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "ANIM_APE",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TWEEN_OFFSET_SHIFT",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "TWEEN_OFFSET_SHIFT",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_FLAG_LAST_FRAME",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "ANIM_FLAG_LAST_FRAME",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_NUMBER_OF_CHUNKS",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "MAX_NUMBER_OF_CHUNKS",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_NUMBER_OF_FRAMES",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "MAX_NUMBER_OF_FRAMES",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_NUMBER_OF_ELEMENTS",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "MAX_NUMBER_OF_ELEMENTS",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_NAME_SIZE",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "ANIM_NAME_SIZE",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_LOOP",
+      "file": "new/engine/animation/anim_types.h",
+      "orig_name": "ANIM_LOOP",
+      "orig_file": "fallen/Editor/Headers/Anim.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "Person",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "Person",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PersonPtr",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PersonPtr",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PTIME",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PTIME",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RMAX_PEOPLE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "RMAX_PEOPLE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_PEOPLE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "MAX_PEOPLE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TYPE_DARCI",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "ANIM_TYPE_DARCI",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TYPE_ROPER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "ANIM_TYPE_ROPER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TYPE_ROPER2",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "ANIM_TYPE_ROPER2",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_TYPE_CIV",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "ANIM_TYPE_CIV",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_NONE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_NONE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DARCI",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DARCI",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ROPER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ROPER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_COP",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_COP",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_CIV",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_CIV",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_THUG_RASTA",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_THUG_RASTA",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_THUG_GREY",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_THUG_GREY",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_THUG_RED",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_THUG_RED",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_SLAG_TART",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_SLAG_TART",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_SLAG_FATUGLY",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_SLAG_FATUGLY",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_HOSTAGE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_HOSTAGE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_MECHANIC",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_MECHANIC",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_TRAMP",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_TRAMP",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_MIB1",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_MIB1",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_MIB2",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_MIB2",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_MIB3",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_MIB3",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_NUM_TYPES",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_NUM_TYPES",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_NON_INT_M",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_NON_INT_M",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_NON_INT_C",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_NON_INT_C",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_LOCK_ANIM_CHANGE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_LOCK_ANIM_CHANGE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_GUN_OUT",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_GUN_OUT",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_DRIVING",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_DRIVING",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_SLIDING",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_SLIDING",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_NO_RETURN_TO_NORMAL",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_NO_RETURN_TO_NORMAL",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_HIT_WALL",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_HIT_WALL",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_USEABLE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_USEABLE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_REQUEST_KICK",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_REQUEST_KICK",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_REQUEST_JUMP",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_REQUEST_JUMP",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_NAV_TO_KILL",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_NAV_TO_KILL",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_ON_CABLE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_ON_CABLE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_GRAPPLING",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_GRAPPLING",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_HELPLESS",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_HELPLESS",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_CANNING",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_CANNING",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_REQUEST_PUNCH",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_REQUEST_PUNCH",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_REQUEST_BLOCK",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_REQUEST_BLOCK",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_FALL_BACKWARDS",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_FALL_BACKWARDS",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_BIKING",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_BIKING",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_PASSENGER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_PASSENGER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_HIT",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_HIT",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_SPRINTING",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_SPRINTING",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_FELON",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_FELON",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_PEEING",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_PEEING",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_SEARCHED",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_SEARCHED",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_ARRESTED",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_ARRESTED",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_BARRELING",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_BARRELING",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_MOVE_ANGLETO",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_MOVE_ANGLETO",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_KO",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_KO",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_WAREHOUSE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_WAREHOUSE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_PERSON_KILL_WITH_A_PURPOSE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG_PERSON_KILL_WITH_A_PURPOSE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG2_PERSON_LOOK",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG2_PERSON_LOOK",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG2_SYNC_SOUNDFX",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG2_SYNC_SOUNDFX",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG2_PERSON_GUILTY",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG2_PERSON_GUILTY",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG2_PERSON_INVULNERABLE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG2_PERSON_INVULNERABLE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG2_PERSON_IS_MURDERER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG2_PERSON_IS_MURDERER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG2_PERSON_FAKE_WANDER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG2_PERSON_FAKE_WANDER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG2_PERSON_HOME_IN_WAREHOUSE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG2_PERSON_HOME_IN_WAREHOUSE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG2_PERSON_CARRYING",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "FLAG2_PERSON_CARRYING",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GET_SKILL",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "GET_SKILL",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_SKILL",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "SET_SKILL",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GET_SKILL_GROUP",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "GET_SKILL_GROUP",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_SKILL_GROUP",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "SET_SKILL_GROUP",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GET_SKILL_OTHER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "GET_SKILL_OTHER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_SKILL_OTHER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "SET_SKILL_OTHER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DROP_DOWN_KEEP_VEL",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DROP_DOWN_KEEP_VEL",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DROP_DOWN_OFF_FACE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DROP_DOWN_OFF_FACE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DROP_DOWN_KEEP_DY",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DROP_DOWN_KEEP_DY",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DROP_DOWN_QUEUED",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DROP_DOWN_QUEUED",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_MODE_RUN",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_MODE_RUN",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_MODE_WALK",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_MODE_WALK",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_MODE_SNEAK",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_MODE_SNEAK",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_MODE_FIGHT",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_MODE_FIGHT",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_MODE_SPRINT",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_MODE_SPRINT",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_MODE_NUMBER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_MODE_NUMBER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_SPEED_WALK",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_SPEED_WALK",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_SPEED_RUN",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_SPEED_RUN",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_SPEED_SNEAK",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_SPEED_SNEAK",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_SPEED_SPRINT",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_SPEED_SPRINT",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_SPEED_YOMP",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_SPEED_YOMP",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_SPEED_CRAWL",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_SPEED_CRAWL",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_DUNNO",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_DUNNO",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_WATER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_WATER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_PRIM",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_PRIM",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_GRAVEL",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_GRAVEL",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_WOOD",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_WOOD",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_GRASS",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_GRASS",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_METAL",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_METAL",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_SEWATER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_SEWATER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_HIS_FRONT",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_HIS_FRONT",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_HIS_BACK",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_HIS_BACK",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_ON_HIS_SOMETHING",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_ON_HIS_SOMETHING",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_COMBAT",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_COMBAT",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_LAND",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_LAND",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_OTHER",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_OTHER",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_STAY_ALIVE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_STAY_ALIVE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_LEG_SWEEP",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_LEG_SWEEP",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_PRONE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_PRONE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_STAY_ALIVE_PRONE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_STAY_ALIVE_PRONE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_COMBAT_PRONE",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_COMBAT_PRONE",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_SHOT_PISTOL",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_SHOT_PISTOL",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_SHOT_SHOTGUN",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_SHOT_SHOTGUN",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_SHOT_AK47",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_SHOT_AK47",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_DEATH_TYPE_GET_DOWN",
+      "file": "new/actors/characters/person_types.h",
+      "orig_name": "PERSON_DEATH_TYPE_GET_DOWN",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "set_thing_velocity",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_thing_velocity",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "set_anim",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "set_anim",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "tween_to_anim",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "tween_to_anim",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "queue_anim",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "queue_anim",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "init_persons",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "init_persons",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "alloc_person",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "alloc_person",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "free_person",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "free_person",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "create_person",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "create_person",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "person_is_lying_on_what",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "person_is_lying_on_what",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "get_dangle",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "get_dangle",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "can_a_see_b",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "can_a_see_b",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "can_i_see_player",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "can_i_see_player",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "can_i_see_place",
+      "file": "new/actors/characters/person.h",
+      "orig_name": "can_i_see_place",
+      "orig_file": "fallen/Headers/Person.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

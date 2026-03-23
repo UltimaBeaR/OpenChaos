@@ -11,7 +11,7 @@
 #include "core/fmatrix.h"
 #include "fallen/Headers/memory.h"
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/Person.h"
+#include "actors/characters/person_types.h"  // Person struct, FLAG_PERSON_*, ANIM_TYPE_*
 
 // SMAP_vector_normalise: normalise a 3D float vector in-place.
 // uc_orig: SMAP_vector_normalise (fallen/DDEngine/Source/smap.cpp)

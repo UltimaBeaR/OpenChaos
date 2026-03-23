@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 178 — fallen/Headers/anim.h → engine/animation/anim_types.h; fallen/Headers/Person.h → actors/characters/person_types.h (2026-03-23)
+
+- `Person.h` разбит на два: `person_types.h` (Person struct + все флаги/константы) и дополненный `person.h` (full API). `thing.h` теперь включает только `person_types.h`, убирая Temporary-зависимость.
+- В `person.h` добавлено 10+ объявлений, которые были в legacy Person.h но отсутствовали в новом: `set_anim`, `tween_to_anim`, `queue_anim`, `get_dangle`, `can_a_see_b`, `can_i_see_player`, `can_i_see_place`, `set_person_step_left/right`, `set_person_land_on_fence`, `init_persons`, `alloc_person`, `free_person`, `create_person`, `person_is_lying_on_what`.
+- `MagicFrameCheck`: `darci.cpp` имел дубликат `static inline` — конфликт символов с глобальным определением в `person.cpp`. Убран дубликат из `darci.cpp`.
+- `MAX_PEOPLE` зависит от `save_table` → `missions/save.h` добавлен в `person_types.h`. Нарушение DAG (actors → missions) — временное tech debt, отмечено в коде.
+- `BOOL` в `person.h` требовал `<MFStdLib.h>` — добавлен явно.
+- Temporary: 485 → 475.
+
 ## Итерация 177 — fallen/Headers/mav.h → ai/mav.h + ai/mav_globals.h; удалены TabCtl.h, GEdit.h, SubClass.h (2026-03-23)
 
 - `MAV_Opt` и `MAV_MAX_OPTS` перенесены в `ai/mav_globals.h` (туда, где уже живут все MAV extern-переменные). Все макросы (`MAV_NAV`, `MAV_CAR`, `MAVHEIGHT`, `MAV_CAPS_*`, `MAV_ACTION_*`, `MAV_DIR_*`, `SET_MAV_*`) — в `ai/mav.h`.
