@@ -1574,10 +1574,12 @@ inline void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation,
 
 #endif // MIGRATED to src/new/engine/graphics/geometry/facet.cpp + facet_globals.cpp (iteration 142) [chunk 1]
 
+#if 0 // Redundant: these are now declared in aeng_globals.h and in new/engine/graphics/geometry/facet.cpp. All old facet.cpp code using them is migrated.
 // AENG_detail_crinkles, AENG_transparent_warehouses, fade_black — defined in aeng.cpp (not yet migrated).
 extern int AENG_detail_crinkles;
 extern UBYTE AENG_transparent_warehouses;
 extern UWORD fade_black;
+#endif
 
 #if 0 // MIGRATED to src/new/engine/graphics/geometry/facet.cpp (iteration 143) [chunk 2a: FACET_draw_quick, FACET_draw_rare]
 
