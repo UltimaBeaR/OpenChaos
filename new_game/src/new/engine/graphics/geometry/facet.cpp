@@ -31,6 +31,8 @@
 #include "world/environment/ware_globals.h"  // WARE_ware, WARE_rooftex, WARE_ware_upto
 #include "ui/controls_globals.h"             // allow_debug_keys
 #include "ui/camera/fc_globals.h"            // FC_cam
+#include "engine/lighting/smap.h"            // SMAP_Link, SMAP_project_onto_poly
+#include "fallen/Headers/prim.h"             // Temporary: PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4
 
 // POLY_set_local_rotation_none is a no-op on PC. On Dreamcast it reset the local
 // rotation matrix before DrawIndexedPrimitive. Defined as a macro here to match
@@ -2342,4 +2344,1282 @@ void FACET_draw(SLONG facet, UBYTE alpha)
     }
 
     return;
+}
+
+// Forward declarations for ladder helpers (file-private, called only from DRAW_ladder).
+// uc_orig: DRAW_ladder_rungs (fallen/DDEngine/Source/facet.cpp)
+static void DRAW_ladder_rungs(float x1, float z1, float x2, float z2, struct DFacet* p_facet, float dx, float dz, ULONG colour, ULONG specular);
+// uc_orig: DRAW_ladder_sides (fallen/DDEngine/Source/facet.cpp)
+static void DRAW_ladder_sides(float x1, float z1, float x2, float z2, struct DFacet* p_facet, float dx, float dz, ULONG colour, ULONG specular);
+
+// uc_orig: FACET_draw_walkable (fallen/DDEngine/Source/facet.cpp)
+// Draws the roof/walkable surface geometry for a building.
+// Iterates DWalkable linked list for the building and renders each RoofFace4 quad.
+// Warehouse roofs use the per-face rooftex array; non-warehouse roofs use the PAP hi-map texture.
+// Shadow sub-quads are split into 2 triangles using the RFACE_FLAG_SHADOW_* pattern.
+void FACET_draw_walkable(SLONG build)
+{
+    SLONG i;
+    SLONG j;
+
+    SLONG ep;
+
+    SLONG red;
+    SLONG green;
+    SLONG blue;
+
+    SLONG page;
+    SLONG warehouse;
+
+    SLONG walkable;
+
+    struct RoofFace4* p_f4;
+    struct DWalkable* p_walk;
+    struct DBuilding* p_dbuilding;
+
+    POLY_Point* pp;
+    POLY_Point* ps;
+
+    POLY_Point* tri[3];
+    POLY_Point* quad[4];
+
+    ASSERT(WITHIN(build, 1, next_dbuilding - 1));
+
+    p_dbuilding = &dbuildings[build];
+
+    UWORD* rooftex = NULL;
+
+    warehouse = (p_dbuilding->Type == BUILDING_TYPE_WAREHOUSE);
+
+    if (warehouse) {
+        ASSERT(WITHIN(p_dbuilding->Ware, 0, WARE_ware_upto - 1));
+
+        rooftex = &WARE_rooftex[WARE_ware[p_dbuilding->Ware].rooftex];
+
+        // FONT2D_DrawString("Warehouse walkables", 50 + (rand() & 0xf), 50, 0xffffff);
+
+    } else {
+        // FONT2D_DrawString("Non-warehouse walkables", 50 + (rand() & 0xf), 70, 0xffffff);
+    }
+
+    for (walkable = p_dbuilding->Walkable; walkable; walkable = p_walk->Next) {
+        p_walk = &dwalkables[walkable];
+
+        {
+            POLY_buffer_upto = 0;
+            POLY_shadow_upto = 0;
+
+            for (i = p_walk->StartFace4; i < p_walk->EndFace4; i++, rooftex++) {
+                float px, py, pz, sy;
+                p_f4 = &roof_faces4[i];
+
+                if (p_f4->DrawFlags & RFACE_FLAG_NODRAW) {
+                    continue;
+                }
+
+                pp = &POLY_buffer[0];
+
+                px = (float)((p_f4->RX & 127) << 8);
+                pz = (float)((p_f4->RZ & 127) << 8);
+                py = (float)(p_f4->Y);
+                sy = py;
+                POLY_transform(px, py, pz, pp);
+
+                if (pp->MaybeValid()) {
+                    NIGHT_get_d3d_colour(
+                        NIGHT_ROOF_WALKABLE_POINT(i, 0),
+                        &pp->colour,
+                        &pp->specular);
+
+                    // apply_cloud((SLONG)px,(SLONG)py,(SLONG) pz,&pp->colour);
+
+                    // POLY_fadeout_point(pp);
+                }
+                pp++;
+                px += 256.0f;
+                py += p_f4->DY[0] << ROOF_SHIFT;
+                POLY_transform(px, py, pz, pp);
+
+                if (pp->MaybeValid()) {
+                    NIGHT_get_d3d_colour(
+                        NIGHT_ROOF_WALKABLE_POINT(i, 1),
+                        &pp->colour,
+                        &pp->specular);
+
+                    // apply_cloud((SLONG)px,(SLONG)py,(SLONG) pz,&pp->colour);
+
+                    // POLY_fadeout_point(pp);
+                }
+                pp++;
+                pz += 256.0f;
+                py = sy + (p_f4->DY[1] << ROOF_SHIFT);
+                POLY_transform(px, py, pz, pp);
+
+                if (pp->MaybeValid()) {
+                    NIGHT_get_d3d_colour(
+                        NIGHT_ROOF_WALKABLE_POINT(i, 3),
+                        &pp->colour,
+                        &pp->specular);
+
+                    // apply_cloud((SLONG)px,(SLONG)py,(SLONG) pz,&pp->colour);
+
+                    // POLY_fadeout_point(pp);
+                }
+                pp++;
+                px -= 256.0f;
+                py = sy + (p_f4->DY[2] << ROOF_SHIFT);
+                POLY_transform(px, py, pz, pp);
+
+                if (pp->MaybeValid()) {
+                    NIGHT_get_d3d_colour(
+                        NIGHT_ROOF_WALKABLE_POINT(i, 2),
+                        &pp->colour,
+                        &pp->specular);
+
+                    // apply_cloud((SLONG)px,(SLONG)py,(SLONG) pz,&pp->colour);
+
+                    // POLY_fadeout_point(pp);
+                }
+
+                quad[0] = &POLY_buffer[0];
+                quad[1] = &POLY_buffer[1];
+                quad[2] = &POLY_buffer[3];
+                quad[3] = &POLY_buffer[2];
+
+                if (POLY_valid_quad(quad)) {
+                    //					#if DRAW_THIS_DEBUG_STUFF
+
+                    if (ControlFlag && allow_debug_keys) {
+                        SLONG x, z, y;
+
+                        x = (p_f4->RX & 127) << 8;
+                        z = (p_f4->RZ & 127) << 8;
+                        y = p_f4->Y;
+
+                        if (p_f4->DrawFlags & (RFACE_FLAG_SLIDE_EDGE_0)) {
+                            AENG_world_line(x, y, z, 4, 0xffffff, x + 256, y, z, 4, 0xffffff, 1);
+                        }
+                        if (p_f4->DrawFlags & (RFACE_FLAG_SLIDE_EDGE_1)) {
+                            AENG_world_line(x + 256, y, z, 4, 0xffffff, x + 256, y, z + 256, 4, 0xffffff, 1);
+                        }
+                        if (p_f4->DrawFlags & (RFACE_FLAG_SLIDE_EDGE_2)) {
+                            AENG_world_line(x + 256, y, z + 256, 4, 0xffffff, x, y, z + 256, 4, 0xffffff, 1);
+                        }
+                        if (p_f4->DrawFlags & (RFACE_FLAG_SLIDE_EDGE_3)) {
+                            AENG_world_line(x, y, z + 256, 4, 0xffffff, x, y, z, 4, 0xffffff, 1);
+                        }
+                    }
+
+                    //					#endif
+
+                    if (warehouse) {
+                        // If this face is above the camera it must be the ceiling — draw it black.
+                        if (p_f4->Y > (FC_cam[0].y >> 8)) {
+                            quad[0]->colour = 0x00000000;
+                            quad[0]->specular = 0xff000000;
+
+                            quad[1]->colour = 0x00000000;
+                            quad[1]->specular = 0xff000000;
+
+                            quad[2]->colour = 0x00000000;
+                            quad[2]->specular = 0xff000000;
+
+                            quad[3]->colour = 0x00000000;
+                            quad[3]->specular = 0xff000000;
+
+                            POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE);
+
+                            continue;
+                        } else {
+                            TEXTURE_get_minitexturebits_uvs(
+                                *rooftex,
+                                &page,
+                                &quad[0]->u,
+                                &quad[0]->v,
+                                &quad[1]->u,
+                                &quad[1]->v,
+                                &quad[2]->u,
+                                &quad[2]->v,
+                                &quad[3]->u,
+                                &quad[3]->v);
+                        }
+                    } else {
+                        PAP_Hi* ph;
+                        ph = &PAP_2HI(p_f4->RX & 127, p_f4->RZ & 127);
+
+                        TEXTURE_get_minitexturebits_uvs(
+                            ph->Texture,
+                            &page,
+                            &quad[0]->u,
+                            &quad[0]->v,
+                            &quad[1]->u,
+                            &quad[1]->v,
+                            &quad[2]->u,
+                            &quad[2]->v,
+                            &quad[3]->u,
+                            &quad[3]->v);
+                    }
+
+                    if (page > POLY_NUM_PAGES - 2)
+                        page = 0;
+
+                    {
+                        if (!AENG_drawing_a_warehouse && (p_f4->DrawFlags & (RFACE_FLAG_SHADOW_1 | RFACE_FLAG_SHADOW_2 | RFACE_FLAG_SHADOW_3))) {
+                            POLY_Point pshad[4];
+
+                            pshad[0] = *(quad[0]);
+                            pshad[1] = *(quad[1]);
+                            pshad[2] = *(quad[2]);
+                            pshad[3] = *(quad[3]);
+
+                            for (j = 0; j < 4; j++) {
+                                red = (pshad[j].colour >> 16) & 0xff;
+                                green = (pshad[j].colour >> 8) & 0xff;
+                                blue = (pshad[j].colour >> 0) & 0xff;
+
+                                red -= 130;
+                                green -= 130;
+                                blue -= 130;
+
+                                if (red < 0) {
+                                    red = 0;
+                                }
+                                if (green < 0) {
+                                    green = 0;
+                                }
+                                if (blue < 0) {
+                                    blue = 0;
+                                }
+
+                                pshad[j].colour = (red << 16) | (green << 8) | (blue << 0) | 0xff000000;
+                            }
+
+                            ASSERT(FACE_FLAG_SHADOW_1 == 1 << 2);
+
+                            switch ((p_f4->DrawFlags & (RFACE_FLAG_SHADOW_1 | RFACE_FLAG_SHADOW_2 | RFACE_FLAG_SHADOW_3))) {
+                            case 0:
+                                ASSERT(0);
+                                break;
+
+                            case 1:
+
+                                tri[0] = &pshad[0];
+                                tri[1] = quad[1];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                tri[0] = quad[1];
+                                tri[1] = quad[3];
+                                tri[2] = quad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                break;
+
+                            case 2:
+
+                                tri[0] = &pshad[0];
+                                tri[1] = quad[1];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                tri[0] = quad[1];
+                                tri[1] = quad[3];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                break;
+
+                            case 3:
+
+                                // pshad[2].colour += 0x00101010;
+
+                                tri[0] = quad[0];
+                                tri[1] = quad[1];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                tri[0] = quad[1];
+                                tri[1] = quad[3];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                break;
+
+                            case 4:
+
+                                tri[0] = quad[0];
+                                tri[1] = quad[1];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                tri[0] = quad[1];
+                                tri[1] = &pshad[3];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                break;
+
+                            case 5:
+
+                                tri[0] = &pshad[0];
+                                tri[1] = quad[1];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                tri[0] = quad[1];
+                                tri[1] = &pshad[3];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                break;
+
+                            case 6:
+
+                                tri[0] = &pshad[0];
+                                tri[1] = quad[1];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                tri[0] = quad[1];
+                                tri[1] = quad[3];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                break;
+
+                            case 7:
+
+                                tri[0] = quad[0];
+                                tri[1] = quad[1];
+                                tri[2] = quad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                tri[0] = quad[1];
+                                tri[1] = &pshad[3];
+                                tri[2] = &pshad[2];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                break;
+
+                            default:
+                                ASSERT(0);
+                                break;
+                            }
+                        } else {
+                            if (p_f4->RX & (1 << 7)) {
+                                tri[0] = quad[0];
+                                tri[1] = quad[1];
+                                tri[2] = quad[3];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+
+                                tri[0] = quad[3];
+                                tri[1] = quad[2];
+                                tri[2] = quad[0];
+
+                                POLY_add_triangle(tri, page, !warehouse);
+                            } else {
+                                POLY_add_quad(quad, page, !warehouse);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// uc_orig: FACET_draw_walkable_old (fallen/DDEngine/Source/facet.cpp)
+// Older walkable surface draw path using PrimFace4/PrimFace3 (pre-RoofFace4 data format).
+// Kept 1:1 for reference; the current path is FACET_draw_walkable.
+void FACET_draw_walkable_old(SLONG build)
+{
+    SLONG i;
+    SLONG j;
+
+    SLONG sp;
+    SLONG ep;
+
+    SLONG p0;
+    SLONG p1;
+    SLONG p2;
+    SLONG p3;
+
+    SLONG red;
+    SLONG green;
+    SLONG blue;
+
+    SLONG page;
+
+    SLONG walkable;
+
+    PrimFace4* p_f4;
+    PrimFace3* p_f3;
+    struct DWalkable* p_walk;
+    struct DBuilding* p_dbuilding;
+
+    POLY_Point* pp;
+    POLY_Point* ps;
+
+    POLY_Point* tri[3];
+    POLY_Point* quad[4];
+
+    ASSERT(WITHIN(build, 1, next_dbuilding - 1));
+
+    p_dbuilding = &dbuildings[build];
+
+    for (walkable = p_dbuilding->Walkable; walkable; walkable = p_walk->Next) {
+        p_walk = &dwalkables[walkable];
+
+        if ((build != INDOORS_DBUILDING) || p_walk->StoreyY * 256 < inside_storeys[INDOORS_INDEX].StoreyY) {
+            sp = p_walk->StartPoint;
+            ep = p_walk->EndPoint;
+
+            POLY_buffer_upto = 0;
+            POLY_shadow_upto = 0;
+
+            for (i = sp; i < ep; i++) {
+                ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
+
+                pp = &POLY_buffer[POLY_buffer_upto++];
+
+                POLY_transform(
+                    AENG_dx_prim_points[i].X,
+                    AENG_dx_prim_points[i].Y,
+                    AENG_dx_prim_points[i].Z,
+                    pp);
+
+                if (pp->MaybeValid()) {
+
+                    NIGHT_get_d3d_colour(
+                        NIGHT_WALKABLE_POINT(i),
+                        &pp->colour,
+                        &pp->specular);
+                    // apply_cloud((SLONG)AENG_dx_prim_points[i].X,(SLONG)AENG_dx_prim_points[i].Y,(SLONG)AENG_dx_prim_points[i].Z,&pp->colour);
+
+                    // POLY_fadeout_point(pp);
+                    //					pp->colour|=fade_alpha;
+                }
+            }
+
+            for (i = p_walk->StartFace4; i < p_walk->EndFace4; i++) {
+                p_f4 = &prim_faces4[i];
+
+                p0 = p_f4->Points[0] - sp;
+                p1 = p_f4->Points[1] - sp;
+                p2 = p_f4->Points[2] - sp;
+                p3 = p_f4->Points[3] - sp;
+
+                ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
+                ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
+                ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
+                ASSERT(WITHIN(p3, 0, POLY_buffer_upto - 1));
+
+                quad[0] = &POLY_buffer[p0];
+                quad[1] = &POLY_buffer[p1];
+                quad[2] = &POLY_buffer[p2];
+                quad[3] = &POLY_buffer[p3];
+
+                if (POLY_valid_quad(quad)) {
+
+                    if (p_f4->DrawFlags & POLY_FLAG_TEXTURED) {
+                        quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
+                        quad[0]->v = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
+
+                        quad[1]->u = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
+                        quad[1]->v = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
+
+                        quad[2]->u = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
+                        quad[2]->v = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
+
+                        quad[3]->u = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
+                        quad[3]->v = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
+
+                        page = p_f4->UV[0][0] & 0xc0;
+                        page <<= 2;
+                        page |= p_f4->TexturePage;
+
+                        if (page > POLY_NUM_PAGES - 2)
+                            page = 0;
+
+                        if (p_f4->FaceFlags & (FACE_FLAG_SHADOW_1 | FACE_FLAG_SHADOW_2 | FACE_FLAG_SHADOW_3)) {
+                            POLY_Point ps[4];
+
+                            ps[0] = *(quad[0]);
+                            ps[1] = *(quad[1]);
+                            ps[2] = *(quad[2]);
+                            ps[3] = *(quad[3]);
+
+                            for (j = 0; j < 4; j++) {
+                                red = (ps[j].colour >> 16) & 0xff;
+                                green = (ps[j].colour >> 8) & 0xff;
+                                blue = (ps[j].colour >> 0) & 0xff;
+
+                                red -= 130;
+                                green -= 130;
+                                blue -= 130;
+
+                                if (red < 0) {
+                                    red = 0;
+                                }
+                                if (green < 0) {
+                                    green = 0;
+                                }
+                                if (blue < 0) {
+                                    blue = 0;
+                                }
+
+                                ps[j].colour = (red << 16) | (green << 8) | (blue << 0) | 0xff000000;
+                            }
+
+                            ASSERT(FACE_FLAG_SHADOW_1 == 1 << 2);
+
+                            switch ((p_f4->FaceFlags & (FACE_FLAG_SHADOW_1 | FACE_FLAG_SHADOW_2 | FACE_FLAG_SHADOW_3)) >> 2) {
+                            case 0:
+                                ASSERT(0);
+                                break;
+
+                            case 1:
+
+                                tri[0] = &ps[0];
+                                tri[1] = quad[1];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                tri[0] = quad[1];
+                                tri[1] = quad[3];
+                                tri[2] = quad[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                break;
+
+                            case 2:
+
+                                tri[0] = &ps[0];
+                                tri[1] = quad[1];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                tri[0] = quad[1];
+                                tri[1] = quad[3];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                break;
+
+                            case 3:
+
+                                ps[2].colour += 0x00202020;
+
+                                tri[0] = quad[0];
+                                tri[1] = quad[1];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                tri[0] = quad[1];
+                                tri[1] = quad[3];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                break;
+
+                            case 4:
+
+                                tri[0] = quad[0];
+                                tri[1] = quad[1];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                tri[0] = quad[1];
+                                tri[1] = &ps[3];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                break;
+
+                            case 5:
+
+                                tri[0] = &ps[0];
+                                tri[1] = quad[1];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                tri[0] = quad[1];
+                                tri[1] = &ps[3];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                break;
+
+                            case 6:
+
+                                tri[0] = &ps[0];
+                                tri[1] = quad[1];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                tri[0] = quad[1];
+                                tri[1] = quad[3];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                break;
+
+                            case 7:
+
+                                tri[0] = quad[0];
+                                tri[1] = quad[1];
+                                tri[2] = quad[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                tri[0] = quad[1];
+                                tri[1] = &ps[3];
+                                tri[2] = &ps[2];
+
+                                POLY_add_triangle(tri, page, UC_TRUE);
+
+                                break;
+
+                            default:
+                                ASSERT(0);
+                                break;
+                            }
+                        } else {
+                            POLY_add_quad(quad, page, UC_TRUE);
+                        }
+                    } else {
+                        POLY_add_quad(quad, POLY_PAGE_COLOUR, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Width of each ladder spine in world units (half the step width used for depth).
+// uc_orig: LADDER_SPINE_WIDTH (fallen/DDEngine/Source/facet.cpp)
+#define LADDER_SPINE_WIDTH 12
+
+// uc_orig: DRAW_ladder_rungs (fallen/DDEngine/Source/facet.cpp)
+// Draws horizontal rungs of a ladder as a series of quads (POLY_PAGE_LADDER texture).
+// Insets rung ends by 3/4 of (dx,dz) from the spine edges.
+static void DRAW_ladder_rungs(float x1, float z1, float x2, float z2, struct DFacet* p_facet, float dx, float dz, ULONG colour, ULONG specular)
+{
+    SLONG count;
+    float y;
+    POLY_Point* quad[4];
+    POLY_Point* pp;
+
+    // Signed shift so alpha channel stays at 0xff or 0x00.
+    ULONG dcolour = ((signed)colour >> 2) & 0xff3f3f3f;
+
+    x1 += dx * (3.0f / 4.0f);
+    z1 += dz * (3.0f / 4.0f);
+
+    x2 -= dx * (3.0f / 4.0f);
+    z2 -= dz * (3.0f / 4.0f);
+
+    y = (float)p_facet->Y[0];
+
+    count = p_facet->Height;
+
+    quad[0] = &POLY_buffer[0];
+    quad[1] = &POLY_buffer[1];
+    quad[2] = &POLY_buffer[2];
+    quad[3] = &POLY_buffer[3];
+
+    while (count--) {
+        y += BLOCK_SIZE;
+
+        POLY_buffer_upto = 0;
+        pp = &POLY_buffer[0];
+
+        POLY_transform(x1, y - 8, z1, pp);
+        pp->colour = dcolour;
+        pp->specular = specular;
+        pp->u = 0.0F;
+        pp->v = 0.2F;
+
+        // POLY_fadeout_point(pp);
+
+        POLY_transform(x2, y - 8, z2, ++pp);
+        pp->colour = dcolour;
+        pp->specular = specular;
+        pp->u = 2.0F;
+        pp->v = 0.2F;
+
+        // POLY_fadeout_point(pp);
+
+        POLY_transform(x1, y, z1, ++pp);
+        pp->colour = colour;
+        pp->specular = specular;
+        pp->u = 0.0F;
+        pp->v = 0.8F;
+
+        // POLY_fadeout_point(pp);
+
+        POLY_transform(x2, y, z2, ++pp);
+        pp->colour = colour;
+        pp->specular = specular;
+        pp->u = 2.0F;
+        pp->v = 0.8F;
+
+        // POLY_fadeout_point(pp);
+
+        if (POLY_valid_quad(quad)) {
+            SLONG page;
+
+            page = POLY_PAGE_LADDER;
+
+            POLY_add_quad(quad, page, UC_FALSE);
+        }
+    }
+}
+
+// uc_orig: DRAW_ladder_sides (fallen/DDEngine/Source/facet.cpp)
+// Draws the two vertical spines of a ladder as cross-sectional quads (POLY_PAGE_LADDER).
+// Each spine is a 3-vertex cross-section; generates 4 quad strips per segment.
+static void DRAW_ladder_sides(float x1, float z1, float x2, float z2, struct DFacet* p_facet, float dx, float dz, ULONG colour, ULONG specular)
+{
+    SLONG count;
+    float y;
+    POLY_Point* quad[4];
+    POLY_Point* pp;
+    float height;
+    UWORD sp[64];
+
+    // Signed shift so alpha channel stays at 0xff or 0x00.
+    ULONG dcolour = ((signed)colour >> 2) & 0xff3f3f3f;
+
+    float v;
+
+    y = (float)p_facet->Y[0];
+    count = (p_facet->Height * BLOCK_SIZE) / 256;
+    if (count == 0)
+        height = 256;
+    else
+        height = (float)((p_facet->Height * BLOCK_SIZE) / count);
+    count++;
+
+    {
+        float x1mdz, x1pdx, x2mdx, x2mdz;
+        float z1pdx, z1pdz, z2mdz, z2pdx;
+        SLONG c0 = 0;
+
+        x1mdz = x1 - dz;
+        x1pdx = x1 + dx;
+        x2mdx = x2 - dx;
+        x2mdz = x2 - dz;
+
+        z1pdx = z1 + dx;
+        z1pdz = z1 + dz;
+        z2mdz = z2 - dz;
+        z2pdx = z2 + dx;
+
+        POLY_buffer_upto = 0;
+        pp = &POLY_buffer[0];
+        while (c0 < count) {
+            v = y * (1.0F / 64.0F);
+
+            sp[c0] = POLY_buffer_upto;
+
+            POLY_transform(x1mdz, y, z1pdx, pp);
+            pp->colour = dcolour;
+            pp->specular = specular;
+            pp->u = 0.0F;
+            pp->v = v;
+
+            // POLY_fadeout_point(pp);
+
+            POLY_transform(x1, y, z1, ++pp);
+            pp->colour = colour;
+            pp->specular = specular;
+            pp->u = 0.5F;
+            pp->v = v;
+
+            // POLY_fadeout_point(pp);
+
+            POLY_transform(x1pdx, y, z1pdz, ++pp);
+            pp->colour = dcolour;
+            pp->specular = specular;
+            pp->u = 1.0F;
+            pp->v = v;
+
+            // POLY_fadeout_point(pp);
+
+            POLY_transform(x2mdx, y, z2mdz, ++pp);
+            pp->colour = dcolour;
+            pp->specular = specular;
+            pp->u = 0.0F;
+            pp->v = v;
+
+            // POLY_fadeout_point(pp);
+
+            POLY_transform(x2, y, z2, ++pp);
+            pp->colour = colour;
+            pp->specular = specular;
+            pp->u = 0.5F;
+            pp->v = v;
+
+            // POLY_fadeout_point(pp);
+
+            POLY_transform(x2mdz, y, z2pdx, ++pp);
+            pp->colour = dcolour;
+            pp->specular = specular;
+            pp->u = 1.0F;
+            pp->v = v;
+
+            // POLY_fadeout_point(pp);
+
+            pp++;
+
+            POLY_buffer_upto += 6;
+
+            y += height;
+
+            if (c0 > 0) {
+                quad[0] = &POLY_buffer[sp[c0]];
+                quad[1] = &POLY_buffer[sp[c0] + 1];
+                quad[2] = &POLY_buffer[sp[c0 - 1]];
+                quad[3] = &POLY_buffer[sp[c0 - 1] + 1];
+
+                if (POLY_valid_quad(quad)) {
+                    SLONG page;
+
+                    page = POLY_PAGE_LADDER;
+
+                    POLY_add_quad(quad, page, 0);
+                }
+
+                quad[0] = &POLY_buffer[sp[c0] + 1];
+                quad[1] = &POLY_buffer[sp[c0] + 2];
+                quad[2] = &POLY_buffer[sp[c0 - 1] + 1];
+                quad[3] = &POLY_buffer[sp[c0 - 1] + 2];
+
+                if (POLY_valid_quad(quad)) {
+                    SLONG page;
+
+                    page = POLY_PAGE_LADDER;
+
+                    POLY_add_quad(quad, page, 0);
+                }
+
+                quad[0] = &POLY_buffer[sp[c0] + 3];
+                quad[1] = &POLY_buffer[sp[c0] + 4];
+                quad[2] = &POLY_buffer[sp[c0 - 1] + 3];
+                quad[3] = &POLY_buffer[sp[c0 - 1] + 4];
+
+                if (POLY_valid_quad(quad)) {
+                    SLONG page;
+
+                    // page = texture_quad(quad,dstyles[0],0,0);
+                    // page=texture_quad(quad,dstyles[p_facet->StyleIndex],1,5);
+                    page = POLY_PAGE_LADDER;
+
+                    POLY_add_quad(quad, page, 0);
+                }
+
+                quad[0] = &POLY_buffer[sp[c0] + 4];
+                quad[1] = &POLY_buffer[sp[c0] + 5];
+                quad[2] = &POLY_buffer[sp[c0 - 1] + 4];
+                quad[3] = &POLY_buffer[sp[c0 - 1] + 5];
+
+                if (POLY_valid_quad(quad)) {
+                    SLONG page;
+
+                    // page = texture_quad(quad,dstyles[0],0,0);
+                    // page=texture_quad(quad,dstyles[p_facet->StyleIndex],1,5);
+                    page = POLY_PAGE_LADDER;
+
+                    POLY_add_quad(quad, page, 0);
+                }
+            }
+            c0++;
+        }
+    }
+}
+
+// uc_orig: DRAW_ladder (fallen/DDEngine/Source/facet.cpp)
+// Draws a full ladder for a facet: computes spine positions, samples lighting, calls
+// DRAW_ladder_rungs and DRAW_ladder_sides, then projects a ladder shadow if inside hidden area.
+void DRAW_ladder(struct DFacet* p_facet)
+{
+    SLONG dx, dz;
+    SLONG dx3, dz3;
+    SLONG x1, z1, x2, z2;
+
+    ULONG colour;
+    ULONG specular;
+
+    // Don't bother drawing the sewer ladders when we're not in the sewers.
+    if (p_facet->FacetFlags & FACET_FLAG_LADDER_LINK) {
+        // These facets are always drawn.
+    } else {
+        if (0 && (p_facet->FacetFlags & FACET_FLAG_IN_SEWERS)) {
+            if (!(GAME_FLAGS & GF_SEWERS)) {
+                return;
+            }
+        } else {
+            if (GAME_FLAGS & GF_SEWERS) {
+                return;
+            }
+        }
+    }
+
+    x1 = p_facet->x[0] << 8;
+    x2 = p_facet->x[1] << 8;
+    z1 = p_facet->z[0] << 8;
+    z2 = p_facet->z[1] << 8;
+
+    dx = x2 - x1;
+    dz = z2 - z1;
+
+    dx3 = (dx * 21845) >> 16; //   divide by 3
+    dz3 = (dz * 21845) >> 16; //   divide by 3
+
+    x1 += dx3;
+    z1 += dz3;
+
+    x2 -= dx3;
+    z2 -= dz3;
+
+    dx >>= 3;
+    dz >>= 3;
+
+    x1 += dz;
+    x2 += dz;
+
+    z1 -= dx;
+    z2 -= dx;
+
+    dx = x2 - x1;
+    dz = z2 - z1;
+
+    if (dx > 0)
+        dx = LADDER_SPINE_WIDTH;
+    else if (dx < 0)
+        dx = -LADDER_SPINE_WIDTH;
+
+    if (dz > 0)
+        dz = LADDER_SPINE_WIDTH;
+    else if (dz < 0)
+        dz = -LADDER_SPINE_WIDTH;
+
+    NIGHT_Colour col = NIGHT_get_light_at(
+        ((x1 + x2) >> 1) + (dz << 3),
+        p_facet->Y[0] + p_facet->Y[1] >> 1,
+        ((z1 + z2) >> 1) - (dz << 3));
+
+    NIGHT_get_d3d_colour(
+        col,
+        &colour,
+        &specular);
+
+    colour |= 0x3f3f3f; // Always have a bit of colour!
+
+    DRAW_ladder_rungs((float)x1, (float)z1, (float)x2, (float)z2, p_facet, (float)dx, (float)dz, colour, specular);
+    DRAW_ladder_sides((float)x1, (float)z1, (float)x2, (float)z2, p_facet, (float)dx, (float)dz, colour, specular);
+
+    // Draw the ladder shadow.
+    SLONG bx;
+    SLONG bz;
+
+    bx = (x1 + x2 - (dz << 3) >> 9);
+    bz = (z1 + z2 + (dx << 3) >> 9);
+
+    if (!WITHIN(bx, 0, PAP_SIZE_HI - 1) || !WITHIN(bz, 0, PAP_SIZE_HI - 1)) {
+        return;
+    }
+
+    if (PAP_2HI(bx, bz).Flags & PAP_FLAG_HIDDEN) {
+        float height = p_facet->Height * BLOCK_SIZE;
+
+        POLY_Point pp[4];
+        POLY_Point* quad[4];
+
+        quad[0] = &pp[0];
+        quad[1] = &pp[1];
+        quad[2] = &pp[2];
+        quad[3] = &pp[3];
+
+        dx >>= 3;
+        dz >>= 3;
+
+        POLY_transform(
+            (p_facet->x[0] << 8) + dz,
+            (p_facet->Y[0]),
+            (p_facet->z[0] << 8) - dx,
+            &pp[0]);
+
+        POLY_transform(
+            (p_facet->x[1] << 8) + dz,
+            (p_facet->Y[0]),
+            (p_facet->z[1] << 8) - dx,
+            &pp[1]);
+
+        POLY_transform(
+            (p_facet->x[0] << 8) + dz,
+            (p_facet->Y[0]) + height,
+            (p_facet->z[0] << 8) - dx,
+            &pp[2]);
+
+        POLY_transform(
+            (p_facet->x[1] << 8) + dz,
+            (p_facet->Y[0]) + height,
+            (p_facet->z[1] << 8) - dx,
+            &pp[3]);
+
+        if (POLY_valid_quad(quad)) {
+            float top_v = p_facet->Height;
+
+            pp[0].colour = 0xffffffff;
+            pp[0].specular = 0xff000000;
+            pp[0].u = 0.0F;
+            pp[0].v = 0.0F;
+
+            pp[1].colour = 0xffffffff;
+            pp[1].specular = 0xff000000;
+            pp[1].u = 1.0F;
+            pp[1].v = 0.0F;
+
+            pp[2].colour = 0xffffffff;
+            pp[2].specular = 0xff000000;
+            pp[2].u = 0.0F;
+            pp[2].v = top_v;
+
+            pp[3].colour = 0xffffffff;
+            pp[3].specular = 0xff000000;
+            pp[3].u = 1.0F;
+            pp[3].v = top_v;
+
+            POLY_add_quad(quad, POLY_PAGE_LADSHAD, UC_TRUE);
+        }
+    }
+}
+
+// uc_orig: FACET_project_crinkled_shadow (fallen/DDEngine/Source/facet.cpp)
+// Projects a crinkle (bump-map) shadow texture onto a facet wall surface.
+// Reconstructs the facet geometry into a local SVector_F grid, then calls
+// SMAP_project_onto_poly / CRINKLE_project for each quad face.
+void FACET_project_crinkled_shadow(SLONG facet)
+{
+    SLONG i;
+    SLONG page;
+    SLONG style_index;
+
+    DFacet* p_facet;
+
+    ASSERT(WITHIN(facet, 1, next_dfacet - 1));
+
+    p_facet = &dfacets[facet];
+
+    // Ignore double-sided and inside-facing facets.
+    if ((p_facet->FacetFlags & FACET_FLAG_2SIDED) || p_facet->FacetType == STOREY_TYPE_OINSIDE) {
+        return;
+    }
+
+    SLONG dx = p_facet->x[1] - p_facet->x[0];
+    SLONG dz = p_facet->z[1] - p_facet->z[0];
+
+    float sx = float(p_facet->x[0] << 8);
+    float sy = float(p_facet->Y[0]);
+    float sz = float(p_facet->z[0] << 8);
+
+    float fdx = SIGN(dx) * 256.0F;
+    float fdz = SIGN(dz) * 256.0F;
+
+    float block_height = float(p_facet->BlockHeight << 4);
+    SLONG height = p_facet->Height;
+    SLONG max_height = UC_INFINITY;
+
+    NIGHT_Colour* col = NULL; // No cached lighting needed.
+
+    SLONG foundation = (p_facet->FHeight) ? 2 : 0;
+
+    SLONG count = abs(dx) + abs(dz);
+
+    style_index = p_facet->StyleIndex;
+
+    set_facet_seed(p_facet->x[0] * p_facet->z[0] + p_facet->Y[0]);
+
+// uc_orig: MAX_FACET_POINTS (fallen/DDEngine/Source/facet.cpp)
+#define MAX_FACET_POINTS 512
+// uc_orig: MAX_FACET_ROWS (fallen/DDEngine/Source/facet.cpp)
+#define MAX_FACET_ROWS 32
+
+    SVector_F facet_point[MAX_FACET_POINTS];
+    SLONG facet_point_upto;
+
+    SVector_F* facet_row[MAX_FACET_ROWS];
+    SLONG facet_row_upto;
+
+    SVector_F* sv;
+
+    // Build a grid of world-space points representing the facet wall surface,
+    // mirroring the logic in MakeFacetPoints.
+    facet_row_upto = 0;
+    facet_point_upto = 0;
+
+    float x;
+    float y;
+    float z;
+
+    y = sy;
+
+    while (height >= 0) {
+        x = sx;
+        z = sz;
+
+        ASSERT(WITHIN(facet_row_upto, 0, MAX_FACET_ROWS - 1));
+
+        facet_row[facet_row_upto] = &facet_point[facet_point_upto];
+
+        for (i = 0; i <= count; i++) {
+            sv = &facet_point[facet_point_upto++];
+
+            float ty;
+
+            if (foundation == 2) {
+                ty = float(PAP_2HI(SLONG(x) >> 8, SLONG(z) >> 8).Alt << 3);
+            } else {
+                ty = y;
+            }
+
+            sv->X = x;
+            sv->Y = ty;
+            sv->Z = z;
+
+            x += fdx;
+            z += fdz;
+        }
+
+        y += block_height;
+        height -= 4;
+        facet_row_upto += 1;
+        foundation -= 1;
+    }
+
+    SLONG base_row;
+    SVector_F poly[4];
+
+    height = p_facet->Height;
+    foundation = (p_facet->FHeight) ? 2 : 0;
+
+    base_row = 0;
+    height -= 4;
+
+    while (height >= 0) {
+        {
+            UBYTE rflip;
+
+            ASSERT(WITHIN(base_row, 0, facet_row_upto - 1));
+            ASSERT(WITHIN(base_row + 1, 0, facet_row_upto - 1));
+
+            SVector_F* row1 = facet_row[base_row];
+            SVector_F* row2 = facet_row[base_row + 1];
+
+            for (i = 0; i < count; i++) {
+                poly[0] = row2[1];
+                poly[1] = row2[0];
+                poly[2] = row1[1];
+                poly[3] = row1[0];
+
+                row1 += 1;
+                row2 += 1;
+
+                page = get_texture_page(dstyles[style_index], i, count, &rflip);
+
+                SMAP_Link* sl = SMAP_project_onto_poly(poly, 4);
+
+                if (sl) {
+                    extern int AENG_detail_crinkles;
+
+                    if (AENG_detail_crinkles) {
+                        if (page < 64 * 8) {
+                            if (TEXTURE_crinkle[page]) {
+                                POLY_Point pp;
+
+                                POLY_transform(
+                                    poly[0].X,
+                                    poly[0].Y,
+                                    poly[0].Z,
+                                    &pp);
+
+                                if (pp.z > 0.6F) {
+                                    // Too far away to be crinkled.
+                                } else if (pp.z < 0.3F) {
+                                    // Maximum crinkle.
+                                    CRINKLE_project(
+                                        TEXTURE_crinkle[page],
+                                        1.0F,
+                                        poly,
+                                        rflip);
+
+                                    goto added_crinkle;
+                                } else {
+                                    float extrude;
+                                    float av_z;
+
+                                    // Intermediate crinkle extrusion.
+                                    av_z = pp.z;
+
+                                    extrude = av_z - 0.5F;
+                                    extrude *= 1.0F / (0.4F - 0.5F);
+
+                                    if (extrude > 0.0F) {
+                                        if (extrude > 1.0F) {
+                                            extrude = 1.0F;
+                                        }
+
+                                        CRINKLE_project(
+                                            TEXTURE_crinkle[page],
+                                            extrude,
+                                            poly,
+                                            rflip);
+
+                                        goto added_crinkle;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                added_crinkle:;
+                }
+            }
+        }
+
+        foundation -= 1;
+        height -= 4;
+        i += 1;
+        style_index += 1;
+        base_row += 1;
+    }
 }

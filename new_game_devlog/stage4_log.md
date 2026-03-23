@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 145 — facet.cpp chunk 3 (последний): FACET_draw_walkable + DRAW_ladder + FACET_project_crinkled_shadow (2026-03-23)
+
+- Добавлены includes: `engine/lighting/smap.h` (SMAP_Link/SMAP_project_onto_poly), `fallen/Headers/prim.h` (Temporary: PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4).
+- `DRAW_ladder_rungs`, `DRAW_ladder_sides` — file-private (static), не экспортируются в facet.h; DRAW_ladder (публичная) уже была объявлена в facet.h в предыдущих итерациях.
+- `MAX_FACET_POINTS`, `MAX_FACET_ROWS` — local #define внутри тела функции FACET_project_crinkled_shadow, перенесены как есть.
+- `old/fallen/DDEngine/Source/facet.cpp` теперь полностью в `#if 0` блоках — файл мигрирован целиком.
+
+---
+
 ## Итерация 144 — facet.cpp chunk 2b: FACET_draw (2026-03-23)
 
 Нет нестандартных решений. Все нужные includes уже присутствовали (добавлены в chunk 2a).

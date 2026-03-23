@@ -76739,6 +76739,96 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_draw_walkable",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "FACET_draw_walkable",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_draw_walkable_old",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "FACET_draw_walkable_old",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_ladder_rungs",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "DRAW_ladder_rungs",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_ladder_sides",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "DRAW_ladder_sides",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_ladder",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "DRAW_ladder",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FACET_project_crinkled_shadow",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "FACET_project_crinkled_shadow",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LADDER_SPINE_WIDTH",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "LADDER_SPINE_WIDTH",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_FACET_POINTS",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "MAX_FACET_POINTS",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_FACET_ROWS",
+      "file": "new/engine/graphics/geometry/facet.cpp",
+      "orig_name": "MAX_FACET_ROWS",
+      "orig_file": "fallen/DDEngine/Source/facet.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

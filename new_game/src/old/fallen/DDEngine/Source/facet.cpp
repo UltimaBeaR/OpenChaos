@@ -3127,6 +3127,8 @@ void FACET_draw(SLONG facet, UBYTE alpha)
 
 #endif // MIGRATED to src/new/engine/graphics/geometry/facet.cpp (iteration 144) [chunk 2b: FACET_draw]
 
+#if 0 // MIGRATED to src/new/engine/graphics/geometry/facet.cpp (iteration 145) [chunk 3: FACET_draw_walkable, FACET_draw_walkable_old, DRAW_ladder_rungs, DRAW_ladder_sides, DRAW_ladder, FACET_project_crinkled_shadow]
+
 extern SLONG AENG_drawing_a_warehouse;
 
 // claude-ai: FACET_draw_walkable — draws the roof/walkable surfaces on top of buildings.
@@ -4533,3 +4535,5 @@ void FACET_project_crinkled_shadow(SLONG facet)
         base_row += 1;
     }
 }
+
+#endif // MIGRATED to src/new/engine/graphics/geometry/facet.cpp (iteration 145) [chunk 3]
