@@ -5,10 +5,10 @@
 // FC_MAX_CAMS=2 for split-screen support; FC_cam[1] is unused in the shipped game.
 // CAM_MORE_IN=0.75F: PC camera is 25% closer to the player than the PSX version.
 
-// Temporary: Game.h needed for Thing, CLASS_*, FLAG_PERSON_*, STATE_*, SUB_STATE_*, ACTION_*,
-// GAME_FLAGS, GF_*, TO_THING. FC_Cam uses Thing* which requires the full type.
-// Remove once actors/world headers are clean and Thing is independently includable.
-#include "fallen/Headers/Game.h" // Temporary:
+#include <MFStdLib.h>
+// Temporary: ui→actors DAG violation: FC_Cam.focus is Thing*, FC_kill/unkill_player_cam take Thing*
+#include "actors/core/thing.h"
+#include "missions/game_types.h"
 
 // uc_orig: FC_Cam (fallen/Headers/fc.h)
 typedef struct {

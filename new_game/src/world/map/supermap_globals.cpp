@@ -1,6 +1,5 @@
 #include "world/map/supermap_globals.h"
-// Temporary: Game.h — PERSON_* constants needed for levels[] dontload bitmasks
-#include "fallen/Headers/Game.h"
+#include "actors/characters/person_types.h"
 
 // uc_orig: level_index (fallen/Source/supermap.cpp)
 ULONG level_index = 0;

@@ -1,8 +1,9 @@
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
 
-// Temporary: Game.h for base types (QDIST2, ASSERT, CBYTE, etc.)
-#include "Game.h"
+// Temporary: engine→actors DAG violation: need Thing pool types before game_types.h
+#include "actors/core/thing.h"
+#include "missions/game_types.h"
 // Temporary: pap.h for PAP_2LO, PAP_hi, PAP_FLAG_ROOF_EXISTS, MAVHEIGHT, ROOF_HIDDEN_GET_FACE, etc.
 #include "world/map/pap_globals.h"
 // Temporary: missions/memory_globals.h for prim_faces4, prim_points, roof_faces4

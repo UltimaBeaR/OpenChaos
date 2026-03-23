@@ -1,5 +1,3 @@
-// Temporary: Game.h must be first — sets up cross-module types.
-#include "fallen/Headers/Game.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 

@@ -1,15 +1,11 @@
 #include <MFStdLib.h>
 #include <string.h>
 
-// Temporary: game.h needed for the_game, SPECIALS, SPECIAL_COUNT, SPECIAL_NUMBER, TO_SPECIAL,
-//   NET_PERSON, NET_PLAYER, NETPERSON, NO_PLAYERS, FLAGS_HAS_GUN, FLAG_SPECIAL_HIDDEN,
-//   FLAG_PERSON_DRIVING, TICK_RATIO, TICK_SHIFT, GAME_TURN, health[], stat_count_bonus
-#include "fallen/Headers/Game.h"
 #include "actors/core/statedef.h"
 // Temporary: eway.h for EWAY_is_active, EWAY_get_person, EWAY_counter
 #include "missions/eway.h"
 #include "ai/pcom.h"
-// Temporary: night.h for... (used via game.h chain)
+// Temporary: actors→engine DAG violation: NIGHT_flag, night light accessors
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 // Temporary: dirt.h for DIRT_gust, DIRT_Info
@@ -24,6 +20,7 @@
 #include "actors/items/grenade.h"
 #include "actors/core/interact.h"
 #include "actors/core/thing.h"
+#include "missions/game_types.h"
 #include "actors/core/thing_globals.h"
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"

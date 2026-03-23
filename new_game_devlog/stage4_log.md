@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 187 — Game.h umbrella: замена у 9 потребителей с // Temporary: маркером (2026-03-24)
+
+- Заменены все 9 `// Temporary: fallen/Headers/Game.h` включений конкретными заголовками.
+- `night_globals.cpp`: Game.h был полностью избыточен — night.h сам включает `<MFStdLib.h>` и pap_globals.
+- `thing_globals.cpp`: нужен только `actors/core/thing.h` для CLASS_* констант.
+- `supermap_globals.cpp`: нужен только `actors/characters/person_types.h` для PERSON_* констант.
+- `thing.cpp`, `night.cpp`, `collide.cpp`, `special.cpp`, `fc.h`, `memory.h`: заменено на `actors/core/thing.h` + `missions/game_types.h`; где нужны были транзитивные зависимости Game.h (ASSERT, PAP_lo, KB_ESC, MSG_add) — добавлены явно (`<MFStdLib.h>`, `pap_globals.h`, `keyboard.h`, `aeng.h`).
+- `game_types.h` требует полных определений pool-типов до своего включения — Thing, Vehicle, Person и т.д. уже обеспечивались через `thing.h` в каждом из файлов.
+- Temporary: 366 → 360 (−6).
+
 ## Итерация 186 — drive.cpp+mfx.cpp: MFStdLib→file.h; fallen/outro/ redirect stubs + удаление orphans (2026-03-24)
 
 - `drive.cpp` и `mfx.cpp` включали `<MFStdLib.h>` исключительно ради `MF_Fopen/MF_Fclose`, которые уже давно в `engine/io/file.h` — заменено, Temporary-комментарии убраны.

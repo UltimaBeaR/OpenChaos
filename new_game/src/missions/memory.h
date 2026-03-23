@@ -11,7 +11,9 @@
 // Also contains the quick save/load system (F5/F9 in PC build) via MEMORY_quick_*.
 
 #include "core/types.h"
-#include "fallen/Headers/Game.h" // Temporary: MemTable, save_table, and Game.h types (must come before memory_globals.h which pulls supermap.h needing MFFileHandle)
+// Temporary: missions→actors DAG violation: Thing* and anim types in convert_* function signatures
+#include "actors/core/thing.h"
+#include "engine/animation/anim_types.h"
 #include "missions/memory_globals.h"
 
 // Memory table type flags used in save_table[] entries.

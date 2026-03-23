@@ -1,7 +1,8 @@
-// Temporary: Game.h must be first — sets up cross-module types.
-#include "fallen/Headers/Game.h"
 // Temporary: heap.h not yet migrated to new/
 #include "core/heap.h"
+// Temporary: engine→actors DAG violation: need Thing pool types before game_types.h
+#include "actors/core/thing.h"
+#include "missions/game_types.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 // Temporary: ob.h not yet migrated

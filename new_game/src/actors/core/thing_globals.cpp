@@ -1,5 +1,4 @@
-// Temporary: Game.h needed for CLASS_* constants used to initialize class_priority/class_check.
-#include "fallen/Headers/Game.h"
+#include "actors/core/thing.h"
 #include "actors/core/thing_globals.h"
 
 // uc_orig: THING_array (fallen/Source/Thing.cpp)

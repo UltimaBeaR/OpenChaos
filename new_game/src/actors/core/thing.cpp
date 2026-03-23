@@ -1,12 +1,13 @@
-// Temporary: Game.h must come first — provides THINGS/TO_THING/THING_NUMBER, TICK_TOCK/TICK_RATIO
-// macros, CLASS_* constants, and types needed by thing.h.
-#include "fallen/Headers/Game.h"
-
+#include <MFStdLib.h>
 #include "actors/core/thing.h"
+#include "missions/game_types.h"
 #include "actors/core/thing_globals.h"
 // Temporary: pap.h needed for PAP_2LO/PAP_SHIFT_LO/ON_PAP_LO/PAP_SIZE_LO used in map management
 // functions (add_thing_to_map etc). Pre-existing coupling from original Thing.cpp.
 #include "world/map/pap.h"
+#include "world/map/pap_globals.h"
+#include "engine/input/keyboard.h"
+#include "engine/graphics/pipeline/aeng.h"
 #include "engine/audio/mfx.h"
 #include "engine/input/keyboard_globals.h"  // Keys[] (volatile UBYTE[256])
 #include "engine/net/net.h"                 // NET_Message, NET_message_*
