@@ -3,7 +3,7 @@
 // handling level win/loss, and dispatching to attract mode.
 
 #include "missions/game.h"
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "actors/core/thing_globals.h"  // playback_file, verifier_file
 #include "ui/controls.h"                // process_controls

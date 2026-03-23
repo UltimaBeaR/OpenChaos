@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "actors/animals/bat_globals.h"
 #include "actors/animals/bat.h"

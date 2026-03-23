@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include <string.h>
 
 #include "actors/core/statedef.h"

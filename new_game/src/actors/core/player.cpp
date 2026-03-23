@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "actors/characters/person.h"  // create_person
 #include "actors/core/player.h"

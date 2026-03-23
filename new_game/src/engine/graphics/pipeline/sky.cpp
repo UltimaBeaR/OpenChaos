@@ -2,7 +2,7 @@
 // while gd_display.h redefines them as macros (#define 640/480). Wrong order causes syntax errors.
 #include "missions/game_types.h"
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include "engine/graphics/pipeline/sky.h"
 #include "engine/graphics/pipeline/sky_globals.h"
 #include "engine/graphics/pipeline/poly.h"

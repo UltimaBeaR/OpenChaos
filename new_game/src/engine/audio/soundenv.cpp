@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "engine/audio/soundenv.h"
 #include "engine/audio/soundenv_globals.h"
 

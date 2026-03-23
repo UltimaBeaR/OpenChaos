@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_FASTPRIM_GLOBALS_H
 #define ENGINE_GRAPHICS_GEOMETRY_FASTPRIM_GLOBALS_H
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include <d3d.h>
 #include "core/types.h"
 

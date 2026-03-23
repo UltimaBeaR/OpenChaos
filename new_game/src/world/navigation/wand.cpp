@@ -1,4 +1,4 @@
-#include <MFStdLib.h>              // ASSERT, base types
+#include <platform.h>              // ASSERT, base types
 #include "core/macros.h"           // WITHIN, SATURATE, QDIST2
 #include "missions/game_types.h"
 #include "world/environment/prim.h" // prim_get_collision_model

@@ -1,7 +1,7 @@
 #ifndef ASSETS_STARTSCR_H
 #define ASSETS_STARTSCR_H
 
-#include "MFStdLib.h"
+#include <platform.h>
 
 // Action codes returned by the start screen / frontend loop.
 // uc_orig: STARTS_START (fallen/Headers/startscr.h)

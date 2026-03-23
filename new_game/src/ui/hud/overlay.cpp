@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "actors/core/statedef.h"
 #include "missions/eway.h"

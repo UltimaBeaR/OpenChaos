@@ -1,6 +1,6 @@
 #include "engine/graphics/pipeline/vertex_buffer.h"
 #include "engine/graphics/pipeline/vertex_buffer_globals.h"
-#include <MFStdLib.h>
+#include <platform.h>
 #include "engine/graphics/graphics_api/dd_manager.h"   // InitStruct macro
 
 #include <string.h>

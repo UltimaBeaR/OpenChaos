@@ -5,7 +5,7 @@
 // debug console, and the main process_controls() dispatcher.
 // Corresponds to fallen/Source/Controls.cpp.
 
-#include <MFStdLib.h>                 // Basic types: SLONG, UBYTE, etc.
+#include <platform.h>                 // Basic types: SLONG, UBYTE, etc.
 #include "ui/menus/widget.h"
 
 // Forward declaration (full type from Game.h, which includes this header transitively).

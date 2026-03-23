@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include <math.h>
 #include "missions/game_types.h" // for TICK_INV_RATIO, TICK_SHIFT macros
 #include "effects/mist.h"

@@ -1,7 +1,7 @@
 #ifndef ENGINE_LIGHTING_NGAMUT_H
 #define ENGINE_LIGHTING_NGAMUT_H
 
-#include <MFStdLib.h>
+#include <platform.h>
 
 // uc_orig: NGAMUT_SIZE (fallen/DDEngine/Headers/NGamut.h)
 #define NGAMUT_SIZE 128

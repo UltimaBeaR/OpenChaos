@@ -1,6 +1,6 @@
 #include "engine/graphics/graphics_api/wind_procs.h"
 #include "engine/graphics/graphics_api/wind_procs_globals.h"
-#include <MFStdLib.h>                            // must come before gd_display.h (which defines DisplayWidth macro)
+#include <platform.h>                            // must come before gd_display.h (which defines DisplayWidth macro)
 #include "engine/graphics/graphics_api/gd_display.h"     // the_display, hDDLibWindow
 #include "assets/bink_client.h"                  // BinkMessage
 #include "missions/game_types.h"

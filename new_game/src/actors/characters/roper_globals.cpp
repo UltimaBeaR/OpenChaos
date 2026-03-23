@@ -1,4 +1,4 @@
-#include "MFStdLib.h"
+#include <platform.h>
 #include "actors/characters/roper_globals.h"
 #include "actors/characters/roper.h"
 #include "actors/core/statedef.h"

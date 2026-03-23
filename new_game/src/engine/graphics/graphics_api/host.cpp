@@ -6,7 +6,7 @@
 #include "missions/game_types.h"
 #include "engine/audio/sound.h"
 #include "engine/audio/mfx.h"                  // MFX_init, MFX_term (already migrated)
-#include <MFStdLib.h>                           // MFTime, SetupMemory, ResetMemory, MF_main
+#include <platform.h>                           // MFTime, SetupMemory, ResetMemory, MF_main
 
 #define PAUSE_TIMEOUT 500
 #define PAUSE         (1 << 0)

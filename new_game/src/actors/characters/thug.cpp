@@ -1,6 +1,6 @@
 #include "actors/characters/thug.h"
 #include "actors/characters/thug_globals.h"
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "engine/animation/anim_types.h"      // GameKeyFrame
 #include "assets/anim_globals.h"               // game_chunk

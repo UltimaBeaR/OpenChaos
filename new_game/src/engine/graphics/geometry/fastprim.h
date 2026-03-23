@@ -4,7 +4,7 @@
 // Fast prim renderer: caches D3D vertex/index buffers per prim object and renders them
 // with DrawIndPrimMM or DrawIndexedPrimitive, skipping per-frame geometry rebuild.
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 

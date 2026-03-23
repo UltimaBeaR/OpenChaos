@@ -4,7 +4,7 @@
 // Auto-generated from sounds.slb on 16/11/99.
 // Contains the global sound file list and the Waves enum of all sound IDs.
 
-#include "MFStdLib.h"
+#include <platform.h>
 
 // Array of all sound filenames, indexed by the Waves enum values below.
 // uc_orig: sound_list (fallen/Headers/sound_id.h)

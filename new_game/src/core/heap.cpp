@@ -1,7 +1,7 @@
 #include "core/heap.h"
 #include "core/heap_globals.h"
 #include "core/macros.h"
-#include <MFStdLib.h>
+#include <platform.h>
 
 // Free list node — stored inline at the start of each free block.
 // uc_orig: HEAP_Free (fallen/Source/heap.cpp)

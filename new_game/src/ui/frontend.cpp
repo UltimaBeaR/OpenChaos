@@ -2,7 +2,7 @@
 // kibble particle system, FRONTEND_kibble_process, FRONTEND_fetch_title_from_id,
 // FRONTEND_display, FRONTEND_init, FRONTEND_loop, etc.
 
-#include <MFStdLib.h>   // must come before display_macros.h (which defines DisplayWidth/Height as macros)
+#include <platform.h>   // must come before display_macros.h (which defines DisplayWidth/Height as macros)
 #include "engine/graphics/graphics_api/display_macros.h" // the_display, LPDIRECTDRAWSURFACE4, HRESULT
 #include "ui/frontend.h"
 #include "ui/frontend_globals.h"

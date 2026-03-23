@@ -1,4 +1,4 @@
-#include <MFStdLib.h>              // base types
+#include <platform.h>              // base types
 #include "core/math.h"             // Root, SIN, COS
 #include "missions/game_types.h"   // TICK_RATIO, TICK_SHIFT, calc_angle, the_game
 #include "world/map/pap_globals.h"

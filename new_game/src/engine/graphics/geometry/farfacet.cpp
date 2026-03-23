@@ -1,5 +1,5 @@
 // Temporary includes: game.h, supermap.h, memory.h (fallen) not yet migrated
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"

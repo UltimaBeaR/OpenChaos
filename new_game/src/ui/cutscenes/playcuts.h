@@ -1,7 +1,7 @@
 #ifndef UI_CUTSCENES_PLAYCUTS_H
 #define UI_CUTSCENES_PLAYCUTS_H
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include "core/types.h"
 #include "core/vector.h"
 

@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/sprite.h"
 #include "core/math.h"

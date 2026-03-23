@@ -1,7 +1,7 @@
 // uc_orig: chopper.cpp (fallen/Source/chopper.cpp)
 // Helicopter (CLASS_CHOPPER) — allocation, AI state machine, and flight physics.
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "actors/core/interact.h"   // calc_sub_objects_position
 #include "actors/core/statedef.h"

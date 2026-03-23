@@ -1,7 +1,7 @@
 #ifndef UI_MENUS_WIDGET_H
 #define UI_MENUS_WIDGET_H
 
-#include "MFStdLib.h"
+#include <platform.h>
 
 // Widget state flags.
 

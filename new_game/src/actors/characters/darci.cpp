@@ -2,7 +2,7 @@
 // Darci Mason — the player-controlled character.
 // Physics, movement, and state initialisation for Darci.
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "actors/core/statedef.h"
 #include "actors/characters/anim_ids.h"

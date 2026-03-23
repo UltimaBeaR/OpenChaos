@@ -1,7 +1,7 @@
 #include "ui/hud/eng_map.h"
 #include "ui/hud/eng_map_globals.h"
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include <math.h>
 
 // game.h must come before gd_display.h: game.h → MFStdLib.h declares extern SLONG DisplayWidth/Height,

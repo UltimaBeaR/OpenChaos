@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h" // for GAME_TURN macro
 #include "effects/fire.h"
 #include "effects/fire_globals.h"

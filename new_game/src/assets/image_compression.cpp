@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "assets/image_compression.h"
 #include "assets/tga.h"
 

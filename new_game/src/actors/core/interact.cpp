@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "actors/core/thing.h"   // pool types
 #include "missions/game_types.h" // Game struct, TICK_RATIO, PEOPLE, etc.
 #include "world/map/pap.h"

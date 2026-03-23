@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display
 
 #include "missions/game_types.h"

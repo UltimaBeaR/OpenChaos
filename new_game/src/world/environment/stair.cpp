@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "core/fixed_math.h"
 
 #include "world/environment/building_types.h" // STAIR_FLAG_UP, STAIR_FLAG_DOWN

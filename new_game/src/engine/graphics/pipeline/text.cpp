@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 
 #include "engine/graphics/pipeline/text.h"
 #include "engine/graphics/pipeline/text_globals.h"

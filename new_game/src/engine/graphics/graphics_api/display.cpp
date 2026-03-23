@@ -7,7 +7,7 @@
 #include <stdio.h>
 // MFStdLib before gd_display.h: MFStdLib.h declares 'extern SLONG DisplayWidth/Height'
 // which would conflict with '#define DisplayWidth 640' from gd_display.h.
-#include <MFStdLib.h>                  // ASSERT, InitStruct
+#include <platform.h>                  // ASSERT, InitStruct
 #include <mmstream.h>  // IMultiMediaStream, IMediaStream
 #include <amstream.h>  // IAMMultiMediaStream, CLSID_AMMultiMediaStream
 #include <ddstream.h>  // IDirectDrawMediaStream, IDirectDrawStreamSample

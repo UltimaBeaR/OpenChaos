@@ -1,4 +1,4 @@
-#include <MFStdLib.h>                             // ASSERT, MFnew, MFdelete
+#include <platform.h>                             // ASSERT, MFnew, MFdelete
 #include "engine/graphics/resources/d3d_texture.h"
 #include "engine/graphics/resources/d3d_texture_globals.h"
 #include "engine/graphics/graphics_api/dd_manager.h"

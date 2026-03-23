@@ -1,7 +1,7 @@
 #ifndef EFFECTS_POW_H
 #define EFFECTS_POW_H
 
-#include <MFStdLib.h>      // for ASSERT
+#include <platform.h>      // for ASSERT
 #include "core/types.h"
 #include "world/map/pap.h"
 

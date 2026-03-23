@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "assets/xlat_str.h"
 #include "engine/input/keyboard.h"

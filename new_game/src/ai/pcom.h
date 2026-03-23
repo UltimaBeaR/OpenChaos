@@ -1,7 +1,7 @@
 #ifndef AI_PCOM_H
 #define AI_PCOM_H
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 
 // ============================================================

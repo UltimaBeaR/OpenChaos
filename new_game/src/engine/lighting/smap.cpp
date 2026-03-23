@@ -2,7 +2,7 @@
 // to use as a blob shadow. SMAP_person() builds the map; SMAP_project_onto_poly()
 // maps it onto a ground quad in world space.
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include <math.h>
 #include "engine/lighting/smap.h"
 #include "engine/lighting/smap_globals.h"

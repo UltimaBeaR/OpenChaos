@@ -1,6 +1,6 @@
 // Temporary includes — these modules are not yet migrated.
 // game.h pulls in the core game types (Thing, GameCoord, TICK_RATIO, etc.)
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "actors/characters/person.h"  // set_face_thing
 #include "missions/eway.h"

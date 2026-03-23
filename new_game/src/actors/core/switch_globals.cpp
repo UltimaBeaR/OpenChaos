@@ -1,4 +1,4 @@
-#include "MFStdLib.h"
+#include <platform.h>
 #include "actors/core/switch_globals.h"
 #include "actors/core/switch.h"
 

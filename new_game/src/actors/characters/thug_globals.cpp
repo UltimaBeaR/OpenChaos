@@ -1,4 +1,4 @@
-#include "MFStdLib.h"
+#include <platform.h>
 #include "actors/characters/thug_globals.h"
 #include "actors/characters/thug.h"
 #include "actors/core/statedef.h"

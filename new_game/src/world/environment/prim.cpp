@@ -5,7 +5,7 @@
 // slide edges, animated prims, and misc utilities.
 
 // MFStdLib first: pulls in windows.h with correct defines (WIN32, _WIN32) before any other headers.
-#include <MFStdLib.h>
+#include <platform.h>
 
 #include "world/environment/prim.h"
 #include "world/environment/prim_globals.h"

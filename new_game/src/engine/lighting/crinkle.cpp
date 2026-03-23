@@ -1,7 +1,7 @@
 #include "engine/lighting/crinkle.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/keyboard_globals.h"
-#include <MFStdLib.h>
+#include <platform.h>
 #include <math.h>
 
 // uc_orig: CRINKLE_MAX_POINTS_PER_CRINKLE (fallen/DDEngine/Source/Crinkle.cpp)

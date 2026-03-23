@@ -2,7 +2,7 @@
 // All functions here operate on POLY_Point vertices and PolyPage buckets.
 // In the new renderer this whole file will be replaced by a GPU pipeline.
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, END_SCENE, REALLY_SET_*, DRAW_INDEXED_PRIMITIVE, the_display
 #include <math.h>
 #include "engine/graphics/pipeline/poly.h"

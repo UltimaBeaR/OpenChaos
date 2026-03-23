@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "actors/core/interact_globals.h"
 
 // uc_orig: grab_px (fallen/Source/interact.cpp)

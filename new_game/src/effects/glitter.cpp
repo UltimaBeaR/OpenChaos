@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "effects/glitter.h"
 #include "effects/glitter_globals.h"
 

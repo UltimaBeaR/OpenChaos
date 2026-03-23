@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "actors/characters/snipe.h"
 #include "actors/characters/snipe_globals.h"
 #include "missions/game_types.h"

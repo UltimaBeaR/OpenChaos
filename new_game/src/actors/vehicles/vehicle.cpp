@@ -7,7 +7,7 @@
 
 #include <math.h>
 
-#include <MFStdLib.h>            // base types, ASSERT
+#include <platform.h>            // base types, ASSERT
 #include "missions/game_types.h" // Game struct, TICK_RATIO, pool macros
 #include "core/matrix.h"
 #include "engine/graphics/pipeline/poly.h"

@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 
 #include "engine/physics/sm.h"
 #include "engine/physics/sm_globals.h"

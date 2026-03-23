@@ -1,6 +1,6 @@
 #include "world/environment/outline.h"
 #include "core/macros.h"
-#include <MFStdLib.h>
+#include <platform.h>
 #include <cstdlib>
 #include <cstring>
 

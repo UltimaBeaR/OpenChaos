@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "actors/core/thing.h"
 #include "missions/game_types.h"
 #include "actors/core/thing_globals.h"

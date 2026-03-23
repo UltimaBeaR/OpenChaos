@@ -1,12 +1,12 @@
-// MFStdLib.h
+// platform.h
+// uc_orig: MFStdLib.h (MFStdLib/Headers/MFStdLib.h)
 // Guy Simmons, 18th December 1997.
+// Main platform abstraction header: Windows/DirectX includes, core types, host API.
 
-#ifndef MFSTDLIB_HEADERS_MFSTDLIB_H
-#define MFSTDLIB_HEADERS_MFSTDLIB_H
+#ifndef PLATFORM_PLATFORM_H
+#define PLATFORM_PLATFORM_H
 
-//---------------------------------------------------------------
-
-// Standard 'C' includes.
+// Standard C includes.
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +24,7 @@
 #define WIN32
 #endif
 
-// Specific Windows includes.
+// Windows/DirectX includes.
 #define D3D_OVERLOADS
 #include <windows.h>
 #include <windowsx.h>
@@ -37,22 +37,23 @@
 #include <dinput.h>
 #include <d3d.h>
 
-//---------------------------------------------------------------
-
 #include "core/types.h"
 
-//---------------------------------------------------------------
-// MF Standard includes.
+// uc_orig: StdFile.h (MFStdLib/Headers/StdFile.h)
+#include "engine/io/file.h"
 
-#include "StdFile.h"
-#include "StdKeybd.h"
-#include "StdMaths.h"
+// uc_orig: StdKeybd.h (MFStdLib/Headers/StdKeybd.h)
+#include "engine/input/keyboard.h"
+
+// uc_orig: StdMaths.h (MFStdLib/Headers/StdMaths.h)
+#include "core/math.h"
+
 #include "core/memory.h"
-#include "StdMouse.h"
 
-//---------------------------------------------------------------
+// uc_orig: StdMouse.h (MFStdLib/Headers/StdMouse.h)
+#include "engine/input/mouse.h"
+
 // Display
-
 #define FLAGS_USE_3DFX (1 << 0)
 #define FLAGS_USE_3D (1 << 1)
 #define FLAGS_USE_WORKSCREEN (1 << 2)
@@ -76,9 +77,7 @@ void UnlockWorkScreen(void);
 void ShowWorkScreen(ULONG flags);
 void ClearWorkScreen(UBYTE colour);
 
-//---------------------------------------------------------------
 // Host
-
 #define SHELL_NAME "Mucky Foot Shell\0"
 #define H_CREATE_LOG (1 << 0)
 #define SHELL_ACTIVE (LibShellActive())
@@ -102,7 +101,6 @@ struct MFTime {
 SLONG main(UWORD argc, TCHAR** argv);
 BOOL SetupHost(ULONG flags);
 void ResetHost(void);
-// void            TraceText(CBYTE *error, ...);
 void TraceText(char* error, ...);
 BOOL LibShellActive(void);
 BOOL LibShellChanged(void);
@@ -116,9 +114,6 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
     }
 #endif
 
-// Input defines moved to engine/input/joystick.h (Stage 4).
-// Available through DDlib.h -> DIManager.h -> joystick.h
-
 #include "core/macros.h"
 
-#endif // MFSTDLIB_HEADERS_MFSTDLIB_H
+#endif // PLATFORM_PLATFORM_H

@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "ui/menus/widget.h"
 #include "ui/menus/widget_globals.h"
 #include "engine/graphics/resources/menufont.h"

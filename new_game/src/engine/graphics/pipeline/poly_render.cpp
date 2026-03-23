@@ -1,7 +1,7 @@
 // Sets up Direct3D render states for all poly pages. Each page has a specific texture
 // and blend mode. Also handles sorting pages by texture for fewer state switches.
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include <math.h>
 #include "engine/graphics/pipeline/poly_render.h"
 #include "engine/graphics/pipeline/poly_render_globals.h"

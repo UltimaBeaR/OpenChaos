@@ -1,5 +1,5 @@
 #include <string.h>
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "actors/items/projectile.h"
 #include "actors/core/thing.h"

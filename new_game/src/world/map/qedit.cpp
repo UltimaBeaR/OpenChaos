@@ -1,5 +1,5 @@
 #include "missions/game_types.h"
-#include <MFStdLib.h>
+#include <platform.h>
 #include "world/map/qedit.h"
 #include "world/map/qedit_globals.h"
 #include "world/map/qmap.h"

@@ -1,7 +1,7 @@
 #ifndef ENGINE_LIGHTING_NGAMUT_GLOBALS_H
 #define ENGINE_LIGHTING_NGAMUT_GLOBALS_H
 
-#include <MFStdLib.h>
+#include <platform.h>
 #include "ngamut.h"
 
 // uc_orig: NGAMUT_gamut (fallen/DDEngine/Source/NGamut.cpp)

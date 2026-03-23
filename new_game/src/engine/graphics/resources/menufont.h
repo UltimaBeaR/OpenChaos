@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_RESOURCES_MENUFONT_H
 #define ENGINE_GRAPHICS_RESOURCES_MENUFONT_H
 
-#include "MFStdlib.h"
+#include <platform.h>
 
 // uc_orig: MENUFONT_FUTZING (fallen/DDEngine/Headers/menufont.h)
 #define MENUFONT_FUTZING (1)

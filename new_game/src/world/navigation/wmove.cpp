@@ -1,4 +1,4 @@
-#include <MFStdLib.h>
+#include <platform.h>
 #include "missions/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
 #include "assets/anim_globals.h"             // next_prim_point, next_prim_face4
