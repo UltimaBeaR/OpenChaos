@@ -21,7 +21,10 @@
 #include "engine/io/drive.h"
 #include "assets/tga.h"
 #include "fallen/Headers/memory.h"
-#include "fallen/Headers/io.h" // Temporary: TEXTURE_WORLD_DIR declared here until io.cpp is migrated
+#include "assets/level_loader.h"
+#include "assets/level_loader_globals.h"
+#include "assets/anim_loader.h"
+#include "assets/anim_loader_globals.h"
 #include "fallen/Headers/building.h" // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED, dx_textures_xy
 #include "world/map/supermap_globals.h" // next_dfacet
 #include "world/environment/ware_globals.h" // WARE_rooftex, WARE_rooftex_upto

@@ -13,13 +13,15 @@
 #include "font2d.h"
 #include "fallen/DDEngine/Headers/console.h"
 #include "fallen/DDEngine/Headers/map.h"
-#include "fallen/Headers/chopper.h"    // Temporary: Chopper not migrated
-#include "fallen/Headers/animal.h"     // Temporary: Animal/BAT not migrated
-#include "engine/io/drive.h"           // drive.h already migrated to new/
-#include "fallen/Headers/pcom.h"       // Temporary: PCOM not migrated
+#include "actors/vehicles/chopper.h"
+#include "actors/vehicles/chopper_globals.h"
+#include "actors/animals/animal.h"
+#include "actors/animals/animal_globals.h"
+#include "engine/io/drive.h"
+#include "ai/pcom.h"
 #include "world/map/supermap.h"
-#include "fallen/Headers/sound.h"
-#include "fallen/Headers/statedef.h"
+#include "engine/audio/sound.h"
+#include "actors/core/statedef.h"
 #include "world/navigation/wmove.h"
 #include "world/navigation/wmove_globals.h"
 #include "fallen/DDEngine/Headers/aeng.h"
@@ -27,24 +29,30 @@
 #include "missions/memory.h"
 #include "fallen/Headers/cnet.h"
 #include "mfx.h"
-#include "fallen/Headers/fc.h"
-#include "fallen/Headers/ware.h"
-#include "fallen/Headers/door.h"       // Temporary: DOOR not migrated
+#include "ui/camera/fc.h"
+#include "ui/camera/fc_globals.h"
+#include "world/environment/ware.h"
+#include "world/environment/ware_globals.h"
+#include "world/environment/door.h"
+#include "world/environment/door_globals.h"
 #include "fallen/Headers/interfac.h"
-#include "fallen/Headers/psystem.h"
+#include "engine/effects/psystem.h"
+#include "engine/effects/psystem_globals.h"
 #include "poly.h"
 #include "fallen/Headers/playcuts.h"
 #include "fallen/Headers/xlat_str.h"
 #include "fallen/Headers/mist.h"
 #include "fallen/Headers/gamemenu.h"
-#include "fallen/Headers/env.h"
+#include "engine/io/env.h"
 #include "fallen/Headers/prim.h"       // Temporary: find_anim_prim, PrimInfo
-#include "fallen/Headers/vehicle.h"    // Temporary: VEH_create, Vehicle not migrated
+#include "actors/vehicles/vehicle.h"
+#include "actors/vehicles/vehicle_globals.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
 #include "effects/pyro.h"              // Temporary: PYRO_create, PYRO_construct, IRONICWATERFALL_state_function
-#include "fallen/Headers/barrel.h"     // Temporary: BARREL_alloc, BARREL_dissapear
-#include "fallen/Headers/plat.h"       // Temporary: PLAT_create
+#include "actors/items/barrel.h"
+#include "actors/items/barrel_globals.h"
+#include "world/environment/plat.h"
 
 // Forward declaration not in any header.
 // uc_orig: person_ok_for_conversation (fallen/Source/eway.cpp)

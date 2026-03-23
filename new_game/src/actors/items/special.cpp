@@ -5,12 +5,10 @@
 //   NET_PERSON, NET_PLAYER, NETPERSON, NO_PLAYERS, FLAGS_HAS_GUN, FLAG_SPECIAL_HIDDEN,
 //   FLAG_PERSON_DRIVING, TICK_RATIO, TICK_SHIFT, GAME_TURN, health[], stat_count_bonus
 #include "fallen/Headers/Game.h"
-// Temporary: statedef.h for STATE_NORMAL, STATE_MOVEING, SUB_STATE_RUNNING_SKID_STOP, CLASS_*
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 // Temporary: eway.h for EWAY_is_active, EWAY_get_person, EWAY_counter
 #include "fallen/Headers/eway.h"
-// Temporary: pcom.h for PCOM_AI_BODYGUARD
-#include "fallen/Headers/pcom.h"
+#include "ai/pcom.h"
 // Temporary: night.h for... (used via game.h chain)
 #include "fallen/Headers/night.h"
 // Temporary: dirt.h for DIRT_gust, DIRT_Info

@@ -2,7 +2,7 @@
 #define EFFECTS_SPARK_GLOBALS_H
 
 #include "effects/spark.h"
-#include "fallen/Headers/Map.h" // Temporary: MAP_HEIGHT for SPARK_mapwho array size
+#include "world/map/map.h"
 
 // Internal spark structure (not exposed in the public API header).
 // uc_orig: SPARK_Point (fallen/Source/spark.cpp)

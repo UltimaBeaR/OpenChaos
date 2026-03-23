@@ -3,7 +3,7 @@
 #include "engine/graphics/graphics_api/wind_procs_globals.h"  // app_inactive, restore_surfaces
 #include "fallen/DDLibrary/Headers/DDLib.h"   // Temporary: the_display, hDDLibWindow
 #include "fallen/Headers/Game.h"               // Temporary: the_game, GAME_STATE
-#include "fallen/Headers/Sound.h"              // Temporary: sound declarations
+#include "engine/audio/sound.h"
 #include "engine/audio/mfx.h"                  // MFX_init, MFX_term (already migrated)
 #include <MFStdLib.h>                           // MFTime, SetupMemory, ResetMemory, MF_main
 

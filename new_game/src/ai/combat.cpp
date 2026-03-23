@@ -1,17 +1,17 @@
 #include "ai/combat.h"
 
-#include "fallen/Headers/pcom.h"       // Temporary: PCOM_*, PCOM_AI_*
+#include "ai/pcom.h"
 #include "ui/hud/overlay.h"            // track_enemy (already migrated)
 #include "engine/audio/mfx.h"         // MFX_play_thing, MFX_play_xyz, MFX_stop (already migrated)
 #include "engine/audio/sound.h"       // PainSound (already migrated)
 #include "engine/effects/psystem.h"   // PARTICLE_Add, PFLAG_* (already migrated)
 #include "engine/graphics/pipeline/poly.h" // POLY_PAGE_SMOKECLOUD2 (already migrated)
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/statedef.h"  // Temporary: ANIM_*, SUB_STATE_*, STATE_*, ACTION_*
+#include "actors/core/statedef.h"
 #include "fallen/Headers/pap.h"       // Temporary: PAP_calc_height_at_thing, PAP_SIZE_HI, PAP_SHIFT_HI
-#include "fallen/Headers/Sound.h"     // Temporary: SOUND_Range, SOUND_Gender, S_*
+#include "engine/audio/sound.h"
 #include "assets/anim_globals.h"      // estate, semtex (already migrated)
-#include "fallen/Headers/dirt.h"      // Temporary: DIRT_new_water, DIRT_TYPE_BLOOD
+#include "effects/dirt.h"
 #include "missions/eway.h"            // EWAY_get_person (already migrated)
 
 // Functions not yet in any header: declared inline here as in the original.

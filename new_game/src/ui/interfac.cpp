@@ -33,14 +33,15 @@
 #include "fallen/Headers/Person.h"   // Temporary: various person functions not yet in person.h
 
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/statedef.h"  // Temporary: ACTION_* constants (not yet in new/)
+#include "actors/core/statedef.h"
 #include "engine/physics/collide.h"
-#include "fallen/Headers/combat.h"    // Temporary: should_person_get_item
+#include "ai/combat.h"
 #include "fallen/DDLibrary/Headers/DDLib.h" // Temporary: DIJOYSTATE
 #include "fallen/DDEngine/Headers/Engine.h" // Temporary: SIN, COS, QDIST2, etc.
 #include "fallen/DDEngine/Headers/panel.h"  // Temporary: PANEL_new_text
 #include "ui/camera/cam.h"
-#include "fallen/Headers/cnet.h"      // Temporary: CNET_network_game, CNET_player_id (PLAYER_ID)
+#include "ui/menus/cnet.h"
+#include "ui/menus/cnet_globals.h"
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"

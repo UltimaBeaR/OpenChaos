@@ -7,8 +7,7 @@
 #include "fallen/Headers/pap.h"
 // Temporary: missions/memory_globals.h for prim_faces4, prim_points, roof_faces4
 #include "missions/memory_globals.h"
-// Temporary: statedef.h for SUB_STATE_RUNNING_JUMP_FLY, STOREY_TYPE_* constants
-#include "statedef.h"
+#include "actors/core/statedef.h"
 #include "world/environment/edmap.h"
 
 // Temporary: e_draw_3d_line (graphics debug line)
@@ -58,7 +57,6 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 #include "world/map/ob_globals.h"
 // Temporary: vehicle.h for get_vehicle_body_prim, get_vehicle_body_offset, get_vehicle_driver
 #include "actors/vehicles/vehicle.h"
-// Temporary: pcom.h for PCOM_person_a_hates_b, PCOM_attack_happened, PCOM_set_person_ai_flee_place
 #include "ai/pcom.h"
 // Temporary: combat.h for people_allowed_to_hit_each_other
 #include "ai/combat.h"

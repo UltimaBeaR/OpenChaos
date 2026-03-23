@@ -11,26 +11,31 @@
 #include "missions/eway.h"
 #include "missions/memory_globals.h"    // Temporary: dfacets, DFacet, next_dfacet
 #include "engine/physics/collide.h"
-#include "fallen/Headers/road.h"        // Temporary: ROAD_get_dest
-#include "fallen/Headers/wand.h"        // Temporary: PAP_*, PAP_FLAG_*
-#include "fallen/Headers/ware.h"        // Temporary: WARE_mav_enter etc
-#include "fallen/Headers/ob.h"          // Temporary: person_has_special, THING_find_sphere
+#include "world/map/road.h"
+#include "world/map/road_globals.h"
+#include "world/navigation/wand.h"
+#include "world/environment/ware.h"
+#include "world/environment/ware_globals.h"
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
 #include "actors/characters/anim_ids.h"
 #include "actors/core/statedef.h"
 #include "fallen/Headers/Person.h"      // Temporary: set_person_idle, set_person_goto_xz, set_person_circle, etc.
 #include "engine/audio/mfx.h"           // Temporary: MFX_play_thing
 #include "engine/audio/sound.h"         // Temporary: SOUND_Range
 #include "assets/sound_id.h"            // Temporary: S_COP_ARREST_START, S_COP_ARREST_END, sound IDs
-#include "fallen/Headers/spark.h"       // Temporary: SPARK_create, SPARK_Pinfo
-#include "fallen/Headers/balloon.h"     // Temporary: BALLOON_create
-#include "fallen/Headers/cnet.h"        // Temporary: NET_PERSON
-#include "fallen/Headers/overlay.h"     // Temporary: track_enemy
-#include "fallen/Headers/Vehicle.h"     // Temporary: reinit_vehicle, Vehicle struct, ROAD_find
+#include "effects/spark.h"
+#include "actors/items/balloon.h"
+#include "actors/items/balloon_globals.h"
+#include "ui/menus/cnet.h"
+#include "ui/menus/cnet_globals.h"
+#include "ui/hud/overlay.h"
+#include "actors/vehicles/vehicle.h"
+#include "actors/vehicles/vehicle_globals.h"
 #include "fallen/DDEngine/Headers/aeng.h" // Temporary: AENG_world_line (debug view line)
 #include "actors/core/interact.h"         // Temporary: calc_sub_objects_position
 #include "actors/core/thing.h"            // Temporary: THING_find_nearest, add_thing_to_map, remove_thing_from_map
 #include "actors/items/special.h"         // Temporary: SPECIAL_BOMB, SPECIAL_SUBSTATE_ACTIVATED, SPECIAL_SUBSTATE_NONE
-#include "fallen/Headers/road.h"           // Temporary: ROAD_nearest_node, ROAD_node_degree, ROAD_is_zebra, junction constants
 
 // --- Internal movement state constants (file-local) ---
 

@@ -15,7 +15,7 @@
 #include "fallen/Headers/mav.h"        // Temporary: MAV_SPARE, MAV_SPARE_FLAG_WATER
 #include "fallen/Headers/prim.h"       // Temporary: PRIM_FLAG_TREE, PRIM_OBJ_CAN, PRIM_OBJ_ITEM_KEY
 #include "assets/sound_id.h"     // Temporary: S_KICK_CAN
-#include "fallen/Headers/Sound.h"      // Temporary: world_type, WORLD_TYPE_*
+#include "engine/audio/sound.h"
 #include "engine/graphics/pipeline/poly.h"  // Temporary: POLY_PAGE_EXPLODE1_ADDITIVE, POLY_PAGE_EXPLODE2_ADDITIVE
 #include "missions/memory_globals.h"   // Temporary: prim_objects
 #include "actors/characters/anim_ids.h"

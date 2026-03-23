@@ -11,11 +11,14 @@
 
 #include "fallen/Headers/eway.h"        // Temporary: until eway is migrated
 #include "fallen/Headers/mission.h"
-#include "fallen/Headers/night.h"       // Temporary: until night is in new/engine/lighting/
-#include "fallen/Headers/ob.h"
-#include "fallen/Headers/trip.h"
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
+#include "world/environment/tripwire.h"
+#include "world/environment/tripwire_globals.h"
 #include "fallen/Headers/music.h"
-#include "fallen/Headers/dirt.h"        // Temporary: until dirt is migrated
+#include "effects/dirt.h"
 #include "fallen/Headers/fog.h"
 #include "fallen/Headers/hook.h"
 #include "fallen/Headers/mist.h"
@@ -40,29 +43,31 @@
 #include "ui/camera/cam.h"
 #include "fallen/Headers/psystem.h"
 #include "fallen/Headers/tracks.h"
-#include "fallen/Headers/pcom.h"
+#include "ai/pcom.h"
 #include "fallen/Headers/wmove.h"
 #include "actors/items/balloon.h"
 #include "fallen/Headers/wand.h"
 #include "fallen/Headers/ribbon.h"
 #include "actors/items/barrel.h"
-#include "fallen/Headers/fc.h"
+#include "ui/camera/fc.h"
+#include "ui/camera/fc_globals.h"
 #include "world/environment/ware.h"
 #include "missions/memory.h"
 #include "fallen/Headers/playcuts.h"
 #include "actors/items/grenade.h"
 #include "fallen/Headers/env.h"
 #include "fallen/DDEngine/Headers/panel.h"
-#include "fallen/Headers/sound.h"
+#include "engine/audio/sound.h"
 #include "DCLowLevel.h"
 
 #include "actors/animals/bat.h"
 #include "world/map/supermap_globals.h" // Temporary: PAP_* macros
 #include "actors/items/special.h"       // Temporary: SPECIAL_* item type constants
-#include "fallen/Headers/Vehicle.h"     // Temporary: VEH_create, EWAY_SUBTYPE_VEHICLE_*
-#include "fallen/Headers/plat.h"        // Temporary: PLAT_FLAG_*
+#include "actors/vehicles/vehicle.h"
+#include "actors/vehicles/vehicle_globals.h"
+#include "world/environment/plat.h"
 #include "fallen/Headers/prim.h"        // Temporary: get_prim_info, prim object constants
-#include "fallen/Headers/statedef.h"    // Temporary: player/person type constants
+#include "actors/core/statedef.h"
 #include "fallen/Headers/mav.h"         // Temporary: MAV_init, MAV_precalculate
 #include "engine/physics/collide.h"
 #include "assets/startscr_globals.h"    // STARTSCR_mission

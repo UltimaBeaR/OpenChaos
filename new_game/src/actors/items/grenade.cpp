@@ -1,12 +1,12 @@
 #include "fallen/Headers/Game.h"     // Temporary: Thing, GAME_TURN, TICK_RATIO, TICK_SHIFT, PAP_calc_map_height_at, etc.
-#include "fallen/Headers/sound.h"    // Temporary: S_EXPLODE_START, S_KICK_CAN
-#include "fallen/Headers/fmatrix.h"  // Temporary: FMATRIX_vector
-#include "fallen/Headers/pcom.h"     // Temporary: PCOM_oscillate_tympanum, PCOM_person_wants_to_kill
+#include "engine/audio/sound.h"
+#include "core/fmatrix.h"
+#include "ai/pcom.h"
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/dirt.h"     // Temporary: DIRT_new_sparks, DIRT_gust
+#include "effects/dirt.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "mesh.h"                    // Temporary: MESH_draw_poly
-#include "fallen/Headers/statedef.h" // Temporary: STATE_IDLE
+#include "actors/core/statedef.h"
 #include "DrawXtra.h"                // Temporary: AENG_world_line_nondebug
 #include "engine/graphics/geometry/bloom.h"
 #include "actors/items/grenade.h"

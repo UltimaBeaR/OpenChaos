@@ -1,5 +1,12 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 174 — Массовая зачистка // Temporary: у redirect-заголовков (2026-03-23)
+
+- Нет новых миграций сущностей — только замена `fallen/Headers/X.h // Temporary:` на прямые пути в 30 файлах.
+- При попытке заменить `game.h` на `missions/game_types.h` в `facet.cpp` и `prim.cpp` возникла ошибка компиляции: `game_types.h` включает `world/map/map.h`, который через цепочку тоже тянет `game_types.h` — рекурсия; кроме того `game_types.h` ожидает что все типы (Vehicle, Person, Bat…) уже определены до него. Оставлены на `fallen/Headers/Game.h // Temporary:`.
+- `psystem.cpp`, `bloom.cpp`, `aeng.cpp`: после замены fc.h стали видны DAG-нарушения `engine → ui/camera` — отмечены `// Temporary:` (нарушения были и раньше, скрыты за редиректом).
+- Temporary: 622 → 493.
+
 ## Итерация 173 — sewer.h → world/environment/sewer.h, cloth.h → effects/cloth.h, Enter.h → world/environment/enter.h (2026-03-23)
 
 - `sewer.h`: include в `person.cpp` удалён как лишний — файл не использует ни одну `SEWER_*` сущность (только `FLAGS_IN_SEWERS` и `S_FOOTS_SEWER_*`, которые уже в `thing.h` и `sound_id.h`).

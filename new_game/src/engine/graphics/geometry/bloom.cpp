@@ -4,7 +4,8 @@
 #include "fallen/DDLibrary/Headers/DDLib.h"
 #include "fallen/DDEngine/Headers/poly.h"
 #include "engine/physics/collide.h"
-#include "fallen/Headers/fc.h"                // Temporary: FC_cam
+#include "ui/camera/fc.h"       // Temporary: engine/graphics → ui/camera DAG violation (FC_cam camera position)
+#include "ui/camera/fc_globals.h"
 #include "fallen/Headers/eway.h"              // Temporary: EWAY_grab_camera
 
 #include "engine/graphics/geometry/bloom.h"

@@ -4,7 +4,7 @@
 
 #include "core/macros.h"                      // UC_INFINITY, QDIST2, WITHIN, ASSERT
 #include "core/matrix.h"                     // MATRIX_calc
-#include "fallen/Headers/game.h"             // Temporary: GAME_TURN, INDOORS_INDEX, the_game
+#include "fallen/Headers/Game.h" // Temporary: GAME_TURN, INDOORS_INDEX, the_game
 #include "engine/graphics/pipeline/aeng.h"   // Temporary: AENG_detail_crinkles, AENG_world_line
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"

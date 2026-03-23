@@ -4,49 +4,60 @@
 // (lines ~1-1757 of original Person.cpp)
 
 #include "fallen/Headers/Game.h"    // Temporary: Game types, Thing system, state helpers
-#include "fallen/Headers/Cop.h"     // Temporary: cop_states dispatch table
-#include "fallen/Headers/Darci.h"   // Temporary: darci_states dispatch table
-#include "fallen/Headers/Roper.h"   // Temporary: roper_states dispatch table
-#include "fallen/Headers/Thug.h"    // Temporary: thug utilities
-#include "fallen/Headers/id.h"      // Temporary: SUB_OBJECT_PELVIS, SUB_STATE_* constants
-#include "fallen/Headers/statedef.h" // Temporary: STATE_*, ACTION_*, ANIM_* constants
+#include "actors/characters/cop.h"
+#include "actors/characters/cop_globals.h"
+#include "actors/characters/darci.h"
+#include "actors/characters/darci_globals.h"
+#include "actors/characters/roper.h"
+#include "actors/characters/roper_globals.h"
+#include "actors/characters/thug.h"
+#include "world/environment/id.h"
+#include "actors/core/statedef.h"
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/combat.h"  // Temporary: fight tree, calc_sub_objects_position
+#include "ai/combat.h"
 #include "assets/sound_id.h"
-#include "fallen/Headers/guns.h"    // Temporary: gun/special types
-#include "fallen/Headers/cnet.h"    // Temporary: NETPERSON, NETPLAYERS
+#include "ui/menus/cnet.h"
+#include "ui/menus/cnet_globals.h"
 #include "fallen/Headers/mav.h"     // Temporary: MAV_Action, MAV_SPARE, MAV_SPARE_FLAG_WATER
-#include "fallen/Headers/Sound.h"   // Temporary: SOUND_Range, SOUND_FXGroups
+#include "engine/audio/sound.h"
 #include "fallen/Headers/eway.h"    // Temporary: EWAY types
-#include "fallen/Headers/spark.h"   // Temporary: spark effects
-#include "fallen/Headers/drip.h"    // Temporary: drip effects
+#include "effects/spark.h"
+#include "effects/drip.h"
 #include "fallen/Headers/puddle.h"  // Temporary: puddle effects
 #include "fallen/Headers/pap.h"     // Temporary: PAP_2HI, PAP_FLAG_HIDDEN, PAP_calc_height_at_thing
 #include "world/map/supermap.h"
-#include "fallen/Headers/ns.h"      // Temporary: NS types
-#include "fallen/Headers/dirt.h"    // Temporary: dirt effects
-#include "fallen/Headers/hook.h"    // Temporary: grappling hook
-#include "fallen/Headers/pcom.h"    // Temporary: PCOM AI types
+#include "world/environment/ns.h"
+#include "effects/dirt.h"
+#include "actors/items/hook.h"
+#include "actors/items/hook_globals.h"
 #include "effects/tracks.h"
 #include "fallen/DDEngine/Headers/Matrix.h" // Temporary: matrix utilities
-#include "fallen/Headers/ob.h"      // Temporary: OB_ob, OB_FLAG_HIDDEN_ITEM
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
 #include "world/navigation/wmove.h"
 #include "world/navigation/wmove_globals.h"
-#include "fallen/Headers/balloon.h" // Temporary: BALLOON_release
-#include "fallen/Headers/inside2.h" // Temporary: inside building types
-#include "fallen/Headers/walkable.h" // Temporary: walkable utilities
-#include "fallen/Headers/overlay.h" // Temporary: overlay types
-#include "fallen/Headers/psystem.h" // Temporary: pyro system
+#include "actors/items/balloon.h"
+#include "actors/items/balloon_globals.h"
+#include "world/navigation/inside2.h"
+#include "world/navigation/inside2_globals.h"
+#include "world/navigation/walkable.h"
+#include "engine/effects/psystem.h"
+#include "engine/effects/psystem_globals.h"
 #include "fallen/DDEngine/Headers/poly.h" // Temporary: POLY types
 #include "fallen/Headers/memory.h"  // Temporary: dfacets extern via memory globals
-#include "fallen/Headers/fmatrix.h" // Temporary: fmatrix
-#include "fallen/Headers/fc.h"      // Temporary: camera types
+#include "core/fmatrix.h"
+#include "ui/camera/fc.h"
+#include "ui/camera/fc_globals.h"
 #include "fallen/DDLibrary/Headers/MFX.h" // Temporary: MFX_play_thing, MFX_stop, MFX_play_ambient
-#include "fallen/Headers/night.h"   // Temporary: night/lighting types
-#include "fallen/Headers/ware.h"    // Temporary: WARE_which_contains
-#include "fallen/Headers/xlat_str.h" // Temporary: string translation
-#include "fallen/Headers/pow.h"     // Temporary: power-up types
-#include "fallen/Headers/frontend.h" // Temporary: frontend utilities
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
+#include "world/environment/ware.h"
+#include "world/environment/ware_globals.h"
+#include "assets/xlat_str.h"
+#include "effects/pow.h"
+#include "effects/pow_globals.h"
+#include "ui/frontend.h"
+#include "ui/frontend_globals.h"
 #include "fallen/DDEngine/Headers/aeng.h" // Temporary: AENG_ utilities
 #include "fallen/DDEngine/Headers/panel.h" // Temporary: panel/HUD utilities
 #include "engine/physics/collide.h"
@@ -60,13 +71,12 @@
 #include "effects/pyro_globals.h"   // Temporary: col_with[] array (shared collision buffer)
 #include "actors/items/guns.h"      // Temporary: find_target_new
 #include "actors/items/special.h"   // Temporary: alloc_special, special_drop, person_has_special
-#include "ai/combat.h"              // Temporary: apply_hit_to_person
 #include "effects/pyro.h"           // Temporary: PYRO_hitspang
 #include "actors/animals/bat.h"     // Temporary: BAT_apply_hit
 #include "actors/items/barrel.h"    // Temporary: BARREL_shoot
 #include "actors/core/interact.h"   // Temporary: find_grab_face (chunk 6)
 #include "fallen/Headers/prim.h"    // Temporary: which_side, two4_line_intersection, signed_dist_to_line_with_normal, does_fence_lie_along_line (chunk 6)
-#include "ai/pcom.h"                // Temporary: PCOM_set_person_move_punch/kick/arrest, PCOM_call_cop_to_arrest_me, PCOM_attack_happened (chunk 11)
+#include "ai/pcom.h"
 #include "ui/hud/overlay.h"         // Temporary: track_enemy (chunk 11)
 
 // External helpers declared in their own files (not yet migrated or in old headers).

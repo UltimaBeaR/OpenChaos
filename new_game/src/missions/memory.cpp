@@ -3,30 +3,41 @@
 // First chunk: globals init, level memory table, pointer/index conversion, anim serialization.
 
 #include "fallen/Headers/Game.h"      // Temporary: Game struct, Thing system types, macro helpers
-#include "fallen/Headers/ob.h"        // Temporary: OB_ob, OB_mapwho, OB_ob_upto
-#include "fallen/Headers/fc.h"        // Temporary: FC_look_at, FC_force_camera_behind
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
+#include "ui/camera/fc.h"
+#include "ui/camera/fc_globals.h"
 #include "world/navigation/wmove.h"
 #include "world/navigation/wmove_globals.h"
 #include "world/map/supermap.h"
-#include "fallen/Headers/night.h"     // Temporary: NIGHT_slight, NIGHT_smap, NIGHT_dlight types and counts
-#include "fallen/Headers/barrel.h"    // Temporary: BARREL_sphere, BARREL_barrel, barrel types
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
+#include "actors/items/barrel.h"
+#include "actors/items/barrel_globals.h"
 #include "fallen/Headers/eway.h"      // Temporary: EWAY_mess, EWAY_way, EWAY_cond, EWAY_edef, EWAY_timer
 #include "fallen/Headers/pap.h"       // Temporary: PAP_hi, PAP_lo, PAP_SIZE_HI, PAP_SIZE_LO
 #include "fallen/Headers/mav.h"       // Temporary: MAV_opt, MAV_nav, MAV_MAX_OPTS
-#include "fallen/Headers/road.h"      // Temporary: ROAD_node, ROAD_edge types
-#include "fallen/Headers/balloon.h"   // Temporary: BALLOON_balloon
+#include "world/map/road.h"
+#include "world/map/road_globals.h"
+#include "actors/items/balloon.h"
+#include "actors/items/balloon_globals.h"
 #include "effects/tracks.h"
-#include "fallen/Headers/ware.h"      // Temporary: WARE_ware, WARE_nav, WARE_height, WARE_rooftex
-#include "fallen/Headers/trip.h"      // Temporary: TRIP_wire
-#include "fallen/Headers/psystem.h"   // Temporary: PYROS, MAX_PYROS, Pyro type
-#include "fallen/Headers/env.h"       // Temporary: ENV types
-#include "fallen/Headers/bat.h"       // Temporary: BATS, BAT types
-#include "fallen/Headers/door.h"      // Temporary: DOOR_door
-#include "fallen/Headers/spark.h"     // Temporary: spark types
-#include "fallen/Headers/playcuts.h"  // Temporary: PLAYCUTS_cutscenes, CPData, CPChannel, CPPacket types
-#include "fallen/Headers/statedef.h"  // Temporary: STATE_DEAD, set_generic_person_state_function, set_state_function
+#include "world/environment/ware.h"
+#include "world/environment/ware_globals.h"
+#include "world/environment/tripwire.h"
+#include "world/environment/tripwire_globals.h"
+#include "engine/effects/psystem.h"
+#include "engine/effects/psystem_globals.h"
+#include "engine/io/env.h"
+#include "actors/animals/bat.h"
+#include "world/environment/door.h"
+#include "world/environment/door_globals.h"
+#include "effects/spark.h"
+#include "ui/cutscenes/playcuts.h"
+#include "ui/cutscenes/playcuts_globals.h"
+#include "actors/core/statedef.h"
 #include "fallen/DDEngine/Headers/poly.h" // Temporary: POLY_PAGE_BLOODSPLAT
-#include "fallen/Headers/sound.h"     // Temporary: SOUND_FXMapping, SOUND_FXGroups
+#include "engine/audio/sound.h"
 
 #include "missions/memory.h"
 #include "missions/memory_globals.h"

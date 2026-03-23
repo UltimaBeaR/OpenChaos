@@ -39,8 +39,7 @@
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"
 
-// Temporary: pcom.h needed for PCOM_set_person_ai_flee_person (used in VEH_throw_out_person)
-#include "fallen/Headers/pcom.h"
+#include "ai/pcom.h"
 // Temporary: psystem.h included via engine/effects but also needs old flags
 #include "fallen/Headers/psystem.h"
 

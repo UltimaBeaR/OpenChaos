@@ -7,12 +7,15 @@
 #include "fallen/Headers/mav.h"    // Temporary: MAV_inside (referenced in comments only; not actually called)
 #include "core/fmatrix.h"          // FMATRIX_calc, FMATRIX_TRANSPOSE, FMATRIX_MUL
 #include "engine/graphics/pipeline/poly.h"  // POLY_PAGE_FLAMES2, POLY_PAGE_STEAM, POLY_PAGE_SMOKECLOUD2
-#include "fallen/Headers/Sound.h"  // Temporary: PainSound
-#include "fallen/Headers/pcom.h"   // Temporary: PCOM_BENT_PLAYERKILL
-#include "fallen/Headers/pow.h"    // Temporary: PYRO_create, PYRO_WHOOMPH, create_shockwave
+#include "engine/audio/sound.h"
+#include "ai/pcom.h"
+#include "effects/pow.h"
+#include "effects/pow_globals.h"
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/fc.h"       // Temporary: FC_cam (camera state for Ware optimisation in psystem)
-#include "fallen/Headers/interact.h" // Temporary: calc_sub_objects_position, SUB_OBJECT_LEFT_FOOT, SUB_OBJECT_HEAD
+#include "ui/camera/fc.h"      // Temporary: engine/effects → ui/camera DAG violation (FC_cam used to check Ware)
+#include "ui/camera/fc_globals.h"
+#include "actors/core/interact.h"
+#include "actors/core/interact_globals.h"
 
 #include "engine/effects/psystem_globals.h"
 #include "world/map/pap.h"  // PAP_calc_map_height_at

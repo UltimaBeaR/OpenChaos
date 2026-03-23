@@ -2,10 +2,13 @@
 // Global variable definitions for the person subsystem.
 
 #include "actors/characters/person.h"
-#include "fallen/Headers/Cop.h"     // Temporary: cop_states dispatch table
-#include "fallen/Headers/Darci.h"   // Temporary: darci_states dispatch table
-#include "fallen/Headers/Roper.h"   // Temporary: roper_states dispatch table
-#include "fallen/Headers/statedef.h" // Temporary: STATE_* constants for generic_people_functions
+#include "actors/characters/cop.h"
+#include "actors/characters/cop_globals.h"
+#include "actors/characters/darci.h"
+#include "actors/characters/darci_globals.h"
+#include "actors/characters/roper.h"
+#include "actors/characters/roper_globals.h"
+#include "actors/core/statedef.h"
 
 // State functions still in old/fallen/Source/Person.cpp (not yet migrated).
 // All functions from chunks 1-12 are now defined in actors/characters/person.cpp

@@ -1,9 +1,11 @@
 #include "fallen/Headers/Game.h"   // Temporary: NET_PERSON, DRAW_DIST, ASSERT, WITHIN, SATURATE, QDIST2, Random
-#include "fallen/Headers/ob.h"     // Temporary: OB_find, OB_Info, prim_get_collision_model, PRIM_COLLIDE_*
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
 #include "world/navigation/wand.h"
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
-#include "fallen/Headers/road.h"   // Temporary: ROAD_is_road, ROAD_is_zebra, ROAD_find, ROAD_node_pos
+#include "world/map/road.h"
+#include "world/map/road_globals.h"
 
 // uc_orig: WAND_init (fallen/Source/wand.cpp)
 void WAND_init(void)

@@ -20,8 +20,8 @@
 #include "fallen/outro/tga.h"           // Temporary: OUTRO_TGA_load, OUTRO_TGA_Info, OUTRO_TGA_Pixel
 #include "fallen/DDLibrary/Headers/DDlib.h" // Temporary: VERIFY, ASSERT, CLEAR_VIEWPORT, FLIP, the_display, SHELL_ACTIVE, Keys, KB_ESC, KEY_ESCAPE
 #include "fallen/DDLibrary/Headers/mfx.h"   // Temporary: MFX_play_stereo, MFX_update, MFX_stop, MFX_LOOPED
-#include "fallen/Headers/music.h"           // Temporary: MUSIC_mode, MUSIC_mode_process
-#include "fallen/Headers/sound_id.h"        // Temporary: S_TUNE_*, S_CREDITS_LOOP
+#include "engine/audio/music.h"
+#include "assets/sound_id.h"
 
 #include "ui/cutscenes/outro/outro_os.h"
 #include "ui/cutscenes/outro/outro_os_globals.h"

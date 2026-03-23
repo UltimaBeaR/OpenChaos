@@ -10,7 +10,7 @@
 #include "ai/mav.h"
 #include "world/navigation/wand.h"
 #include "effects/spark.h"
-#include "fallen/Headers/pcom.h"       // Temporary: PCOM_AI_NONE, PCOM_AI_SUICIDE — pcom not yet migrated
+#include "ai/pcom.h"
 #include "missions/memory.h"
 #include "engine/lighting/night.h"
 #include "engine/physics/collide.h"

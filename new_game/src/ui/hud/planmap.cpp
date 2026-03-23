@@ -2,8 +2,7 @@
 #include "game.h"
 // Temporary: pap.h needed for PAP_2HI, PAP_Hi struct and PAP_FLAG_ defines
 #include "pap.h"
-// Temporary: road.h needed for ROAD_is_road
-#include "fallen/Headers/road.h"
+#include "world/map/road.h"
 #include "ui/hud/planmap.h"
 #include "ui/hud/planmap_globals.h"
 

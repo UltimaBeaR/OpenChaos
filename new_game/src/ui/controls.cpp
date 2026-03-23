@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "fallen/Headers/Game.h"       // Temporary: NET_PERSON, NET_PLAYER, GAME_STATE, GAME_TURN, game_chunk
-#include "ai/pcom.h"                   // Temporary: PCOM_MOVE_WANDER
+#include "ai/pcom.h"
 #include "assets/sound_id.h"           // Temporary: S_NULL, S_TUNE_DANGER_RED, S_TUNE_DANGER_GREEN (Waves enum)
 #include "engine/audio/music.h"        // Temporary: MUSIC_mode, MUSIC_bodge_code, MUSIC_MODE_*
 #include "engine/audio/sound.h"       // Temporary: MUSIC_REF
@@ -15,13 +15,13 @@
 #include "engine/lighting/night.h"     // Temporary: NIGHT_cache_recalc, NIGHT_dfcache_recalc, NIGHT_generate_walkable_lighting
 #include "engine/lighting/night_globals.h" // Temporary: NIGHT_amb_red/green/blue
 #include "world/map/pap.h"             // Temporary: PAP_calc_height_at, PAP_2HI
-#include "world/map/road.h"            // Temporary: ROAD_is_road
+#include "world/map/road.h"
 #include "missions/eway.h"             // Temporary: EWAY_Way, EWAY_Edef
 #include "missions/eway_globals.h"    // Temporary: EWAY_way, EWAY_way_upto, EWAY_edef, EWAY_edef_upto, EWAY_DO_*
 #include "effects/pyro.h"              // Temporary: PYRO_create, PYRO_GAMEOVER
 #include "actors/characters/person.h"  // Temporary: set_person_idle, set_person_item_away, set_person_draw_item, set_person_draw_gun
 #include "actors/core/thing.h"         // Temporary: move_thing_on_map, THING_NUMBER, THING_find_sphere, THING_array, THING_ARRAY_SIZE, TO_THING
-#include "fallen/Headers/statedef.h"   // Temporary: SUB_STATE_CRAWLING, PERSON_MODE_*, FLAG_PERSON_*, FLAGS_HAS_GUN, FLAG_PERSON_GUN_OUT
+#include "actors/core/statedef.h"
 // ANIM_TYPE_DARCI, ANIM_TYPE_ROPER come from fallen/Headers/Person.h via actors/characters/person.h
 #include "assets/anim_globals.h"      // Temporary: game_chunk
 #include "world/environment/ware.h"    // Temporary: WARE_Ware type
@@ -39,7 +39,8 @@
 #include "ui/camera/fc.h"                        // Temporary: FC_force_camera_behind, FC_setup_initial_camera
 #include "ui/camera/fc_globals.h"                // Temporary: FC_cam array
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/interfac.h"             // Temporary: INPUT_MASK_SELECT, INPUT_SELECT
+#include "ui/interfac.h"
+#include "ui/interfac_globals.h"
 #include "ui/menus/cnet_globals.h"               // Temporary: CNET_player_id, CNET_num_players (for PLAYER_ID/NO_PLAYERS macros)
 
 #include "effects/dirt.h"              // Temporary: DIRT_set_focus, DIRT_new_water, DIRT_init

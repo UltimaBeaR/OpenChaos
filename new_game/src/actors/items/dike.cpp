@@ -1,7 +1,7 @@
 #include "fallen/Headers/Game.h"    // Temporary: TICK_RATIO, TICK_SHIFT, MUL64, DIV64, Root, calc_angle, WITHIN, QDIST2, SATURATE
 #include "fallen/Headers/pap.h"     // Temporary: PAP_calc_map_height_at
-#include "fallen/Headers/road.h"    // Temporary: ROAD_is_road
-#include "fallen/Headers/fmatrix.h" // Temporary: FMATRIX_vector, AENG_world_line
+#include "world/map/road.h"
+#include "core/fmatrix.h"
 #include "actors/items/dike.h"
 #include "actors/items/dike_globals.h"
 

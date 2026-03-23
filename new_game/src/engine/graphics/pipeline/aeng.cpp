@@ -21,11 +21,13 @@
 
 // Temporary: FMatrix, FC_cam, Keys, HEAP, prim_points, save_table, NIGHT_cache
 #include "fallen/Headers/FMatrix.h"
-#include "fallen/Headers/fc.h"   // Temporary: FC_cam
+#include "ui/camera/fc.h"       // Temporary: engine/graphics → ui/camera DAG violation (FC_cam camera state)
+#include "ui/camera/fc_globals.h"
 #include "fallen/Headers/Game.h"
 #include "fallen/Headers/building.h"
 #include "fallen/Headers/memory.h"
-#include "fallen/Headers/inside2.h"  // Temporary: InsideStorey
+#include "world/navigation/inside2.h"
+#include "world/navigation/inside2_globals.h"
 #include "fallen/Headers/pap.h"
 #include "fallen/Headers/mav.h"      // Temporary: MAVHEIGHT (draw_quick_floor)
 #include "fallen/DDLibrary/Headers/DDLib.h"
@@ -112,7 +114,7 @@
 #include "ui/controls_globals.h"
 #include "actors/characters/anim_ids.h"
 #include "assets/anim_tmap.h"               // Temporary: AnimTmap, anim_tmaps (wibble texture animation)
-#include "fallen/Headers/statedef.h"        // Temporary: STATE_DEAD
+#include "actors/core/statedef.h"
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Source/aeng.cpp)
 #define POLY_set_local_rotation_none() \
