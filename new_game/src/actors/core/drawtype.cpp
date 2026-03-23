@@ -1,5 +1,6 @@
 #include "actors/core/drawtype.h"
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "world/level_pools.h"
 
 // Sentinel value stored in DrawMesh.Angle to mark the slot as free.

@@ -1,7 +1,7 @@
 #include <MFStdLib.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "fallen/Headers/game.h"
+#include "missions/game_types.h"
 #include "assets/anim.h"
 #include "core/memory.h"
 #include "actors/characters/anim_ids.h"

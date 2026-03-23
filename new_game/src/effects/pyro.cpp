@@ -1074,7 +1074,6 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
 #include "actors/items/barrel.h"
 #include "effects/ribbon.h"
 #include "actors/characters/anim_ids.h"
-#include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/sprite.h"
 #include "effects/spark.h"
 #include "world/environment/id.h"

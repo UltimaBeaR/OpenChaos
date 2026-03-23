@@ -1,7 +1,10 @@
 // Temporary includes: game.h, supermap.h, memory.h (fallen) not yet migrated
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "world/map/pap.h"
+#include "world/map/pap_globals.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "world/map/supermap.h"

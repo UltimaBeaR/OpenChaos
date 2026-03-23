@@ -2,7 +2,8 @@
 #define MISSIONS_GAME_H
 
 #include "missions/game_globals.h"
-#include "fallen/Headers/widget.h"
+#include "ui/menus/widget.h"
+#include "ui/menus/widget_globals.h"
 
 // Stops all music and sound effects immediately (called on scene transitions).
 // uc_orig: stop_all_fx_and_music (fallen/Source/Game.cpp)

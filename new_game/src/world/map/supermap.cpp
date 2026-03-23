@@ -1,4 +1,4 @@
-#include "fallen/Headers/Game.h"
+#include "missions/game_types.h"
 #include "world/map/supermap.h"
 #include "world/map/supermap_globals.h"
 #include "world/map/pap.h"

@@ -1,6 +1,11 @@
 #include "actors/characters/thug.h"
 #include "actors/characters/thug_globals.h"
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "engine/animation/anim_types.h"      // GameKeyFrame
+#include "assets/anim_globals.h"               // game_chunk
+#include "actors/characters/person.h"          // set_thing_velocity, health, set_anim
+#include "actors/characters/person_globals.h"  // health[]
 #include "actors/core/statedef.h"
 #include "actors/characters/anim_ids.h"
 #include "world/map/pap_globals.h"

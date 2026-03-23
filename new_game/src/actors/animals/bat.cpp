@@ -1,4 +1,5 @@
-#include "fallen/Headers/Game.h" // Must be first: pulls in MFStdLib.h (MFFileHandle for supermap.h), string.h
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "actors/animals/bat_globals.h"
 #include "actors/animals/bat.h"
 #include "actors/characters/anim_ids.h"

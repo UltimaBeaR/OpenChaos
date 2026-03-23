@@ -7,7 +7,7 @@
 // game.h must come before gd_display.h: game.h → MFStdLib.h declares extern SLONG DisplayWidth/Height,
 // then gd_display.h #defines them as 640/480. Wrong order causes syntax errors.
 //            TO_THING, DisplayWidth/DisplayHeight, SPECIAL_info, PRIM_OBJ_ITEM_GUN, SPECIAL_NUM_TYPES
-#include "fallen/Headers/game.h"
+#include "missions/game_types.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 
 #include "engine/graphics/pipeline/poly.h"

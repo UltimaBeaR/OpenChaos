@@ -10,8 +10,11 @@
 #include "core/matrix.h"
 #include "core/fmatrix.h"
 #include "world/level_pools.h"
-#include "fallen/Headers/Game.h"
-#include "actors/characters/person_types.h"  // Person struct, FLAG_PERSON_*, ANIM_TYPE_*
+#include "missions/game_types.h"
+#include "engine/animation/anim_types.h"    // GameKeyFrame, GameKeyFrameElement, GameKeyFrameChunk, GetCMatrix
+#include "actors/characters/person_types.h" // Person struct, FLAG_PERSON_*, ANIM_TYPE_*
+#include "actors/characters/person.h"       // person_get_scale
+#include "actors/core/interact.h"           // calc_sub_objects_position_global
 
 // SMAP_vector_normalise: normalise a 3D float vector in-place.
 // uc_orig: SMAP_vector_normalise (fallen/DDEngine/Source/smap.cpp)

@@ -1,4 +1,6 @@
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "actors/characters/person.h"  // create_person
 #include "actors/core/player.h"
 #include "actors/core/player_globals.h"
 #include "actors/core/statedef.h"

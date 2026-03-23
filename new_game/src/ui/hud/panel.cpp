@@ -12,7 +12,6 @@
 #include "engine/graphics/resources/font2d.h"
 #include "engine/graphics/resources/font2d_globals.h"
 
-#include "fallen/DDEngine/Headers/aeng.h"
 
 // Thing, Class constants, person types, special items
 #include "actors/core/thing.h"

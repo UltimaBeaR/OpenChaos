@@ -3,7 +3,8 @@
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 
-#include "fallen/Headers/game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
 #include "engine/audio/sound.h"

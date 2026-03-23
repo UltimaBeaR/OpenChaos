@@ -1,7 +1,7 @@
 #ifndef ENGINE_AUDIO_SOUND_H
 #define ENGINE_AUDIO_SOUND_H
 
-#include "fallen/DDLibrary/Headers/MFX.h"
+#include "engine/audio/mfx.h"
 #include "engine/audio/sound_globals.h"
 #include "assets/sound_id.h"
 

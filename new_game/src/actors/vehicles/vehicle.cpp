@@ -9,9 +9,9 @@
 
 #include <MFStdLib.h>            // base types, ASSERT
 #include "missions/game_types.h" // Game struct, TICK_RATIO, pool macros
-#include "fallen/DDEngine/Headers/Matrix.h"
-#include "fallen/DDEngine/Headers/poly.h"
-#include "fallen/DDEngine/Headers/oval.h"
+#include "core/matrix.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/geometry/oval.h"
 
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
@@ -28,8 +28,8 @@
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 #include "engine/graphics/geometry/bloom.h"
-#include "fallen/DDEngine/Headers/aeng.h"
-#include "fallen/DDEngine/Headers/mesh.h"
+#include "engine/graphics/pipeline/aeng.h"
+#include "engine/graphics/geometry/mesh.h"
 #include "effects/pow.h"
 #include "effects/pow_globals.h"
 #include "ui/interfac.h"

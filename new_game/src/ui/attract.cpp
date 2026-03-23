@@ -1,4 +1,6 @@
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "engine/graphics/pipeline/aeng.h"  // AENG_flip, AENG_fade_out, AENG_clear_screen
 #include "ui/camera/cam.h"
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display
 #include "engine/input/joystick.h"                       // ReadInputDevice

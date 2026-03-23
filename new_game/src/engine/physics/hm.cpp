@@ -8,8 +8,10 @@
 
 #include <math.h>
 #include <string.h>
+#include "engine/graphics/pipeline/aeng.h"  // MSG_add
 
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimInfo, PrimFace4, PrimPoint, PrimFace3
 #include "world/environment/prim.h"       // get_prim_info
 #include "core/math.h"

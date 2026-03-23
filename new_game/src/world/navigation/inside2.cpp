@@ -1,4 +1,6 @@
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "engine/graphics/pipeline/aeng.h"  // MSG_add
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"
 #include "world/environment/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, FStorey, FWall, STAIR_FLAG_*, etc.

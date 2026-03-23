@@ -1,5 +1,12 @@
 #include "actors/core/state.h"
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "actors/core/player_globals.h"          // player_functions
+#include "actors/characters/person_globals.h"     // people_functions, generic_people_functions
+#include "actors/vehicles/vehicle_globals.h"      // VEH_statefunctions
+#include "actors/animals/animal_globals.h"        // ANIMAL_functions
+#include "actors/vehicles/chopper_globals.h"      // CHOPPER_functions
+#include "effects/pyro_globals.h"                 // PYRO_functions
 
 // uc_orig: set_state_function (fallen/Source/State.cpp)
 void set_state_function(Thing* t_thing, UBYTE state)

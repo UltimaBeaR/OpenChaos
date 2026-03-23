@@ -1,5 +1,6 @@
 #include <MFStdLib.h>
-#include "fallen/Headers/Game.h"
+#include "missions/game_types.h"
+#include "assets/anim_globals.h"   // next_prim_point, next_prim_face4
 #include "world/map/pap.h"
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"

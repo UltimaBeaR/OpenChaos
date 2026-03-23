@@ -1,14 +1,15 @@
 #include <MFStdLib.h>
-#include "fallen/Headers/game.h"
+#include "missions/game_types.h"
 #include "assets/xlat_str.h"
 #include "engine/input/keyboard.h"
 #include "ui/pause.h"
 
-#include "fallen/DDEngine/Headers/poly.h"
-#include "fallen/DDLibrary/Headers/D3DTexture.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/resources/d3d_texture.h"
 
-#include "fallen/DDEngine/Headers/font2d.h"
-#include "fallen/DDEngine/Headers/panel.h"
+#include "engine/graphics/resources/font2d.h"
+#include "ui/hud/panel.h"
+#include "ui/hud/panel_globals.h"
 
 // Joystick axis centre value and deadzone thresholds.
 #define AXIS_CENTRE 32768

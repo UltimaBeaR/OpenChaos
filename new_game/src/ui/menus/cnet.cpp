@@ -1,5 +1,5 @@
 #include <MFStdLib.h>
-#include "fallen/Headers/Game.h"
+#include "missions/game_types.h"
 #include "engine/net/net.h"
 #include "engine/input/keyboard.h"
 #include "engine/graphics/pipeline/aeng.h"

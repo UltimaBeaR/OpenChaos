@@ -2,7 +2,7 @@
 // Rotating glow overlay for the Guardian of Baalrog (final boss).
 
 
-#include "fallen/DDEngine/Headers/poly.h"
+#include "engine/graphics/pipeline/poly.h"
 #include "core/math.h"              // SIN, COS lookup tables
 #include "missions/game_types.h"
 

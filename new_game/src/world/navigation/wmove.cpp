@@ -1,4 +1,7 @@
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
+#include "assets/anim_globals.h"             // next_prim_point, next_prim_face4
 #include "world/navigation/wmove.h"
 #include "world/navigation/wmove_globals.h"
 #include "world/environment/build2.h"

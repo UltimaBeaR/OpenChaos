@@ -1,7 +1,9 @@
 // uc_orig: chopper.cpp (fallen/Source/chopper.cpp)
 // Helicopter (CLASS_CHOPPER) — allocation, AI state machine, and flight physics.
 
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "actors/core/interact.h"   // calc_sub_objects_position
 #include "actors/core/statedef.h"
 #include "world/map/pap_globals.h"
 #include "ai/mav.h"
@@ -560,7 +562,7 @@ void CHOPPER_init_state(Thing* chopper_thing, UBYTE new_state)
     chopper->substate = new_state;
 }
 
-#include "fallen/DDEngine/Headers/mesh.h"
+#include "engine/graphics/geometry/mesh.h"
 #include "engine/graphics/geometry/cone.h"
 #include "actors/characters/anim_ids.h"
 

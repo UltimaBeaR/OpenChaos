@@ -1,9 +1,11 @@
 #include "engine/lighting/shadow.h"
 #include "engine/lighting/shadow_globals.h"
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "world/map/pap_globals.h"
 #include "world/map/supermap.h"
 #include "ai/mav.h"
+#include "engine/physics/collide.h"
 #include "world/level_pools.h"
 
 // Fixed directional light vector components (sun direction, world-space fixed-point).

@@ -3,7 +3,10 @@
 // Note: Most functions contain ASSERT(0) stubs — the animal system was not completed
 // in the pre-release build.
 
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "engine/animation/anim_types.h"     // GameKeyFrame, GameKeyFrameChunk
+#include "assets/anim_globals.h"              // game_chunk, global_anim_array
 #include "actors/core/statedef.h"
 #include "actors/animals/animal.h"
 #include "actors/animals/animal_globals.h"

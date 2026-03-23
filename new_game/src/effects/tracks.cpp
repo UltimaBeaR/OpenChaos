@@ -1,4 +1,5 @@
-#include "fallen/Headers/game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 
 #include "effects/tracks.h"
 #include "effects/tracks_globals.h"

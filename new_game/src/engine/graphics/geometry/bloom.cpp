@@ -3,7 +3,7 @@
 
 
 #include "engine/graphics/graphics_api/gd_display.h"   // DisplayWidth, DisplayHeight constants
-#include "fallen/DDEngine/Headers/poly.h"
+#include "engine/graphics/pipeline/poly.h"
 #include "engine/physics/collide.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"

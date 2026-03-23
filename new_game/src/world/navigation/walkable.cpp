@@ -3,7 +3,8 @@
 // The PAP heightfield is the fallback when no explicit face is found.
 // All quads are treated as 10% larger than actual geometry for collision tolerance.
 
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
 #include "world/navigation/walkable.h"

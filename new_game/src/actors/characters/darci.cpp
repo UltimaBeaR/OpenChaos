@@ -2,7 +2,8 @@
 // Darci Mason — the player-controlled character.
 // Physics, movement, and state initialisation for Darci.
 
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "actors/core/statedef.h"
 #include "actors/characters/anim_ids.h"
 #include "world/map/pap_globals.h"

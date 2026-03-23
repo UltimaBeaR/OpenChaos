@@ -4,7 +4,8 @@
 #include "world/map/pap_globals.h"
 
 // Temporary includes — not yet migrated:
-#include "fallen/Headers/Game.h"         // INFINITY, SIGN, QDIST2, SATURATE, TRUE/FALSE/NULL
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "world/map/supermap.h"
 #include "world/environment/building.h"
 #include "world/level_pools.h"

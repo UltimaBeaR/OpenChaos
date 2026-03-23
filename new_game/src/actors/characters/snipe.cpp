@@ -1,7 +1,7 @@
 #include <MFStdLib.h>
 #include "actors/characters/snipe.h"
 #include "actors/characters/snipe_globals.h"
-#include "fallen/Headers/Game.h"
+#include "missions/game_types.h"
 #include "actors/items/guns.h"
 #include "ai/combat.h"
 

@@ -1,4 +1,5 @@
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "effects/pow.h"
 #include "effects/pow_globals.h"
 #include "core/fmatrix.h"

@@ -1,4 +1,4 @@
-#include "fallen/Headers/Game.h"
+#include "missions/game_types.h"
 #include <MFStdLib.h>
 #include "world/map/qedit.h"
 #include "world/map/qedit_globals.h"

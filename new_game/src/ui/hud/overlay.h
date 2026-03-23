@@ -1,7 +1,8 @@
 #ifndef UI_HUD_OVERLAY_H
 #define UI_HUD_OVERLAY_H
 
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 
 // uc_orig: OVERLAY_handle (fallen/Source/overlay.cpp)
 extern void OVERLAY_handle(void);

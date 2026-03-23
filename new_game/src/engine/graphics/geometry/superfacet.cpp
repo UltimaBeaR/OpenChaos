@@ -1,9 +1,9 @@
 #include <MFStdLib.h>
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display
 
-#include "fallen/Headers/game.h"
-#include "fallen/DDEngine/Headers/poly.h"
-#include "fallen/DDEngine/Headers/polypoint.h"
+#include "missions/game_types.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"

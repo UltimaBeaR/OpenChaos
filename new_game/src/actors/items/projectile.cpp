@@ -1,5 +1,6 @@
 #include <string.h>
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "actors/items/projectile.h"
 #include "actors/core/thing.h"
 #include "statedef.h"

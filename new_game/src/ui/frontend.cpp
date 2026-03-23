@@ -10,10 +10,10 @@
 #include "assets/xlat_str.h"
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"
-#include "fallen/DDEngine/Headers/menufont.h"
-#include "fallen/DDEngine/Headers/font2d.h"
-#include "fallen/DDEngine/Headers/polypage.h"
-#include "fallen/DDEngine/Headers/poly.h"
+#include "engine/graphics/resources/menufont.h"
+#include "engine/graphics/resources/font2d.h"
+#include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/pipeline/poly.h"
 #include "core/fmatrix.h"
 // DRAW2D_Box, DRAW2D_Tri migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
@@ -22,7 +22,7 @@
 #include "assets/anim_loader.h"
 #include "assets/anim_loader_globals.h"
 #include "engine/audio/music.h"
-#include "fallen/Headers/Game.h"
+#include "missions/game_types.h"
 
 // Additional headers for chunks 2-3 (FRONTEND_display, FRONTEND_input, FRONTEND_init, FRONTEND_loop)
 #include "engine/audio/music.h"               // MUSIC_gain, MUSIC_reset, MUSIC_mode_process, MUSIC_bodge_code

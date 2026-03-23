@@ -3,7 +3,10 @@
 // handling level win/loss, and dispatching to attract mode.
 
 #include "missions/game.h"
-#include "fallen/Headers/Game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "actors/core/thing_globals.h"  // playback_file, verifier_file
+#include "ui/controls.h"                // process_controls
 #include "world/environment/prim.h"    // clear_prims
 
 // These modules are not yet fully migrated:
@@ -52,16 +55,18 @@
 #include "engine/io/env.h"
 #include "world/navigation/wmove.h"
 #include "world/navigation/wmove_globals.h"
-#include "fallen/DDEngine/Headers/console.h"  // CONSOLE_draw, CONSOLE_font
-#include "fallen/DDEngine/Headers/poly.h"     // POLY_frame_init, POLY_frame_draw
-#include "fallen/DDEngine/Headers/map.h"      // MAP_process
-#include "fallen/DDEngine/Headers/menufont.h" // MENUFONT_Draw
-#include "fallen/DDEngine/Headers/BreakTimer.h" // BreakStart, BreakTime, BreakEnd, BreakFrame
-#include "fallen/DDEngine/Headers/truetype.h" // PreFlipTT (if defined)
-#include "fallen/DDEngine/Headers/superfacet.h" // SUPERFACET_init, SUPERFACET_fini
-#include "fallen/DDEngine/Headers/farfacet.h"   // FARFACET_init, FARFACET_fini
-#include "fallen/DDEngine/Headers/fastprim.h"   // FASTPRIM_init, FASTPRIM_fini
-#include "fallen/DDLibrary/Headers/net.h"       // NET_kill, NET_PERSON, NET_PLAYER, NO_PLAYERS, PLAYER_ID
+#include "engine/graphics/resources/console.h"  // CONSOLE_draw, CONSOLE_font
+#include "engine/graphics/pipeline/poly.h"  // POLY_frame_init, POLY_frame_draw
+#include "ui/hud/eng_map.h"  // MAP_process
+#include "ui/hud/eng_map_globals.h"
+#include "engine/graphics/resources/menufont.h"  // MENUFONT_Draw
+#include "core/timer.h"  // BreakStart, BreakTime, BreakEnd, BreakFrame
+#include "engine/graphics/resources/truetype.h"  // PreFlipTT (if defined)
+#include "engine/graphics/geometry/superfacet.h"  // SUPERFACET_init, SUPERFACET_fini
+#include "engine/graphics/geometry/farfacet.h"  // FARFACET_init, FARFACET_fini
+#include "engine/graphics/geometry/fastprim.h"  // FASTPRIM_init, FASTPRIM_fini
+#include "engine/graphics/geometry/fastprim_globals.h"
+#include "engine/net/net.h"  // NET_kill, NET_PERSON, NET_PLAYER, NO_PLAYERS, PLAYER_ID
 
 #include "missions/elev.h"      // ELEV_load_user, ELEV_load_name, ELEV_fname_level
 #include "missions/elev_globals.h"
@@ -94,10 +99,11 @@
 #include "world/environment/water.h"
 #include "effects/drip.h"
 #include "assets/xlat_str.h"
-#include "fallen/DDEngine/Headers/font2d.h"  // FONT2D_DrawStringWrapTo
+#include "engine/graphics/resources/font2d.h"  // FONT2D_DrawStringWrapTo
 #include "ui/hud/overlay.h"
 #include "engine/audio/music.h"
-#include "fallen/DDEngine/Headers/panel.h"   // PANEL_wide_top_person, PANEL_wide_bot_person
+#include "ui/hud/panel.h"  // PANEL_wide_top_person, PANEL_wide_bot_person
+#include "ui/hud/panel_globals.h"
 #include "ui/frontend.h"
 #include "ui/frontend_globals.h"
 #include "actors/characters/snipe.h"

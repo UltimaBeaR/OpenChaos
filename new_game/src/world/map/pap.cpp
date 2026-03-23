@@ -4,8 +4,9 @@
 #include <MFStdLib.h>
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
-#include "fallen/Headers/Game.h"
+#include "missions/game_types.h"
 #include "ai/mav.h"
+#include "engine/graphics/pipeline/aeng.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
 

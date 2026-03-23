@@ -1,4 +1,6 @@
-#include "fallen/Headers/game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
 #include "world/environment/prim.h"   // get_prim_info
 #include "ai/mav.h"
 #include "world/level_pools.h"

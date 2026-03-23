@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 191 — Устранение всех fallen/ и MFStdLib/ include из нового кода (2026-03-24)
+
+- `fallen/` includes в новом коде: 124 → 0. `MFStdLib/` было 0 и осталось 0.
+- `fallen/Headers/Game.h` — заменён у всех 55 потребителей на `<MFStdLib.h>` + `missions/game_types.h`. `missions/game_types.h` уже включает `actors/core/thing.h` (все pool-типы), так что большинство транзитивных зависимостей покрыто автоматически.
+- Вскрытые транзитивные зависимости (Game.h транзитивно предоставлял через `fallen/Headers/interact.h → actors/core/interact.h → anim_globals.h`): `ob.cpp`, `wmove.cpp`, `texture.cpp`, `animal.cpp` → нужен `assets/anim_globals.h` (next_prim_point/face4, game_chunk, global_anim_array); `cone.cpp`, `farfacet.cpp`, `pap.cpp` → `pap_globals.h` (PAP_lo через PAP_2LO macro); `shadow.cpp`, `fc.cpp` → `collide.h`; `inside2.cpp`, `hm.cpp`, `ware.cpp`, `wmove.cpp` → `aeng.h` (MSG_add, AENG_world_line); `smap.cpp` → `anim_types.h` + `person.h` + `interact.h`; `state.cpp` → 6 _globals файлов для таблиц StateFunction; `game.cpp` → `thing_globals.h` + `controls.h`.
+- 20 `fallen/DDEngine/Headers/` и `fallen/DDLibrary/Headers/` redirect-заглушек → прямые пути в 19 файлах (poly, panel, aeng, mesh, font2d, menufont, map, console, truetype, superfacet, polypoint, polypage, oval, font, fastprim, farfacet, Matrix, BreakTimer, net, MFX, D3DTexture; fallen/Headers/widget.h → missions/game.h).
+- `pyro.cpp`: дубликат `poly.h` (был на ~1074 строке) убран скриптом дедупликации — верно, оригинал уже был на строке 20.
+- `fallen/Headers/Game.h` теперь не имеет потребителей в новом коде — файл-сирота (сам содержит redirect-includes внутри fallen/).
+
 ## Итерация 190 — Устранение всех 357 // Temporary: до нуля (2026-03-24)
 
 - Создан `world/level_pools.h`: агрегирует все extern-объявления геометрических пулов уровня (prim_points, prim_faces4, dfacets, facet_links, roof_faces4, inside_storeys, и т.д.) — перемещено из `missions/memory_globals.h`. `memory_globals.h` теперь включает только missions-специфичные данные (MAP_Beacon, PSX_TEX, mem_all, MEMORY_quick_avaliable, save_table).

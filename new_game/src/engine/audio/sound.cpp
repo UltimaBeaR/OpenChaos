@@ -1,4 +1,4 @@
-#include "fallen/Headers/Game.h"
+#include "missions/game_types.h"
 
 #include "cnet.h"
 #include "engine/audio/sound.h"

@@ -1,6 +1,6 @@
 #include "effects/fog.h"
 #include "effects/fog_globals.h"
-#include "fallen/Headers/Game.h"
+#include "missions/game_types.h"
 #include <MFStdLib.h>
 #include "world/map/pap_globals.h"
 

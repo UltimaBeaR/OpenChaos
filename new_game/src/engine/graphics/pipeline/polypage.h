@@ -4,7 +4,7 @@
 #include "engine/graphics/pipeline/render_state.h"
 #include "engine/graphics/pipeline/vertex_buffer.h"
 #include "engine/graphics/pipeline/polypoint.h"
-#include "fallen/DDEngine/Headers/poly.h"
+#include "engine/graphics/pipeline/poly.h"
 
 // Forward declaration — D3DTexture is in DDLibrary, not yet migrated.
 class D3DTexture;

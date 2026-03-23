@@ -1,6 +1,6 @@
 // game.h must come first: it pulls in MFStdLib which declares extern DisplayWidth/Height
 // as variables; gd_display.h would then redefine them as macros causing a syntax error.
-#include "fallen/Headers/Game.h"
+#include "missions/game_types.h"
 
 #include <MFStdLib.h>
 #include <DDLib.h>
@@ -17,7 +17,7 @@
 #include "actors/items/balloon.h"
 #include "actors/items/balloon_globals.h"
 
-#include "fallen/DDEngine/Headers/mesh.h"
+#include "engine/graphics/geometry/mesh.h"
 
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"

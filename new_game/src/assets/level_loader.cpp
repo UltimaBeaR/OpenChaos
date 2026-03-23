@@ -2,7 +2,8 @@
 // Handles .iam map files, .prm static prim objects, .all animated prim objects,
 // and .tma texture style tables.
 
-#include "fallen/Headers/game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "assets/mapthing.h"
 #include "world/map/pap_globals.h"
 #include "world/map/ob.h"
@@ -15,6 +16,7 @@
 #include "world/environment/prim.h"             // clear_prims
 #include "engine/audio/sound.h"
 #include "engine/audio/sound_globals.h"
+#include "assets/texture.h"               // TEXTURE_choose_set
 
 #include "assets/level_loader.h"
 #include "assets/level_loader_globals.h"
