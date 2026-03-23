@@ -77989,6 +77989,156 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_Rpoint",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "FIGURE_Rpoint",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_MAX_RPOINTS",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "FIGURE_MAX_RPOINTS",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_rpoint",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "FIGURE_rpoint",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_rpoint_upto",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "FIGURE_rpoint_upto",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_reflect_x1",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "FIGURE_reflect_x1",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_reflect_y1",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "FIGURE_reflect_y1",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_reflect_x2",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "FIGURE_reflect_x2",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_reflect_y2",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "FIGURE_reflect_y2",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_reflect_height",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "FIGURE_reflect_height",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_MAX_DY",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "FIGURE_MAX_DY",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_255_DIVIDED_BY_MAX_DY",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "FIGURE_255_DIVIDED_BY_MAX_DY",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_draw_prim_tween_reflection",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "FIGURE_draw_prim_tween_reflection",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_draw_reflection",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "FIGURE_draw_reflection",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_draw_prim_tween_person_only_just_set_matrix",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "FIGURE_draw_prim_tween_person_only_just_set_matrix",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_draw_prim_tween_person_only",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "FIGURE_draw_prim_tween_person_only",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

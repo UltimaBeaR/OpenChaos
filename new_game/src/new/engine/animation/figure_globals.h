@@ -275,4 +275,48 @@ extern PeepRecolEntry peep_recol[16];
 // When true, scales down the next MESH_draw_poly call (used for grenade-in-hand rendering).
 extern UBYTE kludge_shrink;
 
+// --- Reflection draw state ---
+// Used by FIGURE_draw_prim_tween_reflection and FIGURE_draw_reflection.
+
+// uc_orig: FIGURE_Rpoint (fallen/DDEngine/Source/figure.cpp)
+// One entry in the screen-space reflection point buffer: distance from reflection plane + projected POLY_Point.
+struct FIGURE_Rpoint {
+    union {
+        float distance;
+        ULONG clip;
+    };
+    POLY_Point pp;
+};
+
+// uc_orig: FIGURE_MAX_RPOINTS (fallen/DDEngine/Source/figure.cpp)
+#define FIGURE_MAX_RPOINTS 256
+
+// uc_orig: FIGURE_rpoint (fallen/DDEngine/Source/figure.cpp)
+// Per-body-part screen-space reflection point buffer, filled by FIGURE_draw_prim_tween_reflection.
+extern FIGURE_Rpoint FIGURE_rpoint[FIGURE_MAX_RPOINTS];
+
+// uc_orig: FIGURE_rpoint_upto (fallen/DDEngine/Source/figure.cpp)
+// Number of valid entries in FIGURE_rpoint[].
+extern SLONG FIGURE_rpoint_upto;
+
+// uc_orig: FIGURE_reflect_x1 (fallen/DDEngine/Source/figure.cpp)
+// Screen-space bounding box of reflected points: left edge.
+extern SLONG FIGURE_reflect_x1;
+
+// uc_orig: FIGURE_reflect_y1 (fallen/DDEngine/Source/figure.cpp)
+// Screen-space bounding box of reflected points: top edge.
+extern SLONG FIGURE_reflect_y1;
+
+// uc_orig: FIGURE_reflect_x2 (fallen/DDEngine/Source/figure.cpp)
+// Screen-space bounding box of reflected points: right edge.
+extern SLONG FIGURE_reflect_x2;
+
+// uc_orig: FIGURE_reflect_y2 (fallen/DDEngine/Source/figure.cpp)
+// Screen-space bounding box of reflected points: bottom edge.
+extern SLONG FIGURE_reflect_y2;
+
+// uc_orig: FIGURE_reflect_height (fallen/DDEngine/Source/figure.cpp)
+// World-space Y coordinate of the water reflection plane.
+extern float FIGURE_reflect_height;
+
 #endif // ENGINE_ANIMATION_FIGURE_GLOBALS_H

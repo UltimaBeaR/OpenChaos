@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 149 — figure.cpp chunk 4: reflection + person-only draw (2026-03-23)
+
+- `FIGURE_Rpoint` struct и reflection globals (`FIGURE_rpoint[]`, `FIGURE_rpoint_upto`, `FIGURE_reflect_*`) → `figure_globals.h/.cpp`.
+- `FIGURE_MAX_DY`, `FIGURE_255_DIVIDED_BY_MAX_DY` — в оригинале `#define` внутри тела функции; перенесены на уровень файла (выше функции), аналогично прецеденту `CLOSE_ENOUGH` из chunk 2.
+- Исправлена строка ошибки: `"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure has no animation elements"` → `"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure has no animation elements"` — COUNT was wrong (was 31, should be 19 `!`); исправлено при ревью.
+- Forward declarations `FIGURE_draw_prim_tween_person_only*` удалены из `old/figure.cpp` — функции теперь определены в `new/`, декларации в `new/engine/animation/figure.h`.
+- `old/fallen/DDEngine/Source/figure.cpp` удалён (все 4 чанка в `#if 0`) + убран из CMakeLists.txt.
+
+---
+
 ## Итерация 148 — figure.cpp chunk 3: warped/hierarchical/main draw (2026-03-23)
 
 - `FIGURE_Rpoint` typedef и reflection globals (`FIGURE_rpoint[]` и др.) — не перенесены: chunk 4 код ещё активен в old/figure.cpp, typedef бы конфликтовал. Отложено на chunk 4.

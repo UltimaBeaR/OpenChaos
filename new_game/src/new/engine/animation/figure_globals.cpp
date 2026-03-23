@@ -180,6 +180,29 @@ PeepRecolEntry peep_recol[16] = {
 // uc_orig: kludge_shrink (fallen/DDEngine/Source/figure.cpp)
 UBYTE kludge_shrink = UC_FALSE;
 
+// --- Reflection draw state ---
+
+// uc_orig: FIGURE_rpoint (fallen/DDEngine/Source/figure.cpp)
+FIGURE_Rpoint FIGURE_rpoint[FIGURE_MAX_RPOINTS];
+
+// uc_orig: FIGURE_rpoint_upto (fallen/DDEngine/Source/figure.cpp)
+SLONG FIGURE_rpoint_upto = 0;
+
+// uc_orig: FIGURE_reflect_x1 (fallen/DDEngine/Source/figure.cpp)
+SLONG FIGURE_reflect_x1 = 0;
+
+// uc_orig: FIGURE_reflect_y1 (fallen/DDEngine/Source/figure.cpp)
+SLONG FIGURE_reflect_y1 = 0;
+
+// uc_orig: FIGURE_reflect_x2 (fallen/DDEngine/Source/figure.cpp)
+SLONG FIGURE_reflect_x2 = 0;
+
+// uc_orig: FIGURE_reflect_y2 (fallen/DDEngine/Source/figure.cpp)
+SLONG FIGURE_reflect_y2 = 0;
+
+// uc_orig: FIGURE_reflect_height (fallen/DDEngine/Source/figure.cpp)
+float FIGURE_reflect_height = 0.0f;
+
 // Backing storage for the aligned MM_* pointers (not original entities — these replace
 // the ALIGNED_STATIC_ARRAY macro from figure.cpp which generated equivalent static storage).
 // Kept here so all global state is visible in _globals files per project rules.
