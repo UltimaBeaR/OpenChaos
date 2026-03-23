@@ -339,7 +339,7 @@ set(SOURCES_GAME
     src/old/fallen/Source/hm.cpp
     src/old/fallen/Source/interfac.cpp
     src/old/fallen/Source/io.cpp
-    src/old/fallen/Source/Main.cpp
+    src/new/missions/main.cpp
     src/new/ai/mav.cpp
     src/new/ai/mav_globals.cpp
     src/old/fallen/Source/mav.cpp

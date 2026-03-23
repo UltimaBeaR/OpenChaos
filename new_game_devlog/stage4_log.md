@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 163 — Main.cpp (main / MF_main entry point) (2026-03-23)
+
+- `main()` → `new/missions/main.cpp`. Via `#define main(ac,av) MF_main(ac,av)` в MFStdLib.h это и есть `MF_main` — точка входа вызываемая из `WinMain` в `host.cpp`.
+- Мёртвый код (`/* mkt_test */`, закомментированные `ASSERT` строки) — не переносится.
+- `old/fallen/Source/Main.cpp` удалён из `CMakeLists.txt`, заменён на `new/missions/main.cpp`.
+- Это последний unmigrated source файл (кроме `pq.cpp` — шаблон-include, переносить не нужно).
+
+---
+
 ## Итерация 162 — statedef.h (STATE_* + SUB_STATE_* macros) (2026-03-23)
 
 - 39 STATE_* + 157 SUB_STATE_* макросов (196 итого) → `new/actors/core/statedef.h`. `old/statedef.h` → redirect.
