@@ -33,6 +33,27 @@
 #include <stdio.h>
 
 #include "engine/animation/figure.h"
+#include "engine/animation/figure_globals.h"  // kludge_shrink
+#include "engine/graphics/graphics_api/gd_display.h"  // the_display
+#include "engine/graphics/geometry/shape.h"
+#include "engine/lighting/smap.h"
+#include "engine/lighting/smap_globals.h"
+#include "engine/audio/sound.h"   // WORLD_TYPE_SNOW
+#include "engine/audio/sound_globals.h" // world_type
+#include "assets/anim_globals.h"  // estate
+#include "effects/drip.h"
+#include "effects/drip_globals.h"
+#include "effects/fire.h"
+#include "effects/fire_globals.h"
+#include "effects/spark.h"
+#include "effects/spark_globals.h"
+#include "effects/glitter.h"
+#include "effects/glitter_globals.h"
+#include "effects/dirt.h"
+#include "effects/dirt_globals.h"
+#include "effects/pow.h"
+#include "actors/items/hook.h"
+#include "fallen/Headers/prim.h"  // Temporary: PRIM_OBJ_CAN, PRIM_OBJ_HOOK, PRIM_OBJ_ITEM_AMMO_SHOTGUN
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Source/aeng.cpp)
 #define POLY_set_local_rotation_none() \
@@ -1241,3 +1262,1328 @@ void AENG_get_rid_of_deleteme_squares()
 // uc_orig: SHADOW_Z_BIAS_BODGE (fallen/DDEngine/Source/aeng.cpp)
 // Small Z offset to prevent shadow-on-floor Z-fighting.
 #define SHADOW_Z_BIAS_BODGE 0.0001f
+
+// ---------------------------------------------------------------------------
+// Chunk 2: shadow projection polys, weather, hook, colour multiply, dirt, pows
+// ---------------------------------------------------------------------------
+
+// uc_orig: AENG_add_projected_shadow_poly (fallen/DDEngine/Source/aeng.cpp)
+// Transforms and submits a projected shadow polygon (flat, white, no fade-out).
+void AENG_add_projected_shadow_poly(SMAP_Link* sl)
+{
+    SLONG i;
+
+    POLY_Point* pp;
+
+    POLY_buffer_upto = 0;
+
+    while (sl) {
+        ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
+
+        pp = &POLY_buffer[POLY_buffer_upto++];
+
+        POLY_transform(
+            sl->wx,
+            sl->wy,
+            sl->wz,
+            pp);
+
+        if (pp->MaybeValid()) {
+            pp->u = AENG_project_offset_u + sl->u * AENG_project_mul_u;
+            pp->v = AENG_project_offset_v + sl->v * AENG_project_mul_v;
+
+            pp->colour = 0xffffffff;
+            pp->specular = 0xff000000;
+
+        } else {
+            return;
+        }
+
+        sl = sl->next;
+    }
+
+    POLY_Point* tri[3];
+
+    tri[0] = &POLY_buffer[0];
+
+    for (i = 1; i < POLY_buffer_upto - 1; i++) {
+        tri[1] = &POLY_buffer[i + 0];
+        tri[2] = &POLY_buffer[i + 1];
+
+        if (POLY_valid_triangle(tri)) {
+            POLY_add_triangle(tri, POLY_PAGE_SHADOW, UC_TRUE);
+        }
+    }
+}
+
+// uc_orig: AENG_add_projected_fadeout_shadow_poly (fallen/DDEngine/Source/aeng.cpp)
+// Like AENG_add_projected_shadow_poly but alpha fades out beyond 64 units from the
+// light origin (fully transparent at 256 units).
+void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl)
+{
+    float dx;
+    float dz;
+    float dist;
+
+    SLONG i;
+    SLONG alpha;
+
+    POLY_Point* pp;
+
+    POLY_buffer_upto = 0;
+
+    while (sl) {
+        ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
+
+        pp = &POLY_buffer[POLY_buffer_upto++];
+
+        POLY_transform(
+            sl->wx,
+            sl->wy,
+            sl->wz,
+            pp);
+
+        if (pp->MaybeValid()) {
+            dx = sl->wx - AENG_project_fadeout_x;
+            dz = sl->wz - AENG_project_fadeout_z;
+
+            dist = fabs(dx) + fabs(dz);
+
+            if (dist < 64.0F) {
+                alpha = 0xff;
+            } else {
+                if (dist > 256.0F) {
+                    alpha = 0;
+                } else {
+                    alpha = 0xff - SLONG((dist - 64.0F) * (255.0F / 192.0F));
+                }
+            }
+
+            pp->u = AENG_project_offset_u + sl->u * AENG_project_mul_u;
+            pp->v = AENG_project_offset_v + sl->v * AENG_project_mul_v;
+
+            alpha |= alpha << 8;
+            alpha |= alpha << 16;
+
+            pp->colour = alpha;
+            pp->specular = 0xff000000;
+
+        } else {
+            return;
+        }
+
+        sl = sl->next;
+    }
+
+    POLY_Point* tri[3];
+
+    tri[0] = &POLY_buffer[0];
+
+    for (i = 1; i < POLY_buffer_upto - 1; i++) {
+        tri[1] = &POLY_buffer[i + 0];
+        tri[2] = &POLY_buffer[i + 1];
+
+        if (POLY_valid_triangle(tri)) {
+            POLY_add_triangle(tri, POLY_PAGE_SHADOW, UC_TRUE);
+        }
+    }
+}
+
+// uc_orig: AENG_add_projected_lit_shadow_poly (fallen/DDEngine/Source/aeng.cpp)
+// Like the shadow poly but colour is computed from distance to a point light source
+// stored in AENG_project_lit_light_*.
+void AENG_add_projected_lit_shadow_poly(SMAP_Link* sl)
+{
+    SLONG i;
+
+    float dx;
+    float dy;
+    float dz;
+    float dist;
+    float bright;
+
+    POLY_Point* pp;
+
+    POLY_buffer_upto = 0;
+
+    while (sl) {
+        ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
+
+        pp = &POLY_buffer[POLY_buffer_upto++];
+
+        POLY_transform(
+            sl->wx,
+            sl->wy,
+            sl->wz,
+            pp);
+
+        if (pp->MaybeValid()) {
+            pp->u = AENG_project_offset_u + sl->u * AENG_project_mul_u;
+            pp->v = AENG_project_offset_v + sl->v * AENG_project_mul_v;
+
+            dx = sl->wx - AENG_project_lit_light_x;
+            dy = sl->wy - AENG_project_lit_light_y;
+            dz = sl->wz - AENG_project_lit_light_z;
+
+            dist = fabs(dx) + fabs(dy) + fabs(dz);
+            bright = dist / AENG_project_lit_light_range;
+            bright = 1.0F - bright;
+            bright *= 512.0F;
+
+            if (bright > 0.0F) {
+                SLONG alpha = SLONG(bright);
+
+                if (alpha > 255) {
+                    alpha = 255;
+                }
+
+                alpha |= alpha << 8;
+                alpha |= alpha << 16;
+
+                pp->colour = alpha;
+                pp->specular = 0xff000000;
+            } else {
+                pp->colour = 0x00000000;
+                pp->specular = 0xff000000;
+            }
+
+        } else {
+            return;
+        }
+
+        sl = sl->next;
+    }
+
+    POLY_Point* tri[3];
+
+    tri[0] = &POLY_buffer[0];
+
+    for (i = 1; i < POLY_buffer_upto - 1; i++) {
+        tri[1] = &POLY_buffer[i + 0];
+        tri[2] = &POLY_buffer[i + 1];
+
+        if (POLY_valid_triangle(tri)) {
+            POLY_add_triangle(tri, POLY_PAGE_SHADOW, UC_TRUE);
+        }
+    }
+}
+
+// uc_orig: AENG_draw_rain_old (fallen/DDEngine/Source/aeng.cpp)
+// Legacy rain: draws 2-D screen-space rain streaks (replaced by AENG_draw_rain).
+void AENG_draw_rain_old(float angle)
+{
+    SLONG i;
+
+    float vec1x;
+    float vec1y;
+    float vec2x;
+    float vec2y;
+
+    float z;
+    float X;
+    float Y;
+    float Z;
+
+    POLY_Point pp[3];
+    POLY_Point* tri[3];
+
+    tri[0] = &pp[0];
+    tri[1] = &pp[1];
+    tri[2] = &pp[2];
+
+    pp[0].colour = 0x00000000;
+    pp[1].colour = 0x88333344;
+    pp[2].colour = 0x88555577;
+
+    pp[0].specular = 0x00000000;
+    pp[1].specular = 0x00000000;
+    pp[2].specular = 0x00000000;
+
+    pp[0].u = 0.0F;
+    pp[0].v = 0.0F;
+    pp[1].u = 0.0F;
+    pp[1].v = 0.0F;
+    pp[2].u = 0.0F;
+    pp[2].v = 0.0F;
+
+#define AENG_RAIN_SIZE (4.0F)
+
+    vec1x = (float)sin(angle) * (32.0F * AENG_RAIN_SIZE);
+    vec1y = -(float)cos(angle) * (32.0F * AENG_RAIN_SIZE);
+
+    vec2x = (float)cos(angle) * AENG_RAIN_SIZE;
+    vec2y = (float)sin(angle) * AENG_RAIN_SIZE;
+
+#define AENG_NUM_RAINDROPS 128
+
+    for (i = 0; i < AENG_NUM_RAINDROPS; i++) {
+        z = float(rand() & 0xff) * (0.5F / 256.0F) + POLY_ZCLIP_PLANE;
+        X = float(rand() % DisplayWidth);
+        Y = float(rand() % DisplayHeight);
+        Z = POLY_ZCLIP_PLANE / z;
+
+        pp[0].X = X;
+        pp[0].Y = Y;
+        pp[0].Z = Z;
+        pp[0].z = z;
+
+        pp[1].X = X + vec1x * Z;
+        pp[1].Y = Y + vec1y * Z;
+        pp[1].Z = Z;
+        pp[1].z = z;
+
+        pp[2].X = X + vec2x * Z;
+        pp[2].Y = Y + vec2y * Z;
+        pp[2].Z = Z;
+        pp[2].z = z;
+
+        POLY_add_triangle(tri, POLY_PAGE_ALPHA, UC_FALSE, UC_TRUE);
+    }
+}
+
+// uc_orig: AENG_draw_rain (fallen/DDEngine/Source/aeng.cpp)
+// Draws rain as 3-D world-space droplets placed in front of the camera.
+// Droplets are lit using the cached night-lighting colour at their grid position.
+void AENG_draw_rain()
+{
+    SLONG i;
+
+    float x1;
+    float y1;
+    float z1;
+
+    float x2;
+    float y2;
+    float z2;
+
+    float matrix[9];
+
+    float fade;
+    SLONG bright;
+    SLONG r;
+    SLONG g;
+    SLONG b;
+    ULONG colour;
+
+    MATRIX_calc(
+        matrix,
+        AENG_cam_yaw,
+        AENG_cam_pitch,
+        AENG_cam_roll);
+
+    // Scale columns to map a [-1,1] unit cube in camera space to a volume
+    // that covers the visible area (aspect-corrected horizontal, lens-scaled).
+    matrix[0] *= 640.0F / 480.0F;
+    matrix[1] *= 640.0F / 480.0F;
+    matrix[2] *= 640.0F / 480.0F;
+
+    matrix[0] /= AENG_LENS;
+    matrix[1] /= AENG_LENS;
+    matrix[2] /= AENG_LENS;
+
+    matrix[3] /= AENG_LENS;
+    matrix[4] /= AENG_LENS;
+    matrix[5] /= AENG_LENS;
+
+    // Rain lasts 8 squares into the distance.
+
+    // #undef AENG_NUM_RAINDROPS
+    // #define AENG_NUM_RAINDROPS	500
+
+    matrix[0] *= 256.0F * 8.0F;
+    matrix[1] *= 256.0F * 8.0F;
+    matrix[2] *= 256.0F * 8.0F;
+
+    matrix[3] *= 256.0F * 8.0F;
+    matrix[4] *= 256.0F * 8.0F;
+    matrix[5] *= 256.0F * 8.0F;
+
+    matrix[6] *= 256.0F * 8.0F;
+    matrix[7] *= 256.0F * 8.0F;
+    matrix[8] *= 256.0F * 8.0F;
+
+    for (i = 0; i < AENG_NUM_RAINDROPS; i++) {
+        // Pick a random place in world space in front of the camera.
+
+        x1 = float(rand()) * (1.0F / float(RAND_MAX >> 1)) - 1.0F;
+        y1 = float(rand()) * (1.0F / float(RAND_MAX >> 1)) - 0.5F;
+        z1 = float(rand()) * (1.0F / float(RAND_MAX)) + 0.1F;
+
+        fade = 1.0F - z1 * 0.8F;
+        bright = SLONG(fade * 256.0F);
+
+        colour = (bright << 24) | ((69 << 16) | (74 << 8) | (98 << 0));
+
+        MATRIX_MUL_BY_TRANSPOSE(
+            matrix,
+            x1,
+            y1,
+            z1);
+
+        x1 += AENG_cam_x;
+        y1 += AENG_cam_y;
+        z1 += AENG_cam_z;
+
+        SLONG px = SLONG(x1) >> 10;
+        SLONG pz = SLONG(z1) >> 10;
+        SLONG dx = (SLONG(x1) >> 8) & 3;
+        SLONG dz = (SLONG(z1) >> 8) & 3;
+
+        if ((px < 0) || (px >= PAP_SIZE_LO))
+            continue;
+        if ((pz < 0) || (pz >= PAP_SIZE_LO))
+            continue;
+
+        SLONG square = NIGHT_cache[px][pz];
+
+        if (!square)
+            continue;
+
+        ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
+        ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
+
+        NIGHT_Square* nq = &NIGHT_square[square];
+        ULONG col, spec;
+
+        NIGHT_get_d3d_colour(nq->colour[dx + dz * PAP_BLOCKS], &col, &spec);
+
+        colour = col;
+
+        SHAPE_droplet(
+            SLONG(x1),
+            SLONG(y1),
+            SLONG(z1),
+            8,
+            -64,
+            8,
+            colour,
+            POLY_PAGE_RAINDROP);
+    }
+}
+
+// uc_orig: AENG_draw_drips (fallen/DDEngine/Source/aeng.cpp)
+// Draws drip puddles and drip splashes. puddles_only selects which sub-set to render.
+void AENG_draw_drips(UBYTE puddles_only)
+{
+    SLONG i;
+
+    float midx;
+    float midy;
+    float midz;
+
+    float px;
+    float pz;
+
+    float radius;
+    ULONG colour;
+
+    DRIP_Info* di;
+
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
+
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
+
+    pp[0].u = 0.0F;
+    pp[0].v = 0.0F;
+    pp[1].u = 1.0F;
+    pp[1].v = 0.0F;
+    pp[2].u = 0.0F;
+    pp[2].v = 1.0F;
+    pp[3].u = 1.0F;
+    pp[3].v = 1.0F;
+
+    pp[0].specular = 0xff000000;
+    pp[1].specular = 0xff000000;
+    pp[2].specular = 0xff000000;
+    pp[3].specular = 0xff000000;
+
+    DRIP_get_start();
+
+    while (di = DRIP_get_next()) {
+
+        if (puddles_only != (di->flags & DRIP_FLAG_PUDDLES_ONLY))
+            continue;
+
+        midx = float(di->x);
+        midy = float(di->y);
+        midz = float(di->z);
+
+        midy += 8.0F;
+
+        radius = float(di->size);
+
+        for (i = 0; i < 4; i++) {
+            px = midx + ((i & 0x1) ? +radius : -radius);
+            pz = midz + ((i & 0x2) ? +radius : -radius);
+
+            POLY_transform(px, midy, pz, &pp[i]);
+
+            if (!pp[i].IsValid())
+                continue;
+        }
+
+        if (POLY_valid_quad(quad)) {
+            colour = (di->fade << 16) | (di->fade << 8) | (di->fade << 0);
+
+            pp[0].colour = colour;
+            pp[1].colour = colour;
+            pp[2].colour = colour;
+            pp[3].colour = colour;
+
+            POLY_add_quad(quad, POLY_PAGE_DRIP, UC_FALSE);
+        }
+    }
+}
+
+// uc_orig: AENG_draw_bangs (fallen/DDEngine/Source/aeng.cpp)
+// Stub — bang rendering was not implemented in this build.
+void AENG_draw_bangs()
+{
+    float u_mid;
+    float v_mid;
+}
+
+// uc_orig: AENG_draw_cloth (fallen/DDEngine/Source/aeng.cpp)
+// Stub — cloth rendering was not implemented in this build.
+void AENG_draw_cloth(void)
+{
+}
+
+// uc_orig: AENG_draw_fire (fallen/DDEngine/Source/aeng.cpp)
+// Iterates fire entries in the current gamut and kicks off rendering for each z-slice.
+void AENG_draw_fire()
+{
+    SLONG z;
+
+    FIRE_Info* fi;
+    FIRE_Point* fp;
+
+    for (z = NGAMUT_point_zmin; z <= NGAMUT_point_zmax; z++) {
+        FIRE_get_start(
+            NGAMUT_point_gamut[z].xmin,
+            NGAMUT_point_gamut[z].xmax,
+            z);
+    }
+}
+
+// uc_orig: AENG_draw_sparks (fallen/DDEngine/Source/aeng.cpp)
+// Draws sparks (SPARK) and glitter (GLITTER) for each z-slice in the gamut.
+void AENG_draw_sparks()
+{
+    SLONG z;
+
+    SPARK_Info* si;
+    GLITTER_Info* gi;
+
+    POLY_flush_local_rot();
+
+    for (z = NGAMUT_point_zmin; z <= NGAMUT_point_zmax; z++) {
+        SPARK_get_start(
+            NGAMUT_point_gamut[z].xmin,
+            NGAMUT_point_gamut[z].xmax,
+            z);
+
+        while (si = SPARK_get_next()) {
+            SHAPE_sparky_line(
+                si->num_points,
+                si->x,
+                si->y,
+                si->z,
+                si->colour,
+                float(si->size));
+        }
+
+        GLITTER_get_start(
+            NGAMUT_point_gamut[z].xmin,
+            NGAMUT_point_gamut[z].xmax,
+            z);
+
+        while (gi = GLITTER_get_next()) {
+            SHAPE_glitter(
+                gi->x1,
+                gi->y1,
+                gi->z1,
+                gi->x2,
+                gi->y2,
+                gi->z2,
+                gi->colour);
+        }
+    }
+}
+
+// uc_orig: AENG_draw_hook (fallen/DDEngine/Source/aeng.cpp)
+// Draws the grapple hook head mesh and the chain (as coloured world lines).
+void AENG_draw_hook(void)
+{
+    SLONG i;
+
+    SLONG x;
+    SLONG y;
+    SLONG z;
+    SLONG yaw;
+    SLONG pitch;
+    SLONG roll;
+
+    SLONG x1;
+    SLONG y1;
+    SLONG z1;
+
+    SLONG x2;
+    SLONG y2;
+    SLONG z2;
+
+    SLONG red = 0x80;
+    SLONG green = 0x20;
+    SLONG blue = 0x00;
+
+    ULONG colour1;
+    ULONG colour2;
+
+    HOOK_pos_grapple(
+        &x,
+        &y,
+        &z,
+        &yaw,
+        &pitch,
+        &roll);
+
+    x >>= 8;
+    y >>= 8;
+    z >>= 8;
+
+    MESH_draw_poly(
+        PRIM_OBJ_HOOK,
+        x, y, z,
+        yaw,
+        pitch,
+        roll,
+        NULL, 0xff, 0);
+
+    for (i = HOOK_NUM_POINTS - 1; i >= 1; i--) {
+        HOOK_pos_point(i + 0, &x1, &y1, &z1);
+        HOOK_pos_point(i - 1, &x2, &y2, &z2);
+
+        x1 >>= 8;
+        y1 >>= 8;
+        z1 >>= 8;
+
+        x2 >>= 8;
+        y2 >>= 8;
+        z2 >>= 8;
+
+        if (red < 250) {
+            red += 2;
+        } else {
+            if (green < 250) {
+                green += 2;
+            } else {
+                if (blue < 250) {
+                    blue += 3;
+                }
+            }
+        }
+
+        colour1 = (red << 16) | (green << 8) | (blue << 0);
+        colour2 = (red << 17) | (green << 8) | (blue >> 1);
+
+        AENG_world_line(
+            x1, y1, z1, 0x8, colour1,
+            x2, y2, z2, 0x6, colour2,
+            UC_FALSE);
+    }
+}
+
+// uc_orig: AENG_colour_mult (fallen/DDEngine/Source/aeng.cpp)
+// Component-wise RGB multiply: result channel = (c1_ch * c2_ch) >> 8.
+ULONG AENG_colour_mult(ULONG c1, ULONG c2)
+{
+    SLONG r1 = (c1 >> 16) & 0xff;
+    SLONG g1 = (c1 >> 8) & 0xff;
+    SLONG b1 = (c1 >> 0) & 0xff;
+
+    SLONG r2 = (c2 >> 16) & 0xff;
+    SLONG g2 = (c2 >> 8) & 0xff;
+    SLONG b2 = (c2 >> 0) & 0xff;
+
+    SLONG ar = r1 * r2 >> 8;
+    SLONG ag = g1 * g2 >> 8;
+    SLONG ab = b1 * b2 >> 8;
+
+    ULONG ans = (ar << 16) | (ag << 8) | (ab << 0);
+
+    return ans;
+}
+
+// uc_orig: estate (fallen/DDEngine/Source/aeng.cpp)
+// Forward reference — declared extern in aeng.cpp body (original pattern preserved).
+extern UBYTE estate;
+
+// uc_orig: AENG_draw_dirt (fallen/DDEngine/Source/aeng.cpp)
+// Renders all active debris (leaves, snowflakes, cans, ammo cases, water/blood
+// droplets) using indexed D3D primitives for batched leaf/snow rendering.
+void AENG_draw_dirt()
+{
+    if (GAME_FLAGS & GF_NO_FLOOR) {
+        return;
+    }
+
+    SLONG i;
+
+#define LEAF_PAGE (POLY_PAGE_LEAF)
+#define LEAF_CENTRE_U (0.5F)
+#define LEAF_CENTRE_V (0.5F)
+#define LEAF_RADIUS (0.5F)
+#define LEAF_U(a) (LEAF_CENTRE_U + LEAF_RADIUS * (float)sin(a))
+#define LEAF_V(a) (LEAF_CENTRE_V + LEAF_RADIUS * (float)cos(a))
+
+#define SNOW_CENTRE_U (0.5F)
+#define SNOW_CENTRE_V (0.5F)
+#define SNOW_RADIUS (1.0F)
+
+#define LEAF_UP 8
+#define LEAF_SIZE (20.0F + (float)(i & 15))
+
+    SLONG j;
+
+    float fyaw;
+    float fpitch;
+    float froll;
+    float ubase;
+    float vbase;
+
+    float matrix[9];
+    float angle;
+    SVector_F temp[4];
+    PolyPage* pp;
+    D3DLVERTEX* lv;
+    ULONG rubbish_colour;
+
+    ULONG leaf_colour_choice_rgb[4] = {
+        0x332d1d,
+        0x243224,
+        0x123320,
+        0x332f07
+    };
+
+    ULONG leaf_colour_choice_grey[4] = {
+        0x333333,
+        0x444444,
+        0x222222,
+        0x383838
+    };
+
+    if (AENG_dirt_uvlookup_valid && AENG_dirt_uvlookup_world_type == world_type) {
+        // Valid lookup table.
+    } else {
+        // Calculate the uvlookup table.
+
+        for (i = 0; i < AENG_MAX_DIRT_UVLOOKUP; i++) {
+            float angle = float(i) * (2.0F * PI / AENG_MAX_DIRT_UVLOOKUP);
+
+            float cangle;
+            float sangle;
+
+            sangle = sinf(angle);
+            cangle = cosf(angle);
+
+            if (world_type == WORLD_TYPE_SNOW) {
+                pp = &POLY_Page[POLY_PAGE_SNOWFLAKE];
+                AENG_dirt_uvlookup[i].u = SNOW_CENTRE_U + sangle * SNOW_RADIUS;
+                AENG_dirt_uvlookup[i].v = SNOW_CENTRE_V + cangle * SNOW_RADIUS;
+            } else {
+                pp = &POLY_Page[POLY_PAGE_LEAF];
+                AENG_dirt_uvlookup[i].u = LEAF_CENTRE_U + sangle * LEAF_RADIUS;
+                AENG_dirt_uvlookup[i].v = LEAF_CENTRE_V + cangle * LEAF_RADIUS;
+            }
+
+            AENG_dirt_uvlookup[i].u = AENG_dirt_uvlookup[i].u * pp->m_UScale + pp->m_UOffset;
+            AENG_dirt_uvlookup[i].v = AENG_dirt_uvlookup[i].v * pp->m_VScale + pp->m_VOffset;
+        }
+
+        AENG_dirt_uvlookup_valid = UC_TRUE;
+        AENG_dirt_uvlookup_world_type = world_type;
+    }
+
+    for (i = 0; i < 4; i++) {
+        leaf_colour_choice_rgb[i] = AENG_colour_mult(leaf_colour_choice_rgb[i], NIGHT_amb_d3d_colour);
+    }
+
+    ULONG flag[4];
+    ULONG leaf_colour;
+    ULONG leaf_specular;
+
+    POLY_set_local_rotation_none();
+    POLY_flush_local_rot();
+
+    AENG_dirt_lvert_upto = 0;
+    AENG_dirt_index_upto = 0;
+
+    AENG_dirt_lvert = (D3DLVERTEX*)((SLONG(AENG_dirt_lvert_buffer) + 31) & ~0x1f);
+    AENG_dirt_matrix = (D3DMATRIX*)((SLONG(AENG_dirt_matrix_buffer) + 31) & ~0x1f);
+
+    DIRT_Dirt* dd;
+
+    for (i = 0; i < DIRT_MAX_DIRT; i++) {
+        dd = &DIRT_dirt[i];
+
+        if (dd->type == DIRT_TYPE_UNUSED) {
+            continue;
+        }
+
+        dd->flag &= ~DIRT_FLAG_DELETE_OK;
+
+        {
+            float dx;
+            float dy;
+            float dz;
+
+            dx = float(dd->x) - AENG_cam_x;
+            dy = float(dd->y) - AENG_cam_y;
+            dz = float(dd->z) - AENG_cam_z;
+
+            float dprod;
+
+            dprod = dx * AENG_cam_matrix[6] + dy * AENG_cam_matrix[7] + dz * AENG_cam_matrix[8];
+
+            if (dprod < 64.0F) {
+                DIRT_MARK_AS_OFFSCREEN_QUICK(i);
+
+                goto do_next_dirt;
+            }
+        }
+
+        switch (dd->type) {
+        case DIRT_TYPE_LEAF:
+        case DIRT_TYPE_SNOW:
+
+        {
+            if (AENG_dirt_lvert_upto + 4 > AENG_MAX_DIRT_LVERTS) {
+                // Flush current batch.
+                POLY_set_local_rotation_none();
+
+                if (world_type == WORLD_TYPE_SNOW) {
+                    POLY_Page[POLY_PAGE_SNOWFLAKE].RS.SetChanged();
+                } else {
+                    POLY_Page[POLY_PAGE_LEAF].RS.SetChanged();
+                }
+
+                the_display.lp_D3D_Device->DrawIndexedPrimitive(
+                    D3DPT_TRIANGLELIST,
+                    D3DFVF_LVERTEX,
+                    AENG_dirt_lvert,
+                    AENG_dirt_lvert_upto,
+                    AENG_dirt_index,
+                    AENG_dirt_index_upto,
+                    0);
+
+                AENG_dirt_lvert_upto = 0;
+                AENG_dirt_index_upto = 0;
+
+                lv = AENG_dirt_lvert;
+            } else {
+                lv = &AENG_dirt_lvert[AENG_dirt_lvert_upto];
+            }
+
+            if ((i & 0xf) == 0 && !estate && world_type != WORLD_TYPE_SNOW) {
+                // This is some rubbish (litter: paper, money, etc.)
+
+                fpitch = float(dd->pitch) * (PI / 1024.0F);
+                froll = float(dd->roll) * (PI / 1024.0F);
+
+                // Rotation matrix (yaw = 0 optimisation from MATRIX_calc):
+                float cy, cp, cr;
+                float sy, sp, sr;
+
+                sy = 0.0F;
+                cy = 1.0F;
+
+                sp = sin(fpitch);
+                sr = sin(froll);
+
+                cp = cos(fpitch);
+                cr = cos(froll);
+
+                // Note: matrix[3..5] intentionally left undefined.
+
+                matrix[0] = cy * cr + sy * sp * sr;
+                matrix[6] = sy * cp;
+                matrix[1] = -cp * sr;
+                matrix[7] = sp;
+                matrix[2] = -sy * cr + cy * sp * sr;
+                matrix[8] = cy * cp;
+
+                matrix[0] *= 24.0F;
+                matrix[1] *= 24.0F;
+                matrix[2] *= 24.0F;
+
+                matrix[6] *= 24.0F;
+                matrix[7] *= 24.0F;
+                matrix[8] *= 24.0F;
+
+                float base_x = float(dd->x);
+                float base_y = float(dd->y + LEAF_UP);
+                float base_z = float(dd->z);
+
+                lv[0].x = base_x + matrix[6] + matrix[0];
+                lv[0].y = base_y + matrix[7] + matrix[1];
+                lv[0].z = base_z + matrix[8] + matrix[2];
+
+                lv[1].x = base_x + matrix[6] - matrix[0];
+                lv[1].y = base_y + matrix[7] - matrix[1];
+                lv[1].z = base_z + matrix[8] - matrix[2];
+
+                lv[2].x = base_x - matrix[6] + matrix[0];
+                lv[2].y = base_y - matrix[7] + matrix[1];
+                lv[2].z = base_z - matrix[8] + matrix[2];
+
+                lv[3].x = base_x - matrix[6] - matrix[0];
+                lv[3].y = base_y - matrix[7] - matrix[1];
+                lv[3].z = base_z - matrix[8] - matrix[2];
+
+                rubbish_colour = NIGHT_amb_d3d_colour;
+
+                if (i & 32) {
+                    ubase = 0.0F;
+                    vbase = 0.0F;
+                } else {
+                    ubase = 0.5F;
+                    vbase = 0.0F;
+                }
+
+                if (i == 64) {
+                    // Only one bit of money!
+                    ubase = 0.0F;
+                    vbase = 0.5F;
+                } else {
+                    if (!(i & 32)) {
+                        if (i & 64) {
+                            rubbish_colour &= 0xffffff00;
+                        }
+                    }
+                }
+
+                lv[0].tu = ubase;
+                lv[0].tv = vbase;
+                lv[0].color = rubbish_colour;
+                lv[0].specular = 0xff000000;
+
+                lv[1].tu = ubase + 0.5F;
+                lv[1].tv = vbase;
+                lv[1].color = rubbish_colour;
+                lv[1].specular = 0xff000000;
+
+                lv[2].tu = ubase;
+                lv[2].tv = vbase + 0.5F;
+                lv[2].color = rubbish_colour;
+                lv[2].specular = 0xff000000;
+
+                lv[3].tu = ubase + 0.5F;
+                lv[3].tv = vbase + 0.5F;
+                lv[3].color = rubbish_colour;
+                lv[3].specular = 0xff000000;
+
+                pp = &POLY_Page[POLY_PAGE_RUBBISH];
+
+                lv[0].tu = lv[0].tu * pp->m_UScale + pp->m_UOffset;
+                lv[0].tv = lv[0].tv * pp->m_VScale + pp->m_VOffset;
+
+                lv[1].tu = lv[1].tu * pp->m_UScale + pp->m_UOffset;
+                lv[1].tv = lv[1].tv * pp->m_VScale + pp->m_VOffset;
+
+                lv[2].tu = lv[2].tu * pp->m_UScale + pp->m_UOffset;
+                lv[2].tv = lv[2].tv * pp->m_VScale + pp->m_VOffset;
+
+                lv[3].tu = lv[3].tu * pp->m_UScale + pp->m_UOffset;
+                lv[3].tv = lv[3].tv * pp->m_VScale + pp->m_VOffset;
+
+                ASSERT(AENG_dirt_index_upto + 6 <= AENG_MAX_DIRT_INDICES);
+
+                AENG_dirt_index[AENG_dirt_index_upto + 0] = AENG_dirt_lvert_upto + 0;
+                AENG_dirt_index[AENG_dirt_index_upto + 1] = AENG_dirt_lvert_upto + 1;
+                AENG_dirt_index[AENG_dirt_index_upto + 2] = AENG_dirt_lvert_upto + 2;
+
+                AENG_dirt_index[AENG_dirt_index_upto + 3] = AENG_dirt_lvert_upto + 3;
+                AENG_dirt_index[AENG_dirt_index_upto + 4] = AENG_dirt_lvert_upto + 2;
+                AENG_dirt_index[AENG_dirt_index_upto + 5] = AENG_dirt_lvert_upto + 1;
+
+                AENG_dirt_index_upto += 6;
+                AENG_dirt_lvert_upto += 4;
+            } else {
+                // Leaf or snowflake
+
+                float leaf_size = LEAF_SIZE;
+
+                if ((dd->pitch | dd->roll) == 0) {
+                    // Common case — no rotation.
+                    lv[0].x = float(dd->x);
+                    lv[0].y = float(dd->y + LEAF_UP);
+                    lv[0].z = float(dd->z + leaf_size);
+
+                    lv[1].x = float(dd->x + leaf_size);
+                    lv[1].y = float(dd->y + LEAF_UP);
+                    lv[1].z = float(dd->z - leaf_size);
+
+                    lv[2].x = float(dd->x - leaf_size);
+                    lv[2].y = float(dd->y + LEAF_UP);
+                    lv[2].z = float(dd->z - leaf_size);
+                } else {
+                    fpitch = float(dd->pitch) * (PI / 1024.0F);
+                    froll = float(dd->roll) * (PI / 1024.0F);
+
+                    // Rotation matrix (yaw = 0 optimisation from MATRIX_calc):
+                    float cy, cp, cr;
+                    float sy, sp, sr;
+
+                    sy = 0.0F;
+                    cy = 1.0F;
+
+                    sp = sin(fpitch);
+                    sr = sin(froll);
+
+                    cp = cos(fpitch);
+                    cr = cos(froll);
+
+                    // Note: matrix[3..5] intentionally left undefined.
+
+                    matrix[0] = cy * cr + sy * sp * sr;
+                    matrix[6] = sy * cp;
+                    matrix[1] = -cp * sr;
+                    matrix[7] = sp;
+                    matrix[2] = -sy * cr + cy * sp * sr;
+                    matrix[8] = cy * cp;
+
+                    matrix[0] *= leaf_size;
+                    matrix[1] *= leaf_size;
+                    matrix[2] *= leaf_size;
+
+                    matrix[6] *= leaf_size;
+                    matrix[7] *= leaf_size;
+                    matrix[8] *= leaf_size;
+
+                    lv[0].x = float(dd->x);
+                    lv[0].y = float(dd->y + LEAF_UP);
+                    lv[0].z = float(dd->z);
+
+                    lv[1].x = lv[0].x - matrix[6] + matrix[0];
+                    lv[1].y = lv[0].y - matrix[7] + matrix[1];
+                    lv[1].z = lv[0].z - matrix[8] + matrix[2];
+
+                    lv[2].x = lv[0].x - matrix[6] - matrix[0];
+                    lv[2].y = lv[0].y - matrix[7] - matrix[1];
+                    lv[2].z = lv[0].z - matrix[8] - matrix[2];
+
+                    lv[0].x += matrix[6];
+                    lv[0].y += matrix[7];
+                    lv[0].z += matrix[8];
+                }
+
+                if (world_type == WORLD_TYPE_SNOW) {
+                    DWORD dwColour = ((i & 0x0f) << 2) + 0xc0;
+                    dwColour *= 0x010101;
+                    dwColour |= 0xff000000;
+
+                    lv[0].color = dwColour;
+                    lv[0].specular = 0xff000000;
+
+                    lv[1].color = dwColour;
+                    lv[1].specular = 0xff000000;
+
+                    lv[2].color = dwColour;
+                    lv[2].specular = 0xff000000;
+                } else {
+                    leaf_colour = leaf_colour_choice_rgb[i & 0x3];
+
+                    lv[0].color = (leaf_colour * 3) | 0xff000000;
+                    lv[0].specular = 0xff000000;
+
+                    lv[1].color = (leaf_colour * 4) | 0xff000000;
+                    lv[1].specular = 0xff000000;
+
+                    lv[2].color = (leaf_colour * 5) | 0xff000000;
+                    lv[2].specular = 0xff000000;
+                }
+
+                lv[0].tu = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 0 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].u;
+                lv[0].tv = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 0 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].v;
+
+                lv[1].tu = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 1 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].u;
+                lv[1].tv = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 1 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].v;
+
+                lv[2].tu = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 2 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].u;
+                lv[2].tv = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 2 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].v;
+
+                ASSERT(AENG_dirt_index_upto + 3 <= AENG_MAX_DIRT_INDICES);
+
+                AENG_dirt_index[AENG_dirt_index_upto + 0] = AENG_dirt_lvert_upto + 0;
+                AENG_dirt_index[AENG_dirt_index_upto + 1] = AENG_dirt_lvert_upto + 1;
+                AENG_dirt_index[AENG_dirt_index_upto + 2] = AENG_dirt_lvert_upto + 2;
+
+                AENG_dirt_index_upto += 3;
+                AENG_dirt_lvert_upto += 3;
+            }
+        }
+
+        break;
+
+        case DIRT_TYPE_HELDCAN:
+
+            // Don't draw inside the car.
+            {
+                Thing* p_person = TO_THING(dd->droll); // droll => owner
+
+                if (p_person->Genus.Person->InCar) {
+                    continue;
+                }
+            }
+
+            // FALLTHROUGH!
+
+        case DIRT_TYPE_CAN:
+        case DIRT_TYPE_THROWCAN:
+
+            MESH_draw_poly(
+                PRIM_OBJ_CAN,
+                dd->x,
+                dd->y,
+                dd->z,
+                dd->yaw,
+                dd->pitch,
+                dd->roll,
+                NULL, 0, 0);
+
+            break;
+
+        case DIRT_TYPE_BRASS:
+
+            extern UBYTE kludge_shrink;
+
+            kludge_shrink = UC_TRUE;
+
+            MESH_draw_poly(
+                PRIM_OBJ_ITEM_AMMO_SHOTGUN,
+                dd->x,
+                dd->y,
+                dd->z,
+                dd->yaw,
+                dd->pitch,
+                dd->roll,
+                NULL, 0, 0);
+
+            kludge_shrink = UC_FALSE;
+
+            break;
+
+        case DIRT_TYPE_WATER:
+
+            SHAPE_droplet(
+                dd->x,
+                dd->y,
+                dd->z,
+                dd->dx >> 2,
+                dd->dy >> TICK_SHIFT,
+                dd->dz >> 2,
+                0x00224455,
+                POLY_PAGE_DROPLET);
+            break;
+
+        case DIRT_TYPE_SPARKS:
+
+            SHAPE_droplet(
+                dd->x,
+                dd->y,
+                dd->z,
+                dd->dx >> 2,
+                dd->dy >> TICK_SHIFT,
+                dd->dz >> 2,
+                0x7f997744,
+                POLY_PAGE_BLOOM1);
+            break;
+
+        case DIRT_TYPE_URINE:
+            SHAPE_droplet(
+                dd->x,
+                dd->y,
+                dd->z,
+                dd->dx >> 2,
+                dd->dy >> TICK_SHIFT,
+                dd->dz >> 2,
+                0x00775533,
+                POLY_PAGE_DROPLET);
+            break;
+
+        case DIRT_TYPE_BLOOD:
+            SHAPE_droplet(
+                dd->x,
+                dd->y,
+                dd->z,
+                dd->dx >> 2,
+                dd->dy >> TICK_SHIFT,
+                dd->dz >> 2,
+                0x9fFFFFFF,
+                POLY_PAGE_BLOODSPLAT);
+            break;
+
+        default:
+            ASSERT(0);
+            break;
+        }
+
+    do_next_dirt:;
+    }
+
+    // Draw remaining leaves/snowflakes.
+    if (AENG_dirt_lvert_upto) {
+        POLY_set_local_rotation_none();
+
+        if (world_type == WORLD_TYPE_SNOW) {
+            POLY_Page[POLY_PAGE_SNOWFLAKE].RS.SetChanged();
+        } else {
+            POLY_Page[POLY_PAGE_LEAF].RS.SetChanged();
+        }
+
+        the_display.lp_D3D_Device->DrawIndexedPrimitive(
+            D3DPT_TRIANGLELIST,
+            D3DFVF_LVERTEX,
+            AENG_dirt_lvert,
+            AENG_dirt_lvert_upto,
+            AENG_dirt_index,
+            AENG_dirt_index_upto,
+            0);
+    }
+}
+
+// uc_orig: AENG_draw_pows (fallen/DDEngine/Source/aeng.cpp)
+// Collects all active POW explosion sprites, depth-sorts them into buckets, and
+// renders them as screen-aligned quads using the 4x4-frame explosion atlas.
+void AENG_draw_pows(void)
+{
+    SLONG pow;
+    SLONG sprite;
+    SLONG bucket;
+
+    AENG_Pow* ap;
+    POW_Pow* pp;
+    POW_Sprite* ps;
+
+    POLY_Point pt;
+
+    memset(AENG_pow_bucket, 0, sizeof(AENG_pow_bucket));
+
+    AENG_pow_upto = 0;
+
+    for (pow = POW_pow_used; pow; pow = pp->next) {
+        ASSERT(WITHIN(pow, 1, POW_MAX_POWS - 1));
+
+        pp = &POW_pow[pow];
+
+        for (sprite = pp->sprite; sprite; sprite = ps->next) {
+            ASSERT(WITHIN(sprite, 1, POW_MAX_SPRITES - 1));
+
+            ps = &POW_sprite[sprite];
+
+            POLY_transform(
+                float(ps->x) * (1.0F / 256.0F),
+                float(ps->y) * (1.0F / 256.0F),
+                float(ps->z) * (1.0F / 256.0F),
+                &pt);
+
+            if (pt.clip & POLY_CLIP_TRANSFORMED) {
+                ASSERT(WITHIN(AENG_pow_upto, 0, AENG_MAX_POWS - 1));
+
+                ap = &AENG_pow[AENG_pow_upto++];
+
+                ap->frame = ps->frame;
+                ap->sx = pt.X;
+                ap->sy = pt.Y;
+                ap->sz = pt.z;
+                ap->Z = pt.Z;
+                ap->next = NULL;
+
+                bucket = ftol(pt.z * float(AENG_POW_NUM_BUCKETS));
+
+                SATURATE(bucket, 0, AENG_POW_NUM_BUCKETS - 1);
+
+                ap->next = AENG_pow_bucket[bucket];
+                AENG_pow_bucket[bucket] = ap;
+            }
+        }
+    }
+
+    // Draw the depth-sorted buckets front-to-back.
+    {
+        POLY_Point ppt[4];
+        POLY_Point* quad[4];
+
+        float size;
+        float u;
+        float v;
+
+        ppt[0].colour = 0xffffffff;
+        ppt[1].colour = 0xffffffff;
+        ppt[2].colour = 0xffffffff;
+        ppt[3].colour = 0xffffffff;
+
+        ppt[0].specular = 0xff000000;
+        ppt[1].specular = 0xff000000;
+        ppt[2].specular = 0xff000000;
+        ppt[3].specular = 0xff000000;
+
+        quad[0] = &ppt[0];
+        quad[1] = &ppt[1];
+        quad[2] = &ppt[2];
+        quad[3] = &ppt[3];
+
+        for (bucket = 0; bucket < AENG_POW_NUM_BUCKETS; bucket++) {
+            for (ap = AENG_pow_bucket[bucket]; ap; ap = ap->next) {
+                // Push slightly forward in the z-buffer to avoid z-fighting.
+                ap->sz -= 0.025F; // Half a mapsquare!
+
+                if (ap->sz < POLY_ZCLIP_PLANE) {
+                    ap->sz = POLY_ZCLIP_PLANE;
+                }
+
+                ap->Z = POLY_ZCLIP_PLANE / ap->sz;
+
+                // Select frame from 4x4 atlas layout.
+                u = float(ap->frame & 0x3) * (1.0F / 4.0F);
+                v = float(ap->frame >> 2) * (1.0F / 4.0F);
+
+                size = 650.0F * ap->Z;
+
+                ppt[0].X = ap->sx - size;
+                ppt[0].Y = ap->sy - size;
+                ppt[1].X = ap->sx + size;
+                ppt[1].Y = ap->sy - size;
+                ppt[2].X = ap->sx - size;
+                ppt[2].Y = ap->sy + size;
+                ppt[3].X = ap->sx + size;
+                ppt[3].Y = ap->sy + size;
+
+                ppt[0].u = u + (0.0F / 4.0F);
+                ppt[0].v = v + (0.0F / 4.0F);
+                ppt[1].u = u + (1.0F / 4.0F);
+                ppt[1].v = v + (0.0F / 4.0F);
+                ppt[2].u = u + (0.0F / 4.0F);
+                ppt[2].v = v + (1.0F / 4.0F);
+                ppt[3].u = u + (1.0F / 4.0F);
+                ppt[3].v = v + (1.0F / 4.0F);
+
+                ppt[0].Z = ap->Z;
+                ppt[1].Z = ap->Z;
+                ppt[2].Z = ap->Z;
+                ppt[3].Z = ap->Z;
+
+                ppt[0].z = ap->sz;
+                ppt[1].z = ap->sz;
+                ppt[2].z = ap->sz;
+                ppt[3].z = ap->sz;
+
+                POLY_add_quad(quad, POLY_PAGE_EXPLODE1, UC_FALSE, UC_TRUE);
+            }
+        }
+    }
+}

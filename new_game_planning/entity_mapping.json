@@ -82489,6 +82489,476 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_add_projected_shadow_poly",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_add_projected_shadow_poly",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_add_projected_fadeout_shadow_poly",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_add_projected_fadeout_shadow_poly",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_add_projected_lit_shadow_poly",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_add_projected_lit_shadow_poly",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_rain_old",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_rain_old",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_rain",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_rain",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_drips",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_drips",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_bangs",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_bangs",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_cloth",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_cloth",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_fire",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_fire",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_sparks",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_sparks",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_hook",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_hook",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_colour_mult",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_colour_mult",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_dirt",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_dirt",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_pows",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_pows",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_DirtUV",
+      "file": "new/engine/graphics/pipeline/aeng_globals.h",
+      "orig_name": "anonymous struct for AENG_dirt_uvlookup",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "struct",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_Pow",
+      "file": "new/engine/graphics/pipeline/aeng_globals.h",
+      "orig_name": "aeng_pow",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_MAX_DIRT_LVERTS",
+      "file": "new/engine/graphics/pipeline/aeng_globals.h",
+      "orig_name": "AENG_MAX_DIRT_LVERTS",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_MAX_DIRT_INDICES",
+      "file": "new/engine/graphics/pipeline/aeng_globals.h",
+      "orig_name": "AENG_MAX_DIRT_INDICES",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_MAX_DIRT_UVLOOKUP",
+      "file": "new/engine/graphics/pipeline/aeng_globals.h",
+      "orig_name": "AENG_MAX_DIRT_UVLOOKUP",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_MAX_POWS",
+      "file": "new/engine/graphics/pipeline/aeng_globals.h",
+      "orig_name": "AENG_MAX_POWS",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_POW_NUM_BUCKETS",
+      "file": "new/engine/graphics/pipeline/aeng_globals.h",
+      "orig_name": "AENG_POW_NUM_BUCKETS",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_RAIN_SIZE",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_RAIN_SIZE",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_NUM_RAINDROPS",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_NUM_RAINDROPS",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAF_PAGE",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "LEAF_PAGE",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAF_CENTRE_U",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "LEAF_CENTRE_U",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAF_CENTRE_V",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "LEAF_CENTRE_V",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAF_RADIUS",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "LEAF_RADIUS",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAF_U",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "LEAF_U",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAF_V",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "LEAF_V",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SNOW_CENTRE_U",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "SNOW_CENTRE_U",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SNOW_CENTRE_V",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "SNOW_CENTRE_V",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SNOW_RADIUS",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "SNOW_RADIUS",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAF_UP",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "LEAF_UP",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LEAF_SIZE",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "LEAF_SIZE",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_dirt_lvert_buffer",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_dirt_lvert_buffer",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_dirt_lvert",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_dirt_lvert",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_dirt_lvert_upto",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_dirt_lvert_upto",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_dirt_index",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_dirt_index",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_dirt_index_upto",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_dirt_index_upto",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_dirt_matrix_buffer",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_dirt_matrix_buffer",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_dirt_matrix",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_dirt_matrix",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_dirt_uvlookup",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_dirt_uvlookup",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_dirt_uvlookup_valid",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_dirt_uvlookup_valid",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_dirt_uvlookup_world_type",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_dirt_uvlookup_world_type",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_pow",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_pow",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_pow_upto",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_pow_upto",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_pow_bucket",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "AENG_pow_bucket",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

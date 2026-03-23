@@ -1675,6 +1675,8 @@ void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade);
 
 // AENG_cone and AENG_ConePoint are declared in aeng_globals.h (iteration 155).
 
+#if 0 // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 156) [chunk 2: shadow polys, rain, drips, bangs, cloth, fire, sparks, hook, colour_mult, dirt, pows]
+
 void AENG_add_projected_shadow_poly(SMAP_Link* sl)
 {
     SLONG i;
@@ -3237,6 +3239,8 @@ void AENG_draw_pows(void)
         }
     }
 }
+
+#endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 156) [chunk 2]
 
 void AENG_draw_released_balloons(void)
 {

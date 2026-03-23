@@ -3,6 +3,8 @@
 
 #include "core/types.h"
 #include "engine/graphics/pipeline/aeng.h"
+#include "engine/graphics/pipeline/render_state.h" // D3DMATRIX, D3DLVERTEX
+#include "engine/lighting/smap.h"                  // SMAP_Link
 #include "assets/compression.h" // Temporary: COMP_Frame type used in movie playback
 
 // uc_orig: StoreLine (fallen/DDEngine/Source/aeng.cpp)
@@ -268,5 +270,139 @@ void AENG_ensure_appropriate_caching(SLONG ware);
 
 // uc_orig: AENG_get_rid_of_deleteme_squares (fallen/DDEngine/Source/aeng.cpp)
 void AENG_get_rid_of_deleteme_squares(void);
+
+// ---------------------------------------------------------------------------
+// Globals for chunk 2: shadow projection, dirt/debris, pow (explosion sprites)
+// ---------------------------------------------------------------------------
+
+// uc_orig: AENG_MAX_DIRT_LVERTS (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_MAX_DIRT_LVERTS (64 * 3)
+
+// uc_orig: AENG_MAX_DIRT_INDICES (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_MAX_DIRT_INDICES (AENG_MAX_DIRT_LVERTS * 4 / 3)
+
+// uc_orig: AENG_dirt_lvert_buffer (fallen/DDEngine/Source/aeng.cpp)
+// 32-byte aligned D3DLVERTEX scratch buffer for batched dirt/debris rendering.
+extern D3DLVERTEX AENG_dirt_lvert_buffer[AENG_MAX_DIRT_LVERTS + 1];
+
+// uc_orig: AENG_dirt_lvert (fallen/DDEngine/Source/aeng.cpp)
+// Pointer into AENG_dirt_lvert_buffer aligned to 32 bytes.
+extern D3DLVERTEX* AENG_dirt_lvert;
+
+// uc_orig: AENG_dirt_lvert_upto (fallen/DDEngine/Source/aeng.cpp)
+// Number of vertices currently written into AENG_dirt_lvert.
+extern SLONG AENG_dirt_lvert_upto;
+
+// uc_orig: AENG_dirt_index (fallen/DDEngine/Source/aeng.cpp)
+// Index buffer for indexed triangle rendering of dirt quads/triangles.
+extern UWORD AENG_dirt_index[AENG_MAX_DIRT_INDICES];
+
+// uc_orig: AENG_dirt_index_upto (fallen/DDEngine/Source/aeng.cpp)
+extern SLONG AENG_dirt_index_upto;
+
+// uc_orig: AENG_dirt_matrix_buffer (fallen/DDEngine/Source/aeng.cpp)
+// Raw storage for a 32-byte aligned D3DMATRIX.
+extern UBYTE AENG_dirt_matrix_buffer[sizeof(D3DMATRIX) + 32];
+
+// uc_orig: AENG_dirt_matrix (fallen/DDEngine/Source/aeng.cpp)
+// Pointer into AENG_dirt_matrix_buffer, aligned to 32 bytes.
+extern D3DMATRIX* AENG_dirt_matrix;
+
+// uc_orig: AENG_MAX_DIRT_UVLOOKUP (fallen/DDEngine/Source/aeng.cpp)
+// Number of precomputed UV entries for leaf/snowflake rotation table.
+#define AENG_MAX_DIRT_UVLOOKUP 16
+
+// uc_orig: AENG_dirt_uvlookup (fallen/DDEngine/Source/aeng.cpp)
+// Precomputed UV coordinates for 16 rotation angles around the leaf/snowflake texture.
+// Anonymous struct in original — named AENG_DirtUV here for linkage.
+struct AENG_DirtUV
+{
+    float u;
+    float v;
+};
+extern AENG_DirtUV AENG_dirt_uvlookup[AENG_MAX_DIRT_UVLOOKUP];
+
+// uc_orig: AENG_dirt_uvlookup_valid (fallen/DDEngine/Source/aeng.cpp)
+// Non-zero when AENG_dirt_uvlookup is populated for the current world_type.
+extern SLONG AENG_dirt_uvlookup_valid;
+
+// uc_orig: AENG_dirt_uvlookup_world_type (fallen/DDEngine/Source/aeng.cpp)
+// world_type value for which the current UV lookup table was computed.
+extern SWORD AENG_dirt_uvlookup_world_type;
+
+// uc_orig: aeng_pow (fallen/DDEngine/Source/aeng.cpp)
+// Projected screen-space entry for one explosion sprite, sorted into a depth bucket.
+typedef struct aeng_pow
+{
+    SLONG frame;
+    float sx;
+    float sy;
+    float sz;
+    float Z;
+
+    struct aeng_pow* next;
+
+} AENG_Pow;
+
+// uc_orig: AENG_MAX_POWS (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_MAX_POWS 256
+
+// uc_orig: AENG_POW_NUM_BUCKETS (fallen/DDEngine/Source/aeng.cpp)
+// Depth-sort bucket count for explosion sprites.
+#define AENG_POW_NUM_BUCKETS 1024
+
+// uc_orig: AENG_pow (fallen/DDEngine/Source/aeng.cpp)
+// Pool of AENG_Pow entries allocated per frame.
+extern AENG_Pow AENG_pow[AENG_MAX_POWS];
+
+// uc_orig: AENG_pow_upto (fallen/DDEngine/Source/aeng.cpp)
+extern SLONG AENG_pow_upto;
+
+// uc_orig: AENG_pow_bucket (fallen/DDEngine/Source/aeng.cpp)
+// Linked-list heads for each depth bucket used to sort POW sprites back-to-front.
+extern AENG_Pow* AENG_pow_bucket[AENG_POW_NUM_BUCKETS];
+
+// uc_orig: AENG_draw_rain_old (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_rain_old(float angle);
+
+// uc_orig: AENG_draw_rain (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_rain(void);
+
+// uc_orig: AENG_draw_drips (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_drips(UBYTE puddles_only);
+
+// uc_orig: AENG_draw_bangs (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_bangs(void);
+
+// uc_orig: AENG_draw_cloth (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_cloth(void);
+
+// uc_orig: AENG_draw_fire (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_fire(void);
+
+// uc_orig: AENG_draw_sparks (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_sparks(void);
+
+// uc_orig: AENG_draw_hook (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_hook(void);
+
+// uc_orig: AENG_add_projected_shadow_poly (fallen/DDEngine/Source/aeng.cpp)
+void AENG_add_projected_shadow_poly(SMAP_Link* sl);
+
+// uc_orig: AENG_add_projected_fadeout_shadow_poly (fallen/DDEngine/Source/aeng.cpp)
+void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl);
+
+// uc_orig: AENG_add_projected_lit_shadow_poly (fallen/DDEngine/Source/aeng.cpp)
+void AENG_add_projected_lit_shadow_poly(SMAP_Link* sl);
+
+// uc_orig: AENG_colour_mult (fallen/DDEngine/Source/aeng.cpp)
+// Component-wise multiply two packed RGB colours (each channel * channel / 256).
+ULONG AENG_colour_mult(ULONG c1, ULONG c2);
+
+// uc_orig: AENG_draw_dirt (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_dirt(void);
+
+// uc_orig: AENG_draw_pows (fallen/DDEngine/Source/aeng.cpp)
+void AENG_draw_pows(void);
 
 #endif // ENGINE_GRAPHICS_PIPELINE_AENG_GLOBALS_H

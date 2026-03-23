@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 156 — aeng.cpp chunk 2 (shadow projection, rain, bangs, cloth, fire, sparks, hook, dirt, pows) (2026-03-23)
+
+- aeng.cpp строки 1678–3239: 15 функций, 2 типа (AENG_DirtUV, AENG_Pow), 13 макросов, 13 переменных.
+- `AENG_DirtUV`: анонимная struct в оригинале → дала имя для linkage; `--conflict` в entity mapping.
+- `AENG_Pow`: typedef struct с self-ref указателем `struct aeng_pow* next`; оригинальное имя тега `aeng_pow` сохранено.
+- BUILD FIX 1: `struct SMAP_Link*` в прототипах → `SMAP_Link*` (typedef vs struct forward ref конфликт). Добавлен `#include "engine/lighting/smap.h"` в `aeng_globals.h`.
+- BUILD FIX 2: old/aeng.cpp вызывает `AENG_draw_drips`, `AENG_draw_rain` и другие функции из unmigrated chunks → добавлены forward declarations в `aeng_globals.h` (который old/aeng.cpp уже включал).
+- `FIRE_get_start(xmin, xmax, z)` — вызов в оригинале не совпадает с порядком параметров прототипа `(z, xmin, xmax)`. Оригинальный баг, сохранён 1:1.
+- `extern UBYTE estate;` в теле aeng.cpp — inline forward ref из оригинала, сохранён как есть.
+
+---
+
 ## Итерация 155 — aeng.cpp chunk 1 (cloud system, init/fini, gamut, camera, lighting cache) (2026-03-23)
 
 - aeng.cpp — крупнейший оставшийся файл (11270 строк). Chunk 1 = строки 123–1648.
