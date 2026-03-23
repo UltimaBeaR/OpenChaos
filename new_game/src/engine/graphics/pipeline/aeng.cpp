@@ -23,12 +23,13 @@
 #include "fallen/Headers/FMatrix.h"
 #include "ui/camera/fc.h"       // Temporary: engine/graphics → ui/camera DAG violation (FC_cam camera state)
 #include "ui/camera/fc_globals.h"
-#include "fallen/Headers/Game.h"
-#include "fallen/Headers/building.h"
-#include "fallen/Headers/memory.h"
+#include "fallen/Headers/Game.h"      // Temporary: large umbrella header, not yet split
+#include "fallen/Headers/building.h"  // Temporary: building types not yet migrated
+#include "fallen/Headers/memory.h"    // Temporary: MemAlloc/MemFree wrappers
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"
-#include "fallen/Headers/pap.h"
+#include "world/map/pap.h"          // Temporary: engine → world DAG violation
+#include "world/map/pap_globals.h"  // Temporary: engine → world DAG violation
 #include "ai/mav.h"      // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
 #include "fallen/DDLibrary/Headers/DDLib.h"
 #include "missions/memory_globals.h" // Temporary: inside_storeys

@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 179 — Зачистка немаркированных include'ов и editor-only заголовков (2026-03-23)
+
+- Удалены editor-only (GEdit) заголовки без потребителей в CMakeLists: EnemySetup.h, ItemSetup.h, PlayerSetup.h, TriggerSetup.h, CamTargetSetup.h, CameraSetup.h — все реализации только в `fallen/GEdit/Source/`, не компилируются.
+- Удалены нулевые редиректы: mapthing.h, outline.h, pause.h.
+- Попытка удалить Attract.h/Env.h/plat.h провалилась: Windows case-insensitive FS — эти файлы реально использовались под именами attract.h/env.h/Plat.h в Game.h и других файлах. Восстановлены.
+- Заменены немаркированные включения редиректов на прямые пути: vehicle.h (`State.h` → `actors/core/state.h`), vehicle.cpp (8 включений: pap, fmatrix, statedef, sound, interact, ob, night, pow, interfac, dirt, mist, barrel, road, memory, psystem_globals), interact.cpp (pap, ns, fmatrix×2→один, memory, ware), panel.cpp (Special → direct, statedef → direct), aeng.cpp (pap → direct с Temporary DAG).
+- Добавлены `// Temporary:` метки к ранее немаркированным включениям Game.h/building.h/memory.h/Thing.h в нескольких файлах.
+- Temporary: 475 → 483 (рост из-за добавления правильных меток к ранее немаркированным включениям; реальных legacy-включений стало меньше).
+
 ## Итерация 178 — fallen/Headers/anim.h → engine/animation/anim_types.h; fallen/Headers/Person.h → actors/characters/person_types.h (2026-03-23)
 
 - `Person.h` разбит на два: `person_types.h` (Person struct + все флаги/константы) и дополненный `person.h` (full API). `thing.h` теперь включает только `person_types.h`, убирая Temporary-зависимость.

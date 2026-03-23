@@ -1,14 +1,16 @@
 #include <MFStdLib.h>
-#include "fallen/Headers/Game.h"
-#include "fallen/Headers/pap.h"
-#include "fallen/Headers/ns.h"
+#include "fallen/Headers/Game.h" // Temporary: large umbrella header, not yet split
+#include "world/map/pap.h"
+#include "world/map/pap_globals.h"
+#include "world/environment/ns.h"
 #include "world/map/supermap.h"
-#include "fallen/Headers/fmatrix.h"
-#include "fallen/Headers/memory.h"
-#include "fallen/Headers/ware.h"
+#include "core/fmatrix.h"
+#include "missions/memory.h"
+#include "missions/memory_globals.h"
+#include "world/environment/ware.h"
+#include "world/environment/ware_globals.h"
 #include "ai/mav.h"
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/FMatrix.h"
 #include "actors/core/interact.h"
 #include "actors/core/interact_globals.h"
 

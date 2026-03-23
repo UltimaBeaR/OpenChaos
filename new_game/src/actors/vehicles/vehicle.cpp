@@ -7,32 +7,41 @@
 
 #include <math.h>
 
-#include "fallen/Headers/Game.h"
+#include "fallen/Headers/Game.h" // Temporary: large umbrella header, not yet split
 #include "fallen/DDEngine/Headers/Matrix.h"
 #include "fallen/DDEngine/Headers/poly.h"
 #include "fallen/DDEngine/Headers/oval.h"
 #include "fallen/DDLibrary/Headers/DDLib.h"
-#include "fallen/Headers/pap.h"
-#include "fallen/Headers/fmatrix.h"
-#include "fallen/Headers/statedef.h"
-#include "fallen/Headers/prim.h"
+#include "world/map/pap.h"
+#include "world/map/pap_globals.h"
+#include "core/fmatrix.h"
+#include "actors/core/statedef.h"
+#include "fallen/Headers/prim.h" // Temporary: prim types not yet migrated
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/sound.h"
-#include "fallen/Headers/interact.h"
-#include "fallen/Headers/ob.h"
-#include "fallen/Headers/night.h"
+#include "engine/audio/sound.h"
+#include "actors/core/interact.h"
+#include "actors/core/interact_globals.h"
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
 #include "fallen/DDEngine/Headers/DrawXtra.h"
 #include "engine/graphics/geometry/bloom.h"
 #include "fallen/DDEngine/Headers/aeng.h"
 #include "fallen/DDEngine/Headers/mesh.h"
-#include "fallen/Headers/pow.h"
-#include "fallen/Headers/interfac.h"
-#include "fallen/Headers/dirt.h"
-#include "fallen/Headers/mist.h"
-#include "fallen/Headers/barrel.h"
-#include "fallen/Headers/road.h"
+#include "effects/pow.h"
+#include "effects/pow_globals.h"
+#include "ui/interfac.h"
+#include "ui/interfac_globals.h"
+#include "effects/dirt.h"
+#include "effects/mist.h"
+#include "actors/items/barrel.h"
+#include "actors/items/barrel_globals.h"
+#include "world/map/road.h"
+#include "world/map/road_globals.h"
 #include "fallen/DDEngine/Headers/font2d.h" // Temporary: font2d lives in DDEngine, not Headers/
-#include "fallen/Headers/memory.h"
+#include "missions/memory.h"
+#include "missions/memory_globals.h"
 #include "engine/audio/mfx.h"
 #include "effects/tracks.h"
 #include "engine/effects/psystem.h"
@@ -40,8 +49,8 @@
 #include "actors/vehicles/vehicle_globals.h"
 
 #include "ai/pcom.h"
-// Temporary: psystem.h included via engine/effects but also needs old flags
-#include "fallen/Headers/psystem.h"
+// engine/effects/psystem.h already included above; psystem_globals needed too
+#include "engine/effects/psystem_globals.h"
 
 extern BOOL allow_debug_keys;
 extern SLONG is_person_ko(Thing* p_person);

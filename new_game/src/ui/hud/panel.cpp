@@ -16,9 +16,10 @@
 #include "fallen/DDEngine/Headers/aeng.h"
 
 // Thing, Class constants, person types, special items
-#include "fallen/Headers/Thing.h"
+#include "fallen/Headers/Thing.h" // Temporary: Thing struct, CLASS_* constants
 #include "actors/characters/person.h"
-#include "fallen/Headers/Special.h"
+#include "actors/items/special.h"
+#include "actors/items/special_globals.h"
 
 // MFX sound playback (MFX_play_ambient)
 #include "engine/audio/mfx.h"
@@ -59,7 +60,7 @@
 #include "engine/io/env.h"
 
 // STATE_DEAD, STATE_SEARCH, SUB_STATE_DEAD_INJURED for beacon/scanner logic
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 
 #include <math.h>
 #include <string.h>
