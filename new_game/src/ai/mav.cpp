@@ -1,6 +1,10 @@
-// Game.h first: brings in MFStdLib.h which is needed by supermap.h (MFFileHandle),
-// and anim.h (strcpy via string.h chain).
-#include "fallen/Headers/Game.h"          // Temporary: PAP_FLAG_*, SIN/COS/MUL64, RoofFace4, etc.
+// MFStdLib first: brings in windows.h and base types; supermap.h also includes it but
+// must see correct WIN32 defines before any other windows headers.
+#include <MFStdLib.h>
+#include "core/math.h"             // SIN, COS lookup tables
+#include "core/fixed_math.h"       // MUL64
+#include "missions/game_types.h"   // Temporary: ai→missions DAG violation (Random macro, TICK_RATIO)
+#include "engine/graphics/pipeline/aeng.h"   // Temporary: ai→engine DAG violation (AENG_world_line debug)
 
 #include "ai/mav.h"
 #include "ai/mav_globals.h"

@@ -5,6 +5,8 @@
 #include "core/vector.h"                        // SVector
 #include "world/environment/prim_types.h"       // PrimObject, PrimFace3/4, PrimPoint, PrimNormal, PrimInfo, FACE_FLAG_*, PRIM_OBJ_*, etc.
 
+struct Thing; // forward declaration for fn_anim_prim_normal / set_anim_prim_anim parameters
+
 // ---- Pool management ----
 
 // Remove a contiguous block of vertices from prim_points[] by shifting left.

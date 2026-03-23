@@ -23,7 +23,7 @@
 #include "core/fmatrix.h"
 #include "ui/camera/fc.h"       // Temporary: engine/graphics → ui/camera DAG violation (FC_cam camera state)
 #include "ui/camera/fc_globals.h"
-#include "fallen/Headers/Game.h"      // Temporary: large umbrella header, not yet split
+#include "missions/game_types.h"      // Temporary: engine→missions DAG violation (Game struct, GAME_STATE, TICK_RATIO, pool macros, etc.)
 #include "world/environment/prim_types.h"    // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
 #include "world/environment/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, etc.
 #include "world/navigation/inside2.h"

@@ -4,8 +4,8 @@
 // This file handles: pool management, lighting, collision, normals,
 // slide edges, animated prims, and misc utilities.
 
-// Include Game.h first to ensure Windows headers are pulled in with correct defines.
-#include "fallen/Headers/Game.h"
+// MFStdLib first: pulls in windows.h with correct defines (WIN32, _WIN32) before any other headers.
+#include <MFStdLib.h>
 
 #include "world/environment/prim.h"
 #include "world/environment/prim_globals.h"
@@ -27,8 +27,10 @@
 #include "world/environment/prim_types.h"     // PrimObject, PrimFace3/4, PrimPoint, PrimMultiObject, RoofFace4, RFACE_FLAG_*, ROOF_SHIFT, PrimInfo, FACE_FLAG_*, PRIM_COLLIDE_*, PRIM_FLAG_*, PRIM_OBJ_*, PRIM_DAMAGE_*, ANIM_PRIM_TYPE_*
 #include "world/environment/building_types.h" // BoundBox, MAX_BUILDINGS, STOREY_TYPE_*, FACET_FLAG_*
 #include "world/map/supermap.h"
-#include "fallen/Headers/Game.h" // Temporary: FLAGS_SWITCHED_ON, TICK_RATIO, TICK_SHIFT, DT_ANIM_PRIM, DT_ROT_MULTI, alloc_draw_tween, DrawTween typedef, THING_INDEX
-#include "world/environment/building_globals.h" // end_prim_point, end_prim_face4, end_prim_face3, end_prim_object, end_prim_multi_object, next_prim_*, building_list, building_facets
+#include "missions/game_types.h"   // Temporary: world→missions DAG violation (TICK_RATIO, TICK_SHIFT, the_game pool macros)
+#include "world/environment/building_globals.h" // end_prim_point, end_prim_face4, end_prim_face3, end_prim_object, end_prim_multi_object, building_list, building_facets
+#include "assets/anim_globals.h"                // Temporary: world→assets DAG violation (next_prim_point/face3/face4/object, anim_chunk, MAX_ANIM_CHUNKS)
+#include "engine/graphics/pipeline/aeng.h"     // Temporary: world→engine DAG violation (MSG_add)
 #include "missions/memory_globals.h"    // Temporary: world → missions DAG violation (next_roof_face4, roof_faces4, prim_points/faces, prim_info)
 
 // Forward declaration for advance_keyframe (defined in person.cpp / old Person.cpp).

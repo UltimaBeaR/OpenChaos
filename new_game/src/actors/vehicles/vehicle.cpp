@@ -7,7 +7,8 @@
 
 #include <math.h>
 
-#include "fallen/Headers/Game.h" // Temporary: large umbrella header, not yet split
+#include <MFStdLib.h>            // base types, ASSERT
+#include "missions/game_types.h" // Game struct, TICK_RATIO, pool macros
 #include "fallen/DDEngine/Headers/Matrix.h"
 #include "fallen/DDEngine/Headers/poly.h"
 #include "fallen/DDEngine/Headers/oval.h"

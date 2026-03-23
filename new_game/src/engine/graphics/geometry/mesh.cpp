@@ -12,7 +12,7 @@
 #include "world/environment/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, PRIM_FLAG_*, FACE_FLAG_*
 #include "world/environment/prim.h"       // get_prim_info
 #include "engine/graphics/pipeline/poly.h"
-#include "fallen/Headers/Game.h"       // Temporary: GAME_TURN, POLY_FLAG_TEXTURED, POLY_FLAG_DOUBLESIDED
+#include "missions/game_types.h"       // Temporary: engine→missions DAG violation (GAME_TURN)
 #include "engine/graphics/geometry/shape_globals.h"  // Temporary: SHAPE_balloon_colour
 #include "missions/memory_globals.h"   // Temporary: prim_objects, prim_faces3, prim_faces4, prim_normal
 #include "core/memory.h"               // MemAlloc, MemFree (used by reflection mesh cache)

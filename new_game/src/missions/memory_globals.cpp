@@ -1,7 +1,8 @@
 // uc_orig: memory.cpp (fallen/Source/memory.cpp)
 // Global variable definitions for the game-level memory allocation system.
 
-#include "fallen/Headers/Game.h"      // Temporary: Game struct, Thing system types, MemTable, save_table externs
+#include "actors/core/thing.h"         // pool types (Vehicle, Person, Animal, etc.) needed by save_table entries
+#include "missions/game_types.h"      // Game struct, MemTable, PEOPLE, VEHICLES, ANIMALS macros
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
 #include "world/navigation/wmove.h"
@@ -34,7 +35,10 @@
 
 #include "missions/memory_globals.h"
 #include "missions/memory.h"
-#include "world/environment/building_globals.h" // next_roof_bound, building_list, next_prim_point, end_prim_point, etc.
+#include "world/environment/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
+#include "assets/anim_globals.h"                // next_prim_point, next_prim_face3/4/object, game_chunk, anim_chunk
+#include "world/environment/plat_globals.h"    // PLAT_plat (PLAT_plat_upto)
+#include "engine/physics/collide_globals.h"    // COLLIDE_fastnav
 
 // EWAY_counter is defined in eway.cpp (not yet migrated) and not in eway.h.
 extern UBYTE* EWAY_counter;

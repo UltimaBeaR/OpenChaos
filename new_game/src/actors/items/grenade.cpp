@@ -1,4 +1,6 @@
-#include "fallen/Headers/Game.h"     // Temporary: Thing, GAME_TURN, TICK_RATIO, TICK_SHIFT, PAP_calc_map_height_at, etc.
+#include <MFStdLib.h>              // base types
+#include "actors/core/thing.h"     // Thing, pool types
+#include "missions/game_types.h"   // GAME_TURN, TICK_RATIO, TICK_SHIFT, pool macros
 #include "engine/audio/sound.h"
 #include "core/fmatrix.h"
 #include "ai/pcom.h"

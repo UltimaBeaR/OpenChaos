@@ -2,7 +2,6 @@
 #define EFFECTS_SPARK_H
 
 #include "core/types.h"
-#include "fallen/Headers/Game.h" // Temporary: THING_INDEX for SPARK_Pinfo
 
 // Animated electric spark effect: each spark is a branching lightning bolt between two world
 // points. Sparks live for a random number of ticks, wiggle via velocity, and spawn GLITTER

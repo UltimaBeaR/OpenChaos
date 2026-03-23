@@ -16,11 +16,9 @@
 #include "world/map/map.h" // MapElement, MAP_SIZE, MAP_WIDTH, MAP_HEIGHT, MAP_INDEX, ELE_SHIFT
 #include "core/vector.h"   // GameCoord
 
-// Game struct pool members are pointer types; the full type definitions are provided
-// by Game.h (which includes all pool-type headers before including this file)
-// or by the individual type headers included by thing.h.
-// No forward declarations needed here — all types are defined by the time this header
-// is reached in the include chain through Game.h.
+// game_types.h is self-sufficient: pulls in all pool type definitions via thing.h.
+// This avoids the need for callers to include thing.h before game_types.h.
+#include "actors/core/thing.h"
 
 // Draw distance: number of map tiles rendered in each direction from the player.
 // PC value is 22; original PSX value was 13.

@@ -11,7 +11,7 @@
 #include "world/environment/ns.h"
 #include "actors/core/interact.h"
 #include "ai/pcom.h"
-#include "fallen/Headers/Game.h"       // Temporary: GAME_FLAGS, GF_*, GAME_TURN, Thing, calc_angle, NET_PERSON
+#include "missions/game_types.h"       // Temporary: effects→missions DAG violation (GAME_FLAGS, GF_*, GAME_TURN, NET_PERSON, calc_angle)
 #include "ai/mav.h"
 #include "world/environment/prim_types.h" // PRIM_FLAG_TREE, PRIM_OBJ_CAN, PRIM_OBJ_ITEM_KEY
 #include "assets/sound_id.h"     // Temporary: S_KICK_CAN

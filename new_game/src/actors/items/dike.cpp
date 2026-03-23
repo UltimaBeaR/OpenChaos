@@ -1,9 +1,12 @@
-#include "fallen/Headers/Game.h"    // Temporary: TICK_RATIO, TICK_SHIFT, MUL64, DIV64, Root, calc_angle, WITHIN, QDIST2, SATURATE
+#include <MFStdLib.h>              // base types
+#include "core/math.h"             // Root, SIN, COS
+#include "missions/game_types.h"   // TICK_RATIO, TICK_SHIFT, calc_angle, the_game
 #include "world/map/pap_globals.h"
 #include "world/map/road.h"
 #include "core/fmatrix.h"
 #include "actors/items/dike.h"
 #include "actors/items/dike_globals.h"
+#include "engine/graphics/pipeline/aeng.h"    // Temporary: actors→engine DAG violation (AENG_world_line)
 
 // Physical constants for the bike simulation.
 // uc_orig: DIKE_WHEEL_APART (fallen/Source/dike.cpp)

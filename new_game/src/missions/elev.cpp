@@ -88,6 +88,10 @@
 #include "engine/physics/collide.h"
 #include "assets/startscr_globals.h"    // STARTSCR_mission
 #include "actors/core/thing_globals.h"  // playback_file
+#include "actors/characters/person.h"  // init_persons
+#include "engine/graphics/resources/console.h" // CONSOLE_clear
+#include "assets/texture.h"            // TEXTURE_fix_prim_textures
+#include "engine/graphics/pipeline/aeng.h"  // AENG_create_dx_prim_points, TEXTURE_load_needed
 
 // vehicle_random[]: shared table from Vehicle.cpp defining which vehicle prims
 // appear in FAKE_CARS random spawns. Accessed here as an extern (not in any header).

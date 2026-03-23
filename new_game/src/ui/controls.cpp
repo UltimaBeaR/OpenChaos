@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "fallen/Headers/Game.h"       // Temporary: NET_PERSON, NET_PLAYER, GAME_STATE, GAME_TURN, game_chunk
+#include "missions/game_types.h"       // NET_PERSON, NET_PLAYER, GAME_STATE, GAME_TURN, the_game
 #include "ai/pcom.h"
 #include "assets/sound_id.h"           // Temporary: S_NULL, S_TUNE_DANGER_RED, S_TUNE_DANGER_GREEN (Waves enum)
 #include "engine/audio/music.h"        // Temporary: MUSIC_mode, MUSIC_bodge_code, MUSIC_MODE_*

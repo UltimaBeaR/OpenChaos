@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 189 — Устранение всех fallen/Headers/Game.h // Temporary: включений (2026-03-24)
+
+- Все 23 оставшихся `// Temporary: fallen/Headers/Game.h` включений заменены на прямые пути.
+- `missions/game_types.h` сделан самодостаточным: добавлен `#include "actors/core/thing.h"` — теперь Game struct компилируется без предварительного включения pool-типов.
+- `effects/spark.h`: включение было полностью избыточным — THING_INDEX уже в `core/types.h`.
+- `world/environment/puddle.cpp`, `wand.cpp`, `dike.cpp`, `glow.cpp`: тянули лишь несколько макросов — заменены точными заголовками.
+- Вскрытые транзитивные зависимости при замене Game.h: `interact.cpp` + `dike.cpp` → `aeng.h` (MSG_add/AENG_world_line), `prim.cpp` → `anim_globals.h` (next_prim_*) + `aeng.h` (MSG_add), `memory.cpp`/`memory_globals.cpp` → `anim_globals.h` + `plat_globals.h` + `collide_globals.h`, `elev.cpp` → `person.h` + `console.h` + `texture.h` + `aeng.h` (эти ошибки были скрыты umbrella, не введены итерацией).
+- `prim.h`: добавлен `struct Thing;` — файл использует `Thing*` в сигнатурах функций, не имея его include.
+- Temporary: 360 → 357 (−3: убраны 23 Game.h, добавлены ~20 явных DAG-маркеров + 2 новых для mav.cpp и wand.cpp).
+- Оставшиеся 357 — исключительно DAG-нарушения нового кода (engine→missions и world/actors→engine); все помечены `// Temporary:` с описанием.
+
 ## Итерация 188 — Game.h: зачистка _globals файлов + headers eway_globals/game_globals/overlay_globals (2026-03-24)
 
 - Удалён `fallen/Headers/Game.h` из 8 `_globals.cpp`: bat_globals, cop/roper/thug/player/switch_globals, vehicle_globals, prim_globals. Замена на `<MFStdLib.h>` (для NULL) или полное удаление (где не нужен).

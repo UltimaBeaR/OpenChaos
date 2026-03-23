@@ -1,5 +1,6 @@
 #include <MFStdLib.h>
-#include "fallen/Headers/Game.h" // Temporary: large umbrella header, not yet split
+#include "actors/core/thing.h"   // pool types
+#include "missions/game_types.h" // Game struct, TICK_RATIO, PEOPLE, etc.
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
 #include "world/environment/ns.h"
@@ -13,6 +14,7 @@
 #include "actors/characters/anim_ids.h"
 #include "actors/core/interact.h"
 #include "actors/core/interact_globals.h"
+#include "engine/graphics/pipeline/aeng.h"   // Temporary: actors→engine DAG violation (MSG_add)
 
 // Forward declarations for functions not yet migrated to new/.
 // uc_orig: nearest_point_on_line_and_dist_and_along (fallen/Source/interact.cpp)

@@ -3,7 +3,7 @@
 // helper queries, animation setters, and death-slide helpers.
 // (lines ~1-1757 of original Person.cpp)
 
-#include "fallen/Headers/Game.h"    // Temporary: Game types, Thing system, state helpers
+#include "missions/game_types.h"    // Game types, PEOPLE/VEHICLES pool macros, TICK_RATIO, etc.
 #include "actors/characters/cop.h"
 #include "actors/characters/cop_globals.h"
 #include "actors/characters/darci.h"

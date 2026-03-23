@@ -1,4 +1,6 @@
-#include "fallen/Headers/Game.h"   // Temporary: NET_PERSON, DRAW_DIST, ASSERT, WITHIN, SATURATE, QDIST2, Random
+#include <MFStdLib.h>              // ASSERT, base types
+#include "core/macros.h"           // WITHIN, SATURATE, QDIST2
+#include "missions/game_types.h"   // Temporary: world→missions DAG violation (NET_PERSON, DRAW_DIST, Random, the_game)
 #include "world/environment/prim.h" // prim_get_collision_model
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
@@ -7,6 +9,7 @@
 #include "world/map/pap_globals.h"
 #include "world/map/road.h"
 #include "world/map/road_globals.h"
+#include "engine/graphics/pipeline/aeng.h"    // Temporary: world→engine DAG violation (AENG_world_line)
 
 // uc_orig: WAND_init (fallen/Source/wand.cpp)
 void WAND_init(void)

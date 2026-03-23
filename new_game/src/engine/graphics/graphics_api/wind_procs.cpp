@@ -3,7 +3,7 @@
 #include <MFStdLib.h>                            // must come before gd_display.h (which defines DisplayWidth macro)
 #include "engine/graphics/graphics_api/gd_display.h"     // the_display, hDDLibWindow
 #include "assets/bink_client.h"                  // BinkMessage
-#include "fallen/Headers/Game.h"                 // Temporary: GAME_STATE
+#include "missions/game_types.h"                 // Temporary: engine→missions DAG violation (GAME_STATE)
 
 extern void MFX_QUICK_stop(void);
 

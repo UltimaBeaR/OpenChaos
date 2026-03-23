@@ -3,7 +3,8 @@
 
 
 #include "fallen/DDEngine/Headers/poly.h"
-#include "fallen/Headers/Game.h"    // Temporary: TICK_RATIO, TICK_SHIFT (the_game.TickRatio/TickShift)
+#include "core/math.h"              // SIN, COS lookup tables
+#include "missions/game_types.h"    // Temporary: effects→missions DAG violation (TICK_RATIO, TICK_SHIFT)
 
 #include "effects/glow.h"
 

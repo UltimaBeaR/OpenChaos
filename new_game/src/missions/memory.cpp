@@ -2,9 +2,14 @@
 // Game-level memory management and level save/load system.
 // First chunk: globals init, level memory table, pointer/index conversion, anim serialization.
 
-#include "fallen/Headers/Game.h"      // Temporary: Game struct, Thing system types, macro helpers
+#include "actors/core/thing.h"         // pool types (Vehicle, Person, etc.)
+#include "missions/game_types.h"      // Game struct, TICK_RATIO, PEOPLE, VEHICLES, etc.
 #include "world/environment/prim.h"  // calc_prim_normals, calc_prim_info, mark_prim_objects_as_unloaded, etc.
-#include "world/environment/building_globals.h" // next_roof_bound, next_prim_point, etc.
+#include "world/environment/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
+#include "assets/anim_globals.h"                // game_chunk, anim_chunk, next_game_chunk, next_anim_chunk, next_prim_*
+#include "world/environment/plat_globals.h"    // PLAT_plat, PLAT_plat_upto
+#include "assets/texture.h"                    // Temporary: missions→assets DAG violation (TEXTURE_choose_set)
+#include "engine/graphics/pipeline/aeng.h"     // Temporary: missions→engine DAG violation (AENG_create_dx_prim_points)
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
 #include "ui/camera/fc.h"

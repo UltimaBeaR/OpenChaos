@@ -3,7 +3,8 @@
 // particles[0] is a permanent sentinel so that the used-list always has a non-null head.
 
 #include <MFStdLib.h>
-#include "fallen/Headers/Game.h"   // Temporary: CLASS_PERSON, GAME_TURN, Thing, GameCoord, THING_find_sphere, TO_THING, TICK_RATIO, TICK_SHIFT, NORMAL_TICK_TOCK, Random, QDIST2, WITHIN
+#include "actors/core/thing.h"     // CLASS_PERSON, Thing, GameCoord, THING_find_sphere, TO_THING
+#include "missions/game_types.h"   // Temporary: engine→missions DAG violation (GAME_TURN, TICK_RATIO, TICK_SHIFT, NORMAL_TICK_TOCK, Random, the_game pool macros)
 #include "ai/mav.h"
 #include "core/fmatrix.h"          // FMATRIX_calc, FMATRIX_TRANSPOSE, FMATRIX_MUL
 #include "engine/graphics/pipeline/poly.h"  // POLY_PAGE_FLAMES2, POLY_PAGE_STEAM, POLY_PAGE_SMOKECLOUD2
