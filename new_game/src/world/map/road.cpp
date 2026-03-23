@@ -13,7 +13,7 @@
 // Temporary: elev.h not yet migrated — needed for ELEV_fname_map.
 #include "fallen/Headers/elev.h"
 // Temporary: mav.h not yet migrated — needed for MAVHEIGHT macro.
-#include "fallen/Headers/mav.h"
+#include "ai/mav.h"
 
 // TEXTURE_set is defined in texture.cpp (not yet migrated to new/).
 extern SLONG TEXTURE_set;

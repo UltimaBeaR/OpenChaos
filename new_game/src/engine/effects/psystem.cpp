@@ -4,7 +4,7 @@
 
 #include <MFStdLib.h>
 #include "fallen/Headers/Game.h"   // Temporary: CLASS_PERSON, GAME_TURN, Thing, GameCoord, THING_find_sphere, TO_THING, TICK_RATIO, TICK_SHIFT, NORMAL_TICK_TOCK, Random, QDIST2, WITHIN
-#include "fallen/Headers/mav.h"    // Temporary: MAV_inside (referenced in comments only; not actually called)
+#include "ai/mav.h"
 #include "core/fmatrix.h"          // FMATRIX_calc, FMATRIX_TRANSPOSE, FMATRIX_MUL
 #include "engine/graphics/pipeline/poly.h"  // POLY_PAGE_FLAMES2, POLY_PAGE_STEAM, POLY_PAGE_SMOKECLOUD2
 #include "engine/audio/sound.h"

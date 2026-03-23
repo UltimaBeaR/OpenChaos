@@ -1,10 +1,20 @@
 #ifndef AI_MAV_GLOBALS_H
 #define AI_MAV_GLOBALS_H
 
-// MFStdLib.h must come before mav.h: mav.h -> pap.h -> structs.h -> anim.h uses strcpy.
-#include <MFStdLib.h>
-#include "fallen/Headers/mav.h"
-#include "fallen/Headers/Map.h"   // MAP_HEIGHT, MAP_WIDTH for MAV_flag/MAV_dir array dimensions
+#include "ai/mav_action.h"
+#include "world/map/map.h"  // MAP_HEIGHT, MAP_WIDTH for MAV_flag/MAV_dir array dimensions
+
+// Navigation option record: one entry per unique combination of per-direction movement caps.
+// MAV_NAV(x,z) indexes into MAV_opt[]; there are at most MAV_MAX_OPTS unique entries.
+// uc_orig: MAV_Opt (fallen/Headers/mav.h)
+typedef struct
+{
+    UBYTE opt[4]; // Movement options for each of the 4 cardinal directions.
+} MAV_Opt;
+
+// Maximum number of unique MAV_Opt entries in the pool.
+// uc_orig: MAV_MAX_OPTS (fallen/Headers/mav.h)
+#define MAV_MAX_OPTS 1024
 
 // uc_orig: MAV_opt (fallen/Source/mav.cpp)
 extern MAV_Opt* MAV_opt;
@@ -12,6 +22,8 @@ extern MAV_Opt* MAV_opt;
 // uc_orig: MAV_opt_upto (fallen/Source/mav.cpp)
 extern SLONG MAV_opt_upto;
 
+// Navigation grid: 2D UWORD array, pitch = MAV_nav_pitch.
+// Each cell: bits 0-9 = opt index, bits 10-13 = car flags, bits 14-15 = spare.
 // uc_orig: MAV_nav (fallen/Source/mav.cpp)
 extern UWORD* MAV_nav;
 

@@ -8,7 +8,7 @@
 #include "game.h"
 #include "actors/animals/canid.h"
 #include "statedef.h"
-#include "mav.h"
+#include "ai/mav.h"
 #include "pap.h"
 #include "dirt.h"  // DIRT_gust for footstep particles
 

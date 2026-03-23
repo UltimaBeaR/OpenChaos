@@ -10,7 +10,7 @@
 #include "fallen/Headers/id.h"       // SetSeed
 #include "fallen/Headers/io.h"       // FileCreate, FileOpen, FileClose, FileRead, FileWrite, FILE_CREATION_ERROR
 #include "fallen/Headers/heap.h"     // init_memory (via MEMORY_quick_init)
-#include "fallen/Headers/mav.h"      // MAVHEIGHT (transitively)
+#include "ai/mav.h"
 #include "fallen/Headers/fog.h"      // (included via game.h chain)
 #include "fallen/Headers/mist.h"
 #include "fallen/Headers/cnet.h"     // CNET_network_game, CNET_configure

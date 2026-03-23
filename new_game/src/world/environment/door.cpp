@@ -8,7 +8,7 @@
 #include "world/map/supermap.h"
 #include "fallen/Headers/building.h"     // FACET_FLAG_* defines
 #include "fallen/Headers/memory.h"       // facet_links[], dfacets[]
-#include "fallen/Headers/mav.h"          // MAV_turn_movement_on/off, MAV_turn_car_movement_on/off, MAV_DIR_*
+#include "ai/mav.h"
 
 // Finds the nearest STOREY_TYPE_OUTSIDE_DOOR facet within 0x200 units of the given world position.
 // Searches the lo-res PAP grid via the collision vector linked lists.

@@ -2,7 +2,7 @@
 #define WORLD_ENVIRONMENT_WARE_H
 
 #include "core/types.h"
-#include "fallen/Headers/mav.h" // Temporary: mav.h not yet migrated
+#include "ai/mav.h"
 
 // Forward declaration to avoid pulling in Thing.h here.
 struct Thing;

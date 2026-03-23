@@ -11,7 +11,7 @@
 #include "poly.h"
 #include "sprite.h"
 #include "..\headers\fmatrix.h"
-#include "..\headers\mav.h"
+#include "ai/mav.h"          // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
 #include "..\headers\interact.h"
 #include "night.h"
 #include "shadow.h"

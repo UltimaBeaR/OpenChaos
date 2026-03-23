@@ -16,7 +16,7 @@
 #include "actors/items/barrel_globals.h"
 #include "fallen/Headers/eway.h"      // Temporary: EWAY_mess, EWAY_way, EWAY_cond, EWAY_edef, EWAY_timer
 #include "fallen/Headers/pap.h"       // Temporary: PAP_hi, PAP_lo, PAP_SIZE_HI, PAP_SIZE_LO
-#include "fallen/Headers/mav.h"       // Temporary: MAV_opt, MAV_nav, MAV_MAX_OPTS
+#include "ai/mav.h"
 #include "world/map/road.h"
 #include "world/map/road_globals.h"
 #include "actors/items/balloon.h"

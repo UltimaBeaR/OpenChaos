@@ -4,7 +4,7 @@
 #include "fallen/Headers/Game.h"
 #include "fallen/Headers/statedef.h"
 #include "fallen/Headers/pap.h"
-#include "fallen/Headers/mav.h"
+#include "ai/mav.h"
 #include "engine/audio/mfx.h"
 #include "fallen/Headers/sound_id.h"
 #include "fallen/Headers/dirt.h"

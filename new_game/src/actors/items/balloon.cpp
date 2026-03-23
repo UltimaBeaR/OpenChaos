@@ -1,7 +1,7 @@
 // Temporary: game.h must be first — sets up all cross-module types
 #include "fallen/Headers/game.h"
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/mav.h"     // Temporary: MAV_inside
+#include "ai/mav.h"
 #include "actors/items/balloon.h"
 #include "actors/items/balloon_globals.h"
 

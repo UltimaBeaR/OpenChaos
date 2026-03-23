@@ -12,7 +12,7 @@
 #include "actors/core/interact.h"
 #include "ai/pcom.h"
 #include "fallen/Headers/Game.h"       // Temporary: GAME_FLAGS, GF_*, GAME_TURN, Thing, calc_angle, NET_PERSON
-#include "fallen/Headers/mav.h"        // Temporary: MAV_SPARE, MAV_SPARE_FLAG_WATER
+#include "ai/mav.h"
 #include "fallen/Headers/prim.h"       // Temporary: PRIM_FLAG_TREE, PRIM_OBJ_CAN, PRIM_OBJ_ITEM_KEY
 #include "assets/sound_id.h"     // Temporary: S_KICK_CAN
 #include "engine/audio/sound.h"

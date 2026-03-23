@@ -69,7 +69,7 @@
 #include "world/environment/plat.h"
 #include "fallen/Headers/prim.h"        // Temporary: get_prim_info, prim object constants
 #include "actors/core/statedef.h"
-#include "fallen/Headers/mav.h"         // Temporary: MAV_init, MAV_precalculate
+#include "ai/mav.h"
 #include "engine/physics/collide.h"
 #include "assets/startscr_globals.h"    // STARTSCR_mission
 #include "actors/core/thing_globals.h"  // playback_file

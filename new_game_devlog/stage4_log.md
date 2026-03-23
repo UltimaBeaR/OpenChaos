@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 177 — fallen/Headers/mav.h → ai/mav.h + ai/mav_globals.h; удалены TabCtl.h, GEdit.h, SubClass.h (2026-03-23)
+
+- `MAV_Opt` и `MAV_MAX_OPTS` перенесены в `ai/mav_globals.h` (туда, где уже живут все MAV extern-переменные). Все макросы (`MAV_NAV`, `MAV_CAR`, `MAVHEIGHT`, `MAV_CAPS_*`, `MAV_ACTION_*`, `MAV_DIR_*`, `SET_MAV_*`) — в `ai/mav.h`.
+- `ai/mav_globals.h` теперь не зависит от legacy-заголовков: использует `ai/mav_action.h` + `world/map/map.h` напрямую.
+- Обнаружены 3 потребителя с нестандартным include-путём (`"mav.h"`, `"..\headers\mav.h"`) — заменены.
+- `TabCtl.h`, `GEdit.h`, `SubClass.h` — удалены (editor-only, нет потребителей в CMakeLists).
+- DAG-нарушения `engine → ai` (figure.cpp, aeng.cpp, oval.cpp, night.cpp, shadow.cpp, psystem.cpp) — были и до миграции, помечены `// Temporary:`.
+- Temporary: 491 → 485.
+
 ## Итерация 176 — Mission.h → missions/mission.h + mission_globals.h; удалены EdStrings.h, MapView.h (2026-03-23)
 
 - `EdStrings.h` и `MapView.h` удалены: нет активных потребителей вне `fallen/` (editor-only GEdit-код).

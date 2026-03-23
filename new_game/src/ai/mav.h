@@ -1,8 +1,92 @@
 #ifndef AI_MAV_H
 #define AI_MAV_H
 
-#include "fallen/Headers/mav.h"
-#include "ai/mav_globals.h"
+// MAV = grid navigation system for NPCs.
+// A* search on a 128x128 map of movement options.
+// Each cell stores packed walk/car/spare bits in a UWORD.
+
+#include <MFStdLib.h>               // ASSERT
+#include "core/macros.h"            // WITHIN
+#include "ai/mav_globals.h"         // MAV_Opt, MAV_MAX_OPTS, extern vars, MAV_LOOKAHEAD
+#include "world/map/pap_globals.h"  // PAP_hi — required for MAVHEIGHT macro
+
+// MAV_nav UWORD packing: 10 bits nav index | 4 bits car flags | 2 bits spare.
+// uc_orig: MAV_NAV (fallen/Headers/mav.h)
+#define MAV_NAV(x, z) (MAV_nav[((x) * MAV_nav_pitch) + (z)] & 1023)
+// uc_orig: MAV_CAR (fallen/Headers/mav.h)
+#define MAV_CAR(x, z) ((MAV_nav[((x) * MAV_nav_pitch) + (z)] >> 10) & 15)
+// uc_orig: MAV_SPARE (fallen/Headers/mav.h)
+#define MAV_SPARE(x, z) (MAV_nav[((x) * MAV_nav_pitch) + (z)] >> 14)
+
+// uc_orig: SET_MAV_NAV (fallen/Headers/mav.h)
+#define SET_MAV_NAV(x, z, v) MAV_nav[((x) * MAV_nav_pitch) + (z)] = (MAV_nav[((x) * MAV_nav_pitch) + (z)] & 0xFC00) | ((v) & 1023)
+// uc_orig: SET_MAV_CAR (fallen/Headers/mav.h)
+#define SET_MAV_CAR(x, z, v) MAV_nav[((x) * MAV_nav_pitch) + (z)] = (MAV_nav[((x) * MAV_nav_pitch) + (z)] & 0xC3FF) | (((v) & 15) << 10)
+// uc_orig: SET_MAV_SPARE (fallen/Headers/mav.h)
+#define SET_MAV_SPARE(x, z, v) MAV_nav[((x) * MAV_nav_pitch) + (z)] = (MAV_nav[((x) * MAV_nav_pitch) + (z)] & 0x3FFF) | ((v) << 14)
+
+// Returns 1 if car movement is allowed from (x,z) in direction d.
+// uc_orig: MAV_CAR_GOTO (fallen/Headers/mav.h)
+#define MAV_CAR_GOTO(x, z, d) (!!(MAV_CAR(x, z) & (1 << d)))
+
+// Height of the terrain at map-square (x,z), from the PAP hi-res grid.
+// uc_orig: MAVHEIGHT (fallen/Headers/mav.h)
+#define MAVHEIGHT(x, z) (PAP_hi[x][z].Height)
+
+// Spare bits in MAV_nav (bits 14-15): water and unused.
+// uc_orig: MAV_SPARE_FLAG_WATER (fallen/Headers/mav.h)
+#define MAV_SPARE_FLAG_WATER (1 << 0)
+// uc_orig: MAV_SPARE_FLAG_UNUSED (fallen/Headers/mav.h)
+#define MAV_SPARE_FLAG_UNUSED (1 << 1)
+
+// Movement action types returned by MAV_do().
+// uc_orig: MAV_ACTION_GOTO (fallen/Headers/mav.h)
+#define MAV_ACTION_GOTO 0
+// uc_orig: MAV_ACTION_JUMP (fallen/Headers/mav.h)
+#define MAV_ACTION_JUMP 1
+// uc_orig: MAV_ACTION_JUMPPULL (fallen/Headers/mav.h)
+#define MAV_ACTION_JUMPPULL 2
+// uc_orig: MAV_ACTION_JUMPPULL2 (fallen/Headers/mav.h)
+#define MAV_ACTION_JUMPPULL2 3
+// uc_orig: MAV_ACTION_PULLUP (fallen/Headers/mav.h)
+#define MAV_ACTION_PULLUP 4
+// uc_orig: MAV_ACTION_CLIMB_OVER (fallen/Headers/mav.h)
+#define MAV_ACTION_CLIMB_OVER 5
+// uc_orig: MAV_ACTION_FALL_OFF (fallen/Headers/mav.h)
+#define MAV_ACTION_FALL_OFF 6
+// uc_orig: MAV_ACTION_LADDER_UP (fallen/Headers/mav.h)
+#define MAV_ACTION_LADDER_UP 7
+
+// Cardinal direction indices.
+// uc_orig: MAV_DIR_XS (fallen/Headers/mav.h)
+#define MAV_DIR_XS 0
+// uc_orig: MAV_DIR_XL (fallen/Headers/mav.h)
+#define MAV_DIR_XL 1
+// uc_orig: MAV_DIR_ZS (fallen/Headers/mav.h)
+#define MAV_DIR_ZS 2
+// uc_orig: MAV_DIR_ZL (fallen/Headers/mav.h)
+#define MAV_DIR_ZL 3
+
+// Capability bitmask bits — OR together to pass to MAV_do().
+// uc_orig: MAV_CAPS_GOTO (fallen/Headers/mav.h)
+#define MAV_CAPS_GOTO (1 << MAV_ACTION_GOTO)
+// uc_orig: MAV_CAPS_JUMP (fallen/Headers/mav.h)
+#define MAV_CAPS_JUMP (1 << MAV_ACTION_JUMP)
+// uc_orig: MAV_CAPS_JUMPPULL (fallen/Headers/mav.h)
+#define MAV_CAPS_JUMPPULL (1 << MAV_ACTION_JUMPPULL)
+// uc_orig: MAV_CAPS_JUMPPULL2 (fallen/Headers/mav.h)
+#define MAV_CAPS_JUMPPULL2 (1 << MAV_ACTION_JUMPPULL2)
+// uc_orig: MAV_CAPS_PULLUP (fallen/Headers/mav.h)
+#define MAV_CAPS_PULLUP (1 << MAV_ACTION_PULLUP)
+// uc_orig: MAV_CAPS_CLIMB_OVER (fallen/Headers/mav.h)
+#define MAV_CAPS_CLIMB_OVER (1 << MAV_ACTION_CLIMB_OVER)
+// uc_orig: MAV_CAPS_FALL_OFF (fallen/Headers/mav.h)
+#define MAV_CAPS_FALL_OFF (1 << MAV_ACTION_FALL_OFF)
+// uc_orig: MAV_CAPS_LADDER_UP (fallen/Headers/mav.h)
+#define MAV_CAPS_LADDER_UP (1 << MAV_ACTION_LADDER_UP)
+// Darci can perform all movement types.
+// uc_orig: MAV_CAPS_DARCI (fallen/Headers/mav.h)
+#define MAV_CAPS_DARCI (0xff)
 
 // Deduplicates MAV_Opt records: finds an identical 4-byte option set in the pool and
 // reuses it, or appends a new entry. Updates MAV_NAV(x,z) to the matching index.

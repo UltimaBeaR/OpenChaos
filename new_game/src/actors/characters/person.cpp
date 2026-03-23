@@ -18,7 +18,7 @@
 #include "assets/sound_id.h"
 #include "ui/menus/cnet.h"
 #include "ui/menus/cnet_globals.h"
-#include "fallen/Headers/mav.h"     // Temporary: MAV_Action, MAV_SPARE, MAV_SPARE_FLAG_WATER
+#include "ai/mav.h"
 #include "engine/audio/sound.h"
 #include "fallen/Headers/eway.h"    // Temporary: EWAY types
 #include "effects/spark.h"

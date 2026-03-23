@@ -5,7 +5,7 @@
 #include "psystem.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "puddle.h"
-#include "mav.h"
+#include "ai/mav.h"
 #include "memory.h"
 
 // Starting fade and size for a newly created drip.

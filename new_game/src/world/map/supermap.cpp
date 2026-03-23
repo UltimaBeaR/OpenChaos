@@ -12,7 +12,7 @@
 // Temporary: memory.h — dbuildings, dfacets, dwalkables, roof_faces4 etc. not yet in new/
 #include "fallen/Headers/memory.h"
 // Temporary: mav.h — MAV_opt_upto (for make_all_clumps — build tool, dead in runtime)
-#include "fallen/Headers/mav.h"
+#include "ai/mav.h"
 // Temporary: texture.h — TEXTURE_load_needed
 #include "..\ddengine\headers\texture.h"
 #include "engine/physics/collide.h"

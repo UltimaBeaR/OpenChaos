@@ -3,7 +3,7 @@
 #include "fallen/Headers/Game.h"
 #include "fallen/Headers/pap.h"
 #include "world/map/supermap.h"
-#include "fallen/Headers/mav.h"
+#include "ai/mav.h"          // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
 #include "fallen/Headers/memory.h"
 
 // Fixed directional light vector components (sun direction, world-space fixed-point).

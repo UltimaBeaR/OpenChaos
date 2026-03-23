@@ -6,7 +6,7 @@
 #include "fallen/Headers/fmatrix.h"
 #include "fallen/Headers/memory.h"
 #include "fallen/Headers/ware.h"
-#include "fallen/Headers/mav.h"
+#include "ai/mav.h"
 #include "actors/characters/anim_ids.h"
 #include "fallen/Headers/FMatrix.h"
 #include "actors/core/interact.h"

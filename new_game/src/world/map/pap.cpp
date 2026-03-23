@@ -6,7 +6,7 @@
 #include "world/map/pap_globals.h"
 // Temporary: game.h for GAME_FLAGS/GF_NO_FLOOR, Thing struct, WARE_calc_height_at, etc.
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/mav.h"
+#include "ai/mav.h"
 #include "fallen/Headers/ware.h"
 
 // uc_orig: PAP_on_map_lo (fallen/Source/pap.cpp)

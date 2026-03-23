@@ -2,7 +2,7 @@
 // Temporary: game.h needed for PAP_2HI, PAP_FLAG_*, PAP_ALT_SHIFT, PAP_SHIFT_HI macros
 #include "game.h"
 // Temporary: mav.h needed for MAVHEIGHT macro
-#include "mav.h"
+#include "ai/mav.h"
 #include "engine/graphics/geometry/oval.h"
 #include "engine/graphics/geometry/oval_globals.h"
 #include "engine/graphics/pipeline/poly.h"

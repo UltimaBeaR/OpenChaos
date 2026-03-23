@@ -7,7 +7,7 @@
 #include "actors/items/barrel.h"
 #include "actors/items/barrel_globals.h"
 #include "fmatrix.h"
-#include "mav.h"
+#include "ai/mav.h"
 #include "pap.h"
 #include "statedef.h"
 #include "actors/characters/anim_ids.h"

@@ -18,7 +18,7 @@
 // Temporary: ware.h (WARE_in)
 #include "fallen/Headers/ware.h"
 // Temporary: mav.h not yet fully migrated
-#include "fallen/Headers/mav.h"
+#include "ai/mav.h"          // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
 // Temporary: prim.h (PrimObject, PrimInfo, get_prim_info, PRIM_FLAG_LAMPOST)
 #include "fallen/Headers/prim.h"
 // Temporary: file.h (FileOpen, FileRead, FileClose)

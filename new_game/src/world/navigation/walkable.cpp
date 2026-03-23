@@ -10,7 +10,7 @@
 #include "world/navigation/walkable.h"
 #include "world/navigation/walkable_globals.h"
 #include "fallen/Headers/memory.h"
-#include "fallen/Headers/mav.h"
+#include "ai/mav.h"
 
 // Forward declaration for highlighting (defined in aeng.cpp, not yet migrated).
 extern void highlight_rface(SLONG rface);

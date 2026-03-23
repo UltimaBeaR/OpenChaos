@@ -29,7 +29,7 @@
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"
 #include "fallen/Headers/pap.h"
-#include "fallen/Headers/mav.h"      // Temporary: MAVHEIGHT (draw_quick_floor)
+#include "ai/mav.h"      // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
 #include "fallen/DDLibrary/Headers/DDLib.h"
 #include "missions/memory_globals.h" // Temporary: inside_storeys
 

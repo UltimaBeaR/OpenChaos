@@ -97789,6 +97789,336 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_Opt",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_Opt",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_MAX_OPTS",
+      "file": "new/ai/mav_globals.h",
+      "orig_name": "MAV_MAX_OPTS",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_NAV",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_NAV",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAR",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAR",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_SPARE",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_SPARE",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_MAV_NAV",
+      "file": "new/ai/mav.h",
+      "orig_name": "SET_MAV_NAV",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_MAV_CAR",
+      "file": "new/ai/mav.h",
+      "orig_name": "SET_MAV_CAR",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_MAV_SPARE",
+      "file": "new/ai/mav.h",
+      "orig_name": "SET_MAV_SPARE",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAR_GOTO",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAR_GOTO",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAVHEIGHT",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAVHEIGHT",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_SPARE_FLAG_WATER",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_SPARE_FLAG_WATER",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_SPARE_FLAG_UNUSED",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_SPARE_FLAG_UNUSED",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_ACTION_GOTO",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_ACTION_GOTO",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_ACTION_JUMP",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_ACTION_JUMP",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_ACTION_JUMPPULL",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_ACTION_JUMPPULL",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_ACTION_JUMPPULL2",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_ACTION_JUMPPULL2",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_ACTION_PULLUP",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_ACTION_PULLUP",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_ACTION_CLIMB_OVER",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_ACTION_CLIMB_OVER",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_ACTION_FALL_OFF",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_ACTION_FALL_OFF",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_ACTION_LADDER_UP",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_ACTION_LADDER_UP",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_DIR_XS",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_DIR_XS",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_DIR_XL",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_DIR_XL",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_DIR_ZS",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_DIR_ZS",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_DIR_ZL",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_DIR_ZL",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAPS_GOTO",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAPS_GOTO",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAPS_JUMP",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAPS_JUMP",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAPS_JUMPPULL",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAPS_JUMPPULL",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAPS_JUMPPULL2",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAPS_JUMPPULL2",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAPS_PULLUP",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAPS_PULLUP",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAPS_CLIMB_OVER",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAPS_CLIMB_OVER",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAPS_FALL_OFF",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAPS_FALL_OFF",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAPS_LADDER_UP",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAPS_LADDER_UP",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_CAPS_DARCI",
+      "file": "new/ai/mav.h",
+      "orig_name": "MAV_CAPS_DARCI",
+      "orig_file": "fallen/Headers/mav.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
