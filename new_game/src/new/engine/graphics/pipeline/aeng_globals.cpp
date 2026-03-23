@@ -290,3 +290,6 @@ float kerb_dv;
 
 // uc_orig: index_lookup (fallen/DDEngine/Source/aeng.cpp)
 UBYTE index_lookup[] = { 0, 1, 3, 2 };
+
+// uc_orig: record_video (fallen/DDEngine/Source/aeng.cpp)
+UBYTE record_video = 0;

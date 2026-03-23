@@ -617,4 +617,16 @@ void AENG_guess_detail_levels(void);
 // Maps quad corner index 0-3 to face winding order for roof tile rendering inside AENG_draw_city.
 extern UBYTE index_lookup[4];
 
+// ---------------------------------------------------------------------------
+// Globals for chunk 5a: far facets, warehouse renderer, screen shot, FPS, fade
+// ---------------------------------------------------------------------------
+
+// uc_orig: record_video (fallen/DDEngine/Source/aeng.cpp)
+// When non-zero, AENG_screen_shot dumps a frame every game tick (debug video recording).
+extern UBYTE record_video;
+
+// uc_orig: AENG_draw_warehouse (fallen/DDEngine/Source/aeng.cpp)
+// Renders interior warehouse/building scenes (migrated to new/aeng.cpp).
+void AENG_draw_warehouse(void);
+
 #endif // ENGINE_GRAPHICS_PIPELINE_AENG_GLOBALS_H

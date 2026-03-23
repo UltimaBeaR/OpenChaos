@@ -61,6 +61,9 @@
 #include "core/timer.h"                    // Temporary: StartStopwatch, StopStopwatch (AENG_draw_some_polys)
 #include "engine/io/env.h"                 // Temporary: ENV_set_value_number (AENG_set/guess_detail_levels)
 
+// Additional includes for chunks 4b and 5a
+#include "engine/graphics/resources/font2d.h"          // Temporary: FONT2D_DrawString (AENG_draw_FPS, AENG_draw_warehouse)
+
 // Additional includes for AENG_draw_city() (chunk 4b)
 #include "world/environment/puddle.h"
 #include "world/environment/puddle_globals.h"
@@ -7155,4 +7158,1379 @@ void AENG_draw_city()
     // LOG_EXIT ( AENG_Draw_City )
 
     // TRACE ( "AengOut" );
+}
+
+// uc_orig: AENG_draw_far_facets (fallen/DDEngine/Source/aeng.cpp)
+// Renders building facets at far distance using the lo-res gamut only.
+// Does two camera sets: one with a very large draw distance to compute the lo-res gamut,
+// then restores the normal draw distance at the end.
+void AENG_draw_far_facets(void)
+{
+    SLONG x, z;
+
+    POLY_camera_set(
+        AENG_cam_x,
+        AENG_cam_y,
+        AENG_cam_z,
+        AENG_cam_yaw,
+        AENG_cam_pitch,
+        AENG_cam_roll,
+        129.0F * 256.0F, // float(AENG_DRAW_DIST) * 256.0F*3.0F,
+        AENG_LENS,
+        POLY_SPLITSCREEN_NONE);
+
+    AENG_calc_gamut_lo_only(
+        AENG_cam_x,
+        AENG_cam_y,
+        AENG_cam_z,
+        AENG_cam_yaw,
+        AENG_cam_pitch,
+        AENG_cam_roll,
+        64.0F * 256.0F, // AENG_DRAW_DIST*3,
+        AENG_LENS);
+
+    for (z = AENG_gamut_lo_zmin; z <= AENG_gamut_lo_zmax; z++) {
+        for (x = AENG_gamut_lo_xmin; x <= AENG_gamut_lo_xmax; x++) {
+            ASSERT(WITHIN(x, 0, PAP_SIZE_LO - 1));
+            ASSERT(WITHIN(z, 0, PAP_SIZE_LO - 1));
+
+            {
+                SLONG f_list;
+                SLONG facet;
+                SLONG build;
+                SLONG exit = UC_FALSE;
+
+                f_list = PAP_2LO(x, z).ColVectHead;
+
+                if (f_list) {
+
+                    while (!exit) {
+                        struct DFacet* p_vect;
+                        facet = facet_links[f_list];
+
+                        p_vect = &dfacets[facet];
+
+                        ASSERT(facet);
+
+                        if (facet < 0) {
+                            facet = -facet;
+                            exit = UC_TRUE;
+                        }
+
+                        if (dfacets[facet].Counter[AENG_cur_fc_cam] != SUPERMAP_counter[AENG_cur_fc_cam]) {
+
+                            dfacets[facet].Counter[AENG_cur_fc_cam] = SUPERMAP_counter[AENG_cur_fc_cam];
+
+                            if (dfacets[facet].FacetType == STOREY_TYPE_NORMAL)
+                                build = dfacets[facet].Building;
+                            else
+                                build = 0;
+
+                            if (build && dbuildings[build].Type == BUILDING_TYPE_CRATE_IN || (dfacets[facet].FacetFlags & FACET_FLAG_INSIDE)) {
+                                // Don't draw inside buildings outside.
+                            } else if (dfacets[facet].FacetType == STOREY_TYPE_DOOR) {
+                            } else {
+                                show_facet(facet);
+                                extern void FACET_draw_quick(SLONG facet, UBYTE alpha);
+                                FACET_draw_quick(facet, 0);
+                            }
+                        }
+
+                        f_list++;
+                    }
+                }
+            }
+        }
+    }
+
+    POLY_camera_set(
+        AENG_cam_x,
+        AENG_cam_y,
+        AENG_cam_z,
+        AENG_cam_yaw,
+        AENG_cam_pitch,
+        AENG_cam_roll,
+        float(AENG_DRAW_DIST) * 256.0F,
+        AENG_LENS,
+        POLY_SPLITSCREEN_NONE);
+}
+
+// uc_orig: AENG_draw_warehouse (fallen/DDEngine/Source/aeng.cpp)
+// Renders interior warehouse/building scenes.
+// Used when the player is inside a warehouse (Person->Ware is set).
+// Interior uses separate ambient lighting and different culling from the city renderer.
+void AENG_draw_warehouse()
+{
+    SLONG i;
+
+    SLONG x;
+    SLONG z;
+
+    SLONG dx;
+    SLONG dz;
+
+    SLONG px;
+    SLONG pz;
+
+    SLONG dist;
+    SLONG t_index;
+    SLONG square;
+    SLONG build;
+    SLONG page;
+    SLONG facet;
+    SLONG f_list;
+    SLONG exit;
+    SLONG balloon;
+    SLONG dfcache;
+    SLONG next;
+
+    ULONG colour;
+    ULONG specular;
+
+    float world_x;
+    float world_y;
+    float world_z;
+
+    SLONG old_aeng_draw_cloud_flag = aeng_draw_cloud_flag;
+    UC_FALSE;
+
+    aeng_draw_cloud_flag = UC_FALSE;
+
+    Thing* p_thing;
+    OB_Info* oi;
+    PAP_Hi* ph;
+    NIGHT_Square* nq;
+    NIGHT_Colour* col;
+    NIGHT_Dfcache* ndf;
+    POLY_Point* pp;
+    DFacet* df;
+    // BALLOON_Balloon *bb;
+    POLY_Point* quad[4];
+
+    // POLY_frame_init(UC_FALSE,UC_FALSE);
+
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+
+    // Work out which things are in view.
+    for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+        for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+            t_index = PAP_2LO(x, z).MapWho;
+
+            while (t_index) {
+                p_thing = TO_THING(t_index);
+
+                switch (p_thing->Class) {
+                case CLASS_PERSON:
+
+                    // Only draw people who are in warehouses.
+                    if (p_thing->Genus.Person->PlayerID && (p_thing->Genus.Person->Flags & FLAG_PERSON_WAREHOUSE))
+                        p_thing->Flags |= FLAGS_IN_VIEW;
+                    else if (p_thing->Genus.Person->Flags & FLAG_PERSON_WAREHOUSE) {
+                        if (POLY_sphere_visible(
+                                float(p_thing->WorldPos.X >> 8),
+                                float(p_thing->WorldPos.Y >> 8) + KERB_HEIGHT,
+                                float(p_thing->WorldPos.Z >> 8),
+                                256.0F / (AENG_DRAW_DIST * 256.0F))) {
+                            p_thing->Flags |= FLAGS_IN_VIEW;
+                        }
+                    }
+
+                    break;
+
+                default:
+
+                    // Draw everything else that is on a HIDDEN square (i.e. is inside the
+                    // floorplan of the warehouse).
+                    if (PAP_2HI(p_thing->WorldPos.X >> 16, p_thing->WorldPos.Z >> 16).Flags & PAP_FLAG_HIDDEN) {
+                        p_thing->Flags |= FLAGS_IN_VIEW;
+                    }
+
+                    break;
+                }
+
+                t_index = p_thing->Child;
+            }
+
+            NIGHT_square[NIGHT_cache[x][z]].flag &= ~NIGHT_SQUARE_FLAG_DELETEME;
+        }
+    }
+
+    // Rotate all the points.
+    for (z = NGAMUT_point_zmin; z <= NGAMUT_point_zmax; z++) {
+        for (x = NGAMUT_point_gamut[z].xmin; x <= NGAMUT_point_gamut[z].xmax; x++) {
+            ASSERT(WITHIN(x, 0, PAP_SIZE_HI - 1));
+            ASSERT(WITHIN(z, 0, PAP_SIZE_HI - 1));
+
+            ph = &PAP_2HI(x, z);
+
+            // We only have upper points inside a warehouse.
+            world_x = x * 256.0F;
+            world_y = ph->Alt * float(1 << ALT_SHIFT);
+            world_z = z * 256.0F;
+
+            pp = &AENG_upper[x & 63][z & 63];
+
+            POLY_transform(
+                world_x,
+                world_y,
+                world_z,
+                pp);
+
+            if (pp->MaybeValid()) {
+                // Work out the colour of this point.
+                px = x >> 2;
+                pz = z >> 2;
+
+                dx = x & 0x3;
+                dz = z & 0x3;
+
+                ASSERT(WITHIN(px, 0, PAP_SIZE_LO - 1));
+                ASSERT(WITHIN(pz, 0, PAP_SIZE_LO - 1));
+
+                square = NIGHT_cache[px][pz];
+
+                ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
+                ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
+
+                nq = &NIGHT_square[square];
+
+                NIGHT_get_d3d_colour(
+                    nq->colour[dx + dz * PAP_BLOCKS],
+                    &pp->colour,
+                    &pp->specular);
+
+                apply_cloud((SLONG)world_x, (SLONG)world_y, (SLONG)world_z, &pp->colour);
+
+                POLY_fadeout_point(pp);
+
+                colour = pp->colour;
+                specular = pp->specular;
+            }
+        }
+    }
+
+    // Who shall we generate shadows for?
+    if (AENG_shadows_on) {
+        Thing* darci = NET_PERSON(0);
+
+        // How many people do we generate shadows for?
+        // uc_orig: AENG_NUM_SHADOWS (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_NUM_SHADOWS 4
+
+        struct
+        {
+            Thing* p_person;
+            SLONG dist;
+
+        } shadow_person[AENG_NUM_SHADOWS];
+        SLONG shadow_person_upto = 0;
+        SLONG shadow_person_worst_dist = -UC_INFINITY;
+        SLONG shadow_person_worst_person;
+
+        for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+                t_index = PAP_2LO(x, z).MapWho;
+
+                while (t_index) {
+                    p_thing = TO_THING(t_index);
+
+                    if (p_thing->Class == CLASS_PERSON && (p_thing->Flags & FLAGS_IN_VIEW)) {
+                        // Distance from darci.
+                        dx = p_thing->WorldPos.X - darci->WorldPos.X;
+                        dz = p_thing->WorldPos.Z - darci->WorldPos.Z;
+
+                        dist = abs(dx) + abs(dz);
+
+                        if (dist < 0x60000) {
+                            if (shadow_person_upto < AENG_NUM_SHADOWS) {
+                                // Put this person in the shadow array.
+                                shadow_person[shadow_person_upto].p_person = p_thing;
+                                shadow_person[shadow_person_upto].dist = dist;
+
+                                // Keep track of the furthest person away.
+                                if (dist > shadow_person_worst_dist) {
+                                    shadow_person_worst_dist = dist;
+                                    shadow_person_worst_person = shadow_person_upto;
+                                }
+
+                                shadow_person_upto += 1;
+                            } else {
+                                if (dist < shadow_person_worst_dist) {
+                                    // Replace the worst person.
+                                    ASSERT(WITHIN(shadow_person_worst_person, 0, AENG_NUM_SHADOWS - 1));
+
+                                    shadow_person[shadow_person_worst_person].p_person = p_thing;
+                                    shadow_person[shadow_person_worst_person].dist = dist;
+
+                                    // Find the worst person
+                                    shadow_person_worst_dist = -UC_INFINITY;
+
+                                    for (i = 0; i < AENG_NUM_SHADOWS; i++) {
+                                        if (shadow_person[i].dist > shadow_person_worst_dist) {
+                                            shadow_person_worst_dist = shadow_person[i].dist;
+                                            shadow_person_worst_person = i;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    t_index = p_thing->Child;
+                }
+            }
+        }
+
+        // Draw the people's shadow maps.
+        SLONG offset_x;
+        SLONG offset_y;
+
+        for (i = 0; i < shadow_person_upto; i++) {
+            darci = shadow_person[i].p_person;
+
+            memset(AENG_aa_buffer, 0, sizeof(AENG_aa_buffer));
+
+            SMAP_person(
+                darci,
+                (UBYTE*)AENG_aa_buffer,
+                AENG_AA_BUF_SIZE,
+                AENG_AA_BUF_SIZE,
+                0,
+                -255,
+                -0);
+
+            ASSERT(AENG_AA_BUF_SIZE == 32);
+            ASSERT(TEXTURE_SHADOW_SIZE == 64);
+
+            offset_x = (i & 1) << 5;
+            offset_y = (i & 2) << 4;
+
+            // Plonk it into the shadow texture page.
+            if (TEXTURE_shadow_lock()) {
+                SLONG x;
+                SLONG y;
+                UWORD* line;
+                UBYTE* buf = (UBYTE*)AENG_aa_buffer;
+                UWORD* mapping = GetShadowPixelMapping();
+
+                for (y = 0; y < AENG_AA_BUF_SIZE; y++) {
+                    line = &TEXTURE_shadow_bitmap[((y + offset_y) * TEXTURE_shadow_pitch >> 1) + offset_x];
+
+                    for (x = AENG_AA_BUF_SIZE - 1; x >= 0; x--) {
+                        *line++ = mapping[*buf++];
+                    }
+                }
+
+                TEXTURE_shadow_unlock();
+            }
+
+            // How we map floating points coordinates from 0 to 1 onto
+            // where we plonked the shadow map in the texture page.
+            AENG_project_offset_u = float(offset_x) / float(TEXTURE_SHADOW_SIZE);
+            AENG_project_offset_v = float(offset_y) / float(TEXTURE_SHADOW_SIZE);
+            AENG_project_mul_u = float(AENG_AA_BUF_SIZE) / float(TEXTURE_SHADOW_SIZE);
+            AENG_project_mul_v = float(AENG_AA_BUF_SIZE) / float(TEXTURE_SHADOW_SIZE);
+
+            {
+                // Map this poly onto the mapsquares surrounding darci.
+                SLONG i;
+
+                SLONG mx;
+                SLONG mz;
+                SLONG dx;
+                SLONG dz;
+
+                SLONG mx1;
+                SLONG mz1;
+                SLONG mx2;
+                SLONG mz2;
+                SLONG exit = UC_FALSE;
+
+                SLONG mx_lo;
+                SLONG mz_lo;
+
+                MapElement* me[4];
+                PAP_Hi* ph[4];
+
+                SVector_F poly[4];
+                SMAP_Link* projected;
+
+                SLONG v_list;
+                SLONG i_vect;
+
+                DFacet* df;
+
+                SLONG w_list;
+                SLONG w_face;
+
+                PrimFace4* p_f4;
+                PrimPoint* pp;
+
+                SLONG wall;
+                SLONG storey;
+                SLONG building;
+                SLONG thing;
+                SLONG face_height;
+                UBYTE face_order[4] = { 0, 1, 3, 2 };
+
+                Thing* p_fthing;
+
+                // Colvects we have already done.
+                // uc_orig: AENG_MAX_DONE (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_MAX_DONE 8
+
+                SLONG done[AENG_MAX_DONE];
+                SLONG done_upto = 0;
+
+                for (dx = -1; dx <= 1; dx++)
+                    for (dz = -1; dz <= 1; dz++) {
+                        mx = (darci->WorldPos.X >> 16) + dx;
+                        mz = (darci->WorldPos.Z >> 16) + dz;
+
+                        if (WITHIN(mx, 0, MAP_WIDTH - 2) && WITHIN(mz, 0, MAP_HEIGHT - 2)) {
+                            me[0] = &MAP[MAP_INDEX(mx + 0, mz + 0)];
+                            me[1] = &MAP[MAP_INDEX(mx + 1, mz + 0)];
+                            me[2] = &MAP[MAP_INDEX(mx + 1, mz + 1)];
+                            me[3] = &MAP[MAP_INDEX(mx + 0, mz + 1)];
+
+                            ph[0] = &PAP_2HI(mx + 0, mz + 0);
+                            ph[1] = &PAP_2HI(mx + 1, mz + 0);
+                            ph[2] = &PAP_2HI(mx + 1, mz + 1);
+                            ph[3] = &PAP_2HI(mx + 0, mz + 1);
+
+                            if (PAP_2HI(mx, mz).Flags & PAP_FLAG_HIDDEN) {
+                                poly[3].X = float(mx << 8);
+                                poly[3].Y = float(ph[0]->Alt << ALT_SHIFT);
+                                poly[3].Z = float(mz << 8);
+
+                                poly[0].X = poly[3].X + 256.0F;
+                                poly[0].Y = float(ph[1]->Alt << ALT_SHIFT);
+                                poly[0].Z = poly[3].Z;
+
+                                poly[1].X = poly[3].X + 256.0F;
+                                poly[1].Y = float(ph[2]->Alt << ALT_SHIFT);
+                                poly[1].Z = poly[3].Z + 256.0F;
+
+                                poly[2].X = poly[3].X;
+                                poly[2].Y = float(ph[3]->Alt << ALT_SHIFT);
+                                poly[2].Z = poly[3].Z + 256.0F;
+
+                                if (ph[0]->Alt == ph[1]->Alt && ph[0]->Alt == ph[2]->Alt && ph[0]->Alt == ph[3]->Alt) {
+                                    // This quad is coplanar.
+                                    projected = SMAP_project_onto_poly(poly, 4);
+
+                                    if (projected) {
+                                        AENG_add_projected_shadow_poly(projected);
+                                    }
+                                } else {
+                                    // Do each triangle separately.
+                                    projected = SMAP_project_onto_poly(poly, 3);
+
+                                    if (projected) {
+                                        AENG_add_projected_fadeout_shadow_poly(projected);
+                                    }
+
+                                    // The triangles are 0,1,2 and 0,2,3.
+                                    poly[1] = poly[0];
+
+                                    projected = SMAP_project_onto_poly(poly + 1, 3);
+
+                                    if (projected) {
+                                        AENG_add_projected_fadeout_shadow_poly(projected);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                mx1 = (darci->WorldPos.X >> 8) - 0x100 >> PAP_SHIFT_LO;
+                mz1 = (darci->WorldPos.Z >> 8) - 0x100 >> PAP_SHIFT_LO;
+
+                mx2 = (darci->WorldPos.X >> 8) + 0x100 >> PAP_SHIFT_LO;
+                mz2 = (darci->WorldPos.Z >> 8) + 0x100 >> PAP_SHIFT_LO;
+
+                SATURATE(mx1, 0, PAP_SIZE_LO - 1);
+                SATURATE(mz1, 0, PAP_SIZE_LO - 1);
+                SATURATE(mx2, 0, PAP_SIZE_LO - 1);
+                SATURATE(mz2, 0, PAP_SIZE_LO - 1);
+
+                for (mx_lo = mx1; mx_lo <= mx2; mx_lo++)
+                    for (mz_lo = mz1; mz_lo <= mz2; mz_lo++) {
+                        // Cast shadow on walkable faces.
+                        w_face = PAP_2LO(mx_lo, mz_lo).Walkable;
+
+                        while (w_face) {
+                            if (w_face > 0) {
+                                p_f4 = &prim_faces4[w_face];
+                                face_height = prim_points[p_f4->Points[0]].Y;
+
+                                if (face_height > ((darci->WorldPos.Y + 0x11000) >> 8)) {
+                                    // This face is above Darci, so don't put her shadow on it.
+                                } else {
+                                    for (i = 0; i < 4; i++) {
+                                        pp = &prim_points[p_f4->Points[face_order[i]]];
+
+                                        poly[i].X = float(pp->X);
+                                        poly[i].Y = float(pp->Y);
+                                        poly[i].Z = float(pp->Z);
+                                    }
+
+                                    projected = SMAP_project_onto_poly(poly, 4);
+
+                                    if (projected) {
+                                        AENG_add_projected_shadow_poly(projected);
+                                    }
+                                }
+
+                                w_face = p_f4->Col2;
+                            } else {
+                                struct RoofFace4* rf;
+                                rf = &roof_faces4[-w_face];
+                                face_height = rf->Y;
+
+                                if (face_height > ((darci->WorldPos.Y + 0x11000) >> 8)) {
+                                    // This face is above Darci, so don't put her shadow on it.
+                                } else {
+                                    SLONG mx, mz;
+
+                                    mx = (rf->RX & 127) << 8;
+                                    mz = (rf->RZ & 127) << 8;
+
+                                    poly[0].X = (float)(mx);
+                                    poly[0].Y = (float)(rf->Y);
+                                    poly[0].Z = (float)(mz);
+
+                                    poly[1].X = (float)((mx) + 256);
+                                    poly[1].Y = (float)(rf->Y + (rf->DY[0] << ROOF_SHIFT));
+                                    poly[1].Z = (float)((mz));
+
+                                    poly[2].X = (float)((mx) + 256);
+                                    poly[2].Y = (float)(rf->Y + (rf->DY[1] << ROOF_SHIFT));
+                                    poly[2].Z = (float)((mz) + 256);
+
+                                    poly[3].X = (float)((mx));
+                                    poly[3].Y = (float)(rf->Y + (rf->DY[2] << ROOF_SHIFT));
+                                    poly[3].Z = (float)((mz) + 256);
+
+                                    // Assuming its coplanar!
+                                    projected = SMAP_project_onto_poly(poly, 4);
+
+                                    if (projected) {
+                                        AENG_add_projected_shadow_poly(projected);
+                                    }
+                                }
+
+                                w_face = rf->Next;
+                            }
+                        }
+                    }
+            }
+
+            TEXTURE_shadow_update();
+        }
+    } else {
+        // Do oval shadows instead!
+        for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+                t_index = PAP_2LO(x, z).MapWho;
+
+                while (t_index) {
+                    p_thing = TO_THING(t_index);
+
+                    if (p_thing->Flags & FLAGS_IN_VIEW) {
+                        switch (p_thing->Class) {
+                        case CLASS_PERSON:
+
+                            OVAL_add(
+                                p_thing->WorldPos.X >> 8,
+                                p_thing->WorldPos.Y >> 8,
+                                p_thing->WorldPos.Z >> 8,
+                                32);
+
+                            break;
+
+                        case CLASS_SPECIAL:
+
+                            OVAL_add(
+                                p_thing->WorldPos.X >> 8,
+                                p_thing->WorldPos.Y >> 8,
+                                p_thing->WorldPos.Z >> 8,
+                                16);
+
+                            break;
+
+                        case CLASS_BARREL:
+
+                            OVAL_add(
+                                p_thing->WorldPos.X >> 8,
+                                p_thing->WorldPos.Y >> 8,
+                                p_thing->WorldPos.Z >> 8,
+                                32);
+
+                            break;
+
+                        default:
+                            break;
+                        }
+                    }
+
+                    t_index = p_thing->Child;
+                }
+            }
+        }
+    }
+
+    // Create all the squares.
+    for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++) {
+        for (x = NGAMUT_gamut[z].xmin; x <= NGAMUT_gamut[z].xmax; x++) {
+            ASSERT(WITHIN(x, 0, PAP_SIZE_HI - 2));
+            ASSERT(WITHIN(z, 0, PAP_SIZE_HI - 2));
+
+            ph = &PAP_2HI(x, z);
+
+            if (!(ph->Flags & PAP_FLAG_HIDDEN)) {
+                // We only draw hidden squares!
+                continue;
+            }
+
+            // The four points of the quad.
+            quad[0] = &AENG_upper[(x + 0) & 63][(z + 0) & 63];
+            quad[1] = &AENG_upper[(x + 1) & 63][(z + 0) & 63];
+            quad[2] = &AENG_upper[(x + 0) & 63][(z + 1) & 63];
+            quad[3] = &AENG_upper[(x + 1) & 63][(z + 1) & 63];
+
+            if (POLY_valid_quad(quad)) {
+                TEXTURE_get_minitexturebits_uvs(
+                    ph->Texture,
+                    &page,
+                    &quad[0]->u,
+                    &quad[0]->v,
+                    &quad[1]->u,
+                    &quad[1]->v,
+                    &quad[2]->u,
+                    &quad[2]->v,
+                    &quad[3]->u,
+                    &quad[3]->v);
+
+                POLY_add_quad(quad, page, UC_TRUE);
+            }
+        }
+    }
+
+    // Draw the objects and the things.
+    SLONG pos = 0;
+
+    for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+        for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+            /*
+
+            {
+                    CBYTE str[20];
+
+                    sprintf(str, "%d,%d", x, z);
+
+                    FONT2D_DrawString(str, (pos & 7) * 60 + 20, (pos >> 3) * 20 + 200, 0xff00ff);
+            }
+
+            pos += 1;
+
+            */
+
+            ASSERT(WITHIN(x, 0, PAP_SIZE_LO - 1));
+            ASSERT(WITHIN(z, 0, PAP_SIZE_LO - 1));
+            ASSERT(WITHIN(NIGHT_cache[x][z], 1, NIGHT_MAX_SQUARES - 1));
+
+            col = NIGHT_square[NIGHT_cache[x][z]].colour;
+
+            // Skip over the mapsquares.
+            col += PAP_BLOCKS * PAP_BLOCKS;
+
+            // The objects on this mapsquare.
+            oi = OB_find(x, z);
+
+            while (oi->prim) {
+                // Only draw objects that are in buildings (assume that means our warehouse!).
+                if (oi->flags & OB_FLAG_WAREHOUSE) {
+                    if (oi->prim == 235) {
+                        oi->yaw = GAME_TURN;
+                    }
+
+                    col = MESH_draw_poly(
+                        oi->prim,
+                        oi->x,
+                        oi->y,
+                        oi->z,
+                        oi->yaw,
+                        oi->pitch,
+                        oi->roll,
+                        col, 0xff, 0);
+
+                    if (prim_objects[oi->prim].flag & PRIM_FLAG_ITEM) {
+                        OB_ob[oi->index].yaw += 1;
+                    }
+                }
+
+                oi += 1;
+            }
+
+            // Draw the facets on this square.
+            f_list = PAP_2LO(x, z).ColVectHead;
+
+            if (f_list) {
+                exit = UC_FALSE;
+
+                while (!exit) {
+                    facet = facet_links[f_list];
+
+                    ASSERT(facet);
+
+                    if (facet < 0) {
+                        // The last facet in the list for each square is negative.
+                        facet = -facet;
+                        exit = UC_TRUE;
+                    }
+
+                    df = &dfacets[facet];
+
+                    if ((df->FacetType == STOREY_TYPE_NORMAL) || (df->FacetType == STOREY_TYPE_DOOR) || (df->FacetType == STOREY_TYPE_FENCE) || (df->FacetType == STOREY_TYPE_FENCE_FLAT)) {
+                        build = df->Building;
+
+                        // Has this facet's building been processed this gameturn yet?
+                        if (df->Counter[AENG_cur_fc_cam] != SUPERMAP_counter[AENG_cur_fc_cam]) {
+                            // warehouse walls only drawn if they are inside walls
+                            if ((dbuildings[build].Type == BUILDING_TYPE_WAREHOUSE && (df->FacetFlags & FACET_FLAG_INSIDE)) || dbuildings[build].Type == BUILDING_TYPE_CRATE_IN || df->FacetType == STOREY_TYPE_DOOR) {
+                                // Draw the facet.
+                                if (df->FacetType == STOREY_TYPE_DOOR) {
+                                    // Draw the outside around this facet but don't draw
+                                    AENG_draw_box_around_recessed_door(&dfacets[facet], UC_TRUE);
+                                } else
+                                // if (df->FacetType == STOREY_TYPE_NORMAL) Why only draw normal facets?
+                                {
+                                    FACET_draw(facet, 0);
+
+                                    build = df->Building;
+
+                                    if (df->FacetType == STOREY_TYPE_NORMAL) // Why only draw normal facets?
+                                        if (build) {
+                                            if (dbuildings[build].Counter[AENG_cur_fc_cam] != SUPERMAP_counter[AENG_cur_fc_cam]) {
+                                                // Draw all the walkable faces for this building.
+                                                FACET_draw_walkable(build);
+
+                                                // Mark the building as processed this gameturn.
+                                                dbuildings[build].Counter[AENG_cur_fc_cam] = SUPERMAP_counter[AENG_cur_fc_cam];
+                                            }
+                                        }
+                                }
+                            }
+
+                            // Mark this facet as drawn this gameturn already.
+                            dfacets[facet].Counter[AENG_cur_fc_cam] = SUPERMAP_counter[AENG_cur_fc_cam];
+                        }
+                    }
+
+                    f_list++;
+                }
+            }
+
+            // Draw the things.
+            t_index = PAP_2LO(x, z).MapWho;
+
+            while (t_index) {
+                p_thing = TO_THING(t_index);
+
+                if (p_thing->Flags & FLAGS_IN_VIEW) {
+                    switch (p_thing->DrawType) {
+                    case DT_NONE:
+                        break;
+
+                    case DT_BUILDING:
+                        break;
+
+                    case DT_PRIM:
+                        break;
+
+                    case DT_ANIM_PRIM:
+                        ANIM_obj_draw(p_thing, p_thing->Draw.Tweened);
+                        break;
+
+                    case DT_ROT_MULTI:
+
+                        ASSERT(p_thing->Class == CLASS_PERSON);
+
+                        if (p_thing->Genus.Person->PlayerID) {
+                            if (FirstPersonMode) {
+                                FirstPersonAlpha -= (TICK_RATIO * 16) >> TICK_SHIFT;
+                                if (FirstPersonAlpha < MAX_FPM_ALPHA)
+                                    FirstPersonAlpha = MAX_FPM_ALPHA;
+                            } else {
+                                FirstPersonAlpha += (TICK_RATIO * 16) >> TICK_SHIFT;
+                                if (FirstPersonAlpha > 255)
+                                    FirstPersonAlpha = 255;
+                            }
+
+                            // FIGURE_alpha = FirstPersonAlpha;
+                            FIGURE_draw(p_thing);
+                            // FIGURE_alpha = 255;
+                        } else {
+                            SLONG dx, dy, dz, dist;
+
+                            dx = fabs((p_thing->WorldPos.X >> 8) - AENG_cam_x);
+                            dy = fabs((p_thing->WorldPos.Y >> 8) - AENG_cam_y);
+                            dz = fabs((p_thing->WorldPos.Z >> 8) - AENG_cam_z);
+
+                            dist = QDIST3(dx, dy, dz);
+
+                            if (dist < AENG_DRAW_PEOPLE_DIST) {
+
+                                FIGURE_draw(p_thing);
+                            }
+                        }
+
+                        if (ControlFlag && allow_debug_keys) {
+                            AENG_world_text(
+                                (p_thing->WorldPos.X >> 8),
+                                (p_thing->WorldPos.Y >> 8) + 0x60,
+                                (p_thing->WorldPos.Z >> 8),
+                                200,
+                                180,
+                                50,
+                                UC_TRUE,
+                                PCOM_person_state_debug(p_thing));
+                        }
+
+                        if ((p_thing->State == STATE_DEAD) && (p_thing->Genus.Person->Timer1 > 10)) {
+                            if (p_thing->Genus.Person->PersonType == PERSON_MIB1 || p_thing->Genus.Person->PersonType == PERSON_MIB2 || p_thing->Genus.Person->PersonType == PERSON_MIB3) {
+                                // Dead MIB self destruct!
+                                DRAWXTRA_MIB_destruct(p_thing);
+                            }
+                        }
+
+                        break;
+
+                    case DT_EFFECT:
+                        break;
+
+                    case DT_MESH:
+
+                        if (p_thing->Class == CLASS_SPECIAL) {
+                            DRAWXTRA_Special(p_thing);
+                        }
+
+                        if (p_thing->Class == CLASS_BIKE) {
+                            // There shouldn't be any bikes indoors.
+                            ASSERT(0);
+                        } else {
+                            MESH_draw_poly(
+                                p_thing->Draw.Mesh->ObjectId,
+                                p_thing->WorldPos.X >> 8,
+                                p_thing->WorldPos.Y >> 8,
+                                p_thing->WorldPos.Z >> 8,
+                                p_thing->Draw.Mesh->Angle,
+                                p_thing->Draw.Mesh->Tilt,
+                                p_thing->Draw.Mesh->Roll,
+                                NULL, 0xff, 0);
+                        }
+
+                        break;
+
+                    case DT_VEHICLE:
+                    case DT_CHOPPER:
+
+                        // There shouldn't be any vehicles or helicopters indoors.
+                        break;
+
+                    case DT_PYRO:
+                        PYRO_draw_pyro(p_thing);
+                        break;
+
+                    case DT_ANIMAL_PRIM:
+
+                        break;
+
+                    case DT_TRACK:
+                        TRACKS_DrawTrack(p_thing);
+                        break;
+
+                    default:
+                        break;
+                    }
+                }
+
+                t_index = p_thing->Child;
+            }
+        }
+    }
+
+    // Now draw the special fx that somebody left out before
+    POLY_set_local_rotation_none();
+    PARTICLE_Draw();
+    RIBBON_draw();
+    AENG_draw_sparks();
+
+    // Now actually draw everything!
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
+
+    // Restore cloud to default value.
+    aeng_draw_cloud_flag = old_aeng_draw_cloud_flag;
+}
+
+// uc_orig: AENG_draw_scanner (fallen/DDEngine/Source/aeng.cpp)
+// Draws the mini-map scanner overlay (stub — never implemented).
+void AENG_draw_scanner(
+    SLONG screen_x1,
+    SLONG screen_y1,
+    SLONG screen_x2,
+    SLONG screen_y2,
+    SLONG map_x,
+    SLONG map_z,
+    SLONG map_zoom,
+    SLONG map_angle)
+{
+}
+
+// uc_orig: AENG_draw_power (fallen/DDEngine/Source/aeng.cpp)
+// Draws a power/health bar rectangle (body commented out in original — dead code).
+void AENG_draw_power(SLONG x, SLONG y, SLONG w, SLONG h, SLONG val, SLONG max)
+{
+    /*
+
+    SLONG	left,right,top,bottom;
+    POLY_Point  pp  [4];
+    POLY_Point *quad[4];
+
+    left=x;
+    right=left+w;
+    top=y;
+    bottom=y+h;
+
+    POLY_clip_line_box(
+            x,
+            y,
+            x+w,
+            y+h);
+
+    POLY_frame_init(UC_FALSE,UC_FALSE);
+
+    #define AENG_PBORDER_COLOUR 0x003355cc
+    #define AENG_PFOREGROUND_COLOUR 0x55888800
+
+    POLY_add_line_2d(left,  top,    right, top,    AENG_PBORDER_COLOUR);
+    POLY_add_line_2d(right, top,    right, bottom, AENG_PBORDER_COLOUR);
+    POLY_add_line_2d(right, bottom, left,  bottom, AENG_PBORDER_COLOUR);
+    POLY_add_line_2d(left,  bottom, left,  top,    AENG_PBORDER_COLOUR);
+
+    right=left+(val*w)/max;
+
+    pp[0].X        = left;
+    pp[0].Y        = top;
+    pp[0].z        = 0.0F;
+    pp[0].Z        = 1.0F;
+    pp[0].u        = 0.0F;
+    pp[0].v        = 0.0F;
+    pp[1].colour   = AENG_PFOREGROUND_COLOUR;
+    pp[0].specular = 0;
+
+    pp[1].X        = right;
+    pp[1].Y        = top;
+    pp[1].z        = 0.0F;
+    pp[1].Z        = 1.0F;
+    pp[1].u        = 0.0F;
+    pp[1].v        = 0.0F;
+    pp[1].colour   = AENG_PFOREGROUND_COLOUR;
+    pp[1].specular = 0;
+
+    pp[2].X        = left;
+    pp[2].Y        = bottom;
+    pp[2].z        = 0.0F;
+    pp[2].Z        = 1.0F;
+    pp[2].u        = 0.0F;
+    pp[2].v        = 0.0F;
+    pp[1].colour   = AENG_PFOREGROUND_COLOUR;
+    pp[2].specular = 0;
+
+    pp[3].X        = right;
+    pp[3].Y        = bottom;
+    pp[3].z        = 0.0F;
+    pp[3].Z        = 1.0F;
+    pp[3].u        = 0.0F;
+    pp[3].v        = 0.0F;
+    pp[1].colour   = AENG_PFOREGROUND_COLOUR;
+    pp[3].specular = 0;
+
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
+
+    POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE, UC_TRUE);
+
+    POLY_frame_draw(UC_TRUE,UC_TRUE);
+
+    */
+}
+
+// uc_orig: AENG_screen_shot (fallen/DDEngine/Source/aeng.cpp)
+// Dumps the screen to a TGA file when KB_S is pressed (debug only).
+void AENG_screen_shot(void)
+{
+    if (allow_debug_keys)
+        if (Keys[KB_S] || record_video) {
+            Keys[KB_S] = 0;
+            if (ShiftFlag) {
+                record_video ^= 1;
+            }
+
+            if (the_display.screen_lock()) {
+                extern void tga_dump(void);
+                tga_dump();
+
+                the_display.screen_unlock();
+            }
+        }
+}
+
+// uc_orig: AENG_draw_FPS (fallen/DDEngine/Source/aeng.cpp)
+// Computes and displays FPS and average FPS in the top-right of the screen.
+void AENG_draw_FPS()
+{
+    static SLONG fps = 0;
+    static SLONG avfps = 0;
+    static SLONG last_game_turn = 0;
+    static clock_t last_time = 0;
+    static SLONG total_frames = 0;
+    static float total_time = 0;
+    static SLONG ups = 0; // microseconds per frame
+    static SLONG avups = 0;
+
+    clock_t this_time = clock();
+
+    int frames_passed = GAME_TURN - last_game_turn;
+
+    if ((frames_passed < 0) || (frames_passed > 200)) {
+        // reset
+        fps = 0;
+        last_game_turn = GAME_TURN;
+        last_time = this_time;
+    } else {
+        if (frames_passed >= 20) {
+            float seconds = float(this_time - last_time) / float(CLOCKS_PER_SEC);
+            float _fps = float(frames_passed) / seconds;
+            fps = floor(_fps + 0.5);
+            float _ups = 1000000 / _fps;
+            ups = floor(_ups + 0.5);
+
+            if (fps > 10) // don't include really slow frames in the average
+            {
+                total_frames += frames_passed;
+                total_time += seconds;
+                float _avfps = float(total_frames) / total_time;
+                avfps = floor(_avfps + 0.5);
+                float _avups = 1000000 / _avfps;
+                avups = floor(_avups + 0.5);
+            }
+
+            last_time = this_time;
+            last_game_turn = GAME_TURN;
+        }
+    }
+    /*
+            if (the_display.screen_lock())
+            {
+                    FONT_draw(DisplayWidth >> 1, 10, "FPS: %d = %d us", fps, ups);
+                    FONT_draw(DisplayWidth >> 1, 30, "Avg: %d = %d us", avfps, avups);
+                    the_display.screen_unlock();
+            }
+    */
+
+    if (allow_debug_keys) {
+        CBYTE str[100];
+
+        sprintf(str, "FPS: %d = %d us", fps, ups);
+        FONT2D_DrawString(str, DisplayWidth >> 1, 10, 0xffffff, 128);
+        sprintf(str, "Avg: %d = %d us", avfps, avups);
+        FONT2D_DrawString(str, DisplayWidth >> 1, 30, 0xffffff, 128);
+    }
+}
+
+// uc_orig: AENG_draw_messages (fallen/DDEngine/Source/aeng.cpp)
+// Legacy FPS display using direct screen lock (mostly superseded by AENG_draw_FPS).
+void AENG_draw_messages()
+{
+    static SLONG fps = 0;
+    static SLONG last_game_turn = 0;
+    static clock_t last_time = 0;
+    clock_t this_time = 0;
+
+    this_time = clock() / CLOCKS_PER_SEC;
+
+    if (this_time != last_time) {
+        if (this_time - last_time > 1) {
+            // Only work out the new frames per second if there hasn't been a major delay.
+        } else {
+            fps = GAME_TURN - last_game_turn;
+        }
+
+        last_time = this_time;
+        last_game_turn = GAME_TURN;
+    }
+
+    // Draw stuff straight to the screen.
+    if (the_display.screen_lock()) {
+        // Draw the fps.
+        FONT_draw(DisplayWidth >> 1, 10, "FPS: %d", fps);
+        /*
+
+                        FONT_draw(DisplayWidth >> 1, 20, "Facets: %d", dfacets_drawn_this_gameturn);
+        extern	SLONG	damp;
+                        FONT_draw(20,30, "DAMP: %d", damp);
+                        */
+
+        // Draw the messages.
+        // MSG_draw();
+
+        the_display.screen_unlock();
+    }
+}
+
+// uc_orig: AENG_fade_out (fallen/DDEngine/Source/aeng.cpp)
+// Draws the MuckyFoot logo and a full-screen white overlay with alpha = amount,
+// used for the intro screen fade-out effect.
+void AENG_fade_out(UBYTE amount)
+{
+    SLONG logo_fade_top = amount;
+    SLONG back_fade_top = amount;
+
+    ULONG logo_colour_top = (logo_fade_top << 24) | 0x00ffffff;
+    ULONG back_colour_top = (back_fade_top << 24) | 0x00ffffff;
+
+    SLONG logo_fade_bot = amount;
+    SLONG back_fade_bot = amount;
+
+    ULONG logo_colour_bot = (logo_fade_bot << 24) | 0x00ffffff;
+    ULONG back_colour_bot = (back_fade_bot << 24) | 0x00ffffff;
+
+    // Draw the logo.
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
+
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
+
+// uc_orig: AENG_LOGO_MID_X (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_LOGO_MID_X (320.0F)
+// uc_orig: AENG_LOGO_MID_Y (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_LOGO_MID_Y (240.0F)
+// uc_orig: AENG_LOGO_SIZE (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_LOGO_SIZE (128.0F)
+
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+
+    pp[0].X = AENG_LOGO_MID_X - AENG_LOGO_SIZE;
+    pp[0].Y = AENG_LOGO_MID_Y - AENG_LOGO_SIZE;
+    pp[0].z = 1.0F / 65536.0F;
+    pp[0].Z = 1.0F;
+    pp[0].u = 0.0F;
+    pp[0].v = 0.0F;
+    pp[0].colour = logo_colour_top;
+    pp[0].specular = 0x00000000;
+
+    pp[1].X = AENG_LOGO_MID_X + AENG_LOGO_SIZE;
+    pp[1].Y = AENG_LOGO_MID_Y - AENG_LOGO_SIZE;
+    pp[1].z = 1.0F / 65536.0F;
+    pp[1].Z = 1.0F;
+    pp[1].u = 1.0F;
+    pp[1].v = 0.0F;
+    pp[1].colour = logo_colour_top;
+    pp[1].specular = 0x00000000;
+
+    pp[2].X = AENG_LOGO_MID_X - AENG_LOGO_SIZE;
+    pp[2].Y = AENG_LOGO_MID_Y + AENG_LOGO_SIZE;
+    pp[2].z = 1.0F / 65536.0F;
+    pp[2].Z = 1.0F;
+    pp[2].u = 0.0F;
+    pp[2].v = 1.0F;
+    pp[2].colour = logo_colour_bot;
+    pp[2].specular = 0x00000000;
+
+    pp[3].X = AENG_LOGO_MID_X + AENG_LOGO_SIZE;
+    pp[3].Y = AENG_LOGO_MID_Y + AENG_LOGO_SIZE;
+    pp[3].z = 1.0F / 65536.0F;
+    pp[3].Z = 1.0F;
+    pp[3].u = 1.0F;
+    pp[3].v = 1.0F;
+    pp[3].colour = logo_colour_bot;
+    pp[3].specular = 0x00000000;
+
+    POLY_add_quad(quad, POLY_PAGE_LOGO, UC_FALSE, UC_TRUE);
+
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+
+    pp[0].X = 0.0F;
+    pp[0].Y = 0.0F;
+    pp[0].z = 2.0F / 65536.0F;
+    pp[0].Z = 65535.0F / 65536.0F;
+    pp[0].u = 0.0F;
+    pp[0].v = 0.0F;
+    pp[0].colour = back_colour_top;
+    pp[0].specular = 0x00000000;
+
+    pp[1].X = 640.0F;
+    pp[1].Y = 0.0F;
+    pp[1].z = 2.0F / 65536.0F;
+    pp[1].Z = 65535.0F / 65536.0F;
+    pp[1].u = 1.0F;
+    pp[1].v = 0.0F;
+    pp[1].colour = back_colour_top;
+    pp[1].specular = 0x00000000;
+
+    pp[2].X = 0.0F;
+    pp[2].Y = 480.0F;
+    pp[2].z = 2.0F / 65536.0F;
+    pp[2].Z = 65535.0F / 65536.0F;
+    pp[2].u = 0.0F;
+    pp[2].v = 1.0F;
+    pp[2].colour = back_colour_bot;
+    pp[2].specular = 0x00000000;
+
+    pp[3].X = 640.0F;
+    pp[3].Y = 480.0F;
+    pp[3].z = 2.0F / 65536.0F;
+    pp[3].Z = 65535.0F / 65536.0F;
+    pp[3].u = 1.0F;
+    pp[3].v = 1.0F;
+    pp[3].colour = back_colour_bot;
+    pp[3].specular = 0x00000000;
+
+    POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE, UC_TRUE);
+
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
+}
+
+// uc_orig: AENG_fade_in (fallen/DDEngine/Source/aeng.cpp)
+// Draws the MuckyFoot logo and a black full-screen overlay fading in from black.
+// Inverse of AENG_fade_out: amount 0 = black, 255 = logo visible.
+void AENG_fade_in(UBYTE amount)
+{
+    SLONG logo_fade_top = 255 - amount;
+    SLONG back_fade_top = 255 - (amount * amount >> 8);
+
+    ULONG logo_colour_top = (logo_fade_top << 24);
+    ULONG back_colour_top = (back_fade_top << 24);
+
+    SLONG logo_fade_bot = 255 - amount;
+    SLONG back_fade_bot = 255 - (amount * amount >> 8);
+
+    ULONG logo_colour_bot = (logo_fade_bot << 24);
+    ULONG back_colour_bot = (back_fade_bot << 24);
+
+    // Draw the logo.
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
+
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
+
+    POLY_frame_init(UC_TRUE, UC_TRUE);
+
+    pp[0].X = AENG_LOGO_MID_X - AENG_LOGO_SIZE;
+    pp[0].Y = AENG_LOGO_MID_Y - AENG_LOGO_SIZE;
+    pp[0].z = 1.0F / 65536.0F;
+    pp[0].Z = 1.0F;
+    pp[0].u = 0.0F;
+    pp[0].v = 0.0F;
+    pp[0].colour = logo_colour_top;
+    pp[0].specular = 0xff000000;
+
+    pp[1].X = AENG_LOGO_MID_X + AENG_LOGO_SIZE;
+    pp[1].Y = AENG_LOGO_MID_Y - AENG_LOGO_SIZE;
+    pp[1].z = 1.0F / 65536.0F;
+    pp[1].Z = 1.0F;
+    pp[1].u = 1.0F;
+    pp[1].v = 0.0F;
+    pp[1].colour = logo_colour_top;
+    pp[1].specular = 0xff000000;
+
+    pp[2].X = AENG_LOGO_MID_X - AENG_LOGO_SIZE;
+    pp[2].Y = AENG_LOGO_MID_Y + AENG_LOGO_SIZE;
+    pp[2].z = 1.0F / 65536.0F;
+    pp[2].Z = 1.0F;
+    pp[2].u = 0.0F;
+    pp[2].v = 1.0F;
+    pp[2].colour = logo_colour_bot;
+    pp[2].specular = 0xff000000;
+
+    pp[3].X = AENG_LOGO_MID_X + AENG_LOGO_SIZE;
+    pp[3].Y = AENG_LOGO_MID_Y + AENG_LOGO_SIZE;
+    pp[3].z = 1.0F / 65536.0F;
+    pp[3].Z = 1.0F;
+    pp[3].u = 1.0F;
+    pp[3].v = 1.0F;
+    pp[3].colour = logo_colour_bot;
+    pp[3].specular = 0xff000000;
+
+    POLY_add_quad(quad, POLY_PAGE_LOGO, UC_FALSE, UC_TRUE);
+
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
+
+    pp[0].X = 0.0F;
+    pp[0].Y = 0.0F;
+    pp[0].z = 2.0F / 65536.0F;
+    pp[0].Z = 65535.0F / 65536.0F;
+    pp[0].u = 0.0F;
+    pp[0].v = 0.0F;
+    pp[0].colour = back_colour_top;
+    pp[0].specular = 0xff000000;
+
+    pp[1].X = 640.0F;
+    pp[1].Y = 0.0F;
+    pp[1].z = 2.0F / 65536.0F;
+    pp[1].Z = 65535.0F / 65536.0F;
+    pp[1].u = 1.0F;
+    pp[1].v = 0.0F;
+    pp[1].colour = back_colour_top;
+    pp[1].specular = 0xff000000;
+
+    pp[2].X = 0.0F;
+    pp[2].Y = 480.0F;
+    pp[2].z = 2.0F / 65536.0F;
+    pp[2].Z = 65535.0F / 65536.0F;
+    pp[2].u = 0.0F;
+    pp[2].v = 1.0F;
+    pp[2].colour = back_colour_bot;
+    pp[2].specular = 0xff000000;
+
+    pp[3].X = 640.0F;
+    pp[3].Y = 480.0F;
+    pp[3].z = 2.0F / 65536.0F;
+    pp[3].Z = 65535.0F / 65536.0F;
+    pp[3].u = 1.0F;
+    pp[3].v = 1.0F;
+    pp[3].colour = back_colour_bot;
+    pp[3].specular = 0xff000000;
+
+    POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE, UC_TRUE);
+
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+}
+
+// uc_orig: AENG_clear_screen (fallen/DDEngine/Source/aeng.cpp)
+// Clears the entire back buffer to black and reclaims vertex pool buffers.
+void AENG_clear_screen()
+{
+    SET_BLACK_BACKGROUND;
+    CLEAR_VIEWPORT;
+    TheVPool->ReclaimBuffers();
+}
+
+// uc_orig: AENG_lock (fallen/DDEngine/Source/aeng.cpp)
+// Locks the display surface for direct pixel access; returns non-zero on success.
+SLONG AENG_lock()
+{
+    return SLONG(the_display.screen_lock());
 }

@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 160 — aeng.cpp chunk 5a (AENG_draw_far_facets..AENG_lock) (2026-03-23)
+
+- `AENG_draw_scanner` — пустая функция-заглушка, `AENG_draw_power` — тело целиком в `/* */` (dead code), обе перенесены as-is.
+- `AENG_NUM_SHADOWS`, `AENG_MAX_DONE` — вторые определения этих макросов (первые в `AENG_draw_city`); оба в теле `AENG_draw_warehouse`. Macro redefinition warning, не ошибка, kept as-is.
+- `record_video` был file-scope переменной в old/aeng.cpp — перенесён в `aeng_globals`.
+- `FONT2D_DrawString` не доступен транзитивно через существующие includes → добавлен `#include "engine/graphics/resources/font2d.h"` (// Temporary:).
+- После переноса `AENG_draw_warehouse` в new/ — old/aeng.cpp (chunk 5b, ещё не мигрирован) перестал видеть её: добавлена forward declaration в `aeng_globals.h`.
+
+---
+
 ## Итерация 159 — aeng.cpp chunk 4b (AENG_draw_city — 3063 lines) (2026-03-23)
 
 - `AENG_draw_city` — single 3063-line function, migrated whole (per NEVER SKIP CODE rule).

@@ -8177,6 +8177,8 @@ void AENG_draw_city()
 }
 #endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 159) [chunk 4b: AENG_draw_city]
 
+#if 0 // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 160) [chunk 5a: AENG_draw_far_facets..AENG_lock]
+
 void AENG_draw_far_facets(void)
 {
     SLONG x, z;
@@ -9746,6 +9748,8 @@ SLONG AENG_lock()
 {
     return SLONG(the_display.screen_lock());
 }
+
+#endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 160) [chunk 5a: AENG_draw_far_facets..AENG_lock]
 
 void AENG_unlock()
 {
