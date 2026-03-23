@@ -1,5 +1,21 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 164 — Game.h мега-хедер → missions/game_types.h (2026-03-23)
+
+- `Game` struct + все GS_*/GF_*/GAME_*/DETAIL_*/TICK_*/POLY_*/CLASS_* макросы + accessor macros + функции → `new/missions/game_types.h`. `old/Game.h` → redirect.
+- `POLY_FLAG_*` + `MAX_RADIUS` → `new/engine/graphics/pipeline/poly.h` (правильный слой DAG).
+- `CLASS_*` (0..19) → `new/actors/core/thing.h`.
+- `MemTable` struct + `SAVE_TABLE_*` индексы → `new/missions/save.h`.
+- `DWORD`, `THING_INDEX`, `COMMON_INDEX`, `MAPCO8/16/24` → `new/core/types.h`.
+- Ошибок компиляции было много; ключевые решения:
+  - `thing.h` не может включать `game_types.h` (циклический include через Person.h → Game.h); pool-type headers включаются напрямую через `old/` Temporary includes.
+  - `typedef struct {} Vehicle` несовместимо с forward decl `struct Vehicle;` — убраны все forward decls из game_types.h.
+  - `State.h` и `drawtype.h` добавлены в Game.h redirect ДО `Furn.h`/`Vehicle.h` (зависимость StateFunction и DrawTween/DrawMesh).
+  - `MAPCO*` typedefs были дублированы в core/types.h и game_types.h — дубли удалены из game_types.h после компиляции.
+- `GAME_TIME`/`GAME_SEASON` макросы референсят `the_game.GameTime`/`GameSeason` — несуществующие поля (ошибка оригинала); перенесено 1:1 с комментарием.
+
+---
+
 ## Итерация 163 — Main.cpp (main / MF_main entry point) (2026-03-23)
 
 - `main()` → `new/missions/main.cpp`. Via `#define main(ac,av) MF_main(ac,av)` в MFStdLib.h это и есть `MF_main` — точка входа вызываемая из `WinMain` в `host.cpp`.

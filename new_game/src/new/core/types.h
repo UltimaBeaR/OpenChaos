@@ -50,4 +50,29 @@ typedef struct
         Height;
 } MFRect;
 
+// Windows DWORD type used in platform-specific code (GetTickCount, etc.).
+// Equivalent to unsigned long on 32-bit Windows.
+#ifndef _WINDEF_
+typedef unsigned long DWORD;
+#endif
+
+// Index type for Things and other pool objects.
+// 16-bit unsigned on PC; defined here so headers can use it without including Game.h.
+// uc_orig: THING_INDEX (fallen/Headers/Game.h)
+#ifndef THING_INDEX
+#define THING_INDEX UWORD
+#endif
+// uc_orig: COMMON_INDEX (fallen/Headers/Game.h)
+#ifndef COMMON_INDEX
+#define COMMON_INDEX UWORD
+#endif
+
+// World-space coordinate aliases at different fixed-point precisions.
+// uc_orig: MAPCO8 (fallen/Headers/Game.h)
+typedef SLONG MAPCO8;
+// uc_orig: MAPCO16 (fallen/Headers/Game.h)
+typedef SLONG MAPCO16;
+// uc_orig: MAPCO24 (fallen/Headers/Game.h)
+typedef SLONG MAPCO24;
+
 #endif // CORE_TYPES_H

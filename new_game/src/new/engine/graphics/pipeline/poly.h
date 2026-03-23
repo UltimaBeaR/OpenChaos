@@ -3,6 +3,28 @@
 
 #include "core/types.h"
 
+// Polygon attribute flags. Stored per-face and passed to the renderer
+// to select the draw mode (textured, masked, semi-transparent, etc.).
+// uc_orig: POLY_FLAG_GOURAD (fallen/Headers/Game.h)
+#define POLY_FLAG_GOURAD     (1 << 0)  // Gouraud (vertex colour) shading.
+// uc_orig: POLY_FLAG_TEXTURED (fallen/Headers/Game.h)
+#define POLY_FLAG_TEXTURED   (1 << 1)  // Texture-mapped.
+// uc_orig: POLY_FLAG_MASKED (fallen/Headers/Game.h)
+#define POLY_FLAG_MASKED     (1 << 2)  // Alpha-tested (1-bit mask).
+// uc_orig: POLY_FLAG_SEMI_TRANS (fallen/Headers/Game.h)
+#define POLY_FLAG_SEMI_TRANS (1 << 3)  // 50% semi-transparent blend.
+// uc_orig: POLY_FLAG_ALPHA (fallen/Headers/Game.h)
+#define POLY_FLAG_ALPHA      (1 << 4)  // Full alpha-blended.
+// uc_orig: POLY_FLAG_TILED (fallen/Headers/Game.h)
+#define POLY_FLAG_TILED      (1 << 5)  // Tiled texture (wraps).
+// uc_orig: POLY_FLAG_DOUBLESIDED (fallen/Headers/Game.h)
+#define POLY_FLAG_DOUBLESIDED (1 << 6) // Rendered from both sides (no backface cull).
+// uc_orig: POLY_FLAG_WALKABLE (fallen/Headers/Game.h)
+#define POLY_FLAG_WALKABLE   (1 << 7)  // Characters can walk on this face.
+
+// uc_orig: MAX_RADIUS (fallen/Headers/Game.h)
+#define MAX_RADIUS (24)
+
 // uc_orig: ftol (fallen/DDEngine/Headers/poly.h)
 // Fast float-to-int truncation. Used throughout the rendering pipeline.
 static inline int ftol(float f)

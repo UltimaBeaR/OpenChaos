@@ -1,13 +1,27 @@
 #ifndef ACTORS_CORE_THING_H
 #define ACTORS_CORE_THING_H
 
-// Temporary: Game.h required for TYPE*Ptr typedefs (PersonPtr, VehiclePtr, etc.) used in the
-// Thing::Genus union, and for CLASS_* constants, THINGS/TO_THING/THING_NUMBER macros.
-#include "fallen/Headers/Game.h"
-// Temporary: drawtype.h needed for DrawTween/DrawMesh pointer types in Thing::Draw union.
-#include "actors/core/drawtype.h"
-// Temporary: vehicle.h needed for VehiclePtr in Thing::Genus union.
-#include "fallen/Headers/vehicle.h"
+#include "core/types.h"
+#include "core/vector.h"          // GameCoord
+#include "actors/core/drawtype.h" // DrawTween, DrawMesh
+// *Ptr typedef headers for all class-specific data stored in Thing.Genus.
+// Use the lowest-level header that defines the struct and *Ptr typedef to avoid
+// pulling in function declarations (which might conflict with forward decls in .cpp files).
+#include "actors/vehicles/vehicle.h"   // Vehicle, VehiclePtr
+#include "fallen/Headers/Furn.h"       // Temporary: Furniture, FurniturePtr (not yet in new/)
+#include <string.h>                       // Person.h → Structs.h → anim.h uses strcpy
+#include "fallen/Headers/Person.h"        // Temporary: Person, PersonPtr (new/person.h adds fn decls we don't want here)
+#include "actors/animals/animal.h"     // Animal, AnimalPtr
+#include "actors/vehicles/chopper.h"   // Chopper, ChopperPtr
+#include "effects/pyro.h"              // Pyro, PyroPtr
+#include "actors/core/player.h"        // Player, PlayerPtr
+#include "actors/items/projectile.h"   // Projectile, ProjectilePtr
+#include "actors/items/special.h"      // Special, SpecialPtr
+#include "actors/core/switch.h"        // Switch, SwitchPtr
+#include "effects/tracks.h"            // Track, TrackPtr
+#include "world/environment/plat.h"    // Plat, PlatPtr
+#include "actors/items/barrel.h"       // Barrel, BarrelPtr
+#include "actors/animals/bat.h"        // Bat, BatPtr
 
 // Object pool limits: 400 primary (characters, vehicles, etc.) + 300 secondary (switches, tracks).
 // uc_orig: MAX_PRIMARY_THINGS (fallen/Headers/Thing.h)
@@ -186,6 +200,49 @@ inline void set_thing_pos(Thing* t, SLONG x, SLONG y, SLONG z)
 SLONG THING_dist_between(Thing* p_thing_a, Thing* p_thing_b);
 // uc_orig: THING_kill (fallen/Headers/Thing.h)
 void THING_kill(Thing* t);
+
+// Thing class identifiers. Each Thing has a Class field matching one of these.
+// CLASS_* values are used as bit-shift positions in the THING_FIND_* bitmasks.
+// uc_orig: CLASS_NONE (fallen/Headers/Game.h)
+#define CLASS_NONE        0
+// uc_orig: CLASS_PLAYER (fallen/Headers/Game.h)
+#define CLASS_PLAYER      1
+// uc_orig: CLASS_CAMERA (fallen/Headers/Game.h)
+#define CLASS_CAMERA      2
+// uc_orig: CLASS_PROJECTILE (fallen/Headers/Game.h)
+#define CLASS_PROJECTILE  3
+// uc_orig: CLASS_BUILDING (fallen/Headers/Game.h)
+#define CLASS_BUILDING    4
+// uc_orig: CLASS_PERSON (fallen/Headers/Game.h)
+#define CLASS_PERSON      5
+// uc_orig: CLASS_ANIMAL (fallen/Headers/Game.h)
+#define CLASS_ANIMAL      6
+// uc_orig: CLASS_FURNITURE (fallen/Headers/Game.h)
+#define CLASS_FURNITURE   7
+// uc_orig: CLASS_SWITCH (fallen/Headers/Game.h)
+#define CLASS_SWITCH      8
+// uc_orig: CLASS_VEHICLE (fallen/Headers/Game.h)
+#define CLASS_VEHICLE     9
+// uc_orig: CLASS_SPECIAL (fallen/Headers/Game.h)
+#define CLASS_SPECIAL    10
+// uc_orig: CLASS_ANIM_PRIM (fallen/Headers/Game.h)
+#define CLASS_ANIM_PRIM  11
+// uc_orig: CLASS_CHOPPER (fallen/Headers/Game.h)
+#define CLASS_CHOPPER    12
+// uc_orig: CLASS_PYRO (fallen/Headers/Game.h)
+#define CLASS_PYRO       13
+// uc_orig: CLASS_TRACK (fallen/Headers/Game.h)
+#define CLASS_TRACK      14
+// uc_orig: CLASS_PLAT (fallen/Headers/Game.h)
+#define CLASS_PLAT       15
+// uc_orig: CLASS_BARREL (fallen/Headers/Game.h)
+#define CLASS_BARREL     16
+// uc_orig: CLASS_BIKE (fallen/Headers/Game.h)
+#define CLASS_BIKE       17
+// uc_orig: CLASS_BAT (fallen/Headers/Game.h)
+#define CLASS_BAT        18
+// uc_orig: CLASS_END (fallen/Headers/Game.h)
+#define CLASS_END        19
 
 // Scratch array for spatial queries (size 32).
 // uc_orig: THING_ARRAY_SIZE (fallen/Headers/Thing.h)

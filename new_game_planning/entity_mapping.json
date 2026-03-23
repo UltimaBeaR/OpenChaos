@@ -85989,6 +85989,2136 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_DIST",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DRAW_DIST",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "THING_INDEX",
+      "file": "new/core/types.h",
+      "orig_name": "THING_INDEX",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COMMON_INDEX",
+      "file": "new/core/types.h",
+      "orig_name": "COMMON_INDEX",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAPCO8",
+      "file": "new/core/types.h",
+      "orig_name": "MAPCO8",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAPCO16",
+      "file": "new/core/types.h",
+      "orig_name": "MAPCO16",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAPCO24",
+      "file": "new/core/types.h",
+      "orig_name": "MAPCO24",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GS_ATTRACT_MODE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GS_ATTRACT_MODE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GS_PLAY_GAME",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GS_PLAY_GAME",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GS_CONFIGURE_NET",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GS_CONFIGURE_NET",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GS_LEVEL_WON",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GS_LEVEL_WON",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GS_LEVEL_LOST",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GS_LEVEL_LOST",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GS_GAME_WON",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GS_GAME_WON",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GS_RECORD",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GS_RECORD",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GS_PLAYBACK",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GS_PLAYBACK",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GS_REPLAY",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GS_REPLAY",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GS_EDITOR",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GS_EDITOR",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_INDOORS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_INDOORS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_SEWERS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_SEWERS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_PAUSED",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_PAUSED",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_RAINING",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_RAINING",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_WINDY",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_WINDY",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_SHOW_MAP",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_SHOW_MAP",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_SHOW_CRIMERATE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_SHOW_CRIMERATE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_PLAYER_FIRED_GUN",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_PLAYER_FIRED_GUN",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_CONE_PENALTIES",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_CONE_PENALTIES",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_CARS_WITH_ROAD_PRIMS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_CARS_WITH_ROAD_PRIMS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_SIDE_ON_COMBAT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_SIDE_ON_COMBAT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_NO_FLOOR",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_NO_FLOOR",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GF_DISABLE_BENCH_HEALTH",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GF_DISABLE_BENCH_HEALTH",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_SEASON_SPRING",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_SEASON_SPRING",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_SEASON_SUMMER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_SEASON_SUMMER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_SEASON_AUTUMN",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_SEASON_AUTUMN",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_SEASON_WINTER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_SEASON_WINTER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_TIME_DAWN",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_TIME_DAWN",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_TIME_DUSK",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_TIME_DUSK",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DETAIL_DIRT1",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DETAIL_DIRT1",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DETAIL_DIRT2",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DETAIL_DIRT2",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DETAIL_PUDDLE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DETAIL_PUDDLE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DETAIL_REFLECTIONS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DETAIL_REFLECTIONS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DETAIL_SHADOWS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DETAIL_SHADOWS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DETAIL_SPLASH",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DETAIL_SPLASH",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DETAIL_MIST",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DETAIL_MIST",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DETAIL_RAIN",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DETAIL_RAIN",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ENGINE_Col",
+      "file": "new/missions/game_types.h",
+      "orig_name": "ENGINE_Col",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "Game",
+      "file": "new/missions/game_types.h",
+      "orig_name": "Game",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TICK_SHIFT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TICK_SHIFT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NORMAL_TICK_TOCK",
+      "file": "new/missions/game_types.h",
+      "orig_name": "NORMAL_TICK_TOCK",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TICK_TOCK",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TICK_TOCK",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TICK_RATIO",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TICK_RATIO",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TICK_INV_RATIO",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TICK_INV_RATIO",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_STATE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_STATE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_TURN",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_TURN",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_FLAGS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_FLAGS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_TIME",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_TIME",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_SEASON",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_SEASON",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CRIME_RATE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "CRIME_RATE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CRIME_RATE_SCORE_MUL",
+      "file": "new/missions/game_types.h",
+      "orig_name": "CRIME_RATE_SCORE_MUL",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MUSIC_WORLD",
+      "file": "new/missions/game_types.h",
+      "orig_name": "MUSIC_WORLD",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BOREDOM_RATE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "BOREDOM_RATE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_SET",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TEXTURE_SET",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FAKE_CIVS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "FAKE_CIVS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_VALID",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SAVE_VALID",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "RAND_SEED",
+      "file": "new/missions/game_types.h",
+      "orig_name": "RAND_SEED",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_TWEEN_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DRAW_TWEEN_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_MESH_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DRAW_MESH_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PERSON_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIMAL_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "ANIMAL_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CHOPPER_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "CHOPPER_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PYRO_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PLAYER_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PLAYER_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PROJECTILE_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PROJECTILE_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SPECIAL_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SPECIAL_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SWITCH_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SWITCH_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BAT_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "BAT_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIMARY_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PRIMARY_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SECONDARY_COUNT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SECONDARY_COUNT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NET_PERSON",
+      "file": "new/missions/game_types.h",
+      "orig_name": "NET_PERSON",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NET_PLAYER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "NET_PLAYER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP",
+      "file": "new/missions/game_types.h",
+      "orig_name": "MAP",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP2",
+      "file": "new/missions/game_types.h",
+      "orig_name": "MAP2",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAP_WHO",
+      "file": "new/missions/game_types.h",
+      "orig_name": "MAP_WHO",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIMARY_USED",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PRIMARY_USED",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIMARY_UNUSED",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PRIMARY_UNUSED",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SECONDARY_USED",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SECONDARY_USED",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SECONDARY_UNUSED",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SECONDARY_UNUSED",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_TWEENS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DRAW_TWEENS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_MESHES",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DRAW_MESHES",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NETPERSON",
+      "file": "new/missions/game_types.h",
+      "orig_name": "NETPERSON",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NETPLAYERS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "NETPLAYERS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURNITURE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "FURNITURE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PEOPLE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PEOPLE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIMALS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "ANIMALS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CHOPPERS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "CHOPPERS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYROS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PYROS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PLAYERS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PLAYERS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PROJECTILES",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PROJECTILES",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SPECIALS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SPECIALS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SWITCHES",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SWITCHES",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "THINGS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "THINGS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "VEHICLES",
+      "file": "new/missions/game_types.h",
+      "orig_name": "VEHICLES",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BATS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "BATS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "INDOORS_HEIGHT_FLOOR",
+      "file": "new/missions/game_types.h",
+      "orig_name": "INDOORS_HEIGHT_FLOOR",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "INDOORS_HEIGHT_CEILING",
+      "file": "new/missions/game_types.h",
+      "orig_name": "INDOORS_HEIGHT_CEILING",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "INDOORS_DBUILDING",
+      "file": "new/missions/game_types.h",
+      "orig_name": "INDOORS_DBUILDING",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "INDOORS_INDEX_FADE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "INDOORS_INDEX_FADE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "INDOORS_INDEX_FADE_EXT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "INDOORS_INDEX_FADE_EXT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "INDOORS_INDEX_FADE_EXT_DIR",
+      "file": "new/missions/game_types.h",
+      "orig_name": "INDOORS_INDEX_FADE_EXT_DIR",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "INDOORS_ROOM_NEXT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "INDOORS_ROOM_NEXT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "INDOORS_INDEX_NEXT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "INDOORS_INDEX_NEXT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "INDOORS_INDEX",
+      "file": "new/missions/game_types.h",
+      "orig_name": "INDOORS_INDEX",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "INDOORS_ROOM",
+      "file": "new/missions/game_types.h",
+      "orig_name": "INDOORS_ROOM",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_DRAW_TWEEN",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_DRAW_TWEEN",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_DRAW_MESH",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_DRAW_MESH",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_VEHICLE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_VEHICLE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_FURNITURE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_FURNITURE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_PERSON",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_PERSON",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_ANIMAL",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_ANIMAL",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_CHOPPER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_CHOPPER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_PYRO",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_PYRO",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_PLAYER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_PLAYER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_PROJECTILE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_PROJECTILE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_SPECIAL",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_SPECIAL",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_SWITCH",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_SWITCH",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_THING",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_THING",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TO_BAT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "TO_BAT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIMAL_NUMBERb",
+      "file": "new/missions/game_types.h",
+      "orig_name": "ANIMAL_NUMBERb",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CHOPPER_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "CHOPPER_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_TWEEN_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DRAW_TWEEN_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DRAW_MESH_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DRAW_MESH_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "VEHICLE_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "VEHICLE_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURNITURE_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "FURNITURE_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PERSON_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PERSON_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PLAYER_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PLAYER_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PROJECTILE_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PROJECTILE_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SPECIAL_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SPECIAL_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SWITCH_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SWITCH_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PYRO_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PYRO_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BAT_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "BAT_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "THING_NUMBER",
+      "file": "new/missions/game_types.h",
+      "orig_name": "THING_NUMBER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "stop_all_fx_and_music",
+      "file": "new/missions/game_types.h",
+      "orig_name": "stop_all_fx_and_music",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "calc_angle",
+      "file": "new/missions/game_types.h",
+      "orig_name": "calc_angle",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "angle_diff",
+      "file": "new/missions/game_types.h",
+      "orig_name": "angle_diff",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ResetSmoothTicks",
+      "file": "new/missions/game_types.h",
+      "orig_name": "ResetSmoothTicks",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SmoothTicks",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SmoothTicks",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SetSeed",
+      "file": "new/missions/game_types.h",
+      "orig_name": "SetSeed",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GetSeed",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GetSeed",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "Random",
+      "file": "new/missions/game_types.h",
+      "orig_name": "Random",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_50MGT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_50MGT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_50MT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_50MT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_MGT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_MGT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_MT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_MT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_NULL",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_NULL",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_50F",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_50F",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_50GT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_50GT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_50T",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_50T",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_50G",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_50G",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_TGT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_TGT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_GT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_GT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_TT",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_TT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_T",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_T",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_G",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_G",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_F",
+      "file": "new/missions/game_types.h",
+      "orig_name": "POLY_F",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "USER_INTERFACE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "USER_INTERFACE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NO_PLAYERS",
+      "file": "new/missions/game_types.h",
+      "orig_name": "NO_PLAYERS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PACKET_DATA",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PACKET_DATA",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PLAYER_ID",
+      "file": "new/missions/game_types.h",
+      "orig_name": "PLAYER_ID",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GAME_SCORE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "GAME_SCORE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MY_SCORE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "MY_SCORE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ENGINE_palette",
+      "file": "new/missions/game_types.h",
+      "orig_name": "ENGINE_palette",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DETAIL_LEVEL",
+      "file": "new/missions/game_types.h",
+      "orig_name": "DETAIL_LEVEL",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_FLAG_GOURAD",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_FLAG_GOURAD",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_FLAG_TEXTURED",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_FLAG_TEXTURED",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_FLAG_MASKED",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_FLAG_MASKED",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_FLAG_SEMI_TRANS",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_FLAG_SEMI_TRANS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_FLAG_ALPHA",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_FLAG_ALPHA",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_FLAG_TILED",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_FLAG_TILED",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_FLAG_DOUBLESIDED",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_FLAG_DOUBLESIDED",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "POLY_FLAG_WALKABLE",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "POLY_FLAG_WALKABLE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_RADIUS",
+      "file": "new/engine/graphics/pipeline/poly.h",
+      "orig_name": "MAX_RADIUS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_NONE",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_NONE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_PLAYER",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_PLAYER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_CAMERA",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_CAMERA",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_PROJECTILE",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_PROJECTILE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_BUILDING",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_BUILDING",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_PERSON",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_PERSON",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_ANIMAL",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_ANIMAL",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_FURNITURE",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_FURNITURE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_SWITCH",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_SWITCH",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_VEHICLE",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_VEHICLE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_SPECIAL",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_SPECIAL",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_ANIM_PRIM",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_ANIM_PRIM",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_CHOPPER",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_CHOPPER",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_PYRO",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_PYRO",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_TRACK",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_TRACK",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_PLAT",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_PLAT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_BARREL",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_BARREL",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_BIKE",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_BIKE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_BAT",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_BAT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLASS_END",
+      "file": "new/actors/core/thing.h",
+      "orig_name": "CLASS_END",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MemTable",
+      "file": "new/missions/save.h",
+      "orig_name": "MemTable",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "save_table",
+      "file": "new/missions/save.h",
+      "orig_name": "save_table",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_TABLE_VEHICLE",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_TABLE_VEHICLE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_TABLE_PEOPLE",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_TABLE_PEOPLE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_TABLE_SPECIAL",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_TABLE_SPECIAL",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_TABLE_BAT",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_TABLE_BAT",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_TABLE_DTWEEN",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_TABLE_DTWEEN",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_TABLE_DMESH",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_TABLE_DMESH",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_TABLE_WMOVE",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_TABLE_WMOVE",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_TABLE_POINTS",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_TABLE_POINTS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_TABLE_FACE4",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_TABLE_FACE4",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SAVE_TABLE_PLATS",
+      "file": "new/missions/save.h",
+      "orig_name": "SAVE_TABLE_PLATS",
+      "orig_file": "fallen/Headers/Game.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "VIOLENCE",
+      "file": "new/missions/game_types.h",
+      "orig_name": "VIOLENCE",
+      "orig_file": "fallen/Source/Game.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DWORD",
+      "file": "new/core/types.h",
+      "orig_name": "DWORD",
+      "orig_file": "MFStdLib/Headers/MFStdLib.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
