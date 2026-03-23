@@ -1,4 +1,0 @@
-#ifndef FALLEN_DDLIBRARY_HEADERS_NET_H
-#define FALLEN_DDLIBRARY_HEADERS_NET_H
-#include "engine/net/net.h"
-#endif // FALLEN_DDLIBRARY_HEADERS_NET_H
