@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 152 — outro: imp.cpp (SEX mesh importer) (2026-03-23)
+
+- `IMP_norm_similar`, `IMP_normalise_vector`, `IMP_add_line` — статические хелперы в оригинале; сохранены как `static` в `outro_imp.cpp`.
+- Нет глобальных переменных — `_globals` файлы не создавались.
+- `imp.h` redirect (все типы/макросы перенесены в `outro_imp.h`); `os.h` включён как Temporary — нужен для `OS_Texture*`/`OS_Buffer*` в `IMP_Mat`.
+
+---
+
 ## Итерация 151 — outro: outroFont, wire, outroMain (2026-03-23)
 
 - `the_end` в `outroMain.cpp` исходно объявлена `extern UBYTE the_end;` внутри тела функции; сохранено 1:1 (не заменять на include `missions/game_globals.h` — DAG нарушение ui→missions).

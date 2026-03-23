@@ -287,6 +287,7 @@ set(SOURCES_OUTRO
     src/new/ui/cutscenes/outro/outro_wire.cpp
     src/new/ui/cutscenes/outro/outro_wire_globals.cpp
     src/new/ui/cutscenes/outro/outro_main.cpp
+    src/new/ui/cutscenes/outro/outro_imp.cpp
 )
 
 set(SOURCES_GAME

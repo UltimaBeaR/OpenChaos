@@ -79369,6 +79369,266 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_ALPHA_FILTERED",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_ALPHA_FILTERED",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_ALPHA_ADDITIVE",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_ALPHA_ADDITIVE",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_SIDED_SINGLE",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_SIDED_SINGLE",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_SIDED_DOUBLE",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_SIDED_DOUBLE",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_FACE_FLAG_EDGE",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_FACE_FLAG_EDGE",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_FACE_FLAG_EDGE_A",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_FACE_FLAG_EDGE_A",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_FACE_FLAG_EDGE_B",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_FACE_FLAG_EDGE_B",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_FACE_FLAG_EDGE_C",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_FACE_FLAG_EDGE_C",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_FACE_FLAG_QUADDED",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_FACE_FLAG_QUADDED",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_FACE_FLAG_BACKFACE",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_FACE_FLAG_BACKFACE",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_Mat",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_Mat",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_Vert",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_Vert",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_Tvert",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_Tvert",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_Svert",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_Svert",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_Face",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_Face",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_Quad",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_Quad",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_Edge",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_Edge",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_Line",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_Line",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_Mesh",
+      "file": "new/ui/cutscenes/outro/outro_imp.h",
+      "orig_name": "IMP_Mesh",
+      "orig_file": "fallen/outro/imp.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_load",
+      "file": "new/ui/cutscenes/outro/outro_imp.cpp",
+      "orig_name": "IMP_load",
+      "orig_file": "fallen/outro/imp.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_free",
+      "file": "new/ui/cutscenes/outro/outro_imp.cpp",
+      "orig_name": "IMP_free",
+      "orig_file": "fallen/outro/imp.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_binary_save",
+      "file": "new/ui/cutscenes/outro/outro_imp.cpp",
+      "orig_name": "IMP_binary_save",
+      "orig_file": "fallen/outro/imp.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_binary_load",
+      "file": "new/ui/cutscenes/outro/outro_imp.cpp",
+      "orig_name": "IMP_binary_load",
+      "orig_file": "fallen/outro/imp.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_norm_similar",
+      "file": "new/ui/cutscenes/outro/outro_imp.cpp",
+      "orig_name": "IMP_norm_similar",
+      "orig_file": "fallen/outro/imp.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_normalise_vector",
+      "file": "new/ui/cutscenes/outro/outro_imp.cpp",
+      "orig_name": "IMP_normalise_vector",
+      "orig_file": "fallen/outro/imp.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "IMP_add_line",
+      "file": "new/ui/cutscenes/outro/outro_imp.cpp",
+      "orig_name": "IMP_add_line",
+      "orig_file": "fallen/outro/imp.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
